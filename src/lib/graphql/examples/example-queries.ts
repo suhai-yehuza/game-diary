@@ -1,3 +1,5 @@
+import { gql } from "graphql-tag";
+
 // Sample Queries
 
 // Remember:
@@ -6,7 +8,7 @@
 // The values should match the expected format (e.g., dates in YYYY-MM-DD)
 
 // Get all seasons
-export const GET_SEASONS = `
+export const GET_SEASONS = gql`
   query GetSeasons {
     seasons {
       id
@@ -19,7 +21,7 @@ export const GET_SEASONS = `
 `;
 
 // Get all leagues
-export const GET_LEAGUES = `
+export const GET_LEAGUES = gql`
   query GetLeagues {
     leagues {
       id
@@ -47,7 +49,7 @@ export const GET_LEAGUES = `
 //   }
 // }
 
-export const GET_GAMES = `
+export const GET_GAMES = gql`
   query GetGames($filters: GameFilters) {
     games(filters: $filters) {
       id
@@ -88,7 +90,7 @@ export const GET_GAMES = `
 `;
 
 // Get teams with filters
-export const GET_TEAMS = `
+export const GET_TEAMS = gql`
   query GetTeams($filters: TeamFilters) {
     teams(filters: $filters) {
       id
@@ -108,7 +110,7 @@ export const GET_TEAMS = `
 `;
 
 // Get players with filters
-export const GET_PLAYERS = `
+export const GET_PLAYERS = gql`
   query GetPlayers($filters: PlayerFilters) {
     players(filters: $filters) {
       id
@@ -137,7 +139,7 @@ export const GET_PLAYERS = `
 `;
 
 // Get standings
-export const GET_STANDINGS = `
+export const GET_STANDINGS = gql`
   query GetStandings {
     standings {
       team {
@@ -170,7 +172,7 @@ export const GET_STANDINGS = `
 `;
 
 // Get game statistics
-export const GET_GAME_STATS = `
+export const GET_GAME_STATS = gql`
   query GetGameStats($game_id: ID!) {
     game_stats(game_id: $game_id) {
       game_id
@@ -190,7 +192,7 @@ export const GET_GAME_STATS = `
 `;
 
 // Get player statistics
-export const GET_PLAYER_STATS = `
+export const GET_PLAYER_STATS = gql`
   query GetPlayerStats($player_id: ID!, $season: Int!) {
     player_stats(player_id: $player_id, season: $season) {
       points_per_game
@@ -204,7 +206,7 @@ export const GET_PLAYER_STATS = `
 `;
 
 // Get game rating
-export const GET_GAME_RATING = `
+export const GET_GAME_RATING = gql`
   query GetGameRating($game_id: String!) {
     game_rating(game_id: $game_id) {
       id
@@ -218,7 +220,7 @@ export const GET_GAME_RATING = `
 `;
 
 // Get multiple game ratings
-export const GET_GAME_RATINGS = `
+export const GET_GAME_RATINGS = gql`
   query GetGameRatings($game_ids: [String!]!) {
     game_ratings(game_ids: $game_ids) {
       id
@@ -232,7 +234,7 @@ export const GET_GAME_RATINGS = `
 `;
 
 // Get game logs
-export const GET_GAME_LOGS_QUERY = `
+export const GET_GAME_LOGS_QUERY = gql`
   query GetGameLogs {
     game_logs {
       id
@@ -251,7 +253,6 @@ export const GET_GAME_LOGS_QUERY = `
         username
         first_name
         last_name
-        email_address
         image_url
       }
       game {
@@ -259,12 +260,6 @@ export const GET_GAME_LOGS_QUERY = `
         game_id
         average_rating
         total_ratings
-      }
-      comments {
-        id
-        content
-        created_at
-        updated_at
       }
     }
   }
