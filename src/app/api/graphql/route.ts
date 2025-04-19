@@ -6,6 +6,7 @@ import { gql } from "graphql-tag";
 import { db } from "../../../db";
 import { cache } from "../../../lib/redis";
 import { Redis } from "@upstash/redis";
+import { NextRequest } from "next/server";
 
 type Context = {
   db: typeof db;
@@ -27,4 +28,10 @@ const handler = startServerAndCreateNextHandler(server, {
   }),
 });
 
-export { handler as GET, handler as POST };
+export async function GET(request: NextRequest) {
+  return handler(request);
+}
+
+export async function POST(request: NextRequest) {
+  return handler(request);
+}
