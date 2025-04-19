@@ -3,7 +3,7 @@
 import { useQuery } from "@apollo/client";
 import { GET_GAME_LOG } from "../../../lib/graphql/queries";
 import { useParams } from "next/navigation";
-import { GameLogResponse } from "@/src/lib/types/types";
+import { GameLogResponse } from "../../../lib/types/types";
 import { useEffect, useState } from "react";
 export default function GameLogPage() {
   const params = useParams();
