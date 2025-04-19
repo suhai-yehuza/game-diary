@@ -1,5 +1,22 @@
 // Example Query Responses
 
+// Type definitions
+interface CommentResponse {
+  id: string;
+  user_id: string;
+  parent_id: string;
+  content: string;
+  created_at: string;
+  updated_at: string;
+  user: {
+    id: string;
+    username: string;
+    first_name: string;
+    last_name: string;
+    image_url: string;
+  };
+}
+
 export const GET_SEASONS_RESPONSE = {
   seasons: [
     {
@@ -368,53 +385,77 @@ export const GET_GAME_RATING_RESPONSE = {
 };
 
 export const GET_GAME_LOG_RESPONSE = {
-  gameLog: {
-    id: "log123",
-    user_id: "user123",
-    game_id: "game123",
-    watched_setting: "arena",
+  game_log: {
+    id: "game-log-1",
+    user_id: "user-1",
+    game_id: "game-1",
+    watched_setting: "tv",
     watched_date: "2024-04-14T19:30:00Z",
-    watched_location: "TD Garden",
-    rating_for_game: 5,
-    rating_stars: "5",
+    watched_location: "Home",
+    rating_for_game: 4.5,
+    rating_stars: "4.5",
     watched_count: 1,
     created_at: "2024-04-14T19:30:00Z",
     updated_at: "2024-04-14T19:30:00Z",
     user: {
-      id: "user123",
-      username: "johndoe",
+      id: "user-1",
+      username: "celticsfan",
       first_name: "John",
       last_name: "Doe",
-      email_address: "john.doe@example.com",
-      image_url: "https://example.com/johndoe.jpg",
-      created_at: "2024-01-01T00:00:00Z",
-      updated_at: "2024-01-01T00:00:00Z",
-      banned: false,
-      inbound_friendship_ids: [],
-      outbound_friendship_ids: [],
+      image_url: "https://example.com/avatar.jpg",
     },
+    game: {
+      id: "game-1",
+      game_id: "123456",
+      average_rating: "4.5",
+      total_ratings: 100,
+    },
+    comments: [
+      {
+        id: "comment-1",
+        user_id: "user-1",
+        parent_id: "game-log-1",
+        content: "Great game! The Celtics played really well.",
+        created_at: "2024-04-14T20:30:00Z",
+        updated_at: "2024-04-14T20:30:00Z",
+        user: {
+          id: "user-1",
+          username: "celticsfan",
+          first_name: "John",
+          last_name: "Doe",
+          image_url: "https://example.com/avatar.jpg",
+        },
+      },
+    ],
   },
 };
 
 export const GET_COMMENT_RESPONSE = {
   comment: {
-    id: "comment123",
-    user_id: "user123",
-    parent_id: "log123",
-    content: "Great game! The Celtics played amazing defense.",
-    created_at: "2024-04-14T22:30:00Z",
-    updated_at: "2024-04-14T22:30:00Z",
+    id: "comment-1",
+    user_id: "user-1",
+    parent_id: "game-log-1",
+    content: "Great game! The Celtics played really well.",
+    created_at: "2024-04-14T20:30:00Z",
+    updated_at: "2024-04-14T20:30:00Z",
+    user: {
+      id: "user-1",
+      username: "celticsfan",
+      first_name: "John",
+      last_name: "Doe",
+      image_url: "https://example.com/avatar.jpg",
+    },
   },
 };
 
 export const GET_USER_RESPONSE = {
   user: {
-    id: "user123",
-    username: "johndoe",
+    id: "user-1",
+    username: "celticsfan",
     first_name: "John",
     last_name: "Doe",
     email_address: "john.doe@example.com",
-    image_url: "https://example.com/johndoe.jpg",
+    image_url: "https://example.com/avatar.jpg",
     created_at: "2024-01-01T00:00:00Z",
     updated_at: "2024-01-01T00:00:00Z",
     banned: false,
@@ -422,35 +463,35 @@ export const GET_USER_RESPONSE = {
     outbound_friendship_ids: [],
     initiated_friendships: [
       {
-        id: "friendship123",
-        status: "accepted",
-        timestamp: "2024-01-02T00:00:00Z",
+        id: "friendship-1",
+        status: "connected",
+        timestamp: "2024-01-01T00:00:00Z",
         responder: {
-          username: "janedoe",
-          image_url: "https://example.com/janedoe.jpg",
+          username: "heatfan",
+          image_url: "https://example.com/avatar2.jpg",
         },
       },
     ],
     received_friendships: [
       {
-        id: "friendship456",
-        status: "pending",
-        timestamp: "2024-01-03T00:00:00Z",
+        id: "friendship-2",
+        status: "connected",
+        timestamp: "2024-01-01T00:00:00Z",
         initiator: {
-          username: "bobsmith",
-          image_url: "https://example.com/bobsmith.jpg",
+          username: "lakersfan",
+          image_url: "https://example.com/avatar3.jpg",
         },
       },
     ],
     game_logs: [
       {
-        id: "log123",
-        game_id: "game123",
-        watched_setting: "arena",
+        id: "game-log-1",
+        game_id: "game-1",
+        watched_setting: "tv",
         watched_date: "2024-04-14T19:30:00Z",
-        watched_location: "TD Garden",
-        rating_for_game: 5,
-        rating_stars: "5",
+        watched_location: "Home",
+        rating_for_game: 4.5,
+        rating_stars: "4.5",
         watched_count: 1,
         created_at: "2024-04-14T19:30:00Z",
         updated_at: "2024-04-14T19:30:00Z",
@@ -502,6 +543,13 @@ export const exampleCommentResponse: CommentResponse = {
   content: "This is a comment",
   created_at: "2024-03-20T12:00:00Z",
   updated_at: "2024-03-20T12:00:00Z",
+  user: {
+    id: "456",
+    username: "commenter1",
+    first_name: "John",
+    last_name: "Doe",
+    image_url: "https://example.com/avatar1.jpg",
+  },
 };
 
 export const exampleCommentsResponse: CommentResponse[] = [
@@ -512,6 +560,13 @@ export const exampleCommentsResponse: CommentResponse[] = [
     content: "This is a comment",
     created_at: "2024-03-20T12:00:00Z",
     updated_at: "2024-03-20T12:00:00Z",
+    user: {
+      id: "456",
+      username: "commenter1",
+      first_name: "John",
+      last_name: "Doe",
+      image_url: "https://example.com/avatar1.jpg",
+    },
   },
   {
     id: "124",
@@ -520,6 +575,13 @@ export const exampleCommentsResponse: CommentResponse[] = [
     content: "This is another comment",
     created_at: "2024-03-20T12:01:00Z",
     updated_at: "2024-03-20T12:01:00Z",
+    user: {
+      id: "457",
+      username: "commenter2",
+      first_name: "Jane",
+      last_name: "Doe",
+      image_url: "https://example.com/avatar2.jpg",
+    },
   },
 ];
 
@@ -530,6 +592,13 @@ export const exampleCreateCommentResponse: CommentResponse = {
   content: "This is a new comment",
   created_at: "2024-03-20T12:00:00Z",
   updated_at: "2024-03-20T12:00:00Z",
+  user: {
+    id: "456",
+    username: "commenter1",
+    first_name: "John",
+    last_name: "Doe",
+    image_url: "https://example.com/avatar1.jpg",
+  },
 };
 
 export const exampleUpdateCommentResponse: CommentResponse = {
@@ -539,8 +608,149 @@ export const exampleUpdateCommentResponse: CommentResponse = {
   content: "This is an updated comment",
   created_at: "2024-03-20T12:00:00Z",
   updated_at: "2024-03-20T12:05:00Z",
+  user: {
+    id: "456",
+    username: "commenter1",
+    first_name: "John",
+    last_name: "Doe",
+    image_url: "https://example.com/avatar1.jpg",
+  },
 };
 
 export const exampleDeleteCommentResponse: { id: string } = {
   id: "123",
+};
+
+export const GET_COMMENTS_RESPONSE = {
+  comments: [
+    {
+      id: "comment-1",
+      user_id: "user-1",
+      parent_id: "game-log-1",
+      content: "Great game! The Celtics played really well.",
+      created_at: "2024-04-14T20:30:00Z",
+      updated_at: "2024-04-14T20:30:00Z",
+      user: {
+        id: "user-1",
+        username: "celticsfan",
+        first_name: "John",
+        last_name: "Doe",
+        image_url: "https://example.com/avatar.jpg",
+      },
+    },
+  ],
+};
+
+export const GET_USER_GAME_LOGS_RESPONSE = {
+  user: {
+    game_logs: [
+      {
+        id: "game-log-1",
+        game_id: "game-1",
+        watched_setting: "tv",
+        watched_date: "2024-04-14T19:30:00Z",
+        watched_location: "Home",
+        rating_for_game: 4.5,
+        rating_stars: "4.5",
+        watched_count: 1,
+        created_at: "2024-04-14T19:30:00Z",
+        updated_at: "2024-04-14T19:30:00Z",
+        comments: [
+          {
+            id: "comment-1",
+            user_id: "user-1",
+            parent_id: "game-log-1",
+            content: "Great game! The Celtics played really well.",
+            created_at: "2024-04-14T20:30:00Z",
+            updated_at: "2024-04-14T20:30:00Z",
+            user: {
+              id: "user-1",
+              username: "celticsfan",
+              first_name: "John",
+              last_name: "Doe",
+              image_url: "https://example.com/avatar.jpg",
+            },
+          },
+        ],
+      },
+    ],
+  },
+};
+
+export const GET_ALL_USERS_RESPONSE = {
+  users: [
+    {
+      id: "user-1",
+      username: "celticsfan",
+      first_name: "John",
+      last_name: "Doe",
+      email_address: "john.doe@example.com",
+      image_url: "https://example.com/avatar.jpg",
+      created_at: "2024-01-01T00:00:00Z",
+      updated_at: "2024-01-01T00:00:00Z",
+      banned: false,
+      inbound_friendship_ids: [],
+      outbound_friendship_ids: [],
+    },
+  ],
+};
+
+export const GET_ALL_FRIENDSHIPS_RESPONSE = {
+  friendships: [
+    {
+      id: "friendship-1",
+      status: "connected",
+      subscriber_id: "user-1",
+      user_id: "user-2",
+      timestamp: "2024-01-01T00:00:00Z",
+    },
+  ],
+};
+
+export const GET_ALL_GAME_LOGS_RESPONSE = {
+  game_logs: [
+    {
+      id: "game-log-1",
+      user_id: "user-1",
+      game_id: "game-1",
+      watched_setting: "tv",
+      watched_date: "2024-04-14T19:30:00Z",
+      watched_location: "Home",
+      rating_for_game: 4.5,
+      rating_stars: "4.5",
+      watched_count: 1,
+      created_at: "2024-04-14T19:30:00Z",
+      updated_at: "2024-04-14T19:30:00Z",
+      user: {
+        id: "user-1",
+        username: "celticsfan",
+        first_name: "John",
+        last_name: "Doe",
+        image_url: "https://example.com/avatar.jpg",
+      },
+      game: {
+        id: "game-1",
+        game_id: "123456",
+        average_rating: "4.5",
+        total_ratings: 100,
+      },
+      comments: [
+        {
+          id: "comment-1",
+          user_id: "user-1",
+          parent_id: "game-log-1",
+          content: "Great game! The Celtics played really well.",
+          created_at: "2024-04-14T20:30:00Z",
+          updated_at: "2024-04-14T20:30:00Z",
+          user: {
+            id: "user-1",
+            username: "celticsfan",
+            first_name: "John",
+            last_name: "Doe",
+            image_url: "https://example.com/avatar.jpg",
+          },
+        },
+      ],
+    },
+  ],
 };
