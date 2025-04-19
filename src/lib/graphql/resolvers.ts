@@ -32,27 +32,6 @@ import { StringValueNode } from "graphql";
 // Update the type definition to use PostgreSQL
 type DB = NeonHttpDatabase<typeof schema>;
 
-interface CreateGameLogInput {
-  game_id: string;
-  user_id: string;
-  watched_date: string;
-  watched_setting: string;
-  rating_stars?: number;
-  notes?: string;
-  watched_location?: string;
-  rating_for_game?: number;
-  watched_count?: number;
-}
-
-interface UpdateGameLogInput {
-  game_id?: string;
-  user_id?: string;
-  watched_date?: string;
-  watched_setting?: string;
-  rating_stars?: number;
-  notes?: string;
-}
-
 // Add PaginationArgs type
 interface PaginationArgs {
   first?: number;

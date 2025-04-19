@@ -1,5 +1,5 @@
 {
-  "id": "97c4ad24-f33d-4ef5-9315-0333c39e0671",
+  "id": "06eb89c8-75a2-40d0-8d2b-c16d32b9810f",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -13,7 +13,7 @@
           "type": "text",
           "primaryKey": true,
           "notNull": true,
-          "default": "'4c596edb-9099-474d-9d71-f736d3579166'"
+          "default": "'544a8432-b31c-4786-a0c8-b85b59f2461c'"
         },
         "user_id": {
           "name": "user_id",
@@ -26,6 +26,13 @@
           "type": "text",
           "primaryKey": false,
           "notNull": true
+        },
+        "parent_type": {
+          "name": "parent_type",
+          "type": "reaction_target",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false
         },
         "content": {
           "name": "content",
@@ -191,7 +198,8 @@
           "name": "watched_location",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false,
+          "default": "''"
         },
         "rating_for_game": {
           "name": "rating_for_game",
@@ -240,19 +248,6 @@
           ],
           "onDelete": "no action",
           "onUpdate": "no action"
-        },
-        "game_logs_game_id_game_ratings_game_id_fk": {
-          "name": "game_logs_game_id_game_ratings_game_id_fk",
-          "tableFrom": "game_logs",
-          "tableTo": "game_ratings",
-          "columnsFrom": [
-            "game_id"
-          ],
-          "columnsTo": [
-            "game_id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
@@ -270,7 +265,7 @@
           "type": "varchar(255)",
           "primaryKey": true,
           "notNull": true,
-          "default": "'0c3e70cc-24e1-4527-9dce-e704ed5efd9e'"
+          "default": "'7ef6a1ad-9f54-44e2-8947-c4362312161b'"
         },
         "game_id": {
           "name": "game_id",
@@ -332,7 +327,7 @@
           "type": "text",
           "primaryKey": true,
           "notNull": true,
-          "default": "'e7c20ca0-99ae-464c-9833-83e4783d5c44'"
+          "default": "'2bc1f830-3d49-4502-89f4-681677060e10'"
         },
         "user_id": {
           "name": "user_id",

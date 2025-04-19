@@ -2,9 +2,10 @@ CREATE TYPE "public"."friendship_status" AS ENUM('pending', 'connected', 'reject
 CREATE TYPE "public"."reaction_target" AS ENUM('game_log', 'comment');--> statement-breakpoint
 CREATE TYPE "public"."watched_setting" AS ENUM('tv', 'arena', 'phone', 'laptop', 'bar', 'home', 'other');--> statement-breakpoint
 CREATE TABLE "comments" (
-	"id" text PRIMARY KEY DEFAULT '4c596edb-9099-474d-9d71-f736d3579166' NOT NULL,
+	"id" text PRIMARY KEY DEFAULT '544a8432-b31c-4786-a0c8-b85b59f2461c' NOT NULL,
 	"user_id" text,
 	"parent_id" text NOT NULL,
+	"parent_type" "reaction_target",
 	"content" text NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL
@@ -25,7 +26,7 @@ CREATE TABLE "game_logs" (
 	"game_id" text NOT NULL,
 	"watched_setting" "watched_setting" DEFAULT 'tv' NOT NULL,
 	"watched_date" timestamp (6) with time zone NOT NULL,
-	"watched_location" text NOT NULL,
+	"watched_location" text DEFAULT '',
 	"rating_for_game" integer NOT NULL,
 	"rating_stars" text DEFAULT '',
 	"watched_count" integer DEFAULT 0 NOT NULL,
@@ -34,7 +35,7 @@ CREATE TABLE "game_logs" (
 );
 --> statement-breakpoint
 CREATE TABLE "game_ratings" (
-	"id" varchar(255) PRIMARY KEY DEFAULT '0c3e70cc-24e1-4527-9dce-e704ed5efd9e' NOT NULL,
+	"id" varchar(255) PRIMARY KEY DEFAULT '7ef6a1ad-9f54-44e2-8947-c4362312161b' NOT NULL,
 	"game_id" text NOT NULL,
 	"average_rating" numeric(3, 2) DEFAULT '0.00' NOT NULL,
 	"total_ratings" integer DEFAULT 0 NOT NULL,
@@ -44,7 +45,7 @@ CREATE TABLE "game_ratings" (
 );
 --> statement-breakpoint
 CREATE TABLE "reactions" (
-	"id" text PRIMARY KEY DEFAULT 'e7c20ca0-99ae-464c-9833-83e4783d5c44' NOT NULL,
+	"id" text PRIMARY KEY DEFAULT '2bc1f830-3d49-4502-89f4-681677060e10' NOT NULL,
 	"user_id" text,
 	"target_type" "reaction_target" NOT NULL,
 	"target_id" text NOT NULL,
@@ -73,5 +74,4 @@ ALTER TABLE "comments" ADD CONSTRAINT "comments_user_id_users_id_fk" FOREIGN KEY
 ALTER TABLE "friendships" ADD CONSTRAINT "friendships_subscriber_id_users_id_fk" FOREIGN KEY ("subscriber_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "friendships" ADD CONSTRAINT "friendships_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "game_logs" ADD CONSTRAINT "game_logs_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "game_logs" ADD CONSTRAINT "game_logs_game_id_game_ratings_game_id_fk" FOREIGN KEY ("game_id") REFERENCES "public"."game_ratings"("game_id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "reactions" ADD CONSTRAINT "reactions_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;
