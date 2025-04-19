@@ -1,14 +1,4 @@
 // This file contains functions to fetch data from external APIs.
-import {
-  ApiResponse,
-  Team,
-  Player,
-  Game,
-  Standing,
-  GameStatistics,
-  TeamStatistics,
-  PlayerStatistics,
-} from "./types/types";
 import type {
   SeasonApiResponse,
   LeagueApiResponse,
@@ -29,34 +19,7 @@ export const headers = {
   "x-rapidapi-key": `${process.env.RAPID_API_KEY}`,
 };
 
-// Utility function for database operations with retry logic
-async function executeWithRetry<T>(
-  operation: () => Promise<T>,
-  maxRetries: number = 3,
-  delayMs: number = 1000
-): Promise<T> {
-  let retries = maxRetries;
-  let lastError: Error | unknown;
-
-  while (retries > 0) {
-    try {
-      return await operation();
-    } catch (error) {
-      lastError = error;
-      retries--;
-      if (retries > 0) {
-        console.log(`Retrying operation, ${retries} attempts remaining...`);
-        await new Promise((resolve) => setTimeout(resolve, delayMs));
-      }
-    }
-  }
-
-  console.error("Operation failed after all retries:", lastError);
-  throw new Error(
-    `Operation failed after ${maxRetries} attempts: ${lastError instanceof Error ? lastError.message : "Unknown error"}`
-  );
-}
-
+// Utility function for API requests with retry logic
 async function fetchWithRetry(
   url: string,
   options: RequestInit,

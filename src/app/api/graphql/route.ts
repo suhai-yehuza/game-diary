@@ -22,7 +22,7 @@ const server = new ApolloServer({
 });
 
 const handler = startServerAndCreateNextHandler(server, {
-  context: async (req: NextApiRequest, res: NextApiResponse) => ({
+  context: async (): Promise<Context> => ({
     db,
     redis: cache as unknown as Redis,
   }),

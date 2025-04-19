@@ -46,7 +46,7 @@ export const NbaDataClient = () => {
   const [selectedPosition, setSelectedPosition] = useState<Position | "all">(
     "all"
   );
-  const [selectedStatus] = useState<string>("all");
+  // const [selectedStatus] = useState<string>("all");
   const [teamSort, setTeamSort] = useState<TeamSort>("WINS");
   const [playerSort, setPlayerSort] = useState<PlayerSort>("POINTS");
   const [sortBy] = useState<SortOption>("ASC");
@@ -177,8 +177,8 @@ export const NbaDataClient = () => {
   }, [friendshipsData]);
 
   const currentSeason: Season | undefined = seasonData?.season;
-  const todaysGames: Game[] = gamesData?.todaysGames || [];
-  const teams: Team[] = teamsData?.teams || [];
+  // const todaysGames: Game[] = gamesData?.todaysGames || [];
+  // const teams: Team[] = teamsData?.teams || [];
   const topPlayers: Player[] = playersData?.topPlayers || [];
 
   if (!seasonData || !gamesData || !teamsData || !playersData) {

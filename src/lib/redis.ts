@@ -62,7 +62,7 @@ export const cache = {
   },
 
   // Set cached data with expiration
-  set: (key: string, value: any, ttl: number = 3600): Promise<void> => {
+  set: <T>(key: string, value: T, ttl: number = 3600): Promise<void> => {
     return new Promise((resolve) => {
       if (!redisClient || !isRedisAvailable) {
         resolve();
