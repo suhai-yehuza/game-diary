@@ -5,7 +5,6 @@ import { resolvers } from "../../../lib/graphql/resolvers";
 import { gql } from "graphql-tag";
 import { db } from "../../../db";
 import { cache } from "../../../lib/redis";
-import { NextApiRequest, NextApiResponse } from "next";
 import { Redis } from "@upstash/redis";
 
 type Context = {

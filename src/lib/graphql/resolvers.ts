@@ -3,31 +3,22 @@ import {
   fetchNbaLeagues,
   fetchNbaGames,
   fetchNbaTeams,
-  fetchNbaPlayers,
   fetchNbaPlayerById,
   fetchNbaStandings,
   fetchNbaGameStats,
   fetchNbaTeamStats,
   fetchNbaPlayerStats,
-  fetchNbaGameStatistics,
   headers,
 } from "../external-apis";
 import {
-  GameApiResponse as ExternalGameApiResponse,
   TeamSearchApiResponse,
-  PlayersApiResponse as ExternalPlayersApiResponse,
-  GameFilters,
   TeamFilters,
-  PlayerFilters,
 } from "../types/types";
 import { db } from "../../db";
 import * as schema from "../../db/schema";
-import { eq, inArray, sql, desc } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import {
   Team,
-  GameStatistics,
-  TeamStatistics,
-  PlayerStatistics,
   User,
   Friendship,
   GameLog,
@@ -35,12 +26,9 @@ import {
   Reaction,
 } from "../types/types";
 import { cache, CACHE_KEYS, CACHE_TTL } from "../redis";
-import { DrizzleD1Database } from "drizzle-orm/d1";
 import { Redis } from "@upstash/redis";
 import { NeonHttpDatabase } from "drizzle-orm/neon-http";
-import { GraphQLResolveInfo } from "graphql";
-
-type Parent = unknown;
+import { StringValueNode } from "graphql";
 
 // Update the type definition to use PostgreSQL
 type DB = NeonHttpDatabase<typeof schema>;
@@ -155,7 +143,7 @@ export const resolvers = {
   DateTime: {
     serialize: (value: Date) => value.toISOString(),
     parseValue: (value: string) => new Date(value),
-    parseLiteral: (ast: any) => {
+    parseLiteral: (ast: StringValueNode) => {
       if (ast.kind === "StringValue") {
         return new Date(ast.value);
       }
