@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle -->
+  <circle cx="100" cy="100" r="90" fill="#E5E7EB" stroke="#9CA3AF" stroke-width="2"/>
+  
+  <!-- Player silhouette -->
+  <path d="M100 40 C 130 40, 160 70, 160 100 C 160 130, 130 160, 100 160 C 70 160, 40 130, 40 100 C 40 70, 70 40, 100 40" 
+        fill="#9CA3AF"/>
+  
+  <!-- Head -->
+  <circle cx="100" cy="80" r="25" fill="#9CA3AF"/>
+  
+  <!-- Jersey number -->
+  <text x="100" y="120" font-family="Arial, sans-serif" font-size="40" font-weight="bold" text-anchor="middle" fill="#E5E7EB">#</text>
+</svg> 

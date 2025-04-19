@@ -1,0 +1,38 @@
+import { z } from 'zod';
+
+import { CLASSIFICATIONS, WATCHED_SETTINGS } from '@/lib/types/config.types';
+
+export type GameLogClassification = (typeof CLASSIFICATIONS)[keyof typeof CLASSIFICATIONS];
+export type GameLogWatchedSetting = (typeof WATCHED_SETTINGS)[keyof typeof WATCHED_SETTINGS];
+
+export type CreateGameLogInput = {
+  game_id: string;
+  user_id: string;
+  classification?: GameLogClassification;
+  notes?: string;
+  rating?: number;
+  watched_settings?: GameLogWatchedSetting;
+};
+
+export const createGameLogSchema = z.object({
+  game_id: z.string(),
+  user_id: z.string(),
+  classification: z
+    .enum([CLASSIFICATIONS.PRIVATE, CLASSIFICATIONS.PROTECTED, CLASSIFICATIONS.PUBLIC])
+    .optional()
+    .default(CLASSIFICATIONS.PROTECTED),
+  notes: z.string().optional(),
+  rating: z.number().min(1).max(5).optional(),
+  watched_settings: z
+    .enum([
+      WATCHED_SETTINGS.TV,
+      WATCHED_SETTINGS.ARENA,
+      WATCHED_SETTINGS.PHONE,
+      WATCHED_SETTINGS.LAPTOP,
+      WATCHED_SETTINGS.BAR,
+      WATCHED_SETTINGS.HOME,
+      WATCHED_SETTINGS.OTHER,
+    ])
+    .optional()
+    .default(WATCHED_SETTINGS.TV),
+});

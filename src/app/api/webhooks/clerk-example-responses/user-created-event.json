@@ -1,0 +1,125 @@
+{
+  "data": {
+    "backup_code_enabled": false,
+    "banned": false,
+    "create_organization_enabled": true,
+    "created_at": 1747552267500,
+    "delete_self_enabled": true,
+    "email_addresses": [
+      {
+        "created_at": 1747552230099,
+        "email_address": "soyehuza@gmail.com",
+        "id": "idn_2xG6naYpTjQsvJ8dGOuTsVGYwKB",
+        "linked_to": [
+          {
+            "id": "idn_2xG6nd4bXAxQOS7cBcCSw3TXkJh",
+            "type": "oauth_google"
+          }
+        ],
+        "matches_sso_connection": false,
+        "object": "email_address",
+        "reserved": false,
+        "updated_at": 1747552267510,
+        "verification": {
+          "attempts": null,
+          "expire_at": null,
+          "status": "verified",
+          "strategy": "from_oauth_google"
+        }
+      }
+    ],
+    "enterprise_accounts": [],
+    "external_accounts": [
+      {
+        "approved_scopes": "email https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile openid profile",
+        "avatar_url": "https://lh3.googleusercontent.com/a/ACg8ocJFWtYozAxYyRVXDerk78KVNqb8ITkEtVSjl9TWo9AVMd5SxDw=s1000-c",
+        "created_at": 1747552230094,
+        "email_address": "soyehuza@gmail.com",
+        "external_account_id": "eac_2xG6nXye0Wp8hG3phl4N0vVkXTe",
+        "family_name": "Yehuza",
+        "first_name": "Suhai",
+        "given_name": "Suhai",
+        "google_id": "112694652402235344354",
+        "id": "idn_2xG6nd4bXAxQOS7cBcCSw3TXkJh",
+        "identification_id": "idn_2xG6nd4bXAxQOS7cBcCSw3TXkJh",
+        "image_url": "https://img.clerk.com/eyJ0eXBlIjoicHJveHkiLCJzcmMiOiJodHRwczovL2xoMy5nb29nbGV1c2VyY29udGVudC5jb20vYS9BQ2c4b2NKRld0WW96QXhZeVJWWERlcms3OEtWTnFiOElUa0V0VlNqbDlUV285QVZNZDVTeER3PXMxMDAwLWMiLCJzIjoiZHFEdDBnR0hCUUNoUmJEYW1hWFhnbTZNTkZHTDFVVU1Va2Y4VGdmbXkwVSJ9",
+        "label": null,
+        "last_name": "Yehuza",
+        "object": "google_account",
+        "picture": "https://lh3.googleusercontent.com/a/ACg8ocJFWtYozAxYyRVXDerk78KVNqb8ITkEtVSjl9TWo9AVMd5SxDw=s1000-c",
+        "provider": "oauth_google",
+        "provider_user_id": "112694652402235344354",
+        "public_metadata": {},
+        "updated_at": 1747552230094,
+        "username": null,
+        "verification": {
+          "attempts": null,
+          "expire_at": 1747552821960,
+          "status": "verified",
+          "strategy": "oauth_google"
+        }
+      }
+    ],
+    "external_id": null,
+    "first_name": "Suhai",
+    "has_image": true,
+    "id": "user_2xG6sFfJCLEuvLhCk538E38h4yT",
+    "image_url": "https://img.clerk.com/eyJ0eXBlIjoicHJveHkiLCJzcmMiOiJodHRwczovL2ltYWdlcy5jbGVyay5kZXYvb2F1dGhfZ29vZ2xlL2ltZ18yeEc2c0NJR1hKTlgzZVRQUE9XS3JqZTRpeE8ifQ",
+    "last_active_at": 1747552267500,
+    "last_name": "Yehuza",
+    "last_sign_in_at": null,
+    "legal_accepted_at": null,
+    "locked": false,
+    "lockout_expires_in_seconds": null,
+    "mfa_disabled_at": null,
+    "mfa_enabled_at": null,
+    "object": "user",
+    "passkeys": [],
+    "password_enabled": false,
+    "phone_numbers": [
+      {
+        "backup_codes": null,
+        "created_at": 1747552247945,
+        "default_second_factor": false,
+        "id": "idn_2xG6pkwYa9eafMFSrVpFirWTJ58",
+        "linked_to": [],
+        "object": "phone_number",
+        "phone_number": "+14154251945",
+        "reserved": false,
+        "reserved_for_second_factor": false,
+        "updated_at": 1747552267514,
+        "verification": {
+          "attempts": 1,
+          "channel": "sms",
+          "expire_at": 1747552848114,
+          "status": "verified",
+          "strategy": "phone_code"
+        }
+      }
+    ],
+    "primary_email_address_id": "idn_2xG6naYpTjQsvJ8dGOuTsVGYwKB",
+    "primary_phone_number_id": "idn_2xG6pkwYa9eafMFSrVpFirWTJ58",
+    "primary_web3_wallet_id": null,
+    "private_metadata": {},
+    "profile_image_url": "https://images.clerk.dev/oauth_google/img_2xG6sCIGXJNX3eTPPOWKrje4ixO",
+    "public_metadata": {},
+    "saml_accounts": [],
+    "totp_enabled": false,
+    "two_factor_enabled": false,
+    "unsafe_metadata": {},
+    "updated_at": 1747552267533,
+    "username": "swyyy",
+    "verification_attempts_remaining": 100,
+    "web3_wallets": []
+  },
+  "event_attributes": {
+    "http_request": {
+      "client_ip": "2600:1700:2f71:21a0:48f7:a8b8:f5a8:5215",
+      "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+    }
+  },
+  "instance_id": "ins_2vyl0dYOSDJi8AuFQJeGaBPAjA8",
+  "object": "event",
+  "timestamp": 1747552267559,
+  "type": "user.created"
+}

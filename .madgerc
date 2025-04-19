@@ -1,0 +1,7 @@
+{
+  "excludeRegExp": [
+    "lib/types/generated/graphql.ts"
+  ],
+  "extensions": [".ts", ".tsx"],
+  "baseDir": "src"
+} 

@@ -1,0 +1,15 @@
+{
+  "scripts": {
+    "seed:optimized": "tsx src/lib/db/seed/optimized-seeder.ts",
+    "seed:fast": "tsx src/lib/db/seed/optimized-seeder.ts --batchSize=1000 --concurrency=10",
+    "seed:dev": "tsx src/lib/db/seed/optimized-seeder.ts --seasons=2024 --batchSize=200",
+    "seed:reset": "tsx src/lib/db/seed/optimized-seeder.ts --resetDb=true",
+    "seed:external-only": "tsx src/lib/db/seed/optimized-seeder.ts --skipApplicationDb=true",
+    "seed:internal-only": "tsx src/lib/db/seed/optimized-seeder.ts --skipExternalDb=true",
+    "seed:prod": "NODE_ENV=production tsx src/lib/db/seed/optimized-seeder.ts --concurrency=20 --batchSize=500",
+    "seed:test": "NODE_ENV=test tsx src/lib/db/seed/optimized-seeder.ts --seasons=2024 --batchSize=50 --concurrency=2",
+    "seed:monitor": "tsx src/lib/db/seed/optimized-seeder.ts --enableMonitoring=true",
+    "seed:current-season": "tsx src/lib/db/seed/optimized-seeder.ts --seasons=$(date +%Y)",
+    "seed:multi-season": "tsx src/lib/db/seed/optimized-seeder.ts --seasons=2022,2023,2024"
+  }
+}

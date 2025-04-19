@@ -1,0 +1,201 @@
+{
+  "get": "players\/",
+  "parameters": {
+    "search": "james"
+  },
+  "errors": [],
+  "results": 6,
+  "response": [
+    {
+      "id": 265,
+      "first_name": "LeBron",
+      "last_name": "James",
+      "birth": {
+        "date": "1984-12-30",
+        "country": "USA"
+      },
+      "nba": {
+        "start": 2003,
+        "pro": 18
+      },
+      "height": {
+        "feets": "6",
+        "inches": "9",
+        "meters": "2.06"
+      },
+      "weight": {
+        "pounds": "250",
+        "kilograms": "113.4"
+      },
+      "college": "St. Vincent-St. Mary HS (OH)",
+      "affiliation": "St. Vincent-St. Mary HS (OH)\/USA",
+      "leagues": {
+        "standard": {
+          "jersey": 6,
+          "active": true,
+          "pos": "F"
+        }
+      }
+    },
+    {
+      "id": 1869,
+      "first_name": "Justin",
+      "last_name": "James",
+      "birth": {
+        "date": null,
+        "country": null
+      },
+      "nba": {
+        "start": 0,
+        "pro": 0
+      },
+      "height": {
+        "feets": null,
+        "inches": null,
+        "meters": null
+      },
+      "weight": {
+        "pounds": null,
+        "kilograms": null
+      },
+      "college": null,
+      "affiliation": null,
+      "leagues": {
+        "standard": {
+          "jersey": 21,
+          "active": false,
+          "pos": null
+        },
+        "vegas": {
+          "jersey": 56,
+          "active": true,
+          "pos": "F"
+        }
+      }
+    },
+    {
+      "id": 2072,
+      "first_name": "Justin",
+      "last_name": "James",
+      "birth": {
+        "date": null,
+        "country": null
+      },
+      "nba": {
+        "start": 0,
+        "pro": 0
+      },
+      "height": {
+        "feets": null,
+        "inches": null,
+        "meters": null
+      },
+      "weight": {
+        "pounds": null,
+        "kilograms": null
+      },
+      "college": null,
+      "affiliation": null,
+      "leagues": {
+        "sacramento": {
+          "jersey": null,
+          "active": true,
+          "pos": "G"
+        }
+      }
+    },
+    {
+      "id": 2522,
+      "first_name": "Young",
+      "last_name": "James",
+      "birth": {
+        "date": null,
+        "country": null
+      },
+      "nba": {
+        "start": 0,
+        "pro": 0
+      },
+      "height": {
+        "feets": null,
+        "inches": null,
+        "meters": null
+      },
+      "weight": {
+        "pounds": null,
+        "kilograms": null
+      },
+      "college": null,
+      "affiliation": null,
+      "leagues": {
+        "standard": {
+          "jersey": 1,
+          "active": false,
+          "pos": null
+        }
+      }
+    },
+    {
+      "id": 2782,
+      "first_name": "Mike",
+      "last_name": "James",
+      "birth": {
+        "date": "1990-08-18",
+        "country": "USA"
+      },
+      "nba": {
+        "start": 2017,
+        "pro": 2
+      },
+      "height": {
+        "feets": "6",
+        "inches": "1",
+        "meters": "1.85"
+      },
+      "weight": {
+        "pounds": "175",
+        "kilograms": "79.4"
+      },
+      "college": "Lamar",
+      "affiliation": "Lamar\/USA",
+      "leagues": {
+        "standard": {
+          "jersey": 55,
+          "active": true,
+          "pos": "G"
+        }
+      }
+    },
+    {
+      "id": 4125,
+      "first_name": "Bronny",
+      "last_name": "James",
+      "birth": {
+        "date": null,
+        "country": null
+      },
+      "nba": {
+        "start": 0,
+        "pro": 0
+      },
+      "height": {
+        "feets": "6",
+        "inches": null,
+        "meters": null
+      },
+      "weight": {
+        "pounds": "210",
+        "kilograms": null
+      },
+      "college": "USC",
+      "affiliation": null,
+      "leagues": {
+        "standard": {
+          "jersey": 9,
+          "active": true,
+          "pos": "G"
+        }
+      }
+    }
+  ]
+}

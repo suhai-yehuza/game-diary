@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- Basketball circle -->
+  <circle cx="100" cy="100" r="90" fill="#FF6B00" stroke="#000" stroke-width="2"/>
+  
+  <!-- Basketball lines -->
+  <path d="M100 10 L100 190" stroke="#000" stroke-width="2"/>
+  <path d="M10 100 L190 100" stroke="#000" stroke-width="2"/>
+  <path d="M30 30 L170 170" stroke="#000" stroke-width="2"/>
+  <path d="M30 170 L170 30" stroke="#000" stroke-width="2"/>
+  
+  <!-- NBA text -->
+  <text x="100" y="110" font-family="Arial, sans-serif" font-size="24" font-weight="bold" text-anchor="middle" fill="#000">NBA</text>
+</svg> 

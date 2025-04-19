@@ -1,0 +1,31 @@
+schema: ./src/lib/graphql/schema.graphql
+generates:
+  ./src/lib/types/generated/graphql.ts:
+    plugins:
+      - typescript
+      - typescript-resolvers
+    config:
+      contextType: ../../graphql/context#Context
+      enumsAsTypes: true
+      scalars:
+        DateTime: Date
+        JSON: any
+        Any: any
+      strictScalars: true
+      defaultScalarType: unknown
+      useTypeImports: true
+      skipTypename: false
+      dedupeFragments: true
+      exportFragmentSpreadSubTypes: true
+      namingConvention: keep
+      avoidOptionals:
+        field: true
+        inputValue: false
+        object: true
+        defaultValue: true
+  ./src/lib/graphql/schema.graphql:
+    plugins:
+      - schema-ast
+    config:
+      includeDirectives: true
+      schema: ./src/lib/graphql/resolvers/**/*.ts

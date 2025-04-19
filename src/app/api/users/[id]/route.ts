@@ -1,0 +1,34 @@
+import { auth } from '@clerk/nextjs/server';
+import { eq } from 'drizzle-orm';
+import { NextResponse } from 'next/server';
+
+import { users } from '@/lib/db/schema';
+import { db } from '@/lib/db/seed';
+
+export async function GET(request: Request, context: { params: { id: string } }) {
+  try {
+    const { id } = context.params;
+    if (!id) {
+      return new NextResponse('User ID is required', { status: 400 });
+    }
+
+    const { userId } = await auth();
+    if (!userId) {
+      return new NextResponse('Unauthorized', { status: 401 });
+    }
+
+    // Fetch the specific user
+    const targetUser = await db.query.users.findFirst({
+      where: eq(users.id, id),
+    });
+
+    if (!targetUser) {
+      return new NextResponse('User not found', { status: 404 });
+    }
+
+    return NextResponse.json(targetUser);
+  } catch (error) {
+    console.error('Error fetching user:', error);
+    return new NextResponse('Internal Server Error', { status: 500 });
+  }
+}
