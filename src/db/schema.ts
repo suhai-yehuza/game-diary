@@ -13,14 +13,14 @@ import {
 } from "drizzle-orm/pg-core";
 import { v4 as uuidv4 } from "uuid";
 
-export const friendshipStatusEnum = pgEnum("friendship_status", [
+export const friendship_status_enum = pgEnum("friendship_status", [
   "pending",
   "connected",
   "rejected",
   "severed",
 ]);
 
-export const watched_settingEnum = pgEnum("watched_setting", [
+export const watched_setting_enum = pgEnum("watched_setting", [
   "tv",
   "arena",
   "phone",
@@ -61,7 +61,7 @@ export const friendships = pgTable(
     user_id: varchar("user_id", {
       length: 255,
     }).references(() => users.id),
-    status: friendshipStatusEnum("status").notNull().default("pending"),
+    status: friendship_status_enum("status").notNull().default("pending"),
     timestamp: timestamp({ precision: 6, withTimezone: true }).notNull(),
   },
   (table) => ({
@@ -77,7 +77,7 @@ export const game_logs = pgTable(
     game_id: text("game_id")
       .notNull()
       .references(() => game_ratings.game_id),
-    watched_setting: watched_settingEnum("watched_setting")
+    watched_setting: watched_setting_enum("watched_setting")
       .notNull()
       .default("tv"),
     watched_date: timestamp({ precision: 6, withTimezone: true }).notNull(),
@@ -106,7 +106,7 @@ export const game_ratings = pgTable("game_ratings", {
     .defaultNow(),
 });
 
-export const reactionTargetEnum = pgEnum("reaction_target_type", [
+export const reaction_target_enum = pgEnum("reaction_target", [
   "game_log",
   "comment",
 ]);
@@ -114,7 +114,7 @@ export const reactionTargetEnum = pgEnum("reaction_target_type", [
 export const reactions = pgTable("reactions", {
   id: text("id").primaryKey().default(uuidv4()),
   user_id: text("user_id").references(() => users.id),
-  target_type: reactionTargetEnum("target_type").notNull(),
+  target_type: reaction_target_enum("target_type").notNull(),
   target_id: text("target_id").notNull(), // Either game_log_id or comment_id
   emoji: text("emoji").notNull(), // Store the emoji character
   created_at: timestamp("created_at").notNull().defaultNow(),
@@ -130,20 +130,20 @@ export const comments = pgTable("comments", {
   updated_at: timestamp("updated_at").notNull().defaultNow(),
 });
 
-export const commentsRelations = relations(comments, ({ one }) => ({
+export const comments_relations = relations(comments, ({ one }) => ({
   user: one(users, {
     fields: [comments.user_id],
     references: [users.id],
   }),
 }));
 
-export const usersRelations = relations(users, ({ many }) => ({
+export const users_relations = relations(users, ({ many }) => ({
   initiated_friendship_ids: many(friendships, { relationName: "initiator" }),
   received_friendship_ids: many(friendships, { relationName: "responder" }),
   game_logs: many(game_logs),
 }));
 
-export const friendshipsRelations = relations(friendships, ({ one }) => ({
+export const friendships_relations = relations(friendships, ({ one }) => ({
   initiator: one(users, {
     fields: [friendships.subscriber_id],
     references: [users.id],
@@ -156,7 +156,7 @@ export const friendshipsRelations = relations(friendships, ({ one }) => ({
   }),
 }));
 
-export const gameLogsRelations = relations(game_logs, ({ one }) => ({
+export const game_logs_relations = relations(game_logs, ({ one }) => ({
   user: one(users, {
     fields: [game_logs.user_id],
     references: [users.id],
@@ -167,11 +167,11 @@ export const gameLogsRelations = relations(game_logs, ({ one }) => ({
   }),
 }));
 
-export const gameRatingsRelations = relations(game_ratings, ({ many }) => ({
+export const game_ratings_relations = relations(game_ratings, ({ many }) => ({
   game_logs: many(game_logs),
 }));
 
-export const reactionsRelations = relations(reactions, ({ one }) => ({
+export const reactions_relations = relations(reactions, ({ one }) => ({
   user: one(users, {
     fields: [reactions.user_id],
     references: [users.id],

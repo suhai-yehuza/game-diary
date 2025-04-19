@@ -1255,7 +1255,7 @@ export const resolvers = {
               game_id: input.game_id,
               watched_date: new Date(input.watched_date),
               watched_setting:
-                input.watched_setting as (typeof schema.watched_settingEnum.enumValues)[number],
+                input.watched_setting as (typeof schema.watched_setting_enum.enumValues)[number],
               watched_location: input.watched_location || "",
               rating_for_game: input.rating_for_game || 0,
               rating_stars: input.rating_stars || "",
