@@ -1,0 +1,222 @@
+{
+	"get": "standings\/",
+	"parameters": {
+		"league": "standard",
+		"division": "northwest",
+		"season": "2024"
+	},
+	"errors": [],
+	"results": 5,
+	"response": [
+		{
+			"league": "standard",
+			"season": 2024,
+			"team": {
+				"id": 25,
+				"name": "Oklahoma City Thunder",
+				"nickname": "Thunder",
+				"code": "OKC",
+				"logo": "https:\/\/upload.wikimedia.org\/wikipedia\/fr\/thumb\/4\/4f\/Thunder_d%27Oklahoma_City_logo.svg\/1200px-Thunder_d%27Oklahoma_City_logo.svg.png"
+			},
+			"conference": {
+				"name": "west",
+				"rank": 1,
+				"win": 68,
+				"loss": 14
+			},
+			"division": {
+				"name": "northwest",
+				"rank": 1,
+				"win": 68,
+				"loss": 14,
+				"gamesBehind": null
+			},
+			"win": {
+				"home": 35,
+				"away": 31,
+				"total": 68,
+				"percentage": "0.829",
+				"lastTen": 8
+			},
+			"loss": {
+				"home": 6,
+				"away": 8,
+				"total": 14,
+				"percentage": "0.171",
+				"lastTen": 2
+			},
+			"gamesBehind": null,
+			"streak": 3,
+			"winStreak": true,
+			"tieBreakerPoints": null
+		},
+		{
+			"league": "standard",
+			"season": 2024,
+			"team": {
+				"id": 9,
+				"name": "Denver Nuggets",
+				"nickname": "Nuggets",
+				"code": "DEN",
+				"logo": "https:\/\/upload.wikimedia.org\/wikipedia\/fr\/thumb\/3\/35\/Nuggets_de_Denver_2018.png\/180px-Nuggets_de_Denver_2018.png"
+			},
+			"conference": {
+				"name": "west",
+				"rank": 3,
+				"win": 50,
+				"loss": 32
+			},
+			"division": {
+				"name": "northwest",
+				"rank": 2,
+				"win": 50,
+				"loss": 32,
+				"gamesBehind": "18"
+			},
+			"win": {
+				"home": 26,
+				"away": 23,
+				"total": 50,
+				"percentage": "0.610",
+				"lastTen": 5
+			},
+			"loss": {
+				"home": 15,
+				"away": 17,
+				"total": 32,
+				"percentage": "0.390",
+				"lastTen": 5
+			},
+			"gamesBehind": "18",
+			"streak": 2,
+			"winStreak": true,
+			"tieBreakerPoints": null
+		},
+		{
+			"league": "standard",
+			"season": 2024,
+			"team": {
+				"id": 22,
+				"name": "Minnesota Timberwolves",
+				"nickname": "Timberwolves",
+				"code": "MIN",
+				"logo": "https:\/\/upload.wikimedia.org\/wikipedia\/fr\/thumb\/d\/d9\/Timberwolves_du_Minnesota_logo_2017.png\/200px-Timberwolves_du_Minnesota_logo_2017.png"
+			},
+			"conference": {
+				"name": "west",
+				"rank": 6,
+				"win": 49,
+				"loss": 33
+			},
+			"division": {
+				"name": "northwest",
+				"rank": 3,
+				"win": 49,
+				"loss": 33,
+				"gamesBehind": "19"
+			},
+			"win": {
+				"home": 24,
+				"away": 24,
+				"total": 49,
+				"percentage": "0.598",
+				"lastTen": 8
+			},
+			"loss": {
+				"home": 16,
+				"away": 17,
+				"total": 33,
+				"percentage": "0.402",
+				"lastTen": 2
+			},
+			"gamesBehind": "19",
+			"streak": 2,
+			"winStreak": true,
+			"tieBreakerPoints": null
+		},
+		{
+			"league": "standard",
+			"season": 2024,
+			"team": {
+				"id": 29,
+				"name": "Portland Trail Blazers",
+				"nickname": "Trail Blazers",
+				"code": "POR",
+				"logo": "https:\/\/upload.wikimedia.org\/wikipedia\/en\/thumb\/2\/21\/Portland_Trail_Blazers_logo.svg\/1200px-Portland_Trail_Blazers_logo.svg.png"
+			},
+			"conference": {
+				"name": "west",
+				"rank": 11,
+				"win": 36,
+				"loss": 46
+			},
+			"division": {
+				"name": "northwest",
+				"rank": 4,
+				"win": 36,
+				"loss": 46,
+				"gamesBehind": "32"
+			},
+			"win": {
+				"home": 21,
+				"away": 14,
+				"total": 36,
+				"percentage": "0.439",
+				"lastTen": 3
+			},
+			"loss": {
+				"home": 19,
+				"away": 27,
+				"total": 46,
+				"percentage": "0.561",
+				"lastTen": 7
+			},
+			"gamesBehind": "32",
+			"streak": 2,
+			"winStreak": false,
+			"tieBreakerPoints": null
+		},
+		{
+			"league": "standard",
+			"season": 2024,
+			"team": {
+				"id": 40,
+				"name": "Utah Jazz",
+				"nickname": "Jazz",
+				"code": "UTA",
+				"logo": "https:\/\/upload.wikimedia.org\/wikipedia\/fr\/3\/3b\/Jazz_de_l%27Utah_logo.png"
+			},
+			"conference": {
+				"name": "west",
+				"rank": 15,
+				"win": 17,
+				"loss": 65
+			},
+			"division": {
+				"name": "northwest",
+				"rank": 5,
+				"win": 17,
+				"loss": 65,
+				"gamesBehind": "50"
+			},
+			"win": {
+				"home": 10,
+				"away": 7,
+				"total": 17,
+				"percentage": "0.207",
+				"lastTen": 1
+			},
+			"loss": {
+				"home": 31,
+				"away": 33,
+				"total": 65,
+				"percentage": "0.793",
+				"lastTen": 9
+			},
+			"gamesBehind": "50",
+			"streak": 1,
+			"winStreak": false,
+			"tieBreakerPoints": null
+		}
+	]
+}
