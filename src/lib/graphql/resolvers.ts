@@ -21,7 +21,6 @@ import {
   Team,
   User,
   Friendship,
-  GameLog,
   Comment,
   Reaction,
 } from "../types/types";
@@ -52,6 +51,39 @@ interface UpdateGameLogInput {
   watched_setting?: string;
   rating_stars?: number;
   notes?: string;
+}
+
+// Add PaginationArgs type
+interface PaginationArgs {
+  first?: number;
+  after?: string;
+  last?: number;
+  before?: string;
+}
+
+// Add GameRating type
+interface GameRating {
+  id: string;
+  game_id: string;
+  average_rating: string;
+  total_ratings: number;
+}
+
+// Update GameLog type to use GameRating instead of Game
+interface GameLog {
+  id: string;
+  user_id: string;
+  game_id: string;
+  watched_setting: "tv" | "arena" | "phone" | "laptop" | "bar" | "home" | "other";
+  watched_date: string;
+  watched_location: string;
+  rating_for_game: number;
+  rating_stars: string;
+  watched_count: number;
+  created_at: string;
+  updated_at: string;
+  user: User;
+  game: GameRating;
 }
 
 // Utility function for database operations with retry logic
@@ -680,96 +712,66 @@ export const resolvers = {
     // Get all game logs
     game_logs: async (
       _: unknown,
-      {
-        pagination,
-      }: {
-        pagination?: {
-          first?: number;
-          after?: string;
-          last?: number;
-          before?: string;
-        };
-      },
+      { pagination }: { pagination?: PaginationArgs },
       { db, redis }: { db: DB; redis: Redis }
     ) => {
       try {
-        if (!db || !redis) {
-          throw new Error("Database or Redis connection is not available");
-        }
-
         const cacheKey = CACHE_KEYS.GAME_LOGS;
-
-        // Try to get from cache first
         const cachedLogs = await redis.get(cacheKey);
-        if (cachedLogs && typeof cachedLogs === "string") {
-          const logs = JSON.parse(cachedLogs);
+        if (cachedLogs) {
+          const logs = JSON.parse(cachedLogs as string);
           return paginateLogs(logs, pagination);
         }
 
-        // Optimized query with explicit column selection and index hints
-        const query = sql`
-          SELECT
-            gl.id,
-            gl.user_id,
-            gl.game_id,
-            gl.watched_setting,
-            gl.watched_date,
-            gl.watched_location,
-            gl.rating_for_game,
-            gl.rating_stars,
-            gl.watched_count,
-            gl.created_at,
-            gl.updated_at,
-            json_build_object(
-              'id', u.id,
-              'username', u.username,
-              'first_name', u.first_name,
-              'last_name', u.last_name,
-              'image_url', u.image_url
-            ) as user,
-            json_build_object(
-              'id', gr.id,
-              'game_id', gr.game_id,
-              'average_rating', gr.average_rating,
-              'total_ratings', gr.total_ratings
-            ) as game
-          FROM game_logs gl
-          LEFT JOIN users u ON gl.user_id = u.id
-          LEFT JOIN game_ratings gr ON gl.game_id = gr.game_id
-          ORDER BY gl.watched_date DESC
-        `;
+        const results = await db
+          .select({
+            id: schema.game_logs.id,
+            user_id: schema.game_logs.user_id,
+            game_id: schema.game_logs.game_id,
+            watched_setting: schema.game_logs.watched_setting,
+            watched_date: schema.game_logs.watched_date,
+            watched_location: schema.game_logs.watched_location,
+            rating_for_game: schema.game_logs.rating_for_game,
+            rating_stars: schema.game_logs.rating_stars,
+            watched_count: schema.game_logs.watched_count,
+            created_at: schema.game_logs.created_at,
+            updated_at: schema.game_logs.updated_at,
+            user: {
+              id: schema.users.id,
+              username: schema.users.username,
+              first_name: schema.users.first_name,
+              last_name: schema.users.last_name,
+              image_url: schema.users.image_url,
+            },
+            game: {
+              id: schema.game_ratings.id,
+              game_id: schema.game_ratings.game_id,
+              average_rating: schema.game_ratings.average_rating,
+              total_ratings: schema.game_ratings.total_ratings,
+            },
+          })
+          .from(schema.game_logs)
+          .leftJoin(schema.users, eq(schema.game_logs.user_id, schema.users.id))
+          .leftJoin(schema.game_ratings, eq(schema.game_logs.game_id, schema.game_ratings.game_id))
+          .orderBy(schema.game_logs.created_at);
 
-        const logs = await executeWithRetry(async () => {
-          const result = await db.execute(query);
-          return result;
-        });
-
-        const transformedLogs = Array.from(logs.rows).map((log) => ({
-          id: log.id as string,
-          user_id: log.user_id as string,
-          game_id: log.game_id as string,
-          watched_setting: log.watched_setting as
-            | "tv"
-            | "arena"
-            | "phone"
-            | "laptop"
-            | "bar"
-            | "home"
-            | "other",
-          watched_date: log.watched_date as string,
-          watched_location: (log.watched_location || "") as string,
-          rating_for_game: (log.rating_for_game || 0) as number,
-          rating_stars: (log.rating_stars || "") as string,
-          watched_count: log.watched_count as number,
-          created_at: log.created_at as string,
-          updated_at: log.updated_at as string,
-          user: log.user as any,
-          game: log.game as any,
+        const transformedLogs: GameLog[] = results.map((log) => ({
+          id: log.id,
+          user_id: log.user_id || "",
+          game_id: log.game_id,
+          watched_setting: log.watched_setting,
+          watched_date: log.watched_date.toISOString(),
+          watched_location: log.watched_location || "",
+          rating_for_game: log.rating_for_game || 0,
+          rating_stars: log.rating_stars || "",
+          watched_count: log.watched_count,
+          created_at: log.created_at.toISOString(),
+          updated_at: log.updated_at.toISOString(),
+          user: log.user as User,
+          game: log.game as GameRating,
         }));
 
-        // Cache the results
         await cache.set(cacheKey, transformedLogs, CACHE_TTL.GAME_LOGS);
-
         return paginateLogs(transformedLogs, pagination);
       } catch (error) {
         console.error("Error fetching game logs:", error);
@@ -778,13 +780,59 @@ export const resolvers = {
     },
 
     // Get game log by ID
-    game_log: async (_: any, { id }: { id: string }) => {
+    game_log: async (_: unknown, { id }: { id: string }) => {
       try {
         const [result] = await db
-          .select()
+          .select({
+            id: schema.game_logs.id,
+            user_id: schema.game_logs.user_id,
+            game_id: schema.game_logs.game_id,
+            watched_setting: schema.game_logs.watched_setting,
+            watched_date: schema.game_logs.watched_date,
+            watched_location: schema.game_logs.watched_location,
+            rating_for_game: schema.game_logs.rating_for_game,
+            rating_stars: schema.game_logs.rating_stars,
+            watched_count: schema.game_logs.watched_count,
+            created_at: schema.game_logs.created_at,
+            updated_at: schema.game_logs.updated_at,
+            user: {
+              id: schema.users.id,
+              username: schema.users.username,
+              first_name: schema.users.first_name,
+              last_name: schema.users.last_name,
+              image_url: schema.users.image_url,
+            },
+            game: {
+              id: schema.game_ratings.id,
+              game_id: schema.game_ratings.game_id,
+              average_rating: schema.game_ratings.average_rating,
+              total_ratings: schema.game_ratings.total_ratings,
+            },
+          })
           .from(schema.game_logs)
+          .leftJoin(schema.users, eq(schema.game_logs.user_id, schema.users.id))
+          .leftJoin(schema.game_ratings, eq(schema.game_logs.game_id, schema.game_ratings.game_id))
           .where(eq(schema.game_logs.id, id));
-        return result;
+
+        if (!result) {
+          return null;
+        }
+
+        return {
+          id: result.id,
+          user_id: result.user_id || "",
+          game_id: result.game_id,
+          watched_setting: result.watched_setting,
+          watched_date: result.watched_date.toISOString(),
+          watched_location: result.watched_location || "",
+          rating_for_game: result.rating_for_game || 0,
+          rating_stars: result.rating_stars || "",
+          watched_count: result.watched_count,
+          created_at: result.created_at.toISOString(),
+          updated_at: result.updated_at.toISOString(),
+          user: result.user as User,
+          game: result.game as GameRating,
+        };
       } catch (error) {
         console.error("Error fetching game log:", error);
         throw new Error("Failed to fetch game log");
@@ -1433,7 +1481,7 @@ export const resolvers = {
     },
 
     create_game_rating: async (
-      _: any,
+      _: unknown,
       { gameId, rating }: { gameId: string; rating: number }
     ) => {
       try {
@@ -1456,8 +1504,8 @@ export const resolvers = {
     },
 
     update_game_rating: async (
-      _: any,
-      { id, gameId, rating }: { id: string; gameId: string; rating: number }
+      _: unknown,
+      { id, rating }: { id: string; rating: number }
     ) => {
       try {
         const existingRating = await db.query.game_ratings.findFirst({
@@ -1491,7 +1539,7 @@ export const resolvers = {
       }
     },
 
-    delete_game_rating: async (_: any, { id }: { id: string }) => {
+    delete_game_rating: async (_: unknown, { id }: { id: string }) => {
       try {
         await db
           .delete(schema.game_ratings)
@@ -1759,48 +1807,60 @@ export const resolvers = {
   },
   Comment: {
     game_log: async (parent: Comment): Promise<GameLog | null> => {
-      const result = await db.query.game_logs.findFirst({
-        where: (game_logs, { eq }) => eq(game_logs.id, parent.parent_id),
-      });
-      return result
-        ? {
-            ...result,
-            user_id: result.user_id || "",
-            watched_date: result.watched_date.toISOString(),
-            created_at: result.created_at.toISOString(),
-            updated_at: result.updated_at.toISOString(),
-            rating_stars: result.rating_stars || "",
-          }
-        : null;
+      const [result] = await db
+        .select({
+          id: schema.game_logs.id,
+          user_id: schema.game_logs.user_id,
+          game_id: schema.game_logs.game_id,
+          watched_setting: schema.game_logs.watched_setting,
+          watched_date: schema.game_logs.watched_date,
+          watched_location: schema.game_logs.watched_location,
+          rating_for_game: schema.game_logs.rating_for_game,
+          rating_stars: schema.game_logs.rating_stars,
+          watched_count: schema.game_logs.watched_count,
+          created_at: schema.game_logs.created_at,
+          updated_at: schema.game_logs.updated_at,
+          user: {
+            id: schema.users.id,
+            username: schema.users.username,
+            first_name: schema.users.first_name,
+            last_name: schema.users.last_name,
+            image_url: schema.users.image_url,
+          },
+          game: {
+            id: schema.game_ratings.id,
+            game_id: schema.game_ratings.game_id,
+            average_rating: schema.game_ratings.average_rating,
+            total_ratings: schema.game_ratings.total_ratings,
+          },
+        })
+        .from(schema.game_logs)
+        .leftJoin(schema.users, eq(schema.game_logs.user_id, schema.users.id))
+        .leftJoin(schema.game_ratings, eq(schema.game_logs.game_id, schema.game_ratings.game_id))
+        .where(eq(schema.game_logs.id, parent.parent_id));
+
+      if (!result) {
+        return null;
+      }
+
+      return {
+        id: result.id,
+        user_id: result.user_id || "",
+        game_id: result.game_id,
+        watched_setting: result.watched_setting,
+        watched_date: result.watched_date.toISOString(),
+        watched_location: result.watched_location || "",
+        rating_for_game: result.rating_for_game || 0,
+        rating_stars: result.rating_stars || "",
+        watched_count: result.watched_count,
+        created_at: result.created_at.toISOString(),
+        updated_at: result.updated_at.toISOString(),
+        user: result.user as User,
+        game: result.game as GameRating,
+      };
     },
   },
 };
-
-async function updateGameRating(gameId: string) {
-  // Calculate new average rating and total ratings
-  const result = await db
-    .select({
-      averageRating: sql<number>`ROUND(AVG(${schema.game_logs.rating_for_game})::numeric, 2)`,
-      totalRatings: sql<number>`COUNT(*)`,
-    })
-    .from(schema.game_logs)
-    .where(eq(schema.game_logs.game_id, gameId))
-    .groupBy(schema.game_logs.game_id);
-
-  if (result.length > 0) {
-    const { averageRating, totalRatings } = result[0];
-
-    // Update the game_ratings table
-    await db
-      .update(schema.game_ratings)
-      .set({
-        average_rating: averageRating.toString(),
-        total_ratings: totalRatings,
-        updated_at: new Date(),
-      })
-      .where(eq(schema.game_ratings.id, gameId));
-  }
-}
 
 // Helper function for pagination
 function paginateLogs(
