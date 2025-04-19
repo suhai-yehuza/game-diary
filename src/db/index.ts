@@ -14,7 +14,7 @@ if (!connectionString) {
   );
 }
 
-let sql;
+let sql: ReturnType<typeof neon>;
 try {
   console.log("Attempting to connect to database...");
   sql = neon(connectionString, {
@@ -38,13 +38,17 @@ try {
   throw error;
 }
 
-try {
-  await sql`SELECT 1`;
-  console.log("Database connection test successful");
-} catch (error) {
-  console.error("Database connection test failed:", error);
-  throw new Error("Database connection test failed");
+async function testConnection() {
+  try {
+    await sql`SELECT 1`;
+    console.log("Database connection test successful");
+  } catch (error) {
+    console.error("Database connection test failed:", error);
+    throw new Error("Database connection test failed");
+  }
 }
+
+testConnection().catch(console.error);
 
 export const db = drizzle(sql, {
   schema,
