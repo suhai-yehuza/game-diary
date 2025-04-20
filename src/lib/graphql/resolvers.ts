@@ -325,7 +325,7 @@ export const resolvers = {
     },
 
     players: async (
-      _: unknown,
+      _parent: unknown,
       { pagination, filters }: { pagination?: PaginationArgs; filters?: PlayerFilters },
       { redis }: { db: DB; redis: Redis }
     ) => {
@@ -403,22 +403,22 @@ export const resolvers = {
           }
 
           return paginatePlayers(players, pagination);
-        } catch (apiError: any) {
+        } catch (apiError: unknown) {
           console.error("API Error details:", {
-            message: apiError?.message || 'Unknown error',
-            stack: apiError?.stack,
-            response: apiError?.response,
+            message: apiError instanceof Error ? apiError.message : 'Unknown error',
+            stack: apiError instanceof Error ? apiError.stack : undefined,
+            response: apiError instanceof Error ? (apiError as any).response : undefined,
           });
-          throw new Error(`API Error: ${apiError?.message || 'Unknown error'}`);
+          throw new Error(`API Error: ${apiError instanceof Error ? apiError.message : 'Unknown error'}`);
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error("Error in players resolver:", {
-          message: error?.message || 'Unknown error',
-          stack: error?.stack,
+          message: error instanceof Error ? error.message : 'Unknown error',
+          stack: error instanceof Error ? error.stack : undefined,
           filters,
           queryParams,
         });
-        throw new Error(`Failed to fetch players: ${error?.message || 'Unknown error'}`);
+        throw new Error(`Failed to fetch players: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     },
 
@@ -883,7 +883,7 @@ export const resolvers = {
     },
 
     // Get all game logs
-    game_logs: async (_: unknown, { pagination }: { pagination?: PaginationArgs }, { db }: { db: DB }) => {
+    game_logs: async (_parent: unknown, _args: unknown, { db }: { db: DB }) => {
       try {
         const logs = await db.select().from(schema.game_logs);
         const transformedLogs = await Promise.all(
@@ -915,7 +915,7 @@ export const resolvers = {
           })
         );
 
-        return paginateLogs(transformedLogs, pagination);
+        return paginateLogs(transformedLogs);
       } catch (error) {
         console.error("Error fetching game logs:", error);
         throw new Error("Failed to fetch game logs");
@@ -1614,7 +1614,7 @@ export const resolvers = {
     },
 
     create_reaction: async (
-      _: unknown,
+      _parent: unknown,
       { input }: { input: Omit<Reaction, "id" | "created_at" | "updated_at"> },
       { db, redis }: { db: DB; redis: Redis }
     ) => {
@@ -1662,7 +1662,7 @@ export const resolvers = {
         await redis.del(`reactions:${input.target_id}`);
 
         return newReaction;
-      } catch (error) {
+      } catch (error: unknown) {
         console.error("Error creating reaction:", error);
         throw error;
       }
