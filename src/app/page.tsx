@@ -13,7 +13,7 @@ export default function Home() {
             rel="noopener noreferrer"
           >
             <Image
-              src="/vercel.svg"
+              src="/gamelog.svg"
               alt="logomark"
               width={20}
               height={20}
