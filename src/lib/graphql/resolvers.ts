@@ -9,7 +9,7 @@ import {
   fetchNbaTeamStats,
   fetchNbaPlayerStats,
   fetchNbaPlayers,
-  headers,
+  fetchNbaTeamById,
 } from "../external-apis";
 import {
   TeamSearchApiResponse,
@@ -18,17 +18,20 @@ import {
   PlayersApiResponse,
   PlayerFilters,
   GameFilters,
-} from "../types/types";
-import { db } from "../../db";
-import * as schema from "../../db/schema";
-import { eq, sql } from "drizzle-orm";
-import {
   Team,
   User,
   Friendship,
   Comment,
   Reaction,
+  Game,
+  Player,
+  GameLog,
+  GameRating,
+  PaginationArgs,
 } from "../types/types";
+import { db } from "../../db";
+import * as schema from "../../db/schema";
+import { eq, sql } from "drizzle-orm";
 import { cache, CACHE_KEYS, CACHE_TTL } from "../redis";
 import { Redis } from "@upstash/redis";
 import { NeonHttpDatabase } from "drizzle-orm/neon-http";
@@ -37,44 +40,11 @@ import { StringValueNode } from "graphql";
 // Update the type definition to use PostgreSQL
 type DB = NeonHttpDatabase<typeof schema>;
 
-// Add PaginationArgs type
-interface PaginationArgs {
-  first?: number;
-  after?: string;
-  last?: number;
-  before?: string;
-}
-
-// Add GameRating type
-interface GameRating {
-  id: string;
-  game_id: string;
-  average_rating: string;
-  total_ratings: number;
-}
-
-// Update GameLog type to use GameRating instead of Game
-interface GameLog {
-  id: string;
-  user_id: string;
-  game_id: string;
-  watched_setting: "tv" | "arena" | "phone" | "laptop" | "bar" | "home" | "other";
-  watched_date: string;
-  watched_location: string;
-  rating_for_game: number;
-  rating_stars: string;
-  watched_count: number;
-  created_at: string;
-  updated_at: string;
-  user: User;
-  game: GameRating;
-}
-
 // Utility function for database operations with retry logic
 async function executeWithRetry<T>(
   operation: () => Promise<T>,
-  maxRetries: number = 3,
-  delayMs: number = 1000
+  maxRetries = 3,
+  delayMs = 1000
 ): Promise<T> {
   let retries = maxRetries;
   let lastError: Error | unknown;
@@ -98,71 +68,9 @@ async function executeWithRetry<T>(
   );
 }
 
-interface Game {
-  id: number;
-  date: string;
-  teams: {
-    home: {
-      id: number;
-      name: string;
-    };
-    visitors: {
-      id: number;
-      name: string;
-    };
-  };
-  scores: {
-    home: number;
-    visitors: number;
-  };
-  status: {
-    long: string;
-    short: string;
-  };
-  time: string;
-  period: number;
-  postseason: boolean;
-  season: number;
-}
-
-interface Player {
-  id: number;
-  firstname: string;
-  lastname: string;
-  birth: {
-    date: string;
-    country: string;
-  };
-  nba: {
-    start: number;
-    pro: number;
-  };
-  height: {
-    feets: string;
-    inches: string;
-    meters: string;
-  };
-  weight: {
-    pounds: string;
-    kilograms: string;
-  };
-  college: string;
-  affiliation: string;
-  leagues: {
-    standard: {
-      pos: string;
-    };
-  };
-}
-
 function paginateGames<T extends { id: string }>(
   games: T[],
-  pagination?: {
-    first?: number;
-    after?: string;
-    last?: number;
-    before?: string;
-  }
+  pagination?: PaginationArgs
 ) {
   let startIndex = 0;
   let endIndex = games.length;
@@ -208,7 +116,15 @@ function paginateGames<T extends { id: string }>(
 
 export const resolvers = {
   DateTime: {
-    serialize: (value: Date) => value.toISOString(),
+    serialize: (value: Date | string) => {
+      if (value instanceof Date) {
+        return value.toISOString();
+      }
+      if (typeof value === 'string') {
+        return new Date(value).toISOString();
+      }
+      return value;
+    },
     parseValue: (value: string) => new Date(value),
     parseLiteral: (ast: StringValueNode) => {
       if (ast.kind === "StringValue") {
@@ -506,22 +422,82 @@ export const resolvers = {
       }
     },
 
-    player: async (_parent: unknown, { id }: { id: string }) => {
+    player: async (_parent: unknown, { id }: { id: string }, { redis }: { db: DB; redis: Redis }) => {
       try {
         if (!id) {
           throw new Error("Player ID is required");
         }
+
+        // Try to get from cache first if Redis is available
+        if (redis) {
+          try {
+            const cacheKey = CACHE_KEYS.PLAYER_STATS(id);
+            const cachedPlayer = await redis.get(cacheKey);
+            if (cachedPlayer) {
+              return JSON.parse(cachedPlayer as string);
+            }
+          } catch (cacheError) {
+            console.error("Error accessing Redis cache for player:", cacheError);
+            // Continue to fetch from API if cache fails
+          }
+        }
+
         const response = await fetchNbaPlayerById(id);
-        return response.response[0] || null;
+        const player = response.response[0] || null;
+
+        // Cache the result if Redis is available
+        if (redis && player) {
+          try {
+            const cacheKey = CACHE_KEYS.PLAYER_STATS(id);
+            await redis.set(cacheKey, JSON.stringify(player), { ex: CACHE_TTL.PLAYER_STATS });
+          } catch (cacheError) {
+            console.error("Error setting Redis cache for player:", cacheError);
+            // Continue even if caching fails
+          }
+        }
+
+        return player;
       } catch (error) {
         console.error("Error fetching player:", error);
         throw new Error("Failed to fetch player");
       }
     },
 
-    standings: async () => {
+    standings: async (_parent: unknown, { season }: { season: string }, { redis }: { db: DB; redis: Redis }) => {
       try {
-        return await fetchNbaStandings("");
+        if (!season) {
+          throw new Error("Season is required");
+        }
+
+        // Try to get from cache first if Redis is available
+        if (redis) {
+          try {
+            const cacheKey = `nba:standings:${season}`;
+            const cachedStandings = await redis.get(cacheKey);
+            if (cachedStandings) {
+              return JSON.parse(cachedStandings as string);
+            }
+          } catch (cacheError) {
+            console.error("Error accessing Redis cache for standings:", cacheError);
+            // Continue to fetch from API if cache fails
+          }
+        }
+
+        const response = await fetchNbaStandings(season);
+        const standings = response.response || [];
+
+        // Cache the result if Redis is available
+        if (redis && standings.length > 0) {
+          try {
+            const cacheKey = `nba:standings:${season}`;
+            await redis.set(cacheKey, JSON.stringify(standings), { ex: CACHE_TTL.TEAM_STATS });
+          } catch (cacheError) {
+            console.error("Error setting Redis cache for standings:", cacheError);
+            // Continue even if caching fails
+          }
+        }
+
+        return standings;
       } catch (error) {
         console.error("Error fetching standings:", error);
         throw new Error("Failed to fetch standings");
@@ -907,99 +883,41 @@ export const resolvers = {
     },
 
     // Get all game logs
-    game_logs: async (
-      _: unknown,
-      { pagination }: { pagination?: PaginationArgs },
-      { db, redis }: { db: DB; redis: Redis }
-    ) => {
+    game_logs: async (_: unknown, { pagination }: { pagination?: PaginationArgs }, { db }: { db: DB }) => {
       try {
-        const cacheKey = CACHE_KEYS.GAME_LOGS;
-        
-        // Try to get from cache first if Redis is available
-        if (redis) {
-          try {
-            const cachedLogs = await redis.get(cacheKey);
-            if (cachedLogs) {
-              try {
-                const logs = JSON.parse(cachedLogs as string);
-                return paginateLogs(logs, pagination);
-              } catch (parseError) {
-                console.error("Error parsing cached game logs:", parseError);
-                // If cache parsing fails, continue to fetch from database
-              }
-            }
-          } catch (cacheError) {
-            console.error("Error accessing Redis cache for game logs:", cacheError);
-            // If cache fails, continue to fetch from database
-          }
-        }
+        const logs = await db.select().from(schema.game_logs);
+        const transformedLogs = await Promise.all(
+          logs.map(async (log) => {
+            const gameRating = await db
+              .select()
+              .from(schema.game_ratings)
+              .where(eq(schema.game_ratings.game_id, log.game_id))
+              .limit(1);
 
-        const results = await db
-          .select({
-            id: schema.game_logs.id,
-            user_id: schema.game_logs.user_id,
-            game_id: schema.game_logs.game_id,
-            watched_setting: schema.game_logs.watched_setting,
-            watched_date: schema.game_logs.watched_date,
-            watched_location: schema.game_logs.watched_location,
-            rating_for_game: schema.game_logs.rating_for_game,
-            rating_stars: schema.game_logs.rating_stars,
-            watched_count: schema.game_logs.watched_count,
-            created_at: schema.game_logs.created_at,
-            updated_at: schema.game_logs.updated_at,
-            user: {
-              id: schema.users.id,
-              username: schema.users.username,
-              first_name: schema.users.first_name,
-              last_name: schema.users.last_name,
-              image_url: schema.users.image_url,
-            },
-            game: {
-              id: schema.game_ratings.id,
-              game_id: schema.game_ratings.game_id,
-              average_rating: schema.game_ratings.average_rating,
-              total_ratings: schema.game_ratings.total_ratings,
-            },
+            return {
+              ...log,
+              user_id: log.user_id || "",
+              watched_location: log.watched_location || "",
+              rating_for_game: log.rating_for_game || 0,
+              rating_stars: log.rating_stars || "",
+              watched_date: log.watched_date.toISOString(),
+              created_at: log.created_at.toISOString(),
+              updated_at: log.updated_at.toISOString(),
+              game: gameRating[0]
+                ? {
+                    ...gameRating[0],
+                    average_rating: gameRating[0].average_rating.toString(),
+                    created_at: gameRating[0].created_at.toISOString(),
+                    updated_at: gameRating[0].updated_at.toISOString(),
+                  }
+                : undefined,
+            };
           })
-          .from(schema.game_logs)
-          .leftJoin(schema.users, eq(schema.game_logs.user_id, schema.users.id))
-          .leftJoin(schema.game_ratings, eq(schema.game_logs.game_id, schema.game_ratings.game_id))
-          .orderBy(schema.game_logs.created_at);
-
-        if (!results || results.length === 0) {
-          console.warn("No game logs found in database");
-          return paginateLogs([], pagination);
-        }
-
-        const transformedLogs: GameLog[] = results.map((log) => ({
-          id: log.id,
-          user_id: log.user_id || "",
-          game_id: log.game_id,
-          watched_setting: log.watched_setting,
-          watched_date: log.watched_date.toISOString(),
-          watched_location: log.watched_location || "",
-          rating_for_game: log.rating_for_game || 0,
-          rating_stars: log.rating_stars || "",
-          watched_count: log.watched_count,
-          created_at: log.created_at.toISOString(),
-          updated_at: log.updated_at.toISOString(),
-          user: log.user as User,
-          game: log.game as GameRating,
-        }));
-
-        // Cache the results if Redis is available
-        if (redis) {
-          try {
-            await redis.set(cacheKey, JSON.stringify(transformedLogs), { ex: CACHE_TTL.GAME_LOGS });
-          } catch (cacheError) {
-            console.error("Error caching game logs:", cacheError);
-            // Continue even if caching fails
-          }
-        }
+        );
 
         return paginateLogs(transformedLogs, pagination);
       } catch (error) {
-        console.error("Error in game_logs resolver:", error);
+        console.error("Error fetching game logs:", error);
         throw new Error("Failed to fetch game logs");
       }
     },
@@ -1111,142 +1029,41 @@ export const resolvers = {
       }
     },
 
-    game_ratings: async (
-      _: unknown,
-      { pagination }: { pagination?: PaginationArgs },
-      { db, redis }: { db: DB; redis: Redis }
-    ) => {
+    game_ratings: async (_: unknown, { pagination }: { pagination?: PaginationArgs }, { db }: { db: DB }) => {
       try {
-        const cacheKey = CACHE_KEYS.GAME_RATINGS;
-        
-        // Try to get from cache first if Redis is available
-        if (redis) {
-          try {
-            const cachedRatings = await redis.get(cacheKey);
-            if (cachedRatings) {
-              try {
-                const ratings = JSON.parse(cachedRatings as string);
-                return paginateResults(ratings, pagination);
-              } catch (parseError) {
-                console.error("Error parsing cached game ratings:", parseError);
-                // If cache parsing fails, continue to fetch from database
-              }
-            }
-          } catch (cacheError) {
-            console.error("Error accessing Redis cache for game ratings:", cacheError);
-            // If cache fails, continue to fetch from database
-          }
-        }
-
-        const results = await db
-          .select({
-            id: schema.game_ratings.id,
-            game_id: schema.game_ratings.game_id,
-            average_rating: schema.game_ratings.average_rating,
-            total_ratings: schema.game_ratings.total_ratings,
-            created_at: schema.game_ratings.created_at,
-            updated_at: schema.game_ratings.updated_at,
-          })
-          .from(schema.game_ratings)
-          .orderBy(schema.game_ratings.created_at);
-
-        if (!results || results.length === 0) {
-          console.warn("No game ratings found in database");
-          return paginateResults([], pagination);
-        }
-
-        const transformedRatings: GameRating[] = results.map((rating) => ({
-          id: rating.id,
-          game_id: rating.game_id,
-          average_rating: rating.average_rating,
-          total_ratings: rating.total_ratings,
-          created_at: rating.created_at,
-          updated_at: rating.updated_at,
+        const ratings = await db.select().from(schema.game_ratings);
+        const transformedRatings = ratings.map((rating) => ({
+          ...rating,
+          average_rating: rating.average_rating.toString(),
+          created_at: new Date(rating.created_at).toISOString(),
+          updated_at: new Date(rating.updated_at).toISOString(),
         }));
-
-        // Cache the results if Redis is available
-        if (redis) {
-          try {
-            await redis.set(cacheKey, JSON.stringify(transformedRatings), { ex: CACHE_TTL.GAME_RATINGS });
-          } catch (cacheError) {
-            console.error("Error caching game ratings:", cacheError);
-            // Continue even if caching fails
-          }
-        }
-
         return paginateResults(transformedRatings, pagination);
       } catch (error) {
-        console.error("Error in game_ratings resolver:", error);
+        console.error("Error fetching game ratings:", error);
         throw new Error("Failed to fetch game ratings");
       }
     },
 
-    game_rating: async (
-      _: unknown,
-      { game_id }: { game_id: string },
-      { db, redis }: { db: DB; redis: Redis }
-    ) => {
+    game_rating: async (_: unknown, { game_id }: { game_id: string }, { db }: { db: DB }) => {
       try {
-        if (!game_id) {
-          throw new Error("Game ID is required");
+        const result = await db
+          .select()
+          .from(schema.game_ratings)
+          .where(eq(schema.game_ratings.game_id, game_id))
+          .limit(1);
+
+        if (!result || result.length === 0) {
+          return null;
         }
 
-        // Check cache first if Redis is available
-        if (redis) {
-          try {
-            const cacheKey = CACHE_KEYS.GAME_RATING(game_id);
-            const cachedRating = await redis.get(cacheKey);
-            if (cachedRating) {
-              return JSON.parse(cachedRating as string);
-            }
-          } catch (cacheError) {
-            console.error("Error accessing Redis cache for game rating:", cacheError);
-            // Continue to fetch from database if cache fails
-          }
-        }
-
-        // Execute with retry logic
-        const [rating] = await executeWithRetry(
-          async () => {
-            const result = await db
-              .select({
-                id: schema.game_ratings.id,
-                game_id: schema.game_ratings.game_id,
-                average_rating: schema.game_ratings.average_rating,
-                total_ratings: schema.game_ratings.total_ratings,
-                created_at: schema.game_ratings.created_at,
-                updated_at: schema.game_ratings.updated_at,
-              })
-              .from(schema.game_ratings)
-              .where(eq(schema.game_ratings.game_id, game_id))
-              .limit(1);
-            return result;
-          },
-          3, // max retries
-          1000 // delay between retries in ms
-        );
-
-        if (rating) {
-          // Cache the result if Redis is available
-          if (redis) {
-            try {
-              const cacheKey = CACHE_KEYS.GAME_RATING(game_id);
-              await redis.set(cacheKey, JSON.stringify(rating), {
-                ex: CACHE_TTL.GAME_RATING,
-              });
-            } catch (cacheError) {
-              console.error("Error caching game rating:", cacheError);
-              // Don't throw, just log the error
-            }
-          }
-          return {
-            ...rating,
-            created_at: rating.created_at,
-            updated_at: rating.updated_at,
-          };
-        }
-
-        return null;
+        const rating = result[0];
+        return {
+          ...rating,
+          average_rating: rating.average_rating.toString(),
+          created_at: new Date(rating.created_at).toISOString(),
+          updated_at: new Date(rating.updated_at).toISOString(),
+        };
       } catch (error) {
         console.error("Error fetching game rating:", error);
         throw new Error("Failed to fetch game rating");
@@ -1317,6 +1134,35 @@ export const resolvers = {
         console.error("Error fetching reactions:", error);
         throw new Error("Failed to fetch reactions");
       }
+    },
+
+    team: async (_parent: unknown, { id }: { id: string }, { redis }: { redis: Redis }) => {
+        if (!id) {
+            throw new Error("Team ID is required");
+        }
+
+        try {
+            // Try to get from cache first
+            const cacheKey = `team:${id}`;
+            const cachedTeam = await redis.get(cacheKey);
+            if (cachedTeam) {
+                return JSON.parse(cachedTeam as string);
+            }
+
+            // If not in cache, fetch from API
+            const response = await fetchNbaTeamById(id);
+            if (!response) {
+                throw new Error(`Team with ID ${id} not found`);
+            }
+
+            // Cache the result
+            await redis.set(cacheKey, JSON.stringify(response), { ex: 3600 }); // Cache for 1 hour
+
+            return response;
+        } catch (error) {
+            console.error("Error in team resolver:", error);
+            throw new Error("Failed to fetch team data");
+        }
     },
   },
   Mutation: {

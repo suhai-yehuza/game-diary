@@ -432,10 +432,17 @@ export interface Friendship {
 }
 
 // Game Rating and Log Types
+export interface PaginationArgs {
+  first?: number;
+  after?: string;
+  last?: number;
+  before?: string;
+}
+
 export interface GameRating {
   id: string;
   game_id: string;
-  average_rating: number;
+  average_rating: string;
   total_ratings: number;
   created_at: string;
   updated_at: string;
@@ -468,6 +475,7 @@ export interface GameLog {
     first_name: string;
     last_name: string;
   };
+  game?: GameRating;
 }
 
 // Comment and Reaction Types

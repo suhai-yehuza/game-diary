@@ -530,6 +530,7 @@ export const typeDefs = gql`
     leagues: [LeagueInfo!]!
     games(filters: GameFilters, pagination: PaginationInput): GameConnection!
     teams(filters: TeamFilters): [Team!]!
+    team(id: ID!): Team
     players(filters: PlayerFilters, pagination: PaginationInput): PlayerConnection!
     player(id: ID!): Player
     standings: [Standing!]!
