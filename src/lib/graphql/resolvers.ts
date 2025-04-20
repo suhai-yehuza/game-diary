@@ -24,7 +24,6 @@ import {
   Comment,
   Reaction,
   Game,
-  Player,
   GameLog,
   GameRating,
   PaginationArgs,
@@ -135,7 +134,7 @@ export const resolvers = {
   },
 
   Query: {
-    seasons: async (_: unknown, __: unknown, { redis }: { redis: Redis }) => {
+    seasons: async (_parent: unknown, _args: unknown, { redis }: { redis: Redis }) => {
       try {
         // Try to get from cache first if Redis is available
         if (redis) {
@@ -180,7 +179,7 @@ export const resolvers = {
       }
     },
 
-    leagues: async (_: unknown, __: unknown, { redis }: { redis: Redis }) => {
+    leagues: async (_parent: unknown, _args: unknown, { redis }: { redis: Redis }) => {
       try {
         // Try to get from cache first if Redis is available
         if (redis) {
@@ -247,7 +246,8 @@ export const resolvers = {
           throw new Error("Invalid response format from games API");
         }
 
-        const games = data.response.map((game: { id: string | number; [key: string]: unknown }) => ({
+        // Flatten the response array and map the games
+        const games = data.response.flat().map((game: Game) => ({
           ...game,
           id: game.id.toString(),
         }));
@@ -680,7 +680,7 @@ export const resolvers = {
 
     // Get all users
     users: async (
-      _: unknown,
+      _parent: unknown,
       { pagination }: { pagination?: PaginationArgs },
       { db, redis }: { db: DB; redis: Redis }
     ) => {
