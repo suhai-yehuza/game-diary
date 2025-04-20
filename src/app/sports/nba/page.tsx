@@ -153,6 +153,7 @@ export default function Page() {
   const games = data?.games?.edges
     ?.map(edge => edge.node)
     .sort((a, b) => new Date(b.date.start).getTime() - new Date(a.date.start).getTime()) || [];
+  // console.log({ games });
 
   return (
     <div className="min-h-screen bg-background">
@@ -175,98 +176,103 @@ export default function Page() {
       <main className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {games.map((game, index) => (
-            <div 
+            <Link 
               key={game.id} 
-              className="bg-card rounded-lg shadow-sm p-4 transform transition-all duration-500 ease-out hover:scale-[1.02] hover:shadow-md animate-fadeInUp"
-              style={{
-                animationDelay: `${index * 100}ms`,
-                animationFillMode: 'both',
-              }}
+              href={`/sports/nba/games/${game.id}`}
+              className="block"
             >
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                  {game.league.logo && (
-                    <Image
-                      src={game.league.logo}
-                      alt={game.league.name}
-                      width={24}
-                      height={24}
-                      className="rounded-full transition-transform duration-300 hover:scale-110"
-                    />
-                  )}
-                  <span className="text-sm text-muted-foreground">
-                    {format(new Date(game.date.start), "MMM d, yyyy")}
-                  </span>
-                </div>
-                <div className="text-sm font-medium">
-                  {game.status.long}
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                {/* Away Team */}
-                <div className="flex items-center justify-between group">
-                  <div className="flex items-center gap-3">
-                    {game.teams.visitors.logo && (
+              <div 
+                className="bg-card rounded-lg shadow-sm p-4 transform transition-all duration-500 ease-out hover:scale-[1.02] hover:shadow-md animate-fadeInUp cursor-pointer"
+                style={{
+                  animationDelay: `${index * 100}ms`,
+                  animationFillMode: 'both',
+                }}
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    {game.league.logo && (
                       <Image
-                        src={game.teams.visitors.logo}
-                        alt={game.teams.visitors.name}
-                        width={40}
-                        height={40}
-                        className="rounded-full transition-transform duration-300 group-hover:scale-110"
+                        src={game.league.logo}
+                        alt={game.league.name}
+                        width={24}
+                        height={24}
+                        className="rounded-full transition-transform duration-300 hover:scale-110"
                       />
                     )}
-                    <div>
-                      <div className="font-medium transition-colors duration-300 group-hover:text-blue-500">
-                        {game.teams.visitors.nickname}
-                      </div>
-                      <div className="text-sm text-muted-foreground">
-                        {game.scores.visitors.win}-{game.scores.visitors.loss}
+                    <span className="text-sm text-muted-foreground">
+                      {format(new Date(game.date.start), "MMM d, yyyy")}
+                    </span>
+                  </div>
+                  <div className="text-sm font-medium">
+                    {game.status.long}
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  {/* Away Team */}
+                  <div className="flex items-center justify-between group">
+                    <div className="flex items-center gap-3">
+                      {game.teams.visitors.logo && (
+                        <Image
+                          src={game.teams.visitors.logo}
+                          alt={game.teams.visitors.name}
+                          width={40}
+                          height={40}
+                          className="rounded-full transition-transform duration-300 group-hover:scale-110"
+                        />
+                      )}
+                      <div>
+                        <div className="font-medium transition-colors duration-300 group-hover:text-blue-500">
+                          {game.teams.visitors.nickname}
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          {game.scores.visitors.win}-{game.scores.visitors.loss}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <div className="text-xl font-bold transition-colors duration-300 group-hover:text-blue-500">
-                    {game.scores.visitors.points}
-                  </div>
-                </div>
-
-                {/* Home Team */}
-                <div className="flex items-center justify-between group">
-                  <div className="flex items-center gap-3">
-                    {game.teams.home.logo && (
-                      <Image
-                        src={game.teams.home.logo}
-                        alt={game.teams.home.name}
-                        width={40}
-                        height={40}
-                        className="rounded-full transition-transform duration-300 group-hover:scale-110"
-                      />
-                    )}
-                    <div>
-                      <div className="font-medium transition-colors duration-300 group-hover:text-blue-500">
-                        {game.teams.home.nickname}
-                      </div>
-                      <div className="text-sm text-muted-foreground">
-                        {game.scores.home.win}-{game.scores.home.loss}
-                      </div>
+                    <div className="text-xl font-bold transition-colors duration-300 group-hover:text-blue-500">
+                      {game.scores.visitors.points}
                     </div>
                   </div>
-                  <div className="text-xl font-bold transition-colors duration-300 group-hover:text-blue-500">
-                    {game.scores.home.points}
+
+                  {/* Home Team */}
+                  <div className="flex items-center justify-between group">
+                    <div className="flex items-center gap-3">
+                      {game.teams.home.logo && (
+                        <Image
+                          src={game.teams.home.logo}
+                          alt={game.teams.home.name}
+                          width={40}
+                          height={40}
+                          className="rounded-full transition-transform duration-300 group-hover:scale-110"
+                        />
+                      )}
+                      <div>
+                        <div className="font-medium transition-colors duration-300 group-hover:text-blue-500">
+                          {game.teams.home.nickname}
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          {game.scores.home.win}-{game.scores.home.loss}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-xl font-bold transition-colors duration-300 group-hover:text-blue-500">
+                      {game.scores.home.points}
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {game.nugget && (
-                <div className="mt-4 text-sm text-muted-foreground">
-                  {game.nugget}
+                {game.nugget && (
+                  <div className="mt-4 text-sm text-muted-foreground">
+                    {game.nugget}
+                  </div>
+                )}
+
+                <div className="mt-4 text-xs text-muted-foreground">
+                  {game.arena.name}, {game.arena.city}, {game.arena.state}
                 </div>
-              )}
-
-              <div className="mt-4 text-xs text-muted-foreground">
-                {game.arena.name}, {game.arena.city}, {game.arena.state}
               </div>
-            </div>
+            </Link>
           ))}
         </div>
 

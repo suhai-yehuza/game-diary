@@ -156,7 +156,7 @@ export async function fetchNbaGamesH2H(
 }
 
 export async function fetchNbaGameById(id: string): Promise<GameApiResponse> {
-  return fetchNbaGames(`id=${id}`);
+  return fetchNbaGames(`?id=${id}`);
 }
 
 export async function fetchNbaLiveGames(): Promise<GameApiResponse> {

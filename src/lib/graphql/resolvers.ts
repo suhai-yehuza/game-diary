@@ -13,6 +13,7 @@ import {
   fetchNbaPlayerStats,
   fetchNbaPlayers,
   fetchNbaTeamById,
+  fetchNbaGameById,
 } from "../external-apis";
 import {
   TeamSearchApiResponse,
@@ -27,6 +28,7 @@ import {
   Comment,
   Reaction,
   Game,
+  GameStatistics,
   GameLog,
   GameRating,
   PaginationArgs,
@@ -259,6 +261,69 @@ export const resolvers = {
       } catch (error) {
         console.error("Error fetching games:", error);
         throw new Error("Failed to fetch games");
+      }
+    },
+
+    game: async (_parent: unknown, { id }: { id: string }, { redis }: { redis: Redis }) => {
+      try {
+        // Try to get from cache first
+        if (redis) {
+          try {
+            const cachedGame = await redis.get(`${CACHE_KEYS.GAME}:${id}`);
+            if (cachedGame) {
+              return JSON.parse(cachedGame as string);
+            }
+          } catch (cacheError) {
+            console.error("Error accessing Redis cache for game:", cacheError);
+          }
+        }
+
+        // Fetch game data from API
+        const response = await fetchNbaGameById(id);
+        if (!response || !response.response || response.response.length === 0) {
+          throw new Error("Game not found");
+        }
+
+        const apiGame = response.response[0] as unknown as Game;
+        if (!apiGame) {
+          throw new Error("Game not found");
+        }
+
+        // Transform the game data to match the schema
+        const transformedGame = {
+          ...apiGame,
+          id: apiGame.id.toString(),
+          teams: {
+            visitors: {
+              ...apiGame.teams.visitors,
+              id: apiGame.teams.visitors.id.toString(),
+            },
+            home: {
+              ...apiGame.teams.home,
+              id: apiGame.teams.home.id.toString(),
+            },
+          },
+          statistics: apiGame.statistics?.map((stat: GameStatistics) => ({
+            ...stat,
+            game_id: stat.game_id.toString(),
+            team: stat.team.toString(),
+            playerId: stat.playerId.toString(),
+          })),
+        };
+
+        // Cache the transformed game data
+        if (redis) {
+          try {
+            await redis.set(`${CACHE_KEYS.GAME}:${id}`, JSON.stringify(transformedGame), { ex: CACHE_TTL.GAME });
+          } catch (cacheError) {
+            console.error("Error setting Redis cache for game:", cacheError);
+          }
+        }
+
+        return transformedGame;
+      } catch (error) {
+        console.error("Error fetching game:", error);
+        throw new Error("Failed to fetch game");
       }
     },
 

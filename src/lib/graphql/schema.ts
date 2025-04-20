@@ -216,6 +216,7 @@ export const typeDefs = gql`
     timesTied: Int
     leadChanges: Int
     nugget: String
+    statistics: [GameStatistics!]
   }
 
   type GameDate {
@@ -277,7 +278,7 @@ export const typeDefs = gql`
 
   type GameStatistics {
     game_id: Int!
-    team: Int!
+    team: Team!
     playerId: Int!
     points: Int!
     rebounds: Rebounds
@@ -291,6 +292,28 @@ export const typeDefs = gql`
     threePointers: ShootingStats
     freeThrows: ShootingStats
     plusMinus: Int
+    statistics: GameStats
+  }
+
+  type GameStats {
+    points: Int!
+    rebounds: Rebounds
+    assists: Int
+    steals: Int
+    blocks: Int
+    turnovers: Int
+    fouls: Int
+    minutes: String
+    fieldGoals: ShootingStats
+    threePointers: ShootingStats
+    freeThrows: ShootingStats
+    plusMinus: Int
+    fastBreakPoints: Int
+    pointsInPaint: Int
+    biggestLead: Int
+    secondChancePoints: Int
+    pointsOffTurnovers: Int
+    longestRun: Int
   }
 
   type Rebounds {
@@ -529,6 +552,7 @@ export const typeDefs = gql`
     seasons: [Season!]!
     leagues: [LeagueInfo!]!
     games(filters: GameFilters, pagination: PaginationInput): GameConnection!
+    game(id: ID!): Game
     teams(filters: TeamFilters): [Team!]!
     team(id: ID!): Team
     players(filters: PlayerFilters, pagination: PaginationInput): PlayerConnection!

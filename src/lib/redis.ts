@@ -192,42 +192,44 @@ export const cache = {
 
 // Cache keys
 export const CACHE_KEYS = {
-  SEASONS: "nba:seasons",
-  LEAGUES: "nba:leagues",
-  TEAMS: "nba:teams",
-  PLAYERS: "nba:players",
-  GAME_STATS: (game_id: string) => `nba:game:${game_id}:stats`,
-  PLAYER_STATS: (player_id: string) => `nba:player:${player_id}:stats`,
-  TEAM_STATS: (team_id: string) => `nba:team:${team_id}:stats`,
-  GAME_LOGS: "nba:game_logs",
-  USER_GAME_LOGS: (user_id: string) => `nba:user:${user_id}:game_logs`,
+  SEASONS: "seasons",
+  LEAGUES: "leagues",
+  TEAMS: "teams",
+  PLAYERS: "players",
+  GAME_STATS: (game_id: string) => `game_stats:${game_id}`,
+  PLAYER_STATS: (player_id: string) => `player_stats:${player_id}`,
+  TEAM_STATS: (team_id: string) => `team_stats:${team_id}`,
+  GAME_LOGS: "game_logs",
+  USER_GAME_LOGS: (user_id: string) => `user_game_logs:${user_id}`,
   USERS: "users",
   USER: (user_id: string) => `user:${user_id}`,
-  FRIENDSHIPS: "friendships",
-  USER_FRIENDSHIPS: (user_id: string) => `user:${user_id}:friendships`,
   GAME_RATINGS: "game_ratings",
-  GAME_RATING: (game_id: string) => `game:${game_id}:rating`,
-  COMMENTS: (target_id: string) => `comments:${target_id}`,
+  GAME_RATING: (game_id: string) => `game_rating:${game_id}`,
+  COMMENTS: (parent_id: string) => `comments:${parent_id}`,
   REACTIONS: (target_id: string) => `reactions:${target_id}`,
-};
+  GAME: (game_id: string) => `game:${game_id}`,
+  FRIENDSHIPS: "friendships",
+  USER_FRIENDSHIPS: (user_id: string) => `user_friendships:${user_id}`,
+} as const;
 
 // Cache TTLs in seconds
 export const CACHE_TTL = {
   SEASONS: 24 * 60 * 60, // 24 hours
   LEAGUES: 24 * 60 * 60, // 24 hours
-  TEAMS: 12 * 60 * 60, // 12 hours
-  PLAYERS: 12 * 60 * 60, // 12 hours
+  TEAMS: 24 * 60 * 60, // 24 hours
+  PLAYERS: 24 * 60 * 60, // 24 hours
   GAME_STATS: 60 * 60, // 1 hour
   PLAYER_STATS: 60 * 60, // 1 hour
   TEAM_STATS: 60 * 60, // 1 hour
-  GAME_LOGS: 30 * 60, // 30 minutes
-  USER_GAME_LOGS: 30 * 60, // 30 minutes
+  GAME_LOGS: 60 * 60, // 1 hour
+  USER_GAME_LOGS: 60 * 60, // 1 hour
   USERS: 24 * 60 * 60, // 24 hours
   USER: 24 * 60 * 60, // 24 hours
-  FRIENDSHIPS: 30 * 60, // 30 minutes
-  USER_FRIENDSHIPS: 30 * 60, // 30 minutes
   GAME_RATINGS: 60 * 60, // 1 hour
   GAME_RATING: 60 * 60, // 1 hour
-  COMMENTS: 30 * 60, // 30 minutes
-  REACTIONS: 30 * 60, // 30 minutes
-};
+  COMMENTS: 60 * 60, // 1 hour
+  REACTIONS: 60 * 60, // 1 hour
+  GAME: 60 * 60, // 1 hour
+  FRIENDSHIPS: 60 * 60, // 1 hour
+  USER_FRIENDSHIPS: 60 * 60, // 1 hour
+} as const;

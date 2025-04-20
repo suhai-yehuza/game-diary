@@ -218,20 +218,80 @@ export interface GameScores {
 }
 
 export interface Game {
-  id: number | string;
-  league?: string;
-  season?: number | string;
-  date: GameDate | string;
-  stage?: number;
-  status: GameStatusInfo | string;
-  periods?: GamePeriods;
-  arena: Arena;
-  teams: GameTeams;
-  scores?: GameScores;
-  officials?: string[];
-  timesTied?: number;
-  leadChanges?: number;
-  nugget?: string | null;
+  id: string;
+  league: {
+    id: string;
+    name: string;
+    type: string;
+    logo: string;
+  };
+  season: number;
+  date: {
+    start: string;
+    end: string;
+    duration: string;
+  };
+  stage: number;
+  status: {
+    clock: string;
+    halftime: boolean;
+    short: number;
+    long: string;
+  };
+  periods: {
+    current: number;
+    total: number;
+    endOfPeriod: boolean;
+  };
+  arena: {
+    name: string;
+    city: string;
+    state: string;
+    country: string;
+  };
+  teams: {
+    visitors: {
+      id: string;
+      name: string;
+      nickname: string;
+      code: string;
+      logo: string;
+    };
+    home: {
+      id: string;
+      name: string;
+      nickname: string;
+      code: string;
+      logo: string;
+    };
+  };
+  scores: {
+    visitors: {
+      win: number;
+      loss: number;
+      series: {
+        win: number;
+        loss: number;
+      };
+      linescore: string[];
+      points: number;
+    };
+    home: {
+      win: number;
+      loss: number;
+      series: {
+        win: number;
+        loss: number;
+      };
+      linescore: string[];
+      points: number;
+    };
+  };
+  officials: string[];
+  timesTied: number;
+  leadChanges: number;
+  nugget: string | null;
+  statistics: GameStatistics[];
 }
 
 // Statistics Types

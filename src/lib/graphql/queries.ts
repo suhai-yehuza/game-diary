@@ -78,23 +78,9 @@ export const GET_GAMES = gql`
           }
           scores {
             visitors {
-              win
-              loss
-              series {
-                win
-                loss
-              }
-              linescore
               points
             }
             home {
-              win
-              loss
-              series {
-                win
-                loss
-              }
-              linescore
               points
             }
           }
@@ -107,11 +93,136 @@ export const GET_GAMES = gql`
       }
       pageInfo {
         hasNextPage
-        hasPreviousPage
-        startCursor
         endCursor
       }
       totalCount
+    }
+  }
+`;
+
+export const GET_GAME = gql`
+  query GetGame($id: ID!) {
+    game(id: $id) {
+      id
+      league {
+        id
+        name
+        type
+        logo
+      }
+      season
+      date {
+        start
+        end
+        duration
+      }
+      stage
+      status {
+        clock
+        halftime
+        short
+        long
+      }
+      periods {
+        current
+        total
+        endOfPeriod
+      }
+      arena {
+        name
+        city
+        state
+        country
+      }
+      teams {
+        visitors {
+          id
+          name
+          nickname
+          code
+          logo
+        }
+        home {
+          id
+          name
+          nickname
+          code
+          logo
+        }
+      }
+      scores {
+        visitors {
+          win
+          loss
+          series {
+            win
+            loss
+          }
+          linescore
+          points
+        }
+        home {
+          win
+          loss
+          series {
+            win
+            loss
+          }
+          linescore
+          points
+        }
+      }
+      officials
+      timesTied
+      leadChanges
+      nugget
+      statistics {
+        game_id
+        team {
+          id
+          name
+          nickname
+          code
+          logo
+        }
+        playerId
+        points
+        rebounds {
+          total
+          offensive
+          defensive
+        }
+        assists
+        steals
+        blocks
+        turnovers
+        fouls
+        minutes
+        fieldGoals {
+          made
+          attempted
+          percentage
+        }
+        threePointers {
+          made
+          attempted
+          percentage
+        }
+        freeThrows {
+          made
+          attempted
+          percentage
+        }
+        plusMinus
+        statistics {
+          fastBreakPoints
+          pointsInPaint
+          biggestLead
+          secondChancePoints
+          pointsOffTurnovers
+          longestRun
+        }
+      }
     }
   }
 `;
