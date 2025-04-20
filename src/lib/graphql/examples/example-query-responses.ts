@@ -368,6 +368,195 @@ export const GET_GAME_RATING_RESPONSE = {
   },
 };
 
+export const GET_GAME_LOGS_RESPONSE = {
+  game_logs: [
+    {
+      id: "game-log-1",
+      user_id: "user-1",
+      game_id: "game-1",
+      watched_setting: "tv",
+      watched_date: "2024-04-14T19:30:00Z",
+      watched_location: "Home",
+      rating_for_game: 4.5,
+      rating_stars: "4.5",
+      watched_count: 1,
+      created_at: "2024-04-14T19:30:00Z",
+      updated_at: "2024-04-14T19:30:00Z",
+    },
+  ],
+};
+
+export const exampleQueryResponses = {
+  // Response for getGameRating query
+  getGameRating: {
+    id: "1",
+    game_id: "game123",
+    average_rating: 4.5,
+    total_ratings: 100,
+    created_at: "2024-03-20T10:00:00Z",
+    updated_at: "2024-03-20T10:00:00Z",
+  },
+
+  // Response for getGameRatings query
+  getGameRatings: {
+    edges: [
+      {
+        node: {
+          id: "1",
+          game_id: "game123",
+          average_rating: 4.5,
+          total_ratings: 100,
+          created_at: "2024-03-20T10:00:00Z",
+          updated_at: "2024-03-20T10:00:00Z",
+        },
+        cursor: "1",
+      },
+    ],
+    pageInfo: {
+      hasNextPage: false,
+      hasPreviousPage: false,
+      startCursor: "1",
+      endCursor: "1",
+    },
+    totalCount: 1,
+  },
+
+  // Response for getGameLog query
+  getGameLog: {
+    id: "1",
+    user_id: "user123",
+    game_id: "game123",
+    watched_setting: "SOLO",
+    watched_date: "2024-03-20T10:00:00Z",
+    watched_location: "Home",
+    rating_for_game: 5,
+    watched_count: 1,
+    created_at: "2024-03-20T10:00:00Z",
+    updated_at: "2024-03-20T10:00:00Z",
+    user: {
+      id: "user123",
+      username: "johndoe",
+      first_name: "John",
+      last_name: "Doe",
+      image_url: "https://example.com/johndoe.jpg",
+    },
+    game: {
+      id: "1",
+      game_id: "game123",
+      average_rating: 4.5,
+      total_ratings: 100,
+      created_at: "2024-03-20T10:00:00Z",
+      updated_at: "2024-03-20T10:00:00Z",
+    },
+    comments: {
+      edges: [
+        {
+          node: {
+            id: "1",
+            content: "Great game!",
+            created_at: "2024-03-20T10:00:00Z",
+            updated_at: "2024-03-20T10:00:00Z",
+            user: {
+              id: "user123",
+              username: "johndoe",
+              first_name: "John",
+              last_name: "Doe",
+              image_url: "https://example.com/johndoe.jpg",
+            },
+          },
+          cursor: "1",
+        },
+      ],
+      pageInfo: {
+        hasNextPage: false,
+        hasPreviousPage: false,
+        startCursor: "1",
+        endCursor: "1",
+      },
+      totalCount: 1,
+    },
+  },
+
+  // Response for getGameLogs query
+  getGameLogs: {
+    edges: [
+      {
+        node: {
+          id: "1",
+          user_id: "user123",
+          game_id: "game123",
+          watched_setting: "SOLO",
+          watched_date: "2024-03-20T10:00:00Z",
+          watched_location: "Home",
+          rating_for_game: 5,
+          watched_count: 1,
+          created_at: "2024-03-20T10:00:00Z",
+          updated_at: "2024-03-20T10:00:00Z",
+          user: {
+            id: "user123",
+            username: "johndoe",
+            first_name: "John",
+            last_name: "Doe",
+            image_url: "https://example.com/johndoe.jpg",
+          },
+          game: {
+            id: "1",
+            game_id: "game123",
+            average_rating: 4.5,
+            total_ratings: 100,
+            created_at: "2024-03-20T10:00:00Z",
+            updated_at: "2024-03-20T10:00:00Z",
+          },
+        },
+        cursor: "1",
+      },
+    ],
+    pageInfo: {
+      hasNextPage: false,
+      hasPreviousPage: false,
+      startCursor: "1",
+      endCursor: "1",
+    },
+    totalCount: 1,
+  },
+
+  // Response for getUser query
+  getUser: {
+    id: "user123",
+    username: "johndoe",
+    first_name: "John",
+    last_name: "Doe",
+    image_url: "https://example.com/johndoe.jpg",
+    created_at: "2024-03-20T10:00:00Z",
+    updated_at: "2024-03-20T10:00:00Z",
+    game_logs: {
+      edges: [
+        {
+          node: {
+            id: "1",
+            game_id: "game123",
+            watched_setting: "SOLO",
+            watched_date: "2024-03-20T10:00:00Z",
+            watched_location: "Home",
+            rating_for_game: 5,
+            watched_count: 1,
+            created_at: "2024-03-20T10:00:00Z",
+            updated_at: "2024-03-20T10:00:00Z",
+          },
+          cursor: "1",
+        },
+      ],
+      pageInfo: {
+        hasNextPage: false,
+        hasPreviousPage: false,
+        startCursor: "1",
+        endCursor: "1",
+      },
+      totalCount: 1,
+    },
+  },
+};
+
 export const GET_GAME_LOG_RESPONSE = {
   game_log: {
     id: "game-log-1",

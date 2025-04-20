@@ -37,6 +37,9 @@ export type PlayerSort =
   | "BLOCKS";
 
 export const NbaDataClient = () => {
+  const testUserId = "01c271f5-0aa3-4aa3-92b8-032b7a39b995";
+  const testGameLogId = "00039a16-6ef0-47ed-abca-e1d2e633cbe6";
+  const testGameId = "2c4cbc53-87fe-4e53-a210-f7ccb188ebfc";
   const [selectedConference, setSelectedConference] = useState<
     Conference | "all"
   >("all");
@@ -55,7 +58,7 @@ export const NbaDataClient = () => {
   // GET_USER
   const { data: userData } = useQuery(GET_USER, {
     variables: {
-      id: "021aa739-163b-4d25-a01f-b2ab96069969",
+      id: testUserId,
     },
   });
   useEffect(() => {
@@ -74,7 +77,11 @@ export const NbaDataClient = () => {
   }, [gameLogsData]);
 
   // GET_GAME_LOG
-  const { data: gameLogData } = useQuery(GET_GAME_LOG);
+  const { data: gameLogData } = useQuery(GET_GAME_LOG, {
+    variables: {
+      id: testGameLogId,
+    },
+  });
   useEffect(() => {
     console.log("gameLogData", gameLogData);
   }, [gameLogData]);
@@ -86,7 +93,11 @@ export const NbaDataClient = () => {
   }, [gameRatingsData]);
 
   // GET_GAME_RATING
-  const { data: gameRatingData } = useQuery(GET_GAME_RATING);
+  const { data: gameRatingData } = useQuery(GET_GAME_RATING, {
+    variables: {
+      game_id: testGameId,
+    },
+  });
   useEffect(() => {
     console.log("gameRatingData", gameRatingData);
   }, [gameRatingData]);
@@ -94,7 +105,7 @@ export const NbaDataClient = () => {
   // GET_REACTIONS
   const { data: reactionsData } = useQuery(GET_REACTIONS, {
     variables: {
-      target_id: "14a1cf71-bb1c-4a8e-b17d-399c7d963efe",
+      target_id: testGameLogId,
     },
   });
   useEffect(() => {
@@ -104,7 +115,7 @@ export const NbaDataClient = () => {
   // GET_FRIENDSHIPS_FOR_USER
   const { data: friendshipsForUserData } = useQuery(GET_FRIENDSHIPS_FOR_USER, {
     variables: {
-      userId: "03b20171-1fee-4946-9989-746440596068",
+      userId: testUserId,
     },
   });
   useEffect(() => {
@@ -114,7 +125,7 @@ export const NbaDataClient = () => {
   // GET_GAME_LOGS_FOR_USER
   const { data: gameLogsForUserData } = useQuery(GET_GAME_LOGS_FOR_USER, {
     variables: {
-      userId: "021aa739-163b-4d25-a01f-b2ab96069969",
+      userId: testUserId,
     },
   });
   useEffect(() => {

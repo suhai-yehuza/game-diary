@@ -1,4 +1,4 @@
-import { gql } from "graphql-tag";
+import { gql } from "@apollo/client";
 
 // Sample Queries
 
@@ -205,7 +205,7 @@ export const GET_PLAYER_STATS = gql`
   }
 `;
 
-// Get game rating
+// Get a single game rating
 export const GET_GAME_RATING = gql`
   query GetGameRating($game_id: String!) {
     game_rating(game_id: $game_id) {
@@ -219,24 +219,36 @@ export const GET_GAME_RATING = gql`
   }
 `;
 
-// Get multiple game ratings
+// Get paginated game ratings
 export const GET_GAME_RATINGS = gql`
-  query GetGameRatings($game_ids: [String!]!) {
-    game_ratings(game_ids: $game_ids) {
-      id
-      game_id
-      average_rating
-      total_ratings
-      created_at
-      updated_at
+  query GetGameRatings($pagination: PaginationInput) {
+    game_ratings(pagination: $pagination) {
+      edges {
+        node {
+          id
+          game_id
+          average_rating
+          total_ratings
+          created_at
+          updated_at
+        }
+        cursor
+      }
+      pageInfo {
+        hasNextPage
+        hasPreviousPage
+        startCursor
+        endCursor
+      }
+      totalCount
     }
   }
 `;
 
-// Get game logs
-export const GET_GAME_LOGS_QUERY = gql`
-  query GetGameLogs {
-    game_logs {
+// Get a game log with its rating
+export const GET_GAME_LOG = gql`
+  query GetGameLog($id: ID!) {
+    game_log(id: $id) {
       id
       user_id
       game_id
@@ -244,7 +256,6 @@ export const GET_GAME_LOGS_QUERY = gql`
       watched_date
       watched_location
       rating_for_game
-      rating_stars
       watched_count
       created_at
       updated_at
@@ -260,31 +271,116 @@ export const GET_GAME_LOGS_QUERY = gql`
         game_id
         average_rating
         total_ratings
+        created_at
+        updated_at
+      }
+      comments {
+        edges {
+          node {
+            id
+            content
+            created_at
+            updated_at
+            user {
+              id
+              username
+              first_name
+              last_name
+              image_url
+            }
+          }
+          cursor
+        }
+        pageInfo {
+          hasNextPage
+          hasPreviousPage
+          startCursor
+          endCursor
+        }
+        totalCount
       }
     }
   }
 `;
 
-// Get game log by ID
-export const GET_GAME_LOG = `
-  query GetGameLog($id: ID!) {
-    game_log(id: $id) {
+// Get paginated game logs
+export const GET_GAME_LOGS = gql`
+  query GetGameLogs($pagination: PaginationInput) {
+    game_logs(pagination: $pagination) {
+      edges {
+        node {
+          id
+          user_id
+          game_id
+          watched_setting
+          watched_date
+          watched_location
+          rating_for_game
+          watched_count
+          created_at
+          updated_at
+          user {
+            id
+            username
+            first_name
+            last_name
+            image_url
+          }
+          game {
+            id
+            game_id
+            average_rating
+            total_ratings
+            created_at
+            updated_at
+          }
+        }
+        cursor
+      }
+      pageInfo {
+        hasNextPage
+        hasPreviousPage
+        startCursor
+        endCursor
+      }
+      totalCount
+    }
+  }
+`;
+
+// Get user by ID
+export const GET_USER = gql`
+  query GetUser($id: ID!) {
+    user(id: $id) {
       id
-      user_id
-      game_id
-      watched_setting
-      watched_date
-      watched_location
-      rating_for_game
-      rating_stars
-      watched_count
+      username
+      first_name
+      last_name
+      image_url
       created_at
       updated_at
-      user {
-        id
-        username
-        first_name
-        last_name
+      game_logs {
+        edges {
+          node {
+            id
+            game_id
+            watched_setting
+            watched_date
+            watched_location
+            rating_for_game
+            watched_count
+            created_at
+            updated_at
+          }
+          cursor
+        }
+        pageInfo {
+          hasNextPage
+          hasPreviousPage
+          startCursor
+          endCursor
+        }
+        totalCount
       }
     }
   }
@@ -325,55 +421,6 @@ export const GET_COMMENT = `
         id
         game_id
         rating_for_game
-      }
-    }
-  }
-`;
-
-// Get user by ID
-export const GET_USER_QUERY = `
-  query GetUser($id: ID!) {
-    user(id: $id) {
-      id
-      username
-      first_name
-      last_name
-      email_address
-      image_url
-      created_at
-      updated_at
-      banned
-      inbound_friendship_ids
-      outbound_friendship_ids
-      initiated_friendships {
-        id
-        status
-        timestamp
-        responder {
-          username
-          image_url
-        }
-      }
-      received_friendships {
-        id
-        status
-        timestamp
-        initiator {
-          username
-          image_url
-        }
-      }
-      game_logs {
-        id
-        game_id
-        watched_setting
-        watched_date
-        watched_location
-        rating_for_game
-        rating_stars
-        watched_count
-        created_at
-        updated_at
       }
     }
   }
@@ -486,6 +533,83 @@ export const GET_ALL_GAME_LOGS_QUERY = `
         first_name
         last_name
         email_address
+        image_url
+      }
+      game {
+        id
+        game_id
+        average_rating
+        total_ratings
+      }
+      comments {
+        id
+        content
+        created_at
+        updated_at
+      }
+    }
+  }
+`;
+
+// Get paginated game ratings
+export const GET_ALL_GAME_RATINGS_QUERY = `
+  query GetGameRatings($pagination: PaginationInput) {
+    game_ratings(pagination: $pagination) {
+      edges {
+        node {
+          id
+          game_id
+          average_rating
+          total_ratings
+          created_at
+          updated_at
+        }
+        cursor
+      }
+      pageInfo {
+        hasNextPage
+        hasPreviousPage
+        startCursor
+        endCursor
+      }
+      totalCount
+    }
+  }
+`;
+
+// Get a single game rating
+export const GET_GAME_RATING_QUERY = `
+  query GetGameRating($game_id: String!) {
+    game_rating(game_id: $game_id) {
+      id
+      game_id
+      average_rating
+      total_ratings
+      created_at
+      updated_at
+    }
+  }
+`;
+
+// Get a game log with its rating
+export const GET_GAME_LOG_QUERY = `
+  query GetGameLog($id: ID!) {
+    game_log(id: $id) {
+      id
+      user_id
+      game_id
+      watched_setting
+      watched_date
+      watched_location
+      rating_for_game
+      watched_count
+      created_at
+      updated_at
+      user {
+        id
+        username
+        first_name
+        last_name
         image_url
       }
       game {

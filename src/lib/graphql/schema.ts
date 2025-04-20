@@ -451,6 +451,17 @@ export const typeDefs = gql`
     updated_at: DateTime!
   }
 
+  type GameRatingConnection {
+    edges: [GameRatingEdge!]!
+    pageInfo: PageInfo!
+    totalCount: Int!
+  }
+
+  type GameRatingEdge {
+    node: GameRating!
+    cursor: String!
+  }
+
   type PageInfo {
     hasNextPage: Boolean!
     hasPreviousPage: Boolean!
@@ -496,7 +507,7 @@ export const typeDefs = gql`
     game_logs(pagination: PaginationInput): GameLogConnection!
     game_log(id: ID!): GameLog
     game_rating(game_id: String!): GameRating
-    game_ratings(game_ids: [String!]!): [GameRating!]!
+    game_ratings(pagination: PaginationInput): GameRatingConnection!
     reactions(target_id: ID!): [Reaction!]!
   }
 
@@ -527,12 +538,12 @@ export const typeDefs = gql`
     # Game log mutations
     create_game_log(
       user_id: ID!
-      game_id: String!
+      game_id: ID!
       watched_setting: watched_setting!
       watched_date: String!
       watched_location: String!
       rating_for_game: Int!
-      rating_stars: String!
+      watched_count: Int
     ): GameLog!
     update_game_log(
       id: ID!
@@ -540,7 +551,7 @@ export const typeDefs = gql`
       watched_date: String
       watched_location: String
       rating_for_game: Int
-      rating_stars: String
+      watched_count: Int
     ): GameLog!
     delete_game_log(id: ID!): Boolean!
 
@@ -550,9 +561,9 @@ export const typeDefs = gql`
     delete_comment(id: ID!): Boolean!
 
     # Game rating mutations
-    create_game_rating(game_id: String!, rating: Int!): GameRating!
-    update_game_rating(id: String!, game_id: String!, rating: Int!): GameRating!
-    delete_game_rating(id: String!): Boolean!
+    create_game_rating(game_id: ID!, rating: Int!): GameRating!
+    update_game_rating(id: ID!, game_id: ID!, rating: Int!): GameRating!
+    delete_game_rating(id: ID!): Boolean!
 
     # Reaction mutations
     create_reaction(input: CreateReactionInput!): Reaction!

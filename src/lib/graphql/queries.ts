@@ -876,14 +876,26 @@ export const GET_GAME_RATING = gql`
 `;
 
 export const GET_GAME_RATINGS = gql`
-  query GetGameRatings($game_ids: [String!]!) {
-    game_ratings(game_ids: $game_ids) {
-      id
-      game_id
-      average_rating
-      total_ratings
-      created_at
-      updated_at
+  query GetGameRatings($pagination: PaginationInput) {
+    game_ratings(pagination: $pagination) {
+      edges {
+        node {
+          id
+          game_id
+          average_rating
+          total_ratings
+          created_at
+          updated_at
+        }
+        cursor
+      }
+      pageInfo {
+        hasNextPage
+        hasPreviousPage
+        startCursor
+        endCursor
+      }
+      totalCount
     }
   }
 `;

@@ -696,10 +696,20 @@ export const resolvers = {
     ) => {
       try {
         const cacheKey = CACHE_KEYS.GAME_LOGS;
-        const cachedLogs = await redis.get(cacheKey);
-        if (cachedLogs) {
-          const logs = JSON.parse(cachedLogs as string);
-          return paginateLogs(logs, pagination);
+        try {
+          const cachedLogs = await redis.get(cacheKey);
+          if (cachedLogs) {
+            try {
+              const logs = JSON.parse(cachedLogs as string);
+              return paginateLogs(logs, pagination);
+            } catch (parseError) {
+              console.error("Error parsing cached game logs:", parseError);
+              // If cache parsing fails, continue to fetch from database
+            }
+          }
+        } catch (cacheError) {
+          console.error("Error accessing Redis cache:", cacheError);
+          // If cache fails, continue to fetch from database
         }
 
         const results = await db
@@ -734,6 +744,11 @@ export const resolvers = {
           .leftJoin(schema.game_ratings, eq(schema.game_logs.game_id, schema.game_ratings.game_id))
           .orderBy(schema.game_logs.created_at);
 
+        if (!results || results.length === 0) {
+          console.warn("No game logs found in database");
+          return paginateLogs([], pagination);
+        }
+
         const transformedLogs: GameLog[] = results.map((log) => ({
           id: log.id,
           user_id: log.user_id || "",
@@ -750,10 +765,17 @@ export const resolvers = {
           game: log.game as GameRating,
         }));
 
-        await cache.set(cacheKey, transformedLogs, CACHE_TTL.GAME_LOGS);
+        // Cache the results
+        try {
+          await redis.set(cacheKey, JSON.stringify(transformedLogs), { ex: CACHE_TTL.GAME_LOGS });
+        } catch (cacheError) {
+          console.error("Error caching game logs:", cacheError);
+          // Continue even if caching fails
+        }
+
         return paginateLogs(transformedLogs, pagination);
       } catch (error) {
-        console.error("Error fetching game logs:", error);
+        console.error("Error in game_logs resolver:", error);
         throw new Error("Failed to fetch game logs");
       }
     },
@@ -863,37 +885,64 @@ export const resolvers = {
 
     game_ratings: async (
       _: unknown,
-      {
-        pagination,
-      }: {
-        pagination?: {
-          first?: number;
-          after?: string;
-          last?: number;
-          before?: string;
-        };
-      },
+      { pagination }: { pagination?: PaginationArgs },
       { db, redis }: { db: DB; redis: Redis }
     ) => {
       try {
-        const cachedRatings = await redis.get(CACHE_KEYS.GAME_RATINGS);
-        if (cachedRatings) {
-          const ratings = JSON.parse(cachedRatings as string);
-          return paginateResults(ratings, pagination);
+        const cacheKey = CACHE_KEYS.GAME_RATINGS;
+        try {
+          const cachedRatings = await redis.get(cacheKey);
+          if (cachedRatings) {
+            try {
+              const ratings = JSON.parse(cachedRatings as string);
+              return paginateResults(ratings, pagination);
+            } catch (parseError) {
+              console.error("Error parsing cached game ratings:", parseError);
+              // If cache parsing fails, continue to fetch from database
+            }
+          }
+        } catch (cacheError) {
+          console.error("Error accessing Redis cache:", cacheError);
+          // If cache fails, continue to fetch from database
         }
 
-        const ratings = await db
-          .select()
+        const results = await db
+          .select({
+            id: schema.game_ratings.id,
+            game_id: schema.game_ratings.game_id,
+            average_rating: schema.game_ratings.average_rating,
+            total_ratings: schema.game_ratings.total_ratings,
+            created_at: schema.game_ratings.created_at,
+            updated_at: schema.game_ratings.updated_at,
+          })
           .from(schema.game_ratings)
           .orderBy(schema.game_ratings.created_at);
 
-        await redis.set(CACHE_KEYS.GAME_RATINGS, JSON.stringify(ratings), {
-          ex: CACHE_TTL.GAME_RATINGS,
-        });
+        if (!results || results.length === 0) {
+          console.warn("No game ratings found in database");
+          return paginateResults([], pagination);
+        }
 
-        return paginateResults(ratings, pagination);
+        const transformedRatings: GameRating[] = results.map((rating) => ({
+          id: rating.id,
+          game_id: rating.game_id,
+          average_rating: rating.average_rating,
+          total_ratings: rating.total_ratings,
+          created_at: rating.created_at,
+          updated_at: rating.updated_at,
+        }));
+
+        // Cache the results
+        try {
+          await redis.set(cacheKey, JSON.stringify(transformedRatings), { ex: CACHE_TTL.GAME_RATINGS });
+        } catch (cacheError) {
+          console.error("Error caching game ratings:", cacheError);
+          // Continue even if caching fails
+        }
+
+        return paginateResults(transformedRatings, pagination);
       } catch (error) {
-        console.error("Error fetching game ratings:", error);
+        console.error("Error in game_ratings resolver:", error);
         throw new Error("Failed to fetch game ratings");
       }
     },
@@ -950,7 +999,11 @@ export const resolvers = {
               // Don't throw, just log the error
             }
           }
-          return rating;
+          return {
+            ...rating,
+            created_at: rating.created_at,
+            updated_at: rating.updated_at,
+          };
         }
 
         return null;
@@ -1232,140 +1285,81 @@ export const resolvers = {
 
     // Game log mutations
     create_game_log: async (
-      _: unknown,
+      _: any,
       {
-        input,
+        user_id,
+        game_id,
+        watched_setting,
+        watched_date,
+        watched_location,
+        rating_for_game,
+        watched_count = 1,
       }: {
-        input: {
-          user_id: string;
-          game_id: string;
-          watched_date: string;
-          watched_setting: string;
-          watched_location?: string;
-          rating_for_game?: number;
-          rating_stars?: string;
-          watched_count?: number;
-        };
-      },
-      { db, redis }: { db: DB; redis: Redis }
-    ) => {
-      try {
-        if (
-          !input.user_id ||
-          !input.game_id ||
-          !input.watched_date ||
-          !input.watched_setting
-        ) {
-          throw new Error(
-            "Missing required fields: user_id, game_id, watched_date, watched_setting"
-          );
-        }
-
-        const result = await executeWithRetry(async () => {
-          const [created] = await db
-            .insert(schema.game_logs)
-            .values({
-              id: crypto.randomUUID(),
-              user_id: input.user_id,
-              game_id: input.game_id,
-              watched_date: new Date(input.watched_date),
-              watched_setting:
-                input.watched_setting as (typeof schema.watched_setting_enum.enumValues)[number],
-              watched_location: input.watched_location || "",
-              rating_for_game: input.rating_for_game || 0,
-              rating_stars: input.rating_stars || "",
-              watched_count: input.watched_count || 0,
-              created_at: new Date(),
-              updated_at: new Date(),
-            })
-            .returning();
-          return created;
-        });
-
-        if (result) {
-          // Invalidate relevant caches
-          await Promise.all([
-            redis.del(CACHE_KEYS.GAME_LOGS),
-            redis.del(CACHE_KEYS.USER_GAME_LOGS(input.user_id)),
-          ]);
-        }
-
-        return result;
-      } catch (error) {
-        console.error("Error creating game log:", error);
-        throw new Error("Failed to create game log");
+        user_id: string;
+        game_id: string;
+        watched_setting: "tv" | "arena" | "phone" | "laptop" | "bar" | "home" | "other";
+        watched_date: Date;
+        watched_location: string;
+        rating_for_game: number;
+        watched_count?: number;
       }
+    ) => {
+      const result = await db
+        .insert(schema.game_logs)
+        .values({
+          id: crypto.randomUUID(),
+          user_id,
+          game_id,
+          watched_setting,
+          watched_date,
+          watched_location,
+          rating_for_game,
+          watched_count,
+          created_at: new Date(),
+          updated_at: new Date(),
+        })
+        .returning();
+
+      return result[0];
     },
 
     update_game_log: async (
-      _: unknown,
-      { id, input }: { id: string; input: { watched_date: string } },
-      { db, redis }: { db: DB; redis: Redis }
-    ) => {
-      try {
-        const result = await executeWithRetry(async () => {
-          const [updated] = await db
-            .update(schema.game_logs)
-            .set({
-              watched_date: new Date(input.watched_date),
-              updated_at: new Date(),
-            })
-            .where(eq(schema.game_logs.id, id))
-            .returning();
-          return updated;
-        });
-
-        if (result && result.user_id) {
-          // Invalidate relevant caches
-          await Promise.all([
-            redis.del(CACHE_KEYS.GAME_LOGS),
-            redis.del(CACHE_KEYS.USER_GAME_LOGS(result.user_id)),
-          ]);
-        }
-
-        return result;
-      } catch (error) {
-        console.error("Error updating game log:", error);
-        throw new Error("Failed to update game log");
+      _: any,
+      {
+        id,
+        watched_setting,
+        watched_date,
+        watched_location,
+        rating_for_game,
+        watched_count,
+      }: {
+        id: string;
+        watched_setting?: "tv" | "arena" | "phone" | "laptop" | "bar" | "home" | "other";
+        watched_date?: Date;
+        watched_location?: string;
+        rating_for_game?: number;
+        watched_count?: number;
       }
+    ) => {
+      const result = await db
+        .update(schema.game_logs)
+        .set({
+          watched_setting,
+          watched_date,
+          watched_location,
+          rating_for_game,
+          watched_count,
+          updated_at: new Date(),
+        })
+        .where(eq(schema.game_logs.id, id))
+        .returning();
+
+      return result[0];
     },
 
-    delete_game_log: async (
-      _: unknown,
-      { id }: { id: string },
-      { db, redis }: { db: DB; redis: Redis }
-    ) => {
-      try {
-        // Get the user_id before deleting to invalidate cache
-        const gameLog = await executeWithRetry(async () => {
-          const [log] = await db
-            .select()
-            .from(schema.game_logs)
-            .where(eq(schema.game_logs.id, id));
-          return log;
-        });
-
-        const result = await executeWithRetry(async () => {
-          const [deleted] = await db
-            .delete(schema.game_logs)
-            .where(eq(schema.game_logs.id, id))
-            .returning();
-          return deleted;
-        });
-
-        if (result && gameLog && gameLog.user_id) {
-          // Invalidate relevant caches
-          await Promise.all([
-            redis.del(CACHE_KEYS.GAME_LOGS),
-            redis.del(CACHE_KEYS.USER_GAME_LOGS(gameLog.user_id)),
-          ]);
-        }
-
-        return result;
-      } catch (error) {
-        console.error("Error deleting game log:", error);
-        throw new Error("Failed to delete game log");
-      }
+    delete_game_log: async (_: any, { id }: { id: string }) => {
+      await db.delete(schema.game_logs).where(eq(schema.game_logs.id, id));
+      return true;
     },
 
     create_comment: async (
@@ -1460,74 +1454,52 @@ export const resolvers = {
     },
 
     create_game_rating: async (
-      _: unknown,
-      { gameId, rating }: { gameId: string; rating: number }
+      _: any,
+      { game_id, rating }: { game_id: string; rating: number }
     ) => {
-      try {
-        const [gameRating] = await db
-          .insert(schema.game_ratings)
-          .values({
-            id: crypto.randomUUID(),
-            game_id: gameId,
-            average_rating: rating.toFixed(2),
-            total_ratings: 1,
-            created_at: new Date(),
-            updated_at: new Date(),
-          })
-          .returning();
-        return gameRating;
-      } catch (error) {
-        console.error("Error creating game rating:", error);
-        throw new Error("Failed to create game rating");
-      }
+      const result = await db
+        .insert(schema.game_ratings)
+        .values({
+          id: crypto.randomUUID(),
+          game_id,
+          average_rating: rating.toFixed(2),
+          total_ratings: 1,
+          created_at: new Date(),
+          updated_at: new Date(),
+        })
+        .returning();
+
+      return {
+        ...result[0],
+        created_at: result[0].created_at,
+        updated_at: result[0].updated_at,
+      };
     },
 
     update_game_rating: async (
-      _: unknown,
-      { id, rating }: { id: string; rating: number }
+      _: any,
+      { id, game_id, rating }: { id: string; game_id: string; rating: number }
     ) => {
-      try {
-        const existingRating = await db.query.game_ratings.findFirst({
-          where: eq(schema.game_ratings.id, id),
-        });
+      const result = await db
+        .update(schema.game_ratings)
+        .set({
+          game_id,
+          average_rating: rating.toFixed(2),
+          updated_at: new Date(),
+        })
+        .where(eq(schema.game_ratings.id, id))
+        .returning();
 
-        if (!existingRating) {
-          throw new Error("Game rating not found");
-        }
-
-        const newTotalRatings = existingRating.total_ratings + 1;
-        const newAverageRating =
-          (parseFloat(existingRating.average_rating) *
-            existingRating.total_ratings +
-            rating) /
-          newTotalRatings;
-
-        const [updatedRating] = await db
-          .update(schema.game_ratings)
-          .set({
-            average_rating: newAverageRating.toFixed(2),
-            total_ratings: newTotalRatings,
-            updated_at: new Date(),
-          })
-          .where(eq(schema.game_ratings.id, id))
-          .returning();
-        return updatedRating;
-      } catch (error) {
-        console.error("Error updating game rating:", error);
-        throw new Error("Failed to update game rating");
-      }
+      return {
+        ...result[0],
+        created_at: result[0].created_at,
+        updated_at: result[0].updated_at,
+      };
     },
 
-    delete_game_rating: async (_: unknown, { id }: { id: string }) => {
-      try {
-        await db
-          .delete(schema.game_ratings)
-          .where(eq(schema.game_ratings.id, id));
-        return true;
-      } catch (error) {
-        console.error("Error deleting game rating:", error);
-        throw new Error("Failed to delete game rating");
-      }
+    delete_game_rating: async (_: any, { id }: { id: string }) => {
+      await db.delete(schema.game_ratings).where(eq(schema.game_ratings.id, id));
+      return true;
     },
 
     create_reaction: async (

@@ -331,3 +331,147 @@ export const INCREMENT_WATCHED_COUNT_RESPONSE = {
     updated_at: "2024-04-14T20:00:00Z",
   },
 };
+
+// Example Mutation Responses
+export const exampleMutationResponses = {
+  // Response for createGameRating mutation
+  createGameRating: {
+    id: "1",
+    game_id: "game123",
+    average_rating: 4.5,
+    total_ratings: 100,
+    created_at: "2024-03-20T10:00:00Z",
+    updated_at: "2024-03-20T10:00:00Z",
+  },
+
+  // Response for updateGameRating mutation
+  updateGameRating: {
+    id: "1",
+    game_id: "game123",
+    average_rating: 4.8,
+    total_ratings: 120,
+    created_at: "2024-03-20T10:00:00Z",
+    updated_at: "2024-03-20T11:00:00Z",
+  },
+
+  // Response for deleteGameRating mutation
+  deleteGameRating: {
+    id: "1",
+    game_id: "game123",
+    average_rating: 4.5,
+    total_ratings: 100,
+    created_at: "2024-03-20T10:00:00Z",
+    updated_at: "2024-03-20T10:00:00Z",
+  },
+
+  // Response for createGameLog mutation
+  createGameLog: {
+    id: "1",
+    user_id: "user123",
+    game_id: "game123",
+    watched_setting: "SOLO",
+    watched_date: "2024-03-20T10:00:00Z",
+    watched_location: "Home",
+    rating_for_game: 5,
+    watched_count: 1,
+    created_at: "2024-03-20T10:00:00Z",
+    updated_at: "2024-03-20T10:00:00Z",
+    user: {
+      id: "user123",
+      username: "johndoe",
+      first_name: "John",
+      last_name: "Doe",
+      image_url: "https://example.com/johndoe.jpg",
+    },
+    game: {
+      id: "1",
+      game_id: "game123",
+      average_rating: 4.5,
+      total_ratings: 100,
+      created_at: "2024-03-20T10:00:00Z",
+      updated_at: "2024-03-20T10:00:00Z",
+    },
+  },
+
+  // Response for updateGameLog mutation
+  updateGameLog: {
+    id: "1",
+    user_id: "user123",
+    game_id: "game123",
+    watched_setting: "GROUP",
+    watched_date: "2024-03-20T10:00:00Z",
+    watched_location: "Cinema",
+    rating_for_game: 4,
+    watched_count: 2,
+    created_at: "2024-03-20T10:00:00Z",
+    updated_at: "2024-03-20T11:00:00Z",
+    user: {
+      id: "user123",
+      username: "johndoe",
+      first_name: "John",
+      last_name: "Doe",
+      image_url: "https://example.com/johndoe.jpg",
+    },
+    game: {
+      id: "1",
+      game_id: "game123",
+      average_rating: 4.5,
+      total_ratings: 100,
+      created_at: "2024-03-20T10:00:00Z",
+      updated_at: "2024-03-20T10:00:00Z",
+    },
+  },
+
+  // Response for deleteGameLog mutation
+  deleteGameLog: {
+    id: "1",
+    user_id: "user123",
+    game_id: "game123",
+    watched_setting: "SOLO",
+    watched_date: "2024-03-20T10:00:00Z",
+    watched_location: "Home",
+    rating_for_game: 5,
+    watched_count: 1,
+    created_at: "2024-03-20T10:00:00Z",
+    updated_at: "2024-03-20T10:00:00Z",
+  },
+
+  // Response for createComment mutation
+  createComment: {
+    id: "1",
+    user_id: "user123",
+    parent_id: "game_log_1",
+    content: "Great game!",
+    created_at: "2024-03-20T10:00:00Z",
+    updated_at: "2024-03-20T10:00:00Z",
+    user: {
+      id: "user123",
+      username: "johndoe",
+      first_name: "John",
+      last_name: "Doe",
+      image_url: "https://example.com/johndoe.jpg",
+    },
+  },
+
+  // Response for updateComment mutation
+  updateComment: {
+    id: "1",
+    user_id: "user123",
+    parent_id: "game_log_1",
+    content: "Amazing game!",
+    created_at: "2024-03-20T10:00:00Z",
+    updated_at: "2024-03-20T11:00:00Z",
+    user: {
+      id: "user123",
+      username: "johndoe",
+      first_name: "John",
+      last_name: "Doe",
+      image_url: "https://example.com/johndoe.jpg",
+    },
+  },
+
+  // Response for deleteComment mutation
+  deleteComment: {
+    id: "1",
+  },
+};
