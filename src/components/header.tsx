@@ -100,38 +100,11 @@ export default function Header() {
                 </li>
                 <li>
                   <Link
-                    href="/game-logs"
-                    className="block py-1.5 lg:py-0 text-base lg:text-sm hover:text-blue-600 transition-colors"
-                    onClick={() => setIsMenuExpanded(false)}
-                  >
-                    Game Logs
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/protected/server"
-                    className="block py-1.5 lg:py-0 text-base lg:text-sm hover:text-blue-600 transition-colors"
-                    onClick={() => setIsMenuExpanded(false)}
-                  >
-                    Protected (server)
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/protected/client"
-                    className="block py-1.5 lg:py-0 text-base lg:text-sm hover:text-blue-600 transition-colors"
-                    onClick={() => setIsMenuExpanded(false)}
-                  >
-                    Protected (client)
-                  </Link>
-                </li>
-                <li>
-                  <Link
                     href="/api/user"
                     className="block py-1.5 lg:py-0 text-base lg:text-sm hover:text-blue-600 transition-colors"
                     onClick={() => setIsMenuExpanded(false)}
                   >
-                    Who am I?
+                    ALL SPORTS
                   </Link>
                 </li>
               </ul>

@@ -14,22 +14,7 @@ export default function Footer() {
               </li>
               <li>
                 <a href="#" className="hover:text-blue-600">
-                  Pro
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-blue-600">
                   News
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-blue-600">
-                  Apps
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-blue-600">
-                  Podcast
                 </a>
               </li>
             </ul>
@@ -46,16 +31,6 @@ export default function Footer() {
               </li>
               <li>
                 <a href="#" className="hover:text-blue-600">
-                  Terms
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-blue-600">
-                  API
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-blue-600">
                   Contact
                 </a>
               </li>
@@ -68,32 +43,7 @@ export default function Footer() {
             <ul className="space-y-2 text-sm text-gray-600">
               <li>
                 <a href="#" className="hover:text-blue-600">
-                  Instagram
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-blue-600">
-                  Threads
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-blue-600">
                   X
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-blue-600">
-                  Bluesky
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-blue-600">
-                  Facebook
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-blue-600">
-                  TikTok
                 </a>
               </li>
               <li>
@@ -113,13 +63,8 @@ export default function Footer() {
                   Privacy Policy
                 </a>
               </li>
-              <li>
-                <a href="#" className="hover:text-blue-600">
-                  Terms of Service
-                </a>
-              </li>
               <li className="text-xs text-gray-500 mt-4">
-                © {new Date().getFullYear()} Your Company. All rights reserved.
+                © {new Date().getFullYear()} Game Diary. All rights reserved.
               </li>
             </ul>
           </div>
