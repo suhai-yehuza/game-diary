@@ -24,13 +24,15 @@ export default function Header() {
     <header className="w-full border-b lg:border-b">
       <div className="flex h-16 items-center">
         <div className="pl-10">
-          <Image
-            src="/gamelog-large.svg"
-            alt="Game Diary Logo"
-            width={32}
-            height={32}
-            className="w-8 h-8"
-          />
+          <Link href="/">
+            <Image
+              src="/gamelog-large.svg"
+              alt="Game Diary Logo"
+              width={32}
+              height={32}
+              className="w-8 h-8 cursor-pointer"
+            />
+          </Link>
         </div>
         <nav className="container mx-auto px-2 sm:px-4 lg:px-6">
           <div className="flex h-16 items-center justify-between">
@@ -111,7 +113,7 @@ export default function Header() {
                   </li>
                   <li>
                     <Link
-                      href="/api/user"
+                      href="/"
                       className="block py-1.5 lg:py-0 text-base lg:text-sm hover:text-blue-600 transition-colors"
                       onClick={() => setIsMenuExpanded(false)}
                     >
