@@ -295,10 +295,19 @@ export interface Game {
 }
 
 // Statistics Types
+export interface GameStats {
+  fastBreakPoints: number;
+  pointsInPaint: number;
+  biggestLead: number;
+  secondChancePoints: number;
+  pointsOffTurnovers: number;
+  longestRun: number;
+}
+
 export interface GameStatistics {
-  game_id: number;
-  team: number;
-  playerId: number;
+  game_id: string;
+  team: Team;
+  playerId: string;
   points: number;
   rebounds: {
     total: number;
@@ -314,25 +323,20 @@ export interface GameStatistics {
   fieldGoals: {
     made: number;
     attempted: number;
-    percentage: string;
+    percentage: number;
   };
   threePointers: {
     made: number;
     attempted: number;
-    percentage: string;
+    percentage: number;
   };
   freeThrows: {
     made: number;
     attempted: number;
-    percentage: string;
+    percentage: number;
   };
-  plusMinus: number | string;
-  fastBreakPoints?: number;
-  pointsInPaint?: number;
-  biggestLead?: number;
-  secondChancePoints?: number;
-  pointsOffTurnovers?: number;
-  longestRun?: number;
+  plusMinus: number;
+  statistics: GameStats;
 }
 
 export interface TeamStatistics {

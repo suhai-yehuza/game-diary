@@ -15,7 +15,7 @@ export default function Home() {
         </h1>
         <div className="flex gap-4 items-center justify-center">
           {isLoaded && isSignedIn ? (
-            "🚧 ... You will be able to log games soon ... 🚧"
+            "🚧 ... Work in progress to enable logging games ... 🚧"
           ) : (
             <a
               href="https://game-diary-git-syehuza-demo-suhais-projects-33a81a2a.vercel.app/"

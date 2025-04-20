@@ -7,116 +7,7 @@ import { format } from "date-fns";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect } from "react";
-
-interface Team {
-  id: string;
-  name: string;
-  nickname: string;
-  code: string;
-  logo: string;
-}
-
-interface Score {
-  win: number;
-  loss: number;
-  series: {
-    win: number;
-    loss: number;
-  };
-  linescore: string[];
-  points: number;
-}
-
-interface GameStats {
-  fastBreakPoints: number;
-  pointsInPaint: number;
-  biggestLead: number;
-  secondChancePoints: number;
-  pointsOffTurnovers: number;
-  longestRun: number;
-}
-
-interface GameStatistics {
-  game_id: string;
-  team: Team;
-  playerId: string;
-  points: number;
-  rebounds: {
-    total: number;
-    offensive: number;
-    defensive: number;
-  };
-  assists: number;
-  steals: number;
-  blocks: number;
-  turnovers: number;
-  fouls: number;
-  minutes: string;
-  fieldGoals: {
-    made: number;
-    attempted: number;
-    percentage: number;
-  };
-  threePointers: {
-    made: number;
-    attempted: number;
-    percentage: number;
-  };
-  freeThrows: {
-    made: number;
-    attempted: number;
-    percentage: number;
-  };
-  plusMinus: number;
-  statistics: GameStats;
-}
-
-interface Game {
-  id: string;
-  league: {
-    id: string;
-    name: string;
-    type: string;
-    logo: string;
-  };
-  season: number;
-  date: {
-    start: string;
-    end: string;
-    duration: string;
-  };
-  stage: number;
-  status: {
-    clock: string;
-    halftime: boolean;
-    short: number;
-    long: string;
-  };
-  periods: {
-    current: number;
-    total: number;
-    endOfPeriod: boolean;
-  };
-  arena: {
-    name: string;
-    city: string;
-    state: string;
-    country: string;
-  };
-  teams: {
-    visitors: Team;
-    home: Team;
-  };
-  scores: {
-    visitors: Score;
-    home: Score;
-  };
-  officials: string[];
-  timesTied: number;
-  leadChanges: number;
-  nugget: string;
-  statistics: GameStatistics[];
-}
+import { Game, GameStatistics } from "@/lib/types/types";
 
 export default function GamePage() {
   const params = useParams();
@@ -319,9 +210,9 @@ export default function GamePage() {
                     <div>
                       <h5 className="font-medium mb-4">Shooting</h5>
                       <div className="space-y-2 text-sm">
-                        <p>Field Goals: {teamStats.fieldGoals.made}/{teamStats.fieldGoals.attempted} ({teamStats.fieldGoals.percentage}%)</p>
-                        <p>3-Pointers: {teamStats.threePointers.made}/{teamStats.threePointers.attempted} ({teamStats.threePointers.percentage}%)</p>
-                        <p>Free Throws: {teamStats.freeThrows.made}/{teamStats.freeThrows.attempted} ({teamStats.freeThrows.percentage}%)</p>
+                        <p>Field Goals: {teamStats.fieldGoals.made}/{teamStats.fieldGoals.attempted} ({teamStats.fieldGoals.percentage.toFixed(1)}%)</p>
+                        <p>3-Pointers: {teamStats.threePointers.made}/{teamStats.threePointers.attempted} ({teamStats.threePointers.percentage.toFixed(1)}%)</p>
+                        <p>Free Throws: {teamStats.freeThrows.made}/{teamStats.freeThrows.attempted} ({teamStats.freeThrows.percentage.toFixed(1)}%)</p>
                       </div>
                     </div>
 
