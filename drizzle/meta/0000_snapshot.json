@@ -1,5 +1,5 @@
 {
-  "id": "06eb89c8-75a2-40d0-8d2b-c16d32b9810f",
+  "id": "e258b731-7b4e-44e0-81da-a17602ba9f7a",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -13,7 +13,7 @@
           "type": "text",
           "primaryKey": true,
           "notNull": true,
-          "default": "'544a8432-b31c-4786-a0c8-b85b59f2461c'"
+          "default": "'0a0c968e-825c-4757-8dd7-ea7b6dfd1ed9'"
         },
         "user_id": {
           "name": "user_id",
@@ -265,7 +265,7 @@
           "type": "varchar(255)",
           "primaryKey": true,
           "notNull": true,
-          "default": "'7ef6a1ad-9f54-44e2-8947-c4362312161b'"
+          "default": "'a89a2b68-fc73-4544-85fc-56d31307b037'"
         },
         "game_id": {
           "name": "game_id",
@@ -327,7 +327,7 @@
           "type": "text",
           "primaryKey": true,
           "notNull": true,
-          "default": "'2bc1f830-3d49-4502-89f4-681677060e10'"
+          "default": "'91a3baba-5372-4611-b5a2-7952dbcf8aa3'"
         },
         "user_id": {
           "name": "user_id",

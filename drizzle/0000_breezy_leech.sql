@@ -2,7 +2,7 @@ CREATE TYPE "public"."friendship_status" AS ENUM('pending', 'connected', 'reject
 CREATE TYPE "public"."reaction_target" AS ENUM('game_log', 'comment');--> statement-breakpoint
 CREATE TYPE "public"."watched_setting" AS ENUM('tv', 'arena', 'phone', 'laptop', 'bar', 'home', 'other');--> statement-breakpoint
 CREATE TABLE "comments" (
-	"id" text PRIMARY KEY DEFAULT '544a8432-b31c-4786-a0c8-b85b59f2461c' NOT NULL,
+	"id" text PRIMARY KEY DEFAULT '0a0c968e-825c-4757-8dd7-ea7b6dfd1ed9' NOT NULL,
 	"user_id" text,
 	"parent_id" text NOT NULL,
 	"parent_type" "reaction_target",
@@ -35,7 +35,7 @@ CREATE TABLE "game_logs" (
 );
 --> statement-breakpoint
 CREATE TABLE "game_ratings" (
-	"id" varchar(255) PRIMARY KEY DEFAULT '7ef6a1ad-9f54-44e2-8947-c4362312161b' NOT NULL,
+	"id" varchar(255) PRIMARY KEY DEFAULT 'a89a2b68-fc73-4544-85fc-56d31307b037' NOT NULL,
 	"game_id" text NOT NULL,
 	"average_rating" numeric(3, 2) DEFAULT '0.00' NOT NULL,
 	"total_ratings" integer DEFAULT 0 NOT NULL,
@@ -45,7 +45,7 @@ CREATE TABLE "game_ratings" (
 );
 --> statement-breakpoint
 CREATE TABLE "reactions" (
-	"id" text PRIMARY KEY DEFAULT '2bc1f830-3d49-4502-89f4-681677060e10' NOT NULL,
+	"id" text PRIMARY KEY DEFAULT '91a3baba-5372-4611-b5a2-7952dbcf8aa3' NOT NULL,
 	"user_id" text,
 	"target_type" "reaction_target" NOT NULL,
 	"target_id" text NOT NULL,
