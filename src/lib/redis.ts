@@ -48,21 +48,55 @@ export const cache = {
 
       try {
         if (isProduction) {
-          (redisClient as UpstashRedis).get<T>(key).then(resolve);
+          (redisClient as UpstashRedis)
+            .get(key)
+            .then((data) => {
+              if (!data) {
+                resolve(null);
+                return;
+              }
+              try {
+                const parsedData = JSON.parse(data as string);
+                resolve(parsedData as T);
+              } catch (error) {
+                console.error("Error parsing cached data:", error);
+                resolve(null);
+              }
+            })
+            .catch((error) => {
+              console.error("Error getting cached data:", error);
+              resolve(null);
+            });
         } else {
-          (redisClient as Redis).get(key).then((data) => {
-            resolve(data ? JSON.parse(data) : null);
-          });
+          (redisClient as Redis)
+            .get(key)
+            .then((data) => {
+              if (!data) {
+                resolve(null);
+                return;
+              }
+              try {
+                const parsedData = JSON.parse(data);
+                resolve(parsedData as T);
+              } catch (error) {
+                console.error("Error parsing cached data:", error);
+                resolve(null);
+              }
+            })
+            .catch((error) => {
+              console.error("Error getting cached data:", error);
+              resolve(null);
+            });
         }
       } catch (error) {
-        console.error(`Error getting cache for key ${key}:`, error);
+        console.error("Error in cache.get:", error);
         resolve(null);
       }
     });
   },
 
-  // Set cached data with expiration
-  set: <T>(key: string, value: T, ttl: number = 3600): Promise<void> => {
+  // Set cached data
+  set: <T>(key: string, value: T, ttl?: number): Promise<void> => {
     return new Promise((resolve) => {
       if (!redisClient || !isRedisAvailable) {
         resolve();
@@ -70,31 +104,36 @@ export const cache = {
       }
 
       try {
-        // Ensure TTL is a valid positive number between 1 and 2147483647 (max Redis TTL)
-        const validTTL = Math.max(
-          1,
-          Math.min(Math.floor(Number(ttl) || 3600), 2147483647)
-        );
-
+        const serializedValue = JSON.stringify(value);
         if (isProduction) {
           (redisClient as UpstashRedis)
-            .set(key, JSON.stringify(value), { ex: validTTL })
+            .set(key, serializedValue, ttl ? { ex: ttl } : undefined)
             .then(() => resolve())
             .catch((error) => {
-              console.error(`Error setting cache for key ${key}:`, error);
+              console.error("Error setting cached data:", error);
               resolve();
             });
         } else {
-          (redisClient as Redis)
-            .set(key, JSON.stringify(value), "EX", validTTL)
-            .then(() => resolve())
-            .catch((error) => {
-              console.error(`Error setting cache for key ${key}:`, error);
-              resolve();
-            });
+          if (ttl) {
+            (redisClient as Redis)
+              .setex(key, ttl, serializedValue)
+              .then(() => resolve())
+              .catch((error) => {
+                console.error("Error setting cached data:", error);
+                resolve();
+              });
+          } else {
+            (redisClient as Redis)
+              .set(key, serializedValue)
+              .then(() => resolve())
+              .catch((error) => {
+                console.error("Error setting cached data:", error);
+                resolve();
+              });
+          }
         }
       } catch (error) {
-        console.error(`Error setting cache for key ${key}:`, error);
+        console.error("Error in cache.set:", error);
         resolve();
       }
     });
