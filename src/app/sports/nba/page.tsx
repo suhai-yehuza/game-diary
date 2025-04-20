@@ -174,8 +174,15 @@ export default function Page() {
 
       <main className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {games.map((game) => (
-            <div key={game.id} className="bg-card rounded-lg shadow-sm p-4">
+          {games.map((game, index) => (
+            <div 
+              key={game.id} 
+              className="bg-card rounded-lg shadow-sm p-4 transform transition-all duration-500 ease-out hover:scale-[1.02] hover:shadow-md animate-fadeInUp"
+              style={{
+                animationDelay: `${index * 100}ms`,
+                animationFillMode: 'both',
+              }}
+            >
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
                   {game.league.logo && (
@@ -184,7 +191,7 @@ export default function Page() {
                       alt={game.league.name}
                       width={24}
                       height={24}
-                      className="rounded-full"
+                      className="rounded-full transition-transform duration-300 hover:scale-110"
                     />
                   )}
                   <span className="text-sm text-muted-foreground">
@@ -198,7 +205,7 @@ export default function Page() {
 
               <div className="space-y-4">
                 {/* Away Team */}
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between group">
                   <div className="flex items-center gap-3">
                     {game.teams.visitors.logo && (
                       <Image
@@ -206,23 +213,25 @@ export default function Page() {
                         alt={game.teams.visitors.name}
                         width={40}
                         height={40}
-                        className="rounded-full"
+                        className="rounded-full transition-transform duration-300 group-hover:scale-110"
                       />
                     )}
                     <div>
-                      <div className="font-medium">{game.teams.visitors.nickname}</div>
+                      <div className="font-medium transition-colors duration-300 group-hover:text-blue-500">
+                        {game.teams.visitors.nickname}
+                      </div>
                       <div className="text-sm text-muted-foreground">
                         {game.scores.visitors.win}-{game.scores.visitors.loss}
                       </div>
                     </div>
                   </div>
-                  <div className="text-xl font-bold">
+                  <div className="text-xl font-bold transition-colors duration-300 group-hover:text-blue-500">
                     {game.scores.visitors.points}
                   </div>
                 </div>
 
                 {/* Home Team */}
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between group">
                   <div className="flex items-center gap-3">
                     {game.teams.home.logo && (
                       <Image
@@ -230,17 +239,19 @@ export default function Page() {
                         alt={game.teams.home.name}
                         width={40}
                         height={40}
-                        className="rounded-full"
+                        className="rounded-full transition-transform duration-300 group-hover:scale-110"
                       />
                     )}
                     <div>
-                      <div className="font-medium">{game.teams.home.nickname}</div>
+                      <div className="font-medium transition-colors duration-300 group-hover:text-blue-500">
+                        {game.teams.home.nickname}
+                      </div>
                       <div className="text-sm text-muted-foreground">
                         {game.scores.home.win}-{game.scores.home.loss}
                       </div>
                     </div>
                   </div>
-                  <div className="text-xl font-bold">
+                  <div className="text-xl font-bold transition-colors duration-300 group-hover:text-blue-500">
                     {game.scores.home.points}
                   </div>
                 </div>
