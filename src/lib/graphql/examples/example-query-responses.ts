@@ -1,22 +1,6 @@
+import { CommentResponse } from "@/lib/types/types";
+
 // Example Query Responses
-
-// Type definitions
-interface CommentResponse {
-  id: string;
-  user_id: string;
-  parent_id: string;
-  content: string;
-  created_at: string;
-  updated_at: string;
-  user: {
-    id: string;
-    username: string;
-    first_name: string;
-    last_name: string;
-    image_url: string;
-  };
-}
-
 export const GET_SEASONS_RESPONSE = {
   seasons: [
     {
