@@ -227,7 +227,7 @@ export const resolvers = {
     },
 
     games: async (
-      _: unknown,
+      _parent: unknown,
       { filters, pagination }: { filters?: GameFilters; pagination?: PaginationArgs }
     ) => {
       try {
@@ -247,7 +247,7 @@ export const resolvers = {
           throw new Error("Invalid response format from games API");
         }
 
-        const games = data.response.map((game: any) => ({
+        const games = data.response.map((game: { id: string | number; [key: string]: unknown }) => ({
           ...game,
           id: game.id.toString(),
         }));
@@ -1565,7 +1565,7 @@ export const resolvers = {
     },
 
     create_game_rating: async (
-      _: any,
+      _parent: unknown,
       { game_id, rating }: { game_id: string; rating: number }
     ) => {
       const result = await db
@@ -1588,7 +1588,7 @@ export const resolvers = {
     },
 
     update_game_rating: async (
-      _: any,
+      _parent: unknown,
       { id, game_id, rating }: { id: string; game_id: string; rating: number }
     ) => {
       const result = await db
@@ -1608,7 +1608,7 @@ export const resolvers = {
       };
     },
 
-    delete_game_rating: async (_: any, { id }: { id: string }) => {
+    delete_game_rating: async (_parent: unknown, { id }: { id: string }) => {
       await db.delete(schema.game_ratings).where(eq(schema.game_ratings.id, id));
       return true;
     },
