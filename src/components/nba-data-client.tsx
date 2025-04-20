@@ -40,6 +40,7 @@ export const NbaDataClient = () => {
   const testUserId = "01c271f5-0aa3-4aa3-92b8-032b7a39b995";
   const testGameLogId = "00039a16-6ef0-47ed-abca-e1d2e633cbe6";
   const testGameId = "2c4cbc53-87fe-4e53-a210-f7ccb188ebfc";
+  const DEFAULT_PAGE_SIZE = 10;
   const [selectedConference, setSelectedConference] = useState<
     Conference | "all"
   >("all");
@@ -64,11 +65,12 @@ export const NbaDataClient = () => {
   useEffect(() => {
     console.log("userData", userData);
   }, [userData]);
+  
   // GET_GAME_LOGS
   const { data: gameLogsData } = useQuery(GET_GAME_LOGS, {
     variables: {
       pagination: {
-        first: 10,
+        first: DEFAULT_PAGE_SIZE,
       },
     },
   });
@@ -148,6 +150,9 @@ export const NbaDataClient = () => {
       filters: {
         season: "2024",
       },
+      pagination: {
+        first: DEFAULT_PAGE_SIZE,
+      },
     },
   });
   useEffect(() => {
@@ -170,6 +175,9 @@ export const NbaDataClient = () => {
       filters: {
         country: "USA",
       },
+      pagination: {
+        first: DEFAULT_PAGE_SIZE,
+      },
       sortBy,
     },
   });
@@ -177,12 +185,24 @@ export const NbaDataClient = () => {
     console.log("playersData", playersData);
   }, [playersData]);
 
-  const { data: usersData } = useQuery(GET_USERS);
+  const { data: usersData } = useQuery(GET_USERS, {
+    variables: {
+      pagination: {
+          first: DEFAULT_PAGE_SIZE,
+      },
+    },
+  });
   useEffect(() => {
     console.log("usersData", usersData);
   }, [usersData]);
 
-  const { data: friendshipsData } = useQuery(GET_FRIENDSHIPS);
+  const { data: friendshipsData } = useQuery(GET_FRIENDSHIPS, {
+    variables: {
+      pagination: {
+        first: DEFAULT_PAGE_SIZE,
+      },
+    },
+  });
   useEffect(() => {
     console.log("friendshipsData", friendshipsData);
   }, [friendshipsData]);
@@ -192,7 +212,7 @@ export const NbaDataClient = () => {
   // const teams: Team[] = teamsData?.teams || [];
   const topPlayers: Player[] = playersData?.topPlayers || [];
 
-  if (!seasonData || !gamesData || !teamsData || !playersData) {
+  if (!seasonData || !gamesData || !teamsData || !playersData || !usersData || !friendshipsData || !gameLogsData || !gameLogData || !gameRatingsData || !gameRatingData || !reactionsData || !friendshipsForUserData || !gameLogsForUserData) {
     return <div className="text-center py-8">Loading NBA data...</div>;
   }
 

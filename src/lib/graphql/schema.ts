@@ -480,13 +480,57 @@ export const typeDefs = gql`
     cursor: String!
   }
 
+  type PlayerConnection {
+    edges: [PlayerEdge!]!
+    pageInfo: PageInfo!
+    totalCount: Int!
+  }
+
+  type PlayerEdge {
+    node: Player!
+    cursor: String!
+  }
+
+  type GameConnection {
+    edges: [GameEdge!]!
+    pageInfo: PageInfo!
+    totalCount: Int!
+  }
+
+  type GameEdge {
+    node: Game!
+    cursor: String!
+  }
+
+  type UserEdge {
+    node: User!
+    cursor: String!
+  }
+
+  type UserConnection {
+    edges: [UserEdge!]!
+    pageInfo: PageInfo!
+    totalCount: Int!
+  }
+
+  type FriendshipEdge {
+    node: Friendship!
+    cursor: String!
+  }
+
+  type FriendshipConnection {
+    edges: [FriendshipEdge!]!
+    pageInfo: PageInfo!
+    totalCount: Int!
+  }
+
   # Query Types
   type Query {
     seasons: [Season!]!
     leagues: [LeagueInfo!]!
-    games(filters: GameFilters): [Game!]!
+    games(filters: GameFilters, pagination: PaginationInput): GameConnection!
     teams(filters: TeamFilters): [Team!]!
-    players(filters: PlayerFilters): [Player!]!
+    players(filters: PlayerFilters, pagination: PaginationInput): PlayerConnection!
     player(id: ID!): Player
     standings: [Standing!]!
     game_stats(game_id: ID!): [GameStatistics!]!
@@ -500,9 +544,9 @@ export const typeDefs = gql`
     top_players(stat: String!, season: Int!, limit: Int): [PlayerStatistics!]!
     comments(parent_id: ID!): [Comment!]!
     comment(id: ID!): Comment
-    users: [User!]!
+    users(pagination: PaginationInput): UserConnection!
     user(id: ID!): User
-    friendships: [Friendship!]!
+    friendships(pagination: PaginationInput): FriendshipConnection!
     friendship(id: ID!): Friendship
     game_logs(pagination: PaginationInput): GameLogConnection!
     game_log(id: ID!): GameLog

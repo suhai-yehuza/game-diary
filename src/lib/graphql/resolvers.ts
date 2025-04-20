@@ -8,11 +8,16 @@ import {
   fetchNbaGameStats,
   fetchNbaTeamStats,
   fetchNbaPlayerStats,
+  fetchNbaPlayers,
   headers,
 } from "../external-apis";
 import {
   TeamSearchApiResponse,
   TeamFilters,
+  Player as NbaPlayer,
+  PlayersApiResponse,
+  PlayerFilters,
+  GameFilters,
 } from "../types/types";
 import { db } from "../../db";
 import * as schema from "../../db/schema";
@@ -150,6 +155,57 @@ interface Player {
   };
 }
 
+function paginateGames<T extends { id: string }>(
+  games: T[],
+  pagination?: {
+    first?: number;
+    after?: string;
+    last?: number;
+    before?: string;
+  }
+) {
+  let startIndex = 0;
+  let endIndex = games.length;
+
+  if (pagination?.after) {
+    const afterIndex = games.findIndex((game) => game.id === pagination.after);
+    if (afterIndex !== -1) {
+      startIndex = afterIndex + 1;
+    }
+  }
+
+  if (pagination?.before) {
+    const beforeIndex = games.findIndex((game) => game.id === pagination.before);
+    if (beforeIndex !== -1) {
+      endIndex = beforeIndex;
+    }
+  }
+
+  if (pagination?.first) {
+    endIndex = Math.min(startIndex + pagination.first, endIndex);
+  }
+
+  if (pagination?.last) {
+    startIndex = Math.max(endIndex - pagination.last, startIndex);
+  }
+
+  const paginatedGames = games.slice(startIndex, endIndex);
+
+  return {
+    edges: paginatedGames.map((game) => ({
+      node: game,
+      cursor: game.id,
+    })),
+    pageInfo: {
+      hasNextPage: endIndex < games.length,
+      hasPreviousPage: startIndex > 0,
+      startCursor: paginatedGames[0]?.id || null,
+      endCursor: paginatedGames[paginatedGames.length - 1]?.id || null,
+    },
+    totalCount: games.length,
+  };
+}
+
 export const resolvers = {
   DateTime: {
     serialize: (value: Date) => value.toISOString(),
@@ -163,17 +219,23 @@ export const resolvers = {
   },
 
   Query: {
-    seasons: async () => {
+    seasons: async (_: unknown, __: unknown, { redis }: { redis: Redis }) => {
       try {
-        // Try to get from cache first
-        const cachedSeasons = await cache.get(CACHE_KEYS.SEASONS);
-        if (cachedSeasons) {
-          return cachedSeasons;
+        // Try to get from cache first if Redis is available
+        if (redis) {
+          try {
+            const cachedSeasons = await redis.get(CACHE_KEYS.SEASONS);
+            if (cachedSeasons) {
+              return cachedSeasons;
+            }
+          } catch (cacheError) {
+            console.error("Error accessing Redis cache for seasons:", cacheError);
+            // Continue to fetch from API if cache fails
+          }
         }
 
         const { response } = await fetchNbaSeasons();
         console.log("Seasons response:", response);
-        // Check if response exists and has the expected structure
         if (!response || !Array.isArray(response)) {
           throw new Error("Invalid seasons response format");
         }
@@ -185,8 +247,16 @@ export const resolvers = {
           isCurrent: new Date().getFullYear() === year,
         }));
 
-        // Cache the seasons data
-        await cache.set(CACHE_KEYS.SEASONS, seasons, CACHE_TTL.SEASONS);
+        // Cache the seasons data if Redis is available
+        if (redis) {
+          try {
+            await redis.set(CACHE_KEYS.SEASONS, JSON.stringify(seasons), { ex: CACHE_TTL.SEASONS });
+          } catch (cacheError) {
+            console.error("Error setting Redis cache for seasons:", cacheError);
+            // Continue even if caching fails
+          }
+        }
+
         return seasons;
       } catch (error) {
         console.error("Error fetching seasons:", error);
@@ -194,17 +264,24 @@ export const resolvers = {
       }
     },
 
-    leagues: async () => {
+    leagues: async (_: unknown, __: unknown, { redis }: { redis: Redis }) => {
       try {
-        // Try to get from cache first
-        const cachedLeagues = await cache.get(CACHE_KEYS.LEAGUES);
-        if (cachedLeagues) {
-          return cachedLeagues;
+        // Try to get from cache first if Redis is available
+        if (redis) {
+          try {
+            const cachedLeagues = await redis.get(CACHE_KEYS.LEAGUES);
+            if (cachedLeagues) {
+              return JSON.parse(cachedLeagues as string);
+            }
+          } catch (cacheError) {
+            console.error("Error accessing Redis cache for leagues:", cacheError);
+            // Continue to fetch from API if cache fails
+          }
         }
 
         const response = await fetchNbaLeagues();
         const leagues = response.response.map((leagues: string[]) => {
-          const league = leagues[0]; // Take the first league from the array
+          const league = leagues[0];
           return {
             id: league,
             name:
@@ -216,8 +293,16 @@ export const resolvers = {
           };
         });
 
-        // Cache the leagues data
-        await cache.set(CACHE_KEYS.LEAGUES, leagues, CACHE_TTL.LEAGUES);
+        // Cache the leagues data if Redis is available
+        if (redis) {
+          try {
+            await redis.set(CACHE_KEYS.LEAGUES, JSON.stringify(leagues), { ex: CACHE_TTL.LEAGUES });
+          } catch (cacheError) {
+            console.error("Error setting Redis cache for leagues:", cacheError);
+            // Continue even if caching fails
+          }
+        }
+
         return leagues;
       } catch (error) {
         console.error("Error fetching leagues:", error);
@@ -225,24 +310,33 @@ export const resolvers = {
       }
     },
 
-    games: async (_: unknown, { page = 1, per_page = 10 }) => {
+    games: async (
+      _: unknown,
+      { filters, pagination }: { filters?: GameFilters; pagination?: PaginationArgs }
+    ) => {
       try {
-        const response = await fetch(
-          `${process.env.RAPID_API_BASE_URL}/games?page=${page}&per_page=${per_page}`,
-          {
-            headers,
-          }
-        );
-        const data = (await response.json()) as { response: Game[] };
-        return {
-          games: data.response.map((game) => ({
-            ...game,
-            id: game.id.toString(),
-          })),
-          total: data.response.length,
-          page,
-          per_page,
-        };
+        // Build query parameters from filters
+        const queryParams = filters
+          ? Object.entries(filters)
+              .filter(([_, value]) => value !== undefined)
+              .map(([key, value]) => `${key}=${value}`)
+              .join("&")
+          : "";
+
+        console.log("Fetching games with params:", queryParams);
+        const data = await fetchNbaGames(queryParams ? `?${queryParams}` : "");
+        
+        if (!data.response) {
+          console.error("Invalid response format from games API:", data);
+          throw new Error("Invalid response format from games API");
+        }
+
+        const games = data.response.map((game: any) => ({
+          ...game,
+          id: game.id.toString(),
+        }));
+
+        return paginateGames(games, pagination);
       } catch (error) {
         console.error("Error fetching games:", error);
         throw new Error("Failed to fetch games");
@@ -314,33 +408,101 @@ export const resolvers = {
       }
     },
 
-    players: async (_: unknown, { page = 1, per_page = 10 }) => {
+    players: async (
+      _: unknown,
+      { pagination, filters }: { pagination?: PaginationArgs; filters?: PlayerFilters },
+      { redis }: { db: DB; redis: Redis }
+    ) => {
+      let queryParams = "";
       try {
-        const response = await fetch(
-          `${process.env.RAPID_API_BASE_URL}/players?page=${page}&per_page=${per_page}`,
-          {
-            headers,
+        // Build query parameters from filters
+        queryParams = filters
+          ? Object.entries(filters)
+              .filter(([_, value]) => value !== undefined)
+              .map(([key, value]) => `${key}=${value}`)
+              .join("&")
+          : "";
+
+        const cacheKey = filters ? `${CACHE_KEYS.PLAYERS}:${queryParams}` : CACHE_KEYS.PLAYERS;
+        
+        // Try to get from cache first if Redis is available
+        if (redis) {
+          try {
+            const cachedPlayers = await redis.get(cacheKey);
+            if (cachedPlayers) {
+              console.log("Returning cached players");
+              const players = JSON.parse(cachedPlayers as string);
+              return paginatePlayers(players, pagination);
+            }
+          } catch (cacheError) {
+            console.error("Error accessing Redis cache for players:", cacheError);
+            // Continue to fetch from API if cache fails
           }
-        );
-        const data = (await response.json()) as { response: Player[] };
-        return {
-          players: data.response.map((player) => ({
+        }
+
+        console.log("Fetching players from API with params:", queryParams);
+        console.log("API URL:", `${process.env.RAPID_API_BASE_URL}/players${queryParams ? `?${queryParams}` : ''}`);
+        console.log("Headers:", {
+          "x-rapidapi-host": process.env.RAPID_API_HOST,
+          "x-rapidapi-key": "***",
+        });
+
+        try {
+          const response: PlayersApiResponse = await fetchNbaPlayers(queryParams);
+          
+          if (!response) {
+            console.error("No response received from players API");
+            throw new Error("No response received from players API");
+          }
+
+          if (!response.response) {
+            console.error("Invalid response format from players API:", response);
+            throw new Error("Invalid response format from players API");
+          }
+
+          console.log(`Received ${response.response.length} players from API`);
+          
+          // Transform the players data
+          const playersArray = response.response as unknown as NbaPlayer[];
+          const players = playersArray.map((player) => ({
             ...player,
             id: player.id.toString(),
-            leagues: {
+            leagues: player.leagues ? {
               standard: {
                 ...player.leagues.standard,
-                pos: player.leagues.standard.pos.replace("-", ""),
+                pos: player.leagues.standard?.pos ? player.leagues.standard.pos.replace("-", "") : null,
               },
-            },
-          })),
-          total: data.response.length,
-          page,
-          per_page,
-        };
-      } catch (error) {
-        console.error("Error fetching players:", error);
-        throw new Error("Failed to fetch players");
+            } : undefined,
+          }));
+
+          // Cache the results if Redis is available
+          if (redis) {
+            try {
+              await redis.set(cacheKey, JSON.stringify(players), { ex: CACHE_TTL.PLAYERS });
+              console.log("Cached players data");
+            } catch (cacheError) {
+              console.error("Error setting Redis cache for players:", cacheError);
+              // Continue even if caching fails
+            }
+          }
+
+          return paginatePlayers(players, pagination);
+        } catch (apiError: any) {
+          console.error("API Error details:", {
+            message: apiError?.message || 'Unknown error',
+            stack: apiError?.stack,
+            response: apiError?.response,
+          });
+          throw new Error(`API Error: ${apiError?.message || 'Unknown error'}`);
+        }
+      } catch (error: any) {
+        console.error("Error in players resolver:", {
+          message: error?.message || 'Unknown error',
+          stack: error?.stack,
+          filters,
+          queryParams,
+        });
+        throw new Error(`Failed to fetch players: ${error?.message || 'Unknown error'}`);
       }
     },
 
@@ -543,37 +705,33 @@ export const resolvers = {
     // Get all users
     users: async (
       _: unknown,
-      {
-        pagination,
-      }: {
-        pagination?: {
-          first?: number;
-          after?: string;
-          last?: number;
-          before?: string;
-        };
-      },
+      { pagination }: { pagination?: PaginationArgs },
       { db, redis }: { db: DB; redis: Redis }
     ) => {
       try {
-        if (!db || !redis) {
-          throw new Error("Database or Redis connection is not available");
+        if (!db) {
+          throw new Error("Database connection is not available");
         }
 
-        // Try to get from cache first
-        const cachedUsers = await redis.get(CACHE_KEYS.USERS);
-        if (cachedUsers) {
-          const users = JSON.parse(cachedUsers as string);
-          return paginateResults(users, pagination);
+        // Try to get from cache first if Redis is available
+        if (redis) {
+          try {
+            const cachedUsers = await redis.get(CACHE_KEYS.USERS);
+            if (cachedUsers) {
+              const users = JSON.parse(cachedUsers as string);
+              return paginateResults(users, pagination);
+            }
+          } catch (cacheError) {
+            console.error("Error accessing Redis cache for users:", cacheError);
+            // Continue to fetch from database if cache fails
+          }
         }
 
-        // Fetch from database
         const users = await db
           .select()
           .from(schema.users)
           .orderBy(schema.users.created_at);
 
-        // Transform the data
         const transformedUsers = users.map((user) => ({
           ...user,
           timestamp: new Date(user.timestamp).toISOString(),
@@ -581,10 +739,17 @@ export const resolvers = {
           outbound_friendship_ids: user.outbound_friendship_ids || [],
         }));
 
-        // Cache the results
-        await redis.set(CACHE_KEYS.USERS, JSON.stringify(transformedUsers), {
-          ex: CACHE_TTL.USERS,
-        });
+        // Cache the results if Redis is available
+        if (redis) {
+          try {
+            await redis.set(CACHE_KEYS.USERS, JSON.stringify(transformedUsers), {
+              ex: CACHE_TTL.USERS,
+            });
+          } catch (cacheError) {
+            console.error("Error setting Redis cache for users:", cacheError);
+            // Continue even if caching fails
+          }
+        }
 
         return paginateResults(transformedUsers, pagination);
       } catch (error) {
@@ -600,11 +765,18 @@ export const resolvers = {
       { db, redis }: { db: DB; redis: Redis }
     ) => {
       try {
-        // Check cache for specific user
-        const cacheKey = CACHE_KEYS.USER(id);
-        const cachedUser = await redis.get(cacheKey);
-        if (cachedUser) {
-          return JSON.parse(cachedUser as string);
+        // Check cache for specific user if Redis is available
+        if (redis) {
+          try {
+            const cacheKey = CACHE_KEYS.USER(id);
+            const cachedUser = await redis.get(cacheKey);
+            if (cachedUser) {
+              return JSON.parse(cachedUser as string);
+            }
+          } catch (cacheError) {
+            console.error("Error accessing Redis cache for user:", cacheError);
+            // Continue to fetch from database if cache fails
+          }
         }
 
         const [user] = await db
@@ -614,7 +786,6 @@ export const resolvers = {
           .execute();
 
         if (user) {
-          // Transform the user data
           const transformedUser = {
             ...user,
             timestamp: new Date(user.timestamp).toISOString(),
@@ -622,10 +793,18 @@ export const resolvers = {
             outbound_friendship_ids: user.outbound_friendship_ids || [],
           };
 
-          // Cache the result
-          await redis.set(cacheKey, JSON.stringify(transformedUser), {
-            ex: CACHE_TTL.USER,
-          });
+          // Cache the result if Redis is available
+          if (redis) {
+            try {
+              const cacheKey = CACHE_KEYS.USER(id);
+              await redis.set(cacheKey, JSON.stringify(transformedUser), {
+                ex: CACHE_TTL.USER,
+              });
+            } catch (cacheError) {
+              console.error("Error setting Redis cache for user:", cacheError);
+              // Continue even if caching fails
+            }
+          }
           return transformedUser;
         }
 
@@ -639,16 +818,7 @@ export const resolvers = {
     // Get all friendships
     friendships: async (
       _: unknown,
-      {
-        pagination,
-      }: {
-        pagination?: {
-          first?: number;
-          after?: string;
-          last?: number;
-          before?: string;
-        };
-      },
+      { pagination }: { pagination?: PaginationArgs },
       { db, redis }: { db: DB; redis: Redis }
     ) => {
       try {
@@ -656,11 +826,17 @@ export const resolvers = {
           throw new Error("Database connection is not available");
         }
 
+        // Try to get from cache first if Redis is available
         if (redis) {
-          const cachedFriendships = await redis.get(CACHE_KEYS.FRIENDSHIPS);
-          if (cachedFriendships) {
-            const friendships = JSON.parse(cachedFriendships as string);
-            return paginateResults(friendships, pagination);
+          try {
+            const cachedFriendships = await redis.get(CACHE_KEYS.FRIENDSHIPS);
+            if (cachedFriendships) {
+              const friendships = JSON.parse(cachedFriendships as string);
+              return paginateResults(friendships, pagination);
+            }
+          } catch (cacheError) {
+            console.error("Error accessing Redis cache for friendships:", cacheError);
+            // Continue to fetch from database if cache fails
           }
         }
 
@@ -675,13 +851,55 @@ export const resolvers = {
           .from(schema.friendships)
           .orderBy(schema.friendships.timestamp);
 
+        // Transform friendships to include initiator and responder
+        const transformedFriendships = await Promise.all(
+          friendships.map(async (friendship) => {
+            const [initiator, responder] = await Promise.all([
+              db
+                .select({
+                  id: schema.users.id,
+                  username: schema.users.username,
+                  first_name: schema.users.first_name,
+                  last_name: schema.users.last_name,
+                  image_url: schema.users.image_url,
+                })
+                .from(schema.users)
+                .where(eq(schema.users.id, friendship.subscriber_id as string))
+                .then((users) => users[0]),
+              db
+                .select({
+                  id: schema.users.id,
+                  username: schema.users.username,
+                  first_name: schema.users.first_name,
+                  last_name: schema.users.last_name,
+                  image_url: schema.users.image_url,
+                })
+                .from(schema.users)
+                .where(eq(schema.users.id, friendship.user_id as string))
+                .then((users) => users[0]),
+            ]);
+
+            return {
+              ...friendship,
+              initiator,
+              responder,
+            };
+          })
+        );
+
+        // Cache the results if Redis is available
         if (redis) {
-          await redis.set(CACHE_KEYS.FRIENDSHIPS, JSON.stringify(friendships), {
-            ex: CACHE_TTL.FRIENDSHIPS,
-          });
+          try {
+            await redis.set(CACHE_KEYS.FRIENDSHIPS, JSON.stringify(transformedFriendships), {
+              ex: CACHE_TTL.FRIENDSHIPS,
+            });
+          } catch (cacheError) {
+            console.error("Error setting Redis cache for friendships:", cacheError);
+            // Continue even if caching fails
+          }
         }
 
-        return paginateResults(friendships, pagination);
+        return paginateResults(transformedFriendships, pagination);
       } catch (error) {
         console.error("Error fetching friendships:", error);
         throw new Error("Failed to fetch friendships");
@@ -696,20 +914,24 @@ export const resolvers = {
     ) => {
       try {
         const cacheKey = CACHE_KEYS.GAME_LOGS;
-        try {
-          const cachedLogs = await redis.get(cacheKey);
-          if (cachedLogs) {
-            try {
-              const logs = JSON.parse(cachedLogs as string);
-              return paginateLogs(logs, pagination);
-            } catch (parseError) {
-              console.error("Error parsing cached game logs:", parseError);
-              // If cache parsing fails, continue to fetch from database
+        
+        // Try to get from cache first if Redis is available
+        if (redis) {
+          try {
+            const cachedLogs = await redis.get(cacheKey);
+            if (cachedLogs) {
+              try {
+                const logs = JSON.parse(cachedLogs as string);
+                return paginateLogs(logs, pagination);
+              } catch (parseError) {
+                console.error("Error parsing cached game logs:", parseError);
+                // If cache parsing fails, continue to fetch from database
+              }
             }
+          } catch (cacheError) {
+            console.error("Error accessing Redis cache for game logs:", cacheError);
+            // If cache fails, continue to fetch from database
           }
-        } catch (cacheError) {
-          console.error("Error accessing Redis cache:", cacheError);
-          // If cache fails, continue to fetch from database
         }
 
         const results = await db
@@ -765,12 +987,14 @@ export const resolvers = {
           game: log.game as GameRating,
         }));
 
-        // Cache the results
-        try {
-          await redis.set(cacheKey, JSON.stringify(transformedLogs), { ex: CACHE_TTL.GAME_LOGS });
-        } catch (cacheError) {
-          console.error("Error caching game logs:", cacheError);
-          // Continue even if caching fails
+        // Cache the results if Redis is available
+        if (redis) {
+          try {
+            await redis.set(cacheKey, JSON.stringify(transformedLogs), { ex: CACHE_TTL.GAME_LOGS });
+          } catch (cacheError) {
+            console.error("Error caching game logs:", cacheError);
+            // Continue even if caching fails
+          }
         }
 
         return paginateLogs(transformedLogs, pagination);
@@ -842,27 +1066,23 @@ export const resolvers = {
 
     comments: async (
       _: unknown,
-      {
-        target_id,
-        pagination,
-      }: {
-        target_id: string;
-        pagination?: {
-          first?: number;
-          after?: string;
-          last?: number;
-          before?: string;
-        };
-      },
+      { target_id, pagination }: { target_id: string; pagination?: PaginationArgs },
       { db, redis }: { db: DB; redis: Redis }
     ) => {
       try {
-        // Check cache for comments
-        const cacheKey = CACHE_KEYS.COMMENTS(target_id);
-        const cachedComments = await redis.get(cacheKey);
-        if (cachedComments) {
-          const comments = JSON.parse(cachedComments as string);
-          return paginateResults(comments, pagination);
+        // Check cache for comments if Redis is available
+        if (redis) {
+          try {
+            const cacheKey = CACHE_KEYS.COMMENTS(target_id);
+            const cachedComments = await redis.get(cacheKey);
+            if (cachedComments) {
+              const comments = JSON.parse(cachedComments as string);
+              return paginateResults(comments, pagination);
+            }
+          } catch (cacheError) {
+            console.error("Error accessing Redis cache for comments:", cacheError);
+            // Continue to fetch from database if cache fails
+          }
         }
 
         const comments = await db
@@ -871,10 +1091,18 @@ export const resolvers = {
           .where(eq(schema.comments.parent_id, target_id))
           .orderBy(schema.comments.created_at);
 
-        // Cache the results
-        await redis.set(cacheKey, JSON.stringify(comments), {
-          ex: CACHE_TTL.COMMENTS,
-        });
+        // Cache the results if Redis is available
+        if (redis) {
+          try {
+            const cacheKey = CACHE_KEYS.COMMENTS(target_id);
+            await redis.set(cacheKey, JSON.stringify(comments), {
+              ex: CACHE_TTL.COMMENTS,
+            });
+          } catch (cacheError) {
+            console.error("Error setting Redis cache for comments:", cacheError);
+            // Continue even if caching fails
+          }
+        }
 
         return paginateResults(comments, pagination);
       } catch (error) {
@@ -890,20 +1118,24 @@ export const resolvers = {
     ) => {
       try {
         const cacheKey = CACHE_KEYS.GAME_RATINGS;
-        try {
-          const cachedRatings = await redis.get(cacheKey);
-          if (cachedRatings) {
-            try {
-              const ratings = JSON.parse(cachedRatings as string);
-              return paginateResults(ratings, pagination);
-            } catch (parseError) {
-              console.error("Error parsing cached game ratings:", parseError);
-              // If cache parsing fails, continue to fetch from database
+        
+        // Try to get from cache first if Redis is available
+        if (redis) {
+          try {
+            const cachedRatings = await redis.get(cacheKey);
+            if (cachedRatings) {
+              try {
+                const ratings = JSON.parse(cachedRatings as string);
+                return paginateResults(ratings, pagination);
+              } catch (parseError) {
+                console.error("Error parsing cached game ratings:", parseError);
+                // If cache parsing fails, continue to fetch from database
+              }
             }
+          } catch (cacheError) {
+            console.error("Error accessing Redis cache for game ratings:", cacheError);
+            // If cache fails, continue to fetch from database
           }
-        } catch (cacheError) {
-          console.error("Error accessing Redis cache:", cacheError);
-          // If cache fails, continue to fetch from database
         }
 
         const results = await db
@@ -932,12 +1164,14 @@ export const resolvers = {
           updated_at: rating.updated_at,
         }));
 
-        // Cache the results
-        try {
-          await redis.set(cacheKey, JSON.stringify(transformedRatings), { ex: CACHE_TTL.GAME_RATINGS });
-        } catch (cacheError) {
-          console.error("Error caching game ratings:", cacheError);
-          // Continue even if caching fails
+        // Cache the results if Redis is available
+        if (redis) {
+          try {
+            await redis.set(cacheKey, JSON.stringify(transformedRatings), { ex: CACHE_TTL.GAME_RATINGS });
+          } catch (cacheError) {
+            console.error("Error caching game ratings:", cacheError);
+            // Continue even if caching fails
+          }
         }
 
         return paginateResults(transformedRatings, pagination);
@@ -957,12 +1191,17 @@ export const resolvers = {
           throw new Error("Game ID is required");
         }
 
-        // Check cache first
-        const cacheKey = CACHE_KEYS.GAME_RATING(game_id);
+        // Check cache first if Redis is available
         if (redis) {
-          const cachedRating = await redis.get(cacheKey);
-          if (cachedRating) {
-            return JSON.parse(cachedRating as string);
+          try {
+            const cacheKey = CACHE_KEYS.GAME_RATING(game_id);
+            const cachedRating = await redis.get(cacheKey);
+            if (cachedRating) {
+              return JSON.parse(cachedRating as string);
+            }
+          } catch (cacheError) {
+            console.error("Error accessing Redis cache for game rating:", cacheError);
+            // Continue to fetch from database if cache fails
           }
         }
 
@@ -988,9 +1227,10 @@ export const resolvers = {
         );
 
         if (rating) {
-          // Cache the result
+          // Cache the result if Redis is available
           if (redis) {
             try {
+              const cacheKey = CACHE_KEYS.GAME_RATING(game_id);
               await redis.set(cacheKey, JSON.stringify(rating), {
                 ex: CACHE_TTL.GAME_RATING,
               });
@@ -1031,23 +1271,48 @@ export const resolvers = {
     ) => {
       try {
         const cacheKey = CACHE_KEYS.REACTIONS(target_id);
-        const cachedReactions = await redis.get(cacheKey);
-        if (cachedReactions) {
-          const reactions = JSON.parse(cachedReactions as string);
-          return paginateResults(reactions, pagination);
+        
+        // Only try to get from cache if Redis is available
+        if (redis) {
+          try {
+            const cachedReactions = await redis.get(cacheKey);
+            if (cachedReactions) {
+              const reactions = JSON.parse(cachedReactions as string);
+              return reactions;
+            }
+          } catch (cacheError) {
+            console.error("Error accessing Redis cache:", cacheError);
+            // Continue to fetch from database if cache fails
+          }
         }
 
         const reactions = await db
-          .select()
+          .select({
+            id: schema.reactions.id,
+            user_id: schema.reactions.user_id,
+            target_type: schema.reactions.target_type,
+            target_id: schema.reactions.target_id,
+            emoji: schema.reactions.emoji,
+            created_at: schema.reactions.created_at,
+            updated_at: schema.reactions.updated_at,
+          })
           .from(schema.reactions)
           .where(eq(schema.reactions.target_id, target_id))
           .orderBy(schema.reactions.created_at);
 
-        await redis.set(cacheKey, JSON.stringify(reactions), {
-          ex: CACHE_TTL.REACTIONS,
-        });
+        // Only try to set cache if Redis is available
+        if (redis) {
+          try {
+            await redis.set(cacheKey, JSON.stringify(reactions), {
+              ex: CACHE_TTL.REACTIONS,
+            });
+          } catch (cacheError) {
+            console.error("Error setting Redis cache:", cacheError);
+            // Continue even if caching fails
+          }
+        }
 
-        return paginateResults(reactions, pagination);
+        return reactions;
       } catch (error) {
         console.error("Error fetching reactions:", error);
         throw new Error("Failed to fetch reactions");
@@ -1694,7 +1959,7 @@ export const resolvers = {
                 image_url: schema.users.image_url,
               })
               .from(schema.users)
-              .where(eq(schema.users.id, parent.subscriber_id));
+              .where(eq(schema.users.id, parent.subscriber_id as string));
             return result;
           },
           3, // max retries
@@ -1720,7 +1985,7 @@ export const resolvers = {
                 image_url: schema.users.image_url,
               })
               .from(schema.users)
-              .where(eq(schema.users.id, parent.user_id));
+              .where(eq(schema.users.id, parent.user_id as string));
             return result;
           },
           3, // max retries
@@ -1915,5 +2180,56 @@ function paginateResults<T extends { id: string }>(
       endCursor: paginatedItems[paginatedItems.length - 1]?.id || null,
     },
     totalCount: items.length,
+  };
+}
+
+function paginatePlayers<T extends { id: string }>(
+  players: T[],
+  pagination?: {
+    first?: number;
+    after?: string;
+    last?: number;
+    before?: string;
+  }
+) {
+  let startIndex = 0;
+  let endIndex = players.length;
+
+  if (pagination?.after) {
+    const afterIndex = players.findIndex((player) => player.id === pagination.after);
+    if (afterIndex !== -1) {
+      startIndex = afterIndex + 1;
+    }
+  }
+
+  if (pagination?.before) {
+    const beforeIndex = players.findIndex((player) => player.id === pagination.before);
+    if (beforeIndex !== -1) {
+      endIndex = beforeIndex;
+    }
+  }
+
+  if (pagination?.first) {
+    endIndex = Math.min(startIndex + pagination.first, endIndex);
+  }
+
+  if (pagination?.last) {
+    startIndex = Math.max(endIndex - pagination.last, startIndex);
+  }
+
+  const paginatedPlayers = players.slice(startIndex, endIndex);
+
+  return {
+    edges: paginatedPlayers.map((player) => ({
+      node: player,
+      cursor: player.id,
+    })),
+    pageInfo: {
+      hasNextPage: endIndex < players.length,
+      hasPreviousPage: startIndex > 0,
+      startCursor: paginatedPlayers[0]?.id || null,
+      endCursor: paginatedPlayers[paginatedPlayers.length - 1]?.id || null,
+    },
+    totalCount: players.length,
   };
 }

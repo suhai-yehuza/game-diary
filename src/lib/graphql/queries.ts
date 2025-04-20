@@ -25,81 +25,93 @@ export const GET_LEAGUES = gql`
 `;
 
 export const GET_GAMES = gql`
-  query GetGames($filters: GameFilters) {
-    games(filters: $filters) {
-      id
-      league {
-        id
-        name
-        type
-        logo
-      }
-      season
-      date {
-        start
-        end
-        duration
-      }
-      stage
-      status {
-        clock
-        halftime
-        short
-        long
-      }
-      periods {
-        current
-        total
-        endOfPeriod
-      }
-      arena {
-        name
-        city
-        state
-        country
-      }
-      teams {
-        visitors {
+  query GetGames($filters: GameFilters, $pagination: PaginationInput) {
+    games(filters: $filters, pagination: $pagination) {
+      edges {
+        node {
           id
-          name
-          nickname
-          code
-          logo
-        }
-        home {
-          id
-          name
-          nickname
-          code
-          logo
-        }
-      }
-      scores {
-        visitors {
-          win
-          loss
-          series {
-            win
-            loss
+          league {
+            id
+            name
+            type
+            logo
           }
-          linescore
-          points
-        }
-        home {
-          win
-          loss
-          series {
-            win
-            loss
+          season
+          date {
+            start
+            end
+            duration
           }
-          linescore
-          points
+          stage
+          status {
+            clock
+            halftime
+            short
+            long
+          }
+          periods {
+            current
+            total
+            endOfPeriod
+          }
+          arena {
+            name
+            city
+            state
+            country
+          }
+          teams {
+            visitors {
+              id
+              name
+              nickname
+              code
+              logo
+            }
+            home {
+              id
+              name
+              nickname
+              code
+              logo
+            }
+          }
+          scores {
+            visitors {
+              win
+              loss
+              series {
+                win
+                loss
+              }
+              linescore
+              points
+            }
+            home {
+              win
+              loss
+              series {
+                win
+                loss
+              }
+              linescore
+              points
+            }
+          }
+          officials
+          timesTied
+          leadChanges
+          nugget
         }
+        cursor
       }
-      officials
-      timesTied
-      leadChanges
-      nugget
+      pageInfo {
+        hasNextPage
+        hasPreviousPage
+        startCursor
+        endCursor
+      }
+      totalCount
     }
   }
 `;
@@ -146,62 +158,74 @@ export const GET_TEAMS = gql`
 `;
 
 export const GET_PLAYERS = gql`
-  query GetPlayers($filters: PlayerFilters) {
-    players(filters: $filters) {
-      id
-      firstname
-      lastname
-      birth {
-        date
-        country
+  query GetPlayers($filters: PlayerFilters, $pagination: PaginationInput) {
+    players(filters: $filters, pagination: $pagination) {
+      edges {
+        node {
+          id
+          firstname
+          lastname
+          birth {
+            date
+            country
+          }
+          nba {
+            start
+            pro
+          }
+          height {
+            feets
+            inches
+            meters
+          }
+          weight {
+            pounds
+            kilograms
+          }
+          college
+          affiliation
+          leagues {
+            standard {
+              jersey
+              active
+              pos
+            }
+            sacramento {
+              jersey
+              active
+              pos
+            }
+            vegas {
+              jersey
+              active
+              pos
+            }
+            utah {
+              jersey
+              active
+              pos
+            }
+            orlando {
+              jersey
+              active
+              pos
+            }
+            africa {
+              jersey
+              active
+              pos
+            }
+          }
+        }
+        cursor
       }
-      nba {
-        start
-        pro
+      pageInfo {
+        hasNextPage
+        hasPreviousPage
+        startCursor
+        endCursor
       }
-      height {
-        feets
-        inches
-        meters
-      }
-      weight {
-        pounds
-        kilograms
-      }
-      college
-      affiliation
-      leagues {
-        standard {
-          jersey
-          active
-          pos
-        }
-        sacramento {
-          jersey
-          active
-          pos
-        }
-        vegas {
-          jersey
-          active
-          pos
-        }
-        utah {
-          jersey
-          active
-          pos
-        }
-        orlando {
-          jersey
-          active
-          pos
-        }
-        africa {
-          jersey
-          active
-          pos
-        }
-      }
+      totalCount
     }
   }
 `;
@@ -580,20 +604,32 @@ export const GET_TOP_PLAYERS = gql`
 
 // INTERNAL API Queries
 export const GET_USERS = gql`
-  query GetUsers {
-    users {
-      id
-      username
-      first_name
-      last_name
-      email_address
-      image_url
-      created_at
-      updated_at
-      inbound_friendship_ids
-      outbound_friendship_ids
-      banned
-      timestamp
+  query GetUsers($pagination: PaginationInput) {
+    users(pagination: $pagination) {
+      edges {
+        node {
+          id
+          username
+          first_name
+          last_name
+          email_address
+          image_url
+          created_at
+          updated_at
+          inbound_friendship_ids
+          outbound_friendship_ids
+          banned
+          timestamp
+        }
+        cursor
+      }
+      pageInfo {
+        hasNextPage
+        hasPreviousPage
+        startCursor
+        endCursor
+      }
+      totalCount
     }
   }
 `;
@@ -619,25 +655,37 @@ export const GET_USER = gql`
 
 // FRIENDSHIPS
 export const GET_FRIENDSHIPS = gql`
-  query GetFriendships {
-    friendships {
-      id
-      status
-      timestamp
-      initiator {
-        id
-        username
-        first_name
-        last_name
-        image_url
+  query GetFriendships($pagination: PaginationInput) {
+    friendships(pagination: $pagination) {
+      edges {
+        node {
+          id
+          status
+          timestamp
+          initiator {
+            id
+            username
+            first_name
+            last_name
+            image_url
+          }
+          responder {
+            id
+            username
+            first_name
+            last_name
+            image_url
+          }
+        }
+        cursor
       }
-      responder {
-        id
-        username
-        first_name
-        last_name
-        image_url
+      pageInfo {
+        hasNextPage
+        hasPreviousPage
+        startCursor
+        endCursor
       }
+      totalCount
     }
   }
 `;
