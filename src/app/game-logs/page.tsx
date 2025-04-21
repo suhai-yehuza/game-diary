@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import { useQuery } from '@apollo/client';
 import { GET_GAME_LOGS } from '../../lib/graphql/queries';
 import { GameLogResponse } from '../../lib/types/types';

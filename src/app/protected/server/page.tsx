@@ -1,5 +1,6 @@
 'use server';
 
+import React from 'react';
 import { currentUser } from '@clerk/nextjs/server';
 import { NbaDataClient } from '../../../components/nba-data-client';
 

@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import { useQuery } from '@apollo/client';
 import { GET_GAME_LOG } from '../../../lib/graphql/queries';
 import { useParams } from 'next/navigation';

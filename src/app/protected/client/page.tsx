@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import { useAuth, useUser } from '@clerk/nextjs';
 
 export default function Page() {
