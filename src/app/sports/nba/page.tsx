@@ -37,7 +37,12 @@ export default function Page() {
   const [showScheduledGames, setShowScheduledGames] = useState(false);
   const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
 
-  const { loading, error, data: dataCompleted, fetchMore } = useQuery<GamesData>(GET_GAMES, {
+  const {
+    loading,
+    error,
+    data: dataCompleted,
+    fetchMore,
+  } = useQuery<GamesData>(GET_GAMES, {
     variables: {
       filters: {
         season: '2024',
@@ -48,7 +53,11 @@ export default function Page() {
     },
   });
 
-  const { loading: loadingScheduled, error: errorScheduled, data: dataScheduled } = useQuery<GamesData>(GET_GAMES, {
+  const {
+    loading: loadingScheduled,
+    error: errorScheduled,
+    data: dataScheduled,
+  } = useQuery<GamesData>(GET_GAMES, {
     variables: {
       filters: {
         season: '2024',
@@ -62,9 +71,9 @@ export default function Page() {
   useEffect(() => {
     if (dataCompleted?.games?.edges) {
       const now = new Date();
-      const games = dataCompleted.games.edges.map(edge => edge.node).filter(game => 
-        isBefore(new Date(game.date.start), now) && game.status.long !== "In Play"
-      );
+      const games = dataCompleted.games.edges
+        .map(edge => edge.node)
+        .filter(game => isBefore(new Date(game.date.start), now) && game.status.long !== 'In Play');
       setCompletedGames(prevGames => {
         const uniqueGames = [...prevGames, ...games].reduce((acc, game) => {
           if (!acc.find(g => g.id === game.id)) {
@@ -83,9 +92,9 @@ export default function Page() {
   useEffect(() => {
     if (dataScheduled?.games?.edges) {
       const now = new Date();
-      const futureGames = dataScheduled.games.edges.map(edge => edge.node).filter(game => 
-        isAfter(new Date(game.date.start), now) || game.status.long === "In Play"
-      );
+      const futureGames = dataScheduled.games.edges
+        .map(edge => edge.node)
+        .filter(game => isAfter(new Date(game.date.start), now) || game.status.long === 'In Play');
       setScheduledGames(prevGames => {
         const uniqueFutureGames = [...prevGames, ...futureGames].reduce((acc, game) => {
           if (!acc.find(g => g.id === game.id)) {
@@ -161,7 +170,11 @@ export default function Page() {
         observerRef.current.disconnect();
       }
     };
-  }, [dataCompleted?.games.pageInfo.startCursor, dataCompleted?.games.pageInfo.hasPreviousPage, isFetchingMore]);
+  }, [
+    dataCompleted?.games.pageInfo.startCursor,
+    dataCompleted?.games.pageInfo.hasPreviousPage,
+    isFetchingMore,
+  ]);
 
   const getWinningTeam = (game: Game) => {
     if (game.scores.visitors.points > game.scores.home.points) {
@@ -211,9 +224,13 @@ export default function Page() {
             <h2 className="text-xl font-semibold mb-6">Upcoming Games</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {scheduledGames.map((game, index) => {
-                const isLive = game.status.long === "In Play";
-                const winningTeam = game.scores.visitors.points > game.scores.home.points ? 'visitors' : 
-                                   game.scores.home.points > game.scores.visitors.points ? 'home' : null;
+                const isLive = game.status.long === 'In Play';
+                const winningTeam =
+                  game.scores.visitors.points > game.scores.home.points
+                    ? 'visitors'
+                    : game.scores.home.points > game.scores.visitors.points
+                      ? 'home'
+                      : null;
                 return (
                   <Link key={game.id} href={`/sports/nba/games/${game.id}`} className="block">
                     <div
@@ -250,8 +267,8 @@ export default function Page() {
                         <div className="flex items-center gap-2">
                           {isLive ? (
                             <div className="flex items-center gap-1 bg-red-500/10 text-red-500 px-2 py-1 rounded-full text-xs font-medium">
-                              <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-                              Q{game.periods.current} {game.status.clock}
+                              <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />Q
+                              {game.periods.current} {game.status.clock}
                             </div>
                           ) : (
                             <div className="text-sm font-medium px-2 py-1 rounded-full bg-purple-500/10 text-purple-500">
@@ -288,9 +305,11 @@ export default function Page() {
                               </div>
                             </div>
                           </div>
-                          <div className={`text-2xl font-bold transition-colors duration-300 group-hover:text-purple-500 ${
-                            isLive && winningTeam === 'visitors' ? 'text-green-500' : ''
-                          }`}>
+                          <div
+                            className={`text-2xl font-bold transition-colors duration-300 group-hover:text-purple-500 ${
+                              isLive && winningTeam === 'visitors' ? 'text-green-500' : ''
+                            }`}
+                          >
                             {game.scores.visitors.points}
                           </div>
                         </div>
@@ -321,9 +340,11 @@ export default function Page() {
                               </div>
                             </div>
                           </div>
-                          <div className={`text-2xl font-bold transition-colors duration-300 group-hover:text-purple-500 ${
-                            isLive && winningTeam === 'home' ? 'text-green-500' : ''
-                          }`}>
+                          <div
+                            className={`text-2xl font-bold transition-colors duration-300 group-hover:text-purple-500 ${
+                              isLive && winningTeam === 'home' ? 'text-green-500' : ''
+                            }`}
+                          >
                             {game.scores.home.points}
                           </div>
                         </div>
