@@ -72,8 +72,8 @@ export function CreateGameLogModal({ gameId, userId }: CreateGameLogModalProps) 
       }
 
       const payload = {
-        // user_id: "060a5823-c5fa-4fd0-9065-0c0e5eecf9c8",
-        user_id: userId,
+        user_id: '060a5823-c5fa-4fd0-9065-0c0e5eecf9c8',
+        // user_id: userId,
         game_id: gameId,
         watched_setting: formData.watched_setting.toLowerCase(),
         watched_date: new Date(formData.watched_date).toISOString(),
@@ -88,18 +88,23 @@ export function CreateGameLogModal({ gameId, userId }: CreateGameLogModalProps) 
         variables: payload,
       });
 
-      console.log({ result });
-
-      if (result.data?.createGameLog) {
+      if (result.data?.create_game_log) {
         toast({
-          title: 'Success',
-          description: 'Game log created successfully',
+          title: '🎉 Success!',
+          description: 'Game log successfully created',
+          variant: 'success',
+        });
+        setFormData({
+          watched_setting: '',
+          watched_date: '',
+          watched_location: '',
+          rating_for_game: '',
+          rating_stars: '',
         });
         setIsOpen(false);
         router.refresh();
       }
     } catch (error) {
-      console.log({ error });
       console.error('Error creating game log:', error);
       toast({
         title: 'Error',
