@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { useAuth, useUser } from "@clerk/nextjs";
+import { useAuth, useUser } from '@clerk/nextjs';
 
 export default function Page() {
   const { user } = useUser();

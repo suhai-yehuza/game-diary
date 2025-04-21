@@ -1,36 +1,19 @@
 // Common Types
-export type Position = "PG" | "SG" | "SF" | "PF" | "C" | "F" | "G";
-export type Conference =
-  | "East"
-  | "West"
-  | "California"
-  | "summer"
-  | "EASTERN"
-  | "WESTERN";
+export type Position = 'PG' | 'SG' | 'SF' | 'PF' | 'C' | 'F' | 'G';
+export type Conference = 'East' | 'West' | 'California' | 'summer' | 'EASTERN' | 'WESTERN';
 export type Division =
-  | "Atlantic"
-  | "Central"
-  | "Southeast"
-  | "Northwest"
-  | "Pacific"
-  | "Southwest"
+  | 'Atlantic'
+  | 'Central'
+  | 'Southeast'
+  | 'Northwest'
+  | 'Pacific'
+  | 'Southwest'
   | null;
-export type GameStatus = "Scheduled" | "In Progress" | "Finished";
-export type PlayerSort =
-  | "POINTS"
-  | "REBOUNDS"
-  | "ASSISTS"
-  | "STEALS"
-  | "BLOCKS";
-export type TeamSort = "WINS" | "LOSSES" | "WIN_PERCENTAGE" | "POINTS_PER_GAME";
-export type SortOption = "ASC" | "DESC";
-export type LeagueType =
-  | "africa"
-  | "orlando"
-  | "sacramento"
-  | "standard"
-  | "utah"
-  | "vegas";
+export type GameStatus = 'Scheduled' | 'In Progress' | 'Finished';
+export type PlayerSort = 'POINTS' | 'REBOUNDS' | 'ASSISTS' | 'STEALS' | 'BLOCKS';
+export type TeamSort = 'WINS' | 'LOSSES' | 'WIN_PERCENTAGE' | 'POINTS_PER_GAME';
+export type SortOption = 'ASC' | 'DESC';
+export type LeagueType = 'africa' | 'orlando' | 'sacramento' | 'standard' | 'utah' | 'vegas';
 
 // NBA API Types
 export interface Season {
@@ -479,7 +462,7 @@ export interface User {
   }[];
 }
 
-export type FriendshipStatus = "pending" | "accepted" | "rejected";
+export type FriendshipStatus = 'pending' | 'accepted' | 'rejected';
 
 export interface Friendship {
   id: string;
@@ -512,14 +495,7 @@ export interface GameRating {
   updated_at: string;
 }
 
-export type watched_setting =
-  | "tv"
-  | "arena"
-  | "phone"
-  | "laptop"
-  | "bar"
-  | "home"
-  | "other";
+export type watched_setting = 'tv' | 'arena' | 'phone' | 'laptop' | 'bar' | 'home' | 'other';
 
 export interface GameLog {
   id: string;

@@ -1,8 +1,8 @@
-import { Redis } from "ioredis";
-import { Redis as UpstashRedis } from "@upstash/redis";
+import { Redis } from 'ioredis';
+import { Redis as UpstashRedis } from '@upstash/redis';
 
 // Determine if we're in production
-const isProduction = process.env.NODE_ENV === "production";
+const isProduction = process.env.NODE_ENV === 'production';
 
 let redisClient: Redis | UpstashRedis | null = null;
 let isRedisAvailable = false;
@@ -17,7 +17,7 @@ try {
     isRedisAvailable = true;
   } else {
     // Use local Redis in development
-    redisClient = new Redis(process.env.REDIS_URL || "redis://localhost:6379");
+    redisClient = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
     // Test connection
     redisClient
       .ping()
@@ -25,22 +25,19 @@ try {
         isRedisAvailable = true;
       })
       .catch(() => {
-        console.warn("Local Redis is not available, cache will be disabled");
+        console.warn('Local Redis is not available, cache will be disabled');
         redisClient = null;
       });
   }
 } catch (error) {
-  console.warn(
-    "Failed to initialize Redis client, cache will be disabled:",
-    error
-  );
+  console.warn('Failed to initialize Redis client, cache will be disabled:', error);
   redisClient = null;
 }
 
 export const cache = {
   // Get cached data
   get: <T>(key: string): Promise<T | null> => {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       if (!redisClient || !isRedisAvailable) {
         resolve(null);
         return;
@@ -50,7 +47,7 @@ export const cache = {
         if (isProduction) {
           (redisClient as UpstashRedis)
             .get(key)
-            .then((data) => {
+            .then(data => {
               if (!data) {
                 resolve(null);
                 return;
@@ -59,18 +56,18 @@ export const cache = {
                 const parsedData = JSON.parse(data as string);
                 resolve(parsedData as T);
               } catch (error) {
-                console.error("Error parsing cached data:", error);
+                console.error('Error parsing cached data:', error);
                 resolve(null);
               }
             })
-            .catch((error) => {
-              console.error("Error getting cached data:", error);
+            .catch(error => {
+              console.error('Error getting cached data:', error);
               resolve(null);
             });
         } else {
           (redisClient as Redis)
             .get(key)
-            .then((data) => {
+            .then(data => {
               if (!data) {
                 resolve(null);
                 return;
@@ -79,17 +76,17 @@ export const cache = {
                 const parsedData = JSON.parse(data);
                 resolve(parsedData as T);
               } catch (error) {
-                console.error("Error parsing cached data:", error);
+                console.error('Error parsing cached data:', error);
                 resolve(null);
               }
             })
-            .catch((error) => {
-              console.error("Error getting cached data:", error);
+            .catch(error => {
+              console.error('Error getting cached data:', error);
               resolve(null);
             });
         }
       } catch (error) {
-        console.error("Error in cache.get:", error);
+        console.error('Error in cache.get:', error);
         resolve(null);
       }
     });
@@ -97,7 +94,7 @@ export const cache = {
 
   // Set cached data
   set: <T>(key: string, value: T, ttl?: number): Promise<void> => {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       if (!redisClient || !isRedisAvailable) {
         resolve();
         return;
@@ -109,8 +106,8 @@ export const cache = {
           (redisClient as UpstashRedis)
             .set(key, serializedValue, ttl ? { ex: ttl } : undefined)
             .then(() => resolve())
-            .catch((error) => {
-              console.error("Error setting cached data:", error);
+            .catch(error => {
+              console.error('Error setting cached data:', error);
               resolve();
             });
         } else {
@@ -118,22 +115,22 @@ export const cache = {
             (redisClient as Redis)
               .setex(key, ttl, serializedValue)
               .then(() => resolve())
-              .catch((error) => {
-                console.error("Error setting cached data:", error);
+              .catch(error => {
+                console.error('Error setting cached data:', error);
                 resolve();
               });
           } else {
             (redisClient as Redis)
               .set(key, serializedValue)
               .then(() => resolve())
-              .catch((error) => {
-                console.error("Error setting cached data:", error);
+              .catch(error => {
+                console.error('Error setting cached data:', error);
                 resolve();
               });
           }
         }
       } catch (error) {
-        console.error("Error in cache.set:", error);
+        console.error('Error in cache.set:', error);
         resolve();
       }
     });
@@ -141,7 +138,7 @@ export const cache = {
 
   // Delete cached data
   del: (key: string): Promise<void> => {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       if (!redisClient || !isRedisAvailable) {
         resolve();
         return;
@@ -162,7 +159,7 @@ export const cache = {
 
   // Clear all cached data
   clear: (): Promise<void> => {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       if (!redisClient || !isRedisAvailable) {
         resolve();
         return;
@@ -172,14 +169,14 @@ export const cache = {
         if (isProduction) {
           // Note: Upstash doesn't support FLUSHALL, so we'll need to handle this differently
           console.warn(
-            "FLUSHALL not supported in production. Consider implementing a different cache clearing strategy."
+            'FLUSHALL not supported in production. Consider implementing a different cache clearing strategy.'
           );
           resolve();
         } else {
           (redisClient as Redis).flushall().then(() => resolve());
         }
       } catch (error) {
-        console.error("Error clearing cache:", error);
+        console.error('Error clearing cache:', error);
         resolve();
       }
     });
@@ -192,23 +189,23 @@ export const cache = {
 
 // Cache keys
 export const CACHE_KEYS = {
-  SEASONS: "seasons",
-  LEAGUES: "leagues",
-  TEAMS: "teams",
-  PLAYERS: "players",
+  SEASONS: 'seasons',
+  LEAGUES: 'leagues',
+  TEAMS: 'teams',
+  PLAYERS: 'players',
   GAME_STATS: (game_id: string) => `game_stats:${game_id}`,
   PLAYER_STATS: (player_id: string) => `player_stats:${player_id}`,
   TEAM_STATS: (team_id: string) => `team_stats:${team_id}`,
-  GAME_LOGS: "game_logs",
+  GAME_LOGS: 'game_logs',
   USER_GAME_LOGS: (user_id: string) => `user_game_logs:${user_id}`,
-  USERS: "users",
+  USERS: 'users',
   USER: (user_id: string) => `user:${user_id}`,
-  GAME_RATINGS: "game_ratings",
+  GAME_RATINGS: 'game_ratings',
   GAME_RATING: (game_id: string) => `game_rating:${game_id}`,
   COMMENTS: (parent_id: string) => `comments:${parent_id}`,
   REACTIONS: (target_id: string) => `reactions:${target_id}`,
   GAME: (game_id: string) => `game:${game_id}`,
-  FRIENDSHIPS: "friendships",
+  FRIENDSHIPS: 'friendships',
   USER_FRIENDSHIPS: (user_id: string) => `user_friendships:${user_id}`,
 } as const;
 

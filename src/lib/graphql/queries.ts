@@ -1,4 +1,4 @@
-import { gql } from "@apollo/client";
+import { gql } from '@apollo/client';
 
 // EXTERNAL API QUERIES
 export const GET_SEASONS = gql`

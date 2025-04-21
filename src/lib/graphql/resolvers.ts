@@ -11,7 +11,7 @@ import {
   fetchNbaPlayers,
   fetchNbaTeamById,
   fetchNbaGameById,
-} from "../external-apis";
+} from '../external-apis';
 import {
   TeamSearchApiResponse,
   TeamFilters,
@@ -29,14 +29,14 @@ import {
   GameLog,
   GameRating,
   PaginationArgs,
-} from "../types/types";
-import { db } from "../../db";
-import * as schema from "../../db/schema";
-import { eq, sql } from "drizzle-orm";
-import { cache, CACHE_KEYS, CACHE_TTL } from "../redis";
-import { Redis } from "@upstash/redis";
-import { NeonHttpDatabase } from "drizzle-orm/neon-http";
-import { StringValueNode } from "graphql";
+} from '../types/types';
+import { db } from '../../db';
+import * as schema from '../../db/schema';
+import { eq, sql } from 'drizzle-orm';
+import { cache, CACHE_KEYS, CACHE_TTL } from '../redis';
+import { Redis } from '@upstash/redis';
+import { NeonHttpDatabase } from 'drizzle-orm/neon-http';
+import { StringValueNode } from 'graphql';
 
 // Update the type definition to use PostgreSQL
 type DB = NeonHttpDatabase<typeof schema>;
@@ -58,33 +58,30 @@ async function executeWithRetry<T>(
       retries--;
       if (retries > 0) {
         console.log(`Retrying operation, ${retries} attempts remaining...`);
-        await new Promise((resolve) => setTimeout(resolve, delayMs));
+        await new Promise(resolve => setTimeout(resolve, delayMs));
       }
     }
   }
 
-  console.error("Operation failed after all retries:", lastError);
+  console.error('Operation failed after all retries:', lastError);
   throw new Error(
-    `Operation failed after ${maxRetries} attempts: ${lastError instanceof Error ? lastError.message : "Unknown error"}`
+    `Operation failed after ${maxRetries} attempts: ${lastError instanceof Error ? lastError.message : 'Unknown error'}`
   );
 }
 
-function paginateGames<T extends { id: string }>(
-  games: T[],
-  pagination?: PaginationArgs
-) {
+function paginateGames<T extends { id: string }>(games: T[], pagination?: PaginationArgs) {
   let startIndex = 0;
   let endIndex = games.length;
 
   if (pagination?.after) {
-    const afterIndex = games.findIndex((game) => game.id === pagination.after);
+    const afterIndex = games.findIndex(game => game.id === pagination.after);
     if (afterIndex !== -1) {
       startIndex = afterIndex + 1;
     }
   }
 
   if (pagination?.before) {
-    const beforeIndex = games.findIndex((game) => game.id === pagination.before);
+    const beforeIndex = games.findIndex(game => game.id === pagination.before);
     if (beforeIndex !== -1) {
       endIndex = beforeIndex;
     }
@@ -101,7 +98,7 @@ function paginateGames<T extends { id: string }>(
   const paginatedGames = games.slice(startIndex, endIndex);
 
   return {
-    edges: paginatedGames.map((game) => ({
+    edges: paginatedGames.map(game => ({
       node: game,
       cursor: game.id,
     })),
@@ -128,7 +125,7 @@ export const resolvers = {
     },
     parseValue: (value: string) => new Date(value),
     parseLiteral: (ast: StringValueNode) => {
-      if (ast.kind === "StringValue") {
+      if (ast.kind === 'StringValue') {
         return new Date(ast.value);
       }
       return null;
@@ -146,15 +143,15 @@ export const resolvers = {
               return cachedSeasons;
             }
           } catch (cacheError) {
-            console.error("Error accessing Redis cache for seasons:", cacheError);
+            console.error('Error accessing Redis cache for seasons:', cacheError);
             // Continue to fetch from API if cache fails
           }
         }
 
         const { response } = await fetchNbaSeasons();
-        console.log("Seasons response:", response);
+        console.log('Seasons response:', response);
         if (!response || !Array.isArray(response)) {
-          throw new Error("Invalid seasons response format");
+          throw new Error('Invalid seasons response format');
         }
         const seasons = response.flat().map((year: number) => ({
           id: year,
@@ -169,15 +166,15 @@ export const resolvers = {
           try {
             await redis.set(CACHE_KEYS.SEASONS, JSON.stringify(seasons), { ex: CACHE_TTL.SEASONS });
           } catch (cacheError) {
-            console.error("Error setting Redis cache for seasons:", cacheError);
+            console.error('Error setting Redis cache for seasons:', cacheError);
             // Continue even if caching fails
           }
         }
 
         return seasons;
       } catch (error) {
-        console.error("Error fetching seasons:", error);
-        throw new Error("Failed to fetch seasons");
+        console.error('Error fetching seasons:', error);
+        throw new Error('Failed to fetch seasons');
       }
     },
 
@@ -191,7 +188,7 @@ export const resolvers = {
               return JSON.parse(cachedLeagues as string);
             }
           } catch (cacheError) {
-            console.error("Error accessing Redis cache for leagues:", cacheError);
+            console.error('Error accessing Redis cache for leagues:', cacheError);
             // Continue to fetch from API if cache fails
           }
         }
@@ -201,10 +198,7 @@ export const resolvers = {
           const league = leagues[0];
           return {
             id: league,
-            name:
-              league === "standard"
-                ? "NBA"
-                : league.charAt(0).toUpperCase() + league.slice(1),
+            name: league === 'standard' ? 'NBA' : league.charAt(0).toUpperCase() + league.slice(1),
             type: league,
             logo: `/logos/${league}.png`,
           };
@@ -215,15 +209,15 @@ export const resolvers = {
           try {
             await redis.set(CACHE_KEYS.LEAGUES, JSON.stringify(leagues), { ex: CACHE_TTL.LEAGUES });
           } catch (cacheError) {
-            console.error("Error setting Redis cache for leagues:", cacheError);
+            console.error('Error setting Redis cache for leagues:', cacheError);
             // Continue even if caching fails
           }
         }
 
         return leagues;
       } catch (error) {
-        console.error("Error fetching leagues:", error);
-        throw new Error("Failed to fetch leagues");
+        console.error('Error fetching leagues:', error);
+        throw new Error('Failed to fetch leagues');
       }
     },
 
@@ -237,15 +231,15 @@ export const resolvers = {
           ? Object.entries(filters)
               .filter(([_, value]) => value !== undefined)
               .map(([key, value]) => `${key}=${value}`)
-              .join("&")
-          : "";
+              .join('&')
+          : '';
 
-        console.log("Fetching games with params:", queryParams);
-        const data = await fetchNbaGames(queryParams ? `?${queryParams}` : "");
-        
+        console.log('Fetching games with params:', queryParams);
+        const data = await fetchNbaGames(queryParams ? `?${queryParams}` : '');
+
         if (!data.response) {
-          console.error("Invalid response format from games API:", data);
-          throw new Error("Invalid response format from games API");
+          console.error('Invalid response format from games API:', data);
+          throw new Error('Invalid response format from games API');
         }
 
         // Flatten the response array and map the games
@@ -256,8 +250,8 @@ export const resolvers = {
 
         return paginateGames(games, pagination);
       } catch (error) {
-        console.error("Error fetching games:", error);
-        throw new Error("Failed to fetch games");
+        console.error('Error fetching games:', error);
+        throw new Error('Failed to fetch games');
       }
     },
 
@@ -271,19 +265,19 @@ export const resolvers = {
               return JSON.parse(cachedGame as string);
             }
           } catch (cacheError) {
-            console.error("Error accessing Redis cache for game:", cacheError);
+            console.error('Error accessing Redis cache for game:', cacheError);
           }
         }
 
         // Fetch game data from API
         const response = await fetchNbaGameById(id);
         if (!response || !response.response || response.response.length === 0) {
-          throw new Error("Game not found");
+          throw new Error('Game not found');
         }
 
         const apiGame = response.response[0] as unknown as Game;
         if (!apiGame) {
-          throw new Error("Game not found");
+          throw new Error('Game not found');
         }
 
         // Transform the game data to match the schema
@@ -311,16 +305,18 @@ export const resolvers = {
         // Cache the transformed game data
         if (redis) {
           try {
-            await redis.set(`${CACHE_KEYS.GAME}:${id}`, JSON.stringify(transformedGame), { ex: CACHE_TTL.GAME });
+            await redis.set(`${CACHE_KEYS.GAME}:${id}`, JSON.stringify(transformedGame), {
+              ex: CACHE_TTL.GAME,
+            });
           } catch (cacheError) {
-            console.error("Error setting Redis cache for game:", cacheError);
+            console.error('Error setting Redis cache for game:', cacheError);
           }
         }
 
         return transformedGame;
       } catch (error) {
-        console.error("Error fetching game:", error);
-        throw new Error("Failed to fetch game");
+        console.error('Error fetching game:', error);
+        throw new Error('Failed to fetch game');
       }
     },
 
@@ -328,10 +324,10 @@ export const resolvers = {
       try {
         if (filters) {
           const filterCount = Object.keys(filters).filter(
-            (key) => filters[key as keyof TeamFilters] !== undefined
+            key => filters[key as keyof TeamFilters] !== undefined
           ).length;
           if (filterCount > 1) {
-            throw new Error("Only one filter parameter is allowed at a time");
+            throw new Error('Only one filter parameter is allowed at a time');
           }
         }
 
@@ -351,27 +347,20 @@ export const resolvers = {
         // Filter out teams that have conference values as their division values
         filteredTeams = filteredTeams.filter((team: Team) => {
           const division = team.leagues?.standard?.division;
-          return division && !["East", "West"].includes(division);
+          return division && !['East', 'West'].includes(division);
         });
 
         if (filters) {
           const [key, value] =
-            Object.entries(filters).find(([, value]) => value !== undefined) ||
-            [];
-          if (key && value && typeof value === "string") {
+            Object.entries(filters).find(([, value]) => value !== undefined) || [];
+          if (key && value && typeof value === 'string') {
             filteredTeams = filteredTeams.filter((team: Team) => {
               switch (key) {
-                case "conference":
-                  return (
-                    team.leagues?.standard?.conference?.toLowerCase() ===
-                    value.toLowerCase()
-                  );
-                case "division":
-                  return (
-                    team.leagues?.standard?.division?.toLowerCase() ===
-                    value.toLowerCase()
-                  );
-                case "code":
+                case 'conference':
+                  return team.leagues?.standard?.conference?.toLowerCase() === value.toLowerCase();
+                case 'division':
+                  return team.leagues?.standard?.division?.toLowerCase() === value.toLowerCase();
+                case 'code':
                   return team.code.toLowerCase() === value.toLowerCase();
                 default:
                   return true;
@@ -384,7 +373,7 @@ export const resolvers = {
         await cache.set(cacheKey, filteredTeams, CACHE_TTL.TEAMS);
         return filteredTeams;
       } catch (error) {
-        console.error("Error in teams resolver:", error);
+        console.error('Error in teams resolver:', error);
         throw error;
       }
     },
@@ -394,103 +383,118 @@ export const resolvers = {
       { pagination, filters }: { pagination?: PaginationArgs; filters?: PlayerFilters },
       { redis }: { db: DB; redis: Redis }
     ) => {
-      let queryParams = "";
+      let queryParams = '';
       try {
         // Build query parameters from filters
         queryParams = filters
           ? Object.entries(filters)
               .filter(([_, value]) => value !== undefined)
               .map(([key, value]) => `${key}=${value}`)
-              .join("&")
-          : "";
+              .join('&')
+          : '';
 
         const cacheKey = filters ? `${CACHE_KEYS.PLAYERS}:${queryParams}` : CACHE_KEYS.PLAYERS;
-        
+
         // Try to get from cache first if Redis is available
         if (redis) {
           try {
             const cachedPlayers = await redis.get(cacheKey);
             if (cachedPlayers) {
-              console.log("Returning cached players");
+              console.log('Returning cached players');
               const players = JSON.parse(cachedPlayers as string);
               return paginatePlayers(players, pagination);
             }
           } catch (cacheError) {
-            console.error("Error accessing Redis cache for players:", cacheError);
+            console.error('Error accessing Redis cache for players:', cacheError);
             // Continue to fetch from API if cache fails
           }
         }
 
-        console.log("Fetching players from API with params:", queryParams);
-        console.log("API URL:", `${process.env.RAPID_API_BASE_URL}/players${queryParams ? `?${queryParams}` : ''}`);
-        console.log("Headers:", {
-          "x-rapidapi-host": process.env.RAPID_API_HOST,
-          "x-rapidapi-key": "***",
+        console.log('Fetching players from API with params:', queryParams);
+        console.log(
+          'API URL:',
+          `${process.env.RAPID_API_BASE_URL}/players${queryParams ? `?${queryParams}` : ''}`
+        );
+        console.log('Headers:', {
+          'x-rapidapi-host': process.env.RAPID_API_HOST,
+          'x-rapidapi-key': '***',
         });
 
         try {
           const response: PlayersApiResponse = await fetchNbaPlayers(queryParams);
-          
+
           if (!response) {
-            console.error("No response received from players API");
-            throw new Error("No response received from players API");
+            console.error('No response received from players API');
+            throw new Error('No response received from players API');
           }
 
           if (!response.response) {
-            console.error("Invalid response format from players API:", response);
-            throw new Error("Invalid response format from players API");
+            console.error('Invalid response format from players API:', response);
+            throw new Error('Invalid response format from players API');
           }
 
           console.log(`Received ${response.response.length} players from API`);
-          
+
           // Transform the players data
           const playersArray = response.response as unknown as NbaPlayer[];
-          const players = playersArray.map((player) => ({
+          const players = playersArray.map(player => ({
             ...player,
             id: player.id.toString(),
-            leagues: player.leagues ? {
-              standard: {
-                ...player.leagues.standard,
-                pos: player.leagues.standard?.pos ? player.leagues.standard.pos.replace("-", "") : null,
-              },
-            } : undefined,
+            leagues: player.leagues
+              ? {
+                  standard: {
+                    ...player.leagues.standard,
+                    pos: player.leagues.standard?.pos
+                      ? player.leagues.standard.pos.replace('-', '')
+                      : null,
+                  },
+                }
+              : undefined,
           }));
 
           // Cache the results if Redis is available
           if (redis) {
             try {
               await redis.set(cacheKey, JSON.stringify(players), { ex: CACHE_TTL.PLAYERS });
-              console.log("Cached players data");
+              console.log('Cached players data');
             } catch (cacheError) {
-              console.error("Error setting Redis cache for players:", cacheError);
+              console.error('Error setting Redis cache for players:', cacheError);
               // Continue even if caching fails
             }
           }
 
           return paginatePlayers(players, pagination);
         } catch (apiError: unknown) {
-          console.error("API Error details:", {
+          console.error('API Error details:', {
             message: apiError instanceof Error ? apiError.message : 'Unknown error',
             stack: apiError instanceof Error ? apiError.stack : undefined,
             response: apiError instanceof Error ? (apiError as any).response : undefined,
           });
-          throw new Error(`API Error: ${apiError instanceof Error ? apiError.message : 'Unknown error'}`);
+          throw new Error(
+            `API Error: ${apiError instanceof Error ? apiError.message : 'Unknown error'}`
+          );
         }
       } catch (error: unknown) {
-        console.error("Error in players resolver:", {
+        console.error('Error in players resolver:', {
           message: error instanceof Error ? error.message : 'Unknown error',
           stack: error instanceof Error ? error.stack : undefined,
           filters,
           queryParams,
         });
-        throw new Error(`Failed to fetch players: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        throw new Error(
+          `Failed to fetch players: ${error instanceof Error ? error.message : 'Unknown error'}`
+        );
       }
     },
 
-    player: async (_parent: unknown, { id }: { id: string }, { redis }: { db: DB; redis: Redis }) => {
+    player: async (
+      _parent: unknown,
+      { id }: { id: string },
+      { redis }: { db: DB; redis: Redis }
+    ) => {
       try {
         if (!id) {
-          throw new Error("Player ID is required");
+          throw new Error('Player ID is required');
         }
 
         // Try to get from cache first if Redis is available
@@ -502,7 +506,7 @@ export const resolvers = {
               return JSON.parse(cachedPlayer as string);
             }
           } catch (cacheError) {
-            console.error("Error accessing Redis cache for player:", cacheError);
+            console.error('Error accessing Redis cache for player:', cacheError);
             // Continue to fetch from API if cache fails
           }
         }
@@ -516,22 +520,26 @@ export const resolvers = {
             const cacheKey = CACHE_KEYS.PLAYER_STATS(id);
             await redis.set(cacheKey, JSON.stringify(player), { ex: CACHE_TTL.PLAYER_STATS });
           } catch (cacheError) {
-            console.error("Error setting Redis cache for player:", cacheError);
+            console.error('Error setting Redis cache for player:', cacheError);
             // Continue even if caching fails
           }
         }
 
         return player;
       } catch (error) {
-        console.error("Error fetching player:", error);
-        throw new Error("Failed to fetch player");
+        console.error('Error fetching player:', error);
+        throw new Error('Failed to fetch player');
       }
     },
 
-    standings: async (_parent: unknown, { season }: { season: string }, { redis }: { db: DB; redis: Redis }) => {
+    standings: async (
+      _parent: unknown,
+      { season }: { season: string },
+      { redis }: { db: DB; redis: Redis }
+    ) => {
       try {
         if (!season) {
-          throw new Error("Season is required");
+          throw new Error('Season is required');
         }
 
         // Try to get from cache first if Redis is available
@@ -543,7 +551,7 @@ export const resolvers = {
               return JSON.parse(cachedStandings as string);
             }
           } catch (cacheError) {
-            console.error("Error accessing Redis cache for standings:", cacheError);
+            console.error('Error accessing Redis cache for standings:', cacheError);
             // Continue to fetch from API if cache fails
           }
         }
@@ -557,15 +565,15 @@ export const resolvers = {
             const cacheKey = `nba:standings:${season}`;
             await redis.set(cacheKey, JSON.stringify(standings), { ex: CACHE_TTL.TEAM_STATS });
           } catch (cacheError) {
-            console.error("Error setting Redis cache for standings:", cacheError);
+            console.error('Error setting Redis cache for standings:', cacheError);
             // Continue even if caching fails
           }
         }
 
         return standings;
       } catch (error) {
-        console.error("Error fetching standings:", error);
-        throw new Error("Failed to fetch standings");
+        console.error('Error fetching standings:', error);
+        throw new Error('Failed to fetch standings');
       }
     },
 
@@ -573,7 +581,7 @@ export const resolvers = {
     game_stats: async (_parent: unknown, { game_id }: { game_id: string }) => {
       try {
         if (!game_id) {
-          throw new Error("Game ID is required");
+          throw new Error('Game ID is required');
         }
 
         // Try to get from cache first
@@ -589,8 +597,8 @@ export const resolvers = {
         await cache.set(cacheKey, stats, CACHE_TTL.GAME_STATS);
         return stats;
       } catch (error) {
-        console.error("Error fetching game stats:", error);
-        throw new Error("Failed to fetch game stats");
+        console.error('Error fetching game stats:', error);
+        throw new Error('Failed to fetch game stats');
       }
     },
 
@@ -600,7 +608,7 @@ export const resolvers = {
     ) => {
       try {
         if (!game_id || !playerId) {
-          throw new Error("Game ID and Player ID are required");
+          throw new Error('Game ID and Player ID are required');
         }
 
         // Try to get from cache first
@@ -610,16 +618,14 @@ export const resolvers = {
           return cachedStats;
         }
 
-        const stats = await fetchNbaPlayerStats(
-          `game=${game_id}&player=${playerId}`
-        );
+        const stats = await fetchNbaPlayerStats(`game=${game_id}&player=${playerId}`);
 
         // Cache the player game stats
         await cache.set(cacheKey, stats, CACHE_TTL.PLAYER_STATS);
         return stats;
       } catch (error) {
-        console.error("Error fetching player game stats:", error);
-        throw new Error("Failed to fetch player game stats");
+        console.error('Error fetching player game stats:', error);
+        throw new Error('Failed to fetch player game stats');
       }
     },
 
@@ -629,7 +635,7 @@ export const resolvers = {
     ) => {
       try {
         if (!game_id || !team) {
-          throw new Error("Game ID and Team ID are required");
+          throw new Error('Game ID and Team ID are required');
         }
 
         // Try to get from cache first
@@ -645,39 +651,33 @@ export const resolvers = {
         await cache.set(cacheKey, stats, CACHE_TTL.TEAM_STATS);
         return stats;
       } catch (error) {
-        console.error("Error fetching team game stats:", error);
-        throw new Error("Failed to fetch team game stats");
+        console.error('Error fetching team game stats:', error);
+        throw new Error('Failed to fetch team game stats');
       }
     },
 
     // Team Statistics Resolvers
-    team_stats: async (
-      _parent: unknown,
-      { team, season }: { team: string; season: number }
-    ) => {
+    team_stats: async (_parent: unknown, { team, season }: { team: string; season: number }) => {
       try {
         if (!team || !season) {
-          throw new Error("Team ID and Season are required");
+          throw new Error('Team ID and Season are required');
         }
         return await fetchNbaTeamStats(`team=${team}&season=${season}`);
       } catch (error) {
-        console.error("Error fetching team stats:", error);
-        throw new Error("Failed to fetch team stats");
+        console.error('Error fetching team stats:', error);
+        throw new Error('Failed to fetch team stats');
       }
     },
 
-    all_team_stats: async (
-      _parent: unknown,
-      { season }: { season: number }
-    ) => {
+    all_team_stats: async (_parent: unknown, { season }: { season: number }) => {
       try {
         if (!season) {
-          throw new Error("Season is required");
+          throw new Error('Season is required');
         }
         return await fetchNbaTeamStats(`season=${season}`);
       } catch (error) {
-        console.error("Error fetching all team stats:", error);
-        throw new Error("Failed to fetch all team stats");
+        console.error('Error fetching all team stats:', error);
+        throw new Error('Failed to fetch all team stats');
       }
     },
 
@@ -688,27 +688,24 @@ export const resolvers = {
     ) => {
       try {
         if (!playerId || !season) {
-          throw new Error("Player ID and Season are required");
+          throw new Error('Player ID and Season are required');
         }
         return await fetchNbaPlayerStats(`player=${playerId}&season=${season}`);
       } catch (error) {
-        console.error("Error fetching player stats:", error);
-        throw new Error("Failed to fetch player stats");
+        console.error('Error fetching player stats:', error);
+        throw new Error('Failed to fetch player stats');
       }
     },
 
-    all_player_stats: async (
-      _parent: unknown,
-      { season }: { season: number }
-    ) => {
+    all_player_stats: async (_parent: unknown, { season }: { season: number }) => {
       try {
         if (!season) {
-          throw new Error("Season is required");
+          throw new Error('Season is required');
         }
         return await fetchNbaPlayerStats(`season=${season}`);
       } catch (error) {
-        console.error("Error fetching all player stats:", error);
-        throw new Error("Failed to fetch all player stats");
+        console.error('Error fetching all player stats:', error);
+        throw new Error('Failed to fetch all player stats');
       }
     },
 
@@ -718,12 +715,12 @@ export const resolvers = {
     ) => {
       try {
         if (!team || !season) {
-          throw new Error("Team ID and Season are required");
+          throw new Error('Team ID and Season are required');
         }
         return await fetchNbaPlayerStats(`team=${team}&season=${season}`);
       } catch (error) {
-        console.error("Error fetching player stats by team:", error);
-        throw new Error("Failed to fetch player stats by team");
+        console.error('Error fetching player stats by team:', error);
+        throw new Error('Failed to fetch player stats by team');
       }
     },
 
@@ -733,13 +730,13 @@ export const resolvers = {
     ) => {
       try {
         if (!stat || !season) {
-          throw new Error("Stat and Season are required");
+          throw new Error('Stat and Season are required');
         }
-        const queryParams = `stat=${stat}&season=${season}${limit ? `&limit=${limit}` : ""}`;
+        const queryParams = `stat=${stat}&season=${season}${limit ? `&limit=${limit}` : ''}`;
         return await fetchNbaPlayerStats(queryParams);
       } catch (error) {
-        console.error("Error fetching top players:", error);
-        throw new Error("Failed to fetch top players");
+        console.error('Error fetching top players:', error);
+        throw new Error('Failed to fetch top players');
       }
     },
 
@@ -751,7 +748,7 @@ export const resolvers = {
     ) => {
       try {
         if (!db) {
-          throw new Error("Database connection is not available");
+          throw new Error('Database connection is not available');
         }
 
         // Try to get from cache first if Redis is available
@@ -763,17 +760,14 @@ export const resolvers = {
               return paginateResults(users, pagination);
             }
           } catch (cacheError) {
-            console.error("Error accessing Redis cache for users:", cacheError);
+            console.error('Error accessing Redis cache for users:', cacheError);
             // Continue to fetch from database if cache fails
           }
         }
 
-        const users = await db
-          .select()
-          .from(schema.users)
-          .orderBy(schema.users.created_at);
+        const users = await db.select().from(schema.users).orderBy(schema.users.created_at);
 
-        const transformedUsers = users.map((user) => ({
+        const transformedUsers = users.map(user => ({
           ...user,
           timestamp: new Date(user.timestamp).toISOString(),
           inbound_friendship_ids: user.inbound_friendship_ids || [],
@@ -787,24 +781,20 @@ export const resolvers = {
               ex: CACHE_TTL.USERS,
             });
           } catch (cacheError) {
-            console.error("Error setting Redis cache for users:", cacheError);
+            console.error('Error setting Redis cache for users:', cacheError);
             // Continue even if caching fails
           }
         }
 
         return paginateResults(transformedUsers, pagination);
       } catch (error) {
-        console.error("Error fetching users:", error);
-        throw new Error("Failed to fetch users");
+        console.error('Error fetching users:', error);
+        throw new Error('Failed to fetch users');
       }
     },
 
     // Get user by ID
-    user: async (
-      _: unknown,
-      { id }: { id: string },
-      { db, redis }: { db: DB; redis: Redis }
-    ) => {
+    user: async (_: unknown, { id }: { id: string }, { db, redis }: { db: DB; redis: Redis }) => {
       try {
         // Check cache for specific user if Redis is available
         if (redis) {
@@ -815,7 +805,7 @@ export const resolvers = {
               return JSON.parse(cachedUser as string);
             }
           } catch (cacheError) {
-            console.error("Error accessing Redis cache for user:", cacheError);
+            console.error('Error accessing Redis cache for user:', cacheError);
             // Continue to fetch from database if cache fails
           }
         }
@@ -842,7 +832,7 @@ export const resolvers = {
                 ex: CACHE_TTL.USER,
               });
             } catch (cacheError) {
-              console.error("Error setting Redis cache for user:", cacheError);
+              console.error('Error setting Redis cache for user:', cacheError);
               // Continue even if caching fails
             }
           }
@@ -851,8 +841,8 @@ export const resolvers = {
 
         return null;
       } catch (error) {
-        console.error("Error fetching user:", error);
-        throw new Error("Failed to fetch user");
+        console.error('Error fetching user:', error);
+        throw new Error('Failed to fetch user');
       }
     },
 
@@ -864,7 +854,7 @@ export const resolvers = {
     ) => {
       try {
         if (!db) {
-          throw new Error("Database connection is not available");
+          throw new Error('Database connection is not available');
         }
 
         // Try to get from cache first if Redis is available
@@ -876,7 +866,7 @@ export const resolvers = {
               return paginateResults(friendships, pagination);
             }
           } catch (cacheError) {
-            console.error("Error accessing Redis cache for friendships:", cacheError);
+            console.error('Error accessing Redis cache for friendships:', cacheError);
             // Continue to fetch from database if cache fails
           }
         }
@@ -894,7 +884,7 @@ export const resolvers = {
 
         // Transform friendships to include initiator and responder
         const transformedFriendships = await Promise.all(
-          friendships.map(async (friendship) => {
+          friendships.map(async friendship => {
             const [initiator, responder] = await Promise.all([
               db
                 .select({
@@ -906,7 +896,7 @@ export const resolvers = {
                 })
                 .from(schema.users)
                 .where(eq(schema.users.id, friendship.subscriber_id as string))
-                .then((users) => users[0]),
+                .then(users => users[0]),
               db
                 .select({
                   id: schema.users.id,
@@ -917,7 +907,7 @@ export const resolvers = {
                 })
                 .from(schema.users)
                 .where(eq(schema.users.id, friendship.user_id as string))
-                .then((users) => users[0]),
+                .then(users => users[0]),
             ]);
 
             return {
@@ -935,15 +925,15 @@ export const resolvers = {
               ex: CACHE_TTL.FRIENDSHIPS,
             });
           } catch (cacheError) {
-            console.error("Error setting Redis cache for friendships:", cacheError);
+            console.error('Error setting Redis cache for friendships:', cacheError);
             // Continue even if caching fails
           }
         }
 
         return paginateResults(transformedFriendships, pagination);
       } catch (error) {
-        console.error("Error fetching friendships:", error);
-        throw new Error("Failed to fetch friendships");
+        console.error('Error fetching friendships:', error);
+        throw new Error('Failed to fetch friendships');
       }
     },
 
@@ -952,7 +942,7 @@ export const resolvers = {
       try {
         const logs = await db.select().from(schema.game_logs);
         const transformedLogs = await Promise.all(
-          logs.map(async (log) => {
+          logs.map(async log => {
             const gameRating = await db
               .select()
               .from(schema.game_ratings)
@@ -961,10 +951,10 @@ export const resolvers = {
 
             return {
               ...log,
-              user_id: log.user_id || "",
-              watched_location: log.watched_location || "",
+              user_id: log.user_id || '',
+              watched_location: log.watched_location || '',
               rating_for_game: log.rating_for_game || 0,
-              rating_stars: log.rating_stars || "",
+              rating_stars: log.rating_stars || '',
               watched_date: log.watched_date.toISOString(),
               created_at: log.created_at.toISOString(),
               updated_at: log.updated_at.toISOString(),
@@ -982,8 +972,8 @@ export const resolvers = {
 
         return paginateLogs(transformedLogs);
       } catch (error) {
-        console.error("Error fetching game logs:", error);
-        throw new Error("Failed to fetch game logs");
+        console.error('Error fetching game logs:', error);
+        throw new Error('Failed to fetch game logs');
       }
     },
 
@@ -1028,13 +1018,13 @@ export const resolvers = {
 
         return {
           id: result.id,
-          user_id: result.user_id || "",
+          user_id: result.user_id || '',
           game_id: result.game_id,
           watched_setting: result.watched_setting,
           watched_date: result.watched_date.toISOString(),
-          watched_location: result.watched_location || "",
+          watched_location: result.watched_location || '',
           rating_for_game: result.rating_for_game || 0,
-          rating_stars: result.rating_stars || "",
+          rating_stars: result.rating_stars || '',
           watched_count: result.watched_count,
           created_at: result.created_at.toISOString(),
           updated_at: result.updated_at.toISOString(),
@@ -1042,8 +1032,8 @@ export const resolvers = {
           game: result.game as GameRating,
         };
       } catch (error) {
-        console.error("Error fetching game log:", error);
-        throw new Error("Failed to fetch game log");
+        console.error('Error fetching game log:', error);
+        throw new Error('Failed to fetch game log');
       }
     },
 
@@ -1063,7 +1053,7 @@ export const resolvers = {
               return paginateResults(comments, pagination);
             }
           } catch (cacheError) {
-            console.error("Error accessing Redis cache for comments:", cacheError);
+            console.error('Error accessing Redis cache for comments:', cacheError);
             // Continue to fetch from database if cache fails
           }
         }
@@ -1082,22 +1072,26 @@ export const resolvers = {
               ex: CACHE_TTL.COMMENTS,
             });
           } catch (cacheError) {
-            console.error("Error setting Redis cache for comments:", cacheError);
+            console.error('Error setting Redis cache for comments:', cacheError);
             // Continue even if caching fails
           }
         }
 
         return paginateResults(comments, pagination);
       } catch (error) {
-        console.error("Error fetching comments:", error);
-        throw new Error("Failed to fetch comments");
+        console.error('Error fetching comments:', error);
+        throw new Error('Failed to fetch comments');
       }
     },
 
-    game_ratings: async (_: unknown, { pagination }: { pagination?: PaginationArgs }, { db }: { db: DB }) => {
+    game_ratings: async (
+      _: unknown,
+      { pagination }: { pagination?: PaginationArgs },
+      { db }: { db: DB }
+    ) => {
       try {
         const ratings = await db.select().from(schema.game_ratings);
-        const transformedRatings = ratings.map((rating) => ({
+        const transformedRatings = ratings.map(rating => ({
           ...rating,
           average_rating: rating.average_rating.toString(),
           created_at: new Date(rating.created_at).toISOString(),
@@ -1105,8 +1099,8 @@ export const resolvers = {
         }));
         return paginateResults(transformedRatings, pagination);
       } catch (error) {
-        console.error("Error fetching game ratings:", error);
-        throw new Error("Failed to fetch game ratings");
+        console.error('Error fetching game ratings:', error);
+        throw new Error('Failed to fetch game ratings');
       }
     },
 
@@ -1130,8 +1124,8 @@ export const resolvers = {
           updated_at: new Date(rating.updated_at).toISOString(),
         };
       } catch (error) {
-        console.error("Error fetching game rating:", error);
-        throw new Error("Failed to fetch game rating");
+        console.error('Error fetching game rating:', error);
+        throw new Error('Failed to fetch game rating');
       }
     },
 
@@ -1153,7 +1147,7 @@ export const resolvers = {
     ) => {
       try {
         const cacheKey = CACHE_KEYS.REACTIONS(target_id);
-        
+
         // Only try to get from cache if Redis is available
         if (redis) {
           try {
@@ -1163,7 +1157,7 @@ export const resolvers = {
               return reactions;
             }
           } catch (cacheError) {
-            console.error("Error accessing Redis cache:", cacheError);
+            console.error('Error accessing Redis cache:', cacheError);
             // Continue to fetch from database if cache fails
           }
         }
@@ -1189,45 +1183,45 @@ export const resolvers = {
               ex: CACHE_TTL.REACTIONS,
             });
           } catch (cacheError) {
-            console.error("Error setting Redis cache:", cacheError);
+            console.error('Error setting Redis cache:', cacheError);
             // Continue even if caching fails
           }
         }
 
         return reactions;
       } catch (error) {
-        console.error("Error fetching reactions:", error);
-        throw new Error("Failed to fetch reactions");
+        console.error('Error fetching reactions:', error);
+        throw new Error('Failed to fetch reactions');
       }
     },
 
     team: async (_parent: unknown, { id }: { id: string }, { redis }: { redis: Redis }) => {
-        if (!id) {
-            throw new Error("Team ID is required");
+      if (!id) {
+        throw new Error('Team ID is required');
+      }
+
+      try {
+        // Try to get from cache first
+        const cacheKey = `team:${id}`;
+        const cachedTeam = await redis.get(cacheKey);
+        if (cachedTeam) {
+          return JSON.parse(cachedTeam as string);
         }
 
-        try {
-            // Try to get from cache first
-            const cacheKey = `team:${id}`;
-            const cachedTeam = await redis.get(cacheKey);
-            if (cachedTeam) {
-                return JSON.parse(cachedTeam as string);
-            }
-
-            // If not in cache, fetch from API
-            const response = await fetchNbaTeamById(id);
-            if (!response) {
-                throw new Error(`Team with ID ${id} not found`);
-            }
-
-            // Cache the result
-            await redis.set(cacheKey, JSON.stringify(response), { ex: 3600 }); // Cache for 1 hour
-
-            return response;
-        } catch (error) {
-            console.error("Error in team resolver:", error);
-            throw new Error("Failed to fetch team data");
+        // If not in cache, fetch from API
+        const response = await fetchNbaTeamById(id);
+        if (!response) {
+          throw new Error(`Team with ID ${id} not found`);
         }
+
+        // Cache the result
+        await redis.set(cacheKey, JSON.stringify(response), { ex: 3600 }); // Cache for 1 hour
+
+        return response;
+      } catch (error) {
+        console.error('Error in team resolver:', error);
+        throw new Error('Failed to fetch team data');
+      }
     },
   },
   Mutation: {
@@ -1239,13 +1233,13 @@ export const resolvers = {
       }: {
         input: Omit<
           User,
-          | "id"
-          | "created_at"
-          | "updated_at"
-          | "inbound_friendship_ids"
-          | "outbound_friendship_ids"
-          | "banned"
-          | "timestamp"
+          | 'id'
+          | 'created_at'
+          | 'updated_at'
+          | 'inbound_friendship_ids'
+          | 'outbound_friendship_ids'
+          | 'banned'
+          | 'timestamp'
         >;
       },
       { db, redis }: { db: DB; redis: Redis }
@@ -1259,7 +1253,7 @@ export const resolvers = {
             first_name: input.first_name,
             last_name: input.last_name,
             email_address: input.email_address,
-            image_url: input.image_url || "",
+            image_url: input.image_url || '',
             created_at: new Date(),
             updated_at: new Date(),
             inbound_friendship_ids: [],
@@ -1273,8 +1267,8 @@ export const resolvers = {
         await redis.del(CACHE_KEYS.USERS);
         return user;
       } catch (error) {
-        console.error("Error creating user:", error);
-        throw new Error("Failed to create user");
+        console.error('Error creating user:', error);
+        throw new Error('Failed to create user');
       }
     },
 
@@ -1288,13 +1282,13 @@ export const resolvers = {
         input: Partial<
           Omit<
             User,
-            | "id"
-            | "created_at"
-            | "updated_at"
-            | "inbound_friendship_ids"
-            | "outbound_friendship_ids"
-            | "banned"
-            | "timestamp"
+            | 'id'
+            | 'created_at'
+            | 'updated_at'
+            | 'inbound_friendship_ids'
+            | 'outbound_friendship_ids'
+            | 'banned'
+            | 'timestamp'
           >
         >;
       },
@@ -1308,7 +1302,7 @@ export const resolvers = {
             first_name: input.first_name,
             last_name: input.last_name,
             email_address: input.email_address,
-            image_url: input.image_url || "",
+            image_url: input.image_url || '',
             updated_at: new Date(),
           })
           .where(eq(schema.users.id, id))
@@ -1316,16 +1310,13 @@ export const resolvers = {
 
         if (user) {
           // Invalidate relevant caches
-          await Promise.all([
-            redis.del(CACHE_KEYS.USERS),
-            redis.del(CACHE_KEYS.USER(id)),
-          ]);
+          await Promise.all([redis.del(CACHE_KEYS.USERS), redis.del(CACHE_KEYS.USER(id))]);
         }
 
         return user;
       } catch (error) {
-        console.error("Error updating user:", error);
-        throw new Error("Failed to update user");
+        console.error('Error updating user:', error);
+        throw new Error('Failed to update user');
       }
     },
 
@@ -1335,10 +1326,7 @@ export const resolvers = {
       { db, redis }: { db: DB; redis: Redis }
     ) => {
       try {
-        const [user] = await db
-          .delete(schema.users)
-          .where(eq(schema.users.id, id))
-          .returning();
+        const [user] = await db.delete(schema.users).where(eq(schema.users.id, id)).returning();
 
         if (user) {
           // Invalidate relevant caches
@@ -1351,15 +1339,15 @@ export const resolvers = {
 
         return user;
       } catch (error) {
-        console.error("Error deleting user:", error);
-        throw new Error("Failed to delete user");
+        console.error('Error deleting user:', error);
+        throw new Error('Failed to delete user');
       }
     },
 
     // Friendship mutations
     create_friendship: async (
       _: unknown,
-      { input }: { input: Omit<Friendship, "id" | "timestamp"> },
+      { input }: { input: Omit<Friendship, 'id' | 'timestamp'> },
       { db, redis }: { db: DB; redis: Redis }
     ) => {
       try {
@@ -1370,11 +1358,7 @@ export const resolvers = {
             user_id: input.user_id,
             id: crypto.randomUUID(),
             timestamp: new Date(),
-            status: input.status as
-              | "pending"
-              | "connected"
-              | "rejected"
-              | "severed",
+            status: input.status as 'pending' | 'connected' | 'rejected' | 'severed',
           })
           .returning();
 
@@ -1383,14 +1367,13 @@ export const resolvers = {
           redis.del(CACHE_KEYS.FRIENDSHIPS),
           friendship.subscriber_id &&
             redis.del(CACHE_KEYS.USER_FRIENDSHIPS(friendship.subscriber_id)),
-          friendship.user_id &&
-            redis.del(CACHE_KEYS.USER_FRIENDSHIPS(friendship.user_id)),
+          friendship.user_id && redis.del(CACHE_KEYS.USER_FRIENDSHIPS(friendship.user_id)),
         ]);
 
         return friendship;
       } catch (error) {
-        console.error("Error creating friendship:", error);
-        throw new Error("Failed to create friendship");
+        console.error('Error creating friendship:', error);
+        throw new Error('Failed to create friendship');
       }
     },
 
@@ -1401,7 +1384,7 @@ export const resolvers = {
         status,
       }: {
         id: string;
-        status: "pending" | "connected" | "rejected" | "severed";
+        status: 'pending' | 'connected' | 'rejected' | 'severed';
       },
       { db, redis }: { db: DB; redis: Redis }
     ) => {
@@ -1418,15 +1401,14 @@ export const resolvers = {
             redis.del(CACHE_KEYS.FRIENDSHIPS),
             friendship.subscriber_id &&
               redis.del(CACHE_KEYS.USER_FRIENDSHIPS(friendship.subscriber_id)),
-            friendship.user_id &&
-              redis.del(CACHE_KEYS.USER_FRIENDSHIPS(friendship.user_id)),
+            friendship.user_id && redis.del(CACHE_KEYS.USER_FRIENDSHIPS(friendship.user_id)),
           ]);
         }
 
         return friendship;
       } catch (error) {
-        console.error("Error updating friendship status:", error);
-        throw new Error("Failed to update friendship status");
+        console.error('Error updating friendship status:', error);
+        throw new Error('Failed to update friendship status');
       }
     },
 
@@ -1447,15 +1429,14 @@ export const resolvers = {
             redis.del(CACHE_KEYS.FRIENDSHIPS),
             friendship.subscriber_id &&
               redis.del(CACHE_KEYS.USER_FRIENDSHIPS(friendship.subscriber_id)),
-            friendship.user_id &&
-              redis.del(CACHE_KEYS.USER_FRIENDSHIPS(friendship.user_id)),
+            friendship.user_id && redis.del(CACHE_KEYS.USER_FRIENDSHIPS(friendship.user_id)),
           ]);
         }
 
         return friendship;
       } catch (error) {
-        console.error("Error deleting friendship:", error);
-        throw new Error("Failed to delete friendship");
+        console.error('Error deleting friendship:', error);
+        throw new Error('Failed to delete friendship');
       }
     },
 
@@ -1473,7 +1454,7 @@ export const resolvers = {
       }: {
         user_id: string;
         game_id: string;
-        watched_setting: "tv" | "arena" | "phone" | "laptop" | "bar" | "home" | "other";
+        watched_setting: 'tv' | 'arena' | 'phone' | 'laptop' | 'bar' | 'home' | 'other';
         watched_date: Date;
         watched_location: string;
         rating_for_game: number;
@@ -1510,7 +1491,7 @@ export const resolvers = {
         watched_count,
       }: {
         id: string;
-        watched_setting?: "tv" | "arena" | "phone" | "laptop" | "bar" | "home" | "other";
+        watched_setting?: 'tv' | 'arena' | 'phone' | 'laptop' | 'bar' | 'home' | 'other';
         watched_date?: Date;
         watched_location?: string;
         rating_for_game?: number;
@@ -1543,10 +1524,7 @@ export const resolvers = {
       {
         input,
       }: {
-        input: Omit<
-          Comment,
-          "id" | "created_at" | "updated_at" | "user" | "game_log"
-        >;
+        input: Omit<Comment, 'id' | 'created_at' | 'updated_at' | 'user' | 'game_log'>;
       },
       { db, redis }: { db: DB; redis: Redis }
     ) => {
@@ -1566,8 +1544,8 @@ export const resolvers = {
 
         return comment;
       } catch (error) {
-        console.error("Error creating comment:", error);
-        throw new Error("Failed to create comment");
+        console.error('Error creating comment:', error);
+        throw new Error('Failed to create comment');
       }
     },
 
@@ -1578,12 +1556,7 @@ export const resolvers = {
         input,
       }: {
         id: string;
-        input: Partial<
-          Omit<
-            Comment,
-            "id" | "created_at" | "updated_at" | "user" | "game_log"
-          >
-        >;
+        input: Partial<Omit<Comment, 'id' | 'created_at' | 'updated_at' | 'user' | 'game_log'>>;
       },
       { db, redis }: { db: DB; redis: Redis }
     ) => {
@@ -1601,8 +1574,8 @@ export const resolvers = {
 
         return comment;
       } catch (error) {
-        console.error("Error updating comment:", error);
-        throw new Error("Failed to update comment");
+        console.error('Error updating comment:', error);
+        throw new Error('Failed to update comment');
       }
     },
 
@@ -1624,8 +1597,8 @@ export const resolvers = {
 
         return comment;
       } catch (error) {
-        console.error("Error deleting comment:", error);
-        throw new Error("Failed to delete comment");
+        console.error('Error deleting comment:', error);
+        throw new Error('Failed to delete comment');
       }
     },
 
@@ -1680,18 +1653,13 @@ export const resolvers = {
 
     create_reaction: async (
       _parent: unknown,
-      { input }: { input: Omit<Reaction, "id" | "created_at" | "updated_at"> },
+      { input }: { input: Omit<Reaction, 'id' | 'created_at' | 'updated_at'> },
       { db, redis }: { db: DB; redis: Redis }
     ) => {
       try {
         // Validate input
-        if (
-          !input.user_id ||
-          !input.target_type ||
-          !input.target_id ||
-          !input.emoji
-        ) {
-          throw new Error("Missing required fields");
+        if (!input.user_id || !input.target_type || !input.target_id || !input.emoji) {
+          throw new Error('Missing required fields');
         }
 
         // Check if reaction already exists
@@ -1706,7 +1674,7 @@ export const resolvers = {
           .limit(1);
 
         if (existingReaction.length > 0) {
-          throw new Error("Reaction already exists");
+          throw new Error('Reaction already exists');
         }
 
         // Create new reaction
@@ -1715,7 +1683,7 @@ export const resolvers = {
           .values({
             id: crypto.randomUUID(),
             user_id: input.user_id,
-            target_type: input.target_type as "game_log" | "comment",
+            target_type: input.target_type as 'game_log' | 'comment',
             target_id: input.target_id,
             emoji: input.emoji,
             created_at: new Date(),
@@ -1728,7 +1696,7 @@ export const resolvers = {
 
         return newReaction;
       } catch (error: unknown) {
-        console.error("Error creating reaction:", error);
+        console.error('Error creating reaction:', error);
         throw error;
       }
     },
@@ -1751,8 +1719,8 @@ export const resolvers = {
 
         return reaction;
       } catch (error) {
-        console.error("Error deleting reaction:", error);
-        throw new Error("Failed to delete reaction");
+        console.error('Error deleting reaction:', error);
+        throw new Error('Failed to delete reaction');
       }
     },
   },
@@ -1787,10 +1755,7 @@ export const resolvers = {
           },
         })
         .from(schema.friendships)
-        .leftJoin(
-          schema.users,
-          eq(schema.friendships.subscriber_id, schema.users.id)
-        )
+        .leftJoin(schema.users, eq(schema.friendships.subscriber_id, schema.users.id))
         .where(eq(schema.friendships.user_id, parent.id))
         .orderBy(schema.friendships.timestamp);
     },
@@ -1824,7 +1789,7 @@ export const resolvers = {
 
         return [...initiated, ...received];
       } catch (error) {
-        console.error("Error fetching user friendships:", error);
+        console.error('Error fetching user friendships:', error);
         return [];
       }
     },
@@ -1850,7 +1815,7 @@ export const resolvers = {
           .limit(50);
         return logs;
       } catch (error) {
-        console.error("Error fetching user game logs:", error);
+        console.error('Error fetching user game logs:', error);
         return [];
       }
     },
@@ -1878,7 +1843,7 @@ export const resolvers = {
         );
         return user;
       } catch (error) {
-        console.error("Error fetching initiator:", error);
+        console.error('Error fetching initiator:', error);
         return null;
       }
     },
@@ -1904,7 +1869,7 @@ export const resolvers = {
         );
         return user;
       } catch (error) {
-        console.error("Error fetching responder:", error);
+        console.error('Error fetching responder:', error);
         return null;
       }
     },
@@ -1972,13 +1937,13 @@ export const resolvers = {
 
       return {
         id: result.id,
-        user_id: result.user_id || "",
+        user_id: result.user_id || '',
         game_id: result.game_id,
         watched_setting: result.watched_setting,
         watched_date: result.watched_date.toISOString(),
-        watched_location: result.watched_location || "",
+        watched_location: result.watched_location || '',
         rating_for_game: result.rating_for_game || 0,
-        rating_stars: result.rating_stars || "",
+        rating_stars: result.rating_stars || '',
         watched_count: result.watched_count,
         created_at: result.created_at.toISOString(),
         updated_at: result.updated_at.toISOString(),
@@ -2003,14 +1968,14 @@ function paginateLogs(
   let endIndex = logs.length;
 
   if (pagination?.after) {
-    const afterIndex = logs.findIndex((log) => log.id === pagination.after);
+    const afterIndex = logs.findIndex(log => log.id === pagination.after);
     if (afterIndex !== -1) {
       startIndex = afterIndex + 1;
     }
   }
 
   if (pagination?.before) {
-    const beforeIndex = logs.findIndex((log) => log.id === pagination.before);
+    const beforeIndex = logs.findIndex(log => log.id === pagination.before);
     if (beforeIndex !== -1) {
       endIndex = beforeIndex;
     }
@@ -2027,7 +1992,7 @@ function paginateLogs(
   const paginatedLogs = logs.slice(startIndex, endIndex);
 
   return {
-    edges: paginatedLogs.map((log) => ({
+    edges: paginatedLogs.map(log => ({
       node: log,
       cursor: log.id,
     })),
@@ -2054,16 +2019,14 @@ function paginateResults<T extends { id: string }>(
   let endIndex = items.length;
 
   if (pagination?.after) {
-    const afterIndex = items.findIndex((item) => item.id === pagination.after);
+    const afterIndex = items.findIndex(item => item.id === pagination.after);
     if (afterIndex !== -1) {
       startIndex = afterIndex + 1;
     }
   }
 
   if (pagination?.before) {
-    const beforeIndex = items.findIndex(
-      (item) => item.id === pagination.before
-    );
+    const beforeIndex = items.findIndex(item => item.id === pagination.before);
     if (beforeIndex !== -1) {
       endIndex = beforeIndex;
     }
@@ -2080,7 +2043,7 @@ function paginateResults<T extends { id: string }>(
   const paginatedItems = items.slice(startIndex, endIndex);
 
   return {
-    edges: paginatedItems.map((item) => ({
+    edges: paginatedItems.map(item => ({
       node: item,
       cursor: item.id,
     })),
@@ -2107,14 +2070,14 @@ function paginatePlayers<T extends { id: string }>(
   let endIndex = players.length;
 
   if (pagination?.after) {
-    const afterIndex = players.findIndex((player) => player.id === pagination.after);
+    const afterIndex = players.findIndex(player => player.id === pagination.after);
     if (afterIndex !== -1) {
       startIndex = afterIndex + 1;
     }
   }
 
   if (pagination?.before) {
-    const beforeIndex = players.findIndex((player) => player.id === pagination.before);
+    const beforeIndex = players.findIndex(player => player.id === pagination.before);
     if (beforeIndex !== -1) {
       endIndex = beforeIndex;
     }
@@ -2131,7 +2094,7 @@ function paginatePlayers<T extends { id: string }>(
   const paginatedPlayers = players.slice(startIndex, endIndex);
 
   return {
-    edges: paginatedPlayers.map((player) => ({
+    edges: paginatedPlayers.map(player => ({
       node: player,
       cursor: player.id,
     })),

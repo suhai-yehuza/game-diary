@@ -1,7 +1,7 @@
-"use server";
+'use server';
 
-import { currentUser } from "@clerk/nextjs/server";
-import { NbaDataClient } from "../../../components/nba-data-client";
+import { currentUser } from '@clerk/nextjs/server';
+import { NbaDataClient } from '../../../components/nba-data-client';
 
 export default async function Page() {
   const user = await currentUser();

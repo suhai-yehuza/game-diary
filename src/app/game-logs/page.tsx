@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
-import { useQuery } from "@apollo/client";
-import { GET_GAME_LOGS } from "../../lib/graphql/queries";
-import { GameLogResponse } from "../../lib/types/types";
-import Link from "next/link";
-import { format } from "date-fns";
-import { useEffect, useState } from "react";
+import { useQuery } from '@apollo/client';
+import { GET_GAME_LOGS } from '../../lib/graphql/queries';
+import { GameLogResponse } from '../../lib/types/types';
+import Link from 'next/link';
+import { format } from 'date-fns';
+import { useEffect, useState } from 'react';
 
 export default function GameLogsPage() {
   const [gameLogs, setGameLogs] = useState<GameLogResponse[]>([]);
@@ -24,9 +24,7 @@ export default function GameLogsPage() {
   useEffect(() => {
     if (gameLogsData) {
       const logs =
-        gameLogsData?.game_logs?.edges?.map(
-          (edge: { node: GameLogResponse }) => edge.node
-        ) || [];
+        gameLogsData?.game_logs?.edges?.map((edge: { node: GameLogResponse }) => edge.node) || [];
       setGameLogs(logs);
     }
   }, [gameLogsData]);
@@ -39,7 +37,7 @@ export default function GameLogsPage() {
       <h1 className="text-3xl font-bold mb-8">Game Logs</h1>
 
       <div className="grid gap-6">
-        {gameLogs.map((gameLog) => (
+        {gameLogs.map(gameLog => (
           <Link
             href={`/game-logs/${gameLog.id}`}
             key={gameLog.id}
@@ -47,12 +45,8 @@ export default function GameLogsPage() {
           >
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <h2 className="text-xl font-semibold">
-                  {gameLog.user?.username}
-                </h2>
-                <p className="text-gray-600">
-                  {format(new Date(), "MMMM d, yyyy")}
-                </p>
+                <h2 className="text-xl font-semibold">{gameLog.user?.username}</h2>
+                <p className="text-gray-600">{format(new Date(), 'MMMM d, yyyy')}</p>
               </div>
 
               <div className="text-center">

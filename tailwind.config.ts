@@ -1,10 +1,10 @@
-import type { Config } from "tailwindcss";
+import type { Config } from 'tailwindcss';
 
 const config: Config = {
   content: [
-    "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
-    "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
-    "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
+    './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
+    './src/components/**/*.{js,ts,jsx,tsx,mdx}',
+    './src/app/**/*.{js,ts,jsx,tsx,mdx}',
   ],
   theme: {
     extend: {
@@ -21,11 +21,11 @@ const config: Config = {
         },
       },
       animation: {
-        'fadeInUp': 'fadeInUp 0.5s ease-out forwards',
+        fadeInUp: 'fadeInUp 0.5s ease-out forwards',
       },
     },
   },
   plugins: [],
 };
 
-export default config; 
+export default config;

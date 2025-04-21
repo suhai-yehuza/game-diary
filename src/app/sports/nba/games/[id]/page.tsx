@@ -1,19 +1,23 @@
-"use client";
+'use client';
 
-import { useParams } from "next/navigation";
-import { useQuery } from "@apollo/client";
-import { GET_GAME } from "@/lib/graphql/queries";
-import { format } from "date-fns";
-import Image from "next/image";
-import Link from "next/link";
-import { useEffect } from "react";
-import { Game } from "@/lib/types/types";
+import { useParams } from 'next/navigation';
+import { useQuery } from '@apollo/client';
+import { GET_GAME } from '@/lib/graphql/queries';
+import { format } from 'date-fns';
+import Image from 'next/image';
+import Link from 'next/link';
+import { useEffect } from 'react';
+import { Game } from '@/lib/types/types';
 
 export default function GamePage() {
   const params = useParams();
   const gameId = params.id as string;
 
-  const { loading, error, data: gameData } = useQuery<{ game: Game }>(GET_GAME, {
+  const {
+    loading,
+    error,
+    data: gameData,
+  } = useQuery<{ game: Game }>(GET_GAME, {
     variables: { id: gameId },
   });
 
@@ -33,7 +37,7 @@ export default function GamePage() {
       <header className="border-b border-border">
         <div className="container mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
-            <Link 
+            <Link
               href="/sports/nba"
               className="text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
@@ -62,13 +66,11 @@ export default function GamePage() {
                   {game.teams.visitors.nickname} vs {game.teams.home.nickname}
                 </h1>
                 <p className="text-muted-foreground">
-                  {format(new Date(game.date.start), "MMMM d, yyyy")}
+                  {format(new Date(game.date.start), 'MMMM d, yyyy')}
                 </p>
               </div>
             </div>
-            <div className="text-lg font-medium">
-              {game.status.long}
-            </div>
+            <div className="text-lg font-medium">{game.status.long}</div>
           </div>
 
           {/* Scoreboard */}
@@ -97,9 +99,7 @@ export default function GamePage() {
                   {game.scores.visitors.points} - {game.scores.home.points}
                 </div>
                 {game.status.clock && (
-                  <div className="text-muted-foreground mt-2">
-                    {game.status.clock}
-                  </div>
+                  <div className="text-muted-foreground mt-2">{game.status.clock}</div>
                 )}
               </div>
 
@@ -210,9 +210,19 @@ export default function GamePage() {
                     <div>
                       <h5 className="font-medium mb-4">Shooting</h5>
                       <div className="space-y-2 text-sm">
-                        <p>Field Goals: {teamStats.fieldGoals.made}/{teamStats.fieldGoals.attempted} ({teamStats.fieldGoals.percentage.toFixed(1)}%)</p>
-                        <p>3-Pointers: {teamStats.threePointers.made}/{teamStats.threePointers.attempted} ({teamStats.threePointers.percentage.toFixed(1)}%)</p>
-                        <p>Free Throws: {teamStats.freeThrows.made}/{teamStats.freeThrows.attempted} ({teamStats.freeThrows.percentage.toFixed(1)}%)</p>
+                        <p>
+                          Field Goals: {teamStats.fieldGoals.made}/{teamStats.fieldGoals.attempted}{' '}
+                          ({teamStats.fieldGoals.percentage.toFixed(1)}%)
+                        </p>
+                        <p>
+                          3-Pointers: {teamStats.threePointers.made}/
+                          {teamStats.threePointers.attempted} (
+                          {teamStats.threePointers.percentage.toFixed(1)}%)
+                        </p>
+                        <p>
+                          Free Throws: {teamStats.freeThrows.made}/{teamStats.freeThrows.attempted}{' '}
+                          ({teamStats.freeThrows.percentage.toFixed(1)}%)
+                        </p>
                       </div>
                     </div>
 
@@ -220,7 +230,10 @@ export default function GamePage() {
                       <h5 className="font-medium mb-4">Game Stats</h5>
                       <div className="space-y-2 text-sm">
                         <p>Points: {teamStats.points}</p>
-                        <p>Rebounds: {teamStats.rebounds.total} (Off: {teamStats.rebounds.offensive}, Def: {teamStats.rebounds.defensive})</p>
+                        <p>
+                          Rebounds: {teamStats.rebounds.total} (Off: {teamStats.rebounds.offensive},
+                          Def: {teamStats.rebounds.defensive})
+                        </p>
                         <p>Assists: {teamStats.assists}</p>
                         <p>Steals: {teamStats.steals}</p>
                         <p>Blocks: {teamStats.blocks}</p>
@@ -247,8 +260,12 @@ export default function GamePage() {
 
                   <div className="mt-6 pt-4 border-t">
                     <p className="text-sm font-medium">
-                      Plus/Minus: <span className={teamStats.plusMinus >= 0 ? "text-green-500" : "text-red-500"}>
-                        {teamStats.plusMinus > 0 ? "+" : ""}{teamStats.plusMinus}
+                      Plus/Minus:{' '}
+                      <span
+                        className={teamStats.plusMinus >= 0 ? 'text-green-500' : 'text-red-500'}
+                      >
+                        {teamStats.plusMinus > 0 ? '+' : ''}
+                        {teamStats.plusMinus}
                       </span>
                     </p>
                   </div>
@@ -268,4 +285,4 @@ export default function GamePage() {
       </main>
     </div>
   );
-} 
+}

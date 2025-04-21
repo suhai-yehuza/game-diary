@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { useQuery } from "@apollo/client";
+import { useState, useEffect } from 'react';
+import { useQuery } from '@apollo/client';
 import {
   GET_SEASONS,
   GET_LEAGUES,
@@ -18,42 +18,26 @@ import {
   GET_GAME_RATING,
   GET_REACTIONS,
   GET_GAME_LOGS_FOR_USER,
-} from "../lib/graphql/queries";
-import { Season, Team, Player, Game } from "../lib/types/nba";
-import type {
-  Conference,
-  Division,
-  Position,
-  SortOption,
-} from "../lib/types/types";
-import Image from "next/image";
+} from '../lib/graphql/queries';
+import { Season, Team, Player, Game } from '../lib/types/nba';
+import type { Conference, Division, Position, SortOption } from '../lib/types/types';
+import Image from 'next/image';
 
-export type TeamSort = "WINS" | "LOSSES" | "WIN_PERCENTAGE" | "POINTS_PER_GAME";
-export type PlayerSort =
-  | "POINTS"
-  | "REBOUNDS"
-  | "ASSISTS"
-  | "STEALS"
-  | "BLOCKS";
+export type TeamSort = 'WINS' | 'LOSSES' | 'WIN_PERCENTAGE' | 'POINTS_PER_GAME';
+export type PlayerSort = 'POINTS' | 'REBOUNDS' | 'ASSISTS' | 'STEALS' | 'BLOCKS';
 
 export const NbaDataClient = () => {
-  const testUserId = "01c271f5-0aa3-4aa3-92b8-032b7a39b995";
-  const testGameLogId = "00039a16-6ef0-47ed-abca-e1d2e633cbe6";
-  const testGameId = "2c4cbc53-87fe-4e53-a210-f7ccb188ebfc";
+  const testUserId = '01c271f5-0aa3-4aa3-92b8-032b7a39b995';
+  const testGameLogId = '00039a16-6ef0-47ed-abca-e1d2e633cbe6';
+  const testGameId = '2c4cbc53-87fe-4e53-a210-f7ccb188ebfc';
   const DEFAULT_PAGE_SIZE = 10;
-  const [selectedConference, setSelectedConference] = useState<
-    Conference | "all"
-  >("all");
-  const [selectedDivision, setSelectedDivision] = useState<Division | "all">(
-    "all"
-  );
-  const [selectedPosition, setSelectedPosition] = useState<Position | "all">(
-    "all"
-  );
+  const [selectedConference, setSelectedConference] = useState<Conference | 'all'>('all');
+  const [selectedDivision, setSelectedDivision] = useState<Division | 'all'>('all');
+  const [selectedPosition, setSelectedPosition] = useState<Position | 'all'>('all');
   // const [selectedStatus] = useState<string>("all");
-  const [teamSort, setTeamSort] = useState<TeamSort>("WINS");
-  const [playerSort, setPlayerSort] = useState<PlayerSort>("POINTS");
-  const [sortBy] = useState<SortOption>("ASC");
+  const [teamSort, setTeamSort] = useState<TeamSort>('WINS');
+  const [playerSort, setPlayerSort] = useState<PlayerSort>('POINTS');
+  const [sortBy] = useState<SortOption>('ASC');
 
   // Test fetching data from the API
   // GET_USER
@@ -63,9 +47,9 @@ export const NbaDataClient = () => {
     },
   });
   useEffect(() => {
-    console.log("userData", userData);
+    console.log('userData', userData);
   }, [userData]);
-  
+
   // GET_GAME_LOGS
   const { data: gameLogsData } = useQuery(GET_GAME_LOGS, {
     variables: {
@@ -75,7 +59,7 @@ export const NbaDataClient = () => {
     },
   });
   useEffect(() => {
-    console.log("gameLogsData", gameLogsData);
+    console.log('gameLogsData', gameLogsData);
   }, [gameLogsData]);
 
   // GET_GAME_LOG
@@ -85,13 +69,13 @@ export const NbaDataClient = () => {
     },
   });
   useEffect(() => {
-    console.log("gameLogData", gameLogData);
+    console.log('gameLogData', gameLogData);
   }, [gameLogData]);
 
   // GET_GAME_RATINGS
   const { data: gameRatingsData } = useQuery(GET_GAME_RATINGS);
   useEffect(() => {
-    console.log("gameRatingsData", gameRatingsData);
+    console.log('gameRatingsData', gameRatingsData);
   }, [gameRatingsData]);
 
   // GET_GAME_RATING
@@ -101,7 +85,7 @@ export const NbaDataClient = () => {
     },
   });
   useEffect(() => {
-    console.log("gameRatingData", gameRatingData);
+    console.log('gameRatingData', gameRatingData);
   }, [gameRatingData]);
 
   // GET_REACTIONS
@@ -111,7 +95,7 @@ export const NbaDataClient = () => {
     },
   });
   useEffect(() => {
-    console.log("reactionsData", reactionsData);
+    console.log('reactionsData', reactionsData);
   }, [reactionsData]);
 
   // GET_FRIENDSHIPS_FOR_USER
@@ -121,7 +105,7 @@ export const NbaDataClient = () => {
     },
   });
   useEffect(() => {
-    console.log("friendshipsForUserData", friendshipsForUserData);
+    console.log('friendshipsForUserData', friendshipsForUserData);
   }, [friendshipsForUserData]);
 
   // GET_GAME_LOGS_FOR_USER
@@ -131,24 +115,24 @@ export const NbaDataClient = () => {
     },
   });
   useEffect(() => {
-    console.log("gameLogsForUserData", gameLogsForUserData);
+    console.log('gameLogsForUserData', gameLogsForUserData);
   }, [gameLogsForUserData]);
 
   // ======
   const { data: seasonData } = useQuery(GET_SEASONS);
   useEffect(() => {
-    console.log("seasonData", seasonData);
+    console.log('seasonData', seasonData);
   }, [seasonData]);
 
   const { data: leagueData } = useQuery(GET_LEAGUES);
   useEffect(() => {
-    console.log("leagueData", leagueData);
+    console.log('leagueData', leagueData);
   }, [leagueData]);
 
   const { data: gamesData } = useQuery(GET_GAMES, {
     variables: {
       filters: {
-        season: "2024",
+        season: '2024',
       },
       pagination: {
         first: DEFAULT_PAGE_SIZE,
@@ -156,24 +140,24 @@ export const NbaDataClient = () => {
     },
   });
   useEffect(() => {
-    console.log("gamesData", gamesData);
+    console.log('gamesData', gamesData);
   }, [gamesData]);
 
   const { data: teamsData } = useQuery(GET_TEAMS, {
     variables: {
       filters: {
-        conference: "East",
+        conference: 'East',
       },
     },
   });
   useEffect(() => {
-    console.log("teamsData", teamsData);
+    console.log('teamsData', teamsData);
   }, [teamsData]);
 
   const { data: playersData } = useQuery(GET_PLAYERS, {
     variables: {
       filters: {
-        country: "USA",
+        country: 'USA',
       },
       pagination: {
         first: DEFAULT_PAGE_SIZE,
@@ -182,18 +166,18 @@ export const NbaDataClient = () => {
     },
   });
   useEffect(() => {
-    console.log("playersData", playersData);
+    console.log('playersData', playersData);
   }, [playersData]);
 
   const { data: usersData } = useQuery(GET_USERS, {
     variables: {
       pagination: {
-          first: DEFAULT_PAGE_SIZE,
+        first: DEFAULT_PAGE_SIZE,
       },
     },
   });
   useEffect(() => {
-    console.log("usersData", usersData);
+    console.log('usersData', usersData);
   }, [usersData]);
 
   const { data: friendshipsData } = useQuery(GET_FRIENDSHIPS, {
@@ -204,7 +188,7 @@ export const NbaDataClient = () => {
     },
   });
   useEffect(() => {
-    console.log("friendshipsData", friendshipsData);
+    console.log('friendshipsData', friendshipsData);
   }, [friendshipsData]);
 
   const currentSeason: Season | undefined = seasonData?.season;
@@ -212,7 +196,21 @@ export const NbaDataClient = () => {
   // const teams: Team[] = teamsData?.teams || [];
   const topPlayers: Player[] = playersData?.topPlayers || [];
 
-  if (!seasonData || !gamesData || !teamsData || !playersData || !usersData || !friendshipsData || !gameLogsData || !gameLogData || !gameRatingsData || !gameRatingData || !reactionsData || !friendshipsForUserData || !gameLogsForUserData) {
+  if (
+    !seasonData ||
+    !gamesData ||
+    !teamsData ||
+    !playersData ||
+    !usersData ||
+    !friendshipsData ||
+    !gameLogsData ||
+    !gameLogData ||
+    !gameRatingsData ||
+    !gameRatingData ||
+    !reactionsData ||
+    !friendshipsForUserData ||
+    !gameLogsForUserData
+  ) {
     return <div className="text-center py-8">Loading NBA data...</div>;
   }
 
@@ -222,9 +220,7 @@ export const NbaDataClient = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
         <select
           value={selectedConference}
-          onChange={(e) =>
-            setSelectedConference(e.target.value as Conference | "all")
-          }
+          onChange={e => setSelectedConference(e.target.value as Conference | 'all')}
           className="p-2 border rounded"
         >
           <option value="East">Eastern Conference</option>
@@ -233,10 +229,8 @@ export const NbaDataClient = () => {
         </select>
 
         <select
-          value={selectedDivision || ""}
-          onChange={(e) =>
-            setSelectedDivision(e.target.value as Division | "all")
-          }
+          value={selectedDivision || ''}
+          onChange={e => setSelectedDivision(e.target.value as Division | 'all')}
           className="p-2 border rounded"
         >
           <option value="Atlantic">Atlantic</option>
@@ -250,9 +244,7 @@ export const NbaDataClient = () => {
 
         <select
           value={selectedPosition}
-          onChange={(e) =>
-            setSelectedPosition(e.target.value as Position | "all")
-          }
+          onChange={e => setSelectedPosition(e.target.value as Position | 'all')}
           className="p-2 border rounded"
         >
           <option value="PG">Point Guard</option>
@@ -283,11 +275,7 @@ export const NbaDataClient = () => {
             </div>
             <div>
               <h3 className="font-semibold">All-Star Game</h3>
-              <p>
-                {new Date(
-                  currentSeason.isCurrent ? "Yup" : "Nope"
-                ).toLocaleDateString()}
-              </p>
+              <p>{new Date(currentSeason.isCurrent ? 'Yup' : 'Nope').toLocaleDateString()}</p>
             </div>
           </div>
         )}
@@ -338,7 +326,7 @@ export const NbaDataClient = () => {
           <h2 className="text-2xl font-bold">Teams</h2>
           <select
             value={teamSort}
-            onChange={(e) => setTeamSort(e.target.value as TeamSort)}
+            onChange={e => setTeamSort(e.target.value as TeamSort)}
             className="p-2 border rounded"
           >
             <option value="WINS">Sort by Wins</option>
@@ -351,12 +339,7 @@ export const NbaDataClient = () => {
           {[].map((team: Team) => (
             <div key={team.id} className="border rounded-lg p-4">
               <div className="flex items-center gap-4">
-                <Image
-                  src={team?.logo}
-                  alt={team.name}
-                  width={48}
-                  height={48}
-                />
+                <Image src={team?.logo} alt={team.name} width={48} height={48} />
                 <div>
                   <h3 className="font-bold">{team.name}</h3>
                   <p className="text-gray-600">
@@ -389,7 +372,7 @@ export const NbaDataClient = () => {
           <h2 className="text-2xl font-bold">Top Players</h2>
           <select
             value={playerSort}
-            onChange={(e) => setPlayerSort(e.target.value as PlayerSort)}
+            onChange={e => setPlayerSort(e.target.value as PlayerSort)}
             className="p-2 border rounded"
           >
             <option value="POINTS">Sort by Points</option>
@@ -425,12 +408,8 @@ export const NbaDataClient = () => {
                   <td className="px-4 py-2">{player.stats.pointsPerGame}</td>
                   <td className="px-4 py-2">{player.stats.reboundsPerGame}</td>
                   <td className="px-4 py-2">{player.stats.assistsPerGame}</td>
-                  <td className="px-4 py-2">
-                    {player.stats.fieldGoalPercentage}%
-                  </td>
-                  <td className="px-4 py-2">
-                    {player.stats.threePointPercentage}%
-                  </td>
+                  <td className="px-4 py-2">{player.stats.fieldGoalPercentage}%</td>
+                  <td className="px-4 py-2">{player.stats.threePointPercentage}%</td>
                 </tr>
               ))}
             </tbody>

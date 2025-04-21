@@ -1,14 +1,8 @@
-import { gql } from "@apollo/client";
+import { gql } from '@apollo/client';
 
 export const CREATE_FRIENDSHIP = gql`
   mutation CreateFriendship($subscriber_id: ID!, $user_id: ID!) {
-    createFriendship(
-      input: {
-        subscriber_id: $subscriber_id
-        user_id: $user_id
-        status: PENDING
-      }
-    ) {
+    createFriendship(input: { subscriber_id: $subscriber_id, user_id: $user_id, status: PENDING }) {
       id
       subscriber_id
       user_id
@@ -111,11 +105,7 @@ export const DELETE_GAME_LOG = gql`
 `;
 
 export const CREATE_COMMENT = gql`
-  mutation CreateComment(
-    $user_id: String!
-    $parent_id: String!
-    $content: String!
-  ) {
+  mutation CreateComment($user_id: String!, $parent_id: String!, $content: String!) {
     createComment(user_id: $user_id, parent_id: $parent_id, content: $content) {
       id
       user_id
@@ -154,12 +144,7 @@ export const CREATE_REACTION = gql`
     $emoji: String!
   ) {
     createReaction(
-      input: {
-        user_id: $user_id
-        target_type: $target_type
-        target_id: $target_id
-        emoji: $emoji
-      }
+      input: { user_id: $user_id, target_type: $target_type, target_id: $target_id, emoji: $emoji }
     ) {
       id
       user_id

@@ -26,10 +26,10 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'ak-static.cms.nba.com',
         pathname: '/**',
-      }
+      },
     ],
   },
   devIndicators: false,
-}
+};
 
-module.exports = nextConfig 
+module.exports = nextConfig;

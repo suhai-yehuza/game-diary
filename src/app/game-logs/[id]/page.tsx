@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import { useQuery } from "@apollo/client";
-import { GET_GAME_LOG } from "../../../lib/graphql/queries";
-import { useParams } from "next/navigation";
-import { GameLogResponse } from "../../../lib/types/types";
-import { useEffect, useState } from "react";
+import { useQuery } from '@apollo/client';
+import { GET_GAME_LOG } from '../../../lib/graphql/queries';
+import { useParams } from 'next/navigation';
+import { GameLogResponse } from '../../../lib/types/types';
+import { useEffect, useState } from 'react';
 export default function GameLogPage() {
   const params = useParams();
   const [gameLog, setGameLog] = useState<GameLogResponse | null>(null);

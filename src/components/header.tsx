@@ -1,23 +1,23 @@
-"use client";
-import Link from "next/link";
-import { useState } from "react";
-import { SignInButton, SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
-import { Search, X, Menu } from "lucide-react";
-import Image from "next/image";
+'use client';
+import Link from 'next/link';
+import { useState } from 'react';
+import { SignInButton, SignedIn, SignedOut, UserButton } from '@clerk/nextjs';
+import { Search, X, Menu } from 'lucide-react';
+import Image from 'next/image';
 
-import { ThemeToggle } from "./theme-toggle";
-import { Button } from "./ui/button";
-import { Input } from "./ui/input";
+import { ThemeToggle } from './theme-toggle';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
 
 export default function Header() {
   const [isSearchVisible, setIsSearchVisible] = useState(false);
   const [isMenuExpanded, setIsMenuExpanded] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState('');
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     // Implement your search logic here
-    console.log("Searching for:", searchQuery);
+    console.log('Searching for:', searchQuery);
   };
 
   return (
@@ -54,7 +54,7 @@ export default function Header() {
 
               {/* Navigation Links */}
               <div
-                className={`${!isMenuExpanded ? "hidden" : "block"} lg:block absolute lg:relative top-16 left-0 right-0 lg:top-0 bg-background lg:bg-transparent`}
+                className={`${!isMenuExpanded ? 'hidden' : 'block'} lg:block absolute lg:relative top-16 left-0 right-0 lg:top-0 bg-background lg:bg-transparent`}
               >
                 <ul className="flex flex-col lg:flex-row space-y-2 lg:space-y-0 lg:space-x-8 p-4 lg:p-0 text-sm font-medium">
                   <li>
@@ -137,17 +137,13 @@ export default function Header() {
                   if (isMenuExpanded) setIsMenuExpanded(false);
                 }}
               >
-                {isSearchVisible ? (
-                  <X className="h-5 w-5" />
-                ) : (
-                  <Search className="h-5 w-5" />
-                )}
+                {isSearchVisible ? <X className="h-5 w-5" /> : <Search className="h-5 w-5" />}
               </Button>
 
               {/* Search Bar */}
               <form onSubmit={handleSearch} className="relative">
                 <div
-                  className={`${isSearchVisible ? "block" : "hidden"} sm:block absolute sm:relative top-16 sm:top-0 left-0 right-0 sm:left-auto sm:right-auto bg-background sm:bg-transparent p-4 sm:p-0 border-b sm:border-0`}
+                  className={`${isSearchVisible ? 'block' : 'hidden'} sm:block absolute sm:relative top-16 sm:top-0 left-0 right-0 sm:left-auto sm:right-auto bg-background sm:bg-transparent p-4 sm:p-0 border-b sm:border-0`}
                 >
                   <div className="relative">
                     <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -156,7 +152,7 @@ export default function Header() {
                       placeholder="Search..."
                       className="pl-8 w-full sm:w-[200px] lg:w-[300px]"
                       value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
+                      onChange={e => setSearchQuery(e.target.value)}
                     />
                   </div>
                 </div>

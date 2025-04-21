@@ -1,12 +1,12 @@
-import { startServerAndCreateNextHandler } from "@as-integrations/next";
-import { ApolloServer } from "@apollo/server";
-import { typeDefs } from "../../../lib/graphql/schema";
-import { resolvers } from "../../../lib/graphql/resolvers";
-import { gql } from "graphql-tag";
-import { db } from "../../../db";
-import { cache } from "../../../lib/redis";
-import { Redis } from "@upstash/redis";
-import { NextRequest } from "next/server";
+import { startServerAndCreateNextHandler } from '@as-integrations/next';
+import { ApolloServer } from '@apollo/server';
+import { typeDefs } from '../../../lib/graphql/schema';
+import { resolvers } from '../../../lib/graphql/resolvers';
+import { gql } from 'graphql-tag';
+import { db } from '../../../db';
+import { cache } from '../../../lib/redis';
+import { Redis } from '@upstash/redis';
+import { NextRequest } from 'next/server';
 
 type Context = {
   db: typeof db;

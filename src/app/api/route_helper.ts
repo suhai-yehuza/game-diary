@@ -1,8 +1,8 @@
-import { NextResponse } from "next/server";
-import { ApolloServer } from "@apollo/server";
-import { startServerAndCreateNextHandler } from "@as-integrations/next";
-import { typeDefs } from "../../lib/graphql/schema";
-import { resolvers } from "../../lib/graphql/resolvers";
+import { NextResponse } from 'next/server';
+import { ApolloServer } from '@apollo/server';
+import { startServerAndCreateNextHandler } from '@as-integrations/next';
+import { typeDefs } from '../../lib/graphql/schema';
+import { resolvers } from '../../lib/graphql/resolvers';
 
 // Create Apollo Server instance
 const server = new ApolloServer({
@@ -19,18 +19,15 @@ export async function POST(request: Request) {
     // Handle CORS
     const response = await handler(request);
     response.headers.set(
-      "Access-Control-Allow-Origin",
-      process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
+      'Access-Control-Allow-Origin',
+      process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
     );
-    response.headers.set("Access-Control-Allow-Methods", "POST, OPTIONS");
-    response.headers.set("Access-Control-Allow-Headers", "Content-Type");
+    response.headers.set('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    response.headers.set('Access-Control-Allow-Headers', 'Content-Type');
     return response;
   } catch (error) {
-    console.error("GraphQL Error:", error);
-    return NextResponse.json(
-      { error: "Internal Server Error" },
-      { status: 500 }
-    );
+    console.error('GraphQL Error:', error);
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
 
@@ -39,10 +36,9 @@ export async function OPTIONS() {
   return new NextResponse(null, {
     status: 204,
     headers: {
-      "Access-Control-Allow-Origin":
-        process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
-      "Access-Control-Allow-Methods": "POST, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type",
+      'Access-Control-Allow-Origin': process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
+      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type',
     },
   });
 }

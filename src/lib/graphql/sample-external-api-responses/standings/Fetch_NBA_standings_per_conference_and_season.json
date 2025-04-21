@@ -1,642 +1,642 @@
 {
-	"get": "standings\/",
-	"parameters": {
-		"league": "standard",
-		"conference": "East",
-		"season": "2024"
-	},
-	"errors": [],
-	"results": 15,
-	"response": [
-		{
-			"league": "standard",
-			"season": 2024,
-			"team": {
-				"id": 2,
-				"name": "Boston Celtics",
-				"nickname": "Celtics",
-				"code": "BOS",
-				"logo": "https:\/\/upload.wikimedia.org\/wikipedia\/fr\/thumb\/6\/65\/Celtics_de_Boston_logo.svg\/1024px-Celtics_de_Boston_logo.svg.png"
-			},
-			"conference": {
-				"name": "east",
-				"rank": 2,
-				"win": 61,
-				"loss": 21
-			},
-			"division": {
-				"name": "atlantic",
-				"rank": 1,
-				"win": 61,
-				"loss": 21,
-				"gamesBehind": null
-			},
-			"win": {
-				"home": 27,
-				"away": 33,
-				"total": 61,
-				"percentage": "0.744",
-				"lastTen": 8
-			},
-			"loss": {
-				"home": 13,
-				"away": 8,
-				"total": 21,
-				"percentage": "0.256",
-				"lastTen": 2
-			},
-			"gamesBehind": null,
-			"streak": 1,
-			"winStreak": true,
-			"tieBreakerPoints": null
-		},
-		{
-			"league": "standard",
-			"season": 2024,
-			"team": {
-				"id": 24,
-				"name": "New York Knicks",
-				"nickname": "Knicks",
-				"code": "NYK",
-				"logo": "https:\/\/upload.wikimedia.org\/wikipedia\/fr\/3\/34\/Knicks_de_NY.png"
-			},
-			"conference": {
-				"name": "east",
-				"rank": 3,
-				"win": 51,
-				"loss": 31
-			},
-			"division": {
-				"name": "atlantic",
-				"rank": 2,
-				"win": 51,
-				"loss": 31,
-				"gamesBehind": "10"
-			},
-			"win": {
-				"home": 27,
-				"away": 23,
-				"total": 51,
-				"percentage": "0.622",
-				"lastTen": 5
-			},
-			"loss": {
-				"home": 14,
-				"away": 17,
-				"total": 31,
-				"percentage": "0.378",
-				"lastTen": 5
-			},
-			"gamesBehind": "10",
-			"streak": 3,
-			"winStreak": false,
-			"tieBreakerPoints": null
-		},
-		{
-			"league": "standard",
-			"season": 2024,
-			"team": {
-				"id": 38,
-				"name": "Toronto Raptors",
-				"nickname": "Raptors",
-				"code": "TOR",
-				"logo": "https:\/\/upload.wikimedia.org\/wikipedia\/fr\/8\/89\/Raptors2015.png"
-			},
-			"conference": {
-				"name": "east",
-				"rank": 11,
-				"win": 30,
-				"loss": 52
-			},
-			"division": {
-				"name": "atlantic",
-				"rank": 3,
-				"win": 30,
-				"loss": 52,
-				"gamesBehind": "30"
-			},
-			"win": {
-				"home": 18,
-				"away": 12,
-				"total": 30,
-				"percentage": "0.366",
-				"lastTen": 6
-			},
-			"loss": {
-				"home": 23,
-				"away": 28,
-				"total": 52,
-				"percentage": "0.634",
-				"lastTen": 4
-			},
-			"gamesBehind": "30",
-			"streak": 1,
-			"winStreak": false,
-			"tieBreakerPoints": null
-		},
-		{
-			"league": "standard",
-			"season": 2024,
-			"team": {
-				"id": 4,
-				"name": "Brooklyn Nets",
-				"nickname": "Nets",
-				"code": "BKN",
-				"logo": "https:\/\/upload.wikimedia.org\/wikipedia\/commons\/thumb\/4\/44\/Brooklyn_Nets_newlogo.svg\/130px-Brooklyn_Nets_newlogo.svg.png"
-			},
-			"conference": {
-				"name": "east",
-				"rank": 12,
-				"win": 26,
-				"loss": 56
-			},
-			"division": {
-				"name": "atlantic",
-				"rank": 4,
-				"win": 26,
-				"loss": 56,
-				"gamesBehind": "34"
-			},
-			"win": {
-				"home": 12,
-				"away": 14,
-				"total": 26,
-				"percentage": "0.317",
-				"lastTen": 3
-			},
-			"loss": {
-				"home": 28,
-				"away": 27,
-				"total": 56,
-				"percentage": "0.683",
-				"lastTen": 7
-			},
-			"gamesBehind": "34",
-			"streak": 2,
-			"winStreak": false,
-			"tieBreakerPoints": null
-		},
-		{
-			"league": "standard",
-			"season": 2024,
-			"team": {
-				"id": 27,
-				"name": "Philadelphia 76ers",
-				"nickname": "76ers",
-				"code": "PHI",
-				"logo": "https:\/\/upload.wikimedia.org\/wikipedia\/fr\/4\/48\/76ers_2016.png"
-			},
-			"conference": {
-				"name": "east",
-				"rank": 13,
-				"win": 24,
-				"loss": 58
-			},
-			"division": {
-				"name": "atlantic",
-				"rank": 5,
-				"win": 24,
-				"loss": 58,
-				"gamesBehind": "36"
-			},
-			"win": {
-				"home": 12,
-				"away": 12,
-				"total": 24,
-				"percentage": "0.293",
-				"lastTen": 1
-			},
-			"loss": {
-				"home": 28,
-				"away": 29,
-				"total": 58,
-				"percentage": "0.707",
-				"lastTen": 9
-			},
-			"gamesBehind": "36",
-			"streak": 1,
-			"winStreak": false,
-			"tieBreakerPoints": null
-		},
-		{
-			"league": "standard",
-			"season": 2024,
-			"team": {
-				"id": 7,
-				"name": "Cleveland Cavaliers",
-				"nickname": "Cavaliers",
-				"code": "CLE",
-				"logo": "https:\/\/upload.wikimedia.org\/wikipedia\/fr\/thumb\/0\/06\/Cavs_de_Cleveland_logo_2017.png\/150px-Cavs_de_Cleveland_logo_2017.png"
-			},
-			"conference": {
-				"name": "east",
-				"rank": 1,
-				"win": 64,
-				"loss": 18
-			},
-			"division": {
-				"name": "central",
-				"rank": 1,
-				"win": 64,
-				"loss": 18,
-				"gamesBehind": null
-			},
-			"win": {
-				"home": 34,
-				"away": 30,
-				"total": 64,
-				"percentage": "0.780",
-				"lastTen": 7
-			},
-			"loss": {
-				"home": 6,
-				"away": 11,
-				"total": 18,
-				"percentage": "0.220",
-				"lastTen": 3
-			},
-			"gamesBehind": null,
-			"streak": 1,
-			"winStreak": true,
-			"tieBreakerPoints": null
-		},
-		{
-			"league": "standard",
-			"season": 2024,
-			"team": {
-				"id": 15,
-				"name": "Indiana Pacers",
-				"nickname": "Pacers",
-				"code": "IND",
-				"logo": "https:\/\/upload.wikimedia.org\/wikipedia\/fr\/thumb\/c\/cf\/Pacers_de_l%27Indiana_logo.svg\/1180px-Pacers_de_l%27Indiana_logo.svg.png"
-			},
-			"conference": {
-				"name": "east",
-				"rank": 4,
-				"win": 50,
-				"loss": 32
-			},
-			"division": {
-				"name": "central",
-				"rank": 2,
-				"win": 50,
-				"loss": 32,
-				"gamesBehind": "15"
-			},
-			"win": {
-				"home": 29,
-				"away": 19,
-				"total": 50,
-				"percentage": "0.610",
-				"lastTen": 7
-			},
-			"loss": {
-				"home": 11,
-				"away": 20,
-				"total": 32,
-				"percentage": "0.390",
-				"lastTen": 3
-			},
-			"gamesBehind": "15",
-			"streak": 1,
-			"winStreak": false,
-			"tieBreakerPoints": null
-		},
-		{
-			"league": "standard",
-			"season": 2024,
-			"team": {
-				"id": 21,
-				"name": "Milwaukee Bucks",
-				"nickname": "Bucks",
-				"code": "MIL",
-				"logo": "https:\/\/upload.wikimedia.org\/wikipedia\/fr\/3\/34\/Bucks2015.png"
-			},
-			"conference": {
-				"name": "east",
-				"rank": 5,
-				"win": 48,
-				"loss": 34
-			},
-			"division": {
-				"name": "central",
-				"rank": 3,
-				"win": 48,
-				"loss": 34,
-				"gamesBehind": "17"
-			},
-			"win": {
-				"home": 26,
-				"away": 20,
-				"total": 48,
-				"percentage": "0.585",
-				"lastTen": 7
-			},
-			"loss": {
-				"home": 14,
-				"away": 20,
-				"total": 34,
-				"percentage": "0.415",
-				"lastTen": 3
-			},
-			"gamesBehind": "17",
-			"streak": 7,
-			"winStreak": true,
-			"tieBreakerPoints": null
-		},
-		{
-			"league": "standard",
-			"season": 2024,
-			"team": {
-				"id": 10,
-				"name": "Detroit Pistons",
-				"nickname": "Pistons",
-				"code": "DET",
-				"logo": "https:\/\/upload.wikimedia.org\/wikipedia\/commons\/thumb\/3\/39\/Logo_of_the_Detroit_Pistons.png\/300px-Logo_of_the_Detroit_Pistons.png"
-			},
-			"conference": {
-				"name": "east",
-				"rank": 6,
-				"win": 44,
-				"loss": 38
-			},
-			"division": {
-				"name": "central",
-				"rank": 4,
-				"win": 44,
-				"loss": 38,
-				"gamesBehind": "20"
-			},
-			"win": {
-				"home": 22,
-				"away": 22,
-				"total": 44,
-				"percentage": "0.537",
-				"lastTen": 5
-			},
-			"loss": {
-				"home": 19,
-				"away": 18,
-				"total": 38,
-				"percentage": "0.463",
-				"lastTen": 5
-			},
-			"gamesBehind": "20",
-			"streak": 1,
-			"winStreak": false,
-			"tieBreakerPoints": null
-		},
-		{
-			"league": "standard",
-			"season": 2024,
-			"team": {
-				"id": 6,
-				"name": "Chicago Bulls",
-				"nickname": "Bulls",
-				"code": "CHI",
-				"logo": "https:\/\/upload.wikimedia.org\/wikipedia\/fr\/thumb\/d\/d1\/Bulls_de_Chicago_logo.svg\/1200px-Bulls_de_Chicago_logo.svg.png"
-			},
-			"conference": {
-				"name": "east",
-				"rank": 9,
-				"win": 39,
-				"loss": 43
-			},
-			"division": {
-				"name": "central",
-				"rank": 5,
-				"win": 39,
-				"loss": 43,
-				"gamesBehind": "26"
-			},
-			"win": {
-				"home": 18,
-				"away": 20,
-				"total": 39,
-				"percentage": "0.476",
-				"lastTen": 7
-			},
-			"loss": {
-				"home": 23,
-				"away": 20,
-				"total": 43,
-				"percentage": "0.524",
-				"lastTen": 3
-			},
-			"gamesBehind": "26",
-			"streak": 2,
-			"winStreak": true,
-			"tieBreakerPoints": null
-		},
-		{
-			"league": "standard",
-			"season": 2024,
-			"team": {
-				"id": 26,
-				"name": "Orlando Magic",
-				"nickname": "Magic",
-				"code": "ORL",
-				"logo": "https:\/\/upload.wikimedia.org\/wikipedia\/fr\/b\/bd\/Orlando_Magic_logo_2010.png"
-			},
-			"conference": {
-				"name": "east",
-				"rank": 7,
-				"win": 41,
-				"loss": 41
-			},
-			"division": {
-				"name": "southeast",
-				"rank": 1,
-				"win": 41,
-				"loss": 41,
-				"gamesBehind": null
-			},
-			"win": {
-				"home": 22,
-				"away": 19,
-				"total": 41,
-				"percentage": "0.500",
-				"lastTen": 8
-			},
-			"loss": {
-				"home": 19,
-				"away": 21,
-				"total": 41,
-				"percentage": "0.500",
-				"lastTen": 2
-			},
-			"gamesBehind": null,
-			"streak": 5,
-			"winStreak": true,
-			"tieBreakerPoints": null
-		},
-		{
-			"league": "standard",
-			"season": 2024,
-			"team": {
-				"id": 1,
-				"name": "Atlanta Hawks",
-				"nickname": "Hawks",
-				"code": "ATL",
-				"logo": "https:\/\/upload.wikimedia.org\/wikipedia\/fr\/e\/ee\/Hawks_2016.png"
-			},
-			"conference": {
-				"name": "east",
-				"rank": 8,
-				"win": 40,
-				"loss": 42
-			},
-			"division": {
-				"name": "southeast",
-				"rank": 2,
-				"win": 40,
-				"loss": 42,
-				"gamesBehind": "2"
-			},
-			"win": {
-				"home": 20,
-				"away": 19,
-				"total": 40,
-				"percentage": "0.488",
-				"lastTen": 4
-			},
-			"loss": {
-				"home": 19,
-				"away": 22,
-				"total": 42,
-				"percentage": "0.512",
-				"lastTen": 6
-			},
-			"gamesBehind": "2",
-			"streak": 2,
-			"winStreak": true,
-			"tieBreakerPoints": null
-		},
-		{
-			"league": "standard",
-			"season": 2024,
-			"team": {
-				"id": 20,
-				"name": "Miami Heat",
-				"nickname": "Heat",
-				"code": "MIA",
-				"logo": "https:\/\/upload.wikimedia.org\/wikipedia\/fr\/thumb\/1\/1c\/Miami_Heat_-_Logo.svg\/1200px-Miami_Heat_-_Logo.svg.png"
-			},
-			"conference": {
-				"name": "east",
-				"rank": 10,
-				"win": 37,
-				"loss": 45
-			},
-			"division": {
-				"name": "southeast",
-				"rank": 3,
-				"win": 37,
-				"loss": 45,
-				"gamesBehind": "4"
-			},
-			"win": {
-				"home": 19,
-				"away": 17,
-				"total": 37,
-				"percentage": "0.451",
-				"lastTen": 7
-			},
-			"loss": {
-				"home": 21,
-				"away": 23,
-				"total": 45,
-				"percentage": "0.549",
-				"lastTen": 3
-			},
-			"gamesBehind": "4",
-			"streak": 1,
-			"winStreak": true,
-			"tieBreakerPoints": null
-		},
-		{
-			"league": "standard",
-			"season": 2024,
-			"team": {
-				"id": 5,
-				"name": "Charlotte Hornets",
-				"nickname": "Hornets",
-				"code": "CHA",
-				"logo": "https:\/\/upload.wikimedia.org\/wikipedia\/fr\/thumb\/f\/f3\/Hornets_de_Charlotte_logo.svg\/1200px-Hornets_de_Charlotte_logo.svg.png"
-			},
-			"conference": {
-				"name": "east",
-				"rank": 14,
-				"win": 19,
-				"loss": 63
-			},
-			"division": {
-				"name": "southeast",
-				"rank": 4,
-				"win": 19,
-				"loss": 63,
-				"gamesBehind": "22"
-			},
-			"win": {
-				"home": 12,
-				"away": 7,
-				"total": 19,
-				"percentage": "0.232",
-				"lastTen": 1
-			},
-			"loss": {
-				"home": 29,
-				"away": 33,
-				"total": 63,
-				"percentage": "0.768",
-				"lastTen": 9
-			},
-			"gamesBehind": "22",
-			"streak": 6,
-			"winStreak": false,
-			"tieBreakerPoints": null
-		},
-		{
-			"league": "standard",
-			"season": 2024,
-			"team": {
-				"id": 41,
-				"name": "Washington Wizards",
-				"nickname": "Wizards",
-				"code": "WAS",
-				"logo": "https:\/\/upload.wikimedia.org\/wikipedia\/fr\/archive\/d\/d6\/20161212034849%21Wizards2015.png"
-			},
-			"conference": {
-				"name": "east",
-				"rank": 15,
-				"win": 18,
-				"loss": 64
-			},
-			"division": {
-				"name": "southeast",
-				"rank": 5,
-				"win": 18,
-				"loss": 64,
-				"gamesBehind": "24"
-			},
-			"win": {
-				"home": 8,
-				"away": 9,
-				"total": 18,
-				"percentage": "0.220",
-				"lastTen": 2
-			},
-			"loss": {
-				"home": 32,
-				"away": 31,
-				"total": 64,
-				"percentage": "0.780",
-				"lastTen": 8
-			},
-			"gamesBehind": "24",
-			"streak": 5,
-			"winStreak": false,
-			"tieBreakerPoints": null
-		}
-	]
+  "get": "standings\/",
+  "parameters": {
+    "league": "standard",
+    "conference": "East",
+    "season": "2024"
+  },
+  "errors": [],
+  "results": 15,
+  "response": [
+    {
+      "league": "standard",
+      "season": 2024,
+      "team": {
+        "id": 2,
+        "name": "Boston Celtics",
+        "nickname": "Celtics",
+        "code": "BOS",
+        "logo": "https:\/\/upload.wikimedia.org\/wikipedia\/fr\/thumb\/6\/65\/Celtics_de_Boston_logo.svg\/1024px-Celtics_de_Boston_logo.svg.png"
+      },
+      "conference": {
+        "name": "east",
+        "rank": 2,
+        "win": 61,
+        "loss": 21
+      },
+      "division": {
+        "name": "atlantic",
+        "rank": 1,
+        "win": 61,
+        "loss": 21,
+        "gamesBehind": null
+      },
+      "win": {
+        "home": 27,
+        "away": 33,
+        "total": 61,
+        "percentage": "0.744",
+        "lastTen": 8
+      },
+      "loss": {
+        "home": 13,
+        "away": 8,
+        "total": 21,
+        "percentage": "0.256",
+        "lastTen": 2
+      },
+      "gamesBehind": null,
+      "streak": 1,
+      "winStreak": true,
+      "tieBreakerPoints": null
+    },
+    {
+      "league": "standard",
+      "season": 2024,
+      "team": {
+        "id": 24,
+        "name": "New York Knicks",
+        "nickname": "Knicks",
+        "code": "NYK",
+        "logo": "https:\/\/upload.wikimedia.org\/wikipedia\/fr\/3\/34\/Knicks_de_NY.png"
+      },
+      "conference": {
+        "name": "east",
+        "rank": 3,
+        "win": 51,
+        "loss": 31
+      },
+      "division": {
+        "name": "atlantic",
+        "rank": 2,
+        "win": 51,
+        "loss": 31,
+        "gamesBehind": "10"
+      },
+      "win": {
+        "home": 27,
+        "away": 23,
+        "total": 51,
+        "percentage": "0.622",
+        "lastTen": 5
+      },
+      "loss": {
+        "home": 14,
+        "away": 17,
+        "total": 31,
+        "percentage": "0.378",
+        "lastTen": 5
+      },
+      "gamesBehind": "10",
+      "streak": 3,
+      "winStreak": false,
+      "tieBreakerPoints": null
+    },
+    {
+      "league": "standard",
+      "season": 2024,
+      "team": {
+        "id": 38,
+        "name": "Toronto Raptors",
+        "nickname": "Raptors",
+        "code": "TOR",
+        "logo": "https:\/\/upload.wikimedia.org\/wikipedia\/fr\/8\/89\/Raptors2015.png"
+      },
+      "conference": {
+        "name": "east",
+        "rank": 11,
+        "win": 30,
+        "loss": 52
+      },
+      "division": {
+        "name": "atlantic",
+        "rank": 3,
+        "win": 30,
+        "loss": 52,
+        "gamesBehind": "30"
+      },
+      "win": {
+        "home": 18,
+        "away": 12,
+        "total": 30,
+        "percentage": "0.366",
+        "lastTen": 6
+      },
+      "loss": {
+        "home": 23,
+        "away": 28,
+        "total": 52,
+        "percentage": "0.634",
+        "lastTen": 4
+      },
+      "gamesBehind": "30",
+      "streak": 1,
+      "winStreak": false,
+      "tieBreakerPoints": null
+    },
+    {
+      "league": "standard",
+      "season": 2024,
+      "team": {
+        "id": 4,
+        "name": "Brooklyn Nets",
+        "nickname": "Nets",
+        "code": "BKN",
+        "logo": "https:\/\/upload.wikimedia.org\/wikipedia\/commons\/thumb\/4\/44\/Brooklyn_Nets_newlogo.svg\/130px-Brooklyn_Nets_newlogo.svg.png"
+      },
+      "conference": {
+        "name": "east",
+        "rank": 12,
+        "win": 26,
+        "loss": 56
+      },
+      "division": {
+        "name": "atlantic",
+        "rank": 4,
+        "win": 26,
+        "loss": 56,
+        "gamesBehind": "34"
+      },
+      "win": {
+        "home": 12,
+        "away": 14,
+        "total": 26,
+        "percentage": "0.317",
+        "lastTen": 3
+      },
+      "loss": {
+        "home": 28,
+        "away": 27,
+        "total": 56,
+        "percentage": "0.683",
+        "lastTen": 7
+      },
+      "gamesBehind": "34",
+      "streak": 2,
+      "winStreak": false,
+      "tieBreakerPoints": null
+    },
+    {
+      "league": "standard",
+      "season": 2024,
+      "team": {
+        "id": 27,
+        "name": "Philadelphia 76ers",
+        "nickname": "76ers",
+        "code": "PHI",
+        "logo": "https:\/\/upload.wikimedia.org\/wikipedia\/fr\/4\/48\/76ers_2016.png"
+      },
+      "conference": {
+        "name": "east",
+        "rank": 13,
+        "win": 24,
+        "loss": 58
+      },
+      "division": {
+        "name": "atlantic",
+        "rank": 5,
+        "win": 24,
+        "loss": 58,
+        "gamesBehind": "36"
+      },
+      "win": {
+        "home": 12,
+        "away": 12,
+        "total": 24,
+        "percentage": "0.293",
+        "lastTen": 1
+      },
+      "loss": {
+        "home": 28,
+        "away": 29,
+        "total": 58,
+        "percentage": "0.707",
+        "lastTen": 9
+      },
+      "gamesBehind": "36",
+      "streak": 1,
+      "winStreak": false,
+      "tieBreakerPoints": null
+    },
+    {
+      "league": "standard",
+      "season": 2024,
+      "team": {
+        "id": 7,
+        "name": "Cleveland Cavaliers",
+        "nickname": "Cavaliers",
+        "code": "CLE",
+        "logo": "https:\/\/upload.wikimedia.org\/wikipedia\/fr\/thumb\/0\/06\/Cavs_de_Cleveland_logo_2017.png\/150px-Cavs_de_Cleveland_logo_2017.png"
+      },
+      "conference": {
+        "name": "east",
+        "rank": 1,
+        "win": 64,
+        "loss": 18
+      },
+      "division": {
+        "name": "central",
+        "rank": 1,
+        "win": 64,
+        "loss": 18,
+        "gamesBehind": null
+      },
+      "win": {
+        "home": 34,
+        "away": 30,
+        "total": 64,
+        "percentage": "0.780",
+        "lastTen": 7
+      },
+      "loss": {
+        "home": 6,
+        "away": 11,
+        "total": 18,
+        "percentage": "0.220",
+        "lastTen": 3
+      },
+      "gamesBehind": null,
+      "streak": 1,
+      "winStreak": true,
+      "tieBreakerPoints": null
+    },
+    {
+      "league": "standard",
+      "season": 2024,
+      "team": {
+        "id": 15,
+        "name": "Indiana Pacers",
+        "nickname": "Pacers",
+        "code": "IND",
+        "logo": "https:\/\/upload.wikimedia.org\/wikipedia\/fr\/thumb\/c\/cf\/Pacers_de_l%27Indiana_logo.svg\/1180px-Pacers_de_l%27Indiana_logo.svg.png"
+      },
+      "conference": {
+        "name": "east",
+        "rank": 4,
+        "win": 50,
+        "loss": 32
+      },
+      "division": {
+        "name": "central",
+        "rank": 2,
+        "win": 50,
+        "loss": 32,
+        "gamesBehind": "15"
+      },
+      "win": {
+        "home": 29,
+        "away": 19,
+        "total": 50,
+        "percentage": "0.610",
+        "lastTen": 7
+      },
+      "loss": {
+        "home": 11,
+        "away": 20,
+        "total": 32,
+        "percentage": "0.390",
+        "lastTen": 3
+      },
+      "gamesBehind": "15",
+      "streak": 1,
+      "winStreak": false,
+      "tieBreakerPoints": null
+    },
+    {
+      "league": "standard",
+      "season": 2024,
+      "team": {
+        "id": 21,
+        "name": "Milwaukee Bucks",
+        "nickname": "Bucks",
+        "code": "MIL",
+        "logo": "https:\/\/upload.wikimedia.org\/wikipedia\/fr\/3\/34\/Bucks2015.png"
+      },
+      "conference": {
+        "name": "east",
+        "rank": 5,
+        "win": 48,
+        "loss": 34
+      },
+      "division": {
+        "name": "central",
+        "rank": 3,
+        "win": 48,
+        "loss": 34,
+        "gamesBehind": "17"
+      },
+      "win": {
+        "home": 26,
+        "away": 20,
+        "total": 48,
+        "percentage": "0.585",
+        "lastTen": 7
+      },
+      "loss": {
+        "home": 14,
+        "away": 20,
+        "total": 34,
+        "percentage": "0.415",
+        "lastTen": 3
+      },
+      "gamesBehind": "17",
+      "streak": 7,
+      "winStreak": true,
+      "tieBreakerPoints": null
+    },
+    {
+      "league": "standard",
+      "season": 2024,
+      "team": {
+        "id": 10,
+        "name": "Detroit Pistons",
+        "nickname": "Pistons",
+        "code": "DET",
+        "logo": "https:\/\/upload.wikimedia.org\/wikipedia\/commons\/thumb\/3\/39\/Logo_of_the_Detroit_Pistons.png\/300px-Logo_of_the_Detroit_Pistons.png"
+      },
+      "conference": {
+        "name": "east",
+        "rank": 6,
+        "win": 44,
+        "loss": 38
+      },
+      "division": {
+        "name": "central",
+        "rank": 4,
+        "win": 44,
+        "loss": 38,
+        "gamesBehind": "20"
+      },
+      "win": {
+        "home": 22,
+        "away": 22,
+        "total": 44,
+        "percentage": "0.537",
+        "lastTen": 5
+      },
+      "loss": {
+        "home": 19,
+        "away": 18,
+        "total": 38,
+        "percentage": "0.463",
+        "lastTen": 5
+      },
+      "gamesBehind": "20",
+      "streak": 1,
+      "winStreak": false,
+      "tieBreakerPoints": null
+    },
+    {
+      "league": "standard",
+      "season": 2024,
+      "team": {
+        "id": 6,
+        "name": "Chicago Bulls",
+        "nickname": "Bulls",
+        "code": "CHI",
+        "logo": "https:\/\/upload.wikimedia.org\/wikipedia\/fr\/thumb\/d\/d1\/Bulls_de_Chicago_logo.svg\/1200px-Bulls_de_Chicago_logo.svg.png"
+      },
+      "conference": {
+        "name": "east",
+        "rank": 9,
+        "win": 39,
+        "loss": 43
+      },
+      "division": {
+        "name": "central",
+        "rank": 5,
+        "win": 39,
+        "loss": 43,
+        "gamesBehind": "26"
+      },
+      "win": {
+        "home": 18,
+        "away": 20,
+        "total": 39,
+        "percentage": "0.476",
+        "lastTen": 7
+      },
+      "loss": {
+        "home": 23,
+        "away": 20,
+        "total": 43,
+        "percentage": "0.524",
+        "lastTen": 3
+      },
+      "gamesBehind": "26",
+      "streak": 2,
+      "winStreak": true,
+      "tieBreakerPoints": null
+    },
+    {
+      "league": "standard",
+      "season": 2024,
+      "team": {
+        "id": 26,
+        "name": "Orlando Magic",
+        "nickname": "Magic",
+        "code": "ORL",
+        "logo": "https:\/\/upload.wikimedia.org\/wikipedia\/fr\/b\/bd\/Orlando_Magic_logo_2010.png"
+      },
+      "conference": {
+        "name": "east",
+        "rank": 7,
+        "win": 41,
+        "loss": 41
+      },
+      "division": {
+        "name": "southeast",
+        "rank": 1,
+        "win": 41,
+        "loss": 41,
+        "gamesBehind": null
+      },
+      "win": {
+        "home": 22,
+        "away": 19,
+        "total": 41,
+        "percentage": "0.500",
+        "lastTen": 8
+      },
+      "loss": {
+        "home": 19,
+        "away": 21,
+        "total": 41,
+        "percentage": "0.500",
+        "lastTen": 2
+      },
+      "gamesBehind": null,
+      "streak": 5,
+      "winStreak": true,
+      "tieBreakerPoints": null
+    },
+    {
+      "league": "standard",
+      "season": 2024,
+      "team": {
+        "id": 1,
+        "name": "Atlanta Hawks",
+        "nickname": "Hawks",
+        "code": "ATL",
+        "logo": "https:\/\/upload.wikimedia.org\/wikipedia\/fr\/e\/ee\/Hawks_2016.png"
+      },
+      "conference": {
+        "name": "east",
+        "rank": 8,
+        "win": 40,
+        "loss": 42
+      },
+      "division": {
+        "name": "southeast",
+        "rank": 2,
+        "win": 40,
+        "loss": 42,
+        "gamesBehind": "2"
+      },
+      "win": {
+        "home": 20,
+        "away": 19,
+        "total": 40,
+        "percentage": "0.488",
+        "lastTen": 4
+      },
+      "loss": {
+        "home": 19,
+        "away": 22,
+        "total": 42,
+        "percentage": "0.512",
+        "lastTen": 6
+      },
+      "gamesBehind": "2",
+      "streak": 2,
+      "winStreak": true,
+      "tieBreakerPoints": null
+    },
+    {
+      "league": "standard",
+      "season": 2024,
+      "team": {
+        "id": 20,
+        "name": "Miami Heat",
+        "nickname": "Heat",
+        "code": "MIA",
+        "logo": "https:\/\/upload.wikimedia.org\/wikipedia\/fr\/thumb\/1\/1c\/Miami_Heat_-_Logo.svg\/1200px-Miami_Heat_-_Logo.svg.png"
+      },
+      "conference": {
+        "name": "east",
+        "rank": 10,
+        "win": 37,
+        "loss": 45
+      },
+      "division": {
+        "name": "southeast",
+        "rank": 3,
+        "win": 37,
+        "loss": 45,
+        "gamesBehind": "4"
+      },
+      "win": {
+        "home": 19,
+        "away": 17,
+        "total": 37,
+        "percentage": "0.451",
+        "lastTen": 7
+      },
+      "loss": {
+        "home": 21,
+        "away": 23,
+        "total": 45,
+        "percentage": "0.549",
+        "lastTen": 3
+      },
+      "gamesBehind": "4",
+      "streak": 1,
+      "winStreak": true,
+      "tieBreakerPoints": null
+    },
+    {
+      "league": "standard",
+      "season": 2024,
+      "team": {
+        "id": 5,
+        "name": "Charlotte Hornets",
+        "nickname": "Hornets",
+        "code": "CHA",
+        "logo": "https:\/\/upload.wikimedia.org\/wikipedia\/fr\/thumb\/f\/f3\/Hornets_de_Charlotte_logo.svg\/1200px-Hornets_de_Charlotte_logo.svg.png"
+      },
+      "conference": {
+        "name": "east",
+        "rank": 14,
+        "win": 19,
+        "loss": 63
+      },
+      "division": {
+        "name": "southeast",
+        "rank": 4,
+        "win": 19,
+        "loss": 63,
+        "gamesBehind": "22"
+      },
+      "win": {
+        "home": 12,
+        "away": 7,
+        "total": 19,
+        "percentage": "0.232",
+        "lastTen": 1
+      },
+      "loss": {
+        "home": 29,
+        "away": 33,
+        "total": 63,
+        "percentage": "0.768",
+        "lastTen": 9
+      },
+      "gamesBehind": "22",
+      "streak": 6,
+      "winStreak": false,
+      "tieBreakerPoints": null
+    },
+    {
+      "league": "standard",
+      "season": 2024,
+      "team": {
+        "id": 41,
+        "name": "Washington Wizards",
+        "nickname": "Wizards",
+        "code": "WAS",
+        "logo": "https:\/\/upload.wikimedia.org\/wikipedia\/fr\/archive\/d\/d6\/20161212034849%21Wizards2015.png"
+      },
+      "conference": {
+        "name": "east",
+        "rank": 15,
+        "win": 18,
+        "loss": 64
+      },
+      "division": {
+        "name": "southeast",
+        "rank": 5,
+        "win": 18,
+        "loss": 64,
+        "gamesBehind": "24"
+      },
+      "win": {
+        "home": 8,
+        "away": 9,
+        "total": 18,
+        "percentage": "0.220",
+        "lastTen": 2
+      },
+      "loss": {
+        "home": 32,
+        "away": 31,
+        "total": 64,
+        "percentage": "0.780",
+        "lastTen": 8
+      },
+      "gamesBehind": "24",
+      "streak": 5,
+      "winStreak": false,
+      "tieBreakerPoints": null
+    }
+  ]
 }

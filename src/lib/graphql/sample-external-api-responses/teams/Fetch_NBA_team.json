@@ -1,38 +1,38 @@
 {
-	"get": "teams\/",
-	"parameters": {
-		"id": "17"
-	},
-	"errors": [],
-	"results": 1,
-	"response": [
-		{
-			"id": 17,
-			"name": "Los Angeles Lakers",
-			"nickname": "Lakers",
-			"code": "LAL",
-			"city": "Los Angeles",
-			"logo": "https:\/\/upload.wikimedia.org\/wikipedia\/commons\/thumb\/3\/3c\/Los_Angeles_Lakers_logo.svg\/220px-Los_Angeles_Lakers_logo.svg.png",
-			"allStar": false,
-			"nbaFranchise": true,
-			"leagues": {
-				"standard": {
-					"conference": "West",
-					"division": "Pacific"
-				},
-				"sacramento": {
-					"conference": "California",
-					"division": null
-				},
-				"vegas": {
-					"conference": "summer",
-					"division": null
-				},
-				"utah": {
-					"conference": "West",
-					"division": "Pacific"
-				}
-			}
-		}
-	]
+  "get": "teams\/",
+  "parameters": {
+    "id": "17"
+  },
+  "errors": [],
+  "results": 1,
+  "response": [
+    {
+      "id": 17,
+      "name": "Los Angeles Lakers",
+      "nickname": "Lakers",
+      "code": "LAL",
+      "city": "Los Angeles",
+      "logo": "https:\/\/upload.wikimedia.org\/wikipedia\/commons\/thumb\/3\/3c\/Los_Angeles_Lakers_logo.svg\/220px-Los_Angeles_Lakers_logo.svg.png",
+      "allStar": false,
+      "nbaFranchise": true,
+      "leagues": {
+        "standard": {
+          "conference": "West",
+          "division": "Pacific"
+        },
+        "sacramento": {
+          "conference": "California",
+          "division": null
+        },
+        "vegas": {
+          "conference": "summer",
+          "division": null
+        },
+        "utah": {
+          "conference": "West",
+          "division": "Pacific"
+        }
+      }
+    }
+  ]
 }

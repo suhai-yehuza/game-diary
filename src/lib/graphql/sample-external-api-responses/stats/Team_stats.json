@@ -1,39 +1,39 @@
 {
-	"get": "teams\/statistics",
-	"parameters": {
-		"id": "11",
-		"season": "2020"
-	},
-	"errors": [],
-	"results": 1,
-	"response": [
-		{
-			"games": 77,
-			"fastBreakPoints": 1111,
-			"pointsInPaint": 3472,
-			"biggestLead": 1042,
-			"secondChancePoints": 801,
-			"pointsOffTurnovers": 1350,
-			"longestRun": 872,
-			"points": 8732,
-			"fgm": 3167,
-			"fga": 6791,
-			"fgp": "46.7",
-			"ftm": 1279,
-			"fta": 1637,
-			"ftp": "78.0",
-			"tpm": 1119,
-			"tpa": 2983,
-			"tpp": "37.4",
-			"offReb": 618,
-			"defReb": 2720,
-			"totReb": 3338,
-			"assists": 2113,
-			"pFouls": 1651,
-			"steals": 632,
-			"turnovers": 1147,
-			"blocks": 380,
-			"plusMinus": 77
-		}
-	]
+  "get": "teams\/statistics",
+  "parameters": {
+    "id": "11",
+    "season": "2020"
+  },
+  "errors": [],
+  "results": 1,
+  "response": [
+    {
+      "games": 77,
+      "fastBreakPoints": 1111,
+      "pointsInPaint": 3472,
+      "biggestLead": 1042,
+      "secondChancePoints": 801,
+      "pointsOffTurnovers": 1350,
+      "longestRun": 872,
+      "points": 8732,
+      "fgm": 3167,
+      "fga": 6791,
+      "fgp": "46.7",
+      "ftm": 1279,
+      "fta": 1637,
+      "ftp": "78.0",
+      "tpm": 1119,
+      "tpa": 2983,
+      "tpp": "37.4",
+      "offReb": 618,
+      "defReb": 2720,
+      "totReb": 3338,
+      "assists": 2113,
+      "pFouls": 1651,
+      "steals": 632,
+      "turnovers": 1147,
+      "blocks": 380,
+      "plusMinus": 77
+    }
+  ]
 }

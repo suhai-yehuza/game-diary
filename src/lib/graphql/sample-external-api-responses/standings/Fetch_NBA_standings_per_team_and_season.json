@@ -1,54 +1,54 @@
 {
-	"get": "standings\/",
-	"parameters": {
-		"league": "standard",
-		"season": "2024",
-		"team": "2"
-	},
-	"errors": [],
-	"results": 1,
-	"response": [
-		{
-			"league": "standard",
-			"season": 2024,
-			"team": {
-				"id": 2,
-				"name": "Boston Celtics",
-				"nickname": "Celtics",
-				"code": "BOS",
-				"logo": "https:\/\/upload.wikimedia.org\/wikipedia\/fr\/thumb\/6\/65\/Celtics_de_Boston_logo.svg\/1024px-Celtics_de_Boston_logo.svg.png"
-			},
-			"conference": {
-				"name": "east",
-				"rank": 2,
-				"win": 61,
-				"loss": 21
-			},
-			"division": {
-				"name": "atlantic",
-				"rank": 1,
-				"win": 61,
-				"loss": 21,
-				"gamesBehind": null
-			},
-			"win": {
-				"home": 27,
-				"away": 33,
-				"total": 61,
-				"percentage": "0.744",
-				"lastTen": 8
-			},
-			"loss": {
-				"home": 13,
-				"away": 8,
-				"total": 21,
-				"percentage": "0.256",
-				"lastTen": 2
-			},
-			"gamesBehind": null,
-			"streak": 1,
-			"winStreak": true,
-			"tieBreakerPoints": null
-		}
-	]
+  "get": "standings\/",
+  "parameters": {
+    "league": "standard",
+    "season": "2024",
+    "team": "2"
+  },
+  "errors": [],
+  "results": 1,
+  "response": [
+    {
+      "league": "standard",
+      "season": 2024,
+      "team": {
+        "id": 2,
+        "name": "Boston Celtics",
+        "nickname": "Celtics",
+        "code": "BOS",
+        "logo": "https:\/\/upload.wikimedia.org\/wikipedia\/fr\/thumb\/6\/65\/Celtics_de_Boston_logo.svg\/1024px-Celtics_de_Boston_logo.svg.png"
+      },
+      "conference": {
+        "name": "east",
+        "rank": 2,
+        "win": 61,
+        "loss": 21
+      },
+      "division": {
+        "name": "atlantic",
+        "rank": 1,
+        "win": 61,
+        "loss": 21,
+        "gamesBehind": null
+      },
+      "win": {
+        "home": 27,
+        "away": 33,
+        "total": 61,
+        "percentage": "0.744",
+        "lastTen": 8
+      },
+      "loss": {
+        "home": 13,
+        "away": 8,
+        "total": 21,
+        "percentage": "0.256",
+        "lastTen": 2
+      },
+      "gamesBehind": null,
+      "streak": 1,
+      "winStreak": true,
+      "tieBreakerPoints": null
+    }
+  ]
 }

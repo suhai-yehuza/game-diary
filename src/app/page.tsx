@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import Image from "next/image";
-import { useUser } from "@clerk/nextjs";
+import Image from 'next/image';
+import { useUser } from '@clerk/nextjs';
 
 export default function Home() {
   const { isLoaded, isSignedIn } = useUser();
@@ -11,11 +11,13 @@ export default function Home() {
     <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
       <main className="flex flex-col gap-[32px] row-start-2 items-center justify-center text-center">
         <h1 className="text-2xl font-bold">
-          {isLoaded && isSignedIn ? `You are now logged in as ${userName}` : "🚧 ... Work in progress ... 🚧"}
+          {isLoaded && isSignedIn
+            ? `You are now logged in as ${userName}`
+            : '🚧 ... Work in progress ... 🚧'}
         </h1>
         <div className="flex gap-4 items-center justify-center">
           {isLoaded && isSignedIn ? (
-            "🚧 ... Work in progress to enable logging games ... 🚧"
+            '🚧 ... Work in progress to enable logging games ... 🚧'
           ) : (
             <a
               href="https://game-diary-git-syehuza-demo-suhais-projects-33a81a2a.vercel.app/"
@@ -34,13 +36,7 @@ export default function Home() {
           href="#"
           rel="noopener noreferrer"
         >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
+          <Image aria-hidden src="/file.svg" alt="File icon" width={16} height={16} />
           How to log a game
         </a>
         <a
@@ -48,13 +44,7 @@ export default function Home() {
           href="#"
           rel="noopener noreferrer"
         >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
+          <Image aria-hidden src="/window.svg" alt="Window icon" width={16} height={16} />
           Example game logs
         </a>
       </footer>

@@ -1,14 +1,14 @@
-"use client";
+'use client';
 
-import { useUser } from "@clerk/nextjs";
-import Image from "next/image";
-import Link from "next/link";
-import { useQuery } from "@apollo/client";
-import { GET_GAMES } from "@/lib/graphql/queries";
-import { format, isAfter, isBefore } from "date-fns";
-import { useEffect, useRef, useState } from "react";
-import { Game } from "@/lib/types/types";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { useUser } from '@clerk/nextjs';
+import Image from 'next/image';
+import Link from 'next/link';
+import { useQuery } from '@apollo/client';
+import { GET_GAMES } from '@/lib/graphql/queries';
+import { format, isAfter, isBefore } from 'date-fns';
+import { useEffect, useRef, useState } from 'react';
+import { Game } from '@/lib/types/types';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 
 interface GamesData {
   games: {
@@ -39,7 +39,7 @@ export default function Page() {
   const { loading, error, data, fetchMore } = useQuery<GamesData>(GET_GAMES, {
     variables: {
       filters: {
-        season: "2024",
+        season: '2024',
       },
       pagination: {
         last: 2000,
@@ -57,9 +57,9 @@ export default function Page() {
           }
           return acc;
         }, [] as Game[]);
-        
-        return uniqueGames.sort((a, b) => 
-          new Date(b.date.start).getTime() - new Date(a.date.start).getTime()
+
+        return uniqueGames.sort(
+          (a, b) => new Date(b.date.start).getTime() - new Date(a.date.start).getTime()
         );
       });
 
@@ -69,7 +69,7 @@ export default function Page() {
 
   const handleLoadMore = async () => {
     if (!data?.games.pageInfo.hasPreviousPage || isFetchingMore) return;
-    
+
     setIsFetchingMore(true);
     try {
       await fetchMore({
@@ -81,15 +81,18 @@ export default function Page() {
         },
         updateQuery: (prev, { fetchMoreResult }) => {
           if (!fetchMoreResult) return prev;
-          
+
           const combinedEdges = [...fetchMoreResult.games.edges, ...prev.games.edges];
-          const uniqueEdges = combinedEdges.reduce((acc, edge) => {
-            if (!acc.find(e => e.node.id === edge.node.id)) {
-              acc.push(edge);
-            }
-            return acc;
-          }, [] as typeof combinedEdges);
-          
+          const uniqueEdges = combinedEdges.reduce(
+            (acc, edge) => {
+              if (!acc.find(e => e.node.id === edge.node.id)) {
+                acc.push(edge);
+              }
+              return acc;
+            },
+            [] as typeof combinedEdges
+          );
+
           return {
             games: {
               ...fetchMoreResult.games,
@@ -109,7 +112,7 @@ export default function Page() {
     if (!loadMoreRef.current || !data?.games.pageInfo.hasPreviousPage) return;
 
     observerRef.current = new IntersectionObserver(
-      (entries) => {
+      entries => {
         if (entries[0].isIntersecting && !isFetchingMore) {
           handleLoadMore();
         }
@@ -150,140 +153,143 @@ export default function Page() {
   // const scheduledGames = allGames.filter(game => isAfter(new Date(game.date.start), now));
   const completedGames = allGames.filter(game => isBefore(new Date(game.date.start), now));
 
-  const upcomingGamesSection = scheduledGames1.length > 0 ? (
-    <>
-      {/* Scheduled Games Toggle */}
-      <div className="mb-6">
-        <button
-          onClick={() => setShowScheduledGames(!showScheduledGames)}
-          className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-        >
-          {showScheduledGames ? (
-            <>
-              <ChevronUp className="w-4 h-4" />
-              Hide Upcoming Games ({scheduledGames1.length})
-            </>
-          ) : (
-            <>
-              <ChevronDown className="w-4 h-4" />
-              Show Upcoming Games ({scheduledGames1.length})
-            </>
-          )}
-        </button>
-      </div>
-
-      {/* Upcoming Games Section */}
-      {showScheduledGames && (
-        <div className="mb-12">
-          <h2 className="text-xl font-semibold mb-6">Upcoming Games</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {scheduledGames1.map((game, index) => (
-              <Link 
-                key={game.id} 
-                href={`/sports/nba/games/${game.id}`}
-                className="block"
-              >
-                <div 
-                  className="bg-card rounded-lg shadow-sm p-4 transform transition-all duration-500 ease-out hover:scale-[1.02] hover:shadow-md animate-fadeInUp cursor-pointer h-[240px] flex flex-col"
-                  style={{
-                    animationDelay: `${index * 100}ms`,
-                    animationFillMode: 'both',
-                  }}
-                >
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-2">
-                      {game.league.logo && (
-                        <Image
-                          src={game.league.logo}
-                          alt={game.league.name}
-                          width={24}
-                          height={24}
-                          className="rounded-full transition-transform duration-300 hover:scale-110"
-                        />
-                      )}
-                      <span className="text-sm text-muted-foreground">
-                        {format(new Date(game.date.start), "MMM d, yyyy h:mm a")}
-                      </span>
-                    </div>
-                    <div className="text-sm font-medium">
-                      {game.status.long}
-                    </div>
-                  </div>
-
-                  <div className="space-y-4 flex-grow">
-                    {/* Away Team */}
-                    <div className="flex items-center justify-between group">
-                      <div className="flex items-center gap-3">
-                        {game.teams.visitors.logo && (
-                          <Image
-                            src={imageErrors[`${game.id}-visitors`] ? "/gamelog.svg" : game.teams.visitors.logo}
-                            alt={game.teams.visitors.name}
-                            width={40}
-                            height={40}
-                            className="rounded-full transition-transform duration-300 group-hover:scale-110"
-                            onError={() => handleImageError(`${game.id}-visitors`)}
-                          />
-                        )}
-                        <div>
-                          <div className="font-medium transition-colors duration-300 group-hover:text-blue-500">
-                            {game.teams.visitors.nickname}
-                          </div>
-                          <div className="text-sm text-muted-foreground">
-                            {game.scores.visitors.win}-{game.scores.visitors.loss}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="text-xl font-bold transition-colors duration-300 group-hover:text-blue-500">
-                        {game.scores.visitors.points}
-                      </div>
-                    </div>
-
-                    {/* Home Team */}
-                    <div className="flex items-center justify-between group">
-                      <div className="flex items-center gap-3">
-                        {game.teams.home.logo && (
-                          <Image
-                            src={imageErrors[`${game.id}-home`] ? "/gamelog.svg" : game.teams.home.logo}
-                            alt={game.teams.home.name}
-                            width={40}
-                            height={40}
-                            className="rounded-full transition-transform duration-300 group-hover:scale-110"
-                            onError={() => handleImageError(`${game.id}-home`)}
-                          />
-                        )}
-                        <div>
-                          <div className="font-medium transition-colors duration-300 group-hover:text-blue-500">
-                            {game.teams.home.nickname}
-                          </div>
-                          <div className="text-sm text-muted-foreground">
-                            {game.scores.home.win}-{game.scores.home.loss}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="text-xl font-bold transition-colors duration-300 group-hover:text-blue-500">
-                        {game.scores.home.points}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="mt-auto">
-                    {game.nugget && (
-                      <div className="text-sm text-muted-foreground line-clamp-2">
-                        {game.nugget}
-                      </div>
-                    )}
-                    <div className="text-sm text-muted-foreground mt-2">
-                      {game.arena.name}, {game.arena.city}, {game.arena.state}
-                    </div>
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
+  const upcomingGamesSection =
+    scheduledGames1.length > 0 ? (
+      <>
+        {/* Scheduled Games Toggle */}
+        <div className="mb-6">
+          <button
+            onClick={() => setShowScheduledGames(!showScheduledGames)}
+            className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+          >
+            {showScheduledGames ? (
+              <>
+                <ChevronUp className="w-4 h-4" />
+                Hide Upcoming Games ({scheduledGames1.length})
+              </>
+            ) : (
+              <>
+                <ChevronDown className="w-4 h-4" />
+                Show Upcoming Games ({scheduledGames1.length})
+              </>
+            )}
+          </button>
         </div>
-      )}
-    </>
-  ) : null;
+
+        {/* Upcoming Games Section */}
+        {showScheduledGames && (
+          <div className="mb-12">
+            <h2 className="text-xl font-semibold mb-6">Upcoming Games</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {scheduledGames1.map((game, index) => (
+                <Link key={game.id} href={`/sports/nba/games/${game.id}`} className="block">
+                  <div
+                    className="bg-card rounded-lg shadow-sm p-4 transform transition-all duration-500 ease-out hover:scale-[1.02] hover:shadow-md animate-fadeInUp cursor-pointer h-[240px] flex flex-col"
+                    style={{
+                      animationDelay: `${index * 100}ms`,
+                      animationFillMode: 'both',
+                    }}
+                  >
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-2">
+                        {game.league.logo && (
+                          <Image
+                            src={game.league.logo}
+                            alt={game.league.name}
+                            width={24}
+                            height={24}
+                            className="rounded-full transition-transform duration-300 hover:scale-110"
+                          />
+                        )}
+                        <span className="text-sm text-muted-foreground">
+                          {format(new Date(game.date.start), 'MMM d, yyyy h:mm a')}
+                        </span>
+                      </div>
+                      <div className="text-sm font-medium">{game.status.long}</div>
+                    </div>
+
+                    <div className="space-y-4 flex-grow">
+                      {/* Away Team */}
+                      <div className="flex items-center justify-between group">
+                        <div className="flex items-center gap-3">
+                          {game.teams.visitors.logo && (
+                            <Image
+                              src={
+                                imageErrors[`${game.id}-visitors`]
+                                  ? '/gamelog.svg'
+                                  : game.teams.visitors.logo
+                              }
+                              alt={game.teams.visitors.name}
+                              width={40}
+                              height={40}
+                              className="rounded-full transition-transform duration-300 group-hover:scale-110"
+                              onError={() => handleImageError(`${game.id}-visitors`)}
+                            />
+                          )}
+                          <div>
+                            <div className="font-medium transition-colors duration-300 group-hover:text-blue-500">
+                              {game.teams.visitors.nickname}
+                            </div>
+                            <div className="text-sm text-muted-foreground">
+                              {game.scores.visitors.win}-{game.scores.visitors.loss}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="text-xl font-bold transition-colors duration-300 group-hover:text-blue-500">
+                          {game.scores.visitors.points}
+                        </div>
+                      </div>
+
+                      {/* Home Team */}
+                      <div className="flex items-center justify-between group">
+                        <div className="flex items-center gap-3">
+                          {game.teams.home.logo && (
+                            <Image
+                              src={
+                                imageErrors[`${game.id}-home`]
+                                  ? '/gamelog.svg'
+                                  : game.teams.home.logo
+                              }
+                              alt={game.teams.home.name}
+                              width={40}
+                              height={40}
+                              className="rounded-full transition-transform duration-300 group-hover:scale-110"
+                              onError={() => handleImageError(`${game.id}-home`)}
+                            />
+                          )}
+                          <div>
+                            <div className="font-medium transition-colors duration-300 group-hover:text-blue-500">
+                              {game.teams.home.nickname}
+                            </div>
+                            <div className="text-sm text-muted-foreground">
+                              {game.scores.home.win}-{game.scores.home.loss}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="text-xl font-bold transition-colors duration-300 group-hover:text-blue-500">
+                          {game.scores.home.points}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mt-auto">
+                      {game.nugget && (
+                        <div className="text-sm text-muted-foreground line-clamp-2">
+                          {game.nugget}
+                        </div>
+                      )}
+                      <div className="text-sm text-muted-foreground mt-2">
+                        {game.arena.name}, {game.arena.city}, {game.arena.state}
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+      </>
+    ) : null;
 
   return (
     <div className="min-h-screen bg-background">
@@ -292,7 +298,7 @@ export default function Page() {
           <div className="flex items-center justify-between">
             <h1 className="text-2xl font-bold">NBA Games</h1>
             <div className="flex items-center gap-4">
-              <Link 
+              <Link
                 href="/sports/nba/log"
                 className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 transition-all duration-200 ease-in-out"
               >
@@ -314,12 +320,8 @@ export default function Page() {
               {completedGames.map((game, index) => {
                 const winningTeam = getWinningTeam(game);
                 return (
-                  <Link 
-                    key={game.id} 
-                    href={`/sports/nba/games/${game.id}`}
-                    className="block"
-                  >
-                    <div 
+                  <Link key={game.id} href={`/sports/nba/games/${game.id}`} className="block">
+                    <div
                       className="bg-card rounded-lg shadow-sm p-4 transform transition-all duration-500 ease-out hover:scale-[1.02] hover:shadow-md animate-fadeInUp cursor-pointer h-[240px] flex flex-col"
                       style={{
                         animationDelay: `${index * 100}ms`,
@@ -338,12 +340,10 @@ export default function Page() {
                             />
                           )}
                           <span className="text-sm text-muted-foreground">
-                            {format(new Date(game.date.start), "MMM d, yyyy h:mm a")}
+                            {format(new Date(game.date.start), 'MMM d, yyyy h:mm a')}
                           </span>
                         </div>
-                        <div className="text-sm font-medium">
-                          {game.status.long}
-                        </div>
+                        <div className="text-sm font-medium">{game.status.long}</div>
                       </div>
 
                       <div className="space-y-4 flex-grow">
@@ -352,7 +352,11 @@ export default function Page() {
                           <div className="flex items-center gap-3">
                             {game.teams.visitors.logo && (
                               <Image
-                                src={imageErrors[`${game.id}-visitors`] ? "/gamelog.svg" : game.teams.visitors.logo}
+                                src={
+                                  imageErrors[`${game.id}-visitors`]
+                                    ? '/gamelog.svg'
+                                    : game.teams.visitors.logo
+                                }
                                 alt={game.teams.visitors.name}
                                 width={40}
                                 height={40}
@@ -369,9 +373,11 @@ export default function Page() {
                               </div>
                             </div>
                           </div>
-                          <div className={`text-xl font-bold transition-colors duration-300 group-hover:text-blue-500 ${
-                            winningTeam === 'visitors' ? 'text-green-500' : ''
-                          }`}>
+                          <div
+                            className={`text-xl font-bold transition-colors duration-300 group-hover:text-blue-500 ${
+                              winningTeam === 'visitors' ? 'text-green-500' : ''
+                            }`}
+                          >
                             {game.scores.visitors.points}
                           </div>
                         </div>
@@ -381,7 +387,11 @@ export default function Page() {
                           <div className="flex items-center gap-3">
                             {game.teams.home.logo && (
                               <Image
-                                src={imageErrors[`${game.id}-home`] ? "/gamelog.svg" : game.teams.home.logo}
+                                src={
+                                  imageErrors[`${game.id}-home`]
+                                    ? '/gamelog.svg'
+                                    : game.teams.home.logo
+                                }
                                 alt={game.teams.home.name}
                                 width={40}
                                 height={40}
@@ -398,9 +408,11 @@ export default function Page() {
                               </div>
                             </div>
                           </div>
-                          <div className={`text-xl font-bold transition-colors duration-300 group-hover:text-blue-500 ${
-                            winningTeam === 'home' ? 'text-green-500' : ''
-                          }`}>
+                          <div
+                            className={`text-xl font-bold transition-colors duration-300 group-hover:text-blue-500 ${
+                              winningTeam === 'home' ? 'text-green-500' : ''
+                            }`}
+                          >
                             {game.scores.home.points}
                           </div>
                         </div>
@@ -425,10 +437,7 @@ export default function Page() {
         )}
 
         {/* Loading indicator and intersection observer target */}
-        <div 
-          ref={loadMoreRef}
-          className="flex justify-center items-center py-8"
-        >
+        <div ref={loadMoreRef} className="flex justify-center items-center py-8">
           {isFetchingMore ? (
             <div className="flex items-center gap-2">
               <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
@@ -442,9 +451,7 @@ export default function Page() {
               Load More Games
             </button>
           ) : (
-            <div className="text-sm text-muted-foreground">
-              No more games to load
-            </div>
+            <div className="text-sm text-muted-foreground">No more games to load</div>
           )}
         </div>
       </main>

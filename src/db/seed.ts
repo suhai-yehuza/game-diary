@@ -1,16 +1,9 @@
-import { db } from "./index";
-import * as schema from "./schema";
-import { faker } from "@faker-js/faker";
-import { reset } from "drizzle-seed";
-import {
-  users,
-  friendships,
-  game_logs,
-  comments,
-  reactions,
-  game_ratings,
-} from "./schema";
-import { eq, sql } from "drizzle-orm";
+import { db } from './index';
+import * as schema from './schema';
+import { faker } from '@faker-js/faker';
+import { reset } from 'drizzle-seed';
+import { users, friendships, game_logs, comments, reactions, game_ratings } from './schema';
+import { eq, sql } from 'drizzle-orm';
 
 // Configuration
 const SEED_CONFIG = {
@@ -26,28 +19,9 @@ const SEED_CONFIG = {
 };
 
 // Constants
-const REACTION_EMOJIS = [
-  "👍",
-  "❤️",
-  "🔥",
-  "👏",
-  "😂",
-  "😮",
-  "🏀",
-  "💪",
-  "🐐",
-  "🎯",
-];
-const WATCH_SETTINGS = [
-  "tv",
-  "arena",
-  "phone",
-  "laptop",
-  "bar",
-  "home",
-  "other",
-] as const;
-const FRIENDSHIP_STATUSES = ["pending", "connected", "rejected"] as const;
+const REACTION_EMOJIS = ['👍', '❤️', '🔥', '👏', '😂', '😮', '🏀', '💪', '🐐', '🎯'];
+const WATCH_SETTINGS = ['tv', 'arena', 'phone', 'laptop', 'bar', 'home', 'other'] as const;
+const FRIENDSHIP_STATUSES = ['pending', 'connected', 'rejected'] as const;
 
 // Helper functions
 const getValidTimestamp = (value: Date | string | number): Date => {
@@ -60,7 +34,7 @@ const getValidTimestamp = (value: Date | string | number): Date => {
 };
 
 const generateStarRating = (rating: number): string => {
-  return "⭐".repeat(rating) + "☆".repeat(5 - rating);
+  return '⭐'.repeat(rating) + '☆'.repeat(5 - rating);
 };
 
 const updateGameRating = async (gameId: string) => {
@@ -103,13 +77,11 @@ const processInBatches = async <T>(
 async function seedDb() {
   try {
     await reset(db, schema);
-    console.log("Database reset complete");
+    console.log('Database reset complete');
 
     // Generate user IDs and values
-    const userIds = Array.from({ length: SEED_CONFIG.users }, () =>
-      faker.string.uuid()
-    );
-    const userValues = userIds.map((id) => ({
+    const userIds = Array.from({ length: SEED_CONFIG.users }, () => faker.string.uuid());
+    const userValues = userIds.map(id => ({
       id,
       username: faker.internet.username(),
       first_name: faker.person.firstName(),
@@ -125,10 +97,10 @@ async function seedDb() {
     }));
 
     // Insert users in batches
-    await processInBatches(userValues, SEED_CONFIG.batchSize, (batch) =>
+    await processInBatches(userValues, SEED_CONFIG.batchSize, batch =>
       db.insert(users).values(batch)
     );
-    console.log("Users seeded");
+    console.log('Users seeded');
 
     // Generate and insert friendships
     const friendshipValues = [];
@@ -167,31 +139,27 @@ async function seedDb() {
     }
 
     // Insert friendships in batches
-    await processInBatches(friendshipValues, SEED_CONFIG.batchSize, (batch) =>
+    await processInBatches(friendshipValues, SEED_CONFIG.batchSize, batch =>
       db.insert(friendships).values(batch)
     );
-    console.log("Friendships seeded");
+    console.log('Friendships seeded');
 
     // Generate game ratings
-    const game_ids = Array.from({ length: SEED_CONFIG.games }, () =>
-      faker.string.uuid()
-    );
-    const gameRatingValues = game_ids.map((game_id) => ({
+    const game_ids = Array.from({ length: SEED_CONFIG.games }, () => faker.string.uuid());
+    const gameRatingValues = game_ids.map(game_id => ({
       id: faker.string.uuid(),
       game_id: game_id,
-      average_rating: faker.number
-        .float({ min: 1, max: 5, fractionDigits: 1 })
-        .toFixed(2),
+      average_rating: faker.number.float({ min: 1, max: 5, fractionDigits: 1 }).toFixed(2),
       total_ratings: faker.number.int({ min: 1, max: 50 }),
       created_at: getValidTimestamp(faker.date.past()),
       updated_at: getValidTimestamp(faker.date.recent()),
     }));
 
     // Insert game ratings in batches
-    await processInBatches(gameRatingValues, SEED_CONFIG.batchSize, (batch) =>
+    await processInBatches(gameRatingValues, SEED_CONFIG.batchSize, batch =>
       db.insert(game_ratings).values(batch)
     );
-    console.log("Game ratings seeded");
+    console.log('Game ratings seeded');
 
     // Generate and insert game logs
     const gameLogValues = [];
@@ -221,14 +189,14 @@ async function seedDb() {
     }
 
     // Insert game logs in batches
-    await processInBatches(gameLogValues, SEED_CONFIG.batchSize, (batch) =>
+    await processInBatches(gameLogValues, SEED_CONFIG.batchSize, batch =>
       db.insert(game_logs).values(batch)
     );
-    console.log("Game logs seeded");
+    console.log('Game logs seeded');
 
     // Update game ratings based on new game logs
     await Promise.all(game_ids.map(updateGameRating));
-    console.log("Game ratings updated");
+    console.log('Game ratings updated');
 
     // Generate and insert comments
     const commentValues = [];
@@ -252,13 +220,13 @@ async function seedDb() {
           parent_id: gameLogId,
           content: faker.helpers.arrayElement([
             faker.lorem.sentence(),
-            "Great game!",
-            "What a finish!",
+            'Great game!',
+            'What a finish!',
             "Can't believe that ending!",
-            "The refs were terrible...",
-            "MVP performance!",
-            "Defense wins championships!",
-            "Clutch play in the 4th!",
+            'The refs were terrible...',
+            'MVP performance!',
+            'Defense wins championships!',
+            'Clutch play in the 4th!',
             faker.lorem.paragraph(1),
           ]),
           created_at: commentDate,
@@ -276,8 +244,7 @@ async function seedDb() {
           max: SEED_CONFIG.childCommentsPerParent,
         });
         for (let j = 0; j < numChildComments; j++) {
-          const childUserId =
-            userIds[Math.floor(Math.random() * userIds.length)];
+          const childUserId = userIds[Math.floor(Math.random() * userIds.length)];
           const childCommentDate = getValidTimestamp(faker.date.recent());
           const childCommentId = faker.string.uuid();
 
@@ -286,14 +253,14 @@ async function seedDb() {
             user_id: childUserId,
             parent_id: commentId,
             content: faker.helpers.arrayElement([
-              "I agree!",
-              "Totally!",
+              'I agree!',
+              'Totally!',
               "Couldn't have said it better!",
-              "Exactly!",
-              "Well said!",
-              "100%!",
-              "Spot on!",
-              "Preach!",
+              'Exactly!',
+              'Well said!',
+              '100%!',
+              'Spot on!',
+              'Preach!',
               faker.lorem.sentence(),
             ]),
             created_at: childCommentDate,
@@ -303,12 +270,8 @@ async function seedDb() {
           // Generate nested child comments (up to maxCommentDepth)
           let currentDepth = 1;
           let currentParentId = childCommentId;
-          while (
-            currentDepth < SEED_CONFIG.maxCommentDepth &&
-            Math.random() > 0.5
-          ) {
-            const nestedUserId =
-              userIds[Math.floor(Math.random() * userIds.length)];
+          while (currentDepth < SEED_CONFIG.maxCommentDepth && Math.random() > 0.5) {
+            const nestedUserId = userIds[Math.floor(Math.random() * userIds.length)];
             const nestedCommentDate = getValidTimestamp(faker.date.recent());
             const nestedCommentId = faker.string.uuid();
 
@@ -317,14 +280,14 @@ async function seedDb() {
               user_id: nestedUserId,
               parent_id: currentParentId,
               content: faker.helpers.arrayElement([
-                "This!",
-                "True!",
-                "Facts!",
-                "Agreed!",
-                "Same!",
-                "Yup!",
-                "Right on!",
-                "Word!",
+                'This!',
+                'True!',
+                'Facts!',
+                'Agreed!',
+                'Same!',
+                'Yup!',
+                'Right on!',
+                'Word!',
                 faker.lorem.sentence(),
               ]),
               created_at: nestedCommentDate,
@@ -339,10 +302,10 @@ async function seedDb() {
     }
 
     // Insert comments in batches
-    await processInBatches(commentValues, SEED_CONFIG.batchSize, (batch) =>
+    await processInBatches(commentValues, SEED_CONFIG.batchSize, batch =>
       db.insert(comments).values(batch)
     );
-    console.log("Comments seeded");
+    console.log('Comments seeded');
 
     // Generate and insert reactions
     const reactionValues = [];
@@ -360,7 +323,7 @@ async function seedDb() {
         reactionValues.push({
           id: faker.string.uuid(),
           user_id: userId,
-          target_type: "game_log" as const,
+          target_type: 'game_log' as const,
           target_id: gameLogId,
           emoji: faker.helpers.arrayElement(REACTION_EMOJIS),
           created_at: reactionDate,
@@ -382,7 +345,7 @@ async function seedDb() {
         reactionValues.push({
           id: faker.string.uuid(),
           user_id: userId,
-          target_type: "comment" as const,
+          target_type: 'comment' as const,
           target_id: comment.id,
           emoji: faker.helpers.arrayElement(REACTION_EMOJIS),
           created_at: reactionDate,
@@ -392,14 +355,14 @@ async function seedDb() {
     }
 
     // Insert reactions in batches
-    await processInBatches(reactionValues, SEED_CONFIG.batchSize, (batch) =>
+    await processInBatches(reactionValues, SEED_CONFIG.batchSize, batch =>
       db.insert(reactions).values(batch)
     );
-    console.log("Reactions seeded");
+    console.log('Reactions seeded');
 
-    console.log("Database seeding completed successfully!");
+    console.log('Database seeding completed successfully!');
   } catch (error) {
-    console.error("Error during database seeding:", error);
+    console.error('Error during database seeding:', error);
     throw error;
   }
 }
@@ -409,7 +372,7 @@ async function main() {
   try {
     await seedDb();
   } catch (error) {
-    console.error("Error in main function:", error);
+    console.error('Error in main function:', error);
     process.exit(1);
   }
 }
