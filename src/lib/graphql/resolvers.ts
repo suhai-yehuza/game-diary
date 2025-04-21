@@ -472,14 +472,14 @@ export const resolvers = {
         }
 
         console.log('Fetching players from API with params:', queryParams);
-        console.log(
-          'API URL:',
-          `${process.env.RAPID_API_BASE_URL}/players${queryParams ? `?${queryParams}` : ''}`
-        );
-        console.log('Headers:', {
-          'x-rapidapi-host': process.env.RAPID_API_HOST,
-          'x-rapidapi-key': '***',
-        });
+        // console.log(
+        //   'API URL:',
+        //   `${process.env.RAPID_API_BASE_URL}/players${queryParams ? `?${queryParams}` : ''}`
+        // );
+        // console.log('Headers:', {
+        //   'x-rapidapi-host': process.env.RAPID_API_HOST,
+        //   'x-rapidapi-key': '***',
+        // });
 
         try {
           const response: PlayersApiResponse = await fetchNbaPlayers(queryParams);

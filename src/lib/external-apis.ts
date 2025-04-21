@@ -88,10 +88,14 @@ export async function fetchNbaGames(queryParams: string): Promise<GameApiRespons
       'x-rapidapi-key': '***',
     });
 
+    if (!process.env.RAPID_API_HOST || !process.env.RAPID_API_KEY) {
+      throw new Error('RapidAPI credentials are not properly configured');
+    }
+
     const res = await fetch(url, {
       headers: {
-        'x-rapidapi-host': process.env.RAPID_API_HOST || '',
-        'x-rapidapi-key': process.env.RAPID_API_KEY || '',
+        'x-rapidapi-host': process.env.RAPID_API_HOST,
+        'x-rapidapi-key': process.env.RAPID_API_KEY,
       },
     });
 
