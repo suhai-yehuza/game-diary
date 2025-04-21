@@ -18,7 +18,7 @@ export default function Home() {
         <div className="flex gap-4 items-center justify-center">
           {isLoaded && isSignedIn ? (
             '🚧 ... Work in progress to enable logging games ... 🚧'
-          ) : (
+          ) : process.env.NODE_ENV === 'production' ? (
             <a
               href="https://game-diary-git-syehuza-demo-suhais-projects-33a81a2a.vercel.app/"
               target="_blank"
@@ -27,7 +27,7 @@ export default function Home() {
             >
               Visit our staging site for our WIP
             </a>
-          )}
+          ) : null}
         </div>
       </main>
       <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
