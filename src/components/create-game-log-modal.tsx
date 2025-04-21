@@ -61,19 +61,34 @@ export function CreateGameLogModal({ gameId, userId }: CreateGameLogModalProps) 
     }
 
     try {
+      const rating = Number(formData.rating_for_game);
+      if (isNaN(rating) || !Number.isInteger(rating) || rating < 1 || rating > 5) {
+        toast({
+          title: 'Invalid rating',
+          description: 'Rating must be a whole number between 1 and 5',
+          variant: 'destructive',
+        });
+        return;
+      }
+
       const payload = {
+        // user_id: "060a5823-c5fa-4fd0-9065-0c0e5eecf9c8",
         user_id: userId,
         game_id: gameId,
-        watched_setting: formData.watched_setting.toUpperCase(),
+        watched_setting: formData.watched_setting.toLowerCase(),
         watched_date: new Date(formData.watched_date).toISOString(),
-        watched_location: formData.watched_location,
-        rating_for_game: parseInt(formData.rating_for_game),
-        rating_stars: formData.rating_stars || '⭐'.repeat(parseInt(formData.rating_for_game)),
+        watched_location: formData.watched_location || 'Home',
+        rating_for_game: rating,
+        watched_count: 1,
       };
-      console.log({ payload });
+
+      console.log('Submitting payload:', JSON.stringify(payload, null, 2));
+
       const result = await createGameLog({
         variables: payload,
       });
+
+      console.log({ result });
 
       if (result.data?.createGameLog) {
         toast({
@@ -84,6 +99,7 @@ export function CreateGameLogModal({ gameId, userId }: CreateGameLogModalProps) 
         router.refresh();
       }
     } catch (error) {
+      console.log({ error });
       console.error('Error creating game log:', error);
       toast({
         title: 'Error',
@@ -123,25 +139,25 @@ export function CreateGameLogModal({ gameId, userId }: CreateGameLogModalProps) 
                 <SelectValue placeholder="Select where you watched the game" />
               </SelectTrigger>
               <SelectContent className="bg-white dark:bg-gray-800">
-                <SelectItem value="TV" className="text-gray-900 dark:text-white">
+                <SelectItem value="tv" className="text-gray-900 dark:text-white">
                   TV
                 </SelectItem>
-                <SelectItem value="ARENA" className="text-gray-900 dark:text-white">
+                <SelectItem value="arena" className="text-gray-900 dark:text-white">
                   Arena
                 </SelectItem>
-                <SelectItem value="PHONE" className="text-gray-900 dark:text-white">
+                <SelectItem value="phone" className="text-gray-900 dark:text-white">
                   Phone
                 </SelectItem>
-                <SelectItem value="LAPTOP" className="text-gray-900 dark:text-white">
+                <SelectItem value="laptop" className="text-gray-900 dark:text-white">
                   Laptop
                 </SelectItem>
-                <SelectItem value="BAR" className="text-gray-900 dark:text-white">
+                <SelectItem value="bar" className="text-gray-900 dark:text-white">
                   Bar
                 </SelectItem>
-                <SelectItem value="HOME" className="text-gray-900 dark:text-white">
+                <SelectItem value="home" className="text-gray-900 dark:text-white">
                   Home
                 </SelectItem>
-                <SelectItem value="OTHER" className="text-gray-900 dark:text-white">
+                <SelectItem value="other" className="text-gray-900 dark:text-white">
                   Other
                 </SelectItem>
               </SelectContent>

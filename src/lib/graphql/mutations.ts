@@ -26,24 +26,22 @@ export const UPDATE_FRIENDSHIP_STATUS = gql`
 
 export const CREATE_GAME_LOG = gql`
   mutation CreateGameLog(
-    $user_id: String!
-    $game_id: String!
-    $watched_setting: WatchedSetting!
-    $watched_date: DateTime!
+    $user_id: ID!
+    $game_id: ID!
+    $watched_setting: watched_setting!
+    $watched_date: String!
     $watched_location: String!
     $rating_for_game: Int!
-    $rating_stars: String!
+    $watched_count: Int!
   ) {
-    createGameLog(
-      input: {
-        user_id: $user_id
-        game_id: $game_id
-        watched_setting: $watched_setting
-        watched_date: $watched_date
-        watched_location: $watched_location
-        rating_for_game: $rating_for_game
-        rating_stars: $rating_stars
-      }
+    create_game_log(
+      user_id: $user_id
+      game_id: $game_id
+      watched_setting: $watched_setting
+      watched_date: $watched_date
+      watched_location: $watched_location
+      rating_for_game: $rating_for_game
+      watched_count: $watched_count
     ) {
       id
       user_id
@@ -52,7 +50,6 @@ export const CREATE_GAME_LOG = gql`
       watched_date
       watched_location
       rating_for_game
-      rating_stars
       watched_count
       created_at
       updated_at

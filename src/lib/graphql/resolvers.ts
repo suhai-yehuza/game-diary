@@ -1516,7 +1516,7 @@ export const resolvers = {
         user_id: string;
         game_id: string;
         watched_setting: 'tv' | 'arena' | 'phone' | 'laptop' | 'bar' | 'home' | 'other';
-        watched_date: Date;
+        watched_date: string;
         watched_location: string;
         rating_for_game: number;
         watched_count?: number;
@@ -1529,7 +1529,7 @@ export const resolvers = {
           user_id,
           game_id,
           watched_setting,
-          watched_date,
+          watched_date: new Date(watched_date),
           watched_location,
           rating_for_game,
           watched_count,
