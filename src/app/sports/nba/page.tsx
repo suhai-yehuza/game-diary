@@ -53,7 +53,7 @@ export default function Page() {
   const [scheduledGames1, setScheduledGames1] = useState<Game[]>([]);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
   const [showScheduledGames, setShowScheduledGames] = useState(false);
-
+  const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
 
   const { loading, error, data, fetchMore } = useQuery<GamesData>(GET_GAMES, {
     variables: {
@@ -154,6 +154,10 @@ export default function Page() {
     return null; // Tie game
   };
 
+  const handleImageError = (imageId: string) => {
+    setImageErrors(prev => ({ ...prev, [imageId]: true }));
+  };
+
   if (!isLoaded) {
     return null;
   }
@@ -231,11 +235,12 @@ export default function Page() {
                       <div className="flex items-center gap-3">
                         {game.teams.visitors.logo && (
                           <Image
-                            src={game.teams.visitors.logo}
+                            src={imageErrors[`${game.id}-visitors`] ? "/gamelog.svg" : game.teams.visitors.logo}
                             alt={game.teams.visitors.name}
                             width={40}
                             height={40}
                             className="rounded-full transition-transform duration-300 group-hover:scale-110"
+                            onError={() => handleImageError(`${game.id}-visitors`)}
                           />
                         )}
                         <div>
@@ -257,11 +262,12 @@ export default function Page() {
                       <div className="flex items-center gap-3">
                         {game.teams.home.logo && (
                           <Image
-                            src={game.teams.home.logo}
+                            src={imageErrors[`${game.id}-home`] ? "/gamelog.svg" : game.teams.home.logo}
                             alt={game.teams.home.name}
                             width={40}
                             height={40}
                             className="rounded-full transition-transform duration-300 group-hover:scale-110"
+                            onError={() => handleImageError(`${game.id}-home`)}
                           />
                         )}
                         <div>
@@ -365,11 +371,12 @@ export default function Page() {
                           <div className="flex items-center gap-3">
                             {game.teams.visitors.logo && (
                               <Image
-                                src={game.teams.visitors.logo}
+                                src={imageErrors[`${game.id}-visitors`] ? "/gamelog.svg" : game.teams.visitors.logo}
                                 alt={game.teams.visitors.name}
                                 width={40}
                                 height={40}
                                 className="rounded-full transition-transform duration-300 group-hover:scale-110"
+                                onError={() => handleImageError(`${game.id}-visitors`)}
                               />
                             )}
                             <div>
@@ -393,11 +400,12 @@ export default function Page() {
                           <div className="flex items-center gap-3">
                             {game.teams.home.logo && (
                               <Image
-                                src={game.teams.home.logo}
+                                src={imageErrors[`${game.id}-home`] ? "/gamelog.svg" : game.teams.home.logo}
                                 alt={game.teams.home.name}
                                 width={40}
                                 height={40}
                                 className="rounded-full transition-transform duration-300 group-hover:scale-110"
+                                onError={() => handleImageError(`${game.id}-home`)}
                               />
                             )}
                             <div>
