@@ -197,11 +197,13 @@ export default function Header() {
                     <Link
                       href="/sports/all-sports"
                       className={`block py-1.5 lg:py-0 text-base lg:text-sm transition-colors ${
-                        isActive('/') ? 'text-blue-600 font-semibold' : 'hover:text-blue-600'
+                        isActive('/sports/all-sports')
+                          ? 'text-blue-600 font-semibold'
+                          : 'hover:text-blue-600'
                       }`}
                       onClick={() => setIsMenuExpanded(false)}
                     >
-                      ALL SPORTS
+                      All Sports
                     </Link>
                   </li>
                 </ul>
