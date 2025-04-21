@@ -35,11 +35,12 @@ interface GameCardProps {
 
 const GameCard = memo(({ game, index, imageErrors, onImageError }: GameCardProps) => {
   const isLive = game.status.long === 'In Play';
-  const winningTeam = game.scores.visitors.points > game.scores.home.points
-    ? 'visitors'
-    : game.scores.home.points > game.scores.visitors.points
-      ? 'home'
-      : null;
+  const winningTeam =
+    game.scores.visitors.points > game.scores.home.points
+      ? 'visitors'
+      : game.scores.home.points > game.scores.visitors.points
+        ? 'home'
+        : null;
 
   return (
     <Link href={`/sports/nba/games/${game.id}`} className="block">
@@ -95,7 +96,9 @@ const GameCard = memo(({ game, index, imageErrors, onImageError }: GameCardProps
             <div className="flex items-center gap-3">
               {game.teams.visitors.logo && (
                 <Image
-                  src={imageErrors[`${game.id}-visitors`] ? '/gamelog.svg' : game.teams.visitors.logo}
+                  src={
+                    imageErrors[`${game.id}-visitors`] ? '/gamelog.svg' : game.teams.visitors.logo
+                  }
                   alt={game.teams.visitors.name}
                   width={48}
                   height={48}
@@ -155,9 +158,7 @@ const GameCard = memo(({ game, index, imageErrors, onImageError }: GameCardProps
 
         <div className="mt-auto">
           {game.nugget && (
-            <div className="text-sm text-muted-foreground line-clamp-2">
-              {game.nugget}
-            </div>
+            <div className="text-sm text-muted-foreground line-clamp-2">{game.nugget}</div>
           )}
           <div className="text-sm text-muted-foreground mt-2 flex items-center gap-1">
             <svg
@@ -210,15 +211,17 @@ export default function Page() {
   });
 
   const now = new Date();
-  const scheduledGamesList = dataCompleted?.games?.edges
-    ?.map(edge => edge.node)
-    .filter(game => isAfter(new Date(game.date.start), now) || game.status.long === 'In Play')
-    .sort((a, b) => new Date(a.date.start).getTime() - new Date(b.date.start).getTime()) || [];
+  const scheduledGamesList =
+    dataCompleted?.games?.edges
+      ?.map(edge => edge.node)
+      .filter(game => isAfter(new Date(game.date.start), now) || game.status.long === 'In Play')
+      .sort((a, b) => new Date(a.date.start).getTime() - new Date(b.date.start).getTime()) || [];
 
-  const completedGamesList = dataCompleted?.games?.edges
-    ?.map(edge => edge.node)
-    .filter(game => isBefore(new Date(game.date.start), now) && game.status.long !== 'In Play')
-    .sort((a, b) => new Date(b.date.start).getTime() - new Date(a.date.start).getTime()) || [];
+  const completedGamesList =
+    dataCompleted?.games?.edges
+      ?.map(edge => edge.node)
+      .filter(game => isBefore(new Date(game.date.start), now) && game.status.long !== 'In Play')
+      .sort((a, b) => new Date(b.date.start).getTime() - new Date(a.date.start).getTime()) || [];
 
   const handleLoadMore = async () => {
     if (!dataCompleted?.games.pageInfo.hasNextPage || isFetchingMore) return;

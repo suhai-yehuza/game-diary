@@ -102,18 +102,20 @@ export const cache = {
 
       try {
         const serializedValue = JSON.stringify(value);
+        const ttlSeconds = ttl ? Math.max(1, Math.floor(ttl)) : undefined;
+
         if (isProduction) {
           (redisClient as UpstashRedis)
-            .set(key, serializedValue, ttl ? { ex: ttl } : undefined)
+            .set(key, serializedValue, ttlSeconds ? { ex: ttlSeconds } : undefined)
             .then(() => resolve())
             .catch(error => {
               console.error('Error setting cached data:', error);
               resolve();
             });
         } else {
-          if (ttl) {
+          if (ttlSeconds) {
             (redisClient as Redis)
-              .setex(key, ttl, serializedValue)
+              .setex(key, ttlSeconds, serializedValue)
               .then(() => resolve())
               .catch(error => {
                 console.error('Error setting cached data:', error);
@@ -211,22 +213,23 @@ export const CACHE_KEYS = {
 
 // Cache TTLs in seconds
 export const CACHE_TTL = {
-  SEASONS: 24 * 60 * 60, // 24 hours
-  LEAGUES: 24 * 60 * 60, // 24 hours
-  TEAMS: 24 * 60 * 60, // 24 hours
-  PLAYERS: 24 * 60 * 60, // 24 hours
-  GAME_STATS: 60 * 60, // 1 hour
-  PLAYER_STATS: 60 * 60, // 1 hour
-  TEAM_STATS: 60 * 60, // 1 hour
-  GAME_LOGS: 60 * 60, // 1 hour
-  USER_GAME_LOGS: 60 * 60, // 1 hour
-  USERS: 24 * 60 * 60, // 24 hours
-  USER: 24 * 60 * 60, // 24 hours
-  GAME_RATINGS: 60 * 60, // 1 hour
-  GAME_RATING: 60 * 60, // 1 hour
-  COMMENTS: 60 * 60, // 1 hour
-  REACTIONS: 60 * 60, // 1 hour
-  GAME: 60 * 60, // 1 hour
-  FRIENDSHIPS: 60 * 60, // 1 hour
-  USER_FRIENDSHIPS: 60 * 60, // 1 hour
+  SEASONS: 86400, // 24 hours in seconds
+  LEAGUES: 86400, // 24 hours in seconds
+  GAMES: 3600, // 1 hour in seconds
+  GAME: 3600, // 1 hour in seconds
+  TEAMS: 86400, // 24 hours in seconds
+  TEAM: 86400, // 24 hours in seconds
+  PLAYERS: 86400, // 24 hours in seconds
+  PLAYER: 86400, // 24 hours in seconds
+  PLAYER_STATS: 3600, // 1 hour in seconds
+  TEAM_STATS: 3600, // 1 hour in seconds
+  GAME_STATS: 3600, // 1 hour in seconds
+  STANDINGS: 3600, // 1 hour in seconds
+  USERS: 3600, // 1 hour in seconds
+  USER: 3600, // 1 hour in seconds
+  FRIENDSHIPS: 3600, // 1 hour in seconds
+  COMMENTS: 3600, // 1 hour in seconds
+  REACTIONS: 3600, // 1 hour in seconds
+  GAME_LOGS: 3600, // 1 hour in seconds
+  GAME_RATINGS: 3600, // 1 hour in seconds
 } as const;
