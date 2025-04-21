@@ -208,7 +208,7 @@ export default function Page() {
     scheduledGames.length > 0 ? (
       <>
         {/* Scheduled Games Toggle */}
-        <div className="mb-6 flex items-center gap-4">
+        <div className="flex items-center gap-4">
           <button
             onClick={() => setShowScheduledGames(!showScheduledGames)}
             className="flex items-center gap-2 text-sm font-bold text-white bg-gradient-to-r from-blue-600 to-purple-600 px-4 py-2 rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-300 group shadow-lg hover:shadow-xl"
@@ -407,43 +407,55 @@ export default function Page() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b border-border">
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold">NBA Games</h1>
-            <div className="flex items-center gap-4">
-              <Link
-                href="/sports/nba/log"
-                className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 transition-all duration-200 ease-in-out"
-              >
-                Log a Game
-              </Link>
-            </div>
-          </div>
-        </div>
-      </header>
-
       <main className="container mx-auto px-4 py-8">
-        {!loadingScheduled && !errorScheduled && upcomingGamesSection}
-
-        {/* Completed Games Section */}
-        {completedGames.length > 0 && (
-          <div className="space-y-8">
-            <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
-              Completed Games
-            </h2>
+        <div className="space-y-8">
+          {!loadingScheduled && !errorScheduled && (
+            <div className="flex justify-end">
+              <button
+                onClick={() => setShowScheduledGames(!showScheduledGames)}
+                className="flex items-center gap-2 text-sm font-bold text-white bg-gradient-to-r from-blue-600 to-purple-600 px-4 py-2 rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-300 group shadow-lg hover:shadow-xl"
+              >
+                <Calendar
+                  className={`w-4 h-4 transition-transform duration-300 ${
+                    showScheduledGames ? 'rotate-180' : ''
+                  }`}
+                />
+                {showScheduledGames ? (
+                  <>Hide Upcoming Games ({scheduledGames.length})</>
+                ) : (
+                  <>Show Upcoming Games ({scheduledGames.length})</>
+                )}
+              </button>
+            </div>
+          )}
+          {showScheduledGames && scheduledGames.length > 0 && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {completedGames.map((game, index) => {
-                const winningTeam = getWinningTeam(game);
+              {scheduledGames.map((game, index) => {
+                const isLive = game.status.long === 'In Play';
+                const winningTeam =
+                  game.scores.visitors.points > game.scores.home.points
+                    ? 'visitors'
+                    : game.scores.home.points > game.scores.visitors.points
+                      ? 'home'
+                      : null;
                 return (
                   <Link key={game.id} href={`/sports/nba/games/${game.id}`} className="block">
                     <div
-                      className="bg-card rounded-xl shadow-lg p-6 transform transition-all duration-300 ease-out hover:scale-[1.02] hover:shadow-xl cursor-pointer h-[280px] flex flex-col border border-border/50 hover:border-blue-500/50"
+                      className={`bg-card rounded-xl shadow-lg p-6 transform transition-all duration-300 ease-out hover:scale-[1.02] hover:shadow-xl cursor-pointer h-[280px] flex flex-col border ${
+                        isLive
+                          ? 'border-red-500/50 hover:border-red-500 animate-pulse-slow overflow-hidden'
+                          : 'border-border/50 hover:border-blue-500/50'
+                      }`}
                       style={{
                         animationDelay: `${index * 50}ms`,
                         animationFillMode: 'both',
                       }}
                     >
+                      {isLive && (
+                        <div className="absolute top-0 left-0 right-0 bg-red-500 text-white text-center py-1 text-sm font-medium animate-pulse rounded-t-xl">
+                          LIVE
+                        </div>
+                      )}
                       <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-2">
                           {game.league.logo && (
@@ -459,8 +471,18 @@ export default function Page() {
                             {format(new Date(game.date.start), 'MMM d, yyyy h:mm a')}
                           </span>
                         </div>
-                        <div className="text-sm font-medium bg-blue-500/10 text-blue-500 px-2 py-1 rounded-full">
-                          {game.status.long}
+                        <div className="flex items-center gap-2">
+                          {isLive ? (
+                            <div className="flex items-center gap-1.5 bg-gradient-to-r from-red-500/20 to-red-500/10 text-red-500 px-3 py-1.5 rounded-full text-sm font-bold shadow-sm">
+                              <div className="w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse shadow-sm" />
+                              <span className="text-red-600">Q{game.periods.current}</span>
+                              <span className="font-bold">{game.status.clock}</span>
+                            </div>
+                          ) : (
+                            <div className="text-sm font-medium px-2 py-1 rounded-full bg-purple-500/10 text-purple-500">
+                              {game.status.long}
+                            </div>
+                          )}
                         </div>
                       </div>
 
@@ -483,7 +505,7 @@ export default function Page() {
                               />
                             )}
                             <div>
-                              <div className="font-semibold text-lg transition-colors duration-300 group-hover:text-blue-500">
+                              <div className="font-semibold text-lg transition-colors duration-300 group-hover:text-purple-500">
                                 {game.teams.visitors.nickname}
                               </div>
                               <div className="text-sm text-muted-foreground">
@@ -492,8 +514,8 @@ export default function Page() {
                             </div>
                           </div>
                           <div
-                            className={`text-2xl font-bold transition-colors duration-300 group-hover:text-blue-500 ${
-                              winningTeam === 'visitors' ? 'text-green-500' : ''
+                            className={`text-2xl font-bold transition-colors duration-300 group-hover:text-purple-500 ${
+                              isLive && winningTeam === 'visitors' ? 'text-green-500' : ''
                             }`}
                           >
                             {game.scores.visitors.points}
@@ -518,7 +540,7 @@ export default function Page() {
                               />
                             )}
                             <div>
-                              <div className="font-semibold text-lg transition-colors duration-300 group-hover:text-blue-500">
+                              <div className="font-semibold text-lg transition-colors duration-300 group-hover:text-purple-500">
                                 {game.teams.home.nickname}
                               </div>
                               <div className="text-sm text-muted-foreground">
@@ -527,8 +549,8 @@ export default function Page() {
                             </div>
                           </div>
                           <div
-                            className={`text-2xl font-bold transition-colors duration-300 group-hover:text-blue-500 ${
-                              winningTeam === 'home' ? 'text-green-500' : ''
+                            className={`text-2xl font-bold transition-colors duration-300 group-hover:text-purple-500 ${
+                              isLive && winningTeam === 'home' ? 'text-green-500' : ''
                             }`}
                           >
                             {game.scores.home.points}
@@ -553,7 +575,7 @@ export default function Page() {
                             strokeWidth="2"
                             strokeLinecap="round"
                             strokeLinejoin="round"
-                            className="text-blue-500"
+                            className="text-purple-500"
                           >
                             <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
                             <circle cx="12" cy="10" r="3" />
@@ -566,8 +588,152 @@ export default function Page() {
                 );
               })}
             </div>
-          </div>
-        )}
+          )}
+          {showScheduledGames && <hr className="border-t-2 border-gray-300 mt-12 mb-8" />}
+          {completedGames.length > 0 && (
+            <div className="space-y-8">
+              <div className="flex justify-between items-center">
+                {/* <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
+                  Completed Games
+                </h2> */}
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {completedGames.map((game, index) => {
+                  const winningTeam = getWinningTeam(game);
+                  return (
+                    <Link key={game.id} href={`/sports/nba/games/${game.id}`} className="block">
+                      <div
+                        className="bg-card rounded-xl shadow-lg p-6 transform transition-all duration-300 ease-out hover:scale-[1.02] hover:shadow-xl cursor-pointer h-[280px] flex flex-col border border-border/50 hover:border-blue-500/50"
+                        style={{
+                          animationDelay: `${index * 50}ms`,
+                          animationFillMode: 'both',
+                        }}
+                      >
+                        <div className="flex items-center justify-between mb-4">
+                          <div className="flex items-center gap-2">
+                            {game.league.logo && (
+                              <Image
+                                src={game.league.logo}
+                                alt={game.league.name}
+                                width={24}
+                                height={24}
+                                className="rounded-full transition-transform duration-300 hover:scale-110"
+                              />
+                            )}
+                            <span className="text-sm text-muted-foreground">
+                              {format(new Date(game.date.start), 'MMM d, yyyy h:mm a')}
+                            </span>
+                          </div>
+                          <div className="text-sm font-medium bg-blue-500/10 text-blue-500 px-2 py-1 rounded-full">
+                            {game.status.long}
+                          </div>
+                        </div>
+
+                        <div className="space-y-6 flex-grow">
+                          {/* Away Team */}
+                          <div className="flex items-center justify-between group">
+                            <div className="flex items-center gap-3">
+                              {game.teams.visitors.logo && (
+                                <Image
+                                  src={
+                                    imageErrors[`${game.id}-visitors`]
+                                      ? '/gamelog.svg'
+                                      : game.teams.visitors.logo
+                                  }
+                                  alt={game.teams.visitors.name}
+                                  width={48}
+                                  height={48}
+                                  className="rounded-full transition-transform duration-300 group-hover:scale-110"
+                                  onError={() => handleImageError(`${game.id}-visitors`)}
+                                />
+                              )}
+                              <div>
+                                <div className="font-semibold text-lg transition-colors duration-300 group-hover:text-blue-500">
+                                  {game.teams.visitors.nickname}
+                                </div>
+                                <div className="text-sm text-muted-foreground">
+                                  {game.scores.visitors.win}-{game.scores.visitors.loss}
+                                </div>
+                              </div>
+                            </div>
+                            <div
+                              className={`text-2xl font-bold transition-colors duration-300 group-hover:text-blue-500 ${
+                                winningTeam === 'visitors' ? 'text-green-500' : ''
+                              }`}
+                            >
+                              {game.scores.visitors.points}
+                            </div>
+                          </div>
+
+                          {/* Home Team */}
+                          <div className="flex items-center justify-between group">
+                            <div className="flex items-center gap-3">
+                              {game.teams.home.logo && (
+                                <Image
+                                  src={
+                                    imageErrors[`${game.id}-home`]
+                                      ? '/gamelog.svg'
+                                      : game.teams.home.logo
+                                  }
+                                  alt={game.teams.home.name}
+                                  width={48}
+                                  height={48}
+                                  className="rounded-full transition-transform duration-300 group-hover:scale-110"
+                                  onError={() => handleImageError(`${game.id}-home`)}
+                                />
+                              )}
+                              <div>
+                                <div className="font-semibold text-lg transition-colors duration-300 group-hover:text-blue-500">
+                                  {game.teams.home.nickname}
+                                </div>
+                                <div className="text-sm text-muted-foreground">
+                                  {game.scores.home.win}-{game.scores.home.loss}
+                                </div>
+                              </div>
+                            </div>
+                            <div
+                              className={`text-2xl font-bold transition-colors duration-300 group-hover:text-blue-500 ${
+                                winningTeam === 'home' ? 'text-green-500' : ''
+                              }`}
+                            >
+                              {game.scores.home.points}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="mt-auto">
+                          {game.nugget && (
+                            <div className="text-sm text-muted-foreground line-clamp-2">
+                              {game.nugget}
+                            </div>
+                          )}
+                          <div className="text-sm text-muted-foreground mt-2 flex items-center gap-1">
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="16"
+                              height="16"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              className="text-blue-500"
+                            >
+                              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                              <circle cx="12" cy="10" r="3" />
+                            </svg>
+                            {game.arena.name}, {game.arena.city}, {game.arena.state}
+                          </div>
+                        </div>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </div>
 
         {/* Loading indicator and intersection observer target */}
         <div ref={loadMoreRef} className="flex justify-center items-center py-8">

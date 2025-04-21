@@ -1,9 +1,11 @@
 'use client';
+import React from 'react';
 import Link from 'next/link';
 import { useState } from 'react';
 import { SignInButton, SignedIn, SignedOut, UserButton } from '@clerk/nextjs';
 import { Search, X, Menu } from 'lucide-react';
 import Image from 'next/image';
+import { usePathname } from 'next/navigation';
 
 import { ThemeToggle } from './theme-toggle';
 import { Button } from './ui/button';
@@ -13,11 +15,16 @@ export default function Header() {
   const [isSearchVisible, setIsSearchVisible] = useState(false);
   const [isMenuExpanded, setIsMenuExpanded] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const pathname = usePathname();
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     // Implement your search logic here
     console.log('Searching for:', searchQuery);
+  };
+
+  const isActive = (path: string) => {
+    return pathname === path || pathname?.startsWith(path + '/');
   };
 
   return (
@@ -60,7 +67,9 @@ export default function Header() {
                   <li>
                     <Link
                       href="/"
-                      className="block py-1.5 lg:py-0 text-base lg:text-sm hover:text-blue-600 transition-colors"
+                      className={`block py-1.5 lg:py-0 text-base lg:text-sm transition-colors ${
+                        isActive('/') ? 'text-blue-600 font-semibold' : 'hover:text-blue-600'
+                      }`}
                       onClick={() => setIsMenuExpanded(false)}
                     >
                       Home
@@ -69,7 +78,11 @@ export default function Header() {
                   <li>
                     <Link
                       href="/sports/nba"
-                      className="block py-1.5 lg:py-0 text-base lg:text-sm hover:text-blue-600 transition-colors"
+                      className={`block py-1.5 lg:py-0 text-base lg:text-sm transition-colors ${
+                        isActive('/sports/nba')
+                          ? 'text-blue-600 font-semibold'
+                          : 'hover:text-blue-600'
+                      }`}
                       onClick={() => setIsMenuExpanded(false)}
                     >
                       NBA
@@ -78,7 +91,11 @@ export default function Header() {
                   <li>
                     <Link
                       href="/sports/nfl"
-                      className="block py-1.5 lg:py-0 text-base lg:text-sm hover:text-blue-600 transition-colors"
+                      className={`block py-1.5 lg:py-0 text-base lg:text-sm transition-colors ${
+                        isActive('/sports/nfl')
+                          ? 'text-blue-600 font-semibold'
+                          : 'hover:text-blue-600'
+                      }`}
                       onClick={() => setIsMenuExpanded(false)}
                     >
                       NFL
@@ -87,7 +104,11 @@ export default function Header() {
                   <li>
                     <Link
                       href="/sports/mlb"
-                      className="block py-1.5 lg:py-0 text-base lg:text-sm hover:text-blue-600 transition-colors"
+                      className={`block py-1.5 lg:py-0 text-base lg:text-sm transition-colors ${
+                        isActive('/sports/mlb')
+                          ? 'text-blue-600 font-semibold'
+                          : 'hover:text-blue-600'
+                      }`}
                       onClick={() => setIsMenuExpanded(false)}
                     >
                       MLB
@@ -96,7 +117,11 @@ export default function Header() {
                   <li>
                     <Link
                       href="/sports/nhl"
-                      className="block py-1.5 lg:py-0 text-base lg:text-sm hover:text-blue-600 transition-colors"
+                      className={`block py-1.5 lg:py-0 text-base lg:text-sm transition-colors ${
+                        isActive('/sports/nhl')
+                          ? 'text-blue-600 font-semibold'
+                          : 'hover:text-blue-600'
+                      }`}
                       onClick={() => setIsMenuExpanded(false)}
                     >
                       NHL
@@ -105,7 +130,11 @@ export default function Header() {
                   <li>
                     <Link
                       href="/sports/mls"
-                      className="block py-1.5 lg:py-0 text-base lg:text-sm hover:text-blue-600 transition-colors"
+                      className={`block py-1.5 lg:py-0 text-base lg:text-sm transition-colors ${
+                        isActive('/sports/mls')
+                          ? 'text-blue-600 font-semibold'
+                          : 'hover:text-blue-600'
+                      }`}
                       onClick={() => setIsMenuExpanded(false)}
                     >
                       MLS
@@ -114,7 +143,9 @@ export default function Header() {
                   <li>
                     <Link
                       href="/"
-                      className="block py-1.5 lg:py-0 text-base lg:text-sm hover:text-blue-600 transition-colors"
+                      className={`block py-1.5 lg:py-0 text-base lg:text-sm transition-colors ${
+                        isActive('/') ? 'text-blue-600 font-semibold' : 'hover:text-blue-600'
+                      }`}
                       onClick={() => setIsMenuExpanded(false)}
                     >
                       ALL SPORTS

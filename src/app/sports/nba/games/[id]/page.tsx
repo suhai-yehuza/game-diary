@@ -49,6 +49,14 @@ export default function GamePage() {
             >
               ← Back to Games
             </Link>
+            <div className="flex items-center gap-4">
+              <Link
+                href="/sports/nba/log"
+                className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 transition-all duration-200 ease-in-out"
+              >
+                Log a Game
+              </Link>
+            </div>
           </div>
         </div>
       </header>
