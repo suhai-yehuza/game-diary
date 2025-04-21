@@ -273,43 +273,7 @@ export const resolvers = {
           };
         }
 
-        // Handle pagination
-        const { first, last, after, before } = pagination;
-        let paginatedGames = sortedGames;
-
-        if (after) {
-          const afterIndex = sortedGames.findIndex(game => game.id === after);
-          if (afterIndex !== -1) {
-            paginatedGames = sortedGames.slice(afterIndex + 1);
-          }
-        }
-
-        if (before) {
-          const beforeIndex = sortedGames.findIndex(game => game.id === before);
-          if (beforeIndex !== -1) {
-            paginatedGames = sortedGames.slice(0, beforeIndex);
-          }
-        }
-
-        const slicedGames = first
-          ? paginatedGames.slice(0, first)
-          : last
-            ? paginatedGames.slice(-last)
-            : paginatedGames;
-
-        return {
-          edges: slicedGames.map(game => ({
-            node: game,
-            cursor: game.id,
-          })),
-          pageInfo: {
-            hasNextPage: first ? paginatedGames.length > first : false,
-            hasPreviousPage: last ? paginatedGames.length > last : false,
-            startCursor: slicedGames[0]?.id || null,
-            endCursor: slicedGames[slicedGames.length - 1]?.id || null,
-          },
-          totalCount: sortedGames.length,
-        };
+        return paginateGames(sortedGames, pagination);
       } catch (error) {
         console.error('Error fetching games:', error);
         throw new Error('Failed to fetch games');
