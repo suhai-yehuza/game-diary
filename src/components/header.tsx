@@ -11,11 +11,13 @@ import { ThemeToggle } from './theme-toggle';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 
-function SearchBar() {
+function SearchBarContent() {
   const [searchQuery, setSearchQuery] = useState('');
   const router = useRouter();
   const searchParams = useSearchParams();
-  const previousPathRef = useRef(usePathname());
+  const pathname = usePathname();
+  const previousPathRef = useRef(pathname || '/');
+  const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Initialize search query from URL params
   useEffect(() => {
@@ -25,19 +27,28 @@ function SearchBar() {
     }
   }, [searchParams]);
 
+  // Update previous path when pathname changes
+  useEffect(() => {
+    if (pathname) {
+      previousPathRef.current = pathname;
+    }
+  }, [pathname]);
+
   // Debounced search function
   const debouncedSearch = useCallback(
     (query: string) => {
-      const timer = setTimeout(() => {
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
+      }
+
+      debounceTimeoutRef.current = setTimeout(() => {
         if (query.trim()) {
           router.push(`/search?q=${encodeURIComponent(query.trim())}`);
         } else {
           // Return to the previous page when search is cleared
           router.push(previousPathRef.current);
         }
-      }, 500); // 500ms delay
-
-      return () => clearTimeout(timer);
+      }, 300); // Reduced debounce time to 300ms for better responsiveness
     },
     [router]
   );
@@ -65,9 +76,18 @@ function SearchBar() {
           className="pl-8 w-full sm:w-[200px] lg:w-[300px]"
           value={searchQuery}
           onChange={handleSearchChange}
+          autoComplete="off"
         />
       </div>
     </form>
+  );
+}
+
+function SearchBar() {
+  return (
+    <Suspense fallback={<div className="w-[200px] h-10 bg-gray-200 animate-pulse rounded-md" />}>
+      <SearchBarContent />
+    </Suspense>
   );
 }
 
@@ -230,11 +250,7 @@ export default function Header() {
               <div
                 className={`${isSearchVisible ? 'block' : 'hidden'} sm:block absolute sm:relative top-16 sm:top-0 left-0 right-0 sm:left-auto sm:right-auto bg-background sm:bg-transparent p-4 sm:p-0 border-b sm:border-0`}
               >
-                <Suspense
-                  fallback={<div className="w-[200px] h-10 bg-gray-200 animate-pulse rounded-md" />}
-                >
-                  <SearchBar />
-                </Suspense>
+                <SearchBar />
               </div>
 
               <ThemeToggle />
