@@ -22,6 +22,11 @@ import { useMutation } from '@apollo/client';
 import { CREATE_GAME_LOG } from '@/lib/graphql/mutations';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/components/ui/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
+import { SignInButton } from '@clerk/nextjs';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
+import { Calendar } from 'lucide-react';
 
 interface CreateGameLogModalProps {
   gameId: string;
@@ -33,10 +38,11 @@ export function CreateGameLogModal({ gameId, userId }: CreateGameLogModalProps) 
   const router = useRouter();
   const { toast } = useToast();
   const [createGameLog, { loading }] = useMutation(CREATE_GAME_LOG);
+  const { userId: authUserId } = useAuth();
 
   const [formData, setFormData] = useState({
     watched_setting: '',
-    watched_date: '',
+    watched_date: new Date(),
     watched_location: '',
     rating_for_game: '',
     rating_stars: '',
@@ -44,6 +50,15 @@ export function CreateGameLogModal({ gameId, userId }: CreateGameLogModalProps) 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!authUserId) {
+      toast({
+        title: 'Authentication required',
+        description: 'Please sign in to create a game log',
+        variant: 'destructive',
+      });
+      return;
+    }
 
     // Validate required fields
     if (
@@ -73,10 +88,10 @@ export function CreateGameLogModal({ gameId, userId }: CreateGameLogModalProps) 
 
       const payload = {
         user_id: '060a5823-c5fa-4fd0-9065-0c0e5eecf9c8',
-        // user_id: userId,
+        // user_id: authUserId || userId,
         game_id: gameId,
         watched_setting: formData.watched_setting.toLowerCase(),
-        watched_date: new Date(formData.watched_date).toISOString(),
+        watched_date: formData.watched_date.toISOString(),
         watched_location: formData.watched_location || 'Home',
         rating_for_game: rating,
         watched_count: 1,
@@ -96,7 +111,7 @@ export function CreateGameLogModal({ gameId, userId }: CreateGameLogModalProps) 
         });
         setFormData({
           watched_setting: '',
-          watched_date: '',
+          watched_date: new Date(),
           watched_location: '',
           rating_for_game: '',
           rating_stars: '',
@@ -113,6 +128,19 @@ export function CreateGameLogModal({ gameId, userId }: CreateGameLogModalProps) 
       });
     }
   };
+
+  if (!authUserId) {
+    return (
+      <SignInButton mode="modal">
+        <Button
+          variant="outline"
+          className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700"
+        >
+          Sign in to Create Game Log
+        </Button>
+      </SignInButton>
+    );
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -172,14 +200,22 @@ export function CreateGameLogModal({ gameId, userId }: CreateGameLogModalProps) 
             <Label htmlFor="watched_date" className="text-gray-900 dark:text-white">
               Date *
             </Label>
-            <Input
-              id="watched_date"
-              type="datetime-local"
-              value={formData.watched_date}
-              onChange={e => setFormData({ ...formData, watched_date: e.target.value })}
-              required
-              className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-            />
+            <div className="relative">
+              <DatePicker
+                selected={formData.watched_date}
+                onChange={(date: Date | null) => {
+                  if (date) {
+                    setFormData({ ...formData, watched_date: date });
+                  }
+                }}
+                showTimeSelect
+                dateFormat="PPp"
+                className="w-full pl-10 bg-white dark:bg-gray-800 text-gray-900 dark:text-white border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                calendarClassName="bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                timeClassName={'bg-white dark:bg-gray-800 text-gray-900 dark:text-white' as any}
+              />
+              <Calendar className="absolute left-3 top-2.5 h-4 w-4 text-gray-500 dark:text-gray-400" />
+            </div>
           </div>
           <div className="grid gap-2">
             <Label htmlFor="watched_location" className="text-gray-900 dark:text-white">
@@ -213,14 +249,14 @@ export function CreateGameLogModal({ gameId, userId }: CreateGameLogModalProps) 
             <Button
               variant="outline"
               onClick={() => setIsOpen(false)}
-              className="text-gray-900 dark:text-white"
+              className="bg-gray-200 hover:bg-gray-300 text-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200"
             >
               Cancel
             </Button>
             <Button
               type="submit"
               disabled={loading}
-              className="bg-blue-600 hover:bg-blue-700 text-white"
+              className="bg-blue-600 hover:bg-blue-700 text-white dark:bg-blue-500 dark:hover:bg-blue-600"
             >
               {loading ? 'Creating...' : 'Create Log'}
             </Button>

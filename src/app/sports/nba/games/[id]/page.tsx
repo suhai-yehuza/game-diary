@@ -11,6 +11,8 @@ import { CreateGameLogModal } from '@/components/create-game-log-modal';
 import { useEffect } from 'react';
 import { Game } from '@/lib/types/types';
 import { useAuth } from '@/contexts/AuthContext';
+import { SignInButton } from '@clerk/nextjs';
+import { Button } from '@/components/ui/button';
 
 export default function GamePage() {
   const params = useParams();
@@ -51,7 +53,18 @@ export default function GamePage() {
               ← Back to Games
             </Link>
             <div className="flex items-center gap-4">
-              <CreateGameLogModal gameId={gameId} userId={userId} />
+              {userId ? (
+                <CreateGameLogModal gameId={gameId} userId={userId} />
+              ) : (
+                <SignInButton mode="modal">
+                  <Button
+                    variant="outline"
+                    className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700"
+                  >
+                    Sign in to Create Game Log
+                  </Button>
+                </SignInButton>
+              )}
             </div>
           </div>
         </div>
