@@ -10,7 +10,7 @@ export default function Home() {
   const userName = user?.username || user?.firstName || user?.emailAddresses[0].emailAddress;
 
   useEffect(() => {
-    setIsRegisteredDomainSite(!window.location.href.includes('game-diary.io'));
+    setIsRegisteredDomainSite(window.location.href.includes('game-diary.io'));
   }, []);
 
   return (
