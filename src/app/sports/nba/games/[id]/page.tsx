@@ -7,7 +7,7 @@ import { format } from "date-fns";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect } from "react";
-import { Game, GameStatistics } from "@/lib/types/types";
+import { Game } from "@/lib/types/types";
 
 export default function GamePage() {
   const params = useParams();

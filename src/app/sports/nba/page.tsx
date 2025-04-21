@@ -10,25 +10,6 @@ import { useEffect, useRef, useState } from "react";
 import { Game } from "@/lib/types/types";
 import { ChevronDown, ChevronUp } from "lucide-react";
 
-interface Team {
-  id: string;
-  name: string;
-  nickname: string;
-  code: string;
-  logo: string;
-}
-
-interface Score {
-  win: number;
-  loss: number;
-  series: {
-    win: number;
-    loss: number;
-  };
-  linescore: string[];
-  points: number;
-}
-
 interface GamesData {
   games: {
     edges: {
@@ -46,7 +27,7 @@ interface GamesData {
 }
 
 export default function Page() {
-  const { isLoaded, user } = useUser();
+  const { isLoaded } = useUser();
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);
   const [allGames, setAllGames] = useState<Game[]>([]);
