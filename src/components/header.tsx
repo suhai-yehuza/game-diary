@@ -1,11 +1,11 @@
 'use client';
 import React from 'react';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { SignInButton, SignedIn, SignedOut, UserButton } from '@clerk/nextjs';
 import { Search, X, Menu } from 'lucide-react';
 import Image from 'next/image';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
 import { ThemeToggle } from './theme-toggle';
 import { Button } from './ui/button';
@@ -16,11 +16,54 @@ export default function Header() {
   const [isMenuExpanded, setIsMenuExpanded] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const pathname = usePathname();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const previousPathRef = useRef(pathname);
+
+  // Update previous path when pathname changes and we're not on the search page
+  useEffect(() => {
+    if (!pathname.startsWith('/search')) {
+      previousPathRef.current = pathname;
+    }
+  }, [pathname]);
+
+  // Initialize search query from URL params
+  useEffect(() => {
+    const query = searchParams.get('q');
+    if (query) {
+      setSearchQuery(query);
+    }
+  }, [searchParams]);
+
+  // Debounced search function
+  const debouncedSearch = useCallback(
+    (query: string) => {
+      const timer = setTimeout(() => {
+        if (query.trim()) {
+          router.push(`/search?q=${encodeURIComponent(query.trim())}`);
+        } else {
+          // Return to the previous page when search is cleared
+          router.push(previousPathRef.current);
+        }
+      }, 500); // 500ms delay
+
+      return () => clearTimeout(timer);
+    },
+    [router]
+  );
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    // Implement your search logic here
-    console.log('Searching for:', searchQuery);
+    if (searchQuery.trim()) {
+      router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+      setIsSearchVisible(false);
+    }
+  };
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const query = e.target.value;
+    setSearchQuery(query);
+    debouncedSearch(query);
   };
 
   const isActive = (path: string) => {
@@ -180,10 +223,10 @@ export default function Header() {
                     <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input
                       type="search"
-                      placeholder="Search..."
+                      placeholder="Search games..."
                       className="pl-8 w-full sm:w-[200px] lg:w-[300px]"
                       value={searchQuery}
-                      onChange={e => setSearchQuery(e.target.value)}
+                      onChange={handleSearchChange}
                     />
                   </div>
                 </div>
