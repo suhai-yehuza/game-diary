@@ -212,7 +212,7 @@ export function CreateGameLogModal({ gameId, userId }: CreateGameLogModalProps) 
                 dateFormat="PPp"
                 className="w-full pl-10 bg-white dark:bg-gray-800 text-gray-900 dark:text-white border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 calendarClassName="bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                timeClassName={'bg-white dark:bg-gray-800 text-gray-900 dark:text-white' as any}
+                timeClassName={() => 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white'}
               />
               <Calendar className="absolute left-3 top-2.5 h-4 w-4 text-gray-500 dark:text-gray-400" />
             </div>
