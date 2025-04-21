@@ -93,6 +93,8 @@ export const GET_GAMES = gql`
       }
       pageInfo {
         hasNextPage
+        hasPreviousPage
+        startCursor
         endCursor
       }
       totalCount

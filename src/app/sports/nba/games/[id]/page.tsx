@@ -86,7 +86,9 @@ export default function GamePage() {
               <div className="text-center">
                 {game.teams.visitors.logo && (
                   <Image
-                    src={imageErrors[`${game.id}-visitors`] ? '/gamelog.svg' : game.teams.visitors.logo}
+                    src={
+                      imageErrors[`${game.id}-visitors`] ? '/gamelog.svg' : game.teams.visitors.logo
+                    }
                     alt={game.teams.visitors.name}
                     width={80}
                     height={80}

@@ -69,30 +69,31 @@ async function executeWithRetry<T>(
   );
 }
 
-function paginateGames<T extends { id: string }>(games: T[], pagination?: PaginationArgs) {
+const paginateGames = (games: Game[], pagination: PaginationArgs) => {
+  const { first, after, last, before } = pagination;
   let startIndex = 0;
   let endIndex = games.length;
 
-  if (pagination?.after) {
-    const afterIndex = games.findIndex(game => game.id === pagination.after);
+  if (after) {
+    const afterIndex = games.findIndex(game => game.id === after);
     if (afterIndex !== -1) {
       startIndex = afterIndex + 1;
     }
   }
 
-  if (pagination?.before) {
-    const beforeIndex = games.findIndex(game => game.id === pagination.before);
+  if (before) {
+    const beforeIndex = games.findIndex(game => game.id === before);
     if (beforeIndex !== -1) {
       endIndex = beforeIndex;
     }
   }
 
-  if (pagination?.first) {
-    endIndex = Math.min(startIndex + pagination.first, endIndex);
+  if (first) {
+    endIndex = Math.min(startIndex + first, endIndex);
   }
 
-  if (pagination?.last) {
-    startIndex = Math.max(endIndex - pagination.last, startIndex);
+  if (last) {
+    startIndex = Math.max(endIndex - last, startIndex);
   }
 
   const paginatedGames = games.slice(startIndex, endIndex);
@@ -110,7 +111,7 @@ function paginateGames<T extends { id: string }>(games: T[], pagination?: Pagina
     },
     totalCount: games.length,
   };
-}
+};
 
 export const resolvers = {
   DateTime: {
@@ -248,7 +249,67 @@ export const resolvers = {
           id: game.id.toString(),
         }));
 
-        return paginateGames(games, pagination);
+        // Sort games by date in descending order (newest first)
+        const sortedGames = games.sort((a, b) => {
+          const dateA = new Date(a.date.start).getTime();
+          const dateB = new Date(b.date.start).getTime();
+          return dateB - dateA;
+        });
+
+        // If no pagination is provided, return all games
+        if (!pagination) {
+          return {
+            edges: sortedGames.map(game => ({
+              node: game,
+              cursor: game.id,
+            })),
+            pageInfo: {
+              hasNextPage: false,
+              hasPreviousPage: false,
+              startCursor: sortedGames[0]?.id || null,
+              endCursor: sortedGames[sortedGames.length - 1]?.id || null,
+            },
+            totalCount: sortedGames.length,
+          };
+        }
+
+        // Handle pagination
+        const { first, last, after, before } = pagination;
+        let paginatedGames = sortedGames;
+
+        if (after) {
+          const afterIndex = sortedGames.findIndex(game => game.id === after);
+          if (afterIndex !== -1) {
+            paginatedGames = sortedGames.slice(afterIndex + 1);
+          }
+        }
+
+        if (before) {
+          const beforeIndex = sortedGames.findIndex(game => game.id === before);
+          if (beforeIndex !== -1) {
+            paginatedGames = sortedGames.slice(0, beforeIndex);
+          }
+        }
+
+        const slicedGames = first
+          ? paginatedGames.slice(0, first)
+          : last
+            ? paginatedGames.slice(-last)
+            : paginatedGames;
+
+        return {
+          edges: slicedGames.map(game => ({
+            node: game,
+            cursor: game.id,
+          })),
+          pageInfo: {
+            hasNextPage: first ? paginatedGames.length > first : false,
+            hasPreviousPage: last ? paginatedGames.length > last : false,
+            startCursor: slicedGames[0]?.id || null,
+            endCursor: slicedGames[slicedGames.length - 1]?.id || null,
+          },
+          totalCount: sortedGames.length,
+        };
       } catch (error) {
         console.error('Error fetching games:', error);
         throw new Error('Failed to fetch games');

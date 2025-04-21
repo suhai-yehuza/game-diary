@@ -9,7 +9,7 @@ import { GET_GAMES } from '@/lib/graphql/queries';
 import { format, isAfter, isBefore } from 'date-fns';
 import { useEffect, useRef, useState } from 'react';
 import { Game } from '@/lib/types/types';
-import { ChevronDown, ChevronUp, Calendar } from 'lucide-react';
+import { Calendar } from 'lucide-react';
 
 interface GamesData {
   games: {
@@ -48,7 +48,7 @@ export default function Page() {
         season: '2024',
       },
       pagination: {
-        last: 2000,
+        first: 200,
       },
     },
   });
@@ -63,7 +63,7 @@ export default function Page() {
         season: '2024',
       },
       pagination: {
-        last: 2000,
+        first: 200,
       },
     },
   });
@@ -111,21 +111,24 @@ export default function Page() {
   }, [dataScheduled]);
 
   const handleLoadMore = async () => {
-    if (!dataCompleted?.games.pageInfo.hasPreviousPage || isFetchingMore) return;
+    if (!dataCompleted?.games.pageInfo.hasNextPage || isFetchingMore) return;
 
     setIsFetchingMore(true);
     try {
-      await fetchMore({
+      const result = await fetchMore({
         variables: {
+          filters: {
+            season: '2024',
+          },
           pagination: {
-            last: 2000,
-            before: dataCompleted.games.pageInfo.startCursor,
+            first: 200,
+            after: dataCompleted.games.pageInfo.endCursor,
           },
         },
         updateQuery: (prev, { fetchMoreResult }) => {
           if (!fetchMoreResult) return prev;
 
-          const combinedEdges = [...fetchMoreResult.games.edges, ...prev.games.edges];
+          const combinedEdges = [...prev.games.edges, ...fetchMoreResult.games.edges];
           const uniqueEdges = combinedEdges.reduce(
             (acc, edge) => {
               if (!acc.find(e => e.node.id === edge.node.id)) {
@@ -140,10 +143,15 @@ export default function Page() {
             games: {
               ...fetchMoreResult.games,
               edges: uniqueEdges,
+              pageInfo: fetchMoreResult.games.pageInfo,
             },
           };
         },
       });
+
+      if (!result.data?.games?.edges?.length) {
+        console.log('No more games to load');
+      }
     } catch (error) {
       console.error('Error loading more games:', error);
     } finally {
@@ -152,7 +160,7 @@ export default function Page() {
   };
 
   useEffect(() => {
-    if (!loadMoreRef.current || !dataCompleted?.games.pageInfo.hasPreviousPage) return;
+    if (!loadMoreRef.current || !dataCompleted?.games.pageInfo.hasNextPage) return;
 
     observerRef.current = new IntersectionObserver(
       entries => {
@@ -171,8 +179,8 @@ export default function Page() {
       }
     };
   }, [
-    dataCompleted?.games.pageInfo.startCursor,
-    dataCompleted?.games.pageInfo.hasPreviousPage,
+    dataCompleted?.games.pageInfo.endCursor,
+    dataCompleted?.games.pageInfo.hasNextPage,
     isFetchingMore,
   ]);
 
@@ -568,7 +576,7 @@ export default function Page() {
               <div className="w-6 h-6 border-3 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
               <span className="text-sm font-medium">Loading more games...</span>
             </div>
-          ) : dataCompleted?.games.pageInfo.hasPreviousPage ? (
+          ) : dataCompleted?.games.pageInfo.hasNextPage ? (
             <button
               onClick={handleLoadMore}
               className="px-6 py-3 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 transition-all duration-200 ease-in-out shadow-lg hover:shadow-xl"
