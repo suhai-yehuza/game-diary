@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import { useUser } from '@clerk/nextjs';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -30,8 +31,8 @@ export default function Page() {
   const { isLoaded } = useUser();
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);
-  const [allGames, setAllGames] = useState<Game[]>([]);
-  const [scheduledGames1, setScheduledGames1] = useState<Game[]>([]);
+  const [completedGames, setCompletedGames] = useState<Game[]>([]);
+  const [scheduledGames, setScheduledGames] = useState<Game[]>([]);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
   const [showScheduledGames, setShowScheduledGames] = useState(false);
   const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
@@ -47,10 +48,22 @@ export default function Page() {
     },
   });
 
+  const { loading: loadingScheduled, error: errorScheduled, data: dataScheduled } = useQuery<GamesData>(GET_GAMES, {
+    variables: {
+      filters: {
+        season: '2024',
+      },
+      pagination: {
+        last: 2000,
+      },
+    },
+  });
+
   useEffect(() => {
     if (data?.games?.edges) {
-      const games = data.games.edges.map(edge => edge.node);
-      setAllGames(prevGames => {
+      const now = new Date();
+      const games = data.games.edges.map(edge => edge.node).filter(game => isBefore(new Date(game.date.start), now))
+      setCompletedGames(prevGames => {
         const uniqueGames = [...prevGames, ...games].reduce((acc, game) => {
           if (!acc.find(g => g.id === game.id)) {
             acc.push(game);
@@ -62,10 +75,27 @@ export default function Page() {
           (a, b) => new Date(b.date.start).getTime() - new Date(a.date.start).getTime()
         );
       });
-
-      setScheduledGames1(games.filter(game => isAfter(new Date(game.date.start), now)));
     }
   }, [data]);
+
+  useEffect(() => {
+    if (dataScheduled?.games?.edges) {
+      const now = new Date();
+      const futureGames = dataScheduled.games.edges.map(edge => edge.node).filter(game => isAfter(new Date(game.date.start), now))
+      setScheduledGames(prevGames => {
+        const uniqueFutureGames = [...prevGames, ...futureGames].reduce((acc, game) => {
+          if (!acc.find(g => g.id === game.id)) {
+            acc.push(game);
+          }
+          return acc;
+        }, [] as Game[]);
+
+        return uniqueFutureGames.sort(
+          (a, b) => new Date(a.date.start).getTime() - new Date(b.date.start).getTime()
+        );
+      });
+    }
+  }, [dataScheduled]);
 
   const handleLoadMore = async () => {
     if (!data?.games.pageInfo.hasPreviousPage || isFetchingMore) return;
@@ -146,15 +176,11 @@ export default function Page() {
     return null;
   }
 
-  if (loading && !allGames.length) return <div>Loading...</div>;
+  if (loading && !completedGames.length) return <div>Loading...</div>;
   if (error) return <div>Error: {error.message}</div>;
 
-  const now = new Date();
-  // const scheduledGames = allGames.filter(game => isAfter(new Date(game.date.start), now));
-  const completedGames = allGames.filter(game => isBefore(new Date(game.date.start), now));
-
   const upcomingGamesSection =
-    scheduledGames1.length > 0 ? (
+    scheduledGames.length > 0 ? (
       <>
         {/* Scheduled Games Toggle */}
         <div className="mb-6">
@@ -165,12 +191,12 @@ export default function Page() {
             {showScheduledGames ? (
               <>
                 <ChevronUp className="w-4 h-4" />
-                Hide Upcoming Games ({scheduledGames1.length})
+                Hide Upcoming Games ({scheduledGames.length})
               </>
             ) : (
               <>
                 <ChevronDown className="w-4 h-4" />
-                Show Upcoming Games ({scheduledGames1.length})
+                Show Upcoming Games ({scheduledGames.length})
               </>
             )}
           </button>
@@ -181,7 +207,7 @@ export default function Page() {
           <div className="mb-12">
             <h2 className="text-xl font-semibold mb-6">Upcoming Games</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {scheduledGames1.map((game, index) => (
+              {scheduledGames.map((game, index) => (
                 <Link key={game.id} href={`/sports/nba/games/${game.id}`} className="block">
                   <div
                     className="bg-card rounded-lg shadow-sm p-4 transform transition-all duration-500 ease-out hover:scale-[1.02] hover:shadow-md animate-fadeInUp cursor-pointer h-[240px] flex flex-col"
@@ -310,7 +336,7 @@ export default function Page() {
       </header>
 
       <main className="container mx-auto px-4 py-8">
-        {upcomingGamesSection}
+        {!loadingScheduled && !errorScheduled && upcomingGamesSection}
 
         {/* Completed Games Section */}
         {completedGames.length > 0 && (
