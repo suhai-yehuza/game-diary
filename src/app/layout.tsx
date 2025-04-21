@@ -7,6 +7,8 @@ import { ThemeProvider } from '../components/theme-provider';
 import { ApolloWrapper } from '../components/providers/apollo-provider';
 import { Inter } from 'next/font/google';
 import './styles/globals.css';
+import { Toaster } from '@/components/ui/toaster';
+import { AuthProvider } from '@/contexts/AuthContext';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -26,20 +28,23 @@ export default function RootLayout({
   return (
     <html lang="en" className="scroll-smooth antialiased" suppressHydrationWarning>
       <body className={`flex min-h-screen flex-col ${inter.className}`}>
-        <ThemeProvider
-          enableSystem
-          attribute="class"
-          defaultTheme="system"
-          disableTransitionOnChange
-        >
-          <ClerkProvider>
-            <ApolloWrapper>
-              <Header />
-              <main className="grow">{children}</main>
-              <Footer />
-            </ApolloWrapper>
-          </ClerkProvider>
-        </ThemeProvider>
+        <ClerkProvider>
+          <AuthProvider>
+            <ThemeProvider
+              enableSystem
+              attribute="class"
+              defaultTheme="system"
+              disableTransitionOnChange
+            >
+              <ApolloWrapper>
+                <Header />
+                <main className="grow">{children}</main>
+                <Footer />
+              </ApolloWrapper>
+            </ThemeProvider>
+            <Toaster />
+          </AuthProvider>
+        </ClerkProvider>
       </body>
     </html>
   );

@@ -7,18 +7,18 @@ import { GET_GAME } from '@/lib/graphql/queries';
 import { format } from 'date-fns';
 import Image from 'next/image';
 import Link from 'next/link';
+import { CreateGameLogModal } from '@/components/create-game-log-modal';
 import { useEffect } from 'react';
 import { Game } from '@/lib/types/types';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function GamePage() {
   const params = useParams();
   const gameId = params.id as string;
+  const { userId } = useAuth();
+  const [gameData, setGameData] = useState<Game | null>(null);
 
-  const {
-    loading,
-    error,
-    data: gameData,
-  } = useQuery<{ game: Game }>(GET_GAME, {
+  const { loading, error, data } = useQuery<{ game: Game }>(GET_GAME, {
     variables: { id: gameId },
   });
 
@@ -28,15 +28,16 @@ export default function GamePage() {
   };
 
   useEffect(() => {
-    console.log({ gameData });
-  }, [gameData]);
+    if (data) {
+      setGameData(data.game);
+      console.log('gameData: ', data.game);
+    }
+  }, [data]);
 
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error.message}</div>;
 
-  const game = gameData?.game;
-
-  if (!game) return <div>Game not found</div>;
+  if (!gameData) return <div>Game not found</div>;
 
   return (
     <div className="min-h-screen bg-background">
@@ -50,12 +51,7 @@ export default function GamePage() {
               ← Back to Games
             </Link>
             <div className="flex items-center gap-4">
-              <Link
-                href="/sports/nba/log"
-                className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 transition-all duration-200 ease-in-out"
-              >
-                Create a Game Log
-              </Link>
+              <CreateGameLogModal gameId={gameId} userId={userId} />
             </div>
           </div>
         </div>
@@ -66,10 +62,10 @@ export default function GamePage() {
           {/* Game Header */}
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-4">
-              {game.league.logo && (
+              {gameData?.league.logo && (
                 <Image
-                  src={game.league.logo}
-                  alt={game.league.name}
+                  src={gameData.league.logo}
+                  alt={gameData.league.name}
                   width={40}
                   height={40}
                   className="rounded-full"
@@ -77,14 +73,14 @@ export default function GamePage() {
               )}
               <div>
                 <h1 className="text-2xl font-bold">
-                  {game.teams.visitors.nickname} vs {game.teams.home.nickname}
+                  {gameData?.teams.visitors.nickname} vs {gameData?.teams.home.nickname}
                 </h1>
                 <p className="text-muted-foreground">
-                  {format(new Date(game.date.start), 'MMMM d, yyyy')}
+                  {format(new Date(gameData?.date.start), 'MMMM d, yyyy')}
                 </p>
               </div>
             </div>
-            <div className="text-lg font-medium">{game.status.long}</div>
+            <div className="text-lg font-medium">{gameData?.status.long}</div>
           </div>
 
           {/* Scoreboard */}
@@ -92,49 +88,55 @@ export default function GamePage() {
             <div className="grid grid-cols-3 gap-4">
               {/* Away Team */}
               <div className="text-center">
-                {game.teams.visitors.logo && (
+                {gameData?.teams.visitors.logo && (
                   <Image
                     src={
-                      imageErrors[`${game.id}-visitors`] ? '/gamelog.svg' : game.teams.visitors.logo
+                      imageErrors[`${gameData?.id}-visitors`]
+                        ? '/gamelog.svg'
+                        : gameData?.teams.visitors.logo
                     }
-                    alt={game.teams.visitors.name}
+                    alt={gameData?.teams.visitors.name}
                     width={80}
                     height={80}
                     className="mx-auto mb-4 w-20 h-20"
-                    onError={() => handleImageError(`${game.id}-visitors`)}
+                    onError={() => handleImageError(`${gameData?.id}-visitors`)}
                   />
                 )}
-                <div className="text-xl font-bold">{game.teams.visitors.nickname}</div>
+                <div className="text-xl font-bold">{gameData?.teams.visitors.nickname}</div>
                 <div className="text-muted-foreground">
-                  {game.scores.visitors.win}-{game.scores.visitors.loss}
+                  {gameData?.scores.visitors.win}-{gameData?.scores.visitors.loss}
                 </div>
               </div>
 
               {/* Score */}
               <div className="text-center flex flex-col justify-center">
                 <div className="text-4xl font-bold">
-                  {game.scores.visitors.points} - {game.scores.home.points}
+                  {gameData?.scores.visitors.points} - {gameData?.scores.home.points}
                 </div>
-                {game.status.clock && (
-                  <div className="text-muted-foreground mt-2">{game.status.clock}</div>
+                {gameData?.status.clock && (
+                  <div className="text-muted-foreground mt-2">{gameData?.status.clock}</div>
                 )}
               </div>
 
               {/* Home Team */}
               <div className="text-center">
-                {game.teams.home.logo && (
+                {gameData?.teams.home.logo && (
                   <Image
-                    src={imageErrors[`${game.id}-home`] ? '/gamelog.svg' : game.teams.home.logo}
-                    alt={game.teams.home.name}
+                    src={
+                      imageErrors[`${gameData?.id}-home`]
+                        ? '/gamelog.svg'
+                        : gameData?.teams.home.logo
+                    }
+                    alt={gameData?.teams.home.name}
                     width={80}
                     height={80}
                     className="mx-auto mb-4 w-20 h-20"
-                    onError={() => handleImageError(`${game.id}-home`)}
+                    onError={() => handleImageError(`${gameData?.id}-home`)}
                   />
                 )}
-                <div className="text-xl font-bold">{game.teams.home.nickname}</div>
+                <div className="text-xl font-bold">{gameData?.teams.home.nickname}</div>
                 <div className="text-muted-foreground">
-                  {game.scores.home.win}-{game.scores.home.loss}
+                  {gameData?.scores.home.win}-{gameData?.scores.home.loss}
                 </div>
               </div>
             </div>
@@ -144,7 +146,7 @@ export default function GamePage() {
               <h3 className="text-lg font-medium mb-4">Quarter Scores</h3>
               <div className="grid grid-cols-5 gap-4">
                 <div className="text-center font-medium">Team</div>
-                {game.scores.visitors.linescore.map((score, index) => (
+                {gameData?.scores.visitors.linescore.map((score, index) => (
                   <div key={index} className="text-center font-medium">
                     Q{index + 1}
                   </div>
@@ -152,22 +154,22 @@ export default function GamePage() {
                 <div className="text-center font-medium">Total</div>
               </div>
               <div className="grid grid-cols-5 gap-4 mt-2">
-                <div className="text-center">{game.teams.visitors.nickname}</div>
-                {game.scores.visitors.linescore.map((score, index) => (
+                <div className="text-center">{gameData?.teams.visitors.nickname}</div>
+                {gameData?.scores.visitors.linescore.map((score, index) => (
                   <div key={index} className="text-center">
                     {score}
                   </div>
                 ))}
-                <div className="text-center font-bold">{game.scores.visitors.points}</div>
+                <div className="text-center font-bold">{gameData?.scores.visitors.points}</div>
               </div>
               <div className="grid grid-cols-5 gap-4 mt-2">
-                <div className="text-center">{game.teams.home.nickname}</div>
-                {game.scores.home.linescore.map((score, index) => (
+                <div className="text-center">{gameData?.teams.home.nickname}</div>
+                {gameData?.scores.home.linescore.map((score, index) => (
                   <div key={index} className="text-center">
                     {score}
                   </div>
                 ))}
-                <div className="text-center font-bold">{game.scores.home.points}</div>
+                <div className="text-center font-bold">{gameData?.scores.home.points}</div>
               </div>
             </div>
           </div>
@@ -178,9 +180,9 @@ export default function GamePage() {
             <div className="bg-card rounded-lg shadow-sm p-6">
               <h3 className="text-lg font-medium mb-4">Arena Information</h3>
               <div className="space-y-2">
-                <p className="font-medium">{game.arena.name}</p>
+                <p className="font-medium">{gameData?.arena.name}</p>
                 <p className="text-muted-foreground">
-                  {game.arena.city}, {game.arena.state}, {game.arena.country}
+                  {gameData?.arena.city}, {gameData?.arena.state}, {gameData?.arena.country}
                 </p>
               </div>
             </div>
@@ -189,13 +191,13 @@ export default function GamePage() {
             <div className="bg-card rounded-lg shadow-sm p-6">
               <h3 className="text-lg font-medium mb-4">Game Statistics</h3>
               <div className="space-y-2">
-                <p>Times Tied: {game.timesTied}</p>
-                <p>Lead Changes: {game.leadChanges}</p>
-                {game.officials.length > 0 && (
+                <p>Times Tied: {gameData?.timesTied}</p>
+                <p>Lead Changes: {gameData?.leadChanges}</p>
+                {gameData?.officials.length > 0 && (
                   <div>
                     <p className="font-medium">Officials:</p>
                     <ul className="list-disc list-inside text-muted-foreground">
-                      {game.officials.map((official, index) => (
+                      {gameData?.officials.map((official, index) => (
                         <li key={index}>{official}</li>
                       ))}
                     </ul>
@@ -209,7 +211,7 @@ export default function GamePage() {
           <div className="mt-8">
             <h3 className="text-2xl font-bold mb-6">Team Statistics</h3>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {game.statistics?.map((teamStats, index) => (
+              {gameData?.statistics?.map((teamStats, index) => (
                 <div key={index} className="bg-card rounded-lg shadow-sm p-6">
                   <div className="flex items-center gap-4 mb-6">
                     {teamStats.team.logo && (
@@ -293,10 +295,10 @@ export default function GamePage() {
           </div>
 
           {/* Game Nugget */}
-          {game.nugget && (
+          {gameData?.nugget && (
             <div className="mt-8 bg-card rounded-lg shadow-sm p-6">
               <h3 className="text-lg font-medium mb-4">Game Highlight</h3>
-              <p className="text-muted-foreground">{game.nugget}</p>
+              <p className="text-muted-foreground">{gameData?.nugget}</p>
             </div>
           )}
         </div>
