@@ -200,10 +200,10 @@ export default function Page() {
     scheduledGames.length > 0 ? (
       <>
         {/* Scheduled Games Toggle */}
-        <div className="mb-6">
+        <div className="mb-6 flex items-center gap-4">
           <button
             onClick={() => setShowScheduledGames(!showScheduledGames)}
-            className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors group"
+            className="flex items-center gap-2 text-sm font-bold text-white bg-gradient-to-r from-blue-600 to-purple-600 px-4 py-2 rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-300 group shadow-lg hover:shadow-xl"
           >
             <Calendar
               className={`w-4 h-4 transition-transform duration-300 ${
@@ -216,6 +216,17 @@ export default function Page() {
               <>Show Upcoming Games ({scheduledGames.length})</>
             )}
           </button>
+          {scheduledGames.some(game => game.status.long === 'In Play') && (
+            <div className="flex items-center gap-1.5 bg-gradient-to-r from-red-500/20 to-red-500/10 text-red-500 px-3 py-1.5 rounded-lg text-sm font-bold shadow-sm">
+              <div className="w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse shadow-sm" />
+              <span className="text-red-600">
+                {scheduledGames.filter(game => game.status.long === 'In Play').length} Live Game
+                {scheduledGames.filter(game => game.status.long === 'In Play').length !== 1
+                  ? 's'
+                  : ''}
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Upcoming Games Section */}
@@ -236,8 +247,8 @@ export default function Page() {
                     <div
                       className={`bg-card rounded-xl shadow-lg p-6 transform transition-all duration-300 ease-out hover:scale-[1.02] hover:shadow-xl cursor-pointer h-[280px] flex flex-col border ${
                         isLive
-                          ? 'border-red-500/50 hover:border-red-500 animate-pulse-slow'
-                          : 'border-purple-500/50 hover:border-purple-500/70'
+                          ? 'border-red-500/50 hover:border-red-500 animate-pulse-slow overflow-hidden'
+                          : 'border-border/50 hover:border-blue-500/50'
                       }`}
                       style={{
                         animationDelay: `${index * 50}ms`,
@@ -245,7 +256,7 @@ export default function Page() {
                       }}
                     >
                       {isLive && (
-                        <div className="absolute top-0 left-0 right-0 bg-red-500 text-white text-center py-1 text-sm font-medium animate-pulse">
+                        <div className="absolute top-0 left-0 right-0 bg-red-500 text-white text-center py-1 text-sm font-medium animate-pulse rounded-t-xl">
                           LIVE
                         </div>
                       )}
@@ -266,9 +277,10 @@ export default function Page() {
                         </div>
                         <div className="flex items-center gap-2">
                           {isLive ? (
-                            <div className="flex items-center gap-1 bg-red-500/10 text-red-500 px-2 py-1 rounded-full text-xs font-medium">
-                              <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />Q
-                              {game.periods.current} {game.status.clock}
+                            <div className="flex items-center gap-1.5 bg-gradient-to-r from-red-500/20 to-red-500/10 text-red-500 px-3 py-1.5 rounded-full text-sm font-bold shadow-sm">
+                              <div className="w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse shadow-sm" />
+                              <span className="text-red-600">Q{game.periods.current}</span>
+                              <span className="font-bold">{game.status.clock}</span>
                             </div>
                           ) : (
                             <div className="text-sm font-medium px-2 py-1 rounded-full bg-purple-500/10 text-purple-500">

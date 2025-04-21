@@ -1,5 +1,6 @@
 'use client';
 
+import React, { useState } from 'react';
 import { useParams } from 'next/navigation';
 import { useQuery } from '@apollo/client';
 import { GET_GAME } from '@/lib/graphql/queries';
@@ -20,6 +21,11 @@ export default function GamePage() {
   } = useQuery<{ game: Game }>(GET_GAME, {
     variables: { id: gameId },
   });
+
+  const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
+  const handleImageError = (imageId: string) => {
+    setImageErrors(prev => ({ ...prev, [imageId]: true }));
+  };
 
   useEffect(() => {
     console.log({ gameData });
@@ -80,11 +86,12 @@ export default function GamePage() {
               <div className="text-center">
                 {game.teams.visitors.logo && (
                   <Image
-                    src={game.teams.visitors.logo}
+                    src={imageErrors[`${game.id}-visitors`] ? '/gamelog.svg' : game.teams.visitors.logo}
                     alt={game.teams.visitors.name}
                     width={80}
                     height={80}
-                    className="mx-auto mb-4"
+                    className="mx-auto mb-4 w-20 h-20"
+                    onError={() => handleImageError(`${game.id}-visitors`)}
                   />
                 )}
                 <div className="text-xl font-bold">{game.teams.visitors.nickname}</div>
@@ -107,11 +114,12 @@ export default function GamePage() {
               <div className="text-center">
                 {game.teams.home.logo && (
                   <Image
-                    src={game.teams.home.logo}
+                    src={imageErrors[`${game.id}-home`] ? '/gamelog.svg' : game.teams.home.logo}
                     alt={game.teams.home.name}
                     width={80}
                     height={80}
-                    className="mx-auto mb-4"
+                    className="mx-auto mb-4 w-20 h-20"
+                    onError={() => handleImageError(`${game.id}-home`)}
                   />
                 )}
                 <div className="text-xl font-bold">{game.teams.home.nickname}</div>
