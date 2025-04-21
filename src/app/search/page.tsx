@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useQuery } from '@apollo/client';
 import { GET_GAMES } from '@/lib/graphql/queries';
@@ -51,7 +51,7 @@ interface GamesData {
   };
 }
 
-export default function SearchPage() {
+function SearchContent() {
   const searchParams = useSearchParams();
   const searchQuery = searchParams.get('q')?.toLowerCase() || '';
 
@@ -107,7 +107,7 @@ export default function SearchPage() {
           <p className="text-lg text-gray-600">No games found matching your search.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 justify-items-center">
           {filteredGames.map(game => (
             <Link key={game.id} href={`/sports/nba/games/${game.id}`} className="block">
               <div className="bg-card rounded-xl shadow-lg p-6 transform transition-all duration-300 ease-out hover:scale-[1.02] hover:shadow-xl cursor-pointer h-[280px] flex flex-col border border-border/50 hover:border-blue-500/50">
@@ -196,5 +196,13 @@ export default function SearchPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function SearchPage() {
+  return (
+    <Suspense fallback={<div className="p-4">Loading...</div>}>
+      <SearchContent />
+    </Suspense>
   );
 }

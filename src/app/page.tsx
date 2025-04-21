@@ -12,7 +12,7 @@ export default function Home() {
       <main className="flex flex-col gap-[32px] row-start-2 items-center justify-center text-center">
         <h1 className="text-2xl font-bold">
           {isLoaded && isSignedIn
-            ? `You are now logged in as ${userName}`
+            ? `You are logged in as ${userName}`
             : '🚧 ... Work in progress ... 🚧'}
         </h1>
         <div className="flex gap-4 items-center justify-center">
