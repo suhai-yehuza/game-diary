@@ -1,7 +1,7 @@
 'use client';
 import React from 'react';
 import Link from 'next/link';
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, Suspense } from 'react';
 import { SignInButton, SignedIn, SignedOut, UserButton } from '@clerk/nextjs';
 import { Search, X, Menu } from 'lucide-react';
 import Image from 'next/image';
@@ -11,21 +11,11 @@ import { ThemeToggle } from './theme-toggle';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 
-export default function Header() {
-  const [isSearchVisible, setIsSearchVisible] = useState(false);
-  const [isMenuExpanded, setIsMenuExpanded] = useState(false);
+function SearchBar() {
   const [searchQuery, setSearchQuery] = useState('');
-  const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const previousPathRef = useRef(pathname);
-
-  // Update previous path when pathname changes and we're not on the search page
-  useEffect(() => {
-    if (!pathname.startsWith('/search')) {
-      previousPathRef.current = pathname;
-    }
-  }, [pathname]);
+  const previousPathRef = useRef(usePathname());
 
   // Initialize search query from URL params
   useEffect(() => {
@@ -56,7 +46,6 @@ export default function Header() {
     e.preventDefault();
     if (searchQuery.trim()) {
       router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
-      setIsSearchVisible(false);
     }
   };
 
@@ -65,6 +54,27 @@ export default function Header() {
     setSearchQuery(query);
     debouncedSearch(query);
   };
+
+  return (
+    <form onSubmit={handleSearch} className="relative">
+      <div className="relative">
+        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+        <Input
+          type="search"
+          placeholder="Search games..."
+          className="pl-8 w-full sm:w-[200px] lg:w-[300px]"
+          value={searchQuery}
+          onChange={handleSearchChange}
+        />
+      </div>
+    </form>
+  );
+}
+
+export default function Header() {
+  const [isSearchVisible, setIsSearchVisible] = useState(false);
+  const [isMenuExpanded, setIsMenuExpanded] = useState(false);
+  const pathname = usePathname();
 
   const isActive = (path: string) => {
     return pathname === path || pathname?.startsWith(path + '/');
@@ -215,22 +225,15 @@ export default function Header() {
               </Button>
 
               {/* Search Bar */}
-              <form onSubmit={handleSearch} className="relative">
-                <div
-                  className={`${isSearchVisible ? 'block' : 'hidden'} sm:block absolute sm:relative top-16 sm:top-0 left-0 right-0 sm:left-auto sm:right-auto bg-background sm:bg-transparent p-4 sm:p-0 border-b sm:border-0`}
+              <div
+                className={`${isSearchVisible ? 'block' : 'hidden'} sm:block absolute sm:relative top-16 sm:top-0 left-0 right-0 sm:left-auto sm:right-auto bg-background sm:bg-transparent p-4 sm:p-0 border-b sm:border-0`}
+              >
+                <Suspense
+                  fallback={<div className="w-[200px] h-10 bg-gray-200 animate-pulse rounded-md" />}
                 >
-                  <div className="relative">
-                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      type="search"
-                      placeholder="Search games..."
-                      className="pl-8 w-full sm:w-[200px] lg:w-[300px]"
-                      value={searchQuery}
-                      onChange={handleSearchChange}
-                    />
-                  </div>
-                </div>
-              </form>
+                  <SearchBar />
+                </Suspense>
+              </div>
 
               <ThemeToggle />
 
