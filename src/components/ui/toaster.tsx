@@ -17,7 +17,7 @@ interface ToastProps {
   title?: string;
   description?: string;
   action?: ReactNode;
-  variant?: 'default' | 'destructive';
+  variant?: 'default' | 'destructive' | 'success';
 }
 
 export function Toaster() {
