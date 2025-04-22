@@ -35,12 +35,11 @@ interface GameCardProps {
 
 const GameCard = memo(({ game, index, imageErrors, onImageError }: GameCardProps) => {
   const isLive = game.status.long === 'In Play';
-  const winningTeam =
-    game.scores.visitors.points > game.scores.home.points
-      ? 'visitors'
-      : game.scores.home.points > game.scores.visitors.points
-        ? 'home'
-        : null;
+  const winningTeam = game.scores.visitors.points > game.scores.home.points 
+    ? 'visitors' 
+    : game.scores.home.points > game.scores.visitors.points 
+      ? 'home' 
+      : null;
 
   return (
     <Link href={`/sports/nba/games/${game.id}`} className="block">
@@ -117,7 +116,11 @@ const GameCard = memo(({ game, index, imageErrors, onImageError }: GameCardProps
             </div>
             <div
               className={`text-2xl font-bold transition-colors duration-300 group-hover:text-purple-500 ${
-                isLive && winningTeam === 'visitors' ? 'text-green-500' : ''
+                winningTeam === 'visitors' 
+                  ? isLive 
+                    ? 'text-green-500 animate-pulse' 
+                    : 'text-green-500'
+                  : ''
               }`}
             >
               {game.scores.visitors.points}
@@ -148,7 +151,11 @@ const GameCard = memo(({ game, index, imageErrors, onImageError }: GameCardProps
             </div>
             <div
               className={`text-2xl font-bold transition-colors duration-300 group-hover:text-purple-500 ${
-                isLive && winningTeam === 'home' ? 'text-green-500' : ''
+                winningTeam === 'home' 
+                  ? isLive 
+                    ? 'text-green-500 animate-pulse' 
+                    : 'text-green-500'
+                  : ''
               }`}
             >
               {game.scores.home.points}
