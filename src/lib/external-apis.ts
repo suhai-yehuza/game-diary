@@ -13,10 +13,13 @@ import type {
 
 const MAX_RETRIES = 3;
 const RETRY_DELAY = 1000; // 1 second
+const RAPID_API_HOST = `${process.env.NEXT_PUBLIC_RAPID_API_HOST}`;
+const RAPID_API_KEY = `${process.env.NEXT_PUBLIC_RAPID_API_KEY}`;
+const RAPID_API_BASE_URL = `${process.env.NEXT_PUBLIC_RAPID_API_BASE_URL}`;
 
 export const headers = {
-  'x-rapidapi-host': `${process.env.NEXT_PUBLIC_RAPID_API_HOST}`,
-  'x-rapidapi-key': `${process.env.NEXT_PUBLIC_RAPID_API_KEY}`,
+  'x-rapidapi-host': RAPID_API_HOST,
+  'x-rapidapi-key': RAPID_API_KEY,
 };
 
 // Utility function for API requests with retry logic
@@ -25,6 +28,10 @@ async function fetchWithRetry(
   options: RequestInit,
   retries = MAX_RETRIES
 ): Promise<Response> {
+  if (!RAPID_API_HOST || !RAPID_API_KEY) {
+    throw new Error('RapidAPI credentials are not properly configured');
+  }
+
   try {
     const response = await fetch(url, options);
     if (!response.ok) {
@@ -51,24 +58,21 @@ async function fetchWithRetry(
 
 // Seasons (/seasons)
 export async function fetchNbaSeasons(): Promise<SeasonApiResponse> {
-  try {
-    const res = await fetchWithRetry(`${process.env.NEXT_PUBLIC_RAPID_API_BASE_URL}/seasons`, {
-      headers,
-    });
-    const data = await res.json();
-    if (data.errors?.length > 0) {
-      throw new Error(`API returned errors: ${data.errors.join(', ')}`);
-    }
-    return data;
-  } catch (error) {
-    console.error('Error fetching NBA seasons:', error);
+  const res = await fetchWithRetry(`${RAPID_API_BASE_URL}/seasons`, {
+    headers,
+  });
+
+  if (!res.ok) {
+    console.log({ res });
     throw new Error('Failed to fetch NBA seasons');
   }
+
+  return res.json();
 }
 
 // Leagues (/leagues)
 export async function fetchNbaLeagues(): Promise<LeagueApiResponse> {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_RAPID_API_BASE_URL}/leagues`, {
+  const res = await fetchWithRetry(`${RAPID_API_BASE_URL}/leagues`, {
     headers,
   });
 
@@ -82,58 +86,22 @@ export async function fetchNbaLeagues(): Promise<LeagueApiResponse> {
 
 // Games (/games)
 export async function fetchNbaGames(queryParams: string): Promise<GameApiResponse> {
-  try {
-    const url = `${process.env.NEXT_PUBLIC_RAPID_API_BASE_URL}/games${queryParams}`;
-    console.log('Fetching games from:', url);
-    console.log('Using headers:', {
-      'x-rapidapi-host': process.env.NEXT_PUBLIC_RAPID_API_HOST,
-      'x-rapidapi-key': '***',
-    });
+  const res = await fetchWithRetry(`${RAPID_API_BASE_URL}/games${queryParams}`, {
+    headers,
+  });
 
-    if (!process.env.NEXT_PUBLIC_RAPID_API_HOST || !process.env.NEXT_PUBLIC_RAPID_API_KEY) {
-      throw new Error('RapidAPI credentials are not properly configured');
-    }
-
-    const res = await fetch(url, {
-      headers: {
-        'x-rapidapi-host': process.env.NEXT_PUBLIC_RAPID_API_HOST,
-        'x-rapidapi-key': process.env.NEXT_PUBLIC_RAPID_API_KEY,
-      },
-    });
-
-    if (res.status === 429) {
-      const retryAfter = res.headers.get('retry-after') || '60';
-      console.log(`Rate limit hit. Waiting ${retryAfter} seconds before retry...`);
-      await new Promise(resolve => setTimeout(resolve, parseInt(retryAfter) * 1000));
-      return fetchNbaGames(queryParams);
-    }
-
-    if (!res.ok) {
-      const errorText = await res.text();
-      console.error('API Error Response:', {
-        status: res.status,
-        statusText: res.statusText,
-        body: errorText,
-      });
-      throw new Error(`Failed to fetch NBA games: ${res.status} ${res.statusText}`);
-    }
-
-    const data = await res.json();
-    console.log('Games API Response:', data);
-    return data;
-  } catch (error) {
-    console.error('Error in fetchNbaGames:', error);
-    throw error;
+  if (!res.ok) {
+    console.log({ res });
+    throw new Error('Failed to fetch NBA games');
   }
+
+  return res.json();
 }
 
 export async function fetchNbaGamesH2H(team1: number, team2: number): Promise<GameApiResponse> {
-  const res = await fetch(
-    `${process.env.NEXT_PUBLIC_RAPID_API_BASE_URL}/games?h2h=${team1}-${team2}`,
-    {
-      headers,
-    }
-  );
+  const res = await fetchWithRetry(`${RAPID_API_BASE_URL}/games?h2h=${team1}-${team2}`, {
+    headers,
+  });
 
   if (!res.ok) {
     console.log({ res });
@@ -148,7 +116,7 @@ export async function fetchNbaGameById(id: string): Promise<GameApiResponse> {
 }
 
 export async function fetchNbaLiveGames(): Promise<GameApiResponse> {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_RAPID_API_BASE_URL}/games?live=all`, {
+  const res = await fetchWithRetry(`${RAPID_API_BASE_URL}/games?live=all`, {
     headers,
   });
 
@@ -163,10 +131,10 @@ export async function fetchNbaLiveGames(): Promise<GameApiResponse> {
 // Teams
 export async function fetchNbaTeams(queryParams?: string): Promise<TeamSearchApiResponse> {
   const url = queryParams
-    ? `${process.env.NEXT_PUBLIC_RAPID_API_BASE_URL}/teams?${queryParams}`
-    : `${process.env.NEXT_PUBLIC_RAPID_API_BASE_URL}/teams`;
+    ? `${RAPID_API_BASE_URL}/teams?${queryParams}`
+    : `${RAPID_API_BASE_URL}/teams`;
 
-  const res = await fetch(url, {
+  const res = await fetchWithRetry(url, {
     headers,
   });
 
@@ -179,7 +147,7 @@ export async function fetchNbaTeams(queryParams?: string): Promise<TeamSearchApi
 }
 
 export async function fetchNbaTeamById(id: string): Promise<TeamSearchApiResponse> {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_RAPID_API_BASE_URL}/teams/?id=${id}`, {
+  const res = await fetchWithRetry(`${RAPID_API_BASE_URL}/teams/?id=${id}`, {
     headers,
   });
 
@@ -193,63 +161,22 @@ export async function fetchNbaTeamById(id: string): Promise<TeamSearchApiRespons
 
 // Players
 export async function fetchNbaPlayers(queryParams: string): Promise<PlayersApiResponse> {
-  try {
-    // Remove any leading '?' from queryParams
-    const cleanQueryParams = queryParams.startsWith('?') ? queryParams.slice(1) : queryParams;
-    const url = `${process.env.NEXT_PUBLIC_RAPID_API_BASE_URL}/players${cleanQueryParams ? `?${cleanQueryParams}` : ''}`;
-    console.log('Fetching players from:', url);
-    console.log('Using headers:', {
-      'x-rapidapi-host': process.env.NEXT_PUBLIC_RAPID_API_HOST,
-      'x-rapidapi-key': process.env.NEXT_PUBLIC_RAPID_API_KEY ? '***' : 'missing',
-    });
+  // Remove any leading '?' from queryParams
+  const cleanQueryParams = queryParams.startsWith('?') ? queryParams.slice(1) : queryParams;
+  const url = `${RAPID_API_BASE_URL}/players${cleanQueryParams ? `?${cleanQueryParams}` : ''}`;
+  const res = await fetchWithRetry(url, {
+    headers: {
+      'x-rapidapi-host': RAPID_API_HOST || '',
+      'x-rapidapi-key': RAPID_API_KEY || '',
+    },
+  });
 
-    const res = await fetch(url, {
-      headers: {
-        'x-rapidapi-host': process.env.NEXT_PUBLIC_RAPID_API_HOST || '',
-        'x-rapidapi-key': process.env.NEXT_PUBLIC_RAPID_API_KEY || '',
-      },
-    });
-
-    if (!res.ok) {
-      const contentType = res.headers.get('content-type');
-      if (contentType && contentType.includes('text/html')) {
-        const html = await res.text();
-        console.error('API returned HTML error page:', html);
-        throw new Error(
-          'API returned an HTML error page. Check API configuration and credentials.'
-        );
-      }
-
-      const errorText = await res.text();
-      console.error('API Error Response:', {
-        status: res.status,
-        statusText: res.statusText,
-        body: errorText,
-      });
-      throw new Error(`Failed to fetch NBA players: ${res.status} ${res.statusText}`);
-    }
-
-    const contentType = res.headers.get('content-type');
-    if (!contentType || !contentType.includes('application/json')) {
-      const text = await res.text();
-      console.error('API returned non-JSON response:', text);
-      throw new Error('API returned a non-JSON response');
-    }
-
-    const data = await res.json();
-    console.log('Players API Response:', {
-      get: data.get,
-      parameters: data.parameters,
-      results: data.results,
-      responseLength: data.response?.length,
-      firstPlayer: data.response?.[0],
-      errors: data.errors,
-    });
-    return data;
-  } catch (error) {
-    console.error('Error in fetchNbaPlayers:', error);
-    throw error;
+  if (!res.ok) {
+    console.log({ res });
+    throw new Error('Failed to fetch NBA players');
   }
+
+  return res.json();
 }
 
 export async function fetchNbaPlayerById(id: string): Promise<PlayersApiResponse> {
@@ -258,12 +185,7 @@ export async function fetchNbaPlayerById(id: string): Promise<PlayersApiResponse
 
 // Standings
 export async function fetchNbaStandings(queryParams: string): Promise<StandingsApiResponse> {
-  const res = await fetch(
-    `${process.env.NEXT_PUBLIC_RAPID_API_BASE_URL}/standings?${queryParams}`,
-    {
-      headers,
-    }
-  );
+  const res = await fetchWithRetry(`${RAPID_API_BASE_URL}/standings?${queryParams}`, { headers });
 
   if (!res.ok) {
     console.log({ res });
@@ -275,12 +197,9 @@ export async function fetchNbaStandings(queryParams: string): Promise<StandingsA
 
 // Stats
 export async function fetchNbaGameStats(queryParams: string): Promise<GameStatisticsApiResponse> {
-  const res = await fetch(
-    `${process.env.NEXT_PUBLIC_RAPID_API_BASE_URL}/games/statistics?${queryParams}`,
-    {
-      headers,
-    }
-  );
+  const res = await fetchWithRetry(`${RAPID_API_BASE_URL}/games/statistics?${queryParams}`, {
+    headers,
+  });
 
   if (!res.ok) {
     console.log({ res });
@@ -291,12 +210,9 @@ export async function fetchNbaGameStats(queryParams: string): Promise<GameStatis
 }
 
 export async function fetchNbaTeamStats(queryParams: string): Promise<TeamStatisticsApiResponse> {
-  const res = await fetch(
-    `${process.env.NEXT_PUBLIC_RAPID_API_BASE_URL}/teams/statistics?${queryParams}`,
-    {
-      headers,
-    }
-  );
+  const res = await fetchWithRetry(`${RAPID_API_BASE_URL}/teams/statistics?${queryParams}`, {
+    headers,
+  });
 
   if (!res.ok) {
     console.log({ res });
@@ -309,12 +225,9 @@ export async function fetchNbaTeamStats(queryParams: string): Promise<TeamStatis
 export async function fetchNbaPlayerStats(
   queryParams: string
 ): Promise<PlayerStatisticsApiResponse> {
-  const res = await fetch(
-    `${process.env.NEXT_PUBLIC_RAPID_API_BASE_URL}/players/statistics?${queryParams}`,
-    {
-      headers,
-    }
-  );
+  const res = await fetchWithRetry(`${RAPID_API_BASE_URL}/players/statistics?${queryParams}`, {
+    headers,
+  });
 
   if (!res.ok) {
     console.log({ res });
@@ -325,12 +238,9 @@ export async function fetchNbaPlayerStats(
 }
 
 export async function searchNbaPlayers(queryParams: string): Promise<PlayersApiResponse> {
-  const res = await fetch(
-    `${process.env.NEXT_PUBLIC_RAPID_API_BASE_URL}/players?search=${queryParams}`,
-    {
-      headers,
-    }
-  );
+  const res = await fetchWithRetry(`${RAPID_API_BASE_URL}/players?search=${queryParams}`, {
+    headers,
+  });
 
   if (!res.ok) {
     console.log({ res });
@@ -341,12 +251,9 @@ export async function searchNbaPlayers(queryParams: string): Promise<PlayersApiR
 }
 
 export async function searchNbaTeams(queryParams: string): Promise<TeamSearchApiResponse> {
-  const res = await fetch(
-    `${process.env.NEXT_PUBLIC_RAPID_API_BASE_URL}/teams?search=${queryParams}`,
-    {
-      headers,
-    }
-  );
+  const res = await fetchWithRetry(`${RAPID_API_BASE_URL}/teams?search=${queryParams}`, {
+    headers,
+  });
 
   if (!res.ok) {
     console.log({ res });
@@ -358,42 +265,19 @@ export async function searchNbaTeams(queryParams: string): Promise<TeamSearchApi
 
 // Game Statistics
 export async function fetchNbaGameStatistics(game_id: string): Promise<GameStatisticsApiResponse> {
-  try {
-    const url = `${process.env.NEXT_PUBLIC_RAPID_API_BASE_URL}/games/statistics?id=${game_id}`;
-    console.log('Fetching game statistics from:', url);
-    console.log('Using headers:', {
-      'x-rapidapi-host': process.env.NEXT_PUBLIC_RAPID_API_HOST,
-      'x-rapidapi-key': process.env.NEXT_PUBLIC_RAPID_API_KEY ? '***' : 'missing',
-    });
+  const res = await fetchWithRetry(`${RAPID_API_BASE_URL}/games/statistics?id=${game_id}`, {
+    headers,
+  });
 
-    const res = await fetch(url, {
-      headers: {
-        'x-rapidapi-host': process.env.NEXT_PUBLIC_RAPID_API_HOST || '',
-        'x-rapidapi-key': process.env.NEXT_PUBLIC_RAPID_API_KEY || '',
-      },
+  if (!res.ok) {
+    const errorText = await res.text();
+    console.error('API Error Response:', {
+      status: res.status,
+      statusText: res.statusText,
+      body: errorText,
     });
-
-    if (!res.ok) {
-      const errorText = await res.text();
-      console.error('API Error Response:', {
-        status: res.status,
-        statusText: res.statusText,
-        body: errorText,
-      });
-      throw new Error(`Failed to fetch NBA game statistics: ${res.status} ${res.statusText}`);
-    }
-
-    const data = await res.json();
-    console.log('Game Statistics API Response:', {
-      get: data.get,
-      parameters: data.parameters,
-      results: data.results,
-      responseLength: data.response?.length,
-      errors: data.errors,
-    });
-    return data;
-  } catch (error) {
-    console.error('Error in fetchNbaGameStatistics:', error);
-    throw error;
+    throw new Error(`Failed to fetch NBA game statistics: ${res.status} ${res.statusText}`);
   }
+
+  return await res.json();
 }
