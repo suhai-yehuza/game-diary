@@ -573,17 +573,16 @@ export default function GamePage() {
                     <div className="bg-gradient-to-r from-blue-600 to-orange-600 p-6">
                       <div className="flex items-center justify-between gap-4">
                         <div className="flex items-center gap-4">
-                          {teamStats.team.logo && (
-                            <div className="w-16 h-16 relative flex-shrink-0">
-                              <Image
-                                src={teamStats.team.logo}
-                                alt={teamStats.team.name}
-                                fill
-                                sizes="(max-width: 64px) 100vw, 64px"
-                                className="rounded-full bg-white p-1 object-contain"
-                              />
-                            </div>
-                          )}
+                          <div className="w-16 h-16 relative flex-shrink-0">
+                            <Image
+                              src={imageErrors[`${teamStats.team.id}-stats`] ? '/gamelog.svg' : teamStats.team.logo}
+                              alt={teamStats.team.name}
+                              fill
+                              sizes="(max-width: 64px) 100vw, 64px"
+                              className="rounded-full bg-white p-1 object-contain"
+                              onError={() => handleImageError(`${teamStats.team.id}-stats`)}
+                            />
+                          </div>
                           <div>
                             <h4 className="text-2xl font-bold text-white">
                               {teamStats.team.nickname}
