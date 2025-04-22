@@ -139,7 +139,7 @@ export default function Header() {
                 <ul className="flex flex-col lg:flex-row space-y-2 lg:space-y-0 lg:space-x-8 p-4 lg:p-0 text-sm font-medium">
                   <li>
                     <Link
-                      href="/"
+                      href="/sports/nba"
                       className={`block py-1.5 lg:py-0 text-base lg:text-sm transition-colors ${
                         isActive('/') ? 'text-blue-600 font-semibold' : 'hover:text-blue-600'
                       }`}
