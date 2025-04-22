@@ -1,0 +1,118 @@
+{
+  "get": "teams\/",
+  "parameters": {
+    "division": "pacific"
+  },
+  "errors": [],
+  "results": 5,
+  "response": [
+    {
+      "id": 11,
+      "name": "Golden State Warriors",
+      "nickname": "Warriors",
+      "code": "GSW",
+      "city": "Golden State",
+      "logo": "https:\/\/upload.wikimedia.org\/wikipedia\/fr\/thumb\/d\/de\/Warriors_de_Golden_State_logo.svg\/1200px-Warriors_de_Golden_State_logo.svg.png",
+      "allStar": false,
+      "nbaFranchise": true,
+      "leagues": {
+        "standard": {
+          "conference": "West",
+          "division": "Pacific"
+        },
+        "utah": {
+          "conference": "West",
+          "division": "Pacific"
+        }
+      }
+    },
+    {
+      "id": 16,
+      "name": "LA Clippers",
+      "nickname": "Clippers",
+      "code": "LAC",
+      "city": "LA",
+      "logo": "https:\/\/upload.wikimedia.org\/wikipedia\/fr\/d\/d6\/Los_Angeles_Clippers_logo_2010.png",
+      "allStar": false,
+      "nbaFranchise": true,
+      "leagues": {
+        "standard": {
+          "conference": "West",
+          "division": "Pacific"
+        },
+        "utah": {
+          "conference": "West",
+          "division": "Pacific"
+        },
+        "sacramento": {
+          "conference": "West",
+          "division": "Pacific"
+        }
+      }
+    },
+    {
+      "id": 17,
+      "name": "Los Angeles Lakers",
+      "nickname": "Lakers",
+      "code": "LAL",
+      "city": "Los Angeles",
+      "logo": "https:\/\/upload.wikimedia.org\/wikipedia\/commons\/thumb\/3\/3c\/Los_Angeles_Lakers_logo.svg\/220px-Los_Angeles_Lakers_logo.svg.png",
+      "allStar": false,
+      "nbaFranchise": true,
+      "leagues": {
+        "standard": {
+          "conference": "West",
+          "division": "Pacific"
+        },
+        "utah": {
+          "conference": "West",
+          "division": "Pacific"
+        }
+      }
+    },
+    {
+      "id": 28,
+      "name": "Phoenix Suns",
+      "nickname": "Suns",
+      "code": "PHX",
+      "city": "Phoenix",
+      "logo": "https:\/\/upload.wikimedia.org\/wikipedia\/fr\/5\/56\/Phoenix_Suns_2013.png",
+      "allStar": false,
+      "nbaFranchise": true,
+      "leagues": {
+        "standard": {
+          "conference": "West",
+          "division": "Pacific"
+        },
+        "utah": {
+          "conference": "West",
+          "division": "Pacific"
+        },
+        "sacramento": {
+          "conference": "West",
+          "division": "Pacific"
+        }
+      }
+    },
+    {
+      "id": 30,
+      "name": "Sacramento Kings",
+      "nickname": "Kings",
+      "code": "SAC",
+      "city": "Sacramento",
+      "logo": "https:\/\/upload.wikimedia.org\/wikipedia\/fr\/thumb\/9\/95\/Kings_de_Sacramento_logo.svg\/1200px-Kings_de_Sacramento_logo.svg.png",
+      "allStar": false,
+      "nbaFranchise": true,
+      "leagues": {
+        "standard": {
+          "conference": "West",
+          "division": "Pacific"
+        },
+        "utah": {
+          "conference": "West",
+          "division": "Pacific"
+        }
+      }
+    }
+  ]
+}

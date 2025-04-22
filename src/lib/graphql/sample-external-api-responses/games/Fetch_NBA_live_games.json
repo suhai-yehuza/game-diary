@@ -1,0 +1,9 @@
+{
+  "get": "games\/",
+  "parameters": {
+    "live": "all"
+  },
+  "errors": [],
+  "results": 0,
+  "response": []
+}

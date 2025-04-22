@@ -1,0 +1,238 @@
+# Seasons
+query GetSeasons {
+  seasons {
+    id
+    name
+    startDate
+    endDate
+    isCurrent
+  }
+}
+
+# Leagues
+query GetLeagues {
+  leagues {
+    id
+    name
+    type
+    logo
+  }
+}
+
+
+# Games
+query GetGames {
+  games(filters: { date: "2024-04-13" }) {
+    id
+    date
+    status
+    homeTeam {
+      name
+      code
+      logo
+    }
+    awayTeam {
+      name
+      code
+      logo
+    }
+  }
+}
+
+
+# Teams
+query GetTeams {
+  teams {
+    id
+    name
+    code
+    conference
+    division
+    logo
+  }
+}
+
+query GetTeamsByConference {
+  teams(filters: { conference: "East" }) {
+    id
+    name
+    code
+    conference
+    division
+    logo
+  }
+}
+
+# Standings
+query GetStandings {
+  standings(filters: { season: "2023" }) {
+    league
+    team {
+      id
+      name
+      code
+      conference
+      division
+      logo
+    }
+    conference {
+      name
+      rank
+      win
+      loss
+    }
+    division {
+      name
+      rank
+      win
+      loss
+      gamesBehind
+    }
+    win {
+      home
+      away
+      total
+      percentage
+      lastTen
+    }
+    loss {
+      home
+      away
+      total
+      percentage
+      lastTen
+    }
+    gamesBehind
+    streak
+    winStreak
+  }
+}
+
+query GetTeamStandings {
+  standings(filters: {
+    season: "2023",
+    team: "2"
+  }) {
+    league
+    team {
+      name
+      code
+    }
+    conference {
+      rank
+      win
+      loss
+    }
+    division {
+      rank
+      win
+      loss
+      gamesBehind
+    }
+    win {
+      total
+      percentage
+    }
+    loss {
+      total
+    }
+    gamesBehind
+  }
+}
+
+# Stats
+query GetGameStatistics($id: ID!) {
+  gameStatistics(id: $id) {
+    get
+    parameters
+    errors
+    results
+    response {
+      team {
+        id
+        name
+        code
+        conference
+        division
+        logo
+      }
+      statistics {
+        points
+        assists
+        rebounds
+        steals
+        blocks
+        turnovers
+        fieldGoalsMade
+        fieldGoalsAttempted
+        threePointersMade
+        threePointersAttempted
+        freeThrowsMade
+        freeThrowsAttempted
+        fieldGoalPercentage
+        threePointPercentage
+        freeThrowPercentage
+        offensiveRebounds
+        defensiveRebounds
+        personalFouls
+        plusMinus
+        minutes
+        fastBreakPoints
+        pointsInPaint
+        secondChancePoints
+        pointsOffTurnovers
+        benchPoints
+      }
+    }
+  }
+}
+
+
+
+=====
+# Players
+query GetPlayersByTeam {
+  players(filters: { team: "1", season: "2023" }) {
+    id
+    first_name
+    last_name
+    position
+    team {
+      id
+      name
+    }
+  }
+}
+
+query GetPlayer($id: ID!) {
+  player(id: $id) {
+    id
+    first_name
+    last_name
+    position
+    team {
+      id
+      name
+    }
+  }
+}
+
+query GetPlayersByCountry($country: String!) {
+  players(filters: { country: $country }) {
+    id
+    first_name
+    last_name
+    position
+    team {
+      id
+      name
+      code
+      conference
+      division
+      logo
+    }
+  }
+}
+
+
+# Search
