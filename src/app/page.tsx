@@ -1,17 +1,26 @@
 'use client';
-
+import { redirect } from 'next/navigation';
 import Image from 'next/image';
 import { useUser } from '@clerk/nextjs';
 import React, { useEffect, useState } from 'react';
+import useMounted from '@/hooks/use-mounted';
+
 export default function Home() {
   const { isLoaded, isSignedIn } = useUser();
   const { user } = useUser();
   const [isRegisteredDomainSite, setIsRegisteredDomainSite] = useState(false);
+  const mounted = useMounted();
   const userName = user?.username || user?.firstName || user?.emailAddresses[0].emailAddress;
 
   useEffect(() => {
-    setIsRegisteredDomainSite(window.location.href.includes('game-diary.io'));
-  }, []);
+    if (mounted) {
+      setIsRegisteredDomainSite(window.location.href.includes('game-diary.io'));
+    }
+  }, [mounted]);
+
+  if (mounted && isRegisteredDomainSite) {
+    redirect('/sports/nba');
+  }
 
   return (
     <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">

@@ -321,9 +321,12 @@ export const resolvers = {
           },
           statistics: apiGame.statistics?.map((stat: GameStatistics) => ({
             ...stat,
-            game_id: stat.game_id.toString(),
-            team: stat.team.toString(),
-            playerId: stat.playerId.toString(),
+            game_id: parseInt(stat.game_id.toString(), 10),
+            team: {
+              ...stat.team,
+              id: parseInt(stat.team.id.toString(), 10)
+            },
+            playerId: parseInt(stat.playerId.toString(), 10)
           })),
         };
 
@@ -607,10 +610,59 @@ export const resolvers = {
         }
 
         const stats = await fetchNbaGameStats(`id=${game_id}`);
+        
+        // Transform the response to match the schema
+        const transformedStats = stats.response.map((teamStats: any) => ({
+          game_id: parseInt(game_id, 10),
+          team: {
+            id: teamStats.team.id.toString(),
+            name: teamStats.team.name,
+            nickname: teamStats.team.nickname,
+            code: teamStats.team.code,
+            logo: teamStats.team.logo
+          },
+          playerId: 0, // Team stats don't have a player ID
+          points: teamStats.statistics[0].points,
+          rebounds: {
+            total: teamStats.statistics[0].totReb,
+            offensive: teamStats.statistics[0].offReb,
+            defensive: teamStats.statistics[0].defReb
+          },
+          assists: teamStats.statistics[0].assists,
+          steals: teamStats.statistics[0].steals,
+          blocks: teamStats.statistics[0].blocks,
+          turnovers: teamStats.statistics[0].turnovers,
+          fouls: teamStats.statistics[0].pFouls,
+          minutes: teamStats.statistics[0].min,
+          fieldGoals: {
+            made: teamStats.statistics[0].fgm,
+            attempted: teamStats.statistics[0].fga,
+            percentage: teamStats.statistics[0].fgp
+          },
+          threePointers: {
+            made: teamStats.statistics[0].tpm,
+            attempted: teamStats.statistics[0].tpa,
+            percentage: teamStats.statistics[0].tpp
+          },
+          freeThrows: {
+            made: teamStats.statistics[0].ftm,
+            attempted: teamStats.statistics[0].fta,
+            percentage: teamStats.statistics[0].ftp
+          },
+          plusMinus: parseInt(teamStats.statistics[0].plusMinus, 10),
+          statistics: {
+            fastBreakPoints: teamStats.statistics[0].fastBreakPoints,
+            pointsInPaint: teamStats.statistics[0].pointsInPaint,
+            biggestLead: teamStats.statistics[0].biggestLead,
+            secondChancePoints: teamStats.statistics[0].secondChancePoints,
+            pointsOffTurnovers: teamStats.statistics[0].pointsOffTurnovers,
+            longestRun: teamStats.statistics[0].longestRun
+          }
+        }));
 
-        // Cache the game stats
-        await cache.set(cacheKey, stats, CACHE_TTL.GAME_STATS);
-        return stats;
+        // Cache the transformed game stats
+        await cache.set(cacheKey, transformedStats, CACHE_TTL.GAME_STATS);
+        return transformedStats;
       } catch (error) {
         console.error('Error fetching game stats:', error);
         throw new Error('Failed to fetch game stats');
