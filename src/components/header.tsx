@@ -48,7 +48,7 @@ function SearchBarContent() {
           // Return to the previous page when search is cleared
           router.push(previousPathRef.current);
         }
-      }, 300); // Reduced debounce time to 300ms for better responsiveness
+      }, 200); // Reduced debounce time to 200ms for better responsiveness
     },
     [router]
   );
@@ -134,7 +134,7 @@ export default function Header() {
 
               {/* Navigation Links */}
               <div
-                className={`${!isMenuExpanded ? 'hidden' : 'block'} lg:block absolute lg:relative top-16 left-0 right-0 lg:top-0 bg-background lg:bg-transparent`}
+                className={`${!isMenuExpanded ? 'hidden' : 'block'} lg:block absolute lg:relative top-16 left-0 right-0 lg:top-0 bg-background lg:bg-transparent z-50 shadow-lg lg:shadow-none`}
               >
                 <ul className="flex flex-col lg:flex-row space-y-2 lg:space-y-0 lg:space-x-8 p-4 lg:p-0 text-sm font-medium">
                   <li>
