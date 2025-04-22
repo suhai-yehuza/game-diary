@@ -340,10 +340,10 @@ export const NbaDataClient = () => {
           {[].map((team: Team) => (
             <div key={team.id} className="border rounded-lg p-4">
               <div className="flex items-center gap-4">
-                <Image 
-                  src={team?.logo} 
-                  alt={team.name} 
-                  width={96} 
+                <Image
+                  src={team?.logo}
+                  alt={team.name}
+                  width={96}
                   height={96}
                   className="w-24 h-24 object-contain"
                 />

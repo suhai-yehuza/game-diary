@@ -324,9 +324,9 @@ export const resolvers = {
             game_id: parseInt(stat.game_id.toString(), 10),
             team: {
               ...stat.team,
-              id: parseInt(stat.team.id.toString(), 10)
+              id: parseInt(stat.team.id.toString(), 10),
             },
-            playerId: parseInt(stat.playerId.toString(), 10)
+            playerId: parseInt(stat.playerId.toString(), 10),
           })),
         };
 
@@ -610,7 +610,7 @@ export const resolvers = {
         }
 
         const stats = await fetchNbaGameStats(`id=${game_id}`);
-        
+
         // Transform the response to match the schema
         const transformedStats = stats.response.map((teamStats: any) => ({
           game_id: game_id, // Keep as string
@@ -619,14 +619,14 @@ export const resolvers = {
             name: teamStats.team.name,
             nickname: teamStats.team.nickname,
             code: teamStats.team.code,
-            logo: teamStats.team.logo
+            logo: teamStats.team.logo,
           },
-          playerId: "0", // Team stats don't have a player ID, keep as string
+          playerId: '0', // Team stats don't have a player ID, keep as string
           points: teamStats.statistics[0].points,
           rebounds: {
             total: teamStats.statistics[0].totReb,
             offensive: teamStats.statistics[0].offReb,
-            defensive: teamStats.statistics[0].defReb
+            defensive: teamStats.statistics[0].defReb,
           },
           assists: teamStats.statistics[0].assists,
           steals: teamStats.statistics[0].steals,
@@ -637,17 +637,17 @@ export const resolvers = {
           fieldGoals: {
             made: teamStats.statistics[0].fgm,
             attempted: teamStats.statistics[0].fga,
-            percentage: teamStats.statistics[0].fgp
+            percentage: teamStats.statistics[0].fgp,
           },
           threePointers: {
             made: teamStats.statistics[0].tpm,
             attempted: teamStats.statistics[0].tpa,
-            percentage: teamStats.statistics[0].tpp
+            percentage: teamStats.statistics[0].tpp,
           },
           freeThrows: {
             made: teamStats.statistics[0].ftm,
             attempted: teamStats.statistics[0].fta,
-            percentage: teamStats.statistics[0].ftp
+            percentage: teamStats.statistics[0].ftp,
           },
           plusMinus: parseInt(teamStats.statistics[0].plusMinus, 10),
           statistics: {
@@ -656,8 +656,8 @@ export const resolvers = {
             biggestLead: teamStats.statistics[0].biggestLead,
             secondChancePoints: teamStats.statistics[0].secondChancePoints,
             pointsOffTurnovers: teamStats.statistics[0].pointsOffTurnovers,
-            longestRun: teamStats.statistics[0].longestRun
-          }
+            longestRun: teamStats.statistics[0].longestRun,
+          },
         }));
 
         // Cache the transformed game stats

@@ -306,17 +306,17 @@ export interface GameStatistics {
   fieldGoals: {
     made: number;
     attempted: number;
-    percentage: number;
+    percentage: string;
   };
   threePointers: {
     made: number;
     attempted: number;
-    percentage: number;
+    percentage: string;
   };
   freeThrows: {
     made: number;
     attempted: number;
-    percentage: number;
+    percentage: string;
   };
   plusMinus: number;
   statistics: GameStats;

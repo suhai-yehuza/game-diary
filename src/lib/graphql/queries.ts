@@ -465,9 +465,15 @@ export const GET_STANDINGS = gql`
 
 export const GET_GAME_STATS = gql`
   query GetGameStats($game_id: ID!) {
-    gameStats(game_id: $game_id) {
+    game_stats(game_id: $game_id) {
       game_id
-      team
+      team {
+        id
+        name
+        nickname
+        code
+        logo
+      }
       playerId
       points
       rebounds {
@@ -497,6 +503,14 @@ export const GET_GAME_STATS = gql`
         percentage
       }
       plusMinus
+      statistics {
+        fastBreakPoints
+        pointsInPaint
+        biggestLead
+        secondChancePoints
+        pointsOffTurnovers
+        longestRun
+      }
     }
   }
 `;

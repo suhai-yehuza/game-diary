@@ -35,11 +35,12 @@ interface GameCardProps {
 
 const GameCard = memo(({ game, index, imageErrors, onImageError }: GameCardProps) => {
   const isLive = game.status.long === 'In Play';
-  const winningTeam = game.scores.visitors.points > game.scores.home.points 
-    ? 'visitors' 
-    : game.scores.home.points > game.scores.visitors.points 
-      ? 'home' 
-      : null;
+  const winningTeam =
+    game.scores.visitors.points > game.scores.home.points
+      ? 'visitors'
+      : game.scores.home.points > game.scores.visitors.points
+        ? 'home'
+        : null;
 
   return (
     <Link href={`/sports/nba/games/${game.id}`} className="block">
@@ -95,11 +96,13 @@ const GameCard = memo(({ game, index, imageErrors, onImageError }: GameCardProps
             <div className="flex items-center gap-3">
               {game.teams.visitors.logo && (
                 <Image
-                  src={imageErrors[`${game.id}-visitors`] ? '/gamelog.svg' : game.teams.visitors.logo}
+                  src={
+                    imageErrors[`${game.id}-visitors`] ? '/gamelog.svg' : game.teams.visitors.logo
+                  }
                   alt={game.teams.visitors.name}
-                  width={96}
-                  height={96}
-                  className="w-24 h-24 object-contain"
+                  width={64}
+                  height={64}
+                  className="w-16 h-16 object-contain"
                   onError={() => onImageError(`${game.id}-visitors`)}
                 />
               )}
@@ -114,9 +117,9 @@ const GameCard = memo(({ game, index, imageErrors, onImageError }: GameCardProps
             </div>
             <div
               className={`text-2xl font-bold transition-colors duration-300 group-hover:text-purple-500 ${
-                winningTeam === 'visitors' 
-                  ? isLive 
-                    ? 'text-green-500 animate-pulse' 
+                winningTeam === 'visitors'
+                  ? isLive
+                    ? 'text-green-500 animate-pulse'
                     : 'text-green-500'
                   : ''
               }`}
@@ -132,9 +135,9 @@ const GameCard = memo(({ game, index, imageErrors, onImageError }: GameCardProps
                 <Image
                   src={imageErrors[`${game.id}-home`] ? '/gamelog.svg' : game.teams.home.logo}
                   alt={game.teams.home.name}
-                  width={96}
-                  height={96}
-                  className="w-24 h-24 object-contain"
+                  width={64}
+                  height={64}
+                  className="w-16 h-16 object-contain"
                   onError={() => onImageError(`${game.id}-home`)}
                 />
               )}
@@ -149,9 +152,9 @@ const GameCard = memo(({ game, index, imageErrors, onImageError }: GameCardProps
             </div>
             <div
               className={`text-2xl font-bold transition-colors duration-300 group-hover:text-purple-500 ${
-                winningTeam === 'home' 
-                  ? isLive 
-                    ? 'text-green-500 animate-pulse' 
+                winningTeam === 'home'
+                  ? isLive
+                    ? 'text-green-500 animate-pulse'
                     : 'text-green-500'
                   : ''
               }`}
