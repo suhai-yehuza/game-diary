@@ -613,7 +613,7 @@ export const resolvers = {
         
         // Transform the response to match the schema
         const transformedStats = stats.response.map((teamStats: any) => ({
-          game_id: parseInt(game_id, 10),
+          game_id: game_id, // Keep as string
           team: {
             id: teamStats.team.id.toString(),
             name: teamStats.team.name,
@@ -621,7 +621,7 @@ export const resolvers = {
             code: teamStats.team.code,
             logo: teamStats.team.logo
           },
-          playerId: 0, // Team stats don't have a player ID
+          playerId: "0", // Team stats don't have a player ID, keep as string
           points: teamStats.statistics[0].points,
           rebounds: {
             total: teamStats.statistics[0].totReb,

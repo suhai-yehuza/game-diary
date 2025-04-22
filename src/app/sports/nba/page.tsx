@@ -95,13 +95,11 @@ const GameCard = memo(({ game, index, imageErrors, onImageError }: GameCardProps
             <div className="flex items-center gap-3">
               {game.teams.visitors.logo && (
                 <Image
-                  src={
-                    imageErrors[`${game.id}-visitors`] ? '/gamelog.svg' : game.teams.visitors.logo
-                  }
+                  src={imageErrors[`${game.id}-visitors`] ? '/gamelog.svg' : game.teams.visitors.logo}
                   alt={game.teams.visitors.name}
-                  width={48}
-                  height={48}
-                  className="rounded-full transition-transform duration-300 group-hover:scale-110"
+                  width={96}
+                  height={96}
+                  className="w-24 h-24 object-contain"
                   onError={() => onImageError(`${game.id}-visitors`)}
                 />
               )}
@@ -134,9 +132,9 @@ const GameCard = memo(({ game, index, imageErrors, onImageError }: GameCardProps
                 <Image
                   src={imageErrors[`${game.id}-home`] ? '/gamelog.svg' : game.teams.home.logo}
                   alt={game.teams.home.name}
-                  width={48}
-                  height={48}
-                  className="rounded-full transition-transform duration-300 group-hover:scale-110"
+                  width={96}
+                  height={96}
+                  className="w-24 h-24 object-contain"
                   onError={() => onImageError(`${game.id}-home`)}
                 />
               )}
