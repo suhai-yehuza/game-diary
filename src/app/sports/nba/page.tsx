@@ -219,10 +219,16 @@ export default function Page() {
   });
 
   const now = new Date();
+  const liveGamesList =
+    dataCompleted?.games?.edges
+      ?.map(edge => edge.node)
+      .filter(game => game.status.long === 'In Play')
+      .sort((a, b) => new Date(a.date.start).getTime() - new Date(b.date.start).getTime()) || [];
+
   const scheduledGamesList =
     dataCompleted?.games?.edges
       ?.map(edge => edge.node)
-      .filter(game => isAfter(new Date(game.date.start), now) || game.status.long === 'In Play')
+      .filter(game => isAfter(new Date(game.date.start), now) && game.status.long !== 'In Play')
       .sort((a, b) => new Date(a.date.start).getTime() - new Date(b.date.start).getTime()) || [];
 
   const completedGamesList =
@@ -320,6 +326,22 @@ export default function Page() {
     <div className="min-h-screen bg-background">
       <main className="container mx-auto px-4 py-8">
         <div className="space-y-8">
+          {liveGamesList.length > 0 && (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {liveGamesList.map((game, index) => (
+                  <GameCard
+                    key={game.id}
+                    game={game}
+                    index={index}
+                    imageErrors={imageErrors}
+                    onImageError={handleImageError}
+                  />
+                ))}
+              </div>
+              <hr className="border-t-2 border-gray-300 mt-12 mb-8" />
+            </>
+          )}
           {!loading && !error && (
             <div className="flex justify-end">
               <button
