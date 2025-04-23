@@ -825,3 +825,19 @@ export interface CommentResponse {
     image_url: string;
   };
 }
+
+export interface GamesData {
+  games: {
+    edges: {
+      node: Game;
+      cursor: string;
+    }[];
+    pageInfo: {
+      hasNextPage: boolean;
+      hasPreviousPage: boolean;
+      startCursor: string;
+      endCursor: string;
+    };
+    totalCount: number;
+  };
+}
