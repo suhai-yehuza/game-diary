@@ -29,6 +29,8 @@ import {
   GameLog,
   GameRating,
   PaginationArgs,
+  RawTeamStatistics,
+  TeamStatistics,
 } from '../types/types';
 import { db } from '../../db';
 import * as schema from '../../db/schema';
@@ -729,7 +731,51 @@ export const resolvers = {
         if (!team || !season) {
           throw new Error('Team ID and Season are required');
         }
-        return await fetchNbaTeamStats(`team=${team}&season=${season}`);
+
+        // Try to get from cache first
+        const cacheKey = CACHE_KEYS.TEAM_STATS(team);
+        const cachedStats = await cache.get(cacheKey);
+        if (cachedStats) {
+          return cachedStats;
+        }
+
+        const stats = await fetchNbaTeamStats(`team=${team}&season=${season}`);
+
+        if (!stats.response || stats.response.length === 0) {
+          throw new Error('No team stats found');
+        }
+
+        const teamStats = stats.response[0] as unknown as RawTeamStatistics;
+
+        // Transform the response to match our schema
+        const transformedStats: TeamStatistics = {
+          team: parseInt(team, 10),
+          season,
+          gamesPlayed: teamStats.games,
+          pointsPerGame: (teamStats.points / teamStats.games).toFixed(1),
+          fieldGoalPercentage: teamStats.fgp,
+          threePointPercentage: teamStats.tpp,
+          freeThrowPercentage: teamStats.ftp,
+          reboundsPerGame: (teamStats.totReb / teamStats.games).toFixed(1),
+          assistsPerGame: (teamStats.assists / teamStats.games).toFixed(1),
+          stealsPerGame: (teamStats.steals / teamStats.games).toFixed(1),
+          blocksPerGame: (teamStats.blocks / teamStats.games).toFixed(1),
+          turnoversPerGame: (teamStats.turnovers / teamStats.games).toFixed(1),
+          foulsPerGame: (teamStats.pFouls / teamStats.games).toFixed(1),
+          plusMinus: teamStats.plusMinus,
+          statistics: {
+            fastBreakPoints: teamStats.fastBreakPoints,
+            pointsInPaint: teamStats.pointsInPaint,
+            biggestLead: teamStats.biggestLead,
+            secondChancePoints: teamStats.secondChancePoints,
+            pointsOffTurnovers: teamStats.pointsOffTurnovers,
+            longestRun: teamStats.longestRun,
+          },
+        };
+
+        // Cache the transformed stats
+        await cache.set(cacheKey, transformedStats, CACHE_TTL.TEAM_STATS);
+        return transformedStats;
       } catch (error) {
         console.error('Error fetching team stats:', error);
         throw new Error('Failed to fetch team stats');

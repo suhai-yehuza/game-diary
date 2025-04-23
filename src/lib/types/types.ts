@@ -326,22 +326,46 @@ export interface TeamStatistics {
   team: number;
   season: number;
   gamesPlayed: number;
-  pointsPerGame: number;
+  pointsPerGame: string;
   fieldGoalPercentage: string;
   threePointPercentage: string;
   freeThrowPercentage: string;
-  reboundsPerGame: number;
-  assistsPerGame: number;
-  stealsPerGame: number;
-  blocksPerGame: number;
-  turnoversPerGame: number;
-  foulsPerGame: number;
-  fastBreakPoints?: number;
-  pointsInPaint?: number;
-  biggestLead?: number;
-  secondChancePoints?: number;
-  pointsOffTurnovers?: number;
-  longestRun?: number;
+  reboundsPerGame: string;
+  assistsPerGame: string;
+  stealsPerGame: string;
+  blocksPerGame: string;
+  turnoversPerGame: string;
+  foulsPerGame: string;
+  plusMinus: number;
+  statistics: {
+    fastBreakPoints: number;
+    pointsInPaint: number;
+    biggestLead: number;
+    secondChancePoints: number;
+    pointsOffTurnovers: number;
+    longestRun: number;
+  };
+}
+
+export interface RawTeamStatistics {
+  games: number;
+  points: number;
+  fgp: string;
+  tpp: string;
+  ftp: string;
+  totReb: number;
+  assists: number;
+  steals: number;
+  blocks: number;
+  turnovers: number;
+  pFouls: number;
+  plusMinus: number;
+  fastBreakPoints: number;
+  pointsInPaint: number;
+  biggestLead: number;
+  secondChancePoints: number;
+  pointsOffTurnovers: number;
+  longestRun: number;
 }
 
 export interface PlayerStatistics {
@@ -823,5 +847,21 @@ export interface CommentResponse {
     first_name: string;
     last_name: string;
     image_url: string;
+  };
+}
+
+export interface GamesData {
+  games: {
+    edges: {
+      node: Game;
+      cursor: string;
+    }[];
+    pageInfo: {
+      hasNextPage: boolean;
+      hasPreviousPage: boolean;
+      startCursor: string;
+      endCursor: string;
+    };
+    totalCount: number;
   };
 }

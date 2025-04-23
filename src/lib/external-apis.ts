@@ -146,17 +146,14 @@ export async function fetchNbaTeams(queryParams?: string): Promise<TeamSearchApi
   return res.json();
 }
 
-export async function fetchNbaTeamById(id: string): Promise<TeamSearchApiResponse> {
-  const res = await fetchWithRetry(`${RAPID_API_BASE_URL}/teams/?id=${id}`, {
-    headers,
-  });
+export async function fetchNbaTeamById(teamId: string) {
+  const response = await fetch(`${RAPID_API_BASE_URL}/teams?id=${teamId}`, { headers });
 
-  if (!res.ok) {
-    console.log({ res });
-    throw new Error('Failed to fetch NBA team by id');
+  if (!response.ok) {
+    throw new Error('Failed to fetch team data');
   }
 
-  return res.json();
+  return response.json();
 }
 
 // Players
@@ -215,7 +212,7 @@ export async function fetchNbaTeamStats(queryParams: string): Promise<TeamStatis
   });
 
   if (!res.ok) {
-    console.log({ res });
+    console.error('Failed to fetch NBA team stats:', res.status, res.statusText);
     throw new Error('Failed to fetch NBA team stats');
   }
 
