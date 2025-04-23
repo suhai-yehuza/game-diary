@@ -575,7 +575,11 @@ export default function GamePage() {
                         <div className="flex items-center gap-4">
                           <div className="w-16 h-16 relative flex-shrink-0">
                             <Image
-                              src={imageErrors[`${teamStats.team.id}-stats`] ? '/gamelog.svg' : teamStats.team.logo}
+                              src={
+                                imageErrors[`${teamStats.team.id}-stats`]
+                                  ? '/gamelog.svg'
+                                  : teamStats.team.logo
+                              }
                               alt={teamStats.team.name}
                               fill
                               sizes="(max-width: 64px) 100vw, 64px"
