@@ -35,7 +35,7 @@ export const GameCard = memo(({ game, index, imageErrors, onImageError }: GameCa
   return (
     <div
       onClick={handleCardClick}
-      className={`bg-card rounded-xl shadow-lg p-6 transform transition-all duration-200 ease-out group/card hover:scale-[1.08] hover:rotate-2 hover:shadow-[0_20px_50px_rgba(0,0,0,0.15)] hover:-translate-y-1 active:scale-[0.98] active:rotate-0 active:shadow-lg cursor-pointer h-[280px] flex flex-col border ${
+      className={`bg-card rounded-xl shadow-lg p-6 transform transition-all duration-300 ease-out group/card hover:scale-[1.05] hover:rotate-2 hover:shadow-[0_20px_50px_rgba(0,0,0,0.15)] hover:-translate-y-1 active:scale-[0.98] active:rotate-0 active:shadow-lg cursor-pointer h-[280px] flex flex-col border ${
         isLive
           ? 'border-red-500/50 group-hover/card:border-red-500 animate-pulse-slow overflow-hidden'
           : 'border-border/50 group-hover/card:border-blue-500/50'
