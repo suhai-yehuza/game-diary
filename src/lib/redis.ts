@@ -7,32 +7,77 @@ const isProduction = process.env.NODE_ENV === 'production';
 let redisClient: Redis | UpstashRedis | null = null;
 let isRedisAvailable = false;
 
-try {
-  if (isProduction) {
-    // Use Upstash Redis in production
-    redisClient = new UpstashRedis({
-      url: process.env.UPSTASH_REDIS_REST_URL!,
-      token: process.env.UPSTASH_REDIS_REST_TOKEN!,
-    });
-    isRedisAvailable = true;
-  } else {
-    // Use local Redis in development
-    redisClient = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
-    // Test connection
-    redisClient
-      .ping()
-      .then(() => {
+// Function to safely initialize Redis client
+const initializeRedis = async () => {
+  try {
+    if (isProduction) {
+      // Use Upstash Redis in production
+      if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
+        redisClient = new UpstashRedis({
+          url: process.env.UPSTASH_REDIS_REST_URL,
+          token: process.env.UPSTASH_REDIS_REST_TOKEN,
+        });
         isRedisAvailable = true;
-      })
-      .catch(() => {
-        console.warn('Local Redis is not available, cache will be disabled');
-        redisClient = null;
+        console.log('Connected to Upstash Redis in production');
+      } else {
+        console.warn('Upstash Redis credentials not found in production');
+      }
+    } else {
+      // Try local Redis in development
+      const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
+      
+      // Create Redis client with error handling
+      redisClient = new Redis(redisUrl, {
+        retryStrategy: (times) => {
+          // Only retry 3 times
+          if (times <= 3) {
+            return Math.min(times * 200, 1000);
+          }
+          return null;
+        },
+        maxRetriesPerRequest: 3,
+        connectTimeout: 5000,
+        enableOfflineQueue: false, // Disable offline queue to prevent connection attempts
+        lazyConnect: true, // Don't connect immediately
+        showFriendlyErrorStack: true,
       });
+
+      // Handle Redis errors
+      redisClient.on('error', (error) => {
+        // Silently handle connection errors
+        if (error.message.includes('ETIMEDOUT') || error.message.includes('ECONNREFUSED')) {
+          isRedisAvailable = false;
+          redisClient = null;
+          return;
+        }
+        console.warn('Redis error:', error.message);
+      });
+
+      // Test connection with timeout
+      try {
+        await Promise.race([
+          redisClient.connect().then(() => redisClient?.ping()),
+          new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Redis connection timeout')), 5000)
+          )
+        ]);
+        isRedisAvailable = true;
+        console.log('Connected to local Redis in development');
+      } catch (error) {
+        // Silently handle connection failures
+        isRedisAvailable = false;
+        redisClient = null;
+      }
+    }
+  } catch (error) {
+    // Silently handle initialization failures
+    isRedisAvailable = false;
+    redisClient = null;
   }
-} catch (error) {
-  console.warn('Failed to initialize Redis client, cache will be disabled:', error);
-  redisClient = null;
-}
+};
+
+// Initialize Redis
+initializeRedis();
 
 export const cache = {
   // Get cached data
