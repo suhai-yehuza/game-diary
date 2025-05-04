@@ -1,9 +1,46 @@
-import { db } from './index';
+import dotenv from 'dotenv-flow';
+import { drizzle } from 'drizzle-orm/neon-http';
+import { neon } from '@neondatabase/serverless';
 import * as schema from './schema';
 import { faker } from '@faker-js/faker';
 import { reset } from 'drizzle-seed';
 import { users, friendships, game_logs, comments, reactions, game_ratings } from './schema';
-import { eq, sql } from 'drizzle-orm';
+import { eq, sql as drizzleSql } from 'drizzle-orm';
+
+// Get environment from command line argument or default to development
+const env = process.argv[2] || 'development';
+
+// Load environment variables for the specified environment
+dotenv.config({
+  node_env: env,
+  default_node_env: 'development'
+});
+
+const connectionString = process.env.DATABASE_URL_UNPOOLED || process.env.DATABASE_URL;
+
+if (!connectionString) {
+  throw new Error(
+    `DATABASE_URL is not set for ${env} environment. Please check your .env.${env} file.`
+  );
+}
+
+const neonSql = neon(connectionString, {
+  fetchOptions: {
+    cache: 'no-store',
+    next: { revalidate: 0 },
+    timeout: 10000,
+    retry: {
+      retries: 3,
+      minTimeout: 1000,
+      maxTimeout: 5000,
+    },
+  },
+});
+
+const db = drizzle(neonSql, {
+  schema,
+  logger: true,
+});
 
 // Configuration
 const SEED_CONFIG = {
@@ -40,8 +77,8 @@ const generateStarRating = (rating: number): string => {
 const updateGameRating = async (gameId: string) => {
   const result = await db
     .select({
-      averageRating: sql<number>`ROUND(AVG(${schema.game_logs.rating_for_game})::numeric, 2)`,
-      totalRatings: sql<number>`COUNT(*)`,
+      averageRating: drizzleSql<number>`ROUND(AVG(${schema.game_logs.rating_for_game})::numeric, 2)`,
+      totalRatings: drizzleSql<number>`COUNT(*)`,
     })
     .from(schema.game_logs)
     .where(eq(schema.game_logs.game_id, gameId))
@@ -369,10 +406,12 @@ async function seedDb() {
 
 // Main function
 async function main() {
+  console.log(`Starting database seeding for ${env} environment...`);
   try {
     await seedDb();
+    console.log(`Seeding completed successfully for ${env} environment!`);
   } catch (error) {
-    console.error('Error in main function:', error);
+    console.error('Error during seeding:', error);
     process.exit(1);
   }
 }
