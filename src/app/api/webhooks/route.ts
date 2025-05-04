@@ -65,6 +65,7 @@ const handleUserDeleted = async (data: ClerkDeletedUserData) => {
 export async function POST(req: Request) {
   try {
     const evt = await verifyWebhook(req);
+    console.log('Webhook received: ', evt);
     const eventType = evt.type;
 
     switch (eventType) {
