@@ -53,7 +53,7 @@ export const game_logs = pgTable(
     watched_count: integer('watched_count').notNull().default(0),
     notes: text('notes').default(''),
     tags: text('tags').array().default([]),
-    classification: varchar('classification', { length: 255 }).notNull().default('protected'),
+    classification: text('classification').notNull().default('PROTECTED'),
     created_at: timestamp({ precision: 6, withTimezone: true }).notNull().defaultNow(),
     updated_at: timestamp({ precision: 6, withTimezone: true }).notNull().defaultNow(),
     deleted_at: timestamp({ precision: 6, withTimezone: true }),

@@ -3,7 +3,6 @@ import { sql } from 'drizzle-orm';
 
 import { API_CONFIG } from '@/lib/config/api.config';
 import { comments } from '@/lib/db/schema/comment-schemas';
-import { GAME_TYPE } from '@/lib/db/schema/enum-values';
 import { GameLogClassification } from '@/lib/db/schema/game-log-schemas';
 import { game_logs, games, game_ratings } from '@/lib/db/schema/game-schemas';
 import { users, friendships, reactions } from '@/lib/db/schema/user-schemas';
@@ -194,10 +193,15 @@ async function* generateGameLogsStream(
         watchedDate = faker.date.recent();
       }
 
-      // Use the game's type as the classification
+      // Use weighted distribution for classifications from config
+      const classificationWeight = faker.number.float({ min: 0, max: 1 });
+      const { CLASSIFICATION_WEIGHTS } = API_CONFIG.classification;
       const classification =
-        game.game_type ||
-        (faker.helpers.arrayElement(Object.values(GAME_TYPE)) as GameLogClassification);
+        classificationWeight < CLASSIFICATION_WEIGHTS.protected
+          ? 'PROTECTED'
+          : classificationWeight < CLASSIFICATION_WEIGHTS.protected + CLASSIFICATION_WEIGHTS.public
+            ? 'PUBLIC'
+            : ('PRIVATE' as GameLogClassification);
 
       yield {
         id: generateUUID(),

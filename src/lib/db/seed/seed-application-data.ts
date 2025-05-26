@@ -237,7 +237,7 @@ async function generateAndInsertGameLogs(
         watched_count: faker.number.int({ min: 1, max: 10 }),
         notes: faker.lorem.paragraph(),
         tags: [],
-        classification: 'protected',
+        classification: 'PROTECTED',
         created_at: faker.date.past(),
         updated_at: faker.date.recent(),
         deleted_at: null,
