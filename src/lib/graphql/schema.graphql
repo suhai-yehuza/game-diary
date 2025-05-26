@@ -202,13 +202,7 @@ type DivisionStanding {
   win: Int!
 }
 
-union ErrorResult =
-  | AuthenticationError
-  | AuthorizationError
-  | BusinessLogicError
-  | NotFoundError
-  | RateLimitError
-  | ValidationError
+union ErrorResult = AuthenticationError | AuthorizationError | BusinessLogicError | NotFoundError | RateLimitError | ValidationError
 
 type FavoritePlayerResponse {
   errors: [ErrorResult!]
