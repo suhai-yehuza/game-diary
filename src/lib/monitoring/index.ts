@@ -38,6 +38,13 @@ export const monitorPerformance = {
 
 class Monitoring {
   private metrics: MonitoringMetrics = {
+    timestamp: new Date(),
+    cpuUsage: 0,
+    memoryUsage: 0,
+    activeConnections: 0,
+    requestCount: 0,
+    errorCount: 0,
+    averageResponseTime: 0,
     queryPerformance: {},
     apiCalls: {},
     cacheMetrics: {

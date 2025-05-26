@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
-import { toast } from '@/components/ui/use-toast';
+import { useToast } from '@/components/ui/use-toast';
 import type { AppNotification, NotificationContextType } from '@/lib/types';
 
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
@@ -13,6 +13,7 @@ function generateId(): string {
 
 export function NotificationProvider({ children }: { children: React.ReactNode }) {
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
+  const { toast } = useToast();
 
   // Load notifications from localStorage on mount
   useEffect(() => {

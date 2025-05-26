@@ -276,41 +276,6 @@ export interface UseSwipeActionsOptions {
   maxSwipeDistance?: number;
 }
 
-// Monitoring Types
-export interface MonitoringMetrics {
-  queryPerformance: {
-    [key: string]: {
-      count: number;
-      totalTime: number;
-      avgTime: number;
-    };
-  };
-  apiCalls: {
-    [key: string]: {
-      count: number;
-      success: number;
-      failure: number;
-      avgResponseTime: number;
-    };
-  };
-  cacheMetrics?: {
-    hits: number;
-    misses: number;
-    size: number;
-  };
-  apiMetrics?: {
-    [key: string]: {
-      count: number;
-      success: number;
-      failure: number;
-      avgResponseTime: number;
-    };
-  };
-  errors?: {
-    [key: string]: number;
-  };
-}
-
 // API Request Types
 export type ExtendedNextApiRequest = import('next').NextApiRequest & {
   user?: {
@@ -392,3 +357,39 @@ export type ReactionPickerProps = {
   existingReactions?: Reaction[];
   onReactionChanged?: () => void;
 };
+
+export interface MonitoringMetrics {
+  timestamp: Date;
+  cpuUsage: number;
+  memoryUsage: number;
+  activeConnections: number;
+  requestCount: number;
+  errorCount: number;
+  averageResponseTime: number;
+  queryPerformance: {
+    [key: string]: {
+      count: number;
+      totalTime: number;
+      avgTime: number;
+    };
+  };
+  apiCalls: {
+    [key: string]: number;
+  };
+  cacheMetrics: {
+    hits: number;
+    misses: number;
+    size: number;
+  };
+  apiMetrics: {
+    [key: string]: {
+      count: number;
+      success: number;
+      failure: number;
+      avgResponseTime: number;
+    };
+  };
+  errors: {
+    [key: string]: number;
+  };
+}
