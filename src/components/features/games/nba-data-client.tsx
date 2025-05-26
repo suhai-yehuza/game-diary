@@ -7,29 +7,14 @@ import React, { useState, useCallback } from 'react';
 
 import { Skeleton } from '@/components/ui/skeleton';
 import { GET_SEASONS, GET_EXTERNAL_GAMES, GET_TEAMS, GET_PLAYERS } from '@/lib/graphql/queries';
-import {
-  SortDirection,
-  ConferenceType,
-  DivisionType,
-  SeasonData,
-  TeamData,
-  PlayerData,
-  GameTeamSortInput,
-  GamePlayerSortInput,
-  DEFAULT_PAGE_SIZE,
-  Game,
-  GameStatus,
-} from '@/lib/types';
+import { ConferenceType, DivisionType } from '@/lib/types/config.types';
+import { Game, GameStatus, Season, Team, Player } from '@/lib/types/generated/graphql';
+import { DEFAULT_PAGE_SIZE, SortDirection } from '@/lib/types/shared.types';
 
 export const NbaDataClient = () => {
   const [selectedConference, setSelectedConference] = useState<ConferenceType | 'all'>('all');
   const [selectedDivision, setSelectedDivision] = useState<DivisionType | 'all'>('all');
   const [selectedPosition, setSelectedPosition] = useState<string>('all');
-  const [teamSort, setTeamSort] = useState<GameTeamSortInput>({ field: 'WINS', direction: 'desc' });
-  const [playerSort, setPlayerSort] = useState<GamePlayerSortInput>({
-    field: 'POINTS',
-    direction: 'desc',
-  });
   const [sortBy] = useState<SortDirection>('asc');
   const [searchTerm, _setSearchTerm] = useState('');
 
@@ -37,7 +22,7 @@ export const NbaDataClient = () => {
     data: seasonData,
     loading: loadingSeasons,
     error: seasonsError,
-  } = useQuery<{ seasons: SeasonData[] }>(GET_SEASONS);
+  } = useQuery<{ seasons: Season[] }>(GET_SEASONS);
   const {
     data,
     loading: gamesLoading,
@@ -63,7 +48,7 @@ export const NbaDataClient = () => {
     data: teamsData,
     loading: loadingTeams,
     error: teamsError,
-  } = useQuery<{ teams: TeamData[] }>(GET_TEAMS, {
+  } = useQuery<{ teams: Team[] }>(GET_TEAMS, {
     variables: {
       filters: {
         conference: selectedConference !== 'all' ? selectedConference : undefined,
@@ -75,7 +60,7 @@ export const NbaDataClient = () => {
     data: playersData,
     loading: loadingPlayers,
     error: playersError,
-  } = useQuery<{ players: { items: PlayerData[] } }>(GET_PLAYERS, {
+  } = useQuery<{ players: { items: Player[] } }>(GET_PLAYERS, {
     variables: {
       filters: {
         position: selectedPosition !== 'all' ? selectedPosition : undefined,
@@ -99,14 +84,6 @@ export const NbaDataClient = () => {
     setSelectedPosition(position);
   }, []);
 
-  const handleTeamSortChange = useCallback((field: string) => {
-    setTeamSort(prev => ({ ...prev, field }));
-  }, []);
-
-  const handlePlayerSortChange = useCallback((field: string) => {
-    setPlayerSort(prev => ({ ...prev, field }));
-  }, []);
-
   const currentSeason = seasonData?.seasons.find(season => season.is_current);
 
   const isLoading = loadingSeasons || gamesLoading || loadingTeams || loadingPlayers;
@@ -119,8 +96,8 @@ export const NbaDataClient = () => {
   const filteredTeams =
     teamsData?.teams.filter(team => {
       const matchesSearch = team.name.toLowerCase().includes(searchTerm.toLowerCase());
-      const teamConference = team.leagues?.standard?.conference;
-      const teamDivision = team.leagues?.standard?.division;
+      const teamConference = team.conference;
+      const teamDivision = team.division;
       const matchesConference =
         selectedConference === 'all' || teamConference === selectedConference;
       const matchesDivision = selectedDivision === 'all' || teamDivision === selectedDivision;
@@ -209,11 +186,11 @@ export const NbaDataClient = () => {
             </div>
             <div>
               <h3 className="font-semibold">Start Date</h3>
-              <p>{formatDate(currentSeason.start_date)}</p>
+              <p>{formatDate(currentSeason.start_date.toString())}</p>
             </div>
             <div>
               <h3 className="font-semibold">End Date</h3>
-              <p>{formatDate(currentSeason.end_date)}</p>
+              <p>{formatDate(currentSeason.end_date.toString())}</p>
             </div>
             <div>
               <h3 className="font-semibold">Current Season</h3>
@@ -274,27 +251,25 @@ export const NbaDataClient = () => {
 
       {/* Teams */}
       <section className="bg-white rounded-lg shadow p-6">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-bold">Teams</h2>
-          <select
-            value={teamSort.field}
-            onChange={e => handleTeamSortChange(e.target.value)}
-            className="p-2 border rounded"
-          >
-            <option value="WINS">Sort by Wins</option>
-            <option value="LOSSES">Sort by Losses</option>
-            <option value="WIN_PERCENTAGE">Sort by Win %</option>
-            <option value="POINTS_PER_GAME">Sort by PPG</option>
-          </select>
-        </div>
+        <h2 className="text-2xl font-bold mb-4">Teams</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredTeams.map((team: TeamData) => (
+          {filteredTeams.map((team: Team) => (
             <div key={team.id} className="border rounded-lg p-4">
               <div className="flex items-center gap-4">
-                <Image src={team.logo} alt={team.name} width={48} height={48} />
+                {team.logo_url && (
+                  <Image
+                    src={team.logo_url}
+                    alt={team.name}
+                    width={48}
+                    height={48}
+                    className="rounded-full"
+                  />
+                )}
                 <div>
-                  <h3 className="font-semibold">{team.name}</h3>
-                  <p className="text-sm text-gray-500">{team.nickname}</p>
+                  <h3 className="font-bold">{team.name}</h3>
+                  <p className="text-sm text-gray-600">
+                    {team.conference} Conference - {team.division} Division
+                  </p>
                 </div>
               </div>
             </div>
@@ -304,47 +279,29 @@ export const NbaDataClient = () => {
 
       {/* Players */}
       <section className="bg-white rounded-lg shadow p-6">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-bold">Top Players</h2>
-          <select
-            value={playerSort.field}
-            onChange={e => handlePlayerSortChange(e.target.value)}
-            className="p-2 border rounded"
-          >
-            <option value="POINTS">Sort by Points</option>
-            <option value="REBOUNDS">Sort by Rebounds</option>
-            <option value="ASSISTS">Sort by Assists</option>
-            <option value="STEALS">Sort by Steals</option>
-            <option value="BLOCKS">Sort by Blocks</option>
-          </select>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="min-w-full">
-            <thead>
-              <tr className="bg-gray-100">
-                <th className="px-4 py-2">Player</th>
-                <th className="px-4 py-2">Team</th>
-                <th className="px-4 py-2">PPG</th>
-                <th className="px-4 py-2">RPG</th>
-                <th className="px-4 py-2">APG</th>
-                <th className="px-4 py-2">FG%</th>
-                <th className="px-4 py-2">3P%</th>
+        <h2 className="text-2xl font-bold mb-4">Players</h2>
+        <table className="w-full">
+          <thead>
+            <tr className="border-b">
+              <th className="text-left px-4 py-2">Name</th>
+              <th className="text-left px-4 py-2">Position</th>
+              <th className="text-left px-4 py-2">Team</th>
+            </tr>
+          </thead>
+          <tbody>
+            {playersData?.players.items.map((player: Player) => (
+              <tr key={player.id} className="border-t">
+                <td className="px-4 py-2">
+                  {player.first_name} {player.last_name}
+                </td>
+                <td className="px-4 py-2">{player.leagues?.standard?.pos || 'N/A'}</td>
+                <td className="px-4 py-2">
+                  {player.leagues?.standard?.active ? 'Active' : 'Inactive'}
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              {playersData?.players.items.map((player: PlayerData) => (
-                <tr key={player.id} className="border-t">
-                  <td className="px-4 py-2">
-                    {player.first_name} {player.last_name}
-                  </td>
-                  <td className="px-4 py-2">{player.leagues.standard?.pos || '-'}</td>
-                  <td className="px-4 py-2">{player.leagues.standard?.jersey || '-'}</td>
-                  <td className="px-4 py-2">{player.leagues.standard?.active ? 'Yes' : 'No'}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+            ))}
+          </tbody>
+        </table>
       </section>
     </div>
   );

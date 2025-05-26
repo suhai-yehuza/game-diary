@@ -13,8 +13,8 @@ import {
   FriendshipStatusValue,
   WatchedSettingValue,
   ReactionEmojiValue,
-} from '@/lib/types';
-import type { DatabaseClient } from '@/lib/types';
+} from '@/lib/types/config.types';
+import type { DatabaseClient } from '@/lib/types/db.types';
 import { generateUUID } from '@/lib/utils/index.processing';
 
 import type { DataProcessor } from './data-processor';

@@ -5,8 +5,8 @@ import type {
   GameWithStatistics,
   ComponentGameStats,
   GameStatsProps,
-} from '@/lib/types';
-import { GamePlayerStats } from '@/lib/types';
+} from '@/lib/types/game.types';
+import { GamePlayerStats } from '@/lib/types/game.types';
 
 const calculateGameStats = (game: GameWithStatistics): ComponentGameStats => {
   const homeTeam = game.teams.home;

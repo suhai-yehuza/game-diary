@@ -4,7 +4,6 @@ import { join } from 'path';
 import { ApolloServer } from '@apollo/server';
 import { startServerAndCreateNextHandler } from '@as-integrations/next';
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import type { IResolvers } from '@graphql-tools/utils';
 import { constraintDirective, constraintDirectiveTypeDefs } from 'graphql-constraint-directive';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
@@ -13,14 +12,14 @@ import { getCache } from '@/lib/cache/index';
 import { db } from '@/lib/db/seed';
 import { createLoaders } from '@/lib/graphql/loaders';
 import { resolvers } from '@/lib/graphql/resolvers';
-import type { Context } from '@/lib/types';
+import type { Context } from '@/lib/types/context.types';
 
 const typeDefs = readFileSync(join(process.cwd(), 'src/lib/graphql/schema.graphql'), 'utf-8');
 
 // Create the base schema
 let graphqlSchema = makeExecutableSchema({
   typeDefs: [constraintDirectiveTypeDefs, typeDefs],
-  resolvers: resolvers as IResolvers<unknown, Context>,
+  resolvers,
 });
 
 // Apply the constraint directive to the schema
@@ -31,16 +30,16 @@ const server = new ApolloServer<Context>({
 });
 
 const handler = startServerAndCreateNextHandler(server, {
-  context: async (_req: NextRequest) => {
+  context: async (_req: NextRequest): Promise<Context> => {
     const cache = getCache();
     await cache.initializeRedis();
     const redisClient = cache.getRedisClient();
     return {
       db,
       redis: redisClient,
-      user: null,
+      user: undefined,
       loaders: createLoaders(db),
-    };
+    } as Context;
   },
 });
 

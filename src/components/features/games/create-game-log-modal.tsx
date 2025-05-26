@@ -12,7 +12,7 @@ import {
   DialogTrigger,
   DialogDescription,
 } from '@/components/ui/dialog';
-import { CLASSIFICATIONS, WATCHED_SETTINGS } from '@/lib/types';
+import { CLASSIFICATIONS, WATCHED_SETTINGS } from '@/lib/types/config.types';
 import type { CreateGameLogModalProps } from '@/lib/types/consolidated.types';
 
 import { GameLogForm } from './GameLogForm';

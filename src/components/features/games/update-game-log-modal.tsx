@@ -15,7 +15,9 @@ import { useToast } from '@/components/ui/use-toast';
 import { useAuthContext } from '@/contexts/AuthContext';
 import { UPDATE_GAME_LOG } from '@/lib/graphql/mutations';
 import { GET_GAME_LOGS } from '@/lib/graphql/queries';
-import { GameLog, UpdateGameLogModalProps, GameLogFormData } from '@/lib/types';
+import { UpdateGameLogModalProps } from '@/lib/types/consolidated.types';
+import { GameLogFormData } from '@/lib/types/gamelog.types';
+import { GameLog } from '@/lib/types/generated/graphql';
 import { cn } from '@/lib/utils';
 
 import { GameLogForm } from './game-log-form';

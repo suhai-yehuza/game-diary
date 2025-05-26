@@ -1,7 +1,7 @@
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
-import { UserSearchProps, DbCustomUser } from '@/lib/types';
+import { UserSearchProps, DbCustomUser } from '@/lib/types/user.types';
 
 export function UserSearch({ users, onFilteredUsersChange }: UserSearchProps) {
   const searchParams = useSearchParams();

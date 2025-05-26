@@ -11,7 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { UsersTableProps } from '@/lib/types';
+import { UsersTableProps } from '@/lib/types/user.types';
 
 export default function UsersTable({ users }: UsersTableProps) {
   return (

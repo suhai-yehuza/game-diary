@@ -11,8 +11,8 @@ import { Button, buttonVariants } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { GET_GAME_LOGS, GET_USER } from '@/lib/graphql/queries';
-import { DbCustomUser, UserProfileProps } from '@/lib/types';
 import { SharedGameLog } from '@/lib/types/generated/graphql';
+import { DbCustomUser, UserProfileProps } from '@/lib/types/user.types';
 import { cn } from '@/lib/utils';
 
 const ITEMS_PER_PAGE = 10;

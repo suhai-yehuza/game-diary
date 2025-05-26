@@ -1,4 +1,4 @@
-import { CommentResponse } from '@/lib/types';
+import { CommentResponse } from '@/lib/types/gamelog.types';
 
 // Example Query Responses
 export const GET_SEASONS_RESPONSE = {

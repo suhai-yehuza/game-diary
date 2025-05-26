@@ -4,21 +4,21 @@ import { DocumentNode, ApolloCache, FetchResult } from '@apollo/client';
 import type { DatabaseClient } from '../db.types';
 import type {
   BaseUser,
-  BaseGame,
-  BaseGameLog,
-  BaseComment,
-  BaseReaction,
-  BaseFriendship,
+  Game,
+  GameLog,
+  Comment,
+  Reaction,
+  Friendship,
   DBPlayer,
 } from '../shared.types';
 import type { Pool } from 'pg';
 
 export type DBUser = BaseUser & {
-  comments: BaseComment[];
-  gameLogs: BaseGameLog[];
-  initiated_friendships: BaseFriendship[];
-  received_friendships: BaseFriendship[];
-  reactions: BaseReaction[];
+  comments: Comment[];
+  gameLogs: GameLog[];
+  initiated_friendships: Friendship[];
+  received_friendships: Friendship[];
+  reactions: Reaction[];
 };
 
 export type DBSeason = {
@@ -31,7 +31,7 @@ export type DBSeason = {
   display_year: string;
 };
 
-export type DbGame = BaseGame & {
+export type DbGame = Game & {
   arena: {
     name: string;
     city: string;
@@ -114,24 +114,24 @@ export type DBTeamStats = {
   longestRun?: number;
 };
 
-export type DBComment = BaseComment & {
+export type DBComment = Comment & {
   user: BaseUser;
-  reactions: BaseReaction[];
+  reactions: Reaction[];
 };
 
-export type DBReaction = BaseReaction & {
+export type DBReaction = Reaction & {
   user: BaseUser;
 };
 
 export type DBUserSummary = BaseUser;
 
-export type DBFriendship = BaseFriendship;
+export type DBFriendship = Friendship;
 
-export type DBGameLog = BaseGameLog & {
+export type DBGameLog = GameLog & {
   game: DbGame;
   user: BaseUser;
-  comments: BaseComment[];
-  reactions: BaseReaction[];
+  comments: Comment[];
+  reactions: Reaction[];
 };
 
 export type DBClassification = 'WATCHED' | 'PLANNED' | 'SKIPPED';

@@ -5,7 +5,9 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { CREATE_REACTION, DELETE_REACTION } from '@/lib/graphql/mutations';
-import { REACTION_EMOJIS, ReactionEmojiType, Reaction, ReactionPickerProps } from '@/lib/types';
+import { REACTION_EMOJIS } from '@/lib/types/config.types';
+import { Reaction, ReactionEmojiType } from '@/lib/types/generated/graphql';
+import { ReactionPickerProps } from '@/lib/types/reaction.types';
 
 export function ReactionPicker({
   targetId,

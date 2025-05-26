@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import React, { useState, useEffect, useRef } from 'react';
 
 import { NotificationCenter } from '@/components/features/notifications';
-import { NavItem } from '@/lib/types';
+import { NavItem } from '@/lib/types/consolidated.types';
 
 const navItems: NavItem[] = [
   {

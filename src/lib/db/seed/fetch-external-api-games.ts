@@ -1,7 +1,7 @@
 import { API_CONFIG, getRapidApiConfig } from '@/lib/config/api.config';
 import { nba_games, games } from '@/lib/db/schema';
 import { createRapidAPIClient, validateAPIKey, handleAPIError } from '@/lib/external-apis';
-import type { GameApiResponse } from '@/lib/types';
+import type { GameApiResponse } from '@/lib/types/game.types';
 
 import { createDatabaseClient } from './config';
 

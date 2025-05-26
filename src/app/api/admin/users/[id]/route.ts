@@ -4,9 +4,9 @@ import { NextResponse } from 'next/server';
 
 import { users } from '@/lib/db/schema';
 import { db } from '@/lib/db/seed';
-import type { RouteContext } from '@/lib/types';
+import type { RouteContext } from '@/lib/types/route.types';
 
-export async function GET(request: Request, context: RouteContext) {
+export async function GET(_: Request, context: RouteContext) {
   try {
     const { id } = await context.params;
     if (!id) {

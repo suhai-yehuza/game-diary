@@ -1,4 +1,5 @@
-import type { RawTeamStatistics, TeamStatistics } from '@/lib/types';
+import type { RawTeamStatistics } from '@/lib/types/shared.types';
+import type { TeamStatistics } from '@/lib/types/team.types';
 
 export const transformTeamStats = (stats: RawTeamStatistics): TeamStatistics => {
   return {

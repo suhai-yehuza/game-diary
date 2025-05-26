@@ -19,8 +19,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/components/ui/use-toast';
 import { CREATE_GAME_LOG } from '@/lib/graphql/mutations';
 import { GET_EXTERNAL_GAMES } from '@/lib/graphql/queries';
-import { Game, GameLogFormData, GameLogFormProps } from '@/lib/types';
-import type { Team } from '@/lib/types';
+import { GameLogFormData, GameLogFormProps } from '@/lib/types/gamelog.types';
+import { Game, Team } from '@/lib/types/generated/graphql';
 import { getDateFields, formatDate } from '@/lib/utils/index.time';
 
 export function GameLogForm({

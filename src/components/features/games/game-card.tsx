@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import React, { memo } from 'react';
 
-import { GameCardProps } from '@/lib/types';
+import { GameCardProps } from '@/lib/types/consolidated.types';
 
 export const GameCard = memo(({ game, index, imageErrors, onImageError }: GameCardProps) => {
   const router = useRouter();

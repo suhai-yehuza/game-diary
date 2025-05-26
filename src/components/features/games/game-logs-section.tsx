@@ -8,7 +8,7 @@ import { CommentsSection } from '@/components/common';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { StarRating } from '@/components/ui/star-rating';
 import { GET_GAME_LOGS } from '@/lib/graphql/queries';
-import { GameLogResponse } from '@/lib/types';
+import { GameLogResponse } from '@/lib/types/shared.types';
 
 export function GameLogsSection() {
   const { data, loading, error } = useQuery(GET_GAME_LOGS, {

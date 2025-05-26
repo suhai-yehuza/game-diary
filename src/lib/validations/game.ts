@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { WATCHED_SETTINGS } from '@/lib/types';
+import { WATCHED_SETTINGS } from '@/lib/types/config.types';
 
 export const gameTypeEnum = z.enum(['nba', 'nfl', 'mlb', 'nhl']);
 

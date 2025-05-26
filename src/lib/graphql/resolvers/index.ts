@@ -1,22 +1,14 @@
-import * as mutations from '@/lib/graphql/resolvers/mutations';
-import * as queries from '@/lib/graphql/resolvers/queries';
-import * as scalars from '@/lib/graphql/resolvers/scalars';
-import { Resolvers } from '@/lib/types';
+import { Resolvers } from '@/lib/types/generated/graphql';
+
+import * as mutations from './mutations';
+import * as queries from './queries';
+import * as scalars from './scalars';
+
+const { GameLog, ...queryResolvers } = queries;
 
 export const resolvers: Resolvers = {
-  DateTime: scalars.DateTime,
-  ErrorResult: scalars.ErrorResult,
-  PaginatedItem: {
-    __resolveType(parent: Record<string, unknown>) {
-      if ('game_type' in parent) return 'Game';
-      if ('player_type' in parent) return 'Player';
-      if ('emailAddress' in parent) return 'UserBase';
-      if ('content' in parent) return 'Comment';
-      if ('watchedSetting' in parent) return 'GameLog';
-      if ('player_id' in parent) return 'PlayerStats';
-      return null;
-    },
-  },
-  Query: queries as unknown as Resolvers['Query'],
+  ...scalars,
+  Query: queryResolvers as unknown as Resolvers['Query'],
   Mutation: mutations as unknown as Resolvers['Mutation'],
+  GameLog,
 };

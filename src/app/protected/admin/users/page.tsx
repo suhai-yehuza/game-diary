@@ -16,7 +16,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { DbCustomUser } from '@/lib/types';
+import { DbCustomUser } from '@/lib/types/user.types';
 
 const ITEMS_PER_PAGE = 20;
 

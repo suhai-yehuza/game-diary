@@ -7,7 +7,7 @@ import { useRouter, useParams } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
-import { DbCustomUser } from '@/lib/types';
+import { DbCustomUser } from '@/lib/types/user.types';
 
 export default function AdminUserProfilePage() {
   const params = useParams();

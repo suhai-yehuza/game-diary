@@ -11,7 +11,7 @@ import {
 } from 'react-hook-form';
 
 import { Label } from '@/components/ui/label';
-import { FormFieldContextValue, FormItemContextValue } from '@/lib/types';
+import { FormFieldContextValue, FormItemContextValue } from '@/lib/types/form.types';
 import { cn } from '@/lib/utils';
 
 const Form = FormProvider;

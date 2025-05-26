@@ -1,7 +1,7 @@
 import { API_CONFIG, getRapidApiConfig } from '@/lib/config/api.config';
 import { teams } from '@/lib/db/schema';
 import { createRapidAPIClient, validateAPIKey, handleAPIError } from '@/lib/external-apis';
-import { ApiTeam, type ApiTeamResponse } from '@/lib/types';
+import { ApiTeam, type ApiTeamResponse } from '@/lib/types/team.types';
 
 import { createDatabaseClient } from './config';
 

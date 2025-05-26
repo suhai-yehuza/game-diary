@@ -5,7 +5,7 @@ import { reset } from 'drizzle-seed';
 import { DB_CONFIG } from '@/lib/config/db.config';
 import * as schema from '@/lib/db/schema';
 import { initializeDb } from '@/lib/db/seed/config';
-import type { DatabaseClient } from '@/lib/types';
+import type { DatabaseClient } from '@/lib/types/db.types';
 import { getCurrentSeason } from '@/lib/utils/index.time';
 
 import { DataProcessor, PerformanceMonitor } from './data-processor';

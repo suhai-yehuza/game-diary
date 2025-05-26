@@ -8,7 +8,7 @@ import React, { useRef, useState, useEffect } from 'react';
 
 import { GameCard } from '@/components/features/games';
 import { GET_GAMES } from '@/lib/graphql/queries';
-import { SearchGame } from '@/lib/types';
+import { SearchGame } from '@/lib/types/game.types';
 
 // Pure function to filter live games
 const filterLiveGames = (games: SearchGame[]): SearchGame[] =>

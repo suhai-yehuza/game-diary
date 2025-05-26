@@ -9,8 +9,9 @@ import {
   fetchNbaPlayers,
   fetchNbaGames,
 } from '@/lib/external-apis';
-import type { GameApiResponse, GameResponseData, DatabaseClient } from '@/lib/types';
 import type { PlayerApiResponse } from '@/lib/types/consolidated.types';
+import type { DatabaseClient } from '@/lib/types/db.types';
+import type { GameApiResponse, GameResponseData } from '@/lib/types/game.types';
 
 import { createDatabaseClient } from './config';
 import type { DataProcessor } from './data-processor';

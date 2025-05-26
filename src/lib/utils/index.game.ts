@@ -2,8 +2,10 @@ import { eq, and, or, InferSelectModel } from 'drizzle-orm';
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
 
 import * as schema from '@/lib/db/schema';
-import { Player, Game, GAME_STATUS_VALUES } from '@/lib/types';
-import type { GameTeams, GameScores, GameStatus, GamePeriods, GameRecord, Team } from '@/lib/types';
+import { GAME_STATUS_VALUES } from '@/lib/types/config.types';
+import type { GameTeams, GameScores, GameRecord } from '@/lib/types/game.types';
+import { Player, Game } from '@/lib/types/generated/graphql';
+import type { GameStatus, GamePeriods, Team } from '@/lib/types/generated/graphql';
 
 function isDBGameRecord(game: unknown): game is GameRecord {
   if (!game || typeof game !== 'object') return false;
@@ -30,12 +32,15 @@ function convertDBGameToNBAGame(game: GameRecord): Game {
   const scores = game.scores as GameScores;
   const status = game.status as GameStatus;
   const periods = game.periods as GamePeriods;
+  const gameDate = new Date(game.date);
+  const createdAt = new Date(game.created_at);
+  const updatedAt = new Date(game.updated_at);
 
   return {
     id: game.id,
     date: {
-      start: new Date(game.date as string),
-      end: new Date(game.date as string),
+      start: gameDate,
+      end: gameDate,
       duration: '2:00',
     },
     status: {
@@ -59,9 +64,9 @@ function convertDBGameToNBAGame(game: GameRecord): Game {
     timesTied: game.times_tied ?? null,
     leadChanges: game.lead_changes ?? null,
     nugget: game.nugget ?? null,
-    created_at: game.created_at,
-    updated_at: game.updated_at,
-    isCompleted: status.long === 'Finished',
+    created_at: createdAt,
+    updated_at: updatedAt,
+    isCompleted: status.long === GAME_STATUS_VALUES.FINISHED,
     awayTeamId: teams.visitors.id.toString(),
     homeTeamId: teams.home.id.toString(),
     away_score: scores.visitors.points || 0,

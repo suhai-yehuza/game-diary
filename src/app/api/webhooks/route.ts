@@ -4,7 +4,7 @@ import { NextRequest } from 'next/server';
 
 import { users } from '@/lib/db/schema';
 import { db } from '@/lib/db/seed';
-import { ClerkUserData, ClerkDeletedUserData } from '@/lib/types';
+import { ClerkUserData, ClerkDeletedUserData } from '@/lib/types/user.types';
 
 // Helper functions
 const createResponse = (message: string, status: number) => new Response(message, { status });

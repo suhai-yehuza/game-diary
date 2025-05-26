@@ -7,7 +7,7 @@ import * as schema from '@/lib/db/schema';
 import { initializeDb } from '@/lib/db/seed/config';
 import { seedApplicationData as seedInternalDb } from '@/lib/db/seed/seed-application-data';
 import { seedExternalData } from '@/lib/db/seed/seed-external-api-data';
-import type { DatabaseClient } from '@/lib/types';
+import type { DatabaseClient } from '@/lib/types/db.types';
 import { getCurrentSeason } from '@/lib/utils/index.time';
 
 config();

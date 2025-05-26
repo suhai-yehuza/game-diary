@@ -1,7 +1,10 @@
 import { currentUser } from '@clerk/nextjs/server';
+import type DataLoader from 'dataloader';
 
 import { getDbClient } from '@/lib/db/seed';
-import type { Context, DbCustomUser } from '@/lib/types';
+import type { Context } from '@/lib/types/context.types';
+import type { Reaction } from '@/lib/types/generated/graphql';
+import type { DbCustomUser } from '@/lib/types/user.types';
 
 import { createLoaders } from './loaders';
 
@@ -10,9 +13,9 @@ export type { Context };
 export async function createContext(): Promise<Context> {
   const user = await currentUser();
   const db = getDbClient();
-  const redis = null; // Redis client will be null for now
+  const redis = undefined; // Redis client will be undefined for now
 
-  let dbUser: DbCustomUser | null = null;
+  let dbUser: DbCustomUser | undefined = undefined;
   if (user) {
     dbUser = {
       id: user.id,
@@ -30,6 +33,8 @@ export async function createContext(): Promise<Context> {
     db,
     redis,
     user: dbUser,
-    loaders,
+    loaders: {
+      reaction: loaders.reaction as DataLoader<string, Reaction>,
+    },
   };
 }

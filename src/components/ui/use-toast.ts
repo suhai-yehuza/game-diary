@@ -1,7 +1,6 @@
 import * as React from 'react';
 
-import { type ToastProps } from '@/lib/types';
-import { State, Action } from '@/lib/types';
+import { type ToastProps, State, Action } from '@/lib/types/toast.types';
 import { TOAST_LIMIT, createToast } from '@/lib/utils/toast';
 
 function useToast() {

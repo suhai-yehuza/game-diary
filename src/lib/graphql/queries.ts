@@ -290,15 +290,33 @@ export const GET_GAME_LOGS = gql`
           user {
             ...BasicUserFragment
           }
-          comments {
-            ...CommentFragment
-          }
-          reactions {
-            id
-            emoji
-            user {
-              ...BasicUserFragment
+          comments(first: 10) {
+            edges {
+              node {
+                ...CommentFragment
+              }
             }
+            pageInfo {
+              hasNextPage
+              endCursor
+            }
+            totalCount
+          }
+          reactions(first: 20) {
+            edges {
+              node {
+                id
+                emoji
+                user {
+                  ...BasicUserFragment
+                }
+              }
+            }
+            pageInfo {
+              hasNextPage
+              endCursor
+            }
+            totalCount
           }
         }
       }
@@ -376,6 +394,60 @@ export const GET_REACTIONS = gql`
       updated_at
       user {
         ...BasicUserFragment
+      }
+    }
+  }
+  ${BASIC_USER_FRAGMENT}
+`;
+
+export const GET_GAME_LOG_COMMENTS = gql`
+  query GetGameLogComments($gameLogId: ID!, $first: Int, $after: String) {
+    gameLog(gameId: $gameLogId, userId: "") {
+      id
+      comments(first: $first, after: $after) {
+        edges {
+          cursor
+          node {
+            ...CommentFragment
+          }
+        }
+        pageInfo {
+          hasNextPage
+          hasPreviousPage
+          startCursor
+          endCursor
+        }
+        totalCount
+      }
+    }
+  }
+  ${COMMENT_FRAGMENT}
+`;
+
+export const GET_GAME_LOG_REACTIONS = gql`
+  query GetGameLogReactions($gameLogId: ID!, $first: Int, $after: String) {
+    gameLog(gameId: $gameLogId, userId: "") {
+      id
+      reactions(first: $first, after: $after) {
+        edges {
+          cursor
+          node {
+            id
+            emoji
+            created_at
+            updated_at
+            user {
+              ...BasicUserFragment
+            }
+          }
+        }
+        pageInfo {
+          hasNextPage
+          hasPreviousPage
+          startCursor
+          endCursor
+        }
+        totalCount
       }
     }
   }

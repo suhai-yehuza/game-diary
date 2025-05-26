@@ -19,6 +19,7 @@ import type {
   Classification,
   GameFilters as GeneratedGameFilters,
   DateRangeInput,
+  GameStatus,
 } from './generated/graphql';
 import type { CustomTeam } from './team.types';
 
@@ -403,27 +404,13 @@ export interface TransformedGame extends GameResponseData {
 }
 
 export type GameTeams = {
-  home: {
-    id: string;
-    name: string;
-    nickname: string;
-    logo?: string;
-  };
-  visitors: {
-    id: string;
-    name: string;
-    nickname: string;
-    logo?: string;
-  };
+  home: { id: string };
+  visitors: { id: string };
 };
 
 export type GameScores = {
-  home: {
-    points: number;
-  };
-  visitors: {
-    points: number;
-  };
+  home: { points: number };
+  visitors: { points: number };
 };
 
 export type ExtendedGame = Game & {
@@ -466,3 +453,22 @@ export type GamePlayerSortInput = {
   field: string;
   direction: 'asc' | 'desc';
 };
+
+export interface GameRecord {
+  id: string;
+  league: string;
+  season: number;
+  date: string;
+  stage: number;
+  status: GameStatus;
+  periods: { current: number; total: number; endOfPeriod: boolean };
+  arena: string;
+  teams: GameTeams;
+  scores: GameScores;
+  officials: string[];
+  created_at: string;
+  updated_at: string;
+  times_tied?: number;
+  lead_changes?: number;
+  nugget?: string;
+}

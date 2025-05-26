@@ -4,13 +4,13 @@ import { API_CONFIG } from '@/lib/config/api.config';
 import { DB_CONFIG } from '@/lib/config/db.config';
 import { schema } from '@/lib/db/schema';
 import { initializeDb } from '@/lib/db/seed/config';
-import { FRIENDSHIP_STATUS, WATCHED_SETTINGS, REACTION_EMOJIS } from '@/lib/types';
+import { FRIENDSHIP_STATUS, WATCHED_SETTINGS, REACTION_EMOJIS } from '@/lib/types/config.types';
 import type {
-  DatabaseClient,
   FriendshipStatusValue,
   WatchedSettingValue,
   ReactionEmojiValue,
-} from '@/lib/types';
+} from '@/lib/types/config.types';
+import type { DatabaseClient } from '@/lib/types/db.types';
 import { processInBatches, generateUUID } from '@/lib/utils/index.processing';
 
 // Limit concurrent operations

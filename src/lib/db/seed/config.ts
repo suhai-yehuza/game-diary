@@ -6,7 +6,7 @@ import type { NeonHttpDatabase } from 'drizzle-orm/neon-http';
 
 import * as schema from '@/lib/db/schema';
 import { env } from '@/lib/env';
-import type { BaseDatabaseClient, DatabaseConfig } from '@/lib/types';
+import type { BaseDatabaseClient, DatabaseConfig } from '@/lib/types/db.types';
 
 interface RawDatabaseClient {
   execute: (query: ReturnType<typeof sql>) => Promise<{ rows: unknown[] }>;

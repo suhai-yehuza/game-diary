@@ -6,8 +6,9 @@ import React from 'react';
 
 import { StarRating } from '@/components/ui/star-rating';
 import { GET_USER, GET_GAME_LOGS } from '@/lib/graphql/queries';
-import { FriendProfileProps, TeamCounts } from '@/lib/types';
 import { SharedGameLog } from '@/lib/types/generated/graphql';
+import { TeamCounts } from '@/lib/types/team.types';
+import { FriendProfileProps } from '@/lib/types/user.types';
 
 import { FriendActivity } from './FriendActivity';
 

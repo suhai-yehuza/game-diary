@@ -38,13 +38,13 @@ export type ActivityType =
   | 'watch';
 
 // Comment Types
-export interface Comment extends GeneratedComment {
+export interface DbComment extends GeneratedComment {
   replies?: Comment[];
   parentId?: string;
 }
 
 // Reaction Types
-export interface Reaction extends GeneratedReaction {
+export interface DbReaction extends GeneratedReaction {
   target?: {
     id: string;
     type: GeneratedTargetType;

@@ -140,7 +140,7 @@ export interface BaseUser {
 }
 
 // Base friendship types
-export interface BaseFriendship {
+export interface Friendship {
   id: string;
   subscriberId: string;
   userId: string;
@@ -152,7 +152,7 @@ export interface BaseFriendship {
 }
 
 // Base game types
-export interface BaseGame {
+export interface Game {
   id: string;
   date: Date;
   status: {
@@ -165,7 +165,7 @@ export interface BaseGame {
 }
 
 // Base game log types
-export interface BaseGameLog {
+export interface GameLog {
   id: string;
   gameId: string;
   userId: string;
@@ -181,7 +181,7 @@ export interface BaseGameLog {
 }
 
 // Base comment types
-export interface BaseComment {
+export interface Comment {
   id: string;
   content: string;
   userId: string;
@@ -193,7 +193,7 @@ export interface BaseComment {
 }
 
 // Base reaction types
-export interface BaseReaction {
+export interface Reaction {
   id: string;
   emoji: string;
   userId: string;

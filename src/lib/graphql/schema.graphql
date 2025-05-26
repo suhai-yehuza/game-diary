@@ -56,6 +56,17 @@ type Comment {
   userId: ID!
 }
 
+type CommentConnection {
+  edges: [CommentEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type CommentEdge {
+  cursor: String!
+  node: Comment!
+}
+
 input CommentFilters {
   pagination: PaginationInput
   parent_id: ID!
@@ -282,10 +293,21 @@ type Game {
   updated_at: DateTime!
 }
 
+type GameConnection {
+  edges: [GameEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
 type GameDate {
   duration: String
   end: DateTime
   start: DateTime!
+}
+
+type GameEdge {
+  cursor: String!
+  node: Game!
 }
 
 input GameFilters {
@@ -310,7 +332,7 @@ input GameFilters {
 
 type GameLog {
   classification: Classification!
-  comments: [Comment!]!
+  comments(after: String, before: String, first: Int, last: Int): CommentConnection!
   created_at: DateTime!
   deleted_at: DateTime
   game: Game!
@@ -320,7 +342,7 @@ type GameLog {
   rating: Int
   ratingForGame: Int
   ratingStars: Int
-  reactions: [Reaction!]!
+  reactions(after: String, before: String, first: Int, last: Int): ReactionConnection!
   tags: [String!]!
   updated_at: DateTime!
   user: UserSummary!
@@ -329,6 +351,17 @@ type GameLog {
   watchedDate: DateTime
   watchedLocation: String
   watchedSetting: String!
+}
+
+type GameLogConnection {
+  edges: [GameLogEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type GameLogEdge {
+  cursor: String!
+  node: GameLog!
 }
 
 input GameLogFilters {
@@ -392,12 +425,23 @@ type League {
   type: String!
 }
 
+type LeagueConnection {
+  edges: [LeagueEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
 type LeagueDetails {
   active: Boolean
   conference: String
   division: String
   jersey: String
   pos: String
+}
+
+type LeagueEdge {
+  cursor: String!
+  node: League!
 }
 
 type LeaguesInfo {
@@ -451,6 +495,13 @@ type NotFoundError {
   resource: String!
 }
 
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+}
+
 union PaginatedItem = Comment | Game | GameLog | Player | PlayerStats | UserBase
 
 type PaginatedResponse {
@@ -486,6 +537,17 @@ type Player {
   seasons_active: [SeasonActive]
   updated_at: DateTime!
   weight: WeightInfo
+}
+
+type PlayerConnection {
+  edges: [PlayerEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type PlayerEdge {
+  cursor: String!
+  node: Player!
 }
 
 input PlayerFilters {
@@ -572,36 +634,103 @@ type PlayerStats {
   updated_at: DateTime!
 }
 
+type PlayerStatsConnection {
+  edges: [PlayerStatsEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type PlayerStatsEdge {
+  cursor: String!
+  node: PlayerStats!
+}
+
 type Query {
-  allPlayerStats(season: Int!): [PlayerStats!]!
-  allTeamStats(season: Int!): [TeamStats!]!
-  comments(parent_id: ID!): [Comment!]!
+  allPlayerStats(
+    after: String
+    before: String
+    first: Int
+    last: Int
+    season: Int!
+  ): PlayerStatsConnection!
+  allTeamStats(
+    after: String
+    before: String
+    first: Int
+    last: Int
+    season: Int!
+  ): TeamStatsConnection!
+  comments(after: String, before: String, first: Int, last: Int, parent_id: ID!): CommentConnection!
   friendship(id: ID!): Friendship
-  friendships(userId: ID!): [UserBase!]!
+  friendships(
+    after: String
+    before: String
+    first: Int
+    last: Int
+    userId: ID!
+  ): UserBaseConnection!
   game(id: ID!): Game
   gameLog(gameId: ID!, userId: ID!): GameLog
   gameLogStats(filters: GameLogFilters): GameLogStats!
-  gameLogs(filters: GameLogFilters, pagination: PaginationInput): PaginatedResponse!
+  gameLogs(
+    after: String
+    before: String
+    filters: GameLogFilters
+    first: Int
+    last: Int
+  ): GameLogConnection!
   gameStats(id: ID!): GameStats
-  games(filters: GameFilters, pagination: PaginationInput): PaginatedResponse!
-  leagues: [League!]!
-  liveGames: [Game!]!
+  games(after: String, before: String, filters: GameFilters, first: Int, last: Int): GameConnection!
+  leagues(after: String, before: String, first: Int, last: Int): LeagueConnection!
+  liveGames(after: String, before: String, first: Int, last: Int): GameConnection!
   player(id: ID!): Player
   playerGameStats(game_id: ID!, player_id: ID!): PlayerStats
   playerSeasonStats(playerId: ID!, season: Int!): PlayerStats
-  playerSeasonStatsList(pagination: PaginationInput, playerId: ID!): PaginatedResponse!
+  playerSeasonStatsList(
+    after: String
+    before: String
+    first: Int
+    last: Int
+    playerId: ID!
+  ): PlayerStatsConnection!
   playerStats(playerId: ID!, season: Int!): PlayerStats
-  playerStatsByTeam(season: Int!, team: String!): [PlayerStats!]!
-  players(filters: PlayerFilters, pagination: PaginationInput): PaginatedResponse!
-  reactions(targetId: ID!): [Reaction!]!
-  seasons: [Season!]!
+  playerStatsByTeam(
+    after: String
+    before: String
+    first: Int
+    last: Int
+    season: Int!
+    team: String!
+  ): PlayerStatsConnection!
+  players(
+    after: String
+    before: String
+    filters: PlayerFilters
+    first: Int
+    last: Int
+  ): PlayerConnection!
+  reactions(
+    after: String
+    before: String
+    first: Int
+    last: Int
+    targetId: ID!
+  ): ReactionConnection!
+  seasons(after: String, before: String, first: Int, last: Int): SeasonConnection!
   team(id: ID!): Team
   teamGameStats(game_id: ID!, team: String!): TeamStats
-  teamStats(pagination: PaginationInput, sort: TeamSortInput, teamId: ID!): [TeamStats!]!
-  teams(filters: TeamFilters, pagination: PaginationInput): [Team!]!
-  topPlayers(season: Int!): [Player!]!
+  teamStats(
+    after: String
+    before: String
+    first: Int
+    last: Int
+    sort: TeamSortInput
+    teamId: ID!
+  ): TeamStatsConnection!
+  teams(after: String, before: String, filters: TeamFilters, first: Int, last: Int): TeamConnection!
+  topPlayers(after: String, before: String, first: Int, last: Int, season: Int!): PlayerConnection!
   user(id: ID!): User
-  users(pagination: PaginationInput): PaginatedResponse!
+  users(after: String, before: String, first: Int, last: Int): UserConnection!
 }
 
 type RateLimitError {
@@ -618,6 +747,17 @@ type Reaction {
   updated_at: DateTime!
   user: UserSummary!
   userId: ID!
+}
+
+type ReactionConnection {
+  edges: [ReactionEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type ReactionEdge {
+  cursor: String!
+  node: Reaction!
 }
 
 enum ReactionEmojiType {
@@ -671,6 +811,17 @@ type Season {
 type SeasonActive {
   season: Int
   teams: [String!]
+}
+
+type SeasonConnection {
+  edges: [SeasonEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type SeasonEdge {
+  cursor: String!
+  node: Season!
 }
 
 type SendFriendRequestResponse {
@@ -727,6 +878,17 @@ type Team {
   primary_color: String
   secondary_color: String
   updated_at: DateTime!
+}
+
+type TeamConnection {
+  edges: [TeamEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type TeamEdge {
+  cursor: String!
+  node: Team!
 }
 
 input TeamFilters {
@@ -840,6 +1002,17 @@ type TeamStats {
   turnovers: Int!
   updated_at: DateTime!
   wins: Int!
+}
+
+type TeamStatsConnection {
+  edges: [TeamStatsEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type TeamStatsEdge {
+  cursor: String!
+  node: TeamStats!
 }
 
 type TeamSummary {
@@ -1018,6 +1191,28 @@ type UserBase {
   id: ID!
   imageUrl: String
   username: String!
+}
+
+type UserBaseConnection {
+  edges: [UserBaseEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type UserBaseEdge {
+  cursor: String!
+  node: UserBase!
+}
+
+type UserConnection {
+  edges: [UserEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type UserEdge {
+  cursor: String!
+  node: User!
 }
 
 type UserSummary {

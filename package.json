@@ -145,6 +145,7 @@
     "@graphql-codegen/typescript-resolvers": "^4.5.1",
     "@graphql-tools/schema": "10.0.23",
     "@graphql-tools/utils": "10.8.6",
+    "@next/env": "15.4.0-canary.51",
     "@parcel/watcher": "^2.5.1",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.3.0",

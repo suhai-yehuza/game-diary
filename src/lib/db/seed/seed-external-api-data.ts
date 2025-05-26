@@ -10,7 +10,7 @@ import { fetchAndProcessNBAPlayers } from '@/lib/db/seed/fetch-external-api-play
 import { fetchAndProcessNBASeasons } from '@/lib/db/seed/fetch-external-api-seasons';
 import { fetchAndProcessTeamH2H } from '@/lib/db/seed/fetch-external-api-team-h2h';
 import { fetchAndProcessNBATeams } from '@/lib/db/seed/fetch-external-api-teams';
-import type { DatabaseClient } from '@/lib/types';
+import type { DatabaseClient } from '@/lib/types/db.types';
 import { processInBatches } from '@/lib/utils/index.processing';
 import { getCurrentSeason, sleep } from '@/lib/utils/index.time';
 

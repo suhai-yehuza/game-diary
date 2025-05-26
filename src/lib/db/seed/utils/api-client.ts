@@ -6,7 +6,7 @@ import pLimit from 'p-limit';
 import { getRapidApiConfig } from '@/lib/config/api.config';
 import { DB_CONFIG } from '@/lib/config/db.config';
 import { createRapidAPIClient, validateAPIKey } from '@/lib/external-apis';
-import type { DatabaseClient } from '@/lib/types';
+import type { DatabaseClient } from '@/lib/types/db.types';
 import { sleep } from '@/lib/utils/index.time';
 
 import { createDatabaseClient } from '../config';

@@ -4,21 +4,13 @@
  */
 import type DataLoader from 'dataloader';
 import { type NeonHttpDatabase } from 'drizzle-orm/neon-http';
-import type { Request, Response } from 'express';
 import { z } from 'zod';
 
 import * as schema from '@/lib/db/schema';
 
+import type { DatabaseRow } from './database.types';
 import type { Player, Team } from './generated/graphql';
-import type { RedisClient } from './redis.types';
-import type {
-  BaseGame,
-  BaseGameLog,
-  BaseComment,
-  BaseReaction,
-  BaseFriendship,
-  BaseUser,
-} from './shared.types';
+import type { Game, GameLog, Comment, Reaction, Friendship } from './shared.types';
 import type { DbCustomUser } from './user.types';
 
 // Environment Configuration Types
@@ -307,13 +299,6 @@ export interface DatabaseOptions {
   stats?: DatabaseStatsOptions;
 }
 
-// Generic database row type that's more specific than 'any' but flexible
-export type DatabaseRow = Record<string, unknown> & {
-  id: string;
-  created_at?: Date | null;
-  updated_at?: Date | null;
-};
-
 // Database query result types
 export type DatabaseQueryResult<T = DatabaseRow> = T[];
 export type DatabaseSingleResult<T = DatabaseRow> = T | undefined;
@@ -419,22 +404,13 @@ export interface Constraint {
 }
 
 // Context and Loader Types
-export interface Context {
-  req?: Request;
-  res?: Response;
-  user?: BaseUser;
-  db: NeonHttpDatabase<Record<string, unknown>>;
-  redis?: RedisClient | null;
-  loaders?: Loaders;
-}
-
 export interface Loaders {
   user: DataLoader<string, DbCustomUser | null>;
-  game: DataLoader<string, BaseGame | null>;
-  gameLog: DataLoader<string, BaseGameLog | null>;
-  comment: DataLoader<string, BaseComment | null>;
-  reaction: DataLoader<string, BaseReaction | null>;
-  friendship: DataLoader<string, BaseFriendship | null>;
+  game: DataLoader<string, Game | null>;
+  gameLog: DataLoader<string, GameLog | null>;
+  comment: DataLoader<string, Comment | null>;
+  reaction: DataLoader<string, Reaction | null>;
+  friendship: DataLoader<string, Friendship | null>;
   player: DataLoader<string, Player | null>;
   gameRating: DataLoader<string, GameRating | null>;
   team: DataLoader<string, Team | null>;

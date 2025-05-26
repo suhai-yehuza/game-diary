@@ -1,14 +1,14 @@
 import { z } from 'zod';
 
 import type {
-  APIConfigOptions,
   RangeConfig,
   BatchSizeConfig,
   DatabaseSeedingConfig,
   RateLimitConfig,
   ClassificationWeights,
   DistributionFunctions,
-} from '@/lib/types';
+} from '@/lib/types/config.types';
+import type { APIConfigOptions } from '@/lib/types/shared.types';
 
 const SMALL = 100;
 const MEDIUM = 10 * SMALL;

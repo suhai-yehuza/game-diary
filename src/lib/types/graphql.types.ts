@@ -3,9 +3,6 @@ import { z } from 'zod';
 
 import { createCommentSchema } from '@/lib/validations/comment';
 
-import type { RedisClient } from './redis.types';
-import type { DbCustomUser } from './user.types';
-
 export type CreateCommentInput = z.infer<typeof createCommentSchema>;
 
 export interface SendFriendRequestInput {
@@ -79,13 +76,6 @@ export type ReactionRecord = {
   created_at: Date;
   updated_at: Date;
 };
-
-export interface Context {
-  db: import('./db.types').DatabaseClient;
-  redis: RedisClient | null;
-  user: DbCustomUser | null;
-  loaders: DataLoaders;
-}
 
 // Define DataLoaders interface to match actual DataLoader instances
 export interface DataLoaders {

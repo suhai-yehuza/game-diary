@@ -1,7 +1,7 @@
 import type { Comment } from './comment.types';
 import type { SharedGameLog } from './generated/graphql';
 import type { Reaction } from './reaction.types';
-import type { BaseUser, BaseFriendship, ValidatableValue } from './shared.types';
+import type { BaseUser, Friendship, ValidatableValue } from './shared.types';
 
 export interface ExternalUserAccount {
   id: string;
@@ -116,8 +116,8 @@ export interface DbCustomUser extends BaseUser {
   password_reset_token?: string;
   password_reset_token_expires_at?: Date;
   password_reset_token_sent_at?: Date;
-  received_friendships?: BaseFriendship[];
-  initiated_friendships?: BaseFriendship[];
+  received_friendships?: Friendship[];
+  initiated_friendships?: Friendship[];
   banned?: boolean;
   two_factor_enabled?: boolean;
   last_sign_in_at?: Date;

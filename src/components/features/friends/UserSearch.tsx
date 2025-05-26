@@ -5,7 +5,7 @@ import React, { useState } from 'react';
 
 import { useDebounce } from '@/hooks/useDebounce';
 import { GET_USERS } from '@/lib/graphql/queries';
-import { UserSearchProps, DbCustomUser } from '@/lib/types';
+import { UserSearchProps, DbCustomUser } from '@/lib/types/user.types';
 
 export const UserSearch: React.FC<UserSearchProps> = ({ onUserSelect, excludeIds = [] }) => {
   const [searchQuery, setSearchQuery] = useState('');

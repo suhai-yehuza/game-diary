@@ -1,17 +1,16 @@
 // This file contains functions to fetch data from external APIs.
 import { API_CONFIG, getRapidApiConfig } from '@/lib/config/api.config';
 import { APIError } from '@/lib/errors/api.error';
+import type { SeasonApiResponse } from '@/lib/types/api.types';
+import type { PlayerApiResponse } from '@/lib/types/consolidated.types';
+import type { GameApiResponse } from '@/lib/types/game.types';
+import type { TeamStats, PlayerStats } from '@/lib/types/generated/graphql';
 import type {
   APIConfigOptions,
-  TeamStats,
-  PlayerStats,
-  APISeasonResponse,
-  ApiTeamResponse,
-  GameApiResponse,
   StandingApiResponse,
   LeaguesApiResponse,
-} from '@/lib/types';
-import type { PlayerApiResponse } from '@/lib/types/consolidated.types';
+} from '@/lib/types/shared.types';
+import type { ApiTeamResponse } from '@/lib/types/team.types';
 import { sleep } from '@/lib/utils/index.time';
 
 // ============================================================================
@@ -240,7 +239,7 @@ function getNbaApiBaseUrl(): string {
 /**
  * Fetch NBA seasons
  */
-export async function fetchNbaSeasons(): Promise<APISeasonResponse> {
+export async function fetchNbaSeasons(): Promise<SeasonApiResponse> {
   const res = await fetchWithRetry(
     `${getNbaApiBaseUrl()}/${API_CONFIG.endpoints.SEASONS}`,
     createNbaApiConfig(),

@@ -1,10 +1,11 @@
 import DataLoader from 'dataloader';
-import { inArray } from 'drizzle-orm';
+import { inArray, type InferSelectModel } from 'drizzle-orm';
 import type { NeonHttpDatabase } from 'drizzle-orm/neon-http';
 
 import { getCache } from '@/lib/cache';
 import * as schema from '@/lib/db/schema';
 import { db } from '@/lib/db/seed';
+import { FRIENDSHIP_STATUS } from '@/lib/types/config.types';
 import type {
   Game,
   GameLog,
@@ -15,15 +16,14 @@ import type {
   ParentType,
   Player,
   UserSummary,
-  FRIENDSHIP_STATUS,
   Team,
-  DbGame,
-  DBComment,
-  DBReaction,
   Maybe,
   BirthInfo,
-} from '@/lib/types';
-import type { NbaInfo, HeightInfo, WeightInfo } from '@/lib/types/generated/graphql';
+  NbaInfo,
+  HeightInfo,
+  WeightInfo,
+} from '@/lib/types/generated/graphql';
+import type { DbGame, DBComment, DBReaction } from '@/lib/types/generated/types';
 
 export function createLoaders(db: NeonHttpDatabase<typeof schema>) {
   const userLoader = new DataLoader<string, UserSummary>(async userIds => {
@@ -273,7 +273,7 @@ export const createTeamLoader = () => {
       where: inArray(schema.teams.id, Array.from(teamIds)),
     });
     return teamIds.map(id => {
-      const team = teamRecords.find(t => t.id === id);
+      const team = teamRecords.find((t: InferSelectModel<typeof schema.teams>) => t.id === id);
       if (!team) return null;
       return {
         id: team.id,
@@ -303,7 +303,7 @@ export const createGameLoader = () => {
       where: inArray(schema.nba_games.id, Array.from(gameIds)),
     });
     return gameIds.map(id => {
-      const game = games.find(g => g.id === id);
+      const game = games.find((g: InferSelectModel<typeof schema.nba_games>) => g.id === id);
       if (!game) return null;
 
       // Safe type handling for complex fields
@@ -383,7 +383,7 @@ export const createDbGameLoader = () => {
       .where(inArray(schema.nba_games.id, Array.from(ids)));
 
     return ids.map(id => {
-      const game = games.find(g => g.id === id);
+      const game = games.find((g: InferSelectModel<typeof schema.nba_games>) => g.id === id);
       if (!game) {
         return null;
       }
@@ -437,8 +437,10 @@ export const createGameLogsLoader = (
     const logs = await db.query.game_logs.findMany({
       where: inArray(schema.game_logs.id, Array.from(keys)),
     });
-    const userIds = logs.map(log => log.user_id).filter((id): id is string => id !== null);
-    const gameIds = logs.map(log => log.game_id);
+    const userIds = logs
+      .map((log: InferSelectModel<typeof schema.game_logs>) => log.user_id)
+      .filter((id): id is string => id !== null);
+    const gameIds = logs.map((log: InferSelectModel<typeof schema.game_logs>) => log.game_id);
     const users = await userLoader.loadMany(userIds);
     const games = await dbGameLoader.loadMany(gameIds);
 
@@ -506,8 +508,26 @@ export const createGameLogsLoader = (
         created_at: log.created_at,
         updated_at: log.updated_at,
         deleted_at: log.deleted_at,
-        comments: [],
-        reactions: [],
+        comments: {
+          edges: [],
+          pageInfo: {
+            hasNextPage: false,
+            hasPreviousPage: false,
+            startCursor: null,
+            endCursor: null,
+          },
+          totalCount: 0,
+        },
+        reactions: {
+          edges: [],
+          pageInfo: {
+            hasNextPage: false,
+            hasPreviousPage: false,
+            startCursor: null,
+            endCursor: null,
+          },
+          totalCount: 0,
+        },
         __typename: 'GameLog',
       } as GameLog;
     });

@@ -1,7 +1,7 @@
 import type { InferInsertModel } from 'drizzle-orm';
 import type { PgTable } from 'drizzle-orm/pg-core';
 
-import type { DatabaseClient } from '@/lib/types';
+import type { DatabaseClient } from '@/lib/types/db.types';
 
 import { OptimizedAPIClient } from './utils/api-client';
 

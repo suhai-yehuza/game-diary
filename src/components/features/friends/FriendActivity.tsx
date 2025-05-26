@@ -5,7 +5,7 @@ import React from 'react';
 
 import { StarRating } from '@/components/ui/star-rating';
 import { GET_GAME_LOGS } from '@/lib/graphql/queries';
-import { FriendActivityProps } from '@/lib/types';
+import { FriendActivityProps } from '@/lib/types/activity.types';
 import { GameLog } from '@/lib/types/generated/graphql';
 
 export const FriendActivity: React.FC<FriendActivityProps> = ({ friendId }) => {

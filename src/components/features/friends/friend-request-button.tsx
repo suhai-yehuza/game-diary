@@ -9,12 +9,12 @@ import { useAuthContext } from '@/contexts/AuthContext';
 import { useNotifications } from '@/contexts/NotificationContext';
 import { SEND_FRIEND_REQUEST, UPDATE_FRIENDSHIP_STATUS } from '@/lib/graphql/mutations';
 import { GET_FRIENDSHIPS } from '@/lib/graphql/queries';
+import { FRIENDSHIP_STATUS } from '@/lib/types/config.types';
 import {
   FriendRequestButtonProps,
-  Friendship,
   GetFriendshipsForUserResponse,
-  FRIENDSHIP_STATUS,
-} from '@/lib/types';
+} from '@/lib/types/consolidated.types';
+import { Friendship } from '@/lib/types/generated/graphql';
 
 export function FriendRequestButton({ targetUserId }: FriendRequestButtonProps) {
   const { userId, isAuthenticated } = useAuthContext();

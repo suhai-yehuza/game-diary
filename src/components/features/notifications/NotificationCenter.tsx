@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useNotifications } from '@/contexts/NotificationContext';
-import { AppNotification } from '@/lib/types';
+import { AppNotification } from '@/lib/types/notification.types';
 
 export function NotificationCenter() {
   const { notifications, unreadCount, markAsRead, markAllAsRead, clearNotifications } =

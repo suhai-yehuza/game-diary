@@ -10,7 +10,7 @@ import React, { Suspense } from 'react';
 import { filterGames, processGameData } from '@/app/search/utils/game-search';
 import { GET_GAMES } from '@/lib/graphql/queries';
 import { useDebounce } from '@/lib/hooks/use-debounce';
-import { SearchGame } from '@/lib/types';
+import { SearchGame } from '@/lib/types/game.types';
 
 function GameCard({ game }: { game: SearchGame }) {
   return (

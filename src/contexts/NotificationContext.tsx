@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 import { useToast } from '@/components/ui/use-toast';
-import type { AppNotification, NotificationContextType } from '@/lib/types';
+import type { AppNotification, NotificationContextType } from '@/lib/types/notification.types';
 
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
 

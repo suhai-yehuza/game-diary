@@ -2,7 +2,7 @@
 
 import { format } from 'date-fns';
 
-import { SearchGame, GameQueryResult, ProcessedGameData } from '@/lib/types';
+import { SearchGame, GameQueryResult, ProcessedGameData } from '@/lib/types/game.types';
 
 // Pure function to check if a string contains the search term
 const containsTerm = (str: string | null | undefined, term: string): boolean =>

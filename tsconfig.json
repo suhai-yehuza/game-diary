@@ -31,5 +31,5 @@
     "src/types/*.d.ts",
     "src/lib/types/global.d.ts"
   ],
-  "exclude": ["node_modules", "src/lib/graphql/generated/*"]
+  "exclude": ["node_modules"]
 }

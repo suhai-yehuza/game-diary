@@ -9,38 +9,78 @@ import { fetchNbaLiveGames } from '@/lib/external-apis';
 import { NotFoundError, BusinessLogicError } from '@/lib/graphql/errors';
 import { transformUserToSummary } from '@/lib/graphql/resolvers/transformers';
 import {
-  CACHE_TTL,
-  Context,
-  GameLogFilters as GqlGameLogFilters,
-  QuerygamesArgs,
-  QueryteamsArgs,
-  QueryplayersArgs,
-  QueryusersArgs,
-  DatabaseRow,
-  GameTeamSortInput,
-} from '@/lib/types';
-import type { User, UserSummary } from '@/lib/types';
+  createConnection,
+  createEmptyConnection,
+  parsePaginationArgs,
+} from '@/lib/graphql/utils/pagination';
+import { CACHE_TTL } from '@/lib/types/cache.types';
+import { Context } from '@/lib/types/context.types';
+import { DatabaseRow } from '@/lib/types/database.types';
+import { ReactionEmojiType, ParentType } from '@/lib/types/generated/graphql';
+import type { User } from '@/lib/types/generated/graphql';
 
-export const seasons = async () => {
-  const dbSeasons = await db.query.seasons.findMany();
-  return dbSeasons.map(season => ({
+// Type for game scores JSON structure
+interface GameScores {
+  visitors?: {
+    points?: number;
+  };
+  home?: {
+    points?: number;
+  };
+}
+
+export const seasons = async (
+  _parent: unknown,
+  args: {
+    first?: number | null;
+    after?: string | null;
+    last?: number | null;
+    before?: string | null;
+  } = {}
+) => {
+  const { limit, offset } = parsePaginationArgs(args);
+
+  const [dbSeasons, totalResult] = await Promise.all([
+    db.query.seasons.findMany({
+      limit,
+      offset,
+    }),
+    db.select({ count: sql<number>`count(*)` }).from(schema.seasons),
+  ]);
+
+  const total = totalResult[0]?.count || 0;
+
+  const mappedSeasons = dbSeasons.map(season => ({
     id: String(season.id),
     year: season.year,
     display_year: season.display_year,
-    start_date: season.start_date.toISOString(),
-    end_date: season.end_date.toISOString(),
-    current: season.is_current,
+    start_date: season.start_date,
+    end_date: season.end_date,
     is_current: season.is_current,
-    type: season.is_playoffs ? 'playoffs' : 'regular',
     is_playoffs: season.is_playoffs,
-    created_at: season.created_at,
-    updated_at: season.updated_at,
   }));
+
+  return createConnection(mappedSeasons, total, args);
 };
 
-export const games = async (_parent: unknown, args: QuerygamesArgs, { db }: Context) => {
+export const games = async (
+  _parent: unknown,
+  args: {
+    filters?: {
+      game_id?: string;
+      status?: string;
+      dateRange?: { start?: string; end?: string };
+    };
+    first?: number | null;
+    after?: string | null;
+    last?: number | null;
+    before?: string | null;
+  },
+  { db }: Context
+) => {
   try {
-    const { filters, pagination } = args;
+    const { filters, ...paginationArgs } = args;
+    const { limit, offset } = parsePaginationArgs(paginationArgs);
     const conditions: SQL[] = [];
 
     if (filters) {
@@ -64,45 +104,63 @@ export const games = async (_parent: unknown, args: QuerygamesArgs, { db }: Cont
     const query = db
       .select()
       .from(schema.nba_games)
-      .where(and(...conditions))
-      .limit(pagination?.first || 10)
-      .offset(pagination?.after ? parseInt(pagination.after) : 0);
+      .where(conditions.length > 0 ? and(...conditions) : undefined)
+      .limit(limit)
+      .offset(offset);
 
-    const [items, total] = await Promise.all([query, db.select().from(schema.nba_games).execute()]);
+    const [items, totalResult] = await Promise.all([
+      query,
+      db
+        .select({ count: sql<number>`count(*)` })
+        .from(schema.nba_games)
+        .where(conditions.length > 0 ? and(...conditions) : undefined),
+    ]);
 
-    return {
-      items: items.map(game => ({
-        id: game.id,
-        date: game.date,
-        status: {
-          clock: game.periods?.current?.toString() || '',
-        },
-        homeTeamId: game.teams?.home?.id || '',
-        awayTeamId: game.teams?.visitors?.id || '',
-        created_at: game.created_at,
-        updated_at: game.updated_at,
-        arena: game.arena || { name: '', city: '' },
-        league: game.league,
-        season: game.season,
-        stage: game.stage,
-        periods: game.periods || { current: 0 },
-        teams: game.teams || {
-          home: { id: '', name: '', nickname: '', logo: undefined },
-          visitors: { id: '', name: '', nickname: '', logo: undefined },
-        },
-        scores: game.scores || {
-          home: { points: 0 },
-          visitors: { points: 0 },
-        },
-        officials: game.officials || [],
-        timesTied: game.times_tied || undefined,
-        leadChanges: game.lead_changes || undefined,
-        nugget: game.nugget || undefined,
-        isCompleted: game.status === 'FINISHED',
-      })),
-      total: total.length,
-      hasMore: total.length > (pagination?.first || 10),
-    };
+    const total = totalResult[0]?.count || 0;
+
+    const mappedGames = items.map(game => ({
+      id: game.id,
+      date: {
+        start:
+          typeof game.date === 'string'
+            ? new Date(game.date)
+            : game.date instanceof Date
+              ? game.date
+              : new Date(),
+        end: null,
+        duration: null,
+      },
+      status: {
+        clock: game.periods?.current?.toString() || '',
+        halftime: false,
+        long: typeof game.status === 'string' ? game.status : String(game.status ?? ''),
+        short: typeof game.status === 'string' ? game.status : String(game.status ?? ''),
+      },
+      arena: typeof game.arena === 'string' ? game.arena : String(game.arena ?? ''),
+      league: typeof game.league === 'string' ? game.league : String(game.league ?? ''),
+      season: typeof game.season === 'number' ? game.season : Number(game.season ?? 0),
+      stage: typeof game.stage === 'number' ? game.stage : Number(game.stage ?? 0),
+      periods: game.periods ?? [],
+      scores: game.scores ?? [],
+      officials: Array.isArray(game.officials) ? game.officials.map(String) : [],
+      timesTied: typeof game.times_tied === 'number' ? game.times_tied : null,
+      leadChanges: typeof game.lead_changes === 'number' ? game.lead_changes : null,
+      nugget: typeof game.nugget === 'string' ? game.nugget : null,
+      created_at:
+        game.created_at instanceof Date ? game.created_at : new Date(game.created_at as string),
+      updated_at:
+        game.updated_at instanceof Date ? game.updated_at : new Date(game.updated_at as string),
+      homeTeamId: game.teams?.home?.id || '',
+      awayTeamId: game.teams?.visitors?.id || '',
+      teams: game.teams ?? {},
+      isCompleted: game.status === 'FINISHED',
+      away_score: (game.scores as GameScores)?.visitors?.points || null,
+      home_score: (game.scores as GameScores)?.home?.points || null,
+      game_type: 'REGULAR',
+      nba_game_id: game.id,
+    }));
+
+    return createConnection(mappedGames, total, paginationArgs);
   } catch (error) {
     console.error('Error fetching games:', error);
     throw new BusinessLogicError('Failed to fetch games', 'GAMES_FETCH_ERROR');
@@ -140,13 +198,22 @@ export const game = async (_parent: unknown, { id }: { id: string }, { db }: Con
       : null;
   return {
     id: game.id,
-    date:
-      typeof game.date === 'string'
-        ? game.date
-        : game.date instanceof Date
-          ? game.date.toISOString()
-          : '',
-    status: typeof game.status === 'string' ? game.status : String(game.status ?? ''),
+    date: {
+      start:
+        typeof game.date === 'string'
+          ? game.date
+          : game.date instanceof Date
+            ? game.date.toISOString()
+            : '',
+      end: null,
+      duration: null,
+    },
+    status: {
+      clock: typeof game.status === 'string' ? game.status : String(game.status ?? ''),
+      halftime: false,
+      long: typeof game.status === 'string' ? game.status : String(game.status ?? ''),
+      short: typeof game.status === 'string' ? game.status : String(game.status ?? ''),
+    },
     arena: typeof game.arena === 'string' ? game.arena : String(game.arena ?? ''),
     league: typeof game.league === 'string' ? game.league : String(game.league ?? ''),
     season: typeof game.season === 'number' ? game.season : Number(game.season ?? 0),
@@ -158,32 +225,39 @@ export const game = async (_parent: unknown, { id }: { id: string }, { db }: Con
     leadChanges: typeof game.lead_changes === 'number' ? game.lead_changes : null,
     nugget: typeof game.nugget === 'string' ? game.nugget : null,
     created_at:
-      typeof game.created_at === 'string'
-        ? game.created_at
-        : game.created_at instanceof Date
-          ? game.created_at.toISOString()
-          : '',
+      game.created_at instanceof Date ? game.created_at : new Date(game.created_at as string),
     updated_at:
-      typeof game.updated_at === 'string'
-        ? game.updated_at
-        : game.updated_at instanceof Date
-          ? game.updated_at.toISOString()
-          : '',
+      game.updated_at instanceof Date ? game.updated_at : new Date(game.updated_at as string),
     homeTeamId: typeof homeTeamId === 'string' ? homeTeamId : homeTeamId ? String(homeTeamId) : '',
     awayTeamId: typeof awayTeamId === 'string' ? awayTeamId : awayTeamId ? String(awayTeamId) : '',
     teams,
     isCompleted: game.status === 'Finished',
+    away_score: (game.scores as GameScores)?.visitors?.points || null,
+    home_score: (game.scores as GameScores)?.home?.points || null,
+    game_type: 'REGULAR',
+    nba_game_id: game.id,
   };
 };
 
 export const teams = async (
   _parent: unknown,
-  { filters, pagination }: QueryteamsArgs,
+  args: {
+    filters?: {
+      conference?: string;
+      division?: string;
+      city?: string;
+      code?: string;
+    };
+    first?: number | null;
+    after?: string | null;
+    last?: number | null;
+    before?: string | null;
+  },
   { db }: Context
 ) => {
   try {
-    const limit = pagination?.first || 10;
-    const offset = pagination?.after ? parseInt(pagination.after, 10) : 0;
+    const { filters, ...paginationArgs } = args;
+    const { limit, offset } = parsePaginationArgs(paginationArgs);
 
     const teamConditions: SQL<unknown>[] = [];
     if (filters?.conference) {
@@ -192,42 +266,46 @@ export const teams = async (
     if (filters?.division) {
       teamConditions.push(eq(schema.teams.division, filters.division));
     }
-    const teamQuery =
-      teamConditions.length > 0
-        ? db
-            .select()
-            .from(schema.teams)
-            .where(and(...teamConditions))
-            .limit(limit)
-            .offset(offset)
-        : db.select().from(schema.teams).limit(limit).offset(offset);
-    const [teamItems, teamTotal] = await Promise.all([
-      teamQuery,
-      db.select().from(schema.teams).execute(),
+    if (filters?.city) {
+      teamConditions.push(eq(schema.teams.city, filters.city));
+    }
+    if (filters?.code) {
+      teamConditions.push(eq(schema.teams.abbreviation, filters.code));
+    }
+
+    const [teamItems, totalResult] = await Promise.all([
+      db
+        .select()
+        .from(schema.teams)
+        .where(teamConditions.length > 0 ? and(...teamConditions) : undefined)
+        .limit(limit)
+        .offset(offset),
+      db
+        .select({ count: sql<number>`count(*)` })
+        .from(schema.teams)
+        .where(teamConditions.length > 0 ? and(...teamConditions) : undefined),
     ]);
+
+    const total = totalResult[0]?.count || 0;
+
     const mappedTeams = teamItems.map(team => ({
       id: team.id,
       name: team.name,
       abbreviation: team.abbreviation,
       city: team.city,
-      state: team.state,
-      country: team.country,
+      code: team.abbreviation,
+      nickname: team.name,
+      logo: team.logo_url,
       conference: team.conference,
       division: team.division,
       logo_url: team.logo_url,
       primary_color: team.primary_color,
       secondary_color: team.secondary_color,
+      created_at: team.created_at,
+      updated_at: team.updated_at,
     }));
 
-    return {
-      items: mappedTeams,
-      total: teamTotal.length,
-      hasMore: teamTotal.length > limit,
-      nextCursor:
-        mappedTeams.length > 0
-          ? String((pagination?.after ? parseInt(pagination.after, 10) : 0) + mappedTeams.length)
-          : null,
-    };
+    return createConnection(mappedTeams, total, paginationArgs);
   } catch (error) {
     console.error('Error fetching teams:', error);
     throw new BusinessLogicError('Failed to fetch teams', 'TEAMS_FETCH_ERROR');
@@ -236,12 +314,23 @@ export const teams = async (
 
 export const players = async (
   _parent: unknown,
-  { filters, pagination }: QueryplayersArgs,
+  args: {
+    filters?: {
+      teamId?: string;
+      active?: boolean;
+      position?: string;
+      country?: string;
+    };
+    first?: number | null;
+    after?: string | null;
+    last?: number | null;
+    before?: string | null;
+  },
   { db }: Context
 ) => {
   try {
-    const limit = pagination?.first || 10;
-    const offset = pagination?.after ? parseInt(pagination.after, 10) : 0;
+    const { filters, ...paginationArgs } = args;
+    const { limit, offset } = parsePaginationArgs(paginationArgs);
 
     const playerConditions: SQL<unknown>[] = [];
     if (filters?.teamId) {
@@ -253,48 +342,53 @@ export const players = async (
     if (filters?.position) {
       playerConditions.push(eq(schema.nba_players.pos, filters.position));
     }
-    if (filters && 'country' in filters && filters.country) {
+    if (filters?.country) {
       playerConditions.push(sql`(${schema.nba_players.birth}->>'country') = ${filters.country}`);
     }
-    const playerQuery =
-      playerConditions.length > 0
-        ? db
-            .select()
-            .from(schema.nba_players)
-            .where(and(...playerConditions))
-            .limit(limit)
-            .offset(offset)
-        : db.select().from(schema.nba_players).limit(limit).offset(offset);
-    const [playerItems, playerTotal] = await Promise.all([
-      playerQuery,
-      db.select().from(schema.nba_players).execute(),
+
+    const [playerItems, totalResult] = await Promise.all([
+      db
+        .select()
+        .from(schema.nba_players)
+        .where(playerConditions.length > 0 ? and(...playerConditions) : undefined)
+        .limit(limit)
+        .offset(offset),
+      db
+        .select({ count: sql<number>`count(*)` })
+        .from(schema.nba_players)
+        .where(playerConditions.length > 0 ? and(...playerConditions) : undefined),
     ]);
+
+    const total = totalResult[0]?.count || 0;
+
     const mappedPlayers = playerItems.map(player => ({
       id: player.id,
-      firstname: player.firstname,
-      lastname: player.lastname,
+      first_name: player.firstname,
+      last_name: player.lastname,
       birth: player.birth,
       nba: player.nba,
       height: player.height,
       weight: player.weight,
       college: player.college,
       affiliation: player.affiliation,
-      jersey: player.jersey,
-      active: player.active,
-      pos: player.pos,
+      leagues: {
+        standard: {
+          pos: player.pos,
+          jersey: player.jersey,
+          active: player.active,
+          conference: null,
+          division: null,
+        },
+        sacramento: null,
+        utah: null,
+        vegas: null,
+      },
+      seasons_active: player.seasons_active,
       created_at: player.created_at,
       updated_at: player.updated_at,
     }));
 
-    return {
-      items: mappedPlayers,
-      total: playerTotal.length,
-      hasMore: playerTotal.length > limit,
-      nextCursor:
-        mappedPlayers.length > 0
-          ? String((pagination?.after ? parseInt(pagination.after, 10) : 0) + mappedPlayers.length)
-          : null,
-    };
+    return createConnection(mappedPlayers, total, paginationArgs);
   } catch (error) {
     console.error('Error fetching players:', error);
     throw new BusinessLogicError('Failed to fetch players', 'PLAYERS_FETCH_ERROR');
@@ -307,29 +401,29 @@ export const player = async (_parent: unknown, { id }: { id: string }, { db }: C
     .from(schema.nba_players)
     .where(eq(schema.nba_players.id, id))
     .limit(1)
-    .then((rows: DatabaseRow[]) => rows[0]);
+    .then(rows => rows[0]);
 
   if (!player) throw new NotFoundError('Player', id);
 
   return {
     id: player.id,
-    firstName: player.first_name,
-    lastName: player.last_name,
-    teamId: (player.team_ids as string[])?.[0] || '',
-    birthDate: player.birth_date,
-    birthCountry: player.birth_country,
-    nbaStart: player.nba_start,
-    nbaProYears: player.nba_pro_years,
-    heightFeet: player.height_feet,
-    heightInches: player.height_inches,
-    heightMeters: player.height_meters,
-    weightPounds: player.weight_pounds,
-    weightKilograms: player.weight_kilograms,
+    firstName: player.firstname,
+    lastName: player.lastname,
+    teamId: '',
+    birthDate: (player.birth as { date?: string | null })?.date || null,
+    birthCountry: (player.birth as { country?: string | null })?.country || null,
+    heightFeet: (player.height as { feets?: number | null })?.feets || null,
+    heightInches: (player.height as { inches?: number | null })?.inches || null,
+    heightMeters: (player.height as { meters?: number | null })?.meters || null,
+    weightPounds: (player.weight as { pounds?: number | null })?.pounds || null,
+    weightKilograms: (player.weight as { kilograms?: number | null })?.kilograms || null,
+    nbaStart: (player.nba as { start?: number | null })?.start || null,
+    nbaProYears: (player.nba as { pro?: number | null })?.pro || null,
     college: player.college,
     affiliation: player.affiliation,
-    jerseyNumber: player.jersey_number,
+    jerseyNumber: player.jersey,
     active: player.active,
-    position: player.position,
+    position: player.pos,
     seasonsActive: player.seasons_active,
     created_at: player.created_at,
     updated_at: player.updated_at,
@@ -406,7 +500,7 @@ export const gameStats = async (_parent: unknown, { id }: { id: string }, { db }
       .from(schema.game_stats)
       .where(eq(schema.game_stats.id, id))
       .limit(1)
-      .then((rows: DatabaseRow[]) => rows[0]);
+      .then(rows => rows[0]);
 
     if (!gameStats) {
       throw new NotFoundError('GameStats', id);
@@ -779,71 +873,48 @@ export const teamGameStats = async (
   }
 };
 
-export const teamStats = async (
+export const users = async (
   _parent: unknown,
-  { teamId: _teamId, sort: _sort }: { teamId: string; sort?: GameTeamSortInput },
-  { db: _db }: Context
+  args: {
+    first?: number | null;
+    after?: string | null;
+    last?: number | null;
+    before?: string | null;
+  },
+  { db }: Context
 ) => {
-  try {
-    return [];
-  } catch (error) {
-    console.error('Error fetching team stats:', error);
-    throw error;
-  }
-};
+  const { limit, offset } = parsePaginationArgs(args);
 
-export const allTeamStats = async (
-  _parent: unknown,
-  { season: _season }: { season: number },
-  { db: _db }: Context
-) => {
-  try {
-    return [];
-  } catch (error) {
-    console.error('Error fetching all team stats:', error);
-    throw error;
-  }
-};
+  const [items, totalResult] = await Promise.all([
+    db.query.users.findMany({
+      limit,
+      offset,
+    }),
+    db.select({ count: sql<number>`count(*)` }).from(schema.users),
+  ]);
 
-export const topPlayers = async (
-  _parent: unknown,
-  { season: _season }: { season: number },
-  { db: _db }: Context
-) => {
-  try {
-    return [];
-  } catch (error) {
-    console.error('Error fetching top players:', error);
-    throw error;
-  }
-};
+  const total = totalResult[0]?.count || 0;
 
-export const users = async (_parent: unknown, { pagination }: QueryusersArgs, { db }: Context) => {
-  const limit = pagination?.first ?? 10;
-  const offset = pagination?.after ? parseInt(pagination.after, 10) : 0;
-  const items = await db.query.users.findMany({
-    limit,
-    offset,
-  });
-  return {
-    items: items.map((user: InferSelectModel<typeof schema.users>) => ({
-      id: user.id,
-      username: user.username,
-      email_address: user.email_address,
-      imageUrl: user.image_url,
-      created_at: user.created_at,
-      updated_at: user.updated_at,
-      comments: [],
-      gameLogs: [],
-      initiated_friendships: [],
-      reactions: [],
-      friendships: [],
-      __typename: 'User' as const,
-    })),
-    total: items.length,
-    hasMore: items.length > limit,
-    nextCursor: items.length > 0 ? String(offset + items.length) : null,
-  };
+  const mappedUsers = items.map((user: InferSelectModel<typeof schema.users>) => ({
+    id: user.id,
+    username: user.username,
+    email: user.email_address || '',
+    email_address: user.email_address,
+    imageUrl: user.image_url,
+    avatar_url: user.image_url,
+    first_name: user.first_name,
+    last_name: user.last_name,
+    created_at: user.created_at,
+    updated_at: user.updated_at,
+    deleted_at: user.deleted_at,
+    comments: [],
+    gameLogs: [],
+    initiated_friendships: [],
+    reactions: [],
+    friendships: [],
+  }));
+
+  return createConnection(mappedUsers, total, args);
 };
 
 export const user = async (_parent: unknown, { id }: { id: string }, { db }: Context) => {
@@ -852,7 +923,7 @@ export const user = async (_parent: unknown, { id }: { id: string }, { db }: Con
     .from(schema.users)
     .where(eq(schema.users.id, id))
     .limit(1)
-    .then((rows: DatabaseRow[]) => rows[0]);
+    .then(rows => rows[0]);
 
   if (!user) throw new NotFoundError('User', id);
 
@@ -881,51 +952,160 @@ export const user = async (_parent: unknown, { id }: { id: string }, { db }: Con
 
 export const friendships = async (
   _parent: unknown,
-  { userId }: { userId: string },
+  args: {
+    userId: string;
+    first?: number | null;
+    after?: string | null;
+    last?: number | null;
+    before?: string | null;
+  },
   { db }: Context
 ) => {
-  const friendships = await db.query.friendships.findMany({
-    where: or(eq(schema.friendships.user_id, userId), eq(schema.friendships.friend_id, userId)),
-    with: {
-      user: true,
-      friend: true,
-    },
-  });
+  const { userId, ...paginationArgs } = args;
+  const { limit, offset } = parsePaginationArgs(paginationArgs);
 
-  return friendships
+  const [friendships, totalResult] = await Promise.all([
+    db.query.friendships.findMany({
+      where: or(eq(schema.friendships.user_id, userId), eq(schema.friendships.friend_id, userId)),
+      with: {
+        user: true,
+        friend: true,
+      },
+      limit,
+      offset,
+    }),
+    db
+      .select({ count: sql<number>`count(*)` })
+      .from(schema.friendships)
+      .where(or(eq(schema.friendships.user_id, userId), eq(schema.friendships.friend_id, userId))),
+  ]);
+
+  const total = totalResult[0]?.count || 0;
+
+  const mappedFriendships = friendships
     .map((friendship: typeof schema.friendships.$inferSelect & { user?: User; friend?: User }) => {
       const friend = friendship.user_id === userId ? friendship.friend : friendship.user;
       if (!friend) return null;
-      const user: User = {
+
+      return {
         id: (friend as User).id,
         username: (friend as User).username,
         email_address: (friend as User).email_address,
         imageUrl: (friend as User).imageUrl,
         avatar_url: (friend as User).avatar_url,
-        email: (friend as User).email || '',
-        first_name: (friend as User).first_name,
-        last_name: (friend as User).last_name,
         created_at: new Date(),
-        updated_at: new Date(),
-        deleted_at: null,
-        comments: [],
-        gameLogs: [],
-        initiated_friendships: [],
-        reactions: [],
-        friendships: [],
-        __typename: 'User' as const,
       };
-      return transformUserToSummary(user);
     })
-    .filter((user: UserSummary | null): user is UserSummary => user !== null);
+    .filter((user): user is NonNullable<typeof user> => user !== null);
+
+  return createConnection(mappedFriendships, total, paginationArgs);
+};
+
+export const allPlayerStats = async (
+  _parent: unknown,
+  _args: {
+    season: number;
+    first?: number | null;
+    after?: string | null;
+    last?: number | null;
+    before?: string | null;
+  }
+) => {
+  // TODO: Implement actual player stats fetching
+  return createEmptyConnection();
+};
+
+export const allTeamStats = async (
+  _parent: unknown,
+  _args: {
+    season: number;
+    first?: number | null;
+    after?: string | null;
+    last?: number | null;
+    before?: string | null;
+  }
+) => {
+  // TODO: Implement actual team stats fetching
+  return createEmptyConnection();
+};
+
+export const playerSeasonStatsList = async (
+  _parent: unknown,
+  _args: {
+    playerId: string;
+    first?: number | null;
+    after?: string | null;
+    last?: number | null;
+    before?: string | null;
+  }
+) => {
+  // TODO: Implement actual player season stats fetching
+  return createEmptyConnection();
+};
+
+export const playerStatsByTeam = async (
+  _parent: unknown,
+  _args: {
+    season: number;
+    team: string;
+    first?: number | null;
+    after?: string | null;
+    last?: number | null;
+    before?: string | null;
+  }
+) => {
+  // TODO: Implement actual player stats by team fetching
+  return createEmptyConnection();
+};
+
+export const teamStats = async (
+  _parent: unknown,
+  _args: {
+    teamId: string;
+    sort?: { field: string; direction: string };
+    first?: number | null;
+    after?: string | null;
+    last?: number | null;
+    before?: string | null;
+  }
+) => {
+  // TODO: Implement actual team stats fetching
+  return createEmptyConnection();
+};
+
+export const topPlayers = async (
+  _parent: unknown,
+  _args: {
+    season: number;
+    first?: number | null;
+    after?: string | null;
+    last?: number | null;
+    before?: string | null;
+  }
+) => {
+  // TODO: Implement actual top players fetching
+  return createEmptyConnection();
 };
 
 export const gameLogs = async (
   _parent: unknown,
-  { filters }: { filters?: GqlGameLogFilters | null },
+  args: {
+    filters?: {
+      user_id?: string;
+      game_id?: string;
+      classification?: string;
+      watched_date_range?: { start?: string; end?: string };
+    };
+    first?: number | null;
+    after?: string | null;
+    last?: number | null;
+    before?: string | null;
+  },
   { db, user: _user }: Context
 ) => {
   try {
+    const { filters, ...paginationArgs } = args;
+    const { limit, offset } = parsePaginationArgs(paginationArgs);
     const conditions: SQL<unknown>[] = [];
 
     if (filters?.user_id) {
@@ -947,47 +1127,272 @@ export const gameLogs = async (
       }
     }
 
-    const query = db
-      .select()
-      .from(schema.game_logs)
-      .where(conditions.length > 0 ? and(...conditions) : undefined)
-      .orderBy(desc(schema.game_logs.created_at));
+    const [gameLogs, totalResult] = await Promise.all([
+      db
+        .select()
+        .from(schema.game_logs)
+        .where(conditions.length > 0 ? and(...conditions) : undefined)
+        .orderBy(desc(schema.game_logs.created_at))
+        .limit(limit)
+        .offset(offset),
+      db
+        .select({ count: sql<number>`count(*)` })
+        .from(schema.game_logs)
+        .where(conditions.length > 0 ? and(...conditions) : undefined),
+    ]);
 
-    const gameLogs = await query;
+    const total = totalResult[0]?.count || 0;
 
-    return gameLogs.map((gameLog: DatabaseRow) => ({
-      id: gameLog.id,
-      userId: gameLog.user_id,
-      gameId: gameLog.game_id,
-      watchedSetting: gameLog.watched_setting,
-      watchedDate: gameLog.watched_date,
-      watchedLocation: gameLog.watched_location,
-      ratingForGame: gameLog.rating_for_game,
-      watchedCount: gameLog.watched_count,
-      notes: gameLog.notes,
-      tags: gameLog.tags,
-      classification: gameLog.classification,
-      created_at: gameLog.created_at,
-      updated_at: gameLog.updated_at,
-      deleted_at: gameLog.deleted_at,
+    // Map game logs without fetching comments and reactions
+    const gameLogsWithRelations = gameLogs.map((gameLog: DatabaseRow) => ({
+      id: gameLog.id as string,
+      userId: gameLog.user_id as string,
+      gameId: gameLog.game_id as string,
+      watchedSetting: gameLog.watched_setting as string,
+      watchedDate: gameLog.watched_date as Date,
+      watchedLocation: gameLog.watched_location as string,
+      rating: gameLog.rating_for_game as number,
+      ratingForGame: gameLog.rating_for_game as number,
+      ratingStars: gameLog.rating_stars ? parseInt(String(gameLog.rating_stars)) : undefined,
+      watchedCount: gameLog.watched_count as number,
+      notes: gameLog.notes as string,
+      tags: gameLog.tags as string[],
+      classification: gameLog.classification as string,
+      created_at: gameLog.created_at as Date,
+      updated_at: gameLog.updated_at as Date,
+      deleted_at: gameLog.deleted_at as Date | null,
     }));
+
+    return createConnection(gameLogsWithRelations, total, paginationArgs);
   } catch (error) {
     console.error('Error fetching game logs:', error);
     throw error;
   }
 };
 
+// Add resolvers for comments and reactions on GameLog type
+export const GameLog = {
+  comments: async (
+    gameLog: { id: string },
+    args: {
+      first?: number | null;
+      after?: string | null;
+      last?: number | null;
+      before?: string | null;
+    },
+    { db }: Context
+  ) => {
+    try {
+      const { first, after } = args;
+      const limit = Math.min(first ?? 20, 100); // Limit to max 100 comments
+      const offset = after ? parseInt(after, 10) : 0;
+
+      const comments = await db
+        .select()
+        .from(schema.comments)
+        .where(
+          and(
+            eq(schema.comments.target_id, gameLog.id),
+            eq(schema.comments.target_type, 'GAME_LOG')
+          )
+        )
+        .orderBy(desc(schema.comments.created_at))
+        .limit(limit + 1) // Get one extra to check if there's a next page
+        .offset(offset);
+
+      // Get total count for pagination
+      const [{ count }] = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(schema.comments)
+        .where(
+          and(
+            eq(schema.comments.target_id, gameLog.id),
+            eq(schema.comments.target_type, 'GAME_LOG')
+          )
+        );
+
+      // Check if there are more items
+      const hasNextPage = comments.length > limit;
+      const actualComments = hasNextPage ? comments.slice(0, -1) : comments;
+
+      // Fetch users for comments
+      const commentUsers = await Promise.all(
+        actualComments.map(comment =>
+          comment.user_id
+            ? db
+                .select()
+                .from(schema.users)
+                .where(eq(schema.users.id, comment.user_id))
+                .limit(1)
+                .then(rows => rows[0])
+            : null
+        )
+      );
+
+      const edges = actualComments.map((comment, index) => ({
+        cursor: String(offset + index),
+        node: {
+          id: comment.id,
+          userId: String(comment.user_id),
+          parent_id: comment.parent_id || '',
+          parent_type: (comment.parent_type as 'GAME_LOG') || 'GAME_LOG',
+          content: comment.content,
+          created_at: comment.created_at,
+          updated_at: comment.updated_at,
+          deleted_at: comment.deleted_at,
+          user: commentUsers[index]
+            ? transformUserToSummary(commentUsers[index] as unknown as User)
+            : {
+                id: '',
+                username: 'Unknown User',
+                email_address: '',
+                imageUrl: '',
+              },
+          reactions: [],
+        },
+      }));
+
+      return {
+        edges,
+        pageInfo: {
+          startCursor: edges.length > 0 ? edges[0].cursor : null,
+          endCursor: edges.length > 0 ? edges[edges.length - 1].cursor : null,
+          hasNextPage,
+          hasPreviousPage: offset > 0,
+        },
+        totalCount: count,
+      };
+    } catch (error) {
+      console.error('Error fetching comments:', error);
+      throw error;
+    }
+  },
+
+  reactions: async (
+    gameLog: { id: string },
+    args: {
+      first?: number | null;
+      after?: string | null;
+      last?: number | null;
+      before?: string | null;
+    },
+    { db }: Context
+  ) => {
+    try {
+      const { first, after } = args;
+      const limit = Math.min(first ?? 20, 100); // Limit to max 100 reactions
+      const offset = after ? parseInt(after, 10) : 0;
+
+      const reactions = await db
+        .select()
+        .from(schema.reactions)
+        .where(
+          and(
+            eq(schema.reactions.target_id, gameLog.id),
+            eq(schema.reactions.target_type, 'GAME_LOG')
+          )
+        )
+        .orderBy(desc(schema.reactions.created_at))
+        .limit(limit + 1) // Get one extra to check if there's a next page
+        .offset(offset);
+
+      // Get total count for pagination
+      const [{ count }] = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(schema.reactions)
+        .where(
+          and(
+            eq(schema.reactions.target_id, gameLog.id),
+            eq(schema.reactions.target_type, 'GAME_LOG')
+          )
+        );
+
+      // Check if there are more items
+      const hasNextPage = reactions.length > limit;
+      const actualReactions = hasNextPage ? reactions.slice(0, -1) : reactions;
+
+      // Fetch users for reactions
+      const reactionUsers = await Promise.all(
+        actualReactions.map(reaction =>
+          reaction.user_id
+            ? db
+                .select()
+                .from(schema.users)
+                .where(eq(schema.users.id, reaction.user_id))
+                .limit(1)
+                .then(rows => rows[0])
+            : null
+        )
+      );
+
+      const edges = actualReactions.map((reaction, index) => ({
+        cursor: String(offset + index),
+        node: {
+          id: reaction.id,
+          emoji: reaction.emoji as ReactionEmojiType,
+          created_at: reaction.created_at,
+          updated_at: reaction.updated_at,
+          targetId: reaction.target_id || '',
+          targetType: (reaction.target_type as 'GAME_LOG') || 'GAME_LOG',
+          userId: reaction.user_id || '',
+          user: reactionUsers[index]
+            ? transformUserToSummary(reactionUsers[index] as unknown as User)
+            : {
+                id: '',
+                username: 'Unknown User',
+                email_address: '',
+                imageUrl: '',
+              },
+        },
+      }));
+
+      return {
+        edges,
+        pageInfo: {
+          startCursor: edges.length > 0 ? edges[0].cursor : null,
+          endCursor: edges.length > 0 ? edges[edges.length - 1].cursor : null,
+          hasNextPage,
+          hasPreviousPage: offset > 0,
+        },
+        totalCount: count,
+      };
+    } catch (error) {
+      console.error('Error fetching reactions:', error);
+      throw error;
+    }
+  },
+};
+
 export const comments = async (
   _parent: unknown,
-  { parent_id }: { parent_id: string },
+  args: {
+    parent_id: string;
+    first?: number | null;
+    after?: string | null;
+    last?: number | null;
+    before?: string | null;
+  },
   _context: Context
 ) => {
-  const comments = await db.query.comments.findMany({
-    where: eq(schema.comments.parent_id, parent_id),
-    with: {
-      user: true,
-    },
-  });
+  const { parent_id, ...paginationArgs } = args;
+  const { limit, offset } = parsePaginationArgs(paginationArgs);
+
+  const [comments, totalResult] = await Promise.all([
+    db.query.comments.findMany({
+      where: eq(schema.comments.parent_id, parent_id),
+      with: {
+        user: true,
+      },
+      limit,
+      offset,
+    }),
+    db
+      .select({ count: sql<number>`count(*)` })
+      .from(schema.comments)
+      .where(eq(schema.comments.parent_id, parent_id)),
+  ]);
+
+  const total = totalResult[0]?.count || 0;
 
   const commentsWithReactions = await Promise.all(
     comments.map(async comment => {
@@ -1003,8 +1408,8 @@ export const comments = async (
       return {
         id: comment.id,
         userId: String(comment.user_id),
-        parent_id: comment.parent_id,
-        parent_type: comment.parent_type,
+        parent_id: comment.parent_id || '',
+        parent_type: (comment.parent_type as ParentType) || 'GAME_LOG',
         content: comment.content,
         created_at: comment.created_at,
         updated_at: comment.updated_at,
@@ -1014,15 +1419,20 @@ export const comments = async (
           .map(reactionRaw => {
             const reaction = {
               id: reactionRaw.id,
-              emoji: reactionRaw.emoji,
+              emoji: reactionRaw.emoji as ReactionEmojiType,
               created_at: reactionRaw.created_at,
               updated_at: reactionRaw.updated_at,
               targetId: reactionRaw.target_id,
-              targetType: reactionRaw.target_type,
-              userId: reactionRaw.user_id,
+              targetType: reactionRaw.target_type as ParentType,
+              userId: reactionRaw.user_id || '',
               user: reactionRaw.user
                 ? transformUserToSummary(reactionRaw.user as unknown as User)
-                : null,
+                : {
+                    id: '',
+                    username: 'Unknown User',
+                    email_address: '',
+                    imageUrl: '',
+                  },
               __typename: 'Reaction' as const,
             };
             return reaction;
@@ -1032,40 +1442,111 @@ export const comments = async (
     })
   );
 
-  return commentsWithReactions.filter(
+  const validComments = commentsWithReactions.filter(
     (comment): comment is NonNullable<typeof comment> => comment !== null
   );
+
+  return createConnection(validComments, total, paginationArgs);
 };
 
 export const reactions = async (
   _parent: unknown,
-  { targetId }: { targetId: string },
-  context: Context
+  args: {
+    targetId: string;
+    first?: number | null;
+    after?: string | null;
+    last?: number | null;
+    before?: string | null;
+  },
+  _context: Context
 ) => {
-  if (!context.loaders?.reaction) {
-    throw new Error('Reaction loader not initialized');
-  }
-  const result = await context.loaders.reaction.load(targetId);
-  if (!result) return [];
-  if (Array.isArray(result)) {
-    return result.filter(Boolean);
-  }
-  return Array.isArray(result) ? result : [result];
+  const { targetId, ...paginationArgs } = args;
+  const { limit, offset } = parsePaginationArgs(paginationArgs);
+
+  const [reactions, totalResult] = await Promise.all([
+    db.query.reactions.findMany({
+      where: eq(schema.reactions.target_id, targetId),
+      with: {
+        user: true,
+      },
+      limit,
+      offset,
+    }),
+    db
+      .select({ count: sql<number>`count(*)` })
+      .from(schema.reactions)
+      .where(eq(schema.reactions.target_id, targetId)),
+  ]);
+
+  const total = totalResult[0]?.count || 0;
+
+  const mappedReactions = reactions.map(reaction => ({
+    id: reaction.id,
+    emoji: reaction.emoji as ReactionEmojiType,
+    created_at: reaction.created_at,
+    updated_at: reaction.updated_at,
+    targetId: reaction.target_id || '',
+    targetType: (reaction.target_type as ParentType) || 'GAME_LOG',
+    userId: reaction.user_id || '',
+    user: reaction.user
+      ? transformUserToSummary(reaction.user as unknown as User)
+      : {
+          id: '',
+          username: 'Unknown User',
+          email_address: '',
+          imageUrl: '',
+        },
+  }));
+
+  return createConnection(mappedReactions, total, paginationArgs);
 };
 
-export const liveGames = async (_parent: unknown, _args: unknown, { redis: _redis }: Context) => {
+export const leagues = async (
+  _parent: unknown,
+  args: {
+    first?: number | null;
+    after?: string | null;
+    last?: number | null;
+    before?: string | null;
+  } = {}
+) => {
+  // Mock leagues data since we don't have a leagues table
+  const mockLeagues = [
+    { id: '1', name: 'NBA', type: 'Professional', logo: '', active: true },
+    { id: '2', name: 'WNBA', type: 'Professional', logo: '', active: true },
+    { id: '3', name: 'G League', type: 'Development', logo: '', active: true },
+  ];
+
+  return createConnection(mockLeagues, mockLeagues.length, args);
+};
+
+export const liveGames = async (
+  _parent: unknown,
+  args: {
+    first?: number | null;
+    after?: string | null;
+    last?: number | null;
+    before?: string | null;
+  } = {},
+  { redis: _redis }: Context
+) => {
   try {
     const liveGames = await fetchNbaLiveGames();
-    return (liveGames.data || []).map(game => ({
+    const mappedGames = (liveGames.data || []).map(game => ({
       id: String(game.id),
-      date: game.date?.start || '',
+      date: {
+        start: game.date?.start ? new Date(game.date.start) : new Date(),
+        end: null,
+        duration: null,
+      },
+      status: {
+        clock: game.status?.short || '',
+        halftime: false,
+        long: game.status?.long || '',
+        short: game.status?.short || '',
+      },
       arena: game.arena?.name || '',
       league: game.league || '',
-      status: game.status?.long || '',
-      homeTeamId: game.teams?.home?.id ? String(game.teams.home.id) : '',
-      awayTeamId: game.teams?.visitors?.id ? String(game.teams.visitors.id) : '',
-      created_at: '',
-      updated_at: '',
       season: game.season || 0,
       stage: game.stage || 0,
       periods: game.periods || [],
@@ -1074,12 +1555,22 @@ export const liveGames = async (_parent: unknown, _args: unknown, { redis: _redi
       timesTied: game.timesTied,
       leadChanges: game.leadChanges,
       nugget: game.nugget,
+      created_at: new Date(),
+      updated_at: new Date(),
+      homeTeamId: game.teams?.home?.id ? String(game.teams.home.id) : '',
+      awayTeamId: game.teams?.visitors?.id ? String(game.teams.visitors.id) : '',
       teams: {
         home: game.teams?.home || null,
         visitors: game.teams?.visitors || null,
       },
       isCompleted: game.status?.long === 'Finished',
+      away_score: game.scores?.visitors?.points || null,
+      home_score: game.scores?.home?.points || null,
+      game_type: 'LIVE',
+      nba_game_id: String(game.id),
     }));
+
+    return createConnection(mappedGames, mappedGames.length, args);
   } catch (error) {
     console.error('Error fetching live games:', error);
     throw new BusinessLogicError('Failed to fetch live games', 'LIVE_GAMES_FETCH_ERROR');
@@ -1102,7 +1593,7 @@ export const gameLog = async (
       .where(conditions.length > 0 ? and(...conditions) : undefined)
       .limit(1);
 
-    const gameLog = await query.then((rows: DatabaseRow[]) => rows[0]);
+    const gameLog = await query.then(rows => rows[0]);
 
     if (!gameLog) {
       return null;

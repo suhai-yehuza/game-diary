@@ -48,7 +48,7 @@ export const PaginatedItem = {
     if ('date' in parent) return 'Game';
     if ('position' in parent) return 'Player';
     if ('points' in parent) return 'PlayerStats';
-    if ('username' in parent) return 'User';
+    if ('username' in parent) return 'UserBase';
     return null;
   },
 };

@@ -55,10 +55,17 @@ export const typeDefs = gql`
     before: String
   }
 
-  union PaginatedItem = Game | Player | User | Comment | GameLog | PlayerStats
+  union PaginatedItem = Game | GameLog | Comment | Player | PlayerStats | Team | User
 
   type PaginatedResponse {
     items: [PaginatedItem!]!
+    total: Int!
+    hasMore: Boolean!
+    nextCursor: String
+  }
+
+  type GameLogsResponse {
+    items: [GameLog!]!
     total: Int!
     hasMore: Boolean!
     nextCursor: String
@@ -344,20 +351,25 @@ export const typeDefs = gql`
   union GameLogOrComment = GameLog | Comment
 
   type Game {
-    id: String!
-    league: String
-    season: Int
-    date: GameDate!
-    stage: String
-    status: GameStatus
-    periods: GamePeriods
-    arena: Arena
-    teams: Teams!
-    scores: Scores
-    officials: [String]
+    id: ID!
+    date: String!
+    status: String!
+    arena: String!
+    league: String!
+    season: Int!
+    stage: Int!
+    periods: [Int!]
+    scores: [Int!]
+    officials: [String!]
     timesTied: Int
     leadChanges: Int
     nugget: String
+    created_at: String!
+    updated_at: String!
+    homeTeamId: String!
+    awayTeamId: String!
+    teams: JSON
+    isCompleted: Boolean!
   }
 
   type GameDate {
@@ -411,17 +423,20 @@ export const typeDefs = gql`
   }
 
   type Player {
-    id: String!
-    first_name: String!
-    last_name: String!
-    birth: BirthInfo
-    nba: NbaInfo
-    height: HeightInfo
-    weight: WeightInfo
+    id: ID!
+    firstname: String!
+    lastname: String!
+    birth: JSON
+    nba: JSON
+    height: JSON
+    weight: JSON
     college: String
     affiliation: String
-    leagues: LeaguesInfo
-    seasons_active: [SeasonTeam!]
+    jersey: String
+    active: Boolean!
+    pos: String
+    created_at: String!
+    updated_at: String!
   }
 
   type SeasonTeam {
@@ -466,15 +481,17 @@ export const typeDefs = gql`
   }
 
   type Team {
-    id: String!
+    id: ID!
     name: String!
-    nickname: String!
-    code: String
-    city: String
-    logo: String
-    allStar: Boolean
-    nbaFranchise: Boolean
-    leagues: LeaguesInfo
+    abbreviation: String!
+    city: String!
+    state: String
+    country: String!
+    conference: String
+    division: String
+    logo_url: String
+    primary_color: String
+    secondary_color: String
   }
 
   type GameStatistics {
@@ -507,32 +524,26 @@ export const typeDefs = gql`
   }
 
   type PlayerStats {
-    player: Player!
-    team: Team!
-    game: Game!
-    season: Int!
-    points: Int
-    pos: String
-    min: String
-    fgm: Int
-    fga: Int
-    fgp: String
-    ftm: Int
-    fta: Int
-    ftp: String
-    tpm: Int
-    tpa: Int
-    tpp: String
-    offReb: Int
-    defReb: Int
-    totReb: Int
-    assists: Int
-    pFouls: Int
-    steals: Int
-    turnovers: Int
-    blocks: Int
-    plusMinus: Int
-    comment: String
+    id: ID!
+    player_id: String!
+    game_id: String!
+    team_id: String!
+    points: Int!
+    assists: Int!
+    rebounds: Int!
+    steals: Int!
+    blocks: Int!
+    turnovers: Int!
+    fouls: Int!
+    minutes: Int!
+    field_goals_made: Int!
+    field_goals_attempted: Int!
+    three_pointers_made: Int!
+    three_pointers_attempted: Int!
+    free_throws_made: Int!
+    free_throws_attempted: Int!
+    created_at: String!
+    updated_at: String!
   }
 
   type TeamStats {
@@ -565,36 +576,35 @@ export const typeDefs = gql`
   }
 
   type GameLog {
-    id: String!
-    user: User!
-    game: Game!
-    watched_setting: WatchedSettingType!
-    watched_date: DateTime!
-    watched_location: String
-    rating_for_game: Int
-    rating_stars: String
-    watched_count: Int
+    id: ID!
+    userId: String!
+    gameId: String!
+    watchedSetting: String!
+    watchedDate: String!
+    watchedLocation: String
+    ratingForGame: Int
+    watchedCount: Int
     notes: String
-    tags: [String]
-    classification: Classification!
-    created_at: DateTime!
-    updated_at: DateTime!
-    deleted_at: DateTime
-    comments: [Comment!]!
-    reactions: [Reaction!]!
+    tags: [String!]
+    classification: String
+    created_at: String!
+    updated_at: String!
+    deleted_at: String
+    comments(pagination: PaginationInput): PaginatedResponse!
+    reactions(pagination: PaginationInput): PaginatedResponse!
   }
 
   type Comment {
-    id: String!
-    user: User!
-    parent_id: String!
-    parent_type: String!
+    id: ID!
+    userId: String!
+    parent_id: String
+    parent_type: String
     content: String!
-    created_at: DateTime!
-    updated_at: DateTime!
-    deleted_at: DateTime
-    reactions: [Reaction!]
-    parent: GameLogOrComment!
+    created_at: String!
+    updated_at: String!
+    deleted_at: String
+    user: UserSummary
+    reactions: [Reaction!]!
     replies: [Comment!]!
   }
 
@@ -610,15 +620,17 @@ export const typeDefs = gql`
   }
 
   type User {
-    id: String!
-    username: String
-    emailAddress: String
+    id: ID!
+    username: String!
+    email_address: String!
     imageUrl: String
-    initiated_friendships: [Friendship!]!
-    received_friendships: [Friendship!]!
-    gameLogs: [GameLog!]!
+    created_at: String!
+    updated_at: String!
     comments: [Comment!]!
+    gameLogs: [GameLog!]!
+    initiated_friendships: [Friendship!]!
     reactions: [Reaction!]!
+    friendships: [Friendship!]!
   }
 
   type UserSummary {
@@ -658,6 +670,10 @@ export const typeDefs = gql`
     reactions(target_id: String!, target_type: TargetType!): [Reaction!]!
     messages(groupId: String!, pagination: PaginationInput): PaginatedResponse!
     groupMembers(groupId: String!, pagination: PaginationInput): PaginatedResponse!
+    gameLogs(filters: GqlGameLogFilters, pagination: PaginationInput): GameLogsResponse!
+    gameLog(userId: String!, gameId: String!): GameLog
+    comments(parent_id: String!): [Comment!]!
+    reactions(targetId: String!): [Reaction!]!
   }
 
   # Mutations

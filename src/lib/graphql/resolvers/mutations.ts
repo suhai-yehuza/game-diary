@@ -14,6 +14,7 @@ import {
   ValidationError,
 } from '@/lib/graphql/errors';
 import { transformUser } from '@/lib/graphql/resolvers/transformers';
+import { WatchedSettingValue } from '@/lib/types/config.types';
 import {
   Friendship,
   MutationcreateGameLogArgs,
@@ -23,10 +24,10 @@ import {
   MutationupdateCommentArgs,
   MutationdeleteCommentArgs,
   User as DBUser,
-  DatabaseRow,
-  WatchedSettingValue,
-} from '@/lib/types';
-import type { SendFriendRequestInput } from '@/lib/types';
+  ParentType,
+  Classification,
+} from '@/lib/types/generated/graphql';
+import type { SendFriendRequestInput } from '@/lib/types/graphql.types';
 import { generateUUID } from '@/lib/utils/index.processing';
 import { createCommentSchema } from '@/lib/validations/comment';
 import { sendFriendRequestSchema } from '@/lib/validations/friendship';
@@ -203,31 +204,56 @@ export const createGameLog = async (
       };
 
       return {
-        id: gameLog.id,
-        gameId: gameLog.game_id,
-        userId: gameLog.user_id || '',
-        game: mappedGame,
-        user: transformUser({
-          id: dbUser.id,
-          username: dbUser.username,
-          first_name: dbUser.first_name,
-          last_name: dbUser.last_name,
-          email_address: dbUser.email_address,
-          imageUrl: dbUser.image_url,
-          created_at: dbUser.created_at,
-          updated_at: dbUser.updated_at,
-        } as DBUser),
-        classification: gameLog.classification,
-        notes: gameLog.notes || undefined,
-        rating: gameLog.rating_for_game,
-        tags: gameLog.tags || [],
-        watchedDate: gameLog.watched_date,
-        watchedSetting: gameLog.watched_setting,
-        comments: [],
-        reactions: [],
-        created_at: gameLog.created_at,
-        updated_at: gameLog.updated_at,
-        deleted_at: gameLog.deleted_at || undefined,
+        gameLog: {
+          id: gameLog.id,
+          gameId: gameLog.game_id,
+          userId: gameLog.user_id || '',
+          game: mappedGame,
+          user: transformUser({
+            id: dbUser.id,
+            username: dbUser.username,
+            first_name: dbUser.first_name,
+            last_name: dbUser.last_name,
+            email_address: dbUser.email_address,
+            imageUrl: dbUser.image_url,
+            created_at: dbUser.created_at,
+            updated_at: dbUser.updated_at,
+          } as DBUser),
+          classification: gameLog.classification as Classification,
+          notes: gameLog.notes || undefined,
+          rating: gameLog.rating_for_game,
+          ratingForGame: gameLog.rating_for_game,
+          ratingStars: gameLog.rating_stars ? parseInt(gameLog.rating_stars) : undefined,
+          tags: gameLog.tags || [],
+          watchedDate: gameLog.watched_date,
+          watchedLocation: gameLog.watched_location || undefined,
+          watchedCount: gameLog.watched_count,
+          watchedSetting: gameLog.watched_setting,
+          comments: {
+            edges: [],
+            pageInfo: {
+              hasNextPage: false,
+              hasPreviousPage: false,
+              startCursor: null,
+              endCursor: null,
+            },
+            totalCount: 0,
+          },
+          reactions: {
+            edges: [],
+            pageInfo: {
+              hasNextPage: false,
+              hasPreviousPage: false,
+              startCursor: null,
+              endCursor: null,
+            },
+            totalCount: 0,
+          },
+          created_at: gameLog.created_at,
+          updated_at: gameLog.updated_at,
+          deleted_at: gameLog.deleted_at || null,
+        },
+        errors: [],
       };
     } catch (error) {
       if (error instanceof Error && error.message.includes('foreign key')) {
@@ -479,18 +505,20 @@ export const createComment = async (
   return {
     comment: {
       ...comment,
+      parent_id: comment.parent_id || '',
+      parent_type: (comment.parent_type as ParentType) || 'GAME_LOG',
       reactions: [],
       user: {
         id: authenticatedUser.id,
         username: authenticatedUser.username || '',
-        email_address: authenticatedUser.email_address || '',
-        imageUrl: authenticatedUser.imageUrl || '',
+        email_address: authenticatedUser.email || '',
+        imageUrl: authenticatedUser.image_url || '',
         comments: [],
         gameLogs: [],
         initiated_friendships: [],
         reactions: [],
         received_friendships: [],
-        __typename: 'User' as const,
+        __typename: 'UserSummary' as const,
       },
       userId: authenticatedUser.id,
     },
@@ -548,8 +576,8 @@ export const updateComment = async (
       comment: updatedComment
         ? {
             id: updatedComment.id,
-            parent_id: updatedComment.parent_id,
-            parent_type: updatedComment.parent_type,
+            parent_id: updatedComment.parent_id || '',
+            parent_type: (updatedComment.parent_type as ParentType) || 'GAME_LOG',
             content: updatedComment.content,
             created_at: updatedComment.created_at,
             updated_at: updatedComment.updated_at,
@@ -565,7 +593,7 @@ export const updateComment = async (
               initiated_friendships: [],
               reactions: [],
               received_friendships: [],
-              __typename: 'User' as const,
+              __typename: 'UserSummary' as const,
             },
             userId: updatedComment.user_id ?? '',
             __typename: 'Comment' as const,
@@ -641,7 +669,7 @@ export const sendFriendRequest = async (
     .select()
     .from(schema.users)
     .where(eq(schema.users.id, user.id))
-    .then((rows: DatabaseRow[]) => rows[0]);
+    .then(rows => rows[0]);
   if (!dbUser) throw new AuthenticationError('User not found');
 
   const [friendship] = await db
@@ -660,7 +688,7 @@ export const sendFriendRequest = async (
     .select()
     .from(schema.users)
     .where(eq(schema.users.id, validatedInput.subscriberId))
-    .then((rows: DatabaseRow[]) => rows[0]);
+    .then(rows => rows[0]);
   if (!recipient) throw new NotFoundError('User', validatedInput.subscriberId);
 
   // Map status string to GraphQL enum

@@ -6,7 +6,7 @@ import {
   Comment as DBComment,
   Reaction as DBReaction,
   User as DBUser,
-} from '@/lib/types';
+} from '@/lib/types/generated/graphql';
 
 function transformReaction(reaction: DBReaction): GraphQLReaction {
   return {
@@ -56,7 +56,7 @@ export function transformUserToSummary(user: DBUser): GraphQLUserSummary {
 export function transformComment(comment: DBComment): GraphQLComment {
   return {
     id: comment.id,
-    userId: String(comment.user.id),
+    userId: String(comment.user?.id || ''),
     content: comment.content,
     parent_id: comment.parent_id,
     parent_type: comment.parent_type,

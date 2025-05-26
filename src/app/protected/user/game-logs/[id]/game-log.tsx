@@ -13,7 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { GET_GAME_LOG_WITH_REACTIONS } from '@/lib/graphql/queries';
-import { GameLogResponse } from '@/lib/types';
+import { GameLogResponse } from '@/lib/types/shared.types';
 
 export default function GameLog() {
   const params = useParams();

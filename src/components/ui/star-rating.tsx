@@ -1,7 +1,7 @@
 import { Star } from 'lucide-react';
 import React from 'react';
 
-import { StarRatingProps } from '@/lib/types';
+import { StarRatingProps } from '@/lib/types/generated/types';
 
 export function StarRating({
   rating,

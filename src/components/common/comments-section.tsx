@@ -36,7 +36,8 @@ import {
   DELETE_COMMENT,
 } from '@/lib/graphql/mutations';
 import { GET_COMMENTS_WITH_FILTERS } from '@/lib/graphql/queries';
-import { Comment, Reaction, EditingComment, CommentsSectionProps } from '@/lib/types';
+import { EditingComment, CommentsSectionProps } from '@/lib/types/comment.types';
+import { Comment, Reaction } from '@/lib/types/generated/graphql';
 
 export function CommentsSection({ parent_id, parent_type }: CommentsSectionProps) {
   const { user } = useUser();

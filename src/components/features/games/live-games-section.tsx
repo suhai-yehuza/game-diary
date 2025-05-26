@@ -5,7 +5,7 @@ import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { GET_LIVE_GAMES } from '@/lib/graphql/queries';
-import type { ExtendedGame } from '@/lib/types';
+import type { ExtendedGame } from '@/lib/types/game.types';
 
 export function LiveGamesSection() {
   const { data, loading, error } = useQuery(GET_LIVE_GAMES, {

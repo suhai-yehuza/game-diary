@@ -1,8 +1,8 @@
 import { Redis as UpstashRedis } from '@upstash/redis';
 import Redis from 'ioredis';
 
-import { CACHE_TTL } from '@/lib/types';
-import type { RedisClient, RedisClientType } from '@/lib/types';
+import { CACHE_TTL } from '@/lib/types/config.types';
+import type { RedisClient, RedisClientType } from '@/lib/types/redis.types';
 import { sleep } from '@/lib/utils/index.time';
 
 // Cache keys with type safety

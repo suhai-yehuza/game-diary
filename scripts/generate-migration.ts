@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 
-import { REACTION_EMOJIS } from '../src/lib/types';
+import { REACTION_EMOJIS } from '../src/lib/types/config.types';
 
 const generateMigrationFiles = () => {
   const emojis = Object.values(REACTION_EMOJIS)

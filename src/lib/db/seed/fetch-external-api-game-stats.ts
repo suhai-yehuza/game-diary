@@ -3,8 +3,8 @@ import { eq } from 'drizzle-orm';
 import { API_CONFIG, getRapidApiConfig } from '@/lib/config/api.config';
 import { game_stats, teams } from '@/lib/db/schema';
 import { createRapidAPIClient, validateAPIKey, handleAPIError } from '@/lib/external-apis';
-import { GAME_STATUS_VALUES } from '@/lib/types';
-import type { TeamStatistics } from '@/lib/types';
+import { GAME_STATUS_VALUES } from '@/lib/types/config.types';
+import type { TeamStatistics } from '@/lib/types/team.types';
 import { generateUUID } from '@/lib/utils/index.processing';
 
 import { createDatabaseClient } from './config';

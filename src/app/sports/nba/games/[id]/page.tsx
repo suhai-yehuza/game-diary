@@ -9,7 +9,7 @@ import { CreateGameLogModal } from '@/components/features/games';
 import { Button } from '@/components/ui/button';
 import { useAuthContext } from '@/contexts/AuthContext';
 import { fetchNbaGameById } from '@/lib/external-apis';
-import type { GameApiResponse, TransformedGame } from '@/lib/types';
+import type { GameApiResponse, TransformedGame } from '@/lib/types/game.types';
 
 export default function GamePage({ params }: { params: { id: string } }) {
   const [gameData, setGameData] = useState<GameApiResponse | null>(null);

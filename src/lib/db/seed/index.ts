@@ -1,5 +1,5 @@
 import { schema } from '@/lib/db/schema';
-import type { DatabaseConfig, DatabaseClient } from '@/lib/types';
+import type { DatabaseConfig, DatabaseClient } from '@/lib/types/db.types';
 
 import { createDatabaseClient, getDb, initializeDb, closeDb } from './config';
 

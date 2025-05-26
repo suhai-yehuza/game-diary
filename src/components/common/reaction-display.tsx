@@ -3,7 +3,7 @@ import React from 'react';
 
 import { Button } from '@/components/ui/button';
 import { GET_REACTIONS } from '@/lib/graphql/queries';
-import { REACTION_EMOJIS, type ReactionEmojiValue } from '@/lib/types';
+import { REACTION_EMOJIS, type ReactionEmojiValue } from '@/lib/types/config.types';
 import { ReactionDisplayProps } from '@/lib/types/consolidated.types';
 import { Reaction } from '@/lib/types/generated/graphql';
 

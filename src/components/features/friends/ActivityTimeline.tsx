@@ -2,8 +2,7 @@ import { formatDistanceToNow, isWithinInterval, subDays } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
 import React, { useState, useMemo } from 'react';
 
-import { ActivityTimelineProps } from '@/lib/types';
-import type { TimeFilter, ActivityType } from '@/lib/types';
+import { ActivityTimelineProps, TimeFilter, ActivityType } from '@/lib/types/activity.types';
 
 export const ActivityTimeline: React.FC<ActivityTimelineProps> = ({ gameLogs }) => {
   const [timeFilter, setTimeFilter] = useState<TimeFilter>('all');
