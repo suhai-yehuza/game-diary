@@ -12,13 +12,13 @@ import { CommentsSection } from '@/components/common';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { GET_GAME_LOG } from '@/lib/graphql/queries';
+import { GET_GAME_LOG_WITH_REACTIONS } from '@/lib/graphql/queries';
 import { GameLogResponse } from '@/lib/types';
 
 export default function GameLog() {
   const params = useParams();
   const [gameLog, setGameLog] = useState<GameLogResponse | null>(null);
-  const { data, loading, error } = useQuery(GET_GAME_LOG, {
+  const { data, loading, error } = useQuery(GET_GAME_LOG_WITH_REACTIONS, {
     variables: { id: params?.id },
   });
 

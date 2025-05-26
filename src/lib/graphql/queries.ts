@@ -239,15 +239,6 @@ export const GET_PLAYERS = gql`
   ${PLAYER_FRAGMENT}
 `;
 
-export const GET_PLAYER = gql`
-  query GetPlayer($id: ID!) {
-    player(id: $id) {
-      ...PlayerFragment
-    }
-  }
-  ${PLAYER_FRAGMENT}
-`;
-
 export const GET_GAME_LOG_WITH_REACTIONS = gql`
   query GetGameLogWithReactions($gameId: ID!, $userId: ID!) {
     gameLog(gameId: $gameId, userId: $userId) {
@@ -267,7 +258,6 @@ export const GET_COMMENTS_WITH_FILTERS = gql`
   ${COMMENT_FRAGMENT}
 `;
 
-// INTERNAL API Queries
 export const GET_USERS = gql`
   query GetUsers($pagination: PaginationInput) {
     users(pagination: $pagination) {
@@ -286,37 +276,6 @@ export const GET_USER = gql`
   query GetUser($id: ID!) {
     user(id: $id) {
       ...BasicUserFragment
-    }
-  }
-  ${BASIC_USER_FRAGMENT}
-`;
-
-export const GET_FRIENDSHIPS = gql`
-  query GetFriendships($userId: ID!) {
-    friendships(userId: $userId) {
-      id
-      username
-      emailAddress
-      imageUrl
-    }
-  }
-`;
-
-export const GET_FRIENDSHIP = gql`
-  query GetFriendship($id: ID!) {
-    friendship(id: $id) {
-      id
-      subscriberId
-      userId
-      status
-      created_at
-      updated_at
-      initiator {
-        ...BasicUserFragment
-      }
-      recipient {
-        ...BasicUserFragment
-      }
     }
   }
   ${BASIC_USER_FRAGMENT}
@@ -342,7 +301,6 @@ export const GET_GAME_LOGS = gql`
             }
           }
         }
-        # Add other inline fragments for other types if needed
       }
       total
       hasMore
@@ -350,39 +308,6 @@ export const GET_GAME_LOGS = gql`
   }
   ${GAME_LOG_FRAGMENT}
   ${BASIC_USER_FRAGMENT}
-  ${COMMENT_FRAGMENT}
-`;
-
-export const GET_GAME_LOG = gql`
-  query GetGameLog($userId: ID!, $gameId: ID!) {
-    gameLog(userId: $userId, gameId: $gameId) {
-      ...GameLogFragment
-      user {
-        ...BasicUserFragment
-      }
-      comments {
-        ...CommentFragment
-      }
-      reactions {
-        id
-        emoji
-        user {
-          ...BasicUserFragment
-        }
-      }
-    }
-  }
-  ${GAME_LOG_FRAGMENT}
-  ${BASIC_USER_FRAGMENT}
-  ${COMMENT_FRAGMENT}
-`;
-
-export const GET_COMMENTS = gql`
-  query GetComments($parent_id: ID!) {
-    comments(parent_id: $parent_id) {
-      ...CommentFragment
-    }
-  }
   ${COMMENT_FRAGMENT}
 `;
 
@@ -425,20 +350,6 @@ export const GET_TEAM_STATS = gql`
   }
 `;
 
-// INTERNAL API QUERIES
-export const GET_INTERNAL_GAMES = gql`
-  query GetInternalGames($filters: GameFilters, $pagination: PaginationInput) {
-    games(filters: $filters, pagination: $pagination) {
-      items {
-        ...GameFragment
-      }
-      total
-      hasMore
-    }
-  }
-  ${GAME_FRAGMENT}
-`;
-
 export const GET_GAMES = gql`
   query GetGames($filters: GameFilters, $pagination: PaginationInput) {
     games(filters: $filters, pagination: $pagination) {
@@ -479,4 +390,22 @@ export const TEAM_FRAGMENT = gql`
     code
     logo
   }
+`;
+
+export const GET_FRIENDSHIPS = gql`
+  query GetFriendships($userId: ID!) {
+    friendships(userId: $userId) {
+      id
+      status
+      created_at
+      updated_at
+      user {
+        ...BasicUserFragment
+      }
+      friend {
+        ...BasicUserFragment
+      }
+    }
+  }
+  ${BASIC_USER_FRAGMENT}
 `;

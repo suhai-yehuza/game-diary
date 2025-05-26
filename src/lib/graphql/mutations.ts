@@ -343,51 +343,6 @@ export const DELETE_REACTION = gql`
   }
 `;
 
-export const UPDATE_FRIENDSHIP_STATUS = gql`
-  mutation UpdateFriendshipStatus($input: UpdateFriendshipStatusInput!) {
-    updateFriendshipStatus(input: $input) {
-      friendship {
-        id
-        subscriberId
-        userId
-        status
-        created_at
-        updated_at
-        initiator {
-          id
-          username
-        }
-        recipient {
-          id
-          username
-        }
-      }
-      errors {
-        ... on ValidationError {
-          field
-          message
-        }
-        ... on AuthenticationError {
-          message
-        }
-        ... on AuthorizationError {
-          message
-          requiredRole
-        }
-        ... on RateLimitError {
-          message
-          retryAfter
-        }
-        ... on BusinessLogicError {
-          message
-          code
-          details
-        }
-      }
-    }
-  }
-`;
-
 export const SEND_FRIEND_REQUEST = gql`
   mutation SendFriendRequest($userId: ID!) {
     sendFriendRequest(userId: $userId) {
@@ -399,14 +354,10 @@ export const SEND_FRIEND_REQUEST = gql`
         created_at
         updated_at
         initiator {
-          id
-          username
-          imageUrl
+          ...BasicUserFragment
         }
         recipient {
-          id
-          username
-          imageUrl
+          ...BasicUserFragment
         }
       }
       errors {
@@ -433,6 +384,7 @@ export const SEND_FRIEND_REQUEST = gql`
       }
     }
   }
+  ${BASIC_USER_FRAGMENT}
 `;
 
 export const ACCEPT_FRIEND_REQUEST = gql`
@@ -446,14 +398,10 @@ export const ACCEPT_FRIEND_REQUEST = gql`
         created_at
         updated_at
         initiator {
-          id
-          username
-          imageUrl
+          ...BasicUserFragment
         }
         recipient {
-          id
-          username
-          imageUrl
+          ...BasicUserFragment
         }
       }
       errors {
@@ -480,6 +428,7 @@ export const ACCEPT_FRIEND_REQUEST = gql`
       }
     }
   }
+  ${BASIC_USER_FRAGMENT}
 `;
 
 export const REJECT_FRIEND_REQUEST = gql`
@@ -493,14 +442,10 @@ export const REJECT_FRIEND_REQUEST = gql`
         created_at
         updated_at
         initiator {
-          id
-          username
-          imageUrl
+          ...BasicUserFragment
         }
         recipient {
-          id
-          username
-          imageUrl
+          ...BasicUserFragment
         }
       }
       errors {
@@ -527,6 +472,7 @@ export const REJECT_FRIEND_REQUEST = gql`
       }
     }
   }
+  ${BASIC_USER_FRAGMENT}
 `;
 
 export const REMOVE_FRIEND = gql`
@@ -557,6 +503,50 @@ export const REMOVE_FRIEND = gql`
       }
     }
   }
+`;
+
+export const UPDATE_FRIENDSHIP_STATUS = gql`
+  mutation UpdateFriendshipStatus($input: UpdateFriendshipStatusInput!) {
+    updateFriendshipStatus(input: $input) {
+      friendship {
+        id
+        subscriberId
+        userId
+        status
+        created_at
+        updated_at
+        initiator {
+          ...BasicUserFragment
+        }
+        recipient {
+          ...BasicUserFragment
+        }
+      }
+      errors {
+        ... on ValidationError {
+          field
+          message
+        }
+        ... on AuthenticationError {
+          message
+        }
+        ... on AuthorizationError {
+          message
+          requiredRole
+        }
+        ... on RateLimitError {
+          message
+          retryAfter
+        }
+        ... on BusinessLogicError {
+          message
+          code
+          details
+        }
+      }
+    }
+  }
+  ${BASIC_USER_FRAGMENT}
 `;
 
 export const UPDATE_PLAYER = gql`

@@ -35,7 +35,7 @@ import {
   UPDATE_COMMENT,
   DELETE_COMMENT,
 } from '@/lib/graphql/mutations';
-import { GET_COMMENTS } from '@/lib/graphql/queries';
+import { GET_COMMENTS_WITH_FILTERS } from '@/lib/graphql/queries';
 import { Comment, Reaction, EditingComment, CommentsSectionProps } from '@/lib/types';
 
 export function CommentsSection({ parent_id, parent_type }: CommentsSectionProps) {
@@ -45,7 +45,7 @@ export function CommentsSection({ parent_id, parent_type }: CommentsSectionProps
   const [deleteCommentId, setDeleteCommentId] = useState<string | null>(null);
   const { toast } = useToast();
 
-  const { data, loading, error, refetch } = useQuery(GET_COMMENTS, {
+  const { data, loading, error, refetch } = useQuery(GET_COMMENTS_WITH_FILTERS, {
     variables: {
       filters: {
         parent_id: parent_id,
