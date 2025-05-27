@@ -18,6 +18,7 @@ import { Context } from '@/lib/types/context.types';
 import { DatabaseRow } from '@/lib/types/database.types';
 import { ReactionEmojiType, ParentType } from '@/lib/types/generated/graphql';
 import type { User } from '@/lib/types/generated/graphql';
+import { CommentWithUser, ReactionWithUser } from '@/types/shared/comment.types';
 
 // Type for game scores JSON structure
 interface GameScores {
@@ -1395,7 +1396,7 @@ export const comments = async (
   const total = totalResult[0]?.count || 0;
 
   const commentsWithReactions = await Promise.all(
-    comments.map(async comment => {
+    comments.map(async (comment: CommentWithUser) => {
       if (!comment.user) return null;
 
       const commentReactions = await db.query.reactions.findMany({
@@ -1416,7 +1417,7 @@ export const comments = async (
         deleted_at: comment.deleted_at,
         user: transformUserToSummary(comment.user as unknown as User),
         reactions: commentReactions
-          .map(reactionRaw => {
+          .map((reactionRaw: ReactionWithUser) => {
             const reaction = {
               id: reactionRaw.id,
               emoji: reactionRaw.emoji as ReactionEmojiType,
@@ -1532,7 +1533,6 @@ export const liveGames = async (
 ) => {
   try {
     const liveGames = await fetchNbaLiveGames();
-    console.log('Received live games response:', JSON.stringify(liveGames, null, 2));
 
     // Handle empty response gracefully
     if (!liveGames || !liveGames.response || liveGames.response.length === 0) {
