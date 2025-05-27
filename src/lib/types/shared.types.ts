@@ -299,34 +299,109 @@ export interface APIGame {
 
 export interface GameLogResponse {
   id: string;
+  userId: string;
+  gameId: string;
+  watchedSetting: string;
+  watchedDate: string;
+  watchedLocation: string;
+  rating: number;
+  ratingForGame: number;
+  ratingStars: number | null;
+  watchedCount: number;
+  notes: string;
+  tags: string[];
+  classification: string;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
   user?: {
     id: string;
-    username?: string;
-    first_name?: string;
-    last_name?: string;
-    image_url?: string;
-    email_address?: string;
+    username: string;
+    first_name: string;
+    last_name: string;
+    image_url: string;
   };
   game?: {
     id: string;
-    date?: { start?: string };
-    arena?: string;
-    teams?: {
-      home?: { id: string; name?: string; nickname?: string; logo?: string };
-      visitors?: { id: string; name?: string; nickname?: string; logo?: string };
+    date: {
+      start: string;
+      end: string | null;
+      duration: string | null;
     };
-    homeTeamStats?: {
-      points?: number;
-      totReb?: number;
-      assists?: number;
-      steals?: number;
-      blocks?: number;
+    status: {
+      short: string | null;
     };
+    arena: string;
+    league: string;
+    season: number;
+    stage: number;
+    periods: {
+      total: number;
+      current: number;
+      endOfPeriod: boolean;
+    };
+    scores: {
+      home: {
+        win: number;
+        loss: number;
+        points: number;
+        series: {
+          win: number;
+          loss: number;
+        };
+        linescore: string[];
+      };
+      visitors: {
+        win: number;
+        loss: number;
+        points: number;
+        series: {
+          win: number;
+          loss: number;
+        };
+        linescore: string[];
+      };
+    };
+    officials: string[];
+    timesTied: number;
+    leadChanges: number;
+    nugget: string | null;
+    homeTeamId: string;
+    awayTeamId: string;
+    teams: {
+      home: {
+        id: string;
+        code: string;
+        logo: string;
+        name: string;
+        nickname: string;
+      };
+      visitors: {
+        id: string;
+        code: string;
+        logo: string;
+        name: string;
+        nickname: string;
+      };
+    };
+    isCompleted: boolean;
   };
-  watched_date: string;
-  watched_location?: string;
-  watched_setting?: string;
-  rating_for_game?: number;
+}
+
+export interface GameLogsResponse {
+  gameLogs: {
+    edges: Array<{
+      cursor: string;
+      node: GameLogResponse;
+    }>;
+    pageInfo: {
+      startCursor: string;
+      endCursor: string;
+      hasNextPage: boolean;
+      hasPreviousPage: boolean;
+    };
+    totalCount: number;
+  };
 }
 
 export interface RawTeamStatistics {

@@ -334,19 +334,8 @@ export async function fetchNbaGameById(id: string): Promise<GameApiResponse> {
  */
 export async function fetchNbaLiveGames(): Promise<GameApiResponse> {
   const url = `${getNbaApiBaseUrl()}/${API_CONFIG.endpoints.GAMES}?live=all`;
-  console.log('Making live games request to:', url);
   
   const config = createNbaApiConfig();
-  // Mask the API key in logs
-  const maskedConfig = {
-    ...config,
-    headers: {
-      ...config.headers,
-      'x-rapidapi-key': '***',
-      'X-RapidAPI-Key': '***'
-    }
-  };
-  console.log('API Config:', maskedConfig);
   
   try {
     const res = await fetchWithRetry(
@@ -366,7 +355,6 @@ export async function fetchNbaLiveGames(): Promise<GameApiResponse> {
     }
 
     const data = await res.json();
-    console.log('Live games response:', JSON.stringify(data, null, 2));
     
     // Handle empty response gracefully
     if (!data || !data.response) {

@@ -408,7 +408,7 @@ export const updateGameLog = async (
         user: {
           id: dbUser.id,
           username: dbUser.username,
-          emailAddress: dbUser.email_address,
+          email_address: dbUser.email_address,
           imageUrl: dbUser.image_url,
           initiated_friendships: [],
           received_friendships: [],

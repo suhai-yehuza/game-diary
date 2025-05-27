@@ -106,7 +106,7 @@ export const BASIC_USER_FRAGMENT = gql`
   fragment BasicUserFragment on User {
     id
     username
-    emailAddress
+    email_address
     imageUrl
   }
 `;
@@ -282,51 +282,38 @@ export const GET_USER = gql`
 `;
 
 export const GET_GAME_LOGS = gql`
-  query GetGameLogs($filters: GameLogFilters, $pagination: PaginationInput) {
-    gameLogs(filters: $filters, pagination: $pagination) {
-      items {
-        ... on GameLog {
-          ...GameLogFragment
-          user {
-            ...BasicUserFragment
-          }
-          comments(first: 10) {
-            edges {
-              node {
-                ...CommentFragment
-              }
-            }
-            pageInfo {
-              hasNextPage
-              endCursor
-            }
-            totalCount
-          }
-          reactions(first: 20) {
-            edges {
-              node {
-                id
-                emoji
-                user {
-                  ...BasicUserFragment
-                }
-              }
-            }
-            pageInfo {
-              hasNextPage
-              endCursor
-            }
-            totalCount
-          }
+  query GetGameLogs($first: Int, $after: String, $filters: GameLogFilters) {
+    gameLogs(first: $first, after: $after, filters: $filters) {
+      edges {
+        cursor
+        node {
+          id
+          userId
+          gameId
+          watchedSetting
+          watchedDate
+          watchedLocation
+          rating
+          ratingForGame
+          ratingStars
+          watchedCount
+          notes
+          tags
+          classification
+          created_at
+          updated_at
+          deleted_at
         }
       }
-      total
-      hasMore
+      pageInfo {
+        startCursor
+        endCursor
+        hasNextPage
+        hasPreviousPage
+      }
+      totalCount
     }
   }
-  ${GAME_LOG_FRAGMENT}
-  ${BASIC_USER_FRAGMENT}
-  ${COMMENT_FRAGMENT}
 `;
 
 export const GET_LIVE_GAMES = gql`

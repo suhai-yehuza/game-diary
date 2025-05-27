@@ -1,5 +1,5 @@
 import type { InferSelectModel } from 'drizzle-orm';
-import { desc, eq, sql, SQL, and, or } from 'drizzle-orm';
+import { desc, eq, sql, SQL, and, or, inArray } from 'drizzle-orm';
 import { GraphQLError } from 'graphql';
 
 import { CACHE_KEYS, getCache } from '@/lib/cache';
@@ -519,7 +519,7 @@ export const gameStats = async (_parent: unknown, { id }: { id: string }, { db }
       throw new NotFoundError('Game', gameStats.game_id as string);
     }
 
-    const teams = game.teams || {};
+    const teams = (game as { teams?: Record<string, any> }).teams || {};
     const homeTeamId =
       typeof teams === 'object' &&
       teams !== null &&
@@ -540,42 +540,36 @@ export const gameStats = async (_parent: unknown, { id }: { id: string }, { db }
         : null;
 
     const mappedGame = {
-      id: game.id,
-      date:
-        typeof game.date === 'string'
-          ? game.date
-          : game.date instanceof Date
-            ? game.date.toISOString()
-            : '',
-      status: typeof game.status === 'string' ? game.status : String(game.status ?? ''),
-      arena: typeof game.arena === 'string' ? game.arena : String(game.arena ?? ''),
-      league: typeof game.league === 'string' ? game.league : String(game.league ?? ''),
-      season_id: typeof game.season_id === 'number' ? game.season_id : Number(game.season_id ?? 0),
-      stage: typeof game.stage === 'number' ? game.stage : Number(game.stage ?? 0),
-      periods: game.periods ?? [],
-      scores: game.scores ?? [],
-      officials: Array.isArray(game.officials) ? game.officials.map(String) : [],
-      timesTied: typeof game.times_tied === 'number' ? game.times_tied : null,
-      leadChanges: typeof game.lead_changes === 'number' ? game.lead_changes : null,
-      nugget: typeof game.nugget === 'string' ? game.nugget : null,
-      created_at:
-        typeof game.created_at === 'string'
-          ? game.created_at
-          : game.created_at instanceof Date
-            ? game.created_at.toISOString()
-            : '',
-      updated_at:
-        typeof game.updated_at === 'string'
-          ? game.updated_at
-          : game.updated_at instanceof Date
-            ? game.updated_at.toISOString()
-            : '',
-      homeTeamId:
-        typeof homeTeamId === 'string' ? homeTeamId : homeTeamId ? String(homeTeamId) : '',
-      awayTeamId:
-        typeof awayTeamId === 'string' ? awayTeamId : awayTeamId ? String(awayTeamId) : '',
-      teams,
-      isCompleted: game.status === 'Final' || game.status === 'Completed',
+      id: (game as any).id,
+      date: {
+        start: (game as any).date instanceof Date 
+          ? (game as any).date.toISOString()
+          : typeof (game as any).date === 'string'
+            ? (game as any).date
+            : new Date().toISOString(),
+        end: null,
+        duration: null
+      },
+      status: typeof (game as any).status === 'string' ? (game as any).status : String((game as any).status ?? ''),
+      arena: typeof (game as any).arena === 'string' ? (game as any).arena : String((game as any).arena ?? ''),
+      league: typeof (game as any).league === 'string' ? (game as any).league : String((game as any).league ?? ''),
+      season: typeof (game as any).season === 'number' ? (game as any).season : Number((game as any).season ?? 0),
+      stage: typeof (game as any).stage === 'number' ? (game as any).stage : Number((game as any).stage ?? 0),
+      periods: (game as any).periods ?? [],
+      scores: (game as any).scores ?? [],
+      officials: Array.isArray((game as any).officials) ? (game as any).officials.map(String) : [],
+      timesTied: typeof (game as any).times_tied === 'number' ? (game as any).times_tied : null,
+      leadChanges: typeof (game as any).lead_changes === 'number' ? (game as any).lead_changes : null,
+      nugget: typeof (game as any).nugget === 'string' ? (game as any).nugget : null,
+      created_at: (game as any).created_at instanceof Date ? (game as any).created_at.toISOString() : String((game as any).created_at ?? ''),
+      updated_at: (game as any).updated_at instanceof Date ? (game as any).updated_at.toISOString() : String((game as any).updated_at ?? ''),
+      homeTeamId: typeof homeTeamId === 'string' ? homeTeamId : homeTeamId ? String(homeTeamId) : '',
+      awayTeamId: typeof awayTeamId === 'string' ? awayTeamId : awayTeamId ? String(awayTeamId) : '',
+      teams: {
+        home: (game as any).teams?.home || null,
+        visitors: (game as any).teams?.visitors || null
+      },
+      isCompleted: (game as any).status === 'Final' || (game as any).status === 'Completed',
     };
 
     // Fetch home and away teams
@@ -765,12 +759,16 @@ export const teamGameStats = async (
         : null;
     const mappedGame = {
       id: dbGame.id,
-      date:
-        typeof dbGame.date === 'string'
-          ? dbGame.date
-          : dbGame.date instanceof Date
-            ? dbGame.date.toISOString()
-            : '',
+      date: {
+        start:
+          typeof dbGame.date === 'string'
+            ? dbGame.date
+            : dbGame.date instanceof Date
+              ? dbGame.date.toISOString()
+              : '',
+        end: null,
+        duration: null,
+      },
       status: typeof dbGame.status === 'string' ? dbGame.status : String(dbGame.status ?? ''),
       arena:
         dbGame.arena && typeof dbGame.arena === 'object'
@@ -784,8 +782,7 @@ export const teamGameStats = async (
             ? dbGame.arena
             : '',
       league: typeof dbGame.league === 'string' ? dbGame.league : String(dbGame.league ?? ''),
-      season_id:
-        typeof dbGame.season_id === 'number' ? dbGame.season_id : Number(dbGame.season_id ?? 0),
+      season: typeof dbGame.season === 'number' ? dbGame.season : Number(dbGame.season ?? 0),
       stage: typeof dbGame.stage === 'number' ? dbGame.stage : Number(dbGame.stage ?? 0),
       periods: dbGame.periods ?? [],
       scores: dbGame.scores ?? [],
@@ -1134,7 +1131,7 @@ export const gameLogs = async (
         .from(schema.game_logs)
         .where(conditions.length > 0 ? and(...conditions) : undefined)
         .orderBy(desc(schema.game_logs.created_at))
-        .limit(limit)
+        .limit(limit + 1) // Get one extra to check if there's a next page
         .offset(offset),
       db
         .select({ count: sql<number>`count(*)` })
@@ -1143,28 +1140,41 @@ export const gameLogs = async (
     ]);
 
     const total = totalResult[0]?.count || 0;
+    const hasNextPage = gameLogs.length > limit;
+    const actualGameLogs = hasNextPage ? gameLogs.slice(0, -1) : gameLogs;
 
-    // Map game logs without fetching comments and reactions
-    const gameLogsWithRelations = gameLogs.map((gameLog: DatabaseRow) => ({
-      id: gameLog.id as string,
-      userId: gameLog.user_id as string,
-      gameId: gameLog.game_id as string,
-      watchedSetting: gameLog.watched_setting as string,
-      watchedDate: gameLog.watched_date as Date,
-      watchedLocation: gameLog.watched_location as string,
-      rating: gameLog.rating_for_game as number,
-      ratingForGame: gameLog.rating_for_game as number,
-      ratingStars: gameLog.rating_stars ? parseInt(String(gameLog.rating_stars)) : undefined,
-      watchedCount: gameLog.watched_count as number,
-      notes: gameLog.notes as string,
-      tags: gameLog.tags as string[],
-      classification: gameLog.classification as string,
-      created_at: gameLog.created_at as Date,
-      updated_at: gameLog.updated_at as Date,
-      deleted_at: gameLog.deleted_at as Date | null,
+    const edges = actualGameLogs.map((gameLog: DatabaseRow, index: number) => ({
+      cursor: String(offset + index),
+      node: {
+        id: gameLog.id as string,
+        userId: gameLog.user_id as string,
+        gameId: gameLog.game_id as string,
+        watchedSetting: gameLog.watched_setting as string,
+        watchedDate: gameLog.watched_date as Date,
+        watchedLocation: gameLog.watched_location as string,
+        rating: gameLog.rating_for_game as number,
+        ratingForGame: gameLog.rating_for_game as number,
+        ratingStars: gameLog.rating_stars ? (Number.isNaN(Number(gameLog.rating_stars)) ? null : Math.round(Number(gameLog.rating_stars))) : null,
+        watchedCount: gameLog.watched_count as number,
+        notes: gameLog.notes as string,
+        tags: gameLog.tags as string[],
+        classification: gameLog.classification as string,
+        created_at: gameLog.created_at as Date,
+        updated_at: gameLog.updated_at as Date,
+        deleted_at: gameLog.deleted_at as Date | null,
+      },
     }));
 
-    return createConnection(gameLogsWithRelations, total, paginationArgs);
+    return {
+      edges,
+      pageInfo: {
+        startCursor: edges.length > 0 ? edges[0].cursor : null,
+        endCursor: edges.length > 0 ? edges[edges.length - 1].cursor : null,
+        hasNextPage,
+        hasPreviousPage: offset > 0,
+      },
+      totalCount: total,
+    };
   } catch (error) {
     console.error('Error fetching game logs:', error);
     throw error;
