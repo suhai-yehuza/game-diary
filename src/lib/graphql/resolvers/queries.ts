@@ -1532,48 +1532,64 @@ export const liveGames = async (
 ) => {
   try {
     const liveGames = await fetchNbaLiveGames();
-    const mappedGames = (liveGames.data || []).map(game => ({
-      id: String(game.id),
-      date: {
-        start: game.date?.start ? new Date(game.date.start) : new Date(),
-        end: null,
-        duration: null,
-      },
-      status: {
-        clock: game.status?.short || '',
-        halftime: false,
-        long: game.status?.long || '',
-        short: game.status?.short || '',
-      },
-      arena: game.arena?.name || '',
-      league: game.league || '',
-      season: game.season || 0,
-      stage: game.stage || 0,
-      periods: game.periods || [],
-      scores: game.scores || [],
-      officials: game.officials || [],
-      timesTied: game.timesTied,
-      leadChanges: game.leadChanges,
-      nugget: game.nugget,
-      created_at: new Date(),
-      updated_at: new Date(),
-      homeTeamId: game.teams?.home?.id ? String(game.teams.home.id) : '',
-      awayTeamId: game.teams?.visitors?.id ? String(game.teams.visitors.id) : '',
-      teams: {
-        home: game.teams?.home || null,
-        visitors: game.teams?.visitors || null,
-      },
-      isCompleted: game.status?.long === 'Finished',
-      away_score: game.scores?.visitors?.points || null,
-      home_score: game.scores?.home?.points || null,
-      game_type: 'LIVE',
-      nba_game_id: String(game.id),
-    }));
+    console.log('Received live games response:', JSON.stringify(liveGames, null, 2));
+
+    // Handle empty response gracefully
+    if (!liveGames || !liveGames.response || liveGames.response.length === 0) {
+      console.log('No live games available');
+      return createConnection([], 0, args);
+    }
+
+    const mappedGames = liveGames.response.map(game => {
+      return {
+        id: String(game.id),
+        date: {
+          start: game.date?.start ? new Date(game.date.start) : new Date(),
+          end: null,
+          duration: null,
+        },
+        status: {
+          clock: game.status?.clock || '',
+          halftime: false,
+          long: game.status?.long || '',
+          short: game.status?.short || '',
+        },
+        arena: game.arena?.name || '',
+        league: game.league || '',
+        season: game.season || 0,
+        stage: game.stage || 0,
+        periods: game.periods || [],
+        scores: game.scores || [],
+        officials: game.officials || [],
+        timesTied: game.timesTied,
+        leadChanges: game.leadChanges,
+        nugget: game.nugget,
+        created_at: new Date(),
+        updated_at: new Date(),
+        homeTeamId: game.teams?.home?.id ? String(game.teams.home.id) : '',
+        awayTeamId: game.teams?.visitors?.id ? String(game.teams.visitors.id) : '',
+        teams: {
+          home: game.teams?.home || null,
+          visitors: game.teams?.visitors || null,
+        },
+        isCompleted: game.status?.long === 'Finished',
+        away_score: game.scores?.visitors?.points || null,
+        home_score: game.scores?.home?.points || null,
+        game_type: 'LIVE',
+        nba_game_id: String(game.id),
+      };
+    });
 
     return createConnection(mappedGames, mappedGames.length, args);
   } catch (error) {
-    console.error('Error fetching live games:', error);
-    throw new BusinessLogicError('Failed to fetch live games', 'LIVE_GAMES_FETCH_ERROR');
+    console.error('Error in liveGames resolver:', error);
+    if (error instanceof BusinessLogicError) {
+      throw error;
+    }
+    throw new BusinessLogicError(
+      error instanceof Error ? error.message : 'Failed to fetch live games',
+      'LIVE_GAMES_FETCH_ERROR'
+    );
   }
 };
 

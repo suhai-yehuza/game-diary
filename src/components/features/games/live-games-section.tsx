@@ -7,17 +7,30 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { GET_LIVE_GAMES } from '@/lib/graphql/queries';
 import type { ExtendedGame } from '@/lib/types/game.types';
 
+interface LiveGameEdge {
+  node: ExtendedGame;
+}
+
+interface LiveGamesConnection {
+  edges: LiveGameEdge[];
+}
+
+interface LiveGamesData {
+  liveGames: LiveGamesConnection;
+}
+
 export function LiveGamesSection() {
-  const { data, loading, error } = useQuery(GET_LIVE_GAMES, {
+  const { data, loading, error } = useQuery<LiveGamesData>(GET_LIVE_GAMES, {
     pollInterval: 30000, // Poll every 30 seconds for live updates
   });
 
   if (loading) return <div className="text-center p-4">Loading live games...</div>;
   if (error) return <div className="text-red-500 p-4">Error: {error.message}</div>;
-  if (!data) return <div className="text-center p-4 text-muted-foreground">No data available</div>;
+  if (!data?.liveGames?.edges) return <div className="text-center p-4 text-muted-foreground">No data available</div>;
 
-  // Ensure we have the correct data structure
-  const live_games = data.liveGames || [];
+  // Extract games from the connection type
+  const live_games = data.liveGames.edges.map((edge: LiveGameEdge) => edge.node);
+  
   if (live_games.length === 0) {
     return <div className="text-center p-4 text-muted-foreground">No live games at the moment</div>;
   }

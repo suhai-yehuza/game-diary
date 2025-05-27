@@ -332,10 +332,51 @@ export const GET_GAME_LOGS = gql`
 export const GET_LIVE_GAMES = gql`
   query GetLiveGames {
     liveGames {
-      ...GameFragment
+      edges {
+        node {
+          id
+          date {
+            start
+            end
+            duration
+          }
+          status {
+            clock
+            halftime
+            long
+            short
+          }
+          arena
+          league
+          season
+          stage
+          periods
+          scores
+          officials
+          timesTied
+          leadChanges
+          nugget
+          created_at
+          updated_at
+          homeTeamId
+          awayTeamId
+          teams
+          isCompleted
+          away_score
+          home_score
+          game_type
+          nba_game_id
+        }
+      }
+      pageInfo {
+        hasNextPage
+        hasPreviousPage
+        startCursor
+        endCursor
+      }
+      totalCount
     }
   }
-  ${GAME_FRAGMENT}
 `;
 
 export const GET_TEAM_STATS = gql`

@@ -217,6 +217,12 @@ export function handleAPIError(error: unknown): never {
  */
 function createNbaApiConfig(): APIConfigOptions {
   const rapidApiConfig = getRapidApiConfig();
+  console.log('RapidAPI Config:', {
+    baseUrl: rapidApiConfig.baseUrl,
+    host: rapidApiConfig.host,
+    headers: rapidApiConfig.headers
+  });
+  
   return {
     baseUrl: rapidApiConfig.baseUrl,
     apiKey: rapidApiConfig.apiKey,
@@ -327,18 +333,62 @@ export async function fetchNbaGameById(id: string): Promise<GameApiResponse> {
  * Fetch currently live NBA games
  */
 export async function fetchNbaLiveGames(): Promise<GameApiResponse> {
-  const res = await fetchWithRetry(
-    `${getNbaApiBaseUrl()}/${API_CONFIG.endpoints.GAMES}?live=all`,
-    createNbaApiConfig(),
-    API_CONFIG.rateLimit.MAX_RETRIES,
-    API_CONFIG.rateLimit.BASE_DELAY
-  );
+  const url = `${getNbaApiBaseUrl()}/${API_CONFIG.endpoints.GAMES}?live=all`;
+  console.log('Making live games request to:', url);
+  
+  const config = createNbaApiConfig();
+  // Mask the API key in logs
+  const maskedConfig = {
+    ...config,
+    headers: {
+      ...config.headers,
+      'x-rapidapi-key': '***',
+      'X-RapidAPI-Key': '***'
+    }
+  };
+  console.log('API Config:', maskedConfig);
+  
+  try {
+    const res = await fetchWithRetry(
+      url,
+      config,
+      API_CONFIG.rateLimit.MAX_RETRIES,
+      API_CONFIG.rateLimit.BASE_DELAY
+    );
 
-  if (!res.ok) {
-    throw new Error(`Failed to fetch NBA live games. Error: ${res}`);
+    if (!res.ok) {
+      console.error('Live games request failed:', {
+        status: res.status,
+        statusText: res.statusText,
+        url: res.url
+      });
+      throw new Error(`Failed to fetch NBA live games. Status: ${res.status}, StatusText: ${res.statusText}`);
+    }
+
+    const data = await res.json();
+    console.log('Live games response:', JSON.stringify(data, null, 2));
+    
+    // Handle empty response gracefully
+    if (!data || !data.response) {
+      console.log('No live games currently available');
+      return {
+        get: 'games/',
+        parameters: { live: 'all' },
+        errors: [],
+        results: 0,
+        response: [],
+        data: [] // Add this to match GameApiResponse type
+      };
+    }
+
+    return {
+      ...data,
+      data: data.response // Add this to match GameApiResponse type
+    };
+  } catch (error) {
+    console.error('Error in fetchNbaLiveGames:', error);
+    throw error;
   }
-
-  return await res.json();
 }
 
 /**
