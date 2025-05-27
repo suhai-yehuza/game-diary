@@ -10,10 +10,11 @@ import type {
 } from '@/lib/types/config.types';
 import type { APIConfigOptions } from '@/lib/types/shared.types';
 
-const SMALL = 100;
+const XSMALL = 10;
+const SMALL = 10 * XSMALL;
 const MEDIUM = 10 * SMALL;
 const LARGE = 10 * MEDIUM;
-const XLARGE = 100 * LARGE;
+const XLARGE = 10 * LARGE;
 
 // Environment variable validation schema
 const envSchema = z.object({
