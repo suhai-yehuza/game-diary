@@ -1,5 +1,5 @@
 import type { InferSelectModel } from 'drizzle-orm';
-import { desc, eq, sql, SQL, and, or, inArray } from 'drizzle-orm';
+import { desc, eq, sql, SQL, and, or } from 'drizzle-orm';
 import { GraphQLError } from 'graphql';
 
 import { CACHE_KEYS, getCache } from '@/lib/cache';
@@ -18,7 +18,6 @@ import { Context } from '@/lib/types/context.types';
 import { DatabaseRow } from '@/lib/types/database.types';
 import { ReactionEmojiType, ParentType } from '@/lib/types/generated/graphql';
 import type { User } from '@/lib/types/generated/graphql';
-import { CommentWithUser, ReactionWithUser } from '@/types/shared/comment.types';
 
 // Type for game scores JSON structure
 interface GameScores {
@@ -28,6 +27,83 @@ interface GameScores {
   home?: {
     points?: number;
   };
+}
+
+// Type for game teams structure
+interface GameTeam {
+  id: string;
+  name: string;
+  nickname: string;
+  logo: string;
+}
+
+interface GameTeams {
+  home?: GameTeam;
+  visitors?: GameTeam;
+}
+
+// Type for game arena structure
+interface GameArena {
+  name?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+}
+
+// Type for game data from database
+interface GameData {
+  id: string;
+  date: Date | string;
+  status: string;
+  arena: string | GameArena;
+  league: string;
+  season: number;
+  stage: number;
+  periods: unknown[];
+  scores: GameScores;
+  officials: string[];
+  times_tied: number | null;
+  lead_changes: number | null;
+  nugget: string | null;
+  created_at: Date | string;
+  updated_at: Date | string;
+  teams: GameTeams;
+  [key: string]: unknown;
+}
+
+// Type for mapped game data
+interface MappedGame {
+  id: string;
+  date: {
+    start: string;
+    end: null;
+    duration: null;
+  };
+  status: {
+    clock: string;
+    halftime: boolean;
+    long: string;
+    short: string;
+  };
+  arena: string;
+  league: string;
+  season: number;
+  stage: number;
+  periods: unknown[];
+  scores: GameScores;
+  officials: string[];
+  timesTied: number | null;
+  leadChanges: number | null;
+  nugget: string | null;
+  created_at: string;
+  updated_at: string;
+  homeTeamId: string;
+  awayTeamId: string;
+  teams: {
+    home: GameTeam | null;
+    visitors: GameTeam | null;
+  };
+  isCompleted: boolean;
 }
 
 export const seasons = async (
@@ -178,25 +254,10 @@ export const game = async (_parent: unknown, { id }: { id: string }, { db }: Con
 
   if (!game) throw new NotFoundError('Game', id);
 
-  const teams = game.teams || {};
-  const homeTeamId =
-    typeof teams === 'object' &&
-    teams !== null &&
-    'home' in teams &&
-    teams.home &&
-    typeof teams.home === 'object' &&
-    'id' in teams.home
-      ? teams.home.id
-      : null;
-  const awayTeamId =
-    typeof teams === 'object' &&
-    teams !== null &&
-    'visitors' in teams &&
-    teams.visitors &&
-    typeof teams.visitors === 'object' &&
-    'id' in teams.visitors
-      ? teams.visitors.id
-      : null;
+  const teams = (game.teams as GameTeams) || {};
+  const homeTeamId = teams.home?.id || null;
+  const awayTeamId = teams.visitors?.id || null;
+
   return {
     id: game.id,
     date: {
@@ -508,68 +569,66 @@ export const gameStats = async (_parent: unknown, { id }: { id: string }, { db }
     }
 
     // Fetch the full game object using the same mapping as the 'game' query
-    const game = await db
+    const game = (await db
       .select()
       .from(schema.nba_games)
       .where(eq(schema.nba_games.id, gameStats.game_id as string))
       .limit(1)
-      .then((rows: DatabaseRow[]) => rows[0]);
+      .then((rows: DatabaseRow[]) => rows[0])) as unknown as GameData;
 
     if (!game) {
       throw new NotFoundError('Game', gameStats.game_id as string);
     }
 
-    const teams = (game as { teams?: Record<string, any> }).teams || {};
-    const homeTeamId =
-      typeof teams === 'object' &&
-      teams !== null &&
-      'home' in teams &&
-      teams.home &&
-      typeof teams.home === 'object' &&
-      'id' in teams.home
-        ? teams.home.id
-        : null;
-    const awayTeamId =
-      typeof teams === 'object' &&
-      teams !== null &&
-      'visitors' in teams &&
-      teams.visitors &&
-      typeof teams.visitors === 'object' &&
-      'id' in teams.visitors
-        ? teams.visitors.id
-        : null;
+    const teams = game.teams || {};
+    const homeTeamId = teams.home?.id || null;
+    const awayTeamId = teams.visitors?.id || null;
 
-    const mappedGame = {
-      id: (game as any).id,
+    const mappedGame: MappedGame = {
+      id: game.id,
       date: {
-        start: (game as any).date instanceof Date 
-          ? (game as any).date.toISOString()
-          : typeof (game as any).date === 'string'
-            ? (game as any).date
-            : new Date().toISOString(),
+        start:
+          game.date instanceof Date
+            ? game.date.toISOString()
+            : typeof game.date === 'string'
+              ? game.date
+              : new Date().toISOString(),
         end: null,
-        duration: null
+        duration: null,
       },
-      status: typeof (game as any).status === 'string' ? (game as any).status : String((game as any).status ?? ''),
-      arena: typeof (game as any).arena === 'string' ? (game as any).arena : String((game as any).arena ?? ''),
-      league: typeof (game as any).league === 'string' ? (game as any).league : String((game as any).league ?? ''),
-      season: typeof (game as any).season === 'number' ? (game as any).season : Number((game as any).season ?? 0),
-      stage: typeof (game as any).stage === 'number' ? (game as any).stage : Number((game as any).stage ?? 0),
-      periods: (game as any).periods ?? [],
-      scores: (game as any).scores ?? [],
-      officials: Array.isArray((game as any).officials) ? (game as any).officials.map(String) : [],
-      timesTied: typeof (game as any).times_tied === 'number' ? (game as any).times_tied : null,
-      leadChanges: typeof (game as any).lead_changes === 'number' ? (game as any).lead_changes : null,
-      nugget: typeof (game as any).nugget === 'string' ? (game as any).nugget : null,
-      created_at: (game as any).created_at instanceof Date ? (game as any).created_at.toISOString() : String((game as any).created_at ?? ''),
-      updated_at: (game as any).updated_at instanceof Date ? (game as any).updated_at.toISOString() : String((game as any).updated_at ?? ''),
-      homeTeamId: typeof homeTeamId === 'string' ? homeTeamId : homeTeamId ? String(homeTeamId) : '',
-      awayTeamId: typeof awayTeamId === 'string' ? awayTeamId : awayTeamId ? String(awayTeamId) : '',
+      status: {
+        clock: typeof game.status === 'string' ? game.status : String(game.status ?? ''),
+        halftime: false,
+        long: typeof game.status === 'string' ? game.status : String(game.status ?? ''),
+        short: typeof game.status === 'string' ? game.status : String(game.status ?? ''),
+      },
+      arena: typeof game.arena === 'string' ? game.arena : String(game.arena ?? ''),
+      league: typeof game.league === 'string' ? game.league : String(game.league ?? ''),
+      season: typeof game.season === 'number' ? game.season : Number(game.season ?? 0),
+      stage: typeof game.stage === 'number' ? game.stage : Number(game.stage ?? 0),
+      periods: game.periods ?? [],
+      scores: game.scores ?? [],
+      officials: Array.isArray(game.officials) ? game.officials.map(String) : [],
+      timesTied: typeof game.times_tied === 'number' ? game.times_tied : null,
+      leadChanges: typeof game.lead_changes === 'number' ? game.lead_changes : null,
+      nugget: typeof game.nugget === 'string' ? game.nugget : null,
+      created_at:
+        game.created_at instanceof Date
+          ? game.created_at.toISOString()
+          : String(game.created_at ?? ''),
+      updated_at:
+        game.updated_at instanceof Date
+          ? game.updated_at.toISOString()
+          : String(game.updated_at ?? ''),
+      homeTeamId:
+        typeof homeTeamId === 'string' ? homeTeamId : homeTeamId ? String(homeTeamId) : '',
+      awayTeamId:
+        typeof awayTeamId === 'string' ? awayTeamId : awayTeamId ? String(awayTeamId) : '',
       teams: {
-        home: (game as any).teams?.home || null,
-        visitors: (game as any).teams?.visitors || null
+        home: game.teams?.home || null,
+        visitors: game.teams?.visitors || null,
       },
-      isCompleted: (game as any).status === 'Final' || (game as any).status === 'Completed',
+      isCompleted: game.status === 'Final' || game.status === 'Completed',
     };
 
     // Fetch home and away teams
@@ -1154,7 +1213,11 @@ export const gameLogs = async (
         watchedLocation: gameLog.watched_location as string,
         rating: gameLog.rating_for_game as number,
         ratingForGame: gameLog.rating_for_game as number,
-        ratingStars: gameLog.rating_stars ? (Number.isNaN(Number(gameLog.rating_stars)) ? null : Math.round(Number(gameLog.rating_stars))) : null,
+        ratingStars: gameLog.rating_stars
+          ? Number.isNaN(Number(gameLog.rating_stars))
+            ? null
+            : Math.round(Number(gameLog.rating_stars))
+          : null,
         watchedCount: gameLog.watched_count as number,
         notes: gameLog.notes as string,
         tags: gameLog.tags as string[],
@@ -1406,7 +1469,7 @@ export const comments = async (
   const total = totalResult[0]?.count || 0;
 
   const commentsWithReactions = await Promise.all(
-    comments.map(async (comment: CommentWithUser) => {
+    comments.map(async comment => {
       if (!comment.user) return null;
 
       const commentReactions = await db.query.reactions.findMany({
@@ -1420,15 +1483,16 @@ export const comments = async (
         id: comment.id,
         userId: String(comment.user_id),
         parent_id: comment.parent_id || '',
-        parent_type: (comment.parent_type as ParentType) || 'GAME_LOG',
+        parent_type: (comment.parent_type as 'GAME_LOG') || 'GAME_LOG',
         content: comment.content,
         created_at: comment.created_at,
         updated_at: comment.updated_at,
         deleted_at: comment.deleted_at,
         user: transformUserToSummary(comment.user as unknown as User),
         reactions: commentReactions
-          .map((reactionRaw: ReactionWithUser) => {
-            const reaction = {
+          .map(reactionRaw => {
+            if (!reactionRaw.user) return null;
+            return {
               id: reactionRaw.id,
               emoji: reactionRaw.emoji as ReactionEmojiType,
               created_at: reactionRaw.created_at,
@@ -1436,17 +1500,9 @@ export const comments = async (
               targetId: reactionRaw.target_id,
               targetType: reactionRaw.target_type as ParentType,
               userId: reactionRaw.user_id || '',
-              user: reactionRaw.user
-                ? transformUserToSummary(reactionRaw.user as unknown as User)
-                : {
-                    id: '',
-                    username: 'Unknown User',
-                    email_address: '',
-                    imageUrl: '',
-                  },
+              user: transformUserToSummary(reactionRaw.user as unknown as User),
               __typename: 'Reaction' as const,
             };
-            return reaction;
           })
           .filter((reaction): reaction is NonNullable<typeof reaction> => reaction !== null),
       };

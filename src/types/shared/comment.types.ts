@@ -1,5 +1,4 @@
-import type { User } from '@/lib/types/generated/graphql';
-import type { ParentType, ReactionEmojiType } from '@/lib/types/generated/graphql';
+import type { User, ParentType, ReactionEmojiType } from '@/lib/types/generated/graphql';
 
 export interface CommentWithUser {
   id: string;
@@ -22,4 +21,4 @@ export interface ReactionWithUser {
   target_type: ParentType;
   user_id: string | null;
   user: User | null;
-} 
+}

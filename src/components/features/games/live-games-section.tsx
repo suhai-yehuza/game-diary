@@ -26,11 +26,12 @@ export function LiveGamesSection() {
 
   if (loading) return <div className="text-center p-4">Loading live games...</div>;
   if (error) return <div className="text-red-500 p-4">Error: {error.message}</div>;
-  if (!data?.liveGames?.edges) return <div className="text-center p-4 text-muted-foreground">No data available</div>;
+  if (!data?.liveGames?.edges)
+    return <div className="text-center p-4 text-muted-foreground">No data available</div>;
 
   // Extract games from the connection type
   const live_games = data.liveGames.edges.map((edge: LiveGameEdge) => edge.node);
-  
+
   if (live_games.length === 0) {
     return <div className="text-center p-4 text-muted-foreground">No live games at the moment</div>;
   }

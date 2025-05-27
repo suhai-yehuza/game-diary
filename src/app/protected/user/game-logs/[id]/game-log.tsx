@@ -119,18 +119,18 @@ export default function GameLog() {
               <div>
                 <p className="text-sm text-muted-foreground">Watched Setting</p>
                 <Badge variant="secondary" className="capitalize mt-1">
-                  {gameLog.watched_setting}
+                  {gameLog.watchedSetting}
                 </Badge>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Location</p>
-                <p className="mt-1">{gameLog.watched_location}</p>
+                <p className="mt-1">{gameLog.watchedLocation}</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Watch Date</p>
                 <p className="mt-1">
-                  {gameLog.watched_date && !isNaN(new Date(gameLog.watched_date).getTime())
-                    ? format(new Date(gameLog.watched_date), 'MMMM d, yyyy h:mm a')
+                  {gameLog.watchedDate && !isNaN(new Date(gameLog.watchedDate).getTime())
+                    ? format(new Date(gameLog.watchedDate), 'MMMM d, yyyy h:mm a')
                     : 'Date not available'}
                 </p>
               </div>
@@ -138,7 +138,7 @@ export default function GameLog() {
                 <p className="text-sm text-muted-foreground">Rating</p>
                 <div className="flex items-center gap-1 mt-1">
                   <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                  <span>{gameLog.rating_for_game}/5</span>
+                  <span>{gameLog.ratingForGame}/5</span>
                 </div>
               </div>
             </div>
@@ -174,22 +174,20 @@ export default function GameLog() {
         )}
 
         {/* Game Statistics Card */}
-        {gameLog.game?.homeTeamStats && (
+        {gameLog.game && (
           <Card>
             <CardHeader>
               <CardTitle className="text-2xl font-bold">Game Statistics</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {
-                  <div className="text-sm space-y-1">
-                    <p>Points: {gameLog.game.homeTeamStats.points}</p>
-                    <p>Rebounds: {gameLog.game.homeTeamStats.totReb}</p>
-                    <p>Assists: {gameLog.game.homeTeamStats.assists}</p>
-                    <p>Steals: {gameLog.game.homeTeamStats.steals}</p>
-                    <p>Blocks: {gameLog.game.homeTeamStats.blocks}</p>
-                  </div>
-                }
+                <div className="text-sm space-y-1">
+                  <p>Home Team Score: {gameLog.game.scores?.home?.points || 0}</p>
+                  <p>Away Team Score: {gameLog.game.scores?.visitors?.points || 0}</p>
+                  <p>Status: {gameLog.game.status.short}</p>
+                  <p>League: {gameLog.game.league}</p>
+                  <p>Season: {gameLog.game.season}</p>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -197,6 +195,22 @@ export default function GameLog() {
 
         {/* Comments Section */}
         <CommentsSection parent_id={gameLog.id} parent_type="game_log" />
+
+        {gameLog.game && (
+          <div className="mt-4">
+            <h3 className="text-lg font-semibold">Game Stats</h3>
+            <div className="grid grid-cols-2 gap-4 mt-2">
+              <div>
+                <h4 className="font-medium">Home Team</h4>
+                <p>Points: {gameLog.game.scores?.home?.points || 0}</p>
+              </div>
+              <div>
+                <h4 className="font-medium">Away Team</h4>
+                <p>Points: {gameLog.game.scores?.visitors?.points || 0}</p>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -3,15 +3,15 @@ import { format } from 'date-fns';
 import Image from 'next/image';
 import Link from 'next/link';
 import React, { useEffect, useRef, useCallback } from 'react';
-import { cn } from '@/lib/utils';
 
 import { CommentsSection } from '@/components/common';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { StarRating } from '@/components/ui/star-rating';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { GET_GAME_LOGS } from '@/lib/graphql/queries';
 import { GameLogResponse, GameLogsResponse } from '@/lib/types/shared.types';
+import { cn } from '@/lib/utils';
 
 const ITEMS_PER_PAGE = 100;
 
@@ -36,13 +36,51 @@ export function GameLogsSection() {
       after: null,
       filters: {
         // classification: "PROTECTED" as const
-      }
+      },
     },
     notifyOnNetworkStatusChange: true,
   });
 
   // Create a ref for the loading trigger element
   const loadingTriggerRef = useRef<HTMLDivElement>(null);
+
+  const handleLoadMore = useCallback(async () => {
+    if (!data?.gameLogs?.pageInfo?.hasNextPage) return;
+
+    try {
+      console.log('Loading more with cursor:', data.gameLogs.pageInfo.endCursor);
+      const result = await fetchMore({
+        variables: {
+          first: ITEMS_PER_PAGE,
+          after: data.gameLogs.pageInfo.endCursor,
+          filters: {
+            classification: 'PROTECTED' as const,
+          },
+        },
+        updateQuery: (
+          prev: GameLogsResponse,
+          { fetchMoreResult }: { fetchMoreResult?: GameLogsResponse }
+        ) => {
+          console.log('Fetch More Result:', {
+            prev,
+            fetchMoreResult,
+          });
+          if (!fetchMoreResult) return prev;
+          return {
+            gameLogs: {
+              ...fetchMoreResult.gameLogs,
+              edges: [...prev.gameLogs.edges, ...fetchMoreResult.gameLogs.edges],
+              pageInfo: fetchMoreResult.gameLogs.pageInfo,
+              totalCount: fetchMoreResult.gameLogs.totalCount,
+            },
+          };
+        },
+      });
+      console.log('Fetch More Complete:', result);
+    } catch (error) {
+      console.error('Error loading more game logs:', error);
+    }
+  }, [data?.gameLogs?.pageInfo?.hasNextPage, data?.gameLogs?.pageInfo?.endCursor, fetchMore]);
 
   // Create a callback for the intersection observer
   const handleObserver = useCallback(
@@ -52,7 +90,7 @@ export function GameLogsSection() {
         handleLoadMore();
       }
     },
-    [loading, data?.gameLogs?.pageInfo?.hasNextPage]
+    [loading, data?.gameLogs?.pageInfo?.hasNextPage, handleLoadMore]
   );
 
   // Set up the intersection observer
@@ -73,54 +111,15 @@ export function GameLogsSection() {
     };
   }, [handleObserver]);
 
-  const handleLoadMore = async () => {
-    if (!data?.gameLogs?.pageInfo?.hasNextPage) return;
-
-    try {
-      console.log('Loading more with cursor:', data.gameLogs.pageInfo.endCursor);
-      const result = await fetchMore({
-        variables: {
-          first: ITEMS_PER_PAGE,
-          after: data.gameLogs.pageInfo.endCursor,
-          filters: {
-            classification: "PROTECTED" as const
-          }
-        },
-        updateQuery: (prev: GameLogsResponse, { fetchMoreResult }: { fetchMoreResult?: GameLogsResponse }) => {
-          console.log('Fetch More Result:', {
-            prev,
-            fetchMoreResult
-          });
-          if (!fetchMoreResult) return prev;
-          return {
-            gameLogs: {
-              ...fetchMoreResult.gameLogs,
-              edges: [...prev.gameLogs.edges, ...fetchMoreResult.gameLogs.edges],
-              pageInfo: fetchMoreResult.gameLogs.pageInfo,
-              totalCount: fetchMoreResult.gameLogs.totalCount,
-            },
-          };
-        },
-      });
-      console.log('Fetch More Complete:', result);
-    } catch (error) {
-      console.error('Error loading more game logs:', error);
-    }
-  };
-
   if (loading && !data) return <div className="text-center p-4">Loading game logs...</div>;
-  
+
   if (error) {
     console.error('Query Error:', error);
     return (
       <div className="text-center p-4">
         <div className="text-red-500 mb-2">Error loading game logs</div>
         <div className="text-sm text-muted-foreground">{error.message}</div>
-        <Button 
-          variant="outline" 
-          className="mt-4"
-          onClick={() => window.location.reload()}
-        >
+        <Button variant="outline" className="mt-4" onClick={() => window.location.reload()}>
           Try Again
         </Button>
       </div>
@@ -132,9 +131,7 @@ export function GameLogsSection() {
     return (
       <div className="text-center p-4">
         <div className="text-muted-foreground mb-2">No game logs yet</div>
-        <p className="text-sm text-muted-foreground">
-          Start by logging your first game!
-        </p>
+        <p className="text-sm text-muted-foreground">Start by logging your first game!</p>
       </div>
     );
   }
@@ -181,7 +178,7 @@ export function GameLogsSection() {
                 </div>
               </Link>
               <div className="flex items-center gap-2">
-                <Badge 
+                <Badge
                   variant={getClassificationBadgeVariant(log.classification)}
                   className={cn(
                     log.classification === 'PUBLIC' && 'bg-green-500 hover:bg-green-600',
@@ -227,7 +224,7 @@ export function GameLogsSection() {
           </CardContent>
         </Card>
       ))}
-      
+
       {/* Loading trigger element */}
       <div ref={loadingTriggerRef} className="h-10 flex items-center justify-center">
         {loading && <div className="text-muted-foreground">Loading more...</div>}

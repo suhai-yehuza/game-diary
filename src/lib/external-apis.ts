@@ -220,9 +220,9 @@ function createNbaApiConfig(): APIConfigOptions {
   console.log('RapidAPI Config:', {
     baseUrl: rapidApiConfig.baseUrl,
     host: rapidApiConfig.host,
-    headers: rapidApiConfig.headers
+    headers: rapidApiConfig.headers,
   });
-  
+
   return {
     baseUrl: rapidApiConfig.baseUrl,
     apiKey: rapidApiConfig.apiKey,
@@ -334,9 +334,9 @@ export async function fetchNbaGameById(id: string): Promise<GameApiResponse> {
  */
 export async function fetchNbaLiveGames(): Promise<GameApiResponse> {
   const url = `${getNbaApiBaseUrl()}/${API_CONFIG.endpoints.GAMES}?live=all`;
-  
+
   const config = createNbaApiConfig();
-  
+
   try {
     const res = await fetchWithRetry(
       url,
@@ -349,13 +349,15 @@ export async function fetchNbaLiveGames(): Promise<GameApiResponse> {
       console.error('Live games request failed:', {
         status: res.status,
         statusText: res.statusText,
-        url: res.url
+        url: res.url,
       });
-      throw new Error(`Failed to fetch NBA live games. Status: ${res.status}, StatusText: ${res.statusText}`);
+      throw new Error(
+        `Failed to fetch NBA live games. Status: ${res.status}, StatusText: ${res.statusText}`
+      );
     }
 
     const data = await res.json();
-    
+
     // Handle empty response gracefully
     if (!data || !data.response) {
       console.log('No live games currently available');
@@ -365,13 +367,13 @@ export async function fetchNbaLiveGames(): Promise<GameApiResponse> {
         errors: [],
         results: 0,
         response: [],
-        data: [] // Add this to match GameApiResponse type
+        data: [], // Add this to match GameApiResponse type
       };
     }
 
     return {
       ...data,
-      data: data.response // Add this to match GameApiResponse type
+      data: data.response, // Add this to match GameApiResponse type
     };
   } catch (error) {
     console.error('Error in fetchNbaLiveGames:', error);
