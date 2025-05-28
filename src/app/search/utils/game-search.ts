@@ -17,8 +17,8 @@ const getSearchableFields = (game: SearchGame): (string | null | undefined)[] =>
   game.arena.name,
   game.arena.city,
   game.arena.state,
-  game.status,
-  format(new Date(game.date), 'MMMM d, yyyy'),
+  game.status.long,
+  format(new Date(game.date.start), 'MMMM d, yyyy'),
 ];
 
 // Pure function to check if a game matches the search term
@@ -27,7 +27,7 @@ const gameMatchesTerm = (game: SearchGame, term: string): boolean =>
 
 // Pure function to sort games by date
 const sortGamesByDate = (games: SearchGame[]): SearchGame[] =>
-  [...games].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  [...games].sort((a, b) => new Date(b.date.start).getTime() - new Date(a.date.start).getTime());
 
 // Pure function to ensure arena data is never null
 const ensureArenaData = (game: SearchGame): SearchGame => ({

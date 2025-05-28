@@ -36,6 +36,22 @@ export function formatDate(date: Date | string): string {
   return new Date(date).toLocaleDateString();
 }
 
+export function formatDateTime(date: Date | string): string {
+  if (!date) return '';
+  return new Date(date).toLocaleString();
+}
+
+export function formatDateForExport(date: Date): string {
+  return date.toISOString().split('T')[0];
+}
+
+export function formatDateFields<T extends DateFields>(obj: T): T {
+  const result = { ...obj };
+  if (result.created_at) result.created_at = new Date(result.created_at);
+  if (result.updated_at) result.updated_at = new Date(result.updated_at);
+  return result;
+}
+
 export function formatGameDate(date: { start: string }): string {
   return new Date(date.start).toLocaleDateString('en-US', {
     weekday: 'long',
@@ -45,10 +61,6 @@ export function formatGameDate(date: { start: string }): string {
   });
 }
 
-export function formatDateForExport(date: Date): string {
-  return date.toISOString().split('T')[0];
-}
-
 /**
  * Utility function to create a delay for a specified number of milliseconds
  * @param ms Number of milliseconds to delay
@@ -56,11 +68,6 @@ export function formatDateForExport(date: Date): string {
  */
 export function sleep(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-export function formatDateTime(date: Date | string): string {
-  if (!date) return '';
-  return new Date(date).toLocaleString();
 }
 
 export function formatRelativeTime(date: Date | string): string {
@@ -77,11 +84,4 @@ export function formatRelativeTime(date: Date | string): string {
   if (hours > 0) return `${hours}h ago`;
   if (minutes > 0) return `${minutes}m ago`;
   return 'just now';
-}
-
-export function formatDateFields<T extends DateFields>(obj: T): T {
-  const result = { ...obj };
-  if (result.created_at) result.created_at = new Date(result.created_at);
-  if (result.updated_at) result.updated_at = new Date(result.updated_at);
-  return result;
 }

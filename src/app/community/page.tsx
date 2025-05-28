@@ -4,8 +4,20 @@ import React from 'react';
 
 import { GameLogsSection, LiveGamesSection } from '@/components/features/games';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { GET_GAME_LOGS } from '@/lib/graphql/queries';
+import { usePaginatedData } from '@/lib/hooks/use-paginated-data';
+import { GameLog } from '@/lib/types/game.types';
+import { DEFAULT_PAGE_SIZE } from '@/lib/types/shared.types';
 
 export default function CommunityPage() {
+  const { data, loading, isFetchingMore, loadMoreRef, handleLoadMore } = usePaginatedData<GameLog>({
+    query: GET_GAME_LOGS,
+    variables: { first: DEFAULT_PAGE_SIZE },
+    dataKey: 'gameLogs',
+  });
+
+  const gameLogs = data?.gameLogs?.edges?.map((edge: { node: GameLog }) => edge.node) || [];
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-6xl mx-auto">
@@ -19,7 +31,13 @@ export default function CommunityPage() {
             <LiveGamesSection />
           </TabsContent>
           <TabsContent value="logs" className="mt-6">
-            <GameLogsSection />
+            <GameLogsSection
+              gameLogs={gameLogs}
+              loading={loading}
+              isFetchingMore={isFetchingMore}
+              loadMoreRef={loadMoreRef}
+              onLoadMore={handleLoadMore}
+            />
           </TabsContent>
         </Tabs>
       </div>

@@ -17,7 +17,7 @@ import { CACHE_TTL } from '@/lib/types/cache.types';
 import { REACTION_EMOJIS } from '@/lib/types/config.types';
 import { Context } from '@/lib/types/context.types';
 import { DatabaseRow } from '@/lib/types/database.types';
-import { ReactionEmojiType } from '@/lib/types/generated/graphql';
+import { ReactionEmojiType, ParentType } from '@/lib/types/generated/graphql';
 import type { User } from '@/lib/types/generated/graphql';
 
 // Type for game scores JSON structure
@@ -167,6 +167,9 @@ export const games = async (
     const { limit, offset } = parsePaginationArgs(paginationArgs);
     const conditions: SQL[] = [];
 
+    // Add league filter for NBA games
+    conditions.push(eq(schema.nba_games.league, 'standard'));
+
     if (filters) {
       if (filters.game_id) {
         conditions.push(eq(schema.nba_games.id, filters.game_id));
@@ -185,24 +188,26 @@ export const games = async (
       }
     }
 
+    // Get total count first
+    const [{ count: total }] = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(schema.nba_games)
+      .where(conditions.length > 0 ? and(...conditions) : undefined);
+
+    // Order by date descending and get the requested page
     const query = db
       .select()
       .from(schema.nba_games)
       .where(conditions.length > 0 ? and(...conditions) : undefined)
-      .limit(limit)
+      .orderBy(desc(schema.nba_games.date))
+      .limit(limit + 1) // Get one extra to check if there's a next page
       .offset(offset);
 
-    const [items, totalResult] = await Promise.all([
-      query,
-      db
-        .select({ count: sql<number>`count(*)` })
-        .from(schema.nba_games)
-        .where(conditions.length > 0 ? and(...conditions) : undefined),
-    ]);
+    const items = await query;
+    const hasNextPage = items.length > limit;
+    const actualItems = hasNextPage ? items.slice(0, -1) : items;
 
-    const total = totalResult[0]?.count || 0;
-
-    const mappedGames = items.map(game => ({
+    const mappedGames = actualItems.map((game, _index) => ({
       id: game.id,
       date: {
         start:
@@ -244,7 +249,19 @@ export const games = async (
       nba_game_id: game.id,
     }));
 
-    return createConnection(mappedGames, total, paginationArgs);
+    return {
+      edges: mappedGames.map((game, index) => ({
+        cursor: String(offset + index),
+        node: game,
+      })),
+      pageInfo: {
+        startCursor: mappedGames.length > 0 ? String(offset) : null,
+        endCursor: mappedGames.length > 0 ? String(offset + mappedGames.length - 1) : null,
+        hasNextPage,
+        hasPreviousPage: offset > 0,
+      },
+      totalCount: total,
+    };
   } catch (error) {
     console.error('Error fetching games:', error);
     throw new BusinessLogicError('Failed to fetch games', 'GAMES_FETCH_ERROR');
@@ -1659,95 +1676,101 @@ export const comments = async (
   },
   { db }: Context
 ) => {
-  const { parent_id, ...paginationArgs } = args;
-  const { limit, offset } = parsePaginationArgs(paginationArgs);
+  try {
+    const { parent_id, ...paginationArgs } = args;
+    const { limit, offset } = parsePaginationArgs(paginationArgs);
 
-  const [comments, totalResult] = await Promise.all([
-    db
-      .select()
-      .from(schema.comments)
-      .where(
-        and(eq(schema.comments.parent_id, parent_id), eq(schema.comments.parent_type, 'game_log'))
-      )
-      .limit(limit)
-      .offset(offset),
-    db
-      .select({ count: sql<number>`count(*)` })
-      .from(schema.comments)
-      .where(
-        and(eq(schema.comments.parent_id, parent_id), eq(schema.comments.parent_type, 'game_log'))
-      ),
-  ]);
-
-  const total = totalResult[0]?.count || 0;
-
-  const commentsWithReactions = await Promise.all(
-    comments.map(async comment => {
-      if (!comment.user_id) return null;
-
-      const user = await db
+    const [comments, totalResult] = await Promise.all([
+      db
         .select()
-        .from(schema.users)
-        .where(eq(schema.users.id, comment.user_id))
-        .limit(1)
-        .then(rows => rows[0]);
+        .from(schema.comments)
+        .where(eq(schema.comments.parent_id, parent_id))
+        .limit(limit)
+        .offset(offset),
+      db
+        .select({ count: sql<number>`count(*)` })
+        .from(schema.comments)
+        .where(eq(schema.comments.parent_id, parent_id)),
+    ]);
 
-      if (!user) return null;
+    const total = totalResult[0]?.count || 0;
 
-      const commentReactions = await db
-        .select()
-        .from(schema.reactions)
-        .where(eq(schema.reactions.target_id, comment.id));
+    const commentsWithReactions = await Promise.all(
+      comments.map(async comment => {
+        if (!comment.user_id) return null;
 
-      const reactionUsers = await Promise.all(
-        commentReactions.map(reaction =>
-          reaction.user_id
-            ? db
-                .select()
-                .from(schema.users)
-                .where(eq(schema.users.id, reaction.user_id))
-                .limit(1)
-                .then(rows => rows[0])
-            : null
-        )
-      );
+        const user = await db
+          .select()
+          .from(schema.users)
+          .where(eq(schema.users.id, comment.user_id))
+          .limit(1)
+          .then(rows => rows[0]);
 
-      return {
-        id: comment.id,
-        userId: String(comment.user_id),
-        parent_id: comment.parent_id,
-        parent_type: 'game_log' as const,
-        content: comment.content,
-        created_at: comment.created_at,
-        updated_at: comment.updated_at,
-        deleted_at: comment.deleted_at,
-        user: transformUserToSummary(user as unknown as User),
-        reactions: commentReactions
-          .map((reactionRaw, index) => {
-            const reactionUser = reactionUsers[index];
-            if (!reactionUser) return null;
-            return {
-              id: reactionRaw.id,
-              emoji: getEmojiKey(reactionRaw.emoji) as ReactionEmojiType,
-              created_at: reactionRaw.created_at,
-              updated_at: reactionRaw.updated_at,
-              targetId: reactionRaw.target_id,
-              targetType: reactionRaw.target_type,
-              userId: reactionRaw.user_id || '',
-              user: transformUserToSummary(reactionUser as unknown as User),
-              __typename: 'Reaction' as const,
-            };
-          })
-          .filter((reaction): reaction is NonNullable<typeof reaction> => reaction !== null),
-      };
-    })
-  );
+        if (!user) return null;
 
-  const validComments = commentsWithReactions.filter(
-    (comment): comment is NonNullable<typeof comment> => comment !== null
-  );
+        const commentReactions = await db
+          .select()
+          .from(schema.reactions)
+          .where(eq(schema.reactions.target_id, comment.id));
 
-  return createConnection(validComments, total, paginationArgs);
+        const reactionUsers = await Promise.all(
+          commentReactions.map(reaction =>
+            reaction.user_id
+              ? db
+                  .select()
+                  .from(schema.users)
+                  .where(eq(schema.users.id, reaction.user_id))
+                  .limit(1)
+                  .then(rows => rows[0])
+              : null
+          )
+        );
+
+        return {
+          id: comment.id,
+          userId: String(comment.user_id),
+          parent_id: comment.parent_id,
+          parent_type: comment.parent_type as ParentType,
+          content: comment.content,
+          created_at: comment.created_at,
+          updated_at: comment.updated_at,
+          deleted_at: comment.deleted_at,
+          user: transformUserToSummary(user as unknown as User),
+          reactions: commentReactions
+            .map((reactionRaw, index) => {
+              const reactionUser = reactionUsers[index];
+              if (!reactionUser) return null;
+              return {
+                id: reactionRaw.id,
+                emoji: getEmojiKey(reactionRaw.emoji) as ReactionEmojiType,
+                created_at: reactionRaw.created_at,
+                updated_at: reactionRaw.updated_at,
+                targetId: reactionRaw.target_id,
+                targetType: reactionRaw.target_type,
+                userId: reactionRaw.user_id || '',
+                user: transformUserToSummary(reactionUser as unknown as User),
+                __typename: 'Reaction' as const,
+              };
+            })
+            .filter((reaction): reaction is NonNullable<typeof reaction> => reaction !== null),
+        };
+      })
+    );
+
+    const validComments = commentsWithReactions.filter(
+      (comment): comment is NonNullable<typeof comment> => comment !== null
+    );
+
+    return createConnection(validComments, total, paginationArgs);
+  } catch (error) {
+    console.error('Error fetching comments:', error);
+    throw new GraphQLError('Failed to fetch comments', {
+      extensions: {
+        code: 'COMMENTS_FETCH_ERROR',
+        details: error instanceof Error ? error.message : 'Unknown error occurred',
+      },
+    });
+  }
 };
 
 export const reactions = async (

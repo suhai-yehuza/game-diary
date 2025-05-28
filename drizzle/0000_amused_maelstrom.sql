@@ -1,5 +1,5 @@
 CREATE TABLE "comments" (
-	"id" text PRIMARY KEY DEFAULT '01971636-1582-777a-b43e-5802de692b80-mb7qpdab-1fnz2mpzdji-198t' NOT NULL,
+	"id" text PRIMARY KEY DEFAULT '01971d18-f1dd-746f-9df2-bf57cff87f7f-mb9nhlgd-ioujsognet-208q' NOT NULL,
 	"user_id" text,
 	"parent_id" text NOT NULL,
 	"parent_type" varchar(50) NOT NULL,
@@ -10,7 +10,7 @@ CREATE TABLE "comments" (
 );
 --> statement-breakpoint
 CREATE TABLE "friendships" (
-	"id" varchar(255) PRIMARY KEY DEFAULT '01971636-1582-777a-b43e-55b7c3993d59-mb7qpdaa-6u7hs6ay3oa-198t' NOT NULL,
+	"id" varchar(255) PRIMARY KEY DEFAULT '01971d18-f1dd-746f-9df2-b97bc2533bdf-mb9nhlgd-97fugjbkbhm-208q' NOT NULL,
 	"friend_id" varchar(255),
 	"user_id" varchar(255),
 	"status" varchar(50) DEFAULT 'PENDING' NOT NULL,
@@ -20,7 +20,7 @@ CREATE TABLE "friendships" (
 );
 --> statement-breakpoint
 CREATE TABLE "game_logs" (
-	"id" varchar(255) PRIMARY KEY DEFAULT '01971636-1583-726a-8af0-967065777448-mb7qpdab-bnr22mw8qfa-198t' NOT NULL,
+	"id" varchar(255) PRIMARY KEY DEFAULT '01971d18-f1dd-746f-9df2-cd927d96fa9b-mb9nhlgd-061djd6oc95c-208q' NOT NULL,
 	"user_id" varchar(255),
 	"game_id" text NOT NULL,
 	"watched_setting" varchar(50) DEFAULT 'tv' NOT NULL,
@@ -38,7 +38,7 @@ CREATE TABLE "game_logs" (
 );
 --> statement-breakpoint
 CREATE TABLE "game_ratings" (
-	"id" varchar(255) PRIMARY KEY DEFAULT '01971636-1583-726a-8af0-92fd6498514b-mb7qpdab-y2bz1yodwmt-198t' NOT NULL,
+	"id" varchar(255) PRIMARY KEY DEFAULT '01971d18-f1dd-746f-9df2-c9601a765177-mb9nhlgd-f6uv8kpcpe-208q' NOT NULL,
 	"game_id" text NOT NULL,
 	"average_rating" numeric(3, 2) DEFAULT '0.00' NOT NULL,
 	"total_ratings" integer DEFAULT 0 NOT NULL,
@@ -48,7 +48,7 @@ CREATE TABLE "game_ratings" (
 );
 --> statement-breakpoint
 CREATE TABLE "game_stats" (
-	"id" varchar(255) PRIMARY KEY DEFAULT '01971636-1580-70e8-b8b2-cf371b6a89ed-mb7qpda8-qiu4pgvb2q-198t' NOT NULL,
+	"id" varchar(255) PRIMARY KEY DEFAULT '01971d18-f1db-70e9-88d7-e519216bbc17-mb9nhlgb-6re0ffn1ukf-208q' NOT NULL,
 	"game_id" varchar(255) NOT NULL,
 	"season_id" integer NOT NULL,
 	"home_team_id" varchar(255) NOT NULL,
@@ -114,7 +114,7 @@ CREATE TABLE "game_stats" (
 );
 --> statement-breakpoint
 CREATE TABLE "games" (
-	"id" varchar(255) PRIMARY KEY DEFAULT '01971636-1583-726a-8af0-8f639d622f4a-mb7qpdab-6eti3q63mdh-198t' NOT NULL,
+	"id" varchar(255) PRIMARY KEY DEFAULT '01971d18-f1dd-746f-9df2-c7c395110d24-mb9nhlgd-w15pil8z1sj-208q' NOT NULL,
 	"game_type" varchar(50) DEFAULT 'nba' NOT NULL,
 	"nba_game_id" text,
 	"date" timestamp NOT NULL,
@@ -128,7 +128,7 @@ CREATE TABLE "games" (
 );
 --> statement-breakpoint
 CREATE TABLE "nba_games" (
-	"id" varchar(255) PRIMARY KEY DEFAULT '01971636-157e-7633-84ca-7af482259a24-mb7qpda6-p8qiidvzryk-198t' NOT NULL,
+	"id" varchar(255) PRIMARY KEY DEFAULT '01971d18-f1d9-759d-ac5e-1290d118ce3a-mb9nhlg9-zwpsq3atg6-208q' NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL,
 	"league" text NOT NULL,
@@ -209,7 +209,7 @@ CREATE TABLE "notifications" (
 );
 --> statement-breakpoint
 CREATE TABLE "reactions" (
-	"id" text PRIMARY KEY DEFAULT '01971636-1583-726a-8af0-8bf504dacfcb-mb7qpdab-ogqz4ugmu7l-198t' NOT NULL,
+	"id" text PRIMARY KEY DEFAULT '01971d18-f1dd-746f-9df2-c2d212781be9-mb9nhlgd-wne7jkg91uk-208q' NOT NULL,
 	"user_id" text,
 	"target_type" varchar(50) NOT NULL,
 	"target_id" text NOT NULL,
@@ -232,7 +232,7 @@ CREATE TABLE "seasons" (
 );
 --> statement-breakpoint
 CREATE TABLE "team_h2h" (
-	"id" varchar(255) PRIMARY KEY DEFAULT '01971636-1583-726a-8af0-9b7a439cb0dd-mb7qpdab-un35pjbdkub-198t' NOT NULL,
+	"id" varchar(255) PRIMARY KEY DEFAULT '01971d18-f1dd-746f-9df2-d0af5c6900b1-mb9nhlgd-1zemgccsmxs-208q' NOT NULL,
 	"team1_id" varchar(255) NOT NULL,
 	"team2_id" varchar(255) NOT NULL,
 	"season_id" integer NOT NULL,
@@ -259,7 +259,7 @@ CREATE TABLE "teams" (
 );
 --> statement-breakpoint
 CREATE TABLE "users" (
-	"id" varchar(255) PRIMARY KEY DEFAULT '01971636-1582-777a-b43e-53d5cf39bfdd-mb7qpdaa-zd67rravrt-198t' NOT NULL,
+	"id" varchar(255) PRIMARY KEY DEFAULT '01971d18-f1dd-746f-9df2-b790795739d9-mb9nhlgd-lorehrmn23e-208q' NOT NULL,
 	"username" varchar(255) NOT NULL,
 	"first_name" varchar(255) NOT NULL,
 	"last_name" varchar(255) NOT NULL,

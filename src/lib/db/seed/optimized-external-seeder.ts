@@ -68,7 +68,7 @@ function createPlayerData(
     existingSeasonIndex >= 0
       ? existingSeasons.map((s, idx) =>
           idx === existingSeasonIndex
-            ? { ...s, team_ids: [...new Set([...s.team_ids, ...currentSeasonTeams])] }
+            ? { ...s, team_ids: Array.from(new Set([...s.team_ids, ...currentSeasonTeams])) }
             : s
         )
       : [...existingSeasons, { season, team_ids: currentSeasonTeams }];
@@ -286,24 +286,26 @@ async function processGames(
   const db = createDatabaseClient();
   const allTeams = await db.query.teams.findMany();
   const teamIds = new Set(allTeams.map(t => t.id));
-  
+
   // Filter out games with invalid team IDs
   const validGames = gamesResponse.response.filter(game => {
     const homeTeamId = game.teams?.home?.id;
     const awayTeamId = game.teams?.visitors?.id;
-    
+
     if (!homeTeamId || !awayTeamId) {
       console.warn(`Skipping game ${game.id} - missing team IDs:`, {
         homeTeamId,
         awayTeamId,
-        game
+        game,
       });
       return false;
     }
     return true;
   });
 
-  console.log(`Found ${validGames.length} valid games out of ${gamesResponse.response.length} total games`);
+  console.log(
+    `Found ${validGames.length} valid games out of ${gamesResponse.response.length} total games`
+  );
 
   const nbaGamesData = validGames.map(game => {
     const homeTeamId = game.teams.home.id.toString();

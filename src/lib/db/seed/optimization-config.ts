@@ -299,7 +299,7 @@ export class PerformanceTracker {
   getMetrics(): Record<string, { avg: number; min: number; max: number; count: number }> {
     const result: Record<string, { avg: number; min: number; max: number; count: number }> = {};
 
-    for (const [operation, times] of this.metrics) {
+    for (const [operation, times] of Array.from(this.metrics.entries())) {
       result[operation] = {
         avg: this.getAverageTime(operation),
         min: Math.min(...times),

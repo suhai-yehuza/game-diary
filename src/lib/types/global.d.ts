@@ -5,6 +5,13 @@
 
 declare global {
   type EmptyObject = Record<string, never>;
+  interface GlobalThis {
+    gc?: () => void;
+  }
+}
+
+export interface GlobalWithGC {
+  gc?: () => void;
 }
 
 export {};

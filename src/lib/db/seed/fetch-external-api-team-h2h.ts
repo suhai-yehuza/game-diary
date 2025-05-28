@@ -105,7 +105,7 @@ export async function fetchAndProcessTeamH2H(db: NeonHttpDatabase<typeof schema>
   }
 
   // Insert or update h2h stats into database
-  for (const h2h of h2hMap.values()) {
+  for (const h2h of Array.from(h2hMap.values())) {
     // Check if record already exists
     const existingRecord = await db.query.team_h2h.findFirst({
       where: and(

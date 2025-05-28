@@ -173,7 +173,7 @@ pnpm run seed:optimized -- --resetDb=true
 pnpm run seed:optimized -- --skipExternalDb=true
 
 # Custom batch size and concurrency
-pnpm run seed:optimized -- --batchSize=200 --concurrency=5appendingData
+pnpm run seed:optimized -- --batchSize=100 --concurrency=5appendingData
 
 
 
@@ -181,13 +181,13 @@ pnpm run seed:optimized -- --batchSize=200 --concurrency=5appendingData
 pnpm clean:build && pnpm db:migrate:reset:dev
 
 # Seed external db and skip the part for the application db / tables
-tsx --max-old-space-size=24576 src/lib/db/seed/optimized-seeder.ts -- --batchSize=100 --concurrency=10 --seasons=2024 --resetDb=true --skipExternalDb=false --skipApplicationDb=true --enableMonitoring=true
+tsx --max-old-space-size=24576 src/lib/db/seed/optimized-seeder.ts -- --concurrency=10 --seasons=2024 --resetDb=true --skipExternalDb=false --skipApplicationDb=true --enableMonitoring=true
 
 # Skip seeding the external db and only seed the application db / tables. Games should already exist in the external db
-tsx --max-old-space-size=24576 src/lib/db/seed/optimized-seeder.ts -- --batchSize=100 --concurrency=10 --resetDb=false --skipExternalDb=true --skipApplicationDb=false --appendingData=false --skipUsers=false --enableMonitoring=true
+tsx --max-old-space-size=24576 src/lib/db/seed/optimized-seeder.ts -- --concurrency=10 --resetDb=false --skipExternalDb=true --skipApplicationDb=false --appendingData=false --skipUsers=false --enableMonitoring=true
 
 # Seed the external db with data from a specific season without resetting or truncating the tables
-tsx --max-old-space-size=24576 src/lib/db/seed/optimized-seeder.ts -- --batchSize=100 --concurrency=10 --seasons=2023,2022,2021,2020 --resetDb=false --skipExternalDb=false --skipApplicationDb=true --appendingData=true --enableMonitoring=true
+tsx --max-old-space-size=24576 src/lib/db/seed/optimized-seeder.ts -- --concurrency=10 --seasons=2023,2022,2021,2020 --resetDb=false --skipExternalDb=false --skipApplicationDb=true --appendingData=true --enableMonitoring=true
 
 npx tsc --traceResolution
 ```

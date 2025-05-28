@@ -1,5 +1,5 @@
 import { faker } from '@faker-js/faker';
-import { sql } from 'drizzle-orm';
+import { sql, desc } from 'drizzle-orm';
 
 import { API_CONFIG } from '@/lib/config/api.config';
 import { GameLogClassification } from '@/lib/db/schema/game-log-schemas';
@@ -15,6 +15,7 @@ import {
 } from '@/lib/types/config.types';
 import type { DatabaseClient } from '@/lib/types/db.types';
 import { generateUUID } from '@/lib/utils/index.processing';
+import { getCurrentSeason } from '@/lib/utils/index.time';
 
 import type { DataProcessor } from './data-processor';
 
@@ -32,7 +33,6 @@ type FriendshipInsert = typeof friendships.$inferInsert;
 type GameLogInsert = typeof game_logs.$inferInsert;
 type CommentInsert = typeof comments.$inferInsert;
 type ReactionInsert = typeof reactions.$inferInsert;
-type Game = typeof games.$inferSelect;
 
 // Memory-efficient user generator
 async function* generateUsersStream(
@@ -145,14 +145,37 @@ async function* generateGameLogsStream(
   userStream: AsyncGenerator<User, void, unknown>,
   db: DatabaseClient
 ): AsyncGenerator<GameLogInsert, void, unknown> {
-  // Get games in batches to reduce memory usage
-  const gameLimit = API_CONFIG.databaseSeeding.DEFAULT_SAMPLE_COUNT;
-  const gamesList = (await db.select().from(games).limit(gameLimit).orderBy(games.date)) as Game[];
+  // Get games from the latest season
+  const latestSeasonGames = await db
+    .select()
+    .from(games)
+    .orderBy(desc(games.date))
+    .limit(API_CONFIG.databaseSeeding.DEFAULT_SAMPLE_COUNT);
 
-  console.log(`Generating game logs from ${gamesList.length} available games`);
+  if (latestSeasonGames.length === 0) {
+    console.warn('No games found in the latest season');
+    return;
+  }
+
+  // Get the current season and set season boundaries
+  const seasonYear = getCurrentSeason();
+  const seasonStartDate = new Date(seasonYear, 9, 1); // October 1st (month is 0-based)
+  const seasonEndDate = new Date(seasonYear + 1, 5, 30); // June 30th of next year
+
+  // Filter games to only include those from the current season
+  const currentSeasonGames = latestSeasonGames.filter(game => {
+    const gameDate = new Date(game.date);
+    return gameDate >= seasonStartDate && gameDate <= seasonEndDate;
+  });
+
+  console.log(
+    `Generating game logs from ${currentSeasonGames.length} games in the ${seasonYear}-${seasonYear + 1} season`
+  );
 
   // Track ratings for each game
   const gameRatings = new Map<string, { total: number; count: number }>();
+  let totalGameLogsGenerated = 0;
+  const targetGameLogCount = API_CONFIG.databaseSeeding.DEFAULT_SAMPLE_COUNT;
 
   for await (const user of userStream) {
     // Only generate game logs for 10% of users
@@ -160,10 +183,18 @@ async function* generateGameLogsStream(
       continue;
     }
 
-    const gameLogCount = API_CONFIG.ranges.GAME_LOG_RANGE.getRandom();
+    // Calculate how many game logs we still need to generate
+    const remainingLogs = targetGameLogCount - totalGameLogsGenerated;
+    if (remainingLogs <= 0) {
+      break;
+    }
+
+    // Calculate how many game logs to generate for this user
+    const gameLogCount = Math.min(API_CONFIG.ranges.GAME_LOG_RANGE.getRandom(), remainingLogs);
+
     const selectedGames = faker.helpers.arrayElements(
-      gamesList,
-      Math.min(gameLogCount, gamesList.length)
+      currentSeasonGames,
+      Math.min(gameLogCount, currentSeasonGames.length)
     );
 
     for (const game of selectedGames) {
@@ -221,6 +252,11 @@ async function* generateGameLogsStream(
         updated_at: faker.date.recent(),
         deleted_at: null,
       };
+
+      totalGameLogsGenerated++;
+      if (totalGameLogsGenerated >= targetGameLogCount) {
+        break;
+      }
     }
 
     // Yield control periodically
@@ -228,11 +264,17 @@ async function* generateGameLogsStream(
       // 10% chance to yield control
       await new Promise(resolve => setImmediate(resolve));
     }
+
+    if (totalGameLogsGenerated >= targetGameLogCount) {
+      break;
+    }
   }
+
+  console.log(`Generated ${totalGameLogsGenerated} game logs out of target ${targetGameLogCount}`);
 
   // After all game logs are generated, update game ratings
   console.log('Updating game ratings...');
-  for (const [gameId, rating] of gameRatings.entries()) {
+  for (const [gameId, rating] of Array.from(gameRatings.entries())) {
     const averageRating = (rating.total / rating.count).toFixed(2);
     await db
       .insert(game_ratings)
@@ -279,7 +321,7 @@ async function* generateCommentsStream(
   }
 
   for await (const gameLog of gameLogStream) {
-    // Only generate comments for 10% of game logs
+    // Only generate comments for 10% of game logs that have reactions
     if (Math.random() >= 0.1) {
       continue;
     }
@@ -370,7 +412,7 @@ async function* generateChildComments(
 
     yield childComment;
 
-    // Recursively generate next level of child comments
+    // Recursively generate next level of child comments with 10% probability
     yield* generateChildComments(childComment, userChunk, depth + 1, maxDepth);
   }
 }
@@ -378,7 +420,8 @@ async function* generateChildComments(
 // Optimized reactions generator
 async function* generateReactionsStream(
   userStream: AsyncGenerator<User, void, unknown>,
-  commentStream: AsyncGenerator<CommentInsert, void, unknown>
+  commentStream: AsyncGenerator<CommentInsert, void, unknown>,
+  gameLogStream: AsyncGenerator<GameLogInsert, void, unknown>
 ): AsyncGenerator<ReactionInsert, void, unknown> {
   const userChunks: User[][] = [];
   let currentChunk: User[] = [];
@@ -395,6 +438,40 @@ async function* generateReactionsStream(
     userChunks.push(currentChunk);
   }
 
+  // Generate reactions for game logs
+  for await (const gameLog of gameLogStream) {
+    // Only generate reactions for 10% of game logs
+    if (Math.random() >= 0.1) {
+      continue;
+    }
+
+    const reactionCount = API_CONFIG.ranges.REACTION_RANGE.getRandom();
+    const userChunk = userChunks[Math.floor(Math.random() * userChunks.length)];
+    const reactors = faker.helpers.arrayElements(
+      userChunk,
+      Math.min(reactionCount, userChunk.length)
+    );
+
+    for (const reactor of reactors) {
+      yield {
+        id: generateUUID(),
+        user_id: reactor.id,
+        target_id: gameLog.id ?? generateUUID(), // Fallback to new UUID if undefined
+        target_type: 'game_log',
+        emoji: faker.helpers.arrayElement(Object.values(REACTION_EMOJIS)) as ReactionEmojiValue,
+        created_at: faker.date.past(),
+        updated_at: faker.date.recent(),
+      };
+    }
+
+    // Yield control periodically
+    if (Math.random() < 0.1) {
+      // 10% chance to yield control
+      await new Promise(resolve => setImmediate(resolve));
+    }
+  }
+
+  // Generate reactions for comments
   for await (const comment of commentStream) {
     // Only generate reactions for 10% of comments
     if (Math.random() >= 0.1) {
@@ -442,15 +519,6 @@ async function* generateReactionsStream(
     }
   }
 }
-
-// Utility function to chunk arrays
-// function chunkArray<T>(array: T[], chunkSize: number): T[][] {
-//   const chunks: T[][] = [];
-//   for (let i = 0; i < array.length; i += chunkSize) {
-//     chunks.push(array.slice(i, i + chunkSize));
-//   }
-//   return chunks;
-// }
 
 // Add new streaming functions
 async function* streamUsers(db: DatabaseClient): AsyncGenerator<User, void, unknown> {
@@ -575,7 +643,7 @@ export async function seedOptimizedApplicationData(
     console.log('👍 Generating reactions...');
     await processor.streamInsert(
       reactions,
-      () => generateReactionsStream(streamUsers(db), streamComments(db)),
+      () => generateReactionsStream(streamUsers(db), streamComments(db), streamGameLogs(db)),
       batchSize,
       'reactions'
     );

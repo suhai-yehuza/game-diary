@@ -1,3 +1,5 @@
+import { Agent } from 'https';
+
 import { Redis as UpstashRedis } from '@upstash/redis';
 import Redis from 'ioredis';
 
@@ -87,20 +89,31 @@ export class Cache {
    * Initialize Upstash Redis client
    */
   private async initializeUpstashRedis(): Promise<boolean> {
-    if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) {
+    if (!process.env.KV_REST_API_URL || !process.env.KV_REST_API_TOKEN) {
       return false;
     }
 
     console.log('=== Redis Initialization (Upstash) ===');
     this.logRedisConfiguration('upstash');
 
-    this.client = new UpstashRedis({
-      url: process.env.UPSTASH_REDIS_REST_URL,
-      token: process.env.UPSTASH_REDIS_REST_TOKEN,
-    });
-    this.clientType = 'upstash';
+    try {
+      this.client = new UpstashRedis({
+        url: process.env.KV_REST_API_URL,
+        token: process.env.KV_REST_API_TOKEN,
+        automaticDeserialization: false,
+        agent: new Agent({
+          keepAlive: true,
+          timeout: 30000,
+        }),
+      });
+      this.clientType = 'upstash';
 
-    return await this.testConnection();
+      return await this.testConnection();
+    } catch (error) {
+      console.error('Failed to initialize Upstash Redis:', error);
+      this.resetClient();
+      return false;
+    }
   }
 
   /**
@@ -114,10 +127,22 @@ export class Cache {
     console.log('=== Redis Initialization (ioredis) ===');
     this.logRedisConfiguration('ioredis');
 
-    this.client = new Redis(process.env.REDIS_URL);
-    this.clientType = 'ioredis';
+    try {
+      this.client = new Redis(process.env.REDIS_URL, {
+        tls: {
+          rejectUnauthorized: false,
+        },
+        connectTimeout: 30000,
+        maxRetriesPerRequest: 3,
+      });
+      this.clientType = 'ioredis';
 
-    return await this.testConnection();
+      return await this.testConnection();
+    } catch (error) {
+      console.error('Failed to initialize IORedis:', error);
+      this.resetClient();
+      return false;
+    }
   }
 
   /**
@@ -125,14 +150,16 @@ export class Cache {
    */
   private async testConnection(): Promise<boolean> {
     try {
-      await Promise.race([this.client!.ping(), sleep(5000)]);
+      // Increase timeout for initial connection test
+      await Promise.race([this.client!.ping(), sleep(30000)]);
       this.isRedisAvailable = true;
       console.log('✅ Redis connection established successfully');
       console.log('=== Redis Initialization Complete ===\n');
       return true;
     } catch (error) {
+      console.error('Redis connection test failed:', error);
       this.resetClient();
-      throw error;
+      return false;
     }
   }
 
@@ -144,8 +171,8 @@ export class Cache {
     console.log('Environment:', process.env.NODE_ENV);
 
     if (type === 'upstash') {
-      console.log('Redis URL configured:', process.env.UPSTASH_REDIS_REST_URL ? 'Yes' : 'No');
-      console.log('Redis Token configured:', process.env.UPSTASH_REDIS_REST_TOKEN ? 'Yes' : 'No');
+      console.log('Redis URL configured:', process.env.KV_REST_API_URL ? 'Yes' : 'No');
+      console.log('Redis Token configured:', process.env.KV_REST_API_TOKEN ? 'Yes' : 'No');
     } else {
       console.log('Redis URL configured:', process.env.REDIS_URL ? 'Yes' : 'No');
     }
@@ -161,7 +188,7 @@ export class Cache {
     console.warn('Environment:', process.env.NODE_ENV);
     console.warn(
       'Redis URL configured:',
-      process.env.UPSTASH_REDIS_REST_URL || process.env.REDIS_URL ? 'Yes' : 'No'
+      process.env.KV_REST_API_URL || process.env.REDIS_URL ? 'Yes' : 'No'
     );
     console.warn('Caching will be disabled.');
     console.warn('===============================\n');

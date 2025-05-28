@@ -135,8 +135,17 @@ export interface PlayerWithOptionalPhoto extends Player {
 // Search and Query Types
 export interface SearchGame {
   id: string;
-  date: string;
-  status: string;
+  date: {
+    start: string;
+    end: string;
+    duration: string;
+  };
+  status: {
+    clock: string;
+    halftime: boolean;
+    long: string;
+    short: string;
+  };
   teams: {
     home: {
       id: string;
@@ -165,6 +174,20 @@ export interface SearchGame {
     state: string;
     country: string;
   };
+  league: string;
+  season: number;
+  stage: number;
+  periods: {
+    current: number;
+    total: number;
+    endOfPeriod: boolean;
+  };
+  officials: string[];
+  timesTied: number;
+  leadChanges: number;
+  nugget: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface GameQueryResult {
@@ -471,4 +494,20 @@ export interface GameRecord {
   times_tied?: number;
   lead_changes?: number;
   nugget?: string;
+}
+export interface GameEdge {
+  node: Game;
+}
+
+export interface GameConnection {
+  edges: GameEdge[];
+  pageInfo: {
+    hasNextPage: boolean;
+    endCursor: string | null;
+  };
+  totalCount: number;
+}
+
+export interface GameQueryResponse {
+  games: GameConnection;
 }

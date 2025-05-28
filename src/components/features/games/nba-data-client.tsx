@@ -10,6 +10,7 @@ import { GET_SEASONS, GET_EXTERNAL_GAMES, GET_TEAMS, GET_PLAYERS } from '@/lib/g
 import { ConferenceType, DivisionType } from '@/lib/types/config.types';
 import { Game, GameStatus, Season, Team, Player } from '@/lib/types/generated/graphql';
 import { DEFAULT_PAGE_SIZE, SortDirection } from '@/lib/types/shared.types';
+import { formatDateTime } from '@/lib/utils/index.time';
 
 export const NbaDataClient = () => {
   const [selectedConference, setSelectedConference] = useState<ConferenceType | 'all'>('all');
@@ -88,10 +89,6 @@ export const NbaDataClient = () => {
 
   const isLoading = loadingSeasons || gamesLoading || loadingTeams || loadingPlayers;
   const hasError = seasonsError || gamesError || teamsError || playersError;
-
-  const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString();
-  };
 
   const filteredTeams =
     teamsData?.teams.filter(team => {
@@ -186,11 +183,11 @@ export const NbaDataClient = () => {
             </div>
             <div>
               <h3 className="font-semibold">Start Date</h3>
-              <p>{formatDate(currentSeason.start_date.toString())}</p>
+              <p>{formatDateTime(currentSeason.start_date.toString())}</p>
             </div>
             <div>
               <h3 className="font-semibold">End Date</h3>
-              <p>{formatDate(currentSeason.end_date.toString())}</p>
+              <p>{formatDateTime(currentSeason.end_date.toString())}</p>
             </div>
             <div>
               <h3 className="font-semibold">Current Season</h3>

@@ -108,31 +108,31 @@ export const API_CONFIG = {
 
     COMMENT_RANGE: {
       min: 0,
-      max: MEDIUM,
+      max: SMALL,
       getRandom: () => {
         const rand = Math.random();
         const paretoValue = distributions.pareto(rand);
-        return Math.floor(Math.max(0, Math.min(MEDIUM, paretoValue * MEDIUM)));
+        return Math.floor(Math.max(0, Math.min(SMALL, paretoValue * SMALL)));
       },
     } satisfies RangeConfig,
 
     CHILD_COMMENT_RANGE: {
       min: 0,
-      max: SMALL,
+      max: XSMALL,
       getRandom: () => {
         const rand = Math.random();
         const decayedValue = distributions.exponential(rand);
-        return Math.floor(Math.max(0, Math.min(SMALL, decayedValue * SMALL)));
+        return Math.floor(Math.max(0, Math.min(XSMALL, decayedValue * XSMALL)));
       },
     } satisfies RangeConfig,
 
     REACTION_RANGE: {
       min: 0,
-      max: LARGE,
+      max: SMALL,
       getRandom: () => {
         const rand = Math.random();
         const powerValue = distributions.powerLaw(rand);
-        return Math.floor(Math.max(0, Math.min(LARGE, powerValue * LARGE)));
+        return Math.floor(Math.max(0, Math.min(SMALL, powerValue * SMALL)));
       },
     } satisfies RangeConfig,
   } as const,

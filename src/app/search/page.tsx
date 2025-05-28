@@ -19,11 +19,11 @@ function GameCard({ game }: { game: SearchGame }) {
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <span className="text-sm text-muted-foreground">
-              {format(new Date(game.date), 'MMM d, yyyy h:mm a')}
+              {format(new Date(game.date.start), 'MMM d, yyyy h:mm a')}
             </span>
           </div>
           <div className="text-sm font-medium bg-blue-500/10 text-blue-500 px-2 py-1 rounded-full">
-            {game.status}
+            {game.status.long}
           </div>
         </div>
 

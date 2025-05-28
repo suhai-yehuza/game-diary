@@ -3,8 +3,17 @@ import { gql } from '@apollo/client';
 export const GAME_FRAGMENT = gql`
   fragment GameFragment on Game {
     id
-    date
-    status
+    date {
+      start
+      end
+      duration
+    }
+    status {
+      clock
+      halftime
+      long
+      short
+    }
     arena
     league
     season
@@ -528,14 +537,21 @@ export const GET_TEAM_STATS = gql`
 `;
 
 export const GET_GAMES = gql`
-  query GetGames($filters: GameFilters, $pagination: PaginationInput) {
-    games(filters: $filters, pagination: $pagination) {
-      items {
-        ...GameFragment
+  query GetGames($filters: GameFilters, $first: Int, $after: String) {
+    games(filters: $filters, first: $first, after: $after) {
+      edges {
+        cursor
+        node {
+          ...GameFragment
+        }
       }
-      total
-      hasMore
-      nextCursor
+      pageInfo {
+        hasNextPage
+        hasPreviousPage
+        startCursor
+        endCursor
+      }
+      totalCount
     }
   }
   ${GAME_FRAGMENT}

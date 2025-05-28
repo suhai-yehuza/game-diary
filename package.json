@@ -19,7 +19,7 @@
     "db:migrate:prod": "pnpm db:generate && pnpm db:push && tsx ./src/lib/db/seed/migrate.ts production",
     "db:migrate:reset:dev": "pnpm db:generate && pnpm db:push && tsx ./src/lib/db/seed/migrate:reset.ts development",
     "db:migrate:reset:prod": "pnpm db:generate && pnpm db:push && tsx ./src/lib/db/seed/migrate:reset.ts production",
-    "db:test-migrations": "tsx src/lib/db/seed/test-migrations.ts",
+    "db:test-migrations": "tsx scripts/test-migrations.ts",
     "db:seed:optimized:dev": "pnpm clean:build && tsx --max-old-space-size=24576 src/lib/db/seed/optimized-seeder.ts",
     "db:append:seed:dev": "pnpm clean:build && tsx --max-old-space-size=24576 src/lib/db/seed/append-seeder.ts",
     "db:seed:fast": "pnpm clean:build && tsx --max-old-space-size=24576 src/lib/db/seed/optimized-seeder.ts -- --batchSize=1000 --concurrency=10",

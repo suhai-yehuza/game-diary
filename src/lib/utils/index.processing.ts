@@ -112,7 +112,8 @@ export async function processInBatches<T, R = void>({
     throw lastError;
   };
 
-  for (const [index, batch] of batches.entries()) {
+  for (let index = 0; index < batches.length; index++) {
+    const batch = batches[index];
     const result = await limit(() => processBatch(batch, index));
     results.push(result);
 
