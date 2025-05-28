@@ -35,7 +35,7 @@ export function GameLogsSection() {
       first: ITEMS_PER_PAGE,
       after: null,
       filters: {
-        // classification: "PROTECTED" as const
+        classification: "PROTECTED" as const
       },
     },
     notifyOnNetworkStatusChange: true,

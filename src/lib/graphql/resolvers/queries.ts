@@ -1202,31 +1202,161 @@ export const gameLogs = async (
     const hasNextPage = gameLogs.length > limit;
     const actualGameLogs = hasNextPage ? gameLogs.slice(0, -1) : gameLogs;
 
-    const edges = actualGameLogs.map((gameLog: DatabaseRow, index: number) => ({
-      cursor: String(offset + index),
-      node: {
-        id: gameLog.id as string,
-        userId: gameLog.user_id as string,
-        gameId: gameLog.game_id as string,
-        watchedSetting: gameLog.watched_setting as string,
-        watchedDate: gameLog.watched_date as Date,
-        watchedLocation: gameLog.watched_location as string,
-        rating: gameLog.rating_for_game as number,
-        ratingForGame: gameLog.rating_for_game as number,
-        ratingStars: gameLog.rating_stars
-          ? Number.isNaN(Number(gameLog.rating_stars))
-            ? null
-            : Math.round(Number(gameLog.rating_stars))
-          : null,
-        watchedCount: gameLog.watched_count as number,
-        notes: gameLog.notes as string,
-        tags: gameLog.tags as string[],
-        classification: gameLog.classification as string,
-        created_at: gameLog.created_at as Date,
-        updated_at: gameLog.updated_at as Date,
-        deleted_at: gameLog.deleted_at as Date | null,
-      },
-    }));
+    const edges = await Promise.all(
+      actualGameLogs.map(async (gameLog: DatabaseRow, index: number) => {
+        const gameLogId = gameLog.id as string;
+        
+        // Fetch comments for this game log with pagination
+        const [comments, commentsTotal] = await Promise.all([
+          db
+            .select()
+            .from(schema.comments)
+            .where(
+              and(
+                eq(schema.comments.target_id, gameLogId),
+                eq(schema.comments.target_type, 'GAME_LOG')
+              )
+            )
+            .orderBy(desc(schema.comments.created_at))
+            .limit(10),
+          db
+            .select({ count: sql<number>`count(*)` })
+            .from(schema.comments)
+            .where(
+              and(
+                eq(schema.comments.target_id, gameLogId),
+                eq(schema.comments.target_type, 'GAME_LOG')
+              )
+            ),
+        ]);
+
+        // Fetch reactions for this game log with pagination
+        const [reactions, reactionsTotal] = await Promise.all([
+          db
+            .select()
+            .from(schema.reactions)
+            .where(
+              and(
+                eq(schema.reactions.target_id, gameLogId),
+                eq(schema.reactions.target_type, 'GAME_LOG')
+              )
+            )
+            .orderBy(desc(schema.reactions.created_at))
+            .limit(10),
+          db
+            .select({ count: sql<number>`count(*)` })
+            .from(schema.reactions)
+            .where(
+              and(
+                eq(schema.reactions.target_id, gameLogId),
+                eq(schema.reactions.target_type, 'GAME_LOG')
+              )
+            ),
+        ]);
+
+        // Fetch users for comments and reactions
+        const [commentUsers, reactionUsers] = await Promise.all([
+          Promise.all(
+            comments.map(comment =>
+              comment.user_id
+                ? db
+                    .select()
+                    .from(schema.users)
+                    .where(eq(schema.users.id, comment.user_id))
+                    .limit(1)
+                    .then(rows => rows[0])
+                : null
+            )
+          ),
+          Promise.all(
+            reactions.map(reaction =>
+              reaction.user_id
+                ? db
+                    .select()
+                    .from(schema.users)
+                    .where(eq(schema.users.id, reaction.user_id))
+                    .limit(1)
+                    .then(rows => rows[0])
+                : null
+            )
+          ),
+        ]);
+
+        return {
+          cursor: String(offset + index),
+          node: {
+            id: gameLogId,
+            userId: gameLog.user_id as string,
+            gameId: gameLog.game_id as string,
+            watchedSetting: gameLog.watched_setting as string,
+            watchedDate: gameLog.watched_date as Date,
+            watchedLocation: gameLog.watched_location as string,
+            rating: gameLog.rating_for_game as number,
+            ratingForGame: gameLog.rating_for_game as number,
+            ratingStars: gameLog.rating_stars
+              ? Number.isNaN(Number(gameLog.rating_stars))
+                ? null
+                : Math.round(Number(gameLog.rating_stars))
+              : null,
+            watchedCount: gameLog.watched_count as number,
+            notes: gameLog.notes as string,
+            tags: gameLog.tags as string[],
+            classification: gameLog.classification as string,
+            created_at: gameLog.created_at as Date,
+            updated_at: gameLog.updated_at as Date,
+            deleted_at: gameLog.deleted_at as Date | null,
+            comments: {
+              edges: comments.map((comment, i) => ({
+                cursor: String(i),
+                node: {
+                  id: comment.id,
+                  userId: String(comment.user_id),
+                  parent_id: comment.parent_id || '',
+                  parent_type: (comment.parent_type as 'GAME_LOG') || 'GAME_LOG',
+                  content: comment.content,
+                  created_at: comment.created_at,
+                  updated_at: comment.updated_at,
+                  deleted_at: comment.deleted_at,
+                  user: commentUsers[i]
+                    ? transformUserToSummary(commentUsers[i] as unknown as User)
+                    : {
+                        id: '',
+                        username: 'Unknown User',
+                        email_address: '',
+                        imageUrl: '',
+                      },
+                  reactions: [],
+                },
+              })),
+              totalCount: commentsTotal[0]?.count || 0,
+            },
+            reactions: {
+              edges: reactions.map((reaction, i) => ({
+                cursor: String(i),
+                node: {
+                  id: reaction.id,
+                  emoji: reaction.emoji as ReactionEmojiType,
+                  created_at: reaction.created_at,
+                  updated_at: reaction.updated_at,
+                  targetId: reaction.target_id || '',
+                  targetType: (reaction.target_type as 'GAME_LOG') || 'GAME_LOG',
+                  userId: reaction.user_id || '',
+                  user: reactionUsers[i]
+                    ? transformUserToSummary(reactionUsers[i] as unknown as User)
+                    : {
+                        id: '',
+                        username: 'Unknown User',
+                        email_address: '',
+                        imageUrl: '',
+                      },
+                },
+              })),
+              totalCount: reactionsTotal[0]?.count || 0,
+            },
+          },
+        };
+      })
+    );
 
     return {
       edges,

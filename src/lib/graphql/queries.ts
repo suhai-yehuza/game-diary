@@ -156,6 +156,22 @@ export const GAME_LOG_FRAGMENT = gql`
   ${GAME_FRAGMENT}
 `;
 
+export const REACTION_FRAGMENT = gql`
+  fragment ReactionFragment on Reaction {
+    id
+    emoji
+    user {
+      ...BasicUserFragment
+    }
+    userId
+    target_id
+    target_type
+    created_at
+    updated_at
+  }
+  ${BASIC_USER_FRAGMENT}
+`;
+
 export const GET_GAME_BY_ID = gql`
   query GetGameById($id: ID!) {
     game(id: $id) {
@@ -303,6 +319,22 @@ export const GET_GAME_LOGS = gql`
           created_at
           updated_at
           deleted_at
+          comments(first: 10) {
+            edges {
+              node {
+                ...CommentFragment
+              }
+            }
+            totalCount
+          }
+          reactions(first: 10) {
+            edges {
+              node {
+                ...ReactionFragment
+              }
+            }
+            totalCount
+          }
         }
       }
       pageInfo {
@@ -314,11 +346,13 @@ export const GET_GAME_LOGS = gql`
       totalCount
     }
   }
+  ${COMMENT_FRAGMENT}
+  ${REACTION_FRAGMENT}
 `;
 
 export const GET_LIVE_GAMES = gql`
-  query GetLiveGames {
-    liveGames {
+  query GetLiveGames($first: Int, $after: String) {
+    liveGames(first: $first, after: $after) {
       edges {
         node {
           id

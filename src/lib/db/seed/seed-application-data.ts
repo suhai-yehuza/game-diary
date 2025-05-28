@@ -333,11 +333,13 @@ async function generateAndInsertComments(
 async function generateAndInsertReactions(
   db: DatabaseClient,
   users: Array<typeof schema.users.$inferSelect>,
-  comments: Array<typeof schema.comments.$inferSelect>
+  comments: Array<typeof schema.comments.$inferSelect>,
+  gameLogs: Array<typeof schema.game_logs.$inferSelect>
 ) {
   console.log('Generating reactions...');
   const reactions: Array<typeof schema.reactions.$inferInsert> = [];
 
+  // Generate reactions for comments
   for (const comment of comments) {
     const reactionCount = API_CONFIG.ranges.REACTION_RANGE.getRandom();
     const reactors = faker.helpers.arrayElements(users, reactionCount);
@@ -348,6 +350,25 @@ async function generateAndInsertReactions(
         user_id: reactor.id,
         target_id: comment.id,
         target_type: 'comment' as const,
+        emoji: faker.helpers.arrayElement(Object.values(REACTION_EMOJIS)) as ReactionEmojiValue,
+        created_at: faker.date.past(),
+        updated_at: faker.date.recent(),
+      };
+      reactions.push(reaction);
+    }
+  }
+
+  // Generate reactions for game logs
+  for (const gameLog of gameLogs) {
+    const reactionCount = API_CONFIG.ranges.REACTION_RANGE.getRandom();
+    const reactors = faker.helpers.arrayElements(users, reactionCount);
+
+    for (const reactor of reactors) {
+      const reaction: typeof schema.reactions.$inferInsert = {
+        id: generateUUID(),
+        user_id: reactor.id,
+        target_id: gameLog.id,
+        target_type: 'game_log' as const,
         emoji: faker.helpers.arrayElement(Object.values(REACTION_EMOJIS)) as ReactionEmojiValue,
         created_at: faker.date.past(),
         updated_at: faker.date.recent(),
@@ -395,7 +416,7 @@ export async function seedApplicationData(
     await generateAndInsertFriendships(db, users);
     const gameLogs = await generateAndInsertGameLogs(db, users);
     const comments = await generateAndInsertComments(db, users, gameLogs);
-    await generateAndInsertReactions(db, users, comments);
+    await generateAndInsertReactions(db, users, comments, gameLogs);
 
     console.log('Application data seeding completed successfully');
   } catch (error) {

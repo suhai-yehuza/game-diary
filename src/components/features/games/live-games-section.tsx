@@ -24,6 +24,10 @@ interface LiveGamesData {
 export function LiveGamesSection() {
   const { data, loading, error } = useQuery<LiveGamesData>(GET_LIVE_GAMES, {
     pollInterval: 30000, // Poll every 30 seconds for live updates
+    variables: {
+      first: 10, // Limit to 10 live games
+      after: null
+    }
   });
 
   if (loading) return <div className="text-center p-4">Loading live games...</div>;
