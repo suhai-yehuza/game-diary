@@ -1,10 +1,11 @@
-import { eq, and } from 'drizzle-orm';
+import { eq, and, sql } from 'drizzle-orm';
 import { GraphQLError } from 'graphql';
 import { z } from 'zod';
+import { pgTable, varchar, text, timestamp } from 'drizzle-orm/pg-core';
 
 import { getCache, invalidateRelatedCaches } from '@/lib/cache';
 import { db } from '@/lib/db';
-import { schema } from '@/lib/db/schema';
+import { schema, comments } from '@/lib/db/schema';
 import { Context } from '@/lib/graphql/context';
 import {
   AuthenticationError,
@@ -32,6 +33,20 @@ import { generateUUID } from '@/lib/utils/index.processing';
 import { createCommentSchema } from '@/lib/validations/comment';
 import { sendFriendRequestSchema } from '@/lib/validations/friendship';
 import { gameTypeEnum, gameLogInputSchema } from '@/lib/validations/game';
+
+// Define the actual comments table structure to match the database
+const actualCommentsTable = pgTable('comments', {
+  id: varchar('id', { length: 255 }).primaryKey(),
+  user_id: varchar('user_id', { length: 255 }),
+  content: text('content').notNull(),
+  target_id: varchar('target_id', { length: 255 }).notNull(),
+  target_type: varchar('target_type', { length: 50 }).notNull(),
+  parent_id: varchar('parent_id', { length: 255 }),
+  parent_type: varchar('parent_type', { length: 50 }),
+  created_at: timestamp('created_at').defaultNow().notNull(),
+  updated_at: timestamp('updated_at').defaultNow().notNull(),
+  deleted_at: timestamp('deleted_at'),
+});
 
 // Helper functions
 const validateInput = <T>(schema: z.ZodSchema<T>, input: unknown): T => {
@@ -492,28 +507,30 @@ export const createComment = async (
     // Validate input directly without transformation
     const validatedInput = validateInput(createCommentSchema, input);
 
-    // Create a plain object for insert values with string literals for enum values
-    const insertValues = {
-      id: generateUUID(),
-      user_id: authenticatedUser.id,
-      parent_id: validatedInput.parent_id,
-      parent_type: validatedInput.parent_type.toLowerCase() as 'game_log' | 'comment',
-      target_id: validatedInput.parent_id,
-      target_type: validatedInput.parent_type.toLowerCase() as 'game_log' | 'comment',
-      content: validatedInput.content,
-      created_at: new Date(),
-      updated_at: new Date(),
-      deleted_at: null,
-    };
+    // Verify the user exists in the database
+    const dbUser = await db.query.users.findFirst({
+      where: eq(schema.users.id, authenticatedUser.id),
+    });
 
-    // Insert the comment and get the result
-    await db.insert(schema.comments).values(insertValues);
+    if (!dbUser) {
+      throw new NotFoundError('User', authenticatedUser.id);
+    }
 
-    // Fetch the created comment
+    console.log('Creating comment for user:', authenticatedUser.id, 'User exists:', !!dbUser);
+
+    // Insert the comment using the properly defined table schema
     const [comment] = await db
-      .select()
-      .from(schema.comments)
-      .where(eq(schema.comments.id, insertValues.id));
+      .insert(actualCommentsTable)
+      .values({
+        id: generateUUID(),
+        user_id: authenticatedUser.id,
+        parent_id: validatedInput.parent_id,
+        parent_type: validatedInput.parent_type.toLowerCase(),
+        target_id: validatedInput.parent_id,
+        target_type: validatedInput.parent_type.toLowerCase(),
+        content: validatedInput.content,
+      })
+      .returning();
 
     if (!comment) {
       throw new Error('Failed to create comment - no comment returned from database');
@@ -604,7 +621,7 @@ export const updateComment = async (
 
   try {
     const existingComment = await db.query.comments.findFirst({
-      where: and(eq(schema.comments.id, id), eq(schema.comments.user_id, user.id)),
+      where: and(eq(comments.id, id), eq(comments.user_id, user.id)),
     });
 
     if (!existingComment) {
@@ -620,12 +637,12 @@ export const updateComment = async (
     }
 
     const [updatedComment] = await db
-      .update(schema.comments)
+      .update(comments)
       .set({
         content: input.content,
         updated_at: new Date(),
       })
-      .where(eq(schema.comments.id, id))
+      .where(eq(comments.id, id))
       .returning();
 
     if (!updatedComment) {
@@ -699,14 +716,14 @@ export const deleteComment = async (
 
   try {
     const existingComment = await db.query.comments.findFirst({
-      where: and(eq(schema.comments.id, id), eq(schema.comments.user_id, user.id)),
+      where: and(eq(comments.id, id), eq(comments.user_id, user.id)),
     });
 
     if (!existingComment) {
       throw new NotFoundError('Comment', id);
     }
 
-    await db.delete(schema.comments).where(eq(schema.comments.id, id));
+    await db.delete(comments).where(eq(comments.id, id));
 
     return {
       success: true,

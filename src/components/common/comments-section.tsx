@@ -128,7 +128,7 @@ export function CommentsSection({ parent_id, parent_type }: CommentsSectionProps
         variables: {
           input: {
             parent_id: parent_id,
-            parent_type: parent_type.toUpperCase(),
+            parent_type: parent_type,
             content: newComment,
           },
         },
