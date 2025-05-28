@@ -862,7 +862,7 @@ export const createReaction = async (
     // If reaction exists, remove it (toggle off)
     if (existingReaction) {
       await db.delete(actualReactionsTable).where(eq(actualReactionsTable.id, existingReaction.id));
-      
+
       return {
         reaction: null, // Return null to indicate the reaction was removed
         errors: [],

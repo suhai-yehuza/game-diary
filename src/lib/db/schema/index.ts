@@ -7,7 +7,7 @@ import {
   reaction_type_enum,
   watched_setting_enum,
 } from '@/lib/db/schema/enums';
-import { game_logs, game_ratings, team_h2h } from '@/lib/db/schema/game-schemas';
+import { game_logs, game_ratings, team_h2h, games } from '@/lib/db/schema/game-schemas';
 import {
   nba_players,
   nba_player_stats,
@@ -30,7 +30,7 @@ import {
 // Export all schema types
 export { baseTableConfig } from '@/lib/db/schema/base-types';
 export { comments } from '@/lib/db/schema/user-schemas';
-export { game_logs, game_ratings, team_h2h } from '@/lib/db/schema/game-schemas';
+export { game_logs, game_ratings, team_h2h, games } from '@/lib/db/schema/game-schemas';
 export {
   nba_players,
   nba_player_stats,
@@ -69,6 +69,7 @@ export const schema = {
     ...game_logs,
     relations: gameLogsRelations,
   },
+  games,
   game_ratings,
   team_h2h,
   nba_players,

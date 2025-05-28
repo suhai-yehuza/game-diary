@@ -1,10 +1,8 @@
 import { sql } from 'drizzle-orm';
 import { pgTable, varchar, text, timestamp, boolean, unique, jsonb } from 'drizzle-orm/pg-core';
 
-import { FRIENDSHIP_STATUS } from '@/lib/types/config.types';
+import { FRIENDSHIP_STATUS, REACTION_EMOJIS, TARGET_TYPES } from '@/lib/types/config.types';
 import { generateUUID } from '@/lib/utils/index.processing';
-
-import { reaction_emoji_enum, reaction_target_enum } from './enums';
 
 // Users table
 export const users = pgTable('users', {
@@ -57,7 +55,9 @@ export const comments = pgTable(
     id: text('id').primaryKey().default(generateUUID()),
     user_id: text('user_id').references(() => users.id),
     parent_id: text('parent_id').notNull(),
-    parent_type: reaction_target_enum('parent_type').notNull(),
+    parent_type: varchar('parent_type', { length: 50 })
+      .notNull()
+      .$type<(typeof TARGET_TYPES)[keyof typeof TARGET_TYPES]>(),
     content: text('content').notNull(),
     created_at: timestamp('created_at').notNull().defaultNow(),
     updated_at: timestamp('updated_at').notNull().defaultNow(),
@@ -68,6 +68,7 @@ export const comments = pgTable(
     commentUserIndex: sql`CREATE INDEX IF NOT EXISTS idx_comments_user ON comments (user_id)`,
     commentCreatedIndex: sql`CREATE INDEX IF NOT EXISTS idx_comments_created ON comments (created_at)`,
     commentDeletedIndex: sql`CREATE INDEX IF NOT EXISTS idx_comments_deleted_at ON comments (deleted_at)`,
+    parentTypeCheck: sql`CHECK (parent_type IN ('${sql.join(Object.values(TARGET_TYPES), "','")}'))`,
   })
 );
 
@@ -77,9 +78,13 @@ export const reactions = pgTable(
   {
     id: text('id').primaryKey().default(generateUUID()),
     user_id: text('user_id').references(() => users.id),
-    target_type: reaction_target_enum('target_type').notNull(),
+    target_type: varchar('target_type', { length: 50 })
+      .notNull()
+      .$type<(typeof TARGET_TYPES)[keyof typeof TARGET_TYPES]>(),
     target_id: text('target_id').notNull(),
-    emoji: reaction_emoji_enum('emoji').notNull(),
+    emoji: varchar('emoji', { length: 10 })
+      .notNull()
+      .$type<(typeof REACTION_EMOJIS)[keyof typeof REACTION_EMOJIS]>(),
     created_at: timestamp('created_at').notNull().defaultNow(),
     updated_at: timestamp('updated_at').notNull().defaultNow(),
   },
@@ -88,5 +93,7 @@ export const reactions = pgTable(
     reactionUserIndex: sql`CREATE INDEX IF NOT EXISTS idx_reactions_user ON reactions (user_id)`,
     reactionEmojiIndex: sql`CREATE INDEX IF NOT EXISTS idx_reactions_emoji ON reactions (emoji)`,
     uniqueReaction: unique().on(_table.user_id, _table.target_type, _table.target_id, _table.emoji),
+    targetTypeCheck: sql`CHECK (target_type IN ('${sql.join(Object.values(TARGET_TYPES), "','")}'))`,
+    emojiCheck: sql`CHECK (emoji IN ('${sql.join(Object.values(REACTION_EMOJIS), "','")}'))`,
   })
 );

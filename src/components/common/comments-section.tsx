@@ -5,7 +5,6 @@ import { MessageSquare, Send, MoreVertical, Pencil, Trash2 } from 'lucide-react'
 import React, { useState } from 'react';
 
 import { ReactionDisplay } from '@/components/common/reaction-display';
-import { ReactionPicker } from '@/components/common/reaction-picker';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,7 +29,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { CREATE_COMMENT, DELETE_COMMENT, UPDATE_COMMENT } from '@/lib/graphql/mutations';
 import { GET_COMMENTS_WITH_FILTERS } from '@/lib/graphql/queries';
 import { EditingComment, CommentsSectionProps } from '@/lib/types/comment.types';
-import { Comment, Reaction } from '@/lib/types/generated/graphql';
+import { Comment } from '@/lib/types/generated/graphql';
 
 export function CommentsSection({ parent_id, parent_type }: CommentsSectionProps) {
   const { user } = useUser();
@@ -104,27 +103,6 @@ export function CommentsSection({ parent_id, parent_type }: CommentsSectionProps
     } catch (error) {
       console.error('Error creating comment:', error);
     }
-  };
-
-  const handleReaction = async (commentId: string, emoji: string) => {
-    // This function is no longer needed since ReactionPicker handles reactions internally
-    // Keeping it for the existing reaction display buttons only
-    console.log('Reaction clicked:', emoji, 'on comment:', commentId);
-  };
-
-  const getReactionCount = (comment: Comment, emojiKey: string) => {
-    return comment.reactions.filter((r: Reaction) => r.emoji === emojiKey).length;
-  };
-
-  const getReactionUsers = (comment: Comment, emojiKey: string) => {
-    return comment.reactions
-      .filter((r: Reaction) => r.emoji === emojiKey)
-      .map((r: Reaction) => r.user.username)
-      .join(', ');
-  };
-
-  const hasUserReacted = (comment: Comment, emojiKey: string) => {
-    return comment.reactions.some((r: Reaction) => r.user.id === user?.id && r.emoji === emojiKey);
   };
 
   const handleUpdateComment = async (e: React.FormEvent) => {
@@ -247,10 +225,7 @@ export function CommentsSection({ parent_id, parent_type }: CommentsSectionProps
               )}
 
               <div className="flex items-center gap-2 mt-2">
-                <ReactionDisplay
-                  targetId={comment.id}
-                  targetType="comment"
-                />
+                <ReactionDisplay targetId={comment.id} targetType="comment" />
               </div>
             </div>
           ))}

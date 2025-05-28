@@ -49,11 +49,11 @@ export function ReactionDisplay({ targetId, targetType }: ReactionDisplayProps) 
           },
         },
       });
-      
+
       if (result.data?.createReaction?.errors?.length > 0) {
         console.error('Reaction errors:', result.data.createReaction.errors);
       }
-      
+
       refetch();
     } catch (error) {
       console.error('Error toggling reaction:', error);
@@ -66,16 +66,19 @@ export function ReactionDisplay({ targetId, targetType }: ReactionDisplayProps) 
       (reaction: { id: string; emoji: string; userId: string }) =>
         reaction.userId === user?.id && reaction.emoji === emojiName
     );
-    
-    if (emojiName === 'LIKE') { // Debug only for LIKE emoji to avoid spam
+
+    if (emojiName === 'LIKE') {
+      // Debug only for LIKE emoji to avoid spam
       console.log('hasUserReacted debug:', {
         emojiName,
         userId: user?.id,
-        formattedReactions: formattedReactions.filter((r: { emoji: string }) => r.emoji === emojiName),
-        userReacted
+        formattedReactions: formattedReactions.filter(
+          (r: { emoji: string }) => r.emoji === emojiName
+        ),
+        userReacted,
       });
     }
-    
+
     return userReacted;
   };
 
