@@ -109,8 +109,8 @@ async function* generateFriendshipsStream(
 
   for (const userChunk of userChunks) {
     for (const user of userChunk) {
-      // Only process 20% of users
-      if (Math.random() >= 0.2) {
+      // Only process 10% of users
+      if (Math.random() >= 0.1) {
         continue;
       }
 
@@ -155,8 +155,8 @@ async function* generateGameLogsStream(
   const gameRatings = new Map<string, { total: number; count: number }>();
 
   for await (const user of userStream) {
-    // Only generate game logs for 20% of users
-    if (Math.random() >= 0.2) {
+    // Only generate game logs for 10% of users
+    if (Math.random() >= 0.1) {
       continue;
     }
 
@@ -225,7 +225,7 @@ async function* generateGameLogsStream(
 
     // Yield control periodically
     if (Math.random() < 0.1) {
-      // 20% chance to yield control
+      // 10% chance to yield control
       await new Promise(resolve => setImmediate(resolve));
     }
   }
@@ -279,8 +279,8 @@ async function* generateCommentsStream(
   }
 
   for await (const gameLog of gameLogStream) {
-    // Only generate comments for 20% of game logs
-    if (Math.random() >= 0.2) {
+    // Only generate comments for 10% of game logs
+    if (Math.random() >= 0.1) {
       continue;
     }
 
@@ -311,13 +311,13 @@ async function* generateCommentsStream(
       totalParentComments++;
       yield parentComment;
 
-      // Recursively generate child comments with 20% probability at each level
+      // Recursively generate child comments with 10% probability at each level
       yield* generateChildComments(parentComment, userChunk, 1);
     }
 
     // Yield control periodically
-    if (Math.random() < 0.2) {
-      // 20% chance to yield control
+    if (Math.random() < 0.1) {
+      // 10% chance to yield control
       await new Promise(resolve => setImmediate(resolve));
     }
   }
@@ -340,8 +340,8 @@ async function* generateChildComments(
     return;
   }
 
-  // Only generate child comments for 20% of parent comments
-  if (Math.random() >= 0.2) {
+  // Only generate child comments for 10% of parent comments
+  if (Math.random() >= 0.1) {
     return;
   }
 
@@ -396,22 +396,22 @@ async function* generateReactionsStream(
   }
 
   for await (const comment of commentStream) {
-    // Only generate reactions for 20% of comments
-    if (Math.random() >= 0.2) {
+    // Only generate reactions for 10% of comments
+    if (Math.random() >= 0.1) {
       continue;
     }
 
-    // For game log comments, we want to ensure we're only reacting to 20% of game logs
+    // For game log comments, we want to ensure we're only reacting to 10% of game logs
     if (comment.parent_type === 'game_log') {
       // Skip if this game log wasn't selected for reactions
-      if (Math.random() >= 0.2) {
+      if (Math.random() >= 0.1) {
         continue;
       }
     }
-    // For child comments, we want to ensure we're only reacting to 20% of parent comments
+    // For child comments, we want to ensure we're only reacting to 10% of parent comments
     else if (comment.parent_type === 'comment') {
       // Skip if this parent comment wasn't selected for reactions
-      if (Math.random() >= 0.2) {
+      if (Math.random() >= 0.1) {
         continue;
       }
     }
@@ -436,8 +436,8 @@ async function* generateReactionsStream(
     }
 
     // Yield control periodically
-    if (Math.random() < 0.2) {
-      // 20% chance to yield control
+    if (Math.random() < 0.1) {
+      // 10% chance to yield control
       await new Promise(resolve => setImmediate(resolve));
     }
   }

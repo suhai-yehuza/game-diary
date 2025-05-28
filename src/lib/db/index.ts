@@ -25,11 +25,22 @@ const _env = envSchema.parse({
   REDIS_URL: process.env.REDIS_URL,
 });
 
-// Configure neon
+// Configure neon for better stability
 neonConfig.wsProxy = host => `${host}:5432/v1`;
 neonConfig.useSecureWebSocket = true;
 neonConfig.pipelineTLS = true;
 neonConfig.pipelineConnect = false;
+// Add connection timeout and retry settings
+neonConfig.fetchConnectionCache = true;
+neonConfig.fetchFunction = (input: RequestInfo | URL, init?: RequestInit) => {
+  return fetch(input, {
+    ...init,
+    // Add connection timeout
+    signal: AbortSignal.timeout(30000), // 30 second timeout
+    // Add keep-alive for connection reuse
+    keepalive: true,
+  });
+};
 
 // Create database connection with error handling
 let sql;

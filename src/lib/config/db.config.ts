@@ -6,14 +6,14 @@ export const DB_CONFIG = {
     external: {
       CONCURRENT_OPERATIONS: API_CONFIG.databaseSeeding.CONCURRENT_OPERATIONS,
       BATCH_SIZE: {
-        GAMES: 10,
-        PLAYERS: 5,
-        STATS: 25,
+        GAMES: 8,
+        PLAYERS: 3,
+        STATS: 15,
       },
       RETRY: {
-        MAX_ATTEMPTS: 3,
+        MAX_ATTEMPTS: 5,
         BASE_DELAY: 1000,
-        MAX_DELAY: 5000,
+        MAX_DELAY: 8000,
       },
     },
     // Internal application data seeding

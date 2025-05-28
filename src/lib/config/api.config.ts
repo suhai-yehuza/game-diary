@@ -76,9 +76,9 @@ export const API_CONFIG = {
   } as const,
 
   databaseSeeding: {
-    CONCURRENT_OPERATIONS: 5,
-    BATCH_SIZE: 25,
-    MAX_RETRIES: 3,
+    CONCURRENT_OPERATIONS: 3,
+    BATCH_SIZE: 15,
+    MAX_RETRIES: 5,
     RETRY_DELAY: 2000,
     USER_COUNT: XLARGE,
     DEFAULT_SAMPLE_COUNT: MEDIUM,

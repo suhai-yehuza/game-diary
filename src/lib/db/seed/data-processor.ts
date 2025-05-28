@@ -5,6 +5,12 @@ import type { DatabaseClient } from '@/lib/types/db.types';
 
 import { OptimizedAPIClient } from './utils/api-client';
 
+// Enhanced sleep function with jitter
+const sleep = (ms: number, jitter = true) => {
+  const delay = jitter ? ms + Math.random() * 1000 : ms;
+  return new Promise(resolve => setTimeout(resolve, delay));
+};
+
 // Performance monitoring
 export class PerformanceMonitor {
   private timers: Map<string, number> = new Map();
@@ -76,31 +82,102 @@ export class DataProcessor {
   async streamInsert<T extends PgTable>(
     table: T,
     dataGenerator: () => AsyncGenerator<InferInsertModel<T>, void, unknown>,
-    batchSize: number = 500,
+    batchSize: number = 100, // Reduced default batch size for better stability
     operation: string = 'insert'
   ): Promise<void> {
     this.monitor.start(operation);
 
     let batch: InferInsertModel<T>[] = [];
     let count = 0;
+    let consecutiveErrors = 0;
+    const maxConsecutiveErrors = 3;
 
-    for await (const item of dataGenerator()) {
-      batch.push(item);
-      count++;
+    try {
+      for await (const item of dataGenerator()) {
+        batch.push(item);
+        count++;
 
-      if (batch.length >= batchSize) {
+        if (batch.length >= batchSize) {
+          try {
+            await this.insertBatchWithRetry(table, batch, operation);
+            batch = [];
+            consecutiveErrors = 0; // Reset error counter on success
+            
+            // Add a small delay between batches to prevent overwhelming the connection
+            if (count % (batchSize * 5) === 0) {
+              await sleep(100, false); // Small pause every 5 batches
+            }
+          } catch (error) {
+            consecutiveErrors++;
+            console.error(`Error in batch insertion, consecutive errors: ${consecutiveErrors}/${maxConsecutiveErrors}`);
+            
+            if (consecutiveErrors >= maxConsecutiveErrors) {
+              console.error(`Too many consecutive errors (${consecutiveErrors}), stopping stream insertion`);
+              throw error;
+            }
+            
+            // On error, wait longer and try with a smaller batch
+            await sleep(2000);
+            const smallerBatchSize = Math.max(10, Math.floor(batch.length / 2));
+            console.log(`Retrying with smaller batch size: ${smallerBatchSize}`);
+            
+            // Split the failed batch into smaller chunks
+            for (let i = 0; i < batch.length; i += smallerBatchSize) {
+              const smallerBatch = batch.slice(i, i + smallerBatchSize);
+              await this.insertBatchWithRetry(table, smallerBatch, operation);
+              await sleep(500); // Pause between smaller batches
+            }
+            
+            batch = [];
+          }
+        }
+      }
+
+      // Insert remaining items
+      if (batch.length > 0) {
+        await this.insertBatchWithRetry(table, batch, operation);
+      }
+
+      const duration = this.monitor.end(operation);
+      console.log(`Stream inserted ${count} ${operation} items in ${(duration / 1000).toFixed(2)}s`);
+    } catch (error) {
+      console.error(`Stream insertion failed for ${operation} after ${count} items:`, error);
+      throw error;
+    }
+  }
+
+  private async insertBatchWithRetry<T extends PgTable>(
+    table: T,
+    batch: InferInsertModel<T>[],
+    operation: string,
+    maxRetries: number = 3
+  ): Promise<void> {
+    let lastError: Error | null = null;
+    
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
         await this.insertBatch(table, batch, operation);
-        batch = [];
+        return; // Success, exit retry loop
+      } catch (error) {
+        lastError = error as Error;
+        console.error(`Batch insertion attempt ${attempt}/${maxRetries} failed:`, error);
+        
+        // Check if it's a network-related error
+        const isNetworkError = this.isNetworkError(error);
+        
+        if (attempt === maxRetries || !isNetworkError) {
+          // If it's the last attempt or not a network error, throw immediately
+          throw error;
+        }
+        
+        // Wait with exponential backoff before retrying
+        const delay = Math.min(1000 * Math.pow(2, attempt - 1), 10000);
+        console.log(`Retrying in ${delay}ms... (attempt ${attempt + 1}/${maxRetries})`);
+        await sleep(delay);
       }
     }
-
-    // Insert remaining items
-    if (batch.length > 0) {
-      await this.insertBatch(table, batch, operation);
-    }
-
-    const duration = this.monitor.end(operation);
-    console.log(`Stream inserted ${count} ${operation} items in ${(duration / 1000).toFixed(2)}s`);
+    
+    throw lastError;
   }
 
   private async insertBatch<T extends PgTable>(
@@ -114,6 +191,30 @@ export class DataProcessor {
       console.error(`Error inserting ${operation} batch:`, error);
       throw error;
     }
+  }
+
+  private isNetworkError(error: unknown): boolean {
+    if (!error || typeof error !== 'object') return false;
+    
+    const errorMessage = (error as any)?.message?.toLowerCase() || '';
+    const errorCode = (error as any)?.code;
+    
+    // Check for common network error indicators
+    const networkErrorIndicators = [
+      'fetch failed',
+      'socket',
+      'network',
+      'connection',
+      'timeout',
+      'econnreset',
+      'enotfound',
+      'econnrefused',
+      'other side closed'
+    ];
+    
+    return networkErrorIndicators.some(indicator => 
+      errorMessage.includes(indicator)
+    ) || errorCode === 'UND_ERR_SOCKET';
   }
 
   logResults() {
