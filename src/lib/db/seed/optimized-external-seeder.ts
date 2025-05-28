@@ -286,7 +286,26 @@ async function processGames(
   const db = createDatabaseClient();
   const allTeams = await db.query.teams.findMany();
   const teamIds = new Set(allTeams.map(t => t.id));
-  const nbaGamesData = gamesResponse.response.map(game => {
+  
+  // Filter out games with invalid team IDs
+  const validGames = gamesResponse.response.filter(game => {
+    const homeTeamId = game.teams?.home?.id;
+    const awayTeamId = game.teams?.visitors?.id;
+    
+    if (!homeTeamId || !awayTeamId) {
+      console.warn(`Skipping game ${game.id} - missing team IDs:`, {
+        homeTeamId,
+        awayTeamId,
+        game
+      });
+      return false;
+    }
+    return true;
+  });
+
+  console.log(`Found ${validGames.length} valid games out of ${gamesResponse.response.length} total games`);
+
+  const nbaGamesData = validGames.map(game => {
     const homeTeamId = game.teams.home.id.toString();
     const awayTeamId = game.teams.visitors.id.toString();
 
@@ -331,6 +350,11 @@ async function processGames(
     };
   });
 
+  if (nbaGamesData.length === 0) {
+    console.warn(`No valid games to insert for season ${season}`);
+    return;
+  }
+
   await apiClient.bulkInsertWithConflictHandling(
     nba_games,
     nbaGamesData,
@@ -339,7 +363,7 @@ async function processGames(
     `nba-games-${season}`
   );
 
-  const genericGamesData = gamesResponse.response.map(game => ({
+  const genericGamesData = validGames.map(game => ({
     id: game.id.toString(),
     game_type: 'nba',
     nba_game_id: game.id.toString(),
