@@ -1,0 +1,93 @@
+{
+  "__typename": "GameConnection",
+  "edges": [
+    {
+      "__typename": "GameEdge",
+      "node": {
+        "__typename": "Game",
+        "id": "15446",
+        "date": {
+          "__typename": "GameDate",
+          "start": "2025-05-28T00:00:00.000Z",
+          "end": null,
+          "duration": null
+        },
+        "status": {
+          "__typename": "GameStatus",
+          "clock": "",
+          "halftime": false,
+          "long": "In Play",
+          "short": "2"
+        },
+        "arena": "TestA Arena",
+        "league": "standard",
+        "season": 2024,
+        "stage": 3,
+        "periods": {
+          "current": 2,
+          "total": 4,
+          "endOfPeriod": false
+        },
+        "scores": {
+          "visitors": {
+            "win": 0,
+            "loss": 0,
+            "series": {
+              "win": 0,
+              "loss": 0
+            },
+            "linescore": ["35", "29", "", ""],
+            "points": 64
+          },
+          "home": {
+            "win": 0,
+            "loss": 0,
+            "series": {
+              "win": 0,
+              "loss": 0
+            },
+            "linescore": ["43", "26", "", ""],
+            "points": 69
+          }
+        },
+        "officials": [],
+        "timesTied": null,
+        "leadChanges": null,
+        "nugget": null,
+        "created_at": "2025-05-28T01:11:13.482Z",
+        "updated_at": "2025-05-28T01:11:13.482Z",
+        "homeTeamId": "15",
+        "awayTeamId": "24",
+        "teams": {
+          "home": {
+            "id": 15,
+            "name": "Indiana Pacers II",
+            "nickname": "Test Pacers",
+            "code": "IND",
+            "logo": "https://upload.wikimedia.org/wikipedia/fr/thumb/c/cf/Pacers_de_l%27Indiana_logo.svg/1180px-Pacers_de_l%27Indiana_logo.svg.png"
+          },
+          "visitors": {
+            "id": 24,
+            "name": "New York Knicks II",
+            "nickname": "Test Knicks",
+            "code": "NYK",
+            "logo": "https://upload.wikimedia.org/wikipedia/fr/3/34/Knicks_de_NY.png"
+          }
+        },
+        "isCompleted": false,
+        "away_score": 64,
+        "home_score": 69,
+        "game_type": "LIVE",
+        "nba_game_id": "15446"
+      }
+    }
+  ],
+  "pageInfo": {
+    "__typename": "PageInfo",
+    "hasNextPage": false,
+    "hasPreviousPage": false,
+    "startCursor": "MA==",
+    "endCursor": "MA=="
+  },
+  "totalCount": 1
+}

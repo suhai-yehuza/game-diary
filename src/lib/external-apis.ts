@@ -217,11 +217,6 @@ export function handleAPIError(error: unknown): never {
  */
 function createNbaApiConfig(): APIConfigOptions {
   const rapidApiConfig = getRapidApiConfig();
-  console.log('RapidAPI Config:', {
-    baseUrl: rapidApiConfig.baseUrl,
-    host: rapidApiConfig.host,
-    headers: rapidApiConfig.headers,
-  });
 
   return {
     baseUrl: rapidApiConfig.baseUrl,
