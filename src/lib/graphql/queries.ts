@@ -177,8 +177,8 @@ export const REACTION_FRAGMENT = gql`
       ...BasicUserFragment
     }
     userId
-    target_id
-    target_type
+    targetId
+    targetType
     created_at
     updated_at
   }

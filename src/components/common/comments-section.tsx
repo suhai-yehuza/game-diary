@@ -1,10 +1,11 @@
 import { useMutation, useQuery } from '@apollo/client';
 import { SignInButton, useUser } from '@clerk/nextjs';
 import { formatDistanceToNow } from 'date-fns';
-import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
-import { MessageSquare, Send, Smile, MoreVertical, Pencil, Trash2 } from 'lucide-react';
+import { MessageSquare, Send, MoreVertical, Pencil, Trash2 } from 'lucide-react';
 import React, { useState } from 'react';
 
+import { ReactionDisplay } from '@/components/common/reaction-display';
+import { ReactionPicker } from '@/components/common/reaction-picker';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,17 +25,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Textarea } from '@/components/ui/textarea';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useToast } from '@/components/ui/use-toast';
-import {
-  CREATE_COMMENT,
-  CREATE_REACTION,
-  DELETE_REACTION,
-  UPDATE_COMMENT,
-  DELETE_COMMENT,
-} from '@/lib/graphql/mutations';
+import { CREATE_COMMENT, DELETE_COMMENT, UPDATE_COMMENT } from '@/lib/graphql/mutations';
 import { GET_COMMENTS_WITH_FILTERS } from '@/lib/graphql/queries';
 import { EditingComment, CommentsSectionProps } from '@/lib/types/comment.types';
 import { Comment, Reaction } from '@/lib/types/generated/graphql';
@@ -93,32 +86,6 @@ export function CommentsSection({ parent_id, parent_type }: CommentsSectionProps
     },
   });
 
-  const [createReaction] = useMutation(CREATE_REACTION, {
-    onCompleted: () => {
-      refetch();
-    },
-    onError: error => {
-      toast({
-        title: 'Error',
-        description: error.message,
-        variant: 'destructive',
-      });
-    },
-  });
-
-  const [deleteReaction] = useMutation(DELETE_REACTION, {
-    onCompleted: () => {
-      refetch();
-    },
-    onError: error => {
-      toast({
-        title: 'Error',
-        description: error.message,
-        variant: 'destructive',
-      });
-    },
-  });
-
   const handleSubmitComment = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newComment.trim() || !user) return;
@@ -140,68 +107,24 @@ export function CommentsSection({ parent_id, parent_type }: CommentsSectionProps
   };
 
   const handleReaction = async (commentId: string, emoji: string) => {
-    if (!user) return;
-
-    try {
-      const comment = data?.comments?.edges?.find(
-        ({ node: c }: { node: Comment }) => c.id === commentId
-      );
-      if (!comment) {
-        return;
-      }
-
-      const existingReaction = comment.node.reactions.find(
-        (r: Reaction) => r.user.id === user.id && r.emoji === emoji
-      );
-
-      if (existingReaction) {
-        if (!existingReaction.id) {
-          return;
-        }
-
-        await deleteReaction({
-          variables: { id: existingReaction.id },
-          onCompleted: () => {
-            refetch();
-          },
-        });
-      } else {
-        await createReaction({
-          variables: {
-            input: {
-              user_id: user.id,
-              target_id: commentId,
-              target_type: 'comment',
-              emoji,
-            },
-          },
-          onCompleted: () => {
-            refetch();
-          },
-        });
-      }
-    } catch (error) {
-      console.error('Error creating reaction:', error);
-    }
+    // This function is no longer needed since ReactionPicker handles reactions internally
+    // Keeping it for the existing reaction display buttons only
+    console.log('Reaction clicked:', emoji, 'on comment:', commentId);
   };
 
-  const getReactionCount = (comment: Comment, emoji: string) => {
-    return comment.reactions.filter((r: Reaction) => r.emoji === emoji).length;
+  const getReactionCount = (comment: Comment, emojiKey: string) => {
+    return comment.reactions.filter((r: Reaction) => r.emoji === emojiKey).length;
   };
 
-  const getReactionUsers = (comment: Comment, emoji: string) => {
+  const getReactionUsers = (comment: Comment, emojiKey: string) => {
     return comment.reactions
-      .filter((r: Reaction) => r.emoji === emoji)
+      .filter((r: Reaction) => r.emoji === emojiKey)
       .map((r: Reaction) => r.user.username)
       .join(', ');
   };
 
-  const hasUserReacted = (comment: Comment, emoji: string) => {
-    return comment.reactions.some((r: Reaction) => r.user.id === user?.id && r.emoji === emoji);
-  };
-
-  const onEmojiClick = async (emojiData: EmojiClickData, commentId: string) => {
-    await handleReaction(commentId, emojiData.emoji);
+  const hasUserReacted = (comment: Comment, emojiKey: string) => {
+    return comment.reactions.some((r: Reaction) => r.user.id === user?.id && r.emoji === emojiKey);
   };
 
   const handleUpdateComment = async (e: React.FormEvent) => {
@@ -324,41 +247,10 @@ export function CommentsSection({ parent_id, parent_type }: CommentsSectionProps
               )}
 
               <div className="flex items-center gap-2 mt-2">
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button variant="ghost" size="sm">
-                      <Smile className="h-4 w-4" />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
-                    <EmojiPicker onEmojiClick={emojiData => onEmojiClick(emojiData, comment.id)} />
-                  </PopoverContent>
-                </Popover>
-
-                {comment.reactions.length > 0 && (
-                  <div className="flex gap-1">
-                    {Array.from(new Set(comment.reactions.map((r: Reaction) => r.emoji))).map(
-                      emoji => (
-                        <TooltipProvider key={emoji}>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                variant={hasUserReacted(comment, emoji) ? 'default' : 'outline'}
-                                size="sm"
-                                onClick={() => handleReaction(comment.id, emoji)}
-                              >
-                                {emoji} {getReactionCount(comment, emoji)}
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>{getReactionUsers(comment, emoji)}</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      )
-                    )}
-                  </div>
-                )}
+                <ReactionDisplay
+                  targetId={comment.id}
+                  targetType="comment"
+                />
               </div>
             </div>
           ))}

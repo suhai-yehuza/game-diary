@@ -14,6 +14,7 @@ import {
   parsePaginationArgs,
 } from '@/lib/graphql/utils/pagination';
 import { CACHE_TTL } from '@/lib/types/cache.types';
+import { REACTION_EMOJIS } from '@/lib/types/config.types';
 import { Context } from '@/lib/types/context.types';
 import { DatabaseRow } from '@/lib/types/database.types';
 import { ReactionEmojiType } from '@/lib/types/generated/graphql';
@@ -105,6 +106,12 @@ interface MappedGame {
   };
   isCompleted: boolean;
 }
+
+// Helper function to convert emoji character back to key
+const getEmojiKey = (emojiCharacter: string): ReactionEmojiType => {
+  const entry = Object.entries(REACTION_EMOJIS).find(([, char]) => char === emojiCharacter);
+  return (entry?.[0] || emojiCharacter) as ReactionEmojiType;
+};
 
 export const seasons = async (
   _parent: unknown,
@@ -1386,7 +1393,7 @@ export const gameLogs = async (
                 cursor: String(i),
                 node: {
                   id: reaction.id,
-                  emoji: reaction.emoji as ReactionEmojiType,
+                  emoji: getEmojiKey(reaction.emoji) as ReactionEmojiType,
                   created_at: reaction.created_at,
                   updated_at: reaction.updated_at,
                   targetId: reaction.target_id || '',
@@ -1598,7 +1605,7 @@ export const GameLog = {
         cursor: String(offset + index),
         node: {
           id: reaction.id,
-          emoji: reaction.emoji as ReactionEmojiType,
+          emoji: getEmojiKey(reaction.emoji) as ReactionEmojiType,
           created_at: reaction.created_at,
           updated_at: reaction.updated_at,
           targetId: reaction.target_id || '',
@@ -1721,7 +1728,7 @@ export const comments = async (
             if (!reactionUser) return null;
             return {
               id: reactionRaw.id,
-              emoji: reactionRaw.emoji as ReactionEmojiType,
+              emoji: getEmojiKey(reactionRaw.emoji) as ReactionEmojiType,
               created_at: reactionRaw.created_at,
               updated_at: reactionRaw.updated_at,
               targetId: reactionRaw.target_id,
@@ -1789,7 +1796,7 @@ export const reactions = async (
 
   const mappedReactions = reactions.map((reaction, index) => ({
     id: reaction.id,
-    emoji: reaction.emoji as ReactionEmojiType,
+    emoji: getEmojiKey(reaction.emoji) as ReactionEmojiType,
     created_at: reaction.created_at,
     updated_at: reaction.updated_at,
     targetId: reaction.target_id || '',

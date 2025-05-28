@@ -1,5 +1,6 @@
 import { useMutation } from '@apollo/client';
 import { useUser } from '@clerk/nextjs';
+import { Plus } from 'lucide-react';
 import React, { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
@@ -41,8 +42,8 @@ export function ReactionPicker({
         await createReaction({
           variables: {
             input: {
-              target_id: targetId,
-              target_type: targetType,
+              targetId: targetId,
+              targetType: targetType,
               emoji: emojiName,
             },
           },
@@ -59,7 +60,7 @@ export function ReactionPicker({
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
         <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-          <span className="text-lg">😀</span>
+          <Plus className="text-lg" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-2" align="start">

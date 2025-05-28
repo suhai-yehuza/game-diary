@@ -278,9 +278,9 @@ export const CREATE_REACTION = gql`
       reaction {
         id
         emoji
-        target_id
-        target_type
-        user_id
+        targetId
+        targetType
+        userId
         created_at
         updated_at
         user {

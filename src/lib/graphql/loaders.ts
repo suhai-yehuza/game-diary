@@ -5,7 +5,7 @@ import type { NeonHttpDatabase } from 'drizzle-orm/neon-http';
 import { getCache } from '@/lib/cache';
 import * as schema from '@/lib/db/schema';
 import { db } from '@/lib/db/seed';
-import { FRIENDSHIP_STATUS } from '@/lib/types/config.types';
+import { FRIENDSHIP_STATUS, REACTION_EMOJIS } from '@/lib/types/config.types';
 import type {
   Game,
   GameLog,
@@ -24,6 +24,12 @@ import type {
   WeightInfo,
 } from '@/lib/types/generated/graphql';
 import type { DbGame, DBComment, DBReaction } from '@/lib/types/generated/types';
+
+// Helper function to convert emoji character back to key
+const getEmojiKey = (emojiCharacter: string): ReactionEmojiType => {
+  const entry = Object.entries(REACTION_EMOJIS).find(([, char]) => char === emojiCharacter);
+  return (entry?.[0] || emojiCharacter) as ReactionEmojiType;
+};
 
 export function createLoaders(db: NeonHttpDatabase<typeof schema>) {
   const userLoader = new DataLoader<string, UserSummary>(async userIds => {
@@ -221,7 +227,7 @@ export function createLoaders(db: NeonHttpDatabase<typeof schema>) {
         userId: reaction.user_id || '',
         targetId: reaction.target_id || '',
         targetType: (reaction.target_type || 'comment') as ParentType,
-        emoji: (reaction.emoji || 'LIKE') as ReactionEmojiType,
+        emoji: getEmojiKey(reaction.emoji) as ReactionEmojiType,
         created_at: reaction.created_at,
         updated_at: reaction.updated_at,
         user: null as unknown as UserSummary,

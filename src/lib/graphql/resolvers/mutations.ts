@@ -1,7 +1,7 @@
-import { eq, and, sql } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
+import { pgTable, varchar, text, timestamp } from 'drizzle-orm/pg-core';
 import { GraphQLError } from 'graphql';
 import { z } from 'zod';
-import { pgTable, varchar, text, timestamp } from 'drizzle-orm/pg-core';
 
 import { getCache, invalidateRelatedCaches } from '@/lib/cache';
 import { db } from '@/lib/db';
@@ -15,7 +15,7 @@ import {
   ValidationError,
 } from '@/lib/graphql/errors';
 import { transformUser } from '@/lib/graphql/resolvers/transformers';
-import { WatchedSettingValue } from '@/lib/types/config.types';
+import { WatchedSettingValue, REACTION_EMOJIS, ReactionEmojiKey } from '@/lib/types/config.types';
 import {
   Friendship,
   MutationcreateGameLogArgs,
@@ -24,9 +24,12 @@ import {
   MutationcreateCommentArgs,
   MutationupdateCommentArgs,
   MutationdeleteCommentArgs,
+  MutationcreateReactionArgs,
+  MutationdeleteReactionArgs,
   User as DBUser,
   ParentType,
   Classification,
+  ReactionEmojiType,
 } from '@/lib/types/generated/graphql';
 import type { SendFriendRequestInput } from '@/lib/types/graphql.types';
 import { generateUUID } from '@/lib/utils/index.processing';
@@ -46,6 +49,17 @@ const actualCommentsTable = pgTable('comments', {
   created_at: timestamp('created_at').defaultNow().notNull(),
   updated_at: timestamp('updated_at').defaultNow().notNull(),
   deleted_at: timestamp('deleted_at'),
+});
+
+// Define the actual reactions table structure to match the database
+const actualReactionsTable = pgTable('reactions', {
+  id: text('id').primaryKey(),
+  user_id: text('user_id'),
+  target_id: text('target_id').notNull(),
+  target_type: varchar('target_type', { length: 50 }).notNull(),
+  emoji: varchar('emoji', { length: 10 }).notNull(),
+  created_at: timestamp('created_at').defaultNow().notNull(),
+  updated_at: timestamp('updated_at').defaultNow().notNull(),
 });
 
 // Helper functions
@@ -816,4 +830,148 @@ export const sendFriendRequest = async (
     } as Friendship,
     errors: [],
   };
+};
+
+export const createReaction = async (
+  _parent: unknown,
+  { input }: MutationcreateReactionArgs,
+  context: Context
+) => {
+  const { user, db } = context;
+  const authenticatedUser = checkAuth(user);
+
+  try {
+    // Validate that the emoji key is valid
+    if (!(input.emoji in REACTION_EMOJIS)) {
+      throw new ValidationError(`Invalid emoji: ${input.emoji}`);
+    }
+
+    // Convert emoji key to character for storage
+    const emojiCharacter = REACTION_EMOJIS[input.emoji as ReactionEmojiKey];
+
+    // Check if user already has a reaction on this target
+    const existingReaction = await db.query.reactions.findFirst({
+      where: and(
+        eq(schema.reactions.user_id, authenticatedUser.id),
+        eq(schema.reactions.target_id, input.targetId),
+        eq(schema.reactions.target_type, input.targetType.toLowerCase() as 'game_log' | 'comment'),
+        eq(schema.reactions.emoji, emojiCharacter)
+      ),
+    });
+
+    // If reaction exists, remove it (toggle off)
+    if (existingReaction) {
+      await db.delete(actualReactionsTable).where(eq(actualReactionsTable.id, existingReaction.id));
+      
+      return {
+        reaction: null, // Return null to indicate the reaction was removed
+        errors: [],
+      };
+    }
+
+    // Verify the user exists
+    const dbUser = await db.query.users.findFirst({
+      where: eq(schema.users.id, authenticatedUser.id),
+    });
+
+    if (!dbUser) {
+      throw new NotFoundError('User', authenticatedUser.id);
+    }
+
+    // Insert the reaction using the properly defined table schema (toggle on)
+    const [reaction] = await db
+      .insert(actualReactionsTable)
+      .values({
+        id: generateUUID(),
+        user_id: authenticatedUser.id,
+        target_id: input.targetId,
+        target_type: input.targetType.toLowerCase(),
+        emoji: emojiCharacter,
+        created_at: new Date(),
+        updated_at: new Date(),
+      })
+      .returning();
+
+    if (!reaction) {
+      throw new Error('Failed to create reaction - no reaction returned from database');
+    }
+
+    return {
+      reaction: {
+        id: reaction.id,
+        emoji: input.emoji as ReactionEmojiType,
+        targetId: reaction.target_id || '',
+        targetType: reaction.target_type as ParentType,
+        userId: reaction.user_id || authenticatedUser.id,
+        user: {
+          id: authenticatedUser.id,
+          username: authenticatedUser.username || '',
+          email_address: authenticatedUser.email_address || '',
+          imageUrl: authenticatedUser.image_url || '',
+          comments: [],
+          gameLogs: [],
+          initiated_friendships: [],
+          reactions: [],
+          received_friendships: [],
+          __typename: 'UserSummary' as const,
+        },
+        created_at: reaction.created_at,
+        updated_at: reaction.updated_at,
+        __typename: 'Reaction' as const,
+      },
+      errors: [],
+    };
+  } catch (error) {
+    console.error('Error creating reaction:', error);
+    return {
+      reaction: null,
+      errors: [
+        {
+          message: error instanceof Error ? error.message : 'Failed to create reaction',
+          code: 'REACTION_CREATE_ERROR',
+          details: error instanceof Error ? error.stack : String(error),
+        },
+      ],
+    };
+  }
+};
+
+export const deleteReaction = async (
+  _parent: unknown,
+  { id }: MutationdeleteReactionArgs,
+  context: Context
+) => {
+  const { user, db } = context;
+  const authenticatedUser = checkAuth(user);
+
+  try {
+    // Check if the reaction exists and belongs to the user
+    const existingReaction = await db.query.reactions.findFirst({
+      where: and(eq(schema.reactions.id, id), eq(schema.reactions.user_id, authenticatedUser.id)),
+    });
+
+    if (!existingReaction) {
+      throw new NotFoundError('Reaction', id);
+    }
+
+    // Delete using the simplified table definition to avoid circular references
+    await db.delete(actualReactionsTable).where(eq(actualReactionsTable.id, id));
+
+    return {
+      success: true,
+      errors: [],
+    };
+  } catch (error) {
+    console.error('Error deleting reaction:', error);
+    return {
+      success: false,
+      errors: [
+        {
+          message: error instanceof Error ? error.message : 'Failed to delete reaction',
+          code: 'REACTION_DELETE_ERROR',
+          details: error instanceof Error ? error.stack : String(error),
+        },
+      ],
+    };
+  }
 };

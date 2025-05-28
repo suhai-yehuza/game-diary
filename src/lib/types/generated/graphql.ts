@@ -183,8 +183,8 @@ export type CreateGameStatsResponse = {
 
 export type CreateReactionInput = {
   emoji: ReactionEmojiType;
-  target_id: Scalars['ID']['input'];
-  target_type: ParentType;
+  targetId: Scalars['ID']['input'];
+  targetType: ParentType;
 };
 
 export type CreateReactionResponse = {
