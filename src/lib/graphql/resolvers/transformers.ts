@@ -48,6 +48,8 @@ export function transformUserToSummary(user: DBUser): GraphQLUserSummary {
     id: user.id,
     username: user.username || '',
     email_address: user.email_address || '',
+    first_name: user.first_name || '',
+    last_name: user.last_name || '',
     imageUrl: user.imageUrl || '',
     __typename: 'UserSummary',
   };

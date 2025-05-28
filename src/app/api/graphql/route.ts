@@ -3,6 +3,7 @@ import { join } from 'path';
 
 import { ApolloServer } from '@apollo/server';
 import { startServerAndCreateNextHandler } from '@as-integrations/next';
+import { auth, currentUser } from '@clerk/nextjs/server';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { constraintDirective, constraintDirectiveTypeDefs } from 'graphql-constraint-directive';
 import { NextResponse } from 'next/server';
@@ -34,10 +35,35 @@ const handler = startServerAndCreateNextHandler(server, {
     const cache = getCache();
     await cache.initializeRedis();
     const redisClient = cache.getRedisClient();
+
+    // Get the current user from Clerk
+    const { userId } = await auth();
+    if (!userId) {
+      return {
+        db,
+        redis: redisClient,
+        user: undefined,
+        loaders: createLoaders(db),
+      } as Context;
+    }
+
+    const user = await currentUser();
+    let dbUser = undefined;
+    if (user) {
+      dbUser = {
+        id: user.id,
+        username: user.username ?? '',
+        first_name: user.firstName || '',
+        last_name: user.lastName || '',
+        email_address: user.emailAddresses[0]?.emailAddress || '',
+        image_url: user.imageUrl,
+      };
+    }
+
     return {
       db,
       redis: redisClient,
-      user: undefined,
+      user: dbUser,
       loaders: createLoaders(db),
     } as Context;
   },

@@ -308,13 +308,13 @@ export const typeDefs = gql`
   }
 
   enum ParentType {
-    COMMENT
-    GAME_LOG
+    comment
+    game_log
   }
 
   enum TargetType {
-    COMMENT
-    GAME_LOG
+    comment
+    game_log
   }
 
   enum ReactionEmojiType {
@@ -637,6 +637,9 @@ export const typeDefs = gql`
     id: String!
     username: String
     imageUrl: String
+    first_name: String
+    last_name: String
+    email_address: String
   }
 
   # Queries

@@ -3,7 +3,8 @@ import { gql } from '@apollo/client';
 import {
   COMMENT_FRAGMENT,
   PLAYER_STATS_FRAGMENT,
-  BASIC_USER_FRAGMENT,
+  // BASIC_USER_FRAGMENT,
+  USER_SUMMARY_FRAGMENT,
 } from '@/lib/graphql/queries';
 
 export const CREATE_GAME = gql`
@@ -283,7 +284,7 @@ export const CREATE_REACTION = gql`
         created_at
         updated_at
         user {
-          ...BasicUserFragment
+          ...UserSummaryFragment
         }
       }
       errors {
@@ -310,7 +311,7 @@ export const CREATE_REACTION = gql`
       }
     }
   }
-  ${BASIC_USER_FRAGMENT}
+  ${USER_SUMMARY_FRAGMENT}
 `;
 
 export const DELETE_REACTION = gql`
@@ -354,10 +355,10 @@ export const SEND_FRIEND_REQUEST = gql`
         created_at
         updated_at
         initiator {
-          ...BasicUserFragment
+          ...UserSummaryFragment
         }
         recipient {
-          ...BasicUserFragment
+          ...UserSummaryFragment
         }
       }
       errors {
@@ -384,7 +385,7 @@ export const SEND_FRIEND_REQUEST = gql`
       }
     }
   }
-  ${BASIC_USER_FRAGMENT}
+  ${USER_SUMMARY_FRAGMENT}
 `;
 
 export const ACCEPT_FRIEND_REQUEST = gql`
@@ -398,10 +399,10 @@ export const ACCEPT_FRIEND_REQUEST = gql`
         created_at
         updated_at
         initiator {
-          ...BasicUserFragment
+          ...UserSummaryFragment
         }
         recipient {
-          ...BasicUserFragment
+          ...UserSummaryFragment
         }
       }
       errors {
@@ -428,7 +429,7 @@ export const ACCEPT_FRIEND_REQUEST = gql`
       }
     }
   }
-  ${BASIC_USER_FRAGMENT}
+  ${USER_SUMMARY_FRAGMENT}
 `;
 
 export const REJECT_FRIEND_REQUEST = gql`
@@ -442,10 +443,10 @@ export const REJECT_FRIEND_REQUEST = gql`
         created_at
         updated_at
         initiator {
-          ...BasicUserFragment
+          ...UserSummaryFragment
         }
         recipient {
-          ...BasicUserFragment
+          ...UserSummaryFragment
         }
       }
       errors {
@@ -472,7 +473,7 @@ export const REJECT_FRIEND_REQUEST = gql`
       }
     }
   }
-  ${BASIC_USER_FRAGMENT}
+  ${USER_SUMMARY_FRAGMENT}
 `;
 
 export const REMOVE_FRIEND = gql`
@@ -516,10 +517,10 @@ export const UPDATE_FRIENDSHIP_STATUS = gql`
         created_at
         updated_at
         initiator {
-          ...BasicUserFragment
+          ...UserSummaryFragment
         }
         recipient {
-          ...BasicUserFragment
+          ...UserSummaryFragment
         }
       }
       errors {
@@ -546,7 +547,7 @@ export const UPDATE_FRIENDSHIP_STATUS = gql`
       }
     }
   }
-  ${BASIC_USER_FRAGMENT}
+  ${USER_SUMMARY_FRAGMENT}
 `;
 
 export const UPDATE_PLAYER = gql`
@@ -712,7 +713,7 @@ export const ADD_REACTION = gql`
         emoji
         created_at
         user {
-          ...BasicUserFragment
+          ...UserSummaryFragment
         }
       }
       errors {
@@ -739,7 +740,7 @@ export const ADD_REACTION = gql`
       }
     }
   }
-  ${BASIC_USER_FRAGMENT}
+  ${USER_SUMMARY_FRAGMENT}
 `;
 
 export const REMOVE_REACTION = gql`

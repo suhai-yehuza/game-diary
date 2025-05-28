@@ -20,10 +20,10 @@ export async function createContext(): Promise<Context> {
     dbUser = {
       id: user.id,
       username: user.username ?? '',
-      first_name: user.firstName || '',
-      last_name: user.lastName || '',
-      email_address: user.emailAddresses[0]?.emailAddress || '',
-      image_url: user.imageUrl,
+      first_name: user.firstName ?? '',
+      last_name: user.lastName ?? '',
+      email_address: user.emailAddresses[0]?.emailAddress ?? '',
+      image_url: user.imageUrl ?? '',
     };
   }
 
@@ -32,7 +32,16 @@ export async function createContext(): Promise<Context> {
   return {
     db,
     redis,
-    user: dbUser,
+    user: dbUser
+      ? {
+          id: dbUser.id,
+          username: dbUser.username ?? '',
+          first_name: dbUser.first_name,
+          last_name: dbUser.last_name,
+          email_address: dbUser.email_address ?? '',
+          image_url: dbUser.image_url ?? '',
+        }
+      : undefined,
     loaders: {
       reaction: loaders.reaction as DataLoader<string, Reaction>,
     },

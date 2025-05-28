@@ -488,49 +488,116 @@ export const createComment = async (
   const { user, db } = context;
   const authenticatedUser = checkAuth(user);
 
-  const validatedInput = validateInput(createCommentSchema, input);
-  const [comment] = await db
-    .insert(schema.comments)
-    .values({
+  try {
+    // Validate input directly without transformation
+    const validatedInput = validateInput(createCommentSchema, input);
+
+    // Create a plain object for insert values with string literals for enum values
+    const insertValues = {
       id: generateUUID(),
       user_id: authenticatedUser.id,
+      parent_id: validatedInput.parent_id,
+      parent_type: validatedInput.parent_type.toLowerCase() as 'game_log' | 'comment',
       target_id: validatedInput.parent_id,
-      target_type: validatedInput.parent_type,
+      target_type: validatedInput.parent_type.toLowerCase() as 'game_log' | 'comment',
       content: validatedInput.content,
       created_at: new Date(),
       updated_at: new Date(),
-    })
-    .returning();
+      deleted_at: null,
+    };
 
-  return {
-    comment: {
-      ...comment,
-      parent_id: comment.parent_id || '',
-      parent_type: (comment.parent_type as ParentType) || 'GAME_LOG',
-      reactions: [],
-      user: {
-        id: authenticatedUser.id,
-        username: authenticatedUser.username || '',
-        email_address: authenticatedUser.email || '',
-        imageUrl: authenticatedUser.image_url || '',
-        comments: [],
-        gameLogs: [],
-        initiated_friendships: [],
+    // Insert the comment and get the result
+    await db.insert(schema.comments).values(insertValues);
+
+    // Fetch the created comment
+    const [comment] = await db
+      .select()
+      .from(schema.comments)
+      .where(eq(schema.comments.id, insertValues.id));
+
+    if (!comment) {
+      throw new Error('Failed to create comment - no comment returned from database');
+    }
+
+    // Transform the comment to match the GraphQL schema
+    return {
+      comment: {
+        id: comment.id,
+        parent_id: comment.parent_id || '',
+        parent_type: (comment.parent_type as ParentType) || 'game_log',
+        content: comment.content,
+        created_at: comment.created_at,
+        updated_at: comment.updated_at,
+        deleted_at: comment.deleted_at,
         reactions: [],
-        received_friendships: [],
-        __typename: 'UserSummary' as const,
+        user: {
+          id: authenticatedUser.id,
+          username: authenticatedUser.username || '',
+          email_address: authenticatedUser.email_address || '',
+          imageUrl: authenticatedUser.image_url || '',
+          comments: [],
+          gameLogs: [],
+          initiated_friendships: [],
+          reactions: [],
+          received_friendships: [],
+          __typename: 'UserSummary' as const,
+        },
+        userId: comment.user_id || authenticatedUser.id,
+        __typename: 'Comment' as const,
       },
-      userId: authenticatedUser.id,
-    },
-    errors: [],
-  };
+      errors: [],
+    };
+  } catch (error) {
+    console.error('Error creating comment:', error);
+
+    // Handle validation errors
+    if (error instanceof z.ZodError) {
+      return {
+        comment: null,
+        errors: [
+          {
+            message: error.errors[0].message,
+            code: 'VALIDATION_ERROR',
+            details: error.errors,
+          },
+        ],
+      };
+    }
+
+    // Handle database errors
+    if (error instanceof Error) {
+      return {
+        comment: null,
+        errors: [
+          {
+            message: error.message,
+            code: 'COMMENT_CREATE_ERROR',
+            details: error.stack,
+          },
+        ],
+      };
+    }
+
+    // Handle unknown errors
+    return {
+      comment: null,
+      errors: [
+        {
+          message: 'Failed to create comment',
+          code: 'COMMENT_CREATE_ERROR',
+          details: String(error),
+        },
+      ],
+    };
+  }
 };
 
 export const updateComment = async (
   _parent: unknown,
   { id, input }: MutationupdateCommentArgs,
-  { user }: Context
+  context: Context
 ) => {
+  const { user, db } = context;
   if (!user) {
     throw new AuthenticationError('Authentication required');
   }
@@ -561,44 +628,45 @@ export const updateComment = async (
       .where(eq(schema.comments.id, id))
       .returning();
 
-    let userObj = null;
-    if (updatedComment && updatedComment.user_id) {
-      userObj = await db.query.users.findFirst({
-        where: eq(schema.users.id, updatedComment.user_id),
-      });
-    }
-
-    if (!userObj) {
-      throw new NotFoundError('User', updatedComment?.user_id || 'unknown');
+    if (!updatedComment) {
+      return {
+        comment: null,
+        errors: [
+          {
+            message: 'Failed to update comment',
+            code: 'COMMENT_UPDATE_ERROR',
+          },
+        ],
+      };
     }
 
     return {
-      comment: updatedComment
-        ? {
-            id: updatedComment.id,
-            parent_id: updatedComment.parent_id || '',
-            parent_type: (updatedComment.parent_type as ParentType) || 'GAME_LOG',
-            content: updatedComment.content,
-            created_at: updatedComment.created_at,
-            updated_at: updatedComment.updated_at,
-            deleted_at: updatedComment.deleted_at,
-            reactions: [],
-            user: {
-              id: userObj.id,
-              username: userObj.username || '',
-              email_address: userObj.email_address || '',
-              imageUrl: userObj.image_url || '',
-              comments: [],
-              gameLogs: [],
-              initiated_friendships: [],
-              reactions: [],
-              received_friendships: [],
-              __typename: 'UserSummary' as const,
-            },
-            userId: updatedComment.user_id ?? '',
-            __typename: 'Comment' as const,
-          }
-        : null,
+      comment: {
+        id: updatedComment.id,
+        parent_id: updatedComment.parent_id || '',
+        parent_type: (updatedComment.parent_type as ParentType) || 'game_log',
+        content: updatedComment.content,
+        created_at: updatedComment.created_at,
+        updated_at: updatedComment.updated_at,
+        deleted_at: updatedComment.deleted_at,
+        reactions: [],
+        user: {
+          id: user.id,
+          username: user.username,
+          email_address: user.email_address,
+          imageUrl: user.image_url,
+          first_name: user.first_name,
+          last_name: user.last_name,
+          comments: [],
+          gameLogs: [],
+          initiated_friendships: [],
+          reactions: [],
+          received_friendships: [],
+          __typename: 'UserSummary' as const,
+        },
+        userId: updatedComment.user_id || user.id,
+        __typename: 'Comment' as const,
+      },
       errors: [],
     };
   } catch (error) {

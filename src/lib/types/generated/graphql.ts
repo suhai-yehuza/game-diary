@@ -720,8 +720,8 @@ export type PaginationInput = {
 };
 
 export type ParentType =
-  | 'COMMENT'
-  | 'GAME_LOG';
+  | 'comment'
+  | 'game_log';
 
 export type Player = {
   __typename?: 'Player';
@@ -1239,8 +1239,8 @@ export type SortDirection =
   | 'DESC';
 
 export type TargetType =
-  | 'COMMENT'
-  | 'GAME_LOG';
+  | 'comment'
+  | 'game_log';
 
 export type Team = {
   __typename?: 'Team';
@@ -1623,8 +1623,10 @@ export type UserEdge = {
 export type UserSummary = {
   __typename?: 'UserSummary';
   email_address: Maybe<Scalars['String']['output']>;
+  first_name: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
   imageUrl: Maybe<Scalars['String']['output']>;
+  last_name: Maybe<Scalars['String']['output']>;
   username: Scalars['String']['output'];
 };
 
@@ -2961,8 +2963,10 @@ export type UserEdgeResolvers<ContextType = Context, ParentType extends Resolver
 
 export type UserSummaryResolvers<ContextType = Context, ParentType extends ResolversParentTypes['UserSummary'] = ResolversParentTypes['UserSummary']> = {
   email_address?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  first_name?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   imageUrl?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  last_name?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   username?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };

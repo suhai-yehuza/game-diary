@@ -35,7 +35,9 @@ export function createLoaders(db: NeonHttpDatabase<typeof schema>) {
       if (!user) return null;
       return {
         id: user.id,
-        username: user.username || '',
+        username: user.username || 'missing-username',
+        first_name: user.first_name || 'missing-first-name',
+        last_name: user.last_name || 'missing-last-name',
         email_address: user.email_address || '',
         imageUrl: user.image_url || undefined,
         __typename: 'UserSummary',
@@ -193,7 +195,7 @@ export function createLoaders(db: NeonHttpDatabase<typeof schema>) {
         id: comment.id,
         userId: comment.user_id || '',
         parent_id: comment.parent_id || '',
-        parent_type: (comment.parent_type || 'COMMENT') as ParentType,
+        parent_type: (comment.parent_type?.toLowerCase() || 'comment') as ParentType,
         content: comment.content || '',
         created_at: comment.created_at,
         updated_at: comment.updated_at,
@@ -218,7 +220,7 @@ export function createLoaders(db: NeonHttpDatabase<typeof schema>) {
         id: reaction.id,
         userId: reaction.user_id || '',
         targetId: reaction.target_id || '',
-        targetType: (reaction.target_type || 'COMMENT') as ParentType,
+        targetType: (reaction.target_type || 'comment') as ParentType,
         emoji: (reaction.emoji || 'LIKE') as ReactionEmojiType,
         created_at: reaction.created_at,
         updated_at: reaction.updated_at,

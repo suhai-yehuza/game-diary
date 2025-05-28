@@ -16,7 +16,7 @@ import {
 import { CACHE_TTL } from '@/lib/types/cache.types';
 import { Context } from '@/lib/types/context.types';
 import { DatabaseRow } from '@/lib/types/database.types';
-import { ReactionEmojiType, ParentType } from '@/lib/types/generated/graphql';
+import { ReactionEmojiType } from '@/lib/types/generated/graphql';
 import type { User } from '@/lib/types/generated/graphql';
 
 // Type for game scores JSON structure
@@ -1205,7 +1205,23 @@ export const gameLogs = async (
     const edges = await Promise.all(
       actualGameLogs.map(async (gameLog: DatabaseRow, index: number) => {
         const gameLogId = gameLog.id as string;
-        
+
+        // Fetch user data for this game log
+        const user = await db
+          .select()
+          .from(schema.users)
+          .where(eq(schema.users.id, gameLog.user_id as string))
+          .limit(1)
+          .then(rows => rows[0]);
+
+        // Fetch game data
+        const game = await db
+          .select()
+          .from(schema.nba_games)
+          .where(eq(schema.nba_games.id, gameLog.game_id as string))
+          .limit(1)
+          .then(rows => rows[0]);
+
         // Fetch comments for this game log with pagination
         const [comments, commentsTotal] = await Promise.all([
           db
@@ -1213,8 +1229,8 @@ export const gameLogs = async (
             .from(schema.comments)
             .where(
               and(
-                eq(schema.comments.target_id, gameLogId),
-                eq(schema.comments.target_type, 'GAME_LOG')
+                eq(schema.comments.parent_id, gameLogId),
+                eq(schema.comments.parent_type, 'game_log')
               )
             )
             .orderBy(desc(schema.comments.created_at))
@@ -1224,8 +1240,8 @@ export const gameLogs = async (
             .from(schema.comments)
             .where(
               and(
-                eq(schema.comments.target_id, gameLogId),
-                eq(schema.comments.target_type, 'GAME_LOG')
+                eq(schema.comments.parent_id, gameLogId),
+                eq(schema.comments.parent_type, 'game_log')
               )
             ),
         ]);
@@ -1238,7 +1254,7 @@ export const gameLogs = async (
             .where(
               and(
                 eq(schema.reactions.target_id, gameLogId),
-                eq(schema.reactions.target_type, 'GAME_LOG')
+                eq(schema.reactions.target_type, 'game_log')
               )
             )
             .orderBy(desc(schema.reactions.created_at))
@@ -1249,7 +1265,7 @@ export const gameLogs = async (
             .where(
               and(
                 eq(schema.reactions.target_id, gameLogId),
-                eq(schema.reactions.target_type, 'GAME_LOG')
+                eq(schema.reactions.target_type, 'game_log')
               )
             ),
         ]);
@@ -1305,25 +1321,60 @@ export const gameLogs = async (
             created_at: gameLog.created_at as Date,
             updated_at: gameLog.updated_at as Date,
             deleted_at: gameLog.deleted_at as Date | null,
+            user: user
+              ? {
+                  id: user.id,
+                  username: user.username,
+                  email_address: user.email_address,
+                  imageUrl: user.image_url,
+                  first_name: user.first_name || '',
+                  last_name: user.last_name || '',
+                }
+              : {
+                  id: '',
+                  username: 'Unknown User',
+                  email_address: '',
+                  imageUrl: '',
+                  first_name: '',
+                  last_name: '',
+                },
+            game: game
+              ? {
+                  id: game.id,
+                  teams: game.teams || {
+                    home: null,
+                    visitors: null,
+                  },
+                }
+              : null,
             comments: {
               edges: comments.map((comment, i) => ({
                 cursor: String(i),
                 node: {
                   id: comment.id,
                   userId: String(comment.user_id),
-                  parent_id: comment.parent_id || '',
-                  parent_type: (comment.parent_type as 'GAME_LOG') || 'GAME_LOG',
+                  parent_id: comment.parent_id,
+                  parent_type: 'game_log' as const,
                   content: comment.content,
                   created_at: comment.created_at,
                   updated_at: comment.updated_at,
                   deleted_at: comment.deleted_at,
                   user: commentUsers[i]
-                    ? transformUserToSummary(commentUsers[i] as unknown as User)
+                    ? {
+                        id: commentUsers[i].id,
+                        username: commentUsers[i].username,
+                        email_address: commentUsers[i].email_address,
+                        imageUrl: commentUsers[i].image_url,
+                        first_name: commentUsers[i].first_name || '',
+                        last_name: commentUsers[i].last_name || '',
+                      }
                     : {
                         id: '',
                         username: 'Unknown User',
                         email_address: '',
                         imageUrl: '',
+                        first_name: '',
+                        last_name: '',
                       },
                   reactions: [],
                 },
@@ -1339,15 +1390,24 @@ export const gameLogs = async (
                   created_at: reaction.created_at,
                   updated_at: reaction.updated_at,
                   targetId: reaction.target_id || '',
-                  targetType: (reaction.target_type as 'GAME_LOG') || 'GAME_LOG',
+                  targetType: reaction.target_type,
                   userId: reaction.user_id || '',
                   user: reactionUsers[i]
-                    ? transformUserToSummary(reactionUsers[i] as unknown as User)
+                    ? {
+                        id: reactionUsers[i].id,
+                        username: reactionUsers[i].username,
+                        email_address: reactionUsers[i].email_address,
+                        imageUrl: reactionUsers[i].image_url,
+                        first_name: reactionUsers[i].first_name || '',
+                        last_name: reactionUsers[i].last_name || '',
+                      }
                     : {
                         id: '',
                         username: 'Unknown User',
                         email_address: '',
                         imageUrl: '',
+                        first_name: '',
+                        last_name: '',
                       },
                 },
               })),
@@ -1388,7 +1448,7 @@ export const GameLog = {
   ) => {
     try {
       const { first, after } = args;
-      const limit = Math.min(first ?? 20, 100); // Limit to max 100 comments
+      const limit = Math.min(first ?? 20, 100);
       const offset = after ? parseInt(after, 10) : 0;
 
       const comments = await db
@@ -1396,30 +1456,27 @@ export const GameLog = {
         .from(schema.comments)
         .where(
           and(
-            eq(schema.comments.target_id, gameLog.id),
-            eq(schema.comments.target_type, 'GAME_LOG')
+            eq(schema.comments.parent_id, gameLog.id),
+            eq(schema.comments.parent_type, 'game_log')
           )
         )
         .orderBy(desc(schema.comments.created_at))
-        .limit(limit + 1) // Get one extra to check if there's a next page
+        .limit(limit + 1)
         .offset(offset);
 
-      // Get total count for pagination
       const [{ count }] = await db
         .select({ count: sql<number>`count(*)` })
         .from(schema.comments)
         .where(
           and(
-            eq(schema.comments.target_id, gameLog.id),
-            eq(schema.comments.target_type, 'GAME_LOG')
+            eq(schema.comments.parent_id, gameLog.id),
+            eq(schema.comments.parent_type, 'game_log')
           )
         );
 
-      // Check if there are more items
       const hasNextPage = comments.length > limit;
       const actualComments = hasNextPage ? comments.slice(0, -1) : comments;
 
-      // Fetch users for comments
       const commentUsers = await Promise.all(
         actualComments.map(comment =>
           comment.user_id
@@ -1438,19 +1495,28 @@ export const GameLog = {
         node: {
           id: comment.id,
           userId: String(comment.user_id),
-          parent_id: comment.parent_id || '',
-          parent_type: (comment.parent_type as 'GAME_LOG') || 'GAME_LOG',
+          parent_id: comment.parent_id,
+          parent_type: 'game_log' as const,
           content: comment.content,
           created_at: comment.created_at,
           updated_at: comment.updated_at,
           deleted_at: comment.deleted_at,
           user: commentUsers[index]
-            ? transformUserToSummary(commentUsers[index] as unknown as User)
+            ? {
+                id: commentUsers[index].id,
+                username: commentUsers[index].username,
+                email_address: commentUsers[index].email_address,
+                imageUrl: commentUsers[index].image_url,
+                first_name: commentUsers[index].first_name || '',
+                last_name: commentUsers[index].last_name || '',
+              }
             : {
                 id: '',
                 username: 'Unknown User',
                 email_address: '',
                 imageUrl: '',
+                first_name: '',
+                last_name: '',
               },
           reactions: [],
         },
@@ -1493,11 +1559,11 @@ export const GameLog = {
         .where(
           and(
             eq(schema.reactions.target_id, gameLog.id),
-            eq(schema.reactions.target_type, 'GAME_LOG')
+            eq(schema.reactions.target_type, 'game_log')
           )
         )
         .orderBy(desc(schema.reactions.created_at))
-        .limit(limit + 1) // Get one extra to check if there's a next page
+        .limit(limit + 1) // fetch one extra to check for next page
         .offset(offset);
 
       // Get total count for pagination
@@ -1507,11 +1573,10 @@ export const GameLog = {
         .where(
           and(
             eq(schema.reactions.target_id, gameLog.id),
-            eq(schema.reactions.target_type, 'GAME_LOG')
+            eq(schema.reactions.target_type, 'game_log')
           )
         );
 
-      // Check if there are more items
       const hasNextPage = reactions.length > limit;
       const actualReactions = hasNextPage ? reactions.slice(0, -1) : reactions;
 
@@ -1537,15 +1602,24 @@ export const GameLog = {
           created_at: reaction.created_at,
           updated_at: reaction.updated_at,
           targetId: reaction.target_id || '',
-          targetType: (reaction.target_type as 'GAME_LOG') || 'GAME_LOG',
+          targetType: reaction.target_type,
           userId: reaction.user_id || '',
           user: reactionUsers[index]
-            ? transformUserToSummary(reactionUsers[index] as unknown as User)
+            ? {
+                id: reactionUsers[index].id,
+                username: reactionUsers[index].username,
+                email_address: reactionUsers[index].email_address,
+                imageUrl: reactionUsers[index].image_url,
+                first_name: reactionUsers[index].first_name || '',
+                last_name: reactionUsers[index].last_name || '',
+              }
             : {
                 id: '',
                 username: 'Unknown User',
                 email_address: '',
                 imageUrl: '',
+                first_name: '',
+                last_name: '',
               },
         },
       }));
@@ -1576,61 +1650,84 @@ export const comments = async (
     last?: number | null;
     before?: string | null;
   },
-  _context: Context
+  { db }: Context
 ) => {
   const { parent_id, ...paginationArgs } = args;
   const { limit, offset } = parsePaginationArgs(paginationArgs);
 
   const [comments, totalResult] = await Promise.all([
-    db.query.comments.findMany({
-      where: eq(schema.comments.parent_id, parent_id),
-      with: {
-        user: true,
-      },
-      limit,
-      offset,
-    }),
+    db
+      .select()
+      .from(schema.comments)
+      .where(
+        and(eq(schema.comments.parent_id, parent_id), eq(schema.comments.parent_type, 'game_log'))
+      )
+      .limit(limit)
+      .offset(offset),
     db
       .select({ count: sql<number>`count(*)` })
       .from(schema.comments)
-      .where(eq(schema.comments.parent_id, parent_id)),
+      .where(
+        and(eq(schema.comments.parent_id, parent_id), eq(schema.comments.parent_type, 'game_log'))
+      ),
   ]);
 
   const total = totalResult[0]?.count || 0;
 
   const commentsWithReactions = await Promise.all(
     comments.map(async comment => {
-      if (!comment.user) return null;
+      if (!comment.user_id) return null;
 
-      const commentReactions = await db.query.reactions.findMany({
-        where: eq(schema.reactions.target_id, comment.id),
-        with: {
-          user: true,
-        },
-      });
+      const user = await db
+        .select()
+        .from(schema.users)
+        .where(eq(schema.users.id, comment.user_id))
+        .limit(1)
+        .then(rows => rows[0]);
+
+      if (!user) return null;
+
+      const commentReactions = await db
+        .select()
+        .from(schema.reactions)
+        .where(eq(schema.reactions.target_id, comment.id));
+
+      const reactionUsers = await Promise.all(
+        commentReactions.map(reaction =>
+          reaction.user_id
+            ? db
+                .select()
+                .from(schema.users)
+                .where(eq(schema.users.id, reaction.user_id))
+                .limit(1)
+                .then(rows => rows[0])
+            : null
+        )
+      );
 
       return {
         id: comment.id,
         userId: String(comment.user_id),
-        parent_id: comment.parent_id || '',
-        parent_type: (comment.parent_type as 'GAME_LOG') || 'GAME_LOG',
+        parent_id: comment.parent_id,
+        parent_type: 'game_log' as const,
         content: comment.content,
         created_at: comment.created_at,
         updated_at: comment.updated_at,
         deleted_at: comment.deleted_at,
-        user: transformUserToSummary(comment.user as unknown as User),
+        user: transformUserToSummary(user as unknown as User),
         reactions: commentReactions
-          .map(reactionRaw => {
-            if (!reactionRaw.user) return null;
+          .map((reactionRaw, index) => {
+            const reactionUser = reactionUsers[index];
+            if (!reactionUser) return null;
             return {
               id: reactionRaw.id,
               emoji: reactionRaw.emoji as ReactionEmojiType,
               created_at: reactionRaw.created_at,
               updated_at: reactionRaw.updated_at,
               targetId: reactionRaw.target_id,
-              targetType: reactionRaw.target_type as ParentType,
+              targetType: reactionRaw.target_type,
               userId: reactionRaw.user_id || '',
-              user: transformUserToSummary(reactionRaw.user as unknown as User),
+              user: transformUserToSummary(reactionUser as unknown as User),
               __typename: 'Reaction' as const,
             };
           })
@@ -1655,20 +1752,19 @@ export const reactions = async (
     last?: number | null;
     before?: string | null;
   },
-  _context: Context
+  { db }: Context
 ) => {
   const { targetId, ...paginationArgs } = args;
   const { limit, offset } = parsePaginationArgs(paginationArgs);
 
   const [reactions, totalResult] = await Promise.all([
-    db.query.reactions.findMany({
-      where: eq(schema.reactions.target_id, targetId),
-      with: {
-        user: true,
-      },
-      limit,
-      offset,
-    }),
+    db
+      .select()
+      .from(schema.reactions)
+      .where(eq(schema.reactions.target_id, targetId))
+      .orderBy(desc(schema.reactions.created_at))
+      .limit(limit)
+      .offset(offset),
     db
       .select({ count: sql<number>`count(*)` })
       .from(schema.reactions)
@@ -1677,21 +1773,37 @@ export const reactions = async (
 
   const total = totalResult[0]?.count || 0;
 
-  const mappedReactions = reactions.map(reaction => ({
+  // Fetch users for reactions
+  const reactionUsers = await Promise.all(
+    reactions.map(reaction =>
+      reaction.user_id
+        ? db
+            .select()
+            .from(schema.users)
+            .where(eq(schema.users.id, reaction.user_id))
+            .limit(1)
+            .then(rows => rows[0])
+        : null
+    )
+  );
+
+  const mappedReactions = reactions.map((reaction, index) => ({
     id: reaction.id,
     emoji: reaction.emoji as ReactionEmojiType,
     created_at: reaction.created_at,
     updated_at: reaction.updated_at,
     targetId: reaction.target_id || '',
-    targetType: (reaction.target_type as ParentType) || 'GAME_LOG',
+    targetType: reaction.target_type,
     userId: reaction.user_id || '',
-    user: reaction.user
-      ? transformUserToSummary(reaction.user as unknown as User)
+    user: reactionUsers[index]
+      ? transformUserToSummary(reactionUsers[index] as unknown as User)
       : {
           id: '',
           username: 'Unknown User',
           email_address: '',
           imageUrl: '',
+          first_name: '',
+          last_name: '',
         },
   }));
 

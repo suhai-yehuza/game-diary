@@ -48,16 +48,12 @@ export function CommentsSection({ parent_id, parent_type }: CommentsSectionProps
 
   const { data, loading, error, refetch } = useQuery(GET_COMMENTS_WITH_FILTERS, {
     variables: {
-      filters: {
-        parent_id: parent_id,
-        parent_type: parent_type,
-      },
+      parent_id: parent_id,
     },
   });
 
   const [createComment] = useMutation(CREATE_COMMENT, {
     onCompleted: () => {
-      setNewComment('');
       refetch();
     },
     onError: error => {
@@ -127,28 +123,34 @@ export function CommentsSection({ parent_id, parent_type }: CommentsSectionProps
     e.preventDefault();
     if (!newComment.trim() || !user) return;
 
-    await createComment({
-      variables: {
-        input: {
-          user_id: user.id,
-          parent_id: parent_id,
-          parent_type: parent_type,
-          content: newComment,
+    try {
+      await createComment({
+        variables: {
+          input: {
+            parent_id: parent_id,
+            parent_type: parent_type.toUpperCase(),
+            content: newComment,
+          },
         },
-      },
-    });
+      });
+      setNewComment('');
+    } catch (error) {
+      console.error('Error creating comment:', error);
+    }
   };
 
   const handleReaction = async (commentId: string, emoji: string) => {
     if (!user) return;
 
     try {
-      const comment = data?.comments?.find((c: Comment) => c.id === commentId);
+      const comment = data?.comments?.edges?.find(
+        ({ node: c }: { node: Comment }) => c.id === commentId
+      );
       if (!comment) {
         return;
       }
 
-      const existingReaction = comment.reactions.find(
+      const existingReaction = comment.node.reactions.find(
         (r: Reaction) => r.user.id === user.id && r.emoji === emoji
       );
 
@@ -169,7 +171,7 @@ export function CommentsSection({ parent_id, parent_type }: CommentsSectionProps
             input: {
               user_id: user.id,
               target_id: commentId,
-              target_type: 'COMMENT',
+              target_type: 'comment',
               emoji,
             },
           },
@@ -259,7 +261,7 @@ export function CommentsSection({ parent_id, parent_type }: CommentsSectionProps
         )}
 
         <div className="space-y-4">
-          {data?.comments?.map((comment: Comment) => (
+          {data?.comments?.edges?.map(({ node: comment }: { node: Comment }) => (
             <div key={comment.id} className="border rounded-lg p-4">
               <div className="flex items-start justify-between mb-2">
                 <div className="flex items-center gap-2">

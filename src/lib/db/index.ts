@@ -31,9 +31,22 @@ neonConfig.useSecureWebSocket = true;
 neonConfig.pipelineTLS = true;
 neonConfig.pipelineConnect = false;
 
-// Create database connection
-const sql = neon(appEnv.DATABASE_URL);
-export const db = drizzle(sql, { schema: dbSchema }) as NeonHttpDatabase<typeof dbSchema>;
+// Create database connection with error handling
+let sql;
+try {
+  sql = neon(appEnv.DATABASE_URL);
+  console.log('Database connection established successfully');
+} catch (error) {
+  console.error('Failed to establish database connection:', error);
+  throw new Error(
+    'Database connection failed. Please check your network connection and database URL.'
+  );
+}
+
+// Initialize database with schema
+export const db = drizzle(sql, {
+  schema: dbSchema,
+}) as NeonHttpDatabase<Schema>;
 
 // Query optimization utilities with proper type safety
 export const withCache = async <T>(
@@ -161,7 +174,7 @@ export const monitorQuery = async <T>(
 
 // Database transaction wrapper with proper error handling
 export async function withDb<T>(
-  callback: (db: NeonHttpDatabase<typeof dbSchema>) => Promise<T>,
+  callback: (db: NeonHttpDatabase<Schema>) => Promise<T>,
   options: QueryOptions = {}
 ): Promise<T> {
   return monitorQuery(

@@ -12,13 +12,16 @@ export const usersRelations = relations(users, ({ many }) => ({
   friendships: many(friendships),
 }));
 
-export const commentsRelations = relations(comments, ({ one }) => ({
+// Comment-related relations
+export const commentsRelations = relations(comments, ({ one, many }) => ({
   user: one(users, {
     fields: [comments.user_id],
     references: [users.id],
   }),
+  reactions: many(reactions),
 }));
 
+// Reaction-related relations
 export const reactionsRelations = relations(reactions, ({ one }) => ({
   user: one(users, {
     fields: [reactions.user_id],

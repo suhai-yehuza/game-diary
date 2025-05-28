@@ -71,14 +71,6 @@ export const CACHE_TTL = {
   VERY_LONG: 86400, // 24 hours
 } as const;
 
-export const CACHE_KEYS = {
-  USER: 'user',
-  GAME_LOG: 'game_log',
-  GAME: 'game',
-  COMMENT: 'comment',
-  FRIENDSHIP: 'friendship',
-} as const;
-
 // Game-related Constants
 export const validDivisions = [
   'Atlantic',
@@ -120,11 +112,6 @@ export const GAME_STATUS_VALUES = {
   SCHEDULED: 'Scheduled',
 } as const;
 
-export const PARENT_TYPES = {
-  GAME_LOG: 'game_log',
-  COMMENT: 'comment',
-} as const;
-
 export const PERMISSIONS = {
   READ: 'read',
   WRITE: 'write',
@@ -149,8 +136,8 @@ export const SORT_DIRECTION = {
 } as const;
 
 export const TARGET_TYPES = {
-  GAME_LOG: 'game_log',
-  COMMENT: 'comment',
+  game_log: 'game_log',
+  comment: 'comment',
 } as const;
 
 export const LEAGUES = {

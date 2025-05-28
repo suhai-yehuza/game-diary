@@ -2,10 +2,9 @@ import { faker } from '@faker-js/faker';
 import { sql } from 'drizzle-orm';
 
 import { API_CONFIG } from '@/lib/config/api.config';
-import { comments } from '@/lib/db/schema/comment-schemas';
 import { GameLogClassification } from '@/lib/db/schema/game-log-schemas';
 import { game_logs, games, game_ratings } from '@/lib/db/schema/game-schemas';
-import { users, friendships, reactions } from '@/lib/db/schema/user-schemas';
+import { users, friendships, reactions, comments } from '@/lib/db/schema/user-schemas';
 import {
   FRIENDSHIP_STATUS,
   WATCHED_SETTINGS,
@@ -110,8 +109,8 @@ async function* generateFriendshipsStream(
 
   for (const userChunk of userChunks) {
     for (const user of userChunk) {
-      // Only process 10% of users
-      if (Math.random() >= 0.1) {
+      // Only process 20% of users
+      if (Math.random() >= 0.2) {
         continue;
       }
 
@@ -156,8 +155,8 @@ async function* generateGameLogsStream(
   const gameRatings = new Map<string, { total: number; count: number }>();
 
   for await (const user of userStream) {
-    // Only generate game logs for 10% of users
-    if (Math.random() >= 0.1) {
+    // Only generate game logs for 20% of users
+    if (Math.random() >= 0.2) {
       continue;
     }
 
@@ -226,7 +225,7 @@ async function* generateGameLogsStream(
 
     // Yield control periodically
     if (Math.random() < 0.1) {
-      // 10% chance to yield control
+      // 20% chance to yield control
       await new Promise(resolve => setImmediate(resolve));
     }
   }
@@ -280,8 +279,8 @@ async function* generateCommentsStream(
   }
 
   for await (const gameLog of gameLogStream) {
-    // Only generate comments for 10% of game logs
-    if (Math.random() >= 0.1) {
+    // Only generate comments for 20% of game logs
+    if (Math.random() >= 0.2) {
       continue;
     }
 
@@ -301,10 +300,8 @@ async function* generateCommentsStream(
       const parentComment: CommentInsert = {
         id: generateUUID(),
         user_id: commenter.id,
-        target_id: gameLog.id,
-        target_type: 'game_log' as const,
         parent_id: gameLog.id,
-        parent_type: 'game_log' as const,
+        parent_type: 'game_log',
         content: faker.lorem.paragraph(),
         created_at: faker.date.past(),
         updated_at: faker.date.recent(),
@@ -314,13 +311,13 @@ async function* generateCommentsStream(
       totalParentComments++;
       yield parentComment;
 
-      // Recursively generate child comments with 10% probability at each level
+      // Recursively generate child comments with 20% probability at each level
       yield* generateChildComments(parentComment, userChunk, 1);
     }
 
     // Yield control periodically
-    if (Math.random() < 0.1) {
-      // 10% chance to yield control
+    if (Math.random() < 0.2) {
+      // 20% chance to yield control
       await new Promise(resolve => setImmediate(resolve));
     }
   }
@@ -343,8 +340,8 @@ async function* generateChildComments(
     return;
   }
 
-  // Only generate child comments for 10% of parent comments
-  if (Math.random() >= 0.1) {
+  // Only generate child comments for 20% of parent comments
+  if (Math.random() >= 0.2) {
     return;
   }
 
@@ -363,10 +360,8 @@ async function* generateChildComments(
     const childComment: CommentInsert = {
       id: generateUUID(),
       user_id: childCommenter.id,
-      target_id: parentComment.id,
-      target_type: 'comment' as const,
       parent_id: parentComment.id,
-      parent_type: 'comment' as const,
+      parent_type: 'comment',
       content: faker.lorem.paragraph(),
       created_at: faker.date.past(),
       updated_at: faker.date.recent(),
@@ -401,22 +396,22 @@ async function* generateReactionsStream(
   }
 
   for await (const comment of commentStream) {
-    // Only generate reactions for 10% of comments
-    if (Math.random() >= 0.1) {
+    // Only generate reactions for 20% of comments
+    if (Math.random() >= 0.2) {
       continue;
     }
 
-    // For game log comments, we want to ensure we're only reacting to 10% of game logs
+    // For game log comments, we want to ensure we're only reacting to 20% of game logs
     if (comment.parent_type === 'game_log') {
       // Skip if this game log wasn't selected for reactions
-      if (Math.random() >= 0.1) {
+      if (Math.random() >= 0.2) {
         continue;
       }
     }
-    // For child comments, we want to ensure we're only reacting to 10% of parent comments
+    // For child comments, we want to ensure we're only reacting to 20% of parent comments
     else if (comment.parent_type === 'comment') {
       // Skip if this parent comment wasn't selected for reactions
-      if (Math.random() >= 0.1) {
+      if (Math.random() >= 0.2) {
         continue;
       }
     }
@@ -433,7 +428,7 @@ async function* generateReactionsStream(
         id: generateUUID(),
         user_id: reactor.id,
         target_id: comment.id ?? generateUUID(), // Fallback to new UUID if undefined
-        target_type: 'comment' as const,
+        target_type: 'comment',
         emoji: faker.helpers.arrayElement(Object.values(REACTION_EMOJIS)) as ReactionEmojiValue,
         created_at: faker.date.past(),
         updated_at: faker.date.recent(),
@@ -441,8 +436,8 @@ async function* generateReactionsStream(
     }
 
     // Yield control periodically
-    if (Math.random() < 0.1) {
-      // 10% chance to yield control
+    if (Math.random() < 0.2) {
+      // 20% chance to yield control
       await new Promise(resolve => setImmediate(resolve));
     }
   }

@@ -26,8 +26,8 @@ export function LiveGamesSection() {
     pollInterval: 30000, // Poll every 30 seconds for live updates
     variables: {
       first: 10, // Limit to 10 live games
-      after: null
-    }
+      after: null,
+    },
   });
 
   if (loading) return <div className="text-center p-4">Loading live games...</div>;
@@ -39,12 +39,13 @@ export function LiveGamesSection() {
   }
 
   // Extract games from the connection type
-  const live_games = (
-    data?.liveGames || (dummyLiveGames as unknown as LiveGamesConnection)
-  ).edges.map((edge: LiveGameEdge) => edge.node);
+  let live_games = data?.liveGames.edges.map((edge: LiveGameEdge) => edge.node) || [];
 
   if (live_games.length === 0) {
-    return <div className="text-center p-4 text-muted-foreground">No live games at the moment</div>;
+    live_games = (dummyLiveGames as unknown as LiveGamesConnection).edges.map(
+      (edge: LiveGameEdge) => edge.node
+    );
+    // return <div className="text-center p-4 text-muted-foreground">No live games at the moment</div>;
   }
 
   return (

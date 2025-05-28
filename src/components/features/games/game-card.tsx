@@ -83,7 +83,8 @@ export const GameCard = memo(({ game, index, imageErrors, onImageError }: GameCa
                   width={64}
                   height={64}
                   priority
-                  className="w-16 h-16 object-contain transition-transform duration-300 group-hover/team:scale-110"
+                  style={{ width: '64px', height: '64px', objectFit: 'contain' }}
+                  className="transition-transform duration-300 group-hover/team:scale-110"
                   onError={() => onImageError?.(`${game.id}-visitors`)}
                 />
                 <div>
@@ -124,7 +125,8 @@ export const GameCard = memo(({ game, index, imageErrors, onImageError }: GameCa
                   width={64}
                   height={64}
                   priority
-                  className="w-16 h-16 object-contain transition-transform duration-300 group-hover/team:scale-110"
+                  style={{ width: '64px', height: '64px', objectFit: 'contain' }}
+                  className="transition-transform duration-300 group-hover/team:scale-110"
                   onError={() => onImageError?.(`${game.id}-home`)}
                 />
                 <div>

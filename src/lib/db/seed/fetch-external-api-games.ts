@@ -1,5 +1,5 @@
 import { API_CONFIG, getRapidApiConfig } from '@/lib/config/api.config';
-import { nba_games, games } from '@/lib/db/schema';
+import { nba_games } from '@/lib/db/schema';
 import { createRapidAPIClient, validateAPIKey, handleAPIError } from '@/lib/external-apis';
 import type { GameApiResponse } from '@/lib/types/game.types';
 
@@ -81,27 +81,6 @@ export async function fetchAndProcessNBAGames(season: number): Promise<void> {
         await db.insert(nba_games).values(nbaGameData).onConflictDoUpdate({
           target: nba_games.id,
           set: nbaGameData,
-        });
-
-        // Prepare data for games table
-        const gameData = {
-          id: game.id.toString(),
-          game_type: 'nba',
-          nba_game_id: game.id.toString(),
-          date: new Date(game.date.start),
-          home_team_id: game.teams.home.id.toString(),
-          away_team_id: game.teams.visitors.id.toString(),
-          home_score: game.scores.home.points,
-          away_score: game.scores.visitors.points,
-          status: game.status.long,
-          created_at: new Date(),
-          updated_at: new Date(),
-        };
-
-        // Store in games table
-        await db.insert(games).values(gameData).onConflictDoUpdate({
-          target: games.id,
-          set: gameData,
         });
 
         console.log('Successfully stored game:', game.id);

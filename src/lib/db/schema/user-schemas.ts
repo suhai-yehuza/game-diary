@@ -87,8 +87,6 @@ export const reactions = pgTable(
     reactionIndex: sql`CREATE INDEX IF NOT EXISTS idx_reactions_target ON reactions (target_id, target_type)`,
     reactionUserIndex: sql`CREATE INDEX IF NOT EXISTS idx_reactions_user ON reactions (user_id)`,
     reactionEmojiIndex: sql`CREATE INDEX IF NOT EXISTS idx_reactions_emoji ON reactions (emoji)`,
-    reactionTargetComment: sql`ALTER TABLE reactions ADD CONSTRAINT fk_reactions_comment CHECK (target_type = 'comment' AND target_id IN (SELECT id FROM comments))`,
-    reactionTargetGameLog: sql`ALTER TABLE reactions ADD CONSTRAINT fk_reactions_game_log CHECK (target_type = 'game_log' AND target_id IN (SELECT id FROM game_logs))`,
     uniqueReaction: unique().on(_table.user_id, _table.target_type, _table.target_id, _table.emoji),
   })
 );

@@ -153,9 +153,9 @@ export default function GameLog() {
             </CardHeader>
             <CardContent>
               <div className="flex items-center gap-4">
-                {gameLog.user.image_url && (
+                {gameLog.user.imageUrl && (
                   <Image
-                    src={gameLog.user.image_url}
+                    src={gameLog.user.imageUrl}
                     alt={gameLog.user.username || 'User'}
                     width={48}
                     height={48}

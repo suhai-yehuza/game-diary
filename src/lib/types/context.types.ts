@@ -11,10 +11,11 @@ export interface Context extends BaseContext {
   db: NeonHttpDatabase<typeof schema>;
   user?: {
     id: string;
-    email?: string;
-    image_url?: string;
-    username?: string;
-    role?: string;
+    username: string;
+    first_name: string;
+    last_name: string;
+    email_address: string;
+    image_url: string;
   };
   redis?: RedisClient;
   loaders?: {

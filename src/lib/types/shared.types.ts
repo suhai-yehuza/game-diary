@@ -319,7 +319,7 @@ export interface GameLogResponse {
     username: string;
     first_name: string;
     last_name: string;
-    image_url: string;
+    imageUrl: string;
   };
   game?: {
     id: string;
@@ -385,6 +385,63 @@ export interface GameLogResponse {
       };
     };
     isCompleted: boolean;
+  };
+  comments?: {
+    edges: Array<{
+      node: {
+        id: string;
+        content: string;
+        userId: string;
+        parent_id: string;
+        parent_type: string;
+        created_at: string;
+        updated_at: string;
+        deleted_at: string | null;
+        user: {
+          id: string;
+          username: string;
+          first_name: string;
+          last_name: string;
+          email_address: string;
+          imageUrl: string;
+        };
+        reactions: Array<{
+          id: string;
+          emoji: string;
+          user: {
+            id: string;
+            username: string;
+            first_name: string;
+            last_name: string;
+            email_address: string;
+            imageUrl: string;
+          };
+        }>;
+      };
+    }>;
+    totalCount: number;
+  };
+  reactions?: {
+    edges: Array<{
+      node: {
+        id: string;
+        emoji: string;
+        user: {
+          id: string;
+          username: string;
+          first_name: string;
+          last_name: string;
+          email_address: string;
+          imageUrl: string;
+        };
+        userId: string;
+        target_id: string;
+        target_type: string;
+        created_at: string;
+        updated_at: string;
+      };
+    }>;
+    totalCount: number;
   };
 }
 

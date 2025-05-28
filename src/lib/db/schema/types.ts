@@ -8,18 +8,22 @@ import {
 } from '@/lib/db/schema/enums';
 
 import { baseTableConfig } from './base-types';
-import { comments } from './comment-schemas';
 import { game_logs, game_ratings, team_h2h } from './game-schemas';
 import { nba_players, nba_player_stats, game_stats, seasons, nba_games } from './nba-schemas';
 import { notifications } from './notification-schemas';
-import { reactions } from './reaction-schemas';
+import {
+  usersRelations,
+  commentsRelations,
+  reactionsRelations,
+  gameLogsRelations,
+} from './relations';
 import { teams } from './team-schemas';
-import { users, friendships } from './user-schemas';
+import { reactions, users, friendships, comments } from './user-schemas';
 
 // Define base types for schema tables
 export type BaseTable = typeof baseTableConfig;
 
-// Define types for each table
+// Define table types
 export type UsersTable = typeof users;
 export type TeamsTable = typeof teams;
 export type CommentsTable = typeof comments;
@@ -37,13 +41,13 @@ export type SeasonsTable = typeof seasons;
 
 // Define schema type
 export type Schema = {
-  users: UsersTable;
+  users: UsersTable & { relations: typeof usersRelations };
   teams: TeamsTable;
-  comments: CommentsTable;
-  reactions: ReactionsTable;
+  comments: CommentsTable & { relations: typeof commentsRelations };
+  reactions: ReactionsTable & { relations: typeof reactionsRelations };
   notifications: NotificationsTable;
   friendships: FriendshipsTable;
-  game_logs: GameLogsTable;
+  game_logs: GameLogsTable & { relations: typeof gameLogsRelations };
   game_ratings: GameRatingsTable;
   nba_games: NBAGamesTable;
   team_h2h: TeamH2HTable;
@@ -60,4 +64,12 @@ export type Schema = {
     watched_setting: typeof watched_setting_enum;
   };
   base: typeof baseTableConfig;
+};
+
+// Define relations type
+export type Relations = {
+  users: typeof usersRelations;
+  comments: typeof commentsRelations;
+  reactions: typeof reactionsRelations;
+  game_logs: typeof gameLogsRelations;
 };

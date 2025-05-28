@@ -106,6 +106,19 @@ export const BASIC_USER_FRAGMENT = gql`
   fragment BasicUserFragment on User {
     id
     username
+    first_name
+    last_name
+    email_address
+    imageUrl
+  }
+`;
+
+export const USER_SUMMARY_FRAGMENT = gql`
+  fragment UserSummaryFragment on UserSummary {
+    id
+    username
+    first_name
+    last_name
     email_address
     imageUrl
   }
@@ -115,7 +128,7 @@ export const COMMENT_FRAGMENT = gql`
   fragment CommentFragment on Comment {
     id
     user {
-      ...BasicUserFragment
+      ...UserSummaryFragment
     }
     userId
     parent_id
@@ -128,11 +141,11 @@ export const COMMENT_FRAGMENT = gql`
       id
       emoji
       user {
-        ...BasicUserFragment
+        ...UserSummaryFragment
       }
     }
   }
-  ${BASIC_USER_FRAGMENT}
+  ${USER_SUMMARY_FRAGMENT}
 `;
 
 export const GAME_LOG_FRAGMENT = gql`
@@ -268,10 +281,49 @@ export const GET_GAME_LOG_WITH_REACTIONS = gql`
 export const GET_COMMENTS_WITH_FILTERS = gql`
   query GetCommentsWithFilters($parent_id: ID!) {
     comments(parent_id: $parent_id) {
-      ...CommentFragment
+      edges {
+        cursor
+        node {
+          id
+          userId
+          parent_id
+          parent_type
+          content
+          created_at
+          updated_at
+          deleted_at
+          user {
+            id
+            username
+            email_address
+            imageUrl
+          }
+          reactions {
+            id
+            emoji
+            userId
+            targetId
+            targetType
+            created_at
+            updated_at
+            user {
+              id
+              username
+              email_address
+              imageUrl
+            }
+          }
+        }
+      }
+      pageInfo {
+        hasNextPage
+        hasPreviousPage
+        startCursor
+        endCursor
+      }
+      totalCount
     }
   }
-  ${COMMENT_FRAGMENT}
 `;
 
 export const GET_USERS = gql`
@@ -319,10 +371,45 @@ export const GET_GAME_LOGS = gql`
           created_at
           updated_at
           deleted_at
+          user {
+            id
+            username
+            first_name
+            last_name
+            email_address
+            imageUrl
+          }
+          game {
+            id
+            teams
+          }
           comments(first: 10) {
             edges {
               node {
-                ...CommentFragment
+                id
+                userId
+                parent_id
+                parent_type
+                content
+                created_at
+                updated_at
+                deleted_at
+                user {
+                  id
+                  username
+                  email_address
+                  imageUrl
+                }
+                reactions {
+                  id
+                  emoji
+                  user {
+                    id
+                    username
+                    email_address
+                    imageUrl
+                  }
+                }
               }
             }
             totalCount
@@ -330,7 +417,19 @@ export const GET_GAME_LOGS = gql`
           reactions(first: 10) {
             edges {
               node {
-                ...ReactionFragment
+                id
+                emoji
+                userId
+                targetId
+                targetType
+                created_at
+                updated_at
+                user {
+                  id
+                  username
+                  email_address
+                  imageUrl
+                }
               }
             }
             totalCount
@@ -346,8 +445,6 @@ export const GET_GAME_LOGS = gql`
       totalCount
     }
   }
-  ${COMMENT_FRAGMENT}
-  ${REACTION_FRAGMENT}
 `;
 
 export const GET_LIVE_GAMES = gql`
@@ -447,19 +544,33 @@ export const GET_GAMES = gql`
 export const GET_REACTIONS = gql`
   query GetReactions($targetId: ID!) {
     reactions(targetId: $targetId) {
-      id
-      emoji
-      user_id
-      target_type
-      target_id
-      created_at
-      updated_at
-      user {
-        ...BasicUserFragment
+      edges {
+        cursor
+        node {
+          id
+          emoji
+          userId
+          targetId
+          targetType
+          created_at
+          updated_at
+          user {
+            id
+            username
+            email_address
+            imageUrl
+          }
+        }
       }
+      pageInfo {
+        hasNextPage
+        hasPreviousPage
+        startCursor
+        endCursor
+      }
+      totalCount
     }
   }
-  ${BASIC_USER_FRAGMENT}
 `;
 
 export const GET_GAME_LOG_COMMENTS = gql`

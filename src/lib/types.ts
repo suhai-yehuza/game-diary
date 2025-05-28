@@ -84,6 +84,8 @@ export interface UserSummary {
   id: string;
   username?: string;
   imageUrl?: string;
+  first_name: string;
+  last_name: string;
 }
 
 export interface Friendship {

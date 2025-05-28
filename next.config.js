@@ -7,7 +7,16 @@ const __dirname = path.dirname(__filename);
 
 const nextConfig = {
   images: {
+    domains: ['api.dicebear.com'],
+    dangerouslyAllowSVG: true,
+    contentDispositionType: 'attachment',
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
     remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'api.dicebear.com',
+        pathname: '/7.x/**',
+      },
       {
         protocol: 'http',
         hostname: 'upload.wikimedia.org',
