@@ -97,12 +97,12 @@ export const API_CONFIG = {
 
     GAME_LOG_RANGE: {
       min: 0,
-      max: MEDIUM,
+      max: SMALL,
       getRandom: () => {
         const u1 = Math.random();
         const u2 = Math.random();
         const value = distributions.bellCurve(u1, u2);
-        return Math.floor(Math.max(0, Math.min(MEDIUM, value)));
+        return Math.floor(Math.max(0, Math.min(SMALL, value)));
       },
     } satisfies RangeConfig,
 

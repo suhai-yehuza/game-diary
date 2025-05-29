@@ -3,7 +3,7 @@ import { sql, desc } from 'drizzle-orm';
 
 import { API_CONFIG } from '@/lib/config/api.config';
 import { GameLogClassification } from '@/lib/db/schema/game-log-schemas';
-import { game_logs, games, game_ratings } from '@/lib/db/schema/game-schemas';
+import { game_logs, games } from '@/lib/db/schema/game-schemas';
 import { users, friendships, reactions, comments } from '@/lib/db/schema/user-schemas';
 import {
   FRIENDSHIP_STATUS,
@@ -175,23 +175,17 @@ async function* generateGameLogsStream(
   // Track ratings for each game
   const gameRatings = new Map<string, { total: number; count: number }>();
   let totalGameLogsGenerated = 0;
-  const targetGameLogCount = API_CONFIG.databaseSeeding.DEFAULT_SAMPLE_COUNT;
+  const targetUserCount = API_CONFIG.databaseSeeding.DEFAULT_SAMPLE_COUNT;
+  let processedUsers = 0;
 
   for await (const user of userStream) {
-    // Only generate game logs for 10% of users
-    if (Math.random() >= 0.1) {
-      continue;
-    }
-
-    // Calculate how many game logs we still need to generate
-    const remainingLogs = targetGameLogCount - totalGameLogsGenerated;
-    if (remainingLogs <= 0) {
+    processedUsers++;
+    if (processedUsers > targetUserCount) {
       break;
     }
 
     // Calculate how many game logs to generate for this user
-    const gameLogCount = Math.min(API_CONFIG.ranges.GAME_LOG_RANGE.getRandom(), remainingLogs);
-
+    const gameLogCount = API_CONFIG.ranges.GAME_LOG_RANGE.getRandom();
     const selectedGames = faker.helpers.arrayElements(
       currentSeasonGames,
       Math.min(gameLogCount, currentSeasonGames.length)
@@ -254,9 +248,6 @@ async function* generateGameLogsStream(
       };
 
       totalGameLogsGenerated++;
-      if (totalGameLogsGenerated >= targetGameLogCount) {
-        break;
-      }
     }
 
     // Yield control periodically
@@ -264,38 +255,9 @@ async function* generateGameLogsStream(
       // 10% chance to yield control
       await new Promise(resolve => setImmediate(resolve));
     }
-
-    if (totalGameLogsGenerated >= targetGameLogCount) {
-      break;
-    }
   }
 
-  console.log(`Generated ${totalGameLogsGenerated} game logs out of target ${targetGameLogCount}`);
-
-  // After all game logs are generated, update game ratings
-  console.log('Updating game ratings...');
-  for (const [gameId, rating] of Array.from(gameRatings.entries())) {
-    const averageRating = (rating.total / rating.count).toFixed(2);
-    await db
-      .insert(game_ratings)
-      .values({
-        id: generateUUID(),
-        game_id: gameId,
-        average_rating: averageRating,
-        total_ratings: rating.count,
-        created_at: new Date(),
-        updated_at: new Date(),
-      })
-      .onConflictDoUpdate({
-        target: game_ratings.game_id,
-        set: {
-          average_rating: averageRating,
-          total_ratings: rating.count,
-          updated_at: new Date(),
-        },
-      });
-  }
-  console.log('Game ratings updated');
+  console.log(`Generated ${totalGameLogsGenerated} game logs from ${processedUsers} users`);
 }
 
 // Optimized comments generator

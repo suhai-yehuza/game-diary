@@ -90,8 +90,9 @@ async function testErrorRecovery() {
     // Test invalid query handling
     try {
       await db.execute(sql`SELECT * FROM non_existent_table`);
-    } catch (_error) {
+    } catch (error) {
       console.log('✅ Invalid query error handled correctly');
+      console.log(error);
     }
 
     // Verify database is still functional after error
