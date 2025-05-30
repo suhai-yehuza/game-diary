@@ -187,6 +187,7 @@ export default function GamePage({ params }: { params: { id: string } }) {
                     width={96}
                     height={96}
                     className="mx-auto w-24 h-24 object-contain"
+                    priority
                   />
                 )}
                 <div className="space-y-2">
@@ -219,6 +220,7 @@ export default function GamePage({ params }: { params: { id: string } }) {
                     width={96}
                     height={96}
                     className="mx-auto w-24 h-24 object-contain"
+                    priority
                   />
                 )}
                 <div className="space-y-2">
