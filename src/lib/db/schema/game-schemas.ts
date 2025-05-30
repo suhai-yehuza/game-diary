@@ -26,16 +26,6 @@ export const games = pgTable('games', {
   updated_at: timestamp('updated_at').defaultNow().notNull(),
 });
 
-// Game ratings table
-export const game_ratings = pgTable('game_ratings', {
-  id: varchar('id', { length: 255 }).primaryKey().default(generateUUID()),
-  game_id: text('game_id').notNull().unique(),
-  average_rating: decimal('average_rating', { precision: 3, scale: 2 }).notNull().default('0.00'),
-  total_ratings: integer('total_ratings').notNull().default(0),
-  created_at: timestamp({ precision: 6, withTimezone: true }).notNull().defaultNow(),
-  updated_at: timestamp({ precision: 6, withTimezone: true }).notNull().defaultNow(),
-});
-
 // Game logs table
 export const game_logs = pgTable(
   'game_logs',
@@ -73,6 +63,16 @@ export const game_logs = pgTable(
     sql`CREATE INDEX IF NOT EXISTS idx_game_logs_deleted_at ON game_logs (deleted_at)`,
   ]
 );
+
+// Game ratings table
+export const game_ratings = pgTable('game_ratings', {
+  id: varchar('id', { length: 255 }).primaryKey().default(generateUUID()),
+  game_id: text('game_id').notNull().unique(),
+  average_rating: decimal('average_rating', { precision: 3, scale: 2 }).notNull().default('0.00'),
+  total_ratings: integer('total_ratings').notNull().default(0),
+  created_at: timestamp({ precision: 6, withTimezone: true }).notNull().defaultNow(),
+  updated_at: timestamp({ precision: 6, withTimezone: true }).notNull().defaultNow(),
+});
 
 // Team head-to-head table
 export const team_h2h = pgTable(
