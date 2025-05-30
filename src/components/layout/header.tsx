@@ -129,6 +129,7 @@ export default function Header() {
               width={32}
               height={32}
               className="w-8 h-8 cursor-pointer"
+              style={{ height: 'auto' }}
             />
           </Link>
         </div>

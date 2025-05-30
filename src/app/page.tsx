@@ -27,6 +27,7 @@ export default function Home() {
             width={64}
             height={64}
             className="w-16 h-16"
+            style={{ height: 'auto' }}
           />
           <h1 className="text-4xl font-bold tracking-tight">Welcome to Game Diary</h1>
           <p className="text-xl text-gray-600 dark:text-gray-300">
