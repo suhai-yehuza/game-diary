@@ -1,16 +1,17 @@
 {
   "data": {
     "deleted": true,
-    "id": "user_29wBMCtzATuFJut8jO2VNTVekS4",
+    "id": "user_2xnRjh6g2jsAfFMtLPZkHfbw7SO",
     "object": "user"
   },
   "event_attributes": {
     "http_request": {
-      "client_ip": "0.0.0.0",
-      "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36"
+      "client_ip": "2600:1900:0:2d01::2200",
+      "user_agent": "clerk/clerk-sdk-go@v3.0.0"
     }
   },
+  "instance_id": "ins_2vxRuzpBIYdlr4cDwEcpgCRP33L",
   "object": "event",
-  "timestamp": 1661861640000,
+  "timestamp": 1748630665557,
   "type": "user.deleted"
 }

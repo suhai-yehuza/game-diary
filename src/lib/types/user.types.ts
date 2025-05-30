@@ -16,91 +16,102 @@ export interface ExternalUserAccount {
   updatedAt?: Date;
 }
 
-export interface ClerkUserData {
+export interface ClerkEmailAddress {
+  created_at: number;
+  email_address: string;
   id: string;
-  username: string | null;
-  email_addresses: Array<{
-    emailAddress: string;
+  linked_to: Array<{
     id: string;
-    linked_to: Array<{
-      id: string;
-      type: string;
-    }>;
-    object: string;
-    reserved?: boolean;
-    verification?: {
-      status: string;
-      strategy: string;
-      attempts?: number | null;
-      expire_at?: number | null;
-    };
-    createdAt?: number;
-    updatedAt?: number;
-    matches_sso_connection?: boolean;
+    type: string;
   }>;
-  firstName: string;
-  lastName: string | null;
-  imageUrl: string;
-  profile_image_url: string;
-  updatedAt: number;
-  createdAt: number;
-  last_sign_in_at: number | null;
-  password_enabled: boolean;
-  two_factor_enabled: boolean;
-  external_id: string | null;
-  external_accounts: Array<ExternalUserAccount>;
+  matches_sso_connection: boolean;
+  object: 'email_address';
+  reserved: boolean;
+  updated_at: number;
+  verification: {
+    attempts: number | null;
+    expire_at: number | null;
+    status: string;
+    strategy: string;
+  };
+}
+
+export interface ClerkExternalAccount {
+  approved_scopes: string;
+  avatar_url: string;
+  created_at: number;
+  email_address: string;
+  external_account_id: string;
+  family_name: string;
+  first_name: string;
+  given_name: string;
+  google_id: string;
+  id: string;
+  identification_id: string;
+  image_url: string;
+  label: string | null;
+  last_name: string;
   object: string;
-  phone_numbers: Array<{
-    id: string;
-    phone_number: string;
-    reserved: boolean;
-    reserved_for_second_factor: boolean;
-    verification: {
-      status: string;
-      strategy: string;
-      attempts: number;
-      expire_at: number;
-      channel?: string;
-    };
-    createdAt: number;
-    updatedAt: number;
-    object: string;
-    linked_to: Array<{
-      id: string;
-      type: string;
-    }>;
-    backup_codes: ValidatableValue;
-    default_second_factor: boolean;
-  }>;
-  primary_email_address_id: string;
-  primary_phone_number_id: string | null;
-  primary_web3_wallet_id: string | null;
-  private_metadata: Record<string, ValidatableValue>;
-  public_metadata: Record<string, ValidatableValue>;
-  unsafe_metadata: Record<string, ValidatableValue>;
-  web3_wallets: ValidatableValue[];
+  picture: string;
+  provider: string;
+  provider_user_id: string;
+  public_metadata: Record<string, any>;
+  updated_at: number;
+  username: string | null;
+  verification: {
+    attempts: number | null;
+    expire_at: number | null;
+    status: string;
+    strategy: string;
+  };
+}
+
+export interface ClerkUserData {
   backup_code_enabled: boolean;
   banned: boolean;
   create_organization_enabled: boolean;
+  created_at: number;
   delete_self_enabled: boolean;
-  enterprise_accounts: ValidatableValue[];
+  email_addresses: ClerkEmailAddress[];
+  enterprise_accounts: any[];
+  external_accounts: ClerkExternalAccount[];
+  external_id: string | null;
+  first_name: string | null;
   has_image: boolean;
+  id: string;
+  image_url: string | null;
   last_active_at: number;
+  last_name: string | null;
+  last_sign_in_at: number | null;
   legal_accepted_at: number | null;
   locked: boolean;
   lockout_expires_in_seconds: number | null;
   mfa_disabled_at: number | null;
   mfa_enabled_at: number | null;
-  passkeys: ValidatableValue[];
-  saml_accounts: ValidatableValue[];
+  object: 'user';
+  passkeys: any[];
+  password_enabled: boolean;
+  phone_numbers: any[];
+  primary_email_address_id: string;
+  primary_phone_number_id: string | null;
+  primary_web3_wallet_id: string | null;
+  private_metadata: Record<string, any>;
+  profile_image_url: string;
+  public_metadata: Record<string, any>;
+  saml_accounts: any[];
   totp_enabled: boolean;
+  two_factor_enabled: boolean;
+  unsafe_metadata: Record<string, any>;
+  updated_at: number;
+  username: string | null;
   verification_attempts_remaining: number;
+  web3_wallets: any[];
 }
 
 export interface ClerkDeletedUserData {
-  id: string;
   deleted: boolean;
-  deletedAt: Date;
+  id: string;
+  object: 'user';
 }
 
 export interface DbCustomUser extends BaseUser {

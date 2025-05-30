@@ -1,52 +1,105 @@
 {
   "data": {
-    "birthday": "",
-    "createdAt": 1654012591514,
+    "backup_code_enabled": false,
+    "banned": false,
+    "create_organization_enabled": true,
+    "created_at": 1748630716157,
+    "delete_self_enabled": true,
     "email_addresses": [
       {
-        "emailAddress": "example@example.org",
-        "id": "idn_29w83yL7CwVlJXylYLxcslromF1",
-        "linked_to": [],
-        "object": "emailAddress",
-        "reserved": true,
+        "created_at": 1748630716140,
+        "email_address": "sportsdata22@gmail.com",
+        "id": "idn_2xpMm3cZy3foGSN9QXa8ccUztpe",
+        "linked_to": [
+          {
+            "id": "idn_2xpMlzzliZevebVkQ2hz3tkxUYm",
+            "type": "oauth_google"
+          }
+        ],
+        "matches_sso_connection": false,
+        "object": "email_address",
+        "reserved": false,
+        "updated_at": 1748630716165,
         "verification": {
           "attempts": null,
           "expire_at": null,
           "status": "verified",
-          "strategy": "admin"
+          "strategy": "from_oauth_google"
         }
       }
     ],
-    "external_accounts": [],
+    "enterprise_accounts": [],
+    "external_accounts": [
+      {
+        "approved_scopes": "email https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile openid profile",
+        "avatar_url": "https://lh3.googleusercontent.com/a/ACg8ocIDo_eLTokGs-KB7qBGDbQCZfObtH3nfukf280OI0aTeNlvdg=s1000-c",
+        "created_at": 1748630716131,
+        "email_address": "sportsdata22@gmail.com",
+        "external_account_id": "eac_2xpMm3IP8bCoWxkYYu32RImOzZP",
+        "family_name": "",
+        "first_name": "Sports Data",
+        "given_name": "Sports Data",
+        "google_id": "110162957687655662829",
+        "id": "idn_2xpMlzzliZevebVkQ2hz3tkxUYm",
+        "identification_id": "idn_2xpMlzzliZevebVkQ2hz3tkxUYm",
+        "image_url": "https://img.clerk.com/eyJ0eXBlIjoicHJveHkiLCJzcmMiOiJodHRwczovL2xoMy5nb29nbGV1c2VyY29udGVudC5jb20vYS9BQ2c4b2NJRG9fZUxUb2tHcy1LQjdxQkdEYlFDWmZPYnRIM25mdWtmMjgwT0kwYVRlTmx2ZGc9czEwMDAtYyIsInMiOiJVNnhoWTBnTVdDMWNjejg2cHVaUUhuZlc2M2tFZDRzeFVoZVY0NjlBNCtFIn0",
+        "label": null,
+        "last_name": "",
+        "object": "google_account",
+        "picture": "https://lh3.googleusercontent.com/a/ACg8ocIDo_eLTokGs-KB7qBGDbQCZfObtH3nfukf280OI0aTeNlvdg=s1000-c",
+        "provider": "oauth_google",
+        "provider_user_id": "110162957687655662829",
+        "public_metadata": {},
+        "updated_at": 1748630716131,
+        "username": null,
+        "verification": {
+          "attempts": null,
+          "expire_at": 1748631309483,
+          "status": "verified",
+          "strategy": "oauth_google"
+        }
+      }
+    ],
     "external_id": null,
-    "firstName": "Example",
-    "gender": "",
-    "id": "user_29w83sxmDNGwOuEthce5gg56FcC",
-    "imageUrl": "https://img.clerk.com/xxxxxx",
-    "lastName": null,
-    "last_sign_in_at": null,
+    "first_name": "Sports Data",
+    "has_image": true,
+    "id": "user_2xpMlzDCdofc1JJUoRWaof0cGbX",
+    "image_url": "https://img.clerk.com/eyJ0eXBlIjoicHJveHkiLCJzcmMiOiJodHRwczovL2ltYWdlcy5jbGVyay5kZXYvb2F1dGhfZ29vZ2xlL2ltZ18yeHBNbHh2MzExRzZqakQ2QnoyS0s2MVU4NUkifQ",
+    "last_active_at": 1748630716156,
+    "last_name": "Guy",
+    "last_sign_in_at": 1748630716171,
+    "legal_accepted_at": null,
+    "locked": false,
+    "lockout_expires_in_seconds": null,
+    "mfa_disabled_at": null,
+    "mfa_enabled_at": null,
     "object": "user",
-    "password_enabled": true,
+    "passkeys": [],
+    "password_enabled": false,
     "phone_numbers": [],
-    "primary_email_address_id": "idn_29w83yL7CwVlJXylYLxcslromF1",
+    "primary_email_address_id": "idn_2xpMm3cZy3foGSN9QXa8ccUztpe",
     "primary_phone_number_id": null,
     "primary_web3_wallet_id": null,
     "private_metadata": {},
-    "profile_image_url": "https://www.gravatar.com/avatar?d=mp",
+    "profile_image_url": "https://images.clerk.dev/oauth_google/img_2xpMlxv311G6jjD6Bz2KK61U85I",
     "public_metadata": {},
+    "saml_accounts": [],
+    "totp_enabled": false,
     "two_factor_enabled": false,
     "unsafe_metadata": {},
-    "updatedAt": 1654012824306,
+    "updated_at": 1748631286117,
     "username": null,
+    "verification_attempts_remaining": 100,
     "web3_wallets": []
   },
   "event_attributes": {
     "http_request": {
-      "client_ip": "0.0.0.0",
-      "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36"
+      "client_ip": "2600:1700:2f71:21a0:38e0:99c:ee0a:bf9f",
+      "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
     }
   },
+  "instance_id": "ins_2vxRuzpBIYdlr4cDwEcpgCRP33L",
   "object": "event",
-  "timestamp": 1654012824306,
+  "timestamp": 1748631286123,
   "type": "user.updated"
 }
