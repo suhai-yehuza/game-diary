@@ -6,10 +6,10 @@ import { isAfter } from 'date-fns';
 import React, { useRef, useState, useEffect, useCallback } from 'react';
 
 import { GameCard } from '@/components/features/games';
-import { GET_NBA_GAMES } from '@/lib/queries/nba.queries';
 import { SearchGame, Game, GameEdge, GameQueryResponse } from '@/lib/types/game.types';
 import { DEFAULT_PAGE_SIZE } from '@/lib/types/shared.types';
 import { getCurrentSeason } from '@/lib/utils/index.time';
+import { GET_GAMES } from '@/lib/graphql/queries';
 
 // Convert Game to SearchGame
 const convertGameToSearchGame = (game: Game): SearchGame => {
@@ -82,48 +82,54 @@ const convertGameToSearchGame = (game: Game): SearchGame => {
   };
 };
 
-// Pure function to filter live games
-const filterLiveGames = (games: SearchGame[]): SearchGame[] => {
-  return games
-    .filter(
-      game =>
-        game.status.long === 'In Play' ||
-        game.status.short === 'Live' ||
-        (game.status.clock !== null && game.status.halftime)
-    )
-    .sort((a, b) => {
-      const dateA = new Date(a.date.start);
-      const dateB = new Date(b.date.start);
-      return dateB.getTime() - dateA.getTime(); // Most recent first
-    });
-};
+// // Pure function to filter live games
+// const filterLiveGames = (games: SearchGame[]): SearchGame[] => {
+//   return games
+//     .filter(
+//       game =>
+//         (game.status.long === 'In Play' || game.status.short === 'Live') &&
+//         !game.status.short.includes('Finished') &&
+//         !game.status.short.includes('Final')
+//     )
+//     .sort((a, b) => {
+//       const dateA = new Date(a.date.start);
+//       const dateB = new Date(b.date.start);
+//       return dateB.getTime() - dateA.getTime(); // Most recent first
+//     });
+// };
 
-// Pure function to filter scheduled games
-const filterScheduledGames = (games: SearchGame[], _now: Date): SearchGame[] => {
-  return games
-    .filter(
-      game =>
-        game.status.short === 'Scheduled' ||
-        isAfter(new Date(game.date.start), new Date()) ||
-        game.status.short === 'Not Started'
-    )
-    .sort((a, b) => {
-      const dateA = new Date(a.date.start);
-      const dateB = new Date(b.date.start);
-      return dateA.getTime() - dateB.getTime(); // Chronological order for upcoming games
-    });
-};
+// // Pure function to filter scheduled games
+// const filterScheduledGames = (games: SearchGame[], now: Date): SearchGame[] => {
+//   return games
+//     .filter(
+//       game =>
+//         (game.status.short === 'Scheduled' || game.status.short === 'Not Started') &&
+//         isAfter(new Date(game.date.start), now) &&
+//         !game.status.short.includes('Finished') &&
+//         !game.status.short.includes('Final')
+//     )
+//     .sort((a, b) => {
+//       const dateA = new Date(a.date.start);
+//       const dateB = new Date(b.date.start);
+//       return dateA.getTime() - dateB.getTime(); // Chronological order for upcoming games
+//     });
+// };
 
-// Pure function to filter completed games
-const filterCompletedGames = (games: SearchGame[], _now: Date): SearchGame[] => {
-  return games
-    .filter(game => game.status.short === 'Finished' || game.status.short === 'Final')
-    .sort((a, b) => {
-      const dateA = new Date(a.date.start);
-      const dateB = new Date(b.date.start);
-      return dateB.getTime() - dateA.getTime(); // Most recent first
-    });
-};
+// // Pure function to filter completed games
+// const filterCompletedGames = (games: SearchGame[]): SearchGame[] => {
+//   return games
+//     .filter(
+//       game =>
+//         game.status.short === 'Finished' ||
+//         game.status.short === 'Final' ||
+//         game.status.long === 'Game Finished'
+//     )
+//     .sort((a, b) => {
+//       const dateA = new Date(a.date.start);
+//       const dateB = new Date(b.date.start);
+//       return dateB.getTime() - dateA.getTime(); // Most recent first
+//     });
+// };
 
 export default function NBAPage() {
   const { isLoaded } = useUser();
@@ -134,22 +140,34 @@ export default function NBAPage() {
   const [hasMoreSeasons, setHasMoreSeasons] = useState<boolean>(true);
   const [games, setGames] = useState<SearchGame[]>([]);
 
-  // Query to get available seasons
-  // const { data: seasonsData } = useQuery(GET_SEASONS);  // TODO: Remove this
-
-  const { loading, error, data, fetchMore } = useQuery<GameQueryResponse>(GET_NBA_GAMES, {
+  const { loading, error, data, fetchMore } = useQuery<GameQueryResponse>(GET_GAMES, {
     variables: {
-      season: currentSeason,
+      filters: {
+        season: currentSeason,
+      },
       first: DEFAULT_PAGE_SIZE,
     },
   });
 
+  console.log({ loading, error, data, fetchMore });
+
   useEffect(() => {
     if (data?.games && Array.isArray(data.games.edges)) {
       const newGames = data.games.edges.map((edge: GameEdge) => convertGameToSearchGame(edge.node));
-      setGames(prevGames => [...prevGames, ...newGames]);
+      // Use a Set to ensure unique games by ID
+      setGames(prevGames => {
+        const gameMap = new Map(prevGames.map(game => [game.id, game]));
+        newGames.forEach(game => {
+          if (!gameMap.has(game.id)) {
+            gameMap.set(game.id, game);
+          }
+        });
+        return Array.from(gameMap.values());
+      });
     }
   }, [data]);
+
+  console.log({ data });
 
   const handleLoadMore = useCallback(async () => {
     if (!data?.games.pageInfo.hasNextPage) {
@@ -175,7 +193,16 @@ export default function NBAPage() {
         const newGames = newData.games.edges.map((edge: GameEdge) =>
           convertGameToSearchGame(edge.node)
         );
-        setGames(prevGames => [...prevGames, ...newGames]);
+        // Use a Set to ensure unique games by ID
+        setGames(prevGames => {
+          const gameMap = new Map(prevGames.map(game => [game.id, game]));
+          newGames.forEach(game => {
+            if (!gameMap.has(game.id)) {
+              gameMap.set(game.id, game);
+            }
+          });
+          return Array.from(gameMap.values());
+        });
       }
     } catch (error) {
       console.error('Error fetching more games:', error);
@@ -194,11 +221,46 @@ export default function NBAPage() {
     return dateB.getTime() - dateA.getTime(); // Most recent first
   });
 
-  const liveGamesList = sortedGames.flatMap(game => filterLiveGames([game]));
+  // Process games into their respective categories
+  const processedGames = sortedGames.reduce(
+    (acc, game) => {
+      // Check if game is live
+      if (
+        (game.status.long === 'In Play' || game.status.short === 'Live') &&
+        !game.status.short.includes('Finished') &&
+        !game.status.short.includes('Final')
+      ) {
+        acc.live.push(game);
+      }
+      // Check if game is scheduled
+      else if (
+        (game.status.short === 'Scheduled' || game.status.short === 'Not Started') &&
+        isAfter(new Date(game.date.start), now) &&
+        !game.status.short.includes('Finished') &&
+        !game.status.short.includes('Final')
+      ) {
+        acc.scheduled.push(game);
+      }
+      // Check if game is completed
+      else if (
+        game.status.short === 'Finished' ||
+        game.status.short === 'Final' ||
+        game.status.long === 'Game Finished'
+      ) {
+        acc.completed.push(game);
+      }
+      return acc;
+    },
+    { live: [], scheduled: [], completed: [] } as {
+      live: SearchGame[];
+      scheduled: SearchGame[];
+      completed: SearchGame[];
+    }
+  );
 
-  const scheduledGamesList = sortedGames.flatMap(game => filterScheduledGames([game], now));
-
-  const completedGamesList = sortedGames.flatMap(game => filterCompletedGames([game], now));
+  const liveGamesList = processedGames.live;
+  const scheduledGamesList = processedGames.scheduled;
+  const completedGamesList = processedGames.completed;
 
   console.log('Final sorted games:', {
     total: games?.length || 0,
