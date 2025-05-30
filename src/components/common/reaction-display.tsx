@@ -62,24 +62,10 @@ export function ReactionDisplay({ targetId, targetType }: ReactionDisplayProps) 
 
   // Check if the current user has reacted with a specific emoji
   const hasUserReacted = (emojiName: string) => {
-    const userReacted = formattedReactions.some(
+    return formattedReactions.some(
       (reaction: { id: string; emoji: string; userId: string }) =>
         reaction.userId === user?.id && reaction.emoji === emojiName
     );
-
-    if (emojiName === 'LIKE') {
-      // Debug only for LIKE emoji to avoid spam
-      console.log('hasUserReacted debug:', {
-        emojiName,
-        userId: user?.id,
-        formattedReactions: formattedReactions.filter(
-          (r: { emoji: string }) => r.emoji === emojiName
-        ),
-        userReacted,
-      });
-    }
-
-    return userReacted;
   };
 
   return (
