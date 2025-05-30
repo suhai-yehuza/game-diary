@@ -17,6 +17,8 @@ import type {
   Team,
   Classification,
   GameStatus,
+  GAME_STATUS,
+  SortDirection,
 } from './generated/graphql';
 import type { CustomTeam } from './team.types';
 
@@ -231,12 +233,12 @@ export interface GameFilters {
   homeTeamId?: string;
   awayTeamId?: string;
   season?: number;
-  status?: string;
+  status?: GAME_STATUS;
   dateRange?: {
     start: Date;
     end?: Date;
   };
-  classification?: string;
+  classification?: Classification;
   userId?: string;
   leadChangesMin?: number;
   leadChangesMax?: number;
@@ -247,7 +249,18 @@ export interface GameFilters {
   officials?: string[];
   teamId?: string;
   sortBy?: string;
-  sortDirection?: 'asc' | 'desc';
+  sortDirection?: SortDirection;
+  pagination?: {
+    first?: number;
+    after?: string;
+    last?: number;
+    before?: string;
+  };
+  league?: string;
+  stage?: number;
+  period?: number;
+  arena?: string;
+  nugget?: string;
 }
 
 export interface GameSortInput {
@@ -455,9 +468,21 @@ export interface GameResponseData {
   nugget?: string;
 }
 
-export interface TransformedGame extends GameResponseData {
-  homeTeam: GameResponseData['teams']['home'];
-  awayTeam: GameResponseData['teams']['visitors'];
+export interface TransformedGame extends Game {
+  homeTeam: {
+    id: string;
+    name: string;
+    nickname: string;
+    code: string;
+    logo: string | null;
+  };
+  awayTeam: {
+    id: string;
+    name: string;
+    nickname: string;
+    code: string;
+    logo: string | null;
+  };
   homeTeamScore: number;
   awayTeamScore: number;
 }

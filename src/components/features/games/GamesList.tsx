@@ -10,15 +10,13 @@ interface GamesListProps {
   onGameSelect?: (game: Game) => void;
 }
 
-type SortDirectionValue = 'asc' | 'desc';
-
 export const GamesList = ({ games, initialFilters, onGameSelect }: GamesListProps) => {
   const [filters, setFilters] = useState<GameFilters>(
     initialFilters || {
       status: undefined,
       dateRange: undefined,
       sortBy: 'date',
-      sortDirection: 'desc' as SortDirectionValue,
+      sortDirection: 'DESC',
     }
   );
 
@@ -26,7 +24,7 @@ export const GamesList = ({ games, initialFilters, onGameSelect }: GamesListProp
     setFilters((prev: GameFilters) => ({
       ...prev,
       sortBy: value,
-      sortDirection: prev.sortDirection === 'asc' ? 'desc' : 'asc',
+      sortDirection: prev.sortDirection === 'ASC' ? 'DESC' : 'ASC',
     }));
   }, []);
 
@@ -69,8 +67,8 @@ export const GamesList = ({ games, initialFilters, onGameSelect }: GamesListProp
             onChange={e => handleSortChange(e.target.value)}
             className="px-3 py-1 border rounded"
           >
-            <option value="asc">Ascending</option>
-            <option value="desc">Descending</option>
+            <option value="ASC">Ascending</option>
+            <option value="DESC">Descending</option>
           </select>
         </div>
       </div>

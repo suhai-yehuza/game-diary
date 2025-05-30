@@ -36,6 +36,54 @@ export interface ClerkEmailAddress {
   };
 }
 
+export interface ClerkMetadata {
+  [key: string]: string | number | boolean | null | undefined;
+}
+
+export interface ClerkEnterpriseAccount {
+  id: string;
+  name: string;
+  domain: string;
+  created_at: number;
+  updated_at: number;
+}
+
+export interface ClerkPasskey {
+  id: string;
+  name: string;
+  created_at: number;
+  updated_at: number;
+}
+
+export interface ClerkPhoneNumber {
+  id: string;
+  phone_number: string;
+  verification: {
+    attempts: number | null;
+    expire_at: number | null;
+    status: string;
+    strategy: string;
+  };
+  created_at: number;
+  updated_at: number;
+}
+
+export interface ClerkSamlAccount {
+  id: string;
+  provider: string;
+  provider_user_id: string;
+  created_at: number;
+  updated_at: number;
+}
+
+export interface ClerkWeb3Wallet {
+  id: string;
+  address: string;
+  chain: string;
+  created_at: number;
+  updated_at: number;
+}
+
 export interface ClerkExternalAccount {
   approved_scopes: string;
   avatar_url: string;
@@ -55,7 +103,7 @@ export interface ClerkExternalAccount {
   picture: string;
   provider: string;
   provider_user_id: string;
-  public_metadata: Record<string, any>;
+  public_metadata: ClerkMetadata;
   updated_at: number;
   username: string | null;
   verification: {
@@ -73,7 +121,7 @@ export interface ClerkUserData {
   created_at: number;
   delete_self_enabled: boolean;
   email_addresses: ClerkEmailAddress[];
-  enterprise_accounts: any[];
+  enterprise_accounts: ClerkEnterpriseAccount[];
   external_accounts: ClerkExternalAccount[];
   external_id: string | null;
   first_name: string | null;
@@ -89,23 +137,23 @@ export interface ClerkUserData {
   mfa_disabled_at: number | null;
   mfa_enabled_at: number | null;
   object: 'user';
-  passkeys: any[];
+  passkeys: ClerkPasskey[];
   password_enabled: boolean;
-  phone_numbers: any[];
+  phone_numbers: ClerkPhoneNumber[];
   primary_email_address_id: string;
   primary_phone_number_id: string | null;
   primary_web3_wallet_id: string | null;
-  private_metadata: Record<string, any>;
+  private_metadata: ClerkMetadata;
   profile_image_url: string;
-  public_metadata: Record<string, any>;
-  saml_accounts: any[];
+  public_metadata: ClerkMetadata;
+  saml_accounts: ClerkSamlAccount[];
   totp_enabled: boolean;
   two_factor_enabled: boolean;
-  unsafe_metadata: Record<string, any>;
+  unsafe_metadata: ClerkMetadata;
   updated_at: number;
   username: string | null;
   verification_attempts_remaining: number;
-  web3_wallets: any[];
+  web3_wallets: ClerkWeb3Wallet[];
 }
 
 export interface ClerkDeletedUserData {

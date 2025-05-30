@@ -2,7 +2,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Search } from 'lucide-react';
-import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useForm, ControllerRenderProps } from 'react-hook-form';
 
 import { Button } from '@/components/ui/button';

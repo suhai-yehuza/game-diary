@@ -21,7 +21,7 @@ import { ChartData } from 'chart.js';
 // Component Props Types
 import type { Activity } from './activity.types';
 import type { Friend, FriendGroup } from './friend.types';
-import type { SearchGame } from './game.types';
+import type { SearchGame, GameFilters } from './game.types';
 import type { GameLog, Game, Reaction } from './generated/graphql';
 
 // API Response Types
@@ -298,14 +298,6 @@ export interface PaginationInput {
 }
 
 // Game Utility Types
-export interface GameFilters {
-  season?: string;
-  team?: string;
-  player?: string;
-  date?: string;
-  status?: string;
-}
-
 export interface PlayerFilters {
   team?: string;
   position?: string;

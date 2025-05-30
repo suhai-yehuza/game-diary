@@ -3,7 +3,7 @@
 import { useQuery } from '@apollo/client';
 import { useUser } from '@clerk/nextjs';
 import { isAfter } from 'date-fns';
-import React, { useRef, useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 
 import { GameCard } from '@/components/features/games';
 import { GET_GAMES } from '@/lib/graphql/queries';

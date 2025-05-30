@@ -311,6 +311,7 @@ type GameEdge {
 }
 
 input GameFilters {
+  arena: String
   awayTeamId: ID
   classification: Classification
   dateRange: DateRangeInput
@@ -318,11 +319,17 @@ input GameFilters {
   homeTeamId: ID
   leadChangesMax: Int @constraint(min: 0)
   leadChangesMin: Int @constraint(min: 0)
+  league: String
   maxScore: Int @constraint(min: 0)
   minScore: Int @constraint(min: 0)
+  nugget: String
   officials: [String!]
   pagination: PaginationInput
+  period: Int
   season: Int
+  sortBy: String
+  sortDirection: SortDirection
+  stage: Int
   status: GAME_STATUS
   teamId: ID
   timesTiedMax: Int @constraint(min: 0)

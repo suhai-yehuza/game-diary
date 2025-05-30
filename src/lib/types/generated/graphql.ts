@@ -348,6 +348,7 @@ export type GameEdge = {
 };
 
 export type GameFilters = {
+  arena?: InputMaybe<Scalars['String']['input']>;
   awayTeamId?: InputMaybe<Scalars['ID']['input']>;
   classification?: InputMaybe<Classification>;
   dateRange?: InputMaybe<DateRangeInput>;
@@ -355,11 +356,17 @@ export type GameFilters = {
   homeTeamId?: InputMaybe<Scalars['ID']['input']>;
   leadChangesMax?: InputMaybe<Scalars['Int']['input']>;
   leadChangesMin?: InputMaybe<Scalars['Int']['input']>;
+  league?: InputMaybe<Scalars['String']['input']>;
   maxScore?: InputMaybe<Scalars['Int']['input']>;
   minScore?: InputMaybe<Scalars['Int']['input']>;
+  nugget?: InputMaybe<Scalars['String']['input']>;
   officials?: InputMaybe<Array<Scalars['String']['input']>>;
   pagination?: InputMaybe<PaginationInput>;
+  period?: InputMaybe<Scalars['Int']['input']>;
   season?: InputMaybe<Scalars['Int']['input']>;
+  sortBy?: InputMaybe<Scalars['String']['input']>;
+  sortDirection?: InputMaybe<SortDirection>;
+  stage?: InputMaybe<Scalars['Int']['input']>;
   status?: InputMaybe<GAME_STATUS>;
   teamId?: InputMaybe<Scalars['ID']['input']>;
   timesTiedMax?: InputMaybe<Scalars['Int']['input']>;

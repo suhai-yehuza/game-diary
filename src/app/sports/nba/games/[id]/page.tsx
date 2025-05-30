@@ -1,43 +1,83 @@
 'use client';
 
+import { useQuery } from '@apollo/client';
 import { format } from 'date-fns';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import { useCallback, useEffect } from 'react';
 
 import { CreateGameLogModal } from '@/components/features/games';
 import { Button } from '@/components/ui/button';
 import { useAuthContext } from '@/contexts/AuthContext';
-import { fetchNbaGameById } from '@/lib/external-apis';
-import type { GameApiResponse, TransformedGame } from '@/lib/types/game.types';
+import { GET_GAME_BY_ID } from '@/lib/graphql/queries';
+import type { Game, TransformedGame } from '@/lib/types/game.types';
 
 export default function GamePage({ params }: { params: { id: string } }) {
-  const [gameData, setGameData] = useState<GameApiResponse | null>(null);
-  const [loading, setLoading] = useState(true);
   const { isAuthenticated } = useAuthContext();
   const gameId = params?.id;
 
+  const { loading, error, data, refetch } = useQuery(GET_GAME_BY_ID, {
+    variables: { id: gameId },
+    fetchPolicy: 'cache-first',
+    nextFetchPolicy: 'cache-only',
+    notifyOnNetworkStatusChange: true,
+    context: {
+      skipDeduplication: true,
+    },
+  });
+
+  // Handle component unmount
   useEffect(() => {
-    const loadGame = async () => {
-      try {
-        // First try to fetch from our database
-        const response = await fetch(`/api/games/${gameId}`);
-        if (!response.ok) {
-          // If not found in our database, try the external API
-          const externalResponse = await fetchNbaGameById(gameId);
-          setGameData(externalResponse);
-        } else {
-          const data = await response.json();
-          setGameData(data);
-        }
-      } catch (error) {
-        console.error('Error loading game:', error);
-      } finally {
-        setLoading(false);
+    return () => {
+      // Cleanup any pending requests when component unmounts
+      if (refetch) {
+        // The refetch function will be automatically cancelled on unmount
+        refetch();
       }
     };
-    loadGame();
-  }, [gameId]);
+  }, [refetch]);
+
+  const transformGame = useCallback((game: Game): TransformedGame => {
+    // Parse the JSON data if it's a string, otherwise use it directly
+    const teams = typeof game.teams === 'string' ? JSON.parse(game.teams) : game.teams;
+    const scores = typeof game.scores === 'string' ? JSON.parse(game.scores) : game.scores;
+
+    // Ensure we have the required data structure
+    if (!teams?.home || !teams?.visitors || !scores?.home?.points || !scores?.visitors?.points) {
+      console.error('Invalid game data structure:', { teams, scores });
+      throw new Error('Invalid game data structure');
+    }
+
+    // Parse status fields if they are objects
+    const parseStatusField = (field: unknown): string => {
+      if (typeof field === 'object' && field !== null) {
+        try {
+          return JSON.stringify(field);
+        } catch (error) {
+          console.log({ error });
+          return '';
+        }
+      }
+      return String(field || '');
+    };
+
+    // Transform status object to ensure all fields are strings
+    const status = {
+      clock: parseStatusField(game.status?.clock),
+      halftime: Boolean(game.status?.halftime),
+      long: parseStatusField(game.status?.long),
+      short: parseStatusField(game.status?.short),
+    };
+
+    return {
+      ...game,
+      homeTeam: teams.home,
+      awayTeam: teams.visitors,
+      homeTeamScore: scores.home.points,
+      awayTeamScore: scores.visitors.points,
+      status,
+    };
+  }, []);
 
   if (loading) {
     return (
@@ -52,7 +92,7 @@ export default function GamePage({ params }: { params: { id: string } }) {
     );
   }
 
-  if (!gameData?.data?.[0]) {
+  if (error || !data?.game) {
     return (
       <div className="min-h-screen bg-background p-8">
         <div className="max-w-4xl mx-auto">
@@ -71,16 +111,28 @@ export default function GamePage({ params }: { params: { id: string } }) {
     );
   }
 
-  const game = gameData.data[0];
-
-  // Transform the game data into the format we need
-  const transformedGame: TransformedGame = {
-    ...game,
-    homeTeam: game.teams.home,
-    awayTeam: game.teams.visitors,
-    homeTeamScore: game.scores.home.points,
-    awayTeamScore: game.scores.visitors.points,
-  };
+  let transformedGame;
+  try {
+    transformedGame = transformGame(data.game);
+  } catch (error) {
+    console.error('Error transforming game data:', error);
+    return (
+      <div className="min-h-screen bg-background p-8">
+        <div className="max-w-4xl mx-auto">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+            <h2 className="text-xl font-semibold text-red-800 mb-2">Error Loading Game</h2>
+            <p className="text-red-600">There was an error loading the game data.</p>
+            <Link
+              href="/sports/nba"
+              className="mt-4 inline-block text-sm text-red-600 hover:text-red-800"
+            >
+              ← Back to Games
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">

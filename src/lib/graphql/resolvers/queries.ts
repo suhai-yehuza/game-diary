@@ -50,11 +50,19 @@ interface GameArena {
   country?: string | null;
 }
 
+// Type for game status structure
+interface GameStatus {
+  clock?: string;
+  halftime?: boolean;
+  long?: string;
+  short?: string;
+}
+
 // Type for game data from database
 interface GameData {
   id: string;
   date: Date | string;
-  status: string;
+  status: string | GameStatus;
   arena: string | GameArena;
   league: string;
   season: number;
@@ -207,11 +215,11 @@ export const games = async (
         | { name?: string; city?: string; state?: string | null; country?: string | null }
         | string
         | null;
-      const periods = game.periods as {
-        current: number;
-        total: number;
-        end_of_period: boolean;
-      } | null;
+      // const periods = game.periods as {
+      //   current: number;
+      //   total: number;
+      //   end_of_period: boolean;
+      // } | null;
       const teams = game.teams as { home: { id: string }; visitors: { id: string } } | null;
 
       return {
@@ -228,17 +236,25 @@ export const games = async (
           duration: (game.date as { duration?: string | null })?.duration || null,
         },
         status: {
-          clock: periods?.current?.toString() || '',
-          halftime: false,
+          clock:
+            typeof game.status === 'object' && game.status !== null
+              ? String((game.status as GameStatus).clock || '')
+              : typeof game.status === 'string'
+                ? game.status
+                : '',
+          halftime:
+            typeof game.status === 'object' && game.status !== null
+              ? Boolean((game.status as GameStatus).halftime)
+              : false,
           long:
             typeof game.status === 'object' && game.status !== null
-              ? (game.status as { long?: string })?.long || ''
+              ? String((game.status as GameStatus).long || '')
               : typeof game.status === 'string'
                 ? game.status
                 : '',
           short:
             typeof game.status === 'object' && game.status !== null
-              ? (game.status as { short?: string })?.short || ''
+              ? String((game.status as GameStatus).short || '')
               : typeof game.status === 'string'
                 ? game.status
                 : '',
@@ -288,74 +304,101 @@ export const games = async (
 };
 
 export const game = async (_parent: unknown, { id }: { id: string }, { db }: Context) => {
-  const game = await db
-    .select()
-    .from(schema.nba_games)
-    .where(eq(schema.nba_games.id, id))
-    .limit(1)
-    .then((rows: DatabaseRow[]) => rows[0]);
+  try {
+    const game = await db
+      .select()
+      .from(schema.nba_games)
+      .where(eq(schema.nba_games.id, id))
+      .limit(1)
+      .then((rows: DatabaseRow[]) => rows[0]);
 
-  if (!game) throw new NotFoundError('Game', id);
+    if (!game) throw new NotFoundError('Game', id);
 
-  const teams = (game.teams as GameTeams) || {};
-  const homeTeamId = teams.home?.id || null;
-  const awayTeamId = teams.visitors?.id || null;
+    const teams = (game.teams as GameTeams) || {};
+    const homeTeamId = teams.home?.id || null;
+    const awayTeamId = teams.visitors?.id || null;
 
-  const arenaData = game.arena as
-    | { name?: string; city?: string; state?: string | null; country?: string | null }
-    | string
-    | null;
+    const arenaData = game.arena as
+      | { name?: string; city?: string; state?: string | null; country?: string | null }
+      | string
+      | null;
 
-  return {
-    id: game.id,
-    date: {
-      start:
-        (game.date as { start?: string | null })?.start ||
-        (game.date instanceof Date
-          ? game.date.toISOString()
-          : typeof game.date === 'string'
-            ? new Date(game.date).toISOString()
-            : ''),
-      end: (game.date as { end?: string | null })?.end || null,
-      duration: (game.date as { duration?: string | null })?.duration || null,
-    },
-    status: {
-      clock: typeof game.status === 'string' ? game.status : String(game.status ?? ''),
-      halftime: false,
-      long: typeof game.status === 'string' ? game.status : String(game.status ?? ''),
-      short: typeof game.status === 'string' ? game.status : String(game.status ?? ''),
-    },
-    arena: {
-      name:
-        typeof arenaData === 'object' && arenaData !== null
-          ? arenaData.name || ''
-          : typeof arenaData === 'string'
-            ? arenaData
-            : '',
-      city: typeof arenaData === 'object' && arenaData !== null ? arenaData.city || '' : '',
-      state: typeof arenaData === 'object' && arenaData !== null ? arenaData.state : null,
-      country: typeof arenaData === 'object' && arenaData !== null ? arenaData.country : null,
-    },
-    league: typeof game.league === 'string' ? game.league : String(game.league ?? ''),
-    season: typeof game.season === 'number' ? game.season : Number(game.season ?? 0),
-    stage: typeof game.stage === 'number' ? game.stage : Number(game.stage ?? 0),
-    periods: game.periods ?? [],
-    scores: game.scores ?? [],
-    officials: Array.isArray(game.officials) ? game.officials.map(String) : [],
-    times_tied: typeof game.times_tied === 'number' ? game.times_tied : null,
-    lead_changes: typeof game.lead_changes === 'number' ? game.lead_changes : null,
-    nugget: typeof game.nugget === 'string' ? game.nugget : null,
-    createdAt: game.createdAt instanceof Date ? game.createdAt : new Date(game.createdAt as string),
-    updatedAt: game.updatedAt instanceof Date ? game.updatedAt : new Date(game.updatedAt as string),
-    homeTeamId: typeof homeTeamId === 'string' ? homeTeamId : homeTeamId ? String(homeTeamId) : '',
-    awayTeamId: typeof awayTeamId === 'string' ? awayTeamId : awayTeamId ? String(awayTeamId) : '',
-    teams,
-    is_completed: game.status === 'Finished',
-    awayScore: (game.scores as GameScores)?.visitors?.points || null,
-    homeScore: (game.scores as GameScores)?.home?.points || null,
-    gameType: 'REGULAR',
-    nbaGameId: game.id,
-  };
+    return {
+      id: game.id,
+      date: {
+        start:
+          (game.date as { start?: string | null })?.start ||
+          (game.date instanceof Date
+            ? game.date.toISOString()
+            : typeof game.date === 'string'
+              ? new Date(game.date).toISOString()
+              : ''),
+        end: (game.date as { end?: string | null })?.end || null,
+        duration: (game.date as { duration?: string | null })?.duration || null,
+      },
+      status: {
+        clock:
+          typeof game.status === 'object' && game.status !== null
+            ? String((game.status as GameStatus).clock || '')
+            : typeof game.status === 'string'
+              ? game.status
+              : '',
+        halftime:
+          typeof game.status === 'object' && game.status !== null
+            ? Boolean((game.status as GameStatus).halftime)
+            : false,
+        long:
+          typeof game.status === 'object' && game.status !== null
+            ? String((game.status as GameStatus).long || '')
+            : typeof game.status === 'string'
+              ? game.status
+              : '',
+        short:
+          typeof game.status === 'object' && game.status !== null
+            ? String((game.status as GameStatus).short || '')
+            : typeof game.status === 'string'
+              ? game.status
+              : '',
+      },
+      arena: {
+        name:
+          typeof arenaData === 'object' && arenaData !== null
+            ? arenaData.name || ''
+            : typeof arenaData === 'string'
+              ? arenaData
+              : '',
+        city: typeof arenaData === 'object' && arenaData !== null ? arenaData.city || '' : '',
+        state: typeof arenaData === 'object' && arenaData !== null ? arenaData.state : null,
+        country: typeof arenaData === 'object' && arenaData !== null ? arenaData.country : null,
+      },
+      league: typeof game.league === 'string' ? game.league : String(game.league ?? ''),
+      season: typeof game.season === 'number' ? game.season : Number(game.season ?? 0),
+      stage: typeof game.stage === 'number' ? game.stage : Number(game.stage ?? 0),
+      periods: game.periods ?? [],
+      scores: game.scores ?? [],
+      officials: Array.isArray(game.officials) ? game.officials.map(String) : [],
+      times_tied: typeof game.times_tied === 'number' ? game.times_tied : null,
+      lead_changes: typeof game.lead_changes === 'number' ? game.lead_changes : null,
+      nugget: typeof game.nugget === 'string' ? game.nugget : null,
+      createdAt:
+        game.createdAt instanceof Date ? game.createdAt : new Date(game.createdAt as string),
+      updatedAt:
+        game.updatedAt instanceof Date ? game.updatedAt : new Date(game.updatedAt as string),
+      homeTeamId:
+        typeof homeTeamId === 'string' ? homeTeamId : homeTeamId ? String(homeTeamId) : '',
+      awayTeamId:
+        typeof awayTeamId === 'string' ? awayTeamId : awayTeamId ? String(awayTeamId) : '',
+      teams,
+      is_completed: game.status === 'Finished',
+      awayScore: (game.scores as GameScores)?.visitors?.points || null,
+      homeScore: (game.scores as GameScores)?.home?.points || null,
+      gameType: 'REGULAR',
+      nbaGameId: game.id,
+    };
+  } catch (error) {
+    console.error('Error fetching game:', error);
+    throw error;
+  }
 };
 
 export const teams = async (
@@ -645,10 +688,28 @@ export const gameStats = async (_parent: unknown, { id }: { id: string }, { db }
         duration: (game.date as { duration?: string | null })?.duration || null,
       },
       status: {
-        clock: typeof game.status === 'string' ? game.status : String(game.status ?? ''),
-        halftime: false,
-        long: typeof game.status === 'string' ? game.status : String(game.status ?? ''),
-        short: typeof game.status === 'string' ? game.status : String(game.status ?? ''),
+        clock:
+          typeof game.status === 'object' && game.status !== null
+            ? String((game.status as GameStatus).clock || '')
+            : typeof game.status === 'string'
+              ? game.status
+              : '',
+        halftime:
+          typeof game.status === 'object' && game.status !== null
+            ? Boolean((game.status as GameStatus).halftime)
+            : false,
+        long:
+          typeof game.status === 'object' && game.status !== null
+            ? String((game.status as GameStatus).long || '')
+            : typeof game.status === 'string'
+              ? game.status
+              : '',
+        short:
+          typeof game.status === 'object' && game.status !== null
+            ? String((game.status as GameStatus).short || '')
+            : typeof game.status === 'string'
+              ? game.status
+              : '',
       },
       arena: typeof game.arena === 'string' ? game.arena : String(game.arena ?? ''),
       league: typeof game.league === 'string' ? game.league : String(game.league ?? ''),
@@ -877,10 +938,28 @@ export const teamGameStats = async (
         duration: (dbGame.date as { duration?: string | null })?.duration || null,
       },
       status: {
-        clock: typeof dbGame.status === 'string' ? dbGame.status : String(dbGame.status ?? ''),
-        halftime: false,
-        long: typeof dbGame.status === 'string' ? dbGame.status : String(dbGame.status ?? ''),
-        short: typeof dbGame.status === 'string' ? dbGame.status : String(dbGame.status ?? ''),
+        clock:
+          typeof dbGame.status === 'object' && dbGame.status !== null
+            ? String(dbGame.status.clock || '')
+            : typeof dbGame.status === 'string'
+              ? dbGame.status
+              : '',
+        halftime:
+          typeof dbGame.status === 'object' && dbGame.status !== null
+            ? Boolean(dbGame.status.halftime)
+            : false,
+        long:
+          typeof dbGame.status === 'object' && dbGame.status !== null
+            ? String(dbGame.status.long || '')
+            : typeof dbGame.status === 'string'
+              ? dbGame.status
+              : '',
+        short:
+          typeof dbGame.status === 'object' && dbGame.status !== null
+            ? String(dbGame.status.short || '')
+            : typeof dbGame.status === 'string'
+              ? dbGame.status
+              : '',
       },
       periods: dbGame.periods,
       arena: dbGame.arena,
@@ -1909,7 +1988,6 @@ export const liveGames = async (
 
     // Handle empty response gracefully
     if (!liveGames || !liveGames.response || liveGames.response.length === 0) {
-      console.log('No live games available');
       return createConnection([], 0, args);
     }
 
