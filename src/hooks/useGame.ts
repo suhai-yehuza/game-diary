@@ -16,7 +16,12 @@ export function useGame(gameId?: string) {
   // Query for external game
   const { data: externalData, loading: externalLoading } = useQuery(GET_EXTERNAL_GAMES, {
     variables: {
-      filters: { gameId },
+      filters: { 
+        gameId,
+        dateRange: {
+          start: new Date().toISOString(),
+        }
+      },
       pagination: { first: 1 },
     },
     skip: !gameId || !!internalData?.game,
@@ -52,7 +57,12 @@ export function useGame(gameId?: string) {
     const { data: externalGame } = await client.query({
       query: GET_EXTERNAL_GAMES,
       variables: {
-        filters: { gameId: id },
+        filters: { 
+          gameId: id,
+          dateRange: {
+            start: new Date().toISOString(),
+          }
+        },
         pagination: { first: 1 },
       },
       fetchPolicy: 'network-only',

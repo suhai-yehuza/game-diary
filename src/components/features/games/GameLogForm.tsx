@@ -30,7 +30,7 @@ import { gameLogInputSchema } from '@/lib/validations/game';
 
 interface GameLogFormProps {
   loading: boolean;
-  gamesData?: { games: Game[] };
+  gamesData?: { games: { edges: { node: Game }[] } };
   gamesLoading: boolean;
   defaultValues: Partial<CreateGameLogInput>;
   onSubmit: (data: CreateGameLogInput) => Promise<void>;
@@ -66,22 +66,22 @@ export function GameLogForm({
     defaultValues,
   });
 
+  const games: Game[] = gamesData?.games?.edges?.map(edge => edge.node) ?? [];
+
   const selectedGame = useMemo(() => {
-    if (!gamesData?.games || !defaultValues.gameId) return null;
-    return gamesData.games.find(game => game.id === defaultValues.gameId);
-  }, [gamesData?.games, defaultValues.gameId]);
+    if (!games.length || !defaultValues.gameId) return null;
+    return games.find((game: Game) => game.id === defaultValues.gameId);
+  }, [games, defaultValues.gameId]);
 
   const filteredGames = useMemo(() => {
-    if (!gamesData?.games) return [];
-    if (!debouncedQuery) return gamesData.games;
-
+    if (!games.length) return [];
+    if (!debouncedQuery) return games;
     const query = debouncedQuery.toLowerCase();
-    return gamesData.games.filter(
-      game =>
-        game.teams.home.name.toLowerCase().includes(query) ||
-        game.teams.visitors.name.toLowerCase().includes(query)
+    return games.filter((game: Game) =>
+      game.teams.home.name.toLowerCase().includes(query) ||
+      game.teams.visitors.name.toLowerCase().includes(query)
     );
-  }, [gamesData?.games, debouncedQuery]);
+  }, [games, debouncedQuery]);
 
   const handleSubmit = async (data: CreateGameLogInput) => {
     await onSubmit(data);

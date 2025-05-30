@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery } from '@apollo/client';
 import { useUser } from '@clerk/nextjs';
+import React from 'react';
 
 import { useToast } from '@/components/ui/use-toast';
 import { CREATE_GAME_LOG } from '@/lib/graphql/mutations';
@@ -24,15 +25,24 @@ export function useCreateGameLog({ onSuccess }: UseCreateGameLogProps = {}) {
   const { toast } = useToast();
   const { user } = useUser();
 
-  const { data: gamesData, loading: gamesLoading } = useQuery(GET_GAMES, {
-    variables: {
+  // Memoize variables to prevent infinite re-renders
+  const gamesQueryVariables = React.useMemo(() => {
+    if (!user?.id) return undefined;
+    return {
       filters: {
-        date: {
+        dateRange: {
           start: new Date().toISOString(),
           end: new Date().toISOString(),
         },
       },
-    },
+    };
+  }, [user?.id]);
+
+  const { data: gamesData, loading: gamesLoading } = useQuery(GET_GAMES, {
+    variables: gamesQueryVariables,
+    skip: !gamesQueryVariables,
+    fetchPolicy: 'cache-first',
+    nextFetchPolicy: 'cache-only',
   });
 
   const handleError = (

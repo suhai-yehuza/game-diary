@@ -213,13 +213,7 @@ type DivisionStanding {
   win: Int!
 }
 
-union ErrorResult =
-  | AuthenticationError
-  | AuthorizationError
-  | BusinessLogicError
-  | NotFoundError
-  | RateLimitError
-  | ValidationError
+union ErrorResult = AuthenticationError | AuthorizationError | BusinessLogicError | NotFoundError | RateLimitError | ValidationError
 
 type FavoritePlayerResponse {
   errors: [ErrorResult!]
@@ -653,39 +647,15 @@ type PlayerStatsEdge {
 }
 
 type Query {
-  allPlayerStats(
-    after: String
-    before: String
-    first: Int
-    last: Int
-    season: Int!
-  ): PlayerStatsConnection!
-  allTeamStats(
-    after: String
-    before: String
-    first: Int
-    last: Int
-    season: Int!
-  ): TeamStatsConnection!
+  allPlayerStats(after: String, before: String, first: Int, last: Int, season: Int!): PlayerStatsConnection!
+  allTeamStats(after: String, before: String, first: Int, last: Int, season: Int!): TeamStatsConnection!
   comments(after: String, before: String, first: Int, last: Int, parentId: ID!): CommentConnection!
   friendship(id: ID!): Friendship
-  friendships(
-    after: String
-    before: String
-    first: Int
-    last: Int
-    userId: ID!
-  ): UserBaseConnection!
+  friendships(after: String, before: String, first: Int, last: Int, userId: ID!): UserBaseConnection!
   game(id: ID!): Game
   gameLog(gameId: ID!, userId: ID!): GameLog
   gameLogStats(filters: GameLogFilters): GameLogStats!
-  gameLogs(
-    after: String
-    before: String
-    filters: GameLogFilters
-    first: Int
-    last: Int
-  ): GameLogConnection!
+  gameLogs(after: String, before: String, filters: GameLogFilters, first: Int, last: Int): GameLogConnection!
   gameStats(id: ID!): GameStats
   games(after: String, before: String, filters: GameFilters, first: Int, last: Int): GameConnection!
   leagues(after: String, before: String, first: Int, last: Int): LeagueConnection!
@@ -693,47 +663,15 @@ type Query {
   player(id: ID!): Player
   playerGameStats(gameId: ID!, playerId: ID!): PlayerStats
   playerSeasonStats(playerId: ID!, season: Int!): PlayerStats
-  playerSeasonStatsList(
-    after: String
-    before: String
-    first: Int
-    last: Int
-    playerId: ID!
-  ): PlayerStatsConnection!
+  playerSeasonStatsList(after: String, before: String, first: Int, last: Int, playerId: ID!): PlayerStatsConnection!
   playerStats(playerId: ID!, season: Int!): PlayerStats
-  playerStatsByTeam(
-    after: String
-    before: String
-    first: Int
-    last: Int
-    season: Int!
-    teamId: String!
-  ): PlayerStatsConnection!
-  players(
-    after: String
-    before: String
-    filters: PlayerFilters
-    first: Int
-    last: Int
-  ): PlayerConnection!
-  reactions(
-    after: String
-    before: String
-    first: Int
-    last: Int
-    targetId: ID!
-  ): ReactionConnection!
+  playerStatsByTeam(after: String, before: String, first: Int, last: Int, season: Int!, teamId: String!): PlayerStatsConnection!
+  players(after: String, before: String, filters: PlayerFilters, first: Int, last: Int): PlayerConnection!
+  reactions(after: String, before: String, first: Int, last: Int, targetId: ID!): ReactionConnection!
   seasons(after: String, before: String, first: Int, last: Int): SeasonConnection!
   team(id: ID!): Team
   teamGameStats(gameId: ID!, teamId: String!): TeamStats
-  teamStats(
-    after: String
-    before: String
-    first: Int
-    last: Int
-    sort: TeamSortInput
-    teamId: ID!
-  ): TeamStatsConnection!
+  teamStats(after: String, before: String, first: Int, last: Int, sort: TeamSortInput, teamId: ID!): TeamStatsConnection!
   teams(after: String, before: String, filters: TeamFilters, first: Int, last: Int): TeamConnection!
   topPlayers(after: String, before: String, first: Int, last: Int, season: Int!): PlayerConnection!
   user(id: ID!): User
