@@ -1,32 +1,19 @@
-import { copyFile, mkdir, readdir } from 'fs/promises';
+import { copyFileSync, mkdirSync, readdirSync } from 'fs';
 import { join } from 'path';
 
-async function copyCustomMigrations() {
-  console.log('📋 Copying custom migrations to drizzle directory...');
+const sourceDir = join(process.cwd(), 'src/lib/db/migrations');
+const targetDir = join(process.cwd(), 'drizzle');
 
-  const drizzleDir = join(process.cwd(), 'drizzle');
-  const customMigrationsDir = join(process.cwd(), 'custom-migrations');
+// Ensure target directory exists
+mkdirSync(targetDir, { recursive: true });
 
-  try {
-    // Ensure drizzle directory exists
-    await mkdir(drizzleDir, { recursive: true });
+// Get all SQL files from source directory
+const files = readdirSync(sourceDir).filter(file => file.endsWith('.sql'));
 
-    // Copy each custom migration file
-    const files = await readdir(customMigrationsDir);
-    const sqlFiles = files.filter((f: string) => f.endsWith('.sql'));
-
-    for (const file of sqlFiles) {
-      const sourcePath = join(customMigrationsDir, file);
-      const targetPath = join(drizzleDir, file);
-      await copyFile(sourcePath, targetPath);
-      console.log(`✅ Copied: ${file}`);
-    }
-
-    console.log('✅ All custom migrations copied successfully');
-  } catch (error) {
-    console.error('❌ Error copying migrations:', error);
-    process.exit(1);
-  }
-}
-
-copyCustomMigrations(); 
+// Copy each file to target directory
+files.forEach(file => {
+  const sourcePath = join(sourceDir, file);
+  const targetPath = join(targetDir, file);
+  copyFileSync(sourcePath, targetPath);
+  console.log(`Copied ${file} to drizzle directory`);
+});

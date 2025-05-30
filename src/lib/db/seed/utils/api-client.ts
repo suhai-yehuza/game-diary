@@ -249,7 +249,7 @@ export class OptimizedAPIClient {
               set: Object.fromEntries(
                 Object.keys(batch[0])
                   .filter(key => key !== 'id' && key !== 'createdAt')
-                  .map(key => [key, sql`EXCLUDED.${sql.raw(key)}`])
+                  .map(key => [key, sql`EXCLUDED.${sql.raw('"' + key + '"')}`])
               ) as PgUpdateSetSource<T>,
             });
         }

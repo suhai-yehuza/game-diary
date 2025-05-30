@@ -1,15 +1,5 @@
 DROP FUNCTION IF EXISTS update_game_ratings() CASCADE;
 
--- Create the game_ratings table if it does not exist
-CREATE TABLE IF NOT EXISTS game_ratings (
-  id VARCHAR(255) PRIMARY KEY DEFAULT gen_random_uuid(),
-  gameId TEXT NOT NULL UNIQUE,
-  averageRating NUMERIC(3,2) NOT NULL DEFAULT 0.00,
-  totalRatings INTEGER NOT NULL DEFAULT 0,
-  createdAt TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
-  updatedAt TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
-);
-
 -- Create function to update game ratings
 CREATE OR REPLACE FUNCTION update_game_ratings()
 RETURNS TRIGGER AS $$

@@ -178,7 +178,7 @@ pnpm run seed:optimized -- --batchSize=100 --concurrency=5appendingData
 
 
 # Custom clean, build, generate, migrate, runs
-pnpm clean:build && pnpm db:migrate:reset:dev
+pnpm clean:build && pnpm db:migrate:reset:dev --force
 
 # Seed external db and skip the part for the application db / tables
 tsx --max-old-space-size=24576 src/lib/db/seed/optimized-seeder.ts -- --concurrency=10 --seasons=2024 --resetDb=true --skipExternalDb=false --skipApplicationDb=true --enableMonitoring=true

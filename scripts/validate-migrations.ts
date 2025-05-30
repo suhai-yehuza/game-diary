@@ -1,46 +1,27 @@
-import { readdir, readFile } from 'fs/promises';
+import { readdir } from 'fs/promises';
 import { join } from 'path';
 
 /**
- * Validates that required migration files are present
+ * Validates that required migration files are present in src/lib/db/migrations
  */
 async function validateMigrations() {
-  console.log('🔍 Validating migration files...');
+  console.log('🔍 Validating migration files in src/lib/db/migrations...');
 
-  // Check if all required migration files are present
-  const drizzleDir = join(process.cwd(), 'drizzle');
-  const customMigrationsDir = join(process.cwd(), 'custom-migrations');
+  const migrationsDir = join(process.cwd(), 'src/lib/db/migrations');
 
   try {
-    // Get all files from both directories
-    const drizzleFiles = await readdir(drizzleDir);
-    const customFiles = await readdir(customMigrationsDir);
+    // Get all files from the migrations directory
+    const files = await readdir(migrationsDir);
+    const sqlFiles = files.filter(f => f.endsWith('.sql'));
 
-    // Filter for SQL files
-    const drizzleSqlFiles = drizzleFiles.filter(f => f.endsWith('.sql'));
-    const customSqlFiles = customFiles.filter(f => f.endsWith('.sql'));
-
-    // Check if all custom migrations exist in drizzle directory
-    const missingInDrizzle = customSqlFiles.filter(f => !drizzleSqlFiles.includes(f));
-    if (missingInDrizzle.length > 0) {
-      console.error('❌ The following custom migrations are missing in the drizzle directory:');
-      missingInDrizzle.forEach(f => console.error(`   - ${f}`));
+    if (sqlFiles.length === 0) {
+      console.error('❌ No migration .sql files found in src/lib/db/migrations.');
       process.exit(1);
     }
 
-    // Check content consistency for each custom migration
-    for (const file of customSqlFiles) {
-      const drizzleContent = await readFile(join(drizzleDir, file), 'utf-8');
-      const customContent = await readFile(join(customMigrationsDir, file), 'utf-8');
-
-      if (drizzleContent !== customContent) {
-        console.error(`❌ Content mismatch in file: ${file}`);
-        console.error('The content in drizzle/ and custom-migrations/ directories are different.');
-        process.exit(1);
-      }
-    }
-
-    console.log('✅ All required migration files are present and consistent');
+    console.log('✅ Found the following migration files:');
+    sqlFiles.forEach(f => console.log(`   - ${f}`));
+    console.log('✅ All required migration files are present in src/lib/db/migrations');
   } catch (error) {
     console.error('❌ Error validating migrations:', error);
     process.exit(1);

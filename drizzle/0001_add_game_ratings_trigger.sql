@@ -1,3 +1,5 @@
+DROP FUNCTION IF EXISTS update_game_ratings() CASCADE;
+
 -- Create function to update game ratings
 CREATE OR REPLACE FUNCTION update_game_ratings()
 RETURNS TRIGGER AS $$
@@ -72,8 +74,10 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Create triggers
+-- Drop the trigger if it exists
 DROP TRIGGER IF EXISTS game_logs_ratings_trigger ON game_logs;
+
+-- Create triggers
 CREATE TRIGGER game_logs_ratings_trigger
     AFTER INSERT OR UPDATE OR DELETE ON game_logs
     FOR EACH ROW

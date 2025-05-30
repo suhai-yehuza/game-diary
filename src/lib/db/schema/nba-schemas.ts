@@ -13,7 +13,6 @@ import {
 
 import { generateUUID } from '@/lib/utils/index.processing';
 
-import { baseTableConfig } from './base-schemas';
 import { JsonValue } from './shared-types';
 import { teams as baseTeams } from './team-schemas';
 
@@ -24,7 +23,7 @@ export const teams = baseTeams;
 export const nba_games = pgTable(
   'nba_games',
   {
-    ...baseTableConfig,
+    id: text('id').primaryKey().default(generateUUID()),
     league: text('league').notNull(),
     season: integer('season').notNull(),
     date: jsonb('date').$type<{
@@ -92,6 +91,8 @@ export const nba_games = pgTable(
     timesTied: integer('timesTied'),
     leadChanges: integer('leadChanges'),
     nugget: text('nugget'),
+    createdAt: timestamp('createdAt').defaultNow().notNull(),
+    updatedAt: timestamp('updatedAt').defaultNow().notNull(),
   },
   _table => ({
     gameSeasonIndex: sql`CREATE INDEX IF NOT EXISTS idx_nba_games_season ON nba_games (season)`,
@@ -104,9 +105,9 @@ export const nba_games = pgTable(
 export const team_h2h = pgTable(
   'team_h2h',
   {
-    id: text('id').primaryKey().default(generateUUID()),
-    team1Id: text('team1Id').notNull(),
-    team2Id: text('team2Id').notNull(),
+    id: varchar('id', { length: 255 }).primaryKey().default(generateUUID()),
+    team1Id: varchar('team1Id', { length: 255 }).notNull(),
+    team2Id: varchar('team2Id', { length: 255 }).notNull(),
     season: integer('season')
       .notNull()
       .references(() => seasons.id),
@@ -143,18 +144,18 @@ export const seasons = pgTable('seasons', {
 
 // NBA Players table
 export const nba_players = pgTable('nba_players', {
-  id: text('id').primaryKey(),
-  firstName: varchar('firstName').notNull(),
-  lastName: varchar('lastName').notNull(),
+  id: varchar('id', { length: 255 }).primaryKey(),
+  firstName: varchar('firstName', { length: 255 }).notNull(),
+  lastName: varchar('lastName', { length: 255 }).notNull(),
   birth: jsonb('birth'),
   nba: jsonb('nba'),
   height: jsonb('height'),
   weight: jsonb('weight'),
-  college: varchar('college'),
-  affiliation: varchar('affiliation'),
-  jersey: varchar('jersey'),
+  college: varchar('college', { length: 255 }),
+  affiliation: varchar('affiliation', { length: 255 }),
+  jersey: varchar('jersey', { length: 10 }),
   active: boolean('active').default(true),
-  pos: varchar('pos'),
+  pos: varchar('pos', { length: 10 }),
   seasonsActive: jsonb('seasonsActive').$type<Array<{ season: number; teamIds: string[] }>>(),
   createdAt: timestamp('createdAt').defaultNow().notNull(),
   updatedAt: timestamp('updatedAt').defaultNow().notNull(),
@@ -163,14 +164,14 @@ export const nba_players = pgTable('nba_players', {
 
 // NBA Player Stats table
 export const nba_player_stats = pgTable('nba_player_stats', {
-  id: text('id').primaryKey(),
-  playerId: text('playerId')
+  id: varchar('id', { length: 255 }).primaryKey(),
+  playerId: varchar('playerId', { length: 255 })
     .notNull()
     .references(() => nba_players.id),
-  gameId: text('gameId')
+  gameId: varchar('gameId', { length: 255 })
     .notNull()
     .references(() => nba_games.id),
-  teamId: text('teamId')
+  teamId: varchar('teamId', { length: 255 })
     .notNull()
     .references(() => teams.id),
   points: integer('points'),
@@ -180,7 +181,7 @@ export const nba_player_stats = pgTable('nba_player_stats', {
   blocks: integer('blocks'),
   turnovers: integer('turnovers'),
   fouls: integer('fouls'),
-  minutes: varchar('minutes'),
+  minutes: varchar('minutes', { length: 10 }),
   fieldGoalsMade: integer('fieldGoalsMade'),
   fieldGoalsAttempted: integer('fieldGoalsAttempted'),
   threePointersMade: integer('threePointersMade'),

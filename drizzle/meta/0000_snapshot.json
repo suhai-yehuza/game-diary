@@ -1,5 +1,5 @@
 {
-  "id": "1cb83a54-f67f-4db3-ac43-558a00aeda9a",
+  "id": "219110b3-15ad-459f-a25f-6e88c208fa05",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -10,20 +10,20 @@
       "columns": {
         "id": {
           "name": "id",
-          "type": "text",
+          "type": "varchar(255)",
           "primaryKey": true,
           "notNull": true,
-          "default": "'019721b1-c6c4-7468-adbd-5f390b5e86dd-mbaxend0-awehqiug27-13nu'"
+          "default": "'0197220b-0088-71ef-b10b-bd6c9c10ad97-mbb0vzbc-bbemw8tch7e-lwv'"
         },
         "userId": {
           "name": "userId",
-          "type": "text",
+          "type": "varchar(255)",
           "primaryKey": false,
           "notNull": false
         },
         "parentId": {
           "name": "parentId",
-          "type": "text",
+          "type": "varchar(255)",
           "primaryKey": false,
           "notNull": true
         },
@@ -91,7 +91,7 @@
           "type": "varchar(255)",
           "primaryKey": true,
           "notNull": true,
-          "default": "'019721b1-c6c4-7468-adbd-58bd392c948c-mbaxend0-rg80ux04i2n-13nu'"
+          "default": "'0197220b-0088-71ef-b10b-bb09f613934d-mbb0vzbc-x5nsl8sofz-lwv'"
         },
         "friendId": {
           "name": "friendId",
@@ -180,7 +180,7 @@
           "type": "varchar(255)",
           "primaryKey": true,
           "notNull": true,
-          "default": "'019721b1-c6c4-7468-adbd-69bdd9d27b7f-mbaxend0-mz3w28y9e7p-13nu'"
+          "default": "'0197220b-0088-71ef-b10b-ca7811ccd89f-mbb0vzbc-4jl19tubvey-lwv'"
         },
         "userId": {
           "name": "userId",
@@ -190,7 +190,7 @@
         },
         "gameId": {
           "name": "gameId",
-          "type": "text",
+          "type": "varchar(255)",
           "primaryKey": false,
           "notNull": true
         },
@@ -209,7 +209,7 @@
         },
         "watchedLocation": {
           "name": "watchedLocation",
-          "type": "text",
+          "type": "varchar(255)",
           "primaryKey": false,
           "notNull": false,
           "default": "''"
@@ -222,7 +222,7 @@
         },
         "ratingStars": {
           "name": "ratingStars",
-          "type": "text",
+          "type": "varchar(10)",
           "primaryKey": false,
           "notNull": false,
           "default": "''"
@@ -250,7 +250,7 @@
         },
         "classification": {
           "name": "classification",
-          "type": "text",
+          "type": "varchar(50)",
           "primaryKey": false,
           "notNull": true,
           "default": "'PROTECTED'"
@@ -320,11 +320,11 @@
           "type": "varchar(255)",
           "primaryKey": true,
           "notNull": true,
-          "default": "'019721b1-c6c4-7468-adbd-6f472a40991b-mbaxend0-wsa7jsa1kcs-13nu'"
+          "default": "'0197220b-0088-71ef-b10b-cfc551f8dd6f-mbb0vzbd-sz5k37f92h-lwv'"
         },
         "gameId": {
           "name": "gameId",
-          "type": "text",
+          "type": "varchar(255)",
           "primaryKey": false,
           "notNull": true
         },
@@ -344,21 +344,35 @@
         },
         "createdAt": {
           "name": "createdAt",
-          "type": "timestamp (6) with time zone",
+          "type": "timestamp",
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
         },
         "updatedAt": {
           "name": "updatedAt",
-          "type": "timestamp (6) with time zone",
+          "type": "timestamp",
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
         }
       },
       "indexes": {},
-      "foreignKeys": {},
+      "foreignKeys": {
+        "game_ratings_gameId_nba_games_id_fk": {
+          "name": "game_ratings_gameId_nba_games_id_fk",
+          "tableFrom": "game_ratings",
+          "tableTo": "nba_games",
+          "columnsFrom": [
+            "gameId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
         "game_ratings_gameId_unique": {
@@ -382,7 +396,7 @@
           "type": "varchar(255)",
           "primaryKey": true,
           "notNull": true,
-          "default": "'019721b1-c6c1-7551-88fb-324480685cf0-mbaxencx-7ssix3qt8f4-13nu'"
+          "default": "'0197220b-0086-72b9-99a5-98da5d1a955d-mbb0vzba-cu4e80mv4qu-lwv'"
         },
         "gameId": {
           "name": "gameId",
@@ -831,7 +845,7 @@
           "type": "varchar(255)",
           "primaryKey": true,
           "notNull": true,
-          "default": "'019721b1-c6c4-7468-adbd-67eccbca6c79-mbaxend0-6rb8sdeuj5o-13nu'"
+          "default": "'0197220b-0088-71ef-b10b-c5d7bd42b41d-mbb0vzbc-ja6u27w74dn-lwv'"
         },
         "gameType": {
           "name": "gameType",
@@ -842,7 +856,7 @@
         },
         "nbaGameId": {
           "name": "nbaGameId",
-          "type": "text",
+          "type": "varchar(255)",
           "primaryKey": false,
           "notNull": false
         },
@@ -951,24 +965,10 @@
       "columns": {
         "id": {
           "name": "id",
-          "type": "varchar(255)",
+          "type": "text",
           "primaryKey": true,
           "notNull": true,
-          "default": "'019721b1-c6bf-7588-8ef1-ee290dba2a44-mbaxencv-m5gf24j02j-13nu'"
-        },
-        "createdAt": {
-          "name": "createdAt",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "updatedAt": {
-          "name": "updatedAt",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
+          "default": "'0197220b-0085-74da-94e4-41524d1bfab9-mbb0vzb9-tywjdmtn0s-lwv'"
         },
         "league": {
           "name": "league",
@@ -1047,6 +1047,20 @@
           "type": "text",
           "primaryKey": false,
           "notNull": false
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updatedAt": {
+          "name": "updatedAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
         }
       },
       "indexes": {},
@@ -1063,25 +1077,25 @@
       "columns": {
         "id": {
           "name": "id",
-          "type": "text",
+          "type": "varchar(255)",
           "primaryKey": true,
           "notNull": true
         },
         "playerId": {
           "name": "playerId",
-          "type": "text",
+          "type": "varchar(255)",
           "primaryKey": false,
           "notNull": true
         },
         "gameId": {
           "name": "gameId",
-          "type": "text",
+          "type": "varchar(255)",
           "primaryKey": false,
           "notNull": true
         },
         "teamId": {
           "name": "teamId",
-          "type": "text",
+          "type": "varchar(255)",
           "primaryKey": false,
           "notNull": true
         },
@@ -1129,7 +1143,7 @@
         },
         "minutes": {
           "name": "minutes",
-          "type": "varchar",
+          "type": "varchar(10)",
           "primaryKey": false,
           "notNull": false
         },
@@ -1244,19 +1258,19 @@
       "columns": {
         "id": {
           "name": "id",
-          "type": "text",
+          "type": "varchar(255)",
           "primaryKey": true,
           "notNull": true
         },
         "firstName": {
           "name": "firstName",
-          "type": "varchar",
+          "type": "varchar(255)",
           "primaryKey": false,
           "notNull": true
         },
         "lastName": {
           "name": "lastName",
-          "type": "varchar",
+          "type": "varchar(255)",
           "primaryKey": false,
           "notNull": true
         },
@@ -1286,19 +1300,19 @@
         },
         "college": {
           "name": "college",
-          "type": "varchar",
+          "type": "varchar(255)",
           "primaryKey": false,
           "notNull": false
         },
         "affiliation": {
           "name": "affiliation",
-          "type": "varchar",
+          "type": "varchar(255)",
           "primaryKey": false,
           "notNull": false
         },
         "jersey": {
           "name": "jersey",
-          "type": "varchar",
+          "type": "varchar(10)",
           "primaryKey": false,
           "notNull": false
         },
@@ -1311,7 +1325,7 @@
         },
         "pos": {
           "name": "pos",
-          "type": "varchar",
+          "type": "varchar(10)",
           "primaryKey": false,
           "notNull": false
         },
@@ -1452,14 +1466,14 @@
       "columns": {
         "id": {
           "name": "id",
-          "type": "text",
+          "type": "varchar(255)",
           "primaryKey": true,
           "notNull": true,
-          "default": "'019721b1-c6c4-7468-adbd-600e26c050c3-mbaxend0-u2w8rqsfq9-13nu'"
+          "default": "'0197220b-0088-71ef-b10b-c2b874ba9778-mbb0vzbc-dkgws5846fn-lwv'"
         },
         "userId": {
           "name": "userId",
-          "type": "text",
+          "type": "varchar(255)",
           "primaryKey": false,
           "notNull": false
         },
@@ -1471,7 +1485,7 @@
         },
         "targetId": {
           "name": "targetId",
-          "type": "text",
+          "type": "varchar(255)",
           "primaryKey": false,
           "notNull": true
         },
@@ -1609,7 +1623,7 @@
           "type": "varchar(255)",
           "primaryKey": true,
           "notNull": true,
-          "default": "'019721b1-c6c4-7468-adbd-73030b86763f-mbaxend0-5yk5awqo31i-13nu'"
+          "default": "'0197220b-0085-74da-94e4-44d3ce85d29b-mbb0vzb9-6k4t1nw7koq-lwv'"
         },
         "team1Id": {
           "name": "team1Id",
@@ -1629,12 +1643,47 @@
           "primaryKey": false,
           "notNull": true
         },
+        "totalGames": {
+          "name": "totalGames",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "team1Wins": {
+          "name": "team1Wins",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "team2Wins": {
+          "name": "team2Wins",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
         "last5Games": {
           "name": "last5Games",
-          "type": "text[]",
+          "type": "jsonb",
           "primaryKey": false,
-          "notNull": false,
-          "default": "'{}'"
+          "notNull": true,
+          "default": "'[]'::jsonb"
+        },
+        "averagePointsTeam1": {
+          "name": "averagePointsTeam1",
+          "type": "numeric(5, 2)",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'0.00'"
+        },
+        "averagePointsTeam2": {
+          "name": "averagePointsTeam2",
+          "type": "numeric(5, 2)",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'0.00'"
         },
         "createdAt": {
           "name": "createdAt",
@@ -1653,25 +1702,12 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "team_h2h_team1Id_teams_id_fk": {
-          "name": "team_h2h_team1Id_teams_id_fk",
+        "team_h2h_season_seasons_id_fk": {
+          "name": "team_h2h_season_seasons_id_fk",
           "tableFrom": "team_h2h",
-          "tableTo": "teams",
+          "tableTo": "seasons",
           "columnsFrom": [
-            "team1Id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        },
-        "team_h2h_team2Id_teams_id_fk": {
-          "name": "team_h2h_team2Id_teams_id_fk",
-          "tableFrom": "team_h2h",
-          "tableTo": "teams",
-          "columnsFrom": [
-            "team2Id"
+            "season"
           ],
           "columnsTo": [
             "id"
@@ -1795,7 +1831,7 @@
           "type": "varchar(255)",
           "primaryKey": true,
           "notNull": true,
-          "default": "'019721b1-c6c3-7369-88a0-eee4053d5b3e-mbaxencz-b0asf55zjzg-13nu'"
+          "default": "'0197220b-0088-71ef-b10b-b6aff9052671-mbb0vzbc-cfxm6yc251j-lwv'"
         },
         "username": {
           "name": "username",

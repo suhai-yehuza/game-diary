@@ -52,9 +52,9 @@ export const friendships = pgTable(
 export const comments = pgTable(
   'comments',
   {
-    id: text('id').primaryKey().default(generateUUID()),
-    userId: text('userId').references(() => users.id),
-    parentId: text('parentId').notNull(),
+    id: varchar('id', { length: 255 }).primaryKey().default(generateUUID()),
+    userId: varchar('userId', { length: 255 }).references(() => users.id),
+    parentId: varchar('parentId', { length: 255 }).notNull(),
     parentType: varchar('parentType', { length: 50 })
       .notNull()
       .$type<(typeof TARGET_TYPES)[keyof typeof TARGET_TYPES]>(),
@@ -76,12 +76,12 @@ export const comments = pgTable(
 export const reactions = pgTable(
   'reactions',
   {
-    id: text('id').primaryKey().default(generateUUID()),
-    userId: text('userId').references(() => users.id),
+    id: varchar('id', { length: 255 }).primaryKey().default(generateUUID()),
+    userId: varchar('userId', { length: 255 }).references(() => users.id),
     targetType: varchar('targetType', { length: 50 })
       .notNull()
       .$type<(typeof TARGET_TYPES)[keyof typeof TARGET_TYPES]>(),
-    targetId: text('targetId').notNull(),
+    targetId: varchar('targetId', { length: 255 }).notNull(),
     emoji: varchar('emoji', { length: 10 })
       .notNull()
       .$type<(typeof REACTION_EMOJIS)[keyof typeof REACTION_EMOJIS]>(),

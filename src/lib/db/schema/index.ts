@@ -7,13 +7,14 @@ import {
   reaction_type_enum,
   watched_setting_enum,
 } from '@/lib/db/schema/enums';
-import { game_logs, game_ratings, team_h2h, games } from '@/lib/db/schema/game-schemas';
+import { game_logs, game_ratings, games } from '@/lib/db/schema/game-schemas';
 import {
   nba_players,
   nba_player_stats,
   game_stats,
   seasons,
   nba_games,
+  team_h2h,
 } from '@/lib/db/schema/nba-schemas';
 import { notifications } from '@/lib/db/schema/notification-schemas';
 import { teams } from '@/lib/db/schema/team-schemas';
@@ -30,13 +31,14 @@ import {
 // Export all schema types
 export { baseTableConfig } from '@/lib/db/schema/base-types';
 export { comments } from '@/lib/db/schema/user-schemas';
-export { game_logs, game_ratings, team_h2h, games } from '@/lib/db/schema/game-schemas';
+export { game_logs, game_ratings, games } from '@/lib/db/schema/game-schemas';
 export {
-  nba_players,
-  nba_player_stats,
-  game_stats,
-  seasons,
   nba_games,
+  nba_players,
+  team_h2h,
+  game_stats,
+  nba_player_stats,
+  seasons,
 } from '@/lib/db/schema/nba-schemas';
 export { notifications } from '@/lib/db/schema/notification-schemas';
 export { teams } from '@/lib/db/schema/team-schemas';
@@ -71,12 +73,12 @@ export const schema = {
   },
   games,
   game_ratings,
+  nba_games,
   team_h2h,
   nba_players,
   nba_player_stats,
   game_stats,
   seasons,
-  nba_games,
   enums: {
     game_status: game_status_enum,
     gameType: game_type_enum,

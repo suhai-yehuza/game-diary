@@ -8,8 +8,15 @@ import {
 } from '@/lib/db/schema/enums';
 
 import { baseTableConfig } from './base-types';
-import { game_logs, game_ratings, team_h2h } from './game-schemas';
-import { nba_players, nba_player_stats, game_stats, seasons, nba_games } from './nba-schemas';
+import { game_logs, game_ratings } from './game-schemas';
+import {
+  nba_players,
+  nba_player_stats,
+  game_stats,
+  seasons,
+  nba_games,
+  team_h2h,
+} from './nba-schemas';
 import { notifications } from './notification-schemas';
 import {
   usersRelations,
