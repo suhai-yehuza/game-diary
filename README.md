@@ -105,29 +105,30 @@ pnpm install
 Create `.env.local` file in the root directory:
 
 ```env
-# Database
+# Database (Neon PostgreSQL)
 DATABASE_URL="postgresql://username:password@host:port/database"
 DIRECT_URL="postgresql://username:password@host:port/database"
 
 # Clerk Authentication
-NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="pk_test_..."
-CLERK_SECRET_KEY="sk_test_..."
-NEXT_PUBLIC_CLERK_SIGN_IN_URL="/sign-in"
-NEXT_PUBLIC_CLERK_SIGN_UP_URL="/sign-up"
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="pk_test_..."  # From Clerk Dashboard
+CLERK_SECRET_KEY="sk_test_..."                   # From Clerk Dashboard
+NEXT_PUBLIC_CLERK_SIGN_IN_URL="/sign-in"         # Custom sign-in page
+NEXT_PUBLIC_CLERK_SIGN_UP_URL="/sign-up"         # Custom sign-up page
 
-# Redis
-UPSTASH_REDIS_REST_URL="https://..."
-UPSTASH_REDIS_REST_TOKEN="..."
+# Redis (UpStash)
+UPSTASH_REDIS_REST_URL="https://..."             # From UpStash Dashboard
+UPSTASH_REDIS_REST_TOKEN="..."                   # From UpStash Dashboard
 
-# NBA API
-RAPIDAPI_KEY="your_rapidapi_key"
-RAPIDAPI_HOST="api-nba-v1.p.rapidapi.com"
+# NBA API (RapidAPI)
+RAPIDAPI_KEY="your_rapidapi_key"                 # From RapidAPI Dashboard
+RAPIDAPI_HOST="api-nba-v1.p.rapidapi.com"        # NBA API Host
 
 # Admin Configuration
-NEXT_PUBLIC_ADMIN_EMAILS="admin@example.com,admin2@example.com"
+NEXT_PUBLIC_ADMIN_EMAILS="admin@example.com,admin2@example.com"  # Admin user emails
 
 # Application
-NEXT_PUBLIC_APP_URL="http://localhost:3000"
+NEXT_PUBLIC_APP_URL="http://localhost:3000"      # Development URL
+NODE_ENV="development"                           # Environment
 ```
 
 ### 4. Database Setup
@@ -155,12 +156,13 @@ pnpm codegen
 pnpm dev
 ```
 
-### 7. All Encompassing Dev Workflow
+### 7. Development Workflow
 
 ```bash
-# Seed current season with default settings
+# Clean and reset development environment
 pnpm clean:build && pnpm db:migrate:reset:dev
 
+# Seed database with optimized settings
 pnpm run seed:optimized
 
 # Seed specific seasons
@@ -173,23 +175,37 @@ pnpm run seed:optimized -- --resetDb=true
 pnpm run seed:optimized -- --skipExternalDb=true
 
 # Custom batch size and concurrency
-pnpm run seed:optimized -- --batchSize=100 --concurrency=5appendingData
+pnpm run seed:optimized -- --batchSize=100 --concurrency=5
 
+# Advanced seeding options
+# Seed external db only
+tsx --max-old-space-size=24576 src/lib/db/seed/optimized-seeder.ts \
+  --concurrency=10 \
+  --seasons=2024 \
+  --resetDb=true \
+  --skipExternalDb=false \
+  --skipApplicationDb=true \
+  --enableMonitoring=true
 
+# Seed application db only (requires existing external data)
+tsx --max-old-space-size=24576 src/lib/db/seed/optimized-seeder.ts \
+  --concurrency=10 \
+  --resetDb=false \
+  --skipExternalDb=true \
+  --skipApplicationDb=false \
+  --appendingData=false \
+  --skipUsers=false \
+  --enableMonitoring=true
 
-# Custom clean, build, generate, migrate, runs
-pnpm clean:build && pnpm db:migrate:reset:dev --force
-
-# Seed external db and skip the part for the application db / tables
-tsx --max-old-space-size=24576 src/lib/db/seed/optimized-seeder.ts -- --concurrency=10 --seasons=2024 --resetDb=true --skipExternalDb=false --skipApplicationDb=true --enableMonitoring=true
-
-# Skip seeding the external db and only seed the application db / tables. Games should already exist in the external db
-tsx --max-old-space-size=24576 src/lib/db/seed/optimized-seeder.ts -- --concurrency=10 --resetDb=false --skipExternalDb=true --skipApplicationDb=false --appendingData=false --skipUsers=false --enableMonitoring=true
-
-# Seed the external db with data from a specific season without resetting or truncating the tables
-tsx --max-old-space-size=24576 src/lib/db/seed/optimized-seeder.ts -- --concurrency=10 --seasons=2023,2022,2021,2020 --resetDb=false --skipExternalDb=false --skipApplicationDb=true --appendingData=true --enableMonitoring=true
-
-npx tsc --traceResolution
+# Append external data for specific seasons
+tsx --max-old-space-size=24576 src/lib/db/seed/optimized-seeder.ts \
+  --concurrency=10 \
+  --seasons=2023,2022,2021,2020 \
+  --resetDb=false \
+  --skipExternalDb=false \
+  --skipApplicationDb=true \
+  --appendingData=true \
+  --enableMonitoring=true
 ```
 
 Visit [http://localhost:3000](http://localhost:3000) to see the application.
