@@ -82,6 +82,12 @@ await runOptimizedSeeder({
   concurrency: 10,
   batchSize: 500,
   enableMonitoring: true,
+  appendingData: false,
+  skipUsers: false,
+  skipExternalDb: false,
+  skipApplicationDb: false,
+  shouldResetDb: false,
+  shouldTruncateTables: false
 });
 ```
 
@@ -95,24 +101,31 @@ pnpm run seed:optimized
 pnpm run seed:optimized -- --seasons=2023,2024
 
 # Reset database and seed
-pnpm run seed:optimized -- --resetDb=true
+pnpm run seed:reset
 
 # Skip external data (NBA)
-pnpm run seed:optimized -- --skipExternalDb=true
+pnpm run seed:external-only
 
-# Custom batch size and concurrency
-pnpm run seed:optimized -- --batchSize=200 --concurrency=5appendingData
+# Skip application data
+pnpm run seed:internal-only
 
-# Custom clean, build, generate, migrate, runs
-pnpm clean:build && pnpm db:generate && pnpm db:migrate:dev
+# Development seeding with smaller batch size
+pnpm run seed:dev
 
-# External DB
-tsx --max-old-space-size=24576 src/lib/db/seed/optimized-seeder.ts -- --batchSize=100 --concurrency=10 --seasons=2024 --resetDb=true --skipExternalDb=false --skipApplicationDb=true --enableMonitoring=true
+# Production seeding with optimized settings
+pnpm run seed:prod
 
-# Application DB
-tsx --max-old-space-size=24576 src/lib/db/seed/optimized-seeder.ts -- --concurrency=10 --seasons=2024 --resetDb=false --skipExternalDb=true --skipApplicationDb=false --appendingData=false --skipUsers=false --enableMonitoring=true
+# Test environment seeding
+pnpm run seed:test
 
-npx tsc --traceResolution
+# Enable monitoring
+pnpm run seed:monitor
+
+# Seed current season
+pnpm run seed:current-season
+
+# Seed multiple seasons
+pnpm run seed:multi-season
 ```
 
 ### Advanced Configuration
@@ -270,24 +283,28 @@ const delay = baseDelay * Math.pow(2, attempt) + jitter;
 - Use streaming for large datasets (>10k records)
 - Process in chunks to avoid memory bloat
 - Enable garbage collection hints for long operations
+- Use generator functions for memory-efficient data processing
 
 ### 3. **API Usage**
 
 - Respect rate limits (default: 10 req/sec)
 - Use circuit breaker for external dependencies
 - Implement proper retry logic with exponential backoff
+- Handle API timeouts and failures gracefully
 
 ### 4. **Database Optimization**
 
 - Create indexes concurrently when possible
 - Disable foreign key checks during bulk operations
 - Use prepared statements for repeated queries
+- Optimize table truncation with parallel operations
 
 ### 5. **Monitoring**
 
 - Enable monitoring in development and production
 - Set appropriate thresholds for your use case
 - Monitor memory usage for long-running operations
+- Track performance metrics for each operation
 
 ## 🔄 Migration from Legacy System
 
