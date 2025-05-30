@@ -320,10 +320,12 @@ src/lib/db/migrations/
 ### Migration Types
 
 1. **Base Migrations** (`base/`)
+
    - Core schema changes
    - Table creation/modification
    - Index creation
    - Example: `20240315_1_initial_schema.sql`
+
    ```sql
    -- Example base migration
    CREATE TABLE users (
@@ -331,14 +333,16 @@ src/lib/db/migrations/
      email VARCHAR(255) UNIQUE NOT NULL,
      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
    );
-   
+
    CREATE INDEX idx_users_email ON users(email);
    ```
 
 2. **Feature Migrations** (`feature/`)
+
    - Feature-specific changes
    - New functionality
    - Example: `20240315_2_add_user_preferences.sql`
+
    ```sql
    -- Example feature migration
    CREATE TABLE user_preferences (
@@ -350,9 +354,11 @@ src/lib/db/migrations/
    ```
 
 3. **Trigger Migrations** (`triggers/`)
+
    - Database triggers
    - Functions
    - Example: `20240315_1_add_game_ratings_trigger.sql`
+
    ```sql
    -- Example trigger migration
    CREATE OR REPLACE FUNCTION update_game_rating()
@@ -362,7 +368,7 @@ src/lib/db/migrations/
      RETURN NEW;
    END;
    $$ LANGUAGE plpgsql;
-   
+
    CREATE TRIGGER game_rating_trigger
    AFTER INSERT ON game_logs
    FOR EACH ROW
@@ -372,6 +378,7 @@ src/lib/db/migrations/
 ### Migration Workflow
 
 1. **Generate a New Migration**
+
    ```bash
    # For base schema changes
    pnpm migration:generate base "add new table"
@@ -384,9 +391,11 @@ src/lib/db/migrations/
    ```
 
 2. **Edit the Migration**
+
    - Open the generated SQL file
    - Add your migration SQL
    - Update the meta file if needed
+
    ```json
    // Example meta file (20240315_1_initial_schema.json)
    {
@@ -399,10 +408,13 @@ src/lib/db/migrations/
    ```
 
 3. **Validate Migrations**
+
    ```bash
    pnpm migration:validate
    ```
+
    This will check for:
+
    - Proper file naming
    - Valid SQL syntax
    - Dependencies resolution
@@ -410,6 +422,7 @@ src/lib/db/migrations/
    - Index consistency
 
 4. **Run Migrations**
+
    ```bash
    # Development
    pnpm migration:reset
@@ -421,13 +434,16 @@ src/lib/db/migrations/
 ### Best Practices
 
 1. **Naming Convention**
+
    - Format: `YYYYMMDD_N_description.sql`
    - Example: `20240315_1_add_user_table.sql`
    - Use descriptive names: `20240315_2_add_user_preferences.sql`
    - Avoid generic names: `20240315_1_update.sql`
 
 2. **Migration Files**
+
    - Keep migrations atomic (one logical change)
+
    ```sql
    -- Good: Single purpose migration
    CREATE TABLE user_preferences (
@@ -440,8 +456,10 @@ src/lib/db/migrations/
    ALTER TABLE games ADD COLUMN rating INTEGER;
    CREATE INDEX idx_comments_user_id ON comments(user_id);
    ```
+
    - Use descriptive names
    - Include comments for complex changes
+
    ```sql
    -- Migration: Add user preferences table
    -- Purpose: Store user-specific settings
@@ -450,14 +468,18 @@ src/lib/db/migrations/
    ```
 
 3. **Meta Files**
+
    - Include dependencies
+
    ```json
    {
      "dependencies": ["20240315_1_initial_schema"]
    }
    ```
+
    - Add clear descriptions
    - Document any special requirements
+
    ```json
    {
      "requirements": {
@@ -468,9 +490,11 @@ src/lib/db/migrations/
    ```
 
 4. **Version Control**
+
    - Commit migrations immediately after generation
    - Never modify existing migrations
    - Create new migrations for changes
+
    ```bash
    # Good: Create new migration
    pnpm migration:generate feature "add user_preferences_theme_column"
@@ -518,12 +542,16 @@ pnpm db:migrate:prod
 ### Troubleshooting
 
 1. **Migration Conflicts**
+
    - Use `pnpm migration:validate` to check for conflicts
+
    ```bash
    # Check for conflicts
    pnpm migration:validate
    ```
+
    - Ensure unique migration numbers
+
    ```bash
    # Good: Sequential numbers
    20240315_1_initial_schema.sql
@@ -534,16 +562,20 @@ pnpm db:migrate:prod
    20240315_1_initial_schema.sql
    20240315_1_add_users.sql  # Conflict!
    ```
+
    - Check dependencies in meta files
+
    ```json
    {
      "dependencies": ["20240315_1_initial_schema"],
-     "conflicts": ["20240315_1_old_schema"]  // Document known conflicts
+     "conflicts": ["20240315_1_old_schema"] // Document known conflicts
    }
    ```
 
 2. **Failed Migrations**
+
    - Check the error message
+
    ```bash
    # Common errors and solutions
    ERROR: relation "users" does not exist
@@ -552,7 +584,9 @@ pnpm db:migrate:prod
    ERROR: duplicate key value violates unique constraint
    Solution: Check for existing data conflicts
    ```
+
    - Verify SQL syntax
+
    ```sql
    -- Good: Proper syntax
    CREATE TABLE users (
@@ -563,7 +597,9 @@ pnpm db:migrate:prod
    CREATE TABLE users
      id VARCHAR(255) PRIMARY KEY  -- Missing parentheses
    ```
+
    - Ensure dependencies are met
+
    ```sql
    -- Good: Dependencies exist
    CREATE TABLE user_preferences (
@@ -577,14 +613,18 @@ pnpm db:migrate:prod
    ```
 
 3. **Rollback**
+
    - Create a new migration to revert changes
+
    ```sql
    -- Rollback migration
    DROP TABLE IF EXISTS user_preferences;
    DROP TABLE IF EXISTS user_settings;
    ```
+
    - Never modify existing migrations
    - Test rollback in development first
+
    ```bash
    # Test rollback
    pnpm migration:reset
@@ -594,10 +634,11 @@ pnpm db:migrate:prod
 4. **Common Issues and Solutions**
 
    a. **Foreign Key Violations**
+
    ```sql
    -- Problem: Orphaned records
    ERROR: insert or update on table "comments" violates foreign key constraint
-   
+
    -- Solution: Add ON DELETE CASCADE
    CREATE TABLE comments (
      id VARCHAR(255) PRIMARY KEY,
@@ -606,19 +647,21 @@ pnpm db:migrate:prod
    ```
 
    b. **Index Conflicts**
+
    ```sql
    -- Problem: Duplicate index
    ERROR: relation "idx_users_email" already exists
-   
+
    -- Solution: Check existing indexes
    SELECT indexname FROM pg_indexes WHERE tablename = 'users';
    ```
 
    c. **Type Mismatches**
+
    ```sql
    -- Problem: Type mismatch
    ERROR: column "user_id" is of type integer but expression is of type text
-   
+
    -- Solution: Ensure consistent types
    CREATE TABLE users (
      id VARCHAR(255) PRIMARY KEY  -- Use consistent type
@@ -645,6 +688,7 @@ pnpm db:migrate:prod
 ### Project-Specific Examples
 
 1. **NBA Game Data Migrations**
+
    ```sql
    -- Example: Add game statistics table
    CREATE TABLE game_stats (
@@ -663,6 +707,7 @@ pnpm db:migrate:prod
    ```
 
 2. **User Game Logs**
+
    ```sql
    -- Example: Add game watching history
    CREATE TABLE game_logs (
@@ -680,6 +725,7 @@ pnpm db:migrate:prod
    ```
 
 3. **Social Features**
+
    ```sql
    -- Example: Add comments and reactions
    CREATE TABLE comments (
@@ -704,22 +750,24 @@ pnpm db:migrate:prod
 ### Performance Optimization Tips
 
 1. **Indexing Strategies**
+
    ```sql
    -- Optimize game search queries
    CREATE INDEX idx_games_date_teams ON games(game_date, home_team_id, away_team_id);
-   
+
    -- Optimize user activity queries
    CREATE INDEX idx_game_logs_user_date ON game_logs(user_id, created_at DESC);
-   
+
    -- Optimize comment threading
    CREATE INDEX idx_comments_game_parent ON comments(game_id, parent_id);
    ```
 
 2. **Batch Operations**
+
    ```sql
    -- Efficient batch insert
    INSERT INTO game_stats (id, game_id, home_team_score, away_team_score)
-   SELECT 
+   SELECT
      gen_random_uuid()::text,
      g.id,
      g.home_score,
@@ -730,7 +778,7 @@ pnpm db:migrate:prod
    -- Efficient batch update
    UPDATE game_logs
    SET rating_stars = new_ratings.rating
-   FROM (VALUES 
+   FROM (VALUES
      ('game1', 4),
      ('game2', 5)
    ) AS new_ratings(game_id, rating)
@@ -738,6 +786,7 @@ pnpm db:migrate:prod
    ```
 
 3. **Partitioning Large Tables**
+
    ```sql
    -- Partition game_logs by date
    CREATE TABLE game_logs_partitioned (
@@ -756,6 +805,7 @@ pnpm db:migrate:prod
 ### Testing Strategies
 
 1. **Migration Testing**
+
    ```bash
    # Test migration in isolation
    pnpm migration:test --migration=20240315_1_add_game_stats
@@ -768,10 +818,11 @@ pnpm db:migrate:prod
    ```
 
 2. **Data Integrity Tests**
+
    ```sql
    -- Test foreign key constraints
-   SELECT 
-     tc.table_name, 
+   SELECT
+     tc.table_name,
      kcu.column_name,
      ccu.table_name AS foreign_table_name,
      ccu.column_name AS foreign_column_name
@@ -783,7 +834,7 @@ pnpm db:migrate:prod
    WHERE tc.constraint_type = 'FOREIGN KEY';
 
    -- Test unique constraints
-   SELECT 
+   SELECT
      table_name,
      column_name,
      constraint_name
@@ -792,6 +843,7 @@ pnpm db:migrate:prod
    ```
 
 3. **Performance Testing**
+
    ```sql
    -- Test index usage
    EXPLAIN ANALYZE
@@ -802,7 +854,7 @@ pnpm db:migrate:prod
 
    -- Test query performance
    EXPLAIN ANALYZE
-   SELECT 
+   SELECT
      u.id,
      COUNT(gl.id) as games_watched,
      AVG(gl.rating_stars) as avg_rating
@@ -812,10 +864,11 @@ pnpm db:migrate:prod
    ```
 
 4. **Test Data Generation**
+
    ```sql
    -- Generate test data for game_logs
    INSERT INTO game_logs (id, user_id, game_id, rating_stars)
-   SELECT 
+   SELECT
      gen_random_uuid()::text,
      u.id,
      g.id,
@@ -826,6 +879,7 @@ pnpm db:migrate:prod
    ```
 
 5. **Automated Testing Script**
+
    ```typescript
    // test/migrations.test.ts
    import { migrate } from '../src/lib/db/migrations/migrate';
@@ -838,28 +892,29 @@ pnpm db:migrate:prod
 
      it('should apply game_logs migration correctly', async () => {
        await migrate('20240315_1_add_game_logs');
-       
+
        const result = await db.query.game_logs.findMany({
-         where: (game_logs, { eq }) => eq(game_logs.user_id, 'test_user')
+         where: (game_logs, { eq }) => eq(game_logs.user_id, 'test_user'),
        });
-       
+
        expect(result).toHaveLength(0);
      });
 
      it('should handle rollback correctly', async () => {
        await migrate('20240315_1_add_game_logs');
        await migrate('20240315_1_add_game_logs', { rollback: true });
-       
+
        const tables = await db.execute(
          sql`SELECT table_name FROM information_schema.tables WHERE table_name = 'game_logs'`
        );
-       
+
        expect(tables).toHaveLength(0);
      });
    });
    ```
 
 6. **Load Testing**
+
    ```bash
    # Test migration performance with large datasets
    pnpm migration:test --migration=20240315_1_add_game_logs --load-test --rows=1000000
@@ -871,9 +926,10 @@ pnpm db:migrate:prod
 ### Monitoring and Maintenance
 
 1. **Migration Health Checks**
+
    ```sql
    -- Check for missing indexes
-   SELECT 
+   SELECT
      t.table_name,
      c.column_name,
      c.data_type
@@ -885,7 +941,7 @@ pnpm db:migrate:prod
    AND c.column_name IN ('user_id', 'game_id', 'created_at');
 
    -- Check for unused indexes
-   SELECT 
+   SELECT
      schemaname,
      tablename,
      indexname,
@@ -895,9 +951,10 @@ pnpm db:migrate:prod
    ```
 
 2. **Performance Monitoring**
+
    ```sql
    -- Monitor slow queries
-   SELECT 
+   SELECT
      query,
      calls,
      total_time,
@@ -907,7 +964,7 @@ pnpm db:migrate:prod
    LIMIT 10;
 
    -- Monitor table sizes
-   SELECT 
+   SELECT
      table_name,
      pg_size_pretty(pg_total_relation_size(table_name)) as total_size
    FROM information_schema.tables
@@ -1010,6 +1067,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ### NBA-Specific Migration Examples
 
 1. **Player Statistics**
+
    ```sql
    -- Track detailed player performance
    CREATE TABLE nba_player_stats (
@@ -1043,6 +1101,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
    ```
 
 2. **Team Matchups**
+
    ```sql
    -- Track team head-to-head records
    CREATE TABLE team_h2h (
@@ -1062,6 +1121,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
    ```
 
 3. **Game Schedule and Results**
+
    ```sql
    -- Track game schedule and results
    CREATE TABLE nba_games (
@@ -1087,6 +1147,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ### Complex Migration Scenarios
 
 1. **Schema Evolution**
+
    ```sql
    -- Example: Evolving game statistics schema
    -- Step 1: Add new columns
@@ -1109,7 +1170,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
    -- Step 3: Migrate data
    INSERT INTO game_stats_new
-   SELECT 
+   SELECT
      id,
      game_id,
      home_team_score,
@@ -1130,6 +1191,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
    ```
 
 2. **Data Transformation**
+
    ```sql
    -- Example: Transforming game ratings
    -- Step 1: Create new rating system
@@ -1147,7 +1209,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
    -- Step 2: Transform existing data
    INSERT INTO game_ratings_new (id, game_id, user_id, rating_type, rating_value, created_at)
-   SELECT 
+   SELECT
      gen_random_uuid()::text,
      game_id,
      user_id,
@@ -1158,7 +1220,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
    WHERE rating_stars IS NOT NULL;
 
    -- Step 3: Verify data
-   SELECT 
+   SELECT
      COUNT(*) as total_ratings,
      AVG(rating_value) as avg_rating
    FROM game_ratings_new;
@@ -1169,6 +1231,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
    ```
 
 3. **Partitioning Strategy**
+
    ```sql
    -- Example: Partitioning game logs by season
    -- Step 1: Create partitioned table
@@ -1193,7 +1256,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
    WHERE created_at >= '2023-10-01';
 
    -- Step 4: Verify data
-   SELECT 
+   SELECT
      table_name,
      COUNT(*) as record_count
    FROM game_logs_partitioned
@@ -1203,31 +1266,33 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ### Backup and Recovery Strategies
 
 1. **Automated Backups**
+
    ```bash
    # Backup script (backup.sh)
    #!/bin/bash
-   
+
    # Set variables
    BACKUP_DIR="/path/to/backups"
    DB_NAME="game_diary"
    TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-   
+
    # Create backup
    pg_dump -Fc $DB_NAME > "$BACKUP_DIR/${DB_NAME}_${TIMESTAMP}.dump"
-   
+
    # Clean old backups (keep last 7 days)
    find $BACKUP_DIR -name "${DB_NAME}_*.dump" -mtime +7 -delete
    ```
 
 2. **Point-in-Time Recovery**
+
    ```sql
    -- Enable WAL archiving
    ALTER SYSTEM SET archive_mode = on;
    ALTER SYSTEM SET archive_command = 'test ! -f /path/to/archive/%f && cp %p /path/to/archive/%f';
-   
+
    -- Create restore point
    SELECT pg_create_restore_point('before_major_update');
-   
+
    -- Recover to point in time
    -- In recovery.conf:
    restore_command = 'cp /path/to/archive/%f %p'
@@ -1235,12 +1300,13 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
    ```
 
 3. **Replication Setup**
+
    ```sql
    -- Primary server configuration
    ALTER SYSTEM SET wal_level = replica;
    ALTER SYSTEM SET max_wal_senders = 10;
    ALTER SYSTEM SET max_replication_slots = 10;
-   
+
    -- Replica server configuration
    -- In postgresql.conf:
    hot_standby = on
@@ -1248,29 +1314,31 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
    ```
 
 4. **Disaster Recovery Plan**
+
    ```bash
    # Recovery script (recover.sh)
    #!/bin/bash
-   
+
    # Set variables
    BACKUP_DIR="/path/to/backups"
    DB_NAME="game_diary"
    RECOVERY_TIME="2024-03-15 10:00:00"
-   
+
    # Stop database
    pg_ctl stop -D /path/to/data
-   
+
    # Restore from backup
    pg_restore -d $DB_NAME "$BACKUP_DIR/latest.dump"
-   
+
    # Apply WAL archives up to recovery time
    pg_restore -d $DB_NAME --recovery-target-time="$RECOVERY_TIME" /path/to/archive
-   
+
    # Start database
    pg_ctl start -D /path/to/data
    ```
 
 5. **Monitoring and Alerts**
+
    ```sql
    -- Monitor backup status
    CREATE TABLE backup_logs (
@@ -1284,7 +1352,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
    );
 
    -- Monitor replication lag
-   SELECT 
+   SELECT
      client_addr,
      state,
      sent_lsn,
@@ -1298,19 +1366,20 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
    ```
 
 6. **Automated Recovery Testing**
+
    ```bash
    # Test recovery script (test_recovery.sh)
    #!/bin/bash
-   
+
    # Create test database
    createdb game_diary_test
-   
+
    # Restore backup to test database
    pg_restore -d game_diary_test /path/to/backup.dump
-   
+
    # Run verification queries
    psql -d game_diary_test -f verify_recovery.sql
-   
+
    # Clean up
    dropdb game_diary_test
    ```

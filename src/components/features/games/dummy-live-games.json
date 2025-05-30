@@ -325,7 +325,7 @@
       "__typename": "GameEdge",
       "node": {
         "__typename": "Game",
-          "id": "15450",
+        "id": "15450",
         "date": {
           "__typename": "GameDate",
           "start": "2025-05-28T00:00:00.000Z",

@@ -19,7 +19,8 @@ function validateMigrationName(name: string): boolean {
 
 function getNextMigrationNumber(type: string): string {
   const date = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-  const existingMigrations = fs.readdirSync(path.join(MIGRATIONS_DIR, type))
+  const existingMigrations = fs
+    .readdirSync(path.join(MIGRATIONS_DIR, type))
     .filter(file => file.endsWith('.sql'))
     .map(file => parseInt(file.split('_')[0]))
     .filter(num => !isNaN(num));
@@ -30,7 +31,7 @@ function getNextMigrationNumber(type: string): string {
 
 function createMigration(config: MigrationConfig) {
   const { name, type, description } = config;
-  
+
   if (!validateMigrationName(name)) {
     throw new Error('Migration name must start with YYYYMMDD_');
   }
@@ -41,14 +42,21 @@ function createMigration(config: MigrationConfig) {
 
   // Create migration file
   fs.writeFileSync(migrationFile, `-- Migration: ${description}\n\n`);
-  
+
   // Create meta file
-  fs.writeFileSync(metaFile, JSON.stringify({
-    version: '1.0',
-    type,
-    description,
-    createdAt: new Date().toISOString(),
-  }, null, 2));
+  fs.writeFileSync(
+    metaFile,
+    JSON.stringify(
+      {
+        version: '1.0',
+        type,
+        description,
+        createdAt: new Date().toISOString(),
+      },
+      null,
+      2
+    )
+  );
 
   console.log(`Created migration: ${migrationFile}`);
 }
@@ -74,7 +82,7 @@ function generateMigration() {
 function validateMigrations() {
   // Check for duplicate migration numbers
   const migrations = new Map<string, string[]>();
-  
+
   ['base', 'feature', 'trigger'].forEach(type => {
     const dir = path.join(MIGRATIONS_DIR, type);
     if (fs.existsSync(dir)) {
@@ -111,4 +119,4 @@ switch (command) {
   default:
     console.error('Unknown command. Available commands: generate, validate');
     process.exit(1);
-} 
+}

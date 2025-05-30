@@ -1,7 +1,8 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import React from 'react';
+import { Search } from 'lucide-react';
+import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { useForm, ControllerRenderProps } from 'react-hook-form';
 
 import { Button } from '@/components/ui/button';
@@ -33,6 +34,7 @@ interface GameLogFormProps {
   gamesLoading: boolean;
   defaultValues: Partial<CreateGameLogInput>;
   onSubmit: (data: CreateGameLogInput) => Promise<void>;
+  hideGameSelect?: boolean;
 }
 
 export function GameLogForm({
@@ -41,11 +43,45 @@ export function GameLogForm({
   gamesLoading,
   defaultValues,
   onSubmit,
+  hideGameSelect = false,
 }: GameLogFormProps) {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedQuery, setDebouncedQuery] = useState('');
+  const timeoutRef = useRef<NodeJS.Timeout>();
+
+  useEffect(() => {
+    timeoutRef.current = setTimeout(() => {
+      setDebouncedQuery(searchQuery);
+    }, 300);
+
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, [searchQuery]);
+
   const form = useForm<CreateGameLogInput>({
     resolver: zodResolver(gameLogInputSchema),
     defaultValues,
   });
+
+  const selectedGame = useMemo(() => {
+    if (!gamesData?.games || !defaultValues.gameId) return null;
+    return gamesData.games.find(game => game.id === defaultValues.gameId);
+  }, [gamesData?.games, defaultValues.gameId]);
+
+  const filteredGames = useMemo(() => {
+    if (!gamesData?.games) return [];
+    if (!debouncedQuery) return gamesData.games;
+
+    const query = debouncedQuery.toLowerCase();
+    return gamesData.games.filter(
+      game =>
+        game.teams.home.name.toLowerCase().includes(query) ||
+        game.teams.visitors.name.toLowerCase().includes(query)
+    );
+  }, [gamesData?.games, debouncedQuery]);
 
   const handleSubmit = async (data: CreateGameLogInput) => {
     await onSubmit(data);
@@ -54,36 +90,62 @@ export function GameLogForm({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-        <FormField
-          control={form.control}
-          name="gameId"
-          render={({ field }: { field: ControllerRenderProps<CreateGameLogInput, 'gameId'> }) => (
-            <FormItem>
-              <FormLabel>Game</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value?.toString()}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a game" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {gamesLoading ? (
-                    <SelectItem value="loading" disabled>
-                      Loading games...
-                    </SelectItem>
-                  ) : (
-                    gamesData?.games.map((game: Game) => (
-                      <SelectItem key={game.id} value={game.id}>
-                        {game.teams.home.name} vs {game.teams.visitors.name}
+        {!hideGameSelect && (
+          <FormField
+            control={form.control}
+            name="gameId"
+            render={({ field }: { field: ControllerRenderProps<CreateGameLogInput, 'gameId'> }) => (
+              <FormItem>
+                <FormLabel>Game</FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value?.toString()}
+                  value={field.value?.toString()}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a game">
+                        {selectedGame &&
+                          `${selectedGame.teams.home.name} vs ${selectedGame.teams.visitors.name}`}
+                      </SelectValue>
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <div className="flex items-center px-3 pb-2" onClick={e => e.stopPropagation()}>
+                      <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
+                      <Input
+                        placeholder="Search games..."
+                        value={searchQuery}
+                        onChange={e => {
+                          e.stopPropagation();
+                          setSearchQuery(e.target.value);
+                        }}
+                        onClick={e => e.stopPropagation()}
+                        className="h-8"
+                      />
+                    </div>
+                    {gamesLoading ? (
+                      <SelectItem value="loading" disabled>
+                        Loading games...
                       </SelectItem>
-                    ))
-                  )}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+                    ) : filteredGames.length === 0 ? (
+                      <SelectItem value="no-results" disabled>
+                        No games found
+                      </SelectItem>
+                    ) : (
+                      filteredGames.map((game: Game) => (
+                        <SelectItem key={game.id} value={game.id}>
+                          {game.teams.home.name} vs {game.teams.visitors.name}
+                        </SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
 
         <FormField
           control={form.control}

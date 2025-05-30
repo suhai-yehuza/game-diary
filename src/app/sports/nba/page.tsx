@@ -174,22 +174,15 @@ export default function NBAPage() {
   const processedGames = sortedGames.reduce(
     (acc, game) => {
       // Check if game is live
-      if (
-        game.status.long === 'In Play' || game.status.long === 'Live'
-      ) {
+      if (game.status.long === 'In Play' || game.status.long === 'Live') {
         acc.live.push(game);
       }
       // Check if game is scheduled
-      else if (
-        game.status.long === 'Scheduled' ||
-        isAfter(new Date(game.date.start), now)
-      ) {
+      else if (game.status.long === 'Scheduled' || isAfter(new Date(game.date.start), now)) {
         acc.scheduled.push(game);
       }
       // Check if game is completed
-      else if (
-        game.status.long === 'Finished'
-      ) {
+      else if (game.status.long === 'Finished') {
         acc.completed.push(game);
       }
       return acc;
@@ -270,12 +263,14 @@ export default function NBAPage() {
           </div>
         )}
 
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-semibold">Completed Games</h2>
+        <div className="flex items-center mb-4">
+          {(!scheduledGamesList.length || showUpcomingGames) && (
+            <h2 className="text-2xl font-semibold">Completed Games</h2>
+          )}
           {scheduledGamesList.length > 0 && !showUpcomingGames && (
             <button
               onClick={() => setShowUpcomingGames(prev => !prev)}
-              className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 transition"
+              className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 transition ml-auto"
             >
               Show Upcoming Games
             </button>
@@ -297,9 +292,11 @@ export default function NBAPage() {
           {isFetchingMore || loading ? (
             <div className="flex items-center gap-3">
               <div className="w-6 h-6 border-3 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-              <span className="text-sm font-medium text-muted-foreground">Loading more games...</span>
+              <span className="text-sm font-medium text-muted-foreground">
+                Loading more games...
+              </span>
             </div>
-          ) : (data?.games.pageInfo.hasNextPage || hasMoreSeasons) ? (
+          ) : data?.games.pageInfo.hasNextPage || hasMoreSeasons ? (
             <button
               onClick={handleLoadMore}
               className="px-6 py-3 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 transition-all duration-200 ease-in-out shadow-lg hover:shadow-xl"

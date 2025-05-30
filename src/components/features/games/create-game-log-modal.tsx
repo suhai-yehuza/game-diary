@@ -33,6 +33,7 @@ export function CreateGameLogModal({ gameId, onSuccess }: CreateGameLogModalProp
     watchedCount: 1,
     classification: CLASSIFICATIONS.PROTECTED,
     gameId: gameId,
+    ratingForGame: 3,
   };
 
   if (!user?.id) {
@@ -58,26 +59,22 @@ export function CreateGameLogModal({ gameId, onSuccess }: CreateGameLogModalProp
           Create a Game Log
         </Button>
       </DialogTrigger>
-      <DialogContent className="fixed left-[50%] top-[50%] z-50 w-[90%] max-w-md translate-x-[-50%] translate-y-[-50%] rounded-lg border bg-background p-2 shadow-2xl backdrop-blur-md supports-[backdrop-filter]:bg-background/95 my-1 mx-auto">
-        <DialogHeader className="space-y-0.5">
-          <DialogTitle className="text-base font-bold bg-gradient-to-r from-blue-700 to-purple-700 bg-clip-text text-transparent">
-            Create Game Log
-          </DialogTitle>
-          <DialogDescription className="text-[10px] text-muted-foreground">
-            Record your game watching experience
+      <DialogContent className="max-w-md rounded-2xl border border-neutral-800 bg-[#181C23] p-6 shadow-2xl dark:bg-[#181C23] dark:border-neutral-800 dark:shadow-[0_0_24px_rgba(0,0,0,0.7)]">
+        <DialogHeader className="space-y-1">
+          <DialogTitle className="text-lg font-bold text-white">Create a Game Log</DialogTitle>
+          <DialogDescription className="text-xs text-neutral-400">
+            Fill in the details about where and when you watched the game, along with your rating.
           </DialogDescription>
         </DialogHeader>
-        <div className="relative mt-0.5">
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-600/40 to-purple-600/40 rounded-lg" />
-          <div className="relative p-1.5">
-            <GameLogForm
-              onSubmit={submitGameLog}
-              loading={loading}
-              gamesData={gamesData}
-              gamesLoading={gamesLoading}
-              defaultValues={defaultValues}
-            />
-          </div>
+        <div className="relative mt-2">
+          <GameLogForm
+            onSubmit={submitGameLog}
+            loading={loading}
+            gamesData={gamesData}
+            gamesLoading={gamesLoading}
+            defaultValues={defaultValues}
+            hideGameSelect={!!gameId}
+          />
         </div>
       </DialogContent>
     </Dialog>

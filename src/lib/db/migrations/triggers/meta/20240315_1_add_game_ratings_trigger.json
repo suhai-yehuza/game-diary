@@ -4,4 +4,4 @@
   "description": "Add trigger for automatic game ratings calculation",
   "createdAt": "2024-03-15T00:00:00.000Z",
   "dependencies": ["20240315_1_initial_schema"]
-} 
+}

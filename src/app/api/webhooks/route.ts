@@ -6,7 +6,6 @@ import { users } from '@/lib/db/schema';
 import { db } from '@/lib/db/seed';
 import { ClerkUserData, ClerkDeletedUserData } from '@/lib/types/user.types';
 
-
 // Helper functions
 const createResponse = (message: string, status: number) => new Response(message, { status });
 
@@ -30,7 +29,7 @@ const handleUserCreated = async (data: ClerkUserData) => {
   } = data;
 
   if (!id) throw new Error('Missing user ID');
-  
+
   // More detailed email validation
   if (!email_addresses) {
     throw new Error('No email_addresses array in webhook payload');

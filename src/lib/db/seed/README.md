@@ -87,7 +87,7 @@ await runOptimizedSeeder({
   skipExternalDb: false,
   skipApplicationDb: false,
   shouldResetDb: false,
-  shouldTruncateTables: false
+  shouldTruncateTables: false,
 });
 ```
 

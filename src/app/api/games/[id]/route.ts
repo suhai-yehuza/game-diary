@@ -1,13 +1,10 @@
+import { eq } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
 
 import { db } from '@/lib/db';
 import { nba_games } from '@/lib/db/schema';
-import { eq } from 'drizzle-orm';
 
-export async function GET(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+export async function GET(request: Request, { params }: { params: { id: string } }) {
   try {
     const game = await db.query.nba_games.findFirst({
       where: eq(nba_games.id, params.id),
@@ -29,4 +26,4 @@ export async function GET(
     console.error('Error fetching game:', error);
     return new NextResponse('Internal Server Error', { status: 500 });
   }
-} 
+}
