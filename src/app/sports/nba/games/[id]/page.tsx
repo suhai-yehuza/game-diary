@@ -20,8 +20,16 @@ export default function GamePage({ params }: { params: { id: string } }) {
   useEffect(() => {
     const loadGame = async () => {
       try {
-        const response = await fetchNbaGameById(gameId);
-        setGameData(response as GameApiResponse | null);
+        // First try to fetch from our database
+        const response = await fetch(`/api/games/${gameId}`);
+        if (!response.ok) {
+          // If not found in our database, try the external API
+          const externalResponse = await fetchNbaGameById(gameId);
+          setGameData(externalResponse);
+        } else {
+          const data = await response.json();
+          setGameData(data);
+        }
       } catch (error) {
         console.error('Error loading game:', error);
       } finally {

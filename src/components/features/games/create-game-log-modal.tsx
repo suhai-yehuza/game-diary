@@ -58,18 +58,27 @@ export function CreateGameLogModal({ gameId, onSuccess }: CreateGameLogModalProp
           Create a Game Log
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>Create Game Log</DialogTitle>
-          <DialogDescription>Record your game watching experience</DialogDescription>
+      <DialogContent className="fixed left-[50%] top-[50%] z-50 w-[90%] max-w-md translate-x-[-50%] translate-y-[-50%] rounded-lg border bg-background p-2 shadow-2xl backdrop-blur-md supports-[backdrop-filter]:bg-background/95 my-1 mx-auto">
+        <DialogHeader className="space-y-0.5">
+          <DialogTitle className="text-base font-bold bg-gradient-to-r from-blue-700 to-purple-700 bg-clip-text text-transparent">
+            Create Game Log
+          </DialogTitle>
+          <DialogDescription className="text-[10px] text-muted-foreground">
+            Record your game watching experience
+          </DialogDescription>
         </DialogHeader>
-        <GameLogForm
-          onSubmit={submitGameLog}
-          loading={loading}
-          gamesData={gamesData}
-          gamesLoading={gamesLoading}
-          defaultValues={defaultValues}
-        />
+        <div className="relative mt-0.5">
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-600/40 to-purple-600/40 rounded-lg" />
+          <div className="relative p-1.5">
+            <GameLogForm
+              onSubmit={submitGameLog}
+              loading={loading}
+              gamesData={gamesData}
+              gamesLoading={gamesLoading}
+              defaultValues={defaultValues}
+            />
+          </div>
+        </div>
       </DialogContent>
     </Dialog>
   );

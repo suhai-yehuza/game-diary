@@ -205,8 +205,6 @@ export default function NBAPage() {
   const scheduledGamesList = processedGames.scheduled;
   const completedGamesList = processedGames.completed;
 
-  console.log({ liveGamesList, scheduledGamesList, completedGamesList });
-
   if (!isLoaded || (!hasShownInitialLoad && loading)) {
     return (
       <div className="flex items-center justify-center min-h-screen">
