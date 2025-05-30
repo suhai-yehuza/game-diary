@@ -192,6 +192,7 @@ export const games = async (
       .select()
       .from(schema.nba_games)
       .where(conditions.length > 0 ? and(...conditions) : undefined)
+      .orderBy(desc(sql`${schema.nba_games.date}->>'start'`))
       .limit(limit + 1);
 
     // Execute query
@@ -200,6 +201,8 @@ export const games = async (
     // Check if there are more items
     const hasNextPage = items.length > limit;
     const actualItems = hasNextPage ? items.slice(0, -1) : items;
+
+    console.log('Actual items:', actualItems);
 
     const mappedGames = actualItems.map((game: DatabaseRow) => {
       // Debug: log the raw arena value
@@ -218,18 +221,25 @@ export const games = async (
       return {
         id: game.id,
         date: {
-          start:
-            game.date instanceof Date
-              ? game.date.toISOString()
-              : new Date(game.date as string).toISOString(),
-          end: null,
-          duration: null,
+          start: (game.date as { start?: string | null })?.start || 
+            (game.date instanceof Date ? game.date.toISOString() : 
+            typeof game.date === 'string' ? new Date(game.date).toISOString() : ''),
+          end: (game.date as { end?: string | null })?.end || null,
+          duration: (game.date as { duration?: string | null })?.duration || null,
         },
         status: {
           clock: periods?.current?.toString() || '',
           halftime: false,
-          long: typeof game.status === 'string' ? game.status : String(game.status ?? ''),
-          short: typeof game.status === 'string' ? game.status : String(game.status ?? ''),
+          long: typeof game.status === 'object' && game.status !== null 
+            ? (game.status as { long?: string })?.long || ''
+            : typeof game.status === 'string' 
+              ? game.status 
+              : '',
+          short: typeof game.status === 'object' && game.status !== null
+            ? (game.status as { short?: string })?.short || ''
+            : typeof game.status === 'string'
+              ? game.status
+              : '',
         },
         arena: {
           name:
@@ -258,7 +268,7 @@ export const games = async (
         homeTeamId: teams?.home?.id || '',
         awayTeamId: teams?.visitors?.id || '',
         teams: game.teams ?? {},
-        is_completed: game.status === 'FINISHED',
+        is_completed: game.status === 'Finished',
       };
     });
 
@@ -297,12 +307,11 @@ export const game = async (_parent: unknown, { id }: { id: string }, { db }: Con
   return {
     id: game.id,
     date: {
-      start:
-        game.date instanceof Date
-          ? game.date.toISOString()
-          : new Date(game.date as string).toISOString(),
-      end: null,
-      duration: null,
+      start: (game.date as { start?: string | null })?.start || 
+        (game.date instanceof Date ? game.date.toISOString() : 
+        typeof game.date === 'string' ? new Date(game.date).toISOString() : ''),
+      end: (game.date as { end?: string | null })?.end || null,
+      duration: (game.date as { duration?: string | null })?.duration || null,
     },
     status: {
       clock: typeof game.status === 'string' ? game.status : String(game.status ?? ''),
@@ -619,12 +628,11 @@ export const gameStats = async (_parent: unknown, { id }: { id: string }, { db }
     const mappedGame: MappedGame = {
       id: game.id,
       date: {
-        start:
-          game.date instanceof Date
-            ? game.date.toISOString()
-            : new Date(game.date as string).toISOString(),
-        end: null,
-        duration: null,
+        start: (game.date as { start?: string | null })?.start || 
+          (game.date instanceof Date ? game.date.toISOString() : 
+          typeof game.date === 'string' ? new Date(game.date).toISOString() : ''),
+        end: (game.date as { end?: string | null })?.end || null,
+        duration: (game.date as { duration?: string | null })?.duration || null,
       },
       status: {
         clock: typeof game.status === 'string' ? game.status : String(game.status ?? ''),
@@ -848,12 +856,11 @@ export const teamGameStats = async (
     const mappedGame = {
       id: dbGame.id,
       date: {
-        start:
-          dbGame.date instanceof Date
-            ? dbGame.date.toISOString()
-            : new Date(dbGame.date as unknown as string).toISOString(),
-        end: null,
-        duration: null,
+        start: (dbGame.date as { start?: string | null })?.start || 
+          (dbGame.date instanceof Date ? dbGame.date.toISOString() : 
+          typeof dbGame.date === 'string' ? new Date(dbGame.date).toISOString() : ''),
+        end: (dbGame.date as { end?: string | null })?.end || null,
+        duration: (dbGame.date as { duration?: string | null })?.duration || null,
       },
       status: {
         clock: typeof dbGame.status === 'string' ? dbGame.status : String(dbGame.status ?? ''),

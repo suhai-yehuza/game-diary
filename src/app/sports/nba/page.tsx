@@ -13,11 +13,6 @@ import { getCurrentSeason } from '@/lib/utils/index.time';
 
 // Convert Game to SearchGame
 const convertGameToSearchGame = (game: Game): SearchGame => {
-  // Parse JSON fields
-  console.log({ game });
-  // const teams = typeof game.teams === 'string' ? JSON.parse(game.teams) : game.teams;
-  // const scores = typeof game.scores === 'string' ? JSON.parse(game.scores) : game.scores;
-  // const periods = typeof game.periods === 'string' ? JSON.parse(game.periods) : game.periods;
   const arena =
     typeof game.arena === 'string'
       ? { name: game.arena, city: '', state: '', country: '' }
@@ -83,8 +78,6 @@ const convertGameToSearchGame = (game: Game): SearchGame => {
 
 export default function NBAPage() {
   const { isLoaded } = useUser();
-  const observerRef = useRef<IntersectionObserver | null>(null);
-  const loadMoreRef = useRef<HTMLDivElement>(null);
   const [isFetchingMore, setIsFetchingMore] = useState<boolean>(false);
   const [currentSeason, setCurrentSeason] = useState<number>(getCurrentSeason());
   const [hasMoreSeasons, setHasMoreSeasons] = useState<boolean>(true);
@@ -98,14 +91,20 @@ export default function NBAPage() {
       },
       first: DEFAULT_PAGE_SIZE,
     },
+    notifyOnNetworkStatusChange: true,
   });
 
-  // console.log({ loading, error, data, fetchMore });
+  const [hasShownInitialLoad, setHasShownInitialLoad] = useState(false);
+
+  useEffect(() => {
+    if (data?.games && !hasShownInitialLoad) {
+      setHasShownInitialLoad(true);
+    }
+  }, [data, hasShownInitialLoad]);
 
   useEffect(() => {
     if (data?.games && Array.isArray(data.games.edges)) {
       const newGames = data.games.edges.map((edge: GameEdge) => convertGameToSearchGame(edge.node));
-      // Use a Set to ensure unique games by ID
       setGames(prevGames => {
         const gameMap = new Map(prevGames.map(game => [game.id, game]));
         newGames.forEach(game => {
@@ -117,8 +116,6 @@ export default function NBAPage() {
       });
     }
   }, [data]);
-
-  // console.log({ data });
 
   const handleLoadMore = useCallback(async () => {
     if (!data?.games.pageInfo.hasNextPage) {
@@ -137,6 +134,9 @@ export default function NBAPage() {
       const { data: newData } = await fetchMore({
         variables: {
           after: data.games.pageInfo.endCursor,
+          filters: {
+            season: currentSeason,
+          },
         },
       });
 
@@ -144,7 +144,6 @@ export default function NBAPage() {
         const newGames = newData.games.edges.map((edge: GameEdge) =>
           convertGameToSearchGame(edge.node)
         );
-        // Use a Set to ensure unique games by ID
         setGames(prevGames => {
           const gameMap = new Map(prevGames.map(game => [game.id, game]));
           newGames.forEach(game => {
@@ -163,7 +162,6 @@ export default function NBAPage() {
   }, [data, fetchMore, currentSeason, hasMoreSeasons]);
 
   const now = new Date();
-  // const uniqueGames = games || [];
 
   // Sort all games by date first
   const sortedGames = [...(games || [])].sort((a, b) => {
@@ -177,26 +175,20 @@ export default function NBAPage() {
     (acc, game) => {
       // Check if game is live
       if (
-        (game.status.long === 'In Play' || game.status.short === 'Live') &&
-        !game.status.short.includes('Finished') &&
-        !game.status.short.includes('Final')
+        game.status.long === 'In Play' || game.status.long === 'Live'
       ) {
         acc.live.push(game);
       }
       // Check if game is scheduled
       else if (
-        (game.status.short === 'Scheduled' || game.status.short === 'Not Started') &&
-        isAfter(new Date(game.date.start), now) &&
-        !game.status.short.includes('Finished') &&
-        !game.status.short.includes('Final')
+        game.status.long === 'Scheduled' ||
+        isAfter(new Date(game.date.start), now)
       ) {
         acc.scheduled.push(game);
       }
       // Check if game is completed
       else if (
-        game.status.short === 'Finished' ||
-        game.status.short === 'Final' ||
-        game.status.long === 'Game Finished'
+        game.status.long === 'Finished'
       ) {
         acc.completed.push(game);
       }
@@ -213,77 +205,32 @@ export default function NBAPage() {
   const scheduledGamesList = processedGames.scheduled;
   const completedGamesList = processedGames.completed;
 
-  // console.log('Final sorted games:', {
-  //   total: games?.length || 0,
-  //   live: liveGamesList.length,
-  //   scheduled: scheduledGamesList.length,
-  //   completed: completedGamesList.length,
-  //   liveGames: liveGamesList.map(g => ({
-  //     id: g.id,
-  //     status: g.status.short,
-  //     date: g.date.start,
-  //     parsed: new Date(g.date.start).toISOString(),
-  //     timestamp: new Date(g.date.start).getTime(),
-  //   })),
-  //   scheduledGames: scheduledGamesList.map(g => ({
-  //     id: g.id,
-  //     status: g.status.short,
-  //     date: g.date.start,
-  //     parsed: new Date(g.date.start).toISOString(),
-  //     timestamp: new Date(g.date.start).getTime(),
-  //   })),
-  //   completedGames: completedGamesList.map(g => ({
-  //     id: g.id,
-  //     status: g.status.short,
-  //     date: g.date.start,
-  //     parsed: new Date(g.date.start).toISOString(),
-  //     timestamp: new Date(g.date.start).getTime(),
-  //   })),
-  // });
+  console.log({ liveGamesList, scheduledGamesList, completedGamesList });
 
-  useEffect(() => {
-    if (!loadMoreRef.current || !data?.games.pageInfo.hasNextPage) return;
-
-    observerRef.current = new IntersectionObserver(
-      entries => {
-        if (entries[0].isIntersecting && !isFetchingMore) {
-          handleLoadMore();
-        }
-      },
-      { threshold: 0.5 }
-    );
-
-    observerRef.current.observe(loadMoreRef.current);
-
-    return () => {
-      if (observerRef.current) {
-        observerRef.current.disconnect();
-      }
-    };
-  }, [games, isFetchingMore, handleLoadMore, data?.games.pageInfo.hasNextPage]);
-
-  if (!isLoaded) {
-    return null;
-  }
-
-  if (loading && !games.length) {
+  if (!isLoaded || (!hasShownInitialLoad && loading)) {
     return (
-      <div className="text-center p-4">
-        <div className="text-muted-foreground">Loading games...</div>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <div className="text-lg text-muted-foreground">Loading games...</div>
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="text-center p-4">
-        <div className="text-red-500">Error loading games</div>
-        <button
-          onClick={() => window.location.reload()}
-          className="mt-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-        >
-          Retry
-        </button>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="text-red-500 text-lg mb-4">Error loading games</div>
+          <div className="text-sm text-muted-foreground mb-4">{error.message}</div>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Retry
+          </button>
+        </div>
       </div>
     );
   }
@@ -347,20 +294,22 @@ export default function NBAPage() {
           </div>
         )}
 
-        {/* Loading indicator and intersection observer target */}
-        <div ref={loadMoreRef} className="flex justify-center items-center py-8">
-          {isFetchingMore ? (
-            <div className="flex items-center gap-2">
+        {/* Loading indicator */}
+        <div className="flex justify-center items-center py-8">
+          {isFetchingMore || loading ? (
+            <div className="flex items-center gap-3">
               <div className="w-6 h-6 border-3 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-              <span className="text-sm font-medium">Loading more games...</span>
+              <span className="text-sm font-medium text-muted-foreground">Loading more games...</span>
             </div>
-          ) : (
+          ) : (data?.games.pageInfo.hasNextPage || hasMoreSeasons) ? (
             <button
               onClick={handleLoadMore}
               className="px-6 py-3 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 transition-all duration-200 ease-in-out shadow-lg hover:shadow-xl"
             >
               Load More Games
             </button>
+          ) : (
+            <div className="text-sm text-muted-foreground">No more games to load</div>
           )}
         </div>
       </div>
