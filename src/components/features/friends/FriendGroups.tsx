@@ -26,7 +26,7 @@ export const FriendGroups: React.FC<FriendGroupsProps> = ({ friends, onGroupUpda
       description: newGroup.description || '',
       friends: [],
       color: newGroup.color || '#3B82F6',
-      image_url: '',
+      imageUrl: '',
     };
 
     setGroups([...groups, group]);

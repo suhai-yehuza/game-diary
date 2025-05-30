@@ -43,7 +43,7 @@ export const ErrorResult = {
 
 export const PaginatedItem = {
   __resolveType(parent: Record<string, unknown>) {
-    if ('watched_date' in parent) return 'GameLog';
+    if ('watchedDate' in parent) return 'GameLog';
     if ('content' in parent) return 'Comment';
     if ('date' in parent) return 'Game';
     if ('position' in parent) return 'Player';

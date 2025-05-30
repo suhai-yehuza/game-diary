@@ -98,10 +98,10 @@ async function getUserWithRetry(
         const dbUser = {
           id: user.id,
           username: user.username ?? '',
-          first_name: user.firstName || '',
-          last_name: user.lastName || '',
-          email_address: user.emailAddresses[0]?.emailAddress || '',
-          image_url: user.imageUrl,
+          firstName: user.firstName || '',
+          lastName: user.lastName || '',
+          emailAddress: user.emailAddresses[0]?.emailAddress || '',
+          imageUrl: user.imageUrl,
         };
 
         // Cache the user data

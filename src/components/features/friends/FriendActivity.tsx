@@ -50,7 +50,7 @@ export const FriendActivity: React.FC<FriendActivityProps> = ({ friendId }) => {
                 <div className="flex items-center gap-2">
                   <span className="font-medium">Watched a game</span>
                   <span className="text-sm text-gray-500">
-                    {formatDistanceToNow(new Date(activity.created_at), { addSuffix: true })}
+                    {formatDistanceToNow(new Date(activity.createdAt), { addSuffix: true })}
                   </span>
                 </div>
                 <div className="mt-2 text-sm text-gray-600">

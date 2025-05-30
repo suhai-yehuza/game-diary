@@ -419,9 +419,9 @@ export interface Loaders {
 // Game Rating Type
 export interface GameRating {
   id: string;
-  game_id: string;
-  average_rating: string;
-  total_ratings: number;
-  created_at: string;
-  updated_at: string;
+  gameId: string;
+  averageRating: string;
+  totalRatings: number;
+  createdAt: string;
+  updatedAt: string;
 }

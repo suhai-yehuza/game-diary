@@ -31,7 +31,7 @@ import { GET_COMMENTS_WITH_FILTERS } from '@/lib/graphql/queries';
 import { EditingComment, CommentsSectionProps } from '@/lib/types/comment.types';
 import { Comment } from '@/lib/types/generated/graphql';
 
-export function CommentsSection({ parent_id, parent_type }: CommentsSectionProps) {
+export function CommentsSection({ parentId, parentType }: CommentsSectionProps) {
   const { user } = useUser();
   const [newComment, setNewComment] = useState('');
   const [editingComment, setEditingComment] = useState<EditingComment | null>(null);
@@ -40,7 +40,7 @@ export function CommentsSection({ parent_id, parent_type }: CommentsSectionProps
 
   const { data, loading, error, refetch } = useQuery(GET_COMMENTS_WITH_FILTERS, {
     variables: {
-      parent_id: parent_id,
+      parentId: parentId,
     },
   });
 
@@ -93,8 +93,8 @@ export function CommentsSection({ parent_id, parent_type }: CommentsSectionProps
       await createComment({
         variables: {
           input: {
-            parent_id: parent_id,
-            parent_type: parent_type,
+            parentId: parentId,
+            parentType: parentType,
             content: newComment,
           },
         },
@@ -175,7 +175,7 @@ export function CommentsSection({ parent_id, parent_type }: CommentsSectionProps
                   <div>
                     <div className="font-semibold">{comment.user.username}</div>
                     <div className="text-sm text-gray-500">
-                      {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}
+                      {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true })}
                     </div>
                   </div>
                 </div>

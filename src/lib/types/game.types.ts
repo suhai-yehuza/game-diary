@@ -8,7 +8,6 @@ import type { InferSelectModel } from 'drizzle-orm';
 
 import { nba_games } from '@/lib/db/schema/nba-schemas';
 
-import { APIError, APIParameters } from './api.types';
 import type {
   Game,
   GameLog,
@@ -17,8 +16,6 @@ import type {
   TeamStats,
   Team,
   Classification,
-  GameFilters as GeneratedGameFilters,
-  DateRangeInput,
   GameStatus,
 } from './generated/graphql';
 import type { CustomTeam } from './team.types';
@@ -38,8 +35,10 @@ export interface APITeamResponse {
 
 // Game Statistics Types
 export interface GameStatistics {
-  player_id: string;
-  team_id: string;
+  playerId: string;
+  teamId: string;
+  minutes: string;
+  minutesPlayed: string;
   points: number;
   rebounds: number;
   assists: number;
@@ -47,18 +46,29 @@ export interface GameStatistics {
   blocks: number;
   turnovers: number;
   fouls: number;
-  minutes: string;
-  plus_minus: number;
-  field_goals: { made: number; attempted: number };
-  three_pointers: { made: number; attempted: number };
-  free_throws: { made: number; attempted: number };
+  plusMinus: number;
+  fieldGoals: {
+    made: number;
+    attempted: number;
+    percentage: string;
+  };
+  threePointers: {
+    made: number;
+    attempted: number;
+    percentage: string;
+  };
+  freeThrows: {
+    made: number;
+    attempted: number;
+    percentage: string;
+  };
 }
 
 export interface GamePlayerStats {
   id: string;
-  player_id: string;
+  playerId: string;
   name: string;
-  team_id: string;
+  teamId: string;
   points: number;
   rebounds: number;
   assists: number;
@@ -66,11 +76,20 @@ export interface GamePlayerStats {
   blocks: number;
   turnovers: number;
   fouls: number;
-  minutes_played: number;
-  plus_minus: number;
-  field_goals: { made: number; attempted: number };
-  three_pointers: { made: number; attempted: number };
-  free_throws: { made: number; attempted: number };
+  minutesPlayed: number;
+  plusMinus: number;
+  fieldGoals: {
+    made: number;
+    attempted: number;
+  };
+  threePointers: {
+    made: number;
+    attempted: number;
+  };
+  freeThrows: {
+    made: number;
+    attempted: number;
+  };
 }
 
 export interface CustomTeamStats extends TeamStats {
@@ -83,11 +102,11 @@ export interface CustomTeamStats extends TeamStats {
 // Game Data Types
 export interface GameRating {
   id: string;
-  game_id: string;
-  average_rating: string;
-  total_ratings: number;
-  created_at: string;
-  updated_at: string;
+  gameId: string;
+  averageRating: string;
+  totalRatings: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface GameRatingWithUser {
@@ -186,8 +205,8 @@ export interface SearchGame {
   timesTied: number;
   leadChanges: number;
   nugget: string;
-  created_at: string;
-  updated_at: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface GameQueryResult {
@@ -207,9 +226,26 @@ export interface ProcessedGameData {
 }
 
 // Filter and Sort Types
-export interface GameFilters extends GeneratedGameFilters {
-  search?: string;
-  dateRange?: DateRangeInput;
+export interface GameFilters {
+  gameId?: string;
+  homeTeamId?: string;
+  awayTeamId?: string;
+  season?: number;
+  status?: string;
+  dateRange?: {
+    start: Date;
+    end?: Date;
+  };
+  classification?: string;
+  userId?: string;
+  leadChangesMin?: number;
+  leadChangesMax?: number;
+  timesTiedMin?: number;
+  timesTiedMax?: number;
+  minScore?: number;
+  maxScore?: number;
+  officials?: string[];
+  teamId?: string;
   sortBy?: string;
   sortDirection?: 'asc' | 'desc';
 }
@@ -222,11 +258,11 @@ export interface GameSortInput {
 export interface SeasonData {
   id: string;
   year: number;
-  display_year: string;
-  start_date: string;
-  end_date: string;
-  is_current: boolean;
-  is_playoffs: boolean;
+  displayYear: string;
+  startDate: string;
+  endDate: string;
+  isCurrent: boolean;
+  isPlayoffs: boolean;
 }
 
 export interface TeamData {
@@ -249,14 +285,14 @@ export interface TeamData {
         }
       | undefined;
   };
-  created_at: string;
-  updated_at: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface PlayerData {
   id: string;
-  first_name: string;
-  last_name: string;
+  firstName: string;
+  lastName: string;
   birth: {
     date: string;
     country: string;
@@ -304,8 +340,8 @@ export type GameField =
   | 'times_tied'
   | 'lead_changes'
   | 'nugget'
-  | 'created_at'
-  | 'updated_at';
+  | 'createdAt'
+  | 'updatedAt';
 
 export interface GameStatsProps {
   game: GameWithStatistics;
@@ -339,29 +375,29 @@ export interface ComponentGameStats {
   };
 }
 
-export type GameApiResponse = {
-  get: string;
-  parameters: APIParameters;
-  errors: APIError[];
-  results: number;
+export interface GameApiResponse {
   response: GameResponseData[];
-  data: GameResponseData[]; // For backward compatibility
-};
+  data?: GameResponseData[];
+  get?: string;
+  parameters?: Record<string, string>;
+  errors?: string[];
+  results?: number;
+}
 
-export type GameResponseData = {
+export interface GameResponseData {
   id: number;
   league: string;
   season: number;
   date: {
     start: string;
-    end: string | null;
-    duration: string | null;
+    end?: string;
+    duration?: string;
   };
   stage: number;
   status: {
-    clock: string | null;
+    clock?: string;
     halftime: boolean;
-    short: number;
+    short: string;
     long: string;
   };
   periods: {
@@ -370,20 +406,20 @@ export type GameResponseData = {
     endOfPeriod: boolean;
   };
   arena: {
-    name: string | null;
-    city: string | null;
-    state: string | null;
-    country: string | null;
+    name: string;
+    city: string;
+    state?: string;
+    country?: string;
   };
   teams: {
-    visitors: {
+    home: {
       id: number;
       name: string;
       nickname: string;
       code: string;
       logo: string;
     };
-    home: {
+    visitors: {
       id: number;
       name: string;
       nickname: string;
@@ -392,16 +428,6 @@ export type GameResponseData = {
     };
   };
   scores: {
-    visitors: {
-      win: number;
-      loss: number;
-      series: {
-        win: number;
-        loss: number;
-      };
-      linescore: string[];
-      points: number;
-    };
     home: {
       win: number;
       loss: number;
@@ -409,15 +435,25 @@ export type GameResponseData = {
         win: number;
         loss: number;
       };
-      linescore: string[];
+      linescore: number[];
+      points: number;
+    };
+    visitors: {
+      win: number;
+      loss: number;
+      series: {
+        win: number;
+        loss: number;
+      };
+      linescore: number[];
       points: number;
     };
   };
   officials: string[];
   timesTied: number;
   leadChanges: number;
-  nugget: string | null;
-};
+  nugget?: string;
+}
 
 export interface TransformedGame extends GameResponseData {
   homeTeam: GameResponseData['teams']['home'];
@@ -489,8 +525,8 @@ export interface GameRecord {
   teams: GameTeams;
   scores: GameScores;
   officials: string[];
-  created_at: string;
-  updated_at: string;
+  createdAt: string;
+  updatedAt: string;
   times_tied?: number;
   lead_changes?: number;
   nugget?: string;

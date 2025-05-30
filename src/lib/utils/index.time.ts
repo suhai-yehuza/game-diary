@@ -1,8 +1,8 @@
 // Define locally to avoid circular dependency
 type DateFields = {
-  created_at: Date;
-  updated_at: Date;
-  deleted_at?: Date;
+  createdAt: Date;
+  updatedAt: Date;
+  deletedAt?: Date;
 };
 
 /**
@@ -26,8 +26,8 @@ export function getCurrentSeason(): number {
 
 export function getDateFields(item: DateFields) {
   return {
-    created_at: item.created_at,
-    updated_at: item.updated_at,
+    createdAt: item.createdAt,
+    updatedAt: item.updatedAt,
   };
 }
 
@@ -47,8 +47,8 @@ export function formatDateForExport(date: Date): string {
 
 export function formatDateFields<T extends DateFields>(obj: T): T {
   const result = { ...obj };
-  if (result.created_at) result.created_at = new Date(result.created_at);
-  if (result.updated_at) result.updated_at = new Date(result.updated_at);
+  if (result.createdAt) result.createdAt = new Date(result.createdAt);
+  if (result.updatedAt) result.updatedAt = new Date(result.updatedAt);
   return result;
 }
 

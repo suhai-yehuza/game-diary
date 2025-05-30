@@ -40,7 +40,7 @@ export type ActivityType =
 // Comment Types
 export interface DbComment extends GeneratedComment {
   replies?: Comment[];
-  parentId?: string;
+  parentId: string;
 }
 
 // Reaction Types
@@ -95,7 +95,7 @@ export interface ActivityStats {
 export type ActivityTimelineProps = {
   gameLogs: Array<{
     id: string;
-    created_at: string;
+    createdAt: string;
     rating?: number;
     watchedSetting: string;
     notes?: string;

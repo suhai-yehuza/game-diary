@@ -10,5 +10,5 @@ export const resolvers: Resolvers = {
   ...scalars,
   Query: queryResolvers as unknown as Resolvers['Query'],
   Mutation: mutations as unknown as Resolvers['Mutation'],
-  GameLog,
+  GameLog: GameLog as unknown as Resolvers['GameLog'],
 };

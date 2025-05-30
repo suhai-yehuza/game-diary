@@ -56,8 +56,8 @@ export function GameLogForm({
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
         <FormField
           control={form.control}
-          name="game_id"
-          render={({ field }: { field: ControllerRenderProps<CreateGameLogInput, 'game_id'> }) => (
+          name="gameId"
+          render={({ field }: { field: ControllerRenderProps<CreateGameLogInput, 'gameId'> }) => (
             <FormItem>
               <FormLabel>Game</FormLabel>
               <Select onValueChange={field.onChange} defaultValue={field.value?.toString()}>
@@ -87,11 +87,11 @@ export function GameLogForm({
 
         <FormField
           control={form.control}
-          name="watched_setting"
+          name="watchedSetting"
           render={({
             field,
           }: {
-            field: ControllerRenderProps<CreateGameLogInput, 'watched_setting'>;
+            field: ControllerRenderProps<CreateGameLogInput, 'watchedSetting'>;
           }) => (
             <FormItem>
               <FormLabel>Watched Setting</FormLabel>
@@ -116,11 +116,11 @@ export function GameLogForm({
 
         <FormField
           control={form.control}
-          name="watched_date"
+          name="watchedDate"
           render={({
             field,
           }: {
-            field: ControllerRenderProps<CreateGameLogInput, 'watched_date'>;
+            field: ControllerRenderProps<CreateGameLogInput, 'watchedDate'>;
           }) => (
             <FormItem>
               <FormLabel>Watched Date</FormLabel>
@@ -139,11 +139,11 @@ export function GameLogForm({
 
         <FormField
           control={form.control}
-          name="watched_location"
+          name="watchedLocation"
           render={({
             field,
           }: {
-            field: ControllerRenderProps<CreateGameLogInput, 'watched_location'>;
+            field: ControllerRenderProps<CreateGameLogInput, 'watchedLocation'>;
           }) => (
             <FormItem>
               <FormLabel>Location (Optional)</FormLabel>
@@ -157,11 +157,11 @@ export function GameLogForm({
 
         <FormField
           control={form.control}
-          name="rating_for_game"
+          name="ratingForGame"
           render={({
             field,
           }: {
-            field: ControllerRenderProps<CreateGameLogInput, 'rating_for_game'>;
+            field: ControllerRenderProps<CreateGameLogInput, 'ratingForGame'>;
           }) => (
             <FormItem>
               <FormLabel>Rating (1-5)</FormLabel>
@@ -182,11 +182,11 @@ export function GameLogForm({
 
         <FormField
           control={form.control}
-          name="watched_count"
+          name="watchedCount"
           render={({
             field,
           }: {
-            field: ControllerRenderProps<CreateGameLogInput, 'watched_count'>;
+            field: ControllerRenderProps<CreateGameLogInput, 'watchedCount'>;
           }) => (
             <FormItem>
               <FormLabel>Times Watched</FormLabel>

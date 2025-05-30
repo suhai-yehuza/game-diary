@@ -43,12 +43,12 @@ export async function fetchAndProcessNBAPlayers(season: number): Promise<void> {
           try {
             const nbaPlayer = {
               id: player.id.toString(),
-              firstname: player.firstname || 'no-first-name',
-              lastname: player.lastname || 'no-last-name',
+              firstName: player.firstname,
+              lastName: player.lastname,
               birth: player.birth?.date ? new Date(player.birth.date) : null,
-              birth_country: player.birth?.country || 'no-birth-country',
-              nba_start: player.nba?.start || null,
-              nba_pro_years: player.nba?.pro || null,
+              birthCountry: player.birth?.country || 'no-birth-country',
+              nbaStart: player.nba?.start || null,
+              nbaProYears: player.nba?.pro || null,
               height: player.height?.meters || null,
               weight: player.weight?.kilograms || null,
               college: player.college || 'no-college',
@@ -56,9 +56,9 @@ export async function fetchAndProcessNBAPlayers(season: number): Promise<void> {
               jersey: player.leagues?.standard?.jersey?.toString() || null,
               active: player.leagues?.standard?.active || false,
               pos: player.leagues?.standard?.pos || 'no-pos',
-              seasons_active: [{ season, team_ids: [team.id] }],
-              created_at: new Date(),
-              updated_at: new Date(),
+              seasonsActive: [{ season, teamIds: [team.id] }],
+              createdAt: new Date(),
+              updatedAt: new Date(),
             };
 
             // Store player data in the database
@@ -69,31 +69,31 @@ export async function fetchAndProcessNBAPlayers(season: number): Promise<void> {
                 target: nba_players.id,
                 set: {
                   ...nbaPlayer,
-                  seasons_active: sql`CASE 
-                    WHEN nba_players.seasons_active IS NULL THEN ${JSON.stringify([{ season, team_ids: [team.id] }])}::jsonb
+                  seasonsActive: sql`CASE 
+                    WHEN nba_players."seasonsActive" IS NULL THEN ${JSON.stringify([{ season, teamIds: [team.id] }])}::jsonb
                     WHEN NOT EXISTS (
                       SELECT 1 
-                      FROM jsonb_array_elements(nba_players.seasons_active) AS sa 
+                      FROM jsonb_array_elements(nba_players."seasonsActive") AS sa 
                       WHERE (sa->>'season')::int = ${season}
-                    ) THEN nba_players.seasons_active || ${JSON.stringify({ season, team_ids: [team.id] })}::jsonb
+                    ) THEN nba_players."seasonsActive" || ${JSON.stringify({ season, teamIds: [team.id] })}::jsonb
                     WHEN NOT EXISTS (
                       SELECT 1 
-                      FROM jsonb_array_elements(nba_players.seasons_active) AS sa 
+                      FROM jsonb_array_elements(nba_players."seasonsActive") AS sa 
                       WHERE (sa->>'season')::int = ${season} 
-                      AND (sa->'team_ids')::jsonb ? ${team.id}
+                      AND (sa->'teamIds')::jsonb ? ${team.id}
                     ) THEN (
                       SELECT jsonb_agg(
                         CASE 
                           WHEN (sa->>'season')::int = ${season} 
-                          THEN jsonb_set(sa, '{team_ids}', (sa->'team_ids') || ${JSON.stringify(team.id)}::jsonb)
+                          THEN jsonb_set(sa, '{teamIds}', (sa->'teamIds') || ${JSON.stringify(team.id)}::jsonb)
                           ELSE sa
                         END
                       )
-                      FROM jsonb_array_elements(nba_players.seasons_active) AS sa
+                      FROM jsonb_array_elements(nba_players."seasonsActive") AS sa
                     )
-                    ELSE nba_players.seasons_active
+                    ELSE nba_players."seasonsActive"
                   END`,
-                  updated_at: new Date(),
+                  updatedAt: new Date(),
                 },
               });
 

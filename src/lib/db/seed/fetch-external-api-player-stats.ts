@@ -45,7 +45,7 @@ export async function fetchAndProcessNBAPlayerStats(
     // Check if stats already exist in database with retry
     const existingStats = await retryDatabaseOperation(() =>
       db.query.nba_player_stats.findFirst({
-        where: sql`player_id = ${playerId} AND game_id = ${gameId}`,
+        where: sql`"playerId" = ${playerId} AND "gameId" = ${gameId}`,
       })
     );
 
@@ -101,9 +101,9 @@ export async function fetchAndProcessNBAPlayerStats(
     await retryDatabaseOperation(() =>
       db.insert(nba_player_stats).values({
         id: generateUUID(),
-        player_id: playerId,
-        game_id: gameId,
-        team_id: playerGameStats?.team?.id?.toString() || '',
+        playerId: playerId,
+        gameId: gameId,
+        teamId: playerGameStats?.team?.id?.toString() || '',
         minutes: playerGameStats?.min ? String(playerGameStats.min) : '',
         points: playerGameStats?.points || 0,
         rebounds: playerGameStats?.totReb || 0,
@@ -112,14 +112,14 @@ export async function fetchAndProcessNBAPlayerStats(
         blocks: playerGameStats?.blocks || 0,
         turnovers: playerGameStats?.turnovers || 0,
         fouls: playerGameStats?.pFouls || 0,
-        field_goals_made: playerGameStats?.fgm || 0,
-        field_goals_attempted: playerGameStats?.fga || 0,
-        three_pointers_made: playerGameStats?.tpm || 0,
-        three_pointers_attempted: playerGameStats?.tpa || 0,
-        free_throws_made: playerGameStats?.ftm || 0,
-        free_throws_attempted: playerGameStats?.fta || 0,
-        created_at: new Date(),
-        updated_at: new Date(),
+        fieldGoalsMade: playerGameStats?.fgm || 0,
+        fieldGoalsAttempted: playerGameStats?.fga || 0,
+        threePointersMade: playerGameStats?.tpm || 0,
+        threePointersAttempted: playerGameStats?.tpa || 0,
+        freeThrowsMade: playerGameStats?.ftm || 0,
+        freeThrowsAttempted: playerGameStats?.fta || 0,
+        createdAt: new Date(),
+        updatedAt: new Date(),
       })
     );
 

@@ -112,11 +112,11 @@ export default function Header() {
     return pathname === path || pathname?.startsWith(path + '/');
   };
 
-  const email_address = user?.emailAddresses?.[0]?.emailAddress;
+  const emailAddress = user?.emailAddresses?.[0]?.emailAddress;
   const adminEmails = process.env.NEXT_PUBLIC_ADMIN_EMAILS
     ? process.env.NEXT_PUBLIC_ADMIN_EMAILS.split(',')
     : [];
-  const isAdmin = isLoaded && email_address && adminEmails.includes(email_address);
+  const isAdmin = isLoaded && emailAddress && adminEmails.includes(emailAddress);
 
   return (
     <header className="w-full border-b lg:border-b">

@@ -11,11 +11,11 @@ export interface SendFriendRequestInput {
 
 export interface GameRating {
   id: string;
-  game_id: string;
-  average_rating: string;
-  total_ratings: number;
-  created_at: string;
-  updated_at: string;
+  gameId: string;
+  averageRating: string;
+  totalRatings: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
 // Define types generically to avoid circular dependency
@@ -34,47 +34,47 @@ export type GameRecord = {
   times_tied?: number;
   lead_changes?: number;
   nugget?: string;
-  created_at: Date;
-  updated_at: Date;
+  createdAt: Date;
+  updatedAt: Date;
 };
 
 export type GameLogRecord = {
   id: string;
-  user_id: string | null;
-  game_id: string;
-  watched_setting: string;
-  watched_date: Date;
-  watched_location?: string;
-  rating_for_game: number;
-  rating_stars?: string;
-  watched_count: number;
+  userId: string | null;
+  gameId: string;
+  watchedSetting: string;
+  watchedDate: Date;
+  watchedLocation?: string;
+  ratingForGame: number;
+  ratingStars?: string;
+  watchedCount: number;
   notes?: string;
   tags?: string[];
   classification: string;
-  created_at: Date;
-  updated_at: Date;
-  deleted_at?: Date;
+  createdAt: Date;
+  updatedAt: Date;
+  deletedAt?: Date;
 };
 
 export type CommentRecord = {
   id: string;
-  user_id: string | null;
-  parent_id: string;
-  parent_type: string;
+  userId: string | null;
+  parentId: string;
+  parentType: string;
   content: string;
-  created_at: Date;
-  updated_at: Date;
-  deleted_at?: Date;
+  createdAt: Date;
+  updatedAt: Date;
+  deletedAt?: Date;
 };
 
 export type ReactionRecord = {
   id: string;
-  user_id: string | null;
-  target_type: string;
-  target_id: string;
+  userId: string | null;
+  targetType: string;
+  targetId: string;
   emoji: string;
-  created_at: Date;
-  updated_at: Date;
+  createdAt: Date;
+  updatedAt: Date;
 };
 
 // Define DataLoaders interface to match actual DataLoader instances

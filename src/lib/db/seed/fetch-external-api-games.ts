@@ -32,49 +32,71 @@ export async function fetchAndProcessNBAGames(season: number): Promise<void> {
 
     // Process games
     for (const game of nbaGames) {
+      console.log('Game value:', game);
       try {
         // Prepare data for nba_games table
         const nbaGameData = {
           id: game.id.toString(),
           league: game.league,
-          season_id: game.season,
           season: game.season,
-          date: new Date(game.date.start),
-          home_team_id: game.teams.home.id.toString(),
-          away_team_id: game.teams.visitors.id.toString(),
+          date: {
+            start: game.date.start,
+            end: game.date.end || null,
+            duration: game.date.duration || null,
+          },
+          homeTeamId: game.teams.home.id.toString(),
+          awayTeamId: game.teams.visitors.id.toString(),
           stage: game.stage,
-          status: typeof game.status === 'string' ? game.status : game.status.long,
+          status: {
+            clock: game.status.clock || null,
+            halftime: game.status.halftime || false,
+            short: game.status.short || '',
+            long: game.status.long || '',
+          },
           periods: game.periods,
           arena:
             typeof game.arena === 'string'
-              ? { name: game.arena, city: '' }
+              ? { name: game.arena, city: '', state: null, country: null }
               : game.arena
                 ? {
                     name: game.arena.name || '',
                     city: game.arena.city || '',
+                    state: game.arena.state || null,
+                    country: game.arena.country || null,
                   }
                 : null,
           teams: {
             home: {
-              id: game.teams.home.id.toString(),
+              id: parseInt(game.teams.home.id.toString()),
               name: game.teams.home.name,
               nickname: game.teams.home.nickname,
+              code: game.teams.home.code || '',
               logo: game.teams.home.logo,
             },
             visitors: {
-              id: game.teams.visitors.id.toString(),
+              id: parseInt(game.teams.visitors.id.toString()),
               name: game.teams.visitors.name,
               nickname: game.teams.visitors.nickname,
+              code: game.teams.visitors.code || '',
               logo: game.teams.visitors.logo,
             },
           },
-          scores: game.scores,
+          scores: {
+            home: {
+              ...game.scores.home,
+              linescore: (game.scores.home.linescore || []).map(String),
+            },
+            visitors: {
+              ...game.scores.visitors,
+              linescore: (game.scores.visitors.linescore || []).map(String),
+            },
+          },
           officials: Array.isArray(game.officials) ? game.officials : [String(game.officials)],
           times_tied: game.timesTied || 0,
           lead_changes: game.leadChanges || 0,
           nugget: game.nugget || null,
-          created_at: new Date(),
-          updated_at: new Date(),
+          createdAt: new Date(),
+          updatedAt: new Date(),
         };
 
         // Store in nba_games table

@@ -45,13 +45,13 @@ enum Classification {
 
 type Comment {
   content: String!
-  created_at: DateTime!
-  deleted_at: DateTime
+  createdAt: DateTime!
+  deletedAt: DateTime
   id: ID!
-  parent_id: ID!
-  parent_type: ParentType!
+  parentId: ID!
+  parentType: ParentType!
   reactions: [Reaction!]!
-  updated_at: DateTime!
+  updatedAt: DateTime!
   user: UserSummary!
   userId: ID!
 }
@@ -69,9 +69,9 @@ type CommentEdge {
 
 input CommentFilters {
   pagination: PaginationInput
-  parent_id: ID!
-  parent_type: ParentType!
-  user_id: ID
+  parentId: ID!
+  parentType: ParentType!
+  userId: ID
 }
 
 type ConferenceStanding {
@@ -83,8 +83,8 @@ type ConferenceStanding {
 
 input CreateCommentInput {
   content: String! @constraint(minLength: 1, maxLength: 1000)
-  parent_id: ID!
-  parent_type: ParentType!
+  parentId: ID!
+  parentType: ParentType!
 }
 
 type CreateCommentResponse {
@@ -93,27 +93,27 @@ type CreateCommentResponse {
 }
 
 input CreateGameInput {
-  away_score: Int @constraint(min: 0)
-  away_team_id: ID!
+  awayScore: Int @constraint(min: 0)
+  awayTeamId: ID!
   date: DateTime!
-  game_type: String!
-  home_score: Int @constraint(min: 0)
-  home_team_id: ID!
-  nba_game_id: ID
+  gameType: String!
+  homeScore: Int @constraint(min: 0)
+  homeTeamId: ID!
+  nbaGameId: ID
   status: GAME_STATUS!
 }
 
 input CreateGameLogInput {
   classification: Classification!
-  game_id: ID!
+  gameId: ID!
   notes: String @constraint(maxLength: 1000)
-  rating_for_game: Int @constraint(min: 1, max: 10)
-  rating_stars: Int @constraint(min: 1, max: 5)
+  ratingForGame: Int @constraint(min: 1, max: 10)
+  ratingStars: Int @constraint(min: 1, max: 5)
   tags: [String!]
-  watched_count: Int @constraint(min: 0)
-  watched_date: DateTime
-  watched_location: String
-  watched_setting: String!
+  watchedCount: Int @constraint(min: 0)
+  watchedDate: DateTime
+  watchedLocation: String
+  watchedSetting: String!
 }
 
 type CreateGameLogResponse {
@@ -136,11 +136,11 @@ input CreateGameStatsInput {
   free_throw_percentage: Float!
   free_throws_attempted: Int!
   free_throws_made: Int!
-  game_id: ID!
+  gameId: ID!
   points: Int!
   rebounds: Int!
   steals: Int!
-  team_id: ID!
+  teamId: ID!
   three_pointer_percentage: Float!
   three_pointers_attempted: Int!
   three_pointers_made: Int!
@@ -213,7 +213,13 @@ type DivisionStanding {
   win: Int!
 }
 
-union ErrorResult = AuthenticationError | AuthorizationError | BusinessLogicError | NotFoundError | RateLimitError | ValidationError
+union ErrorResult =
+  | AuthenticationError
+  | AuthorizationError
+  | BusinessLogicError
+  | NotFoundError
+  | RateLimitError
+  | ValidationError
 
 type FavoritePlayerResponse {
   errors: [ErrorResult!]
@@ -238,13 +244,13 @@ type FreeThrowStats {
 }
 
 type Friendship {
-  created_at: DateTime!
+  createdAt: DateTime!
   id: ID!
   initiator: UserSummary!
   recipient: UserSummary!
   status: FriendshipStatus!
   subscriberId: ID!
-  updated_at: DateTime!
+  updatedAt: DateTime!
   userId: ID!
 }
 
@@ -262,19 +268,19 @@ enum GAME_STATUS {
 }
 
 type Game {
-  arena: String!
+  arena: Arena!
+  awayScore: Int
   awayTeamId: ID!
-  away_score: Int
-  created_at: DateTime!
+  createdAt: DateTime!
   date: GameDate!
-  game_type: String!
+  gameType: String!
+  homeScore: Int
   homeTeamId: ID!
-  home_score: Int
   id: ID!
   isCompleted: Boolean!
   leadChanges: Int
   league: String!
-  nba_game_id: ID
+  nbaGameId: ID
   nugget: String
   officials: [String!]!
   periods: JSON!
@@ -284,7 +290,7 @@ type Game {
   status: GameStatus!
   teams: JSON!
   timesTied: Int
-  updated_at: DateTime!
+  updatedAt: DateTime!
 }
 
 type GameConnection {
@@ -308,7 +314,7 @@ input GameFilters {
   awayTeamId: ID
   classification: Classification
   dateRange: DateRangeInput
-  game_id: ID
+  gameId: ID
   homeTeamId: ID
   leadChangesMax: Int @constraint(min: 0)
   leadChangesMin: Int @constraint(min: 0)
@@ -321,14 +327,14 @@ input GameFilters {
   teamId: ID
   timesTiedMax: Int @constraint(min: 0)
   timesTiedMin: Int @constraint(min: 0)
-  user_id: ID
+  userId: ID
 }
 
 type GameLog {
   classification: Classification!
   comments(after: String, before: String, first: Int, last: Int): CommentConnection!
-  created_at: DateTime!
-  deleted_at: DateTime
+  createdAt: DateTime!
+  deletedAt: DateTime
   game: Game!
   gameId: ID!
   id: ID!
@@ -338,7 +344,7 @@ type GameLog {
   ratingStars: Int
   reactions(after: String, before: String, first: Int, last: Int): ReactionConnection!
   tags: [String!]!
-  updated_at: DateTime!
+  updatedAt: DateTime!
   user: UserSummary!
   userId: ID!
   watchedCount: Int
@@ -360,10 +366,10 @@ type GameLogEdge {
 
 input GameLogFilters {
   classification: Classification
-  game_id: ID
+  gameId: ID
   pagination: PaginationInput
-  user_id: ID
-  watched_date_range: DateRangeInput
+  userId: ID
+  watchedDateRange: DateRangeInput
 }
 
 type GameLogStats {
@@ -382,7 +388,7 @@ type GamePeriods {
 type GameStats {
   assists: Int!
   blocks: Int!
-  created_at: DateTime!
+  createdAt: DateTime!
   fieldGoals: FieldGoalStats!
   fouls: Int!
   freeThrows: FreeThrowStats!
@@ -394,7 +400,7 @@ type GameStats {
   team: Team!
   threePointers: ThreePointerStats!
   turnovers: Int!
-  updated_at: DateTime!
+  updatedAt: DateTime!
 }
 
 type GameStatus {
@@ -521,15 +527,15 @@ type Player {
   affiliation: String
   birth: BirthInfo
   college: String
-  created_at: DateTime!
-  first_name: String!
+  createdAt: DateTime!
+  firstName: String!
   height: HeightInfo
   id: ID!
-  last_name: String!
+  lastName: String!
   leagues: LeaguesInfo
   nba: NbaInfo
   seasons_active: [SeasonActive]
-  updated_at: DateTime!
+  updatedAt: DateTime!
   weight: WeightInfo
 }
 
@@ -599,7 +605,7 @@ type PlayerStats {
   assists: Int
   blocks: Int
   comment: String
-  created_at: DateTime!
+  createdAt: DateTime!
   defReb: Int
   fga: Int
   fgm: Int
@@ -625,7 +631,7 @@ type PlayerStats {
   tpm: Int
   tpp: String
   turnovers: Int
-  updated_at: DateTime!
+  updatedAt: DateTime!
 }
 
 type PlayerStatsConnection {
@@ -640,31 +646,87 @@ type PlayerStatsEdge {
 }
 
 type Query {
-  allPlayerStats(after: String, before: String, first: Int, last: Int, season: Int!): PlayerStatsConnection!
-  allTeamStats(after: String, before: String, first: Int, last: Int, season: Int!): TeamStatsConnection!
-  comments(after: String, before: String, first: Int, last: Int, parent_id: ID!): CommentConnection!
+  allPlayerStats(
+    after: String
+    before: String
+    first: Int
+    last: Int
+    season: Int!
+  ): PlayerStatsConnection!
+  allTeamStats(
+    after: String
+    before: String
+    first: Int
+    last: Int
+    season: Int!
+  ): TeamStatsConnection!
+  comments(after: String, before: String, first: Int, last: Int, parentId: ID!): CommentConnection!
   friendship(id: ID!): Friendship
-  friendships(after: String, before: String, first: Int, last: Int, userId: ID!): UserBaseConnection!
+  friendships(
+    after: String
+    before: String
+    first: Int
+    last: Int
+    userId: ID!
+  ): UserBaseConnection!
   game(id: ID!): Game
   gameLog(gameId: ID!, userId: ID!): GameLog
   gameLogStats(filters: GameLogFilters): GameLogStats!
-  gameLogs(after: String, before: String, filters: GameLogFilters, first: Int, last: Int): GameLogConnection!
+  gameLogs(
+    after: String
+    before: String
+    filters: GameLogFilters
+    first: Int
+    last: Int
+  ): GameLogConnection!
   gameStats(id: ID!): GameStats
   games(after: String, before: String, filters: GameFilters, first: Int, last: Int): GameConnection!
   leagues(after: String, before: String, first: Int, last: Int): LeagueConnection!
   liveGames(after: String, before: String, first: Int, last: Int): GameConnection!
   player(id: ID!): Player
-  playerGameStats(game_id: ID!, player_id: ID!): PlayerStats
+  playerGameStats(gameId: ID!, playerId: ID!): PlayerStats
   playerSeasonStats(playerId: ID!, season: Int!): PlayerStats
-  playerSeasonStatsList(after: String, before: String, first: Int, last: Int, playerId: ID!): PlayerStatsConnection!
+  playerSeasonStatsList(
+    after: String
+    before: String
+    first: Int
+    last: Int
+    playerId: ID!
+  ): PlayerStatsConnection!
   playerStats(playerId: ID!, season: Int!): PlayerStats
-  playerStatsByTeam(after: String, before: String, first: Int, last: Int, season: Int!, team: String!): PlayerStatsConnection!
-  players(after: String, before: String, filters: PlayerFilters, first: Int, last: Int): PlayerConnection!
-  reactions(after: String, before: String, first: Int, last: Int, targetId: ID!): ReactionConnection!
+  playerStatsByTeam(
+    after: String
+    before: String
+    first: Int
+    last: Int
+    season: Int!
+    teamId: String!
+  ): PlayerStatsConnection!
+  players(
+    after: String
+    before: String
+    filters: PlayerFilters
+    first: Int
+    last: Int
+  ): PlayerConnection!
+  reactions(
+    after: String
+    before: String
+    first: Int
+    last: Int
+    targetId: ID!
+  ): ReactionConnection!
   seasons(after: String, before: String, first: Int, last: Int): SeasonConnection!
   team(id: ID!): Team
-  teamGameStats(game_id: ID!, team: String!): TeamStats
-  teamStats(after: String, before: String, first: Int, last: Int, sort: TeamSortInput, teamId: ID!): TeamStatsConnection!
+  teamGameStats(gameId: ID!, teamId: String!): TeamStats
+  teamStats(
+    after: String
+    before: String
+    first: Int
+    last: Int
+    sort: TeamSortInput
+    teamId: ID!
+  ): TeamStatsConnection!
   teams(after: String, before: String, filters: TeamFilters, first: Int, last: Int): TeamConnection!
   topPlayers(after: String, before: String, first: Int, last: Int, season: Int!): PlayerConnection!
   user(id: ID!): User
@@ -677,12 +739,12 @@ type RateLimitError {
 }
 
 type Reaction {
-  created_at: DateTime!
+  createdAt: DateTime!
   emoji: ReactionEmojiType!
   id: ID!
   targetId: ID!
   targetType: ParentType!
-  updated_at: DateTime!
+  updatedAt: DateTime!
   user: UserSummary!
   userId: ID!
 }
@@ -737,12 +799,12 @@ type Scores {
 }
 
 type Season {
-  display_year: String!
-  end_date: DateTime!
+  displayYear: String!
+  endDate: DateTime!
   id: ID!
-  is_current: Boolean!
-  is_playoffs: Boolean!
-  start_date: DateTime!
+  isCurrent: Boolean!
+  isPlayoffs: Boolean!
+  startDate: DateTime!
   year: Int!
 }
 
@@ -774,15 +836,15 @@ type SeriesScore {
 
 type SharedGameLog {
   classification: Classification!
-  created_at: DateTime!
-  deleted_at: DateTime
+  createdAt: DateTime!
+  deletedAt: DateTime
   game: Game!
   gameId: ID!
   id: ID!
   notes: String
   rating: Int
   tags: [String!]!
-  updated_at: DateTime!
+  updatedAt: DateTime!
   user: UserSummary!
   userId: ID!
   watchedCount: Int
@@ -806,16 +868,16 @@ type Team {
   city: String!
   code: String
   conference: String
-  created_at: DateTime!
+  createdAt: DateTime!
   division: String
   id: ID!
   logo: String
-  logo_url: String
+  logoUrl: String
   name: String!
   nickname: String
-  primary_color: String
-  secondary_color: String
-  updated_at: DateTime!
+  primaryColor: String
+  secondaryColor: String
+  updatedAt: DateTime!
 }
 
 type TeamConnection {
@@ -902,7 +964,7 @@ input TeamSortInput {
 type TeamStats {
   assists: Int!
   blocks: Int!
-  created_at: DateTime!
+  createdAt: DateTime!
   defReb: Int
   defensive_rebounds: Int!
   fga: Int
@@ -938,7 +1000,7 @@ type TeamStats {
   tpm: Int
   tpp: String
   turnovers: Int!
-  updated_at: DateTime!
+  updatedAt: DateTime!
   wins: Int!
 }
 
@@ -992,22 +1054,22 @@ type UpdateFriendshipStatusResponse {
 }
 
 input UpdateGameInput {
-  away_score: Int @constraint(min: 0)
+  awayScore: Int @constraint(min: 0)
   date: DateTime
-  home_score: Int @constraint(min: 0)
+  homeScore: Int @constraint(min: 0)
   status: GAME_STATUS!
 }
 
 input UpdateGameLogInput {
   classification: Classification
   notes: String @constraint(maxLength: 1000)
-  rating_for_game: Int @constraint(min: 1, max: 10)
-  rating_stars: Int @constraint(min: 1, max: 5)
+  ratingForGame: Int @constraint(min: 1, max: 10)
+  ratingStars: Int @constraint(min: 1, max: 5)
   tags: [String!]
-  watched_count: Int @constraint(min: 0)
-  watched_date: DateTime
-  watched_location: String
-  watched_setting: String
+  watchedCount: Int @constraint(min: 0)
+  watchedDate: DateTime
+  watchedLocation: String
+  watchedSetting: String
 }
 
 type UpdateGameLogResponse {
@@ -1046,10 +1108,10 @@ type UpdateGameStatsResponse {
 
 input UpdatePlayerInput {
   active: Boolean
-  first_name: String
-  last_name: String
+  firstName: String
+  lastName: String
   position: String
-  team_id: ID
+  teamId: ID
 }
 
 type UpdatePlayerResponse {
@@ -1106,26 +1168,26 @@ type UpdateTeamResponse {
 type User {
   avatar_url: String
   comments: [Comment!]!
-  created_at: DateTime!
-  deleted_at: DateTime
+  createdAt: DateTime!
+  deletedAt: DateTime
   email: String!
-  email_address: String
-  first_name: String
+  emailAddress: String
+  firstName: String
   friendships: [Friendship!]!
   gameLogs: [GameLog!]!
   id: ID!
   imageUrl: String
   initiated_friendships: [Friendship!]!
-  last_name: String
+  lastName: String
   reactions: [Reaction!]!
-  updated_at: DateTime!
+  updatedAt: DateTime!
   username: String!
 }
 
 type UserBase {
   avatar_url: String
-  created_at: DateTime!
-  email_address: String
+  createdAt: DateTime!
+  emailAddress: String
   id: ID!
   imageUrl: String
   username: String!
@@ -1154,11 +1216,11 @@ type UserEdge {
 }
 
 type UserSummary {
-  email_address: String
-  first_name: String
+  emailAddress: String
+  firstName: String
   id: ID!
   imageUrl: String
-  last_name: String
+  lastName: String
   username: String!
 }
 

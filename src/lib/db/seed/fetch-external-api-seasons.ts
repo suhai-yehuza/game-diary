@@ -35,13 +35,13 @@ export async function fetchAndProcessNBASeasons(): Promise<void> {
       const seasonData = {
         id: year,
         year: year,
-        display_year: `${year}-${(year + 1).toString().slice(-2)}`,
-        start_date: new Date(year, 9, 1), // October 1st
-        end_date: new Date(year + 1, 5, 30), // June 30th
-        is_current: year === maxYear, // Set current season flag
-        is_playoffs: false,
-        created_at: new Date(),
-        updated_at: new Date(),
+        displayYear: `${year}-${(year + 1).toString().slice(-2)}`,
+        startDate: new Date(year, 9, 1), // October 1st
+        endDate: new Date(year + 1, 5, 30), // June 30th
+        isCurrent: year === maxYear, // Set current season flag
+        isPlayoffs: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
       };
 
       await db
@@ -51,7 +51,7 @@ export async function fetchAndProcessNBASeasons(): Promise<void> {
           target: seasons.id,
           set: {
             ...seasonData,
-            updated_at: new Date(), // Always update the updated_at timestamp
+            updatedAt: new Date(), // Always update the updatedAt timestamp
           },
         });
     }

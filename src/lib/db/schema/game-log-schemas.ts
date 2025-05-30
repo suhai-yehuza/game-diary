@@ -6,24 +6,24 @@ export type GameLogClassification = (typeof CLASSIFICATIONS)[keyof typeof CLASSI
 export type GameLogWatchedSetting = (typeof WATCHED_SETTINGS)[keyof typeof WATCHED_SETTINGS];
 
 export type CreateGameLogInput = {
-  game_id: string;
-  user_id: string;
+  gameId: string;
+  userId: string;
   classification?: GameLogClassification;
   notes?: string;
   rating?: number;
-  watched_settings?: GameLogWatchedSetting;
+  watchedSetting?: GameLogWatchedSetting;
 };
 
 export const createGameLogSchema = z.object({
-  game_id: z.string(),
-  user_id: z.string(),
+  gameId: z.string(),
+  userId: z.string(),
   classification: z
     .enum([CLASSIFICATIONS.PRIVATE, CLASSIFICATIONS.PROTECTED, CLASSIFICATIONS.PUBLIC])
     .optional()
     .default(CLASSIFICATIONS.PROTECTED),
   notes: z.string().optional(),
   rating: z.number().min(1).max(5).optional(),
-  watched_settings: z
+  watchedSetting: z
     .enum([
       WATCHED_SETTINGS.TV,
       WATCHED_SETTINGS.ARENA,

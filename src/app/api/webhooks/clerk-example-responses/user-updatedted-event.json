@@ -1,13 +1,13 @@
 {
   "data": {
     "birthday": "",
-    "created_at": 1654012591514,
+    "createdAt": 1654012591514,
     "email_addresses": [
       {
-        "email_address": "example@example.org",
+        "emailAddress": "example@example.org",
         "id": "idn_29w83yL7CwVlJXylYLxcslromF1",
         "linked_to": [],
-        "object": "email_address",
+        "object": "emailAddress",
         "reserved": true,
         "verification": {
           "attempts": null,
@@ -19,11 +19,11 @@
     ],
     "external_accounts": [],
     "external_id": null,
-    "first_name": "Example",
+    "firstName": "Example",
     "gender": "",
     "id": "user_29w83sxmDNGwOuEthce5gg56FcC",
-    "image_url": "https://img.clerk.com/xxxxxx",
-    "last_name": null,
+    "imageUrl": "https://img.clerk.com/xxxxxx",
+    "lastName": null,
     "last_sign_in_at": null,
     "object": "user",
     "password_enabled": true,
@@ -36,7 +36,7 @@
     "public_metadata": {},
     "two_factor_enabled": false,
     "unsafe_metadata": {},
-    "updated_at": 1654012824306,
+    "updatedAt": 1654012824306,
     "username": null,
     "web3_wallets": []
   },

@@ -112,8 +112,8 @@ export type TeamApiResponse = {
 export interface PlayerStatistics {
   player: {
     id: number;
-    first_name: string;
-    last_name: string;
+    firstName: string;
+    lastName: string;
   };
   team?: { id: number | string };
   min?: string | number;
@@ -176,10 +176,10 @@ export type TeamStatistics = {
 export type DBSeason = {
   id: number;
   year: number;
-  start_date: Date;
-  end_date: Date;
-  is_current: boolean;
-  is_playoffs: boolean;
+  startDate: Date;
+  endDate: Date;
+  isCurrent: boolean;
+  isPlayoffs: boolean;
 };
 
 export type GameCardProps = {
@@ -319,7 +319,7 @@ export interface TeamSortInput {
 
 // Component Types
 export interface CreateGameLogModalProps {
-  game_id?: string;
+  gameId?: string;
   onSuccess?: () => void;
 }
 

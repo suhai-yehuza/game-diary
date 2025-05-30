@@ -37,12 +37,12 @@ export function GameLogForm({
   const [selectedGame, setSelectedGame] = useState<Game | null>(null);
   const { toast } = useToast();
   const [internalFormData, setInternalFormData] = useState<GameLogFormData>({
-    watched_setting: '',
-    watched_date: new Date(),
-    watched_location: '',
-    rating_for_game: '',
-    rating_stars: 0,
-    watched_count: 1,
+    watchedSetting: '',
+    watchedDate: new Date(),
+    watchedLocation: '',
+    ratingForGame: '',
+    ratingStars: 0,
+    watchedCount: 1,
     notes: '',
     tags: [],
     classification: '',
@@ -81,9 +81,9 @@ export function GameLogForm({
       await createGameLog({
         variables: {
           input: {
-            game_id: finalSelectedGame.id,
+            gameId: finalSelectedGame.id,
             ...formData,
-            watched_date: format(formData.watched_date, 'yyyy-MM-dd'),
+            watchedDate: format(formData.watchedDate, 'yyyy-MM-dd'),
           },
         },
       });
@@ -136,7 +136,7 @@ export function GameLogForm({
                         {game.teams.map((team: Team) => team.name).join(' vs ')}
                       </p>
                       <p className="text-sm text-gray-500">
-                        {formatDate(game.date.start)} • {game.arena}
+                        {formatDate(game.date.start)} • {game.arena.name}
                       </p>
                     </div>
                     <div className="text-sm text-gray-500">
@@ -163,11 +163,11 @@ export function GameLogForm({
                   ? finalSelectedGame.date.start
                   : finalSelectedGame.date
               )}{' '}
-              • {finalSelectedGame.arena}
+              • {finalSelectedGame.arena.name}
             </p>
-            {finalSelectedGame.created_at || finalSelectedGame.created_at ? (
+            {finalSelectedGame.createdAt || finalSelectedGame.createdAt ? (
               <p className="text-xs text-gray-500 mt-1">
-                Added: {formatDate(getDateFields(finalSelectedGame).created_at)}
+                Added: {formatDate(getDateFields(finalSelectedGame).createdAt)}
               </p>
             ) : null}
           </div>
@@ -175,10 +175,8 @@ export function GameLogForm({
           <div>
             <label className="block text-sm font-medium mb-1">Watched Setting</label>
             <Select
-              value={formData.watched_setting}
-              onValueChange={(value: string) =>
-                setFormData({ ...formData, watched_setting: value })
-              }
+              value={formData.watchedSetting}
+              onValueChange={(value: string) => setFormData({ ...formData, watchedSetting: value })}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select setting" />
@@ -195,9 +193,9 @@ export function GameLogForm({
             <label className="block text-sm font-medium mb-1">Watched Date</label>
             <div className="relative">
               <DatePicker
-                selected={formData.watched_date}
+                selected={formData.watchedDate}
                 onChange={(date: Date | null) =>
-                  date && setFormData({ ...formData, watched_date: date })
+                  date && setFormData({ ...formData, watchedDate: date })
                 }
                 dateFormat="MMMM d, yyyy"
                 className="w-full pl-10 border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
@@ -209,8 +207,8 @@ export function GameLogForm({
           <div>
             <label className="block text-sm font-medium mb-1">Location</label>
             <Input
-              value={formData.watched_location}
-              onChange={e => setFormData({ ...formData, watched_location: e.target.value })}
+              value={formData.watchedLocation}
+              onChange={e => setFormData({ ...formData, watchedLocation: e.target.value })}
               placeholder="Where did you watch the game?"
             />
           </div>
@@ -219,16 +217,16 @@ export function GameLogForm({
             <label className="block text-sm font-medium mb-1">Rating</label>
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
-                <StarRating rating={formData.rating_stars} size="lg" />
-                <span className="text-lg font-medium">{formData.rating_stars}/5</span>
+                <StarRating rating={formData.ratingStars} size="lg" />
+                <span className="text-lg font-medium">{formData.ratingStars}/5</span>
               </div>
               <div className="flex gap-1">
                 {[1, 2, 3, 4, 5].map(star => (
                   <Button
                     key={star}
                     type="button"
-                    variant={formData.rating_stars === star ? 'default' : 'outline'}
-                    onClick={() => setFormData({ ...formData, rating_stars: star })}
+                    variant={formData.ratingStars === star ? 'default' : 'outline'}
+                    onClick={() => setFormData({ ...formData, ratingStars: star })}
                     className="w-8 h-8 p-0"
                   >
                     ★
@@ -243,8 +241,8 @@ export function GameLogForm({
             <Input
               type="number"
               min={1}
-              value={formData.watched_count}
-              onChange={e => setFormData({ ...formData, watched_count: parseInt(e.target.value) })}
+              value={formData.watchedCount}
+              onChange={e => setFormData({ ...formData, watchedCount: parseInt(e.target.value) })}
             />
           </div>
 

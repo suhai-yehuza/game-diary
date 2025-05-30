@@ -86,7 +86,7 @@ export function LiveGamesSection() {
                 />
               </div>
             </div>
-            <div className="text-sm text-muted-foreground">{game.arena}</div>
+            <div className="text-sm text-muted-foreground">{game.arena.name}</div>
           </CardContent>
         </Card>
       ))}

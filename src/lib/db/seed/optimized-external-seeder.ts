@@ -29,29 +29,29 @@ type PlayerWithTeams = {
 type SeasonData = {
   id: number;
   year: number;
-  display_year: string;
-  start_date: Date;
-  end_date: Date;
-  is_current: boolean;
-  is_playoffs: boolean;
-  created_at: Date;
-  updated_at: Date;
+  displayYear: string;
+  startDate: Date;
+  endDate: Date;
+  isCurrent: boolean;
+  isPlayoffs: boolean;
+  createdAt: Date;
+  updatedAt: Date;
 };
 
-type SeasonActive = Array<{ season: number; team_ids: string[] }>;
+type SeasonActive = Array<{ season: number; teamIds: string[] }>;
 
 // Helper functions
 function createSeasonData(year: number, isCurrent: boolean): SeasonData {
   return {
     id: year,
     year,
-    display_year: `${year}-${(year + 1).toString().slice(-2)}`,
-    start_date: new Date(year, 9, 1), // October 1st
-    end_date: new Date(year + 1, 5, 30), // June 30th
-    is_current: isCurrent,
-    is_playoffs: false,
-    created_at: new Date(),
-    updated_at: new Date(),
+    displayYear: `${year}-${(year + 1).toString().slice(-2)}`,
+    startDate: new Date(year, 9, 1), // October 1st
+    endDate: new Date(year + 1, 5, 30), // June 30th
+    isCurrent: isCurrent,
+    isPlayoffs: false,
+    createdAt: new Date(),
+    updatedAt: new Date(),
   };
 }
 
@@ -68,15 +68,15 @@ function createPlayerData(
     existingSeasonIndex >= 0
       ? existingSeasons.map((s, idx) =>
           idx === existingSeasonIndex
-            ? { ...s, team_ids: Array.from(new Set([...s.team_ids, ...currentSeasonTeams])) }
+            ? { ...s, teamIds: Array.from(new Set([...s.teamIds, ...currentSeasonTeams])) }
             : s
         )
-      : [...existingSeasons, { season, team_ids: currentSeasonTeams }];
+      : [...existingSeasons, { season, teamIds: currentSeasonTeams }];
 
   return {
     id: String(player.id),
-    firstname: String(player.firstname || 'no-first-name'),
-    lastname: String(player.lastname || 'no-last-name'),
+    firstName: String(player.firstname || 'no-first-name'),
+    lastName: String(player.lastname || 'no-last-name'),
     birth: player.birth?.date
       ? { date: player.birth.date, country: player.birth.country || 'Unknown' }
       : null,
@@ -92,9 +92,9 @@ function createPlayerData(
     jersey: player.leagues?.standard?.jersey ? String(player.leagues.standard.jersey) : null,
     active: player.leagues?.standard?.active || false,
     pos: String(player.leagues?.standard?.pos || 'no-pos'),
-    seasons_active: updatedSeasons,
-    created_at: new Date(),
-    updated_at: new Date(),
+    seasonsActive: updatedSeasons,
+    createdAt: new Date(),
+    updatedAt: new Date(),
   };
 }
 
@@ -180,14 +180,14 @@ async function processTeams(apiClient: OptimizedAPIClient, batchSize: number): P
         country: 'USA',
         conference: standardLeague.conference || null,
         division: standardLeague.division || null,
-        logo_url: team.logo || '',
-        primary_color: null,
-        secondary_color: null,
+        logoUrl: team.logo || '',
+        primaryColor: null,
+        secondaryColor: null,
         all_star: Boolean(team.allStar),
         nba_franchise: Boolean(team.nbaFranchise),
         leagues: team.leagues || {},
-        created_at: new Date(),
-        updated_at: new Date(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
       };
       console.log(`Processed team: ${JSON.stringify(processedTeam, null, 2)}`);
       return processedTeam;
@@ -206,8 +206,8 @@ async function processTeams(apiClient: OptimizedAPIClient, batchSize: number): P
   const insertedTeams = await db.query.teams.findMany();
   console.log(`Verification: Found ${insertedTeams.length} teams in database`);
   console.log('Team IDs in database:', insertedTeams.map(t => t.id).join(', '));
-  console.log('NBA Franchise teams:', insertedTeams.filter(t => t.is_active).length);
-  console.log('Non-NBA Franchise teams:', insertedTeams.filter(t => !t.is_active).length);
+  console.log('NBA Franchise teams:', insertedTeams.filter(t => t.isActive).length);
+  console.log('Non-NBA Franchise teams:', insertedTeams.filter(t => !t.isActive).length);
 }
 
 async function processPlayers(
@@ -249,7 +249,7 @@ async function processPlayers(
   });
 
   const existingPlayersMap = new Map<string, SeasonActive>(
-    existingPlayers.map(p => [p.id, p.seasons_active || []])
+    existingPlayers.map(p => [p.id, p.seasonsActive || []])
   );
 
   // Insert/update all unique players
@@ -282,11 +282,6 @@ async function processGames(
 
   console.log(`Processing ${gamesResponse.response.length} games for season ${season}`);
 
-  // Get all teams from database for verification
-  const db = createDatabaseClient();
-  const allTeams = await db.query.teams.findMany();
-  const teamIds = new Set(allTeams.map(t => t.id));
-
   // Filter out games with invalid team IDs
   const validGames = gamesResponse.response.filter(game => {
     const homeTeamId = game.teams?.home?.id;
@@ -307,48 +302,82 @@ async function processGames(
     `Found ${validGames.length} valid games out of ${gamesResponse.response.length} total games`
   );
 
+  // Add debug logging for arena data
+  console.log('Sample game arena data:', validGames[0]?.arena);
+  console.log('Sample game arena type:', typeof validGames[0]?.arena);
+
   const nbaGamesData = validGames.map(game => {
-    const homeTeamId = game.teams.home.id.toString();
-    const awayTeamId = game.teams.visitors.id.toString();
-
-    // Log team ID mismatches
-    if (!teamIds.has(homeTeamId) || !teamIds.has(awayTeamId)) {
-      console.log(`Team ID mismatch for game ${game.id}:`, {
-        homeTeamId,
-        awayTeamId,
-        homeTeamExists: teamIds.has(homeTeamId),
-        awayTeamExists: teamIds.has(awayTeamId),
-      });
-    }
-
     return {
       id: game.id.toString(),
-      date: new Date(game.date.start),
-      status: typeof game.status === 'string' ? game.status : game.status.long,
-      home_team_id: homeTeamId,
-      away_team_id: awayTeamId,
-      season_id: game.season,
-      season: game.season,
       league: game.league,
+      season: game.season,
+      date: {
+        start: game.date.start,
+        end: game.date.end || null,
+        duration: game.date.duration || null,
+      },
       stage: game.stage,
-      periods: game.periods,
-      scores: game.scores,
-      officials: Array.isArray(game.officials) ? game.officials : [String(game.officials)],
-      times_tied: game.timesTied || 0,
-      lead_changes: game.leadChanges || 0,
-      nugget: game.nugget || null,
+      status: {
+        clock: game.status.clock || null,
+        halftime: game.status.halftime || false,
+        short: game.status.short || '',
+        long: game.status.long || '',
+      },
+      periods: {
+        current: game.periods?.current || 0,
+        total: game.periods?.total || 0,
+        endOfPeriod: game.periods?.endOfPeriod || false,
+      },
+      arena: {
+        name: game.arena?.name || '',
+        city: game.arena?.city || '',
+        state: game.arena?.state || null,
+        country: game.arena?.country || null,
+      },
       teams: {
         home: {
-          ...game.teams.home,
-          id: homeTeamId,
+          id: game.teams.home.id,
+          name: game.teams.home.name || '',
+          nickname: game.teams.home.nickname || '',
+          code: game.teams.home.code || '',
+          logo: game.teams.home.logo || '',
         },
         visitors: {
-          ...game.teams.visitors,
-          id: awayTeamId,
+          id: game.teams.visitors.id,
+          name: game.teams.visitors.name || '',
+          nickname: game.teams.visitors.nickname || '',
+          code: game.teams.visitors.code || '',
+          logo: game.teams.visitors.logo || '',
         },
       },
-      created_at: new Date(),
-      updated_at: new Date(),
+      scores: {
+        home: {
+          win: game.scores.home.win || 0,
+          loss: game.scores.home.loss || 0,
+          series: {
+            win: game.scores.home.series?.win || 0,
+            loss: game.scores.home.series?.loss || 0,
+          },
+          linescore: (game.scores.home.linescore || []).map(String),
+          points: game.scores.home.points || 0,
+        },
+        visitors: {
+          win: game.scores.visitors.win || 0,
+          loss: game.scores.visitors.loss || 0,
+          series: {
+            win: game.scores.visitors.series?.win || 0,
+            loss: game.scores.visitors.series?.loss || 0,
+          },
+          linescore: (game.scores.visitors.linescore || []).map(String),
+          points: game.scores.visitors.points || 0,
+        },
+      },
+      officials: game.officials || [],
+      timesTied: game.timesTied || 0,
+      leadChanges: game.leadChanges || 0,
+      nugget: game.nugget || null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
     };
   });
 
@@ -367,16 +396,16 @@ async function processGames(
 
   const genericGamesData = validGames.map(game => ({
     id: game.id.toString(),
-    game_type: 'nba',
-    nba_game_id: game.id.toString(),
+    gameType: 'nba',
+    nbaGameId: game.id.toString(),
     date: new Date(game.date.start),
-    home_team_id: game.teams.home.id.toString(),
-    away_team_id: game.teams.visitors.id.toString(),
-    home_score: game.scores.home.points,
-    away_score: game.scores.visitors.points,
+    homeTeamId: game.teams.home.id.toString(),
+    awayTeamId: game.teams.visitors.id.toString(),
+    homeScore: game.scores.home.points,
+    awayScore: game.scores.visitors.points,
     status: typeof game.status === 'string' ? game.status : game.status.long,
-    created_at: new Date(),
-    updated_at: new Date(),
+    createdAt: new Date(),
+    updatedAt: new Date(),
   }));
 
   await apiClient.bulkInsertWithConflictHandling(
@@ -407,13 +436,13 @@ async function processSeasonStats(
           // Use the reliable game stats function
           await fetchAndProcessNBAGameStats(game.id.toString(), season);
 
-          // Get players for both teams using the seasons_active field
+          // Get players for both teams using the seasonsActive field
           const [homeTeamPlayers, awayTeamPlayers] = await Promise.all([
             db.query.nba_players.findMany({
-              where: sql`seasons_active @> ${JSON.stringify([{ season, team_ids: [game.teams.home.id.toString()] }])}`,
+              where: sql`"seasonsActive" @> ${JSON.stringify([{ season, teamIds: [game.teams.home.id.toString()] }])}`,
             }),
             db.query.nba_players.findMany({
-              where: sql`seasons_active @> ${JSON.stringify([{ season, team_ids: [game.teams.visitors.id.toString()] }])}`,
+              where: sql`"seasonsActive" @> ${JSON.stringify([{ season, teamIds: [game.teams.visitors.id.toString()] }])}`,
             }),
           ]);
 

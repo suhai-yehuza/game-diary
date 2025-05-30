@@ -87,7 +87,7 @@ export default function GamePage({ params }: { params: { id: string } }) {
             </Link>
             <div className="flex items-center gap-4">
               {isAuthenticated ? (
-                <CreateGameLogModal game_id={gameId} />
+                <CreateGameLogModal gameId={gameId} />
               ) : (
                 <Button asChild>
                   <Link href="/sign-in">Sign in to log game</Link>

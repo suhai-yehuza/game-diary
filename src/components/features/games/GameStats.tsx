@@ -13,12 +13,12 @@ const calculateGameStats = (game: GameWithStatistics): ComponentGameStats => {
   const awayTeam = game.teams.visitors;
 
   const homePlayers = (game.statistics as GameStatistics[])
-    .filter((stat: GameStatistics) => stat.team_id === homeTeam.id)
+    .filter((stat: GameStatistics) => stat.teamId === homeTeam.id)
     .map((stat: GameStatistics) => ({
-      id: stat.player_id || '',
-      player_id: stat.player_id || '',
-      name: stat.player_id || '', // TODO: Get player name from player data
-      team_id: homeTeam.id,
+      id: stat.playerId || '',
+      playerId: stat.playerId || '',
+      name: stat.playerId || '', // TODO: Get player name from player data
+      teamId: homeTeam.id,
       points: stat.points,
       rebounds: stat.rebounds,
       assists: stat.assists,
@@ -26,29 +26,29 @@ const calculateGameStats = (game: GameWithStatistics): ComponentGameStats => {
       blocks: stat.blocks,
       turnovers: stat.turnovers,
       fouls: stat.fouls,
-      minutes_played: parseInt(stat.minutes),
-      plus_minus: stat.plus_minus,
-      field_goals: {
-        made: stat.field_goals.made,
-        attempted: stat.field_goals.attempted,
+      minutesPlayed: parseInt(stat.minutesPlayed || '0'),
+      plusMinus: stat.plusMinus,
+      fieldGoals: {
+        made: stat.fieldGoals.made,
+        attempted: stat.fieldGoals.attempted,
       },
-      three_pointers: {
-        made: stat.three_pointers.made,
-        attempted: stat.three_pointers.attempted,
+      threePointers: {
+        made: stat.threePointers.made,
+        attempted: stat.threePointers.attempted,
       },
-      free_throws: {
-        made: stat.free_throws.made,
-        attempted: stat.free_throws.attempted,
+      freeThrows: {
+        made: stat.freeThrows.made,
+        attempted: stat.freeThrows.attempted,
       },
     }));
 
   const awayPlayers = (game.statistics as GameStatistics[])
-    .filter((stat: GameStatistics) => stat.team_id === awayTeam.id)
+    .filter((stat: GameStatistics) => stat.teamId === awayTeam.id)
     .map((stat: GameStatistics) => ({
-      id: stat.player_id || '',
-      player_id: stat.player_id || '',
-      name: stat.player_id || '', // TODO: Get player name from player data
-      team_id: awayTeam.id,
+      id: stat.playerId || '',
+      playerId: stat.playerId || '',
+      name: stat.playerId || '', // TODO: Get player name from player data
+      teamId: awayTeam.id,
       points: stat.points,
       rebounds: stat.rebounds,
       assists: stat.assists,
@@ -56,19 +56,19 @@ const calculateGameStats = (game: GameWithStatistics): ComponentGameStats => {
       blocks: stat.blocks,
       turnovers: stat.turnovers,
       fouls: stat.fouls,
-      minutes_played: parseInt(stat.minutes),
-      plus_minus: stat.plus_minus,
-      field_goals: {
-        made: stat.field_goals.made,
-        attempted: stat.field_goals.attempted,
+      minutesPlayed: parseInt(stat.minutesPlayed || '0'),
+      plusMinus: stat.plusMinus,
+      fieldGoals: {
+        made: stat.fieldGoals.made,
+        attempted: stat.fieldGoals.attempted,
       },
-      three_pointers: {
-        made: stat.three_pointers.made,
-        attempted: stat.three_pointers.attempted,
+      threePointers: {
+        made: stat.threePointers.made,
+        attempted: stat.threePointers.attempted,
       },
-      free_throws: {
-        made: stat.free_throws.made,
-        attempted: stat.free_throws.attempted,
+      freeThrows: {
+        made: stat.freeThrows.made,
+        attempted: stat.freeThrows.attempted,
       },
     }));
 
@@ -81,16 +81,16 @@ const calculateGameStats = (game: GameWithStatistics): ComponentGameStats => {
     turnovers: players.reduce((sum, p) => sum + (p?.turnovers || 0), 0),
     fouls: players.reduce((sum, p) => sum + (p?.fouls || 0), 0),
     fieldGoals: {
-      made: players.reduce((sum, p) => sum + (p?.field_goals?.made || 0), 0),
-      attempted: players.reduce((sum, p) => sum + (p?.field_goals?.attempted || 0), 0),
+      made: players.reduce((sum, p) => sum + (p?.fieldGoals?.made || 0), 0),
+      attempted: players.reduce((sum, p) => sum + (p?.fieldGoals?.attempted || 0), 0),
     },
     threePointers: {
-      made: players.reduce((sum, p) => sum + (p?.three_pointers?.made || 0), 0),
-      attempted: players.reduce((sum, p) => sum + (p?.three_pointers?.attempted || 0), 0),
+      made: players.reduce((sum, p) => sum + (p?.threePointers?.made || 0), 0),
+      attempted: players.reduce((sum, p) => sum + (p?.threePointers?.attempted || 0), 0),
     },
     freeThrows: {
-      made: players.reduce((sum, p) => sum + (p?.free_throws?.made || 0), 0),
-      attempted: players.reduce((sum, p) => sum + (p?.free_throws?.attempted || 0), 0),
+      made: players.reduce((sum, p) => sum + (p?.freeThrows?.made || 0), 0),
+      attempted: players.reduce((sum, p) => sum + (p?.freeThrows?.attempted || 0), 0),
     },
   });
 
@@ -128,7 +128,7 @@ export const GameStats = ({ game }: GameStatsProps) => {
     if (!stats) return null;
     return stats.players.map((player: GamePlayerStats) => ({
       id: player.id,
-      player_id: player.player_id,
+      playerId: player.playerId,
       name: player.name,
       points: player.points,
       rebounds: player.rebounds,
@@ -137,11 +137,11 @@ export const GameStats = ({ game }: GameStatsProps) => {
       blocks: player.blocks,
       turnovers: player.turnovers,
       fouls: player.fouls,
-      minutes: player.minutes_played,
-      plusMinus: player.plus_minus,
-      fieldGoals: player.field_goals,
-      threePointers: player.three_pointers,
-      freeThrows: player.free_throws,
+      minutes: player.minutesPlayed,
+      plusMinus: player.plusMinus,
+      fieldGoals: player.fieldGoals,
+      threePointers: player.threePointers,
+      freeThrows: player.freeThrows,
     }));
   }, [stats]);
 
@@ -149,8 +149,8 @@ export const GameStats = ({ game }: GameStatsProps) => {
   const filteredStats = useMemo(() => {
     if (!game || !stats) return [];
     return stats.players.filter((stat: GamePlayerStats) => {
-      if (selectedTeam !== 'all' && stat.team_id !== selectedTeam) return false;
-      if (stat.minutes_played < minMinutes) return false;
+      if (selectedTeam !== 'all' && stat.teamId !== selectedTeam) return false;
+      if (stat.minutesPlayed < minMinutes) return false;
       return true;
     });
   }, [game, stats, selectedTeam, minMinutes]);
@@ -168,7 +168,7 @@ export const GameStats = ({ game }: GameStatsProps) => {
             className="px-3 py-1 border rounded"
           >
             <option value="all">All Teams</option>
-            {Array.from(new Set(stats.players.map((stat: GamePlayerStats) => stat.team_id))).map(
+            {Array.from(new Set(stats.players.map((stat: GamePlayerStats) => stat.teamId))).map(
               teamId => (
                 <option key={teamId} value={teamId}>
                   {teamId} {/* TODO: Get team name from team data */}
@@ -245,10 +245,10 @@ export const GameStats = ({ game }: GameStatsProps) => {
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{stat.fouls}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {stat.minutes_played}
+                  {stat.minutesPlayed}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {stat.plus_minus}
+                  {stat.plusMinus}
                 </td>
               </tr>
             ))}

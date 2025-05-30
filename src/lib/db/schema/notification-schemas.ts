@@ -4,14 +4,14 @@ import { users } from './user-schemas';
 
 export const notifications = pgTable('notifications', {
   id: varchar('id', { length: 255 }).primaryKey(),
-  user_id: varchar('user_id', { length: 255 }).references(() => users.id),
+  userId: varchar('userId', { length: 255 }).references(() => users.id),
   type: varchar('type', { length: 50 }).notNull(),
   title: varchar('title', { length: 255 }).notNull(),
   message: text('message').notNull(),
-  target_id: varchar('target_id', { length: 255 }),
-  target_type: varchar('target_type', { length: 50 }),
+  targetId: varchar('targetId', { length: 255 }),
+  targetType: varchar('targetType', { length: 50 }),
   read: boolean('read').notNull().default(false),
-  created_at: timestamp('created_at').defaultNow().notNull(),
-  updated_at: timestamp('updated_at').defaultNow().notNull(),
-  deleted_at: timestamp('deleted_at'),
+  createdAt: timestamp('createdAt').defaultNow().notNull(),
+  updatedAt: timestamp('updatedAt').defaultNow().notNull(),
+  deletedAt: timestamp('deletedAt'),
 });

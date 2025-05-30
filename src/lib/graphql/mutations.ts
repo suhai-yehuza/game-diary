@@ -25,8 +25,8 @@ export const CREATE_GAME = gql`
         timesTied
         leadChanges
         nugget
-        created_at
-        updated_at
+        createdAt
+        updatedAt
       }
       errors {
         ... on ValidationError {
@@ -67,9 +67,9 @@ export const CREATE_GAME_LOG = gql`
         notes
         tags
         classification
-        created_at
-        updated_at
-        deleted_at
+        createdAt
+        updatedAt
+        deletedAt
         game {
           id
         }
@@ -113,9 +113,9 @@ export const UPDATE_GAME_LOG = gql`
         notes
         tags
         classification
-        created_at
-        updated_at
-        deleted_at
+        createdAt
+        updatedAt
+        deletedAt
         game {
           id
         }
@@ -281,8 +281,8 @@ export const CREATE_REACTION = gql`
         targetId
         targetType
         userId
-        created_at
-        updated_at
+        createdAt
+        updatedAt
         user {
           ...UserSummaryFragment
         }
@@ -352,8 +352,8 @@ export const SEND_FRIEND_REQUEST = gql`
         subscriberId
         userId
         status
-        created_at
-        updated_at
+        createdAt
+        updatedAt
         initiator {
           ...UserSummaryFragment
         }
@@ -396,8 +396,8 @@ export const ACCEPT_FRIEND_REQUEST = gql`
         subscriberId
         userId
         status
-        created_at
-        updated_at
+        createdAt
+        updatedAt
         initiator {
           ...UserSummaryFragment
         }
@@ -440,8 +440,8 @@ export const REJECT_FRIEND_REQUEST = gql`
         subscriberId
         userId
         status
-        created_at
-        updated_at
+        createdAt
+        updatedAt
         initiator {
           ...UserSummaryFragment
         }
@@ -514,8 +514,8 @@ export const UPDATE_FRIENDSHIP_STATUS = gql`
         subscriberId
         userId
         status
-        created_at
-        updated_at
+        createdAt
+        updatedAt
         initiator {
           ...UserSummaryFragment
         }
@@ -555,8 +555,8 @@ export const UPDATE_PLAYER = gql`
     updatePlayer(id: $id, input: $input) {
       player {
         id
-        first_name
-        last_name
+        firstName
+        lastName
         birth {
           date
           country
@@ -711,7 +711,7 @@ export const ADD_REACTION = gql`
       reaction {
         id
         emoji
-        created_at
+        createdAt
         user {
           ...UserSummaryFragment
         }

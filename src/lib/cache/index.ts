@@ -19,7 +19,7 @@ export const CACHE_KEYS = {
   PLAYER: (id: string) => `nba:player:${id}`,
   STANDINGS: (season: string) => `nba:standings:${season}`,
   GAME_STATS: (gameId: string) => `nba:game:${gameId}:stats`,
-  PLAYER_STATS: (player_id: string) => `nba:player:${player_id}:stats`,
+  PLAYER_STATS: (playerId: string) => `nba:player:${playerId}:stats`,
   TEAM_STATS: (teamId: string) => `nba:team:${teamId}:stats`,
   LIVE_GAMES: 'nba:live:games',
   USERS: 'users',
@@ -28,9 +28,9 @@ export const CACHE_KEYS = {
   GAME_LOGS: 'game_logs',
   USER_GAME_LOGS: (userId: string) => `user:${userId}:game_logs`,
   GAME_RATINGS: 'game_ratings',
-  GAME_RATING: (game_id: string) => `game_rating:${game_id}`,
-  COMMENTS: (parent_id: string) => `comments:${parent_id}`,
-  REACTIONS: (target_id: string) => `reactions:${target_id}`,
+  GAME_RATING: (gameId: string) => `game_rating:${gameId}`,
+  COMMENTS: (parentId: string) => `comments:${parentId}`,
+  REACTIONS: (targetId: string) => `reactions:${targetId}`,
   PLAYER_SEASON_STATS: (playerId: string, season: string) =>
     `nba:player:${playerId}:season:${season}:stats`,
   TEAM_SEASON_STATS: (teamId: string, season: string) =>

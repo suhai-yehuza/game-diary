@@ -33,7 +33,7 @@ export default function UsersTable({ users }: UsersTableProps) {
                 <div className="flex items-center space-x-3">
                   {user.imageUrl && (
                     <Image
-                      src={user.image_url || '/default-avatar.png'}
+                      src={user.imageUrl || '/default-avatar.png'}
                       alt={user.username ?? 'User avatar'}
                       className="w-8 h-8 rounded-full"
                       width={32}
@@ -45,14 +45,14 @@ export default function UsersTable({ users }: UsersTableProps) {
               </TableCell>
               <TableCell>
                 <div className="space-y-1">
-                  <p>{user.email_address}</p>
+                  <p>{user.emailAddress}</p>
                   {!user.email_verified && (
                     <span className="text-xs text-yellow-600 dark:text-yellow-400">Unverified</span>
                   )}
                 </div>
               </TableCell>
               <TableCell>
-                {user.created_at ? new Date(user.created_at).toLocaleDateString() : 'N/A'}
+                {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}
               </TableCell>
               <TableCell>
                 <div className="space-y-1">

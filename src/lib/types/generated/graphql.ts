@@ -67,13 +67,13 @@ export type Classification =
 export type Comment = {
   __typename?: 'Comment';
   content: Scalars['String']['output'];
-  created_at: Scalars['DateTime']['output'];
-  deleted_at: Maybe<Scalars['DateTime']['output']>;
+  createdAt: Scalars['DateTime']['output'];
+  deletedAt: Maybe<Scalars['DateTime']['output']>;
   id: Scalars['ID']['output'];
-  parent_id: Scalars['ID']['output'];
-  parent_type: ParentType;
+  parentId: Scalars['ID']['output'];
+  parentType: ParentType;
   reactions: Array<Reaction>;
-  updated_at: Scalars['DateTime']['output'];
+  updatedAt: Scalars['DateTime']['output'];
   user: UserSummary;
   userId: Scalars['ID']['output'];
 };
@@ -93,9 +93,9 @@ export type CommentEdge = {
 
 export type CommentFilters = {
   pagination?: InputMaybe<PaginationInput>;
-  parent_id: Scalars['ID']['input'];
-  parent_type: ParentType;
-  user_id?: InputMaybe<Scalars['ID']['input']>;
+  parentId: Scalars['ID']['input'];
+  parentType: ParentType;
+  userId?: InputMaybe<Scalars['ID']['input']>;
 };
 
 export type ConferenceStanding = {
@@ -108,8 +108,8 @@ export type ConferenceStanding = {
 
 export type CreateCommentInput = {
   content: Scalars['String']['input'];
-  parent_id: Scalars['ID']['input'];
-  parent_type: ParentType;
+  parentId: Scalars['ID']['input'];
+  parentType: ParentType;
 };
 
 export type CreateCommentResponse = {
@@ -119,27 +119,27 @@ export type CreateCommentResponse = {
 };
 
 export type CreateGameInput = {
-  away_score?: InputMaybe<Scalars['Int']['input']>;
-  away_team_id: Scalars['ID']['input'];
+  awayScore?: InputMaybe<Scalars['Int']['input']>;
+  awayTeamId: Scalars['ID']['input'];
   date: Scalars['DateTime']['input'];
-  game_type: Scalars['String']['input'];
-  home_score?: InputMaybe<Scalars['Int']['input']>;
-  home_team_id: Scalars['ID']['input'];
-  nba_game_id?: InputMaybe<Scalars['ID']['input']>;
+  gameType: Scalars['String']['input'];
+  homeScore?: InputMaybe<Scalars['Int']['input']>;
+  homeTeamId: Scalars['ID']['input'];
+  nbaGameId?: InputMaybe<Scalars['ID']['input']>;
   status: GAME_STATUS;
 };
 
 export type CreateGameLogInput = {
   classification: Classification;
-  game_id: Scalars['ID']['input'];
+  gameId: Scalars['ID']['input'];
   notes?: InputMaybe<Scalars['String']['input']>;
-  rating_for_game?: InputMaybe<Scalars['Int']['input']>;
-  rating_stars?: InputMaybe<Scalars['Int']['input']>;
+  ratingForGame?: InputMaybe<Scalars['Int']['input']>;
+  ratingStars?: InputMaybe<Scalars['Int']['input']>;
   tags?: InputMaybe<Array<Scalars['String']['input']>>;
-  watched_count?: InputMaybe<Scalars['Int']['input']>;
-  watched_date?: InputMaybe<Scalars['DateTime']['input']>;
-  watched_location?: InputMaybe<Scalars['String']['input']>;
-  watched_setting: Scalars['String']['input'];
+  watchedCount?: InputMaybe<Scalars['Int']['input']>;
+  watchedDate?: InputMaybe<Scalars['DateTime']['input']>;
+  watchedLocation?: InputMaybe<Scalars['String']['input']>;
+  watchedSetting: Scalars['String']['input'];
 };
 
 export type CreateGameLogResponse = {
@@ -164,11 +164,11 @@ export type CreateGameStatsInput = {
   free_throw_percentage: Scalars['Float']['input'];
   free_throws_attempted: Scalars['Int']['input'];
   free_throws_made: Scalars['Int']['input'];
-  game_id: Scalars['ID']['input'];
+  gameId: Scalars['ID']['input'];
   points: Scalars['Int']['input'];
   rebounds: Scalars['Int']['input'];
   steals: Scalars['Int']['input'];
-  team_id: Scalars['ID']['input'];
+  teamId: Scalars['ID']['input'];
   three_pointer_percentage: Scalars['Float']['input'];
   three_pointers_attempted: Scalars['Int']['input'];
   three_pointers_made: Scalars['Int']['input'];
@@ -279,13 +279,13 @@ export type FreeThrowStats = {
 
 export type Friendship = {
   __typename?: 'Friendship';
-  created_at: Scalars['DateTime']['output'];
+  createdAt: Scalars['DateTime']['output'];
   id: Scalars['ID']['output'];
   initiator: UserSummary;
   recipient: UserSummary;
   status: FriendshipStatus;
   subscriberId: Scalars['ID']['output'];
-  updated_at: Scalars['DateTime']['output'];
+  updatedAt: Scalars['DateTime']['output'];
   userId: Scalars['ID']['output'];
 };
 
@@ -302,19 +302,19 @@ export type GAME_STATUS =
 
 export type Game = {
   __typename?: 'Game';
-  arena: Scalars['String']['output'];
+  arena: Arena;
+  awayScore: Maybe<Scalars['Int']['output']>;
   awayTeamId: Scalars['ID']['output'];
-  away_score: Maybe<Scalars['Int']['output']>;
-  created_at: Scalars['DateTime']['output'];
+  createdAt: Scalars['DateTime']['output'];
   date: GameDate;
-  game_type: Scalars['String']['output'];
+  gameType: Scalars['String']['output'];
+  homeScore: Maybe<Scalars['Int']['output']>;
   homeTeamId: Scalars['ID']['output'];
-  home_score: Maybe<Scalars['Int']['output']>;
   id: Scalars['ID']['output'];
   isCompleted: Scalars['Boolean']['output'];
   leadChanges: Maybe<Scalars['Int']['output']>;
   league: Scalars['String']['output'];
-  nba_game_id: Maybe<Scalars['ID']['output']>;
+  nbaGameId: Maybe<Scalars['ID']['output']>;
   nugget: Maybe<Scalars['String']['output']>;
   officials: Array<Scalars['String']['output']>;
   periods: Scalars['JSON']['output'];
@@ -324,7 +324,7 @@ export type Game = {
   status: GameStatus;
   teams: Scalars['JSON']['output'];
   timesTied: Maybe<Scalars['Int']['output']>;
-  updated_at: Scalars['DateTime']['output'];
+  updatedAt: Scalars['DateTime']['output'];
 };
 
 export type GameConnection = {
@@ -351,7 +351,7 @@ export type GameFilters = {
   awayTeamId?: InputMaybe<Scalars['ID']['input']>;
   classification?: InputMaybe<Classification>;
   dateRange?: InputMaybe<DateRangeInput>;
-  game_id?: InputMaybe<Scalars['ID']['input']>;
+  gameId?: InputMaybe<Scalars['ID']['input']>;
   homeTeamId?: InputMaybe<Scalars['ID']['input']>;
   leadChangesMax?: InputMaybe<Scalars['Int']['input']>;
   leadChangesMin?: InputMaybe<Scalars['Int']['input']>;
@@ -364,15 +364,15 @@ export type GameFilters = {
   teamId?: InputMaybe<Scalars['ID']['input']>;
   timesTiedMax?: InputMaybe<Scalars['Int']['input']>;
   timesTiedMin?: InputMaybe<Scalars['Int']['input']>;
-  user_id?: InputMaybe<Scalars['ID']['input']>;
+  userId?: InputMaybe<Scalars['ID']['input']>;
 };
 
 export type GameLog = {
   __typename?: 'GameLog';
   classification: Classification;
   comments: CommentConnection;
-  created_at: Scalars['DateTime']['output'];
-  deleted_at: Maybe<Scalars['DateTime']['output']>;
+  createdAt: Scalars['DateTime']['output'];
+  deletedAt: Maybe<Scalars['DateTime']['output']>;
   game: Game;
   gameId: Scalars['ID']['output'];
   id: Scalars['ID']['output'];
@@ -382,7 +382,7 @@ export type GameLog = {
   ratingStars: Maybe<Scalars['Int']['output']>;
   reactions: ReactionConnection;
   tags: Array<Scalars['String']['output']>;
-  updated_at: Scalars['DateTime']['output'];
+  updatedAt: Scalars['DateTime']['output'];
   user: UserSummary;
   userId: Scalars['ID']['output'];
   watchedCount: Maybe<Scalars['Int']['output']>;
@@ -422,10 +422,10 @@ export type GameLogEdge = {
 
 export type GameLogFilters = {
   classification?: InputMaybe<Classification>;
-  game_id?: InputMaybe<Scalars['ID']['input']>;
+  gameId?: InputMaybe<Scalars['ID']['input']>;
   pagination?: InputMaybe<PaginationInput>;
-  user_id?: InputMaybe<Scalars['ID']['input']>;
-  watched_date_range?: InputMaybe<DateRangeInput>;
+  userId?: InputMaybe<Scalars['ID']['input']>;
+  watchedDateRange?: InputMaybe<DateRangeInput>;
 };
 
 export type GameLogStats = {
@@ -447,7 +447,7 @@ export type GameStats = {
   __typename?: 'GameStats';
   assists: Scalars['Int']['output'];
   blocks: Scalars['Int']['output'];
-  created_at: Scalars['DateTime']['output'];
+  createdAt: Scalars['DateTime']['output'];
   fieldGoals: FieldGoalStats;
   fouls: Scalars['Int']['output'];
   freeThrows: FreeThrowStats;
@@ -459,7 +459,7 @@ export type GameStats = {
   team: Team;
   threePointers: ThreePointerStats;
   turnovers: Scalars['Int']['output'];
-  updated_at: Scalars['DateTime']['output'];
+  updatedAt: Scalars['DateTime']['output'];
 };
 
 export type GameStatus = {
@@ -728,15 +728,15 @@ export type Player = {
   affiliation: Maybe<Scalars['String']['output']>;
   birth: Maybe<BirthInfo>;
   college: Maybe<Scalars['String']['output']>;
-  created_at: Scalars['DateTime']['output'];
-  first_name: Scalars['String']['output'];
+  createdAt: Scalars['DateTime']['output'];
+  firstName: Scalars['String']['output'];
   height: Maybe<HeightInfo>;
   id: Scalars['ID']['output'];
-  last_name: Scalars['String']['output'];
+  lastName: Scalars['String']['output'];
   leagues: Maybe<LeaguesInfo>;
   nba: Maybe<NbaInfo>;
   seasons_active: Maybe<Array<Maybe<SeasonActive>>>;
-  updated_at: Scalars['DateTime']['output'];
+  updatedAt: Scalars['DateTime']['output'];
   weight: Maybe<WeightInfo>;
 };
 
@@ -810,7 +810,7 @@ export type PlayerStats = {
   assists: Maybe<Scalars['Int']['output']>;
   blocks: Maybe<Scalars['Int']['output']>;
   comment: Maybe<Scalars['String']['output']>;
-  created_at: Scalars['DateTime']['output'];
+  createdAt: Scalars['DateTime']['output'];
   defReb: Maybe<Scalars['Int']['output']>;
   fga: Maybe<Scalars['Int']['output']>;
   fgm: Maybe<Scalars['Int']['output']>;
@@ -836,7 +836,7 @@ export type PlayerStats = {
   tpm: Maybe<Scalars['Int']['output']>;
   tpp: Maybe<Scalars['String']['output']>;
   turnovers: Maybe<Scalars['Int']['output']>;
-  updated_at: Scalars['DateTime']['output'];
+  updatedAt: Scalars['DateTime']['output'];
 };
 
 export type PlayerStatsConnection = {
@@ -909,7 +909,7 @@ export type QuerycommentsArgs = {
   before: InputMaybe<Scalars['String']['input']>;
   first: InputMaybe<Scalars['Int']['input']>;
   last: InputMaybe<Scalars['Int']['input']>;
-  parent_id: Scalars['ID']['input'];
+  parentId: Scalars['ID']['input'];
 };
 
 
@@ -988,8 +988,8 @@ export type QueryplayerArgs = {
 
 
 export type QueryplayerGameStatsArgs = {
-  game_id: Scalars['ID']['input'];
-  player_id: Scalars['ID']['input'];
+  gameId: Scalars['ID']['input'];
+  playerId: Scalars['ID']['input'];
 };
 
 
@@ -1020,7 +1020,7 @@ export type QueryplayerStatsByTeamArgs = {
   first: InputMaybe<Scalars['Int']['input']>;
   last: InputMaybe<Scalars['Int']['input']>;
   season: Scalars['Int']['input'];
-  team: Scalars['String']['input'];
+  teamId: Scalars['String']['input'];
 };
 
 
@@ -1056,8 +1056,8 @@ export type QueryteamArgs = {
 
 
 export type QueryteamGameStatsArgs = {
-  game_id: Scalars['ID']['input'];
-  team: Scalars['String']['input'];
+  gameId: Scalars['ID']['input'];
+  teamId: Scalars['String']['input'];
 };
 
 
@@ -1109,12 +1109,12 @@ export type RateLimitError = {
 
 export type Reaction = {
   __typename?: 'Reaction';
-  created_at: Scalars['DateTime']['output'];
+  createdAt: Scalars['DateTime']['output'];
   emoji: ReactionEmojiType;
   id: Scalars['ID']['output'];
   targetId: Scalars['ID']['output'];
   targetType: ParentType;
-  updated_at: Scalars['DateTime']['output'];
+  updatedAt: Scalars['DateTime']['output'];
   user: UserSummary;
   userId: Scalars['ID']['output'];
 };
@@ -1174,12 +1174,12 @@ export type Scores = {
 
 export type Season = {
   __typename?: 'Season';
-  display_year: Scalars['String']['output'];
-  end_date: Scalars['DateTime']['output'];
+  displayYear: Scalars['String']['output'];
+  endDate: Scalars['DateTime']['output'];
   id: Scalars['ID']['output'];
-  is_current: Scalars['Boolean']['output'];
-  is_playoffs: Scalars['Boolean']['output'];
-  start_date: Scalars['DateTime']['output'];
+  isCurrent: Scalars['Boolean']['output'];
+  isPlayoffs: Scalars['Boolean']['output'];
+  startDate: Scalars['DateTime']['output'];
   year: Scalars['Int']['output'];
 };
 
@@ -1217,15 +1217,15 @@ export type SeriesScore = {
 export type SharedGameLog = {
   __typename?: 'SharedGameLog';
   classification: Classification;
-  created_at: Scalars['DateTime']['output'];
-  deleted_at: Maybe<Scalars['DateTime']['output']>;
+  createdAt: Scalars['DateTime']['output'];
+  deletedAt: Maybe<Scalars['DateTime']['output']>;
   game: Game;
   gameId: Scalars['ID']['output'];
   id: Scalars['ID']['output'];
   notes: Maybe<Scalars['String']['output']>;
   rating: Maybe<Scalars['Int']['output']>;
   tags: Array<Scalars['String']['output']>;
-  updated_at: Scalars['DateTime']['output'];
+  updatedAt: Scalars['DateTime']['output'];
   user: UserSummary;
   userId: Scalars['ID']['output'];
   watchedCount: Maybe<Scalars['Int']['output']>;
@@ -1248,16 +1248,16 @@ export type Team = {
   city: Scalars['String']['output'];
   code: Maybe<Scalars['String']['output']>;
   conference: Maybe<Scalars['String']['output']>;
-  created_at: Scalars['DateTime']['output'];
+  createdAt: Scalars['DateTime']['output'];
   division: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
   logo: Maybe<Scalars['String']['output']>;
-  logo_url: Maybe<Scalars['String']['output']>;
+  logoUrl: Maybe<Scalars['String']['output']>;
   name: Scalars['String']['output'];
   nickname: Maybe<Scalars['String']['output']>;
-  primary_color: Maybe<Scalars['String']['output']>;
-  secondary_color: Maybe<Scalars['String']['output']>;
-  updated_at: Scalars['DateTime']['output'];
+  primaryColor: Maybe<Scalars['String']['output']>;
+  secondaryColor: Maybe<Scalars['String']['output']>;
+  updatedAt: Scalars['DateTime']['output'];
 };
 
 export type TeamConnection = {
@@ -1349,7 +1349,7 @@ export type TeamStats = {
   __typename?: 'TeamStats';
   assists: Scalars['Int']['output'];
   blocks: Scalars['Int']['output'];
-  created_at: Scalars['DateTime']['output'];
+  createdAt: Scalars['DateTime']['output'];
   defReb: Maybe<Scalars['Int']['output']>;
   defensive_rebounds: Scalars['Int']['output'];
   fga: Maybe<Scalars['Int']['output']>;
@@ -1385,7 +1385,7 @@ export type TeamStats = {
   tpm: Maybe<Scalars['Int']['output']>;
   tpp: Maybe<Scalars['String']['output']>;
   turnovers: Scalars['Int']['output'];
-  updated_at: Scalars['DateTime']['output'];
+  updatedAt: Scalars['DateTime']['output'];
   wins: Scalars['Int']['output'];
 };
 
@@ -1446,22 +1446,22 @@ export type UpdateFriendshipStatusResponse = {
 };
 
 export type UpdateGameInput = {
-  away_score?: InputMaybe<Scalars['Int']['input']>;
+  awayScore?: InputMaybe<Scalars['Int']['input']>;
   date?: InputMaybe<Scalars['DateTime']['input']>;
-  home_score?: InputMaybe<Scalars['Int']['input']>;
+  homeScore?: InputMaybe<Scalars['Int']['input']>;
   status: GAME_STATUS;
 };
 
 export type UpdateGameLogInput = {
   classification?: InputMaybe<Classification>;
   notes?: InputMaybe<Scalars['String']['input']>;
-  rating_for_game?: InputMaybe<Scalars['Int']['input']>;
-  rating_stars?: InputMaybe<Scalars['Int']['input']>;
+  ratingForGame?: InputMaybe<Scalars['Int']['input']>;
+  ratingStars?: InputMaybe<Scalars['Int']['input']>;
   tags?: InputMaybe<Array<Scalars['String']['input']>>;
-  watched_count?: InputMaybe<Scalars['Int']['input']>;
-  watched_date?: InputMaybe<Scalars['DateTime']['input']>;
-  watched_location?: InputMaybe<Scalars['String']['input']>;
-  watched_setting?: InputMaybe<Scalars['String']['input']>;
+  watchedCount?: InputMaybe<Scalars['Int']['input']>;
+  watchedDate?: InputMaybe<Scalars['DateTime']['input']>;
+  watchedLocation?: InputMaybe<Scalars['String']['input']>;
+  watchedSetting?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type UpdateGameLogResponse = {
@@ -1503,10 +1503,10 @@ export type UpdateGameStatsResponse = {
 
 export type UpdatePlayerInput = {
   active?: InputMaybe<Scalars['Boolean']['input']>;
-  first_name?: InputMaybe<Scalars['String']['input']>;
-  last_name?: InputMaybe<Scalars['String']['input']>;
+  firstName?: InputMaybe<Scalars['String']['input']>;
+  lastName?: InputMaybe<Scalars['String']['input']>;
   position?: InputMaybe<Scalars['String']['input']>;
-  team_id?: InputMaybe<Scalars['ID']['input']>;
+  teamId?: InputMaybe<Scalars['ID']['input']>;
 };
 
 export type UpdatePlayerResponse = {
@@ -1568,27 +1568,27 @@ export type User = {
   __typename?: 'User';
   avatar_url: Maybe<Scalars['String']['output']>;
   comments: Array<Comment>;
-  created_at: Scalars['DateTime']['output'];
-  deleted_at: Maybe<Scalars['DateTime']['output']>;
+  createdAt: Scalars['DateTime']['output'];
+  deletedAt: Maybe<Scalars['DateTime']['output']>;
   email: Scalars['String']['output'];
-  email_address: Maybe<Scalars['String']['output']>;
-  first_name: Maybe<Scalars['String']['output']>;
+  emailAddress: Maybe<Scalars['String']['output']>;
+  firstName: Maybe<Scalars['String']['output']>;
   friendships: Array<Friendship>;
   gameLogs: Array<GameLog>;
   id: Scalars['ID']['output'];
   imageUrl: Maybe<Scalars['String']['output']>;
   initiated_friendships: Array<Friendship>;
-  last_name: Maybe<Scalars['String']['output']>;
+  lastName: Maybe<Scalars['String']['output']>;
   reactions: Array<Reaction>;
-  updated_at: Scalars['DateTime']['output'];
+  updatedAt: Scalars['DateTime']['output'];
   username: Scalars['String']['output'];
 };
 
 export type UserBase = {
   __typename?: 'UserBase';
   avatar_url: Maybe<Scalars['String']['output']>;
-  created_at: Scalars['DateTime']['output'];
-  email_address: Maybe<Scalars['String']['output']>;
+  createdAt: Scalars['DateTime']['output'];
+  emailAddress: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
   imageUrl: Maybe<Scalars['String']['output']>;
   username: Scalars['String']['output'];
@@ -1622,11 +1622,11 @@ export type UserEdge = {
 
 export type UserSummary = {
   __typename?: 'UserSummary';
-  email_address: Maybe<Scalars['String']['output']>;
-  first_name: Maybe<Scalars['String']['output']>;
+  emailAddress: Maybe<Scalars['String']['output']>;
+  firstName: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
   imageUrl: Maybe<Scalars['String']['output']>;
-  last_name: Maybe<Scalars['String']['output']>;
+  lastName: Maybe<Scalars['String']['output']>;
   username: Scalars['String']['output'];
 };
 
@@ -2052,13 +2052,13 @@ export type BusinessLogicErrorResolvers<ContextType = Context, ParentType extend
 
 export type CommentResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Comment'] = ResolversParentTypes['Comment']> = {
   content?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  created_at?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
-  deleted_at?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
+  createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  deletedAt?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
-  parent_id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
-  parent_type?: Resolver<ResolversTypes['ParentType'], ParentType, ContextType>;
+  parentId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  parentType?: Resolver<ResolversTypes['ParentType'], ParentType, ContextType>;
   reactions?: Resolver<Array<ResolversTypes['Reaction']>, ParentType, ContextType>;
-  updated_at?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  updatedAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   user?: Resolver<ResolversTypes['UserSummary'], ParentType, ContextType>;
   userId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
@@ -2201,31 +2201,31 @@ export type FreeThrowStatsResolvers<ContextType = Context, ParentType extends Re
 };
 
 export type FriendshipResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Friendship'] = ResolversParentTypes['Friendship']> = {
-  created_at?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   initiator?: Resolver<ResolversTypes['UserSummary'], ParentType, ContextType>;
   recipient?: Resolver<ResolversTypes['UserSummary'], ParentType, ContextType>;
   status?: Resolver<ResolversTypes['FriendshipStatus'], ParentType, ContextType>;
   subscriberId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
-  updated_at?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  updatedAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   userId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
 export type GameResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Game'] = ResolversParentTypes['Game']> = {
-  arena?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  arena?: Resolver<ResolversTypes['Arena'], ParentType, ContextType>;
+  awayScore?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   awayTeamId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
-  away_score?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
-  created_at?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   date?: Resolver<ResolversTypes['GameDate'], ParentType, ContextType>;
-  game_type?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  gameType?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  homeScore?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   homeTeamId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
-  home_score?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   isCompleted?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   leadChanges?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   league?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  nba_game_id?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType>;
+  nbaGameId?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType>;
   nugget?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   officials?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
   periods?: Resolver<ResolversTypes['JSON'], ParentType, ContextType>;
@@ -2235,7 +2235,7 @@ export type GameResolvers<ContextType = Context, ParentType extends ResolversPar
   status?: Resolver<ResolversTypes['GameStatus'], ParentType, ContextType>;
   teams?: Resolver<ResolversTypes['JSON'], ParentType, ContextType>;
   timesTied?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
-  updated_at?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  updatedAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -2262,8 +2262,8 @@ export type GameEdgeResolvers<ContextType = Context, ParentType extends Resolver
 export type GameLogResolvers<ContextType = Context, ParentType extends ResolversParentTypes['GameLog'] = ResolversParentTypes['GameLog']> = {
   classification?: Resolver<ResolversTypes['Classification'], ParentType, ContextType>;
   comments?: Resolver<ResolversTypes['CommentConnection'], ParentType, ContextType, Partial<GameLogcommentsArgs>>;
-  created_at?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
-  deleted_at?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
+  createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  deletedAt?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
   game?: Resolver<ResolversTypes['Game'], ParentType, ContextType>;
   gameId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
@@ -2273,7 +2273,7 @@ export type GameLogResolvers<ContextType = Context, ParentType extends Resolvers
   ratingStars?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   reactions?: Resolver<ResolversTypes['ReactionConnection'], ParentType, ContextType, Partial<GameLogreactionsArgs>>;
   tags?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
-  updated_at?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  updatedAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   user?: Resolver<ResolversTypes['UserSummary'], ParentType, ContextType>;
   userId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   watchedCount?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
@@ -2314,7 +2314,7 @@ export type GamePeriodsResolvers<ContextType = Context, ParentType extends Resol
 export type GameStatsResolvers<ContextType = Context, ParentType extends ResolversParentTypes['GameStats'] = ResolversParentTypes['GameStats']> = {
   assists?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   blocks?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
-  created_at?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   fieldGoals?: Resolver<ResolversTypes['FieldGoalStats'], ParentType, ContextType>;
   fouls?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   freeThrows?: Resolver<ResolversTypes['FreeThrowStats'], ParentType, ContextType>;
@@ -2326,7 +2326,7 @@ export type GameStatsResolvers<ContextType = Context, ParentType extends Resolve
   team?: Resolver<ResolversTypes['Team'], ParentType, ContextType>;
   threePointers?: Resolver<ResolversTypes['ThreePointerStats'], ParentType, ContextType>;
   turnovers?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
-  updated_at?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  updatedAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -2458,15 +2458,15 @@ export type PlayerResolvers<ContextType = Context, ParentType extends ResolversP
   affiliation?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   birth?: Resolver<Maybe<ResolversTypes['BirthInfo']>, ParentType, ContextType>;
   college?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  created_at?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
-  first_name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  firstName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   height?: Resolver<Maybe<ResolversTypes['HeightInfo']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
-  last_name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  lastName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   leagues?: Resolver<Maybe<ResolversTypes['LeaguesInfo']>, ParentType, ContextType>;
   nba?: Resolver<Maybe<ResolversTypes['NbaInfo']>, ParentType, ContextType>;
   seasons_active?: Resolver<Maybe<Array<Maybe<ResolversTypes['SeasonActive']>>>, ParentType, ContextType>;
-  updated_at?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  updatedAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   weight?: Resolver<Maybe<ResolversTypes['WeightInfo']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
@@ -2523,7 +2523,7 @@ export type PlayerStatsResolvers<ContextType = Context, ParentType extends Resol
   assists?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   blocks?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   comment?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  created_at?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   defReb?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   fga?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   fgm?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
@@ -2549,7 +2549,7 @@ export type PlayerStatsResolvers<ContextType = Context, ParentType extends Resol
   tpm?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   tpp?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   turnovers?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
-  updated_at?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  updatedAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -2569,7 +2569,7 @@ export type PlayerStatsEdgeResolvers<ContextType = Context, ParentType extends R
 export type QueryResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
   allPlayerStats?: Resolver<ResolversTypes['PlayerStatsConnection'], ParentType, ContextType, RequireFields<QueryallPlayerStatsArgs, 'season'>>;
   allTeamStats?: Resolver<ResolversTypes['TeamStatsConnection'], ParentType, ContextType, RequireFields<QueryallTeamStatsArgs, 'season'>>;
-  comments?: Resolver<ResolversTypes['CommentConnection'], ParentType, ContextType, RequireFields<QuerycommentsArgs, 'parent_id'>>;
+  comments?: Resolver<ResolversTypes['CommentConnection'], ParentType, ContextType, RequireFields<QuerycommentsArgs, 'parentId'>>;
   friendship?: Resolver<Maybe<ResolversTypes['Friendship']>, ParentType, ContextType, RequireFields<QueryfriendshipArgs, 'id'>>;
   friendships?: Resolver<ResolversTypes['UserBaseConnection'], ParentType, ContextType, RequireFields<QueryfriendshipsArgs, 'userId'>>;
   game?: Resolver<Maybe<ResolversTypes['Game']>, ParentType, ContextType, RequireFields<QuerygameArgs, 'id'>>;
@@ -2581,16 +2581,16 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   leagues?: Resolver<ResolversTypes['LeagueConnection'], ParentType, ContextType, Partial<QueryleaguesArgs>>;
   liveGames?: Resolver<ResolversTypes['GameConnection'], ParentType, ContextType, Partial<QueryliveGamesArgs>>;
   player?: Resolver<Maybe<ResolversTypes['Player']>, ParentType, ContextType, RequireFields<QueryplayerArgs, 'id'>>;
-  playerGameStats?: Resolver<Maybe<ResolversTypes['PlayerStats']>, ParentType, ContextType, RequireFields<QueryplayerGameStatsArgs, 'game_id' | 'player_id'>>;
+  playerGameStats?: Resolver<Maybe<ResolversTypes['PlayerStats']>, ParentType, ContextType, RequireFields<QueryplayerGameStatsArgs, 'gameId' | 'playerId'>>;
   playerSeasonStats?: Resolver<Maybe<ResolversTypes['PlayerStats']>, ParentType, ContextType, RequireFields<QueryplayerSeasonStatsArgs, 'playerId' | 'season'>>;
   playerSeasonStatsList?: Resolver<ResolversTypes['PlayerStatsConnection'], ParentType, ContextType, RequireFields<QueryplayerSeasonStatsListArgs, 'playerId'>>;
   playerStats?: Resolver<Maybe<ResolversTypes['PlayerStats']>, ParentType, ContextType, RequireFields<QueryplayerStatsArgs, 'playerId' | 'season'>>;
-  playerStatsByTeam?: Resolver<ResolversTypes['PlayerStatsConnection'], ParentType, ContextType, RequireFields<QueryplayerStatsByTeamArgs, 'season' | 'team'>>;
+  playerStatsByTeam?: Resolver<ResolversTypes['PlayerStatsConnection'], ParentType, ContextType, RequireFields<QueryplayerStatsByTeamArgs, 'season' | 'teamId'>>;
   players?: Resolver<ResolversTypes['PlayerConnection'], ParentType, ContextType, Partial<QueryplayersArgs>>;
   reactions?: Resolver<ResolversTypes['ReactionConnection'], ParentType, ContextType, RequireFields<QueryreactionsArgs, 'targetId'>>;
   seasons?: Resolver<ResolversTypes['SeasonConnection'], ParentType, ContextType, Partial<QueryseasonsArgs>>;
   team?: Resolver<Maybe<ResolversTypes['Team']>, ParentType, ContextType, RequireFields<QueryteamArgs, 'id'>>;
-  teamGameStats?: Resolver<Maybe<ResolversTypes['TeamStats']>, ParentType, ContextType, RequireFields<QueryteamGameStatsArgs, 'game_id' | 'team'>>;
+  teamGameStats?: Resolver<Maybe<ResolversTypes['TeamStats']>, ParentType, ContextType, RequireFields<QueryteamGameStatsArgs, 'gameId' | 'teamId'>>;
   teamStats?: Resolver<ResolversTypes['TeamStatsConnection'], ParentType, ContextType, RequireFields<QueryteamStatsArgs, 'teamId'>>;
   teams?: Resolver<ResolversTypes['TeamConnection'], ParentType, ContextType, Partial<QueryteamsArgs>>;
   topPlayers?: Resolver<ResolversTypes['PlayerConnection'], ParentType, ContextType, RequireFields<QuerytopPlayersArgs, 'season'>>;
@@ -2605,12 +2605,12 @@ export type RateLimitErrorResolvers<ContextType = Context, ParentType extends Re
 };
 
 export type ReactionResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Reaction'] = ResolversParentTypes['Reaction']> = {
-  created_at?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   emoji?: Resolver<ResolversTypes['ReactionEmojiType'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   targetId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   targetType?: Resolver<ResolversTypes['ParentType'], ParentType, ContextType>;
-  updated_at?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  updatedAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   user?: Resolver<ResolversTypes['UserSummary'], ParentType, ContextType>;
   userId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
@@ -2648,12 +2648,12 @@ export type ScoresResolvers<ContextType = Context, ParentType extends ResolversP
 };
 
 export type SeasonResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Season'] = ResolversParentTypes['Season']> = {
-  display_year?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  end_date?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  displayYear?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  endDate?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
-  is_current?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
-  is_playoffs?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
-  start_date?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  isCurrent?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  isPlayoffs?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  startDate?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   year?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
@@ -2691,15 +2691,15 @@ export type SeriesScoreResolvers<ContextType = Context, ParentType extends Resol
 
 export type SharedGameLogResolvers<ContextType = Context, ParentType extends ResolversParentTypes['SharedGameLog'] = ResolversParentTypes['SharedGameLog']> = {
   classification?: Resolver<ResolversTypes['Classification'], ParentType, ContextType>;
-  created_at?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
-  deleted_at?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
+  createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  deletedAt?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
   game?: Resolver<ResolversTypes['Game'], ParentType, ContextType>;
   gameId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   notes?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   rating?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   tags?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
-  updated_at?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  updatedAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   user?: Resolver<ResolversTypes['UserSummary'], ParentType, ContextType>;
   userId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   watchedCount?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
@@ -2714,16 +2714,16 @@ export type TeamResolvers<ContextType = Context, ParentType extends ResolversPar
   city?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   code?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   conference?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  created_at?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   division?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   logo?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  logo_url?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  logoUrl?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   nickname?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  primary_color?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  secondary_color?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  updated_at?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  primaryColor?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  secondaryColor?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  updatedAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -2768,7 +2768,7 @@ export type TeamScoreResolvers<ContextType = Context, ParentType extends Resolve
 export type TeamStatsResolvers<ContextType = Context, ParentType extends ResolversParentTypes['TeamStats'] = ResolversParentTypes['TeamStats']> = {
   assists?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   blocks?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
-  created_at?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   defReb?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   defensive_rebounds?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   fga?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
@@ -2804,7 +2804,7 @@ export type TeamStatsResolvers<ContextType = Context, ParentType extends Resolve
   tpm?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   tpp?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   turnovers?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
-  updated_at?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  updatedAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   wins?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
@@ -2908,27 +2908,27 @@ export type UpdateTeamResponseResolvers<ContextType = Context, ParentType extend
 export type UserResolvers<ContextType = Context, ParentType extends ResolversParentTypes['User'] = ResolversParentTypes['User']> = {
   avatar_url?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   comments?: Resolver<Array<ResolversTypes['Comment']>, ParentType, ContextType>;
-  created_at?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
-  deleted_at?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
+  createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  deletedAt?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
   email?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  email_address?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  first_name?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  emailAddress?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  firstName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   friendships?: Resolver<Array<ResolversTypes['Friendship']>, ParentType, ContextType>;
   gameLogs?: Resolver<Array<ResolversTypes['GameLog']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   imageUrl?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   initiated_friendships?: Resolver<Array<ResolversTypes['Friendship']>, ParentType, ContextType>;
-  last_name?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  lastName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   reactions?: Resolver<Array<ResolversTypes['Reaction']>, ParentType, ContextType>;
-  updated_at?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  updatedAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   username?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
 export type UserBaseResolvers<ContextType = Context, ParentType extends ResolversParentTypes['UserBase'] = ResolversParentTypes['UserBase']> = {
   avatar_url?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  created_at?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
-  email_address?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  emailAddress?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   imageUrl?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   username?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -2962,11 +2962,11 @@ export type UserEdgeResolvers<ContextType = Context, ParentType extends Resolver
 };
 
 export type UserSummaryResolvers<ContextType = Context, ParentType extends ResolversParentTypes['UserSummary'] = ResolversParentTypes['UserSummary']> = {
-  email_address?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  first_name?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  emailAddress?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  firstName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   imageUrl?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  last_name?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  lastName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   username?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };

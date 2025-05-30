@@ -104,16 +104,16 @@ export default function AdminUserProfilePage() {
                   <dt className="text-sm font-medium text-gray-500">User ID</dt>
                   <dd className="text-sm">{user.id}</dd>
                 </div>
-                {user.created_at && (
+                {user.createdAt && (
                   <div>
                     <dt className="text-sm font-medium text-gray-500">Created At</dt>
-                    <dd className="text-sm">{new Date(user.created_at).toLocaleString()}</dd>
+                    <dd className="text-sm">{new Date(user.createdAt).toLocaleString()}</dd>
                   </div>
                 )}
-                {user.updated_at && (
+                {user.updatedAt && (
                   <div>
                     <dt className="text-sm font-medium text-gray-500">Last Updated</dt>
-                    <dd className="text-sm">{new Date(user.updated_at).toLocaleString()}</dd>
+                    <dd className="text-sm">{new Date(user.updatedAt).toLocaleString()}</dd>
                   </div>
                 )}
               </dl>

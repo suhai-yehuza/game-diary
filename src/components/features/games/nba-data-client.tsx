@@ -85,7 +85,7 @@ export const NbaDataClient = () => {
     setSelectedPosition(position);
   }, []);
 
-  const currentSeason = seasonData?.seasons.find(season => season.is_current);
+  const currentSeason = seasonData?.seasons.find(season => season.isCurrent);
 
   const isLoading = loadingSeasons || gamesLoading || loadingTeams || loadingPlayers;
   const hasError = seasonsError || gamesError || teamsError || playersError;
@@ -183,15 +183,15 @@ export const NbaDataClient = () => {
             </div>
             <div>
               <h3 className="font-semibold">Start Date</h3>
-              <p>{formatDateTime(currentSeason.start_date.toString())}</p>
+              <p>{formatDateTime(currentSeason.startDate.toString())}</p>
             </div>
             <div>
               <h3 className="font-semibold">End Date</h3>
-              <p>{formatDateTime(currentSeason.end_date.toString())}</p>
+              <p>{formatDateTime(currentSeason.endDate.toString())}</p>
             </div>
             <div>
               <h3 className="font-semibold">Current Season</h3>
-              <p>{currentSeason.is_current ? 'Yes' : 'No'}</p>
+              <p>{currentSeason.isCurrent ? 'Yes' : 'No'}</p>
             </div>
           </div>
         )}
@@ -253,9 +253,9 @@ export const NbaDataClient = () => {
           {filteredTeams.map((team: Team) => (
             <div key={team.id} className="border rounded-lg p-4">
               <div className="flex items-center gap-4">
-                {team.logo_url && (
+                {team.logoUrl && (
                   <Image
-                    src={team.logo_url}
+                    src={team.logoUrl}
                     alt={team.name}
                     width={48}
                     height={48}
@@ -289,7 +289,7 @@ export const NbaDataClient = () => {
             {playersData?.players.items.map((player: Player) => (
               <tr key={player.id} className="border-t">
                 <td className="px-4 py-2">
-                  {player.first_name} {player.last_name}
+                  {player.firstName} {player.lastName}
                 </td>
                 <td className="px-4 py-2">{player.leagues?.standard?.pos || 'N/A'}</td>
                 <td className="px-4 py-2">

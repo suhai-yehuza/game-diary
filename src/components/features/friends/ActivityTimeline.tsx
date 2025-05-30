@@ -70,7 +70,7 @@ export const ActivityTimeline: React.FC<ActivityTimelineProps> = ({ gameLogs }) 
     if (timeFilter !== 'all') {
       const interval = getTimeInterval(timeFilter);
       if (interval) {
-        filtered = filtered.filter(log => isWithinInterval(new Date(log.created_at), interval));
+        filtered = filtered.filter(log => isWithinInterval(new Date(log.createdAt), interval));
       }
     }
 
@@ -89,7 +89,7 @@ export const ActivityTimeline: React.FC<ActivityTimelineProps> = ({ gameLogs }) 
     }
 
     return filtered.sort(
-      (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     );
   }, [gameLogs, timeFilter, activityType, teamFilter]);
 
@@ -206,7 +206,7 @@ export const ActivityTimeline: React.FC<ActivityTimelineProps> = ({ gameLogs }) 
                         </h4>
                       </div>
                       <span className="text-sm text-gray-500">
-                        {formatDistanceToNow(new Date(log.created_at), { addSuffix: true })}
+                        {formatDistanceToNow(new Date(log.createdAt), { addSuffix: true })}
                       </span>
                     </div>
                     <div className="space-y-2">

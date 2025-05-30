@@ -40,26 +40,26 @@ import { gameTypeEnum, gameLogInputSchema } from '@/lib/validations/game';
 // Define the actual comments table structure to match the database
 const actualCommentsTable = pgTable('comments', {
   id: varchar('id', { length: 255 }).primaryKey(),
-  user_id: varchar('user_id', { length: 255 }),
+  userId: varchar('userId', { length: 255 }),
   content: text('content').notNull(),
-  target_id: varchar('target_id', { length: 255 }).notNull(),
-  target_type: varchar('target_type', { length: 50 }).notNull(),
-  parent_id: varchar('parent_id', { length: 255 }),
-  parent_type: varchar('parent_type', { length: 50 }),
-  created_at: timestamp('created_at').defaultNow().notNull(),
-  updated_at: timestamp('updated_at').defaultNow().notNull(),
-  deleted_at: timestamp('deleted_at'),
+  targetId: varchar('targetId', { length: 255 }).notNull(),
+  targetType: varchar('targetType', { length: 50 }).notNull(),
+  parentId: varchar('parentId', { length: 255 }),
+  parentType: varchar('parentType', { length: 50 }),
+  createdAt: timestamp('createdAt').defaultNow().notNull(),
+  updatedAt: timestamp('updatedAt').defaultNow().notNull(),
+  deletedAt: timestamp('deletedAt'),
 });
 
 // Define the actual reactions table structure to match the database
 const actualReactionsTable = pgTable('reactions', {
   id: text('id').primaryKey(),
-  user_id: text('user_id'),
-  target_id: text('target_id').notNull(),
-  target_type: varchar('target_type', { length: 50 }).notNull(),
+  userId: text('userId'),
+  targetId: text('targetId').notNull(),
+  targetType: varchar('targetType', { length: 50 }).notNull(),
   emoji: varchar('emoji', { length: 10 }).notNull(),
-  created_at: timestamp('created_at').defaultNow().notNull(),
-  updated_at: timestamp('updated_at').defaultNow().notNull(),
+  createdAt: timestamp('createdAt').defaultNow().notNull(),
+  updatedAt: timestamp('updatedAt').defaultNow().notNull(),
 });
 
 // Helper functions
@@ -110,17 +110,17 @@ export const createGameLog = async (
 
     // Validate game exists and is accessible
     const game = await db.query.nba_games.findFirst({
-      where: eq(schema.nba_games.id, validatedInput.game_id),
+      where: eq(schema.nba_games.id, validatedInput.gameId),
     });
 
     if (!game) {
-      throw new NotFoundError('Game', validatedInput.game_id);
+      throw new NotFoundError('Game', validatedInput.gameId);
     }
 
     // Validate game type
     try {
-      const gameWithType = { ...game, game_type: 'nba' };
-      gameTypeEnum.parse(gameWithType.game_type);
+      const gameWithType = { ...game, gameType: 'nba' };
+      gameTypeEnum.parse(gameWithType.gameType);
     } catch (error) {
       console.log('Error parsing game type:', error);
       throw new BusinessLogicError('Game type nba is not supported', 'UNSUPPORTED_GAME_TYPE');
@@ -130,19 +130,19 @@ export const createGameLog = async (
       const [gameLog] = await db
         .insert(schema.game_logs)
         .values({
-          user_id: user.id,
-          game_id: validatedInput.game_id,
-          watched_setting: validatedInput.watched_setting as WatchedSettingValue,
-          watched_date: validatedInput.watched_date || new Date(),
-          watched_location: validatedInput.watched_location || '',
-          rating_for_game: validatedInput.rating_for_game || 0,
-          rating_stars: validatedInput.rating_stars?.toString() || '',
-          watched_count: validatedInput.watched_count || 0,
+          userId: user.id,
+          gameId: validatedInput.gameId,
+          watchedSetting: validatedInput.watchedSetting as WatchedSettingValue,
+          watchedDate: validatedInput.watchedDate || new Date(),
+          watchedLocation: validatedInput.watchedLocation || '',
+          ratingForGame: validatedInput.ratingForGame || 0,
+          ratingStars: validatedInput.ratingStars?.toString() || '',
+          watchedCount: validatedInput.watchedCount || 0,
           notes: validatedInput.notes || '',
           tags: validatedInput.tags || [],
           classification: validatedInput.classification || 'protected',
-          created_at: new Date(),
-          updated_at: new Date(),
+          createdAt: new Date(),
+          updatedAt: new Date(),
         })
         .returning();
 
@@ -151,17 +151,17 @@ export const createGameLog = async (
         const cache = getCache();
         await cache.initializeRedis();
         await invalidateRelatedCaches(cache, 'game_log', gameLog.id, {
-          playerId: nullToUndefined(gameLog.user_id),
+          playerId: nullToUndefined(gameLog.userId),
         });
       }
 
       // Fetch the related game from the DB with proper type checking
       const nbaGame = await db.query.nba_games.findFirst({
-        where: (nba_games, { eq }) => eq(nba_games.id, gameLog.game_id),
+        where: (nba_games, { eq }) => eq(nba_games.id, gameLog.gameId),
       });
 
       if (!nbaGame) {
-        throw new NotFoundError('Game', gameLog.game_id);
+        throw new NotFoundError('Game', gameLog.gameId);
       }
 
       // Type-safe team ID extraction
@@ -201,63 +201,60 @@ export const createGameLog = async (
         status: typeof nbaGame.status === 'string' ? nbaGame.status : String(nbaGame.status ?? ''),
         arena: typeof nbaGame.arena === 'string' ? nbaGame.arena : String(nbaGame.arena ?? ''),
         league: typeof nbaGame.league === 'string' ? nbaGame.league : String(nbaGame.league ?? ''),
-        season_id:
-          typeof nbaGame.season_id === 'number'
-            ? nbaGame.season_id
-            : Number(nbaGame.season_id ?? 0),
+        season: typeof nbaGame.season === 'number' ? nbaGame.season : Number(nbaGame.season ?? 0),
         stage: typeof nbaGame.stage === 'number' ? nbaGame.stage : Number(nbaGame.stage ?? 0),
         periods: nbaGame.periods ?? [],
         scores: nbaGame.scores ?? [],
         officials: Array.isArray(nbaGame.officials) ? nbaGame.officials.map(String) : [],
-        timesTied: typeof nbaGame.times_tied === 'number' ? nbaGame.times_tied : null,
-        leadChanges: typeof nbaGame.lead_changes === 'number' ? nbaGame.lead_changes : null,
+        timesTied: typeof nbaGame.timesTied === 'number' ? nbaGame.timesTied : null,
+        leadChanges: typeof nbaGame.leadChanges === 'number' ? nbaGame.leadChanges : null,
         nugget: typeof nbaGame.nugget === 'string' ? nbaGame.nugget : null,
-        created_at:
-          typeof nbaGame.created_at === 'string'
-            ? nbaGame.created_at
-            : nbaGame.created_at instanceof Date
-              ? nbaGame.created_at.toISOString()
+        createdAt:
+          typeof nbaGame.createdAt === 'string'
+            ? nbaGame.createdAt
+            : nbaGame.createdAt instanceof Date
+              ? nbaGame.createdAt.toISOString()
               : '',
-        updated_at:
-          typeof nbaGame.updated_at === 'string'
-            ? nbaGame.updated_at
-            : nbaGame.updated_at instanceof Date
-              ? nbaGame.updated_at.toISOString()
+        updatedAt:
+          typeof nbaGame.updatedAt === 'string'
+            ? nbaGame.updatedAt
+            : nbaGame.updatedAt instanceof Date
+              ? nbaGame.updatedAt.toISOString()
               : '',
         homeTeamId:
           typeof homeTeamId === 'string' ? homeTeamId : homeTeamId ? String(homeTeamId) : '',
         awayTeamId:
           typeof awayTeamId === 'string' ? awayTeamId : awayTeamId ? String(awayTeamId) : '',
         teams,
-        isCompleted: nbaGame.status === 'Final' || nbaGame.status === 'Completed',
+        isCompleted: nbaGame.status?.long === 'Finished',
       };
 
       return {
         gameLog: {
           id: gameLog.id,
-          gameId: gameLog.game_id,
-          userId: gameLog.user_id || '',
+          gameId: gameLog.gameId,
+          userId: gameLog.userId || '',
           game: mappedGame,
           user: transformUser({
             id: dbUser.id,
             username: dbUser.username,
-            first_name: dbUser.first_name,
-            last_name: dbUser.last_name,
-            email_address: dbUser.email_address,
-            imageUrl: dbUser.image_url,
-            created_at: dbUser.created_at,
-            updated_at: dbUser.updated_at,
+            firstName: dbUser.firstName,
+            lastName: dbUser.lastName,
+            emailAddress: dbUser.emailAddress,
+            imageUrl: dbUser.imageUrl,
+            createdAt: dbUser.createdAt,
+            updatedAt: dbUser.updatedAt,
           } as DBUser),
           classification: gameLog.classification as Classification,
           notes: gameLog.notes || undefined,
-          rating: gameLog.rating_for_game,
-          ratingForGame: gameLog.rating_for_game,
-          ratingStars: gameLog.rating_stars ? parseInt(gameLog.rating_stars) : undefined,
+          rating: gameLog.ratingForGame,
+          ratingForGame: gameLog.ratingForGame,
+          ratingStars: gameLog.ratingStars ? parseInt(gameLog.ratingStars) : undefined,
           tags: gameLog.tags || [],
-          watchedDate: gameLog.watched_date,
-          watchedLocation: gameLog.watched_location || undefined,
-          watchedCount: gameLog.watched_count,
-          watchedSetting: gameLog.watched_setting,
+          watchedDate: gameLog.watchedDate,
+          watchedLocation: gameLog.watchedLocation || undefined,
+          watchedCount: gameLog.watchedCount,
+          watchedSetting: gameLog.watchedSetting,
           comments: {
             edges: [],
             pageInfo: {
@@ -278,9 +275,9 @@ export const createGameLog = async (
             },
             totalCount: 0,
           },
-          created_at: gameLog.created_at,
-          updated_at: gameLog.updated_at,
-          deleted_at: gameLog.deleted_at || null,
+          createdAt: gameLog.createdAt,
+          updatedAt: gameLog.updatedAt,
+          deletedAt: gameLog.deletedAt || null,
         },
         errors: [],
       };
@@ -289,7 +286,7 @@ export const createGameLog = async (
         throw new ForeignKeyViolationError(
           'Invalid game or user reference',
           'game_logs',
-          error.message.includes('user_id') ? 'user_id' : 'game_id'
+          error.message.includes('userId') ? 'userId' : 'gameId'
         );
       }
       throw error;
@@ -310,7 +307,7 @@ export const updateGameLog = async (
     const validatedInput = validateInput(gameLogInputSchema.partial(), input);
 
     const existingLog = await db.query.game_logs.findFirst({
-      where: and(eq(schema.game_logs.id, id), eq(schema.game_logs.user_id, user.id)),
+      where: and(eq(schema.game_logs.id, id), eq(schema.game_logs.userId, user.id)),
     });
 
     if (!existingLog) {
@@ -320,18 +317,18 @@ export const updateGameLog = async (
     const [updatedLog] = await db
       .update(schema.game_logs)
       .set({
-        watched_setting: validatedInput.watched_setting
-          ? (validatedInput.watched_setting as WatchedSettingValue)
+        watchedSetting: validatedInput.watchedSetting
+          ? (validatedInput.watchedSetting as WatchedSettingValue)
           : undefined,
-        watched_date: validatedInput.watched_date || existingLog.watched_date,
-        watched_location: validatedInput.watched_location || existingLog.watched_location,
-        rating_for_game: validatedInput.rating_for_game ?? existingLog.rating_for_game,
-        rating_stars: validatedInput.rating_stars?.toString() || existingLog.rating_stars,
-        watched_count: validatedInput.watched_count ?? existingLog.watched_count,
+        watchedDate: validatedInput.watchedDate || existingLog.watchedDate,
+        watchedLocation: validatedInput.watchedLocation || existingLog.watchedLocation,
+        ratingForGame: validatedInput.ratingForGame ?? existingLog.ratingForGame,
+        ratingStars: validatedInput.ratingStars?.toString() || existingLog.ratingStars,
+        watchedCount: validatedInput.watchedCount ?? existingLog.watchedCount,
         notes: validatedInput.notes || existingLog.notes,
         tags: validatedInput.tags || existingLog.tags || [],
         classification: validatedInput.classification || existingLog.classification,
-        updated_at: new Date(),
+        updatedAt: new Date(),
       })
       .where(eq(schema.game_logs.id, id))
       .returning();
@@ -341,22 +338,22 @@ export const updateGameLog = async (
       const cache = getCache();
       await cache.initializeRedis();
       await invalidateRelatedCaches(cache, 'game_log', updatedLog.id, {
-        playerId: nullToUndefined(updatedLog.user_id),
+        playerId: nullToUndefined(updatedLog.userId),
       });
     }
 
     // Fetch the related game from the DB
     const game = await db.query.nba_games.findFirst({
-      where: (nba_games, { eq }) => eq(nba_games.id, updatedLog.game_id),
+      where: (nba_games, { eq }) => eq(nba_games.id, updatedLog.gameId),
     });
     if (!game) {
-      throw new NotFoundError('Game', updatedLog.game_id);
+      throw new NotFoundError('Game', updatedLog.gameId);
     }
     const dbUser = await db.query.users.findFirst({
-      where: eq(schema.users.id, updatedLog.user_id ?? user.id),
+      where: eq(schema.users.id, updatedLog.userId ?? user.id),
     });
     if (!dbUser) {
-      throw new NotFoundError('User', updatedLog.user_id ?? user.id);
+      throw new NotFoundError('User', updatedLog.userId ?? user.id);
     }
     const teams = game.teams || {};
     const homeTeamId =
@@ -388,57 +385,57 @@ export const updateGameLog = async (
       status: typeof game.status === 'string' ? game.status : String(game.status ?? ''),
       arena: typeof game.arena === 'string' ? game.arena : String(game.arena ?? ''),
       league: typeof game.league === 'string' ? game.league : String(game.league ?? ''),
-      season_id: typeof game.season_id === 'number' ? game.season_id : Number(game.season_id ?? 0),
+      season: typeof game.season === 'number' ? game.season : Number(game.season ?? 0),
       stage: typeof game.stage === 'number' ? game.stage : Number(game.stage ?? 0),
       periods: game.periods ?? [],
       scores: game.scores ?? [],
       officials: Array.isArray(game.officials) ? game.officials.map(String) : [],
-      timesTied: typeof game.times_tied === 'number' ? game.times_tied : null,
-      leadChanges: typeof game.lead_changes === 'number' ? game.lead_changes : null,
+      timesTied: typeof game.timesTied === 'number' ? game.timesTied : null,
+      leadChanges: typeof game.leadChanges === 'number' ? game.leadChanges : null,
       nugget: typeof game.nugget === 'string' ? game.nugget : null,
-      created_at:
-        typeof game.created_at === 'string'
-          ? game.created_at
-          : game.created_at instanceof Date
-            ? game.created_at.toISOString()
+      createdAt:
+        typeof game.createdAt === 'string'
+          ? game.createdAt
+          : game.createdAt instanceof Date
+            ? game.createdAt.toISOString()
             : '',
-      updated_at:
-        typeof game.updated_at === 'string'
-          ? game.updated_at
-          : game.updated_at instanceof Date
-            ? game.updated_at.toISOString()
+      updatedAt:
+        typeof game.updatedAt === 'string'
+          ? game.updatedAt
+          : game.updatedAt instanceof Date
+            ? game.updatedAt.toISOString()
             : '',
       homeTeamId:
         typeof homeTeamId === 'string' ? homeTeamId : homeTeamId ? String(homeTeamId) : '',
       awayTeamId:
         typeof awayTeamId === 'string' ? awayTeamId : awayTeamId ? String(awayTeamId) : '',
       teams,
-      isCompleted: game.status === 'Final' || game.status === 'Completed',
+      isCompleted: game.status?.long === 'Finished',
     };
 
     return {
       gameLog: {
         id: updatedLog.id,
-        userId: updatedLog.user_id ?? '',
-        gameId: updatedLog.game_id,
-        watchedSetting: updatedLog.watched_setting as WatchedSettingValue,
-        watchedDate: updatedLog.watched_date,
-        watchedLocation: updatedLog.watched_location,
-        rating: updatedLog.rating_for_game,
-        ratingStars: updatedLog.rating_stars,
-        watchedCount: updatedLog.watched_count,
+        userId: updatedLog.userId ?? '',
+        gameId: updatedLog.gameId,
+        watchedSetting: updatedLog.watchedSetting as WatchedSettingValue,
+        watchedDate: updatedLog.watchedDate,
+        watchedLocation: updatedLog.watchedLocation,
+        rating: updatedLog.ratingForGame,
+        ratingStars: updatedLog.ratingStars,
+        watchedCount: updatedLog.watchedCount,
         notes: updatedLog.notes,
         classification: updatedLog.classification,
-        created_at: updatedLog.created_at,
-        updated_at: updatedLog.updated_at,
-        deleted_at: updatedLog.deleted_at,
+        createdAt: updatedLog.createdAt,
+        updatedAt: updatedLog.updatedAt,
+        deletedAt: updatedLog.deletedAt,
         tags: updatedLog.tags,
         game: mappedGame,
         user: {
           id: dbUser.id,
           username: dbUser.username,
-          email_address: dbUser.email_address,
-          imageUrl: dbUser.image_url,
+          emailAddress: dbUser.emailAddress,
+          imageUrl: dbUser.imageUrl,
           initiated_friendships: [],
           received_friendships: [],
           gameLogs: [],
@@ -475,7 +472,7 @@ export const deleteGameLog = async (
 
   try {
     const existingLog = await db.query.game_logs.findFirst({
-      where: and(eq(schema.game_logs.id, id), eq(schema.game_logs.user_id, user.id)),
+      where: and(eq(schema.game_logs.id, id), eq(schema.game_logs.userId, user.id)),
     });
 
     if (!existingLog) {
@@ -489,7 +486,7 @@ export const deleteGameLog = async (
       const cache = getCache();
       await cache.initializeRedis();
       await invalidateRelatedCaches(cache, 'game_log', id, {
-        playerId: nullToUndefined(existingLog.user_id),
+        playerId: nullToUndefined(existingLog.userId),
       });
     }
 
@@ -537,11 +534,11 @@ export const createComment = async (
       .insert(actualCommentsTable)
       .values({
         id: generateUUID(),
-        user_id: authenticatedUser.id,
-        parent_id: validatedInput.parent_id,
-        parent_type: validatedInput.parent_type.toLowerCase(),
-        target_id: validatedInput.parent_id,
-        target_type: validatedInput.parent_type.toLowerCase(),
+        userId: authenticatedUser.id,
+        parentId: validatedInput.parentId,
+        parentType: validatedInput.parentType.toLowerCase(),
+        targetId: validatedInput.parentId,
+        targetType: validatedInput.parentType.toLowerCase(),
         content: validatedInput.content,
       })
       .returning();
@@ -554,18 +551,18 @@ export const createComment = async (
     return {
       comment: {
         id: comment.id,
-        parent_id: comment.parent_id || '',
-        parent_type: (comment.parent_type as ParentType) || 'game_log',
+        parentId: comment.parentId || '',
+        parentType: (comment.parentType as ParentType) || 'game_log',
         content: comment.content,
-        created_at: comment.created_at,
-        updated_at: comment.updated_at,
-        deleted_at: comment.deleted_at,
+        createdAt: comment.createdAt,
+        updatedAt: comment.updatedAt,
+        deletedAt: comment.deletedAt,
         reactions: [],
         user: {
           id: authenticatedUser.id,
           username: authenticatedUser.username || '',
-          email_address: authenticatedUser.email_address || '',
-          imageUrl: authenticatedUser.image_url || '',
+          emailAddress: authenticatedUser.emailAddress || '',
+          imageUrl: authenticatedUser.imageUrl || '',
           comments: [],
           gameLogs: [],
           initiated_friendships: [],
@@ -573,7 +570,7 @@ export const createComment = async (
           received_friendships: [],
           __typename: 'UserSummary' as const,
         },
-        userId: comment.user_id || authenticatedUser.id,
+        userId: comment.userId || authenticatedUser.id,
         __typename: 'Comment' as const,
       },
       errors: [],
@@ -635,7 +632,7 @@ export const updateComment = async (
 
   try {
     const existingComment = await db.query.comments.findFirst({
-      where: and(eq(comments.id, id), eq(comments.user_id, user.id)),
+      where: and(eq(comments.id, id), eq(comments.userId, user.id)),
     });
 
     if (!existingComment) {
@@ -654,7 +651,7 @@ export const updateComment = async (
       .update(comments)
       .set({
         content: input.content,
-        updated_at: new Date(),
+        updatedAt: new Date(),
       })
       .where(eq(comments.id, id))
       .returning();
@@ -674,20 +671,20 @@ export const updateComment = async (
     return {
       comment: {
         id: updatedComment.id,
-        parent_id: updatedComment.parent_id || '',
-        parent_type: (updatedComment.parent_type as ParentType) || 'game_log',
+        parentId: updatedComment.parentId || '',
+        parentType: (updatedComment.parentType as ParentType) || 'game_log',
         content: updatedComment.content,
-        created_at: updatedComment.created_at,
-        updated_at: updatedComment.updated_at,
-        deleted_at: updatedComment.deleted_at,
+        createdAt: updatedComment.createdAt,
+        updatedAt: updatedComment.updatedAt,
+        deletedAt: updatedComment.deletedAt,
         reactions: [],
         user: {
           id: user.id,
           username: user.username,
-          email_address: user.email_address,
-          imageUrl: user.image_url,
-          first_name: user.first_name,
-          last_name: user.last_name,
+          emailAddress: user.emailAddress,
+          imageUrl: user.imageUrl,
+          firstName: user.firstName,
+          lastName: user.lastName,
           comments: [],
           gameLogs: [],
           initiated_friendships: [],
@@ -695,7 +692,7 @@ export const updateComment = async (
           received_friendships: [],
           __typename: 'UserSummary' as const,
         },
-        userId: updatedComment.user_id || user.id,
+        userId: updatedComment.userId || user.id,
         __typename: 'Comment' as const,
       },
       errors: [],
@@ -730,7 +727,7 @@ export const deleteComment = async (
 
   try {
     const existingComment = await db.query.comments.findFirst({
-      where: and(eq(comments.id, id), eq(comments.user_id, user.id)),
+      where: and(eq(comments.id, id), eq(comments.userId, user.id)),
     });
 
     if (!existingComment) {
@@ -775,11 +772,11 @@ export const sendFriendRequest = async (
     .insert(schema.friendships)
     .values({
       id: generateUUID(),
-      friend_id: validatedInput.subscriberId,
-      user_id: user.id,
+      friendId: validatedInput.subscriberId,
+      userId: user.id,
       status: 'PENDING',
-      created_at: new Date(),
-      updated_at: new Date(),
+      createdAt: new Date(),
+      updatedAt: new Date(),
     })
     .returning();
 
@@ -801,30 +798,30 @@ export const sendFriendRequest = async (
   return {
     friendship: {
       id: friendship.id,
-      subscriberId: friendship.friend_id || '',
-      userId: friendship.user_id || '',
+      subscriberId: friendship.friendId || '',
+      userId: friendship.userId || '',
       status: statusMap[friendship.status] || 'PENDING',
-      created_at: friendship.created_at,
-      updated_at: friendship.updated_at,
+      createdAt: friendship.createdAt,
+      updatedAt: friendship.updatedAt,
       initiator: transformUser({
         id: dbUser.id,
         username: dbUser.username,
-        first_name: dbUser.first_name,
-        last_name: dbUser.last_name,
-        email_address: dbUser.email_address,
-        imageUrl: dbUser.image_url,
-        created_at: dbUser.created_at,
-        updated_at: dbUser.updated_at,
+        firstName: dbUser.firstName,
+        lastName: dbUser.lastName,
+        emailAddress: dbUser.emailAddress,
+        imageUrl: dbUser.imageUrl,
+        createdAt: dbUser.createdAt,
+        updatedAt: dbUser.updatedAt,
       } as DBUser),
       recipient: transformUser({
         id: recipient.id,
         username: recipient.username,
-        first_name: recipient.first_name,
-        last_name: recipient.last_name,
-        email_address: recipient.email_address,
-        imageUrl: recipient.image_url,
-        created_at: recipient.created_at,
-        updated_at: recipient.updated_at,
+        firstName: recipient.firstName,
+        lastName: recipient.lastName,
+        emailAddress: recipient.emailAddress,
+        imageUrl: recipient.imageUrl,
+        createdAt: recipient.createdAt,
+        updatedAt: recipient.updatedAt,
       } as DBUser),
       __typename: 'Friendship' as const,
     } as Friendship,
@@ -852,9 +849,9 @@ export const createReaction = async (
     // Check if user already has a reaction on this target
     const existingReaction = await db.query.reactions.findFirst({
       where: and(
-        eq(schema.reactions.user_id, authenticatedUser.id),
-        eq(schema.reactions.target_id, input.targetId),
-        eq(schema.reactions.target_type, input.targetType.toLowerCase() as 'game_log' | 'comment'),
+        eq(schema.reactions.userId, authenticatedUser.id),
+        eq(schema.reactions.targetId, input.targetId),
+        eq(schema.reactions.targetType, input.targetType.toLowerCase() as 'game_log' | 'comment'),
         eq(schema.reactions.emoji, emojiCharacter)
       ),
     });
@@ -883,12 +880,12 @@ export const createReaction = async (
       .insert(actualReactionsTable)
       .values({
         id: generateUUID(),
-        user_id: authenticatedUser.id,
-        target_id: input.targetId,
-        target_type: input.targetType.toLowerCase(),
+        userId: authenticatedUser.id,
+        targetId: input.targetId,
+        targetType: input.targetType.toLowerCase(),
         emoji: emojiCharacter,
-        created_at: new Date(),
-        updated_at: new Date(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
       })
       .returning();
 
@@ -900,14 +897,14 @@ export const createReaction = async (
       reaction: {
         id: reaction.id,
         emoji: input.emoji as ReactionEmojiType,
-        targetId: reaction.target_id || '',
-        targetType: reaction.target_type as ParentType,
-        userId: reaction.user_id || authenticatedUser.id,
+        targetId: reaction.targetId || '',
+        targetType: reaction.targetType as ParentType,
+        userId: reaction.userId || authenticatedUser.id,
         user: {
           id: authenticatedUser.id,
           username: authenticatedUser.username || '',
-          email_address: authenticatedUser.email_address || '',
-          imageUrl: authenticatedUser.image_url || '',
+          emailAddress: authenticatedUser.emailAddress || '',
+          imageUrl: authenticatedUser.imageUrl || '',
           comments: [],
           gameLogs: [],
           initiated_friendships: [],
@@ -915,8 +912,8 @@ export const createReaction = async (
           received_friendships: [],
           __typename: 'UserSummary' as const,
         },
-        created_at: reaction.created_at,
-        updated_at: reaction.updated_at,
+        createdAt: reaction.createdAt,
+        updatedAt: reaction.updatedAt,
         __typename: 'Reaction' as const,
       },
       errors: [],
@@ -947,7 +944,7 @@ export const deleteReaction = async (
   try {
     // Check if the reaction exists and belongs to the user
     const existingReaction = await db.query.reactions.findFirst({
-      where: and(eq(schema.reactions.id, id), eq(schema.reactions.user_id, authenticatedUser.id)),
+      where: and(eq(schema.reactions.id, id), eq(schema.reactions.userId, authenticatedUser.id)),
     });
 
     if (!existingReaction) {

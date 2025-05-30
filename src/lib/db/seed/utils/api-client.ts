@@ -131,14 +131,23 @@ export class OptimizedAPIClient {
     });
   }
 
-  private isNbaPlayersTable(table: Table): boolean {
-    return 'name' in table && table.name === 'nba_players';
+  private isCamelCaseTable(table: Table): boolean {
+    const drizzleNameSymbol = Symbol.for('drizzle:Name');
+    const tableName =
+      (table as { [drizzleNameSymbol]?: string })[drizzleNameSymbol] ||
+      Object.getOwnPropertySymbols(table)
+        .find(sym => String(sym).includes('drizzle:Name'))
+        ?.valueOf();
+
+    // Tables that use camelCase column names
+    const camelCaseTables = ['nba_players', 'nba_games'];
+    return typeof tableName === 'string' && camelCaseTables.includes(tableName);
   }
 
   async bulkInsertWithConflictHandling<T extends Table>(
     table: T,
     data: (InferInsertModel<T> & {
-      seasons_active?: Array<{ season: number; team_ids: string[] }>;
+      seasonsActive?: Array<{ season: number; teamIds: string[] }>;
     })[],
     conflictTarget: IndexColumn,
     batchSize: number = 100,
@@ -155,57 +164,79 @@ export class OptimizedAPIClient {
       const batch = data.slice(i, i + batchSize);
 
       try {
-        // Special handling for nba_players table
-        if (this.isNbaPlayersTable(table)) {
-          // Process each player individually to properly handle seasons_active
-          for (const player of batch) {
+        // Special handling for camelCase tables
+        if (this.isCamelCaseTable(table)) {
+          const drizzleNameSymbol = Symbol.for('drizzle:Name');
+          const tableName =
+            (table as { [drizzleNameSymbol]?: string })[drizzleNameSymbol] ||
+            Object.getOwnPropertySymbols(table)
+              .find(sym => String(sym).includes('drizzle:Name'))
+              ?.valueOf();
+
+          if (typeof tableName === 'string' && tableName === 'nba_players') {
+            // Process each player individually to properly handle seasonsActive
+            for (const player of batch) {
+              await this.db
+                .insert(table)
+                .values(player)
+                .onConflictDoUpdate({
+                  target: conflictTarget,
+                  set: {
+                    firstName: sql`EXCLUDED."firstName"`,
+                    lastName: sql`EXCLUDED."lastName"`,
+                    birth: sql`EXCLUDED.birth`,
+                    nba: sql`EXCLUDED.nba`,
+                    height: sql`EXCLUDED.height`,
+                    weight: sql`EXCLUDED.weight`,
+                    college: sql`EXCLUDED.college`,
+                    affiliation: sql`EXCLUDED.affiliation`,
+                    jersey: sql`EXCLUDED.jersey`,
+                    active: sql`EXCLUDED.active`,
+                    pos: sql`EXCLUDED.pos`,
+                    seasonsActive: sql`CASE
+                      WHEN nba_players."seasonsActive" IS NULL THEN EXCLUDED."seasonsActive"
+                      WHEN NOT EXISTS (
+                        SELECT 1
+                        FROM jsonb_array_elements(nba_players."seasonsActive") AS existing_season
+                        WHERE existing_season->>'season' = EXCLUDED."seasonsActive"[1]->>'season'
+                      ) THEN nba_players."seasonsActive" || EXCLUDED."seasonsActive"
+                      ELSE (
+                        SELECT jsonb_agg(
+                          CASE
+                            WHEN season->>'season' = EXCLUDED."seasonsActive"[1]->>'season' THEN
+                              jsonb_build_object(
+                                'season', season->>'season',
+                                'teamIds', (
+                                  SELECT jsonb_agg(DISTINCT teamId)
+                                  FROM (
+                                    SELECT jsonb_array_elements_text(season->'teamIds') AS teamId
+                                    UNION
+                                    SELECT jsonb_array_elements_text(EXCLUDED."seasonsActive"[1]->'teamIds')
+                                  ) AS combined_teams
+                                )
+                              )
+                            ELSE season
+                          END
+                        )
+                        FROM jsonb_array_elements(nba_players."seasonsActive") AS season
+                      )
+                    END`,
+                    updatedAt: sql`EXCLUDED."updatedAt"`,
+                  },
+                });
+            }
+          } else {
+            // For other camelCase tables, use standard upsert with quoted column names
             await this.db
               .insert(table)
-              .values(player)
+              .values(batch)
               .onConflictDoUpdate({
                 target: conflictTarget,
-                set: {
-                  firstname: sql`EXCLUDED.firstname`,
-                  lastname: sql`EXCLUDED.lastname`,
-                  birth: sql`EXCLUDED.birth`,
-                  nba: sql`EXCLUDED.nba`,
-                  height: sql`EXCLUDED.height`,
-                  weight: sql`EXCLUDED.weight`,
-                  college: sql`EXCLUDED.college`,
-                  affiliation: sql`EXCLUDED.affiliation`,
-                  jersey: sql`EXCLUDED.jersey`,
-                  active: sql`EXCLUDED.active`,
-                  pos: sql`EXCLUDED.pos`,
-                  seasons_active: sql`CASE
-                    WHEN nba_players.seasons_active IS NULL THEN EXCLUDED.seasons_active
-                    WHEN NOT EXISTS (
-                      SELECT 1
-                      FROM unnest(nba_players.seasons_active) AS existing_season
-                      WHERE existing_season->>'season' = EXCLUDED.seasons_active[1]->>'season'
-                    ) THEN nba_players.seasons_active || EXCLUDED.seasons_active
-                    ELSE (
-                      SELECT jsonb_agg(
-                        CASE
-                          WHEN season->>'season' = EXCLUDED.seasons_active[1]->>'season' THEN
-                            jsonb_build_object(
-                              'season', season->>'season',
-                              'team_ids', (
-                                SELECT jsonb_agg(DISTINCT team_id)
-                                FROM (
-                                  SELECT jsonb_array_elements_text(season->'team_ids') AS team_id
-                                  UNION
-                                  SELECT jsonb_array_elements_text(EXCLUDED.seasons_active[1]->'team_ids')
-                                ) AS combined_teams
-                              )
-                            )
-                          ELSE season
-                        END
-                      )
-                      FROM jsonb_array_elements(nba_players.seasons_active) AS season
-                    )
-                  END`,
-                  updated_at: sql`EXCLUDED.updated_at`,
-                },
+                set: Object.fromEntries(
+                  Object.keys(batch[0])
+                    .filter(key => key !== 'id' && key !== 'createdAt')
+                    .map(key => [key, sql`EXCLUDED.${sql.raw(`"${key}"`)}`])
+                ) as PgUpdateSetSource<T>,
               });
           }
         } else {
@@ -217,7 +248,7 @@ export class OptimizedAPIClient {
               target: conflictTarget,
               set: Object.fromEntries(
                 Object.keys(batch[0])
-                  .filter(key => key !== 'id' && key !== 'created_at')
+                  .filter(key => key !== 'id' && key !== 'createdAt')
                   .map(key => [key, sql`EXCLUDED.${sql.raw(key)}`])
               ) as PgUpdateSetSource<T>,
             });

@@ -20,10 +20,10 @@ export async function createContext(): Promise<Context> {
     dbUser = {
       id: user.id,
       username: user.username ?? '',
-      first_name: user.firstName ?? '',
-      last_name: user.lastName ?? '',
-      email_address: user.emailAddresses[0]?.emailAddress ?? '',
-      image_url: user.imageUrl ?? '',
+      firstName: user.firstName ?? '',
+      lastName: user.lastName ?? '',
+      emailAddress: user.emailAddresses[0]?.emailAddress ?? '',
+      imageUrl: user.imageUrl ?? '',
     };
   }
 
@@ -36,10 +36,10 @@ export async function createContext(): Promise<Context> {
       ? {
           id: dbUser.id,
           username: dbUser.username ?? '',
-          first_name: dbUser.first_name,
-          last_name: dbUser.last_name,
-          email_address: dbUser.email_address ?? '',
-          image_url: dbUser.image_url ?? '',
+          firstName: dbUser.firstName,
+          lastName: dbUser.lastName,
+          emailAddress: dbUser.emailAddress ?? '',
+          imageUrl: dbUser.imageUrl ?? '',
         }
       : undefined,
     loaders: {

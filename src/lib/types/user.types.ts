@@ -8,19 +8,19 @@ export interface ExternalUserAccount {
   provider: string;
   provider_user_id?: string;
   provider_account_id?: string;
-  user_id?: string;
+  userId?: string;
   username?: string;
-  email_address?: string;
+  emailAddress?: string;
   public_metadata?: Record<string, ValidatableValue>;
-  created_at?: Date;
-  updated_at?: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export interface ClerkUserData {
   id: string;
   username: string | null;
   email_addresses: Array<{
-    email_address: string;
+    emailAddress: string;
     id: string;
     linked_to: Array<{
       id: string;
@@ -34,16 +34,16 @@ export interface ClerkUserData {
       attempts?: number | null;
       expire_at?: number | null;
     };
-    created_at?: number;
-    updated_at?: number;
+    createdAt?: number;
+    updatedAt?: number;
     matches_sso_connection?: boolean;
   }>;
-  first_name: string;
-  last_name: string | null;
-  image_url: string;
+  firstName: string;
+  lastName: string | null;
+  imageUrl: string;
   profile_image_url: string;
-  updated_at: number;
-  created_at: number;
+  updatedAt: number;
+  createdAt: number;
   last_sign_in_at: number | null;
   password_enabled: boolean;
   two_factor_enabled: boolean;
@@ -62,8 +62,8 @@ export interface ClerkUserData {
       expire_at: number;
       channel?: string;
     };
-    created_at: number;
-    updated_at: number;
+    createdAt: number;
+    updatedAt: number;
     object: string;
     linked_to: Array<{
       id: string;
@@ -104,11 +104,11 @@ export interface ClerkDeletedUserData {
 }
 
 export interface DbCustomUser extends BaseUser {
-  first_name: string;
-  last_name: string;
-  image_url?: string;
+  firstName: string;
+  lastName: string;
+  imageUrl?: string;
   email?: string;
-  email_address?: string;
+  emailAddress?: string;
   email_verified?: boolean;
   password_enabled?: boolean;
   password_last_changed?: Date;
@@ -126,12 +126,12 @@ export interface DbCustomUser extends BaseUser {
   comments?: Comment[];
   reactions?: Reaction[];
   game_logs?: SharedGameLog[];
-  created_at?: Date;
-  updated_at?: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export interface UserFields {
-  user_id: string;
+  userId: string;
   user?: DbCustomUser;
 }
 

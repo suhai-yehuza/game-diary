@@ -67,7 +67,7 @@ export async function fetchAndProcessNBAGameStats(gameId: string, season: number
 
     // First check if game stats already exist
     const existingStats = await db.query.game_stats.findFirst({
-      where: eq(game_stats.game_id, gameId),
+      where: eq(game_stats.gameId, gameId),
     });
 
     if (existingStats) {
@@ -118,14 +118,14 @@ export async function fetchAndProcessNBAGameStats(gameId: string, season: number
     const now = new Date();
     const gameStatsData: DBGameStats = {
       id: generateUUID(),
-      game_id: gameId,
-      season_id: season,
-      home_team_id: homeTeamStats.team.id.toString(),
-      away_team_id: awayTeamStats.team.id.toString(),
-      game_date: now,
+      gameId: gameId,
+      seasonId: season,
+      homeTeamId: homeTeamStats.team.id.toString(),
+      awayTeamId: awayTeamStats.team.id.toString(),
+      gameDate: now,
       status: GAME_STATUS_VALUES.FINISHED,
-      created_at: now,
-      updated_at: now,
+      createdAt: now,
+      updatedAt: now,
       ...processTeamStats(homeStats, 'home'),
       ...processTeamStats(awayStats, 'away'),
     };
@@ -134,7 +134,7 @@ export async function fetchAndProcessNBAGameStats(gameId: string, season: number
     await db
       .insert(game_stats)
       .values(gameStatsData)
-      .onConflictDoNothing({ target: game_stats.game_id });
+      .onConflictDoNothing({ target: game_stats.gameId });
 
     console.log(`Successfully processed and stored statistics for game ${gameId}`);
   } catch (error) {

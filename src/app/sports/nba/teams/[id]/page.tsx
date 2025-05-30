@@ -38,11 +38,11 @@ export default function TeamPage() {
           conference: apiTeam.conference,
           division: apiTeam.division,
           logo: apiTeam.logo,
-          logo_url: apiTeam.logo,
-          primary_color: apiTeam.primary_color,
-          secondary_color: apiTeam.secondary_color,
-          created_at: new Date(),
-          updated_at: new Date(),
+          logoUrl: apiTeam.logo,
+          primaryColor: apiTeam.primaryColor,
+          secondaryColor: apiTeam.secondaryColor,
+          createdAt: new Date(),
+          updatedAt: new Date(),
         };
         setTeamData(team);
         setLoading(false);
@@ -121,9 +121,9 @@ export default function TeamPage() {
         <div className="max-w-4xl mx-auto space-y-8">
           {/* Team Header */}
           <div className="flex items-center space-x-4 mb-8">
-            {teamData.logo_url && (
+            {teamData.logoUrl && (
               <Image
-                src={teamData.logo_url}
+                src={teamData.logoUrl}
                 alt={`${teamData.name} logo`}
                 width={100}
                 height={100}

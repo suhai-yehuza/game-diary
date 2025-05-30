@@ -12,7 +12,7 @@ export interface FriendGroup {
   description: string;
   friends: string[];
   color: string;
-  image_url: string;
+  imageUrl: string;
 }
 
 export interface FriendGroupsProps {
@@ -32,8 +32,8 @@ export type FriendRequest = {
   sender: DBUser;
   receiver: DBUser;
   status: string;
-  created_at: Date;
-  updated_at: Date;
+  createdAt: Date;
+  updatedAt: Date;
   mutualFriends?: number;
 };
 

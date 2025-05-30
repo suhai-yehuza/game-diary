@@ -147,21 +147,89 @@ export interface Friendship {
   status: string;
   initiator: BaseUser;
   recipient: BaseUser;
-  created_at: Date;
-  updated_at: Date;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 // Base game types
 export interface Game {
   id: string;
-  date: Date;
+  date: {
+    start: string;
+    end: string | null;
+    duration: string | null;
+  } | null;
   status: {
-    clock: string;
-  };
+    clock: string | null;
+    halftime: boolean;
+    short: string | number;
+    long: string;
+  } | null;
   homeTeamId: string;
   awayTeamId: string;
-  created_at: Date;
-  updated_at: Date;
+  createdAt: string;
+  updatedAt: string;
+  arena: {
+    name: string;
+    city: string;
+    state: string | null;
+    country: string | null;
+  } | null;
+  league: string;
+  season: number;
+  stage: number;
+  periods: {
+    current: number;
+    total: number;
+    endOfPeriod: boolean;
+  } | null;
+  teams: {
+    home: {
+      id: string;
+      name: string;
+      nickname: string;
+      code: string;
+      logo: string | null;
+    };
+    visitors: {
+      id: string;
+      name: string;
+      nickname: string;
+      code: string;
+      logo: string | null;
+    };
+  } | null;
+  scores: {
+    home: {
+      win: number;
+      loss: number;
+      series: {
+        win: number;
+        loss: number;
+      };
+      linescore: number[];
+      points: number;
+    };
+    visitors: {
+      win: number;
+      loss: number;
+      series: {
+        win: number;
+        loss: number;
+      };
+      linescore: number[];
+      points: number;
+    };
+  } | null;
+  officials: string[] | null;
+  timesTied: number | null;
+  leadChanges: number | null;
+  nugget: string | null;
+  isCompleted: boolean;
+  awayScore: number | null;
+  homeScore: number | null;
+  gameType: string;
+  nbaGameId: string;
 }
 
 // Base game log types
@@ -175,9 +243,9 @@ export interface GameLog {
   tags: string[];
   watchedDate?: Date;
   watchedSetting: string;
-  created_at: Date;
-  updated_at: Date;
-  deleted_at?: Date;
+  createdAt: Date;
+  updatedAt: Date;
+  deletedAt?: Date;
 }
 
 // Base comment types
@@ -185,11 +253,11 @@ export interface Comment {
   id: string;
   content: string;
   userId: string;
-  parent_id: string;
-  parent_type: string;
-  created_at: Date;
-  updated_at: Date;
-  deleted_at?: Date;
+  parentId: string;
+  parentType: string;
+  createdAt: Date;
+  updatedAt: Date;
+  deletedAt?: Date;
 }
 
 // Base reaction types
@@ -199,14 +267,14 @@ export interface Reaction {
   userId: string;
   targetId: string;
   targetType: string;
-  created_at: Date;
+  createdAt: Date;
 }
 
 // Base player types
 export interface DBPlayer {
   id: string;
-  first_name?: string;
-  last_name?: string;
+  firstName?: string;
+  lastName?: string;
   birth?: {
     date?: Date;
     country?: string;
@@ -311,14 +379,14 @@ export interface GameLogResponse {
   notes: string;
   tags: string[];
   classification: string;
-  created_at: string;
-  updated_at: string;
-  deleted_at: string | null;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
   user?: {
     id: string;
     username: string;
-    first_name: string;
-    last_name: string;
+    firstName: string;
+    lastName: string;
     imageUrl: string;
   };
   game?: {
@@ -392,17 +460,17 @@ export interface GameLogResponse {
         id: string;
         content: string;
         userId: string;
-        parent_id: string;
-        parent_type: string;
-        created_at: string;
-        updated_at: string;
-        deleted_at: string | null;
+        parentId: string;
+        parentType: string;
+        createdAt: string;
+        updatedAt: string;
+        deletedAt: string | null;
         user: {
           id: string;
           username: string;
-          first_name: string;
-          last_name: string;
-          email_address: string;
+          firstName: string;
+          lastName: string;
+          emailAddress: string;
           imageUrl: string;
         };
         reactions: Array<{
@@ -411,9 +479,9 @@ export interface GameLogResponse {
           user: {
             id: string;
             username: string;
-            first_name: string;
-            last_name: string;
-            email_address: string;
+            firstName: string;
+            lastName: string;
+            emailAddress: string;
             imageUrl: string;
           };
         }>;
@@ -429,16 +497,16 @@ export interface GameLogResponse {
         user: {
           id: string;
           username: string;
-          first_name: string;
-          last_name: string;
-          email_address: string;
+          firstName: string;
+          lastName: string;
+          emailAddress: string;
           imageUrl: string;
         };
         userId: string;
-        target_id: string;
-        target_type: string;
-        created_at: string;
-        updated_at: string;
+        targetId: string;
+        targetType: string;
+        createdAt: string;
+        updatedAt: string;
       };
     }>;
     totalCount: number;

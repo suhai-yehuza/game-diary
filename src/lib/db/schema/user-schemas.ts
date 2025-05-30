@@ -8,15 +8,15 @@ import { generateUUID } from '@/lib/utils/index.processing';
 export const users = pgTable('users', {
   id: varchar('id', { length: 255 }).primaryKey().default(generateUUID()),
   username: varchar('username', { length: 255 }).notNull(),
-  first_name: varchar('first_name', { length: 255 }).notNull(),
-  last_name: varchar('last_name', { length: 255 }).notNull(),
-  email_address: varchar('email_address', { length: 255 }).notNull().unique(),
-  image_url: text('image_url').notNull(),
-  inbound_friendship_ids: text('inbound_friendship_ids').array().notNull().default([]),
-  outbound_friendship_ids: text('outbound_friendship_ids').array().notNull().default([]),
+  firstName: varchar('firstName', { length: 255 }).notNull(),
+  lastName: varchar('lastName', { length: 255 }).notNull(),
+  emailAddress: varchar('emailAddress', { length: 255 }).notNull().unique(),
+  imageUrl: text('imageUrl').notNull(),
+  inboundFriendshipIds: text('inboundFriendshipIds').array().notNull().default([]),
+  outboundFriendshipIds: text('outboundFriendshipIds').array().notNull().default([]),
   banned: boolean('banned').notNull().default(false),
-  created_at: timestamp({ precision: 6, withTimezone: true }).notNull(),
-  updated_at: timestamp({ precision: 6, withTimezone: true }).notNull(),
+  createdAt: timestamp({ precision: 6, withTimezone: true }).notNull(),
+  updatedAt: timestamp({ precision: 6, withTimezone: true }).notNull(),
   timestamp: timestamp({ precision: 6, withTimezone: true }).notNull(),
   last_sign_in_at: timestamp({ precision: 6, withTimezone: true }),
   password_enabled: boolean('password_enabled').notNull().default(false),
@@ -25,7 +25,7 @@ export const users = pgTable('users', {
   email_verification_strategy: varchar('email_verification_strategy', { length: 50 }),
   external_id: varchar('external_id', { length: 255 }),
   external_accounts: jsonb('external_accounts').notNull().default('[]'),
-  deleted_at: timestamp({ precision: 6, withTimezone: true }),
+  deletedAt: timestamp({ precision: 6, withTimezone: true }),
 });
 
 // Friendships table
@@ -33,17 +33,17 @@ export const friendships = pgTable(
   'friendships',
   {
     id: varchar('id', { length: 255 }).primaryKey().default(generateUUID()),
-    friend_id: varchar('friend_id', { length: 255 }).references(() => users.id),
-    user_id: varchar('user_id', { length: 255 }).references(() => users.id),
+    friendId: varchar('friendId', { length: 255 }).references(() => users.id),
+    userId: varchar('userId', { length: 255 }).references(() => users.id),
     status: varchar('status', { length: 50 })
       .notNull()
       .default('PENDING')
       .$type<(typeof FRIENDSHIP_STATUS)[keyof typeof FRIENDSHIP_STATUS]>(),
-    created_at: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-    updated_at: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+    createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updatedAt', { withTimezone: true }).notNull().defaultNow(),
   },
   table => ({
-    friendUserUnique: unique().on(table.friend_id, table.user_id),
+    friendUserUnique: unique().on(table.friendId, table.userId),
     statusCheck: sql`CHECK (status IN ('${sql.join(Object.values(FRIENDSHIP_STATUS), "','")}'))`,
   })
 );
@@ -53,22 +53,22 @@ export const comments = pgTable(
   'comments',
   {
     id: text('id').primaryKey().default(generateUUID()),
-    user_id: text('user_id').references(() => users.id),
-    parent_id: text('parent_id').notNull(),
-    parent_type: varchar('parent_type', { length: 50 })
+    userId: text('userId').references(() => users.id),
+    parentId: text('parentId').notNull(),
+    parentType: varchar('parentType', { length: 50 })
       .notNull()
       .$type<(typeof TARGET_TYPES)[keyof typeof TARGET_TYPES]>(),
     content: text('content').notNull(),
-    created_at: timestamp('created_at').notNull().defaultNow(),
-    updated_at: timestamp('updated_at').notNull().defaultNow(),
-    deleted_at: timestamp({ precision: 6, withTimezone: true }),
+    createdAt: timestamp('createdAt').notNull().defaultNow(),
+    updatedAt: timestamp('updatedAt').notNull().defaultNow(),
+    deletedAt: timestamp({ precision: 6, withTimezone: true }),
   },
   _table => ({
-    commentIndex: sql`CREATE INDEX IF NOT EXISTS idx_comments_parent ON comments (parent_id, parent_type)`,
-    commentUserIndex: sql`CREATE INDEX IF NOT EXISTS idx_comments_user ON comments (user_id)`,
-    commentCreatedIndex: sql`CREATE INDEX IF NOT EXISTS idx_comments_created ON comments (created_at)`,
-    commentDeletedIndex: sql`CREATE INDEX IF NOT EXISTS idx_comments_deleted_at ON comments (deleted_at)`,
-    parentTypeCheck: sql`CHECK (parent_type IN ('${sql.join(Object.values(TARGET_TYPES), "','")}'))`,
+    commentIndex: sql`CREATE INDEX IF NOT EXISTS idx_comments_parent ON comments (parentId, parentType)`,
+    commentUserIndex: sql`CREATE INDEX IF NOT EXISTS idx_comments_user ON comments (userId)`,
+    commentCreatedIndex: sql`CREATE INDEX IF NOT EXISTS idx_comments_created ON comments (createdAt)`,
+    commentDeletedIndex: sql`CREATE INDEX IF NOT EXISTS idx_comments_deleted_at ON comments (deletedAt)`,
+    parentTypeCheck: sql`CHECK (parentType IN ('${sql.join(Object.values(TARGET_TYPES), "','")}'))`,
   })
 );
 
@@ -77,23 +77,23 @@ export const reactions = pgTable(
   'reactions',
   {
     id: text('id').primaryKey().default(generateUUID()),
-    user_id: text('user_id').references(() => users.id),
-    target_type: varchar('target_type', { length: 50 })
+    userId: text('userId').references(() => users.id),
+    targetType: varchar('targetType', { length: 50 })
       .notNull()
       .$type<(typeof TARGET_TYPES)[keyof typeof TARGET_TYPES]>(),
-    target_id: text('target_id').notNull(),
+    targetId: text('targetId').notNull(),
     emoji: varchar('emoji', { length: 10 })
       .notNull()
       .$type<(typeof REACTION_EMOJIS)[keyof typeof REACTION_EMOJIS]>(),
-    created_at: timestamp('created_at').notNull().defaultNow(),
-    updated_at: timestamp('updated_at').notNull().defaultNow(),
+    createdAt: timestamp('createdAt').notNull().defaultNow(),
+    updatedAt: timestamp('updatedAt').notNull().defaultNow(),
   },
   _table => ({
-    reactionIndex: sql`CREATE INDEX IF NOT EXISTS idx_reactions_target ON reactions (target_id, target_type)`,
-    reactionUserIndex: sql`CREATE INDEX IF NOT EXISTS idx_reactions_user ON reactions (user_id)`,
+    reactionIndex: sql`CREATE INDEX IF NOT EXISTS idx_reactions_target ON reactions (targetId, targetType)`,
+    reactionUserIndex: sql`CREATE INDEX IF NOT EXISTS idx_reactions_user ON reactions (userId)`,
     reactionEmojiIndex: sql`CREATE INDEX IF NOT EXISTS idx_reactions_emoji ON reactions (emoji)`,
-    uniqueReaction: unique().on(_table.user_id, _table.target_type, _table.target_id, _table.emoji),
-    targetTypeCheck: sql`CHECK (target_type IN ('${sql.join(Object.values(TARGET_TYPES), "','")}'))`,
+    uniqueReaction: unique().on(_table.userId, _table.targetType, _table.targetId, _table.emoji),
+    targetTypeCheck: sql`CHECK (targetType IN ('${sql.join(Object.values(TARGET_TYPES), "','")}'))`,
     emojiCheck: sql`CHECK (emoji IN ('${sql.join(Object.values(REACTION_EMOJIS), "','")}'))`,
   })
 );

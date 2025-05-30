@@ -53,8 +53,8 @@ export async function fetchAndProcessNBATeams(): Promise<void> {
           all_star: team.allStar || false,
           nba_franchise: team.nbaFranchise || false,
           leagues: team.leagues || {},
-          created_at: new Date(),
-          updated_at: new Date(),
+          createdAt: new Date(),
+          updatedAt: new Date(),
         };
 
         // Store team data in the database

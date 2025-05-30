@@ -78,7 +78,7 @@ export const UserSearch: React.FC<UserSearchProps> = ({ onUserSelect, excludeIds
                     <div>
                       <div className="font-medium">{user.username}</div>
                       <div className="text-sm text-gray-500">
-                        {user.first_name} {user.last_name}
+                        {user.firstName} {user.lastName}
                       </div>
                     </div>
                   </motion.button>

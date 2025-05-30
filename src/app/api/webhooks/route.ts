@@ -14,11 +14,11 @@ const handleUserCreated = async (data: ClerkUserData) => {
     id,
     username,
     email_addresses,
-    first_name,
-    last_name,
-    image_url,
-    updated_at,
-    created_at,
+    firstName,
+    lastName,
+    imageUrl,
+    updatedAt,
+    createdAt,
     last_sign_in_at,
     password_enabled,
     two_factor_enabled,
@@ -27,20 +27,20 @@ const handleUserCreated = async (data: ClerkUserData) => {
   } = data;
 
   if (!id) throw new Error('Missing user ID');
-  if (!email_addresses?.[0]?.email_address) throw new Error('Missing email address');
+  if (!email_addresses?.[0]?.emailAddress) throw new Error('Missing email address');
 
-  const defaultUsername = `${first_name || 'user'}-${last_name || 'unknown'}`.toLowerCase();
+  const defaultUsername = `${firstName || 'user'}-${lastName || 'unknown'}`.toLowerCase();
   const userData = {
     id,
     username: username || defaultUsername,
-    first_name: first_name || 'missing-first-name',
-    last_name: last_name || 'missing-last-name',
-    email_address: email_addresses[0].email_address,
-    image_url: image_url || '',
-    created_at: new Date(created_at),
-    updated_at: new Date(updated_at),
-    inbound_friendship_ids: [],
-    outbound_friendship_ids: [],
+    firstName: firstName || 'missing-first-name',
+    lastName: lastName || 'missing-last-name',
+    emailAddress: email_addresses[0].emailAddress,
+    imageUrl: imageUrl || '',
+    createdAt: new Date(createdAt),
+    updatedAt: new Date(updatedAt),
+    inboundFriendshipIds: [],
+    outboundFriendshipIds: [],
     banned: false,
     timestamp: new Date(),
     // New Clerk-specific fields
@@ -64,11 +64,11 @@ const handleUserUpdated = async (data: ClerkUserData) => {
     id,
     username,
     email_addresses,
-    first_name,
-    last_name,
-    image_url,
-    updated_at,
-    created_at,
+    firstName,
+    lastName,
+    imageUrl,
+    updatedAt,
+    createdAt,
     last_sign_in_at,
     password_enabled,
     two_factor_enabled,
@@ -77,17 +77,17 @@ const handleUserUpdated = async (data: ClerkUserData) => {
   } = data;
 
   if (!id) throw new Error('Missing user ID');
-  if (!email_addresses?.[0]?.email_address) throw new Error('Missing email address');
+  if (!email_addresses?.[0]?.emailAddress) throw new Error('Missing email address');
 
-  const defaultUsername = `${first_name || 'user'}-${last_name || 'unknown'}`.toLowerCase();
+  const defaultUsername = `${firstName || 'user'}-${lastName || 'unknown'}`.toLowerCase();
   const userData = {
     username: username || defaultUsername,
-    first_name: first_name || '',
-    last_name: last_name || '',
-    email_address: email_addresses[0].email_address,
-    image_url: image_url || '',
-    created_at: new Date(created_at),
-    updated_at: new Date(updated_at),
+    firstName: firstName || '',
+    lastName: lastName || '',
+    emailAddress: email_addresses[0].emailAddress,
+    imageUrl: imageUrl || '',
+    createdAt: new Date(createdAt),
+    updatedAt: new Date(updatedAt),
     timestamp: new Date(),
     // New Clerk-specific fields
     last_sign_in_at: last_sign_in_at ? new Date(last_sign_in_at) : null,

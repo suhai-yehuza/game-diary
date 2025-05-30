@@ -6,12 +6,12 @@ import type { Game, GameLog, GameLogFilters, GameLogStats } from './generated/gr
 export type { GameLog, GameLogFilters, GameLogStats };
 
 export interface GameLogFormData {
-  watched_setting: string;
-  watched_date: Date;
-  watched_location: string;
-  rating_for_game: string;
-  rating_stars: number;
-  watched_count: number;
+  watchedSetting: string;
+  watchedDate: Date;
+  watchedLocation: string;
+  ratingForGame: string;
+  ratingStars: number;
+  watchedCount: number;
   notes: string;
   tags: string[];
   classification: string;
@@ -31,39 +31,39 @@ export interface GameLogFormProps {
 export interface GameLogViewProps {
   gameLog: {
     id: string;
-    game_id: string;
-    user_id: string;
-    watched_setting: string;
-    watched_date: string;
-    watched_location: string;
-    rating_for_game: string;
-    rating_stars: number;
-    watched_count: number;
+    gameId: string;
+    userId: string;
+    watchedSetting: string;
+    watchedDate: string;
+    watchedLocation: string;
+    ratingForGame: string;
+    ratingStars: number;
+    watchedCount: number;
     notes: string;
     tags: string[];
     classification: string;
-    created_at: string;
-    updated_at: string;
+    createdAt: string;
+    updatedAt: string;
   };
 }
 
 export const createGameLogSchema = z.object({
-  game_id: z.string(),
-  watched_setting: z.string(),
-  watched_count: z.number().min(1),
+  gameId: z.string(),
+  watchedSetting: z.string(),
+  watchedCount: z.number().min(1),
   classification: z.string(),
-  watched_date: z.string().optional(),
-  watched_location: z.string().optional(),
-  rating_for_game: z.number().min(1).max(5).optional(),
+  watchedDate: z.string().optional(),
+  watchedLocation: z.string().optional(),
+  ratingForGame: z.number().min(1).max(5).optional(),
   notes: z.string().optional(),
 });
 
 export interface GameLogInput {
-  game_id: string;
-  watched_date: string;
-  watched_location?: string;
-  watched_setting?: string;
-  rating_for_game?: number;
+  gameId: string;
+  watchedDate: string;
+  watchedLocation?: string;
+  watchedSetting?: string;
+  ratingForGame?: number;
   comment?: string;
 }
 
@@ -78,8 +78,8 @@ export interface CustomGameLog extends GameLog {
 export interface CommentResponse {
   id: string;
   content: string;
-  created_at: string;
-  updated_at: string;
+  createdAt: string;
+  updatedAt: string;
   user: {
     id: string;
     username: string;

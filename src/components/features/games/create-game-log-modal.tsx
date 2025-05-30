@@ -18,7 +18,7 @@ import type { CreateGameLogModalProps } from '@/lib/types/consolidated.types';
 import { GameLogForm } from './GameLogForm';
 import { useCreateGameLog } from './hooks/useCreateGameLog';
 
-export function CreateGameLogModal({ game_id, onSuccess }: CreateGameLogModalProps) {
+export function CreateGameLogModal({ gameId, onSuccess }: CreateGameLogModalProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   const { user, gamesData, gamesLoading, loading, submitGameLog } = useCreateGameLog({
@@ -29,10 +29,10 @@ export function CreateGameLogModal({ game_id, onSuccess }: CreateGameLogModalPro
   });
 
   const defaultValues = {
-    watched_setting: WATCHED_SETTINGS.TV,
-    watched_count: 1,
+    watchedSetting: WATCHED_SETTINGS.TV,
+    watchedCount: 1,
     classification: CLASSIFICATIONS.PROTECTED,
-    game_id: game_id,
+    gameId: gameId,
   };
 
   if (!user?.id) {

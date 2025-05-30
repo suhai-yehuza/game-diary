@@ -33,7 +33,7 @@ async function testConnectionStability() {
       CREATE TABLE IF NOT EXISTS connection_test (
         id SERIAL PRIMARY KEY,
         test_data TEXT,
-        created_at TIMESTAMP DEFAULT NOW()
+        createdAt TIMESTAMP DEFAULT NOW()
       )
     `);
 

@@ -10,5 +10,5 @@ export type JsonValue =
 // Define a type for tables that have soft delete capability
 export type SoftDeletableTable = {
   id: { data: string; driverData: string };
-  deleted_at: { data: Date | null; driverData: Date | null };
+  deletedAt: { data: Date | null; driverData: Date | null };
 };

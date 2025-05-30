@@ -164,7 +164,7 @@ export default function GameLog() {
                 )}
                 <div>
                   <h3 className="font-semibold">
-                    {gameLog.user.first_name} {gameLog.user.last_name}
+                    {gameLog.user.firstName} {gameLog.user.lastName}
                   </h3>
                   <p className="text-sm text-muted-foreground">@{gameLog.user.username}</p>
                 </div>
@@ -194,7 +194,7 @@ export default function GameLog() {
         )}
 
         {/* Comments Section */}
-        <CommentsSection parent_id={gameLog.id} parent_type="game_log" />
+        <CommentsSection parentId={gameLog.id} parentType="game_log" />
 
         {gameLog.game && (
           <div className="mt-4">

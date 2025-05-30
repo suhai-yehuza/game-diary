@@ -96,7 +96,7 @@ export function GameLogsSection({
                 />
                 <div>
                   <div className="font-semibold">
-                    {`${log.user?.first_name || ''} ${log.user?.last_name || ''}`}
+                    {`${log.user?.firstName || ''} ${log.user?.lastName || ''}`}
                   </div>
                   <div className="text-sm text-muted-foreground">@{log.user?.username}</div>
                   <div className="text-sm text-muted-foreground">{formatDate(log.watchedDate)}</div>
@@ -152,8 +152,8 @@ export function GameLogsSection({
               </div>
             </div>
             <div className="space-y-4">
-              <ReactionsSection target_id={log.id} target_type="game_log" />
-              <CommentsSection parent_id={log.id} parent_type="game_log" />
+              <ReactionsSection targetId={log.id} targetType="game_log" />
+              <CommentsSection parentId={log.id} parentType="game_log" />
             </div>
           </CardContent>
         </Card>

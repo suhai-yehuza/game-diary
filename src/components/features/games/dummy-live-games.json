@@ -54,8 +54,8 @@
         "timesTied": null,
         "leadChanges": null,
         "nugget": null,
-        "created_at": "2025-05-28T01:11:13.482Z",
-        "updated_at": "2025-05-28T01:11:13.482Z",
+        "createdAt": "2025-05-28T01:11:13.482Z",
+        "updatedAt": "2025-05-28T01:11:13.482Z",
         "homeTeamId": "15",
         "awayTeamId": "24",
         "teams": {
@@ -75,10 +75,10 @@
           }
         },
         "isCompleted": false,
-        "away_score": 64,
-        "home_score": 69,
-        "game_type": "LIVE",
-        "nba_game_id": "15446"
+        "awayScore": 64,
+        "homeScore": 69,
+        "gameType": "LIVE",
+        "nbaGameId": "15446"
       }
     },
     {
@@ -134,8 +134,8 @@
         "timesTied": null,
         "leadChanges": null,
         "nugget": null,
-        "created_at": "2025-05-28T01:11:13.482Z",
-        "updated_at": "2025-05-28T01:11:13.482Z",
+        "createdAt": "2025-05-28T01:11:13.482Z",
+        "updatedAt": "2025-05-28T01:11:13.482Z",
         "homeTeamId": "15",
         "awayTeamId": "24",
         "teams": {
@@ -155,10 +155,10 @@
           }
         },
         "isCompleted": false,
-        "away_score": 64,
-        "home_score": 69,
-        "game_type": "LIVE",
-        "nba_game_id": "15446"
+        "awayScore": 64,
+        "homeScore": 69,
+        "gameType": "LIVE",
+        "nbaGameId": "15446"
       }
     },
     {
@@ -214,8 +214,8 @@
         "timesTied": null,
         "leadChanges": null,
         "nugget": null,
-        "created_at": "2025-05-28T01:11:13.482Z",
-        "updated_at": "2025-05-28T01:11:13.482Z",
+        "createdAt": "2025-05-28T01:11:13.482Z",
+        "updatedAt": "2025-05-28T01:11:13.482Z",
         "homeTeamId": "15",
         "awayTeamId": "24",
         "teams": {
@@ -235,10 +235,10 @@
           }
         },
         "isCompleted": false,
-        "away_score": 64,
-        "home_score": 69,
-        "game_type": "LIVE",
-        "nba_game_id": "15446"
+        "awayScore": 64,
+        "homeScore": 69,
+        "gameType": "LIVE",
+        "nbaGameId": "15446"
       }
     },
     {
@@ -294,8 +294,8 @@
         "timesTied": null,
         "leadChanges": null,
         "nugget": null,
-        "created_at": "2025-05-28T01:11:13.482Z",
-        "updated_at": "2025-05-28T01:11:13.482Z",
+        "createdAt": "2025-05-28T01:11:13.482Z",
+        "updatedAt": "2025-05-28T01:11:13.482Z",
         "homeTeamId": "15",
         "awayTeamId": "24",
         "teams": {
@@ -315,10 +315,10 @@
           }
         },
         "isCompleted": false,
-        "away_score": 64,
-        "home_score": 69,
-        "game_type": "LIVE",
-        "nba_game_id": "15446"
+        "awayScore": 64,
+        "homeScore": 69,
+        "gameType": "LIVE",
+        "nbaGameId": "15446"
       }
     },
     {
@@ -374,8 +374,8 @@
         "timesTied": null,
         "leadChanges": null,
         "nugget": null,
-        "created_at": "2025-05-28T01:11:13.482Z",
-        "updated_at": "2025-05-28T01:11:13.482Z",
+        "createdAt": "2025-05-28T01:11:13.482Z",
+        "updatedAt": "2025-05-28T01:11:13.482Z",
         "homeTeamId": "15",
         "awayTeamId": "24",
         "teams": {
@@ -395,10 +395,10 @@
           }
         },
         "isCompleted": false,
-        "away_score": 64,
-        "home_score": 69,
-        "game_type": "LIVE",
-        "nba_game_id": "15446"
+        "awayScore": 64,
+        "homeScore": 69,
+        "gameType": "LIVE",
+        "nbaGameId": "15446"
       }
     }
   ],

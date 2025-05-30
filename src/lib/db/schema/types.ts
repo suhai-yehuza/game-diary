@@ -57,11 +57,11 @@ export type Schema = {
   seasons: SeasonsTable;
   enums: {
     game_status: typeof game_status_enum;
-    game_type: typeof game_type_enum;
+    gameType: typeof game_type_enum;
     user_role: typeof user_role_enum;
     notification_type: typeof notification_type_enum;
     reaction_type: typeof reaction_type_enum;
-    watched_setting: typeof watched_setting_enum;
+    watchedSetting: typeof watched_setting_enum;
   };
   base: typeof baseTableConfig;
 };

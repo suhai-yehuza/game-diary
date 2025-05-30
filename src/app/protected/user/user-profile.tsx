@@ -31,12 +31,12 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
           setTargetUser({
             id: currentUser.id,
             username: currentUser.username || '',
-            first_name: currentUser.firstName || '',
-            last_name: currentUser.lastName || '',
-            email_address: currentUser.emailAddresses[0]?.emailAddress || '',
-            image_url: currentUser.imageUrl,
-            created_at: currentUser.createdAt ? new Date(currentUser.createdAt) : new Date(),
-            updated_at: currentUser.updatedAt ? new Date(currentUser.updatedAt) : new Date(),
+            firstName: currentUser.firstName || '',
+            lastName: currentUser.lastName || '',
+            emailAddress: currentUser.emailAddresses[0]?.emailAddress || '',
+            imageUrl: currentUser.imageUrl,
+            createdAt: currentUser.createdAt ? new Date(currentUser.createdAt) : new Date(),
+            updatedAt: currentUser.updatedAt ? new Date(currentUser.updatedAt) : new Date(),
             last_sign_in_at: currentUser.lastSignInAt
               ? new Date(currentUser.lastSignInAt)
               : new Date(),
@@ -145,12 +145,12 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
           <CardHeader>
             <div className="flex items-center space-x-4">
               <Avatar className="h-16 w-16">
-                <AvatarImage src={userProfile?.image_url ?? undefined} />
+                <AvatarImage src={userProfile?.imageUrl ?? undefined} />
                 <AvatarFallback>{userProfile?.username?.charAt(0).toUpperCase()}</AvatarFallback>
               </Avatar>
               <div>
                 <CardTitle>{userProfile?.username}</CardTitle>
-                <p className="text-sm text-muted-foreground">{userProfile?.email_address}</p>
+                <p className="text-sm text-muted-foreground">{userProfile?.emailAddress}</p>
               </div>
             </div>
           </CardHeader>
@@ -159,7 +159,7 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
               <div>
                 <h3 className="text-sm font-medium">Member Since</h3>
                 <p className="text-sm text-muted-foreground">
-                  {new Date(userProfile?.created_at || '').toLocaleDateString()}
+                  {new Date(userProfile?.createdAt || '').toLocaleDateString()}
                 </p>
               </div>
               <div>

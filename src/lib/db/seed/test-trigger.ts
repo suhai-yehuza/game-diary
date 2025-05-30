@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
 
 import { db } from '@/lib/db';
@@ -16,22 +16,46 @@ async function testGameRatingsTrigger() {
   const homeTeamId = uuidv4();
   const awayTeamId = uuidv4();
   const seasonId = Math.floor(Math.random() * 1000000);
-  const nbaGameId = uuidv4();
+  let nbaGameId: string; // Change to let so we can assign the auto-generated ID
   const timestamp = Date.now();
 
   try {
     // Clean up any existing test data before inserting
+    console.log('Cleaning up any existing test data...');
+
+    // First clean up game_logs and game_ratings (foreign key dependencies)
+    await db.delete(game_logs).where(eq(game_logs.userId, userId));
+    await db.delete(game_logs).where(eq(game_logs.userId, userId2));
+    await db.delete(game_logs).where(eq(game_logs.userId, userId3));
+
+    // Clean up test users
     await db.delete(users).where(eq(users.id, userId));
     await db.delete(users).where(eq(users.id, userId2));
     await db.delete(users).where(eq(users.id, userId3));
+
+    // Clean up test teams
     await db.delete(teams).where(eq(teams.id, homeTeamId));
     await db.delete(teams).where(eq(teams.id, awayTeamId));
+
+    // Clean up test season and games
     await db.delete(seasons).where(eq(seasons.id, seasonId));
-    await db.delete(nba_games).where(eq(nba_games.id, nbaGameId));
-    // Clean up any game logs for this game
-    await db.delete(game_logs).where(eq(game_logs.game_id, nbaGameId));
-    // Clean up any game_ratings for this game
-    await db.delete(game_ratings).where(eq(game_ratings.game_id, nbaGameId));
+
+    // Clean up any test games that might have partial UUIDs from previous runs
+    const existingTestGames = await db
+      .select({ id: nba_games.id })
+      .from(nba_games)
+      .where(sql`${nba_games.league} = 'NBA' AND ${nba_games.stage} = 1`);
+
+    for (const game of existingTestGames) {
+      try {
+        await db.delete(game_logs).where(eq(game_logs.gameId, game.id));
+        await db.delete(game_ratings).where(eq(game_ratings.gameId, game.id));
+        await db.delete(nba_games).where(eq(nba_games.id, game.id));
+      } catch (e) {
+        console.log('Note: Could not clean up game:', game.id);
+        console.log(e);
+      }
+    }
 
     // Create test users
     console.log('\nCreating test users...');
@@ -39,34 +63,34 @@ async function testGameRatingsTrigger() {
       {
         id: userId,
         username: 'testuser1',
-        first_name: 'Test',
-        last_name: 'User1',
-        email_address: `test1_${timestamp}@example.com`,
-        image_url: 'https://example.com/avatar1.png',
-        created_at: new Date(),
-        updated_at: new Date(),
+        firstName: 'Test',
+        lastName: 'User1',
+        emailAddress: `test1_${timestamp}@example.com`,
+        imageUrl: 'https://example.com/avatar1.png',
+        createdAt: new Date(),
+        updatedAt: new Date(),
         timestamp: new Date(),
       },
       {
         id: userId2,
         username: 'testuser2',
-        first_name: 'Test',
-        last_name: 'User2',
-        email_address: `test2_${timestamp}@example.com`,
-        image_url: 'https://example.com/avatar2.png',
-        created_at: new Date(),
-        updated_at: new Date(),
+        firstName: 'Test',
+        lastName: 'User2',
+        emailAddress: `test2_${timestamp}@example.com`,
+        imageUrl: 'https://example.com/avatar2.png',
+        createdAt: new Date(),
+        updatedAt: new Date(),
         timestamp: new Date(),
       },
       {
         id: userId3,
         username: 'testuser3',
-        first_name: 'Test',
-        last_name: 'User3',
-        email_address: `test3_${timestamp}@example.com`,
-        image_url: 'https://example.com/avatar3.png',
-        created_at: new Date(),
-        updated_at: new Date(),
+        firstName: 'Test',
+        lastName: 'User3',
+        emailAddress: `test3_${timestamp}@example.com`,
+        imageUrl: 'https://example.com/avatar3.png',
+        createdAt: new Date(),
+        updatedAt: new Date(),
         timestamp: new Date(),
       },
     ]);
@@ -81,7 +105,7 @@ async function testGameRatingsTrigger() {
         city: 'Home City',
         state: 'Home State',
         country: 'Home Country',
-        is_active: true,
+        isActive: true,
       },
       {
         id: awayTeamId,
@@ -90,7 +114,7 @@ async function testGameRatingsTrigger() {
         city: 'Away City',
         state: 'Away State',
         country: 'Away Country',
-        is_active: true,
+        isActive: true,
       },
     ]);
 
@@ -99,62 +123,124 @@ async function testGameRatingsTrigger() {
     await db.insert(seasons).values({
       id: seasonId,
       year: 2024,
-      display_year: '2023-2024',
-      start_date: new Date('2023-10-01'),
-      end_date: new Date('2024-06-30'),
-      is_current: true,
-      is_playoffs: false,
-      created_at: new Date(),
-      updated_at: new Date(),
+      displayYear: '2023-2024',
+      startDate: new Date('2023-10-01'),
+      endDate: new Date('2024-06-30'),
+      isCurrent: true,
+      isPlayoffs: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
     });
+
+    const nbaGameData = {
+      id: uuidv4(),
+      league: 'NBA',
+      season: seasonId,
+      stage: 1,
+      date: {
+        start: new Date().toISOString(),
+        end: null,
+        duration: null,
+      },
+      status: {
+        clock: null,
+        halftime: false,
+        short: 0,
+        long: '',
+      },
+      periods: {
+        current: 0,
+        total: 0,
+        endOfPeriod: false,
+      },
+      arena: {
+        name: 'Test Arena',
+        city: 'Test City',
+        state: null,
+        country: null,
+      },
+      scores: {
+        home: {
+          win: 0,
+          loss: 0,
+          series: { win: 0, loss: 0 },
+          linescore: ['20', '20', '20', '30'],
+          points: 90,
+        },
+        visitors: {
+          win: 0,
+          loss: 0,
+          series: { win: 0, loss: 0 },
+          linescore: ['20', '20', '20', '30'],
+          points: 90,
+        },
+      },
+      teams: {
+        home: {
+          id: 9,
+          name: 'Denver Nuggets',
+          nickname: 'Nuggets',
+          code: 'DEN',
+          logo: '',
+        },
+        visitors: {
+          id: 22,
+          name: 'Minnesota Timberwolves',
+          nickname: 'Timberwolves',
+          code: 'MIN',
+          logo: '',
+        },
+      },
+      homeTeamId: 9,
+      awayTeamId: 22,
+      officials: [],
+      timesTied: 0,
+      leadChanges: 0,
+      nugget: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
 
     // Create an nba_game
     console.log('\nCreating test nba_game...');
-    await db.insert(nba_games).values({
-      id: nbaGameId,
-      league: 'NBA',
-      season_id: seasonId,
-      date: new Date(),
-      home_team_id: homeTeamId,
-      away_team_id: awayTeamId,
-      home_score: 100,
-      away_score: 90,
-      status: 'finished',
-      stage: 1,
-      season: 2024,
-      created_at: new Date(),
-      updated_at: new Date(),
-    });
+    const insertedGame = await db
+      .insert(nba_games)
+      .values(nbaGameData)
+      .returning({ id: nba_games.id });
+
+    // Capture the auto-generated ID
+    nbaGameId = insertedGame[0].id;
+    console.log('Created nba_game with ID:', nbaGameId);
 
     // Insert multiple game logs
     const log1 = {
       id: uuidv4(),
-      user_id: userId,
-      game_id: nbaGameId,
-      watched_setting: 'tv',
-      watched_date: new Date(),
-      rating_for_game: 4,
-      watched_count: 1,
+      userId: userId,
+      gameId: nbaGameId,
+      watchedSetting: 'tv',
+      watchedDate: new Date(),
+      ratingForGame: 4,
+      watchedCount: 1,
       classification: 'PROTECTED',
     };
     const log2 = {
       id: uuidv4(),
-      user_id: userId2,
-      game_id: nbaGameId,
-      watched_setting: 'tv',
-      watched_date: new Date(),
-      rating_for_game: 5,
-      watched_count: 1,
+      userId: userId2,
+      gameId: nbaGameId,
+      watchedSetting: 'tv',
+      watchedDate: new Date(),
+      ratingForGame: 5,
+      watchedCount: 1,
       classification: 'PROTECTED',
     };
     const log3 = {
       id: uuidv4(),
-      user_id: userId3,
-      game_id: nbaGameId,
-      watched_setting: 'tv',
-      watched_date: new Date(),
-      rating_for_game: 2,
-      watched_count: 1,
+      userId: userId3,
+      gameId: nbaGameId,
+      watchedSetting: 'tv',
+      watchedDate: new Date(),
+      ratingForGame: 2,
+      watchedCount: 1,
       classification: 'PROTECTED',
     };
 
@@ -163,7 +249,7 @@ async function testGameRatingsTrigger() {
     await db.insert(game_logs).values([log1, log2, log3]);
 
     // Debug: Check if logs were inserted
-    const insertedLogs = await db.select().from(game_logs).where(eq(game_logs.game_id, nbaGameId));
+    const insertedLogs = await db.select().from(game_logs).where(eq(game_logs.gameId, nbaGameId));
     console.log('Inserted logs:', insertedLogs);
 
     // Debug: Calculate average rating manually
@@ -172,48 +258,48 @@ async function testGameRatingsTrigger() {
 
     // Debug: Try to manually create game_ratings entry
     console.log('\nDebug: Trying to manually create game_ratings entry...');
-    // Check if a game_ratings entry exists for this game_id
+    // Check if a game_ratings entry exists for this gameId
     const existingRating = await db
       .select()
       .from(game_ratings)
-      .where(eq(game_ratings.game_id, nbaGameId));
+      .where(eq(game_ratings.gameId, nbaGameId));
     if (existingRating.length > 0) {
       console.log('Existing game_ratings entry found, deleting it first...');
-      await db.delete(game_ratings).where(eq(game_ratings.game_id, nbaGameId));
+      await db.delete(game_ratings).where(eq(game_ratings.gameId, nbaGameId));
     }
     await db.insert(game_ratings).values({
-      game_id: nbaGameId,
-      average_rating: avgRating.toFixed(2),
-      total_ratings: 3,
+      gameId: nbaGameId,
+      averageRating: avgRating.toFixed(2),
+      totalRatings: 3,
     });
 
     // Verify average and count
     const ratingAfterInsert = await db
       .select()
       .from(game_ratings)
-      .where(eq(game_ratings.game_id, nbaGameId));
+      .where(eq(game_ratings.gameId, nbaGameId));
     console.log('Rating after insert:', ratingAfterInsert[0]);
     if (
       !ratingAfterInsert[0] ||
-      ratingAfterInsert[0].average_rating !== avgRating.toFixed(2) ||
-      ratingAfterInsert[0].total_ratings !== 3
+      ratingAfterInsert[0].averageRating !== avgRating.toFixed(2) ||
+      ratingAfterInsert[0].totalRatings !== 3
     ) {
       throw new Error('Game rating not averaged correctly after insert');
     }
 
     // Test 2: Update one log's rating
     console.log('\nTest 2: Updating one game log...');
-    await db.update(game_logs).set({ rating_for_game: 1 }).where(eq(game_logs.id, log1.id));
+    await db.update(game_logs).set({ ratingForGame: 1 }).where(eq(game_logs.id, log1.id));
     const ratingAfterUpdate = await db
       .select()
       .from(game_ratings)
-      .where(eq(game_ratings.game_id, nbaGameId));
+      .where(eq(game_ratings.gameId, nbaGameId));
     console.log('Rating after update:', ratingAfterUpdate[0]);
     // New average: (1+5+2)/3 = 2.67
     if (
       !ratingAfterUpdate[0] ||
-      ratingAfterUpdate[0].average_rating !== '2.67' ||
-      ratingAfterUpdate[0].total_ratings !== 3
+      ratingAfterUpdate[0].averageRating !== '2.67' ||
+      ratingAfterUpdate[0].totalRatings !== 3
     ) {
       throw new Error('Game rating not averaged correctly after update');
     }
@@ -224,13 +310,13 @@ async function testGameRatingsTrigger() {
     const ratingAfterDelete = await db
       .select()
       .from(game_ratings)
-      .where(eq(game_ratings.game_id, nbaGameId));
+      .where(eq(game_ratings.gameId, nbaGameId));
     console.log('Rating after delete:', ratingAfterDelete[0]);
     // New average: (1+2)/2 = 1.50
     if (
       !ratingAfterDelete[0] ||
-      ratingAfterDelete[0].average_rating !== '1.50' ||
-      ratingAfterDelete[0].total_ratings !== 2
+      ratingAfterDelete[0].averageRating !== '1.50' ||
+      ratingAfterDelete[0].totalRatings !== 2
     ) {
       throw new Error('Game rating not averaged correctly after delete');
     }
@@ -242,7 +328,7 @@ async function testGameRatingsTrigger() {
     const ratingAfterAllDelete = await db
       .select()
       .from(game_ratings)
-      .where(eq(game_ratings.game_id, nbaGameId));
+      .where(eq(game_ratings.gameId, nbaGameId));
     console.log('Rating after all deletes:', ratingAfterAllDelete[0]);
     if (ratingAfterAllDelete.length > 0) {
       throw new Error('Game rating not deleted correctly after all logs deleted');

@@ -110,7 +110,7 @@ export function useCreateGameLog({ onSuccess }: UseCreateGameLogProps = {}) {
         variables: {
           input: {
             ...data,
-            user_id: user.id,
+            userId: user.id,
           },
         },
       });

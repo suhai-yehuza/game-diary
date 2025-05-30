@@ -5,13 +5,13 @@ import { ReactionDisplay } from '@/components/common/reaction-display';
 import { GET_REACTIONS } from '@/lib/graphql/queries';
 
 interface ReactionsSectionProps {
-  target_id: string;
-  target_type: string;
+  targetId: string;
+  targetType: string;
 }
 
-export function ReactionsSection({ target_id, target_type }: ReactionsSectionProps) {
+export function ReactionsSection({ targetId, targetType }: ReactionsSectionProps) {
   const { data, loading, error } = useQuery(GET_REACTIONS, {
-    variables: { targetId: target_id },
+    variables: { targetId: targetId },
     fetchPolicy: 'cache-and-network',
   });
 
@@ -23,7 +23,7 @@ export function ReactionsSection({ target_id, target_type }: ReactionsSectionPro
 
   return (
     <div className="flex items-center gap-2">
-      <ReactionDisplay targetId={target_id} targetType={target_type} />
+      <ReactionDisplay targetId={targetId} targetType={targetType} />
     </div>
   );
 }

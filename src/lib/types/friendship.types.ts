@@ -4,7 +4,7 @@ export type { GraphQLFriendship };
 
 // Extend the generated Friendship type
 export interface FriendRequest
-  extends Pick<GraphQLFriendship, 'id' | 'status' | 'created_at' | 'updated_at'> {
+  extends Pick<GraphQLFriendship, 'id' | 'status' | 'createdAt' | 'updatedAt'> {
   sender: {
     id: string;
     username: string;

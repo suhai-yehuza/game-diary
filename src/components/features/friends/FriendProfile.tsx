@@ -98,7 +98,7 @@ export const FriendProfile: React.FC<FriendProfileProps> = ({ friendId, onClose 
         <div className="flex justify-between items-start mb-6">
           <div className="flex items-center gap-4">
             <Image
-              src={user.image_url || '/default-user-avatar.svg'}
+              src={user.imageUrl || '/default-user-avatar.svg'}
               alt={user.username}
               width={80}
               height={80}
@@ -107,7 +107,7 @@ export const FriendProfile: React.FC<FriendProfileProps> = ({ friendId, onClose 
             <div>
               <h2 className="text-2xl font-bold">{user.username}</h2>
               <p className="text-gray-500">
-                Member since {new Date(user.created_at).toLocaleDateString()}
+                Member since {new Date(user.createdAt).toLocaleDateString()}
               </p>
             </div>
           </div>

@@ -50,20 +50,20 @@ export interface GameLog {
   notes?: string;
   tags?: string[];
   classification: string;
-  created_at: string;
-  updated_at: string;
-  deleted_at?: string;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt?: string;
 }
 
 export interface Comment {
   id: string;
   userId: string;
-  parent_id?: string;
-  parent_type?: string;
+  parentId?: string;
+  parentType?: string;
   content: string;
-  created_at: string;
-  updated_at: string;
-  deleted_at?: string;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt?: string;
   user?: UserSummary;
   reactions: Reaction[];
   replies: Comment[];
@@ -72,8 +72,8 @@ export interface Comment {
 export interface Reaction {
   id: string;
   emoji: string;
-  created_at: string;
-  updated_at: string;
+  createdAt: string;
+  updatedAt: string;
   targetId: string;
   targetType: string;
   userId: string;
@@ -84,26 +84,26 @@ export interface UserSummary {
   id: string;
   username?: string;
   imageUrl?: string;
-  first_name: string;
-  last_name: string;
+  firstName: string;
+  lastName: string;
 }
 
 export interface Friendship {
   id: string;
-  user_id: string;
-  friend_id: string;
+  userId: string;
+  friendId: string;
   status: string;
-  created_at: string;
-  updated_at: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface User {
   id: string;
   username: string;
-  email_address: string;
+  emailAddress: string;
   imageUrl?: string;
-  created_at: string;
-  updated_at: string;
+  createdAt: string;
+  updatedAt: string;
   comments: Comment[];
   gameLogs: GameLog[];
   initiated_friendships: Friendship[];
@@ -112,8 +112,8 @@ export interface User {
 }
 
 export interface GameLogFilters {
-  user_id?: string;
-  game_id?: string;
+  userId?: string;
+  gameId?: string;
   classification?: string;
   watched_date_range?: {
     start?: string;
@@ -122,8 +122,8 @@ export interface GameLogFilters {
 }
 
 export interface GqlGameLogFilters {
-  user_id?: string;
-  game_id?: string;
+  userId?: string;
+  gameId?: string;
   classification?: string;
   watched_date_range?: {
     start?: string;

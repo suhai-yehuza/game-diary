@@ -73,7 +73,7 @@ export const FriendRequests: React.FC = () => {
           id: cache.identify({ __typename: 'Friendship', id: updatedRequest.id }),
           fields: {
             status: () => updatedRequest.status,
-            updated_at: () => updatedRequest.updated_at,
+            updatedAt: () => updatedRequest.updatedAt,
           },
         });
       }
@@ -109,7 +109,7 @@ export const FriendRequests: React.FC = () => {
           id: cache.identify({ __typename: 'Friendship', id: updatedRequest.id }),
           fields: {
             status: () => updatedRequest.status,
-            updated_at: () => updatedRequest.updated_at,
+            updatedAt: () => updatedRequest.updatedAt,
           },
         });
       }
@@ -203,7 +203,7 @@ export const FriendRequests: React.FC = () => {
     const direction = sortDirection === 'asc' ? 1 : -1;
     switch (sortBy) {
       case 'date':
-        return direction * (new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+        return direction * (new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
       case 'name':
         return direction * a.sender.username.localeCompare(b.sender.username);
       case 'mutual':
@@ -315,7 +315,7 @@ export const FriendRequests: React.FC = () => {
                         </h3>
                         <p className="text-sm text-gray-500">
                           {showSentRequests ? 'Sent' : 'Received'}{' '}
-                          {new Date(request.created_at).toLocaleDateString()}
+                          {new Date(request.createdAt).toLocaleDateString()}
                         </p>
                         {request.mutualFriends && (
                           <p className="text-sm text-blue-500">
@@ -389,8 +389,8 @@ export const FriendRequests: React.FC = () => {
                         <h3 className="font-semibold">{friend.username}</h3>
                         <p className="text-sm text-gray-500">
                           Friends since{' '}
-                          {request.updated_at
-                            ? new Date(request.updated_at).toLocaleDateString()
+                          {request.updatedAt
+                            ? new Date(request.updatedAt).toLocaleDateString()
                             : ''}
                         </p>
                         {request.mutualFriends && (

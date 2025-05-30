@@ -14,7 +14,12 @@ export const GAME_FRAGMENT = gql`
       long
       short
     }
-    arena
+    arena {
+      name
+      city
+      state
+      country
+    }
     league
     season
     stage
@@ -25,16 +30,16 @@ export const GAME_FRAGMENT = gql`
     timesTied
     leadChanges
     nugget
-    created_at
-    updated_at
+    createdAt
+    updatedAt
   }
 `;
 
 export const PLAYER_FRAGMENT = gql`
   fragment PlayerFragment on Player {
     id
-    first_name
-    last_name
+    firstName
+    lastName
     birth {
       date
       country
@@ -115,9 +120,9 @@ export const BASIC_USER_FRAGMENT = gql`
   fragment BasicUserFragment on User {
     id
     username
-    first_name
-    last_name
-    email_address
+    firstName
+    lastName
+    emailAddress
     imageUrl
   }
 `;
@@ -126,9 +131,9 @@ export const USER_SUMMARY_FRAGMENT = gql`
   fragment UserSummaryFragment on UserSummary {
     id
     username
-    first_name
-    last_name
-    email_address
+    firstName
+    lastName
+    emailAddress
     imageUrl
   }
 `;
@@ -140,12 +145,12 @@ export const COMMENT_FRAGMENT = gql`
       ...UserSummaryFragment
     }
     userId
-    parent_id
-    parent_type
+    parentId
+    parentType
     content
-    created_at
-    updated_at
-    deleted_at
+    createdAt
+    updatedAt
+    deletedAt
     reactions {
       id
       emoji
@@ -168,9 +173,9 @@ export const GAME_LOG_FRAGMENT = gql`
     notes
     tags
     classification
-    created_at
-    updated_at
-    deleted_at
+    createdAt
+    updatedAt
+    deletedAt
     game {
       ...GameFragment
     }
@@ -188,8 +193,8 @@ export const REACTION_FRAGMENT = gql`
     userId
     targetId
     targetType
-    created_at
-    updated_at
+    createdAt
+    updatedAt
   }
   ${BASIC_USER_FRAGMENT}
 `;
@@ -209,11 +214,11 @@ export const GET_SEASONS = gql`
     seasons {
       id
       year
-      display_year
-      start_date
-      end_date
-      is_current
-      is_playoffs
+      displayYear
+      startDate
+      endDate
+      isCurrent
+      isPlayoffs
     }
   }
 `;
@@ -257,8 +262,8 @@ export const GET_TEAMS = gql`
       allStar
       nbaFranchise
       leagues
-      created_at
-      updated_at
+      createdAt
+      updatedAt
     }
   }
 `;
@@ -288,23 +293,23 @@ export const GET_GAME_LOG_WITH_REACTIONS = gql`
 `;
 
 export const GET_COMMENTS_WITH_FILTERS = gql`
-  query GetCommentsWithFilters($parent_id: ID!) {
-    comments(parent_id: $parent_id) {
+  query GetCommentsWithFilters($parentId: ID!) {
+    comments(parentId: $parentId) {
       edges {
         cursor
         node {
           id
           userId
-          parent_id
-          parent_type
+          parentId
+          parentType
           content
-          created_at
-          updated_at
-          deleted_at
+          createdAt
+          updatedAt
+          deletedAt
           user {
             id
             username
-            email_address
+            emailAddress
             imageUrl
           }
           reactions {
@@ -313,12 +318,12 @@ export const GET_COMMENTS_WITH_FILTERS = gql`
             userId
             targetId
             targetType
-            created_at
-            updated_at
+            createdAt
+            updatedAt
             user {
               id
               username
-              email_address
+              emailAddress
               imageUrl
             }
           }
@@ -377,15 +382,15 @@ export const GET_GAME_LOGS = gql`
           notes
           tags
           classification
-          created_at
-          updated_at
-          deleted_at
+          createdAt
+          updatedAt
+          deletedAt
           user {
             id
             username
-            first_name
-            last_name
-            email_address
+            firstName
+            lastName
+            emailAddress
             imageUrl
           }
           game {
@@ -397,16 +402,16 @@ export const GET_GAME_LOGS = gql`
               node {
                 id
                 userId
-                parent_id
-                parent_type
+                parentId
+                parentType
                 content
-                created_at
-                updated_at
-                deleted_at
+                createdAt
+                updatedAt
+                deletedAt
                 user {
                   id
                   username
-                  email_address
+                  emailAddress
                   imageUrl
                 }
                 reactions {
@@ -415,7 +420,7 @@ export const GET_GAME_LOGS = gql`
                   user {
                     id
                     username
-                    email_address
+                    emailAddress
                     imageUrl
                   }
                 }
@@ -431,12 +436,12 @@ export const GET_GAME_LOGS = gql`
                 userId
                 targetId
                 targetType
-                created_at
-                updated_at
+                createdAt
+                updatedAt
                 user {
                   id
                   username
-                  email_address
+                  emailAddress
                   imageUrl
                 }
               }
@@ -473,7 +478,12 @@ export const GET_LIVE_GAMES = gql`
             long
             short
           }
-          arena
+          arena {
+            name
+            city
+            state
+            country
+          }
           league
           season
           stage
@@ -483,16 +493,16 @@ export const GET_LIVE_GAMES = gql`
           timesTied
           leadChanges
           nugget
-          created_at
-          updated_at
+          createdAt
+          updatedAt
           homeTeamId
           awayTeamId
           teams
           isCompleted
-          away_score
-          home_score
-          game_type
-          nba_game_id
+          awayScore
+          homeScore
+          gameType
+          nbaGameId
         }
       }
       pageInfo {
@@ -530,8 +540,8 @@ export const GET_TEAM_STATS = gql`
       blocks
       turnovers
       fouls
-      created_at
-      updated_at
+      createdAt
+      updatedAt
     }
   }
 `;
@@ -568,12 +578,12 @@ export const GET_REACTIONS = gql`
           userId
           targetId
           targetType
-          created_at
-          updated_at
+          createdAt
+          updatedAt
           user {
             id
             username
-            email_address
+            emailAddress
             imageUrl
           }
         }
@@ -623,8 +633,8 @@ export const GET_GAME_LOG_REACTIONS = gql`
           node {
             id
             emoji
-            created_at
-            updated_at
+            createdAt
+            updatedAt
             user {
               ...BasicUserFragment
             }
@@ -658,8 +668,8 @@ export const GET_FRIENDSHIPS = gql`
     friendships(userId: $userId) {
       id
       status
-      created_at
-      updated_at
+      createdAt
+      updatedAt
       user {
         ...BasicUserFragment
       }

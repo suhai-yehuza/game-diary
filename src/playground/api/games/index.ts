@@ -40,11 +40,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         ?.map(field => {
           switch (field) {
             case 'season':
-              return 'season_id';
+              return 'season';
             case 'teams':
-              return ['home_team_id', 'away_team_id'];
+              return ['homeTeamId', 'awayTeamId'];
             case 'scores':
-              return ['home_score', 'away_score'];
+              return ['homeScore', 'awayScore'];
             default:
               return field;
           }

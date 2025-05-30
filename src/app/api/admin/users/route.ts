@@ -30,7 +30,7 @@ export async function GET() {
 
     // Fetch all users
     const allUsers = await db.query.users.findMany({
-      orderBy: [desc(users.created_at)],
+      orderBy: [desc(users.createdAt)],
     });
 
     return NextResponse.json(allUsers);

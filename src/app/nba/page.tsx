@@ -120,7 +120,12 @@ export default function NBAPage() {
                       halftime: false,
                     },
                     periods: { current: 4, total: 4, endOfPeriod: true },
-                    arena: 'Test Arena, Test City, TS, USA',
+                    arena: {
+                      name: 'Test Arena, Test City, TS, USA',
+                      city: 'Test City',
+                      state: 'TS',
+                      country: 'USA',
+                    },
                     teams: {
                       visitors: {
                         id: '1',
@@ -160,13 +165,13 @@ export default function NBAPage() {
                     statistics: [],
                     awayTeamId: '1',
                     homeTeamId: '2',
-                    created_at: new Date(),
-                    updated_at: new Date(),
+                    createdAt: new Date(),
+                    updatedAt: new Date(),
                     isCompleted: true,
-                    away_score: 100,
-                    home_score: 95,
-                    game_type: 'Regular Season',
-                    nba_game_id: '123',
+                    awayScore: 100,
+                    homeScore: 95,
+                    gameType: 'Regular Season',
+                    nbaGameId: '123',
                   }}
                 />
               </div>

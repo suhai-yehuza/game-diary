@@ -97,7 +97,7 @@ export async function main() {
       CREATE TABLE IF NOT EXISTS "drizzle"."__drizzle_migrations" (
         id SERIAL PRIMARY KEY,
         hash text NOT NULL,
-        created_at bigint
+        createdAt bigint
       )
     `);
 
@@ -116,6 +116,19 @@ export async function main() {
         path.join(migrationsDir, file)
       );
     }
+
+    // Validate that critical triggers exist
+    console.log('Validating triggers...');
+    const triggerCheck = await db.execute(sql`
+      SELECT trigger_name 
+      FROM information_schema.triggers 
+      WHERE trigger_name = 'game_logs_ratings_trigger'
+    `);
+
+    if (triggerCheck.rows.length === 0) {
+      throw new Error('❌ Critical trigger "game_logs_ratings_trigger" was not created!');
+    }
+    console.log('✅ All required triggers are present');
 
     console.log(`Migration completed successfully for ${env} environment!`);
   } catch (error) {

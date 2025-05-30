@@ -12,10 +12,10 @@ export interface Context extends BaseContext {
   user?: {
     id: string;
     username: string;
-    first_name: string;
-    last_name: string;
-    email_address: string;
-    image_url: string;
+    firstName: string;
+    lastName: string;
+    emailAddress: string;
+    imageUrl: string;
   };
   redis?: RedisClient;
   loaders?: {

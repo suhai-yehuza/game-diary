@@ -3,12 +3,12 @@
     "backup_code_enabled": false,
     "banned": false,
     "create_organization_enabled": true,
-    "created_at": 1747552267500,
+    "createdAt": 1747552267500,
     "delete_self_enabled": true,
     "email_addresses": [
       {
-        "created_at": 1747552230099,
-        "email_address": "soyehuza@gmail.com",
+        "createdAt": 1747552230099,
+        "emailAddress": "soyehuza@gmail.com",
         "id": "idn_2xG6naYpTjQsvJ8dGOuTsVGYwKB",
         "linked_to": [
           {
@@ -17,9 +17,9 @@
           }
         ],
         "matches_sso_connection": false,
-        "object": "email_address",
+        "object": "emailAddress",
         "reserved": false,
-        "updated_at": 1747552267510,
+        "updatedAt": 1747552267510,
         "verification": {
           "attempts": null,
           "expire_at": null,
@@ -33,24 +33,24 @@
       {
         "approved_scopes": "email https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile openid profile",
         "avatar_url": "https://lh3.googleusercontent.com/a/ACg8ocJFWtYozAxYyRVXDerk78KVNqb8ITkEtVSjl9TWo9AVMd5SxDw=s1000-c",
-        "created_at": 1747552230094,
-        "email_address": "soyehuza@gmail.com",
+        "createdAt": 1747552230094,
+        "emailAddress": "soyehuza@gmail.com",
         "external_account_id": "eac_2xG6nXye0Wp8hG3phl4N0vVkXTe",
         "family_name": "Yehuza",
-        "first_name": "Suhai",
+        "firstName": "Suhai",
         "given_name": "Suhai",
         "google_id": "112694652402235344354",
         "id": "idn_2xG6nd4bXAxQOS7cBcCSw3TXkJh",
         "identification_id": "idn_2xG6nd4bXAxQOS7cBcCSw3TXkJh",
-        "image_url": "https://img.clerk.com/eyJ0eXBlIjoicHJveHkiLCJzcmMiOiJodHRwczovL2xoMy5nb29nbGV1c2VyY29udGVudC5jb20vYS9BQ2c4b2NKRld0WW96QXhZeVJWWERlcms3OEtWTnFiOElUa0V0VlNqbDlUV285QVZNZDVTeER3PXMxMDAwLWMiLCJzIjoiZHFEdDBnR0hCUUNoUmJEYW1hWFhnbTZNTkZHTDFVVU1Va2Y4VGdmbXkwVSJ9",
+        "imageUrl": "https://img.clerk.com/eyJ0eXBlIjoicHJveHkiLCJzcmMiOiJodHRwczovL2xoMy5nb29nbGV1c2VyY29udGVudC5jb20vYS9BQ2c4b2NKRld0WW96QXhZeVJWWERlcms3OEtWTnFiOElUa0V0VlNqbDlUV285QVZNZDVTeER3PXMxMDAwLWMiLCJzIjoiZHFEdDBnR0hCUUNoUmJEYW1hWFhnbTZNTkZHTDFVVU1Va2Y4VGdmbXkwVSJ9",
         "label": null,
-        "last_name": "Yehuza",
+        "lastName": "Yehuza",
         "object": "google_account",
         "picture": "https://lh3.googleusercontent.com/a/ACg8ocJFWtYozAxYyRVXDerk78KVNqb8ITkEtVSjl9TWo9AVMd5SxDw=s1000-c",
         "provider": "oauth_google",
         "provider_user_id": "112694652402235344354",
         "public_metadata": {},
-        "updated_at": 1747552230094,
+        "updatedAt": 1747552230094,
         "username": null,
         "verification": {
           "attempts": null,
@@ -61,12 +61,12 @@
       }
     ],
     "external_id": null,
-    "first_name": "Suhai",
+    "firstName": "Suhai",
     "has_image": true,
     "id": "user_2xG6sFfJCLEuvLhCk538E38h4yT",
-    "image_url": "https://img.clerk.com/eyJ0eXBlIjoicHJveHkiLCJzcmMiOiJodHRwczovL2ltYWdlcy5jbGVyay5kZXYvb2F1dGhfZ29vZ2xlL2ltZ18yeEc2c0NJR1hKTlgzZVRQUE9XS3JqZTRpeE8ifQ",
+    "imageUrl": "https://img.clerk.com/eyJ0eXBlIjoicHJveHkiLCJzcmMiOiJodHRwczovL2ltYWdlcy5jbGVyay5kZXYvb2F1dGhfZ29vZ2xlL2ltZ18yeEc2c0NJR1hKTlgzZVRQUE9XS3JqZTRpeE8ifQ",
     "last_active_at": 1747552267500,
-    "last_name": "Yehuza",
+    "lastName": "Yehuza",
     "last_sign_in_at": null,
     "legal_accepted_at": null,
     "locked": false,
@@ -79,7 +79,7 @@
     "phone_numbers": [
       {
         "backup_codes": null,
-        "created_at": 1747552247945,
+        "createdAt": 1747552247945,
         "default_second_factor": false,
         "id": "idn_2xG6pkwYa9eafMFSrVpFirWTJ58",
         "linked_to": [],
@@ -87,7 +87,7 @@
         "phone_number": "+14154251945",
         "reserved": false,
         "reserved_for_second_factor": false,
-        "updated_at": 1747552267514,
+        "updatedAt": 1747552267514,
         "verification": {
           "attempts": 1,
           "channel": "sms",
@@ -107,7 +107,7 @@
     "totp_enabled": false,
     "two_factor_enabled": false,
     "unsafe_metadata": {},
-    "updated_at": 1747552267533,
+    "updatedAt": 1747552267533,
     "username": "swyyy",
     "verification_attempts_remaining": 100,
     "web3_wallets": []

@@ -22,8 +22,12 @@ import type {
   NbaInfo,
   HeightInfo,
   WeightInfo,
+  GameDate,
 } from '@/lib/types/generated/graphql';
 import type { DbGame, DBComment, DBReaction } from '@/lib/types/generated/types';
+
+const isDateObj = (d: unknown): d is Date =>
+  typeof d === 'object' && d !== null && Object.prototype.toString.call(d) === '[object Date]';
 
 // Helper function to convert emoji character back to key
 const getEmojiKey = (emojiCharacter: string): ReactionEmojiType => {
@@ -42,10 +46,10 @@ export function createLoaders(db: NeonHttpDatabase<typeof schema>) {
       return {
         id: user.id,
         username: user.username || 'missing-username',
-        first_name: user.first_name || 'missing-first-name',
-        last_name: user.last_name || 'missing-last-name',
-        email_address: user.email_address || '',
-        imageUrl: user.image_url || undefined,
+        firstName: user.firstName || 'missing-first-name',
+        lastName: user.lastName || 'missing-last-name',
+        emailAddress: user.emailAddress || '',
+        imageUrl: user.imageUrl || undefined,
         __typename: 'UserSummary',
       } as UserSummary;
     });
@@ -64,52 +68,100 @@ export function createLoaders(db: NeonHttpDatabase<typeof schema>) {
         return null;
       }
 
+      console.log('DB game value:', game);
+
       const homeTeamId = game.teams?.home?.id || '';
       const awayTeamId = game.teams?.visitors?.id || '';
       const arena =
         typeof game.arena === 'string'
-          ? game.arena
-          : JSON.stringify(game.arena || { name: '', city: '' });
+          ? { name: game.arena, city: '', state: null, country: null }
+          : game.arena
+            ? {
+                name: game.arena.name || '',
+                city: game.arena.city || '',
+                state: game.arena.state || null,
+                country: game.arena.country || null,
+              }
+            : null;
 
       return {
         id: game.id,
         date: {
-          start: game.date,
+          start: isDateObj(game.date)
+            ? game.date
+            : game.date && typeof game.date === 'object' && 'start' in game.date
+              ? new Date(game.date.start)
+              : new Date(0),
           end: null,
           duration: null,
-          __typename: 'GameDate',
-        },
+        } as GameDate,
         status: {
-          clock: game.periods?.current?.toString() || '',
+          clock: game.status?.clock || null,
+          halftime: game.status?.halftime || false,
+          short: game.status?.short || '',
+          long: game.status?.long || '',
         },
-        homeTeamId,
-        awayTeamId,
-        created_at: game.created_at,
-        updated_at: game.updated_at,
         arena,
         league: game.league,
         season: game.season,
         stage: game.stage,
-        periods: game.periods || { current: 0 },
+        periods: {
+          current:
+            typeof game.periods === 'object' && game.periods !== null
+              ? (game.periods as { current: number }).current
+              : 0,
+          total: 4,
+          endOfPeriod: false,
+        },
         teams: game.teams || {
-          home: { id: '', name: '', nickname: '', logo: undefined },
-          visitors: { id: '', name: '', nickname: '', logo: undefined },
+          home: { id: '', name: '', nickname: '', code: '', logo: null },
+          visitors: { id: '', name: '', nickname: '', code: '', logo: null },
         },
-        scores: game.scores || {
-          home: { points: 0 },
-          visitors: { points: 0 },
-        },
-        officials: game.officials || [],
-        timesTied: game.times_tied || undefined,
-        leadChanges: game.lead_changes || undefined,
-        nugget: game.nugget || undefined,
-        isCompleted: game.status === 'FINISHED',
-        away_score: game.scores?.visitors?.points || null,
-        home_score: game.scores?.home?.points || null,
-        game_type: 'REGULAR',
-        nba_game_id: game.id,
+        scores: game.scores
+          ? {
+              home: {
+                win: game.scores.home.win,
+                loss: game.scores.home.loss,
+                series: {
+                  win: game.scores.home.series.win,
+                  loss: game.scores.home.series.loss,
+                },
+                linescore: game.scores.home.linescore.map(Number),
+                points: game.scores.home.points,
+              },
+              visitors: {
+                win: game.scores.visitors.win,
+                loss: game.scores.visitors.loss,
+                series: {
+                  win: game.scores.visitors.series.win,
+                  loss: game.scores.visitors.series.loss,
+                },
+                linescore: game.scores.visitors.linescore.map(Number),
+                points: game.scores.visitors.points,
+              },
+            }
+          : {
+              home: { win: 0, loss: 0, series: { win: 0, loss: 0 }, linescore: [], points: 0 },
+              visitors: { win: 0, loss: 0, series: { win: 0, loss: 0 }, linescore: [], points: 0 },
+            },
+        officials: Array.isArray(game.officials) ? game.officials.map(String) : [],
+        timesTied: game.timesTied ?? null,
+        leadChanges: game.leadChanges ?? null,
+        nugget: game.nugget || null,
+        createdAt: new Date(game.createdAt),
+        updatedAt: new Date(game.updatedAt),
+        homeTeamId,
+        awayTeamId,
+        isCompleted:
+          typeof game.status === 'object' && game.status !== null && 'long' in game.status
+            ? game.status.long === 'Finished'
+            : false,
+        awayScore: game.scores?.visitors?.points ?? null,
+        homeScore: game.scores?.home?.points ?? null,
+        gameType: 'REGULAR',
+        nbaGameId: game.id,
         __typename: 'Game',
-      } as unknown as Game;
+      } as Game;
     });
   });
 
@@ -128,14 +180,14 @@ export function createLoaders(db: NeonHttpDatabase<typeof schema>) {
         conference: team.conference ?? null,
         division: team.division ?? null,
         abbreviation: team.abbreviation,
-        logo_url: team.logo_url ?? null,
-        primary_color: team.primary_color ?? null,
-        secondary_color: team.secondary_color ?? null,
+        logoUrl: team.logoUrl ?? null,
+        primaryColor: team.primaryColor ?? null,
+        secondaryColor: team.secondaryColor ?? null,
         code: team.abbreviation ?? null,
-        logo: team.logo_url ?? null,
+        logo: team.logoUrl ?? null,
         nickname: team.name ?? null,
-        created_at: new Date(0),
-        updated_at: new Date(0),
+        createdAt: new Date(0),
+        updatedAt: new Date(0),
       });
     });
 
@@ -152,8 +204,8 @@ export function createLoaders(db: NeonHttpDatabase<typeof schema>) {
     results.forEach(player => {
       playerMap.set(player.id, {
         id: player.id,
-        first_name: player.firstname,
-        last_name: player.lastname,
+        firstName: player.firstName,
+        lastName: player.lastName,
         birth: player.birth as Maybe<BirthInfo>,
         nba: player.nba as Maybe<NbaInfo>,
         height: player.height as Maybe<HeightInfo>,
@@ -172,14 +224,14 @@ export function createLoaders(db: NeonHttpDatabase<typeof schema>) {
           utah: null,
           vegas: null,
         },
-        seasons_active: player.seasons_active
-          ? player.seasons_active.map(s => ({
+        seasons_active: player.seasonsActive
+          ? player.seasonsActive.map((s: { season: number; teamIds: string[] }) => ({
               season: s.season,
-              teams: s.team_ids,
+              teams: s.teamIds,
             }))
           : null,
-        created_at: player.created_at,
-        updated_at: player.updated_at,
+        createdAt: player.createdAt,
+        updatedAt: player.updatedAt,
       });
     });
 
@@ -199,13 +251,13 @@ export function createLoaders(db: NeonHttpDatabase<typeof schema>) {
     results.forEach(comment => {
       commentMap.set(comment.id, {
         id: comment.id,
-        userId: comment.user_id || '',
-        parent_id: comment.parent_id || '',
-        parent_type: (comment.parent_type?.toLowerCase() || 'comment') as ParentType,
+        userId: comment.userId || '',
+        parentId: comment.parentId || '',
+        parentType: (comment.parentType?.toLowerCase() || 'comment') as ParentType,
         content: comment.content || '',
-        created_at: comment.created_at,
-        updated_at: comment.updated_at,
-        deleted_at: comment.deleted_at,
+        createdAt: new Date(comment.createdAt),
+        updatedAt: new Date(comment.updatedAt),
+        deletedAt: comment.deletedAt,
         user: null as unknown as UserSummary,
         reactions: [],
       });
@@ -224,12 +276,12 @@ export function createLoaders(db: NeonHttpDatabase<typeof schema>) {
     results.forEach(reaction => {
       reactionMap.set(reaction.id, {
         id: reaction.id,
-        userId: reaction.user_id || '',
-        targetId: reaction.target_id || '',
-        targetType: (reaction.target_type || 'comment') as ParentType,
+        userId: reaction.userId || '',
+        targetId: reaction.targetId || '',
+        targetType: (reaction.targetType || 'comment') as ParentType,
         emoji: getEmojiKey(reaction.emoji) as ReactionEmojiType,
-        created_at: reaction.created_at,
-        updated_at: reaction.updated_at,
+        createdAt: new Date(reaction.createdAt),
+        updatedAt: reaction.updatedAt,
         user: null as unknown as UserSummary,
       });
     });
@@ -247,12 +299,12 @@ export function createLoaders(db: NeonHttpDatabase<typeof schema>) {
     results.forEach(friendship => {
       friendshipMap.set(friendship.id, {
         id: friendship.id,
-        userId: friendship.user_id || '',
-        subscriberId: friendship.friend_id || '',
+        userId: friendship.userId || '',
+        subscriberId: friendship.friendId || '',
         status: (friendship.status ||
           'PENDING') as (typeof FRIENDSHIP_STATUS)[keyof typeof FRIENDSHIP_STATUS],
-        created_at: friendship.created_at,
-        updated_at: friendship.updated_at,
+        createdAt: friendship.createdAt,
+        updatedAt: friendship.updatedAt,
         initiator: null as unknown as UserSummary,
         recipient: null as unknown as UserSummary,
       });
@@ -289,15 +341,15 @@ export const createTeamLoader = () => {
         nickname: team.name ?? null,
         code: team.abbreviation ?? null,
         city: team.city,
-        logo: team.logo_url ?? null,
+        logo: team.logoUrl ?? null,
         conference: team.conference ?? null,
         division: team.division ?? null,
         abbreviation: team.abbreviation ?? null,
-        created_at: new Date(0),
-        updated_at: new Date(0),
-        logo_url: team.logo_url ?? null,
-        primary_color: team.primary_color ?? null,
-        secondary_color: team.secondary_color ?? null,
+        createdAt: new Date(0),
+        updatedAt: new Date(0),
+        logoUrl: team.logoUrl ?? null,
+        primaryColor: team.primaryColor ?? null,
+        secondaryColor: team.secondaryColor ?? null,
         __typename: 'Team',
       } as Team;
     });
@@ -306,7 +358,7 @@ export const createTeamLoader = () => {
 
 // Game Loader with Stats
 export const createGameLoader = () => {
-  return new DataLoader<string, DbGame | null>(async gameIds => {
+  return new DataLoader<string, Game | null>(async gameIds => {
     const games = await db.query.nba_games.findMany({
       where: inArray(schema.nba_games.id, Array.from(gameIds)),
     });
@@ -339,45 +391,77 @@ export const createGameLoader = () => {
       return {
         id: game.id,
         date:
-          game.date instanceof Date
-            ? game.date
-            : typeof game.date === 'string' || typeof game.date === 'number'
-              ? new Date(game.date)
-              : new Date(),
+          game.date && typeof game.date === 'object' && 'start' in game.date
+            ? {
+                start: new Date(game.date.start),
+                end: game.date.end ? new Date(game.date.end) : null,
+                duration: game.date.duration,
+              }
+            : {
+                start: isDateObj(game.date) ? game.date : new Date(game.date || 0),
+                end: null,
+                duration: null,
+              },
         status:
-          typeof game.status === 'string'
-            ? { clock: game.status }
-            : game.status && typeof game.status === 'object'
-              ? (game.status as { clock: string })
-              : { clock: 'Unknown' },
-        arena:
-          typeof game.arena === 'string'
-            ? { name: game.arena, city: '' }
-            : game.arena && typeof game.arena === 'object'
-              ? (game.arena as { name: string; city: string })
-              : { name: '', city: '' },
-        league: game.league,
-        season: game.season_id ?? 0,
-        stage: game.stage,
-        periods:
-          typeof game.periods === 'object' && game.periods !== null
-            ? (game.periods as { current: number })
-            : { current: 0 },
-        teams: game.teams || {
-          home: { id: '', name: '', nickname: '', logo: undefined },
-          visitors: { id: '', name: '', nickname: '', logo: undefined },
+          typeof game.status === 'object' && game.status !== null
+            ? {
+                ...game.status,
+                short: String(game.status.short || ''),
+              }
+            : { clock: '', halftime: false, short: '', long: '' },
+        arena: {
+          name: typeof game.arena === 'string' ? game.arena : game.arena?.name || '',
+          city: typeof game.arena === 'string' ? '' : game.arena?.city || '',
+          state: typeof game.arena === 'string' ? null : game.arena?.state || null,
+          country: typeof game.arena === 'string' ? null : game.arena?.country || null,
         },
+        league: game.league,
+        season: game.season,
+        stage: game.stage,
+        periods: {
+          current:
+            typeof game.periods === 'object' && game.periods !== null
+              ? (game.periods as { current: number }).current
+              : 0,
+          total: 4,
+          endOfPeriod: false,
+        },
+        teams: game.teams
+          ? {
+              home: {
+                id: String(game.teams.home.id),
+                name: game.teams.home.name,
+                nickname: game.teams.home.nickname,
+                code: game.teams.home.code || '',
+                logo: game.teams.home.logo || null,
+              },
+              visitors: {
+                id: String(game.teams.visitors.id),
+                name: game.teams.visitors.name,
+                nickname: game.teams.visitors.nickname,
+                code: game.teams.visitors.code || '',
+                logo: game.teams.visitors.logo || null,
+              },
+            }
+          : null,
         scores: game.scores || { home: { points: 0 }, visitors: { points: 0 } },
         officials: Array.isArray(game.officials) ? game.officials.map(String) : [],
-        timesTied: game.times_tied || undefined,
-        leadChanges: game.lead_changes || undefined,
-        nugget: game.nugget || undefined,
-        created_at: game.created_at,
-        updated_at: game.updated_at,
+        timesTied: game.timesTied || 0,
+        leadChanges: game.leadChanges || 0,
+        nugget: game.nugget || null,
+        createdAt: new Date(game.createdAt),
+        updatedAt: new Date(game.updatedAt),
         homeTeamId,
         awayTeamId,
-        isCompleted: game.status === 'Finished',
-      } as DbGame;
+        isCompleted:
+          typeof game.status === 'object' && game.status !== null && 'long' in game.status
+            ? game.status.long === 'Finished'
+            : false,
+        awayScore: game.scores?.visitors?.points ?? null,
+        homeScore: game.scores?.home?.points ?? null,
+        gameType: 'REGULAR',
+        nbaGameId: game.id,
+      } satisfies Game;
     });
   });
 };
@@ -396,42 +480,115 @@ export const createDbGameLoader = () => {
         return null;
       }
 
-      const homeTeamId = game.teams?.home?.id || '';
-      const awayTeamId = game.teams?.visitors?.id || '';
-      const arena =
-        typeof game.arena === 'string'
-          ? { name: '', city: '' }
-          : game.arena || { name: '', city: '' };
-
-      return {
+      const gameData = {
         id: game.id,
-        date: game.date,
+        date: {
+          start: isDateObj(game.date)
+            ? game.date.toISOString()
+            : game.date && typeof game.date === 'object' && 'start' in game.date
+              ? new Date(game.date.start).toISOString()
+              : new Date(0).toISOString(),
+          end: null,
+          duration: null,
+        },
         status: {
-          clock: game.periods?.current?.toString() || '',
+          clock:
+            typeof game.status === 'object' && game.status !== null
+              ? game.status.clock || null
+              : null,
+          halftime:
+            typeof game.status === 'object' && game.status !== null
+              ? game.status.halftime || false
+              : false,
+          short:
+            typeof game.status === 'object' && game.status !== null
+              ? String(game.status.short || '')
+              : '',
+          long:
+            typeof game.status === 'object' && game.status !== null ? game.status.long || '' : '',
         },
-        homeTeamId,
-        awayTeamId,
-        created_at: game.created_at,
-        updated_at: game.updated_at,
-        arena,
-        league: game.league,
-        season: game.season,
-        stage: game.stage,
-        periods: game.periods || { current: 0 },
-        teams: game.teams || {
-          home: { id: '', name: '', nickname: '', logo: undefined },
-          visitors: { id: '', name: '', nickname: '', logo: undefined },
+        arena: {
+          name: typeof game.arena === 'string' ? game.arena : game.arena?.name || '',
+          city: typeof game.arena === 'string' ? '' : game.arena?.city || '',
+          state: typeof game.arena === 'string' ? null : game.arena?.state || null,
+          country: typeof game.arena === 'string' ? null : game.arena?.country || null,
         },
-        scores: game.scores || {
-          home: { points: 0 },
-          visitors: { points: 0 },
+        league: game.league || '',
+        season: game.season ?? 0,
+        stage: game.stage ?? 0,
+        periods: {
+          current:
+            typeof game.periods === 'object' && game.periods !== null
+              ? (game.periods as { current: number }).current
+              : 0,
+          total: 4,
+          endOfPeriod: false,
         },
-        officials: game.officials || [],
-        timesTied: game.times_tied || undefined,
-        leadChanges: game.lead_changes || undefined,
-        nugget: game.nugget || undefined,
-        isCompleted: game.status === 'FINISHED',
+        teams: game.teams
+          ? {
+              home: {
+                id: String(game.teams.home.id),
+                name: game.teams.home.name,
+                nickname: game.teams.home.nickname,
+                code: game.teams.home.code || '',
+                logo: game.teams.home.logo || null,
+              },
+              visitors: {
+                id: String(game.teams.visitors.id),
+                name: game.teams.visitors.name,
+                nickname: game.teams.visitors.nickname,
+                code: game.teams.visitors.code || '',
+                logo: game.teams.visitors.logo || null,
+              },
+            }
+          : null,
+        scores: game.scores
+          ? {
+              home: {
+                win: game.scores.home.win || 0,
+                loss: game.scores.home.loss || 0,
+                series: {
+                  win: game.scores.home.series?.win || 0,
+                  loss: game.scores.home.series?.loss || 0,
+                },
+                linescore: Array.isArray(game.scores.home.linescore)
+                  ? game.scores.home.linescore.map(Number)
+                  : [],
+                points: game.scores.home.points || 0,
+              },
+              visitors: {
+                win: game.scores.visitors.win || 0,
+                loss: game.scores.visitors.loss || 0,
+                series: {
+                  win: game.scores.visitors.series?.win || 0,
+                  loss: game.scores.visitors.series?.loss || 0,
+                },
+                linescore: Array.isArray(game.scores.visitors.linescore)
+                  ? game.scores.visitors.linescore.map(Number)
+                  : [],
+                points: game.scores.visitors.points || 0,
+              },
+            }
+          : null,
+        officials: Array.isArray(game.officials) ? game.officials.map(String) : [],
+        timesTied: game.timesTied || 0,
+        leadChanges: game.leadChanges || 0,
+        nugget: game.nugget || null,
+        createdAt: new Date(game.createdAt).toISOString(),
+        updatedAt: new Date(game.updatedAt).toISOString(),
+        homeTeamId: game.teams?.home?.id?.toString() || '',
+        awayTeamId: game.teams?.visitors?.id?.toString() || '',
+        isCompleted:
+          typeof game.status === 'object' && game.status !== null && 'long' in game.status
+            ? game.status.long === 'Finished'
+            : false,
+        awayScore: game.scores?.visitors?.points ?? null,
+        homeScore: game.scores?.home?.points ?? null,
+        gameType: 'REGULAR',
+        nbaGameId: game.id,
       } as unknown as DbGame;
+
+      return gameData;
     });
   });
 };
@@ -446,29 +603,35 @@ export const createGameLogsLoader = (
       where: inArray(schema.game_logs.id, Array.from(keys)),
     });
     const userIds = logs
-      .map((log: InferSelectModel<typeof schema.game_logs>) => log.user_id)
+      .map((log: InferSelectModel<typeof schema.game_logs>) => log.userId)
       .filter((id): id is string => id !== null);
-    const gameIds = logs.map((log: InferSelectModel<typeof schema.game_logs>) => log.game_id);
+    const gameIds = logs.map((log: InferSelectModel<typeof schema.game_logs>) => log.gameId);
     const users = await userLoader.loadMany(userIds);
     const games = await dbGameLoader.loadMany(gameIds);
 
     const results = keys.map(key => {
       const log = logs.find(l => l.id === key);
       if (!log) return null;
-      const user = users[userIds.indexOf(log.user_id || '')] as UserSummary;
-      const dbGame = games[gameIds.indexOf(log.game_id)] as DbGame;
+      const user = users[userIds.indexOf(log.userId || '')] as UserSummary;
+      const dbGame = games[gameIds.indexOf(log.gameId)] as DbGame;
       if (!dbGame) return null;
 
       const game: Game = {
         id: dbGame.id,
-        date: {
-          start: dbGame.date,
-          end: null,
-          duration: null,
-          __typename: 'GameDate',
-        },
+        date:
+          dbGame.date && typeof dbGame.date === 'object' && 'start' in dbGame.date
+            ? {
+                start: new Date(dbGame.date.start),
+                end: dbGame.date.end ? new Date(dbGame.date.end) : null,
+                duration: dbGame.date.duration,
+              }
+            : {
+                start: isDateObj(dbGame.date) ? dbGame.date : new Date(dbGame.date || 0),
+                end: null,
+                duration: null,
+              },
         status: {
-          clock: dbGame.status.clock,
+          clock: dbGame.status?.clock || null,
           halftime: false,
           long: '',
           short: '',
@@ -476,46 +639,71 @@ export const createGameLogsLoader = (
         },
         homeTeamId: dbGame.homeTeamId,
         awayTeamId: dbGame.awayTeamId,
-        created_at: dbGame.created_at,
-        updated_at: dbGame.updated_at,
-        arena: typeof dbGame.arena === 'string' ? dbGame.arena : JSON.stringify(dbGame.arena),
+        createdAt: new Date(dbGame.createdAt),
+        updatedAt: new Date(dbGame.updatedAt),
+        arena: {
+          name:
+            typeof dbGame.arena === 'object' && dbGame.arena !== null
+              ? dbGame.arena.name || ''
+              : typeof dbGame.arena === 'string'
+                ? dbGame.arena
+                : '',
+          city:
+            typeof dbGame.arena === 'object' && dbGame.arena !== null
+              ? dbGame.arena.city || ''
+              : '',
+          state:
+            typeof dbGame.arena === 'object' && dbGame.arena !== null ? dbGame.arena.state : null,
+          country:
+            typeof dbGame.arena === 'object' && dbGame.arena !== null ? dbGame.arena.country : null,
+        },
         league: dbGame.league,
         season: dbGame.season,
         stage: dbGame.stage,
-        periods: dbGame.periods,
+        periods: {
+          current:
+            typeof dbGame.periods === 'object' && dbGame.periods !== null
+              ? (dbGame.periods as { current: number }).current
+              : 0,
+          total: 4,
+          endOfPeriod: false,
+        },
         teams: dbGame.teams,
         scores: dbGame.scores,
-        officials: dbGame.officials,
-        timesTied: dbGame.timesTied || null,
-        leadChanges: dbGame.leadChanges || null,
+        officials: dbGame.officials || [],
+        timesTied: dbGame.timesTied || 0,
+        leadChanges: dbGame.leadChanges || 0,
         nugget: dbGame.nugget || null,
-        isCompleted: dbGame.isCompleted,
-        away_score: dbGame.scores?.visitors?.points || null,
-        home_score: dbGame.scores?.home?.points || null,
-        game_type: 'REGULAR',
-        nba_game_id: dbGame.id,
+        isCompleted:
+          typeof dbGame.status === 'object' && dbGame.status !== null && 'long' in dbGame.status
+            ? dbGame.status.long === 'Finished'
+            : false,
+        awayScore: dbGame.scores?.visitors?.points || null,
+        homeScore: dbGame.scores?.home?.points || null,
+        gameType: 'REGULAR',
+        nbaGameId: dbGame.id,
         __typename: 'Game',
       };
 
       return {
         id: log.id,
-        gameId: log.game_id,
-        userId: log.user_id || '',
+        gameId: log.gameId,
+        userId: log.userId || '',
         game,
         user,
         classification: log.classification,
         notes: log.notes || undefined,
-        rating: log.rating_for_game,
-        ratingForGame: log.rating_for_game,
-        ratingStars: log.rating_stars ? parseInt(log.rating_stars) : undefined,
+        rating: log.ratingForGame,
+        ratingForGame: log.ratingForGame,
+        ratingStars: log.ratingStars ? parseInt(log.ratingStars) : undefined,
         tags: log.tags || [],
-        watchedDate: log.watched_date,
-        watchedSetting: log.watched_setting,
-        watchedLocation: log.watched_location || undefined,
-        watchedCount: log.watched_count,
-        created_at: log.created_at,
-        updated_at: log.updated_at,
-        deleted_at: log.deleted_at,
+        watchedDate: log.watchedDate,
+        watchedSetting: log.watchedSetting,
+        watchedLocation: log.watchedLocation || undefined,
+        watchedCount: log.watchedCount,
+        createdAt: new Date(log.createdAt),
+        updatedAt: new Date(log.updatedAt),
+        deletedAt: log.deletedAt,
         comments: {
           edges: [],
           pageInfo: {
@@ -548,28 +736,28 @@ export const createGameLogsLoader = (
 export const createCommentsLoader = (userLoader: DataLoader<string, UserSummary>) => {
   return new DataLoader<string, DBComment[]>(async parentIds => {
     const commentRecords = await db.query.comments.findMany({
-      where: inArray(schema.comments.parent_id, Array.from(parentIds)),
+      where: inArray(schema.comments.parentId, Array.from(parentIds)),
     });
     const userIds = commentRecords
-      .map(comment => comment.user_id)
+      .map(comment => comment.userId)
       .filter((id): id is string => id !== null);
     const users = await userLoader.loadMany(userIds);
 
     const results = parentIds.map(id => {
-      const comments = commentRecords.filter(comment => comment.parent_id === id);
+      const comments = commentRecords.filter(comment => comment.parentId === id);
       return comments.map(comment => {
-        const user = users[userIds.indexOf(comment.user_id || '')] as UserSummary;
+        const user = users[userIds.indexOf(comment.userId || '')] as UserSummary;
         return {
           id: comment.id,
           content: comment.content,
           user,
-          userId: comment.user_id || '',
-          parent_id: comment.parent_id,
-          parent_type: comment.parent_type,
+          userId: comment.userId || '',
+          parentId: comment.parentId,
+          parentType: comment.parentType,
           reactions: [],
-          created_at: comment.created_at,
-          updated_at: comment.updated_at,
-          deleted_at: comment.deleted_at || undefined,
+          createdAt: new Date(comment.createdAt),
+          updatedAt: new Date(comment.updatedAt),
+          deletedAt: comment.deletedAt || undefined,
         } as DBComment;
       });
     });
@@ -582,25 +770,25 @@ export const createCommentsLoader = (userLoader: DataLoader<string, UserSummary>
 export const createReactionsLoader = (userLoader: DataLoader<string, UserSummary>) => {
   return new DataLoader<string, DBReaction[]>(async targetIds => {
     const reactionRecords = await db.query.reactions.findMany({
-      where: inArray(schema.reactions.target_id, Array.from(targetIds)),
+      where: inArray(schema.reactions.targetId, Array.from(targetIds)),
     });
     const userIds = reactionRecords
-      .map(reaction => reaction.user_id)
+      .map(reaction => reaction.userId)
       .filter((id): id is string => id !== null);
     const users = await userLoader.loadMany(userIds);
 
     const results = targetIds.map(id => {
-      const reactions = reactionRecords.filter(reaction => reaction.target_id === id);
+      const reactions = reactionRecords.filter(reaction => reaction.targetId === id);
       return reactions.map(reaction => {
-        const user = users[userIds.indexOf(reaction.user_id || '')] as UserSummary;
+        const user = users[userIds.indexOf(reaction.userId || '')] as UserSummary;
         return {
           id: reaction.id,
           emoji: reaction.emoji,
           user,
-          userId: reaction.user_id || '',
-          targetId: reaction.target_id,
-          targetType: reaction.target_type,
-          created_at: reaction.created_at,
+          userId: reaction.userId || '',
+          targetId: reaction.targetId,
+          targetType: reaction.targetType,
+          createdAt: new Date(reaction.createdAt),
         } as DBReaction;
       });
     });
@@ -637,5 +825,97 @@ export const createCacheAwareLoader = <T>(
     ) as ArrayLike<T | null>;
 
     return results;
+  });
+};
+
+export const createDbGameBySeasonLoader = () => {
+  return new DataLoader<number, DbGame[]>(async (seasons: readonly number[]) => {
+    const games = await db
+      .select()
+      .from(schema.nba_games)
+      .where(inArray(schema.nba_games.season, Array.from(seasons)));
+
+    return seasons.map(season => {
+      return games
+        .filter((game: InferSelectModel<typeof schema.nba_games>) => game.season === season)
+        .map(game => {
+          const gameData: DbGame = {
+            id: game.id,
+            date:
+              game.date && typeof game.date === 'object' && 'start' in game.date
+                ? game.date
+                : {
+                    start: isDateObj(game.date)
+                      ? (game.date as Date).toISOString()
+                      : new Date(game.date || 0).toISOString(),
+                    end: null,
+                    duration: null,
+                  },
+            status: game.status,
+            homeTeamId: game.teams?.home?.id?.toString() || '',
+            awayTeamId: game.teams?.visitors?.id?.toString() || '',
+            createdAt:
+              game.createdAt instanceof Date
+                ? game.createdAt.toISOString()
+                : new Date(game.createdAt).toISOString(),
+            updatedAt:
+              game.updatedAt instanceof Date
+                ? game.updatedAt.toISOString()
+                : new Date(game.updatedAt).toISOString(),
+            arena: game.arena,
+            league: game.league,
+            season: game.season,
+            stage: game.stage,
+            periods: {
+              current:
+                typeof game.periods === 'object' && game.periods !== null
+                  ? (game.periods as { current: number }).current
+                  : 0,
+              total: 4,
+              endOfPeriod: false,
+            },
+            teams: game.teams
+              ? {
+                  home: {
+                    ...game.teams.home,
+                    id: game.teams.home.id.toString(),
+                    logo: game.teams.home.logo || null,
+                  },
+                  visitors: {
+                    ...game.teams.visitors,
+                    id: game.teams.visitors.id.toString(),
+                    logo: game.teams.visitors.logo || null,
+                  },
+                }
+              : null,
+            scores: game.scores
+              ? {
+                  home: {
+                    ...game.scores.home,
+                    linescore: game.scores.home.linescore.map(score => Number(score)),
+                  },
+                  visitors: {
+                    ...game.scores.visitors,
+                    linescore: game.scores.visitors.linescore.map(score => Number(score)),
+                  },
+                }
+              : null,
+            officials: game.officials,
+            timesTied: game.timesTied || 0,
+            leadChanges: game.leadChanges || 0,
+            nugget: game.nugget || null,
+            isCompleted:
+              typeof game.status === 'object' && game.status !== null && 'long' in game.status
+                ? game.status.long === 'Finished'
+                : false,
+            awayScore: game.scores?.visitors?.points || null,
+            homeScore: game.scores?.home?.points || null,
+            gameType: 'REGULAR',
+            nbaGameId: game.id,
+          };
+
+          return gameData;
+        });
+    });
   });
 };

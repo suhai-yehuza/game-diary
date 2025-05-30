@@ -25,7 +25,7 @@ export function FriendRequestButton({ targetUserId }: FriendRequestButtonProps) 
   const { data: userData, loading: isLoadingFriendships } = useQuery<GetFriendshipsForUserResponse>(
     GET_FRIENDSHIPS,
     {
-      variables: { user_id: userId },
+      variables: { userId: userId },
       skip: !userId,
     }
   );

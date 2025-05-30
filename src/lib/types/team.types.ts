@@ -26,7 +26,7 @@ export interface CustomTeam extends GraphQLTeam {
 }
 
 export interface TeamFields {
-  team_id: string;
+  teamId: string;
   team?: CustomTeam;
 }
 
@@ -61,8 +61,8 @@ export interface CustomTeamFilters extends GraphQLTeamFilters {
 
 export interface DBTeamStatistics {
   id: string;
-  team_id: string;
-  season_id: string;
+  teamId: string;
+  season: string;
   games_played: number;
   wins: number;
   losses: number;
@@ -75,8 +75,8 @@ export interface DBTeamStatistics {
   steals_per_game: number;
   blocks_per_game: number;
   turnovers_per_game: number;
-  created_at: Date;
-  updated_at: Date;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface DBTeamStandings {

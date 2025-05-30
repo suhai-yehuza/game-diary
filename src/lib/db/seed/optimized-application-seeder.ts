@@ -59,15 +59,15 @@ async function* generateUsersStream(
       yield {
         id: generateUUID(),
         username,
-        first_name: faker.person.firstName(),
-        last_name: faker.person.lastName(),
-        email_address: email,
-        image_url: `https://api.dicebear.com/7.x/avataaars/svg?seed=${username}`,
-        inbound_friendship_ids: [],
-        outbound_friendship_ids: [],
+        firstName: faker.person.firstName(),
+        lastName: faker.person.lastName(),
+        emailAddress: email,
+        imageUrl: `https://api.dicebear.com/7.x/avataaars/svg?seed=${username}`,
+        inboundFriendshipIds: [],
+        outboundFriendshipIds: [],
         banned: false,
-        created_at: faker.date.past(),
-        updated_at: faker.date.recent(),
+        createdAt: faker.date.past(),
+        updatedAt: faker.date.recent(),
         timestamp: faker.date.recent(),
         last_sign_in_at: null,
         password_enabled: false,
@@ -76,7 +76,7 @@ async function* generateUsersStream(
         email_verification_strategy: null,
         external_id: null,
         external_accounts: [],
-        deleted_at: null,
+        deletedAt: null,
       };
 
       generated++;
@@ -124,13 +124,13 @@ async function* generateFriendshipsStream(
       for (const friend of selectedFriends) {
         yield {
           id: generateUUID(),
-          friend_id: user.id,
-          user_id: friend.id,
+          friendId: user.id,
+          userId: friend.id,
           status: faker.helpers.arrayElement(
             Object.values(FRIENDSHIP_STATUS)
           ) as FriendshipStatusValue,
-          created_at: faker.date.past(),
-          updated_at: faker.date.recent(),
+          createdAt: faker.date.past(),
+          updatedAt: faker.date.recent(),
         };
       }
     }
@@ -229,22 +229,22 @@ async function* generateGameLogsStream(
 
       yield {
         id: generateUUID(),
-        user_id: user.id,
-        game_id: game.id,
-        watched_setting: faker.helpers.arrayElement(
+        userId: user.id,
+        gameId: game.id,
+        watchedSetting: faker.helpers.arrayElement(
           Object.values(WATCHED_SETTINGS)
         ) as WatchedSettingValue,
-        watched_date: watchedDate,
-        watched_location: faker.location.streetAddress(),
-        rating_for_game: rating,
-        rating_stars: '⭐'.repeat(rating) + '☆'.repeat(5 - rating),
-        watched_count: faker.number.int({ min: 1, max: 10 }),
+        watchedDate: watchedDate,
+        watchedLocation: faker.location.streetAddress(),
+        ratingForGame: rating,
+        ratingStars: '⭐'.repeat(rating) + '☆'.repeat(5 - rating),
+        watchedCount: faker.number.int({ min: 1, max: 10 }),
         notes: faker.lorem.paragraph(),
         tags: [],
         classification,
-        created_at: faker.date.past(),
-        updated_at: faker.date.recent(),
-        deleted_at: null,
+        createdAt: faker.date.past(),
+        updatedAt: faker.date.recent(),
+        deletedAt: null,
       };
 
       totalGameLogsGenerated++;
@@ -303,13 +303,13 @@ async function* generateCommentsStream(
     for (const commenter of commenters) {
       const parentComment: CommentInsert = {
         id: generateUUID(),
-        user_id: commenter.id,
-        parent_id: gameLog.id,
-        parent_type: 'game_log',
+        userId: commenter.id,
+        parentId: gameLog.id,
+        parentType: 'game_log',
         content: faker.lorem.paragraph(),
-        created_at: faker.date.past(),
-        updated_at: faker.date.recent(),
-        deleted_at: null,
+        createdAt: faker.date.past(),
+        updatedAt: faker.date.recent(),
+        deletedAt: null,
       };
 
       totalParentComments++;
@@ -363,13 +363,13 @@ async function* generateChildComments(
   for (const childCommenter of childCommenters) {
     const childComment: CommentInsert = {
       id: generateUUID(),
-      user_id: childCommenter.id,
-      parent_id: parentComment.id,
-      parent_type: 'comment',
+      userId: childCommenter.id,
+      parentId: parentComment.id,
+      parentType: 'comment',
       content: faker.lorem.paragraph(),
-      created_at: faker.date.past(),
-      updated_at: faker.date.recent(),
-      deleted_at: null,
+      createdAt: faker.date.past(),
+      updatedAt: faker.date.recent(),
+      deletedAt: null,
     };
 
     yield childComment;
@@ -417,12 +417,12 @@ async function* generateReactionsStream(
     for (const reactor of reactors) {
       yield {
         id: generateUUID(),
-        user_id: reactor.id,
-        target_id: gameLog.id ?? generateUUID(), // Fallback to new UUID if undefined
-        target_type: 'game_log',
+        userId: reactor.id,
+        targetId: gameLog.id ?? generateUUID(), // Fallback to new UUID if undefined
+        targetType: 'game_log',
         emoji: faker.helpers.arrayElement(Object.values(REACTION_EMOJIS)) as ReactionEmojiValue,
-        created_at: faker.date.past(),
-        updated_at: faker.date.recent(),
+        createdAt: faker.date.past(),
+        updatedAt: faker.date.recent(),
       };
     }
 
@@ -441,14 +441,14 @@ async function* generateReactionsStream(
     }
 
     // For game log comments, we want to ensure we're only reacting to 10% of game logs
-    if (comment.parent_type === 'game_log') {
+    if (comment.parentType === 'game_log') {
       // Skip if this game log wasn't selected for reactions
       if (Math.random() >= 0.1) {
         continue;
       }
     }
     // For child comments, we want to ensure we're only reacting to 10% of parent comments
-    else if (comment.parent_type === 'comment') {
+    else if (comment.parentType === 'comment') {
       // Skip if this parent comment wasn't selected for reactions
       if (Math.random() >= 0.1) {
         continue;
@@ -465,12 +465,12 @@ async function* generateReactionsStream(
     for (const reactor of reactors) {
       yield {
         id: generateUUID(),
-        user_id: reactor.id,
-        target_id: comment.id ?? generateUUID(), // Fallback to new UUID if undefined
-        target_type: 'comment',
+        userId: reactor.id,
+        targetId: comment.id ?? generateUUID(), // Fallback to new UUID if undefined
+        targetType: 'comment',
         emoji: faker.helpers.arrayElement(Object.values(REACTION_EMOJIS)) as ReactionEmojiValue,
-        created_at: faker.date.past(),
-        updated_at: faker.date.recent(),
+        createdAt: faker.date.past(),
+        updatedAt: faker.date.recent(),
       };
     }
 

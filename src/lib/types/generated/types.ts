@@ -24,51 +24,86 @@ export type DBUser = BaseUser & {
 export type DBSeason = {
   id: string;
   year: number;
-  start_date: Date;
-  end_date: Date;
-  is_current: boolean;
-  is_playoffs: boolean;
-  display_year: string;
+  startDate: Date;
+  endDate: Date;
+  isCurrent: boolean;
+  isPlayoffs: boolean;
+  displayYear: string;
 };
 
 export type DbGame = Game & {
   arena: {
     name: string;
     city: string;
-  };
+    state: string | null;
+    country: string | null;
+  } | null;
   league: string;
   season: number;
   stage: number;
+  date: {
+    start: string;
+    end: string | null;
+    duration: string | null;
+  } | null;
+  status: {
+    clock: string | null;
+    halftime: boolean;
+    short: string | number;
+    long: string;
+  } | null;
   periods: {
     current: number;
-  };
+    total: number;
+    endOfPeriod: boolean;
+  } | null;
   teams: {
     home: {
       id: string;
       name: string;
       nickname: string;
-      logo?: string;
+      code: string;
+      logo: string | null;
     };
     visitors: {
       id: string;
       name: string;
       nickname: string;
-      logo?: string;
+      code: string;
+      logo: string | null;
     };
-  };
+  } | null;
   scores: {
     home: {
+      win: number;
+      loss: number;
+      series: {
+        win: number;
+        loss: number;
+      };
+      linescore: number[];
       points: number;
     };
     visitors: {
+      win: number;
+      loss: number;
+      series: {
+        win: number;
+        loss: number;
+      };
+      linescore: number[];
       points: number;
     };
-  };
-  officials: string[];
-  timesTied?: number;
-  leadChanges?: number;
-  nugget?: string;
+  } | null;
+  officials: string[] | null;
+  timesTied: number | null;
+  leadChanges: number | null;
+  nugget: string | null;
   isCompleted: boolean;
+  awayScore: number | null;
+  homeScore: number | null;
+  gameType: string;
+  nbaGameId: string;
 };
 
 export type DBTeam = {
@@ -81,8 +116,8 @@ export type DBTeam = {
   allStar: boolean;
   nbaFranchise: boolean;
   leagues: any;
-  created_at: Date;
-  updated_at: Date;
+  createdAt: Date;
+  updatedAt: Date;
 };
 
 export type DBTeamStats = {
@@ -185,9 +220,9 @@ export interface DatabaseConfig {
 }
 
 export type DateFields = {
-  created_at: Date;
-  updated_at: Date;
-  deleted_at?: Date;
+  createdAt: Date;
+  updatedAt: Date;
+  deletedAt?: Date;
 };
 
 export type ButtonProps = {
@@ -308,6 +343,6 @@ export type TeamData = {
       division?: string;
     } | undefined;
   };
-  created_at: string;
-  updated_at: string;
+  createdAt: string;
+  updatedAt: string;
 }; 

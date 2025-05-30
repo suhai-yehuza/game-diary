@@ -45,27 +45,27 @@ export const DB_CONFIG = {
     {
       name: 'idx_game_logs_user_id',
       table: 'game_logs',
-      columns: ['user_id'],
+      columns: ['userId'],
     },
     {
       name: 'idx_comments_parent_id',
       table: 'comments',
-      columns: ['parent_id'],
+      columns: ['parentId'],
     },
     {
       name: 'idx_reactions_target_id',
       table: 'reactions',
-      columns: ['target_id'],
+      columns: ['targetId'],
     },
     {
       name: 'idx_nba_games_season',
       table: 'nba_games',
-      columns: ['season_id'],
+      columns: ['season'],
     },
     {
       name: 'idx_nba_players_seasons',
       table: 'nba_players',
-      columns: ['seasons_active'],
+      columns: ['seasonsActive'],
     },
   ],
 } as const;

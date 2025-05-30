@@ -28,13 +28,14 @@ function isDBGameRecord(game: unknown): game is GameRecord {
 }
 
 function convertDBGameToNBAGame(game: GameRecord): Game {
+  console.log('Game record:', game);
   const teams = game.teams as GameTeams;
   const scores = game.scores as GameScores;
   const status = game.status as GameStatus;
   const periods = game.periods as GamePeriods;
   const gameDate = new Date(game.date);
-  const createdAt = new Date(game.created_at);
-  const updatedAt = new Date(game.updated_at);
+  const createdAt = new Date(game.createdAt);
+  const updatedAt = new Date(game.updatedAt);
 
   return {
     id: game.id,
@@ -49,7 +50,10 @@ function convertDBGameToNBAGame(game: GameRecord): Game {
       long: status.long,
       short: status.short,
     },
-    arena: game.arena as string,
+    arena:
+      typeof game.arena === 'string'
+        ? { name: game.arena, city: '', state: null, country: null }
+        : game.arena || { name: '', city: '', state: null, country: null },
     league: game.league,
     season: game.season,
     stage: game.stage,
@@ -64,15 +68,15 @@ function convertDBGameToNBAGame(game: GameRecord): Game {
     timesTied: game.times_tied ?? null,
     leadChanges: game.lead_changes ?? null,
     nugget: game.nugget ?? null,
-    created_at: createdAt,
-    updated_at: updatedAt,
+    createdAt: createdAt,
+    updatedAt: updatedAt,
     isCompleted: status.long === GAME_STATUS_VALUES.FINISHED,
     awayTeamId: teams.visitors.id.toString(),
     homeTeamId: teams.home.id.toString(),
-    away_score: scores.visitors.points || 0,
-    home_score: scores.home.points || 0,
-    game_type: 'Regular Season',
-    nba_game_id: game.id,
+    awayScore: scores.visitors.points || 0,
+    homeScore: scores.home.points || 0,
+    gameType: 'Regular Season',
+    nbaGameId: game.id,
   };
 }
 
@@ -81,7 +85,7 @@ export function getTeamFullName(team: Team): string {
 }
 
 export function getPlayerDisplayName(player: Player): string {
-  return `${player.first_name} ${player.last_name}`;
+  return `${player.firstName} ${player.lastName}`;
 }
 
 export function calculateGameScore(game: Game): string {
@@ -190,10 +194,10 @@ export async function getH2HData(
       .from(schema.team_h2h)
       .where(
         and(
-          eq(schema.team_h2h.season_id, season),
+          eq(schema.team_h2h.season, season),
           or(
-            and(eq(schema.team_h2h.team1_id, smallerId), eq(schema.team_h2h.team2_id, largerId)),
-            and(eq(schema.team_h2h.team1_id, largerId), eq(schema.team_h2h.team2_id, smallerId))
+            and(eq(schema.team_h2h.team1Id, smallerId), eq(schema.team_h2h.team2Id, largerId)),
+            and(eq(schema.team_h2h.team1Id, largerId), eq(schema.team_h2h.team2Id, smallerId))
           )
         )
       )
@@ -205,7 +209,7 @@ export async function getH2HData(
 
     // Get the last 5 games
     const last5Games = await Promise.all(
-      (h2h.last_5_games as string[]).map(async (gameId: string) => {
+      (h2h.last5Games as string[]).map(async (gameId: string) => {
         const game = await db
           .select()
           .from(schema.nba_games)
@@ -227,7 +231,7 @@ export async function getH2HData(
 
     return {
       ...h2h,
-      last_5_games: last5Games.filter(Boolean),
+      last5Games: last5Games.filter(Boolean),
     };
   } catch (error) {
     console.error('Error fetching H2H data:', error);
@@ -246,10 +250,10 @@ export async function updateH2HData(game: Game, db: NodePgDatabase<typeof schema
       .from(schema.team_h2h)
       .where(
         and(
-          eq(schema.team_h2h.season_id, game.season),
+          eq(schema.team_h2h.season, game.season),
           or(
-            and(eq(schema.team_h2h.team1_id, team1Id), eq(schema.team_h2h.team2_id, team2Id)),
-            and(eq(schema.team_h2h.team1_id, team2Id), eq(schema.team_h2h.team2_id, team1Id))
+            and(eq(schema.team_h2h.team1Id, team1Id), eq(schema.team_h2h.team2Id, team2Id)),
+            and(eq(schema.team_h2h.team1Id, team2Id), eq(schema.team_h2h.team2Id, team1Id))
           )
         )
       )
@@ -257,23 +261,23 @@ export async function updateH2HData(game: Game, db: NodePgDatabase<typeof schema
 
     if (existingH2H) {
       // Update existing record
-      const last5Games = [...(existingH2H.last_5_games as string[]), game.id.toString()].slice(-5);
+      const last5Games = [...(existingH2H.last5Games as string[]), game.id.toString()].slice(-5);
       await db
         .update(schema.team_h2h)
         .set({
-          last_5_games: last5Games,
-          updated_at: new Date(),
+          last5Games: last5Games,
+          updatedAt: new Date(),
         })
         .where(eq(schema.team_h2h.id, existingH2H.id));
     } else {
       // Create new record
       await db.insert(schema.team_h2h).values({
-        team1_id: team1Id,
-        team2_id: team2Id,
-        season_id: game.season,
-        last_5_games: [game.id.toString()],
-        created_at: new Date(),
-        updated_at: new Date(),
+        team1Id: team1Id,
+        team2Id: team2Id,
+        season: game.season,
+        last5Games: [game.id.toString()],
+        createdAt: new Date(),
+        updatedAt: new Date(),
       });
     }
   } catch (error) {

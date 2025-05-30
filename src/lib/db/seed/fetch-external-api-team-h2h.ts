@@ -9,19 +9,19 @@ export async function fetchAndProcessTeamH2H(db: NeonHttpDatabase<typeof schema>
 
   // Get all games for the season
   const games = await db.query.nba_games.findMany({
-    where: sql`season_id = ${season}`,
+    where: sql`season = ${season}`,
   });
 
   // Create a map to store h2h stats for each team pair
   const h2hMap = new Map<
     string,
     {
-      team1_id: string;
-      team2_id: string;
-      total_games: number;
-      team1_wins: number;
-      team2_wins: number;
-      last_5_games: string[];
+      team1Id: string;
+      team2Id: string;
+      totalGames: number;
+      team1Wins: number;
+      team2Wins: number;
+      last5Games: string[];
       total_points_team1: number;
       total_points_team2: number;
       times_tied: number;
@@ -32,8 +32,8 @@ export async function fetchAndProcessTeamH2H(db: NeonHttpDatabase<typeof schema>
   // Process each game
   for (const game of games) {
     const teamsData = game.teams as {
-      visitors: { id: string; name: string; nickname: string; code: string };
-      home: { id: string; name: string; nickname: string; code: string };
+      visitors: { id: number; name: string; nickname: string; code: string; logo: string };
+      home: { id: number; name: string; nickname: string; code: string; logo: string };
     };
     const scoresData = game.scores as {
       visitors: {
@@ -47,20 +47,20 @@ export async function fetchAndProcessTeamH2H(db: NeonHttpDatabase<typeof schema>
 
     if (!teamsData?.visitors?.id || !teamsData?.home?.id) continue;
 
-    const team1Id = teamsData.visitors.id;
-    const team2Id = teamsData.home.id;
+    const team1Id = teamsData.visitors.id.toString();
+    const team2Id = teamsData.home.id.toString();
 
     // Create a unique key for the team pair (always use smaller ID first)
     const key = [team1Id, team2Id].sort().join('-');
 
     if (!h2hMap.has(key)) {
       h2hMap.set(key, {
-        team1_id: [team1Id, team2Id].sort()[0],
-        team2_id: [team1Id, team2Id].sort()[1],
-        total_games: 0,
-        team1_wins: 0,
-        team2_wins: 0,
-        last_5_games: [],
+        team1Id: [team1Id, team2Id].sort()[0],
+        team2Id: [team1Id, team2Id].sort()[1],
+        totalGames: 0,
+        team1Wins: 0,
+        team2Wins: 0,
+        last5Games: [],
         total_points_team1: 0,
         total_points_team2: 0,
         times_tied: 0,
@@ -69,7 +69,7 @@ export async function fetchAndProcessTeamH2H(db: NeonHttpDatabase<typeof schema>
     }
 
     const h2h = h2hMap.get(key)!;
-    h2h.total_games++;
+    h2h.totalGames++;
 
     // Update points and wins
     const team1Points = scoresData.visitors.points;
@@ -79,28 +79,28 @@ export async function fetchAndProcessTeamH2H(db: NeonHttpDatabase<typeof schema>
       h2h.total_points_team1 += team1Points;
       h2h.total_points_team2 += team2Points;
       if (team1Points > team2Points) {
-        h2h.team1_wins++;
+        h2h.team1Wins++;
       } else {
-        h2h.team2_wins++;
+        h2h.team2Wins++;
       }
     } else {
       h2h.total_points_team1 += team2Points;
       h2h.total_points_team2 += team1Points;
       if (team2Points > team1Points) {
-        h2h.team1_wins++;
+        h2h.team1Wins++;
       } else {
-        h2h.team2_wins++;
+        h2h.team2Wins++;
       }
     }
 
     // Update times tied and lead changes
-    h2h.times_tied += game.times_tied || 0;
-    h2h.lead_changes += game.lead_changes || 0;
+    h2h.times_tied += game.timesTied || 0;
+    h2h.lead_changes += game.leadChanges || 0;
 
     // Update last 5 games
-    h2h.last_5_games.push(game.id);
-    if (h2h.last_5_games.length > 5) {
-      h2h.last_5_games.shift();
+    h2h.last5Games.push(game.id);
+    if (h2h.last5Games.length > 5) {
+      h2h.last5Games.shift();
     }
   }
 
@@ -109,23 +109,23 @@ export async function fetchAndProcessTeamH2H(db: NeonHttpDatabase<typeof schema>
     // Check if record already exists
     const existingRecord = await db.query.team_h2h.findFirst({
       where: and(
-        eq(schema.team_h2h.season_id, season),
-        eq(schema.team_h2h.team1_id, h2h.team1_id),
-        eq(schema.team_h2h.team2_id, h2h.team2_id)
+        eq(schema.team_h2h.season, season),
+        eq(schema.team_h2h.team1Id, h2h.team1Id),
+        eq(schema.team_h2h.team2Id, h2h.team2Id)
       ),
     });
 
     const statsData = {
-      team1_id: h2h.team1_id,
-      team2_id: h2h.team2_id,
-      season_id: season,
-      total_games: h2h.total_games,
-      team1_wins: h2h.team1_wins,
-      team2_wins: h2h.team2_wins,
-      last_5_games: h2h.last_5_games,
-      average_points_team1: String((h2h.total_points_team1 / h2h.total_games).toFixed(2)),
-      average_points_team2: String((h2h.total_points_team2 / h2h.total_games).toFixed(2)),
-      updated_at: new Date(),
+      team1Id: h2h.team1Id,
+      team2Id: h2h.team2Id,
+      season: season,
+      totalGames: h2h.totalGames,
+      team1Wins: h2h.team1Wins,
+      team2Wins: h2h.team2Wins,
+      last5Games: h2h.last5Games,
+      averagePointsTeam1: String((h2h.total_points_team1 / h2h.totalGames).toFixed(2)),
+      averagePointsTeam2: String((h2h.total_points_team2 / h2h.totalGames).toFixed(2)),
+      updatedAt: new Date(),
     };
 
     if (existingRecord) {
@@ -134,15 +134,15 @@ export async function fetchAndProcessTeamH2H(db: NeonHttpDatabase<typeof schema>
         .update(schema.team_h2h)
         .set(statsData)
         .where(eq(schema.team_h2h.id, existingRecord.id));
-      console.log(`Updated H2H stats for teams ${h2h.team1_id} vs ${h2h.team2_id}`);
+      console.log(`Updated H2H stats for teams ${h2h.team1Id} vs ${h2h.team2Id}`);
     } else {
       // Insert new record
       await db.insert(schema.team_h2h).values({
         id: generateUUID(),
         ...statsData,
-        created_at: new Date(),
+        createdAt: new Date(),
       });
-      console.log(`Inserted new H2H stats for teams ${h2h.team1_id} vs ${h2h.team2_id}`);
+      console.log(`Inserted new H2H stats for teams ${h2h.team1Id} vs ${h2h.team2Id}`);
     }
   }
 

@@ -6,17 +6,18 @@ import { isAfter } from 'date-fns';
 import React, { useRef, useState, useEffect, useCallback } from 'react';
 
 import { GameCard } from '@/components/features/games';
+import { GET_GAMES } from '@/lib/graphql/queries';
 import { SearchGame, Game, GameEdge, GameQueryResponse } from '@/lib/types/game.types';
 import { DEFAULT_PAGE_SIZE } from '@/lib/types/shared.types';
 import { getCurrentSeason } from '@/lib/utils/index.time';
-import { GET_GAMES } from '@/lib/graphql/queries';
 
 // Convert Game to SearchGame
 const convertGameToSearchGame = (game: Game): SearchGame => {
   // Parse JSON fields
-  const teams = typeof game.teams === 'string' ? JSON.parse(game.teams) : game.teams;
-  const scores = typeof game.scores === 'string' ? JSON.parse(game.scores) : game.scores;
-  const periods = typeof game.periods === 'string' ? JSON.parse(game.periods) : game.periods;
+  console.log({ game });
+  // const teams = typeof game.teams === 'string' ? JSON.parse(game.teams) : game.teams;
+  // const scores = typeof game.scores === 'string' ? JSON.parse(game.scores) : game.scores;
+  // const periods = typeof game.periods === 'string' ? JSON.parse(game.periods) : game.periods;
   const arena =
     typeof game.arena === 'string'
       ? { name: game.arena, city: '', state: '', country: '' }
@@ -37,24 +38,24 @@ const convertGameToSearchGame = (game: Game): SearchGame => {
     },
     teams: {
       home: {
-        id: teams?.home?.id || '',
-        name: teams?.home?.name || '',
-        nickname: teams?.home?.nickname || '',
-        logo: teams?.home?.logo || undefined,
+        id: game.teams?.home?.id || '',
+        name: game.teams?.home?.name || '',
+        nickname: game.teams?.home?.nickname || '',
+        logo: game.teams?.home?.logo || undefined,
       },
       visitors: {
-        id: teams?.visitors?.id || '',
-        name: teams?.visitors?.name || '',
-        nickname: teams?.visitors?.nickname || '',
-        logo: teams?.visitors?.logo || undefined,
+        id: game.teams?.visitors?.id || '',
+        name: game.teams?.visitors?.name || '',
+        nickname: game.teams?.visitors?.nickname || '',
+        logo: game.teams?.visitors?.logo || undefined,
       },
     },
     scores: {
       home: {
-        points: scores?.home?.points ?? 0,
+        points: game.scores?.home?.points ?? 0,
       },
       visitors: {
-        points: scores?.visitors?.points ?? 0,
+        points: game.scores?.visitors?.points ?? 0,
       },
     },
     arena: {
@@ -67,69 +68,18 @@ const convertGameToSearchGame = (game: Game): SearchGame => {
     season: game.season,
     stage: game.stage,
     periods: {
-      current: periods?.current ?? 0,
-      total: periods?.total ?? 0,
-      endOfPeriod: periods?.endOfPeriod ?? false,
+      current: game.periods?.current ?? 0,
+      total: game.periods?.total ?? 0,
+      endOfPeriod: game.periods?.endOfPeriod ?? false,
     },
     officials: Array.isArray(game.officials) ? game.officials : [],
     timesTied: game.timesTied ?? 0,
     leadChanges: game.leadChanges ?? 0,
     nugget: game.nugget || '',
-    created_at:
-      game.created_at instanceof Date ? game.created_at.toISOString() : game.created_at || '',
-    updated_at:
-      game.updated_at instanceof Date ? game.updated_at.toISOString() : game.updated_at || '',
+    createdAt: game.createdAt instanceof Date ? game.createdAt.toISOString() : game.createdAt || '',
+    updatedAt: game.updatedAt instanceof Date ? game.updatedAt.toISOString() : game.updatedAt || '',
   };
 };
-
-// // Pure function to filter live games
-// const filterLiveGames = (games: SearchGame[]): SearchGame[] => {
-//   return games
-//     .filter(
-//       game =>
-//         (game.status.long === 'In Play' || game.status.short === 'Live') &&
-//         !game.status.short.includes('Finished') &&
-//         !game.status.short.includes('Final')
-//     )
-//     .sort((a, b) => {
-//       const dateA = new Date(a.date.start);
-//       const dateB = new Date(b.date.start);
-//       return dateB.getTime() - dateA.getTime(); // Most recent first
-//     });
-// };
-
-// // Pure function to filter scheduled games
-// const filterScheduledGames = (games: SearchGame[], now: Date): SearchGame[] => {
-//   return games
-//     .filter(
-//       game =>
-//         (game.status.short === 'Scheduled' || game.status.short === 'Not Started') &&
-//         isAfter(new Date(game.date.start), now) &&
-//         !game.status.short.includes('Finished') &&
-//         !game.status.short.includes('Final')
-//     )
-//     .sort((a, b) => {
-//       const dateA = new Date(a.date.start);
-//       const dateB = new Date(b.date.start);
-//       return dateA.getTime() - dateB.getTime(); // Chronological order for upcoming games
-//     });
-// };
-
-// // Pure function to filter completed games
-// const filterCompletedGames = (games: SearchGame[]): SearchGame[] => {
-//   return games
-//     .filter(
-//       game =>
-//         game.status.short === 'Finished' ||
-//         game.status.short === 'Final' ||
-//         game.status.long === 'Game Finished'
-//     )
-//     .sort((a, b) => {
-//       const dateA = new Date(a.date.start);
-//       const dateB = new Date(b.date.start);
-//       return dateB.getTime() - dateA.getTime(); // Most recent first
-//     });
-// };
 
 export default function NBAPage() {
   const { isLoaded } = useUser();
@@ -139,6 +89,7 @@ export default function NBAPage() {
   const [currentSeason, setCurrentSeason] = useState<number>(getCurrentSeason());
   const [hasMoreSeasons, setHasMoreSeasons] = useState<boolean>(true);
   const [games, setGames] = useState<SearchGame[]>([]);
+  const [showUpcomingGames, setShowUpcomingGames] = useState<boolean>(false);
 
   const { loading, error, data, fetchMore } = useQuery<GameQueryResponse>(GET_GAMES, {
     variables: {
@@ -149,7 +100,7 @@ export default function NBAPage() {
     },
   });
 
-  console.log({ loading, error, data, fetchMore });
+  // console.log({ loading, error, data, fetchMore });
 
   useEffect(() => {
     if (data?.games && Array.isArray(data.games.edges)) {
@@ -167,7 +118,7 @@ export default function NBAPage() {
     }
   }, [data]);
 
-  console.log({ data });
+  // console.log({ data });
 
   const handleLoadMore = useCallback(async () => {
     if (!data?.games.pageInfo.hasNextPage) {
@@ -212,10 +163,10 @@ export default function NBAPage() {
   }, [data, fetchMore, currentSeason, hasMoreSeasons]);
 
   const now = new Date();
-  const uniqueGames = games || [];
+  // const uniqueGames = games || [];
 
   // Sort all games by date first
-  const sortedGames = [...uniqueGames].sort((a, b) => {
+  const sortedGames = [...(games || [])].sort((a, b) => {
     const dateA = new Date(a.date.start);
     const dateB = new Date(b.date.start);
     return dateB.getTime() - dateA.getTime(); // Most recent first
@@ -262,33 +213,33 @@ export default function NBAPage() {
   const scheduledGamesList = processedGames.scheduled;
   const completedGamesList = processedGames.completed;
 
-  console.log('Final sorted games:', {
-    total: games?.length || 0,
-    live: liveGamesList.length,
-    scheduled: scheduledGamesList.length,
-    completed: completedGamesList.length,
-    liveGames: liveGamesList.map(g => ({
-      id: g.id,
-      status: g.status.short,
-      date: g.date.start,
-      parsed: new Date(g.date.start).toISOString(),
-      timestamp: new Date(g.date.start).getTime(),
-    })),
-    scheduledGames: scheduledGamesList.map(g => ({
-      id: g.id,
-      status: g.status.short,
-      date: g.date.start,
-      parsed: new Date(g.date.start).toISOString(),
-      timestamp: new Date(g.date.start).getTime(),
-    })),
-    completedGames: completedGamesList.map(g => ({
-      id: g.id,
-      status: g.status.short,
-      date: g.date.start,
-      parsed: new Date(g.date.start).toISOString(),
-      timestamp: new Date(g.date.start).getTime(),
-    })),
-  });
+  // console.log('Final sorted games:', {
+  //   total: games?.length || 0,
+  //   live: liveGamesList.length,
+  //   scheduled: scheduledGamesList.length,
+  //   completed: completedGamesList.length,
+  //   liveGames: liveGamesList.map(g => ({
+  //     id: g.id,
+  //     status: g.status.short,
+  //     date: g.date.start,
+  //     parsed: new Date(g.date.start).toISOString(),
+  //     timestamp: new Date(g.date.start).getTime(),
+  //   })),
+  //   scheduledGames: scheduledGamesList.map(g => ({
+  //     id: g.id,
+  //     status: g.status.short,
+  //     date: g.date.start,
+  //     parsed: new Date(g.date.start).toISOString(),
+  //     timestamp: new Date(g.date.start).getTime(),
+  //   })),
+  //   completedGames: completedGamesList.map(g => ({
+  //     id: g.id,
+  //     status: g.status.short,
+  //     date: g.date.start,
+  //     parsed: new Date(g.date.start).toISOString(),
+  //     timestamp: new Date(g.date.start).getTime(),
+  //   })),
+  // });
 
   useEffect(() => {
     if (!loadMoreRef.current || !data?.games.pageInfo.hasNextPage) return;
@@ -354,18 +305,40 @@ export default function NBAPage() {
 
         {scheduledGamesList.length > 0 && (
           <div>
-            <h2 className="text-2xl font-semibold mb-4">Upcoming Games</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {scheduledGamesList.map(game => (
-                <GameCard key={game.id} game={game} />
-              ))}
-            </div>
+            {showUpcomingGames && (
+              <div>
+                <div className="flex justify-end mb-4">
+                  <button
+                    onClick={() => setShowUpcomingGames(prev => !prev)}
+                    className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 transition"
+                  >
+                    Hide Upcoming Games
+                  </button>
+                </div>
+                <div className="mb-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {scheduledGamesList.map(game => (
+                    <GameCard key={game.id} game={game} />
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-2xl font-semibold">Completed Games</h2>
+          {scheduledGamesList.length > 0 && !showUpcomingGames && (
+            <button
+              onClick={() => setShowUpcomingGames(prev => !prev)}
+              className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 transition"
+            >
+              Show Upcoming Games
+            </button>
+          )}
+        </div>
+
         {completedGamesList.length > 0 && (
           <div>
-            <h2 className="text-2xl font-semibold mb-4">Completed Games</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {completedGamesList.map(game => (
                 <GameCard key={game.id} game={game} />

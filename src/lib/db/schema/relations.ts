@@ -15,7 +15,7 @@ export const usersRelations = relations(users, ({ many }) => ({
 // Comment-related relations
 export const commentsRelations = relations(comments, ({ one, many }) => ({
   user: one(users, {
-    fields: [comments.user_id],
+    fields: [comments.userId],
     references: [users.id],
   }),
   reactions: many(reactions),
@@ -24,7 +24,7 @@ export const commentsRelations = relations(comments, ({ one, many }) => ({
 // Reaction-related relations
 export const reactionsRelations = relations(reactions, ({ one }) => ({
   user: one(users, {
-    fields: [reactions.user_id],
+    fields: [reactions.userId],
     references: [users.id],
   }),
 }));
@@ -32,7 +32,7 @@ export const reactionsRelations = relations(reactions, ({ one }) => ({
 // Game-related relations
 export const gameLogsRelations = relations(game_logs, ({ one, many }) => ({
   user: one(users, {
-    fields: [game_logs.user_id],
+    fields: [game_logs.userId],
     references: [users.id],
   }),
   comments: many(comments),
@@ -50,8 +50,8 @@ export const team_h2h_relations = relations(team_h2h, ({ many }) => ({
 
 export const teams_relations = relations(teams, ({ many }) => ({
   players: many(nba_players),
-  home_games: many(games, { relationName: 'home_team' }),
-  away_games: many(games, { relationName: 'away_team' }),
+  homeGames: many(games, { relationName: 'homeTeam' }),
+  awayGames: many(games, { relationName: 'awayTeam' }),
 }));
 
 export const players_relations = relations(nba_players, ({ many }) => ({

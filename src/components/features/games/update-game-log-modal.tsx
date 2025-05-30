@@ -35,7 +35,7 @@ export function UpdateGameLogModal({ gameLog, isOpen, setIsOpen }: UpdateGameLog
           };
         }>({
           query: GET_GAME_LOGS,
-          variables: { user_id: auth_user_id },
+          variables: { userId: auth_user_id },
         });
 
         if (existingGameLogs?.user?.gameLogs && Array.isArray(existingGameLogs.user.gameLogs)) {
@@ -45,7 +45,7 @@ export function UpdateGameLogModal({ gameLog, isOpen, setIsOpen }: UpdateGameLog
 
           cache.writeQuery({
             query: GET_GAME_LOGS,
-            variables: { user_id: auth_user_id },
+            variables: { userId: auth_user_id },
             data: {
               user: {
                 ...existingGameLogs.user,
@@ -61,12 +61,12 @@ export function UpdateGameLogModal({ gameLog, isOpen, setIsOpen }: UpdateGameLog
   });
 
   const [formData, setFormData] = useState<GameLogFormData>({
-    watched_setting: gameLog.watchedSetting,
-    watched_date: new Date(gameLog.watchedDate || Date.now()),
-    watched_location: gameLog.watchedSetting,
-    rating_for_game: gameLog.rating?.toString() || '',
-    rating_stars: gameLog.rating || 0,
-    watched_count: 1,
+    watchedSetting: gameLog.watchedSetting,
+    watchedDate: new Date(gameLog.watchedDate || Date.now()),
+    watchedLocation: gameLog.watchedSetting,
+    ratingForGame: gameLog.rating?.toString() || '',
+    ratingStars: gameLog.rating || 0,
+    watchedCount: 1,
     notes: gameLog.notes || '',
     classification: gameLog.classification,
     tags: gameLog.tags || [],
@@ -83,10 +83,10 @@ export function UpdateGameLogModal({ gameLog, isOpen, setIsOpen }: UpdateGameLog
     }
 
     if (
-      !formData.watched_setting ||
-      !formData.watched_date ||
-      !formData.watched_location ||
-      !formData.rating_for_game ||
+      !formData.watchedSetting ||
+      !formData.watchedDate ||
+      !formData.watchedLocation ||
+      !formData.ratingForGame ||
       !formData.classification
     ) {
       toast({
@@ -98,7 +98,7 @@ export function UpdateGameLogModal({ gameLog, isOpen, setIsOpen }: UpdateGameLog
     }
 
     try {
-      const rating = Number(formData.rating_for_game);
+      const rating = Number(formData.ratingForGame);
       if (isNaN(rating) || !Number.isInteger(rating) || rating < 1 || rating > 5) {
         toast({
           title: 'Invalid rating',
@@ -110,10 +110,10 @@ export function UpdateGameLogModal({ gameLog, isOpen, setIsOpen }: UpdateGameLog
 
       const payload = {
         id: gameLog.id,
-        watched_setting: formData.watched_setting.toLowerCase(),
-        watched_date: formData.watched_date.toISOString(),
-        watched_location: formData.watched_location || 'Home',
-        rating_for_game: rating,
+        watchedSetting: formData.watchedSetting.toLowerCase(),
+        watchedDate: formData.watchedDate.toISOString(),
+        watchedLocation: formData.watchedLocation || 'Home',
+        ratingForGame: rating,
         classification: formData.classification,
       };
 

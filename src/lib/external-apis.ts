@@ -556,15 +556,50 @@ export async function searchNbaTeams(queryParams: string): Promise<ApiTeamRespon
 /**
  * Fetch NBA game statistics for a specific game
  */
-export async function fetchNbaGameStatistics(game_id: string): Promise<StandingApiResponse> {
-  const res = await fetchWithRetry(
-    `${getNbaApiBaseUrl()}/${API_CONFIG.endpoints.GAMES}/statistics?game=${game_id}`,
+export async function fetchNbaGameStatistics(gameId: string): Promise<GameApiResponse> {
+  const url = `${getNbaApiBaseUrl()}/${API_CONFIG.endpoints.GAMES}/statistics?id=${gameId}`;
+  const response = await fetchWithRetry(
+    url,
     createNbaApiConfig(),
     API_CONFIG.rateLimit.MAX_RETRIES,
     API_CONFIG.rateLimit.BASE_DELAY
   );
-  const data = await res.json();
+  const data = await response.json();
   return {
-    response: data,
-  } as StandingApiResponse;
+    response: data.response || data,
+  };
+}
+
+export async function fetchNbaPlayerStatistics(playerId: string) {
+  const url = `${getNbaApiBaseUrl()}/${API_CONFIG.endpoints.PLAYERS}/statistics?id=${playerId}`;
+  const response = await fetch(url, {
+    headers: {
+      'x-rapidapi-host': 'api-nba-v1.p.rapidapi.com',
+      'x-rapidapi-key': process.env.RAPIDAPI_KEY || '',
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch player statistics: ${response.statusText}`);
+  }
+
+  const data = await response.json();
+  return data;
+}
+
+export async function fetchNbaTeamStatistics(teamId: string) {
+  const url = `${getNbaApiBaseUrl()}/${API_CONFIG.endpoints.TEAMS}/statistics?id=${teamId}`;
+  const response = await fetch(url, {
+    headers: {
+      'x-rapidapi-host': 'api-nba-v1.p.rapidapi.com',
+      'x-rapidapi-key': process.env.RAPIDAPI_KEY || '',
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch team statistics: ${response.statusText}`);
+  }
+
+  const data = await response.json();
+  return data;
 }

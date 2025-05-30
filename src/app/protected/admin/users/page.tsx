@@ -111,10 +111,10 @@ function AdminUsersContent() {
               >
                 <TableCell className="text-muted-foreground">{startIndex + index + 1}</TableCell>
                 <TableCell>
-                  {`${user.first_name || 'missing-first-name'} ${user.last_name || 'missing-last-name'}`}
+                  {`${user.firstName || 'missing-first-name'} ${user.lastName || 'missing-last-name'}`}
                 </TableCell>
-                <TableCell>{user.email_address || 'missing-email-address'}</TableCell>
-                <TableCell>{new Date(user.created_at ?? '').toLocaleDateString()}</TableCell>
+                <TableCell>{user.emailAddress || 'missing-email-address'}</TableCell>
+                <TableCell>{new Date(user.createdAt ?? '').toLocaleDateString()}</TableCell>
               </TableRow>
             ))}
           </TableBody>

@@ -54,10 +54,10 @@ const reactionTypeValues = Object.values(REACTION_TYPE) as [
 // Define enums
 export const reaction_emoji_enum = pgEnum('reaction_emoji', reactionEmojiValues);
 export const friendship_status_enum = pgEnum('friendship_status', friendshipStatusValues);
-export const watched_setting_enum = pgEnum('watched_setting', watchedSettingValues);
+export const watched_setting_enum = pgEnum('watchedSetting', watchedSettingValues);
 export const reaction_target_enum = pgEnum('reaction_target', ['game_log', 'comment']);
 export const game_status_enum = pgEnum('game_status', gameStatusValues);
-export const game_type_enum = pgEnum('game_type', gameTypeValues);
+export const game_type_enum = pgEnum('gameType', gameTypeValues);
 export const user_role_enum = pgEnum('user_role', userRoleValues);
 export const notification_type_enum = pgEnum('notification_type', notificationTypeValues);
 export const reaction_type_enum = pgEnum('reaction_type', reactionTypeValues);
