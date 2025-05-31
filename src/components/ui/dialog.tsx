@@ -35,7 +35,10 @@ const DialogContent = React.forwardRef<
     <DialogOverlay />
     <DialogPrimitive.Content
       ref={ref}
-      className={cn(dialogAnimationStyles.content, className)}
+      className={cn(
+        'fixed left-1/2 top-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-neutral-800 bg-[#181C23] p-6 shadow-2xl dark:bg-[#181C23] dark:border-neutral-800 dark:shadow-[0_0_24px_rgba(0,0,0,0.7)]',
+        className
+      )}
       {...props}
     >
       {children}
