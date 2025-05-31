@@ -1,6 +1,13 @@
 'use client';
 
+import { useMutation } from '@apollo/client';
+import { SignInButton } from '@clerk/nextjs';
+import { Calendar, X } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
+import DatePicker from 'react-datepicker';
+
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -8,10 +15,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
   SelectContent,
@@ -19,22 +24,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useMutation } from '@apollo/client';
-import { CREATE_GAME_LOG } from '@/lib/graphql/mutations';
-import { useRouter } from 'next/navigation';
+import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/components/ui/use-toast';
 import { useAuthContext } from '@/contexts/AuthContext';
-import { SignInButton } from '@clerk/nextjs';
-import DatePicker from 'react-datepicker';
+import { CREATE_GAME_LOG } from '@/lib/graphql/mutations';
+
 import 'react-datepicker/dist/react-datepicker.css';
-import { Calendar, X } from 'lucide-react';
 
 interface CreateGameLogModalProps {
-  gameId: string;
-  userId: string;
+  gameId?: string;
+  userId?: string;
+  onSuccess?: () => void;
 }
 
-export function CreateGameLogModal({ gameId, userId }: CreateGameLogModalProps) {
+export function CreateGameLogModal({ gameId, onSuccess }: CreateGameLogModalProps) {
   const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
@@ -121,6 +124,7 @@ export function CreateGameLogModal({ gameId, userId }: CreateGameLogModalProps) 
           notes: '',
         });
         setIsOpen(false);
+        onSuccess?.();
         router.refresh();
       }
     } catch (error) {

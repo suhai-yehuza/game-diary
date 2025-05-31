@@ -59,9 +59,11 @@ export function GameLogForm({
     variables: {
       filters: {
         search: searchQuery,
-        dateRange: searchQuery ? undefined : {
-          start: format(new Date(), 'yyyy-MM-dd'),
-        },
+        dateRange: searchQuery
+          ? undefined
+          : {
+              start: format(new Date(), 'yyyy-MM-dd'),
+            },
       },
       pagination: { first: 10 },
     },

@@ -513,7 +513,7 @@ export const createDbGameLoader = () => {
           state: typeof game.arena === 'string' ? null : game.arena?.state || null,
           country: typeof game.arena === 'string' ? null : game.arena?.country || null,
         },
-        league: game.league || '',
+        league: game.league,
         season: game.season ?? 0,
         stage: game.stage ?? 0,
         periods: {

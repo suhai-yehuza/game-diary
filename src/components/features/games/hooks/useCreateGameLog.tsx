@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery } from '@apollo/client';
 import { useUser } from '@clerk/nextjs';
-import React from 'react';
+import { useMemo } from 'react';
 
 import { useToast } from '@/components/ui/use-toast';
 import { CREATE_GAME_LOG } from '@/lib/graphql/mutations';
@@ -26,7 +26,7 @@ export function useCreateGameLog({ onSuccess }: UseCreateGameLogProps = {}) {
   const { user } = useUser();
 
   // Memoize variables to prevent infinite re-renders
-  const gamesQueryVariables = React.useMemo(() => {
+  const gamesQueryVariables = useMemo(() => {
     if (!user?.id) return undefined;
     return {
       filters: {

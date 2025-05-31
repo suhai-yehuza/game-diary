@@ -1,96 +1,19 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
+import { useQuery } from '@apollo/client';
+import { SignInButton } from '@clerk/nextjs';
 import { format } from 'date-fns';
 import Image from 'next/image';
 import Link from 'next/link';
-import { CreateGameLogModal } from '@/components/features/games';
-import type { Game, GameStatistics } from '@/lib/types/game.types';
-import { useAuthContext } from '@/contexts/AuthContext';
-import { SignInButton } from '@clerk/nextjs';
-import { Button } from '@/components/ui/button';
-import { fetchNbaGameById } from '@/lib/external-apis';
-import { useQuery } from '@apollo/client';
-import { GET_TEAM_STATS } from '@/lib/graphql/queries';
+import { useParams } from 'next/navigation';
+import React, { useState, useEffect } from 'react';
 
-interface ApiGameResponse {
-  response: Array<{
-    id: number;
-    league: {
-      id: string;
-      name: string;
-      type: string;
-      logo: string;
-    };
-    season: number;
-    date: {
-      start: string;
-      end?: string;
-      duration?: string;
-    };
-    stage: number;
-    status: {
-      clock?: string;
-      halftime: boolean;
-      short: number;
-      long: string;
-    };
-    periods: {
-      current: number;
-      total: number;
-      endOfPeriod: boolean;
-    };
-    arena: {
-      name: string;
-      city: string;
-      state: string;
-      country: string;
-    };
-    teams: {
-      visitors: {
-        id: number;
-        name: string;
-        nickname: string;
-        code: string;
-        logo: string;
-      };
-      home: {
-        id: number;
-        name: string;
-        nickname: string;
-        code: string;
-        logo: string;
-      };
-    };
-    scores: {
-      visitors: {
-        win: number;
-        loss: number;
-        series: {
-          win: number;
-          loss: number;
-        };
-        linescore: string[];
-        points: number;
-      };
-      home: {
-        win: number;
-        loss: number;
-        series: {
-          win: number;
-          loss: number;
-        };
-        linescore: string[];
-        points: number;
-      };
-    };
-    officials?: string[];
-    timesTied?: number;
-    leadChanges?: number;
-    nugget?: string | null;
-  }>;
-}
+import { CreateGameLogModal } from '@/components/features/games';
+import { Button } from '@/components/ui/button';
+import { useAuthContext } from '@/contexts/AuthContext';
+import { fetchNbaGameById } from '@/lib/external-apis';
+import { GET_TEAM_STATS } from '@/lib/graphql/queries';
+import type { Game, GameStatistics } from '@/lib/types/game.types';
 
 export default function GamePage() {
   const params = useParams();
@@ -123,170 +46,46 @@ export default function GamePage() {
         if (!response.response || response.response.length === 0) {
           throw new Error('Game not found');
         }
-        const apiGame = response.response[0] as unknown as {
-          id: number;
-          league: {
-            id: string;
-            name: string;
-            type: string;
-            logo: string;
-          };
-          season: number;
-          date: {
-            start: string;
-            end?: string;
-            duration?: string;
-          };
-          stage: number;
-          status: {
-            clock?: string;
-            halftime: boolean;
-            short: number;
-            long: string;
-          };
-          periods: {
-            current: number;
-            total: number;
-            endOfPeriod: boolean;
-          };
-          arena: {
-            name: string;
-            city: string;
-            state: string;
-            country: string;
-          };
-          teams: {
-            visitors: {
-              id: number;
-              name: string;
-              nickname: string;
-              code: string;
-              logo: string;
-            };
-            home: {
-              id: number;
-              name: string;
-              nickname: string;
-              code: string;
-              logo: string;
-            };
-          };
-          scores: {
-            visitors: {
-              linescore: string[];
-              points: number;
-              win: number;
-              loss: number;
-              series: {
-                win: number;
-                loss: number;
-              };
-            };
-            home: {
-              linescore: string[];
-              points: number;
-              win: number;
-              loss: number;
-              series: {
-                win: number;
-                loss: number;
-              };
-            };
-          };
-        };
+        const apiGame = response.response[0];
 
         const game: Game = {
-          // Basic game information
           id: apiGame.id.toString(),
-
-          // League information
-          league: {
-            id: apiGame.league.id,
-            name: apiGame.league.name,
-            type: apiGame.league.type,
-            logo: apiGame.league.logo,
-          },
-
-          // Season and date information
-          season: apiGame.season,
           date: {
-            start: apiGame.date.start,
-            end: apiGame.date.end || '',
-            duration: apiGame.date.duration || '',
+            start: new Date(apiGame.date.start),
+            end: apiGame.date.end ? new Date(apiGame.date.end) : null,
+            duration: apiGame.date.duration || null,
           },
-
-          // Game stage and status
-          stage: apiGame.stage,
           status: {
-            clock: apiGame.status.clock || '',
+            clock: apiGame.status.clock || null,
             halftime: apiGame.status.halftime,
             short: apiGame.status.short,
             long: apiGame.status.long,
           },
-
-          // Period information
-          periods: {
-            current: apiGame.periods.current,
-            total: apiGame.periods.total,
-            endOfPeriod: apiGame.periods.endOfPeriod,
-          },
-
-          // Arena information
+          homeTeamId: apiGame.teams.home.id.toString(),
+          awayTeamId: apiGame.teams.visitors.id.toString(),
+          createdAt: new Date(),
+          updatedAt: new Date(),
           arena: {
-            name: apiGame.arena.name,
-            city: apiGame.arena.city,
-            state: apiGame.arena.state,
-            country: apiGame.arena.country,
+            name: apiGame.arena.name || null,
+            city: apiGame.arena.city || null,
+            state: apiGame.arena.state || null,
+            country: apiGame.arena.country || null,
           },
-
-          // Teams information
-          teams: {
-            visitors: {
-              id: apiGame.teams.visitors.id.toString(),
-              name: apiGame.teams.visitors.name,
-              nickname: apiGame.teams.visitors.nickname,
-              code: apiGame.teams.visitors.code,
-              logo: apiGame.teams.visitors.logo,
-            },
-            home: {
-              id: apiGame.teams.home.id.toString(),
-              name: apiGame.teams.home.name,
-              nickname: apiGame.teams.home.nickname,
-              code: apiGame.teams.home.code,
-              logo: apiGame.teams.home.logo,
-            },
-          },
-
-          // Scores information
-          scores: {
-            visitors: {
-              linescore: apiGame.scores.visitors.linescore,
-              points: apiGame.scores.visitors.points,
-              win: apiGame.scores.visitors.win ?? 0,
-              loss: apiGame.scores.visitors.loss ?? 0,
-              series: {
-                win: apiGame.scores.visitors.series?.win ?? 0,
-                loss: apiGame.scores.visitors.series?.loss ?? 0,
-              },
-            },
-            home: {
-              linescore: apiGame.scores.home.linescore,
-              points: apiGame.scores.home.points,
-              win: apiGame.scores.home.win ?? 0,
-              loss: apiGame.scores.home.loss ?? 0,
-              series: {
-                win: apiGame.scores.home.series?.win ?? 0,
-                loss: apiGame.scores.home.series?.loss ?? 0,
-              },
-            },
-          },
-
-          // Additional game information
-          officials: [],
-          timesTied: 0,
-          leadChanges: 0,
-          nugget: null,
-          statistics: [],
+          league: apiGame.league,
+          season: apiGame.season,
+          stage: apiGame.stage,
+          periods: apiGame.periods,
+          teams: apiGame.teams,
+          scores: apiGame.scores,
+          officials: apiGame.officials || [],
+          timesTied: apiGame.timesTied || null,
+          leadChanges: apiGame.leadChanges || null,
+          nugget: apiGame.nugget || null,
+          isCompleted: apiGame.status.short === '3',
+          awayScore: apiGame.scores.visitors.points,
+          homeScore: apiGame.scores.home.points,
+          gameType: 'NBA',
+          nbaGameId: apiGame.id.toString(),
         };
 
         setGameData(game);
@@ -299,7 +98,7 @@ export default function GamePage() {
     };
 
     loadGameData();
-  }, [params.id]);
+  }, [params.id, gameId]);
 
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;
@@ -339,10 +138,10 @@ export default function GamePage() {
           {/* Game Header */}
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-4">
-              {gameData?.league.logo && (
+              {gameData?.league && (
                 <Image
-                  src={gameData.league.logo}
-                  alt={gameData.league.name}
+                  src={gameData.teams.home.logo}
+                  alt={gameData.league}
                   width={40}
                   height={40}
                   className="rounded-full"
@@ -507,22 +306,19 @@ export default function GamePage() {
                           <div className="w-16 h-16 relative flex-shrink-0">
                             <Image
                               src={
-                                imageErrors[`${teamStats.team.id}-stats`]
+                                imageErrors[`${teamStats.teamId}-stats`]
                                   ? '/gamelog.svg'
-                                  : teamStats.team.logo
+                                  : teamStats.teamId
                               }
-                              alt={teamStats.team.name}
+                              alt={teamStats.teamId}
                               fill
                               sizes="(max-width: 64px) 100vw, 64px"
                               className="rounded-full bg-white p-1 object-contain"
-                              onError={() => handleImageError(`${teamStats.team.id}-stats`)}
+                              onError={() => handleImageError(`${teamStats.teamId}-stats`)}
                             />
                           </div>
                           <div>
-                            <h4 className="text-2xl font-bold text-white">
-                              {teamStats.team.nickname}
-                            </h4>
-                            <p className="text-blue-100">{teamStats.team.name}</p>
+                            <h4 className="text-2xl font-bold text-white">{teamStats.teamId}</h4>
                           </div>
                         </div>
                         <div className="text-right">
@@ -581,13 +377,7 @@ export default function GamePage() {
                           </div>
                           <div className="bg-gray-50 rounded-lg p-4">
                             <p className="text-sm text-gray-600 mb-1">Rebounds</p>
-                            <p className="text-2xl font-bold text-blue-600">
-                              {teamStats.rebounds.total}
-                            </p>
-                            <div className="flex justify-between text-xs text-gray-500 mt-1">
-                              <span>Off: {teamStats.rebounds.offensive}</span>
-                              <span>Def: {teamStats.rebounds.defensive}</span>
-                            </div>
+                            <p className="text-2xl font-bold text-blue-600">{teamStats.rebounds}</p>
                           </div>
                           <div className="bg-gray-50 rounded-lg p-4">
                             <p className="text-sm text-gray-600 mb-1">Assists</p>
@@ -604,51 +394,6 @@ export default function GamePage() {
                           <div className="bg-gray-50 rounded-lg p-4">
                             <p className="text-sm text-gray-600 mb-1">Turnovers</p>
                             <p className="text-2xl font-bold text-red-600">{teamStats.turnovers}</p>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Advanced Stats */}
-                      <div className="space-y-4">
-                        <h5 className="text-lg font-semibold text-blue-600 border-b border-gray-200 pb-2">
-                          Advanced Stats
-                        </h5>
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                          <div className="bg-gray-50 rounded-lg p-4">
-                            <p className="text-sm text-gray-600 mb-1">Fast Break Points</p>
-                            <p className="text-xl font-bold text-blue-600">
-                              {teamStats.statistics.fastBreakPoints}
-                            </p>
-                          </div>
-                          <div className="bg-gray-50 rounded-lg p-4">
-                            <p className="text-sm text-gray-600 mb-1">Points in Paint</p>
-                            <p className="text-xl font-bold text-blue-600">
-                              {teamStats.statistics.pointsInPaint}
-                            </p>
-                          </div>
-                          <div className="bg-gray-50 rounded-lg p-4">
-                            <p className="text-sm text-gray-600 mb-1">Biggest Lead</p>
-                            <p className="text-xl font-bold text-blue-600">
-                              {teamStats.statistics.biggestLead}
-                            </p>
-                          </div>
-                          <div className="bg-gray-50 rounded-lg p-4">
-                            <p className="text-sm text-gray-600 mb-1">Second Chance Points</p>
-                            <p className="text-xl font-bold text-blue-600">
-                              {teamStats.statistics.secondChancePoints}
-                            </p>
-                          </div>
-                          <div className="bg-gray-50 rounded-lg p-4">
-                            <p className="text-sm text-gray-600 mb-1">Points off Turnovers</p>
-                            <p className="text-xl font-bold text-blue-600">
-                              {teamStats.statistics.pointsOffTurnovers}
-                            </p>
-                          </div>
-                          <div className="bg-gray-50 rounded-lg p-4">
-                            <p className="text-sm text-gray-600 mb-1">Longest Run</p>
-                            <p className="text-xl font-bold text-blue-600">
-                              {teamStats.statistics.longestRun}
-                            </p>
                           </div>
                         </div>
                       </div>

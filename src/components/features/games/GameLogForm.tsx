@@ -66,7 +66,7 @@ export function GameLogForm({
     defaultValues,
   });
 
-  const games: Game[] = gamesData?.games?.edges?.map(edge => edge.node) ?? [];
+  const games = useMemo(() => gamesData?.games?.edges?.map(edge => edge.node) ?? [], [gamesData]);
 
   const selectedGame = useMemo(() => {
     if (!games.length || !defaultValues.gameId) return null;
@@ -77,9 +77,10 @@ export function GameLogForm({
     if (!games.length) return [];
     if (!debouncedQuery) return games;
     const query = debouncedQuery.toLowerCase();
-    return games.filter((game: Game) =>
-      game.teams.home.name.toLowerCase().includes(query) ||
-      game.teams.visitors.name.toLowerCase().includes(query)
+    return games.filter(
+      (game: Game) =>
+        game.teams.home.name.toLowerCase().includes(query) ||
+        game.teams.visitors.name.toLowerCase().includes(query)
     );
   }, [games, debouncedQuery]);
 
