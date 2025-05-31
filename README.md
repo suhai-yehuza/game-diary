@@ -179,7 +179,7 @@ pnpm run seed:optimized -- --batchSize=100 --concurrency=5
 
 # Advanced seeding options
 # Seed external db only
-tsx --max-old-space-size=24576 src/lib/db/seed/optimized-seeder.ts \
+tsx --max-old-space-size=24576 src/lib/db/seed/optimized-seeder.ts -- \
   --concurrency=10 \
   --seasons=2024 \
   --resetDb=true \
@@ -188,7 +188,7 @@ tsx --max-old-space-size=24576 src/lib/db/seed/optimized-seeder.ts \
   --enableMonitoring=true
 
 # Seed application db only (requires existing external data)
-tsx --max-old-space-size=24576 src/lib/db/seed/optimized-seeder.ts \
+tsx --max-old-space-size=24576 src/lib/db/seed/optimized-seeder.ts -- \
   --concurrency=10 \
   --resetDb=false \
   --skipExternalDb=true \
@@ -198,7 +198,7 @@ tsx --max-old-space-size=24576 src/lib/db/seed/optimized-seeder.ts \
   --enableMonitoring=true
 
 # Append external data for specific seasons
-tsx --max-old-space-size=24576 src/lib/db/seed/optimized-seeder.ts \
+tsx --max-old-space-size=24576 src/lib/db/seed/optimized-seeder.ts -- \
   --concurrency=10 \
   --seasons=2023,2022,2021,2020 \
   --resetDb=false \
@@ -346,7 +346,7 @@ src/lib/db/migrations/
    ```sql
    -- Example feature migration
    CREATE TABLE user_preferences (
-     user_id VARCHAR(255) PRIMARY KEY REFERENCES users(id),
+     userId VARCHAR(255) PRIMARY KEY REFERENCES users(id),
      theme VARCHAR(50) DEFAULT 'light',
      notifications_enabled BOOLEAN DEFAULT true,
      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -447,14 +447,14 @@ src/lib/db/migrations/
    ```sql
    -- Good: Single purpose migration
    CREATE TABLE user_preferences (
-     user_id VARCHAR(255) PRIMARY KEY,
+     userId VARCHAR(255) PRIMARY KEY,
      theme VARCHAR(50)
    );
 
    -- Bad: Multiple unrelated changes
    CREATE TABLE user_preferences (...);
    ALTER TABLE games ADD COLUMN rating INTEGER;
-   CREATE INDEX idx_comments_user_id ON comments(user_id);
+   CREATE INDEX idx_comments_userId ON comments(userId);
    ```
 
    - Use descriptive names
@@ -603,12 +603,12 @@ pnpm db:migrate:prod
    ```sql
    -- Good: Dependencies exist
    CREATE TABLE user_preferences (
-     user_id VARCHAR(255) REFERENCES users(id)
+     userId VARCHAR(255) REFERENCES users(id)
    );
 
    -- Bad: Missing dependency
    CREATE TABLE user_preferences (
-     user_id VARCHAR(255) REFERENCES non_existent_table(id)
+     userId VARCHAR(255) REFERENCES non_existent_table(id)
    );
    ```
 
@@ -642,7 +642,7 @@ pnpm db:migrate:prod
    -- Solution: Add ON DELETE CASCADE
    CREATE TABLE comments (
      id VARCHAR(255) PRIMARY KEY,
-     user_id VARCHAR(255) REFERENCES users(id) ON DELETE CASCADE
+     userId VARCHAR(255) REFERENCES users(id) ON DELETE CASCADE
    );
    ```
 
@@ -660,7 +660,7 @@ pnpm db:migrate:prod
 
    ```sql
    -- Problem: Type mismatch
-   ERROR: column "user_id" is of type integer but expression is of type text
+   ERROR: column "userId" is of type integer but expression is of type text
 
    -- Solution: Ensure consistent types
    CREATE TABLE users (
@@ -672,7 +672,7 @@ pnpm db:migrate:prod
    - Use appropriate indexes
    ```sql
    -- Good: Indexed foreign keys
-   CREATE INDEX idx_comments_user_id ON comments(user_id);
+   CREATE INDEX idx_comments_userId ON comments(userId);
    ```
    - Batch large changes
    ```sql
@@ -693,7 +693,7 @@ pnpm db:migrate:prod
    -- Example: Add game statistics table
    CREATE TABLE game_stats (
      id VARCHAR(255) PRIMARY KEY,
-     game_id VARCHAR(255) REFERENCES games(id),
+     gameId VARCHAR(255) REFERENCES games(id),
      home_team_score INTEGER NOT NULL,
      away_team_score INTEGER NOT NULL,
      home_team_fg_percentage DECIMAL(5,2),
@@ -702,7 +702,7 @@ pnpm db:migrate:prod
    );
 
    -- Add indexes for common queries
-   CREATE INDEX idx_game_stats_game_id ON game_stats(game_id);
+   CREATE INDEX idx_game_stats_gameId ON game_stats(gameId);
    CREATE INDEX idx_game_stats_scores ON game_stats(home_team_score, away_team_score);
    ```
 
@@ -712,16 +712,16 @@ pnpm db:migrate:prod
    -- Example: Add game watching history
    CREATE TABLE game_logs (
      id VARCHAR(255) PRIMARY KEY,
-     user_id VARCHAR(255) REFERENCES users(id),
-     game_id VARCHAR(255) REFERENCES games(id),
-     watched_location VARCHAR(255),
+     userId VARCHAR(255) REFERENCES users(id),
+     gameId VARCHAR(255) REFERENCES games(id),
+     watchedLocation VARCHAR(255),
      rating_stars INTEGER CHECK (rating_stars BETWEEN 1 AND 5),
      notes TEXT,
      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
    );
 
    -- Add composite index for user's game history
-   CREATE INDEX idx_game_logs_user_game ON game_logs(user_id, game_id);
+   CREATE INDEX idx_game_logs_user_game ON game_logs(userId, gameId);
    ```
 
 3. **Social Features**
@@ -730,20 +730,20 @@ pnpm db:migrate:prod
    -- Example: Add comments and reactions
    CREATE TABLE comments (
      id VARCHAR(255) PRIMARY KEY,
-     user_id VARCHAR(255) REFERENCES users(id) ON DELETE CASCADE,
-     game_id VARCHAR(255) REFERENCES games(id) ON DELETE CASCADE,
+     userId VARCHAR(255) REFERENCES users(id) ON DELETE CASCADE,
+     gameId VARCHAR(255) REFERENCES games(id) ON DELETE CASCADE,
      content TEXT NOT NULL,
-     parent_id VARCHAR(255) REFERENCES comments(id) ON DELETE CASCADE,
+     parentId VARCHAR(255) REFERENCES comments(id) ON DELETE CASCADE,
      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
    );
 
    CREATE TABLE reactions (
      id VARCHAR(255) PRIMARY KEY,
-     user_id VARCHAR(255) REFERENCES users(id) ON DELETE CASCADE,
+     userId VARCHAR(255) REFERENCES users(id) ON DELETE CASCADE,
      comment_id VARCHAR(255) REFERENCES comments(id) ON DELETE CASCADE,
      emoji VARCHAR(10) NOT NULL,
      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-     UNIQUE(user_id, comment_id, emoji)
+     UNIQUE(userId, comment_id, emoji)
    );
    ```
 
@@ -756,17 +756,17 @@ pnpm db:migrate:prod
    CREATE INDEX idx_games_date_teams ON games(game_date, home_team_id, away_team_id);
 
    -- Optimize user activity queries
-   CREATE INDEX idx_game_logs_user_date ON game_logs(user_id, created_at DESC);
+   CREATE INDEX idx_game_logs_user_date ON game_logs(userId, created_at DESC);
 
    -- Optimize comment threading
-   CREATE INDEX idx_comments_game_parent ON comments(game_id, parent_id);
+   CREATE INDEX idx_comments_game_parent ON comments(gameId, parentId);
    ```
 
 2. **Batch Operations**
 
    ```sql
    -- Efficient batch insert
-   INSERT INTO game_stats (id, game_id, home_team_score, away_team_score)
+   INSERT INTO game_stats (id, gameId, home_team_score, away_team_score)
    SELECT
      gen_random_uuid()::text,
      g.id,
@@ -781,8 +781,8 @@ pnpm db:migrate:prod
    FROM (VALUES
      ('game1', 4),
      ('game2', 5)
-   ) AS new_ratings(game_id, rating)
-   WHERE game_logs.game_id = new_ratings.game_id;
+   ) AS new_ratings(gameId, rating)
+   WHERE game_logs.gameId = new_ratings.gameId;
    ```
 
 3. **Partitioning Large Tables**
@@ -791,8 +791,8 @@ pnpm db:migrate:prod
    -- Partition game_logs by date
    CREATE TABLE game_logs_partitioned (
      id VARCHAR(255) NOT NULL,
-     user_id VARCHAR(255) NOT NULL,
-     game_id VARCHAR(255) NOT NULL,
+     userId VARCHAR(255) NOT NULL,
+     gameId VARCHAR(255) NOT NULL,
      rating_stars INTEGER,
      created_at TIMESTAMP NOT NULL
    ) PARTITION BY RANGE (created_at);
@@ -849,7 +849,7 @@ pnpm db:migrate:prod
    EXPLAIN ANALYZE
    SELECT g.*, gs.*
    FROM games g
-   JOIN game_stats gs ON g.id = gs.game_id
+   JOIN game_stats gs ON g.id = gs.gameId
    WHERE g.game_date BETWEEN '2024-01-01' AND '2024-12-31';
 
    -- Test query performance
@@ -859,7 +859,7 @@ pnpm db:migrate:prod
      COUNT(gl.id) as games_watched,
      AVG(gl.rating_stars) as avg_rating
    FROM users u
-   JOIN game_logs gl ON u.id = gl.user_id
+   JOIN game_logs gl ON u.id = gl.userId
    GROUP BY u.id;
    ```
 
@@ -867,7 +867,7 @@ pnpm db:migrate:prod
 
    ```sql
    -- Generate test data for game_logs
-   INSERT INTO game_logs (id, user_id, game_id, rating_stars)
+   INSERT INTO game_logs (id, userId, gameId, rating_stars)
    SELECT
      gen_random_uuid()::text,
      u.id,
@@ -894,7 +894,7 @@ pnpm db:migrate:prod
        await migrate('20240315_1_add_game_logs');
 
        const result = await db.query.game_logs.findMany({
-         where: (game_logs, { eq }) => eq(game_logs.user_id, 'test_user'),
+         where: (game_logs, { eq }) => eq(game_logs.userId, 'test_user'),
        });
 
        expect(result).toHaveLength(0);
@@ -938,7 +938,7 @@ pnpm db:migrate:prod
    LEFT JOIN pg_indexes i ON i.tablename = t.table_name
    WHERE t.table_schema = 'public'
    AND i.indexname IS NULL
-   AND c.column_name IN ('user_id', 'game_id', 'created_at');
+   AND c.column_name IN ('userId', 'gameId', 'created_at');
 
    -- Check for unused indexes
    SELECT
@@ -1073,7 +1073,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
    CREATE TABLE nba_player_stats (
      id VARCHAR(255) PRIMARY KEY,
      player_id VARCHAR(255) REFERENCES nba_players(id),
-     game_id VARCHAR(255) REFERENCES games(id),
+     gameId VARCHAR(255) REFERENCES games(id),
      team_id VARCHAR(255) REFERENCES teams(id),
      minutes_played VARCHAR(10),
      points INTEGER,
@@ -1091,12 +1091,12 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
      free_throws_attempted INTEGER,
      plusMinus INTEGER,
      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-     UNIQUE(player_id, game_id)
+     UNIQUE(player_id, gameId)
    );
 
    -- Add performance indexes
-   CREATE INDEX idx_player_stats_player_game ON nba_player_stats(player_id, game_id);
-   CREATE INDEX idx_player_stats_team_game ON nba_player_stats(team_id, game_id);
+   CREATE INDEX idx_player_stats_player_game ON nba_player_stats(player_id, gameId);
+   CREATE INDEX idx_player_stats_team_game ON nba_player_stats(team_id, gameId);
    CREATE INDEX idx_player_stats_points ON nba_player_stats(points DESC);
    ```
 
@@ -1158,7 +1158,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
    -- Step 2: Create temporary table for data migration
    CREATE TABLE game_stats_new (
      id VARCHAR(255) PRIMARY KEY,
-     game_id VARCHAR(255) REFERENCES games(id),
+     gameId VARCHAR(255) REFERENCES games(id),
      home_team_score INTEGER NOT NULL,
      away_team_score INTEGER NOT NULL,
      home_team_three_pointers INTEGER,
@@ -1172,7 +1172,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
    INSERT INTO game_stats_new
    SELECT
      id,
-     game_id,
+     gameId,
      home_team_score,
      away_team_score,
      COALESCE(home_team_three_pointers, 0),
@@ -1199,20 +1199,20 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
    CREATE TABLE game_ratings_new (
      id VARCHAR(255) PRIMARY KEY,
-     game_id VARCHAR(255) REFERENCES games(id),
-     user_id VARCHAR(255) REFERENCES users(id),
+     gameId VARCHAR(255) REFERENCES games(id),
+     userId VARCHAR(255) REFERENCES users(id),
      rating_type rating_type NOT NULL,
      rating_value INTEGER CHECK (rating_value BETWEEN 1 AND 5),
      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-     UNIQUE(game_id, user_id, rating_type)
+     UNIQUE(gameId, userId, rating_type)
    );
 
    -- Step 2: Transform existing data
-   INSERT INTO game_ratings_new (id, game_id, user_id, rating_type, rating_value, created_at)
+   INSERT INTO game_ratings_new (id, gameId, userId, rating_type, rating_value, created_at)
    SELECT
      gen_random_uuid()::text,
-     game_id,
-     user_id,
+     gameId,
+     userId,
      'game_quality'::rating_type,
      rating_stars,
      created_at
@@ -1237,8 +1237,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
    -- Step 1: Create partitioned table
    CREATE TABLE game_logs_partitioned (
      id VARCHAR(255) NOT NULL,
-     user_id VARCHAR(255) NOT NULL,
-     game_id VARCHAR(255) NOT NULL,
+     userId VARCHAR(255) NOT NULL,
+     gameId VARCHAR(255) NOT NULL,
      rating_stars INTEGER,
      created_at TIMESTAMP NOT NULL
    ) PARTITION BY RANGE (created_at);

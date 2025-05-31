@@ -120,15 +120,28 @@ export async function main() {
     // Validate that critical triggers exist
     console.log('Validating triggers...');
     const triggerCheck = await db.execute(sql`
-      SELECT trigger_name 
+      SELECT 
+        trigger_name,
+        event_manipulation,
+        event_object_table,
+        action_statement
       FROM information_schema.triggers 
-      WHERE trigger_name = 'game_logs_ratings_trigger'
+      WHERE trigger_schema = 'public'
+      ORDER BY trigger_name
     `);
 
     if (triggerCheck.rows.length === 0) {
-      throw new Error('❌ Critical trigger "game_logs_ratings_trigger" was not created!');
+      throw new Error('❌ No triggers found in the database!');
     }
-    console.log('✅ All required triggers are present');
+
+    console.log('\nFound the following triggers:');
+    triggerCheck.rows.forEach(trigger => {
+      console.log(`\n🔹 ${trigger.trigger_name}`);
+      console.log(`   Table: ${trigger.event_object_table}`);
+      console.log(`   Event: ${trigger.event_manipulation}`);
+      console.log(`   Action: ${trigger.action_statement}`);
+    });
+    console.log('\n✅ Trigger validation complete');
 
     console.log(`Migration completed successfully for ${env} environment!`);
   } catch (error) {

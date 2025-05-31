@@ -115,14 +115,14 @@ export function CreateGameLogModal({ gameId, onSuccess }: CreateGameLogModalProp
       }
 
       const payload = {
-        user_id: authUserId,
-        game_id: gameId,
+        userId: authUserId,
+        gameId: gameId,
         classification: formData.classification,
-        watched_scope: formData.watchedScope,
-        watched_setting: formData.watchedSetting,
-        watched_date: formData.watchedDate.toISOString(),
-        watched_location: formData.watchedLocation,
-        rating_for_game: rating,
+        watchedScope: formData.watchedScope,
+        watchedSetting: formData.watchedSetting,
+        watchedDate: formData.watchedDate.toISOString(),
+        watchedLocation: formData.watchedLocation,
+        ratingForGame: rating,
         notes: formData.notes,
         tags: formData.tags,
       };
@@ -225,7 +225,7 @@ export function CreateGameLogModal({ gameId, onSuccess }: CreateGameLogModalProp
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="watched_setting" className="text-gray-900 dark:text-white">
+            <Label htmlFor="watchedSetting" className="text-gray-900 dark:text-white">
               Watched Setting *
             </Label>
             <Select
@@ -248,7 +248,7 @@ export function CreateGameLogModal({ gameId, onSuccess }: CreateGameLogModalProp
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="watched_scope" className="text-gray-900 dark:text-white">
+            <Label htmlFor="watchedScope" className="text-gray-900 dark:text-white">
               Watched Scope *
             </Label>
             <Select
@@ -271,7 +271,7 @@ export function CreateGameLogModal({ gameId, onSuccess }: CreateGameLogModalProp
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="watched_date" className="text-gray-900 dark:text-white">
+            <Label htmlFor="watchedDate" className="text-gray-900 dark:text-white">
               Date *
             </Label>
             <div className="relative">
@@ -291,11 +291,11 @@ export function CreateGameLogModal({ gameId, onSuccess }: CreateGameLogModalProp
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="watched_location" className="text-gray-900 dark:text-white">
+            <Label htmlFor="watchedLocation" className="text-gray-900 dark:text-white">
               Location *
             </Label>
             <Input
-              id="watched_location"
+              id="watchedLocation"
               placeholder="Enter venue name"
               value={formData.watchedLocation}
               onChange={e => setFormData({ ...formData, watchedLocation: e.target.value })}

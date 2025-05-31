@@ -43,17 +43,17 @@ export const DB_CONFIG = {
   // Database indexes for performance
   indexes: [
     {
-      name: 'idx_game_logs_user_id',
+      name: 'idx_game_logs_userId',
       table: 'game_logs',
       columns: ['userId'],
     },
     {
-      name: 'idx_comments_parent_id',
+      name: 'idx_comments_parentId',
       table: 'comments',
       columns: ['parentId'],
     },
     {
-      name: 'idx_reactions_target_id',
+      name: 'idx_reactions_targetId',
       table: 'reactions',
       columns: ['targetId'],
     },

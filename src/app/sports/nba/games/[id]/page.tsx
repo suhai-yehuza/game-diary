@@ -34,7 +34,7 @@ export default function GamePage() {
     error: statsError,
     data: statsData,
   } = useQuery(GET_TEAM_STATS, {
-    variables: { game_id: gameId },
+    variables: { gameId: gameId },
     skip: !gameId,
   });
 

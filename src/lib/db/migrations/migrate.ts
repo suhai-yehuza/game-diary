@@ -10,7 +10,11 @@ const MIGRATIONS_DIR = path.join(process.cwd(), 'src/lib/db/migrations');
 async function getMigrationFiles(): Promise<string[]> {
   const types = ['base', 'feature', 'trigger'];
   const migrations: string[] = [];
+  // first add all the .sql files in the immediate root migrations directory
+  const files = fs.readdirSync(MIGRATIONS_DIR).filter(file => file.endsWith('.sql'));
+  migrations.push(...files.map(file => path.join(file)));
 
+  // then add all the .sql files in the child directories
   for (const type of types) {
     const typeDir = path.join(MIGRATIONS_DIR, type);
     if (fs.existsSync(typeDir)) {

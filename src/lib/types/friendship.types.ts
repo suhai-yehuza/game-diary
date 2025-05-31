@@ -19,7 +19,7 @@ export interface FriendRequest
 }
 
 export interface FriendRequestButtonProps {
-  target_user_id: string;
+  target_userId: string;
   target_username?: string;
   target_avatar?: string;
 }

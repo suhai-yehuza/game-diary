@@ -10,9 +10,9 @@ async function validateMigrations() {
   const migrationsDir = join(process.cwd(), 'src/lib/db/migrations');
 
   try {
-    // Get all files from the migrations directory
-    const files = await readdir(migrationsDir);
-    const sqlFiles = files.filter(f => f.endsWith('.sql'));
+    const sqlFiles = (await readdir(migrationsDir, { recursive: true })).filter(file =>
+      file.endsWith('.sql')
+    );
 
     if (sqlFiles.length === 0) {
       console.error('❌ No migration .sql files found in src/lib/db/migrations.');

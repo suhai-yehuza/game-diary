@@ -57,6 +57,7 @@
     "migration:generate": "tsx scripts/manage-migrations.ts generate",
     "migration:validate": "tsx scripts/manage-migrations.ts validate",
     "migration:reset": "pnpm clean:build && pnpm db:migrate:reset:dev",
+    "migration:reset:soft": "pnpm clean:build:soft && pnpm db:migrate:reset:dev",
     "cleanup:unused": "tsx scripts/cleanup-unused.ts",
     "cleanup:unused:dry-run": "pnpm check:unused"
   },

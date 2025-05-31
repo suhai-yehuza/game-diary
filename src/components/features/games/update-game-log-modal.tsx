@@ -30,7 +30,7 @@ import { GameLogForm } from './game-log-form';
 export function UpdateGameLogModal({ gameLog, isOpen, setIsOpen }: UpdateGameLogModalProps) {
   const router = useRouter();
   const { toast } = useToast();
-  const { userId: auth_user_id } = useAuthContext();
+  const { userId: auth_userId } = useAuthContext();
   const [updateGameLog, { loading }] = useMutation(UPDATE_GAME_LOG, {
     update(cache, { data: { update_game_log } }) {
       try {
@@ -40,7 +40,7 @@ export function UpdateGameLogModal({ gameLog, isOpen, setIsOpen }: UpdateGameLog
           };
         }>({
           query: GET_GAME_LOGS,
-          variables: { userId: auth_user_id },
+          variables: { userId: auth_userId },
         });
 
         if (existingGameLogs?.user?.gameLogs && Array.isArray(existingGameLogs.user.gameLogs)) {
@@ -50,7 +50,7 @@ export function UpdateGameLogModal({ gameLog, isOpen, setIsOpen }: UpdateGameLog
 
           cache.writeQuery({
             query: GET_GAME_LOGS,
-            variables: { userId: auth_user_id },
+            variables: { userId: auth_userId },
             data: {
               user: {
                 ...existingGameLogs.user,
@@ -78,7 +78,7 @@ export function UpdateGameLogModal({ gameLog, isOpen, setIsOpen }: UpdateGameLog
   });
 
   const handleSubmit = async () => {
-    if (!auth_user_id) {
+    if (!auth_userId) {
       toast({
         title: 'Authentication required',
         description: 'Please sign in to update a game log',
@@ -145,7 +145,7 @@ export function UpdateGameLogModal({ gameLog, isOpen, setIsOpen }: UpdateGameLog
     }
   };
 
-  if (!auth_user_id) {
+  if (!auth_userId) {
     return (
       <SignInButton mode="modal">
         <Button
