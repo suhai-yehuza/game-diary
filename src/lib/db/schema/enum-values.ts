@@ -10,9 +10,9 @@ import {
 
 // Game status enum
 export const GAME_STATUS = {
-  SCHEDULED: 'SCHEDULED',
-  LIVE: 'LIVE',
-  FINISHED: 'FINISHED',
+  SCHEDULED: 'Scheduled',
+  LIVE: 'Live',
+  FINISHED: 'Finished',
 } as const;
 
 export type GameStatusValue = (typeof GAME_STATUS)[keyof typeof GAME_STATUS];

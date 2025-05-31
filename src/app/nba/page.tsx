@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 
 import { GamesList, GameStats } from '@/components/features/games';
 import { MobileNav } from '@/components/layout';
+import { GAME_STATUS_VALUES } from '@/lib/types/config.types';
 
 export default function NBAPage() {
   const [activeTab, setActiveTab] = useState('overview');
@@ -85,7 +86,7 @@ export default function NBAPage() {
                   games={[]}
                   initialFilters={{
                     season: 2024,
-                    status: 'FINISHED',
+                    status: GAME_STATUS_VALUES.FINISHED,
                   }}
                 />
               </section>
@@ -115,7 +116,7 @@ export default function NBAPage() {
                     stage: 1,
                     status: {
                       long: 'Final',
-                      short: 'FINISHED',
+                      short: GAME_STATUS_VALUES.FINISHED,
                       clock: null,
                       halftime: false,
                     },

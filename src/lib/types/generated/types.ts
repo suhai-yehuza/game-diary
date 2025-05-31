@@ -1,4 +1,4 @@
-import type { ValidationError } from './graphql';
+import type { Arena, ValidationError } from './graphql';
 import { NextApiRequest } from 'next';
 import { DocumentNode, ApolloCache, FetchResult } from '@apollo/client';
 import type { DatabaseClient } from '../db.types';
@@ -32,12 +32,7 @@ export type DBSeason = {
 };
 
 export type DbGame = Game & {
-  arena: {
-    name: string;
-    city: string;
-    state: string | null;
-    country: string | null;
-  } | null;
+  arena: Arena | null;
   league: string;
   season: number;
   stage: number;

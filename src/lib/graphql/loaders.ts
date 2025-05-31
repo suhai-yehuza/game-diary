@@ -5,7 +5,7 @@ import type { NeonHttpDatabase } from 'drizzle-orm/neon-http';
 import { getCache } from '@/lib/cache';
 import * as schema from '@/lib/db/schema';
 import { db } from '@/lib/db/seed';
-import { FRIENDSHIP_STATUS, REACTION_EMOJIS } from '@/lib/types/config.types';
+import { FRIENDSHIP_STATUS, REACTION_EMOJIS, GAME_STATUS_VALUES } from '@/lib/types/config.types';
 import type {
   Game,
   GameLog,
@@ -23,6 +23,7 @@ import type {
   HeightInfo,
   WeightInfo,
   GameDate,
+  GameStatus,
 } from '@/lib/types/generated/graphql';
 import type { DbGame, DBComment, DBReaction } from '@/lib/types/generated/types';
 
@@ -86,20 +87,23 @@ export function createLoaders(db: NeonHttpDatabase<typeof schema>) {
 
       return {
         id: game.id,
-        date: {
-          start: isDateObj(game.date)
-            ? game.date
-            : game.date && typeof game.date === 'object' && 'start' in game.date
-              ? new Date(game.date.start)
-              : new Date(0),
-          end: null,
-          duration: null,
-        } as GameDate,
+        date:
+          game.date && typeof game.date === 'object' && 'start' in game.date
+            ? {
+                start: new Date(game.date.start),
+                end: game.date.end ? new Date(game.date.end) : null,
+                duration: game.date.duration,
+              }
+            : {
+                start: isDateObj(game.date) ? game.date : new Date(game.date || 0),
+                end: null,
+                duration: null,
+              },
         status: {
           clock: game.status?.clock || null,
           halftime: game.status?.halftime || false,
           short: String(game.status?.short || ''),
-          long: game.status?.long || '',
+          long: game.status?.long || GAME_STATUS_VALUES.SCHEDULED
         },
         arena,
         league: game.league,
@@ -153,8 +157,8 @@ export function createLoaders(db: NeonHttpDatabase<typeof schema>) {
         homeTeamId,
         awayTeamId,
         isCompleted:
-          typeof game.status === 'object' && game.status !== null && 'long' in game.status
-            ? game.status.long === 'Finished'
+          game.status && typeof game.status === 'object' && 'long' in game.status
+            ? game.status.long === GAME_STATUS_VALUES.FINISHED
             : false,
         awayScore: game.scores?.visitors?.points ?? null,
         homeScore: game.scores?.home?.points ?? null,
@@ -402,18 +406,17 @@ export const createGameLoader = () => {
                 end: null,
                 duration: null,
               },
-        status:
-          typeof game.status === 'object' && game.status !== null
-            ? {
-                ...game.status,
-                short: String(game.status.short || ''),
-              }
-            : { clock: '', halftime: false, short: '', long: '' },
+        status: {
+          clock: game.status?.clock || null,
+          halftime: game.status?.halftime || false,
+          short: String(game.status?.short || ''),
+          long: game.status?.long || GAME_STATUS_VALUES.SCHEDULED
+        },
         arena: {
           name: typeof game.arena === 'string' ? game.arena : game.arena?.name || '',
           city: typeof game.arena === 'string' ? '' : game.arena?.city || '',
-          state: typeof game.arena === 'string' ? null : game.arena?.state || null,
-          country: typeof game.arena === 'string' ? null : game.arena?.country || null,
+          state: typeof game.arena === 'string' ? '' : game.arena?.state || '',
+          country: typeof game.arena === 'string' ? '' : game.arena?.country || '',
         },
         league: game.league,
         season: game.season,
@@ -454,8 +457,8 @@ export const createGameLoader = () => {
         homeTeamId,
         awayTeamId,
         isCompleted:
-          typeof game.status === 'object' && game.status !== null && 'long' in game.status
-            ? game.status.long === 'Finished'
+          game.status && typeof game.status === 'object' && 'long' in game.status
+            ? game.status.long === GAME_STATUS_VALUES.FINISHED
             : false,
         awayScore: game.scores?.visitors?.points ?? null,
         homeScore: game.scores?.home?.points ?? null,
@@ -507,8 +510,8 @@ export const createDbGameLoader = () => {
         arena: {
           name: typeof game.arena === 'string' ? game.arena : game.arena?.name || '',
           city: typeof game.arena === 'string' ? '' : game.arena?.city || '',
-          state: typeof game.arena === 'string' ? null : game.arena?.state || null,
-          country: typeof game.arena === 'string' ? null : game.arena?.country || null,
+          state: typeof game.arena === 'string' ? '' : game.arena?.state || '',
+          country: typeof game.arena === 'string' ? '' : game.arena?.country || '',
         },
         league: game.league,
         season: game.season ?? 0,
@@ -576,8 +579,8 @@ export const createDbGameLoader = () => {
         homeTeamId: game.teams?.home?.id?.toString() || '',
         awayTeamId: game.teams?.visitors?.id?.toString() || '',
         isCompleted:
-          typeof game.status === 'object' && game.status !== null && 'long' in game.status
-            ? game.status.long === 'Finished'
+          game.status && typeof game.status === 'object' && 'long' in game.status
+            ? game.status.long === GAME_STATUS_VALUES.FINISHED
             : false,
         awayScore: game.scores?.visitors?.points ?? null,
         homeScore: game.scores?.home?.points ?? null,
@@ -690,7 +693,7 @@ export const createGameLogsLoader = (
         nugget: dbGame.nugget || null,
         isCompleted:
           typeof dbGame.status === 'object' && dbGame.status !== null && 'long' in dbGame.status
-            ? dbGame.status.long === 'Finished'
+            ? dbGame.status['long'] === GAME_STATUS_VALUES.FINISHED
             : false,
         awayScore: dbGame.scores?.visitors?.points || null,
         homeScore: dbGame.scores?.home?.points || null,
@@ -865,18 +868,13 @@ export const createDbGameBySeasonLoader = () => {
                     end: null,
                     duration: null,
                   },
-            status: game.status,
-            homeTeamId: game.teams?.home?.id?.toString() || '',
-            awayTeamId: game.teams?.visitors?.id?.toString() || '',
-            createdAt:
-              game.createdAt instanceof Date
-                ? game.createdAt.toISOString()
-                : new Date(game.createdAt).toISOString(),
-            updatedAt:
-              game.updatedAt instanceof Date
-                ? game.updatedAt.toISOString()
-                : new Date(game.updatedAt).toISOString(),
-            arena: game.arena,
+            status: game.status as unknown as GameStatus,
+            arena: {
+              name: typeof game.arena === 'string' ? game.arena : game.arena?.name || '',
+              city: typeof game.arena === 'string' ? '' : game.arena?.city || '',
+              state: typeof game.arena === 'string' ? '' : game.arena?.state || '',
+              country: typeof game.arena === 'string' ? '' : game.arena?.country || '',
+            },
             league: game.league,
             season: game.season,
             stage: game.stage,
@@ -914,13 +912,13 @@ export const createDbGameBySeasonLoader = () => {
                   },
                 }
               : null,
-            officials: game.officials,
+            officials: Array.isArray(game.officials) ? game.officials.map(String) : [],
             timesTied: game.timesTied || 0,
             leadChanges: game.leadChanges || 0,
-            nugget: game.nugget || null,
+            nugget: game.nugget || '',
             isCompleted:
               typeof game.status === 'object' && game.status !== null && 'long' in game.status
-                ? game.status.long === 'Finished'
+                ? game.status.long === GAME_STATUS_VALUES.FINISHED
                 : false,
             awayScore: game.scores?.visitors?.points || null,
             homeScore: game.scores?.home?.points || null,

@@ -296,9 +296,9 @@ export type FriendshipStatus =
   | 'REJECTED';
 
 export type GAME_STATUS =
-  | 'FINISHED'
-  | 'LIVE'
-  | 'SCHEDULED';
+  | 'Finished'
+  | 'Live'
+  | 'Scheduled';
 
 export type Game = {
   __typename?: 'Game';
