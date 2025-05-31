@@ -48,6 +48,7 @@ export interface DatabaseConfig {
   connectionTimeoutMillis?: number;
   env?: string;
   logger?: boolean;
+  skipSchemaPull?: boolean;
 }
 
 export type BaseDatabaseClient = NeonHttpDatabase<typeof schema>;

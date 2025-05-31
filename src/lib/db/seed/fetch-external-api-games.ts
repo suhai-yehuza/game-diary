@@ -1,3 +1,5 @@
+import { eq } from 'drizzle-orm';
+
 import { API_CONFIG, getRapidApiConfig } from '@/lib/config/api.config';
 import { nba_games } from '@/lib/db/schema';
 import { createRapidAPIClient, validateAPIKey, handleAPIError } from '@/lib/external-apis';
@@ -32,6 +34,15 @@ export async function fetchAndProcessNBAGames(season: number): Promise<void> {
 
     // Process games
     for (const game of nbaGames) {
+      // if the game already exists, skip it
+      const existingGame = await db.query.nba_games.findFirst({
+        where: eq(nba_games.id, game.id.toString()),
+      });
+      if (existingGame) {
+        console.log(`Game ${game.id} already exists, skipping...`);
+        continue;
+      }
+
       console.log('Game value:', game);
       try {
         // Prepare data for nba_games table

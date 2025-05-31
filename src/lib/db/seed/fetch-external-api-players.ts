@@ -1,4 +1,4 @@
-import { sql } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 
 import { API_CONFIG, getRapidApiConfig } from '@/lib/config/api.config';
 import { nba_players, teams } from '@/lib/db/schema/nba-schemas';
@@ -40,6 +40,15 @@ export async function fetchAndProcessNBAPlayers(season: number): Promise<void> {
 
         // Process players
         for (const player of nbaPlayers) {
+          // if the player already exists, skip it
+          const existingPlayer = await db.query.nba_players.findFirst({
+            where: eq(nba_players.id, player.id.toString()),
+          });
+          if (existingPlayer) {
+            console.log(`Player ${player.id} already exists, skipping...`);
+            continue;
+          }
+
           try {
             const nbaPlayer = {
               id: player.id.toString(),

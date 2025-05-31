@@ -4,6 +4,22 @@
 -- Enable required extensions
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
+-- Create migration tracking table
+CREATE TABLE IF NOT EXISTS migration_versions (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(255) NOT NULL UNIQUE,
+  checksum VARCHAR(64) NOT NULL,
+  executed_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  execution_time_ms INTEGER,
+  status VARCHAR(20) NOT NULL DEFAULT 'success',
+  error_message TEXT,
+  rollback_script TEXT,
+  rollback_executed BOOLEAN DEFAULT false
+);
+
+-- Create index for faster lookups
+CREATE INDEX IF NOT EXISTS idx_migration_versions_name ON migration_versions(name);
+
 -- First, create the users table since it's referenced by other tables
 CREATE TABLE IF NOT EXISTS users (
   id VARCHAR(255) PRIMARY KEY,
@@ -12,6 +28,17 @@ CREATE TABLE IF NOT EXISTS users (
   lastName VARCHAR(255) NOT NULL,
   emailAddress VARCHAR(255) NOT NULL,
   imageUrl VARCHAR(255),
+  "inboundFriendshipIds" TEXT[] DEFAULT '{}',
+  "outboundFriendshipIds" TEXT[] DEFAULT '{}',
+  banned BOOLEAN DEFAULT false,
+  timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  last_sign_in_at TIMESTAMP WITH TIME ZONE,
+  password_enabled BOOLEAN DEFAULT false,
+  two_factor_enabled BOOLEAN DEFAULT false,
+  email_verified BOOLEAN DEFAULT false,
+  email_verification_strategy VARCHAR(50),
+  external_id VARCHAR(255),
+  external_accounts JSONB DEFAULT '[]',
   createdAt TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
   updatedAt TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
   deletedAt TIMESTAMP WITH TIME ZONE DEFAULT NULL
@@ -99,40 +126,40 @@ CREATE TABLE IF NOT EXISTS game_stats (
   awayTeamId VARCHAR(255) REFERENCES teams(id),
   homeTeamScore INTEGER,
   awayTeamScore INTEGER,
-  home_fgm INTEGER,
-  home_fga INTEGER,
-  home_fgp DECIMAL,
-  home_ftm INTEGER,
-  home_fta INTEGER,
-  home_ftp DECIMAL,
-  home_tpm INTEGER,
-  home_tpa INTEGER,
-  home_tpp DECIMAL,
-  home_off_reb INTEGER,
-  home_defReb INTEGER,
-  home_totReb INTEGER,
-  home_assists INTEGER,
-  home_steals INTEGER,
-  home_blocks INTEGER,
-  home_turnovers INTEGER,
-  home_pFouls INTEGER,
-  away_fgm INTEGER,
-  away_fga INTEGER,
-  away_fgp DECIMAL,
-  away_ftm INTEGER,
-  away_fta INTEGER,
-  away_ftp DECIMAL,
-  away_tpm INTEGER,
-  away_tpa INTEGER,
-  away_tpp DECIMAL,
-  away_off_reb INTEGER,
-  away_defReb INTEGER,
-  away_totReb INTEGER,
-  away_assists INTEGER,
-  away_steals INTEGER,
-  away_blocks INTEGER,
-  away_turnovers INTEGER,
-  away_pFouls INTEGER,
+  "homeFgm" INTEGER,
+  "homeFga" INTEGER,
+  "homeFgp" DECIMAL,
+  "homeFtm" INTEGER,
+  "homeFta" INTEGER,
+  "homeFtp" DECIMAL,
+  "homeTpm" INTEGER,
+  "homeTpa" INTEGER,
+  "homeTpp" DECIMAL,
+  "homeOffReb" INTEGER,
+  "homeDefReb" INTEGER,
+  "homeTotReb" INTEGER,
+  "homeAssists" INTEGER,
+  "homeSteals" INTEGER,
+  "homeBlocks" INTEGER,
+  "homeTurnovers" INTEGER,
+  "homePFouls" INTEGER,
+  "awayFgm" INTEGER,
+  "awayFga" INTEGER,
+  "awayFgp" DECIMAL,
+  "awayFtm" INTEGER,
+  "awayFta" INTEGER,
+  "awayFtp" DECIMAL,
+  "awayTpm" INTEGER,
+  "awayTpa" INTEGER,
+  "awayTpp" DECIMAL,
+  "awayOffReb" INTEGER,
+  "awayDefReb" INTEGER,
+  "awayTotReb" INTEGER,
+  "awayAssists" INTEGER,
+  "awaySteals" INTEGER,
+  "awayBlocks" INTEGER,
+  "awayTurnovers" INTEGER,
+  "awayPFouls" INTEGER,
   createdAt TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
   updatedAt TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
   deletedAt TIMESTAMP WITH TIME ZONE DEFAULT NULL
@@ -144,24 +171,24 @@ CREATE TABLE IF NOT EXISTS nba_player_stats (
   playerId VARCHAR(255) REFERENCES nba_players(id),
   teamId VARCHAR(255) REFERENCES teams(id),
   points INTEGER,
-  min VARCHAR(10),
-  fgm INTEGER,
-  fga INTEGER,
-  fgp DECIMAL,
-  ftm INTEGER,
-  fta INTEGER,
-  ftp DECIMAL,
-  tpm INTEGER,
-  tpa INTEGER,
-  tpp DECIMAL,
-  off_reb INTEGER,
-  defReb INTEGER,
-  totReb INTEGER,
+  minutes VARCHAR(10),
+  "fieldGoalsMade" INTEGER,
+  "fieldGoalsAttempted" INTEGER,
+  "fieldGoalPercentage" DECIMAL,
+  "freeThrowsMade" INTEGER,
+  "freeThrowsAttempted" INTEGER,
+  "freeThrowPercentage" DECIMAL,
+  "threePointersMade" INTEGER,
+  "threePointersAttempted" INTEGER,
+  "threePointPercentage" DECIMAL,
+  "offensiveRebounds" INTEGER,
+  "defensiveRebounds" INTEGER,
+  "totalRebounds" INTEGER,
   assists INTEGER,
   steals INTEGER,
   blocks INTEGER,
   turnovers INTEGER,
-  pFouls INTEGER,
+  fouls INTEGER,
   plusMinus INTEGER,
   createdAt TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
   updatedAt TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
@@ -186,6 +213,23 @@ CREATE TABLE IF NOT EXISTS game_logs (
   "updatedAt" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
   "deletedAt" TIMESTAMP WITH TIME ZONE DEFAULT NULL
 );
+
+-- Create the rating stars trigger function
+CREATE OR REPLACE FUNCTION update_rating_stars()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW."ratingStars" = REPEAT('⭐', NEW."ratingForGame");
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Create the rating stars trigger
+DROP TRIGGER IF EXISTS update_rating_stars_trigger ON game_logs;
+CREATE TRIGGER update_rating_stars_trigger
+  BEFORE INSERT OR UPDATE OF "ratingForGame"
+  ON game_logs
+  FOR EACH ROW
+  EXECUTE FUNCTION update_rating_stars();
 
 CREATE TABLE IF NOT EXISTS game_ratings (
   "gameId" VARCHAR(255) PRIMARY KEY REFERENCES nba_games(id),
@@ -215,7 +259,7 @@ CREATE TABLE IF NOT EXISTS reactions (
   emoji VARCHAR(10) NOT NULL,
   createdAt TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
   updatedAt TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-  deletedAt TIMESTAMP WITH TIME ZONE DEFAULT NULL 
+  deletedAt TIMESTAMP WITH TIME ZONE DEFAULT NULL
 );
 
 CREATE TABLE IF NOT EXISTS friendships (

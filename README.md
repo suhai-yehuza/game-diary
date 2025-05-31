@@ -200,22 +200,10 @@ pnpm dev
 
 ```bash
 # Clean and reset development environment
-pnpm clean:build && pnpm db:migrate:reset:dev
+# pnpm clean:build && pnpm db:migrate:reset:dev
+# pnpm clean:build:soft && pnpm db:migrate:reset:dev && pnpm migration:view
+pnpm clean:build:soft && pnpm pnpm db:setup:test && pnpm db:view-migrations
 
-# Seed database with optimized settings
-pnpm run seed:optimized
-
-# Seed specific seasons
-pnpm run seed:optimized -- --seasons=2023,2024
-
-# Reset database and seed
-pnpm run seed:optimized -- --resetDb=true
-
-# Skip external data (NBA)
-pnpm run seed:optimized -- --skipExternalDb=true
-
-# Custom batch size and concurrency
-pnpm run seed:optimized -- --batchSize=100 --concurrency=5
 
 # Advanced seeding options
 # Seed external db only
@@ -246,6 +234,21 @@ tsx --max-old-space-size=24576 src/lib/db/seed/optimized-seeder.ts -- \
   --skipApplicationDb=true \
   --appendingData=true \
   --enableMonitoring=true
+
+# Seed database with optimized settings
+pnpm run seed:optimized
+
+# Seed specific seasons
+pnpm run seed:optimized -- --seasons=2023,2024
+
+# Reset database and seed
+pnpm run seed:optimized -- --resetDb=true
+
+# Skip external data (NBA)
+pnpm run seed:optimized -- --skipExternalDb=true
+
+# Custom batch size and concurrency
+pnpm run seed:optimized -- --batchSize=100 --concurrency=5
 ```
 
 Visit [http://localhost:3000](http://localhost:3000) to see the application.

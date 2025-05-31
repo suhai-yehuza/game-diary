@@ -1,3 +1,5 @@
+import { eq } from 'drizzle-orm';
+
 import { API_CONFIG, getRapidApiConfig } from '@/lib/config/api.config';
 import { seasons } from '@/lib/db/schema';
 import { createRapidAPIClient, validateAPIKey, handleAPIError } from '@/lib/external-apis';
@@ -31,6 +33,15 @@ export async function fetchAndProcessNBASeasons(): Promise<void> {
 
     for (const year of seasonsData) {
       if (typeof year !== 'number') continue;
+
+      // if the season already exists, skip it
+      const existingSeason = await db.query.seasons.findFirst({
+        where: eq(seasons.id, year),
+      });
+      if (existingSeason) {
+        console.log(`Season ${year} already exists, skipping...`);
+        continue;
+      }
 
       const seasonData = {
         id: year,

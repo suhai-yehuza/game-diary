@@ -1,3 +1,5 @@
+import { eq } from 'drizzle-orm';
+
 import { API_CONFIG, getRapidApiConfig } from '@/lib/config/api.config';
 import { teams } from '@/lib/db/schema';
 import { createRapidAPIClient, validateAPIKey, handleAPIError } from '@/lib/external-apis';
@@ -39,6 +41,16 @@ export async function fetchAndProcessNBATeams(): Promise<void> {
       try {
         // Use team name or nickname as fallback for city
         const cityFallback = team.city || team.name.split(' ')[0] || team.nickname || 'Unknown';
+
+        // if the team already exists, skip it
+
+        const existingTeam = await db.query.teams.findFirst({
+          where: eq(teams.id, team.id.toString()),
+        });
+        if (existingTeam) {
+          console.log(`Team ${team.id} already exists, skipping...`);
+          continue;
+        }
 
         const dbTeam = {
           id: team.id.toString(),
