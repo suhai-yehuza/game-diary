@@ -57,7 +57,7 @@ export function LiveGamesSection() {
               <CardTitle className="text-lg">
                 {game.teams.visitors.nickname} vs {game.teams.home.nickname}
               </CardTitle>
-              <Badge className="animate-pulse bg-green-300">LIVE</Badge>
+              <Badge className="animate-pulse bg-green-300">Live</Badge>
             </div>
           </CardHeader>
           <CardContent>

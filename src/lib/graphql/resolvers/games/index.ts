@@ -1,57 +1,66 @@
 import { and, eq, gt, lt, or, sql } from 'drizzle-orm';
 
-import { db } from '@/lib/db';
 import * as schema from '@/lib/db/schema';
 import { fetchNbaLiveGames } from '@/lib/external-apis';
 import { BusinessLogicError } from '@/lib/graphql/errors';
-import { createConnection, parsePaginationArgs } from '@/lib/graphql/utils/pagination';
+import { createConnection } from '@/lib/graphql/utils/pagination';
 import type { Context } from '@/lib/types/context.types';
+import { GameResponseData } from '@/lib/types/game.types';
 import type { GameFilters } from '@/lib/types/generated/graphql';
+import { getCurrentSeason } from '@/lib/utils/index';
 
 import type { PaginationArgs } from '../common/types';
 import { handleResolverError, mapGameData } from '../common/utils';
 
 // Helper function to map live game data
-const mapLiveGameData = (game: any) => ({
-  id: String(game.id),
-  date: {
-    start: game.date?.start ? new Date(game.date.start) : new Date(),
-    end: null,
-    duration: null,
+const mapLiveGameData = (game: GameResponseData) => ({
+  id: game.id,
+  date: game.date || {
+    start: '',
+    end: '',
+    duration: '',
   },
-  status: {
-    clock: game.status?.clock || '',
+  status: game.status || {
+    clock: '',
     halftime: false,
-    long: game.status?.long || '',
-    short: game.status?.short || '',
+    long: '',
+    short: '',
   },
-  arena: {
-    name: typeof game.arena === 'object' && game.arena !== null ? game.arena.name || '' : '',
-    city: typeof game.arena === 'object' && game.arena !== null ? game.arena.city || '' : '',
-    state: typeof game.arena === 'object' && game.arena !== null ? game.arena.state : null,
-    country: typeof game.arena === 'object' && game.arena !== null ? game.arena.country : null,
+  arena: game.arena || {
+    name: '',
+    city: '',
+    state: '',
+    country: '',
   },
   league: game.league || '',
-  season: game.season || 0,
+  season: game.season || getCurrentSeason(),
   stage: game.stage || 0,
-  periods: game.periods || [],
-  scores: game.scores || [],
+  periods: game.periods || {
+    current: 0,
+    total: 0,
+    endOfPeriod: false,
+  },
+  scores: game.scores || {
+    home: {
+      points: 0,
+    },
+    visitors: {
+      points: 0,
+    },
+  },
   officials: game.officials || [],
-  times_tied: game.timesTied,
-  lead_changes: game.leadChanges,
+  timesTied: game.timesTied,
+  leadChanges: game.leadChanges,
   nugget: game.nugget,
-  createdAt: new Date(),
-  updatedAt: new Date(),
-  homeTeamId: game.teams?.home?.id ? String(game.teams.home.id) : '',
-  awayTeamId: game.teams?.visitors?.id ? String(game.teams.visitors.id) : '',
+  homeTeamId: game.teams?.home?.id ?? '',
+  awayTeamId: game.teams?.visitors?.id ?? '',
   teams: {
     home: game.teams?.home || null,
     visitors: game.teams?.visitors || null,
   },
   is_completed: game.status?.long === 'Finished',
-  awayScore: game.scores?.visitors?.points || null,
-  homeScore: game.scores?.home?.points || null,
-  gameType: 'LIVE',
+  awayTeamScore: game.scores?.visitors?.points || null,
+  homeTeamScore: game.scores?.home?.points || null,
   nbaGameId: String(game.id),
 });
 

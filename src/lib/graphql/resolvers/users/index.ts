@@ -1,10 +1,9 @@
 import { and, eq, gt, lt, or, sql } from 'drizzle-orm';
 import type { InferSelectModel } from 'drizzle-orm';
 
-import { db } from '@/lib/db';
 import * as schema from '@/lib/db/schema';
 import { BusinessLogicError } from '@/lib/graphql/errors';
-import { createConnection, parsePaginationArgs } from '@/lib/graphql/utils/pagination';
+import { createConnection } from '@/lib/graphql/utils/pagination';
 import type { Context } from '@/lib/types/context.types';
 
 import type { PaginationArgs } from '../common/types';

@@ -119,12 +119,12 @@ export type CreateCommentResponse = {
 };
 
 export type CreateGameInput = {
-  awayScore?: InputMaybe<Scalars['Int']['input']>;
   awayTeamId: Scalars['ID']['input'];
+  awayTeamScore?: InputMaybe<Scalars['Int']['input']>;
   date: Scalars['DateTime']['input'];
   gameType: Scalars['String']['input'];
-  homeScore?: InputMaybe<Scalars['Int']['input']>;
   homeTeamId: Scalars['ID']['input'];
+  homeTeamScore?: InputMaybe<Scalars['Int']['input']>;
   nbaGameId?: InputMaybe<Scalars['ID']['input']>;
   status: GAME_STATUS;
 };
@@ -296,20 +296,20 @@ export type FriendshipStatus =
   | 'REJECTED';
 
 export type GAME_STATUS =
-  | 'Finished'
-  | 'Live'
-  | 'Scheduled';
+  | 'FINISHED'
+  | 'LIVE'
+  | 'SCHEDULED';
 
 export type Game = {
   __typename?: 'Game';
   arena: Arena;
-  awayScore: Maybe<Scalars['Int']['output']>;
   awayTeamId: Scalars['ID']['output'];
+  awayTeamScore: Maybe<Scalars['Int']['output']>;
   createdAt: Scalars['DateTime']['output'];
   date: GameDate;
   gameType: Scalars['String']['output'];
-  homeScore: Maybe<Scalars['Int']['output']>;
   homeTeamId: Scalars['ID']['output'];
+  homeTeamScore: Maybe<Scalars['Int']['output']>;
   id: Scalars['ID']['output'];
   isCompleted: Scalars['Boolean']['output'];
   leadChanges: Maybe<Scalars['Int']['output']>;
@@ -874,6 +874,7 @@ export type Query = {
   games: GameConnection;
   leagues: LeagueConnection;
   liveGames: GameConnection;
+  me: Maybe<User>;
   player: Maybe<Player>;
   playerGameStats: Maybe<PlayerStats>;
   playerSeasonStats: Maybe<PlayerStats>;
@@ -885,6 +886,7 @@ export type Query = {
   seasons: SeasonConnection;
   team: Maybe<Team>;
   teamGameStats: Maybe<TeamStats>;
+  teamH2H: TeamH2H;
   teamStats: TeamStatsConnection;
   teams: TeamConnection;
   topPlayers: PlayerConnection;
@@ -1065,6 +1067,12 @@ export type QueryteamArgs = {
 export type QueryteamGameStatsArgs = {
   gameId: Scalars['ID']['input'];
   teamId: Scalars['String']['input'];
+};
+
+
+export type QueryteamH2HArgs = {
+  opponentId: Scalars['ID']['input'];
+  teamId: Scalars['ID']['input'];
 };
 
 
@@ -1338,6 +1346,16 @@ export type TeamGameStatsInput = {
   turnovers?: InputMaybe<Scalars['Int']['input']>;
 };
 
+export type TeamH2H = {
+  __typename?: 'TeamH2H';
+  lastTenGames: Array<Scalars['String']['output']>;
+  losses: Scalars['Int']['output'];
+  opponentId: Scalars['ID']['output'];
+  teamId: Scalars['ID']['output'];
+  winPercentage: Scalars['String']['output'];
+  wins: Scalars['Int']['output'];
+};
+
 export type TeamScore = {
   __typename?: 'TeamScore';
   linescore: Maybe<Array<Maybe<Scalars['Int']['output']>>>;
@@ -1453,9 +1471,9 @@ export type UpdateFriendshipStatusResponse = {
 };
 
 export type UpdateGameInput = {
-  awayScore?: InputMaybe<Scalars['Int']['input']>;
+  awayTeamScore?: InputMaybe<Scalars['Int']['input']>;
   date?: InputMaybe<Scalars['DateTime']['input']>;
-  homeScore?: InputMaybe<Scalars['Int']['input']>;
+  homeTeamScore?: InputMaybe<Scalars['Int']['input']>;
   status: GAME_STATUS;
 };
 
@@ -1841,6 +1859,7 @@ export type ResolversTypes = {
   TeamFilters: TeamFilters;
   TeamGameStats: ResolverTypeWrapper<TeamGameStats>;
   TeamGameStatsInput: TeamGameStatsInput;
+  TeamH2H: ResolverTypeWrapper<TeamH2H>;
   TeamScore: ResolverTypeWrapper<TeamScore>;
   TeamSortInput: TeamSortInput;
   TeamStats: ResolverTypeWrapper<TeamStats>;
@@ -1979,6 +1998,7 @@ export type ResolversParentTypes = {
   TeamFilters: TeamFilters;
   TeamGameStats: TeamGameStats;
   TeamGameStatsInput: TeamGameStatsInput;
+  TeamH2H: TeamH2H;
   TeamScore: TeamScore;
   TeamSortInput: TeamSortInput;
   TeamStats: TeamStats;
@@ -2221,13 +2241,13 @@ export type FriendshipResolvers<ContextType = Context, ParentType extends Resolv
 
 export type GameResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Game'] = ResolversParentTypes['Game']> = {
   arena?: Resolver<ResolversTypes['Arena'], ParentType, ContextType>;
-  awayScore?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   awayTeamId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  awayTeamScore?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   date?: Resolver<ResolversTypes['GameDate'], ParentType, ContextType>;
   gameType?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  homeScore?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   homeTeamId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  homeTeamScore?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   isCompleted?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   leadChanges?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
@@ -2587,6 +2607,7 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   games?: Resolver<ResolversTypes['GameConnection'], ParentType, ContextType, Partial<QuerygamesArgs>>;
   leagues?: Resolver<ResolversTypes['LeagueConnection'], ParentType, ContextType, Partial<QueryleaguesArgs>>;
   liveGames?: Resolver<ResolversTypes['GameConnection'], ParentType, ContextType, Partial<QueryliveGamesArgs>>;
+  me?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
   player?: Resolver<Maybe<ResolversTypes['Player']>, ParentType, ContextType, RequireFields<QueryplayerArgs, 'id'>>;
   playerGameStats?: Resolver<Maybe<ResolversTypes['PlayerStats']>, ParentType, ContextType, RequireFields<QueryplayerGameStatsArgs, 'gameId' | 'playerId'>>;
   playerSeasonStats?: Resolver<Maybe<ResolversTypes['PlayerStats']>, ParentType, ContextType, RequireFields<QueryplayerSeasonStatsArgs, 'playerId' | 'season'>>;
@@ -2598,6 +2619,7 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   seasons?: Resolver<ResolversTypes['SeasonConnection'], ParentType, ContextType, Partial<QueryseasonsArgs>>;
   team?: Resolver<Maybe<ResolversTypes['Team']>, ParentType, ContextType, RequireFields<QueryteamArgs, 'id'>>;
   teamGameStats?: Resolver<Maybe<ResolversTypes['TeamStats']>, ParentType, ContextType, RequireFields<QueryteamGameStatsArgs, 'gameId' | 'teamId'>>;
+  teamH2H?: Resolver<ResolversTypes['TeamH2H'], ParentType, ContextType, RequireFields<QueryteamH2HArgs, 'opponentId' | 'teamId'>>;
   teamStats?: Resolver<ResolversTypes['TeamStatsConnection'], ParentType, ContextType, RequireFields<QueryteamStatsArgs, 'teamId'>>;
   teams?: Resolver<ResolversTypes['TeamConnection'], ParentType, ContextType, Partial<QueryteamsArgs>>;
   topPlayers?: Resolver<ResolversTypes['PlayerConnection'], ParentType, ContextType, RequireFields<QuerytopPlayersArgs, 'season'>>;
@@ -2760,6 +2782,16 @@ export type TeamGameStatsResolvers<ContextType = Context, ParentType extends Res
   team?: Resolver<ResolversTypes['Team'], ParentType, ContextType>;
   threePointers?: Resolver<ResolversTypes['ThreePointerStats'], ParentType, ContextType>;
   turnovers?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type TeamH2HResolvers<ContextType = Context, ParentType extends ResolversParentTypes['TeamH2H'] = ResolversParentTypes['TeamH2H']> = {
+  lastTenGames?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
+  losses?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  opponentId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  teamId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  winPercentage?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  wins?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -3082,6 +3114,7 @@ export type Resolvers<ContextType = Context> = {
   TeamConnection?: TeamConnectionResolvers<ContextType>;
   TeamEdge?: TeamEdgeResolvers<ContextType>;
   TeamGameStats?: TeamGameStatsResolvers<ContextType>;
+  TeamH2H?: TeamH2HResolvers<ContextType>;
   TeamScore?: TeamScoreResolvers<ContextType>;
   TeamStats?: TeamStatsResolvers<ContextType>;
   TeamStatsConnection?: TeamStatsConnectionResolvers<ContextType>;

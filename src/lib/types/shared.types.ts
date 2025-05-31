@@ -164,8 +164,6 @@ export interface Game {
   status: GAME_STATUS;
   homeTeam: GameTeam;
   awayTeam: GameTeam;
-  homeTeamScore: number;
-  awayTeamScore: number;
   arena?: {
     name: string;
     city: string;
@@ -184,8 +182,8 @@ export interface Game {
   timesTied?: number;
   leadChanges?: number;
   nugget?: string;
-  createdAt: string;
-  updatedAt: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface GameTeam {

@@ -164,7 +164,7 @@ export function FriendRequestButton({ targetUserId }: FriendRequestButtonProps) 
 
   if (existingFriendship) {
     switch (existingFriendship.status) {
-      case FRIENDSHIP_STATUS.PENDING:
+      case FRIENDSHIP_STATUS.PENDING.toString():
         if (existingFriendship.subscriberId === userId) {
           return (
             <Button variant="outline" size="sm" disabled>
@@ -201,19 +201,19 @@ export function FriendRequestButton({ targetUserId }: FriendRequestButtonProps) 
             </Button>
           </div>
         );
-      case FRIENDSHIP_STATUS.ACCEPTED:
+      case FRIENDSHIP_STATUS.ACCEPTED.toString():
         return (
           <Button variant="outline" size="sm" disabled>
             Friends
           </Button>
         );
-      case FRIENDSHIP_STATUS.REJECTED:
+      case FRIENDSHIP_STATUS.REJECTED.toString():
         return (
           <Button variant="outline" size="sm" disabled>
             Request Rejected
           </Button>
         );
-      case FRIENDSHIP_STATUS.BLOCKED:
+      case FRIENDSHIP_STATUS.BLOCKED.toString():
         return (
           <Button variant="outline" size="sm" disabled>
             Request Blocked

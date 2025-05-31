@@ -31,8 +31,8 @@ export type GameRecord = {
   teams: { home: Record<string, unknown>; visitors: Record<string, unknown> };
   scores: { home: { points: number }; visitors: { points: number } };
   officials: string[] | Record<string, unknown>;
-  times_tied?: number;
-  lead_changes?: number;
+  timesTied?: number;
+  leadChanges?: number;
   nugget?: string;
   createdAt: Date;
   updatedAt: Date;

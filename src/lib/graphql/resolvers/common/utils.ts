@@ -1,19 +1,9 @@
-import { and, eq, or, sql } from 'drizzle-orm';
-import { GraphQLError } from 'graphql';
-
-import { CACHE_KEYS, getCache } from '@/lib/cache';
-import { db } from '@/lib/db';
-import * as schema from '@/lib/db/schema';
-import { BusinessLogicError, NotFoundError } from '@/lib/graphql/errors';
-import {
-  createConnection,
-  createEmptyConnection,
-  parsePaginationArgs,
-} from '@/lib/graphql/utils/pagination';
+import { getCache } from '@/lib/cache';
+import { BusinessLogicError } from '@/lib/graphql/errors';
 import { CACHE_TTL } from '@/lib/types/cache.types';
 import { REACTION_EMOJIS } from '@/lib/types/config.types';
 import type { DatabaseRow } from '@/lib/types/database.types';
-import type { ReactionEmojiType } from '@/lib/types/generated/graphql';
+import type { GameStatus, ReactionEmojiType } from '@/lib/types/generated/graphql';
 
 // Helper function to convert emoji character back to key
 export const getEmojiKey = (emojiCharacter: string): ReactionEmojiType => {
@@ -45,23 +35,23 @@ export const mapGameData = (game: DatabaseRow) => {
     status: {
       clock:
         typeof game.status === 'object' && game.status !== null
-          ? String((game.status as any).clock || '')
+          ? String((game.status as GameStatus).clock || '')
           : typeof game.status === 'string'
             ? game.status
             : '',
       halftime:
         typeof game.status === 'object' && game.status !== null
-          ? Boolean((game.status as any).halftime)
+          ? Boolean((game.status as GameStatus).halftime)
           : false,
       long:
         typeof game.status === 'object' && game.status !== null
-          ? String((game.status as any).long || '')
+          ? String((game.status as GameStatus).long || '')
           : typeof game.status === 'string'
             ? game.status
             : '',
       short:
         typeof game.status === 'object' && game.status !== null
-          ? String((game.status as any).short || '')
+          ? String((game.status as GameStatus).short || '')
           : typeof game.status === 'string'
             ? game.status
             : '',
@@ -83,8 +73,8 @@ export const mapGameData = (game: DatabaseRow) => {
     periods: game.periods ?? [],
     scores: game.scores ?? [],
     officials: Array.isArray(game.officials) ? game.officials.map(String) : [],
-    times_tied: typeof game.times_tied === 'number' ? game.times_tied : null,
-    lead_changes: typeof game.lead_changes === 'number' ? game.lead_changes : null,
+    timesTied: typeof game.timesTied === 'number' ? game.timesTied : null,
+    leadChanges: typeof game.leadChanges === 'number' ? game.leadChanges : null,
     nugget: typeof game.nugget === 'string' ? game.nugget : null,
     createdAt: game.createdAt instanceof Date ? game.createdAt : new Date(game.createdAt as string),
     updatedAt: game.updatedAt instanceof Date ? game.updatedAt : new Date(game.updatedAt as string),

@@ -499,8 +499,8 @@ export const GET_LIVE_GAMES = gql`
           awayTeamId
           teams
           isCompleted
-          awayScore
-          homeScore
+          awayTeamScore
+          homeTeamScore
           gameType
           nbaGameId
         }

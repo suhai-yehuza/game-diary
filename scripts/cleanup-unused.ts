@@ -1,6 +1,7 @@
 import { execSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
+
 import * as ts from 'typescript';
 
 // Function to read ts-prune output
@@ -19,7 +20,7 @@ function parseUnusedExports(unusedExports: string[]): Map<string, string[]> {
   const result = new Map<string, string[]>();
 
   for (const line of unusedExports) {
-    const [filePath, lineNumber, exportName] = line.split(' - ');
+    const [filePath, , exportName] = line.split(' - ');
     if (!filePath || !exportName) continue;
 
     const exports = result.get(filePath) || [];

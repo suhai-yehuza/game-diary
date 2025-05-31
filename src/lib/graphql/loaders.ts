@@ -5,7 +5,7 @@ import type { NeonHttpDatabase } from 'drizzle-orm/neon-http';
 import { getCache } from '@/lib/cache';
 import * as schema from '@/lib/db/schema';
 import { db } from '@/lib/db/seed';
-import { FRIENDSHIP_STATUS, REACTION_EMOJIS, GAME_STATUS_VALUES } from '@/lib/types/config.types';
+import { REACTION_EMOJIS, GAME_STATUS_VALUES, FRIENDSHIP_STATUS } from '@/lib/types/config.types';
 import type {
   Game,
   GameLog,
@@ -22,8 +22,7 @@ import type {
   NbaInfo,
   HeightInfo,
   WeightInfo,
-  GameDate,
-  GameStatus,
+  FriendshipStatus,
 } from '@/lib/types/generated/graphql';
 import type { DbGame, DBComment, DBReaction } from '@/lib/types/generated/types';
 
@@ -103,7 +102,7 @@ export function createLoaders(db: NeonHttpDatabase<typeof schema>) {
           clock: game.status?.clock || null,
           halftime: game.status?.halftime || false,
           short: String(game.status?.short || ''),
-          long: game.status?.long || GAME_STATUS_VALUES.SCHEDULED
+          long: game.status?.long || GAME_STATUS_VALUES.SCHEDULED,
         },
         arena,
         league: game.league,
@@ -160,8 +159,8 @@ export function createLoaders(db: NeonHttpDatabase<typeof schema>) {
           game.status && typeof game.status === 'object' && 'long' in game.status
             ? game.status.long === GAME_STATUS_VALUES.FINISHED
             : false,
-        awayScore: game.scores?.visitors?.points ?? null,
-        homeScore: game.scores?.home?.points ?? null,
+        awayTeamScore: game.scores?.visitors?.points ?? null,
+        homeTeamScore: game.scores?.home?.points ?? null,
         gameType: 'REGULAR',
         nbaGameId: game.id,
         __typename: 'Game',
@@ -305,8 +304,7 @@ export function createLoaders(db: NeonHttpDatabase<typeof schema>) {
         id: friendship.id,
         userId: friendship.userId || '',
         subscriberId: friendship.friendId || '',
-        status: (friendship.status ||
-          'PENDING') as (typeof FRIENDSHIP_STATUS)[keyof typeof FRIENDSHIP_STATUS],
+        status: (friendship.status || FRIENDSHIP_STATUS.PENDING) as FriendshipStatus,
         createdAt: friendship.createdAt,
         updatedAt: friendship.updatedAt,
         initiator: null as unknown as UserSummary,
@@ -410,7 +408,7 @@ export const createGameLoader = () => {
           clock: game.status?.clock || null,
           halftime: game.status?.halftime || false,
           short: String(game.status?.short || ''),
-          long: game.status?.long || GAME_STATUS_VALUES.SCHEDULED
+          long: game.status?.long || GAME_STATUS_VALUES.SCHEDULED,
         },
         arena: {
           name: typeof game.arena === 'string' ? game.arena : game.arena?.name || '',
@@ -460,8 +458,8 @@ export const createGameLoader = () => {
           game.status && typeof game.status === 'object' && 'long' in game.status
             ? game.status.long === GAME_STATUS_VALUES.FINISHED
             : false,
-        awayScore: game.scores?.visitors?.points ?? null,
-        homeScore: game.scores?.home?.points ?? null,
+        awayTeamScore: game.scores?.visitors?.points ?? null,
+        homeTeamScore: game.scores?.home?.points ?? null,
         gameType: 'REGULAR',
         nbaGameId: game.id,
       } satisfies Game;
@@ -582,8 +580,8 @@ export const createDbGameLoader = () => {
           game.status && typeof game.status === 'object' && 'long' in game.status
             ? game.status.long === GAME_STATUS_VALUES.FINISHED
             : false,
-        awayScore: game.scores?.visitors?.points ?? null,
-        homeScore: game.scores?.home?.points ?? null,
+        awayTeamScore: game.scores?.visitors?.points ?? null,
+        homeTeamScore: game.scores?.home?.points ?? null,
         gameType: 'REGULAR',
         nbaGameId: game.id,
       } as unknown as DbGame;
@@ -656,8 +654,8 @@ export const createGameLogsLoader = (
         },
         homeTeamId: dbGame.teams?.home?.id?.toString() || '',
         awayTeamId: dbGame.teams?.visitors?.id?.toString() || '',
-        createdAt: new Date(dbGame.createdAt),
-        updatedAt: new Date(dbGame.updatedAt),
+        createdAt: new Date(dbGame.createdAt || ''),
+        updatedAt: new Date(dbGame.updatedAt || ''),
         arena: {
           name:
             typeof dbGame.arena === 'object' && dbGame.arena !== null
@@ -695,8 +693,8 @@ export const createGameLogsLoader = (
           typeof dbGame.status === 'object' && dbGame.status !== null && 'long' in dbGame.status
             ? dbGame.status['long'] === GAME_STATUS_VALUES.FINISHED
             : false,
-        awayScore: dbGame.scores?.visitors?.points || null,
-        homeScore: dbGame.scores?.home?.points || null,
+        awayTeamScore: dbGame.scores?.visitors?.points || null,
+        homeTeamScore: dbGame.scores?.home?.points || null,
         gameType: 'REGULAR',
         nbaGameId: dbGame.id,
         __typename: 'Game',
@@ -868,7 +866,12 @@ export const createDbGameBySeasonLoader = () => {
                     end: null,
                     duration: null,
                   },
-            status: game.status as unknown as GameStatus,
+            status: game.status || {
+              clock: null,
+              halftime: false,
+              long: '',
+              short: '',
+            },
             arena: {
               name: typeof game.arena === 'string' ? game.arena : game.arena?.name || '',
               city: typeof game.arena === 'string' ? '' : game.arena?.city || '',
@@ -920,10 +923,10 @@ export const createDbGameBySeasonLoader = () => {
               typeof game.status === 'object' && game.status !== null && 'long' in game.status
                 ? game.status.long === GAME_STATUS_VALUES.FINISHED
                 : false,
-            awayScore: game.scores?.visitors?.points || null,
-            homeScore: game.scores?.home?.points || null,
             gameType: 'REGULAR',
             nbaGameId: game.id,
+            createdAt: game.createdAt?.toISOString() as string,
+            updatedAt: game.updatedAt?.toISOString() as string,
           };
 
           return gameData;

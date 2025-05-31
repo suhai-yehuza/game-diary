@@ -19,8 +19,8 @@ export const games = pgTable('games', {
   awayTeamId: varchar('awayTeamId', { length: 255 })
     .notNull()
     .references(() => teams.id),
-  homeScore: integer('homeScore'),
-  awayScore: integer('awayScore'),
+  homeTeamScore: integer('homeTeamScore'),
+  awayTeamScore: integer('awayTeamScore'),
   status: varchar('status', { length: 50 }).notNull(),
   createdAt: timestamp('createdAt').defaultNow().notNull(),
   updatedAt: timestamp('updatedAt').defaultNow().notNull(),

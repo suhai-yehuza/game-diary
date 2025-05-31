@@ -10,7 +10,7 @@ import { GameCardProps } from '@/lib/types/consolidated.types';
 
 export const GameCard = memo(({ game, index, imageErrors, onImageError }: GameCardProps) => {
   const router = useRouter();
-  const isLive = game.status.long === 'In Play' || game.status.short === 'LIVE';
+  const isLive = game.status.long === 'In Play' || game.status.short === 'Live';
   const winningTeam =
     game.scores.visitors.points > game.scores.home.points
       ? 'visitors'
@@ -41,7 +41,7 @@ export const GameCard = memo(({ game, index, imageErrors, onImageError }: GameCa
     >
       {isLive && (
         <div className="absolute top-0 left-0 right-0 bg-red-500 text-white text-center py-1 text-sm font-medium animate-pulse rounded-t-xl">
-          LIVE
+          Live
         </div>
       )}
       <div className="flex items-center justify-between mb-4">

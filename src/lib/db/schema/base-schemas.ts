@@ -14,7 +14,7 @@ export const baseGameFields = {
   date: timestamp('date').notNull(),
   homeTeamId: varchar('homeTeamId', { length: 255 }).notNull(),
   awayTeamId: varchar('awayTeamId', { length: 255 }).notNull(),
-  homeScore: integer('homeScore'),
-  awayScore: integer('awayScore'),
+  homeTeamScore: integer('homeTeamScore'),
+  awayTeamScore: integer('awayTeamScore'),
   status: varchar('status', { length: 50 }).notNull(),
 };

@@ -44,7 +44,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             case 'teams':
               return ['homeTeamId', 'awayTeamId'];
             case 'scores':
-              return ['homeScore', 'awayScore'];
+              return ['homeTeamScore', 'awayTeamScore'];
             default:
               return field;
           }

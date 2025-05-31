@@ -1,6 +1,4 @@
 import type { Context } from '@/lib/types/context.types';
-import type { DatabaseRow } from '@/lib/types/database.types';
-import type { ReactionEmojiType } from '@/lib/types/generated/graphql';
 import type { GameTeam } from '@/lib/types/shared.types';
 
 // Common types for game data
@@ -82,8 +80,8 @@ export interface MappedGame {
   periods: unknown[];
   scores: GameScores;
   officials: string[];
-  times_tied: number | null;
-  lead_changes: number | null;
+  timesTied: number | null;
+  leadChanges: number | null;
   nugget: string | null;
   createdAt: string;
   updatedAt: string;
@@ -94,8 +92,8 @@ export interface MappedGame {
     visitors: GameTeam | null;
   };
   is_completed: boolean;
-  awayScore: number | null;
-  homeScore: number | null;
+  awayTeamScore: number | null;
+  homeTeamScore: number | null;
   gameType: string;
   nbaGameId: string;
 }

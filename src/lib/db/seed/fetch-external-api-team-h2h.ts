@@ -24,8 +24,8 @@ export async function fetchAndProcessTeamH2H(db: NeonHttpDatabase<typeof schema>
       last5Games: string[];
       total_points_team1: number;
       total_points_team2: number;
-      times_tied: number;
-      lead_changes: number;
+      timesTied: number;
+      leadChanges: number;
     }
   >();
 
@@ -63,8 +63,8 @@ export async function fetchAndProcessTeamH2H(db: NeonHttpDatabase<typeof schema>
         last5Games: [],
         total_points_team1: 0,
         total_points_team2: 0,
-        times_tied: 0,
-        lead_changes: 0,
+        timesTied: 0,
+        leadChanges: 0,
       });
     }
 
@@ -94,8 +94,8 @@ export async function fetchAndProcessTeamH2H(db: NeonHttpDatabase<typeof schema>
     }
 
     // Update times tied and lead changes
-    h2h.times_tied += game.timesTied || 0;
-    h2h.lead_changes += game.leadChanges || 0;
+    h2h.timesTied += game.timesTied || 0;
+    h2h.leadChanges += game.leadChanges || 0;
 
     // Update last 5 games
     h2h.last5Games.push(game.id);

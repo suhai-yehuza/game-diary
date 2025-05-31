@@ -169,8 +169,8 @@ export default function NBAPage() {
                     createdAt: new Date(),
                     updatedAt: new Date(),
                     isCompleted: true,
-                    awayScore: 100,
-                    homeScore: 95,
+                    awayTeamScore: 100,
+                    homeTeamScore: 95,
                     gameType: 'Regular Season',
                     nbaGameId: '123',
                   }}

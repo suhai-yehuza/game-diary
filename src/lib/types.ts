@@ -7,13 +7,6 @@ import type { Reaction as GqlReaction } from './types/generated/graphql';
 import type { RedisClient } from './types/redis.types';
 import type { GameLog } from './types/shared.types';
 
-export const WATCHED_SETTINGS = {
-  LIVE: 'live',
-  REPLAY: 'replay',
-  HIGHLIGHTS: 'highlights',
-  HIGHLIGHT_REEL: 'highlight_reel',
-} as const;
-
 export interface BaseContext {
   request?: unknown;
   response?: unknown;

@@ -11,7 +11,7 @@ import {
 // Game status enum
 export const GAME_STATUS = {
   SCHEDULED: 'Scheduled',
-  LIVE: 'Live',
+  Live: 'Live',
   FINISHED: 'Finished',
 } as const;
 

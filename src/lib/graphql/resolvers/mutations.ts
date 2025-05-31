@@ -5,13 +5,12 @@ import { z } from 'zod';
 
 import { getCache, invalidateRelatedCaches } from '@/lib/cache';
 import { db } from '@/lib/db';
-import { schema, comments } from '@/lib/db/schema';
+import { schema } from '@/lib/db/schema';
 import { Context } from '@/lib/graphql/context';
 import {
   AuthenticationError,
   AuthorizationError,
   BusinessLogicError,
-  ForeignKeyViolationError,
   NotFoundError,
   ValidationError,
 } from '@/lib/graphql/errors';
@@ -19,7 +18,6 @@ import { transformUser } from '@/lib/graphql/resolvers/transformers';
 import { mapUserData } from '@/lib/graphql/resolvers/users/index';
 import { WatchedSettingValue, REACTION_EMOJIS, ReactionEmojiKey } from '@/lib/types/config.types';
 import {
-  Friendship,
   MutationcreateGameLogArgs,
   MutationupdateGameLogArgs,
   MutationdeleteGameLogArgs,
@@ -33,10 +31,8 @@ import {
   Classification,
   ReactionEmojiType,
 } from '@/lib/types/generated/graphql';
-import type { SendFriendRequestInput } from '@/lib/types/graphql.types';
 import { generateUUID } from '@/lib/utils/index.processing';
 import { createCommentSchema } from '@/lib/validations/comment';
-import { sendFriendRequestSchema } from '@/lib/validations/friendship';
 import { gameTypeEnum, gameLogInputSchema } from '@/lib/validations/game';
 
 // Define the actual comments table structure to match the database
@@ -51,17 +47,6 @@ const actualCommentsTable = pgTable('comments', {
   createdAt: timestamp('createdAt').defaultNow().notNull(),
   updatedAt: timestamp('updatedAt').defaultNow().notNull(),
   deletedAt: timestamp('deletedAt'),
-});
-
-// Define the actual reactions table structure to match the database
-const actualReactionsTable = pgTable('reactions', {
-  id: text('id').primaryKey(),
-  userId: text('userId'),
-  targetId: text('targetId').notNull(),
-  targetType: varchar('targetType', { length: 50 }).notNull(),
-  emoji: varchar('emoji', { length: 10 }).notNull(),
-  createdAt: timestamp('createdAt').defaultNow().notNull(),
-  updatedAt: timestamp('updatedAt').defaultNow().notNull(),
 });
 
 // Helper functions
@@ -91,30 +76,6 @@ const handleError = (error: unknown, operation: string) => {
 function nullToUndefined<T>(value: T | null): T | undefined {
   return value === null ? undefined : value;
 }
-
-// Helper to map ReactionEmojiType to emoji
-const REACTION_EMOJI_MAP: Record<string, string> = {
-  LIKE: '👍',
-  LOVE: '❤️',
-  LAUGH: '😂',
-  WOW: '😮',
-  SAD: '😢',
-  ANGRY: '😠',
-  FIRE: '🔥',
-  CLAP: '👏',
-  EYES: '👀',
-  ROCKET: '🚀',
-  MUSCLE: '💪',
-  GOAT: '🐐',
-  BULLSEYE: '🎯',
-  THUMBS_DOWN: '👎',
-  BASKETBALL: '🏀',
-  SOCCER: '⚽',
-  FOOTBALL: '🏈',
-  BASEBALL: '⚾',
-  TENNIS: '🎾',
-  GOLF: '⛳',
-};
 
 // Helper to fetch full user from DB
 async function getFullUser(db: typeof import('@/lib/db').db, userId: string) {

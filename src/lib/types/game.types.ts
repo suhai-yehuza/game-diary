@@ -7,6 +7,7 @@ import { ApolloError } from '@apollo/client';
 import type { InferSelectModel } from 'drizzle-orm';
 
 import { nba_games } from '@/lib/db/schema/nba-schemas';
+import type { GameStatusValue } from '@/lib/types/config.types';
 
 import type {
   Game,
@@ -16,10 +17,9 @@ import type {
   TeamStats,
   Team,
   Classification,
-  GAME_STATUS,
   SortDirection,
 } from './generated/graphql';
-import type { GameTeam, GameTeamStats } from './shared.types';
+import type { GameTeamStats } from './shared.types';
 import type { CustomTeam } from './team.types';
 
 // Re-export types from generated/graphql
@@ -233,7 +233,7 @@ export interface GameFilters {
   homeTeamId?: string;
   awayTeamId?: string;
   season?: number;
-  status?: GAME_STATUS;
+  status?: GameStatusValue;
   dateRange?: {
     start: Date;
     end?: Date;
@@ -350,8 +350,8 @@ export type GameField =
   | 'teams'
   | 'scores'
   | 'officials'
-  | 'times_tied'
-  | 'lead_changes'
+  | 'timesTied'
+  | 'leadChanges'
   | 'nugget'
   | 'createdAt'
   | 'updatedAt';
@@ -487,8 +487,8 @@ export type ExtendedGame = Game & {
     total: number;
   };
   officials?: string[];
-  times_tied?: number;
-  lead_changes?: number;
+  timesTied?: number;
+  leadChanges?: number;
   nugget?: string;
 };
 

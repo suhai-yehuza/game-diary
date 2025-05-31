@@ -69,16 +69,16 @@ function convertDBGameToNBAGame(game: GameRecord): Game {
     teams: game.teams,
     scores: game.scores,
     officials: game.officials as string[],
-    timesTied: game.times_tied ?? null,
-    leadChanges: game.lead_changes ?? null,
+    timesTied: game.timesTied ?? null,
+    leadChanges: game.leadChanges ?? null,
     nugget: game.nugget ?? null,
     createdAt: createdAt,
     updatedAt: updatedAt,
     isCompleted: status.long === GAME_STATUS_VALUES.FINISHED,
     awayTeamId: teams.visitors.id.toString(),
     homeTeamId: teams.home.id.toString(),
-    awayScore: scores.visitors.points || 0,
-    homeScore: scores.home.points || 0,
+    awayTeamScore: scores.visitors.points || 0,
+    homeTeamScore: scores.home.points || 0,
     gameType: 'Regular Season',
     nbaGameId: game.id,
   };
@@ -102,7 +102,7 @@ export const isGameFinished = (game: Game): boolean => {
 };
 
 export function isGameInProgress(game: Game): boolean {
-  return game.status.long === GAME_STATUS_VALUES.LIVE;
+  return game.status.long === GAME_STATUS_VALUES.Live;
 }
 
 export const isGameScheduled = (game: Game): boolean => {

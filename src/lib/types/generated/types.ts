@@ -31,7 +31,7 @@ export type DBSeason = {
   displayYear: string;
 };
 
-export type DbGame = Game & {
+export type DbGame = Omit<Game, 'date' | 'status' | 'homeTeam' | 'awayTeam'> & {
   arena: Arena | null;
   league: string;
   season: number;
@@ -95,8 +95,6 @@ export type DbGame = Game & {
   leadChanges: number | null;
   nugget: string | null;
   isCompleted: boolean;
-  awayScore: number | null;
-  homeScore: number | null;
   gameType: string;
   nbaGameId: string;
 };
@@ -163,10 +161,6 @@ export type DBGameLog = GameLog & {
   comments: Comment[];
   reactions: Reaction[];
 };
-
-export type DBClassification = 'WATCHED' | 'PLANNED' | 'SKIPPED';
-
-export type DBWatchedSettingType = 'LIVE' | 'REPLAY' | 'HIGHLIGHTS';
 
 export type DBLoaders = {
   user: (id: string) => Promise<DBUser>;

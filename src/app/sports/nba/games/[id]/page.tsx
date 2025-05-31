@@ -82,8 +82,8 @@ export default function GamePage() {
           leadChanges: apiGame.leadChanges || null,
           nugget: apiGame.nugget || null,
           isCompleted: apiGame.status.short === '3',
-          awayScore: apiGame.scores.visitors.points,
-          homeScore: apiGame.scores.home.points,
+          awayTeamScore: apiGame.scores.visitors.points,
+          homeTeamScore: apiGame.scores.home.points,
           gameType: 'NBA',
           nbaGameId: apiGame.id.toString(),
         };

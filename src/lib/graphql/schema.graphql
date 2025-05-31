@@ -93,12 +93,12 @@ type CreateCommentResponse {
 }
 
 input CreateGameInput {
-  awayScore: Int @constraint(min: 0)
   awayTeamId: ID!
+  awayTeamScore: Int @constraint(min: 0)
   date: DateTime!
   gameType: String!
-  homeScore: Int @constraint(min: 0)
   homeTeamId: ID!
+  homeTeamScore: Int @constraint(min: 0)
   nbaGameId: ID
   status: GAME_STATUS!
 }
@@ -269,13 +269,13 @@ enum GAME_STATUS {
 
 type Game {
   arena: Arena!
-  awayScore: Int
   awayTeamId: ID!
+  awayTeamScore: Int
   createdAt: DateTime!
   date: GameDate!
   gameType: String!
-  homeScore: Int
   homeTeamId: ID!
+  homeTeamScore: Int
   id: ID!
   isCompleted: Boolean!
   leadChanges: Int
@@ -690,6 +690,7 @@ type Query {
   games(after: String, before: String, filters: GameFilters, first: Int, last: Int): GameConnection!
   leagues(after: String, before: String, first: Int, last: Int): LeagueConnection!
   liveGames(after: String, before: String, first: Int, last: Int): GameConnection!
+  me: User
   player(id: ID!): Player
   playerGameStats(gameId: ID!, playerId: ID!): PlayerStats
   playerSeasonStats(playerId: ID!, season: Int!): PlayerStats
@@ -726,6 +727,7 @@ type Query {
   seasons(after: String, before: String, first: Int, last: Int): SeasonConnection!
   team(id: ID!): Team
   teamGameStats(gameId: ID!, teamId: String!): TeamStats
+  teamH2H(opponentId: ID!, teamId: ID!): TeamH2H!
   teamStats(
     after: String
     before: String
@@ -955,6 +957,15 @@ input TeamGameStatsInput {
   turnovers: Int
 }
 
+type TeamH2H {
+  lastTenGames: [String!]!
+  losses: Int!
+  opponentId: ID!
+  teamId: ID!
+  winPercentage: String!
+  wins: Int!
+}
+
 type TeamScore {
   linescore: [Int]
   loss: Int
@@ -1061,9 +1072,9 @@ type UpdateFriendshipStatusResponse {
 }
 
 input UpdateGameInput {
-  awayScore: Int @constraint(min: 0)
+  awayTeamScore: Int @constraint(min: 0)
   date: DateTime
-  homeScore: Int @constraint(min: 0)
+  homeTeamScore: Int @constraint(min: 0)
   status: GAME_STATUS!
 }
 

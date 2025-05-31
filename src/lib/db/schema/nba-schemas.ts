@@ -211,8 +211,8 @@ export const game_stats = pgTable(
       .notNull()
       .references(() => teams.id),
     gameDate: timestamp('gameDate').notNull(),
-    homeScore: integer('homeScore'),
-    awayScore: integer('awayScore'),
+    homeTeamScore: integer('homeTeamScore'),
+    awayTeamScore: integer('awayTeamScore'),
     status: varchar('status', { length: 50 }).notNull(),
     // Home team statistics
     homeFastBreakPoints: integer('homeFastBreakPoints'),

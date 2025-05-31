@@ -1,9 +1,7 @@
-import { execSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
 
 const MIGRATIONS_DIR = path.join(process.cwd(), 'src/lib/db/migrations');
-const DRIZZLE_DIR = path.join(process.cwd(), 'drizzle');
 
 interface MigrationConfig {
   name: string;

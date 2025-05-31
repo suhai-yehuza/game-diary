@@ -1,8 +1,6 @@
 import { and, eq } from 'drizzle-orm';
 
-import { db } from '@/lib/db';
 import * as schema from '@/lib/db/schema';
-import { BusinessLogicError } from '@/lib/graphql/errors';
 import type { Context } from '@/lib/types/context.types';
 
 import { handleResolverError } from '../common/utils';

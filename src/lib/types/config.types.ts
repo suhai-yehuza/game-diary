@@ -37,10 +37,10 @@ export type ReactionEmojiValue = (typeof REACTION_EMOJIS)[ReactionEmojiKey];
 
 // Status and Settings
 export const FRIENDSHIP_STATUS = {
-  ACCEPTED: 'ACCEPTED',
-  BLOCKED: 'BLOCKED',
-  PENDING: 'PENDING',
-  REJECTED: 'REJECTED',
+  ACCEPTED: 'Accepted',
+  BLOCKED: 'Blocked',
+  PENDING: 'Pending',
+  REJECTED: 'Rejected',
 } as const;
 
 export const WATCHED_SETTINGS = {
@@ -108,7 +108,7 @@ export const DIVISIONS = {
 
 export const GAME_STATUS_VALUES = {
   FINISHED: 'Finished',
-  LIVE: 'Live',
+  Live: 'Live',
   SCHEDULED: 'Scheduled',
 } as const;
 

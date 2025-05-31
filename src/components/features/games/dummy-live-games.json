@@ -75,9 +75,9 @@
           }
         },
         "isCompleted": false,
-        "awayScore": 64,
-        "homeScore": 69,
-        "gameType": "LIVE",
+        "awayTeamScore": 64,
+        "homeTeamScore": 69,
+        "gameType": "Live",
         "nbaGameId": "15446"
       }
     },
@@ -155,9 +155,9 @@
           }
         },
         "isCompleted": false,
-        "awayScore": 64,
-        "homeScore": 69,
-        "gameType": "LIVE",
+        "awayTeamScore": 64,
+        "homeTeamScore": 69,
+        "gameType": "Live",
         "nbaGameId": "15447"
       }
     },
@@ -235,9 +235,9 @@
           }
         },
         "isCompleted": false,
-        "awayScore": 64,
-        "homeScore": 69,
-        "gameType": "LIVE",
+        "awayTeamScore": 64,
+        "homeTeamScore": 69,
+        "gameType": "Live",
         "nbaGameId": "15448"
       }
     },
@@ -315,9 +315,9 @@
           }
         },
         "isCompleted": false,
-        "awayScore": 64,
-        "homeScore": 69,
-        "gameType": "LIVE",
+        "awayTeamScore": 64,
+        "homeTeamScore": 69,
+        "gameType": "Live",
         "nbaGameId": "15449"
       }
     },
@@ -395,9 +395,9 @@
           }
         },
         "isCompleted": false,
-        "awayScore": 64,
-        "homeScore": 69,
-        "gameType": "LIVE",
+        "awayTeamScore": 64,
+        "homeTeamScore": 69,
+        "gameType": "Live",
         "nbaGameId": "15450"
       }
     }
