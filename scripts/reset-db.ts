@@ -3,7 +3,7 @@ import { NeonHttpDatabase } from 'drizzle-orm/neon-http';
 
 import * as schema from '@/lib/db/schema';
 import { createDatabaseClient } from '@/lib/db/seed/config';
-import { main as migrateMain } from '@/lib/db/seed/migrate';
+import { migrate } from '@/lib/db/migrations/drizzle-migrate';
 
 async function dropAllTables(db: NeonHttpDatabase<typeof schema>) {
   try {
@@ -61,7 +61,7 @@ async function resetDatabase() {
     await dropAllTables(db);
 
     // Run migrations
-    await migrateMain();
+    await migrate();
 
     console.log('✅ Database reset completed successfully');
   } catch (error) {

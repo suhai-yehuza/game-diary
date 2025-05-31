@@ -4,7 +4,7 @@ import { NeonHttpDatabase } from 'drizzle-orm/neon-http';
 import * as schema from '@/lib/db/schema';
 
 import { createDatabaseClient } from './config';
-import { main as migrateMain } from './migrate';
+import { migrate } from '../migrations/drizzle-migrate';
 
 // Get environment from command line argument or default to development
 const env = process.argv[2] || 'development';
@@ -64,7 +64,7 @@ async function main() {
     await dropAllTables(db);
 
     // Run migrations
-    await migrateMain();
+    await migrate();
 
     console.log('Database reset and migration completed successfully');
   } catch (error) {
