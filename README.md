@@ -144,6 +144,46 @@ pnpm db:migrate:dev
 pnpm db:seed:dev
 ```
 
+### Database Migrations
+
+The application uses a robust migration system with version tracking, rollback support, and order verification:
+
+#### Migration Features
+
+- **Version Tracking**: Each migration is tracked in the `migration_versions` table
+- **Checksum Verification**: Migrations are verified using SHA-256 checksums
+- **Order Enforcement**: Migrations must be run in the correct order
+- **Transaction Support**: Each migration runs in a transaction
+- **Rollback Support**: Migrations can be rolled back individually or in batches
+
+#### Migration Commands
+
+```bash
+# Run migrations
+pnpm db:migrate          # Run all pending migrations
+pnpm db:migrate:dev      # Run migrations in development
+pnpm db:migrate:prod     # Run migrations in production
+
+# Rollback migrations
+pnpm db:migrate:rollback           # Rollback last migration
+pnpm db:migrate:rollback 3         # Rollback last 3 migrations
+pnpm db:migrate:rollback:dev       # Rollback in development
+pnpm db:migrate:rollback:prod      # Rollback in production
+
+# Reset database and run migrations
+pnpm db:migrate:reset              # Reset and run all migrations
+pnpm db:migrate:reset:dev          # Reset and run in development
+pnpm db:migrate:reset:prod         # Reset and run in production
+```
+
+#### Migration Safety Features
+
+- **Duplicate Prevention**: Migrations can only be run once
+- **Modification Detection**: Modified migrations are detected via checksums
+- **Error Handling**: Failed migrations are recorded with error messages
+- **Execution Tracking**: Migration execution time and status are tracked
+- **Rollback Support**: Each migration can include a rollback script
+
 ### 5. Generate GraphQL Types
 
 ```bash
