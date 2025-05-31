@@ -23,7 +23,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { CLASSIFICATIONS, WATCHED_SETTINGS } from '@/lib/types/config.types';
+import { CLASSIFICATIONS, WATCHED_SCOPE, WATCHED_SETTING } from '@/lib/types/config.types';
 import { Game } from '@/lib/types/game.types';
 import { CreateGameLogInput } from '@/lib/types/generated/graphql';
 import { gameLogInputSchema } from '@/lib/validations/game';
@@ -165,7 +165,7 @@ export function GameLogForm({
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {Object.entries(WATCHED_SETTINGS).map(([key, setting]) => (
+                  {Object.entries(WATCHED_SETTING).map(([key, setting]) => (
                     <SelectItem key={key} value={setting}>
                       {setting.charAt(0).toUpperCase() + setting.slice(1)}
                     </SelectItem>
@@ -245,22 +245,27 @@ export function GameLogForm({
 
         <FormField
           control={form.control}
-          name="watchedCount"
+          name="watchedScope"
           render={({
             field,
           }: {
-            field: ControllerRenderProps<CreateGameLogInput, 'watchedCount'>;
+            field: ControllerRenderProps<CreateGameLogInput, 'watchedScope'>;
           }) => (
             <FormItem>
-              <FormLabel>Times Watched</FormLabel>
+              <FormLabel>Watched Scope</FormLabel>
               <FormControl>
-                <Input
-                  type="number"
-                  min={1}
-                  {...field}
-                  value={field.value ?? undefined}
-                  onChange={e => field.onChange(Number(e.target.value))}
-                />
+                <Select onValueChange={field.onChange} defaultValue={field.value as string}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select watched scope" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(WATCHED_SCOPE).map(([key, value]) => (
+                      <SelectItem key={key} value={value}>
+                        {value}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </FormControl>
               <FormMessage />
             </FormItem>

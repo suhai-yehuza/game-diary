@@ -325,6 +325,7 @@ export interface UpdateGameLogModalProps {
     notes?: string;
     tags?: string[];
     classification: string;
+    watchedScope: string;
   };
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;

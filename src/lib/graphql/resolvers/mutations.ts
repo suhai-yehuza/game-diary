@@ -16,7 +16,12 @@ import {
 } from '@/lib/graphql/errors';
 import { transformUser } from '@/lib/graphql/resolvers/transformers';
 import { mapUserData } from '@/lib/graphql/resolvers/users/index';
-import { WatchedSettingValue, REACTION_EMOJIS, ReactionEmojiKey } from '@/lib/types/config.types';
+import {
+  WatchedSettingValue,
+  REACTION_EMOJIS,
+  ReactionEmojiKey,
+  WATCHED_SCOPE,
+} from '@/lib/types/config.types';
 import {
   MutationcreateGameLogArgs,
   MutationupdateGameLogArgs,
@@ -33,7 +38,7 @@ import {
 } from '@/lib/types/generated/graphql';
 import { generateUUID } from '@/lib/utils/index.processing';
 import { createCommentSchema } from '@/lib/validations/comment';
-import { gameTypeEnum, gameLogInputSchema } from '@/lib/validations/game';
+import { gameTypeEnum } from '@/lib/validations/game';
 
 // Define the actual comments table structure to match the database
 const actualCommentsTable = pgTable('comments', {
@@ -90,7 +95,10 @@ export const createGameLog = async (
 ) => {
   try {
     const user = checkAuth(context.user);
-    const validatedInput = validateInput(gameLogInputSchema, input);
+    const validatedInput = {
+      ...input,
+      watchedScope: input.watchedScope,
+    };
 
     // Fetch the full user data from the database
     const dbUser = await db.query.users.findFirst({
@@ -130,7 +138,7 @@ export const createGameLog = async (
           watchedLocation: validatedInput.watchedLocation || '',
           ratingForGame: validatedInput.ratingForGame || 0,
           ratingStars: validatedInput.ratingStars?.toString() || '',
-          watchedCount: validatedInput.watchedCount || 0,
+          watchedScope: validatedInput.watchedScope || WATCHED_SCOPE.FULL_GAME,
           notes: validatedInput.notes || '',
           tags: validatedInput.tags || [],
           classification: validatedInput.classification || 'protected',
@@ -243,7 +251,7 @@ export const createGameLog = async (
           rating: gameLog.ratingForGame,
           ratingStars: gameLog.ratingStars ? parseInt(gameLog.ratingStars) : undefined,
           tags: gameLog.tags || [],
-          watchedCount: gameLog.watchedCount,
+          watchedScope: gameLog.watchedScope,
           watchedDate: gameLog.watchedDate,
           watchedLocation: gameLog.watchedLocation || undefined,
           watchedSetting: gameLog.watchedSetting as WatchedSettingValue,
@@ -266,7 +274,10 @@ export const updateGameLog = async (
 ) => {
   try {
     const user = checkAuth(context.user);
-    const validatedInput = validateInput(gameLogInputSchema, input);
+    const validatedInput = {
+      ...input,
+      watchedScope: input.watchedScope,
+    };
 
     // Fetch the game log
     const gameLog = await db.query.game_logs.findFirst({
@@ -291,7 +302,7 @@ export const updateGameLog = async (
         watchedLocation: validatedInput.watchedLocation || '',
         ratingForGame: validatedInput.ratingForGame || 0,
         ratingStars: validatedInput.ratingStars?.toString() || '',
-        watchedCount: validatedInput.watchedCount || 0,
+        watchedScope: validatedInput.watchedScope || WATCHED_SCOPE.FULL_GAME,
         notes: validatedInput.notes || '',
         tags: validatedInput.tags || [],
         classification: validatedInput.classification || 'protected',
@@ -319,7 +330,7 @@ export const updateGameLog = async (
         rating: updatedGameLog.ratingForGame,
         ratingStars: updatedGameLog.ratingStars ? parseInt(updatedGameLog.ratingStars) : undefined,
         tags: updatedGameLog.tags || [],
-        watchedCount: updatedGameLog.watchedCount,
+        watchedScope: updatedGameLog.watchedScope,
         watchedDate: updatedGameLog.watchedDate,
         watchedLocation: updatedGameLog.watchedLocation || undefined,
         watchedSetting: updatedGameLog.watchedSetting as WatchedSettingValue,

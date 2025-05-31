@@ -1,3 +1,4 @@
+import { sql } from 'drizzle-orm';
 import { pgTable, varchar, text, timestamp, boolean } from 'drizzle-orm/pg-core';
 
 import { users } from './user-schemas';
@@ -13,5 +14,5 @@ export const notifications = pgTable('notifications', {
   read: boolean('read').notNull().default(false),
   createdAt: timestamp('createdAt').defaultNow().notNull(),
   updatedAt: timestamp('updatedAt').defaultNow().notNull(),
-  deletedAt: timestamp('deletedAt'),
+  deletedAt: timestamp('deletedAt').default(sql`null`),
 });

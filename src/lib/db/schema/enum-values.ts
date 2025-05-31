@@ -2,7 +2,7 @@
 import {
   REACTION_EMOJIS,
   FRIENDSHIP_STATUS,
-  WATCHED_SETTINGS,
+  WATCHED_SETTING,
   type ReactionEmojiValue,
   type FriendshipStatusValue,
   type WatchedSettingValue,
@@ -75,7 +75,7 @@ export type ReactionTypeValue = (typeof REACTION_TYPE)[keyof typeof REACTION_TYP
 export {
   REACTION_EMOJIS,
   FRIENDSHIP_STATUS,
-  WATCHED_SETTINGS,
+  WATCHED_SETTING,
   type ReactionEmojiValue,
   type FriendshipStatusValue,
   type WatchedSettingValue,

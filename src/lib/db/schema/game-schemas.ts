@@ -1,6 +1,7 @@
 import { sql } from 'drizzle-orm';
 import { pgTable, integer, text, timestamp, varchar, decimal, unique } from 'drizzle-orm/pg-core';
 
+import { CLASSIFICATIONS, WATCHED_SETTING, WATCHED_SCOPE } from '@/lib/types/config.types';
 import { generateUUID } from '@/lib/utils/index.processing';
 
 import { nba_games } from './nba-schemas';
@@ -24,6 +25,7 @@ export const games = pgTable('games', {
   status: varchar('status', { length: 50 }).notNull(),
   createdAt: timestamp('createdAt').defaultNow().notNull(),
   updatedAt: timestamp('updatedAt').defaultNow().notNull(),
+  deletedAt: timestamp('deletedAt').default(sql`null`),
 });
 
 // Game logs table
@@ -35,15 +37,19 @@ export const game_logs = pgTable(
     gameId: varchar('gameId', { length: 255 })
       .notNull()
       .references(() => nba_games.id),
-    watchedSetting: varchar('watchedSetting', { length: 50 }).notNull().default('tv'),
+    classification: varchar('classification', { length: 50 })
+      .notNull()
+      .default(CLASSIFICATIONS.PROTECTED),
+    watchedSetting: varchar('watchedSetting', { length: 50 }).notNull().default(WATCHED_SETTING.TV),
+    watchedScope: varchar('watchedScope', { length: 50 })
+      .notNull()
+      .default(WATCHED_SCOPE.FULL_GAME),
     watchedDate: timestamp({ precision: 6, withTimezone: true }).notNull(),
     watchedLocation: varchar('watchedLocation', { length: 255 }).default(''),
     ratingForGame: integer('ratingForGame').notNull(),
-    ratingStars: varchar('ratingStars', { length: 10 }).default(''),
-    watchedCount: integer('watchedCount').notNull().default(0),
+    ratingStars: varchar('ratingStars', { length: 10 }).notNull().default(''),
     notes: text('notes').default(''),
     tags: text('tags').array().default([]),
-    classification: varchar('classification', { length: 50 }).notNull().default('PROTECTED'),
     createdAt: timestamp({ precision: 6, withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp({ precision: 6, withTimezone: true }).notNull().defaultNow(),
     deletedAt: timestamp({ precision: 6, withTimezone: true }),
@@ -66,6 +72,7 @@ export const game_ratings = pgTable(
     totalRatings: integer('totalRatings').notNull().default(0),
     createdAt: timestamp('createdAt').defaultNow().notNull(),
     updatedAt: timestamp('updatedAt').defaultNow().notNull(),
+    deletedAt: timestamp('deletedAt').default(sql`null`),
   },
   _table => ({
     // Add unique constraint on gameId

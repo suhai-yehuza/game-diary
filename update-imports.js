@@ -72,7 +72,7 @@ const typeMapping = {
   // Config types
   REACTION_EMOJIS: '@/lib/types/config.types',
   FRIENDSHIP_STATUS: '@/lib/types/config.types',
-  WATCHED_SETTINGS: '@/lib/types/config.types',
+  WATCHED_SETTING: '@/lib/types/config.types',
   CLASSIFICATIONS: '@/lib/types/config.types',
   GAME_STATUS_VALUES: '@/lib/types/config.types',
   ReactionEmojiType: '@/lib/types/config.types',

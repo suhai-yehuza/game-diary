@@ -15,6 +15,11 @@ import { useToast } from '@/components/ui/use-toast';
 import { useAuthContext } from '@/contexts/AuthContext';
 import { UPDATE_GAME_LOG } from '@/lib/graphql/mutations';
 import { GET_GAME_LOGS } from '@/lib/graphql/queries';
+import {
+  ClassificationValue,
+  WatchedScopeValue,
+  WatchedSettingValue,
+} from '@/lib/types/config.types';
 import { UpdateGameLogModalProps } from '@/lib/types/consolidated.types';
 import { GameLogFormData } from '@/lib/types/gamelog.types';
 import { GameLog } from '@/lib/types/generated/graphql';
@@ -61,14 +66,14 @@ export function UpdateGameLogModal({ gameLog, isOpen, setIsOpen }: UpdateGameLog
   });
 
   const [formData, setFormData] = useState<GameLogFormData>({
-    watchedSetting: gameLog.watchedSetting,
+    watchedSetting: gameLog.watchedSetting as WatchedSettingValue,
     watchedDate: new Date(gameLog.watchedDate || Date.now()),
     watchedLocation: gameLog.watchedSetting,
     ratingForGame: gameLog.rating?.toString() || '',
     ratingStars: gameLog.rating || 0,
-    watchedCount: 1,
+    watchedScope: gameLog.watchedScope as WatchedScopeValue,
     notes: gameLog.notes || '',
-    classification: gameLog.classification,
+    classification: gameLog.classification as ClassificationValue,
     tags: gameLog.tags || [],
   });
 

@@ -1,9 +1,11 @@
+import { sql } from 'drizzle-orm';
 import { pgTable, text, varchar, boolean, timestamp } from 'drizzle-orm/pg-core';
 
 export const teams = pgTable('teams', {
   id: text('id').primaryKey(),
   createdAt: timestamp('createdAt').defaultNow(),
   updatedAt: timestamp('updatedAt').defaultNow(),
+  deletedAt: timestamp('deletedAt').default(sql`null`),
   name: varchar('name', { length: 255 }).notNull(),
   abbreviation: varchar('abbreviation', { length: 10 }).notNull(),
   city: varchar('city', { length: 255 }).notNull(),

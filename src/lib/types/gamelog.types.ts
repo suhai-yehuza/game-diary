@@ -1,20 +1,21 @@
 import { z } from 'zod';
 
+import type { ClassificationValue, WatchedSettingValue, WatchedScopeValue } from './config.types';
 import type { GameWithStats } from './game.types';
 import type { Game, GameLog, GameLogFilters, GameLogStats } from './generated/graphql';
 
 export type { GameLog, GameLogFilters, GameLogStats };
 
 export interface GameLogFormData {
-  watchedSetting: string;
+  watchedSetting: WatchedSettingValue;
   watchedDate: Date;
   watchedLocation: string;
   ratingForGame: string;
   ratingStars: number;
-  watchedCount: number;
+  watchedScope: WatchedScopeValue;
   notes: string;
   tags: string[];
-  classification: string;
+  classification: ClassificationValue;
 }
 
 export interface GameLogFormProps {
@@ -38,10 +39,10 @@ export interface GameLogViewProps {
     watchedLocation: string;
     ratingForGame: string;
     ratingStars: number;
-    watchedCount: number;
     notes: string;
     tags: string[];
     classification: string;
+    watchedScope: string;
     createdAt: string;
     updatedAt: string;
   };
@@ -50,7 +51,7 @@ export interface GameLogViewProps {
 export const createGameLogSchema = z.object({
   gameId: z.string(),
   watchedSetting: z.string(),
-  watchedCount: z.number().min(1),
+  watchedScope: z.string(),
   classification: z.string(),
   watchedDate: z.string().optional(),
   watchedLocation: z.string().optional(),
@@ -63,13 +64,10 @@ export interface GameLogInput {
   watchedDate: string;
   watchedLocation?: string;
   watchedSetting?: string;
+  watchedScope?: string;
   ratingForGame?: number;
   comment?: string;
 }
-
-// export interface SharedGameLog extends GameLog {
-//   game: GameWithStats;
-// }
 
 export interface CustomGameLog extends GameLog {
   game: GameWithStats;

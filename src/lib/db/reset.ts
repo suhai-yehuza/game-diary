@@ -193,7 +193,7 @@ export async function resetDatabase() {
         watchedDate TIMESTAMP WITH TIME ZONE,
         ratingForGame INTEGER,
         ratingStars VARCHAR(10),
-        watchedCount INTEGER DEFAULT 1,
+        watchedScope VARCHAR(50),
         classification VARCHAR(50),
         notes TEXT,
         tags TEXT[],

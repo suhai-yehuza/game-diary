@@ -378,7 +378,7 @@ export const GET_GAME_LOGS = gql`
           rating
           ratingForGame
           ratingStars
-          watchedCount
+          watchedScope
           notes
           tags
           classification

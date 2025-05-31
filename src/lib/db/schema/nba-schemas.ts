@@ -93,6 +93,7 @@ export const nba_games = pgTable(
     nugget: text('nugget'),
     createdAt: timestamp('createdAt').defaultNow().notNull(),
     updatedAt: timestamp('updatedAt').defaultNow().notNull(),
+    deletedAt: timestamp('deletedAt').default(sql`null`),
   },
   _table => ({
     gameSeasonIndex: sql`CREATE INDEX IF NOT EXISTS idx_nba_games_season ON nba_games (season)`,
@@ -123,6 +124,7 @@ export const team_h2h = pgTable(
       .default('0.00'),
     createdAt: timestamp('createdAt').defaultNow().notNull(),
     updatedAt: timestamp('updatedAt').defaultNow().notNull(),
+    deletedAt: timestamp('deletedAt').default(sql`null`),
   },
   _table => ({
     seasonFk: sql`ALTER TABLE team_h2h ADD CONSTRAINT fk_team_h2h_season FOREIGN KEY (season) REFERENCES seasons(id)`,
@@ -140,6 +142,7 @@ export const seasons = pgTable('seasons', {
   isPlayoffs: boolean('isPlayoffs').notNull().default(false),
   createdAt: timestamp('createdAt').defaultNow().notNull(),
   updatedAt: timestamp('updatedAt').defaultNow().notNull(),
+  deletedAt: timestamp('deletedAt').default(sql`null`),
 });
 
 // NBA Players table
@@ -159,7 +162,7 @@ export const nba_players = pgTable('nba_players', {
   seasonsActive: jsonb('seasonsActive').$type<Array<{ season: number; teamIds: string[] }>>(),
   createdAt: timestamp('createdAt').defaultNow().notNull(),
   updatedAt: timestamp('updatedAt').defaultNow().notNull(),
-  deletedAt: timestamp('deletedAt'),
+  deletedAt: timestamp('deletedAt').default(sql`null`),
 });
 
 // NBA Player Stats table
@@ -190,7 +193,7 @@ export const nba_player_stats = pgTable('nba_player_stats', {
   freeThrowsAttempted: integer('freeThrowsAttempted'),
   createdAt: timestamp('createdAt').defaultNow().notNull(),
   updatedAt: timestamp('updatedAt').defaultNow().notNull(),
-  deletedAt: timestamp('deletedAt'),
+  deletedAt: timestamp('deletedAt').default(sql`null`),
 });
 
 // Game stats table
@@ -269,6 +272,7 @@ export const game_stats = pgTable(
     stats: jsonb('stats').$type<JsonValue>(),
     createdAt: timestamp('createdAt').defaultNow().notNull(),
     updatedAt: timestamp('updatedAt').defaultNow().notNull(),
+    deletedAt: timestamp('deletedAt').default(sql`null`),
   },
   _table => ({
     // Ensure homeTeamId and awayTeamId are different

@@ -208,11 +208,20 @@ export interface GameScore {
 // Base game log types
 export interface GameLog {
   id: string;
-  userId: string;
+  userId: string | null;
   gameId: string;
-  classification: Classification;
-  createdAt: string;
-  updatedAt: string;
+  watchedSetting: string;
+  watchedDate: Date;
+  watchedLocation?: string;
+  ratingForGame: number;
+  ratingStars?: string;
+  watchedScope: string;
+  notes?: string;
+  tags?: string[];
+  classification: string;
+  createdAt: Date;
+  updatedAt: Date;
+  deletedAt?: Date;
 }
 
 // Filter types
@@ -424,7 +433,7 @@ export interface GameLogResponse {
   rating: number;
   ratingForGame: number;
   ratingStars: number | null;
-  watchedCount: number;
+  watchedScope: string;
   notes: string;
   tags: string[];
   classification: string;

@@ -2,16 +2,18 @@ import { faker } from '@faker-js/faker';
 import { sql, desc } from 'drizzle-orm';
 
 import { API_CONFIG } from '@/lib/config/api.config';
-import { GameLogClassification } from '@/lib/db/schema/game-log-schemas';
 import { game_logs, games } from '@/lib/db/schema/game-schemas';
 import { users, friendships, reactions, comments } from '@/lib/db/schema/user-schemas';
 import {
   FRIENDSHIP_STATUS,
-  WATCHED_SETTINGS,
+  WATCHED_SETTING,
   REACTION_EMOJIS,
   FriendshipStatusValue,
   WatchedSettingValue,
   ReactionEmojiValue,
+  WATCHED_SCOPE,
+  WatchedScopeValue,
+  CLASSIFICATIONS,
 } from '@/lib/types/config.types';
 import type { DatabaseClient } from '@/lib/types/db.types';
 import { generateUUID } from '@/lib/utils/index.processing';
@@ -222,23 +224,23 @@ async function* generateGameLogsStream(
       const { CLASSIFICATION_WEIGHTS } = API_CONFIG.classification;
       const classification =
         classificationWeight < CLASSIFICATION_WEIGHTS.protected
-          ? 'PROTECTED'
+          ? CLASSIFICATIONS.PROTECTED
           : classificationWeight < CLASSIFICATION_WEIGHTS.protected + CLASSIFICATION_WEIGHTS.public
-            ? 'PUBLIC'
-            : ('PRIVATE' as GameLogClassification);
+            ? CLASSIFICATIONS.PUBLIC
+            : CLASSIFICATIONS.PRIVATE;
 
       yield {
         id: generateUUID(),
         userId: user.id,
         gameId: game.id,
         watchedSetting: faker.helpers.arrayElement(
-          Object.values(WATCHED_SETTINGS)
+          Object.values(WATCHED_SETTING)
         ) as WatchedSettingValue,
         watchedDate: watchedDate,
         watchedLocation: faker.location.streetAddress(),
         ratingForGame: rating,
         ratingStars: '⭐'.repeat(rating) + '☆'.repeat(5 - rating),
-        watchedCount: faker.number.int({ min: 1, max: 10 }),
+        watchedScope: faker.helpers.arrayElement(Object.values(WATCHED_SCOPE)) as WatchedScopeValue,
         notes: faker.lorem.paragraph(),
         tags: [],
         classification,
@@ -305,7 +307,7 @@ async function* generateCommentsStream(
         id: generateUUID(),
         userId: commenter.id,
         parentId: gameLog.id,
-        parentType: 'game_log',
+        parentType: 'game_log' as const,
         content: faker.lorem.paragraph(),
         createdAt: faker.date.past(),
         updatedAt: faker.date.recent(),
@@ -365,7 +367,7 @@ async function* generateChildComments(
       id: generateUUID(),
       userId: childCommenter.id,
       parentId: parentComment.id,
-      parentType: 'comment',
+      parentType: 'comment' as const,
       content: faker.lorem.paragraph(),
       createdAt: faker.date.past(),
       updatedAt: faker.date.recent(),
@@ -419,7 +421,7 @@ async function* generateReactionsStream(
         id: generateUUID(),
         userId: reactor.id,
         targetId: gameLog.id ?? generateUUID(), // Fallback to new UUID if undefined
-        targetType: 'game_log',
+        targetType: 'game_log' as const,
         emoji: faker.helpers.arrayElement(Object.values(REACTION_EMOJIS)) as ReactionEmojiValue,
         createdAt: faker.date.past(),
         updatedAt: faker.date.recent(),
@@ -441,14 +443,14 @@ async function* generateReactionsStream(
     }
 
     // For game log comments, we want to ensure we're only reacting to 10% of game logs
-    if (comment.parentType === 'game_log') {
+    if (comment.parentType === ('game_log' as const)) {
       // Skip if this game log wasn't selected for reactions
       if (Math.random() >= 0.1) {
         continue;
       }
     }
     // For child comments, we want to ensure we're only reacting to 10% of parent comments
-    else if (comment.parentType === 'comment') {
+    else if (comment.parentType === ('comment' as const)) {
       // Skip if this parent comment wasn't selected for reactions
       if (Math.random() >= 0.1) {
         continue;
@@ -467,7 +469,7 @@ async function* generateReactionsStream(
         id: generateUUID(),
         userId: reactor.id,
         targetId: comment.id ?? generateUUID(), // Fallback to new UUID if undefined
-        targetType: 'comment',
+        targetType: 'comment' as const,
         emoji: faker.helpers.arrayElement(Object.values(REACTION_EMOJIS)) as ReactionEmojiValue,
         createdAt: faker.date.past(),
         updatedAt: faker.date.recent(),

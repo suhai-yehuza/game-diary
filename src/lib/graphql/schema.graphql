@@ -110,9 +110,9 @@ input CreateGameLogInput {
   ratingForGame: Int @constraint(min: 1, max: 10)
   ratingStars: Int @constraint(min: 1, max: 5)
   tags: [String!]
-  watchedCount: Int @constraint(min: 0)
   watchedDate: DateTime
   watchedLocation: String
+  watchedScope: String!
   watchedSetting: String!
 }
 
@@ -354,9 +354,9 @@ type GameLog {
   updatedAt: DateTime!
   user: UserSummary!
   userId: ID!
-  watchedCount: Int
   watchedDate: DateTime
   watchedLocation: String
+  watchedScope: String!
   watchedSetting: String!
 }
 
@@ -856,9 +856,9 @@ type SharedGameLog {
   updatedAt: DateTime!
   user: UserSummary!
   userId: ID!
-  watchedCount: Int
   watchedDate: DateTime
   watchedLocation: String
+  watchedScope: String!
   watchedSetting: String!
 }
 
@@ -1084,9 +1084,9 @@ input UpdateGameLogInput {
   ratingForGame: Int @constraint(min: 1, max: 10)
   ratingStars: Int @constraint(min: 1, max: 5)
   tags: [String!]
-  watchedCount: Int @constraint(min: 0)
   watchedDate: DateTime
   watchedLocation: String
+  watchedScope: String
   watchedSetting: String
 }
 

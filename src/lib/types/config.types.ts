@@ -35,24 +35,6 @@ export const REACTION_EMOJIS = {
 export type ReactionEmojiKey = keyof typeof REACTION_EMOJIS;
 export type ReactionEmojiValue = (typeof REACTION_EMOJIS)[ReactionEmojiKey];
 
-// Status and Settings
-export const FRIENDSHIP_STATUS = {
-  ACCEPTED: 'Accepted',
-  BLOCKED: 'Blocked',
-  PENDING: 'Pending',
-  REJECTED: 'Rejected',
-} as const;
-
-export const WATCHED_SETTINGS = {
-  TV: 'tv',
-  ARENA: 'arena',
-  PHONE: 'phone',
-  LAPTOP: 'laptop',
-  BAR: 'bar',
-  HOME: 'home',
-  OTHER: 'other',
-} as const;
-
 // Cache Configuration
 export const CACHE_TTL = {
   USER: 3600, // 1 hour
@@ -87,9 +69,36 @@ export const validPositions = ['PG', 'SG', 'SF', 'PF', 'C'] as const;
 
 // Enums as Constant Objects
 export const CLASSIFICATIONS = {
-  PRIVATE: 'PRIVATE',
-  PROTECTED: 'PROTECTED',
-  PUBLIC: 'PUBLIC',
+  PRIVATE: 'Private',
+  PROTECTED: 'Protected',
+  PUBLIC: 'Public',
+} as const;
+
+export const FRIENDSHIP_STATUS = {
+  ACCEPTED: 'Accepted',
+  BLOCKED: 'Blocked',
+  PENDING: 'Pending',
+  REJECTED: 'Rejected',
+} as const;
+
+export const WATCHED_SETTING = {
+  TV: 'TV',
+  ARENA: 'Arena',
+  PHONE: 'Phone',
+  LAPTOP: 'Laptop',
+  BAR: 'Bar',
+  HOME: 'Home',
+  OTHER: 'Other',
+} as const;
+
+export const WATCHED_SCOPE = {
+  FULL_GAME: 'Full Game',
+  HALF_GAME: 'Half Game',
+  HIGHLIGHTS: 'Highlights',
+  PRE_GAME: 'Pre-Game',
+  POST_GAME: 'Post-Game',
+  SHORTS: 'Shorts',
+  OTHER: 'Other',
 } as const;
 
 export const CONFERENCES = {
@@ -176,8 +185,11 @@ export type FriendshipStatusType = keyof typeof FRIENDSHIP_STATUS;
 export type FriendshipStatusValue = (typeof FRIENDSHIP_STATUS)[FriendshipStatusType];
 export type PermissionValue = (typeof PERMISSIONS)[PermissionType];
 export type ResourceValue = (typeof RESOURCES)[ResourceType];
-export type WatchedSettingType = keyof typeof WATCHED_SETTINGS;
-export type WatchedSettingValue = (typeof WATCHED_SETTINGS)[WatchedSettingType];
+export type WatchedSettingType = keyof typeof WATCHED_SETTING;
+export type WatchedSettingValue = (typeof WATCHED_SETTING)[WatchedSettingType];
+
+export type WatchedScopeType = keyof typeof WATCHED_SCOPE;
+export type WatchedScopeValue = (typeof WATCHED_SCOPE)[WatchedScopeType];
 
 // ============= UI Types =============
 
@@ -354,5 +366,5 @@ export const isValidFriendshipStatus = (status: string): status is FriendshipSta
 };
 
 export const isValidWatchedSetting = (setting: string): setting is WatchedSettingValue => {
-  return Object.values(WATCHED_SETTINGS).includes(setting as WatchedSettingValue);
+  return Object.values(WATCHED_SETTING).includes(setting as WatchedSettingValue);
 };

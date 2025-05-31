@@ -47,7 +47,7 @@ export type GameLogRecord = {
   watchedLocation?: string;
   ratingForGame: number;
   ratingStars?: string;
-  watchedCount: number;
+  watchedScope: string;
   notes?: string;
   tags?: string[];
   classification: string;

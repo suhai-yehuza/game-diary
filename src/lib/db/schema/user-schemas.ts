@@ -41,6 +41,7 @@ export const friendships = pgTable(
       .$type<(typeof FRIENDSHIP_STATUS)[keyof typeof FRIENDSHIP_STATUS]>(),
     createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updatedAt', { withTimezone: true }).notNull().defaultNow(),
+    deletedAt: timestamp('deletedAt', { withTimezone: true }).default(sql`null`),
   },
   table => ({
     friendUserUnique: unique().on(table.friendId, table.userId),
@@ -61,7 +62,7 @@ export const comments = pgTable(
     content: text('content').notNull(),
     createdAt: timestamp('createdAt').notNull().defaultNow(),
     updatedAt: timestamp('updatedAt').notNull().defaultNow(),
-    deletedAt: timestamp({ precision: 6, withTimezone: true }),
+    deletedAt: timestamp('deletedAt').default(sql`null`),
   },
   _table => ({
     commentIndex: sql`CREATE INDEX IF NOT EXISTS idx_comments_parent ON comments (parentId, parentType)`,
@@ -87,6 +88,7 @@ export const reactions = pgTable(
       .$type<(typeof REACTION_EMOJIS)[keyof typeof REACTION_EMOJIS]>(),
     createdAt: timestamp('createdAt').notNull().defaultNow(),
     updatedAt: timestamp('updatedAt').notNull().defaultNow(),
+    deletedAt: timestamp('deletedAt').default(sql`null`),
   },
   _table => ({
     reactionIndex: sql`CREATE INDEX IF NOT EXISTS idx_reactions_target ON reactions (targetId, targetType)`,

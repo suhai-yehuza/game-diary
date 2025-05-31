@@ -3,7 +3,7 @@ import { pgEnum } from 'drizzle-orm/pg-core';
 import {
   REACTION_EMOJIS,
   FRIENDSHIP_STATUS,
-  WATCHED_SETTINGS,
+  WATCHED_SETTING,
   GAME_STATUS,
   GAME_TYPE,
   USER_ROLE,
@@ -30,7 +30,7 @@ const friendshipStatusValues = Object.values(FRIENDSHIP_STATUS) as [
   ...FriendshipStatusValue[],
 ];
 
-const watchedSettingValues = Object.values(WATCHED_SETTINGS) as [
+const watchedSettingValues = Object.values(WATCHED_SETTING) as [
   WatchedSettingValue,
   ...WatchedSettingValue[],
 ];
@@ -71,7 +71,7 @@ export enum SortDirection {
 export {
   REACTION_EMOJIS,
   FRIENDSHIP_STATUS,
-  WATCHED_SETTINGS,
+  WATCHED_SETTING,
   GAME_STATUS,
   GAME_TYPE,
   USER_ROLE,

@@ -66,9 +66,7 @@ export const FriendActivity: React.FC<FriendActivityProps> = ({ friendId }) => {
                     <StarRating rating={activity.ratingStars || 0} size="sm" />
                     <span className="text-sm text-gray-500">{activity.ratingStars}/5</span>
                   </div>
-                  <span className="text-sm text-gray-500">
-                    {activity.watchedCount || 1} times watched
-                  </span>
+                  <span className="text-sm text-gray-500">2 times watched</span>
                 </div>
               </div>
             </div>

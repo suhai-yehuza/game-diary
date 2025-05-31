@@ -136,9 +136,9 @@ export type CreateGameLogInput = {
   ratingForGame?: InputMaybe<Scalars['Int']['input']>;
   ratingStars?: InputMaybe<Scalars['Int']['input']>;
   tags?: InputMaybe<Array<Scalars['String']['input']>>;
-  watchedCount?: InputMaybe<Scalars['Int']['input']>;
   watchedDate?: InputMaybe<Scalars['DateTime']['input']>;
   watchedLocation?: InputMaybe<Scalars['String']['input']>;
+  watchedScope: Scalars['String']['input'];
   watchedSetting: Scalars['String']['input'];
 };
 
@@ -392,9 +392,9 @@ export type GameLog = {
   updatedAt: Scalars['DateTime']['output'];
   user: UserSummary;
   userId: Scalars['ID']['output'];
-  watchedCount: Maybe<Scalars['Int']['output']>;
   watchedDate: Maybe<Scalars['DateTime']['output']>;
   watchedLocation: Maybe<Scalars['String']['output']>;
+  watchedScope: Scalars['String']['output'];
   watchedSetting: Scalars['String']['output'];
 };
 
@@ -1243,9 +1243,9 @@ export type SharedGameLog = {
   updatedAt: Scalars['DateTime']['output'];
   user: UserSummary;
   userId: Scalars['ID']['output'];
-  watchedCount: Maybe<Scalars['Int']['output']>;
   watchedDate: Maybe<Scalars['DateTime']['output']>;
   watchedLocation: Maybe<Scalars['String']['output']>;
+  watchedScope: Scalars['String']['output'];
   watchedSetting: Scalars['String']['output'];
 };
 
@@ -1483,9 +1483,9 @@ export type UpdateGameLogInput = {
   ratingForGame?: InputMaybe<Scalars['Int']['input']>;
   ratingStars?: InputMaybe<Scalars['Int']['input']>;
   tags?: InputMaybe<Array<Scalars['String']['input']>>;
-  watchedCount?: InputMaybe<Scalars['Int']['input']>;
   watchedDate?: InputMaybe<Scalars['DateTime']['input']>;
   watchedLocation?: InputMaybe<Scalars['String']['input']>;
+  watchedScope?: InputMaybe<Scalars['String']['input']>;
   watchedSetting?: InputMaybe<Scalars['String']['input']>;
 };
 
@@ -2303,9 +2303,9 @@ export type GameLogResolvers<ContextType = Context, ParentType extends Resolvers
   updatedAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   user?: Resolver<ResolversTypes['UserSummary'], ParentType, ContextType>;
   userId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
-  watchedCount?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   watchedDate?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
   watchedLocation?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  watchedScope?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   watchedSetting?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
@@ -2731,9 +2731,9 @@ export type SharedGameLogResolvers<ContextType = Context, ParentType extends Res
   updatedAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   user?: Resolver<ResolversTypes['UserSummary'], ParentType, ContextType>;
   userId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
-  watchedCount?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   watchedDate?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
   watchedLocation?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  watchedScope?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   watchedSetting?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };

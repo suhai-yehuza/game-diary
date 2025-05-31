@@ -24,10 +24,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { StarRating } from '@/components/ui/star-rating';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/components/ui/use-toast';
 import { useAuthContext } from '@/contexts/AuthContext';
 import { CREATE_GAME_LOG } from '@/lib/graphql/mutations';
+import { CLASSIFICATIONS, WATCHED_SETTING, WATCHED_SCOPE } from '@/lib/types/config.types';
+import type {
+  ClassificationValue,
+  WatchedSettingValue,
+  WatchedScopeValue,
+} from '@/lib/types/config.types';
 
 import 'react-datepicker/dist/react-datepicker.css';
 
@@ -35,6 +42,18 @@ interface CreateGameLogModalProps {
   gameId?: string;
   userId?: string;
   onSuccess?: () => void;
+}
+
+interface FormData {
+  classification: ClassificationValue;
+  watchedSetting: WatchedSettingValue;
+  watchedScope: WatchedScopeValue;
+  watchedDate: Date;
+  watchedLocation: string;
+  ratingForGame: string;
+  ratingStars: number;
+  notes: string;
+  tags: string[];
 }
 
 export function CreateGameLogModal({ gameId, onSuccess }: CreateGameLogModalProps) {
@@ -45,13 +64,16 @@ export function CreateGameLogModal({ gameId, onSuccess }: CreateGameLogModalProp
   const { user } = useAuthContext();
   const authUserId = user?.id;
 
-  const [formData, setFormData] = useState({
-    watched_setting: '',
-    watched_date: new Date(),
-    watched_location: '',
-    rating_for_game: '',
-    rating_stars: '',
+  const [formData, setFormData] = useState<FormData>({
+    classification: CLASSIFICATIONS.PROTECTED,
+    watchedSetting: WATCHED_SETTING.TV,
+    watchedScope: WATCHED_SCOPE.FULL_GAME,
+    watchedDate: new Date(),
+    watchedLocation: '',
+    ratingForGame: '',
+    ratingStars: 3,
     notes: '',
+    tags: [],
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -68,10 +90,10 @@ export function CreateGameLogModal({ gameId, onSuccess }: CreateGameLogModalProp
 
     // Validate required fields
     if (
-      !formData.watched_setting ||
-      !formData.watched_date ||
-      !formData.watched_location ||
-      !formData.rating_for_game
+      !formData.watchedSetting ||
+      !formData.watchedDate ||
+      !formData.watchedLocation ||
+      !formData.ratingForGame
     ) {
       toast({
         title: 'Missing required fields',
@@ -82,7 +104,7 @@ export function CreateGameLogModal({ gameId, onSuccess }: CreateGameLogModalProp
     }
 
     try {
-      const rating = Number(formData.rating_for_game);
+      const rating = Number(formData.ratingForGame);
       if (isNaN(rating) || !Number.isInteger(rating) || rating < 1 || rating > 5) {
         toast({
           title: 'Invalid rating',
@@ -93,17 +115,17 @@ export function CreateGameLogModal({ gameId, onSuccess }: CreateGameLogModalProp
       }
 
       const payload = {
-        user_id: '060a5823-c5fa-4fd0-9065-0c0e5eecf9c8',
-        // user_id: authUserId || userId,
+        user_id: authUserId,
         game_id: gameId,
-        watched_setting: formData.watched_setting.toLowerCase(),
-        watched_date: formData.watched_date.toISOString(),
-        watched_location: formData.watched_location || 'Home',
+        classification: formData.classification,
+        watched_scope: formData.watchedScope,
+        watched_setting: formData.watchedSetting,
+        watched_date: formData.watchedDate.toISOString(),
+        watched_location: formData.watchedLocation,
         rating_for_game: rating,
-        watched_count: 1,
+        notes: formData.notes,
+        tags: formData.tags,
       };
-
-      console.log('Submitting payload:', JSON.stringify(payload, null, 2));
 
       const result = await createGameLog({
         variables: payload,
@@ -116,12 +138,15 @@ export function CreateGameLogModal({ gameId, onSuccess }: CreateGameLogModalProp
           variant: 'default',
         });
         setFormData({
-          watched_setting: '',
-          watched_date: new Date(),
-          watched_location: '',
-          rating_for_game: '',
-          rating_stars: '',
+          classification: CLASSIFICATIONS.PROTECTED,
+          watchedSetting: WATCHED_SETTING.TV,
+          watchedScope: WATCHED_SCOPE.FULL_GAME,
+          watchedDate: new Date(),
+          watchedLocation: '',
+          ratingForGame: '',
+          ratingStars: 3,
           notes: '',
+          tags: [],
         });
         setIsOpen(false);
         onSuccess?.();
@@ -177,62 +202,94 @@ export function CreateGameLogModal({ gameId, onSuccess }: CreateGameLogModalProp
         </DialogHeader>
         <form onSubmit={handleSubmit} className="grid gap-4 py-4">
           <div className="grid gap-2">
+            <Label htmlFor="classification" className="text-gray-900 dark:text-white">
+              Classification *
+            </Label>
+            <Select
+              value={formData.classification}
+              onValueChange={(value: ClassificationValue) =>
+                setFormData({ ...formData, classification: value })
+              }
+            >
+              <SelectTrigger className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">
+                <SelectValue placeholder="Select classification" />
+              </SelectTrigger>
+              <SelectContent className="bg-white dark:bg-gray-800">
+                {Object.entries(CLASSIFICATIONS).map(([key, value]) => (
+                  <SelectItem key={key} value={value} className="text-gray-900 dark:text-white">
+                    {value}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="grid gap-2">
             <Label htmlFor="watched_setting" className="text-gray-900 dark:text-white">
               Watched Setting *
             </Label>
             <Select
-              value={formData.watched_setting}
-              onValueChange={value => setFormData({ ...formData, watched_setting: value })}
+              value={formData.watchedSetting}
+              onValueChange={(value: WatchedSettingValue) =>
+                setFormData({ ...formData, watchedSetting: value })
+              }
             >
               <SelectTrigger className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">
                 <SelectValue placeholder="Select where you watched the game" />
               </SelectTrigger>
               <SelectContent className="bg-white dark:bg-gray-800">
-                <SelectItem value="tv" className="text-gray-900 dark:text-white">
-                  TV
-                </SelectItem>
-                <SelectItem value="arena" className="text-gray-900 dark:text-white">
-                  Arena
-                </SelectItem>
-                <SelectItem value="phone" className="text-gray-900 dark:text-white">
-                  Phone
-                </SelectItem>
-                <SelectItem value="laptop" className="text-gray-900 dark:text-white">
-                  Laptop
-                </SelectItem>
-                <SelectItem value="bar" className="text-gray-900 dark:text-white">
-                  Bar
-                </SelectItem>
-                <SelectItem value="home" className="text-gray-900 dark:text-white">
-                  Home
-                </SelectItem>
-                <SelectItem value="other" className="text-gray-900 dark:text-white">
-                  Other
-                </SelectItem>
+                {Object.entries(WATCHED_SETTING).map(([key, value]) => (
+                  <SelectItem key={key} value={value} className="text-gray-900 dark:text-white">
+                    {value}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="watched_scope" className="text-gray-900 dark:text-white">
+              Watched Scope *
+            </Label>
+            <Select
+              value={formData.watchedScope}
+              onValueChange={(value: WatchedScopeValue) =>
+                setFormData({ ...formData, watchedScope: value })
+              }
+            >
+              <SelectTrigger className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">
+                <SelectValue placeholder="Select scope" />
+              </SelectTrigger>
+              <SelectContent className="bg-white dark:bg-gray-800">
+                {Object.entries(WATCHED_SCOPE).map(([key, value]) => (
+                  <SelectItem key={key} value={value} className="text-gray-900 dark:text-white">
+                    {value}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
           <div className="grid gap-2">
             <Label htmlFor="watched_date" className="text-gray-900 dark:text-white">
               Date *
             </Label>
             <div className="relative">
               <DatePicker
-                selected={formData.watched_date}
+                selected={formData.watchedDate}
                 onChange={(date: Date | null) => {
                   if (date) {
-                    setFormData({ ...formData, watched_date: date });
+                    setFormData({ ...formData, watchedDate: date });
                   }
                 }}
-                showTimeSelect
-                dateFormat="PPp"
+                dateFormat="MMMM d, yyyy"
                 className="w-full pl-10 bg-white dark:bg-gray-800 text-gray-900 dark:text-white border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 calendarClassName="bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                timeClassName={() => 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white'}
               />
               <Calendar className="absolute left-3 top-2.5 h-4 w-4 text-gray-500 dark:text-gray-400" />
             </div>
           </div>
+
           <div className="grid gap-2">
             <Label htmlFor="watched_location" className="text-gray-900 dark:text-white">
               Location *
@@ -240,27 +297,44 @@ export function CreateGameLogModal({ gameId, onSuccess }: CreateGameLogModalProp
             <Input
               id="watched_location"
               placeholder="Enter venue name"
-              value={formData.watched_location}
-              onChange={e => setFormData({ ...formData, watched_location: e.target.value })}
+              value={formData.watchedLocation}
+              onChange={e => setFormData({ ...formData, watchedLocation: e.target.value })}
               required
               className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
             />
           </div>
+
           <div className="grid gap-2">
-            <Label htmlFor="rating_for_game" className="text-gray-900 dark:text-white">
-              Rating (1-5) *
+            <Label htmlFor="rating" className="text-gray-900 dark:text-white">
+              Rating *
             </Label>
-            <Input
-              id="rating_for_game"
-              type="number"
-              min="1"
-              max="5"
-              value={formData.rating_for_game}
-              onChange={e => setFormData({ ...formData, rating_for_game: e.target.value })}
-              required
-              className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-            />
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <StarRating rating={formData.ratingStars} size="lg" />
+                <span className="text-lg font-medium">{formData.ratingStars}/5</span>
+              </div>
+              <div className="flex gap-1">
+                {[1, 2, 3, 4, 5].map(star => (
+                  <Button
+                    key={star}
+                    type="button"
+                    variant={formData.ratingStars === star ? 'default' : 'outline'}
+                    onClick={() =>
+                      setFormData({
+                        ...formData,
+                        ratingStars: star,
+                        ratingForGame: star.toString(),
+                      })
+                    }
+                    className="w-8 h-8 p-0"
+                  >
+                    ★
+                  </Button>
+                ))}
+              </div>
+            </div>
           </div>
+
           <div className="grid gap-2">
             <Label htmlFor="notes" className="text-gray-900 dark:text-white">
               Notes
@@ -273,6 +347,7 @@ export function CreateGameLogModal({ gameId, onSuccess }: CreateGameLogModalProp
               className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white min-h-[100px]"
             />
           </div>
+
           <div className="flex justify-end">
             <Button
               type="submit"
