@@ -16,7 +16,7 @@ import type { Pool } from 'pg';
 export type DBUser = BaseUser & {
   comments: Comment[];
   gameLogs: GameLog[];
-  initiated_friendships: Friendship[];
+  initiatedFriendships: Friendship[];
   received_friendships: Friendship[];
   reactions: Reaction[];
 };

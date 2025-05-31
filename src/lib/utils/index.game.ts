@@ -3,11 +3,12 @@ import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
 
 import * as schema from '@/lib/db/schema';
 import { GAME_STATUS_VALUES } from '@/lib/types/config.types';
-import type { GameTeams, GameScores, GameRecord } from '@/lib/types/game.types';
-import { Player, Game } from '@/lib/types/generated/graphql';
+import type { GameTeams, GameScores, DBGameRecord } from '@/lib/types/game.types';
+import { Player, Game, Arena } from '@/lib/types/generated/graphql';
 import type { GameStatus, GamePeriods, Team } from '@/lib/types/generated/graphql';
+import type { GameRecord } from '@/lib/types/graphql.types';
 
-function isDBGameRecord(game: unknown): game is GameRecord {
+function isDBGameRecord(game: unknown): game is DBGameRecord {
   if (!game || typeof game !== 'object') return false;
 
   const record = game as Record<string, unknown>;
@@ -28,7 +29,6 @@ function isDBGameRecord(game: unknown): game is GameRecord {
 }
 
 function convertDBGameToNBAGame(game: GameRecord): Game {
-  console.log('Game record:', game);
   const teams = game.teams as GameTeams;
   const scores = game.scores as GameScores;
   const status = game.status as GameStatus;
@@ -50,10 +50,14 @@ function convertDBGameToNBAGame(game: GameRecord): Game {
       long: status.long,
       short: status.short,
     },
-    arena:
-      typeof game.arena === 'string'
-        ? { name: game.arena, city: '', state: null, country: null }
-        : game.arena || { name: '', city: '', state: null, country: null },
+    arena: (typeof game.arena === 'string'
+      ? (JSON.parse(game.arena) as Arena)
+      : {
+          name: game.arena?.name ?? null,
+          city: game.arena?.city ?? null,
+          state: game.arena?.state ?? null,
+          country: game.arena?.country ?? null,
+        }) as Arena,
     league: game.league,
     season: game.season,
     stage: game.stage,
@@ -186,7 +190,6 @@ export async function getH2HData(
   db: NodePgDatabase<typeof schema>
 ) {
   try {
-    // Ensure team1Id is always the smaller ID for consistency
     const [smallerId, largerId] = [team1Id, team2Id].sort();
 
     const h2h = await db
@@ -207,7 +210,6 @@ export async function getH2HData(
       return null;
     }
 
-    // Get the last 5 games
     const last5Games = await Promise.all(
       (h2h.last5Games as string[]).map(async (gameId: string) => {
         const game = await db
@@ -259,26 +261,30 @@ export async function updateH2HData(game: Game, db: NodePgDatabase<typeof schema
       )
       .then((records: InferSelectModel<typeof schema.team_h2h>[]) => records[0]);
 
-    if (existingH2H) {
-      // Update existing record
-      const last5Games = [...(existingH2H.last5Games as string[]), game.id.toString()].slice(-5);
+    if (!existingH2H) {
+      // Create new H2H record
+      await db.insert(schema.team_h2h).values({
+        team1Id,
+        team2Id,
+        season: game.season,
+        last5Games: [game.id],
+        team1Wins: game.teams.home.id === team1Id ? 1 : 0,
+        team2Wins: game.teams.visitors.id === team2Id ? 1 : 0,
+      });
+    } else {
+      // Update existing H2H record
+      const last5Games = [...(existingH2H.last5Games as string[]), game.id].slice(-5);
+      const team1Wins = existingH2H.team1Wins + (game.teams.home.id === team1Id ? 1 : 0);
+      const team2Wins = existingH2H.team2Wins + (game.teams.visitors.id === team2Id ? 1 : 0);
+
       await db
         .update(schema.team_h2h)
         .set({
-          last5Games: last5Games,
-          updatedAt: new Date(),
+          last5Games,
+          team1Wins,
+          team2Wins,
         })
         .where(eq(schema.team_h2h.id, existingH2H.id));
-    } else {
-      // Create new record
-      await db.insert(schema.team_h2h).values({
-        team1Id: team1Id,
-        team2Id: team2Id,
-        season: game.season,
-        last5Games: [game.id.toString()],
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      });
     }
   } catch (error) {
     console.error('Error updating H2H data:', error);

@@ -55,7 +55,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     );
 
     // Return paginated response
-    return responseUtils.paginateResponse(res, optimizedGames, pageNumber, limitNumber, totalCount);
+    return res.status(200).json(
+      responseUtils.apiSuccessResponse({
+        data: optimizedGames,
+        pagination: {
+          page: pageNumber,
+          limit: limitNumber,
+          total: totalCount,
+          totalPages: Math.ceil(totalCount / limitNumber),
+        },
+      })
+    );
   } catch (error) {
     if (error instanceof APIError) {
       return responseUtils.apiErrorResponse(error);

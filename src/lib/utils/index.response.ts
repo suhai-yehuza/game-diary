@@ -84,36 +84,10 @@ export function successResponse<T>(data: T, message?: string) {
   };
 }
 
-// Pagination utility
-export const paginateResponse = <T>(
-  res: NextApiResponse,
-  data: T[],
-  page: number,
-  limit: number,
-  total: number
-) => {
-  const totalPages = Math.ceil(total / limit);
-  const hasNextPage = page < totalPages;
-  const hasPreviousPage = page > 1;
-
-  return optimizeResponse(res, {
-    data,
-    pagination: {
-      page,
-      limit,
-      total,
-      totalPages,
-      hasNextPage,
-      hasPreviousPage,
-    },
-  });
-};
-
 // Export utilities
 export const responseUtils = {
   selectFields,
   optimizeResponse,
   apiErrorResponse: errorResponse,
   apiSuccessResponse: successResponse,
-  paginateResponse,
 };

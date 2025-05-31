@@ -98,7 +98,7 @@ export function createLoaders(db: NeonHttpDatabase<typeof schema>) {
         status: {
           clock: game.status?.clock || null,
           halftime: game.status?.halftime || false,
-          short: game.status?.short || '',
+          short: String(game.status?.short || ''),
           long: game.status?.long || '',
         },
         arena,
@@ -500,12 +500,9 @@ export const createDbGameLoader = () => {
             typeof game.status === 'object' && game.status !== null
               ? game.status.halftime || false
               : false,
-          short:
-            typeof game.status === 'object' && game.status !== null
-              ? String(game.status.short || '')
-              : '',
           long:
             typeof game.status === 'object' && game.status !== null ? game.status.long || '' : '',
+          short: String(game.status?.short || ''),
         },
         arena: {
           name: typeof game.arena === 'string' ? game.arena : game.arena?.name || '',
@@ -621,9 +618,26 @@ export const createGameLogsLoader = (
         date:
           dbGame.date && typeof dbGame.date === 'object' && 'start' in dbGame.date
             ? {
-                start: new Date(dbGame.date.start),
-                end: dbGame.date.end ? new Date(dbGame.date.end) : null,
-                duration: dbGame.date.duration,
+                start: new Date(
+                  (
+                    dbGame.date as { start: string; end: string | null; duration: string | null }
+                  ).start
+                ),
+                end: (dbGame.date as { start: string; end: string | null; duration: string | null })
+                  .end
+                  ? new Date(
+                      (
+                        dbGame.date as {
+                          start: string;
+                          end: string | null;
+                          duration: string | null;
+                        }
+                      ).end!
+                    )
+                  : null,
+                duration:
+                  (dbGame.date as { start: string; end: string | null; duration: string | null })
+                    .duration || null,
               }
             : {
                 start: isDateObj(dbGame.date) ? dbGame.date : new Date(dbGame.date || 0),
@@ -632,13 +646,13 @@ export const createGameLogsLoader = (
               },
         status: {
           clock: dbGame.status?.clock || null,
-          halftime: false,
-          long: '',
-          short: '',
+          halftime: dbGame.status?.halftime || false,
+          long: dbGame.status?.long || '',
+          short: String(dbGame.status?.short || ''),
           __typename: 'GameStatus',
         },
-        homeTeamId: dbGame.homeTeamId,
-        awayTeamId: dbGame.awayTeamId,
+        homeTeamId: dbGame.teams?.home?.id?.toString() || '',
+        awayTeamId: dbGame.teams?.visitors?.id?.toString() || '',
         createdAt: new Date(dbGame.createdAt),
         updatedAt: new Date(dbGame.updatedAt),
         arena: {

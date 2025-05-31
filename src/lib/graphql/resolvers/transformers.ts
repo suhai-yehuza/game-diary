@@ -37,7 +37,7 @@ export function transformUser(user: DBUser): GraphQLUser {
     comments: [],
     reactions: [],
     gameLogs: [],
-    initiated_friendships: [],
+    initiatedFriendships: [],
     friendships: [],
     __typename: 'User',
   };

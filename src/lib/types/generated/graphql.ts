@@ -1584,7 +1584,7 @@ export type User = {
   gameLogs: Array<GameLog>;
   id: Scalars['ID']['output'];
   imageUrl: Maybe<Scalars['String']['output']>;
-  initiated_friendships: Array<Friendship>;
+  initiatedFriendships: Array<Friendship>;
   lastName: Maybe<Scalars['String']['output']>;
   reactions: Array<Reaction>;
   updatedAt: Scalars['DateTime']['output'];
@@ -2924,7 +2924,7 @@ export type UserResolvers<ContextType = Context, ParentType extends ResolversPar
   gameLogs?: Resolver<Array<ResolversTypes['GameLog']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   imageUrl?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  initiated_friendships?: Resolver<Array<ResolversTypes['Friendship']>, ParentType, ContextType>;
+  initiatedFriendships?: Resolver<Array<ResolversTypes['Friendship']>, ParentType, ContextType>;
   lastName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   reactions?: Resolver<Array<ResolversTypes['Reaction']>, ParentType, ContextType>;
   updatedAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;

@@ -176,7 +176,7 @@ export interface DbCustomUser extends BaseUser {
   password_reset_token_expires_at?: Date;
   password_reset_token_sent_at?: Date;
   received_friendships?: Friendship[];
-  initiated_friendships?: Friendship[];
+  initiatedFriendships?: Friendship[];
   banned?: boolean;
   two_factor_enabled?: boolean;
   last_sign_in_at?: Date;

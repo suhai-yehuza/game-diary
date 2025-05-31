@@ -642,7 +642,7 @@ export const GET_USER_RESPONSE = {
     banned: false,
     inboundFriendshipIds: [],
     outboundFriendshipIds: [],
-    initiated_friendships: [
+    initiatedFriendships: [
       {
         id: 'friendship-1',
         status: 'connected',

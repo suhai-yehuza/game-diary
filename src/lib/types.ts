@@ -5,6 +5,7 @@ import * as schema from '@/lib/db/schema';
 
 import type { Reaction as GqlReaction } from './types/generated/graphql';
 import type { RedisClient } from './types/redis.types';
+import type { GameLog } from './types/shared.types';
 
 export const WATCHED_SETTINGS = {
   LIVE: 'live',
@@ -36,23 +37,6 @@ export interface PaginatedResponse<T> {
   total: number;
   hasMore: boolean;
   nextCursor: string | null;
-}
-
-export interface GameLog {
-  id: string;
-  userId: string;
-  gameId: string;
-  watchedSetting: string;
-  watchedDate: string;
-  watchedLocation?: string;
-  ratingForGame?: number;
-  watchedCount: number;
-  notes?: string;
-  tags?: string[];
-  classification: string;
-  createdAt: string;
-  updatedAt: string;
-  deletedAt?: string;
 }
 
 export interface Comment {
@@ -102,33 +86,15 @@ export interface User {
   username: string;
   emailAddress: string;
   imageUrl?: string;
+  firstName?: string;
+  lastName?: string;
   createdAt: string;
   updatedAt: string;
   comments: Comment[];
   gameLogs: GameLog[];
-  initiated_friendships: Friendship[];
+  initiatedFriendships: Friendship[];
   reactions: Reaction[];
   friendships: Friendship[];
-}
-
-export interface GameLogFilters {
-  userId?: string;
-  gameId?: string;
-  classification?: string;
-  watched_date_range?: {
-    start?: string;
-    end?: string;
-  };
-}
-
-export interface GqlGameLogFilters {
-  userId?: string;
-  gameId?: string;
-  classification?: string;
-  watched_date_range?: {
-    start?: string;
-    end?: string;
-  };
 }
 
 export interface DatabaseRow {
@@ -140,4 +106,36 @@ export interface DatabaseRow {
     | Date
     | DatabaseRow
     | (string | number | boolean | null | Date | DatabaseRow)[];
+}
+
+export interface GameLogFilters {
+  userId?: string;
+  gameId?: string;
+  classification?: string;
+  createdAt?: {
+    start?: Date;
+    end?: Date;
+  };
+  pagination?: {
+    first?: number;
+    after?: string;
+    last?: number;
+    before?: string;
+  };
+}
+
+export interface GqlGameLogFilters {
+  userId?: string;
+  gameId?: string;
+  classification?: string;
+  createdAt?: {
+    start?: string;
+    end?: string;
+  };
+  pagination?: {
+    first?: number;
+    after?: string;
+    last?: number;
+    before?: string;
+  };
 }

@@ -5,6 +5,7 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+// Keep only the utility functions that are being used
 export * from './index.time';
 export * from './index.format';
 export * from './index.game';

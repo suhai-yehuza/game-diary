@@ -27,7 +27,7 @@ export type GameRecord = {
   stage: number;
   status: { long: string; short: string; clock?: string } | string;
   periods: { current?: number; total?: number; endOfPeriod?: boolean };
-  arena: { name: string; city: string; state?: string } | string;
+  arena: { name: string; city: string; state?: string; country?: string } | string;
   teams: { home: Record<string, unknown>; visitors: Record<string, unknown> };
   scores: { home: { points: number }; visitors: { points: number } };
   officials: string[] | Record<string, unknown>;

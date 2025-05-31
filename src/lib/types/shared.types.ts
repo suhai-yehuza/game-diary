@@ -2,6 +2,12 @@
  * Shared types used across the application
  */
 
+import type { InferSelectModel } from 'drizzle-orm';
+
+import { nba_games } from '@/lib/db/schema/nba-schemas';
+
+import type { Classification, GAME_STATUS } from './generated/graphql';
+
 // Common Types
 export type SortDirection = 'asc' | 'desc';
 
@@ -154,98 +160,143 @@ export interface Friendship {
 // Base game types
 export interface Game {
   id: string;
-  date: {
-    start: string;
-    end: string | null;
-    duration: string | null;
-  } | null;
-  status: {
-    clock: string | null;
-    halftime: boolean;
-    short: string | number;
-    long: string;
-  } | null;
-  homeTeamId: string;
-  awayTeamId: string;
-  createdAt: string;
-  updatedAt: string;
-  arena: {
+  date: string;
+  status: GAME_STATUS;
+  homeTeam: GameTeam;
+  awayTeam: GameTeam;
+  homeTeamScore: number;
+  awayTeamScore: number;
+  arena?: {
     name: string;
     city: string;
-    state: string | null;
-    country: string | null;
-  } | null;
+    state?: string;
+    country?: string;
+  };
   league: string;
   season: number;
   stage: number;
-  periods: {
+  periods?: {
     current: number;
     total: number;
     endOfPeriod: boolean;
-  } | null;
-  teams: {
-    home: {
-      id: string;
-      name: string;
-      nickname: string;
-      code: string;
-      logo: string | null;
-    };
-    visitors: {
-      id: string;
-      name: string;
-      nickname: string;
-      code: string;
-      logo: string | null;
-    };
-  } | null;
-  scores: {
-    home: {
-      win: number;
-      loss: number;
-      series: {
-        win: number;
-        loss: number;
-      };
-      linescore: number[];
-      points: number;
-    };
-    visitors: {
-      win: number;
-      loss: number;
-      series: {
-        win: number;
-        loss: number;
-      };
-      linescore: number[];
-      points: number;
-    };
-  } | null;
-  officials: string[] | null;
-  timesTied: number | null;
-  leadChanges: number | null;
-  nugget: string | null;
-  isCompleted: boolean;
-  awayScore: number | null;
-  homeScore: number | null;
-  gameType: string;
-  nbaGameId: string;
+  };
+  officials?: string[];
+  timesTied?: number;
+  leadChanges?: number;
+  nugget?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface GameTeam {
+  id: string;
+  name: string;
+  nickname: string;
+  code: string;
+  logo?: string;
+}
+
+export interface GameScore {
+  points: number;
+  win?: number;
+  loss?: number;
+  series?: {
+    win: number;
+    loss: number;
+  };
+  linescore?: number[];
 }
 
 // Base game log types
 export interface GameLog {
   id: string;
-  gameId: string;
   userId: string;
-  classification: string;
-  notes?: string;
-  rating?: number;
-  tags: string[];
-  watchedDate?: Date;
-  watchedSetting: string;
-  createdAt: Date;
-  updatedAt: Date;
-  deletedAt?: Date;
+  gameId: string;
+  classification: Classification;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Filter types
+export interface GameLogFilters {
+  userId?: string;
+  gameId?: string;
+  classification?: Classification;
+  createdAt?: {
+    start?: Date;
+    end?: Date;
+  };
+  pagination?: {
+    first?: number;
+    after?: string;
+    last?: number;
+    before?: string;
+  };
+}
+
+// Extended types
+export interface GameWithDetails extends Game {
+  homeTeam: GameTeamWithStats;
+  awayTeam: GameTeamWithStats;
+  gameLogs: GameLogWithReactions[];
+  ratings: Array<{
+    id: string;
+    rating: number;
+    comment?: string;
+    createdAt: string;
+    updatedAt: string;
+    user: UserSummary;
+  }>;
+  userRating?: {
+    id: string;
+    rating: number;
+    comment?: string;
+    createdAt: string;
+    updatedAt: string;
+    user: UserSummary;
+  };
+}
+
+export interface GameTeamWithStats extends GameTeam {
+  stats?: GameTeamStats;
+}
+
+export interface GameTeamStats {
+  points: number;
+  rebounds: number;
+  assists: number;
+  steals: number;
+  blocks: number;
+  turnovers: number;
+  fouls: number;
+  fieldGoals: {
+    made: number;
+    attempted: number;
+    percentage: string;
+  };
+  threePointers: {
+    made: number;
+    attempted: number;
+    percentage: string;
+  };
+  freeThrows: {
+    made: number;
+    attempted: number;
+    percentage: string;
+  };
+  fastBreakPoints?: number;
+  pointsInPaint?: number;
+  secondChancePoints?: number;
+  pointsOffTurnovers?: number;
+}
+
+export interface GameLogWithReactions extends GameLog {
+  reactions: Array<{
+    id: string;
+    type: string;
+    userId: string;
+    createdAt: string;
+  }>;
 }
 
 // Base comment types
@@ -619,3 +670,32 @@ export interface LeaguesApiResponse {
     logo: string;
   }>;
 }
+
+export interface UserSummary {
+  id: string;
+  username: string;
+  firstName?: string;
+  lastName?: string;
+  imageUrl?: string;
+  emailAddress?: string;
+}
+
+// Filter Types
+export interface GqlGameLogFilters {
+  userId?: string;
+  gameId?: string;
+  classification?: Classification;
+  createdAt?: {
+    start?: string;
+    end?: string;
+  };
+  pagination?: {
+    first?: number;
+    after?: string;
+    last?: number;
+    before?: string;
+  };
+}
+
+// Database Types
+export type DBGameRecord = InferSelectModel<typeof nba_games>;

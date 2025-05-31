@@ -16,10 +16,10 @@ import type {
   TeamStats,
   Team,
   Classification,
-  GameStatus,
   GAME_STATUS,
   SortDirection,
 } from './generated/graphql';
+import type { GameTeam, GameTeamStats } from './shared.types';
 import type { CustomTeam } from './team.types';
 
 // Re-export types from generated/graphql
@@ -362,30 +362,8 @@ export interface GameStatsProps {
 
 export interface ComponentGameStats {
   players: GamePlayerStats[];
-  homeTeam: {
-    points: number;
-    rebounds: number;
-    assists: number;
-    steals: number;
-    blocks: number;
-    turnovers: number;
-    fouls: number;
-    fieldGoals: { made: number; attempted: number };
-    threePointers: { made: number; attempted: number };
-    freeThrows: { made: number; attempted: number };
-  };
-  awayTeam: {
-    points: number;
-    rebounds: number;
-    assists: number;
-    steals: number;
-    blocks: number;
-    turnovers: number;
-    fouls: number;
-    fieldGoals: { made: number; attempted: number };
-    threePointers: { made: number; attempted: number };
-    freeThrows: { made: number; attempted: number };
-  };
+  homeTeam: GameTeamStats;
+  awayTeam: GameTeamStats;
 }
 
 export interface GameApiResponse {
@@ -538,24 +516,6 @@ export type GamePlayerSortInput = {
   direction: 'asc' | 'desc';
 };
 
-export interface GameRecord {
-  id: string;
-  league: string;
-  season: number;
-  date: string;
-  stage: number;
-  status: GameStatus;
-  periods: { current: number; total: number; endOfPeriod: boolean };
-  arena: string;
-  teams: GameTeams;
-  scores: GameScores;
-  officials: string[];
-  createdAt: string;
-  updatedAt: string;
-  times_tied?: number;
-  lead_changes?: number;
-  nugget?: string;
-}
 export interface GameEdge {
   node: Game;
 }

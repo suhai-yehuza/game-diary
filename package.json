@@ -5,6 +5,8 @@
   "scripts": {
     "build": "next build",
     "check:circular": "madge --circular --extensions ts,tsx src/",
+    "check:unused": "ts-prune",
+    "check:unused:strict": "ts-prune --error",
     "clean": "rm -rf .next node_modules pnpm-lock.yaml package-lock.json tsconfig.tsbuildinfo src/lib/graphql/generated && rm -rf ./drizzle && mkdir -p ./drizzle && pnpm install",
     "clean:build": "pnpm clean && pnpm format && pnpm fix && pnpm validate:all && pnpm build && NODE_ENV=development && pnpm test:databases",
     "codegen": "graphql-codegen",
@@ -49,10 +51,12 @@
     "test:watch": "jest --watch",
     "typecheck": "tsc --noEmit",
     "validate": "pnpm codegen  && pnpm prettier --write src/lib/graphql/schema.graphql && pnpm lint && pnpm fix-imports && pnpm format:check && pnpm typecheck && pnpm db:test-migrations",
-    "validate:all": "pnpm run validate && pnpm run check:circular",
+    "validate:all": "pnpm run validate && pnpm run check:circular && pnpm run check:unused:strict",
     "migration:generate": "tsx scripts/manage-migrations.ts generate",
     "migration:validate": "tsx scripts/manage-migrations.ts validate",
-    "migration:reset": "pnpm clean:build && pnpm db:migrate:reset:dev"
+    "migration:reset": "pnpm clean:build && pnpm db:migrate:reset:dev",
+    "cleanup:unused": "tsx scripts/cleanup-unused.ts",
+    "cleanup:unused:dry-run": "pnpm check:unused"
   },
   "dependencies": {
     "@apollo/client": "^3.13.7",
@@ -179,7 +183,8 @@
     "ts-jest": "^29.3.1",
     "ts-node": "^10.9.2",
     "tsx": "^4.19.3",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "ts-prune": "^0.10.3"
   },
   "engines": {
     "node": "22.x"

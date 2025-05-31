@@ -83,14 +83,32 @@ const calculateGameStats = (game: GameWithStatistics): ComponentGameStats => {
     fieldGoals: {
       made: players.reduce((sum, p) => sum + (p?.fieldGoals?.made || 0), 0),
       attempted: players.reduce((sum, p) => sum + (p?.fieldGoals?.attempted || 0), 0),
+      percentage:
+        (
+          (players.reduce((sum, p) => sum + (p?.fieldGoals?.made || 0), 0) /
+            (players.reduce((sum, p) => sum + (p?.fieldGoals?.attempted || 0), 0) || 1)) *
+          100
+        ).toFixed(1) + '%',
     },
     threePointers: {
       made: players.reduce((sum, p) => sum + (p?.threePointers?.made || 0), 0),
       attempted: players.reduce((sum, p) => sum + (p?.threePointers?.attempted || 0), 0),
+      percentage:
+        (
+          (players.reduce((sum, p) => sum + (p?.threePointers?.made || 0), 0) /
+            (players.reduce((sum, p) => sum + (p?.threePointers?.attempted || 0), 0) || 1)) *
+          100
+        ).toFixed(1) + '%',
     },
     freeThrows: {
       made: players.reduce((sum, p) => sum + (p?.freeThrows?.made || 0), 0),
       attempted: players.reduce((sum, p) => sum + (p?.freeThrows?.attempted || 0), 0),
+      percentage:
+        (
+          (players.reduce((sum, p) => sum + (p?.freeThrows?.made || 0), 0) /
+            (players.reduce((sum, p) => sum + (p?.freeThrows?.attempted || 0), 0) || 1)) *
+          100
+        ).toFixed(1) + '%',
     },
   });
 

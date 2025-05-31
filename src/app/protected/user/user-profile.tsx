@@ -41,7 +41,7 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
               ? new Date(currentUser.lastSignInAt)
               : new Date(),
             game_logs: [],
-            initiated_friendships: [],
+            initiatedFriendships: [],
             comments: [],
             reactions: [],
             received_friendships: [],
@@ -171,7 +171,7 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
               <div>
                 <h3 className="text-sm font-medium">Friends</h3>
                 <p className="text-sm text-muted-foreground">
-                  {userProfile?.initiated_friendships?.length || 0} friends
+                  {userProfile?.initiatedFriendships?.length || 0} friends
                 </p>
               </div>
             </div>
