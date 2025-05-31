@@ -104,41 +104,44 @@ export interface DBWeightInfo {
   kilograms: number;
 }
 
-export interface TeamStatistics {
+export interface GameTeamStatistic {
+  fastBreakPoints?: number;
+  pointsInPaint?: number;
+  biggestLead?: number;
+  secondChancePoints?: number;
+  pointsOffTurnovers?: number;
+  longestRun?: number;
+  fgm?: number;
+  fga?: number;
+  fgp?: string;
+  ftm?: number;
+  fta?: number;
+  ftp?: string;
+  tpm?: number;
+  tpa?: number;
+  tpp?: string;
+  offReb?: number;
+  defReb?: number;
+  totReb?: number;
+  assists?: number;
+  pFouls?: number;
+  steals?: number;
+  turnovers?: number;
+  blocks?: number;
+  plusMinus?: number;
+  min?: number;
+  points?: number;
+}
+
+export interface GameTeamStatistics {
   team: {
     id: number;
     name: string;
     nickname: string;
+    code?: string;
     logo: string;
   };
-  statistics: Array<{
-    fastBreakPoints: number;
-    pointsInPaint: number;
-    biggestLead: number;
-    secondChancePoints: number;
-    pointsOffTurnovers: number;
-    longestRun: number;
-    fgm: number;
-    fga: number;
-    fgp: number;
-    ftm: number;
-    fta: number;
-    ftp: number;
-    tpm: number;
-    tpa: number;
-    tpp: number;
-    offReb: number;
-    defReb: number;
-    totReb: number;
-    assists: number;
-    pFouls: number;
-    steals: number;
-    turnovers: number;
-    blocks: number;
-    plusMinus: number;
-    min: number;
-    points: number;
-  }>;
+  statistics: GameTeamStatistic[];
 }
 
 export interface TeamResponseData {
@@ -244,31 +247,6 @@ export interface StandingResponseData {
   winStreak: boolean;
 }
 
-export interface TeamDisplayStats {
+export interface TeamDisplayStats extends GameTeamStatistic {
   games: number;
-  fastBreakPoints: number;
-  pointsInPaint: number;
-  biggestLead: number;
-  secondChancePoints: number;
-  pointsOffTurnovers: number;
-  longestRun: number;
-  points: number;
-  fgm: number;
-  fga: number;
-  fgp: string;
-  ftm: number;
-  fta: number;
-  ftp: string;
-  tpm: number;
-  tpa: number;
-  tpp: string;
-  offReb: number;
-  defReb: number;
-  totReb: number;
-  assists: number;
-  pFouls: number;
-  steals: number;
-  turnovers: number;
-  blocks: number;
-  plusMinus: number;
 }

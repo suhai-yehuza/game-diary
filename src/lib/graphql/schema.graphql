@@ -932,23 +932,23 @@ type TeamGameStats {
 
 input TeamGameStatsInput {
   assists: Int
-  biggest_lead: Int
+  biggestLead: Int
   blocks: Int
   defensive_rebounds: Int
-  fast_break_points: Int
+  fastBreakPoints: Int
   field_goal_percentage: Float
   field_goals_attempted: Int
   field_goals_made: Int
   free_throw_percentage: Float
   free_throws_attempted: Int
   free_throws_made: Int
-  longest_run: Int
+  longestRun: Int
   offensive_rebounds: Int
   personal_fouls: Int
   points: Int
-  points_in_paint: Int
-  points_off_turnovers: Int
-  second_chance_points: Int
+  pointsInPaint: Int
+  pointsOffTurnovers: Int
+  secondChancePoints: Int
   steals: Int
   three_pointer_percentage: Float
   three_pointers_attempted: Int
@@ -999,12 +999,12 @@ type TeamStats {
   ftp: String
   games_played: Int!
   id: ID!
+  longestRun: Int
   losses: Int!
-  offReb: Int
   offensive_rebounds: Int!
   pFouls: Int
   personal_fouls: Int!
-  plus_minus: Int
+  plusMinus: Int
   points: Int!
   season: Int!
   steals: Int!

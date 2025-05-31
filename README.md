@@ -1089,7 +1089,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
      three_pointers_attempted INTEGER,
      free_throws_made INTEGER,
      free_throws_attempted INTEGER,
-     plus_minus INTEGER,
+     plusMinus INTEGER,
      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
      UNIQUE(player_id, game_id)
    );

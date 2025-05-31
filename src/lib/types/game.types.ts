@@ -19,7 +19,7 @@ import type {
   Classification,
   SortDirection,
 } from './generated/graphql';
-import type { GameTeamStats } from './shared.types';
+import type { GameTeamStatistics } from './shared.types';
 import type { CustomTeam } from './team.types';
 
 // Re-export types from generated/graphql
@@ -362,8 +362,8 @@ export interface GameStatsProps {
 
 export interface ComponentGameStats {
   players: GamePlayerStats[];
-  homeTeam: GameTeamStats;
-  awayTeam: GameTeamStats;
+  homeTeam: GameTeamStatistics;
+  awayTeam: GameTeamStatistics;
 }
 
 export interface GameApiResponse {

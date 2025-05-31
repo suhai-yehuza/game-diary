@@ -125,7 +125,7 @@ export type DBTeamStats = {
   tpm?: number;
   tpa?: number;
   tpp?: string;
-  offReb?: number;
+  longestRun?: number;
   defReb?: number;
   totReb?: number;
   assists?: number;
@@ -139,7 +139,7 @@ export type DBTeamStats = {
   biggestLead?: number;
   secondChancePoints?: number;
   pointsOffTurnovers?: number;
-  longestRun?: number;
+  offReb?: number;
 };
 
 export type DBComment = Comment & {

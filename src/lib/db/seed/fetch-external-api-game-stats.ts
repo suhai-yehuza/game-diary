@@ -4,7 +4,7 @@ import { API_CONFIG, getRapidApiConfig } from '@/lib/config/api.config';
 import { game_stats, teams } from '@/lib/db/schema';
 import { createRapidAPIClient, validateAPIKey, handleAPIError } from '@/lib/external-apis';
 import { GAME_STATUS_VALUES } from '@/lib/types/config.types';
-import type { TeamStatistics } from '@/lib/types/team.types';
+import type { GameTeamStatistic, GameTeamStatistics } from '@/lib/types/team.types';
 import { generateUUID } from '@/lib/utils/index.processing';
 
 import { createDatabaseClient } from './config';
@@ -24,37 +24,33 @@ function parsePercentageValue(value: number | string | null | undefined, default
   return isNaN(num) ? defaultValue.toFixed(2) : num.toFixed(2);
 }
 
-function processTeamStats(
-  stats: TeamStatistics['statistics'][0],
-  prefix: 'home' | 'away'
-): Partial<DBGameStats> {
+function processTeamStats(stats: GameTeamStatistic, prefix: 'home' | 'away'): Partial<DBGameStats> {
   return {
-    [`${prefix}_fast_break_points`]: parseNumericValue(stats.fastBreakPoints),
-    [`${prefix}_points_in_paint`]: parseNumericValue(stats.pointsInPaint),
-    [`${prefix}_biggest_lead`]: parseNumericValue(stats.biggestLead),
-    [`${prefix}_second_chance_points`]: parseNumericValue(stats.secondChancePoints),
-    [`${prefix}_points_off_turnovers`]: parseNumericValue(stats.pointsOffTurnovers),
-    [`${prefix}_longest_run`]: parseNumericValue(stats.longestRun),
-    [`${prefix}_fgm`]: parseNumericValue(stats.fgm),
-    [`${prefix}_fga`]: parseNumericValue(stats.fga),
-    [`${prefix}_fgp`]: parsePercentageValue(stats.fgp),
-    [`${prefix}_ftm`]: parseNumericValue(stats.ftm),
-    [`${prefix}_fta`]: parseNumericValue(stats.fta),
-    [`${prefix}_ftp`]: parsePercentageValue(stats.ftp),
-    [`${prefix}_tpm`]: parseNumericValue(stats.tpm),
-    [`${prefix}_tpa`]: parseNumericValue(stats.tpa),
-    [`${prefix}_tpp`]: parsePercentageValue(stats.tpp),
-    [`${prefix}_off_reb`]: parseNumericValue(stats.offReb),
-    [`${prefix}_def_reb`]: parseNumericValue(stats.defReb),
-    [`${prefix}_tot_reb`]: parseNumericValue(stats.totReb),
-    [`${prefix}_assists`]: parseNumericValue(stats.assists),
-    [`${prefix}_p_fouls`]: parseNumericValue(stats.pFouls),
-    [`${prefix}_steals`]: parseNumericValue(stats.steals),
-    [`${prefix}_turnovers`]: parseNumericValue(stats.turnovers),
-    [`${prefix}_blocks`]: parseNumericValue(stats.blocks),
-    [`${prefix}_plus_minus`]: parseNumericValue(stats.plusMinus),
-    [`${prefix}_minutes`]: parseNumericValue(stats.min),
-    [`${prefix}_score`]: parseNumericValue(stats.points),
+    [`${prefix}FastBreakPoints`]: parseNumericValue(stats.fastBreakPoints || 0),
+    [`${prefix}PointsInPaint`]: parseNumericValue(stats.pointsInPaint || 0),
+    [`${prefix}BiggestLead`]: parseNumericValue(stats.biggestLead || 0),
+    [`${prefix}SecondChancePoints`]: parseNumericValue(stats.secondChancePoints || 0),
+    [`${prefix}PointsOffTurnovers`]: parseNumericValue(stats.pointsOffTurnovers || 0),
+    [`${prefix}LongestRun`]: parseNumericValue(stats.longestRun || 0),
+    [`${prefix}Fgm`]: parseNumericValue(stats.fgm || 0),
+    [`${prefix}Fga`]: parseNumericValue(stats.fga || 0),
+    [`${prefix}Fgp`]: parsePercentageValue(stats.fgp || 0),
+    [`${prefix}Ftm`]: parseNumericValue(stats.ftm || 0),
+    [`${prefix}Fta`]: parseNumericValue(stats.fta || 0),
+    [`${prefix}Ftp`]: parsePercentageValue(stats.ftp || 0),
+    [`${prefix}Tpm`]: parseNumericValue(stats.tpm || 0),
+    [`${prefix}Tpa`]: parseNumericValue(stats.tpa || 0),
+    [`${prefix}Tpp`]: parsePercentageValue(stats.tpp || 0),
+    [`${prefix}OffReb`]: parseNumericValue(stats.offReb || 0),
+    [`${prefix}DefReb`]: parseNumericValue(stats.defReb || 0),
+    [`${prefix}TotReb`]: parseNumericValue(stats.totReb || 0),
+    [`${prefix}Assists`]: parseNumericValue(stats.assists || 0),
+    [`${prefix}PFouls`]: parseNumericValue(stats.pFouls || 0),
+    [`${prefix}Steals`]: parseNumericValue(stats.steals || 0),
+    [`${prefix}Turnovers`]: parseNumericValue(stats.turnovers || 0),
+    [`${prefix}Blocks`]: parseNumericValue(stats.blocks || 0),
+    [`${prefix}PlusMinus`]: parseNumericValue(stats.plusMinus || 0),
+    [`${prefix}Minutes`]: parseNumericValue(stats.min || 0),
   };
 }
 
@@ -76,7 +72,7 @@ export async function fetchAndProcessNBAGameStats(gameId: string, season: number
     }
 
     console.log(`Fetching NBA game statistics for game ${gameId}...`);
-    const response = await api.get<{ response: TeamStatistics[] }>(
+    const response = await api.get<{ response: GameTeamStatistics[] }>(
       `${API_CONFIG.endpoints.GAMES}/statistics?id=${gameId}`
     );
 
@@ -90,14 +86,17 @@ export async function fetchAndProcessNBAGameStats(gameId: string, season: number
       return;
     }
 
-    const [homeTeamStats, awayTeamStats] = gameStats as unknown as [TeamStatistics, TeamStatistics];
-    if (!homeTeamStats.statistics[0] || !awayTeamStats.statistics[0]) {
+    const [homeTeamStats, awayTeamStats] = gameStats as unknown as [
+      GameTeamStatistics,
+      GameTeamStatistics,
+    ];
+    if (!homeTeamStats.statistics[0] && !awayTeamStats.statistics[0]) {
       console.log('Missing team statistics, skipping...');
       return;
     }
 
-    const homeStats = homeTeamStats.statistics[0];
-    const awayStats = awayTeamStats.statistics[0];
+    const homeStats = homeTeamStats.statistics[0] || ({} as GameTeamStatistic);
+    const awayStats = awayTeamStats.statistics[0] || ({} as GameTeamStatistic);
 
     // Verify both teams exist in our database
     const homeTeam = await db.query.teams.findFirst({
@@ -122,12 +121,14 @@ export async function fetchAndProcessNBAGameStats(gameId: string, season: number
       seasonId: season,
       homeTeamId: homeTeamStats.team.id.toString(),
       awayTeamId: awayTeamStats.team.id.toString(),
-      gameDate: now,
+      homeTeamScore: homeStats.points || 0,
+      awayTeamScore: awayStats.points || 0,
+      gameDate: now, // TODO: add game date
       status: GAME_STATUS_VALUES.FINISHED,
-      createdAt: now,
-      updatedAt: now,
       ...processTeamStats(homeStats, 'home'),
       ...processTeamStats(awayStats, 'away'),
+      createdAt: now,
+      updatedAt: now,
     };
 
     // Use upsert instead of insert to handle potential race conditions

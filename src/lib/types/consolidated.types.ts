@@ -134,7 +134,7 @@ export interface PlayerStatistics {
 }
 
 // Team Statistics Types
-export type TeamStatistics = {
+export type GameTeamStatistics = {
   team: {
     id: number | string;
     name?: string;

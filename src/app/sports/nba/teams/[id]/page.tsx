@@ -72,7 +72,7 @@ export default function TeamPage() {
               tpm: statsResponse.tpm || 0,
               tpa: statsResponse.tpa || 0,
               tpp: statsResponse.tpp || '0',
-              offReb: statsResponse.offReb || 0,
+              longestRun: statsResponse.longestRun || 0,
               defReb: statsResponse.defReb || 0,
               totReb: statsResponse.totReb || 0,
               assists: statsResponse.assists || 0,
@@ -80,14 +80,14 @@ export default function TeamPage() {
               steals: statsResponse.steals || 0,
               turnovers: statsResponse.turnovers || 0,
               blocks: statsResponse.blocks || 0,
-              plusMinus: statsResponse.plus_minus || 0,
+              plusMinus: statsResponse.plusMinus || 0,
               // The following are not present in TeamStats, so set to 0
               fastBreakPoints: 0,
               pointsInPaint: 0,
               biggestLead: 0,
               secondChancePoints: 0,
               pointsOffTurnovers: 0,
-              longestRun: 0,
+              offReb: 0,
             }
           : undefined;
         setTeamStats(stats || null);
@@ -168,7 +168,9 @@ export default function TeamPage() {
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <p className="text-sm text-muted-foreground">Points Per Game</p>
-                      <p className="text-2xl font-bold">{teamStats.points / teamStats.games}</p>
+                      <p className="text-2xl font-bold">
+                        {teamStats.points ?? 0 / teamStats.games}
+                      </p>
                     </div>
                     <div>
                       <p className="text-sm text-muted-foreground">Field Goal %</p>

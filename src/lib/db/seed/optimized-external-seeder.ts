@@ -268,7 +268,6 @@ async function processPlayers(
 
 async function processGames(
   apiClient: OptimizedAPIClient,
-  processor: DataProcessor,
   season: number,
   batchSize: number
 ): Promise<void> {
@@ -516,7 +515,7 @@ export async function appendOptimizedExternalData(options: OptimizedSeederOption
       await processPlayers(apiClient, db, season, batchSize);
 
       // Process games
-      await processGames(apiClient, processor, season, batchSize);
+      await processGames(apiClient, season, batchSize);
 
       // Process game stats
       await processSeasonStats(
@@ -561,7 +560,7 @@ export async function seedOptimizedExternalData(options: OptimizedSeederOptions)
       await processPlayers(apiClient, db, season, batchSize);
 
       // Process games
-      await processGames(apiClient, processor, season, batchSize);
+      await processGames(apiClient, season, batchSize);
 
       // Process game stats
       await processSeasonStats(

@@ -1,7 +1,7 @@
 import type { RawTeamStatistics } from '@/lib/types/shared.types';
-import type { TeamStatistics } from '@/lib/types/team.types';
+import type { GameTeamStatistics } from '@/lib/types/team.types';
 
-export const transformTeamStats = (stats: RawTeamStatistics): TeamStatistics => {
+export const transformTeamStats = (stats: RawTeamStatistics): GameTeamStatistics => {
   return {
     team: {
       id: 0,
@@ -19,13 +19,13 @@ export const transformTeamStats = (stats: RawTeamStatistics): TeamStatistics => 
         longestRun: stats.longestRun,
         fgm: 0,
         fga: 0,
-        fgp: 0,
+        fgp: '0',
         ftm: 0,
         fta: 0,
-        ftp: 0,
+        ftp: '0',
         tpm: 0,
         tpa: 0,
-        tpp: 0,
+        tpp: '0',
         offReb: 0,
         defReb: 0,
         totReb: 0,

@@ -256,10 +256,10 @@ export interface GameWithDetails extends Game {
 }
 
 export interface GameTeamWithStats extends GameTeam {
-  stats?: GameTeamStats;
+  stats?: GameTeamStatistics;
 }
 
-export interface GameTeamStats {
+export interface GameTeamStatistics {
   points: number;
   rebounds: number;
   assists: number;
