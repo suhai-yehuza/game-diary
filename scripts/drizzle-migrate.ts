@@ -15,7 +15,6 @@ neonConfig.wsProxy = host => `${host}:5432/v1`;
 neonConfig.useSecureWebSocket = true;
 neonConfig.pipelineTLS = true;
 neonConfig.pipelineConnect = false;
-neonConfig.fetchConnectionCache = true;
 neonConfig.fetchFunction = (input: RequestInfo | URL, init?: RequestInit) => {
   return fetch(input, {
     ...init,

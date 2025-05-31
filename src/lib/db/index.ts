@@ -31,7 +31,6 @@ neonConfig.useSecureWebSocket = true;
 neonConfig.pipelineTLS = true;
 neonConfig.pipelineConnect = false;
 // Add connection timeout and retry settings
-neonConfig.fetchConnectionCache = true;
 neonConfig.fetchFunction = (input: RequestInfo | URL, init?: RequestInit) => {
   return fetch(input, {
     ...init,
