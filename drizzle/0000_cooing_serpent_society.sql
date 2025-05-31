@@ -1,5 +1,5 @@
 CREATE TABLE "comments" (
-	"id" varchar(255) PRIMARY KEY DEFAULT '019727bf-6ace-769f-a0dd-0ded1081a564-mbclvdfy-nef5h7mwyu-20fd' NOT NULL,
+	"id" varchar(255) PRIMARY KEY DEFAULT '019727c3-055e-7469-8233-dcb08da7843e-mbcm0foe-hikxtnys2we-24e3' NOT NULL,
 	"userId" varchar(255),
 	"parentId" varchar(255) NOT NULL,
 	"parentType" varchar(50) NOT NULL,
@@ -10,7 +10,7 @@ CREATE TABLE "comments" (
 );
 --> statement-breakpoint
 CREATE TABLE "friendships" (
-	"id" varchar(255) PRIMARY KEY DEFAULT '019727bf-6ace-769f-a0dd-0bfbe3319d8f-mbclvdfy-n4mfn1zim-20fd' NOT NULL,
+	"id" varchar(255) PRIMARY KEY DEFAULT '019727c3-055e-7469-8233-d92036b2234f-mbcm0foe-usjnb5yzmg-24e3' NOT NULL,
 	"friendId" varchar(255),
 	"userId" varchar(255),
 	"status" varchar(50) DEFAULT 'PENDING' NOT NULL,
@@ -21,7 +21,7 @@ CREATE TABLE "friendships" (
 );
 --> statement-breakpoint
 CREATE TABLE "game_logs" (
-	"id" varchar(255) PRIMARY KEY DEFAULT '019727bf-6ace-769f-a0dd-18239dfdb48b-mbclvdfy-j4sxuyqtsvk-20fd' NOT NULL,
+	"id" varchar(255) PRIMARY KEY DEFAULT '019727c3-055e-7469-8233-e95c7741842a-mbcm0foe-zu5lq6mhjwr-24e3' NOT NULL,
 	"userId" varchar(255),
 	"gameId" varchar(255) NOT NULL,
 	"classification" varchar(50) DEFAULT 'Protected' NOT NULL,
@@ -39,7 +39,7 @@ CREATE TABLE "game_logs" (
 );
 --> statement-breakpoint
 CREATE TABLE "game_ratings" (
-	"id" varchar(255) PRIMARY KEY DEFAULT '019727bf-6ace-769f-a0dd-1f5f67b78ce9-mbclvdfy-skahblc729-20fd' NOT NULL,
+	"id" varchar(255) PRIMARY KEY DEFAULT '019727c3-055e-7469-8233-ede6f3cec909-mbcm0foe-oc5w0mupkbq-24e3' NOT NULL,
 	"gameId" varchar(255) NOT NULL,
 	"averageRating" numeric(3, 2) DEFAULT '0.00' NOT NULL,
 	"totalRatings" integer DEFAULT 0 NOT NULL,
@@ -50,7 +50,7 @@ CREATE TABLE "game_ratings" (
 );
 --> statement-breakpoint
 CREATE TABLE "game_stats" (
-	"id" varchar(255) PRIMARY KEY DEFAULT '019727bf-6acc-75cf-8836-3d0611552774-mbclvdfw-1tvatkbonot-20fd' NOT NULL,
+	"id" varchar(255) PRIMARY KEY DEFAULT '019727c3-055c-722c-a5de-b1b484772a32-mbcm0foc-iuhdj43rq1-24e3' NOT NULL,
 	"gameId" varchar(255) NOT NULL,
 	"seasonId" integer NOT NULL,
 	"homeTeamId" varchar(255) NOT NULL,
@@ -117,7 +117,7 @@ CREATE TABLE "game_stats" (
 );
 --> statement-breakpoint
 CREATE TABLE "games" (
-	"id" varchar(255) PRIMARY KEY DEFAULT '019727bf-6ace-769f-a0dd-17b74f4ab0d4-mbclvdfy-g0884v0jzyb-20fd' NOT NULL,
+	"id" varchar(255) PRIMARY KEY DEFAULT '019727c3-055e-7469-8233-e4c8459d8466-mbcm0foe-u5bdlwzujjk-24e3' NOT NULL,
 	"gameType" varchar(50) DEFAULT 'nba' NOT NULL,
 	"nbaGameId" varchar(255),
 	"date" timestamp NOT NULL,
@@ -132,7 +132,7 @@ CREATE TABLE "games" (
 );
 --> statement-breakpoint
 CREATE TABLE "nba_games" (
-	"id" text PRIMARY KEY DEFAULT '019727bf-6acb-716d-9611-1ef874aa156f-mbclvdfv-thwzpn5j8c-20fd' NOT NULL,
+	"id" text PRIMARY KEY DEFAULT '019727c3-055b-72da-b4e1-df65b8ca9176-mbcm0fob-laon2xp4we8-24e3' NOT NULL,
 	"league" text NOT NULL,
 	"season" integer NOT NULL,
 	"date" jsonb,
@@ -209,7 +209,7 @@ CREATE TABLE "notifications" (
 );
 --> statement-breakpoint
 CREATE TABLE "reactions" (
-	"id" varchar(255) PRIMARY KEY DEFAULT '019727bf-6ace-769f-a0dd-1227f95a952f-mbclvdfy-xedtjnhjf1e-20fd' NOT NULL,
+	"id" varchar(255) PRIMARY KEY DEFAULT '019727c3-055e-7469-8233-e3645f2fa1b2-mbcm0foe-fy94kjo3nhw-24e3' NOT NULL,
 	"userId" varchar(255),
 	"targetType" varchar(50) NOT NULL,
 	"targetId" varchar(255) NOT NULL,
@@ -234,7 +234,7 @@ CREATE TABLE "seasons" (
 );
 --> statement-breakpoint
 CREATE TABLE "team_h2h" (
-	"id" varchar(255) PRIMARY KEY DEFAULT '019727bf-6acb-716d-9611-236fd5645b9a-mbclvdfv-f8kksy2ehu-20fd' NOT NULL,
+	"id" varchar(255) PRIMARY KEY DEFAULT '019727c3-055b-72da-b4e1-e2819c2a0564-mbcm0fob-t5tfr0b3kf-24e3' NOT NULL,
 	"team1Id" varchar(255) NOT NULL,
 	"team2Id" varchar(255) NOT NULL,
 	"season" integer NOT NULL,
@@ -268,7 +268,7 @@ CREATE TABLE "teams" (
 );
 --> statement-breakpoint
 CREATE TABLE "users" (
-	"id" varchar(255) PRIMARY KEY DEFAULT '019727bf-6ace-769f-a0dd-0760ac0fb2ac-mbclvdfy-g19ltlw3c04-20fd' NOT NULL,
+	"id" varchar(255) PRIMARY KEY DEFAULT '019727c3-055e-7469-8233-d55b432b7111-mbcm0foe-siq6wdw2eh-24e3' NOT NULL,
 	"username" varchar(255) NOT NULL,
 	"firstName" varchar(255) NOT NULL,
 	"lastName" varchar(255) NOT NULL,

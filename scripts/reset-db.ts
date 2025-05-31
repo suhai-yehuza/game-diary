@@ -1,9 +1,9 @@
 import { sql } from 'drizzle-orm';
 import { NeonHttpDatabase } from 'drizzle-orm/neon-http';
 
+import { migrate } from '@/lib/db/migrations/drizzle-migrate';
 import * as schema from '@/lib/db/schema';
 import { createDatabaseClient } from '@/lib/db/seed/config';
-import { migrate } from '@/lib/db/migrations/drizzle-migrate';
 
 async function dropAllTables(db: NeonHttpDatabase<typeof schema>) {
   try {

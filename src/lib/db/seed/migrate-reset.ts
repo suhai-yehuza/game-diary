@@ -3,8 +3,9 @@ import { NeonHttpDatabase } from 'drizzle-orm/neon-http';
 
 import * as schema from '@/lib/db/schema';
 
-import { createDatabaseClient } from './config';
 import { migrate } from '../migrations/drizzle-migrate';
+
+import { createDatabaseClient } from './config';
 
 // Get environment from command line argument or default to development
 const env = process.argv[2] || 'development';

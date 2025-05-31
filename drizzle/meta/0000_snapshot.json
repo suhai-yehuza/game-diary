@@ -1,5 +1,5 @@
 {
-  "id": "adb984ea-f387-42d0-995b-18c7d5eed625",
+  "id": "810dac57-9507-4b83-8786-b2d4eb60deba",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -13,7 +13,7 @@
           "type": "varchar(255)",
           "primaryKey": true,
           "notNull": true,
-          "default": "'019727bf-6ace-769f-a0dd-0ded1081a564-mbclvdfy-nef5h7mwyu-20fd'"
+          "default": "'019727c3-055e-7469-8233-dcb08da7843e-mbcm0foe-hikxtnys2we-24e3'"
         },
         "userId": {
           "name": "userId",
@@ -92,7 +92,7 @@
           "type": "varchar(255)",
           "primaryKey": true,
           "notNull": true,
-          "default": "'019727bf-6ace-769f-a0dd-0bfbe3319d8f-mbclvdfy-n4mfn1zim-20fd'"
+          "default": "'019727c3-055e-7469-8233-d92036b2234f-mbcm0foe-usjnb5yzmg-24e3'"
         },
         "friendId": {
           "name": "friendId",
@@ -188,7 +188,7 @@
           "type": "varchar(255)",
           "primaryKey": true,
           "notNull": true,
-          "default": "'019727bf-6ace-769f-a0dd-18239dfdb48b-mbclvdfy-j4sxuyqtsvk-20fd'"
+          "default": "'019727c3-055e-7469-8233-e95c7741842a-mbcm0foe-zu5lq6mhjwr-24e3'"
         },
         "userId": {
           "name": "userId",
@@ -328,7 +328,7 @@
           "type": "varchar(255)",
           "primaryKey": true,
           "notNull": true,
-          "default": "'019727bf-6ace-769f-a0dd-1f5f67b78ce9-mbclvdfy-skahblc729-20fd'"
+          "default": "'019727c3-055e-7469-8233-ede6f3cec909-mbcm0foe-oc5w0mupkbq-24e3'"
         },
         "gameId": {
           "name": "gameId",
@@ -411,7 +411,7 @@
           "type": "varchar(255)",
           "primaryKey": true,
           "notNull": true,
-          "default": "'019727bf-6acc-75cf-8836-3d0611552774-mbclvdfw-1tvatkbonot-20fd'"
+          "default": "'019727c3-055c-722c-a5de-b1b484772a32-mbcm0foc-iuhdj43rq1-24e3'"
         },
         "gameId": {
           "name": "gameId",
@@ -867,7 +867,7 @@
           "type": "varchar(255)",
           "primaryKey": true,
           "notNull": true,
-          "default": "'019727bf-6ace-769f-a0dd-17b74f4ab0d4-mbclvdfy-g0884v0jzyb-20fd'"
+          "default": "'019727c3-055e-7469-8233-e4c8459d8466-mbcm0foe-u5bdlwzujjk-24e3'"
         },
         "gameType": {
           "name": "gameType",
@@ -997,7 +997,7 @@
           "type": "text",
           "primaryKey": true,
           "notNull": true,
-          "default": "'019727bf-6acb-716d-9611-1ef874aa156f-mbclvdfv-thwzpn5j8c-20fd'"
+          "default": "'019727c3-055b-72da-b4e1-df65b8ca9176-mbcm0fob-laon2xp4we8-24e3'"
         },
         "league": {
           "name": "league",
@@ -1508,7 +1508,7 @@
           "type": "varchar(255)",
           "primaryKey": true,
           "notNull": true,
-          "default": "'019727bf-6ace-769f-a0dd-1227f95a952f-mbclvdfy-xedtjnhjf1e-20fd'"
+          "default": "'019727c3-055e-7469-8233-e3645f2fa1b2-mbcm0foe-fy94kjo3nhw-24e3'"
         },
         "userId": {
           "name": "userId",
@@ -1676,7 +1676,7 @@
           "type": "varchar(255)",
           "primaryKey": true,
           "notNull": true,
-          "default": "'019727bf-6acb-716d-9611-236fd5645b9a-mbclvdfv-f8kksy2ehu-20fd'"
+          "default": "'019727c3-055b-72da-b4e1-e2819c2a0564-mbcm0fob-t5tfr0b3kf-24e3'"
         },
         "team1Id": {
           "name": "team1Id",
@@ -1898,7 +1898,7 @@
           "type": "varchar(255)",
           "primaryKey": true,
           "notNull": true,
-          "default": "'019727bf-6ace-769f-a0dd-0760ac0fb2ac-mbclvdfy-g19ltlw3c04-20fd'"
+          "default": "'019727c3-055e-7469-8233-d55b432b7111-mbcm0foe-siq6wdw2eh-24e3'"
         },
         "username": {
           "name": "username",
