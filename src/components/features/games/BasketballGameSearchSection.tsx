@@ -453,7 +453,10 @@ export function BasketballGameSearchSection() {
                     </div>
                   </CardHeader>
 
-                  <CardContent className="space-y-3">
+                  <CardContent 
+                    className="space-y-3 cursor-pointer hover:bg-accent/50 transition-colors"
+                    onClick={() => router.push(`/sports/nba/games/${game.id}`)}
+                  >
                     {/* Teams */}
                     <div className="space-y-2">
                       {/* Away Team */}
