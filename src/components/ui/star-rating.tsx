@@ -2,6 +2,14 @@ import { Star } from 'lucide-react';
 import React from 'react';
 
 import { StarRatingProps } from '@/lib/types/generated/types';
+import { cn } from '@/lib/utils';
+
+const sizeMap = {
+  sm: 'h-4 w-4',
+  md: 'h-5 w-5',
+  lg: 'h-6 w-6',
+  xl: 'h-8 w-8',
+};
 
 export function StarRating({
   rating,
@@ -13,13 +21,14 @@ export function StarRating({
   const fullStars = Math.floor(rating);
   const hasHalfStar = rating % 1 >= 0.5;
   const emptyStars = maxRating - fullStars - (hasHalfStar ? 1 : 0);
+  const sizeClasses = sizeMap[size] || sizeMap.md;
 
   // Add full stars
   for (let i = 0; i < fullStars; i++) {
     stars.push(
       <Star
         key={`full-${i}`}
-        className={`w-${size} h-${size} fill-gray-600 text-gray-600 ${className}`}
+        className={cn(sizeClasses, 'fill-gray-600 text-gray-600', className)}
       />
     );
   }
@@ -29,12 +38,11 @@ export function StarRating({
     stars.push(
       <div key="half" className="relative">
         <Star
-          className={`w-${size} h-${size} text-gray-300 ${className}`}
-          style={{ clipPath: 'inset(0 50% 0 0)' }}
+          className={cn(sizeClasses, 'text-gray-300', className)}
         />
         <Star
-          className={`w-${size} h-${size} fill-gray-600 text-gray-600 absolute top-0 left-0 ${className}`}
-          style={{ clipPath: 'inset(0 0 0 50%)' }}
+          className={cn(sizeClasses, 'fill-gray-600 text-gray-600 absolute top-0 left-0', className)}
+          style={{ clipPath: 'polygon(0 0, 50% 0, 50% 100%, 0 100%)' }}
         />
       </div>
     );
@@ -43,7 +51,7 @@ export function StarRating({
   // Add empty stars
   for (let i = 0; i < emptyStars; i++) {
     stars.push(
-      <Star key={`empty-${i}`} className={`w-${size} h-${size} text-gray-300 ${className}`} />
+      <Star key={`empty-${i}`} className={cn(sizeClasses, 'text-gray-300', className)} />
     );
   }
 

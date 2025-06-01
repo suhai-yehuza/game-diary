@@ -31,7 +31,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { GET_GAME_LOGS, GET_USER } from '@/lib/graphql/queries';
-import { SharedGameLog } from '@/lib/types/generated/graphql';
+import { GameLog } from '@/lib/types/generated/graphql';
 import { DbCustomUser, UserProfileProps } from '@/lib/types/user.types';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
@@ -128,7 +128,7 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
 
   const { data: gameLogsData, loading: gameLogsLoading, fetchMore } = useQuery<{
     gameLogs: { 
-      edges: Array<{ node: SharedGameLog; cursor: string }>; 
+      edges: Array<{ node: GameLog; cursor: string }>; 
       totalCount: number;
       pageInfo: {
         hasNextPage: boolean;
@@ -172,7 +172,7 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
 
   // Calculate stats from game logs
   const averageRating = gameLogs.length > 0 
-    ? gameLogs.reduce((sum, log) => sum + (log.rating || 0), 0) / gameLogs.length 
+    ? gameLogs.reduce((sum, log) => sum + (log.ratingForGame || 0), 0) / gameLogs.length 
     : 0;
 
   const classificationCounts = gameLogs.reduce((acc, log) => {
@@ -236,7 +236,7 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
                 
                 <Card className="border-2">
                   <CardContent className="p-4 text-center">
-                    <Star className="h-8 w-8 mx-auto text-yellow-500 mb-2" />
+                    <Star className="h-8 w-8 mx-auto text-gray-600 mb-2" />
                     <p className="text-2xl font-bold">{averageRating.toFixed(1)}</p>
                     <p className="text-xs text-muted-foreground">Avg Rating</p>
                   </CardContent>
@@ -394,7 +394,7 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
                           </div>
                           
                           <div className="text-right">
-                            <StarRating rating={log.rating || 0} size="md" />
+                            <StarRating rating={log.ratingForGame || 0} size="md" />
                             <p className="text-xs text-muted-foreground mt-1">
                               {formatDistanceToNow(new Date(log.createdAt), { addSuffix: true })}
                             </p>
