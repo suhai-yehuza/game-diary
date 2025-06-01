@@ -25,7 +25,7 @@ import {
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import { SEARCH_USERS } from '@/lib/graphql/queries';
-import { SEND_FRIEND_REQUEST, ACCEPT_FRIEND_REQUEST, REJECT_FRIEND_REQUEST, UPDATE_FRIENDSHIP_STATUS } from '@/lib/graphql/mutations';
+import { SEND_FRIEND_REQUEST, ACCEPT_FRIEND_REQUEST, REJECT_FRIEND_REQUEST, UPDATE_FRIENDSHIP_STATUS, REMOVE_FRIEND } from '@/lib/graphql/mutations';
 import { cn } from '@/lib/utils';
 import { formatCount } from '@/lib/utils/index.format';
 import { FRIENDSHIP_STATUS } from '@/lib/types/config.types';
@@ -66,6 +66,7 @@ const UserCard = ({ user }: { user: UserNode }) => {
   const [acceptFriendRequest, { loading: acceptingRequest }] = useMutation(ACCEPT_FRIEND_REQUEST);
   const [rejectFriendRequest, { loading: rejectingRequest }] = useMutation(REJECT_FRIEND_REQUEST);
   const [updateFriendshipStatus, { loading: updatingStatus }] = useMutation(UPDATE_FRIENDSHIP_STATUS);
+  const [removeFriend, { loading: removingFriend }] = useMutation(REMOVE_FRIEND);
   
   const fullName = [user.firstName, user.lastName].filter(Boolean).join(' ');
   const displayName = fullName || user.username;
@@ -199,21 +200,70 @@ const UserCard = ({ user }: { user: UserNode }) => {
     }
   };
   
+  const handleRemoveFriend = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (!friendshipInfo?.friendshipId) return;
+    
+    try {
+      const { data } = await removeFriend({
+        variables: { friendshipId: friendshipInfo.friendshipId },
+        refetchQueries: ['SearchUsers'],
+      });
+      
+      if (data?.removeFriend?.success) {
+        toast.success('Friend removed successfully');
+      } else if (data?.removeFriend?.errors?.[0]) {
+        toast.error(data.removeFriend.errors[0].message);
+      }
+    } catch (error) {
+      console.error('Error removing friend:', error);
+      toast.error('Failed to remove friend');
+    }
+  };
+  
   const renderFriendshipStatus = () => {
     if (!friendshipInfo) return null;
     
-    const isLoading = sendingRequest || acceptingRequest || rejectingRequest || updatingStatus;
+    const isLoading = sendingRequest || acceptingRequest || rejectingRequest || updatingStatus || removingFriend;
     
     switch (friendshipInfo.status) {
       case FRIENDSHIP_STATUS.ACCEPTED:
         return (
-          <Badge 
-            variant="secondary" 
-            className="gap-0.5 bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/20 text-xs py-0.5 px-1.5"
-          >
-            <UserCheck className="h-2.5 w-2.5" />
-            Friends
-          </Badge>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+              <Button 
+                variant="secondary" 
+                size="sm"
+                className="gap-0.5 bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/20 hover:bg-green-500/20 text-xs h-7 px-2"
+                disabled={isLoading}
+              >
+                <UserCheck className="h-2.5 w-2.5" />
+                Friends
+                <MoreVertical className="h-2.5 w-2.5 ml-0.5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+              <DropdownMenuItem 
+                onClick={handleRemoveFriend}
+                disabled={isLoading}
+                className="gap-2 text-red-600 focus:text-red-600"
+              >
+                <X className="h-3.5 w-3.5" />
+                Unfriend
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem 
+                onClick={handleBlockUser}
+                disabled={isLoading}
+                className="gap-2 text-red-600 focus:text-red-600"
+              >
+                <Ban className="h-3.5 w-3.5" />
+                Block User
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         );
       case FRIENDSHIP_STATUS.PENDING:
         // If current user received the request, show accept/reject options
@@ -245,7 +295,7 @@ const UserCard = ({ user }: { user: UserNode }) => {
                 <DropdownMenuItem 
                   onClick={handleRejectRequest}
                   disabled={isLoading}
-                  className="gap-2 text-red-600 focus:text-red-600"
+                  className="gap-2 text-gray-600 focus:text-gray-600"
                 >
                   <X className="h-3.5 w-3.5" />
                   Reject Request
