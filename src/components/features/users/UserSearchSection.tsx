@@ -68,6 +68,10 @@ const UserCard = ({ user }: { user: UserNode }) => {
   const [updateFriendshipStatus, { loading: updatingStatus }] = useMutation(UPDATE_FRIENDSHIP_STATUS);
   const [removeFriend, { loading: removingFriend }] = useMutation(REMOVE_FRIEND);
   
+  // Dropdown open states
+  const [friendRequestDropdownOpen, setFriendRequestDropdownOpen] = useState(false);
+  const [friendsDropdownOpen, setFriendsDropdownOpen] = useState(false);
+  
   const fullName = [user.firstName, user.lastName].filter(Boolean).join(' ');
   const displayName = fullName || user.username;
   const gameLogCount = user.gameLogs?.length || 0;
@@ -140,6 +144,7 @@ const UserCard = ({ user }: { user: UserNode }) => {
       
       if (data?.acceptFriendRequest?.friendship) {
         toast.success('Friend request accepted!');
+        setFriendRequestDropdownOpen(false); // Close dropdown
       } else if (data?.acceptFriendRequest?.errors?.[0]) {
         toast.error(data.acceptFriendRequest.errors[0].message);
       }
@@ -163,6 +168,7 @@ const UserCard = ({ user }: { user: UserNode }) => {
       
       if (data?.rejectFriendRequest?.friendship) {
         toast.success('Friend request rejected');
+        setFriendRequestDropdownOpen(false); // Close dropdown
       } else if (data?.rejectFriendRequest?.errors?.[0]) {
         toast.error(data.rejectFriendRequest.errors[0].message);
       }
@@ -191,6 +197,9 @@ const UserCard = ({ user }: { user: UserNode }) => {
       
       if (data?.updateFriendshipStatus?.friendship) {
         toast.success('User blocked successfully');
+        // Close whichever dropdown is open
+        setFriendRequestDropdownOpen(false);
+        setFriendsDropdownOpen(false);
       } else if (data?.updateFriendshipStatus?.errors?.[0]) {
         toast.error(data.updateFriendshipStatus.errors[0].message);
       }
@@ -214,6 +223,7 @@ const UserCard = ({ user }: { user: UserNode }) => {
       
       if (data?.removeFriend?.success) {
         toast.success('Friend removed successfully');
+        setFriendsDropdownOpen(false); // Close dropdown
       } else if (data?.removeFriend?.errors?.[0]) {
         toast.error(data.removeFriend.errors[0].message);
       }
@@ -231,7 +241,7 @@ const UserCard = ({ user }: { user: UserNode }) => {
     switch (friendshipInfo.status) {
       case FRIENDSHIP_STATUS.ACCEPTED:
         return (
-          <DropdownMenu>
+          <DropdownMenu open={friendsDropdownOpen} onOpenChange={setFriendsDropdownOpen}>
             <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
               <Button 
                 variant="secondary" 
@@ -269,7 +279,7 @@ const UserCard = ({ user }: { user: UserNode }) => {
         // If current user received the request, show accept/reject options
         if (friendshipInfo.isReceivedRequest) {
           return (
-            <DropdownMenu>
+            <DropdownMenu open={friendRequestDropdownOpen} onOpenChange={setFriendRequestDropdownOpen}>
               <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
                 <Button 
                   variant="outline" 
@@ -295,7 +305,7 @@ const UserCard = ({ user }: { user: UserNode }) => {
                 <DropdownMenuItem 
                   onClick={handleRejectRequest}
                   disabled={isLoading}
-                  className="gap-2 text-gray-600 focus:text-gray-600"
+                  className="gap-2 text-red-600 focus:text-red-600"
                 >
                   <X className="h-3.5 w-3.5" />
                   Reject Request
