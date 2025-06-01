@@ -168,7 +168,7 @@ const WatchInfoItem = ({
         {value}
       </Badge>
     ) : (
-      <p className="font-medium">{value}</p>
+      <div className="font-medium">{value}</div>
     )}
   </div>
 );

@@ -192,8 +192,8 @@ export interface SearchGame {
   arena: {
     name: string;
     city: string;
-    state: string;
-    country: string;
+    state?: string;
+    country?: string;
   };
   league: string;
   season: number;
