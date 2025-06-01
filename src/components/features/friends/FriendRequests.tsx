@@ -1,7 +1,11 @@
 import { useQuery, useMutation } from '@apollo/client';
+import { useUser } from '@clerk/nextjs';
+import { formatDistanceToNow } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Check, X, UserPlus, Users, Clock, ChevronDown } from 'lucide-react';
 import Image from 'next/image';
-import React, { useState } from 'react';
+import Link from 'next/link';
+import React, { useState, useMemo } from 'react';
 import { toast } from 'react-hot-toast';
 
 import { useNotifications } from '@/contexts/NotificationContext';
@@ -290,29 +294,37 @@ export const FriendRequests: React.FC = () => {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
-                  className="p-4 bg-white rounded-lg shadow hover:shadow-md transition-shadow"
+                  className="bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow"
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                      <Image
-                        src={
-                          showSentRequests
-                            ? request.receiver.imageUrl || '/default-avatar.png'
-                            : request.sender.imageUrl || '/default-avatar.png'
-                        }
-                        alt={
-                          showSentRequests
-                            ? request.receiver.username || 'User'
-                            : request.sender.username || 'User'
-                        }
-                        width={32}
-                        height={32}
-                        className="w-8 h-8 rounded-full"
-                      />
+                      <Link
+                        href={`/protected/user/${showSentRequests ? request.receiver.id : request.sender.id}`}
+                        className="transition-opacity hover:opacity-80"
+                      >
+                        <Image
+                          src={
+                            showSentRequests
+                              ? request.receiver.imageUrl || '/default-avatar.png'
+                              : request.sender.imageUrl || '/default-avatar.png'
+                          }
+                          alt={
+                            showSentRequests
+                              ? request.receiver.username || 'User'
+                              : request.sender.username || 'User'
+                          }
+                          width={32}
+                          height={32}
+                          className="w-8 h-8 rounded-full cursor-pointer"
+                        />
+                      </Link>
                       <div>
-                        <h3 className="font-semibold">
+                        <Link
+                          href={`/protected/user/${showSentRequests ? request.receiver.id : request.sender.id}`}
+                          className="font-semibold hover:underline cursor-pointer"
+                        >
                           {showSentRequests ? request.receiver.username : request.sender.username}
-                        </h3>
+                        </Link>
                         <p className="text-sm text-gray-500">
                           {showSentRequests ? 'Sent' : 'Received'}{' '}
                           {new Date(request.createdAt).toLocaleDateString()}

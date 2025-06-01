@@ -22,7 +22,7 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
   const [targetUser, setTargetUser] = useState<DbCustomUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [dbUserId, setDbUserId] = useState<string | null>(null);
-  const [page, setPage] = useState(1);
+  const [cursor, setCursor] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -87,18 +87,27 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
   }, [targetUserId, currentUser]);
 
   const { data: userData, loading: userLoading } = useQuery<{ user: DbCustomUser }>(GET_USER, {
-    variables: { userId: dbUserId },
+    variables: { id: dbUserId },
     skip: !dbUserId,
   });
 
-  const { data: gameLogsData, loading: gameLogsLoading } = useQuery<{
-    user: { game_logs: SharedGameLog[] };
+  const { data: gameLogsData, loading: gameLogsLoading, fetchMore } = useQuery<{
+    gameLogs: { 
+      edges: Array<{ node: SharedGameLog; cursor: string }>; 
+      totalCount: number;
+      pageInfo: {
+        hasNextPage: boolean;
+        hasPreviousPage: boolean;
+        endCursor: string | null;
+        startCursor: string | null;
+      };
+    };
   }>(GET_GAME_LOGS, {
     variables: {
-      userId: dbUserId,
-      pagination: {
-        page,
-        limit: ITEMS_PER_PAGE,
+      first: ITEMS_PER_PAGE,
+      after: cursor,
+      filters: {
+        userId: dbUserId,
       },
     },
     skip: !dbUserId,
@@ -118,9 +127,10 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
     );
   }
 
-  const userProfile = userData?.user as DbCustomUser;
-  const gameLogs = gameLogsData?.user?.game_logs || [];
-  const totalPages = Math.ceil((userProfile?.game_logs?.length || 0) / ITEMS_PER_PAGE);
+  const userProfile = userData?.user || targetUser;
+  const gameLogs = gameLogsData?.gameLogs?.edges?.map(edge => edge.node) || [];
+  const hasNextPage = gameLogsData?.gameLogs?.pageInfo?.hasNextPage || false;
+  const hasPreviousPage = gameLogsData?.gameLogs?.pageInfo?.hasPreviousPage || false;
 
   const calculateSecurityScore = (user: DbCustomUser) => {
     let score = 0;
@@ -146,11 +156,11 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
             <div className="flex items-center space-x-4">
               <Avatar className="h-16 w-16">
                 <AvatarImage src={userProfile?.imageUrl ?? undefined} />
-                <AvatarFallback>{userProfile?.username?.charAt(0).toUpperCase()}</AvatarFallback>
+                <AvatarFallback>{userProfile?.username?.charAt(0).toUpperCase() || 'U'}</AvatarFallback>
               </Avatar>
               <div>
-                <CardTitle>{userProfile?.username}</CardTitle>
-                <p className="text-sm text-muted-foreground">{userProfile?.emailAddress}</p>
+                <CardTitle>{userProfile?.username || 'Unknown User'}</CardTitle>
+                <p className="text-sm text-muted-foreground">{userProfile?.emailAddress || ''}</p>
               </div>
             </div>
           </CardHeader>
@@ -159,13 +169,13 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
               <div>
                 <h3 className="text-sm font-medium">Member Since</h3>
                 <p className="text-sm text-muted-foreground">
-                  {new Date(userProfile?.createdAt || '').toLocaleDateString()}
+                  {userProfile?.createdAt ? new Date(userProfile.createdAt).toLocaleDateString() : 'N/A'}
                 </p>
               </div>
               <div>
                 <h3 className="text-sm font-medium">Game Logs</h3>
                 <p className="text-sm text-muted-foreground">
-                  {userProfile?.game_logs?.length || 0} logs
+                  {gameLogsData?.gameLogs?.totalCount || 0} logs
                 </p>
               </div>
               <div>
@@ -182,7 +192,7 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
         <div className="space-y-6">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-bold">Game Logs</h2>
-            <CreateGameLogModal onSuccess={() => setPage(1)} />
+            <CreateGameLogModal onSuccess={() => setCursor(null)} />
           </div>
 
           {gameLogs.length === 0 ? (
@@ -233,19 +243,26 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
               ))}
 
               {/* Pagination */}
-              {totalPages > 1 && (
+              {(hasNextPage || hasPreviousPage) && (
                 <div className="flex justify-center space-x-2">
                   <Button
                     className={cn(buttonVariants({ variant: 'outline' }))}
-                    onClick={() => setPage(p => Math.max(1, p - 1))}
-                    disabled={page === 1}
+                    onClick={() => {
+                      // For simplicity, we'll reset to first page for previous
+                      setCursor(null);
+                    }}
+                    disabled={!hasPreviousPage}
                   >
                     Previous
                   </Button>
                   <Button
                     className={cn(buttonVariants({ variant: 'outline' }))}
-                    onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                    disabled={page === totalPages}
+                    onClick={() => {
+                      if (gameLogsData?.gameLogs?.pageInfo?.endCursor) {
+                        setCursor(gameLogsData.gameLogs.pageInfo.endCursor);
+                      }
+                    }}
+                    disabled={!hasNextPage}
                   >
                     Next
                   </Button>

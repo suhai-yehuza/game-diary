@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useUser } from '@clerk/nextjs';
 import { useMutation } from '@apollo/client';
 import { formatDistanceToNow } from 'date-fns';
+import Link from 'next/link';
 import { 
   MoreVertical, 
   Pencil, 
@@ -113,14 +114,39 @@ export function CommentItem({
     )}>
       <div className="flex items-start justify-between mb-2">
         <div className="flex items-center gap-2">
-          <Avatar className="h-8 w-8">
-            <AvatarImage src={comment.user?.imageUrl ?? undefined} />
-            <AvatarFallback>
-              {comment.user?.username?.[0]?.toUpperCase() ?? 'U'}
-            </AvatarFallback>
-          </Avatar>
+          {comment.user?.id ? (
+            <Link 
+              href={`/protected/user/${comment.user.id}`}
+              className="transition-opacity hover:opacity-80"
+            >
+              <Avatar className="h-8 w-8 cursor-pointer">
+                <AvatarImage src={comment.user?.imageUrl ?? undefined} />
+                <AvatarFallback>
+                  {comment.user?.username?.[0]?.toUpperCase() ?? 'U'}
+                </AvatarFallback>
+              </Avatar>
+            </Link>
+          ) : (
+            <Avatar className="h-8 w-8">
+              <AvatarImage src={comment.user?.imageUrl ?? undefined} />
+              <AvatarFallback>
+                {comment.user?.username?.[0]?.toUpperCase() ?? 'U'}
+              </AvatarFallback>
+            </Avatar>
+          )}
           <div>
-            <div className="font-semibold text-sm">{comment.user?.username ?? 'Unknown User'}</div>
+            {comment.user?.id ? (
+              <Link 
+                href={`/protected/user/${comment.user.id}`}
+                className="font-semibold text-sm hover:underline cursor-pointer"
+              >
+                {comment.user?.username ?? 'Unknown User'}
+              </Link>
+            ) : (
+              <div className="font-semibold text-sm">
+                {comment.user?.username ?? 'Unknown User'}
+              </div>
+            )}
             <div className="text-xs text-gray-500">
               {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true })}
               {comment.depth > 0 && (
