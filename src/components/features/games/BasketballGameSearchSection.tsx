@@ -115,9 +115,9 @@ const getStatusBadge = (status: string, isScheduled?: boolean, isFinished?: bool
   
   if (statusLower.includes('live') || statusLower === 'in play') {
     return (
-      <Badge className="bg-red-500 text-white border-red-500">
-        <div className="flex items-center gap-1">
-          <div className="h-2 w-2 bg-white rounded-full animate-pulse" />
+      <Badge className="bg-red-500 text-white border-red-500 text-xs py-0.5 px-1.5">
+        <div className="flex items-center gap-0.5">
+          <div className="h-1.5 w-1.5 bg-white rounded-full animate-pulse" />
           LIVE
         </div>
       </Badge>
@@ -131,7 +131,7 @@ const getStatusBadge = (status: string, isScheduled?: boolean, isFinished?: bool
   
   // For scheduled games, show the time
   return (
-    <Badge variant="outline">
+    <Badge variant="outline" className="text-xs py-0.5 px-1.5">
       {format(new Date(status), 'h:mm a')}
     </Badge>
   );
@@ -435,9 +435,9 @@ export function BasketballGameSearchSection() {
                       {/* Scheduled Badge */}
                       {isScheduled && (
                         <Badge 
-                          className="bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/20 gap-1 shrink-0"
+                          className="bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/20 gap-0.5 shrink-0 text-xs py-0.5 px-1.5"
                         >
-                          <Calendar className="h-3 w-3" />
+                          <Calendar className="h-2.5 w-2.5" />
                           Scheduled
                         </Badge>
                       )}
@@ -445,7 +445,7 @@ export function BasketballGameSearchSection() {
                       {isFinished && (
                         <Badge 
                           variant="secondary"
-                          className="shrink-0"
+                          className="shrink-0 text-xs py-0.5 px-1.5"
                         >
                           Final
                         </Badge>
@@ -536,7 +536,7 @@ export function BasketballGameSearchSection() {
                     {/* Live Game Clock */}
                     {isLive && game.status.clock && (
                       <div className="flex items-center justify-center py-2">
-                        <Badge variant="destructive" className="animate-pulse">
+                        <Badge variant="destructive" className="animate-pulse text-xs py-0.5 px-1.5">
                           {game.status.clock} - Q{game.periods?.current || 1}
                         </Badge>
                       </div>

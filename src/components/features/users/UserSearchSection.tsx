@@ -1,11 +1,13 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { useQuery } from '@apollo/client';
-import { Search, Filter, Users, Calendar, ChevronLeft, ChevronRight, ChevronDown } from 'lucide-react';
+import { useQuery, useMutation } from '@apollo/client';
+import { Search, Filter, Users, Calendar, ChevronLeft, ChevronRight, ChevronDown, UserPlus, UserCheck, Clock as ClockIcon } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import Link from 'next/link';
 import { useDebounce } from 'use-debounce';
+import { useUser } from '@clerk/nextjs';
+import { toast } from 'react-hot-toast';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -16,8 +18,10 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { SEARCH_USERS } from '@/lib/graphql/queries';
+import { SEND_FRIEND_REQUEST } from '@/lib/graphql/mutations';
 import { cn } from '@/lib/utils';
 import { formatCount } from '@/lib/utils/index.format';
+import { FRIENDSHIP_STATUS } from '@/lib/types/config.types';
 
 interface UserSearchSectionProps {
   className?: string;
@@ -26,20 +30,131 @@ interface UserSearchSectionProps {
 interface UserNode {
   id: string;
   username: string;
-  firstName: string | null;
-  lastName: string | null;
+  firstName?: string | null;
+  lastName?: string | null;
   emailAddress: string;
-  imageUrl: string | null;
+  imageUrl?: string | null;
   createdAt: string;
-  gameLogs: Array<{
+  gameLogs?: { id: string }[];
+  initiatedFriendships?: {
     id: string;
-  }>;
+    status: string;
+    recipient: {
+      id: string;
+    };
+  }[];
+  friendships?: {
+    id: string;
+    status: string;
+    initiator: {
+      id: string;
+    };
+  }[];
 }
 
 const UserCard = ({ user }: { user: UserNode }) => {
+  const { user: currentUser } = useUser();
+  const [sendFriendRequest, { loading: sendingRequest }] = useMutation(SEND_FRIEND_REQUEST);
+  
   const fullName = [user.firstName, user.lastName].filter(Boolean).join(' ');
   const displayName = fullName || user.username;
   const gameLogCount = user.gameLogs?.length || 0;
+  
+  // Don't show friendship status for own profile
+  const isOwnProfile = currentUser?.id === user.id;
+  
+  // Determine friendship status
+  const getFriendshipStatus = () => {
+    if (isOwnProfile || !currentUser) return null;
+    
+    // Check if current user initiated a friendship with this user
+    const initiatedFriendship = user.friendships?.find(
+      f => f.initiator.id === currentUser.id
+    );
+    
+    // Check if this user initiated a friendship with current user
+    const receivedFriendship = user.initiatedFriendships?.find(
+      f => f.recipient.id === currentUser.id
+    );
+    
+    const friendship = initiatedFriendship || receivedFriendship;
+    
+    if (friendship) {
+      return {
+        status: friendship.status,
+        friendshipId: friendship.id,
+        isInitiator: !!receivedFriendship
+      };
+    }
+    
+    return { status: FRIENDSHIP_STATUS.NONE, friendshipId: null, isInitiator: false };
+  };
+  
+  const friendshipInfo = getFriendshipStatus();
+  
+  const handleSendFriendRequest = async (e: React.MouseEvent) => {
+    e.preventDefault(); // Prevent navigation
+    e.stopPropagation();
+    
+    try {
+      const { data } = await sendFriendRequest({
+        variables: { userId: user.id },
+        refetchQueries: ['SearchUsers'],
+      });
+      
+      if (data?.sendFriendRequest?.friendship) {
+        toast.success('Friend request sent!');
+      } else if (data?.sendFriendRequest?.errors?.[0]) {
+        toast.error(data.sendFriendRequest.errors[0].message);
+      }
+    } catch (error) {
+      console.error('Error sending friend request:', error);
+      toast.error('Failed to send friend request');
+    }
+  };
+  
+  const renderFriendshipStatus = () => {
+    if (!friendshipInfo || isOwnProfile) return null;
+    
+    switch (friendshipInfo.status) {
+      case FRIENDSHIP_STATUS.ACCEPTED:
+        return (
+          <Badge 
+            variant="secondary" 
+            className="gap-0.5 bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/20 text-xs py-0.5 px-1.5"
+          >
+            <UserCheck className="h-2.5 w-2.5" />
+            Friends
+          </Badge>
+        );
+      case FRIENDSHIP_STATUS.PENDING:
+        return (
+          <Badge 
+            variant="outline" 
+            className="gap-0.5 bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20 text-xs py-0.5 px-1.5"
+          >
+            <ClockIcon className="h-2.5 w-2.5" />
+            {friendshipInfo.isInitiator ? 'Request Sent' : 'Pending'}
+          </Badge>
+        );
+      case FRIENDSHIP_STATUS.BLOCKED:
+        return null; // Don't show blocked status
+      case FRIENDSHIP_STATUS.NONE:
+      default:
+        return (
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={handleSendFriendRequest}
+            disabled={sendingRequest}
+            className="gap-0.5 border-blue-500/20 text-blue-700 dark:text-blue-400 hover:bg-blue-500/10 text-xs h-7 px-2"
+          >
+            <UserPlus className="h-2.5 w-2.5" />
+            Add Friend
+          </Button>
+        );
+    }
+  };
   
   return (
     <Link href={`/protected/user/${user.id}`}>
@@ -54,20 +169,23 @@ const UserCard = ({ user }: { user: UserNode }) => {
             </Avatar>
             
             <div className="flex-1 min-w-0">
-              <div className="flex items-start justify-between mb-2">
-                <div>
-                  <h3 className="font-semibold text-lg group-hover:text-primary transition-colors">
+              <div className="flex items-start justify-between mb-2 gap-4">
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-semibold text-lg group-hover:text-primary transition-colors truncate pr-4">
                     {displayName}
                   </h3>
                   {fullName && (
                     <p className="text-sm text-muted-foreground">@{user.username}</p>
                   )}
                 </div>
-                {gameLogCount > 0 && (
-                  <Badge variant="secondary" className="ml-2">
-                    {gameLogCount} logs
-                  </Badge>
-                )}
+                <div className="flex items-center gap-2 ml-6 flex-shrink-0 -mt-1">
+                  {gameLogCount > 0 && (
+                    <Badge variant="secondary" className="shrink-0 text-xs py-0.5 px-1.5">
+                      {gameLogCount} logs
+                    </Badge>
+                  )}
+                  {renderFriendshipStatus()}
+                </div>
               </div>
               
               <div className="flex items-center gap-4 text-sm text-muted-foreground">
