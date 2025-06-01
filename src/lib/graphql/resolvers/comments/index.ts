@@ -2,9 +2,34 @@ import { and, eq, sql } from 'drizzle-orm';
 
 import * as schema from '@/lib/db/schema';
 import { createConnection, parseCursor } from '@/lib/graphql/utils/pagination';
+import { API_CONFIG } from '@/lib/config/api.config';
 import type { Context } from '@/lib/types/context.types';
 import type { PaginationArgs } from '../common/types';
 import { handleResolverError } from '../common/utils';
+
+// Helper function to calculate comment depth
+async function getCommentDepth(
+  commentId: string,
+  db: any,
+  depth = 0
+): Promise<number> {
+  if (depth >= API_CONFIG.pagination.MAX_CHILD_COMMENT_DEPTH) {
+    return depth;
+  }
+
+  const comment = await db
+    .select()
+    .from(schema.comments)
+    .where(eq(schema.comments.id, commentId))
+    .limit(1)
+    .then((rows: any[]) => rows[0]);
+
+  if (!comment || comment.parentType !== 'comment') {
+    return depth;
+  }
+
+  return getCommentDepth(comment.parentId, db, depth + 1);
+}
 
 export const comments = async (
   _parent: unknown,
@@ -114,6 +139,92 @@ export const Comment = {
     } catch (error) {
       console.error('Error fetching reactions for comment:', error);
       return [];
+    }
+  },
+  childComments: async (parent: any, args: any, { db }: Context) => {
+    try {
+      const { first = 10, after } = args;
+      
+      // Check current depth
+      const currentDepth = await getCommentDepth(parent.id, db);
+      if (currentDepth >= API_CONFIG.pagination.MAX_CHILD_COMMENT_DEPTH) {
+        return {
+          edges: [],
+          pageInfo: {
+            hasNextPage: false,
+            hasPreviousPage: false,
+            startCursor: null,
+            endCursor: null,
+          },
+          totalCount: 0,
+        };
+      }
+
+      // Get child comments
+      const conditions = [
+        eq(schema.comments.parentId, parent.id),
+        eq(schema.comments.parentType, 'comment')
+      ];
+
+      // Get total count
+      const [countResult] = await db
+        .select({ count: sql<number>`cast(count(*) as int)` })
+        .from(schema.comments)
+        .where(and(...conditions));
+      
+      const totalCount = countResult?.count || 0;
+
+      // Calculate offset from cursor
+      const offset = after ? parseCursor(after) : 0;
+
+      // Execute query
+      const items = await db
+        .select()
+        .from(schema.comments)
+        .where(and(...conditions))
+        .orderBy(schema.comments.createdAt)
+        .offset(offset)
+        .limit(first);
+
+      // Map results
+      const mappedComments = items.map(comment => ({
+        id: comment.id,
+        userId: comment.userId,
+        parentId: comment.parentId,
+        parentType: comment.parentType,
+        content: comment.content,
+        createdAt: comment.createdAt,
+        updatedAt: comment.updatedAt,
+        deletedAt: comment.deletedAt,
+      }));
+
+      return createConnection(mappedComments, totalCount, { first, after });
+    } catch (error) {
+      console.error('Error fetching child comments:', error);
+      return {
+        edges: [],
+        pageInfo: {
+          hasNextPage: false,
+          hasPreviousPage: false,
+          startCursor: null,
+          endCursor: null,
+        },
+        totalCount: 0,
+      };
+    }
+  },
+  depth: async (parent: any, _args: any, { db }: Context) => {
+    try {
+      // If parent is a game_log or the root, depth is 0
+      if (parent.parentType !== 'comment') {
+        return 0;
+      }
+      
+      // Calculate depth by traversing up the comment tree
+      return await getCommentDepth(parent.parentId, db, 1);
+    } catch (error) {
+      console.error('Error calculating comment depth:', error);
+      return 0;
     }
   },
 }; 

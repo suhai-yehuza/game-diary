@@ -16,6 +16,7 @@ import {
 import { transformUser } from '@/lib/graphql/resolvers/transformers';
 import { mapUserData } from '@/lib/graphql/resolvers/users/index';
 import { getEmojiKey } from '@/lib/graphql/resolvers/common/utils';
+import { API_CONFIG } from '@/lib/config/api.config';
 import {
   WatchedSettingValue,
   REACTION_EMOJIS,
@@ -437,6 +438,38 @@ export const createComment = async (
     }
     
     const validatedInput = validateInput(createCommentSchema, input);
+    
+    // If this is a reply to another comment, check the depth
+    if (validatedInput.parentType === 'comment') {
+      // Helper function to calculate depth
+      const getDepth = async (commentId: string, currentDepth = 0): Promise<number> => {
+        if (currentDepth >= API_CONFIG.pagination.MAX_CHILD_COMMENT_DEPTH) {
+          return currentDepth;
+        }
+        
+        const parentComments = await db
+          .select()
+          .from(schema.comments)
+          .where(eq(schema.comments.id, commentId))
+          .limit(1);
+        const parentComment = parentComments[0];
+        
+        if (!parentComment || parentComment.parentType !== 'comment') {
+          return currentDepth;
+        }
+        
+        return getDepth(parentComment.parentId, currentDepth + 1);
+      };
+      
+      const parentDepth = await getDepth(validatedInput.parentId);
+      
+      if (parentDepth >= API_CONFIG.pagination.MAX_CHILD_COMMENT_DEPTH) {
+        throw new ValidationError(
+          `Comments can only be nested up to ${API_CONFIG.pagination.MAX_CHILD_COMMENT_DEPTH} levels deep`
+        );
+      }
+    }
+    
     const [comment] = await db
       .insert(schema.comments)
       .values({

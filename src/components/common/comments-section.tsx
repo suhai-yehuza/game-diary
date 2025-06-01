@@ -1,10 +1,14 @@
-import { useMutation, useQuery } from '@apollo/client';
 import { SignInButton, useUser } from '@clerk/nextjs';
-import { formatDistanceToNow } from 'date-fns';
-import { MessageSquare, Send, MoreVertical, Pencil, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
+import { useMutation, useQuery } from '@apollo/client';
+import { 
+  MessageSquare, 
+  Pencil, 
+  Send,
+  ChevronDown,
+  ChevronUp
+} from 'lucide-react';
 import React, { useState, useRef, useEffect } from 'react';
 
-import { ReactionDisplay } from '@/components/common/reaction-display';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -15,22 +19,16 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/components/ui/use-toast';
 import { CREATE_COMMENT, DELETE_COMMENT, UPDATE_COMMENT } from '@/lib/graphql/mutations';
 import { GET_COMMENTS_WITH_FILTERS } from '@/lib/graphql/queries';
 import { EditingComment, CommentsSectionProps } from '@/lib/types/comment.types';
-import { Comment } from '@/lib/types/generated/graphql';
+import type { Comment } from '@/lib/types/generated/graphql';
 import { cn } from '@/lib/utils';
+import { CommentItem } from './comment-item';
 
 export function CommentsSection({ parentId, parentType, initialExpanded }: CommentsSectionProps) {
   const { user } = useUser();
@@ -522,77 +520,39 @@ export function CommentsSection({ parentId, parentType, initialExpanded }: Comme
           )}
 
           <div className="space-y-4">
-            {data?.comments?.edges?.map(({ node: comment }: { node: Comment }) => (
-              <div key={comment.id} className="border rounded-lg p-4">
-                <div className="flex items-start justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <Avatar>
-                      <AvatarImage src={comment.user.imageUrl ?? undefined} />
-                      <AvatarFallback>
-                        {comment.user.username?.[0]?.toUpperCase() ?? 'U'}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <div className="font-semibold">{comment.user.username}</div>
-                      <div className="text-sm text-gray-500">
-                        {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true })}
-                      </div>
-                    </div>
-                  </div>
-                  {user?.id === comment.user.id && (
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent>
-                        <DropdownMenuItem
-                          onClick={() =>
-                            setEditingComment({ id: comment.id, content: comment.content })
-                          }
-                        >
-                          <Pencil className="h-4 w-4 mr-2" />
-                          Edit
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => setDeleteCommentId(comment.id)}>
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  )}
-                </div>
-
-                {editingComment?.id === comment.id ? (
-                  <form onSubmit={handleUpdateComment} className="mt-2">
-                    <Textarea
-                      value={editingComment.content}
-                      onChange={e =>
-                        setEditingComment({ ...editingComment, content: e.target.value })
-                      }
-                      className="mb-2"
-                    />
-                    <div className="flex gap-2">
-                      <Button type="submit">Save</Button>
-                      <Button type="button" variant="outline" onClick={() => setEditingComment(null)}>
-                        Cancel
-                      </Button>
-                    </div>
-                  </form>
-                ) : (
-                  <p className="mt-2">{comment.content}</p>
-                )}
-
-                <div className="flex items-center gap-2 mt-2">
-                  <ReactionDisplay 
-                    targetId={comment.id} 
-                    targetType="comment" 
-                    reactions={comment.reactions} 
-                  />
-                </div>
-              </div>
+            {data?.comments?.edges?.filter(({ node }: { node: any }) => node.parentType !== 'comment').map(({ node: comment }: { node: any }) => (
+              <CommentItem
+                key={comment.id}
+                comment={{
+                  ...comment,
+                  depth: comment.depth || 0,
+                  childComments: comment.childComments
+                }}
+                onEdit={(id, content) => setEditingComment({ id, content })}
+                onDelete={(id) => setDeleteCommentId(id)}
+                refetchComments={refetch}
+              />
             ))}
+            
+            {/* Inline edit form for editing comments */}
+            {editingComment && (
+              <form onSubmit={handleUpdateComment} className="border rounded-lg p-4 bg-muted/50">
+                <div className="text-sm font-medium mb-2">Edit Comment</div>
+                <Textarea
+                  value={editingComment.content}
+                  onChange={e =>
+                    setEditingComment({ ...editingComment, content: e.target.value })
+                  }
+                  className="mb-2"
+                />
+                <div className="flex gap-2">
+                  <Button type="submit" size="sm">Save</Button>
+                  <Button type="button" variant="outline" size="sm" onClick={() => setEditingComment(null)}>
+                    Cancel
+                  </Button>
+                </div>
+              </form>
+            )}
             
             {/* Infinite scroll trigger and loading indicator */}
             {data?.comments?.pageInfo?.hasNextPage && (

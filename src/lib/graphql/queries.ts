@@ -306,6 +306,7 @@ export const GET_COMMENTS_WITH_FILTERS = gql`
           createdAt
           updatedAt
           deletedAt
+          depth
           user {
             id
             username
@@ -326,6 +327,80 @@ export const GET_COMMENTS_WITH_FILTERS = gql`
               emailAddress
               imageUrl
             }
+          }
+          childComments(first: 10) {
+            edges {
+              node {
+                id
+                userId
+                parentId
+                parentType
+                content
+                createdAt
+                updatedAt
+                deletedAt
+                depth
+                user {
+                  id
+                  username
+                  emailAddress
+                  imageUrl
+                }
+                reactions {
+                  id
+                  emoji
+                  userId
+                  targetId
+                  targetType
+                  createdAt
+                  updatedAt
+                  user {
+                    id
+                    username
+                    emailAddress
+                    imageUrl
+                  }
+                }
+                childComments(first: 10) {
+                  edges {
+                    node {
+                      id
+                      userId
+                      parentId
+                      parentType
+                      content
+                      createdAt
+                      updatedAt
+                      deletedAt
+                      depth
+                      user {
+                        id
+                        username
+                        emailAddress
+                        imageUrl
+                      }
+                      reactions {
+                        id
+                        emoji
+                        userId
+                        targetId
+                        targetType
+                        createdAt
+                        updatedAt
+                        user {
+                          id
+                          username
+                          emailAddress
+                          imageUrl
+                        }
+                      }
+                    }
+                  }
+                  totalCount
+                }
+              }
+            }
+            totalCount
           }
         }
       }

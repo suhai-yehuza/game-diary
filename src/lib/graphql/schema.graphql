@@ -54,6 +54,8 @@ type Comment {
   updatedAt: DateTime!
   user: UserSummary!
   userId: ID!
+  childComments(first: Int, after: String): CommentConnection!
+  depth: Int!
 }
 
 type CommentConnection {
