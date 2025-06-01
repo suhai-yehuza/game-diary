@@ -15,6 +15,32 @@ import { fetchNbaGameById } from '@/lib/external-apis';
 import { GET_TEAM_STATS } from '@/lib/graphql/queries';
 import type { Game, GameStatistics } from '@/lib/types/game.types';
 
+// Helper function to validate state values
+const isValidState = (state: string | undefined | null): boolean => {
+  if (!state) return false;
+  
+  // Common invalid values
+  if (state.length === 1 || state === 'O' || state === '0') return false;
+  
+  // Valid US state codes (2 letters) or reasonable length for full state names
+  if (state.length === 2 || (state.length > 3 && state.length < 20)) {
+    return /^[A-Za-z\s]+$/.test(state);
+  }
+  
+  return false;
+};
+
+// Helper function to format arena location
+const formatArenaLocation = (arena: { name?: string | null; city?: string | null; state?: string | null; country?: string | null }): string => {
+  const parts = [];
+  
+  if (arena.city) parts.push(arena.city);
+  if (arena.state && isValidState(arena.state)) parts.push(arena.state);
+  if (arena.country) parts.push(arena.country);
+  
+  return parts.join(', ');
+};
+
 export default function GamePage() {
   const params = useParams();
   const gameId = params.id as string;
@@ -248,7 +274,7 @@ export default function GamePage() {
               <div className="space-y-2">
                 <p className="font-medium">{gameData?.arena.name}</p>
                 <p className="text-muted-foreground">
-                  {gameData?.arena.city}, {gameData?.arena.state}, {gameData?.arena.country}
+                  {formatArenaLocation(gameData?.arena)}
                 </p>
               </div>
             </div>

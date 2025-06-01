@@ -11,6 +11,35 @@ import { filterGames, processGameData } from '@/app/search/utils/game-search';
 import { GET_GAMES } from '@/lib/graphql/queries';
 import { useDebounce } from '@/lib/hooks/use-debounce';
 import { SearchGame } from '@/lib/types/game.types';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+
+// Helper function to validate state values
+const isValidState = (state: string | undefined | null): boolean => {
+  if (!state) return false;
+  
+  // Common invalid values
+  if (state.length === 1 || state === 'O' || state === '0') return false;
+  
+  // Valid US state codes (2 letters) or reasonable length for full state names
+  if (state.length === 2 || (state.length > 3 && state.length < 20)) {
+    return /^[A-Za-z\s]+$/.test(state);
+  }
+  
+  return false;
+};
+
+// Helper function to format arena location
+const formatArenaLocation = (arena: { name?: string; city?: string; state?: string }): string => {
+  const parts = [];
+  
+  if (arena.name) parts.push(arena.name);
+  if (arena.city) parts.push(arena.city);
+  if (arena.state && isValidState(arena.state)) parts.push(arena.state);
+  
+  return parts.join(', ');
+};
 
 function GameCard({ game }: { game: SearchGame }) {
   return (
@@ -94,7 +123,7 @@ function GameCard({ game }: { game: SearchGame }) {
               <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
               <circle cx="12" cy="10" r="3" />
             </svg>
-            {game.arena.name}, {game.arena.city}, {game.arena.state}
+            {formatArenaLocation(game.arena)}
           </div>
         </div>
       </div>
