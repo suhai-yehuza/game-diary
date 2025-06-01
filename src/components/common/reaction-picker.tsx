@@ -1,7 +1,7 @@
 import { useMutation } from '@apollo/client';
 import { useUser } from '@clerk/nextjs';
 import { Heart, ThumbsUp, Laugh, Flame, Star, MoreHorizontal } from 'lucide-react';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -35,6 +35,7 @@ export function ReactionPicker({
   const [recentlyUsed, setRecentlyUsed] = useState<ReactionEmojiType[]>([]);
   const { user } = useUser();
   const [createReaction] = useMutation(CREATE_REACTION);
+  const hideTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Load recently used reactions from localStorage
   useEffect(() => {
@@ -45,6 +46,31 @@ export function ReactionPicker({
       }
     }
   }, [user]);
+
+  // Clear timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (hideTimeoutRef.current) {
+        clearTimeout(hideTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const showReactions = () => {
+    if (hideTimeoutRef.current) {
+      clearTimeout(hideTimeoutRef.current);
+      hideTimeoutRef.current = null;
+    }
+    setShowQuickReactions(true);
+  };
+
+  const hideReactions = () => {
+    hideTimeoutRef.current = setTimeout(() => {
+      if (!isOpen) {
+        setShowQuickReactions(false);
+      }
+    }, 300); // 300ms delay
+  };
 
   const handleReaction = async (emojiName: ReactionEmojiType, fromQuick = false) => {
     if (!user) return;
@@ -136,7 +162,7 @@ export function ReactionPicker({
       if (!fromQuick) {
         setIsOpen(false);
       }
-      setShowQuickReactions(false);
+      // Don't hide quick reactions immediately after selecting
       onReactionChanged?.();
     } catch (error) {
       console.error('Error toggling reaction:', error);
@@ -151,7 +177,11 @@ export function ReactionPicker({
   };
 
   return (
-    <div className="relative">
+    <div 
+      className="relative"
+      onMouseEnter={showReactions}
+      onMouseLeave={hideReactions}
+    >
       {/* Quick Reactions Bar */}
       <div className={cn(
         "absolute bottom-full left-0 mb-2 flex items-center gap-1 p-1.5",
@@ -299,12 +329,12 @@ export function ReactionPicker({
       <Button 
         variant="ghost" 
         size="sm"
-        onMouseEnter={() => setShowQuickReactions(true)}
-        onMouseLeave={() => !isOpen && setShowQuickReactions(false)}
+        onClick={() => setShowQuickReactions(!showQuickReactions)}
         className={cn(
           "h-8 px-3 gap-2 group relative",
           "hover:bg-accent/50 transition-all duration-200",
-          "border border-transparent hover:border-border/50"
+          "border border-transparent hover:border-border/50",
+          "cursor-pointer active:scale-95"
         )}
       >
         {/* Animated Icons */}
