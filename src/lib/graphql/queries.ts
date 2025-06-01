@@ -508,6 +508,28 @@ export const GET_GAME_LOGS = gql`
           game {
             id
             teams
+            scores
+            date {
+              start
+              end
+              duration
+            }
+            arena {
+              name
+              city
+              state
+              country
+            }
+            status {
+              clock
+              halftime
+              long
+              short
+            }
+            timesTied
+            leadChanges
+            league
+            season
           }
           comments(first: 20) {
             edges {
