@@ -56,15 +56,17 @@ const GET_USER_FRIENDSHIPS = gql`
         updatedAt
         initiator {
           id
-          username
           emailAddress
           imageUrl
+          firstName
+          lastName
         }
         recipient {
           id
-          username
           emailAddress
           imageUrl
+          firstName
+          lastName
         }
       }
       friendships {
@@ -74,15 +76,17 @@ const GET_USER_FRIENDSHIPS = gql`
         updatedAt
         initiator {
           id
-          username
           emailAddress
           imageUrl
+          firstName
+          lastName
         }
         recipient {
           id
-          username
           emailAddress
           imageUrl
+          firstName
+          lastName
         }
       }
     }
