@@ -7,8 +7,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { GET_LIVE_GAMES } from '@/lib/graphql/queries';
 import type { ExtendedGame } from '@/lib/types/game.types';
 
-import dummyLiveGames from './dummy-live-games.json';
-
 interface LiveGameEdge {
   node: ExtendedGame;
 }
@@ -32,21 +30,12 @@ export function LiveGamesSection() {
 
   if (loading) return <div className="text-center p-4">Loading live games...</div>;
   if (error) return <div className="text-red-500 p-4">Error: {error.message}</div>;
-  // if (!data?.liveGames?.edges)
-  //   return <div className="text-center p-4 text-muted-foreground">No data available</div>;
-  if (!data?.liveGames?.edges) {
-    <div className="text-center p-4 text-muted-foreground">No data available</div>;
+  if (!data?.liveGames?.edges || data.liveGames.edges.length === 0) {
+    return <div className="text-center p-4 text-muted-foreground">No live games at the moment</div>;
   }
 
   // Extract games from the connection type
-  let live_games = data?.liveGames.edges.map((edge: LiveGameEdge) => edge.node) || [];
-
-  if (live_games.length === 0) {
-    live_games = (dummyLiveGames as unknown as LiveGamesConnection).edges.map(
-      (edge: LiveGameEdge) => edge.node
-    );
-    // return <div className="text-center p-4 text-muted-foreground">No live games at the moment</div>;
-  }
+  const live_games = data.liveGames.edges.map((edge: LiveGameEdge) => edge.node);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
