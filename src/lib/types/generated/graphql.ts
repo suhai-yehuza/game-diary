@@ -290,15 +290,16 @@ export type Friendship = {
 };
 
 export type FriendshipStatus =
-  | 'ACCEPTED'
-  | 'BLOCKED'
-  | 'PENDING'
-  | 'REJECTED';
-
+  | 'Accepted'
+  | 'Blocked'
+  | 'Pending'
+  | 'Rejected'
+  | 'None';
+  
 export type GAME_STATUS =
-  | 'FINISHED'
-  | 'LIVE'
-  | 'SCHEDULED';
+  | 'Finished'
+  | 'Live'
+  | 'Scheduled';
 
 export type Game = {
   __typename?: 'Game';

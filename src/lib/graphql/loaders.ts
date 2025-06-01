@@ -302,7 +302,7 @@ export function createLoaders(db: NeonHttpDatabase<typeof schema>) {
         id: friendship.id,
         userId: friendship.userId || '',
         subscriberId: friendship.friendId || '',
-        status: (friendship.status || FRIENDSHIP_STATUS.PENDING) as FriendshipStatus,
+        status: friendship.status || FRIENDSHIP_STATUS.PENDING,
         createdAt: friendship.createdAt,
         updatedAt: friendship.updatedAt,
         initiator: null as unknown as UserSummary,

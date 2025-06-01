@@ -111,7 +111,7 @@
           "type": "varchar(50)",
           "primaryKey": false,
           "notNull": true,
-          "default": "'PENDING'"
+          "default": "'Pending'"
         },
         "createdAt": {
           "name": "createdAt",

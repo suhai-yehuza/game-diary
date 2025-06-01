@@ -1,6 +1,6 @@
 'use client';
 
-import { useQuery } from '@apollo/client/react/hooks';
+import { useQuery, useMutation } from '@apollo/client/react/hooks';
 import { useUser } from '@clerk/nextjs';
 import React, { useEffect, useState } from 'react';
 import { 
@@ -20,8 +20,13 @@ import {
   Shield,
   Globe,
   Lock,
-  Users2
+  Users2,
+  UserPlus,
+  UserCheck,
+  UserX
 } from 'lucide-react';
+import { toast } from 'react-hot-toast';
+import { gql } from '@apollo/client';
 
 import { CreateGameLogModal } from '@/components/features/games';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -31,11 +36,58 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { GET_GAME_LOGS, GET_USER } from '@/lib/graphql/queries';
-import { GameLog } from '@/lib/types/generated/graphql';
+import { SEND_FRIEND_REQUEST, ACCEPT_FRIEND_REQUEST, REMOVE_FRIEND } from '@/lib/graphql/mutations';
+import { GameLog, Friendship, FriendshipStatus } from '@/lib/types/generated/graphql';
 import { DbCustomUser, UserProfileProps } from '@/lib/types/user.types';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 import { StarRating } from '@/components/ui/star-rating';
+import { CLASSIFICATION, FRIENDSHIP_STATUS } from '@/lib/types/config.types';
+
+// Custom query to get friendships between two users
+const GET_USER_FRIENDSHIPS = gql`
+  query GetUserFriendships($userId: ID!) {
+    user(id: $userId) {
+      id
+      initiatedFriendships {
+        id
+        status
+        createdAt
+        updatedAt
+        initiator {
+          id
+          username
+          emailAddress
+          imageUrl
+        }
+        recipient {
+          id
+          username
+          emailAddress
+          imageUrl
+        }
+      }
+      friendships {
+        id
+        status
+        createdAt
+        updatedAt
+        initiator {
+          id
+          username
+          emailAddress
+          imageUrl
+        }
+        recipient {
+          id
+          username
+          emailAddress
+          imageUrl
+        }
+      }
+    }
+  }
+`;
 
 const ITEMS_PER_PAGE = 10;
 
@@ -56,8 +108,29 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
   const [targetUser, setTargetUser] = useState<DbCustomUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [dbUserId, setDbUserId] = useState<string | null>(null);
+  const [currentUserDbId, setCurrentUserDbId] = useState<string | null>(null);
   const [cursor, setCursor] = useState<string | null>(null);
   const [selectedClassification, setSelectedClassification] = useState<string>('all');
+  const [friendshipStatus, setFriendshipStatus] = useState<'none' | 'loading' | FriendshipStatus>('loading');
+  const [currentFriendship, setCurrentFriendship] = useState<Friendship | null>(null);
+
+  // Fetch current user's database ID
+  useEffect(() => {
+    const fetchCurrentUserDbId = async () => {
+      if (currentUser?.id) {
+        try {
+          const response = await fetch(`/api/users/${currentUser.id}`);
+          if (response.ok) {
+            const data = await response.json();
+            setCurrentUserDbId(data.id);
+          }
+        } catch (error) {
+          console.error('Error fetching current user ID:', error);
+        }
+      }
+    };
+    fetchCurrentUserDbId();
+  }, [currentUser?.id]);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -149,11 +222,90 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
     skip: !dbUserId,
   });
 
-  // console.log('UserProfile - dbUserId:', dbUserId);
-  // console.log('UserProfile - userData:', userData);
-  // console.log('UserProfile - gameLogsData:', gameLogsData);
-  // console.log('UserProfile - userLoading:', userLoading);
-  // console.log('UserProfile - gameLogsLoading:', gameLogsLoading);
+  // Fetch friendships for the current user
+  const { data: friendshipsData } = useQuery(GET_USER_FRIENDSHIPS, {
+    variables: { userId: currentUserDbId },
+    skip: !currentUserDbId || !dbUserId,
+    onCompleted: (data) => {
+      if (data?.user && dbUserId && currentUserDbId) {
+        const allFriendships = [...(data.user.friendships || []), ...(data.user.initiatedFriendships || [])];
+        const friendship = allFriendships.find((f: Friendship) => 
+          (f.initiator.id === currentUserDbId && f.recipient.id === dbUserId) ||
+          (f.recipient.id === currentUserDbId && f.initiator.id === dbUserId)
+        );
+        
+        if (friendship) {
+          setCurrentFriendship(friendship);
+          setFriendshipStatus(friendship.status);
+        } else {
+          setFriendshipStatus('none');
+        }
+      } else if (!data?.user) {
+        setFriendshipStatus('none');
+      }
+    }
+  });
+
+  // Send friend request mutation
+  const [sendFriendRequest, { loading: sendingRequest }] = useMutation(SEND_FRIEND_REQUEST, {
+    onCompleted: (data) => {
+      if (data?.sendFriendRequest?.friendship) {
+        setCurrentFriendship(data.sendFriendRequest.friendship);
+        setFriendshipStatus(data.sendFriendRequest.friendship.status);
+        toast.success('Friend request sent!');
+      }
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+    refetchQueries: [{ query: GET_USER_FRIENDSHIPS, variables: { userId: currentUserDbId } }]
+  });
+
+  // Accept friend request mutation
+  const [acceptFriendRequest, { loading: acceptingRequest }] = useMutation(ACCEPT_FRIEND_REQUEST, {
+    onCompleted: (data) => {
+      if (data?.acceptFriendRequest?.friendship) {
+        setCurrentFriendship(data.acceptFriendRequest.friendship);
+        setFriendshipStatus(data.acceptFriendRequest.friendship.status);
+        toast.success('Friend request accepted!');
+      }
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+    refetchQueries: [{ query: GET_USER_FRIENDSHIPS, variables: { userId: currentUserDbId } }]
+  });
+
+  // Remove friend mutation
+  const [removeFriend, { loading: removingFriend }] = useMutation(REMOVE_FRIEND, {
+    onCompleted: () => {
+      setCurrentFriendship(null);
+      setFriendshipStatus('none');
+      toast.success('Friend removed');
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+    refetchQueries: [{ query: GET_USER_FRIENDSHIPS, variables: { userId: currentUserDbId } }]
+  });
+
+  const handleSendFriendRequest = () => {
+    if (dbUserId) {
+      sendFriendRequest({ variables: { userId: dbUserId } });
+    }
+  };
+
+  const handleAcceptFriendRequest = () => {
+    if (currentFriendship?.id) {
+      acceptFriendRequest({ variables: { friendshipId: currentFriendship.id } });
+    }
+  };
+
+  const handleRemoveFriend = () => {
+    if (currentFriendship?.id) {
+      removeFriend({ variables: { friendshipId: currentFriendship.id } });
+    }
+  };
 
   if (isLoading || !targetUser) {
     return (
@@ -169,6 +321,7 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
   const hasPreviousPage = gameLogsData?.gameLogs?.pageInfo?.hasPreviousPage || false;
 
   const isOwnProfile = currentUser?.id === targetUserId || !targetUserId;
+  const isPendingFromCurrentUser = currentFriendship?.initiator.id === currentUserDbId;
 
   // Calculate stats from game logs
   const averageRating = gameLogs.length > 0 
@@ -183,6 +336,120 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
   if (userLoading || gameLogsLoading) {
     return <UserProfileSkeleton />;
   }
+
+  // Render friendship button based on status
+  const renderFriendshipButton = () => {
+    if (isOwnProfile) return null;
+
+    const isLoading = sendingRequest || acceptingRequest || removingFriend;
+
+    switch (friendshipStatus) {
+      case 'loading':
+        return (
+          <Button disabled variant="outline" size="sm">
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900 dark:border-gray-100 mr-2"></div>
+            Loading...
+          </Button>
+        );
+      
+      case 'none':
+        return (
+          <Button 
+            onClick={handleSendFriendRequest} 
+            disabled={isLoading}
+            variant="default"
+            size="sm"
+            className="gap-2"
+          >
+            <UserPlus className="h-4 w-4" />
+            {isLoading ? 'Sending...' : 'Add Friend'}
+          </Button>
+        );
+      
+      case 'Pending':
+        if (isPendingFromCurrentUser) {
+          return (
+            <Button 
+              variant="outline" 
+              size="sm"
+              disabled
+              className="gap-2"
+            >
+              <Clock className="h-4 w-4" />
+              Request Pending
+            </Button>
+          );
+        } else {
+          return (
+            <div className="flex gap-2">
+              <Button 
+                onClick={handleAcceptFriendRequest} 
+                disabled={isLoading}
+                variant="default"
+                size="sm"
+                className="gap-2"
+              >
+                <UserCheck className="h-4 w-4" />
+                {isLoading ? 'Accepting...' : 'Accept Request'}
+              </Button>
+              <Button 
+                onClick={handleRemoveFriend} 
+                disabled={isLoading}
+                variant="outline"
+                size="sm"
+                className="gap-2 text-red-600 hover:text-red-700"
+              >
+                <UserX className="h-4 w-4" />
+                Decline
+              </Button>
+            </div>
+          );
+        }
+      
+      case 'Accepted':
+        return (
+          <Button 
+            onClick={handleRemoveFriend} 
+            disabled={isLoading}
+            variant="outline"
+            size="sm"
+            className="gap-2"
+          >
+            <UserCheck className="h-4 w-4" />
+            {isLoading ? 'Removing...' : 'Friends'}
+          </Button>
+        );
+      
+      case 'Rejected':
+        return (
+          <Button 
+            variant="outline" 
+            size="sm"
+            disabled
+            className="gap-2"
+          >
+            <UserX className="h-4 w-4" />
+            Request Rejected
+          </Button>
+        );
+        
+      case 'Blocked':
+        return (
+          <Button 
+            variant="outline" 
+            size="sm"
+            disabled
+            className="gap-2"
+          >
+            <UserX className="h-4 w-4" />
+            Blocked
+          </Button>
+        );
+        
+      default:
+        return null;
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
@@ -219,9 +486,12 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
                     Member since {userProfile?.createdAt ? new Date(userProfile.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'N/A'}
                   </p>
                 </div>
-                {isOwnProfile && (
-                  <CreateGameLogModal onSuccess={() => setCursor(null)} />
-                )}
+                <div className="flex gap-2">
+                  {isOwnProfile && (
+                    <CreateGameLogModal onSuccess={() => setCursor(null)} />
+                  )}
+                  {renderFriendshipButton()}
+                </div>
               </div>
               
               {/* Stats Cards */}

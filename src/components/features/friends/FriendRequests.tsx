@@ -21,6 +21,7 @@ import { Friendship } from '@/lib/types/generated/graphql';
 import { SortDirection } from '@/lib/types/shared.types';
 
 import { UserSearch } from './UserSearch';
+import { FRIENDSHIP_STATUS } from '@/lib/types/config.types';
 
 export const FriendRequests: React.FC = () => {
   const [showSentRequests, setShowSentRequests] = useState(false);
@@ -193,10 +194,10 @@ export const FriendRequests: React.FC = () => {
 
   const friendRequests = data?.friendRequests || [];
   const pendingRequests = friendRequests.filter(
-    (request: FriendRequest) => request.status === 'PENDING'
+    (request: FriendRequest) => request.status === FRIENDSHIP_STATUS.PENDING
   );
   const acceptedRequests = friendRequests.filter(
-    (request: FriendRequest) => request.status === 'ACCEPTED'
+    (request: FriendRequest) => request.status === FRIENDSHIP_STATUS.ACCEPTED
   );
 
   const filteredRequests = showSentRequests

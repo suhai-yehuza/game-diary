@@ -135,3 +135,6 @@ export const me = async (_parent: unknown, _args: unknown, { db, user }: Context
     handleResolverError(error, 'fetch current user');
   }
 };
+
+// Export User type resolver
+export { User } from './user-type';

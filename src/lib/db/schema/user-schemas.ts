@@ -37,7 +37,7 @@ export const friendships = pgTable(
     userId: varchar('userId', { length: 255 }).references(() => users.id),
     status: varchar('status', { length: 50 })
       .notNull()
-      .default('PENDING')
+      .default(FRIENDSHIP_STATUS.PENDING)
       .$type<(typeof FRIENDSHIP_STATUS)[keyof typeof FRIENDSHIP_STATUS]>(),
     createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updatedAt', { withTimezone: true }).notNull().defaultNow(),

@@ -81,6 +81,7 @@ export const FRIENDSHIP_STATUS = {
   BLOCKED: 'Blocked',
   PENDING: 'Pending',
   REJECTED: 'Rejected',
+  NONE: 'None',
 } as const;
 
 export const WATCHED_SETTING = {

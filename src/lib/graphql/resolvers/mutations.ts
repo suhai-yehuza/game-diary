@@ -695,3 +695,328 @@ export const deleteReaction = async (
     handleError(error, 'delete reaction');
   }
 };
+
+// Friendship Mutations
+export const sendFriendRequest = async (
+  _parent: unknown,
+  { userId }: { userId: string },
+  context: Context
+) => {
+  try {
+    const user = checkAuth(context.user);
+    
+    // Ensure user exists in database
+    const dbUser = await ensureUserExists(user);
+    if (!dbUser) {
+      throw new AuthenticationError('Failed to verify user');
+    }
+    
+    // Check if target user exists
+    const targetUsers = await db
+      .select()
+      .from(schema.users)
+      .where(eq(schema.users.id, userId))
+      .limit(1);
+    const targetUser = targetUsers[0];
+    
+    if (!targetUser) {
+      throw new NotFoundError('User', userId);
+    }
+    
+    // Check if already friends or request exists
+    const existingFriendships = await db
+      .select()
+      .from(schema.friendships)
+      .where(
+        and(
+          eq(schema.friendships.userId, dbUser.id),
+          eq(schema.friendships.friendId, userId)
+        )
+      )
+      .limit(1);
+      
+    if (existingFriendships.length > 0) {
+      const existing = existingFriendships[0];
+      if (existing.status === 'Accepted') {
+        throw new BusinessLogicError('Already friends with this user', 'ALREADY_FRIENDS');
+      } else if (existing.status === 'Pending') {
+        throw new BusinessLogicError('Friend request already sent', 'REQUEST_ALREADY_SENT');
+      }
+    }
+    
+    // Check for reverse friendship (if the target user sent a request to current user)
+    const reverseFriendships = await db
+      .select()
+      .from(schema.friendships)
+      .where(
+        and(
+          eq(schema.friendships.userId, userId),
+          eq(schema.friendships.friendId, dbUser.id)
+        )
+      )
+      .limit(1);
+      
+    if (reverseFriendships.length > 0 && reverseFriendships[0].status === 'Pending') {
+      // Auto-accept if there's a pending request from the target user
+      const [updatedFriendship] = await db
+        .update(schema.friendships)
+        .set({
+          status: 'Accepted',
+          updatedAt: new Date(),
+        })
+        .where(eq(schema.friendships.id, reverseFriendships[0].id))
+        .returning();
+        
+      return {
+        friendship: {
+          id: updatedFriendship.id,
+          subscriberId: updatedFriendship.userId || '',
+          userId: updatedFriendship.friendId || '',
+          status: 'Accepted',
+          createdAt: updatedFriendship.createdAt,
+          updatedAt: updatedFriendship.updatedAt,
+          initiator: transformUser(mapUserData(targetUser)),
+          recipient: transformUser(mapUserData(dbUser)),
+        },
+        errors: null,
+      };
+    }
+    
+    // Create new friend request
+    const [friendship] = await db
+      .insert(schema.friendships)
+      .values({
+        id: generateUUID(),
+        userId: dbUser.id,
+        friendId: userId,
+        status: 'Pending',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .returning();
+      
+    return {
+      friendship: {
+        id: friendship.id,
+        subscriberId: friendship.userId || '',
+        userId: friendship.friendId || '',
+        status: 'Pending',
+        createdAt: friendship.createdAt,
+        updatedAt: friendship.updatedAt,
+        initiator: transformUser(mapUserData(dbUser)),
+        recipient: transformUser(mapUserData(targetUser)),
+      },
+      errors: null,
+    };
+  } catch (error) {
+    if (error instanceof GraphQLError) {
+      return {
+        friendship: null,
+        errors: [error],
+      };
+    }
+    return {
+      friendship: null,
+      errors: [new BusinessLogicError('Failed to send friend request', 'FRIEND_REQUEST_ERROR')],
+    };
+  }
+};
+
+export const acceptFriendRequest = async (
+  _parent: unknown,
+  { friendshipId }: { friendshipId: string },
+  context: Context
+) => {
+  try {
+    const user = checkAuth(context.user);
+    
+    const friendships = await db
+      .select()
+      .from(schema.friendships)
+      .where(eq(schema.friendships.id, friendshipId))
+      .limit(1);
+    const friendship = friendships[0];
+    
+    if (!friendship) {
+      throw new NotFoundError('Friendship', friendshipId);
+    }
+    
+    // Check if user is the recipient of the request (friendId)
+    if (friendship.friendId !== user.id) {
+      throw new AuthorizationError('Not authorized to accept this friend request');
+    }
+    
+    if (friendship.status !== 'Pending') {
+      throw new BusinessLogicError('Friend request is not pending', 'REQUEST_NOT_PENDING');
+    }
+    
+    // Update friendship status
+    const [updatedFriendship] = await db
+      .update(schema.friendships)
+      .set({
+        status: 'Accepted',
+        updatedAt: new Date(),
+      })
+      .where(eq(schema.friendships.id, friendshipId))
+      .returning();
+      
+    // Fetch users
+    const initiatorUsers = await db
+      .select()
+      .from(schema.users)
+      .where(eq(schema.users.id, updatedFriendship.userId || ''))
+      .limit(1);
+    const recipientUsers = await db
+      .select()
+      .from(schema.users)
+      .where(eq(schema.users.id, updatedFriendship.friendId || ''))
+      .limit(1);
+      
+    return {
+      friendship: {
+        id: updatedFriendship.id,
+        subscriberId: updatedFriendship.userId || '',
+        userId: updatedFriendship.friendId || '',
+        status: 'Accepted',
+        createdAt: updatedFriendship.createdAt,
+        updatedAt: updatedFriendship.updatedAt,
+        initiator: transformUser(mapUserData(initiatorUsers[0])),
+        recipient: transformUser(mapUserData(recipientUsers[0])),
+      },
+      errors: null,
+    };
+  } catch (error) {
+    if (error instanceof GraphQLError) {
+      return {
+        friendship: null,
+        errors: [error],
+      };
+    }
+    return {
+      friendship: null,
+      errors: [new BusinessLogicError('Failed to accept friend request', 'ACCEPT_REQUEST_ERROR')],
+    };
+  }
+};
+
+export const rejectFriendRequest = async (
+  _parent: unknown,
+  { friendshipId }: { friendshipId: string },
+  context: Context
+) => {
+  try {
+    const user = checkAuth(context.user);
+    
+    const friendships = await db
+      .select()
+      .from(schema.friendships)
+      .where(eq(schema.friendships.id, friendshipId))
+      .limit(1);
+    const friendship = friendships[0];
+    
+    if (!friendship) {
+      throw new NotFoundError('Friendship', friendshipId);
+    }
+    
+    // Check if user is the recipient of the request
+    if (friendship.friendId !== user.id) {
+      throw new AuthorizationError('Not authorized to reject this friend request');
+    }
+    
+    if (friendship.status !== 'Pending') {
+      throw new BusinessLogicError('Friend request is not pending', 'REQUEST_NOT_PENDING');
+    }
+    
+    // Update friendship status
+    const [updatedFriendship] = await db
+      .update(schema.friendships)
+      .set({
+        status: 'Rejected',
+        updatedAt: new Date(),
+      })
+      .where(eq(schema.friendships.id, friendshipId))
+      .returning();
+      
+    // Fetch users
+    const initiatorUsers = await db
+      .select()
+      .from(schema.users)
+      .where(eq(schema.users.id, updatedFriendship.userId || ''))
+      .limit(1);
+    const recipientUsers = await db
+      .select()
+      .from(schema.users)
+      .where(eq(schema.users.id, updatedFriendship.friendId || ''))
+      .limit(1);
+      
+    return {
+      friendship: {
+        id: updatedFriendship.id,
+        subscriberId: updatedFriendship.userId || '',
+        userId: updatedFriendship.friendId || '',
+        status: 'Rejected',
+        createdAt: updatedFriendship.createdAt,
+        updatedAt: updatedFriendship.updatedAt,
+        initiator: transformUser(mapUserData(initiatorUsers[0])),
+        recipient: transformUser(mapUserData(recipientUsers[0])),
+      },
+      errors: null,
+    };
+  } catch (error) {
+    if (error instanceof GraphQLError) {
+      return {
+        friendship: null,
+        errors: [error],
+      };
+    }
+    return {
+      friendship: null,
+      errors: [new BusinessLogicError('Failed to reject friend request', 'REJECT_REQUEST_ERROR')],
+    };
+  }
+};
+
+export const removeFriend = async (
+  _parent: unknown,
+  { friendshipId }: { friendshipId: string },
+  context: Context
+) => {
+  try {
+    const user = checkAuth(context.user);
+    
+    const friendships = await db
+      .select()
+      .from(schema.friendships)
+      .where(eq(schema.friendships.id, friendshipId))
+      .limit(1);
+    const friendship = friendships[0];
+    
+    if (!friendship) {
+      throw new NotFoundError('Friendship', friendshipId);
+    }
+    
+    // Check if user is part of this friendship
+    if (friendship.friendId !== user.id && friendship.userId !== user.id) {
+      throw new AuthorizationError('Not authorized to remove this friend');
+    }
+    
+    // Delete the friendship
+    await db.delete(schema.friendships).where(eq(schema.friendships.id, friendshipId));
+    
+    return {
+      success: true,
+      errors: null,
+    };
+  } catch (error) {
+    if (error instanceof GraphQLError) {
+      return {
+        success: false,
+        errors: [error],
+      };
+    }
+    return {
+      success: false,
+      errors: [new BusinessLogicError('Failed to remove friend', 'REMOVE_FRIEND_ERROR')],
+    };
+  }
+};

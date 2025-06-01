@@ -13,7 +13,7 @@ CREATE TABLE "friendships" (
 	"id" varchar(255) PRIMARY KEY DEFAULT '01972861-f58e-7485-a2b0-50d6e9aba1af-mbcs7oum-o6ckm9wbfvr-123c' NOT NULL,
 	"friendId" varchar(255),
 	"userId" varchar(255),
-	"status" varchar(50) DEFAULT 'PENDING' NOT NULL,
+	"status" varchar(50) DEFAULT 'Pending' NOT NULL,
 	"createdAt" timestamp with time zone DEFAULT now() NOT NULL,
 	"updatedAt" timestamp with time zone DEFAULT now() NOT NULL,
 	"deletedAt" timestamp with time zone DEFAULT null,
