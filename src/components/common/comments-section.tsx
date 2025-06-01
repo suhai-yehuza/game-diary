@@ -5,7 +5,10 @@ import {
   Pencil, 
   Send,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Loader2,
+  MessageCircle,
+  Sparkles
 } from 'lucide-react';
 import React, { useState, useRef, useEffect } from 'react';
 
@@ -19,6 +22,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
@@ -35,12 +39,14 @@ export function CommentsSection({ parentId, parentType, initialExpanded }: Comme
   const [newComment, setNewComment] = useState('');
   const [editingComment, setEditingComment] = useState<EditingComment | null>(null);
   const [deleteCommentId, setDeleteCommentId] = useState<string | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   
-  // Initialize expanded state - always starts collapsed on page load
+  // Initialize expanded state
   const [isExpanded, setIsExpanded] = useState(initialExpanded ?? false);
   
   // State for comment input visibility
   const [showCommentInput, setShowCommentInput] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   // Track last seen comment count
   const [lastSeenCount, setLastSeenCount] = useState(() => {
@@ -56,20 +62,35 @@ export function CommentsSection({ parentId, parentType, initialExpanded }: Comme
   const { data, loading, error, refetch, fetchMore } = useQuery(GET_COMMENTS_WITH_FILTERS, {
     variables: {
       parentId: parentId,
-      first: 10, // Load 10 comments at a time
+      first: 10,
     },
   });
 
   // Update last seen count when expanding
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      // Update last seen count when expanding
       if (isExpanded && data?.comments?.totalCount) {
         setLastSeenCount(data.comments.totalCount);
         localStorage.setItem(`comments-lastseen-${parentId}`, data.comments.totalCount.toString());
       }
     }
   }, [isExpanded, parentId, data?.comments?.totalCount]);
+
+  // Auto-resize textarea
+  useEffect(() => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    const adjustHeight = () => {
+      textarea.style.height = 'auto';
+      textarea.style.height = `${textarea.scrollHeight}px`;
+    };
+
+    textarea.addEventListener('input', adjustHeight);
+    adjustHeight(); // Initial adjustment
+
+    return () => textarea.removeEventListener('input', adjustHeight);
+  }, [showCommentInput]);
 
   // Intersection Observer for infinite scrolling
   const loadMoreRef = useRef<HTMLDivElement>(null);
@@ -99,12 +120,10 @@ export function CommentsSection({ parentId, parentType, initialExpanded }: Comme
               updateQuery: (prev, { fetchMoreResult }) => {
                 if (!fetchMoreResult) return prev;
                 
-                // Create a Set of existing comment IDs for efficient lookup
                 const existingIds = new Set(
                   prev.comments.edges.map((edge: any) => edge.node.id)
                 );
                 
-                // Filter out any duplicate comments from the new results
                 const newEdges = fetchMoreResult.comments.edges.filter(
                   (edge: any) => !existingIds.has(edge.node.id)
                 );
@@ -147,6 +166,7 @@ export function CommentsSection({ parentId, parentType, initialExpanded }: Comme
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
           deletedAt: null,
+          depth: 0,
           user: {
             __typename: 'UserSummary',
             id: user?.id || '',
@@ -157,6 +177,11 @@ export function CommentsSection({ parentId, parentType, initialExpanded }: Comme
             imageUrl: user?.imageUrl || null,
           },
           reactions: [],
+          childComments: {
+            __typename: 'CommentConnection',
+            edges: [],
+            totalCount: 0,
+          },
         },
         errors: [],
         __typename: 'CreateCommentPayload',
@@ -172,7 +197,6 @@ export function CommentsSection({ parentId, parentType, initialExpanded }: Comme
 
       if (!existingData?.comments) return;
 
-      // Add the new comment to the cache
       const newEdge = {
         __typename: 'CommentEdge',
         cursor: `cursor-${data.createComment.comment.id}`,
@@ -185,7 +209,7 @@ export function CommentsSection({ parentId, parentType, initialExpanded }: Comme
         data: {
           comments: {
             __typename: 'CommentConnection',
-            edges: [...existingData.comments.edges, newEdge],
+            edges: [newEdge, ...existingData.comments.edges],
             totalCount: existingData.comments.totalCount + 1,
             pageInfo: existingData.comments.pageInfo || {
               __typename: 'PageInfo',
@@ -198,23 +222,18 @@ export function CommentsSection({ parentId, parentType, initialExpanded }: Comme
         },
       });
     },
-    onCompleted: () => {
-      // Remove refetch() - the optimistic update handles it
-    },
     onError: error => {
       toast({
         title: 'Error',
         description: error.message,
         variant: 'destructive',
       });
-      // Only refetch on error
       refetch();
     },
   });
 
   const [updateCommentInSection] = useMutation(UPDATE_COMMENT, {
     optimisticResponse: ({ id, input }) => {
-      // Find the comment being edited from the cached data
       const existingData = data?.comments?.edges?.find(
         ({ node }: { node: Comment }) => node.id === id
       );
@@ -224,64 +243,10 @@ export function CommentsSection({ parentId, parentType, initialExpanded }: Comme
         updateComment: {
           __typename: 'UpdateCommentResponse',
           comment: comment ? {
-            __typename: 'Comment',
-            id: comment.id,
-            userId: comment.userId,
-            parentId: comment.parentId,
-            parentType: comment.parentType,
+            ...comment,
             content: input.content,
-            createdAt: comment.createdAt,
             updatedAt: new Date().toISOString(),
-            deletedAt: comment.deletedAt,
-            user: {
-              __typename: 'UserSummary',
-              id: comment.user.id,
-              username: comment.user.username,
-              firstName: comment.user.firstName || '',
-              lastName: comment.user.lastName || '',
-              emailAddress: comment.user.emailAddress,
-              imageUrl: comment.user.imageUrl,
-            },
-            reactions: comment.reactions ? comment.reactions.map((reaction: any) => ({
-              __typename: 'Reaction',
-              id: reaction.id,
-              emoji: reaction.emoji,
-              userId: reaction.userId,
-              targetId: reaction.targetId,
-              targetType: reaction.targetType,
-              createdAt: reaction.createdAt,
-              updatedAt: reaction.updatedAt,
-              user: reaction.user ? {
-                __typename: 'UserSummary',
-                id: reaction.user.id,
-                username: reaction.user.username,
-                firstName: reaction.user.firstName || '',
-                lastName: reaction.user.lastName || '',
-                emailAddress: reaction.user.emailAddress,
-                imageUrl: reaction.user.imageUrl,
-              } : null,
-            })) : [],
-          } : {
-            __typename: 'Comment',
-            id,
-            content: input.content,
-            userId: user?.id || '',
-            parentId,
-            parentType,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-            deletedAt: null,
-            user: {
-              __typename: 'UserSummary',
-              id: user?.id || '',
-              username: user?.username || '',
-              firstName: user?.firstName || '',
-              lastName: user?.lastName || '',
-              emailAddress: user?.emailAddresses?.[0]?.emailAddress || '',
-              imageUrl: user?.imageUrl || null,
-            },
-            reactions: [],
-          },
+          } : null,
           errors: [],
         },
       };
@@ -296,7 +261,6 @@ export function CommentsSection({ parentId, parentType, initialExpanded }: Comme
 
       if (!existingData?.comments) return;
 
-      // Update the comment in the cache
       const newEdges = existingData.comments.edges.map((edge: any) => {
         if (edge.node.id === data.updateComment.comment.id) {
           return {
@@ -322,7 +286,6 @@ export function CommentsSection({ parentId, parentType, initialExpanded }: Comme
     },
     onCompleted: () => {
       setEditingComment(null);
-      // Remove refetch() - the optimistic update handles it
     },
     onError: error => {
       toast({
@@ -330,7 +293,6 @@ export function CommentsSection({ parentId, parentType, initialExpanded }: Comme
         description: error.message,
         variant: 'destructive',
       });
-      // Only refetch on error
       refetch();
     },
   });
@@ -351,8 +313,9 @@ export function CommentsSection({ parentId, parentType, initialExpanded }: Comme
 
   const handleSubmitComment = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newComment.trim() || !user) return;
+    if (!newComment.trim() || !user || isSubmitting) return;
 
+    setIsSubmitting(true);
     try {
       await createComment({
         variables: {
@@ -364,9 +327,15 @@ export function CommentsSection({ parentId, parentType, initialExpanded }: Comme
         },
       });
       setNewComment('');
-      setShowCommentInput(false); // Close the input after successful submission
+      setShowCommentInput(false);
+      toast({
+        title: 'Comment posted!',
+        description: 'Your comment has been added to the discussion.',
+      });
     } catch (error) {
       console.error('Error creating comment:', error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -393,15 +362,18 @@ export function CommentsSection({ parentId, parentType, initialExpanded }: Comme
 
   if (loading && !data) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <MessageSquare className="h-5 w-5" />
+      <Card className="overflow-hidden">
+        <CardHeader className="bg-gradient-to-r from-muted/50 to-muted/30">
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <MessageCircle className="h-5 w-5" />
             Comments
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="text-center text-muted-foreground">Loading comments...</div>
+        <CardContent className="py-8">
+          <div className="flex items-center justify-center gap-2 text-muted-foreground">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            <span>Loading comments...</span>
+          </div>
         </CardContent>
       </Card>
     );
@@ -409,182 +381,240 @@ export function CommentsSection({ parentId, parentType, initialExpanded }: Comme
 
   if (error) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <MessageSquare className="h-5 w-5" />
+      <Card className="overflow-hidden border-destructive/50">
+        <CardHeader className="bg-destructive/10">
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <MessageCircle className="h-5 w-5" />
             Comments
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="text-center text-destructive">Error loading comments: {error.message}</div>
+        <CardContent className="py-8">
+          <div className="text-center text-destructive">
+            Error loading comments: {error.message}
+          </div>
         </CardContent>
       </Card>
     );
   }
 
   return (
-    <Card>
-      <CardHeader className="cursor-pointer" onClick={() => setIsExpanded(!isExpanded)}>
-        <CardTitle className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <MessageSquare className="h-5 w-5" />
-            Comments
-            {totalComments > 0 ? (
-              <span className="text-sm font-normal text-muted-foreground">
-                ({totalComments})
-              </span>
-            ) : (
-              <span className="text-sm font-normal text-muted-foreground">
-                (No comments yet)
-              </span>
-            )}
-            {!isExpanded && newCommentsCount > 0 && (
-              <span className="inline-flex items-center rounded-full bg-primary px-2 py-0.5 text-xs font-medium text-primary-foreground animate-pulse">
-                {newCommentsCount} new
-              </span>
-            )}
-          </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-8 w-8 p-0"
-            onClick={(e) => {
-              e.stopPropagation();
-              setIsExpanded(!isExpanded);
-            }}
-          >
-            {isExpanded ? (
-              <ChevronUp className="h-4 w-4" />
-            ) : (
-              <ChevronDown className="h-4 w-4" />
-            )}
-          </Button>
-        </CardTitle>
-      </CardHeader>
-      
-      <div
-        className={cn(
-          "transition-all duration-300 ease-in-out overflow-hidden",
-          isExpanded ? "max-h-[5000px] opacity-100" : "max-h-0 opacity-0"
-        )}
-      >
-        <CardContent className={cn(isExpanded ? "pt-0" : "")}>
-          {!user ? (
-            <div className="flex items-center justify-center p-4">
-              <SignInButton mode="modal">
-                <Button>Sign in to comment</Button>
-              </SignInButton>
-            </div>
-          ) : (
-            <div className="mb-4">
-              {!showCommentInput ? (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowCommentInput(true)}
-                  className="w-full justify-start gap-2"
-                >
-                  <Pencil className="h-4 w-4" />
-                  Write a comment...
-                </Button>
-              ) : (
-                <form onSubmit={handleSubmitComment} className="space-y-2">
-                  <Textarea
-                    value={newComment}
-                    onChange={e => setNewComment(e.target.value)}
-                    placeholder="Write a comment..."
-                    className="min-h-[80px]"
-                    autoFocus
-                  />
-                  <div className="flex gap-2 justify-end">
-                    <Button 
-                      type="button" 
-                      variant="ghost" 
-                      size="sm"
-                      onClick={() => {
-                        setShowCommentInput(false);
-                        setNewComment('');
-                      }}
-                    >
-                      Cancel
-                    </Button>
-                    <Button type="submit" size="sm" disabled={!newComment.trim()}>
-                      <Send className="h-4 w-4 mr-2" />
-                      Post
-                    </Button>
-                  </div>
-                </form>
+    <>
+      <Card className="overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200">
+        <CardHeader 
+          className={cn(
+            "cursor-pointer select-none bg-gradient-to-r from-muted/50 to-muted/30 hover:from-muted/60 hover:to-muted/40 transition-colors",
+            isExpanded && "border-b"
+          )}
+          onClick={() => setIsExpanded(!isExpanded)}
+        >
+          <CardTitle className="flex items-center justify-between text-lg">
+            <div className="flex items-center gap-2">
+              <div className="relative">
+                <MessageCircle className="h-5 w-5" />
+                {totalComments > 0 && (
+                  <span className="absolute -top-2 -right-2 h-4 w-4 rounded-full bg-primary text-[10px] font-bold text-primary-foreground flex items-center justify-center">
+                    {totalComments > 99 ? '99+' : totalComments}
+                  </span>
+                )}
+              </div>
+              <span>Comments</span>
+              {!isExpanded && newCommentsCount > 0 && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary animate-pulse">
+                  <Sparkles className="h-3 w-3" />
+                  {newCommentsCount} new
+                </span>
               )}
             </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 p-0 hover:bg-transparent"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsExpanded(!isExpanded);
+              }}
+            >
+              {isExpanded ? (
+                <ChevronUp className="h-4 w-4 transition-transform" />
+              ) : (
+                <ChevronDown className="h-4 w-4 transition-transform" />
+              )}
+            </Button>
+          </CardTitle>
+        </CardHeader>
+        
+        <div
+          className={cn(
+            "transition-all duration-300 ease-in-out overflow-hidden",
+            isExpanded ? "max-h-[5000px] opacity-100" : "max-h-0 opacity-0"
           )}
-
-          <div className="space-y-4">
-            {data?.comments?.edges?.filter(({ node }: { node: any }) => node.parentType !== 'comment').map(({ node: comment }: { node: any }) => (
-              <CommentItem
-                key={comment.id}
-                comment={{
-                  ...comment,
-                  depth: comment.depth || 0,
-                  childComments: comment.childComments
-                }}
-                onEdit={(id, content) => setEditingComment({ id, content })}
-                onDelete={(id) => setDeleteCommentId(id)}
-                refetchComments={refetch}
-              />
-            ))}
-            
-            {/* Inline edit form for editing comments */}
-            {editingComment && (
-              <form onSubmit={handleUpdateComment} className="border rounded-lg p-4 bg-muted/50">
-                <div className="text-sm font-medium mb-2">Edit Comment</div>
-                <Textarea
-                  value={editingComment.content}
-                  onChange={e =>
-                    setEditingComment({ ...editingComment, content: e.target.value })
-                  }
-                  className="mb-2"
-                />
-                <div className="flex gap-2">
-                  <Button type="submit" size="sm">Save</Button>
-                  <Button type="button" variant="outline" size="sm" onClick={() => setEditingComment(null)}>
-                    Cancel
+        >
+          <CardContent className={cn("p-0", isExpanded && "p-4")}>
+            {!user ? (
+              <div className="flex flex-col items-center justify-center py-12 px-4">
+                <MessageSquare className="h-12 w-12 text-muted-foreground mb-4" />
+                <p className="text-muted-foreground mb-4 text-center">
+                  Join the conversation
+                </p>
+                <SignInButton mode="modal">
+                  <Button className="gap-2">
+                    <MessageCircle className="h-4 w-4" />
+                    Sign in to comment
                   </Button>
+                </SignInButton>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {/* Comment Input */}
+                <div className="relative">
+                  {!showCommentInput ? (
+                    <Button
+                      variant="outline"
+                      onClick={() => setShowCommentInput(true)}
+                      className="w-full justify-start gap-3 h-auto py-3 px-4 border-dashed hover:border-solid hover:border-primary/50 transition-all"
+                    >
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage src={user.imageUrl || undefined} />
+                        <AvatarFallback>
+                          {user.firstName?.[0]}{user.lastName?.[0]}
+                        </AvatarFallback>
+                      </Avatar>
+                      <span className="text-muted-foreground">Share your thoughts...</span>
+                    </Button>
+                  ) : (
+                    <form onSubmit={handleSubmitComment} className="space-y-3">
+                      <div className="flex gap-3">
+                        <Avatar className="h-8 w-8 mt-1">
+                          <AvatarImage src={user.imageUrl || undefined} />
+                          <AvatarFallback>
+                            {user.firstName?.[0]}{user.lastName?.[0]}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 space-y-3">
+                          <Textarea
+                            ref={textareaRef}
+                            value={newComment}
+                            onChange={e => setNewComment(e.target.value)}
+                            placeholder="Share your thoughts..."
+                            className="min-h-[100px] resize-none border-primary/20 focus:border-primary/50 transition-colors"
+                            autoFocus
+                            disabled={isSubmitting}
+                          />
+                          <div className="flex gap-2 justify-end">
+                            <Button 
+                              type="button" 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => {
+                                setShowCommentInput(false);
+                                setNewComment('');
+                              }}
+                              disabled={isSubmitting}
+                            >
+                              Cancel
+                            </Button>
+                            <Button 
+                              type="submit" 
+                              size="sm" 
+                              disabled={!newComment.trim() || isSubmitting}
+                              className="gap-2"
+                            >
+                              {isSubmitting ? (
+                                <>
+                                  <Loader2 className="h-3 w-3 animate-spin" />
+                                  Posting...
+                                </>
+                              ) : (
+                                <>
+                                  <Send className="h-3 w-3" />
+                                  Post Comment
+                                </>
+                              )}
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    </form>
+                  )}
                 </div>
-              </form>
-            )}
-            
-            {/* Infinite scroll trigger and loading indicator */}
-            {data?.comments?.pageInfo?.hasNextPage && (
-              <div 
-                ref={loadMoreRef} 
-                className="flex justify-center py-4"
-              >
-                {isFetchingMore && (
-                  <div className="text-sm text-muted-foreground">
-                    Loading more comments...
+
+                {/* Comments List */}
+                {totalComments === 0 ? (
+                  <div className="text-center py-8">
+                    <MessageSquare className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
+                    <p className="text-muted-foreground">
+                      Be the first to comment
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {data?.comments?.edges?.map(({ node }: { node: Comment }) => (
+                      <CommentItem
+                        key={node.id}
+                        comment={node}
+                        onEdit={(id, content) => setEditingComment({ id, content })}
+                        onDelete={setDeleteCommentId}
+                        refetchComments={refetch}
+                      />
+                    ))}
+                    
+                    {/* Load More Indicator */}
+                    <div ref={loadMoreRef} className="py-2">
+                      {isFetchingMore && (
+                        <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          <span>Loading more comments...</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>
             )}
-          </div>
+          </CardContent>
+        </div>
+      </Card>
 
-          <AlertDialog open={!!deleteCommentId} onOpenChange={() => setDeleteCommentId(null)}>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Delete Comment</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Are you sure you want to delete this comment? This action cannot be undone.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
+      {/* Edit Comment Dialog */}
+      {editingComment && (
+        <AlertDialog open={!!editingComment} onOpenChange={() => setEditingComment(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Edit Comment</AlertDialogTitle>
+            </AlertDialogHeader>
+            <form onSubmit={handleUpdateComment}>
+              <Textarea
+                value={editingComment.content}
+                onChange={e => setEditingComment({ ...editingComment, content: e.target.value })}
+                className="min-h-[100px] mb-4"
+                autoFocus
+              />
               <AlertDialogFooter>
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={handleDeleteComment}>Delete</AlertDialogAction>
+                <AlertDialogAction type="submit">Save Changes</AlertDialogAction>
               </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        </CardContent>
-      </div>
-    </Card>
+            </form>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
+
+      {/* Delete Comment Dialog */}
+      <AlertDialog open={!!deleteCommentId} onOpenChange={() => setDeleteCommentId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Comment</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this comment? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteComment} className="bg-destructive text-destructive-foreground">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
