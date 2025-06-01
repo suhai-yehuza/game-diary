@@ -71,6 +71,7 @@ const UserCard = ({ user }: { user: UserNode }) => {
   // Dropdown open states
   const [friendRequestDropdownOpen, setFriendRequestDropdownOpen] = useState(false);
   const [friendsDropdownOpen, setFriendsDropdownOpen] = useState(false);
+  const [sentRequestDropdownOpen, setSentRequestDropdownOpen] = useState(false);
   
   const fullName = [user.firstName, user.lastName].filter(Boolean).join(' ');
   const displayName = fullName || user.username;
@@ -200,6 +201,7 @@ const UserCard = ({ user }: { user: UserNode }) => {
         // Close whichever dropdown is open
         setFriendRequestDropdownOpen(false);
         setFriendsDropdownOpen(false);
+        setSentRequestDropdownOpen(false);
       } else if (data?.updateFriendshipStatus?.errors?.[0]) {
         toast.error(data.updateFriendshipStatus.errors[0].message);
       }
@@ -230,6 +232,30 @@ const UserCard = ({ user }: { user: UserNode }) => {
     } catch (error) {
       console.error('Error removing friend:', error);
       toast.error('Failed to remove friend');
+    }
+  };
+  
+  const handleCancelRequest = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (!friendshipInfo?.friendshipId) return;
+    
+    try {
+      const { data } = await removeFriend({
+        variables: { friendshipId: friendshipInfo.friendshipId },
+        refetchQueries: ['SearchUsers'],
+      });
+      
+      if (data?.removeFriend?.success) {
+        toast.success('Friend request cancelled');
+        setSentRequestDropdownOpen(false); // Close dropdown
+      } else if (data?.removeFriend?.errors?.[0]) {
+        toast.error(data.removeFriend.errors[0].message);
+      }
+    } catch (error) {
+      console.error('Error cancelling friend request:', error);
+      toast.error('Failed to cancel friend request');
     }
   };
   
@@ -325,13 +351,39 @@ const UserCard = ({ user }: { user: UserNode }) => {
         }
         // If current user sent the request
         return (
-          <Badge 
-            variant="outline" 
-            className="gap-0.5 bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20 text-xs py-0.5 px-1.5"
-          >
-            <ClockIcon className="h-2.5 w-2.5" />
-            Request Sent
-          </Badge>
+          <DropdownMenu open={sentRequestDropdownOpen} onOpenChange={setSentRequestDropdownOpen}>
+            <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="gap-0.5 bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20 hover:bg-amber-500/20 text-xs h-7 px-2"
+                disabled={isLoading}
+              >
+                <ClockIcon className="h-2.5 w-2.5" />
+                Request Sent
+                <MoreVertical className="h-2.5 w-2.5 ml-0.5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+              <DropdownMenuItem 
+                onClick={handleCancelRequest}
+                disabled={isLoading}
+                className="gap-2 text-red-600 focus:text-red-600"
+              >
+                <X className="h-3.5 w-3.5" />
+                Cancel Request
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem 
+                onClick={handleBlockUser}
+                disabled={isLoading}
+                className="gap-2 text-red-600 focus:text-red-600"
+              >
+                <Ban className="h-3.5 w-3.5" />
+                Block User
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         );
       case FRIENDSHIP_STATUS.BLOCKED:
         return null; // Don't show blocked status
