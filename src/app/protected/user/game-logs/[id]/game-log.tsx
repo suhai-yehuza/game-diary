@@ -277,8 +277,15 @@ export default function GameLog() {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4 border-t">
                 <div className="text-center">
                   <Building2 className="h-4 w-4 mx-auto mb-1 text-muted-foreground" />
-                  <p className="text-sm font-medium">{gameLog.game?.arena || 'Unknown Arena'}</p>
-                  <p className="text-xs text-muted-foreground">Arena</p>
+                  <p className="text-sm font-medium">
+                    {(gameLog.game?.arena as any)?.name || 'Unknown Arena'}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {(gameLog.game?.arena as any)?.city && (gameLog.game?.arena as any)?.state 
+                      ? `${(gameLog.game?.arena as any).city}, ${(gameLog.game?.arena as any).state}`
+                      : 'Arena'
+                    }
+                  </p>
                 </div>
                 <div className="text-center">
                   <Trophy className="h-4 w-4 mx-auto mb-1 text-muted-foreground" />
