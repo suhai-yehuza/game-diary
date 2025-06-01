@@ -44,9 +44,11 @@ enum Classification {
 }
 
 type Comment {
+  childComments(after: String, first: Int): CommentConnection!
   content: String!
   createdAt: DateTime!
   deletedAt: DateTime
+  depth: Int!
   id: ID!
   parentId: ID!
   parentType: ParentType!
@@ -54,8 +56,6 @@ type Comment {
   updatedAt: DateTime!
   user: UserSummary!
   userId: ID!
-  childComments(first: Int, after: String): CommentConnection!
-  depth: Int!
 }
 
 type CommentConnection {
@@ -671,6 +671,7 @@ type Query {
   playerStatsByTeam(after: String, before: String, first: Int, last: Int, season: Int!, teamId: String!): PlayerStatsConnection!
   players(after: String, before: String, filters: PlayerFilters, first: Int, last: Int): PlayerConnection!
   reactions(after: String, before: String, first: Int, last: Int, targetId: ID!): ReactionConnection!
+  searchUsers(after: String, filters: UserSearchFilters, first: Int, searchTerm: String): UserConnection!
   seasons(after: String, before: String, first: Int, last: Int): SeasonConnection!
   team(id: ID!): Team
   teamGameStats(gameId: ID!, teamId: String!): TeamStats
@@ -1152,6 +1153,25 @@ type UserConnection {
 type UserEdge {
   cursor: String!
   node: User!
+}
+
+enum UserOrderBy {
+  CREATED_AT_ASC
+  CREATED_AT_DESC
+  GAME_LOGS_ASC
+  GAME_LOGS_DESC
+  USERNAME_ASC
+  USERNAME_DESC
+}
+
+input UserSearchFilters {
+  friendshipStatus: FriendshipStatus
+  hasGameLogs: Boolean
+  isVerified: Boolean
+  joinedAfter: DateTime
+  joinedBefore: DateTime
+  minGameLogs: Int
+  orderBy: UserOrderBy
 }
 
 type UserSummary {

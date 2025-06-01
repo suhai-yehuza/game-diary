@@ -1,4 +1,4 @@
-import { and, eq, gt, lt, or, sql } from 'drizzle-orm';
+import { and, eq, gt, lt, or, sql, gte, lte, desc, asc } from 'drizzle-orm';
 import type { InferSelectModel } from 'drizzle-orm';
 
 import * as schema from '@/lib/db/schema';
@@ -13,6 +13,17 @@ import { handleResolverError } from '../common/utils';
 interface UserFilters {
   search?: string;
   role?: string;
+}
+
+// Define UserSearchFilters interface locally until types are generated
+interface UserSearchFilters {
+  hasGameLogs?: boolean | null;
+  minGameLogs?: number | null;
+  joinedAfter?: Date | null;
+  joinedBefore?: Date | null;
+  isVerified?: boolean | null;
+  friendshipStatus?: string | null;
+  orderBy?: string | null;
 }
 
 // Helper function to map user data
@@ -48,6 +59,155 @@ const mapUserData = (user: InferSelectModel<typeof schema.users>) => ({
 });
 
 export { mapUserData };
+
+export const searchUsers = async (
+  _parent: unknown,
+  args: PaginationArgs & { searchTerm?: string; filters?: UserSearchFilters },
+  { db, user: currentUser }: Context
+) => {
+  try {
+    const { first = 20, after, searchTerm, filters } = args;
+    const limit = first || 20;
+
+    // Build query conditions
+    const conditions = [];
+
+    // Search term - search in username, firstName, lastName, emailAddress
+    if (searchTerm && searchTerm.trim()) {
+      const searchPattern = `%${searchTerm.trim()}%`;
+      conditions.push(
+        or(
+          sql`${schema.users.username} ILIKE ${searchPattern}`,
+          sql`${schema.users.firstName} ILIKE ${searchPattern}`,
+          sql`${schema.users.lastName} ILIKE ${searchPattern}`,
+          sql`${schema.users.emailAddress} ILIKE ${searchPattern}`,
+          sql`CONCAT(${schema.users.firstName}, ' ', ${schema.users.lastName}) ILIKE ${searchPattern}`
+        )
+      );
+    }
+
+    // Filter by join date
+    if (filters?.joinedAfter) {
+      conditions.push(gte(schema.users.createdAt, filters.joinedAfter));
+    }
+    if (filters?.joinedBefore) {
+      conditions.push(lte(schema.users.createdAt, filters.joinedBefore));
+    }
+
+    // Filter by email verification
+    if (filters?.isVerified !== undefined && filters.isVerified !== null) {
+      conditions.push(eq(schema.users.email_verified, filters.isVerified));
+    }
+
+    // Pagination cursor
+    if (after) {
+      conditions.push(gt(schema.users.id, after));
+    }
+
+    // Add game log filters to conditions
+    if (filters?.hasGameLogs === true || filters?.minGameLogs) {
+      const minLogs = filters.minGameLogs || 1;
+      conditions.push(
+        sql`(
+          SELECT COUNT(*) 
+          FROM ${schema.game_logs} 
+          WHERE ${schema.game_logs.userId} = ${schema.users.id}
+        ) >= ${minLogs}`
+      );
+    } else if (filters?.hasGameLogs === false) {
+      conditions.push(
+        sql`(
+          SELECT COUNT(*) 
+          FROM ${schema.game_logs} 
+          WHERE ${schema.game_logs.userId} = ${schema.users.id}
+        ) = 0`
+      );
+    }
+
+    // Build the query with all conditions
+    const query = db
+      .select({
+        user: schema.users,
+        gameLogCount: sql<number>`(
+          SELECT COUNT(*)::int 
+          FROM ${schema.game_logs} 
+          WHERE ${schema.game_logs.userId} = ${schema.users.id}
+        )`,
+      })
+      .from(schema.users)
+      .where(conditions.length > 0 ? and(...conditions) : undefined);
+
+    // Apply ordering
+    let orderByClause;
+    switch (filters?.orderBy) {
+      case 'USERNAME_ASC':
+        orderByClause = asc(schema.users.username);
+        break;
+      case 'USERNAME_DESC':
+        orderByClause = desc(schema.users.username);
+        break;
+      case 'CREATED_AT_ASC':
+        orderByClause = asc(schema.users.createdAt);
+        break;
+      case 'CREATED_AT_DESC':
+        orderByClause = desc(schema.users.createdAt);
+        break;
+      case 'GAME_LOGS_DESC':
+        orderByClause = desc(sql`(
+          SELECT COUNT(*) 
+          FROM ${schema.game_logs} 
+          WHERE ${schema.game_logs.userId} = ${schema.users.id}
+        )`);
+        break;
+      case 'GAME_LOGS_ASC':
+        orderByClause = asc(sql`(
+          SELECT COUNT(*) 
+          FROM ${schema.game_logs} 
+          WHERE ${schema.game_logs.userId} = ${schema.users.id}
+        )`);
+        break;
+      default:
+        orderByClause = desc(schema.users.createdAt);
+    }
+
+    // Execute query with ordering and limit
+    const results = await query
+      .orderBy(orderByClause)
+      .limit(limit + 1);
+
+    // Check if there are more items
+    const hasNextPage = results.length > limit;
+    const actualResults = hasNextPage ? results.slice(0, -1) : results;
+
+    // Map users with game log counts
+    const mappedUsers = actualResults.map(result => {
+      const userData = mapUserData(result.user);
+      // Add gameLogs with totalCount for the UI
+      return {
+        ...userData,
+        gameLogs: {
+          totalCount: Number(result.gameLogCount) || 0,
+        },
+      };
+    });
+
+    // Get total count for pagination info
+    const totalCountQuery = await db
+      .select({ count: sql<number>`COUNT(*)::int` })
+      .from(schema.users)
+      .where(conditions.length > 0 ? and(...conditions) : undefined);
+    
+    const totalCount = totalCountQuery[0]?.count || 0;
+
+    return createConnection(
+      mappedUsers, 
+      totalCount,
+      { first: limit, after }
+    );
+  } catch (error) {
+    handleResolverError(error, 'search users');
+  }
+};
 
 export const users = async (
   _parent: unknown,

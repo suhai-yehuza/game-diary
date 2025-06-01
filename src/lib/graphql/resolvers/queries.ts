@@ -37,6 +37,7 @@ export const Query = {
   users: userResolvers.users,
   user: userResolvers.user,
   me: userResolvers.me,
+  searchUsers: userResolvers.searchUsers,
 
   // Comment queries
   comments: commentResolvers.comments,

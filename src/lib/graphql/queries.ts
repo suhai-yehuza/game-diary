@@ -797,3 +797,56 @@ export const GET_FRIENDSHIPS = gql`
   }
   ${BASIC_USER_FRAGMENT}
 `;
+
+export const SEARCH_USERS = gql`
+  query SearchUsers(
+    $first: Int
+    $after: String
+    $searchTerm: String
+    $filters: UserSearchFilters
+  ) {
+    searchUsers(
+      first: $first
+      after: $after
+      searchTerm: $searchTerm
+      filters: $filters
+    ) {
+      edges {
+        cursor
+        node {
+          id
+          username
+          firstName
+          lastName
+          emailAddress
+          imageUrl
+          createdAt
+          gameLogs {
+            totalCount
+          }
+          initiatedFriendships {
+            id
+            status
+            recipient {
+              id
+            }
+          }
+          friendships {
+            id
+            status
+            initiator {
+              id
+            }
+          }
+        }
+      }
+      pageInfo {
+        hasNextPage
+        hasPreviousPage
+        startCursor
+        endCursor
+      }
+      totalCount
+    }
+  }
+`;

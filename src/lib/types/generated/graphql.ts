@@ -66,9 +66,11 @@ export type Classification =
 
 export type Comment = {
   __typename?: 'Comment';
+  childComments: CommentConnection;
   content: Scalars['String']['output'];
   createdAt: Scalars['DateTime']['output'];
   deletedAt: Maybe<Scalars['DateTime']['output']>;
+  depth: Scalars['Int']['output'];
   id: Scalars['ID']['output'];
   parentId: Scalars['ID']['output'];
   parentType: ParentType;
@@ -76,6 +78,12 @@ export type Comment = {
   updatedAt: Scalars['DateTime']['output'];
   user: UserSummary;
   userId: Scalars['ID']['output'];
+};
+
+
+export type CommentchildCommentsArgs = {
+  after: InputMaybe<Scalars['String']['input']>;
+  first: InputMaybe<Scalars['Int']['input']>;
 };
 
 export type CommentConnection = {
@@ -293,9 +301,8 @@ export type FriendshipStatus =
   | 'Accepted'
   | 'Blocked'
   | 'Pending'
-  | 'Rejected'
-  | 'None';
-  
+  | 'Rejected';
+
 export type GAME_STATUS =
   | 'Finished'
   | 'Live'
@@ -884,6 +891,7 @@ export type Query = {
   playerStatsByTeam: PlayerStatsConnection;
   players: PlayerConnection;
   reactions: ReactionConnection;
+  searchUsers: UserConnection;
   seasons: SeasonConnection;
   team: Maybe<Team>;
   teamGameStats: Maybe<TeamStats>;
@@ -1049,6 +1057,14 @@ export type QueryreactionsArgs = {
   first: InputMaybe<Scalars['Int']['input']>;
   last: InputMaybe<Scalars['Int']['input']>;
   targetId: Scalars['ID']['input'];
+};
+
+
+export type QuerysearchUsersArgs = {
+  after: InputMaybe<Scalars['String']['input']>;
+  filters: InputMaybe<UserSearchFilters>;
+  first: InputMaybe<Scalars['Int']['input']>;
+  searchTerm: InputMaybe<Scalars['String']['input']>;
 };
 
 
@@ -1626,6 +1642,24 @@ export type UserEdge = {
   node: User;
 };
 
+export type UserOrderBy =
+  | 'CREATED_AT_ASC'
+  | 'CREATED_AT_DESC'
+  | 'GAME_LOGS_ASC'
+  | 'GAME_LOGS_DESC'
+  | 'USERNAME_ASC'
+  | 'USERNAME_DESC';
+
+export type UserSearchFilters = {
+  friendshipStatus?: InputMaybe<FriendshipStatus>;
+  hasGameLogs?: InputMaybe<Scalars['Boolean']['input']>;
+  isVerified?: InputMaybe<Scalars['Boolean']['input']>;
+  joinedAfter?: InputMaybe<Scalars['DateTime']['input']>;
+  joinedBefore?: InputMaybe<Scalars['DateTime']['input']>;
+  minGameLogs?: InputMaybe<Scalars['Int']['input']>;
+  orderBy?: InputMaybe<UserOrderBy>;
+};
+
 export type UserSummary = {
   __typename?: 'UserSummary';
   emailAddress: Maybe<Scalars['String']['output']>;
@@ -1870,6 +1904,8 @@ export type ResolversTypes = {
   UserBaseEdge: ResolverTypeWrapper<UserBaseEdge>;
   UserConnection: ResolverTypeWrapper<UserConnection>;
   UserEdge: ResolverTypeWrapper<UserEdge>;
+  UserOrderBy: UserOrderBy;
+  UserSearchFilters: UserSearchFilters;
   UserSummary: ResolverTypeWrapper<UserSummary>;
   ValidationError: ResolverTypeWrapper<ValidationError>;
   WeightInfo: ResolverTypeWrapper<WeightInfo>;
@@ -2008,6 +2044,7 @@ export type ResolversParentTypes = {
   UserBaseEdge: UserBaseEdge;
   UserConnection: UserConnection;
   UserEdge: UserEdge;
+  UserSearchFilters: UserSearchFilters;
   UserSummary: UserSummary;
   ValidationError: ValidationError;
   WeightInfo: WeightInfo;
@@ -2057,9 +2094,11 @@ export type BusinessLogicErrorResolvers<ContextType = Context, ParentType extend
 };
 
 export type CommentResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Comment'] = ResolversParentTypes['Comment']> = {
+  childComments?: Resolver<ResolversTypes['CommentConnection'], ParentType, ContextType, Partial<CommentchildCommentsArgs>>;
   content?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   deletedAt?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
+  depth?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   parentId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   parentType?: Resolver<ResolversTypes['ParentType'], ParentType, ContextType>;
@@ -2595,6 +2634,7 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   playerStatsByTeam?: Resolver<ResolversTypes['PlayerStatsConnection'], ParentType, ContextType, RequireFields<QueryplayerStatsByTeamArgs, 'season' | 'teamId'>>;
   players?: Resolver<ResolversTypes['PlayerConnection'], ParentType, ContextType, Partial<QueryplayersArgs>>;
   reactions?: Resolver<ResolversTypes['ReactionConnection'], ParentType, ContextType, RequireFields<QueryreactionsArgs, 'targetId'>>;
+  searchUsers?: Resolver<ResolversTypes['UserConnection'], ParentType, ContextType, Partial<QuerysearchUsersArgs>>;
   seasons?: Resolver<ResolversTypes['SeasonConnection'], ParentType, ContextType, Partial<QueryseasonsArgs>>;
   team?: Resolver<Maybe<ResolversTypes['Team']>, ParentType, ContextType, RequireFields<QueryteamArgs, 'id'>>;
   teamGameStats?: Resolver<Maybe<ResolversTypes['TeamStats']>, ParentType, ContextType, RequireFields<QueryteamGameStatsArgs, 'gameId' | 'teamId'>>;
