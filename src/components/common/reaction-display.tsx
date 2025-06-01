@@ -113,8 +113,8 @@ export function ReactionDisplay({
     );
 
     // Set optimistic state when reactions are provided as props
-    if (providedReactions) {
-      setOptimisticReaction({ emoji: emojiName, isAdding: !existingReaction });
+    if (providedReactions && !existingReaction) {
+      setOptimisticReaction({ emoji: emojiName, isAdding: true });
     }
 
     try {
@@ -128,7 +128,7 @@ export function ReactionDisplay({
           },
         },
         // Always use optimistic response for immediate feedback
-        optimisticResponse: {
+        optimisticResponse: !providedReactions ? {
           __typename: 'Mutation',
           createReaction: {
             __typename: 'CreateReactionResponse',
@@ -155,7 +155,7 @@ export function ReactionDisplay({
                 },
             errors: [],
           },
-        },
+        } : undefined,
         // Skip cache update when reactions are provided as props
         update: !providedReactions ? (cache, { data }) => {
           if (!data?.createReaction) return;
