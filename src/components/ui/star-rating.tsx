@@ -19,7 +19,7 @@ export function StarRating({
     stars.push(
       <Star
         key={`full-${i}`}
-        className={`w-${size} h-${size} fill-yellow-400 text-yellow-400 ${className}`}
+        className={`w-${size} h-${size} fill-gray-600 text-gray-600 ${className}`}
       />
     );
   }
@@ -29,11 +29,11 @@ export function StarRating({
     stars.push(
       <div key="half" className="relative">
         <Star
-          className={`w-${size} h-${size} text-yellow-400 ${className}`}
+          className={`w-${size} h-${size} text-gray-300 ${className}`}
           style={{ clipPath: 'inset(0 50% 0 0)' }}
         />
         <Star
-          className={`w-${size} h-${size} fill-yellow-400 text-yellow-400 absolute top-0 left-0 ${className}`}
+          className={`w-${size} h-${size} fill-gray-600 text-gray-600 absolute top-0 left-0 ${className}`}
           style={{ clipPath: 'inset(0 0 0 50%)' }}
         />
       </div>
@@ -43,7 +43,7 @@ export function StarRating({
   // Add empty stars
   for (let i = 0; i < emptyStars; i++) {
     stars.push(
-      <Star key={`empty-${i}`} className={`w-${size} h-${size} text-yellow-400 ${className}`} />
+      <Star key={`empty-${i}`} className={`w-${size} h-${size} text-gray-300 ${className}`} />
     );
   }
 
