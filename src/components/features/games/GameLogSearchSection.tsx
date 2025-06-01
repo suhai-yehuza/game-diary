@@ -470,7 +470,7 @@ export function GameLogSearchSection({ userId, initialSearchText = '' }: GameLog
                                 alt={log.game.teams.visitors.name || 'Away'}
                                 width={24}
                                 height={24}
-                                className="object-contain"
+                                className="object-contain h-6 w-auto"
                               />
                             )}
                             <span className="text-sm font-medium truncate">
@@ -494,7 +494,7 @@ export function GameLogSearchSection({ userId, initialSearchText = '' }: GameLog
                                 alt={log.game.teams.home.name || 'Home'}
                                 width={24}
                                 height={24}
-                                className="object-contain"
+                                className="object-contain h-6 w-auto"
                               />
                             )}
                           </div>

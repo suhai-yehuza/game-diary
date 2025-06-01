@@ -57,7 +57,7 @@ export function LiveGamesSection() {
                   alt={game.teams.visitors.name}
                   width={40}
                   height={40}
-                  className="object-contain"
+                  className="object-contain h-10 w-auto"
                 />
                 <span className="font-bold">{game.scores.visitors.points}</span>
               </div>
@@ -71,7 +71,7 @@ export function LiveGamesSection() {
                   alt={game.teams.home.name}
                   width={40}
                   height={40}
-                  className="object-contain"
+                  className="object-contain h-10 w-auto"
                 />
               </div>
             </div>

@@ -110,7 +110,7 @@ interface Game {
   updatedAt: string;
 }
 
-const getStatusBadge = (status: string) => {
+const getStatusBadge = (status: string, isScheduled?: boolean, isFinished?: boolean) => {
   const statusLower = status.toLowerCase();
   
   if (statusLower.includes('live') || statusLower === 'in play') {
@@ -124,14 +124,12 @@ const getStatusBadge = (status: string) => {
     );
   }
   
-  if (statusLower === 'finished') {
-    return (
-      <Badge variant="secondary">
-        Final
-      </Badge>
-    );
+  // Don't show Final badge here anymore since it's shown on the right
+  if (isFinished) {
+    return null;
   }
   
+  // For scheduled games, show the time
   return (
     <Badge variant="outline">
       {format(new Date(status), 'h:mm a')}
@@ -414,6 +412,7 @@ export function BasketballGameSearchSection() {
                             game.status.long.toLowerCase() === 'in play';
               const isScheduled = game.status.long.toLowerCase() === 'scheduled' || 
                                 isAfter(gameDate, new Date());
+              const isFinished = game.status.long.toLowerCase() === 'finished';
               
               return (
                 <Card 
@@ -424,11 +423,33 @@ export function BasketballGameSearchSection() {
                   )}
                 >
                   <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between">
-                      <div className="text-sm text-muted-foreground">
-                        {format(gameDate, 'MMM d, yyyy')}
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex flex-col">
+                        <div className="text-sm text-muted-foreground">
+                          {format(gameDate, 'MMM d, yyyy')}
+                        </div>
+                        <div className="mt-1">
+                          {getStatusBadge(isScheduled ? game.date.start : game.status.long, isScheduled, isFinished)}
+                        </div>
                       </div>
-                      {getStatusBadge(isScheduled ? game.date.start : game.status.long)}
+                      {/* Scheduled Badge */}
+                      {isScheduled && (
+                        <Badge 
+                          className="bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/20 gap-1 shrink-0"
+                        >
+                          <Calendar className="h-3 w-3" />
+                          Scheduled
+                        </Badge>
+                      )}
+                      {/* Final Badge */}
+                      {isFinished && (
+                        <Badge 
+                          variant="secondary"
+                          className="shrink-0"
+                        >
+                          Final
+                        </Badge>
+                      )}
                     </div>
                   </CardHeader>
 
@@ -444,7 +465,7 @@ export function BasketballGameSearchSection() {
                               alt={game.teams.visitors.name || 'Away'}
                               width={32}
                               height={32}
-                              className="object-contain"
+                              className="object-contain h-8 w-auto"
                             />
                           )}
                           <div>
@@ -472,7 +493,7 @@ export function BasketballGameSearchSection() {
                               alt={game.teams.home.name || 'Home'}
                               width={32}
                               height={32}
-                              className="object-contain"
+                              className="object-contain h-8 w-auto"
                             />
                           )}
                           <div>
