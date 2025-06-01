@@ -25,7 +25,7 @@ import {
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import { SEARCH_USERS } from '@/lib/graphql/queries';
-import { SEND_FRIEND_REQUEST, ACCEPT_FRIEND_REQUEST, REJECT_FRIEND_REQUEST } from '@/lib/graphql/mutations';
+import { SEND_FRIEND_REQUEST, ACCEPT_FRIEND_REQUEST, REJECT_FRIEND_REQUEST, UPDATE_FRIENDSHIP_STATUS } from '@/lib/graphql/mutations';
 import { cn } from '@/lib/utils';
 import { formatCount } from '@/lib/utils/index.format';
 import { FRIENDSHIP_STATUS } from '@/lib/types/config.types';
@@ -65,6 +65,7 @@ const UserCard = ({ user }: { user: UserNode }) => {
   const [sendFriendRequest, { loading: sendingRequest }] = useMutation(SEND_FRIEND_REQUEST);
   const [acceptFriendRequest, { loading: acceptingRequest }] = useMutation(ACCEPT_FRIEND_REQUEST);
   const [rejectFriendRequest, { loading: rejectingRequest }] = useMutation(REJECT_FRIEND_REQUEST);
+  const [updateFriendshipStatus, { loading: updatingStatus }] = useMutation(UPDATE_FRIENDSHIP_STATUS);
   
   const fullName = [user.firstName, user.lastName].filter(Boolean).join(' ');
   const displayName = fullName || user.username;
@@ -170,10 +171,38 @@ const UserCard = ({ user }: { user: UserNode }) => {
     }
   };
   
+  const handleBlockUser = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (!friendshipInfo?.friendshipId) return;
+    
+    try {
+      const { data } = await updateFriendshipStatus({
+        variables: {
+          input: {
+            friendshipId: friendshipInfo.friendshipId,
+            status: FRIENDSHIP_STATUS.BLOCKED,
+          }
+        },
+        refetchQueries: ['SearchUsers'],
+      });
+      
+      if (data?.updateFriendshipStatus?.friendship) {
+        toast.success('User blocked successfully');
+      } else if (data?.updateFriendshipStatus?.errors?.[0]) {
+        toast.error(data.updateFriendshipStatus.errors[0].message);
+      }
+    } catch (error) {
+      console.error('Error blocking user:', error);
+      toast.error('Failed to block user');
+    }
+  };
+  
   const renderFriendshipStatus = () => {
     if (!friendshipInfo) return null;
     
-    const isLoading = sendingRequest || acceptingRequest || rejectingRequest;
+    const isLoading = sendingRequest || acceptingRequest || rejectingRequest || updatingStatus;
     
     switch (friendshipInfo.status) {
       case FRIENDSHIP_STATUS.ACCEPTED:
@@ -220,6 +249,15 @@ const UserCard = ({ user }: { user: UserNode }) => {
                 >
                   <X className="h-3.5 w-3.5" />
                   Reject Request
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem 
+                  onClick={handleBlockUser}
+                  disabled={isLoading}
+                  className="gap-2 text-red-600 focus:text-red-600"
+                >
+                  <Ban className="h-3.5 w-3.5" />
+                  Block User
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
