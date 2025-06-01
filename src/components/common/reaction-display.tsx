@@ -28,7 +28,6 @@ export function ReactionDisplay({
 }: ExtendedReactionDisplayProps) {
   const { user } = useUser();
   const [showAllReactions, setShowAllReactions] = useState(false);
-  const [optimisticReaction, setOptimisticReaction] = useState<{emoji: string, isAdding: boolean} | null>(null);
   
   // Only query if reactions aren't provided or we need to load all
   const { data, loading, refetch } = useQuery(GET_REACTIONS, {
@@ -39,49 +38,12 @@ export function ReactionDisplay({
   const [createReaction] = useMutation(CREATE_REACTION);
 
   // Use provided reactions initially, full data when loading all
-  let reactions = showAllReactions && data?.reactions?.edges 
+  const reactions = showAllReactions && data?.reactions?.edges 
     ? data.reactions.edges.map((edge: { node: Reaction }) => edge.node)
     : (providedReactions || data?.reactions?.edges?.map((edge: { node: Reaction }) => edge.node) || []);
   
-  // Apply optimistic update if we have one
-  if (optimisticReaction && providedReactions) {
-    if (optimisticReaction.isAdding) {
-      // Add optimistic reaction if not already present
-      const hasReaction = reactions.some((r: Reaction) => r.userId === user?.id && r.emoji === optimisticReaction.emoji);
-      if (!hasReaction) {
-        reactions = [...reactions, {
-          __typename: 'Reaction',
-          id: `optimistic-${Date.now()}`,
-          emoji: optimisticReaction.emoji,
-          userId: user!.id,
-          targetId: targetId,
-          targetType: targetType,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          user: {
-            __typename: 'UserSummary',
-            id: user!.id,
-            username: user!.username || '',
-            firstName: user!.firstName || '',
-            lastName: user!.lastName || '',
-            emailAddress: user!.emailAddresses?.[0]?.emailAddress || '',
-            imageUrl: user!.imageUrl || null,
-          },
-        } as Reaction];
-      }
-    } else {
-      // Remove optimistic reaction
-      reactions = reactions.filter((r: Reaction) => !(r.userId === user?.id && r.emoji === optimisticReaction.emoji));
-    }
-  }
-  
   // Use provided total count if available
   const totalCount = providedTotalCount || data?.reactions?.totalCount || reactions.length;
-  
-  // Clear optimistic state when provided reactions change (parent refetched)
-  React.useEffect(() => {
-    setOptimisticReaction(null);
-  }, [providedReactions]);
   
   if (!providedReactions && loading) return null;
 
@@ -114,14 +76,8 @@ export function ReactionDisplay({
       (r: Reaction) => r.userId === user.id && r.emoji === emojiName
     );
 
-    // Set optimistic state when reactions are provided as props
-    if (providedReactions && !existingReaction) {
-      setOptimisticReaction({ emoji: emojiName, isAdding: true });
-    }
-
     try {
-      // Use createReaction which now handles toggling internally
-      const result = await createReaction({
+      await createReaction({
         variables: {
           input: {
             targetId: targetId,
@@ -129,36 +85,6 @@ export function ReactionDisplay({
             emoji: emojiName,
           },
         },
-        // Always use optimistic response for immediate feedback
-        optimisticResponse: !providedReactions ? {
-          __typename: 'Mutation',
-          createReaction: {
-            __typename: 'CreateReactionResponse',
-            reaction: existingReaction
-              ? null // Toggling off
-              : {
-                  __typename: 'Reaction',
-                  id: `temp-${Date.now()}`,
-                  emoji: emojiName,
-                  userId: user.id,
-                  targetId: targetId,
-                  targetType: targetType,
-                  createdAt: new Date().toISOString(),
-                  updatedAt: new Date().toISOString(),
-                  user: {
-                    __typename: 'UserSummary',
-                    id: user.id,
-                    username: user.username || '',
-                    firstName: user.firstName || '',
-                    lastName: user.lastName || '',
-                    emailAddress: user.emailAddresses?.[0]?.emailAddress || '',
-                    imageUrl: user.imageUrl || null,
-                  },
-                },
-            errors: [],
-          },
-        } : undefined,
-        // Skip cache update when reactions are provided as props
         update: !providedReactions ? (cache, { data }) => {
           if (!data?.createReaction) return;
           
@@ -199,42 +125,23 @@ export function ReactionDisplay({
             });
           }
         } : undefined,
-        // Ensure refetch happens after mutation
-        awaitRefetchQueries: !!providedReactions,
       });
 
-      if (result.data?.createReaction?.errors?.length > 0) {
-        console.error('Reaction errors:', result.data.createReaction.errors);
-      }
-
-      // Call onReactionChange after mutation completes
       if (onReactionChange) {
         onReactionChange();
       }
     } catch (error) {
       console.error('Error toggling reaction:', error);
-      // Still call onReactionChange on error to refresh state
       if (onReactionChange) {
         onReactionChange();
       }
     }
   };
 
-  // Check if the current user has reacted with a specific emoji
-  const hasUserReacted = (emojiName: string) => {
-    return formattedReactions.some(
-      (reaction: { id: string; emoji: string; userId: string }) =>
-        reaction.userId === user?.id && reaction.emoji === emojiName
-    );
-  };
-
   return (
     <div className="flex items-center gap-2 flex-wrap">
       {/* Reaction Pills */}
-      <div className={cn(
-        "flex items-center gap-1.5 flex-wrap",
-        Object.keys(reactionGroups).length > 0 && "mr-2"
-      )}>
+      <div className="flex items-center gap-1.5 flex-wrap">
         {Object.entries(REACTION_EMOJIS).map(([name, emoji]) => {
           const group = reactionGroups[name];
           if (!group || group.count === 0) return null;
@@ -242,67 +149,35 @@ export function ReactionDisplay({
           const userHasReacted = group.hasCurrentUser;
 
           return (
-            <div
-              key={name}
-              className={cn(
-                "group relative inline-flex items-center gap-1.5 px-2.5 py-1",
-                "rounded-full text-sm font-medium cursor-pointer select-none",
-                "transition-all duration-200 hover:scale-105",
-                "animate-in fade-in-50 zoom-in-95",
-                userHasReacted 
-                  ? "bg-primary/15 text-primary hover:bg-primary/25 ring-1 ring-primary/30" 
-                  : "bg-muted hover:bg-accent text-muted-foreground hover:text-foreground"
-              )}
-              onClick={() => handleEmojiClick(name as ReactionEmojiType)}
-              role="button"
-              tabIndex={0}
-            >
-              {/* Emoji with bounce animation on click */}
-              <span 
+            <div key={name} className="relative group/reaction">
+              <button
                 className={cn(
-                  "text-base transition-transform duration-200",
-                  "group-hover:scale-110 group-active:scale-125"
+                  "inline-flex items-center gap-1 px-2 py-1",
+                  "rounded-full text-sm transition-colors",
+                  userHasReacted 
+                    ? "bg-primary/15 text-primary hover:bg-primary/20" 
+                    : "bg-muted hover:bg-muted/80"
                 )}
+                onClick={() => handleEmojiClick(name as ReactionEmojiType)}
               >
-                {emoji}
-              </span>
+                <span>{emoji}</span>
+                <span className="font-medium">{group.count}</span>
+              </button>
               
-              {/* Count badge */}
-              <span className={cn(
-                "min-w-[1rem] text-center",
-                group.count > 99 && "text-xs"
-              )}>
-                {group.count > 99 ? '99+' : group.count}
-              </span>
-
-              {/* Tooltip with reactor names */}
+              {/* Simple tooltip */}
               <div className={cn(
-                "absolute bottom-full left-1/2 -translate-x-1/2 mb-2",
-                "bg-popover px-3 py-1.5 rounded-md shadow-lg border",
-                "text-xs whitespace-nowrap max-w-xs",
-                "opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100",
-                "transition-all duration-200 pointer-events-none z-50",
-                "before:content-[''] before:absolute before:top-full before:left-1/2",
-                "before:-translate-x-1/2 before:border-4 before:border-transparent",
-                "before:border-t-border"
+                "absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-50",
+                "bg-popover border rounded px-2 py-1 text-xs shadow-sm",
+                "opacity-0 invisible group-hover/reaction:opacity-100 group-hover/reaction:visible",
+                "transition-opacity duration-200 pointer-events-none",
+                "whitespace-nowrap max-w-xs"
               )}>
-                <div className="font-medium mb-0.5">
-                  {userHasReacted ? '✓ You' : group.users[0]}
-                  {group.count > 1 && ` and ${group.count - 1} ${group.count === 2 ? 'other' : 'others'}`}
-                </div>
-                <div className="text-muted-foreground">
-                  reacted with {name.charAt(0) + name.slice(1).toLowerCase()}
-                </div>
+                {userHasReacted ? (
+                  <span>You{group.count > 1 && `, ${group.users.filter((u: string) => u !== user?.username).join(', ')}`}</span>
+                ) : (
+                  <span>{group.users.slice(0, 3).join(', ')}{group.count > 3 && ` +${group.count - 3} more`}</span>
+                )}
               </div>
-
-              {/* Shine effect on hover */}
-              <div className={cn(
-                "absolute inset-0 rounded-full overflow-hidden pointer-events-none",
-                "before:absolute before:inset-0 before:bg-gradient-to-r",
-                "before:from-transparent before:via-white/10 before:to-transparent",
-                "before:-translate-x-full before:group-hover:translate-x-full",
-                "before:transition-transform before:duration-700"
-              )} />
             </div>
           );
         })}
@@ -312,37 +187,27 @@ export function ReactionDisplay({
       {totalCount > reactions.length && (
         <Badge
           variant="secondary"
-          className={cn(
-            "cursor-pointer hover:bg-secondary/80",
-            "transition-all duration-200 hover:scale-105"
-          )}
+          className="cursor-pointer hover:bg-secondary/80"
           onClick={() => setShowAllReactions(true)}
         >
           +{totalCount - reactions.length} more
         </Badge>
       )}
       
-      {/* Reaction Picker with divider */}
+      {/* Reaction Picker */}
       {user && (
-        <>
-          {Object.keys(reactionGroups).length > 0 && (
-            <div className="h-4 w-px bg-border/50" />
-          )}
-          <ReactionPicker
-            targetId={targetId}
-            targetType={targetType}
-            existingReactions={formattedReactions}
-            onReactionChanged={() => {
-              if (providedReactions) {
-                if (onReactionChange) {
-                  onReactionChange();
-                }
-              } else {
-                refetch();
-              }
-            }}
-          />
-        </>
+        <ReactionPicker
+          targetId={targetId}
+          targetType={targetType}
+          existingReactions={formattedReactions}
+          onReactionChanged={() => {
+            if (providedReactions && onReactionChange) {
+              onReactionChange();
+            } else {
+              refetch();
+            }
+          }}
+        />
       )}
     </div>
   );
