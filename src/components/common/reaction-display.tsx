@@ -26,6 +26,7 @@ export function ReactionDisplay({
 }: ExtendedReactionDisplayProps) {
   const { user } = useUser();
   const [showAllReactions, setShowAllReactions] = useState(false);
+  const [optimisticReaction, setOptimisticReaction] = useState<{emoji: string, isAdding: boolean} | null>(null);
   
   // Only query if reactions aren't provided or we need to load all
   const { data, loading, refetch } = useQuery(GET_REACTIONS, {
@@ -36,12 +37,49 @@ export function ReactionDisplay({
   const [createReaction] = useMutation(CREATE_REACTION);
 
   // Use provided reactions initially, full data when loading all
-  const reactions = showAllReactions && data?.reactions?.edges 
+  let reactions = showAllReactions && data?.reactions?.edges 
     ? data.reactions.edges.map((edge: { node: Reaction }) => edge.node)
     : (providedReactions || data?.reactions?.edges?.map((edge: { node: Reaction }) => edge.node) || []);
   
+  // Apply optimistic update if we have one
+  if (optimisticReaction && providedReactions) {
+    if (optimisticReaction.isAdding) {
+      // Add optimistic reaction if not already present
+      const hasReaction = reactions.some((r: Reaction) => r.userId === user?.id && r.emoji === optimisticReaction.emoji);
+      if (!hasReaction) {
+        reactions = [...reactions, {
+          __typename: 'Reaction',
+          id: `optimistic-${Date.now()}`,
+          emoji: optimisticReaction.emoji,
+          userId: user!.id,
+          targetId: targetId,
+          targetType: targetType,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          user: {
+            __typename: 'UserSummary',
+            id: user!.id,
+            username: user!.username || '',
+            firstName: user!.firstName || '',
+            lastName: user!.lastName || '',
+            emailAddress: user!.emailAddresses?.[0]?.emailAddress || '',
+            imageUrl: user!.imageUrl || null,
+          },
+        } as Reaction];
+      }
+    } else {
+      // Remove optimistic reaction
+      reactions = reactions.filter((r: Reaction) => !(r.userId === user?.id && r.emoji === optimisticReaction.emoji));
+    }
+  }
+  
   // Use provided total count if available
   const totalCount = providedTotalCount || data?.reactions?.totalCount || reactions.length;
+  
+  // Clear optimistic state when provided reactions change (parent refetched)
+  React.useEffect(() => {
+    setOptimisticReaction(null);
+  }, [providedReactions]);
   
   if (!providedReactions && loading) return null;
 
@@ -74,6 +112,11 @@ export function ReactionDisplay({
       (r: Reaction) => r.userId === user.id && r.emoji === emojiName
     );
 
+    // Set optimistic state when reactions are provided as props
+    if (providedReactions) {
+      setOptimisticReaction({ emoji: emojiName, isAdding: !existingReaction });
+    }
+
     try {
       // Use createReaction which now handles toggling internally
       const result = await createReaction({
@@ -84,10 +127,13 @@ export function ReactionDisplay({
             emoji: emojiName,
           },
         },
+        // Always use optimistic response for immediate feedback
         optimisticResponse: {
+          __typename: 'Mutation',
           createReaction: {
+            __typename: 'CreateReactionResponse',
             reaction: existingReaction
-              ? null // If toggling off
+              ? null // Toggling off
               : {
                   __typename: 'Reaction',
                   id: `temp-${Date.now()}`,
@@ -108,16 +154,58 @@ export function ReactionDisplay({
                   },
                 },
             errors: [],
-            __typename: 'CreateReactionPayload',
           },
         },
+        // Skip cache update when reactions are provided as props
+        update: !providedReactions ? (cache, { data }) => {
+          if (!data?.createReaction) return;
+          
+          const existingData = cache.readQuery({
+            query: GET_REACTIONS,
+            variables: { targetId },
+          }) as { reactions: { edges: any[]; totalCount: number } } | null;
+          
+          if (existingData?.reactions) {
+            let newEdges;
+            if (data.createReaction.reaction) {
+              // Adding reaction
+              newEdges = [
+                ...existingData.reactions.edges,
+                {
+                  __typename: 'ReactionEdge',
+                  cursor: `cursor-${data.createReaction.reaction.id}`,
+                  node: data.createReaction.reaction,
+                },
+              ];
+            } else {
+              // Removing reaction
+              newEdges = existingData.reactions.edges.filter(
+                (edge: any) => !(edge.node.userId === user.id && edge.node.emoji === emojiName)
+              );
+            }
+            
+            cache.writeQuery({
+              query: GET_REACTIONS,
+              variables: { targetId },
+              data: {
+                reactions: {
+                  ...existingData.reactions,
+                  edges: newEdges,
+                  totalCount: newEdges.length,
+                },
+              },
+            });
+          }
+        } : undefined,
+        // Ensure refetch happens after mutation
+        awaitRefetchQueries: !!providedReactions,
       });
 
       if (result.data?.createReaction?.errors?.length > 0) {
         console.error('Reaction errors:', result.data.createReaction.errors);
       }
 
-      // Call onReactionChange after successful mutation
+      // Call onReactionChange after mutation completes
       if (onReactionChange) {
         onReactionChange();
       }

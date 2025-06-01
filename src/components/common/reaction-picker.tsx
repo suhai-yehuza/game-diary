@@ -107,8 +107,8 @@ export function ReactionPicker({
       });
       
       setIsOpen(false);
-      // Only call onReactionChanged if there was an error (to refetch)
-      // Otherwise the optimistic update handles it
+      // Call onReactionChanged to notify parent components
+      onReactionChanged?.();
     } catch (error) {
       console.error('Error toggling reaction:', error);
       onReactionChanged?.();
