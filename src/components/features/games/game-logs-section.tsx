@@ -16,6 +16,7 @@ interface GameLogsSectionProps {
   isFetchingMore: boolean;
   loadMoreRef: React.RefObject<HTMLDivElement>;
   onLoadMore: () => void;
+  refetch?: () => void;
 }
 
 const formatDate = (date: string | Date | null | undefined) => {
@@ -42,6 +43,7 @@ export function GameLogsSection({
   isFetchingMore,
   loadMoreRef,
   onLoadMore,
+  refetch,
 }: GameLogsSectionProps) {
   if (loading && !gameLogs.length) {
     return (
@@ -140,6 +142,7 @@ export function GameLogsSection({
                 targetType="game_log" 
                 reactions={log.reactions?.edges?.map(edge => edge.node) || []} 
                 totalReactionCount={log.reactions?.totalCount || 0}
+                onReactionChange={refetch}
               />
               <CommentsSection parentId={log.id} parentType="game_log" />
             </div>

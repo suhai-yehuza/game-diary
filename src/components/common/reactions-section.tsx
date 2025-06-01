@@ -8,9 +8,10 @@ interface ReactionsSectionProps {
   targetType: string;
   reactions?: Reaction[];
   totalReactionCount?: number;
+  onReactionChange?: () => void;
 }
 
-export function ReactionsSection({ targetId, targetType, reactions, totalReactionCount }: ReactionsSectionProps) {
+export function ReactionsSection({ targetId, targetType, reactions, totalReactionCount, onReactionChange }: ReactionsSectionProps) {
   return (
     <div className="flex items-center gap-2">
       <ReactionDisplay 
@@ -18,6 +19,7 @@ export function ReactionsSection({ targetId, targetType, reactions, totalReactio
         targetType={targetType} 
         reactions={reactions} 
         totalReactionCount={totalReactionCount}
+        onReactionChange={onReactionChange}
       />
     </div>
   );

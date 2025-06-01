@@ -10,7 +10,7 @@ import { GameLog } from '@/lib/types/game.types';
 import { API_CONFIG } from '@/lib/config/api.config';
 
 export default function CommunityPage() {
-  const { data, loading, isFetchingMore, loadMoreRef, handleLoadMore } = usePaginatedData<GameLog>({
+  const { data, loading, isFetchingMore, loadMoreRef, handleLoadMore, refetch } = usePaginatedData<GameLog>({
     query: GET_GAME_LOGS,
     variables: { first: API_CONFIG.pagination.DEFAULT_PAGE_SIZE },
     dataKey: 'gameLogs',
@@ -37,6 +37,7 @@ export default function CommunityPage() {
               isFetchingMore={isFetchingMore}
               loadMoreRef={loadMoreRef}
               onLoadMore={handleLoadMore}
+              refetch={refetch}
             />
           </TabsContent>
         </Tabs>

@@ -59,17 +59,20 @@ export function CommentItem({
   const [showReplies, setShowReplies] = useState(false);
   const [isLoadingReplies, setIsLoadingReplies] = useState(false);
 
-  const canReply = comment.depth < maxDepth;
+  const canReply = (comment.depth ?? 0) < maxDepth;
   const hasReplies = (comment.childComments?.totalCount ?? 0) > 0;
 
   const [createReply] = useMutation(CREATE_COMMENT, {
     onCompleted: () => {
-      setReplyContent('');
-      setIsReplying(false);
-      setShowReplies(true);
-      if (refetchComments) {
-        refetchComments();
-      }
+      // Defer state updates to avoid updating during render
+      setTimeout(() => {
+        setReplyContent('');
+        setIsReplying(false);
+        setShowReplies(true);
+        if (refetchComments) {
+          refetchComments();
+        }
+      }, 0);
       toast({
         title: 'Reply posted',
         description: 'Your reply has been posted successfully.',
@@ -111,13 +114,13 @@ export function CommentItem({
       <div className="flex items-start justify-between mb-2">
         <div className="flex items-center gap-2">
           <Avatar className="h-8 w-8">
-            <AvatarImage src={comment.user.imageUrl ?? undefined} />
+            <AvatarImage src={comment.user?.imageUrl ?? undefined} />
             <AvatarFallback>
-              {comment.user.username?.[0]?.toUpperCase() ?? 'U'}
+              {comment.user?.username?.[0]?.toUpperCase() ?? 'U'}
             </AvatarFallback>
           </Avatar>
           <div>
-            <div className="font-semibold text-sm">{comment.user.username}</div>
+            <div className="font-semibold text-sm">{comment.user?.username ?? 'Unknown User'}</div>
             <div className="text-xs text-gray-500">
               {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true })}
               {comment.depth > 0 && (
@@ -128,7 +131,7 @@ export function CommentItem({
             </div>
           </div>
         </div>
-        {user?.id === comment.user.id && (
+        {user?.id === comment.user?.id && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -155,7 +158,8 @@ export function CommentItem({
         <ReactionDisplay 
           targetId={comment.id} 
           targetType="comment" 
-          reactions={comment.reactions} 
+          reactions={comment.reactions}
+          onReactionChange={refetchComments}
         />
         
         {user && canReply && (

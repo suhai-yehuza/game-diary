@@ -33,7 +33,7 @@ export function usePaginatedData<T extends { id: string }>({
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
-  const { loading, error, data, fetchMore } = useQuery(query, {
+  const { loading, error, data, fetchMore, refetch } = useQuery(query, {
     variables: {
       ...variables,
       first: API_CONFIG.pagination.DEFAULT_PAGE_SIZE,
@@ -136,5 +136,6 @@ export function usePaginatedData<T extends { id: string }>({
     isFetchingMore,
     loadMoreRef,
     handleLoadMore,
+    refetch,
   };
 }

@@ -14,13 +14,15 @@ import { ReactionPicker } from './reaction-picker';
 interface ExtendedReactionDisplayProps extends ReactionDisplayProps {
   reactions?: Reaction[];
   totalReactionCount?: number;
+  onReactionChange?: () => void;
 }
 
 export function ReactionDisplay({ 
   targetId, 
   targetType, 
   reactions: providedReactions,
-  totalReactionCount: providedTotalCount 
+  totalReactionCount: providedTotalCount,
+  onReactionChange
 }: ExtendedReactionDisplayProps) {
   const { user } = useUser();
   const [showAllReactions, setShowAllReactions] = useState(false);
@@ -109,60 +111,22 @@ export function ReactionDisplay({
             __typename: 'CreateReactionPayload',
           },
         },
-        update: (cache, { data }) => {
-          if (!data?.createReaction) return;
-
-          const existingData = cache.readQuery({
-            query: GET_REACTIONS,
-            variables: { targetId },
-          }) as { reactions: { edges: any[]; totalCount: number } } | null;
-
-          if (!existingData?.reactions) return;
-
-          let newEdges;
-          if (data.createReaction.reaction) {
-            // Adding a reaction
-            const newEdge = {
-              __typename: 'ReactionEdge',
-              node: data.createReaction.reaction,
-              cursor: `cursor-${data.createReaction.reaction.id}`,
-            };
-            
-            // Remove any existing reaction from the same user with different emoji if needed
-            newEdges = [
-              ...existingData.reactions.edges,
-              newEdge,
-            ];
-          } else {
-            // Removing a reaction
-            newEdges = existingData.reactions.edges.filter(
-              (edge: any) => !(edge.node.userId === user.id && edge.node.emoji === emojiName)
-            );
-          }
-
-          cache.writeQuery({
-            query: GET_REACTIONS,
-            variables: { targetId },
-            data: {
-              reactions: {
-                ...existingData.reactions,
-                edges: newEdges,
-                totalCount: newEdges.length,
-              },
-            },
-          });
-        },
       });
 
       if (result.data?.createReaction?.errors?.length > 0) {
         console.error('Reaction errors:', result.data.createReaction.errors);
-        // Only refetch if there were errors
-        refetch();
+      }
+
+      // Call onReactionChange after successful mutation
+      if (onReactionChange) {
+        onReactionChange();
       }
     } catch (error) {
       console.error('Error toggling reaction:', error);
-      // Only refetch on error
-      refetch();
+      // Still call onReactionChange on error to refresh state
+      if (onReactionChange) {
+        onReactionChange();
+      }
     }
   };
 
@@ -213,7 +177,17 @@ export function ReactionDisplay({
         targetId={targetId}
         targetType={targetType}
         existingReactions={formattedReactions}
-        onReactionChanged={refetch}
+        onReactionChanged={() => {
+          if (providedReactions) {
+            // If reactions are provided, call parent to refetch
+            if (onReactionChange) {
+              onReactionChange();
+            }
+          } else {
+            // Otherwise refetch our own query
+            refetch();
+          }
+        }}
       />
     </div>
   );

@@ -6,6 +6,16 @@ This document describes the implementation of nested/threaded comments with repl
 
 Users can now reply to comments creating a threaded discussion. The nesting is limited to a maximum depth of 3 levels (configurable via `MAX_CHILD_COMMENT_DEPTH`).
 
+### Depth Levels Explained
+
+With `MAX_CHILD_COMMENT_DEPTH = 3`:
+- **Depth 0**: Top-level comments on game logs (can be replied to)
+- **Depth 1**: First-level replies (can be replied to)
+- **Depth 2**: Second-level replies (can be replied to)
+- **Depth 3**: Third-level replies (CANNOT be replied to - maximum depth reached)
+
+This allows for 4 total levels of comments (0 through 3), with the last level unable to spawn further replies.
+
 ## Features
 
 ### 1. Reply to Comments
