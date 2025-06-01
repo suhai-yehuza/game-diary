@@ -65,10 +65,32 @@ export function usePaginatedData<T extends { id: string }>({
         ) => {
           if (!fetchMoreResult) return prev;
 
-          const newData = fetchMoreResult[dataKey].edges.map(edge => edge.node);
-          onDataUpdate?.(newData);
+          const prevData = prev[dataKey];
+          const newData = fetchMoreResult[dataKey];
 
-          return fetchMoreResult;
+          // Create a Set of existing IDs for efficient lookup
+          const existingIds = new Set(
+            prevData.edges.map((edge: any) => edge.node.id)
+          );
+
+          // Filter out any duplicate items from the new results
+          const newEdges = newData.edges.filter(
+            (edge: any) => !existingIds.has(edge.node.id)
+          );
+
+          // Notify about new data
+          if (onDataUpdate) {
+            const newNodes = newEdges.map(edge => edge.node);
+            onDataUpdate(newNodes);
+          }
+
+          return {
+            ...prev,
+            [dataKey]: {
+              ...newData,
+              edges: [...prevData.edges, ...newEdges],
+            },
+          };
         },
       });
 
@@ -93,7 +115,10 @@ export function usePaginatedData<T extends { id: string }>({
           handleLoadMore();
         }
       },
-      { threshold: 0.5 }
+      { 
+        threshold: 0.1,
+        rootMargin: '100px' // Start loading 100px before the element is visible
+      }
     );
 
     observer.observe(element);

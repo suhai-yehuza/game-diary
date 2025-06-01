@@ -29,7 +29,7 @@ graphqlSchema = constraintDirective()(graphqlSchema);
 
 // Rate limiting configuration
 const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute
-const MAX_REQUESTS_PER_WINDOW = 300; // 300 requests per minute (5 requests per second)
+const MAX_REQUESTS_PER_WINDOW = 10000; // 10000 requests per minute (166 requests per second)
 const requestCounts = new Map<string, { count: number; resetTime: number }>();
 
 // Helper function to check rate limit

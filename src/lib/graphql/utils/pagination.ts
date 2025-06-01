@@ -42,14 +42,14 @@ export function parsePaginationArgs(args: ConnectionArgs): PaginationParams {
   if (first !== null && first !== undefined) {
     // Forward pagination
     const limit = Math.min(first, maxLimit);
-    const offset = after ? parseInt(after, 10) : 0;
+    const offset = after ? parseCursor(after) : 0;
     return { limit, offset, isForward: true };
   }
 
   if (last !== null && last !== undefined) {
     // Backward pagination
     const limit = Math.min(last, maxLimit);
-    const offset = before ? Math.max(0, parseInt(before, 10) - limit) : 0;
+    const offset = before ? Math.max(0, parseCursor(before) - limit) : 0;
     return { limit, offset, isForward: false };
   }
 
