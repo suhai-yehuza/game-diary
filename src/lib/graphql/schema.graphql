@@ -783,25 +783,6 @@ type SeriesScore {
   win: Int
 }
 
-type SharedGameLog {
-  classification: Classification!
-  createdAt: DateTime!
-  deletedAt: DateTime
-  game: Game!
-  gameId: ID!
-  id: ID!
-  notes: String
-  rating: Int
-  tags: [String!]!
-  updatedAt: DateTime!
-  user: UserSummary!
-  userId: ID!
-  watchedDate: DateTime
-  watchedLocation: String
-  watchedScope: String!
-  watchedSetting: String!
-}
-
 enum SortDirection {
   ASC
   DESC

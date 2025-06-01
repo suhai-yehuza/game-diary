@@ -1229,26 +1229,6 @@ export type SeriesScore = {
   win: Maybe<Scalars['Int']['output']>;
 };
 
-export type SharedGameLog = {
-  __typename?: 'SharedGameLog';
-  classification: Classification;
-  createdAt: Scalars['DateTime']['output'];
-  deletedAt: Maybe<Scalars['DateTime']['output']>;
-  game: Game;
-  gameId: Scalars['ID']['output'];
-  id: Scalars['ID']['output'];
-  notes: Maybe<Scalars['String']['output']>;
-  rating: Maybe<Scalars['Int']['output']>;
-  tags: Array<Scalars['String']['output']>;
-  updatedAt: Scalars['DateTime']['output'];
-  user: UserSummary;
-  userId: Scalars['ID']['output'];
-  watchedDate: Maybe<Scalars['DateTime']['output']>;
-  watchedLocation: Maybe<Scalars['String']['output']>;
-  watchedScope: Scalars['String']['output'];
-  watchedSetting: Scalars['String']['output'];
-};
-
 export type SortDirection =
   | 'ASC'
   | 'DESC';
@@ -1849,7 +1829,6 @@ export type ResolversTypes = {
   SeasonEdge: ResolverTypeWrapper<SeasonEdge>;
   SendFriendRequestResponse: ResolverTypeWrapper<Omit<SendFriendRequestResponse, 'errors'> & { errors?: Maybe<Array<ResolversTypes['ErrorResult']>> }>;
   SeriesScore: ResolverTypeWrapper<SeriesScore>;
-  SharedGameLog: ResolverTypeWrapper<SharedGameLog>;
   SortDirection: SortDirection;
   String: ResolverTypeWrapper<Scalars['String']['output']>;
   TargetType: TargetType;
@@ -1990,7 +1969,6 @@ export type ResolversParentTypes = {
   SeasonEdge: SeasonEdge;
   SendFriendRequestResponse: Omit<SendFriendRequestResponse, 'errors'> & { errors?: Maybe<Array<ResolversParentTypes['ErrorResult']>> };
   SeriesScore: SeriesScore;
-  SharedGameLog: SharedGameLog;
   String: Scalars['String']['output'];
   Team: Team;
   TeamConnection: TeamConnection;
@@ -2718,26 +2696,6 @@ export type SeriesScoreResolvers<ContextType = Context, ParentType extends Resol
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type SharedGameLogResolvers<ContextType = Context, ParentType extends ResolversParentTypes['SharedGameLog'] = ResolversParentTypes['SharedGameLog']> = {
-  classification?: Resolver<ResolversTypes['Classification'], ParentType, ContextType>;
-  createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
-  deletedAt?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
-  game?: Resolver<ResolversTypes['Game'], ParentType, ContextType>;
-  gameId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
-  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
-  notes?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  rating?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
-  tags?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
-  updatedAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
-  user?: Resolver<ResolversTypes['UserSummary'], ParentType, ContextType>;
-  userId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
-  watchedDate?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
-  watchedLocation?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  watchedScope?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  watchedSetting?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-};
-
 export type TeamResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Team'] = ResolversParentTypes['Team']> = {
   abbreviation?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   city?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -3109,7 +3067,6 @@ export type Resolvers<ContextType = Context> = {
   SeasonEdge?: SeasonEdgeResolvers<ContextType>;
   SendFriendRequestResponse?: SendFriendRequestResponseResolvers<ContextType>;
   SeriesScore?: SeriesScoreResolvers<ContextType>;
-  SharedGameLog?: SharedGameLogResolvers<ContextType>;
   Team?: TeamResolvers<ContextType>;
   TeamConnection?: TeamConnectionResolvers<ContextType>;
   TeamEdge?: TeamEdgeResolvers<ContextType>;

@@ -6,7 +6,7 @@ import React from 'react';
 
 import { StarRating } from '@/components/ui/star-rating';
 import { GET_USER, GET_GAME_LOGS } from '@/lib/graphql/queries';
-import { SharedGameLog } from '@/lib/types/generated/graphql';
+import { GameLog } from '@/lib/types/generated/graphql';
 import { API_CONFIG } from '@/lib/config/api.config';
 import { TeamCounts } from '@/lib/types/team.types';
 import { FriendProfileProps } from '@/lib/types/user.types';
@@ -67,9 +67,9 @@ export const FriendProfile: React.FC<FriendProfileProps> = ({ friendId, onClose 
   const totalGames = gameLogs.length;
   const totalWatchTime = gameLogs.length;
   const averageRating =
-    gameLogs.reduce((acc: number, log: SharedGameLog) => acc + (log.rating || 0), 0) / totalGames ||
+    gameLogs.reduce((acc: number, log: GameLog) => acc + (log.ratingForGame || 0), 0) / totalGames ||
     0;
-  const favoriteTeams = gameLogs.reduce((acc: TeamCounts, log: SharedGameLog) => {
+  const favoriteTeams = gameLogs.reduce((acc: TeamCounts, log: GameLog) => {
     const teams = [log.game.teams.visitors.name, log.game.teams.home.name];
     teams.forEach(team => {
       acc[team] = (acc[team] || 0) + 1;
@@ -159,7 +159,7 @@ export const FriendProfile: React.FC<FriendProfileProps> = ({ friendId, onClose 
         <div className="mt-8">
           <h3 className="text-lg font-semibold mb-4">Game History</h3>
           <div className="space-y-4">
-            {gameLogs.slice(0, 5).map((log: SharedGameLog) => (
+            {gameLogs.slice(0, 5).map((log: GameLog) => (
               <motion.div
                 key={log.id}
                 initial={{ opacity: 0, y: 20 }}

@@ -1,5 +1,5 @@
 import type { Comment } from './comment.types';
-import type { SharedGameLog } from './generated/graphql';
+import type { GameLog } from './generated/graphql';
 import type { Reaction } from './reaction.types';
 import type { BaseUser, Friendship, ValidatableValue } from './shared.types';
 
@@ -184,7 +184,7 @@ export interface DbCustomUser extends BaseUser {
   external_accounts?: ExternalUserAccount[];
   comments?: Comment[];
   reactions?: Reaction[];
-  game_logs?: SharedGameLog[];
+  game_logs?: GameLog[];
   createdAt?: Date;
   updatedAt?: Date;
 }
