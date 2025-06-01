@@ -75,7 +75,7 @@ export const games = async (
   try {
     const { first = 10, after, last, before, filters } = args;
 
-    // Build the query
+    // Build the query conditions
     const conditions = [];
     if (filters?.season) {
       conditions.push(eq(schema.nba_games.season, filters.season));
@@ -91,22 +91,37 @@ export const games = async (
         )
       );
     }
+
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
+    // Get the total count
+    const [countResult] = await db
+      .select({ count: sql<number>`cast(count(*) as int)` })
+      .from(schema.nba_games)
+      .where(whereClause);
+    
+    const totalCount = countResult?.count || 0;
+
+    // Add cursor conditions for pagination
+    const paginationConditions = [...conditions];
     if (after) {
-      conditions.push(gt(schema.nba_games.id, after));
+      paginationConditions.push(gt(schema.nba_games.id, after));
     }
     if (before) {
-      conditions.push(lt(schema.nba_games.id, before));
+      paginationConditions.push(lt(schema.nba_games.id, before));
     }
 
+    const paginationWhereClause = paginationConditions.length > 0 ? and(...paginationConditions) : undefined;
+
+    // Execute query with pagination
     const limit = last || first || 10;
     const query = db
       .select()
       .from(schema.nba_games)
-      .where(conditions.length > 0 ? and(...conditions) : undefined)
+      .where(paginationWhereClause)
       .orderBy(sql`${schema.nba_games.date}->>'start' DESC`)
       .limit(limit + 1);
 
-    // Execute query
     const items = await query;
 
     // Check if there are more items
@@ -115,7 +130,7 @@ export const games = async (
 
     const mappedGames = actualItems.map(mapGameData);
 
-    return createConnection(mappedGames, actualItems.length, args);
+    return createConnection(mappedGames, totalCount, args);
   } catch (error) {
     handleResolverError(error, 'fetch games');
   }

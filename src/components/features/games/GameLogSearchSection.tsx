@@ -14,12 +14,14 @@ import {
   Trophy,
   Tv,
   Users,
-  X
+  X,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -116,6 +118,12 @@ const getClassificationStyles = (classification: string) => {
   }
 };
 
+// Store cursor information for each page
+interface PageCursor {
+  startCursor: string | null;
+  endCursor: string | null;
+}
+
 export function GameLogSearchSection({ userId, initialSearchText = '' }: GameLogSearchSectionProps) {
   const router = useRouter();
   const [searchText, setSearchText] = useState(initialSearchText);
@@ -125,6 +133,11 @@ export function GameLogSearchSection({ userId, initialSearchText = '' }: GameLog
   const [hasNotes, setHasNotes] = useState<string>('all');
   const [sortBy, setSortBy] = useState<GameLogSortByType>(GameLogSortBy.CreatedAt);
   const [sortDirection, setSortDirection] = useState<SortDirectionType>(SortDirection.Desc);
+
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageCursors, setPageCursors] = useState<Record<number, PageCursor>>({});
+  const pageSize = 12;
 
   // Build filters object
   const filters = useMemo(() => {
@@ -157,38 +170,44 @@ export function GameLogSearchSection({ userId, initialSearchText = '' }: GameLog
     return filterObj;
   }, [searchText, userId, selectedRating, selectedSetting, selectedClassification, hasNotes, sortBy, sortDirection]);
 
-  // Query game logs
-  const { data, loading, error, fetchMore } = useQuery(GET_GAME_LOGS, {
+  // Get cursor for current page
+  const currentCursor = currentPage > 1 ? pageCursors[currentPage - 1]?.endCursor : null;
+
+  // Query only current page data
+  const { data, loading, error } = useQuery(GET_GAME_LOGS, {
     variables: {
-      first: 12,
+      first: pageSize,
+      after: currentCursor,
       filters,
     },
+    notifyOnNetworkStatusChange: true,
   });
 
-  const gameLogs = data?.gameLogs?.edges?.map((edge: any) => edge.node) || [];
-  const hasNextPage = data?.gameLogs?.pageInfo?.hasNextPage || false;
-
-  const handleLoadMore = useCallback(() => {
-    if (hasNextPage && !loading) {
-      fetchMore({
-        variables: {
-          after: data?.gameLogs?.pageInfo?.endCursor,
-        },
-        updateQuery: (prev, { fetchMoreResult }) => {
-          if (!fetchMoreResult) return prev;
-          return {
-            gameLogs: {
-              ...fetchMoreResult.gameLogs,
-              edges: [
-                ...prev.gameLogs.edges,
-                ...fetchMoreResult.gameLogs.edges,
-              ],
-            },
-          };
-        },
-      });
+  // Store cursor information when data changes
+  useEffect(() => {
+    if (data?.gameLogs?.pageInfo) {
+      setPageCursors(prev => ({
+        ...prev,
+        [currentPage]: {
+          startCursor: data.gameLogs.pageInfo.startCursor,
+          endCursor: data.gameLogs.pageInfo.endCursor,
+        }
+      }));
     }
-  }, [data, fetchMore, hasNextPage, loading]);
+  }, [data, currentPage]);
+
+  const gameLogs = data?.gameLogs?.edges?.map((edge: any) => edge.node) || [];
+  const totalCount = data?.gameLogs?.totalCount || 0;
+  const hasNextPage = data?.gameLogs?.pageInfo?.hasNextPage || false;
+  const totalPages = Math.ceil(totalCount / pageSize);
+
+  const handlePageChange = useCallback(
+    (page: number) => {
+      if (page < 1 || page > totalPages || page === currentPage) return;
+      setCurrentPage(page);
+    },
+    [currentPage, totalPages]
+  );
 
   const handleCardClick = (e: React.MouseEvent, gameLogId: string) => {
     e.preventDefault();
@@ -203,10 +222,18 @@ export function GameLogSearchSection({ userId, initialSearchText = '' }: GameLog
     setHasNotes('all');
     setSortBy(GameLogSortBy.CreatedAt);
     setSortDirection(SortDirection.Desc);
+    setCurrentPage(1);
+    setPageCursors({});
   };
 
   const hasActiveFilters = searchText || selectedRating !== 'all' || selectedSetting !== 'all' || 
     selectedClassification !== 'all' || hasNotes !== 'all';
+
+  // Reset pagination when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+    setPageCursors({});
+  }, [searchText, selectedRating, selectedSetting, selectedClassification, hasNotes, sortBy, sortDirection]);
 
   return (
     <div className="space-y-6">
@@ -344,15 +371,21 @@ export function GameLogSearchSection({ userId, initialSearchText = '' }: GameLog
 
       {/* Results Count */}
       {!loading && (
-        <div className="text-sm text-muted-foreground">
-          Found {data?.gameLogs?.totalCount || 0} game log{(data?.gameLogs?.totalCount || 0) !== 1 ? 's' : ''}
+        <div className="flex items-center justify-between">
+          <p className="text-sm text-muted-foreground">
+            Found {totalCount.toLocaleString()} game {totalCount === 1 ? 'log' : 'logs'}
+            {searchText && ` matching "${searchText}"`}
+          </p>
+          <p className="text-sm text-muted-foreground">
+            Page {currentPage} of {totalPages.toLocaleString()}
+          </p>
         </div>
       )}
 
       {/* Game Logs Grid */}
-      {loading && gameLogs.length === 0 ? (
+      {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[...Array(6)].map((_, i) => (
+          {[...Array(pageSize)].map((_, i) => (
             <GameLogSkeleton key={i} />
           ))}
         </div>
@@ -540,15 +573,59 @@ export function GameLogSearchSection({ userId, initialSearchText = '' }: GameLog
             })}
           </div>
 
-          {/* Load More */}
-          {hasNextPage && (
-            <div className="flex justify-center pt-4">
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center mt-8 gap-2">
               <Button
                 variant="outline"
-                onClick={handleLoadMore}
-                disabled={loading}
+                size="sm"
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1 || loading}
               >
-                {loading ? 'Loading...' : 'Load more game logs'}
+                <ChevronLeft className="h-4 w-4" />
+                Previous
+              </Button>
+
+              <div className="flex items-center gap-1">
+                {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => {
+                  let pageNum;
+                  if (totalPages <= 7) {
+                    pageNum = i + 1;
+                  } else if (currentPage <= 4) {
+                    pageNum = i < 5 ? i + 1 : i === 5 ? -1 : totalPages;
+                  } else if (currentPage >= totalPages - 3) {
+                    pageNum = i === 0 ? 1 : i === 1 ? -1 : totalPages - 6 + i;
+                  } else {
+                    pageNum = i === 0 ? 1 : i === 1 ? -1 : i === 5 ? -1 : i === 6 ? totalPages : currentPage - 3 + i;
+                  }
+
+                  if (pageNum === -1) {
+                    return <span key={i} className="px-2 text-muted-foreground">...</span>;
+                  }
+
+                  return (
+                    <Button
+                      key={i}
+                      variant={currentPage === pageNum ? 'default' : 'outline'}
+                      size="sm"
+                      className="w-9 h-9 p-0"
+                      onClick={() => handlePageChange(pageNum)}
+                      disabled={loading}
+                    >
+                      {pageNum}
+                    </Button>
+                  );
+                })}
+              </div>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages || !hasNextPage || loading}
+              >
+                Next
+                <ChevronRight className="h-4 w-4" />
               </Button>
             </div>
           )}

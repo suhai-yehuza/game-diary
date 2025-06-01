@@ -3,8 +3,8 @@
 import { useQuery } from '@apollo/client';
 import React, { useState } from 'react';
 
-import { GameLogsSection } from '@/components/features/games';
 import { GameLogSearchSection } from '@/components/features/games';
+import { BasketballGameSearchSection } from '@/components/features/games';
 import { UserSearchSection } from '@/components/features/users/UserSearchSection';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -12,7 +12,7 @@ import { GET_GAME_LOGS } from '@/lib/graphql/queries';
 import { GameLog } from '@/lib/types/generated/graphql';
 
 export default function CommunityPage() {
-  const [activeTab, setActiveTab] = useState('recent');
+  const [activeTab, setActiveTab] = useState('logs');
 
   const { data, loading, fetchMore, refetch } = useQuery(GET_GAME_LOGS, {
     variables: { first: 10 },
@@ -75,31 +75,24 @@ export default function CommunityPage() {
         </div>
 
         {/* Tabs for different sections */}
-        <Tabs defaultValue="recent" value={activeTab} onValueChange={setActiveTab}>
+        <Tabs defaultValue="logs" value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="recent">Recent Activity</TabsTrigger>
+            <TabsTrigger value="games">Basketball Games</TabsTrigger>
             <TabsTrigger value="logs">Game Logs</TabsTrigger>
             <TabsTrigger value="members">Members</TabsTrigger>
           </TabsList>
 
-          {/* Recent Activity Tab */}
-          <TabsContent value="recent" className="space-y-6">
+          {/* Basketball Games Tab */}
+          <TabsContent value="games" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Recent Game Logs</CardTitle>
+                <CardTitle>NBA Games</CardTitle>
                 <CardDescription>
-                  Latest game logs from the community
+                  Browse and search NBA games from the current and past seasons
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <GameLogsSection
-                  gameLogs={gameLogs}
-                  loading={loading}
-                  isFetchingMore={isFetchingMore}
-                  loadMoreRef={loadMoreRef}
-                  onLoadMore={handleLoadMore}
-                  refetch={refetch}
-                />
+                <BasketballGameSearchSection />
               </CardContent>
             </Card>
           </TabsContent>
