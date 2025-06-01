@@ -7,7 +7,7 @@ import React from 'react';
 import { StarRating } from '@/components/ui/star-rating';
 import { GET_USER, GET_GAME_LOGS } from '@/lib/graphql/queries';
 import { SharedGameLog } from '@/lib/types/generated/graphql';
-import { DEFAULT_PAGE_SIZE } from '@/lib/types/shared.types';
+import { API_CONFIG } from '@/lib/config/api.config';
 import { TeamCounts } from '@/lib/types/team.types';
 import { FriendProfileProps } from '@/lib/types/user.types';
 
@@ -30,7 +30,7 @@ export const FriendProfile: React.FC<FriendProfileProps> = ({ friendId, onClose 
     variables: {
       userId: friendId,
       pagination: {
-        first: DEFAULT_PAGE_SIZE,
+        first: API_CONFIG.pagination.DEFAULT_PAGE_SIZE,
         after: undefined,
       },
     },

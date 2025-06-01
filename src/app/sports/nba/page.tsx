@@ -7,9 +7,10 @@ import React, { useState, useEffect, useCallback } from 'react';
 
 import { GameCard } from '@/components/features/games';
 import { GET_GAMES } from '@/lib/graphql/queries';
-import { SearchGame, Game, GameEdge, GameQueryResponse } from '@/lib/types/game.types';
-import { DEFAULT_PAGE_SIZE } from '@/lib/types/shared.types';
+import { Game, GameEdge, GameQueryResponse } from '@/lib/types/game.types';
 import { getCurrentSeason } from '@/lib/utils/index.time';
+import { SearchGame } from '@/lib/types/game.types';
+import { API_CONFIG } from '@/lib/config/api.config';
 
 // Convert Game to SearchGame
 const convertGameToSearchGame = (game: Game): SearchGame => {
@@ -89,7 +90,7 @@ export default function NBAPage() {
       filters: {
         season: currentSeason,
       },
-      first: DEFAULT_PAGE_SIZE,
+      first: API_CONFIG.pagination.DEFAULT_PAGE_SIZE,
     },
     notifyOnNetworkStatusChange: true,
   });

@@ -5,3 +5,7 @@ export const createCommentSchema = z.object({
   parentType: z.enum(['comment', 'game_log']).transform(val => val.toLowerCase()),
   content: z.string().min(1, 'Content is required').max(1000, 'Content too long'),
 });
+
+export const updateCommentSchema = z.object({
+  content: z.string().min(1, 'Content is required').max(1000, 'Content too long'),
+});

@@ -1,11 +1,10 @@
 import { eq, and } from 'drizzle-orm';
-import { pgTable, varchar, text, timestamp } from 'drizzle-orm/pg-core';
 import { GraphQLError } from 'graphql';
 import { z } from 'zod';
 
 import { getCache, invalidateRelatedCaches } from '@/lib/cache';
 import { db } from '@/lib/db';
-import { schema } from '@/lib/db/schema';
+import * as schema from '@/lib/db/schema';
 import { Context } from '@/lib/graphql/context';
 import {
   AuthenticationError,
@@ -16,6 +15,7 @@ import {
 } from '@/lib/graphql/errors';
 import { transformUser } from '@/lib/graphql/resolvers/transformers';
 import { mapUserData } from '@/lib/graphql/resolvers/users/index';
+import { getEmojiKey } from '@/lib/graphql/resolvers/common/utils';
 import {
   WatchedSettingValue,
   REACTION_EMOJIS,
@@ -38,22 +38,8 @@ import {
   ReactionEmojiType,
 } from '@/lib/types/generated/graphql';
 import { generateUUID } from '@/lib/utils/index.processing';
-import { createCommentSchema } from '@/lib/validations/comment';
+import { createCommentSchema, updateCommentSchema } from '@/lib/validations/comment';
 import { gameTypeEnum } from '@/lib/validations/game';
-
-// Define the actual comments table structure to match the database
-const actualCommentsTable = pgTable('comments', {
-  id: varchar('id', { length: 255 }).primaryKey(),
-  userId: varchar('userId', { length: 255 }),
-  content: text('content').notNull(),
-  targetId: varchar('targetId', { length: 255 }).notNull(),
-  targetType: varchar('targetType', { length: 50 }).notNull(),
-  parentId: varchar('parentId', { length: 255 }),
-  parentType: varchar('parentType', { length: 50 }),
-  createdAt: timestamp('createdAt').defaultNow().notNull(),
-  updatedAt: timestamp('updatedAt').defaultNow().notNull(),
-  deletedAt: timestamp('deletedAt'),
-});
 
 // Helper functions
 const validateInput = <T>(schema: z.ZodSchema<T>, input: unknown): T => {
@@ -85,7 +71,52 @@ function nullToUndefined<T>(value: T | null): T | undefined {
 
 // Helper to fetch full user from DB
 async function getFullUser(db: typeof import('@/lib/db').db, userId: string) {
-  return await db.query.users.findFirst({ where: eq(schema.users.id, userId) });
+  const users = await db
+    .select()
+    .from(schema.users)
+    .where(eq(schema.users.id, userId))
+    .limit(1);
+  return users[0] || null;
+}
+
+// Helper to ensure user exists in database (create if not)
+async function ensureUserExists(user: Context['user']) {
+  if (!user) return null;
+  
+  // Check if user already exists
+  const existingUsers = await db
+    .select()
+    .from(schema.users)
+    .where(eq(schema.users.id, user.id))
+    .limit(1);
+    
+  if (existingUsers.length > 0) return existingUsers[0];
+  
+  // Create user if not exists
+  const [newUser] = await db.insert(schema.users).values({
+    id: user.id,
+    username: user.username || `user_${user.id.slice(-8)}`,
+    firstName: user.firstName || 'Unknown',
+    lastName: user.lastName || 'User',
+    emailAddress: user.emailAddress || `${user.id}@placeholder.com`,
+    imageUrl: user.imageUrl || '',
+    inboundFriendshipIds: [],
+    outboundFriendshipIds: [],
+    banned: false,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    timestamp: new Date(),
+    last_sign_in_at: null,
+    password_enabled: false,
+    two_factor_enabled: false,
+    email_verified: false,
+    email_verification_strategy: null,
+    external_id: null,
+    external_accounts: [],
+    deletedAt: null,
+  }).returning();
+  
+  return newUser;
 }
 
 // Game Log Mutations
@@ -101,19 +132,19 @@ export const createGameLog = async (
       watchedScope: input.watchedScope,
     };
 
-    // Fetch the full user data from the database
-    const dbUser = await db.query.users.findFirst({
-      where: eq(schema.users.id, user.id),
-    });
-
+    // Ensure user exists in database
+    const dbUser = await ensureUserExists(user);
     if (!dbUser) {
-      throw new NotFoundError('User', user.id);
+      throw new AuthenticationError('Failed to verify user');
     }
 
     // Validate game exists and is accessible
-    const game = await db.query.nba_games.findFirst({
-      where: eq(schema.nba_games.id, validatedInput.gameId),
-    });
+    const games = await db
+      .select()
+      .from(schema.nba_games)
+      .where(eq(schema.nba_games.id, validatedInput.gameId))
+      .limit(1);
+    const game = games[0];
 
     if (!game) {
       throw new NotFoundError('Game', validatedInput.gameId);
@@ -158,9 +189,12 @@ export const createGameLog = async (
       }
 
       // Fetch the related game from the DB with proper type checking
-      const nbaGame = await db.query.nba_games.findFirst({
-        where: (nba_games, { eq }) => eq(nba_games.id, gameLog.gameId),
-      });
+      const nbaGames = await db
+        .select()
+        .from(schema.nba_games)
+        .where(eq(schema.nba_games.id, gameLog.gameId))
+        .limit(1);
+      const nbaGame = nbaGames[0];
 
       if (!nbaGame) {
         throw new NotFoundError('Game', gameLog.gameId);
@@ -281,9 +315,12 @@ export const updateGameLog = async (
     };
 
     // Fetch the game log
-    const gameLog = await db.query.game_logs.findFirst({
-      where: eq(schema.game_logs.id, id),
-    });
+    const gameLogs = await db
+      .select()
+      .from(schema.game_logs)
+      .where(eq(schema.game_logs.id, id))
+      .limit(1);
+    const gameLog = gameLogs[0];
 
     if (!gameLog) {
       throw new NotFoundError('GameLog', id);
@@ -350,9 +387,12 @@ export const deleteGameLog = async (
   { user, redis }: Context
 ) => {
   try {
-    const gameLog = await db.query.game_logs.findFirst({
-      where: eq(schema.game_logs.id, id),
-    });
+    const gameLogs = await db
+      .select()
+      .from(schema.game_logs)
+      .where(eq(schema.game_logs.id, id))
+      .limit(1);
+    const gameLog = gameLogs[0];
 
     if (!gameLog) {
       throw new NotFoundError('GameLog', id);
@@ -389,22 +429,27 @@ export const createComment = async (
 ) => {
   try {
     const user = checkAuth(context.user);
+    
+    // Ensure user exists in database
+    const dbUser = await ensureUserExists(user);
+    if (!dbUser) {
+      throw new AuthenticationError('Failed to verify user');
+    }
+    
     const validatedInput = validateInput(createCommentSchema, input);
     const [comment] = await db
-      .insert(actualCommentsTable)
+      .insert(schema.comments)
       .values({
         id: generateUUID(),
-        userId: user.id,
+        userId: dbUser.id,
         content: validatedInput.content,
-        targetId: validatedInput.parentId,
-        targetType: validatedInput.parentType,
         parentId: validatedInput.parentId,
-        parentType: validatedInput.parentType,
+        parentType: validatedInput.parentType as 'game_log' | 'comment',
         createdAt: new Date(),
         updatedAt: new Date(),
       })
       .returning();
-    const fullUser = await getFullUser(db, user.id);
+      
     return {
       comment: {
         id: comment.id,
@@ -417,7 +462,7 @@ export const createComment = async (
         createdAt: comment.createdAt,
         updatedAt: comment.updatedAt,
         deletedAt: comment.deletedAt,
-        user: fullUser ? transformUser(mapUserData(fullUser)) : null,
+        user: dbUser ? transformUser(mapUserData(dbUser)) : null,
         reactions: [],
       },
     };
@@ -433,11 +478,15 @@ export const updateComment = async (
 ) => {
   try {
     const user = checkAuth(context.user);
-    const validatedInput = validateInput(createCommentSchema, input);
+    const validatedInput = validateInput(updateCommentSchema, input);
     // Fetch the comment
-    const comment = await db.query.comments.findFirst({
-      where: eq(schema.comments.id, id),
-    });
+    const comments = await db
+      .select()
+      .from(schema.comments)
+      .where(eq(schema.comments.id, id))
+      .limit(1);
+    const comment = comments[0];
+    
     if (!comment) {
       throw new NotFoundError('Comment', id);
     }
@@ -482,9 +531,12 @@ export const deleteComment = async (
   { user }: Context
 ) => {
   try {
-    const comment = await db.query.comments.findFirst({
-      where: eq(schema.comments.id, id),
-    });
+    const comments = await db
+      .select()
+      .from(schema.comments)
+      .where(eq(schema.comments.id, id))
+      .limit(1);
+    const comment = comments[0];
 
     if (!comment) {
       throw new NotFoundError('Comment', id);
@@ -512,25 +564,46 @@ export const createReaction = async (
 ) => {
   try {
     const user = checkAuth(context.user);
+    
+    // Ensure user exists in database
+    const dbUser = await ensureUserExists(user);
+    if (!dbUser) {
+      throw new AuthenticationError('Failed to verify user');
+    }
+    
     if (!(input.emoji in REACTION_EMOJIS)) {
       throw new ValidationError('Invalid emoji');
     }
-    const existingReaction = await db.query.reactions.findFirst({
-      where: and(
-        eq(schema.reactions.userId, user.id),
-        eq(schema.reactions.targetId, input.targetId),
-        eq(schema.reactions.targetType, input.targetType)
-      ),
-    });
-    if (existingReaction) {
-      throw new BusinessLogicError('Reaction already exists', 'DUPLICATE_REACTION');
-    }
+    
     const emoji = REACTION_EMOJIS[input.emoji as ReactionEmojiKey];
+    
+    // Check for existing reaction with the same emoji type
+    const existingReactions = await db
+      .select()
+      .from(schema.reactions)
+      .where(and(
+        eq(schema.reactions.userId, dbUser.id),
+        eq(schema.reactions.targetId, input.targetId),
+        eq(schema.reactions.targetType, input.targetType),
+        eq(schema.reactions.emoji, emoji)
+      ))
+      .limit(1);
+    const existingReaction = existingReactions[0];
+    
+    if (existingReaction) {
+      // Delete the existing reaction (toggle off)
+      await db.delete(schema.reactions).where(eq(schema.reactions.id, existingReaction.id));
+      return {
+        reaction: null,
+      };
+    }
+    
+    // Create new reaction
     const [reaction] = await db
       .insert(schema.reactions)
       .values({
         id: generateUUID(),
-        userId: user.id,
+        userId: dbUser.id,
         targetId: input.targetId,
         targetType: input.targetType,
         emoji,
@@ -538,17 +611,17 @@ export const createReaction = async (
         updatedAt: new Date(),
       })
       .returning();
-    const fullUser = await getFullUser(db, user.id);
+      
     return {
       reaction: {
         id: reaction.id,
-        emoji: reaction.emoji as ReactionEmojiType,
+        emoji: getEmojiKey(reaction.emoji),
         userId: reaction.userId || '',
         targetId: reaction.targetId,
         targetType: reaction.targetType as ParentType,
         createdAt: reaction.createdAt,
         updatedAt: reaction.updatedAt,
-        user: fullUser ? transformUser(mapUserData(fullUser)) : null,
+        user: dbUser ? transformUser(mapUserData(dbUser)) : null,
       },
     };
   } catch (error) {
@@ -565,9 +638,12 @@ export const deleteReaction = async (
     const user = checkAuth(context.user);
 
     // Fetch the reaction
-    const reaction = await db.query.reactions.findFirst({
-      where: eq(schema.reactions.id, id),
-    });
+    const reactions = await db
+      .select()
+      .from(schema.reactions)
+      .where(eq(schema.reactions.id, id))
+      .limit(1);
+    const reaction = reactions[0];
 
     if (!reaction) {
       throw new NotFoundError('Reaction', id);

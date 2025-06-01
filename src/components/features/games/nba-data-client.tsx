@@ -9,14 +9,15 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { GET_SEASONS, GET_EXTERNAL_GAMES, GET_TEAMS, GET_PLAYERS } from '@/lib/graphql/queries';
 import { ConferenceType, DivisionType } from '@/lib/types/config.types';
 import { Game, GameStatus, Season, Team, Player } from '@/lib/types/generated/graphql';
-import { DEFAULT_PAGE_SIZE, SortDirection } from '@/lib/types/shared.types';
+import { API_CONFIG } from '@/lib/config/api.config';
 import { formatDateTime } from '@/lib/utils/index.time';
+import { SortDirection } from '@/lib/types/shared.types';
 
 export const NbaDataClient = () => {
   const [selectedConference, setSelectedConference] = useState<ConferenceType | 'all'>('all');
   const [selectedDivision, setSelectedDivision] = useState<DivisionType | 'all'>('all');
   const [selectedPosition, setSelectedPosition] = useState<string>('all');
-  const [sortBy] = useState<SortDirection>('asc');
+  const [sortBy] = useState<SortDirection>(API_CONFIG.pagination.DEFAULT_SORT_DIRECTION);
   const [searchTerm, _setSearchTerm] = useState('');
 
   const {
@@ -67,7 +68,7 @@ export const NbaDataClient = () => {
         position: selectedPosition !== 'all' ? selectedPosition : undefined,
       },
       pagination: {
-        first: DEFAULT_PAGE_SIZE,
+        first: API_CONFIG.pagination.DEFAULT_PAGE_SIZE,
       },
       sortBy,
     },

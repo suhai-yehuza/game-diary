@@ -5,7 +5,8 @@ import React, { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CREATE_REACTION, DELETE_REACTION } from '@/lib/graphql/mutations';
+import { CREATE_REACTION } from '@/lib/graphql/mutations';
+import { GET_REACTIONS } from '@/lib/graphql/queries';
 import { REACTION_EMOJIS } from '@/lib/types/config.types';
 import { Reaction, ReactionEmojiType } from '@/lib/types/generated/graphql';
 import { ReactionPickerProps } from '@/lib/types/reaction.types';
@@ -19,7 +20,6 @@ export function ReactionPicker({
   const [isOpen, setIsOpen] = useState(false);
   const { user } = useUser();
   const [createReaction] = useMutation(CREATE_REACTION);
-  const [deleteReaction] = useMutation(DELETE_REACTION);
 
   const handleReaction = async (emojiName: ReactionEmojiType) => {
     if (!user) return;
@@ -30,29 +30,88 @@ export function ReactionPicker({
     );
 
     try {
-      if (existingReaction) {
-        // Remove existing reaction
-        await deleteReaction({
-          variables: {
-            id: existingReaction.id,
+      // Use createReaction for both adding and removing (toggling)
+      await createReaction({
+        variables: {
+          input: {
+            targetId: targetId,
+            targetType: targetType,
+            emoji: emojiName,
           },
-        });
-      } else {
-        // Add new reaction
-        await createReaction({
-          variables: {
-            input: {
-              targetId: targetId,
-              targetType: targetType,
-              emoji: emojiName,
+        },
+        optimisticResponse: {
+          createReaction: {
+            reaction: existingReaction
+              ? null // If toggling off
+              : {
+                  __typename: 'Reaction',
+                  id: `temp-${Date.now()}`,
+                  emoji: emojiName,
+                  userId: user.id,
+                  targetId: targetId,
+                  targetType: targetType,
+                  createdAt: new Date().toISOString(),
+                  updatedAt: new Date().toISOString(),
+                  user: {
+                    __typename: 'UserSummary',
+                    id: user.id,
+                    username: user.username || '',
+                    firstName: user.firstName || '',
+                    lastName: user.lastName || '',
+                    emailAddress: user.emailAddresses?.[0]?.emailAddress || '',
+                    imageUrl: user.imageUrl || null,
+                  },
+                },
+            errors: [],
+            __typename: 'CreateReactionPayload',
+          },
+        },
+        update: (cache, { data }) => {
+          if (!data?.createReaction) return;
+
+          const existingData = cache.readQuery({
+            query: GET_REACTIONS,
+            variables: { targetId },
+          }) as { reactions: { edges: any[]; totalCount: number } } | null;
+
+          if (!existingData?.reactions) return;
+
+          let newEdges;
+          if (data.createReaction.reaction) {
+            // Adding a reaction
+            const newEdge = {
+              __typename: 'ReactionEdge',
+              node: data.createReaction.reaction,
+              cursor: `cursor-${data.createReaction.reaction.id}`,
+            };
+            newEdges = [...existingData.reactions.edges, newEdge];
+          } else {
+            // Removing a reaction
+            newEdges = existingData.reactions.edges.filter(
+              (edge: any) => !(edge.node.userId === user.id && edge.node.emoji === emojiName)
+            );
+          }
+
+          cache.writeQuery({
+            query: GET_REACTIONS,
+            variables: { targetId },
+            data: {
+              reactions: {
+                ...existingData.reactions,
+                edges: newEdges,
+                totalCount: newEdges.length,
+              },
             },
-          },
-        });
-      }
+          });
+        },
+      });
+      
       setIsOpen(false);
-      onReactionChanged?.();
+      // Only call onReactionChanged if there was an error (to refetch)
+      // Otherwise the optimistic update handles it
     } catch (error) {
       console.error('Error toggling reaction:', error);
+      onReactionChanged?.();
     }
   };
 

@@ -38,6 +38,11 @@ export function ReactionDisplay({ targetId, targetType }: ReactionDisplayProps) 
   const handleEmojiClick = async (emojiName: ReactionEmojiType) => {
     if (!user) return;
 
+    // Check if user already has this reaction
+    const existingReaction = reactions.find(
+      (r: Reaction) => r.userId === user.id && r.emoji === emojiName
+    );
+
     try {
       // Use createReaction which now handles toggling internally
       const result = await createReaction({
@@ -48,15 +53,87 @@ export function ReactionDisplay({ targetId, targetType }: ReactionDisplayProps) 
             emoji: emojiName,
           },
         },
+        optimisticResponse: {
+          createReaction: {
+            reaction: existingReaction
+              ? null // If toggling off
+              : {
+                  __typename: 'Reaction',
+                  id: `temp-${Date.now()}`,
+                  emoji: emojiName,
+                  userId: user.id,
+                  targetId: targetId,
+                  targetType: targetType,
+                  createdAt: new Date().toISOString(),
+                  updatedAt: new Date().toISOString(),
+                  user: {
+                    __typename: 'UserSummary',
+                    id: user.id,
+                    username: user.username || '',
+                    firstName: user.firstName || '',
+                    lastName: user.lastName || '',
+                    emailAddress: user.emailAddresses?.[0]?.emailAddress || '',
+                    imageUrl: user.imageUrl || null,
+                  },
+                },
+            errors: [],
+            __typename: 'CreateReactionPayload',
+          },
+        },
+        update: (cache, { data }) => {
+          if (!data?.createReaction) return;
+
+          const existingData = cache.readQuery({
+            query: GET_REACTIONS,
+            variables: { targetId },
+          }) as { reactions: { edges: any[]; totalCount: number } } | null;
+
+          if (!existingData?.reactions) return;
+
+          let newEdges;
+          if (data.createReaction.reaction) {
+            // Adding a reaction
+            const newEdge = {
+              __typename: 'ReactionEdge',
+              node: data.createReaction.reaction,
+              cursor: `cursor-${data.createReaction.reaction.id}`,
+            };
+            
+            // Remove any existing reaction from the same user with different emoji if needed
+            newEdges = [
+              ...existingData.reactions.edges,
+              newEdge,
+            ];
+          } else {
+            // Removing a reaction
+            newEdges = existingData.reactions.edges.filter(
+              (edge: any) => !(edge.node.userId === user.id && edge.node.emoji === emojiName)
+            );
+          }
+
+          cache.writeQuery({
+            query: GET_REACTIONS,
+            variables: { targetId },
+            data: {
+              reactions: {
+                ...existingData.reactions,
+                edges: newEdges,
+                totalCount: newEdges.length,
+              },
+            },
+          });
+        },
       });
 
       if (result.data?.createReaction?.errors?.length > 0) {
         console.error('Reaction errors:', result.data.createReaction.errors);
+        // Only refetch if there were errors
+        refetch();
       }
-
-      refetch();
     } catch (error) {
       console.error('Error toggling reaction:', error);
+      // Only refetch on error
+      refetch();
     }
   };
 

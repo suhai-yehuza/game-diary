@@ -155,11 +155,7 @@ const getAdditionalEntropy = (): string => {
 export const generateUUID = (options: UuidGenerationOptions = {}): string => {
   const { useV7 = true } = options;
   const generator = useV7 ? uuidv7 : uuidv4;
-  const baseUUID = generator();
-  const entropy = getAdditionalEntropy();
-
-  // Combine the UUID with additional entropy
-  return `${baseUUID}-${entropy}`;
+  return generator();
 };
 
 /**

@@ -9,4 +9,6 @@ export const resolvers: Resolvers = {
   Query: queries.Query,
   Mutation: mutations as unknown as Resolvers['Mutation'],
   GameLog: queries.GameLog as unknown as Resolvers['GameLog'],
+  Comment: queries.Comment as unknown as Resolvers['Comment'],
+  Reaction: queries.Reaction as unknown as Resolvers['Reaction'],
 };

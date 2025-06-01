@@ -7,8 +7,9 @@ import type {
   RateLimitConfig,
   ClassificationWeights,
   DistributionFunctions,
+  PaginationConfig,
 } from '@/lib/types/config.types';
-import type { APIConfigOptions } from '@/lib/types/shared.types';
+import type { APIConfigOptions, SortDirection } from '@/lib/types/shared.types';
 
 const XSMALL = 10;
 const SMALL = 10 * XSMALL;
@@ -175,6 +176,13 @@ export const API_CONFIG = {
     GAME_STATS: 10,
     PLAYERS: 50,
   } as const satisfies BatchSizeConfig,
+
+  pagination: {
+    DEFAULT_PAGE_SIZE: 25,
+    MAX_PAGE_SIZE: 100,
+    MAX_CHILD_COMMENT_DEPTH: 3,
+    DEFAULT_SORT_DIRECTION: 'desc' as SortDirection,
+  } as const satisfies PaginationConfig,
 } as const;
 
 // For backward compatibility

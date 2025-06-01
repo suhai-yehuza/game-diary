@@ -4,7 +4,7 @@ import Link from 'next/link';
 import React from 'react';
 
 import { GET_LIVE_GAMES } from '@/lib/graphql/queries';
-import { DEFAULT_PAGE_SIZE } from '@/lib/types/shared.types';
+import { API_CONFIG } from '@/lib/config/api.config';
 
 interface LiveGameEdge {
   node: {
@@ -26,7 +26,7 @@ export function LiveGamesBanner() {
   const { data } = useQuery<LiveGamesData>(GET_LIVE_GAMES, {
     pollInterval: 30000, // Poll every 30 seconds
     variables: {
-      first: DEFAULT_PAGE_SIZE,
+      first: API_CONFIG.pagination.DEFAULT_PAGE_SIZE,
     },
   });
 

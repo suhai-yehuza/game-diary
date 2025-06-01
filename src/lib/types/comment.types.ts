@@ -6,7 +6,8 @@ export type EditingComment = { id: string; content: string };
 
 export interface CommentsSectionProps {
   parentId: string;
-  parentType: string;
+  parentType: 'game_log' | 'comment';
+  initialExpanded?: boolean;
 }
 
 export interface CommentWithUser {

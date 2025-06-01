@@ -6,6 +6,8 @@
  * - api-config.types.ts
  */
 
+import { SortDirection } from '@/lib/types/shared.types';
+
 // ============= Constants =============
 
 // Reaction emoji source of truth
@@ -353,6 +355,13 @@ export interface DistributionFunctions {
   pareto: (rand: number, alpha?: number) => number;
   exponential: (rand: number) => number;
   powerLaw: (rand: number, exponent?: number) => number;
+}
+
+export interface PaginationConfig {
+  DEFAULT_PAGE_SIZE: number;
+  MAX_PAGE_SIZE: number;
+  DEFAULT_SORT_DIRECTION: SortDirection;
+  MAX_CHILD_COMMENT_DEPTH: number;
 }
 
 // ============= Utility Functions =============

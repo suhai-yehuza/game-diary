@@ -1,14 +1,18 @@
 import { Resolvers } from '@/lib/types/generated/graphql';
 
 // Import all resolver modules
+import * as commentResolvers from './comments';
 import * as gameLogResolvers from './game-logs';
 import * as gameResolvers from './games';
 import * as playerResolvers from './players';
+import * as reactionResolvers from './reactions';
 import * as teamResolvers from './teams';
 import * as userResolvers from './users';
 
-// Export the GameLog type resolver for direct use in index.ts
+// Export type resolvers for direct use in index.ts
 export const { GameLog } = gameLogResolvers;
+export const { Comment } = commentResolvers;
+export const { Reaction } = reactionResolvers;
 
 // Export the combined Query resolver
 export const Query = {
@@ -33,4 +37,10 @@ export const Query = {
   users: userResolvers.users,
   user: userResolvers.user,
   me: userResolvers.me,
+
+  // Comment queries
+  comments: commentResolvers.comments,
+
+  // Reaction queries
+  reactions: reactionResolvers.reactions,
 } as unknown as Resolvers['Query'];

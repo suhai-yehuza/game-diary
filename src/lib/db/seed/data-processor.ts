@@ -3,7 +3,7 @@ import type { PgTable } from 'drizzle-orm/pg-core';
 
 import type { DatabaseClient } from '@/lib/types/db.types';
 import type { GlobalWithGC } from '@/lib/types/global';
-import { DEFAULT_PAGE_SIZE } from '@/lib/types/shared.types';
+import { API_CONFIG } from '@/lib/config/api.config';
 
 import { OptimizedAPIClient } from './utils/api-client';
 
@@ -58,7 +58,7 @@ export class DataProcessor {
   async processInChunks<T>(
     data: T[],
     processor: (chunk: T[]) => Promise<void>,
-    chunkSize: number = DEFAULT_PAGE_SIZE,
+    chunkSize: number = API_CONFIG.pagination.DEFAULT_PAGE_SIZE,
     operation: string = 'process'
   ): Promise<void> {
     this.monitor.start(operation);
@@ -84,7 +84,7 @@ export class DataProcessor {
   async streamInsert<T extends PgTable>(
     table: T,
     dataGenerator: () => AsyncGenerator<InferInsertModel<T>, void, unknown>,
-    batchSize: number = DEFAULT_PAGE_SIZE, // Reduced default batch size for better stability
+    batchSize: number = API_CONFIG.pagination.DEFAULT_PAGE_SIZE, // Reduced default batch size for better stability
     operation: string = 'insert'
   ): Promise<void> {
     this.monitor.start(operation);

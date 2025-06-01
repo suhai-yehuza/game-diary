@@ -68,8 +68,6 @@ export function createLoaders(db: NeonHttpDatabase<typeof schema>) {
         return null;
       }
 
-      console.log('DB game value:', game);
-
       const homeTeamId = game.teams?.home?.id || '';
       const awayTeamId = game.teams?.visitors?.id || '';
       const arena =

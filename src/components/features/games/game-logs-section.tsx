@@ -149,7 +149,7 @@ export function GameLogsSection({
                 <span className="font-semibold">{log.game?.teams?.home?.nickname}</span>
               </div>
               <div className="text-sm text-muted-foreground">
-                Watched at {log.watchedLocation} via {log.watchedSetting}
+                Watched at {log.watchedLocation}. {log.watchedSetting}
               </div>
             </div>
             <div className="space-y-4">

@@ -7,12 +7,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { GET_GAME_LOGS } from '@/lib/graphql/queries';
 import { usePaginatedData } from '@/lib/hooks/use-paginated-data';
 import { GameLog } from '@/lib/types/game.types';
-import { DEFAULT_PAGE_SIZE } from '@/lib/types/shared.types';
+import { API_CONFIG } from '@/lib/config/api.config';
 
 export default function CommunityPage() {
   const { data, loading, isFetchingMore, loadMoreRef, handleLoadMore } = usePaginatedData<GameLog>({
     query: GET_GAME_LOGS,
-    variables: { first: DEFAULT_PAGE_SIZE },
+    variables: { first: API_CONFIG.pagination.DEFAULT_PAGE_SIZE },
     dataKey: 'gameLogs',
   });
 

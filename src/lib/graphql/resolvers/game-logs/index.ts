@@ -1,7 +1,7 @@
-import { and, eq } from 'drizzle-orm';
+import { and, eq, sql } from 'drizzle-orm';
 
 import * as schema from '@/lib/db/schema';
-import { createConnection } from '@/lib/graphql/utils/pagination';
+import { createConnection, parseCursor } from '@/lib/graphql/utils/pagination';
 import type { Context } from '@/lib/types/context.types';
 import type { GameLogFilters } from '@/lib/types/generated/graphql';
 
@@ -79,13 +79,27 @@ export const gameLogs = async (
       conditions.push(eq(schema.game_logs.classification, filters.classification));
     }
 
-    // Execute the query
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
+    // Get the total count
+    const [countResult] = await db
+      .select({ count: sql<number>`cast(count(*) as int)` })
+      .from(schema.game_logs)
+      .where(whereClause);
+    
+    const totalCount = countResult?.count || 0;
+
+    // Calculate offset from cursor
+    const offset = after ? parseCursor(after) : 0;
+
+    // Execute the query with proper offset and limit
     const query = db
       .select()
       .from(schema.game_logs)
-      .where(conditions.length > 0 ? and(...conditions) : undefined)
+      .where(whereClause)
       .orderBy(schema.game_logs.createdAt)
-      .limit((first || last || 10) + 1);
+      .offset(offset)
+      .limit(first || last || 10);
 
     const items = await query;
 
@@ -108,7 +122,7 @@ export const gameLogs = async (
       deletedAt: log.deletedAt,
     }));
 
-    return createConnection(mappedLogs, items.length, args);
+    return createConnection(mappedLogs, totalCount, args);
   } catch (error) {
     handleResolverError(error, 'fetch game logs');
   }

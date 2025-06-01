@@ -1,11 +1,6 @@
 /**
  * Shared types used across the application
  */
-
-import type { InferSelectModel } from 'drizzle-orm';
-
-import { nba_games } from '@/lib/db/schema/nba-schemas';
-
 import type { Classification, GAME_STATUS } from './generated/graphql';
 
 // Common Types
@@ -123,11 +118,6 @@ export interface Config {
   wsUrl?: string;
   features: Record<string, boolean>;
 }
-
-// Common Constants
-export const DEFAULT_PAGE_SIZE = 25;
-export const MAX_PAGE_SIZE = 100;
-export const DEFAULT_SORT_DIRECTION: SortDirection = 'desc';
 
 // Base types that can be shared across different type files
 export type ValidatableValue =

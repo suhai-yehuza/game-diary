@@ -1,7 +1,7 @@
 import { useQuery, DocumentNode } from '@apollo/client';
 import { useEffect, useRef, useState, useCallback } from 'react';
 
-import { DEFAULT_PAGE_SIZE } from '@/lib/types/shared.types';
+import { API_CONFIG } from '@/lib/config/api.config';
 
 interface PageInfo {
   hasNextPage: boolean;
@@ -36,7 +36,7 @@ export function usePaginatedData<T extends { id: string }>({
   const { loading, error, data, fetchMore } = useQuery(query, {
     variables: {
       ...variables,
-      first: DEFAULT_PAGE_SIZE,
+      first: API_CONFIG.pagination.DEFAULT_PAGE_SIZE,
       after: undefined,
     },
     onCompleted: (response: Record<string, PaginatedData<T>>) => {
@@ -53,7 +53,7 @@ export function usePaginatedData<T extends { id: string }>({
     try {
       const nextVariables = getNextVariables?.(data[dataKey] as PaginatedData<T>) || {
         ...variables,
-        first: DEFAULT_PAGE_SIZE,
+        first: API_CONFIG.pagination.DEFAULT_PAGE_SIZE,
         after: data[dataKey].pageInfo.endCursor,
       };
 

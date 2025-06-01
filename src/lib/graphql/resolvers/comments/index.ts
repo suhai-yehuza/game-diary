@@ -1,0 +1,115 @@
+import { and, eq, sql } from 'drizzle-orm';
+
+import * as schema from '@/lib/db/schema';
+import { createConnection, parseCursor } from '@/lib/graphql/utils/pagination';
+import type { Context } from '@/lib/types/context.types';
+import type { PaginationArgs } from '../common/types';
+import { handleResolverError } from '../common/utils';
+
+export const comments = async (
+  _parent: unknown,
+  args: PaginationArgs & { parentId: string },
+  { db }: Context
+) => {
+  try {
+    const { first = 10, after, last, before, parentId } = args;
+
+    if (!parentId) {
+      throw new Error('parentId is required');
+    }
+
+    // Build the query conditions
+    const conditions = [eq(schema.comments.parentId, parentId)];
+
+    // Get the total count
+    const [countResult] = await db
+      .select({ count: sql<number>`cast(count(*) as int)` })
+      .from(schema.comments)
+      .where(and(...conditions));
+    
+    const totalCount = countResult?.count || 0;
+
+    // Calculate offset from cursor
+    const offset = after ? parseCursor(after) : 0;
+
+    // Execute the query with proper offset and limit
+    const query = db
+      .select()
+      .from(schema.comments)
+      .where(and(...conditions))
+      .orderBy(schema.comments.createdAt)
+      .offset(offset)
+      .limit(first || last || 10);
+
+    const items = await query;
+
+    // Map the results
+    const mappedComments = items.map(comment => ({
+      id: comment.id,
+      userId: comment.userId,
+      parentId: comment.parentId,
+      parentType: comment.parentType,
+      content: comment.content,
+      createdAt: comment.createdAt,
+      updatedAt: comment.updatedAt,
+      deletedAt: comment.deletedAt,
+      reactions: [], // Will be resolved by Comment type resolver
+    }));
+
+    return createConnection(mappedComments, totalCount, args);
+  } catch (error) {
+    handleResolverError(error, 'fetch comments');
+  }
+};
+
+// Export Comment type resolver
+export const Comment = {
+  user: async (parent: { userId: string | null }, _args: unknown, { db }: Context) => {
+    if (!parent.userId) return null;
+    try {
+      const users = await db
+        .select()
+        .from(schema.users)
+        .where(eq(schema.users.id, parent.userId))
+        .limit(1);
+      
+      const user = users[0];
+      if (!user) return null;
+      
+      // Return UserSummary format
+      return {
+        id: user.id,
+        username: user.username || '',
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
+        emailAddress: user.emailAddress || '',
+        imageUrl: user.imageUrl || undefined,
+        __typename: 'UserSummary',
+      };
+    } catch (error) {
+      console.error('Error loading user for comment:', error);
+      return null;
+    }
+  },
+  reactions: async (parent: any, _args: any, { db }: Context) => {
+    try {
+      const reactions = await db
+        .select()
+        .from(schema.reactions)
+        .where(eq(schema.reactions.targetId, parent.id));
+
+      return reactions.map(reaction => ({
+        id: reaction.id,
+        emoji: reaction.emoji,
+        userId: reaction.userId,
+        targetId: reaction.targetId,
+        targetType: reaction.targetType,
+        createdAt: reaction.createdAt,
+        updatedAt: reaction.updatedAt,
+      }));
+    } catch (error) {
+      console.error('Error fetching reactions for comment:', error);
+      return [];
+    }
+  },
+}; 

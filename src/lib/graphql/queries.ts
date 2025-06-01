@@ -293,8 +293,8 @@ export const GET_GAME_LOG_WITH_REACTIONS = gql`
 `;
 
 export const GET_COMMENTS_WITH_FILTERS = gql`
-  query GetCommentsWithFilters($parentId: ID!) {
-    comments(parentId: $parentId) {
+  query GetCommentsWithFilters($parentId: ID!, $first: Int, $after: String) {
+    comments(parentId: $parentId, first: $first, after: $after) {
       edges {
         cursor
         node {
