@@ -1,216 +1,411 @@
 'use client';
 
 import { useQuery } from '@apollo/client';
-import { format } from 'date-fns';
-import { Star, ArrowLeft } from 'lucide-react';
+import { format, formatDistanceToNow } from 'date-fns';
+import { 
+  Star, 
+  ArrowLeft, 
+  Calendar, 
+  MapPin, 
+  Users, 
+  Trophy,
+  Building2,
+  Clock,
+  TrendingUp,
+  Tv
+} from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 
-import { CommentsSection } from '@/components/common';
+import { CommentsSection, ReactionsSection } from '@/components/common';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+import { StarRating } from '@/components/ui/star-rating';
 import { GET_GAME_LOG_WITH_REACTIONS } from '@/lib/graphql/queries';
 import { GameLogResponse } from '@/lib/types/shared.types';
+import { cn } from '@/lib/utils';
+
+// Loading skeleton component
+const GameLogSkeleton = () => (
+  <div className="container mx-auto px-4 py-8">
+    <div className="max-w-4xl mx-auto space-y-6">
+      <Skeleton className="h-10 w-32" />
+      
+      <Card>
+        <CardHeader>
+          <Skeleton className="h-8 w-48" />
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Skeleton className="h-12 w-12 rounded-full" />
+              <div>
+                <Skeleton className="h-6 w-32 mb-2" />
+                <Skeleton className="h-4 w-24" />
+              </div>
+            </div>
+            <Skeleton className="h-8 w-16" />
+            <div className="flex items-center gap-4">
+              <div>
+                <Skeleton className="h-6 w-32 mb-2" />
+                <Skeleton className="h-4 w-24" />
+              </div>
+              <Skeleton className="h-12 w-12 rounded-full" />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <Skeleton className="h-6 w-32" />
+          </CardHeader>
+          <CardContent>
+            <Skeleton className="h-24 w-full" />
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <Skeleton className="h-6 w-32" />
+          </CardHeader>
+          <CardContent>
+            <Skeleton className="h-24 w-full" />
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  </div>
+);
+
+// Error state component
+const ErrorState = ({ error }: { error: Error }) => (
+  <div className="container mx-auto px-4 py-8">
+    <div className="max-w-4xl mx-auto">
+      <Card className="border-red-200 dark:border-red-800">
+        <CardContent className="pt-6">
+          <div className="text-center space-y-4">
+            <div className="text-red-500 dark:text-red-400">
+              <Trophy className="h-12 w-12 mx-auto mb-4 opacity-50" />
+            </div>
+            <h3 className="text-lg font-semibold">Unable to load game log</h3>
+            <p className="text-sm text-muted-foreground">{error.message}</p>
+            <Link href="/protected/user">
+              <Button variant="outline" className="gap-2">
+                <ArrowLeft className="h-4 w-4" />
+                Back to Profile
+              </Button>
+            </Link>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  </div>
+);
+
+// Team display component
+const TeamDisplay = ({ 
+  team, 
+  score, 
+  isHome 
+}: { 
+  team: any; 
+  score?: number;
+  isHome: boolean;
+}) => (
+  <div className={cn(
+    "flex items-center gap-4",
+    isHome ? "flex-row-reverse text-right" : ""
+  )}>
+    {team?.logo ? (
+      <Image
+        src={team.logo}
+        alt={team.name || 'Team'}
+        width={64}
+        height={64}
+        className="rounded-full ring-2 ring-background"
+      />
+    ) : (
+      <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center">
+        <Users className="h-8 w-8 text-muted-foreground" />
+      </div>
+    )}
+    <div>
+      <h3 className="font-bold text-lg">{team?.name || 'Unknown Team'}</h3>
+      <p className="text-sm text-muted-foreground">{team?.nickname}</p>
+      {score !== undefined && (
+        <p className="text-2xl font-bold mt-1">{score}</p>
+      )}
+    </div>
+  </div>
+);
+
+// Watch info item component
+const WatchInfoItem = ({ 
+  icon: Icon, 
+  label, 
+  value, 
+  badge = false 
+}: { 
+  icon: React.ElementType;
+  label: string;
+  value: string | React.ReactNode;
+  badge?: boolean;
+}) => (
+  <div className="space-y-2">
+    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+      <Icon className="h-4 w-4" />
+      <span>{label}</span>
+    </div>
+    {badge ? (
+      <Badge variant="secondary" className="capitalize">
+        {value}
+      </Badge>
+    ) : (
+      <p className="font-medium">{value}</p>
+    )}
+  </div>
+);
 
 export default function GameLog() {
   const params = useParams();
-  const [gameLog, setGameLog] = useState<GameLogResponse | null>(null);
+  const gameLogId = params?.id as string;
+  
   const { data, loading, error } = useQuery(GET_GAME_LOG_WITH_REACTIONS, {
-    variables: { id: params?.id },
+    variables: { gameId: gameLogId, userId: '' }, // Adjust based on your query needs
+    skip: !gameLogId,
   });
 
-  useEffect(() => {
-    if (data) {
-      setGameLog(data.game_log);
-    }
-  }, [data]);
+  if (loading) return <GameLogSkeleton />;
+  if (error) return <ErrorState error={error} />;
+  
+  const gameLog = data?.gameLog as GameLogResponse;
+  if (!gameLog) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-4xl mx-auto">
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-center space-y-4">
+                <Trophy className="h-12 w-12 mx-auto text-muted-foreground" />
+                <h3 className="text-lg font-semibold">Game log not found</h3>
+                <p className="text-sm text-muted-foreground">
+                  This game log may have been removed or you don't have permission to view it.
+                </p>
+                <Link href="/protected/user">
+                  <Button variant="outline" className="gap-2">
+                    <ArrowLeft className="h-4 w-4" />
+                    Back to Profile
+                  </Button>
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
-  if (loading)
-    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
-  if (error) return <div className="text-red-500 p-4">Error: {error.message}</div>;
-  if (!gameLog) return <div className="text-center p-4">Game log not found</div>;
+  const gameDate = gameLog.game?.date?.start ? new Date(gameLog.game.date.start) : null;
+  const watchDate = gameLog.watchedDate ? new Date(gameLog.watchedDate) : null;
 
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-4xl mx-auto space-y-6">
-        <div className="flex items-center">
+        {/* Header */}
+        <div className="flex items-center justify-between">
           <Link href="/protected/user">
-            <Button variant="ghost" className="gap-2">
+            <Button variant="ghost" size="sm" className="gap-2">
               <ArrowLeft className="h-4 w-4" />
               Back to Profile
             </Button>
           </Link>
+          <Badge variant="outline" className="gap-1">
+            <Clock className="h-3 w-3" />
+            {gameLog.createdAt && formatDistanceToNow(new Date(gameLog.createdAt), { addSuffix: true })}
+          </Badge>
         </div>
 
-        {/* Game Details Card */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-2xl font-bold">Game Details</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {gameLog.game && (
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    {gameLog.game.teams?.visitors?.logo && (
-                      <Image
-                        src={gameLog.game.teams.visitors.logo}
-                        alt={gameLog.game.teams.visitors.name || 'Visitor Team'}
-                        width={48}
-                        height={48}
-                        className="rounded-full"
-                      />
-                    )}
-                    <div>
-                      <h3 className="font-semibold">{gameLog.game.teams?.visitors?.name}</h3>
-                      <p className="text-sm text-muted-foreground">
-                        {gameLog.game.teams?.visitors?.nickname}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="text-2xl font-bold">vs</div>
-                  <div className="flex items-center gap-4">
-                    <div className="text-right">
-                      <h3 className="font-semibold">{gameLog.game.teams?.home?.name}</h3>
-                      <p className="text-sm text-muted-foreground">
-                        {gameLog.game.teams?.home?.nickname}
-                      </p>
-                    </div>
-                    {gameLog.game.teams?.home?.logo && (
-                      <Image
-                        src={gameLog.game.teams.home.logo}
-                        alt={gameLog.game.teams.home.name || 'Home Team'}
-                        width={48}
-                        height={48}
-                        className="rounded-full"
-                      />
-                    )}
-                  </div>
+        {/* Game Match Card */}
+        <Card className="overflow-hidden">
+          <div className="bg-gradient-to-r from-primary/5 to-primary/10 dark:from-primary/10 dark:to-primary/20">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-2xl">Game Details</CardTitle>
+                  <CardDescription>
+                    {gameDate ? format(gameDate, 'EEEE, MMMM d, yyyy') : 'Date not available'}
+                  </CardDescription>
                 </div>
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <p className="text-muted-foreground">Date</p>
-                    <p>
-                      {gameLog.game.date?.start
-                        ? format(new Date(gameLog.game.date.start), 'MMMM d, yyyy h:mm a')
-                        : 'Date not available'}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-muted-foreground">Arena</p>
-                    <p>{gameLog.game.arena}</p>
-                  </div>
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Watch Details Card */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-2xl font-bold">Watch Details</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 gap-6">
-              <div>
-                <p className="text-sm text-muted-foreground">Watched Setting</p>
-                <Badge variant="secondary" className="capitalize mt-1">
-                  {gameLog.watchedSetting}
+                <Badge variant={gameLog.game?.status?.short === 'FT' ? 'default' : 'secondary'}>
+                  {gameLog.game?.status?.short || 'Unknown'}
                 </Badge>
               </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Location</p>
-                <p className="mt-1">{gameLog.watchedLocation}</p>
+            </CardHeader>
+          </div>
+          
+          <CardContent className="pt-6">
+            <div className="space-y-6">
+              {/* Teams and Score */}
+              <div className="flex items-center justify-between gap-4">
+                <TeamDisplay 
+                  team={gameLog.game?.teams?.visitors} 
+                  score={gameLog.game?.scores?.visitors?.points}
+                  isHome={false}
+                />
+                
+                <div className="text-center px-4">
+                  <p className="text-sm text-muted-foreground mb-1">Final</p>
+                  <div className="text-3xl font-bold text-muted-foreground">VS</div>
+                </div>
+                
+                <TeamDisplay 
+                  team={gameLog.game?.teams?.home} 
+                  score={gameLog.game?.scores?.home?.points}
+                  isHome={true}
+                />
               </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Watch Date</p>
-                <p className="mt-1">
-                  {gameLog.watchedDate && !isNaN(new Date(gameLog.watchedDate).getTime())
-                    ? format(new Date(gameLog.watchedDate), 'MMMM d, yyyy h:mm a')
-                    : 'Date not available'}
-                </p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Rating</p>
-                <div className="flex items-center gap-1 mt-1">
-                  <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                  <span>{gameLog.ratingForGame}/5</span>
+
+              {/* Game Info */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4 border-t">
+                <div className="text-center">
+                  <Building2 className="h-4 w-4 mx-auto mb-1 text-muted-foreground" />
+                  <p className="text-sm font-medium">{gameLog.game?.arena || 'Unknown Arena'}</p>
+                  <p className="text-xs text-muted-foreground">Arena</p>
+                </div>
+                <div className="text-center">
+                  <Trophy className="h-4 w-4 mx-auto mb-1 text-muted-foreground" />
+                  <p className="text-sm font-medium">{gameLog.game?.league || 'NBA'}</p>
+                  <p className="text-xs text-muted-foreground">Season {gameLog.game?.season}</p>
+                </div>
+                <div className="text-center">
+                  <TrendingUp className="h-4 w-4 mx-auto mb-1 text-muted-foreground" />
+                  <p className="text-sm font-medium">{gameLog.game?.timesTied || 0}</p>
+                  <p className="text-xs text-muted-foreground">Times Tied</p>
+                </div>
+                <div className="text-center">
+                  <Users className="h-4 w-4 mx-auto mb-1 text-muted-foreground" />
+                  <p className="text-sm font-medium">{gameLog.game?.leadChanges || 0}</p>
+                  <p className="text-xs text-muted-foreground">Lead Changes</p>
                 </div>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* User Details Card */}
-        {gameLog.user && (
+        {/* Watch Details and User Info Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Watch Details Card */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-2xl font-bold">User Details</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <Tv className="h-5 w-5" />
+                Watch Details
+              </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="flex items-center gap-4">
-                {gameLog.user.imageUrl && (
-                  <Image
-                    src={gameLog.user.imageUrl}
-                    alt={gameLog.user.username || 'User'}
-                    width={48}
-                    height={48}
-                    className="rounded-full"
-                  />
-                )}
-                <div>
-                  <h3 className="font-semibold">
-                    {gameLog.user.firstName} {gameLog.user.lastName}
-                  </h3>
-                  <p className="text-sm text-muted-foreground">@{gameLog.user.username}</p>
-                </div>
-              </div>
+            <CardContent className="space-y-4">
+              <WatchInfoItem
+                icon={Tv}
+                label="Setting"
+                value={gameLog.watchedSetting || 'Not specified'}
+                badge
+              />
+              <WatchInfoItem
+                icon={MapPin}
+                label="Location"
+                value={gameLog.watchedLocation || 'Not specified'}
+              />
+              <WatchInfoItem
+                icon={Calendar}
+                label="Watched On"
+                value={watchDate ? format(watchDate, 'MMM d, yyyy h:mm a') : 'Not specified'}
+              />
+              <WatchInfoItem
+                icon={Star}
+                label="Rating"
+                value={
+                  <div className="flex items-center gap-2">
+                    <StarRating 
+                      rating={gameLog.ratingStars || gameLog.ratingForGame || 0} 
+                      size="sm"
+                    />
+                    <span className="text-sm text-muted-foreground">
+                      ({gameLog.ratingStars || gameLog.ratingForGame || 0}/5)
+                    </span>
+                  </div>
+                }
+              />
             </CardContent>
           </Card>
-        )}
 
-        {/* Game Statistics Card */}
-        {gameLog.game && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-2xl font-bold">Game Statistics</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="text-sm space-y-1">
-                  <p>Home Team Score: {gameLog.game.scores?.home?.points || 0}</p>
-                  <p>Away Team Score: {gameLog.game.scores?.visitors?.points || 0}</p>
-                  <p>Status: {gameLog.game.status.short}</p>
-                  <p>League: {gameLog.game.league}</p>
-                  <p>Season: {gameLog.game.season}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+          {/* User Info Card */}
+          {gameLog.user && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="h-5 w-5" />
+                  Logged By
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Link href={`/protected/user/${gameLog.user.id}`}>
+                  <div className="flex items-center gap-4 p-4 rounded-lg hover:bg-muted/50 transition-colors">
+                    <Avatar className="h-12 w-12">
+                      <AvatarImage src={gameLog.user.imageUrl || undefined} />
+                      <AvatarFallback>
+                        {gameLog.user.firstName?.[0]}{gameLog.user.lastName?.[0]}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <p className="font-semibold">
+                        {gameLog.user.firstName} {gameLog.user.lastName}
+                      </p>
+                      <p className="text-sm text-muted-foreground">@{gameLog.user.username}</p>
+                    </div>
+                  </div>
+                </Link>
+                
+                {gameLog.notes && (
+                  <div className="mt-4 p-4 bg-muted/50 rounded-lg">
+                    <p className="text-sm font-medium mb-1">Notes</p>
+                    <p className="text-sm text-muted-foreground">{gameLog.notes}</p>
+                  </div>
+                )}
+                
+                {gameLog.tags && gameLog.tags.length > 0 && (
+                  <div className="mt-4">
+                    <p className="text-sm font-medium mb-2">Tags</p>
+                    <div className="flex flex-wrap gap-2">
+                      {gameLog.tags.map((tag, index) => (
+                        <Badge key={index} variant="secondary">
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+        </div>
+
+        {/* Reactions Section */}
+        <Card>
+          <CardContent className="pt-6">
+            <ReactionsSection 
+              targetId={gameLog.id} 
+              targetType="game_log" 
+            />
+          </CardContent>
+        </Card>
 
         {/* Comments Section */}
         <CommentsSection parentId={gameLog.id} parentType="game_log" />
-
-        {gameLog.game && (
-          <div className="mt-4">
-            <h3 className="text-lg font-semibold">Game Stats</h3>
-            <div className="grid grid-cols-2 gap-4 mt-2">
-              <div>
-                <h4 className="font-medium">Home Team</h4>
-                <p>Points: {gameLog.game.scores?.home?.points || 0}</p>
-              </div>
-              <div>
-                <h4 className="font-medium">Away Team</h4>
-                <p>Points: {gameLog.game.scores?.visitors?.points || 0}</p>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );
