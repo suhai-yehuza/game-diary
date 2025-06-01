@@ -1,6 +1,6 @@
 import { useMutation } from '@apollo/client';
 import { useUser } from '@clerk/nextjs';
-import { Smile, Sparkles, Heart } from 'lucide-react';
+import { Heart, ThumbsUp, Laugh, Flame, Star, MoreHorizontal } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 
 import { Button } from '@/components/ui/button';
@@ -12,6 +12,17 @@ import { Reaction, ReactionEmojiType } from '@/lib/types/generated/graphql';
 import { ReactionPickerProps } from '@/lib/types/reaction.types';
 import { cn } from '@/lib/utils';
 
+// Quick reactions that appear immediately
+const QUICK_REACTIONS: ReactionEmojiType[] = ['LIKE', 'LOVE', 'FIRE', 'CLAP', 'GOAT'];
+
+// Categorized reactions for the picker
+const REACTION_CATEGORIES = {
+  'Emotions': ['LIKE', 'LOVE', 'LAUGH', 'WOW', 'SAD', 'ANGRY'],
+  'Celebratory': ['FIRE', 'CLAP', 'EYES', 'ROCKET', 'MUSCLE', 'GOAT'],
+  'Sports': ['BASKETBALL', 'SOCCER', 'FOOTBALL', 'BASEBALL', 'TENNIS', 'GOLF'],
+  'Other': ['BULLSEYE', 'THUMBS_DOWN'],
+};
+
 export function ReactionPicker({
   targetId,
   targetType,
@@ -19,19 +30,29 @@ export function ReactionPicker({
   onReactionChanged,
 }: ReactionPickerProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [hoveredEmoji, setHoveredEmoji] = useState<string | null>(null);
+  const [showQuickReactions, setShowQuickReactions] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<string>('Emotions');
+  const [recentlyUsed, setRecentlyUsed] = useState<ReactionEmojiType[]>([]);
   const { user } = useUser();
   const [createReaction] = useMutation(CREATE_REACTION);
 
-  // Reset hover state when popover closes
+  // Load recently used reactions from localStorage
   useEffect(() => {
-    if (!isOpen) {
-      setHoveredEmoji(null);
+    if (typeof window !== 'undefined' && user) {
+      const saved = localStorage.getItem(`reactions-recent-${user.id}`);
+      if (saved) {
+        setRecentlyUsed(JSON.parse(saved));
+      }
     }
-  }, [isOpen]);
+  }, [user]);
 
-  const handleReaction = async (emojiName: ReactionEmojiType) => {
+  const handleReaction = async (emojiName: ReactionEmojiType, fromQuick = false) => {
     if (!user) return;
+
+    // Update recently used
+    const newRecent = [emojiName, ...recentlyUsed.filter(e => e !== emojiName)].slice(0, 5);
+    setRecentlyUsed(newRecent);
+    localStorage.setItem(`reactions-recent-${user.id}`, JSON.stringify(newRecent));
 
     // Check if user already has this reaction
     const existingReaction = existingReactions.find(
@@ -39,7 +60,6 @@ export function ReactionPicker({
     );
 
     try {
-      // Use createReaction for both adding and removing (toggling)
       await createReaction({
         variables: {
           input: {
@@ -51,7 +71,7 @@ export function ReactionPicker({
         optimisticResponse: {
           createReaction: {
             reaction: existingReaction
-              ? null // If toggling off
+              ? null
               : {
                   __typename: 'Reaction',
                   id: `temp-${Date.now()}`,
@@ -87,7 +107,6 @@ export function ReactionPicker({
 
           let newEdges;
           if (data.createReaction.reaction) {
-            // Adding a reaction
             const newEdge = {
               __typename: 'ReactionEdge',
               node: data.createReaction.reaction,
@@ -95,7 +114,6 @@ export function ReactionPicker({
             };
             newEdges = [...existingData.reactions.edges, newEdge];
           } else {
-            // Removing a reaction
             newEdges = existingData.reactions.edges.filter(
               (edge: any) => !(edge.node.userId === user.id && edge.node.emoji === emojiName)
             );
@@ -115,8 +133,10 @@ export function ReactionPicker({
         },
       });
       
-      setIsOpen(false);
-      // Call onReactionChanged to notify parent components
+      if (!fromQuick) {
+        setIsOpen(false);
+      }
+      setShowQuickReactions(false);
       onReactionChanged?.();
     } catch (error) {
       console.error('Error toggling reaction:', error);
@@ -124,109 +144,189 @@ export function ReactionPicker({
     }
   };
 
+  const hasUserReacted = (emojiName: string) => {
+    return existingReactions.some(
+      (reaction: Reaction) => reaction.userId === user?.id && reaction.emoji === emojiName
+    );
+  };
+
   return (
-    <Popover open={isOpen} onOpenChange={setIsOpen}>
-      <PopoverTrigger asChild>
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          className={cn(
-            "h-8 px-2 gap-1.5 group relative overflow-hidden",
-            "hover:bg-accent/80 transition-all duration-200",
-            "border border-transparent hover:border-border/50"
-          )}
-        >
-          <div className="relative">
-            {/* Animated emoji background */}
-            <div className="absolute inset-0 flex items-center justify-center">
-              <Smile className={cn(
-                "h-4 w-4 transition-all duration-300",
-                isOpen ? "scale-0 opacity-0" : "scale-100 opacity-100 group-hover:scale-110"
-              )} />
-              <Heart className={cn(
-                "h-4 w-4 absolute text-pink-500 transition-all duration-300",
-                isOpen ? "scale-100 opacity-100" : "scale-0 opacity-0"
-              )} />
+    <div className="relative">
+      {/* Quick Reactions Bar */}
+      <div className={cn(
+        "absolute bottom-full left-0 mb-2 flex items-center gap-1 p-1.5",
+        "bg-background/95 backdrop-blur-sm rounded-full shadow-lg border",
+        "transition-all duration-300 origin-bottom-left",
+        showQuickReactions 
+          ? "opacity-100 scale-100 translate-y-0" 
+          : "opacity-0 scale-95 translate-y-2 pointer-events-none"
+      )}>
+        {QUICK_REACTIONS.map((emojiName, index) => {
+          const emoji = REACTION_EMOJIS[emojiName];
+          const hasReacted = hasUserReacted(emojiName);
+          
+          return (
+            <Button
+              key={emojiName}
+              variant="ghost"
+              size="sm"
+              onClick={() => handleReaction(emojiName, true)}
+              className={cn(
+                "h-9 w-9 p-0 rounded-full transition-all duration-300",
+                "hover:scale-125 hover:bg-accent/80",
+                hasReacted && "bg-primary/20 ring-2 ring-primary/30",
+                "animate-in slide-in-from-bottom-2 fade-in-0"
+              )}
+              style={{
+                animationDelay: `${index * 50}ms`,
+                animationFillMode: 'backwards'
+              }}
+            >
+              <span className="text-lg">{emoji}</span>
+            </Button>
+          );
+        })}
+        <div className="w-px h-6 bg-border mx-1" />
+        <Popover open={isOpen} onOpenChange={setIsOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              variant="ghost"
+              size="sm"
+              className={cn(
+                "h-9 w-9 p-0 rounded-full",
+                "hover:scale-110 hover:bg-accent/80",
+                "animate-in slide-in-from-bottom-2 fade-in-0"
+              )}
+              style={{
+                animationDelay: `${QUICK_REACTIONS.length * 50}ms`,
+                animationFillMode: 'backwards'
+              }}
+            >
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent 
+            className="w-80 p-0 overflow-hidden" 
+            align="start"
+            side="top"
+            sideOffset={10}
+          >
+            {/* Categories */}
+            <div className="flex gap-1 p-2 border-b bg-muted/30">
+              {Object.keys(REACTION_CATEGORIES).map((category) => (
+                <Button
+                  key={category}
+                  variant={selectedCategory === category ? "secondary" : "ghost"}
+                  size="sm"
+                  onClick={() => setSelectedCategory(category)}
+                  className="text-xs h-7 px-2"
+                >
+                  {category}
+                </Button>
+              ))}
             </div>
-            {/* Sparkle effect on hover */}
-            <Sparkles className={cn(
-              "h-3 w-3 absolute -top-1 -right-1 text-yellow-500",
-              "transition-all duration-300 opacity-0 group-hover:opacity-100",
-              "animate-pulse"
-            )} />
-          </div>
-          <span className={cn(
-            "text-xs font-medium ml-4 transition-all duration-200",
-            "opacity-0 group-hover:opacity-100"
-          )}>
-            React
-          </span>
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent 
-        className="w-auto p-3 bg-background/95 backdrop-blur-sm" 
-        align="start"
-        sideOffset={5}
-      >
-        <div className="space-y-2">
-          <p className="text-xs font-medium text-muted-foreground text-center mb-2">
-            Pick a reaction
-          </p>
-          <div className="grid grid-cols-5 gap-1">
-            {Object.entries(REACTION_EMOJIS).map(([name, emoji]) => {
-              const hasReacted = existingReactions.some(
-                (reaction: Reaction) => reaction.userId === user?.id && reaction.emoji === name
-              );
-              const isHovered = hoveredEmoji === name;
-              
-              return (
-                <div key={name} className="relative">
-                  <Button
-                    variant={hasReacted ? 'secondary' : 'ghost'}
-                    size="sm"
-                    className={cn(
-                      "h-10 w-10 p-0 relative transition-all duration-200",
-                      hasReacted && "bg-accent ring-2 ring-primary/20",
-                      !hasReacted && "hover:bg-accent/80 hover:scale-110",
-                      isHovered && "scale-125 z-10"
-                    )}
-                    onClick={() => handleReaction(name as ReactionEmojiType)}
-                    onMouseEnter={() => setHoveredEmoji(name)}
-                    onMouseLeave={() => setHoveredEmoji(null)}
-                  >
-                    <span className={cn(
-                      "text-xl transition-transform duration-200",
-                      isHovered && "animate-bounce"
-                    )}>
-                      {emoji}
-                    </span>
-                    {hasReacted && (
-                      <div className="absolute -top-1 -right-1 h-2 w-2 bg-primary rounded-full animate-pulse" />
-                    )}
-                  </Button>
-                  {/* Tooltip on hover */}
-                  {isHovered && (
-                    <div className={cn(
-                      "absolute -top-8 left-1/2 -translate-x-1/2",
-                      "bg-popover px-2 py-1 rounded text-xs whitespace-nowrap",
-                      "border shadow-sm z-20 animate-in fade-in-0 zoom-in-95",
-                      "pointer-events-none"
-                    )}>
-                      {name.charAt(0) + name.slice(1).toLowerCase()}
-                    </div>
-                  )}
+
+            {/* Recently Used */}
+            {recentlyUsed.length > 0 && selectedCategory === 'Emotions' && (
+              <div className="p-2 border-b">
+                <p className="text-xs text-muted-foreground mb-1.5">Recently used</p>
+                <div className="flex gap-1">
+                  {recentlyUsed.map((emojiName) => {
+                    const emoji = REACTION_EMOJIS[emojiName];
+                    const hasReacted = hasUserReacted(emojiName);
+                    
+                    return (
+                      <Button
+                        key={emojiName}
+                        variant={hasReacted ? "secondary" : "ghost"}
+                        size="sm"
+                        onClick={() => handleReaction(emojiName)}
+                        className={cn(
+                          "h-8 w-8 p-0",
+                          hasReacted && "ring-1 ring-primary/20"
+                        )}
+                      >
+                        <span className="text-base">{emoji}</span>
+                      </Button>
+                    );
+                  })}
                 </div>
-              );
-            })}
-          </div>
-          {/* Popular reactions section */}
-          <div className="pt-2 border-t">
-            <p className="text-[10px] text-muted-foreground text-center">
-              Click any emoji to {existingReactions.some((r: Reaction) => r.userId === user?.id) ? 'change your' : 'add a'} reaction
-            </p>
-          </div>
+              </div>
+            )}
+
+            {/* Category Emojis */}
+            <div className="p-3">
+              <div className="grid grid-cols-6 gap-1">
+                {REACTION_CATEGORIES[selectedCategory as keyof typeof REACTION_CATEGORIES].map((emojiName) => {
+                  const emoji = REACTION_EMOJIS[emojiName as ReactionEmojiType];
+                  const hasReacted = hasUserReacted(emojiName);
+                  
+                  return (
+                    <Button
+                      key={emojiName}
+                      variant={hasReacted ? "secondary" : "ghost"}
+                      size="sm"
+                      onClick={() => handleReaction(emojiName as ReactionEmojiType)}
+                      className={cn(
+                        "h-10 w-full p-0 relative group",
+                        "hover:scale-110 hover:z-10 transition-all duration-200",
+                        hasReacted && "bg-accent ring-1 ring-primary/20"
+                      )}
+                    >
+                      <span className="text-xl">{emoji}</span>
+                      {hasReacted && (
+                        <div className="absolute -top-1 -right-1 h-2 w-2 bg-primary rounded-full" />
+                      )}
+                      {/* Tooltip */}
+                      <div className={cn(
+                        "absolute -top-7 left-1/2 -translate-x-1/2",
+                        "bg-popover px-2 py-0.5 rounded text-[10px] whitespace-nowrap",
+                        "border shadow-sm opacity-0 group-hover:opacity-100",
+                        "transition-opacity duration-200 pointer-events-none z-20"
+                      )}>
+                        {emojiName.charAt(0) + emojiName.slice(1).toLowerCase()}
+                      </div>
+                    </Button>
+                  );
+                })}
+              </div>
+            </div>
+          </PopoverContent>
+        </Popover>
+      </div>
+
+      {/* Main Reaction Button */}
+      <Button 
+        variant="ghost" 
+        size="sm"
+        onMouseEnter={() => setShowQuickReactions(true)}
+        onMouseLeave={() => !isOpen && setShowQuickReactions(false)}
+        className={cn(
+          "h-8 px-3 gap-2 group relative",
+          "hover:bg-accent/50 transition-all duration-200",
+          "border border-transparent hover:border-border/50"
+        )}
+      >
+        {/* Animated Icons */}
+        <div className="relative w-4 h-4">
+          <Heart className={cn(
+            "h-4 w-4 absolute transition-all duration-300",
+            "text-muted-foreground group-hover:text-pink-500",
+            showQuickReactions ? "scale-0 rotate-180" : "scale-100 rotate-0"
+          )} />
+          <ThumbsUp className={cn(
+            "h-4 w-4 absolute transition-all duration-300",
+            "text-blue-500",
+            showQuickReactions ? "scale-100 rotate-0" : "scale-0 -rotate-180"
+          )} />
         </div>
-      </PopoverContent>
-    </Popover>
+        <span className={cn(
+          "text-xs font-medium transition-all duration-200",
+          "text-muted-foreground group-hover:text-foreground"
+        )}>
+          React
+        </span>
+      </Button>
+    </div>
   );
 }

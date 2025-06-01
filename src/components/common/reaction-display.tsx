@@ -9,6 +9,7 @@ import { REACTION_EMOJIS } from '@/lib/types/config.types';
 import { ReactionDisplayProps } from '@/lib/types/consolidated.types';
 import { Reaction, ReactionEmojiType } from '@/lib/types/generated/graphql';
 import { cn } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
 
 import { ReactionPicker } from './reaction-picker';
 
@@ -229,76 +230,120 @@ export function ReactionDisplay({
 
   return (
     <div className="flex items-center gap-2 flex-wrap">
-      {Object.entries(REACTION_EMOJIS).map(([name, emoji]) => {
-        const group = reactionGroups[name];
-        if (!group || group.count === 0) return null;
+      {/* Reaction Pills */}
+      <div className={cn(
+        "flex items-center gap-1.5 flex-wrap",
+        Object.keys(reactionGroups).length > 0 && "mr-2"
+      )}>
+        {Object.entries(REACTION_EMOJIS).map(([name, emoji]) => {
+          const group = reactionGroups[name];
+          if (!group || group.count === 0) return null;
 
-        const userHasReacted = group.hasCurrentUser;
+          const userHasReacted = group.hasCurrentUser;
 
-        return (
-          <Button
-            key={name}
-            variant={userHasReacted ? 'secondary' : 'ghost'}
-            size="sm"
-            className={cn(
-              "h-8 px-2.5 gap-1.5 group relative transition-all duration-200",
-              "hover:scale-105 hover:shadow-sm",
-              userHasReacted ? 
-                "bg-primary/10 text-primary hover:bg-primary/20 ring-1 ring-primary/20" : 
-                "hover:bg-accent/80 hover:ring-1 hover:ring-border/50"
-            )}
-            onClick={() => handleEmojiClick(name as ReactionEmojiType)}
-            title={`${group.users.slice(0, 5).join(', ')}${group.users.length > 5 ? ` and ${group.users.length - 5} more` : ''}`}
-          >
-            <span className={cn(
-              "text-lg transition-transform duration-200",
-              "group-hover:scale-110",
-              userHasReacted && "animate-in zoom-in-50"
-            )}>
-              {emoji}
-            </span>
-            <span className={cn(
-              "text-sm font-medium",
-              userHasReacted ? "text-primary" : "text-muted-foreground"
-            )}>
-              {group.count}
-            </span>
-            {/* Pulse effect for user's own reactions */}
-            {userHasReacted && (
-              <div className="absolute inset-0 rounded-md bg-primary/10 animate-pulse pointer-events-none" />
-            )}
-          </Button>
-        );
-      })}
-      
-      {/* Show count of additional reactions not displayed */}
+          return (
+            <div
+              key={name}
+              className={cn(
+                "group relative inline-flex items-center gap-1.5 px-2.5 py-1",
+                "rounded-full text-sm font-medium cursor-pointer select-none",
+                "transition-all duration-200 hover:scale-105",
+                "animate-in fade-in-50 zoom-in-95",
+                userHasReacted 
+                  ? "bg-primary/15 text-primary hover:bg-primary/25 ring-1 ring-primary/30" 
+                  : "bg-muted hover:bg-accent text-muted-foreground hover:text-foreground"
+              )}
+              onClick={() => handleEmojiClick(name as ReactionEmojiType)}
+              role="button"
+              tabIndex={0}
+            >
+              {/* Emoji with bounce animation on click */}
+              <span 
+                className={cn(
+                  "text-base transition-transform duration-200",
+                  "group-hover:scale-110 group-active:scale-125"
+                )}
+              >
+                {emoji}
+              </span>
+              
+              {/* Count badge */}
+              <span className={cn(
+                "min-w-[1rem] text-center",
+                group.count > 99 && "text-xs"
+              )}>
+                {group.count > 99 ? '99+' : group.count}
+              </span>
+
+              {/* Tooltip with reactor names */}
+              <div className={cn(
+                "absolute bottom-full left-1/2 -translate-x-1/2 mb-2",
+                "bg-popover px-3 py-1.5 rounded-md shadow-lg border",
+                "text-xs whitespace-nowrap max-w-xs",
+                "opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100",
+                "transition-all duration-200 pointer-events-none z-50",
+                "before:content-[''] before:absolute before:top-full before:left-1/2",
+                "before:-translate-x-1/2 before:border-4 before:border-transparent",
+                "before:border-t-border"
+              )}>
+                <div className="font-medium mb-0.5">
+                  {userHasReacted ? '✓ You' : group.users[0]}
+                  {group.count > 1 && ` and ${group.count - 1} ${group.count === 2 ? 'other' : 'others'}`}
+                </div>
+                <div className="text-muted-foreground">
+                  reacted with {name.charAt(0) + name.slice(1).toLowerCase()}
+                </div>
+              </div>
+
+              {/* Shine effect on hover */}
+              <div className={cn(
+                "absolute inset-0 rounded-full overflow-hidden pointer-events-none",
+                "before:absolute before:inset-0 before:bg-gradient-to-r",
+                "before:from-transparent before:via-white/10 before:to-transparent",
+                "before:-translate-x-full before:group-hover:translate-x-full",
+                "before:transition-transform before:duration-700"
+              )} />
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Show more reactions indicator */}
       {totalCount > reactions.length && (
-        <Button
-          variant="ghost"
-          size="sm"
-          className="h-8 px-2.5 text-xs hover:bg-accent/80"
+        <Badge
+          variant="secondary"
+          className={cn(
+            "cursor-pointer hover:bg-secondary/80",
+            "transition-all duration-200 hover:scale-105"
+          )}
           onClick={() => setShowAllReactions(true)}
         >
           +{totalCount - reactions.length} more
-        </Button>
+        </Badge>
       )}
       
-      <ReactionPicker
-        targetId={targetId}
-        targetType={targetType}
-        existingReactions={formattedReactions}
-        onReactionChanged={() => {
-          if (providedReactions) {
-            // If reactions are provided, call parent to refetch
-            if (onReactionChange) {
-              onReactionChange();
-            }
-          } else {
-            // Otherwise refetch our own query
-            refetch();
-          }
-        }}
-      />
+      {/* Reaction Picker with divider */}
+      {user && (
+        <>
+          {Object.keys(reactionGroups).length > 0 && (
+            <div className="h-4 w-px bg-border/50" />
+          )}
+          <ReactionPicker
+            targetId={targetId}
+            targetType={targetType}
+            existingReactions={formattedReactions}
+            onReactionChanged={() => {
+              if (providedReactions) {
+                if (onReactionChange) {
+                  onReactionChange();
+                }
+              } else {
+                refetch();
+              }
+            }}
+          />
+        </>
+      )}
     </div>
   );
 }
