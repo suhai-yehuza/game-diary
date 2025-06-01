@@ -1,6 +1,9 @@
+'use client';
+
 import { format } from 'date-fns';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 import { CommentsSection, ReactionsSection } from '@/components/common';
 import { Badge } from '@/components/ui/badge';
@@ -45,6 +48,8 @@ export function GameLogsSection({
   onLoadMore,
   refetch,
 }: GameLogsSectionProps) {
+  const router = useRouter();
+
   if (loading && !gameLogs.length) {
     return (
       <div className="text-center p-4">
@@ -61,15 +66,38 @@ export function GameLogsSection({
     );
   }
 
+  const handleCardClick = (e: React.MouseEvent, gameLogId: string) => {
+    // Check if the click is on the user profile link or any interactive element
+    const target = e.target as HTMLElement;
+    const isInteractiveElement = 
+      target.tagName === 'A' ||
+      target.tagName === 'BUTTON' ||
+      target.closest('a') ||
+      target.closest('button') ||
+      target.closest('[role="button"]') ||
+      target.closest('.comments-section') ||
+      target.closest('.reactions-section');
+    
+    if (!isInteractiveElement) {
+      e.preventDefault();
+      router.push(`/protected/user/game-logs/${gameLogId}`);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {gameLogs.map(log => (
-        <Card key={log.id} className="overflow-hidden">
+        <Card 
+          key={log.id} 
+          className="overflow-hidden cursor-pointer hover:shadow-lg transition-all duration-200 group"
+          onClick={(e) => handleCardClick(e, log.id)}
+        >
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
               <Link
                 href={`/protected/user/${log.userId}`}
-                className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+                className="flex items-center gap-2 hover:opacity-80 transition-opacity z-10"
+                onClick={(e) => e.stopPropagation()}
               >
                 <Image
                   src={log.user?.imageUrl || '/default-user-avatar.svg'}
@@ -135,8 +163,13 @@ export function GameLogsSection({
               <div className="text-sm text-muted-foreground">
                 Watched at {log.watchedLocation}. {log.watchedSetting}
               </div>
+              {log.notes && (
+                <div className="mt-2 p-3 bg-muted/50 rounded-md">
+                  <p className="text-sm">{log.notes}</p>
+                </div>
+              )}
             </div>
-            <div className="space-y-4">
+            <div className="space-y-4 comments-section reactions-section">
               <ReactionsSection 
                 targetId={log.id} 
                 targetType="game_log" 
@@ -147,6 +180,10 @@ export function GameLogsSection({
               <CommentsSection parentId={log.id} parentType="game_log" />
             </div>
           </CardContent>
+          {/* Visual indicator that card is clickable */}
+          <div className="absolute inset-0 pointer-events-none">
+            <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+          </div>
         </Card>
       ))}
       <div ref={loadMoreRef} className="h-10">
