@@ -8,6 +8,7 @@ import { GET_REACTIONS } from '@/lib/graphql/queries';
 import { REACTION_EMOJIS } from '@/lib/types/config.types';
 import { ReactionDisplayProps } from '@/lib/types/consolidated.types';
 import { Reaction, ReactionEmojiType } from '@/lib/types/generated/graphql';
+import { cn } from '@/lib/utils';
 
 import { ReactionPicker } from './reaction-picker';
 
@@ -239,12 +240,33 @@ export function ReactionDisplay({
             key={name}
             variant={userHasReacted ? 'secondary' : 'ghost'}
             size="sm"
-            className={`h-8 px-2 hover:bg-accent ${userHasReacted ? 'bg-accent' : ''}`}
+            className={cn(
+              "h-8 px-2.5 gap-1.5 group relative transition-all duration-200",
+              "hover:scale-105 hover:shadow-sm",
+              userHasReacted ? 
+                "bg-primary/10 text-primary hover:bg-primary/20 ring-1 ring-primary/20" : 
+                "hover:bg-accent/80 hover:ring-1 hover:ring-border/50"
+            )}
             onClick={() => handleEmojiClick(name as ReactionEmojiType)}
             title={`${group.users.slice(0, 5).join(', ')}${group.users.length > 5 ? ` and ${group.users.length - 5} more` : ''}`}
           >
-            <span className="text-lg">{emoji}</span>
-            <span className="ml-1 text-sm">{group.count}</span>
+            <span className={cn(
+              "text-lg transition-transform duration-200",
+              "group-hover:scale-110",
+              userHasReacted && "animate-in zoom-in-50"
+            )}>
+              {emoji}
+            </span>
+            <span className={cn(
+              "text-sm font-medium",
+              userHasReacted ? "text-primary" : "text-muted-foreground"
+            )}>
+              {group.count}
+            </span>
+            {/* Pulse effect for user's own reactions */}
+            {userHasReacted && (
+              <div className="absolute inset-0 rounded-md bg-primary/10 animate-pulse pointer-events-none" />
+            )}
           </Button>
         );
       })}
@@ -254,7 +276,7 @@ export function ReactionDisplay({
         <Button
           variant="ghost"
           size="sm"
-          className="h-8 px-2 text-xs"
+          className="h-8 px-2.5 text-xs hover:bg-accent/80"
           onClick={() => setShowAllReactions(true)}
         >
           +{totalCount - reactions.length} more
