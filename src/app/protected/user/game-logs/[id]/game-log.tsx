@@ -1,6 +1,7 @@
 'use client';
 
 import { useQuery } from '@apollo/client';
+import { useUser } from '@clerk/nextjs';
 import { format, formatDistanceToNow } from 'date-fns';
 import { 
   Star, 
@@ -26,7 +27,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { StarRating } from '@/components/ui/star-rating';
-import { GET_GAME_LOG_WITH_REACTIONS } from '@/lib/graphql/queries';
+import { GET_GAME_LOG_BY_ID } from '@/lib/graphql/queries';
 import { GameLogResponse } from '@/lib/types/shared.types';
 import { cn } from '@/lib/utils';
 
@@ -175,16 +176,17 @@ const WatchInfoItem = ({
 export default function GameLog() {
   const params = useParams();
   const gameLogId = params?.id as string;
+  const { user } = useUser();
   
-  const { data, loading, error } = useQuery(GET_GAME_LOG_WITH_REACTIONS, {
-    variables: { gameId: gameLogId, userId: '' }, // Adjust based on your query needs
+  const { data, loading, error } = useQuery(GET_GAME_LOG_BY_ID, {
+    variables: { id: gameLogId },
     skip: !gameLogId,
   });
 
   if (loading) return <GameLogSkeleton />;
   if (error) return <ErrorState error={error} />;
   
-  const gameLog = data?.gameLog as GameLogResponse;
+  const gameLog = data?.gameLogById as GameLogResponse;
   if (!gameLog) {
     return (
       <div className="container mx-auto px-4 py-8">

@@ -850,3 +850,36 @@ export const SEARCH_USERS = gql`
     }
   }
 `;
+
+export const GET_GAME_LOG_BY_ID = gql`
+  query GetGameLogById($id: ID!) {
+    gameLogById(id: $id) {
+      ...GameLogFragment
+      rating
+      reactions(first: 20) {
+        edges {
+          node {
+            id
+            emoji
+            userId
+            targetId
+            targetType
+            createdAt
+            updatedAt
+            user {
+              id
+              username
+              emailAddress
+              imageUrl
+            }
+          }
+        }
+        totalCount
+      }
+      comments(first: 20) {
+        totalCount
+      }
+    }
+  }
+  ${GAME_LOG_FRAGMENT}
+`;

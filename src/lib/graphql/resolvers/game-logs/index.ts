@@ -56,6 +56,45 @@ export const gameLog = async (
   }
 };
 
+export const gameLogById = async (
+  _parent: unknown,
+  { id }: { id: string },
+  { db }: Context
+) => {
+  try {
+    const gameLog = await db
+      .select()
+      .from(schema.game_logs)
+      .where(eq(schema.game_logs.id, id))
+      .limit(1)
+      .then(rows => rows[0]);
+
+    if (!gameLog) {
+      return null;
+    }
+
+    return {
+      id: gameLog.id,
+      userId: gameLog.userId,
+      gameId: gameLog.gameId,
+      watchedSetting: gameLog.watchedSetting,
+      watchedDate: gameLog.watchedDate,
+      watchedLocation: gameLog.watchedLocation,
+      ratingForGame: gameLog.ratingForGame,
+      ratingStars: parseRatingStars(gameLog.ratingStars),
+      watchedScope: gameLog.watchedScope,
+      notes: gameLog.notes,
+      tags: gameLog.tags,
+      classification: gameLog.classification,
+      createdAt: gameLog.createdAt,
+      updatedAt: gameLog.updatedAt,
+      deletedAt: gameLog.deletedAt,
+    };
+  } catch (error) {
+    handleResolverError(error, 'fetch game log by id');
+  }
+};
+
 export const gameLogs = async (
   _parent: unknown,
   args: PaginationArgs & { filters?: GameLogFilters },

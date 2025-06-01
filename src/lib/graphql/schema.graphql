@@ -656,6 +656,7 @@ type Query {
   friendships(after: String, before: String, first: Int, last: Int, userId: ID!): UserBaseConnection!
   game(id: ID!): Game
   gameLog(gameId: ID!, userId: ID!): GameLog
+  gameLogById(id: ID!): GameLog
   gameLogStats(filters: GameLogFilters): GameLogStats!
   gameLogs(after: String, before: String, filters: GameLogFilters, first: Int, last: Int): GameLogConnection!
   gameStats(id: ID!): GameStats
