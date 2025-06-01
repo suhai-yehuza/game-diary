@@ -58,10 +58,13 @@ const mapLiveGameData = (game: GameResponseData) => ({
     home: game.teams?.home || null,
     visitors: game.teams?.visitors || null,
   },
-  is_completed: game.status?.long === 'Finished',
+  isCompleted: game.status?.long === 'Finished',
   awayTeamScore: game.scores?.visitors?.points || null,
   homeTeamScore: game.scores?.home?.points || null,
   nbaGameId: String(game.id),
+  createdAt: game.date?.start || new Date().toISOString(),
+  updatedAt: new Date().toISOString(),
+  gameType: 'NBA',
 });
 
 export const games = async (

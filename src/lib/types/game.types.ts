@@ -485,6 +485,7 @@ export type ExtendedGame = Game & {
   periods?: {
     current: number;
     total: number;
+    endOfPeriod: boolean;
   };
   officials?: string[];
   timesTied?: number;

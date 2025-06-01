@@ -7,6 +7,7 @@ export { GameLogsSection } from './game-logs-section';
 export { GameLogView } from './GameLogView';
 export { GamesList } from './GamesList';
 export { GameStats } from './GameStats';
+export { LiveGamesBanner } from './live-games-banner';
 export { LiveGamesSection } from './live-games-section';
 export { NbaDataClient } from './nba-data-client';
 export { UpdateGameLogModal } from './update-game-log-modal';
