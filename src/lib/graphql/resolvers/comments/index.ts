@@ -93,10 +93,14 @@ export const Comment = {
   },
   reactions: async (parent: any, _args: any, { db }: Context) => {
     try {
+      // For comments, we'll return a limited set of reactions
+      // The frontend can load more if needed via a separate query
       const reactions = await db
         .select()
         .from(schema.reactions)
-        .where(eq(schema.reactions.targetId, parent.id));
+        .where(eq(schema.reactions.targetId, parent.id))
+        .orderBy(schema.reactions.createdAt)
+        .limit(10); // Limit to 10 reactions for comments
 
       return reactions.map(reaction => ({
         id: reaction.id,

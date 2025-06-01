@@ -1,29 +1,24 @@
-import { useQuery } from '@apollo/client';
 import React from 'react';
 
 import { ReactionDisplay } from '@/components/common/reaction-display';
-import { GET_REACTIONS } from '@/lib/graphql/queries';
+import { Reaction } from '@/lib/types/generated/graphql';
 
 interface ReactionsSectionProps {
   targetId: string;
   targetType: string;
+  reactions?: Reaction[];
+  totalReactionCount?: number;
 }
 
-export function ReactionsSection({ targetId, targetType }: ReactionsSectionProps) {
-  const { data, loading, error } = useQuery(GET_REACTIONS, {
-    variables: { targetId: targetId },
-    fetchPolicy: 'cache-and-network',
-  });
-
-  if (loading && !data) return null;
-  if (error) {
-    console.error('Error loading reactions:', error);
-    return null;
-  }
-
+export function ReactionsSection({ targetId, targetType, reactions, totalReactionCount }: ReactionsSectionProps) {
   return (
     <div className="flex items-center gap-2">
-      <ReactionDisplay targetId={targetId} targetType={targetType} />
+      <ReactionDisplay 
+        targetId={targetId} 
+        targetType={targetType} 
+        reactions={reactions} 
+        totalReactionCount={totalReactionCount}
+      />
     </div>
   );
 }

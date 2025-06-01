@@ -553,7 +553,11 @@ export function CommentsSection({ parentId, parentType, initialExpanded }: Comme
                 )}
 
                 <div className="flex items-center gap-2 mt-2">
-                  <ReactionDisplay targetId={comment.id} targetType="comment" />
+                  <ReactionDisplay 
+                    targetId={comment.id} 
+                    targetType="comment" 
+                    reactions={comment.reactions} 
+                  />
                 </div>
               </div>
             ))}

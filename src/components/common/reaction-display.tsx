@@ -1,6 +1,6 @@
 import { useQuery, useMutation } from '@apollo/client';
 import { useUser } from '@clerk/nextjs';
-import React from 'react';
+import React, { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { CREATE_REACTION } from '@/lib/graphql/mutations';
@@ -11,19 +11,48 @@ import { Reaction, ReactionEmojiType } from '@/lib/types/generated/graphql';
 
 import { ReactionPicker } from './reaction-picker';
 
-export function ReactionDisplay({ targetId, targetType }: ReactionDisplayProps) {
+interface ExtendedReactionDisplayProps extends ReactionDisplayProps {
+  reactions?: Reaction[];
+  totalReactionCount?: number;
+}
+
+export function ReactionDisplay({ 
+  targetId, 
+  targetType, 
+  reactions: providedReactions,
+  totalReactionCount: providedTotalCount 
+}: ExtendedReactionDisplayProps) {
   const { user } = useUser();
+  const [showAllReactions, setShowAllReactions] = useState(false);
+  
+  // Only query if reactions aren't provided or we need to load all
   const { data, loading, refetch } = useQuery(GET_REACTIONS, {
     variables: { targetId: targetId },
+    skip: !!providedReactions && !showAllReactions,
   });
+  
   const [createReaction] = useMutation(CREATE_REACTION);
 
-  if (loading) return null;
+  // Use provided reactions initially, full data when loading all
+  const reactions = showAllReactions && data?.reactions?.edges 
+    ? data.reactions.edges.map((edge: { node: Reaction }) => edge.node)
+    : (providedReactions || data?.reactions?.edges?.map((edge: { node: Reaction }) => edge.node) || []);
+  
+  // Use provided total count if available
+  const totalCount = providedTotalCount || data?.reactions?.totalCount || reactions.length;
+  
+  if (!providedReactions && loading) return null;
 
-  // Extract reactions from the GraphQL connection structure
-  const reactions = data?.reactions?.edges?.map((edge: { node: Reaction }) => edge.node) || [];
-  const reactionCounts = reactions.reduce((acc: Record<string, number>, reaction: Reaction) => {
-    acc[reaction.emoji] = (acc[reaction.emoji] || 0) + 1;
+  // Group reactions by emoji and count them
+  const reactionGroups = reactions.reduce((acc: Record<string, { count: number; users: string[]; hasCurrentUser: boolean }>, reaction: Reaction) => {
+    if (!acc[reaction.emoji]) {
+      acc[reaction.emoji] = { count: 0, users: [], hasCurrentUser: false };
+    }
+    acc[reaction.emoji].count++;
+    acc[reaction.emoji].users.push(reaction.user?.username || 'Unknown');
+    if (reaction.userId === user?.id) {
+      acc[reaction.emoji].hasCurrentUser = true;
+    }
     return acc;
   }, {});
 
@@ -146,12 +175,12 @@ export function ReactionDisplay({ targetId, targetType }: ReactionDisplayProps) 
   };
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-2 flex-wrap">
       {Object.entries(REACTION_EMOJIS).map(([name, emoji]) => {
-        const count = reactionCounts[name] || 0;
-        if (count === 0) return null;
+        const group = reactionGroups[name];
+        if (!group || group.count === 0) return null;
 
-        const userHasReacted = hasUserReacted(name);
+        const userHasReacted = group.hasCurrentUser;
 
         return (
           <Button
@@ -160,12 +189,26 @@ export function ReactionDisplay({ targetId, targetType }: ReactionDisplayProps) 
             size="sm"
             className={`h-8 px-2 hover:bg-accent ${userHasReacted ? 'bg-accent' : ''}`}
             onClick={() => handleEmojiClick(name as ReactionEmojiType)}
+            title={`${group.users.slice(0, 5).join(', ')}${group.users.length > 5 ? ` and ${group.users.length - 5} more` : ''}`}
           >
             <span className="text-lg">{emoji}</span>
-            <span className="ml-1 text-sm">{count}</span>
+            <span className="ml-1 text-sm">{group.count}</span>
           </Button>
         );
       })}
+      
+      {/* Show count of additional reactions not displayed */}
+      {totalCount > reactions.length && (
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-8 px-2 text-xs"
+          onClick={() => setShowAllReactions(true)}
+        >
+          +{totalCount - reactions.length} more
+        </Button>
+      )}
+      
       <ReactionPicker
         targetId={targetId}
         targetType={targetType}

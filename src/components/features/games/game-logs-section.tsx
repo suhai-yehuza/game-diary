@@ -1,7 +1,6 @@
 import { format } from 'date-fns';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useEffect } from 'react';
 
 import { CommentsSection, ReactionsSection } from '@/components/common';
 import { Badge } from '@/components/ui/badge';
@@ -44,23 +43,6 @@ export function GameLogsSection({
   loadMoreRef,
   onLoadMore,
 }: GameLogsSectionProps) {
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      entries => {
-        if (entries[0].isIntersecting && !isFetchingMore) {
-          onLoadMore();
-        }
-      },
-      { threshold: 0.1 }
-    );
-
-    if (loadMoreRef.current) {
-      observer.observe(loadMoreRef.current);
-    }
-
-    return () => observer.disconnect();
-  }, [loadMoreRef, onLoadMore, isFetchingMore]);
-
   if (loading && !gameLogs.length) {
     return (
       <div className="text-center p-4">
@@ -153,7 +135,12 @@ export function GameLogsSection({
               </div>
             </div>
             <div className="space-y-4">
-              <ReactionsSection targetId={log.id} targetType="game_log" />
+              <ReactionsSection 
+                targetId={log.id} 
+                targetType="game_log" 
+                reactions={log.reactions?.edges?.map(edge => edge.node) || []} 
+                totalReactionCount={log.reactions?.totalCount || 0}
+              />
               <CommentsSection parentId={log.id} parentType="game_log" />
             </div>
           </CardContent>

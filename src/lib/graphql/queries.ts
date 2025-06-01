@@ -397,7 +397,7 @@ export const GET_GAME_LOGS = gql`
             id
             teams
           }
-          comments(first: 10) {
+          comments(first: 20) {
             edges {
               node {
                 id
@@ -417,6 +417,11 @@ export const GET_GAME_LOGS = gql`
                 reactions {
                   id
                   emoji
+                  userId
+                  targetId
+                  targetType
+                  createdAt
+                  updatedAt
                   user {
                     id
                     username
@@ -428,7 +433,7 @@ export const GET_GAME_LOGS = gql`
             }
             totalCount
           }
-          reactions(first: 10) {
+          reactions(first: 20) {
             edges {
               node {
                 id

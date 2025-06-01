@@ -141,29 +141,99 @@ export const GameLog = {
     return (loaders as any).game.load(parent.gameId);
   },
   comments: async (parent: any, args: any, { db }: Context) => {
-    // TODO: Implement comments pagination
-    return {
-      edges: [],
-      pageInfo: {
-        hasNextPage: false,
-        hasPreviousPage: false,
-        startCursor: null,
-        endCursor: null,
-      },
-      totalCount: 0,
-    };
+    try {
+      const limit = args.first || 100;
+      const comments = await db
+        .select()
+        .from(schema.comments)
+        .where(eq(schema.comments.parentId, parent.id))
+        .orderBy(schema.comments.createdAt)
+        .limit(limit);
+
+      const edges = comments.map((comment, index) => ({
+        cursor: Buffer.from(index.toString()).toString('base64'),
+        node: comment,
+      }));
+
+      return {
+        edges,
+        pageInfo: {
+          hasNextPage: comments.length === limit,
+          hasPreviousPage: false,
+          startCursor: edges[0]?.cursor || null,
+          endCursor: edges[edges.length - 1]?.cursor || null,
+        },
+        totalCount: comments.length,
+      };
+    } catch (error) {
+      console.error('Error fetching comments for game log:', error);
+      return {
+        edges: [],
+        pageInfo: {
+          hasNextPage: false,
+          hasPreviousPage: false,
+          startCursor: null,
+          endCursor: null,
+        },
+        totalCount: 0,
+      };
+    }
   },
   reactions: async (parent: any, args: any, { db }: Context) => {
-    // TODO: Implement reactions pagination
-    return {
-      edges: [],
-      pageInfo: {
-        hasNextPage: false,
-        hasPreviousPage: false,
-        startCursor: null,
-        endCursor: null,
-      },
-      totalCount: 0,
-    };
+    try {
+      const limit = args.first || 20; // Default to 20 reactions
+      
+      // Get total count of reactions
+      const [countResult] = await db
+        .select({ count: sql<number>`cast(count(*) as int)` })
+        .from(schema.reactions)
+        .where(eq(schema.reactions.targetId, parent.id));
+      
+      const totalCount = countResult?.count || 0;
+      
+      // Fetch limited reactions
+      const reactions = await db
+        .select()
+        .from(schema.reactions)
+        .where(eq(schema.reactions.targetId, parent.id))
+        .orderBy(schema.reactions.createdAt)
+        .limit(limit);
+
+      const edges = reactions.map((reaction, index) => ({
+        cursor: Buffer.from(index.toString()).toString('base64'),
+        node: {
+          id: reaction.id,
+          emoji: reaction.emoji,
+          userId: reaction.userId,
+          targetId: reaction.targetId,
+          targetType: reaction.targetType,
+          createdAt: reaction.createdAt,
+          updatedAt: reaction.updatedAt,
+        },
+      }));
+
+      return {
+        edges,
+        pageInfo: {
+          hasNextPage: reactions.length < totalCount,
+          hasPreviousPage: false,
+          startCursor: edges[0]?.cursor || null,
+          endCursor: edges[edges.length - 1]?.cursor || null,
+        },
+        totalCount, // Always return accurate total count
+      };
+    } catch (error) {
+      console.error('Error fetching reactions for game log:', error);
+      return {
+        edges: [],
+        pageInfo: {
+          hasNextPage: false,
+          hasPreviousPage: false,
+          startCursor: null,
+          endCursor: null,
+        },
+        totalCount: 0,
+      };
+    }
   },
 };
