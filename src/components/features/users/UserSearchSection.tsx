@@ -30,14 +30,15 @@ interface UserNode {
   emailAddress: string;
   imageUrl: string | null;
   createdAt: string;
-  gameLogs: {
-    totalCount: number;
-  };
+  gameLogs: Array<{
+    id: string;
+  }>;
 }
 
 const UserCard = ({ user }: { user: UserNode }) => {
   const fullName = [user.firstName, user.lastName].filter(Boolean).join(' ');
   const displayName = fullName || user.username;
+  const gameLogCount = user.gameLogs?.length || 0;
   
   return (
     <Link href={`/protected/user/${user.id}`}>
@@ -61,9 +62,9 @@ const UserCard = ({ user }: { user: UserNode }) => {
                     <p className="text-sm text-muted-foreground">@{user.username}</p>
                   )}
                 </div>
-                {user.gameLogs.totalCount > 0 && (
+                {gameLogCount > 0 && (
                   <Badge variant="secondary" className="ml-2">
-                    {user.gameLogs.totalCount} logs
+                    {gameLogCount} logs
                   </Badge>
                 )}
               </div>

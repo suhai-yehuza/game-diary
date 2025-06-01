@@ -822,7 +822,7 @@ export const SEARCH_USERS = gql`
           imageUrl
           createdAt
           gameLogs {
-            totalCount
+            id
           }
           initiatedFriendships {
             id

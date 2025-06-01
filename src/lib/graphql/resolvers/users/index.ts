@@ -179,17 +179,24 @@ export const searchUsers = async (
     const hasNextPage = results.length > limit;
     const actualResults = hasNextPage ? results.slice(0, -1) : results;
 
-    // Map users with game log counts
-    const mappedUsers = actualResults.map(result => {
-      const userData = mapUserData(result.user);
-      // Add gameLogs with totalCount for the UI
-      return {
-        ...userData,
-        gameLogs: {
-          totalCount: Number(result.gameLogCount) || 0,
-        },
-      };
-    });
+    // Map users with game log data
+    const mappedUsers = await Promise.all(
+      actualResults.map(async result => {
+        const userData = mapUserData(result.user);
+        
+        // Fetch game log IDs for this user (limit to avoid performance issues)
+        const gameLogs = await db
+          .select({ id: schema.game_logs.id })
+          .from(schema.game_logs)
+          .where(eq(schema.game_logs.userId, result.user.id))
+          .limit(100);
+        
+        return {
+          ...userData,
+          gameLogs,
+        };
+      })
+    );
 
     // Get total count for pagination info
     const totalCountQuery = await db
