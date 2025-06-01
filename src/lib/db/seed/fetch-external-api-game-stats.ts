@@ -12,10 +12,16 @@ import { createDatabaseClient } from './config';
 // Database type for game_stats table insertion
 type DBGameStats = typeof game_stats.$inferInsert;
 
-function parseNumericValue(value: number | string | null | undefined, defaultValue = 0): string {
-  if (value === null || value === undefined) return defaultValue.toString();
+function parseNumericValue(value: number | string | null | undefined, defaultValue = 0): number {
+  if (value === null || value === undefined) return defaultValue;
   const num = typeof value === 'string' ? parseFloat(value) : value;
-  return isNaN(num) ? defaultValue.toString() : num.toString();
+  return isNaN(num) ? defaultValue : num;
+}
+
+function parseNumericValueOrNull(value: number | string | null | undefined): number | null {
+  if (value === null || value === undefined) return null;
+  const num = typeof value === 'string' ? parseFloat(value) : value;
+  return isNaN(num) ? null : num;
 }
 
 function parsePercentageValue(value: number | string | null | undefined, defaultValue = 0): string {
@@ -26,12 +32,12 @@ function parsePercentageValue(value: number | string | null | undefined, default
 
 function processTeamStats(stats: GameTeamStatistic, prefix: 'home' | 'away'): Partial<DBGameStats> {
   return {
-    [`${prefix}FastBreakPoints`]: parseNumericValue(stats.fastBreakPoints || 0),
-    [`${prefix}PointsInPaint`]: parseNumericValue(stats.pointsInPaint || 0),
-    [`${prefix}BiggestLead`]: parseNumericValue(stats.biggestLead || 0),
-    [`${prefix}SecondChancePoints`]: parseNumericValue(stats.secondChancePoints || 0),
-    [`${prefix}PointsOffTurnovers`]: parseNumericValue(stats.pointsOffTurnovers || 0),
-    [`${prefix}LongestRun`]: parseNumericValue(stats.longestRun || 0),
+    [`${prefix}FastBreakPoints`]: parseNumericValueOrNull(stats.fastBreakPoints),
+    [`${prefix}PointsInPaint`]: parseNumericValueOrNull(stats.pointsInPaint),
+    [`${prefix}BiggestLead`]: parseNumericValueOrNull(stats.biggestLead),
+    [`${prefix}SecondChancePoints`]: parseNumericValueOrNull(stats.secondChancePoints),
+    [`${prefix}PointsOffTurnovers`]: parseNumericValueOrNull(stats.pointsOffTurnovers),
+    [`${prefix}LongestRun`]: parseNumericValueOrNull(stats.longestRun),
     [`${prefix}Fgm`]: parseNumericValue(stats.fgm || 0),
     [`${prefix}Fga`]: parseNumericValue(stats.fga || 0),
     [`${prefix}Fgp`]: parsePercentageValue(stats.fgp || 0),
@@ -50,7 +56,7 @@ function processTeamStats(stats: GameTeamStatistic, prefix: 'home' | 'away'): Pa
     [`${prefix}Turnovers`]: parseNumericValue(stats.turnovers || 0),
     [`${prefix}Blocks`]: parseNumericValue(stats.blocks || 0),
     [`${prefix}PlusMinus`]: parseNumericValue(stats.plusMinus || 0),
-    [`${prefix}Minutes`]: parseNumericValue(stats.min || 0),
+    [`${prefix}Minutes`]: stats.min || '0',
   };
 }
 
