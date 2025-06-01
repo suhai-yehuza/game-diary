@@ -1,6 +1,7 @@
 import { type Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import React from 'react';
+import { Toaster as HotToaster } from 'react-hot-toast';
 
 import '@/app/styles/globals.css';
 import { Footer, Header } from '@/components/layout';
@@ -30,6 +31,7 @@ export default function RootLayout({
           <main className="grow">{children}</main>
           <Footer />
           <Toaster />
+          <HotToaster position="top-center" />
         </ClientProviders>
       </body>
     </html>

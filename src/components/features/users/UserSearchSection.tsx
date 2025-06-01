@@ -121,13 +121,13 @@ const UserCard = ({ user }: { user: UserNode }) => {
       });
       
       if (data?.sendFriendRequest?.friendship) {
-        toast.success('Friend request sent!');
+        toast.success(`Friend request sent to ${displayName}`);
       } else if (data?.sendFriendRequest?.errors?.[0]) {
         toast.error(data.sendFriendRequest.errors[0].message);
       }
     } catch (error) {
       console.error('Error sending friend request:', error);
-      toast.error('Failed to send friend request');
+      toast.error('An unexpected error occurred');
     }
   };
   
@@ -144,14 +144,14 @@ const UserCard = ({ user }: { user: UserNode }) => {
       });
       
       if (data?.acceptFriendRequest?.friendship) {
-        toast.success('Friend request accepted!');
+        toast.success(`You are now friends with ${displayName}`);
         setFriendRequestDropdownOpen(false); // Close dropdown
       } else if (data?.acceptFriendRequest?.errors?.[0]) {
         toast.error(data.acceptFriendRequest.errors[0].message);
       }
     } catch (error) {
       console.error('Error accepting friend request:', error);
-      toast.error('Failed to accept friend request');
+      toast.error('An unexpected error occurred');
     }
   };
   
@@ -175,7 +175,7 @@ const UserCard = ({ user }: { user: UserNode }) => {
       }
     } catch (error) {
       console.error('Error rejecting friend request:', error);
-      toast.error('Failed to reject friend request');
+      toast.error('An unexpected error occurred');
     }
   };
   
@@ -197,7 +197,7 @@ const UserCard = ({ user }: { user: UserNode }) => {
       });
       
       if (data?.updateFriendshipStatus?.friendship) {
-        toast.success('User blocked successfully');
+        toast.success(`${displayName} has been blocked`);
         // Close whichever dropdown is open
         setFriendRequestDropdownOpen(false);
         setFriendsDropdownOpen(false);
@@ -207,7 +207,7 @@ const UserCard = ({ user }: { user: UserNode }) => {
       }
     } catch (error) {
       console.error('Error blocking user:', error);
-      toast.error('Failed to block user');
+      toast.error('An unexpected error occurred');
     }
   };
   
@@ -224,14 +224,14 @@ const UserCard = ({ user }: { user: UserNode }) => {
       });
       
       if (data?.removeFriend?.success) {
-        toast.success('Friend removed successfully');
+        toast.success(`You are no longer friends with ${displayName}`);
         setFriendsDropdownOpen(false); // Close dropdown
       } else if (data?.removeFriend?.errors?.[0]) {
         toast.error(data.removeFriend.errors[0].message);
       }
     } catch (error) {
       console.error('Error removing friend:', error);
-      toast.error('Failed to remove friend');
+      toast.error('An unexpected error occurred');
     }
   };
   
@@ -255,7 +255,7 @@ const UserCard = ({ user }: { user: UserNode }) => {
       }
     } catch (error) {
       console.error('Error cancelling friend request:', error);
-      toast.error('Failed to cancel friend request');
+      toast.error('An unexpected error occurred');
     }
   };
   
