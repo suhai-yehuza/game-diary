@@ -14,6 +14,7 @@ export interface AppNotification {
   timestamp: Date;
   read: boolean;
   userId: string;
+  deletedAt?: Date | null;
   title?: string;
   description?: string;
   actionUrl?: string;
@@ -23,7 +24,7 @@ export interface AppNotification {
 export interface NotificationContextType {
   notifications: AppNotification[];
   unreadCount: number;
-  addNotification: (notification: Omit<AppNotification, 'id' | 'timestamp' | 'read'>) => void;
+  addNotification: (notification: Omit<AppNotification, 'id' | 'timestamp' | 'read' | 'deletedAt'>) => void;
   markAsRead: (id: string) => void;
   markAllAsRead: () => void;
   clearNotifications: () => void;

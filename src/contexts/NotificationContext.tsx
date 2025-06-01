@@ -19,7 +19,14 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   useEffect(() => {
     const savedNotifications = localStorage.getItem('notifications');
     if (savedNotifications) {
-      setNotifications(JSON.parse(savedNotifications));
+      const parsed = JSON.parse(savedNotifications);
+      // Convert date strings back to Date objects
+      const notificationsWithDates = parsed.map((n: any) => ({
+        ...n,
+        timestamp: new Date(n.timestamp),
+        deletedAt: n.deletedAt ? new Date(n.deletedAt) : null,
+      }));
+      setNotifications(notificationsWithDates);
     }
   }, []);
 
@@ -28,14 +35,17 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     localStorage.setItem('notifications', JSON.stringify(notifications));
   }, [notifications]);
 
-  const unreadCount = notifications.filter(n => !n.read).length;
+  // Filter out soft-deleted notifications
+  const activeNotifications = notifications.filter(n => !n.deletedAt);
+  const unreadCount = activeNotifications.filter(n => !n.read).length;
 
-  const addNotification = (notification: Omit<AppNotification, 'id' | 'timestamp' | 'read'>) => {
+  const addNotification = (notification: Omit<AppNotification, 'id' | 'timestamp' | 'read' | 'deletedAt'>) => {
     const newNotification: AppNotification = {
       id: generateId(),
       message: notification.message,
       timestamp: new Date(),
       read: false,
+      deletedAt: null,
       userId: notification.userId,
       type: notification.type,
       title: notification.title,
@@ -56,23 +66,43 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   const markAsRead = (id: string) => {
     setNotifications(prev =>
       prev.map(notification =>
-        notification.id === id ? { ...notification, read: true } : notification
+        notification.id === id 
+          ? { 
+              ...notification, 
+              read: true,
+              deletedAt: new Date() // Soft delete when marking as read
+            } 
+          : notification
       )
     );
   };
 
   const markAllAsRead = () => {
-    setNotifications(prev => prev.map(notification => ({ ...notification, read: true })));
+    const now = new Date();
+    setNotifications(prev => 
+      prev.map(notification => ({ 
+        ...notification, 
+        read: true,
+        deletedAt: !notification.deletedAt ? now : notification.deletedAt // Only set deletedAt if not already deleted
+      }))
+    );
   };
 
   const clearNotifications = () => {
-    setNotifications([]);
+    // Instead of removing, soft delete all notifications
+    const now = new Date();
+    setNotifications(prev => 
+      prev.map(notification => ({ 
+        ...notification, 
+        deletedAt: !notification.deletedAt ? now : notification.deletedAt
+      }))
+    );
   };
 
   return (
     <NotificationContext.Provider
       value={{
-        notifications,
+        notifications: activeNotifications, // Only expose non-deleted notifications
         unreadCount,
         addNotification,
         markAsRead,
