@@ -41,6 +41,9 @@ export function CommentsSection({ parentId, parentType, initialExpanded }: Comme
   // Initialize expanded state - always starts collapsed on page load
   const [isExpanded, setIsExpanded] = useState(initialExpanded ?? false);
   
+  // State for comment input visibility
+  const [showCommentInput, setShowCommentInput] = useState(false);
+  
   // Track last seen comment count
   const [lastSeenCount, setLastSeenCount] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -363,6 +366,7 @@ export function CommentsSection({ parentId, parentType, initialExpanded }: Comme
         },
       });
       setNewComment('');
+      setShowCommentInput(false); // Close the input after successful submission
     } catch (error) {
       console.error('Error creating comment:', error);
     }
@@ -475,18 +479,46 @@ export function CommentsSection({ parentId, parentType, initialExpanded }: Comme
               </SignInButton>
             </div>
           ) : (
-            <form onSubmit={handleSubmitComment} className="mb-4">
-              <Textarea
-                value={newComment}
-                onChange={e => setNewComment(e.target.value)}
-                placeholder="Write a comment..."
-                className="mb-2"
-              />
-              <Button type="submit" disabled={!newComment.trim()}>
-                <Send className="h-4 w-4 mr-2" />
-                Post
-              </Button>
-            </form>
+            <div className="mb-4">
+              {!showCommentInput ? (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowCommentInput(true)}
+                  className="w-full justify-start gap-2"
+                >
+                  <Pencil className="h-4 w-4" />
+                  Write a comment...
+                </Button>
+              ) : (
+                <form onSubmit={handleSubmitComment} className="space-y-2">
+                  <Textarea
+                    value={newComment}
+                    onChange={e => setNewComment(e.target.value)}
+                    placeholder="Write a comment..."
+                    className="min-h-[80px]"
+                    autoFocus
+                  />
+                  <div className="flex gap-2 justify-end">
+                    <Button 
+                      type="button" 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => {
+                        setShowCommentInput(false);
+                        setNewComment('');
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                    <Button type="submit" size="sm" disabled={!newComment.trim()}>
+                      <Send className="h-4 w-4 mr-2" />
+                      Post
+                    </Button>
+                  </div>
+                </form>
+              )}
+            </div>
           )}
 
           <div className="space-y-4">
