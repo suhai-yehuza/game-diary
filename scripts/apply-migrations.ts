@@ -15,6 +15,133 @@ interface Migration {
   checksum: string;
 }
 
+interface MigrationVerification {
+  tables?: string[];
+  functions?: string[];
+  triggers?: string[];
+  indexes?: string[];
+}
+
+// Parse SQL file to extract individual statements, handling functions and triggers properly
+function parseSqlStatements(content: string): string[] {
+  const statements: string[] = [];
+  let currentStatement = '';
+  let inDollarQuote = false;
+  let dollarQuoteTag = '';
+  
+  const lines = content.split('\n');
+  
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const trimmedLine = line.trim();
+    
+    // Skip empty lines and comments when not in a statement
+    if (!currentStatement && (trimmedLine === '' || trimmedLine.startsWith('--'))) {
+      continue;
+    }
+    
+    // Check for dollar quote start/end
+    const dollarQuoteMatch = line.match(/\$([^$]*)\$/g);
+    if (dollarQuoteMatch) {
+      for (const match of dollarQuoteMatch) {
+        if (!inDollarQuote) {
+          inDollarQuote = true;
+          dollarQuoteTag = match;
+        } else if (match === dollarQuoteTag) {
+          inDollarQuote = false;
+          dollarQuoteTag = '';
+        }
+      }
+    }
+    
+    currentStatement += line + '\n';
+    
+    // Only split on semicolon if we're not inside dollar quotes
+    if (!inDollarQuote && trimmedLine.endsWith(';')) {
+      const stmt = currentStatement.trim();
+      if (stmt && !stmt.startsWith('--')) {
+        statements.push(stmt);
+      }
+      currentStatement = '';
+    }
+  }
+  
+  // Add any remaining statement
+  if (currentStatement.trim()) {
+    statements.push(currentStatement.trim());
+  }
+  
+  return statements;
+}
+
+// Get verification data for a migration
+async function getVerificationData(
+  db: ReturnType<typeof createDatabaseClient>,
+  migrationName: string
+): Promise<MigrationVerification> {
+  const verification: MigrationVerification = {};
+
+  if (migrationName.includes('trigger')) {
+    // Check for triggers
+    const triggers = await db.execute(sql`
+      SELECT tgname as name 
+      FROM pg_trigger 
+      WHERE tgname NOT LIKE 'RI_%' 
+      AND tgname NOT LIKE 'pg_%'
+      ORDER BY tgname;
+    `);
+    verification.triggers = triggers.rows.map((r: any) => r.name);
+
+    // Check for functions
+    const functions = await db.execute(sql`
+      SELECT proname as name 
+      FROM pg_proc 
+      WHERE pronamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'public')
+      ORDER BY proname;
+    `);
+    verification.functions = functions.rows.map((r: any) => r.name);
+  }
+
+  // Always check indexes
+  const indexes = await db.execute(sql`
+    SELECT indexname as name 
+    FROM pg_indexes 
+    WHERE schemaname = 'public' 
+    AND indexname NOT LIKE '%_pkey'
+    ORDER BY indexname;
+  `);
+  verification.indexes = indexes.rows.map((r: any) => r.name);
+
+  return verification;
+}
+
+// Compare verification data
+function compareVerification(before: MigrationVerification, after: MigrationVerification): {
+  added: MigrationVerification;
+  removed: MigrationVerification;
+} {
+  const added: MigrationVerification = {};
+  const removed: MigrationVerification = {};
+
+  // Compare each type
+  for (const key of ['tables', 'functions', 'triggers', 'indexes'] as const) {
+    const beforeItems = before[key] || [];
+    const afterItems = after[key] || [];
+
+    const addedItems = afterItems.filter(item => !beforeItems.includes(item));
+    const removedItems = beforeItems.filter(item => !afterItems.includes(item));
+
+    if (addedItems.length > 0) {
+      added[key] = addedItems;
+    }
+    if (removedItems.length > 0) {
+      removed[key] = removedItems;
+    }
+  }
+
+  return { added, removed };
+}
+
 async function applyMigrations() {
   console.log(`🚀 Starting migration runner for ${environment} environment...`);
   if (dryRun) {
@@ -40,7 +167,8 @@ async function applyMigrations() {
           status VARCHAR(20) NOT NULL DEFAULT 'success',
           error_message TEXT,
           rollback_script TEXT,
-          rollback_executed BOOLEAN DEFAULT false
+          rollback_executed BOOLEAN DEFAULT false,
+          verification JSONB
         );
       `);
 
@@ -96,11 +224,11 @@ ${migrations.map(m => `  - ${m.name}`).join('\n')}`);
       const applied = appliedMap.get(migration.name);
       
       if (applied) {
-        if (applied.checksum === migration.checksum) {
+        if (applied.checksum === migration.checksum && applied.status === 'success') {
           console.log(`✓ ${migration.name} - Already applied (${new Date(applied.executed_at).toLocaleDateString()})`);
           skippedCount++;
           continue;
-        } else {
+        } else if (applied.checksum !== migration.checksum) {
           console.warn(`⚠️  ${migration.name} - Checksum mismatch! File may have been modified after application.`);
           console.warn(`    Applied checksum: ${applied.checksum.substring(0, 8)}...`);
           console.warn(`    Current checksum: ${migration.checksum.substring(0, 8)}...`);
@@ -115,10 +243,12 @@ ${migrations.map(m => `  - ${m.name}`).join('\n')}`);
           }
           skippedCount++;
           continue;
+        } else if (applied.status === 'failed') {
+          console.log(`⚠️  ${migration.name} - Previously failed, retrying...`);
         }
       }
 
-      console.log(`📝 Applying ${migration.name}...`);
+      console.log(`\n📝 Applying ${migration.name}...`);
       
       if (dryRun) {
         console.log('   [DRY RUN] Would execute migration');
@@ -127,28 +257,69 @@ ${migrations.map(m => `  - ${m.name}`).join('\n')}`);
       }
 
       const startTime = Date.now();
+      let verificationBefore: MigrationVerification = {};
+      let verificationAfter: MigrationVerification = {};
       
       try {
-        // Split migration into individual statements
-        // This is a simple implementation - you may need more sophisticated parsing
-        const statements = migration.content
-          .split(/;\s*$/m)
-          .filter(stmt => stmt.trim().length > 0)
-          .map(stmt => stmt.trim() + ';');
+        // Get pre-migration verification data
+        console.log('   📊 Getting pre-migration state...');
+        verificationBefore = await getVerificationData(db, migration.name);
 
-        // Execute each statement
-        for (const statement of statements) {
-          if (statement.trim() && !statement.match(/^\s*--/)) {
-            await db.execute(sql.raw(statement));
+        // Parse and execute statements
+        const statements = parseSqlStatements(migration.content);
+        console.log(`   📄 Executing ${statements.length} SQL statements...`);
+
+        for (let i = 0; i < statements.length; i++) {
+          const statement = statements[i];
+          if (statement.trim()) {
+            try {
+              await db.execute(sql.raw(statement));
+              console.log(`   ✓ Statement ${i + 1}/${statements.length} executed`);
+            } catch (stmtError: any) {
+              console.error(`   ❌ Statement ${i + 1}/${statements.length} failed: ${stmtError.message}`);
+              console.error(`      Statement preview: ${statement.substring(0, 100)}...`);
+              throw stmtError;
+            }
           }
         }
 
+        // Get post-migration verification data
+        console.log('   📊 Getting post-migration state...');
+        verificationAfter = await getVerificationData(db, migration.name);
+
         const executionTime = Date.now() - startTime;
+
+        // Compare before and after
+        const { added, removed } = compareVerification(verificationBefore, verificationAfter);
+        
+        console.log('   📋 Migration changes:');
+        if (added.functions?.length) {
+          console.log(`      ➕ Functions added: ${added.functions.join(', ')}`);
+        }
+        if (added.triggers?.length) {
+          console.log(`      ➕ Triggers added: ${added.triggers.join(', ')}`);
+        }
+        if (added.indexes?.length) {
+          console.log(`      ➕ Indexes added: ${added.indexes.join(', ')}`);
+        }
+        if (removed.functions?.length) {
+          console.log(`      ➖ Functions removed: ${removed.functions.join(', ')}`);
+        }
+        if (removed.triggers?.length) {
+          console.log(`      ➖ Triggers removed: ${removed.triggers.join(', ')}`);
+        }
 
         // Record successful migration
         await db.execute(sql`
-          INSERT INTO migration_versions (name, checksum, execution_time_ms, status)
-          VALUES (${migration.name}, ${migration.checksum}, ${executionTime}, 'success');
+          INSERT INTO migration_versions (name, checksum, execution_time_ms, status, verification)
+          VALUES (${migration.name}, ${migration.checksum}, ${executionTime}, 'success', ${JSON.stringify({ added, removed })})
+          ON CONFLICT (name) DO UPDATE
+          SET checksum = ${migration.checksum},
+              execution_time_ms = ${executionTime},
+              status = 'success',
+              error_message = NULL,
+              verification = ${JSON.stringify({ added, removed })},
+              executed_at = CURRENT_TIMESTAMP;
         `);
 
         console.log(`   ✅ Applied successfully (${executionTime}ms)`);
@@ -167,7 +338,8 @@ ${migrations.map(m => `  - ${m.name}`).join('\n')}`);
             ON CONFLICT (name) DO UPDATE
             SET status = 'failed',
                 error_message = ${error.message},
-                execution_time_ms = ${executionTime};
+                execution_time_ms = ${executionTime},
+                executed_at = CURRENT_TIMESTAMP;
           `);
         } catch (recordError) {
           console.error(`   ❌ Failed to record migration error: ${recordError}`);

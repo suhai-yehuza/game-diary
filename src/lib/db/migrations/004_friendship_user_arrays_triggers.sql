@@ -1,130 +1,99 @@
--- Function to update user friendship arrays when a friendship is created or deleted
-CREATE OR REPLACE FUNCTION update_user_friendship_arrays()
+-- Function to update user friendship arrays (only tracks PENDING friendships)
+CREATE OR REPLACE FUNCTION update_friendship_user_arrays()
 RETURNS TRIGGER AS $$
 BEGIN
     IF TG_OP = 'INSERT' THEN
-        -- Add friendship ID to initiator's outboundFriendshipIds
-        UPDATE users
-        SET "outboundFriendshipIds" = 
-            CASE 
-                WHEN "outboundFriendshipIds" IS NULL THEN ARRAY[NEW.id]
-                WHEN NOT (NEW.id = ANY("outboundFriendshipIds")) THEN array_append("outboundFriendshipIds", NEW.id)
-                ELSE "outboundFriendshipIds"
-            END,
-            "updatedAt" = NOW()
-        WHERE id = NEW."userId";
-        
-        -- Add friendship ID to recipient's inboundFriendshipIds
-        UPDATE users
-        SET "inboundFriendshipIds" = 
-            CASE 
-                WHEN "inboundFriendshipIds" IS NULL THEN ARRAY[NEW.id]
-                WHEN NOT (NEW.id = ANY("inboundFriendshipIds")) THEN array_append("inboundFriendshipIds", NEW.id)
-                ELSE "inboundFriendshipIds"
-            END,
-            "updatedAt" = NOW()
-        WHERE id = NEW."friendId";
-        
-        RETURN NEW;
-        
-    ELSIF TG_OP = 'DELETE' THEN
-        -- Remove friendship ID from initiator's outboundFriendshipIds
-        UPDATE users
-        SET "outboundFriendshipIds" = array_remove("outboundFriendshipIds", OLD.id),
-            "updatedAt" = NOW()
-        WHERE id = OLD."userId" AND OLD.id = ANY("outboundFriendshipIds");
-        
-        -- Remove friendship ID from recipient's inboundFriendshipIds
-        UPDATE users
-        SET "inboundFriendshipIds" = array_remove("inboundFriendshipIds", OLD.id),
-            "updatedAt" = NOW()
-        WHERE id = OLD."friendId" AND OLD.id = ANY("inboundFriendshipIds");
-        
-        RETURN OLD;
-        
-    ELSIF TG_OP = 'UPDATE' THEN
-        -- Handle case where userId or friendId changes (shouldn't happen in normal operation, but just in case)
-        IF OLD."userId" != NEW."userId" OR OLD."friendId" != NEW."friendId" THEN
-            -- Remove from old users
-            UPDATE users
-            SET "outboundFriendshipIds" = array_remove("outboundFriendshipIds", OLD.id),
-                "updatedAt" = NOW()
-            WHERE id = OLD."userId" AND OLD.id = ANY("outboundFriendshipIds");
-            
-            UPDATE users
-            SET "inboundFriendshipIds" = array_remove("inboundFriendshipIds", OLD.id),
-                "updatedAt" = NOW()
-            WHERE id = OLD."friendId" AND OLD.id = ANY("inboundFriendshipIds");
-            
-            -- Add to new users
-            UPDATE users
-            SET "outboundFriendshipIds" = 
-                CASE 
-                    WHEN "outboundFriendshipIds" IS NULL THEN ARRAY[NEW.id]
-                    WHEN NOT (NEW.id = ANY("outboundFriendshipIds")) THEN array_append("outboundFriendshipIds", NEW.id)
-                    ELSE "outboundFriendshipIds"
-                END,
-                "updatedAt" = NOW()
+        -- Only add to arrays if the friendship is pending
+        IF NEW.status = 'Pending' THEN
+            -- Add friendship ID to outbound array for initiator
+            UPDATE users 
+            SET "outboundFriendshipIds" = array_append(COALESCE("outboundFriendshipIds", ARRAY[]::VARCHAR[]), NEW.id)
             WHERE id = NEW."userId";
             
-            UPDATE users
-            SET "inboundFriendshipIds" = 
-                CASE 
-                    WHEN "inboundFriendshipIds" IS NULL THEN ARRAY[NEW.id]
-                    WHEN NOT (NEW.id = ANY("inboundFriendshipIds")) THEN array_append("inboundFriendshipIds", NEW.id)
-                    ELSE "inboundFriendshipIds"
-                END,
-                "updatedAt" = NOW()
+            -- Add friendship ID to inbound array for recipient
+            UPDATE users 
+            SET "inboundFriendshipIds" = array_append(COALESCE("inboundFriendshipIds", ARRAY[]::VARCHAR[]), NEW.id)
             WHERE id = NEW."friendId";
         END IF;
         
-        RETURN NEW;
+    ELSIF TG_OP = 'UPDATE' THEN
+        -- If status changed from Pending to something else, remove from arrays
+        IF OLD.status = 'Pending' AND NEW.status != 'Pending' THEN
+            -- Remove friendship ID from outbound array for initiator
+            UPDATE users 
+            SET "outboundFriendshipIds" = array_remove(COALESCE("outboundFriendshipIds", ARRAY[]::VARCHAR[]), OLD.id)
+            WHERE id = OLD."userId";
+            
+            -- Remove friendship ID from inbound array for recipient
+            UPDATE users 
+            SET "inboundFriendshipIds" = array_remove(COALESCE("inboundFriendshipIds", ARRAY[]::VARCHAR[]), OLD.id)
+            WHERE id = OLD."friendId";
+        END IF;
+        
+    ELSIF TG_OP = 'DELETE' THEN
+        -- If the deleted friendship was pending, remove from arrays
+        IF OLD.status = 'Pending' THEN
+            -- Remove friendship ID from outbound array for initiator
+            UPDATE users 
+            SET "outboundFriendshipIds" = array_remove(COALESCE("outboundFriendshipIds", ARRAY[]::VARCHAR[]), OLD.id)
+            WHERE id = OLD."userId";
+            
+            -- Remove friendship ID from inbound array for recipient
+            UPDATE users 
+            SET "inboundFriendshipIds" = array_remove(COALESCE("inboundFriendshipIds", ARRAY[]::VARCHAR[]), OLD.id)
+            WHERE id = OLD."friendId";
+        END IF;
     END IF;
+    
+    RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
--- Drop existing trigger if it exists
-DROP TRIGGER IF EXISTS update_user_friendship_arrays_trigger ON friendships;
+-- Drop existing triggers if they exist
+DROP TRIGGER IF EXISTS update_friendship_user_arrays_insert ON friendships;
+DROP TRIGGER IF EXISTS update_friendship_user_arrays_update ON friendships;
+DROP TRIGGER IF EXISTS update_friendship_user_arrays_delete ON friendships;
 
--- Create trigger for insert, update, and delete operations
-CREATE TRIGGER update_user_friendship_arrays_trigger
-    AFTER INSERT OR UPDATE OR DELETE ON friendships
+-- Create triggers for insert, update, and delete
+CREATE TRIGGER update_friendship_user_arrays_insert
+    AFTER INSERT ON friendships
     FOR EACH ROW
-    EXECUTE FUNCTION update_user_friendship_arrays();
+    EXECUTE FUNCTION update_friendship_user_arrays();
 
--- Function to rebuild friendship arrays for all users (useful for initial population or fixing data)
-CREATE OR REPLACE FUNCTION rebuild_all_user_friendship_arrays()
+CREATE TRIGGER update_friendship_user_arrays_update
+    AFTER UPDATE ON friendships
+    FOR EACH ROW
+    EXECUTE FUNCTION update_friendship_user_arrays();
+
+CREATE TRIGGER update_friendship_user_arrays_delete
+    AFTER DELETE ON friendships
+    FOR EACH ROW
+    EXECUTE FUNCTION update_friendship_user_arrays();
+
+-- Create indexes for better performance
+CREATE INDEX IF NOT EXISTS idx_users_inbound_friendships ON users USING GIN("inboundFriendshipIds");
+CREATE INDEX IF NOT EXISTS idx_users_outbound_friendships ON users USING GIN("outboundFriendshipIds");
+
+-- Function to rebuild friendship arrays (only includes PENDING friendships)
+-- This can be called manually if needed to fix any inconsistencies
+CREATE OR REPLACE FUNCTION rebuild_user_friendship_arrays()
 RETURNS void AS $$
 BEGIN
-    -- Reset all arrays to empty
-    UPDATE users
-    SET "outboundFriendshipIds" = ARRAY[]::VARCHAR[],
-        "inboundFriendshipIds" = ARRAY[]::VARCHAR[];
-    
-    -- Rebuild outboundFriendshipIds
     UPDATE users u
-    SET "outboundFriendshipIds" = (
-        SELECT COALESCE(array_agg(f.id ORDER BY f."createdAt"), ARRAY[]::VARCHAR[])
-        FROM friendships f
-        WHERE f."userId" = u.id
-    ),
-    "updatedAt" = NOW();
-    
-    -- Rebuild inboundFriendshipIds
-    UPDATE users u
-    SET "inboundFriendshipIds" = (
-        SELECT COALESCE(array_agg(f.id ORDER BY f."createdAt"), ARRAY[]::VARCHAR[])
-        FROM friendships f
-        WHERE f."friendId" = u.id
-    ),
-    "updatedAt" = NOW();
+    SET 
+        "outboundFriendshipIds" = COALESCE((
+            SELECT array_agg(f.id)
+            FROM friendships f
+            WHERE f."userId" = u.id AND f.status = 'Pending'
+        ), ARRAY[]::VARCHAR[]),
+        "inboundFriendshipIds" = COALESCE((
+            SELECT array_agg(f.id)
+            FROM friendships f
+            WHERE f."friendId" = u.id AND f.status = 'Pending'
+        ), ARRAY[]::VARCHAR[]);
 END;
 $$ LANGUAGE plpgsql;
 
--- Run the rebuild function to populate existing data
-SELECT rebuild_all_user_friendship_arrays();
-
--- Create indexes for better performance when querying friendships
-CREATE INDEX IF NOT EXISTS idx_friendships_userId ON friendships("userId");
-CREATE INDEX IF NOT EXISTS idx_friendships_friendId ON friendships("friendId");
-CREATE INDEX IF NOT EXISTS idx_friendships_status ON friendships(status); 
+-- Note: The arrays will be empty initially. The triggers will populate them as new
+-- pending friendships are created. If you need to populate existing pending friendships,
+-- you can run: SELECT rebuild_user_friendship_arrays(); 

@@ -370,13 +370,14 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
         if (isPendingFromCurrentUser) {
           return (
             <Button 
+              onClick={handleRemoveFriend}
+              disabled={isLoading}
               variant="outline" 
               size="sm"
-              disabled
-              className="gap-2"
+              className="gap-2 text-red-600 hover:text-red-700"
             >
-              <Clock className="h-4 w-4" />
-              Request Pending
+              <UserX className="h-4 w-4" />
+              {isLoading ? 'Canceling...' : 'Cancel Request'}
             </Button>
           );
         } else {
