@@ -49,15 +49,18 @@ export const FriendRequests: React.FC = () => {
     },
     onCompleted: data => {
       const request = data.friendship || {
-        recipient: { id: 'unknown', username: '', imageUrl: '' },
+        recipient: { id: 'unknown', firstName: '', lastName: '', imageUrl: '' },
       };
+      const displayName = request.recipient?.firstName 
+        ? `${request.recipient.firstName} ${request.recipient.lastName || ''}`.trim()
+        : 'User';
       addNotification({
         type: 'friend_request',
         title: 'Friend Request Sent',
-        message: `Your friend request to ${request.recipient?.username} has been sent.`,
+        message: `Your friend request to ${displayName} has been sent.`,
         userId: request.recipient.id,
         metadata: {
-          username: request.recipient?.username || '',
+          username: displayName,
           avatar: request.recipient?.imageUrl || '',
         },
       });
@@ -85,16 +88,19 @@ export const FriendRequests: React.FC = () => {
     },
     onCompleted: data => {
       const request = data.friendship || {
-        initiator: { id: 'unknown', username: null, imageUrl: null },
-        recipient: { id: 'unknown', username: null, imageUrl: null },
+        initiator: { id: 'unknown', firstName: null, lastName: null, imageUrl: null },
+        recipient: { id: 'unknown', firstName: null, lastName: null, imageUrl: null },
       };
+      const displayName = request.initiator?.firstName 
+        ? `${request.initiator.firstName} ${request.initiator.lastName || ''}`.trim()
+        : 'User';
       addNotification({
         type: 'friend_accepted',
         title: 'Friend Request Accepted',
-        message: `You are now friends with ${request.initiator?.username}.`,
+        message: `You are now friends with ${displayName}.`,
         userId: request.initiator.id,
         metadata: {
-          username: request?.initiator?.username || '',
+          username: displayName,
           avatar: request?.initiator?.imageUrl || '',
         },
       });
@@ -121,16 +127,19 @@ export const FriendRequests: React.FC = () => {
     },
     onCompleted: data => {
       const request = data.friendship || {
-        initiator: { id: 'unknown', username: null, imageUrl: null },
-        recipient: { id: 'unknown', username: null, imageUrl: null },
+        initiator: { id: 'unknown', firstName: null, lastName: null, imageUrl: null },
+        recipient: { id: 'unknown', firstName: null, lastName: null, imageUrl: null },
       };
+      const displayName = request.initiator?.firstName 
+        ? `${request.initiator.firstName} ${request.initiator.lastName || ''}`.trim()
+        : 'User';
       addNotification({
         type: 'friend_rejected',
         title: 'Friend Request Rejected',
-        message: `You have rejected the friend request from ${request.initiator?.username}.`,
+        message: `You have rejected the friend request from ${displayName}.`,
         userId: request.initiator.id,
         metadata: {
-          username: request?.initiator?.username || '',
+          username: displayName,
           avatar: request?.initiator?.imageUrl || '',
         },
       });
