@@ -35,6 +35,7 @@ import { Badge } from '@/components/ui/badge';
 import { GET_GAMES } from '@/lib/graphql/queries';
 import { cn } from '@/lib/utils';
 import { getCurrentSeason } from '@/lib/utils/index.time';
+import { formatCount } from '@/lib/utils/index.format';
 
 // Game status mappings
 const GameStatus = {
@@ -366,11 +367,11 @@ export function BasketballGameSearchSection() {
       {!loading && (
         <div className="flex items-center justify-between">
           <p className="text-sm text-muted-foreground">
-            Found {totalCount.toLocaleString()} {totalCount === 1 ? 'game' : 'games'}
+            Found {formatCount(totalCount)} {totalCount === 1 ? 'game' : 'games'}
             {searchText && ` (showing ${sortedGames.length} on this page matching "${searchText}")`}
           </p>
           <p className="text-sm text-muted-foreground">
-            Page {currentPage} of {totalPages.toLocaleString()}
+            Page {currentPage} of {formatCount(totalPages)}
           </p>
         </div>
       )}

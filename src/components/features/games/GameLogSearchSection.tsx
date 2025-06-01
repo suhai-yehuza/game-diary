@@ -42,6 +42,7 @@ import { GET_GAME_LOGS } from '@/lib/graphql/queries';
 import { CLASSIFICATION } from '@/lib/types/config.types';
 import { GameLog } from '@/lib/types/generated/graphql';
 import { cn } from '@/lib/utils';
+import { formatCount } from '@/lib/utils/index.format';
 
 // Constants for GameLogSortBy
 const GameLogSortBy = {
@@ -373,11 +374,11 @@ export function GameLogSearchSection({ userId, initialSearchText = '' }: GameLog
       {!loading && (
         <div className="flex items-center justify-between">
           <p className="text-sm text-muted-foreground">
-            Found {totalCount.toLocaleString()} game {totalCount === 1 ? 'log' : 'logs'}
+            Found {formatCount(totalCount)} game {totalCount === 1 ? 'log' : 'logs'}
             {searchText && ` matching "${searchText}"`}
           </p>
           <p className="text-sm text-muted-foreground">
-            Page {currentPage} of {totalPages.toLocaleString()}
+            Page {currentPage} of {formatCount(totalPages)}
           </p>
         </div>
       )}

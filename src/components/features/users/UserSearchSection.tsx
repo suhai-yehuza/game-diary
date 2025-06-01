@@ -17,6 +17,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Skeleton } from '@/components/ui/skeleton';
 import { SEARCH_USERS } from '@/lib/graphql/queries';
 import { cn } from '@/lib/utils';
+import { formatCount } from '@/lib/utils/index.format';
 
 interface UserSearchSectionProps {
   className?: string;
@@ -305,7 +306,7 @@ export function UserSearchSection({ className }: UserSearchSectionProps) {
         {!loading && (
           <div className="flex items-center justify-between mb-4">
             <p className="text-sm text-muted-foreground">
-              Found {totalCount} {totalCount === 1 ? 'user' : 'users'}
+              Found {formatCount(totalCount)} {totalCount === 1 ? 'user' : 'users'}
               {debouncedSearchTerm && ` matching "${debouncedSearchTerm}"`}
             </p>
           </div>

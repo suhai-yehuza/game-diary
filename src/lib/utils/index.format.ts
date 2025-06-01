@@ -1,3 +1,41 @@
+/**
+ * Format large numbers into readable format
+ * @param count - The number to format
+ * @returns Formatted string (e.g., 1.2k, 50.1k, 2.3M)
+ */
+export function formatCount(count: number): string {
+  if (count < 1000) {
+    return count.toString();
+  } else if (count < 1000000) {
+    const thousands = count / 1000;
+    // Round to 1 decimal place
+    const rounded = Math.round(thousands * 10) / 10;
+    // If the rounded value is a whole number, don't show decimal
+    if (rounded === Math.floor(rounded)) {
+      return `${Math.floor(rounded)}k`;
+    }
+    return `${rounded}k`;
+  } else if (count < 1000000000) {
+    const millions = count / 1000000;
+    // Round to 1 decimal place
+    const rounded = Math.round(millions * 10) / 10;
+    // If the rounded value is a whole number, don't show decimal
+    if (rounded === Math.floor(rounded)) {
+      return `${Math.floor(rounded)}M`;
+    }
+    return `${rounded}M`;
+  } else {
+    const billions = count / 1000000000;
+    // Round to 1 decimal place
+    const rounded = Math.round(billions * 10) / 10;
+    // If the rounded value is a whole number, don't show decimal
+    if (rounded === Math.floor(rounded)) {
+      return `${Math.floor(rounded)}B`;
+    }
+    return `${rounded}B`;
+  }
+}
+
 export const exportToCSV = (data: Record<string, unknown>[], filename: string) => {
   if (!data.length) return;
 
