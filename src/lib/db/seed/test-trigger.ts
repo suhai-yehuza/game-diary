@@ -5,7 +5,7 @@ import { db } from '@/lib/db';
 import { game_logs, game_ratings, users } from '@/lib/db/schema';
 import { seasons, nba_games } from '@/lib/db/schema/nba-schemas';
 import { teams } from '@/lib/db/schema/team-schemas';
-import { CLASSIFICATIONS, WATCHED_SCOPE, WATCHED_SETTING } from '@/lib/types/config.types';
+import { CLASSIFICATION, WATCHED_SCOPE, WATCHED_SETTING } from '@/lib/types/config.types';
 
 async function testGameRatingsTrigger() {
   console.log('Starting trigger test...');
@@ -222,7 +222,7 @@ async function testGameRatingsTrigger() {
       watchedDate: new Date(),
       ratingForGame: 4,
       watchedScope: WATCHED_SCOPE.FULL_GAME,
-      classification: CLASSIFICATIONS.PROTECTED,
+      classification: CLASSIFICATION.PROTECTED,
     };
     const log2 = {
       id: uuidv4(),
@@ -232,7 +232,7 @@ async function testGameRatingsTrigger() {
       watchedDate: new Date(),
       ratingForGame: 5,
       watchedScope: WATCHED_SCOPE.HALF_GAME,
-      classification: CLASSIFICATIONS.PRIVATE,
+      classification: CLASSIFICATION.PRIVATE,
     };
     const log3 = {
       id: uuidv4(),
@@ -242,7 +242,7 @@ async function testGameRatingsTrigger() {
       watchedDate: new Date(),
       ratingForGame: 2,
       watchedScope: WATCHED_SCOPE.HIGHLIGHTS,
-      classification: CLASSIFICATIONS.PUBLIC,
+      classification: CLASSIFICATION.PUBLIC,
     };
 
     console.log('\nTest 1: Inserting multiple game logs...');

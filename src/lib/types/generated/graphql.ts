@@ -60,9 +60,9 @@ export type BusinessLogicError = {
 };
 
 export type Classification =
-  | 'PRIVATE'
-  | 'PROTECTED'
-  | 'PUBLIC';
+  | 'Private'
+  | 'Protected'
+  | 'Public';
 
 export type Comment = {
   __typename?: 'Comment';

@@ -29,7 +29,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/components/ui/use-toast';
 import { useAuthContext } from '@/contexts/AuthContext';
 import { CREATE_GAME_LOG } from '@/lib/graphql/mutations';
-import { CLASSIFICATIONS, WATCHED_SETTING, WATCHED_SCOPE } from '@/lib/types/config.types';
+import { CLASSIFICATION, WATCHED_SETTING, WATCHED_SCOPE } from '@/lib/types/config.types';
 import type {
   ClassificationValue,
   WatchedSettingValue,
@@ -65,7 +65,7 @@ export function CreateGameLogModal({ gameId, onSuccess }: CreateGameLogModalProp
   const authUserId = user?.id;
 
   const [formData, setFormData] = useState<FormData>({
-    classification: CLASSIFICATIONS.PROTECTED,
+    classification: CLASSIFICATION.PROTECTED,
     watchedSetting: WATCHED_SETTING.TV,
     watchedScope: WATCHED_SCOPE.FULL_GAME,
     watchedDate: new Date(),
@@ -138,7 +138,7 @@ export function CreateGameLogModal({ gameId, onSuccess }: CreateGameLogModalProp
           variant: 'default',
         });
         setFormData({
-          classification: CLASSIFICATIONS.PROTECTED,
+          classification: CLASSIFICATION.PROTECTED,
           watchedSetting: WATCHED_SETTING.TV,
           watchedScope: WATCHED_SCOPE.FULL_GAME,
           watchedDate: new Date(),
@@ -215,7 +215,7 @@ export function CreateGameLogModal({ gameId, onSuccess }: CreateGameLogModalProp
                 <SelectValue placeholder="Select classification" />
               </SelectTrigger>
               <SelectContent className="bg-white dark:bg-gray-800">
-                {Object.entries(CLASSIFICATIONS).map(([key, value]) => (
+                {Object.entries(CLASSIFICATION).map(([key, value]) => (
                   <SelectItem key={key} value={value} className="text-gray-900 dark:text-white">
                     {value}
                   </SelectItem>

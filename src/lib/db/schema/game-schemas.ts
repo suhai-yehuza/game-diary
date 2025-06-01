@@ -1,7 +1,7 @@
 import { sql } from 'drizzle-orm';
 import { pgTable, integer, text, timestamp, varchar, decimal, unique } from 'drizzle-orm/pg-core';
 
-import { CLASSIFICATIONS, WATCHED_SETTING, WATCHED_SCOPE } from '@/lib/types/config.types';
+import { CLASSIFICATION, WATCHED_SETTING, WATCHED_SCOPE } from '@/lib/types/config.types';
 import { generateUUID } from '@/lib/utils/index.processing';
 
 import { nba_games } from './nba-schemas';
@@ -39,7 +39,7 @@ export const game_logs = pgTable(
       .references(() => nba_games.id),
     classification: varchar('classification', { length: 50 })
       .notNull()
-      .default(CLASSIFICATIONS.PROTECTED),
+      .default(CLASSIFICATION.PROTECTED),
     watchedSetting: varchar('watchedSetting', { length: 50 }).notNull().default(WATCHED_SETTING.TV),
     watchedScope: varchar('watchedScope', { length: 50 })
       .notNull()

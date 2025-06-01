@@ -17,6 +17,7 @@ export const Query = {
   game: gameResolvers.game,
   liveGames: gameResolvers.liveGames,
   gameLog: gameLogResolvers.gameLog,
+  gameLogs: gameLogResolvers.gameLogs,
 
   // Player queries
   players: playerResolvers.players,

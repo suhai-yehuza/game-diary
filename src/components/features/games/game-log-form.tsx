@@ -19,7 +19,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/components/ui/use-toast';
 import { CREATE_GAME_LOG } from '@/lib/graphql/mutations';
 import { GET_EXTERNAL_GAMES } from '@/lib/graphql/queries';
-import { WATCHED_SETTING, CLASSIFICATIONS, WATCHED_SCOPE } from '@/lib/types/config.types';
+import { WATCHED_SETTING, CLASSIFICATION, WATCHED_SCOPE } from '@/lib/types/config.types';
 import type {
   ClassificationValue,
   WatchedSettingValue,
@@ -43,7 +43,7 @@ export function GameLogForm({
   const [selectedGame, setSelectedGame] = useState<Game | null>(null);
   const { toast } = useToast();
   const [internalFormData, setInternalFormData] = useState<GameLogFormData>({
-    classification: CLASSIFICATIONS.PROTECTED,
+    classification: CLASSIFICATION.PROTECTED,
     watchedSetting: WATCHED_SETTING.TV,
     watchedScope: WATCHED_SCOPE.FULL_GAME,
     watchedDate: new Date(),
@@ -194,7 +194,7 @@ export function GameLogForm({
                 <SelectValue placeholder="Select classification" />
               </SelectTrigger>
               <SelectContent>
-                {Object.entries(CLASSIFICATIONS).map(([key, value]) => (
+                {Object.entries(CLASSIFICATION).map(([key, value]) => (
                   <SelectItem key={key} value={value}>
                     {value}
                   </SelectItem>

@@ -7,6 +7,7 @@ import { CommentsSection, ReactionsSection } from '@/components/common';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { StarRating } from '@/components/ui/star-rating';
+import { CLASSIFICATION } from '@/lib/types/config.types';
 import { GameLog } from '@/lib/types/game.types';
 import { cn } from '@/lib/utils';
 
@@ -25,11 +26,11 @@ const formatDate = (date: string | Date | null | undefined) => {
 
 const getClassificationBadgeVariant = (classification: string) => {
   switch (classification) {
-    case 'PUBLIC':
+    case CLASSIFICATION.PUBLIC:
       return 'default';
-    case 'PROTECTED':
+    case CLASSIFICATION.PROTECTED:
       return 'secondary';
-    case 'PRIVATE':
+    case CLASSIFICATION.PRIVATE:
       return 'destructive';
     default:
       return 'default';
@@ -106,9 +107,9 @@ export function GameLogsSection({
                 <Badge
                   variant={getClassificationBadgeVariant(log.classification)}
                   className={cn(
-                    log.classification === 'PUBLIC' && 'bg-green-500 hover:bg-green-600',
-                    log.classification === 'PROTECTED' && 'bg-yellow-500 hover:bg-yellow-600',
-                    log.classification === 'PRIVATE' && 'bg-red-500 hover:bg-red-600'
+                    log.classification === CLASSIFICATION.PUBLIC && 'bg-green-500 hover:bg-green-600',
+                    log.classification === CLASSIFICATION.PROTECTED && 'bg-yellow-500 hover:bg-yellow-600',
+                    log.classification === CLASSIFICATION.PRIVATE && 'bg-red-500 hover:bg-red-600'
                   )}
                 >
                   {log.classification}

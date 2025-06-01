@@ -21,6 +21,7 @@ import {
   REACTION_EMOJIS,
   ReactionEmojiKey,
   WATCHED_SCOPE,
+  CLASSIFICATION,
 } from '@/lib/types/config.types';
 import {
   MutationcreateGameLogArgs,
@@ -84,7 +85,7 @@ function nullToUndefined<T>(value: T | null): T | undefined {
 
 // Helper to fetch full user from DB
 async function getFullUser(db: typeof import('@/lib/db').db, userId: string) {
-  return db.query.users.findFirst({ where: eq(schema.users.id, userId) });
+  return await db.query.users.findFirst({ where: eq(schema.users.id, userId) });
 }
 
 // Game Log Mutations
@@ -141,7 +142,7 @@ export const createGameLog = async (
           watchedScope: validatedInput.watchedScope || WATCHED_SCOPE.FULL_GAME,
           notes: validatedInput.notes || '',
           tags: validatedInput.tags || [],
-          classification: validatedInput.classification || 'protected',
+          classification: validatedInput.classification || CLASSIFICATION.PROTECTED,
           createdAt: new Date(),
           updatedAt: new Date(),
         })
@@ -305,7 +306,7 @@ export const updateGameLog = async (
         watchedScope: validatedInput.watchedScope || WATCHED_SCOPE.FULL_GAME,
         notes: validatedInput.notes || '',
         tags: validatedInput.tags || [],
-        classification: validatedInput.classification || 'protected',
+        classification: validatedInput.classification || CLASSIFICATION.PROTECTED,
         updatedAt: new Date(),
       })
       .where(eq(schema.game_logs.id, id))

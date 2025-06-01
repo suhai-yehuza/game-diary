@@ -68,7 +68,7 @@ export const validConferences = ['Eastern', 'Western'] as const;
 export const validPositions = ['PG', 'SG', 'SF', 'PF', 'C'] as const;
 
 // Enums as Constant Objects
-export const CLASSIFICATIONS = {
+export const CLASSIFICATION = {
   PRIVATE: 'Private',
   PROTECTED: 'Protected',
   PUBLIC: 'Public',
@@ -168,7 +168,7 @@ export const USER_ROLES = {
 // Status and Settings Types
 export type UserRoleType = keyof typeof USER_ROLES;
 export type UserRoleValue = (typeof USER_ROLES)[UserRoleType];
-export type ClassificationType = keyof typeof CLASSIFICATIONS;
+export type ClassificationType = keyof typeof CLASSIFICATION;
 export type ConferenceType = keyof typeof CONFERENCES;
 export type DivisionType = keyof typeof DIVISIONS;
 export type GameStatusType = keyof typeof GAME_STATUS_VALUES;
@@ -180,7 +180,7 @@ export type ConferenceValue = (typeof CONFERENCES)[ConferenceType];
 export type DivisionValue = (typeof DIVISIONS)[DivisionType];
 export type GameStatusValue = (typeof GAME_STATUS_VALUES)[GameStatusType];
 export type SortDirectionValue = (typeof SORT_DIRECTION)[SortDirectionType];
-export type ClassificationValue = (typeof CLASSIFICATIONS)[ClassificationType];
+export type ClassificationValue = (typeof CLASSIFICATION)[ClassificationType];
 export type FriendshipStatusType = keyof typeof FRIENDSHIP_STATUS;
 export type FriendshipStatusValue = (typeof FRIENDSHIP_STATUS)[FriendshipStatusType];
 export type PermissionValue = (typeof PERMISSIONS)[PermissionType];

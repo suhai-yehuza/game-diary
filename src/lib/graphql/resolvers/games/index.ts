@@ -186,6 +186,7 @@ export const gameLog = async (
       watchedDate: gameLog.watchedDate,
       watchedLocation: gameLog.watchedLocation,
       ratingForGame: gameLog.ratingForGame,
+      ratingStars: gameLog.ratingStars,
       watchedScope: gameLog.watchedScope,
       notes: gameLog.notes,
       tags: gameLog.tags,

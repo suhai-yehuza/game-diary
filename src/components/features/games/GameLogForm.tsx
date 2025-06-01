@@ -23,7 +23,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { CLASSIFICATIONS, WATCHED_SCOPE, WATCHED_SETTING } from '@/lib/types/config.types';
+import { CLASSIFICATION, WATCHED_SCOPE, WATCHED_SETTING } from '@/lib/types/config.types';
 import { Game } from '@/lib/types/game.types';
 import { CreateGameLogInput } from '@/lib/types/generated/graphql';
 import { gameLogInputSchema } from '@/lib/validations/game';
@@ -289,7 +289,7 @@ export function GameLogForm({
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {Object.entries(CLASSIFICATIONS).map(([key, classification]) => (
+                  {Object.entries(CLASSIFICATION).map(([key, classification]) => (
                     <SelectItem key={key} value={classification}>
                       {classification.charAt(0).toUpperCase() + classification.slice(1)}
                     </SelectItem>

@@ -13,7 +13,7 @@ import {
   ReactionEmojiValue,
   WATCHED_SCOPE,
   WatchedScopeValue,
-  CLASSIFICATIONS,
+  CLASSIFICATION,
 } from '@/lib/types/config.types';
 import type { DatabaseClient } from '@/lib/types/db.types';
 import { generateUUID } from '@/lib/utils/index.processing';
@@ -224,10 +224,10 @@ async function* generateGameLogsStream(
       const { CLASSIFICATION_WEIGHTS } = API_CONFIG.classification;
       const classification =
         classificationWeight < CLASSIFICATION_WEIGHTS.protected
-          ? CLASSIFICATIONS.PROTECTED
+          ? CLASSIFICATION.PROTECTED
           : classificationWeight < CLASSIFICATION_WEIGHTS.protected + CLASSIFICATION_WEIGHTS.public
-            ? CLASSIFICATIONS.PUBLIC
-            : CLASSIFICATIONS.PRIVATE;
+            ? CLASSIFICATION.PUBLIC
+            : CLASSIFICATION.PRIVATE;
 
       yield {
         id: generateUUID(),
