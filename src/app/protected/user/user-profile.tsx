@@ -3,19 +3,53 @@
 import { useQuery } from '@apollo/client/react/hooks';
 import { useUser } from '@clerk/nextjs';
 import React, { useEffect, useState } from 'react';
+import { 
+  Calendar, 
+  MapPin, 
+  Users, 
+  Trophy, 
+  Clock, 
+  Star,
+  Eye,
+  MessageSquare,
+  Heart,
+  Filter,
+  ChevronRight,
+  Gamepad2,
+  TrendingUp,
+  Shield,
+  Globe,
+  Lock,
+  Users2
+} from 'lucide-react';
 
 import { CreateGameLogModal } from '@/components/features/games';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { badgeVariants } from '@/components/ui/badge';
+import { Badge, badgeVariants } from '@/components/ui/badge';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { GET_GAME_LOGS, GET_USER } from '@/lib/graphql/queries';
 import { SharedGameLog } from '@/lib/types/generated/graphql';
 import { DbCustomUser, UserProfileProps } from '@/lib/types/user.types';
 import { cn } from '@/lib/utils';
+import { formatDistanceToNow } from 'date-fns';
+import { StarRating } from '@/components/ui/star-rating';
 
 const ITEMS_PER_PAGE = 10;
+
+const classificationIcons = {
+  Private: Lock,
+  Protected: Shield,
+  Public: Globe,
+};
+
+const classificationColors = {
+  Private: 'text-red-500 bg-red-50 border-red-200',
+  Protected: 'text-amber-500 bg-amber-50 border-amber-200',
+  Public: 'text-green-500 bg-green-50 border-green-200',
+};
 
 export default function UserProfile({ targetUserId }: UserProfileProps) {
   const { user: currentUser } = useUser();
@@ -23,6 +57,7 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [dbUserId, setDbUserId] = useState<string | null>(null);
   const [cursor, setCursor] = useState<string | null>(null);
+  const [selectedClassification, setSelectedClassification] = useState<string>('all');
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -108,16 +143,17 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
       after: cursor,
       filters: {
         userId: dbUserId,
+        classification: selectedClassification !== 'all' ? selectedClassification : undefined,
       },
     },
     skip: !dbUserId,
   });
 
-  console.log('UserProfile - dbUserId:', dbUserId);
-  console.log('UserProfile - userData:', userData);
-  console.log('UserProfile - gameLogsData:', gameLogsData);
-  console.log('UserProfile - userLoading:', userLoading);
-  console.log('UserProfile - gameLogsLoading:', gameLogsLoading);
+  // console.log('UserProfile - dbUserId:', dbUserId);
+  // console.log('UserProfile - userData:', userData);
+  // console.log('UserProfile - gameLogsData:', gameLogsData);
+  // console.log('UserProfile - userLoading:', userLoading);
+  // console.log('UserProfile - gameLogsLoading:', gameLogsLoading);
 
   if (isLoading || !targetUser) {
     return (
@@ -132,145 +168,355 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
   const hasNextPage = gameLogsData?.gameLogs?.pageInfo?.hasNextPage || false;
   const hasPreviousPage = gameLogsData?.gameLogs?.pageInfo?.hasPreviousPage || false;
 
-  const calculateSecurityScore = (user: DbCustomUser) => {
-    let score = 0;
-    if (user.password_enabled) score += 1;
-    if (user.two_factor_enabled) score += 2;
-    if (user.email_verified) score += 1;
-    return score;
-  };
+  const isOwnProfile = currentUser?.id === targetUserId || !targetUserId;
 
-  const _securityScore = calculateSecurityScore(targetUser);
-  const _maxScore = 4;
+  // Calculate stats from game logs
+  const averageRating = gameLogs.length > 0 
+    ? gameLogs.reduce((sum, log) => sum + (log.rating || 0), 0) / gameLogs.length 
+    : 0;
+
+  const classificationCounts = gameLogs.reduce((acc, log) => {
+    acc[log.classification] = (acc[log.classification] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
 
   if (userLoading || gameLogsLoading) {
     return <UserProfileSkeleton />;
   }
 
   return (
-    <div className="container mx-auto py-8">
-      <div className="grid gap-8 md:grid-cols-[300px,1fr]">
-        {/* User Info Card */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center space-x-4">
-              <Avatar className="h-16 w-16">
-                <AvatarImage src={userProfile?.imageUrl ?? undefined} />
-                <AvatarFallback>{userProfile?.username?.charAt(0).toUpperCase() || 'U'}</AvatarFallback>
-              </Avatar>
-              <div>
-                <CardTitle>{userProfile?.username || 'Unknown User'}</CardTitle>
-                <p className="text-sm text-muted-foreground">{userProfile?.emailAddress || ''}</p>
+    <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
+      {/* Profile Header */}
+      <div className="bg-card border-b">
+        <div className="container mx-auto px-4 py-8">
+          <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
+            <Avatar className="h-32 w-32 ring-4 ring-background shadow-xl">
+              <AvatarImage src={userProfile?.imageUrl ?? undefined} />
+              <AvatarFallback className="text-3xl">
+                {userProfile?.username?.charAt(0).toUpperCase() || 'U'}
+              </AvatarFallback>
+            </Avatar>
+            
+            <div className="flex-1 text-center md:text-left">
+              <div className="flex flex-col md:flex-row items-center md:items-start gap-4">
+                <div>
+                  <h1 className="text-3xl font-bold flex items-center gap-2">
+                    {userProfile?.username || 'Unknown User'}
+                    {userProfile?.email_verified && (
+                      <Badge variant="secondary" className="gap-1">
+                        <Shield className="h-3 w-3" />
+                        Verified
+                      </Badge>
+                    )}
+                  </h1>
+                  {userProfile?.firstName || userProfile?.lastName ? (
+                    <p className="text-muted-foreground">
+                      {userProfile?.firstName} {userProfile?.lastName}
+                    </p>
+                  ) : null}
+                  <p className="text-sm text-muted-foreground flex items-center gap-2 mt-2">
+                    <Calendar className="h-4 w-4" />
+                    Member since {userProfile?.createdAt ? new Date(userProfile.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'N/A'}
+                  </p>
+                </div>
+                {isOwnProfile && (
+                  <CreateGameLogModal onSuccess={() => setCursor(null)} />
+                )}
               </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div>
-                <h3 className="text-sm font-medium">Member Since</h3>
-                <p className="text-sm text-muted-foreground">
-                  {userProfile?.createdAt ? new Date(userProfile.createdAt).toLocaleDateString() : 'N/A'}
-                </p>
-              </div>
-              <div>
-                <h3 className="text-sm font-medium">Game Logs</h3>
-                <p className="text-sm text-muted-foreground">
-                  {gameLogsData?.gameLogs?.totalCount || 0} logs
-                </p>
-              </div>
-              <div>
-                <h3 className="text-sm font-medium">Friends</h3>
-                <p className="text-sm text-muted-foreground">
-                  {userProfile?.initiatedFriendships?.length || 0} friends
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Game Logs Section */}
-        <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold">Game Logs</h2>
-            <CreateGameLogModal onSuccess={() => setCursor(null)} />
-          </div>
-
-          {gameLogs.length === 0 ? (
-            <Card>
-              <CardContent className="py-8 text-center">
-                <p className="text-muted-foreground">No game logs yet</p>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="space-y-4">
-              {gameLogs.map(log => (
-                <Card key={log.id}>
-                  <CardContent className="p-6">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <h3 className="font-semibold">
-                          {log.game.teams.home.name} vs {log.game.teams.visitors.name}
-                        </h3>
-                        <p className="text-sm text-muted-foreground">
-                          {log.watchedDate ? new Date(log.watchedDate).toLocaleDateString() : ''}
-                        </p>
-                      </div>
-                      <div className={cn(badgeVariants({ variant: 'secondary' }), 'text-xs')}>
-                        {log.classification
-                          .split('_')
-                          .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
-                          .join(' ')}
-                      </div>
-                    </div>
-                    <div className="mt-4 space-y-2">
-                      <div className="flex items-center space-x-2">
-                        <span className="text-sm font-medium">Rating:</span>
-                        <span className="text-sm">{'⭐'.repeat(log.rating ?? 1)}</span>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <span className="text-sm font-medium">Watched:</span>
-                        <span className="text-sm">
-                          {log.watchedSetting
-                            .split('_')
-                            .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
-                            .join(' ')}
-                        </span>
-                      </div>
-                      {log.notes && <p className="text-sm text-muted-foreground">{log.notes}</p>}
-                    </div>
+              
+              {/* Stats Cards */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+                <Card className="border-2">
+                  <CardContent className="p-4 text-center">
+                    <Gamepad2 className="h-8 w-8 mx-auto text-primary mb-2" />
+                    <p className="text-2xl font-bold">{gameLogsData?.gameLogs?.totalCount || 0}</p>
+                    <p className="text-xs text-muted-foreground">Game Logs</p>
                   </CardContent>
                 </Card>
-              ))}
+                
+                <Card className="border-2">
+                  <CardContent className="p-4 text-center">
+                    <Star className="h-8 w-8 mx-auto text-yellow-500 mb-2" />
+                    <p className="text-2xl font-bold">{averageRating.toFixed(1)}</p>
+                    <p className="text-xs text-muted-foreground">Avg Rating</p>
+                  </CardContent>
+                </Card>
+                
+                <Card className="border-2">
+                  <CardContent className="p-4 text-center">
+                    <Users2 className="h-8 w-8 mx-auto text-blue-500 mb-2" />
+                    <p className="text-2xl font-bold">{userProfile?.initiatedFriendships?.length || 0}</p>
+                    <p className="text-xs text-muted-foreground">Friends</p>
+                  </CardContent>
+                </Card>
+                
+                <Card className="border-2">
+                  <CardContent className="p-4 text-center">
+                    <MessageSquare className="h-8 w-8 mx-auto text-green-500 mb-2" />
+                    <p className="text-2xl font-bold">{userProfile?.comments?.length || 0}</p>
+                    <p className="text-xs text-muted-foreground">Comments</p>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
-              {/* Pagination */}
-              {(hasNextPage || hasPreviousPage) && (
-                <div className="flex justify-center space-x-2">
+      {/* Main Content */}
+      <div className="container mx-auto px-4 py-8">
+        <Tabs defaultValue="game-logs" className="space-y-6">
+          <TabsList className="grid grid-cols-3 w-full md:w-[400px]">
+            <TabsTrigger value="game-logs">Game Logs</TabsTrigger>
+            <TabsTrigger value="stats">Statistics</TabsTrigger>
+            <TabsTrigger value="activity">Activity</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="game-logs" className="space-y-6">
+            {/* Filters */}
+            <Card>
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Filter className="h-5 w-5" />
+                    Filters
+                  </CardTitle>
+                  <Badge variant="secondary">{gameLogs.length} results</Badge>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-wrap gap-2">
                   <Button
-                    className={cn(buttonVariants({ variant: 'outline' }))}
-                    onClick={() => {
-                      // For simplicity, we'll reset to first page for previous
-                      setCursor(null);
-                    }}
-                    disabled={!hasPreviousPage}
+                    variant={selectedClassification === 'all' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setSelectedClassification('all')}
                   >
-                    Previous
+                    All
                   </Button>
                   <Button
-                    className={cn(buttonVariants({ variant: 'outline' }))}
-                    onClick={() => {
-                      if (gameLogsData?.gameLogs?.pageInfo?.endCursor) {
-                        setCursor(gameLogsData.gameLogs.pageInfo.endCursor);
-                      }
-                    }}
-                    disabled={!hasNextPage}
+                    variant={selectedClassification === 'Public' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setSelectedClassification('Public')}
+                    className={cn('gap-1', selectedClassification === 'Public' && 'bg-green-500 hover:bg-green-600')}
                   >
-                    Next
+                    <Globe className="h-3 w-3" />
+                    Public
+                  </Button>
+                  <Button
+                    variant={selectedClassification === 'Protected' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setSelectedClassification('Protected')}
+                    className={cn('gap-1', selectedClassification === 'Protected' && 'bg-amber-500 hover:bg-amber-600')}
+                  >
+                    <Shield className="h-3 w-3" />
+                    Protected
+                  </Button>
+                  <Button
+                    variant={selectedClassification === 'Private' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setSelectedClassification('Private')}
+                    className={cn('gap-1', selectedClassification === 'Private' && 'bg-red-500 hover:bg-red-600')}
+                  >
+                    <Lock className="h-3 w-3" />
+                    Private
                   </Button>
                 </div>
-              )}
+              </CardContent>
+            </Card>
+
+            {/* Game Logs */}
+            {gameLogs.length === 0 ? (
+              <Card>
+                <CardContent className="py-12 text-center">
+                  <Gamepad2 className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                  <p className="text-muted-foreground">No game logs found</p>
+                  {selectedClassification !== 'all' && (
+                    <Button
+                      variant="link"
+                      onClick={() => setSelectedClassification('all')}
+                      className="mt-2"
+                    >
+                      Clear filters
+                    </Button>
+                  )}
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="space-y-4">
+                {gameLogs.map(log => {
+                  const ClassificationIcon = classificationIcons[log.classification];
+                  return (
+                    <Card key={log.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+                      <div className={cn("h-1", {
+                        "bg-green-500": log.classification === 'Public',
+                        "bg-amber-500": log.classification === 'Protected',
+                        "bg-red-500": log.classification === 'Private',
+                      })} />
+                      <CardContent className="p-6">
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-3 mb-2">
+                              <h3 className="font-semibold text-lg">
+                                {log.game.teams.home.name} vs {log.game.teams.visitors.name}
+                              </h3>
+                              <Badge 
+                                variant="outline" 
+                                className={cn("gap-1", classificationColors[log.classification])}
+                              >
+                                <ClassificationIcon className="h-3 w-3" />
+                                {log.classification}
+                              </Badge>
+                            </div>
+                            
+                            <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+                              <span className="flex items-center gap-1">
+                                <Calendar className="h-4 w-4" />
+                                {log.watchedDate ? new Date(log.watchedDate).toLocaleDateString() : 'Not specified'}
+                              </span>
+                              {log.watchedLocation && (
+                                <span className="flex items-center gap-1">
+                                  <MapPin className="h-4 w-4" />
+                                  {log.watchedLocation}
+                                </span>
+                              )}
+                              <span className="flex items-center gap-1">
+                                <Eye className="h-4 w-4" />
+                                {log.watchedSetting
+                                  .split('_')
+                                  .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
+                                  .join(' ')}
+                              </span>
+                              <span className="flex items-center gap-1">
+                                <Users className="h-4 w-4" />
+                                {log.watchedScope}
+                              </span>
+                            </div>
+                          </div>
+                          
+                          <div className="text-right">
+                            <StarRating rating={log.rating || 0} size="md" />
+                            <p className="text-xs text-muted-foreground mt-1">
+                              {formatDistanceToNow(new Date(log.createdAt), { addSuffix: true })}
+                            </p>
+                          </div>
+                        </div>
+                        
+                        {log.notes && (
+                          <div className="bg-muted/50 rounded-lg p-3 mb-3">
+                            <p className="text-sm">{log.notes}</p>
+                          </div>
+                        )}
+                        
+                        {log.tags.length > 0 && (
+                          <div className="flex flex-wrap gap-2">
+                            {log.tags.map((tag, index) => (
+                              <Badge key={index} variant="secondary" className="text-xs">
+                                #{tag}
+                              </Badge>
+                            ))}
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+
+                {/* Pagination */}
+                {(hasNextPage || hasPreviousPage) && (
+                  <div className="flex justify-center space-x-2 pt-4">
+                    <Button
+                      variant="outline"
+                      onClick={() => setCursor(null)}
+                      disabled={!hasPreviousPage}
+                    >
+                      Previous
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        if (gameLogsData?.gameLogs?.pageInfo?.endCursor) {
+                          setCursor(gameLogsData.gameLogs.pageInfo.endCursor);
+                        }
+                      }}
+                      disabled={!hasNextPage}
+                    >
+                      Next
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )}
+          </TabsContent>
+          
+          <TabsContent value="stats" className="space-y-6">
+            <div className="grid gap-6 md:grid-cols-2">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Trophy className="h-5 w-5" />
+                    Game Log Distribution
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {Object.entries(classificationCounts).map(([classification, count]) => {
+                      const Icon = classificationIcons[classification as keyof typeof classificationIcons];
+                      const percentage = ((count / gameLogs.length) * 100).toFixed(1);
+                      return (
+                        <div key={classification} className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <Icon className="h-4 w-4" />
+                            <span>{classification}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <div className="w-32 bg-secondary rounded-full h-2">
+                              <div 
+                                className={cn("h-2 rounded-full", {
+                                  "bg-green-500": classification === 'Public',
+                                  "bg-amber-500": classification === 'Protected',
+                                  "bg-red-500": classification === 'Private',
+                                })}
+                                style={{ width: `${percentage}%` }}
+                              />
+                            </div>
+                            <span className="text-sm font-medium">{count}</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <TrendingUp className="h-5 w-5" />
+                    Rating Overview
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-center py-4">
+                    <div className="text-4xl font-bold mb-2">{averageRating.toFixed(1)}</div>
+                    <StarRating rating={averageRating} size="lg" />
+                    <p className="text-sm text-muted-foreground mt-2">
+                      Based on {gameLogs.length} game logs
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
-          )}
-        </div>
+          </TabsContent>
+          
+          <TabsContent value="activity">
+            <Card>
+              <CardContent className="py-12 text-center">
+                <Clock className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                <p className="text-muted-foreground">Activity timeline coming soon</p>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
@@ -278,51 +524,81 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
 
 function UserProfileSkeleton() {
   return (
-    <div className="container mx-auto py-8">
-      <div className="grid gap-8 md:grid-cols-[300px,1fr]">
-        <Card>
-          <CardHeader>
-            <div className="flex items-center space-x-4">
-              <Skeleton className="h-16 w-16 rounded-full" />
-              <div className="space-y-2">
-                <Skeleton className="h-4 w-32" />
-                <Skeleton className="h-3 w-24" />
+    <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
+      {/* Profile Header Skeleton */}
+      <div className="bg-card border-b">
+        <div className="container mx-auto px-4 py-8">
+          <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
+            <Skeleton className="h-32 w-32 rounded-full" />
+            
+            <div className="flex-1 text-center md:text-left">
+              <div className="flex flex-col md:flex-row items-center md:items-start gap-4">
+                <div>
+                  <Skeleton className="h-8 w-48 mb-2" />
+                  <Skeleton className="h-5 w-32 mb-2" />
+                  <Skeleton className="h-4 w-40" />
+                </div>
+                <Skeleton className="h-10 w-32" />
+              </div>
+              
+              {/* Stats Cards Skeleton */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+                {[1, 2, 3, 4].map(i => (
+                  <Card key={i} className="border-2">
+                    <CardContent className="p-4 text-center">
+                      <Skeleton className="h-8 w-8 mx-auto mb-2 rounded-full" />
+                      <Skeleton className="h-6 w-12 mx-auto mb-1" />
+                      <Skeleton className="h-3 w-16 mx-auto" />
+                    </CardContent>
+                  </Card>
+                ))}
               </div>
             </div>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {[1, 2, 3].map(i => (
-                <div key={i}>
-                  <Skeleton className="h-4 w-24 mb-2" />
-                  <Skeleton className="h-3 w-32" />
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <Skeleton className="h-8 w-32" />
-            <Skeleton className="h-10 w-32" />
           </div>
+        </div>
+      </div>
+
+      {/* Main Content Skeleton */}
+      <div className="container mx-auto px-4 py-8">
+        <div className="space-y-6">
+          <Skeleton className="h-10 w-full md:w-[400px]" />
+          
+          <Card>
+            <CardHeader>
+              <Skeleton className="h-6 w-24" />
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-wrap gap-2">
+                {[1, 2, 3, 4].map(i => (
+                  <Skeleton key={i} className="h-8 w-20" />
+                ))}
+              </div>
+            </CardContent>
+          </Card>
 
           <div className="space-y-4">
             {[1, 2, 3].map(i => (
               <Card key={i}>
+                <Skeleton className="h-1 w-full" />
                 <CardContent className="p-6">
-                  <div className="flex items-start justify-between">
-                    <div className="space-y-2">
-                      <Skeleton className="h-5 w-48" />
-                      <Skeleton className="h-4 w-32" />
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex-1">
+                      <Skeleton className="h-6 w-64 mb-2" />
+                      <div className="flex flex-wrap gap-4">
+                        <Skeleton className="h-4 w-24" />
+                        <Skeleton className="h-4 w-32" />
+                        <Skeleton className="h-4 w-28" />
+                      </div>
                     </div>
-                    <Skeleton className="h-6 w-24" />
+                    <div className="text-right">
+                      <Skeleton className="h-5 w-24 mb-1" />
+                      <Skeleton className="h-3 w-20" />
+                    </div>
                   </div>
-                  <div className="mt-4 space-y-2">
-                    <Skeleton className="h-4 w-32" />
-                    <Skeleton className="h-4 w-40" />
-                    <Skeleton className="h-4 w-64" />
+                  <Skeleton className="h-12 w-full mb-3" />
+                  <div className="flex gap-2">
+                    <Skeleton className="h-6 w-16" />
+                    <Skeleton className="h-6 w-16" />
                   </div>
                 </CardContent>
               </Card>
