@@ -370,9 +370,24 @@ type GameLogEdge {
 input GameLogFilters {
   classification: Classification
   gameId: ID
+  hasNotes: Boolean
+  maxRating: Int @constraint(min: 1, max: 5)
+  minRating: Int @constraint(min: 1, max: 5)
   pagination: PaginationInput
+  searchText: String
+  sortBy: GameLogSortBy
+  sortDirection: SortDirection
+  tags: [String!]
   userId: ID
   watchedDateRange: DateRangeInput
+  watchedLocation: String
+  watchedSetting: String
+}
+
+enum GameLogSortBy {
+  CREATED_AT
+  RATING
+  WATCHED_DATE
 }
 
 type GameLogStats {

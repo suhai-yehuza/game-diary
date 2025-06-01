@@ -471,66 +471,104 @@ export function CommentsSection({ parentId, parentType, initialExpanded }: Comme
                     <Button
                       variant="outline"
                       onClick={() => setShowCommentInput(true)}
-                      className="w-full justify-start gap-3 h-auto py-3 px-4 border-dashed hover:border-solid hover:border-primary/50 transition-all"
+                      className={cn(
+                        "w-full justify-start gap-3 h-auto py-4 px-5",
+                        "bg-muted/30 backdrop-blur-sm",
+                        "border-2 border-dashed border-muted-foreground/20",
+                        "hover:border-solid hover:border-primary/30 hover:bg-muted/50",
+                        "hover:shadow-sm",
+                        "transition-all duration-300",
+                        "group"
+                      )}
                     >
-                      <Avatar className="h-8 w-8">
+                      <Avatar className="h-9 w-9 ring-2 ring-background shadow-sm transition-transform group-hover:scale-105">
                         <AvatarImage src={user.imageUrl || undefined} />
-                        <AvatarFallback>
+                        <AvatarFallback className="bg-primary/10 text-primary font-semibold">
                           {user.firstName?.[0]}{user.lastName?.[0]}
                         </AvatarFallback>
                       </Avatar>
-                      <span className="text-muted-foreground">Share your thoughts...</span>
+                      <span className="text-muted-foreground font-normal text-base">
+                        Share your thoughts...
+                      </span>
+                      <MessageCircle className="h-4 w-4 text-muted-foreground/50 ml-auto transition-transform group-hover:scale-110" />
                     </Button>
                   ) : (
                     <form onSubmit={handleSubmitComment} className="space-y-3">
-                      <div className="flex gap-3">
-                        <Avatar className="h-8 w-8 mt-1">
+                      <div className="flex gap-3 p-4 rounded-xl bg-muted/30 backdrop-blur-sm border border-border/50 shadow-sm">
+                        <Avatar className="h-10 w-10 mt-1 ring-2 ring-background shadow-sm">
                           <AvatarImage src={user.imageUrl || undefined} />
-                          <AvatarFallback>
+                          <AvatarFallback className="bg-primary/10 text-primary font-semibold">
                             {user.firstName?.[0]}{user.lastName?.[0]}
                           </AvatarFallback>
                         </Avatar>
                         <div className="flex-1 space-y-3">
-                          <Textarea
-                            ref={textareaRef}
-                            value={newComment}
-                            onChange={e => setNewComment(e.target.value)}
-                            placeholder="Share your thoughts..."
-                            className="min-h-[100px] resize-none border-primary/20 focus:border-primary/50 transition-colors"
-                            autoFocus
-                            disabled={isSubmitting}
-                          />
-                          <div className="flex gap-2 justify-end">
-                            <Button 
-                              type="button" 
-                              variant="ghost" 
-                              size="sm"
-                              onClick={() => {
-                                setShowCommentInput(false);
-                                setNewComment('');
-                              }}
-                              disabled={isSubmitting}
-                            >
-                              Cancel
-                            </Button>
-                            <Button 
-                              type="submit" 
-                              size="sm" 
-                              disabled={!newComment.trim() || isSubmitting}
-                              className="gap-2"
-                            >
-                              {isSubmitting ? (
-                                <>
-                                  <Loader2 className="h-3 w-3 animate-spin" />
-                                  Posting...
-                                </>
-                              ) : (
-                                <>
-                                  <Send className="h-3 w-3" />
-                                  Post Comment
-                                </>
+                          <div className="relative">
+                            <Textarea
+                              ref={textareaRef}
+                              value={newComment}
+                              onChange={e => setNewComment(e.target.value)}
+                              placeholder="Share your thoughts..."
+                              className={cn(
+                                "min-h-[100px] resize-none rounded-lg",
+                                "bg-background/50 backdrop-blur-sm",
+                                "border-2 border-transparent",
+                                "focus:border-primary/50 focus:ring-4 focus:ring-primary/10",
+                                "placeholder:text-muted-foreground/60",
+                                "transition-all duration-200",
+                                "text-base leading-relaxed"
                               )}
-                            </Button>
+                              autoFocus
+                              disabled={isSubmitting}
+                            />
+                            {newComment.length > 0 && (
+                              <div className="absolute bottom-2 right-2 text-xs text-muted-foreground/50">
+                                {newComment.length} characters
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                              <MessageCircle className="h-3.5 w-3.5" />
+                              <span>Markdown supported</span>
+                            </div>
+                            <div className="flex gap-2">
+                              <Button 
+                                type="button" 
+                                variant="ghost" 
+                                size="sm"
+                                onClick={() => {
+                                  setShowCommentInput(false);
+                                  setNewComment('');
+                                }}
+                                disabled={isSubmitting}
+                                className="hover:bg-muted/50"
+                              >
+                                Cancel
+                              </Button>
+                              <Button 
+                                type="submit" 
+                                size="sm" 
+                                disabled={!newComment.trim() || isSubmitting}
+                                className={cn(
+                                  "gap-2 min-w-[120px]",
+                                  "bg-primary hover:bg-primary/90",
+                                  "shadow-sm hover:shadow-md",
+                                  "transition-all duration-200"
+                                )}
+                              >
+                                {isSubmitting ? (
+                                  <>
+                                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                    <span>Posting...</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Send className="h-3.5 w-3.5" />
+                                    <span>Post Comment</span>
+                                  </>
+                                )}
+                              </Button>
+                            </div>
                           </div>
                         </div>
                       </div>

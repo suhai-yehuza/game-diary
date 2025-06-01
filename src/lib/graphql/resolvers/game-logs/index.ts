@@ -1,4 +1,4 @@
-import { and, eq, sql } from 'drizzle-orm';
+import { and, eq, sql, gte, lte, like, or, inArray, isNotNull, desc, asc } from 'drizzle-orm';
 
 import * as schema from '@/lib/db/schema';
 import { createConnection, parseCursor } from '@/lib/graphql/utils/pagination';
@@ -118,6 +118,68 @@ export const gameLogs = async (
       conditions.push(eq(schema.game_logs.classification, filters.classification));
     }
 
+    // Search text - search in notes, tags, and location
+    if (filters?.searchText) {
+      const searchTerm = `%${filters.searchText}%`;
+      conditions.push(
+        or(
+          like(schema.game_logs.notes, searchTerm),
+          like(schema.game_logs.watchedLocation, searchTerm),
+          sql`${schema.game_logs.tags}::text LIKE ${searchTerm}`
+        )
+      );
+    }
+
+    // Rating filters
+    if (filters?.minRating) {
+      conditions.push(gte(schema.game_logs.ratingStars, filters.minRating.toString()));
+    }
+    
+    if (filters?.maxRating) {
+      conditions.push(lte(schema.game_logs.ratingStars, filters.maxRating.toString()));
+    }
+
+    // Watched setting filter
+    if (filters?.watchedSetting) {
+      conditions.push(eq(schema.game_logs.watchedSetting, filters.watchedSetting));
+    }
+
+    // Watched location filter
+    if (filters?.watchedLocation) {
+      conditions.push(like(schema.game_logs.watchedLocation, `%${filters.watchedLocation}%`));
+    }
+
+    // Tags filter - check if any of the provided tags are in the game log tags
+    if (filters?.tags && filters.tags.length > 0) {
+      const tagConditions = filters.tags.map(tag => 
+        sql`${tag} = ANY(${schema.game_logs.tags})`
+      );
+      conditions.push(or(...tagConditions));
+    }
+
+    // Has notes filter
+    if (filters?.hasNotes === true) {
+      conditions.push(isNotNull(schema.game_logs.notes));
+      conditions.push(sql`${schema.game_logs.notes} != ''`);
+    } else if (filters?.hasNotes === false) {
+      conditions.push(
+        or(
+          eq(schema.game_logs.notes, ''),
+          sql`${schema.game_logs.notes} IS NULL`
+        )
+      );
+    }
+
+    // Date range filter
+    if (filters?.watchedDateRange) {
+      if (filters.watchedDateRange.start) {
+        conditions.push(gte(schema.game_logs.watchedDate, filters.watchedDateRange.start));
+      }
+      if (filters.watchedDateRange.end) {
+        conditions.push(lte(schema.game_logs.watchedDate, filters.watchedDateRange.end));
+      }
+    }
+
     const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
     // Get the total count
@@ -131,12 +193,29 @@ export const gameLogs = async (
     // Calculate offset from cursor
     const offset = after ? parseCursor(after) : 0;
 
+    // Determine sort order
+    let orderByClause;
+    const sortDirection = filters?.sortDirection === 'ASC' ? asc : desc;
+    
+    switch (filters?.sortBy) {
+      case 'WATCHED_DATE':
+        orderByClause = sortDirection(schema.game_logs.watchedDate);
+        break;
+      case 'RATING':
+        orderByClause = sortDirection(schema.game_logs.ratingStars);
+        break;
+      case 'CREATED_AT':
+      default:
+        orderByClause = sortDirection(schema.game_logs.createdAt);
+        break;
+    }
+
     // Execute the query with proper offset and limit
     const query = db
       .select()
       .from(schema.game_logs)
       .where(whereClause)
-      .orderBy(schema.game_logs.createdAt)
+      .orderBy(orderByClause)
       .offset(offset)
       .limit(first || last || 10);
 

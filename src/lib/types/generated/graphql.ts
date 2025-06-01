@@ -438,10 +438,24 @@ export type GameLogEdge = {
 export type GameLogFilters = {
   classification?: InputMaybe<Classification>;
   gameId?: InputMaybe<Scalars['ID']['input']>;
+  hasNotes?: InputMaybe<Scalars['Boolean']['input']>;
+  maxRating?: InputMaybe<Scalars['Int']['input']>;
+  minRating?: InputMaybe<Scalars['Int']['input']>;
   pagination?: InputMaybe<PaginationInput>;
+  searchText?: InputMaybe<Scalars['String']['input']>;
+  sortBy?: InputMaybe<GameLogSortBy>;
+  sortDirection?: InputMaybe<SortDirection>;
+  tags?: InputMaybe<Array<Scalars['String']['input']>>;
   userId?: InputMaybe<Scalars['ID']['input']>;
   watchedDateRange?: InputMaybe<DateRangeInput>;
+  watchedLocation?: InputMaybe<Scalars['String']['input']>;
+  watchedSetting?: InputMaybe<Scalars['String']['input']>;
 };
+
+export type GameLogSortBy =
+  | 'CREATED_AT'
+  | 'RATING'
+  | 'WATCHED_DATE';
 
 export type GameLogStats = {
   __typename?: 'GameLogStats';
@@ -876,6 +890,7 @@ export type Query = {
   friendships: UserBaseConnection;
   game: Maybe<Game>;
   gameLog: Maybe<GameLog>;
+  gameLogById: Maybe<GameLog>;
   gameLogStats: GameLogStats;
   gameLogs: GameLogConnection;
   gameStats: Maybe<GameStats>;
@@ -953,6 +968,11 @@ export type QuerygameArgs = {
 export type QuerygameLogArgs = {
   gameId: Scalars['ID']['input'];
   userId: Scalars['ID']['input'];
+};
+
+
+export type QuerygameLogByIdArgs = {
+  id: Scalars['ID']['input'];
 };
 
 
@@ -1819,6 +1839,7 @@ export type ResolversTypes = {
   GameLogConnection: ResolverTypeWrapper<GameLogConnection>;
   GameLogEdge: ResolverTypeWrapper<GameLogEdge>;
   GameLogFilters: GameLogFilters;
+  GameLogSortBy: GameLogSortBy;
   GameLogStats: ResolverTypeWrapper<GameLogStats>;
   GamePeriods: ResolverTypeWrapper<GamePeriods>;
   GameStats: ResolverTypeWrapper<GameStats>;
@@ -2619,6 +2640,7 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   friendships?: Resolver<ResolversTypes['UserBaseConnection'], ParentType, ContextType, RequireFields<QueryfriendshipsArgs, 'userId'>>;
   game?: Resolver<Maybe<ResolversTypes['Game']>, ParentType, ContextType, RequireFields<QuerygameArgs, 'id'>>;
   gameLog?: Resolver<Maybe<ResolversTypes['GameLog']>, ParentType, ContextType, RequireFields<QuerygameLogArgs, 'gameId' | 'userId'>>;
+  gameLogById?: Resolver<Maybe<ResolversTypes['GameLog']>, ParentType, ContextType, RequireFields<QuerygameLogByIdArgs, 'id'>>;
   gameLogStats?: Resolver<ResolversTypes['GameLogStats'], ParentType, ContextType, Partial<QuerygameLogStatsArgs>>;
   gameLogs?: Resolver<ResolversTypes['GameLogConnection'], ParentType, ContextType, Partial<QuerygameLogsArgs>>;
   gameStats?: Resolver<Maybe<ResolversTypes['GameStats']>, ParentType, ContextType, RequireFields<QuerygameStatsArgs, 'id'>>;

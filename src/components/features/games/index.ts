@@ -11,6 +11,7 @@ export { LiveGamesBanner } from './live-games-banner';
 export { LiveGamesSection } from './live-games-section';
 export { NbaDataClient } from './nba-data-client';
 export { UpdateGameLogModal } from './update-game-log-modal';
+export { GameLogSearchSection } from './GameLogSearchSection';
 
 // Hooks exports
 export { useCreateGameLog } from './hooks/useCreateGameLog';
