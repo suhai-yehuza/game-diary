@@ -465,13 +465,15 @@ export function GameLogSearchSection({ userId, initialSearchText = '' }: GameLog
                         <div className="flex items-center justify-between gap-2">
                           <div className="flex items-center gap-2 min-w-0">
                             {log.game.teams?.visitors?.logo && (
-                              <Image
-                                src={log.game.teams.visitors.logo}
-                                alt={log.game.teams.visitors.name || 'Away'}
-                                width={24}
-                                height={24}
-                                className="object-contain h-6 w-auto"
-                              />
+                              <div className="relative h-6 w-6 flex-shrink-0">
+                                <Image
+                                  src={log.game.teams.visitors.logo}
+                                  alt={log.game.teams.visitors.name || 'Away'}
+                                  fill
+                                  sizes="24px"
+                                  className="object-contain"
+                                />
+                              </div>
                             )}
                             <span className="text-sm font-medium truncate">
                               {log.game.teams?.visitors?.nickname || 'Away'}
@@ -489,13 +491,15 @@ export function GameLogSearchSection({ userId, initialSearchText = '' }: GameLog
                               {log.game.teams?.home?.nickname || 'Home'}
                             </span>
                             {log.game.teams?.home?.logo && (
-                              <Image
-                                src={log.game.teams.home.logo}
-                                alt={log.game.teams.home.name || 'Home'}
-                                width={24}
-                                height={24}
-                                className="object-contain h-6 w-auto"
-                              />
+                              <div className="relative h-6 w-6 flex-shrink-0">
+                                <Image
+                                  src={log.game.teams.home.logo}
+                                  alt={log.game.teams.home.name || 'Home'}
+                                  fill
+                                  sizes="24px"
+                                  className="object-contain"
+                                />
+                              </div>
                             )}
                           </div>
                         </div>

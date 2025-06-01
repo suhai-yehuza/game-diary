@@ -73,20 +73,21 @@ export const GameCard = memo(({ game, index, imageErrors, onImageError }: GameCa
                 href={`/sports/nba/teams/${game.teams.visitors.id}`}
                 className="flex items-center gap-3 hover:no-underline group/team"
               >
-                <Image
-                  src={
-                    imageErrors?.has(`${game.id}-visitors`)
-                      ? '/gamelog.svg'
-                      : game.teams.visitors.logo
-                  }
-                  alt={game.teams.visitors.name}
-                  width={64}
-                  height={64}
-                  priority
-                  style={{ width: '64px', height: '64px', objectFit: 'contain' }}
-                  className="transition-transform duration-300 group-hover/team:scale-110"
-                  onError={() => onImageError?.(`${game.id}-visitors`)}
-                />
+                <div className="relative w-16 h-16 flex-shrink-0">
+                  <Image
+                    src={
+                      imageErrors?.has(`${game.id}-visitors`)
+                        ? '/gamelog.svg'
+                        : game.teams.visitors.logo
+                    }
+                    alt={game.teams.visitors.name}
+                    fill
+                    sizes="64px"
+                    priority
+                    className="object-contain transition-transform duration-300 group-hover/team:scale-110"
+                    onError={() => onImageError?.(`${game.id}-visitors`)}
+                  />
+                </div>
                 <div>
                   <div className="font-semibold text-lg transition-colors duration-300 group-hover/team:text-blue-500">
                     {game.teams.visitors.nickname}
@@ -119,16 +120,17 @@ export const GameCard = memo(({ game, index, imageErrors, onImageError }: GameCa
                 href={`/sports/nba/teams/${game.teams.home.id}`}
                 className="flex items-center gap-3 hover:no-underline group/team"
               >
-                <Image
-                  src={imageErrors?.has(`${game.id}-home`) ? '/gamelog.svg' : game.teams.home.logo}
-                  alt={game.teams.home.name}
-                  width={64}
-                  height={64}
-                  priority
-                  style={{ width: '64px', height: '64px', objectFit: 'contain' }}
-                  className="transition-transform duration-300 group-hover/team:scale-110"
-                  onError={() => onImageError?.(`${game.id}-home`)}
-                />
+                <div className="relative w-16 h-16 flex-shrink-0">
+                  <Image
+                    src={imageErrors?.has(`${game.id}-home`) ? '/gamelog.svg' : game.teams.home.logo}
+                    alt={game.teams.home.name}
+                    fill
+                    sizes="64px"
+                    priority
+                    className="object-contain transition-transform duration-300 group-hover/team:scale-110"
+                    onError={() => onImageError?.(`${game.id}-home`)}
+                  />
+                </div>
                 <div>
                   <div className="font-semibold text-lg transition-colors duration-300 group-hover/team:text-blue-500">
                     {game.teams.home.nickname}

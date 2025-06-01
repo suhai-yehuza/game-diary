@@ -284,7 +284,7 @@ const UserCard = ({ user }: { user: UserNode }) => {
               <DropdownMenuItem 
                 onClick={handleRemoveFriend}
                 disabled={isLoading}
-                className="gap-2 text-red-600 focus:text-red-600"
+                className="gap-2 text-gray-600 focus:text-gray-600"
               >
                 <X className="h-3.5 w-3.5" />
                 Unfriend
@@ -331,7 +331,7 @@ const UserCard = ({ user }: { user: UserNode }) => {
                 <DropdownMenuItem 
                   onClick={handleRejectRequest}
                   disabled={isLoading}
-                  className="gap-2 text-red-600 focus:text-red-600"
+                  className="gap-2 text-gray-600 focus:text-gray-600"
                 >
                   <X className="h-3.5 w-3.5" />
                   Reject Request

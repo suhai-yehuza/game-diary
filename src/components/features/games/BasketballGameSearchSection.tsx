@@ -460,13 +460,15 @@ export function BasketballGameSearchSection() {
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                           {game.teams?.visitors?.logo && (
-                            <Image
-                              src={game.teams.visitors.logo}
-                              alt={game.teams.visitors.name || 'Away'}
-                              width={32}
-                              height={32}
-                              className="object-contain h-8 w-auto"
-                            />
+                            <div className="relative h-8 w-8 flex-shrink-0">
+                              <Image
+                                src={game.teams.visitors.logo}
+                                alt={game.teams.visitors.name || 'Away'}
+                                fill
+                                sizes="32px"
+                                className="object-contain"
+                              />
+                            </div>
                           )}
                           <div>
                             <div className="font-medium">
@@ -488,13 +490,15 @@ export function BasketballGameSearchSection() {
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                           {game.teams?.home?.logo && (
-                            <Image
-                              src={game.teams.home.logo}
-                              alt={game.teams.home.name || 'Home'}
-                              width={32}
-                              height={32}
-                              className="object-contain h-8 w-auto"
-                            />
+                            <div className="relative h-8 w-8 flex-shrink-0">
+                              <Image
+                                src={game.teams.home.logo}
+                                alt={game.teams.home.name || 'Home'}
+                                fill
+                                sizes="32px"
+                                className="object-contain"
+                              />
+                            </div>
                           )}
                           <div>
                             <div className="font-medium">
