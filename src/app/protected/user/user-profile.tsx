@@ -1,20 +1,19 @@
 'use client';
 
+import { gql } from '@apollo/client';
 import { useQuery, useMutation } from '@apollo/client/react/hooks';
 import { useUser } from '@clerk/nextjs';
-import React, { useEffect, useState } from 'react';
-import { 
-  Calendar, 
-  MapPin, 
-  Users, 
-  Trophy, 
-  Clock, 
+import { formatDistanceToNow } from 'date-fns';
+import {
+  Calendar,
+  MapPin,
+  Users,
+  Trophy,
+  Clock,
   Star,
   Eye,
   MessageSquare,
-  Heart,
   Filter,
-  ChevronRight,
   Gamepad2,
   TrendingUp,
   Shield,
@@ -23,26 +22,24 @@ import {
   Users2,
   UserPlus,
   UserCheck,
-  UserX
+  UserX,
 } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
 import { toast } from 'react-hot-toast';
-import { gql } from '@apollo/client';
 
 import { CreateGameLogModal } from '@/components/features/games';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge, badgeVariants } from '@/components/ui/badge';
-import { Button, buttonVariants } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { StarRating } from '@/components/ui/star-rating';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { GET_GAME_LOGS, GET_USER } from '@/lib/graphql/queries';
 import { SEND_FRIEND_REQUEST, ACCEPT_FRIEND_REQUEST, REMOVE_FRIEND } from '@/lib/graphql/mutations';
+import { GET_GAME_LOGS, GET_USER } from '@/lib/graphql/queries';
 import { GameLog, Friendship, FriendshipStatus } from '@/lib/types/generated/graphql';
 import { DbCustomUser, UserProfileProps } from '@/lib/types/user.types';
 import { cn } from '@/lib/utils';
-import { formatDistanceToNow } from 'date-fns';
-import { StarRating } from '@/components/ui/star-rating';
-import { CLASSIFICATION, FRIENDSHIP_STATUS } from '@/lib/types/config.types';
 
 // Custom query to get friendships between two users
 const GET_USER_FRIENDSHIPS = gql`
@@ -115,7 +112,9 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
   const [currentUserDbId, setCurrentUserDbId] = useState<string | null>(null);
   const [cursor, setCursor] = useState<string | null>(null);
   const [selectedClassification, setSelectedClassification] = useState<string>('all');
-  const [friendshipStatus, setFriendshipStatus] = useState<'none' | 'loading' | FriendshipStatus>('loading');
+  const [friendshipStatus, setFriendshipStatus] = useState<FriendshipStatus | null | 'loading'>(
+    'loading'
+  );
   const [currentFriendship, setCurrentFriendship] = useState<Friendship | null>(null);
 
   // Fetch current user's database ID
@@ -203,9 +202,9 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
     skip: !dbUserId,
   });
 
-  const { data: gameLogsData, loading: gameLogsLoading, fetchMore } = useQuery<{
-    gameLogs: { 
-      edges: Array<{ node: GameLog; cursor: string }>; 
+  const { data: gameLogsData, loading: gameLogsLoading } = useQuery<{
+    gameLogs: {
+      edges: Array<{ node: GameLog; cursor: string }>;
       totalCount: number;
       pageInfo: {
         hasNextPage: boolean;
@@ -227,70 +226,74 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
   });
 
   // Fetch friendships for the current user
-  const { data: friendshipsData } = useQuery(GET_USER_FRIENDSHIPS, {
+  const { data: _friendshipsData } = useQuery(GET_USER_FRIENDSHIPS, {
     variables: { userId: currentUserDbId },
     skip: !currentUserDbId || !dbUserId,
-    onCompleted: (data) => {
+    onCompleted: data => {
       if (data?.user && dbUserId && currentUserDbId) {
-        const allFriendships = [...(data.user.friendships || []), ...(data.user.initiatedFriendships || [])];
-        const friendship = allFriendships.find((f: Friendship) => 
-          (f.initiator.id === currentUserDbId && f.recipient.id === dbUserId) ||
-          (f.recipient.id === currentUserDbId && f.initiator.id === dbUserId)
+        const allFriendships = [
+          ...(data.user.friendships || []),
+          ...(data.user.initiatedFriendships || []),
+        ];
+        const friendship = allFriendships.find(
+          (f: Friendship) =>
+            (f.initiator.id === currentUserDbId && f.recipient.id === dbUserId) ||
+            (f.recipient.id === currentUserDbId && f.initiator.id === dbUserId)
         );
-        
+
         if (friendship) {
           setCurrentFriendship(friendship);
           setFriendshipStatus(friendship.status);
         } else {
-          setFriendshipStatus('none');
+          setFriendshipStatus(null);
         }
       } else if (!data?.user) {
-        setFriendshipStatus('none');
+        setFriendshipStatus(null);
       }
-    }
+    },
   });
 
   // Send friend request mutation
   const [sendFriendRequest, { loading: sendingRequest }] = useMutation(SEND_FRIEND_REQUEST, {
-    onCompleted: (data) => {
+    onCompleted: data => {
       if (data?.sendFriendRequest?.friendship) {
         setCurrentFriendship(data.sendFriendRequest.friendship);
         setFriendshipStatus(data.sendFriendRequest.friendship.status);
         toast.success('Friend request sent!');
       }
     },
-    onError: (error) => {
+    onError: error => {
       toast.error(error.message);
     },
-    refetchQueries: [{ query: GET_USER_FRIENDSHIPS, variables: { userId: currentUserDbId } }]
+    refetchQueries: [{ query: GET_USER_FRIENDSHIPS, variables: { userId: currentUserDbId } }],
   });
 
   // Accept friend request mutation
   const [acceptFriendRequest, { loading: acceptingRequest }] = useMutation(ACCEPT_FRIEND_REQUEST, {
-    onCompleted: (data) => {
+    onCompleted: data => {
       if (data?.acceptFriendRequest?.friendship) {
         setCurrentFriendship(data.acceptFriendRequest.friendship);
         setFriendshipStatus(data.acceptFriendRequest.friendship.status);
         toast.success('Friend request accepted!');
       }
     },
-    onError: (error) => {
+    onError: error => {
       toast.error(error.message);
     },
-    refetchQueries: [{ query: GET_USER_FRIENDSHIPS, variables: { userId: currentUserDbId } }]
+    refetchQueries: [{ query: GET_USER_FRIENDSHIPS, variables: { userId: currentUserDbId } }],
   });
 
   // Remove friend mutation
   const [removeFriend, { loading: removingFriend }] = useMutation(REMOVE_FRIEND, {
     onCompleted: () => {
       setCurrentFriendship(null);
-      setFriendshipStatus('none');
+      setFriendshipStatus(null);
       toast.success('Friend removed');
     },
-    onError: (error) => {
+    onError: error => {
       toast.error(error.message);
     },
-    refetchQueries: [{ query: GET_USER_FRIENDSHIPS, variables: { userId: currentUserDbId } }]
+    refetchQueries: [{ query: GET_USER_FRIENDSHIPS, variables: { userId: currentUserDbId } }],
   });
 
   const handleSendFriendRequest = () => {
@@ -320,7 +323,7 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
   }
 
   const userProfile = userData?.user || targetUser;
-  const gameLogs = gameLogsData?.gameLogs?.edges?.map(edge => edge.node) || [];
+  const gameLogs = gameLogsData?.gameLogs?.edges?.map((edge: { node: GameLog }) => edge.node) || [];
   const hasNextPage = gameLogsData?.gameLogs?.pageInfo?.hasNextPage || false;
   const hasPreviousPage = gameLogsData?.gameLogs?.pageInfo?.hasPreviousPage || false;
 
@@ -328,14 +331,18 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
   const isPendingFromCurrentUser = currentFriendship?.initiator.id === currentUserDbId;
 
   // Calculate stats from game logs
-  const averageRating = gameLogs.length > 0 
-    ? gameLogs.reduce((sum, log) => sum + (log.ratingForGame || 0), 0) / gameLogs.length 
-    : 0;
+  const averageRating =
+    gameLogs.length > 0
+      ? gameLogs.reduce((sum, log) => sum + (log.ratingForGame || 0), 0) / gameLogs.length
+      : 0;
 
-  const classificationCounts = gameLogs.reduce((acc, log) => {
-    acc[log.classification] = (acc[log.classification] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
+  const classificationCounts = gameLogs.reduce(
+    (acc, log) => {
+      acc[log.classification] = (acc[log.classification] || 0) + 1;
+      return acc;
+    },
+    {} as Record<string, number>
+  );
 
   if (userLoading || gameLogsLoading) {
     return <UserProfileSkeleton />;
@@ -355,11 +362,11 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
             Loading...
           </Button>
         );
-      
-      case 'none':
+
+      case null:
         return (
-          <Button 
-            onClick={handleSendFriendRequest} 
+          <Button
+            onClick={handleSendFriendRequest}
             disabled={isLoading}
             variant="default"
             size="sm"
@@ -369,14 +376,14 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
             {isLoading ? 'Sending...' : 'Add Friend'}
           </Button>
         );
-      
+
       case 'Pending':
         if (isPendingFromCurrentUser) {
           return (
-            <Button 
+            <Button
               onClick={handleRemoveFriend}
               disabled={isLoading}
-              variant="outline" 
+              variant="outline"
               size="sm"
               className="gap-2 text-red-600 hover:text-red-700"
             >
@@ -387,8 +394,8 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
         } else {
           return (
             <div className="flex gap-2">
-              <Button 
-                onClick={handleAcceptFriendRequest} 
+              <Button
+                onClick={handleAcceptFriendRequest}
                 disabled={isLoading}
                 variant="default"
                 size="sm"
@@ -397,8 +404,8 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
                 <UserCheck className="h-4 w-4" />
                 {isLoading ? 'Accepting...' : 'Accept Request'}
               </Button>
-              <Button 
-                onClick={handleRemoveFriend} 
+              <Button
+                onClick={handleRemoveFriend}
                 disabled={isLoading}
                 variant="outline"
                 size="sm"
@@ -410,11 +417,11 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
             </div>
           );
         }
-      
+
       case 'Accepted':
         return (
-          <Button 
-            onClick={handleRemoveFriend} 
+          <Button
+            onClick={handleRemoveFriend}
             disabled={isLoading}
             variant="outline"
             size="sm"
@@ -424,33 +431,23 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
             {isLoading ? 'Removing...' : 'Friends'}
           </Button>
         );
-      
+
       case 'Rejected':
         return (
-          <Button 
-            variant="outline" 
-            size="sm"
-            disabled
-            className="gap-2"
-          >
+          <Button variant="outline" size="sm" disabled className="gap-2">
             <UserX className="h-4 w-4" />
             Request Rejected
           </Button>
         );
-        
+
       case 'Blocked':
         return (
-          <Button 
-            variant="outline" 
-            size="sm"
-            disabled
-            className="gap-2"
-          >
+          <Button variant="outline" size="sm" disabled className="gap-2">
             <UserX className="h-4 w-4" />
             Blocked
           </Button>
         );
-        
+
       default:
         return null;
     }
@@ -468,7 +465,7 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
                 {userProfile?.username?.charAt(0).toUpperCase() || 'U'}
               </AvatarFallback>
             </Avatar>
-            
+
             <div className="flex-1 text-center md:text-left">
               <div className="flex flex-col md:flex-row items-center md:items-start gap-4">
                 <div>
@@ -488,17 +485,21 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
                   ) : null}
                   <p className="text-sm text-muted-foreground flex items-center gap-2 mt-2">
                     <Calendar className="h-4 w-4" />
-                    Member since {userProfile?.createdAt ? new Date(userProfile.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'N/A'}
+                    Member since{' '}
+                    {userProfile?.createdAt
+                      ? new Date(userProfile.createdAt).toLocaleDateString('en-US', {
+                          month: 'long',
+                          year: 'numeric',
+                        })
+                      : 'N/A'}
                   </p>
                 </div>
                 <div className="flex gap-2">
-                  {isOwnProfile && (
-                    <CreateGameLogModal onSuccess={() => setCursor(null)} />
-                  )}
+                  {isOwnProfile && <CreateGameLogModal onSuccess={() => setCursor(null)} />}
                   {renderFriendshipButton()}
                 </div>
               </div>
-              
+
               {/* Stats Cards */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
                 <Card className="border-2">
@@ -508,7 +509,7 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
                     <p className="text-xs text-muted-foreground">Game Logs</p>
                   </CardContent>
                 </Card>
-                
+
                 <Card className="border-2">
                   <CardContent className="p-4 text-center">
                     <Star className="h-8 w-8 mx-auto text-gray-600 mb-2" />
@@ -516,15 +517,17 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
                     <p className="text-xs text-muted-foreground">Avg Rating</p>
                   </CardContent>
                 </Card>
-                
+
                 <Card className="border-2">
                   <CardContent className="p-4 text-center">
                     <Users2 className="h-8 w-8 mx-auto text-blue-500 mb-2" />
-                    <p className="text-2xl font-bold">{userProfile?.initiatedFriendships?.length || 0}</p>
+                    <p className="text-2xl font-bold">
+                      {userProfile?.initiatedFriendships?.length || 0}
+                    </p>
                     <p className="text-xs text-muted-foreground">Friends</p>
                   </CardContent>
                 </Card>
-                
+
                 <Card className="border-2">
                   <CardContent className="p-4 text-center">
                     <MessageSquare className="h-8 w-8 mx-auto text-green-500 mb-2" />
@@ -546,7 +549,7 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
             <TabsTrigger value="stats">Statistics</TabsTrigger>
             <TabsTrigger value="activity">Activity</TabsTrigger>
           </TabsList>
-          
+
           <TabsContent value="game-logs" className="space-y-6">
             {/* Filters */}
             <Card>
@@ -572,7 +575,10 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
                     variant={selectedClassification === 'Public' ? 'default' : 'outline'}
                     size="sm"
                     onClick={() => setSelectedClassification('Public')}
-                    className={cn('gap-1', selectedClassification === 'Public' && 'bg-green-500 hover:bg-green-600')}
+                    className={cn(
+                      'gap-1',
+                      selectedClassification === 'Public' && 'bg-green-500 hover:bg-green-600'
+                    )}
                   >
                     <Globe className="h-3 w-3" />
                     Public
@@ -581,7 +587,10 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
                     variant={selectedClassification === 'Protected' ? 'default' : 'outline'}
                     size="sm"
                     onClick={() => setSelectedClassification('Protected')}
-                    className={cn('gap-1', selectedClassification === 'Protected' && 'bg-amber-500 hover:bg-amber-600')}
+                    className={cn(
+                      'gap-1',
+                      selectedClassification === 'Protected' && 'bg-amber-500 hover:bg-amber-600'
+                    )}
                   >
                     <Shield className="h-3 w-3" />
                     Protected
@@ -590,7 +599,10 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
                     variant={selectedClassification === 'Private' ? 'default' : 'outline'}
                     size="sm"
                     onClick={() => setSelectedClassification('Private')}
-                    className={cn('gap-1', selectedClassification === 'Private' && 'bg-red-500 hover:bg-red-600')}
+                    className={cn(
+                      'gap-1',
+                      selectedClassification === 'Private' && 'bg-red-500 hover:bg-red-600'
+                    )}
                   >
                     <Lock className="h-3 w-3" />
                     Private
@@ -621,12 +633,17 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
                 {gameLogs.map(log => {
                   const ClassificationIcon = classificationIcons[log.classification];
                   return (
-                    <Card key={log.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                      <div className={cn("h-1", {
-                        "bg-green-500": log.classification === 'Public',
-                        "bg-amber-500": log.classification === 'Protected',
-                        "bg-red-500": log.classification === 'Private',
-                      })} />
+                    <Card
+                      key={log.id}
+                      className="overflow-hidden hover:shadow-lg transition-shadow"
+                    >
+                      <div
+                        className={cn('h-1', {
+                          'bg-green-500': log.classification === 'Public',
+                          'bg-amber-500': log.classification === 'Protected',
+                          'bg-red-500': log.classification === 'Private',
+                        })}
+                      />
                       <CardContent className="p-6">
                         <div className="flex items-start justify-between mb-4">
                           <div className="flex-1">
@@ -634,19 +651,21 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
                               <h3 className="font-semibold text-lg">
                                 {log.game.teams.home.name} vs {log.game.teams.visitors.name}
                               </h3>
-                              <Badge 
-                                variant="outline" 
-                                className={cn("gap-1", classificationColors[log.classification])}
+                              <Badge
+                                variant="outline"
+                                className={cn('gap-1', classificationColors[log.classification])}
                               >
                                 <ClassificationIcon className="h-3 w-3" />
                                 {log.classification}
                               </Badge>
                             </div>
-                            
+
                             <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
                               <span className="flex items-center gap-1">
                                 <Calendar className="h-4 w-4" />
-                                {log.watchedDate ? new Date(log.watchedDate).toLocaleDateString() : 'Not specified'}
+                                {log.watchedDate
+                                  ? new Date(log.watchedDate).toLocaleDateString()
+                                  : 'Not specified'}
                               </span>
                               {log.watchedLocation && (
                                 <span className="flex items-center gap-1">
@@ -658,7 +677,9 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
                                 <Eye className="h-4 w-4" />
                                 {log.watchedSetting
                                   .split('_')
-                                  .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
+                                  .map(
+                                    (word: string) => word.charAt(0).toUpperCase() + word.slice(1)
+                                  )
                                   .join(' ')}
                               </span>
                               <span className="flex items-center gap-1">
@@ -667,7 +688,7 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
                               </span>
                             </div>
                           </div>
-                          
+
                           <div className="text-right">
                             <StarRating rating={log.ratingForGame || 0} size="md" />
                             <p className="text-xs text-muted-foreground mt-1">
@@ -675,13 +696,13 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
                             </p>
                           </div>
                         </div>
-                        
+
                         {log.notes && (
                           <div className="bg-muted/50 rounded-lg p-3 mb-3">
                             <p className="text-sm">{log.notes}</p>
                           </div>
                         )}
-                        
+
                         {log.tags.length > 0 && (
                           <div className="flex flex-wrap gap-2">
                             {log.tags.map((tag, index) => (
@@ -722,7 +743,7 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
               </div>
             )}
           </TabsContent>
-          
+
           <TabsContent value="stats" className="space-y-6">
             <div className="grid gap-6 md:grid-cols-2">
               <Card>
@@ -735,7 +756,8 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
                 <CardContent>
                   <div className="space-y-3">
                     {Object.entries(classificationCounts).map(([classification, count]) => {
-                      const Icon = classificationIcons[classification as keyof typeof classificationIcons];
+                      const Icon =
+                        classificationIcons[classification as keyof typeof classificationIcons];
                       const percentage = ((count / gameLogs.length) * 100).toFixed(1);
                       return (
                         <div key={classification} className="flex items-center justify-between">
@@ -745,11 +767,11 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
                           </div>
                           <div className="flex items-center gap-2">
                             <div className="w-32 bg-secondary rounded-full h-2">
-                              <div 
-                                className={cn("h-2 rounded-full", {
-                                  "bg-green-500": classification === 'Public',
-                                  "bg-amber-500": classification === 'Protected',
-                                  "bg-red-500": classification === 'Private',
+                              <div
+                                className={cn('h-2 rounded-full', {
+                                  'bg-green-500': classification === 'Public',
+                                  'bg-amber-500': classification === 'Protected',
+                                  'bg-red-500': classification === 'Private',
                                 })}
                                 style={{ width: `${percentage}%` }}
                               />
@@ -762,7 +784,7 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
                   </div>
                 </CardContent>
               </Card>
-              
+
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -782,7 +804,7 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
               </Card>
             </div>
           </TabsContent>
-          
+
           <TabsContent value="activity">
             <Card>
               <CardContent className="py-12 text-center">
@@ -805,7 +827,7 @@ function UserProfileSkeleton() {
         <div className="container mx-auto px-4 py-8">
           <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
             <Skeleton className="h-32 w-32 rounded-full" />
-            
+
             <div className="flex-1 text-center md:text-left">
               <div className="flex flex-col md:flex-row items-center md:items-start gap-4">
                 <div>
@@ -815,7 +837,7 @@ function UserProfileSkeleton() {
                 </div>
                 <Skeleton className="h-10 w-32" />
               </div>
-              
+
               {/* Stats Cards Skeleton */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
                 {[1, 2, 3, 4].map(i => (
@@ -837,7 +859,7 @@ function UserProfileSkeleton() {
       <div className="container mx-auto px-4 py-8">
         <div className="space-y-6">
           <Skeleton className="h-10 w-full md:w-[400px]" />
-          
+
           <Card>
             <CardHeader>
               <Skeleton className="h-6 w-24" />

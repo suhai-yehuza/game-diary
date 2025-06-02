@@ -1,14 +1,15 @@
 import { useMutation } from '@apollo/client';
-import { useUser } from '@clerk/nextjs';
 import { SmilePlus } from 'lucide-react';
 import React, { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { useAuthContext } from '@/contexts/AuthContext';
 import { CREATE_REACTION } from '@/lib/graphql/mutations';
 import { GET_REACTIONS } from '@/lib/graphql/queries';
+import { ReactionsData } from '@/lib/types/component.types';
 import { REACTION_EMOJIS } from '@/lib/types/config.types';
-import { Reaction, ReactionEmojiType } from '@/lib/types/generated/graphql';
+import type { Reaction, ReactionEmojiType } from '@/lib/types/generated/graphql';
 import { ReactionPickerProps } from '@/lib/types/reaction.types';
 import { cn } from '@/lib/utils';
 
@@ -19,16 +20,11 @@ export function ReactionPicker({
   onReactionChanged,
 }: ReactionPickerProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const { user } = useUser();
+  const { user } = useAuthContext();
   const [createReaction] = useMutation(CREATE_REACTION);
 
   const handleReaction = async (emojiName: ReactionEmojiType) => {
     if (!user) return;
-
-    // Check if user already has this reaction
-    const existingReaction = existingReactions.find(
-      (reaction: Reaction) => reaction.userId === user.id && reaction.emoji === emojiName
-    );
 
     try {
       await createReaction({
@@ -42,10 +38,10 @@ export function ReactionPicker({
         update: (cache, { data }) => {
           if (!data?.createReaction) return;
 
-          const existingData = cache.readQuery({
+          const existingData = cache.readQuery<ReactionsData>({
             query: GET_REACTIONS,
             variables: { targetId },
-          }) as { reactions: { edges: any[]; totalCount: number } } | null;
+          });
 
           if (!existingData?.reactions) return;
 
@@ -59,7 +55,7 @@ export function ReactionPicker({
             newEdges = [...existingData.reactions.edges, newEdge];
           } else {
             newEdges = existingData.reactions.edges.filter(
-              (edge: any) => !(edge.node.userId === user.id && edge.node.emoji === emojiName)
+              edge => !(edge.node.userId === user.id && edge.node.emoji === emojiName)
             );
           }
 
@@ -76,7 +72,7 @@ export function ReactionPicker({
           });
         },
       });
-      
+
       setIsOpen(false);
       onReactionChanged?.();
     } catch (error) {
@@ -94,33 +90,23 @@ export function ReactionPicker({
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
-        <Button 
-          variant="ghost" 
-          size="sm"
-          className="h-8 px-2 gap-1"
-        >
+        <Button variant="ghost" size="sm" className="h-8 px-2 gap-1">
           <SmilePlus className="h-4 w-4" />
           <span className="text-xs">React</span>
         </Button>
       </PopoverTrigger>
-      <PopoverContent 
-        className="w-64 p-3" 
-        align="start"
-      >
+      <PopoverContent className="w-64 p-3" align="start">
         <div className="grid grid-cols-6 gap-1">
           {Object.entries(REACTION_EMOJIS).map(([name, emoji]) => {
             const hasReacted = hasUserReacted(name);
-            
+
             return (
               <Button
                 key={name}
-                variant={hasReacted ? "secondary" : "ghost"}
+                variant={hasReacted ? 'secondary' : 'ghost'}
                 size="sm"
                 onClick={() => handleReaction(name as ReactionEmojiType)}
-                className={cn(
-                  "h-8 w-full p-0",
-                  hasReacted && "ring-1 ring-primary/20"
-                )}
+                className={cn('h-8 w-full p-0', hasReacted && 'ring-1 ring-primary/20')}
                 title={name.charAt(0) + name.slice(1).toLowerCase()}
               >
                 <span className="text-base">{emoji}</span>

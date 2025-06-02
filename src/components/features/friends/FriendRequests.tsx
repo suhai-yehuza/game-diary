@@ -1,12 +1,9 @@
 import { useQuery, useMutation } from '@apollo/client';
-import { useUser } from '@clerk/nextjs';
-import { formatDistanceToNow } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, X, UserPlus, Users, Clock, ChevronDown } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import React, { useState, useMemo } from 'react';
-import { toast } from 'react-hot-toast';
+import React, { useState } from 'react';
+import { toast } from 'sonner';
 
 import { useNotifications } from '@/contexts/NotificationContext';
 import {
@@ -16,12 +13,12 @@ import {
   REMOVE_FRIEND,
 } from '@/lib/graphql/mutations';
 import { GET_FRIENDSHIPS } from '@/lib/graphql/queries';
+import { FRIENDSHIP_STATUS } from '@/lib/types/config.types';
 import type { FriendRequest } from '@/lib/types/friend.types';
 import { Friendship } from '@/lib/types/generated/graphql';
 import { SortDirection } from '@/lib/types/shared.types';
 
 import { UserSearch } from './UserSearch';
-import { FRIENDSHIP_STATUS } from '@/lib/types/config.types';
 
 export const FriendRequests: React.FC = () => {
   const [showSentRequests, setShowSentRequests] = useState(false);
@@ -51,7 +48,7 @@ export const FriendRequests: React.FC = () => {
       const request = data.friendship || {
         recipient: { id: 'unknown', firstName: '', lastName: '', imageUrl: '' },
       };
-      const displayName = request.recipient?.firstName 
+      const displayName = request.recipient?.firstName
         ? `${request.recipient.firstName} ${request.recipient.lastName || ''}`.trim()
         : 'User';
       addNotification({
@@ -91,7 +88,7 @@ export const FriendRequests: React.FC = () => {
         initiator: { id: 'unknown', firstName: null, lastName: null, imageUrl: null },
         recipient: { id: 'unknown', firstName: null, lastName: null, imageUrl: null },
       };
-      const displayName = request.initiator?.firstName 
+      const displayName = request.initiator?.firstName
         ? `${request.initiator.firstName} ${request.initiator.lastName || ''}`.trim()
         : 'User';
       addNotification({
@@ -130,7 +127,7 @@ export const FriendRequests: React.FC = () => {
         initiator: { id: 'unknown', firstName: null, lastName: null, imageUrl: null },
         recipient: { id: 'unknown', firstName: null, lastName: null, imageUrl: null },
       };
-      const displayName = request.initiator?.firstName 
+      const displayName = request.initiator?.firstName
         ? `${request.initiator.firstName} ${request.initiator.lastName || ''}`.trim()
         : 'User';
       addNotification({

@@ -9,42 +9,46 @@ The CommentsSection component now supports collapsible/expandable functionality,
 ## Features
 
 ### 1. **Toggle Expand/Collapse**
+
 - Click the header or the chevron icon to toggle between expanded and collapsed states
 - Smooth animation transitions between states
 - Visual indicators (ChevronUp/ChevronDown icons) show current state
 
 ### 2. **Comment Count Display**
+
 - Always shows the total number of comments in the header
 - Displays "(No comments yet)" when there are no comments
 
 ### 3. **New Comments Badge**
+
 - When collapsed, shows a pulsing "X new" badge if there are unread comments
 - Badge automatically appears when new comments are added while collapsed
 - Badge disappears when the section is expanded (marking comments as "seen")
 
 ### 4. **Persistent State**
+
 - The expanded/collapsed state is saved to localStorage per `parentId`
 - State persists across page reloads and sessions
 - Each comment section maintains its own state independently
 
 ### 5. **Last Seen Tracking**
+
 - Tracks the number of comments last seen when the section was expanded
 - Used to calculate and display the number of new comments
 
 ## Usage
 
 ### Basic Usage
+
 ```tsx
-<CommentsSection 
-  parentId="game-log-123" 
-  parentType="game_log" 
-/>
+<CommentsSection parentId="game-log-123" parentType="game_log" />
 ```
 
 ### With Initial State
+
 ```tsx
-<CommentsSection 
-  parentId="game-log-123" 
+<CommentsSection
+  parentId="game-log-123"
   parentType="game_log"
   initialExpanded={false} // Start collapsed
 />
@@ -52,11 +56,11 @@ The CommentsSection component now supports collapsible/expandable functionality,
 
 ## Props
 
-| Prop | Type | Required | Default | Description |
-|------|------|----------|---------|-------------|
-| `parentId` | `string` | Yes | - | The ID of the parent entity |
-| `parentType` | `'game_log' \| 'comment'` | Yes | - | The type of parent entity |
-| `initialExpanded` | `boolean` | No | `true` | Initial expanded state (if no saved state exists) |
+| Prop              | Type                      | Required | Default | Description                                       |
+| ----------------- | ------------------------- | -------- | ------- | ------------------------------------------------- |
+| `parentId`        | `string`                  | Yes      | -       | The ID of the parent entity                       |
+| `parentType`      | `'game_log' \| 'comment'` | Yes      | -       | The type of parent entity                         |
+| `initialExpanded` | `boolean`                 | No       | `true`  | Initial expanded state (if no saved state exists) |
 
 ## Local Storage Keys
 
@@ -89,4 +93,4 @@ Potential improvements that could be added:
 2. **Animation Customization**: Allow customizing transition duration/easing
 3. **Smart Defaults**: Auto-expand when user is mentioned or replied to
 4. **Preview Mode**: Show first few comments when collapsed
-5. **Notification Integration**: Browser notifications for new comments 
+5. **Notification Integration**: Browser notifications for new comments

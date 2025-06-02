@@ -5,19 +5,8 @@ import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { GET_LIVE_GAMES } from '@/lib/graphql/queries';
+import { LiveGameEdge, LiveGamesData } from '@/lib/types/component.types';
 import type { ExtendedGame } from '@/lib/types/game.types';
-
-interface LiveGameEdge {
-  node: ExtendedGame;
-}
-
-interface LiveGamesConnection {
-  edges: LiveGameEdge[];
-}
-
-interface LiveGamesData {
-  liveGames: LiveGamesConnection;
-}
 
 export function LiveGamesSection() {
   const { data, loading, error } = useQuery<LiveGamesData>(GET_LIVE_GAMES, {

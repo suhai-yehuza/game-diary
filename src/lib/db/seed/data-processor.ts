@@ -1,9 +1,9 @@
 import type { InferInsertModel } from 'drizzle-orm';
 import type { PgTable } from 'drizzle-orm/pg-core';
 
+import { API_CONFIG } from '@/lib/config/api.config';
 import type { DatabaseClient } from '@/lib/types/db.types';
 import type { GlobalWithGC } from '@/lib/types/global';
-import { API_CONFIG } from '@/lib/config/api.config';
 
 import { OptimizedAPIClient } from './utils/api-client';
 

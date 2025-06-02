@@ -1,7 +1,14 @@
-import { eq, or } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
+
 import * as schema from '@/lib/db/schema';
 import type { Context } from '@/lib/types/context.types';
-import type { FriendshipStatus, Resolvers } from '@/lib/types/generated/graphql';
+import type {
+  Friendship,
+  FriendshipStatus,
+  Resolvers,
+  UserSummary,
+} from '@/lib/types/generated/graphql';
+
 import { handleResolverError } from '../common/utils';
 
 export const User: Resolvers['User'] = {
@@ -22,8 +29,8 @@ export const User: Resolvers['User'] = {
         updatedAt: friendship.updatedAt,
         subscriberId: friendship.userId || '',
         userId: friendship.friendId || '',
-        initiator: { id: friendship.userId || '' } as any, // Will be resolved by user loader
-        recipient: { id: friendship.friendId || '' } as any, // Will be resolved by user loader
+        initiator: { id: friendship.userId || '' } as UserSummary,
+        recipient: { id: friendship.friendId || '' } as UserSummary,
       }));
     } catch (error) {
       handleResolverError(error, 'fetch user friendships');
@@ -42,7 +49,7 @@ export const User: Resolvers['User'] = {
 
       // Map to GraphQL format with full user data
       const friendshipsWithUsers = await Promise.all(
-        friendships.map(async (friendship) => {
+        friendships.map(async friendship => {
           const [initiatorData, recipientData] = await Promise.all([
             db
               .select()
@@ -63,31 +70,35 @@ export const User: Resolvers['User'] = {
             updatedAt: friendship.updatedAt,
             subscriberId: friendship.userId || '',
             userId: friendship.friendId || '',
-            initiator: initiatorData[0] ? {
-              id: initiatorData[0].id,
-              username: initiatorData[0].username,
-              emailAddress: initiatorData[0].emailAddress,
-              imageUrl: initiatorData[0].imageUrl,
-              firstName: initiatorData[0].firstName,
-              lastName: initiatorData[0].lastName,
-              createdAt: initiatorData[0].createdAt,
-              updatedAt: initiatorData[0].updatedAt,
-            } : null,
-            recipient: recipientData[0] ? {
-              id: recipientData[0].id,
-              username: recipientData[0].username,
-              emailAddress: recipientData[0].emailAddress,
-              imageUrl: recipientData[0].imageUrl,
-              firstName: recipientData[0].firstName,
-              lastName: recipientData[0].lastName,
-              createdAt: recipientData[0].createdAt,
-              updatedAt: recipientData[0].updatedAt,
-            } : null,
+            initiator: initiatorData[0]
+              ? {
+                  id: initiatorData[0].id,
+                  username: initiatorData[0].username,
+                  emailAddress: initiatorData[0].emailAddress,
+                  imageUrl: initiatorData[0].imageUrl,
+                  firstName: initiatorData[0].firstName,
+                  lastName: initiatorData[0].lastName,
+                  createdAt: initiatorData[0].createdAt,
+                  updatedAt: initiatorData[0].updatedAt,
+                }
+              : null,
+            recipient: recipientData[0]
+              ? {
+                  id: recipientData[0].id,
+                  username: recipientData[0].username,
+                  emailAddress: recipientData[0].emailAddress,
+                  imageUrl: recipientData[0].imageUrl,
+                  firstName: recipientData[0].firstName,
+                  lastName: recipientData[0].lastName,
+                  createdAt: recipientData[0].createdAt,
+                  updatedAt: recipientData[0].updatedAt,
+                }
+              : null,
           };
         })
       );
 
-      return friendshipsWithUsers.filter(f => f.initiator && f.recipient) as any;
+      return friendshipsWithUsers.filter(f => f.initiator && f.recipient) as Friendship[];
     } catch (error) {
       handleResolverError(error, 'fetch user initiated friendships');
       return [];
@@ -95,4 +106,4 @@ export const User: Resolvers['User'] = {
   },
 
   // Other fields can use default resolvers
-}; 
+};

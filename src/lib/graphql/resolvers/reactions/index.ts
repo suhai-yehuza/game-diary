@@ -3,6 +3,7 @@ import { and, eq, sql } from 'drizzle-orm';
 import * as schema from '@/lib/db/schema';
 import { createConnection, parseCursor } from '@/lib/graphql/utils/pagination';
 import type { Context } from '@/lib/types/context.types';
+
 import type { PaginationArgs } from '../common/types';
 import { handleResolverError, getEmojiKey } from '../common/utils';
 
@@ -12,7 +13,7 @@ export const reactions = async (
   { db }: Context
 ) => {
   try {
-    const { first = 10, after, last, before, targetId } = args;
+    const { first = 10, after, last, targetId } = args;
 
     if (!targetId) {
       throw new Error('targetId is required');
@@ -26,7 +27,7 @@ export const reactions = async (
       .select({ count: sql<number>`cast(count(*) as int)` })
       .from(schema.reactions)
       .where(and(...conditions));
-    
+
     const totalCount = countResult?.count || 0;
 
     // Calculate offset from cursor
@@ -62,10 +63,10 @@ export const Reaction = {
         .from(schema.users)
         .where(eq(schema.users.id, parent.userId))
         .limit(1);
-      
+
       const user = users[0];
       if (!user) return null;
-      
+
       // Return UserSummary format
       return {
         id: user.id,
@@ -81,4 +82,4 @@ export const Reaction = {
       return null;
     }
   },
-}; 
+};

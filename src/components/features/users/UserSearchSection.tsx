@@ -1,22 +1,32 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
 import { useQuery, useMutation } from '@apollo/client';
-import { Search, Filter, Users, Calendar, ChevronLeft, ChevronRight, ChevronDown, UserPlus, UserCheck, Clock as ClockIcon, MoreVertical, Check, X, Ban } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
-import Link from 'next/link';
-import { useDebounce } from 'use-debounce';
 import { useUser } from '@clerk/nextjs';
+import { formatDistanceToNow } from 'date-fns';
+import {
+  Search,
+  Filter,
+  Users,
+  Calendar,
+  ChevronLeft,
+  ChevronRight,
+  ChevronDown,
+  UserPlus,
+  UserCheck,
+  MoreVertical,
+  Check,
+  X,
+  Ban,
+} from 'lucide-react';
+import Link from 'next/link';
+import React, { useState, useEffect, useCallback } from 'react';
 import { toast } from 'react-hot-toast';
+import { useDebounce } from 'use-debounce';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,102 +34,89 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Skeleton } from '@/components/ui/skeleton';
+import { useNotifications } from '@/contexts/NotificationContext';
+import {
+  SEND_FRIEND_REQUEST,
+  ACCEPT_FRIEND_REQUEST,
+  REJECT_FRIEND_REQUEST,
+  UPDATE_FRIENDSHIP_STATUS,
+  REMOVE_FRIEND,
+} from '@/lib/graphql/mutations';
 import { SEARCH_USERS } from '@/lib/graphql/queries';
-import { SEND_FRIEND_REQUEST, ACCEPT_FRIEND_REQUEST, REJECT_FRIEND_REQUEST, UPDATE_FRIENDSHIP_STATUS, REMOVE_FRIEND } from '@/lib/graphql/mutations';
+import { UserSearchSectionProps, UserNode, UserEdge } from '@/lib/types/component.types';
+import { FRIENDSHIP_STATUS } from '@/lib/types/config.types';
 import { cn } from '@/lib/utils';
 import { formatCount } from '@/lib/utils/index.format';
-import { FRIENDSHIP_STATUS } from '@/lib/types/config.types';
-import { useNotifications } from '@/contexts/NotificationContext';
-
-interface UserSearchSectionProps {
-  className?: string;
-}
-
-interface UserNode {
-  id: string;
-  username: string;
-  firstName?: string | null;
-  lastName?: string | null;
-  emailAddress: string;
-  imageUrl?: string | null;
-  createdAt: string;
-  gameLogs?: { id: string }[];
-  initiatedFriendships?: {
-    id: string;
-    status: string;
-    recipient: {
-      id: string;
-    };
-  }[];
-  friendships?: {
-    id: string;
-    status: string;
-    initiator: {
-      id: string;
-    };
-  }[];
-}
 
 const UserCard = ({ user }: { user: UserNode }) => {
   const { user: currentUser } = useUser();
   const [sendFriendRequest, { loading: sendingRequest }] = useMutation(SEND_FRIEND_REQUEST);
   const [acceptFriendRequest, { loading: acceptingRequest }] = useMutation(ACCEPT_FRIEND_REQUEST);
   const [rejectFriendRequest, { loading: rejectingRequest }] = useMutation(REJECT_FRIEND_REQUEST);
-  const [updateFriendshipStatus, { loading: updatingStatus }] = useMutation(UPDATE_FRIENDSHIP_STATUS);
+  const [updateFriendshipStatus, { loading: updatingStatus }] =
+    useMutation(UPDATE_FRIENDSHIP_STATUS);
   const [removeFriend, { loading: removingFriend }] = useMutation(REMOVE_FRIEND);
-  
+
   // Dropdown open states
   const [friendRequestDropdownOpen, setFriendRequestDropdownOpen] = useState(false);
   const [friendsDropdownOpen, setFriendsDropdownOpen] = useState(false);
   const [sentRequestDropdownOpen, setSentRequestDropdownOpen] = useState(false);
-  
+
   const fullName = [user.firstName, user.lastName].filter(Boolean).join(' ');
   const displayName = fullName || user.username;
   const gameLogCount = user.gameLogs?.length || 0;
-  
+
   // Don't show own profile in search results
   const isOwnProfile = currentUser?.id === user.id;
   if (isOwnProfile) return null;
-  
+
   // Determine friendship status
   const getFriendshipStatus = () => {
     if (!currentUser) return null;
-    
+
     // Check if current user initiated a friendship with this user
-    const initiatedFriendship = user.friendships?.find(
-      f => f.initiator.id === currentUser.id
-    );
-    
+    const initiatedFriendship = user.friendships?.find(f => f.initiator.id === currentUser.id);
+
     // Check if this user initiated a friendship with current user
     const receivedFriendship = user.initiatedFriendships?.find(
       f => f.recipient.id === currentUser.id
     );
-    
+
     const friendship = initiatedFriendship || receivedFriendship;
-    
+
     if (friendship) {
       return {
         status: friendship.status,
         friendshipId: friendship.id,
-        isReceivedRequest: !!receivedFriendship  // Fixed: true when current user received the request
+        isReceivedRequest: !!receivedFriendship, // Fixed: true when current user received the request
       };
     }
-    
-    return { status: FRIENDSHIP_STATUS.NONE, friendshipId: null, isReceivedRequest: false };
+
+    return { status: null, friendshipId: null, isReceivedRequest: false };
   };
-  
+
   const friendshipInfo = getFriendshipStatus();
-  
-  const handleSendFriendRequest = async (e: React.MouseEvent) => {
+
+  const handleSendFriendRequest = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault(); // Prevent navigation
     e.stopPropagation();
-    
+
     try {
       const { data } = await sendFriendRequest({
         variables: { userId: user.id },
         refetchQueries: ['SearchUsers'],
       });
-      
+
       if (data?.sendFriendRequest?.friendship) {
         toast.success(`Friend request sent to ${displayName}`);
       } else if (data?.sendFriendRequest?.errors?.[0]) {
@@ -130,19 +127,19 @@ const UserCard = ({ user }: { user: UserNode }) => {
       toast.error('An unexpected error occurred');
     }
   };
-  
-  const handleAcceptRequest = async (e: React.MouseEvent) => {
+
+  const handleAcceptRequest = async (e: React.MouseEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     if (!friendshipInfo?.friendshipId) return;
-    
+
     try {
       const { data } = await acceptFriendRequest({
         variables: { friendshipId: friendshipInfo.friendshipId },
         refetchQueries: ['SearchUsers'],
       });
-      
+
       if (data?.acceptFriendRequest?.friendship) {
         toast.success(`You are now friends with ${displayName}`);
         setFriendRequestDropdownOpen(false); // Close dropdown
@@ -154,19 +151,19 @@ const UserCard = ({ user }: { user: UserNode }) => {
       toast.error('An unexpected error occurred');
     }
   };
-  
-  const handleRejectRequest = async (e: React.MouseEvent) => {
+
+  const handleRejectRequest = async (e: React.MouseEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     if (!friendshipInfo?.friendshipId) return;
-    
+
     try {
       const { data } = await rejectFriendRequest({
         variables: { friendshipId: friendshipInfo.friendshipId },
         refetchQueries: ['SearchUsers'],
       });
-      
+
       if (data?.rejectFriendRequest?.friendship) {
         toast.success('Friend request rejected');
         setFriendRequestDropdownOpen(false); // Close dropdown
@@ -178,24 +175,24 @@ const UserCard = ({ user }: { user: UserNode }) => {
       toast.error('An unexpected error occurred');
     }
   };
-  
-  const handleBlockUser = async (e: React.MouseEvent) => {
+
+  const handleBlockUser = async (e: React.MouseEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     if (!friendshipInfo?.friendshipId) return;
-    
+
     try {
       const { data } = await updateFriendshipStatus({
         variables: {
           input: {
             friendshipId: friendshipInfo.friendshipId,
             status: FRIENDSHIP_STATUS.BLOCKED,
-          }
+          },
         },
         refetchQueries: ['SearchUsers'],
       });
-      
+
       if (data?.updateFriendshipStatus?.friendship) {
         toast.success(`${displayName} has been blocked`);
         // Close whichever dropdown is open
@@ -210,19 +207,19 @@ const UserCard = ({ user }: { user: UserNode }) => {
       toast.error('An unexpected error occurred');
     }
   };
-  
-  const handleRemoveFriend = async (e: React.MouseEvent) => {
+
+  const handleRemoveFriend = async (e: React.MouseEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     if (!friendshipInfo?.friendshipId) return;
-    
+
     try {
       const { data } = await removeFriend({
         variables: { friendshipId: friendshipInfo.friendshipId },
         refetchQueries: ['SearchUsers'],
       });
-      
+
       if (data?.removeFriend?.success) {
         toast.success(`You are no longer friends with ${displayName}`);
         setFriendsDropdownOpen(false); // Close dropdown
@@ -234,19 +231,19 @@ const UserCard = ({ user }: { user: UserNode }) => {
       toast.error('An unexpected error occurred');
     }
   };
-  
-  const handleCancelRequest = async (e: React.MouseEvent) => {
+
+  const handleCancelRequest = async (e: React.MouseEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     if (!friendshipInfo?.friendshipId) return;
-    
+
     try {
       const { data } = await removeFriend({
         variables: { friendshipId: friendshipInfo.friendshipId },
         refetchQueries: ['SearchUsers'],
       });
-      
+
       if (data?.removeFriend?.success) {
         toast.success('Friend request cancelled');
         setSentRequestDropdownOpen(false); // Close dropdown
@@ -258,19 +255,20 @@ const UserCard = ({ user }: { user: UserNode }) => {
       toast.error('An unexpected error occurred');
     }
   };
-  
+
   const renderFriendshipStatus = () => {
     if (!friendshipInfo) return null;
-    
-    const isLoading = sendingRequest || acceptingRequest || rejectingRequest || updatingStatus || removingFriend;
-    
+
+    const isLoading =
+      sendingRequest || acceptingRequest || rejectingRequest || updatingStatus || removingFriend;
+
     switch (friendshipInfo.status) {
       case FRIENDSHIP_STATUS.ACCEPTED:
         return (
           <DropdownMenu open={friendsDropdownOpen} onOpenChange={setFriendsDropdownOpen}>
-            <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-              <Button 
-                variant="secondary" 
+            <DropdownMenuTrigger asChild onClick={e => e.stopPropagation()}>
+              <Button
+                variant="secondary"
                 size="sm"
                 className="gap-0.5 bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/20 hover:bg-green-500/20 text-xs h-7 px-2"
                 disabled={isLoading}
@@ -280,8 +278,8 @@ const UserCard = ({ user }: { user: UserNode }) => {
                 <MoreVertical className="h-2.5 w-2.5 ml-0.5" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-              <DropdownMenuItem 
+            <DropdownMenuContent align="end" onClick={e => e.stopPropagation()}>
+              <DropdownMenuItem
                 onClick={handleRemoveFriend}
                 disabled={isLoading}
                 className="gap-2 text-gray-600 focus:text-gray-600"
@@ -290,7 +288,7 @@ const UserCard = ({ user }: { user: UserNode }) => {
                 Unfriend
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem 
+              <DropdownMenuItem
                 onClick={handleBlockUser}
                 disabled={isLoading}
                 className="gap-2 text-red-600 focus:text-red-600"
@@ -301,109 +299,120 @@ const UserCard = ({ user }: { user: UserNode }) => {
             </DropdownMenuContent>
           </DropdownMenu>
         );
+
       case FRIENDSHIP_STATUS.PENDING:
-        // If current user received the request, show accept/reject options
         if (friendshipInfo.isReceivedRequest) {
           return (
-            <DropdownMenu open={friendRequestDropdownOpen} onOpenChange={setFriendRequestDropdownOpen}>
-              <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                <Button 
-                  variant="outline" 
+            <DropdownMenu
+              open={friendRequestDropdownOpen}
+              onOpenChange={setFriendRequestDropdownOpen}
+            >
+              <DropdownMenuTrigger asChild onClick={e => e.stopPropagation()}>
+                <Button
+                  variant="secondary"
                   size="sm"
-                  className="gap-0.5 border-amber-500/20 text-amber-700 dark:text-amber-400 hover:bg-amber-500/10 text-xs h-7 px-2"
+                  className="gap-0.5 bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20 hover:bg-amber-500/20 text-xs h-7 px-2"
                   disabled={isLoading}
                 >
-                  <ClockIcon className="h-2.5 w-2.5" />
+                  <UserPlus className="h-2.5 w-2.5" />
                   Accept Request
                   <MoreVertical className="h-2.5 w-2.5 ml-0.5" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-                <DropdownMenuItem 
+              <DropdownMenuContent align="end" onClick={e => e.stopPropagation()}>
+                <DropdownMenuItem
                   onClick={handleAcceptRequest}
                   disabled={isLoading}
                   className="gap-2 text-green-600 focus:text-green-600"
                 >
                   <Check className="h-3.5 w-3.5" />
-                  Accept Friend Request
+                  Accept
                 </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem 
+                <DropdownMenuItem
                   onClick={handleRejectRequest}
-                  disabled={isLoading}
-                  className="gap-2 text-gray-600 focus:text-gray-600"
-                >
-                  <X className="h-3.5 w-3.5" />
-                  Reject Request
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem 
-                  onClick={handleBlockUser}
                   disabled={isLoading}
                   className="gap-2 text-red-600 focus:text-red-600"
                 >
-                  <Ban className="h-3.5 w-3.5" />
-                  Block User
+                  <X className="h-3.5 w-3.5" />
+                  Decline
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          );
+        } else {
+          return (
+            <DropdownMenu open={sentRequestDropdownOpen} onOpenChange={setSentRequestDropdownOpen}>
+              <DropdownMenuTrigger asChild onClick={e => e.stopPropagation()}>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  className="gap-0.5 bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20 hover:bg-amber-500/20 text-xs h-7 px-2"
+                  disabled={isLoading}
+                >
+                  <UserPlus className="h-2.5 w-2.5" />
+                  Request Sent
+                  <MoreVertical className="h-2.5 w-2.5 ml-0.5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" onClick={e => e.stopPropagation()}>
+                <DropdownMenuItem
+                  onClick={handleCancelRequest}
+                  disabled={isLoading}
+                  className="gap-2 text-red-600 focus:text-red-600"
+                >
+                  <X className="h-3.5 w-3.5" />
+                  Cancel Request
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           );
         }
-        // If current user sent the request
-        return (
-          <DropdownMenu open={sentRequestDropdownOpen} onOpenChange={setSentRequestDropdownOpen}>
-            <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-              <Button 
-                variant="outline" 
-                size="sm"
-                className="gap-0.5 bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20 hover:bg-amber-500/20 text-xs h-7 px-2"
-                disabled={isLoading}
-              >
-                <ClockIcon className="h-2.5 w-2.5" />
-                Request Sent
-                <MoreVertical className="h-2.5 w-2.5 ml-0.5" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-              <DropdownMenuItem 
-                onClick={handleCancelRequest}
-                disabled={isLoading}
-                className="gap-2 text-red-600 focus:text-red-600"
-              >
-                <X className="h-3.5 w-3.5" />
-                Cancel Request
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem 
-                onClick={handleBlockUser}
-                disabled={isLoading}
-                className="gap-2 text-red-600 focus:text-red-600"
-              >
-                <Ban className="h-3.5 w-3.5" />
-                Block User
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        );
-      case FRIENDSHIP_STATUS.BLOCKED:
-        return null; // Don't show blocked status
-      case FRIENDSHIP_STATUS.NONE:
-      default:
+
+      case FRIENDSHIP_STATUS.REJECTED:
         return (
           <Button
+            variant="secondary"
             size="sm"
-            variant="outline"
-            onClick={handleSendFriendRequest}
-            disabled={sendingRequest}
-            className="gap-0.5 border-blue-500/20 text-blue-700 dark:text-blue-400 hover:bg-blue-500/10 text-xs h-7 px-2"
+            className="gap-0.5 bg-red-500/10 text-red-700 dark:text-red-400 border-red-500/20 hover:bg-red-500/20 text-xs h-7 px-2"
+            disabled
           >
-            <UserPlus className="h-2.5 w-2.5" />
-            Add Friend
+            <X className="h-2.5 w-2.5" />
+            Request Rejected
           </Button>
         );
+
+      case FRIENDSHIP_STATUS.BLOCKED:
+        return (
+          <Button
+            variant="secondary"
+            size="sm"
+            className="gap-0.5 bg-red-500/10 text-red-700 dark:text-red-400 border-red-500/20 hover:bg-red-500/20 text-xs h-7 px-2"
+            disabled
+          >
+            <Ban className="h-2.5 w-2.5" />
+            Blocked
+          </Button>
+        );
+
+      case null:
+        return (
+          <Button
+            onClick={handleSendFriendRequest}
+            variant="secondary"
+            size="sm"
+            className="gap-0.5 bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/20 hover:bg-blue-500/20 text-xs h-7 px-2"
+            disabled={isLoading}
+          >
+            <UserPlus className="h-2.5 w-2.5" />
+            {isLoading ? 'Sending...' : 'Add Friend'}
+          </Button>
+        );
+
+      default:
+        return null;
     }
   };
-  
+
   return (
     <Link href={`/protected/user/${user.id}`}>
       <Card className="h-full hover:shadow-lg transition-all duration-200 cursor-pointer group">
@@ -415,16 +424,14 @@ const UserCard = ({ user }: { user: UserNode }) => {
                 {displayName.charAt(0).toUpperCase()}
               </AvatarFallback>
             </Avatar>
-            
+
             <div className="flex-1 min-w-0">
               <div className="flex items-start justify-between mb-2 gap-4">
                 <div className="flex-1 min-w-0">
                   <h3 className="font-semibold text-lg group-hover:text-primary transition-colors truncate pr-4">
                     {displayName}
                   </h3>
-                  {fullName && (
-                    <p className="text-sm text-muted-foreground">@{user.username}</p>
-                  )}
+                  {fullName && <p className="text-sm text-muted-foreground">@{user.username}</p>}
                 </div>
                 <div className="flex items-center gap-2 ml-6 flex-shrink-0 -mt-1">
                   {gameLogCount > 0 && (
@@ -435,7 +442,7 @@ const UserCard = ({ user }: { user: UserNode }) => {
                   {renderFriendshipStatus()}
                 </div>
               </div>
-              
+
               <div className="flex items-center gap-4 text-sm text-muted-foreground">
                 <span className="flex items-center gap-1">
                   <Calendar className="h-3 w-3" />
@@ -471,17 +478,17 @@ export function UserSearchSection({ className }: UserSearchSectionProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearchTerm] = useDebounce(searchTerm, 300);
   const [showFilters, setShowFilters] = useState(false);
-  
+
   // Filters
   const [hasGameLogs, setHasGameLogs] = useState<boolean | null>(null);
   const [minGameLogs, setMinGameLogs] = useState<number | null>(null);
   const [isVerified, setIsVerified] = useState<boolean | null>(null);
   const [orderBy, setOrderBy] = useState('CREATED_AT_DESC');
-  
+
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 12;
-  
+
   const { data, loading, error, fetchMore } = useQuery(SEARCH_USERS, {
     variables: {
       first: pageSize,
@@ -499,20 +506,20 @@ export function UserSearchSection({ className }: UserSearchSectionProps) {
   // Check for received friend requests and create notifications
   useEffect(() => {
     if (!data?.searchUsers?.edges || !currentUser) return;
-    
-    const users = data.searchUsers.edges.map((edge: any) => edge.node);
+
+    const users = data.searchUsers.edges.map((edge: UserEdge) => edge.node);
     const receivedRequests = users.filter((user: UserNode) => {
       const receivedFriendship = user.initiatedFriendships?.find(
         f => f.recipient.id === currentUser.id && f.status === FRIENDSHIP_STATUS.PENDING
       );
       return !!receivedFriendship;
     });
-    
+
     // Create notifications for received friend requests
     receivedRequests.forEach((user: UserNode) => {
       const notificationKey = `friend-request-${user.id}`;
       const existingNotification = localStorage.getItem(notificationKey);
-      
+
       // Only create notification if we haven't already notified about this request
       if (!existingNotification) {
         addNotification({
@@ -535,17 +542,16 @@ export function UserSearchSection({ className }: UserSearchSectionProps) {
     setCurrentPage(1);
   }, [debouncedSearchTerm, hasGameLogs, minGameLogs, isVerified, orderBy]);
 
-  const users = data?.searchUsers?.edges?.map((edge: any) => edge.node) || [];
+  const users = data?.searchUsers?.edges?.map((edge: UserEdge) => edge.node) || [];
   const totalCount = data?.searchUsers?.totalCount || 0;
-  const pageInfo = data?.searchUsers?.pageInfo;
   const totalPages = Math.ceil(totalCount / pageSize);
 
   const handlePageChange = useCallback(
     async (page: number) => {
       if (page < 1 || page > totalPages) return;
-      
+
       const isNextPage = page > currentPage;
-      const cursor = isNextPage 
+      const cursor = isNextPage
         ? data?.searchUsers?.edges[data.searchUsers.edges.length - 1]?.cursor
         : null;
 
@@ -556,7 +562,7 @@ export function UserSearchSection({ className }: UserSearchSectionProps) {
           },
         });
       }
-      
+
       setCurrentPage(page);
     },
     [currentPage, totalPages, data, fetchMore]
@@ -572,7 +578,7 @@ export function UserSearchSection({ className }: UserSearchSectionProps) {
   const activeFiltersCount = [hasGameLogs, minGameLogs, isVerified].filter(f => f !== null).length;
 
   return (
-    <div className={cn("space-y-6", className)}>
+    <div className={cn('space-y-6', className)}>
       {/* Search Header */}
       <div className="space-y-4">
         <div className="flex flex-col sm:flex-row gap-4">
@@ -582,7 +588,7 @@ export function UserSearchSection({ className }: UserSearchSectionProps) {
               <Input
                 placeholder="Search by username, name, or email..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={e => setSearchTerm(e.target.value)}
                 className="pl-10"
               />
             </div>
@@ -590,12 +596,8 @@ export function UserSearchSection({ className }: UserSearchSectionProps) {
               Searches in username, first name, last name, and email address
             </p>
           </div>
-          
-          <Button 
-            variant="outline" 
-            className="gap-2"
-            onClick={() => setShowFilters(!showFilters)}
-          >
+
+          <Button variant="outline" className="gap-2" onClick={() => setShowFilters(!showFilters)}>
             <Filter className="h-4 w-4" />
             Filters
             {activeFiltersCount > 0 && (
@@ -603,9 +605,11 @@ export function UserSearchSection({ className }: UserSearchSectionProps) {
                 {activeFiltersCount}
               </Badge>
             )}
-            <ChevronDown className={cn("h-4 w-4 transition-transform", showFilters && "rotate-180")} />
+            <ChevronDown
+              className={cn('h-4 w-4 transition-transform', showFilters && 'rotate-180')}
+            />
           </Button>
-          
+
           <Select value={orderBy} onValueChange={setOrderBy}>
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Sort by..." />
@@ -642,9 +646,9 @@ export function UserSearchSection({ className }: UserSearchSectionProps) {
                 {/* Has Game Logs Filter */}
                 <div className="space-y-2">
                   <Label>Activity Status</Label>
-                  <Select 
+                  <Select
                     value={hasGameLogs === null ? 'all' : hasGameLogs ? 'active' : 'inactive'}
-                    onValueChange={(value) => {
+                    onValueChange={value => {
                       if (value === 'all') setHasGameLogs(null);
                       else if (value === 'active') setHasGameLogs(true);
                       else setHasGameLogs(false);
@@ -668,7 +672,7 @@ export function UserSearchSection({ className }: UserSearchSectionProps) {
                     type="number"
                     placeholder="Any"
                     value={minGameLogs || ''}
-                    onChange={(e) => {
+                    onChange={e => {
                       const value = e.target.value ? parseInt(e.target.value) : null;
                       setMinGameLogs(value);
                     }}
@@ -681,7 +685,7 @@ export function UserSearchSection({ className }: UserSearchSectionProps) {
                   <Label>Verification Status</Label>
                   <Select
                     value={isVerified === null ? 'all' : isVerified ? 'verified' : 'unverified'}
-                    onValueChange={(value) => {
+                    onValueChange={value => {
                       if (value === 'all') setIsVerified(null);
                       else if (value === 'verified') setIsVerified(true);
                       else setIsVerified(false);
@@ -771,11 +775,24 @@ export function UserSearchSection({ className }: UserSearchSectionProps) {
                     } else if (currentPage >= totalPages - 3) {
                       pageNum = i === 0 ? 1 : i === 1 ? -1 : totalPages - 6 + i;
                     } else {
-                      pageNum = i === 0 ? 1 : i === 1 ? -1 : i === 5 ? -1 : i === 6 ? totalPages : currentPage - 3 + i;
+                      pageNum =
+                        i === 0
+                          ? 1
+                          : i === 1
+                            ? -1
+                            : i === 5
+                              ? -1
+                              : i === 6
+                                ? totalPages
+                                : currentPage - 3 + i;
                     }
 
                     if (pageNum === -1) {
-                      return <span key={i} className="px-2 text-muted-foreground">...</span>;
+                      return (
+                        <span key={i} className="px-2 text-muted-foreground">
+                          ...
+                        </span>
+                      );
                     }
 
                     return (
@@ -809,4 +826,4 @@ export function UserSearchSection({ className }: UserSearchSectionProps) {
       </div>
     </div>
   );
-} 
+}

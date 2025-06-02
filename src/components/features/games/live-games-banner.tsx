@@ -3,8 +3,8 @@ import { Activity } from 'lucide-react';
 import Link from 'next/link';
 import React from 'react';
 
-import { GET_LIVE_GAMES } from '@/lib/graphql/queries';
 import { API_CONFIG } from '@/lib/config/api.config';
+import { GET_LIVE_GAMES } from '@/lib/graphql/queries';
 
 interface LiveGameEdge {
   node: {
@@ -40,7 +40,7 @@ export function LiveGamesBanner() {
     <div className="relative bg-gradient-to-r from-red-500 to-red-600 text-white overflow-hidden">
       {/* Animated background pulse */}
       <div className="absolute inset-0 bg-gradient-to-r from-red-600 to-red-500 animate-pulse opacity-50" />
-      
+
       <Link href="/sports/nba" className="relative block">
         <div className="container mx-auto px-4 py-2">
           <div className="flex items-center justify-center gap-2 text-sm font-medium">
@@ -49,22 +49,20 @@ export function LiveGamesBanner() {
               <div className="absolute -inset-1 bg-white rounded-full animate-ping opacity-75" />
               <div className="relative w-2 h-2 bg-white rounded-full animate-pulse" />
             </div>
-            
+
             <Activity className="h-4 w-4 animate-pulse" />
-            
+
             <span className="animate-pulse">
-              {liveGamesCount === 1
-                ? '1 Live Game'
-                : `${liveGamesCount} Live Games`} happening now
+              {liveGamesCount === 1 ? '1 Live Game' : `${liveGamesCount} Live Games`} happening now
             </span>
-            
+
             <span className="text-white/80 animate-pulse">• Click to view →</span>
           </div>
         </div>
       </Link>
-      
+
       {/* Animated border effect */}
       <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white to-transparent animate-pulse" />
     </div>
   );
-} 
+}

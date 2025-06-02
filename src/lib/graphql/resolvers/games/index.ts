@@ -99,7 +99,7 @@ export const games = async (
       .select({ count: sql<number>`cast(count(*) as int)` })
       .from(schema.nba_games)
       .where(whereClause);
-    
+
     const totalCount = countResult?.count || 0;
 
     // Add cursor conditions for pagination
@@ -111,7 +111,8 @@ export const games = async (
       paginationConditions.push(lt(schema.nba_games.id, before));
     }
 
-    const paginationWhereClause = paginationConditions.length > 0 ? and(...paginationConditions) : undefined;
+    const paginationWhereClause =
+      paginationConditions.length > 0 ? and(...paginationConditions) : undefined;
 
     // Execute query with pagination
     const limit = last || first || 10;

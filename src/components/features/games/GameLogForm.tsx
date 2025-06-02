@@ -23,19 +23,11 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { GameLogFormProps } from '@/lib/types/component.types';
 import { CLASSIFICATION, WATCHED_SCOPE, WATCHED_SETTING } from '@/lib/types/config.types';
 import { Game } from '@/lib/types/game.types';
 import { CreateGameLogInput } from '@/lib/types/generated/graphql';
 import { gameLogInputSchema } from '@/lib/validations/game';
-
-interface GameLogFormProps {
-  loading: boolean;
-  gamesData?: { games: { edges: { node: Game }[] } };
-  gamesLoading: boolean;
-  defaultValues: Partial<CreateGameLogInput>;
-  onSubmit: (data: CreateGameLogInput) => Promise<void>;
-  hideGameSelect?: boolean;
-}
 
 export function GameLogForm({
   loading,

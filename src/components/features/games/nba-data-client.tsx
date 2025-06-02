@@ -6,12 +6,12 @@ import Image from 'next/image';
 import React, { useState, useCallback } from 'react';
 
 import { Skeleton } from '@/components/ui/skeleton';
+import { API_CONFIG } from '@/lib/config/api.config';
 import { GET_SEASONS, GET_EXTERNAL_GAMES, GET_TEAMS, GET_PLAYERS } from '@/lib/graphql/queries';
 import { ConferenceType, DivisionType } from '@/lib/types/config.types';
 import { Game, GameStatus, Season, Team, Player } from '@/lib/types/generated/graphql';
-import { API_CONFIG } from '@/lib/config/api.config';
-import { formatDateTime } from '@/lib/utils/index.time';
 import { SortDirection } from '@/lib/types/shared.types';
+import { formatDateTime } from '@/lib/utils/index.time';
 
 export const NbaDataClient = () => {
   const [selectedConference, setSelectedConference] = useState<ConferenceType | 'all'>('all');

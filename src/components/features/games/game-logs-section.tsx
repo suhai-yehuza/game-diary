@@ -1,17 +1,16 @@
 'use client';
 
 import { format, formatDistanceToNow, isToday, isYesterday } from 'date-fns';
-import { 
+import {
   Calendar,
   Clock,
   Eye,
   MapPin,
   MessageCircle,
-  Star,
   Trophy,
   TrendingUp,
   Users,
-  Tv
+  Tv,
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -72,7 +71,7 @@ const EmptyState = () => (
       <Trophy className="h-12 w-12 text-muted-foreground mb-4" />
       <h3 className="font-semibold text-lg mb-2">No Game Logs Yet</h3>
       <p className="text-muted-foreground text-center max-w-sm">
-        Start tracking your game watching experience by logging the games you've watched!
+        Start tracking your game watching experience by logging the games you&apos;ve watched!
       </p>
     </CardContent>
   </Card>
@@ -82,7 +81,7 @@ const EmptyState = () => (
 const formatWatchedDate = (date: string | Date | null | undefined) => {
   if (!date) return 'No date';
   const dateObj = new Date(date);
-  
+
   if (isToday(dateObj)) {
     return `Today at ${format(dateObj, 'h:mm a')}`;
   } else if (isYesterday(dateObj)) {
@@ -135,10 +134,12 @@ const TeamMatchup = ({ game }: { game: GameLog['game'] }) => {
     <div className="bg-muted/30 rounded-lg p-4 mb-4">
       <div className="flex items-center justify-between gap-4">
         {/* Away Team */}
-        <div className={cn(
-          "flex items-center gap-3 flex-1",
-          awayWon && "text-green-600 dark:text-green-400"
-        )}>
+        <div
+          className={cn(
+            'flex items-center gap-3 flex-1',
+            awayWon && 'text-green-600 dark:text-green-400'
+          )}
+        >
           <div className="w-12 h-12 relative">
             <Image
               src={game.teams?.visitors?.logo || '/default-team-logo.svg'}
@@ -163,10 +164,12 @@ const TeamMatchup = ({ game }: { game: GameLog['game'] }) => {
         </div>
 
         {/* Home Team */}
-        <div className={cn(
-          "flex items-center gap-3 flex-1 flex-row-reverse text-right",
-          homeWon && "text-green-600 dark:text-green-400"
-        )}>
+        <div
+          className={cn(
+            'flex items-center gap-3 flex-1 flex-row-reverse text-right',
+            homeWon && 'text-green-600 dark:text-green-400'
+          )}
+        >
           <div className="w-12 h-12 relative">
             <Image
               src={game.teams?.home?.logo || '/default-team-logo.svg'}
@@ -211,7 +214,6 @@ export function GameLogsSection({
   loading,
   isFetchingMore,
   loadMoreRef,
-  onLoadMore,
   refetch,
 }: GameLogsSectionProps) {
   const router = useRouter();
@@ -234,7 +236,7 @@ export function GameLogsSection({
 
   const handleCardClick = (e: React.MouseEvent, gameLogId: string) => {
     const target = e.target as HTMLElement;
-    const isInteractiveElement = 
+    const isInteractiveElement =
       target.tagName === 'A' ||
       target.tagName === 'BUTTON' ||
       target.closest('a') ||
@@ -242,7 +244,7 @@ export function GameLogsSection({
       target.closest('[role="button"]') ||
       target.closest('.comments-section') ||
       target.closest('.reactions-section');
-    
+
     if (!isInteractiveElement) {
       e.preventDefault();
       router.push(`/protected/user/game-logs/${gameLogId}`);
@@ -251,15 +253,15 @@ export function GameLogsSection({
 
   return (
     <div className="space-y-4">
-      {gameLogs.map((log) => {
+      {gameLogs.map(log => {
         const classificationStyles = getClassificationStyles(log.classification);
         const ClassificationIcon = classificationStyles.icon;
-        
+
         return (
-          <Card 
-            key={log.id} 
+          <Card
+            key={log.id}
             className="overflow-hidden cursor-pointer hover:shadow-lg transition-all duration-200 group"
-            onClick={(e) => handleCardClick(e, log.id)}
+            onClick={e => handleCardClick(e, log.id)}
           >
             {/* Card Header */}
             <CardHeader className="pb-3">
@@ -268,29 +270,28 @@ export function GameLogsSection({
                 <Link
                   href={`/protected/user/${log.userId}`}
                   className="flex items-center gap-3 hover:opacity-80 transition-opacity z-10"
-                  onClick={(e) => e.stopPropagation()}
+                  onClick={e => e.stopPropagation()}
                 >
                   <Avatar className="h-10 w-10 ring-2 ring-background">
                     <AvatarImage src={log.user?.imageUrl || undefined} />
                     <AvatarFallback>
-                      {log.user?.firstName?.[0]}{log.user?.lastName?.[0]}
+                      {log.user?.firstName?.[0]}
+                      {log.user?.lastName?.[0]}
                     </AvatarFallback>
                   </Avatar>
                   <div>
                     <div className="font-semibold">
                       {log.user?.firstName} {log.user?.lastName}
                     </div>
-                    <div className="text-sm text-muted-foreground">
-                      @{log.user?.username}
-                    </div>
+                    <div className="text-sm text-muted-foreground">@{log.user?.username}</div>
                   </div>
                 </Link>
 
                 {/* Metadata */}
                 <div className="flex flex-col items-end gap-2">
-                  <Badge 
+                  <Badge
                     variant={classificationStyles.variant}
-                    className={cn("gap-1", classificationStyles.className)}
+                    className={cn('gap-1', classificationStyles.className)}
                   >
                     <ClassificationIcon className="h-3 w-3" />
                     {log.classification}
@@ -314,14 +315,14 @@ export function GameLogsSection({
                   <StarRating rating={log.ratingForGame || 0} size="sm" />
                   <span className="font-medium">{log.ratingForGame || 0}/5</span>
                 </div>
-                
+
                 {log.watchedLocation && (
                   <div className="flex items-center gap-1.5 text-muted-foreground">
                     <MapPin className="h-3.5 w-3.5" />
                     <span>{log.watchedLocation}</span>
                   </div>
                 )}
-                
+
                 {log.watchedSetting && (
                   <div className="flex items-center gap-1.5 text-muted-foreground">
                     <Tv className="h-3.5 w-3.5" />
@@ -357,14 +358,14 @@ export function GameLogsSection({
 
               {/* Interactions */}
               <div className="space-y-3 pt-2 border-t comments-section reactions-section">
-                <ReactionsSection 
-                  targetId={log.id} 
-                  targetType="game_log" 
-                  reactions={log.reactions?.edges?.map(edge => edge.node) || []} 
+                <ReactionsSection
+                  targetId={log.id}
+                  targetType="game_log"
+                  reactions={log.reactions?.edges?.map(edge => edge.node) || []}
                   totalReactionCount={log.reactions?.totalCount || 0}
                   onReactionChange={refetch}
                 />
-                
+
                 {/* Comments Preview */}
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <MessageCircle className="h-4 w-4" />
@@ -378,7 +379,7 @@ export function GameLogsSection({
                     </>
                   )}
                 </div>
-                
+
                 <CommentsSection parentId={log.id} parentType="game_log" />
               </div>
             </CardContent>

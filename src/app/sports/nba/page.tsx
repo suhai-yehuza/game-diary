@@ -6,11 +6,10 @@ import { isAfter } from 'date-fns';
 import React, { useState, useEffect, useCallback } from 'react';
 
 import { GameCard } from '@/components/features/games';
-import { GET_GAMES } from '@/lib/graphql/queries';
-import { Game, GameEdge, GameQueryResponse } from '@/lib/types/game.types';
-import { getCurrentSeason } from '@/lib/utils/index.time';
-import { SearchGame } from '@/lib/types/game.types';
 import { API_CONFIG } from '@/lib/config/api.config';
+import { GET_GAMES } from '@/lib/graphql/queries';
+import { Game, GameEdge, GameQueryResponse, SearchGame } from '@/lib/types/game.types';
+import { getCurrentSeason } from '@/lib/utils/index.time';
 
 // Convert Game to SearchGame
 const convertGameToSearchGame = (game: Game): SearchGame => {

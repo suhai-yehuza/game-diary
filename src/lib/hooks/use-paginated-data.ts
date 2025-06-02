@@ -22,6 +22,9 @@ interface UsePaginatedDataOptions<T> {
   getNextVariables?: (data: PaginatedData<T>) => Record<string, unknown>;
 }
 
+// Define a generic type for the edge
+type Edge<T extends { id: string }> = { node: T };
+
 export function usePaginatedData<T extends { id: string }>({
   query,
   variables,
@@ -69,18 +72,14 @@ export function usePaginatedData<T extends { id: string }>({
           const newData = fetchMoreResult[dataKey];
 
           // Create a Set of existing IDs for efficient lookup
-          const existingIds = new Set(
-            prevData.edges.map((edge: any) => edge.node.id)
-          );
+          const existingIds = new Set(prevData.edges.map((edge: Edge<T>) => edge.node.id));
 
           // Filter out any duplicate items from the new results
-          const newEdges = newData.edges.filter(
-            (edge: any) => !existingIds.has(edge.node.id)
-          );
+          const newEdges = newData.edges.filter((edge: Edge<T>) => !existingIds.has(edge.node.id));
 
           // Notify about new data
           if (onDataUpdate) {
-            const newNodes = newEdges.map(edge => edge.node);
+            const newNodes = newEdges.map((edge: Edge<T>) => edge.node);
             onDataUpdate(newNodes);
           }
 
@@ -115,9 +114,9 @@ export function usePaginatedData<T extends { id: string }>({
           handleLoadMore();
         }
       },
-      { 
+      {
         threshold: 0.1,
-        rootMargin: '100px' // Start loading 100px before the element is visible
+        rootMargin: '100px', // Start loading 100px before the element is visible
       }
     );
 

@@ -3,6 +3,7 @@ import { GraphQLError } from 'graphql';
 import { z } from 'zod';
 
 import { getCache, invalidateRelatedCaches } from '@/lib/cache';
+import { API_CONFIG } from '@/lib/config/api.config';
 import { db } from '@/lib/db';
 import * as schema from '@/lib/db/schema';
 import { Context } from '@/lib/graphql/context';
@@ -13,10 +14,9 @@ import {
   NotFoundError,
   ValidationError,
 } from '@/lib/graphql/errors';
+import { getEmojiKey } from '@/lib/graphql/resolvers/common/utils';
 import { transformUser } from '@/lib/graphql/resolvers/transformers';
 import { mapUserData } from '@/lib/graphql/resolvers/users/index';
-import { getEmojiKey } from '@/lib/graphql/resolvers/common/utils';
-import { API_CONFIG } from '@/lib/config/api.config';
 import {
   WatchedSettingValue,
   REACTION_EMOJIS,
@@ -36,7 +36,6 @@ import {
   User as DBUser,
   ParentType,
   Classification,
-  ReactionEmojiType,
 } from '@/lib/types/generated/graphql';
 import { generateUUID } from '@/lib/utils/index.processing';
 import { createCommentSchema, updateCommentSchema } from '@/lib/validations/comment';
@@ -72,51 +71,50 @@ function nullToUndefined<T>(value: T | null): T | undefined {
 
 // Helper to fetch full user from DB
 async function getFullUser(db: typeof import('@/lib/db').db, userId: string) {
-  const users = await db
-    .select()
-    .from(schema.users)
-    .where(eq(schema.users.id, userId))
-    .limit(1);
+  const users = await db.select().from(schema.users).where(eq(schema.users.id, userId)).limit(1);
   return users[0] || null;
 }
 
 // Helper to ensure user exists in database (create if not)
 async function ensureUserExists(user: Context['user']) {
   if (!user) return null;
-  
+
   // Check if user already exists
   const existingUsers = await db
     .select()
     .from(schema.users)
     .where(eq(schema.users.id, user.id))
     .limit(1);
-    
+
   if (existingUsers.length > 0) return existingUsers[0];
-  
+
   // Create user if not exists
-  const [newUser] = await db.insert(schema.users).values({
-    id: user.id,
-    username: user.username || `user_${user.id.slice(-8)}`,
-    firstName: user.firstName || 'Unknown',
-    lastName: user.lastName || 'User',
-    emailAddress: user.emailAddress || `${user.id}@placeholder.com`,
-    imageUrl: user.imageUrl || '',
-    inboundFriendshipIds: [],
-    outboundFriendshipIds: [],
-    banned: false,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    timestamp: new Date(),
-    last_sign_in_at: null,
-    password_enabled: false,
-    two_factor_enabled: false,
-    email_verified: false,
-    email_verification_strategy: null,
-    external_id: null,
-    external_accounts: [],
-    deletedAt: null,
-  }).returning();
-  
+  const [newUser] = await db
+    .insert(schema.users)
+    .values({
+      id: user.id,
+      username: user.username || `user_${user.id.slice(-8)}`,
+      firstName: user.firstName || 'Unknown',
+      lastName: user.lastName || 'User',
+      emailAddress: user.emailAddress || `${user.id}@placeholder.com`,
+      imageUrl: user.imageUrl || '',
+      inboundFriendshipIds: [],
+      outboundFriendshipIds: [],
+      banned: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      timestamp: new Date(),
+      last_sign_in_at: null,
+      password_enabled: false,
+      two_factor_enabled: false,
+      email_verified: false,
+      email_verification_strategy: null,
+      external_id: null,
+      external_accounts: [],
+      deletedAt: null,
+    })
+    .returning();
+
   return newUser;
 }
 
@@ -430,15 +428,15 @@ export const createComment = async (
 ) => {
   try {
     const user = checkAuth(context.user);
-    
+
     // Ensure user exists in database
     const dbUser = await ensureUserExists(user);
     if (!dbUser) {
       throw new AuthenticationError('Failed to verify user');
     }
-    
+
     const validatedInput = validateInput(createCommentSchema, input);
-    
+
     // If this is a reply to another comment, check the depth
     if (validatedInput.parentType === 'comment') {
       // Helper function to calculate depth
@@ -446,30 +444,30 @@ export const createComment = async (
         if (currentDepth >= API_CONFIG.pagination.MAX_CHILD_COMMENT_DEPTH) {
           return currentDepth;
         }
-        
+
         const parentComments = await db
           .select()
           .from(schema.comments)
           .where(eq(schema.comments.id, commentId))
           .limit(1);
         const parentComment = parentComments[0];
-        
+
         if (!parentComment || parentComment.parentType !== 'comment') {
           return currentDepth;
         }
-        
+
         return getDepth(parentComment.parentId, currentDepth + 1);
       };
-      
+
       const parentDepth = await getDepth(validatedInput.parentId);
-      
+
       if (parentDepth >= API_CONFIG.pagination.MAX_CHILD_COMMENT_DEPTH) {
         throw new ValidationError(
           `Comments can only be nested up to ${API_CONFIG.pagination.MAX_CHILD_COMMENT_DEPTH} levels deep`
         );
       }
     }
-    
+
     const [comment] = await db
       .insert(schema.comments)
       .values({
@@ -482,7 +480,7 @@ export const createComment = async (
         updatedAt: new Date(),
       })
       .returning();
-      
+
     return {
       comment: {
         id: comment.id,
@@ -519,7 +517,7 @@ export const updateComment = async (
       .where(eq(schema.comments.id, id))
       .limit(1);
     const comment = comments[0];
-    
+
     if (!comment) {
       throw new NotFoundError('Comment', id);
     }
@@ -597,32 +595,34 @@ export const createReaction = async (
 ) => {
   try {
     const user = checkAuth(context.user);
-    
+
     // Ensure user exists in database
     const dbUser = await ensureUserExists(user);
     if (!dbUser) {
       throw new AuthenticationError('Failed to verify user');
     }
-    
+
     if (!(input.emoji in REACTION_EMOJIS)) {
       throw new ValidationError('Invalid emoji');
     }
-    
+
     const emoji = REACTION_EMOJIS[input.emoji as ReactionEmojiKey];
-    
+
     // Check for existing reaction with the same emoji type
     const existingReactions = await db
       .select()
       .from(schema.reactions)
-      .where(and(
-        eq(schema.reactions.userId, dbUser.id),
-        eq(schema.reactions.targetId, input.targetId),
-        eq(schema.reactions.targetType, input.targetType),
-        eq(schema.reactions.emoji, emoji)
-      ))
+      .where(
+        and(
+          eq(schema.reactions.userId, dbUser.id),
+          eq(schema.reactions.targetId, input.targetId),
+          eq(schema.reactions.targetType, input.targetType),
+          eq(schema.reactions.emoji, emoji)
+        )
+      )
       .limit(1);
     const existingReaction = existingReactions[0];
-    
+
     if (existingReaction) {
       // Delete the existing reaction (toggle off)
       await db.delete(schema.reactions).where(eq(schema.reactions.id, existingReaction.id));
@@ -630,7 +630,7 @@ export const createReaction = async (
         reaction: null,
       };
     }
-    
+
     // Create new reaction
     const [reaction] = await db
       .insert(schema.reactions)
@@ -644,7 +644,7 @@ export const createReaction = async (
         updatedAt: new Date(),
       })
       .returning();
-      
+
     return {
       reaction: {
         id: reaction.id,
@@ -704,13 +704,13 @@ export const sendFriendRequest = async (
 ) => {
   try {
     const user = checkAuth(context.user);
-    
+
     // Ensure user exists in database
     const dbUser = await ensureUserExists(user);
     if (!dbUser) {
       throw new AuthenticationError('Failed to verify user');
     }
-    
+
     // Check if target user exists
     const targetUsers = await db
       .select()
@@ -718,23 +718,18 @@ export const sendFriendRequest = async (
       .where(eq(schema.users.id, userId))
       .limit(1);
     const targetUser = targetUsers[0];
-    
+
     if (!targetUser) {
       throw new NotFoundError('User', userId);
     }
-    
+
     // Check if already friends or request exists
     const existingFriendships = await db
       .select()
       .from(schema.friendships)
-      .where(
-        and(
-          eq(schema.friendships.userId, dbUser.id),
-          eq(schema.friendships.friendId, userId)
-        )
-      )
+      .where(and(eq(schema.friendships.userId, dbUser.id), eq(schema.friendships.friendId, userId)))
       .limit(1);
-      
+
     if (existingFriendships.length > 0) {
       const existing = existingFriendships[0];
       if (existing.status === 'Accepted') {
@@ -743,19 +738,14 @@ export const sendFriendRequest = async (
         throw new BusinessLogicError('Friend request already sent', 'REQUEST_ALREADY_SENT');
       }
     }
-    
+
     // Check for reverse friendship (if the target user sent a request to current user)
     const reverseFriendships = await db
       .select()
       .from(schema.friendships)
-      .where(
-        and(
-          eq(schema.friendships.userId, userId),
-          eq(schema.friendships.friendId, dbUser.id)
-        )
-      )
+      .where(and(eq(schema.friendships.userId, userId), eq(schema.friendships.friendId, dbUser.id)))
       .limit(1);
-      
+
     if (reverseFriendships.length > 0 && reverseFriendships[0].status === 'Pending') {
       // Auto-accept if there's a pending request from the target user
       const [updatedFriendship] = await db
@@ -766,7 +756,7 @@ export const sendFriendRequest = async (
         })
         .where(eq(schema.friendships.id, reverseFriendships[0].id))
         .returning();
-        
+
       return {
         friendship: {
           id: updatedFriendship.id,
@@ -781,7 +771,7 @@ export const sendFriendRequest = async (
         errors: null,
       };
     }
-    
+
     // Create new friend request
     const [friendship] = await db
       .insert(schema.friendships)
@@ -794,7 +784,7 @@ export const sendFriendRequest = async (
         updatedAt: new Date(),
       })
       .returning();
-      
+
     return {
       friendship: {
         id: friendship.id,
@@ -829,27 +819,27 @@ export const acceptFriendRequest = async (
 ) => {
   try {
     const user = checkAuth(context.user);
-    
+
     const friendships = await db
       .select()
       .from(schema.friendships)
       .where(eq(schema.friendships.id, friendshipId))
       .limit(1);
     const friendship = friendships[0];
-    
+
     if (!friendship) {
       throw new NotFoundError('Friendship', friendshipId);
     }
-    
+
     // Check if user is the recipient of the request (friendId)
     if (friendship.friendId !== user.id) {
       throw new AuthorizationError('Not authorized to accept this friend request');
     }
-    
+
     if (friendship.status !== 'Pending') {
       throw new BusinessLogicError('Friend request is not pending', 'REQUEST_NOT_PENDING');
     }
-    
+
     // Update friendship status
     const [updatedFriendship] = await db
       .update(schema.friendships)
@@ -859,7 +849,7 @@ export const acceptFriendRequest = async (
       })
       .where(eq(schema.friendships.id, friendshipId))
       .returning();
-      
+
     // Fetch users
     const initiatorUsers = await db
       .select()
@@ -871,7 +861,7 @@ export const acceptFriendRequest = async (
       .from(schema.users)
       .where(eq(schema.users.id, updatedFriendship.friendId || ''))
       .limit(1);
-      
+
     return {
       friendship: {
         id: updatedFriendship.id,
@@ -906,27 +896,27 @@ export const rejectFriendRequest = async (
 ) => {
   try {
     const user = checkAuth(context.user);
-    
+
     const friendships = await db
       .select()
       .from(schema.friendships)
       .where(eq(schema.friendships.id, friendshipId))
       .limit(1);
     const friendship = friendships[0];
-    
+
     if (!friendship) {
       throw new NotFoundError('Friendship', friendshipId);
     }
-    
+
     // Check if user is the recipient of the request
     if (friendship.friendId !== user.id) {
       throw new AuthorizationError('Not authorized to reject this friend request');
     }
-    
+
     if (friendship.status !== 'Pending') {
       throw new BusinessLogicError('Friend request is not pending', 'REQUEST_NOT_PENDING');
     }
-    
+
     // Update friendship status
     const [updatedFriendship] = await db
       .update(schema.friendships)
@@ -936,7 +926,7 @@ export const rejectFriendRequest = async (
       })
       .where(eq(schema.friendships.id, friendshipId))
       .returning();
-      
+
     // Fetch users
     const initiatorUsers = await db
       .select()
@@ -948,7 +938,7 @@ export const rejectFriendRequest = async (
       .from(schema.users)
       .where(eq(schema.users.id, updatedFriendship.friendId || ''))
       .limit(1);
-      
+
     return {
       friendship: {
         id: updatedFriendship.id,
@@ -983,26 +973,26 @@ export const removeFriend = async (
 ) => {
   try {
     const user = checkAuth(context.user);
-    
+
     const friendships = await db
       .select()
       .from(schema.friendships)
       .where(eq(schema.friendships.id, friendshipId))
       .limit(1);
     const friendship = friendships[0];
-    
+
     if (!friendship) {
       throw new NotFoundError('Friendship', friendshipId);
     }
-    
+
     // Check if user is part of this friendship
     if (friendship.friendId !== user.id && friendship.userId !== user.id) {
       throw new AuthorizationError('Not authorized to remove this friend');
     }
-    
+
     // Delete the friendship
     await db.delete(schema.friendships).where(eq(schema.friendships.id, friendshipId));
-    
+
     return {
       success: true,
       errors: null,

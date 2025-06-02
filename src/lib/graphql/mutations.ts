@@ -1,12 +1,9 @@
 import { gql } from '@apollo/client';
 
 import {
-  GAME_FRAGMENT,
-  PLAYER_FRAGMENT,
   COMMENT_FRAGMENT,
   PLAYER_STATS_FRAGMENT,
   USER_SUMMARY_FRAGMENT,
-  BASIC_USER_FRAGMENT,
 } from '@/lib/graphql/queries';
 
 export const CREATE_GAME = gql`

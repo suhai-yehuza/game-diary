@@ -821,18 +821,8 @@ export const GET_FRIENDSHIPS = gql`
 `;
 
 export const SEARCH_USERS = gql`
-  query SearchUsers(
-    $first: Int
-    $after: String
-    $searchTerm: String
-    $filters: UserSearchFilters
-  ) {
-    searchUsers(
-      first: $first
-      after: $after
-      searchTerm: $searchTerm
-      filters: $filters
-    ) {
+  query SearchUsers($first: Int, $after: String, $searchTerm: String, $filters: UserSearchFilters) {
+    searchUsers(first: $first, after: $after, searchTerm: $searchTerm, filters: $filters) {
       edges {
         cursor
         node {

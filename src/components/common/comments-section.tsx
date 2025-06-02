@@ -1,14 +1,13 @@
-import { SignInButton, useUser } from '@clerk/nextjs';
 import { useMutation, useQuery } from '@apollo/client';
-import { 
-  MessageSquare, 
-  Pencil, 
+import { SignInButton, useUser } from '@clerk/nextjs';
+import {
+  MessageSquare,
   Send,
   ChevronDown,
   ChevronUp,
   Loader2,
   MessageCircle,
-  Sparkles
+  Sparkles,
 } from 'lucide-react';
 import React, { useState, useRef, useEffect } from 'react';
 
@@ -29,9 +28,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/components/ui/use-toast';
 import { CREATE_COMMENT, DELETE_COMMENT, UPDATE_COMMENT } from '@/lib/graphql/mutations';
 import { GET_COMMENTS_WITH_FILTERS } from '@/lib/graphql/queries';
-import { EditingComment, CommentsSectionProps } from '@/lib/types/comment.types';
+import { CommentsSectionProps, EditingComment } from '@/lib/types/comment.types';
+import { CommentEdge, CommentConnection } from '@/lib/types/component.types';
 import type { Comment } from '@/lib/types/generated/graphql';
 import { cn } from '@/lib/utils';
+
 import { CommentItem } from './comment-item';
 
 export function CommentsSection({ parentId, parentType, initialExpanded }: CommentsSectionProps) {
@@ -40,14 +41,14 @@ export function CommentsSection({ parentId, parentType, initialExpanded }: Comme
   const [editingComment, setEditingComment] = useState<EditingComment | null>(null);
   const [deleteCommentId, setDeleteCommentId] = useState<string | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  
+
   // Initialize expanded state
   const [isExpanded, setIsExpanded] = useState(initialExpanded ?? false);
-  
+
   // State for comment input visibility
   const [showCommentInput, setShowCommentInput] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   // Track last seen comment count
   const [lastSeenCount, setLastSeenCount] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -56,7 +57,7 @@ export function CommentsSection({ parentId, parentType, initialExpanded }: Comme
     }
     return 0;
   });
-  
+
   const { toast } = useToast();
 
   const { data, loading, error, refetch, fetchMore } = useQuery(GET_COMMENTS_WITH_FILTERS, {
@@ -101,11 +102,11 @@ export function CommentsSection({ parentId, parentType, initialExpanded }: Comme
     if (!element) return;
 
     const observer = new IntersectionObserver(
-      async (entries) => {
+      async entries => {
         const [target] = entries;
         if (
-          target.isIntersecting && 
-          !loading && 
+          target.isIntersecting &&
+          !loading &&
           !isFetchingMore &&
           data?.comments?.pageInfo?.hasNextPage
         ) {
@@ -119,22 +120,19 @@ export function CommentsSection({ parentId, parentType, initialExpanded }: Comme
               },
               updateQuery: (prev, { fetchMoreResult }) => {
                 if (!fetchMoreResult) return prev;
-                
+
                 const existingIds = new Set(
-                  prev.comments.edges.map((edge: any) => edge.node.id)
+                  prev.comments.edges.map((edge: CommentEdge) => edge.node.id)
                 );
-                
+
                 const newEdges = fetchMoreResult.comments.edges.filter(
-                  (edge: any) => !existingIds.has(edge.node.id)
+                  (edge: CommentEdge) => !existingIds.has(edge.node.id)
                 );
-                
+
                 return {
                   comments: {
                     ...fetchMoreResult.comments,
-                    edges: [
-                      ...prev.comments.edges,
-                      ...newEdges,
-                    ],
+                    edges: [...prev.comments.edges, ...newEdges],
                   },
                 };
               },
@@ -193,7 +191,7 @@ export function CommentsSection({ parentId, parentType, initialExpanded }: Comme
       const existingData = cache.readQuery({
         query: GET_COMMENTS_WITH_FILTERS,
         variables: { parentId },
-      }) as { comments: { edges: any[]; totalCount: number; pageInfo: any } } | null;
+      }) as { comments: CommentConnection } | null;
 
       if (!existingData?.comments) return;
 
@@ -238,15 +236,17 @@ export function CommentsSection({ parentId, parentType, initialExpanded }: Comme
         ({ node }: { node: Comment }) => node.id === id
       );
       const comment = existingData?.node;
-      
+
       return {
         updateComment: {
           __typename: 'UpdateCommentResponse',
-          comment: comment ? {
-            ...comment,
-            content: input.content,
-            updatedAt: new Date().toISOString(),
-          } : null,
+          comment: comment
+            ? {
+                ...comment,
+                content: input.content,
+                updatedAt: new Date().toISOString(),
+              }
+            : null,
           errors: [],
         },
       };
@@ -257,11 +257,11 @@ export function CommentsSection({ parentId, parentType, initialExpanded }: Comme
       const existingData = cache.readQuery({
         query: GET_COMMENTS_WITH_FILTERS,
         variables: { parentId },
-      }) as { comments: { edges: any[]; totalCount: number; pageInfo: any } } | null;
+      }) as { comments: CommentConnection } | null;
 
       if (!existingData?.comments) return;
 
-      const newEdges = existingData.comments.edges.map((edge: any) => {
+      const newEdges = existingData.comments.edges.map((edge: CommentEdge) => {
         if (edge.node.id === data.updateComment.comment.id) {
           return {
             ...edge,
@@ -400,10 +400,10 @@ export function CommentsSection({ parentId, parentType, initialExpanded }: Comme
   return (
     <>
       <Card className="overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200">
-        <CardHeader 
+        <CardHeader
           className={cn(
-            "cursor-pointer select-none bg-gradient-to-r from-muted/50 to-muted/30 hover:from-muted/60 hover:to-muted/40 transition-colors",
-            isExpanded && "border-b"
+            'cursor-pointer select-none bg-gradient-to-r from-muted/50 to-muted/30 hover:from-muted/60 hover:to-muted/40 transition-colors',
+            isExpanded && 'border-b'
           )}
           onClick={() => setIsExpanded(!isExpanded)}
         >
@@ -429,7 +429,7 @@ export function CommentsSection({ parentId, parentType, initialExpanded }: Comme
               variant="ghost"
               size="sm"
               className="h-8 w-8 p-0 hover:bg-transparent"
-              onClick={(e) => {
+              onClick={e => {
                 e.stopPropagation();
                 setIsExpanded(!isExpanded);
               }}
@@ -442,20 +442,18 @@ export function CommentsSection({ parentId, parentType, initialExpanded }: Comme
             </Button>
           </CardTitle>
         </CardHeader>
-        
+
         <div
           className={cn(
-            "transition-all duration-300 ease-in-out overflow-hidden",
-            isExpanded ? "max-h-[5000px] opacity-100" : "max-h-0 opacity-0"
+            'transition-all duration-300 ease-in-out overflow-hidden',
+            isExpanded ? 'max-h-[5000px] opacity-100' : 'max-h-0 opacity-0'
           )}
         >
-          <CardContent className={cn("p-0", isExpanded && "p-4")}>
+          <CardContent className={cn('p-0', isExpanded && 'p-4')}>
             {!user ? (
               <div className="flex flex-col items-center justify-center py-12 px-4">
                 <MessageSquare className="h-12 w-12 text-muted-foreground mb-4" />
-                <p className="text-muted-foreground mb-4 text-center">
-                  Join the conversation
-                </p>
+                <p className="text-muted-foreground mb-4 text-center">Join the conversation</p>
                 <SignInButton mode="modal">
                   <Button className="gap-2">
                     <MessageCircle className="h-4 w-4" />
@@ -472,19 +470,20 @@ export function CommentsSection({ parentId, parentType, initialExpanded }: Comme
                       variant="outline"
                       onClick={() => setShowCommentInput(true)}
                       className={cn(
-                        "w-full justify-start gap-3 h-auto py-4 px-5",
-                        "bg-muted/30 backdrop-blur-sm",
-                        "border-2 border-dashed border-muted-foreground/20",
-                        "hover:border-solid hover:border-primary/30 hover:bg-muted/50",
-                        "hover:shadow-sm",
-                        "transition-all duration-300",
-                        "group"
+                        'w-full justify-start gap-3 h-auto py-4 px-5',
+                        'bg-muted/30 backdrop-blur-sm',
+                        'border-2 border-dashed border-muted-foreground/20',
+                        'hover:border-solid hover:border-primary/30 hover:bg-muted/50',
+                        'hover:shadow-sm',
+                        'transition-all duration-300',
+                        'group'
                       )}
                     >
                       <Avatar className="h-9 w-9 ring-2 ring-background shadow-sm transition-transform group-hover:scale-105">
                         <AvatarImage src={user.imageUrl || undefined} />
                         <AvatarFallback className="bg-primary/10 text-primary font-semibold">
-                          {user.firstName?.[0]}{user.lastName?.[0]}
+                          {user.firstName?.[0]}
+                          {user.lastName?.[0]}
                         </AvatarFallback>
                       </Avatar>
                       <span className="text-muted-foreground font-normal text-base">
@@ -498,7 +497,8 @@ export function CommentsSection({ parentId, parentType, initialExpanded }: Comme
                         <Avatar className="h-10 w-10 mt-1 ring-2 ring-background shadow-sm">
                           <AvatarImage src={user.imageUrl || undefined} />
                           <AvatarFallback className="bg-primary/10 text-primary font-semibold">
-                            {user.firstName?.[0]}{user.lastName?.[0]}
+                            {user.firstName?.[0]}
+                            {user.lastName?.[0]}
                           </AvatarFallback>
                         </Avatar>
                         <div className="flex-1 space-y-3">
@@ -509,13 +509,13 @@ export function CommentsSection({ parentId, parentType, initialExpanded }: Comme
                               onChange={e => setNewComment(e.target.value)}
                               placeholder="Share your thoughts..."
                               className={cn(
-                                "min-h-[100px] resize-none rounded-lg",
-                                "bg-background/50 backdrop-blur-sm",
-                                "border-2 border-transparent",
-                                "focus:border-primary/50 focus:ring-4 focus:ring-primary/10",
-                                "placeholder:text-muted-foreground/60",
-                                "transition-all duration-200",
-                                "text-base leading-relaxed"
+                                'min-h-[100px] resize-none rounded-lg',
+                                'bg-background/50 backdrop-blur-sm',
+                                'border-2 border-transparent',
+                                'focus:border-primary/50 focus:ring-4 focus:ring-primary/10',
+                                'placeholder:text-muted-foreground/60',
+                                'transition-all duration-200',
+                                'text-base leading-relaxed'
                               )}
                               autoFocus
                               disabled={isSubmitting}
@@ -532,9 +532,9 @@ export function CommentsSection({ parentId, parentType, initialExpanded }: Comme
                               <span>Markdown supported</span>
                             </div>
                             <div className="flex gap-2">
-                              <Button 
-                                type="button" 
-                                variant="ghost" 
+                              <Button
+                                type="button"
+                                variant="ghost"
                                 size="sm"
                                 onClick={() => {
                                   setShowCommentInput(false);
@@ -545,15 +545,15 @@ export function CommentsSection({ parentId, parentType, initialExpanded }: Comme
                               >
                                 Cancel
                               </Button>
-                              <Button 
-                                type="submit" 
-                                size="sm" 
+                              <Button
+                                type="submit"
+                                size="sm"
                                 disabled={!newComment.trim() || isSubmitting}
                                 className={cn(
-                                  "gap-2 min-w-[120px]",
-                                  "bg-primary hover:bg-primary/90",
-                                  "shadow-sm hover:shadow-md",
-                                  "transition-all duration-200"
+                                  'gap-2 min-w-[120px]',
+                                  'bg-primary hover:bg-primary/90',
+                                  'shadow-sm hover:shadow-md',
+                                  'transition-all duration-200'
                                 )}
                               >
                                 {isSubmitting ? (
@@ -580,9 +580,7 @@ export function CommentsSection({ parentId, parentType, initialExpanded }: Comme
                 {totalComments === 0 ? (
                   <div className="text-center py-8">
                     <MessageSquare className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
-                    <p className="text-muted-foreground">
-                      Be the first to comment
-                    </p>
+                    <p className="text-muted-foreground">Be the first to comment</p>
                   </div>
                 ) : (
                   <div className="space-y-4">
@@ -595,7 +593,7 @@ export function CommentsSection({ parentId, parentType, initialExpanded }: Comme
                         refetchComments={refetch}
                       />
                     ))}
-                    
+
                     {/* Load More Indicator */}
                     <div ref={loadMoreRef} className="py-2">
                       {isFetchingMore && (
@@ -647,7 +645,10 @@ export function CommentsSection({ parentId, parentType, initialExpanded }: Comme
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteComment} className="bg-destructive text-destructive-foreground">
+            <AlertDialogAction
+              onClick={handleDeleteComment}
+              className="bg-destructive text-destructive-foreground"
+            >
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>

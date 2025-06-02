@@ -2,28 +2,27 @@
 
 import { useQuery } from '@apollo/client';
 import { format, isAfter } from 'date-fns';
-import { 
+import {
   Calendar,
   Clock,
-  Filter,
   Search,
   Trophy,
-  Users,
   X,
   MapPin,
   ArrowUpDown,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
 } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { 
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -31,20 +30,10 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Badge } from '@/components/ui/badge';
 import { GET_GAMES } from '@/lib/graphql/queries';
 import { cn } from '@/lib/utils';
-import { getCurrentSeason } from '@/lib/utils/index.time';
 import { formatCount } from '@/lib/utils/index.format';
-
-// Game status mappings
-const GameStatus = {
-  Live: 'Live',
-  Finished: 'Finished',
-  Scheduled: 'Scheduled',
-} as const;
-
-type GameStatusType = typeof GameStatus[keyof typeof GameStatus];
+import { getCurrentSeason } from '@/lib/utils/index.time';
 
 // Loading skeleton component
 const GameSkeleton = () => (
@@ -77,6 +66,37 @@ const GameSkeleton = () => (
   </Card>
 );
 
+interface GameTeams {
+  home: {
+    id: string;
+    nickname: string;
+    code: string;
+    logo: string;
+    name: string;
+  };
+  visitors: {
+    id: string;
+    nickname: string;
+    code: string;
+    logo: string;
+    name: string;
+  };
+}
+
+interface GameScores {
+  home: {
+    points: number;
+  };
+  visitors: {
+    points: number;
+  };
+}
+
+interface GamePeriods {
+  current: number;
+  total: number;
+}
+
 interface Game {
   id: string;
   date: {
@@ -96,12 +116,12 @@ interface Game {
     state: string;
     country: string;
   };
-  teams: any;
-  scores: any;
+  teams: GameTeams;
+  scores: GameScores;
   league: string;
   season: number;
   stage: number;
-  periods: any;
+  periods: GamePeriods;
   officials: string[];
   timesTied?: number;
   leadChanges?: number;
@@ -110,9 +130,11 @@ interface Game {
   updatedAt: string;
 }
 
+type GameEdge = { cursor: string; node: Game };
+
 const getStatusBadge = (status: string, isScheduled?: boolean, isFinished?: boolean) => {
   const statusLower = status.toLowerCase();
-  
+
   if (statusLower.includes('live') || statusLower === 'in play') {
     return (
       <Badge className="bg-red-500 text-white border-red-500 text-xs py-0.5 px-1.5">
@@ -123,12 +145,12 @@ const getStatusBadge = (status: string, isScheduled?: boolean, isFinished?: bool
       </Badge>
     );
   }
-  
+
   // Don't show Final badge here anymore since it's shown on the right
   if (isFinished) {
     return null;
   }
-  
+
   // For scheduled games, show the time
   return (
     <Badge variant="outline" className="text-xs py-0.5 px-1.5">
@@ -146,7 +168,7 @@ interface PageCursor {
 export function BasketballGameSearchSection() {
   const router = useRouter();
   const currentYear = getCurrentSeason();
-  
+
   const [searchText, setSearchText] = useState('');
   const [selectedSeason, setSelectedSeason] = useState(currentYear.toString());
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
@@ -160,20 +182,20 @@ export function BasketballGameSearchSection() {
 
   // Build filters object
   const filters = useMemo(() => {
-    const filterObj: any = {};
-    
+    const filterObj: Record<string, string | number> = {};
+
     if (selectedSeason !== 'all') {
       filterObj.season = parseInt(selectedSeason);
     }
-    
+
     if (selectedStatus !== 'all') {
       filterObj.status = selectedStatus.toUpperCase();
     }
-    
+
     if (selectedTeam !== 'all') {
       filterObj.teamId = selectedTeam;
     }
-    
+
     return filterObj;
   }, [selectedSeason, selectedStatus, selectedTeam]);
 
@@ -181,7 +203,12 @@ export function BasketballGameSearchSection() {
   const currentCursor = currentPage > 1 ? pageCursors[currentPage - 1]?.endCursor : null;
 
   // Query only current page data
-  const { data, loading, error, refetch } = useQuery(GET_GAMES, {
+  const {
+    data,
+    loading,
+    error,
+    refetch: _refetch,
+  } = useQuery(GET_GAMES, {
     variables: {
       first: pageSize,
       after: currentCursor,
@@ -198,12 +225,15 @@ export function BasketballGameSearchSection() {
         [currentPage]: {
           startCursor: data.games.pageInfo.startCursor,
           endCursor: data.games.pageInfo.endCursor,
-        }
+        },
       }));
     }
   }, [data, currentPage]);
 
-  const games = data?.games?.edges?.map((edge: any) => edge.node) || [];
+  const games = useMemo(
+    () => data?.games?.edges?.map((edge: GameEdge) => edge.node) || [],
+    [data?.games?.edges]
+  );
   const totalCount = data?.games?.totalCount || 0;
   const hasNextPage = data?.games?.pageInfo?.hasNextPage || false;
   const totalPages = Math.ceil(totalCount / pageSize);
@@ -211,25 +241,27 @@ export function BasketballGameSearchSection() {
   // Filter games by search text (client-side for current page only)
   const filteredGames = useMemo(() => {
     if (!searchText.trim()) return games;
-    
+
     const searchLower = searchText.toLowerCase();
     return games.filter((game: Game) => {
       const homeTeam = game.teams?.home?.nickname?.toLowerCase() || '';
       const awayTeam = game.teams?.visitors?.nickname?.toLowerCase() || '';
       const arena = game.arena?.name?.toLowerCase() || '';
       const city = game.arena?.city?.toLowerCase() || '';
-      
-      return homeTeam.includes(searchLower) ||
-             awayTeam.includes(searchLower) ||
-             arena.includes(searchLower) ||
-             city.includes(searchLower);
+
+      return (
+        homeTeam.includes(searchLower) ||
+        awayTeam.includes(searchLower) ||
+        arena.includes(searchLower) ||
+        city.includes(searchLower)
+      );
     });
   }, [games, searchText]);
 
   // Sort games
   const sortedGames = useMemo(() => {
     const sorted = [...filteredGames];
-    
+
     if (sortBy === 'date') {
       sorted.sort((a: Game, b: Game) => {
         return new Date(b.date.start).getTime() - new Date(a.date.start).getTime();
@@ -241,7 +273,7 @@ export function BasketballGameSearchSection() {
         return totalB - totalA;
       });
     }
-    
+
     return sorted;
   }, [filteredGames, sortBy]);
 
@@ -263,9 +295,10 @@ export function BasketballGameSearchSection() {
     setPageCursors({});
   };
 
-  const hasActiveFilters = searchText || 
-    selectedSeason !== currentYear.toString() || 
-    selectedStatus !== 'all' || 
+  const hasActiveFilters =
+    searchText ||
+    selectedSeason !== currentYear.toString() ||
+    selectedStatus !== 'all' ||
     selectedTeam !== 'all';
 
   // Reset pagination when filters change
@@ -285,7 +318,7 @@ export function BasketballGameSearchSection() {
             type="text"
             placeholder="Search by team, arena, or city..."
             value={searchText}
-            onChange={(e) => setSearchText(e.target.value)}
+            onChange={e => setSearchText(e.target.value)}
             className="pl-10"
           />
           <p className="text-xs text-muted-foreground mt-1">
@@ -348,12 +381,7 @@ export function BasketballGameSearchSection() {
 
           {/* Clear Filters */}
           {hasActiveFilters && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={clearFilters}
-              className="h-10 mt-auto"
-            >
+            <Button variant="ghost" size="sm" onClick={clearFilters} className="h-10 mt-auto">
               <X className="mr-2 h-4 w-4" />
               Clear filters
             </Button>
@@ -384,9 +412,7 @@ export function BasketballGameSearchSection() {
       ) : error ? (
         <Card className="border-destructive/50">
           <CardContent className="py-8">
-            <div className="text-center text-destructive">
-              Error loading games: {error.message}
-            </div>
+            <div className="text-center text-destructive">Error loading games: {error.message}</div>
           </CardContent>
         </Card>
       ) : sortedGames.length === 0 ? (
@@ -397,7 +423,7 @@ export function BasketballGameSearchSection() {
             <p className="text-muted-foreground text-center max-w-sm">
               {searchText && games.length > 0
                 ? 'No games on this page match your search. Try navigating to other pages or clearing the search.'
-                : hasActiveFilters 
+                : hasActiveFilters
                   ? 'Try adjusting your filters to find more games.'
                   : 'No games are available for the selected criteria.'}
             </p>
@@ -408,18 +434,19 @@ export function BasketballGameSearchSection() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {sortedGames.map((game: Game) => {
               const gameDate = new Date(game.date.start);
-              const isLive = game.status.long.toLowerCase().includes('live') || 
-                            game.status.long.toLowerCase() === 'in play';
-              const isScheduled = game.status.long.toLowerCase() === 'scheduled' || 
-                                isAfter(gameDate, new Date());
+              const isLive =
+                game.status.long.toLowerCase().includes('live') ||
+                game.status.long.toLowerCase() === 'in play';
+              const isScheduled =
+                game.status.long.toLowerCase() === 'scheduled' || isAfter(gameDate, new Date());
               const isFinished = game.status.long.toLowerCase() === 'finished';
-              
+
               return (
-                <Card 
+                <Card
                   key={game.id}
                   className={cn(
-                    "overflow-hidden transition-all duration-200 hover:shadow-lg",
-                    isLive && "border-red-500 ring-2 ring-red-500/20"
+                    'overflow-hidden transition-all duration-200 hover:shadow-lg',
+                    isLive && 'border-red-500 ring-2 ring-red-500/20'
                   )}
                 >
                   <CardHeader className="pb-3">
@@ -429,31 +456,30 @@ export function BasketballGameSearchSection() {
                           {format(gameDate, 'MMM d, yyyy')}
                         </div>
                         <div className="mt-1">
-                          {getStatusBadge(isScheduled ? game.date.start : game.status.long, isScheduled, isFinished)}
+                          {getStatusBadge(
+                            isScheduled ? game.date.start : game.status.long,
+                            isScheduled,
+                            isFinished
+                          )}
                         </div>
                       </div>
                       {/* Scheduled Badge */}
                       {isScheduled && (
-                        <Badge 
-                          className="bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/20 gap-0.5 shrink-0 text-xs py-0.5 px-1.5"
-                        >
+                        <Badge className="bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/20 gap-0.5 shrink-0 text-xs py-0.5 px-1.5">
                           <Calendar className="h-2.5 w-2.5" />
                           Scheduled
                         </Badge>
                       )}
                       {/* Final Badge */}
                       {isFinished && (
-                        <Badge 
-                          variant="secondary"
-                          className="shrink-0 text-xs py-0.5 px-1.5"
-                        >
+                        <Badge variant="secondary" className="shrink-0 text-xs py-0.5 px-1.5">
                           Final
                         </Badge>
                       )}
                     </div>
                   </CardHeader>
 
-                  <CardContent 
+                  <CardContent
                     className="space-y-3 cursor-pointer hover:bg-accent/50 transition-colors"
                     onClick={() => router.push(`/sports/nba/games/${game.id}`)}
                   >
@@ -513,9 +539,7 @@ export function BasketballGameSearchSection() {
                           </div>
                         </div>
                         {!isScheduled && (
-                          <div className="text-xl font-bold">
-                            {game.scores?.home?.points || 0}
-                          </div>
+                          <div className="text-xl font-bold">{game.scores?.home?.points || 0}</div>
                         )}
                       </div>
                     </div>
@@ -531,9 +555,7 @@ export function BasketballGameSearchSection() {
                     {/* Game Stats */}
                     {game.status.long === 'Finished' && (game.timesTied || game.leadChanges) && (
                       <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                        {game.timesTied !== undefined && (
-                          <span>Times Tied: {game.timesTied}</span>
-                        )}
+                        {game.timesTied !== undefined && <span>Times Tied: {game.timesTied}</span>}
                         {game.leadChanges !== undefined && (
                           <span>Lead Changes: {game.leadChanges}</span>
                         )}
@@ -543,7 +565,10 @@ export function BasketballGameSearchSection() {
                     {/* Live Game Clock */}
                     {isLive && game.status.clock && (
                       <div className="flex items-center justify-center py-2">
-                        <Badge variant="destructive" className="animate-pulse text-xs py-0.5 px-1.5">
+                        <Badge
+                          variant="destructive"
+                          className="animate-pulse text-xs py-0.5 px-1.5"
+                        >
                           {game.status.clock} - Q{game.periods?.current || 1}
                         </Badge>
                       </div>
@@ -577,11 +602,24 @@ export function BasketballGameSearchSection() {
                   } else if (currentPage >= totalPages - 3) {
                     pageNum = i === 0 ? 1 : i === 1 ? -1 : totalPages - 6 + i;
                   } else {
-                    pageNum = i === 0 ? 1 : i === 1 ? -1 : i === 5 ? -1 : i === 6 ? totalPages : currentPage - 3 + i;
+                    pageNum =
+                      i === 0
+                        ? 1
+                        : i === 1
+                          ? -1
+                          : i === 5
+                            ? -1
+                            : i === 6
+                              ? totalPages
+                              : currentPage - 3 + i;
                   }
 
                   if (pageNum === -1) {
-                    return <span key={i} className="px-2 text-muted-foreground">...</span>;
+                    return (
+                      <span key={i} className="px-2 text-muted-foreground">
+                        ...
+                      </span>
+                    );
                   }
 
                   return (

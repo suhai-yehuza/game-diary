@@ -31,6 +31,7 @@ tsx scripts/apply-migrations.ts production --dry-run
 ```
 
 The migration script:
+
 - Tracks which migrations have been applied in a `migration_versions` table
 - Checksums each migration file to detect changes
 - Applies migrations in alphabetical order
@@ -53,13 +54,15 @@ psql -h your-host -U your-user -d your-database -f src/lib/db/migrations/004_fri
 ## What the New Triggers Do
 
 ### 003_friendship_notification_triggers.sql
+
 - Creates notifications when:
   - A friend request is sent (recipient gets notified)
   - A friend request is accepted (sender gets notified)
   - A friend request is rejected (sender gets notified)
 
 ### 004_friendship_user_arrays_triggers.sql
+
 - Automatically maintains `inboundFriendshipIds` and `outboundFriendshipIds` arrays on the users table
 - Updates these arrays when friendships are created, updated, or deleted
 - Includes a rebuild function to populate existing data
-- Creates performance indexes on the friendships table 
+- Creates performance indexes on the friendships table

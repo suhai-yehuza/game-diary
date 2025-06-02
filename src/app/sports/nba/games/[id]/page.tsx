@@ -14,32 +14,90 @@ import { useAuthContext } from '@/contexts/AuthContext';
 import { fetchNbaGameById } from '@/lib/external-apis';
 import { GET_TEAM_STATS } from '@/lib/graphql/queries';
 import type { Game, GameStatistics } from '@/lib/types/game.types';
+import { cn } from '@/lib/utils';
 
 // Helper function to validate state values
 const isValidState = (state: string | undefined | null): boolean => {
   if (!state) return false;
-  
+
   // Common invalid values
   if (state.length === 1 || state === 'O' || state === '0') return false;
-  
+
   // Valid US state codes (2 letters) or reasonable length for full state names
   if (state.length === 2 || (state.length > 3 && state.length < 20)) {
     return /^[A-Za-z\s]+$/.test(state);
   }
-  
+
   return false;
 };
 
 // Helper function to format arena location
-const formatArenaLocation = (arena: { name?: string | null; city?: string | null; state?: string | null; country?: string | null }): string => {
+const formatArenaLocation = (arena: {
+  name?: string | null;
+  city?: string | null;
+  state?: string | null;
+  country?: string | null;
+}): string => {
   const parts = [];
-  
+
   if (arena.city) parts.push(arena.city);
   if (arena.state && isValidState(arena.state)) parts.push(arena.state);
   if (arena.country) parts.push(arena.country);
-  
+
   return parts.join(', ');
 };
+
+// Team display component
+interface TeamDisplayProps {
+  team: {
+    logo: string;
+    name: string;
+    nickname: string;
+  };
+  score?: number;
+  opponentScore?: number;
+  isHome: boolean;
+  imageErrors: Record<string, boolean>;
+  onImageError: (id: string) => void;
+  gameId: string;
+}
+
+const TeamDisplay = ({
+  team,
+  score,
+  opponentScore,
+  isHome,
+  imageErrors,
+  onImageError,
+  gameId,
+}: TeamDisplayProps) => (
+  <div className={cn('text-center space-y-6', isHome ? 'flex-row-reverse text-right' : '')}>
+    {team?.logo && (
+      <Image
+        src={imageErrors[`${gameId}-${isHome ? 'home' : 'visitors'}`] ? '/gamelog.svg' : team.logo}
+        alt={team.name}
+        width={96}
+        height={96}
+        className="mx-auto w-24 h-24 object-contain"
+        onError={() => onImageError(`${gameId}-${isHome ? 'home' : 'visitors'}`)}
+      />
+    )}
+    <div className="space-y-2">
+      <div className="text-xl font-bold">{team.nickname}</div>
+      <div className="text-muted-foreground">
+        {score !== undefined && (
+          <div
+            className={`text-3xl font-bold ${
+              score > (opponentScore || 0) ? 'text-green-500' : 'text-muted-foreground'
+            }`}
+          >
+            {score}
+          </div>
+        )}
+      </div>
+    </div>
+  </div>
+);
 
 export default function GamePage() {
   const params = useParams();
@@ -189,37 +247,15 @@ export default function GamePage() {
           <div className="bg-card rounded-lg shadow-sm p-8">
             <div className="grid grid-cols-3 gap-8">
               {/* Away Team */}
-              <div className="text-center space-y-6">
-                {gameData?.teams.visitors.logo && (
-                  <Image
-                    src={
-                      imageErrors[`${gameData?.id}-visitors`]
-                        ? '/gamelog.svg'
-                        : gameData?.teams.visitors.logo
-                    }
-                    alt={gameData?.teams.visitors.name}
-                    width={96}
-                    height={96}
-                    className="mx-auto w-24 h-24 object-contain"
-                    onError={() => handleImageError(`${gameData?.id}-visitors`)}
-                  />
-                )}
-                <div className="space-y-2">
-                  <div className="text-xl font-bold">{gameData?.teams.visitors.nickname}</div>
-                  <div className="text-muted-foreground">
-                    {gameData?.scores.visitors.win}-{gameData?.scores.visitors.loss}
-                  </div>
-                  <div
-                    className={`text-3xl font-bold ${
-                      gameData?.scores.visitors.points > gameData?.scores.home.points
-                        ? 'text-green-500'
-                        : 'text-muted-foreground'
-                    }`}
-                  >
-                    {gameData?.scores.visitors.points}
-                  </div>
-                </div>
-              </div>
+              <TeamDisplay
+                team={gameData?.teams.visitors}
+                score={gameData?.scores.visitors.points}
+                opponentScore={gameData?.scores.home.points}
+                isHome={false}
+                imageErrors={imageErrors}
+                onImageError={handleImageError}
+                gameId={gameId}
+              />
 
               {/* Score */}
               <div className="text-center flex flex-col justify-center space-y-4">
@@ -232,37 +268,15 @@ export default function GamePage() {
               </div>
 
               {/* Home Team */}
-              <div className="text-center space-y-6">
-                {gameData?.teams.home.logo && (
-                  <Image
-                    src={
-                      imageErrors[`${gameData?.id}-home`]
-                        ? '/gamelog.svg'
-                        : gameData?.teams.home.logo
-                    }
-                    alt={gameData?.teams.home.name}
-                    width={96}
-                    height={96}
-                    className="mx-auto w-24 h-24 object-contain"
-                    onError={() => handleImageError(`${gameData?.id}-home`)}
-                  />
-                )}
-                <div className="space-y-2">
-                  <div className="text-xl font-bold">{gameData?.teams.home.nickname}</div>
-                  <div className="text-muted-foreground">
-                    {gameData?.scores.home.win}-{gameData?.scores.home.loss}
-                  </div>
-                  <div
-                    className={`text-3xl font-bold ${
-                      gameData?.scores.home.points > gameData?.scores.visitors.points
-                        ? 'text-green-500'
-                        : 'text-muted-foreground'
-                    }`}
-                  >
-                    {gameData?.scores.home.points}
-                  </div>
-                </div>
-              </div>
+              <TeamDisplay
+                team={gameData?.teams.home}
+                score={gameData?.scores.home.points}
+                opponentScore={gameData?.scores.visitors.points}
+                isHome={true}
+                imageErrors={imageErrors}
+                onImageError={handleImageError}
+                gameId={gameId}
+              />
             </div>
           </div>
 
@@ -273,9 +287,7 @@ export default function GamePage() {
               <h3 className="text-lg font-medium mb-6">Arena Information</h3>
               <div className="space-y-2">
                 <p className="font-medium">{gameData?.arena.name}</p>
-                <p className="text-muted-foreground">
-                  {formatArenaLocation(gameData?.arena)}
-                </p>
+                <p className="text-muted-foreground">{formatArenaLocation(gameData?.arena)}</p>
               </div>
             </div>
 

@@ -16,7 +16,7 @@
     "// Code Analysis": "Scripts for analyzing code structure and usage",
     "check:circular": "madge --circular --extensions ts,tsx src/",
     "check:unused": "ts-prune",
-    "check:unused:strict": "ts-prune --error",
+    "check:unused:strict": "ts-prune --error --ignore .tspruneignore",
     "cleanup:unused": "tsx scripts/cleanup-unused.ts",
     "// Validation": "Scripts for comprehensive validation",
     "validate": "pnpm codegen && pnpm prettier --write src/lib/graphql/schema.graphql && pnpm lint && pnpm format:check && pnpm typecheck && pnpm db:test-migrations",
@@ -68,7 +68,7 @@
     "codegen:watch": "graphql-codegen --watch",
     "// Cleanup": "Clean build artifacts and dependencies",
     "clean": "rm -rf .next node_modules pnpm-lock.yaml package-lock.json tsconfig.tsbuildinfo src/lib/graphql/generated && rm -rf ./drizzle && mkdir -p ./drizzle && pnpm install",
-    "clean:build": "pnpm clean && pnpm format && pnpm fix && pnpm validate:all && pnpm build && NODE_ENV=development && pnpm test:databases",
+    "clean:build": "pnpm clean && pnpm format && pnpm fix && pnpm validate:hard && pnpm build && NODE_ENV=development && pnpm test:databases",
     "clean:build:soft": "pnpm clean && pnpm format && pnpm fix && pnpm validate:soft && pnpm build && NODE_ENV=development && pnpm test:databases"
   },
   "dependencies": {
@@ -140,6 +140,7 @@
     "react-quill": "^2.0.0",
     "react-swipeable": "^7.0.2",
     "recharts": "^2.15.3",
+    "sonner": "^2.0.4",
     "svix": "^1.64.0",
     "tailwind-merge": "^3.2.0",
     "tailwindcss-animate": "^1.0.7",
@@ -195,9 +196,9 @@
     "tailwindcss": "^3.4.1",
     "ts-jest": "^29.3.1",
     "ts-node": "^10.9.2",
+    "ts-prune": "^0.10.3",
     "tsx": "^4.19.3",
-    "typescript": "^5.8.3",
-    "ts-prune": "^0.10.3"
+    "typescript": "^5.8.3"
   },
   "engines": {
     "node": "22.x"

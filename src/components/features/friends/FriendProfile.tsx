@@ -5,9 +5,9 @@ import Image from 'next/image';
 import React from 'react';
 
 import { StarRating } from '@/components/ui/star-rating';
+import { API_CONFIG } from '@/lib/config/api.config';
 import { GET_USER, GET_GAME_LOGS } from '@/lib/graphql/queries';
 import { GameLog } from '@/lib/types/generated/graphql';
-import { API_CONFIG } from '@/lib/config/api.config';
 import { TeamCounts } from '@/lib/types/team.types';
 import { FriendProfileProps } from '@/lib/types/user.types';
 
@@ -67,8 +67,8 @@ export const FriendProfile: React.FC<FriendProfileProps> = ({ friendId, onClose 
   const totalGames = gameLogs.length;
   const totalWatchTime = gameLogs.length;
   const averageRating =
-    gameLogs.reduce((acc: number, log: GameLog) => acc + (log.ratingForGame || 0), 0) / totalGames ||
-    0;
+    gameLogs.reduce((acc: number, log: GameLog) => acc + (log.ratingForGame || 0), 0) /
+      totalGames || 0;
   const favoriteTeams = gameLogs.reduce((acc: TeamCounts, log: GameLog) => {
     const teams = [log.game.teams.visitors.name, log.game.teams.home.name];
     teams.forEach(team => {

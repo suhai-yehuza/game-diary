@@ -123,7 +123,7 @@ export default function Header() {
     <>
       {/* Live Games Banner */}
       <LiveGamesBanner />
-      
+
       <header className="w-full border-b lg:border-b">
         <div className="flex h-16 items-center">
           <div className="pl-10">

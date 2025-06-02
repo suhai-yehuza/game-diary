@@ -1,30 +1,26 @@
 'use client';
 
 import { useQuery } from '@apollo/client';
-import React, { useState } from 'react';
+import { useRef, useState, useCallback, useEffect } from 'react';
 
-import { GameLogSearchSection } from '@/components/features/games';
-import { BasketballGameSearchSection } from '@/components/features/games';
+import { GameLogSearchSection, BasketballGameSearchSection } from '@/components/features/games';
 import { UserSearchSection } from '@/components/features/users/UserSearchSection';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { GET_GAME_LOGS } from '@/lib/graphql/queries';
-import { GameLog } from '@/lib/types/generated/graphql';
 
 export default function CommunityPage() {
   const [activeTab, setActiveTab] = useState('logs');
 
-  const { data, loading, fetchMore, refetch } = useQuery(GET_GAME_LOGS, {
+  const { data, fetchMore } = useQuery(GET_GAME_LOGS, {
     variables: { first: 10 },
     skip: activeTab !== 'recent',
   });
 
-  const gameLogs = data?.gameLogs?.edges?.map((edge: { node: GameLog }) => edge.node) || [];
+  const loadMoreRef = useRef<HTMLDivElement>(null);
+  const [isFetchingMore, setIsFetchingMore] = useState(false);
 
-  const loadMoreRef = React.useRef<HTMLDivElement>(null);
-  const [isFetchingMore, setIsFetchingMore] = React.useState(false);
-
-  const handleLoadMore = React.useCallback(async () => {
+  const handleLoadMore = useCallback(async () => {
     if (!data?.gameLogs?.pageInfo?.hasNextPage || isFetchingMore) return;
 
     setIsFetchingMore(true);
@@ -46,12 +42,12 @@ export default function CommunityPage() {
     }
   }, [data, fetchMore, isFetchingMore]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const element = loadMoreRef.current;
     if (!element || activeTab !== 'recent') return;
 
     const observer = new IntersectionObserver(
-      (entries) => {
+      entries => {
         if (entries[0].isIntersecting) {
           handleLoadMore();
         }
@@ -117,9 +113,7 @@ export default function CommunityPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Community Members</CardTitle>
-                <CardDescription>
-                  Discover and connect with other members
-                </CardDescription>
+                <CardDescription>Discover and connect with other members</CardDescription>
               </CardHeader>
               <CardContent>
                 <UserSearchSection />

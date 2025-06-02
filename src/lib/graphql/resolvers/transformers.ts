@@ -68,6 +68,17 @@ export function transformComment(comment: DBComment): GraphQLComment {
     reactions: comment.reactions.map(transformReaction),
     user: comment.user,
     __typename: 'Comment',
+    childComments: {
+      edges: [],
+      pageInfo: {
+        hasNextPage: false,
+        hasPreviousPage: false,
+        startCursor: null,
+        endCursor: null,
+      },
+      totalCount: 0,
+    },
+    depth: 0,
   };
 }
 

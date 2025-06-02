@@ -2,7 +2,7 @@
 
 import { useQuery } from '@apollo/client';
 import { format } from 'date-fns';
-import { 
+import {
   Calendar,
   Clock,
   Filter,
@@ -16,7 +16,7 @@ import {
   Users,
   X,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -29,7 +29,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { 
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -40,7 +40,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { StarRating } from '@/components/ui/star-rating';
 import { GET_GAME_LOGS } from '@/lib/graphql/queries';
 import { CLASSIFICATION } from '@/lib/types/config.types';
-import { GameLog } from '@/lib/types/generated/graphql';
+import { GameLog, GameLogEdge } from '@/lib/types/generated/graphql';
 import { cn } from '@/lib/utils';
 import { formatCount } from '@/lib/utils/index.format';
 
@@ -57,8 +57,8 @@ const SortDirection = {
   Desc: 'DESC' as const,
 };
 
-type GameLogSortByType = typeof GameLogSortBy[keyof typeof GameLogSortBy];
-type SortDirectionType = typeof SortDirection[keyof typeof SortDirection];
+type GameLogSortByType = (typeof GameLogSortBy)[keyof typeof GameLogSortBy];
+type SortDirectionType = (typeof SortDirection)[keyof typeof SortDirection];
 
 // Loading skeleton component
 const GameLogSkeleton = () => (
@@ -125,7 +125,10 @@ interface PageCursor {
   endCursor: string | null;
 }
 
-export function GameLogSearchSection({ userId, initialSearchText = '' }: GameLogSearchSectionProps) {
+export function GameLogSearchSection({
+  userId,
+  initialSearchText = '',
+}: GameLogSearchSectionProps) {
   const router = useRouter();
   const [searchText, setSearchText] = useState(initialSearchText);
   const [selectedRating, setSelectedRating] = useState<string>('all');
@@ -142,34 +145,43 @@ export function GameLogSearchSection({ userId, initialSearchText = '' }: GameLog
 
   // Build filters object
   const filters = useMemo(() => {
-    const filterObj: any = {};
-    
+    const filterObj: Record<string, string | number> = {};
+
     if (searchText) filterObj.searchText = searchText;
     if (userId) filterObj.userId = userId;
-    
+
     if (selectedRating !== 'all') {
       const rating = parseInt(selectedRating);
       filterObj.minRating = rating;
       filterObj.maxRating = rating;
     }
-    
+
     if (selectedSetting !== 'all') {
       filterObj.watchedSetting = selectedSetting;
     }
-    
+
     if (selectedClassification !== 'all') {
       filterObj.classification = selectedClassification;
     }
-    
+
     if (hasNotes !== 'all') {
-      filterObj.hasNotes = hasNotes === 'yes';
+      filterObj.hasNotes = hasNotes === 'yes' ? 'true' : 'false';
     }
-    
+
     filterObj.sortBy = sortBy;
     filterObj.sortDirection = sortDirection;
-    
+
     return filterObj;
-  }, [searchText, userId, selectedRating, selectedSetting, selectedClassification, hasNotes, sortBy, sortDirection]);
+  }, [
+    searchText,
+    userId,
+    selectedRating,
+    selectedSetting,
+    selectedClassification,
+    hasNotes,
+    sortBy,
+    sortDirection,
+  ]);
 
   // Get cursor for current page
   const currentCursor = currentPage > 1 ? pageCursors[currentPage - 1]?.endCursor : null;
@@ -192,12 +204,12 @@ export function GameLogSearchSection({ userId, initialSearchText = '' }: GameLog
         [currentPage]: {
           startCursor: data.gameLogs.pageInfo.startCursor,
           endCursor: data.gameLogs.pageInfo.endCursor,
-        }
+        },
       }));
     }
   }, [data, currentPage]);
 
-  const gameLogs = data?.gameLogs?.edges?.map((edge: any) => edge.node) || [];
+  const gameLogs = data?.gameLogs?.edges?.map((edge: GameLogEdge) => edge.node) || [];
   const totalCount = data?.gameLogs?.totalCount || 0;
   const hasNextPage = data?.gameLogs?.pageInfo?.hasNextPage || false;
   const totalPages = Math.ceil(totalCount / pageSize);
@@ -227,14 +239,26 @@ export function GameLogSearchSection({ userId, initialSearchText = '' }: GameLog
     setPageCursors({});
   };
 
-  const hasActiveFilters = searchText || selectedRating !== 'all' || selectedSetting !== 'all' || 
-    selectedClassification !== 'all' || hasNotes !== 'all';
+  const hasActiveFilters =
+    searchText ||
+    selectedRating !== 'all' ||
+    selectedSetting !== 'all' ||
+    selectedClassification !== 'all' ||
+    hasNotes !== 'all';
 
   // Reset pagination when filters change
   useEffect(() => {
     setCurrentPage(1);
     setPageCursors({});
-  }, [searchText, selectedRating, selectedSetting, selectedClassification, hasNotes, sortBy, sortDirection]);
+  }, [
+    searchText,
+    selectedRating,
+    selectedSetting,
+    selectedClassification,
+    hasNotes,
+    sortBy,
+    sortDirection,
+  ]);
 
   return (
     <div className="space-y-6">
@@ -247,7 +271,7 @@ export function GameLogSearchSection({ userId, initialSearchText = '' }: GameLog
             type="text"
             placeholder="Search game logs by teams, notes, tags, or location..."
             value={searchText}
-            onChange={(e) => setSearchText(e.target.value)}
+            onChange={e => setSearchText(e.target.value)}
             className="pl-10"
           />
         </div>
@@ -328,7 +352,7 @@ export function GameLogSearchSection({ userId, initialSearchText = '' }: GameLog
           {/* Sort Options */}
           <div className="space-y-2">
             <Label className="text-sm">Sort by</Label>
-            <Select value={sortBy} onValueChange={(value) => setSortBy(value as GameLogSortByType)}>
+            <Select value={sortBy} onValueChange={value => setSortBy(value as GameLogSortByType)}>
               <SelectTrigger className="w-[160px]">
                 <SortDesc className="mr-2 h-4 w-4" />
                 <SelectValue placeholder="Sort by" />
@@ -344,7 +368,10 @@ export function GameLogSearchSection({ userId, initialSearchText = '' }: GameLog
           {/* Sort Direction */}
           <div className="space-y-2">
             <Label className="text-sm">Order</Label>
-            <Select value={sortDirection} onValueChange={(value) => setSortDirection(value as SortDirectionType)}>
+            <Select
+              value={sortDirection}
+              onValueChange={value => setSortDirection(value as SortDirectionType)}
+            >
               <SelectTrigger className="w-[120px]">
                 <SelectValue placeholder="Order" />
               </SelectTrigger>
@@ -357,12 +384,7 @@ export function GameLogSearchSection({ userId, initialSearchText = '' }: GameLog
 
           {/* Clear Filters */}
           {hasActiveFilters && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={clearFilters}
-              className="h-10 mt-auto"
-            >
+            <Button variant="ghost" size="sm" onClick={clearFilters} className="h-10 mt-auto">
               <X className="mr-2 h-4 w-4" />
               Clear filters
             </Button>
@@ -404,7 +426,7 @@ export function GameLogSearchSection({ userId, initialSearchText = '' }: GameLog
             <Trophy className="h-12 w-12 text-muted-foreground mb-4" />
             <h3 className="font-semibold text-lg mb-2">No game logs found</h3>
             <p className="text-muted-foreground text-center max-w-sm">
-              {hasActiveFilters 
+              {hasActiveFilters
                 ? 'Try adjusting your filters to find more game logs.'
                 : 'No game logs have been created yet.'}
             </p>
@@ -416,12 +438,12 @@ export function GameLogSearchSection({ userId, initialSearchText = '' }: GameLog
             {gameLogs.map((log: GameLog) => {
               const classificationStyles = getClassificationStyles(log.classification);
               const ClassificationIcon = classificationStyles.icon;
-              
+
               return (
-                <Card 
+                <Card
                   key={log.id}
                   className="overflow-hidden cursor-pointer hover:shadow-lg transition-all duration-200 group"
-                  onClick={(e) => handleCardClick(e, log.id)}
+                  onClick={e => handleCardClick(e, log.id)}
                 >
                   <CardHeader className="pb-3">
                     <div className="flex items-start justify-between gap-2">
@@ -429,28 +451,27 @@ export function GameLogSearchSection({ userId, initialSearchText = '' }: GameLog
                       <Link
                         href={`/protected/user/${log.userId}`}
                         className="flex items-center gap-2 hover:opacity-80 transition-opacity z-10"
-                        onClick={(e) => e.stopPropagation()}
+                        onClick={e => e.stopPropagation()}
                       >
                         <Avatar className="h-8 w-8">
                           <AvatarImage src={log.user?.imageUrl || undefined} />
                           <AvatarFallback className="text-xs">
-                            {log.user?.firstName?.[0]}{log.user?.lastName?.[0]}
+                            {log.user?.firstName?.[0]}
+                            {log.user?.lastName?.[0]}
                           </AvatarFallback>
                         </Avatar>
                         <div className="min-w-0">
                           <p className="text-sm font-medium truncate">
                             {log.user?.firstName} {log.user?.lastName}
                           </p>
-                          <p className="text-xs text-muted-foreground">
-                            @{log.user?.username}
-                          </p>
+                          <p className="text-xs text-muted-foreground">@{log.user?.username}</p>
                         </div>
                       </Link>
 
                       {/* Classification Badge */}
-                      <Badge 
+                      <Badge
                         variant={classificationStyles.variant}
-                        className={cn("gap-1 shrink-0", classificationStyles.className)}
+                        className={cn('gap-1 shrink-0', classificationStyles.className)}
                       >
                         <ClassificationIcon className="h-3 w-3" />
                         {log.classification}
@@ -513,14 +534,14 @@ export function GameLogSearchSection({ userId, initialSearchText = '' }: GameLog
                           <StarRating rating={log.ratingStars} size="sm" />
                         </div>
                       )}
-                      
+
                       {log.watchedDate && (
                         <div className="flex items-center gap-1 text-muted-foreground">
                           <Calendar className="h-3.5 w-3.5" />
                           <span>{format(new Date(log.watchedDate), 'MMM d, yyyy')}</span>
                         </div>
                       )}
-                      
+
                       {log.watchedSetting && (
                         <div className="flex items-center gap-1 text-muted-foreground">
                           <Tv className="h-3.5 w-3.5" />
@@ -556,9 +577,7 @@ export function GameLogSearchSection({ userId, initialSearchText = '' }: GameLog
 
                     {/* Notes Preview */}
                     {log.notes && (
-                      <p className="text-sm text-muted-foreground line-clamp-2">
-                        {log.notes}
-                      </p>
+                      <p className="text-sm text-muted-foreground line-clamp-2">{log.notes}</p>
                     )}
 
                     {/* Footer */}
@@ -601,11 +620,24 @@ export function GameLogSearchSection({ userId, initialSearchText = '' }: GameLog
                   } else if (currentPage >= totalPages - 3) {
                     pageNum = i === 0 ? 1 : i === 1 ? -1 : totalPages - 6 + i;
                   } else {
-                    pageNum = i === 0 ? 1 : i === 1 ? -1 : i === 5 ? -1 : i === 6 ? totalPages : currentPage - 3 + i;
+                    pageNum =
+                      i === 0
+                        ? 1
+                        : i === 1
+                          ? -1
+                          : i === 5
+                            ? -1
+                            : i === 6
+                              ? totalPages
+                              : currentPage - 3 + i;
                   }
 
                   if (pageNum === -1) {
-                    return <span key={i} className="px-2 text-muted-foreground">...</span>;
+                    return (
+                      <span key={i} className="px-2 text-muted-foreground">
+                        ...
+                      </span>
+                    );
                   }
 
                   return (
@@ -638,4 +670,4 @@ export function GameLogSearchSection({ userId, initialSearchText = '' }: GameLog
       )}
     </div>
   );
-} 
+}

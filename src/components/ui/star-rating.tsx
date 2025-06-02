@@ -37,11 +37,13 @@ export function StarRating({
   if (hasHalfStar) {
     stars.push(
       <div key="half" className="relative">
+        <Star className={cn(sizeClasses, 'text-gray-300', className)} />
         <Star
-          className={cn(sizeClasses, 'text-gray-300', className)}
-        />
-        <Star
-          className={cn(sizeClasses, 'fill-gray-600 text-gray-600 absolute top-0 left-0', className)}
+          className={cn(
+            sizeClasses,
+            'fill-gray-600 text-gray-600 absolute top-0 left-0',
+            className
+          )}
           style={{ clipPath: 'polygon(0 0, 50% 0, 50% 100%, 0 100%)' }}
         />
       </div>
@@ -50,9 +52,7 @@ export function StarRating({
 
   // Add empty stars
   for (let i = 0; i < emptyStars; i++) {
-    stars.push(
-      <Star key={`empty-${i}`} className={cn(sizeClasses, 'text-gray-300', className)} />
-    );
+    stars.push(<Star key={`empty-${i}`} className={cn(sizeClasses, 'text-gray-300', className)} />);
   }
 
   return <div className="flex items-center gap-0.5">{stars}</div>;

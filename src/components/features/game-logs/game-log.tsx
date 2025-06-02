@@ -28,26 +28,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Skeleton } from '@/components/ui/skeleton';
 import { StarRating } from '@/components/ui/star-rating';
 import { GET_GAME_LOG_BY_ID } from '@/lib/graphql/queries';
-import type { GameLog } from '@/lib/types/generated/graphql';
+import type { GameLogByIdResponse, TeamDisplayProps } from '@/lib/types/game-log.types';
 import { cn } from '@/lib/utils';
-
-interface GameLogByIdResponse {
-  gameLogById: GameLog;
-}
-
-interface TeamSummary {
-  id: string;
-  code: string;
-  logo: string;
-  name: string;
-  nickname: string;
-}
-
-interface Arena {
-  name?: string;
-  city?: string;
-  state?: string;
-}
 
 // Loading skeleton component
 const GameLogSkeleton = () => (
@@ -128,15 +110,6 @@ const ErrorState = ({ error }: { error: Error }) => (
 );
 
 // Team display component
-interface TeamDisplayProps {
-  team: TeamSummary | null;
-  score?: number;
-  isHome: boolean;
-  imageErrors?: Record<string, boolean>;
-  onImageError?: (id: string) => void;
-  gameId?: string;
-}
-
 const TeamDisplay = ({
   team,
   score,
@@ -268,186 +241,129 @@ export default function GameLog() {
           <div className="bg-gradient-to-r from-primary/5 to-primary/10 dark:from-primary/10 dark:to-primary/20">
             <CardHeader>
               <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="text-2xl">Game Details</CardTitle>
-                  <CardDescription>
-                    {gameDate ? format(gameDate, 'EEEE, MMMM d, yyyy') : 'Date not available'}
-                  </CardDescription>
+                <div className="flex items-center gap-4">
+                  <Avatar>
+                    <AvatarImage src={gameLog.user?.imageUrl || undefined} />
+                    <AvatarFallback>{gameLog.user?.username?.[0]?.toUpperCase()}</AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <CardTitle>{gameLog.user?.username}</CardTitle>
+                    <CardDescription>
+                      {gameDate && format(gameDate, 'MMMM d, yyyy')}
+                    </CardDescription>
+                  </div>
                 </div>
-                <Badge variant={gameLog.game?.status?.short === 'FT' ? 'default' : 'secondary'}>
-                  {gameLog.game?.status?.short || 'Unknown'}
-                </Badge>
+                <div className="flex items-center gap-2">
+                  <StarRating rating={gameLog.rating || 0} />
+                  <span className="text-sm text-muted-foreground">({gameLog.rating || 0})</span>
+                </div>
               </div>
             </CardHeader>
           </div>
-
           <CardContent className="pt-6">
-            <div className="space-y-6">
-              {/* Teams and Score */}
-              <div className="flex items-center justify-between gap-4">
-                <TeamDisplay
-                  team={gameLog.game?.teams?.visitors}
-                  score={gameLog.game?.scores?.visitors?.points}
-                  isHome={false}
-                  imageErrors={imageErrors}
-                  onImageError={handleImageError}
-                  gameId={gameLog.id}
-                />
+            <div className="flex items-center justify-between gap-4">
+              <TeamDisplay
+                team={gameLog.game?.teams?.visitors}
+                score={gameLog.game?.scores?.visitors?.points}
+                isHome={false}
+                imageErrors={imageErrors}
+                onImageError={handleImageError}
+                gameId={gameLog.id}
+              />
 
-                <div className="text-center px-4">
-                  <p className="text-sm text-muted-foreground mb-1">Final</p>
-                  <div className="text-3xl font-bold text-muted-foreground">VS</div>
+              <div className="text-center">
+                <div className="text-2xl font-bold">
+                  {gameLog.game?.scores?.visitors?.points} - {gameLog.game?.scores?.home?.points}
                 </div>
-
-                <TeamDisplay
-                  team={gameLog.game?.teams?.home}
-                  score={gameLog.game?.scores?.home?.points}
-                  isHome={true}
-                  imageErrors={imageErrors}
-                  onImageError={handleImageError}
-                  gameId={gameLog.id}
-                />
+                <div className="text-sm text-muted-foreground">
+                  {gameLog.game?.status?.long || 'Final'}
+                </div>
               </div>
 
-              {/* Game Info */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4 border-t">
-                <div className="text-center">
-                  <Building2 className="h-4 w-4 mx-auto mb-1 text-muted-foreground" />
-                  <p className="text-sm font-medium">
-                    {(gameLog.game?.arena as Arena)?.name || 'Unknown Arena'}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {(gameLog.game?.arena as Arena)?.city && (gameLog.game?.arena as Arena)?.state
-                      ? `${(gameLog.game?.arena as Arena).city}, ${(gameLog.game?.arena as Arena).state}`
-                      : 'Arena'}
-                  </p>
-                </div>
-                <div className="text-center">
-                  <Trophy className="h-4 w-4 mx-auto mb-1 text-muted-foreground" />
-                  <p className="text-sm font-medium">{gameLog.game?.league || 'NBA'}</p>
-                  <p className="text-xs text-muted-foreground">Season {gameLog.game?.season}</p>
-                </div>
-                <div className="text-center">
-                  <TrendingUp className="h-4 w-4 mx-auto mb-1 text-muted-foreground" />
-                  <p className="text-sm font-medium">{gameLog.game?.timesTied || 0}</p>
-                  <p className="text-xs text-muted-foreground">Times Tied</p>
-                </div>
-                <div className="text-center">
-                  <Users className="h-4 w-4 mx-auto mb-1 text-muted-foreground" />
-                  <p className="text-sm font-medium">{gameLog.game?.leadChanges || 0}</p>
-                  <p className="text-xs text-muted-foreground">Lead Changes</p>
-                </div>
-              </div>
+              <TeamDisplay
+                team={gameLog.game?.teams?.home}
+                score={gameLog.game?.scores?.home?.points}
+                isHome={true}
+                imageErrors={imageErrors}
+                onImageError={handleImageError}
+                gameId={gameLog.id}
+              />
             </div>
           </CardContent>
         </Card>
 
-        {/* Watch Details and User Info Grid */}
+        {/* Game Details */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Watch Details Card */}
+          {/* Watch Info */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Tv className="h-5 w-5" />
-                Watch Details
-              </CardTitle>
+              <CardTitle>Watch Info</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-6">
               <WatchInfoItem
-                icon={Tv}
-                label="Setting"
-                value={gameLog.watchedSetting || 'Not specified'}
-                badge
+                icon={Calendar}
+                label="Watched Date"
+                value={watchDate ? format(watchDate, 'MMMM d, yyyy') : 'Not specified'}
               />
               <WatchInfoItem
                 icon={MapPin}
                 label="Location"
-                value={gameLog.watchedLocation || 'Not specified'}
+                value={gameLog.watchedLocation ?? 'Not specified'}
               />
               <WatchInfoItem
-                icon={Calendar}
-                label="Watched On"
-                value={watchDate ? format(watchDate, 'MMM d, yyyy h:mm a') : 'Not specified'}
+                icon={Building2}
+                label="Venue"
+                value={gameLog.watchedSetting ?? 'Not specified'}
               />
               <WatchInfoItem
-                icon={Star}
-                label="Rating"
-                value={
-                  <div className="flex items-center gap-2">
-                    <StarRating
-                      rating={gameLog.ratingStars || gameLog.ratingForGame || 0}
-                      size="sm"
-                    />
-                    <span className="text-sm text-muted-foreground">
-                      ({gameLog.ratingStars || gameLog.ratingForGame || 0}/5)
-                    </span>
-                  </div>
-                }
+                icon={Tv}
+                label="Watch Method"
+                value={gameLog.watchedScope ?? 'Not specified'}
+                badge
               />
             </CardContent>
           </Card>
 
-          {/* User Info Card */}
-          {gameLog.user && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="h-5 w-5" />
-                  Logged By
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Link href={`/protected/user/${gameLog.user.id}`}>
-                  <div className="flex items-center gap-4 p-4 rounded-lg hover:bg-muted/50 transition-colors">
-                    <Avatar className="h-12 w-12">
-                      <AvatarImage src={gameLog.user.imageUrl || undefined} />
-                      <AvatarFallback>
-                        {gameLog.user.firstName?.[0]}
-                        {gameLog.user.lastName?.[0]}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <p className="font-semibold">
-                        {gameLog.user.firstName} {gameLog.user.lastName}
-                      </p>
-                      <p className="text-sm text-muted-foreground">@{gameLog.user.username}</p>
-                    </div>
-                  </div>
-                </Link>
-
-                {gameLog.notes && (
-                  <div className="mt-4 p-4 bg-muted/50 rounded-lg">
-                    <p className="text-sm font-medium mb-1">Notes</p>
-                    <p className="text-sm text-muted-foreground">{gameLog.notes}</p>
-                  </div>
-                )}
-
-                {gameLog.tags && gameLog.tags.length > 0 && (
-                  <div className="mt-4">
-                    <p className="text-sm font-medium mb-2">Tags</p>
-                    <div className="flex flex-wrap gap-2">
-                      {gameLog.tags.map((tag, index) => (
-                        <Badge key={index} variant="secondary">
-                          {tag}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          )}
+          {/* Game Experience */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Game Experience</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <WatchInfoItem
+                icon={TrendingUp}
+                label="Atmosphere"
+                value={gameLog.ratingForGame ? `${gameLog.ratingForGame}/10` : 'Not rated'}
+                badge
+              />
+              <WatchInfoItem
+                icon={Star}
+                label="Overall Rating"
+                value={gameLog.ratingStars ? `${gameLog.ratingStars}/5` : 'Not rated'}
+              />
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Star className="h-4 w-4" />
+                  <span>Notes</span>
+                </div>
+                <div className="font-medium whitespace-pre-wrap">
+                  {gameLog.notes ?? 'No notes provided'}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
-        {/* Reactions Section */}
-        <Card>
-          <CardContent className="pt-6">
-            <ReactionsSection targetId={gameLog.id} targetType="game_log" />
-          </CardContent>
-        </Card>
-
-        {/* Comments Section */}
-        <CommentsSection parentId={gameLog.id} parentType="game_log" />
+        {/* Reactions and Comments */}
+        <div className="space-y-6">
+          <ReactionsSection
+            targetId={gameLog.id}
+            targetType="game_log"
+            reactions={gameLog.reactions.edges.map(edge => edge.node)}
+            totalReactionCount={gameLog.reactions.totalCount}
+          />
+          <CommentsSection parentId={gameLog.id} parentType="game_log" initialExpanded={true} />
+        </div>
       </div>
     </div>
   );

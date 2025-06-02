@@ -1,13 +1,9 @@
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
-import { getCurrentSeason } from './index.time';
-
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
-
-export { getCurrentSeason };
 
 // Keep only the utility functions that are being used
 export * from './index.time';

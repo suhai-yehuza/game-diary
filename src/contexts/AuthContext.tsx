@@ -12,6 +12,9 @@ const AuthContext = createContext<AuthContextType>({
   isAuthenticated: false,
 });
 
+// Re-export useAuth from Clerk
+export { useAuth };
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { userId, isSignedIn } = useAuth();
   const { user: clerkUser, isLoaded } = useUser();

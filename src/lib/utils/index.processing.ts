@@ -140,15 +140,6 @@ async function withTransaction<T>(
   }
 }
 
-// UUID Generation Functions
-// Additional entropy sources
-const getAdditionalEntropy = (): string => {
-  const timestamp = Date.now().toString(36);
-  const random = Math.random().toString(36).substring(2);
-  const processId = process.pid.toString(36);
-  return `${timestamp}-${random}-${processId}`;
-};
-
 /**
  * Generates a UUID with additional entropy and collision detection
  */

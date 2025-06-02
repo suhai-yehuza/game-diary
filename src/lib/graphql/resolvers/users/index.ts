@@ -63,7 +63,7 @@ export { mapUserData };
 export const searchUsers = async (
   _parent: unknown,
   args: PaginationArgs & { searchTerm?: string; filters?: UserSearchFilters },
-  { db, user: currentUser }: Context
+  { db, user: _currentUser }: Context
 ) => {
   try {
     const { first = 20, after, searchTerm, filters } = args;
@@ -171,9 +171,7 @@ export const searchUsers = async (
     }
 
     // Execute query with ordering and limit
-    const results = await query
-      .orderBy(orderByClause)
-      .limit(limit + 1);
+    const results = await query.orderBy(orderByClause).limit(limit + 1);
 
     // Check if there are more items
     const hasNextPage = results.length > limit;
@@ -183,14 +181,14 @@ export const searchUsers = async (
     const mappedUsers = await Promise.all(
       actualResults.map(async result => {
         const userData = mapUserData(result.user);
-        
+
         // Fetch game log IDs for this user (limit to avoid performance issues)
         const gameLogs = await db
           .select({ id: schema.game_logs.id })
           .from(schema.game_logs)
           .where(eq(schema.game_logs.userId, result.user.id))
           .limit(100);
-        
+
         return {
           ...userData,
           gameLogs,
@@ -203,14 +201,10 @@ export const searchUsers = async (
       .select({ count: sql<number>`COUNT(*)::int` })
       .from(schema.users)
       .where(conditions.length > 0 ? and(...conditions) : undefined);
-    
+
     const totalCount = totalCountQuery[0]?.count || 0;
 
-    return createConnection(
-      mappedUsers, 
-      totalCount,
-      { first: limit, after }
-    );
+    return createConnection(mappedUsers, totalCount, { first: limit, after });
   } catch (error) {
     handleResolverError(error, 'search users');
   }

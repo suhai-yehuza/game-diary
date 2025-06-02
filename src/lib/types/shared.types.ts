@@ -1,6 +1,10 @@
 /**
  * Shared types used across the application
  */
+import { type InferSelectModel } from 'drizzle-orm';
+
+import { nba_games } from '@/lib/db/schema/nba-schemas';
+
 import type { Classification, GAME_STATUS } from './generated/graphql';
 
 // Common Types

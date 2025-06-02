@@ -11,26 +11,26 @@ import { GameCardProps } from '@/lib/types/consolidated.types';
 // Helper function to validate state values
 const isValidState = (state: string | undefined | null): boolean => {
   if (!state) return false;
-  
+
   // Common invalid values
   if (state.length === 1 || state === 'O' || state === '0') return false;
-  
+
   // Valid US state codes (2 letters) or reasonable length for full state names
   if (state.length === 2 || (state.length > 3 && state.length < 20)) {
     return /^[A-Za-z\s]+$/.test(state);
   }
-  
+
   return false;
 };
 
 // Helper function to format arena location
 const formatArenaLocation = (arena: { name?: string; city?: string; state?: string }): string => {
   const parts = [];
-  
+
   if (arena.name) parts.push(arena.name);
   if (arena.city) parts.push(arena.city);
   if (arena.state && isValidState(arena.state)) parts.push(arena.state);
-  
+
   return parts.join(', ');
 };
 
@@ -148,7 +148,9 @@ export const GameCard = memo(({ game, index, imageErrors, onImageError }: GameCa
               >
                 <div className="relative w-16 h-16 flex-shrink-0">
                   <Image
-                    src={imageErrors?.has(`${game.id}-home`) ? '/gamelog.svg' : game.teams.home.logo}
+                    src={
+                      imageErrors?.has(`${game.id}-home`) ? '/gamelog.svg' : game.teams.home.logo
+                    }
                     alt={game.teams.home.name}
                     fill
                     sizes="64px"

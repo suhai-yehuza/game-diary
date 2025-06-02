@@ -11,6 +11,7 @@ Instead of making separate API calls for each reaction display, reactions are lo
 ### 1. Updated GraphQL Queries
 
 The `GET_GAME_LOGS` query now fetches:
+
 - First 20 reactions for each game log (with total count)
 - First 20 comments (with their first 10 reactions each)
 
@@ -63,18 +64,19 @@ gameLogs {
 Both GameLog and Comment resolvers now implement smart fetching:
 
 **GameLog Resolver:**
+
 ```typescript
 reactions: async (parent: any, args: any, { db }: Context) => {
   const limit = args.first || 20;
-  
+
   // Get total count separately for accurate display
   const [countResult] = await db
     .select({ count: sql<number>`cast(count(*) as int)` })
     .from(schema.reactions)
     .where(eq(schema.reactions.targetId, parent.id));
-  
+
   const totalCount = countResult?.count || 0;
-  
+
   // Fetch limited reactions
   const reactions = await db
     .select()
@@ -82,12 +84,13 @@ reactions: async (parent: any, args: any, { db }: Context) => {
     .where(eq(schema.reactions.targetId, parent.id))
     .orderBy(schema.reactions.createdAt)
     .limit(limit);
-  
+
   // Returns connection with accurate totalCount
-}
+};
 ```
 
 **Comment Resolver:**
+
 ```typescript
 reactions: async (parent: any, _args: any, { db }: Context) => {
   // Comments get fewer reactions initially (10)
@@ -98,12 +101,13 @@ reactions: async (parent: any, _args: any, { db }: Context) => {
     .orderBy(schema.reactions.createdAt)
     .limit(10);
   // Returns array of reactions
-}
+};
 ```
 
 ### 3. Updated Components
 
 **ReactionDisplay Component:**
+
 - Now accepts `totalReactionCount` prop for accurate counts
 - Shows reaction counts grouped by emoji
 - Displays "+X more" button when there are more reactions than loaded
@@ -134,41 +138,46 @@ const reactionGroups = reactions.reduce((acc, reaction) => {
 ```
 
 **GameLogsSection Component:**
+
 - Extracts reactions from the connection structure
 - Passes them to ReactionsSection
 
 ```typescript
-<ReactionsSection 
-  targetId={log.id} 
-  targetType="game_log" 
-  reactions={log.reactions?.edges?.map(edge => edge.node) || []} 
+<ReactionsSection
+  targetId={log.id}
+  targetType="game_log"
+  reactions={log.reactions?.edges?.map(edge => edge.node) || []}
 />
 ```
 
 **CommentsSection Component:**
+
 - Passes reactions to ReactionDisplay for each comment
 
 ```typescript
-<ReactionDisplay 
-  targetId={comment.id} 
-  targetType="comment" 
-  reactions={comment.reactions} 
+<ReactionDisplay
+  targetId={comment.id}
+  targetType="comment"
+  reactions={comment.reactions}
 />
 ```
 
 **ReactionsSection Component:**
+
 - Simplified to just pass through reactions to ReactionDisplay
 - No longer makes its own query
 
 ## Scaling Strategy
 
 ### For Game Logs (Primary Content)
+
 - Initial load: 20 reactions
 - Always show accurate total count
 - "Load more" button when count exceeds loaded reactions
 - Full data loads only when user explicitly requests
 
-### For Comments (Secondary Content)  
+### For Comments (Secondary Content)
+
 - Initial load: 10 reactions per comment
 - Lighter weight since there can be many comments
 - Users can click to see all reactions if needed
@@ -192,4 +201,4 @@ const reactionGroups = reactions.reduce((acc, reaction) => {
 1. Implement reaction pagination with cursor-based loading
 2. Add reaction caching to avoid re-fetching
 3. Consider WebSocket subscriptions for real-time reaction updates
-4. Implement smart pre-loading based on user interaction patterns 
+4. Implement smart pre-loading based on user interaction patterns

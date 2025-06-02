@@ -1,19 +1,21 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
-import { DocumentNode, useQuery } from '@apollo/client';
+import { useQuery, DocumentNode } from '@apollo/client';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
-interface UseInfiniteScrollOptions {
+type Edge<_T extends { id: string }> = { node: _T };
+
+interface UseInfiniteScrollOptions<_T extends { id: string }> {
   query: DocumentNode;
-  variables?: Record<string, any>;
-  dataPath: string; // e.g., 'comments' or 'gameLogs'
+  variables?: Record<string, unknown>;
+  dataPath: string;
   pageSize?: number;
 }
 
-export function useInfiniteScroll({
+export function useInfiniteScroll<_T extends { id: string }>({
   query,
   variables = {},
   dataPath,
   pageSize = 10,
-}: UseInfiniteScrollOptions) {
+}: UseInfiniteScrollOptions<_T>) {
   const { data, loading, error, refetch, fetchMore } = useQuery(query, {
     variables: {
       ...variables,
@@ -43,14 +45,10 @@ export function useInfiniteScroll({
           const newData = fetchMoreResult[dataPath];
 
           // Create a Set of existing IDs for efficient lookup
-          const existingIds = new Set(
-            prevData.edges.map((edge: any) => edge.node.id)
-          );
+          const existingIds = new Set(prevData.edges.map((edge: Edge<_T>) => edge.node.id));
 
-          // Filter out any duplicate items from the new results
-          const newEdges = newData.edges.filter(
-            (edge: any) => !existingIds.has(edge.node.id)
-          );
+          // Filter out duplicates
+          const newEdges = newData.edges.filter((edge: Edge<_T>) => !existingIds.has(edge.node.id));
 
           return {
             ...prev,
@@ -69,25 +67,21 @@ export function useInfiniteScroll({
   }, [data, dataPath, fetchMore, isFetchingMore, pageSize, variables]);
 
   useEffect(() => {
-    const element = loadMoreRef.current;
-    if (!element) return;
-
     const observer = new IntersectionObserver(
-      (entries) => {
-        const [target] = entries;
-        if (target.isIntersecting && !loading && !isFetchingMore) {
+      entries => {
+        if (entries[0].isIntersecting && !isFetchingMore) {
           loadMore();
         }
       },
-      { 
-        threshold: 0.1, 
-        rootMargin: '100px' // Start loading 100px before the element is visible
-      }
+      { threshold: 0.1 }
     );
 
-    observer.observe(element);
+    if (loadMoreRef.current) {
+      observer.observe(loadMoreRef.current);
+    }
+
     return () => observer.disconnect();
-  }, [loading, isFetchingMore, loadMore]);
+  }, [loadMore, isFetchingMore]);
 
   return {
     data,
@@ -98,4 +92,4 @@ export function useInfiniteScroll({
     loadMoreRef,
     hasNextPage: data?.[dataPath]?.pageInfo?.hasNextPage || false,
   };
-} 
+}

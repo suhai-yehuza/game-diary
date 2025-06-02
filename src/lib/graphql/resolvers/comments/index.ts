@@ -1,16 +1,18 @@
 import { and, eq, sql } from 'drizzle-orm';
+import type { NeonHttpDatabase } from 'drizzle-orm/neon-http';
 
+import { API_CONFIG } from '@/lib/config/api.config';
 import * as schema from '@/lib/db/schema';
 import { createConnection, parseCursor } from '@/lib/graphql/utils/pagination';
-import { API_CONFIG } from '@/lib/config/api.config';
 import type { Context } from '@/lib/types/context.types';
+
 import type { PaginationArgs } from '../common/types';
 import { handleResolverError } from '../common/utils';
 
 // Helper function to calculate comment depth
 async function getCommentDepth(
   commentId: string,
-  db: any,
+  db: NeonHttpDatabase<typeof schema>,
   depth = 0
 ): Promise<number> {
   if (depth >= API_CONFIG.pagination.MAX_CHILD_COMMENT_DEPTH) {
@@ -22,7 +24,7 @@ async function getCommentDepth(
     .from(schema.comments)
     .where(eq(schema.comments.id, commentId))
     .limit(1)
-    .then((rows: any[]) => rows[0]);
+    .then((rows: Array<typeof schema.comments.$inferSelect>) => rows[0]);
 
   if (!comment || comment.parentType !== 'comment') {
     return depth;
@@ -37,7 +39,7 @@ export const comments = async (
   { db }: Context
 ) => {
   try {
-    const { first = 10, after, last, before, parentId } = args;
+    const { first = 10, after, last, parentId } = args;
 
     if (!parentId) {
       throw new Error('parentId is required');
@@ -51,7 +53,7 @@ export const comments = async (
       .select({ count: sql<number>`cast(count(*) as int)` })
       .from(schema.comments)
       .where(and(...conditions));
-    
+
     const totalCount = countResult?.count || 0;
 
     // Calculate offset from cursor
@@ -97,10 +99,10 @@ export const Comment = {
         .from(schema.users)
         .where(eq(schema.users.id, parent.userId))
         .limit(1);
-      
+
       const user = users[0];
       if (!user) return null;
-      
+
       // Return UserSummary format
       return {
         id: user.id,
@@ -116,7 +118,7 @@ export const Comment = {
       return null;
     }
   },
-  reactions: async (parent: any, _args: any, { db }: Context) => {
+  reactions: async (parent: { id: string }, _args: Record<string, unknown>, { db }: Context) => {
     try {
       // For comments, we'll return a limited set of reactions
       // The frontend can load more if needed via a separate query
@@ -141,10 +143,14 @@ export const Comment = {
       return [];
     }
   },
-  childComments: async (parent: any, args: any, { db }: Context) => {
+  childComments: async (
+    parent: { id: string },
+    args: { first?: number; after?: string },
+    { db }: Context
+  ) => {
     try {
       const { first = 10, after } = args;
-      
+
       // Check current depth
       const currentDepth = await getCommentDepth(parent.id, db);
       if (currentDepth >= API_CONFIG.pagination.MAX_CHILD_COMMENT_DEPTH) {
@@ -163,7 +169,7 @@ export const Comment = {
       // Get child comments
       const conditions = [
         eq(schema.comments.parentId, parent.id),
-        eq(schema.comments.parentType, 'comment')
+        eq(schema.comments.parentType, 'comment'),
       ];
 
       // Get total count
@@ -171,7 +177,7 @@ export const Comment = {
         .select({ count: sql<number>`cast(count(*) as int)` })
         .from(schema.comments)
         .where(and(...conditions));
-      
+
       const totalCount = countResult?.count || 0;
 
       // Calculate offset from cursor
@@ -213,13 +219,17 @@ export const Comment = {
       };
     }
   },
-  depth: async (parent: any, _args: any, { db }: Context) => {
+  depth: async (
+    parent: { id: string; parentId: string; parentType: string },
+    _args: Record<string, unknown>,
+    { db }: Context
+  ) => {
     try {
       // If parent is a game_log or the root, depth is 0
       if (parent.parentType !== 'comment') {
         return 0;
       }
-      
+
       // Calculate depth by traversing up the comment tree
       return await getCommentDepth(parent.parentId, db, 1);
     } catch (error) {
@@ -227,4 +237,4 @@ export const Comment = {
       return 0;
     }
   },
-}; 
+};

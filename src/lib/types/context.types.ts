@@ -4,7 +4,7 @@ import type { NeonHttpDatabase } from 'drizzle-orm/neon-http';
 
 import * as schema from '@/lib/db/schema';
 
-import type { Reaction } from './generated/graphql';
+import type { Reaction, UserSummary, Game } from './generated/graphql';
 import type { RedisClient } from './redis.types';
 
 export interface Context extends BaseContext {
@@ -20,5 +20,7 @@ export interface Context extends BaseContext {
   redis?: RedisClient;
   loaders?: {
     reaction?: DataLoader<string, Reaction>;
+    user?: DataLoader<string, UserSummary>;
+    game?: DataLoader<string, Game>;
   };
 }

@@ -21,7 +21,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     if (savedNotifications) {
       const parsed = JSON.parse(savedNotifications);
       // Convert date strings back to Date objects
-      const notificationsWithDates = parsed.map((n: any) => ({
+      const notificationsWithDates = parsed.map((n: AppNotification) => ({
         ...n,
         timestamp: new Date(n.timestamp),
         deletedAt: n.deletedAt ? new Date(n.deletedAt) : null,
@@ -39,7 +39,9 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   const activeNotifications = notifications.filter(n => !n.deletedAt);
   const unreadCount = activeNotifications.filter(n => !n.read).length;
 
-  const addNotification = (notification: Omit<AppNotification, 'id' | 'timestamp' | 'read' | 'deletedAt'>) => {
+  const addNotification = (
+    notification: Omit<AppNotification, 'id' | 'timestamp' | 'read' | 'deletedAt'>
+  ) => {
     const newNotification: AppNotification = {
       id: generateId(),
       message: notification.message,
@@ -66,12 +68,12 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   const markAsRead = (id: string) => {
     setNotifications(prev =>
       prev.map(notification =>
-        notification.id === id 
-          ? { 
-              ...notification, 
+        notification.id === id
+          ? {
+              ...notification,
               read: true,
-              deletedAt: new Date() // Soft delete when marking as read
-            } 
+              deletedAt: new Date(), // Soft delete when marking as read
+            }
           : notification
       )
     );
@@ -79,11 +81,11 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
 
   const markAllAsRead = () => {
     const now = new Date();
-    setNotifications(prev => 
-      prev.map(notification => ({ 
-        ...notification, 
+    setNotifications(prev =>
+      prev.map(notification => ({
+        ...notification,
         read: true,
-        deletedAt: !notification.deletedAt ? now : notification.deletedAt // Only set deletedAt if not already deleted
+        deletedAt: !notification.deletedAt ? now : notification.deletedAt, // Only set deletedAt if not already deleted
       }))
     );
   };
@@ -91,10 +93,10 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   const clearNotifications = () => {
     // Instead of removing, soft delete all notifications
     const now = new Date();
-    setNotifications(prev => 
-      prev.map(notification => ({ 
-        ...notification, 
-        deletedAt: !notification.deletedAt ? now : notification.deletedAt
+    setNotifications(prev =>
+      prev.map(notification => ({
+        ...notification,
+        deletedAt: !notification.deletedAt ? now : notification.deletedAt,
       }))
     );
   };

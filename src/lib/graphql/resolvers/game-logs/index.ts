@@ -1,4 +1,4 @@
-import { and, eq, sql, gte, lte, like, or, inArray, isNotNull, desc, asc } from 'drizzle-orm';
+import { and, eq, sql, gte, lte, like, or, isNotNull, desc, asc } from 'drizzle-orm';
 
 import * as schema from '@/lib/db/schema';
 import { createConnection, parseCursor } from '@/lib/graphql/utils/pagination';
@@ -56,11 +56,7 @@ export const gameLog = async (
   }
 };
 
-export const gameLogById = async (
-  _parent: unknown,
-  { id }: { id: string },
-  { db }: Context
-) => {
+export const gameLogById = async (_parent: unknown, { id }: { id: string }, { db }: Context) => {
   try {
     const gameLog = await db
       .select()
@@ -101,19 +97,19 @@ export const gameLogs = async (
   { db }: Context
 ) => {
   try {
-    const { first = 10, after, last, before, filters } = args;
+    const { first = 10, after, last, filters } = args;
 
     // Build the query conditions
     const conditions = [];
-    
+
     if (filters?.userId) {
       conditions.push(eq(schema.game_logs.userId, filters.userId));
     }
-    
+
     if (filters?.gameId) {
       conditions.push(eq(schema.game_logs.gameId, filters.gameId));
     }
-    
+
     if (filters?.classification) {
       conditions.push(eq(schema.game_logs.classification, filters.classification));
     }
@@ -134,7 +130,7 @@ export const gameLogs = async (
     if (filters?.minRating) {
       conditions.push(gte(schema.game_logs.ratingStars, filters.minRating.toString()));
     }
-    
+
     if (filters?.maxRating) {
       conditions.push(lte(schema.game_logs.ratingStars, filters.maxRating.toString()));
     }
@@ -151,9 +147,7 @@ export const gameLogs = async (
 
     // Tags filter - check if any of the provided tags are in the game log tags
     if (filters?.tags && filters.tags.length > 0) {
-      const tagConditions = filters.tags.map(tag => 
-        sql`${tag} = ANY(${schema.game_logs.tags})`
-      );
+      const tagConditions = filters.tags.map(tag => sql`${tag} = ANY(${schema.game_logs.tags})`);
       conditions.push(or(...tagConditions));
     }
 
@@ -162,12 +156,7 @@ export const gameLogs = async (
       conditions.push(isNotNull(schema.game_logs.notes));
       conditions.push(sql`${schema.game_logs.notes} != ''`);
     } else if (filters?.hasNotes === false) {
-      conditions.push(
-        or(
-          eq(schema.game_logs.notes, ''),
-          sql`${schema.game_logs.notes} IS NULL`
-        )
-      );
+      conditions.push(or(eq(schema.game_logs.notes, ''), sql`${schema.game_logs.notes} IS NULL`));
     }
 
     // Date range filter
@@ -187,7 +176,7 @@ export const gameLogs = async (
       .select({ count: sql<number>`cast(count(*) as int)` })
       .from(schema.game_logs)
       .where(whereClause);
-    
+
     const totalCount = countResult?.count || 0;
 
     // Calculate offset from cursor
@@ -196,7 +185,7 @@ export const gameLogs = async (
     // Determine sort order
     let orderByClause;
     const sortDirection = filters?.sortDirection === 'ASC' ? asc : desc;
-    
+
     switch (filters?.sortBy) {
       case 'WATCHED_DATE':
         orderByClause = sortDirection(schema.game_logs.watchedDate);
@@ -248,17 +237,23 @@ export const gameLogs = async (
 
 // Export GameLog type resolver
 export const GameLog = {
-  user: async (parent: any, _args: any, { loaders }: Context) => {
+  user: async (
+    parent: { userId: string },
+    _args: Record<string, unknown>,
+    { loaders }: Context
+  ) => {
     if (!parent.userId || !loaders) return null;
-    // Type assertion since we know these loaders exist from createLoaders
-    return (loaders as any).user.load(parent.userId);
+    return loaders.user?.load(parent.userId) || null;
   },
-  game: async (parent: any, _args: any, { loaders }: Context) => {
+  game: async (
+    parent: { gameId: string },
+    _args: Record<string, unknown>,
+    { loaders }: Context
+  ) => {
     if (!parent.gameId || !loaders) return null;
-    // Type assertion since we know these loaders exist from createLoaders
-    return (loaders as any).game.load(parent.gameId);
+    return loaders.game?.load(parent.gameId) || null;
   },
-  comments: async (parent: any, args: any, { db }: Context) => {
+  comments: async (parent: { id: string }, args: { first?: number }, { db }: Context) => {
     try {
       const limit = args.first || 100;
       const comments = await db
@@ -297,18 +292,18 @@ export const GameLog = {
       };
     }
   },
-  reactions: async (parent: any, args: any, { db }: Context) => {
+  reactions: async (parent: { id: string }, args: { first?: number }, { db }: Context) => {
     try {
       const limit = args.first || 20; // Default to 20 reactions
-      
+
       // Get total count of reactions
       const [countResult] = await db
         .select({ count: sql<number>`cast(count(*) as int)` })
         .from(schema.reactions)
         .where(eq(schema.reactions.targetId, parent.id));
-      
+
       const totalCount = countResult?.count || 0;
-      
+
       // Fetch limited reactions
       const reactions = await db
         .select()

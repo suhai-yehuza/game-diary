@@ -24,7 +24,9 @@ export interface AppNotification {
 export interface NotificationContextType {
   notifications: AppNotification[];
   unreadCount: number;
-  addNotification: (notification: Omit<AppNotification, 'id' | 'timestamp' | 'read' | 'deletedAt'>) => void;
+  addNotification: (
+    notification: Omit<AppNotification, 'id' | 'timestamp' | 'read' | 'deletedAt'>
+  ) => void;
   markAsRead: (id: string) => void;
   markAllAsRead: () => void;
   clearNotifications: () => void;

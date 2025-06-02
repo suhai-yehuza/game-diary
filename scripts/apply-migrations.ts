@@ -28,18 +28,18 @@ function parseSqlStatements(content: string): string[] {
   let currentStatement = '';
   let inDollarQuote = false;
   let dollarQuoteTag = '';
-  
+
   const lines = content.split('\n');
-  
+
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
     const trimmedLine = line.trim();
-    
+
     // Skip empty lines and comments when not in a statement
     if (!currentStatement && (trimmedLine === '' || trimmedLine.startsWith('--'))) {
       continue;
     }
-    
+
     // Check for dollar quote start/end
     const dollarQuoteMatch = line.match(/\$([^$]*)\$/g);
     if (dollarQuoteMatch) {
@@ -53,9 +53,9 @@ function parseSqlStatements(content: string): string[] {
         }
       }
     }
-    
+
     currentStatement += line + '\n';
-    
+
     // Only split on semicolon if we're not inside dollar quotes
     if (!inDollarQuote && trimmedLine.endsWith(';')) {
       const stmt = currentStatement.trim();
@@ -65,12 +65,12 @@ function parseSqlStatements(content: string): string[] {
       currentStatement = '';
     }
   }
-  
+
   // Add any remaining statement
   if (currentStatement.trim()) {
     statements.push(currentStatement.trim());
   }
-  
+
   return statements;
 }
 
@@ -116,7 +116,10 @@ async function getVerificationData(
 }
 
 // Compare verification data
-function compareVerification(before: MigrationVerification, after: MigrationVerification): {
+function compareVerification(
+  before: MigrationVerification,
+  after: MigrationVerification
+): {
   added: MigrationVerification;
   removed: MigrationVerification;
 } {
@@ -155,7 +158,7 @@ async function applyMigrations() {
   try {
     // Step 1: Ensure migration tracking table exists
     console.log('📋 Step 1: Ensuring migration tracking table exists...');
-    
+
     if (!dryRun) {
       await db.execute(sql`
         CREATE TABLE IF NOT EXISTS migration_versions (
@@ -188,12 +191,12 @@ async function applyMigrations() {
       const path = join(migrationsDir, file);
       const content = readFileSync(path, 'utf8');
       const checksum = createHash('sha256').update(content).digest('hex');
-      
+
       return {
         name: file,
         path,
         content,
-        checksum
+        checksum,
       };
     });
 
@@ -202,37 +205,41 @@ ${migrations.map(m => `  - ${m.name}`).join('\n')}`);
 
     // Step 3: Check which migrations have already been applied
     console.log('\n🔍 Step 3: Checking migration status...');
-    
-    const appliedMigrations = dryRun ? { rows: [] } : await db.execute(sql`
+
+    const appliedMigrations = dryRun
+      ? { rows: [] }
+      : await db.execute(sql`
       SELECT name, checksum, status, executed_at 
       FROM migration_versions 
       ORDER BY name;
     `);
 
-    const appliedMap = new Map(
-      appliedMigrations.rows.map((row: any) => [row.name, row])
-    );
+    const appliedMap = new Map(appliedMigrations.rows.map((row: any) => [row.name, row]));
 
     // Step 4: Apply new migrations
     console.log('\n⚡ Step 4: Applying migrations...\n');
-    
+
     let appliedCount = 0;
     let skippedCount = 0;
     let errorCount = 0;
 
     for (const migration of migrations) {
       const applied = appliedMap.get(migration.name);
-      
+
       if (applied) {
         if (applied.checksum === migration.checksum && applied.status === 'success') {
-          console.log(`✓ ${migration.name} - Already applied (${new Date(applied.executed_at).toLocaleDateString()})`);
+          console.log(
+            `✓ ${migration.name} - Already applied (${new Date(applied.executed_at).toLocaleDateString()})`
+          );
           skippedCount++;
           continue;
         } else if (applied.checksum !== migration.checksum) {
-          console.warn(`⚠️  ${migration.name} - Checksum mismatch! File may have been modified after application.`);
+          console.warn(
+            `⚠️  ${migration.name} - Checksum mismatch! File may have been modified after application.`
+          );
           console.warn(`    Applied checksum: ${applied.checksum.substring(0, 8)}...`);
           console.warn(`    Current checksum: ${migration.checksum.substring(0, 8)}...`);
-          
+
           if (!dryRun) {
             // Record the checksum mismatch but don't re-run the migration
             await db.execute(sql`
@@ -249,7 +256,7 @@ ${migrations.map(m => `  - ${m.name}`).join('\n')}`);
       }
 
       console.log(`\n📝 Applying ${migration.name}...`);
-      
+
       if (dryRun) {
         console.log('   [DRY RUN] Would execute migration');
         appliedCount++;
@@ -259,7 +266,7 @@ ${migrations.map(m => `  - ${m.name}`).join('\n')}`);
       const startTime = Date.now();
       let verificationBefore: MigrationVerification = {};
       let verificationAfter: MigrationVerification = {};
-      
+
       try {
         // Get pre-migration verification data
         console.log('   📊 Getting pre-migration state...');
@@ -276,7 +283,9 @@ ${migrations.map(m => `  - ${m.name}`).join('\n')}`);
               await db.execute(sql.raw(statement));
               console.log(`   ✓ Statement ${i + 1}/${statements.length} executed`);
             } catch (stmtError: any) {
-              console.error(`   ❌ Statement ${i + 1}/${statements.length} failed: ${stmtError.message}`);
+              console.error(
+                `   ❌ Statement ${i + 1}/${statements.length} failed: ${stmtError.message}`
+              );
               console.error(`      Statement preview: ${statement.substring(0, 100)}...`);
               throw stmtError;
             }
@@ -291,7 +300,7 @@ ${migrations.map(m => `  - ${m.name}`).join('\n')}`);
 
         // Compare before and after
         const { added, removed } = compareVerification(verificationBefore, verificationAfter);
-        
+
         console.log('   📋 Migration changes:');
         if (added.functions?.length) {
           console.log(`      ➕ Functions added: ${added.functions.join(', ')}`);
@@ -329,7 +338,7 @@ ${migrations.map(m => `  - ${m.name}`).join('\n')}`);
         errorCount++;
 
         console.error(`   ❌ Failed to apply migration: ${error.message}`);
-        
+
         // Record failed migration
         try {
           await db.execute(sql`
@@ -372,4 +381,4 @@ ${migrations.map(m => `  - ${m.name}`).join('\n')}`);
 }
 
 // Run migrations
-applyMigrations(); 
+applyMigrations();

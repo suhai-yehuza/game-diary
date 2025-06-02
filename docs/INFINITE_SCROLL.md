@@ -39,7 +39,7 @@ function GameLogsList() {
       {gameLogs.map(({ node }) => (
         <GameLogItem key={node.id} gameLog={node} />
       ))}
-      
+
       {hasNextPage && (
         <div ref={loadMoreRef} className="flex justify-center py-4">
           {isFetchingMore && <span>Loading more...</span>}
@@ -74,11 +74,11 @@ function CommentsSection({ parentId, parentType }) {
     if (!element) return;
 
     const observer = new IntersectionObserver(
-      async (entries) => {
+      async entries => {
         const [target] = entries;
         if (
-          target.isIntersecting && 
-          !loading && 
+          target.isIntersecting &&
+          !loading &&
           !isFetchingMore &&
           data?.comments?.pageInfo?.hasNextPage
         ) {
@@ -92,24 +92,19 @@ function CommentsSection({ parentId, parentType }) {
               },
               updateQuery: (prev, { fetchMoreResult }) => {
                 if (!fetchMoreResult) return prev;
-                
+
                 // Create a Set of existing comment IDs for efficient lookup
-                const existingIds = new Set(
-                  prev.comments.edges.map((edge: any) => edge.node.id)
-                );
-                
+                const existingIds = new Set(prev.comments.edges.map((edge: any) => edge.node.id));
+
                 // Filter out any duplicate comments from the new results
                 const newEdges = fetchMoreResult.comments.edges.filter(
                   (edge: any) => !existingIds.has(edge.node.id)
                 );
-                
+
                 return {
                   comments: {
                     ...fetchMoreResult.comments,
-                    edges: [
-                      ...prev.comments.edges,
-                      ...newEdges,
-                    ],
+                    edges: [...prev.comments.edges, ...newEdges],
                   },
                 };
               },
@@ -135,16 +130,19 @@ function CommentsSection({ parentId, parentType }) {
 ## Key Components
 
 ### 1. Intersection Observer
+
 - Detects when the loading trigger element comes into view
 - `threshold: 0.1` - Triggers when 10% of the element is visible
 - `rootMargin: '100px'` - Start loading 100px before the element is visible
 
 ### 2. GraphQL Pagination
+
 - Uses cursor-based pagination with `first` and `after` parameters
 - `pageInfo.hasNextPage` indicates if more data is available
 - `pageInfo.endCursor` is used as the `after` parameter for the next page
 
 ### 3. Cache Updates
+
 - `updateQuery` merges new data with existing data in Apollo cache
 - Preserves existing edges and appends new ones
 
@@ -183,4 +181,4 @@ query {
 1. **Memory**: Be mindful of keeping too many items in memory
 2. **Re-renders**: Use React.memo for list items to prevent unnecessary re-renders
 3. **Network**: Consider implementing a maximum number of pages to load
-4. **Cleanup**: Always disconnect the intersection observer on unmount 
+4. **Cleanup**: Always disconnect the intersection observer on unmount

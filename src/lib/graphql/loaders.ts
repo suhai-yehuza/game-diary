@@ -5,7 +5,7 @@ import type { NeonHttpDatabase } from 'drizzle-orm/neon-http';
 import { getCache } from '@/lib/cache';
 import * as schema from '@/lib/db/schema';
 import { db } from '@/lib/db/seed';
-import { REACTION_EMOJIS, GAME_STATUS_VALUES, FRIENDSHIP_STATUS } from '@/lib/types/config.types';
+import { REACTION_EMOJIS, GAME_STATUS_VALUES } from '@/lib/types/config.types';
 import type {
   Game,
   GameLog,
@@ -22,7 +22,6 @@ import type {
   NbaInfo,
   HeightInfo,
   WeightInfo,
-  FriendshipStatus,
 } from '@/lib/types/generated/graphql';
 import type { DbGame, DBComment, DBReaction } from '@/lib/types/generated/types';
 
@@ -261,6 +260,17 @@ export function createLoaders(db: NeonHttpDatabase<typeof schema>) {
         deletedAt: comment.deletedAt,
         user: null as unknown as UserSummary,
         reactions: [],
+        childComments: {
+          edges: [],
+          pageInfo: {
+            hasNextPage: false,
+            hasPreviousPage: false,
+            startCursor: null,
+            endCursor: null,
+          },
+          totalCount: 0,
+        },
+        depth: 0,
       });
     });
 
@@ -302,7 +312,7 @@ export function createLoaders(db: NeonHttpDatabase<typeof schema>) {
         id: friendship.id,
         userId: friendship.userId || '',
         subscriberId: friendship.friendId || '',
-        status: friendship.status || FRIENDSHIP_STATUS.PENDING,
+        status: friendship.status || 'Pending',
         createdAt: friendship.createdAt,
         updatedAt: friendship.updatedAt,
         initiator: null as unknown as UserSummary,
@@ -771,6 +781,17 @@ export const createCommentsLoader = (userLoader: DataLoader<string, UserSummary>
           createdAt: new Date(comment.createdAt),
           updatedAt: new Date(comment.updatedAt),
           deletedAt: comment.deletedAt || undefined,
+          childComments: {
+            edges: [],
+            pageInfo: {
+              hasNextPage: false,
+              hasPreviousPage: false,
+              startCursor: null,
+              endCursor: null,
+            },
+            totalCount: 0,
+          },
+          depth: 0,
         } as DBComment;
       });
     });

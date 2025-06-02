@@ -31,35 +31,133 @@ function parseUnusedExports(unusedExports: string[]): Map<string, string[]> {
   return result;
 }
 
-// Function to remove unused exports from a file
-function removeUnusedExports(filePath: string, unusedExports: string[]): void {
-  try {
-    let content = fs.readFileSync(filePath, 'utf-8');
+// Function to check if an export is used in type definitions
+function isTypeExport(filePath: string, exportName: string): boolean {
+  const content = fs.readFileSync(filePath, 'utf-8');
+  const lines = content.split('\n');
 
-    // Remove unused exports
-    for (const exportName of unusedExports) {
-      // Match export statements
-      const exportRegex = new RegExp(
-        `export\\s+(?:const|function|type|interface|class|enum)\\s+${exportName}\\b[^;]*;?`,
-        'g'
-      );
-      content = content.replace(exportRegex, '');
+  // Check for type/interface declarations
+  const typePattern = new RegExp(`(type|interface)\\s+${exportName}\\b`);
+  const exportPattern = new RegExp(`export\\s+(type|interface)\\s+${exportName}\\b`);
 
-      // Match named exports in export lists
-      const namedExportRegex = new RegExp(`export\\s*{[^}]*\\b${exportName}\\b[^}]*}`, 'g');
-      content = content.replace(namedExportRegex, match => {
-        return match.replace(`,?\\s*${exportName}\\b`, '');
-      });
-    }
+  return lines.some(line => typePattern.test(line) || exportPattern.test(line));
+}
 
-    // Clean up empty lines and multiple newlines
-    content = content.replace(/\n\s*\n\s*\n/g, '\n\n');
+// Function to check if a file is a barrel export file
+function isBarrelExportFile(filePath: string): boolean {
+  return filePath.endsWith('index.ts') || filePath.endsWith('index.tsx');
+}
 
-    fs.writeFileSync(filePath, content);
-    console.log(`Cleaned up ${unusedExports.length} unused exports in ${filePath}`);
-  } catch (error) {
-    console.error(`Error processing ${filePath}:`, error);
+// Function to check if an export is used in a barrel export
+function isUsedInBarrelExport(filePath: string, exportName: string): boolean {
+  const content = fs.readFileSync(filePath, 'utf-8');
+  const lines = content.split('\n');
+
+  // Check for re-exports
+  const exportPattern = new RegExp(`export\\s+{[^}]*\\b${exportName}\\b[^}]*}`);
+  return lines.some(line => exportPattern.test(line));
+}
+
+// Function to check if a file is a UI component
+function isUIComponent(filePath: string): boolean {
+  return filePath.includes('/components/ui/') || filePath.includes('/components/features/');
+}
+
+// Function to check if a file is a GraphQL resolver
+function isGraphQLResolver(filePath: string): boolean {
+  return filePath.includes('/graphql/resolvers/');
+}
+
+// Function to check if a file is a type definition
+function isTypeDefinition(filePath: string): boolean {
+  return filePath.includes('/types/') || filePath.endsWith('.d.ts');
+}
+
+// Function to check if an export should be skipped
+function shouldSkipExport(filePath: string, exportName: string): boolean {
+  // Skip UI components
+  if (isUIComponent(filePath)) {
+    console.log(`Skipping UI component export: ${exportName} in ${filePath}`);
+    return true;
   }
+
+  // Skip GraphQL resolvers
+  if (isGraphQLResolver(filePath)) {
+    console.log(`Skipping GraphQL resolver export: ${exportName} in ${filePath}`);
+    return true;
+  }
+
+  // Skip type definitions
+  if (isTypeDefinition(filePath)) {
+    console.log(`Skipping type definition export: ${exportName} in ${filePath}`);
+    return true;
+  }
+
+  // Skip type exports
+  if (isTypeExport(filePath, exportName)) {
+    console.log(`Skipping type export: ${exportName} in ${filePath}`);
+    return true;
+  }
+
+  // Skip barrel exports
+  if (isBarrelExportFile(filePath)) {
+    console.log(`Skipping barrel export: ${exportName} in ${filePath}`);
+    return true;
+  }
+
+  return false;
+}
+
+// Function to remove unused exports from a file
+function removeUnusedExports(filePath: string, unusedExports: string[]): boolean {
+  let content = fs.readFileSync(filePath, 'utf-8');
+  let modified = false;
+
+  // Filter out exports that should be skipped
+  const exportsToRemove = unusedExports.filter(
+    exportName => !shouldSkipExport(filePath, exportName)
+  );
+
+  if (exportsToRemove.length === 0) {
+    return false;
+  }
+
+  // Remove named exports
+  exportsToRemove.forEach(exportName => {
+    const exportPattern = new RegExp(`export\\s+{[^}]*\\b${exportName}\\b[^}]*}`, 'g');
+    const newContent = content.replace(exportPattern, match => {
+      const exports = match
+        .replace(/export\s+{/, '')
+        .replace(/}/, '')
+        .split(',')
+        .map(e => e.trim())
+        .filter(e => e !== exportName && e !== '');
+
+      return exports.length > 0 ? `export { ${exports.join(', ')} }` : '';
+    });
+
+    if (newContent !== content) {
+      content = newContent;
+      modified = true;
+    }
+  });
+
+  // Remove default exports
+  exportsToRemove.forEach(exportName => {
+    const defaultExportPattern = new RegExp(`export\\s+default\\s+${exportName}\\b`, 'g');
+    const newContent = content.replace(defaultExportPattern, '');
+    if (newContent !== content) {
+      content = newContent;
+      modified = true;
+    }
+  });
+
+  if (modified) {
+    fs.writeFileSync(filePath, content);
+    console.log(`Removed unused exports from ${filePath}: ${exportsToRemove.join(', ')}`);
+  }
+
+  return modified;
 }
 
 // Function to find unused imports in a file
@@ -141,27 +239,40 @@ function isSymbolUsed(
 function removeUnusedImports(filePath: string, unusedImports: string[]): void {
   try {
     let content = fs.readFileSync(filePath, 'utf-8');
+    let modified = false;
 
     // Remove unused imports
     for (const importName of unusedImports) {
       // Match named imports in import lists
       const namedImportRegex = new RegExp(`import\\s*{[^}]*\\b${importName}\\b[^}]*}`, 'g');
-      content = content.replace(namedImportRegex, match => {
+      const newContent = content.replace(namedImportRegex, match => {
         const cleaned = match.replace(`,?\\s*${importName}\\b`, '');
         // If the import list is now empty, remove the entire import statement
         return cleaned.match(/import\s*{\s*}\s*from/) ? '' : cleaned;
       });
+      if (newContent !== content) {
+        modified = true;
+        content = newContent;
+      }
 
       // Match default imports
       const defaultImportRegex = new RegExp(`import\\s+${importName}\\s+from`, 'g');
-      content = content.replace(defaultImportRegex, '');
+      const newContent2 = content.replace(defaultImportRegex, '');
+      if (newContent2 !== content) {
+        modified = true;
+        content = newContent2;
+      }
     }
 
     // Clean up empty lines and multiple newlines
     content = content.replace(/\n\s*\n\s*\n/g, '\n\n');
 
-    fs.writeFileSync(filePath, content);
-    console.log(`Cleaned up ${unusedImports.length} unused imports in ${filePath}`);
+    if (modified) {
+      fs.writeFileSync(filePath, content);
+      console.log(`Cleaned up ${unusedImports.length} unused imports in ${filePath}`);
+    } else {
+      console.log(`No unused imports to remove in ${filePath}`);
+    }
   } catch (error) {
     console.error(`Error processing ${filePath}:`, error);
   }
