@@ -215,8 +215,6 @@ export default function GamePage() {
                   mode="create"
                   gameId={gameId}
                   gameLog={{} as GameLog}
-                  isOpen={false}
-                  onClose={() => {}}
                 />
               ) : (
                 <SignInButton mode="modal">

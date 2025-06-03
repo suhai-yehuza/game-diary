@@ -505,9 +505,10 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
                       mode="create"
                       gameId={''}
                       gameLog={{} as GameLog}
-                      isOpen={false}
-                      onClose={() => {}}
-                      onSuccess={() => setCursor(null)}
+                      onSuccess={() => {
+                        setCursor(null);
+                        // Optionally refetch data here
+                      }}
                     />
                   )}
                   {renderFriendshipButton()}

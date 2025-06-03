@@ -83,8 +83,8 @@ export interface GameLogModalProps {
   mode: 'create' | 'update';
   gameId?: string;
   gameLog?: GameLog;
-  isOpen: boolean;
-  onClose: () => void;
+  isOpen?: boolean;
+  onClose?: () => void;
   onSuccess?: () => void;
 }
 
