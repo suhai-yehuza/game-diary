@@ -8,13 +8,13 @@ import type { Schema } from '@/lib/db/schema/types';
 import { env as appEnv } from '@/lib/env';
 import { CACHE_TTL } from '@/lib/types/cache.types';
 import { type QueryOptions } from '@/lib/types/database.types';
-import { envSchema } from '@/lib/validations/env';
+import { dbEnvSchema } from '@/lib/validations/env';
 
 // Initialize cache
 const cache = getCache();
 
-// Validate environment variables
-const _env = envSchema.parse({
+// Validate database-specific environment variables only
+const _dbEnv = dbEnvSchema.parse({
   DATABASE_URL: process.env.DATABASE_URL,
   NODE_ENV: process.env.NODE_ENV,
   DATABASE_CONNECTION_TIMEOUT: process.env.DATABASE_CONNECTION_TIMEOUT,
