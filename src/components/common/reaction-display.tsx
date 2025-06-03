@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 
 import { Badge } from '@/components/ui/badge';
 import { CREATE_REACTION } from '@/lib/graphql/mutations';
-import { GET_REACTIONS } from '@/lib/graphql/queries';
+import { GET_REACTIONS, GET_GAME_LOG_BY_ID } from '@/lib/graphql/queries';
 import { logger } from '@/lib/logger';
 import { REACTION_EMOJIS } from '@/lib/types/config.types';
 import { ReactionDisplayProps } from '@/lib/types/consolidated.types';
@@ -88,63 +88,128 @@ export function ReactionDisplay({
             emoji: emojiName,
           },
         },
-        update: !providedReactions
-          ? (cache, { data }) => {
-              if (!data?.createReaction) return;
+        update: (cache, { data }) => {
+          if (!data?.createReaction) return;
 
-              const existingData = cache.readQuery({
-                query: GET_REACTIONS,
-                variables: { targetId },
-              }) as {
+          // Update GET_REACTIONS cache
+          const existingData = cache.readQuery({
+            query: GET_REACTIONS,
+            variables: { targetId },
+          }) as {
+            reactions: {
+              edges: Array<{ node: Reaction; __typename: string; cursor: string }>;
+              totalCount: number;
+            };
+          } | null;
+
+          if (existingData?.reactions) {
+            let newEdges;
+            if (data.createReaction.reaction) {
+              // Adding reaction
+              newEdges = [
+                ...existingData.reactions.edges,
+                {
+                  __typename: 'ReactionEdge',
+                  cursor: `cursor-${data.createReaction.reaction.id}`,
+                  node: {
+                    ...data.createReaction.reaction,
+                    user: {
+                      id: user.id,
+                      username: user.username || '',
+                      emailAddress: user.emailAddresses?.[0]?.emailAddress || '',
+                      imageUrl: user.imageUrl || '',
+                      __typename: 'UserSummary',
+                    },
+                    __typename: 'Reaction',
+                  },
+                },
+              ];
+            } else {
+              // Removing reaction
+              newEdges = existingData.reactions.edges.filter(
+                edge => !(edge.node.userId === user.id && edge.node.emoji === emojiName)
+              );
+            }
+
+            cache.writeQuery({
+              query: GET_REACTIONS,
+              variables: { targetId },
+              data: {
+                reactions: {
+                  ...existingData.reactions,
+                  edges: newEdges,
+                  totalCount: newEdges.length,
+                },
+              },
+            });
+          }
+
+          // If this is a game log, also update the GET_GAME_LOG_BY_ID cache
+          if (targetType === 'game_log') {
+            const gameLogData = cache.readQuery({
+              query: GET_GAME_LOG_BY_ID,
+              variables: { id: targetId },
+            }) as {
+              gameLogById: {
                 reactions: {
                   edges: Array<{ node: Reaction; __typename: string; cursor: string }>;
                   totalCount: number;
                 };
-              } | null;
+              };
+            } | null;
 
-              if (existingData?.reactions) {
-                let newEdges;
-                if (data.createReaction.reaction) {
-                  // Adding reaction
-                  newEdges = [
-                    ...existingData.reactions.edges,
-                    {
-                      __typename: 'ReactionEdge',
-                      cursor: `cursor-${data.createReaction.reaction.id}`,
-                      node: data.createReaction.reaction,
+            if (gameLogData?.gameLogById?.reactions) {
+              let newEdges;
+              if (data.createReaction.reaction) {
+                // Adding reaction
+                newEdges = [
+                  ...gameLogData.gameLogById.reactions.edges,
+                  {
+                    __typename: 'ReactionEdge',
+                    cursor: `cursor-${data.createReaction.reaction.id}`,
+                    node: {
+                      ...data.createReaction.reaction,
+                      user: {
+                        id: user.id,
+                        username: user.username || '',
+                        emailAddress: user.emailAddresses?.[0]?.emailAddress || '',
+                        imageUrl: user.imageUrl || '',
+                        __typename: 'UserSummary',
+                      },
+                      __typename: 'Reaction',
                     },
-                  ];
-                } else {
-                  // Removing reaction
-                  newEdges = existingData.reactions.edges.filter(
-                    edge => !(edge.node.userId === user.id && edge.node.emoji === emojiName)
-                  );
-                }
+                  },
+                ];
+              } else {
+                // Removing reaction
+                newEdges = gameLogData.gameLogById.reactions.edges.filter(
+                  edge => !(edge.node.userId === user.id && edge.node.emoji === emojiName)
+                );
+              }
 
-                cache.writeQuery({
-                  query: GET_REACTIONS,
-                  variables: { targetId },
-                  data: {
+              cache.writeQuery({
+                query: GET_GAME_LOG_BY_ID,
+                variables: { id: targetId },
+                data: {
+                  gameLogById: {
+                    ...gameLogData.gameLogById,
                     reactions: {
-                      ...existingData.reactions,
+                      ...gameLogData.gameLogById.reactions,
                       edges: newEdges,
                       totalCount: newEdges.length,
                     },
                   },
-                });
-              }
+                },
+              });
             }
-          : undefined,
+          }
+        },
       });
 
-      if (onReactionChange) {
-        onReactionChange();
-      }
+      onReactionChange?.();
     } catch (error) {
       logger.error('Error toggling reaction:', error);
-      if (onReactionChange) {
-        onReactionChange();
-      }
+      onReactionChange?.();
     }
   };
 

@@ -1,18 +1,19 @@
 import { useMutation } from '@apollo/client';
+import { useUser } from '@clerk/nextjs';
 import { SmilePlus } from 'lucide-react';
 import React, { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { useAuthContext } from '@/contexts/AuthContext';
 import { CREATE_REACTION } from '@/lib/graphql/mutations';
-import { GET_REACTIONS } from '@/lib/graphql/queries';
+import { GET_REACTIONS, GET_GAME_LOG_BY_ID } from '@/lib/graphql/queries';
 import { logger } from '@/lib/logger';
 import { ReactionsData } from '@/lib/types/component.types';
 import { REACTION_EMOJIS } from '@/lib/types/config.types';
 import { ReactionPickerProps } from '@/lib/types/consolidated.types';
 import type { ReactionEmojiType } from '@/lib/types/generated/graphql';
 import { cn } from '@/lib/utils';
+
 export function ReactionPicker({
   targetId,
   targetType,
@@ -20,7 +21,7 @@ export function ReactionPicker({
   onReactionChanged,
 }: ReactionPickerProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const { user } = useAuthContext();
+  const { user } = useUser();
   const [createReaction] = useMutation(CREATE_REACTION);
 
   const handleReaction = async (emojiName: ReactionEmojiType) => {
@@ -38,38 +39,113 @@ export function ReactionPicker({
         update: (cache, { data }) => {
           if (!data?.createReaction) return;
 
+          // Update GET_REACTIONS cache
           const existingData = cache.readQuery<ReactionsData>({
             query: GET_REACTIONS,
             variables: { targetId },
           });
 
-          if (!existingData?.reactions) return;
+          if (existingData?.reactions) {
+            let newEdges;
+            if (data.createReaction.reaction) {
+              // Adding reaction
+              newEdges = [
+                ...existingData.reactions.edges,
+                {
+                  __typename: 'ReactionEdge',
+                  cursor: `cursor-${data.createReaction.reaction.id}`,
+                  node: {
+                    ...data.createReaction.reaction,
+                    user: {
+                      id: user.id,
+                      username: user.username || '',
+                      emailAddress: user.emailAddresses?.[0]?.emailAddress || '',
+                      imageUrl: user.imageUrl || '',
+                      __typename: 'UserSummary',
+                    },
+                    __typename: 'Reaction',
+                  },
+                },
+              ];
+            } else {
+              // Removing reaction
+              newEdges = existingData.reactions.edges.filter(
+                edge => !(edge.node.userId === user.id && edge.node.emoji === emojiName)
+              );
+            }
 
-          let newEdges;
-          if (data.createReaction.reaction) {
-            const newEdge = {
-              __typename: 'ReactionEdge',
-              node: data.createReaction.reaction,
-              cursor: `cursor-${data.createReaction.reaction.id}`,
-            };
-            newEdges = [...existingData.reactions.edges, newEdge];
-          } else {
-            newEdges = existingData.reactions.edges.filter(
-              edge => !(edge.node.userId === user.id && edge.node.emoji === emojiName)
-            );
+            cache.writeQuery({
+              query: GET_REACTIONS,
+              variables: { targetId },
+              data: {
+                reactions: {
+                  ...existingData.reactions,
+                  edges: newEdges,
+                  totalCount: newEdges.length,
+                },
+              },
+            });
           }
 
-          cache.writeQuery({
-            query: GET_REACTIONS,
-            variables: { targetId },
-            data: {
-              reactions: {
-                ...existingData.reactions,
-                edges: newEdges,
-                totalCount: newEdges.length,
-              },
-            },
-          });
+          // If this is a game log, also update the GET_GAME_LOG_BY_ID cache
+          if (targetType === 'game_log') {
+            const gameLogData = cache.readQuery({
+              query: GET_GAME_LOG_BY_ID,
+              variables: { id: targetId },
+            }) as {
+              gameLogById: {
+                reactions: {
+                  edges: Array<{ node: any; __typename: string; cursor: string }>;
+                  totalCount: number;
+                };
+              };
+            } | null;
+
+            if (gameLogData?.gameLogById?.reactions) {
+              let newEdges;
+              if (data.createReaction.reaction) {
+                // Adding reaction
+                newEdges = [
+                  ...gameLogData.gameLogById.reactions.edges,
+                  {
+                    __typename: 'ReactionEdge',
+                    cursor: `cursor-${data.createReaction.reaction.id}`,
+                    node: {
+                      ...data.createReaction.reaction,
+                      user: {
+                        id: user.id,
+                        username: user.username || '',
+                        emailAddress: user.emailAddresses?.[0]?.emailAddress || '',
+                        imageUrl: user.imageUrl || '',
+                        __typename: 'UserSummary',
+                      },
+                      __typename: 'Reaction',
+                    },
+                  },
+                ];
+              } else {
+                // Removing reaction
+                newEdges = gameLogData.gameLogById.reactions.edges.filter(
+                  edge => !(edge.node.userId === user.id && edge.node.emoji === emojiName)
+                );
+              }
+
+              cache.writeQuery({
+                query: GET_GAME_LOG_BY_ID,
+                variables: { id: targetId },
+                data: {
+                  gameLogById: {
+                    ...gameLogData.gameLogById,
+                    reactions: {
+                      ...gameLogData.gameLogById.reactions,
+                      edges: newEdges,
+                      totalCount: newEdges.length,
+                    },
+                  },
+                },
+              });
+            }
+          }
         },
       });
 
