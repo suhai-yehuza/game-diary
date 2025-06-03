@@ -1,9 +1,9 @@
 import { Agent } from 'https';
 
 import { Redis as UpstashRedis } from '@upstash/redis';
-import { cacheLogger } from "@/lib/logger";
 import Redis from 'ioredis';
 
+import { cacheLogger } from '@/lib/logger';
 import type { RedisClient, RedisClientType } from '@/lib/types/cache.types';
 import { CACHE_TTL } from '@/lib/types/config.types';
 import { sleep } from '@/lib/utils/index.time';
@@ -286,7 +286,10 @@ export class Cache {
             cacheLogger.info(`[Cache.get] Successfully parsed object string for key: ${key}`);
             return parsedObject as T;
           } catch (evalError) {
-            cacheLogger.warn(`[Cache.get] Failed to parse object string for key ${key}:`, evalError);
+            cacheLogger.warn(
+              `[Cache.get] Failed to parse object string for key ${key}:`,
+              evalError
+            );
             return null as T;
           }
         }
@@ -438,7 +441,9 @@ export class Cache {
     }
 
     try {
-      cacheLogger.info(`[Cache.batchCache] Caching ${items.length} items with prefix: ${keyPrefix}`);
+      cacheLogger.info(
+        `[Cache.batchCache] Caching ${items.length} items with prefix: ${keyPrefix}`
+      );
       if (this.clientType === 'upstash') {
         await this.batchCacheUpstash(items, keyPrefix, ttl);
       } else {
@@ -503,7 +508,9 @@ export class Cache {
     }
 
     try {
-      cacheLogger.info(`[Cache.batchGetCache] Getting ${ids.length} items with prefix: ${keyPrefix}`);
+      cacheLogger.info(
+        `[Cache.batchGetCache] Getting ${ids.length} items with prefix: ${keyPrefix}`
+      );
       const keys = ids.map(id => `${keyPrefix}:${id}`);
       const values = await this.batchGetFromClient(keys);
       return this.processBatchGetResults<T>(ids, values);

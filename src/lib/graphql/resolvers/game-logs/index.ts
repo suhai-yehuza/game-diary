@@ -2,12 +2,12 @@ import { and, eq, sql, gte, lte, like, or, isNotNull, desc, asc } from 'drizzle-
 
 import * as schema from '@/lib/db/schema';
 import { createConnection, parseCursor } from '@/lib/graphql/utils/pagination';
+import { logger } from '@/lib/logger';
 import type { Context } from '@/lib/types/component.types';
 import type { GameLogFilters } from '@/lib/types/generated/graphql';
 
 import type { PaginationArgs } from '../common/types';
 import { handleResolverError } from '../common/utils';
-import { import { logger } from '@/lib/logger'; } from '@/lib/logger';
 export const gameLog = async (
   _parent: unknown,
   { userId, gameId }: { userId: string; gameId: string },

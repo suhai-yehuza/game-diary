@@ -1,7 +1,7 @@
 import { config } from 'dotenv-flow'; // Load env vars based on NODE_ENV
 
 import { testRedisConnection, getCache } from '../src/lib/cache/index';
-import { import { logger } from '@/lib/logger'; } from '@/lib/logger';
+import { logger } from '@/lib/logger';
 config();
 
 async function main() {

@@ -13,10 +13,10 @@ import { Button } from '@/components/ui/button';
 import { useAuthContext } from '@/contexts/AuthContext';
 import { fetchNbaGameById } from '@/lib/external-apis';
 import { GET_TEAM_STATS } from '@/lib/graphql/queries';
+import { logger } from '@/lib/logger';
 import type { Game, GameStatistics } from '@/lib/types/consolidated.types';
 import type { GameLog } from '@/lib/types/generated/graphql';
 import { cn } from '@/lib/utils';
-import { import { logger } from '@/lib/logger'; } from '@/lib/logger';
 // Helper function to validate state values
 const isValidState = (state: string | undefined | null): boolean => {
   if (!state) return false;

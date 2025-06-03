@@ -28,13 +28,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/components/ui/use-toast';
 import { CREATE_COMMENT, DELETE_COMMENT, UPDATE_COMMENT } from '@/lib/graphql/mutations';
 import { GET_COMMENTS_WITH_FILTERS } from '@/lib/graphql/queries';
+import { logger } from '@/lib/logger';
 import { CommentEdge, CommentConnection } from '@/lib/types/component.types';
 import type { Comment } from '@/lib/types/generated/graphql';
 import { CommentsSectionProps, EditingComment } from '@/lib/types/social.types';
 import { cn } from '@/lib/utils';
 
 import { CommentItem } from './comment-item';
-import { import { logger } from '@/lib/logger'; } from '@/lib/logger';
 export function CommentsSection({ parentId, parentType, initialExpanded }: CommentsSectionProps) {
   const { user } = useUser();
   const [newComment, setNewComment] = useState('');

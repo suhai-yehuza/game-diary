@@ -1,8 +1,12 @@
-import { sql } from 'drizzle-orm';
 import { exec } from 'child_process';
 import { promisify } from 'util';
+
+import { sql } from 'drizzle-orm';
+
+import { logger } from '@/lib/logger';
+
 import { createDatabaseClient } from '../src/lib/db/seed/config';
-import { import { logger } from '@/lib/logger'; } from '@/lib/logger';
+
 const execAsync = promisify(exec);
 
 // Get environment from command line argument or default to development
@@ -14,8 +18,7 @@ async function runCommand(command: string, description: string): Promise<void> {
   try {
     const { stdout, stderr } = await execAsync(command);
     if (stdout) logger.info(stdout);
-    if (stderr && !stderr.includes('Warning') && !stderr.includes('deprecat'))
-      logger.error(stderr);
+    if (stderr && !stderr.includes('Warning') && !stderr.includes('deprecat')) logger.error(stderr);
     logger.info(`✅ ${description} completed`);
   } catch (error: any) {
     logger.error(`❌ Failed: ${description}`);
@@ -28,7 +31,7 @@ async function setupDatabase() {
   logger.info(`🚀 Starting complete database setup for ${environment} environment...`);
   logger.info('================================================\n');
 
-  const db = createDatabaseClient({ env: environment, logger: true });
+  const db = createDatabaseClient({ env: environment });
 
   try {
     // Step 1: Clean existing database

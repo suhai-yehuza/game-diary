@@ -1,9 +1,13 @@
+import { createHash } from 'crypto';
 import { readFileSync, readdirSync } from 'fs';
 import { join } from 'path';
+
 import { sql } from 'drizzle-orm';
-import { createHash } from 'crypto';
+
+import { logger } from '@/lib/logger';
+
 import { createDatabaseClient } from '../src/lib/db/seed/config';
-import { import { logger } from '@/lib/logger'; } from '@/lib/logger';
+
 // Get environment from command line argument or default to development
 const environment = process.argv[2] || 'development';
 const dryRun = process.argv.includes('--dry-run');
@@ -152,7 +156,7 @@ async function applyMigrations() {
   }
   logger.info('================================================\n');
 
-  const db = createDatabaseClient({ env: environment, logger: true });
+  const db = createDatabaseClient({ env: environment });
   const migrationsDir = join(process.cwd(), 'src/lib/db/migrations');
 
   try {

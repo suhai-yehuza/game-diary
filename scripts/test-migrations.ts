@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { import { logger } from '@/lib/logger'; } from '@/lib/logger';
+import { logger } from '@/lib/logger';
 const __dirname = path.dirname(new URL(import.meta.url).pathname);
 
 // List migration files that would be executed

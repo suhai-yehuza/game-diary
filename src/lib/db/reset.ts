@@ -1,7 +1,8 @@
 import { sql } from 'drizzle-orm';
 
+import { dbLogger } from '@/lib/logger';
+
 import { db } from './index';
-import { import { dbLogger } from '@/lib/logger'; } from '@/lib/logger';
 export async function resetDatabase() {
   dbLogger.info('Starting database reset...');
 

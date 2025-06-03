@@ -7,12 +7,12 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { useAuthContext } from '@/contexts/AuthContext';
 import { CREATE_REACTION } from '@/lib/graphql/mutations';
 import { GET_REACTIONS } from '@/lib/graphql/queries';
+import { logger } from '@/lib/logger';
 import { ReactionsData } from '@/lib/types/component.types';
 import { REACTION_EMOJIS } from '@/lib/types/config.types';
 import { ReactionPickerProps } from '@/lib/types/consolidated.types';
 import type { ReactionEmojiType } from '@/lib/types/generated/graphql';
 import { cn } from '@/lib/utils';
-import { import { logger } from '@/lib/logger'; } from '@/lib/logger';
 export function ReactionPicker({
   targetId,
   targetType,

@@ -4,7 +4,7 @@ import { NextResponse } from 'next/server';
 
 import { users } from '@/lib/db/schema';
 import { db } from '@/lib/db/seed';
-import { import { apiLogger } from '@/lib/logger'; } from '@/lib/logger';
+import { apiLogger } from '@/lib/logger';
 export async function GET(request: Request, context: { params: { id: string } }) {
   try {
     const { id } = context.params;

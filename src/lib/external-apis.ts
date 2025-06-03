@@ -424,7 +424,10 @@ export async function fetchNbaTeams(queryParams?: string): Promise<ApiTeamRespon
   }
 
   // Log team IDs for verification
-  apiLogger.info('Team IDs from API:', validTeams.map((team: { id: number }) => team.id).join(', '));
+  apiLogger.info(
+    'Team IDs from API:',
+    validTeams.map((team: { id: number }) => team.id).join(', ')
+  );
   apiLogger.info(
     'NBA Franchise teams:',
     validTeams.filter((team: { nbaFranchise?: boolean }) => team.nbaFranchise).length

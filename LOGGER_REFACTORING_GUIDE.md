@@ -10,7 +10,7 @@ Our custom logger system in `src/lib/logger.ts` provides:
 
 - **Multiple log levels**: DEBUG, INFO, WARN, ERROR
 - **Environment-aware**: Different behavior in development vs production
-- **Timestamping**: Automatic timestamps on all log messages  
+- **Timestamping**: Automatic timestamps on all log messages
 - **Color coding**: Colored output in development for better visibility
 - **File location**: Shows source file and line number in development
 - **Specialized loggers**: Different loggers for different modules
@@ -19,13 +19,13 @@ Our custom logger system in `src/lib/logger.ts` provides:
 ## 📋 Available Loggers
 
 ```typescript
-import { 
-  logger,           // Generic logger
-  dbLogger,         // Database operations
-  apiLogger,        // API routes and external APIs
-  cacheLogger,      // Cache operations
-  seedLogger,       // Database seeding
-  webhookLogger     // Webhook handling
+import {
+  logger, // Generic logger
+  dbLogger, // Database operations
+  apiLogger, // API routes and external APIs
+  cacheLogger, // Cache operations
+  seedLogger, // Database seeding
+  webhookLogger, // Webhook handling
 } from '@/lib/logger';
 ```
 
@@ -56,47 +56,52 @@ dbLogger.debug('Query details:', query);
 
 ## 📁 Logger Assignment by File Type
 
-| File Pattern | Logger to Use | Example |
-|-------------|---------------|---------|
-| `src/lib/db/**` | `dbLogger` | Database operations |
-| `src/lib/cache/**` | `cacheLogger` | Cache operations |
-| `src/app/api/**` | `apiLogger` | API routes |
-| `src/lib/external-apis.ts` | `apiLogger` | External API calls |
-| `src/lib/apollo-client.ts` | `apiLogger` | GraphQL client |
-| `src/lib/middleware/**` | `apiLogger` | Middleware |
-| `src/lib/db/seed/**` | `seedLogger` | Database seeding |
-| `src/app/api/webhooks/**` | `webhookLogger` | Webhooks |
-| Everything else | `logger` | Generic logging |
+| File Pattern               | Logger to Use   | Example             |
+| -------------------------- | --------------- | ------------------- |
+| `src/lib/db/**`            | `dbLogger`      | Database operations |
+| `src/lib/cache/**`         | `cacheLogger`   | Cache operations    |
+| `src/app/api/**`           | `apiLogger`     | API routes          |
+| `src/lib/external-apis.ts` | `apiLogger`     | External API calls  |
+| `src/lib/apollo-client.ts` | `apiLogger`     | GraphQL client      |
+| `src/lib/middleware/**`    | `apiLogger`     | Middleware          |
+| `src/lib/db/seed/**`       | `seedLogger`    | Database seeding    |
+| `src/app/api/webhooks/**`  | `webhookLogger` | Webhooks            |
+| Everything else            | `logger`        | Generic logging     |
 
 ## ✅ Already Completed Files
 
 The following files have already been refactored:
 
 - ✅ `src/lib/db/index.ts` - Uses `dbLogger`
-- ✅ `src/lib/cache/index.ts` - Uses `cacheLogger`  
+- ✅ `src/lib/cache/index.ts` - Uses `cacheLogger`
 - ✅ `src/lib/external-apis.ts` - Uses `apiLogger`
 - ✅ `src/lib/logger.ts` - Logger implementation
 
 ## 🔄 Remaining Files to Refactor
 
 ### High Priority (Core Infrastructure)
+
 - `src/lib/apollo-client.ts` → `apiLogger`
 - `src/lib/middleware/optimization.ts` → `apiLogger`
 - `src/app/api/graphql/route.ts` → `apiLogger`
 - `src/app/api/webhooks/route.ts` → `webhookLogger`
 
 ### Database & Seeding Files
+
 - `src/lib/db/reset.ts` → `dbLogger`
 - `src/lib/db/seed/*.ts` → `seedLogger`
 
 ### API Routes
+
 - `src/app/api/**/*.ts` → `apiLogger`
 
 ### Components & Pages
+
 - `src/components/**/*.tsx` → `logger`
 - `src/app/**/*.tsx` → `logger`
 
 ### Scripts
+
 - `scripts/*.ts` → `logger`
 
 ## 🛠 Manual Refactoring Steps
@@ -178,7 +183,7 @@ export function myFunction() {
   }
 }
 
-// After  
+// After
 import { someModule } from './some-module';
 import { logger } from '@/lib/logger';
 
@@ -202,4 +207,4 @@ export function myFunction() {
 5. Commit and move to the next file
 6. Repeat until all console statements are replaced
 
-This systematic approach will result in a professional, maintainable logging system throughout the entire application! 
+This systematic approach will result in a professional, maintainable logging system throughout the entire application!

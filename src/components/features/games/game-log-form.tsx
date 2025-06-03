@@ -31,12 +31,12 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/components/ui/use-toast';
 import { CREATE_GAME_LOG } from '@/lib/graphql/mutations';
+import { logger } from '@/lib/logger';
 import { WATCHED_SETTING, CLASSIFICATION, WATCHED_SCOPE } from '@/lib/types/config.types';
 import { GameLogFormProps, Game } from '@/lib/types/consolidated.types';
 import { ReactDatePickerProps } from '@/lib/types/game-log.types';
 import type { CreateGameLogInput } from '@/lib/types/generated/graphql';
 import { createGameLogSchema } from '@/lib/validations/game-log';
-import { import { logger } from '@/lib/logger'; } from '@/lib/logger';
 export function GameLogForm({
   onSuccess,
   formData: externalFormData,

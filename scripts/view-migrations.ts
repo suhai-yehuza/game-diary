@@ -1,7 +1,8 @@
 import { sql } from 'drizzle-orm';
 
-import { db } from '../src/lib/db';
-import { import { logger } from '@/lib/logger'; } from '@/lib/logger';
+import { db } from '@/lib/db';
+import { logger } from '@/lib/logger';
+
 interface MigrationVersion {
   name: string;
   checksum: string;
@@ -58,5 +59,5 @@ async function viewMigrations() {
 
 // Run if this file is executed directly
 if (import.meta.url === `file://${process.argv[1]}`) {
-  viewMigrations().catch(console.error);
+  viewMigrations().catch(error => logger.error('Migration viewing failed:', error));
 }

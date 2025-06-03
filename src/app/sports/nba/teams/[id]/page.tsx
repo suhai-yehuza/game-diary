@@ -6,10 +6,10 @@ import { useParams } from 'next/navigation';
 import React, { useState, useEffect } from 'react';
 
 import { fetchNbaTeamById, fetchNbaTeamStats } from '@/lib/external-apis';
+import { logger } from '@/lib/logger';
 import type { TeamDisplayStats, Game } from '@/lib/types/consolidated.types';
 import { type Team } from '@/lib/types/generated/graphql';
 import { calculateTeamStats, getTeamStreak, getTeamLastTenGames } from '@/lib/utils/index.game';
-import { import { logger } from '@/lib/logger'; } from '@/lib/logger';
 export default function TeamPage() {
   const params = useParams();
   const teamId = params?.id as string;

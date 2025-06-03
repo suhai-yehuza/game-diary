@@ -5,9 +5,9 @@ import { getCache } from '@/lib/cache';
 import { schema as dbSchema } from '@/lib/db/schema';
 import type { Schema } from '@/lib/db/schema/types';
 import { env as appEnv } from '@/lib/env';
+import { dbLogger } from '@/lib/logger';
 import { CACHE_TTL } from '@/lib/types/cache.types';
 import { type QueryOptions } from '@/lib/types/database.types';
-import { dbLogger } from '@/lib/logger';
 
 // Initialize cache
 const cache = getCache();

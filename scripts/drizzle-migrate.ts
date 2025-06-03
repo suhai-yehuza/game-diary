@@ -7,7 +7,7 @@ import { neon, neonConfig } from '@neondatabase/serverless';
 import { db } from '@/lib/db';
 import { migrationVersions } from '@/lib/db/schema/migration-schemas';
 import { env } from '@/lib/env';
-import { import { logger } from '@/lib/logger'; } from '@/lib/logger';
+import { logger } from '@/lib/logger';
 const MIGRATIONS_DIR = path.join(process.cwd(), 'src/lib/db/migrations');
 
 // Configure neon for better stability
@@ -413,8 +413,8 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const rollbackSteps = args[0] === 'rollback' ? parseInt(args[1]) || 1 : 0;
 
   if (rollbackSteps > 0) {
-    rollback(rollbackSteps).catch(console.error);
+    rollback(rollbackSteps).catch(error => logger.error('Rollback failed:', error));
   } else {
-    migrate().catch(console.error);
+    migrate().catch(error => logger.error('Migration failed:', error));
   }
 }

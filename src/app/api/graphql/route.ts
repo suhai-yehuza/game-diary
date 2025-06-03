@@ -14,9 +14,9 @@ import { getCache } from '@/lib/cache';
 import { db } from '@/lib/db/seed';
 import { createLoaders } from '@/lib/graphql/loaders';
 import { resolvers } from '@/lib/graphql/resolvers';
+import { apiLogger } from '@/lib/logger';
 import type { RedisClient } from '@/lib/types/cache.types';
 import type { Context } from '@/lib/types/component.types';
-import { import { apiLogger } from '@/lib/logger'; } from '@/lib/logger';
 const typeDefs = readFileSync(join(process.cwd(), 'src/lib/graphql/schema.graphql'), 'utf-8');
 
 // Create the base schema

@@ -1,5 +1,6 @@
 import { z } from 'zod';
-import { import { logger } from '@/lib/logger'; } from '@/lib/logger';
+
+import { logger } from '@/lib/logger';
 // Create a more sophisticated environment validation that handles build vs runtime
 const isServer = typeof window === 'undefined';
 const isBuild =

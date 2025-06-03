@@ -9,13 +9,13 @@ import { useAuthContext } from '@/contexts/AuthContext';
 import { useNotifications } from '@/contexts/NotificationContext';
 import { SEND_FRIEND_REQUEST, UPDATE_FRIENDSHIP_STATUS } from '@/lib/graphql/mutations';
 import { GET_FRIENDSHIPS } from '@/lib/graphql/queries';
+import { logger } from '@/lib/logger';
 import { FRIENDSHIP_STATUS } from '@/lib/types/config.types';
 import {
   FriendRequestButtonProps,
   GetFriendshipsForUserResponse,
 } from '@/lib/types/consolidated.types';
 import { Friendship } from '@/lib/types/generated/graphql';
-import { import { logger } from '@/lib/logger'; } from '@/lib/logger';
 export function FriendRequestButton({ targetUserId }: FriendRequestButtonProps) {
   const { userId, isAuthenticated } = useAuthContext();
   const { toast } = useToast();

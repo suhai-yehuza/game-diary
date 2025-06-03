@@ -53,11 +53,11 @@ import {
   REMOVE_FRIEND,
 } from '@/lib/graphql/mutations';
 import { SEARCH_USERS } from '@/lib/graphql/queries';
+import { logger } from '@/lib/logger';
 import { UserSearchSectionProps, UserNode, UserEdge } from '@/lib/types/component.types';
 import { FRIENDSHIP_STATUS } from '@/lib/types/config.types';
 import { cn } from '@/lib/utils';
 import { formatCount } from '@/lib/utils/index.format';
-import { import { logger } from '@/lib/logger'; } from '@/lib/logger';
 const UserCard = ({ user }: { user: UserNode }) => {
   const { user: currentUser } = useUser();
   const [sendFriendRequest, { loading: sendingRequest }] = useMutation(SEND_FRIEND_REQUEST);

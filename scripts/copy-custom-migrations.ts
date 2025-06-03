@@ -1,6 +1,6 @@
 import { copyFileSync, mkdirSync, readdirSync } from 'fs';
 import { join } from 'path';
-import { import { logger } from '@/lib/logger'; } from '@/lib/logger';
+import { logger } from '@/lib/logger';
 const sourceDir = join(process.cwd(), 'src/lib/db/migrations');
 const targetDir = join(process.cwd(), 'drizzle');
 

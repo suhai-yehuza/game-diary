@@ -3,8 +3,8 @@ import pLimit from 'p-limit';
 import { v4 as uuidv4, v7 as uuidv7 } from 'uuid';
 
 import { API_CONFIG } from '@/lib/config/api.config';
+import { logger } from '@/lib/logger';
 import { sleep } from '@/lib/utils/index.time';
-import { import { logger } from '@/lib/logger'; } from '@/lib/logger';
 // Define types locally to avoid circular dependency
 export type BatchProcessingOptions<T, R> = {
   items: T[];

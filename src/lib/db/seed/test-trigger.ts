@@ -5,8 +5,9 @@ import { db } from '@/lib/db';
 import { game_logs, game_ratings, users } from '@/lib/db/schema';
 import { seasons, nba_games } from '@/lib/db/schema/nba-schemas';
 import { teams } from '@/lib/db/schema/team-schemas';
+import { seedLogger } from '@/lib/logger';
 import { CLASSIFICATION, WATCHED_SCOPE, WATCHED_SETTING } from '@/lib/types/config.types';
-import { import { seedLogger } from '@/lib/logger'; } from '@/lib/logger';
+
 async function testGameRatingsTrigger() {
   seedLogger.info('Starting trigger test...');
 
@@ -53,8 +54,8 @@ async function testGameRatingsTrigger() {
         await db.delete(game_ratings).where(eq(game_ratings.gameId, game.id));
         await db.delete(nba_games).where(eq(nba_games.id, game.id));
       } catch (e) {
-        seedLogger.info('Note: Could not clean up game:', game.id);
-        seedLogger.info(e);
+        seedLogger.warn('Note: Could not clean up game:', game.id);
+        seedLogger.error('Cleanup error:', e instanceof Error ? e.message : String(e));
       }
     }
 
@@ -352,4 +353,4 @@ async function testGameRatingsTrigger() {
   }
 }
 
-testGameRatingsTrigger().catch(error => console.error(error));
+testGameRatingsTrigger().catch(error => seedLogger.error('Trigger test failed:', error));

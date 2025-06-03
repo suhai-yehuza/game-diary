@@ -5,13 +5,13 @@ import React, { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { CREATE_REACTION } from '@/lib/graphql/mutations';
 import { GET_REACTIONS } from '@/lib/graphql/queries';
+import { logger } from '@/lib/logger';
 import { REACTION_EMOJIS } from '@/lib/types/config.types';
 import { ReactionDisplayProps } from '@/lib/types/consolidated.types';
 import { Reaction, ReactionEmojiType } from '@/lib/types/generated/graphql';
 import { cn } from '@/lib/utils';
 
 import { ReactionPicker } from './reaction-picker';
-import { import { logger } from '@/lib/logger'; } from '@/lib/logger';
 interface ExtendedReactionDisplayProps extends ReactionDisplayProps {
   reactions?: Reaction[];
   totalReactionCount?: number;

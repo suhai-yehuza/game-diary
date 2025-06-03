@@ -1,7 +1,8 @@
 import { sql } from 'drizzle-orm';
 
+import { seedLogger } from '@/lib/logger';
+
 import { createDatabaseClient } from './config';
-import { import { seedLogger } from '@/lib/logger'; } from '@/lib/logger';
 const env = process.argv[2] || 'development';
 const tableName = process.argv[3] || 'players';
 

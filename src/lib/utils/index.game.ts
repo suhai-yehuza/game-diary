@@ -2,6 +2,7 @@ import { eq, and, or, InferSelectModel } from 'drizzle-orm';
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
 
 import * as schema from '@/lib/db/schema';
+import { logger } from '@/lib/logger';
 import { GAME_STATUS_VALUES } from '@/lib/types/config.types';
 import type { GameTeams, GameScores, DBGameRecord } from '@/lib/types/consolidated.types';
 import {
@@ -13,7 +14,6 @@ import {
   type Team,
 } from '@/lib/types/generated/graphql';
 import type { GameRecord } from '@/lib/types/graphql.types';
-import { import { logger } from '@/lib/logger'; } from '@/lib/logger';
 function isDBGameRecord(game: unknown): game is DBGameRecord {
   if (!game || typeof game !== 'object') return false;
 

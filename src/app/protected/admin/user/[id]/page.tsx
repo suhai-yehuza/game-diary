@@ -7,8 +7,8 @@ import { useRouter, useParams } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
+import { logger } from '@/lib/logger';
 import { DBUser } from '@/lib/types/generated/graphql';
-import { import { logger } from '@/lib/logger'; } from '@/lib/logger';
 export default function AdminUserProfilePage() {
   const params = useParams();
   const id = params?.id as string;

@@ -5,12 +5,12 @@ import { reset } from 'drizzle-seed';
 import { DB_CONFIG } from '@/lib/config/db.config';
 import * as schema from '@/lib/db/schema';
 import { initializeDb } from '@/lib/db/seed/config';
+import { seedLogger } from '@/lib/logger';
 import type { DatabaseClient } from '@/lib/types/database.types';
 import { getCurrentSeason } from '@/lib/utils/index.time';
 
 import { DataProcessor, PerformanceMonitor } from './data-processor';
 import { OptimizedAPIClient } from './utils/api-client';
-import { import { seedLogger } from '@/lib/logger'; } from '@/lib/logger';
 config();
 
 // Optimized table operations
@@ -152,7 +152,9 @@ export class OptimizedSeeder {
 
   async seed(): Promise<void> {
     try {
-      seedLogger.info(`�� Starting optimized database seeding for ${this.options.env} environment...`);
+      seedLogger.info(
+        `�� Starting optimized database seeding for ${this.options.env} environment...`
+      );
 
       if (!this.options.appendingData) {
         await this.prepareDatabaseState();

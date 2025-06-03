@@ -21,6 +21,7 @@ import { useAuthContext } from '@/contexts/AuthContext';
 import { API_CONFIG } from '@/lib/config/api.config';
 import { CREATE_GAME_LOG, UPDATE_GAME_LOG } from '@/lib/graphql/mutations';
 import { GET_EXTERNAL_GAMES, GET_GAME_LOGS } from '@/lib/graphql/queries';
+import { logger } from '@/lib/logger';
 import {
   CLASSIFICATION,
   WATCHED_SETTING,
@@ -35,7 +36,6 @@ import type { Game, GameLog, UpdateGameLogInput } from '@/lib/types/generated/gr
 import { formatGameDate } from '@/lib/utils/index.time';
 
 import { GameLogForm } from './game-log-form';
-import { import { logger } from '@/lib/logger'; } from '@/lib/logger';
 export function GameLogModal({
   mode,
   gameId,

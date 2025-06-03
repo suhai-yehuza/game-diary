@@ -2,12 +2,12 @@ import { sql } from 'drizzle-orm';
 
 import { API_CONFIG, getRapidApiConfig, validateAPIKey } from '@/lib/config/api.config';
 import { createRapidAPIClient, handleAPIError } from '@/lib/external-apis';
+import { seedLogger } from '@/lib/logger';
 import { PlayerStatistics } from '@/lib/types/consolidated.types';
 import { generateUUID } from '@/lib/utils/index.processing';
 
 import { createDatabaseClient } from './config';
 import { nba_player_stats } from './schema';
-import { import { seedLogger } from '@/lib/logger'; } from '@/lib/logger';
 // Add timeout configuration
 const API_TIMEOUT = 10000; // 10 seconds timeout
 const DB_RETRY_ATTEMPTS = 3;
@@ -90,7 +90,7 @@ export async function fetchAndProcessNBAPlayerStats(
     }
 
     if (playerStats.length > 1) {
-      seedLogger.info({ playerStats });
+      seedLogger.info('Player stats processed:', { playerStats });
       throw new Error(
         `Multiple player stats found for player ${playerId} in game ${gameId} of ${season} season`
       );

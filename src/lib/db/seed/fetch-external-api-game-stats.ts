@@ -3,12 +3,12 @@ import { eq } from 'drizzle-orm';
 import { API_CONFIG, getRapidApiConfig, validateAPIKey } from '@/lib/config/api.config';
 import { game_stats, teams } from '@/lib/db/schema';
 import { createRapidAPIClient, handleAPIError } from '@/lib/external-apis';
+import { seedLogger } from '@/lib/logger';
 import { GAME_STATUS_VALUES } from '@/lib/types/config.types';
 import type { GameTeamStatistic, TeamStatisticsResponseData } from '@/lib/types/consolidated.types';
 import { generateUUID } from '@/lib/utils/index.processing';
 
 import { createDatabaseClient } from './config';
-import { import { seedLogger } from '@/lib/logger'; } from '@/lib/logger';
 // Database type for game_stats table insertion
 type DBGameStats = typeof game_stats.$inferInsert;
 

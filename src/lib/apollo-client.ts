@@ -8,7 +8,8 @@ import {
 } from '@apollo/client';
 import { onError } from '@apollo/client/link/error';
 import { RetryLink } from '@apollo/client/link/retry';
-import { import { apiLogger } from '@/lib/logger'; } from '@/lib/logger';
+
+import { apiLogger } from '@/lib/logger';
 const httpLink = new HttpLink({
   uri: '/api/graphql',
   headers: {
@@ -21,7 +22,9 @@ const httpLink = new HttpLink({
 const errorLink = onError(({ graphQLErrors, networkError, operation, forward }) => {
   if (graphQLErrors) {
     graphQLErrors.forEach(({ message, locations, path }) => {
-      apiLogger.error(`[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`);
+      apiLogger.error(
+        `[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`
+      );
     });
   }
   if (networkError) {

@@ -3,10 +3,10 @@ import { eq } from 'drizzle-orm';
 import { API_CONFIG, getRapidApiConfig, validateAPIKey } from '@/lib/config/api.config';
 import { seasons } from '@/lib/db/schema';
 import { createRapidAPIClient, handleAPIError } from '@/lib/external-apis';
+import { seedLogger } from '@/lib/logger';
 import { SeasonApiResponse } from '@/lib/types/consolidated.types';
 
 import { createDatabaseClient } from './config';
-import { import { seedLogger } from '@/lib/logger'; } from '@/lib/logger';
 export async function fetchAndProcessNBASeasons(): Promise<void> {
   try {
     const db = createDatabaseClient();

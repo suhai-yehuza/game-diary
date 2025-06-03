@@ -4,6 +4,7 @@ import { sql, desc } from 'drizzle-orm';
 import { API_CONFIG } from '@/lib/config/api.config';
 import { game_logs, games } from '@/lib/db/schema/game-schemas';
 import { users, friendships, reactions, comments } from '@/lib/db/schema/user-schemas';
+import { seedLogger } from '@/lib/logger';
 import {
   FRIENDSHIP_STATUS,
   WATCHED_SETTING,
@@ -20,7 +21,6 @@ import { generateUUID } from '@/lib/utils/index.processing';
 import { getCurrentSeason } from '@/lib/utils/index.time';
 
 import type { DataProcessor } from './data-processor';
-import { import { seedLogger } from '@/lib/logger'; } from '@/lib/logger';
 interface ApplicationSeederOptions {
   db: DatabaseClient;
   processor: DataProcessor;

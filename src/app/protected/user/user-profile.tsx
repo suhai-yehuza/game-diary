@@ -37,10 +37,10 @@ import { StarRating } from '@/components/ui/star-rating';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { SEND_FRIEND_REQUEST, ACCEPT_FRIEND_REQUEST, REMOVE_FRIEND } from '@/lib/graphql/mutations';
 import { GET_GAME_LOGS, GET_USER } from '@/lib/graphql/queries';
+import { logger } from '@/lib/logger';
 import { GameLog, Friendship, FriendshipStatus, DBUser } from '@/lib/types/generated/graphql';
 import { UserProfileProps } from '@/lib/types/user.types';
 import { cn } from '@/lib/utils';
-import { import { logger } from '@/lib/logger'; } from '@/lib/logger';
 // Custom query to get friendships between two users
 const GET_USER_FRIENDSHIPS = gql`
   query GetUserFriendships($userId: ID!) {

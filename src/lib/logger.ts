@@ -1,4 +1,4 @@
-import { import { logger } from '@/lib/logger';export enum LogLevel { } from '@/lib/logger';
+export enum LogLevel {
   DEBUG = 0,
   INFO = 1,
   WARN = 2,
@@ -35,14 +35,14 @@ class Logger {
 
   private getColorCode(level: LogLevel): string {
     if (!this.config.enableColors) return '';
-    
+
     const colors = {
       [LogLevel.DEBUG]: '\x1b[36m', // Cyan
-      [LogLevel.INFO]: '\x1b[32m',  // Green
-      [LogLevel.WARN]: '\x1b[33m',  // Yellow
+      [LogLevel.INFO]: '\x1b[32m', // Green
+      [LogLevel.WARN]: '\x1b[33m', // Yellow
       [LogLevel.ERROR]: '\x1b[31m', // Red
     };
-    
+
     return colors[level] || '';
   }
 
@@ -57,22 +57,22 @@ class Logger {
       [LogLevel.WARN]: 'WARN',
       [LogLevel.ERROR]: 'ERROR',
     };
-    
+
     return levels[level];
   }
 
   private getFileInfo(): string {
     if (!this.config.enableFileInfo) return '';
-    
+
     try {
       const stack = new Error().stack;
       if (!stack) return '';
-      
+
       const lines = stack.split('\n');
       // Skip the first 4 lines to get to the actual caller
       const callerLine = lines[4];
       if (!callerLine) return '';
-      
+
       // Extract file info from stack trace
       const match = callerLine.match(/at .* \((.+):(\d+):(\d+)\)/);
       if (match) {
@@ -83,7 +83,7 @@ class Logger {
     } catch {
       // Silently fail if we can't get file info
     }
-    
+
     return '';
   }
 
@@ -94,11 +94,11 @@ class Logger {
     const resetCode = this.getResetCode();
     const prefix = this.config.prefix ? `[${this.config.prefix}]` : '';
     const fileInfo = this.getFileInfo();
-    
+
     const parts = [timestamp, prefix, fileInfo, `${colorCode}${levelStr}${resetCode}`, message]
       .filter(Boolean)
       .join(' ');
-    
+
     return args.length > 0 ? `${parts}` : parts;
   }
 
@@ -110,19 +110,19 @@ class Logger {
     if (!this.shouldLog(level)) return;
 
     const formattedMessage = this.formatMessage(level, message, ...args);
-    
+
     switch (level) {
       case LogLevel.DEBUG:
-        logger.debug(formattedMessage, ...args);
+        console.debug(formattedMessage, ...args);
         break;
       case LogLevel.INFO:
-        logger.info(formattedMessage, ...args);
+        console.log(formattedMessage, ...args);
         break;
       case LogLevel.WARN:
-        logger.warn(formattedMessage, ...args);
+        console.warn(formattedMessage, ...args);
         break;
       case LogLevel.ERROR:
-        logger.error(formattedMessage, ...args);
+        console.error(formattedMessage, ...args);
         break;
     }
   }
@@ -186,11 +186,13 @@ export const createPerformanceLogger = (operation: string) => {
   return {
     end: (additionalInfo?: string) => {
       const duration = Date.now() - start;
-      logger.info(`${operation} completed in ${duration}ms${additionalInfo ? ` - ${additionalInfo}` : ''}`);
+      logger.info(
+        `${operation} completed in ${duration}ms${additionalInfo ? ` - ${additionalInfo}` : ''}`
+      );
     },
     error: (error: Error) => {
       const duration = Date.now() - start;
       logger.error(`${operation} failed after ${duration}ms:`, error);
     },
   };
-}; 
+};

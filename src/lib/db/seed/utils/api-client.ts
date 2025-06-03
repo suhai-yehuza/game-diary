@@ -5,11 +5,11 @@ import pLimit from 'p-limit';
 import { getRapidApiConfig, validateAPIKey } from '@/lib/config/api.config';
 import { DB_CONFIG } from '@/lib/config/db.config';
 import { createRapidAPIClient } from '@/lib/external-apis';
+import { logger } from '@/lib/logger';
 import type { DatabaseClient } from '@/lib/types/database.types';
 import { sleep } from '@/lib/utils/index.time';
 
 import { createDatabaseClient } from '../config';
-import { import { logger } from '@/lib/logger'; } from '@/lib/logger';
 // Circuit breaker pattern implementation
 class CircuitBreaker {
   private failures = 0;

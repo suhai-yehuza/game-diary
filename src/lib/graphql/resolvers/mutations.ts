@@ -17,6 +17,7 @@ import {
 import { getEmojiKey } from '@/lib/graphql/resolvers/common/utils';
 import { transformUser } from '@/lib/graphql/resolvers/transformers';
 import { mapUserData } from '@/lib/graphql/resolvers/users/index';
+import { logger } from '@/lib/logger';
 import { WatchedSettingValue, REACTION_EMOJIS, ReactionEmojiKey } from '@/lib/types/config.types';
 import {
   MutationcreateGameLogArgs,
@@ -34,7 +35,6 @@ import {
 import { generateUUID } from '@/lib/utils/index.processing';
 import { createCommentSchema, updateCommentSchema } from '@/lib/validations/comment';
 import { createGameLogSchema, updateGameLogSchema } from '@/lib/validations/game-log';
-import { import { logger } from '@/lib/logger'; } from '@/lib/logger';
 // Helper functions
 const validateInput = <T>(schema: z.ZodSchema<T>, input: unknown): T => {
   const result = schema.safeParse(input);

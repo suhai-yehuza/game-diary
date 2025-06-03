@@ -28,11 +28,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/components/ui/use-toast';
 import { API_CONFIG } from '@/lib/config/api.config';
 import { CREATE_COMMENT } from '@/lib/graphql/mutations';
+import { logger } from '@/lib/logger';
 import { CommentItemProps } from '@/lib/types/component.types';
 import { cn } from '@/lib/utils';
 
 import { ReactionDisplay } from './reaction-display';
-import { import { logger } from '@/lib/logger'; } from '@/lib/logger';
 export function CommentItem({
   comment,
   onEdit,

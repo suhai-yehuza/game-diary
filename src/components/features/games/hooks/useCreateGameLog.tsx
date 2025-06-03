@@ -7,8 +7,9 @@ import { useMemo } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import { CREATE_GAME_LOG } from '@/lib/graphql/mutations';
 import { GET_GAMES } from '@/lib/graphql/queries';
+import { logger } from '@/lib/logger';
 import type {
-import { import { logger } from '@/lib/logger';  CreateGameLogInput, } from '@/lib/logger';
+  CreateGameLogInput,
   ValidationError as GQLValidationError,
   NotFoundError,
   AuthenticationError,

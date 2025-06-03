@@ -1,6 +1,6 @@
 import { readdir } from 'fs/promises';
 import { join } from 'path';
-import { import { logger } from '@/lib/logger'; } from '@/lib/logger';
+import { logger } from '@/lib/logger';
 /**
  * Validates that required migration files are present in src/lib/db/migrations
  */

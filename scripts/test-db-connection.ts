@@ -1,8 +1,9 @@
 import 'dotenv-flow/config';
 import { sql } from 'drizzle-orm';
 
+import { logger } from '@/lib/logger';
+
 import { createDatabaseClient } from '../src/lib/db/seed/config';
-import { import { logger } from '@/lib/logger'; } from '@/lib/logger';
 async function testConnection() {
   try {
     logger.info('🔌 Testing database connection...');
@@ -18,6 +19,7 @@ async function testConnection() {
     return db;
   } catch (error) {
     logger.error('❌ Database connection failed:', error);
+    logger.info('Error details:', error);
     throw error;
   }
 }
@@ -76,7 +78,11 @@ async function testConnectionStability() {
 
     logger.info('✅ Connection stability test passed!');
   } catch (error) {
-    logger.error('❌ Connection stability test failed:', error);
+    logger.error(
+      '❌ Connection stability test failed:',
+      error instanceof Error ? error.message : String(error)
+    );
+    logger.info('Error details:', error);
     throw error;
   }
 }
@@ -92,14 +98,18 @@ async function testErrorRecovery() {
       await db.execute(sql`SELECT * FROM non_existent_table`);
     } catch (error) {
       logger.info('✅ Invalid query error handled correctly');
-      logger.info(error);
+      logger.info('Error details:', error);
     }
 
     // Verify database is still functional after error
     const result = await db.execute(sql`SELECT 1 as test`);
     logger.info(`✅ Database functional after error: ${result.rows[0]?.test}`);
   } catch (error) {
-    logger.error('❌ Error recovery test failed:', error);
+    logger.error(
+      '❌ Error recovery test failed:',
+      error instanceof Error ? error.message : String(error)
+    );
+    logger.info('Error details:', error);
     throw error;
   }
 }
@@ -121,7 +131,10 @@ async function main() {
 
     logger.info('\n🚀 Try running your seeder again - it should be much more stable now!');
   } catch (error) {
-    logger.error('\n❌ Database tests failed:', error);
+    logger.error(
+      '\n❌ Database tests failed:',
+      error instanceof Error ? error.message : String(error)
+    );
     process.exit(1);
   }
 }

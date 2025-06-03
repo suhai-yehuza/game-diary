@@ -1,6 +1,8 @@
 import { sql } from 'drizzle-orm';
+
+import { logger } from '@/lib/logger';
+
 import { createDatabaseClient } from '../src/lib/db/seed/config';
-import { import { logger } from '@/lib/logger'; } from '@/lib/logger';
 // Get environment from command line argument or default to development
 const environment = process.argv[2] || 'development';
 
@@ -8,7 +10,7 @@ async function setupTriggers() {
   logger.info(`🔧 Setting up database triggers for ${environment} environment...`);
   logger.info('================================================\n');
 
-  const db = createDatabaseClient({ env: environment, logger: true });
+  const db = createDatabaseClient({ env: environment });
 
   try {
     // Check if triggers already exist

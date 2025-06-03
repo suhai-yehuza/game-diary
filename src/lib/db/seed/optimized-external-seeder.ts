@@ -9,6 +9,7 @@ import {
   fetchNbaPlayers,
   fetchNbaGames,
 } from '@/lib/external-apis';
+import { seedLogger } from '@/lib/logger';
 import type {
   PlayerApiResponse,
   GameApiResponse,
@@ -22,7 +23,6 @@ import { fetchAndProcessNBAGameStats } from './fetch-external-api-game-stats';
 import { fetchAndProcessNBAPlayerStats } from './fetch-external-api-player-stats';
 import { fetchAndProcessTeamH2H } from './fetch-external-api-team-h2h';
 import { OptimizedAPIClient } from './utils/api-client';
-import { import { seedLogger } from '@/lib/logger'; } from '@/lib/logger';
 // Helper types
 type PlayerWithTeams = {
   player: PlayerApiResponse['response']['response'][0];
@@ -498,7 +498,7 @@ async function processSeasonStats(
 export async function appendOptimizedExternalData(options: OptimizedSeederOptions): Promise<void> {
   const { seasons: inputSeasonYears, apiClient, processor, batchSize, tables } = options;
   const db = createDatabaseClient();
-  seedLogger.info({ tables });
+  seedLogger.info('Tables to check:', { tables });
 
   try {
     // Process seasons

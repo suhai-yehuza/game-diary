@@ -16,8 +16,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { logger } from '@/lib/logger';
 import { DBUser } from '@/lib/types/generated/graphql';
-import { import { logger } from '@/lib/logger'; } from '@/lib/logger';
 const ITEMS_PER_PAGE = 20;
 
 function AdminUsersContent() {
