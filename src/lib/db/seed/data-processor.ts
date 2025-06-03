@@ -69,7 +69,10 @@ export class DataProcessor {
 
       // Force garbage collection hint for large datasets
       if ((globalThis as GlobalWithGC).gc && i % (chunkSize * 10) === 0) {
-        (globalThis as GlobalWithGC).gc!();
+        const gc = (globalThis as GlobalWithGC).gc;
+        if (gc) {
+          gc();
+        }
       }
 
       console.log(

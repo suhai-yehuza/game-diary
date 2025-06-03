@@ -68,7 +68,11 @@ export async function fetchAndProcessTeamH2H(db: NeonHttpDatabase<typeof schema>
       });
     }
 
-    const h2h = h2hMap.get(key)!;
+    const h2h = h2hMap.get(key);
+    if (!h2h) {
+      console.error(`H2H data not found for key: ${key}`);
+      continue;
+    }
     h2h.totalGames++;
 
     // Update points and wins

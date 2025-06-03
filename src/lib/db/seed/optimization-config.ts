@@ -284,7 +284,10 @@ export class PerformanceTracker {
     if (!this.metrics.has(operation)) {
       this.metrics.set(operation, []);
     }
-    this.metrics.get(operation)!.push(duration);
+    const operationMetrics = this.metrics.get(operation);
+    if (operationMetrics) {
+      operationMetrics.push(duration);
+    }
 
     return duration;
   }

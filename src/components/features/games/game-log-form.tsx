@@ -33,9 +33,9 @@ import { useToast } from '@/components/ui/use-toast';
 import { CREATE_GAME_LOG } from '@/lib/graphql/mutations';
 import { WATCHED_SETTING, CLASSIFICATION, WATCHED_SCOPE } from '@/lib/types/config.types';
 import { GameLogFormProps, Game } from '@/lib/types/consolidated.types';
+import { ReactDatePickerProps } from '@/lib/types/game-log.types';
 import type { CreateGameLogInput } from '@/lib/types/generated/graphql';
 import { createGameLogSchema } from '@/lib/validations/game-log';
-import { ReactDatePickerProps } from '@/lib/types/game-log.types';
 
 export function GameLogForm({
   onSuccess,

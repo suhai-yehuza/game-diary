@@ -345,7 +345,7 @@ export function GameLogModal({
                   selectedGame?.id === edge.node.id ? 'border-blue-500 bg-blue-50' : ''
                 }`}
                 onClick={() => setSelectedGame(edge.node as unknown as Game)}
-                onKeyDown={(e) => {
+                onKeyDown={e => {
                   if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault();
                     setSelectedGame(edge.node as unknown as Game);
