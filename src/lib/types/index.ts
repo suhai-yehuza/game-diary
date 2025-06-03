@@ -9,7 +9,7 @@
 // Core Domain Types
 // ============================================================================
 export type {
-  // Game types
+  // Game types that actually exist
   Game,
   GameTeam,
   GameScore,
@@ -22,31 +22,39 @@ export type {
   GameStatus,
   GameArena,
   GamePeriods,
+  ExtendedGame,
+  SearchGame,
 
-  // User & Social types
-  UserProfile,
-  UserActivity,
-  Friend,
-  FriendGroup,
-  FriendRequest,
+  // Game Log types
+  GameLogInput,
+  GameLogFormData,
+  GameLogFormProps,
 
-  // API Response types
-  ApiResponse,
-  APIError,
-  Activity,
+  // Component types that exist in consolidated
+  GameStatsProps,
+  TeamDisplayProps,
+
+  // Team and Player types
+  TeamSummary,
+  Arena,
+  TeamData,
+  PlayerData,
+  ApiTeam,
+
+  // Database types
+  DBGameRecord,
 } from './consolidated.types';
 
 // ============================================================================
-// Component Types
+// Component Types that exist in component-props.types
 // ============================================================================
 export type {
-  GameLogFormProps,
-  GameStatsProps,
-  UserSearchProps,
+  ActivityTimelineProps,
   FriendActivityProps,
+  StatsChartProps,
+  ReactionDisplayProps,
+  ReactionPickerProps,
 } from './component-props.types';
-
-export type { ComponentWithChildren, PageProps, LayoutProps } from './component.types';
 
 // ============================================================================
 // Configuration & Environment
@@ -64,8 +72,7 @@ export { envSchema, dbEnvSchema, validateRuntimeEnv } from '../validations/env';
 // ============================================================================
 // Database & API Types
 // ============================================================================
-export type { DatabaseClient, QueryOptions, PaginationOptions } from './database.types';
-
+export type { DatabaseClient, QueryOptions } from './database.types';
 export type { CacheOptions, RedisClient } from './cache.types';
 
 // ============================================================================
@@ -83,11 +90,10 @@ export type {
 // ============================================================================
 // Validation Schemas
 // ============================================================================
-export type { TeamInput } from '@/lib/validations/team';
-export { teamSchema } from '@/lib/validations/team';
+export type { TeamInput } from '../validations/team';
+export { teamSchema } from '../validations/team';
 
-export type { GameLogInput } from '@/lib/validations/game-log';
-export { createGameLogSchema } from '@/lib/validations/game-log';
+export { createGameLogSchema } from '../validations/game-log';
 
 // ============================================================================
 // Utility Types
