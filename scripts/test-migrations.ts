@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-
+import { import { logger } from '@/lib/logger'; } from '@/lib/logger';
 const __dirname = path.dirname(new URL(import.meta.url).pathname);
 
 // List migration files that would be executed
@@ -11,9 +11,9 @@ function listMigrations() {
     .filter(f => f.endsWith('.sql'))
     .sort();
 
-  console.log('Migration files that would be executed (in order):');
+  logger.info('Migration files that would be executed (in order):');
   files.forEach((file, index) => {
-    console.log(`${index + 1}. ${file}`);
+    logger.info(`${index + 1}. ${file}`);
   });
 }
 

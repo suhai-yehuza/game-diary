@@ -2,29 +2,29 @@ import 'dotenv-flow/config';
 import { sql } from 'drizzle-orm';
 
 import { createDatabaseClient } from '../src/lib/db/seed/config';
-
+import { import { logger } from '@/lib/logger'; } from '@/lib/logger';
 async function testConnection() {
   try {
-    console.log('🔌 Testing database connection...');
+    logger.info('🔌 Testing database connection...');
 
     const db = createDatabaseClient();
 
     // Test basic connection
     const result = await db.execute(sql`SELECT NOW() as current_time, version() as db_version`);
-    console.log('✅ Database connection successful!');
-    console.log('Current time:', result.rows[0]?.current_time);
-    console.log('Database version:', result.rows[0]?.db_version);
+    logger.info('✅ Database connection successful!');
+    logger.info('Current time:', result.rows[0]?.current_time);
+    logger.info('Database version:', result.rows[0]?.db_version);
 
     return db;
   } catch (error) {
-    console.error('❌ Database connection failed:', error);
+    logger.error('❌ Database connection failed:', error);
     throw error;
   }
 }
 
 async function testConnectionStability() {
   try {
-    console.log('\n🔄 Testing connection stability with multiple operations...');
+    logger.info('\n🔄 Testing connection stability with multiple operations...');
 
     const db = createDatabaseClient();
 
@@ -40,7 +40,7 @@ async function testConnectionStability() {
     // Clear any existing test data
     await db.execute(sql`DELETE FROM connection_test`);
 
-    console.log('📝 Testing multiple small insertions...');
+    logger.info('📝 Testing multiple small insertions...');
 
     // Test multiple small operations to simulate batch behavior
     for (let i = 0; i < 20; i++) {
@@ -55,10 +55,10 @@ async function testConnectionStability() {
 
     // Verify all insertions
     const count = await db.execute(sql`SELECT COUNT(*) as count FROM connection_test`);
-    console.log(`✅ Successfully inserted ${count.rows[0]?.count} items`);
+    logger.info(`✅ Successfully inserted ${count.rows[0]?.count} items`);
 
     // Test a larger batch operation
-    console.log('📦 Testing larger batch operation...');
+    logger.info('📦 Testing larger batch operation...');
     const batchValues = Array.from({ length: 100 }, (_, i) => `('Batch item ${i}')`).join(', ');
 
     await db.execute(
@@ -69,21 +69,21 @@ async function testConnectionStability() {
     );
 
     const finalCount = await db.execute(sql`SELECT COUNT(*) as count FROM connection_test`);
-    console.log(`✅ Total items after batch: ${finalCount.rows[0]?.count}`);
+    logger.info(`✅ Total items after batch: ${finalCount.rows[0]?.count}`);
 
     // Clean up
     await db.execute(sql`DROP TABLE IF EXISTS connection_test`);
 
-    console.log('✅ Connection stability test passed!');
+    logger.info('✅ Connection stability test passed!');
   } catch (error) {
-    console.error('❌ Connection stability test failed:', error);
+    logger.error('❌ Connection stability test failed:', error);
     throw error;
   }
 }
 
 async function testErrorRecovery() {
   try {
-    console.log('\n🛠️ Testing error handling...');
+    logger.info('\n🛠️ Testing error handling...');
 
     const db = createDatabaseClient();
 
@@ -91,15 +91,15 @@ async function testErrorRecovery() {
     try {
       await db.execute(sql`SELECT * FROM non_existent_table`);
     } catch (error) {
-      console.log('✅ Invalid query error handled correctly');
-      console.log(error);
+      logger.info('✅ Invalid query error handled correctly');
+      logger.info(error);
     }
 
     // Verify database is still functional after error
     const result = await db.execute(sql`SELECT 1 as test`);
-    console.log(`✅ Database functional after error: ${result.rows[0]?.test}`);
+    logger.info(`✅ Database functional after error: ${result.rows[0]?.test}`);
   } catch (error) {
-    console.error('❌ Error recovery test failed:', error);
+    logger.error('❌ Error recovery test failed:', error);
     throw error;
   }
 }
@@ -110,18 +110,18 @@ async function main() {
     await testConnectionStability();
     await testErrorRecovery();
 
-    console.log('\n🎉 All database tests passed successfully!');
-    console.log('\n💡 Your database seeding should now be more stable with:');
-    console.log('   - Reduced batch sizes (15 items per batch)');
-    console.log('   - Enhanced retry logic with exponential backoff');
-    console.log('   - Better network error detection and handling');
-    console.log('   - Connection stability improvements');
-    console.log('   - 30-second connection timeout');
-    console.log('   - Connection keep-alive enabled');
+    logger.info('\n🎉 All database tests passed successfully!');
+    logger.info('\n💡 Your database seeding should now be more stable with:');
+    logger.info('   - Reduced batch sizes (15 items per batch)');
+    logger.info('   - Enhanced retry logic with exponential backoff');
+    logger.info('   - Better network error detection and handling');
+    logger.info('   - Connection stability improvements');
+    logger.info('   - 30-second connection timeout');
+    logger.info('   - Connection keep-alive enabled');
 
-    console.log('\n🚀 Try running your seeder again - it should be much more stable now!');
+    logger.info('\n🚀 Try running your seeder again - it should be much more stable now!');
   } catch (error) {
-    console.error('\n❌ Database tests failed:', error);
+    logger.error('\n❌ Database tests failed:', error);
     process.exit(1);
   }
 }

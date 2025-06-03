@@ -4,7 +4,7 @@ import { v4 as uuidv4, v7 as uuidv7 } from 'uuid';
 
 import { API_CONFIG } from '@/lib/config/api.config';
 import { sleep } from '@/lib/utils/index.time';
-
+import { import { logger } from '@/lib/logger'; } from '@/lib/logger';
 // Define types locally to avoid circular dependency
 export type BatchProcessingOptions<T, R> = {
   items: T[];
@@ -85,13 +85,13 @@ export async function processInBatches<T, R = void>({
           result = await processFn(batch, context);
         }
         success = true;
-        console.log(`Successfully processed batch ${index + 1}/${batches.length} for ${tableName}`);
+        logger.info(`Successfully processed batch ${index + 1}/${batches.length} for ${tableName}`);
         return result;
       } catch (error) {
         retries++;
         lastError = error as Error;
         if (retries === maxRetries) {
-          console.error(
+          logger.error(
             `Failed to process batch ${index + 1}/${batches.length} after ${maxRetries} attempts:`,
             error
           );
@@ -101,7 +101,7 @@ export async function processInBatches<T, R = void>({
           retryDelay * Math.pow(2, retries - 1) + Math.random() * 1000,
           retryDelay
         );
-        console.log(
+        logger.info(
           `Retrying batch ${index + 1}/${batches.length} in ${Math.round(delay)}ms (attempt ${retries}/${maxRetries})`
         );
         await sleep(delay);
@@ -134,7 +134,7 @@ async function withTransaction<T>(
   try {
     return await operation(db);
   } catch (error) {
-    console.error('Transaction failed:', error);
+    logger.error('Transaction failed:', error);
     throw error;
   }
 }
@@ -168,7 +168,7 @@ export const generateUuidBatch = (count: number, options: UuidGenerationOptions 
     if (logProgress) {
       const progress = Math.floor((uuids.size / count) * 100);
       if (progress > lastProgress) {
-        console.log(`UUID generation progress: ${progress}% (${uuids.size}/${count})`);
+        logger.info(`UUID generation progress: ${progress}% (${uuids.size}/${count})`);
         lastProgress = progress;
       }
     }
@@ -176,7 +176,7 @@ export const generateUuidBatch = (count: number, options: UuidGenerationOptions 
     if (uuids.size === batchStart) {
       attempts++;
       if (attempts < maxRetries) {
-        console.warn(
+        logger.warn(
           `UUID generation attempt ${attempts} failed to generate new UUIDs. Retrying...`
         );
       }

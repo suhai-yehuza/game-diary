@@ -3,9 +3,9 @@ import type { NeonHttpDatabase } from 'drizzle-orm/neon-http';
 
 import * as schema from '@/lib/db/schema';
 import { generateUUID } from '@/lib/utils/index.processing';
-
+import { import { seedLogger } from '@/lib/logger'; } from '@/lib/logger';
 export async function fetchAndProcessTeamH2H(db: NeonHttpDatabase<typeof schema>, season: number) {
-  console.log(`Seeding team head-to-head stats for the ${season} season...`);
+  seedLogger.info(`Seeding team head-to-head stats for the ${season} season...`);
 
   // Get all games for the season
   const games = await db.query.nba_games.findMany({
@@ -70,7 +70,7 @@ export async function fetchAndProcessTeamH2H(db: NeonHttpDatabase<typeof schema>
 
     const h2h = h2hMap.get(key);
     if (!h2h) {
-      console.error(`H2H data not found for key: ${key}`);
+      seedLogger.error(`H2H data not found for key: ${key}`);
       continue;
     }
     h2h.totalGames++;
@@ -138,7 +138,7 @@ export async function fetchAndProcessTeamH2H(db: NeonHttpDatabase<typeof schema>
         .update(schema.team_h2h)
         .set(statsData)
         .where(eq(schema.team_h2h.id, existingRecord.id));
-      console.log(`Updated H2H stats for teams ${h2h.team1Id} vs ${h2h.team2Id}`);
+      seedLogger.info(`Updated H2H stats for teams ${h2h.team1Id} vs ${h2h.team2Id}`);
     } else {
       // Insert new record
       await db.insert(schema.team_h2h).values({
@@ -146,9 +146,9 @@ export async function fetchAndProcessTeamH2H(db: NeonHttpDatabase<typeof schema>
         ...statsData,
         createdAt: new Date(),
       });
-      console.log(`Inserted new H2H stats for teams ${h2h.team1Id} vs ${h2h.team2Id}`);
+      seedLogger.info(`Inserted new H2H stats for teams ${h2h.team1Id} vs ${h2h.team2Id}`);
     }
   }
 
-  console.log(`Team head-to-head stats seeded for the ${season} season`);
+  seedLogger.info(`Team head-to-head stats seeded for the ${season} season`);
 }

@@ -7,7 +7,7 @@ import type { GameLogFilters } from '@/lib/types/generated/graphql';
 
 import type { PaginationArgs } from '../common/types';
 import { handleResolverError } from '../common/utils';
-
+import { import { logger } from '@/lib/logger'; } from '@/lib/logger';
 export const gameLog = async (
   _parent: unknown,
   { userId, gameId }: { userId: string; gameId: string },
@@ -269,7 +269,7 @@ export const GameLog = {
         totalCount: comments.length,
       };
     } catch (error) {
-      console.error('Error fetching comments for game log:', error);
+      logger.error('Error fetching comments for game log:', error);
       return {
         edges: [],
         pageInfo: {
@@ -326,7 +326,7 @@ export const GameLog = {
         totalCount, // Always return accurate total count
       };
     } catch (error) {
-      console.error('Error fetching reactions for game log:', error);
+      logger.error('Error fetching reactions for game log:', error);
       return {
         edges: [],
         pageInfo: {

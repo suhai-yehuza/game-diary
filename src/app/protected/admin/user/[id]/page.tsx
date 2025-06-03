@@ -8,7 +8,7 @@ import React, { useEffect, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { DBUser } from '@/lib/types/generated/graphql';
-
+import { import { logger } from '@/lib/logger'; } from '@/lib/logger';
 export default function AdminUserProfilePage() {
   const params = useParams();
   const id = params?.id as string;
@@ -36,7 +36,7 @@ export default function AdminUserProfilePage() {
         const data = await response.json();
         setUser(data);
       } catch (error) {
-        console.error('Error fetching user:', error);
+        logger.error('Error fetching user:', error);
       } finally {
         setIsLoading(false);
       }

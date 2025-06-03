@@ -1,18 +1,18 @@
 import { sql } from 'drizzle-orm';
 import { createDatabaseClient } from '../src/lib/db/seed/config';
-
+import { import { logger } from '@/lib/logger'; } from '@/lib/logger';
 // Get environment from command line argument or default to development
 const environment = process.argv[2] || 'development';
 
 async function setupTriggers() {
-  console.log(`🔧 Setting up database triggers for ${environment} environment...`);
-  console.log('================================================\n');
+  logger.info(`🔧 Setting up database triggers for ${environment} environment...`);
+  logger.info('================================================\n');
 
   const db = createDatabaseClient({ env: environment, logger: true });
 
   try {
     // Check if triggers already exist
-    console.log('🔍 Checking for existing triggers...');
+    logger.info('🔍 Checking for existing triggers...');
 
     const existingTriggers = await db.execute(sql`
       SELECT trigger_name 
@@ -25,7 +25,7 @@ async function setupTriggers() {
 
     // Create rating stars trigger if it doesn't exist
     if (!existingTriggerNames.includes('update_rating_stars_trigger')) {
-      console.log('\n⚡ Creating rating stars trigger...');
+      logger.info('\n⚡ Creating rating stars trigger...');
 
       // Create or replace the function
       await db.execute(sql`
@@ -47,14 +47,14 @@ async function setupTriggers() {
           EXECUTE FUNCTION update_rating_stars();
       `);
 
-      console.log('✅ Rating stars trigger created');
+      logger.info('✅ Rating stars trigger created');
     } else {
-      console.log('✓ Rating stars trigger already exists');
+      logger.info('✓ Rating stars trigger already exists');
     }
 
     // Create game ratings trigger if it doesn't exist
     if (!existingTriggerNames.includes('game_logs_ratings_trigger')) {
-      console.log('\n⚡ Creating game ratings trigger...');
+      logger.info('\n⚡ Creating game ratings trigger...');
 
       // Create or replace the function
       await db.execute(sql`
@@ -135,13 +135,13 @@ async function setupTriggers() {
             EXECUTE FUNCTION update_game_ratings();
       `);
 
-      console.log('✅ Game ratings trigger created');
+      logger.info('✅ Game ratings trigger created');
     } else {
-      console.log('✓ Game ratings trigger already exists');
+      logger.info('✓ Game ratings trigger already exists');
     }
 
     // Verify triggers are working
-    console.log('\n🔍 Verifying triggers...');
+    logger.info('\n🔍 Verifying triggers...');
 
     const triggers = await db.execute(sql`
       SELECT 
@@ -155,29 +155,29 @@ async function setupTriggers() {
       ORDER BY trigger_name;
     `);
 
-    console.log('\n📋 Installed triggers:');
+    logger.info('\n📋 Installed triggers:');
     triggers.rows.forEach((trigger: any) => {
-      console.log(
+      logger.info(
         `  - ${trigger.trigger_name} on ${trigger.event_object_table} (${trigger.event_manipulation})`
       );
     });
 
     // Success summary
-    console.log('\n================================================');
-    console.log('🎉 Trigger setup completed successfully!');
-    console.log('================================================\n');
+    logger.info('\n================================================');
+    logger.info('🎉 Trigger setup completed successfully!');
+    logger.info('================================================\n');
 
-    console.log('📝 Next steps:');
-    console.log('1. Run "npx tsx src/lib/db/seed/test-trigger.ts" to test the triggers');
-    console.log('2. Use your application - triggers will automatically update ratings');
+    logger.info('📝 Next steps:');
+    logger.info('1. Run "npx tsx src/lib/db/seed/test-trigger.ts" to test the triggers');
+    logger.info('2. Use your application - triggers will automatically update ratings');
 
     process.exit(0);
   } catch (error) {
-    console.error('\n❌ Error during trigger setup:', error);
-    console.error('\n💡 Troubleshooting tips:');
-    console.error('1. Make sure your database tables exist (run "pnpm db:setup" first)');
-    console.error('2. Check your database connection in .env');
-    console.error('3. Ensure you have the necessary permissions to create triggers');
+    logger.error('\n❌ Error during trigger setup:', error);
+    logger.error('\n💡 Troubleshooting tips:');
+    logger.error('1. Make sure your database tables exist (run "pnpm db:setup" first)');
+    logger.error('2. Check your database connection in .env');
+    logger.error('3. Ensure you have the necessary permissions to create triggers');
     process.exit(1);
   }
 }

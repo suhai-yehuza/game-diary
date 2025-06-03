@@ -1,6 +1,6 @@
 import { copyFileSync, mkdirSync, readdirSync } from 'fs';
 import { join } from 'path';
-
+import { import { logger } from '@/lib/logger'; } from '@/lib/logger';
 const sourceDir = join(process.cwd(), 'src/lib/db/migrations');
 const targetDir = join(process.cwd(), 'drizzle');
 
@@ -36,5 +36,5 @@ files.forEach(file => {
   mkdirSync(join(targetDir, relativePath.split('/').slice(0, -1).join('/')), { recursive: true });
 
   copyFileSync(file, targetPath);
-  console.log(`Copied ${relativePath} to drizzle directory`);
+  logger.info(`Copied ${relativePath} to drizzle directory`);
 });

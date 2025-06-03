@@ -15,7 +15,7 @@ import {
   GetFriendshipsForUserResponse,
 } from '@/lib/types/consolidated.types';
 import { Friendship } from '@/lib/types/generated/graphql';
-
+import { import { logger } from '@/lib/logger'; } from '@/lib/logger';
 export function FriendRequestButton({ targetUserId }: FriendRequestButtonProps) {
   const { userId, isAuthenticated } = useAuthContext();
   const { toast } = useToast();
@@ -65,7 +65,7 @@ export function FriendRequestButton({ targetUserId }: FriendRequestButtonProps) 
         description: 'The user will be notified of your request.',
       });
     } catch (error) {
-      console.error('Error sending friend request:', error);
+      logger.error('Error sending friend request:', error);
       toast({
         title: 'Error',
         description: 'Failed to send friend request. Please try again.',
@@ -99,7 +99,7 @@ export function FriendRequestButton({ targetUserId }: FriendRequestButtonProps) 
         description: 'You are now friends.',
       });
     } catch (error) {
-      console.error('Error accepting friend request:', error);
+      logger.error('Error accepting friend request:', error);
       toast({
         title: 'Error',
         description: 'Failed to accept friend request. Please try again.',
@@ -133,7 +133,7 @@ export function FriendRequestButton({ targetUserId }: FriendRequestButtonProps) 
         description: 'The request has been rejected.',
       });
     } catch (error) {
-      console.error('Error rejecting friend request:', error);
+      logger.error('Error rejecting friend request:', error);
       toast({
         title: 'Error',
         description: 'Failed to reject friend request. Please try again.',

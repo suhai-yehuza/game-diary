@@ -6,7 +6,7 @@ import { createRapidAPIClient, handleAPIError } from '@/lib/external-apis';
 import { SeasonApiResponse } from '@/lib/types/consolidated.types';
 
 import { createDatabaseClient } from './config';
-
+import { import { seedLogger } from '@/lib/logger'; } from '@/lib/logger';
 export async function fetchAndProcessNBASeasons(): Promise<void> {
   try {
     const db = createDatabaseClient();
@@ -14,9 +14,9 @@ export async function fetchAndProcessNBASeasons(): Promise<void> {
     const apiKey = validateAPIKey(rapidApiConfig.apiKey);
     const api = createRapidAPIClient(apiKey);
 
-    console.log('Fetching NBA seasons...');
+    seedLogger.info('Fetching NBA seasons...');
     const res = await api.get<SeasonApiResponse>(API_CONFIG.endpoints.SEASONS);
-    console.log('Seasons response:', res);
+    seedLogger.info('Seasons response:', res);
 
     if (!res?.response) {
       throw new Error('Invalid response structure from NBA API');
@@ -24,11 +24,11 @@ export async function fetchAndProcessNBASeasons(): Promise<void> {
 
     const seasonsData = res.response as unknown as number[]; // API returns array of year numbers
     if (seasonsData.length === 0) {
-      console.log('No seasons found in response, skipping...');
+      seedLogger.info('No seasons found in response, skipping...');
       return;
     }
 
-    console.log(`Fetched ${seasonsData.length} seasons`);
+    seedLogger.info(`Fetched ${seasonsData.length} seasons`);
     const maxYear = Math.max(...seasonsData);
 
     for (const year of seasonsData) {
@@ -39,7 +39,7 @@ export async function fetchAndProcessNBASeasons(): Promise<void> {
         where: eq(seasons.id, year),
       });
       if (existingSeason) {
-        console.log(`Season ${year} already exists, skipping...`);
+        seedLogger.info(`Season ${year} already exists, skipping...`);
         continue;
       }
 
@@ -67,9 +67,9 @@ export async function fetchAndProcessNBASeasons(): Promise<void> {
         });
     }
 
-    console.log('Successfully processed and stored NBA seasons');
+    seedLogger.info('Successfully processed and stored NBA seasons');
   } catch (error) {
-    console.error('Error fetching NBA seasons:', error);
+    seedLogger.error('Error fetching NBA seasons:', error);
     handleAPIError(error);
   }
 }

@@ -1,5 +1,6 @@
 import { API_CONFIG, getRapidApiConfig, validateAPIKey } from '@/lib/config/api.config';
 import { APIError } from '@/lib/errors/api.error';
+import { apiLogger } from '@/lib/logger';
 import type { SeasonApiResponse } from '@/lib/types/api.types';
 import type {
   PlayerApiResponse,
@@ -45,7 +46,7 @@ export async function fetchWithRetry(
 
     if (!response.ok) {
       if (response.status === 429) {
-        console.warn('Rate limit hit, waiting before retry...');
+        apiLogger.warn('Rate limit hit, waiting before retry...');
         await sleep(API_CONFIG.rateLimit.RATE_LIMIT_DELAY);
         return fetchWithRetry(url, config, attempts, delayBetweenBatches);
       }
@@ -72,7 +73,7 @@ export async function fetchWithRetry(
     const backoffDelay =
       (config.retryDelay ?? API_CONFIG.request.retryDelay) *
       Math.pow(2, API_CONFIG.rateLimit.MAX_RETRIES - attempts);
-    console.log(`Retrying in ${backoffDelay}ms... (${attempts} attempts remaining)`);
+    apiLogger.info(`Retrying in ${backoffDelay}ms... (${attempts} attempts remaining)`);
     await sleep(backoffDelay);
     return fetchWithRetry(url, config, attempts - 1, delayBetweenBatches);
   }
@@ -148,7 +149,7 @@ export function createRapidAPIClient(apiKey: string) {
     ): Promise<T> => {
       const queryParams = options.params ? new URLSearchParams(options.params).toString() : '';
       const url = `${rapidApiConfig.baseUrl}${endpoint}${queryParams ? `?${queryParams}` : ''}`;
-      console.log('Making API request to:', url);
+      apiLogger.info('Making API request to:', url);
 
       try {
         const response = await fetchWithRetry(
@@ -188,12 +189,12 @@ export function createRapidAPIClient(apiKey: string) {
 export function handleAPIError(error: unknown): never {
   if (error instanceof Error) {
     if (error instanceof APIError) {
-      console.error(`API Error (${error.status}): ${error.message}`);
+      apiLogger.error(`API Error (${error.status}): ${error.message}`);
     } else {
-      console.error('Unexpected error:', error.message);
+      apiLogger.error('Unexpected error:', error.message);
     }
   } else {
-    console.error('Unexpected error:', error);
+    apiLogger.error('Unexpected error:', error);
   }
   throw error;
 }
@@ -338,7 +339,7 @@ export async function fetchNbaLiveGames(): Promise<GameApiResponse> {
     );
 
     if (!res.ok) {
-      console.error('Live games request failed:', {
+      apiLogger.error('Live games request failed:', {
         status: res.status,
         statusText: res.statusText,
         url: res.url,
@@ -352,7 +353,7 @@ export async function fetchNbaLiveGames(): Promise<GameApiResponse> {
 
     // Handle empty response gracefully
     if (!data || !data.response) {
-      console.log('No live games currently available');
+      apiLogger.info('No live games currently available');
       return {
         get: 'games/',
         parameters: { live: 'all' },
@@ -368,7 +369,7 @@ export async function fetchNbaLiveGames(): Promise<GameApiResponse> {
       data: data.response, // Add this to match GameApiResponse type
     };
   } catch (error) {
-    console.error('Error in fetchNbaLiveGames:', error);
+    apiLogger.error('Error in fetchNbaLiveGames:', error);
     throw error;
   }
 }
@@ -380,7 +381,7 @@ export async function fetchNbaTeams(queryParams?: string): Promise<ApiTeamRespon
   const url = queryParams
     ? `${getNbaApiBaseUrl()}/${API_CONFIG.endpoints.TEAMS}?${queryParams}`
     : `${getNbaApiBaseUrl()}/${API_CONFIG.endpoints.TEAMS}`;
-  console.log('Fetching NBA teams from URL:', url);
+  apiLogger.info('Fetching NBA teams from URL:', url);
 
   const res = await fetchWithRetry(
     url,
@@ -396,7 +397,7 @@ export async function fetchNbaTeams(queryParams?: string): Promise<ApiTeamRespon
   }
 
   const data = await res.json();
-  console.log('Raw NBA teams response:', JSON.stringify(data, null, 2));
+  apiLogger.info('Raw NBA teams response:', JSON.stringify(data, null, 2));
 
   // Validate response structure
   if (!data || !data.response || !Array.isArray(data.response)) {
@@ -407,11 +408,11 @@ export async function fetchNbaTeams(queryParams?: string): Promise<ApiTeamRespon
   const validTeams = data.response.filter(
     (team: { id?: number; name?: string; nbaFranchise?: boolean }) => {
       if (!team.id) {
-        console.warn('Team missing ID:', team);
+        apiLogger.warn('Team missing ID:', team);
         return false;
       }
       if (!team.name) {
-        console.warn('Team missing name:', team);
+        apiLogger.warn('Team missing name:', team);
         return false;
       }
       return true;
@@ -423,12 +424,12 @@ export async function fetchNbaTeams(queryParams?: string): Promise<ApiTeamRespon
   }
 
   // Log team IDs for verification
-  console.log('Team IDs from API:', validTeams.map((team: { id: number }) => team.id).join(', '));
-  console.log(
+  apiLogger.info('Team IDs from API:', validTeams.map((team: { id: number }) => team.id).join(', '));
+  apiLogger.info(
     'NBA Franchise teams:',
     validTeams.filter((team: { nbaFranchise?: boolean }) => team.nbaFranchise).length
   );
-  console.log(
+  apiLogger.info(
     'Non-NBA Franchise teams:',
     validTeams.filter((team: { nbaFranchise?: boolean }) => !team.nbaFranchise).length
   );
@@ -599,4 +600,13 @@ export async function fetchNbaTeamStatistics(teamId: string) {
 
   const data = await response.json();
   return data;
+}
+
+export interface APIResponse<T = unknown> {
+  response?: T[];
+  data?: T[];
+  get?: string;
+  parameters?: Record<string, string>;
+  errors?: string[];
+  results?: number;
 }

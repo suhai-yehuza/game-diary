@@ -1,7 +1,7 @@
 import { sql } from 'drizzle-orm';
 
 import { createDatabaseClient } from './config';
-
+import { import { seedLogger } from '@/lib/logger'; } from '@/lib/logger';
 const env = process.argv[2] || 'development';
 const tableName = process.argv[3] || 'players';
 
@@ -14,9 +14,9 @@ async function main() {
       WHERE table_name = ${tableName}
       ORDER BY ordinal_position;
     `);
-    console.log(`Table structure for ${tableName}:`, result.rows);
+    seedLogger.info(`Table structure for ${tableName}:`, result.rows);
   } catch (error) {
-    console.error('Error:', error);
+    seedLogger.error('Error:', error);
     process.exit(1);
   }
 }

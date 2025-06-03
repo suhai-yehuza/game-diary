@@ -4,7 +4,7 @@ import { CACHE_TTL } from '@/lib/types/cache.types';
 import { REACTION_EMOJIS } from '@/lib/types/config.types';
 import type { DatabaseRow } from '@/lib/types/database.types';
 import type { GameStatus, ReactionEmojiType } from '@/lib/types/generated/graphql';
-
+import { import { logger } from '@/lib/logger'; } from '@/lib/logger';
 // Helper function to convert emoji character back to key
 export const getEmojiKey = (emojiCharacter: string): ReactionEmojiType => {
   const entry = Object.entries(REACTION_EMOJIS).find(([, char]) => char === emojiCharacter);
@@ -87,7 +87,7 @@ export const mapGameData = (game: DatabaseRow) => {
 
 // Helper function to handle errors consistently
 export const handleResolverError = (error: unknown, context: string) => {
-  console.error(`Error in ${context}:`, error);
+  logger.error(`Error in ${context}:`, error);
   if (error instanceof BusinessLogicError) {
     throw error;
   }

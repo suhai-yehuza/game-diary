@@ -4,7 +4,7 @@ import { NextResponse } from 'next/server';
 
 import { users } from '@/lib/db/schema';
 import { db } from '@/lib/db/seed';
-
+import { import { apiLogger } from '@/lib/logger'; } from '@/lib/logger';
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
@@ -35,7 +35,7 @@ export async function GET() {
 
     return NextResponse.json(allUsers);
   } catch (error) {
-    console.error('Error fetching users:', error);
+    apiLogger.error('Error fetching users:', error);
     return new NextResponse('Internal Server Error', { status: 500 });
   }
 }

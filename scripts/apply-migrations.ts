@@ -3,7 +3,7 @@ import { join } from 'path';
 import { sql } from 'drizzle-orm';
 import { createHash } from 'crypto';
 import { createDatabaseClient } from '../src/lib/db/seed/config';
-
+import { import { logger } from '@/lib/logger'; } from '@/lib/logger';
 // Get environment from command line argument or default to development
 const environment = process.argv[2] || 'development';
 const dryRun = process.argv.includes('--dry-run');
@@ -146,18 +146,18 @@ function compareVerification(
 }
 
 async function applyMigrations() {
-  console.log(`🚀 Starting migration runner for ${environment} environment...`);
+  logger.info(`🚀 Starting migration runner for ${environment} environment...`);
   if (dryRun) {
-    console.log('🔍 Running in DRY RUN mode - no changes will be made');
+    logger.info('🔍 Running in DRY RUN mode - no changes will be made');
   }
-  console.log('================================================\n');
+  logger.info('================================================\n');
 
   const db = createDatabaseClient({ env: environment, logger: true });
   const migrationsDir = join(process.cwd(), 'src/lib/db/migrations');
 
   try {
     // Step 1: Ensure migration tracking table exists
-    console.log('📋 Step 1: Ensuring migration tracking table exists...');
+    logger.info('📋 Step 1: Ensuring migration tracking table exists...');
 
     if (!dryRun) {
       await db.execute(sql`
@@ -179,10 +179,10 @@ async function applyMigrations() {
         CREATE INDEX IF NOT EXISTS idx_migration_versions_name ON migration_versions(name);
       `);
     }
-    console.log('✅ Migration tracking table ready');
+    logger.info('✅ Migration tracking table ready');
 
     // Step 2: Get all migration files
-    console.log('\n📂 Step 2: Scanning for migration files...');
+    logger.info('\n📂 Step 2: Scanning for migration files...');
     const files = readdirSync(migrationsDir)
       .filter(file => file.endsWith('.sql'))
       .sort(); // Ensure migrations run in order
@@ -200,11 +200,11 @@ async function applyMigrations() {
       };
     });
 
-    console.log(`Found ${migrations.length} migration files:
+    logger.info(`Found ${migrations.length} migration files:
 ${migrations.map(m => `  - ${m.name}`).join('\n')}`);
 
     // Step 3: Check which migrations have already been applied
-    console.log('\n🔍 Step 3: Checking migration status...');
+    logger.info('\n🔍 Step 3: Checking migration status...');
 
     const appliedMigrations = dryRun
       ? { rows: [] }
@@ -217,7 +217,7 @@ ${migrations.map(m => `  - ${m.name}`).join('\n')}`);
     const appliedMap = new Map(appliedMigrations.rows.map((row: any) => [row.name, row]));
 
     // Step 4: Apply new migrations
-    console.log('\n⚡ Step 4: Applying migrations...\n');
+    logger.info('\n⚡ Step 4: Applying migrations...\n');
 
     let appliedCount = 0;
     let skippedCount = 0;
@@ -228,17 +228,17 @@ ${migrations.map(m => `  - ${m.name}`).join('\n')}`);
 
       if (applied) {
         if (applied.checksum === migration.checksum && applied.status === 'success') {
-          console.log(
+          logger.info(
             `✓ ${migration.name} - Already applied (${new Date(applied.executed_at).toLocaleDateString()})`
           );
           skippedCount++;
           continue;
         } else if (applied.checksum !== migration.checksum) {
-          console.warn(
+          logger.warn(
             `⚠️  ${migration.name} - Checksum mismatch! File may have been modified after application.`
           );
-          console.warn(`    Applied checksum: ${applied.checksum.substring(0, 8)}...`);
-          console.warn(`    Current checksum: ${migration.checksum.substring(0, 8)}...`);
+          logger.warn(`    Applied checksum: ${applied.checksum.substring(0, 8)}...`);
+          logger.warn(`    Current checksum: ${migration.checksum.substring(0, 8)}...`);
 
           if (!dryRun) {
             // Record the checksum mismatch but don't re-run the migration
@@ -251,14 +251,14 @@ ${migrations.map(m => `  - ${m.name}`).join('\n')}`);
           skippedCount++;
           continue;
         } else if (applied.status === 'failed') {
-          console.log(`⚠️  ${migration.name} - Previously failed, retrying...`);
+          logger.info(`⚠️  ${migration.name} - Previously failed, retrying...`);
         }
       }
 
-      console.log(`\n📝 Applying ${migration.name}...`);
+      logger.info(`\n📝 Applying ${migration.name}...`);
 
       if (dryRun) {
-        console.log('   [DRY RUN] Would execute migration');
+        logger.info('   [DRY RUN] Would execute migration');
         appliedCount++;
         continue;
       }
@@ -269,31 +269,31 @@ ${migrations.map(m => `  - ${m.name}`).join('\n')}`);
 
       try {
         // Get pre-migration verification data
-        console.log('   📊 Getting pre-migration state...');
+        logger.info('   📊 Getting pre-migration state...');
         verificationBefore = await getVerificationData(db, migration.name);
 
         // Parse and execute statements
         const statements = parseSqlStatements(migration.content);
-        console.log(`   📄 Executing ${statements.length} SQL statements...`);
+        logger.info(`   📄 Executing ${statements.length} SQL statements...`);
 
         for (let i = 0; i < statements.length; i++) {
           const statement = statements[i];
           if (statement.trim()) {
             try {
               await db.execute(sql.raw(statement));
-              console.log(`   ✓ Statement ${i + 1}/${statements.length} executed`);
+              logger.info(`   ✓ Statement ${i + 1}/${statements.length} executed`);
             } catch (stmtError: any) {
-              console.error(
+              logger.error(
                 `   ❌ Statement ${i + 1}/${statements.length} failed: ${stmtError.message}`
               );
-              console.error(`      Statement preview: ${statement.substring(0, 100)}...`);
+              logger.error(`      Statement preview: ${statement.substring(0, 100)}...`);
               throw stmtError;
             }
           }
         }
 
         // Get post-migration verification data
-        console.log('   📊 Getting post-migration state...');
+        logger.info('   📊 Getting post-migration state...');
         verificationAfter = await getVerificationData(db, migration.name);
 
         const executionTime = Date.now() - startTime;
@@ -301,21 +301,21 @@ ${migrations.map(m => `  - ${m.name}`).join('\n')}`);
         // Compare before and after
         const { added, removed } = compareVerification(verificationBefore, verificationAfter);
 
-        console.log('   📋 Migration changes:');
+        logger.info('   📋 Migration changes:');
         if (added.functions?.length) {
-          console.log(`      ➕ Functions added: ${added.functions.join(', ')}`);
+          logger.info(`      ➕ Functions added: ${added.functions.join(', ')}`);
         }
         if (added.triggers?.length) {
-          console.log(`      ➕ Triggers added: ${added.triggers.join(', ')}`);
+          logger.info(`      ➕ Triggers added: ${added.triggers.join(', ')}`);
         }
         if (added.indexes?.length) {
-          console.log(`      ➕ Indexes added: ${added.indexes.join(', ')}`);
+          logger.info(`      ➕ Indexes added: ${added.indexes.join(', ')}`);
         }
         if (removed.functions?.length) {
-          console.log(`      ➖ Functions removed: ${removed.functions.join(', ')}`);
+          logger.info(`      ➖ Functions removed: ${removed.functions.join(', ')}`);
         }
         if (removed.triggers?.length) {
-          console.log(`      ➖ Triggers removed: ${removed.triggers.join(', ')}`);
+          logger.info(`      ➖ Triggers removed: ${removed.triggers.join(', ')}`);
         }
 
         // Record successful migration
@@ -331,13 +331,13 @@ ${migrations.map(m => `  - ${m.name}`).join('\n')}`);
               executed_at = CURRENT_TIMESTAMP;
         `);
 
-        console.log(`   ✅ Applied successfully (${executionTime}ms)`);
+        logger.info(`   ✅ Applied successfully (${executionTime}ms)`);
         appliedCount++;
       } catch (error: any) {
         const executionTime = Date.now() - startTime;
         errorCount++;
 
-        console.error(`   ❌ Failed to apply migration: ${error.message}`);
+        logger.error(`   ❌ Failed to apply migration: ${error.message}`);
 
         // Record failed migration
         try {
@@ -351,31 +351,31 @@ ${migrations.map(m => `  - ${m.name}`).join('\n')}`);
                 executed_at = CURRENT_TIMESTAMP;
           `);
         } catch (recordError) {
-          console.error(`   ❌ Failed to record migration error: ${recordError}`);
+          logger.error(`   ❌ Failed to record migration error: ${recordError}`);
         }
       }
     }
 
     // Summary
-    console.log('\n================================================');
-    console.log('📊 Migration Summary:');
-    console.log(`   ✅ Applied: ${appliedCount}`);
-    console.log(`   ⏭️  Skipped: ${skippedCount}`);
-    console.log(`   ❌ Failed: ${errorCount}`);
-    console.log('================================================\n');
+    logger.info('\n================================================');
+    logger.info('📊 Migration Summary:');
+    logger.info(`   ✅ Applied: ${appliedCount}`);
+    logger.info(`   ⏭️  Skipped: ${skippedCount}`);
+    logger.info(`   ❌ Failed: ${errorCount}`);
+    logger.info('================================================\n');
 
     if (errorCount > 0) {
-      console.error('⚠️  Some migrations failed. Please check the errors above.');
+      logger.error('⚠️  Some migrations failed. Please check the errors above.');
       process.exit(1);
     } else if (appliedCount > 0) {
-      console.log('🎉 All migrations applied successfully!');
+      logger.info('🎉 All migrations applied successfully!');
     } else {
-      console.log('✨ Database is up to date!');
+      logger.info('✨ Database is up to date!');
     }
 
     process.exit(0);
   } catch (error) {
-    console.error('\n❌ Error during migration:', error);
+    logger.error('\n❌ Error during migration:', error);
     process.exit(1);
   }
 }

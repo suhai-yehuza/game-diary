@@ -6,7 +6,7 @@ import { createRapidAPIClient, handleAPIError } from '@/lib/external-apis';
 import { ApiTeam, type ApiTeamResponse } from '@/lib/types/consolidated.types';
 
 import { createDatabaseClient } from './config';
-
+import { import { seedLogger } from '@/lib/logger'; } from '@/lib/logger';
 export async function fetchAndProcessNBATeams(): Promise<void> {
   try {
     const db = createDatabaseClient();
@@ -14,10 +14,10 @@ export async function fetchAndProcessNBATeams(): Promise<void> {
     const apiKey = validateAPIKey(rapidApiConfig.apiKey);
     const api = createRapidAPIClient(apiKey);
 
-    console.log('Fetching NBA teams...');
+    seedLogger.info('Fetching NBA teams...');
 
     const res = await api.get<ApiTeamResponse>(API_CONFIG.endpoints.TEAMS);
-    console.log('Teams response:', res);
+    seedLogger.info('Teams response:', res);
 
     if (!res?.response) {
       throw new Error('Invalid response structure from NBA API');
@@ -25,16 +25,16 @@ export async function fetchAndProcessNBATeams(): Promise<void> {
 
     // Filter only NBA teams (those with nbaFranchise flag) and handle capitalized boolean
     const nbaTeams = res.response.filter((team: ApiTeam) => Boolean(team.nbaFranchise));
-    console.log(
+    seedLogger.info(
       `There are ${nbaTeams.length} NBA teams, and ${res.response.length} teams in total`
     );
     const dbTeams = res.response;
     if (dbTeams.length === 0) {
-      console.log('No teams found in response, skipping...');
+      seedLogger.info('No teams found in response, skipping...');
       return;
     }
 
-    console.log(`Fetched ${dbTeams.length} teams`);
+    seedLogger.info(`Fetched ${dbTeams.length} teams`);
 
     // Process teams in batches to avoid rate limits
     for (const team of dbTeams) {
@@ -48,7 +48,7 @@ export async function fetchAndProcessNBATeams(): Promise<void> {
           where: eq(teams.id, team.id.toString()),
         });
         if (existingTeam) {
-          console.log(`Team ${team.id} already exists, skipping...`);
+          seedLogger.info(`Team ${team.id} already exists, skipping...`);
           continue;
         }
 
@@ -75,16 +75,16 @@ export async function fetchAndProcessNBATeams(): Promise<void> {
           set: dbTeam,
         });
 
-        console.log('Successfully stored team:', dbTeam.id);
+        seedLogger.info('Successfully stored team:', dbTeam.id);
       } catch (error) {
-        console.error(`Error storing team ${team.id}:`, error);
+        seedLogger.error(`Error storing team ${team.id}:`, error);
         throw error;
       }
     }
 
-    console.log('Successfully stored all NBA teams.');
+    seedLogger.info('Successfully stored all NBA teams.');
   } catch (error) {
-    console.error('Error in fetchAndProcessNBATeams:', error);
+    seedLogger.error('Error in fetchAndProcessNBATeams:', error);
     handleAPIError(error);
   }
 }

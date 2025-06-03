@@ -8,7 +8,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { CREATE_GAME_LOG } from '@/lib/graphql/mutations';
 import { GET_GAMES } from '@/lib/graphql/queries';
 import type {
-  CreateGameLogInput,
+import { import { logger } from '@/lib/logger';  CreateGameLogInput, } from '@/lib/logger';
   ValidationError as GQLValidationError,
   NotFoundError,
   AuthenticationError,
@@ -125,7 +125,7 @@ export function useCreateGameLog({ onSuccess }: UseCreateGameLogProps = {}) {
         },
       });
     } catch (error) {
-      console.error('Error creating game log:', error);
+      logger.error('Error creating game log:', error);
     }
   };
 

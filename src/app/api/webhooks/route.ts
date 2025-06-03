@@ -5,7 +5,7 @@ import { NextRequest } from 'next/server';
 import { users } from '@/lib/db/schema';
 import { db } from '@/lib/db/seed';
 import { ClerkUserData, ClerkDeletedUserData } from '@/lib/types/user.types';
-
+import { import { apiLogger } from '@/lib/logger'; } from '@/lib/logger';
 // Helper functions
 const createResponse = (message: string, status: number) => new Response(message, { status });
 
@@ -171,7 +171,7 @@ export async function POST(req: NextRequest) {
         return createResponse('Unhandled event type', 200);
     }
   } catch (error) {
-    console.error('Webhook error:', error);
+    apiLogger.error('Webhook error:', error);
     return createResponse(
       error instanceof Error ? error.message : 'Internal server error',
       error instanceof Error && error.message.includes('Missing user ID') ? 400 : 500

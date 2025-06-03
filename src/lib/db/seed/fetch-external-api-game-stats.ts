@@ -8,7 +8,7 @@ import type { GameTeamStatistic, TeamStatisticsResponseData } from '@/lib/types/
 import { generateUUID } from '@/lib/utils/index.processing';
 
 import { createDatabaseClient } from './config';
-
+import { import { seedLogger } from '@/lib/logger'; } from '@/lib/logger';
 // Database type for game_stats table insertion
 type DBGameStats = typeof game_stats.$inferInsert;
 
@@ -73,11 +73,11 @@ export async function fetchAndProcessNBAGameStats(gameId: string, season: number
     });
 
     if (existingStats) {
-      console.log(`Game stats already exist for game ${gameId}, skipping...`);
+      seedLogger.info(`Game stats already exist for game ${gameId}, skipping...`);
       return;
     }
 
-    console.log(`Fetching NBA game statistics for game ${gameId}...`);
+    seedLogger.info(`Fetching NBA game statistics for game ${gameId}...`);
     const response = await api.get<{ response: TeamStatisticsResponseData[] }>(
       `${API_CONFIG.endpoints.GAMES}/statistics?id=${gameId}`
     );
@@ -88,7 +88,7 @@ export async function fetchAndProcessNBAGameStats(gameId: string, season: number
 
     const gameStats = response.response;
     if (gameStats.length < 2) {
-      console.log('Insufficient game stats found in response, skipping...');
+      seedLogger.info('Insufficient game stats found in response, skipping...');
       return;
     }
 
@@ -97,7 +97,7 @@ export async function fetchAndProcessNBAGameStats(gameId: string, season: number
       TeamStatisticsResponseData,
     ];
     if (!homeTeamStats.statistics[0] && !awayTeamStats.statistics[0]) {
-      console.log('Missing team statistics, skipping...');
+      seedLogger.info('Missing team statistics, skipping...');
       return;
     }
 
@@ -113,7 +113,7 @@ export async function fetchAndProcessNBAGameStats(gameId: string, season: number
     });
 
     if (!homeTeam || !awayTeam) {
-      console.log(`Skipping game ${gameId} - one or both teams not found in database:`, {
+      seedLogger.info(`Skipping game ${gameId} - one or both teams not found in database:`, {
         homeTeamId: homeTeamStats.team.id,
         awayTeamId: awayTeamStats.team.id,
       });
@@ -143,7 +143,7 @@ export async function fetchAndProcessNBAGameStats(gameId: string, season: number
       .values(gameStatsData)
       .onConflictDoNothing({ target: game_stats.gameId });
 
-    console.log(`Successfully processed and stored statistics for game ${gameId}`);
+    seedLogger.info(`Successfully processed and stored statistics for game ${gameId}`);
   } catch (error) {
     handleAPIError(error);
   }

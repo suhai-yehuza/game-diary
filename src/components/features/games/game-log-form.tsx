@@ -36,7 +36,7 @@ import { GameLogFormProps, Game } from '@/lib/types/consolidated.types';
 import { ReactDatePickerProps } from '@/lib/types/game-log.types';
 import type { CreateGameLogInput } from '@/lib/types/generated/graphql';
 import { createGameLogSchema } from '@/lib/validations/game-log';
-
+import { import { logger } from '@/lib/logger'; } from '@/lib/logger';
 export function GameLogForm({
   onSuccess,
   formData: externalFormData,
@@ -113,7 +113,7 @@ export function GameLogForm({
         throw new Error('Failed to create game log');
       }
     } catch (error: unknown) {
-      console.error('Error creating game log:', error);
+      logger.error('Error creating game log:', error);
       toast({
         title: 'Error',
         description: error instanceof Error ? error.message : 'Failed to create game log',

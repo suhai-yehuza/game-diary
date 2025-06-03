@@ -4,12 +4,12 @@ import { NextRequest, NextResponse } from 'next/server';
 
 import { users } from '@/lib/db/schema';
 import { db } from '@/lib/db/seed';
-
+import { import { apiLogger } from '@/lib/logger'; } from '@/lib/logger';
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   try {
     const { id } = await params;
     if (!id) {
-      console.error('No user ID provided in params');
+      apiLogger.error('No user ID provided in params');
       return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
     }
 
@@ -38,13 +38,13 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     });
 
     if (!targetUser) {
-      console.error(`User not found with ID: ${id}`);
+      apiLogger.error(`User not found with ID: ${id}`);
       return new NextResponse('User not found', { status: 404 });
     }
 
     return NextResponse.json(targetUser);
   } catch (error) {
-    console.error('Error fetching user:', error);
+    apiLogger.error('Error fetching user:', error);
     return new NextResponse('Internal Server Error', { status: 500 });
   }
 }

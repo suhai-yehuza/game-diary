@@ -35,7 +35,7 @@ import type { Game, GameLog, UpdateGameLogInput } from '@/lib/types/generated/gr
 import { formatGameDate } from '@/lib/utils/index.time';
 
 import { GameLogForm } from './game-log-form';
-
+import { import { logger } from '@/lib/logger'; } from '@/lib/logger';
 export function GameLogModal({
   mode,
   gameId,
@@ -102,7 +102,7 @@ export function GameLogModal({
           });
         }
       } catch (error) {
-        console.error('Error updating cache:', error);
+        logger.error('Error updating cache:', error);
       }
     },
   });
@@ -263,7 +263,7 @@ export function GameLogModal({
         }
       }
     } catch (error) {
-      console.error(`Error ${mode}ing game log:`, error);
+      logger.error(`Error ${mode}ing game log:`, error);
       toast({
         title: 'Error',
         description: `Failed to ${mode} game log. Please try again.`,

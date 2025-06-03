@@ -6,9 +6,9 @@ import { game_logs, game_ratings, users } from '@/lib/db/schema';
 import { seasons, nba_games } from '@/lib/db/schema/nba-schemas';
 import { teams } from '@/lib/db/schema/team-schemas';
 import { CLASSIFICATION, WATCHED_SCOPE, WATCHED_SETTING } from '@/lib/types/config.types';
-
+import { import { seedLogger } from '@/lib/logger'; } from '@/lib/logger';
 async function testGameRatingsTrigger() {
-  console.log('Starting trigger test...');
+  seedLogger.info('Starting trigger test...');
 
   // Create test data
   const userId = uuidv4();
@@ -22,7 +22,7 @@ async function testGameRatingsTrigger() {
 
   try {
     // Clean up any existing test data before inserting
-    console.log('Cleaning up any existing test data...');
+    seedLogger.info('Cleaning up any existing test data...');
 
     // First clean up game_logs and game_ratings (foreign key dependencies)
     await db.delete(game_logs).where(eq(game_logs.userId, userId));
@@ -53,13 +53,13 @@ async function testGameRatingsTrigger() {
         await db.delete(game_ratings).where(eq(game_ratings.gameId, game.id));
         await db.delete(nba_games).where(eq(nba_games.id, game.id));
       } catch (e) {
-        console.log('Note: Could not clean up game:', game.id);
-        console.log(e);
+        seedLogger.info('Note: Could not clean up game:', game.id);
+        seedLogger.info(e);
       }
     }
 
     // Create test users
-    console.log('\nCreating test users...');
+    seedLogger.info('\nCreating test users...');
     await db.insert(users).values([
       {
         id: userId,
@@ -97,7 +97,7 @@ async function testGameRatingsTrigger() {
     ]);
 
     // Create two teams
-    console.log('\nCreating test teams...');
+    seedLogger.info('\nCreating test teams...');
     await db.insert(teams).values([
       {
         id: homeTeamId,
@@ -120,7 +120,7 @@ async function testGameRatingsTrigger() {
     ]);
 
     // Create a season
-    console.log('\nCreating test season...');
+    seedLogger.info('\nCreating test season...');
     await db.insert(seasons).values({
       id: seasonId,
       year: 2024,
@@ -203,7 +203,7 @@ async function testGameRatingsTrigger() {
     };
 
     // Create an nba_game
-    console.log('\nCreating test nba_game...');
+    seedLogger.info('\nCreating test nba_game...');
     const insertedGame = await db
       .insert(nba_games)
       .values(nbaGameData)
@@ -211,7 +211,7 @@ async function testGameRatingsTrigger() {
 
     // Capture the auto-generated ID
     nbaGameId = insertedGame[0].id;
-    console.log('Created nba_game with ID:', nbaGameId);
+    seedLogger.info('Created nba_game with ID:', nbaGameId);
 
     // Insert multiple game logs
     const log1 = {
@@ -245,27 +245,27 @@ async function testGameRatingsTrigger() {
       classification: CLASSIFICATION.PUBLIC,
     };
 
-    console.log('\nTest 1: Inserting multiple game logs...');
-    console.log('Inserting logs:', [log1, log2, log3]);
+    seedLogger.info('\nTest 1: Inserting multiple game logs...');
+    seedLogger.info('Inserting logs:', [log1, log2, log3]);
     await db.insert(game_logs).values([log1, log2, log3]);
 
     // Debug: Check if logs were inserted
     const insertedLogs = await db.select().from(game_logs).where(eq(game_logs.gameId, nbaGameId));
-    console.log('Inserted logs:', insertedLogs);
+    seedLogger.info('Inserted logs:', insertedLogs);
 
     // Debug: Calculate average rating manually
     const avgRating = (4 + 5 + 2) / 3;
-    console.log('Expected average rating:', avgRating.toFixed(2));
+    seedLogger.info('Expected average rating:', avgRating.toFixed(2));
 
     // Debug: Try to manually create game_ratings entry
-    console.log('\nDebug: Trying to manually create game_ratings entry...');
+    seedLogger.info('\nDebug: Trying to manually create game_ratings entry...');
     // Check if a game_ratings entry exists for this gameId
     const existingRating = await db
       .select()
       .from(game_ratings)
       .where(eq(game_ratings.gameId, nbaGameId));
     if (existingRating.length > 0) {
-      console.log('Existing game_ratings entry found, deleting it first...');
+      seedLogger.info('Existing game_ratings entry found, deleting it first...');
       await db.delete(game_ratings).where(eq(game_ratings.gameId, nbaGameId));
     }
     await db.insert(game_ratings).values({
@@ -279,7 +279,7 @@ async function testGameRatingsTrigger() {
       .select()
       .from(game_ratings)
       .where(eq(game_ratings.gameId, nbaGameId));
-    console.log('Rating after insert:', ratingAfterInsert[0]);
+    seedLogger.info('Rating after insert:', ratingAfterInsert[0]);
     if (
       !ratingAfterInsert[0] ||
       ratingAfterInsert[0].averageRating !== avgRating.toFixed(2) ||
@@ -289,13 +289,13 @@ async function testGameRatingsTrigger() {
     }
 
     // Test 2: Update one log's rating
-    console.log('\nTest 2: Updating one game log...');
+    seedLogger.info('\nTest 2: Updating one game log...');
     await db.update(game_logs).set({ ratingForGame: 1 }).where(eq(game_logs.id, log1.id));
     const ratingAfterUpdate = await db
       .select()
       .from(game_ratings)
       .where(eq(game_ratings.gameId, nbaGameId));
-    console.log('Rating after update:', ratingAfterUpdate[0]);
+    seedLogger.info('Rating after update:', ratingAfterUpdate[0]);
     // New average: (1+5+2)/3 = 2.67
     if (
       !ratingAfterUpdate[0] ||
@@ -306,13 +306,13 @@ async function testGameRatingsTrigger() {
     }
 
     // Test 3: Delete one log
-    console.log('\nTest 3: Deleting one game log...');
+    seedLogger.info('\nTest 3: Deleting one game log...');
     await db.delete(game_logs).where(eq(game_logs.id, log2.id));
     const ratingAfterDelete = await db
       .select()
       .from(game_ratings)
       .where(eq(game_ratings.gameId, nbaGameId));
-    console.log('Rating after delete:', ratingAfterDelete[0]);
+    seedLogger.info('Rating after delete:', ratingAfterDelete[0]);
     // New average: (1+2)/2 = 1.50
     if (
       !ratingAfterDelete[0] ||
@@ -323,20 +323,20 @@ async function testGameRatingsTrigger() {
     }
 
     // Test 4: Delete all logs
-    console.log('\nTest 4: Deleting all game logs...');
+    seedLogger.info('\nTest 4: Deleting all game logs...');
     await db.delete(game_logs).where(eq(game_logs.id, log1.id));
     await db.delete(game_logs).where(eq(game_logs.id, log3.id));
     const ratingAfterAllDelete = await db
       .select()
       .from(game_ratings)
       .where(eq(game_ratings.gameId, nbaGameId));
-    console.log('Rating after all deletes:', ratingAfterAllDelete[0]);
+    seedLogger.info('Rating after all deletes:', ratingAfterAllDelete[0]);
     if (ratingAfterAllDelete.length > 0) {
       throw new Error('Game rating not deleted correctly after all logs deleted');
     }
 
     // Clean up test data
-    console.log('\nCleaning up test data...');
+    seedLogger.info('\nCleaning up test data...');
     await db.delete(users).where(eq(users.id, userId));
     await db.delete(users).where(eq(users.id, userId2));
     await db.delete(users).where(eq(users.id, userId3));
@@ -345,11 +345,11 @@ async function testGameRatingsTrigger() {
     await db.delete(teams).where(eq(teams.id, homeTeamId));
     await db.delete(teams).where(eq(teams.id, awayTeamId));
 
-    console.log('\nAll tests passed successfully! 🎉');
+    seedLogger.info('\nAll tests passed successfully! 🎉');
   } catch (error) {
-    console.error('Test failed:', error);
+    seedLogger.error('Test failed:', error);
     throw error;
   }
 }
 
-testGameRatingsTrigger().catch(console.error);
+testGameRatingsTrigger().catch(error => console.error(error));

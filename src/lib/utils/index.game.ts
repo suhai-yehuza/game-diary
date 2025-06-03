@@ -13,7 +13,7 @@ import {
   type Team,
 } from '@/lib/types/generated/graphql';
 import type { GameRecord } from '@/lib/types/graphql.types';
-
+import { import { logger } from '@/lib/logger'; } from '@/lib/logger';
 function isDBGameRecord(game: unknown): game is DBGameRecord {
   if (!game || typeof game !== 'object') return false;
 
@@ -98,7 +98,7 @@ function convertDBGameToNBAGame(game: GameRecord): Game {
       nbaGameId: game.id,
     };
   } catch (error) {
-    console.error('Error converting game record:', error);
+    logger.error('Error converting game record:', error);
     throw new Error('Failed to convert game record to NBA game format');
   }
 }
@@ -146,7 +146,7 @@ export function sortGamesByDate(games: Game[]): Game[] {
       const dateB = new Date(b.date.start).getTime();
       return dateB - dateA;
     } catch (error) {
-      console.error('Error sorting games by date:', error);
+      logger.error('Error sorting games by date:', error);
       return 0;
     }
   });
@@ -273,13 +273,13 @@ export async function getH2HData(
             );
 
           if (!game || !isDBGameRecord(game)) {
-            console.error('Invalid game record:', game);
+            logger.error('Invalid game record:', game);
             return null;
           }
 
           return convertDBGameToNBAGame(game);
         } catch (error) {
-          console.error(`Error fetching game ${gameId}:`, error);
+          logger.error(`Error fetching game ${gameId}:`, error);
           return null;
         }
       })
@@ -290,7 +290,7 @@ export async function getH2HData(
       last5Games: last5Games.filter(Boolean),
     };
   } catch (error) {
-    console.error('Error fetching H2H data:', error);
+    logger.error('Error fetching H2H data:', error);
     throw new Error('Failed to fetch head-to-head data');
   }
 }
@@ -342,7 +342,7 @@ export async function updateH2HData(game: Game, db: NodePgDatabase<typeof schema
         .where(eq(schema.team_h2h.id, existingH2H.id));
     }
   } catch (error) {
-    console.error('Error updating H2H data:', error);
+    logger.error('Error updating H2H data:', error);
     throw new Error('Failed to update head-to-head data');
   }
 }

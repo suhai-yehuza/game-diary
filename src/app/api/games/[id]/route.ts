@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 
 import { db } from '@/lib/db';
 import { nba_games } from '@/lib/db/schema';
-
+import { import { apiLogger } from '@/lib/logger'; } from '@/lib/logger';
 export async function GET(request: Request, { params }: { params: { id: string } }) {
   try {
     const game = await db.query.nba_games.findFirst({
@@ -23,7 +23,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
       data: [game],
     });
   } catch (error) {
-    console.error('Error fetching game:', error);
+    apiLogger.error('Error fetching game:', error);
     return new NextResponse('Internal Server Error', { status: 500 });
   }
 }

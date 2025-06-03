@@ -8,7 +8,7 @@ import type { Context } from '@/lib/types/component.types';
 
 import type { PaginationArgs } from '../common/types';
 import { handleResolverError } from '../common/utils';
-
+import { import { logger } from '@/lib/logger'; } from '@/lib/logger';
 // Helper function to calculate comment depth
 async function getCommentDepth(
   commentId: string,
@@ -114,7 +114,7 @@ export const Comment = {
         __typename: 'UserSummary',
       };
     } catch (error) {
-      console.error('Error loading user for comment:', error);
+      logger.error('Error loading user for comment:', error);
       return null;
     }
   },
@@ -139,7 +139,7 @@ export const Comment = {
         updatedAt: reaction.updatedAt,
       }));
     } catch (error) {
-      console.error('Error fetching reactions for comment:', error);
+      logger.error('Error fetching reactions for comment:', error);
       return [];
     }
   },
@@ -206,7 +206,7 @@ export const Comment = {
 
       return createConnection(mappedComments, totalCount, { first, after });
     } catch (error) {
-      console.error('Error fetching child comments:', error);
+      logger.error('Error fetching child comments:', error);
       return {
         edges: [],
         pageInfo: {
@@ -233,7 +233,7 @@ export const Comment = {
       // Calculate depth by traversing up the comment tree
       return await getCommentDepth(parent.parentId, db, 1);
     } catch (error) {
-      console.error('Error calculating comment depth:', error);
+      logger.error('Error calculating comment depth:', error);
       return 0;
     }
   },

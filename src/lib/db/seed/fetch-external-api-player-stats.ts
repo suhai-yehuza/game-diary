@@ -7,7 +7,7 @@ import { generateUUID } from '@/lib/utils/index.processing';
 
 import { createDatabaseClient } from './config';
 import { nba_player_stats } from './schema';
-
+import { import { seedLogger } from '@/lib/logger'; } from '@/lib/logger';
 // Add timeout configuration
 const API_TIMEOUT = 10000; // 10 seconds timeout
 const DB_RETRY_ATTEMPTS = 3;
@@ -50,11 +50,11 @@ export async function fetchAndProcessNBAPlayerStats(
     );
 
     if (existingStats) {
-      console.log(`Stats already exist for player ${playerId} in game ${gameId}, skipping...`);
+      seedLogger.info(`Stats already exist for player ${playerId} in game ${gameId}, skipping...`);
       return;
     }
 
-    console.log(`Fetching NBA player statistics for player ${playerId} in game ${gameId}...`);
+    seedLogger.info(`Fetching NBA player statistics for player ${playerId} in game ${gameId}...`);
 
     // Add timeout to the API call
     const timeoutPromise = new Promise((_, reject) => {
@@ -74,23 +74,23 @@ export async function fetchAndProcessNBAPlayerStats(
     }
 
     if (!Array.isArray(response.response)) {
-      console.error('Invalid response data:', response.response);
+      seedLogger.error('Invalid response data:', response.response);
       throw new Error(
         `Invalid response format. Expected response array but got ${typeof response.response}`
       );
     }
 
     const playerStats = response.response;
-    console.log(`Fetched statistics for player ${playerId}`);
+    seedLogger.info(`Fetched statistics for player ${playerId}`);
     if ((playerStats?.length || 0) === 0) {
-      console.log(
+      seedLogger.info(
         `No player stats found for player ${playerId} in game ${gameId} of ${season} season`
       );
       return;
     }
 
     if (playerStats.length > 1) {
-      console.log({ playerStats });
+      seedLogger.info({ playerStats });
       throw new Error(
         `Multiple player stats found for player ${playerId} in game ${gameId} of ${season} season`
       );
@@ -123,18 +123,18 @@ export async function fetchAndProcessNBAPlayerStats(
       })
     );
 
-    console.log(`Successfully processed and stored statistics for player ${playerId}`);
+    seedLogger.info(`Successfully processed and stored statistics for player ${playerId}`);
   } catch (error) {
     if (error instanceof Error) {
       if (error.message === 'API request timeout') {
-        console.error(`Timeout fetching stats for player ${playerId} in game ${gameId}`);
+        seedLogger.error(`Timeout fetching stats for player ${playerId} in game ${gameId}`);
       } else if (error.message.includes('database') || error.message.includes('connection')) {
-        console.error(`Database error for player ${playerId} in game ${gameId}:`, error.message);
+        seedLogger.error(`Database error for player ${playerId} in game ${gameId}:`, error.message);
       } else {
         handleAPIError(error);
       }
     } else {
-      console.error('Unexpected error:', error);
+      seedLogger.error('Unexpected error:', error);
     }
     throw error; // Re-throw to allow caller to handle the error
   }

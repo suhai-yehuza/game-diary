@@ -32,7 +32,7 @@ import { CommentItemProps } from '@/lib/types/component.types';
 import { cn } from '@/lib/utils';
 
 import { ReactionDisplay } from './reaction-display';
-
+import { import { logger } from '@/lib/logger'; } from '@/lib/logger';
 export function CommentItem({
   comment,
   onEdit,
@@ -91,7 +91,7 @@ export function CommentItem({
         },
       });
     } catch (error) {
-      console.error('Error creating reply:', error);
+      logger.error('Error creating reply:', error);
     } finally {
       setIsSubmitting(false);
     }

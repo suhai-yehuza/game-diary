@@ -17,7 +17,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { DBUser } from '@/lib/types/generated/graphql';
-
+import { import { logger } from '@/lib/logger'; } from '@/lib/logger';
 const ITEMS_PER_PAGE = 20;
 
 function AdminUsersContent() {
@@ -47,7 +47,7 @@ function AdminUsersContent() {
         const data = await response.json();
         setUsers(data);
       } catch (error) {
-        console.error('Error fetching users:', error);
+        logger.error('Error fetching users:', error);
       } finally {
         setIsLoading(false);
       }

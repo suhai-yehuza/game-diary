@@ -7,6 +7,7 @@ import type { Schema } from '@/lib/db/schema/types';
 import { env as appEnv } from '@/lib/env';
 import { CACHE_TTL } from '@/lib/types/cache.types';
 import { type QueryOptions } from '@/lib/types/database.types';
+import { dbLogger } from '@/lib/logger';
 
 // Initialize cache
 const cache = getCache();
@@ -31,9 +32,9 @@ neonConfig.fetchFunction = (input: RequestInfo | URL, init?: RequestInit) => {
 let sql;
 try {
   sql = neon(appEnv.DATABASE_URL);
-  console.log('Database connection established successfully');
+  dbLogger.info('Database connection established successfully');
 } catch (error) {
-  console.error('Failed to establish database connection:', error);
+  dbLogger.error('Failed to establish database connection:', error);
   throw new Error(
     'Database connection failed. Please check your network connection and database URL.'
   );
@@ -58,7 +59,7 @@ export const withCache = async <T>(
     await cache.set(key, data, ttl);
     return data;
   } catch (error) {
-    console.error(`Cache operation failed for key ${key}:`, error);
+    dbLogger.error(`Cache operation failed for key ${key}:`, error);
     // Fallback to direct fetch if cache fails
     return fetchFn();
   }
@@ -102,7 +103,7 @@ export const batchQuery = async <T extends { id: string }>(
 
     return cachedResults;
   } catch (error) {
-    console.error('Batch query operation failed:', error);
+    dbLogger.error('Batch query operation failed:', error);
     // Fallback to direct query if cache fails
     const results = await queryFn(ids);
     return new Map(results.map(result => [result.id, result]));
@@ -137,9 +138,9 @@ export const monitorQuery = async <T>(
 
       // Log query performance
       if (duration > 1000) {
-        console.warn(`Slow query detected: ${name} took ${duration.toFixed(2)}ms`);
+        dbLogger.warn(`Slow query detected: ${name} took ${duration.toFixed(2)}ms`);
       } else if (appEnv.NODE_ENV === 'development') {
-        console.debug(`Query completed: ${name} took ${duration.toFixed(2)}ms`);
+        dbLogger.debug(`Query completed: ${name} took ${duration.toFixed(2)}ms`);
       }
 
       return result;
@@ -148,14 +149,14 @@ export const monitorQuery = async <T>(
       const duration = performance.now() - start;
 
       if (attempts === retries) {
-        console.error(
+        dbLogger.error(
           `Query failed after ${retries} attempts: ${name} took ${duration.toFixed(2)}ms`,
           error
         );
         throw error;
       }
 
-      console.warn(
+      dbLogger.warn(
         `Query attempt ${attempts} failed: ${name} took ${duration.toFixed(2)}ms, retrying...`,
         error
       );
@@ -180,7 +181,7 @@ export async function withDb<T>(
         const result = await callback(db);
         return result;
       } catch (error) {
-        console.error('Database operation failed:', error);
+        dbLogger.error('Database operation failed:', error);
         throw error;
       }
     },
@@ -201,8 +202,8 @@ try {
     throw new Error('DATABASE_URL is required');
   }
 
-  console.log('✓ Database URL configured');
+  dbLogger.info('✓ Database URL configured');
 } catch (error) {
-  console.error('Database URL configuration error:', error);
+  dbLogger.error('Database URL configuration error:', error);
   throw error;
 }

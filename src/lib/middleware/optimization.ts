@@ -2,11 +2,10 @@ import { Request, Response, NextFunction } from 'express';
 import { rateLimit } from 'express-rate-limit';
 import { NextApiRequest, NextApiResponse } from 'next';
 
-import { logger } from '@/lib/logger';
 import { monitoring } from '@/lib/monitoring';
 import { ExtendedNextApiRequest } from '@/lib/types/consolidated.types';
 import { responseUtils } from '@/lib/utils/index.response';
-
+import { import { apiLogger } from '@/lib/logger'; } from '@/lib/logger';
 // Field selection middleware
 export const fieldSelectionMiddleware = (
   req: ExtendedNextApiRequest,
@@ -92,7 +91,7 @@ export const errorHandlerMiddleware = (
   _next: () => void
 ) => {
   monitoring.trackError(error);
-  logger.error('API Error:', error);
+  apiLogger.error('API Error:', error);
   res.status(500).json({ error: 'Internal Server Error' });
 };
 

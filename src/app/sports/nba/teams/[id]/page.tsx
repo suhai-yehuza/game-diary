@@ -9,7 +9,7 @@ import { fetchNbaTeamById, fetchNbaTeamStats } from '@/lib/external-apis';
 import type { TeamDisplayStats, Game } from '@/lib/types/consolidated.types';
 import { type Team } from '@/lib/types/generated/graphql';
 import { calculateTeamStats, getTeamStreak, getTeamLastTenGames } from '@/lib/utils/index.game';
-
+import { import { logger } from '@/lib/logger'; } from '@/lib/logger';
 export default function TeamPage() {
   const params = useParams();
   const teamId = params?.id as string;
@@ -99,7 +99,7 @@ export default function TeamPage() {
           : undefined;
         setTeamStats(stats || null);
       } catch (error) {
-        console.error('Error loading team stats:', error);
+        logger.error('Error loading team stats:', error);
         setError('Failed to load team stats');
       }
     };
@@ -127,7 +127,7 @@ export default function TeamPage() {
           stats,
         });
       } catch (error) {
-        console.error('Error loading team trends:', error);
+        logger.error('Error loading team trends:', error);
       }
     };
 

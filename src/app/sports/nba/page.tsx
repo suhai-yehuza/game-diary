@@ -10,7 +10,7 @@ import { API_CONFIG } from '@/lib/config/api.config';
 import { GET_GAMES } from '@/lib/graphql/queries';
 import type { Game, GameEdge, GameQueryResponse } from '@/lib/types/consolidated.types';
 import { getCurrentSeason } from '@/lib/utils/index.time';
-
+import { import { logger } from '@/lib/logger'; } from '@/lib/logger';
 export default function NBAPage() {
   const { isLoaded } = useUser();
   const [isFetchingMore, setIsFetchingMore] = useState<boolean>(false);
@@ -88,7 +88,7 @@ export default function NBAPage() {
         });
       }
     } catch (error) {
-      console.error('Error fetching more games:', error);
+      logger.error('Error fetching more games:', error);
     } finally {
       setIsFetchingMore(false);
     }

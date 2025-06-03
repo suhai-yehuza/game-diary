@@ -16,7 +16,7 @@ import { GET_TEAM_STATS } from '@/lib/graphql/queries';
 import type { Game, GameStatistics } from '@/lib/types/consolidated.types';
 import type { GameLog } from '@/lib/types/generated/graphql';
 import { cn } from '@/lib/utils';
-
+import { import { logger } from '@/lib/logger'; } from '@/lib/logger';
 // Helper function to validate state values
 const isValidState = (state: string | undefined | null): boolean => {
   if (!state) return false;
@@ -185,7 +185,7 @@ export default function GamePage() {
         setGameData(game);
         setLoading(false);
       } catch (error) {
-        console.error('Error loading game data:', error);
+        logger.error('Error loading game data:', error);
         setError('Failed to load game data');
         setLoading(false);
       }

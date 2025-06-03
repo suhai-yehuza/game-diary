@@ -1,6 +1,7 @@
 import { Agent } from 'https';
 
 import { Redis as UpstashRedis } from '@upstash/redis';
+import { cacheLogger } from "@/lib/logger";
 import Redis from 'ioredis';
 
 import type { RedisClient, RedisClientType } from '@/lib/types/cache.types';
@@ -93,7 +94,7 @@ export class Cache {
       return false;
     }
 
-    console.log('=== Redis Initialization (Upstash) ===');
+    cacheLogger.info('=== Redis Initialization (Upstash) ===');
     this.logRedisConfiguration('upstash');
 
     try {
@@ -110,7 +111,7 @@ export class Cache {
 
       return await this.testConnection();
     } catch (error) {
-      console.error('Failed to initialize Upstash Redis:', error);
+      cacheLogger.error('Failed to initialize Upstash Redis:', error);
       this.resetClient();
       return false;
     }
@@ -124,7 +125,7 @@ export class Cache {
       return false;
     }
 
-    console.log('=== Redis Initialization (ioredis) ===');
+    cacheLogger.info('=== Redis Initialization (ioredis) ===');
     this.logRedisConfiguration('ioredis');
 
     try {
@@ -139,7 +140,7 @@ export class Cache {
 
       return await this.testConnection();
     } catch (error) {
-      console.error('Failed to initialize IORedis:', error);
+      cacheLogger.error('Failed to initialize IORedis:', error);
       this.resetClient();
       return false;
     }
@@ -156,11 +157,11 @@ export class Cache {
       }
       await Promise.race([this.client.ping(), sleep(30000)]);
       this.isRedisAvailable = true;
-      console.log('✅ Redis connection established successfully');
-      console.log('=== Redis Initialization Complete ===\n');
+      cacheLogger.info('✅ Redis connection established successfully');
+      cacheLogger.info('=== Redis Initialization Complete ===\n');
       return true;
     } catch (error) {
-      console.error('Redis connection test failed:', error);
+      cacheLogger.error('Redis connection test failed:', error);
       this.resetClient();
       return false;
     }
@@ -170,31 +171,31 @@ export class Cache {
    * Log Redis configuration status
    */
   private logRedisConfiguration(type: 'upstash' | 'ioredis'): void {
-    console.log('Testing Redis connection...');
-    console.log('Environment:', process.env.NODE_ENV);
+    cacheLogger.info('Testing Redis connection...');
+    cacheLogger.info('Environment:', process.env.NODE_ENV);
 
     if (type === 'upstash') {
-      console.log('Redis URL configured:', process.env.KV_REST_API_URL ? 'Yes' : 'No');
-      console.log('Redis Token configured:', process.env.KV_REST_API_TOKEN ? 'Yes' : 'No');
+      cacheLogger.info('Redis URL configured:', process.env.KV_REST_API_URL ? 'Yes' : 'No');
+      cacheLogger.info('Redis Token configured:', process.env.KV_REST_API_TOKEN ? 'Yes' : 'No');
     } else {
-      console.log('Redis URL configured:', process.env.REDIS_URL ? 'Yes' : 'No');
+      cacheLogger.info('Redis URL configured:', process.env.REDIS_URL ? 'Yes' : 'No');
     }
 
-    console.log(`Redis is running with [${type}] configuration:`);
+    cacheLogger.info(`Redis is running with [${type}] configuration:`);
   }
 
   /**
    * Handle missing Redis configuration
    */
   private handleMissingConfiguration(): void {
-    console.warn('=== Redis Configuration Missing ===');
-    console.warn('Environment:', process.env.NODE_ENV);
-    console.warn(
+    cacheLogger.warn('=== Redis Configuration Missing ===');
+    cacheLogger.warn('Environment:', process.env.NODE_ENV);
+    cacheLogger.warn(
       'Redis URL configured:',
       process.env.KV_REST_API_URL || process.env.REDIS_URL ? 'Yes' : 'No'
     );
-    console.warn('Caching will be disabled.');
-    console.warn('===============================\n');
+    cacheLogger.warn('Caching will be disabled.');
+    cacheLogger.warn('===============================\n');
     this.resetClient();
   }
 
@@ -202,10 +203,10 @@ export class Cache {
    * Handle Redis initialization error
    */
   private handleInitializationError(error: unknown): void {
-    console.error('=== Redis Initialization Error ===');
-    console.error('Environment:', process.env.NODE_ENV);
-    console.error('Error:', error);
-    console.error('================================\n');
+    cacheLogger.error('=== Redis Initialization Error ===');
+    cacheLogger.error('Environment:', process.env.NODE_ENV);
+    cacheLogger.error('Error:', error);
+    cacheLogger.error('================================\n');
     this.resetClient();
   }
 
@@ -223,22 +224,22 @@ export class Cache {
    */
   async get<T>(key: string): Promise<T | null> {
     if (!this.isRedisAvailable || !this.client) {
-      console.log(`[Cache.get] Redis not available. Key: ${key}`);
+      cacheLogger.info(`[Cache.get] Redis not available. Key: ${key}`);
       return null;
     }
 
     try {
-      console.log(`[Cache.get] Getting key: ${key}`);
+      cacheLogger.info(`[Cache.get] Getting key: ${key}`);
       const data = await this.getFromClient(key);
 
       if (!data) {
-        console.log(`[Cache.get] Key not found: ${key}`);
+        cacheLogger.info(`[Cache.get] Key not found: ${key}`);
         return null;
       }
 
       return this.parseValue<T>(data, key);
     } catch (error) {
-      console.error(`[Cache.get] Error getting key ${key}:`, error);
+      cacheLogger.error(`[Cache.get] Error getting key ${key}:`, error);
       return null;
     }
   }
@@ -263,7 +264,7 @@ export class Cache {
 
     // If data is already an object, return it directly
     if (typeof data === 'object' && data !== null) {
-      console.log(`[Cache.get] Data is already an object for key: ${key}`);
+      cacheLogger.info(`[Cache.get] Data is already an object for key: ${key}`);
       return data as T;
     }
 
@@ -271,10 +272,10 @@ export class Cache {
     if (typeof data === 'string') {
       try {
         const parsedData = JSON.parse(data) as T;
-        console.log(`[Cache.get] Successfully parsed JSON string for key: ${key}`);
+        cacheLogger.info(`[Cache.get] Successfully parsed JSON string for key: ${key}`);
         return parsedData;
       } catch (parseError) {
-        console.warn(`[Cache.get] Parse error for key ${key}:`, parseError);
+        cacheLogger.warn(`[Cache.get] Parse error for key ${key}:`, parseError);
 
         // If it's a string representation of an object, try to evaluate it safely
         if (data.startsWith('[object Object]')) {
@@ -282,16 +283,16 @@ export class Cache {
             // Extract the object content and try to parse it
             const objectContent = data.replace('[object Object]', '{}');
             const parsedObject = JSON.parse(objectContent);
-            console.log(`[Cache.get] Successfully parsed object string for key: ${key}`);
+            cacheLogger.info(`[Cache.get] Successfully parsed object string for key: ${key}`);
             return parsedObject as T;
           } catch (evalError) {
-            console.warn(`[Cache.get] Failed to parse object string for key ${key}:`, evalError);
+            cacheLogger.warn(`[Cache.get] Failed to parse object string for key ${key}:`, evalError);
             return null as T;
           }
         }
 
         // If all parsing attempts fail, return the raw string
-        console.log(`[Cache.get] Returning raw string value for key: ${key}`);
+        cacheLogger.info(`[Cache.get] Returning raw string value for key: ${key}`);
         return data as unknown as T;
       }
     }
@@ -305,18 +306,18 @@ export class Cache {
    */
   async set<T>(key: string, value: T, ttl?: number): Promise<boolean> {
     if (!this.isRedisAvailable || !this.client) {
-      console.log(`[Cache.set] Redis not available. Key: ${key}`);
+      cacheLogger.info(`[Cache.set] Redis not available. Key: ${key}`);
       return false;
     }
 
     try {
-      console.log(`[Cache.set] Setting key: ${key} with ttl: ${ttl || 'none'}`);
+      cacheLogger.info(`[Cache.set] Setting key: ${key} with ttl: ${ttl || 'none'}`);
       const serializedValue = this.serializeValue(value);
       await this.setInClient(key, serializedValue, ttl);
-      console.log(`[Cache.set] Successfully set key: ${key}`);
+      cacheLogger.info(`[Cache.set] Successfully set key: ${key}`);
       return true;
     } catch (error) {
-      console.error(`[Cache.set] Error setting key ${key}:`, error);
+      cacheLogger.error(`[Cache.set] Error setting key ${key}:`, error);
       return false;
     }
   }
@@ -334,7 +335,7 @@ export class Cache {
     try {
       return JSON.stringify(value);
     } catch (error) {
-      console.error('[Cache.serializeValue] Error serializing value:', error);
+      cacheLogger.error('[Cache.serializeValue] Error serializing value:', error);
       throw new Error('Failed to serialize value for cache storage');
     }
   }
@@ -363,18 +364,18 @@ export class Cache {
    */
   async del(key: string): Promise<boolean> {
     if (!this.isRedisAvailable || !this.client) {
-      console.log(`[Cache.del] Redis not available. Key: ${key}`);
+      cacheLogger.info(`[Cache.del] Redis not available. Key: ${key}`);
       return false;
     }
 
     try {
-      console.log(`[Cache.del] Deleting key: ${key}`);
+      cacheLogger.info(`[Cache.del] Deleting key: ${key}`);
       const result = await this.client.del(key);
       const success = result > 0;
-      console.log(`[Cache.del] ${success ? 'Successfully' : 'Key not found'}: ${key}`);
+      cacheLogger.info(`[Cache.del] ${success ? 'Successfully' : 'Key not found'}: ${key}`);
       return success;
     } catch (error) {
-      console.error(`[Cache.del] Error deleting key ${key}:`, error);
+      cacheLogger.error(`[Cache.del] Error deleting key ${key}:`, error);
       return false;
     }
   }
@@ -384,21 +385,21 @@ export class Cache {
    */
   async clear(): Promise<boolean> {
     if (!this.isRedisAvailable || !this.client) {
-      console.log('[Cache.clear] Redis not available');
+      cacheLogger.info('[Cache.clear] Redis not available');
       return false;
     }
 
     try {
-      console.log('[Cache.clear] Clearing all keys');
+      cacheLogger.info('[Cache.clear] Clearing all keys');
       if (this.clientType === 'upstash') {
         await (this.client as UpstashRedis).flushall();
       } else {
         await (this.client as Redis).flushall();
       }
-      console.log('[Cache.clear] Successfully cleared all keys');
+      cacheLogger.info('[Cache.clear] Successfully cleared all keys');
       return true;
     } catch (error) {
-      console.error('[Cache.clear] Error clearing cache:', error);
+      cacheLogger.error('[Cache.clear] Error clearing cache:', error);
       return false;
     }
   }
@@ -408,18 +409,18 @@ export class Cache {
    */
   async keys(pattern: string): Promise<string[]> {
     if (!this.isRedisAvailable || !this.client) {
-      console.log(`[Cache.keys] Redis not available. Pattern: ${pattern}`);
+      cacheLogger.info(`[Cache.keys] Redis not available. Pattern: ${pattern}`);
       return [];
     }
 
     try {
-      console.log(`[Cache.keys] Getting keys matching pattern: ${pattern}`);
+      cacheLogger.info(`[Cache.keys] Getting keys matching pattern: ${pattern}`);
       if (this.clientType === 'upstash') {
         return await (this.client as UpstashRedis).keys(pattern);
       }
       return await (this.client as Redis).keys(pattern);
     } catch (error) {
-      console.error(`[Cache.keys] Error getting keys for pattern ${pattern}:`, error);
+      cacheLogger.error(`[Cache.keys] Error getting keys for pattern ${pattern}:`, error);
       return [];
     }
   }
@@ -437,16 +438,16 @@ export class Cache {
     }
 
     try {
-      console.log(`[Cache.batchCache] Caching ${items.length} items with prefix: ${keyPrefix}`);
+      cacheLogger.info(`[Cache.batchCache] Caching ${items.length} items with prefix: ${keyPrefix}`);
       if (this.clientType === 'upstash') {
         await this.batchCacheUpstash(items, keyPrefix, ttl);
       } else {
         await this.batchCacheIORedis(items, keyPrefix, ttl);
       }
-      console.log('[Cache.batchCache] Successfully cached all items');
+      cacheLogger.info('[Cache.batchCache] Successfully cached all items');
       return true;
     } catch (error) {
-      console.error('[Cache.batchCache] Error in batch cache operation:', error);
+      cacheLogger.error('[Cache.batchCache] Error in batch cache operation:', error);
       return false;
     }
   }
@@ -502,12 +503,12 @@ export class Cache {
     }
 
     try {
-      console.log(`[Cache.batchGetCache] Getting ${ids.length} items with prefix: ${keyPrefix}`);
+      cacheLogger.info(`[Cache.batchGetCache] Getting ${ids.length} items with prefix: ${keyPrefix}`);
       const keys = ids.map(id => `${keyPrefix}:${id}`);
       const values = await this.batchGetFromClient(keys);
       return this.processBatchGetResults<T>(ids, values);
     } catch (error) {
-      console.error('[Cache.batchGetCache] Error in batch get cache operation:', error);
+      cacheLogger.error('[Cache.batchGetCache] Error in batch get cache operation:', error);
       return new Map();
     }
   }
@@ -608,7 +609,7 @@ export const cacheWithRetry = async <T>(
       return data;
     } catch (error) {
       lastError = error instanceof Error ? error : new Error(String(error));
-      console.error(`Cache retry ${i + 1}/${maxRetries} failed:`, lastError);
+      cacheLogger.error(`Cache retry ${i + 1}/${maxRetries} failed:`, lastError);
       await sleep(Math.pow(2, i) * 1000);
     }
   }
@@ -662,7 +663,7 @@ export const invalidateRelatedCaches = async (
         break;
     }
   } catch (error) {
-    console.error(`Error invalidating cache for ${type} ${id}:`, error);
+    cacheLogger.error(`Error invalidating cache for ${type} ${id}:`, error);
   }
 };
 
@@ -740,7 +741,7 @@ export const testRedisConnection = async () => {
 
     return true;
   } catch (error) {
-    console.error('Redis test failed:', error);
+    cacheLogger.error('Redis test failed:', error);
     throw error;
   }
 };

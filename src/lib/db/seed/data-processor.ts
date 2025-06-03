@@ -6,7 +6,7 @@ import type { DatabaseClient } from '@/lib/types/database.types';
 import type { GlobalWithGC } from '@/lib/types/global';
 
 import { OptimizedAPIClient } from './utils/api-client';
-
+import { import { seedLogger } from '@/lib/logger'; } from '@/lib/logger';
 // Enhanced sleep function with jitter
 const sleep = (ms: number, jitter = true) => {
   const delay = jitter ? ms + Math.random() * 1000 : ms;
@@ -39,11 +39,11 @@ export class PerformanceMonitor {
   }
 
   logResults() {
-    console.log('\n=== Performance Results ===');
+    seedLogger.info('\n=== Performance Results ===');
     for (const [operation, duration] of Array.from(this.results.entries())) {
-      console.log(`${operation}: ${(duration / 1000).toFixed(2)}s`);
+      seedLogger.info(`${operation}: ${(duration / 1000).toFixed(2)}s`);
     }
-    console.log('===========================\n');
+    seedLogger.info('===========================\n');
   }
 }
 
@@ -75,13 +75,13 @@ export class DataProcessor {
         }
       }
 
-      console.log(
+      seedLogger.info(
         `Processed ${Math.min(i + chunkSize, data.length)}/${data.length} ${operation} items`
       );
     }
 
     const duration = this.monitor.end(operation);
-    console.log(`${operation} completed in ${(duration / 1000).toFixed(2)}s`);
+    seedLogger.info(`${operation} completed in ${(duration / 1000).toFixed(2)}s`);
   }
 
   async streamInsert<T extends PgTable>(
@@ -114,12 +114,12 @@ export class DataProcessor {
             }
           } catch (error) {
             consecutiveErrors++;
-            console.error(
+            seedLogger.error(
               `Error in batch insertion, consecutive errors: ${consecutiveErrors}/${maxConsecutiveErrors}`
             );
 
             if (consecutiveErrors >= maxConsecutiveErrors) {
-              console.error(
+              seedLogger.error(
                 `Too many consecutive errors (${consecutiveErrors}), stopping stream insertion`
               );
               throw error;
@@ -128,7 +128,7 @@ export class DataProcessor {
             // On error, wait longer and try with a smaller batch
             await sleep(2000);
             const smallerBatchSize = Math.max(10, Math.floor(batch.length / 2));
-            console.log(`Retrying with smaller batch size: ${smallerBatchSize}`);
+            seedLogger.info(`Retrying with smaller batch size: ${smallerBatchSize}`);
 
             // Split the failed batch into smaller chunks
             for (let i = 0; i < batch.length; i += smallerBatchSize) {
@@ -148,11 +148,11 @@ export class DataProcessor {
       }
 
       const duration = this.monitor.end(operation);
-      console.log(
+      seedLogger.info(
         `Stream inserted ${count} ${operation} items in ${(duration / 1000).toFixed(2)}s`
       );
     } catch (error) {
-      console.error(`Stream insertion failed for ${operation} after ${count} items:`, error);
+      seedLogger.error(`Stream insertion failed for ${operation} after ${count} items:`, error);
       throw error;
     }
   }
@@ -171,7 +171,7 @@ export class DataProcessor {
         return; // Success, exit retry loop
       } catch (error) {
         lastError = error as Error;
-        console.error(`Batch insertion attempt ${attempt}/${maxRetries} failed:`, error);
+        seedLogger.error(`Batch insertion attempt ${attempt}/${maxRetries} failed:`, error);
 
         // Check if it's a network-related error
         const isNetworkError = this.isNetworkError(error);
@@ -183,7 +183,7 @@ export class DataProcessor {
 
         // Wait with exponential backoff before retrying
         const delay = Math.min(1000 * Math.pow(2, attempt - 1), 10000);
-        console.log(`Retrying in ${delay}ms... (attempt ${attempt + 1}/${maxRetries})`);
+        seedLogger.info(`Retrying in ${delay}ms... (attempt ${attempt + 1}/${maxRetries})`);
         await sleep(delay);
       }
     }
@@ -199,7 +199,7 @@ export class DataProcessor {
     try {
       await this.db.insert(table).values(batch as InferInsertModel<T>[]);
     } catch (error) {
-      console.error(`Error inserting ${operation} batch:`, error);
+      seedLogger.error(`Error inserting ${operation} batch:`, error);
       throw error;
     }
   }

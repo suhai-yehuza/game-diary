@@ -40,7 +40,7 @@ import { GET_GAME_LOGS, GET_USER } from '@/lib/graphql/queries';
 import { GameLog, Friendship, FriendshipStatus, DBUser } from '@/lib/types/generated/graphql';
 import { UserProfileProps } from '@/lib/types/user.types';
 import { cn } from '@/lib/utils';
-
+import { import { logger } from '@/lib/logger'; } from '@/lib/logger';
 // Custom query to get friendships between two users
 const GET_USER_FRIENDSHIPS = gql`
   query GetUserFriendships($userId: ID!) {
@@ -128,7 +128,7 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
             setCurrentUserDbId(data.id);
           }
         } catch (error) {
-          console.error('Error fetching current user ID:', error);
+          logger.error('Error fetching current user ID:', error);
         }
       }
     };
@@ -178,7 +178,7 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
             setDbUserId(data.id);
           }
         } catch (error) {
-          console.error('Error fetching current user from database:', error);
+          logger.error('Error fetching current user from database:', error);
         }
         setIsLoading(false);
         return;
@@ -193,7 +193,7 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
         setTargetUser(data);
         setDbUserId(data.id);
       } catch (error) {
-        console.error('Error fetching user:', error);
+        logger.error('Error fetching user:', error);
       } finally {
         setIsLoading(false);
       }

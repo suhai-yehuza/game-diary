@@ -16,7 +16,7 @@ import { createLoaders } from '@/lib/graphql/loaders';
 import { resolvers } from '@/lib/graphql/resolvers';
 import type { RedisClient } from '@/lib/types/cache.types';
 import type { Context } from '@/lib/types/component.types';
-
+import { import { apiLogger } from '@/lib/logger'; } from '@/lib/logger';
 const typeDefs = readFileSync(join(process.cwd(), 'src/lib/graphql/schema.graphql'), 'utf-8');
 
 // Create the base schema
@@ -84,7 +84,7 @@ async function getUserWithRetry(
       const parsedUser = typeof cachedUser === 'string' ? JSON.parse(cachedUser) : cachedUser;
       return parsedUser as Context['user'];
     } catch (e) {
-      console.error('Error parsing cached user:', e);
+      apiLogger.error('Error parsing cached user:', e);
       // If parsing fails, clear the invalid cache entry
       await redisClient?.del(cacheKey);
     }
@@ -113,7 +113,7 @@ async function getUserWithRetry(
             const userString = JSON.stringify(dbUser);
             await redisClient.setex(cacheKey, CACHE_TTL, userString);
           } catch (cacheError) {
-            console.error('Error caching user:', cacheError);
+            apiLogger.error('Error caching user:', cacheError);
           }
         }
 
@@ -175,7 +175,7 @@ const handler = startServerAndCreateNextHandler(server, {
         loaders: createLoaders(db),
       } as Context;
     } catch (error) {
-      console.error('Context creation error:', error);
+      apiLogger.error('Context creation error:', error);
       if (error instanceof Error) {
         if (error.message.includes('Rate limit exceeded')) {
           const resetTime = error.message.match(/\d+/)?.[0] || '60';
@@ -201,7 +201,7 @@ export async function GET(request: Request) {
     response.headers.set('Access-Control-Allow-Headers', 'Content-Type');
     return response;
   } catch (error) {
-    console.error('GraphQL Error:', error);
+    apiLogger.error('GraphQL Error:', error);
     if (error instanceof Error && error.message.includes('Rate limit exceeded')) {
       const resetTime = error.message.match(/\d+/)?.[0] || '60';
       return NextResponse.json(
@@ -232,7 +232,7 @@ export async function POST(request: Request) {
     response.headers.set('Access-Control-Allow-Headers', 'Content-Type');
     return response;
   } catch (error) {
-    console.error('GraphQL Error:', error);
+    apiLogger.error('GraphQL Error:', error);
     if (error instanceof Error && error.message.includes('Rate limit exceeded')) {
       const resetTime = error.message.match(/\d+/)?.[0] || '60';
       return NextResponse.json(

@@ -2,7 +2,7 @@ import { sql } from 'drizzle-orm';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import { createDatabaseClient } from '../src/lib/db/seed/config';
-
+import { import { logger } from '@/lib/logger'; } from '@/lib/logger';
 const execAsync = promisify(exec);
 
 // Get environment from command line argument or default to development
@@ -10,29 +10,29 @@ const environment = process.argv[2] || 'development';
 const runTests = process.argv.includes('--test');
 
 async function runCommand(command: string, description: string): Promise<void> {
-  console.log(`\n📌 ${description}...`);
+  logger.info(`\n📌 ${description}...`);
   try {
     const { stdout, stderr } = await execAsync(command);
-    if (stdout) console.log(stdout);
+    if (stdout) logger.info(stdout);
     if (stderr && !stderr.includes('Warning') && !stderr.includes('deprecat'))
-      console.error(stderr);
-    console.log(`✅ ${description} completed`);
+      logger.error(stderr);
+    logger.info(`✅ ${description} completed`);
   } catch (error: any) {
-    console.error(`❌ Failed: ${description}`);
-    console.error(error.message);
+    logger.error(`❌ Failed: ${description}`);
+    logger.error(error.message);
     throw error;
   }
 }
 
 async function setupDatabase() {
-  console.log(`🚀 Starting complete database setup for ${environment} environment...`);
-  console.log('================================================\n');
+  logger.info(`🚀 Starting complete database setup for ${environment} environment...`);
+  logger.info('================================================\n');
 
   const db = createDatabaseClient({ env: environment, logger: true });
 
   try {
     // Step 1: Clean existing database
-    console.log('📦 Step 1: Cleaning existing database...');
+    logger.info('📦 Step 1: Cleaning existing database...');
     try {
       await db.execute(sql`
         DO $$ 
@@ -50,9 +50,9 @@ async function setupDatabase() {
           END LOOP;
         END $$;
       `);
-      console.log('✅ Database cleaned successfully');
+      logger.info('✅ Database cleaned successfully');
     } catch (error) {
-      console.log('⚠️  Database might be already clean or error during cleanup');
+      logger.info('⚠️  Database might be already clean or error during cleanup');
     }
 
     // Step 2: Generate Drizzle migrations
@@ -65,11 +65,11 @@ async function setupDatabase() {
     await runCommand('drizzle-kit push --force', 'Creating database tables (force mode)');
 
     // Step 5: Wait for tables to be ready
-    console.log('\n⏳ Waiting for tables to be ready...');
+    logger.info('\n⏳ Waiting for tables to be ready...');
     await new Promise(resolve => setTimeout(resolve, 2000));
 
     // Step 6: Create triggers
-    console.log('\n⚡ Step 6: Creating database triggers...');
+    logger.info('\n⚡ Step 6: Creating database triggers...');
 
     // Create rating stars trigger function
     await db.execute(sql`
@@ -95,7 +95,7 @@ async function setupDatabase() {
         FOR EACH ROW
         EXECUTE FUNCTION update_rating_stars();
     `);
-    console.log('✅ Rating stars trigger created');
+    logger.info('✅ Rating stars trigger created');
 
     // Create game ratings trigger function
     await db.execute(sql`
@@ -180,10 +180,10 @@ async function setupDatabase() {
           FOR EACH ROW
           EXECUTE FUNCTION update_game_ratings();
     `);
-    console.log('✅ Game ratings trigger created');
+    logger.info('✅ Game ratings trigger created');
 
     // Step 7: Create migration tracking table
-    console.log('\n📋 Step 7: Creating migration tracking table...');
+    logger.info('\n📋 Step 7: Creating migration tracking table...');
 
     // Create the table
     await db.execute(sql`
@@ -204,7 +204,7 @@ async function setupDatabase() {
     await db.execute(sql`
       CREATE INDEX IF NOT EXISTS idx_migration_versions_name ON migration_versions(name);
     `);
-    console.log('✅ Migration tracking table created');
+    logger.info('✅ Migration tracking table created');
 
     // Step 8: Run tests if requested
     if (runTests) {
@@ -212,22 +212,22 @@ async function setupDatabase() {
     }
 
     // Success summary
-    console.log('\n================================================');
-    console.log('🎉 Database setup completed successfully!');
-    console.log('================================================\n');
-    console.log('✅ All tables created');
-    console.log('✅ All triggers created');
-    console.log('✅ Migration tracking enabled');
+    logger.info('\n================================================');
+    logger.info('🎉 Database setup completed successfully!');
+    logger.info('================================================\n');
+    logger.info('✅ All tables created');
+    logger.info('✅ All triggers created');
+    logger.info('✅ Migration tracking enabled');
 
     if (!runTests) {
-      console.log('\n📝 Next steps:');
-      console.log('1. Run "npx tsx src/lib/db/seed/test-trigger.ts" to test the triggers');
-      console.log('2. Run "pnpm db:seed:dev" to seed the database with sample data');
+      logger.info('\n📝 Next steps:');
+      logger.info('1. Run "npx tsx src/lib/db/seed/test-trigger.ts" to test the triggers');
+      logger.info('2. Run "pnpm db:seed:dev" to seed the database with sample data');
     }
 
     process.exit(0);
   } catch (error) {
-    console.error('\n❌ Error during database setup:', error);
+    logger.error('\n❌ Error during database setup:', error);
     process.exit(1);
   }
 }

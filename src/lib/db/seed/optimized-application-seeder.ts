@@ -20,7 +20,7 @@ import { generateUUID } from '@/lib/utils/index.processing';
 import { getCurrentSeason } from '@/lib/utils/index.time';
 
 import type { DataProcessor } from './data-processor';
-
+import { import { seedLogger } from '@/lib/logger'; } from '@/lib/logger';
 interface ApplicationSeederOptions {
   db: DatabaseClient;
   processor: DataProcessor;
@@ -86,7 +86,7 @@ async function* generateUsersStream(
   }
 
   if (generated < targetCount) {
-    console.warn(`Generated ${generated} unique users out of ${targetCount} requested`);
+    seedLogger.warn(`Generated ${generated} unique users out of ${targetCount} requested`);
   }
 }
 
@@ -155,7 +155,7 @@ async function* generateGameLogsStream(
     .limit(API_CONFIG.databaseSeeding.DEFAULT_SAMPLE_COUNT);
 
   if (latestSeasonGames.length === 0) {
-    console.warn('No games found in the latest season');
+    seedLogger.warn('No games found in the latest season');
     return;
   }
 
@@ -170,7 +170,7 @@ async function* generateGameLogsStream(
     return gameDate >= seasonStartDate && gameDate <= seasonEndDate;
   });
 
-  console.log(
+  seedLogger.info(
     `Generating game logs from ${currentSeasonGames.length} games in the ${seasonYear}-${seasonYear + 1} season`
   );
 
@@ -258,7 +258,7 @@ async function* generateGameLogsStream(
     }
   }
 
-  console.log(`Generated ${totalGameLogsGenerated} game logs from ${processedUsers} users`);
+  seedLogger.info(`Generated ${totalGameLogsGenerated} game logs from ${processedUsers} users`);
 }
 
 // Optimized comments generator
@@ -327,9 +327,9 @@ async function* generateCommentsStream(
     }
   }
 
-  console.log(`Generated ${totalParentComments} parent comments`);
+  seedLogger.info(`Generated ${totalParentComments} parent comments`);
   if (skippedGameLogs > 0) {
-    console.log(`Skipped ${skippedGameLogs} game logs due to missing IDs`);
+    seedLogger.info(`Skipped ${skippedGameLogs} game logs due to missing IDs`);
   }
 }
 
@@ -351,7 +351,7 @@ async function* generateChildComments(
   }
 
   if (!parentComment.id) {
-    console.warn('Skipping child comment generation for parent comment with undefined ID');
+    seedLogger.warn('Skipping child comment generation for parent comment with undefined ID');
     return;
   }
 
@@ -558,63 +558,63 @@ export async function seedOptimizedApplicationData(
   const existingEmails = new Set<string>();
 
   try {
-    console.log('👥 Starting optimized application data seeding...');
+    seedLogger.info('👥 Starting optimized application data seeding...');
 
     // Generate and insert users
     if (!skipUsers) {
-      console.log('👤 Generating users...');
+      seedLogger.info('👤 Generating users...');
       await processor.streamInsert(
         users,
         () => generateUsersStream(API_CONFIG.databaseSeeding.USER_COUNT, existingEmails, skipUsers),
         batchSize,
         'users'
       );
-      console.log('👤 Users generated');
+      seedLogger.info('👤 Users generated');
     }
 
     // Generate and insert friendships
-    console.log('🤝 Generating friendships...');
+    seedLogger.info('🤝 Generating friendships...');
     await processor.streamInsert(
       friendships,
       () => generateFriendshipsStream(streamUsers(db)),
       batchSize,
       'friendships'
     );
-    console.log('✅ Friendships generated');
+    seedLogger.info('✅ Friendships generated');
 
     // Generate and insert game logs
-    console.log('🎮 Generating game logs...');
+    seedLogger.info('🎮 Generating game logs...');
     await processor.streamInsert(
       game_logs,
       () => generateGameLogsStream(streamUsers(db), db),
       batchSize,
       'game_logs'
     );
-    console.log('✅ Game logs generated');
+    seedLogger.info('✅ Game logs generated');
 
     // Generate and insert comments
-    console.log('💬 Generating comments...');
+    seedLogger.info('💬 Generating comments...');
     await processor.streamInsert(
       comments,
       () => generateCommentsStream(streamUsers(db), streamGameLogs(db)),
       batchSize,
       'comments'
     );
-    console.log('✅ Comments generated');
+    seedLogger.info('✅ Comments generated');
 
     // Generate and insert reactions
-    console.log('👍 Generating reactions...');
+    seedLogger.info('👍 Generating reactions...');
     await processor.streamInsert(
       reactions,
       () => generateReactionsStream(streamUsers(db), streamComments(db), streamGameLogs(db)),
       batchSize,
       'reactions'
     );
-    console.log('✅ Reactions generated');
+    seedLogger.info('✅ Reactions generated');
 
-    console.log('✅ Optimized application data seeding completed');
+    seedLogger.info('✅ Optimized application data seeding completed');
   } catch (error) {
-    console.error('❌ Error during optimized application data seeding:', error);
+    seedLogger.error('❌ Error during optimized application data seeding:', error);
     throw error;
   }
 }

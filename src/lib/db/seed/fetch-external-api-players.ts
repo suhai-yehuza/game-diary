@@ -6,7 +6,7 @@ import { createRapidAPIClient, handleAPIError } from '@/lib/external-apis';
 import { PlayerApiResponse } from '@/lib/types/consolidated.types';
 
 import { createDatabaseClient } from './config';
-
+import { import { seedLogger } from '@/lib/logger'; } from '@/lib/logger';
 export async function fetchAndProcessNBAPlayers(season: number): Promise<void> {
   try {
     const db = createDatabaseClient();
@@ -16,27 +16,27 @@ export async function fetchAndProcessNBAPlayers(season: number): Promise<void> {
 
     // Get all teams
     const allTeams = await db.select().from(teams);
-    console.log(`Found ${allTeams.length} teams`);
+    seedLogger.info(`Found ${allTeams.length} teams`);
 
     for (const team of allTeams) {
-      console.log(`Fetching NBA players for team ${team.id}'s ${season} season...`);
+      seedLogger.info(`Fetching NBA players for team ${team.id}'s ${season} season...`);
       try {
         const res = await api.get<PlayerApiResponse>(`${API_CONFIG.endpoints.PLAYERS}`, {
           params: { team: team.id.toString(), season: season.toString() },
         });
 
         if (!res?.response) {
-          console.warn(`Invalid response structure from NBA API for team ${team.id}`);
+          seedLogger.warn(`Invalid response structure from NBA API for team ${team.id}`);
           continue;
         }
 
         const nbaPlayers = Array.isArray(res.response) ? res.response : [];
         if (nbaPlayers.length === 0) {
-          console.log(`No players found for team ${team.id} in ${season} season, skipping...`);
+          seedLogger.info(`No players found for team ${team.id} in ${season} season, skipping...`);
           continue;
         }
 
-        console.log(`Fetched ${nbaPlayers.length} players for team ${team.id}`);
+        seedLogger.info(`Fetched ${nbaPlayers.length} players for team ${team.id}`);
 
         // Process players
         for (const player of nbaPlayers) {
@@ -45,7 +45,7 @@ export async function fetchAndProcessNBAPlayers(season: number): Promise<void> {
             where: eq(nba_players.id, player.id.toString()),
           });
           if (existingPlayer) {
-            console.log(`Player ${player.id} already exists, skipping...`);
+            seedLogger.info(`Player ${player.id} already exists, skipping...`);
             continue;
           }
 
@@ -106,23 +106,23 @@ export async function fetchAndProcessNBAPlayers(season: number): Promise<void> {
                 },
               });
 
-            console.log('Successfully stored player:', nbaPlayer.id);
+            seedLogger.info('Successfully stored player:', nbaPlayer.id);
           } catch (error) {
-            console.error(`Error storing player ${player.id}:`, error);
+            seedLogger.error(`Error storing player ${player.id}:`, error);
             // Continue with next player instead of throwing
             continue;
           }
         }
       } catch (error) {
-        console.error(`Error fetching players for team ${team.id}:`, error);
+        seedLogger.error(`Error fetching players for team ${team.id}:`, error);
         // Continue with next team instead of throwing
         continue;
       }
     }
 
-    console.log('Successfully stored all NBA players.');
+    seedLogger.info('Successfully stored all NBA players.');
   } catch (error) {
-    console.error('Error in fetchAndProcessNBAPlayers:', error);
+    seedLogger.error('Error in fetchAndProcessNBAPlayers:', error);
     handleAPIError(error);
   }
 }

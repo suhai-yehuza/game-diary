@@ -1,5 +1,5 @@
 import { z } from 'zod';
-
+import { import { logger } from '@/lib/logger'; } from '@/lib/logger';
 // Create a more sophisticated environment validation that handles build vs runtime
 const isServer = typeof window === 'undefined';
 const isBuild =
@@ -54,7 +54,7 @@ export function validateRuntimeEnv() {
 
     const missing = requiredApiVars.filter(key => !process.env[key]);
     if (missing.length > 0) {
-      console.warn(`Missing RapidAPI environment variables: ${missing.join(', ')}`);
+      logger.warn(`Missing RapidAPI environment variables: ${missing.join(', ')}`);
     }
   }
 }

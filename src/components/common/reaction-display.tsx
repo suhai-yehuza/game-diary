@@ -11,7 +11,7 @@ import { Reaction, ReactionEmojiType } from '@/lib/types/generated/graphql';
 import { cn } from '@/lib/utils';
 
 import { ReactionPicker } from './reaction-picker';
-
+import { import { logger } from '@/lib/logger'; } from '@/lib/logger';
 interface ExtendedReactionDisplayProps extends ReactionDisplayProps {
   reactions?: Reaction[];
   totalReactionCount?: number;
@@ -141,7 +141,7 @@ export function ReactionDisplay({
         onReactionChange();
       }
     } catch (error) {
-      console.error('Error toggling reaction:', error);
+      logger.error('Error toggling reaction:', error);
       if (onReactionChange) {
         onReactionChange();
       }

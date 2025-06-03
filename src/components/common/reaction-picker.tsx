@@ -12,7 +12,7 @@ import { REACTION_EMOJIS } from '@/lib/types/config.types';
 import { ReactionPickerProps } from '@/lib/types/consolidated.types';
 import type { ReactionEmojiType } from '@/lib/types/generated/graphql';
 import { cn } from '@/lib/utils';
-
+import { import { logger } from '@/lib/logger'; } from '@/lib/logger';
 export function ReactionPicker({
   targetId,
   targetType,
@@ -76,7 +76,7 @@ export function ReactionPicker({
       setIsOpen(false);
       onReactionChanged?.();
     } catch (error) {
-      console.error('Error toggling reaction:', error);
+      logger.error('Error toggling reaction:', error);
       onReactionChanged?.();
     }
   };

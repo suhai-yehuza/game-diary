@@ -34,7 +34,7 @@ import {
 import { generateUUID } from '@/lib/utils/index.processing';
 import { createCommentSchema, updateCommentSchema } from '@/lib/validations/comment';
 import { createGameLogSchema, updateGameLogSchema } from '@/lib/validations/game-log';
-
+import { import { logger } from '@/lib/logger'; } from '@/lib/logger';
 // Helper functions
 const validateInput = <T>(schema: z.ZodSchema<T>, input: unknown): T => {
   const result = schema.safeParse(input);
@@ -52,7 +52,7 @@ const checkAuth = (user: Context['user']) => {
 };
 
 const handleError = (error: unknown, operation: string) => {
-  console.error(`Error ${operation}:`, error);
+  logger.error(`Error ${operation}:`, error);
   if (error instanceof GraphQLError) {
     throw error;
   }

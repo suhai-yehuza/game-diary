@@ -6,7 +6,7 @@ import { createRapidAPIClient, handleAPIError } from '@/lib/external-apis';
 import type { GameApiResponse } from '@/lib/types/consolidated.types';
 
 import { createDatabaseClient } from './config';
-
+import { import { seedLogger } from '@/lib/logger'; } from '@/lib/logger';
 export async function fetchAndProcessNBAGames(season: number): Promise<void> {
   try {
     const db = createDatabaseClient();
@@ -14,11 +14,11 @@ export async function fetchAndProcessNBAGames(season: number): Promise<void> {
     const apiKey = validateAPIKey(rapidApiConfig.apiKey);
     const api = createRapidAPIClient(apiKey);
 
-    console.log(`Fetching NBA games for season ${season}...`);
+    seedLogger.info(`Fetching NBA games for season ${season}...`);
     const res = await api.get<GameApiResponse>(API_CONFIG.endpoints.GAMES, {
       params: { season: season.toString() },
     });
-    console.log('Games response:', res);
+    seedLogger.info('Games response:', res);
 
     if (!res?.response) {
       throw new Error('Invalid response structure from NBA API');
@@ -26,11 +26,11 @@ export async function fetchAndProcessNBAGames(season: number): Promise<void> {
 
     const nbaGames = res.response;
     if (nbaGames.length === 0) {
-      console.log('No games found in response, skipping...');
+      seedLogger.info('No games found in response, skipping...');
       return;
     }
 
-    console.log(`Fetched ${nbaGames.length} games`);
+    seedLogger.info(`Fetched ${nbaGames.length} games`);
 
     // Process games
     for (const game of nbaGames) {
@@ -39,11 +39,11 @@ export async function fetchAndProcessNBAGames(season: number): Promise<void> {
         where: eq(nba_games.id, game.id.toString()),
       });
       if (existingGame) {
-        console.log(`Game ${game.id} already exists, skipping...`);
+        seedLogger.info(`Game ${game.id} already exists, skipping...`);
         continue;
       }
 
-      console.log('Game value:', game);
+      seedLogger.info('Game value:', game);
       try {
         // Prepare data for nba_games table
         const nbaGameData = {
@@ -116,16 +116,16 @@ export async function fetchAndProcessNBAGames(season: number): Promise<void> {
           set: nbaGameData,
         });
 
-        console.log('Successfully stored game:', game.id);
+        seedLogger.info('Successfully stored game:', game.id);
       } catch (error) {
-        console.error(`Error storing game ${game.id}:`, error);
+        seedLogger.error(`Error storing game ${game.id}:`, error);
         throw error;
       }
     }
 
-    console.log('Successfully stored all NBA games.');
+    seedLogger.info('Successfully stored all NBA games.');
   } catch (error) {
-    console.error('Error in fetchAndProcessNBAGames:', error);
+    seedLogger.error('Error in fetchAndProcessNBAGames:', error);
     handleAPIError(error);
   }
 }

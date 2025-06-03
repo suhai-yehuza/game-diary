@@ -8,7 +8,7 @@ import {
 } from '@apollo/client';
 import { onError } from '@apollo/client/link/error';
 import { RetryLink } from '@apollo/client/link/retry';
-
+import { import { apiLogger } from '@/lib/logger'; } from '@/lib/logger';
 const httpLink = new HttpLink({
   uri: '/api/graphql',
   headers: {
@@ -21,11 +21,11 @@ const httpLink = new HttpLink({
 const errorLink = onError(({ graphQLErrors, networkError, operation, forward }) => {
   if (graphQLErrors) {
     graphQLErrors.forEach(({ message, locations, path }) => {
-      console.error(`[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`);
+      apiLogger.error(`[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`);
     });
   }
   if (networkError) {
-    console.error(`[Network error]: ${networkError}`);
+    apiLogger.error(`[Network error]: ${networkError}`);
     // If the error is due to request cancellation, don't retry
     if (networkError.name === 'AbortError') {
       return;

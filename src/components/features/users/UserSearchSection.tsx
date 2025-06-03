@@ -57,7 +57,7 @@ import { UserSearchSectionProps, UserNode, UserEdge } from '@/lib/types/componen
 import { FRIENDSHIP_STATUS } from '@/lib/types/config.types';
 import { cn } from '@/lib/utils';
 import { formatCount } from '@/lib/utils/index.format';
-
+import { import { logger } from '@/lib/logger'; } from '@/lib/logger';
 const UserCard = ({ user }: { user: UserNode }) => {
   const { user: currentUser } = useUser();
   const [sendFriendRequest, { loading: sendingRequest }] = useMutation(SEND_FRIEND_REQUEST);
@@ -123,7 +123,7 @@ const UserCard = ({ user }: { user: UserNode }) => {
         toast.error(data.sendFriendRequest.errors[0].message);
       }
     } catch (error) {
-      console.error('Error sending friend request:', error);
+      logger.error('Error sending friend request:', error);
       toast.error('An unexpected error occurred');
     }
   };
@@ -147,7 +147,7 @@ const UserCard = ({ user }: { user: UserNode }) => {
         toast.error(data.acceptFriendRequest.errors[0].message);
       }
     } catch (error) {
-      console.error('Error accepting friend request:', error);
+      logger.error('Error accepting friend request:', error);
       toast.error('An unexpected error occurred');
     }
   };
@@ -171,7 +171,7 @@ const UserCard = ({ user }: { user: UserNode }) => {
         toast.error(data.rejectFriendRequest.errors[0].message);
       }
     } catch (error) {
-      console.error('Error rejecting friend request:', error);
+      logger.error('Error rejecting friend request:', error);
       toast.error('An unexpected error occurred');
     }
   };
@@ -203,7 +203,7 @@ const UserCard = ({ user }: { user: UserNode }) => {
         toast.error(data.updateFriendshipStatus.errors[0].message);
       }
     } catch (error) {
-      console.error('Error blocking user:', error);
+      logger.error('Error blocking user:', error);
       toast.error('An unexpected error occurred');
     }
   };
@@ -227,7 +227,7 @@ const UserCard = ({ user }: { user: UserNode }) => {
         toast.error(data.removeFriend.errors[0].message);
       }
     } catch (error) {
-      console.error('Error removing friend:', error);
+      logger.error('Error removing friend:', error);
       toast.error('An unexpected error occurred');
     }
   };
@@ -251,7 +251,7 @@ const UserCard = ({ user }: { user: UserNode }) => {
         toast.error(data.removeFriend.errors[0].message);
       }
     } catch (error) {
-      console.error('Error cancelling friend request:', error);
+      logger.error('Error cancelling friend request:', error);
       toast.error('An unexpected error occurred');
     }
   };

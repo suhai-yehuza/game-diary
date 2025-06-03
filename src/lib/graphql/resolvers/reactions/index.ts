@@ -6,7 +6,7 @@ import type { Context } from '@/lib/types/component.types';
 
 import type { PaginationArgs } from '../common/types';
 import { handleResolverError, getEmojiKey } from '../common/utils';
-
+import { import { logger } from '@/lib/logger'; } from '@/lib/logger';
 export const reactions = async (
   _parent: unknown,
   args: PaginationArgs & { targetId: string },
@@ -78,7 +78,7 @@ export const Reaction = {
         __typename: 'UserSummary',
       };
     } catch (error) {
-      console.error('Error loading user for reaction:', error);
+      logger.error('Error loading user for reaction:', error);
       return null;
     }
   },

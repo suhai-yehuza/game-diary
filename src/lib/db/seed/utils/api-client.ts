@@ -9,7 +9,7 @@ import type { DatabaseClient } from '@/lib/types/database.types';
 import { sleep } from '@/lib/utils/index.time';
 
 import { createDatabaseClient } from '../config';
-
+import { import { logger } from '@/lib/logger'; } from '@/lib/logger';
 // Circuit breaker pattern implementation
 class CircuitBreaker {
   private failures = 0;
@@ -81,7 +81,7 @@ export async function withRetry<T>(
       const jitter = Math.random() * 1000;
       const delay = Math.min(baseDelay * Math.pow(2, attempt - 1) + jitter, 30000);
 
-      console.log(`Attempt ${attempt} failed, retrying in ${Math.round(delay)}ms...`);
+      logger.info(`Attempt ${attempt} failed, retrying in ${Math.round(delay)}ms...`);
       await sleep(delay);
     }
   }
@@ -111,7 +111,7 @@ export class OptimizedAPIClient {
     operation: string = 'fetch'
   ): Promise<T> {
     return this.rateLimiter(async () => {
-      console.log(`${operation}: Fetching ${endpoint} with params:`, params);
+      logger.info(`${operation}: Fetching ${endpoint} with params:`, params);
 
       return withRetry(
         async () => {
@@ -153,11 +153,11 @@ export class OptimizedAPIClient {
     operation: string = 'insert'
   ): Promise<void> {
     if (data.length === 0) {
-      console.log(`No ${operation} data to insert, skipping...`);
+      logger.info(`No ${operation} data to insert, skipping...`);
       return;
     }
 
-    console.log(`Bulk inserting ${data.length} ${operation} records in batches of ${batchSize}`);
+    logger.info(`Bulk inserting ${data.length} ${operation} records in batches of ${batchSize}`);
 
     for (let i = 0; i < data.length; i += batchSize) {
       const batch = data.slice(i, i + batchSize);
@@ -253,7 +253,7 @@ export class OptimizedAPIClient {
             });
         }
       } catch (error) {
-        console.error(`Error inserting batch ${i / batchSize + 1}:`, error);
+        logger.error(`Error inserting batch ${i / batchSize + 1}:`, error);
         throw error;
       }
     }
@@ -265,7 +265,7 @@ export class OptimizedAPIClient {
     batchSize: number = 50,
     operation: string = 'process'
   ): Promise<R[]> {
-    console.log(`Stream processing ${items.length} ${operation} items in batches of ${batchSize}`);
+    logger.info(`Stream processing ${items.length} ${operation} items in batches of ${batchSize}`);
 
     const results: R[] = [];
 
@@ -277,7 +277,7 @@ export class OptimizedAPIClient {
       );
 
       results.push(...batchResults);
-      console.log(
+      logger.info(
         `Processed ${operation} batch ${Math.floor(i / batchSize) + 1}/${Math.ceil(items.length / batchSize)}`
       );
     }

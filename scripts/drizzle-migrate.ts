@@ -7,7 +7,7 @@ import { neon, neonConfig } from '@neondatabase/serverless';
 import { db } from '@/lib/db';
 import { migrationVersions } from '@/lib/db/schema/migration-schemas';
 import { env } from '@/lib/env';
-
+import { import { logger } from '@/lib/logger'; } from '@/lib/logger';
 const MIGRATIONS_DIR = path.join(process.cwd(), 'src/lib/db/migrations');
 
 // Configure neon for better stability
@@ -90,7 +90,7 @@ async function verifyTableExists(tableName: string): Promise<boolean> {
     ) {
       return false;
     }
-    console.error(`Error verifying table ${tableName}:`, error);
+    logger.error(`Error verifying table ${tableName}:`, error);
     return false;
   }
 }
@@ -125,7 +125,7 @@ async function recordMigration(
     // Wait for migration_versions table to be created
     await waitForMigrationTable();
 
-    console.log('Recording migration:', { name, status });
+    logger.info('Recording migration:', { name, status });
     await sqlClient.unsafe(`
       INSERT INTO migration_versions (
         name, checksum, execution_time_ms, status, error_message, rollback_script, rollback_executed
@@ -134,7 +134,7 @@ async function recordMigration(
       )
     `);
   } catch (error) {
-    console.error('Error recording migration:', error);
+    logger.error('Error recording migration:', error);
     throw error;
   }
 }
@@ -156,7 +156,7 @@ async function verifyConnection(): Promise<boolean> {
     await sqlClient`SELECT 1`;
     return true;
   } catch (error) {
-    console.error('Database connection verification failed:', error);
+    logger.error('Database connection verification failed:', error);
     return false;
   }
 }
@@ -197,11 +197,11 @@ async function runMigration(file: string): Promise<void> {
         `Migration ${file} has been modified since last execution. Checksum mismatch.`
       );
     }
-    console.log(`Skipping already executed migration: ${file}`);
+    logger.info(`Skipping already executed migration: ${file}`);
     return;
   }
 
-  console.log(`Executing migration: ${file}`);
+  logger.info(`Executing migration: ${file}`);
   const startTime = Date.now();
 
   try {
@@ -238,7 +238,7 @@ async function runMigration(file: string): Promise<void> {
 
     // Commit transaction
     await sqlClient`COMMIT`;
-    console.log(`Successfully executed migration: ${file}`);
+    logger.info(`Successfully executed migration: ${file}`);
 
     // If this is the base schema migration, wait a moment for the migration_versions table to be fully available
     if (file === '001_base_schema.sql') {
@@ -280,7 +280,7 @@ async function runMigration(file: string): Promise<void> {
             exists = true;
           } catch (error) {
             // If Drizzle query fails, try raw SQL
-            console.log(
+            logger.info(
               `Drizzle query failed for table ${table}, trying raw SQL with error ${error}`
             );
             exists = await verifyTableExists(table);
@@ -328,11 +328,11 @@ async function rollbackMigration(file: string): Promise<void> {
   }
 
   if (migration.rollback_executed) {
-    console.log(`Migration ${file} has already been rolled back`);
+    logger.info(`Migration ${file} has already been rolled back`);
     return;
   }
 
-  console.log(`Rolling back migration: ${file}`);
+  logger.info(`Rolling back migration: ${file}`);
 
   try {
     // Start transaction
@@ -348,7 +348,7 @@ async function rollbackMigration(file: string): Promise<void> {
 
     // Commit transaction
     await sqlClient`COMMIT`;
-    console.log(`Successfully rolled back migration: ${file}`);
+    logger.info(`Successfully rolled back migration: ${file}`);
   } catch (error) {
     // Rollback transaction
     await sqlClient`ROLLBACK`;
@@ -382,9 +382,9 @@ export async function migrate() {
 
     // Final verification of connection and tables
     await ensureConnection();
-    console.log('All migrations completed successfully');
+    logger.info('All migrations completed successfully');
   } catch (error) {
-    console.error('Migration failed:', error);
+    logger.error('Migration failed:', error);
     throw error;
   }
 }
@@ -400,9 +400,9 @@ export async function rollback(steps: number = 1) {
       await rollbackMigration(migration.name);
     }
 
-    console.log(`Successfully rolled back ${migrationsToRollback.length} migrations`);
+    logger.info(`Successfully rolled back ${migrationsToRollback.length} migrations`);
   } catch (error) {
-    console.error('Rollback failed:', error);
+    logger.error('Rollback failed:', error);
     throw error;
   }
 }

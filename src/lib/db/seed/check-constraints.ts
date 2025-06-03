@@ -1,7 +1,7 @@
 import { sql } from 'drizzle-orm';
 
 import { createDatabaseClient } from './config';
-
+import { import { seedLogger } from '@/lib/logger'; } from '@/lib/logger';
 const env = process.argv[2] || 'development';
 const tableName = process.argv[3] || 'players';
 
@@ -28,9 +28,9 @@ async function main() {
       WHERE tc.constraint_type = 'FOREIGN KEY'
         AND (tc.table_name = ${tableName} OR ccu.table_name = ${tableName});
     `);
-    console.log(`Foreign key constraints for ${tableName}:`, result.rows);
+    seedLogger.info(`Foreign key constraints for ${tableName}:`, result.rows);
   } catch (error) {
-    console.error('Error:', error);
+    seedLogger.error('Error:', error);
     process.exit(1);
   }
 }

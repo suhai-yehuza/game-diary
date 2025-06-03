@@ -34,7 +34,7 @@ import { CommentsSectionProps, EditingComment } from '@/lib/types/social.types';
 import { cn } from '@/lib/utils';
 
 import { CommentItem } from './comment-item';
-
+import { import { logger } from '@/lib/logger'; } from '@/lib/logger';
 export function CommentsSection({ parentId, parentType, initialExpanded }: CommentsSectionProps) {
   const { user } = useUser();
   const [newComment, setNewComment] = useState('');
@@ -138,7 +138,7 @@ export function CommentsSection({ parentId, parentType, initialExpanded }: Comme
               },
             });
           } catch (error) {
-            console.error('Error loading more comments:', error);
+            logger.error('Error loading more comments:', error);
           } finally {
             setIsFetchingMore(false);
           }
@@ -333,7 +333,7 @@ export function CommentsSection({ parentId, parentType, initialExpanded }: Comme
         description: 'Your comment has been added to the discussion.',
       });
     } catch (error) {
-      console.error('Error creating comment:', error);
+      logger.error('Error creating comment:', error);
     } finally {
       setIsSubmitting(false);
     }

@@ -22,7 +22,7 @@ import { fetchAndProcessNBAGameStats } from './fetch-external-api-game-stats';
 import { fetchAndProcessNBAPlayerStats } from './fetch-external-api-player-stats';
 import { fetchAndProcessTeamH2H } from './fetch-external-api-team-h2h';
 import { OptimizedAPIClient } from './utils/api-client';
-
+import { import { seedLogger } from '@/lib/logger'; } from '@/lib/logger';
 // Helper types
 type PlayerWithTeams = {
   player: PlayerApiResponse['response']['response'][0];
@@ -107,7 +107,7 @@ async function processSeasons(
   batchSize: number,
   appendingData: boolean = false
 ): Promise<number[]> {
-  console.log('📅 Fetching NBA seasons...');
+  seedLogger.info('📅 Fetching NBA seasons...');
   const seasonsResponse = await fetchNbaSeasons();
 
   if (!Array.isArray(seasonsResponse?.response)) {
@@ -143,18 +143,18 @@ async function processSeasons(
 }
 
 async function processTeams(apiClient: OptimizedAPIClient, batchSize: number): Promise<void> {
-  console.log('Starting to fetch NBA teams...');
+  seedLogger.info('Starting to fetch NBA teams...');
   const teamsResponse = await fetchNbaTeams();
 
   if (!teamsResponse?.response) {
     throw new Error('Invalid response structure from NBA API');
   }
 
-  console.log(`Processing ${teamsResponse.response.length} teams...`);
+  seedLogger.info(`Processing ${teamsResponse.response.length} teams...`);
   const allTeams = teamsResponse.response
     .filter(team => {
       if (!team.id) {
-        console.warn('Skipping team with no ID:', team);
+        seedLogger.warn('Skipping team with no ID:', team);
         return false;
       }
       return true;
@@ -192,7 +192,7 @@ async function processTeams(apiClient: OptimizedAPIClient, batchSize: number): P
         createdAt: new Date(),
         updatedAt: new Date(),
       };
-      console.log(`Processed team: ${JSON.stringify(processedTeam, null, 2)}`);
+      seedLogger.info(`Processed team: ${JSON.stringify(processedTeam, null, 2)}`);
       return processedTeam;
     });
 
@@ -200,17 +200,17 @@ async function processTeams(apiClient: OptimizedAPIClient, batchSize: number): P
     throw new Error('No valid teams found to insert');
   }
 
-  console.log(`Attempting to insert ${allTeams.length} teams into database...`);
+  seedLogger.info(`Attempting to insert ${allTeams.length} teams into database...`);
   await apiClient.bulkInsertWithConflictHandling(teams, allTeams, teams.id, batchSize, 'teams');
-  console.log('Teams insertion completed.');
+  seedLogger.info('Teams insertion completed.');
 
   // Verify teams were inserted
   const db = createDatabaseClient();
   const insertedTeams = await db.query.teams.findMany();
-  console.log(`Verification: Found ${insertedTeams.length} teams in database`);
-  console.log('Team IDs in database:', insertedTeams.map(t => t.id).join(', '));
-  console.log('NBA Franchise teams:', insertedTeams.filter(t => t.isActive).length);
-  console.log('Non-NBA Franchise teams:', insertedTeams.filter(t => !t.isActive).length);
+  seedLogger.info(`Verification: Found ${insertedTeams.length} teams in database`);
+  seedLogger.info('Team IDs in database:', insertedTeams.map(t => t.id).join(', '));
+  seedLogger.info('NBA Franchise teams:', insertedTeams.filter(t => t.isActive).length);
+  seedLogger.info('Non-NBA Franchise teams:', insertedTeams.filter(t => !t.isActive).length);
 }
 
 async function processPlayers(
@@ -219,17 +219,17 @@ async function processPlayers(
   season: number,
   batchSize: number
 ): Promise<void> {
-  console.log(`👥 Processing players for season ${season}...`);
+  seedLogger.info(`👥 Processing players for season ${season}...`);
   const allTeams = await db.query.teams.findMany();
   const uniquePlayers = new Map<string, PlayerWithTeams>();
 
   // Collect all players and their teams
   for (const team of allTeams) {
-    console.log(`Fetching players for team ${team.id}...`);
+    seedLogger.info(`Fetching players for team ${team.id}...`);
     const playersResponse = await fetchNbaPlayers(`team=${team.id}&season=${season}`);
 
     if (!playersResponse?.response?.response) {
-      console.warn(`No players found for team ${team.id} in season ${season}`);
+      seedLogger.warn(`No players found for team ${team.id} in season ${season}`);
       continue;
     }
 
@@ -274,15 +274,15 @@ async function processGames(
   season: number,
   batchSize: number
 ): Promise<void> {
-  console.log(`🎮 Fetching games for season ${season}...`);
+  seedLogger.info(`🎮 Fetching games for season ${season}...`);
   const gamesResponse = await fetchNbaGames(`season=${season}`);
 
   if (!gamesResponse?.response) {
-    console.warn(`No games found for season ${season}`);
+    seedLogger.warn(`No games found for season ${season}`);
     return;
   }
 
-  console.log(`Processing ${gamesResponse.response.length} games for season ${season}`);
+  seedLogger.info(`Processing ${gamesResponse.response.length} games for season ${season}`);
 
   // Filter out games with invalid team IDs
   const validGames = gamesResponse.response.filter(game => {
@@ -290,7 +290,7 @@ async function processGames(
     const awayTeamId = game.teams?.visitors?.id;
 
     if (!homeTeamId || !awayTeamId) {
-      console.warn(`Skipping game ${game.id} - missing team IDs:`, {
+      seedLogger.warn(`Skipping game ${game.id} - missing team IDs:`, {
         homeTeamId,
         awayTeamId,
         game,
@@ -300,13 +300,13 @@ async function processGames(
     return true;
   });
 
-  console.log(
+  seedLogger.info(
     `Found ${validGames.length} valid games out of ${gamesResponse.response.length} total games`
   );
 
   // Add debug logging for arena data
-  console.log('Sample game arena data:', validGames[0]?.arena);
-  console.log('Sample game arena type:', typeof validGames[0]?.arena);
+  seedLogger.info('Sample game arena data:', validGames[0]?.arena);
+  seedLogger.info('Sample game arena type:', typeof validGames[0]?.arena);
 
   const nbaGamesData = validGames.map(game => {
     return {
@@ -384,7 +384,7 @@ async function processGames(
   });
 
   if (nbaGamesData.length === 0) {
-    console.warn(`No valid games to insert for season ${season}`);
+    seedLogger.warn(`No valid games to insert for season ${season}`);
     return;
   }
 
@@ -469,7 +469,7 @@ async function processSeasonStats(
 
           return true;
         } catch (error) {
-          console.warn(`Failed to fetch game stats for game ${game.id}:`, error);
+          seedLogger.warn(`Failed to fetch game stats for game ${game.id}:`, error);
           return null;
         }
       });
@@ -498,12 +498,12 @@ async function processSeasonStats(
 export async function appendOptimizedExternalData(options: OptimizedSeederOptions): Promise<void> {
   const { seasons: inputSeasonYears, apiClient, processor, batchSize, tables } = options;
   const db = createDatabaseClient();
-  console.log({ tables });
+  seedLogger.info({ tables });
 
   try {
     // Process seasons
     const seasonsToProcess = await processSeasons(apiClient, inputSeasonYears, batchSize);
-    console.log(
+    seedLogger.info(
       `🏀 Processing ${seasonsToProcess.length} NBA seasons: ${seasonsToProcess.join(', ')}`
     );
 
@@ -512,7 +512,7 @@ export async function appendOptimizedExternalData(options: OptimizedSeederOption
 
     // Process each season
     for (const season of seasonsToProcess) {
-      console.log(`\nProcessing season ${season}...`);
+      seedLogger.info(`\nProcessing season ${season}...`);
 
       // Process players
       await processPlayers(apiClient, db, season, batchSize);
@@ -528,10 +528,10 @@ export async function appendOptimizedExternalData(options: OptimizedSeederOption
         batchSize
       );
 
-      console.log(`✅ Completed processing season ${season}`);
+      seedLogger.info(`✅ Completed processing season ${season}`);
     }
   } catch (error) {
-    console.error('❌ Error during optimized database seeding:', error);
+    seedLogger.error('❌ Error during optimized database seeding:', error);
     throw error;
   }
 }
@@ -548,7 +548,7 @@ export async function seedOptimizedExternalData(options: OptimizedSeederOptions)
       batchSize,
       appendingData
     );
-    console.log(
+    seedLogger.info(
       `🏀 Processing ${seasonsToProcess.length} NBA seasons: ${seasonsToProcess.join(', ')}`
     );
 
@@ -557,7 +557,7 @@ export async function seedOptimizedExternalData(options: OptimizedSeederOptions)
 
     // Process each season
     for (const season of seasonsToProcess) {
-      console.log(`\nProcessing season ${season}...`);
+      seedLogger.info(`\nProcessing season ${season}...`);
 
       // Process players
       await processPlayers(apiClient, db, season, batchSize);
@@ -573,10 +573,10 @@ export async function seedOptimizedExternalData(options: OptimizedSeederOptions)
         batchSize
       );
 
-      console.log(`✅ Completed processing season ${season}`);
+      seedLogger.info(`✅ Completed processing season ${season}`);
     }
   } catch (error) {
-    console.error('❌ Error during optimized database seeding:', error);
+    seedLogger.error('❌ Error during optimized database seeding:', error);
     throw error;
   }
 }

@@ -10,7 +10,7 @@ import { getCurrentSeason } from '@/lib/utils/index.time';
 
 import { DataProcessor, PerformanceMonitor } from './data-processor';
 import { OptimizedAPIClient } from './utils/api-client';
-
+import { import { seedLogger } from '@/lib/logger'; } from '@/lib/logger';
 config();
 
 // Optimized table operations
@@ -39,7 +39,7 @@ class TableOperations {
   }
 
   async truncateTablesOptimized(tables: string[], type: 'external' | 'internal'): Promise<void> {
-    console.log(`Optimized truncation of ${type} data tables...`);
+    seedLogger.info(`Optimized truncation of ${type} data tables...`);
 
     // Get existing tables
     const existingTables = await Promise.all(
@@ -53,7 +53,7 @@ class TableOperations {
     const tablesToTruncate = existingTables.filter(t => t.exists && t.size > 0);
 
     if (tablesToTruncate.length === 0) {
-      console.log(`No ${type} tables to truncate`);
+      seedLogger.info(`No ${type} tables to truncate`);
       return;
     }
 
@@ -65,7 +65,7 @@ class TableOperations {
       await Promise.all(
         tablesToTruncate.map(async ({ name, size }) => {
           await this.db.execute(sql`TRUNCATE TABLE ${sql.identifier(name)} RESTART IDENTITY`);
-          console.log(`Truncated ${name} (${size} rows)`);
+          seedLogger.info(`Truncated ${name} (${size} rows)`);
         })
       );
     } finally {
@@ -73,11 +73,11 @@ class TableOperations {
       await this.db.execute(sql`SET session_replication_role = DEFAULT`);
     }
 
-    console.log(`${type} data tables truncated successfully`);
+    seedLogger.info(`${type} data tables truncated successfully`);
   }
 
   async createOptimizedIndexes(): Promise<void> {
-    console.log('Creating optimized database indexes...');
+    seedLogger.info('Creating optimized database indexes...');
 
     const indexOperations = DB_CONFIG.indexes.map(async index => {
       try {
@@ -85,7 +85,7 @@ class TableOperations {
           CREATE INDEX CONCURRENTLY IF NOT EXISTS ${sql.identifier(index.name)} 
           ON ${sql.identifier(index.table)} (${sql.join(index.columns.map(col => sql.identifier(col)))})
         `);
-        console.log(`✓ Created index: ${index.name}`);
+        seedLogger.info(`✓ Created index: ${index.name}`);
       } catch (error) {
         // If CONCURRENTLY fails, try without it
         try {
@@ -93,16 +93,16 @@ class TableOperations {
             CREATE INDEX IF NOT EXISTS ${sql.identifier(index.name)} 
             ON ${sql.identifier(index.table)} (${sql.join(index.columns.map(col => sql.identifier(col)))})
           `);
-          console.log(`✓ Created index: ${index.name} (without CONCURRENTLY)`);
+          seedLogger.info(`✓ Created index: ${index.name} (without CONCURRENTLY)`);
         } catch (fallbackError) {
-          console.error(`✗ Failed to create index ${index.name}:`, fallbackError);
-          console.log(`✗ Initially failed with error:`, error);
+          seedLogger.error(`✗ Failed to create index ${index.name}:`, fallbackError);
+          seedLogger.info(`✗ Initially failed with error:`, error);
         }
       }
     });
 
     await Promise.all(indexOperations);
-    console.log('Database indexes created successfully');
+    seedLogger.info('Database indexes created successfully');
   }
 }
 
@@ -152,7 +152,7 @@ export class OptimizedSeeder {
 
   async seed(): Promise<void> {
     try {
-      console.log(`�� Starting optimized database seeding for ${this.options.env} environment...`);
+      seedLogger.info(`�� Starting optimized database seeding for ${this.options.env} environment...`);
 
       if (!this.options.appendingData) {
         await this.prepareDatabaseState();
@@ -161,22 +161,22 @@ export class OptimizedSeeder {
 
       await this.seedData();
 
-      console.log(`✅ Optimized database seeding completed`);
+      seedLogger.info(`✅ Optimized database seeding completed`);
 
       if (this.options.enableMonitoring) {
         this.processor.logResults();
       }
     } catch (error) {
-      console.error('❌ Error during optimized database seeding:', error);
+      seedLogger.error('❌ Error during optimized database seeding:', error);
       throw error;
     }
   }
 
   private async prepareDatabaseState(): Promise<void> {
     if (this.options.shouldResetDb) {
-      console.log('🔄 Resetting database...');
+      seedLogger.info('🔄 Resetting database...');
       await reset(this.db, schema);
-      console.log('✅ Database reset complete');
+      seedLogger.info('✅ Database reset complete');
     } else if (this.options.shouldTruncateTables) {
       await this.truncateTables();
     }
@@ -215,7 +215,7 @@ export class OptimizedSeeder {
   }
 
   private async seedExternalData(): Promise<void> {
-    console.log('🌐 Seeding external NBA data...');
+    seedLogger.info('🌐 Seeding external NBA data...');
 
     // Import optimized external seeding functions
     const { seedOptimizedExternalData } = await import('./optimized-external-seeder.js');
@@ -228,11 +228,11 @@ export class OptimizedSeeder {
       appendingData: this.options.appendingData,
     });
 
-    console.log('✅ External data seeding completed');
+    seedLogger.info('✅ External data seeding completed');
   }
 
   private async seedApplicationData(): Promise<void> {
-    console.log('👥 Seeding application data...');
+    seedLogger.info('👥 Seeding application data...');
 
     // Import optimized application seeding functions
     const { seedOptimizedApplicationData } = await import('./optimized-application-seeder');
@@ -245,7 +245,7 @@ export class OptimizedSeeder {
       skipUsers: this.options.skipUsers,
     });
 
-    console.log('✅ Application data seeding completed');
+    seedLogger.info('✅ Application data seeding completed');
   }
 }
 
@@ -296,7 +296,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   runOptimizedSeeder(options)
     .then(() => process.exit(0))
     .catch(error => {
-      console.error('Failed to run optimized seeder:', error);
+      seedLogger.error('Failed to run optimized seeder:', error);
       process.exit(1);
     });
 }

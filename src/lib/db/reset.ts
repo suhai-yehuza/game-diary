@@ -1,13 +1,13 @@
 import { sql } from 'drizzle-orm';
 
 import { db } from './index';
-
+import { import { dbLogger } from '@/lib/logger'; } from '@/lib/logger';
 export async function resetDatabase() {
-  console.log('Starting database reset...');
+  dbLogger.info('Starting database reset...');
 
   try {
     // Drop all tables
-    console.log('Dropping all tables...');
+    dbLogger.info('Dropping all tables...');
     await db.execute(sql`
       DROP TABLE IF EXISTS 
         game_logs,
@@ -25,7 +25,7 @@ export async function resetDatabase() {
       CASCADE;
     `);
 
-    console.log('Creating tables...');
+    dbLogger.info('Creating tables...');
 
     // Create tables in the correct order (respecting foreign key constraints)
     await db.execute(sql`
@@ -242,9 +242,9 @@ export async function resetDatabase() {
       );
     `);
 
-    console.log('Database reset completed successfully!');
+    dbLogger.info('Database reset completed successfully!');
   } catch (error) {
-    console.error('Error resetting database:', error);
+    dbLogger.error('Error resetting database:', error);
     throw error;
   }
 }
@@ -254,7 +254,7 @@ if (require.main === module) {
   resetDatabase()
     .then(() => process.exit(0))
     .catch(error => {
-      console.error('Failed to reset database:', error);
+      dbLogger.error('Failed to reset database:', error);
       process.exit(1);
     });
 }
