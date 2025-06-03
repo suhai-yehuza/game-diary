@@ -4,7 +4,7 @@ import { logger } from '@/lib/logger';
 import { CACHE_TTL } from '@/lib/types/cache.types';
 import { REACTION_EMOJIS } from '@/lib/types/config.types';
 import type { DatabaseRow } from '@/lib/types/database.types';
-import type { GameStatus, ReactionEmojiType } from '@/lib/types/generated/graphql';
+import type { ReactionEmojiType } from '@/lib/types/generated/graphql';
 // Helper function to convert emoji character back to key
 export const getEmojiKey = (emojiCharacter: string): ReactionEmojiType => {
   const entry = Object.entries(REACTION_EMOJIS).find(([, char]) => char === emojiCharacter);
@@ -19,53 +19,89 @@ export const mapGameData = (game: DatabaseRow) => {
     | null;
   const teams = game.teams as { home: { id: string }; visitors: { id: string } } | null;
 
+  // Parse the date field
+  let dateStart = '';
+  let dateEnd = '';
+  let dateDuration = '';
+
+  // Debug logging
+  console.log('Game date value:', {
+    date: game.date,
+    type: typeof game.date,
+    isObject: typeof game.date === 'object',
+    isNull: game.date === null,
+    hasStart: typeof game.date === 'object' && game.date !== null && 'start' in game.date,
+    start: typeof game.date === 'object' && game.date !== null ? (game.date as { start?: string }).start : null,
+    end: typeof game.date === 'object' && game.date !== null ? (game.date as { end?: string }).end : null,
+  });
+
+  if (typeof game.date === 'object' && game.date !== null) {
+    const dateObj = game.date as { start?: string; end?: string | null; duration?: string };
+    if ('start' in dateObj) {
+      try {
+        dateStart = dateObj.start ? new Date(dateObj.start).toISOString() : '';
+      } catch {
+        dateStart = '';
+      }
+      try {
+        // Only try to parse end date if it exists and is not null/undefined
+        if (dateObj.end && dateObj.end !== 'null' && dateObj.end !== 'undefined') {
+          const endDate = new Date(dateObj.end);
+          dateEnd = !isNaN(endDate.getTime()) ? endDate.toISOString() : '';
+        }
+      } catch {
+        dateEnd = '';
+      }
+      dateDuration = dateObj.duration || '';
+    } else if (game.date instanceof Date) {
+      try {
+        dateStart = game.date.toISOString();
+      } catch {
+        dateStart = '';
+      }
+    }
+  } else if (typeof game.date === 'string') {
+    try {
+      dateStart = new Date(game.date).toISOString();
+    } catch {
+      dateStart = '';
+    }
+  }
+
+  // Handle the case where date is a string in the external API response
+  if (!dateStart && typeof game.date === 'string') {
+    try {
+      dateStart = new Date(game.date).toISOString();
+    } catch {
+      dateStart = '';
+    }
+  }
+
+  // Debug logging for final values
+  console.log('Parsed date values:', {
+    dateStart,
+    dateEnd,
+    dateDuration,
+  });
+
   return {
     id: game.id,
     date: {
-      start:
-        (game.date as { start?: string | null })?.start ||
-        (game.date instanceof Date
-          ? game.date.toISOString()
-          : typeof game.date === 'string'
-            ? new Date(game.date).toISOString()
-            : ''),
-      end: (game.date as { end?: string | null })?.end || null,
-      duration: (game.date as { duration?: string | null })?.duration || null,
+      start: dateStart,
+      end: dateEnd || null,
+      duration: dateDuration || null,
     },
     status: {
-      clock:
-        typeof game.status === 'object' && game.status !== null
-          ? String((game.status as GameStatus).clock || '')
-          : typeof game.status === 'string'
-            ? game.status
-            : '',
-      halftime:
-        typeof game.status === 'object' && game.status !== null
-          ? Boolean((game.status as GameStatus).halftime)
-          : false,
-      long:
-        typeof game.status === 'object' && game.status !== null
-          ? String((game.status as GameStatus).long || '')
-          : typeof game.status === 'string'
-            ? game.status
-            : '',
-      short:
-        typeof game.status === 'object' && game.status !== null
-          ? String((game.status as GameStatus).short || '')
-          : typeof game.status === 'string'
-            ? game.status
-            : '',
+      long: typeof game.status === 'string' ? game.status : (game.status as { long?: string })?.long || '',
+      short: typeof game.status === 'string' ? game.status : (game.status as { short?: string })?.short || '',
+      clock: typeof game.status === 'string' ? null : (game.status as { clock?: string | null })?.clock || null,
+      halftime: typeof game.status === 'string' ? false : (game.status as { halftime?: boolean })?.halftime || false,
     },
     arena: {
-      name:
-        typeof arenaData === 'object' && arenaData !== null
-          ? arenaData.name || ''
-          : typeof arenaData === 'string'
-            ? arenaData
-            : '',
-      city: typeof arenaData === 'object' && arenaData !== null ? arenaData.city || '' : '',
-      state: typeof arenaData === 'object' && arenaData !== null ? arenaData.state : null,
-      country: typeof arenaData === 'object' && arenaData !== null ? arenaData.country : null,
+      name: typeof arenaData === 'string' ? arenaData : arenaData?.name || '',
+      city: typeof arenaData === 'string' ? '' : arenaData?.city || '',
+      state: typeof arenaData === 'string' ? undefined : arenaData?.state || undefined,
+      country: typeof arenaData === 'string' ? undefined : arenaData?.country || undefined,
     },
     league: typeof game.league === 'string' ? game.league : String(game.league ?? ''),
     season: typeof game.season === 'number' ? game.season : Number(game.season ?? 0),

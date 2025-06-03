@@ -36,8 +36,8 @@ export function parsePaginationArgs(args: ConnectionArgs): PaginationParams {
   const { first, after, last, before } = args;
 
   // Default pagination settings
-  const defaultLimit = 20;
-  const maxLimit = 100;
+  const defaultLimit = 1000;
+  const maxLimit = 5000;
 
   if (first !== null && first !== undefined) {
     // Forward pagination

@@ -1,9 +1,8 @@
 import { useMutation, useQuery } from '@apollo/client';
 import { SignInButton } from '@clerk/nextjs';
-import { format } from 'date-fns';
 import { X, Search } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import React, { useState, useRef } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import 'react-datepicker/dist/react-datepicker.css';
 
 import { Button } from '@/components/ui/button';
@@ -18,7 +17,6 @@ import {
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
 import { useAuthContext } from '@/contexts/AuthContext';
-import { API_CONFIG } from '@/lib/config/api.config';
 import { CREATE_GAME_LOG, UPDATE_GAME_LOG } from '@/lib/graphql/mutations';
 import { GET_EXTERNAL_GAMES, GET_GAME_LOGS } from '@/lib/graphql/queries';
 import { logger } from '@/lib/logger';
@@ -33,6 +31,7 @@ import {
 import { GameEdge, GameLogFormData } from '@/lib/types/consolidated.types';
 import { GameLogModalProps } from '@/lib/types/game-log.types';
 import type { Game, GameLog, UpdateGameLogInput } from '@/lib/types/generated/graphql';
+import { getCurrentSeason } from '@/lib/utils/index';
 import { formatGameDate } from '@/lib/utils/index.time';
 
 import { GameLogForm } from './game-log-form';
@@ -56,7 +55,11 @@ export function GameLogModal({
   // Game search state (only for create mode)
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedGame, setSelectedGame] = useState<Game | null>(null);
-  const loadMoreRef = useRef<HTMLDivElement>(null);
+
+  // Reset selected game when search query changes
+  useEffect(() => {
+    setSelectedGame(null);
+  }, [searchQuery]);
 
   // Form state
   const [formData, setFormData] = useState<GameLogFormData>({
@@ -111,27 +114,108 @@ export function GameLogModal({
   const { data: gamesData, loading: loadingGames } = useQuery(GET_EXTERNAL_GAMES, {
     variables: {
       filters: {
-        dateRange: {
-          start: format(new Date(), 'yyyy-MM-dd'),
-        },
-        ...(searchQuery
-          ? {
-              teamId: searchQuery,
-              arena: searchQuery,
-            }
-          : {}),
+        season: getCurrentSeason(),
       },
-      pagination: { first: API_CONFIG.pagination.DEFAULT_PAGE_SIZE },
+      first: 5000,
+      after: null,
     },
     skip: !isOpen || mode === 'update',
+  });
+
+  // Debug logging
+  console.log('Query Response:', {
+    loading: loadingGames,
+    hasData: !!gamesData,
+    games: gamesData?.games,
+    totalCount: gamesData?.games?.totalCount,
+    edges: gamesData?.games?.edges?.length,
+    season: getCurrentSeason(),
+    searchQuery,
+    filters: {
+      season: getCurrentSeason(),
+    },
   });
 
   // Handle search input changes (only for create mode)
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setSearchQuery(value);
-    setSelectedGame(null);
   };
+
+  // Filter games based on search query
+  const filteredGames = useMemo(() => {
+    if (!gamesData?.games?.edges) {
+      console.log('No edges found in gamesData');
+      return [];
+    }
+    if (!searchQuery.trim()) {
+      console.log('No search query, returning all games');
+      return gamesData.games.edges;
+    }
+    console.log('Filtering games with search query:', searchQuery);
+    console.log('Total games before filtering:', gamesData.games.edges.length);
+
+    const searchLower = searchQuery.toLowerCase();
+    const filtered = gamesData.games.edges.filter((edge: GameEdge) => {
+      const game = edge.node;
+      
+      // Team search fields
+      const homeTeam = game.teams?.home;
+      const awayTeam = game.teams?.visitors;
+      
+      // Check home team fields
+      const homeTeamMatch = homeTeam && (
+        (typeof homeTeam.name === 'string' && homeTeam.name.toLowerCase().includes(searchLower)) ||
+        (typeof homeTeam.nickname === 'string' && homeTeam.nickname.toLowerCase().includes(searchLower)) ||
+        (typeof homeTeam.code === 'string' && homeTeam.code.toLowerCase().includes(searchLower)) ||
+        (typeof homeTeam.id === 'string' && homeTeam.id.toLowerCase().includes(searchLower))
+      );
+
+      // Check away team fields
+      const awayTeamMatch = awayTeam && (
+        (typeof awayTeam.name === 'string' && awayTeam.name.toLowerCase().includes(searchLower)) ||
+        (typeof awayTeam.nickname === 'string' && awayTeam.nickname.toLowerCase().includes(searchLower)) ||
+        (typeof awayTeam.code === 'string' && awayTeam.code.toLowerCase().includes(searchLower)) ||
+        (typeof awayTeam.id === 'string' && awayTeam.id.toLowerCase().includes(searchLower))
+      );
+
+      // Arena search fields
+      const arena = game.arena;
+      const arenaMatch = arena && (
+        (typeof arena.name === 'string' && arena.name.toLowerCase().includes(searchLower)) ||
+        (typeof arena.city === 'string' && arena.city.toLowerCase().includes(searchLower)) ||
+        (typeof arena.state === 'string' && arena.state.toLowerCase().includes(searchLower)) ||
+        (typeof arena.country === 'string' && arena.country.toLowerCase().includes(searchLower))
+      );
+
+      // Game date
+      const dateMatch = typeof game.date === 'string' 
+        ? game.date.toLowerCase().includes(searchLower)
+        : formatGameDate(game.date).toLowerCase().includes(searchLower);
+
+      // Game status
+      const statusMatch = 
+        (typeof game.status?.long === 'string' && game.status.long.toLowerCase().includes(searchLower)) ||
+        (typeof game.status?.short === 'string' && game.status.short.toLowerCase().includes(searchLower));
+
+      // League and season
+      const leagueMatch = typeof game.league === 'string' && game.league.toLowerCase().includes(searchLower);
+      const seasonMatch = typeof game.season === 'number' && game.season.toString().includes(searchLower);
+
+      return (
+        homeTeamMatch ||
+        awayTeamMatch ||
+        arenaMatch ||
+        dateMatch ||
+        statusMatch ||
+        leagueMatch ||
+        seasonMatch
+      );
+    });
+
+    console.log('Filtered games count:', filtered.length);
+    return filtered;
+  }, [gamesData?.games?.edges, searchQuery]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -302,7 +386,7 @@ export function GameLogModal({
   }
 
   const dialogContent = (
-    <DialogContent className="sm:max-w-[600px] bg-white dark:bg-gray-900">
+    <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto bg-white dark:bg-gray-900">
       <DialogHeader className="relative">
         <Button
           variant="ghost"
@@ -329,7 +413,7 @@ export function GameLogModal({
               type="text"
               value={searchQuery}
               onChange={handleSearchChange}
-              placeholder="Search for a game..."
+              placeholder="Search by team name, nickname, code, arena, date, status..."
               className="pl-10"
             />
             <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-500" />
@@ -337,8 +421,8 @@ export function GameLogModal({
 
           {loadingGames && <div>Loading games...</div>}
 
-          <div className="space-y-2 max-h-60 overflow-y-auto">
-            {gamesData?.games?.edges?.map((edge: GameEdge) => (
+          <div className="space-y-2 max-h-[200px] overflow-y-auto">
+            {filteredGames.map((edge: GameEdge) => (
               <div
                 key={edge.node.id}
                 className={`p-3 border rounded-lg cursor-pointer hover:bg-gray-50 ${
@@ -372,7 +456,11 @@ export function GameLogModal({
                 </div>
               </div>
             ))}
-            <div ref={loadMoreRef} className="h-4" />
+            {!loadingGames && filteredGames.length === 0 && (
+              <div className="text-center text-gray-500 py-4">
+                No games found matching your search
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -386,9 +474,49 @@ export function GameLogModal({
               ? {
                   ...selectedGame,
                   date: {
-                    start: selectedGame.date.start.toISOString(),
-                    end: selectedGame.date.end?.toISOString() || '',
-                    duration: selectedGame.date.duration || '',
+                    start: (() => {
+                      try {
+                        if (typeof selectedGame.date === 'string') {
+                          return new Date(selectedGame.date).toISOString();
+                        }
+                        if (typeof selectedGame.date.start === 'string') {
+                          return selectedGame.date.start;
+                        }
+                        if (selectedGame.date.start instanceof Date) {
+                          return selectedGame.date.start.toISOString();
+                        }
+                        console.warn('Invalid start date:', selectedGame.date.start);
+                        return new Date().toISOString();
+                      } catch (error) {
+                        console.error('Error parsing start date:', error);
+                        return new Date().toISOString();
+                      }
+                    })(),
+                    end: (() => {
+                      try {
+                        if (typeof selectedGame.date === 'string') {
+                          return '';
+                        }
+                        if (!selectedGame.date.end) {
+                          return '';
+                        }
+                        if (typeof selectedGame.date.end === 'string') {
+                          const date = new Date(selectedGame.date.end);
+                          return isNaN(date.getTime()) ? '' : date.toISOString();
+                        }
+                        if (selectedGame.date.end instanceof Date) {
+                          return selectedGame.date.end.toISOString();
+                        }
+                        console.warn('Invalid end date:', selectedGame.date.end);
+                        return '';
+                      } catch (error) {
+                        console.error('Error parsing end date:', error);
+                        return '';
+                      }
+                    })(),
+                    duration: typeof selectedGame.date === 'string'
+                      ? ''
+                      : selectedGame.date.duration || '',
                   },
                   status: {
                     long: selectedGame.status.long || '',
@@ -407,8 +535,16 @@ export function GameLogModal({
                   nugget: selectedGame.nugget || undefined,
                   officials: selectedGame.officials || [],
                   periods: selectedGame.periods || undefined,
-                  createdAt: selectedGame.createdAt.toISOString(),
-                  updatedAt: selectedGame.updatedAt.toISOString(),
+                  createdAt: typeof selectedGame.createdAt === 'string' 
+                    ? selectedGame.createdAt 
+                    : selectedGame.createdAt instanceof Date 
+                      ? selectedGame.createdAt.toISOString()
+                      : new Date().toISOString(),
+                  updatedAt: typeof selectedGame.updatedAt === 'string'
+                    ? selectedGame.updatedAt
+                    : selectedGame.updatedAt instanceof Date
+                      ? selectedGame.updatedAt.toISOString()
+                      : new Date().toISOString(),
                 }
               : null
             : null

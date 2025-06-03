@@ -1,4 +1,4 @@
-import { and, eq, gt, lt, or, sql } from 'drizzle-orm';
+import { and, eq, or, sql } from 'drizzle-orm';
 
 import * as schema from '@/lib/db/schema';
 import { fetchNbaLiveGames } from '@/lib/external-apis';
@@ -73,7 +73,7 @@ export const games = async (
   { db }: Context
 ) => {
   try {
-    const { first = 10, after, last, before, filters } = args;
+    const { first = 1000, after, filters } = args;
 
     // Build the query conditions
     const conditions = [];
@@ -105,34 +105,20 @@ export const games = async (
 
     const totalCount = countResult?.count || 0;
 
-    // Add cursor conditions for pagination
-    const paginationConditions = [...conditions];
-    if (after) {
-      paginationConditions.push(gt(schema.nba_games.id, after));
-    }
-    if (before) {
-      paginationConditions.push(lt(schema.nba_games.id, before));
-    }
-
-    const paginationWhereClause =
-      paginationConditions.length > 0 ? and(...paginationConditions) : undefined;
-
     // Execute query with pagination
-    const limit = last || first || 10;
+    const limit = first || 1000;
+    const offset = after ? parseInt(Buffer.from(after, 'base64').toString(), 10) : 0;
+    
     const query = db
       .select()
       .from(schema.nba_games)
-      .where(paginationWhereClause)
+      .where(whereClause)
       .orderBy(sql`${schema.nba_games.date}->>'start' DESC`)
-      .limit(limit + 1);
+      .limit(limit)
+      .offset(offset);
 
     const items = await query;
-
-    // Check if there are more items
-    const hasNextPage = items.length > limit;
-    const actualItems = hasNextPage ? items.slice(0, -1) : items;
-
-    const mappedGames = actualItems.map(mapGameData);
+    const mappedGames = items.map(mapGameData);
 
     return createConnection(mappedGames, totalCount, args);
   } catch (error) {
