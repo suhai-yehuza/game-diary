@@ -9,8 +9,8 @@ import { CREATE_REACTION } from '@/lib/graphql/mutations';
 import { GET_REACTIONS } from '@/lib/graphql/queries';
 import { ReactionsData } from '@/lib/types/component.types';
 import { REACTION_EMOJIS } from '@/lib/types/config.types';
-import type { Reaction, ReactionEmojiType } from '@/lib/types/generated/graphql';
-import { ReactionPickerProps } from '@/lib/types/reaction.types';
+import { ReactionPickerProps } from '@/lib/types/consolidated.types';
+import type { ReactionEmojiType } from '@/lib/types/generated/graphql';
 import { cn } from '@/lib/utils';
 
 export function ReactionPicker({
@@ -81,9 +81,9 @@ export function ReactionPicker({
     }
   };
 
-  const hasUserReacted = (emojiName: string) => {
+  const hasUserReacted = (emojiName: ReactionEmojiType) => {
     return existingReactions.some(
-      (reaction: Reaction) => reaction.userId === user?.id && reaction.emoji === emojiName
+      reaction => reaction.userId === user?.id && reaction.emoji === emojiName
     );
   };
 
@@ -98,7 +98,7 @@ export function ReactionPicker({
       <PopoverContent className="w-64 p-3" align="start">
         <div className="grid grid-cols-6 gap-1">
           {Object.entries(REACTION_EMOJIS).map(([name, emoji]) => {
-            const hasReacted = hasUserReacted(name);
+            const hasReacted = hasUserReacted(name as ReactionEmojiType);
 
             return (
               <Button

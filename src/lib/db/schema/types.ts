@@ -1,14 +1,12 @@
 import {
   game_status_enum,
-  game_type_enum,
-  user_role_enum,
   notification_type_enum,
   reaction_type_enum,
   watched_setting_enum,
 } from '@/lib/db/schema/enums';
 
 import { baseTableConfig } from './base-types';
-import { game_logs, game_ratings } from './game-schemas';
+import { game_logs, game_ratings, games } from './game-schemas';
 import {
   nba_players,
   nba_player_stats,
@@ -39,6 +37,7 @@ export type NotificationsTable = typeof notifications;
 export type FriendshipsTable = typeof friendships;
 export type GameLogsTable = typeof game_logs;
 export type GameRatingsTable = typeof game_ratings;
+export type GamesTable = typeof games;
 export type NBAGamesTable = typeof nba_games;
 export type TeamH2HTable = typeof team_h2h;
 export type NBAPlayersTable = typeof nba_players;
@@ -56,6 +55,7 @@ export type Schema = {
   friendships: FriendshipsTable;
   game_logs: GameLogsTable & { relations: typeof gameLogsRelations };
   game_ratings: GameRatingsTable;
+  games: GamesTable;
   nba_games: NBAGamesTable;
   team_h2h: TeamH2HTable;
   nba_players: NBAPlayersTable;
@@ -64,8 +64,6 @@ export type Schema = {
   seasons: SeasonsTable;
   enums: {
     game_status: typeof game_status_enum;
-    gameType: typeof game_type_enum;
-    user_role: typeof user_role_enum;
     notification_type: typeof notification_type_enum;
     reaction_type: typeof reaction_type_enum;
     watchedSetting: typeof watched_setting_enum;

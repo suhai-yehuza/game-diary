@@ -1,7 +1,21 @@
-import type { Comment } from './comment.types';
-import type { GameLog } from './generated/graphql';
-import type { Reaction } from './reaction.types';
-import type { BaseUser, Friendship, ValidatableValue } from './shared.types';
+import { DBUser } from '@/lib/types/generated/graphql';
+import type { ValidatableValue } from '@/lib/types/shared.types';
+
+// Consolidated from auth.types.ts
+export type AuthUser = {
+  id: string;
+  username?: string;
+  email: string;
+};
+
+export type AuthContextType = {
+  user: AuthUser | null;
+  loading: boolean;
+  userId: string;
+  isAuthenticated: boolean;
+};
+
+export type AuthContext = React.Context<AuthContextType>;
 
 export interface ExternalUserAccount {
   id: string;
@@ -162,41 +176,14 @@ export interface ClerkDeletedUserData {
   object: 'user';
 }
 
-export interface DbCustomUser extends BaseUser {
-  firstName: string;
-  lastName: string;
-  imageUrl?: string;
-  email?: string;
-  emailAddress?: string;
-  email_verified?: boolean;
-  password_enabled?: boolean;
-  password_last_changed?: Date;
-  password_last_set?: Date;
-  password_reset_token?: string;
-  password_reset_token_expires_at?: Date;
-  password_reset_token_sent_at?: Date;
-  received_friendships?: Friendship[];
-  initiatedFriendships?: Friendship[];
-  banned?: boolean;
-  two_factor_enabled?: boolean;
-  last_sign_in_at?: Date;
-  email_verification_strategy?: string;
-  external_accounts?: ExternalUserAccount[];
-  comments?: Comment[];
-  reactions?: Reaction[];
-  game_logs?: GameLog[];
-  createdAt?: Date;
-  updatedAt?: Date;
-}
-
 export interface UserFields {
   userId: string;
-  user?: DbCustomUser;
+  user?: DBUser;
 }
 
 export interface UserSearchProps {
-  users: DbCustomUser[];
-  onFilteredUsersChange?: (filteredUsers: DbCustomUser[]) => void;
+  users: DBUser[];
+  onFilteredUsersChange?: (filteredUsers: DBUser[]) => void;
   onUserSelect?: (userId: string) => void;
   excludeIds?: string[];
 }
@@ -211,7 +198,7 @@ export interface FriendProfileProps {
 }
 
 export interface UsersTableProps {
-  users: DbCustomUser[];
+  users: DBUser[];
 }
 
 export interface UserPageProps {

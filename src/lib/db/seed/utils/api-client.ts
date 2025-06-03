@@ -3,10 +3,10 @@ import type { Table, InferInsertModel } from 'drizzle-orm';
 import type { IndexColumn, PgUpdateSetSource } from 'drizzle-orm/pg-core';
 import pLimit from 'p-limit';
 
-import { getRapidApiConfig } from '@/lib/config/api.config';
+import { getRapidApiConfig, validateAPIKey } from '@/lib/config/api.config';
 import { DB_CONFIG } from '@/lib/config/db.config';
-import { createRapidAPIClient, validateAPIKey } from '@/lib/external-apis';
-import type { DatabaseClient } from '@/lib/types/db.types';
+import { createRapidAPIClient } from '@/lib/external-apis';
+import type { DatabaseClient } from '@/lib/types/database.types';
 import { sleep } from '@/lib/utils/index.time';
 
 import { createDatabaseClient } from '../config';

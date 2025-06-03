@@ -3,7 +3,7 @@ import { Resolvers } from '@/lib/types/generated/graphql';
 import * as mutations from './mutations';
 import * as queries from './queries';
 import * as scalars from './scalars';
-import { User } from './users';
+import { DBUser } from './users/user-type';
 
 export const resolvers: Resolvers = {
   ...scalars,
@@ -12,5 +12,5 @@ export const resolvers: Resolvers = {
   GameLog: queries.GameLog as unknown as Resolvers['GameLog'],
   Comment: queries.Comment as unknown as Resolvers['Comment'],
   Reaction: queries.Reaction as unknown as Resolvers['Reaction'],
-  User: User as unknown as Resolvers['User'],
+  DBUser,
 };

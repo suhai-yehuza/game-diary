@@ -5,7 +5,8 @@ import React, { useState } from 'react';
 
 import { useDebounce } from '@/hooks/useDebounce';
 import { GET_USERS } from '@/lib/graphql/queries';
-import { UserSearchProps, DbCustomUser } from '@/lib/types/user.types';
+import { DBUser } from '@/lib/types/generated/graphql';
+import { UserSearchProps } from '@/lib/types/user.types';
 
 export const UserSearch: React.FC<UserSearchProps> = ({ onUserSelect, excludeIds = [] }) => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -23,8 +24,8 @@ export const UserSearch: React.FC<UserSearchProps> = ({ onUserSelect, excludeIds
 
   const filteredUsers =
     data?.users
-      ?.map((user: DbCustomUser) => user)
-      .filter((user: DbCustomUser) => {
+      ?.map((user: DBUser) => user)
+      .filter((user: DBUser) => {
         const matchesSearch =
           user.username?.toLowerCase().includes(debouncedSearch.toLowerCase()) ?? false;
         const notExcluded = !excludeIds.includes(user.id);
@@ -59,7 +60,7 @@ export const UserSearch: React.FC<UserSearchProps> = ({ onUserSelect, excludeIds
               <div className="p-4 text-gray-500">No users found</div>
             ) : (
               <div className="max-h-60 overflow-y-auto">
-                {filteredUsers.map((user: DbCustomUser) => (
+                {filteredUsers.map((user: DBUser) => (
                   <motion.button
                     key={user.id}
                     initial={{ opacity: 0 }}

@@ -10,7 +10,7 @@ import React, { Suspense } from 'react';
 import { filterGames, processGameData } from '@/app/search/utils/game-search';
 import { GET_GAMES } from '@/lib/graphql/queries';
 import { useDebounce } from '@/lib/hooks/use-debounce';
-import { SearchGame } from '@/lib/types/game.types';
+import { SearchGame } from '@/lib/types/consolidated.types';
 
 // Helper function to validate state values
 const isValidState = (state: string | undefined | null): boolean => {
@@ -45,7 +45,10 @@ function GameCard({ game }: { game: SearchGame }) {
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <span className="text-sm text-muted-foreground">
-              {format(new Date(game.date.start), 'MMM d, yyyy h:mm a')}
+              {format(
+                new Date(typeof game.date === 'string' ? game.date : game.date.start),
+                'MMM d, yyyy h:mm a'
+              )}
             </span>
           </div>
           <div className="text-sm font-medium bg-blue-500/10 text-blue-500 px-2 py-1 rounded-full">
@@ -120,7 +123,7 @@ function GameCard({ game }: { game: SearchGame }) {
               <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
               <circle cx="12" cy="10" r="3" />
             </svg>
-            {formatArenaLocation(game.arena)}
+            {game.arena && formatArenaLocation(game.arena)}
           </div>
         </div>
       </div>
@@ -151,21 +154,28 @@ function SearchContent() {
   const searchQuery = searchParams?.get('q') || '';
   const debouncedSearchQuery = useDebounce(searchQuery, 500);
 
-  const query2024 = useQuery<{ games: { items: SearchGame[] } }>(GET_GAMES, {
+  const query2024 = useQuery<{ games: { edges: { node: SearchGame }[] } }>(GET_GAMES, {
     variables: {
-      filters: { season: '2024' },
-      pagination: { first: 2000 },
+      filters: { season: 2024 },
+      first: 2000,
     },
   });
 
-  const query2023 = useQuery<{ games: { items: SearchGame[] } }>(GET_GAMES, {
+  const query2023 = useQuery<{ games: { edges: { node: SearchGame }[] } }>(GET_GAMES, {
     variables: {
-      filters: { season: '2023' },
-      pagination: { first: 2000 },
+      filters: { season: 2023 },
+      first: 2000,
     },
   });
 
-  const { isLoading, hasError, games: allGames } = processGameData([query2024, query2023]);
+  const {
+    isLoading,
+    hasError,
+    games: allGames,
+  } = processGameData([
+    query2024 as unknown as Parameters<typeof processGameData>[0][0],
+    query2023 as unknown as Parameters<typeof processGameData>[0][0],
+  ]);
   const filteredGames = filterGames(allGames, debouncedSearchQuery);
 
   if (isLoading) return <div className="p-4">Loading...</div>;

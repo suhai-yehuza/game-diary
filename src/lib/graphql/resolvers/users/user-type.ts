@@ -1,7 +1,7 @@
 import { eq } from 'drizzle-orm';
 
 import * as schema from '@/lib/db/schema';
-import type { Context } from '@/lib/types/context.types';
+import type { Context } from '@/lib/types/component.types';
 import type {
   Friendship,
   FriendshipStatus,
@@ -11,7 +11,7 @@ import type {
 
 import { handleResolverError } from '../common/utils';
 
-export const User: Resolvers['User'] = {
+export const DBUser: Resolvers['DBUser'] = {
   friendships: async (parent, _args, { db }: Context) => {
     try {
       // Fetch friendships where this user is the recipient

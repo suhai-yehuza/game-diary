@@ -64,8 +64,3 @@ export const withMiddleware = (handler: NextApiHandler): NextApiHandler => {
     }
   };
 };
-
-// Export middleware configuration
-export const middlewareConfig = {
-  withMiddleware,
-};

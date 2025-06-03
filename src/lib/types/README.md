@@ -8,14 +8,13 @@ This directory contains all the type definitions used throughout the application
 - `generated/`: Contains auto-generated types from GraphQL schema
 - `common.types.ts`: Common utility types
 - `constants.types.ts`: Type definitions for constants
-- `game.types.ts`: Game-related types
-- `team.types.ts`: Team-related types
-- `user.types.ts`: User-related types
-- `gamelog.types.ts`: Game log related types
-- `friendship.types.ts`: Friendship related types
-- `notification.types.ts`: Notification related types
-- `toast.types.ts`: Toast notification related types
-- `component.types.ts`: Component prop types
+- `consolidated.types.ts`: All game-related types (consolidated from various sources)
+- `graphql.types.ts`: GraphQL-specific types
+- `notification.types.ts`: Notification system types
+- `shared.types.ts`: Re-exports commonly used types
+- `consolidated.types.ts`: Team-related types
+- `user.types.ts`: User and authentication types
+- `validation.types.ts`: Zod schemas and validation types
 
 ## Usage
 
@@ -33,7 +32,7 @@ This ensures type consistency and prevents import conflicts.
 
    ```typescript
    // ✅ Correct
-   import { User, Game, GameLogResponse } from '@/lib/types';
+   import { Game, GameLogResponse } from '@/lib/types';
 
    // ❌ Incorrect - don't import directly from individual files
    import { User } from '@/lib/types/user.types';
@@ -67,3 +66,10 @@ If you see TypeScript errors about ambiguous exports, you may need to:
 1. Import the type directly from its source file (within the types directory only)
 2. Update the index.ts file to resolve the ambiguity
 3. Refactor the types to have unique names
+
+## Recent Changes
+
+- Consolidated type definitions from component files into appropriate type files
+- Added `shared.types.ts` for types used across multiple domains
+- Removed duplicate type definitions
+- Improved type organization and maintainability

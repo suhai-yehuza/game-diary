@@ -15,7 +15,7 @@ import {
   WatchedScopeValue,
   CLASSIFICATION,
 } from '@/lib/types/config.types';
-import type { DatabaseClient } from '@/lib/types/db.types';
+import type { DatabaseClient } from '@/lib/types/database.types';
 import { generateUUID } from '@/lib/utils/index.processing';
 import { getCurrentSeason } from '@/lib/utils/index.time';
 
@@ -29,7 +29,7 @@ interface ApplicationSeederOptions {
   skipUsers: boolean;
 }
 
-type User = typeof users.$inferSelect;
+type DBUser = typeof users.$inferSelect;
 type UserInsert = typeof users.$inferInsert;
 type FriendshipInsert = typeof friendships.$inferInsert;
 type GameLogInsert = typeof game_logs.$inferInsert;
@@ -92,10 +92,10 @@ async function* generateUsersStream(
 
 // Optimized friendship generator
 async function* generateFriendshipsStream(
-  userStream: AsyncGenerator<User, void, unknown>
+  userStream: AsyncGenerator<DBUser, void, unknown>
 ): AsyncGenerator<FriendshipInsert, void, unknown> {
-  const userChunks: User[][] = [];
-  let currentChunk: User[] = [];
+  const userChunks: DBUser[][] = [];
+  let currentChunk: DBUser[] = [];
 
   // Collect users into chunks
   for await (const user of userStream) {
@@ -144,7 +144,7 @@ async function* generateFriendshipsStream(
 
 // Optimized game logs generator
 async function* generateGameLogsStream(
-  userStream: AsyncGenerator<User, void, unknown>,
+  userStream: AsyncGenerator<DBUser, void, unknown>,
   db: DatabaseClient
 ): AsyncGenerator<GameLogInsert, void, unknown> {
   // Get games from the latest season
@@ -194,12 +194,12 @@ async function* generateGameLogsStream(
     );
 
     for (const game of selectedGames) {
-      const rating = faker.number.int({ min: 1, max: 5 });
+      const ratingForGame = faker.number.int({ min: 1, max: 5 });
 
       // Update game ratings tracking
       const currentRating = gameRatings.get(game.id) || { total: 0, count: 0 };
       gameRatings.set(game.id, {
-        total: currentRating.total + rating,
+        total: currentRating.total + ratingForGame,
         count: currentRating.count + 1,
       });
 
@@ -238,8 +238,7 @@ async function* generateGameLogsStream(
         ) as WatchedSettingValue,
         watchedDate: watchedDate,
         watchedLocation: faker.location.streetAddress(),
-        ratingForGame: rating,
-        ratingStars: '⭐'.repeat(rating) + '☆'.repeat(5 - rating),
+        ratingForGame: ratingForGame,
         watchedScope: faker.helpers.arrayElement(Object.values(WATCHED_SCOPE)) as WatchedScopeValue,
         notes: faker.lorem.paragraph(),
         tags: [],
@@ -264,11 +263,11 @@ async function* generateGameLogsStream(
 
 // Optimized comments generator
 async function* generateCommentsStream(
-  userStream: AsyncGenerator<User, void, unknown>,
+  userStream: AsyncGenerator<DBUser, void, unknown>,
   gameLogStream: AsyncGenerator<GameLogInsert, void, unknown>
 ): AsyncGenerator<CommentInsert, void, unknown> {
-  const userChunks: User[][] = [];
-  let currentChunk: User[] = [];
+  const userChunks: DBUser[][] = [];
+  let currentChunk: DBUser[] = [];
   let totalParentComments = 0;
   let skippedGameLogs = 0;
 
@@ -337,7 +336,7 @@ async function* generateCommentsStream(
 // Helper function to recursively generate child comments
 async function* generateChildComments(
   parentComment: CommentInsert,
-  userChunk: User[],
+  userChunk: DBUser[],
   depth: number,
   maxDepth: number = 3 // Cap at 3 levels deep
 ): AsyncGenerator<CommentInsert, void, unknown> {
@@ -383,12 +382,12 @@ async function* generateChildComments(
 
 // Optimized reactions generator
 async function* generateReactionsStream(
-  userStream: AsyncGenerator<User, void, unknown>,
+  userStream: AsyncGenerator<DBUser, void, unknown>,
   commentStream: AsyncGenerator<CommentInsert, void, unknown>,
   gameLogStream: AsyncGenerator<GameLogInsert, void, unknown>
 ): AsyncGenerator<ReactionInsert, void, unknown> {
-  const userChunks: User[][] = [];
-  let currentChunk: User[] = [];
+  const userChunks: DBUser[][] = [];
+  let currentChunk: DBUser[] = [];
 
   // Collect users into chunks
   for await (const user of userStream) {
@@ -485,7 +484,7 @@ async function* generateReactionsStream(
 }
 
 // Add new streaming functions
-async function* streamUsers(db: DatabaseClient): AsyncGenerator<User, void, unknown> {
+async function* streamUsers(db: DatabaseClient): AsyncGenerator<DBUser, void, unknown> {
   const batchSize = API_CONFIG.databaseSeeding.BATCH_SIZE;
   let lastId: string | undefined;
 

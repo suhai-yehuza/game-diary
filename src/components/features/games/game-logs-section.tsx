@@ -1,31 +1,23 @@
 'use client';
 
-import { format, formatDistanceToNow, isToday, isYesterday } from 'date-fns';
-import {
-  Calendar,
-  Clock,
-  Eye,
-  MapPin,
-  MessageCircle,
-  Trophy,
-  TrendingUp,
-  Users,
-  Tv,
-} from 'lucide-react';
+import { format, isToday, isYesterday } from 'date-fns';
+import { Clock, Eye, MapPin, MessageCircle, Trophy, TrendingUp, Users, Tv } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import React from 'react';
 
-import { CommentsSection, ReactionsSection } from '@/components/common';
+import { ReactionsSection } from '@/components/common';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { StarRating } from '@/components/ui/star-rating';
 import { CLASSIFICATION } from '@/lib/types/config.types';
-import { GameLog } from '@/lib/types/game.types';
+import type { GameLog } from '@/lib/types/generated/graphql';
 import { cn } from '@/lib/utils';
+
+import { GameLogActions } from './game-log-actions';
 
 interface GameLogsSectionProps {
   gameLogs: GameLog[];
@@ -287,15 +279,18 @@ export function GameLogsSection({
                   </div>
                 </Link>
 
-                {/* Metadata */}
+                {/* Metadata and Actions */}
                 <div className="flex flex-col items-end gap-2">
-                  <Badge
-                    variant={classificationStyles.variant}
-                    className={cn('gap-1', classificationStyles.className)}
-                  >
-                    <ClassificationIcon className="h-3 w-3" />
-                    {log.classification}
-                  </Badge>
+                  <div className="flex items-center gap-2">
+                    <Badge
+                      variant={classificationStyles.variant}
+                      className={cn('gap-1', classificationStyles.className)}
+                    >
+                      <ClassificationIcon className="h-3 w-3" />
+                      {log.classification}
+                    </Badge>
+                    <GameLogActions gameLog={log} onSuccess={refetch} />
+                  </div>
                   <div className="flex items-center gap-1 text-sm text-muted-foreground">
                     <Clock className="h-3 w-3" />
                     <span>{formatWatchedDate(log.watchedDate)}</span>
@@ -310,97 +305,76 @@ export function GameLogsSection({
               <TeamMatchup game={log.game} />
 
               {/* Watch Details */}
-              <div className="flex flex-wrap items-center gap-4 text-sm">
-                <div className="flex items-center gap-1.5">
-                  <StarRating rating={log.ratingForGame || 0} size="sm" />
-                  <span className="font-medium">{log.ratingForGame || 0}/5</span>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="flex items-center gap-2 text-sm">
+                  <Tv className="h-4 w-4 text-muted-foreground" />
+                  <span>{log.watchedSetting || 'Not specified'}</span>
                 </div>
-
-                {log.watchedLocation && (
-                  <div className="flex items-center gap-1.5 text-muted-foreground">
-                    <MapPin className="h-3.5 w-3.5" />
-                    <span>{log.watchedLocation}</span>
-                  </div>
-                )}
-
-                {log.watchedSetting && (
-                  <div className="flex items-center gap-1.5 text-muted-foreground">
-                    <Tv className="h-3.5 w-3.5" />
-                    <span className="capitalize">{log.watchedSetting}</span>
-                  </div>
-                )}
-
-                {log.game?.date?.start && (
-                  <div className="flex items-center gap-1.5 text-muted-foreground">
-                    <Calendar className="h-3.5 w-3.5" />
-                    <span>Game from {format(new Date(log.game.date.start), 'MMM d, yyyy')}</span>
-                  </div>
-                )}
+                <div className="flex items-center gap-2 text-sm">
+                  <MapPin className="h-4 w-4 text-muted-foreground" />
+                  <span>{log.watchedLocation || 'Not specified'}</span>
+                </div>
               </div>
+
+              {/* Rating */}
+              {log.ratingForGame && (
+                <div className="flex items-center gap-2">
+                  <StarRating ratingForGame={log.ratingForGame} size="sm" />
+                  <span className="text-sm text-muted-foreground">({log.ratingForGame}/5)</span>
+                </div>
+              )}
 
               {/* Notes */}
               {log.notes && (
-                <div className="p-3 bg-muted/50 rounded-lg">
-                  <p className="text-sm whitespace-pre-wrap">{log.notes}</p>
-                </div>
+                <div className="text-sm text-muted-foreground line-clamp-2">{log.notes}</div>
               )}
 
               {/* Tags */}
               {log.tags && log.tags.length > 0 && (
                 <div className="flex flex-wrap gap-2">
                   {log.tags.map((tag, index) => (
-                    <Badge key={index} variant="outline" className="text-xs">
-                      #{tag}
+                    <Badge key={index} variant="secondary">
+                      {tag}
                     </Badge>
                   ))}
                 </div>
               )}
 
-              {/* Interactions */}
-              <div className="space-y-3 pt-2 border-t comments-section reactions-section">
+              {/* Reactions and Comments */}
+              <div className="flex items-center gap-4 pt-2 border-t">
                 <ReactionsSection
                   targetId={log.id}
                   targetType="game_log"
-                  reactions={log.reactions?.edges?.map(edge => edge.node) || []}
+                  reactions={
+                    log.reactions?.edges?.map(edge => ({
+                      ...edge.node,
+                      __typename: 'Reaction' as const,
+                    })) || []
+                  }
                   totalReactionCount={log.reactions?.totalCount || 0}
-                  onReactionChange={refetch}
                 />
-
-                {/* Comments Preview */}
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <div className="flex items-center gap-1 text-sm text-muted-foreground">
                   <MessageCircle className="h-4 w-4" />
                   <span>{log.comments?.totalCount || 0} comments</span>
-                  {log.createdAt && (
-                    <>
-                      <span className="text-xs">•</span>
-                      <span className="text-xs">
-                        Posted {formatDistanceToNow(new Date(log.createdAt), { addSuffix: true })}
-                      </span>
-                    </>
-                  )}
                 </div>
-
-                <CommentsSection parentId={log.id} parentType="game_log" />
               </div>
             </CardContent>
-
-            {/* Hover indicator */}
-            <div className="absolute inset-0 pointer-events-none">
-              <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-            </div>
           </Card>
         );
       })}
 
-      {/* Load More */}
-      <div ref={loadMoreRef} className="h-10">
-        {isFetchingMore && (
-          <div className="flex items-center justify-center">
-            <div className="w-6 h-6 border-3 border-primary border-t-transparent rounded-full animate-spin" />
-            <span className="ml-2 text-sm font-medium">Loading more game logs...</span>
-          </div>
-        )}
-      </div>
+      {/* Load More Trigger */}
+      {!loading && !isFetchingMore && gameLogs.length > 0 && (
+        <div ref={loadMoreRef} className="h-4" />
+      )}
+
+      {/* Loading State */}
+      {isFetchingMore && (
+        <div className="space-y-4">
+          <GameLogSkeleton />
+          <GameLogSkeleton />
+        </div>
+      )}
     </div>
   );
 }

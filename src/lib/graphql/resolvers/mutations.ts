@@ -17,13 +17,7 @@ import {
 import { getEmojiKey } from '@/lib/graphql/resolvers/common/utils';
 import { transformUser } from '@/lib/graphql/resolvers/transformers';
 import { mapUserData } from '@/lib/graphql/resolvers/users/index';
-import {
-  WatchedSettingValue,
-  REACTION_EMOJIS,
-  ReactionEmojiKey,
-  WATCHED_SCOPE,
-  CLASSIFICATION,
-} from '@/lib/types/config.types';
+import { WatchedSettingValue, REACTION_EMOJIS, ReactionEmojiKey } from '@/lib/types/config.types';
 import {
   MutationcreateGameLogArgs,
   MutationupdateGameLogArgs,
@@ -33,13 +27,13 @@ import {
   MutationdeleteCommentArgs,
   MutationcreateReactionArgs,
   MutationdeleteReactionArgs,
-  User as DBUser,
+  DBUser,
   ParentType,
   Classification,
 } from '@/lib/types/generated/graphql';
 import { generateUUID } from '@/lib/utils/index.processing';
 import { createCommentSchema, updateCommentSchema } from '@/lib/validations/comment';
-import { gameTypeEnum } from '@/lib/validations/game';
+import { createGameLogSchema, updateGameLogSchema } from '@/lib/validations/game-log';
 
 // Helper functions
 const validateInput = <T>(schema: z.ZodSchema<T>, input: unknown): T => {
@@ -95,7 +89,7 @@ async function ensureUserExists(user: Context['user']) {
       id: user.id,
       username: user.username || `user_${user.id.slice(-8)}`,
       firstName: user.firstName || 'Unknown',
-      lastName: user.lastName || 'User',
+      lastName: user.lastName || 'DBUser',
       emailAddress: user.emailAddress || `${user.id}@placeholder.com`,
       imageUrl: user.imageUrl || '',
       inboundFriendshipIds: [],
@@ -126,10 +120,6 @@ export const createGameLog = async (
 ) => {
   try {
     const user = checkAuth(context.user);
-    const validatedInput = {
-      ...input,
-      watchedScope: input.watchedScope,
-    };
 
     // Ensure user exists in database
     const dbUser = await ensureUserExists(user);
@@ -137,7 +127,10 @@ export const createGameLog = async (
       throw new AuthenticationError('Failed to verify user');
     }
 
-    // Validate game exists and is accessible
+    // Validate input
+    const validatedInput = validateInput(createGameLogSchema, input);
+
+    // Validate game exists
     const games = await db
       .select()
       .from(schema.nba_games)
@@ -149,153 +142,140 @@ export const createGameLog = async (
       throw new NotFoundError('Game', validatedInput.gameId);
     }
 
-    // Validate game type
-    try {
-      const gameWithType = { ...game, gameType: 'nba' };
-      gameTypeEnum.parse(gameWithType.gameType);
-    } catch (error) {
-      console.log('Error parsing game type:', error);
-      throw new BusinessLogicError('Game type nba is not supported', 'UNSUPPORTED_GAME_TYPE');
+    // Create game log
+    const [gameLog] = await db
+      .insert(schema.game_logs)
+      .values({
+        id: generateUUID(),
+        userId: user.id,
+        gameId: validatedInput.gameId,
+        watchedSetting: validatedInput.watchedSetting,
+        watchedDate: validatedInput.watchedDate,
+        watchedLocation: validatedInput.watchedLocation,
+        ratingForGame: validatedInput.ratingForGame,
+        watchedScope: validatedInput.watchedScope,
+        notes: validatedInput.notes || '',
+        tags: validatedInput.tags,
+        classification: validatedInput.classification,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .returning();
+
+    // Invalidate related caches
+    if (context.redis) {
+      const cache = getCache();
+      await cache.initializeRedis();
+      await invalidateRelatedCaches(cache, 'game_log', gameLog.id, {
+        playerId: nullToUndefined(gameLog.userId),
+      });
     }
 
-    try {
-      const [gameLog] = await db
-        .insert(schema.game_logs)
-        .values({
-          userId: user.id,
-          gameId: validatedInput.gameId,
-          watchedSetting: validatedInput.watchedSetting as WatchedSettingValue,
-          watchedDate: validatedInput.watchedDate || new Date(),
-          watchedLocation: validatedInput.watchedLocation || '',
-          ratingForGame: validatedInput.ratingForGame || 0,
-          ratingStars: validatedInput.ratingStars?.toString() || '',
-          watchedScope: validatedInput.watchedScope || WATCHED_SCOPE.FULL_GAME,
-          notes: validatedInput.notes || '',
-          tags: validatedInput.tags || [],
-          classification: validatedInput.classification || CLASSIFICATION.PROTECTED,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        })
-        .returning();
+    // Fetch the related game from the DB with proper type checking
+    const nbaGames = await db
+      .select()
+      .from(schema.nba_games)
+      .where(eq(schema.nba_games.id, gameLog.gameId))
+      .limit(1);
+    const nbaGame = nbaGames[0];
 
-      // Invalidate related caches
-      if (context.redis) {
-        const cache = getCache();
-        await cache.initializeRedis();
-        await invalidateRelatedCaches(cache, 'game_log', gameLog.id, {
-          playerId: nullToUndefined(gameLog.userId),
-        });
-      }
-
-      // Fetch the related game from the DB with proper type checking
-      const nbaGames = await db
-        .select()
-        .from(schema.nba_games)
-        .where(eq(schema.nba_games.id, gameLog.gameId))
-        .limit(1);
-      const nbaGame = nbaGames[0];
-
-      if (!nbaGame) {
-        throw new NotFoundError('Game', gameLog.gameId);
-      }
-
-      // Type-safe team ID extraction
-      const teams = nbaGame.teams || {};
-      const homeTeamId =
-        typeof teams === 'object' &&
-        teams !== null &&
-        'home' in teams &&
-        teams.home &&
-        typeof teams.home === 'object' &&
-        'id' in teams.home
-          ? teams.home.id
-          : null;
-      const awayTeamId =
-        typeof teams === 'object' &&
-        teams !== null &&
-        'visitors' in teams &&
-        teams.visitors &&
-        typeof teams.visitors === 'object' &&
-        'id' in teams.visitors
-          ? teams.visitors.id
-          : null;
-
-      // Validate team IDs
-      if (!homeTeamId || !awayTeamId) {
-        throw new BusinessLogicError('Game is missing team information', 'INVALID_GAME_DATA');
-      }
-
-      const mappedGame = {
-        id: nbaGame.id,
-        date:
-          typeof nbaGame.date === 'string'
-            ? nbaGame.date
-            : nbaGame.date instanceof Date
-              ? nbaGame.date.toISOString()
-              : '',
-        status: typeof nbaGame.status === 'string' ? nbaGame.status : String(nbaGame.status ?? ''),
-        arena: typeof nbaGame.arena === 'string' ? nbaGame.arena : String(nbaGame.arena ?? ''),
-        league: typeof nbaGame.league === 'string' ? nbaGame.league : String(nbaGame.league ?? ''),
-        season: typeof nbaGame.season === 'number' ? nbaGame.season : Number(nbaGame.season ?? 0),
-        stage: typeof nbaGame.stage === 'number' ? nbaGame.stage : Number(nbaGame.stage ?? 0),
-        periods: nbaGame.periods ?? [],
-        scores: nbaGame.scores ?? [],
-        officials: Array.isArray(nbaGame.officials) ? nbaGame.officials.map(String) : [],
-        timesTied: typeof nbaGame.timesTied === 'number' ? nbaGame.timesTied : null,
-        leadChanges: typeof nbaGame.leadChanges === 'number' ? nbaGame.leadChanges : null,
-        nugget: typeof nbaGame.nugget === 'string' ? nbaGame.nugget : null,
-        createdAt:
-          typeof nbaGame.createdAt === 'string'
-            ? nbaGame.createdAt
-            : nbaGame.createdAt instanceof Date
-              ? nbaGame.createdAt.toISOString()
-              : '',
-        updatedAt:
-          typeof nbaGame.updatedAt === 'string'
-            ? nbaGame.updatedAt
-            : nbaGame.updatedAt instanceof Date
-              ? nbaGame.updatedAt.toISOString()
-              : '',
-        homeTeamId:
-          typeof homeTeamId === 'string' ? homeTeamId : homeTeamId ? String(homeTeamId) : '',
-        awayTeamId:
-          typeof awayTeamId === 'string' ? awayTeamId : awayTeamId ? String(awayTeamId) : '',
-        teams,
-        isCompleted: nbaGame.status?.long === 'Finished',
-      };
-
-      return {
-        gameLog: {
-          id: gameLog.id,
-          gameId: gameLog.gameId,
-          userId: gameLog.userId || '',
-          game: mappedGame,
-          user: transformUser({
-            id: dbUser.id,
-            username: dbUser.username,
-            firstName: dbUser.firstName,
-            lastName: dbUser.lastName,
-            emailAddress: dbUser.emailAddress,
-            imageUrl: dbUser.imageUrl,
-            createdAt: dbUser.createdAt,
-            updatedAt: dbUser.updatedAt,
-          } as DBUser),
-          classification: gameLog.classification as Classification,
-          notes: gameLog.notes || undefined,
-          rating: gameLog.ratingForGame,
-          ratingStars: gameLog.ratingStars ? parseInt(gameLog.ratingStars) : undefined,
-          tags: gameLog.tags || [],
-          watchedScope: gameLog.watchedScope,
-          watchedDate: gameLog.watchedDate,
-          watchedLocation: gameLog.watchedLocation || undefined,
-          watchedSetting: gameLog.watchedSetting as WatchedSettingValue,
-          createdAt: gameLog.createdAt,
-          updatedAt: gameLog.updatedAt,
-        },
-      };
-    } catch (error) {
-      handleError(error, 'create game log');
+    if (!nbaGame) {
+      throw new NotFoundError('Game', gameLog.gameId);
     }
+
+    // Type-safe team ID extraction
+    const teams = nbaGame.teams || {};
+    const homeTeamId =
+      typeof teams === 'object' &&
+      teams !== null &&
+      'home' in teams &&
+      teams.home &&
+      typeof teams.home === 'object' &&
+      'id' in teams.home
+        ? teams.home.id
+        : null;
+    const awayTeamId =
+      typeof teams === 'object' &&
+      teams !== null &&
+      'visitors' in teams &&
+      teams.visitors &&
+      typeof teams.visitors === 'object' &&
+      'id' in teams.visitors
+        ? teams.visitors.id
+        : null;
+
+    // Validate team IDs
+    if (!homeTeamId || !awayTeamId) {
+      throw new BusinessLogicError('Game is missing team information', 'INVALID_GAME_DATA');
+    }
+
+    const mappedGame = {
+      id: nbaGame.id,
+      date:
+        typeof nbaGame.date === 'string'
+          ? nbaGame.date
+          : nbaGame.date instanceof Date
+            ? nbaGame.date.toISOString()
+            : '',
+      status: typeof nbaGame.status === 'string' ? nbaGame.status : String(nbaGame.status ?? ''),
+      arena: typeof nbaGame.arena === 'string' ? nbaGame.arena : String(nbaGame.arena ?? ''),
+      league: typeof nbaGame.league === 'string' ? nbaGame.league : String(nbaGame.league ?? ''),
+      season: typeof nbaGame.season === 'number' ? nbaGame.season : Number(nbaGame.season ?? 0),
+      stage: typeof nbaGame.stage === 'number' ? nbaGame.stage : Number(nbaGame.stage ?? 0),
+      periods: nbaGame.periods ?? [],
+      scores: nbaGame.scores ?? [],
+      officials: Array.isArray(nbaGame.officials) ? nbaGame.officials.map(String) : [],
+      timesTied: typeof nbaGame.timesTied === 'number' ? nbaGame.timesTied : null,
+      leadChanges: typeof nbaGame.leadChanges === 'number' ? nbaGame.leadChanges : null,
+      nugget: typeof nbaGame.nugget === 'string' ? nbaGame.nugget : null,
+      createdAt:
+        typeof nbaGame.createdAt === 'string'
+          ? nbaGame.createdAt
+          : nbaGame.createdAt instanceof Date
+            ? nbaGame.createdAt.toISOString()
+            : '',
+      updatedAt:
+        typeof nbaGame.updatedAt === 'string'
+          ? nbaGame.updatedAt
+          : nbaGame.updatedAt instanceof Date
+            ? nbaGame.updatedAt.toISOString()
+            : '',
+      homeTeamId:
+        typeof homeTeamId === 'string' ? homeTeamId : homeTeamId ? String(homeTeamId) : '',
+      awayTeamId:
+        typeof awayTeamId === 'string' ? awayTeamId : awayTeamId ? String(awayTeamId) : '',
+      teams,
+      isCompleted: nbaGame.status?.long === 'Finished',
+    };
+
+    return {
+      gameLog: {
+        id: gameLog.id,
+        gameId: gameLog.gameId,
+        userId: gameLog.userId || '',
+        game: mappedGame,
+        user: transformUser({
+          id: dbUser.id,
+          username: dbUser.username,
+          firstName: dbUser.firstName,
+          lastName: dbUser.lastName,
+          emailAddress: dbUser.emailAddress,
+          imageUrl: dbUser.imageUrl,
+          createdAt: dbUser.createdAt,
+          updatedAt: dbUser.updatedAt,
+        } as DBUser),
+        classification: gameLog.classification as Classification,
+        notes: gameLog.notes || undefined,
+        ratingForGame: gameLog.ratingForGame,
+        tags: gameLog.tags || [],
+        watchedScope: gameLog.watchedScope,
+        watchedDate: gameLog.watchedDate,
+        watchedLocation: gameLog.watchedLocation || undefined,
+        watchedSetting: gameLog.watchedSetting as WatchedSettingValue,
+        createdAt: gameLog.createdAt,
+        updatedAt: gameLog.updatedAt,
+      },
+    };
   } catch (error) {
     handleError(error, 'create game log');
   }
@@ -308,10 +288,9 @@ export const updateGameLog = async (
 ) => {
   try {
     const user = checkAuth(context.user);
-    const validatedInput = {
-      ...input,
-      watchedScope: input.watchedScope,
-    };
+
+    // Validate input
+    const validatedInput = validateInput(updateGameLogSchema, input);
 
     // Fetch the game log
     const gameLogs = await db
@@ -334,15 +313,14 @@ export const updateGameLog = async (
     const [updatedGameLog] = await db
       .update(schema.game_logs)
       .set({
-        watchedSetting: validatedInput.watchedSetting as WatchedSettingValue,
-        watchedDate: validatedInput.watchedDate || new Date(),
-        watchedLocation: validatedInput.watchedLocation || '',
-        ratingForGame: validatedInput.ratingForGame || 0,
-        ratingStars: validatedInput.ratingStars?.toString() || '',
-        watchedScope: validatedInput.watchedScope || WATCHED_SCOPE.FULL_GAME,
+        watchedSetting: validatedInput.watchedSetting,
+        watchedDate: validatedInput.watchedDate,
+        watchedLocation: validatedInput.watchedLocation,
+        ratingForGame: validatedInput.ratingForGame,
+        watchedScope: validatedInput.watchedScope,
         notes: validatedInput.notes || '',
-        tags: validatedInput.tags || [],
-        classification: validatedInput.classification || CLASSIFICATION.PROTECTED,
+        tags: validatedInput.tags,
+        classification: validatedInput.classification,
         updatedAt: new Date(),
       })
       .where(eq(schema.game_logs.id, id))
@@ -364,8 +342,7 @@ export const updateGameLog = async (
         userId: updatedGameLog.userId || '',
         classification: updatedGameLog.classification as Classification,
         notes: updatedGameLog.notes || undefined,
-        rating: updatedGameLog.ratingForGame,
-        ratingStars: updatedGameLog.ratingStars ? parseInt(updatedGameLog.ratingStars) : undefined,
+        ratingForGame: updatedGameLog.ratingForGame,
         tags: updatedGameLog.tags || [],
         watchedScope: updatedGameLog.watchedScope,
         watchedDate: updatedGameLog.watchedDate,
@@ -720,7 +697,7 @@ export const sendFriendRequest = async (
     const targetUser = targetUsers[0];
 
     if (!targetUser) {
-      throw new NotFoundError('User', userId);
+      throw new NotFoundError('DBUser', userId);
     }
 
     // Check if already friends or request exists

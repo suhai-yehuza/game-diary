@@ -4,8 +4,8 @@ import * as schema from '@/lib/db/schema';
 import { fetchNbaLiveGames } from '@/lib/external-apis';
 import { BusinessLogicError } from '@/lib/graphql/errors';
 import { createConnection } from '@/lib/graphql/utils/pagination';
-import type { Context } from '@/lib/types/context.types';
-import { GameResponseData } from '@/lib/types/game.types';
+import type { Context } from '@/lib/types/component.types';
+import { GameResponseData } from '@/lib/types/consolidated.types';
 import type { GameFilters } from '@/lib/types/generated/graphql';
 import { getCurrentSeason } from '@/lib/utils/index';
 
@@ -81,15 +81,18 @@ export const games = async (
       conditions.push(eq(schema.nba_games.season, filters.season));
     }
     if (filters?.status) {
-      conditions.push(sql`${schema.nba_games.status}->>'long' = ${filters.status}`);
+      conditions.push(sql`${schema.nba_games.status}::jsonb->>'long' = ${filters.status}`);
     }
     if (filters?.teamId) {
       conditions.push(
         or(
-          sql`${schema.nba_games.teams}->>'home'->>'id' = ${filters.teamId}`,
-          sql`${schema.nba_games.teams}->>'visitors'->>'id' = ${filters.teamId}`
+          sql`${schema.nba_games.teams}::jsonb->'home'->>'id' = ${filters.teamId}`,
+          sql`${schema.nba_games.teams}::jsonb->'visitors'->>'id' = ${filters.teamId}`
         )
       );
+    }
+    if (filters?.arena) {
+      conditions.push(sql`${schema.nba_games.arena}::jsonb->>'name' ILIKE ${`%${filters.arena}%`}`);
     }
 
     const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
@@ -202,7 +205,6 @@ export const gameLog = async (
       watchedDate: gameLog.watchedDate,
       watchedLocation: gameLog.watchedLocation,
       ratingForGame: gameLog.ratingForGame,
-      ratingStars: gameLog.ratingStars,
       watchedScope: gameLog.watchedScope,
       notes: gameLog.notes,
       tags: gameLog.tags,

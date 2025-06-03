@@ -2,7 +2,8 @@ import { formatDistanceToNow, isWithinInterval, subDays } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
 import React, { useState, useMemo } from 'react';
 
-import { ActivityTimelineProps, TimeFilter, ActivityType } from '@/lib/types/activity.types';
+import type { TimeFilter, ActivityType } from '@/lib/types/api.types';
+import { ActivityTimelineProps } from '@/lib/types/consolidated.types';
 
 export const ActivityTimeline: React.FC<ActivityTimelineProps> = ({ gameLogs }) => {
   const [timeFilter, setTimeFilter] = useState<TimeFilter>('all');
@@ -14,7 +15,7 @@ export const ActivityTimeline: React.FC<ActivityTimelineProps> = ({ gameLogs }) 
     if (log.watchedSetting === 'replay') {
       return 'replay';
     }
-    if (log.rating && log.rating >= 4) {
+    if (log.ratingForGame && log.ratingForGame >= 4) {
       return 'favorite';
     }
     if (log.notes) {
@@ -83,8 +84,8 @@ export const ActivityTimeline: React.FC<ActivityTimelineProps> = ({ gameLogs }) 
     if (teamFilter) {
       filtered = filtered.filter(
         log =>
-          log.game.teams.visitors.name.toLowerCase().includes(teamFilter.toLowerCase()) ||
-          log.game.teams.home.name.toLowerCase().includes(teamFilter.toLowerCase())
+          log?.game?.teams.visitors.name.toLowerCase().includes(teamFilter.toLowerCase()) ||
+          log?.game?.teams.home.name.toLowerCase().includes(teamFilter.toLowerCase())
       );
     }
 
@@ -96,8 +97,8 @@ export const ActivityTimeline: React.FC<ActivityTimelineProps> = ({ gameLogs }) 
   const uniqueTeams = useMemo(() => {
     const teams = new Set<string>();
     gameLogs.forEach((log: ActivityTimelineProps['gameLogs'][0]) => {
-      teams.add(log.game.teams.visitors.name);
-      teams.add(log.game.teams.home.name);
+      teams.add(log?.game?.teams.visitors.name || '');
+      teams.add(log?.game?.teams.home.name || '');
     });
     return Array.from(teams).sort();
   }, [gameLogs]);
@@ -178,7 +179,7 @@ export const ActivityTimeline: React.FC<ActivityTimelineProps> = ({ gameLogs }) 
         <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-gray-200" />
         <div className="space-y-6">
           <AnimatePresence>
-            {filteredLogs.map((log, index) => {
+            {filteredLogs.map((log: ActivityTimelineProps['gameLogs'][0], index: number) => {
               const activityType = getActivityType(log);
               const icon = getActivityIcon(activityType);
               const colorClass = getActivityColor(activityType);
@@ -202,7 +203,7 @@ export const ActivityTimeline: React.FC<ActivityTimelineProps> = ({ gameLogs }) 
                           {activityType.charAt(0).toUpperCase() + activityType.slice(1)}
                         </span>
                         <h4 className="mt-2 font-medium">
-                          {log.game.teams.visitors.name} vs {log.game.teams.home.name}
+                          {log?.game?.teams.visitors.name} vs {log?.game?.teams.home.name}
                         </h4>
                       </div>
                       <span className="text-sm text-gray-500">
@@ -211,9 +212,9 @@ export const ActivityTimeline: React.FC<ActivityTimelineProps> = ({ gameLogs }) 
                     </div>
                     <div className="space-y-2">
                       <div className="flex items-center gap-4 text-sm text-gray-600">
-                        <span>Season: {log.game.season}</span>
-                        {log.rating && <span>Rating: {log.rating}/5</span>}
-                        {log.watchedSetting === 'replay' && <span>Replayed</span>}
+                        <span>Season: {log?.game?.season}</span>
+                        {log?.ratingForGame && <span>Rating: {log.ratingForGame}/5</span>}
+                        {log?.watchedSetting === 'replay' && <span>Replayed</span>}
                       </div>
                       {log.notes && (
                         <p className="text-sm text-gray-600 bg-gray-50 p-2 rounded">{log.notes}</p>

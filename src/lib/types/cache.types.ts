@@ -1,6 +1,22 @@
 /**
  * Cache-related type definitions and constants for the application.
  */
+import type { Redis as UpstashRedis } from '@upstash/redis';
+import type IORedis from 'ioredis';
+
+// Redis client types
+export type RedisClient = UpstashRedis | IORedis;
+export type RedisClientType = 'upstash' | 'ioredis' | null;
+
+// Redis Configuration
+export interface RedisConfig {
+  host: string;
+  port: number;
+  password?: string;
+  db?: number;
+  keyPrefix?: string;
+  ttl?: number;
+}
 
 // Cache TTL (Time To Live) constants in milliseconds
 export const CACHE_TTL = {

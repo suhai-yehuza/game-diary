@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { GET_LIVE_GAMES } from '@/lib/graphql/queries';
 import { LiveGameEdge, LiveGamesData } from '@/lib/types/component.types';
-import type { ExtendedGame } from '@/lib/types/game.types';
+import type { ExtendedGame } from '@/lib/types/consolidated.types';
 
 export function LiveGamesSection() {
   const { data, loading, error } = useQuery<LiveGamesData>(GET_LIVE_GAMES, {
@@ -42,29 +42,34 @@ export function LiveGamesSection() {
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <Image
-                  src={game.teams.visitors.logo}
+                  src={game.teams.visitors.logo || '/gamelog.svg'}
                   alt={game.teams.visitors.name}
-                  width={40}
-                  height={40}
-                  className="object-contain h-10 w-auto"
+                  width={32}
+                  height={32}
+                  className="w-8 h-8 object-contain"
                 />
-                <span className="font-bold">{game.scores.visitors.points}</span>
+                <div className="font-medium">{game.teams.visitors.nickname}</div>
               </div>
-              <div className="text-sm text-muted-foreground">
-                {game.status.clock} - Q{game.periods.current}
-              </div>
+              <div className="text-xl font-bold">{game.scores.visitors.points}</div>
+            </div>
+
+            <div className="text-xs text-muted-foreground">
+              <div>{game.status.clock || '--'}</div>
+              {game.periods && <div>Q{game.periods.current}</div>}
+            </div>
+
+            <div className="flex justify-between items-center">
               <div className="flex items-center gap-2">
-                <span className="font-bold">{game.scores.home.points}</span>
                 <Image
-                  src={game.teams.home.logo}
+                  src={game.teams.home.logo || '/gamelog.svg'}
                   alt={game.teams.home.name}
                   width={40}
                   height={40}
                   className="object-contain h-10 w-auto"
                 />
               </div>
+              <div className="text-sm text-muted-foreground">{game.arena?.name || ''}</div>
             </div>
-            <div className="text-sm text-muted-foreground">{game.arena.name}</div>
           </CardContent>
         </Card>
       ))}

@@ -1,11 +1,10 @@
 import {
   Comment as GraphQLComment,
   Reaction as GraphQLReaction,
-  User as GraphQLUser,
   UserSummary as GraphQLUserSummary,
   Comment as DBComment,
   Reaction as DBReaction,
-  User as DBUser,
+  DBUser,
 } from '@/lib/types/generated/graphql';
 
 function transformReaction(reaction: DBReaction): GraphQLReaction {
@@ -21,25 +20,33 @@ function transformReaction(reaction: DBReaction): GraphQLReaction {
   };
 }
 
-export function transformUser(user: DBUser): GraphQLUser {
+export function transformUser(user: DBUser): DBUser {
   return {
     id: user.id,
     username: user.username || '',
     emailAddress: user.emailAddress || '',
     imageUrl: user.imageUrl || '',
-    avatar_url: user.imageUrl,
-    email: user.emailAddress || '',
-    firstName: user.firstName,
-    lastName: user.lastName,
+    firstName: user.firstName || '',
+    lastName: user.lastName || '',
+    inboundFriendshipIds: user.inboundFriendshipIds || [],
+    outboundFriendshipIds: user.outboundFriendshipIds || [],
+    banned: user.banned || false,
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,
-    deletedAt: null,
+    deletedAt: user.deletedAt,
+    last_sign_in_at: user.last_sign_in_at,
+    password_enabled: user.password_enabled || false,
+    two_factor_enabled: user.two_factor_enabled || false,
+    email_verified: user.email_verified || false,
+    email_verification_strategy: user.email_verification_strategy,
+    external_id: user.external_id,
+    timestamp: user.timestamp,
     comments: [],
     reactions: [],
     gameLogs: [],
-    initiatedFriendships: [],
-    friendships: [],
-    __typename: 'User',
+    friendships: user.friendships || [],
+    initiatedFriendships: user.initiatedFriendships || [],
+    __typename: 'DBUser',
   };
 }
 

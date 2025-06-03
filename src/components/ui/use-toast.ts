@@ -1,7 +1,18 @@
 import * as React from 'react';
 
-import { type ToastProps, State, Action } from '@/lib/types/toast.types';
+import type {
+  ToastProps,
+  ToastState as State,
+  ToastAction as Action,
+} from '@/lib/types/notification.types';
 import { TOAST_LIMIT, createToast } from '@/lib/utils/toast';
+
+const _actionTypes = {
+  ADD_TOAST: 'ADD_TOAST',
+  UPDATE_TOAST: 'UPDATE_TOAST',
+  DISMISS_TOAST: 'DISMISS_TOAST',
+  REMOVE_TOAST: 'REMOVE_TOAST',
+} as const;
 
 function useToast() {
   const [state, setState] = React.useState<State>({

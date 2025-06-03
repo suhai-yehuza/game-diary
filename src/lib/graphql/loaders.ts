@@ -23,7 +23,6 @@ import type {
   HeightInfo,
   WeightInfo,
 } from '@/lib/types/generated/graphql';
-import type { DbGame, DBComment, DBReaction } from '@/lib/types/generated/types';
 
 const isDateObj = (d: unknown): d is Date =>
   typeof d === 'object' && d !== null && Object.prototype.toString.call(d) === '[object Date]';
@@ -32,6 +31,13 @@ const isDateObj = (d: unknown): d is Date =>
 const getEmojiKey = (emojiCharacter: string): ReactionEmojiType => {
   const entry = Object.entries(REACTION_EMOJIS).find(([, char]) => char === emojiCharacter);
   return (entry?.[0] || emojiCharacter) as ReactionEmojiType;
+};
+
+// Helper function to safely convert to Date
+const safeDateConversion = (date: unknown): Date => {
+  if (date instanceof Date) return date;
+  if (typeof date === 'string' || typeof date === 'number') return new Date(date);
+  return new Date();
 };
 
 export function createLoaders(db: NeonHttpDatabase<typeof schema>) {
@@ -292,7 +298,7 @@ export function createLoaders(db: NeonHttpDatabase<typeof schema>) {
         targetType: (reaction.targetType || 'comment') as ParentType,
         emoji: getEmojiKey(reaction.emoji) as ReactionEmojiType,
         createdAt: new Date(reaction.createdAt),
-        updatedAt: reaction.updatedAt,
+        updatedAt: new Date(reaction.updatedAt),
         user: null as unknown as UserSummary,
       });
     });
@@ -477,7 +483,7 @@ export const createGameLoader = () => {
 
 // Database Game Loader
 export const createDbGameLoader = () => {
-  return new DataLoader<string, DbGame | null>(async (ids: readonly string[]) => {
+  return new DataLoader<string, Game | null>(async (ids: readonly string[]) => {
     const games = await db
       .select()
       .from(schema.nba_games)
@@ -592,7 +598,7 @@ export const createDbGameLoader = () => {
         homeTeamScore: game.scores?.home?.points ?? null,
         gameType: 'REGULAR',
         nbaGameId: game.id,
-      } as unknown as DbGame;
+      } as unknown as Game;
 
       return gameData;
     });
@@ -602,7 +608,7 @@ export const createDbGameLoader = () => {
 // Game Logs Loader
 export const createGameLogsLoader = (
   userLoader: DataLoader<string, UserSummary>,
-  dbGameLoader: DataLoader<string, DbGame | null>
+  dbGameLoader: DataLoader<string, Game | null>
 ) => {
   return new DataLoader<string, GameLog | null>(async keys => {
     const logs = await db.query.game_logs.findMany({
@@ -619,40 +625,31 @@ export const createGameLogsLoader = (
       const log = logs.find(l => l.id === key);
       if (!log) return null;
       const user = users[userIds.indexOf(log.userId || '')] as UserSummary;
-      const dbGame = games[gameIds.indexOf(log.gameId)] as DbGame;
+      const dbGame = games[gameIds.indexOf(log.gameId)] as Game;
       if (!dbGame) return null;
+
+      const homeTeamId = dbGame.teams?.home?.id?.toString() || '';
+      const awayTeamId = dbGame.teams?.visitors?.id?.toString() || '';
+      const homeTeamScore = dbGame.scores?.home?.points || null;
+      const awayTeamScore = dbGame.scores?.visitors?.points || null;
 
       const game: Game = {
         id: dbGame.id,
-        date:
-          dbGame.date && typeof dbGame.date === 'object' && 'start' in dbGame.date
-            ? {
-                start: new Date(
-                  (
-                    dbGame.date as { start: string; end: string | null; duration: string | null }
-                  ).start
-                ),
-                end: (dbGame.date as { start: string; end: string | null; duration: string | null })
-                  .end
-                  ? new Date(
-                      (
-                        dbGame.date as {
-                          start: string;
-                          end: string | null;
-                          duration: string | null;
-                        }
-                      ).end!
-                    )
-                  : null,
-                duration:
-                  (dbGame.date as { start: string; end: string | null; duration: string | null })
-                    .duration || null,
-              }
-            : {
-                start: isDateObj(dbGame.date) ? dbGame.date : new Date(dbGame.date || 0),
-                end: null,
-                duration: null,
-              },
+        date: {
+          start: isDateObj(dbGame.date)
+            ? dbGame.date
+            : typeof dbGame.date === 'object' && dbGame.date !== null && 'start' in dbGame.date
+              ? safeDateConversion(dbGame.date.start)
+              : safeDateConversion(dbGame.date),
+          end:
+            typeof dbGame.date === 'object' && dbGame.date !== null && 'end' in dbGame.date
+              ? safeDateConversion(dbGame.date.end)
+              : null,
+          duration:
+            typeof dbGame.date === 'object' && dbGame.date !== null && 'duration' in dbGame.date
+              ? dbGame.date.duration
+              : null,
+        },
         status: {
           clock: dbGame.status?.clock || null,
           halftime: dbGame.status?.halftime || false,
@@ -660,10 +657,12 @@ export const createGameLogsLoader = (
           short: String(dbGame.status?.short || ''),
           __typename: 'GameStatus',
         },
-        homeTeamId: dbGame.teams?.home?.id?.toString() || '',
-        awayTeamId: dbGame.teams?.visitors?.id?.toString() || '',
-        createdAt: new Date(dbGame.createdAt || ''),
-        updatedAt: new Date(dbGame.updatedAt || ''),
+        homeTeamId,
+        awayTeamId,
+        homeTeamScore,
+        awayTeamScore,
+        createdAt: safeDateConversion(dbGame.createdAt),
+        updatedAt: safeDateConversion(dbGame.updatedAt),
         arena: {
           name:
             typeof dbGame.arena === 'object' && dbGame.arena !== null
@@ -701,8 +700,6 @@ export const createGameLogsLoader = (
           typeof dbGame.status === 'object' && dbGame.status !== null && 'long' in dbGame.status
             ? dbGame.status['long'] === GAME_STATUS_VALUES.FINISHED
             : false,
-        awayTeamScore: dbGame.scores?.visitors?.points || null,
-        homeTeamScore: dbGame.scores?.home?.points || null,
         gameType: 'REGULAR',
         nbaGameId: dbGame.id,
         __typename: 'Game',
@@ -716,16 +713,14 @@ export const createGameLogsLoader = (
         user,
         classification: log.classification,
         notes: log.notes || undefined,
-        rating: log.ratingForGame,
         ratingForGame: log.ratingForGame,
-        ratingStars: log.ratingStars ? parseInt(log.ratingStars) : undefined,
         tags: log.tags || [],
         watchedDate: log.watchedDate,
         watchedScope: log.watchedScope,
         watchedSetting: log.watchedSetting,
         watchedLocation: log.watchedLocation || undefined,
-        createdAt: new Date(log.createdAt),
-        updatedAt: new Date(log.updatedAt),
+        createdAt: safeDateConversion(log.createdAt),
+        updatedAt: safeDateConversion(log.updatedAt),
         deletedAt: log.deletedAt,
         comments: {
           edges: [],
@@ -757,7 +752,7 @@ export const createGameLogsLoader = (
 
 // Comments Loader
 export const createCommentsLoader = (userLoader: DataLoader<string, UserSummary>) => {
-  return new DataLoader<string, DBComment[]>(async parentIds => {
+  return new DataLoader<string, Comment[]>(async parentIds => {
     const commentRecords = await db.query.comments.findMany({
       where: inArray(schema.comments.parentId, Array.from(parentIds)),
     });
@@ -792,17 +787,17 @@ export const createCommentsLoader = (userLoader: DataLoader<string, UserSummary>
             totalCount: 0,
           },
           depth: 0,
-        } as DBComment;
+        } as Comment;
       });
     });
 
-    return results as ArrayLike<Error | DBComment[]>;
+    return results as ArrayLike<Error | Comment[]>;
   });
 };
 
 // Reactions Loader
 export const createReactionsLoader = (userLoader: DataLoader<string, UserSummary>) => {
-  return new DataLoader<string, DBReaction[]>(async targetIds => {
+  return new DataLoader<string, Reaction[]>(async targetIds => {
     const reactionRecords = await db.query.reactions.findMany({
       where: inArray(schema.reactions.targetId, Array.from(targetIds)),
     });
@@ -817,17 +812,18 @@ export const createReactionsLoader = (userLoader: DataLoader<string, UserSummary
         const user = users[userIds.indexOf(reaction.userId || '')] as UserSummary;
         return {
           id: reaction.id,
-          emoji: reaction.emoji,
+          emoji: getEmojiKey(reaction.emoji) as ReactionEmojiType,
           user,
           userId: reaction.userId || '',
           targetId: reaction.targetId,
           targetType: reaction.targetType,
           createdAt: new Date(reaction.createdAt),
-        } as DBReaction;
+          updatedAt: new Date(reaction.updatedAt),
+        } as Reaction;
       });
     });
 
-    return results as ArrayLike<Error | DBReaction[]>;
+    return results as ArrayLike<Error | Reaction[]>;
   });
 };
 
@@ -863,7 +859,7 @@ export const createCacheAwareLoader = <T>(
 };
 
 export const createDbGameBySeasonLoader = () => {
-  return new DataLoader<number, DbGame[]>(async (seasons: readonly number[]) => {
+  return new DataLoader<number, Game[]>(async (seasons: readonly number[]) => {
     const games = await db
       .select()
       .from(schema.nba_games)
@@ -873,23 +869,34 @@ export const createDbGameBySeasonLoader = () => {
       return games
         .filter((game: InferSelectModel<typeof schema.nba_games>) => game.season === season)
         .map(game => {
-          const gameData: DbGame = {
+          const homeTeamId = game.teams?.home?.id?.toString() || '';
+          const awayTeamId = game.teams?.visitors?.id?.toString() || '';
+          const homeTeamScore = game.scores?.home?.points || null;
+          const awayTeamScore = game.scores?.visitors?.points || null;
+
+          const gameData: Game = {
             id: game.id,
-            date:
-              game.date && typeof game.date === 'object' && 'start' in game.date
+            date: {
+              start: isDateObj(game.date)
                 ? game.date
-                : {
-                    start: isDateObj(game.date)
-                      ? (game.date as Date).toISOString()
-                      : new Date(game.date || 0).toISOString(),
-                    end: null,
-                    duration: null,
-                  },
-            status: game.status || {
-              clock: null,
-              halftime: false,
-              long: '',
-              short: '',
+                : typeof game.date === 'object' && game.date !== null && 'start' in game.date
+                  ? safeDateConversion(game.date.start)
+                  : safeDateConversion(game.date),
+              end:
+                typeof game.date === 'object' && game.date !== null && 'end' in game.date
+                  ? safeDateConversion(game.date.end)
+                  : null,
+              duration:
+                typeof game.date === 'object' && game.date !== null && 'duration' in game.date
+                  ? game.date.duration
+                  : null,
+            },
+            status: {
+              clock: game.status?.clock || null,
+              halftime: game.status?.halftime || false,
+              long: game.status?.long || '',
+              short: String(game.status?.short || ''),
+              __typename: 'GameStatus',
             },
             arena: {
               name: typeof game.arena === 'string' ? game.arena : game.arena?.name || '',
@@ -944,8 +951,12 @@ export const createDbGameBySeasonLoader = () => {
                 : false,
             gameType: 'REGULAR',
             nbaGameId: game.id,
-            createdAt: game.createdAt?.toISOString() as string,
-            updatedAt: game.updatedAt?.toISOString() as string,
+            createdAt: safeDateConversion(game.createdAt),
+            updatedAt: safeDateConversion(game.updatedAt),
+            homeTeamId,
+            awayTeamId,
+            homeTeamScore,
+            awayTeamScore,
           };
 
           return gameData;

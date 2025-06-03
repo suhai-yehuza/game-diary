@@ -52,8 +52,9 @@ export function formatDateFields<T extends DateFields>(obj: T): T {
   return result;
 }
 
-export function formatGameDate(date: { start: string }): string {
-  return new Date(date.start).toLocaleDateString('en-US', {
+export function formatGameDate(date: string | { start: string }): string {
+  const dateStr = typeof date === 'string' ? date : date.start;
+  return new Date(dateStr).toLocaleDateString('en-US', {
     weekday: 'long',
     year: 'numeric',
     month: 'long',

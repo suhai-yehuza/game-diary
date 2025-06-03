@@ -6,8 +6,8 @@ import { useParams } from 'next/navigation';
 import React, { useState, useEffect } from 'react';
 
 import { fetchNbaTeamById, fetchNbaTeamStats } from '@/lib/external-apis';
+import { type TeamDisplayStats } from '@/lib/types/consolidated.types';
 import { type Team } from '@/lib/types/generated/graphql';
-import { type TeamDisplayStats } from '@/lib/types/team.types';
 
 export default function TeamPage() {
   const params = useParams();

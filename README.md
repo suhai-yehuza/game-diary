@@ -201,8 +201,8 @@ pnpm dev
 ```bash
 # Clean and reset development environment
 # pnpm clean:build && pnpm db:migrate:reset:dev
-# pnpm clean:build:soft && pnpm db:migrate:reset:dev && pnpm migration:view
-pnpm clean:build:soft && pnpm pnpm db:setup:test && pnpm db:view-migrations
+# pnpm clean:build && pnpm db:migrate:reset:dev && pnpm migration:view
+pnpm clean:build && pnpm pnpm db:setup:test && pnpm db:view-migrations
 
 
 # Advanced seeding options

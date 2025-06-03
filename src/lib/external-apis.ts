@@ -1,16 +1,17 @@
-// This file contains functions to fetch data from external APIs.
-import { API_CONFIG, getRapidApiConfig } from '@/lib/config/api.config';
+import { API_CONFIG, getRapidApiConfig, validateAPIKey } from '@/lib/config/api.config';
 import { APIError } from '@/lib/errors/api.error';
 import type { SeasonApiResponse } from '@/lib/types/api.types';
-import type { PlayerApiResponse } from '@/lib/types/consolidated.types';
-import type { GameApiResponse } from '@/lib/types/game.types';
+import type {
+  PlayerApiResponse,
+  GameApiResponse,
+  ApiTeamResponse,
+} from '@/lib/types/consolidated.types';
 import type { TeamStats, PlayerStats } from '@/lib/types/generated/graphql';
 import type {
   APIConfigOptions,
   StandingApiResponse,
   LeaguesApiResponse,
 } from '@/lib/types/shared.types';
-import type { ApiTeamResponse } from '@/lib/types/team.types';
 import { sleep } from '@/lib/utils/index.time';
 
 // ============================================================================
@@ -180,17 +181,6 @@ export function createRapidAPIClient(apiKey: string) {
 /**
  * Validate API key
  */
-export function validateAPIKey(key: string | undefined): string {
-  if (!key) {
-    throw new APIError(
-      API_CONFIG.errors.MISSING_API_KEY,
-      401,
-      'MISSING_API_KEY',
-      'MISSING_API_KEY'
-    );
-  }
-  return key;
-}
 
 /**
  * Handle API errors consistently
@@ -216,11 +206,18 @@ export function handleAPIError(error: unknown): never {
  * Create a config object for NBA API calls
  */
 function createNbaApiConfig(): APIConfigOptions {
-  const rapidApiConfig = getRapidApiConfig();
+  const rapidApiConfig = {
+    baseUrl: process.env.NEXT_PUBLIC_RAPID_API_BASE_URL || '',
+    host: process.env.NEXT_PUBLIC_RAPID_API_HOST || '',
+    headers: {
+      'x-rapidapi-host': process.env.NEXT_PUBLIC_RAPID_API_HOST || '',
+      'x-rapidapi-key': process.env.NEXT_PUBLIC_RAPID_API_KEY || '',
+    },
+  };
 
   return {
     baseUrl: rapidApiConfig.baseUrl,
-    apiKey: rapidApiConfig.apiKey,
+    apiKey: rapidApiConfig.headers['x-rapidapi-key'],
     host: rapidApiConfig.host,
     headers: rapidApiConfig.headers,
     timeout: API_CONFIG.request.timeout,
@@ -234,7 +231,7 @@ function createNbaApiConfig(): APIConfigOptions {
  * Get the base URL for NBA API endpoints
  */
 function getNbaApiBaseUrl(): string {
-  return getRapidApiConfig().baseUrl;
+  return process.env.NEXT_PUBLIC_RAPID_API_BASE_URL || '';
 }
 
 /**

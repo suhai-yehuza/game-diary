@@ -3,7 +3,7 @@ import Image from 'next/image';
 import React, { useState } from 'react';
 import { toast } from 'react-hot-toast';
 
-import { FriendGroup, FriendGroupsProps, Friend } from '@/lib/types/friend.types';
+import { FriendGroup, FriendGroupsProps, Friend } from '@/lib/types/social.types';
 
 export const FriendGroups: React.FC<FriendGroupsProps> = ({ friends, onGroupUpdate }) => {
   const [groups, setGroups] = useState<FriendGroup[]>([]);

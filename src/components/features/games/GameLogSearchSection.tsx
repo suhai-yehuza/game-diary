@@ -145,15 +145,15 @@ export function GameLogSearchSection({
 
   // Build filters object
   const filters = useMemo(() => {
-    const filterObj: Record<string, string | number> = {};
+    const filterObj: Record<string, string | number | boolean> = {};
 
     if (searchText) filterObj.searchText = searchText;
     if (userId) filterObj.userId = userId;
 
     if (selectedRating !== 'all') {
-      const rating = parseInt(selectedRating);
-      filterObj.minRating = rating;
-      filterObj.maxRating = rating;
+      const ratingForGame = parseInt(selectedRating);
+      filterObj.minRating = ratingForGame;
+      filterObj.maxRating = ratingForGame;
     }
 
     if (selectedSetting !== 'all') {
@@ -165,7 +165,7 @@ export function GameLogSearchSection({
     }
 
     if (hasNotes !== 'all') {
-      filterObj.hasNotes = hasNotes === 'yes' ? 'true' : 'false';
+      filterObj.hasNotes = hasNotes === 'yes';
     }
 
     filterObj.sortBy = sortBy;
@@ -529,9 +529,12 @@ export function GameLogSearchSection({
 
                     {/* Watch Details */}
                     <div className="flex flex-wrap items-center gap-3 text-sm">
-                      {log.ratingStars && (
-                        <div className="flex items-center gap-1">
-                          <StarRating rating={log.ratingStars} size="sm" />
+                      {log.ratingForGame && (
+                        <div className="flex items-center gap-2">
+                          <StarRating ratingForGame={log.ratingForGame} size="sm" />
+                          <span className="text-sm text-muted-foreground">
+                            ({log.ratingForGame}/5)
+                          </span>
                         </div>
                       )}
 

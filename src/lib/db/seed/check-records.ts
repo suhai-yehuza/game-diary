@@ -7,7 +7,7 @@ const tableName = process.argv[3] || 'players';
 
 async function main() {
   try {
-    const db = createDatabaseClient({ env, logger: true });
+    const db = createDatabaseClient({ env });
     const result = await db.execute(sql`
       SELECT COUNT(*) as count FROM ${sql.identifier(tableName)};
     `);

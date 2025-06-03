@@ -7,8 +7,8 @@ import React from 'react';
 import { StarRating } from '@/components/ui/star-rating';
 import { API_CONFIG } from '@/lib/config/api.config';
 import { GET_USER, GET_GAME_LOGS } from '@/lib/graphql/queries';
+import { TeamCounts } from '@/lib/types/consolidated.types';
 import { GameLog } from '@/lib/types/generated/graphql';
-import { TeamCounts } from '@/lib/types/team.types';
 import { FriendProfileProps } from '@/lib/types/user.types';
 
 import { FriendActivity } from './FriendActivity';
@@ -70,7 +70,7 @@ export const FriendProfile: React.FC<FriendProfileProps> = ({ friendId, onClose 
     gameLogs.reduce((acc: number, log: GameLog) => acc + (log.ratingForGame || 0), 0) /
       totalGames || 0;
   const favoriteTeams = gameLogs.reduce((acc: TeamCounts, log: GameLog) => {
-    const teams = [log.game.teams.visitors.name, log.game.teams.home.name];
+    const teams = [log.game?.teams?.visitors.name, log.game?.teams?.home.name];
     teams.forEach(team => {
       acc[team] = (acc[team] || 0) + 1;
     });
@@ -128,7 +128,7 @@ export const FriendProfile: React.FC<FriendProfileProps> = ({ friendId, onClose 
           <div className="bg-purple-50 p-4 rounded-lg">
             <h3 className="font-semibold text-purple-700">Average Rating</h3>
             <div className="flex items-center gap-2">
-              <StarRating rating={averageRating} size="md" />
+              <StarRating ratingForGame={averageRating} size="md" />
               <p className="text-2xl font-bold">{averageRating.toFixed(1)}/5</p>
             </div>
           </div>
@@ -169,7 +169,7 @@ export const FriendProfile: React.FC<FriendProfileProps> = ({ friendId, onClose 
                 <div className="flex justify-between items-start">
                   <div>
                     <div className="font-medium">
-                      {log.game.teams.visitors.name} vs {log.game.teams.home.name}
+                      {log.game?.teams?.visitors?.name} vs {log.game?.teams?.home?.name}
                     </div>
                     <div className="text-sm text-gray-500">
                       Watched{' '}
@@ -180,8 +180,8 @@ export const FriendProfile: React.FC<FriendProfileProps> = ({ friendId, onClose 
                   </div>
                   <div className="text-right">
                     <div className="flex items-center gap-2 justify-end">
-                      <StarRating rating={log.rating || 0} size="sm" />
-                      <span className="font-medium">{log.rating}/5</span>
+                      <StarRating ratingForGame={log.ratingForGame || 0} size="sm" />
+                      <span className="font-medium">{log.ratingForGame}/5</span>
                     </div>
                   </div>
                 </div>

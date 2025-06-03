@@ -1,10 +1,6 @@
 import { gql } from '@apollo/client';
 
-import {
-  COMMENT_FRAGMENT,
-  PLAYER_STATS_FRAGMENT,
-  USER_SUMMARY_FRAGMENT,
-} from '@/lib/graphql/queries';
+import { COMMENT_FRAGMENT, USER_SUMMARY_FRAGMENT } from '@/lib/graphql/queries';
 
 export const CREATE_GAME = gql`
   mutation CreateGame($input: CreateGameInput!) {
@@ -62,7 +58,7 @@ export const CREATE_GAME_LOG = gql`
         gameId
         watchedSetting
         watchedDate
-        rating
+        ratingForGame
         notes
         tags
         classification
@@ -108,7 +104,7 @@ export const UPDATE_GAME_LOG = gql`
         gameId
         watchedSetting
         watchedDate
-        rating
+        ratingForGame
         notes
         tags
         classification
@@ -311,36 +307,6 @@ export const CREATE_REACTION = gql`
     }
   }
   ${USER_SUMMARY_FRAGMENT}
-`;
-
-export const DELETE_REACTION = gql`
-  mutation DeleteReaction($id: ID!) {
-    deleteReaction(id: $id) {
-      success
-      errors {
-        ... on ValidationError {
-          field
-          message
-        }
-        ... on AuthenticationError {
-          message
-        }
-        ... on AuthorizationError {
-          message
-          requiredRole
-        }
-        ... on RateLimitError {
-          message
-          retryAfter
-        }
-        ... on BusinessLogicError {
-          message
-          code
-          details
-        }
-      }
-    }
-  }
 `;
 
 export const SEND_FRIEND_REQUEST = gql`
@@ -547,227 +513,4 @@ export const UPDATE_FRIENDSHIP_STATUS = gql`
     }
   }
   ${USER_SUMMARY_FRAGMENT}
-`;
-
-export const UPDATE_PLAYER = gql`
-  mutation UpdatePlayer($id: ID!, $input: UpdatePlayerInput!) {
-    updatePlayer(id: $id, input: $input) {
-      player {
-        id
-        firstName
-        lastName
-        birth {
-          date
-          country
-        }
-        nba {
-          start
-          pro
-        }
-        height {
-          feets
-          inches
-          meters
-        }
-        weight {
-          pounds
-          kilograms
-        }
-        college
-        affiliation
-        leagues {
-          standard {
-            jersey
-            active
-            pos
-          }
-        }
-      }
-      errors {
-        ... on ValidationError {
-          field
-          message
-        }
-        ... on AuthenticationError {
-          message
-        }
-        ... on AuthorizationError {
-          message
-          requiredRole
-        }
-        ... on RateLimitError {
-          message
-          retryAfter
-        }
-        ... on BusinessLogicError {
-          message
-          code
-          details
-        }
-      }
-    }
-  }
-`;
-
-export const FAVORITE_PLAYER = gql`
-  mutation FavoritePlayer($id: ID!) {
-    favoritePlayer(id: $id) {
-      player {
-        id
-      }
-      errors {
-        ... on ValidationError {
-          field
-          message
-        }
-        ... on AuthenticationError {
-          message
-        }
-        ... on AuthorizationError {
-          message
-          requiredRole
-        }
-        ... on RateLimitError {
-          message
-          retryAfter
-        }
-        ... on BusinessLogicError {
-          message
-          code
-          details
-        }
-      }
-    }
-  }
-`;
-
-export const UPDATE_PLAYER_STATS = gql`
-  mutation UpdatePlayerStats($id: ID!, $input: UpdatePlayerStatsInput!) {
-    updatePlayerStats(id: $id, input: $input) {
-      playerStats {
-        ...PlayerStatsFragment
-      }
-      errors {
-        ... on ValidationError {
-          field
-          message
-        }
-        ... on AuthenticationError {
-          message
-        }
-        ... on AuthorizationError {
-          message
-          requiredRole
-        }
-        ... on RateLimitError {
-          message
-          retryAfter
-        }
-        ... on BusinessLogicError {
-          message
-          code
-          details
-        }
-      }
-    }
-  }
-  ${PLAYER_STATS_FRAGMENT}
-`;
-
-export const DELETE_PLAYER_STATS = gql`
-  mutation DeletePlayerStats($id: ID!) {
-    deletePlayerStats(id: $id) {
-      success
-      errors {
-        ... on ValidationError {
-          field
-          message
-        }
-        ... on AuthenticationError {
-          message
-        }
-        ... on AuthorizationError {
-          message
-          requiredRole
-        }
-        ... on RateLimitError {
-          message
-          retryAfter
-        }
-        ... on BusinessLogicError {
-          message
-          code
-          details
-        }
-      }
-    }
-  }
-`;
-
-export const ADD_REACTION = gql`
-  mutation AddReaction($input: CreateReactionInput!) {
-    createReaction(input: $input) {
-      reaction {
-        id
-        emoji
-        createdAt
-        user {
-          ...UserSummaryFragment
-        }
-      }
-      errors {
-        ... on ValidationError {
-          field
-          message
-        }
-        ... on AuthenticationError {
-          message
-        }
-        ... on AuthorizationError {
-          message
-          requiredRole
-        }
-        ... on RateLimitError {
-          message
-          retryAfter
-        }
-        ... on BusinessLogicError {
-          message
-          code
-          details
-        }
-      }
-    }
-  }
-  ${USER_SUMMARY_FRAGMENT}
-`;
-
-export const REMOVE_REACTION = gql`
-  mutation DeleteReaction($id: ID!) {
-    deleteReaction(id: $id) {
-      success
-      errors {
-        ... on ValidationError {
-          field
-          message
-        }
-        ... on AuthenticationError {
-          message
-        }
-        ... on AuthorizationError {
-          message
-          requiredRole
-        }
-        ... on RateLimitError {
-          message
-          retryAfter
-        }
-        ... on BusinessLogicError {
-          message
-          code
-          details
-        }
-      }
-    }
-  }
 `;

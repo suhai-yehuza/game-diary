@@ -108,9 +108,8 @@ input CreateGameInput {
 input CreateGameLogInput {
   classification: Classification!
   gameId: ID!
-  notes: String @constraint(maxLength: 1000)
-  ratingForGame: Int @constraint(min: 1, max: 10)
-  ratingStars: Int @constraint(min: 1, max: 5)
+  notes: String
+  ratingForGame: Int! @constraint(min: 1, max: 5)
   tags: [String!]
   watchedDate: DateTime
   watchedLocation: String
@@ -163,6 +162,33 @@ input CreateReactionInput {
 type CreateReactionResponse {
   errors: [ErrorResult!]
   reaction: Reaction
+}
+
+type DBUser {
+  banned: Boolean
+  comments: [Comment!]!
+  createdAt: DateTime!
+  deletedAt: DateTime
+  emailAddress: String
+  email_verification_strategy: String
+  email_verified: Boolean
+  external_id: String
+  firstName: String
+  friendships: [Friendship!]!
+  gameLogs: [GameLog!]!
+  id: ID!
+  imageUrl: String
+  inboundFriendshipIds: [String!]
+  initiatedFriendships: [Friendship!]!
+  lastName: String
+  last_sign_in_at: DateTime
+  outboundFriendshipIds: [String!]
+  password_enabled: Boolean
+  reactions: [Reaction!]!
+  timestamp: DateTime
+  two_factor_enabled: Boolean
+  updatedAt: DateTime!
+  username: String!
 }
 
 input DateRangeInput {
@@ -344,19 +370,17 @@ type GameLog {
   comments(after: String, before: String, first: Int, last: Int): CommentConnection!
   createdAt: DateTime!
   deletedAt: DateTime
-  game: Game!
+  game: Game
   gameId: ID!
   id: ID!
   notes: String
-  rating: Int
-  ratingForGame: Int
-  ratingStars: Int
+  ratingForGame: Int!
   reactions(after: String, before: String, first: Int, last: Int): ReactionConnection!
-  tags: [String!]!
+  tags: [String!]
   updatedAt: DateTime!
-  user: UserSummary!
-  userId: ID!
-  watchedDate: DateTime
+  user: UserSummary
+  userId: ID
+  watchedDate: DateTime!
   watchedLocation: String
   watchedScope: String!
   watchedSetting: String!
@@ -708,7 +732,7 @@ type Query {
   games(after: String, before: String, filters: GameFilters, first: Int, last: Int): GameConnection!
   leagues(after: String, before: String, first: Int, last: Int): LeagueConnection!
   liveGames(after: String, before: String, first: Int, last: Int): GameConnection!
-  me: User
+  me: DBUser
   player(id: ID!): Player
   playerGameStats(gameId: ID!, playerId: ID!): PlayerStats
   playerSeasonStats(playerId: ID!, season: Int!): PlayerStats
@@ -762,7 +786,7 @@ type Query {
   ): TeamStatsConnection!
   teams(after: String, before: String, filters: TeamFilters, first: Int, last: Int): TeamConnection!
   topPlayers(after: String, before: String, first: Int, last: Int, season: Int!): PlayerConnection!
-  user(id: ID!): User
+  user(id: ID!): DBUser
   users(after: String, before: String, first: Int, last: Int): UserConnection!
 }
 
@@ -1085,9 +1109,8 @@ input UpdateGameInput {
 
 input UpdateGameLogInput {
   classification: Classification
-  notes: String @constraint(maxLength: 1000)
-  ratingForGame: Int @constraint(min: 1, max: 10)
-  ratingStars: Int @constraint(min: 1, max: 5)
+  notes: String
+  ratingForGame: Int! @constraint(min: 1, max: 5)
   tags: [String!]
   watchedDate: DateTime
   watchedLocation: String
@@ -1188,25 +1211,6 @@ type UpdateTeamResponse {
   team: Team
 }
 
-type User {
-  avatar_url: String
-  comments: [Comment!]!
-  createdAt: DateTime!
-  deletedAt: DateTime
-  email: String!
-  emailAddress: String
-  firstName: String
-  friendships: [Friendship!]!
-  gameLogs: [GameLog!]!
-  id: ID!
-  imageUrl: String
-  initiatedFriendships: [Friendship!]!
-  lastName: String
-  reactions: [Reaction!]!
-  updatedAt: DateTime!
-  username: String!
-}
-
 type UserBase {
   avatar_url: String
   createdAt: DateTime!
@@ -1235,7 +1239,7 @@ type UserConnection {
 
 type UserEdge {
   cursor: String!
-  node: User!
+  node: DBUser!
 }
 
 enum UserOrderBy {

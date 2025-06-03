@@ -1,15 +1,14 @@
-import { z } from 'zod';
-
+import { APIError } from '@/lib/errors/api.error';
 import type {
   RangeConfig,
   BatchSizeConfig,
-  DatabaseSeedingConfig,
   RateLimitConfig,
   ClassificationWeights,
-  DistributionFunctions,
   PaginationConfig,
+  DistributionFunctions,
 } from '@/lib/types/config.types';
-import type { APIConfigOptions, SortDirection } from '@/lib/types/shared.types';
+import type { DatabaseSeedingConfig } from '@/lib/types/database.types';
+import type { SortDirection } from '@/lib/types/shared.types';
 
 const XSMALL = 10;
 const SMALL = 10 * XSMALL;
@@ -17,12 +16,17 @@ const MEDIUM = 10 * SMALL;
 const LARGE = 10 * MEDIUM;
 const XLARGE = 10 * LARGE;
 
-// Environment variable validation schema
-const envSchema = z.object({
-  NEXT_PUBLIC_RAPID_API_HOST: z.string().min(1),
-  NEXT_PUBLIC_RAPID_API_KEY: z.string().min(1),
-  NEXT_PUBLIC_RAPID_API_BASE_URL: z.string().url(),
-});
+export function validateAPIKey(key: string | undefined): string {
+  if (!key) {
+    throw new APIError(
+      API_CONFIG.errors.MISSING_API_KEY,
+      401,
+      'MISSING_API_KEY',
+      'MISSING_API_KEY'
+    );
+  }
+  return key;
+}
 
 // Distribution functions
 const distributions: DistributionFunctions = {
@@ -37,33 +41,6 @@ const distributions: DistributionFunctions = {
   exponential: (rand: number) => Math.exp(-2 * rand),
   powerLaw: (rand: number, exponent = -2) => Math.pow(rand, exponent),
 } as const;
-
-// Function to validate and get environment variables
-export function getEnv() {
-  return envSchema.parse({
-    NEXT_PUBLIC_RAPID_API_HOST: process.env.NEXT_PUBLIC_RAPID_API_HOST,
-    NEXT_PUBLIC_RAPID_API_KEY: process.env.NEXT_PUBLIC_RAPID_API_KEY,
-    NEXT_PUBLIC_RAPID_API_BASE_URL: process.env.NEXT_PUBLIC_RAPID_API_BASE_URL,
-  });
-}
-
-// RapidAPI Configuration
-export function getRapidApiConfig(): APIConfigOptions {
-  const env = getEnv();
-  return {
-    baseUrl: env.NEXT_PUBLIC_RAPID_API_BASE_URL,
-    apiKey: env.NEXT_PUBLIC_RAPID_API_KEY,
-    host: env.NEXT_PUBLIC_RAPID_API_HOST,
-    headers: {
-      'x-rapidapi-host': env.NEXT_PUBLIC_RAPID_API_HOST,
-      'x-rapidapi-key': env.NEXT_PUBLIC_RAPID_API_KEY,
-    },
-    timeout: 10000,
-    retryAttempts: 3,
-    retryDelay: 1000,
-    method: 'GET',
-  };
-}
 
 // API Configuration
 export const API_CONFIG = {
@@ -185,14 +162,14 @@ export const API_CONFIG = {
   } as const satisfies PaginationConfig,
 } as const;
 
-// For backward compatibility
-export const DEFAULT_CONFIG = API_CONFIG.request;
-
-// Error messages (moved from API_CONFIG.errors for better organization)
-export const API_ERROR_MESSAGES = {
-  MISSING_API_KEY: 'API key is required',
-  INVALID_API_KEY: 'Invalid API key',
-  RATE_LIMIT_EXCEEDED: 'Rate limit exceeded',
-  INVALID_RESPONSE: 'Invalid response from API',
-  NETWORK_ERROR: 'Network error occurred',
-} as const;
+export function getRapidApiConfig() {
+  return {
+    apiKey: validateAPIKey(process.env.NEXT_PUBLIC_RAPID_API_KEY),
+    baseUrl: process.env.NEXT_PUBLIC_RAPID_API_BASE_URL || '',
+    host: process.env.NEXT_PUBLIC_RAPID_API_HOST || '',
+    headers: {
+      'x-rapidapi-host': process.env.NEXT_PUBLIC_RAPID_API_HOST || '',
+      'x-rapidapi-key': process.env.NEXT_PUBLIC_RAPID_API_KEY || '',
+    },
+  };
+}

@@ -5,7 +5,7 @@ import React from 'react';
 
 import { StarRating } from '@/components/ui/star-rating';
 import { GET_GAME_LOGS } from '@/lib/graphql/queries';
-import { FriendActivityProps } from '@/lib/types/activity.types';
+import { FriendActivityProps } from '@/lib/types/api.types';
 import { GameLog } from '@/lib/types/generated/graphql';
 
 export const FriendActivity: React.FC<FriendActivityProps> = ({ friendId }) => {
@@ -54,7 +54,7 @@ export const FriendActivity: React.FC<FriendActivityProps> = ({ friendId }) => {
                   </span>
                 </div>
                 <div className="mt-2 text-sm text-gray-600">
-                  {activity.game.teams.visitors.name} vs {activity.game.teams.home.name}
+                  {activity.game?.teams?.visitors?.name} vs {activity.game?.teams?.home?.name}
                 </div>
                 {activity.notes && (
                   <p className="mt-2 text-sm text-gray-500 italic">
@@ -63,8 +63,8 @@ export const FriendActivity: React.FC<FriendActivityProps> = ({ friendId }) => {
                 )}
                 <div className="mt-2 flex items-center gap-4">
                   <div className="flex items-center gap-2">
-                    <StarRating rating={activity.ratingStars || 0} size="sm" />
-                    <span className="text-sm text-gray-500">{activity.ratingStars}/5</span>
+                    <StarRating ratingForGame={activity.ratingForGame} size="sm" />
+                    <span className="text-sm text-gray-500">{activity.ratingForGame}/5</span>
                   </div>
                   <span className="text-sm text-gray-500">2 times watched</span>
                 </div>

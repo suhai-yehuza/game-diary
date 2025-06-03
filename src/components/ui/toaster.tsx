@@ -11,7 +11,7 @@ import {
   ToastViewport,
 } from '@/components/ui/toast';
 import { useToast } from '@/components/ui/use-toast';
-import { ToastProps } from '@/lib/types/toast.types';
+import { type ToastProps } from '@/lib/types/notification.types';
 
 export function Toaster() {
   const { toasts } = useToast();

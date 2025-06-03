@@ -1,12 +1,11 @@
 /**
- * Consolidated types for configuration, UI, and constants
+ * Consolidated types for configuration and constants
  * This file combines types from:
  * - constants.types.ts
- * - ui.types.ts
  * - api-config.types.ts
  */
 
-import { SortDirection } from '@/lib/types/shared.types';
+import { SortDirection } from '@/lib/types/consolidated.types';
 
 // ============= Constants =============
 
@@ -159,17 +158,9 @@ export const LEAGUES = {
   MLS: 'MLS',
 };
 
-export const USER_ROLES = {
-  ADMIN: 'admin',
-  MODERATOR: 'moderator',
-  USER: 'user',
-} as const;
-
 // ============= Type Definitions =============
 
 // Status and Settings Types
-export type UserRoleType = keyof typeof USER_ROLES;
-export type UserRoleValue = (typeof USER_ROLES)[UserRoleType];
 export type ClassificationType = keyof typeof CLASSIFICATION;
 export type ConferenceType = keyof typeof CONFERENCES;
 export type DivisionType = keyof typeof DIVISIONS;
@@ -189,130 +180,10 @@ export type PermissionValue = (typeof PERMISSIONS)[PermissionType];
 export type ResourceValue = (typeof RESOURCES)[ResourceType];
 export type WatchedSettingType = keyof typeof WATCHED_SETTING;
 export type WatchedSettingValue = (typeof WATCHED_SETTING)[WatchedSettingType];
-
 export type WatchedScopeType = keyof typeof WATCHED_SCOPE;
 export type WatchedScopeValue = (typeof WATCHED_SCOPE)[WatchedScopeType];
 
-// ============= UI Types =============
-
-// Form Types
-export interface FormField {
-  name: string;
-  label: string;
-  type: 'text' | 'number' | 'email' | 'password' | 'select' | 'checkbox' | 'radio' | 'date';
-  required?: boolean;
-  placeholder?: string;
-  options?: Array<{
-    label: string;
-    value: string | number;
-  }>;
-  validation?: {
-    pattern?: RegExp;
-    min?: number;
-    max?: number;
-    message?: string;
-  };
-}
-
-export interface FormState {
-  values: Record<string, unknown>;
-  errors: Record<string, string>;
-  touched: Record<string, boolean>;
-  isSubmitting: boolean;
-  isValid: boolean;
-}
-
-// Toast Types
-export type ToastType = 'success' | 'error' | 'warning' | 'info';
-
-export interface Toast {
-  id: string;
-  type: ToastType;
-  message: string;
-  duration?: number;
-  action?: {
-    label: string;
-    onClick: () => void;
-  };
-}
-
-export interface ToastState {
-  toasts: Toast[];
-  addToast: (toast: Omit<Toast, 'id'>) => void;
-  removeToast: (id: string) => void;
-}
-
-// Component Types
-export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link';
-  size?: 'default' | 'sm' | 'lg' | 'icon';
-  asChild?: boolean;
-  className?: string;
-}
-
-export interface InputProps {
-  type?: 'text' | 'number' | 'email' | 'password' | 'search';
-  value?: string | number;
-  onChange?: (value: string) => void;
-  placeholder?: string;
-  disabled?: boolean;
-  error?: string;
-  label?: string;
-  required?: boolean;
-  className?: string;
-}
-
-export interface SelectProps {
-  value?: string | number;
-  onChange?: (value: string | number) => void;
-  options: Array<{
-    label: string;
-    value: string | number;
-  }>;
-  placeholder?: string;
-  disabled?: boolean;
-  error?: string;
-  label?: string;
-  required?: boolean;
-  className?: string;
-}
-
-// Modal Types
-export interface ModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  title?: string;
-  description?: string;
-  children: React.ReactNode;
-  size?: 'sm' | 'md' | 'lg' | 'xl';
-  className?: string;
-}
-
-// Card Types
-export interface CardProps {
-  title?: string;
-  subtitle?: string;
-  children: React.ReactNode;
-  footer?: React.ReactNode;
-  className?: string;
-}
-
-// Loading Types
-export interface LoadingProps {
-  size?: 'sm' | 'md' | 'lg';
-  color?: string;
-  className?: string;
-}
-
-// Error Types
-export interface ErrorProps {
-  message: string;
-  retry?: () => void;
-  className?: string;
-}
-
-// ============= API Configuration Types =============
-
+// Configuration Types
 export type DistributionFunction = () => number;
 
 export interface RangeConfig {
@@ -325,15 +196,6 @@ export interface BatchSizeConfig {
   GAMES: number;
   GAME_STATS: number;
   PLAYERS: number;
-}
-
-export interface DatabaseSeedingConfig {
-  CONCURRENT_OPERATIONS: number;
-  BATCH_SIZE: number;
-  MAX_RETRIES: number;
-  RETRY_DELAY: number;
-  USER_COUNT: number;
-  DEFAULT_SAMPLE_COUNT: number;
 }
 
 export interface RateLimitConfig {
@@ -364,8 +226,7 @@ export interface PaginationConfig {
   MAX_CHILD_COMMENT_DEPTH: number;
 }
 
-// ============= Utility Functions =============
-
+// Utility Functions
 export const isValidReactionEmoji = (emoji: string): emoji is ReactionEmojiValue => {
   return Object.values(REACTION_EMOJIS).includes(emoji as ReactionEmojiValue);
 };

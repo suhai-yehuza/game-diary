@@ -55,13 +55,12 @@ const typeMapping = {
   GameQueryResult: '@/lib/types/game.types',
 
   // Team types
-  ApiTeamResponse: '@/lib/types/team.types',
-  ApiTeam: '@/lib/types/team.types',
-  TeamDisplayStats: '@/lib/types/team.types',
-  TeamCounts: '@/lib/types/team.types',
+  ApiTeamResponse: '@/lib/types/consolidated.types',
+  ApiTeam: '@/lib/types/consolidated.types',
+  TeamDisplayStats: '@/lib/types/consolidated.types',
+  TeamCounts: '@/lib/types/consolidated.types',
 
   // User types
-  DbCustomUser: '@/lib/types/user.types',
   ClerkUserData: '@/lib/types/user.types',
   ClerkDeletedUserData: '@/lib/types/user.types',
   UserSearchProps: '@/lib/types/user.types',
@@ -100,11 +99,11 @@ const typeMapping = {
   GetFriendshipsForUserResponse: '@/lib/types/friend.types',
 
   // GameLog types
-  GameLogFormData: '@/lib/types/gamelog.types',
-  GameLogFormProps: '@/lib/types/gamelog.types',
-  GameLogViewProps: '@/lib/types/gamelog.types',
-  GameLogResponse: '@/lib/types/gamelog.types',
-  UpdateGameLogModalProps: '@/lib/types/gamelog.types',
+  GameLogFormData: '@/lib/types/game-log.types',
+  GameLogFormProps: '@/lib/types/game-log.types',
+  GameLogViewProps: '@/lib/types/game-log.types',
+  GameLogResponse: '@/lib/types/game-log.types',
+  GameLogModalProps: '@/lib/types/game-log.types',
   CommentResponse: '@/lib/types/gamelog.types',
 
   // Comment types
@@ -129,7 +128,6 @@ const typeMapping = {
   PlayerApiResponse: '@/lib/types/consolidated.types',
   GameCardProps: '@/lib/types/consolidated.types',
   GamesListProps: '@/lib/types/consolidated.types',
-  CreateGameLogModalProps: '@/lib/types/consolidated.types',
   NavItem: '@/lib/types/consolidated.types',
 
   // GraphQL types
@@ -158,8 +156,6 @@ const typeMapping = {
   NOTIFICATION_TYPE: '@/lib/db/schema/enum-values',
   REACTION_TYPE: '@/lib/db/schema/enum-values',
   GameStatusValue: '@/lib/db/schema/enum-values',
-  GameTypeValue: '@/lib/db/schema/enum-values',
-  UserRoleValue: '@/lib/db/schema/enum-values',
   NotificationTypeValue: '@/lib/db/schema/enum-values',
   ReactionTypeValue: '@/lib/db/schema/enum-values',
 };

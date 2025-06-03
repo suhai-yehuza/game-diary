@@ -1,61 +1,57 @@
-/**
- * Database types for the application
- */
-
 import type { NeonHttpDatabase } from 'drizzle-orm/neon-http';
+import type { Pool } from 'pg';
 
-import type { Schema } from '@/lib/db/schema/types';
+import type * as schema from '@/lib/db/schema';
 
-export type DatabaseClient = NeonHttpDatabase<Schema>;
+export type BaseDatabaseClient = NeonHttpDatabase<typeof schema>;
 
-export type DatabaseRow = {
-  [key: string]:
-    | string
-    | number
-    | boolean
-    | Date
-    | DatabaseRow
-    | (string | number | boolean | Date | DatabaseRow | null)[]
-    | null;
-};
+export type DatabaseRow = Record<string, unknown>;
 
-export type DatabaseConfig = {
-  host: string;
-  port: number;
-  database: string;
-  user: string;
-  password: string;
-  ssl?: boolean;
-};
+export interface DatabaseConfig {
+  env?: string;
+  connectionString?: string;
+  dbPool?: Pool;
+}
 
-export type DatabaseConnection = {
-  client: DatabaseClient;
-  config: DatabaseConfig;
-};
+export type DatabaseClient = BaseDatabaseClient;
 
-export type DatabaseMigration = {
-  version: number;
-  name: string;
-  up: (client: DatabaseClient) => Promise<void>;
-  down: (client: DatabaseClient) => Promise<void>;
-};
+export interface DatabaseSeedingConfig {
+  CONCURRENT_OPERATIONS: number;
+  BATCH_SIZE: number;
+  MAX_RETRIES: number;
+  RETRY_DELAY: number;
+  USER_COUNT: number;
+  DEFAULT_SAMPLE_COUNT: number;
+}
 
-export type DatabaseSeeder = {
-  name: string;
-  run: (client: DatabaseClient) => Promise<void>;
-};
+export interface QueryOptions {
+  timeout?: number;
+  retryAttempts?: number;
+  retryDelay?: number;
+  retries?: number; // Alias for retryAttempts for backward compatibility
+}
 
-export type DatabaseBackup = {
-  timestamp: Date;
-  filename: string;
-  size: number;
-  checksum: string;
-};
+export interface BatchProcessor<T, R> {
+  processFn: (batch: T[], context?: Record<string, unknown>) => Promise<R>;
+  context?: Record<string, unknown>;
+}
 
-export type DatabaseStats = {
-  totalTables: number;
-  totalRows: number;
-  totalSize: number;
-  lastBackup?: DatabaseBackup;
-  lastMigration?: DatabaseMigration;
+export class UuidGenerationError extends Error {
+  code: string;
+  details?: string;
+
+  constructor(message: string, code: string = 'UUID_GENERATION_ERROR', details?: string) {
+    super(message);
+    this.name = 'UuidGenerationError';
+    this.code = code;
+    this.details = details;
+  }
+}
+
+export type UuidGenerationOptions = {
+  namespace?: string;
+  logProgress?: boolean;
+  useV7?: boolean;
+  maxRetries?: number;
+  batchSize?: number;
 };

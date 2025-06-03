@@ -2,7 +2,7 @@ import { and, eq, sql } from 'drizzle-orm';
 
 import * as schema from '@/lib/db/schema';
 import { createConnection, parseCursor } from '@/lib/graphql/utils/pagination';
-import type { Context } from '@/lib/types/context.types';
+import type { Context } from '@/lib/types/component.types';
 
 import type { PaginationArgs } from '../common/types';
 import { handleResolverError, getEmojiKey } from '../common/utils';

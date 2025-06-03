@@ -5,16 +5,12 @@ import {
   FRIENDSHIP_STATUS,
   WATCHED_SETTING,
   GAME_STATUS,
-  GAME_TYPE,
-  USER_ROLE,
   NOTIFICATION_TYPE,
   REACTION_TYPE,
   ReactionEmojiValue,
   FriendshipStatusValue,
   WatchedSettingValue,
   GameStatusValue,
-  GameTypeValue,
-  UserRoleValue,
   NotificationTypeValue,
   ReactionTypeValue,
 } from './enum-values';
@@ -37,10 +33,6 @@ const watchedSettingValues = Object.values(WATCHED_SETTING) as [
 
 const gameStatusValues = Object.values(GAME_STATUS) as [GameStatusValue, ...GameStatusValue[]];
 
-const gameTypeValues = Object.values(GAME_TYPE) as [GameTypeValue, ...GameTypeValue[]];
-
-const userRoleValues = Object.values(USER_ROLE) as [UserRoleValue, ...UserRoleValue[]];
-
 const notificationTypeValues = Object.values(NOTIFICATION_TYPE) as [
   NotificationTypeValue,
   ...NotificationTypeValue[],
@@ -57,8 +49,6 @@ export const friendship_status_enum = pgEnum('friendship_status', friendshipStat
 export const watched_setting_enum = pgEnum('watchedSetting', watchedSettingValues);
 export const reaction_target_enum = pgEnum('reaction_target', ['game_log', 'comment']);
 export const game_status_enum = pgEnum('game_status', gameStatusValues);
-export const game_type_enum = pgEnum('gameType', gameTypeValues);
-export const user_role_enum = pgEnum('user_role', userRoleValues);
 export const notification_type_enum = pgEnum('notification_type', notificationTypeValues);
 export const reaction_type_enum = pgEnum('reaction_type', reactionTypeValues);
 
@@ -73,16 +63,12 @@ export {
   FRIENDSHIP_STATUS,
   WATCHED_SETTING,
   GAME_STATUS,
-  GAME_TYPE,
-  USER_ROLE,
   NOTIFICATION_TYPE,
   REACTION_TYPE,
   type ReactionEmojiValue,
   type FriendshipStatusValue,
   type WatchedSettingValue,
   type GameStatusValue,
-  type GameTypeValue,
-  type UserRoleValue,
   type NotificationTypeValue,
   type ReactionTypeValue,
 };

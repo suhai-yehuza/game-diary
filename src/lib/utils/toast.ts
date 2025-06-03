@@ -1,27 +1,8 @@
-import { type ToastProps, Action, ToasterToast } from '@/lib/types/toast.types';
+import type { ToastProps, ToasterToast, ToastAction } from '@/lib/types/notification.types';
 
 export const TOAST_LIMIT = 1;
-export const TOAST_REMOVE_DELAY = 5000;
 
-export const toastTimeouts = new Map<string, ReturnType<typeof setTimeout>>();
-
-export const addToRemoveQueue = (toastId: string, dispatch: React.Dispatch<Action>) => {
-  if (toastTimeouts.has(toastId)) {
-    return;
-  }
-
-  const timeout = setTimeout(() => {
-    toastTimeouts.delete(toastId);
-    dispatch({
-      type: 'REMOVE_TOAST',
-      toastId: toastId,
-    });
-  }, TOAST_REMOVE_DELAY);
-
-  toastTimeouts.set(toastId, timeout);
-};
-
-export const createToast = (props: ToastProps, dispatch: React.Dispatch<Action>) => {
+export const createToast = (props: ToastProps, dispatch: React.Dispatch<ToastAction>) => {
   const id = Math.random().toString(36).substring(2);
 
   const update = (props: ToasterToast) =>

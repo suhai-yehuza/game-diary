@@ -3,7 +3,8 @@
 import { useQuery } from '@apollo/client';
 import { useRef, useState, useCallback, useEffect } from 'react';
 
-import { GameLogSearchSection, BasketballGameSearchSection } from '@/components/features/games';
+import { BasketballGameSearchSection } from '@/components/features/games/BasketballGameSearchSection';
+import { GameLogSearchSection } from '@/components/features/games/GameLogSearchSection';
 import { UserSearchSection } from '@/components/features/users/UserSearchSection';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';

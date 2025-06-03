@@ -1,5 +1,5 @@
-import type { Context } from '@/lib/types/context.types';
-import type { GameTeam } from '@/lib/types/shared.types';
+import type { Context } from '@/lib/types/component.types';
+import type { GameTeam } from '@/lib/types/consolidated.types';
 
 // Common types for game data
 export interface GameScores {

@@ -5,8 +5,8 @@ import { drizzle } from 'drizzle-orm/neon-http';
 import type { NeonHttpDatabase } from 'drizzle-orm/neon-http';
 
 import * as schema from '@/lib/db/schema';
-import { env } from '@/lib/env';
-import type { BaseDatabaseClient, DatabaseConfig } from '@/lib/types/db.types';
+import type { BaseDatabaseClient, DatabaseConfig } from '@/lib/types/database.types';
+import { envSchema } from '@/lib/validations/env';
 
 interface RawDatabaseClient {
   execute: (query: ReturnType<typeof sql>) => Promise<{ rows: unknown[] }>;
@@ -17,6 +17,7 @@ interface RawDatabaseClient {
 let dbClient: BaseDatabaseClient | null = null;
 
 const getConnectionString = () => {
+  const env = envSchema.parse(process.env);
   return env.DATABASE_URL;
 };
 

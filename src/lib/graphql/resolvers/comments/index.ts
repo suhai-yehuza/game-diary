@@ -4,7 +4,7 @@ import type { NeonHttpDatabase } from 'drizzle-orm/neon-http';
 import { API_CONFIG } from '@/lib/config/api.config';
 import * as schema from '@/lib/db/schema';
 import { createConnection, parseCursor } from '@/lib/graphql/utils/pagination';
-import type { Context } from '@/lib/types/context.types';
+import type { Context } from '@/lib/types/component.types';
 
 import type { PaginationArgs } from '../common/types';
 import { handleResolverError } from '../common/utils';

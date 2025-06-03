@@ -1,7 +1,7 @@
 import { sql } from 'drizzle-orm';
 
-import { API_CONFIG, getRapidApiConfig } from '@/lib/config/api.config';
-import { createRapidAPIClient, validateAPIKey, handleAPIError } from '@/lib/external-apis';
+import { API_CONFIG, getRapidApiConfig, validateAPIKey } from '@/lib/config/api.config';
+import { createRapidAPIClient, handleAPIError } from '@/lib/external-apis';
 import { PlayerStatistics } from '@/lib/types/consolidated.types';
 import { generateUUID } from '@/lib/utils/index.processing';
 

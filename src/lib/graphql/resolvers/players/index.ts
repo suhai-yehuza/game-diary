@@ -4,7 +4,7 @@ import type { InferSelectModel } from 'drizzle-orm';
 import * as schema from '@/lib/db/schema';
 import { BusinessLogicError } from '@/lib/graphql/errors';
 import { createConnection } from '@/lib/graphql/utils/pagination';
-import type { Context } from '@/lib/types/context.types';
+import type { Context } from '@/lib/types/component.types';
 
 import type { PaginationArgs } from '../common/types';
 import { handleResolverError } from '../common/utils';

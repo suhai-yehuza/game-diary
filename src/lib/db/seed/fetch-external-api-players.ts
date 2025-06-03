@@ -1,8 +1,8 @@
 import { eq, sql } from 'drizzle-orm';
 
-import { API_CONFIG, getRapidApiConfig } from '@/lib/config/api.config';
+import { API_CONFIG, getRapidApiConfig, validateAPIKey } from '@/lib/config/api.config';
 import { nba_players, teams } from '@/lib/db/schema/nba-schemas';
-import { createRapidAPIClient, validateAPIKey, handleAPIError } from '@/lib/external-apis';
+import { createRapidAPIClient, handleAPIError } from '@/lib/external-apis';
 import { PlayerApiResponse } from '@/lib/types/consolidated.types';
 
 import { createDatabaseClient } from './config';

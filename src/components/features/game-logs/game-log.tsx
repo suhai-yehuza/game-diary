@@ -28,7 +28,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Skeleton } from '@/components/ui/skeleton';
 import { StarRating } from '@/components/ui/star-rating';
 import { GET_GAME_LOG_BY_ID } from '@/lib/graphql/queries';
-import type { GameLogByIdResponse, TeamDisplayProps } from '@/lib/types/game-log.types';
+import type { GameLogByIdResponse, TeamDisplayProps } from '@/lib/types/consolidated.types';
 import { cn } from '@/lib/utils';
 
 // Loading skeleton component
@@ -254,8 +254,10 @@ export default function GameLog() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <StarRating rating={gameLog.rating || 0} />
-                  <span className="text-sm text-muted-foreground">({gameLog.rating || 0})</span>
+                  <StarRating ratingForGame={gameLog.ratingForGame || 0} size="lg" />
+                  <span className="text-lg font-medium">
+                    {gameLog.ratingForGame ? `${gameLog.ratingForGame}/5` : 'Not rated'}
+                  </span>
                 </div>
               </div>
             </CardHeader>
@@ -339,7 +341,7 @@ export default function GameLog() {
               <WatchInfoItem
                 icon={Star}
                 label="Overall Rating"
-                value={gameLog.ratingStars ? `${gameLog.ratingStars}/5` : 'Not rated'}
+                value={gameLog.ratingForGame ? `${gameLog.ratingForGame}/5` : 'Not rated'}
               />
               <div className="space-y-2">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">

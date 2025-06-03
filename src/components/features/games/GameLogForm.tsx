@@ -25,9 +25,9 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { GameLogFormProps } from '@/lib/types/component.types';
 import { CLASSIFICATION, WATCHED_SCOPE, WATCHED_SETTING } from '@/lib/types/config.types';
-import { Game } from '@/lib/types/game.types';
+import { Game } from '@/lib/types/consolidated.types';
 import { CreateGameLogInput } from '@/lib/types/generated/graphql';
-import { gameLogInputSchema } from '@/lib/validations/game';
+import { createGameLogSchema } from '@/lib/validations/game-log';
 
 export function GameLogForm({
   loading,
@@ -54,7 +54,7 @@ export function GameLogForm({
   }, [searchQuery]);
 
   const form = useForm<CreateGameLogInput>({
-    resolver: zodResolver(gameLogInputSchema),
+    resolver: zodResolver(createGameLogSchema),
     defaultValues,
   });
 
@@ -62,14 +62,14 @@ export function GameLogForm({
 
   const selectedGame = useMemo(() => {
     if (!games.length || !defaultValues.gameId) return null;
-    return games.find((game: Game) => game.id === defaultValues.gameId);
+    return (games as Game[]).find((game: Game) => game.id === defaultValues.gameId);
   }, [games, defaultValues.gameId]);
 
   const filteredGames = useMemo(() => {
     if (!games.length) return [];
-    if (!debouncedQuery) return games;
+    if (!debouncedQuery) return games as Game[];
     const query = debouncedQuery.toLowerCase();
-    return games.filter(
+    return (games as Game[]).filter(
       (game: Game) =>
         game.teams.home.name.toLowerCase().includes(query) ||
         game.teams.visitors.name.toLowerCase().includes(query)

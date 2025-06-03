@@ -7,7 +7,7 @@ const tableName = process.argv[3] || 'players';
 
 async function main() {
   try {
-    const db = createDatabaseClient({ env, logger: true });
+    const db = createDatabaseClient({ env });
     const result = await db.execute(sql`
       SELECT column_name, data_type, character_maximum_length, column_default, is_nullable
       FROM information_schema.columns

@@ -9,15 +9,6 @@ export interface SendFriendRequestInput {
   subscriberId: string;
 }
 
-export interface GameRating {
-  id: string;
-  gameId: string;
-  averageRating: string;
-  totalRatings: number;
-  createdAt: string;
-  updatedAt: string;
-}
-
 // Define types generically to avoid circular dependency
 export type GameRecord = {
   id: string;
@@ -46,7 +37,6 @@ export type GameLogRecord = {
   watchedDate: Date;
   watchedLocation?: string;
   ratingForGame: number;
-  ratingStars?: string;
   watchedScope: string;
   notes?: string;
   tags?: string[];
@@ -81,7 +71,6 @@ export type ReactionRecord = {
 export interface DataLoaders {
   user: DataLoader<string, import('./generated/graphql').UserSummary | null>;
   game: DataLoader<string, import('./generated/graphql').Game | null>;
-  dbGame: DataLoader<string, import('./generated/types').DbGame | null>;
   team: DataLoader<string, import('./generated/graphql').Team | null>;
   player: DataLoader<string, import('./generated/graphql').Player | null>;
   gameLog: DataLoader<string, import('./generated/graphql').GameLog | null>;

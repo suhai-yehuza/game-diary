@@ -28,9 +28,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/components/ui/use-toast';
 import { CREATE_COMMENT, DELETE_COMMENT, UPDATE_COMMENT } from '@/lib/graphql/mutations';
 import { GET_COMMENTS_WITH_FILTERS } from '@/lib/graphql/queries';
-import { CommentsSectionProps, EditingComment } from '@/lib/types/comment.types';
 import { CommentEdge, CommentConnection } from '@/lib/types/component.types';
 import type { Comment } from '@/lib/types/generated/graphql';
+import { CommentsSectionProps, EditingComment } from '@/lib/types/social.types';
 import { cn } from '@/lib/utils';
 
 import { CommentItem } from './comment-item';
@@ -429,7 +429,7 @@ export function CommentsSection({ parentId, parentType, initialExpanded }: Comme
               variant="ghost"
               size="sm"
               className="h-8 w-8 p-0 hover:bg-transparent"
-              onClick={e => {
+              onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
                 e.stopPropagation();
                 setIsExpanded(!isExpanded);
               }}

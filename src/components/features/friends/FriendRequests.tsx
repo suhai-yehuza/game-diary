@@ -14,9 +14,9 @@ import {
 } from '@/lib/graphql/mutations';
 import { GET_FRIENDSHIPS } from '@/lib/graphql/queries';
 import { FRIENDSHIP_STATUS } from '@/lib/types/config.types';
-import type { FriendRequest } from '@/lib/types/friend.types';
 import { Friendship } from '@/lib/types/generated/graphql';
 import { SortDirection } from '@/lib/types/shared.types';
+import type { FriendRequest } from '@/lib/types/social.types';
 
 import { UserSearch } from './UserSearch';
 
@@ -312,8 +312,8 @@ export const FriendRequests: React.FC = () => {
                         <Image
                           src={
                             showSentRequests
-                              ? request.receiver.imageUrl || '/default-avatar.png'
-                              : request.sender.imageUrl || '/default-avatar.png'
+                              ? request.receiver.avatar || '/default-avatar.png'
+                              : request.sender.avatar || '/default-avatar.png'
                           }
                           alt={
                             showSentRequests
@@ -398,7 +398,7 @@ export const FriendRequests: React.FC = () => {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
                       <Image
-                        src={friend.imageUrl || '/default-avatar.png'}
+                        src={friend.avatar || '/default-avatar.png'}
                         alt={friend.username || 'User'}
                         width={32}
                         height={32}

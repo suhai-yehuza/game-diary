@@ -3,12 +3,12 @@ import { drizzle } from 'drizzle-orm/neon-http';
 import type { NeonHttpDatabase } from 'drizzle-orm/neon-http';
 
 import { getCache } from '@/lib/cache';
+import { schema as dbSchema } from '@/lib/db/schema';
+import type { Schema } from '@/lib/db/schema/types';
 import { env as appEnv } from '@/lib/env';
 import { CACHE_TTL } from '@/lib/types/cache.types';
-import { envSchema, type QueryOptions } from '@/lib/types/db.types';
-
-import { schema as dbSchema } from './schema';
-import type { Schema } from './schema/types';
+import { type QueryOptions } from '@/lib/types/database.types';
+import { envSchema } from '@/lib/validations/env';
 
 // Initialize cache
 const cache = getCache();

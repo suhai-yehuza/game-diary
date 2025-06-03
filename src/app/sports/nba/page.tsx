@@ -8,80 +8,15 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { GameCard } from '@/components/features/games';
 import { API_CONFIG } from '@/lib/config/api.config';
 import { GET_GAMES } from '@/lib/graphql/queries';
-import { Game, GameEdge, GameQueryResponse, SearchGame } from '@/lib/types/game.types';
+import type { Game, GameEdge, GameQueryResponse } from '@/lib/types/consolidated.types';
 import { getCurrentSeason } from '@/lib/utils/index.time';
-
-// Convert Game to SearchGame
-const convertGameToSearchGame = (game: Game): SearchGame => {
-  const arena =
-    typeof game.arena === 'string'
-      ? { name: game.arena, city: '', state: '', country: '' }
-      : game.arena;
-
-  return {
-    id: game.id,
-    date: {
-      start: game.date.start instanceof Date ? game.date.start.toISOString() : game.date.start,
-      end: game.date.end instanceof Date ? game.date.end?.toISOString() || '' : game.date.end || '',
-      duration: game.date.duration || '',
-    },
-    status: {
-      clock: game.status.clock || '',
-      halftime: game.status.halftime ?? false,
-      long: game.status.long || '',
-      short: game.status.short || '',
-    },
-    teams: {
-      home: {
-        id: game.teams?.home?.id || '',
-        name: game.teams?.home?.name || '',
-        nickname: game.teams?.home?.nickname || '',
-        logo: game.teams?.home?.logo || undefined,
-      },
-      visitors: {
-        id: game.teams?.visitors?.id || '',
-        name: game.teams?.visitors?.name || '',
-        nickname: game.teams?.visitors?.nickname || '',
-        logo: game.teams?.visitors?.logo || undefined,
-      },
-    },
-    scores: {
-      home: {
-        points: game.scores?.home?.points ?? 0,
-      },
-      visitors: {
-        points: game.scores?.visitors?.points ?? 0,
-      },
-    },
-    arena: {
-      name: arena?.name || '',
-      city: arena?.city || '',
-      state: arena?.state || '',
-      country: arena?.country || '',
-    },
-    league: game.league || '',
-    season: game.season,
-    stage: game.stage,
-    periods: {
-      current: game.periods?.current ?? 0,
-      total: game.periods?.total ?? 0,
-      endOfPeriod: game.periods?.endOfPeriod ?? false,
-    },
-    officials: Array.isArray(game.officials) ? game.officials : [],
-    timesTied: game.timesTied ?? 0,
-    leadChanges: game.leadChanges ?? 0,
-    nugget: game.nugget || '',
-    createdAt: game.createdAt instanceof Date ? game.createdAt.toISOString() : game.createdAt || '',
-    updatedAt: game.updatedAt instanceof Date ? game.updatedAt.toISOString() : game.updatedAt || '',
-  };
-};
 
 export default function NBAPage() {
   const { isLoaded } = useUser();
   const [isFetchingMore, setIsFetchingMore] = useState<boolean>(false);
   const [currentSeason, setCurrentSeason] = useState<number>(getCurrentSeason());
   const [hasMoreSeasons, setHasMoreSeasons] = useState<boolean>(true);
-  const [games, setGames] = useState<SearchGame[]>([]);
+  const [games, setGames] = useState<Game[]>([]);
   const [showUpcomingGames, setShowUpcomingGames] = useState<boolean>(false);
 
   const { loading, error, data, fetchMore } = useQuery<GameQueryResponse>(GET_GAMES, {
@@ -104,7 +39,7 @@ export default function NBAPage() {
 
   useEffect(() => {
     if (data?.games && Array.isArray(data.games.edges)) {
-      const newGames = data.games.edges.map((edge: GameEdge) => convertGameToSearchGame(edge.node));
+      const newGames = data.games.edges.map((edge: GameEdge) => edge.node);
       setGames(prevGames => {
         const gameMap = new Map(prevGames.map(game => [game.id, game]));
         newGames.forEach(game => {
@@ -141,9 +76,7 @@ export default function NBAPage() {
       });
 
       if (newData?.games.edges) {
-        const newGames = newData.games.edges.map((edge: GameEdge) =>
-          convertGameToSearchGame(edge.node)
-        );
+        const newGames = newData.games.edges.map((edge: GameEdge) => edge.node);
         setGames(prevGames => {
           const gameMap = new Map(prevGames.map(game => [game.id, game]));
           newGames.forEach(game => {
@@ -165,8 +98,8 @@ export default function NBAPage() {
 
   // Sort all games by date first
   const sortedGames = [...(games || [])].sort((a, b) => {
-    const dateA = new Date(a.date.start);
-    const dateB = new Date(b.date.start);
+    const dateA = new Date(typeof a.date === 'string' ? a.date : a.date.start);
+    const dateB = new Date(typeof b.date === 'string' ? b.date : b.date.start);
     return dateB.getTime() - dateA.getTime(); // Most recent first
   });
 
@@ -178,7 +111,10 @@ export default function NBAPage() {
         acc.live.push(game);
       }
       // Check if game is scheduled
-      else if (game.status.long === 'Scheduled' || isAfter(new Date(game.date.start), now)) {
+      else if (
+        game.status.long === 'Scheduled' ||
+        isAfter(new Date(typeof game.date === 'string' ? game.date : game.date.start), now)
+      ) {
         acc.scheduled.push(game);
       }
       // Check if game is completed
@@ -188,9 +124,9 @@ export default function NBAPage() {
       return acc;
     },
     { live: [], scheduled: [], completed: [] } as {
-      live: SearchGame[];
-      scheduled: SearchGame[];
-      completed: SearchGame[];
+      live: Game[];
+      scheduled: Game[];
+      completed: Game[];
     }
   );
 

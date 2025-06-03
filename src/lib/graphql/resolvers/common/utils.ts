@@ -112,17 +112,3 @@ export const getCachedData = async <T>(
   await cache.set(cacheKey, data, ttl);
   return data;
 };
-
-// Helper function to map user data
-export const mapUserData = (user: DatabaseRow) => ({
-  id: user.id,
-  username: user.username,
-  emailAddress: user.emailAddress || '',
-  imageUrl: user.imageUrl,
-  avatarUrl: user.imageUrl,
-  firstName: user.firstName || '',
-  lastName: user.lastName || '',
-  createdAt: user.createdAt,
-  updatedAt: user.updatedAt,
-  deletedAt: user.deletedAt,
-});

@@ -28,26 +28,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Skeleton } from '@/components/ui/skeleton';
 import { StarRating } from '@/components/ui/star-rating';
 import { GET_GAME_LOG_BY_ID } from '@/lib/graphql/queries';
+import type { GameLogByIdResponse, TeamSummary, Arena } from '@/lib/types/consolidated.types';
 import type { GameLog } from '@/lib/types/generated/graphql';
 import { cn } from '@/lib/utils';
-
-interface GameLogByIdResponse {
-  gameLogById: GameLog;
-}
-
-interface TeamSummary {
-  id: string;
-  code: string;
-  logo: string;
-  name: string;
-  nickname: string;
-}
-
-interface Arena {
-  name?: string;
-  city?: string;
-  state?: string;
-}
 
 // Loading skeleton component
 const GameLogSkeleton = () => (
@@ -374,12 +357,9 @@ export default function GameLog() {
                 label="Rating"
                 value={
                   <div className="flex items-center gap-2">
-                    <StarRating
-                      rating={gameLog.ratingStars || gameLog.ratingForGame || 0}
-                      size="sm"
-                    />
+                    <StarRating ratingForGame={gameLog.ratingForGame} size="sm" />
                     <span className="text-sm text-muted-foreground">
-                      ({gameLog.ratingStars || gameLog.ratingForGame || 0}/5)
+                      ({gameLog.ratingForGame}/5)
                     </span>
                   </div>
                 }

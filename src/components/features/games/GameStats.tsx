@@ -5,8 +5,8 @@ import type {
   GameWithStatistics,
   ComponentGameStats,
   GameStatsProps,
-} from '@/lib/types/game.types';
-import { GamePlayerStats } from '@/lib/types/game.types';
+} from '@/lib/types/consolidated.types';
+import { GamePlayerStats } from '@/lib/types/consolidated.types';
 
 const calculateGameStats = (game: GameWithStatistics): ComponentGameStats => {
   const homeTeam = game.teams.home;
@@ -73,6 +73,40 @@ const calculateGameStats = (game: GameWithStatistics): ComponentGameStats => {
     }));
 
   const calculateTeamStats = (players: GamePlayerStats[]) => ({
+    team: {
+      id: players[0]?.teamId || '',
+      name: players[0]?.teamId || '', // TODO: Get team name from team data
+    },
+    statistics: players.map(p => ({
+      playerId: p.playerId,
+      teamId: p.teamId,
+      minutes: p.minutesPlayed.toString(),
+      minutesPlayed: p.minutesPlayed.toString(),
+      points: p.points,
+      rebounds: p.rebounds,
+      assists: p.assists,
+      steals: p.steals,
+      blocks: p.blocks,
+      turnovers: p.turnovers,
+      fouls: p.fouls,
+      plusMinus: p.plusMinus,
+      fieldGoals: {
+        made: p.fieldGoals.made,
+        attempted: p.fieldGoals.attempted,
+        percentage: ((p.fieldGoals.made / (p.fieldGoals.attempted || 1)) * 100).toFixed(1) + '%',
+      },
+      threePointers: {
+        made: p.threePointers.made,
+        attempted: p.threePointers.attempted,
+        percentage:
+          ((p.threePointers.made / (p.threePointers.attempted || 1)) * 100).toFixed(1) + '%',
+      },
+      freeThrows: {
+        made: p.freeThrows.made,
+        attempted: p.freeThrows.attempted,
+        percentage: ((p.freeThrows.made / (p.freeThrows.attempted || 1)) * 100).toFixed(1) + '%',
+      },
+    })),
     points: players.reduce((sum, p) => sum + (p?.points || 0), 0),
     rebounds: players.reduce((sum, p) => sum + (p?.rebounds || 0), 0),
     assists: players.reduce((sum, p) => sum + (p?.assists || 0), 0),

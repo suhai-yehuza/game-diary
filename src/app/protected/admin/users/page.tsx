@@ -16,15 +16,15 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { DbCustomUser } from '@/lib/types/user.types';
+import { DBUser } from '@/lib/types/generated/graphql';
 
 const ITEMS_PER_PAGE = 20;
 
 function AdminUsersContent() {
   const { user, isLoaded } = useUser();
   const router = useRouter();
-  const [users, setUsers] = useState<DbCustomUser[]>([]);
-  const [filteredUsers, setFilteredUsers] = useState<DbCustomUser[]>([]);
+  const [users, setUsers] = useState<DBUser[]>([]);
+  const [filteredUsers, setFilteredUsers] = useState<DBUser[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
 

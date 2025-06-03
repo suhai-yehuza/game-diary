@@ -7,14 +7,14 @@ import { useRouter, useParams } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
-import { DbCustomUser } from '@/lib/types/user.types';
+import { DBUser } from '@/lib/types/generated/graphql';
 
 export default function AdminUserProfilePage() {
   const params = useParams();
   const id = params?.id as string;
   const { user: currentUser, isLoaded } = useUser();
   const router = useRouter();
-  const [user, setUser] = useState<DbCustomUser | null>(null);
+  const [user, setUser] = useState<DBUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -92,7 +92,7 @@ export default function AdminUserProfilePage() {
             )}
             <div>
               <h1 className="text-2xl font-bold">{user.username}</h1>
-              {user.email && <p className="text-gray-600">{user.email}</p>}
+              {user.emailAddress && <p className="text-gray-600">{user.emailAddress}</p>}
             </div>
           </div>
 

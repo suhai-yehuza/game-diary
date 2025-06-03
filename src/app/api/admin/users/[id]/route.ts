@@ -1,17 +1,16 @@
 import { auth, currentUser } from '@clerk/nextjs/server';
 import { eq } from 'drizzle-orm';
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 
 import { users } from '@/lib/db/schema';
 import { db } from '@/lib/db/seed';
-import type { RouteContext } from '@/lib/types/route.types';
 
-export async function GET(_: Request, context: RouteContext) {
+export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const { id } = await context.params;
+    const { id } = await params;
     if (!id) {
       console.error('No user ID provided in params');
-      return new NextResponse('User ID is required', { status: 400 });
+      return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
     }
 
     const { userId } = await auth();

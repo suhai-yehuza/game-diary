@@ -1,27 +1,27 @@
 /**
  * Shared types used across the application
  */
+import type DataLoader from 'dataloader';
 import { type InferSelectModel } from 'drizzle-orm';
 
 import { nba_games } from '@/lib/db/schema/nba-schemas';
-
-import type { Classification, GAME_STATUS } from './generated/graphql';
+import type { GameRating } from '@/lib/types/game-log.types';
+import type { Classification, DBUser } from '@/lib/types/generated/graphql';
 
 // Common Types
 export type SortDirection = 'asc' | 'desc';
 
-export type Status = 'idle' | 'loading' | 'success' | 'error';
-
-export type ErrorType = 'validation' | 'network' | 'server' | 'auth' | 'unknown';
-
-// Route Types
-export interface Route {
-  path: string;
-  name: string;
-  component: React.ComponentType;
-  exact?: boolean;
-  protected?: boolean;
-  roles?: string[];
+// DataLoader Types
+export interface Loaders {
+  user: DataLoader<string, DBUser | null>;
+  game: DataLoader<string, import('./generated/graphql').Game | null>;
+  gameLog: DataLoader<string, import('./generated/graphql').GameLog | null>;
+  comment: DataLoader<string, import('./generated/graphql').Comment | null>;
+  reaction: DataLoader<string, import('./generated/graphql').Reaction | null>;
+  friendship: DataLoader<string, import('./generated/graphql').Friendship | null>;
+  player: DataLoader<string, import('./generated/graphql').Player | null>;
+  gameRating: DataLoader<string, GameRating | null>;
+  team: DataLoader<string, import('./generated/graphql').Team | null>;
 }
 
 // Common Props Types
@@ -31,74 +31,10 @@ export interface BaseProps {
   children?: React.ReactNode;
 }
 
-export interface WithId {
-  id: string;
-}
-
-export interface WithTimestamps {
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-// Common State Types
-export interface LoadingState {
-  isLoading: boolean;
-  error: string | null;
-}
-
-export interface PaginationState {
-  page: number;
-  limit: number;
-  total: number;
-  hasMore: boolean;
-}
-
-// Common Response Types
-export interface ApiResponse<T> {
-  data: T;
-  message?: string;
-  errors?: string[];
-}
-
-export interface PaginatedResponse<T> {
-  data: T[];
-  total: number;
-  page: number;
-  limit: number;
-  hasMore: boolean;
-}
-
-// Common Filter Types
-export interface DateRange {
-  start: Date;
-  end: Date;
-}
-
-export interface SearchParams {
-  query: string;
-  filters?: Record<string, unknown>;
-  sort?: {
-    field: string;
-    direction: SortDirection;
-  };
-  pagination?: {
-    page: number;
-    limit: number;
-  };
-}
-
 // Common Utility Types
-export type Nullable<T> = T | null;
-
-export type Optional<T> = T | undefined;
-
 export type DeepPartial<T> = {
   [P in keyof T]?: T[P] extends object ? DeepPartial<T[P]> : T[P];
 };
-
-export type WithRequired<T, K extends keyof T> = T & { [P in K]-?: T[P] };
-
-export type WithOptional<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
 
 // Common Event Types
 export interface BaseEvent {
@@ -107,37 +43,19 @@ export interface BaseEvent {
   metadata?: Record<string, unknown>;
 }
 
-export interface ErrorEvent extends BaseEvent {
-  type: 'error';
-  error: Error;
-  context?: Record<string, unknown>;
-}
-
-// Common Config Types
-export interface Config {
-  env: string;
-  debug: boolean;
-  version: string;
-  apiUrl: string;
-  wsUrl?: string;
-  features: Record<string, boolean>;
-}
-
 // Base types that can be shared across different type files
-export type ValidatableValue =
-  | string
-  | number
-  | boolean
-  | null
-  | ValidatableValue[]
-  | { [key: string]: ValidatableValue };
+export type ValidatableValue = string | number | boolean | null | undefined;
 
-// Base user types
-export interface BaseUser {
-  id: string;
-  username?: string;
-  imageUrl?: string;
-}
+// Database Types
+export type DBGameRecord = InferSelectModel<typeof nba_games>;
+
+export type UserWithMetadata = DBUser & {
+  metadata?: {
+    lastActive?: string;
+    status?: 'online' | 'offline' | 'away';
+    lastSeen?: string;
+  };
+};
 
 // Base friendship types
 export interface Friendship {
@@ -145,77 +63,10 @@ export interface Friendship {
   subscriberId: string;
   userId: string;
   status: string;
-  initiator: BaseUser;
-  recipient: BaseUser;
+  initiator: DBUser;
+  recipient: DBUser;
   createdAt: Date;
   updatedAt: Date;
-}
-
-// Base game types
-export interface Game {
-  id: string;
-  date: string;
-  status: GAME_STATUS;
-  homeTeam: GameTeam;
-  awayTeam: GameTeam;
-  arena?: {
-    name: string;
-    city: string;
-    state?: string;
-    country?: string;
-  };
-  league: string;
-  season: number;
-  stage: number;
-  periods?: {
-    current: number;
-    total: number;
-    endOfPeriod: boolean;
-  };
-  officials?: string[];
-  timesTied?: number;
-  leadChanges?: number;
-  nugget?: string;
-  createdAt?: string;
-  updatedAt?: string;
-}
-
-export interface GameTeam {
-  id: string;
-  name: string;
-  nickname: string;
-  code: string;
-  logo?: string;
-}
-
-export interface GameScore {
-  points: number;
-  win?: number;
-  loss?: number;
-  series?: {
-    win: number;
-    loss: number;
-  };
-  linescore?: number[];
-}
-
-// Base game log types
-export interface GameLog {
-  id: string;
-  userId: string | null;
-  gameId: string;
-  watchedSetting: string;
-  watchedDate: Date;
-  watchedLocation?: string;
-  ratingForGame: number;
-  ratingStars?: string;
-  watchedScope: string;
-  notes?: string;
-  tags?: string[];
-  classification: string;
-  createdAt: Date;
-  updatedAt: Date;
-  deletedAt?: Date;
 }
 
 // Filter types
@@ -233,71 +84,6 @@ export interface GameLogFilters {
     last?: number;
     before?: string;
   };
-}
-
-// Extended types
-export interface GameWithDetails extends Game {
-  homeTeam: GameTeamWithStats;
-  awayTeam: GameTeamWithStats;
-  gameLogs: GameLogWithReactions[];
-  ratings: Array<{
-    id: string;
-    rating: number;
-    comment?: string;
-    createdAt: string;
-    updatedAt: string;
-    user: UserSummary;
-  }>;
-  userRating?: {
-    id: string;
-    rating: number;
-    comment?: string;
-    createdAt: string;
-    updatedAt: string;
-    user: UserSummary;
-  };
-}
-
-export interface GameTeamWithStats extends GameTeam {
-  stats?: GameTeamStatistics;
-}
-
-export interface GameTeamStatistics {
-  points: number;
-  rebounds: number;
-  assists: number;
-  steals: number;
-  blocks: number;
-  turnovers: number;
-  fouls: number;
-  fieldGoals: {
-    made: number;
-    attempted: number;
-    percentage: string;
-  };
-  threePointers: {
-    made: number;
-    attempted: number;
-    percentage: string;
-  };
-  freeThrows: {
-    made: number;
-    attempted: number;
-    percentage: string;
-  };
-  fastBreakPoints?: number;
-  pointsInPaint?: number;
-  secondChancePoints?: number;
-  pointsOffTurnovers?: number;
-}
-
-export interface GameLogWithReactions extends GameLog {
-  reactions: Array<{
-    id: string;
-    type: string;
-    userId: string;
-    createdAt: string;
-  }>;
 }
 
 // Base comment types
@@ -424,9 +210,7 @@ export interface GameLogResponse {
   watchedSetting: string;
   watchedDate: string;
   watchedLocation: string;
-  rating: number;
   ratingForGame: number;
-  ratingStars: number | null;
   watchedScope: string;
   notes: string;
   tags: string[];
@@ -680,23 +464,3 @@ export interface UserSummary {
   imageUrl?: string;
   emailAddress?: string;
 }
-
-// Filter Types
-export interface GqlGameLogFilters {
-  userId?: string;
-  gameId?: string;
-  classification?: Classification;
-  createdAt?: {
-    start?: string;
-    end?: string;
-  };
-  pagination?: {
-    first?: number;
-    after?: string;
-    last?: number;
-    before?: string;
-  };
-}
-
-// Database Types
-export type DBGameRecord = InferSelectModel<typeof nba_games>;

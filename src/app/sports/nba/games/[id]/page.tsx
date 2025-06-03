@@ -8,12 +8,13 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import React, { useState, useEffect } from 'react';
 
-import { CreateGameLogModal } from '@/components/features/games';
+import { GameLogModal } from '@/components/features/games';
 import { Button } from '@/components/ui/button';
 import { useAuthContext } from '@/contexts/AuthContext';
 import { fetchNbaGameById } from '@/lib/external-apis';
 import { GET_TEAM_STATS } from '@/lib/graphql/queries';
-import type { Game, GameStatistics } from '@/lib/types/game.types';
+import type { Game, GameStatistics } from '@/lib/types/consolidated.types';
+import type { GameLog } from '@/lib/types/generated/graphql';
 import { cn } from '@/lib/utils';
 
 // Helper function to validate state values
@@ -135,41 +136,50 @@ export default function GamePage() {
         const game: Game = {
           id: apiGame.id.toString(),
           date: {
-            start: new Date(apiGame.date.start),
-            end: apiGame.date.end ? new Date(apiGame.date.end) : null,
-            duration: apiGame.date.duration || null,
+            start: apiGame.date.start ? new Date(apiGame.date.start).toISOString() : '',
+            end: apiGame.date.end ? new Date(apiGame.date.end).toISOString() : '',
+            duration: apiGame.date.duration || '',
           },
           status: {
-            clock: apiGame.status.clock || null,
-            halftime: apiGame.status.halftime,
-            short: apiGame.status.short,
-            long: apiGame.status.long,
+            long: apiGame.status.long || '',
+            short: apiGame.status.short || '',
+            clock: apiGame.status.clock ?? undefined,
+            halftime: apiGame.status.halftime ?? undefined,
           },
-          homeTeamId: apiGame.teams.home.id.toString(),
-          awayTeamId: apiGame.teams.visitors.id.toString(),
-          createdAt: new Date(),
-          updatedAt: new Date(),
+          teams: {
+            home: {
+              id: apiGame.teams.home.id.toString(),
+              name: apiGame.teams.home.name,
+              nickname: apiGame.teams.home.nickname,
+              code: apiGame.teams.home.code,
+              logo: apiGame.teams.home.logo || null,
+            },
+            visitors: {
+              id: apiGame.teams.visitors.id.toString(),
+              name: apiGame.teams.visitors.name,
+              nickname: apiGame.teams.visitors.nickname,
+              code: apiGame.teams.visitors.code,
+              logo: apiGame.teams.visitors.logo || null,
+            },
+          },
+          scores: {
+            home: { points: apiGame.scores.home.points },
+            visitors: { points: apiGame.scores.visitors.points },
+          },
           arena: {
-            name: apiGame.arena.name || null,
-            city: apiGame.arena.city || null,
-            state: apiGame.arena.state || null,
-            country: apiGame.arena.country || null,
+            name: apiGame.arena.name || '',
+            city: apiGame.arena.city || '',
+            state: apiGame.arena.state ?? undefined,
+            country: apiGame.arena.country ?? undefined,
           },
-          league: apiGame.league,
-          season: apiGame.season,
-          stage: apiGame.stage,
+          league: apiGame.league || '',
+          season: apiGame.season || 0,
+          stage: apiGame.stage || 0,
           periods: apiGame.periods,
-          teams: apiGame.teams,
-          scores: apiGame.scores,
-          officials: apiGame.officials || [],
-          timesTied: apiGame.timesTied || null,
-          leadChanges: apiGame.leadChanges || null,
-          nugget: apiGame.nugget || null,
-          isCompleted: apiGame.status.short === '3',
-          awayTeamScore: apiGame.scores.visitors.points,
-          homeTeamScore: apiGame.scores.home.points,
-          gameType: 'NBA',
-          nbaGameId: apiGame.id.toString(),
+          officials: Array.isArray(apiGame.officials) ? apiGame.officials : [],
+          timesTied: apiGame.timesTied === null ? undefined : apiGame.timesTied,
+          leadChanges: apiGame.leadChanges === null ? undefined : apiGame.leadChanges,
+          nugget: apiGame.nugget ?? undefined,
         };
 
         setGameData(game);
@@ -201,7 +211,13 @@ export default function GamePage() {
             </Link>
             <div className="flex items-center gap-4">
               {userId ? (
-                <CreateGameLogModal gameId={gameId} userId={userId} />
+                <GameLogModal
+                  mode="create"
+                  gameId={gameId}
+                  gameLog={{} as GameLog}
+                  isOpen={false}
+                  onClose={() => {}}
+                />
               ) : (
                 <SignInButton mode="modal">
                   <Button
@@ -224,7 +240,7 @@ export default function GamePage() {
             <div className="flex items-center gap-4">
               {gameData?.league && (
                 <Image
-                  src={gameData.teams.home.logo}
+                  src={gameData.teams.home.logo || ''}
                   alt={gameData.league}
                   width={40}
                   height={40}
@@ -236,7 +252,12 @@ export default function GamePage() {
                   {gameData?.teams.visitors.nickname} vs {gameData?.teams.home.nickname}
                 </h1>
                 <p className="text-muted-foreground">
-                  {format(new Date(gameData?.date.start), 'MMMM d, yyyy')}
+                  {format(
+                    new Date(
+                      typeof gameData?.date === 'object' ? gameData.date.start : gameData.date
+                    ),
+                    'MMMM d, yyyy'
+                  )}
                 </p>
               </div>
             </div>
@@ -248,9 +269,11 @@ export default function GamePage() {
             <div className="grid grid-cols-3 gap-8">
               {/* Away Team */}
               <TeamDisplay
-                team={gameData?.teams.visitors}
-                score={gameData?.scores.visitors.points}
-                opponentScore={gameData?.scores.home.points}
+                team={{
+                  logo: gameData?.teams.visitors.logo || '',
+                  name: gameData?.teams.visitors.name,
+                  nickname: gameData?.teams.visitors.nickname,
+                }}
                 isHome={false}
                 imageErrors={imageErrors}
                 onImageError={handleImageError}
@@ -259,9 +282,6 @@ export default function GamePage() {
 
               {/* Score */}
               <div className="text-center flex flex-col justify-center space-y-4">
-                <div className="text-4xl font-bold">
-                  {gameData?.scores.visitors.points} - {gameData?.scores.home.points}
-                </div>
                 {gameData?.status.clock && (
                   <div className="text-muted-foreground">{gameData?.status.clock}</div>
                 )}
@@ -269,9 +289,11 @@ export default function GamePage() {
 
               {/* Home Team */}
               <TeamDisplay
-                team={gameData?.teams.home}
-                score={gameData?.scores.home.points}
-                opponentScore={gameData?.scores.visitors.points}
+                team={{
+                  logo: gameData?.teams.home.logo || '',
+                  name: gameData?.teams.home.name,
+                  nickname: gameData?.teams.home.nickname,
+                }}
                 isHome={true}
                 imageErrors={imageErrors}
                 onImageError={handleImageError}
@@ -286,8 +308,10 @@ export default function GamePage() {
             <div className="bg-card rounded-lg shadow-sm p-6">
               <h3 className="text-lg font-medium mb-6">Arena Information</h3>
               <div className="space-y-2">
-                <p className="font-medium">{gameData?.arena.name}</p>
-                <p className="text-muted-foreground">{formatArenaLocation(gameData?.arena)}</p>
+                <p className="font-medium">{gameData?.arena?.name || ''}</p>
+                <p className="text-muted-foreground">
+                  {formatArenaLocation(gameData?.arena || {})}
+                </p>
               </div>
             </div>
 
@@ -305,11 +329,11 @@ export default function GamePage() {
                     <p className="font-medium">{gameData?.leadChanges}</p>
                   </div>
                 </div>
-                {gameData?.officials.length > 0 && (
+                {(gameData?.officials?.length ?? 0) > 0 && (
                   <div>
                     <p className="text-sm text-muted-foreground mb-2">Officials</p>
                     <ul className="space-y-1">
-                      {gameData?.officials.map((official: string, index: number) => (
+                      {(gameData?.officials || []).map((official: string, index: number) => (
                         <li key={index} className="text-sm">
                           {official}
                         </li>

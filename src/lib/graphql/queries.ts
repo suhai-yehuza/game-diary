@@ -117,13 +117,35 @@ export const PLAYER_STATS_FRAGMENT = gql`
 `;
 
 export const BASIC_USER_FRAGMENT = gql`
-  fragment BasicUserFragment on User {
+  fragment BasicUserFragment on DBUser {
     id
     username
     firstName
     lastName
     emailAddress
     imageUrl
+    comments {
+      id
+      parentId
+      parentType
+      content
+    }
+    reactions {
+      id
+      emoji
+      targetId
+      targetType
+    }
+    gameLogs {
+      id
+    }
+    initiatedFriendships {
+      id
+      status
+    }
+    createdAt
+    updatedAt
+    deletedAt
   }
 `;
 
@@ -169,7 +191,7 @@ export const GAME_LOG_FRAGMENT = gql`
     gameId
     watchedSetting
     watchedDate
-    rating
+    ratingForGame
     notes
     tags
     classification
@@ -181,22 +203,6 @@ export const GAME_LOG_FRAGMENT = gql`
     }
   }
   ${GAME_FRAGMENT}
-`;
-
-export const REACTION_FRAGMENT = gql`
-  fragment ReactionFragment on Reaction {
-    id
-    emoji
-    user {
-      ...BasicUserFragment
-    }
-    userId
-    targetId
-    targetType
-    createdAt
-    updatedAt
-  }
-  ${BASIC_USER_FRAGMENT}
 `;
 
 export const GET_GAME_BY_ID = gql`
@@ -223,26 +229,22 @@ export const GET_SEASONS = gql`
   }
 `;
 
-export const GET_LEAGUES = gql`
-  query GetLeagues {
-    leagues {
-      id
-      name
-      type
-      logo
-    }
-  }
-`;
-
 export const GET_EXTERNAL_GAMES = gql`
-  query GetExternalGames($filters: GameFilters, $pagination: PaginationInput) {
-    games(filters: $filters, pagination: $pagination) {
-      items {
-        ...GameFragment
+  query GetExternalGames($filters: GameFilters, $first: Int, $after: String) {
+    games(filters: $filters, first: $first, after: $after) {
+      edges {
+        cursor
+        node {
+          ...GameFragment
+        }
       }
-      total
-      hasMore
-      nextCursor
+      pageInfo {
+        hasNextPage
+        hasPreviousPage
+        startCursor
+        endCursor
+      }
+      totalCount
     }
   }
   ${GAME_FRAGMENT}
@@ -280,16 +282,6 @@ export const GET_PLAYERS = gql`
     }
   }
   ${PLAYER_FRAGMENT}
-`;
-
-export const GET_GAME_LOG_WITH_REACTIONS = gql`
-  query GetGameLogWithReactions($gameId: ID!, $userId: ID!) {
-    gameLog(gameId: $gameId, userId: $userId) {
-      ...GameLogFragment
-      rating
-    }
-  }
-  ${GAME_LOG_FRAGMENT}
 `;
 
 export const GET_COMMENTS_WITH_FILTERS = gql`
@@ -487,9 +479,7 @@ export const GET_GAME_LOGS = gql`
           watchedSetting
           watchedDate
           watchedLocation
-          rating
           ratingForGame
-          ratingStars
           watchedScope
           notes
           tags
@@ -738,70 +728,6 @@ export const GET_REACTIONS = gql`
   }
 `;
 
-export const GET_GAME_LOG_COMMENTS = gql`
-  query GetGameLogComments($gameLogId: ID!, $first: Int, $after: String) {
-    gameLog(gameId: $gameLogId, userId: "") {
-      id
-      comments(first: $first, after: $after) {
-        edges {
-          cursor
-          node {
-            ...CommentFragment
-          }
-        }
-        pageInfo {
-          hasNextPage
-          hasPreviousPage
-          startCursor
-          endCursor
-        }
-        totalCount
-      }
-    }
-  }
-  ${COMMENT_FRAGMENT}
-`;
-
-export const GET_GAME_LOG_REACTIONS = gql`
-  query GetGameLogReactions($gameLogId: ID!, $first: Int, $after: String) {
-    gameLog(gameId: $gameLogId, userId: "") {
-      id
-      reactions(first: $first, after: $after) {
-        edges {
-          cursor
-          node {
-            id
-            emoji
-            createdAt
-            updatedAt
-            user {
-              ...BasicUserFragment
-            }
-          }
-        }
-        pageInfo {
-          hasNextPage
-          hasPreviousPage
-          startCursor
-          endCursor
-        }
-        totalCount
-      }
-    }
-  }
-  ${BASIC_USER_FRAGMENT}
-`;
-
-export const TEAM_FRAGMENT = gql`
-  fragment TeamFragment on Team {
-    id
-    name
-    nickname
-    code
-    logo
-  }
-`;
-
 export const GET_FRIENDSHIPS = gql`
   query GetFriendships($userId: ID!) {
     friendships(userId: $userId) {
@@ -867,7 +793,7 @@ export const GET_GAME_LOG_BY_ID = gql`
   query GetGameLogById($id: ID!) {
     gameLogById(id: $id) {
       ...GameLogFragment
-      rating
+      ratingForGame
       reactions(first: 20) {
         edges {
           node {

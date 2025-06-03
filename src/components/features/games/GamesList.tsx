@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react';
 
 import { GameStatusValue } from '@/lib/db/schema/enum-values';
 import { GAME_STATUS_VALUES } from '@/lib/types/config.types';
-import { Game, GameFilters } from '@/lib/types/game.types';
+import { Game, GameFilters } from '@/lib/types/consolidated.types';
 
 interface GamesListProps {
   games: Game[];
@@ -16,7 +16,7 @@ export const GamesList = ({ games, initialFilters, onGameSelect }: GamesListProp
       status: undefined,
       dateRange: undefined,
       sortBy: 'date',
-      sortDirection: 'DESC',
+      sortDirection: 'desc',
     }
   );
 
@@ -24,7 +24,7 @@ export const GamesList = ({ games, initialFilters, onGameSelect }: GamesListProp
     setFilters((prev: GameFilters) => ({
       ...prev,
       sortBy: value,
-      sortDirection: prev.sortDirection === 'ASC' ? 'DESC' : 'ASC',
+      sortDirection: prev.sortDirection === 'asc' ? 'desc' : 'asc',
     }));
   }, []);
 
@@ -83,7 +83,9 @@ export const GamesList = ({ games, initialFilters, onGameSelect }: GamesListProp
               {game.teams.home.name} vs {game.teams.visitors.name}
             </h3>
             <p className="text-sm text-gray-600">
-              {new Date(game.date.start).toLocaleDateString()}
+              {new Date(
+                typeof game.date === 'string' ? game.date : game.date.start
+              ).toLocaleDateString()}
             </p>
             <div className="mt-2 text-sm">
               <span className="text-gray-500">Status: </span>

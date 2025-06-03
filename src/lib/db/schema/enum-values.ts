@@ -17,23 +17,6 @@ export const GAME_STATUS = {
 
 export type GameStatusValue = (typeof GAME_STATUS)[keyof typeof GAME_STATUS];
 
-// Game type enum
-export const GAME_TYPE = {
-  REGULAR: 'REGULAR',
-  PLAYOFF: 'PLAYOFF',
-  FINALS: 'FINALS',
-} as const;
-
-export type GameTypeValue = (typeof GAME_TYPE)[keyof typeof GAME_TYPE];
-
-// User role enum
-export const USER_ROLE = {
-  USER: 'USER',
-  ADMIN: 'ADMIN',
-} as const;
-
-export type UserRoleValue = (typeof USER_ROLE)[keyof typeof USER_ROLE];
-
 // Notification type enum
 export const NOTIFICATION_TYPE = {
   FRIEND_REQUEST: 'FRIEND_REQUEST',

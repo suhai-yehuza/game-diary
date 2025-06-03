@@ -2,18 +2,11 @@ import { and, eq, sql, gte, lte, like, or, isNotNull, desc, asc } from 'drizzle-
 
 import * as schema from '@/lib/db/schema';
 import { createConnection, parseCursor } from '@/lib/graphql/utils/pagination';
-import type { Context } from '@/lib/types/context.types';
+import type { Context } from '@/lib/types/component.types';
 import type { GameLogFilters } from '@/lib/types/generated/graphql';
 
 import type { PaginationArgs } from '../common/types';
 import { handleResolverError } from '../common/utils';
-
-// Helper function to safely parse ratingStars
-const parseRatingStars = (value: string | null | undefined): number | null => {
-  if (!value || value === '') return null;
-  const parsed = parseInt(value, 10);
-  return isNaN(parsed) ? null : parsed;
-};
 
 export const gameLog = async (
   _parent: unknown,
@@ -42,7 +35,6 @@ export const gameLog = async (
       watchedDate: gameLog.watchedDate,
       watchedLocation: gameLog.watchedLocation,
       ratingForGame: gameLog.ratingForGame,
-      ratingStars: parseRatingStars(gameLog.ratingStars),
       watchedScope: gameLog.watchedScope,
       notes: gameLog.notes,
       tags: gameLog.tags,
@@ -77,7 +69,6 @@ export const gameLogById = async (_parent: unknown, { id }: { id: string }, { db
       watchedDate: gameLog.watchedDate,
       watchedLocation: gameLog.watchedLocation,
       ratingForGame: gameLog.ratingForGame,
-      ratingStars: parseRatingStars(gameLog.ratingStars),
       watchedScope: gameLog.watchedScope,
       notes: gameLog.notes,
       tags: gameLog.tags,
@@ -128,11 +119,11 @@ export const gameLogs = async (
 
     // Rating filters
     if (filters?.minRating) {
-      conditions.push(gte(schema.game_logs.ratingStars, filters.minRating.toString()));
+      conditions.push(gte(schema.game_logs.ratingForGame, filters.minRating));
     }
 
     if (filters?.maxRating) {
-      conditions.push(lte(schema.game_logs.ratingStars, filters.maxRating.toString()));
+      conditions.push(lte(schema.game_logs.ratingForGame, filters.maxRating));
     }
 
     // Watched setting filter
@@ -191,7 +182,7 @@ export const gameLogs = async (
         orderByClause = sortDirection(schema.game_logs.watchedDate);
         break;
       case 'RATING':
-        orderByClause = sortDirection(schema.game_logs.ratingStars);
+        orderByClause = sortDirection(schema.game_logs.ratingForGame);
         break;
       case 'CREATED_AT':
       default:
@@ -219,7 +210,6 @@ export const gameLogs = async (
       watchedDate: log.watchedDate,
       watchedLocation: log.watchedLocation,
       ratingForGame: log.ratingForGame,
-      ratingStars: parseRatingStars(log.ratingStars),
       watchedScope: log.watchedScope,
       notes: log.notes,
       tags: log.tags,

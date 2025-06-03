@@ -1,8 +1,6 @@
 import { baseTableConfig } from '@/lib/db/schema/base-types';
 import {
   game_status_enum,
-  game_type_enum,
-  user_role_enum,
   notification_type_enum,
   reaction_type_enum,
   watched_setting_enum,
@@ -81,8 +79,6 @@ export const schema = {
   seasons,
   enums: {
     game_status: game_status_enum,
-    gameType: game_type_enum,
-    user_role: user_role_enum,
     notification_type: notification_type_enum,
     reaction_type: reaction_type_enum,
     watchedSetting: watched_setting_enum,

@@ -4,7 +4,8 @@ import type { InferSelectModel } from 'drizzle-orm';
 import * as schema from '@/lib/db/schema';
 import { BusinessLogicError } from '@/lib/graphql/errors';
 import { createConnection } from '@/lib/graphql/utils/pagination';
-import type { Context } from '@/lib/types/context.types';
+import type { Context } from '@/lib/types/component.types';
+import type { DBUser } from '@/lib/types/generated/graphql';
 
 import type { PaginationArgs } from '../common/types';
 import { handleResolverError } from '../common/utils';
@@ -26,39 +27,36 @@ interface UserSearchFilters {
   orderBy?: string | null;
 }
 
-// Helper function to map user data
-const mapUserData = (user: InferSelectModel<typeof schema.users>) => ({
-  id: user.id,
-  username: user.username,
-  emailAddress: user.emailAddress,
-  imageUrl: user.imageUrl,
-  firstName: user.firstName,
-  lastName: user.lastName,
-  inboundFriendshipIds: user.inboundFriendshipIds,
-  outboundFriendshipIds: user.outboundFriendshipIds,
-  banned: user.banned,
-  createdAt: user.createdAt,
-  updatedAt: user.updatedAt,
-  lastSignInAt: user.last_sign_in_at,
-  passwordEnabled: user.password_enabled,
-  twoFactorEnabled: user.two_factor_enabled,
-  emailVerified: user.email_verified,
-  emailVerificationStrategy: user.email_verification_strategy,
-  externalId: user.external_id,
-  externalAccounts: user.external_accounts,
-  deletedAt: user.deletedAt,
-  // Add missing fields for transformUser
-  avatar_url: user.imageUrl,
-  email: user.emailAddress,
-  initiatedFriendships: [],
-  // Initialize empty arrays for related data
-  comments: [],
-  gameLogs: [],
-  reactions: [],
-  friendships: [],
-});
-
-export { mapUserData };
+// Helper function to map user data from either DatabaseRow or InferSelectModel<typeof schema.users>
+export function mapUserData(user: InferSelectModel<typeof schema.users>): DBUser {
+  return {
+    id: user.id,
+    username: user.username || '',
+    emailAddress: user.emailAddress || '',
+    imageUrl: user.imageUrl || '',
+    firstName: user.firstName || '',
+    lastName: user.lastName || '',
+    inboundFriendshipIds: user.inboundFriendshipIds || [],
+    outboundFriendshipIds: user.outboundFriendshipIds || [],
+    banned: user.banned || false,
+    createdAt: user.createdAt,
+    updatedAt: user.updatedAt,
+    deletedAt: user.deletedAt,
+    last_sign_in_at: user.last_sign_in_at,
+    password_enabled: user.password_enabled || false,
+    two_factor_enabled: user.two_factor_enabled || false,
+    email_verified: user.email_verified || false,
+    email_verification_strategy: user.email_verification_strategy,
+    external_id: user.external_id || '',
+    timestamp: user.timestamp,
+    comments: [],
+    reactions: [],
+    gameLogs: [],
+    friendships: [],
+    initiatedFriendships: [],
+    __typename: 'DBUser',
+  };
+}
 
 export const searchUsers = async (
   _parent: unknown,
@@ -296,6 +294,3 @@ export const me = async (_parent: unknown, _args: unknown, { db, user }: Context
     handleResolverError(error, 'fetch current user');
   }
 };
-
-// Export User type resolver
-export { User } from './user-type';

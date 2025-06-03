@@ -27,7 +27,7 @@ import {
 import React, { useEffect, useState } from 'react';
 import { toast } from 'react-hot-toast';
 
-import { CreateGameLogModal } from '@/components/features/games';
+import { GameLogModal } from '@/components/features/games';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -37,8 +37,8 @@ import { StarRating } from '@/components/ui/star-rating';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { SEND_FRIEND_REQUEST, ACCEPT_FRIEND_REQUEST, REMOVE_FRIEND } from '@/lib/graphql/mutations';
 import { GET_GAME_LOGS, GET_USER } from '@/lib/graphql/queries';
-import { GameLog, Friendship, FriendshipStatus } from '@/lib/types/generated/graphql';
-import { DbCustomUser, UserProfileProps } from '@/lib/types/user.types';
+import { GameLog, Friendship, FriendshipStatus, DBUser } from '@/lib/types/generated/graphql';
+import { UserProfileProps } from '@/lib/types/user.types';
 import { cn } from '@/lib/utils';
 
 // Custom query to get friendships between two users
@@ -106,7 +106,7 @@ const classificationColors = {
 
 export default function UserProfile({ targetUserId }: UserProfileProps) {
   const { user: currentUser } = useUser();
-  const [targetUser, setTargetUser] = useState<DbCustomUser | null>(null);
+  const [targetUser, setTargetUser] = useState<DBUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [dbUserId, setDbUserId] = useState<string | null>(null);
   const [currentUserDbId, setCurrentUserDbId] = useState<string | null>(null);
@@ -151,18 +151,23 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
             last_sign_in_at: currentUser.lastSignInAt
               ? new Date(currentUser.lastSignInAt)
               : new Date(),
-            game_logs: [],
-            initiatedFriendships: [],
-            comments: [],
-            reactions: [],
-            received_friendships: [],
             password_enabled: currentUser.passwordEnabled,
             two_factor_enabled: currentUser.twoFactorEnabled,
             email_verified: currentUser.emailAddresses[0]?.verification?.status === 'verified',
             email_verification_strategy:
               currentUser.emailAddresses[0]?.verification?.strategy || '',
             banned: false,
-            external_accounts: [],
+            comments: [],
+            reactions: [],
+            gameLogs: [],
+            deletedAt: null,
+            external_id: '',
+            inboundFriendshipIds: [],
+            outboundFriendshipIds: [],
+            timestamp: new Date(),
+            friendships: [],
+            initiatedFriendships: [],
+            __typename: 'DBUser',
           });
         }
         // Fetch the current user's database record
@@ -197,7 +202,7 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
     fetchUser();
   }, [targetUserId, currentUser]);
 
-  const { data: userData, loading: userLoading } = useQuery<{ user: DbCustomUser }>(GET_USER, {
+  const { data: userData, loading: userLoading } = useQuery<{ user: DBUser }>(GET_USER, {
     variables: { id: dbUserId },
     skip: !dbUserId,
   });
@@ -333,7 +338,7 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
   // Calculate stats from game logs
   const averageRating =
     gameLogs.length > 0
-      ? gameLogs.reduce((sum, log) => sum + (log.ratingForGame || 0), 0) / gameLogs.length
+      ? gameLogs.reduce((sum, log) => sum + log.ratingForGame, 0) / gameLogs.length
       : 0;
 
   const classificationCounts = gameLogs.reduce(
@@ -495,7 +500,16 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
                   </p>
                 </div>
                 <div className="flex gap-2">
-                  {isOwnProfile && <CreateGameLogModal onSuccess={() => setCursor(null)} />}
+                  {isOwnProfile && (
+                    <GameLogModal
+                      mode="create"
+                      gameId={''}
+                      gameLog={{} as GameLog}
+                      isOpen={false}
+                      onClose={() => {}}
+                      onSuccess={() => setCursor(null)}
+                    />
+                  )}
                   {renderFriendshipButton()}
                 </div>
               </div>
@@ -649,7 +663,7 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
                           <div className="flex-1">
                             <div className="flex items-center gap-3 mb-2">
                               <h3 className="font-semibold text-lg">
-                                {log.game.teams.home.name} vs {log.game.teams.visitors.name}
+                                {log.game?.teams?.home?.name} vs {log.game?.teams?.visitors?.name}
                               </h3>
                               <Badge
                                 variant="outline"
@@ -690,7 +704,7 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
                           </div>
 
                           <div className="text-right">
-                            <StarRating rating={log.ratingForGame || 0} size="md" />
+                            <StarRating ratingForGame={log.ratingForGame} size="md" />
                             <p className="text-xs text-muted-foreground mt-1">
                               {formatDistanceToNow(new Date(log.createdAt), { addSuffix: true })}
                             </p>
@@ -703,9 +717,9 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
                           </div>
                         )}
 
-                        {log.tags.length > 0 && (
+                        {log?.tags?.length && (
                           <div className="flex flex-wrap gap-2">
-                            {log.tags.map((tag, index) => (
+                            {log.tags?.map((tag, index) => (
                               <Badge key={index} variant="secondary" className="text-xs">
                                 #{tag}
                               </Badge>
@@ -795,7 +809,7 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
                 <CardContent>
                   <div className="text-center py-4">
                     <div className="text-4xl font-bold mb-2">{averageRating.toFixed(1)}</div>
-                    <StarRating rating={averageRating} size="lg" />
+                    <StarRating ratingForGame={averageRating} size="lg" />
                     <p className="text-sm text-muted-foreground mt-2">
                       Based on {gameLogs.length} game logs
                     </p>

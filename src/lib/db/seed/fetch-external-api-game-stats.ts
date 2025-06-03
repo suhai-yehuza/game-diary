@@ -1,10 +1,10 @@
 import { eq } from 'drizzle-orm';
 
-import { API_CONFIG, getRapidApiConfig } from '@/lib/config/api.config';
+import { API_CONFIG, getRapidApiConfig, validateAPIKey } from '@/lib/config/api.config';
 import { game_stats, teams } from '@/lib/db/schema';
-import { createRapidAPIClient, validateAPIKey, handleAPIError } from '@/lib/external-apis';
+import { createRapidAPIClient, handleAPIError } from '@/lib/external-apis';
 import { GAME_STATUS_VALUES } from '@/lib/types/config.types';
-import type { GameTeamStatistic, GameTeamStatistics } from '@/lib/types/team.types';
+import type { GameTeamStatistic, TeamStatisticsResponseData } from '@/lib/types/consolidated.types';
 import { generateUUID } from '@/lib/utils/index.processing';
 
 import { createDatabaseClient } from './config';
@@ -78,7 +78,7 @@ export async function fetchAndProcessNBAGameStats(gameId: string, season: number
     }
 
     console.log(`Fetching NBA game statistics for game ${gameId}...`);
-    const response = await api.get<{ response: GameTeamStatistics[] }>(
+    const response = await api.get<{ response: TeamStatisticsResponseData[] }>(
       `${API_CONFIG.endpoints.GAMES}/statistics?id=${gameId}`
     );
 
@@ -93,8 +93,8 @@ export async function fetchAndProcessNBAGameStats(gameId: string, season: number
     }
 
     const [homeTeamStats, awayTeamStats] = gameStats as unknown as [
-      GameTeamStatistics,
-      GameTeamStatistics,
+      TeamStatisticsResponseData,
+      TeamStatisticsResponseData,
     ];
     if (!homeTeamStats.statistics[0] && !awayTeamStats.statistics[0]) {
       console.log('Missing team statistics, skipping...');

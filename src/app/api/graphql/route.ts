@@ -1,20 +1,22 @@
+import 'dotenv/config';
+
 import { readFileSync } from 'fs';
 import { join } from 'path';
 
 import { ApolloServer } from '@apollo/server';
 import { startServerAndCreateNextHandler } from '@as-integrations/next';
-import { auth, currentUser } from '@clerk/nextjs/server';
+import { auth, clerkClient } from '@clerk/nextjs/server';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { constraintDirective, constraintDirectiveTypeDefs } from 'graphql-constraint-directive';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-import { getCache } from '@/lib/cache/index';
+import { getCache } from '@/lib/cache';
 import { db } from '@/lib/db/seed';
 import { createLoaders } from '@/lib/graphql/loaders';
 import { resolvers } from '@/lib/graphql/resolvers';
-import type { Context } from '@/lib/types/context.types';
-import { RedisClient } from '@/lib/types/redis.types';
+import type { RedisClient } from '@/lib/types/cache.types';
+import type { Context } from '@/lib/types/component.types';
 
 const typeDefs = readFileSync(join(process.cwd(), 'src/lib/graphql/schema.graphql'), 'utf-8');
 
@@ -93,7 +95,8 @@ async function getUserWithRetry(
   let retries = 0;
   while (retries < MAX_CLERK_RETRIES) {
     try {
-      const user = await currentUser();
+      const clerkClientInstance = await clerkClient();
+      const user = await clerkClientInstance.users.getUser(userId);
       if (user) {
         const dbUser = {
           id: user.id,
@@ -148,7 +151,7 @@ const handler = startServerAndCreateNextHandler(server, {
       const { userId } = await auth();
       if (!userId) {
         return {
-          db,
+          db: db,
           redis: redisClient,
           user: undefined,
           loaders: createLoaders(db),
@@ -167,7 +170,7 @@ const handler = startServerAndCreateNextHandler(server, {
       const dbUser = await getUserWithRetry(userId, redisClient);
 
       return {
-        db,
+        db: db,
         redis: redisClient,
         user: dbUser,
         loaders: createLoaders(db),

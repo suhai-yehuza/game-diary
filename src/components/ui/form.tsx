@@ -1,3 +1,5 @@
+'use client';
+
 import * as LabelPrimitive from '@radix-ui/react-label';
 import { Slot } from '@radix-ui/react-slot';
 import * as React from 'react';
@@ -11,8 +13,15 @@ import {
 } from 'react-hook-form';
 
 import { Label } from '@/components/ui/label';
-import { FormFieldContextValue, FormItemContextValue } from '@/lib/types/form.types';
 import { cn } from '@/lib/utils';
+
+type FormFieldContextValue = {
+  name: string;
+};
+
+type FormItemContextValue = {
+  id: string;
+};
 
 const Form = FormProvider;
 

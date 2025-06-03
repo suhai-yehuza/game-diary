@@ -3,7 +3,7 @@ import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
 
 import * as schema from '@/lib/db/schema';
 import { GAME_STATUS_VALUES } from '@/lib/types/config.types';
-import type { GameTeams, GameScores, DBGameRecord } from '@/lib/types/game.types';
+import type { GameTeams, GameScores, DBGameRecord } from '@/lib/types/consolidated.types';
 import { Player, Game, Arena } from '@/lib/types/generated/graphql';
 import type { GameStatus, GamePeriods, Team } from '@/lib/types/generated/graphql';
 import type { GameRecord } from '@/lib/types/graphql.types';
@@ -29,8 +29,8 @@ function isDBGameRecord(game: unknown): game is DBGameRecord {
 }
 
 function convertDBGameToNBAGame(game: GameRecord): Game {
-  const teams = game.teams as GameTeams;
-  const scores = game.scores as GameScores;
+  const teams = game.teams as unknown as GameTeams;
+  const scores = game.scores as unknown as GameScores;
   const status = game.status as GameStatus;
   const periods = game.periods as GamePeriods;
   const gameDate = new Date(game.date);
