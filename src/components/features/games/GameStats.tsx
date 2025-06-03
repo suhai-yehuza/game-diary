@@ -5,8 +5,8 @@ import type {
   GameWithStatistics,
   ComponentGameStats,
   GameStatsProps,
+  GamePlayerStats,
 } from '@/lib/types/consolidated.types';
-import { GamePlayerStats } from '@/lib/types/consolidated.types';
 
 const calculateGameStats = (game: GameWithStatistics): ComponentGameStats => {
   const homeTeam = game.teams.home;
@@ -154,19 +154,7 @@ const calculateGameStats = (game: GameWithStatistics): ComponentGameStats => {
 };
 
 export const GameStats = ({ game }: GameStatsProps) => {
-  const [_selectedPeriod, _setSelectedPeriod] = useState<'game' | 'season'>('game');
-  const [_selectedStat, _setSelectedStat] = useState<string>('points');
-  const [_showTrends, _setShowTrends] = useState(false);
-  const [_showComparison, _setShowComparison] = useState(false);
-  const [_compareWith, _setCompareWith] = useState<string | null>(null);
-  const [_showInsights, _setShowInsights] = useState(false);
-  const [_showHeatmap, _setShowHeatmap] = useState(false);
   const [selectedTeam, setSelectedTeam] = useState<string>('all');
-  const [_showTeamStats, _setShowTeamStats] = useState(false);
-  const [_showPlayerComparison, _setShowPlayerComparison] = useState(false);
-  const [_selectedPlayer, _setSelectedPlayer] = useState<string | null>(null);
-  const [_showPlayerTrends, _setShowPlayerTrends] = useState(false);
-  const [_showTeamStandings, _setShowTeamStandings] = useState(false);
   const [minMinutes, setMinMinutes] = useState<number>(0);
 
   // Memoize stats calculation
@@ -174,28 +162,6 @@ export const GameStats = ({ game }: GameStatsProps) => {
     if (!game) return null;
     return calculateGameStats(game);
   }, [game]);
-
-  // Memoize player stats
-  const _playerStats = useMemo(() => {
-    if (!stats) return null;
-    return stats.players.map((player: GamePlayerStats) => ({
-      id: player.id,
-      playerId: player.playerId,
-      name: player.name,
-      points: player.points,
-      rebounds: player.rebounds,
-      assists: player.assists,
-      steals: player.steals,
-      blocks: player.blocks,
-      turnovers: player.turnovers,
-      fouls: player.fouls,
-      minutes: player.minutesPlayed,
-      plusMinus: player.plusMinus,
-      fieldGoals: player.fieldGoals,
-      threePointers: player.threePointers,
-      freeThrows: player.freeThrows,
-    }));
-  }, [stats]);
 
   // Filter stats based on selected criteria
   const filteredStats = useMemo(() => {

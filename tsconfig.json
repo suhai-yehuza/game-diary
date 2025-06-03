@@ -21,7 +21,8 @@
     "paths": {
       "@/*": ["./src/*"]
     },
-    "typeRoots": ["./node_modules/@types", "./src/lib/types"]
+    "typeRoots": ["./node_modules/@types", "./src/lib/types"],
+    "baseUrl": "."
   },
   "include": [
     "next-env.d.ts",
@@ -29,7 +30,9 @@
     "**/*.tsx",
     ".next/types/**/*.ts",
     "src/types/*.d.ts",
-    "src/lib/types/global.d.ts"
+    "src/lib/types/global.d.ts",
+    "src/lib/types/modules.d.ts",
+    "src/lib/types/datepicker.d.ts"
   ],
   "exclude": ["node_modules", "scripts/**/*"]
 }

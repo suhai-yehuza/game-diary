@@ -1,5 +1,4 @@
-import { and, eq, gt, lt, or, sql, gte, lte, desc, asc } from 'drizzle-orm';
-import type { InferSelectModel } from 'drizzle-orm';
+import { and, eq, gt, lt, or, sql, gte, lte, desc, asc, type InferSelectModel } from 'drizzle-orm';
 
 import * as schema from '@/lib/db/schema';
 import { BusinessLogicError } from '@/lib/graphql/errors';

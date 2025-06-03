@@ -19,8 +19,7 @@ import { ChartData } from 'chart.js';
 import type { InferSelectModel } from 'drizzle-orm';
 
 import { nba_games } from '@/lib/db/schema/nba-schemas';
-import { APIError } from '@/lib/types/api.types';
-import type { Activity } from '@/lib/types/api.types';
+import { APIError, type Activity } from '@/lib/types/api.types';
 import type {
   GameStatusValue,
   WatchedSettingValue,

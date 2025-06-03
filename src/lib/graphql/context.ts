@@ -3,8 +3,7 @@ import type DataLoader from 'dataloader';
 
 import { getDbClient } from '@/lib/db/seed';
 import type { Context } from '@/lib/types/component.types';
-import type { Reaction } from '@/lib/types/generated/graphql';
-import { DBUser } from '@/lib/types/generated/graphql';
+import type { Reaction, DBUser } from '@/lib/types/generated/graphql';
 
 import { createLoaders } from './loaders';
 

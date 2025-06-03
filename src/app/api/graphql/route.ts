@@ -8,8 +8,7 @@ import { startServerAndCreateNextHandler } from '@as-integrations/next';
 import { auth, clerkClient } from '@clerk/nextjs/server';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { constraintDirective, constraintDirectiveTypeDefs } from 'graphql-constraint-directive';
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 
 import { getCache } from '@/lib/cache';
 import { db } from '@/lib/db/seed';

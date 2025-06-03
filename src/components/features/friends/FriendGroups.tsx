@@ -167,8 +167,9 @@ export const FriendGroups: React.FC<FriendGroupsProps> = ({ friends, onGroupUpda
               <h3 className="text-lg font-semibold mb-4">Create New Group</h3>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Name</label>
+                  <label htmlFor="groupName" className="block text-sm font-medium text-gray-700">Name</label>
                   <input
+                    id="groupName"
                     type="text"
                     value={newGroup.name}
                     onChange={e => setNewGroup({ ...newGroup, name: e.target.value })}
@@ -176,8 +177,9 @@ export const FriendGroups: React.FC<FriendGroupsProps> = ({ friends, onGroupUpda
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Description</label>
+                  <label htmlFor="groupDescription" className="block text-sm font-medium text-gray-700">Description</label>
                   <textarea
+                    id="groupDescription"
                     value={newGroup.description}
                     onChange={e => setNewGroup({ ...newGroup, description: e.target.value })}
                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
@@ -185,8 +187,9 @@ export const FriendGroups: React.FC<FriendGroupsProps> = ({ friends, onGroupUpda
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Color</label>
+                  <label htmlFor="groupColor" className="block text-sm font-medium text-gray-700">Color</label>
                   <input
+                    id="groupColor"
                     type="color"
                     value={newGroup.color}
                     onChange={e => setNewGroup({ ...newGroup, color: e.target.value })}

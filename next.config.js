@@ -99,6 +99,13 @@ const nextConfig = {
       loader: 'graphql-tag/loader',
     });
 
+    // Add type resolution for problematic modules
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      'react-hook-form': path.resolve(__dirname, 'node_modules/react-hook-form'),
+      'react-datepicker': path.resolve(__dirname, 'node_modules/react-datepicker'),
+    };
+
     return config;
   },
   typescript: {

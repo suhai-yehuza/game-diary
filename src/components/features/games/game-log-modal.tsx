@@ -21,16 +21,10 @@ import { useAuthContext } from '@/contexts/AuthContext';
 import { API_CONFIG } from '@/lib/config/api.config';
 import { CREATE_GAME_LOG, UPDATE_GAME_LOG } from '@/lib/graphql/mutations';
 import { GET_EXTERNAL_GAMES, GET_GAME_LOGS } from '@/lib/graphql/queries';
-import { CLASSIFICATION, WATCHED_SETTING, WATCHED_SCOPE } from '@/lib/types/config.types';
-import type {
-  ClassificationValue,
-  WatchedSettingValue,
-  WatchedScopeValue,
-} from '@/lib/types/config.types';
+import { CLASSIFICATION, WATCHED_SETTING, WATCHED_SCOPE, type ClassificationValue, type WatchedSettingValue, type WatchedScopeValue } from '@/lib/types/config.types';
 import { GameEdge, GameLogFormData } from '@/lib/types/consolidated.types';
 import { GameLogModalProps } from '@/lib/types/game-log.types';
 import type {
-  CreateGameLogInput,
   Game,
   GameLog,
   UpdateGameLogInput,

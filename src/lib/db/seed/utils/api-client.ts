@@ -1,5 +1,4 @@
-import { sql } from 'drizzle-orm';
-import type { Table, InferInsertModel } from 'drizzle-orm';
+import { sql, type Table, type InferInsertModel } from 'drizzle-orm';
 import type { IndexColumn, PgUpdateSetSource } from 'drizzle-orm/pg-core';
 import pLimit from 'p-limit';
 

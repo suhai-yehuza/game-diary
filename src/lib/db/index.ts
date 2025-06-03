@@ -1,6 +1,5 @@
 import { neon, neonConfig } from '@neondatabase/serverless';
-import { drizzle } from 'drizzle-orm/neon-http';
-import type { NeonHttpDatabase } from 'drizzle-orm/neon-http';
+import { drizzle, type NeonHttpDatabase } from 'drizzle-orm/neon-http';
 
 import { getCache } from '@/lib/cache';
 import { schema as dbSchema } from '@/lib/db/schema';

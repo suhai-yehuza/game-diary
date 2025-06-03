@@ -8,6 +8,8 @@ import React, { useState, useEffect } from 'react';
 import { fetchNbaTeamById, fetchNbaTeamStats } from '@/lib/external-apis';
 import { type TeamDisplayStats } from '@/lib/types/consolidated.types';
 import { type Team } from '@/lib/types/generated/graphql';
+import { calculateTeamStats, getTeamStreak, getTeamLastTenGames } from '@/lib/utils/index.game';
+import type { Game } from '@/lib/types/consolidated.types';
 
 export default function TeamPage() {
   const params = useParams();
@@ -16,6 +18,12 @@ export default function TeamPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [teamStats, setTeamStats] = useState<TeamDisplayStats | null>(null);
+  const [recentGames, setRecentGames] = useState<Game[]>([]);
+  const [teamTrends, setTeamTrends] = useState<{
+    streak: { type: string; count: number };
+    lastTen: string;
+    stats: ReturnType<typeof calculateTeamStats>;
+  } | null>(null);
 
   useEffect(() => {
     const fetchTeamData = async () => {
@@ -100,6 +108,35 @@ export default function TeamPage() {
     loadTeamStats();
   }, [teamId]);
 
+  useEffect(() => {
+    const loadTeamTrends = async () => {
+      try {
+        // Fetch recent games for the team
+        const gamesResponse = await fetch(`/api/games?teamId=${teamId}&limit=20`);
+        const gamesData = await gamesResponse.json();
+        const games = gamesData.games || [];
+        setRecentGames(games);
+
+        // Calculate team trends
+        const streak = getTeamStreak(games, teamId);
+        const lastTen = getTeamLastTenGames(games, teamId);
+        const stats = calculateTeamStats(games, teamId);
+
+        setTeamTrends({
+          streak,
+          lastTen,
+          stats,
+        });
+      } catch (error) {
+        console.error('Error loading team trends:', error);
+      }
+    };
+
+    if (teamId) {
+      loadTeamTrends();
+    }
+  }, [teamId]);
+
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;
   if (!teamData) return <div>No team data found</div>;
@@ -169,7 +206,7 @@ export default function TeamPage() {
                     <div>
                       <p className="text-sm text-muted-foreground">Points Per Game</p>
                       <p className="text-2xl font-bold">
-                        {teamStats.points ?? 0 / teamStats.games}
+                        {teamStats.points ? (teamStats.points / teamStats.games).toFixed(1) : '0.0'}
                       </p>
                     </div>
                     <div>
@@ -184,12 +221,96 @@ export default function TeamPage() {
             </div>
           </div>
 
+          {/* Team Trends */}
+          {teamTrends && (
+            <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* Current Streak */}
+              <div className="bg-card rounded-lg shadow-sm p-6">
+                <h3 className="text-lg font-medium mb-4">Current Streak</h3>
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl font-bold">
+                    {teamTrends.streak.count} {teamTrends.streak.type}
+                  </span>
+                  {teamTrends.streak.type === 'win' ? (
+                    <span className="text-green-500">↑</span>
+                  ) : (
+                    <span className="text-red-500">↓</span>
+                  )}
+                </div>
+              </div>
+
+              {/* Last 10 Games */}
+              <div className="bg-card rounded-lg shadow-sm p-6">
+                <h3 className="text-lg font-medium mb-4">Last 10 Games</h3>
+                <div className="flex gap-1">
+                  {teamTrends.lastTen.split('').map((result, index) => (
+                    <span
+                      key={index}
+                      className={`w-8 h-8 flex items-center justify-center rounded-full ${
+                        result === 'W' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                      }`}
+                    >
+                      {result}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {/* Recent Performance */}
+              <div className="bg-card rounded-lg shadow-sm p-6">
+                <h3 className="text-lg font-medium mb-4">Recent Performance</h3>
+                <div className="space-y-2">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Win Rate</p>
+                    <p className="text-xl font-bold">
+                      {((teamTrends.stats.wins / teamTrends.stats.totalGames) * 100).toFixed(1)}%
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Points Per Game</p>
+                    <p className="text-xl font-bold">
+                      {(teamTrends.stats.pointsFor / teamTrends.stats.totalGames).toFixed(1)}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Points Against</p>
+                    <p className="text-xl font-bold">
+                      {(teamTrends.stats.pointsAgainst / teamTrends.stats.totalGames).toFixed(1)}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Recent Games */}
-          <div className="bg-card rounded-lg shadow-sm p-6">
-            <h3 className="text-lg font-medium mb-4">Recent Games</h3>
-            {/* Add recent games list here */}
-            <p className="text-muted-foreground">Recent games will be displayed here</p>
-          </div>
+          {recentGames.length > 0 && (
+            <div className="mt-8">
+              <h3 className="text-lg font-medium mb-4">Recent Games</h3>
+              <div className="grid grid-cols-1 gap-4">
+                {recentGames.map(game => (
+                  <div key={game.id} className="bg-card rounded-lg shadow-sm p-4">
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <p className="text-sm text-muted-foreground">
+                          {new Date(typeof game.date === 'string' ? game.date : game.date.start).toLocaleDateString()}
+                        </p>
+                        <p className="font-medium">
+                          {game.teams.home.name} vs {game.teams.visitors.name}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm text-muted-foreground">{game.status.long}</p>
+                        <p className="font-medium">
+                          {game.scores.home.points} - {game.scores.visitors.points}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </main>
     </div>

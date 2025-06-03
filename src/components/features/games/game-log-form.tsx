@@ -1,12 +1,10 @@
-import { useMutation, useQuery } from '@apollo/client';
-import { format } from 'date-fns';
-import { Search } from 'lucide-react';
+import { useMutation } from '@apollo/client';
 import React, { useState } from 'react';
-import DatePicker from 'react-datepicker';
+import { useForm } from 'react-hook-form';
 import 'react-datepicker/dist/react-datepicker.css';
+import DatePicker from 'react-datepicker';
 
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
@@ -14,18 +12,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { StarRating } from '@/components/ui/star-rating';
-import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/components/ui/use-toast';
 import { CREATE_GAME_LOG } from '@/lib/graphql/mutations';
-import { GET_EXTERNAL_GAMES } from '@/lib/graphql/queries';
-import { WATCHED_SETTING, CLASSIFICATION, WATCHED_SCOPE } from '@/lib/types/config.types';
-import type {
-  ClassificationValue,
-  WatchedSettingValue,
-  WatchedScopeValue,
+import { 
+  WATCHED_SETTING, 
+  CLASSIFICATION, 
+  WATCHED_SCOPE, 
+  type ClassificationValue,
+  type WatchedSettingValue,
+  type WatchedScopeValue 
 } from '@/lib/types/config.types';
-import { GameEdge, GameLogFormData, GameLogFormProps, Game } from '@/lib/types/consolidated.types';
+import { GameLogFormData, GameLogFormProps, Game } from '@/lib/types/consolidated.types';
 import type { CreateGameLogInput } from '@/lib/types/generated/graphql';
 
 export function GameLogForm({
@@ -39,6 +36,7 @@ export function GameLogForm({
   submitLabel = 'Create Game Log',
 }: GameLogFormProps) {
   const { toast } = useToast();
+  const { register } = useForm();
   const [internalFormData, setInternalFormData] = useState<GameLogFormData>({
     gameId: '',
     classification: CLASSIFICATION.PROTECTED,
@@ -56,7 +54,7 @@ export function GameLogForm({
   const finalSelectedGame = externalSelectedGame;
 
   const [createGameLog, { loading: creating }] = useMutation(CREATE_GAME_LOG);
-  
+
   const loading = externalLoading || creating;
 
   const handleInternalSubmit = async (e: React.FormEvent) => {
@@ -142,14 +140,13 @@ export function GameLogForm({
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label htmlFor="watchedSetting" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   How did you watch this game? *
                 </label>
                 <Select
+                  id="watchedSetting"
                   value={formData.watchedSetting}
-                  onValueChange={(value: WatchedSettingValue) =>
-                    setFormData({ ...formData, watchedSetting: value })
-                  }
+                  onValueChange={(value: WatchedSettingValue) => setFormData({ ...formData, watchedSetting: value })}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select how you watched the game" />
@@ -157,7 +154,7 @@ export function GameLogForm({
                   <SelectContent>
                     {Object.entries(WATCHED_SETTING).map(([key, value]) => (
                       <SelectItem key={key} value={value}>
-                        {key.replace('_', ' ')}
+                        {key}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -165,49 +162,47 @@ export function GameLogForm({
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label htmlFor="watchedDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   When did you watch this game? *
                 </label>
                 <DatePicker
                   selected={formData.watchedDate}
-                  onChange={(date: Date | null) =>
-                    date && setFormData({ ...formData, watchedDate: date })
-                  }
-                  className="w-full p-2 border rounded-md"
+                  onChange={(date: Date) => setFormData({ ...formData, watchedDate: date })}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                   dateFormat="MMMM d, yyyy"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Where did you watch this game? *
+                <label htmlFor="watchedLocation" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Where did you watch this game?
                 </label>
-                <Input
+                <input
+                  id="watchedLocation"
                   type="text"
                   value={formData.watchedLocation}
-                  onChange={e => setFormData({ ...formData, watchedLocation: e.target.value })}
-                  placeholder="Enter location (e.g., Home, Bar, Stadium)"
-                  required
+                  onChange={(e) => setFormData({ ...formData, watchedLocation: e.target.value })}
+                  placeholder="e.g., Home, Bar, Stadium"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label htmlFor="watchedScope" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   How much of the game did you watch? *
                 </label>
                 <Select
+                  id="watchedScope"
                   value={formData.watchedScope}
-                  onValueChange={(value: WatchedScopeValue) =>
-                    setFormData({ ...formData, watchedScope: value })
-                  }
+                  onValueChange={(value: WatchedScopeValue) => setFormData({ ...formData, watchedScope: value })}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select how much of the game you watched" />
+                    <SelectValue placeholder="Select how much you watched" />
                   </SelectTrigger>
                   <SelectContent>
                     {Object.entries(WATCHED_SCOPE).map(([key, value]) => (
                       <SelectItem key={key} value={value}>
-                        {key.replace('_', ' ')}
+                        {key}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -215,34 +210,47 @@ export function GameLogForm({
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Rate this game *
+                <label htmlFor="ratingForGame" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  How would you rate this game? *
                 </label>
-                <StarRating
-                  ratingForGame={formData.ratingForGame}
-                  onRatingChange={ratingForGame =>
-                    setFormData({ ...formData, ratingForGame: ratingForGame })
-                  }
-                />
+                <Select
+                  id="ratingForGame"
+                  value={formData.ratingForGame.toString()}
+                  onValueChange={(value: string) => setFormData({ ...formData, ratingForGame: parseInt(value) })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a rating" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[1, 2, 3, 4, 5].map((rating) => (
+                      <SelectItem key={rating} value={rating.toString()}>
+                        {rating} {rating === 1 ? 'Star' : 'Stars'}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label htmlFor="notes" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Notes
                 </label>
-                <Textarea
+                <textarea
+                  id="notes"
                   value={formData.notes}
-                  onChange={e => setFormData({ ...formData, notes: e.target.value })}
-                  placeholder="Add any notes about the game..."
+                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                   rows={4}
+                  placeholder="Share your thoughts about the game..."
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label htmlFor="classification" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Classification *
                 </label>
                 <Select
+                  id="classification"
                   value={formData.classification}
                   onValueChange={(value: ClassificationValue) =>
                     setFormData({ ...formData, classification: value })
