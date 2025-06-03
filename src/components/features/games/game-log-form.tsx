@@ -38,8 +38,6 @@ export function GameLogForm({
   onCancel,
   submitLabel = 'Create Game Log',
 }: GameLogFormProps) {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedGame, setSelectedGame] = useState<Game | null>(null);
   const { toast } = useToast();
   const [internalFormData, setInternalFormData] = useState<GameLogFormData>({
     gameId: '',
@@ -55,38 +53,11 @@ export function GameLogForm({
 
   const formData = externalFormData || internalFormData;
   const setFormData = externalSetFormData || setInternalFormData;
-  const finalSelectedGame = externalSelectedGame || selectedGame;
+  const finalSelectedGame = externalSelectedGame;
 
   const [createGameLog, { loading: creating }] = useMutation(CREATE_GAME_LOG);
   
   const loading = externalLoading || creating;
-
-  // Search games using external API
-  const { data: searchResults, loading: searching } = useQuery(GET_EXTERNAL_GAMES, {
-    variables: {
-      filters: {
-        dateRange: {
-          start: format(new Date(), 'yyyy-MM-dd'),
-        },
-      },
-      pagination: { first: 10 },
-    },
-  });
-
-  // Filter games client-side by searchQuery
-  const filteredGames =
-    searchResults?.games?.edges
-      ?.map((edge: GameEdge) => edge.node)
-      ?.filter((game: Game) => {
-        if (!searchQuery) return true;
-        const lower = searchQuery.toLowerCase();
-        const teamNames =
-          game.teams?.home?.name && game.teams?.visitors?.name
-            ? `${game.teams.home.name} ${game.teams.visitors.name}`.toLowerCase()
-            : '';
-        const arena = game.arena?.name?.toLowerCase() || '';
-        return teamNames.includes(lower) || arena.includes(lower);
-      }) || [];
 
   const handleInternalSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -157,56 +128,6 @@ export function GameLogForm({
   return (
     <form onSubmit={handleSubmit} className="flex flex-col h-full">
       <div className="flex-1 overflow-y-auto space-y-4 pb-4">
-        {/* Game Search Section - only show if no external selected game */}
-        {!externalSelectedGame && (
-          <div className="space-y-4">
-            <div className="relative">
-              <Input
-                type="text"
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                placeholder="Search for a game..."
-                className="pl-10"
-              />
-              <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-500" />
-            </div>
-
-            {searching && <div>Searching games...</div>}
-
-            {filteredGames.length > 0 && (
-              <div className="space-y-2 max-h-60 overflow-y-auto">
-                {filteredGames.map((game: Game) => {
-                  return (
-                    <div
-                      key={game.id}
-                      className={`p-3 border rounded-lg cursor-pointer hover:bg-gray-50 ${
-                        finalSelectedGame?.id === game.id ? 'border-blue-500 bg-blue-50' : ''
-                      }`}
-                      onClick={() => setSelectedGame(game)}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="font-medium">
-                            {game.teams?.home?.name && game.teams?.visitors?.name
-                              ? `${game.teams.home.name} vs ${game.teams.visitors.name}`
-                              : 'Unknown Teams'}
-                          </p>
-                          <p className="text-sm text-gray-500">
-                            {formatGameDateDisplay(game)} • {game.arena?.name || 'Unknown Arena'}
-                          </p>
-                        </div>
-                        <div className="text-sm text-gray-500">
-                          {game.league} • {game.season}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        )}
-
         {finalSelectedGame && (
           <>
             <div className="p-4 bg-gray-50 rounded-lg">
@@ -222,7 +143,7 @@ export function GameLogForm({
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  How did you watch this game?
+                  How did you watch this game? *
                 </label>
                 <Select
                   value={formData.watchedSetting}
@@ -236,7 +157,7 @@ export function GameLogForm({
                   <SelectContent>
                     {Object.entries(WATCHED_SETTING).map(([key, value]) => (
                       <SelectItem key={key} value={value}>
-                        {key}
+                        {key.replace('_', ' ')}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -245,7 +166,7 @@ export function GameLogForm({
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  When did you watch this game?
+                  When did you watch this game? *
                 </label>
                 <DatePicker
                   selected={formData.watchedDate}
@@ -259,19 +180,20 @@ export function GameLogForm({
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Where did you watch this game?
+                  Where did you watch this game? *
                 </label>
                 <Input
                   type="text"
                   value={formData.watchedLocation}
                   onChange={e => setFormData({ ...formData, watchedLocation: e.target.value })}
                   placeholder="Enter location (e.g., Home, Bar, Stadium)"
+                  required
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  How much of the game did you watch?
+                  How much of the game did you watch? *
                 </label>
                 <Select
                   value={formData.watchedScope}
@@ -285,7 +207,7 @@ export function GameLogForm({
                   <SelectContent>
                     {Object.entries(WATCHED_SCOPE).map(([key, value]) => (
                       <SelectItem key={key} value={value}>
-                        {key}
+                        {key.replace('_', ' ')}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -294,7 +216,7 @@ export function GameLogForm({
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Rate this game
+                  Rate this game *
                 </label>
                 <StarRating
                   ratingForGame={formData.ratingForGame}
@@ -318,7 +240,7 @@ export function GameLogForm({
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Classification
+                  Classification *
                 </label>
                 <Select
                   value={formData.classification}
@@ -341,6 +263,12 @@ export function GameLogForm({
             </div>
           </>
         )}
+
+        {!finalSelectedGame && (
+          <div className="text-center py-8 text-gray-500">
+            Please select a game above to continue filling out your game log.
+          </div>
+        )}
       </div>
 
       <div className="flex justify-end space-x-2 pt-4 border-t">
@@ -348,7 +276,7 @@ export function GameLogForm({
           Cancel
         </Button>
         <Button type="submit" disabled={loading || !finalSelectedGame}>
-          {submitLabel}
+          {loading ? 'Creating...' : submitLabel}
         </Button>
       </div>
     </form>
