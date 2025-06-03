@@ -2,7 +2,8 @@ import { z } from 'zod';
 
 // Create a more sophisticated environment validation that handles build vs runtime
 const isServer = typeof window === 'undefined';
-const isBuild = process.env.NODE_ENV === 'production' && process.env.NEXT_PHASE === 'phase-production-build';
+const isBuild =
+  process.env.NODE_ENV === 'production' && process.env.NEXT_PHASE === 'phase-production-build';
 
 export const envSchema = z.object({
   // Database - always required
@@ -18,15 +19,9 @@ export const envSchema = z.object({
   REDIS_URL: z.string().url().optional(),
 
   // API - required at runtime but optional during build
-  NEXT_PUBLIC_RAPID_API_HOST: isBuild 
-    ? z.string().min(1).optional() 
-    : z.string().min(1),
-  NEXT_PUBLIC_RAPID_API_KEY: isBuild 
-    ? z.string().min(1).optional() 
-    : z.string().min(1),
-  NEXT_PUBLIC_RAPID_API_BASE_URL: isBuild 
-    ? z.string().url().optional() 
-    : z.string().url(),
+  NEXT_PUBLIC_RAPID_API_HOST: isBuild ? z.string().min(1).optional() : z.string().min(1),
+  NEXT_PUBLIC_RAPID_API_KEY: isBuild ? z.string().min(1).optional() : z.string().min(1),
+  NEXT_PUBLIC_RAPID_API_BASE_URL: isBuild ? z.string().url().optional() : z.string().url(),
 });
 
 export type EnvConfig = z.infer<typeof envSchema>;
@@ -36,10 +31,10 @@ export function validateRuntimeEnv() {
   if (!isBuild && isServer) {
     const requiredApiVars = [
       'NEXT_PUBLIC_RAPID_API_HOST',
-      'NEXT_PUBLIC_RAPID_API_KEY', 
-      'NEXT_PUBLIC_RAPID_API_BASE_URL'
+      'NEXT_PUBLIC_RAPID_API_KEY',
+      'NEXT_PUBLIC_RAPID_API_BASE_URL',
     ];
-    
+
     const missing = requiredApiVars.filter(key => !process.env[key]);
     if (missing.length > 0) {
       console.warn(`Missing RapidAPI environment variables: ${missing.join(', ')}`);
