@@ -151,7 +151,10 @@ export class Cache {
   private async testConnection(): Promise<boolean> {
     try {
       // Increase timeout for initial connection test
-      await Promise.race([this.client!.ping(), sleep(30000)]);
+      if (!this.client) {
+        throw new Error('Redis client is not initialized');
+      }
+      await Promise.race([this.client.ping(), sleep(30000)]);
       this.isRedisAvailable = true;
       console.log('✅ Redis connection established successfully');
       console.log('=== Redis Initialization Complete ===\n');

@@ -78,6 +78,15 @@ export const GamesList = ({ games, initialFilters, onGameSelect }: GamesListProp
             key={game.id}
             className="p-4 border rounded-lg hover:shadow-md transition-shadow cursor-pointer"
             onClick={() => onGameSelect?.(game)}
+            onKeyDown={e => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                onGameSelect?.(game);
+              }
+            }}
+            role="button"
+            tabIndex={0}
+            aria-label={`Select game: ${game.teams.home.name} vs ${game.teams.visitors.name}`}
           >
             <h3 className="font-semibold">
               {game.teams.home.name} vs {game.teams.visitors.name}

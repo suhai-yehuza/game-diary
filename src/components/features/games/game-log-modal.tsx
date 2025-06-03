@@ -187,10 +187,19 @@ export function GameLogModal({
       }
 
       if (mode === 'create') {
+        if (!selectedGame) {
+          toast({
+            title: 'Game selection required',
+            description: 'Please select a game first',
+            variant: 'destructive',
+          });
+          return;
+        }
+
         const result = await createGameLog({
           variables: {
             input: {
-              gameId: selectedGame!.id,
+              gameId: selectedGame.id,
               watchedSetting: formData.watchedSetting,
               watchedDate: formData.watchedDate,
               watchedLocation: formData.watchedLocation,
@@ -215,6 +224,15 @@ export function GameLogModal({
           router.refresh();
         }
       } else {
+        if (!gameLog?.id) {
+          toast({
+            title: 'Game log error',
+            description: 'Game log ID is missing',
+            variant: 'destructive',
+          });
+          return;
+        }
+
         const input: UpdateGameLogInput = {
           watchedSetting: formData.watchedSetting,
           watchedDate: formData.watchedDate,
@@ -228,7 +246,7 @@ export function GameLogModal({
 
         const result = await updateGameLog({
           variables: {
-            id: gameLog!.id,
+            id: gameLog.id,
             input,
           },
         });
@@ -327,6 +345,15 @@ export function GameLogModal({
                   selectedGame?.id === edge.node.id ? 'border-blue-500 bg-blue-50' : ''
                 }`}
                 onClick={() => setSelectedGame(edge.node as unknown as Game)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    setSelectedGame(edge.node as unknown as Game);
+                  }
+                }}
+                role="button"
+                tabIndex={0}
+                aria-label={`Select game: ${edge.node.teams?.home?.name || 'Unknown'} vs ${edge.node.teams?.visitors?.name || 'Unknown'}`}
               >
                 <div className="flex items-center justify-between">
                   <div>

@@ -14,9 +14,22 @@ export default function Page() {
     }
   };
 
+  const handleBackdropKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      router.push('/');
+    }
+  };
+
   return (
     <div className="relative min-h-[calc(100vh-4rem)] flex items-center justify-center">
-      <div className="absolute inset-0 bg-background/80" onClick={handleBackdropClick} />
+      <div
+        className="absolute inset-0 bg-background/80"
+        onClick={handleBackdropClick}
+        onKeyDown={handleBackdropKeyDown}
+        role="button"
+        tabIndex={0}
+        aria-label="Close modal"
+      />
       <div ref={modalRef} className="relative z-10 w-full max-w-md mx-auto p-4">
         <SignIn
           routing="hash"

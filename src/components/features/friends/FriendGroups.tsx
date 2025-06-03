@@ -48,7 +48,10 @@ export const FriendGroups: React.FC<FriendGroupsProps> = ({ friends, onGroupUpda
     });
 
     setGroups(updatedGroups);
-    onGroupUpdate?.(updatedGroups.find(g => g.id === groupId)!);
+    const updatedGroup = updatedGroups.find(g => g.id === groupId);
+    if (updatedGroup) {
+      onGroupUpdate?.(updatedGroup);
+    }
     toast.success('Friend added to group');
   };
 
@@ -64,7 +67,10 @@ export const FriendGroups: React.FC<FriendGroupsProps> = ({ friends, onGroupUpda
     });
 
     setGroups(updatedGroups);
-    onGroupUpdate?.(updatedGroups.find(g => g.id === groupId)!);
+    const updatedGroup = updatedGroups.find(g => g.id === groupId);
+    if (updatedGroup) {
+      onGroupUpdate?.(updatedGroup);
+    }
     toast.success('Friend removed from group');
   };
 

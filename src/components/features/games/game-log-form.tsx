@@ -7,8 +7,9 @@ import ReactDatePickerOriginal from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { useForm, type ControllerRenderProps } from 'react-hook-form';
 
-// Type assertion to fix the JSX component issue
-const ReactDatePicker = ReactDatePickerOriginal as unknown as React.ComponentType<any>;
+// Type-safe component wrapper
+const ReactDatePicker =
+  ReactDatePickerOriginal as unknown as React.ComponentType<ReactDatePickerProps>;
 
 import { Button } from '@/components/ui/button';
 import {
@@ -34,6 +35,7 @@ import { WATCHED_SETTING, CLASSIFICATION, WATCHED_SCOPE } from '@/lib/types/conf
 import { GameLogFormProps, Game } from '@/lib/types/consolidated.types';
 import type { CreateGameLogInput } from '@/lib/types/generated/graphql';
 import { createGameLogSchema } from '@/lib/validations/game-log';
+import { ReactDatePickerProps } from '@/lib/types/game-log.types';
 
 export function GameLogForm({
   onSuccess,
@@ -193,7 +195,7 @@ export function GameLogForm({
                 <FormLabel>Watched Date</FormLabel>
                 <FormControl>
                   <ReactDatePicker
-                    selected={field.value}
+                    selected={field.value || null}
                     onChange={(date: Date | null) => date && field.onChange(date)}
                     className="w-full rounded-md border border-input bg-background px-3 py-2"
                     dateFormat="MMMM d, yyyy"

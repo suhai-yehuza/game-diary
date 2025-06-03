@@ -95,3 +95,12 @@ export interface StarRatingProps {
   className?: string;
   onRatingChange?: (rating: number) => void;
 }
+
+export interface ReactDatePickerProps {
+  selected: Date | null;
+  onChange: (date: Date | null) => void;
+  className?: string;
+  dateFormat?: string;
+  placeholderText?: string;
+  disabled?: boolean;
+}

@@ -12,14 +12,24 @@ export default function Footer() {
             <h3 className="text-xs font-semibold mb-2">About</h3>
             <ul className="space-y-1 text-xs text-gray-600">
               <li>
-                <a href="#" className="hover:text-blue-600">
+                <button
+                  className="hover:text-blue-600 text-left"
+                  onClick={() => {
+                    /* TODO: Navigate to About Us */
+                  }}
+                >
                   About Us
-                </a>
+                </button>
               </li>
               <li>
-                <a href="#" className="hover:text-blue-600">
+                <button
+                  className="hover:text-blue-600 text-left"
+                  onClick={() => {
+                    /* TODO: Navigate to News */
+                  }}
+                >
                   News
-                </a>
+                </button>
               </li>
             </ul>
           </div>
@@ -29,14 +39,24 @@ export default function Footer() {
             <h3 className="text-xs font-semibold mb-2">Help</h3>
             <ul className="space-y-1 text-xs text-gray-600">
               <li>
-                <a href="#" className="hover:text-blue-600">
+                <button
+                  className="hover:text-blue-600 text-left"
+                  onClick={() => {
+                    /* TODO: Navigate to API */
+                  }}
+                >
                   API
-                </a>
+                </button>
               </li>
               <li>
-                <a href="#" className="hover:text-blue-600">
+                <button
+                  className="hover:text-blue-600 text-left"
+                  onClick={() => {
+                    /* TODO: Navigate to Contact */
+                  }}
+                >
                   Contact Us
-                </a>
+                </button>
               </li>
             </ul>
           </div>
@@ -46,14 +66,24 @@ export default function Footer() {
             <h3 className="text-xs font-semibold mb-2">Follow Us</h3>
             <ul className="space-y-1 text-xs text-gray-600">
               <li>
-                <a href="#" className="hover:text-blue-600">
+                <button
+                  className="hover:text-blue-600 text-left"
+                  onClick={() => {
+                    /* TODO: Open X/Twitter */
+                  }}
+                >
                   X
-                </a>
+                </button>
               </li>
               <li>
-                <a href="#" className="hover:text-blue-600">
+                <button
+                  className="hover:text-blue-600 text-left"
+                  onClick={() => {
+                    /* TODO: Open YouTube */
+                  }}
+                >
                   YouTube
-                </a>
+                </button>
               </li>
             </ul>
           </div>
@@ -63,9 +93,14 @@ export default function Footer() {
             <h3 className="text-xs font-semibold mb-2">Legal</h3>
             <ul className="space-y-1 text-xs text-gray-600">
               <li>
-                <a href="#" className="hover:text-blue-600">
+                <button
+                  className="hover:text-blue-600 text-left"
+                  onClick={() => {
+                    /* TODO: Navigate to Privacy Policy */
+                  }}
+                >
                   Privacy Policy
-                </a>
+                </button>
               </li>
               <li className="text-[10px] text-gray-500 mt-2">
                 © {new Date().getFullYear()} Game Diary. All rights reserved.

@@ -104,7 +104,17 @@ export function GameLogForm({
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <div className="flex items-center px-3 pb-2" onClick={e => e.stopPropagation()}>
+                    <div
+                      className="flex items-center px-3 pb-2"
+                      onClick={e => e.stopPropagation()}
+                      onKeyDown={e => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.stopPropagation();
+                        }
+                      }}
+                      role="searchbox"
+                      tabIndex={-1}
+                    >
                       <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
                       <Input
                         placeholder="Search games..."

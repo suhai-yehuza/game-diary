@@ -2,7 +2,7 @@ declare module 'chart.js' {
   export interface ChartOptions {
     responsive?: boolean;
     maintainAspectRatio?: boolean;
-    [key: string]: any;
+    [key: string]: unknown;
   }
 
   export interface ChartData {
@@ -13,7 +13,7 @@ declare module 'chart.js' {
       backgroundColor?: string | string[];
       borderColor?: string | string[];
       borderWidth?: number;
-      [key: string]: any;
+      [key: string]: unknown;
     }>;
   }
 

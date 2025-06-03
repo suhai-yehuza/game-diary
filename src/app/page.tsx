@@ -64,22 +64,20 @@ export default function Home() {
         </div>
       </main>
       <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
+        <Link
           className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="#"
-          rel="noopener noreferrer"
+          href="/community"
         >
           <Image aria-hidden src="/file.svg" alt="File icon" width={16} height={16} />
           How to log a game
-        </a>
-        <a
+        </Link>
+        <Link
           className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="#"
-          rel="noopener noreferrer"
+          href="/community"
         >
           <Image aria-hidden src="/window.svg" alt="Window icon" width={16} height={16} />
           Example game logs
-        </a>
+        </Link>
       </footer>
     </div>
   );
