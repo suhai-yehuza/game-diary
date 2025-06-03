@@ -61,24 +61,6 @@ export interface GameLogFormProps {
   submitLabel?: string;
 }
 
-export interface GameLogViewProps {
-  gameLog: {
-    id: string;
-    gameId: string;
-    userId: string;
-    watchedSetting: string;
-    watchedDate: string;
-    watchedLocation: string;
-    ratingForGame: string;
-    notes: string;
-    tags: string[];
-    classification: string;
-    watchedScope: string;
-    createdAt: string;
-    updatedAt: string;
-  };
-}
-
 export interface GameLogModalProps {
   mode: 'create' | 'update';
   gameId?: string;
