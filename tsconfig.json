@@ -8,7 +8,7 @@
     "noEmit": true,
     "esModuleInterop": true,
     "module": "esnext",
-    "moduleResolution": "bundler",
+    "moduleResolution": "node",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "preserve",
@@ -31,8 +31,7 @@
     ".next/types/**/*.ts",
     "src/types/*.d.ts",
     "src/lib/types/global.d.ts",
-    "src/lib/types/modules.d.ts",
-    "src/lib/types/datepicker.d.ts"
+    "src/lib/types/modules.d.ts"
   ],
   "exclude": ["node_modules", "scripts/**/*"]
 }

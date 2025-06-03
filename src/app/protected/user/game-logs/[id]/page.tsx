@@ -4,12 +4,18 @@ import React from 'react';
 
 import { GameLog } from '@/components/features/game-logs';
 
-export default async function GameLogPage() {
+interface GameLogPageProps {
+  params: {
+    id: string;
+  };
+}
+
+export default async function GameLogPage({ params }: GameLogPageProps) {
   const { userId } = await auth();
 
   if (!userId) {
     redirect('/sign-in');
   }
 
-  return <GameLog />;
+  return <GameLog gameLogId={params.id} />;
 }

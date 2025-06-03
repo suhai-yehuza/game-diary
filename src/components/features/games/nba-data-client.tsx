@@ -18,7 +18,7 @@ export const NbaDataClient = () => {
   const [selectedDivision, setSelectedDivision] = useState<DivisionType | 'all'>('all');
   const [selectedPosition, setSelectedPosition] = useState<string>('all');
   const [sortBy] = useState<SortDirection>(API_CONFIG.pagination.DEFAULT_SORT_DIRECTION);
-  const [searchTerm, _setSearchTerm] = useState('');
+  const [searchTerm] = useState('');
 
   const {
     data: seasonData,

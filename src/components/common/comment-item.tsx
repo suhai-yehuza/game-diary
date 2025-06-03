@@ -251,8 +251,15 @@ export function CommentItem({
                     onChange={e => setReplyContent(e.target.value)}
                     placeholder="Write a reply..."
                     className="min-h-[80px] text-sm resize-none"
-                    autoFocus
-                    disabled={isSubmitting}
+                    onKeyDown={e => {
+                      if (e.key === 'Escape') {
+                        setIsReplying(false);
+                        setReplyContent('');
+                      }
+                      if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+                        handleSubmitReply(e);
+                      }
+                    }}
                   />
                   <div className="flex gap-2 justify-end">
                     <Button

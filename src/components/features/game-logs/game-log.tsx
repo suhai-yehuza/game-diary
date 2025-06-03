@@ -1,7 +1,6 @@
 'use client';
 
 import { useQuery } from '@apollo/client';
-import { useUser } from '@clerk/nextjs';
 import { format, formatDistanceToNow } from 'date-fns';
 import {
   Star,
@@ -17,7 +16,6 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
 import React, { useState } from 'react';
 
 import { CommentsSection, ReactionsSection } from '@/components/common';
@@ -30,6 +28,10 @@ import { StarRating } from '@/components/ui/star-rating';
 import { GET_GAME_LOG_BY_ID } from '@/lib/graphql/queries';
 import type { GameLogByIdResponse, TeamDisplayProps } from '@/lib/types/consolidated.types';
 import { cn } from '@/lib/utils';
+
+interface GameLogProps {
+  gameLogId: string;
+}
 
 // Loading skeleton component
 const GameLogSkeleton = () => (
@@ -170,10 +172,7 @@ const WatchInfoItem = ({
   </div>
 );
 
-export default function GameLog() {
-  const params = useParams();
-  const gameLogId = params?.id as string;
-  const { user: _user } = useUser();
+export default function GameLogComponent({ gameLogId }: GameLogProps) {
   const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
 
   const handleImageError = (id: string) => {

@@ -1,10 +1,25 @@
+'use client';
+
 import { useMutation } from '@apollo/client';
+import { zodResolver } from '@hookform/resolvers/zod';
 import React, { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import ReactDatePickerOriginal from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
-import DatePicker from 'react-datepicker';
+import { useForm, type ControllerRenderProps } from 'react-hook-form';
+
+// Type assertion to fix the JSX component issue
+const ReactDatePicker = ReactDatePickerOriginal as unknown as React.ComponentType<any>;
 
 import { Button } from '@/components/ui/button';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
@@ -12,54 +27,50 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/components/ui/use-toast';
 import { CREATE_GAME_LOG } from '@/lib/graphql/mutations';
-import { 
-  WATCHED_SETTING, 
-  CLASSIFICATION, 
-  WATCHED_SCOPE, 
-  type ClassificationValue,
-  type WatchedSettingValue,
-  type WatchedScopeValue 
-} from '@/lib/types/config.types';
-import { GameLogFormData, GameLogFormProps, Game } from '@/lib/types/consolidated.types';
+import { WATCHED_SETTING, CLASSIFICATION, WATCHED_SCOPE } from '@/lib/types/config.types';
+import { GameLogFormProps, Game } from '@/lib/types/consolidated.types';
 import type { CreateGameLogInput } from '@/lib/types/generated/graphql';
+import { createGameLogSchema } from '@/lib/validations/game-log';
 
 export function GameLogForm({
   onSuccess,
   formData: externalFormData,
-  setFormData: externalSetFormData,
   selectedGame: externalSelectedGame,
   loading: externalLoading,
   onSubmit: externalOnSubmit,
   onCancel,
-  submitLabel = 'Create Game Log',
+  submitLabel = 'Save',
 }: GameLogFormProps) {
   const { toast } = useToast();
-  const { register } = useForm();
-  const [internalFormData, setInternalFormData] = useState<GameLogFormData>({
-    gameId: '',
-    classification: CLASSIFICATION.PROTECTED,
-    watchedSetting: WATCHED_SETTING.TV,
-    watchedScope: WATCHED_SCOPE.FULL_GAME,
-    watchedDate: new Date(),
-    watchedLocation: '',
-    ratingForGame: 3,
-    notes: '',
-    tags: [],
+  const form = useForm<CreateGameLogInput>({
+    resolver: zodResolver(createGameLogSchema),
+    defaultValues: externalFormData || {
+      gameId: '',
+      classification: CLASSIFICATION.PROTECTED,
+      watchedSetting: WATCHED_SETTING.TV,
+      watchedScope: WATCHED_SCOPE.FULL_GAME,
+      watchedDate: new Date(),
+      watchedLocation: '',
+      ratingForGame: 3,
+      notes: '',
+      tags: [],
+    },
   });
 
-  const formData = externalFormData || internalFormData;
-  const setFormData = externalSetFormData || setInternalFormData;
-  const finalSelectedGame = externalSelectedGame;
+  const [selectedGame] = useState<Game | null>(null);
+
+  // Use external form data if provided, otherwise use internal state
+  const finalSelectedGame = externalSelectedGame || selectedGame;
+  const isLoading = externalLoading || false;
 
   const [createGameLog, { loading: creating }] = useMutation(CREATE_GAME_LOG);
 
-  const loading = externalLoading || creating;
+  const loading = isLoading || creating;
 
-  const handleInternalSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
+  const handleInternalSubmit = async (data: CreateGameLogInput) => {
     if (!finalSelectedGame) {
       toast({
         title: 'Error',
@@ -72,23 +83,23 @@ export function GameLogForm({
     try {
       const input: CreateGameLogInput = {
         gameId: finalSelectedGame.id,
-        watchedSetting: formData.watchedSetting,
-        watchedDate: formData.watchedDate,
-        watchedLocation: formData.watchedLocation,
-        ratingForGame: formData.ratingForGame,
-        watchedScope: formData.watchedScope,
-        notes: formData.notes,
-        tags: formData.tags,
-        classification: formData.classification,
+        watchedSetting: data.watchedSetting,
+        watchedDate: data.watchedDate,
+        watchedLocation: data.watchedLocation,
+        ratingForGame: data.ratingForGame,
+        watchedScope: data.watchedScope,
+        notes: data.notes,
+        tags: data.tags,
+        classification: data.classification,
       };
 
-      const { data } = await createGameLog({
+      const { data: result } = await createGameLog({
         variables: {
           input,
         },
       });
 
-      if (data?.createGameLog?.gameLog) {
+      if (result?.createGameLog?.gameLog) {
         toast({
           title: '🎉 Success!',
           description: 'Game log created successfully',
@@ -109,184 +120,233 @@ export function GameLogForm({
     }
   };
 
-  // Use external onSubmit if provided, otherwise use internal handler
-  const handleSubmit = externalOnSubmit || handleInternalSubmit;
-
   const formatGameDateDisplay = (game: Game | null) => {
-    if (!game?.date) return 'Unknown Date';
-    const dateStr = typeof game.date === 'string' ? game.date : game.date.start;
-    return new Date(dateStr).toLocaleDateString('en-US', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    });
+    if (!game) return '';
+    const date = typeof game.date === 'string' ? new Date(game.date) : new Date(game.date.start);
+    return date.toLocaleDateString();
+  };
+
+  const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (externalOnSubmit) {
+      // If external onSubmit is provided, call it with the event
+      externalOnSubmit(e);
+    } else {
+      // Otherwise, use react-hook-form's handleSubmit
+      form.handleSubmit(handleInternalSubmit)(e);
+    }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col h-full">
-      <div className="flex-1 overflow-y-auto space-y-4 pb-4">
-        {finalSelectedGame && (
-          <>
-            <div className="p-4 bg-gray-50 rounded-lg">
-              <h2 className="text-xl font-bold mb-2">Selected Game</h2>
-              <p className="font-medium">
-                {finalSelectedGame.teams?.home?.name && finalSelectedGame.teams?.visitors?.name
-                  ? `${finalSelectedGame.teams.home.name} vs ${finalSelectedGame.teams.visitors.name}`
-                  : 'Unknown Teams'}
-              </p>
-              <p className="text-gray-600">{formatGameDateDisplay(finalSelectedGame)}</p>
+    <Form {...form}>
+      <form onSubmit={handleFormSubmit} className="flex flex-col h-full">
+        <div className="flex-1 overflow-y-auto space-y-4 pb-4">
+          {finalSelectedGame && (
+            <div className="space-y-2">
+              <FormLabel>Game</FormLabel>
+              <div className="text-sm text-muted-foreground">
+                {finalSelectedGame.teams.home.name} vs {finalSelectedGame.teams.visitors.name} -{' '}
+                {formatGameDateDisplay(finalSelectedGame)}
+              </div>
             </div>
+          )}
 
-            <div className="space-y-4">
-              <div>
-                <label htmlFor="watchedSetting" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  How did you watch this game? *
-                </label>
-                <Select
-                  id="watchedSetting"
-                  value={formData.watchedSetting}
-                  onValueChange={(value: WatchedSettingValue) => setFormData({ ...formData, watchedSetting: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select how you watched the game" />
-                  </SelectTrigger>
+          <FormField
+            control={form.control}
+            name="watchedSetting"
+            render={({
+              field,
+            }: {
+              field: ControllerRenderProps<CreateGameLogInput, 'watchedSetting'>;
+            }) => (
+              <FormItem>
+                <FormLabel>Watched Setting</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select setting" />
+                    </SelectTrigger>
+                  </FormControl>
                   <SelectContent>
                     {Object.entries(WATCHED_SETTING).map(([key, value]) => (
                       <SelectItem key={key} value={value}>
-                        {key}
+                        {value}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
-              </div>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-              <div>
-                <label htmlFor="watchedDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  When did you watch this game? *
-                </label>
-                <DatePicker
-                  selected={formData.watchedDate}
-                  onChange={(date: Date) => setFormData({ ...formData, watchedDate: date })}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                  dateFormat="MMMM d, yyyy"
-                />
-              </div>
+          <FormField
+            control={form.control}
+            name="watchedDate"
+            render={({
+              field,
+            }: {
+              field: ControllerRenderProps<CreateGameLogInput, 'watchedDate'>;
+            }) => (
+              <FormItem>
+                <FormLabel>Watched Date</FormLabel>
+                <FormControl>
+                  <ReactDatePicker
+                    selected={field.value}
+                    onChange={(date: Date | null) => date && field.onChange(date)}
+                    className="w-full rounded-md border border-input bg-background px-3 py-2"
+                    dateFormat="MMMM d, yyyy"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-              <div>
-                <label htmlFor="watchedLocation" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Where did you watch this game?
-                </label>
-                <input
-                  id="watchedLocation"
-                  type="text"
-                  value={formData.watchedLocation}
-                  onChange={(e) => setFormData({ ...formData, watchedLocation: e.target.value })}
-                  placeholder="e.g., Home, Bar, Stadium"
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                />
-              </div>
+          <FormField
+            control={form.control}
+            name="watchedLocation"
+            render={({
+              field,
+            }: {
+              field: ControllerRenderProps<CreateGameLogInput, 'watchedLocation'>;
+            }) => (
+              <FormItem>
+                <FormLabel>Location</FormLabel>
+                <FormControl>
+                  <Input
+                    {...field}
+                    value={field.value || ''}
+                    placeholder="Where did you watch the game?"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-              <div>
-                <label htmlFor="watchedScope" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  How much of the game did you watch? *
-                </label>
-                <Select
-                  id="watchedScope"
-                  value={formData.watchedScope}
-                  onValueChange={(value: WatchedScopeValue) => setFormData({ ...formData, watchedScope: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select how much you watched" />
-                  </SelectTrigger>
+          <FormField
+            control={form.control}
+            name="watchedScope"
+            render={({
+              field,
+            }: {
+              field: ControllerRenderProps<CreateGameLogInput, 'watchedScope'>;
+            }) => (
+              <FormItem>
+                <FormLabel>Watched Scope</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select scope" />
+                    </SelectTrigger>
+                  </FormControl>
                   <SelectContent>
                     {Object.entries(WATCHED_SCOPE).map(([key, value]) => (
                       <SelectItem key={key} value={value}>
-                        {key}
+                        {value}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
-              </div>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-              <div>
-                <label htmlFor="ratingForGame" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  How would you rate this game? *
-                </label>
+          <FormField
+            control={form.control}
+            name="ratingForGame"
+            render={({
+              field,
+            }: {
+              field: ControllerRenderProps<CreateGameLogInput, 'ratingForGame'>;
+            }) => (
+              <FormItem>
+                <FormLabel>Rating</FormLabel>
                 <Select
-                  id="ratingForGame"
-                  value={formData.ratingForGame.toString()}
-                  onValueChange={(value: string) => setFormData({ ...formData, ratingForGame: parseInt(value) })}
+                  onValueChange={value => field.onChange(parseInt(value))}
+                  defaultValue={field.value.toString()}
                 >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a rating" />
-                  </SelectTrigger>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select rating" />
+                    </SelectTrigger>
+                  </FormControl>
                   <SelectContent>
-                    {[1, 2, 3, 4, 5].map((rating) => (
+                    {[1, 2, 3, 4, 5].map(rating => (
                       <SelectItem key={rating} value={rating.toString()}>
-                        {rating} {rating === 1 ? 'Star' : 'Stars'}
+                        {rating}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
-              </div>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-              <div>
-                <label htmlFor="notes" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Notes
-                </label>
-                <textarea
-                  id="notes"
-                  value={formData.notes}
-                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                  rows={4}
-                  placeholder="Share your thoughts about the game..."
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="classification" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Classification *
-                </label>
-                <Select
-                  id="classification"
-                  value={formData.classification}
-                  onValueChange={(value: ClassificationValue) =>
-                    setFormData({ ...formData, classification: value })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select classification" />
-                  </SelectTrigger>
+          <FormField
+            control={form.control}
+            name="classification"
+            render={({
+              field,
+            }: {
+              field: ControllerRenderProps<CreateGameLogInput, 'classification'>;
+            }) => (
+              <FormItem>
+                <FormLabel>Classification</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select classification" />
+                    </SelectTrigger>
+                  </FormControl>
                   <SelectContent>
                     {Object.entries(CLASSIFICATION).map(([key, value]) => (
                       <SelectItem key={key} value={value}>
-                        {key}
+                        {value}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
-              </div>
-            </div>
-          </>
-        )}
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        {!finalSelectedGame && (
-          <div className="text-center py-8 text-gray-500">
-            Please select a game above to continue filling out your game log.
-          </div>
-        )}
-      </div>
+          <FormField
+            control={form.control}
+            name="notes"
+            render={({ field }: { field: ControllerRenderProps<CreateGameLogInput, 'notes'> }) => (
+              <FormItem>
+                <FormLabel>Notes</FormLabel>
+                <FormControl>
+                  <Textarea
+                    {...field}
+                    value={field.value || ''}
+                    placeholder="Add your thoughts about the game..."
+                    rows={4}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
 
-      <div className="flex justify-end space-x-2 pt-4 border-t">
-        <Button type="button" variant="outline" onClick={onCancel}>
-          Cancel
-        </Button>
-        <Button type="submit" disabled={loading || !finalSelectedGame}>
-          {loading ? 'Creating...' : submitLabel}
-        </Button>
-      </div>
-    </form>
+        <div className="flex justify-end space-x-2 pt-4 border-t">
+          {onCancel && (
+            <Button type="button" variant="outline" onClick={onCancel}>
+              Cancel
+            </Button>
+          )}
+          <Button type="submit" disabled={loading}>
+            {loading ? 'Saving...' : submitLabel}
+          </Button>
+        </div>
+      </form>
+    </Form>
   );
 }

@@ -7,22 +7,9 @@ import type { Schema } from '@/lib/db/schema/types';
 import { env as appEnv } from '@/lib/env';
 import { CACHE_TTL } from '@/lib/types/cache.types';
 import { type QueryOptions } from '@/lib/types/database.types';
-import { dbEnvSchema } from '@/lib/validations/env';
 
 // Initialize cache
 const cache = getCache();
-
-// Validate database-specific environment variables only
-const _dbEnv = dbEnvSchema.parse({
-  DATABASE_URL: process.env.DATABASE_URL,
-  NODE_ENV: process.env.NODE_ENV,
-  DATABASE_CONNECTION_TIMEOUT: process.env.DATABASE_CONNECTION_TIMEOUT,
-  DATABASE_POOL_SIZE: process.env.DATABASE_POOL_SIZE,
-  DATABASE_RETRY_ATTEMPTS: process.env.DATABASE_RETRY_ATTEMPTS,
-  UPSTASH_REDIS_REST_URL: process.env.UPSTASH_REDIS_REST_URL,
-  UPSTASH_REDIS_REST_TOKEN: process.env.UPSTASH_REDIS_REST_TOKEN,
-  REDIS_URL: process.env.REDIS_URL,
-});
 
 // Configure neon for better stability
 neonConfig.wsProxy = host => `${host}:5432/v1`;
@@ -207,3 +194,15 @@ export type { Schema };
 
 // Export schema
 export { dbSchema as schema };
+
+// DB Connection Environment Validation
+try {
+  if (!appEnv.DATABASE_URL) {
+    throw new Error('DATABASE_URL is required');
+  }
+
+  console.log('✓ Database URL configured');
+} catch (error) {
+  console.error('Database URL configuration error:', error);
+  throw error;
+}

@@ -125,7 +125,12 @@ export const ActivityTimeline: React.FC<ActivityTimelineProps> = ({ gameLogs }) 
           >
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <label htmlFor="timeFilter" className="block text-sm font-medium text-gray-700 mb-1">Time Period</label>
+                <label
+                  htmlFor="timeFilter"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Time Period
+                </label>
                 <select
                   id="timeFilter"
                   value={timeFilter}
@@ -140,7 +145,10 @@ export const ActivityTimeline: React.FC<ActivityTimelineProps> = ({ gameLogs }) 
               </div>
 
               <div>
-                <label htmlFor="activityType" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="activityType"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Activity Type
                 </label>
                 <select
@@ -158,7 +166,12 @@ export const ActivityTimeline: React.FC<ActivityTimelineProps> = ({ gameLogs }) 
               </div>
 
               <div>
-                <label htmlFor="teamFilter" className="block text-sm font-medium text-gray-700 mb-1">Team Filter</label>
+                <label
+                  htmlFor="teamFilter"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Team Filter
+                </label>
                 <select
                   id="teamFilter"
                   value={teamFilter}

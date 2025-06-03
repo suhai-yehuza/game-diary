@@ -8,4 +8,4 @@ declare module 'react-datepicker' {
 
 declare module 'chart.js' {
   export * from 'chart.js/dist/types';
-} 
+}

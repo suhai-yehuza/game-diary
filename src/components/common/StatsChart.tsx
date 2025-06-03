@@ -1,35 +1,8 @@
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  BarElement,
-  RadialLinearScale,
-  ArcElement,
-  Title,
-  Tooltip,
-  Legend,
-  ChartData,
-  ChartOptions,
-} from 'chart.js';
+import 'chart.js/auto';
 import React from 'react';
 import { Line, Bar, Radar } from 'react-chartjs-2';
 
 import { type StatsChartProps } from '@/lib/types/consolidated.types';
-
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  BarElement,
-  RadialLinearScale,
-  ArcElement,
-  Title,
-  Tooltip,
-  Legend
-);
 
 export const StatsChart: React.FC<StatsChartProps> = ({
   data,
@@ -55,7 +28,7 @@ export const StatsChart: React.FC<StatsChartProps> = ({
   const renderChart = () => {
     switch (type) {
       case 'line': {
-        const options: ChartOptions<'line'> = {
+        const options = {
           ...baseOptions,
           scales: {
             y: {
@@ -67,10 +40,10 @@ export const StatsChart: React.FC<StatsChartProps> = ({
             },
           },
         };
-        return <Line data={data as ChartData<'line'>} options={options} />;
+        return <Line data={data} options={options} />;
       }
       case 'bar': {
-        const options: ChartOptions<'bar'> = {
+        const options = {
           ...baseOptions,
           scales: {
             y: {
@@ -82,10 +55,10 @@ export const StatsChart: React.FC<StatsChartProps> = ({
             },
           },
         };
-        return <Bar data={data as ChartData<'bar'>} options={options} />;
+        return <Bar data={data} options={options} />;
       }
       case 'radar': {
-        const options: ChartOptions<'radar'> = {
+        const options = {
           ...baseOptions,
           scales: {
             r: {
@@ -93,7 +66,7 @@ export const StatsChart: React.FC<StatsChartProps> = ({
             },
           },
         };
-        return <Radar data={data as ChartData<'radar'>} options={options} />;
+        return <Radar data={data} options={options} />;
       }
       default:
         return null;

@@ -167,7 +167,9 @@ export const FriendGroups: React.FC<FriendGroupsProps> = ({ friends, onGroupUpda
               <h3 className="text-lg font-semibold mb-4">Create New Group</h3>
               <div className="space-y-4">
                 <div>
-                  <label htmlFor="groupName" className="block text-sm font-medium text-gray-700">Name</label>
+                  <label htmlFor="groupName" className="block text-sm font-medium text-gray-700">
+                    Name
+                  </label>
                   <input
                     id="groupName"
                     type="text"
@@ -177,7 +179,12 @@ export const FriendGroups: React.FC<FriendGroupsProps> = ({ friends, onGroupUpda
                   />
                 </div>
                 <div>
-                  <label htmlFor="groupDescription" className="block text-sm font-medium text-gray-700">Description</label>
+                  <label
+                    htmlFor="groupDescription"
+                    className="block text-sm font-medium text-gray-700"
+                  >
+                    Description
+                  </label>
                   <textarea
                     id="groupDescription"
                     value={newGroup.description}
@@ -187,7 +194,9 @@ export const FriendGroups: React.FC<FriendGroupsProps> = ({ friends, onGroupUpda
                   />
                 </div>
                 <div>
-                  <label htmlFor="groupColor" className="block text-sm font-medium text-gray-700">Color</label>
+                  <label htmlFor="groupColor" className="block text-sm font-medium text-gray-700">
+                    Color
+                  </label>
                   <input
                     id="groupColor"
                     type="color"

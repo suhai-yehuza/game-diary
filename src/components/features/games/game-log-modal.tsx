@@ -21,14 +21,17 @@ import { useAuthContext } from '@/contexts/AuthContext';
 import { API_CONFIG } from '@/lib/config/api.config';
 import { CREATE_GAME_LOG, UPDATE_GAME_LOG } from '@/lib/graphql/mutations';
 import { GET_EXTERNAL_GAMES, GET_GAME_LOGS } from '@/lib/graphql/queries';
-import { CLASSIFICATION, WATCHED_SETTING, WATCHED_SCOPE, type ClassificationValue, type WatchedSettingValue, type WatchedScopeValue } from '@/lib/types/config.types';
+import {
+  CLASSIFICATION,
+  WATCHED_SETTING,
+  WATCHED_SCOPE,
+  type ClassificationValue,
+  type WatchedSettingValue,
+  type WatchedScopeValue,
+} from '@/lib/types/config.types';
 import { GameEdge, GameLogFormData } from '@/lib/types/consolidated.types';
 import { GameLogModalProps } from '@/lib/types/game-log.types';
-import type {
-  Game,
-  GameLog,
-  UpdateGameLogInput,
-} from '@/lib/types/generated/graphql';
+import type { Game, GameLog, UpdateGameLogInput } from '@/lib/types/generated/graphql';
 import { formatGameDate } from '@/lib/utils/index.time';
 
 import { GameLogForm } from './game-log-form';
@@ -105,11 +108,7 @@ export function GameLogModal({
   });
 
   // Fetch games with pagination and search (only for create mode)
-  const {
-    data: gamesData,
-    loading: loadingGames,
-    fetchMore: _fetchMore,
-  } = useQuery(GET_EXTERNAL_GAMES, {
+  const { data: gamesData, loading: loadingGames } = useQuery(GET_EXTERNAL_GAMES, {
     variables: {
       filters: {
         dateRange: {

@@ -34,4 +34,4 @@ declare module 'chart.js' {
   };
 
   export default Chart;
-} 
+}

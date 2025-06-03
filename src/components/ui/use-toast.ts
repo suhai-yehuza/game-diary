@@ -7,13 +7,6 @@ import type {
 } from '@/lib/types/notification.types';
 import { TOAST_LIMIT, createToast } from '@/lib/utils/toast';
 
-const _actionTypes = {
-  ADD_TOAST: 'ADD_TOAST',
-  UPDATE_TOAST: 'UPDATE_TOAST',
-  DISMISS_TOAST: 'DISMISS_TOAST',
-  REMOVE_TOAST: 'REMOVE_TOAST',
-} as const;
-
 function useToast() {
   const [state, setState] = React.useState<State>({
     toasts: [],

@@ -517,7 +517,6 @@ export function CommentsSection({ parentId, parentType, initialExpanded }: Comme
                                 'transition-all duration-200',
                                 'text-base leading-relaxed'
                               )}
-                              autoFocus
                               disabled={isSubmitting}
                             />
                             {newComment.length > 0 && (
@@ -623,7 +622,6 @@ export function CommentsSection({ parentId, parentType, initialExpanded }: Comme
                 value={editingComment.content}
                 onChange={e => setEditingComment({ ...editingComment, content: e.target.value })}
                 className="min-h-[100px] mb-4"
-                autoFocus
               />
               <AlertDialogFooter>
                 <AlertDialogCancel>Cancel</AlertDialogCancel>

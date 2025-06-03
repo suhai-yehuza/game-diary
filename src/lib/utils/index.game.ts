@@ -4,7 +4,14 @@ import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import * as schema from '@/lib/db/schema';
 import { GAME_STATUS_VALUES } from '@/lib/types/config.types';
 import type { GameTeams, GameScores, DBGameRecord } from '@/lib/types/consolidated.types';
-import { Player, Game, Arena, type GameStatus, type GamePeriods, type Team } from '@/lib/types/generated/graphql';
+import {
+  Player,
+  Game,
+  Arena,
+  type GameStatus,
+  type GamePeriods,
+  type Team,
+} from '@/lib/types/generated/graphql';
 import type { GameRecord } from '@/lib/types/graphql.types';
 
 function isDBGameRecord(game: unknown): game is DBGameRecord {
@@ -341,17 +348,17 @@ export async function updateH2HData(game: Game, db: NodePgDatabase<typeof schema
 }
 
 export function calculateTeamStats(games: Game[], teamId: string) {
-  const teamGames = games.filter(game => 
-    game.teams.home.id === teamId || game.teams.visitors.id === teamId
+  const teamGames = games.filter(
+    game => game.teams.home.id === teamId || game.teams.visitors.id === teamId
   );
 
   return {
     totalGames: teamGames.length,
     wins: teamGames.filter(game => {
       const isHome = game.teams.home.id === teamId;
-      return isHome ? 
-        game.scores.home.points > game.scores.visitors.points :
-        game.scores.visitors.points > game.scores.home.points;
+      return isHome
+        ? game.scores.home.points > game.scores.visitors.points
+        : game.scores.visitors.points > game.scores.home.points;
     }).length,
     pointsFor: teamGames.reduce((total, game) => {
       const isHome = game.teams.home.id === teamId;
@@ -366,9 +373,7 @@ export function calculateTeamStats(games: Game[], teamId: string) {
 
 export function getTeamStreak(games: Game[], teamId: string) {
   const teamGames = games
-    .filter(game => 
-      game.teams.home.id === teamId || game.teams.visitors.id === teamId
-    )
+    .filter(game => game.teams.home.id === teamId || game.teams.visitors.id === teamId)
     .sort((a, b) => new Date(b.date.start).getTime() - new Date(a.date.start).getTime());
 
   if (teamGames.length === 0) return { type: 'none', count: 0 };
@@ -378,9 +383,9 @@ export function getTeamStreak(games: Game[], teamId: string) {
 
   for (const game of teamGames) {
     const isHome = game.teams.home.id === teamId;
-    const won = isHome ? 
-      game.scores.home.points > game.scores.visitors.points :
-      game.scores.visitors.points > game.scores.home.points;
+    const won = isHome
+      ? game.scores.home.points > game.scores.visitors.points
+      : game.scores.visitors.points > game.scores.home.points;
 
     if (streakType === 'none') {
       streakType = won ? 'win' : 'loss';
@@ -397,16 +402,14 @@ export function getTeamStreak(games: Game[], teamId: string) {
 
 export function getTeamLastTenGames(games: Game[], teamId: string) {
   return games
-    .filter(game => 
-      game.teams.home.id === teamId || game.teams.visitors.id === teamId
-    )
+    .filter(game => game.teams.home.id === teamId || game.teams.visitors.id === teamId)
     .sort((a, b) => new Date(b.date.start).getTime() - new Date(a.date.start).getTime())
     .slice(0, 10)
     .map(game => {
       const isHome = game.teams.home.id === teamId;
-      const won = isHome ? 
-        game.scores.home.points > game.scores.visitors.points :
-        game.scores.visitors.points > game.scores.home.points;
+      const won = isHome
+        ? game.scores.home.points > game.scores.visitors.points
+        : game.scores.visitors.points > game.scores.home.points;
       return won ? 'W' : 'L';
     })
     .join('');

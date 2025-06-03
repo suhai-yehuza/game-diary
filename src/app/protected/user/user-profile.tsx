@@ -231,7 +231,7 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
   });
 
   // Fetch friendships for the current user
-  const { data: _friendshipsData } = useQuery(GET_USER_FRIENDSHIPS, {
+  useQuery(GET_USER_FRIENDSHIPS, {
     variables: { userId: currentUserDbId },
     skip: !currentUserDbId || !dbUserId,
     onCompleted: data => {

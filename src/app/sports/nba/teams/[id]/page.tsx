@@ -6,10 +6,9 @@ import { useParams } from 'next/navigation';
 import React, { useState, useEffect } from 'react';
 
 import { fetchNbaTeamById, fetchNbaTeamStats } from '@/lib/external-apis';
-import { type TeamDisplayStats } from '@/lib/types/consolidated.types';
+import type { TeamDisplayStats, Game } from '@/lib/types/consolidated.types';
 import { type Team } from '@/lib/types/generated/graphql';
 import { calculateTeamStats, getTeamStreak, getTeamLastTenGames } from '@/lib/utils/index.game';
-import type { Game } from '@/lib/types/consolidated.types';
 
 export default function TeamPage() {
   const params = useParams();
@@ -293,7 +292,9 @@ export default function TeamPage() {
                     <div className="flex justify-between items-center">
                       <div>
                         <p className="text-sm text-muted-foreground">
-                          {new Date(typeof game.date === 'string' ? game.date : game.date.start).toLocaleDateString()}
+                          {new Date(
+                            typeof game.date === 'string' ? game.date : game.date.start
+                          ).toLocaleDateString()}
                         </p>
                         <p className="font-medium">
                           {game.teams.home.name} vs {game.teams.visitors.name}

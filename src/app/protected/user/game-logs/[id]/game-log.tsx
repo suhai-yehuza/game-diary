@@ -1,7 +1,6 @@
 'use client';
 
 import { useQuery } from '@apollo/client';
-import { useUser } from '@clerk/nextjs';
 import { format, formatDistanceToNow } from 'date-fns';
 import {
   Star,
@@ -183,22 +182,25 @@ const WatchInfoItem = ({
 export default function GameLog() {
   const params = useParams();
   const gameLogId = params?.id as string;
-  const { user: _user } = useUser();
   const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
 
   const handleImageError = (id: string) => {
     setImageErrors(prev => ({ ...prev, [id]: true }));
   };
 
-  const { data, loading, error } = useQuery<GameLogByIdResponse>(GET_GAME_LOG_BY_ID, {
+  const {
+    data: gameLogData,
+    loading: gameLogLoading,
+    error: gameLogError,
+  } = useQuery<GameLogByIdResponse>(GET_GAME_LOG_BY_ID, {
     variables: { id: gameLogId },
     skip: !gameLogId,
   });
 
-  if (loading) return <GameLogSkeleton />;
-  if (error) return <ErrorState error={error} />;
+  if (gameLogLoading) return <GameLogSkeleton />;
+  if (gameLogError) return <ErrorState error={gameLogError} />;
 
-  const gameLog = data?.gameLogById;
+  const gameLog = gameLogData?.gameLogById;
   if (!gameLog) {
     return (
       <div className="container mx-auto px-4 py-8">

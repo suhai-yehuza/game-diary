@@ -204,10 +204,9 @@ export function BasketballGameSearchSection() {
 
   // Query only current page data
   const {
-    data,
-    loading,
-    error,
-    refetch: _refetch,
+    data: gamesData,
+    loading: gamesLoading,
+    error: gamesError,
   } = useQuery(GET_GAMES, {
     variables: {
       first: pageSize,
@@ -219,23 +218,23 @@ export function BasketballGameSearchSection() {
 
   // Store cursor information when data changes
   useEffect(() => {
-    if (data?.games?.pageInfo) {
+    if (gamesData?.games?.pageInfo) {
       setPageCursors(prev => ({
         ...prev,
         [currentPage]: {
-          startCursor: data.games.pageInfo.startCursor,
-          endCursor: data.games.pageInfo.endCursor,
+          startCursor: gamesData.games.pageInfo.startCursor,
+          endCursor: gamesData.games.pageInfo.endCursor,
         },
       }));
     }
-  }, [data, currentPage]);
+  }, [gamesData, currentPage]);
 
   const games = useMemo(
-    () => data?.games?.edges?.map((edge: GameEdge) => edge.node) || [],
-    [data?.games?.edges]
+    () => gamesData?.games?.edges?.map((edge: GameEdge) => edge.node) || [],
+    [gamesData?.games?.edges]
   );
-  const totalCount = data?.games?.totalCount || 0;
-  const hasNextPage = data?.games?.pageInfo?.hasNextPage || false;
+  const totalCount = gamesData?.games?.totalCount || 0;
+  const hasNextPage = gamesData?.games?.pageInfo?.hasNextPage || false;
   const totalPages = Math.ceil(totalCount / pageSize);
 
   // Filter games by search text (client-side for current page only)
@@ -390,7 +389,7 @@ export function BasketballGameSearchSection() {
       </div>
 
       {/* Results Count */}
-      {!loading && (
+      {!gamesLoading && (
         <div className="flex items-center justify-between">
           <p className="text-sm text-muted-foreground">
             Found {formatCount(totalCount)} {totalCount === 1 ? 'game' : 'games'}
@@ -403,16 +402,18 @@ export function BasketballGameSearchSection() {
       )}
 
       {/* Games Grid */}
-      {loading ? (
+      {gamesLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {[...Array(pageSize)].map((_, i) => (
             <GameSkeleton key={i} />
           ))}
         </div>
-      ) : error ? (
+      ) : gamesError ? (
         <Card className="border-destructive/50">
           <CardContent className="py-8">
-            <div className="text-center text-destructive">Error loading games: {error.message}</div>
+            <div className="text-center text-destructive">
+              Error loading games: {gamesError.message}
+            </div>
           </CardContent>
         </Card>
       ) : sortedGames.length === 0 ? (
@@ -586,7 +587,7 @@ export function BasketballGameSearchSection() {
                 variant="outline"
                 size="sm"
                 onClick={() => handlePageChange(currentPage - 1)}
-                disabled={currentPage === 1 || loading}
+                disabled={currentPage === 1 || gamesLoading}
               >
                 <ChevronLeft className="h-4 w-4" />
                 Previous
@@ -629,7 +630,7 @@ export function BasketballGameSearchSection() {
                       size="sm"
                       className="w-9 h-9 p-0"
                       onClick={() => handlePageChange(pageNum)}
-                      disabled={loading}
+                      disabled={gamesLoading}
                     >
                       {pageNum}
                     </Button>
@@ -641,7 +642,7 @@ export function BasketballGameSearchSection() {
                 variant="outline"
                 size="sm"
                 onClick={() => handlePageChange(currentPage + 1)}
-                disabled={currentPage === totalPages || !hasNextPage || loading}
+                disabled={currentPage === totalPages || !hasNextPage || gamesLoading}
               >
                 Next
                 <ChevronRight className="h-4 w-4" />
