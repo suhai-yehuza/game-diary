@@ -33,9 +33,9 @@ export function GameLogForm({
   formData: externalFormData,
   setFormData: externalSetFormData,
   selectedGame: externalSelectedGame,
-  loading: _externalLoading,
-  onSubmit: _externalOnSubmit,
-  onCancel: _onCancel,
+  loading: externalLoading,
+  onSubmit: externalOnSubmit,
+  onCancel,
   submitLabel = 'Create Game Log',
 }: GameLogFormProps) {
   const [searchQuery, setSearchQuery] = useState('');
@@ -58,6 +58,8 @@ export function GameLogForm({
   const finalSelectedGame = externalSelectedGame || selectedGame;
 
   const [createGameLog, { loading: creating }] = useMutation(CREATE_GAME_LOG);
+  
+  const loading = externalLoading || creating;
 
   // Search games using external API
   const { data: searchResults, loading: searching } = useQuery(GET_EXTERNAL_GAMES, {
@@ -86,13 +88,14 @@ export function GameLogForm({
         return teamNames.includes(lower) || arena.includes(lower);
       }) || [];
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleInternalSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!finalSelectedGame) {
       toast({
         title: 'Error',
         description: 'Please select a game first',
+        variant: 'destructive',
       });
       return;
     }
@@ -118,8 +121,9 @@ export function GameLogForm({
 
       if (data?.createGameLog?.gameLog) {
         toast({
-          title: 'Success',
+          title: '🎉 Success!',
           description: 'Game log created successfully',
+          variant: 'default',
         });
 
         onSuccess?.();
@@ -131,9 +135,13 @@ export function GameLogForm({
       toast({
         title: 'Error',
         description: error instanceof Error ? error.message : 'Failed to create game log',
+        variant: 'destructive',
       });
     }
   };
+
+  // Use external onSubmit if provided, otherwise use internal handler
+  const handleSubmit = externalOnSubmit || handleInternalSubmit;
 
   const formatGameDateDisplay = (game: Game | null) => {
     if (!game?.date) return 'Unknown Date';
@@ -149,53 +157,55 @@ export function GameLogForm({
   return (
     <form onSubmit={handleSubmit} className="flex flex-col h-full">
       <div className="flex-1 overflow-y-auto space-y-4 pb-4">
-        {/* Game Search Section */}
-        <div className="space-y-4">
-          <div className="relative">
-            <Input
-              type="text"
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              placeholder="Search for a game..."
-              className="pl-10"
-            />
-            <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-500" />
-          </div>
+        {/* Game Search Section - only show if no external selected game */}
+        {!externalSelectedGame && (
+          <div className="space-y-4">
+            <div className="relative">
+              <Input
+                type="text"
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                placeholder="Search for a game..."
+                className="pl-10"
+              />
+              <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-500" />
+            </div>
 
-          {searching && <div>Searching games...</div>}
+            {searching && <div>Searching games...</div>}
 
-          {filteredGames.length > 0 && (
-            <div className="space-y-2 max-h-60 overflow-y-auto">
-              {filteredGames.map((game: Game) => {
-                return (
-                  <div
-                    key={game.id}
-                    className={`p-3 border rounded-lg cursor-pointer hover:bg-gray-50 ${
-                      finalSelectedGame?.id === game.id ? 'border-blue-500 bg-blue-50' : ''
-                    }`}
-                    onClick={() => setSelectedGame(game)}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-medium">
-                          {game.teams?.home?.name && game.teams?.visitors?.name
-                            ? `${game.teams.home.name} vs ${game.teams.visitors.name}`
-                            : 'Unknown Teams'}
-                        </p>
-                        <p className="text-sm text-gray-500">
-                          {formatGameDateDisplay(game)} • {game.arena?.name || 'Unknown Arena'}
-                        </p>
-                      </div>
-                      <div className="text-sm text-gray-500">
-                        {game.league} • {game.season}
+            {filteredGames.length > 0 && (
+              <div className="space-y-2 max-h-60 overflow-y-auto">
+                {filteredGames.map((game: Game) => {
+                  return (
+                    <div
+                      key={game.id}
+                      className={`p-3 border rounded-lg cursor-pointer hover:bg-gray-50 ${
+                        finalSelectedGame?.id === game.id ? 'border-blue-500 bg-blue-50' : ''
+                      }`}
+                      onClick={() => setSelectedGame(game)}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-medium">
+                            {game.teams?.home?.name && game.teams?.visitors?.name
+                              ? `${game.teams.home.name} vs ${game.teams.visitors.name}`
+                              : 'Unknown Teams'}
+                          </p>
+                          <p className="text-sm text-gray-500">
+                            {formatGameDateDisplay(game)} • {game.arena?.name || 'Unknown Arena'}
+                          </p>
+                        </div>
+                        <div className="text-sm text-gray-500">
+                          {game.league} • {game.season}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
 
         {finalSelectedGame && (
           <>
@@ -334,10 +344,10 @@ export function GameLogForm({
       </div>
 
       <div className="flex justify-end space-x-2 pt-4 border-t">
-        <Button type="button" variant="outline" onClick={_onCancel}>
+        <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
         </Button>
-        <Button type="submit" disabled={creating || !finalSelectedGame}>
+        <Button type="submit" disabled={loading || !finalSelectedGame}>
           {submitLabel}
         </Button>
       </div>

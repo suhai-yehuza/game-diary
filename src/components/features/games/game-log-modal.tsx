@@ -194,23 +194,18 @@ export function GameLogModal({
       }
 
       if (mode === 'create') {
-        const input: CreateGameLogInput = {
-          gameId: selectedGame!.id,
-          watchedSetting: formData.watchedSetting,
-          watchedDate: formData.watchedDate,
-          watchedLocation: formData.watchedLocation,
-          ratingForGame: ratingForGame,
-          watchedScope: formData.watchedScope,
-          notes: formData.notes,
-          tags: formData.tags,
-          classification: formData.classification,
-        };
-
         const result = await createGameLog({
           variables: {
             input: {
-              userId: authUserId,
-              ...input,
+              gameId: selectedGame!.id,
+              watchedSetting: formData.watchedSetting,
+              watchedDate: formData.watchedDate,
+              watchedLocation: formData.watchedLocation,
+              ratingForGame: ratingForGame,
+              watchedScope: formData.watchedScope,
+              notes: formData.notes,
+              tags: formData.tags,
+              classification: formData.classification,
             },
           },
         });
