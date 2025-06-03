@@ -58,8 +58,8 @@ export type {
   ClassificationValue,
 } from './config.types';
 
-export type { EnvConfig } from './validations/env';
-export { envSchema, validateRuntimeEnv } from './validations/env';
+export type { EnvConfig, DbEnvConfig } from '../validations/env';
+export { envSchema, dbEnvSchema, validateRuntimeEnv } from '../validations/env';
 
 // ============================================================================
 // Database & API Types
