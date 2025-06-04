@@ -2,6 +2,16 @@ import { useMutation } from '@apollo/client';
 import { MoreVertical, Pencil, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -23,16 +33,18 @@ interface GameLogActionsProps {
 
 export function GameLogActions({ gameLog, onSuccess }: GameLogActionsProps) {
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const { toast } = useToast();
   const { user } = useAuthContext();
   const isOwner = user?.id === gameLog.userId;
 
-  const [deleteGameLog] = useMutation(DELETE_GAME_LOG, {
+  const [deleteGameLog, { loading: isDeleting }] = useMutation(DELETE_GAME_LOG, {
     onCompleted: () => {
       toast({
         title: 'Game log deleted',
         description: 'Your game log has been successfully deleted.',
       });
+      setIsDeleteDialogOpen(false);
       onSuccess?.();
     },
     onError: error => {
@@ -41,6 +53,7 @@ export function GameLogActions({ gameLog, onSuccess }: GameLogActionsProps) {
         description: error.message,
         variant: 'destructive',
       });
+      setIsDeleteDialogOpen(false);
     },
     update: (cache, { data }) => {
       if (data?.deleteGameLog?.success) {
@@ -51,12 +64,14 @@ export function GameLogActions({ gameLog, onSuccess }: GameLogActionsProps) {
   });
 
   const handleDelete = async () => {
-    if (window.confirm('Are you sure you want to delete this game log?')) {
-      await deleteGameLog({
-        variables: { id: gameLog.id },
-      });
-    }
+    await deleteGameLog({
+      variables: { id: gameLog.id },
+    });
   };
+
+  const gameTitle = gameLog.game?.teams
+    ? `${gameLog.game.teams.visitors?.name} vs ${gameLog.game.teams.home?.name}`
+    : 'this game log';
 
   if (!isOwner) {
     return null;
@@ -89,7 +104,7 @@ export function GameLogActions({ gameLog, onSuccess }: GameLogActionsProps) {
           <DropdownMenuItem
             onClick={e => {
               e.stopPropagation();
-              handleDelete();
+              setIsDeleteDialogOpen(true);
             }}
             className="cursor-pointer text-destructive focus:text-destructive"
           >
@@ -99,6 +114,34 @@ export function GameLogActions({ gameLog, onSuccess }: GameLogActionsProps) {
         </DropdownMenuContent>
       </DropdownMenu>
 
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Game Log</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete your game log for{' '}
+              <span className="font-semibold">{gameTitle}</span>?
+              <br />
+              <br />
+              This action cannot be undone and will permanently remove the game log from your
+              account.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeleting ? 'Deleting...' : 'Delete Game Log'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Edit Modal */}
       <GameLogModal
         gameId={gameLog.gameId}
         mode="update"

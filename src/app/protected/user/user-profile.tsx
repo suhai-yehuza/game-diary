@@ -346,7 +346,7 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
     // Prevent navigation if clicking on interactive elements
     const target = event.target as HTMLElement;
     const isInteractiveElement = target.closest('button') || target.closest('[role="button"]');
-    
+
     if (!isInteractiveElement) {
       router.push(`/protected/user/game-logs/${gameLogId}`);
     }
@@ -696,8 +696,8 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
                     <Card
                       key={log.id}
                       className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
-                      onClick={(event) => handleGameLogClick(log.id, event)}
-                      onKeyDown={(event) => {
+                      onClick={event => handleGameLogClick(log.id, event)}
+                      onKeyDown={event => {
                         if (event.key === 'Enter' || event.key === ' ') {
                           event.preventDefault();
                           handleGameLogClick(log.id, event);
