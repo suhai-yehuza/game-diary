@@ -1,5 +1,5 @@
 import { useMutation } from '@apollo/client';
-import { MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
+import { MoreVertical, Pencil, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
@@ -72,7 +72,7 @@ export function GameLogActions({ gameLog, onSuccess }: GameLogActionsProps) {
             onClick={e => e.stopPropagation()}
           >
             <span className="sr-only">Open menu</span>
-            <MoreHorizontal className="h-4 w-4" />
+            <MoreVertical className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-[160px]">
