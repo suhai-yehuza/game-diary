@@ -202,10 +202,15 @@ export default function GameLog() {
     skip: !gameLogId,
   });
 
-  if (gameLogLoading) return <GameLogSkeleton />;
-  if (gameLogError) return <ErrorState error={gameLogError} />;
+  if (gameLogLoading) {
+    return <GameLogSkeleton />;
+  }
+  if (gameLogError) {
+    return <ErrorState error={gameLogError} />;
+  }
 
   const gameLog = gameLogData?.gameLogById;
+  
   if (!gameLog) {
     return (
       <div className="container mx-auto px-4 py-8">
