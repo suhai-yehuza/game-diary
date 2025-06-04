@@ -2,7 +2,7 @@
 
 import { useMutation } from '@apollo/client';
 import { zodResolver } from '@hookform/resolvers/zod';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import ReactDatePickerOriginal from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { useForm, type ControllerRenderProps } from 'react-hook-form';
@@ -63,6 +63,13 @@ export function GameLogForm({
   });
 
   const [selectedGame] = useState<Game | null>(null);
+
+  // Sync external formData with react-hook-form
+  useEffect(() => {
+    if (externalFormData) {
+      form.reset(externalFormData);
+    }
+  }, [externalFormData, form]);
 
   // Use external form data if provided, otherwise use internal state
   const finalSelectedGame = externalSelectedGame || selectedGame;
@@ -150,10 +157,10 @@ export function GameLogForm({
     e.preventDefault();
 
     if (externalOnSubmit) {
-      // If external onSubmit is provided, call it with the event
-      externalOnSubmit(e);
+      // If external onSubmit is provided, call react-hook-form's handleSubmit
+      form.handleSubmit(externalOnSubmit)(e);
     } else {
-      // Otherwise, use react-hook-form's handleSubmit
+      // Otherwise, use internal submission handler
       form.handleSubmit(handleInternalSubmit)(e);
     }
   };

@@ -703,16 +703,21 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
                                 </h3>
                                 <Badge
                                   variant="outline"
-                                  className={cn('gap-1 text-xs', classificationColors[log.classification])}
+                                  className={cn(
+                                    'gap-1 text-xs',
+                                    classificationColors[log.classification]
+                                  )}
                                 >
                                   <ClassificationIcon className="h-3 w-3" />
                                   {log.classification}
                                 </Badge>
                               </div>
-                              
+
                               <div className="flex items-center gap-4">
                                 <div className="flex items-center gap-2">
-                                  <span className="text-sm font-medium text-muted-foreground">Rating:</span>
+                                  <span className="text-sm font-medium text-muted-foreground">
+                                    Rating:
+                                  </span>
                                   <StarRating ratingForGame={log.ratingForGame} size="sm" />
                                   <span className="text-sm font-medium text-foreground">
                                     {log.ratingForGame}/5
@@ -722,8 +727,8 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
                             </div>
 
                             {isOwnProfile && (
-                              <GameLogActions 
-                                gameLog={log} 
+                              <GameLogActions
+                                gameLog={log}
                                 onSuccess={() => {
                                   refetchGameLogs({
                                     variables: {
@@ -761,18 +766,20 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
                                     : 'Not specified'}
                                 </span>
                               </div>
-                              
+
                               <div className="flex items-center gap-2 text-sm">
                                 <Tv className="h-4 w-4 text-muted-foreground" />
                                 <span className="text-muted-foreground">Method:</span>
                                 <span className="font-medium">
                                   {log.watchedSetting
                                     .split('_')
-                                    .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
+                                    .map(
+                                      (word: string) => word.charAt(0).toUpperCase() + word.slice(1)
+                                    )
                                     .join(' ')}
                                 </span>
                               </div>
-                              
+
                               {log.watchedLocation && (
                                 <div className="flex items-center gap-2 text-sm">
                                   <MapPin className="h-4 w-4 text-muted-foreground" />
@@ -780,7 +787,7 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
                                   <span className="font-medium">{log.watchedLocation}</span>
                                 </div>
                               )}
-                              
+
                               <div className="flex items-center gap-2 text-sm">
                                 <Users className="h-4 w-4 text-muted-foreground" />
                                 <span className="text-muted-foreground">Scope:</span>
@@ -810,7 +817,9 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
                               </button>
                               {expandedNotes.has(log.id) && (
                                 <div className="px-4 pb-4">
-                                  <p className="text-sm text-foreground leading-relaxed">{log.notes}</p>
+                                  <p className="text-sm text-foreground leading-relaxed">
+                                    {log.notes}
+                                  </p>
                                 </div>
                               )}
                             </div>
@@ -832,7 +841,7 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
                                 </div>
                               )}
                             </div>
-                            
+
                             <div className="flex items-center gap-1 text-xs text-muted-foreground">
                               <Clock className="h-3 w-3" />
                               {formatDistanceToNow(new Date(log.createdAt), { addSuffix: true })}

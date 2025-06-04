@@ -527,7 +527,7 @@ export interface GameLogFormProps {
   setFormData?: (data: GameLogFormData) => void;
   selectedGame?: Game | null;
   loading?: boolean;
-  onSubmit?: (e: React.FormEvent) => Promise<void>;
+  onSubmit?: (data: import('./generated/graphql').CreateGameLogInput) => Promise<void>;
   onCancel?: () => void;
   submitLabel?: string;
 }

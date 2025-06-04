@@ -28,7 +28,7 @@ import {
 } from '@/lib/types/config.types';
 import { GameEdge, GameLogFormData } from '@/lib/types/consolidated.types';
 import { GameLogModalProps } from '@/lib/types/game-log.types';
-import type { Game } from '@/lib/types/generated/graphql';
+import type { Game, CreateGameLogInput } from '@/lib/types/generated/graphql';
 import { getCurrentSeason } from '@/lib/utils/index';
 import { formatGameDate } from '@/lib/utils/index.time';
 
@@ -66,8 +66,8 @@ export function GameLogModal({
     }
   }, [mode, gameLog]);
 
-  // Form state
-  const [formData, setFormData] = useState<GameLogFormData>({
+  // Form state - only pass initial data for update mode
+  const initialFormData: GameLogFormData = {
     gameId: gameLog?.gameId || gameId || '',
     watchedSetting: (gameLog?.watchedSetting as WatchedSettingValue) || WATCHED_SETTING.TV,
     watchedDate: gameLog?.watchedDate ? new Date(gameLog.watchedDate) : new Date(),
@@ -77,7 +77,7 @@ export function GameLogModal({
     notes: gameLog?.notes || '',
     tags: gameLog?.tags || [],
     classification: (gameLog?.classification as ClassificationValue) || CLASSIFICATION.PROTECTED,
-  });
+  };
 
   // Mutations
   const [createGameLog, { loading: creating }] = useMutation(CREATE_GAME_LOG, {
@@ -240,9 +240,7 @@ export function GameLogModal({
     return filtered;
   }, [gamesData?.games?.edges, searchQuery]);
 
-  const handleSubmit = async (e: React.FormEvent<Element>) => {
-    e.preventDefault();
-
+  const handleSubmit = async (data: CreateGameLogInput) => {
     if (mode === 'create') {
       if (!selectedGame?.id) {
         toast({
@@ -258,14 +256,14 @@ export function GameLogModal({
           variables: {
             input: {
               gameId: selectedGame.id,
-              watchedSetting: formData.watchedSetting,
-              watchedDate: formData.watchedDate,
-              watchedLocation: formData.watchedLocation,
-              ratingForGame: formData.ratingForGame,
-              watchedScope: formData.watchedScope,
-              notes: formData.notes,
-              tags: formData.tags,
-              classification: formData.classification,
+              watchedSetting: data.watchedSetting,
+              watchedDate: data.watchedDate,
+              watchedLocation: data.watchedLocation,
+              ratingForGame: data.ratingForGame,
+              watchedScope: data.watchedScope,
+              notes: data.notes,
+              tags: data.tags,
+              classification: data.classification,
             },
           },
         });
@@ -278,14 +276,14 @@ export function GameLogModal({
           variables: {
             id: gameLog.id,
             input: {
-              watchedSetting: formData.watchedSetting,
-              watchedDate: formData.watchedDate,
-              watchedLocation: formData.watchedLocation,
-              ratingForGame: formData.ratingForGame,
-              watchedScope: formData.watchedScope,
-              notes: formData.notes,
-              tags: formData.tags,
-              classification: formData.classification,
+              watchedSetting: data.watchedSetting,
+              watchedDate: data.watchedDate,
+              watchedLocation: data.watchedLocation,
+              ratingForGame: data.ratingForGame,
+              watchedScope: data.watchedScope,
+              notes: data.notes,
+              tags: data.tags,
+              classification: data.classification,
             },
           },
         });
@@ -296,17 +294,6 @@ export function GameLogModal({
   };
 
   const resetForm = () => {
-    setFormData({
-      gameId: '',
-      watchedSetting: WATCHED_SETTING.TV,
-      watchedDate: new Date(),
-      watchedLocation: '',
-      ratingForGame: 3,
-      watchedScope: WATCHED_SCOPE.FULL_GAME,
-      notes: '',
-      tags: [],
-      classification: CLASSIFICATION.PROTECTED,
-    });
     setSelectedGame(null);
     setSearchQuery('');
   };
@@ -405,8 +392,7 @@ export function GameLogModal({
       )}
 
       <GameLogForm
-        formData={formData}
-        setFormData={setFormData}
+        formData={initialFormData}
         selectedGame={
           selectedGame
             ? {
