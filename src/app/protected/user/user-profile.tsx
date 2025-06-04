@@ -722,33 +722,33 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
                           </div>
 
                           <div className="flex flex-col items-end gap-1">
-                            {isOwnProfile && (
-                              <GameLogActions 
-                                gameLog={log} 
-                                onSuccess={() => {
-                                  refetchGameLogs({
-                                    variables: {
-                                      first: ITEMS_PER_PAGE,
-                                      after: cursor,
-                                      filters: {
-                                        userId: dbUserId,
-                                        classification:
-                                          selectedClassification !== 'all'
-                                            ? selectedClassification
-                                            : undefined,
-                                      },
-                                    },
-                                  });
-                                }}
-                              />
-                            )}
-                            
-                            <div className="text-right">
+                            <div className="flex items-center gap-2">
                               <StarRating ratingForGame={log.ratingForGame} size="md" />
-                              <p className="text-xs text-muted-foreground mt-1">
-                                {formatDistanceToNow(new Date(log.createdAt), { addSuffix: true })}
-                              </p>
+                              {isOwnProfile && (
+                                <GameLogActions 
+                                  gameLog={log} 
+                                  onSuccess={() => {
+                                    refetchGameLogs({
+                                      variables: {
+                                        first: ITEMS_PER_PAGE,
+                                        after: cursor,
+                                        filters: {
+                                          userId: dbUserId,
+                                          classification:
+                                            selectedClassification !== 'all'
+                                              ? selectedClassification
+                                              : undefined,
+                                        },
+                                      },
+                                    });
+                                  }}
+                                />
+                              )}
                             </div>
+                            
+                            <p className="text-xs text-muted-foreground">
+                              {formatDistanceToNow(new Date(log.createdAt), { addSuffix: true })}
+                            </p>
                           </div>
                         </div>
 
