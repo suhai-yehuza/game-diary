@@ -24,6 +24,8 @@ import {
   UserCheck,
   UserX,
   Tv,
+  ChevronDown,
+  ChevronRight,
 } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { toast } from 'react-hot-toast';
@@ -118,6 +120,7 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
     'loading'
   );
   const [currentFriendship, setCurrentFriendship] = useState<Friendship | null>(null);
+  const [expandedNotes, setExpandedNotes] = useState<Set<string>>(new Set());
 
   // Fetch current user's database ID
   useEffect(() => {
@@ -323,6 +326,18 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
     if (currentFriendship?.id) {
       removeFriend({ variables: { friendshipId: currentFriendship.id } });
     }
+  };
+
+  const toggleNotesExpansion = (gameLogId: string) => {
+    setExpandedNotes(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(gameLogId)) {
+        newSet.delete(gameLogId);
+      } else {
+        newSet.add(gameLogId);
+      }
+      return newSet;
+    });
   };
 
   if (isLoading || !targetUser) {
@@ -778,12 +793,26 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
                         {/* Notes Section */}
                         {log.notes && (
                           <div className="px-6 pb-4">
-                            <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-                              <h4 className="font-semibold text-sm text-foreground mb-2 flex items-center gap-2">
-                                <MessageSquare className="h-4 w-4" />
-                                Notes
-                              </h4>
-                              <p className="text-sm text-foreground leading-relaxed">{log.notes}</p>
+                            <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg overflow-hidden">
+                              <button
+                                onClick={() => toggleNotesExpansion(log.id)}
+                                className="w-full p-4 flex items-center justify-between hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors"
+                              >
+                                <h4 className="font-semibold text-sm text-foreground flex items-center gap-2">
+                                  <MessageSquare className="h-4 w-4" />
+                                  Notes
+                                </h4>
+                                {expandedNotes.has(log.id) ? (
+                                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                                ) : (
+                                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                                )}
+                              </button>
+                              {expandedNotes.has(log.id) && (
+                                <div className="px-4 pb-4">
+                                  <p className="text-sm text-foreground leading-relaxed">{log.notes}</p>
+                                </div>
+                              )}
                             </div>
                           </div>
                         )}
