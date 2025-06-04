@@ -721,11 +721,34 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
                             </div>
                           </div>
 
-                          <div className="text-right">
-                            <StarRating ratingForGame={log.ratingForGame} size="md" />
-                            <p className="text-xs text-muted-foreground mt-1">
-                              {formatDistanceToNow(new Date(log.createdAt), { addSuffix: true })}
-                            </p>
+                          <div className="flex items-start gap-2">
+                            <div className="text-right">
+                              <StarRating ratingForGame={log.ratingForGame} size="md" />
+                              <p className="text-xs text-muted-foreground mt-1">
+                                {formatDistanceToNow(new Date(log.createdAt), { addSuffix: true })}
+                              </p>
+                            </div>
+                            
+                            {isOwnProfile && (
+                              <GameLogActions 
+                                gameLog={log} 
+                                onSuccess={() => {
+                                  refetchGameLogs({
+                                    variables: {
+                                      first: ITEMS_PER_PAGE,
+                                      after: cursor,
+                                      filters: {
+                                        userId: dbUserId,
+                                        classification:
+                                          selectedClassification !== 'all'
+                                            ? selectedClassification
+                                            : undefined,
+                                      },
+                                    },
+                                  });
+                                }}
+                              />
+                            )}
                           </div>
                         </div>
 
@@ -744,29 +767,6 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
                             ))}
                           </div>
                         )}
-
-                        <div className="flex justify-end pt-2">
-                          {isOwnProfile && (
-                            <GameLogActions 
-                              gameLog={log} 
-                              onSuccess={() => {
-                                refetchGameLogs({
-                                  variables: {
-                                    first: ITEMS_PER_PAGE,
-                                    after: cursor,
-                                    filters: {
-                                      userId: dbUserId,
-                                      classification:
-                                        selectedClassification !== 'all'
-                                          ? selectedClassification
-                                          : undefined,
-                                    },
-                                  },
-                                });
-                              }}
-                            />
-                          )}
-                        </div>
                       </CardContent>
                     </Card>
                   );

@@ -165,10 +165,8 @@ export function GameLogModal({
       return [];
     }
     if (!searchQuery.trim()) {
-      console.log('No search query, returning all games');
       return gamesData.games.edges;
     }
-    console.log('Filtering games with search query:', searchQuery);
     console.log('Total games before filtering:', gamesData.games.edges.length);
 
     const searchLower = searchQuery.toLowerCase();
