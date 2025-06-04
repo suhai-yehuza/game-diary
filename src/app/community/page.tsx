@@ -1,64 +1,15 @@
 'use client';
 
-import { useQuery } from '@apollo/client';
-import { useRef, useState, useCallback, useEffect } from 'react';
+import { useState } from 'react';
 
 import { BasketballGameSearchSection } from '@/components/features/games/BasketballGameSearchSection';
 import { GameLogSearchSection } from '@/components/features/games/GameLogSearchSection';
 import { UserSearchSection } from '@/components/features/users/UserSearchSection';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { GET_GAME_LOGS } from '@/lib/graphql/queries';
 
 export default function CommunityPage() {
   const [activeTab, setActiveTab] = useState('logs');
-
-  const { data, fetchMore } = useQuery(GET_GAME_LOGS, {
-    variables: { first: 10 },
-    skip: activeTab !== 'recent',
-  });
-
-  const loadMoreRef = useRef<HTMLDivElement>(null);
-  const [isFetchingMore, setIsFetchingMore] = useState(false);
-
-  const handleLoadMore = useCallback(async () => {
-    if (!data?.gameLogs?.pageInfo?.hasNextPage || isFetchingMore) return;
-
-    setIsFetchingMore(true);
-    try {
-      await fetchMore({
-        variables: { after: data.gameLogs.pageInfo.endCursor },
-        updateQuery: (prev, { fetchMoreResult }) => {
-          if (!fetchMoreResult) return prev;
-          return {
-            gameLogs: {
-              ...fetchMoreResult.gameLogs,
-              edges: [...prev.gameLogs.edges, ...fetchMoreResult.gameLogs.edges],
-            },
-          };
-        },
-      });
-    } finally {
-      setIsFetchingMore(false);
-    }
-  }, [data, fetchMore, isFetchingMore]);
-
-  useEffect(() => {
-    const element = loadMoreRef.current;
-    if (!element || activeTab !== 'recent') return;
-
-    const observer = new IntersectionObserver(
-      entries => {
-        if (entries[0].isIntersecting) {
-          handleLoadMore();
-        }
-      },
-      { threshold: 0.1 }
-    );
-
-    observer.observe(element);
-    return () => observer.disconnect();
-  }, [handleLoadMore, activeTab]);
 
   return (
     <div className="container mx-auto px-4 py-8">

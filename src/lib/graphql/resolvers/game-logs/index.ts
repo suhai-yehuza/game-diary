@@ -95,53 +95,56 @@ export const gameLogs = async (
 
     // If only userId is provided as a filter and no pagination, use cache
     const isSimpleUserQuery =
-      filters && typeof filters.userId === 'string' && Object.keys(filters).length === 1 && filters.userId && !after && !last && first === 10;
-    if (isSimpleUserQuery) {
-      const userId = filters.userId!;
-      return withCache(
-        CACHE_KEYS.USER_GAME_LOGS(userId),
-        async () => {
-          // Build the query conditions
-          const conditions = [eq(schema.game_logs.userId, userId)];
-          const whereClause = and(...conditions);
+      filters &&
+      typeof filters.userId === 'string' &&
+      Object.keys(filters).length === 1 &&
+      filters.userId &&
+      !after &&
+      !last &&
+      first === 10;
+    if (isSimpleUserQuery && filters.userId) {
+      const userId = filters.userId;
+      return withCache(CACHE_KEYS.USER_GAME_LOGS(userId), async () => {
+        // Build the query conditions
+        const conditions = [eq(schema.game_logs.userId, userId)];
+        const whereClause = and(...conditions);
 
-          // Get the total count
-          const [countResult] = await db
-            .select({ count: sql<number>`cast(count(*) as int)` })
-            .from(schema.game_logs)
-            .where(whereClause);
+        // Get the total count
+        const [countResult] = await db
+          .select({ count: sql<number>`cast(count(*) as int)` })
+          .from(schema.game_logs)
+          .where(whereClause);
 
-          const totalCount = countResult?.count || 0;
+        const totalCount = countResult?.count || 0;
 
-          // Execute the query
-          const items = await db
-            .select()
-            .from(schema.game_logs)
-            .where(whereClause)
-            .orderBy(desc(schema.game_logs.createdAt))
-            .limit(1000); // Arbitrary high limit for all logs
+        // Execute the query
+        const items = await db
+          .select()
+          .from(schema.game_logs)
+          .where(whereClause)
+          .orderBy(desc(schema.game_logs.createdAt))
+          .limit(1000); // Arbitrary high limit for all logs
 
-          // Map the results
-          const mappedLogs = items.map(log => ({
-            id: log.id,
-            userId: log.userId,
-            gameId: log.gameId,
-            watchedSetting: log.watchedSetting,
-            watchedDate: log.watchedDate,
-            watchedLocation: log.watchedLocation,
-            ratingForGame: log.ratingForGame,
-            watchedScope: log.watchedScope,
-            notes: log.notes,
-            tags: log.tags,
-            classification: log.classification,
-            createdAt: log.createdAt,
-            updatedAt: log.updatedAt,
-            deletedAt: log.deletedAt,
-          }));
+        // Map the results
+        const mappedLogs = items.map(log => ({
+          id: log.id,
+          userId: log.userId,
+          gameId: log.gameId,
+          watchedSetting: log.watchedSetting,
+          watchedDate: log.watchedDate,
+          watchedLocation: log.watchedLocation,
+          ratingForGame: log.ratingForGame,
+          watchedScope: log.watchedScope,
+          notes: log.notes,
+          tags: log.tags,
+          classification: log.classification,
+          createdAt: log.createdAt,
+          updatedAt: log.updatedAt,
+          deletedAt: log.deletedAt,
+        }));
 
-          return createConnection(mappedLogs, totalCount, args);
-        }
-      );
+        return createConnection(mappedLogs, totalCount, args);
+      });
     }
 
     // Build the query conditions

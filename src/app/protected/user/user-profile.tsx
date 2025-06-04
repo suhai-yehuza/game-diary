@@ -632,7 +632,7 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
                   <Filter className="h-4 w-4" />
                   <select
                     value={selectedClassification}
-                    onChange={(e) => setSelectedClassification(e.target.value)}
+                    onChange={e => setSelectedClassification(e.target.value)}
                     className="border rounded px-2 py-1"
                   >
                     <option value="all">All</option>
@@ -655,8 +655,11 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {gameLogs.map((gameLog) => {
-                    const ClassificationIcon = classificationIcons[gameLog.classification as keyof typeof classificationIcons];
+                  {gameLogs.map(gameLog => {
+                    const ClassificationIcon =
+                      classificationIcons[
+                        gameLog.classification as keyof typeof classificationIcons
+                      ];
                     return (
                       <Card
                         key={gameLog.id}
@@ -686,13 +689,16 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
                               <div className="flex-1">
                                 <div className="flex items-center gap-3 mb-2">
                                   <h3 className="font-bold text-xl text-foreground">
-                                    {gameLog.game?.teams?.visitors?.name} vs {gameLog.game?.teams?.home?.name}
+                                    {gameLog.game?.teams?.visitors?.name} vs{' '}
+                                    {gameLog.game?.teams?.home?.name}
                                   </h3>
                                   <Badge
                                     variant="outline"
                                     className={cn(
                                       'gap-1 text-xs',
-                                      classificationColors[gameLog.classification as keyof typeof classificationColors]
+                                      classificationColors[
+                                        gameLog.classification as keyof typeof classificationColors
+                                      ]
                                     )}
                                   >
                                     <ClassificationIcon className="h-3 w-3" />
@@ -753,7 +759,8 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
                                     {gameLog.watchedSetting
                                       .split('_')
                                       .map(
-                                        (word: string) => word.charAt(0).toUpperCase() + word.slice(1)
+                                        (word: string) =>
+                                          word.charAt(0).toUpperCase() + word.slice(1)
                                       )
                                       .join(' ')}
                                   </span>
@@ -792,7 +799,9 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
                                     }}
                                     className="p-1 hover:bg-blue-100 dark:hover:bg-blue-900/40 rounded transition-colors"
                                     aria-label={
-                                      expandedNotes.has(gameLog.id) ? 'Collapse notes' : 'Expand notes'
+                                      expandedNotes.has(gameLog.id)
+                                        ? 'Collapse notes'
+                                        : 'Expand notes'
                                     }
                                   >
                                     {expandedNotes.has(gameLog.id) ? (
@@ -831,7 +840,9 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
 
                               <div className="flex items-center gap-1 text-xs text-muted-foreground">
                                 <Clock className="h-3 w-3" />
-                                {formatDistanceToNow(new Date(gameLog.createdAt), { addSuffix: true })}
+                                {formatDistanceToNow(new Date(gameLog.createdAt), {
+                                  addSuffix: true,
+                                })}
                               </div>
                             </div>
                           </div>

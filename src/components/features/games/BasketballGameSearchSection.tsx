@@ -190,7 +190,8 @@ export function BasketballGameSearchSection() {
     }
 
     if (selectedStatus !== 'all') {
-      filterObj.status = selectedStatus.charAt(0).toUpperCase() + selectedStatus.slice(1).toLowerCase();
+      filterObj.status =
+        selectedStatus.charAt(0).toUpperCase() + selectedStatus.slice(1).toLowerCase();
     }
 
     if (selectedTeam !== 'all') {
