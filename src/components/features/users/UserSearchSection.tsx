@@ -77,10 +77,6 @@ const UserCard = ({ user }: { user: UserNode }) => {
   const displayName = fullName || user.username;
   const gameLogCount = user.gameLogs?.length || 0;
 
-  // Don't show own profile in search results
-  const isOwnProfile = currentUser?.id === user.id;
-  if (isOwnProfile) return null;
-
   // Determine friendship status
   const getFriendshipStatus = () => {
     if (!currentUser) return null;
@@ -99,7 +95,7 @@ const UserCard = ({ user }: { user: UserNode }) => {
       return {
         status: friendship.status,
         friendshipId: friendship.id,
-        isReceivedRequest: !!receivedFriendship, // Fixed: true when current user received the request
+        isReceivedRequest: !!receivedFriendship,
       };
     }
 
@@ -488,11 +484,15 @@ export function UserSearchSection({ className }: UserSearchSectionProps) {
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
+  const [isNavigating, setIsNavigating] = useState(false);
+  const [pageData, setPageData] = useState<{ [key: number]: UserNode[] }>({});
+  const [cursors, setCursors] = useState<{ [key: number]: string | null }>({ 1: null });
   const pageSize = API_CONFIG.pagination.DEFAULT_PAGE_SIZE;
 
   const { data, loading, error, fetchMore } = useQuery(SEARCH_USERS, {
     variables: {
       first: pageSize,
+      after: null,
       searchTerm: debouncedSearchTerm || null,
       filters: {
         hasGameLogs,
@@ -501,8 +501,154 @@ export function UserSearchSection({ className }: UserSearchSectionProps) {
         orderBy,
       },
     },
-    notifyOnNetworkStatusChange: true,
+    notifyOnNetworkStatusChange: false, // Prevent unnecessary re-renders
+    fetchPolicy: 'cache-first',
+    onCompleted: (result) => {
+      if (result?.searchUsers?.edges) {
+        const users = result.searchUsers.edges.map((edge: UserEdge) => edge.node);
+        setPageData(prev => ({ ...prev, 1: users }));
+        if (result.searchUsers.pageInfo?.endCursor) {
+          setCursors(prev => ({ ...prev, 2: result.searchUsers.pageInfo.endCursor }));
+        }
+      }
+    },
   });
+
+  // Reset to first page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+    setPageData({});
+    setCursors({ 1: null });
+  }, [debouncedSearchTerm, hasGameLogs, minGameLogs, isVerified, orderBy]);
+
+  // Current page users - use cached data if available, otherwise fall back to query data
+  const currentPageUsers = pageData[currentPage] || (currentPage === 1 ? data?.searchUsers?.edges?.map((edge: UserEdge) => edge.node) : []) || [];
+  const totalCount = data?.searchUsers?.totalCount || 0;
+  const hasNextPage = data?.searchUsers?.pageInfo?.hasNextPage || false;
+  const hasPreviousPage = currentPage > 1;
+
+  // Pre-fetch next page data when user hovers over Next button
+  const prefetchNextPage = useCallback(async () => {
+    const nextPage = currentPage + 1;
+    const nextCursor = cursors[nextPage];
+    
+    if (!pageData[nextPage] && nextCursor && hasNextPage) {
+      try {
+        await fetchMore({
+          variables: {
+            first: pageSize,
+            after: nextCursor,
+            searchTerm: debouncedSearchTerm || null,
+            filters: {
+              hasGameLogs,
+              minGameLogs,
+              isVerified,
+              orderBy,
+            },
+          },
+          updateQuery: (prev, { fetchMoreResult }) => {
+            if (fetchMoreResult?.searchUsers?.edges) {
+              const users = fetchMoreResult.searchUsers.edges.map((edge: UserEdge) => edge.node);
+              setPageData(prevData => ({ ...prevData, [nextPage]: users }));
+              
+              if (fetchMoreResult.searchUsers.pageInfo?.endCursor) {
+                setCursors(prevCursors => ({ 
+                  ...prevCursors, 
+                  [nextPage + 1]: fetchMoreResult.searchUsers.pageInfo.endCursor 
+                }));
+              }
+            }
+            return prev; // Don't update the main query
+          },
+        });
+      } catch (error) {
+        console.error('Error prefetching next page:', error);
+      }
+    }
+  }, [currentPage, cursors, pageData, hasNextPage, fetchMore, pageSize, debouncedSearchTerm, hasGameLogs, minGameLogs, isVerified, orderBy]);
+
+  const handlePageChange = useCallback(
+    async (page: number) => {
+      if (loading || isNavigating) return;
+
+      const isNextPage = page > currentPage;
+      
+      // If we already have the data cached, switch immediately
+      if (pageData[page]) {
+        setCurrentPage(page);
+        return;
+      }
+
+      setIsNavigating(true);
+      
+      try {
+        if (isNextPage && hasNextPage) {
+          const cursor = cursors[page];
+          if (cursor) {
+            await fetchMore({
+              variables: {
+                first: pageSize,
+                after: cursor,
+                searchTerm: debouncedSearchTerm || null,
+                filters: {
+                  hasGameLogs,
+                  minGameLogs,
+                  isVerified,
+                  orderBy,
+                },
+              },
+              updateQuery: (prev, { fetchMoreResult }) => {
+                if (fetchMoreResult?.searchUsers?.edges) {
+                  const users = fetchMoreResult.searchUsers.edges.map((edge: UserEdge) => edge.node);
+                  setPageData(prevData => ({ ...prevData, [page]: users }));
+                  
+                  if (fetchMoreResult.searchUsers.pageInfo?.endCursor) {
+                    setCursors(prevCursors => ({ 
+                      ...prevCursors, 
+                      [page + 1]: fetchMoreResult.searchUsers.pageInfo.endCursor 
+                    }));
+                  }
+                }
+                return prev;
+              },
+            });
+          }
+        } else if (!isNextPage && page === currentPage - 1) {
+          // For previous page, calculate cursor and fetch
+          const targetOffset = (page - 1) * pageSize;
+          const targetCursor = targetOffset > 0 ? btoa(targetOffset.toString()) : null;
+          
+          await fetchMore({
+            variables: {
+              first: pageSize,
+              after: targetCursor,
+              searchTerm: debouncedSearchTerm || null,
+              filters: {
+                hasGameLogs,
+                minGameLogs,
+                isVerified,
+                orderBy,
+              },
+            },
+            updateQuery: (prev, { fetchMoreResult }) => {
+              if (fetchMoreResult?.searchUsers?.edges) {
+                const users = fetchMoreResult.searchUsers.edges.map((edge: UserEdge) => edge.node);
+                setPageData(prevData => ({ ...prevData, [page]: users }));
+              }
+              return prev;
+            },
+          });
+        }
+        
+        setCurrentPage(page);
+      } catch (error) {
+        console.error('Error navigating pages:', error);
+      } finally {
+        setIsNavigating(false);
+      }
+    },
+    [currentPage, pageData, cursors, loading, hasNextPage, fetchMore, pageSize, debouncedSearchTerm, hasGameLogs, minGameLogs, isVerified, orderBy, isNavigating]
+  );
 
   // Check for received friend requests and create notifications
   useEffect(() => {
@@ -537,37 +683,6 @@ export function UserSearchSection({ className }: UserSearchSectionProps) {
       }
     });
   }, [data, currentUser, addNotification]);
-
-  // Reset to first page when filters change
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [debouncedSearchTerm, hasGameLogs, minGameLogs, isVerified, orderBy]);
-
-  const users = data?.searchUsers?.edges?.map((edge: UserEdge) => edge.node) || [];
-  const totalCount = data?.searchUsers?.totalCount || 0;
-  const totalPages = Math.ceil(totalCount / pageSize);
-
-  const handlePageChange = useCallback(
-    async (page: number) => {
-      if (page < 1 || page > totalPages) return;
-
-      const isNextPage = page > currentPage;
-      const cursor = isNextPage
-        ? data?.searchUsers?.edges[data.searchUsers.edges.length - 1]?.cursor
-        : null;
-
-      if (cursor) {
-        await fetchMore({
-          variables: {
-            after: cursor,
-          },
-        });
-      }
-
-      setCurrentPage(page);
-    },
-    [currentPage, totalPages, data, fetchMore]
-  );
 
   const resetFilters = () => {
     setHasGameLogs(null);
@@ -713,9 +828,23 @@ export function UserSearchSection({ className }: UserSearchSectionProps) {
         {!loading && (
           <div className="flex items-center justify-between mb-4">
             <p className="text-sm text-muted-foreground">
-              Found {formatCount(totalCount)} {totalCount === 1 ? 'user' : 'users'}
-              {debouncedSearchTerm && ` matching "${debouncedSearchTerm}"`}
+              {totalCount > 0 ? (
+                <>
+                  Showing {((currentPage - 1) * pageSize) + 1}-{Math.min(currentPage * pageSize, totalCount)} of {formatCount(totalCount)} {totalCount === 1 ? 'user' : 'users'}
+                  {debouncedSearchTerm && ` matching "${debouncedSearchTerm}"`}
+                </>
+              ) : (
+                <>
+                  Found {formatCount(totalCount)} {totalCount === 1 ? 'user' : 'users'}
+                  {debouncedSearchTerm && ` matching "${debouncedSearchTerm}"`}
+                </>
+              )}
             </p>
+            {totalCount > pageSize && (
+              <p className="text-sm text-muted-foreground">
+                Page {currentPage} of {Math.ceil(totalCount / pageSize)}
+              </p>
+            )}
           </div>
         )}
 
@@ -733,7 +862,7 @@ export function UserSearchSection({ className }: UserSearchSectionProps) {
               <UserCardSkeleton key={i} />
             ))}
           </div>
-        ) : users.length === 0 ? (
+        ) : currentPageUsers.length === 0 ? (
           <Card>
             <CardContent className="py-12 text-center">
               <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
@@ -747,75 +876,40 @@ export function UserSearchSection({ className }: UserSearchSectionProps) {
           </Card>
         ) : (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {users.map((user: UserNode) => (
+            <div className={cn(
+              "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 transition-opacity duration-200",
+              isNavigating && "opacity-60"
+            )}>
+              {currentPageUsers.map((user: UserNode) => (
                 <UserCard key={user.id} user={user} />
               ))}
             </div>
 
             {/* Pagination */}
-            {totalPages > 1 && (
+            {(hasNextPage || hasPreviousPage) && (
               <div className="flex items-center justify-center mt-8 gap-2">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => handlePageChange(currentPage - 1)}
-                  disabled={currentPage === 1 || loading}
+                  disabled={!hasPreviousPage || isNavigating}
                 >
                   <ChevronLeft className="h-4 w-4" />
                   Previous
                 </Button>
 
-                <div className="flex items-center gap-1">
-                  {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => {
-                    let pageNum;
-                    if (totalPages <= 7) {
-                      pageNum = i + 1;
-                    } else if (currentPage <= 4) {
-                      pageNum = i < 5 ? i + 1 : i === 5 ? -1 : totalPages;
-                    } else if (currentPage >= totalPages - 3) {
-                      pageNum = i === 0 ? 1 : i === 1 ? -1 : totalPages - 6 + i;
-                    } else {
-                      pageNum =
-                        i === 0
-                          ? 1
-                          : i === 1
-                            ? -1
-                            : i === 5
-                              ? -1
-                              : i === 6
-                                ? totalPages
-                                : currentPage - 3 + i;
-                    }
-
-                    if (pageNum === -1) {
-                      return (
-                        <span key={i} className="px-2 text-muted-foreground">
-                          ...
-                        </span>
-                      );
-                    }
-
-                    return (
-                      <Button
-                        key={i}
-                        variant={currentPage === pageNum ? 'default' : 'outline'}
-                        size="sm"
-                        className="w-9 h-9 p-0"
-                        onClick={() => handlePageChange(pageNum)}
-                        disabled={loading}
-                      >
-                        {pageNum}
-                      </Button>
-                    );
-                  })}
+                <div className="flex items-center gap-2 px-4">
+                  <span className="text-sm text-muted-foreground">
+                    {isNavigating ? 'Loading...' : `Page ${currentPage}`}
+                  </span>
                 </div>
 
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => handlePageChange(currentPage + 1)}
-                  disabled={currentPage === totalPages || loading}
+                  onMouseEnter={prefetchNextPage}
+                  disabled={!hasNextPage || isNavigating}
                 >
                   Next
                   <ChevronRight className="h-4 w-4" />

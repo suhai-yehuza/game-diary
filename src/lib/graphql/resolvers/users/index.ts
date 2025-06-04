@@ -2,7 +2,7 @@ import { and, eq, gt, lt, or, sql, gte, lte, desc, asc, type InferSelectModel } 
 
 import * as schema from '@/lib/db/schema';
 import { BusinessLogicError } from '@/lib/graphql/errors';
-import { createConnection } from '@/lib/graphql/utils/pagination';
+import { createConnection, parseCursor } from '@/lib/graphql/utils/pagination';
 import type { Context } from '@/lib/types/component.types';
 import type { DBUser } from '@/lib/types/generated/graphql';
 
@@ -65,6 +65,7 @@ export const searchUsers = async (
   try {
     const { first = 20, after, searchTerm, filters } = args;
     const limit = first || 20;
+    const offset = after ? parseCursor(after) : 0;
 
     // Build query conditions
     const conditions = [];
@@ -96,12 +97,7 @@ export const searchUsers = async (
       conditions.push(eq(schema.users.email_verified, filters.isVerified));
     }
 
-    // Pagination cursor
-    if (after) {
-      conditions.push(gt(schema.users.id, after));
-    }
-
-    // Add game log filters to conditions
+    // Add game log filters
     if (filters?.hasGameLogs === true || filters?.minGameLogs) {
       const minLogs = filters.minGameLogs || 1;
       conditions.push(
@@ -121,7 +117,7 @@ export const searchUsers = async (
       );
     }
 
-    // Build the query with all conditions
+    // Build the query
     const query = db
       .select({
         user: schema.users,
@@ -167,16 +163,12 @@ export const searchUsers = async (
         orderByClause = desc(schema.users.createdAt);
     }
 
-    // Execute query with ordering and limit
-    const results = await query.orderBy(orderByClause).limit(limit + 1);
-
-    // Check if there are more items
-    const hasNextPage = results.length > limit;
-    const actualResults = hasNextPage ? results.slice(0, -1) : results;
+    // Execute query with ordering, offset, and limit
+    const results = await query.orderBy(orderByClause).offset(offset).limit(limit);
 
     // Map users with game log data
     const mappedUsers = await Promise.all(
-      actualResults.map(async result => {
+      results.map(async result => {
         const userData = mapUserData(result.user);
 
         // Fetch game log IDs for this user (limit to avoid performance issues)
@@ -201,7 +193,7 @@ export const searchUsers = async (
 
     const totalCount = totalCountQuery[0]?.count || 0;
 
-    return createConnection(mappedUsers, totalCount, { first: limit, after });
+    return createConnection(mappedUsers, totalCount, args);
   } catch (error) {
     handleResolverError(error, 'search users');
   }
