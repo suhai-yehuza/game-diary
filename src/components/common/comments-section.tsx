@@ -188,38 +188,59 @@ export function CommentsSection({ parentId, parentType, initialExpanded }: Comme
     update: (cache, { data }) => {
       if (!data?.createComment?.comment) return;
 
-      const existingData = cache.readQuery({
-        query: GET_COMMENTS_WITH_FILTERS,
-        variables: { parentId },
-      }) as { comments: CommentConnection } | null;
+      try {
+        // Use the same variables as the original query
+        const existingData = cache.readQuery({
+          query: GET_COMMENTS_WITH_FILTERS,
+          variables: { 
+            parentId: parentId,
+            first: 10
+          },
+        }) as { comments: CommentConnection } | null;
 
-      if (!existingData?.comments) return;
+        if (!existingData?.comments) return;
 
-      const newEdge = {
-        __typename: 'CommentEdge',
-        cursor: `cursor-${data.createComment.comment.id}`,
-        node: data.createComment.comment,
-      };
+        const newEdge = {
+          __typename: 'CommentEdge',
+          cursor: `cursor-${data.createComment.comment.id}`,
+          node: data.createComment.comment,
+        };
 
-      cache.writeQuery({
-        query: GET_COMMENTS_WITH_FILTERS,
-        variables: { parentId },
-        data: {
-          comments: {
-            __typename: 'CommentConnection',
-            edges: [newEdge, ...existingData.comments.edges],
-            totalCount: existingData.comments.totalCount + 1,
-            pageInfo: existingData.comments.pageInfo || {
-              __typename: 'PageInfo',
-              hasNextPage: false,
-              hasPreviousPage: false,
-              startCursor: null,
-              endCursor: null,
+        cache.writeQuery({
+          query: GET_COMMENTS_WITH_FILTERS,
+          variables: { 
+            parentId: parentId,
+            first: 10
+          },
+          data: {
+            comments: {
+              __typename: 'CommentConnection',
+              edges: [newEdge, ...existingData.comments.edges],
+              totalCount: existingData.comments.totalCount + 1,
+              pageInfo: existingData.comments.pageInfo || {
+                __typename: 'PageInfo',
+                hasNextPage: false,
+                hasPreviousPage: false,
+                startCursor: null,
+                endCursor: null,
+              },
             },
           },
-        },
-      });
+        });
+      } catch (error) {
+        // If cache update fails, fallback to refetch
+        console.warn('Cache update failed, will refetch:', error);
+      }
     },
+    refetchQueries: [
+      {
+        query: GET_COMMENTS_WITH_FILTERS,
+        variables: { 
+          parentId: parentId,
+          first: 10
+        },
+      },
+    ],
     onError: error => {
       toast({
         title: 'Error',
@@ -254,35 +275,47 @@ export function CommentsSection({ parentId, parentType, initialExpanded }: Comme
     update: (cache, { data }) => {
       if (!data?.updateComment?.comment) return;
 
-      const existingData = cache.readQuery({
-        query: GET_COMMENTS_WITH_FILTERS,
-        variables: { parentId },
-      }) as { comments: CommentConnection } | null;
-
-      if (!existingData?.comments) return;
-
-      const newEdges = existingData.comments.edges.map((edge: CommentEdge) => {
-        if (edge.node.id === data.updateComment.comment.id) {
-          return {
-            ...edge,
-            node: data.updateComment.comment,
-          };
-        }
-        return edge;
-      });
-
-      cache.writeQuery({
-        query: GET_COMMENTS_WITH_FILTERS,
-        variables: { parentId },
-        data: {
-          comments: {
-            __typename: 'CommentConnection',
-            edges: newEdges,
-            totalCount: existingData.comments.totalCount,
-            pageInfo: existingData.comments.pageInfo,
+      try {
+        // Use the same variables as the original query
+        const existingData = cache.readQuery({
+          query: GET_COMMENTS_WITH_FILTERS,
+          variables: { 
+            parentId: parentId,
+            first: 10
           },
-        },
-      });
+        }) as { comments: CommentConnection } | null;
+
+        if (!existingData?.comments) return;
+
+        const newEdges = existingData.comments.edges.map((edge: CommentEdge) => {
+          if (edge.node.id === data.updateComment.comment.id) {
+            return {
+              ...edge,
+              node: data.updateComment.comment,
+            };
+          }
+          return edge;
+        });
+
+        cache.writeQuery({
+          query: GET_COMMENTS_WITH_FILTERS,
+          variables: { 
+            parentId: parentId,
+            first: 10
+          },
+          data: {
+            comments: {
+              __typename: 'CommentConnection',
+              edges: newEdges,
+              totalCount: existingData.comments.totalCount,
+              pageInfo: existingData.comments.pageInfo,
+            },
+          },
+        });
+      } catch (error) {
+        // If cache update fails, fallback to refetch
+        console.warn('Cache update failed for comment update, will refetch:', error);
+      }
     },
     onCompleted: () => {
       setEditingComment(null);
