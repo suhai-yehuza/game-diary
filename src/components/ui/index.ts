@@ -15,5 +15,14 @@ export * from './tooltip';
 export * from './alert-dialog';
 export * from './popover';
 export * from './toaster';
-export * from './toast';
+export {
+  type ToastProps,
+  type ToastActionElement,
+  ToastViewport,
+  Toast,
+  ToastTitle,
+  ToastDescription,
+  ToastClose,
+  ToastAction,
+} from './toast';
 export * from './use-toast';

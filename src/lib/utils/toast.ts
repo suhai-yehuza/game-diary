@@ -1,6 +1,6 @@
 import type { ToastProps, ToasterToast, ToastAction } from '@/lib/types/notification.types';
 
-export const TOAST_LIMIT = 1;
+export const TOAST_LIMIT = 5;
 
 export const createToast = (props: ToastProps, dispatch: React.Dispatch<ToastAction>) => {
   const id = Math.random().toString(36).substring(2);
@@ -21,6 +21,11 @@ export const createToast = (props: ToastProps, dispatch: React.Dispatch<ToastAct
       open: true,
     },
   });
+
+  // Auto-dismiss after 5 seconds
+  setTimeout(() => {
+    dismiss();
+  }, 5000);
 
   return {
     id,

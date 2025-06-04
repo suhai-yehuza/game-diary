@@ -11,16 +11,18 @@ import {
   ToastViewport,
 } from '@/components/ui/toast';
 import { useToast } from '@/components/ui/use-toast';
-import { type ToastProps } from '@/lib/types/notification.types';
+import { type ToasterToast } from '@/lib/types/notification.types';
 
 export function Toaster() {
   const { toasts } = useToast();
 
   return (
     <ToastProvider>
-      {toasts.map(function ({ id, title, description, action, ...props }: ToastProps) {
+      {toasts.map(function (toast: ToasterToast) {
+        const { id, title, description, action, open, variant, ...rest } = toast;
+
         return (
-          <Toast key={id} {...props}>
+          <Toast key={id} open={open} variant={variant} {...rest}>
             <div className="grid gap-1">
               {title && <ToastTitle>{title}</ToastTitle>}
               {description && <ToastDescription>{description}</ToastDescription>}

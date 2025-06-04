@@ -3,7 +3,6 @@
 import { gql } from '@apollo/client';
 import { useQuery, useMutation } from '@apollo/client/react/hooks';
 import { useUser } from '@clerk/nextjs';
-import { SignedIn, SignedOut } from '@clerk/nextjs';
 import { formatDistanceToNow } from 'date-fns';
 import {
   Calendar,
@@ -29,29 +28,22 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState } from 'react';
 import { toast } from 'react-hot-toast';
 
-import { FriendRequests } from '@/components/features/friends';
 import { GameLogModal } from '@/components/features/games';
-import { GameLogSearchSection, GameLogsSection } from '@/components/features/games';
 import { GameLogActions } from '@/components/features/games/game-log-actions';
-import { UserSearchSection } from '@/components/features/users';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { StarRating } from '@/components/ui/star-rating';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ToastTest } from '@/components/ui/toast-test';
 import { SEND_FRIEND_REQUEST, ACCEPT_FRIEND_REQUEST, REMOVE_FRIEND } from '@/lib/graphql/mutations';
 import { GET_GAME_LOGS, GET_USER } from '@/lib/graphql/queries';
 import { logger } from '@/lib/logger';
-import type { ClassificationValue } from '@/lib/types/config.types';
 import { GameLog, Friendship, FriendshipStatus, DBUser } from '@/lib/types/generated/graphql';
-import type { GetGameLogsQueryVariables } from '@/lib/types/generated/graphql';
 import { UserProfileProps } from '@/lib/types/user.types';
 import { cn } from '@/lib/utils';
 
@@ -511,7 +503,6 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
-      <ToastTest />
       {/* Profile Header */}
       <div className="bg-card border-b">
         <div className="container mx-auto px-4 py-8">
