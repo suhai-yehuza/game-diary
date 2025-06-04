@@ -178,7 +178,9 @@ export function BasketballGameSearchSection() {
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageCursors, setPageCursors] = useState<Record<number, PageCursor>>({});
+  const [isNavigating, setIsNavigating] = useState(false);
+  const [pageData, setPageData] = useState<{ [key: number]: Game[] }>({});
+  const [cursors, setCursors] = useState<{ [key: number]: string | null }>({ 1: null });
   const pageSize = API_CONFIG.pagination.DEFAULT_PAGE_SIZE;
 
   // Build filters object
@@ -201,43 +203,142 @@ export function BasketballGameSearchSection() {
     return filterObj;
   }, [selectedSeason, selectedStatus, selectedTeam]);
 
-  // Get cursor for current page
-  const currentCursor = currentPage > 1 ? pageCursors[currentPage - 1]?.endCursor : null;
-
   // Query only current page data
   const {
     data: gamesData,
     loading: gamesLoading,
     error: gamesError,
+    fetchMore,
   } = useQuery(GET_GAMES, {
     variables: {
       first: pageSize,
-      after: currentCursor,
+      after: null,
       filters,
     },
-    notifyOnNetworkStatusChange: true,
+    notifyOnNetworkStatusChange: false,
+    fetchPolicy: 'cache-first',
+    onCompleted: (result) => {
+      if (result?.games?.edges) {
+        const games = result.games.edges.map((edge: GameEdge) => edge.node);
+        setPageData(prev => ({ ...prev, 1: games }));
+        if (result.games.pageInfo?.endCursor) {
+          setCursors(prev => ({ ...prev, 2: result.games.pageInfo.endCursor }));
+        }
+      }
+    },
   });
 
-  // Store cursor information when data changes
-  useEffect(() => {
-    if (gamesData?.games?.pageInfo) {
-      setPageCursors(prev => ({
-        ...prev,
-        [currentPage]: {
-          startCursor: gamesData.games.pageInfo.startCursor,
-          endCursor: gamesData.games.pageInfo.endCursor,
-        },
-      }));
-    }
-  }, [gamesData, currentPage]);
-
-  const games = useMemo(
-    () => gamesData?.games?.edges?.map((edge: GameEdge) => edge.node) || [],
-    [gamesData?.games?.edges]
-  );
+  // Current page games - use cached data if available, otherwise fall back to query data
+  const games = pageData[currentPage] || (currentPage === 1 ? gamesData?.games?.edges?.map((edge: GameEdge) => edge.node) : []) || [];
   const totalCount = gamesData?.games?.totalCount || 0;
   const hasNextPage = gamesData?.games?.pageInfo?.hasNextPage || false;
+  const hasPreviousPage = currentPage > 1;
   const totalPages = Math.ceil(totalCount / pageSize);
+
+  // Pre-fetch next page data when user hovers over Next button
+  const prefetchNextPage = useCallback(async () => {
+    const nextPage = currentPage + 1;
+    const nextCursor = cursors[nextPage];
+    
+    if (!pageData[nextPage] && nextCursor && hasNextPage) {
+      try {
+        await fetchMore({
+          variables: {
+            first: pageSize,
+            after: nextCursor,
+            filters,
+          },
+          updateQuery: (prev, { fetchMoreResult }) => {
+            if (fetchMoreResult?.games?.edges) {
+              const games = fetchMoreResult.games.edges.map((edge: GameEdge) => edge.node);
+              setPageData(prevData => ({ ...prevData, [nextPage]: games }));
+              
+              if (fetchMoreResult.games.pageInfo?.endCursor) {
+                setCursors(prevCursors => ({ 
+                  ...prevCursors, 
+                  [nextPage + 1]: fetchMoreResult.games.pageInfo.endCursor 
+                }));
+              }
+            }
+            return prev; // Don't update the main query
+          },
+        });
+      } catch (error) {
+        console.error('Error prefetching next page:', error);
+      }
+    }
+  }, [currentPage, cursors, pageData, hasNextPage, fetchMore, pageSize, filters]);
+
+  const handlePageChange = useCallback(
+    async (page: number) => {
+      if (gamesLoading || isNavigating) return;
+
+      const isNextPage = page > currentPage;
+      
+      // If we already have the data cached, switch immediately
+      if (pageData[page]) {
+        setCurrentPage(page);
+        return;
+      }
+
+      setIsNavigating(true);
+      
+      try {
+        if (isNextPage && hasNextPage) {
+          const cursor = cursors[page];
+          if (cursor) {
+            await fetchMore({
+              variables: {
+                first: pageSize,
+                after: cursor,
+                filters,
+              },
+              updateQuery: (prev, { fetchMoreResult }) => {
+                if (fetchMoreResult?.games?.edges) {
+                  const games = fetchMoreResult.games.edges.map((edge: GameEdge) => edge.node);
+                  setPageData(prevData => ({ ...prevData, [page]: games }));
+                  
+                  if (fetchMoreResult.games.pageInfo?.endCursor) {
+                    setCursors(prevCursors => ({ 
+                      ...prevCursors, 
+                      [page + 1]: fetchMoreResult.games.pageInfo.endCursor 
+                    }));
+                  }
+                }
+                return prev;
+              },
+            });
+          }
+        } else if (!isNextPage && page === currentPage - 1) {
+          // For previous page, calculate cursor and fetch
+          const targetOffset = (page - 1) * pageSize;
+          const targetCursor = targetOffset > 0 ? btoa(targetOffset.toString()) : null;
+          
+          await fetchMore({
+            variables: {
+              first: pageSize,
+              after: targetCursor,
+              filters,
+            },
+            updateQuery: (prev, { fetchMoreResult }) => {
+              if (fetchMoreResult?.games?.edges) {
+                const games = fetchMoreResult.games.edges.map((edge: GameEdge) => edge.node);
+                setPageData(prevData => ({ ...prevData, [page]: games }));
+              }
+              return prev;
+            },
+          });
+        }
+        
+        setCurrentPage(page);
+      } catch (error) {
+        console.error('Error navigating pages:', error);
+      } finally {
+        setIsNavigating(false);
+      }
+    },
+    [currentPage, pageData, cursors, gamesLoading, hasNextPage, fetchMore, pageSize, filters, isNavigating]
+  );
 
   // Filter games by search text (client-side for current page only)
   const filteredGames = useMemo(() => {
@@ -278,14 +379,6 @@ export function BasketballGameSearchSection() {
     return sorted;
   }, [filteredGames, sortBy]);
 
-  const handlePageChange = useCallback(
-    (page: number) => {
-      if (page < 1 || page > totalPages || page === currentPage) return;
-      setCurrentPage(page);
-    },
-    [currentPage, totalPages]
-  );
-
   const clearFilters = () => {
     setSearchText('');
     setSelectedSeason(currentYear.toString());
@@ -293,7 +386,8 @@ export function BasketballGameSearchSection() {
     setSelectedTeam('all');
     setSortBy('date');
     setCurrentPage(1);
-    setPageCursors({});
+    setPageData({});
+    setCursors({ 1: null });
   };
 
   const hasActiveFilters =
@@ -305,7 +399,8 @@ export function BasketballGameSearchSection() {
   // Reset pagination when filters change
   useEffect(() => {
     setCurrentPage(1);
-    setPageCursors({});
+    setPageData({});
+    setCursors({ 1: null });
   }, [selectedSeason, selectedStatus, selectedTeam, sortBy]);
 
   return (
@@ -394,17 +489,28 @@ export function BasketballGameSearchSection() {
       {!gamesLoading && (
         <div className="flex items-center justify-between">
           <p className="text-sm text-muted-foreground">
-            Found {formatCount(totalCount)} {totalCount === 1 ? 'game' : 'games'}
-            {searchText && ` (showing ${sortedGames.length} on this page matching "${searchText}")`}
+            {totalCount > 0 ? (
+              <>
+                Showing {((currentPage - 1) * pageSize) + 1}-{Math.min(currentPage * pageSize, totalCount)} of {formatCount(totalCount)} {totalCount === 1 ? 'game' : 'games'}
+                {searchText && ` (showing ${sortedGames.length} on this page matching "${searchText}")`}
+              </>
+            ) : (
+              <>
+                Found {formatCount(totalCount)} {totalCount === 1 ? 'game' : 'games'}
+                {searchText && ` (showing ${sortedGames.length} on this page matching "${searchText}")`}
+              </>
+            )}
           </p>
-          <p className="text-sm text-muted-foreground">
-            Page {currentPage} of {formatCount(totalPages)}
-          </p>
+          {totalCount > pageSize && (
+            <p className="text-sm text-muted-foreground">
+              Page {currentPage} of {Math.ceil(totalCount / pageSize)}
+            </p>
+          )}
         </div>
       )}
 
       {/* Games Grid */}
-      {gamesLoading ? (
+      {gamesLoading && !gamesData ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {[...Array(pageSize)].map((_, i) => (
             <GameSkeleton key={i} />
@@ -434,7 +540,10 @@ export function BasketballGameSearchSection() {
         </Card>
       ) : (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className={cn(
+            "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 transition-opacity duration-200",
+            isNavigating && "opacity-60"
+          )}>
             {sortedGames.map((game: Game) => {
               const gameDate = new Date(game.date.start);
               const isLive =
@@ -502,20 +611,13 @@ export function BasketballGameSearchSection() {
                               />
                             </div>
                           )}
-                          <div>
-                            <div className="font-medium">
-                              {game.teams?.visitors?.nickname || 'Away Team'}
-                            </div>
-                            <div className="text-xs text-muted-foreground">
-                              {game.teams?.visitors?.name || ''}
-                            </div>
-                          </div>
+                          <span className="font-medium text-sm">
+                            {game.teams?.visitors?.nickname || game.teams?.visitors?.name}
+                          </span>
                         </div>
-                        {!isScheduled && (
-                          <div className="text-xl font-bold">
-                            {game.scores?.visitors?.points || 0}
-                          </div>
-                        )}
+                        <span className="font-bold text-lg">
+                          {game.scores?.visitors?.points || 0}
+                        </span>
                       </div>
 
                       {/* Home Team */}
@@ -532,50 +634,29 @@ export function BasketballGameSearchSection() {
                               />
                             </div>
                           )}
-                          <div>
-                            <div className="font-medium">
-                              {game.teams?.home?.nickname || 'Home Team'}
-                            </div>
-                            <div className="text-xs text-muted-foreground">
-                              {game.teams?.home?.name || ''}
-                            </div>
-                          </div>
+                          <span className="font-medium text-sm">
+                            {game.teams?.home?.nickname || game.teams?.home?.name}
+                          </span>
                         </div>
-                        {!isScheduled && (
-                          <div className="text-xl font-bold">{game.scores?.home?.points || 0}</div>
-                        )}
+                        <span className="font-bold text-lg">{game.scores?.home?.points || 0}</span>
                       </div>
                     </div>
 
-                    {/* Arena */}
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground pt-2 border-t">
-                      <MapPin className="h-3.5 w-3.5" />
-                      <span className="truncate">
-                        {game.arena.name}, {game.arena.city}
-                      </span>
+                    {/* Game Details */}
+                    <div className="space-y-1 text-xs text-muted-foreground">
+                      <div className="flex items-center gap-1">
+                        <MapPin className="h-3 w-3" />
+                        <span>
+                          {game.arena?.name}, {game.arena?.city}
+                        </span>
+                      </div>
+                      {game.timesTied !== undefined && game.leadChanges !== undefined && (
+                        <div className="flex items-center gap-4">
+                          <span>Times tied: {game.timesTied}</span>
+                          <span>Lead changes: {game.leadChanges}</span>
+                        </div>
+                      )}
                     </div>
-
-                    {/* Game Stats */}
-                    {game.status.long === 'Finished' && (game.timesTied || game.leadChanges) && (
-                      <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                        {game.timesTied !== undefined && <span>Times Tied: {game.timesTied}</span>}
-                        {game.leadChanges !== undefined && (
-                          <span>Lead Changes: {game.leadChanges}</span>
-                        )}
-                      </div>
-                    )}
-
-                    {/* Live Game Clock */}
-                    {isLive && game.status.clock && (
-                      <div className="flex items-center justify-center py-2">
-                        <Badge
-                          variant="destructive"
-                          className="animate-pulse text-xs py-0.5 px-1.5"
-                        >
-                          {game.status.clock} - Q{game.periods?.current || 1}
-                        </Badge>
-                      </div>
-                    )}
                   </CardContent>
                 </Card>
               );
@@ -583,68 +664,30 @@ export function BasketballGameSearchSection() {
           </div>
 
           {/* Pagination */}
-          {totalPages > 1 && (
+          {(hasNextPage || hasPreviousPage) && (
             <div className="flex items-center justify-center mt-8 gap-2">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => handlePageChange(currentPage - 1)}
-                disabled={currentPage === 1 || gamesLoading}
+                disabled={!hasPreviousPage || isNavigating}
               >
                 <ChevronLeft className="h-4 w-4" />
                 Previous
               </Button>
 
-              <div className="flex items-center gap-1">
-                {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => {
-                  let pageNum;
-                  if (totalPages <= 7) {
-                    pageNum = i + 1;
-                  } else if (currentPage <= 4) {
-                    pageNum = i < 5 ? i + 1 : i === 5 ? -1 : totalPages;
-                  } else if (currentPage >= totalPages - 3) {
-                    pageNum = i === 0 ? 1 : i === 1 ? -1 : totalPages - 6 + i;
-                  } else {
-                    pageNum =
-                      i === 0
-                        ? 1
-                        : i === 1
-                          ? -1
-                          : i === 5
-                            ? -1
-                            : i === 6
-                              ? totalPages
-                              : currentPage - 3 + i;
-                  }
-
-                  if (pageNum === -1) {
-                    return (
-                      <span key={i} className="px-2 text-muted-foreground">
-                        ...
-                      </span>
-                    );
-                  }
-
-                  return (
-                    <Button
-                      key={i}
-                      variant={currentPage === pageNum ? 'default' : 'outline'}
-                      size="sm"
-                      className="w-9 h-9 p-0"
-                      onClick={() => handlePageChange(pageNum)}
-                      disabled={gamesLoading}
-                    >
-                      {pageNum}
-                    </Button>
-                  );
-                })}
+              <div className="flex items-center gap-2 px-4">
+                <span className="text-sm text-muted-foreground">
+                  {isNavigating ? 'Loading...' : `Page ${currentPage}`}
+                </span>
               </div>
 
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => handlePageChange(currentPage + 1)}
-                disabled={currentPage === totalPages || !hasNextPage || gamesLoading}
+                onMouseEnter={prefetchNextPage}
+                disabled={!hasNextPage || isNavigating}
               >
                 Next
                 <ChevronRight className="h-4 w-4" />

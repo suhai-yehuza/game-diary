@@ -141,7 +141,9 @@ export function GameLogSearchSection({
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageCursors, setPageCursors] = useState<Record<number, PageCursor>>({});
+  const [isNavigating, setIsNavigating] = useState(false);
+  const [pageData, setPageData] = useState<{ [key: number]: GameLog[] }>({});
+  const [cursors, setCursors] = useState<{ [key: number]: string | null }>({ 1: null });
   const pageSize = API_CONFIG.pagination.DEFAULT_PAGE_SIZE;
 
   // Build filters object
@@ -184,43 +186,136 @@ export function GameLogSearchSection({
     sortDirection,
   ]);
 
-  // Get cursor for current page
-  const currentCursor = currentPage > 1 ? pageCursors[currentPage - 1]?.endCursor : null;
-
   // Query only current page data
-  const { data, loading, error } = useQuery(GET_GAME_LOGS, {
+  const { data, loading, error, fetchMore } = useQuery(GET_GAME_LOGS, {
     variables: {
       first: pageSize,
-      after: currentCursor,
+      after: null,
       filters,
     },
-    notifyOnNetworkStatusChange: true,
+    notifyOnNetworkStatusChange: false,
+    fetchPolicy: 'cache-first',
+    onCompleted: (result) => {
+      if (result?.gameLogs?.edges) {
+        const gameLogs = result.gameLogs.edges.map((edge: GameLogEdge) => edge.node);
+        setPageData(prev => ({ ...prev, 1: gameLogs }));
+        if (result.gameLogs.pageInfo?.endCursor) {
+          setCursors(prev => ({ ...prev, 2: result.gameLogs.pageInfo.endCursor }));
+        }
+      }
+    },
   });
 
-  // Store cursor information when data changes
-  useEffect(() => {
-    if (data?.gameLogs?.pageInfo) {
-      setPageCursors(prev => ({
-        ...prev,
-        [currentPage]: {
-          startCursor: data.gameLogs.pageInfo.startCursor,
-          endCursor: data.gameLogs.pageInfo.endCursor,
-        },
-      }));
-    }
-  }, [data, currentPage]);
-
-  const gameLogs = data?.gameLogs?.edges?.map((edge: GameLogEdge) => edge.node) || [];
+  // Current page game logs - use cached data if available, otherwise fall back to query data
+  const gameLogs = pageData[currentPage] || (currentPage === 1 ? data?.gameLogs?.edges?.map((edge: GameLogEdge) => edge.node) : []) || [];
   const totalCount = data?.gameLogs?.totalCount || 0;
   const hasNextPage = data?.gameLogs?.pageInfo?.hasNextPage || false;
+  const hasPreviousPage = currentPage > 1;
   const totalPages = Math.ceil(totalCount / pageSize);
 
+  // Pre-fetch next page data when user hovers over Next button
+  const prefetchNextPage = useCallback(async () => {
+    const nextPage = currentPage + 1;
+    const nextCursor = cursors[nextPage];
+    
+    if (!pageData[nextPage] && nextCursor && hasNextPage) {
+      try {
+        await fetchMore({
+          variables: {
+            first: pageSize,
+            after: nextCursor,
+            filters,
+          },
+          updateQuery: (prev, { fetchMoreResult }) => {
+            if (fetchMoreResult?.gameLogs?.edges) {
+              const gameLogs = fetchMoreResult.gameLogs.edges.map((edge: GameLogEdge) => edge.node);
+              setPageData(prevData => ({ ...prevData, [nextPage]: gameLogs }));
+              
+              if (fetchMoreResult.gameLogs.pageInfo?.endCursor) {
+                setCursors(prevCursors => ({ 
+                  ...prevCursors, 
+                  [nextPage + 1]: fetchMoreResult.gameLogs.pageInfo.endCursor 
+                }));
+              }
+            }
+            return prev; // Don't update the main query
+          },
+        });
+      } catch (error) {
+        console.error('Error prefetching next page:', error);
+      }
+    }
+  }, [currentPage, cursors, pageData, hasNextPage, fetchMore, pageSize, filters]);
+
   const handlePageChange = useCallback(
-    (page: number) => {
-      if (page < 1 || page > totalPages || page === currentPage) return;
-      setCurrentPage(page);
+    async (page: number) => {
+      if (loading || isNavigating) return;
+
+      const isNextPage = page > currentPage;
+      
+      // If we already have the data cached, switch immediately
+      if (pageData[page]) {
+        setCurrentPage(page);
+        return;
+      }
+
+      setIsNavigating(true);
+      
+      try {
+        if (isNextPage && hasNextPage) {
+          const cursor = cursors[page];
+          if (cursor) {
+            await fetchMore({
+              variables: {
+                first: pageSize,
+                after: cursor,
+                filters,
+              },
+              updateQuery: (prev, { fetchMoreResult }) => {
+                if (fetchMoreResult?.gameLogs?.edges) {
+                  const gameLogs = fetchMoreResult.gameLogs.edges.map((edge: GameLogEdge) => edge.node);
+                  setPageData(prevData => ({ ...prevData, [page]: gameLogs }));
+                  
+                  if (fetchMoreResult.gameLogs.pageInfo?.endCursor) {
+                    setCursors(prevCursors => ({ 
+                      ...prevCursors, 
+                      [page + 1]: fetchMoreResult.gameLogs.pageInfo.endCursor 
+                    }));
+                  }
+                }
+                return prev;
+              },
+            });
+          }
+        } else if (!isNextPage && page === currentPage - 1) {
+          // For previous page, calculate cursor and fetch
+          const targetOffset = (page - 1) * pageSize;
+          const targetCursor = targetOffset > 0 ? btoa(targetOffset.toString()) : null;
+          
+          await fetchMore({
+            variables: {
+              first: pageSize,
+              after: targetCursor,
+              filters,
+            },
+            updateQuery: (prev, { fetchMoreResult }) => {
+              if (fetchMoreResult?.gameLogs?.edges) {
+                const gameLogs = fetchMoreResult.gameLogs.edges.map((edge: GameLogEdge) => edge.node);
+                setPageData(prevData => ({ ...prevData, [page]: gameLogs }));
+              }
+              return prev;
+            },
+          });
+        }
+        
+        setCurrentPage(page);
+      } catch (error) {
+        console.error('Error navigating pages:', error);
+      } finally {
+        setIsNavigating(false);
+      }
     },
-    [currentPage, totalPages]
+    [currentPage, pageData, cursors, loading, hasNextPage, fetchMore, pageSize, filters, isNavigating]
   );
 
   const handleCardClick = (e: React.MouseEvent, gameLogId: string) => {
@@ -237,7 +332,8 @@ export function GameLogSearchSection({
     setSortBy(GameLogSortBy.CreatedAt);
     setSortDirection(SortDirection.Desc);
     setCurrentPage(1);
-    setPageCursors({});
+    setPageData({});
+    setCursors({ 1: null });
   };
 
   const hasActiveFilters =
@@ -250,7 +346,8 @@ export function GameLogSearchSection({
   // Reset pagination when filters change
   useEffect(() => {
     setCurrentPage(1);
-    setPageCursors({});
+    setPageData({});
+    setCursors({ 1: null });
   }, [
     searchText,
     selectedRating,
@@ -397,17 +494,28 @@ export function GameLogSearchSection({
       {!loading && (
         <div className="flex items-center justify-between">
           <p className="text-sm text-muted-foreground">
-            Found {formatCount(totalCount)} game {totalCount === 1 ? 'log' : 'logs'}
-            {searchText && ` matching "${searchText}"`}
+            {totalCount > 0 ? (
+              <>
+                Showing {((currentPage - 1) * pageSize) + 1}-{Math.min(currentPage * pageSize, totalCount)} of {formatCount(totalCount)} game {totalCount === 1 ? 'log' : 'logs'}
+                {searchText && ` matching "${searchText}"`}
+              </>
+            ) : (
+              <>
+                Found {formatCount(totalCount)} game {totalCount === 1 ? 'log' : 'logs'}
+                {searchText && ` matching "${searchText}"`}
+              </>
+            )}
           </p>
-          <p className="text-sm text-muted-foreground">
-            Page {currentPage} of {formatCount(totalPages)}
-          </p>
+          {totalCount > pageSize && (
+            <p className="text-sm text-muted-foreground">
+              Page {currentPage} of {Math.ceil(totalCount / pageSize)}
+            </p>
+          )}
         </div>
       )}
 
       {/* Game Logs Grid */}
-      {loading ? (
+      {loading && !data ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {[...Array(pageSize)].map((_, i) => (
             <GameLogSkeleton key={i} />
@@ -435,7 +543,10 @@ export function GameLogSearchSection({
         </Card>
       ) : (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className={cn(
+            "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 transition-opacity duration-200",
+            isNavigating && "opacity-60"
+          )}>
             {gameLogs.map((log: GameLog) => {
               const classificationStyles = getClassificationStyles(log.classification);
               const ClassificationIcon = classificationStyles.icon;
@@ -498,20 +609,16 @@ export function GameLogSearchSection({
                               </div>
                             )}
                             <span className="text-sm font-medium truncate">
-                              {log.game.teams?.visitors?.nickname || 'Away'}
-                            </span>
-                            <span className="text-sm font-bold">
-                              {log.game.scores?.visitors?.points || 0}
+                              {log.game.teams?.visitors?.nickname}
                             </span>
                           </div>
-                          <span className="text-xs text-muted-foreground">vs</span>
+                          <span className="font-bold text-sm">
+                            {log.game.scores?.visitors?.points || 0}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center justify-between gap-2 mt-1">
                           <div className="flex items-center gap-2 min-w-0">
-                            <span className="text-sm font-bold">
-                              {log.game.scores?.home?.points || 0}
-                            </span>
-                            <span className="text-sm font-medium truncate">
-                              {log.game.teams?.home?.nickname || 'Home'}
-                            </span>
                             {log.game.teams?.home?.logo && (
                               <div className="relative h-6 w-6 flex-shrink-0">
                                 <Image
@@ -523,77 +630,80 @@ export function GameLogSearchSection({
                                 />
                               </div>
                             )}
+                            <span className="text-sm font-medium truncate">
+                              {log.game.teams?.home?.nickname}
+                            </span>
                           </div>
+                          <span className="font-bold text-sm">
+                            {log.game.scores?.home?.points || 0}
+                          </span>
+                        </div>
+
+                        {/* Game Date */}
+                        <div className="flex items-center gap-1 mt-2 text-xs text-muted-foreground">
+                          <Calendar className="h-3 w-3" />
+                          <span>
+                            {log.game.date?.start && format(new Date(log.game.date.start), 'MMM d, yyyy')}
+                          </span>
                         </div>
                       </div>
                     )}
 
-                    {/* Watch Details */}
-                    <div className="flex flex-wrap items-center gap-3 text-sm">
-                      {log.ratingForGame && (
-                        <div className="flex items-center gap-2">
-                          <StarRating ratingForGame={log.ratingForGame} size="sm" />
-                          <span className="text-sm text-muted-foreground">
-                            ({log.ratingForGame}/5)
-                          </span>
-                        </div>
-                      )}
-
+                    {/* Rating */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <StarRating ratingForGame={log.ratingForGame} size="sm" />
+                        <span className="text-sm text-muted-foreground">
+                          {log.ratingForGame}/5
+                        </span>
+                      </div>
                       {log.watchedDate && (
-                        <div className="flex items-center gap-1 text-muted-foreground">
-                          <Calendar className="h-3.5 w-3.5" />
-                          <span>{format(new Date(log.watchedDate), 'MMM d, yyyy')}</span>
-                        </div>
-                      )}
-
-                      {log.watchedSetting && (
-                        <div className="flex items-center gap-1 text-muted-foreground">
-                          <Tv className="h-3.5 w-3.5" />
-                          <span className="capitalize">{log.watchedSetting}</span>
+                        <div className="text-xs text-muted-foreground">
+                          {format(new Date(log.watchedDate), 'MMM d')}
                         </div>
                       )}
                     </div>
 
-                    {/* Location */}
-                    {log.watchedLocation && (
-                      <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                        <MapPin className="h-3.5 w-3.5" />
-                        <span className="truncate">{log.watchedLocation}</span>
-                      </div>
-                    )}
-
-                    {/* Tags */}
-                    {log.tags && log.tags.length > 0 && (
-                      <div className="flex items-center gap-1 flex-wrap">
-                        <Tag className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                        {log.tags.slice(0, 3).map((tag, index) => (
-                          <Badge key={index} variant="secondary" className="text-xs">
-                            {tag}
-                          </Badge>
-                        ))}
-                        {log.tags.length > 3 && (
-                          <span className="text-xs text-muted-foreground">
-                            +{log.tags.length - 3} more
-                          </span>
+                    {/* Watched Details */}
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <Tv className="h-3 w-3" />
+                        <span className="capitalize">{log.watchedSetting}</span>
+                        {log.watchedLocation && (
+                          <>
+                            <span>•</span>
+                            <span>{log.watchedLocation}</span>
+                          </>
                         )}
                       </div>
-                    )}
 
-                    {/* Notes Preview */}
-                    {log.notes && (
-                      <p className="text-sm text-muted-foreground line-clamp-2">{log.notes}</p>
-                    )}
+                      {/* Notes Preview */}
+                      {log.notes && (
+                        <p className="text-xs text-muted-foreground line-clamp-2">
+                          {log.notes}
+                        </p>
+                      )}
 
-                    {/* Footer */}
-                    <div className="flex items-center justify-between pt-2 border-t">
-                      <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                        <span>{log.reactions?.totalCount || 0} reactions</span>
-                        <span>{log.comments?.totalCount || 0} comments</span>
-                      </div>
-                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                        <Clock className="h-3 w-3" />
-                        <span>{format(new Date(log.createdAt), 'MMM d')}</span>
-                      </div>
+                      {/* Tags */}
+                      {log.tags && log.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-2">
+                          {log.tags.slice(0, 3).map((tag, index) => (
+                            <Badge
+                              key={index}
+                              variant="outline"
+                              className="text-xs py-0 px-1.5 h-5"
+                            >
+                              <Tag className="h-2 w-2 mr-1" />
+                              {tag}
+                            </Badge>
+                          ))}
+                          {log.tags.length > 3 && (
+                            <Badge variant="outline" className="text-xs py-0 px-1.5 h-5">
+                              +{log.tags.length - 3}
+                            </Badge>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
@@ -602,68 +712,30 @@ export function GameLogSearchSection({
           </div>
 
           {/* Pagination */}
-          {totalPages > 1 && (
+          {(hasNextPage || hasPreviousPage) && (
             <div className="flex items-center justify-center mt-8 gap-2">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => handlePageChange(currentPage - 1)}
-                disabled={currentPage === 1 || loading}
+                disabled={!hasPreviousPage || isNavigating}
               >
                 <ChevronLeft className="h-4 w-4" />
                 Previous
               </Button>
 
-              <div className="flex items-center gap-1">
-                {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => {
-                  let pageNum;
-                  if (totalPages <= 7) {
-                    pageNum = i + 1;
-                  } else if (currentPage <= 4) {
-                    pageNum = i < 5 ? i + 1 : i === 5 ? -1 : totalPages;
-                  } else if (currentPage >= totalPages - 3) {
-                    pageNum = i === 0 ? 1 : i === 1 ? -1 : totalPages - 6 + i;
-                  } else {
-                    pageNum =
-                      i === 0
-                        ? 1
-                        : i === 1
-                          ? -1
-                          : i === 5
-                            ? -1
-                            : i === 6
-                              ? totalPages
-                              : currentPage - 3 + i;
-                  }
-
-                  if (pageNum === -1) {
-                    return (
-                      <span key={i} className="px-2 text-muted-foreground">
-                        ...
-                      </span>
-                    );
-                  }
-
-                  return (
-                    <Button
-                      key={i}
-                      variant={currentPage === pageNum ? 'default' : 'outline'}
-                      size="sm"
-                      className="w-9 h-9 p-0"
-                      onClick={() => handlePageChange(pageNum)}
-                      disabled={loading}
-                    >
-                      {pageNum}
-                    </Button>
-                  );
-                })}
+              <div className="flex items-center gap-2 px-4">
+                <span className="text-sm text-muted-foreground">
+                  {isNavigating ? 'Loading...' : `Page ${currentPage}`}
+                </span>
               </div>
 
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => handlePageChange(currentPage + 1)}
-                disabled={currentPage === totalPages || !hasNextPage || loading}
+                onMouseEnter={prefetchNextPage}
+                disabled={!hasNextPage || isNavigating}
               >
                 Next
                 <ChevronRight className="h-4 w-4" />
