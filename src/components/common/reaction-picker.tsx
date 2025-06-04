@@ -11,7 +11,7 @@ import { logger } from '@/lib/logger';
 import { ReactionsData } from '@/lib/types/component.types';
 import { REACTION_EMOJIS } from '@/lib/types/config.types';
 import { ReactionPickerProps } from '@/lib/types/consolidated.types';
-import type { ReactionEmojiType } from '@/lib/types/generated/graphql';
+import type { ReactionEmojiType, Reaction } from '@/lib/types/generated/graphql';
 import { cn } from '@/lib/utils';
 
 export function ReactionPicker({
@@ -95,7 +95,7 @@ export function ReactionPicker({
             }) as {
               gameLogById: {
                 reactions: {
-                  edges: Array<{ node: any; __typename: string; cursor: string }>;
+                  edges: Array<{ node: Reaction; __typename: string; cursor: string }>;
                   totalCount: number;
                 };
               };

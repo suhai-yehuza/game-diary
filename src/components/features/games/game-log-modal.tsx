@@ -29,6 +29,7 @@ import {
 } from '@/lib/types/config.types';
 import { GameEdge, GameLogFormData } from '@/lib/types/consolidated.types';
 import { GameLogModalProps } from '@/lib/types/game-log.types';
+import type { GameWithPossibleId } from '@/lib/types/game.types';
 import type { Game, CreateGameLogInput } from '@/lib/types/generated/graphql';
 import { getCurrentSeason } from '@/lib/utils/index';
 import { formatGameDate } from '@/lib/utils/index.time';
@@ -271,7 +272,8 @@ export function GameLogModal({
   const handleSubmit = async (data: CreateGameLogInput) => {
     if (mode === 'create') {
       // More robust check for selectedGame and its ID - handles different possible field names
-      const selectedGameId = selectedGame?.id || (selectedGame as any)?.gameId || gameId;
+      const selectedGameId =
+        selectedGame?.id || (selectedGame as unknown as GameWithPossibleId)?.gameId || gameId;
 
       if (!selectedGame) {
         toast({

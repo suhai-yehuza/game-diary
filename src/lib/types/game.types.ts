@@ -7,6 +7,8 @@ import type { SortDirection } from '@/lib/types/shared.types';
 // Database Types
 export type DBGameRecord = InferSelectModel<typeof nba_games>;
 
+export type GameWithPossibleId = Game & { gameId?: string };
+
 // Core Game Types
 export interface GameTeam {
   id: string;
