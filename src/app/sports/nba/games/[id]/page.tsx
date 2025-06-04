@@ -1,6 +1,7 @@
 'use client';
 
 import { useQuery } from '@apollo/client';
+import { ApolloError } from '@apollo/client';
 import { SignInButton } from '@clerk/nextjs';
 import { format } from 'date-fns';
 import Image from 'next/image';
@@ -104,12 +105,21 @@ const TeamDisplay = ({
 );
 
 // Head-to-Head component
+interface HeadToHeadData {
+  teamH2H?: {
+    wins: number;
+    losses: number;
+    winPercentage: string;
+    lastTenGames: string[];
+  };
+}
+
 interface HeadToHeadProps {
-  h2hData: any;
+  h2hData: HeadToHeadData;
   homeTeam: { nickname: string; logo: string | null };
   awayTeam: { nickname: string; logo: string | null };
   loading: boolean;
-  error: any;
+  error: ApolloError | undefined;
 }
 
 const HeadToHeadSection = ({ h2hData, homeTeam, awayTeam, loading, error }: HeadToHeadProps) => {
@@ -195,12 +205,39 @@ const HeadToHeadSection = ({ h2hData, homeTeam, awayTeam, loading, error }: Head
 };
 
 // Team Stats component
+interface TeamStatsData {
+  teamGameStats?: {
+    team?: {
+      logo?: string;
+      nickname?: string;
+    };
+    points: number;
+    field_goals_made: number;
+    field_goals_attempted: number;
+    field_goal_percentage: number;
+    three_pointers_made: number;
+    three_pointers_attempted: number;
+    three_pointer_percentage: number;
+    free_throws_made: number;
+    free_throws_attempted: number;
+    free_throw_percentage: number;
+    offensive_rebounds: number;
+    defensive_rebounds: number;
+    total_rebounds: number;
+    assists: number;
+    steals: number;
+    blocks: number;
+    turnovers: number;
+    personal_fouls: number;
+  };
+}
+
 interface TeamStatsProps {
-  teamStats: any;
+  teamStats: TeamStatsData;
   team: { nickname: string; logo: string | null };
   isHome: boolean;
   loading: boolean;
-  error: any;
+  error: ApolloError | undefined;
 }
 
 const TeamStatsSection = ({ teamStats, team, isHome, loading, error }: TeamStatsProps) => {

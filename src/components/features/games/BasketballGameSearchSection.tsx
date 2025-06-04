@@ -160,12 +160,6 @@ const getStatusBadge = (status: string, isScheduled?: boolean, isFinished?: bool
   );
 };
 
-// Store cursor information for each page
-interface PageCursor {
-  startCursor: string | null;
-  endCursor: string | null;
-}
-
 export function BasketballGameSearchSection() {
   const router = useRouter();
   const currentYear = getCurrentSeason();
@@ -229,14 +223,16 @@ export function BasketballGameSearchSection() {
   });
 
   // Current page games - use cached data if available, otherwise fall back to query data
-  const games =
-    pageData[currentPage] ||
-    (currentPage === 1 ? gamesData?.games?.edges?.map((edge: GameEdge) => edge.node) : []) ||
-    [];
+  const games = useMemo(
+    () =>
+      pageData[currentPage] ||
+      (currentPage === 1 ? gamesData?.games?.edges?.map((edge: GameEdge) => edge.node) : []) ||
+      [],
+    [pageData, currentPage, gamesData]
+  );
   const totalCount = gamesData?.games?.totalCount || 0;
   const hasNextPage = gamesData?.games?.pageInfo?.hasNextPage || false;
   const hasPreviousPage = currentPage > 1;
-  const totalPages = Math.ceil(totalCount / pageSize);
 
   // Pre-fetch next page data when user hovers over Next button
   const prefetchNextPage = useCallback(async () => {

@@ -4,9 +4,7 @@ import { useQuery } from '@apollo/client';
 import { format } from 'date-fns';
 import {
   Calendar,
-  Clock,
   Filter,
-  MapPin,
   Search,
   SortDesc,
   Star,
@@ -120,12 +118,6 @@ const getClassificationStyles = (classification: string) => {
   }
 };
 
-// Store cursor information for each page
-interface PageCursor {
-  startCursor: string | null;
-  endCursor: string | null;
-}
-
 export function GameLogSearchSection({
   userId,
   initialSearchText = '',
@@ -208,15 +200,17 @@ export function GameLogSearchSection({
     }
   }, [data]);
 
-  // Current page game logs - use cached data if available, otherwise fall back to query data
-  const gameLogs =
-    pageData[currentPage] ||
-    (currentPage === 1 ? data?.gameLogs?.edges?.map((edge: GameLogEdge) => edge.node) : []) ||
-    [];
+  // Current page games - use cached data if available, otherwise fall back to query data
+  const games = useMemo(
+    () =>
+      pageData[currentPage] ||
+      (currentPage === 1 ? data?.gameLogs?.edges?.map((edge: GameLogEdge) => edge.node) : []) ||
+      [],
+    [pageData, currentPage, data]
+  );
   const totalCount = data?.gameLogs?.totalCount || 0;
   const hasNextPage = data?.gameLogs?.pageInfo?.hasNextPage || false;
   const hasPreviousPage = currentPage > 1;
-  const totalPages = Math.ceil(totalCount / pageSize);
 
   // Pre-fetch next page data when user hovers over Next button
   const prefetchNextPage = useCallback(async () => {
@@ -550,7 +544,7 @@ export function GameLogSearchSection({
             </div>
           </CardContent>
         </Card>
-      ) : gameLogs.length === 0 ? (
+      ) : games.length === 0 ? (
         <Card className="border-dashed">
           <CardContent className="flex flex-col items-center justify-center py-12">
             <Trophy className="h-12 w-12 text-muted-foreground mb-4" />
@@ -570,7 +564,7 @@ export function GameLogSearchSection({
               isNavigating && 'opacity-60'
             )}
           >
-            {gameLogs.map((log: GameLog) => {
+            {games.map((log: GameLog) => {
               const classificationStyles = getClassificationStyles(log.classification);
               const ClassificationIcon = classificationStyles.icon;
 
