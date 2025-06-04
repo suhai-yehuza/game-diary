@@ -2,7 +2,7 @@ import { auth } from '@clerk/nextjs/server';
 import { redirect } from 'next/navigation';
 import React from 'react';
 
-import GameLog from './game-log';
+import { GameLog } from '@/components/features/game-logs';
 
 interface GameLogPageProps {
   params: {
@@ -10,12 +10,12 @@ interface GameLogPageProps {
   };
 }
 
-export default async function GameLogPage({ params: _params }: GameLogPageProps) {
+export default async function GameLogPage({ params }: GameLogPageProps) {
   const { userId } = await auth();
 
   if (!userId) {
     redirect('/sign-in');
   }
 
-  return <GameLog />;
+  return <GameLog gameLogId={params.id} />;
 }
