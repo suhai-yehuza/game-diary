@@ -1,7 +1,6 @@
 'use client';
 
-import { useQuery } from '@apollo/client';
-import { ApolloError } from '@apollo/client';
+import { useQuery, ApolloError } from '@apollo/client';
 import { SignInButton } from '@clerk/nextjs';
 import { format } from 'date-fns';
 import Image from 'next/image';
