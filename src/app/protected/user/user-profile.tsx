@@ -721,14 +721,7 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
                             </div>
                           </div>
 
-                          <div className="flex items-start gap-2">
-                            <div className="text-right">
-                              <StarRating ratingForGame={log.ratingForGame} size="md" />
-                              <p className="text-xs text-muted-foreground mt-1">
-                                {formatDistanceToNow(new Date(log.createdAt), { addSuffix: true })}
-                              </p>
-                            </div>
-                            
+                          <div className="flex flex-col items-end gap-1">
                             {isOwnProfile && (
                               <GameLogActions 
                                 gameLog={log} 
@@ -749,6 +742,13 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
                                 }}
                               />
                             )}
+                            
+                            <div className="text-right">
+                              <StarRating ratingForGame={log.ratingForGame} size="md" />
+                              <p className="text-xs text-muted-foreground mt-1">
+                                {formatDistanceToNow(new Date(log.createdAt), { addSuffix: true })}
+                              </p>
+                            </div>
                           </div>
                         </div>
 
