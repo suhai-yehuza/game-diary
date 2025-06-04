@@ -27,6 +27,7 @@ import {
   ChevronDown,
   ChevronRight,
 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 import { toast } from 'react-hot-toast';
 
@@ -121,6 +122,7 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
   );
   const [currentFriendship, setCurrentFriendship] = useState<Friendship | null>(null);
   const [expandedNotes, setExpandedNotes] = useState<Set<string>>(new Set());
+  const router = useRouter();
 
   // Fetch current user's database ID
   useEffect(() => {
@@ -338,6 +340,16 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
       }
       return newSet;
     });
+  };
+
+  const handleGameLogClick = (gameLogId: string, event: React.MouseEvent | React.KeyboardEvent) => {
+    // Prevent navigation if clicking on interactive elements
+    const target = event.target as HTMLElement;
+    const isInteractiveElement = target.closest('button') || target.closest('[role="button"]');
+    
+    if (!isInteractiveElement) {
+      router.push(`/protected/user/game-logs/${gameLogId}`);
+    }
   };
 
   if (isLoading || !targetUser) {
@@ -683,7 +695,17 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
                   return (
                     <Card
                       key={log.id}
-                      className="overflow-hidden hover:shadow-lg transition-shadow"
+                      className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
+                      onClick={(event) => handleGameLogClick(log.id, event)}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter' || event.key === ' ') {
+                          event.preventDefault();
+                          handleGameLogClick(log.id, event);
+                        }
+                      }}
+                      role="button"
+                      tabIndex={0}
+                      aria-label={`View game log details for ${log.game?.teams?.visitors?.name} vs ${log.game?.teams?.home?.name}`}
                     >
                       <div
                         className={cn('h-1', {
@@ -727,24 +749,26 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
                             </div>
 
                             {isOwnProfile && (
-                              <GameLogActions
-                                gameLog={log}
-                                onSuccess={() => {
-                                  refetchGameLogs({
-                                    variables: {
-                                      first: ITEMS_PER_PAGE,
-                                      after: cursor,
-                                      filters: {
-                                        userId: dbUserId,
-                                        classification:
-                                          selectedClassification !== 'all'
-                                            ? selectedClassification
-                                            : undefined,
+                              <div onClick={event => event.stopPropagation()}>
+                                <GameLogActions
+                                  gameLog={log}
+                                  onSuccess={() => {
+                                    refetchGameLogs({
+                                      variables: {
+                                        first: ITEMS_PER_PAGE,
+                                        after: cursor,
+                                        filters: {
+                                          userId: dbUserId,
+                                          classification:
+                                            selectedClassification !== 'all'
+                                              ? selectedClassification
+                                              : undefined,
+                                        },
                                       },
-                                    },
-                                  });
-                                }}
-                              />
+                                    });
+                                  }}
+                                />
+                              </div>
                             )}
                           </div>
                         </div>
@@ -802,7 +826,10 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
                           <div className="px-6 pb-4">
                             <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg overflow-hidden">
                               <button
-                                onClick={() => toggleNotesExpansion(log.id)}
+                                onClick={event => {
+                                  event.stopPropagation();
+                                  toggleNotesExpansion(log.id);
+                                }}
                                 className="w-full p-4 flex items-center justify-between hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors"
                               >
                                 <h4 className="font-semibold text-sm text-foreground flex items-center gap-2">
