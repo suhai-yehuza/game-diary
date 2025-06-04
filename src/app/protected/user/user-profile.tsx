@@ -28,6 +28,7 @@ import React, { useEffect, useState } from 'react';
 import { toast } from 'react-hot-toast';
 
 import { GameLogModal } from '@/components/features/games';
+import { GameLogActions } from '@/components/features/games/game-log-actions';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -743,6 +744,29 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
                             ))}
                           </div>
                         )}
+
+                        <div className="flex justify-end pt-2">
+                          {isOwnProfile && (
+                            <GameLogActions 
+                              gameLog={log} 
+                              onSuccess={() => {
+                                refetchGameLogs({
+                                  variables: {
+                                    first: ITEMS_PER_PAGE,
+                                    after: cursor,
+                                    filters: {
+                                      userId: dbUserId,
+                                      classification:
+                                        selectedClassification !== 'all'
+                                          ? selectedClassification
+                                          : undefined,
+                                    },
+                                  },
+                                });
+                              }}
+                            />
+                          )}
+                        </div>
                       </CardContent>
                     </Card>
                   );

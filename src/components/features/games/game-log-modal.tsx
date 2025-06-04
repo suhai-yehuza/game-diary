@@ -16,7 +16,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
 import { useAuthContext } from '@/contexts/AuthContext';
-import { CREATE_GAME_LOG } from '@/lib/graphql/mutations';
+import { CREATE_GAME_LOG, UPDATE_GAME_LOG } from '@/lib/graphql/mutations';
 import { GET_EXTERNAL_GAMES } from '@/lib/graphql/queries';
 import {
   CLASSIFICATION,
@@ -58,6 +58,13 @@ export function GameLogModal({
   useEffect(() => {
     setSelectedGame(null);
   }, [searchQuery]);
+
+  // Set selectedGame for update mode
+  useEffect(() => {
+    if (mode === 'update' && gameLog?.game) {
+      setSelectedGame(gameLog.game as unknown as Game);
+    }
+  }, [mode, gameLog]);
 
   // Form state
   const [formData, setFormData] = useState<GameLogFormData>({
@@ -104,6 +111,36 @@ export function GameLogModal({
     },
   });
 
+  const [updateGameLog, { loading: updating }] = useMutation(UPDATE_GAME_LOG, {
+    onCompleted: data => {
+      if (data?.updateGameLog?.gameLog) {
+        toast({
+          title: 'Success',
+          description: 'Game log updated successfully',
+        });
+        setIsOpen(false);
+        onSuccess?.();
+      } else if (data?.updateGameLog?.errors) {
+        console.error('GameLogModal: Server returned errors:', data.updateGameLog.errors);
+        toast({
+          title: 'Error',
+          description: data.updateGameLog.errors
+            .map((e: { message: string }) => e.message)
+            .join(', '),
+          variant: 'destructive',
+        });
+      }
+    },
+    onError: error => {
+      console.error('GameLogModal: Error updating game log:', error);
+      toast({
+        title: 'Error',
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
+
   // Fetch games with pagination and search (only for create mode)
   const { data: gamesData, loading: loadingGames } = useQuery(GET_EXTERNAL_GAMES, {
     variables: {
@@ -125,7 +162,6 @@ export function GameLogModal({
   // Filter games based on search query
   const filteredGames = useMemo(() => {
     if (!gamesData?.games?.edges) {
-      console.log('No edges found in gamesData');
       return [];
     }
     if (!searchQuery.trim()) {
@@ -209,34 +245,55 @@ export function GameLogModal({
   const handleSubmit = async (e: React.FormEvent<Element>) => {
     e.preventDefault();
 
-    if (!selectedGame?.id) {
-      toast({
-        title: 'Error',
-        description: 'Please select a game first',
-        variant: 'destructive',
-      });
-      return;
-    }
+    if (mode === 'create') {
+      if (!selectedGame?.id) {
+        toast({
+          title: 'Error',
+          description: 'Please select a game first',
+          variant: 'destructive',
+        });
+        return;
+      }
 
-    try {
-      await createGameLog({
-        variables: {
-          input: {
-            gameId: selectedGame.id,
-            watchedSetting: formData.watchedSetting,
-            watchedDate: formData.watchedDate,
-            watchedLocation: formData.watchedLocation,
-            ratingForGame: formData.ratingForGame,
-            watchedScope: formData.watchedScope,
-            notes: formData.notes,
-            tags: formData.tags,
-            classification: formData.classification,
+      try {
+        await createGameLog({
+          variables: {
+            input: {
+              gameId: selectedGame.id,
+              watchedSetting: formData.watchedSetting,
+              watchedDate: formData.watchedDate,
+              watchedLocation: formData.watchedLocation,
+              ratingForGame: formData.ratingForGame,
+              watchedScope: formData.watchedScope,
+              notes: formData.notes,
+              tags: formData.tags,
+              classification: formData.classification,
+            },
           },
-        },
-      });
-    } catch (error) {
-      console.error('GameLogModal: Error creating game log:', error);
-      // Error handling is done in the mutation's onError callback
+        });
+      } catch (error) {
+        console.error('GameLogModal: Error creating game log:', error);
+      }
+    } else if (mode === 'update' && gameLog?.id) {
+      try {
+        await updateGameLog({
+          variables: {
+            id: gameLog.id,
+            input: {
+              watchedSetting: formData.watchedSetting,
+              watchedDate: formData.watchedDate,
+              watchedLocation: formData.watchedLocation,
+              ratingForGame: formData.ratingForGame,
+              watchedScope: formData.watchedScope,
+              notes: formData.notes,
+              tags: formData.tags,
+              classification: formData.classification,
+            },
+          },
+        });
+      } catch (error) {
+        console.error('GameLogModal: Error updating game log:', error);
+      }
     }
   };
 
@@ -353,88 +410,86 @@ export function GameLogModal({
         formData={formData}
         setFormData={setFormData}
         selectedGame={
-          mode === 'create'
-            ? selectedGame
-              ? {
-                  ...selectedGame,
-                  date: {
-                    start: (() => {
-                      try {
-                        if (typeof selectedGame.date === 'string') {
-                          return new Date(selectedGame.date).toISOString();
-                        }
-                        if (typeof selectedGame.date.start === 'string') {
-                          return selectedGame.date.start;
-                        }
-                        if (selectedGame.date.start instanceof Date) {
-                          return selectedGame.date.start.toISOString();
-                        }
-                        console.warn('Invalid start date:', selectedGame.date.start);
-                        return new Date().toISOString();
-                      } catch (error) {
-                        console.error('Error parsing start date:', error);
-                        return new Date().toISOString();
+          selectedGame
+            ? {
+                ...selectedGame,
+                date: {
+                  start: (() => {
+                    try {
+                      if (typeof selectedGame.date === 'string') {
+                        return new Date(selectedGame.date).toISOString();
                       }
-                    })(),
-                    end: (() => {
-                      try {
-                        if (typeof selectedGame.date === 'string') {
-                          return '';
-                        }
-                        if (!selectedGame.date.end) {
-                          return '';
-                        }
-                        if (typeof selectedGame.date.end === 'string') {
-                          const date = new Date(selectedGame.date.end);
-                          return isNaN(date.getTime()) ? '' : date.toISOString();
-                        }
-                        if (selectedGame.date.end instanceof Date) {
-                          return selectedGame.date.end.toISOString();
-                        }
-                        console.warn('Invalid end date:', selectedGame.date.end);
-                        return '';
-                      } catch (error) {
-                        console.error('Error parsing end date:', error);
+                      if (typeof selectedGame.date.start === 'string') {
+                        return selectedGame.date.start;
+                      }
+                      if (selectedGame.date.start instanceof Date) {
+                        return selectedGame.date.start.toISOString();
+                      }
+                      console.warn('Invalid start date:', selectedGame.date.start);
+                      return new Date().toISOString();
+                    } catch (error) {
+                      console.error('Error parsing start date:', error);
+                      return new Date().toISOString();
+                    }
+                  })(),
+                  end: (() => {
+                    try {
+                      if (typeof selectedGame.date === 'string') {
                         return '';
                       }
-                    })(),
-                    duration:
-                      typeof selectedGame.date === 'string' ? '' : selectedGame.date.duration || '',
-                  },
-                  status: {
-                    long: selectedGame.status.long || '',
-                    short: selectedGame.status.short || '',
-                    clock: selectedGame.status.clock || null,
-                    halftime: selectedGame.status.halftime || false,
-                  },
-                  arena: {
-                    name: selectedGame.arena.name || '',
-                    city: selectedGame.arena.city || '',
-                    state: selectedGame.arena.state || undefined,
-                    country: selectedGame.arena.country || undefined,
-                  },
-                  timesTied: selectedGame.timesTied || undefined,
-                  leadChanges: selectedGame.leadChanges || undefined,
-                  nugget: selectedGame.nugget || undefined,
-                  officials: selectedGame.officials || [],
-                  periods: selectedGame.periods || undefined,
-                  createdAt:
-                    typeof selectedGame.createdAt === 'string'
-                      ? selectedGame.createdAt
-                      : selectedGame.createdAt instanceof Date
-                        ? selectedGame.createdAt.toISOString()
-                        : new Date().toISOString(),
-                  updatedAt:
-                    typeof selectedGame.updatedAt === 'string'
-                      ? selectedGame.updatedAt
-                      : selectedGame.updatedAt instanceof Date
-                        ? selectedGame.updatedAt.toISOString()
-                        : new Date().toISOString(),
-                }
-              : null
+                      if (!selectedGame.date.end) {
+                        return '';
+                      }
+                      if (typeof selectedGame.date.end === 'string') {
+                        const date = new Date(selectedGame.date.end);
+                        return isNaN(date.getTime()) ? '' : date.toISOString();
+                      }
+                      if (selectedGame.date.end instanceof Date) {
+                        return selectedGame.date.end.toISOString();
+                      }
+                      console.warn('Invalid end date:', selectedGame.date.end);
+                      return '';
+                    } catch (error) {
+                      console.error('Error parsing end date:', error);
+                      return '';
+                    }
+                  })(),
+                  duration:
+                    typeof selectedGame.date === 'string' ? '' : selectedGame.date.duration || '',
+                },
+                status: {
+                  long: selectedGame.status.long || '',
+                  short: selectedGame.status.short || '',
+                  clock: selectedGame.status.clock || null,
+                  halftime: selectedGame.status.halftime || false,
+                },
+                arena: {
+                  name: selectedGame.arena.name || '',
+                  city: selectedGame.arena.city || '',
+                  state: selectedGame.arena.state || undefined,
+                  country: selectedGame.arena.country || undefined,
+                },
+                timesTied: selectedGame.timesTied || undefined,
+                leadChanges: selectedGame.leadChanges || undefined,
+                nugget: selectedGame.nugget || undefined,
+                officials: selectedGame.officials || [],
+                periods: selectedGame.periods || undefined,
+                createdAt:
+                  typeof selectedGame.createdAt === 'string'
+                    ? selectedGame.createdAt
+                    : selectedGame.createdAt instanceof Date
+                      ? selectedGame.createdAt.toISOString()
+                      : new Date().toISOString(),
+                updatedAt:
+                  typeof selectedGame.updatedAt === 'string'
+                    ? selectedGame.updatedAt
+                    : selectedGame.updatedAt instanceof Date
+                      ? selectedGame.updatedAt.toISOString()
+                      : new Date().toISOString(),
+              }
             : null
         }
-        loading={mode === 'create' ? creating : false}
+        loading={mode === 'create' ? creating : updating}
         onSubmit={handleSubmit}
         onCancel={() => setIsOpen(false)}
         submitLabel={mode === 'create' ? 'Create Log' : 'Update Log'}
