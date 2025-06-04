@@ -23,6 +23,7 @@ import {
   UserPlus,
   UserCheck,
   UserX,
+  Tv,
 } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { toast } from 'react-hot-toast';
@@ -676,97 +677,139 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
                           'bg-red-500': log.classification === 'Private',
                         })}
                       />
-                      <CardContent className="p-6">
-                        <div className="flex items-start justify-between mb-4">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-3 mb-2">
-                              <h3 className="font-semibold text-lg">
-                                {log.game?.teams?.home?.name} vs {log.game?.teams?.visitors?.name}
-                              </h3>
-                              <Badge
-                                variant="outline"
-                                className={cn('gap-1', classificationColors[log.classification])}
-                              >
-                                <ClassificationIcon className="h-3 w-3" />
-                                {log.classification}
-                              </Badge>
+                      <CardContent className="p-0">
+                        {/* Header Section */}
+                        <div className="p-6 pb-4">
+                          <div className="flex items-start justify-between mb-3">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-3 mb-2">
+                                <h3 className="font-bold text-xl text-foreground">
+                                  {log.game?.teams?.visitors?.name} vs {log.game?.teams?.home?.name}
+                                </h3>
+                                <Badge
+                                  variant="outline"
+                                  className={cn('gap-1 text-xs', classificationColors[log.classification])}
+                                >
+                                  <ClassificationIcon className="h-3 w-3" />
+                                  {log.classification}
+                                </Badge>
+                              </div>
+                              
+                              <div className="flex items-center gap-4">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-sm font-medium text-muted-foreground">Rating:</span>
+                                  <StarRating ratingForGame={log.ratingForGame} size="sm" />
+                                  <span className="text-sm font-medium text-foreground">
+                                    {log.ratingForGame}/5
+                                  </span>
+                                </div>
+                              </div>
                             </div>
 
-                            <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
-                              <span className="flex items-center gap-1">
-                                <Calendar className="h-4 w-4" />
-                                {log.watchedDate
-                                  ? new Date(log.watchedDate).toLocaleDateString()
-                                  : 'Not specified'}
-                              </span>
-                              {log.watchedLocation && (
-                                <span className="flex items-center gap-1">
-                                  <MapPin className="h-4 w-4" />
-                                  {log.watchedLocation}
-                                </span>
-                              )}
-                              <span className="flex items-center gap-1">
-                                <Eye className="h-4 w-4" />
-                                {log.watchedSetting
-                                  .split('_')
-                                  .map(
-                                    (word: string) => word.charAt(0).toUpperCase() + word.slice(1)
-                                  )
-                                  .join(' ')}
-                              </span>
-                              <span className="flex items-center gap-1">
-                                <Users className="h-4 w-4" />
-                                {log.watchedScope}
-                              </span>
-                            </div>
-                          </div>
-
-                          <div className="flex flex-col items-end gap-1">
-                            <div className="flex items-center gap-2">
-                              <StarRating ratingForGame={log.ratingForGame} size="md" />
-                              {isOwnProfile && (
-                                <GameLogActions 
-                                  gameLog={log} 
-                                  onSuccess={() => {
-                                    refetchGameLogs({
-                                      variables: {
-                                        first: ITEMS_PER_PAGE,
-                                        after: cursor,
-                                        filters: {
-                                          userId: dbUserId,
-                                          classification:
-                                            selectedClassification !== 'all'
-                                              ? selectedClassification
-                                              : undefined,
-                                        },
+                            {isOwnProfile && (
+                              <GameLogActions 
+                                gameLog={log} 
+                                onSuccess={() => {
+                                  refetchGameLogs({
+                                    variables: {
+                                      first: ITEMS_PER_PAGE,
+                                      after: cursor,
+                                      filters: {
+                                        userId: dbUserId,
+                                        classification:
+                                          selectedClassification !== 'all'
+                                            ? selectedClassification
+                                            : undefined,
                                       },
-                                    });
-                                  }}
-                                />
-                              )}
-                            </div>
-                            
-                            <p className="text-xs text-muted-foreground">
-                              {formatDistanceToNow(new Date(log.createdAt), { addSuffix: true })}
-                            </p>
+                                    },
+                                  });
+                                }}
+                              />
+                            )}
                           </div>
                         </div>
 
+                        {/* Watching Details Section */}
+                        <div className="px-6 pb-4">
+                          <div className="bg-muted/30 rounded-lg p-4">
+                            <h4 className="font-semibold text-sm text-foreground mb-3 flex items-center gap-2">
+                              <Eye className="h-4 w-4" />
+                              Watching Details
+                            </h4>
+                            <div className="grid grid-cols-2 gap-3">
+                              <div className="flex items-center gap-2 text-sm">
+                                <Calendar className="h-4 w-4 text-muted-foreground" />
+                                <span className="text-muted-foreground">Date:</span>
+                                <span className="font-medium">
+                                  {log.watchedDate
+                                    ? new Date(log.watchedDate).toLocaleDateString()
+                                    : 'Not specified'}
+                                </span>
+                              </div>
+                              
+                              <div className="flex items-center gap-2 text-sm">
+                                <Tv className="h-4 w-4 text-muted-foreground" />
+                                <span className="text-muted-foreground">Method:</span>
+                                <span className="font-medium">
+                                  {log.watchedSetting
+                                    .split('_')
+                                    .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
+                                    .join(' ')}
+                                </span>
+                              </div>
+                              
+                              {log.watchedLocation && (
+                                <div className="flex items-center gap-2 text-sm">
+                                  <MapPin className="h-4 w-4 text-muted-foreground" />
+                                  <span className="text-muted-foreground">Location:</span>
+                                  <span className="font-medium">{log.watchedLocation}</span>
+                                </div>
+                              )}
+                              
+                              <div className="flex items-center gap-2 text-sm">
+                                <Users className="h-4 w-4 text-muted-foreground" />
+                                <span className="text-muted-foreground">Scope:</span>
+                                <span className="font-medium">{log.watchedScope}</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Notes Section */}
                         {log.notes && (
-                          <div className="bg-muted/50 rounded-lg p-3 mb-3">
-                            <p className="text-sm">{log.notes}</p>
+                          <div className="px-6 pb-4">
+                            <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                              <h4 className="font-semibold text-sm text-foreground mb-2 flex items-center gap-2">
+                                <MessageSquare className="h-4 w-4" />
+                                Notes
+                              </h4>
+                              <p className="text-sm text-foreground leading-relaxed">{log.notes}</p>
+                            </div>
                           </div>
                         )}
 
-                        {log?.tags?.length && (
-                          <div className="flex flex-wrap gap-2">
-                            {log.tags?.map((tag, index) => (
-                              <Badge key={index} variant="secondary" className="text-xs">
-                                #{tag}
-                              </Badge>
-                            ))}
+                        {/* Footer Section */}
+                        <div className="px-6 pb-6">
+                          <div className="flex items-center justify-between">
+                            <div className="flex flex-wrap gap-2">
+                              {log?.tags && log.tags.length > 0 && (
+                                <div className="flex items-center gap-2">
+                                  <span className="text-xs text-muted-foreground">Tags:</span>
+                                  {log.tags.map((tag, index) => (
+                                    <Badge key={index} variant="secondary" className="text-xs">
+                                      #{tag}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                            
+                            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                              <Clock className="h-3 w-3" />
+                              {formatDistanceToNow(new Date(log.createdAt), { addSuffix: true })}
+                            </div>
                           </div>
-                        )}
+                        </div>
                       </CardContent>
                     </Card>
                   );
