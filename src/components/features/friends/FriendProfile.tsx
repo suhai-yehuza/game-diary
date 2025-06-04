@@ -5,8 +5,7 @@ import Image from 'next/image';
 import React from 'react';
 
 import { StarRating } from '@/components/ui/star-rating';
-import { API_CONFIG } from '@/lib/config/api.config';
-import { GET_USER, GET_GAME_LOGS } from '@/lib/graphql/queries';
+import { GET_USER, GET_USER_GAME_LOGS } from '@/lib/graphql/queries';
 import { TeamCounts } from '@/lib/types/consolidated.types';
 import { GameLog } from '@/lib/types/generated/graphql';
 import { FriendProfileProps } from '@/lib/types/user.types';
@@ -26,12 +25,10 @@ export const FriendProfile: React.FC<FriendProfileProps> = ({ friendId, onClose 
     loading: statsLoading,
     error: statsError,
     data: statsData,
-  } = useQuery(GET_GAME_LOGS, {
+  } = useQuery(GET_USER_GAME_LOGS, {
     variables: {
-      userId: friendId,
-      pagination: {
-        first: API_CONFIG.pagination.DEFAULT_PAGE_SIZE,
-        after: undefined,
+      filters: {
+        userId: friendId,
       },
     },
   });

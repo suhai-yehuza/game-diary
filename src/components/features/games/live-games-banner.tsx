@@ -26,7 +26,7 @@ export function LiveGamesBanner() {
   const { data } = useQuery<LiveGamesData>(GET_LIVE_GAMES, {
     pollInterval: 30000, // Poll every 30 seconds
     variables: {
-      first: API_CONFIG.pagination.DEFAULT_PAGE_SIZE,
+      first: API_CONFIG.pagination.HUGE_SIZE,
     },
   });
 

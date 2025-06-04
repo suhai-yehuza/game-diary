@@ -221,7 +221,7 @@ export interface DistributionFunctions {
 
 export interface PaginationConfig {
   DEFAULT_PAGE_SIZE: number;
-  MAX_PAGE_SIZE: number;
+  HUGE_SIZE: number;
   DEFAULT_SORT_DIRECTION: SortDirection;
   MAX_CHILD_COMMENT_DEPTH: number;
 }

@@ -155,8 +155,8 @@ export const API_CONFIG = {
   } as const satisfies BatchSizeConfig,
 
   pagination: {
-    DEFAULT_PAGE_SIZE: 25,
-    MAX_PAGE_SIZE: 100,
+    DEFAULT_PAGE_SIZE: 15,
+    HUGE_SIZE: 10000,
     MAX_CHILD_COMMENT_DEPTH: 3,
     DEFAULT_SORT_DIRECTION: 'desc' as SortDirection,
   } as const satisfies PaginationConfig,
