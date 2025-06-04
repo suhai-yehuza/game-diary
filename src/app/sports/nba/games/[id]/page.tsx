@@ -12,11 +12,12 @@ import { GameLogModal } from '@/components/features/games';
 import { Button } from '@/components/ui/button';
 import { useAuthContext } from '@/contexts/AuthContext';
 import { fetchNbaGameById } from '@/lib/external-apis';
-import { GET_TEAM_STATS } from '@/lib/graphql/queries';
+import { GET_TEAM_GAME_STATS, GET_TEAM_H2H } from '@/lib/graphql/queries';
 import { logger } from '@/lib/logger';
-import type { Game, GameStatistics } from '@/lib/types/consolidated.types';
+import type { Game } from '@/lib/types/consolidated.types';
 import type { GameLog } from '@/lib/types/generated/graphql';
 import { cn } from '@/lib/utils';
+
 // Helper function to validate state values
 const isValidState = (state: string | undefined | null): boolean => {
   if (!state) return false;
@@ -79,6 +80,8 @@ const TeamDisplay = ({
         alt={team.name}
         width={96}
         height={96}
+        priority
+        style={{ width: 96, height: 'auto' }}
         className="mx-auto w-24 h-24 object-contain"
         onError={() => onImageError(`${gameId}-${isHome ? 'home' : 'visitors'}`)}
       />
@@ -100,6 +103,284 @@ const TeamDisplay = ({
   </div>
 );
 
+// Head-to-Head component
+interface HeadToHeadProps {
+  h2hData: any;
+  homeTeam: { nickname: string; logo: string | null };
+  awayTeam: { nickname: string; logo: string | null };
+  loading: boolean;
+  error: any;
+}
+
+const HeadToHeadSection = ({ h2hData, homeTeam, awayTeam, loading, error }: HeadToHeadProps) => {
+  if (loading) {
+    return (
+      <div className="bg-card rounded-lg shadow-sm p-6">
+        <h3 className="text-lg font-medium mb-6">Head-to-Head</h3>
+        <div className="flex justify-center items-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-4 border-blue-500 border-t-transparent"></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-card rounded-lg shadow-sm p-6">
+        <h3 className="text-lg font-medium mb-6">Head-to-Head</h3>
+        <div className="text-red-500 text-center py-8">
+          <p className="text-sm">Error loading H2H data</p>
+        </div>
+      </div>
+    );
+  }
+
+  const h2h = h2hData?.teamH2H;
+  if (!h2h) {
+    return (
+      <div className="bg-card rounded-lg shadow-sm p-6">
+        <h3 className="text-lg font-medium mb-6">Head-to-Head</h3>
+        <p className="text-muted-foreground text-center py-8">No head-to-head data available</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-card rounded-lg shadow-sm p-6">
+      <h3 className="text-lg font-medium mb-6">Head-to-Head Record</h3>
+      <div className="space-y-6">
+        <div className="grid grid-cols-3 gap-4 text-center">
+          <div className="space-y-2">
+            <p className="text-sm text-muted-foreground">{awayTeam.nickname}</p>
+            <p className="text-2xl font-bold text-blue-600">{h2h.wins}</p>
+            <p className="text-xs text-muted-foreground">Wins</p>
+          </div>
+          <div className="flex items-center justify-center">
+            <span className="text-2xl font-bold text-muted-foreground">vs</span>
+          </div>
+          <div className="space-y-2">
+            <p className="text-sm text-muted-foreground">{homeTeam.nickname}</p>
+            <p className="text-2xl font-bold text-orange-600">{h2h.losses}</p>
+            <p className="text-xs text-muted-foreground">Wins</p>
+          </div>
+        </div>
+
+        <div className="text-center">
+          <p className="text-sm text-muted-foreground">Win Percentage</p>
+          <p className="text-xl font-bold">{h2h.winPercentage}</p>
+        </div>
+
+        {h2h.lastTenGames && h2h.lastTenGames.length > 0 && (
+          <div>
+            <p className="text-sm text-muted-foreground mb-2">
+              Last {h2h.lastTenGames.length} Games
+            </p>
+            <div className="flex gap-1 justify-center">
+              {h2h.lastTenGames.map((result: string, index: number) => (
+                <span
+                  key={index}
+                  className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white ${
+                    result === 'W' ? 'bg-green-500' : 'bg-red-500'
+                  }`}
+                >
+                  {result}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// Team Stats component
+interface TeamStatsProps {
+  teamStats: any;
+  team: { nickname: string; logo: string | null };
+  isHome: boolean;
+  loading: boolean;
+  error: any;
+}
+
+const TeamStatsSection = ({ teamStats, team, isHome, loading, error }: TeamStatsProps) => {
+  if (loading) {
+    return (
+      <div className="bg-card rounded-xl shadow-lg overflow-hidden">
+        <div
+          className={`bg-gradient-to-r ${isHome ? 'from-orange-600 to-red-600' : 'from-blue-600 to-purple-600'} p-6`}
+        >
+          <div className="flex items-center gap-4">
+            <div className="w-16 h-16 bg-white rounded-full animate-pulse"></div>
+            <h4 className="text-2xl font-bold text-white">{team.nickname}</h4>
+          </div>
+        </div>
+        <div className="p-6">
+          <div className="flex justify-center items-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-4 border-blue-500 border-t-transparent"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-card rounded-xl shadow-lg overflow-hidden">
+        <div
+          className={`bg-gradient-to-r ${isHome ? 'from-orange-600 to-red-600' : 'from-blue-600 to-purple-600'} p-6`}
+        >
+          <div className="flex items-center gap-4">
+            <Image
+              src={team.logo || '/gamelog.svg'}
+              alt={team.nickname}
+              width={64}
+              height={64}
+              style={{ width: 64, height: 'auto' }}
+              className="rounded-full bg-white p-1 object-contain"
+            />
+            <h4 className="text-2xl font-bold text-white">{team.nickname}</h4>
+          </div>
+        </div>
+        <div className="p-6">
+          <div className="text-red-500 text-center py-8">
+            <p className="text-sm">Error loading team stats</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const stats = teamStats?.teamGameStats;
+  if (!stats) {
+    return (
+      <div className="bg-card rounded-xl shadow-lg overflow-hidden">
+        <div
+          className={`bg-gradient-to-r ${isHome ? 'from-orange-600 to-red-600' : 'from-blue-600 to-purple-600'} p-6`}
+        >
+          <div className="flex items-center gap-4">
+            <Image
+              src={team.logo || '/gamelog.svg'}
+              alt={team.nickname}
+              width={64}
+              height={64}
+              style={{ width: 64, height: 'auto' }}
+              className="rounded-full bg-white p-1 object-contain"
+            />
+            <h4 className="text-2xl font-bold text-white">{team.nickname}</h4>
+          </div>
+        </div>
+        <div className="p-6">
+          <p className="text-muted-foreground text-center py-8">No stats available</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-card rounded-xl shadow-lg overflow-hidden">
+      {/* Team Header */}
+      <div
+        className={`bg-gradient-to-r ${isHome ? 'from-orange-600 to-red-600' : 'from-blue-600 to-purple-600'} p-6`}
+      >
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <Image
+              src={stats.team?.logo || team.logo || '/gamelog.svg'}
+              alt={stats.team?.nickname || team.nickname}
+              width={64}
+              height={64}
+              style={{ width: 64, height: 'auto' }}
+              className="rounded-full bg-white p-1 object-contain"
+            />
+            <div>
+              <h4 className="text-2xl font-bold text-white">
+                {stats.team?.nickname || team.nickname}
+              </h4>
+            </div>
+          </div>
+          <div className="text-right">
+            <p className="text-3xl font-bold text-white">{stats.points}</p>
+            <p className="text-blue-100">Points</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="p-6 space-y-8">
+        {/* Shooting Stats */}
+        <div className="space-y-4">
+          <h5 className="text-lg font-semibold text-blue-600 border-b border-gray-200 pb-2">
+            Shooting
+          </h5>
+          <div className="grid grid-cols-3 gap-4">
+            <div className="bg-gray-50 rounded-lg p-4">
+              <p className="text-sm text-gray-600 mb-1">Field Goals</p>
+              <p className="text-xl font-bold">
+                {stats.field_goals_made}/{stats.field_goals_attempted}
+              </p>
+              <p className="text-sm text-gray-500 mt-1">
+                {stats.field_goal_percentage ? stats.field_goal_percentage.toFixed(1) : '0.0'}%
+              </p>
+            </div>
+            <div className="bg-gray-50 rounded-lg p-4">
+              <p className="text-sm text-gray-600 mb-1">3-Pointers</p>
+              <p className="text-xl font-bold">
+                {stats.three_pointers_made}/{stats.three_pointers_attempted}
+              </p>
+              <p className="text-sm text-gray-500 mt-1">
+                {stats.three_pointer_percentage ? stats.three_pointer_percentage.toFixed(1) : '0.0'}
+                %
+              </p>
+            </div>
+            <div className="bg-gray-50 rounded-lg p-4">
+              <p className="text-sm text-gray-600 mb-1">Free Throws</p>
+              <p className="text-xl font-bold">
+                {stats.free_throws_made}/{stats.free_throws_attempted}
+              </p>
+              <p className="text-sm text-gray-500 mt-1">
+                {stats.free_throw_percentage ? stats.free_throw_percentage.toFixed(1) : '0.0'}%
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Game Stats */}
+        <div className="space-y-4">
+          <h5 className="text-lg font-semibold text-blue-600 border-b border-gray-200 pb-2">
+            Game Stats
+          </h5>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <div className="bg-gray-50 rounded-lg p-4">
+              <p className="text-sm text-gray-600 mb-1">Rebounds</p>
+              <p className="text-2xl font-bold text-blue-600">{stats.total_rebounds}</p>
+            </div>
+            <div className="bg-gray-50 rounded-lg p-4">
+              <p className="text-sm text-gray-600 mb-1">Assists</p>
+              <p className="text-2xl font-bold text-blue-600">{stats.assists}</p>
+            </div>
+            <div className="bg-gray-50 rounded-lg p-4">
+              <p className="text-sm text-gray-600 mb-1">Steals</p>
+              <p className="text-2xl font-bold text-blue-600">{stats.steals}</p>
+            </div>
+            <div className="bg-gray-50 rounded-lg p-4">
+              <p className="text-sm text-gray-600 mb-1">Blocks</p>
+              <p className="text-2xl font-bold text-blue-600">{stats.blocks}</p>
+            </div>
+            <div className="bg-gray-50 rounded-lg p-4">
+              <p className="text-sm text-gray-600 mb-1">Turnovers</p>
+              <p className="text-2xl font-bold text-red-600">{stats.turnovers}</p>
+            </div>
+            <div className="bg-gray-50 rounded-lg p-4">
+              <p className="text-sm text-gray-600 mb-1">Fouls</p>
+              <p className="text-2xl font-bold text-yellow-600">{stats.personal_fouls}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export default function GamePage() {
   const params = useParams();
   const gameId = params.id as string;
@@ -114,13 +395,37 @@ export default function GamePage() {
     setImageErrors(prev => ({ ...prev, [imageId]: true }));
   };
 
+  // Get team IDs from game data
+  const homeTeamId = gameData?.teams?.home?.id;
+  const awayTeamId = gameData?.teams?.visitors?.id;
+
+  // Fetch team game stats for both teams
   const {
-    loading: statsLoading,
-    error: statsError,
-    data: statsData,
-  } = useQuery(GET_TEAM_STATS, {
-    variables: { gameId: gameId },
-    skip: !gameId,
+    loading: homeStatsLoading,
+    error: homeStatsError,
+    data: homeStatsData,
+  } = useQuery(GET_TEAM_GAME_STATS, {
+    variables: { gameId, teamId: homeTeamId },
+    skip: !gameId || !homeTeamId,
+  });
+
+  const {
+    loading: awayStatsLoading,
+    error: awayStatsError,
+    data: awayStatsData,
+  } = useQuery(GET_TEAM_GAME_STATS, {
+    variables: { gameId, teamId: awayTeamId },
+    skip: !gameId || !awayTeamId,
+  });
+
+  // Fetch head-to-head data
+  const {
+    loading: h2hLoading,
+    error: h2hError,
+    data: h2hData,
+  } = useQuery(GET_TEAM_H2H, {
+    variables: { teamId: homeTeamId, opponentId: awayTeamId },
+    skip: !homeTeamId || !awayTeamId,
   });
 
   useEffect(() => {
@@ -228,7 +533,7 @@ export default function GamePage() {
       </header>
 
       <main className="container mx-auto px-4 py-8">
-        <div className="max-w-4xl mx-auto space-y-8">
+        <div className="max-w-6xl mx-auto space-y-8">
           {/* Game Header */}
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-4">
@@ -268,6 +573,8 @@ export default function GamePage() {
                   name: gameData?.teams.visitors.name,
                   nickname: gameData?.teams.visitors.nickname,
                 }}
+                score={gameData?.scores.visitors.points}
+                opponentScore={gameData?.scores.home.points}
                 isHome={false}
                 imageErrors={imageErrors}
                 onImageError={handleImageError}
@@ -279,6 +586,9 @@ export default function GamePage() {
                 {gameData?.status.clock && (
                   <div className="text-muted-foreground">{gameData?.status.clock}</div>
                 )}
+                <div className="text-4xl font-bold">
+                  {gameData?.scores.visitors.points} - {gameData?.scores.home.points}
+                </div>
               </div>
 
               {/* Home Team */}
@@ -288,6 +598,8 @@ export default function GamePage() {
                   name: gameData?.teams.home.name,
                   nickname: gameData?.teams.home.nickname,
                 }}
+                score={gameData?.scores.home.points}
+                opponentScore={gameData?.scores.visitors.points}
                 isHome={true}
                 imageErrors={imageErrors}
                 onImageError={handleImageError}
@@ -296,7 +608,7 @@ export default function GamePage() {
             </div>
           </div>
 
-          {/* Game Details */}
+          {/* Game Details and Head-to-Head */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Arena Info */}
             <div className="bg-card rounded-lg shadow-sm p-6">
@@ -307,12 +619,9 @@ export default function GamePage() {
                   {formatArenaLocation(gameData?.arena || {})}
                 </p>
               </div>
-            </div>
 
-            {/* Game Stats */}
-            <div className="bg-card rounded-lg shadow-sm p-6">
-              <h3 className="text-lg font-medium mb-6">Game Statistics</h3>
-              <div className="space-y-6">
+              {/* Game Info */}
+              <div className="mt-6 space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <p className="text-sm text-muted-foreground">Times Tied</p>
@@ -323,157 +632,60 @@ export default function GamePage() {
                     <p className="font-medium">{gameData?.leadChanges}</p>
                   </div>
                 </div>
-                {(gameData?.officials?.length ?? 0) > 0 && (
-                  <div>
-                    <p className="text-sm text-muted-foreground mb-2">Officials</p>
-                    <ul className="space-y-1">
-                      {(gameData?.officials || []).map((official: string, index: number) => (
-                        <li key={index} className="text-sm">
-                          {official}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
               </div>
             </div>
+
+            {/* Head-to-Head */}
+            <HeadToHeadSection
+              h2hData={h2hData}
+              homeTeam={gameData.teams.home}
+              awayTeam={gameData.teams.visitors}
+              loading={h2hLoading}
+              error={h2hError}
+            />
           </div>
 
           {/* Team Statistics */}
           <div className="mt-12">
             <h3 className="text-2xl font-bold mb-8 text-center">Team Statistics</h3>
-            {statsLoading ? (
-              <div className="flex justify-center items-center py-12">
-                <div className="animate-spin rounded-full h-10 w-10 border-4 border-blue-500 border-t-transparent"></div>
-              </div>
-            ) : statsError ? (
-              <div className="text-red-500 text-center py-12 bg-red-50 rounded-lg">
-                <p className="font-medium">Error loading team statistics</p>
-                <p className="text-sm mt-2">{statsError.message}</p>
-              </div>
-            ) : statsData?.game_stats ? (
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {statsData.game_stats.map((teamStats: GameStatistics, index: number) => (
-                  <div key={index} className="bg-card rounded-xl shadow-lg overflow-hidden">
-                    {/* Team Header */}
-                    <div className="bg-gradient-to-r from-blue-600 to-orange-600 p-6">
-                      <div className="flex items-center justify-between gap-4">
-                        <div className="flex items-center gap-4">
-                          <div className="w-16 h-16 relative flex-shrink-0">
-                            <Image
-                              src={
-                                imageErrors[`${teamStats.teamId}-stats`]
-                                  ? '/gamelog.svg'
-                                  : teamStats.teamId
-                              }
-                              alt={teamStats.teamId}
-                              fill
-                              sizes="(max-width: 64px) 100vw, 64px"
-                              className="rounded-full bg-white p-1 object-contain"
-                              onError={() => handleImageError(`${teamStats.teamId}-stats`)}
-                            />
-                          </div>
-                          <div>
-                            <h4 className="text-2xl font-bold text-white">{teamStats.teamId}</h4>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-3xl font-bold text-white">{teamStats.points}</p>
-                          <p className="text-blue-100">Points</p>
-                        </div>
-                      </div>
-                    </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* Away Team Stats */}
+              <TeamStatsSection
+                teamStats={awayStatsData}
+                team={gameData.teams.visitors}
+                isHome={false}
+                loading={awayStatsLoading}
+                error={awayStatsError}
+              />
 
-                    <div className="p-6 space-y-8">
-                      {/* Shooting Stats */}
-                      <div className="space-y-4">
-                        <h5 className="text-lg font-semibold text-blue-600 border-b border-gray-200 pb-2">
-                          Shooting
-                        </h5>
-                        <div className="grid grid-cols-3 gap-4">
-                          <div className="bg-gray-50 rounded-lg p-4">
-                            <p className="text-sm text-gray-600 mb-1">Field Goals</p>
-                            <p className="text-xl font-bold">
-                              {teamStats.fieldGoals.made}/{teamStats.fieldGoals.attempted}
-                            </p>
-                            <p className="text-sm text-gray-500 mt-1">
-                              {teamStats.fieldGoals.percentage}%
-                            </p>
-                          </div>
-                          <div className="bg-gray-50 rounded-lg p-4">
-                            <p className="text-sm text-gray-600 mb-1">3-Pointers</p>
-                            <p className="text-xl font-bold">
-                              {teamStats.threePointers.made}/{teamStats.threePointers.attempted}
-                            </p>
-                            <p className="text-sm text-gray-500 mt-1">
-                              {teamStats.threePointers.percentage}%
-                            </p>
-                          </div>
-                          <div className="bg-gray-50 rounded-lg p-4">
-                            <p className="text-sm text-gray-600 mb-1">Free Throws</p>
-                            <p className="text-xl font-bold">
-                              {teamStats.freeThrows.made}/{teamStats.freeThrows.attempted}
-                            </p>
-                            <p className="text-sm text-gray-500 mt-1">
-                              {teamStats.freeThrows.percentage}%
-                            </p>
-                          </div>
-                        </div>
-                      </div>
+              {/* Home Team Stats */}
+              <TeamStatsSection
+                teamStats={homeStatsData}
+                team={gameData.teams.home}
+                isHome={true}
+                loading={homeStatsLoading}
+                error={homeStatsError}
+              />
+            </div>
+          </div>
 
-                      {/* Game Stats */}
-                      <div className="space-y-4">
-                        <h5 className="text-lg font-semibold text-blue-600 border-b border-gray-200 pb-2">
-                          Game Stats
-                        </h5>
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                          <div className="bg-gray-50 rounded-lg p-4">
-                            <p className="text-sm text-gray-600 mb-1">Points</p>
-                            <p className="text-2xl font-bold text-blue-600">{teamStats.points}</p>
-                          </div>
-                          <div className="bg-gray-50 rounded-lg p-4">
-                            <p className="text-sm text-gray-600 mb-1">Rebounds</p>
-                            <p className="text-2xl font-bold text-blue-600">{teamStats.rebounds}</p>
-                          </div>
-                          <div className="bg-gray-50 rounded-lg p-4">
-                            <p className="text-sm text-gray-600 mb-1">Assists</p>
-                            <p className="text-2xl font-bold text-blue-600">{teamStats.assists}</p>
-                          </div>
-                          <div className="bg-gray-50 rounded-lg p-4">
-                            <p className="text-sm text-gray-600 mb-1">Steals</p>
-                            <p className="text-2xl font-bold text-blue-600">{teamStats.steals}</p>
-                          </div>
-                          <div className="bg-gray-50 rounded-lg p-4">
-                            <p className="text-sm text-gray-600 mb-1">Blocks</p>
-                            <p className="text-2xl font-bold text-blue-600">{teamStats.blocks}</p>
-                          </div>
-                          <div className="bg-gray-50 rounded-lg p-4">
-                            <p className="text-sm text-gray-600 mb-1">Turnovers</p>
-                            <p className="text-2xl font-bold text-red-600">{teamStats.turnovers}</p>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Plus/Minus */}
-                      <div className="bg-gray-50 rounded-lg p-4 mt-4">
-                        <p className="text-sm text-gray-600 mb-1">Plus/Minus</p>
-                        <p
-                          className={`text-2xl font-bold ${teamStats.plusMinus >= 0 ? 'text-green-600' : 'text-red-600'}`}
-                        >
-                          {teamStats.plusMinus > 0 ? '+' : ''}
-                          {teamStats.plusMinus}
-                        </p>
-                      </div>
-                    </div>
+          {/* Officials */}
+          {(gameData?.officials?.length ?? 0) > 0 && (
+            <div className="bg-card rounded-lg shadow-sm p-6">
+              <h3 className="text-lg font-medium mb-4">Officials</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                {(gameData?.officials || []).map((official: string, index: number) => (
+                  <div key={index} className="text-sm bg-gray-50 rounded p-2">
+                    {official}
                   </div>
                 ))}
               </div>
-            ) : null}
-          </div>
+            </div>
+          )}
 
           {/* Game Nugget */}
           {gameData?.nugget && (
-            <div className="mt-8 bg-card rounded-lg shadow-sm p-6">
+            <div className="bg-card rounded-lg shadow-sm p-6">
               <h3 className="text-lg font-medium mb-4">Game Highlight</h3>
               <p className="text-muted-foreground">{gameData?.nugget}</p>
             </div>

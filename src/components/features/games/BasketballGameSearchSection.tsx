@@ -217,7 +217,7 @@ export function BasketballGameSearchSection() {
     },
     notifyOnNetworkStatusChange: false,
     fetchPolicy: 'cache-first',
-    onCompleted: (result) => {
+    onCompleted: result => {
       if (result?.games?.edges) {
         const games = result.games.edges.map((edge: GameEdge) => edge.node);
         setPageData(prev => ({ ...prev, 1: games }));
@@ -229,7 +229,10 @@ export function BasketballGameSearchSection() {
   });
 
   // Current page games - use cached data if available, otherwise fall back to query data
-  const games = pageData[currentPage] || (currentPage === 1 ? gamesData?.games?.edges?.map((edge: GameEdge) => edge.node) : []) || [];
+  const games =
+    pageData[currentPage] ||
+    (currentPage === 1 ? gamesData?.games?.edges?.map((edge: GameEdge) => edge.node) : []) ||
+    [];
   const totalCount = gamesData?.games?.totalCount || 0;
   const hasNextPage = gamesData?.games?.pageInfo?.hasNextPage || false;
   const hasPreviousPage = currentPage > 1;
@@ -239,7 +242,7 @@ export function BasketballGameSearchSection() {
   const prefetchNextPage = useCallback(async () => {
     const nextPage = currentPage + 1;
     const nextCursor = cursors[nextPage];
-    
+
     if (!pageData[nextPage] && nextCursor && hasNextPage) {
       try {
         await fetchMore({
@@ -252,11 +255,11 @@ export function BasketballGameSearchSection() {
             if (fetchMoreResult?.games?.edges) {
               const games = fetchMoreResult.games.edges.map((edge: GameEdge) => edge.node);
               setPageData(prevData => ({ ...prevData, [nextPage]: games }));
-              
+
               if (fetchMoreResult.games.pageInfo?.endCursor) {
-                setCursors(prevCursors => ({ 
-                  ...prevCursors, 
-                  [nextPage + 1]: fetchMoreResult.games.pageInfo.endCursor 
+                setCursors(prevCursors => ({
+                  ...prevCursors,
+                  [nextPage + 1]: fetchMoreResult.games.pageInfo.endCursor,
                 }));
               }
             }
@@ -274,7 +277,7 @@ export function BasketballGameSearchSection() {
       if (gamesLoading || isNavigating) return;
 
       const isNextPage = page > currentPage;
-      
+
       // If we already have the data cached, switch immediately
       if (pageData[page]) {
         setCurrentPage(page);
@@ -282,7 +285,7 @@ export function BasketballGameSearchSection() {
       }
 
       setIsNavigating(true);
-      
+
       try {
         if (isNextPage && hasNextPage) {
           const cursor = cursors[page];
@@ -297,11 +300,11 @@ export function BasketballGameSearchSection() {
                 if (fetchMoreResult?.games?.edges) {
                   const games = fetchMoreResult.games.edges.map((edge: GameEdge) => edge.node);
                   setPageData(prevData => ({ ...prevData, [page]: games }));
-                  
+
                   if (fetchMoreResult.games.pageInfo?.endCursor) {
-                    setCursors(prevCursors => ({ 
-                      ...prevCursors, 
-                      [page + 1]: fetchMoreResult.games.pageInfo.endCursor 
+                    setCursors(prevCursors => ({
+                      ...prevCursors,
+                      [page + 1]: fetchMoreResult.games.pageInfo.endCursor,
                     }));
                   }
                 }
@@ -313,7 +316,7 @@ export function BasketballGameSearchSection() {
           // For previous page, calculate cursor and fetch
           const targetOffset = (page - 1) * pageSize;
           const targetCursor = targetOffset > 0 ? btoa(targetOffset.toString()) : null;
-          
+
           await fetchMore({
             variables: {
               first: pageSize,
@@ -329,7 +332,7 @@ export function BasketballGameSearchSection() {
             },
           });
         }
-        
+
         setCurrentPage(page);
       } catch (error) {
         console.error('Error navigating pages:', error);
@@ -337,7 +340,17 @@ export function BasketballGameSearchSection() {
         setIsNavigating(false);
       }
     },
-    [currentPage, pageData, cursors, gamesLoading, hasNextPage, fetchMore, pageSize, filters, isNavigating]
+    [
+      currentPage,
+      pageData,
+      cursors,
+      gamesLoading,
+      hasNextPage,
+      fetchMore,
+      pageSize,
+      filters,
+      isNavigating,
+    ]
   );
 
   // Filter games by search text (client-side for current page only)
@@ -491,13 +504,17 @@ export function BasketballGameSearchSection() {
           <p className="text-sm text-muted-foreground">
             {totalCount > 0 ? (
               <>
-                Showing {((currentPage - 1) * pageSize) + 1}-{Math.min(currentPage * pageSize, totalCount)} of {formatCount(totalCount)} {totalCount === 1 ? 'game' : 'games'}
-                {searchText && ` (showing ${sortedGames.length} on this page matching "${searchText}")`}
+                Showing {(currentPage - 1) * pageSize + 1}-
+                {Math.min(currentPage * pageSize, totalCount)} of {formatCount(totalCount)}{' '}
+                {totalCount === 1 ? 'game' : 'games'}
+                {searchText &&
+                  ` (showing ${sortedGames.length} on this page matching "${searchText}")`}
               </>
             ) : (
               <>
                 Found {formatCount(totalCount)} {totalCount === 1 ? 'game' : 'games'}
-                {searchText && ` (showing ${sortedGames.length} on this page matching "${searchText}")`}
+                {searchText &&
+                  ` (showing ${sortedGames.length} on this page matching "${searchText}")`}
               </>
             )}
           </p>
@@ -540,10 +557,12 @@ export function BasketballGameSearchSection() {
         </Card>
       ) : (
         <>
-          <div className={cn(
-            "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 transition-opacity duration-200",
-            isNavigating && "opacity-60"
-          )}>
+          <div
+            className={cn(
+              'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 transition-opacity duration-200',
+              isNavigating && 'opacity-60'
+            )}
+          >
             {sortedGames.map((game: Game) => {
               const gameDate = new Date(game.date.start);
               const isLive =

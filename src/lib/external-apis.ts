@@ -504,8 +504,19 @@ export async function fetchNbaTeamStats(queryParams: string): Promise<TeamStats>
     API_CONFIG.rateLimit.MAX_RETRIES,
     API_CONFIG.rateLimit.BASE_DELAY
   );
+
+  if (!res.ok) {
+    throw new Error(`Failed to fetch team statistics: ${res.statusText}`);
+  }
+
   const data = await res.json();
-  return data.data[0];
+
+  // Check if we have a valid response
+  if (!data || !data.response || !Array.isArray(data.response) || data.response.length === 0) {
+    throw new Error('Invalid or empty response from team statistics API');
+  }
+
+  return data.response[0];
 }
 
 /**

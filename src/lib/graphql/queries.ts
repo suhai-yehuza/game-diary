@@ -646,31 +646,51 @@ export const GET_LIVE_GAMES = gql`
 `;
 
 export const GET_TEAM_STATS = gql`
-  query GetTeamStats($teamId: ID!, $sort: GameTeamSortInput, $pagination: PaginationInput) {
-    teamStats(teamId: $teamId, sort: $sort, pagination: $pagination) {
-      id
-      teamId
-      season
-      gamesPlayed
-      wins
-      losses
-      pointsFor
-      pointsAgainst
-      fieldGoalsMade
-      fieldGoalsAttempted
-      threePointersMade
-      threePointersAttempted
-      freeThrowsMade
-      freeThrowsAttempted
-      offensiveRebounds
-      defensiveRebounds
-      assists
-      steals
-      blocks
-      turnovers
-      fouls
-      createdAt
-      updatedAt
+  query GetTeamStats($teamId: ID!, $sort: TeamSortInput) {
+    teamStats(teamId: $teamId, sort: $sort) {
+      edges {
+        node {
+          id
+          team {
+            id
+            name
+            nickname
+            code
+            logo
+          }
+          season
+          games_played
+          wins
+          losses
+          points
+          field_goals_made
+          field_goals_attempted
+          field_goal_percentage
+          three_pointers_made
+          three_pointers_attempted
+          three_pointer_percentage
+          free_throws_made
+          free_throws_attempted
+          free_throw_percentage
+          offensive_rebounds
+          defensive_rebounds
+          total_rebounds
+          assists
+          steals
+          blocks
+          turnovers
+          personal_fouls
+          createdAt
+          updatedAt
+        }
+      }
+      pageInfo {
+        hasNextPage
+        hasPreviousPage
+        startCursor
+        endCursor
+      }
+      totalCount
     }
   }
 `;
@@ -926,6 +946,105 @@ export const GET_USER_FRIENDSHIPS = gql`
           lastName
         }
       }
+    }
+  }
+`;
+
+export const GET_GAME_STATS = gql`
+  query GetGameStats($gameId: ID!) {
+    gameStats(gameId: $gameId) {
+      id
+      game {
+        id
+        date {
+          start
+        }
+        teams
+        scores
+      }
+      team {
+        id
+        name
+        nickname
+        code
+        logo
+      }
+      points
+      rebounds
+      assists
+      steals
+      blocks
+      turnovers
+      fouls
+      fieldGoals {
+        made
+        attempted
+        percentage
+      }
+      threePointers {
+        made
+        attempted
+        percentage
+      }
+      freeThrows {
+        made
+        attempted
+        percentage
+      }
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+export const GET_TEAM_H2H = gql`
+  query GetTeamH2H($teamId: ID!, $opponentId: ID!) {
+    teamH2H(teamId: $teamId, opponentId: $opponentId) {
+      teamId
+      opponentId
+      wins
+      losses
+      winPercentage
+      lastTenGames
+    }
+  }
+`;
+
+export const GET_TEAM_GAME_STATS = gql`
+  query GetTeamGameStats($gameId: ID!, $teamId: String!) {
+    teamGameStats(gameId: $gameId, teamId: $teamId) {
+      id
+      team {
+        id
+        name
+        nickname
+        code
+        logo
+      }
+      season
+      games_played
+      wins
+      losses
+      points
+      field_goals_made
+      field_goals_attempted
+      field_goal_percentage
+      three_pointers_made
+      three_pointers_attempted
+      three_pointer_percentage
+      free_throws_made
+      free_throws_attempted
+      free_throw_percentage
+      offensive_rebounds
+      defensive_rebounds
+      total_rebounds
+      assists
+      steals
+      blocks
+      turnovers
+      personal_fouls
+      createdAt
+      updatedAt
     }
   }
 `;

@@ -195,19 +195,24 @@ export function GameLogSearchSection({
     },
     notifyOnNetworkStatusChange: false,
     fetchPolicy: 'cache-first',
-    onCompleted: (result) => {
-      if (result?.gameLogs?.edges) {
-        const gameLogs = result.gameLogs.edges.map((edge: GameLogEdge) => edge.node);
-        setPageData(prev => ({ ...prev, 1: gameLogs }));
-        if (result.gameLogs.pageInfo?.endCursor) {
-          setCursors(prev => ({ ...prev, 2: result.gameLogs.pageInfo.endCursor }));
-        }
-      }
-    },
   });
 
+  // Handle initial data load
+  useEffect(() => {
+    if (data?.gameLogs?.edges) {
+      const gameLogs = data.gameLogs.edges.map((edge: GameLogEdge) => edge.node);
+      setPageData(prev => ({ ...prev, 1: gameLogs }));
+      if (data.gameLogs.pageInfo?.endCursor) {
+        setCursors(prev => ({ ...prev, 2: data.gameLogs.pageInfo.endCursor }));
+      }
+    }
+  }, [data]);
+
   // Current page game logs - use cached data if available, otherwise fall back to query data
-  const gameLogs = pageData[currentPage] || (currentPage === 1 ? data?.gameLogs?.edges?.map((edge: GameLogEdge) => edge.node) : []) || [];
+  const gameLogs =
+    pageData[currentPage] ||
+    (currentPage === 1 ? data?.gameLogs?.edges?.map((edge: GameLogEdge) => edge.node) : []) ||
+    [];
   const totalCount = data?.gameLogs?.totalCount || 0;
   const hasNextPage = data?.gameLogs?.pageInfo?.hasNextPage || false;
   const hasPreviousPage = currentPage > 1;
@@ -217,7 +222,7 @@ export function GameLogSearchSection({
   const prefetchNextPage = useCallback(async () => {
     const nextPage = currentPage + 1;
     const nextCursor = cursors[nextPage];
-    
+
     if (!pageData[nextPage] && nextCursor && hasNextPage) {
       try {
         await fetchMore({
@@ -230,11 +235,11 @@ export function GameLogSearchSection({
             if (fetchMoreResult?.gameLogs?.edges) {
               const gameLogs = fetchMoreResult.gameLogs.edges.map((edge: GameLogEdge) => edge.node);
               setPageData(prevData => ({ ...prevData, [nextPage]: gameLogs }));
-              
+
               if (fetchMoreResult.gameLogs.pageInfo?.endCursor) {
-                setCursors(prevCursors => ({ 
-                  ...prevCursors, 
-                  [nextPage + 1]: fetchMoreResult.gameLogs.pageInfo.endCursor 
+                setCursors(prevCursors => ({
+                  ...prevCursors,
+                  [nextPage + 1]: fetchMoreResult.gameLogs.pageInfo.endCursor,
                 }));
               }
             }
@@ -252,7 +257,7 @@ export function GameLogSearchSection({
       if (loading || isNavigating) return;
 
       const isNextPage = page > currentPage;
-      
+
       // If we already have the data cached, switch immediately
       if (pageData[page]) {
         setCurrentPage(page);
@@ -260,7 +265,7 @@ export function GameLogSearchSection({
       }
 
       setIsNavigating(true);
-      
+
       try {
         if (isNextPage && hasNextPage) {
           const cursor = cursors[page];
@@ -273,13 +278,15 @@ export function GameLogSearchSection({
               },
               updateQuery: (prev, { fetchMoreResult }) => {
                 if (fetchMoreResult?.gameLogs?.edges) {
-                  const gameLogs = fetchMoreResult.gameLogs.edges.map((edge: GameLogEdge) => edge.node);
+                  const gameLogs = fetchMoreResult.gameLogs.edges.map(
+                    (edge: GameLogEdge) => edge.node
+                  );
                   setPageData(prevData => ({ ...prevData, [page]: gameLogs }));
-                  
+
                   if (fetchMoreResult.gameLogs.pageInfo?.endCursor) {
-                    setCursors(prevCursors => ({ 
-                      ...prevCursors, 
-                      [page + 1]: fetchMoreResult.gameLogs.pageInfo.endCursor 
+                    setCursors(prevCursors => ({
+                      ...prevCursors,
+                      [page + 1]: fetchMoreResult.gameLogs.pageInfo.endCursor,
                     }));
                   }
                 }
@@ -291,7 +298,7 @@ export function GameLogSearchSection({
           // For previous page, calculate cursor and fetch
           const targetOffset = (page - 1) * pageSize;
           const targetCursor = targetOffset > 0 ? btoa(targetOffset.toString()) : null;
-          
+
           await fetchMore({
             variables: {
               first: pageSize,
@@ -300,14 +307,16 @@ export function GameLogSearchSection({
             },
             updateQuery: (prev, { fetchMoreResult }) => {
               if (fetchMoreResult?.gameLogs?.edges) {
-                const gameLogs = fetchMoreResult.gameLogs.edges.map((edge: GameLogEdge) => edge.node);
+                const gameLogs = fetchMoreResult.gameLogs.edges.map(
+                  (edge: GameLogEdge) => edge.node
+                );
                 setPageData(prevData => ({ ...prevData, [page]: gameLogs }));
               }
               return prev;
             },
           });
         }
-        
+
         setCurrentPage(page);
       } catch (error) {
         console.error('Error navigating pages:', error);
@@ -315,7 +324,17 @@ export function GameLogSearchSection({
         setIsNavigating(false);
       }
     },
-    [currentPage, pageData, cursors, loading, hasNextPage, fetchMore, pageSize, filters, isNavigating]
+    [
+      currentPage,
+      pageData,
+      cursors,
+      loading,
+      hasNextPage,
+      fetchMore,
+      pageSize,
+      filters,
+      isNavigating,
+    ]
   );
 
   const handleCardClick = (e: React.MouseEvent, gameLogId: string) => {
@@ -496,7 +515,9 @@ export function GameLogSearchSection({
           <p className="text-sm text-muted-foreground">
             {totalCount > 0 ? (
               <>
-                Showing {((currentPage - 1) * pageSize) + 1}-{Math.min(currentPage * pageSize, totalCount)} of {formatCount(totalCount)} game {totalCount === 1 ? 'log' : 'logs'}
+                Showing {(currentPage - 1) * pageSize + 1}-
+                {Math.min(currentPage * pageSize, totalCount)} of {formatCount(totalCount)} game{' '}
+                {totalCount === 1 ? 'log' : 'logs'}
                 {searchText && ` matching "${searchText}"`}
               </>
             ) : (
@@ -543,10 +564,12 @@ export function GameLogSearchSection({
         </Card>
       ) : (
         <>
-          <div className={cn(
-            "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 transition-opacity duration-200",
-            isNavigating && "opacity-60"
-          )}>
+          <div
+            className={cn(
+              'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 transition-opacity duration-200',
+              isNavigating && 'opacity-60'
+            )}
+          >
             {gameLogs.map((log: GameLog) => {
               const classificationStyles = getClassificationStyles(log.classification);
               const ClassificationIcon = classificationStyles.icon;
@@ -643,7 +666,8 @@ export function GameLogSearchSection({
                         <div className="flex items-center gap-1 mt-2 text-xs text-muted-foreground">
                           <Calendar className="h-3 w-3" />
                           <span>
-                            {log.game.date?.start && format(new Date(log.game.date.start), 'MMM d, yyyy')}
+                            {log.game.date?.start &&
+                              format(new Date(log.game.date.start), 'MMM d, yyyy')}
                           </span>
                         </div>
                       </div>
@@ -653,9 +677,7 @@ export function GameLogSearchSection({
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <StarRating ratingForGame={log.ratingForGame} size="sm" />
-                        <span className="text-sm text-muted-foreground">
-                          {log.ratingForGame}/5
-                        </span>
+                        <span className="text-sm text-muted-foreground">{log.ratingForGame}/5</span>
                       </div>
                       {log.watchedDate && (
                         <div className="text-xs text-muted-foreground">
@@ -679,9 +701,7 @@ export function GameLogSearchSection({
 
                       {/* Notes Preview */}
                       {log.notes && (
-                        <p className="text-xs text-muted-foreground line-clamp-2">
-                          {log.notes}
-                        </p>
+                        <p className="text-xs text-muted-foreground line-clamp-2">{log.notes}</p>
                       )}
 
                       {/* Tags */}

@@ -503,7 +503,7 @@ export function UserSearchSection({ className }: UserSearchSectionProps) {
     },
     notifyOnNetworkStatusChange: false, // Prevent unnecessary re-renders
     fetchPolicy: 'cache-first',
-    onCompleted: (result) => {
+    onCompleted: result => {
       if (result?.searchUsers?.edges) {
         const users = result.searchUsers.edges.map((edge: UserEdge) => edge.node);
         setPageData(prev => ({ ...prev, 1: users }));
@@ -522,7 +522,10 @@ export function UserSearchSection({ className }: UserSearchSectionProps) {
   }, [debouncedSearchTerm, hasGameLogs, minGameLogs, isVerified, orderBy]);
 
   // Current page users - use cached data if available, otherwise fall back to query data
-  const currentPageUsers = pageData[currentPage] || (currentPage === 1 ? data?.searchUsers?.edges?.map((edge: UserEdge) => edge.node) : []) || [];
+  const currentPageUsers =
+    pageData[currentPage] ||
+    (currentPage === 1 ? data?.searchUsers?.edges?.map((edge: UserEdge) => edge.node) : []) ||
+    [];
   const totalCount = data?.searchUsers?.totalCount || 0;
   const hasNextPage = data?.searchUsers?.pageInfo?.hasNextPage || false;
   const hasPreviousPage = currentPage > 1;
@@ -531,7 +534,7 @@ export function UserSearchSection({ className }: UserSearchSectionProps) {
   const prefetchNextPage = useCallback(async () => {
     const nextPage = currentPage + 1;
     const nextCursor = cursors[nextPage];
-    
+
     if (!pageData[nextPage] && nextCursor && hasNextPage) {
       try {
         await fetchMore({
@@ -550,11 +553,11 @@ export function UserSearchSection({ className }: UserSearchSectionProps) {
             if (fetchMoreResult?.searchUsers?.edges) {
               const users = fetchMoreResult.searchUsers.edges.map((edge: UserEdge) => edge.node);
               setPageData(prevData => ({ ...prevData, [nextPage]: users }));
-              
+
               if (fetchMoreResult.searchUsers.pageInfo?.endCursor) {
-                setCursors(prevCursors => ({ 
-                  ...prevCursors, 
-                  [nextPage + 1]: fetchMoreResult.searchUsers.pageInfo.endCursor 
+                setCursors(prevCursors => ({
+                  ...prevCursors,
+                  [nextPage + 1]: fetchMoreResult.searchUsers.pageInfo.endCursor,
                 }));
               }
             }
@@ -565,14 +568,26 @@ export function UserSearchSection({ className }: UserSearchSectionProps) {
         console.error('Error prefetching next page:', error);
       }
     }
-  }, [currentPage, cursors, pageData, hasNextPage, fetchMore, pageSize, debouncedSearchTerm, hasGameLogs, minGameLogs, isVerified, orderBy]);
+  }, [
+    currentPage,
+    cursors,
+    pageData,
+    hasNextPage,
+    fetchMore,
+    pageSize,
+    debouncedSearchTerm,
+    hasGameLogs,
+    minGameLogs,
+    isVerified,
+    orderBy,
+  ]);
 
   const handlePageChange = useCallback(
     async (page: number) => {
       if (loading || isNavigating) return;
 
       const isNextPage = page > currentPage;
-      
+
       // If we already have the data cached, switch immediately
       if (pageData[page]) {
         setCurrentPage(page);
@@ -580,7 +595,7 @@ export function UserSearchSection({ className }: UserSearchSectionProps) {
       }
 
       setIsNavigating(true);
-      
+
       try {
         if (isNextPage && hasNextPage) {
           const cursor = cursors[page];
@@ -599,13 +614,15 @@ export function UserSearchSection({ className }: UserSearchSectionProps) {
               },
               updateQuery: (prev, { fetchMoreResult }) => {
                 if (fetchMoreResult?.searchUsers?.edges) {
-                  const users = fetchMoreResult.searchUsers.edges.map((edge: UserEdge) => edge.node);
+                  const users = fetchMoreResult.searchUsers.edges.map(
+                    (edge: UserEdge) => edge.node
+                  );
                   setPageData(prevData => ({ ...prevData, [page]: users }));
-                  
+
                   if (fetchMoreResult.searchUsers.pageInfo?.endCursor) {
-                    setCursors(prevCursors => ({ 
-                      ...prevCursors, 
-                      [page + 1]: fetchMoreResult.searchUsers.pageInfo.endCursor 
+                    setCursors(prevCursors => ({
+                      ...prevCursors,
+                      [page + 1]: fetchMoreResult.searchUsers.pageInfo.endCursor,
                     }));
                   }
                 }
@@ -617,7 +634,7 @@ export function UserSearchSection({ className }: UserSearchSectionProps) {
           // For previous page, calculate cursor and fetch
           const targetOffset = (page - 1) * pageSize;
           const targetCursor = targetOffset > 0 ? btoa(targetOffset.toString()) : null;
-          
+
           await fetchMore({
             variables: {
               first: pageSize,
@@ -639,7 +656,7 @@ export function UserSearchSection({ className }: UserSearchSectionProps) {
             },
           });
         }
-        
+
         setCurrentPage(page);
       } catch (error) {
         console.error('Error navigating pages:', error);
@@ -647,7 +664,21 @@ export function UserSearchSection({ className }: UserSearchSectionProps) {
         setIsNavigating(false);
       }
     },
-    [currentPage, pageData, cursors, loading, hasNextPage, fetchMore, pageSize, debouncedSearchTerm, hasGameLogs, minGameLogs, isVerified, orderBy, isNavigating]
+    [
+      currentPage,
+      pageData,
+      cursors,
+      loading,
+      hasNextPage,
+      fetchMore,
+      pageSize,
+      debouncedSearchTerm,
+      hasGameLogs,
+      minGameLogs,
+      isVerified,
+      orderBy,
+      isNavigating,
+    ]
   );
 
   // Check for received friend requests and create notifications
@@ -830,7 +861,9 @@ export function UserSearchSection({ className }: UserSearchSectionProps) {
             <p className="text-sm text-muted-foreground">
               {totalCount > 0 ? (
                 <>
-                  Showing {((currentPage - 1) * pageSize) + 1}-{Math.min(currentPage * pageSize, totalCount)} of {formatCount(totalCount)} {totalCount === 1 ? 'user' : 'users'}
+                  Showing {(currentPage - 1) * pageSize + 1}-
+                  {Math.min(currentPage * pageSize, totalCount)} of {formatCount(totalCount)}{' '}
+                  {totalCount === 1 ? 'user' : 'users'}
                   {debouncedSearchTerm && ` matching "${debouncedSearchTerm}"`}
                 </>
               ) : (
@@ -876,10 +909,12 @@ export function UserSearchSection({ className }: UserSearchSectionProps) {
           </Card>
         ) : (
           <>
-            <div className={cn(
-              "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 transition-opacity duration-200",
-              isNavigating && "opacity-60"
-            )}>
+            <div
+              className={cn(
+                'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 transition-opacity duration-200',
+                isNavigating && 'opacity-60'
+              )}
+            >
               {currentPageUsers.map((user: UserNode) => (
                 <UserCard key={user.id} user={user} />
               ))}
