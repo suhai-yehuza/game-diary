@@ -347,7 +347,7 @@ export interface GameLogFormData {
   gameId: string;
   watchedSetting: WatchedSettingValue;
   watchedDate: Date;
-  watchedLocation: string;
+  watchedLocation?: string;
   ratingForGame: number;
   watchedScope: WatchedScopeValue;
   notes: string;

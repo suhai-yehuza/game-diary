@@ -108,7 +108,7 @@ export const games = async (
     // Execute query with pagination
     const limit = first || 1000;
     const offset = after ? parseInt(Buffer.from(after, 'base64').toString(), 10) : 0;
-    
+
     const query = db
       .select()
       .from(schema.nba_games)

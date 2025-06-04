@@ -18,10 +18,13 @@ export const createGameLogSchema = z.object({
       required_error: 'Watched setting is required',
     }
   ),
-  watchedDate: z.date({
-    required_error: 'Watched date is required',
-  }),
-  watchedLocation: z.string().min(1, 'Watched location is required'),
+  watchedDate: z.union([
+    z.date({
+      required_error: 'Watched date is required',
+    }),
+    z.string().transform(str => new Date(str)),
+  ]),
+  watchedLocation: z.string().optional(),
   ratingForGame: z.number().int().min(1).max(5, 'Rating must be between 1 and 5'),
   watchedScope: z.enum(
     [

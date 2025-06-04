@@ -67,6 +67,35 @@ export const CREATE_GAME_LOG = gql`
         deletedAt
         game {
           id
+          date {
+            start
+            end
+            duration
+          }
+          status {
+            clock
+            halftime
+            long
+            short
+          }
+          arena {
+            name
+            city
+            state
+            country
+          }
+          league
+          season
+          stage
+          periods
+          teams
+          scores
+          officials
+          timesTied
+          leadChanges
+          nugget
+          createdAt
+          updatedAt
         }
       }
       errors {

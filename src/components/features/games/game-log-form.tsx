@@ -83,10 +83,14 @@ export function GameLogForm({
     }
 
     try {
+      // Convert Date to ISO string for GraphQL
       const input: CreateGameLogInput = {
         gameId: finalSelectedGame.id,
         watchedSetting: data.watchedSetting,
-        watchedDate: data.watchedDate,
+        watchedDate:
+          data.watchedDate instanceof Date
+            ? data.watchedDate
+            : new Date(data.watchedDate || new Date()),
         watchedLocation: data.watchedLocation,
         ratingForGame: data.ratingForGame,
         watchedScope: data.watchedScope,
@@ -95,11 +99,25 @@ export function GameLogForm({
         classification: data.classification,
       };
 
-      const { data: result } = await createGameLog({
+      console.log('Submitting game log with input:', input);
+
+      const { data: result, errors } = await createGameLog({
         variables: {
           input,
         },
       });
+
+      console.log('Game log creation response:', { result, errors });
+
+      if (errors) {
+        throw new Error(errors.map((e: { message: string }) => e.message).join(', '));
+      }
+
+      if (result?.createGameLog?.errors) {
+        throw new Error(
+          result.createGameLog.errors.map((e: { message: string }) => e.message).join(', ')
+        );
+      }
 
       if (result?.createGameLog?.gameLog) {
         toast({
@@ -110,7 +128,7 @@ export function GameLogForm({
 
         onSuccess?.();
       } else {
-        throw new Error('Failed to create game log');
+        throw new Error('Failed to create game log: No game log returned');
       }
     } catch (error: unknown) {
       logger.error('Error creating game log:', error);
@@ -215,12 +233,12 @@ export function GameLogForm({
               field: ControllerRenderProps<CreateGameLogInput, 'watchedLocation'>;
             }) => (
               <FormItem>
-                <FormLabel>Location</FormLabel>
+                <FormLabel>Location (Optional)</FormLabel>
                 <FormControl>
                   <Input
                     {...field}
                     value={field.value || ''}
-                    placeholder="Where did you watch the game?"
+                    placeholder="Where did you watch the game? (optional)"
                   />
                 </FormControl>
                 <FormMessage />

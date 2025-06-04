@@ -20,21 +20,7 @@ export const mapGameData = (game: DatabaseRow) => {
   const teams = game.teams as { home: { id: string }; visitors: { id: string } } | null;
 
   // Parse the date field
-  let dateStart = '';
-  let dateEnd = '';
-  let dateDuration = '';
-
-  // Debug logging
-  console.log('Game date value:', {
-    date: game.date,
-    type: typeof game.date,
-    isObject: typeof game.date === 'object',
-    isNull: game.date === null,
-    hasStart: typeof game.date === 'object' && game.date !== null && 'start' in game.date,
-    start: typeof game.date === 'object' && game.date !== null ? (game.date as { start?: string }).start : null,
-    end: typeof game.date === 'object' && game.date !== null ? (game.date as { end?: string }).end : null,
-  });
-
+  let [dateStart, dateEnd, dateDuration] = ['', '', ''];
   if (typeof game.date === 'object' && game.date !== null) {
     const dateObj = game.date as { start?: string; end?: string | null; duration?: string };
     if ('start' in dateObj) {
@@ -77,13 +63,6 @@ export const mapGameData = (game: DatabaseRow) => {
     }
   }
 
-  // Debug logging for final values
-  console.log('Parsed date values:', {
-    dateStart,
-    dateEnd,
-    dateDuration,
-  });
-
   return {
     id: game.id,
     date: {
@@ -92,10 +71,22 @@ export const mapGameData = (game: DatabaseRow) => {
       duration: dateDuration || null,
     },
     status: {
-      long: typeof game.status === 'string' ? game.status : (game.status as { long?: string })?.long || '',
-      short: typeof game.status === 'string' ? game.status : (game.status as { short?: string })?.short || '',
-      clock: typeof game.status === 'string' ? null : (game.status as { clock?: string | null })?.clock || null,
-      halftime: typeof game.status === 'string' ? false : (game.status as { halftime?: boolean })?.halftime || false,
+      long:
+        typeof game.status === 'string'
+          ? game.status
+          : (game.status as { long?: string })?.long || '',
+      short:
+        typeof game.status === 'string'
+          ? game.status
+          : (game.status as { short?: string })?.short || '',
+      clock:
+        typeof game.status === 'string'
+          ? null
+          : (game.status as { clock?: string | null })?.clock || null,
+      halftime:
+        typeof game.status === 'string'
+          ? false
+          : (game.status as { halftime?: boolean })?.halftime || false,
     },
     arena: {
       name: typeof arenaData === 'string' ? arenaData : arenaData?.name || '',

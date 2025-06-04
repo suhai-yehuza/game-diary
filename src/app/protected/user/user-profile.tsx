@@ -207,7 +207,11 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
     skip: !dbUserId,
   });
 
-  const { data: gameLogsData, loading: gameLogsLoading } = useQuery<{
+  const {
+    data: gameLogsData,
+    loading: gameLogsLoading,
+    refetch: refetchGameLogs,
+  } = useQuery<{
     gameLogs: {
       edges: Array<{ node: GameLog; cursor: string }>;
       totalCount: number;
@@ -507,7 +511,19 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
                       gameLog={{} as GameLog}
                       onSuccess={() => {
                         setCursor(null);
-                        // Optionally refetch data here
+                        refetchGameLogs({
+                          variables: {
+                            first: ITEMS_PER_PAGE,
+                            after: null,
+                            filters: {
+                              userId: dbUserId,
+                              classification:
+                                selectedClassification !== 'all'
+                                  ? selectedClassification
+                                  : undefined,
+                            },
+                          },
+                        });
                       }}
                     />
                   )}

@@ -142,6 +142,12 @@ export const createGameLog = async (
       throw new NotFoundError('Game', validatedInput.gameId);
     }
 
+    // Ensure watchedDate is a proper Date object
+    const watchedDate =
+      validatedInput.watchedDate instanceof Date
+        ? validatedInput.watchedDate
+        : new Date(validatedInput.watchedDate);
+
     // Create game log
     const [gameLog] = await db
       .insert(schema.game_logs)
@@ -150,12 +156,12 @@ export const createGameLog = async (
         userId: user.id,
         gameId: validatedInput.gameId,
         watchedSetting: validatedInput.watchedSetting,
-        watchedDate: validatedInput.watchedDate,
-        watchedLocation: validatedInput.watchedLocation,
+        watchedDate: watchedDate,
+        watchedLocation: validatedInput.watchedLocation || '',
         ratingForGame: validatedInput.ratingForGame,
         watchedScope: validatedInput.watchedScope,
         notes: validatedInput.notes || '',
-        tags: validatedInput.tags,
+        tags: validatedInput.tags || [],
         classification: validatedInput.classification,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -310,11 +316,15 @@ export const updateGameLog = async (
     }
 
     // Update the game log
+    const watchedDateUpdate =
+      validatedInput.watchedDate instanceof Date
+        ? validatedInput.watchedDate
+        : new Date(validatedInput.watchedDate);
     const [updatedGameLog] = await db
       .update(schema.game_logs)
       .set({
         watchedSetting: validatedInput.watchedSetting,
-        watchedDate: validatedInput.watchedDate,
+        watchedDate: watchedDateUpdate,
         watchedLocation: validatedInput.watchedLocation,
         ratingForGame: validatedInput.ratingForGame,
         watchedScope: validatedInput.watchedScope,
