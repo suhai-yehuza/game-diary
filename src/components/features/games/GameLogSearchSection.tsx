@@ -38,6 +38,7 @@ import {
 } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { StarRating } from '@/components/ui/star-rating';
+import { API_CONFIG } from '@/lib/config/api.config';
 import { GET_GAME_LOGS } from '@/lib/graphql/queries';
 import { CLASSIFICATION } from '@/lib/types/config.types';
 import { GameLog, GameLogEdge } from '@/lib/types/generated/graphql';
@@ -141,7 +142,7 @@ export function GameLogSearchSection({
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const [pageCursors, setPageCursors] = useState<Record<number, PageCursor>>({});
-  const pageSize = 12;
+  const pageSize = API_CONFIG.pagination.DEFAULT_PAGE_SIZE;
 
   // Build filters object
   const filters = useMemo(() => {

@@ -821,3 +821,111 @@ export const GET_GAME_LOG_BY_ID = gql`
   }
   ${GAME_LOG_FRAGMENT}
 `;
+
+export const GET_USER_GAME_LOGS = gql`
+  query GetUserGameLogs($filters: GameLogFilters) {
+    gameLogs(filters: $filters) {
+      edges {
+        node {
+          id
+          userId
+          gameId
+          watchedSetting
+          watchedDate
+          watchedLocation
+          ratingForGame
+          watchedScope
+          notes
+          tags
+          classification
+          createdAt
+          updatedAt
+          deletedAt
+          user {
+            id
+            username
+            firstName
+            lastName
+            emailAddress
+            imageUrl
+          }
+          game {
+            id
+            teams
+            scores
+            date {
+              start
+              end
+              duration
+            }
+            arena {
+              name
+              city
+              state
+              country
+            }
+            status {
+              clock
+              halftime
+              long
+              short
+            }
+            timesTied
+            leadChanges
+            league
+            season
+          }
+        }
+      }
+      totalCount
+    }
+  }
+`;
+
+export const GET_USER_FRIENDSHIPS = gql`
+  query GetUserFriendships($userId: ID!) {
+    user(id: $userId) {
+      id
+      initiatedFriendships {
+        id
+        status
+        createdAt
+        updatedAt
+        initiator {
+          id
+          emailAddress
+          imageUrl
+          firstName
+          lastName
+        }
+        recipient {
+          id
+          emailAddress
+          imageUrl
+          firstName
+          lastName
+        }
+      }
+      friendships {
+        id
+        status
+        createdAt
+        updatedAt
+        initiator {
+          id
+          emailAddress
+          imageUrl
+          firstName
+          lastName
+        }
+        recipient {
+          id
+          emailAddress
+          imageUrl
+          firstName
+          lastName
+        }
+      }
+    }
+  }
+`;

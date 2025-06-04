@@ -1,5 +1,7 @@
 import { and, eq, sql, gte, lte, like, or, isNotNull, desc, asc } from 'drizzle-orm';
 
+import { CACHE_KEYS } from '@/lib/cache';
+import { withCache } from '@/lib/db';
 import * as schema from '@/lib/db/schema';
 import { createConnection, parseCursor } from '@/lib/graphql/utils/pagination';
 import { logger } from '@/lib/logger';
@@ -8,6 +10,7 @@ import type { GameLogFilters } from '@/lib/types/generated/graphql';
 
 import type { PaginationArgs } from '../common/types';
 import { handleResolverError } from '../common/utils';
+
 export const gameLog = async (
   _parent: unknown,
   { userId, gameId }: { userId: string; gameId: string },
@@ -89,6 +92,57 @@ export const gameLogs = async (
 ) => {
   try {
     const { first = 10, after, last, filters } = args;
+
+    // If only userId is provided as a filter and no pagination, use cache
+    const isSimpleUserQuery =
+      filters && typeof filters.userId === 'string' && Object.keys(filters).length === 1 && filters.userId && !after && !last && first === 10;
+    if (isSimpleUserQuery) {
+      const userId = filters.userId!;
+      return withCache(
+        CACHE_KEYS.USER_GAME_LOGS(userId),
+        async () => {
+          // Build the query conditions
+          const conditions = [eq(schema.game_logs.userId, userId)];
+          const whereClause = and(...conditions);
+
+          // Get the total count
+          const [countResult] = await db
+            .select({ count: sql<number>`cast(count(*) as int)` })
+            .from(schema.game_logs)
+            .where(whereClause);
+
+          const totalCount = countResult?.count || 0;
+
+          // Execute the query
+          const items = await db
+            .select()
+            .from(schema.game_logs)
+            .where(whereClause)
+            .orderBy(desc(schema.game_logs.createdAt))
+            .limit(1000); // Arbitrary high limit for all logs
+
+          // Map the results
+          const mappedLogs = items.map(log => ({
+            id: log.id,
+            userId: log.userId,
+            gameId: log.gameId,
+            watchedSetting: log.watchedSetting,
+            watchedDate: log.watchedDate,
+            watchedLocation: log.watchedLocation,
+            ratingForGame: log.ratingForGame,
+            watchedScope: log.watchedScope,
+            notes: log.notes,
+            tags: log.tags,
+            classification: log.classification,
+            createdAt: log.createdAt,
+            updatedAt: log.updatedAt,
+            deletedAt: log.deletedAt,
+          }));
+
+          return createConnection(mappedLogs, totalCount, args);
+        }
+      );
+    }
 
     // Build the query conditions
     const conditions = [];

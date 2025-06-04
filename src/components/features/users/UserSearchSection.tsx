@@ -45,6 +45,7 @@ import {
 } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useNotifications } from '@/contexts/NotificationContext';
+import { API_CONFIG } from '@/lib/config/api.config';
 import {
   SEND_FRIEND_REQUEST,
   ACCEPT_FRIEND_REQUEST,
@@ -487,7 +488,7 @@ export function UserSearchSection({ className }: UserSearchSectionProps) {
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 12;
+  const pageSize = API_CONFIG.pagination.DEFAULT_PAGE_SIZE;
 
   const { data, loading, error, fetchMore } = useQuery(SEARCH_USERS, {
     variables: {

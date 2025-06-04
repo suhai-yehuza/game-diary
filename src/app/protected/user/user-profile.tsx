@@ -1,6 +1,5 @@
 'use client';
 
-import { gql } from '@apollo/client';
 import { useQuery, useMutation } from '@apollo/client/react/hooks';
 import { useUser } from '@clerk/nextjs';
 import { formatDistanceToNow } from 'date-fns';
@@ -41,62 +40,11 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { StarRating } from '@/components/ui/star-rating';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { SEND_FRIEND_REQUEST, ACCEPT_FRIEND_REQUEST, REMOVE_FRIEND } from '@/lib/graphql/mutations';
-import { GET_GAME_LOGS, GET_USER } from '@/lib/graphql/queries';
+import { GET_USER, GET_USER_FRIENDSHIPS, GET_USER_GAME_LOGS } from '@/lib/graphql/queries';
 import { logger } from '@/lib/logger';
 import { GameLog, Friendship, FriendshipStatus, DBUser } from '@/lib/types/generated/graphql';
 import { UserProfileProps } from '@/lib/types/user.types';
 import { cn } from '@/lib/utils';
-
-// Custom query to get friendships between two users
-const GET_USER_FRIENDSHIPS = gql`
-  query GetUserFriendships($userId: ID!) {
-    user(id: $userId) {
-      id
-      initiatedFriendships {
-        id
-        status
-        createdAt
-        updatedAt
-        initiator {
-          id
-          emailAddress
-          imageUrl
-          firstName
-          lastName
-        }
-        recipient {
-          id
-          emailAddress
-          imageUrl
-          firstName
-          lastName
-        }
-      }
-      friendships {
-        id
-        status
-        createdAt
-        updatedAt
-        initiator {
-          id
-          emailAddress
-          imageUrl
-          firstName
-          lastName
-        }
-        recipient {
-          id
-          emailAddress
-          imageUrl
-          firstName
-          lastName
-        }
-      }
-    }
-  }
-`;
-
-const ITEMS_PER_PAGE = 10;
 
 const classificationIcons = {
   Private: Lock,
@@ -116,7 +64,6 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [dbUserId, setDbUserId] = useState<string | null>(null);
   const [currentUserDbId, setCurrentUserDbId] = useState<string | null>(null);
-  const [cursor, setCursor] = useState<string | null>(null);
   const [selectedClassification, setSelectedClassification] = useState<string>('all');
   const [friendshipStatus, setFriendshipStatus] = useState<FriendshipStatus | null | 'loading'>(
     'loading'
@@ -124,6 +71,8 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
   const [currentFriendship, setCurrentFriendship] = useState<Friendship | null>(null);
   const [expandedNotes, setExpandedNotes] = useState<Set<string>>(new Set());
   const router = useRouter();
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 10;
 
   // Fetch current user's database ID
   useEffect(() => {
@@ -216,24 +165,16 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
   });
 
   const {
-    data: gameLogsData,
-    loading: gameLogsLoading,
-    refetch: refetchGameLogs,
+    data: userGameLogsData,
+    loading: userGameLogsLoading,
+    refetch: refetchUserGameLogs,
   } = useQuery<{
     gameLogs: {
-      edges: Array<{ node: GameLog; cursor: string }>;
+      edges: Array<{ node: GameLog }>;
       totalCount: number;
-      pageInfo: {
-        hasNextPage: boolean;
-        hasPreviousPage: boolean;
-        endCursor: string | null;
-        startCursor: string | null;
-      };
     };
-  }>(GET_GAME_LOGS, {
+  }>(GET_USER_GAME_LOGS, {
     variables: {
-      first: ITEMS_PER_PAGE,
-      after: cursor,
       filters: {
         userId: dbUserId,
         classification: selectedClassification !== 'all' ? selectedClassification : undefined,
@@ -370,10 +311,23 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
     );
   }
 
+  if (userLoading || userGameLogsLoading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-gray-100"></div>
+      </div>
+    );
+  }
+
   const userProfile = userData?.user || targetUser;
-  const gameLogs = gameLogsData?.gameLogs?.edges?.map((edge: { node: GameLog }) => edge.node) || [];
-  const hasNextPage = gameLogsData?.gameLogs?.pageInfo?.hasNextPage || false;
-  const hasPreviousPage = gameLogsData?.gameLogs?.pageInfo?.hasPreviousPage || false;
+  const allGameLogs = userGameLogsData?.gameLogs?.edges?.map(edge => edge.node) || [];
+  const totalCount = userGameLogsData?.gameLogs?.totalCount || 0;
+
+  // Calculate pagination
+  const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const gameLogs = allGameLogs.slice(startIndex, endIndex);
 
   const isOwnProfile = currentUser?.id === targetUserId || !targetUserId;
   const isPendingFromCurrentUser = currentFriendship?.initiator.id === currentUserDbId;
@@ -391,10 +345,6 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
     },
     {} as Record<string, number>
   );
-
-  if (userLoading || gameLogsLoading) {
-    return <UserProfileSkeleton />;
-  }
 
   // Render friendship button based on status
   const renderFriendshipButton = () => {
@@ -549,18 +499,9 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
                       gameId={''}
                       gameLog={{} as GameLog}
                       onSuccess={() => {
-                        setCursor(null);
-                        refetchGameLogs({
+                        refetchUserGameLogs({
                           variables: {
-                            first: ITEMS_PER_PAGE,
-                            after: null,
-                            filters: {
-                              userId: dbUserId,
-                              classification:
-                                selectedClassification !== 'all'
-                                  ? selectedClassification
-                                  : undefined,
-                            },
+                            userId: dbUserId,
                           },
                         });
                       }}
@@ -575,7 +516,7 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
                 <Card className="border-2">
                   <CardContent className="p-4 text-center">
                     <Gamepad2 className="h-8 w-8 mx-auto text-primary mb-2" />
-                    <p className="text-2xl font-bold">{gameLogsData?.gameLogs?.totalCount || 0}</p>
+                    <p className="text-2xl font-bold">{totalCount}</p>
                     <p className="text-xs text-muted-foreground">Game Logs</p>
                   </CardContent>
                 </Card>
@@ -629,7 +570,9 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
                     <Filter className="h-5 w-5" />
                     Filters
                   </CardTitle>
-                  <Badge variant="secondary">{gameLogs.length} results</Badge>
+                  <Badge variant="secondary">
+                    {gameLogs.length}/{totalCount} results
+                  </Badge>
                 </div>
               </CardHeader>
               <CardContent>
@@ -682,240 +625,244 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
             </Card>
 
             {/* Game Logs */}
-            {gameLogs.length === 0 ? (
-              <Card>
-                <CardContent className="py-12 text-center">
-                  <Gamepad2 className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                  <p className="text-muted-foreground">No game logs found</p>
-                  {selectedClassification !== 'all' && (
-                    <Button
-                      variant="link"
-                      onClick={() => setSelectedClassification('all')}
-                      className="mt-2"
-                    >
-                      Clear filters
-                    </Button>
-                  )}
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="space-y-4">
-                {gameLogs.map(log => {
-                  const ClassificationIcon = classificationIcons[log.classification];
-                  return (
-                    <Card
-                      key={log.id}
-                      className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
-                      onClick={event => handleGameLogClick(log.id, event)}
-                      onKeyDown={event => {
-                        if (event.key === 'Enter' || event.key === ' ') {
-                          event.preventDefault();
-                          handleGameLogClick(log.id, event);
-                        }
-                      }}
-                      role="button"
-                      tabIndex={0}
-                      aria-label={`View game log details for ${log.game?.teams?.visitors?.name} vs ${log.game?.teams?.home?.name}`}
-                    >
-                      <div
-                        className={cn('h-1', {
-                          'bg-green-500': log.classification === 'Public',
-                          'bg-amber-500': log.classification === 'Protected',
-                          'bg-red-500': log.classification === 'Private',
-                        })}
-                      />
-                      <CardContent className="p-0">
-                        {/* Header Section */}
-                        <div className="p-6 pb-4">
-                          <div className="flex items-start justify-between mb-3">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-3 mb-2">
-                                <h3 className="font-bold text-xl text-foreground">
-                                  {log.game?.teams?.visitors?.name} vs {log.game?.teams?.home?.name}
-                                </h3>
-                                <Badge
-                                  variant="outline"
-                                  className={cn(
-                                    'gap-1 text-xs',
-                                    classificationColors[log.classification]
-                                  )}
-                                >
-                                  <ClassificationIcon className="h-3 w-3" />
-                                  {log.classification}
-                                </Badge>
-                              </div>
+            <div className="mt-8">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-2xl font-bold">Game Logs</h2>
+                <div className="flex items-center space-x-2">
+                  <Filter className="h-4 w-4" />
+                  <select
+                    value={selectedClassification}
+                    onChange={(e) => setSelectedClassification(e.target.value)}
+                    className="border rounded px-2 py-1"
+                  >
+                    <option value="all">All</option>
+                    <option value="Private">Private</option>
+                    <option value="Protected">Protected</option>
+                    <option value="Public">Public</option>
+                  </select>
+                </div>
+              </div>
 
-                              <div className="flex items-center gap-4">
-                                <div className="flex items-center gap-2">
-                                  <span className="text-sm font-medium text-muted-foreground">
-                                    Rating:
-                                  </span>
-                                  <StarRating ratingForGame={log.ratingForGame} size="sm" />
-                                  <span className="text-sm font-medium text-foreground">
-                                    {log.ratingForGame}/5
-                                  </span>
+              {userGameLogsLoading ? (
+                <div className="space-y-4">
+                  {[...Array(3)].map((_, i) => (
+                    <Skeleton key={i} className="h-24 w-full" />
+                  ))}
+                </div>
+              ) : gameLogs.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-gray-500">No game logs found.</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {gameLogs.map((gameLog) => {
+                    const ClassificationIcon = classificationIcons[gameLog.classification as keyof typeof classificationIcons];
+                    return (
+                      <Card
+                        key={gameLog.id}
+                        className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
+                        onClick={event => handleGameLogClick(gameLog.id, event)}
+                        onKeyDown={event => {
+                          if (event.key === 'Enter' || event.key === ' ') {
+                            event.preventDefault();
+                            handleGameLogClick(gameLog.id, event);
+                          }
+                        }}
+                        role="button"
+                        tabIndex={0}
+                        aria-label={`View game log details for ${gameLog.game?.teams?.visitors?.name} vs ${gameLog.game?.teams?.home?.name}`}
+                      >
+                        <div
+                          className={cn('h-1', {
+                            'bg-green-500': gameLog.classification === 'Public',
+                            'bg-amber-500': gameLog.classification === 'Protected',
+                            'bg-red-500': gameLog.classification === 'Private',
+                          })}
+                        />
+                        <CardContent className="p-0">
+                          {/* Header Section */}
+                          <div className="p-6 pb-4">
+                            <div className="flex items-start justify-between mb-3">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-3 mb-2">
+                                  <h3 className="font-bold text-xl text-foreground">
+                                    {gameLog.game?.teams?.visitors?.name} vs {gameLog.game?.teams?.home?.name}
+                                  </h3>
+                                  <Badge
+                                    variant="outline"
+                                    className={cn(
+                                      'gap-1 text-xs',
+                                      classificationColors[gameLog.classification as keyof typeof classificationColors]
+                                    )}
+                                  >
+                                    <ClassificationIcon className="h-3 w-3" />
+                                    {gameLog.classification}
+                                  </Badge>
+                                </div>
+
+                                <div className="flex items-center gap-4">
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-sm font-medium text-muted-foreground">
+                                      Rating:
+                                    </span>
+                                    <StarRating ratingForGame={gameLog.ratingForGame} size="sm" />
+                                    <span className="text-sm font-medium text-foreground">
+                                      {gameLog.ratingForGame}/5
+                                    </span>
+                                  </div>
                                 </div>
                               </div>
-                            </div>
 
-                            {isOwnProfile && (
-                              <GameLogActions
-                                gameLog={log}
-                                onSuccess={() => {
-                                  refetchGameLogs({
-                                    variables: {
-                                      first: ITEMS_PER_PAGE,
-                                      after: cursor,
-                                      filters: {
+                              {isOwnProfile && (
+                                <GameLogActions
+                                  gameLog={gameLog}
+                                  onSuccess={() => {
+                                    refetchUserGameLogs({
+                                      variables: {
                                         userId: dbUserId,
-                                        classification:
-                                          selectedClassification !== 'all'
-                                            ? selectedClassification
-                                            : undefined,
                                       },
-                                    },
-                                  });
-                                }}
-                              />
-                            )}
-                          </div>
-                        </div>
-
-                        {/* Watching Details Section */}
-                        <div className="px-6 pb-4">
-                          <div className="bg-muted/30 rounded-lg p-4">
-                            <h4 className="font-semibold text-sm text-foreground mb-3 flex items-center gap-2">
-                              <Eye className="h-4 w-4" />
-                              Watching Details
-                            </h4>
-                            <div className="grid grid-cols-2 gap-3">
-                              <div className="flex items-center gap-2 text-sm">
-                                <Calendar className="h-4 w-4 text-muted-foreground" />
-                                <span className="text-muted-foreground">Date:</span>
-                                <span className="font-medium">
-                                  {log.watchedDate
-                                    ? new Date(log.watchedDate).toLocaleDateString()
-                                    : 'Not specified'}
-                                </span>
-                              </div>
-
-                              <div className="flex items-center gap-2 text-sm">
-                                <Tv className="h-4 w-4 text-muted-foreground" />
-                                <span className="text-muted-foreground">Method:</span>
-                                <span className="font-medium">
-                                  {log.watchedSetting
-                                    .split('_')
-                                    .map(
-                                      (word: string) => word.charAt(0).toUpperCase() + word.slice(1)
-                                    )
-                                    .join(' ')}
-                                </span>
-                              </div>
-
-                              {log.watchedLocation && (
-                                <div className="flex items-center gap-2 text-sm">
-                                  <MapPin className="h-4 w-4 text-muted-foreground" />
-                                  <span className="text-muted-foreground">Location:</span>
-                                  <span className="font-medium">{log.watchedLocation}</span>
-                                </div>
-                              )}
-
-                              <div className="flex items-center gap-2 text-sm">
-                                <Users className="h-4 w-4 text-muted-foreground" />
-                                <span className="text-muted-foreground">Scope:</span>
-                                <span className="font-medium">{log.watchedScope}</span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Notes Section */}
-                        {log.notes && (
-                          <div className="px-6 pb-4">
-                            <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg overflow-hidden">
-                              <div className="p-4 flex items-center justify-between">
-                                <h4 className="font-semibold text-sm text-foreground flex items-center gap-2">
-                                  <MessageSquare className="h-4 w-4" />
-                                  Notes
-                                </h4>
-                                <button
-                                  onClick={event => {
-                                    event.stopPropagation();
-                                    toggleNotesExpansion(log.id);
+                                    });
                                   }}
-                                  className="p-1 hover:bg-blue-100 dark:hover:bg-blue-900/40 rounded transition-colors"
-                                  aria-label={
-                                    expandedNotes.has(log.id) ? 'Collapse notes' : 'Expand notes'
-                                  }
-                                >
-                                  {expandedNotes.has(log.id) ? (
-                                    <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                                  ) : (
-                                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                                  )}
-                                </button>
+                                />
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Watching Details Section */}
+                          <div className="px-6 pb-4">
+                            <div className="bg-muted/30 rounded-lg p-4">
+                              <h4 className="font-semibold text-sm text-foreground mb-3 flex items-center gap-2">
+                                <Eye className="h-4 w-4" />
+                                Watching Details
+                              </h4>
+                              <div className="grid grid-cols-2 gap-3">
+                                <div className="flex items-center gap-2 text-sm">
+                                  <Calendar className="h-4 w-4 text-muted-foreground" />
+                                  <span className="text-muted-foreground">Date:</span>
+                                  <span className="font-medium">
+                                    {gameLog.watchedDate
+                                      ? new Date(gameLog.watchedDate).toLocaleDateString()
+                                      : 'Not specified'}
+                                  </span>
+                                </div>
+
+                                <div className="flex items-center gap-2 text-sm">
+                                  <Tv className="h-4 w-4 text-muted-foreground" />
+                                  <span className="text-muted-foreground">Method:</span>
+                                  <span className="font-medium">
+                                    {gameLog.watchedSetting
+                                      .split('_')
+                                      .map(
+                                        (word: string) => word.charAt(0).toUpperCase() + word.slice(1)
+                                      )
+                                      .join(' ')}
+                                  </span>
+                                </div>
+
+                                {gameLog.watchedLocation && (
+                                  <div className="flex items-center gap-2 text-sm">
+                                    <MapPin className="h-4 w-4 text-muted-foreground" />
+                                    <span className="text-muted-foreground">Location:</span>
+                                    <span className="font-medium">{gameLog.watchedLocation}</span>
+                                  </div>
+                                )}
+
+                                <div className="flex items-center gap-2 text-sm">
+                                  <Users className="h-4 w-4 text-muted-foreground" />
+                                  <span className="text-muted-foreground">Scope:</span>
+                                  <span className="font-medium">{gameLog.watchedScope}</span>
+                                </div>
                               </div>
-                              {expandedNotes.has(log.id) && (
-                                <div className="px-4 pb-4">
-                                  <p className="text-sm text-foreground leading-relaxed">
-                                    {log.notes}
-                                  </p>
-                                </div>
-                              )}
                             </div>
                           </div>
-                        )}
 
-                        {/* Footer Section */}
-                        <div className="px-6 pb-6">
-                          <div className="flex items-center justify-between">
-                            <div className="flex flex-wrap gap-2">
-                              {log?.tags && log.tags.length > 0 && (
-                                <div className="flex items-center gap-2">
-                                  <span className="text-xs text-muted-foreground">Tags:</span>
-                                  {log.tags.map((tag, index) => (
-                                    <Badge key={index} variant="secondary" className="text-xs">
-                                      #{tag}
-                                    </Badge>
-                                  ))}
+                          {/* Notes Section */}
+                          {gameLog.notes && (
+                            <div className="px-6 pb-4">
+                              <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg overflow-hidden">
+                                <div className="p-4 flex items-center justify-between">
+                                  <h4 className="font-semibold text-sm text-foreground flex items-center gap-2">
+                                    <MessageSquare className="h-4 w-4" />
+                                    Notes
+                                  </h4>
+                                  <button
+                                    onClick={event => {
+                                      event.stopPropagation();
+                                      toggleNotesExpansion(gameLog.id);
+                                    }}
+                                    className="p-1 hover:bg-blue-100 dark:hover:bg-blue-900/40 rounded transition-colors"
+                                    aria-label={
+                                      expandedNotes.has(gameLog.id) ? 'Collapse notes' : 'Expand notes'
+                                    }
+                                  >
+                                    {expandedNotes.has(gameLog.id) ? (
+                                      <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                                    ) : (
+                                      <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                                    )}
+                                  </button>
                                 </div>
-                              )}
+                                {expandedNotes.has(gameLog.id) && (
+                                  <div className="px-4 pb-4">
+                                    <p className="text-sm text-foreground leading-relaxed">
+                                      {gameLog.notes}
+                                    </p>
+                                  </div>
+                                )}
+                              </div>
                             </div>
+                          )}
 
-                            <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                              <Clock className="h-3 w-3" />
-                              {formatDistanceToNow(new Date(log.createdAt), { addSuffix: true })}
+                          {/* Footer Section */}
+                          <div className="px-6 pb-6">
+                            <div className="flex items-center justify-between">
+                              <div className="flex flex-wrap gap-2">
+                                {gameLog?.tags && gameLog.tags.length > 0 && (
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-xs text-muted-foreground">Tags:</span>
+                                    {gameLog.tags.map((tag, index) => (
+                                      <Badge key={index} variant="secondary" className="text-xs">
+                                        #{tag}
+                                      </Badge>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+
+                              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                <Clock className="h-3 w-3" />
+                                {formatDistanceToNow(new Date(gameLog.createdAt), { addSuffix: true })}
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
 
-                {/* Pagination */}
-                {(hasNextPage || hasPreviousPage) && (
-                  <div className="flex justify-center space-x-2 pt-4">
-                    <Button
-                      variant="outline"
-                      onClick={() => setCursor(null)}
-                      disabled={!hasPreviousPage}
-                    >
-                      Previous
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={() => {
-                        if (gameLogsData?.gameLogs?.pageInfo?.endCursor) {
-                          setCursor(gameLogsData.gameLogs.pageInfo.endCursor);
-                        }
-                      }}
-                      disabled={!hasNextPage}
-                    >
-                      Next
-                    </Button>
-                  </div>
-                )}
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex justify-center space-x-2 pt-4">
+                <Button
+                  variant="outline"
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                >
+                  Previous
+                </Button>
+                <span className="flex items-center px-4">
+                  Page {currentPage} of {totalPages}
+                </span>
+                <Button
+                  variant="outline"
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                >
+                  Next
+                </Button>
               </div>
             )}
           </TabsContent>
@@ -934,7 +881,7 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
                     {Object.entries(classificationCounts).map(([classification, count]) => {
                       const Icon =
                         classificationIcons[classification as keyof typeof classificationIcons];
-                      const percentage = ((count / gameLogs.length) * 100).toFixed(1);
+                      const percentage = ((count / totalCount) * 100).toFixed(1);
                       return (
                         <div key={classification} className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
@@ -973,7 +920,7 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
                     <div className="text-4xl font-bold mb-2">{averageRating.toFixed(1)}</div>
                     <StarRating ratingForGame={averageRating} size="lg" />
                     <p className="text-sm text-muted-foreground mt-2">
-                      Based on {gameLogs.length} game logs
+                      Based on {totalCount} game logs
                     </p>
                   </div>
                 </CardContent>
@@ -990,94 +937,6 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
             </Card>
           </TabsContent>
         </Tabs>
-      </div>
-    </div>
-  );
-}
-
-function UserProfileSkeleton() {
-  return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
-      {/* Profile Header Skeleton */}
-      <div className="bg-card border-b">
-        <div className="container mx-auto px-4 py-8">
-          <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
-            <Skeleton className="h-32 w-32 rounded-full" />
-
-            <div className="flex-1 text-center md:text-left">
-              <div className="flex flex-col md:flex-row items-center md:items-start gap-4">
-                <div>
-                  <Skeleton className="h-8 w-48 mb-2" />
-                  <Skeleton className="h-5 w-32 mb-2" />
-                  <Skeleton className="h-4 w-40" />
-                </div>
-                <Skeleton className="h-10 w-32" />
-              </div>
-
-              {/* Stats Cards Skeleton */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
-                {[1, 2, 3, 4].map(i => (
-                  <Card key={i} className="border-2">
-                    <CardContent className="p-4 text-center">
-                      <Skeleton className="h-8 w-8 mx-auto mb-2 rounded-full" />
-                      <Skeleton className="h-6 w-12 mx-auto mb-1" />
-                      <Skeleton className="h-3 w-16 mx-auto" />
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Content Skeleton */}
-      <div className="container mx-auto px-4 py-8">
-        <div className="space-y-6">
-          <Skeleton className="h-10 w-full md:w-[400px]" />
-
-          <Card>
-            <CardHeader>
-              <Skeleton className="h-6 w-24" />
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-wrap gap-2">
-                {[1, 2, 3, 4].map(i => (
-                  <Skeleton key={i} className="h-8 w-20" />
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-
-          <div className="space-y-4">
-            {[1, 2, 3].map(i => (
-              <Card key={i}>
-                <Skeleton className="h-1 w-full" />
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex-1">
-                      <Skeleton className="h-6 w-64 mb-2" />
-                      <div className="flex flex-wrap gap-4">
-                        <Skeleton className="h-4 w-24" />
-                        <Skeleton className="h-4 w-32" />
-                        <Skeleton className="h-4 w-28" />
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <Skeleton className="h-5 w-24 mb-1" />
-                      <Skeleton className="h-3 w-20" />
-                    </div>
-                  </div>
-                  <Skeleton className="h-12 w-full mb-3" />
-                  <div className="flex gap-2">
-                    <Skeleton className="h-6 w-16" />
-                    <Skeleton className="h-6 w-16" />
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
       </div>
     </div>
   );

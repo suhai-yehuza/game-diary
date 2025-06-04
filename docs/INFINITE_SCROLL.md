@@ -26,7 +26,7 @@ function GameLogsList() {
     query: GET_GAME_LOGS,
     variables: { filters: { userId: 'user123' } },
     dataPath: 'gameLogs',
-    pageSize: 20,
+    pageSize: API_CONFIG.pagination.DEFAULT_PAGE_SIZE;,
   });
 
   if (loading && !data) return <div>Loading...</div>;
