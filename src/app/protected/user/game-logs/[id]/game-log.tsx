@@ -1,6 +1,7 @@
 'use client';
 
 import { useQuery } from '@apollo/client';
+import { useUser } from '@clerk/nextjs';
 import { format, formatDistanceToNow } from 'date-fns';
 import {
   Star,
@@ -16,10 +17,11 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import React, { useState } from 'react';
 
 import { CommentsSection, ReactionsSection } from '@/components/common';
+import { GameLogActions } from '@/components/features/games/game-log-actions';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -181,6 +183,8 @@ const WatchInfoItem = ({
 
 export default function GameLog() {
   const params = useParams();
+  const router = useRouter();
+  const { user: currentUser } = useUser();
   const gameLogId = params?.id as string;
   const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
 
@@ -192,6 +196,7 @@ export default function GameLog() {
     data: gameLogData,
     loading: gameLogLoading,
     error: gameLogError,
+    refetch: refetchGameLog,
   } = useQuery<GameLogByIdResponse>(GET_GAME_LOG_BY_ID, {
     variables: { id: gameLogId },
     skip: !gameLogId,
@@ -227,8 +232,21 @@ export default function GameLog() {
     );
   }
 
+  // Check if current user owns this game log
+  const isOwner = currentUser?.id === gameLog.userId;
+
   const gameDate = gameLog.game?.date?.start ? new Date(gameLog.game.date.start) : null;
   const watchDate = gameLog.watchedDate ? new Date(gameLog.watchedDate) : null;
+
+  const handleGameLogSuccess = () => {
+    // For edit operations, refetch the data
+    // For delete operations, the user will be navigated back automatically
+    // since the game log won't exist anymore and the component will show "not found"
+    refetchGameLog().catch(() => {
+      // If refetch fails (likely because game log was deleted), navigate back to profile
+      router.push('/protected/user');
+    });
+  };
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -241,11 +259,20 @@ export default function GameLog() {
               Back to Profile
             </Button>
           </Link>
-          <Badge variant="outline" className="gap-1">
-            <Clock className="h-3 w-3" />
-            {gameLog.createdAt &&
-              formatDistanceToNow(new Date(gameLog.createdAt), { addSuffix: true })}
-          </Badge>
+          <div className="flex items-center gap-4">
+            <Badge variant="outline" className="gap-1">
+              <Clock className="h-3 w-3" />
+              {gameLog.createdAt &&
+                formatDistanceToNow(new Date(gameLog.createdAt), { addSuffix: true })}
+            </Badge>
+            {/* Edit/Delete Actions for Owner */}
+            {isOwner && (
+              <GameLogActions
+                gameLog={gameLog}
+                onSuccess={handleGameLogSuccess}
+              />
+            )}
+          </div>
         </div>
 
         {/* Game Match Card */}
