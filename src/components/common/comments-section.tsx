@@ -26,6 +26,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/components/ui/use-toast';
+import { clientCache, CLIENT_CACHE_KEYS } from '@/lib/cache/client';
 import { CREATE_COMMENT, DELETE_COMMENT, UPDATE_COMMENT } from '@/lib/graphql/mutations';
 import { GET_COMMENTS_WITH_FILTERS } from '@/lib/graphql/queries';
 import { logger } from '@/lib/logger';
@@ -35,6 +36,7 @@ import { CommentsSectionProps, EditingComment } from '@/lib/types/social.types';
 import { cn } from '@/lib/utils';
 
 import { CommentItem } from './comment-item';
+
 export function CommentsSection({ parentId, parentType, initialExpanded }: CommentsSectionProps) {
   const { user } = useUser();
   const [newComment, setNewComment] = useState('');
@@ -50,15 +52,33 @@ export function CommentsSection({ parentId, parentType, initialExpanded }: Comme
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Track last seen comment count
-  const [lastSeenCount, setLastSeenCount] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem(`comments-lastseen-${parentId}`);
-      return saved !== null ? parseInt(saved, 10) : 0;
-    }
-    return 0;
-  });
+  const [lastSeenCount, setLastSeenCount] = useState(0);
+  const [isLastSeenLoaded, setIsLastSeenLoaded] = useState(false);
 
   const { toast } = useToast();
+
+  // Load last seen count from Redis cache on mount
+  useEffect(() => {
+    const loadLastSeenCount = async () => {
+      if (!clientCache.isClientSide()) {
+        setIsLastSeenLoaded(true);
+        return;
+      }
+
+      try {
+        const cacheKey = CLIENT_CACHE_KEYS.COMMENTS_LAST_SEEN(parentId);
+        const saved = await clientCache.getItem<string>(cacheKey);
+        const count = saved !== null ? parseInt(saved, 10) : 0;
+        setLastSeenCount(isNaN(count) ? 0 : count);
+      } catch (error) {
+        console.error('Failed to load last seen count from cache:', error);
+      } finally {
+        setIsLastSeenLoaded(true);
+      }
+    };
+
+    loadLastSeenCount();
+  }, [parentId]);
 
   const { data, loading, error, refetch, fetchMore } = useQuery(GET_COMMENTS_WITH_FILTERS, {
     variables: {
@@ -69,13 +89,28 @@ export function CommentsSection({ parentId, parentType, initialExpanded }: Comme
 
   // Update last seen count when expanding
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    const updateLastSeenCount = async () => {
+      if (!isLastSeenLoaded || !clientCache.isClientSide()) return;
+
       if (isExpanded && data?.comments?.totalCount) {
-        setLastSeenCount(data.comments.totalCount);
-        localStorage.setItem(`comments-lastseen-${parentId}`, data.comments.totalCount.toString());
+        const newCount = data.comments.totalCount;
+        setLastSeenCount(newCount);
+
+        try {
+          const cacheKey = CLIENT_CACHE_KEYS.COMMENTS_LAST_SEEN(parentId);
+          await clientCache.setItem(
+            cacheKey,
+            newCount.toString(),
+            60 * 60 * 24 * 7 // 7 days TTL
+          );
+        } catch (error) {
+          console.error('Failed to save last seen count to cache:', error);
+        }
       }
-    }
-  }, [isExpanded, parentId, data?.comments?.totalCount]);
+    };
+
+    updateLastSeenCount();
+  }, [isExpanded, parentId, data?.comments?.totalCount, isLastSeenLoaded]);
 
   // Auto-resize textarea
   useEffect(() => {

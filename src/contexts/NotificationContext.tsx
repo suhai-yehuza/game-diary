@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 import { useToast } from '@/components/ui/use-toast';
+import { clientCache, CLIENT_CACHE_KEYS } from '@/lib/cache/client';
 import type { AppNotification, NotificationContextType } from '@/lib/types/notification.types';
 
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
@@ -13,27 +14,54 @@ function generateId(): string {
 
 export function NotificationProvider({ children }: { children: React.ReactNode }) {
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
+  const [isLoaded, setIsLoaded] = useState(false);
   const { toast } = useToast();
 
-  // Load notifications from localStorage on mount
+  // Load notifications from Redis cache on mount
   useEffect(() => {
-    const savedNotifications = localStorage.getItem('notifications');
-    if (savedNotifications) {
-      const parsed = JSON.parse(savedNotifications);
-      // Convert date strings back to Date objects
-      const notificationsWithDates = parsed.map((n: AppNotification) => ({
-        ...n,
-        timestamp: new Date(n.timestamp),
-        deletedAt: n.deletedAt ? new Date(n.deletedAt) : null,
-      }));
-      setNotifications(notificationsWithDates);
-    }
+    const loadNotifications = async () => {
+      try {
+        const savedNotifications = await clientCache.getItem<AppNotification[]>(
+          CLIENT_CACHE_KEYS.NOTIFICATIONS
+        );
+
+        if (savedNotifications && Array.isArray(savedNotifications)) {
+          // Convert date strings back to Date objects
+          const notificationsWithDates = savedNotifications.map((n: AppNotification) => ({
+            ...n,
+            timestamp: new Date(n.timestamp),
+            deletedAt: n.deletedAt ? new Date(n.deletedAt) : null,
+          }));
+          setNotifications(notificationsWithDates);
+        }
+      } catch (error) {
+        console.error('Failed to load notifications from cache:', error);
+      } finally {
+        setIsLoaded(true);
+      }
+    };
+
+    loadNotifications();
   }, []);
 
-  // Save notifications to localStorage whenever they change
+  // Save notifications to Redis cache whenever they change (only after initial load)
   useEffect(() => {
-    localStorage.setItem('notifications', JSON.stringify(notifications));
-  }, [notifications]);
+    if (!isLoaded) return;
+
+    const saveNotifications = async () => {
+      try {
+        await clientCache.setItem(
+          CLIENT_CACHE_KEYS.NOTIFICATIONS,
+          notifications,
+          60 * 60 * 24 * 30 // 30 days TTL
+        );
+      } catch (error) {
+        console.error('Failed to save notifications to cache:', error);
+      }
+    };
+
+    saveNotifications();
+  }, [notifications, isLoaded]);
 
   // Filter out soft-deleted notifications
   const activeNotifications = notifications.filter(n => !n.deletedAt);

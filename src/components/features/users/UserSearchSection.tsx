@@ -45,6 +45,7 @@ import {
 } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useNotifications } from '@/contexts/NotificationContext';
+import { clientCache, CLIENT_CACHE_KEYS } from '@/lib/cache/client';
 import { API_CONFIG } from '@/lib/config/api.config';
 import {
   SEND_FRIEND_REQUEST,
@@ -59,6 +60,7 @@ import { UserSearchSectionProps, UserNode, UserEdge } from '@/lib/types/componen
 import { FRIENDSHIP_STATUS } from '@/lib/types/config.types';
 import { cn } from '@/lib/utils';
 import { formatCount } from '@/lib/utils/index.format';
+
 const UserCard = ({ user }: { user: UserNode }) => {
   const { user: currentUser } = useUser();
   const [sendFriendRequest, { loading: sendingRequest }] = useMutation(SEND_FRIEND_REQUEST);
@@ -685,34 +687,47 @@ export function UserSearchSection({ className }: UserSearchSectionProps) {
   useEffect(() => {
     if (!data?.searchUsers?.edges || !currentUser) return;
 
-    const users = data.searchUsers.edges.map((edge: UserEdge) => edge.node);
-    const receivedRequests = users.filter((user: UserNode) => {
-      const receivedFriendship = user.initiatedFriendships?.find(
-        f => f.recipient.id === currentUser.id && f.status === FRIENDSHIP_STATUS.PENDING
-      );
-      return !!receivedFriendship;
-    });
+    const checkFriendRequests = async () => {
+      const users = data.searchUsers.edges.map((edge: UserEdge) => edge.node);
+      const receivedRequests = users.filter((user: UserNode) => {
+        const receivedFriendship = user.initiatedFriendships?.find(
+          f => f.recipient.id === currentUser.id && f.status === FRIENDSHIP_STATUS.PENDING
+        );
+        return !!receivedFriendship;
+      });
 
-    // Create notifications for received friend requests
-    receivedRequests.forEach((user: UserNode) => {
-      const notificationKey = `friend-request-${user.id}`;
-      const existingNotification = localStorage.getItem(notificationKey);
+      // Create notifications for received friend requests
+      for (const user of receivedRequests) {
+        try {
+          const notificationKey = CLIENT_CACHE_KEYS.FRIEND_REQUEST_NOTIFICATION(user.id);
+          const existingNotification = await clientCache.getItem<string>(notificationKey);
 
-      // Only create notification if we haven't already notified about this request
-      if (!existingNotification) {
-        addNotification({
-          type: 'friend_request',
-          title: 'New Friend Request',
-          message: `${user.firstName || user.username} sent you a friend request`,
-          userId: user.id,
-          metadata: {
-            avatar: user.imageUrl,
-            username: user.username,
-          },
-        });
-        localStorage.setItem(notificationKey, 'true');
+          // Only create notification if we haven't already notified about this request
+          if (!existingNotification) {
+            addNotification({
+              type: 'friend_request',
+              title: 'New Friend Request',
+              message: `${user.firstName || user.username} sent you a friend request`,
+              userId: user.id,
+              metadata: {
+                avatar: user.imageUrl,
+                username: user.username,
+              },
+            });
+
+            await clientCache.setItem(
+              notificationKey,
+              'true',
+              60 * 60 * 24 * 30 // 30 days TTL
+            );
+          }
+        } catch (error) {
+          console.error('Failed to process friend request notification:', error);
+        }
       }
-    });
+    };
+
+    checkFriendRequests();
   }, [data, currentUser, addNotification]);
 
   const resetFilters = () => {
