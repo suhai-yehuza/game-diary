@@ -345,7 +345,16 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
   const handleGameLogClick = (gameLogId: string, event: React.MouseEvent | React.KeyboardEvent) => {
     // Prevent navigation if clicking on interactive elements
     const target = event.target as HTMLElement;
-    const isInteractiveElement = target.closest('button') || target.closest('[role="button"]');
+    const cardElement = event.currentTarget as HTMLElement;
+    
+    // Check for buttons, links, and other interactive elements, but exclude the card itself
+    const isInteractiveElement = 
+      target.closest('button') || 
+      target.closest('a') ||
+      target.closest('[data-interactive]') ||
+      target.closest('.dropdown-menu') ||
+      target.closest('[data-radix-popper-content-wrapper]') ||
+      (target.closest('[role="button"]') && target.closest('[role="button"]') !== cardElement);
 
     if (!isInteractiveElement) {
       router.push(`/protected/user/game-logs/${gameLogId}`);
@@ -749,26 +758,24 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
                             </div>
 
                             {isOwnProfile && (
-                              <div onClick={event => event.stopPropagation()}>
-                                <GameLogActions
-                                  gameLog={log}
-                                  onSuccess={() => {
-                                    refetchGameLogs({
-                                      variables: {
-                                        first: ITEMS_PER_PAGE,
-                                        after: cursor,
-                                        filters: {
-                                          userId: dbUserId,
-                                          classification:
-                                            selectedClassification !== 'all'
-                                              ? selectedClassification
-                                              : undefined,
-                                        },
+                              <GameLogActions
+                                gameLog={log}
+                                onSuccess={() => {
+                                  refetchGameLogs({
+                                    variables: {
+                                      first: ITEMS_PER_PAGE,
+                                      after: cursor,
+                                      filters: {
+                                        userId: dbUserId,
+                                        classification:
+                                          selectedClassification !== 'all'
+                                            ? selectedClassification
+                                            : undefined,
                                       },
-                                    });
-                                  }}
-                                />
-                              </div>
+                                    },
+                                  });
+                                }}
+                              />
                             )}
                           </div>
                         </div>
@@ -825,23 +832,26 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
                         {log.notes && (
                           <div className="px-6 pb-4">
                             <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg overflow-hidden">
-                              <button
-                                onClick={event => {
-                                  event.stopPropagation();
-                                  toggleNotesExpansion(log.id);
-                                }}
-                                className="w-full p-4 flex items-center justify-between hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors"
-                              >
+                              <div className="p-4 flex items-center justify-between">
                                 <h4 className="font-semibold text-sm text-foreground flex items-center gap-2">
                                   <MessageSquare className="h-4 w-4" />
                                   Notes
                                 </h4>
-                                {expandedNotes.has(log.id) ? (
-                                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                                ) : (
-                                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                                )}
-                              </button>
+                                <button
+                                  onClick={event => {
+                                    event.stopPropagation();
+                                    toggleNotesExpansion(log.id);
+                                  }}
+                                  className="p-1 hover:bg-blue-100 dark:hover:bg-blue-900/40 rounded transition-colors"
+                                  aria-label={expandedNotes.has(log.id) ? "Collapse notes" : "Expand notes"}
+                                >
+                                  {expandedNotes.has(log.id) ? (
+                                    <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                                  ) : (
+                                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                                  )}
+                                </button>
+                              </div>
                               {expandedNotes.has(log.id) && (
                                 <div className="px-4 pb-4">
                                   <p className="text-sm text-foreground leading-relaxed">
