@@ -211,7 +211,7 @@ export default function GameLogComponent({ gameLogId }: GameLogProps) {
   }
 
   const gameLog = gameLogData?.gameLogById;
-  
+
   if (!gameLog) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -272,12 +272,7 @@ export default function GameLogComponent({ gameLogId }: GameLogProps) {
                 formatDistanceToNow(new Date(gameLog.createdAt), { addSuffix: true })}
             </Badge>
             {/* Edit/Delete Actions for Owner */}
-            {isOwner && (
-              <GameLogActions
-                gameLog={gameLog}
-                onSuccess={handleGameLogSuccess}
-              />
-            )}
+            {isOwner && <GameLogActions gameLog={gameLog} onSuccess={handleGameLogSuccess} />}
           </div>
         </div>
 

@@ -346,10 +346,10 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
     // Prevent navigation if clicking on interactive elements
     const target = event.target as HTMLElement;
     const cardElement = event.currentTarget as HTMLElement;
-    
+
     // Check for buttons, links, and other interactive elements, but exclude the card itself
-    const isInteractiveElement = 
-      target.closest('button') || 
+    const isInteractiveElement =
+      target.closest('button') ||
       target.closest('a') ||
       target.closest('[data-interactive]') ||
       target.closest('.dropdown-menu') ||
@@ -843,7 +843,9 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
                                     toggleNotesExpansion(log.id);
                                   }}
                                   className="p-1 hover:bg-blue-100 dark:hover:bg-blue-900/40 rounded transition-colors"
-                                  aria-label={expandedNotes.has(log.id) ? "Collapse notes" : "Expand notes"}
+                                  aria-label={
+                                    expandedNotes.has(log.id) ? 'Collapse notes' : 'Expand notes'
+                                  }
                                 >
                                   {expandedNotes.has(log.id) ? (
                                     <ChevronDown className="h-4 w-4 text-muted-foreground" />

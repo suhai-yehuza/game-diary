@@ -71,6 +71,13 @@ export function GameLogForm({
     }
   }, [externalFormData, form]);
 
+  // Update gameId when external selected game changes
+  useEffect(() => {
+    if (externalSelectedGame?.id) {
+      form.setValue('gameId', externalSelectedGame.id);
+    }
+  }, [externalSelectedGame, form]);
+
   // Use external form data if provided, otherwise use internal state
   const finalSelectedGame = externalSelectedGame || selectedGame;
   const isLoading = externalLoading || false;
@@ -106,15 +113,11 @@ export function GameLogForm({
         classification: data.classification,
       };
 
-      console.log('Submitting game log with input:', input);
-
       const { data: result, errors } = await createGameLog({
         variables: {
           input,
         },
       });
-
-      console.log('Game log creation response:', { result, errors });
 
       if (errors) {
         throw new Error(errors.map((e: { message: string }) => e.message).join(', '));

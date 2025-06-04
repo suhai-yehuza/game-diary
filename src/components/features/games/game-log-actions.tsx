@@ -39,18 +39,28 @@ export function GameLogActions({ gameLog, onSuccess }: GameLogActionsProps) {
   const isOwner = user?.id === gameLog.userId;
 
   const [deleteGameLog, { loading: isDeleting }] = useMutation(DELETE_GAME_LOG, {
-    onCompleted: () => {
-      toast({
-        title: 'Game log deleted',
-        description: 'Your game log has been successfully deleted.',
-      });
-      setIsDeleteDialogOpen(false);
-      onSuccess?.();
+    onCompleted: data => {
+      if (data?.deleteGameLog?.success) {
+        toast({
+          title: '🗑️ Deleted!',
+          description: 'Your game log has been permanently deleted.',
+        });
+        setIsDeleteDialogOpen(false);
+        onSuccess?.();
+      } else {
+        toast({
+          title: '❌ Delete Failed',
+          description: 'Something went wrong while deleting your game log. Please try again.',
+          variant: 'destructive',
+        });
+        setIsDeleteDialogOpen(false);
+      }
     },
     onError: error => {
       toast({
-        title: 'Error',
-        description: error.message,
+        title: '❌ Delete Failed',
+        description:
+          error.message || 'Failed to delete game log. Please check your connection and try again.',
         variant: 'destructive',
       });
       setIsDeleteDialogOpen(false);

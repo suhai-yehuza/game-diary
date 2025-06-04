@@ -1,6 +1,7 @@
 import { useMutation, useQuery } from '@apollo/client';
 import { SignInButton } from '@clerk/nextjs';
 import { X, Search } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import React, { useState, useMemo, useEffect } from 'react';
 import 'react-datepicker/dist/react-datepicker.css';
 
@@ -17,7 +18,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
 import { useAuthContext } from '@/contexts/AuthContext';
 import { CREATE_GAME_LOG, UPDATE_GAME_LOG } from '@/lib/graphql/mutations';
-import { GET_EXTERNAL_GAMES } from '@/lib/graphql/queries';
+import { GET_EXTERNAL_GAMES, GET_GAME_BY_ID } from '@/lib/graphql/queries';
 import {
   CLASSIFICATION,
   WATCHED_SETTING,
@@ -49,8 +50,9 @@ export function GameLogModal({
   const { toast } = useToast();
   const { user } = useAuthContext();
   const authUserId = user?.id;
+  const router = useRouter();
 
-  // Game search state (only for create mode)
+  // Game search state (only for create mode when no gameId is provided)
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedGame, setSelectedGame] = useState<Game | null>(null);
 
@@ -65,6 +67,19 @@ export function GameLogModal({
       setSelectedGame(gameLog.game as unknown as Game);
     }
   }, [mode, gameLog]);
+
+  // Fetch specific game when gameId is provided (for create mode)
+  const { data: specificGameData, loading: loadingSpecificGame } = useQuery(GET_GAME_BY_ID, {
+    variables: { id: gameId },
+    skip: !gameId || mode === 'update' || !isOpen,
+  });
+
+  // Auto-select game when fetched by ID
+  useEffect(() => {
+    if (specificGameData?.game && mode === 'create' && gameId) {
+      setSelectedGame(specificGameData.game as unknown as Game);
+    }
+  }, [specificGameData, mode, gameId]);
 
   // Form state - only pass initial data for update mode
   const initialFormData: GameLogFormData = {
@@ -84,28 +99,38 @@ export function GameLogModal({
     onCompleted: data => {
       if (data?.createGameLog?.gameLog) {
         toast({
-          title: 'Success',
-          description: 'Game log created successfully',
+          title: '🎉 Success!',
+          description: 'Your game log has been created successfully.',
         });
         resetForm();
         setIsOpen(false);
         onSuccess?.();
+
+        // Redirect to game log details page if created from a game details page
+        if (gameId && data.createGameLog.gameLog.id) {
+          router.push(`/protected/user/game-logs/${data.createGameLog.gameLog.id}`);
+        }
       } else if (data?.createGameLog?.errors) {
-        console.error('GameLogModal: Server returned errors:', data.createGameLog.errors);
         toast({
-          title: 'Error',
+          title: '❌ Creation Failed',
           description: data.createGameLog.errors
             .map((e: { message: string }) => e.message)
             .join(', '),
           variant: 'destructive',
         });
+      } else {
+        toast({
+          title: '❌ Unexpected Error',
+          description: 'Something went wrong while creating your game log. Please try again.',
+          variant: 'destructive',
+        });
       }
     },
     onError: error => {
-      console.error('GameLogModal: Error creating game log:', error);
       toast({
-        title: 'Error',
-        description: error.message,
+        title: '❌ Creation Failed',
+        description:
+          error.message || 'Failed to create game log. Please check your connection and try again.',
         variant: 'destructive',
       });
     },
@@ -115,27 +140,32 @@ export function GameLogModal({
     onCompleted: data => {
       if (data?.updateGameLog?.gameLog) {
         toast({
-          title: 'Success',
-          description: 'Game log updated successfully',
+          title: '✅ Updated!',
+          description: 'Your game log has been updated successfully.',
         });
         setIsOpen(false);
         onSuccess?.();
       } else if (data?.updateGameLog?.errors) {
-        console.error('GameLogModal: Server returned errors:', data.updateGameLog.errors);
         toast({
-          title: 'Error',
+          title: '❌ Update Failed',
           description: data.updateGameLog.errors
             .map((e: { message: string }) => e.message)
             .join(', '),
           variant: 'destructive',
         });
+      } else {
+        toast({
+          title: '❌ Unexpected Error',
+          description: 'Something went wrong while updating your game log. Please try again.',
+          variant: 'destructive',
+        });
       }
     },
     onError: error => {
-      console.error('GameLogModal: Error updating game log:', error);
       toast({
-        title: 'Error',
-        description: error.message,
+        title: '❌ Update Failed',
+        description:
+          error.message || 'Failed to update game log. Please check your connection and try again.',
         variant: 'destructive',
       });
     },
@@ -150,7 +180,7 @@ export function GameLogModal({
       first: 5000,
       after: null,
     },
-    skip: !isOpen || mode === 'update',
+    skip: !isOpen || mode === 'update' || !!gameId,
   });
 
   // Handle search input changes (only for create mode)
@@ -167,7 +197,6 @@ export function GameLogModal({
     if (!searchQuery.trim()) {
       return gamesData.games.edges;
     }
-    console.log('Total games before filtering:', gamesData.games.edges.length);
 
     const searchLower = searchQuery.toLowerCase();
     const filtered = gamesData.games.edges.filter((edge: GameEdge) => {
@@ -236,39 +265,54 @@ export function GameLogModal({
       );
     });
 
-    console.log('Filtered games count:', filtered.length);
     return filtered;
   }, [gamesData?.games?.edges, searchQuery]);
 
   const handleSubmit = async (data: CreateGameLogInput) => {
     if (mode === 'create') {
-      if (!selectedGame?.id) {
+      // More robust check for selectedGame and its ID - handles different possible field names
+      const selectedGameId = selectedGame?.id || (selectedGame as any)?.gameId || gameId;
+
+      if (!selectedGame) {
         toast({
-          title: 'Error',
-          description: 'Please select a game first',
+          title: '⚠️ No Game Selected',
+          description: 'Please select a game before creating your log.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      if (!selectedGameId) {
+        toast({
+          title: '⚠️ Invalid Game',
+          description:
+            'The selected game appears to be invalid. Please try selecting a different game.',
           variant: 'destructive',
         });
         return;
       }
 
       try {
+        const mutationInput = {
+          gameId: selectedGameId,
+          watchedSetting: data.watchedSetting,
+          watchedDate: data.watchedDate,
+          watchedLocation: data.watchedLocation,
+          ratingForGame: data.ratingForGame,
+          watchedScope: data.watchedScope,
+          notes: data.notes,
+          tags: data.tags,
+          classification: data.classification,
+        };
+
         await createGameLog({
           variables: {
-            input: {
-              gameId: selectedGame.id,
-              watchedSetting: data.watchedSetting,
-              watchedDate: data.watchedDate,
-              watchedLocation: data.watchedLocation,
-              ratingForGame: data.ratingForGame,
-              watchedScope: data.watchedScope,
-              notes: data.notes,
-              tags: data.tags,
-              classification: data.classification,
-            },
+            input: mutationInput,
           },
         });
-      } catch (error) {
-        console.error('GameLogModal: Error creating game log:', error);
+      } catch {
+        // Error is already handled by the mutation's onError callback
+        // No additional handling needed here
       }
     } else if (mode === 'update' && gameLog?.id) {
       try {
@@ -287,15 +331,19 @@ export function GameLogModal({
             },
           },
         });
-      } catch (error) {
-        console.error('GameLogModal: Error updating game log:', error);
+      } catch {
+        // Error is already handled by the mutation's onError callback
+        // No additional handling needed here
       }
     }
   };
 
   const resetForm = () => {
-    setSelectedGame(null);
-    setSearchQuery('');
+    // Only clear selectedGame if we're not using a pre-selected gameId
+    if (!gameId) {
+      setSelectedGame(null);
+      setSearchQuery('');
+    }
   };
 
   if (!authUserId) {
@@ -332,7 +380,7 @@ export function GameLogModal({
         </DialogDescription>
       </DialogHeader>
 
-      {mode === 'create' && (
+      {mode === 'create' && !gameId && !selectedGame && (
         <div className="space-y-4 mb-6">
           <div className="relative">
             <Input
@@ -351,10 +399,10 @@ export function GameLogModal({
             {filteredGames.map((edge: GameEdge) => (
               <div
                 key={edge.node.id}
-                className={`p-3 border rounded-lg cursor-pointer hover:bg-gray-50 ${
-                  selectedGame?.id === edge.node.id ? 'border-blue-500 bg-blue-50' : ''
-                }`}
-                onClick={() => setSelectedGame(edge.node as unknown as Game)}
+                className="p-3 border rounded-lg cursor-pointer hover:bg-gray-50"
+                onClick={() => {
+                  setSelectedGame(edge.node as unknown as Game);
+                }}
                 onKeyDown={e => {
                   if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault();
@@ -387,6 +435,53 @@ export function GameLogModal({
                 No games found matching your search
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {mode === 'create' && gameId && loadingSpecificGame && (
+        <div className="mb-6 text-center">
+          <div>Loading game details...</div>
+        </div>
+      )}
+
+      {mode === 'create' && selectedGame && !loadingSpecificGame && (
+        <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <div className="flex items-center justify-between mb-2">
+            <h4 className="font-medium text-blue-900">Selected Game</h4>
+            {!gameId && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setSelectedGame(null);
+                  setSearchQuery('');
+                }}
+                className="text-blue-600 hover:text-blue-800 hover:bg-blue-100"
+              >
+                Change Game
+              </Button>
+            )}
+          </div>
+          <div className="text-sm text-blue-800">
+            <p className="font-medium">
+              {selectedGame.teams?.home?.name && selectedGame.teams?.visitors?.name
+                ? `${selectedGame.teams.home.name} vs ${selectedGame.teams.visitors.name}`
+                : 'Unknown Teams'}
+            </p>
+            <p className="text-blue-600">
+              {formatGameDate(
+                typeof selectedGame.date === 'string'
+                  ? selectedGame.date
+                  : {
+                      start:
+                        selectedGame.date.start instanceof Date
+                          ? selectedGame.date.start.toISOString()
+                          : selectedGame.date.start,
+                    }
+              )}{' '}
+              • {selectedGame.arena?.name || 'Unknown Arena'}
+            </p>
           </div>
         </div>
       )}

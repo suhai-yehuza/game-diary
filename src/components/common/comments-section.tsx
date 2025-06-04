@@ -192,9 +192,9 @@ export function CommentsSection({ parentId, parentType, initialExpanded }: Comme
         // Use the same variables as the original query
         const existingData = cache.readQuery({
           query: GET_COMMENTS_WITH_FILTERS,
-          variables: { 
+          variables: {
             parentId: parentId,
-            first: 10
+            first: 10,
           },
         }) as { comments: CommentConnection } | null;
 
@@ -208,9 +208,9 @@ export function CommentsSection({ parentId, parentType, initialExpanded }: Comme
 
         cache.writeQuery({
           query: GET_COMMENTS_WITH_FILTERS,
-          variables: { 
+          variables: {
             parentId: parentId,
-            first: 10
+            first: 10,
           },
           data: {
             comments: {
@@ -235,9 +235,9 @@ export function CommentsSection({ parentId, parentType, initialExpanded }: Comme
     refetchQueries: [
       {
         query: GET_COMMENTS_WITH_FILTERS,
-        variables: { 
+        variables: {
           parentId: parentId,
-          first: 10
+          first: 10,
         },
       },
     ],
@@ -279,9 +279,9 @@ export function CommentsSection({ parentId, parentType, initialExpanded }: Comme
         // Use the same variables as the original query
         const existingData = cache.readQuery({
           query: GET_COMMENTS_WITH_FILTERS,
-          variables: { 
+          variables: {
             parentId: parentId,
-            first: 10
+            first: 10,
           },
         }) as { comments: CommentConnection } | null;
 
@@ -299,9 +299,9 @@ export function CommentsSection({ parentId, parentType, initialExpanded }: Comme
 
         cache.writeQuery({
           query: GET_COMMENTS_WITH_FILTERS,
-          variables: { 
+          variables: {
             parentId: parentId,
-            first: 10
+            first: 10,
           },
           data: {
             comments: {
