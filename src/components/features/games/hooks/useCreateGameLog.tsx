@@ -8,6 +8,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { CREATE_GAME_LOG } from '@/lib/graphql/mutations';
 import { GET_GAMES } from '@/lib/graphql/queries';
 import { logger } from '@/lib/logger';
+import { UseCreateGameLogProps } from '@/lib/types/consolidated.types';
 import type {
   CreateGameLogInput,
   ValidationError as GQLValidationError,
@@ -17,10 +18,6 @@ import type {
   RateLimitError,
   BusinessLogicError,
 } from '@/lib/types/generated/graphql';
-
-interface UseCreateGameLogProps {
-  onSuccess?: () => void;
-}
 
 export function useCreateGameLog({ onSuccess }: UseCreateGameLogProps = {}) {
   const { toast } = useToast();

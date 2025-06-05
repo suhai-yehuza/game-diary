@@ -3,12 +3,7 @@ import { redirect } from 'next/navigation';
 import React from 'react';
 
 import { GameLog } from '@/components/features/game-logs';
-
-interface GameLogPageProps {
-  params: {
-    id: string;
-  };
-}
+import { GameLogPageProps } from '@/lib/types/consolidated.types';
 
 export default async function GameLogPage({ params }: GameLogPageProps) {
   const { userId } = await auth();

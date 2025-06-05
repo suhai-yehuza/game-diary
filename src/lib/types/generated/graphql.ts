@@ -1301,7 +1301,6 @@ export type TargetType =
 
 export type Team = {
   __typename?: 'Team';
-  abbreviation: Scalars['String']['output'];
   city: Scalars['String']['output'];
   code: Maybe<Scalars['String']['output']>;
   conference: Maybe<Scalars['String']['output']>;
@@ -1312,8 +1311,6 @@ export type Team = {
   logoUrl: Maybe<Scalars['String']['output']>;
   name: Scalars['String']['output'];
   nickname: Maybe<Scalars['String']['output']>;
-  primaryColor: Maybe<Scalars['String']['output']>;
-  secondaryColor: Maybe<Scalars['String']['output']>;
   updatedAt: Scalars['DateTime']['output'];
 };
 
@@ -2790,7 +2787,6 @@ export type SeriesScoreResolvers<ContextType = Context, ParentType extends Resol
 };
 
 export type TeamResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Team'] = ResolversParentTypes['Team']> = {
-  abbreviation?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   city?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   code?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   conference?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -2801,8 +2797,6 @@ export type TeamResolvers<ContextType = Context, ParentType extends ResolversPar
   logoUrl?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   nickname?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  primaryColor?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  secondaryColor?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   updatedAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };

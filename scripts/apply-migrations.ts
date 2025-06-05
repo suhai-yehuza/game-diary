@@ -4,27 +4,13 @@ import { join } from 'path';
 
 import { sql } from 'drizzle-orm';
 
+import { createDatabaseClient } from '@/lib/db/seed/config';
 import { logger } from '@/lib/logger';
-
-import { createDatabaseClient } from '../src/lib/db/seed/config';
+import { Migration, MigrationVerification } from '@/lib/types/consolidated.types';
 
 // Get environment from command line argument or default to development
 const environment = process.argv[2] || 'development';
 const dryRun = process.argv.includes('--dry-run');
-
-interface Migration {
-  name: string;
-  path: string;
-  content: string;
-  checksum: string;
-}
-
-interface MigrationVerification {
-  tables?: string[];
-  functions?: string[];
-  triggers?: string[];
-  indexes?: string[];
-}
 
 // Parse SQL file to extract individual statements, handling functions and triggers properly
 function parseSqlStatements(content: string): string[] {

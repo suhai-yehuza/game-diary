@@ -32,6 +32,7 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { API_CONFIG } from '@/lib/config/api.config';
 import { GET_GAMES } from '@/lib/graphql/queries';
+import { Game } from '@/lib/types/consolidated.types';
 import { cn } from '@/lib/utils';
 import { formatCount } from '@/lib/utils/index.format';
 import { getCurrentSeason } from '@/lib/utils/index.time';
@@ -66,70 +67,6 @@ const GameSkeleton = () => (
     </CardContent>
   </Card>
 );
-
-interface GameTeams {
-  home: {
-    id: string;
-    nickname: string;
-    code: string;
-    logo: string;
-    name: string;
-  };
-  visitors: {
-    id: string;
-    nickname: string;
-    code: string;
-    logo: string;
-    name: string;
-  };
-}
-
-interface GameScores {
-  home: {
-    points: number;
-  };
-  visitors: {
-    points: number;
-  };
-}
-
-interface GamePeriods {
-  current: number;
-  total: number;
-}
-
-interface Game {
-  id: string;
-  date: {
-    start: string;
-    end?: string;
-    duration?: string;
-  };
-  status: {
-    clock?: string;
-    halftime?: boolean;
-    long: string;
-    short: string;
-  };
-  arena: {
-    name: string;
-    city: string;
-    state: string;
-    country: string;
-  };
-  teams: GameTeams;
-  scores: GameScores;
-  league: string;
-  season: number;
-  stage: number;
-  periods: GamePeriods;
-  officials: string[];
-  timesTied?: number;
-  leadChanges?: number;
-  nugget?: string;
-  createdAt: string;
-  updatedAt: string;
-}
 
 type GameEdge = { cursor: string; node: Game };
 

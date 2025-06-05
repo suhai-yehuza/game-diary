@@ -55,7 +55,6 @@ export async function fetchAndProcessNBATeams(): Promise<void> {
           name: team.name,
           nickname: team.nickname || team.name,
           code: team.code || team.name.substring(0, 3).toUpperCase(),
-          abbreviation: team.code || team.name.substring(0, 3).toUpperCase(),
           city: cityFallback,
           state: '',
           country: 'USA',

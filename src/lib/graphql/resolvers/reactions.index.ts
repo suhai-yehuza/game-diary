@@ -1,12 +1,12 @@
 import { and, eq, sql } from 'drizzle-orm';
 
 import * as schema from '@/lib/db/schema';
-import { createConnection, parseCursor } from '@/lib/graphql/utils/pagination';
+import { createConnection, parseCursor } from '@/lib/graphql/utils';
 import { logger } from '@/lib/logger';
 import type { Context } from '@/lib/types/component.types';
+import type { PaginationArgs } from '@/lib/types/resolver.types';
 
-import type { PaginationArgs } from '../common/types';
-import { handleResolverError, getEmojiKey } from '../common/utils';
+import { handleResolverError, getEmojiKey } from '../utils';
 export const reactions = async (
   _parent: unknown,
   args: PaginationArgs & { targetId: string },

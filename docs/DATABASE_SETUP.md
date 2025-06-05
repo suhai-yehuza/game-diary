@@ -27,8 +27,9 @@ The `db:setup` command performs the following operations in order:
 3. **Copies custom migrations** - Copies SQL migration files
 4. **Creates tables** - Pushes the schema to create all tables (with --force flag)
 5. **Creates triggers** - Sets up two important triggers:
-   - `update_rating_stars_trigger` - Automatically generates star ratings (⭐) based on numeric ratings
    - `game_logs_ratings_trigger` - Automatically calculates and updates game ratings
+   - `friendship_notification_trigger` - Creates notifications for friend requests
+   - `friendship_user_arrays_trigger` - Maintains pending friendship arrays on users
 6. **Creates migration tracking** - Sets up a table to track migration history
 7. **Runs tests** (optional) - Verifies triggers are working correctly
 
@@ -97,16 +98,6 @@ This will attempt to create just the triggers without resetting the database.
 
 ## Database Triggers
 
-### Rating Stars Trigger
-
-Automatically sets the `ratingStars` field with star emojis based on `ratingForGame`:
-
-- Rating 1: ⭐
-- Rating 2: ⭐⭐
-- Rating 3: ⭐⭐⭐
-- Rating 4: ⭐⭐⭐⭐
-- Rating 5: ⭐⭐⭐⭐⭐
-
 ### Game Ratings Trigger
 
 Automatically maintains the `game_ratings` table:
@@ -114,6 +105,14 @@ Automatically maintains the `game_ratings` table:
 - Calculates average rating when game logs are added
 - Updates average when ratings change
 - Removes rating entry when all game logs are deleted
+
+### Friendship Notification Trigger
+
+Creates notifications for friend requests:
+
+### Friendship User Arrays Trigger
+
+Maintains pending friendship arrays on users:
 
 ## Next Steps
 

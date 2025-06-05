@@ -4,13 +4,9 @@ import { sql } from 'drizzle-orm';
 import { drizzle, type NeonHttpDatabase } from 'drizzle-orm/neon-http';
 
 import * as schema from '@/lib/db/schema';
+import { RawDatabaseClient } from '@/lib/types/consolidated.types';
 import type { BaseDatabaseClient, DatabaseConfig } from '@/lib/types/database.types';
 import { envSchema } from '@/lib/validations/env';
-
-interface RawDatabaseClient {
-  execute: (query: ReturnType<typeof sql>) => Promise<{ rows: unknown[] }>;
-  query?: (query: string) => Promise<unknown>;
-}
 
 // Module-level database client
 let dbClient: BaseDatabaseClient | null = null;

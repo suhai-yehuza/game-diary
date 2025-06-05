@@ -103,7 +103,7 @@ async function testGameRatingsTrigger() {
       {
         id: homeTeamId,
         name: 'Home Team',
-        abbreviation: 'HMT',
+        code: 'HMT',
         city: 'Home City',
         state: 'Home State',
         country: 'Home Country',
@@ -112,7 +112,7 @@ async function testGameRatingsTrigger() {
       {
         id: awayTeamId,
         name: 'Away Team',
-        abbreviation: 'AWT',
+        code: 'AWT',
         city: 'Away City',
         state: 'Away State',
         country: 'Away Country',

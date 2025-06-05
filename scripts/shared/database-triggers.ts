@@ -1,14 +1,8 @@
 import { sql } from 'drizzle-orm';
 
+import { createDatabaseClient } from '@/lib/db/seed/config';
 import { logger } from '@/lib/logger';
-
-import { createDatabaseClient } from '../../src/lib/db/seed/config';
-
-export interface TriggerSetupOptions {
-  env?: string;
-  dropExisting?: boolean;
-  skipVerification?: boolean;
-}
+import { TriggerSetupOptions } from '@/lib/types/consolidated.types';
 
 export async function createRatingStarsTrigger(
   db: ReturnType<typeof createDatabaseClient>,
@@ -31,6 +25,7 @@ export async function createRatingStarsTrigger(
   if (options.dropExisting) {
     await db.execute(sql`
       DROP TRIGGER IF EXISTS update_rating_stars_trigger ON game_logs;
+      DROP FUNCTION IF EXISTS update_rating_stars();
     `);
   }
 

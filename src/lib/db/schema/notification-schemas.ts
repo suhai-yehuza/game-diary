@@ -11,7 +11,7 @@ export const notifications = pgTable('notifications', {
   message: text('message').notNull(),
   targetId: varchar('targetId', { length: 255 }),
   targetType: varchar('targetType', { length: 50 }),
-  read: boolean('read').notNull().default(false),
+  resolved: boolean('resolved').notNull().default(false),
   createdAt: timestamp('createdAt').defaultNow().notNull(),
   updatedAt: timestamp('updatedAt').defaultNow().notNull(),
   deletedAt: timestamp('deletedAt').default(sql`null`),

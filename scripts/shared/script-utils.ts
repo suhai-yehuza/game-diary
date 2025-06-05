@@ -3,18 +3,11 @@ import { promisify } from 'util';
 
 import { sql } from 'drizzle-orm';
 
+import { createDatabaseClient } from '@/lib/db/seed/config';
 import { logger } from '@/lib/logger';
-
-import { createDatabaseClient } from '../../src/lib/db/seed/config';
+import { ScriptOptions } from '@/lib/types/consolidated.types';
 
 export const execAsync = promisify(exec);
-
-export interface ScriptOptions {
-  env?: string;
-  dryRun?: boolean;
-  runTests?: boolean;
-  verbose?: boolean;
-}
 
 /**
  * Parse command line arguments for common script options

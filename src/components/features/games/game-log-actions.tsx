@@ -22,14 +22,9 @@ import {
 import { useToast } from '@/components/ui/use-toast';
 import { useAuthContext } from '@/contexts/AuthContext';
 import { DELETE_GAME_LOG } from '@/lib/graphql/mutations';
-import type { GameLog } from '@/lib/types/generated/graphql';
+import { GameLogActionsProps } from '@/lib/types/consolidated.types';
 
 import { GameLogModal } from './game-log-modal';
-
-interface GameLogActionsProps {
-  gameLog: GameLog;
-  onSuccess?: () => void;
-}
 
 export function GameLogActions({ gameLog, onSuccess }: GameLogActionsProps) {
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);

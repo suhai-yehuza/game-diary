@@ -902,7 +902,6 @@ enum TargetType {
 }
 
 type Team {
-  abbreviation: String!
   city: String!
   code: String
   conference: String
@@ -913,8 +912,6 @@ type Team {
   logoUrl: String
   name: String!
   nickname: String
-  primaryColor: String
-  secondaryColor: String
   updatedAt: DateTime!
 }
 

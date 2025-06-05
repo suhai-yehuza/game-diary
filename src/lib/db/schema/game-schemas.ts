@@ -46,7 +46,7 @@ export const game_logs = pgTable(
       .default(WATCHED_SCOPE.FULL_GAME),
     watchedDate: timestamp({ precision: 6, withTimezone: true }).notNull(),
     watchedLocation: varchar('watchedLocation', { length: 255 }).default(''),
-    ratingForGame: integer('ratingForGame').notNull().default(3),
+    ratingForGame: integer('ratingForGame').notNull(),
     notes: text('notes').default(''),
     tags: text('tags').array().default([]),
     createdAt: timestamp({ precision: 6, withTimezone: true }).notNull().defaultNow(),
@@ -54,8 +54,8 @@ export const game_logs = pgTable(
     deletedAt: timestamp({ precision: 6, withTimezone: true }),
   },
   _table => ({
-    // Ensure userId and gameId are different
-    differentUserGame: sql`CHECK (userId != gameId)`,
+    // Ensure a user can only have one game log per game
+    userGameUnique: unique().on(_table.userId, _table.gameId),
   })
 );
 

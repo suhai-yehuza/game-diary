@@ -14,6 +14,7 @@ import type {
   PlayerApiResponse,
   GameApiResponse,
   GameResponseData,
+  ApplicationSeederOptions,
 } from '@/lib/types/consolidated.types';
 import type { DatabaseClient } from '@/lib/types/database.types';
 
@@ -23,6 +24,7 @@ import { fetchAndProcessNBAGameStats } from './fetch-external-api-game-stats';
 import { fetchAndProcessNBAPlayerStats } from './fetch-external-api-player-stats';
 import { fetchAndProcessTeamH2H } from './fetch-external-api-team-h2h';
 import { OptimizedAPIClient } from './utils/api-client';
+
 // Helper types
 type PlayerWithTeams = {
   player: PlayerApiResponse['response']['response'][0];
@@ -175,17 +177,14 @@ async function processTeams(apiClient: OptimizedAPIClient, batchSize: number): P
       const processedTeam = {
         id: String(team.id), // Convert to string but don't allow empty string
         name: teamName,
-        abbreviation: teamCode,
-        nickname: teamNickname,
         code: teamCode,
+        nickname: teamNickname,
         city: teamCity,
         state: 'Unknown',
         country: 'USA',
         conference: standardLeague.conference || null,
         division: standardLeague.division || null,
         logoUrl: team.logo || '',
-        primaryColor: null,
-        secondaryColor: null,
         all_star: Boolean(team.allStar),
         nba_franchise: Boolean(team.nbaFranchise),
         leagues: team.leagues || {},
@@ -495,8 +494,16 @@ async function processSeasonStats(
   await fetchAndProcessTeamH2H(db, season);
 }
 
-export async function appendOptimizedExternalData(options: OptimizedSeederOptions): Promise<void> {
-  const { seasons: inputSeasonYears, apiClient, processor, batchSize, tables } = options;
+export async function appendOptimizedExternalData(
+  options: ApplicationSeederOptions
+): Promise<void> {
+  const {
+    seasons: inputSeasonYears = [],
+    apiClient,
+    processor,
+    batchSize = API_CONFIG.databaseSeeding.BATCH_SIZE,
+    tables,
+  } = options;
   const db = createDatabaseClient();
   seedLogger.info('Tables to check:', { tables });
 
@@ -536,8 +543,14 @@ export async function appendOptimizedExternalData(options: OptimizedSeederOption
   }
 }
 
-export async function seedOptimizedExternalData(options: OptimizedSeederOptions): Promise<void> {
-  const { seasons: inputSeasonYears, apiClient, processor, batchSize, appendingData } = options;
+export async function seedOptimizedExternalData(options: ApplicationSeederOptions): Promise<void> {
+  const {
+    seasons: inputSeasonYears = [],
+    apiClient,
+    processor,
+    batchSize = API_CONFIG.databaseSeeding.BATCH_SIZE,
+    appendingData,
+  } = options;
   const db = createDatabaseClient();
 
   try {
@@ -579,13 +592,4 @@ export async function seedOptimizedExternalData(options: OptimizedSeederOptions)
     seedLogger.error('❌ Error during optimized database seeding:', error);
     throw error;
   }
-}
-
-export interface OptimizedSeederOptions {
-  seasons: number[];
-  apiClient: OptimizedAPIClient;
-  processor: DataProcessor;
-  batchSize: number;
-  tables?: string[];
-  appendingData?: boolean;
 }

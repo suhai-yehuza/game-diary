@@ -61,15 +61,13 @@ CREATE TABLE IF NOT EXISTS seasons (
 CREATE TABLE IF NOT EXISTS teams (
   id VARCHAR(255) PRIMARY KEY,
   name VARCHAR(255) NOT NULL,
-  abbreviation VARCHAR(10) NOT NULL,
+  code VARCHAR(10) NOT NULL,
   city VARCHAR(255),
   state VARCHAR(255),
   country VARCHAR(255),
   conference VARCHAR(255),
   division VARCHAR(255),
   logoUrl VARCHAR(255),
-  primaryColor VARCHAR(7),
-  secondaryColor VARCHAR(7),
   isActive BOOLEAN DEFAULT true,
   createdAt TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
   updatedAt TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
@@ -206,30 +204,12 @@ CREATE TABLE IF NOT EXISTS game_logs (
   "classification" VARCHAR(50) NOT NULL,
   "watchedDate" TIMESTAMP WITH TIME ZONE,
   "watchedLocation" VARCHAR(255),
-  "ratingStars" VARCHAR(10),
   notes TEXT,
   tags TEXT[],
   "createdAt" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
   "updatedAt" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
   "deletedAt" TIMESTAMP WITH TIME ZONE DEFAULT NULL
 );
-
--- Create the rating stars trigger function
-CREATE OR REPLACE FUNCTION update_rating_stars()
-RETURNS TRIGGER AS $$
-BEGIN
-  NEW."ratingStars" = REPEAT('⭐', NEW."ratingForGame");
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
--- Create the rating stars trigger
-DROP TRIGGER IF EXISTS update_rating_stars_trigger ON game_logs;
-CREATE TRIGGER update_rating_stars_trigger
-  BEFORE INSERT OR UPDATE OF "ratingForGame"
-  ON game_logs
-  FOR EACH ROW
-  EXECUTE FUNCTION update_rating_stars();
 
 CREATE TABLE IF NOT EXISTS game_ratings (
   "gameId" VARCHAR(255) PRIMARY KEY REFERENCES nba_games(id),

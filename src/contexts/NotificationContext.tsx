@@ -65,16 +65,16 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
 
   // Filter out soft-deleted notifications
   const activeNotifications = notifications.filter(n => !n.deletedAt);
-  const unreadCount = activeNotifications.filter(n => !n.read).length;
+  const unreadCount = activeNotifications.filter(n => !n.resolved).length;
 
   const addNotification = (
-    notification: Omit<AppNotification, 'id' | 'timestamp' | 'read' | 'deletedAt'>
+    notification: Omit<AppNotification, 'id' | 'timestamp' | 'resolved' | 'deletedAt'>
   ) => {
     const newNotification: AppNotification = {
       id: generateId(),
       message: notification.message,
       timestamp: new Date(),
-      read: false,
+      resolved: false,
       deletedAt: null,
       userId: notification.userId,
       type: notification.type,
@@ -99,7 +99,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
         notification.id === id
           ? {
               ...notification,
-              read: true,
+              resolved: true,
               deletedAt: new Date(), // Soft delete when marking as read
             }
           : notification
@@ -112,7 +112,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     setNotifications(prev =>
       prev.map(notification => ({
         ...notification,
-        read: true,
+        resolved: true,
         deletedAt: !notification.deletedAt ? now : notification.deletedAt, // Only set deletedAt if not already deleted
       }))
     );

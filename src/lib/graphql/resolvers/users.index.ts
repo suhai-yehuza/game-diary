@@ -2,29 +2,17 @@ import { and, eq, gt, lt, or, sql, gte, lte, desc, asc, type InferSelectModel } 
 
 import * as schema from '@/lib/db/schema';
 import { BusinessLogicError } from '@/lib/graphql/errors';
-import { createConnection, parseCursor } from '@/lib/graphql/utils/pagination';
+import { createConnection, parseCursor } from '@/lib/graphql/utils';
 import type { Context } from '@/lib/types/component.types';
-import type { DBUser } from '@/lib/types/generated/graphql';
+import type {
+  DBUser,
+  Friendship,
+  FriendshipStatus,
+  UserSummary,
+} from '@/lib/types/generated/graphql';
+import type { PaginationArgs, UserFilters, UserSearchFilters } from '@/lib/types/resolver.types';
 
-import type { PaginationArgs } from '../common/types';
-import { handleResolverError } from '../common/utils';
-
-// Define UserFilters type since it's not exported from graphql types
-interface UserFilters {
-  search?: string;
-  role?: string;
-}
-
-// Define UserSearchFilters interface locally until types are generated
-interface UserSearchFilters {
-  hasGameLogs?: boolean | null;
-  minGameLogs?: number | null;
-  joinedAfter?: Date | null;
-  joinedBefore?: Date | null;
-  isVerified?: boolean | null;
-  friendshipStatus?: string | null;
-  orderBy?: string | null;
-}
+import { handleResolverError } from '../utils';
 
 // Helper function to map user data from either DatabaseRow or InferSelectModel<typeof schema.users>
 export function mapUserData(user: InferSelectModel<typeof schema.users>): DBUser {
@@ -283,5 +271,98 @@ export const me = async (_parent: unknown, _args: unknown, { db, user }: Context
     return mapUserData(userData);
   } catch (error) {
     handleResolverError(error, 'fetch current user');
+  }
+};
+
+export const friendships = async (parent: DBUser, _args: unknown, { db }: Context) => {
+  try {
+    // Fetch friendships where this user is the recipient
+    const friendships = await db
+      .select()
+      .from(schema.friendships)
+      .where(eq(schema.friendships.friendId, parent.id))
+      .orderBy(schema.friendships.createdAt);
+
+    // Map to GraphQL format
+    return friendships.map(friendship => ({
+      id: friendship.id,
+      status: friendship.status as FriendshipStatus,
+      createdAt: friendship.createdAt,
+      updatedAt: friendship.updatedAt,
+      subscriberId: friendship.userId || '',
+      userId: friendship.friendId || '',
+      initiator: { id: friendship.userId || '' } as UserSummary,
+      recipient: { id: friendship.friendId || '' } as UserSummary,
+    }));
+  } catch (error) {
+    handleResolverError(error, 'fetch user friendships');
+    return [];
+  }
+};
+
+export const initiatedFriendships = async (parent: DBUser, _args: unknown, { db }: Context) => {
+  try {
+    // Fetch friendships where this user is the initiator
+    const friendships = await db
+      .select()
+      .from(schema.friendships)
+      .where(eq(schema.friendships.userId, parent.id))
+      .orderBy(schema.friendships.createdAt);
+
+    // Map to GraphQL format with full user data
+    const friendshipsWithUsers = await Promise.all(
+      friendships.map(async friendship => {
+        const [initiatorData, recipientData] = await Promise.all([
+          db
+            .select()
+            .from(schema.users)
+            .where(eq(schema.users.id, friendship.userId || ''))
+            .limit(1),
+          db
+            .select()
+            .from(schema.users)
+            .where(eq(schema.users.id, friendship.friendId || ''))
+            .limit(1),
+        ]);
+
+        return {
+          id: friendship.id,
+          status: friendship.status as FriendshipStatus,
+          createdAt: friendship.createdAt,
+          updatedAt: friendship.updatedAt,
+          subscriberId: friendship.userId || '',
+          userId: friendship.friendId || '',
+          initiator: initiatorData[0]
+            ? {
+                id: initiatorData[0].id,
+                username: initiatorData[0].username,
+                emailAddress: initiatorData[0].emailAddress,
+                imageUrl: initiatorData[0].imageUrl,
+                firstName: initiatorData[0].firstName,
+                lastName: initiatorData[0].lastName,
+                createdAt: initiatorData[0].createdAt,
+                updatedAt: initiatorData[0].updatedAt,
+              }
+            : null,
+          recipient: recipientData[0]
+            ? {
+                id: recipientData[0].id,
+                username: recipientData[0].username,
+                emailAddress: recipientData[0].emailAddress,
+                imageUrl: recipientData[0].imageUrl,
+                firstName: recipientData[0].firstName,
+                lastName: recipientData[0].lastName,
+                createdAt: recipientData[0].createdAt,
+                updatedAt: recipientData[0].updatedAt,
+              }
+            : null,
+        };
+      })
+    );
+
+    return friendshipsWithUsers.filter(f => f.initiator && f.recipient) as Friendship[];
+  } catch (error) {
+    handleResolverError(error, 'fetch user initiated friendships');
+    return [];
   }
 };

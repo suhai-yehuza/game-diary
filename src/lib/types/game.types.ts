@@ -83,6 +83,98 @@ export type GameScores = {
   visitors: GameScore;
 };
 
+// Additional game-related types from common/types.ts
+export interface GameScoresLegacy {
+  visitors?: {
+    points?: number;
+  };
+  home?: {
+    points?: number;
+  };
+}
+
+export interface GameArena {
+  name?: string;
+  city?: string;
+  state?: string | null;
+  country?: string | null;
+}
+
+export interface GameStatus {
+  clock?: string;
+  halftime?: boolean;
+  long?: string;
+  short?: string;
+}
+
+export interface GameData {
+  id: string;
+  date: string;
+  status: string;
+  homeTeam: GameTeam;
+  awayTeam: GameTeam;
+  homeTeamScore: number;
+  awayTeamScore: number;
+  arena?: {
+    name: string;
+    city: string;
+    state?: string;
+    country?: string;
+  };
+  league: string;
+  season: number;
+  stage: number;
+  periods?: {
+    current: number;
+    total: number;
+    endOfPeriod: boolean;
+  };
+  officials?: string[];
+  timesTied?: number;
+  leadChanges?: number;
+  nugget?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface MappedGame {
+  id: string;
+  date: {
+    start: string;
+    end: string | null;
+    duration: string | null;
+  };
+  status: {
+    clock: string;
+    halftime: boolean;
+    long: string;
+    short: string;
+  };
+  arena: string;
+  league: string;
+  season: number;
+  stage: number;
+  periods: unknown[];
+  scores: GameScoresLegacy;
+  officials: string[];
+  timesTied: number | null;
+  leadChanges: number | null;
+  nugget: string | null;
+  createdAt: string;
+  updatedAt: string;
+  homeTeamId: string;
+  awayTeamId: string;
+  teams: {
+    home: GameTeam | null;
+    visitors: GameTeam | null;
+  };
+  is_completed: boolean;
+  awayTeamScore: number | null;
+  homeTeamScore: number | null;
+  gameType: string;
+  nbaGameId: string;
+}
+
 // Game Statistics Types
 export interface GameTeamStatistic {
   fastBreakPoints?: number;

@@ -415,12 +415,3 @@ export async function fetchNbaTeamStats(queryParams: string): Promise<TeamStats>
 
   return data.response[0];
 }
-
-export interface APIResponse<T = unknown> {
-  response?: T[];
-  data?: T[];
-  get?: string;
-  parameters?: Record<string, string>;
-  errors?: string[];
-  results?: number;
-}

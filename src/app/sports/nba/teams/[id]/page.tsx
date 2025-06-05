@@ -38,16 +38,13 @@ export default function TeamPage() {
         const team: Team = {
           id: apiTeam.id.toString(),
           name: apiTeam.name,
-          abbreviation: apiTeam.abbreviation,
+          code: apiTeam.code,
           city: apiTeam.city,
           nickname: apiTeam.nickname,
-          code: apiTeam.code,
           conference: apiTeam.conference,
           division: apiTeam.division,
           logo: apiTeam.logo,
           logoUrl: apiTeam.logo,
-          primaryColor: apiTeam.primaryColor,
-          secondaryColor: apiTeam.secondaryColor,
           createdAt: new Date(),
           updatedAt: new Date(),
         };

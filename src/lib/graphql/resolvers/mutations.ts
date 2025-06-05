@@ -14,9 +14,9 @@ import {
   NotFoundError,
   ValidationError,
 } from '@/lib/graphql/errors';
-import { getEmojiKey } from '@/lib/graphql/resolvers/common/utils';
 import { transformUser } from '@/lib/graphql/resolvers/transformers';
-import { mapUserData } from '@/lib/graphql/resolvers/users/index';
+import { mapUserData } from '@/lib/graphql/resolvers/users.index';
+import { getEmojiKey } from '@/lib/graphql/utils';
 import { logger } from '@/lib/logger';
 import { WatchedSettingValue, REACTION_EMOJIS, ReactionEmojiKey } from '@/lib/types/config.types';
 import {
@@ -147,6 +147,25 @@ export const createGameLog = async (
       validatedInput.watchedDate instanceof Date
         ? validatedInput.watchedDate
         : new Date(validatedInput.watchedDate);
+
+    // Check if user already has a game log for this game
+    const existingGameLog = await db
+      .select()
+      .from(schema.game_logs)
+      .where(
+        and(
+          eq(schema.game_logs.userId, user.id),
+          eq(schema.game_logs.gameId, validatedInput.gameId)
+        )
+      )
+      .limit(1);
+
+    if (existingGameLog.length > 0) {
+      throw new BusinessLogicError(
+        'You already have a game log for this game. Each user can only create one game log per game.',
+        'DUPLICATE_GAME_LOG'
+      );
+    }
 
     // Create game log
     const [gameLog] = await db

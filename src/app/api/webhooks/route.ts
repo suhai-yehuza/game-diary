@@ -49,13 +49,11 @@ const handleUserCreated = async (data: ClerkUserData) => {
     lastName: last_name || 'missing-last-name',
     emailAddress: email_addresses[0].email_address,
     imageUrl: image_url || profile_image_url || '',
-    createdAt: new Date(created_at),
-    updatedAt: new Date(updated_at),
     inboundFriendshipIds: [],
     outboundFriendshipIds: [],
     banned: false,
     timestamp: new Date(),
-    // New Clerk-specific fields
+    // Clerk-specific fields
     last_sign_in_at: last_sign_in_at ? new Date(last_sign_in_at) : null,
     password_enabled: password_enabled || false,
     two_factor_enabled: two_factor_enabled || false,
@@ -64,7 +62,9 @@ const handleUserCreated = async (data: ClerkUserData) => {
     external_id: external_id || null,
     external_accounts: external_accounts || [],
     primary_email_address_id: primary_email_address_id || null,
-    deletedAt: null, // Ensure deletedAt is null for new/restored users
+    createdAt: new Date(created_at),
+    updatedAt: new Date(updated_at),
+    deletedAt: null,
   };
 
   // Set the custom setting to identify this as a Clerk webhook request

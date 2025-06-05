@@ -29,12 +29,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Skeleton } from '@/components/ui/skeleton';
 import { StarRating } from '@/components/ui/star-rating';
 import { GET_GAME_LOG_BY_ID } from '@/lib/graphql/queries';
-import type { GameLogByIdResponse, TeamSummary, Arena } from '@/lib/types/consolidated.types';
+import {
+  GameLogProps,
+  GameLogByIdResponse,
+  TeamDisplayProps,
+  Arena,
+} from '@/lib/types/consolidated.types';
 import { cn } from '@/lib/utils';
-
-interface GameLogProps {
-  gameLogId: string;
-}
 
 // Loading skeleton component
 const GameLogSkeleton = () => (
@@ -113,16 +114,6 @@ const ErrorState = ({ error }: { error: Error }) => (
     </div>
   </div>
 );
-
-// Team display component
-interface TeamDisplayProps {
-  team: TeamSummary | null;
-  score?: number;
-  isHome: boolean;
-  imageErrors?: Record<string, boolean>;
-  onImageError?: (id: string) => void;
-  gameId?: string;
-}
 
 const TeamDisplay = ({
   team,

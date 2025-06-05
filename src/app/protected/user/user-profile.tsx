@@ -103,8 +103,6 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
             lastName: currentUser.lastName || '',
             emailAddress: currentUser.emailAddresses[0]?.emailAddress || '',
             imageUrl: currentUser.imageUrl,
-            createdAt: currentUser.createdAt ? new Date(currentUser.createdAt) : new Date(),
-            updatedAt: currentUser.updatedAt ? new Date(currentUser.updatedAt) : new Date(),
             last_sign_in_at: currentUser.lastSignInAt
               ? new Date(currentUser.lastSignInAt)
               : new Date(),
@@ -117,13 +115,15 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
             comments: [],
             reactions: [],
             gameLogs: [],
-            deletedAt: null,
             external_id: '',
             inboundFriendshipIds: [],
             outboundFriendshipIds: [],
             timestamp: new Date(),
             friendships: [],
             initiatedFriendships: [],
+            createdAt: currentUser.createdAt ? new Date(currentUser.createdAt) : new Date(),
+            updatedAt: currentUser.updatedAt ? new Date(currentUser.updatedAt) : new Date(),
+            deletedAt: null,
             __typename: 'DBUser',
           });
         }

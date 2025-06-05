@@ -57,15 +57,13 @@ export async function resetDatabase() {
       CREATE TABLE IF NOT EXISTS teams (
         id VARCHAR(255) PRIMARY KEY,
         name VARCHAR(255) NOT NULL,
-        abbreviation VARCHAR(10) NOT NULL,
+        code VARCHAR(10) NOT NULL,
         city VARCHAR(255),
         state VARCHAR(255),
         country VARCHAR(255),
         conference VARCHAR(255),
         division VARCHAR(255),
         logoUrl VARCHAR(255),
-        primaryColor VARCHAR(7),
-        secondaryColor VARCHAR(7),
         isActive BOOLEAN DEFAULT true,
         createdAt TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
         updatedAt TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP

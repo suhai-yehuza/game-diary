@@ -5,37 +5,15 @@ import { useState, useEffect, useCallback } from 'react';
 import { API_CONFIG } from '@/lib/config/api.config';
 import { GET_GAMES } from '@/lib/graphql/queries';
 import { logger } from '@/lib/logger';
-import type { Game, GameEdge, GameQueryResponse } from '@/lib/types/consolidated.types';
+import {
+  Game,
+  GameEdge,
+  GameQueryResponse,
+  UseGameDataProps,
+  UseGameDataReturn,
+  ProcessedGames,
+} from '@/lib/types/consolidated.types';
 import { getCurrentSeason } from '@/lib/utils/index.time';
-
-interface UseGameDataProps {
-  initialSeason?: number;
-  initialFilters?: {
-    season?: number;
-    status?: string;
-  };
-}
-
-interface ProcessedGames {
-  live: Game[];
-  scheduled: Game[];
-  completed: Game[];
-}
-
-interface UseGameDataReturn {
-  games: Game[];
-  processedGames: ProcessedGames;
-  loading: boolean;
-  error: any;
-  hasShownInitialLoad: boolean;
-  isFetchingMore: boolean;
-  currentSeason: number;
-  hasMoreSeasons: boolean;
-  showUpcomingGames: boolean;
-  setShowUpcomingGames: (show: boolean) => void;
-  handleLoadMore: () => Promise<void>;
-  canLoadMore: boolean;
-}
 
 export function useGameData({
   initialSeason,
@@ -161,7 +139,7 @@ export function useGameData({
     games: sortedGames,
     processedGames,
     loading,
-    error,
+    error: error || null,
     hasShownInitialLoad,
     isFetchingMore,
     currentSeason,

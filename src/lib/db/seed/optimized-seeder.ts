@@ -6,6 +6,7 @@ import { DB_CONFIG } from '@/lib/config/db.config';
 import * as schema from '@/lib/db/schema';
 import { initializeDb } from '@/lib/db/seed/config';
 import { seedLogger } from '@/lib/logger';
+import type { ApplicationSeederOptions } from '@/lib/types/consolidated.types';
 import type { DatabaseClient } from '@/lib/types/database.types';
 import { getCurrentSeason } from '@/lib/utils/index.time';
 
@@ -106,29 +107,19 @@ class TableOperations {
   }
 }
 
-export interface OptimizedSeederOptions {
-  env?: string;
-  shouldResetDb?: boolean;
-  shouldTruncateTables?: boolean;
-  seasons?: number[];
-  skipExternalDb?: boolean;
-  skipApplicationDb?: boolean;
-  concurrency?: number;
-  batchSize?: number;
-  enableMonitoring?: boolean;
-  appendingData?: boolean;
-  skipUsers?: boolean;
-}
-
 export class OptimizedSeeder {
   private db: DatabaseClient;
   private apiClient: OptimizedAPIClient;
   private tableOps: TableOperations;
   private processor: DataProcessor;
-  private options: Required<OptimizedSeederOptions>;
+  private options: Required<Omit<ApplicationSeederOptions, 'apiClient' | 'processor' | 'db'>> & {
+    db?: DatabaseClient;
+    apiClient?: OptimizedAPIClient;
+    processor?: DataProcessor;
+  };
   private monitor: PerformanceMonitor = new PerformanceMonitor();
 
-  constructor(options: OptimizedSeederOptions = {}) {
+  constructor(options: Partial<ApplicationSeederOptions> = {}) {
     this.options = {
       env: 'development',
       shouldResetDb: false,
@@ -141,6 +132,7 @@ export class OptimizedSeeder {
       enableMonitoring: true,
       appendingData: false,
       skipUsers: false,
+      tables: [],
       ...options,
     };
 
@@ -241,6 +233,7 @@ export class OptimizedSeeder {
 
     await seedOptimizedApplicationData({
       db: this.db,
+      apiClient: this.apiClient,
       processor: this.processor,
       batchSize: this.options.batchSize,
       tables: [...DB_CONFIG.seeding.tables.internal],
@@ -252,7 +245,9 @@ export class OptimizedSeeder {
 }
 
 // CLI interface
-export async function runOptimizedSeeder(options: OptimizedSeederOptions = {}): Promise<void> {
+export async function runOptimizedSeeder(
+  options: Partial<ApplicationSeederOptions> = {}
+): Promise<void> {
   const seeder = new OptimizedSeeder(options);
   await seeder.seed();
 }
@@ -260,7 +255,7 @@ export async function runOptimizedSeeder(options: OptimizedSeederOptions = {}): 
 // Allow running directly from command line
 if (import.meta.url === `file://${process.argv[1]}`) {
   const args = process.argv.slice(2);
-  const options: OptimizedSeederOptions = {};
+  const options: Partial<ApplicationSeederOptions> = {};
 
   for (const arg of args) {
     const [key, value] = arg.split('=');

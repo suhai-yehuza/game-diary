@@ -3,13 +3,13 @@ import { and, eq, sql, gte, lte, like, or, isNotNull, desc, asc } from 'drizzle-
 import { CACHE_KEYS } from '@/lib/cache';
 import { withCache } from '@/lib/db';
 import * as schema from '@/lib/db/schema';
-import { createConnection, parseCursor } from '@/lib/graphql/utils/pagination';
+import { createConnection, parseCursor } from '@/lib/graphql/utils';
 import { logger } from '@/lib/logger';
 import type { Context } from '@/lib/types/component.types';
 import type { GameLogFilters } from '@/lib/types/generated/graphql';
+import type { PaginationArgs } from '@/lib/types/resolver.types';
 
-import type { PaginationArgs } from '../common/types';
-import { handleResolverError } from '../common/utils';
+import { handleResolverError } from '../utils';
 
 export const gameLog = async (
   _parent: unknown,

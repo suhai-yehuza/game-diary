@@ -1,11 +1,7 @@
 import * as React from 'react';
 
+import { InputProps } from '@/lib/types/consolidated.types';
 import { cn } from '@/lib/utils';
-
-export interface InputProps
-  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'spellCheck'> {
-  spellCheck?: boolean;
-}
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
   ({ className, type, spellCheck, ...props }, ref) => {

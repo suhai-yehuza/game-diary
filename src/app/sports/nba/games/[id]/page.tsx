@@ -1,6 +1,6 @@
 'use client';
 
-import { useQuery, ApolloError } from '@apollo/client';
+import { useQuery } from '@apollo/client';
 import { SignInButton } from '@clerk/nextjs';
 import { format } from 'date-fns';
 import Image from 'next/image';
@@ -14,8 +14,13 @@ import { useAuthContext } from '@/contexts/AuthContext';
 import { fetchNbaGameById } from '@/lib/external-apis';
 import { GET_TEAM_GAME_STATS, GET_TEAM_H2H } from '@/lib/graphql/queries';
 import { logger } from '@/lib/logger';
-import type { Game } from '@/lib/types/consolidated.types';
-import type { GameLog } from '@/lib/types/generated/graphql';
+import {
+  TeamDisplayProps,
+  HeadToHeadProps,
+  TeamStatsProps,
+  Game,
+} from '@/lib/types/consolidated.types';
+import { GameLog } from '@/lib/types/generated/graphql';
 import { cn } from '@/lib/utils';
 
 // Helper function to validate state values
@@ -50,19 +55,6 @@ const formatArenaLocation = (arena: {
 };
 
 // Team display component
-interface TeamDisplayProps {
-  team: {
-    logo: string;
-    name: string;
-    nickname: string;
-  };
-  score?: number;
-  opponentScore?: number;
-  isHome: boolean;
-  imageErrors: Record<string, boolean>;
-  onImageError: (id: string) => void;
-  gameId: string;
-}
 
 const TeamDisplay = ({
   team,
@@ -72,54 +64,43 @@ const TeamDisplay = ({
   imageErrors,
   onImageError,
   gameId,
-}: TeamDisplayProps) => (
-  <div className={cn('text-center space-y-6', isHome ? 'flex-row-reverse text-right' : '')}>
-    {team?.logo && (
-      <Image
-        src={imageErrors[`${gameId}-${isHome ? 'home' : 'visitors'}`] ? '/gamelog.svg' : team.logo}
-        alt={team.name}
-        width={96}
-        height={96}
-        priority
-        style={{ width: 96, height: 'auto' }}
-        className="mx-auto w-24 h-24 object-contain"
-        onError={() => onImageError(`${gameId}-${isHome ? 'home' : 'visitors'}`)}
-      />
-    )}
-    <div className="space-y-2">
-      <div className="text-xl font-bold">{team.nickname}</div>
-      <div className="text-muted-foreground">
-        {score !== undefined && (
-          <div
-            className={`text-3xl font-bold ${
-              score > (opponentScore || 0) ? 'text-green-500' : 'text-muted-foreground'
-            }`}
-          >
-            {score}
-          </div>
-        )}
+}: TeamDisplayProps) => {
+  if (!team) return null;
+
+  const imageKey = `${gameId}-${isHome ? 'home' : 'visitors'}`;
+  const hasImageError = imageErrors?.[imageKey] || false;
+
+  return (
+    <div className={cn('text-center space-y-6', isHome ? 'flex-row-reverse text-right' : '')}>
+      {team.logo && (
+        <Image
+          src={hasImageError ? '/gamelog.svg' : team.logo}
+          alt={team.name}
+          width={96}
+          height={96}
+          priority
+          style={{ width: 96, height: 'auto' }}
+          className="mx-auto w-24 h-24 object-contain"
+          onError={() => onImageError?.(imageKey)}
+        />
+      )}
+      <div className="space-y-2">
+        <div className="text-xl font-bold">{team.nickname}</div>
+        <div className="text-muted-foreground">
+          {score !== undefined && (
+            <div
+              className={`text-3xl font-bold ${
+                score > (opponentScore || 0) ? 'text-green-500' : 'text-muted-foreground'
+              }`}
+            >
+              {score}
+            </div>
+          )}
+        </div>
       </div>
     </div>
-  </div>
-);
-
-// Head-to-Head component
-interface HeadToHeadData {
-  teamH2H?: {
-    wins: number;
-    losses: number;
-    winPercentage: string;
-    lastTenGames: string[];
-  };
-}
-
-interface HeadToHeadProps {
-  h2hData: HeadToHeadData;
-  homeTeam: { nickname: string; logo: string | null };
-  awayTeam: { nickname: string; logo: string | null };
-  loading: boolean;
-  error: ApolloError | undefined;
-}
+  );
+};
 
 const HeadToHeadSection = ({ h2hData, homeTeam, awayTeam, loading, error }: HeadToHeadProps) => {
   if (loading) {
@@ -202,42 +183,6 @@ const HeadToHeadSection = ({ h2hData, homeTeam, awayTeam, loading, error }: Head
     </div>
   );
 };
-
-// Team Stats component
-interface TeamStatsData {
-  teamGameStats?: {
-    team?: {
-      logo?: string;
-      nickname?: string;
-    };
-    points: number;
-    field_goals_made: number;
-    field_goals_attempted: number;
-    field_goal_percentage: number;
-    three_pointers_made: number;
-    three_pointers_attempted: number;
-    three_pointer_percentage: number;
-    free_throws_made: number;
-    free_throws_attempted: number;
-    free_throw_percentage: number;
-    offensive_rebounds: number;
-    defensive_rebounds: number;
-    total_rebounds: number;
-    assists: number;
-    steals: number;
-    blocks: number;
-    turnovers: number;
-    personal_fouls: number;
-  };
-}
-
-interface TeamStatsProps {
-  teamStats: TeamStatsData;
-  team: { nickname: string; logo: string | null };
-  isHome: boolean;
-  loading: boolean;
-  error: ApolloError | undefined;
-}
 
 const TeamStatsSection = ({ teamStats, team, isHome, loading, error }: TeamStatsProps) => {
   if (loading) {
@@ -605,9 +550,11 @@ export default function GamePage() {
               {/* Away Team */}
               <TeamDisplay
                 team={{
+                  id: gameData?.teams.visitors.id || '',
+                  code: gameData?.teams.visitors.code || '',
                   logo: gameData?.teams.visitors.logo || '',
-                  name: gameData?.teams.visitors.name,
-                  nickname: gameData?.teams.visitors.nickname,
+                  name: gameData?.teams.visitors.name || '',
+                  nickname: gameData?.teams.visitors.nickname || '',
                 }}
                 score={gameData?.scores.visitors.points}
                 opponentScore={gameData?.scores.home.points}
@@ -630,9 +577,11 @@ export default function GamePage() {
               {/* Home Team */}
               <TeamDisplay
                 team={{
+                  id: gameData?.teams.home.id || '',
+                  code: gameData?.teams.home.code || '',
                   logo: gameData?.teams.home.logo || '',
-                  name: gameData?.teams.home.name,
-                  nickname: gameData?.teams.home.nickname,
+                  name: gameData?.teams.home.name || '',
+                  nickname: gameData?.teams.home.nickname || '',
                 }}
                 score={gameData?.scores.home.points}
                 opponentScore={gameData?.scores.visitors.points}

@@ -2,13 +2,7 @@ import { useState, useCallback } from 'react';
 
 import { GameStatusValue } from '@/lib/db/schema/enum-values';
 import { GAME_STATUS_VALUES } from '@/lib/types/config.types';
-import { Game, GameFilters } from '@/lib/types/consolidated.types';
-
-interface GamesListProps {
-  games: Game[];
-  initialFilters?: GameFilters;
-  onGameSelect?: (game: Game) => void;
-}
+import { GamesListProps, GameFilters } from '@/lib/types/consolidated.types';
 
 export const GamesList = ({ games, initialFilters, onGameSelect }: GamesListProps) => {
   const [filters, setFilters] = useState<GameFilters>(

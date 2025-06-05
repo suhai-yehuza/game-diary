@@ -2,19 +2,11 @@ import { and, eq, gt, lt, or, sql, type InferSelectModel } from 'drizzle-orm';
 
 import * as schema from '@/lib/db/schema';
 import { BusinessLogicError } from '@/lib/graphql/errors';
-import { createConnection } from '@/lib/graphql/utils/pagination';
+import { createConnection } from '@/lib/graphql/utils';
 import type { Context } from '@/lib/types/component.types';
+import type { PaginationArgs, PlayerFilters } from '@/lib/types/resolver.types';
 
-import type { PaginationArgs } from '../common/types';
-import { handleResolverError } from '../common/utils';
-
-// Define PlayerFilters type
-interface PlayerFilters {
-  search?: string;
-  teamId?: string;
-  position?: string;
-  active?: boolean;
-}
+import { handleResolverError } from '../utils';
 
 // Helper function to map player data
 const mapPlayerData = (player: InferSelectModel<typeof schema.nba_players>) => ({

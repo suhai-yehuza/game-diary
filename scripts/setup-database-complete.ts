@@ -74,31 +74,11 @@ async function setupDatabase() {
     // Step 6: Create triggers
     logger.info('\n⚡ Step 6: Creating database triggers...');
 
-    // Create rating stars trigger function
-    await db.execute(sql`
-      CREATE OR REPLACE FUNCTION update_rating_stars()
-      RETURNS TRIGGER AS $$
-      BEGIN
-        NEW."ratingStars" = REPEAT('⭐', NEW."ratingForGame");
-        RETURN NEW;
-      END;
-      $$ LANGUAGE plpgsql;
-    `);
-
     // Drop existing trigger if it exists
     await db.execute(sql`
       DROP TRIGGER IF EXISTS update_rating_stars_trigger ON game_logs;
+      DROP FUNCTION IF EXISTS update_rating_stars();
     `);
-
-    // Create the trigger
-    await db.execute(sql`
-      CREATE TRIGGER update_rating_stars_trigger
-        BEFORE INSERT OR UPDATE OF "ratingForGame"
-        ON game_logs
-        FOR EACH ROW
-        EXECUTE FUNCTION update_rating_stars();
-    `);
-    logger.info('✅ Rating stars trigger created');
 
     // Create game ratings trigger function
     await db.execute(sql`

@@ -39,6 +39,7 @@ import { StarRating } from '@/components/ui/star-rating';
 import { API_CONFIG } from '@/lib/config/api.config';
 import { GET_GAME_LOGS } from '@/lib/graphql/queries';
 import { CLASSIFICATION } from '@/lib/types/config.types';
+import { GameLogSearchSectionProps } from '@/lib/types/consolidated.types';
 import { GameLog, GameLogEdge } from '@/lib/types/generated/graphql';
 import { cn } from '@/lib/utils';
 import { formatCount } from '@/lib/utils/index.format';
@@ -83,11 +84,6 @@ const GameLogSkeleton = () => (
     </CardContent>
   </Card>
 );
-
-interface GameLogSearchSectionProps {
-  userId?: string;
-  initialSearchText?: string;
-}
 
 const getClassificationStyles = (classification: string) => {
   switch (classification) {

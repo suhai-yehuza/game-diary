@@ -1,16 +1,6 @@
-import { ApolloQueryResult, OperationVariables } from '@apollo/client';
 import { useState, useCallback, useMemo } from 'react';
 
-interface PaginationHookOptions<T> {
-  pageSize: number;
-  fetchMore: (options: {
-    variables: OperationVariables;
-    updateQuery: (prev: any, options: { fetchMoreResult?: any }) => any;
-  }) => Promise<ApolloQueryResult<any>>;
-  data?: { edges?: Array<{ node: T; cursor: string }> };
-  hasNextPage?: boolean;
-  filters: Record<string, any>;
-}
+import { PaginationHookOptions, PaginationFetchResult } from '@/lib/types/consolidated.types';
 
 export function usePagination<T>({
   pageSize,
@@ -47,13 +37,13 @@ export function usePagination<T>({
             filters,
           },
           updateQuery: (prev, { fetchMoreResult }) => {
-            if (fetchMoreResult?.games?.edges || fetchMoreResult?.gameLogs?.edges) {
-              const edges = fetchMoreResult.games?.edges || fetchMoreResult.gameLogs?.edges;
-              const items = edges.map((edge: { node: T }) => edge.node);
+            const result = fetchMoreResult as PaginationFetchResult;
+            if (result?.games?.edges || result?.gameLogs?.edges) {
+              const edges = result.games?.edges || result.gameLogs?.edges;
+              const items = edges?.map((edge: { node: unknown }) => edge.node as T) || [];
               setPageData(prevData => ({ ...prevData, [nextPage]: items }));
 
-              const pageInfo =
-                fetchMoreResult.games?.pageInfo || fetchMoreResult.gameLogs?.pageInfo;
+              const pageInfo = result.games?.pageInfo || result.gameLogs?.pageInfo;
               if (pageInfo?.endCursor) {
                 setCursors(prevCursors => ({
                   ...prevCursors,
@@ -95,13 +85,13 @@ export function usePagination<T>({
                 filters,
               },
               updateQuery: (prev, { fetchMoreResult }) => {
-                if (fetchMoreResult?.games?.edges || fetchMoreResult?.gameLogs?.edges) {
-                  const edges = fetchMoreResult.games?.edges || fetchMoreResult.gameLogs?.edges;
-                  const items = edges.map((edge: { node: T }) => edge.node);
+                const result = fetchMoreResult as PaginationFetchResult;
+                if (result?.games?.edges || result?.gameLogs?.edges) {
+                  const edges = result.games?.edges || result.gameLogs?.edges;
+                  const items = edges?.map((edge: { node: unknown }) => edge.node as T) || [];
                   setPageData(prevData => ({ ...prevData, [page]: items }));
 
-                  const pageInfo =
-                    fetchMoreResult.games?.pageInfo || fetchMoreResult.gameLogs?.pageInfo;
+                  const pageInfo = result.games?.pageInfo || result.gameLogs?.pageInfo;
                   if (pageInfo?.endCursor) {
                     setCursors(prevCursors => ({
                       ...prevCursors,
@@ -125,9 +115,10 @@ export function usePagination<T>({
               filters,
             },
             updateQuery: (prev, { fetchMoreResult }) => {
-              if (fetchMoreResult?.games?.edges || fetchMoreResult?.gameLogs?.edges) {
-                const edges = fetchMoreResult.games?.edges || fetchMoreResult.gameLogs?.edges;
-                const items = edges.map((edge: { node: T }) => edge.node);
+              const result = fetchMoreResult as PaginationFetchResult;
+              if (result?.games?.edges || result?.gameLogs?.edges) {
+                const edges = result.games?.edges || result.gameLogs?.edges;
+                const items = edges?.map((edge: { node: unknown }) => edge.node as T) || [];
                 setPageData(prevData => ({ ...prevData, [page]: items }));
               }
               return prev;
@@ -152,10 +143,10 @@ export function usePagination<T>({
   }, []);
 
   // Initialize page data when query data is available
-  const initializePageData = useCallback((queryData: any) => {
+  const initializePageData = useCallback((queryData: PaginationFetchResult) => {
     if (queryData?.games?.edges || queryData?.gameLogs?.edges) {
       const edges = queryData.games?.edges || queryData.gameLogs?.edges;
-      const items = edges.map((edge: { node: T }) => edge.node);
+      const items = edges?.map((edge: { node: unknown }) => edge.node as T) || [];
       setPageData(prev => ({ ...prev, 1: items }));
 
       const pageInfo = queryData.games?.pageInfo || queryData.gameLogs?.pageInfo;

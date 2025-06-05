@@ -6,27 +6,8 @@ import { toast } from 'react-hot-toast';
 import { SEND_FRIEND_REQUEST, ACCEPT_FRIEND_REQUEST, REMOVE_FRIEND } from '@/lib/graphql/mutations';
 import { GET_USER_FRIENDSHIPS } from '@/lib/graphql/queries';
 import { logger } from '@/lib/logger';
+import { UseUserProfileProps, UseUserProfileReturn } from '@/lib/types/consolidated.types';
 import { DBUser, Friendship, FriendshipStatus } from '@/lib/types/generated/graphql';
-
-interface UseUserProfileProps {
-  targetUserId?: string;
-}
-
-interface UseUserProfileReturn {
-  targetUser: DBUser | null;
-  dbUserId: string | null;
-  currentUserDbId: string | null;
-  friendshipStatus: FriendshipStatus | null | 'loading';
-  currentFriendship: Friendship | null;
-  isLoading: boolean;
-  isOwnProfile: boolean;
-  handleSendFriendRequest: () => void;
-  handleAcceptFriendRequest: () => void;
-  handleRemoveFriend: () => void;
-  sendingRequest: boolean;
-  acceptingRequest: boolean;
-  removingFriend: boolean;
-}
 
 export function useUserProfile({ targetUserId }: UseUserProfileProps): UseUserProfileReturn {
   const { user: currentUser } = useUser();
@@ -69,8 +50,6 @@ export function useUserProfile({ targetUserId }: UseUserProfileProps): UseUserPr
             lastName: currentUser.lastName || '',
             emailAddress: currentUser.emailAddresses[0]?.emailAddress || '',
             imageUrl: currentUser.imageUrl,
-            createdAt: currentUser.createdAt ? new Date(currentUser.createdAt) : new Date(),
-            updatedAt: currentUser.updatedAt ? new Date(currentUser.updatedAt) : new Date(),
             last_sign_in_at: currentUser.lastSignInAt
               ? new Date(currentUser.lastSignInAt)
               : new Date(),
@@ -83,13 +62,15 @@ export function useUserProfile({ targetUserId }: UseUserProfileProps): UseUserPr
             comments: [],
             reactions: [],
             gameLogs: [],
-            deletedAt: null,
             external_id: '',
             inboundFriendshipIds: [],
             outboundFriendshipIds: [],
             timestamp: new Date(),
             friendships: [],
             initiatedFriendships: [],
+            createdAt: currentUser.createdAt ? new Date(currentUser.createdAt) : new Date(),
+            updatedAt: currentUser.updatedAt ? new Date(currentUser.updatedAt) : new Date(),
+            deletedAt: null,
             __typename: 'DBUser',
           });
         }

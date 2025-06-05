@@ -14,19 +14,11 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { StarRating } from '@/components/ui/star-rating';
 import { CLASSIFICATION } from '@/lib/types/config.types';
+import { GameLogsSectionProps } from '@/lib/types/consolidated.types';
 import type { GameLog } from '@/lib/types/generated/graphql';
 import { cn } from '@/lib/utils';
 
 import { GameLogActions } from './game-log-actions';
-
-interface GameLogsSectionProps {
-  gameLogs: GameLog[];
-  loading: boolean;
-  isFetchingMore: boolean;
-  loadMoreRef: React.RefObject<HTMLDivElement>;
-  onLoadMore: () => void;
-  refetch?: () => void;
-}
 
 // Loading skeleton component
 const GameLogSkeleton = () => (

@@ -10,43 +10,31 @@ import { NavItem } from '@/lib/types/consolidated.types';
 
 const navItems: NavItem[] = [
   {
-    label: 'Dashboard',
-    href: '/nba',
-    icon: '📊',
-    subItems: [
-      { label: 'Overview', href: '/nba', icon: '📈' },
-      { label: 'Quick Stats', href: '/nba/stats', icon: '📊' },
-    ],
-  },
-  {
     label: 'Games',
-    href: '/nba/games',
+    href: '/sports/nba',
     icon: '🏀',
     badge: 3,
     subItems: [
-      { label: 'Schedule', href: '/nba/games/schedule', icon: '📅' },
-      { label: 'Results', href: '/nba/games/results', icon: '🏆' },
-      { label: 'Live Games', href: '/nba/games/live', icon: '🎯', isNew: true },
-    ],
-  },
-  {
-    label: 'Players',
-    href: '/nba/players',
-    icon: '👥',
-    subItems: [
-      { label: 'Top Scorers', href: '/nba/players/scorers', icon: '🎯' },
-      { label: 'Leaders', href: '/nba/players/leaders', icon: '👑' },
-      { label: 'Rookies', href: '/nba/players/rookies', icon: '🌟', isNew: true },
+      { label: 'Overview', href: '/sports/nba', icon: '📈' },
+      { label: 'Live Games', href: '/sports/nba/games/live', icon: '🎯', isNew: true },
     ],
   },
   {
     label: 'Teams',
-    href: '/nba/teams',
+    href: '/sports/nba/teams',
     icon: '🏆',
     subItems: [
-      { label: 'Standings', href: '/nba/teams/standings', icon: '📈' },
-      { label: 'Stats', href: '/nba/teams/stats', icon: '📊' },
-      { label: 'Power Rankings', href: '/nba/teams/rankings', icon: '💪', isNew: true },
+      { label: 'Standings', href: '/sports/nba/teams/standings', icon: '📈' },
+      { label: 'Stats', href: '/sports/nba/teams/stats', icon: '📊' },
+    ],
+  },
+  {
+    label: 'Players',
+    href: '/sports/nba/players',
+    icon: '👥',
+    subItems: [
+      { label: 'Top Scorers', href: '/sports/nba/players/scorers', icon: '🎯' },
+      { label: 'Leaders', href: '/sports/nba/players/leaders', icon: '👑' },
     ],
   },
 ];

@@ -2,16 +2,7 @@ import { sql } from 'drizzle-orm';
 
 import { db } from '@/lib/db';
 import { logger } from '@/lib/logger';
-
-interface MigrationVersion {
-  name: string;
-  checksum: string;
-  executed_at: string;
-  execution_time_ms: number;
-  status: string;
-  error_message?: string;
-  rollback_executed: boolean;
-}
+import { MigrationVersion } from '@/lib/types/consolidated.types';
 
 async function viewMigrations() {
   try {

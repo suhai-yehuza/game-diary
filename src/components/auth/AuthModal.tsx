@@ -1,11 +1,9 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import React, { useRef, ReactNode } from 'react';
+import React, { useRef } from 'react';
 
-interface AuthModalProps {
-  children: ReactNode;
-}
+import { AuthModalProps } from '@/lib/types/consolidated.types';
 
 export function AuthModal({ children }: AuthModalProps) {
   const router = useRouter();

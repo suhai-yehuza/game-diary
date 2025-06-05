@@ -15,9 +15,6 @@ export const users = pgTable('users', {
   inboundFriendshipIds: text('inboundFriendshipIds').array().notNull().default([]),
   outboundFriendshipIds: text('outboundFriendshipIds').array().notNull().default([]),
   banned: boolean('banned').notNull().default(false),
-  createdAt: timestamp({ precision: 6, withTimezone: true }).notNull(),
-  updatedAt: timestamp({ precision: 6, withTimezone: true }).notNull(),
-  timestamp: timestamp({ precision: 6, withTimezone: true }).notNull(),
   last_sign_in_at: timestamp({ precision: 6, withTimezone: true }),
   password_enabled: boolean('password_enabled').notNull().default(false),
   two_factor_enabled: boolean('two_factor_enabled').notNull().default(false),
@@ -25,6 +22,9 @@ export const users = pgTable('users', {
   email_verification_strategy: varchar('email_verification_strategy', { length: 50 }),
   external_id: varchar('external_id', { length: 255 }),
   external_accounts: jsonb('external_accounts').notNull().default('[]'),
+  createdAt: timestamp({ precision: 6, withTimezone: true }).notNull(),
+  updatedAt: timestamp({ precision: 6, withTimezone: true }).notNull(),
+  timestamp: timestamp({ precision: 6, withTimezone: true }).notNull(),
   deletedAt: timestamp({ precision: 6, withTimezone: true }),
 });
 

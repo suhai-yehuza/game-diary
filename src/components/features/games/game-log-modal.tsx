@@ -239,7 +239,7 @@ export function GameLogModal({
       // Game date
       const dateMatch =
         typeof game.date === 'string'
-          ? game.date.toLowerCase().includes(searchLower)
+          ? (game.date as string).toLowerCase().includes(searchLower)
           : formatGameDate(game.date).toLowerCase().includes(searchLower);
 
       // Game status

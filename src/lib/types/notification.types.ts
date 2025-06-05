@@ -14,7 +14,7 @@ export interface AppNotification {
   type: string;
   message: string;
   timestamp: Date;
-  read: boolean;
+  resolved: boolean;
   userId: string;
   deletedAt?: Date | null;
   title?: string;
@@ -27,7 +27,7 @@ export interface NotificationContextType {
   notifications: AppNotification[];
   unreadCount: number;
   addNotification: (
-    notification: Omit<AppNotification, 'id' | 'timestamp' | 'read' | 'deletedAt'>
+    notification: Omit<AppNotification, 'id' | 'timestamp' | 'resolved' | 'deletedAt'>
   ) => void;
   markAsRead: (id: string) => void;
   markAllAsRead: () => void;

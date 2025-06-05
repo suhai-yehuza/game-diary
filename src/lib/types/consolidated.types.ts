@@ -14,11 +14,14 @@
  * - component-props.types
  */
 
-import { ApolloError } from '@apollo/client';
+import { ApolloError, ApolloQueryResult, OperationVariables } from '@apollo/client';
 import { ChartData } from 'chart.js';
-import type { InferSelectModel } from 'drizzle-orm';
+import type { InferSelectModel, sql } from 'drizzle-orm';
+import { ReactNode } from 'react';
 
 import { nba_games } from '@/lib/db/schema/nba-schemas';
+import { DataProcessor } from '@/lib/db/seed/data-processor';
+import { OptimizedAPIClient } from '@/lib/db/seed/utils/api-client';
 import { APIError, type Activity } from '@/lib/types/api.types';
 import type {
   GameStatusValue,
@@ -26,6 +29,7 @@ import type {
   WatchedScopeValue,
   ClassificationValue,
 } from '@/lib/types/config.types';
+import { DatabaseClient } from '@/lib/types/database.types';
 import type {
   Player,
   Classification,
@@ -33,13 +37,84 @@ import type {
   Team,
   GameLog,
   TeamFilters,
+  Friendship,
+  DBUser,
+  FriendshipStatus,
 } from '@/lib/types/generated/graphql';
 import type { Friend, FriendGroup } from '@/lib/types/social.types';
 
-// Database Types
+// =============================================================================
+// ENUMS AND CONSTANTS
+// =============================================================================
+
+export enum ConferenceType {
+  EASTERN = 'eastern',
+  WESTERN = 'western',
+}
+
+export enum DivisionType {
+  ATLANTIC = 'atlantic',
+  CENTRAL = 'central',
+  SOUTHEAST = 'southeast',
+  NORTHWEST = 'northwest',
+  PACIFIC = 'pacific',
+  SOUTHWEST = 'southwest',
+}
+
+export type SortDirection = 'asc' | 'desc';
+
+export type GameField =
+  | 'season'
+  | 'league'
+  | 'date'
+  | 'id'
+  | 'stage'
+  | 'status'
+  | 'periods'
+  | 'arena'
+  | 'teams'
+  | 'scores'
+  | 'officials'
+  | 'timesTied'
+  | 'leadChanges'
+  | 'nugget'
+  | 'createdAt'
+  | 'updatedAt';
+
+// =============================================================================
+// DATABASE TYPES
+// =============================================================================
+
 export type DBGameRecord = InferSelectModel<typeof nba_games>;
 
-// Core Types
+export interface Migration {
+  name: string;
+  path: string;
+  content: string;
+  checksum: string;
+}
+
+export interface MigrationVerification {
+  tables?: string[];
+  functions?: string[];
+  triggers?: string[];
+  indexes?: string[];
+}
+
+export interface MigrationVersion {
+  name: string;
+  checksum: string;
+  executed_at: string;
+  execution_time_ms: number;
+  status: string;
+  error_message?: string;
+  rollback_executed: boolean;
+}
+
+// =============================================================================
+// CORE GAME TYPES
+// =============================================================================
+
 export interface GameTeam {
   id: string;
   name: string;
@@ -85,19 +160,23 @@ export interface GameDate {
   duration?: string;
 }
 
+export interface GameTeams {
+  home: GameTeam;
+  visitors: GameTeam;
+}
+
+export interface GameScores {
+  home: GameScore;
+  visitors: GameScore;
+}
+
 // Base Game type that matches GraphQL schema - all games use this structure
 export interface Game {
   id: string;
-  date: string | GameDate;
+  date: GameDate;
   status: GameStatus;
-  teams: {
-    home: GameTeam;
-    visitors: GameTeam;
-  };
-  scores: {
-    home: GameScore;
-    visitors: GameScore;
-  };
+  teams: GameTeams;
+  scores: GameScores;
   arena?: GameArena;
   league: string;
   season: number;
@@ -118,18 +197,68 @@ export interface Game {
 export type ExtendedGame = Game & { extended?: boolean };
 export type SearchGame = Game; // For search results
 
-// Export types that some files expect
-export type GameTeams = {
-  home: GameTeam;
-  visitors: GameTeam;
-};
+// Legacy Game type for components that need the old homeTeam/awayTeam structure
+export interface LegacyGame {
+  id: string;
+  date: string | GameDate;
+  status: GameStatus;
+  homeTeam: GameTeam;
+  awayTeam: GameTeam;
+  homeTeamId?: string;
+  awayTeamId?: string;
+  arena?: GameArena;
+  league: string;
+  season: number;
+  stage: number;
+  periods?: GamePeriods;
+  officials?: string[];
+  timesTied?: number;
+  leadChanges?: number;
+  nugget?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  scores?: GameScores;
+}
 
-export type GameScores = {
-  home: GameScore;
-  visitors: GameScore;
-};
+// =============================================================================
+// GAME UTILITY FUNCTIONS
+// =============================================================================
 
-// API Response Types
+// Utility function to convert between old and new game formats
+export function convertToLegacyGame(game: Game): LegacyGame {
+  return {
+    ...game,
+    date: game.date,
+    homeTeam: game.teams.home,
+    awayTeam: game.teams.visitors,
+    scores: game.scores,
+  };
+}
+
+export function convertFromLegacyGame(game: LegacyGame): Game {
+  const gameDate =
+    typeof game.date === 'string'
+      ? { start: game.date, end: undefined, duration: undefined }
+      : game.date;
+
+  return {
+    ...game,
+    date: gameDate,
+    teams: {
+      home: game.homeTeam,
+      visitors: game.awayTeam,
+    },
+    scores: game.scores || {
+      home: { points: 0 },
+      visitors: { points: 0 },
+    },
+  };
+}
+
+// =============================================================================
+// API RESPONSE TYPES
+// =============================================================================
+
 export interface APITeamResponse {
   id: number;
   name: string;
@@ -206,6 +335,112 @@ export interface GameResponseData {
   leadChanges: number;
   nugget?: string;
 }
+
+export interface GameApiResponse {
+  response: GameResponseData[];
+  data?: GameResponseData[];
+  get?: string;
+  parameters?: Record<string, string>;
+  errors?: string[];
+  results?: number;
+}
+
+export interface PlayerApiResponse {
+  response: {
+    get: string;
+    parameters: {
+      team: string;
+      season: string;
+    };
+    errors: string[];
+    results: number;
+    response: Array<{
+      id: number;
+      firstname: string;
+      lastname: string;
+      birth?: {
+        date: string | null;
+        country: string | null;
+      };
+      nba?: {
+        start: number;
+        pro: number;
+      };
+      height?: {
+        feets: string | null;
+        inches: string | null;
+        meters: string | null;
+      };
+      weight?: {
+        pounds: string | null;
+        kilograms: string | null;
+      };
+      college: string | null;
+      affiliation: string | null;
+      leagues?: {
+        standard?: {
+          jersey: number | null;
+          active: boolean;
+          pos: string;
+        };
+        vegas?: {
+          jersey: number | null;
+          active: boolean;
+          pos: string;
+        };
+        utah?: {
+          jersey: number | null;
+          active: boolean;
+          pos: string;
+        };
+      };
+    }>;
+  };
+}
+
+export type SeasonApiResponse = {
+  get: string;
+  parameters: Record<string, string>;
+  errors: string[];
+  results: number;
+  response: number[];
+};
+
+export type TeamApiResponse = {
+  get: string;
+  parameters: Record<string, string>;
+  errors: string[];
+  results: number;
+  response: Array<{
+    id: number;
+    name: string;
+    nickname: string;
+    code: string;
+    city: string;
+    logo: string;
+    allStar: boolean;
+    nbaFranchise: boolean;
+    leagues: {
+      standard?: {
+        conference: string | null;
+        division: string | null;
+      };
+    };
+  }>;
+};
+
+export interface APIResponse<T = unknown> {
+  response?: T[];
+  data?: T[];
+  get?: string;
+  parameters?: Record<string, string>;
+  errors?: string[];
+  results?: number;
+}
+
+// =============================================================================
+// GAME STATISTICS TYPES
+// =============================================================================
 
 export interface GamePlayerStats {
   id: string;
@@ -318,7 +553,6 @@ export interface CustomTeamStats extends TeamStats {
   pointsOffTurnovers: number;
 }
 
-// Extended Game Types
 export interface GameWithStats extends Game {
   homeTeamStats?: CustomTeamStats;
   awayTeamStats?: CustomTeamStats;
@@ -332,7 +566,40 @@ export interface GameWithDetails extends Game {
   userRating?: GameRatingWithUser;
 }
 
-// Game Log Types
+export interface ComponentGameStats {
+  players: GamePlayerStats[];
+  homeTeam: GameTeamStatistics;
+  awayTeam: GameTeamStatistics;
+}
+
+export interface PlayerStatistics {
+  player: {
+    id: number;
+    firstName: string;
+    lastName: string;
+  };
+  team?: { id: number | string };
+  min?: string | number;
+  points?: number;
+  totReb?: number;
+  assists?: number;
+  steals?: number;
+  blocks?: number;
+  turnovers?: number;
+  pFouls?: number;
+  fgm?: number;
+  fga?: number;
+  tpm?: number;
+  tpa?: number;
+  ftm?: number;
+  fta?: number;
+  plusMinus?: number;
+}
+
+// =============================================================================
+// GAME LOG TYPES
+// =============================================================================
+
 export interface GameLogInput {
   gameId: string;
   watchedDate: string;
@@ -355,7 +622,14 @@ export interface GameLogFormData {
   classification: ClassificationValue;
 }
 
-// Rating and Reaction Types
+export interface GameLogByIdResponse {
+  gameLogById: import('./generated/graphql').GameLog;
+}
+
+// =============================================================================
+// RATING AND REACTION TYPES
+// =============================================================================
+
 export interface GameRating {
   id: string;
   gameId: string;
@@ -429,7 +703,10 @@ export interface CommentResponse {
   }[];
 }
 
-// Query and Filter Types
+// =============================================================================
+// QUERY AND FILTER TYPES
+// =============================================================================
+
 export interface GameFilters {
   gameId?: string;
   homeTeamId?: string;
@@ -465,8 +742,6 @@ export interface GameFilters {
   nugget?: string;
 }
 
-export type SortDirection = 'asc' | 'desc';
-
 export interface GameSortInput {
   field: string;
   direction: SortDirection;
@@ -488,7 +763,10 @@ export interface ProcessedGameData {
   games: Game[];
 }
 
-// GraphQL Types
+// =============================================================================
+// GRAPHQL TYPES
+// =============================================================================
+
 export interface GameEdge {
   node: Game;
 }
@@ -506,33 +784,31 @@ export interface GameQueryResponse {
   games: GameConnection;
 }
 
-export interface GameLogByIdResponse {
-  gameLogById: import('./generated/graphql').GameLog;
+export interface LiveGameEdge {
+  node: {
+    id: string;
+    status: {
+      long: string;
+    };
+  };
 }
 
-// Component Props Types
-export interface GameStatsProps {
-  game: GameWithStatistics;
+export interface LiveGamesData {
+  liveGames: {
+    edges: LiveGameEdge[];
+    totalCount: number;
+  };
 }
 
-export interface ComponentGameStats {
-  players: GamePlayerStats[];
-  homeTeam: GameTeamStatistics;
-  awayTeam: GameTeamStatistics;
+export interface GQLValidationError {
+  field: string;
+  message: string;
 }
 
-export interface GameLogFormProps {
-  onSuccess?: () => void;
-  formData?: GameLogFormData;
-  setFormData?: (data: GameLogFormData) => void;
-  selectedGame?: Game | null;
-  loading?: boolean;
-  onSubmit?: (data: import('./generated/graphql').CreateGameLogInput) => Promise<void>;
-  onCancel?: () => void;
-  submitLabel?: string;
-}
+// =============================================================================
+// TEAM TYPES
+// =============================================================================
 
-// Supporting Types
 export interface TeamSummary {
   id: string;
   code: string;
@@ -540,476 +816,6 @@ export interface TeamSummary {
   name: string;
   nickname: string;
 }
-
-export interface Arena {
-  name?: string;
-  city?: string;
-  state?: string;
-}
-
-export interface TeamDisplayProps {
-  team: TeamSummary | null;
-  score?: number;
-  isHome: boolean;
-  imageErrors?: Record<string, boolean>;
-  onImageError?: (id: string) => void;
-  gameId?: string;
-}
-
-export interface SeasonData {
-  id: string;
-  year: number;
-  displayYear: string;
-  startDate: string;
-  endDate: string;
-  isCurrent: boolean;
-  isPlayoffs: boolean;
-}
-
-export interface TeamData {
-  id: string;
-  name: string;
-  nickname: string;
-  code: string;
-  logo: string;
-  allStar: boolean;
-  nbaFranchise: boolean;
-  leagues: {
-    standard?: {
-      conference?: string;
-      division?: string;
-    };
-    [key: string]:
-      | {
-          conference?: string;
-          division?: string;
-        }
-      | undefined;
-  };
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface PlayerData {
-  id: string;
-  firstName: string;
-  lastName: string;
-  birth: {
-    date: string;
-    country: string;
-  };
-  nba: {
-    start: number;
-    pro: number;
-  };
-  height: {
-    feets: number;
-    inches: number;
-    meters: number;
-  };
-  weight: {
-    pounds: number;
-    kilograms: number;
-  };
-  college: string;
-  affiliation: string;
-  leagues: {
-    standard: {
-      jersey: string;
-      active: boolean;
-      pos: string;
-    };
-  };
-  seasons_active: Array<{
-    season: number;
-    teams: string[];
-  }>;
-}
-
-export interface PlayerWithOptionalPhoto extends Player {
-  photoUrl?: string;
-}
-
-export interface UserSummary {
-  id: string;
-  username: string;
-  firstName?: string;
-  lastName?: string;
-  imageUrl?: string;
-  emailAddress?: string;
-}
-
-// Enums
-export enum ConferenceType {
-  EASTERN = 'eastern',
-  WESTERN = 'western',
-}
-
-export enum DivisionType {
-  ATLANTIC = 'atlantic',
-  CENTRAL = 'central',
-  SOUTHEAST = 'southeast',
-  NORTHWEST = 'northwest',
-  PACIFIC = 'pacific',
-  SOUTHWEST = 'southwest',
-}
-
-export type GameField =
-  | 'season'
-  | 'league'
-  | 'date'
-  | 'id'
-  | 'stage'
-  | 'status'
-  | 'periods'
-  | 'arena'
-  | 'teams'
-  | 'scores'
-  | 'officials'
-  | 'timesTied'
-  | 'leadChanges'
-  | 'nugget'
-  | 'createdAt'
-  | 'updatedAt';
-
-export interface GameApiResponse {
-  response: GameResponseData[];
-  data?: GameResponseData[];
-  get?: string;
-  parameters?: Record<string, string>;
-  errors?: string[];
-  results?: number;
-}
-
-// Legacy Game type for components that need the old homeTeam/awayTeam structure
-export interface LegacyGame {
-  id: string;
-  date: string | GameDate;
-  status: GameStatus;
-  homeTeam: GameTeam;
-  awayTeam: GameTeam;
-  homeTeamId?: string;
-  awayTeamId?: string;
-  arena?: GameArena;
-  league: string;
-  season: number;
-  stage: number;
-  periods?: GamePeriods;
-  officials?: string[];
-  timesTied?: number;
-  leadChanges?: number;
-  nugget?: string;
-  createdAt?: string;
-  updatedAt?: string;
-  scores?: GameScores;
-}
-
-// Utility function to convert between old and new game formats
-export function convertToLegacyGame(game: Game): LegacyGame {
-  return {
-    ...game,
-    homeTeam: game.teams.home,
-    awayTeam: game.teams.visitors,
-    scores: game.scores,
-  };
-}
-
-export function convertFromLegacyGame(game: LegacyGame): Game {
-  return {
-    ...game,
-    teams: {
-      home: game.homeTeam,
-      visitors: game.awayTeam,
-    },
-    scores: game.scores || {
-      home: { points: 0 },
-      visitors: { points: 0 },
-    },
-  };
-}
-
-// API Response Types
-export interface PlayerApiResponse {
-  response: {
-    get: string;
-    parameters: {
-      team: string;
-      season: string;
-    };
-    errors: string[];
-    results: number;
-    response: Array<{
-      id: number;
-      firstname: string;
-      lastname: string;
-      birth?: {
-        date: string | null;
-        country: string | null;
-      };
-      nba?: {
-        start: number;
-        pro: number;
-      };
-      height?: {
-        feets: string | null;
-        inches: string | null;
-        meters: string | null;
-      };
-      weight?: {
-        pounds: string | null;
-        kilograms: string | null;
-      };
-      college: string | null;
-      affiliation: string | null;
-      leagues?: {
-        standard?: {
-          jersey: number | null;
-          active: boolean;
-          pos: string;
-        };
-        vegas?: {
-          jersey: number | null;
-          active: boolean;
-          pos: string;
-        };
-        utah?: {
-          jersey: number | null;
-          active: boolean;
-          pos: string;
-        };
-      };
-    }>;
-  };
-}
-
-export type SeasonApiResponse = {
-  get: string;
-  parameters: Record<string, string>;
-  errors: string[];
-  results: number;
-  response: number[];
-};
-
-export type TeamApiResponse = {
-  get: string;
-  parameters: Record<string, string>;
-  errors: string[];
-  results: number;
-  response: Array<{
-    id: number;
-    name: string;
-    nickname: string;
-    code: string;
-    city: string;
-    logo: string;
-    allStar: boolean;
-    nbaFranchise: boolean;
-    leagues: {
-      standard?: {
-        conference: string | null;
-        division: string | null;
-      };
-    };
-  }>;
-};
-
-export interface PlayerStatistics {
-  player: {
-    id: number;
-    firstName: string;
-    lastName: string;
-  };
-  team?: { id: number | string };
-  min?: string | number;
-  points?: number;
-  totReb?: number;
-  assists?: number;
-  steals?: number;
-  blocks?: number;
-  turnovers?: number;
-  pFouls?: number;
-  fgm?: number;
-  fga?: number;
-  tpm?: number;
-  tpa?: number;
-  ftm?: number;
-  fta?: number;
-  plusMinus?: number;
-}
-
-// Season Types
-export type DBSeason = {
-  id: number;
-  year: number;
-  startDate: Date;
-  endDate: Date;
-  isCurrent: boolean;
-  isPlayoffs: boolean;
-};
-
-export type GameCardProps = {
-  game: SearchGame;
-  className?: string;
-  index?: number;
-  imageErrors?: Set<string>;
-  onImageError?: (gameId: string) => void;
-};
-
-export type GamesListProps = {
-  games: Game[];
-  loading?: boolean;
-  initialFilters?: GameFilters;
-  onGameSelect?: (game: Game) => void;
-};
-
-export type FriendProfileProps = {
-  friend?: Friend;
-  friendId?: string;
-  onClose?: () => void;
-};
-
-export type FriendGroupsProps = {
-  groups: FriendGroup[];
-  friends?: Friend[];
-  onGroupUpdate?: (group: FriendGroup) => void;
-};
-
-export type FriendRequestButtonProps = {
-  targetUserId: string;
-  className?: string;
-};
-
-export type GetFriendshipsForUserResponse = {
-  friendships: import('./generated/graphql').Friendship[];
-};
-
-export type ActivityTimelineProps = {
-  activities: Activity[];
-  gameLogs: GameLog[];
-  timeFilter?: import('./api.types').TimeFilter;
-};
-
-export type FriendActivityProps = {
-  friendId: string;
-  activities: Activity[];
-};
-
-export interface TeamCounts {
-  [key: string]: number;
-}
-
-export type NavItem = {
-  href: string;
-  label: string;
-  subItems?: NavItem[];
-  icon?: string;
-  isNew?: boolean;
-  badge?: string | number;
-};
-
-// Hook Types
-export interface GQLValidationError {
-  field: string;
-  message: string;
-}
-
-// API Request Types
-export type ExtendedNextApiRequest = import('next').NextApiRequest & {
-  user?: {
-    id: string;
-    email: string;
-  };
-  selectedFields?: string[];
-  pagination?: {
-    first?: number;
-    after?: string;
-    last?: number;
-    before?: string;
-  };
-};
-
-// Pagination Types
-export interface PaginationInput {
-  page: number;
-  limit: number;
-}
-
-// Game Utility Types
-export interface PlayerFilters {
-  team?: string;
-  position?: string;
-  status?: string;
-}
-
-export interface TeamSortInput {
-  field: string;
-  direction: 'ASC' | 'DESC';
-}
-
-// Component Types
-export type StatsChartProps = {
-  data: ChartData;
-  type: 'line' | 'bar' | 'radar';
-  title: string;
-  height?: number;
-  stacked?: boolean;
-};
-
-export type ReactionDisplayProps = {
-  targetId: string;
-  targetType: string;
-};
-
-export type ReactionPickerProps = {
-  targetId: string;
-  targetType: string;
-  existingReactions?: Reaction[];
-  onReactionChanged?: () => void;
-};
-
-export interface MonitoringMetrics {
-  timestamp: Date;
-  cpuUsage: number;
-  memoryUsage: number;
-  activeConnections: number;
-  requestCount: number;
-  errorCount: number;
-  averageResponseTime: number;
-  queryPerformance: {
-    [key: string]: {
-      count: number;
-      totalTime: number;
-      avgTime: number;
-    };
-  };
-  apiCalls: {
-    [key: string]: number;
-  };
-  cacheMetrics: {
-    hits: number;
-    misses: number;
-    size: number;
-  };
-  apiMetrics: {
-    [key: string]: {
-      count: number;
-      success: number;
-      failure: number;
-      avgResponseTime: number;
-    };
-  };
-  errors: {
-    [key: string]: number;
-  };
-}
-
-// Re-export types from other files to avoid circular dependencies
-export type {
-  UserSearchProps,
-  UserProfileProps,
-  UsersTableProps,
-  UserPageProps,
-} from './user.types';
 
 export interface ApiTeam {
   id: string | number;
@@ -1059,6 +865,60 @@ export interface CustomTeamFilters extends TeamFilters {
   search?: string;
 }
 
+export interface TeamData {
+  id: string;
+  name: string;
+  nickname: string;
+  code: string;
+  logo: string;
+  allStar: boolean;
+  nbaFranchise: boolean;
+  leagues: {
+    standard?: {
+      conference?: string;
+      division?: string;
+    };
+    [key: string]:
+      | {
+          conference?: string;
+          division?: string;
+        }
+      | undefined;
+  };
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TeamResponseData {
+  id: number;
+  name: string;
+  nickname: string;
+  code: string;
+  city: string;
+  logo: string;
+  allStar: boolean;
+  nbaFranchise: boolean;
+  leagues: {
+    standard?: { conference?: string; division?: string };
+    vegas?: { conference?: string; division?: string };
+    utah?: { conference?: string; division?: string };
+    sacramento?: { conference?: string; division?: string };
+  };
+}
+
+export interface TeamSortInput {
+  field: string;
+  direction: 'ASC' | 'DESC';
+}
+
+export interface TeamCounts {
+  [key: string]: number;
+}
+
+// =============================================================================
+// TEAM STATISTICS TYPES
+// =============================================================================
+
 export interface DBTeamStatistics {
   id: string;
   teamId: string;
@@ -1097,28 +957,6 @@ export interface DBWinLossRecord {
   total: number;
   percentage: string;
   lastTen: string;
-}
-
-export interface DBWeightInfo {
-  pounds: number;
-  kilograms: number;
-}
-
-export interface TeamResponseData {
-  id: number;
-  name: string;
-  nickname: string;
-  code: string;
-  city: string;
-  logo: string;
-  allStar: boolean;
-  nbaFranchise: boolean;
-  leagues: {
-    standard?: { conference?: string; division?: string };
-    vegas?: { conference?: string; division?: string };
-    utah?: { conference?: string; division?: string };
-    sacramento?: { conference?: string; division?: string };
-  };
 }
 
 export type TeamStatisticsApiResponse = {
@@ -1209,4 +1047,541 @@ export interface StandingResponseData {
 
 export interface TeamDisplayStats extends GameTeamStatistic {
   games: number;
+}
+
+export interface HeadToHeadData {
+  teamH2H?: {
+    wins: number;
+    losses: number;
+    winPercentage: string;
+    lastTenGames: string[];
+  };
+}
+
+export interface TeamStatsData {
+  teamGameStats?: {
+    team?: {
+      logo?: string;
+      nickname?: string;
+    };
+    points: number;
+    field_goals_made: number;
+    field_goals_attempted: number;
+    field_goal_percentage: number;
+    three_pointers_made: number;
+    three_pointers_attempted: number;
+    three_pointer_percentage: number;
+    free_throws_made: number;
+    free_throws_attempted: number;
+    free_throw_percentage: number;
+    offensive_rebounds: number;
+    defensive_rebounds: number;
+    total_rebounds: number;
+    assists: number;
+    steals: number;
+    blocks: number;
+    turnovers: number;
+    personal_fouls: number;
+  };
+}
+
+// =============================================================================
+// PLAYER TYPES
+// =============================================================================
+
+export interface PlayerData {
+  id: string;
+  firstName: string;
+  lastName: string;
+  birth: {
+    date: string;
+    country: string;
+  };
+  nba: {
+    start: number;
+    pro: number;
+  };
+  height: {
+    feets: number;
+    inches: number;
+    meters: number;
+  };
+  weight: {
+    pounds: number;
+    kilograms: number;
+  };
+  college: string;
+  affiliation: string;
+  leagues: {
+    standard: {
+      jersey: string;
+      active: boolean;
+      pos: string;
+    };
+  };
+  seasons_active: Array<{
+    season: number;
+    teams: string[];
+  }>;
+}
+
+export interface PlayerWithOptionalPhoto extends Player {
+  photoUrl?: string;
+}
+
+export interface PlayerFilters {
+  team?: string;
+  position?: string;
+  status?: string;
+}
+
+export interface DBWeightInfo {
+  pounds: number;
+  kilograms: number;
+}
+
+// =============================================================================
+// SEASON TYPES
+// =============================================================================
+
+export interface SeasonData {
+  id: string;
+  year: number;
+  displayYear: string;
+  startDate: string;
+  endDate: string;
+  isCurrent: boolean;
+  isPlayoffs: boolean;
+}
+
+export type DBSeason = {
+  id: number;
+  year: number;
+  startDate: Date;
+  endDate: Date;
+  isCurrent: boolean;
+  isPlayoffs: boolean;
+};
+
+// =============================================================================
+// USER TYPES
+// =============================================================================
+
+export interface UserSummary {
+  id: string;
+  username: string;
+  firstName?: string | null;
+  lastName?: string | null;
+  imageUrl?: string | null;
+  emailAddress?: string | null;
+}
+
+export interface GetFriendshipsForUserResponse {
+  friendships: import('./generated/graphql').Friendship[];
+}
+
+// Re-export types from other files to avoid circular dependencies
+export type {
+  UserSearchProps,
+  UserProfileProps,
+  UsersTableProps,
+  UserPageProps,
+} from './user.types';
+
+// =============================================================================
+// COMPONENT PROPS TYPES
+// =============================================================================
+
+export interface GameStatsProps {
+  game: GameWithStatistics;
+}
+
+export interface GameLogFormProps {
+  onSuccess?: () => void;
+  formData?: GameLogFormData;
+  setFormData?: (data: GameLogFormData) => void;
+  selectedGame?: Game | null;
+  loading?: boolean;
+  onSubmit?: (data: import('./generated/graphql').CreateGameLogInput) => Promise<void>;
+  onCancel?: () => void;
+  submitLabel?: string;
+}
+
+export interface TeamDisplayProps {
+  team: TeamSummary | null;
+  score?: number;
+  opponentScore?: number;
+  isHome: boolean;
+  imageErrors?: Record<string, boolean>;
+  onImageError?: (id: string) => void;
+  gameId?: string;
+}
+
+export interface Arena {
+  name?: string;
+  city?: string;
+  state?: string;
+}
+
+export type GameCardProps = {
+  game: SearchGame;
+  className?: string;
+  index?: number;
+  imageErrors?: Set<string>;
+  onImageError?: (gameId: string) => void;
+};
+
+export interface GamesListProps {
+  games: Game[];
+  loading?: boolean;
+  initialFilters?: GameFilters;
+  onGameSelect?: (game: Game) => void;
+}
+
+export type FriendProfileProps = {
+  friend?: Friend;
+  friendId?: string;
+  onClose?: () => void;
+};
+
+export type FriendGroupsProps = {
+  groups: FriendGroup[];
+  friends?: Friend[];
+  onGroupUpdate?: (group: FriendGroup) => void;
+};
+
+export type FriendRequestButtonProps = {
+  targetUserId: string;
+  className?: string;
+};
+
+export type ActivityTimelineProps = {
+  activities: Activity[];
+  gameLogs: GameLog[];
+  timeFilter?: import('./api.types').TimeFilter;
+};
+
+export type FriendActivityProps = {
+  friendId: string;
+  activities: Activity[];
+};
+
+export type NavItem = {
+  href: string;
+  label: string;
+  subItems?: NavItem[];
+  icon?: string;
+  isNew?: boolean;
+  badge?: string | number;
+};
+
+export type StatsChartProps = {
+  data: ChartData;
+  type: 'line' | 'bar' | 'radar';
+  title: string;
+  height?: number;
+  stacked?: boolean;
+};
+
+export type ReactionDisplayProps = {
+  targetId: string;
+  targetType: string;
+};
+
+export type ReactionPickerProps = {
+  targetId: string;
+  targetType: string;
+  existingReactions?: Reaction[];
+  onReactionChanged?: () => void;
+};
+
+export interface HeadToHeadProps {
+  h2hData: HeadToHeadData;
+  homeTeam: { nickname: string; logo: string | null };
+  awayTeam: { nickname: string; logo: string | null };
+  loading: boolean;
+  error: ApolloError | undefined;
+}
+
+export interface TeamStatsProps {
+  teamStats: TeamStatsData;
+  team: { nickname: string; logo: string | null };
+  isHome: boolean;
+  loading: boolean;
+  error: ApolloError | undefined;
+}
+
+export interface AuthModalProps {
+  children: ReactNode;
+}
+
+export interface ExtendedReactionDisplayProps extends ReactionDisplayProps {
+  reactions?: Reaction[];
+  totalReactionCount?: number;
+  onReactionChange?: () => void;
+}
+
+export interface GameLogProps {
+  gameLogId: string;
+}
+
+export interface GameLogPageProps {
+  params: {
+    id: string;
+  };
+}
+
+export interface GameLogActionsProps {
+  gameLog: GameLog;
+  onSuccess?: () => void;
+}
+
+export interface GameLogsSectionProps {
+  gameLogs: GameLog[];
+  loading: boolean;
+  isFetchingMore: boolean;
+  loadMoreRef: React.RefObject<HTMLDivElement>;
+  onLoadMore: () => void;
+  refetch?: () => void;
+}
+
+export interface GameLogSearchSectionProps {
+  userId?: string;
+  initialSearchText?: string;
+}
+
+export interface InputProps
+  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'spellCheck'> {
+  spellCheck?: boolean;
+}
+
+// =============================================================================
+// HOOK TYPES
+// =============================================================================
+
+export interface UseCreateGameLogProps {
+  onSuccess?: () => void;
+}
+
+export interface UseGameDataProps {
+  initialSeason?: number;
+  initialFilters?: {
+    season?: number;
+    status?: string;
+  };
+}
+
+export interface ProcessedGames {
+  live: Game[];
+  scheduled: Game[];
+  completed: Game[];
+}
+
+export interface UseGameDataReturn {
+  games: Game[];
+  processedGames: ProcessedGames;
+  loading: boolean;
+  error: ApolloError | null;
+  hasShownInitialLoad: boolean;
+  isFetchingMore: boolean;
+  currentSeason: number;
+  hasMoreSeasons: boolean;
+  showUpcomingGames: boolean;
+  setShowUpcomingGames: (show: boolean) => void;
+  handleLoadMore: () => Promise<void>;
+  canLoadMore: boolean;
+}
+
+export interface PaginationHookOptions<T> {
+  pageSize: number;
+  fetchMore: (options: {
+    variables: OperationVariables;
+    updateQuery: (prev: unknown, options: { fetchMoreResult?: PaginationFetchResult }) => unknown;
+  }) => Promise<ApolloQueryResult<unknown>>;
+  data?: { edges?: Array<{ node: T; cursor: string }> };
+  hasNextPage?: boolean;
+  filters: Record<string, unknown>;
+}
+
+export interface PaginationFetchResult {
+  games?: {
+    edges: Array<{ node: unknown }>;
+    pageInfo: {
+      endCursor: string | null;
+      hasNextPage: boolean;
+    };
+  };
+  gameLogs?: {
+    edges: Array<{ node: unknown }>;
+    pageInfo: {
+      endCursor: string | null;
+      hasNextPage: boolean;
+    };
+  };
+}
+
+export interface FilterConfig {
+  [key: string]: {
+    defaultValue: string | number;
+    type?: 'string' | 'number' | 'boolean';
+  };
+}
+
+export interface UseSearchFiltersOptions {
+  filterConfig: FilterConfig;
+  additionalFilters?: Record<string, unknown>;
+}
+
+export interface UseUserProfileProps {
+  targetUserId?: string;
+}
+
+export interface UseUserProfileReturn {
+  targetUser: DBUser | null;
+  dbUserId: string | null;
+  currentUserDbId: string | null;
+  friendshipStatus: FriendshipStatus | null | 'loading';
+  currentFriendship: Friendship | null;
+  isLoading: boolean;
+  isOwnProfile: boolean;
+  handleSendFriendRequest: () => void;
+  handleAcceptFriendRequest: () => void;
+  handleRemoveFriend: () => void;
+  sendingRequest: boolean;
+  acceptingRequest: boolean;
+  removingFriend: boolean;
+}
+
+// =============================================================================
+// API REQUEST TYPES
+// =============================================================================
+
+export type ExtendedNextApiRequest = import('next').NextApiRequest & {
+  user?: {
+    id: string;
+    email: string;
+  };
+  selectedFields?: string[];
+  pagination?: {
+    first?: number;
+    after?: string;
+    last?: number;
+    before?: string;
+  };
+};
+
+export interface PaginationInput {
+  page: number;
+  limit: number;
+}
+
+// =============================================================================
+// MONITORING TYPES
+// =============================================================================
+
+export interface MonitoringMetrics {
+  timestamp: Date;
+  cpuUsage: number;
+  memoryUsage: number;
+  activeConnections: number;
+  requestCount: number;
+  errorCount: number;
+  averageResponseTime: number;
+  queryPerformance: {
+    [key: string]: {
+      count: number;
+      totalTime: number;
+      avgTime: number;
+    };
+  };
+  apiCalls: {
+    [key: string]: number;
+  };
+  cacheMetrics: {
+    hits: number;
+    misses: number;
+    size: number;
+  };
+  apiMetrics: {
+    [key: string]: {
+      count: number;
+      success: number;
+      failure: number;
+      avgResponseTime: number;
+    };
+  };
+  errors: {
+    [key: string]: number;
+  };
+}
+
+// =============================================================================
+// SEEDER AND DATABASE UTILITY TYPES
+// =============================================================================
+
+export interface RawDatabaseClient {
+  execute: (query: ReturnType<typeof sql>) => Promise<{ rows: unknown[] }>;
+  query?: (query: string) => Promise<unknown>;
+}
+
+export interface TriggerSetupOptions {
+  env?: string;
+  dropExisting?: boolean;
+  skipVerification?: boolean;
+}
+
+export interface ScriptOptions {
+  env?: string;
+  dryRun?: boolean;
+  runTests?: boolean;
+  verbose?: boolean;
+}
+
+export interface ApplicationSeederOptions {
+  db?: DatabaseClient;
+  apiClient: OptimizedAPIClient;
+  processor: DataProcessor;
+  tables?: string[];
+  appendingData?: boolean;
+  env?: string;
+  shouldResetDb?: boolean;
+  shouldTruncateTables?: boolean;
+  seasons?: number[];
+  skipExternalDb?: boolean;
+  skipApplicationDb?: boolean;
+  concurrency?: number;
+  batchSize?: number;
+  enableMonitoring?: boolean;
+  skipUsers?: boolean;
+}
+
+export interface ConnectionArgs {
+  first?: number | null;
+  after?: string | null;
+  last?: number | null;
+  before?: string | null;
+}
+
+export interface Edge<T> {
+  cursor: string;
+  node: T;
+}
+
+export interface PageInfo {
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
+  startCursor: string | null;
+  endCursor: string | null;
+}
+
+export interface Connection<T> {
+  edges: Edge<T>[];
+  pageInfo: PageInfo;
+  totalCount: number;
+}
+
+export interface PaginationParams {
+  limit: number;
+  offset: number;
+  isForward: boolean;
 }

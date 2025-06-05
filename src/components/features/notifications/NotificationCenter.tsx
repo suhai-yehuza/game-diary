@@ -52,7 +52,7 @@ export function NotificationCenter() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
                   className={`p-4 border-b hover:bg-gray-50 cursor-pointer ${
-                    !notification.read ? 'bg-blue-50' : ''
+                    !notification.resolved ? 'bg-blue-50' : ''
                   }`}
                   onClick={() => markAsRead(notification.id)}
                 >

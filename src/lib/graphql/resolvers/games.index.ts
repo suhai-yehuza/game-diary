@@ -3,14 +3,14 @@ import { and, eq, or, sql } from 'drizzle-orm';
 import * as schema from '@/lib/db/schema';
 import { fetchNbaLiveGames } from '@/lib/external-apis';
 import { BusinessLogicError } from '@/lib/graphql/errors';
-import { createConnection } from '@/lib/graphql/utils/pagination';
+import { createConnection } from '@/lib/graphql/utils';
 import type { Context } from '@/lib/types/component.types';
 import { GameResponseData } from '@/lib/types/consolidated.types';
 import type { GameFilters } from '@/lib/types/generated/graphql';
+import type { PaginationArgs } from '@/lib/types/resolver.types';
 import { getCurrentSeason } from '@/lib/utils/index';
 
-import type { PaginationArgs } from '../common/types';
-import { handleResolverError, mapGameData } from '../common/utils';
+import { handleResolverError, mapGameData } from '../utils';
 
 // Helper function to map live game data
 const mapLiveGameData = (game: GameResponseData) => ({

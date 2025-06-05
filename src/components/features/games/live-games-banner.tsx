@@ -5,22 +5,7 @@ import React from 'react';
 
 import { API_CONFIG } from '@/lib/config/api.config';
 import { GET_LIVE_GAMES } from '@/lib/graphql/queries';
-
-interface LiveGameEdge {
-  node: {
-    id: string;
-    status: {
-      long: string;
-    };
-  };
-}
-
-interface LiveGamesData {
-  liveGames: {
-    edges: LiveGameEdge[];
-    totalCount: number;
-  };
-}
+import { LiveGamesData } from '@/lib/types/consolidated.types';
 
 export function LiveGamesBanner() {
   const { data } = useQuery<LiveGamesData>(GET_LIVE_GAMES, {

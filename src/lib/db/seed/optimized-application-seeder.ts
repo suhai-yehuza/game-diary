@@ -16,18 +16,10 @@ import {
   WatchedScopeValue,
   CLASSIFICATION,
 } from '@/lib/types/config.types';
+import type { ApplicationSeederOptions } from '@/lib/types/consolidated.types';
 import type { DatabaseClient } from '@/lib/types/database.types';
 import { generateUUID } from '@/lib/utils/index.processing';
 import { getCurrentSeason } from '@/lib/utils/index.time';
-
-import type { DataProcessor } from './data-processor';
-interface ApplicationSeederOptions {
-  db: DatabaseClient;
-  processor: DataProcessor;
-  tables: string[];
-  batchSize: number;
-  skipUsers: boolean;
-}
 
 type DBUser = typeof users.$inferSelect;
 type UserInsert = typeof users.$inferInsert;
@@ -555,6 +547,11 @@ export async function seedOptimizedApplicationData(
   options: ApplicationSeederOptions
 ): Promise<void> {
   const { db, processor, batchSize = API_CONFIG.databaseSeeding.BATCH_SIZE, skipUsers } = options;
+
+  if (!db) {
+    throw new Error('Database client is required for seeding');
+  }
+
   const existingEmails = new Set<string>();
 
   try {

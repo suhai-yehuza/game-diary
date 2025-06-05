@@ -1,16 +1,6 @@
 import { useState, useMemo, useCallback } from 'react';
 
-interface FilterConfig {
-  [key: string]: {
-    defaultValue: string | number;
-    type?: 'string' | 'number' | 'boolean';
-  };
-}
-
-interface UseSearchFiltersOptions {
-  filterConfig: FilterConfig;
-  additionalFilters?: Record<string, any>;
-}
+import { UseSearchFiltersOptions } from '@/lib/types/consolidated.types';
 
 export function useSearchFilters({
   filterConfig,
@@ -18,7 +8,7 @@ export function useSearchFilters({
 }: UseSearchFiltersOptions) {
   // Initialize filter state based on config
   const initialState = useMemo(() => {
-    const state: Record<string, any> = {};
+    const state: Record<string, string | number | boolean> = {};
     Object.entries(filterConfig).forEach(([key, config]) => {
       state[key] = config.defaultValue;
     });
@@ -28,7 +18,7 @@ export function useSearchFilters({
   const [filters, setFilters] = useState(initialState);
 
   // Update individual filter
-  const updateFilter = useCallback((key: string, value: any) => {
+  const updateFilter = useCallback((key: string, value: string | number | boolean) => {
     setFilters(prev => ({ ...prev, [key]: value }));
   }, []);
 
@@ -47,7 +37,9 @@ export function useSearchFilters({
 
   // Build final filters object for GraphQL queries
   const builtFilters = useMemo(() => {
-    const result: Record<string, any> = { ...additionalFilters };
+    const result: Record<string, string | number | boolean> = {
+      ...(additionalFilters as Record<string, string | number | boolean>),
+    };
 
     Object.entries(filters).forEach(([key, value]) => {
       const config = filterConfig[key];
@@ -55,16 +47,16 @@ export function useSearchFilters({
 
       if (!isDefault) {
         // Handle special filter logic
-        if (key === 'searchText' && value.trim()) {
+        if (key === 'searchText' && typeof value === 'string' && value.trim()) {
           result.searchText = value.trim();
         } else if (key === 'rating' && value !== 'all') {
-          const ratingValue = parseInt(value);
+          const ratingValue = typeof value === 'string' ? parseInt(value) : Number(value);
           result.minRating = ratingValue;
           result.maxRating = ratingValue;
         } else if (value !== 'all' && value !== '') {
           // Convert to appropriate type
           if (config?.type === 'number') {
-            result[key] = parseInt(value);
+            result[key] = typeof value === 'string' ? parseInt(value) : Number(value);
           } else if (config?.type === 'boolean') {
             result[key] = value === 'yes' || value === true;
           } else {
