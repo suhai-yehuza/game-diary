@@ -8,8 +8,9 @@ import { startServerAndCreateNextHandler } from '@as-integrations/next';
 import { auth, clerkClient } from '@clerk/nextjs/server';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { constraintDirective, constraintDirectiveTypeDefs } from 'graphql-constraint-directive';
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 
+import { getCorsHeaders, handleApiError, createOptionsResponse } from '@/lib/api/utils';
 import { getCache } from '@/lib/cache';
 import { db } from '@/lib/db/seed';
 import { createLoaders } from '@/lib/graphql/loaders';
@@ -193,72 +194,31 @@ const handler = startServerAndCreateNextHandler(server, {
 export async function GET(request: Request) {
   try {
     const response = await handler(request);
-    response.headers.set(
-      'Access-Control-Allow-Origin',
-      process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-    );
-    response.headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-    response.headers.set('Access-Control-Allow-Headers', 'Content-Type');
+    const headers = getCorsHeaders();
+    Object.entries(headers).forEach(([key, value]) => {
+      response.headers.set(key, value);
+    });
     return response;
   } catch (error) {
     apiLogger.error('GraphQL Error:', error);
-    if (error instanceof Error && error.message.includes('Rate limit exceeded')) {
-      const resetTime = error.message.match(/\d+/)?.[0] || '60';
-      return NextResponse.json(
-        {
-          error: error.message,
-          retryAfter: resetTime,
-        },
-        {
-          status: 429,
-          headers: {
-            'Retry-After': resetTime,
-          },
-        }
-      );
-    }
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return handleApiError(error);
   }
 }
 
 export async function POST(request: Request) {
   try {
     const response = await handler(request);
-    response.headers.set(
-      'Access-Control-Allow-Origin',
-      process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-    );
-    response.headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-    response.headers.set('Access-Control-Allow-Headers', 'Content-Type');
+    const headers = getCorsHeaders();
+    Object.entries(headers).forEach(([key, value]) => {
+      response.headers.set(key, value);
+    });
     return response;
   } catch (error) {
     apiLogger.error('GraphQL Error:', error);
-    if (error instanceof Error && error.message.includes('Rate limit exceeded')) {
-      const resetTime = error.message.match(/\d+/)?.[0] || '60';
-      return NextResponse.json(
-        {
-          error: error.message,
-          retryAfter: resetTime,
-        },
-        {
-          status: 429,
-          headers: {
-            'Retry-After': resetTime,
-          },
-        }
-      );
-    }
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return handleApiError(error);
   }
 }
 
 export async function OPTIONS() {
-  return new NextResponse(null, {
-    status: 204,
-    headers: {
-      'Access-Control-Allow-Origin': process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
-      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
-    },
-  });
+  return createOptionsResponse();
 }

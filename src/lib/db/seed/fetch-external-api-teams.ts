@@ -1,18 +1,16 @@
 import { eq } from 'drizzle-orm';
 
-import { API_CONFIG, getRapidApiConfig, validateAPIKey } from '@/lib/config/api.config';
+import { API_CONFIG } from '@/lib/config/api.config';
 import { teams } from '@/lib/db/schema';
-import { createRapidAPIClient, handleAPIError } from '@/lib/external-apis';
+import { handleAPIError } from '@/lib/external-apis';
 import { seedLogger } from '@/lib/logger';
 import { ApiTeam, type ApiTeamResponse } from '@/lib/types/consolidated.types';
 
-import { createDatabaseClient } from './config';
+import { initializeClients } from './utils/initialize-clients';
+
 export async function fetchAndProcessNBATeams(): Promise<void> {
   try {
-    const db = createDatabaseClient();
-    const rapidApiConfig = getRapidApiConfig();
-    const apiKey = validateAPIKey(rapidApiConfig.apiKey);
-    const api = createRapidAPIClient(apiKey);
+    const { db, api } = initializeClients();
 
     seedLogger.info('Fetching NBA teams...');
 

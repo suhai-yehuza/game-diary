@@ -162,7 +162,7 @@ export default function Header() {
                   className={`${!isMenuExpanded ? 'hidden' : 'block'} lg:block absolute lg:relative top-16 left-0 right-0 lg:top-0 bg-background lg:bg-transparent z-50 shadow-lg lg:shadow-none`}
                 >
                   <ul className="flex flex-col lg:flex-row space-y-2 lg:space-y-0 lg:space-x-20 2xl:space-x-24 p-4 lg:p-0 text-sm font-medium">
-                    {/* Brand & Community Group */}
+                    {/* Brand & Dashboard Group */}
                     <li className="lg:relative">
                       <Link
                         href="/community"
@@ -173,7 +173,7 @@ export default function Header() {
                         }`}
                         onClick={() => setIsMenuExpanded(false)}
                       >
-                        Community
+                        Dashboard
                       </Link>
                       <div className="hidden lg:block absolute -right-10 2xl:-right-12 top-1/2 -translate-y-1/2 h-4 w-px bg-gray-200 dark:bg-gray-700" />
                     </li>

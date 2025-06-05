@@ -8,7 +8,7 @@ import { UserSearchSection } from '@/components/features/users/UserSearchSection
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-export default function CommunityPage() {
+export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState('logs');
 
   return (
@@ -16,7 +16,7 @@ export default function CommunityPage() {
       <div className="max-w-7xl mx-auto space-y-8">
         {/* Page Header */}
         <div className="text-center space-y-2">
-          <h1 className="text-4xl font-bold tracking-tight">Community</h1>
+          <h1 className="text-4xl font-bold tracking-tight">Dashboard</h1>
           <p className="text-muted-foreground text-lg">
             Explore game logs and connect with other fans
           </p>
@@ -64,7 +64,7 @@ export default function CommunityPage() {
           <TabsContent value="members" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Community Members</CardTitle>
+                <CardTitle>Dashboard Members</CardTitle>
                 <CardDescription>Discover and connect with other members</CardDescription>
               </CardHeader>
               <CardContent>

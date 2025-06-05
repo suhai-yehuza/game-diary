@@ -7,12 +7,8 @@ import type {
   GameApiResponse,
   ApiTeamResponse,
 } from '@/lib/types/consolidated.types';
-import type { TeamStats, PlayerStats } from '@/lib/types/generated/graphql';
-import type {
-  APIConfigOptions,
-  StandingApiResponse,
-  LeaguesApiResponse,
-} from '@/lib/types/shared.types';
+import type { TeamStats } from '@/lib/types/generated/graphql';
+import type { APIConfigOptions } from '@/lib/types/shared.types';
 import { sleep } from '@/lib/utils/index.time';
 
 // ============================================================================
@@ -77,58 +73,6 @@ export async function fetchWithRetry(
     await sleep(backoffDelay);
     return fetchWithRetry(url, config, attempts - 1, delayBetweenBatches);
   }
-}
-
-/**
- * Create a generic API client with default configuration
- */
-export function createAPIClient(config: Partial<APIConfigOptions> & { apiKey: string }) {
-  const rapidApiConfig = getRapidApiConfig();
-  const finalConfig: APIConfigOptions = {
-    baseUrl: config.baseUrl ?? rapidApiConfig.baseUrl,
-    apiKey: config.apiKey,
-    host: config.host ?? rapidApiConfig.host,
-    headers: config.headers ?? rapidApiConfig.headers,
-    timeout: config.timeout ?? API_CONFIG.request.timeout,
-    retryAttempts: config.retryAttempts ?? API_CONFIG.request.retryAttempts,
-    retryDelay: config.retryDelay ?? API_CONFIG.request.retryDelay,
-    method: config.method ?? API_CONFIG.request.method,
-  };
-
-  return {
-    async get<T>(endpoint: string): Promise<T> {
-      const url = `${finalConfig.baseUrl}${endpoint}`;
-      const response = await fetchWithRetry(
-        url,
-        {
-          ...finalConfig,
-          body: undefined,
-        },
-        API_CONFIG.rateLimit.MAX_RETRIES,
-        API_CONFIG.rateLimit.BASE_DELAY
-      );
-      return response.json();
-    },
-
-    async post<T>(endpoint: string, data: unknown): Promise<T> {
-      const url = `${finalConfig.baseUrl}${endpoint}`;
-      const response = await fetchWithRetry(
-        url,
-        {
-          ...finalConfig,
-          headers: {
-            ...finalConfig.headers,
-            'Content-Type': 'application/json',
-          },
-          method: 'POST',
-          body: JSON.stringify(data),
-        },
-        API_CONFIG.rateLimit.MAX_RETRIES,
-        API_CONFIG.rateLimit.BASE_DELAY
-      );
-      return response.json();
-    },
-  };
 }
 
 // ============================================================================
@@ -253,19 +197,6 @@ export async function fetchNbaSeasons(): Promise<SeasonApiResponse> {
 }
 
 /**
- * Fetch NBA leagues
- */
-export async function fetchNbaLeagues(): Promise<LeaguesApiResponse> {
-  const res = await fetchWithRetry(
-    `${getNbaApiBaseUrl()}/${API_CONFIG.endpoints.LEAGUES}`,
-    createNbaApiConfig(),
-    API_CONFIG.rateLimit.MAX_RETRIES,
-    API_CONFIG.rateLimit.BASE_DELAY
-  );
-  return await res.json();
-}
-
-/**
  * Fetch NBA games with optional query parameters
  */
 export async function fetchNbaGames(queryParams: string): Promise<GameApiResponse> {
@@ -284,24 +215,6 @@ export async function fetchNbaGames(queryParams: string): Promise<GameApiRespons
   }
 
   return await res.json();
-}
-
-/**
- * Fetch head-to-head games between two teams
- */
-export async function fetchNbaGamesH2H(team1: number, team2: number): Promise<GameApiResponse> {
-  const res = await fetchWithRetry(
-    `${getNbaApiBaseUrl()}/${API_CONFIG.endpoints.GAMES}?h2h=${team1}-${team2}`,
-    createNbaApiConfig(),
-    API_CONFIG.rateLimit.MAX_RETRIES,
-    API_CONFIG.rateLimit.BASE_DELAY
-  );
-
-  if (!res.ok) {
-    throw new Error(`Failed to fetch NBA games. Error: ${res}`);
-  }
-
-  return res.json();
 }
 
 /**
@@ -479,22 +392,6 @@ export async function fetchNbaPlayers(queryParams: string): Promise<PlayerApiRes
 }
 
 /**
- * Fetch NBA game statistics with query parameters
- */
-export async function fetchNbaGameStats(queryParams: string): Promise<StandingApiResponse> {
-  const res = await fetchWithRetry(
-    `${getNbaApiBaseUrl()}/${API_CONFIG.endpoints.GAMES}/statistics?${queryParams}`,
-    createNbaApiConfig(),
-    API_CONFIG.rateLimit.MAX_RETRIES,
-    API_CONFIG.rateLimit.BASE_DELAY
-  );
-  const data = await res.json();
-  return {
-    response: data,
-  } as StandingApiResponse;
-}
-
-/**
  * Fetch NBA team statistics with query parameters
  */
 export async function fetchNbaTeamStats(queryParams: string): Promise<TeamStats> {
@@ -517,103 +414,6 @@ export async function fetchNbaTeamStats(queryParams: string): Promise<TeamStats>
   }
 
   return data.response[0];
-}
-
-/**
- * Fetch NBA player statistics with query parameters
- */
-export async function fetchNbaPlayerStats(queryParams: string): Promise<PlayerStats> {
-  const res = await fetchWithRetry(
-    `${getNbaApiBaseUrl()}/${API_CONFIG.endpoints.PLAYERS}/statistics?${queryParams}`,
-    createNbaApiConfig(),
-    API_CONFIG.rateLimit.MAX_RETRIES,
-    API_CONFIG.rateLimit.BASE_DELAY
-  );
-  const data = await res.json();
-  return data.data[0];
-}
-
-/**
- * Search NBA players with query parameters
- */
-export async function searchNbaPlayers(queryParams: string): Promise<PlayerApiResponse> {
-  const res = await fetchWithRetry(
-    `${getNbaApiBaseUrl()}/${API_CONFIG.endpoints.PLAYERS}?${queryParams}`,
-    createNbaApiConfig(),
-    API_CONFIG.rateLimit.MAX_RETRIES,
-    API_CONFIG.rateLimit.BASE_DELAY
-  );
-  const data = await res.json();
-  return {
-    response: data,
-  } as PlayerApiResponse;
-}
-
-/**
- * Search NBA teams with query parameters
- */
-export async function searchNbaTeams(queryParams: string): Promise<ApiTeamResponse> {
-  const res = await fetchWithRetry(
-    `${getNbaApiBaseUrl()}/${API_CONFIG.endpoints.TEAMS}?${queryParams}`,
-    createNbaApiConfig(),
-    API_CONFIG.rateLimit.MAX_RETRIES,
-    API_CONFIG.rateLimit.BASE_DELAY
-  );
-  const data = await res.json();
-  return {
-    response: data,
-  } as ApiTeamResponse;
-}
-
-/**
- * Fetch NBA game statistics for a specific game
- */
-export async function fetchNbaGameStatistics(gameId: string): Promise<GameApiResponse> {
-  const url = `${getNbaApiBaseUrl()}/${API_CONFIG.endpoints.GAMES}/statistics?id=${gameId}`;
-  const response = await fetchWithRetry(
-    url,
-    createNbaApiConfig(),
-    API_CONFIG.rateLimit.MAX_RETRIES,
-    API_CONFIG.rateLimit.BASE_DELAY
-  );
-  const data = await response.json();
-  return {
-    response: data.response || data,
-  };
-}
-
-export async function fetchNbaPlayerStatistics(playerId: string) {
-  const url = `${getNbaApiBaseUrl()}/${API_CONFIG.endpoints.PLAYERS}/statistics?id=${playerId}`;
-  const response = await fetch(url, {
-    headers: {
-      'x-rapidapi-host': 'api-nba-v1.p.rapidapi.com',
-      'x-rapidapi-key': process.env.RAPIDAPI_KEY || '',
-    },
-  });
-
-  if (!response.ok) {
-    throw new Error(`Failed to fetch player statistics: ${response.statusText}`);
-  }
-
-  const data = await response.json();
-  return data;
-}
-
-export async function fetchNbaTeamStatistics(teamId: string) {
-  const url = `${getNbaApiBaseUrl()}/${API_CONFIG.endpoints.TEAMS}/statistics?id=${teamId}`;
-  const response = await fetch(url, {
-    headers: {
-      'x-rapidapi-host': 'api-nba-v1.p.rapidapi.com',
-      'x-rapidapi-key': process.env.RAPIDAPI_KEY || '',
-    },
-  });
-
-  if (!response.ok) {
-    throw new Error(`Failed to fetch team statistics: ${response.statusText}`);
-  }
-
-  const data = await response.json();
-  return data;
 }
 
 export interface APIResponse<T = unknown> {

@@ -1,14 +1,14 @@
 import { eq } from 'drizzle-orm';
 
-import { API_CONFIG, getRapidApiConfig, validateAPIKey } from '@/lib/config/api.config';
+import { API_CONFIG } from '@/lib/config/api.config';
 import { game_stats, teams } from '@/lib/db/schema';
-import { createRapidAPIClient, handleAPIError } from '@/lib/external-apis';
+import { handleAPIError } from '@/lib/external-apis';
 import { seedLogger } from '@/lib/logger';
 import { GAME_STATUS_VALUES } from '@/lib/types/config.types';
 import type { GameTeamStatistic, TeamStatisticsResponseData } from '@/lib/types/consolidated.types';
 import { generateUUID } from '@/lib/utils/index.processing';
 
-import { createDatabaseClient } from './config';
+import { initializeClients } from './utils/initialize-clients';
 // Database type for game_stats table insertion
 type DBGameStats = typeof game_stats.$inferInsert;
 
@@ -62,10 +62,7 @@ function processTeamStats(stats: GameTeamStatistic, prefix: 'home' | 'away'): Pa
 
 export async function fetchAndProcessNBAGameStats(gameId: string, season: number): Promise<void> {
   try {
-    const db = createDatabaseClient();
-    const rapidApiConfig = getRapidApiConfig();
-    const apiKey = validateAPIKey(rapidApiConfig.apiKey);
-    const api = createRapidAPIClient(apiKey);
+    const { db, api } = initializeClients();
 
     // First check if game stats already exist
     const existingStats = await db.query.game_stats.findFirst({

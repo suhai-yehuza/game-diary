@@ -1,27 +1,45 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Shared gradients -->
+    <linearGradient id="team-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a1a1a;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#333333;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="orange-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FF8C00;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FF6B00;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
   <!-- Background Circle -->
-  <circle cx="100" cy="100" r="90" fill="#1a1a1a"/>
+  <circle cx="100" cy="100" r="90" fill="url(#team-gradient)"/>
   
-  <!-- Court Lines -->
-  <path d="M40 100 L160 100" stroke="#ffffff" stroke-width="2"/>
-  <path d="M100 40 L100 160" stroke="#ffffff" stroke-width="2"/>
-  <circle cx="100" cy="100" r="30" stroke="#ffffff" stroke-width="2" fill="none"/>
+  <!-- Court elements (shared pattern) -->
+  <g stroke="#ffffff" stroke-width="2" fill="none">
+    <path d="M40 100 L160 100"/>
+    <path d="M100 40 L100 160"/>
+    <circle cx="100" cy="100" r="30"/>
+  </g>
   
-  <!-- Basketball -->
-  <circle cx="100" cy="100" r="20" fill="#ff6b00"/>
-  <path d="M80 100 L120 100" stroke="#ffffff" stroke-width="1.5"/>
-  <path d="M100 80 L100 120" stroke="#ffffff" stroke-width="1.5"/>
-  <path d="M85 85 L115 115" stroke="#ffffff" stroke-width="1.5"/>
-  <path d="M85 115 L115 85" stroke="#ffffff" stroke-width="1.5"/>
+  <!-- Basketball icon (shared pattern) -->
+  <g>
+    <circle cx="100" cy="100" r="20" fill="url(#orange-gradient)"/>
+    <g stroke="#ffffff" stroke-width="1.5">
+      <path d="M80 100 L120 100"/>
+      <path d="M100 80 L100 120"/>
+      <path d="M85 85 L115 115"/>
+      <path d="M85 115 L115 85"/>
+    </g>
+  </g>
   
-  <!-- Hoop -->
-  <path d="M140 80 L140 120" stroke="#ffffff" stroke-width="3"/>
-  <path d="M140 80 L160 80" stroke="#ffffff" stroke-width="3"/>
-  <path d="M140 120 L160 120" stroke="#ffffff" stroke-width="3"/>
-  
-  <!-- Backboard -->
-  <rect x="160" y="70" width="10" height="60" fill="#ffffff"/>
+  <!-- Hoop elements (shared pattern) -->
+  <g stroke="#ffffff" fill="#ffffff">
+    <path d="M140 80 L140 120" stroke-width="3"/>
+    <path d="M140 80 L160 80" stroke-width="3"/>
+    <path d="M140 120 L160 120" stroke-width="3"/>
+    <rect x="160" y="70" width="10" height="60"/>
+  </g>
   
   <!-- Outer Ring -->
   <circle cx="100" cy="100" r="90" stroke="#ffffff" stroke-width="2" fill="none"/>

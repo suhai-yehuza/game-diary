@@ -1,13 +1,13 @@
 import { sql } from 'drizzle-orm';
 
-import { API_CONFIG, getRapidApiConfig, validateAPIKey } from '@/lib/config/api.config';
-import { createRapidAPIClient, handleAPIError } from '@/lib/external-apis';
+import { API_CONFIG } from '@/lib/config/api.config';
+import { handleAPIError } from '@/lib/external-apis';
 import { seedLogger } from '@/lib/logger';
 import { PlayerStatistics } from '@/lib/types/consolidated.types';
 import { generateUUID } from '@/lib/utils/index.processing';
 
-import { createDatabaseClient } from './config';
 import { nba_player_stats } from './schema';
+import { initializeClients } from './utils/initialize-clients';
 // Add timeout configuration
 const API_TIMEOUT = 10000; // 10 seconds timeout
 const DB_RETRY_ATTEMPTS = 3;
@@ -37,10 +37,7 @@ export async function fetchAndProcessNBAPlayerStats(
   gameId: string
 ): Promise<void> {
   try {
-    const db = createDatabaseClient();
-    const rapidApiConfig = getRapidApiConfig();
-    const apiKey = validateAPIKey(rapidApiConfig.apiKey);
-    const api = createRapidAPIClient(apiKey);
+    const { db, api } = initializeClients();
 
     // Check if stats already exist in database with retry
     const existingStats = await retryDatabaseOperation(() =>

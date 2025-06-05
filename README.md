@@ -259,7 +259,7 @@ Visit [http://localhost:3000](http://localhost:3000) to see the application.
 src/
 ├── app/                      # Next.js App Router pages
 │   ├── api/                  # API routes
-│   ├── community/            # Community pages
+│   ├── community/            # Dashboard pages
 │   ├── nba/                  # NBA-specific pages
 │   ├── protected/            # Protected user areas
 │   ├── sports/               # Sports category pages
@@ -1094,7 +1094,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Clerk** for authentication infrastructure
 - **Neon** for PostgreSQL hosting
 - **RapidAPI** for NBA data access
-- **Open Source Community** for the amazing tools and libraries
+- **Open Source Dashboard** for the amazing tools and libraries
 
 ## 📞 Support
 

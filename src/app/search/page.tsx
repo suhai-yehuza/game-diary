@@ -8,8 +8,8 @@ import { useSearchParams } from 'next/navigation';
 import React, { Suspense } from 'react';
 
 import { filterGames, processGameData } from '@/app/search/utils/game-search';
+import { useDebounce } from '@/hooks/useDebounce';
 import { GET_GAMES } from '@/lib/graphql/queries';
-import { useDebounce } from '@/lib/hooks/use-debounce';
 import { SearchGame } from '@/lib/types/consolidated.types';
 
 // Helper function to validate state values

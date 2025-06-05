@@ -1,186 +1,28 @@
-import { sql } from 'drizzle-orm';
-
-import { logger } from '@/lib/logger';
-
-import { createDatabaseClient } from '../src/lib/db/seed/config';
-// Get environment from command line argument or default to development
-const environment = process.argv[2] || 'development';
+import { setupAllTriggers } from './shared/database-triggers';
+import {
+  parseScriptArgs,
+  initDatabase,
+  logScriptHeader,
+  logScriptFooter,
+  handleScriptError,
+} from './shared/script-utils';
 
 async function setupTriggers() {
-  logger.info(`🔧 Setting up database triggers for ${environment} environment...`);
-  logger.info('================================================\n');
-
-  const db = createDatabaseClient({ env: environment });
+  const options = parseScriptArgs();
+  logScriptHeader('Database Triggers Setup', options.env!);
 
   try {
-    // Check if triggers already exist
-    logger.info('🔍 Checking for existing triggers...');
+    const db = initDatabase(options.env);
+    await setupAllTriggers(db);
 
-    const existingTriggers = await db.execute(sql`
-      SELECT trigger_name 
-      FROM information_schema.triggers 
-      WHERE trigger_schema = 'public' 
-      AND trigger_name IN ('update_rating_stars_trigger', 'game_logs_ratings_trigger');
-    `);
-
-    const existingTriggerNames = existingTriggers.rows.map((row: any) => row.trigger_name);
-
-    // Create rating stars trigger if it doesn't exist
-    if (!existingTriggerNames.includes('update_rating_stars_trigger')) {
-      logger.info('\n⚡ Creating rating stars trigger...');
-
-      // Create or replace the function
-      await db.execute(sql`
-        CREATE OR REPLACE FUNCTION update_rating_stars()
-        RETURNS TRIGGER AS $$
-        BEGIN
-          NEW."ratingStars" = REPEAT('⭐', NEW."ratingForGame");
-          RETURN NEW;
-        END;
-        $$ LANGUAGE plpgsql;
-      `);
-
-      // Create the trigger
-      await db.execute(sql`
-        CREATE TRIGGER update_rating_stars_trigger
-          BEFORE INSERT OR UPDATE OF "ratingForGame"
-          ON game_logs
-          FOR EACH ROW
-          EXECUTE FUNCTION update_rating_stars();
-      `);
-
-      logger.info('✅ Rating stars trigger created');
-    } else {
-      logger.info('✓ Rating stars trigger already exists');
-    }
-
-    // Create game ratings trigger if it doesn't exist
-    if (!existingTriggerNames.includes('game_logs_ratings_trigger')) {
-      logger.info('\n⚡ Creating game ratings trigger...');
-
-      // Create or replace the function
-      await db.execute(sql`
-        CREATE OR REPLACE FUNCTION update_game_ratings()
-        RETURNS TRIGGER AS $$
-        DECLARE
-            v_id VARCHAR(255);
-        BEGIN
-            IF (TG_OP = 'DELETE') THEN
-                IF NOT EXISTS (SELECT 1 FROM game_logs WHERE "gameId" = OLD."gameId") THEN
-                    DELETE FROM game_ratings WHERE "gameId" = OLD."gameId";
-                ELSE
-                    UPDATE game_ratings
-                    SET 
-                        "averageRating" = (
-                            SELECT ROUND(AVG("ratingForGame")::numeric, 2)
-                            FROM game_logs
-                            WHERE "gameId" = OLD."gameId"
-                        ),
-                        "totalRatings" = (
-                            SELECT COUNT(*)
-                            FROM game_logs
-                            WHERE "gameId" = OLD."gameId"
-                        ),
-                        "updatedAt" = NOW()
-                    WHERE "gameId" = OLD."gameId";
-                END IF;
-                RETURN OLD;
-            END IF;
-
-            IF (TG_OP = 'INSERT') THEN
-                INSERT INTO game_ratings ("id", "gameId", "averageRating", "totalRatings", "createdAt", "updatedAt")
-                SELECT 
-                    gen_random_uuid()::text,
-                    NEW."gameId",
-                    ROUND(AVG("ratingForGame")::numeric, 2),
-                    COUNT(*),
-                    NOW(),
-                    NOW()
-                FROM game_logs
-                WHERE "gameId" = NEW."gameId"
-                ON CONFLICT ("gameId") DO UPDATE
-                SET 
-                    "averageRating" = EXCLUDED."averageRating",
-                    "totalRatings" = EXCLUDED."totalRatings",
-                    "updatedAt" = NOW();
-                RETURN NEW;
-            END IF;
-
-            IF (TG_OP = 'UPDATE') THEN
-                UPDATE game_ratings
-                SET 
-                    "averageRating" = (
-                        SELECT ROUND(AVG("ratingForGame")::numeric, 2)
-                        FROM game_logs
-                        WHERE "gameId" = NEW."gameId"
-                    ),
-                    "totalRatings" = (
-                        SELECT COUNT(*)
-                        FROM game_logs
-                        WHERE "gameId" = NEW."gameId"
-                    ),
-                    "updatedAt" = NOW()
-                WHERE "gameId" = NEW."gameId";
-                RETURN NEW;
-            END IF;
-
-            RETURN NULL;
-        END;
-        $$ LANGUAGE plpgsql;
-      `);
-
-      // Create the trigger
-      await db.execute(sql`
-        CREATE TRIGGER game_logs_ratings_trigger
-            AFTER INSERT OR UPDATE OR DELETE ON game_logs
-            FOR EACH ROW
-            EXECUTE FUNCTION update_game_ratings();
-      `);
-
-      logger.info('✅ Game ratings trigger created');
-    } else {
-      logger.info('✓ Game ratings trigger already exists');
-    }
-
-    // Verify triggers are working
-    logger.info('\n🔍 Verifying triggers...');
-
-    const triggers = await db.execute(sql`
-      SELECT 
-        trigger_name,
-        event_manipulation,
-        event_object_table,
-        action_statement
-      FROM information_schema.triggers 
-      WHERE trigger_schema = 'public' 
-      AND trigger_name IN ('update_rating_stars_trigger', 'game_logs_ratings_trigger')
-      ORDER BY trigger_name;
-    `);
-
-    logger.info('\n📋 Installed triggers:');
-    triggers.rows.forEach((trigger: any) => {
-      logger.info(
-        `  - ${trigger.trigger_name} on ${trigger.event_object_table} (${trigger.event_manipulation})`
-      );
-    });
-
-    // Success summary
-    logger.info('\n================================================');
-    logger.info('🎉 Trigger setup completed successfully!');
-    logger.info('================================================\n');
-
-    logger.info('📝 Next steps:');
-    logger.info('1. Run "npx tsx src/lib/db/seed/test-trigger.ts" to test the triggers');
-    logger.info('2. Use your application - triggers will automatically update ratings');
+    logScriptFooter('Database Triggers Setup', true, [
+      'Run "npx tsx src/lib/db/seed/test-trigger.ts" to test the triggers',
+      'Use your application - triggers will automatically update ratings',
+    ]);
 
     process.exit(0);
   } catch (error) {
-    logger.error('\n❌ Error during trigger setup:', error);
-    logger.error('\n💡 Troubleshooting tips:');
-    logger.error('1. Make sure your database tables exist (run "pnpm db:setup" first)');
-    logger.error('2. Check your database connection in .env');
-    logger.error('3. Ensure you have the necessary permissions to create triggers');
-    process.exit(1);
+    handleScriptError(error, 'Database trigger setup');
   }
 }
 
