@@ -25,7 +25,7 @@ export async function seedTestUser() {
 
     if (existingUser) {
       seedLogger.info('✅ Test user already exists, updating...');
-      
+
       // Update existing test user with current data
       await db
         .update(users)
@@ -39,7 +39,7 @@ export async function seedTestUser() {
         .where(eq(users.id, TEST_USER.id));
     } else {
       seedLogger.info('🆕 Creating new test user...');
-      
+
       // Create new test user with proper types
       await db.insert(users).values({
         ...TEST_USER,
@@ -63,9 +63,9 @@ export async function seedTestUser() {
 export async function cleanupTestUser() {
   try {
     seedLogger.info('🧹 Cleaning up test user...');
-    
+
     await db.delete(users).where(eq(users.id, TEST_USER.id));
-    
+
     seedLogger.info('✅ Test user cleaned up');
   } catch (error) {
     seedLogger.warn('⚠️ Failed to cleanup test user:', error);
@@ -82,8 +82,8 @@ if (require.main === module) {
       console.log('Test user setup complete');
       process.exit(0);
     })
-    .catch((error) => {
+    .catch(error => {
       console.error('Test user setup failed:', error);
       process.exit(1);
     });
-} 
+}

@@ -18,13 +18,13 @@ export async function waitForPageContent(page: Page, maxRetries = 2) {
     try {
       // Wait for main element to exist first
       await page.waitForSelector('main', { timeout: 20000 });
-      
+
       // Simple wait for any content to appear
       await page.waitForFunction(
         () => {
           const main = document.querySelector('main');
           if (!main) return false;
-          
+
           const mainText = main.textContent || '';
           // Accept any meaningful content including loading states
           return mainText.trim().length > 10;
@@ -63,7 +63,7 @@ export async function setupApiMocking(page: Page, withAuth: boolean = true) {
   await page.route('**/api/graphql', (route: Route) => {
     const url = route.request().url();
     console.log(`Mocking GraphQL API call: ${url}`);
-    
+
     // Return a minimal GraphQL response that won't break the app
     route.fulfill({
       status: 200,
@@ -74,10 +74,10 @@ export async function setupApiMocking(page: Page, withAuth: boolean = true) {
             edges: [],
             pageInfo: {
               hasNextPage: false,
-              endCursor: null
-            }
-          }
-        }
+              endCursor: null,
+            },
+          },
+        },
       }),
     });
   });
@@ -86,7 +86,7 @@ export async function setupApiMocking(page: Page, withAuth: boolean = true) {
   await page.route('**/api/**', (route: Route) => {
     const url = route.request().url();
     console.log(`Mocking API call: ${url}`);
-    
+
     // Handle different API endpoints appropriately
     if (url.includes('/api/cache')) {
       route.fulfill({

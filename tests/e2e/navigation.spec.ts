@@ -24,16 +24,16 @@ test.describe('Navigation', () => {
     await setupApiMocking(page, true);
 
     await page.goto('/sports/nba');
-    
+
     // Check that we're on the correct URL first
     await expect(page).toHaveURL(/\/sports\/nba/);
-    
+
     // Wait for main element to appear (should be faster with auth mocked)
     await expect(page.locator('main')).toBeVisible({ timeout: 15000 });
-    
+
     // Verify page has NBA content or loading state
     await expect(page.locator('main')).toContainText(/NBA|Loading|Games/, { timeout: 10000 });
-    
+
     console.log('✅ NBA page loaded successfully with authentication');
   });
 

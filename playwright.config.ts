@@ -15,7 +15,7 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 1,
   /* Opt out of parallel tests on CI. */
   workers: process.env.CI ? 1 : undefined,
-  
+
   /* Configure projects for major browsers with mobile optimizations */
   projects: [
     // Desktop browsers can run in parallel
@@ -24,7 +24,7 @@ export default defineConfig({
       use: { ...devices['Desktop Chrome'] },
     },
     {
-      name: 'firefox', 
+      name: 'firefox',
       use: { ...devices['Desktop Firefox'] },
     },
     {
@@ -34,7 +34,7 @@ export default defineConfig({
     // Mobile Chrome with reduced parallelism
     {
       name: 'Mobile Chrome',
-      use: { 
+      use: {
         ...devices['Pixel 5'],
         launchOptions: {
           args: [
@@ -51,7 +51,7 @@ export default defineConfig({
     // Mobile Safari with maximum stability
     {
       name: 'Mobile Safari',
-      use: { 
+      use: {
         ...devices['iPhone 12'],
         launchOptions: {
           args: [
@@ -93,8 +93,6 @@ export default defineConfig({
     actionTimeout: 15000,
     navigationTimeout: 30000,
   },
-
-
 
   /* Run your local dev server before starting the tests */
   webServer: {

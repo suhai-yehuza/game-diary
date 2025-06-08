@@ -29,28 +29,28 @@ export const TEST_USER = {
  */
 export async function mockClerkAuth(page: Page) {
   // Block external Clerk requests completely for Mobile Safari
-  await page.route('**/clerk.accounts.dev/**', (route) => {
+  await page.route('**/clerk.accounts.dev/**', route => {
     console.log(`Blocking Clerk external request: ${route.request().url()}`);
     route.fulfill({
       status: 200,
       contentType: 'application/json',
-      body: JSON.stringify({ 
+      body: JSON.stringify({
         user: TEST_USER,
         session: { id: 'test_session_123', userId: TEST_USER.id },
-        response: { sessions: [{ id: 'test_session_123', userId: TEST_USER.id }] }
+        response: { sessions: [{ id: 'test_session_123', userId: TEST_USER.id }] },
       }),
     });
   });
 
   // Mock Clerk's client-side authentication
-  await page.addInitScript((testUser) => {
+  await page.addInitScript(testUser => {
     // Mock window.Clerk
     (window as any).Clerk = {
       user: testUser,
       session: {
         id: 'test_session_123',
         userId: testUser.id,
-        status: 'active'
+        status: 'active',
       },
       isLoaded: () => true,
       isSignedIn: () => true,
@@ -66,7 +66,7 @@ export async function mockClerkAuth(page: Page) {
       useUser: () => ({
         user: testUser,
         isLoaded: true,
-        isSignedIn: true
+        isSignedIn: true,
       }),
       useAuth: () => ({
         userId: testUser.id,
@@ -74,21 +74,21 @@ export async function mockClerkAuth(page: Page) {
         isLoaded: true,
         isSignedIn: true,
         getToken: () => Promise.resolve('test_token_123'),
-        signOut: () => Promise.resolve()
+        signOut: () => Promise.resolve(),
       }),
       useSession: () => ({
         session: {
           id: 'test_session_123',
           userId: testUser.id,
-          status: 'active'
+          status: 'active',
         },
-        isLoaded: true
-      })
+        isLoaded: true,
+      }),
     };
   }, TEST_USER);
 
   // Enhanced Clerk API mocking (already handled above but keeping for safety)
-  await page.route('**/clerk.*.dev/**', (route) => {
+  await page.route('**/clerk.*.dev/**', route => {
     console.log(`Additional Clerk blocking: ${route.request().url()}`);
     route.fulfill({
       status: 200,
@@ -96,13 +96,13 @@ export async function mockClerkAuth(page: Page) {
       body: JSON.stringify({
         user: TEST_USER,
         session: { id: 'test_session_123', userId: TEST_USER.id, status: 'active' },
-        success: true
+        success: true,
       }),
     });
   });
 
   // Block Clerk JavaScript files
-  await page.route('**/clerk.*.js', (route) => {
+  await page.route('**/clerk.*.js', route => {
     console.log(`Blocking Clerk JS: ${route.request().url()}`);
     route.fulfill({
       status: 200,
@@ -112,13 +112,13 @@ export async function mockClerkAuth(page: Page) {
   });
 
   // Mock JWT token validation
-  await page.route('**/api/auth/**', (route) => {
+  await page.route('**/api/auth/**', route => {
     route.fulfill({
       status: 200,
       contentType: 'application/json',
       body: JSON.stringify({
         user: TEST_USER,
-        session: { id: 'test_session_123', userId: TEST_USER.id }
+        session: { id: 'test_session_123', userId: TEST_USER.id },
       }),
     });
   });
@@ -129,24 +129,32 @@ export async function mockClerkAuth(page: Page) {
  */
 export async function setupTestAuth(page: Page) {
   await mockClerkAuth(page);
-  
+
   // Set authentication cookies/localStorage
   await page.addInitScript(() => {
-    localStorage.setItem('clerk-session', JSON.stringify({
-      id: 'test_session_123',
-      userId: 'test_user_e2e_123456789',
-      status: 'active'
-    }));
-    
+    localStorage.setItem(
+      'clerk-session',
+      JSON.stringify({
+        id: 'test_session_123',
+        userId: 'test_user_e2e_123456789',
+        status: 'active',
+      })
+    );
+
     // Mock authentication state
-    localStorage.setItem('clerk-user', JSON.stringify({
-      id: 'test_user_e2e_123456789',
-      firstName: 'E2E',
-      lastName: 'TestUser',
-      emailAddresses: [{
-        emailAddress: 'e2e-test@gameapp.test'
-      }]
-    }));
+    localStorage.setItem(
+      'clerk-user',
+      JSON.stringify({
+        id: 'test_user_e2e_123456789',
+        firstName: 'E2E',
+        lastName: 'TestUser',
+        emailAddresses: [
+          {
+            emailAddress: 'e2e-test@gameapp.test',
+          },
+        ],
+      })
+    );
   });
 }
 
@@ -188,10 +196,10 @@ export async function verifyAuthenticated(page: Page) {
  */
 export async function authenticateForE2E(page: Page) {
   await setupTestAuth(page);
-  
+
   // Verify authentication is working
   console.log('Setting up test authentication...');
-  
+
   // Additional verification can be added here
   return TEST_USER;
-} 
+}

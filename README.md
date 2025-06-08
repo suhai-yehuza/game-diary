@@ -235,7 +235,12 @@ pnpm dev
 
 DEBUG=* pnpm dev
 
-pnpm playwright test --reporter=line
+pnpm test:e2e # Run end-to-end tests (auto-cleanup)
+pnpm test:e2e:ui # Run e2e tests with interactive UI (keeps server running for debugging)
+pnpm test:e2e:with-seed # With database seeding (if needed)
+pnpm playwright test --reporter=line # Directly run with playwright bin
+
+pnpm exec playwright show-report # Show test report
 ```
 
 ### 7. Development Workflow
@@ -248,8 +253,6 @@ pnpm dev
 pnpm test              # Run unit tests
 pnpm test:watch        # Run tests in watch mode
 pnpm test:coverage     # Run tests with coverage
-pnpm test:e2e          # Run end-to-end tests
-pnpm test:e2e:ui       # Run e2e tests with UI
 
 # Code quality
 pnpm lint              # Run ESLint
