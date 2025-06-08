@@ -13,45 +13,9 @@ import { handleResolverError } from '../utils';
 
 export const gameLog = async (
   _parent: unknown,
-  { userId, gameId }: { userId: string; gameId: string },
+  { id }: { id: string },
   { db }: Context
 ) => {
-  try {
-    const conditions = [eq(schema.game_logs.userId, userId), eq(schema.game_logs.gameId, gameId)];
-
-    const gameLog = await db
-      .select()
-      .from(schema.game_logs)
-      .where(and(...conditions))
-      .limit(1)
-      .then(rows => rows[0]);
-
-    if (!gameLog) {
-      return null;
-    }
-
-    return {
-      id: gameLog.id,
-      userId: gameLog.userId,
-      gameId: gameLog.gameId,
-      watchedSetting: gameLog.watchedSetting,
-      watchedDate: gameLog.watchedDate,
-      watchedLocation: gameLog.watchedLocation,
-      ratingForGame: gameLog.ratingForGame,
-      watchedScope: gameLog.watchedScope,
-      notes: gameLog.notes,
-      tags: gameLog.tags,
-      classification: gameLog.classification,
-      createdAt: gameLog.createdAt,
-      updatedAt: gameLog.updatedAt,
-      deletedAt: gameLog.deletedAt,
-    };
-  } catch (error) {
-    handleResolverError(error, 'fetch game log');
-  }
-};
-
-export const gameLogById = async (_parent: unknown, { id }: { id: string }, { db }: Context) => {
   try {
     const gameLog = await db
       .select()
@@ -81,7 +45,7 @@ export const gameLogById = async (_parent: unknown, { id }: { id: string }, { db
       deletedAt: gameLog.deletedAt,
     };
   } catch (error) {
-    handleResolverError(error, 'fetch game log by id');
+    handleResolverError(error, 'fetch game log');
   }
 };
 
@@ -324,100 +288,47 @@ export const GameLog = {
     }
     return game;
   },
-  comments: async (parent: { id: string }, args: { first?: number }, { db }: Context) => {
-    try {
-      const limit = args.first || 100;
-      const comments = await db
-        .select()
-        .from(schema.comments)
-        .where(eq(schema.comments.parentId, parent.id))
-        .orderBy(schema.comments.createdAt)
-        .limit(limit);
+  comments: async (parent: { id: string }, args: { first?: number; after?: string }, { db }: any) => {
+    const { first = 10, after } = args;
+    if (!parent.id) return { edges: [], pageInfo: { hasNextPage: false, endCursor: null }, totalCount: 0 };
 
-      const edges = comments.map((comment, index) => ({
-        cursor: Buffer.from(index.toString()).toString('base64'),
-        node: comment,
-      }));
+    // Fetch all comments for this game log, ordered by createdAt
+    const allComments = await db
+      .select()
+      .from(schema.comments)
+      .where(eq(schema.comments.parentId, parent.id))
+      .orderBy(desc(schema.comments.createdAt));
 
-      return {
-        edges,
-        pageInfo: {
-          hasNextPage: comments.length === limit,
-          hasPreviousPage: false,
-          startCursor: edges[0]?.cursor || null,
-          endCursor: edges[edges.length - 1]?.cursor || null,
-        },
-        totalCount: comments.length,
-      };
-    } catch (error) {
-      logger.error('Error fetching comments for game log:', error);
-      return {
-        edges: [],
-        pageInfo: {
-          hasNextPage: false,
-          hasPreviousPage: false,
-          startCursor: null,
-          endCursor: null,
-        },
-        totalCount: 0,
-      };
+    // Find the index of the comment after which to start
+    let startIndex = 0;
+    if (after) {
+      startIndex = allComments.findIndex((c: any) => c.id === after) + 1;
     }
+    const paginatedComments = allComments.slice(startIndex, startIndex + first);
+
+    const edges = paginatedComments.map((comment: any) => ({
+      cursor: comment.id,
+      node: comment,
+    }));
+
+    const hasNextPage = startIndex + first < allComments.length;
+    const endCursor = edges.length > 0 ? edges[edges.length - 1].cursor : null;
+
+    return {
+      edges,
+      pageInfo: {
+        hasNextPage,
+        endCursor,
+      },
+      totalCount: allComments.length,
+    };
   },
-  reactions: async (parent: { id: string }, args: { first?: number }, { db }: Context) => {
-    try {
-      const limit = args.first || 20; // Default to 20 reactions
-
-      // Get total count of reactions
-      const [countResult] = await db
-        .select({ count: sql<number>`cast(count(*) as int)` })
-        .from(schema.reactions)
-        .where(eq(schema.reactions.targetId, parent.id));
-
-      const totalCount = countResult?.count || 0;
-
-      // Fetch limited reactions
-      const reactions = await db
-        .select()
-        .from(schema.reactions)
-        .where(eq(schema.reactions.targetId, parent.id))
-        .orderBy(schema.reactions.createdAt)
-        .limit(limit);
-
-      const edges = reactions.map((reaction, index) => ({
-        cursor: Buffer.from(index.toString()).toString('base64'),
-        node: {
-          id: reaction.id,
-          emoji: reaction.emoji,
-          userId: reaction.userId,
-          targetId: reaction.targetId,
-          targetType: reaction.targetType,
-          createdAt: reaction.createdAt,
-          updatedAt: reaction.updatedAt,
-        },
-      }));
-
-      return {
-        edges,
-        pageInfo: {
-          hasNextPage: reactions.length < totalCount,
-          hasPreviousPage: false,
-          startCursor: edges[0]?.cursor || null,
-          endCursor: edges[edges.length - 1]?.cursor || null,
-        },
-        totalCount, // Always return accurate total count
-      };
-    } catch (error) {
-      logger.error('Error fetching reactions for game log:', error);
-      return {
-        edges: [],
-        pageInfo: {
-          hasNextPage: false,
-          hasPreviousPage: false,
-          startCursor: null,
-          endCursor: null,
-        },
-        totalCount: 0,
-      };
-    }
+  reactions: async (parent, _args, { db }) => {
+    if (!parent.id) return [];
+    const reactions = await db
+      .select()
+      .from(schema.reactions)
+      .where(eq(schema.reactions.targetId, parent.id));
+    return reactions || [];
   },
 };

@@ -1,16 +1,19 @@
+import { GameLogView } from '@src/components/features/games';
 import { auth } from '@clerk/nextjs/server';
 import { redirect } from 'next/navigation';
-import React from 'react';
 
-import { GameLog } from '@src/components/features/game-logs';
-import type { GameLogPageProps } from '@src/lib/types/consolidated.types';
+interface GameLogPageProps {
+  params: Promise<{
+    id: string;
+  }>;
+}
 
 export default async function GameLogPage({ params }: GameLogPageProps) {
   const { userId } = await auth();
-
   if (!userId) {
     redirect('/sign-in');
   }
 
-  return <GameLog gameLogId={params.id} />;
+  const resolvedParams = await params;
+  return <GameLogView gameLogId={resolvedParams.id} />;
 }

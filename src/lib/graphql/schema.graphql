@@ -397,6 +397,8 @@ type Mutation {
   # Reaction mutations
   createReaction(input: CreateReactionInput!): CreateReactionResponse!
   deleteReaction(id: ID!): DeleteReactionResponse!
+  addReaction(emoji: String!, targetId: ID!, targetType: String!): Reaction!
+  removeReaction(emoji: String!, targetId: ID!, targetType: String!): Boolean!
 }
 
 # Connection types
@@ -610,13 +612,13 @@ type Comment {
 
 type Reaction {
   id: ID!
-  emoji: ReactionEmojiType!
-  user: UserSummary!
+  emoji: String!
   userId: ID!
   targetId: ID!
-  targetType: ParentType!
+  targetType: String!
   createdAt: DateTime!
   updatedAt: DateTime!
+  user: DBUser!
 }
 
 # Player types

@@ -651,7 +651,7 @@ export const SEARCH_USERS = gql`
 `;
 
 export const GET_GAME_LOG = gql`
-  query GetGameLog($id: ID!) {
+  query GetGameLog($id: ID!, $commentsFirst: Int, $commentsAfter: String) {
     gameLog(id: $id) {
       ...GameLogFragment
       reactions {
@@ -669,8 +669,9 @@ export const GET_GAME_LOG = gql`
           imageUrl
         }
       }
-      comments(first: 20) {
+      comments(first: $commentsFirst, after: $commentsAfter) {
         edges {
+          cursor
           node {
             id
             content
@@ -680,6 +681,10 @@ export const GET_GAME_LOG = gql`
               imageUrl
             }
           }
+        }
+        pageInfo {
+          hasNextPage
+          endCursor
         }
         totalCount
       }

@@ -1,3 +1,5 @@
+'use client';
+
 import { useMutation, useQuery } from '@apollo/client';
 import { SignInButton } from '@clerk/nextjs';
 import { X, Search } from 'lucide-react';

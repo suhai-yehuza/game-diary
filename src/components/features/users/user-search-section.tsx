@@ -114,122 +114,137 @@ const UserCard = React.memo(({ user }: { user: UserNode }) => {
     return { status: null, friendshipId: null, isReceivedRequest: false };
   }, [currentUser, user.friendships, user.initiatedFriendships]);
 
-  const handleSendFriendRequest = useCallback(async (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleSendFriendRequest = useCallback(
+    async (e: React.MouseEvent<HTMLButtonElement>) => {
+      e.preventDefault();
+      e.stopPropagation();
 
-    try {
-      const { data } = await sendFriendRequest({
-        variables: { userId: user.id },
-        refetchQueries: ['SearchUsers'],
-      });
+      try {
+        const { data } = await sendFriendRequest({
+          variables: { userId: user.id },
+          refetchQueries: ['SearchUsers'],
+        });
 
-      if (data?.sendFriendRequest?.friendship) {
-        toast.success(`Friend request sent to ${displayName}`);
-      } else if (data?.sendFriendRequest?.errors?.[0]) {
-        toast.error(data.sendFriendRequest.errors[0].message);
+        if (data?.sendFriendRequest?.friendship) {
+          toast.success(`Friend request sent to ${displayName}`);
+        } else if (data?.sendFriendRequest?.errors?.[0]) {
+          toast.error(data.sendFriendRequest.errors[0].message);
+        }
+      } catch (error) {
+        logger.error('Error sending friend request:', error);
+        toast.error('An unexpected error occurred');
       }
-    } catch (error) {
-      logger.error('Error sending friend request:', error);
-      toast.error('An unexpected error occurred');
-    }
-  }, [user.id, displayName, sendFriendRequest]);
+    },
+    [user.id, displayName, sendFriendRequest]
+  );
 
-  const handleAcceptRequest = useCallback(async (e: React.MouseEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleAcceptRequest = useCallback(
+    async (e: React.MouseEvent<HTMLDivElement>) => {
+      e.preventDefault();
+      e.stopPropagation();
 
-    if (!friendshipInfo?.friendshipId) return;
+      if (!friendshipInfo?.friendshipId) return;
 
-    try {
-      const { data } = await acceptFriendRequest({
-        variables: { friendshipId: friendshipInfo.friendshipId },
-        refetchQueries: ['SearchUsers'],
-      });
+      try {
+        const { data } = await acceptFriendRequest({
+          variables: { friendshipId: friendshipInfo.friendshipId },
+          refetchQueries: ['SearchUsers'],
+        });
 
-      if (data?.acceptFriendRequest?.friendship) {
-        toast.success(`You are now friends with ${displayName}`);
-        setFriendRequestDropdownOpen(false);
-      } else if (data?.acceptFriendRequest?.errors?.[0]) {
-        toast.error(data.acceptFriendRequest.errors[0].message);
+        if (data?.acceptFriendRequest?.friendship) {
+          toast.success(`You are now friends with ${displayName}`);
+          setFriendRequestDropdownOpen(false);
+        } else if (data?.acceptFriendRequest?.errors?.[0]) {
+          toast.error(data.acceptFriendRequest.errors[0].message);
+        }
+      } catch (error) {
+        logger.error('Error accepting friend request:', error);
+        toast.error('An unexpected error occurred');
       }
-    } catch (error) {
-      logger.error('Error accepting friend request:', error);
-      toast.error('An unexpected error occurred');
-    }
-  }, [friendshipInfo?.friendshipId, displayName, acceptFriendRequest]);
+    },
+    [friendshipInfo?.friendshipId, displayName, acceptFriendRequest]
+  );
 
-  const handleRejectRequest = useCallback(async (e: React.MouseEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleRejectRequest = useCallback(
+    async (e: React.MouseEvent<HTMLDivElement>) => {
+      e.preventDefault();
+      e.stopPropagation();
 
-    if (!friendshipInfo?.friendshipId) return;
+      if (!friendshipInfo?.friendshipId) return;
 
-    try {
-      const { data } = await rejectFriendRequest({
-        variables: { friendshipId: friendshipInfo.friendshipId },
-        refetchQueries: ['SearchUsers'],
-      });
+      try {
+        const { data } = await rejectFriendRequest({
+          variables: { friendshipId: friendshipInfo.friendshipId },
+          refetchQueries: ['SearchUsers'],
+        });
 
-      if (data?.rejectFriendRequest?.friendship) {
-        toast.success('Friend request rejected');
-        setFriendRequestDropdownOpen(false);
-      } else if (data?.rejectFriendRequest?.errors?.[0]) {
-        toast.error(data.rejectFriendRequest.errors[0].message);
+        if (data?.rejectFriendRequest?.friendship) {
+          toast.success('Friend request rejected');
+          setFriendRequestDropdownOpen(false);
+        } else if (data?.rejectFriendRequest?.errors?.[0]) {
+          toast.error(data.rejectFriendRequest.errors[0].message);
+        }
+      } catch (error) {
+        logger.error('Error rejecting friend request:', error);
+        toast.error('An unexpected error occurred');
       }
-    } catch (error) {
-      logger.error('Error rejecting friend request:', error);
-      toast.error('An unexpected error occurred');
-    }
-  }, [friendshipInfo?.friendshipId, rejectFriendRequest]);
+    },
+    [friendshipInfo?.friendshipId, rejectFriendRequest]
+  );
 
-  const handleRemoveFriend = useCallback(async (e: React.MouseEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleRemoveFriend = useCallback(
+    async (e: React.MouseEvent<HTMLDivElement>) => {
+      e.preventDefault();
+      e.stopPropagation();
 
-    if (!friendshipInfo?.friendshipId) return;
+      if (!friendshipInfo?.friendshipId) return;
 
-    try {
-      const { data } = await removeFriend({
-        variables: { friendshipId: friendshipInfo.friendshipId },
-        refetchQueries: ['SearchUsers'],
-      });
+      try {
+        const { data } = await removeFriend({
+          variables: { friendshipId: friendshipInfo.friendshipId },
+          refetchQueries: ['SearchUsers'],
+        });
 
-      if (data?.removeFriend?.success) {
-        toast.success(`You are no longer friends with ${displayName}`);
-        setFriendsDropdownOpen(false);
-      } else if (data?.removeFriend?.errors?.[0]) {
-        toast.error(data.removeFriend.errors[0].message);
+        if (data?.removeFriend?.success) {
+          toast.success(`You are no longer friends with ${displayName}`);
+          setFriendsDropdownOpen(false);
+        } else if (data?.removeFriend?.errors?.[0]) {
+          toast.error(data.removeFriend.errors[0].message);
+        }
+      } catch (error) {
+        logger.error('Error removing friend:', error);
+        toast.error('An unexpected error occurred');
       }
-    } catch (error) {
-      logger.error('Error removing friend:', error);
-      toast.error('An unexpected error occurred');
-    }
-  }, [friendshipInfo?.friendshipId, displayName, removeFriend]);
+    },
+    [friendshipInfo?.friendshipId, displayName, removeFriend]
+  );
 
-  const handleCancelRequest = useCallback(async (e: React.MouseEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleCancelRequest = useCallback(
+    async (e: React.MouseEvent<HTMLDivElement>) => {
+      e.preventDefault();
+      e.stopPropagation();
 
-    if (!friendshipInfo?.friendshipId) return;
+      if (!friendshipInfo?.friendshipId) return;
 
-    try {
-      const { data } = await removeFriend({
-        variables: { friendshipId: friendshipInfo.friendshipId },
-        refetchQueries: ['SearchUsers'],
-      });
+      try {
+        const { data } = await removeFriend({
+          variables: { friendshipId: friendshipInfo.friendshipId },
+          refetchQueries: ['SearchUsers'],
+        });
 
-      if (data?.removeFriend?.success) {
-        toast.success('Friend request cancelled');
-        setSentRequestDropdownOpen(false);
-      } else if (data?.removeFriend?.errors?.[0]) {
-        toast.error(data.removeFriend.errors[0].message);
+        if (data?.removeFriend?.success) {
+          toast.success('Friend request cancelled');
+          setSentRequestDropdownOpen(false);
+        } else if (data?.removeFriend?.errors?.[0]) {
+          toast.error(data.removeFriend.errors[0].message);
+        }
+      } catch (error) {
+        logger.error('Error cancelling friend request:', error);
+        toast.error('An unexpected error occurred');
       }
-    } catch (error) {
-      logger.error('Error cancelling friend request:', error);
-      toast.error('An unexpected error occurred');
-    }
-  }, [friendshipInfo?.friendshipId, removeFriend]);
+    },
+    [friendshipInfo?.friendshipId, removeFriend]
+  );
 
   const handleBlockUser = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -237,9 +252,10 @@ const UserCard = React.memo(({ user }: { user: UserNode }) => {
     toast.error('Block functionality temporarily unavailable');
   }, []);
 
-  const isLoading = useMemo(() => 
-    sendingRequest || acceptingRequest || rejectingRequest || removingFriend
-  , [sendingRequest, acceptingRequest, rejectingRequest, removingFriend]);
+  const isLoading = useMemo(
+    () => sendingRequest || acceptingRequest || rejectingRequest || removingFriend,
+    [sendingRequest, acceptingRequest, rejectingRequest, removingFriend]
+  );
 
   const renderFriendshipStatus = () => {
     if (!friendshipInfo) return null;

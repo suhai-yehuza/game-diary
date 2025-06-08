@@ -7,7 +7,8 @@ import { db } from '@src/lib/db/seed';
 import { apiLogger } from 'lib/core/logger';
 export async function GET(request: Request, context: { params: { id: string } }) {
   try {
-    const { id } = context.params;
+    const params = await context.params;
+    const { id } = params;
     if (!id) {
       return new NextResponse('User ID is required', { status: 400 });
     }

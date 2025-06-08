@@ -1,3 +1,5 @@
+'use client';
+
 import { useMutation } from '@apollo/client';
 import { MoreVertical, Pencil, Trash2 } from 'lucide-react';
 import { useState } from 'react';

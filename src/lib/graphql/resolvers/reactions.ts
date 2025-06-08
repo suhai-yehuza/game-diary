@@ -7,6 +7,7 @@ import type { Context } from '@src/lib/types/component.types';
 import type { PaginationArgs } from '@src/lib/types/resolver.types';
 
 import { handleResolverError, getEmojiKey } from '../utils';
+
 export const reactions = async (
   _parent: unknown,
   args: PaginationArgs & { targetId: string },
@@ -82,4 +83,47 @@ export const Reaction = {
       return null;
     }
   },
+};
+
+export const addReaction = async (_parent, { emoji, targetId, targetType }, { db, user }) => {
+  // Optionally: check if user already reacted with this emoji
+  const [existing] = await db
+    .select()
+    .from(schema.reactions)
+    .where(
+      and(
+        eq(schema.reactions.emoji, emoji),
+        eq(schema.reactions.targetId, targetId),
+        eq(schema.reactions.targetType, targetType),
+        eq(schema.reactions.userId, user.id)
+      )
+    );
+  if (existing) return existing;
+
+  const [reaction] = await db
+    .insert(schema.reactions)
+    .values({
+      emoji,
+      targetId,
+      targetType,
+      userId: user.id,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    })
+    .returning();
+  return reaction;
+};
+
+export const removeReaction = async (_parent, { emoji, targetId, targetType }, { db, user }) => {
+  await db
+    .delete(schema.reactions)
+    .where(
+      and(
+        eq(schema.reactions.emoji, emoji),
+        eq(schema.reactions.targetId, targetId),
+        eq(schema.reactions.targetType, targetType),
+        eq(schema.reactions.userId, user.id)
+      )
+    );
+  return true;
 };
