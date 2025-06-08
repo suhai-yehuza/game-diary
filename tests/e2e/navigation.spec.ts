@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { waitForPageContent, setupApiMocking } from './utils/test-utils';
+import { verifyAuthenticated } from './utils/auth-utils';
 
 test.describe('Navigation', () => {
   test('should navigate to sports pages', async ({ page }) => {
@@ -19,39 +20,26 @@ test.describe('Navigation', () => {
   });
 
   test('should navigate to NBA page', async ({ page }) => {
-    // Setup API mocking to prevent rate limiting
-    await setupApiMocking(page);
+    // Setup API mocking and authentication
+    await setupApiMocking(page, true);
 
     await page.goto('/sports/nba');
     
     // Check that we're on the correct URL first
     await expect(page).toHaveURL(/\/sports\/nba/);
     
-    // Wait for Clerk and Apollo to initialize, then for main content
-    await page.waitForFunction(
-      () => {
-        // Check if basic page structure exists
-        const body = document.body;
-        const main = document.querySelector('main');
-        
-        // Accept page if we have body content, even if main isn't ready yet
-        return body && (
-          main !== null || 
-          body.textContent?.includes('NBA') ||
-          body.textContent?.includes('Loading') ||
-          body.textContent?.includes('Error')
-        );
-      },
-      { timeout: 25000 }
-    );
+    // Wait for main element to appear (should be faster with auth mocked)
+    await expect(page.locator('main')).toBeVisible({ timeout: 15000 });
     
-    // Now check for main element with more patience
-    await expect(page.locator('main')).toBeVisible({ timeout: 10000 });
+    // Verify page has NBA content or loading state
+    await expect(page.locator('main')).toContainText(/NBA|Loading|Games/, { timeout: 10000 });
+    
+    console.log('✅ NBA page loaded successfully with authentication');
   });
 
   test('should navigate to dashboard', async ({ page }) => {
-    // Setup API mocking to prevent rate limiting
-    await setupApiMocking(page);
+    // Setup API mocking and authentication for protected route
+    await setupApiMocking(page, true);
 
     await page.goto('/dashboard');
     await waitForPageContent(page);

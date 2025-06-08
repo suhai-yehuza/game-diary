@@ -1,4 +1,5 @@
 import { expect, type Page, type Route } from '@playwright/test';
+import { setupTestAuth, TEST_USER } from './auth-utils';
 
 /**
  * Wait for the page to fully load including all network requests
@@ -51,9 +52,13 @@ export async function waitForPageContent(page: Page, maxRetries = 2) {
 }
 
 /**
- * Setup API mocking to prevent rate limiting and external dependencies
+ * Setup API mocking and authentication for E2E tests
  */
-export async function setupApiMocking(page: Page) {
+export async function setupApiMocking(page: Page, withAuth: boolean = true) {
+  // Setup test authentication first
+  if (withAuth) {
+    await setupTestAuth(page);
+  }
   // Mock GraphQL API calls
   await page.route('**/api/graphql', (route: Route) => {
     const url = route.request().url();
