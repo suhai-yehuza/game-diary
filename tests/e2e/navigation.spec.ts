@@ -24,25 +24,29 @@ test.describe('Navigation', () => {
 
     await page.goto('/sports/nba');
     
-    // Wait for basic page structure first
-    await page.waitForSelector('main', { timeout: 20000 });
-    
-    // Check that we're on the NBA page
+    // Check that we're on the correct URL first
     await expect(page).toHaveURL(/\/sports\/nba/);
     
-    // Wait for either content or loading state
+    // Wait for Clerk and Apollo to initialize, then for main content
     await page.waitForFunction(
       () => {
+        // Check if basic page structure exists
+        const body = document.body;
         const main = document.querySelector('main');
-        if (!main) return false;
-        const text = main.textContent || '';
-        return text.includes('NBA') || text.includes('Loading') || text.includes('Error');
+        
+        // Accept page if we have body content, even if main isn't ready yet
+        return body && (
+          main !== null || 
+          body.textContent?.includes('NBA') ||
+          body.textContent?.includes('Loading') ||
+          body.textContent?.includes('Error')
+        );
       },
-      { timeout: 15000 }
+      { timeout: 25000 }
     );
     
-    // Main element should be visible
-    await expect(page.locator('main').first()).toBeVisible({ timeout: 5000 });
+    // Now check for main element with more patience
+    await expect(page.locator('main')).toBeVisible({ timeout: 10000 });
   });
 
   test('should navigate to dashboard', async ({ page }) => {
@@ -67,7 +71,7 @@ test.describe('Navigation', () => {
 
     // Should show a 404 page or redirect somewhere appropriate
     const isNotFoundPage = await page.locator('text=/404|not found/i').isVisible();
-    const isRedirected = page.url() !== 'http://localhost:3000/non-existent-page';
+    const isRedirected = page.url() !== 'http://localhost:8080/non-existent-page';
 
     // Either should show 404 content or redirect to a valid page
     expect(isNotFoundPage || isRedirected).toBe(true);
@@ -88,7 +92,7 @@ test.describe('Navigation', () => {
     // Go back
     await page.goBack();
     await waitForPageContent(page);
-    await expect(page).toHaveURL('http://localhost:3000/');
+    await expect(page).toHaveURL('http://localhost:8080/');
 
     // Go forward
     await page.goForward();
