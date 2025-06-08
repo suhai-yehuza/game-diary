@@ -4,7 +4,6 @@
 import type * as React from 'react';
 import type DataLoader from 'dataloader';
 import type { InferSelectModel } from 'drizzle-orm';
-import type { ReactNode, CSSProperties } from 'react';
 
 import type { nba_games } from '@src/lib/db/schema/nba-schemas';
 import type { GameRating } from '@src/lib/types/game-log.types';
@@ -27,9 +26,9 @@ export interface Loaders {
   user: DataLoader<string, DbUser | null>;
   game: DataLoader<string, Game | null>;
   gameLog: DataLoader<string, GameLog | null>;
-  comment: DataLoader<string, import('./generated/graphql').Comment | null>;
-  reaction: DataLoader<string, import('./generated/graphql').Reaction | null>;
-  friendship: DataLoader<string, import('./generated/graphql').Friendship | null>;
+  comment: DataLoader<string, Comment | null>;
+  reaction: DataLoader<string, Reaction | null>;
+  friendship: DataLoader<string, Friendship | null>;
   player: DataLoader<string, DBPlayer | null>;
   gameRating: DataLoader<string, GameRating | null>;
   team: DataLoader<string, Team | null>;

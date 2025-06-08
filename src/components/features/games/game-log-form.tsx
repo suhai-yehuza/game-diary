@@ -1,6 +1,5 @@
 'use client';
 
-import { useMutation } from '@apollo/client';
 import { zodResolver } from '@hookform/resolvers/zod';
 import React, { useState, useEffect } from 'react';
 import ReactDatePickerOriginal from 'react-datepicker';
@@ -57,23 +56,19 @@ import {
   SelectValue,
 } from '@src/components/ui/select';
 import { Textarea } from '@src/components/ui/textarea';
-import { useToast } from '@src/components/ui/use-toast';
-import { CREATE_GAME_LOG } from '@src/lib/graphql/mutations';
-import { logger } from 'lib/core/logger';
 import { WATCHED_SETTING, CLASSIFICATION, WATCHED_SCOPE } from '@src/lib/types/config.types';
 import type { GameLogFormProps, Game } from '@src/lib/types/consolidated.types';
 import type { ReactDatePickerProps } from '@src/lib/types/game-log.types';
 import type { CreateGameLogInput } from '@src/lib/types/generated/graphql';
 import { createGameLogSchema } from '@src/lib/validations/game-log';
+
 export function GameLogForm({
-  onSuccess,
   formData: externalFormData,
   selectedGame: externalSelectedGame,
   loading: externalLoading,
   onCancel,
   submitLabel = 'Save',
 }: GameLogFormProps) {
-  const { toast } = useToast();
   const form = useForm<CreateGameLogInput>({
     resolver: zodResolver(createGameLogSchema),
     defaultValues: externalFormData || {
@@ -109,9 +104,7 @@ export function GameLogForm({
   const finalSelectedGame = externalSelectedGame || selectedGame;
   const isLoading = externalLoading || false;
 
-  const [createGameLog, { loading: creating }] = useMutation(CREATE_GAME_LOG);
-
-  const loading = isLoading || creating;
+  const loading = isLoading;
 
   const formatGameDateDisplay = (game: Game | null) => {
     if (!game) return '';

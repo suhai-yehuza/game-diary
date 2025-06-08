@@ -1,6 +1,6 @@
-import { test, expect } from '@playwright/test';
+import { test } from './utils/global-setup';
+import { expect } from '@playwright/test';
 import { waitForPageContent, setupApiMocking } from './utils/test-utils';
-import { verifyAuthenticated } from './utils/auth-utils';
 
 test.describe('Navigation', () => {
   test('should navigate to sports pages', async ({ page }) => {
@@ -34,7 +34,11 @@ test.describe('Navigation', () => {
     // Verify page has NBA content or loading state
     await expect(page.locator('main')).toContainText(/NBA|Loading|Games/, { timeout: 10000 });
 
-    console.log('✅ NBA page loaded successfully with authentication');
+    // Use test.info() for test logging instead of console.log
+    test.info().annotations.push({
+      type: 'success',
+      description: 'NBA page loaded successfully with authentication',
+    });
   });
 
   test('should navigate to dashboard', async ({ page }) => {

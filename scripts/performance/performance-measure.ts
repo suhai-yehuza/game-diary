@@ -146,9 +146,15 @@ async function measureTypecheck(): Promise<PerformanceMetrics['typecheck']> {
         line => line.includes('error TS') || (line.includes('Found ') && line.includes('error'))
       );
     errors = errorLines.length;
-  } catch (error: any) {
+  } catch (error: unknown) {
     // TypeScript errors will cause execSync to throw
-    const output = error.stdout || error.stderr || '';
+    let output = '';
+    if (error && typeof error === 'object' && ('stdout' in error || 'stderr' in error)) {
+      output =
+        (error as { stdout?: string; stderr?: string }).stdout ||
+        (error as { stdout?: string; stderr?: string }).stderr ||
+        '';
+    }
     const errorLines = output
       .split('\n')
       .filter(

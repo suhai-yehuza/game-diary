@@ -92,6 +92,14 @@ export default defineConfig({
     /* Increase timeout for mobile browsers */
     actionTimeout: 15000,
     navigationTimeout: 30000,
+
+    /* Fail tests on console errors */
+    launchOptions: {
+      args: ['--disable-dev-shm-usage'],
+    },
+    contextOptions: {
+      ignoreHTTPSErrors: true,
+    },
   },
 
   /* Run your local dev server before starting the tests */

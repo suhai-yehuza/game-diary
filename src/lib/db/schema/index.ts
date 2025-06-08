@@ -4,7 +4,6 @@ import {
   notificationTypeEnum,
   reactionTypeEnum,
   watchedSettingEnum,
-  friendshipStatusEnum,
 } from '@src/lib/db/schema/enums';
 import { game_logs, game_ratings, games } from '@src/lib/db/schema/game-schemas';
 import {

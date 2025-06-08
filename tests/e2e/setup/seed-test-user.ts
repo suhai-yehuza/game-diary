@@ -10,6 +10,7 @@ import { db } from '@src/lib/db';
 import { users } from '@src/lib/db/schema';
 import { seedLogger } from 'lib/core/logger';
 import { TEST_USER } from '../utils/auth-utils';
+import type { ClerkExternalAccount } from '@src/lib/types/user.types';
 
 /**
  * Ensure test user exists in database for E2E tests
@@ -33,7 +34,7 @@ export async function seedTestUser() {
           ...TEST_USER,
           inboundFriendshipIds: [] as string[],
           outboundFriendshipIds: [] as string[],
-          external_accounts: [] as any[],
+          external_accounts: [] as ClerkExternalAccount[],
           updatedAt: new Date(),
         })
         .where(eq(users.id, TEST_USER.id));
@@ -45,7 +46,7 @@ export async function seedTestUser() {
         ...TEST_USER,
         inboundFriendshipIds: [] as string[],
         outboundFriendshipIds: [] as string[],
-        external_accounts: [] as any[],
+        external_accounts: [] as ClerkExternalAccount[],
       });
     }
 
@@ -79,11 +80,11 @@ export async function cleanupTestUser() {
 if (require.main === module) {
   seedTestUser()
     .then(() => {
-      console.log('Test user setup complete');
+      seedLogger.info('Test user setup complete');
       process.exit(0);
     })
     .catch(error => {
-      console.error('Test user setup failed:', error);
+      seedLogger.error('Test user setup failed:', error);
       process.exit(1);
     });
 }

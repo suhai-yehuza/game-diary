@@ -148,7 +148,7 @@ async function checkExistingTriggers(
     AND trigger_name IN ('update_rating_stars_trigger', 'game_logs_ratings_trigger');
   `);
 
-  return existingTriggers.rows.map((row: any) => row.trigger_name);
+  return existingTriggers.rows.map(row => (row as { trigger_name: string }).trigger_name);
 }
 
 async function verifyTriggers(db: ReturnType<typeof createDatabaseClient>): Promise<void> {
@@ -167,10 +167,13 @@ async function verifyTriggers(db: ReturnType<typeof createDatabaseClient>): Prom
   `);
 
   logger.info('📋 Installed triggers:');
-  triggers.rows.forEach((trigger: any) => {
-    logger.info(
-      `  - ${trigger.trigger_name} on ${trigger.event_object_table} (${trigger.event_manipulation})`
-    );
+  triggers.rows.forEach(trigger => {
+    const t = trigger as {
+      trigger_name: string;
+      event_object_table: string;
+      event_manipulation: string;
+    };
+    logger.info(`  - ${t.trigger_name} on ${t.event_object_table} (${t.event_manipulation})`);
   });
 }
 

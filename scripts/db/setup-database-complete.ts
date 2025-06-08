@@ -21,9 +21,13 @@ async function runCommand(command: string, description: string): Promise<void> {
     if (stdout) logger.info(stdout);
     if (stderr && !stderr.includes('Warning') && !stderr.includes('deprecat')) logger.error(stderr);
     logger.info(`✅ ${description} completed`);
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error(`❌ Failed: ${description}`);
-    logger.error(error.message);
+    if (error instanceof Error) {
+      logger.error(error.message);
+    } else {
+      logger.error(String(error));
+    }
     throw error;
   }
 }

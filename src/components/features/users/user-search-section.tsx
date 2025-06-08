@@ -86,7 +86,7 @@ const UserCard = ({ user }: { user: UserNode }) => {
         return 'Recently';
       }
       return formatDistanceToNow(date, { addSuffix: true });
-    } catch (__error) {
+    } catch {
       return 'Recently';
     }
   }, [user.createdAt]);

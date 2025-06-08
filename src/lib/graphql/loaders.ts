@@ -1,5 +1,5 @@
 import DataLoader from 'dataloader';
-import { inArray } from 'drizzle-orm';
+import { inArray, type InferSelectModel } from 'drizzle-orm';
 import type { NeonHttpDatabase } from 'drizzle-orm/neon-http';
 
 import { getCache } from '@src/lib/cache';
@@ -13,13 +13,16 @@ import type {
   Reaction,
   Team,
   ParentType as GraphQLParentType,
-  TeamSummary,
-  TeamScore,
   GameTeams,
   GameScores,
   ReactionEmojiType as GraphQLReactionEmojiType,
+  TeamScore,
+  GameDate,
+  GameStatus,
+  GamePeriods,
+  Arena,
+  TeamSummary,
 } from '@src/lib/types/generated/graphql';
-import type { DBPlayer, DBGameData, DBArenaData } from '@src/lib/types/shared.types';
 
 // Type definitions
 type UserSummary = {
@@ -32,6 +35,56 @@ type UserSummary = {
   __typename: 'UserSummary';
 };
 
+type DBTeam = {
+  id: string;
+  createdAt: Date | null;
+  updatedAt: Date | null;
+  deletedAt: Date | null;
+  name: string;
+  code: string;
+  city: string;
+  state: string;
+  country: string;
+  conference: string | null;
+  division: string | null;
+  logoUrl: string | null;
+  isActive: boolean;
+};
+
+type DBPlayer = {
+  id: string;
+  firstName: string;
+  lastName: string;
+  position: string;
+  jerseyNumber: string;
+  isActive: boolean;
+  teamId: string;
+  birth: {
+    date: string;
+    country: string;
+    state: string | null;
+    city: string | null;
+  };
+  nba: {
+    start: number;
+    pro: number;
+  };
+  height: {
+    feets: string;
+    inches: string;
+    meters: string;
+  };
+  weight: {
+    pounds: string;
+    kilograms: string;
+  };
+  college: string | null;
+  affiliation: string | null;
+  seasons_active?: { season: number; teams: string[] }[];
+  createdAt: Date;
+  updatedAt: Date;
+};
+
 type ReactionEmojiType = GraphQLReactionEmojiType;
 type ParentType = GraphQLParentType;
 
@@ -40,9 +93,6 @@ const CACHE_TTL = 60 * 5; // 5 minutes
 const CACHE_PREFIX = 'graphql:loader:';
 
 // Helper functions
-const isDateObj = (d: unknown): d is Date =>
-  typeof d === 'object' && d !== null && Object.prototype.toString.call(d) === '[object Date]';
-
 const getEmojiKey = (emojiCharacter: string): ReactionEmojiType => {
   const entry = Object.entries(REACTION_EMOJIS).find(([, char]) => char === emojiCharacter);
   if (!entry) {
@@ -141,8 +191,107 @@ export function createLoaders(database: NeonHttpDatabase<typeof schema>) {
         const game = games.find(g => g.id === id);
         if (!game) return null;
 
-        // Transform game data (existing transformation logic)
-        return transformGameData(game);
+        // Only pick the required fields for team mapping
+        const homeTeamRaw = game.teams?.home;
+        const visitorsTeamRaw = game.teams?.visitors;
+        const homeTeam = homeTeamRaw
+          ? {
+              id: String(homeTeamRaw.id),
+              name: homeTeamRaw.name,
+              code: homeTeamRaw.code,
+              logoUrl: homeTeamRaw.logo ?? null,
+            }
+          : undefined;
+        const visitorsTeam = visitorsTeamRaw
+          ? {
+              id: String(visitorsTeamRaw.id),
+              name: visitorsTeamRaw.name,
+              code: visitorsTeamRaw.code,
+              logoUrl: visitorsTeamRaw.logo ?? null,
+            }
+          : undefined;
+
+        // Type guards for scores
+        const homeScores =
+          game.scores && typeof game.scores.home === 'object' && game.scores.home !== null
+            ? game.scores.home
+            : undefined;
+        const visitorsScores =
+          game.scores && typeof game.scores.visitors === 'object' && game.scores.visitors !== null
+            ? game.scores.visitors
+            : undefined;
+
+        // Transform game data to match GraphQL Game type
+        return {
+          id: game.id,
+          date: {
+            start: game.date?.start || new Date().toISOString(),
+            end: game.date?.end || null,
+            duration: game.date?.duration || null,
+          } as GameDate,
+          status: {
+            long: game.status?.long || '',
+            short: game.status?.short?.toString() || '',
+            clock: game.status?.clock || null,
+            halftime: game.status?.halftime || false,
+          } as GameStatus,
+          teams: {
+            home: mapDbTeamToGameTeam(homeTeam as DBTeam),
+            visitors: mapDbTeamToGameTeam(visitorsTeam as DBTeam),
+          } as GameTeams,
+          scores: {
+            home: {
+              points: homeScores?.points || 0,
+              win: getScoreValue(homeScores, 'win'),
+              loss: getScoreValue(homeScores, 'loss'),
+              series: {
+                win: homeScores?.series ? getScoreValue(homeScores.series, 'win') : 0,
+                loss: homeScores?.series ? getScoreValue(homeScores.series, 'loss') : 0,
+              },
+              linescore: homeScores?.linescore || [],
+            } as TeamScore,
+            visitors: {
+              points: visitorsScores?.points || 0,
+              win: getScoreValue(visitorsScores, 'win'),
+              loss: getScoreValue(visitorsScores, 'loss'),
+              series: {
+                win: visitorsScores?.series ? getScoreValue(visitorsScores.series, 'win') : 0,
+                loss: visitorsScores?.series ? getScoreValue(visitorsScores.series, 'loss') : 0,
+              },
+              linescore: visitorsScores?.linescore || [],
+            } as TeamScore,
+          } as GameScores,
+          arena: game.arena
+            ? ({
+                name: game.arena.name || '',
+                city: game.arena.city || '',
+                state: game.arena.state || null,
+                country: game.arena.country || null,
+              } as Arena)
+            : null,
+          league: game.league,
+          season: game.season,
+          stage: game.stage,
+          periods: game.periods
+            ? ({
+                current: game.periods.current || 0,
+                total: game.periods.total || 0,
+                endOfPeriod: game.periods.endOfPeriod || false,
+              } as GamePeriods)
+            : null,
+          officials: game.officials || [],
+          timesTied: game.timesTied || 0,
+          leadChanges: game.leadChanges || 0,
+          nugget: game.nugget || null,
+          createdAt: game.createdAt,
+          updatedAt: game.updatedAt,
+          homeTeamId: homeTeam?.id.toString() || '',
+          awayTeamId: visitorsTeam?.id.toString() || '',
+          isCompleted: game.status?.short === 'Final',
+          homeTeamScore: homeScores?.points || 0,
+          awayTeamScore: visitorsScores?.points || 0,
+          gameType: 'REGULAR',
+        } as Game;
       });
     },
     (key: string) => `${CACHE_PREFIX}game:${key}`
@@ -189,28 +338,24 @@ export function createLoaders(database: NeonHttpDatabase<typeof schema>) {
         id: player.id,
         firstName: player.firstName,
         lastName: player.lastName,
+        position: player.pos || '',
+        jerseyNumber: player.jersey || '',
+        isActive: player.active || false,
+        teamId: '', // This seems to be missing in the schema
         birth: player.birth as DBPlayer['birth'],
         nba: player.nba as DBPlayer['nba'],
         height: player.height as DBPlayer['height'],
         weight: player.weight as DBPlayer['weight'],
-        college: player.college || undefined,
-        affiliation: player.affiliation || undefined,
-        leagues: {
-          standard: {
-            jersey: player.jersey || undefined,
-            active: player.active || undefined,
-            pos: player.pos || undefined,
-          },
-          sacramento: undefined,
-          utah: undefined,
-          vegas: undefined,
-        },
+        college: player.college || null,
+        affiliation: player.affiliation || null,
         seasons_active: player.seasonsActive
           ? player.seasonsActive.map((s: { season: number; teamIds: string[] }) => ({
               season: s.season,
               teams: s.teamIds,
             }))
           : undefined,
+        createdAt: player.createdAt,
+        updatedAt: player.updatedAt,
       });
     });
 
@@ -290,295 +435,27 @@ export function createLoaders(database: NeonHttpDatabase<typeof schema>) {
   };
 }
 
-// Helper function to transform game data
-function transformGameData(game: DBGameData): Game {
-  const teams = game.teams || {};
-  const homeTeam = teams.home || {};
-  const awayTeam = teams.visitors || {};
-
-  // Ensure all fields are present and correct type for TeamSummary
-  const toTeamSummary = (team: any): TeamSummary => ({
-    id: String(team.id ?? ''),
-    name: String(team.name ?? ''),
-    nickname: String(team.nickname ?? ''),
-    code: String(team.code ?? ''),
-    logo: team.logo !== undefined && team.logo !== null ? String(team.logo) : null,
-    __typename: 'TeamSummary',
-  });
-
-  const transformedTeams = createSafeGameTeams(teams);
-
-  // Ensure all fields are present and correct type for TeamScore
-  const toTeamScore = (score: any): TeamScore => ({
-    win: typeof score.win === 'number' ? score.win : 0,
-    loss: typeof score.loss === 'number' ? score.loss : 0,
-    linescore: Array.isArray(score.linescore) ? score.linescore.map(Number) : [],
-    points: typeof score.points === 'number' ? score.points : 0,
-    series: {
-      win: score.series && typeof score.series.win === 'number' ? score.series.win : 0,
-      loss: score.series && typeof score.series.loss === 'number' ? score.series.loss : 0,
-      __typename: 'SeriesScore',
-    },
-    __typename: 'TeamScore',
-  });
-
-  const scores = (game.scores as Record<string, Record<string, unknown>>) || {};
-  const homeScores = scores.home || {};
-  const awayScores = scores.visitors || {};
-
-  const transformedScores = createSafeGameScores(scores);
-
-  const status = (game.status as Record<string, unknown>) || {};
-  const periods = (game.periods as Record<string, unknown>) || {};
-
-  return {
-    id: game.id,
-    date: {
-      start: (() => {
-        try {
-          const parsedDate = new Date(game.date as string);
-          return isNaN(parsedDate.getTime()) ? new Date(0).toISOString() : parsedDate.toISOString();
-        } catch (error) {
-          console.warn(`Error parsing start date for game ${game.id}:`, error);
-          return new Date(0).toISOString();
-        }
-      })(),
-      end: null,
-      duration: null,
-      __typename: 'GameDate',
-    },
-    status: {
-      clock: (status.clock as string) || null,
-      halftime: (status.halftime as boolean) || false,
-      short: (status.short as string) || 'SCHEDULED',
-      long: (status.long as string) || 'SCHEDULED',
-      __typename: 'GameStatus',
-    },
-    arena: game.arena ? transformArenaData(game.arena as DBArenaData) : null,
-    periods: {
-      current: (periods.current as number) || 1,
-      total: (periods.total as number) || 4,
-      endOfPeriod: (periods.endOfPeriod as boolean) || false,
-      __typename: 'GamePeriods',
-    },
-    teams: transformedTeams,
-    scores: transformedScores,
-    league: game.league || null,
-    season: game.season || null,
-    officials: Array.isArray(game.officials) ? (game.officials as string[]) : [],
-    timesTied: game.timesTied || null,
-    leadChanges: game.leadChanges || null,
-    nugget: game.nugget || null,
-    createdAt: new Date(game.createdAt),
-    updatedAt: new Date(game.updatedAt),
-    isCompleted: status.long === 'FINISHED',
-    homeTeamId: String(homeTeam.id || ''),
-    awayTeamId: String(awayTeam.id || ''),
-    gameType: 'REGULAR',
-    __typename: 'Game',
-  };
-}
-
-// Helper transformation functions
-function transformArenaData(arena: DBArenaData | string | null): {
-  name: string;
-  city: string;
-  state: string | null;
-  country: string | null;
-} | null {
-  if (typeof arena === 'string') {
-    return { name: arena, city: '', state: null, country: null };
+// Helper function to map database team to GraphQL team
+function mapDbTeamToGameTeam(dbTeam: DBTeam | undefined): TeamSummary {
+  if (!dbTeam) {
+    return {
+      id: '',
+      name: '',
+      nickname: '',
+      code: '',
+      logo: null,
+      __typename: 'TeamSummary',
+    };
   }
-  if (!arena) return null;
   return {
-    name: arena.name || '',
-    city: arena.city || '',
-    state: arena.state || null,
-    country: arena.country || null,
+    id: dbTeam.id,
+    name: dbTeam.name,
+    nickname: dbTeam.name,
+    code: dbTeam.code,
+    logo: dbTeam.logoUrl || null,
+    __typename: 'TeamSummary',
   };
 }
-
-// Team Loader
-export const createTeamLoader = () => {
-  return new DataLoader<string, Team | null>(async teamIds => {
-    const teamRecords = await db.query.teams.findMany({
-      where: inArray(schema.teams.id, Array.from(teamIds)),
-    });
-    return teamIds.map(id => {
-      const team = teamRecords.find((t: any) => t.id === id);
-      if (!team) return null;
-      return {
-        id: team.id,
-        name: team.name,
-        nickname: team.name ?? null,
-        code: team.code ?? null,
-        city: team.city,
-        logo: team.logoUrl ?? null,
-        conference: team.conference ?? null,
-        division: team.division ?? null,
-        createdAt: new Date(0),
-        updatedAt: new Date(0),
-        logoUrl: team.logoUrl ?? null,
-        __typename: 'Team',
-      } as Team;
-    });
-  });
-};
-
-// Game Loader with Stats
-export const createGameLoader = () => {
-  return new DataLoader<string, Game | null>(async gameIds => {
-    const games = await db.query.nba_games.findMany({
-      where: inArray(schema.nba_games.id, Array.from(gameIds)),
-    });
-    return gameIds.map(id => {
-      const game = games.find((g: any) => g.id === id);
-      if (!game) return null;
-
-      // Safe type handling for complex fields
-      const teams = game.teams || {};
-      const homeTeamId =
-        typeof teams === 'object' &&
-        teams !== null &&
-        'home' in teams &&
-        teams.home &&
-        typeof teams.home === 'object' &&
-        'id' in teams.home
-          ? String(teams.home.id)
-          : '';
-
-      const awayTeamId =
-        typeof teams === 'object' &&
-        teams !== null &&
-        'visitors' in teams &&
-        teams.visitors &&
-        typeof teams.visitors === 'object' &&
-        'id' in teams.visitors
-          ? String(teams.visitors.id)
-          : '';
-
-      return {
-        id: game.id,
-        date: createSafeGameDate(game.date),
-        status: {
-          clock: game.status?.clock || null,
-          halftime: game.status?.halftime || false,
-          short: String(game.status?.short || ''),
-          long: game.status?.long || GAME_STATUS_VALUES.SCHEDULED,
-        },
-        arena: {
-          name: typeof game.arena === 'string' ? game.arena : game.arena?.name || '',
-          city: typeof game.arena === 'string' ? '' : game.arena?.city || '',
-          state: typeof game.arena === 'string' ? '' : game.arena?.state || '',
-          country: typeof game.arena === 'string' ? '' : game.arena?.country || '',
-        },
-        league: game.league || 'NBA',
-        season: game.season || new Date().getFullYear(),
-        stage: game.stage || 1,
-        periods: {
-          current:
-            typeof game.periods === 'object' && game.periods !== null
-              ? (game.periods as { current: number }).current
-              : 0,
-          total: 4,
-          endOfPeriod: false,
-        },
-        teams: createSafeGameTeams(game.teams),
-        scores: createSafeGameScores(game.scores),
-        officials: Array.isArray(game.officials) ? game.officials.map(String) : [],
-        timesTied: game.timesTied || 0,
-        leadChanges: game.leadChanges || 0,
-        nugget: game.nugget || null,
-        createdAt: new Date(game.createdAt),
-        updatedAt: new Date(game.updatedAt),
-        homeTeamId,
-        awayTeamId,
-        isCompleted:
-          game.status && typeof game.status === 'object' && 'long' in game.status
-            ? game.status.long === GAME_STATUS_VALUES.FINISHED
-            : false,
-        awayTeamScore: game.scores?.visitors?.points ?? null,
-        homeTeamScore: game.scores?.home?.points ?? null,
-        gameType: 'REGULAR',
-        nbaGameId: game.id,
-        __typename: 'Game',
-      } as Game;
-    });
-  });
-};
-
-// Database Game Loader
-export const createDbGameLoader = () => {
-  return new DataLoader<string, Game | null>(async (ids: readonly string[]) => {
-    const games = await db
-      .select()
-      .from(schema.nba_games)
-      .where(inArray(schema.nba_games.id, Array.from(ids)));
-
-    return ids.map(id => {
-      const game = games.find((g: any) => g.id === id);
-      if (!game) {
-        return null;
-      }
-
-      const gameData: Game = {
-        id: game.id,
-        date: createSafeGameDate(game.date),
-        status: {
-          clock:
-            typeof game.status === 'object' && game.status !== null
-              ? game.status.clock || null
-              : null,
-          halftime:
-            typeof game.status === 'object' && game.status !== null
-              ? game.status.halftime || false
-              : false,
-          long:
-            typeof game.status === 'object' && game.status !== null ? game.status.long || '' : '',
-          short: String(game.status?.short || ''),
-        },
-        arena: {
-          name: typeof game.arena === 'string' ? game.arena : game.arena?.name || '',
-          city: typeof game.arena === 'string' ? '' : game.arena?.city || '',
-          state: typeof game.arena === 'string' ? '' : game.arena?.state || '',
-          country: typeof game.arena === 'string' ? '' : game.arena?.country || '',
-        },
-        league: game.league || 'NBA',
-        season: game.season ?? new Date().getFullYear(),
-        stage: game.stage ?? 1,
-        periods: {
-          current:
-            typeof game.periods === 'object' && game.periods !== null
-              ? (game.periods as { current: number }).current
-              : 0,
-          total: 4,
-          endOfPeriod: false,
-        },
-        teams: createSafeGameTeams(game.teams),
-        scores: createSafeGameScores(game.scores),
-        officials: Array.isArray(game.officials) ? game.officials.map(String) : [],
-        timesTied: game.timesTied || 0,
-        leadChanges: game.leadChanges || 0,
-        nugget: game.nugget || null,
-        createdAt: safeDateConversion(game.createdAt),
-        updatedAt: safeDateConversion(game.updatedAt),
-        homeTeamId: game.teams?.home?.id?.toString() || '',
-        awayTeamId: game.teams?.visitors?.id?.toString() || '',
-        isCompleted:
-          game.status && typeof game.status === 'object' && 'long' in game.status
-            ? game.status.long === GAME_STATUS_VALUES.FINISHED
-            : false,
-        awayTeamScore: game.scores?.visitors?.points ?? null,
-        homeTeamScore: game.scores?.home?.points ?? null,
-        gameType: 'REGULAR',
-        nbaGameId: game.id,
-        __typename: 'Game',
-      };
-
-      return gameData;
-    });
-  });
-};
 
 // Game Logs Loader
 export const createGameLogsLoader = (
@@ -589,8 +466,10 @@ export const createGameLogsLoader = (
     const logs = await db.query.game_logs.findMany({
       where: inArray(schema.game_logs.id, Array.from(keys)),
     });
-    const userIds = logs.map((log: any) => log.userId).filter((id): id is string => id !== null);
-    const gameIds = logs.map((log: any) => log.gameId);
+    const userIds = logs
+      .map((log: InferSelectModel<typeof schema.game_logs>) => log.userId)
+      .filter((id): id is string => id !== null);
+    const gameIds = logs.map((log: InferSelectModel<typeof schema.game_logs>) => log.gameId);
     const users = await userLoader.loadMany(userIds);
     const games = await gameLoader.loadMany(gameIds);
 
@@ -842,8 +721,8 @@ export const createDbGameBySeasonLoader = () => {
       .where(inArray(schema.nba_games.season, Array.from(seasons)));
 
     return seasons.map(season => {
-      return games
-        .filter((game: any) => game.season === season)
+      return (games as InferSelectModel<typeof schema.nba_games>[])
+        .filter((game: InferSelectModel<typeof schema.nba_games>) => game.season === season)
         .map(game => {
           const homeTeamId = game.teams?.home?.id?.toString() || '';
           const awayTeamId = game.teams?.visitors?.id?.toString() || '';
@@ -877,7 +756,24 @@ export const createDbGameBySeasonLoader = () => {
               total: 4,
               endOfPeriod: false,
             },
-            teams: createSafeGameTeams(game.teams),
+            teams: {
+              home: {
+                id: game.teams?.home?.id?.toString() || '',
+                name: game.teams?.home?.name || '',
+                nickname: game.teams?.home?.name || '',
+                code: game.teams?.home?.code || '',
+                logo: game.teams?.home?.logo || null,
+                __typename: 'TeamSummary',
+              },
+              visitors: {
+                id: game.teams?.visitors?.id?.toString() || '',
+                name: game.teams?.visitors?.name || '',
+                nickname: game.teams?.visitors?.name || '',
+                code: game.teams?.visitors?.code || '',
+                logo: game.teams?.visitors?.logo || null,
+                __typename: 'TeamSummary',
+              },
+            },
             scores: createSafeGameScores(game.scores),
             officials: Array.isArray(game.officials) ? game.officials.map(String) : [],
             timesTied: game.timesTied || 0,
@@ -908,143 +804,65 @@ export const createDbGameBySeasonLoader = () => {
 const createSafeGameDate = (
   date: unknown
 ): { start: Date; end: Date | null; duration: number | null } => {
-  try {
-    if (typeof date === 'string') {
-      const parsedDate = new Date(date);
-      if (isNaN(parsedDate.getTime())) {
-        return { start: new Date(0), end: null, duration: null };
-      }
-      return { start: parsedDate, end: null, duration: null };
-    }
-    if (isDateObj(date)) {
-      return { start: date, end: null, duration: null };
-    }
-    if (typeof date === 'object' && date !== null) {
-      const { start, end, duration } = date as { start: unknown; end: unknown; duration: unknown };
-      const startDate =
-        typeof start === 'string' ? new Date(start) : isDateObj(start) ? start : new Date(0);
-      const endDate = typeof end === 'string' ? new Date(end) : isDateObj(end) ? end : null;
-      const durationValue = typeof duration === 'number' ? duration : null;
-
-      if (isNaN(startDate.getTime())) {
-        return { start: new Date(0), end: endDate, duration: durationValue };
-      }
-
-      return { start: startDate, end: endDate, duration: durationValue };
-    }
-    return { start: new Date(0), end: null, duration: null };
-  } catch (error) {
-    return { start: new Date(0), end: null, duration: null };
+  if (!date) {
+    return { start: new Date(), end: null, duration: null };
   }
-};
 
-const createSafeGameTeams = (teams: unknown): GameTeams => {
-  if (!teams || typeof teams !== 'object') {
+  if (typeof date === 'object' && date !== null) {
+    const dateObj = date as { start?: unknown; end?: unknown; duration?: unknown };
     return {
-      home: { id: '', name: '', nickname: '', code: '', logo: null },
-      visitors: { id: '', name: '', nickname: '', code: '', logo: null },
+      start: safeDateConversion(dateObj.start),
+      end: dateObj.end ? safeDateConversion(dateObj.end) : null,
+      duration: typeof dateObj.duration === 'number' ? dateObj.duration : null,
     };
   }
 
-  const teamsObj = teams as Record<string, Record<string, unknown>>;
-  return {
-    home: {
-      id: String(teamsObj.home?.id || ''),
-      name: String(teamsObj.home?.name || ''),
-      nickname: String(teamsObj.home?.nickname || ''),
-      code: String(teamsObj.home?.code || ''),
-      logo: (teamsObj.home?.logo as string) || null,
-    },
-    visitors: {
-      id: String(teamsObj.visitors?.id || ''),
-      name: String(teamsObj.visitors?.name || ''),
-      nickname: String(teamsObj.visitors?.nickname || ''),
-      code: String(teamsObj.visitors?.code || ''),
-      logo: (teamsObj.visitors?.logo as string) || null,
-    },
-  };
+  return { start: safeDateConversion(date), end: null, duration: null };
 };
 
 const createSafeGameScores = (scores: unknown): GameScores => {
   if (!scores || typeof scores !== 'object') {
-    console.warn('[GameScores] Invalid scores object:', scores);
     return {
       home: { win: 0, loss: 0, series: { win: 0, loss: 0 }, linescore: [], points: 0 },
       visitors: { win: 0, loss: 0, series: { win: 0, loss: 0 }, linescore: [], points: 0 },
     };
   }
 
-  const scoresObj = scores as Record<string, Record<string, unknown>>;
+  const scoresObj = scores as { home?: unknown; visitors?: unknown };
 
-  const processLinescore = (linescore: unknown, team: 'home' | 'visitors'): number[] => {
-    if (!Array.isArray(linescore)) {
-      console.warn(`[GameScores] Invalid linescore format for ${team}:`, linescore);
-      return [];
+  const processTeamScores = (teamScores: unknown): TeamScore => {
+    if (!teamScores || typeof teamScores !== 'object') {
+      return {
+        points: 0,
+        win: 0,
+        loss: 0,
+        series: { win: 0, loss: 0 },
+        linescore: [],
+      };
     }
 
-    // Log the raw linescore data for debugging
-    console.debug(`[GameScores] Raw linescore for ${team}:`, JSON.stringify(linescore));
-
-    // Ensure we have a valid array of numbers
-    return linescore
-      .map((score, index) => {
-        // Handle empty string case explicitly
-        if (score === '') {
-          console.warn(
-            `[GameScores] Empty string score at index ${index} for ${team}, defaulting to 0`
-          );
-          return 0;
-        }
-
-        // Handle null/undefined
-        if (score === null || score === undefined) {
-          console.warn(
-            `[GameScores] Null/undefined score at index ${index} for ${team}, defaulting to 0`
-          );
-          return 0;
-        }
-
-        // Convert to number and validate
-        const numScore = Number(score);
-        if (isNaN(numScore)) {
-          console.warn(`[GameScores] Non-numeric score at index ${index} for ${team}:`, {
-            score,
-            type: typeof score,
-            rawValue: JSON.stringify(score),
-          });
-          return 0;
-        }
-
-        // Ensure it's a valid integer
-        return Math.floor(numScore);
-      })
-      .filter(score => !isNaN(score)); // Remove any NaN values that might have slipped through
-  };
-
-  const processTeamScores = (team: 'home' | 'visitors') => {
-    const teamScores = (scoresObj[team] || {}) as {
-      win?: unknown;
-      loss?: unknown;
-      series?: { win?: unknown; loss?: unknown };
-      linescore?: unknown;
-      points?: unknown;
+    const scores = teamScores as {
+      points?: number;
+      win?: number;
+      loss?: number;
+      series?: { win?: number; loss?: number };
+      linescore?: number[];
     };
-
     return {
-      win: Number(teamScores.win) || 0,
-      loss: Number(teamScores.loss) || 0,
+      points: scores.points || 0,
+      win: scores.win || 0,
+      loss: scores.loss || 0,
       series: {
-        win: Number(teamScores.series?.win) || 0,
-        loss: Number(teamScores.series?.loss) || 0,
+        win: scores.series?.win || 0,
+        loss: scores.series?.loss || 0,
       },
-      linescore: processLinescore(teamScores.linescore, team),
-      points: Number(teamScores.points) || 0,
+      linescore: Array.isArray(scores.linescore) ? scores.linescore : [],
     };
   };
 
   return {
-    home: processTeamScores('home'),
-    visitors: processTeamScores('visitors'),
+    home: processTeamScores(scoresObj.home),
+    visitors: processTeamScores(scoresObj.visitors),
   };
 };
 
@@ -1058,3 +876,11 @@ const convertToParentType = (parentType: string): ParentType => {
       return 'GameLog' as ParentType;
   }
 };
+
+function getScoreValue(score: unknown, key: 'win' | 'loss'): number {
+  if (!score || typeof score !== 'object') {
+    return 0;
+  }
+  const scoreObj = score as { win?: number; loss?: number };
+  return scoreObj[key] || 0;
+}

@@ -12,6 +12,7 @@ import type {
 } from '@src/lib/types/consolidated.types';
 import type { DatabaseRow } from '@src/lib/types/database.types';
 import type { ReactionEmojiType } from '@src/lib/types/generated/graphql';
+import type { GameScores } from '@/lib/types/game.types';
 
 /**
  * Parse connection arguments and return pagination parameters
@@ -226,30 +227,34 @@ export const mapGameData = (game: DatabaseRow) => {
       game.scores && typeof game.scores === 'object'
         ? {
             home: {
-              win: Number((game.scores as any).home?.win) || 0,
-              loss: Number((game.scores as any).home?.loss) || 0,
+              win: Number((game.scores as GameScores).home?.win) || 0,
+              loss: Number((game.scores as GameScores).home?.loss) || 0,
               series: {
-                win: Number((game.scores as any).home?.series?.win) || 0,
-                loss: Number((game.scores as any).home?.series?.loss) || 0,
+                win: Number((game.scores as GameScores).home?.series?.win) || 0,
+                loss: Number((game.scores as GameScores).home?.series?.loss) || 0,
               },
-              linescore: ((game.scores as any).home?.linescore || []).map((score: unknown) => {
-                const num = Number(score);
-                return isNaN(num) ? 0 : Math.floor(num);
-              }),
-              points: Number((game.scores as any).home?.points) || 0,
+              linescore: ((game.scores as GameScores).home?.linescore || []).map(
+                (score: number) => {
+                  const num = Number(score);
+                  return isNaN(num) ? 0 : Math.floor(num);
+                }
+              ),
+              points: Number((game.scores as GameScores).home?.points) || 0,
             },
             visitors: {
-              win: Number((game.scores as any).visitors?.win) || 0,
-              loss: Number((game.scores as any).visitors?.loss) || 0,
+              win: Number((game.scores as GameScores).visitors?.win) || 0,
+              loss: Number((game.scores as GameScores).visitors?.loss) || 0,
               series: {
-                win: Number((game.scores as any).visitors?.series?.win) || 0,
-                loss: Number((game.scores as any).visitors?.series?.loss) || 0,
+                win: Number((game.scores as GameScores).visitors?.series?.win) || 0,
+                loss: Number((game.scores as GameScores).visitors?.series?.loss) || 0,
               },
-              linescore: ((game.scores as any).visitors?.linescore || []).map((score: unknown) => {
-                const num = Number(score);
-                return isNaN(num) ? 0 : Math.floor(num);
-              }),
-              points: Number((game.scores as any).visitors?.points) || 0,
+              linescore: ((game.scores as GameScores).visitors?.linescore || []).map(
+                (score: number) => {
+                  const num = Number(score);
+                  return isNaN(num) ? 0 : Math.floor(num);
+                }
+              ),
+              points: Number((game.scores as GameScores).visitors?.points) || 0,
             },
           }
         : {

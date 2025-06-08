@@ -73,34 +73,34 @@ async function getVerificationData(
 
   if (migrationName.includes('trigger')) {
     // Check for triggers
-    const triggers = await db.execute(sql`
+    const triggers = (await db.execute(sql`
       SELECT tgname as name 
       FROM pg_trigger 
       WHERE tgname NOT LIKE 'RI_%' 
       AND tgname NOT LIKE 'pg_%'
       ORDER BY tgname;
-    `);
-    verification.triggers = triggers.rows.map((r: any) => r.name);
+    `)) as { rows: { name: string }[] };
+    verification.triggers = triggers.rows.map(r => r.name);
 
     // Check for functions
-    const functions = await db.execute(sql`
+    const functions = (await db.execute(sql`
       SELECT proname as name 
       FROM pg_proc 
       WHERE pronamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'public')
       ORDER BY proname;
-    `);
-    verification.functions = functions.rows.map((r: any) => r.name);
+    `)) as { rows: { name: string }[] };
+    verification.functions = functions.rows.map(r => r.name);
   }
 
   // Always check indexes
-  const indexes = await db.execute(sql`
+  const indexes = (await db.execute(sql`
     SELECT indexname as name 
     FROM pg_indexes 
     WHERE schemaname = 'public' 
     AND indexname NOT LIKE '%_pkey'
     ORDER BY indexname;
-  `);
-  verification.indexes = indexes.rows.map((r: any) => r.name);
+  `)) as { rows: { name: string }[] };
+  verification.indexes = indexes.rows.map(r => r.name);
 
   return verification;
 }
@@ -198,13 +198,13 @@ ${migrations.map(m => `  - ${m.name}`).join('\n')}`);
 
     const appliedMigrations = dryRun
       ? { rows: [] }
-      : await db.execute(sql`
+      : ((await db.execute(sql`
       SELECT name, checksum, status, executed_at 
       FROM migration_versions 
       ORDER BY name;
-    `);
+    `)) as { rows: { name: string; checksum: string; status: string; executed_at: string }[] });
 
-    const appliedMap = new Map(appliedMigrations.rows.map((row: any) => [row.name, row]));
+    const appliedMap = new Map(appliedMigrations.rows.map(row => [row.name, row]));
 
     // Step 4: Apply new migrations
     logger.info('\n⚡ Step 4: Applying migrations...\n');
@@ -272,10 +272,16 @@ ${migrations.map(m => `  - ${m.name}`).join('\n')}`);
             try {
               await db.execute(sql.raw(statement));
               logger.info(`   ✓ Statement ${i + 1}/${statements.length} executed`);
-            } catch (stmtError: any) {
-              logger.error(
-                `   ❌ Statement ${i + 1}/${statements.length} failed: ${stmtError.message}`
-              );
+            } catch (stmtError: unknown) {
+              if (stmtError instanceof Error) {
+                logger.error(
+                  `   ❌ Statement ${i + 1}/${statements.length} failed: ${stmtError.message}`
+                );
+              } else {
+                logger.error(
+                  `   ❌ Statement ${i + 1}/${statements.length} failed: ${String(stmtError)}`
+                );
+              }
               logger.error(`      Statement preview: ${statement.substring(0, 100)}...`);
               throw stmtError;
             }
@@ -323,20 +329,23 @@ ${migrations.map(m => `  - ${m.name}`).join('\n')}`);
 
         logger.info(`   ✅ Applied successfully (${executionTime}ms)`);
         appliedCount++;
-      } catch (error: any) {
+      } catch (error: unknown) {
         const executionTime = Date.now() - startTime;
         errorCount++;
-
-        logger.error(`   ❌ Failed to apply migration: ${error.message}`);
+        if (error instanceof Error) {
+          logger.error(`   ❌ Failed to apply migration: ${error.message}`);
+        } else {
+          logger.error(`   ❌ Failed to apply migration: ${String(error)}`);
+        }
 
         // Record failed migration
         try {
           await db.execute(sql`
             INSERT INTO migration_versions (name, checksum, execution_time_ms, status, error_message)
-            VALUES (${migration.name}, ${migration.checksum}, ${executionTime}, 'failed', ${error.message})
+            VALUES (${migration.name}, ${migration.checksum}, ${executionTime}, 'failed', ${error instanceof Error ? error.message : String(error)})
             ON CONFLICT (name) DO UPDATE
             SET status = 'failed',
-                error_message = ${error.message},
+                error_message = ${error instanceof Error ? error.message : String(error)},
                 execution_time_ms = ${executionTime},
                 executed_at = CURRENT_TIMESTAMP;
           `);

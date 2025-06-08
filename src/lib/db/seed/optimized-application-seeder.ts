@@ -1,18 +1,16 @@
 import { faker } from '@faker-js/faker';
-import { sql, desc } from 'drizzle-orm';
+import { desc } from 'drizzle-orm';
 
 import { API_CONFIG } from '@src/lib/config/api.config';
 import { game_logs, games } from '@src/lib/db/schema/game-schemas';
-import { users, friendships, comments, type reactions } from '@src/lib/db/schema/user-schemas';
+import { users, friendships } from '@src/lib/db/schema/user-schemas';
 import { seedLogger } from 'lib/core/logger';
 import {
   FRIENDSHIP_STATUS,
   WATCHED_SETTING,
-  REACTION_EMOJIS,
   WATCHED_SCOPE,
   CLASSIFICATION,
   type FriendshipStatusValue,
-  type ReactionEmojiValue,
   type WatchedSettingValue,
   type WatchedScopeValue,
 } from '@src/lib/types/config.types';
@@ -22,12 +20,9 @@ import { generateUUID } from '@src/lib/utils/processing';
 import { getCurrentSeason } from '@src/lib/utils/time';
 
 // Type definitions
-type DbUser = typeof users.$inferSelect;
 type UserInsert = typeof users.$inferInsert;
 type FriendshipInsert = typeof friendships.$inferInsert;
 type GameLogInsert = typeof game_logs.$inferInsert;
-type CommentInsert = typeof comments.$inferInsert;
-type ReactionInsert = typeof reactions.$inferInsert;
 
 // Memory-efficient user generator
 async function* generateUsersStream(
@@ -192,295 +187,6 @@ async function* generateGameLogsStream(
         classification: CLASSIFICATION.PUBLIC,
       };
     }
-  }
-}
-
-// Optimized comments generator
-async function* generateCommentsStream(
-  userStream: AsyncGenerator<DbUser, void, unknown>,
-  gameLogStream: AsyncGenerator<GameLogInsert, void, unknown>
-): AsyncGenerator<CommentInsert, void, unknown> {
-  const userChunks: DbUser[][] = [];
-  let currentChunk: DbUser[] = [];
-  let totalParentComments = 0;
-  let skippedGameLogs = 0;
-
-  // Collect users into chunks
-  for await (const user of userStream) {
-    currentChunk.push(user);
-    if (currentChunk.length >= 100) {
-      userChunks.push(currentChunk);
-      currentChunk = [];
-    }
-  }
-  if (currentChunk.length > 0) {
-    userChunks.push(currentChunk);
-  }
-
-  for await (const gameLog of gameLogStream) {
-    // Only generate comments for 10% of game logs that have reactions
-    if (Math.random() >= 0.1) {
-      continue;
-    }
-
-    if (!gameLog.id) {
-      skippedGameLogs++;
-      continue;
-    }
-
-    const commentCount = API_CONFIG.ranges.COMMENT_RANGE.getRandom();
-    const userChunk = userChunks[Math.floor(Math.random() * userChunks.length)];
-    const commenters = faker.helpers.arrayElements(
-      userChunk,
-      Math.min(commentCount, userChunk.length)
-    );
-
-    for (const commenter of commenters) {
-      const parentComment: CommentInsert = {
-        id: generateUUID(),
-        userId: commenter.id,
-        parentId: gameLog.id,
-        parentType: 'game_log' as const,
-        content: faker.lorem.paragraph(),
-        createdAt: faker.date.past(),
-        updatedAt: faker.date.recent(),
-        deletedAt: null,
-      };
-
-      totalParentComments++;
-      yield parentComment;
-
-      // Recursively generate child comments with 10% probability at each level
-      yield* generateChildComments(parentComment, userChunk, 1);
-    }
-
-    // Yield control periodically
-    if (Math.random() < 0.1) {
-      // 10% chance to yield control
-      await new Promise(resolve => setImmediate(resolve));
-    }
-  }
-
-  seedLogger.info(`Generated ${totalParentComments} parent comments`);
-  if (skippedGameLogs > 0) {
-    seedLogger.info(`Skipped ${skippedGameLogs} game logs due to missing IDs`);
-  }
-}
-
-// Helper function to recursively generate child comments
-async function* generateChildComments(
-  parentComment: CommentInsert,
-  userChunk: DbUser[],
-  depth: number,
-  maxDepth: number = 3 // Cap at 3 levels deep
-): AsyncGenerator<CommentInsert, void, unknown> {
-  // Stop if we've reached max depth
-  if (depth >= maxDepth) {
-    return;
-  }
-
-  // Only generate child comments for 10% of parent comments
-  if (Math.random() >= 0.1) {
-    return;
-  }
-
-  if (!parentComment.id) {
-    seedLogger.warn('Skipping child comment generation for parent comment with undefined ID');
-    return;
-  }
-
-  const childCommentCount = API_CONFIG.ranges.CHILD_COMMENT_RANGE.getRandom();
-  const childCommenters = faker.helpers.arrayElements(
-    userChunk,
-    Math.min(childCommentCount, userChunk.length)
-  );
-
-  for (const childCommenter of childCommenters) {
-    const childComment: CommentInsert = {
-      id: generateUUID(),
-      userId: childCommenter.id,
-      parentId: parentComment.id,
-      parentType: 'comment' as const,
-      content: faker.lorem.paragraph(),
-      createdAt: faker.date.past(),
-      updatedAt: faker.date.recent(),
-      deletedAt: null,
-    };
-
-    yield childComment;
-
-    // Recursively generate next level of child comments with 10% probability
-    yield* generateChildComments(childComment, userChunk, depth + 1, maxDepth);
-  }
-}
-
-// Optimized reactions generator
-async function* generateReactionsStream(
-  userStream: AsyncGenerator<DbUser, void, unknown>,
-  commentStream: AsyncGenerator<CommentInsert, void, unknown>,
-  gameLogStream: AsyncGenerator<GameLogInsert, void, unknown>
-): AsyncGenerator<ReactionInsert, void, unknown> {
-  const userChunks: DbUser[][] = [];
-  let currentChunk: DbUser[] = [];
-
-  // Collect users into chunks
-  for await (const user of userStream) {
-    currentChunk.push(user);
-    if (currentChunk.length >= 100) {
-      userChunks.push(currentChunk);
-      currentChunk = [];
-    }
-  }
-  if (currentChunk.length > 0) {
-    userChunks.push(currentChunk);
-  }
-
-  // Generate reactions for game logs
-  for await (const gameLog of gameLogStream) {
-    // Only generate reactions for 10% of game logs
-    if (Math.random() >= 0.1) {
-      continue;
-    }
-
-    const reactionCount = API_CONFIG.ranges.REACTION_RANGE.getRandom();
-    const userChunk = userChunks[Math.floor(Math.random() * userChunks.length)];
-    const reactors = faker.helpers.arrayElements(
-      userChunk,
-      Math.min(reactionCount, userChunk.length)
-    );
-
-    for (const reactor of reactors) {
-      yield {
-        id: generateUUID(),
-        userId: reactor.id,
-        targetId: gameLog.id ?? generateUUID(), // Fallback to new UUID if undefined
-        targetType: 'game_log' as const,
-        emoji: faker.helpers.arrayElement(Object.values(REACTION_EMOJIS)) as ReactionEmojiValue,
-        createdAt: faker.date.past(),
-        updatedAt: faker.date.recent(),
-      };
-    }
-
-    // Yield control periodically
-    if (Math.random() < 0.1) {
-      // 10% chance to yield control
-      await new Promise(resolve => setImmediate(resolve));
-    }
-  }
-
-  // Generate reactions for comments
-  for await (const comment of commentStream) {
-    // Only generate reactions for 10% of comments
-    if (Math.random() >= 0.1) {
-      continue;
-    }
-
-    // For game log comments, we want to ensure we're only reacting to 10% of game logs
-    if (comment.parentType === ('game_log' as const)) {
-      // Skip if this game log wasn't selected for reactions
-      if (Math.random() >= 0.1) {
-        continue;
-      }
-    }
-    // For child comments, we want to ensure we're only reacting to 10% of parent comments
-    else if (comment.parentType === ('comment' as const)) {
-      // Skip if this parent comment wasn't selected for reactions
-      if (Math.random() >= 0.1) {
-        continue;
-      }
-    }
-
-    const reactionCount = API_CONFIG.ranges.REACTION_RANGE.getRandom();
-    const userChunk = userChunks[Math.floor(Math.random() * userChunks.length)];
-    const reactors = faker.helpers.arrayElements(
-      userChunk,
-      Math.min(reactionCount, userChunk.length)
-    );
-
-    for (const reactor of reactors) {
-      yield {
-        id: generateUUID(),
-        userId: reactor.id,
-        targetId: comment.id ?? generateUUID(), // Fallback to new UUID if undefined
-        targetType: 'comment' as const,
-        emoji: faker.helpers.arrayElement(Object.values(REACTION_EMOJIS)) as ReactionEmojiValue,
-        createdAt: faker.date.past(),
-        updatedAt: faker.date.recent(),
-      };
-    }
-
-    // Yield control periodically
-    if (Math.random() < 0.1) {
-      // 10% chance to yield control
-      await new Promise(resolve => setImmediate(resolve));
-    }
-  }
-}
-
-// Add new streaming functions
-async function* streamUsers(db: DatabaseClient): AsyncGenerator<DbUser, void, unknown> {
-  const batchSize = API_CONFIG.databaseSeeding.BATCH_SIZE;
-  let lastId: string | undefined;
-
-  while (true) {
-    const query = db.select().from(users);
-    if (lastId) {
-      query.where(sql`id > ${lastId}`);
-    }
-    const batch = await query.limit(batchSize).orderBy(users.id);
-
-    if (batch.length === 0) break;
-
-    for (const user of batch) {
-      yield user;
-      lastId = user.id;
-    }
-
-    if (batch.length < batchSize) break;
-  }
-}
-
-async function* streamGameLogs(db: DatabaseClient): AsyncGenerator<GameLogInsert, void, unknown> {
-  const batchSize = API_CONFIG.databaseSeeding.BATCH_SIZE;
-  let lastId: string | undefined;
-
-  while (true) {
-    const query = db.select().from(game_logs);
-    if (lastId) {
-      query.where(sql`id > ${lastId}`);
-    }
-    const batch = await query.limit(batchSize).orderBy(game_logs.id);
-
-    if (batch.length === 0) break;
-
-    for (const log of batch) {
-      yield log;
-      lastId = log.id;
-    }
-
-    if (batch.length < batchSize) break;
-  }
-}
-
-async function* streamComments(db: DatabaseClient): AsyncGenerator<CommentInsert, void, unknown> {
-  const batchSize = API_CONFIG.databaseSeeding.BATCH_SIZE;
-  let lastId: string | undefined;
-
-  while (true) {
-    const query = db.select().from(comments);
-    if (lastId) {
-      query.where(sql`id > ${lastId}`);
-    }
-    const batch = await query.limit(batchSize).orderBy(comments.id);
-
-    if (batch.length === 0) break;
-
-    for (const comment of batch) {
-      yield comment;
-      lastId = comment.id;
-    }
-
-    if (batch.length < batchSize) break;
   }
 }
 

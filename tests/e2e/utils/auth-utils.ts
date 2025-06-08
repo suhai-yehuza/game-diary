@@ -1,4 +1,53 @@
-import { expect, type Page } from '@playwright/test';
+import { type Page } from '@playwright/test';
+import { seedLogger } from 'lib/core/logger';
+
+// Type definitions for Clerk mocks
+interface ClerkMock {
+  user: typeof TEST_USER;
+  session: {
+    id: string;
+    userId: string;
+    status: 'active' | 'inactive';
+  };
+  isLoaded: () => boolean;
+  isSignedIn: () => boolean;
+  signOut: () => Promise<void>;
+  organization: null;
+  sessionId: string;
+  userId: string;
+  getToken: () => Promise<string>;
+}
+
+interface ClerkMocks {
+  useUser: () => {
+    user: typeof TEST_USER;
+    isLoaded: boolean;
+    isSignedIn: boolean;
+  };
+  useAuth: () => {
+    userId: string;
+    sessionId: string;
+    isLoaded: boolean;
+    isSignedIn: boolean;
+    getToken: () => Promise<string>;
+    signOut: () => Promise<void>;
+  };
+  useSession: () => {
+    session: {
+      id: string;
+      userId: string;
+      status: 'active' | 'inactive';
+    };
+    isLoaded: boolean;
+  };
+}
+
+declare global {
+  interface Window {
+    Clerk: ClerkMock;
+    __CLERK_MOCKS: ClerkMocks;
+  }
+}
 
 // Test user data - matches your database schema
 export const TEST_USER = {
@@ -30,7 +79,7 @@ export const TEST_USER = {
 export async function mockClerkAuth(page: Page) {
   // Block external Clerk requests completely for Mobile Safari
   await page.route('**/clerk.accounts.dev/**', route => {
-    console.log(`Blocking Clerk external request: ${route.request().url()}`);
+    seedLogger.info(`Blocking Clerk external request: ${route.request().url()}`);
     route.fulfill({
       status: 200,
       contentType: 'application/json',
@@ -45,7 +94,7 @@ export async function mockClerkAuth(page: Page) {
   // Mock Clerk's client-side authentication
   await page.addInitScript(testUser => {
     // Mock window.Clerk
-    (window as any).Clerk = {
+    window.Clerk = {
       user: testUser,
       session: {
         id: 'test_session_123',
@@ -62,7 +111,7 @@ export async function mockClerkAuth(page: Page) {
     };
 
     // Mock React hooks
-    (window as any).__CLERK_MOCKS = {
+    window.__CLERK_MOCKS = {
       useUser: () => ({
         user: testUser,
         isLoaded: true,
@@ -89,7 +138,7 @@ export async function mockClerkAuth(page: Page) {
 
   // Enhanced Clerk API mocking (already handled above but keeping for safety)
   await page.route('**/clerk.*.dev/**', route => {
-    console.log(`Additional Clerk blocking: ${route.request().url()}`);
+    seedLogger.info(`Additional Clerk blocking: ${route.request().url()}`);
     route.fulfill({
       status: 200,
       contentType: 'application/json',
@@ -103,7 +152,7 @@ export async function mockClerkAuth(page: Page) {
 
   // Block Clerk JavaScript files
   await page.route('**/clerk.*.js', route => {
-    console.log(`Blocking Clerk JS: ${route.request().url()}`);
+    seedLogger.info(`Blocking Clerk JS: ${route.request().url()}`);
     route.fulfill({
       status: 200,
       contentType: 'application/javascript',
@@ -183,9 +232,9 @@ export async function verifyAuthenticated(page: Page) {
   }
 
   if (!isAuthenticated) {
-    console.log('No authentication indicators found, checking page content...');
+    seedLogger.info('No authentication indicators found, checking page content...');
     const bodyText = await page.textContent('body');
-    console.log('Page content includes:', bodyText?.substring(0, 500));
+    seedLogger.info('Page content includes:', bodyText?.substring(0, 500));
   }
 
   return isAuthenticated;
@@ -198,7 +247,7 @@ export async function authenticateForE2E(page: Page) {
   await setupTestAuth(page);
 
   // Verify authentication is working
-  console.log('Setting up test authentication...');
+  seedLogger.info('Setting up test authentication...');
 
   // Additional verification can be added here
   return TEST_USER;

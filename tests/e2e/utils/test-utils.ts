@@ -1,5 +1,14 @@
 import { expect, type Page, type Route } from '@playwright/test';
-import { setupTestAuth, TEST_USER } from './auth-utils';
+import { setupTestAuth } from './auth-utils';
+import { seedLogger } from 'lib/core/logger';
+
+interface ClerkMock {
+  load: () => Promise<void>;
+  user: null;
+  session: null;
+  isSignedIn: () => boolean;
+  isLoaded: () => boolean;
+}
 
 /**
  * Wait for the page to fully load including all network requests
@@ -36,11 +45,13 @@ export async function waitForPageContent(page: Page, maxRetries = 2) {
       break;
     } catch (error) {
       if (attempt === maxRetries) {
-        console.log('Final attempt failed, but continuing test...');
+        seedLogger.info('Final attempt failed, but continuing test...');
         // Don't throw, just continue - let individual tests handle missing elements
         break;
       }
-      console.log(`Attempt ${attempt} failed, retrying...`);
+      seedLogger.info(
+        `Attempt ${attempt} failed, retrying... Error: ${error instanceof Error ? error.message : String(error)}`
+      );
       try {
         await page.waitForTimeout(1000);
       } catch {
@@ -55,6 +66,21 @@ export async function waitForPageContent(page: Page, maxRetries = 2) {
  * Setup API mocking and authentication for E2E tests
  */
 export async function setupApiMocking(page: Page, withAuth: boolean = true) {
+  // Mock the global Clerk object to prevent load errors
+  await page.addInitScript(() => {
+    const clerkMock: ClerkMock = {
+      load: () => Promise.resolve(),
+      user: null,
+      session: null,
+      isSignedIn: () => false,
+      isLoaded: () => true,
+    };
+    // @ts-ignore
+    window.Clerk = clerkMock;
+    // @ts-ignore
+    globalThis.Clerk = clerkMock;
+  });
+
   // Setup test authentication first
   if (withAuth) {
     await setupTestAuth(page);
@@ -62,7 +88,7 @@ export async function setupApiMocking(page: Page, withAuth: boolean = true) {
   // Mock GraphQL API calls
   await page.route('**/api/graphql', (route: Route) => {
     const url = route.request().url();
-    console.log(`Mocking GraphQL API call: ${url}`);
+    seedLogger.info(`Mocking GraphQL API call: ${url}`);
 
     // Return a minimal GraphQL response that won't break the app
     route.fulfill({
@@ -85,7 +111,7 @@ export async function setupApiMocking(page: Page, withAuth: boolean = true) {
   // Mock other API calls that might cause rate limiting
   await page.route('**/api/**', (route: Route) => {
     const url = route.request().url();
-    console.log(`Mocking API call: ${url}`);
+    seedLogger.info(`Mocking API call: ${url}`);
 
     // Handle different API endpoints appropriately
     if (url.includes('/api/cache')) {
@@ -200,33 +226,8 @@ export async function checkBasicPageStructure(page: Page) {
   const hasContentDiv = await elementExists(page, '[role="main"], .main-content, #main');
 
   if (!hasMain && !hasContentDiv) {
-    console.warn('No main content area found on page');
+    seedLogger.warn('No main content area found on page');
   }
-}
-
-/**
- * Take a screenshot with a descriptive name
- */
-async function takeScreenshot(page: Page, name: string) {
-  await page.screenshot({
-    path: `test-results-e2e/screenshots/${name}.png`,
-    fullPage: true,
-  });
-}
-
-/**
- * Check for JavaScript errors in the console
- */
-async function checkForConsoleErrors(page: Page) {
-  const errors: string[] = [];
-
-  page.on('console', msg => {
-    if (msg.type() === 'error') {
-      errors.push(msg.text());
-    }
-  });
-
-  return errors;
 }
 
 /**
@@ -242,7 +243,10 @@ const VIEWPORTS = {
 /**
  * Test responsive behavior across multiple viewports
  */
-async function testResponsiveness(page: Page, testCallback: (viewport: string) => Promise<void>) {
+export async function testResponsiveness(
+  page: Page,
+  testCallback: (viewport: string) => Promise<void>
+) {
   for (const [name, size] of Object.entries(VIEWPORTS)) {
     await page.setViewportSize(size);
     // Wait for layout to stabilize by checking for main content instead of arbitrary timeout
@@ -255,4 +259,15 @@ async function testResponsiveness(page: Page, testCallback: (viewport: string) =
     );
     await testCallback(name);
   }
+}
+
+/**
+ * Attach a listener to fail the test on any console error
+ */
+export async function failOnConsoleErrors(page: Page) {
+  page.on('console', msg => {
+    if (msg.type() === 'error') {
+      throw new Error(`Console error: ${msg.text()}`);
+    }
+  });
 }

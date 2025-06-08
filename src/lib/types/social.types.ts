@@ -7,7 +7,6 @@ import type {
   Reaction,
   Friendship,
 } from '@src/lib/types/generated/graphql';
-import type { ComponentType } from 'react';
 
 export type { Comment, Reaction, Friendship };
 

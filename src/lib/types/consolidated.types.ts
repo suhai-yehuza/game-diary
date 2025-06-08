@@ -15,14 +15,14 @@
  */
 
 import type * as React from 'react';
+import type { ReactNode } from 'react';
 import type { ApolloError, ApolloQueryResult, OperationVariables } from '@apollo/client';
 import type { InferSelectModel, sql } from 'drizzle-orm';
-import type { ReactNode, RefObject, InputHTMLAttributes } from 'react';
 
 import type { nba_games } from '@src/lib/db/schema/nba-schemas';
 import type { DataProcessor } from '@src/lib/db/seed/data-processor';
 import type { OptimizedAPIClient } from '@src/lib/db/seed/utils/api-client';
-import type { APIError, Activity } from '@src/lib/types/api.types';
+import type { APIError, Activity, TimeFilter } from '@src/lib/types/api.types';
 import type { ChartData } from '@src/lib/types/chart';
 import type {
   GameStatusValue,
@@ -41,9 +41,13 @@ import type {
   Friendship,
   DbUser,
   FriendshipStatus,
+  ReactionEmojiType,
+  ParentType,
+  CreateGameLogInput,
 } from '@src/lib/types/generated/graphql';
 import type { DBPlayer } from '@src/lib/types/shared.types';
 import type { Friend, FriendGroup } from '@src/lib/types/social.types';
+import type { NextApiRequest } from 'next';
 
 // =============================================================================
 // ENUMS AND CONSTANTS
@@ -623,7 +627,7 @@ export interface GameLogFormData {
 }
 
 export interface GameLogResponse {
-  gameLog: import('./generated/graphql').GameLog;
+  gameLog: GameLog;
 }
 
 // =============================================================================
@@ -654,10 +658,10 @@ export interface GameRatingWithUser {
 
 export interface Reaction {
   id: string;
-  emoji: string | import('./generated/graphql').ReactionEmojiType;
+  emoji: string | ReactionEmojiType;
   userId: string;
   targetId: string;
-  targetType: string | import('./generated/graphql').ParentType;
+  targetType: string | ParentType;
   createdAt: Date;
   updatedAt: Date;
   user: UserSummary;
@@ -1177,7 +1181,7 @@ export interface UserSummary {
 }
 
 export interface GetFriendshipsForUserResponse {
-  friendships: import('./generated/graphql').Friendship[];
+  friendships: Friendship[];
 }
 
 // Re-export types from other files to avoid circular dependencies
@@ -1202,7 +1206,7 @@ export interface GameLogFormProps {
   setFormData?: (data: GameLogFormData) => void;
   selectedGame?: Game | null;
   loading?: boolean;
-  onSubmit?: (data: import('./generated/graphql').CreateGameLogInput) => Promise<void>;
+  onSubmit?: (data: CreateGameLogInput) => Promise<void>;
   onCancel?: () => void;
   submitLabel?: string;
 }
@@ -1258,7 +1262,7 @@ export type FriendRequestButtonProps = {
 export type ActivityTimelineProps = {
   activities: Activity[];
   gameLogs: GameLog[];
-  timeFilter?: import('./api.types').TimeFilter;
+  timeFilter?: TimeFilter;
 };
 
 export type FriendActivityProps = {
@@ -1456,7 +1460,7 @@ export interface UseUserProfileReturn {
 // API REQUEST TYPES
 // =============================================================================
 
-export type ExtendedNextApiRequest = import('next').NextApiRequest & {
+export type ExtendedNextApiRequest = NextApiRequest & {
   user?: {
     id: string;
     email: string;

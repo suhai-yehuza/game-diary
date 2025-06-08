@@ -1,4 +1,4 @@
-import type { Activity } from '@src/lib/types/api.types';
+import type { Activity, TimeFilter } from '@src/lib/types/api.types';
 import type { ChartData } from '@src/lib/types/chart';
 import type { GameLog, Reaction } from '@src/lib/types/generated/graphql';
 import type { Friend, FriendGroup } from '@src/lib/types/social.types';
@@ -136,7 +136,7 @@ export type FriendRequestButtonProps = {
 export type ActivityTimelineProps = {
   activities: Activity[];
   gameLogs: GameLog[];
-  timeFilter?: import('./api.types').TimeFilter;
+  timeFilter?: TimeFilter;
 };
 
 export type FriendActivityProps = {

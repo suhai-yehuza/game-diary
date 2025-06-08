@@ -87,8 +87,12 @@ function nullToUndefined<T>(value: T | null): T | undefined {
 }
 
 // Helper to fetch full user from DB
-async function getFullUser(db: typeof import('@src/lib/db').db, userId: string) {
-  const users = await db.select().from(schema.users).where(eq(schema.users.id, userId)).limit(1);
+async function getFullUser(database: typeof db, userId: string) {
+  const users = await database
+    .select()
+    .from(schema.users)
+    .where(eq(schema.users.id, userId))
+    .limit(1);
   return users[0] || null;
 }
 
