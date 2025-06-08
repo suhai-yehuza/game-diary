@@ -28,6 +28,20 @@ export const TEST_USER = {
  * Mock Clerk authentication to return our test user
  */
 export async function mockClerkAuth(page: Page) {
+  // Block external Clerk requests completely for Mobile Safari
+  await page.route('**/clerk.accounts.dev/**', (route) => {
+    console.log(`Blocking Clerk external request: ${route.request().url()}`);
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ 
+        user: TEST_USER,
+        session: { id: 'test_session_123', userId: TEST_USER.id },
+        response: { sessions: [{ id: 'test_session_123', userId: TEST_USER.id }] }
+      }),
+    });
+  });
+
   // Mock Clerk's client-side authentication
   await page.addInitScript((testUser) => {
     // Mock window.Clerk
@@ -73,33 +87,28 @@ export async function mockClerkAuth(page: Page) {
     };
   }, TEST_USER);
 
-  // Mock Clerk API endpoints
-  await page.route('**/clerk.accounts.dev/**', (route) => {
-    const url = route.request().url();
-    
-    if (url.includes('/user')) {
-      route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify(TEST_USER),
-      });
-    } else if (url.includes('/session')) {
-      route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({
-          id: 'test_session_123',
-          userId: TEST_USER.id,
-          status: 'active'
-        }),
-      });
-    } else {
-      route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({ success: true }),
-      });
-    }
+  // Enhanced Clerk API mocking (already handled above but keeping for safety)
+  await page.route('**/clerk.*.dev/**', (route) => {
+    console.log(`Additional Clerk blocking: ${route.request().url()}`);
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        user: TEST_USER,
+        session: { id: 'test_session_123', userId: TEST_USER.id, status: 'active' },
+        success: true
+      }),
+    });
+  });
+
+  // Block Clerk JavaScript files
+  await page.route('**/clerk.*.js', (route) => {
+    console.log(`Blocking Clerk JS: ${route.request().url()}`);
+    route.fulfill({
+      status: 200,
+      contentType: 'application/javascript',
+      body: `console.log('Clerk JS blocked for testing');`,
+    });
   });
 
   // Mock JWT token validation

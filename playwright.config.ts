@@ -15,6 +15,64 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 1,
   /* Opt out of parallel tests on CI. */
   workers: process.env.CI ? 1 : undefined,
+  
+  /* Configure projects for major browsers with mobile optimizations */
+  projects: [
+    // Desktop browsers can run in parallel
+    {
+      name: 'chromium',
+      use: { ...devices['Desktop Chrome'] },
+    },
+    {
+      name: 'firefox', 
+      use: { ...devices['Desktop Firefox'] },
+    },
+    {
+      name: 'webkit',
+      use: { ...devices['Desktop Safari'] },
+    },
+    // Mobile Chrome with reduced parallelism
+    {
+      name: 'Mobile Chrome',
+      use: { 
+        ...devices['Pixel 5'],
+        launchOptions: {
+          args: [
+            '--disable-dev-shm-usage',
+            '--no-sandbox',
+            '--disable-setuid-sandbox',
+            '--disable-gpu',
+            '--disable-web-security',
+          ],
+        },
+      },
+      fullyParallel: false,
+    },
+    // Mobile Safari with maximum stability
+    {
+      name: 'Mobile Safari',
+      use: { 
+        ...devices['iPhone 12'],
+        launchOptions: {
+          args: [
+            '--disable-web-security',
+            '--disable-features=VizDisplayCompositor',
+            '--disable-ipc-flooding-protection',
+          ],
+        },
+        contextOptions: {
+          permissions: ['geolocation'],
+          geolocation: { latitude: 37.7749, longitude: -122.4194 },
+        },
+        actionTimeout: 20000,
+        navigationTimeout: 40000,
+      },
+      fullyParallel: false,
+      timeout: 60000,
+      // Force sequential execution for Mobile Safari
+      workers: 1,
+    },
+  ],
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: 'html',
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
@@ -36,65 +94,7 @@ export default defineConfig({
     navigationTimeout: 30000,
   },
 
-  /* Configure projects for major browsers */
-  projects: [
-    {
-      name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
-    },
 
-    {
-      name: 'firefox',
-      use: { ...devices['Desktop Firefox'] },
-    },
-
-    {
-      name: 'webkit',
-      use: { ...devices['Desktop Safari'] },
-    },
-
-    /* Test against mobile viewports. */
-    {
-      name: 'Mobile Chrome',
-      use: { 
-        ...devices['Pixel 5'],
-        // Mobile Chrome specific optimizations
-        launchOptions: {
-          args: [
-            '--disable-dev-shm-usage',
-            '--no-sandbox',
-            '--disable-setuid-sandbox',
-            '--disable-gpu',
-            '--disable-web-security',
-          ],
-        },
-      },
-      // Reduce parallelism for mobile chrome to avoid resource contention
-      fullyParallel: false,
-    },
-    {
-      name: 'Mobile Safari',
-      use: { 
-        ...devices['iPhone 12'],
-        // Mobile Safari specific optimizations  
-        launchOptions: {
-          args: ['--disable-web-security'],
-        },
-      },
-      // Reduce parallelism for mobile safari to avoid resource contention
-      fullyParallel: false,
-    },
-
-    /* Test against branded browsers. */
-    // {
-    //   name: 'Microsoft Edge',
-    //   use: { ...devices['Desktop Edge'], channel: 'msedge' },
-    // },
-    // {
-    //   name: 'Google Chrome',
-    //   use: { ...devices['Desktop Chrome'], channel: 'chrome' },
-    // },
-  ],
 
   /* Run your local dev server before starting the tests */
   webServer: {
