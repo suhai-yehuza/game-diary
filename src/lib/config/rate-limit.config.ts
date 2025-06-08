@@ -5,7 +5,7 @@ export const RATE_LIMIT_CONFIG = {
   // General API routes
   api: {
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 1000, // 1000 requests per window
+    max: 10000, // 10000 requests per window
     message: 'Too many requests from this IP, please try again later.',
     standardHeaders: true,
     legacyHeaders: false,

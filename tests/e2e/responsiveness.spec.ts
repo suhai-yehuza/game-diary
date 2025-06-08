@@ -1,29 +1,44 @@
-import { test } from './utils/global-setup';
-import { expect } from '@playwright/test';
-import { testResponsiveness, waitForPageContent, setupApiMocking } from './utils/test-utils';
+import { test, expect } from '@playwright/test';
+import { setupApiMocking, testResponsiveness, expandMobileMenuIfNeeded } from './utils/test-utils';
+import { setupTestAuth } from './utils/auth-utils';
 
 // Run this suite on all browsers
 // (Playwright's default is to run all tests on all configured browsers)
 test.describe('Responsiveness', () => {
-  test('main page layout and navigation is correct on all viewports', async ({ page }) => {
-    // Setup API mocking to avoid real network calls
+  test.beforeEach(async ({ page }) => {
     await setupApiMocking(page);
-    await page.goto('/');
-    await waitForPageContent(page);
+    await setupTestAuth(page);
+  });
 
-    await testResponsiveness(page, async (viewport: string) => {
-      // Check that main content is visible
-      await expect(page.locator('main')).toBeVisible();
-      // Check that the page title is correct (customize as needed)
-      await expect(page).toHaveTitle(/Game Diary/i);
-      // Optionally, add viewport-specific assertions
+  test('main page layout and navigation is correct on all viewports', async ({ page }) => {
+    await page.goto('/');
+    await testResponsiveness(page, async viewport => {
+      // Check main content
+      await expect(page.locator('main.grow').first()).toBeVisible();
+      await expect(page).toHaveTitle(/Game Diary/);
+
       if (viewport === 'mobile') {
-        // Example: check for mobile nav menu
-        // await expect(page.locator('[data-testid="mobile-nav"]')).toBeVisible();
-      }
-      if (viewport === 'desktop') {
-        // Example: check for desktop nav bar
-        // await expect(page.locator('[data-testid="desktop-nav"]')).toBeVisible();
+        // Mobile should have menu button
+        await expect(page.getByRole('button', { name: /menu/i })).toBeVisible();
+        
+        try {
+          // Expand mobile menu to check navigation links
+          await expandMobileMenuIfNeeded(page);
+          await expect(page.getByRole('link', { name: /nba/i })).toBeVisible();
+          await expect(page.getByRole('link', { name: /dashboard/i })).toBeVisible();
+        } catch (error) {
+          console.log('Mobile navigation test failed, taking screenshot for debugging');
+          await page.screenshot({ path: `mobile-nav-debug-${Date.now()}.png` });
+          // Check if links exist but are not visible
+          const nbaLinkExists = await page.getByRole('link', { name: /nba/i }).count();
+          const dashboardLinkExists = await page.getByRole('link', { name: /dashboard/i }).count();
+          console.log(`NBA link count: ${nbaLinkExists}, Dashboard link count: ${dashboardLinkExists}`);
+          throw error;
+        }
+      } else {
+        // Desktop/tablet should have visible navigation links
+        await expect(page.getByRole('link', { name: /nba/i })).toBeVisible();
+        await expect(page.getByRole('link', { name: /dashboard/i })).toBeVisible();
       }
     });
   });

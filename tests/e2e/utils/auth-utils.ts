@@ -1,5 +1,4 @@
 import { type Page } from '@playwright/test';
-import { seedLogger } from 'lib/core/logger';
 
 // Type definitions for Clerk mocks
 interface ClerkMock {
@@ -79,7 +78,7 @@ export const TEST_USER = {
 export async function mockClerkAuth(page: Page) {
   // Block external Clerk requests completely for Mobile Safari
   await page.route('**/clerk.accounts.dev/**', route => {
-    seedLogger.info(`Blocking Clerk external request: ${route.request().url()}`);
+    const url = route.request().url();
     route.fulfill({
       status: 200,
       contentType: 'application/json',
@@ -101,67 +100,154 @@ export async function mockClerkAuth(page: Page) {
         userId: testUser.id,
         status: 'active',
       },
-      isLoaded: () => true,
-      isSignedIn: () => true,
-      signOut: () => Promise.resolve(),
+      isLoaded: () => {
+        return true;
+      },
+      isSignedIn: () => {
+        return true;
+      },
+      signOut: () => {
+        return Promise.resolve();
+      },
       organization: null,
       sessionId: 'test_session_123',
       userId: testUser.id,
-      getToken: () => Promise.resolve('test_token_123'),
+      getToken: () => {
+        return Promise.resolve('test_token_123');
+      },
     };
 
     // Mock React hooks
     window.__CLERK_MOCKS = {
-      useUser: () => ({
-        user: testUser,
-        isLoaded: true,
-        isSignedIn: true,
-      }),
-      useAuth: () => ({
-        userId: testUser.id,
-        sessionId: 'test_session_123',
-        isLoaded: true,
-        isSignedIn: true,
-        getToken: () => Promise.resolve('test_token_123'),
-        signOut: () => Promise.resolve(),
-      }),
-      useSession: () => ({
-        session: {
-          id: 'test_session_123',
+      useUser: () => {
+        return {
+          user: testUser,
+          isLoaded: true,
+          isSignedIn: true,
+        };
+      },
+      useAuth: () => {
+        return {
           userId: testUser.id,
-          status: 'active',
-        },
-        isLoaded: true,
-      }),
+          sessionId: 'test_session_123',
+          isLoaded: true,
+          isSignedIn: true,
+          getToken: () => Promise.resolve('test_token_123'),
+          signOut: () => Promise.resolve(),
+        };
+      },
+      useSession: () => {
+        return {
+          session: {
+            id: 'test_session_123',
+            userId: testUser.id,
+            status: 'active',
+          },
+          isLoaded: true,
+        };
+      },
     };
   }, TEST_USER);
 
-  // Enhanced Clerk API mocking (already handled above but keeping for safety)
-  await page.route('**/clerk.*.dev/**', route => {
-    seedLogger.info(`Additional Clerk blocking: ${route.request().url()}`);
-    route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify({
-        user: TEST_USER,
-        session: { id: 'test_session_123', userId: TEST_USER.id, status: 'active' },
-        success: true,
-      }),
-    });
-  });
-
   // Block Clerk JavaScript files
-  await page.route('**/clerk.*.js', route => {
-    seedLogger.info(`Blocking Clerk JS: ${route.request().url()}`);
+  await page.route('**/@clerk/clerk-react/**', route => {
+    const url = route.request().url();
     route.fulfill({
       status: 200,
       contentType: 'application/javascript',
-      body: `console.log('Clerk JS blocked for testing');`,
+      body: `
+        // Mock Clerk React implementation
+        const mockClerk = {
+          user: ${JSON.stringify(TEST_USER)},
+          session: {
+            id: 'test_session_123',
+            userId: '${TEST_USER.id}',
+            status: 'active'
+          },
+          isLoaded: () => true,
+          isSignedIn: () => true,
+          signOut: () => Promise.resolve(),
+          organization: null,
+          sessionId: 'test_session_123',
+          userId: '${TEST_USER.id}',
+          getToken: () => Promise.resolve('test_token_123')
+        };
+
+        // Mock React hooks
+        const mockHooks = {
+          useUser: () => ({
+            user: ${JSON.stringify(TEST_USER)},
+            isLoaded: true,
+            isSignedIn: true
+          }),
+          useAuth: () => ({
+            userId: '${TEST_USER.id}',
+            sessionId: 'test_session_123',
+            isLoaded: true,
+            isSignedIn: true,
+            getToken: () => Promise.resolve('test_token_123'),
+            signOut: () => Promise.resolve()
+          }),
+          useSession: () => ({
+            session: {
+              id: 'test_session_123',
+              userId: '${TEST_USER.id}',
+              status: 'active'
+            },
+            isLoaded: true
+          })
+        };
+
+        // Export the mocks
+        window.Clerk = mockClerk;
+        window.__CLERK_MOCKS = mockHooks;
+        
+        // Mock the Clerk React components
+        const mockComponents = {
+          ClerkProvider: ({ children }) => children,
+          SignedIn: ({ children }) => children,
+          SignedOut: ({ children }) => children,
+          UserButton: () => null,
+          SignIn: () => null,
+          SignUp: () => null
+        };
+
+        // Export the components
+        Object.assign(window, mockComponents);
+      `
+    });
+  });
+
+  // Block Clerk JS files
+  await page.route('**/@clerk/clerk-js/**', route => {
+    const url = route.request().url();
+    route.fulfill({
+      status: 200,
+      contentType: 'application/javascript',
+      body: `
+        // Mock Clerk JS implementation
+        window.Clerk = {
+          user: ${JSON.stringify(TEST_USER)},
+          session: {
+            id: 'test_session_123',
+            userId: '${TEST_USER.id}',
+            status: 'active'
+          },
+          isLoaded: () => true,
+          isSignedIn: () => true,
+          signOut: () => Promise.resolve(),
+          organization: null,
+          sessionId: 'test_session_123',
+          userId: '${TEST_USER.id}',
+          getToken: () => Promise.resolve('test_token_123')
+        };
+      `
     });
   });
 
   // Mock JWT token validation
   await page.route('**/api/auth/**', route => {
+    const url = route.request().url();
     route.fulfill({
       status: 200,
       contentType: 'application/json',
@@ -232,9 +318,7 @@ export async function verifyAuthenticated(page: Page) {
   }
 
   if (!isAuthenticated) {
-    seedLogger.info('No authentication indicators found, checking page content...');
     const bodyText = await page.textContent('body');
-    seedLogger.info('Page content includes:', bodyText?.substring(0, 500));
   }
 
   return isAuthenticated;
@@ -245,9 +329,6 @@ export async function verifyAuthenticated(page: Page) {
  */
 export async function authenticateForE2E(page: Page) {
   await setupTestAuth(page);
-
-  // Verify authentication is working
-  seedLogger.info('Setting up test authentication...');
 
   // Additional verification can be added here
   return TEST_USER;

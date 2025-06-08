@@ -1,94 +1,107 @@
-import { test } from './utils/global-setup';
-import { expect } from '@playwright/test';
-import { waitForPageContent, setupApiMocking } from './utils/test-utils';
+import { test, expect } from '@playwright/test';
+import { setupApiMocking, waitForPageContent, getPrimaryMainElement, setupErrorHandling, expandMobileMenuIfNeeded } from './utils/test-utils';
+import { setupTestAuth } from './utils/auth-utils';
 
 test.describe('Navigation', () => {
-  test('should navigate to sports pages', async ({ page }) => {
-    // Setup API mocking to prevent rate limiting
-    await setupApiMocking(page);
+  test.beforeEach(async ({ page }) => {
+    await setupApiMocking(page, true);
+    await setupTestAuth(page);
+    setupErrorHandling(page);
+  });
 
+  test('should navigate to sports pages', async ({ page }) => {
     await page.goto('/');
     await waitForPageContent(page);
 
-    // Navigate to sports section
-    await page.goto('/sports/all-sports');
+    // Expand mobile menu if needed
+    await expandMobileMenuIfNeeded(page);
+
+    // Click on sports link
+    await page.getByRole('link', { name: /all sports/i }).click();
     await waitForPageContent(page);
 
-    // Check that we're on the sports page
-    await expect(page).toHaveURL(/\/sports\/all-sports/);
-    await expect(page.locator('main').first()).toBeVisible({ timeout: 10000 });
+    // Verify we're on the sports page
+    await expect(page).toHaveURL(/.*\/sports\/all-sports/);
+    await expect(await getPrimaryMainElement(page)).toBeVisible();
   });
 
   test('should navigate to NBA page', async ({ page }) => {
-    // Setup API mocking and authentication
-    await setupApiMocking(page, true);
+    await page.goto('/');
+    await waitForPageContent(page);
 
-    await page.goto('/sports/nba');
+    // Check if we need to expand the mobile menu
+    const isMobile = await page.getByRole('button', { name: /menu/i }).isVisible();
+    const isNBALinkVisible = await page.getByRole('link', { name: /nba/i }).isVisible();
 
-    // Check that we're on the correct URL first
-    await expect(page).toHaveURL(/\/sports\/nba/);
+    if (isMobile && !isNBALinkVisible) {
+      await page.getByRole('button', { name: /menu/i }).click();
+      await page.waitForTimeout(300); // Wait for animation
+      await expect(page.getByRole('link', { name: /nba/i })).toBeVisible();
+    }
 
-    // Wait for main element to appear (should be faster with auth mocked)
-    await expect(page.locator('main')).toBeVisible({ timeout: 15000 });
+    await page.getByRole('link', { name: /nba/i }).click();
+    await waitForPageContent(page);
 
-    // Verify page has NBA content or loading state
-    await expect(page.locator('main')).toContainText(/NBA|Loading|Games/, { timeout: 10000 });
+    // Wait for loading spinner and text to disappear
+    await page.waitForSelector('.animate-spin', { state: 'hidden' });
+    await page.waitForSelector('text=Loading games...', { state: 'hidden' });
 
-    // Use test.info() for test logging instead of console.log
-    test.info().annotations.push({
-      type: 'success',
-      description: 'NBA page loaded successfully with authentication',
-    });
+    // Wait for the heading to be visible
+    await expect(page.getByRole('heading', { name: /nba games/i, level: 1 })).toBeVisible();
+    await expect(page).toHaveURL('/sports/nba');
   });
 
   test('should navigate to dashboard', async ({ page }) => {
-    // Setup API mocking and authentication for protected route
-    await setupApiMocking(page, true);
-
-    await page.goto('/dashboard');
+    await page.goto('/');
     await waitForPageContent(page);
 
-    // Check that we're on the dashboard page
-    await expect(page).toHaveURL(/\/dashboard/);
-    await expect(page.locator('main').first()).toBeVisible({ timeout: 10000 });
+    // Expand mobile menu if needed
+    await expandMobileMenuIfNeeded(page);
+
+    // Click on dashboard link
+    await page.getByRole('link', { name: /dashboard/i }).click();
+    await waitForPageContent(page);
+
+    // Verify we're on the dashboard page
+    await expect(page).toHaveURL(/.*\/dashboard/);
+    await expect(page.getByRole('heading', { name: /dashboard/i })).toBeVisible();
   });
 
   test('should handle 404 pages gracefully', async ({ page }) => {
-    // Setup API mocking to prevent rate limiting
-    await setupApiMocking(page);
-
-    // Navigate to a non-existent page
     await page.goto('/non-existent-page');
-    await waitForPageContent(page);
-
-    // Should show a 404 page or redirect somewhere appropriate
-    const isNotFoundPage = await page.locator('text=/404|not found/i').isVisible();
-    const isRedirected = page.url() !== 'http://localhost:8080/non-existent-page';
-
-    // Either should show 404 content or redirect to a valid page
-    expect(isNotFoundPage || isRedirected).toBe(true);
+    
+    // Wait for the page to be ready
+    await page.waitForSelector('h2', { state: 'visible' });
+    
+    // Check for 404 content
+    await expect(page.getByRole('heading', { name: 'Not Found', level: 2 })).toBeVisible();
+    await expect(page.getByText('Could not find the requested resource')).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Return Home' })).toBeVisible();
+    
+    // Click the return home link
+    await page.getByRole('link', { name: 'Return Home' }).click();
+    await expect(page).toHaveURL('/');
   });
 
   test('should have working back/forward navigation', async ({ page }) => {
-    // Setup API mocking to prevent rate limiting
-    await setupApiMocking(page);
-
-    // Start at home
+    // Start at home page
     await page.goto('/');
     await waitForPageContent(page);
 
     // Navigate to dashboard
-    await page.goto('/dashboard');
+    await expandMobileMenuIfNeeded(page);
+    await page.getByRole('link', { name: /dashboard/i }).click();
     await waitForPageContent(page);
+    await expect(page).toHaveURL(/.*\/dashboard/);
 
-    // Go back
+    // Go back to home page
     await page.goBack();
     await waitForPageContent(page);
-    await expect(page).toHaveURL('http://localhost:8080/');
+    await expect(page).toHaveURL('/');
 
-    // Go forward
+    // Go forward to dashboard
     await page.goForward();
     await waitForPageContent(page);
-    await expect(page).toHaveURL(/\/dashboard/);
+    await expect(page).toHaveURL(/.*\/dashboard/);
   });
 });
