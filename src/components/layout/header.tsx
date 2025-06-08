@@ -79,17 +79,49 @@ function SearchBarContent() {
   const baseFormClass =
     'relative max-w-[180px] md:max-w-[220px] h-8 bg-background border border-[#27272a] shadow flex items-center px-2 transition-all duration-200 text-sm';
   const detachedFormClass =
-    'fixed left-1/2 top-8 z-[100] -translate-x-1/2 w-[300px] md:w-[400px] h-12 bg-background border border-[#27272a] shadow-2xl flex items-center px-4 py-2';
+    'fixed left-1/2 top-20 z-[100] -translate-x-1/2 w-[300px] md:w-[400px] h-12 bg-background border border-[#27272a] shadow-2xl flex items-center px-4 py-2';
 
+  if (isFocused) {
+    return (
+      <div className="fixed inset-0 z-[100] bg-black/70 flex items-center justify-center animate-fadeIn">
+        <form
+          onSubmit={handleSearch}
+          className="w-[300px] md:w-[400px] h-12 bg-background border border-[#27272a] shadow-2xl flex items-center px-4 py-2 rounded-md relative"
+          tabIndex={-1}
+        >
+          <div className="relative flex-1">
+            <Search className="absolute left-2 top-2 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="search"
+              placeholder={
+                pathname?.startsWith('/protected/admin') ? 'Search users...' : 'Search games...'
+              }
+              className="pl-8 w-full h-8 md:h-10 text-base bg-transparent border-none focus:ring-0 outline-none transition-all duration-200"
+              value={search_query}
+              onChange={handleSearchChange}
+              onFocus={() => setIsFocused(true)}
+              onBlur={() => setIsFocused(false)}
+              autoComplete="off"
+              spellCheck={false}
+              ref={input => { if (isFocused && input) input.focus(); }}
+            />
+          </div>
+          <button
+            type="button"
+            className="ml-2 text-gray-400 hover:text-gray-600 focus:outline-none"
+            aria-label="Close search"
+            onMouseDown={e => { e.preventDefault(); setIsFocused(false); }}
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </form>
+      </div>
+    );
+  }
   return (
     <form
       onSubmit={handleSearch}
-      className={
-        isFocused
-          ? `${detachedFormClass} animate-fadeIn`
-          : baseFormClass
-      }
-      style={{}}
+      className={baseFormClass}
       tabIndex={-1}
     >
       <div className="relative flex-1">
@@ -99,31 +131,15 @@ function SearchBarContent() {
           placeholder={
             pathname?.startsWith('/protected/admin') ? 'Search users...' : 'Search games...'
           }
-          className={
-            isFocused
-              ? 'pl-8 w-full h-8 md:h-10 text-base bg-transparent border-none focus:ring-0 outline-none transition-all duration-200'
-              : 'pl-8 w-full h-8 text-sm bg-transparent border-none focus:ring-0 outline-none transition-all duration-200'
-          }
+          className="pl-8 w-full h-8 text-sm bg-transparent border-none focus:ring-0 outline-none transition-all duration-200"
           value={search_query}
           onChange={handleSearchChange}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
           autoComplete="off"
           spellCheck={false}
-          ref={input => { if (isFocused && input) input.focus(); }}
         />
       </div>
-      {/* X button for detached mode */}
-      {isFocused && (
-        <button
-          type="button"
-          className="ml-2 text-gray-400 hover:text-gray-600 focus:outline-none"
-          aria-label="Close search"
-          onMouseDown={e => { e.preventDefault(); setIsFocused(false); }}
-        >
-          <X className="h-5 w-5" />
-        </button>
-      )}
     </form>
   );
 }
