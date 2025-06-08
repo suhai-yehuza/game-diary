@@ -177,7 +177,7 @@ export default function Header() {
       <LiveGamesBanner />
 
       <header className="w-full border-b lg:border-b">
-        <div className="flex h-16 items-center">
+        <div className="flex h-16 items-center justify-between w-full">
           <div className="pl-10">
             <Link href="/">
               <Image
@@ -190,7 +190,7 @@ export default function Header() {
               />
             </Link>
           </div>
-          <nav className="container mx-auto px-2 sm:px-4 lg:px-6">
+          <nav className="flex-1 container mx-auto px-2 sm:px-4 lg:px-6">
             <div className="flex h-16 items-center justify-between">
               {/* Left Section */}
               <div className="flex items-center">
@@ -300,6 +300,7 @@ export default function Header() {
                           All Sports
                         </Link>
                       </div>
+                      {/* Optional vertical divider for extra separation */}
                       <div className="hidden lg:block absolute -right-10 2xl:-right-12 top-1/2 -translate-y-1/2 h-4 w-px bg-gray-200 dark:bg-gray-700" />
                     </li>
 
@@ -375,28 +376,28 @@ export default function Header() {
                 <div className="hidden sm:flex items-center ml-auto mr-8 pr-4 relative">
                   <SearchBar />
                   {/* Optional vertical divider for extra separation */}
-                  <div className="h-8 w-px bg-gray-200 dark:bg-gray-700 mx-6" />
-                </div>
-                {/* Theme and Auth controls, always far right */}
-                <div className="flex items-center gap-2 sm:gap-4">
-                  <ThemeToggle />
-                  <SignedOut>
-                    <SignInButton mode="modal">
-                      <Button
-                        type="button"
-                        className="text-white bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 font-medium rounded-lg text-sm px-4 py-2 sm:px-5 sm:py-2.5 text-center"
-                      >
-                        Sign In
-                      </Button>
-                    </SignInButton>
-                  </SignedOut>
-                  <SignedIn>
-                    <UserButton />
-                  </SignedIn>
+                  <div className="hidden lg:block absolute -right-10 2xl:-right-12 top-1/2 -translate-y-1/2 h-4 w-px bg-gray-200 dark:bg-gray-700" />
                 </div>
               </div>
             </div>
           </nav>
+          {/* Theme and Auth controls, always far right, outside nav */}
+          <div className="flex items-center gap-2 sm:gap-4 pr-10">
+            <ThemeToggle />
+            <SignedOut>
+              <SignInButton mode="modal">
+                <Button
+                  type="button"
+                  className="text-white bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 font-medium rounded-lg text-sm px-4 py-2 sm:px-5 sm:py-2.5 text-center"
+                >
+                  Sign In
+                </Button>
+              </SignInButton>
+            </SignedOut>
+            <SignedIn>
+              <UserButton />
+            </SignedIn>
+          </div>
         </div>
       </header>
     </>
