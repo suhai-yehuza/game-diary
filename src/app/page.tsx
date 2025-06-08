@@ -50,13 +50,13 @@ export default function Home() {
               <div className="flex gap-4">
                 <Link
                   href="/sign-in"
-                  className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  className="px-6 py-3 bg-[#757575] text-white rounded-lg hover:bg-[#616161] border border-gray-600 transition-colors dark:bg-[#e5e5e5] dark:text-gray-800 dark:hover:bg-[#d4d4d4] dark:border-gray-300"
                 >
                   Sign In
                 </Link>
                 <Link
                   href="/sign-up"
-                  className="px-6 py-3 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 transition-colors"
+                  className="px-6 py-3 border border-[#757575] text-[#757575] rounded-lg hover:bg-[#f3f3f3] transition-colors dark:border-[#e5e5e5] dark:text-[#e5e5e5] dark:hover:bg-[#232326]"
                 >
                   Sign Up
                 </Link>
@@ -67,13 +67,13 @@ export default function Home() {
             <div className="flex gap-4">
               <Link
                 href="/sign-in"
-                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                className="px-6 py-3 bg-[#757575] text-white rounded-lg hover:bg-[#616161] border border-gray-600 transition-colors dark:bg-[#e5e5e5] dark:text-gray-800 dark:hover:bg-[#d4d4d4] dark:border-gray-300"
               >
                 Sign In
               </Link>
               <Link
                 href="/sign-up"
-                className="px-6 py-3 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 transition-colors"
+                className="px-6 py-3 border border-[#757575] text-[#757575] rounded-lg hover:bg-[#f3f3f3] transition-colors dark:border-[#e5e5e5] dark:text-[#e5e5e5] dark:hover:bg-[#232326]"
               >
                 Sign Up
               </Link>
