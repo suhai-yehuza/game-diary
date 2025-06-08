@@ -263,16 +263,50 @@ export const GameLog = {
   user: async (
     parent: { userId: string },
     _args: Record<string, unknown>,
-    { loaders }: Context
+    { loaders, db }: Context
   ) => {
-    if (!parent.userId || !loaders) {
+    if (!parent.userId) {
       throw new Error('User ID is required for GameLog');
     }
-    const user = await loaders.userLoader?.load(parent.userId);
-    if (!user) {
-      throw new Error(`User with ID ${parent.userId} not found`);
+
+    // Try to use the loader first
+    if (loaders?.userLoader) {
+      try {
+        const user = await loaders.userLoader.load(parent.userId);
+        if (user) {
+          return user;
+        }
+      } catch (error) {
+        logger.warn('Failed to load user from loader, falling back to direct query:', error);
+      }
     }
-    return user;
+
+    // Fallback to direct database query
+    try {
+      const users = await db
+        .select()
+        .from(schema.users)
+        .where(eq(schema.users.id, parent.userId))
+        .limit(1);
+      
+      const user = users[0];
+      if (!user) {
+        throw new Error(`User with ID ${parent.userId} not found`);
+      }
+
+      // Return a UserSummary object to match the GraphQL schema
+      return {
+        id: user.id,
+        username: user.username || '',
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
+        emailAddress: user.emailAddress || '',
+        imageUrl: user.imageUrl || '',
+      };
+    } catch (error) {
+      logger.error(`Failed to fetch user ${parent.userId}:`, error);
+      throw new Error(`Failed to fetch user with ID ${parent.userId}`);
+    }
   },
   game: async (
     parent: { gameId: string },
@@ -288,7 +322,7 @@ export const GameLog = {
     }
     return game;
   },
-  comments: async (parent: { id: string }, args: { first?: number; after?: string }, { db }: any) => {
+  comments: async (parent: { id: string }, args: { first?: number; after?: string }, { db }: Context) => {
     const { first = 10, after } = args;
     if (!parent.id) return { edges: [], pageInfo: { hasNextPage: false, endCursor: null }, totalCount: 0 };
 
@@ -323,7 +357,7 @@ export const GameLog = {
       totalCount: allComments.length,
     };
   },
-  reactions: async (parent, _args, { db }) => {
+  reactions: async (parent: { id: string }, _args: Record<string, unknown>, { db }: Context) => {
     if (!parent.id) return [];
     const reactions = await db
       .select()

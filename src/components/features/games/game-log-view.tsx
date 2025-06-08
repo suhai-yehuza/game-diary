@@ -252,10 +252,10 @@ export function GameLogView({ gameLogId }: GameLogProps) {
                 <Trophy className="h-12 w-12 mx-auto text-muted-foreground" />
                 <h3 className="text-lg font-semibold">Error loading game log</h3>
                 <p className="text-sm text-muted-foreground">{gameLogError.message}</p>
-                <Link href="/protected/user">
+                <Link href="/dashboard">
                   <Button variant="outline" className="gap-2">
                     <ArrowLeft className="h-4 w-4" />
-                    Back to Profile
+                    Back to Dashboard
                   </Button>
                 </Link>
               </div>
@@ -280,10 +280,10 @@ export function GameLogView({ gameLogId }: GameLogProps) {
                 <p className="text-sm text-muted-foreground">
                   This game log may have been removed or you don&apos;t have permission to view it.
                 </p>
-                <Link href="/protected/user">
+                <Link href="/dashboard">
                   <Button variant="outline" className="gap-2">
                     <ArrowLeft className="h-4 w-4" />
-                    Back to Profile
+                    Back to Dashboard
                   </Button>
                 </Link>
               </div>
@@ -304,10 +304,10 @@ export function GameLogView({ gameLogId }: GameLogProps) {
       <div className="max-w-4xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <Link href="/protected/user">
+          <Link href="/dashboard">
             <Button variant="ghost" size="sm" className="gap-2">
               <ArrowLeft className="h-4 w-4" />
-              Back to Profile
+              Back to Dashboard
             </Button>
           </Link>
           <Badge

@@ -5,14 +5,11 @@ import { join } from 'path';
 
 import { ApolloServer } from '@apollo/server';
 import { startServerAndCreateNextHandler } from '@as-integrations/next';
-import { auth, clerkClient } from '@clerk/nextjs/server';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import type { NextRequest } from 'next/server';
 
 import { getCorsHeaders, handleApiError, createOptionsResponse } from '@src/lib/api/utils';
-import { getCache } from '@src/lib/cache';
-import { db } from '@src/lib/db/seed';
-import { createLoaders } from '@src/lib/graphql/loaders';
+import { createContext } from '@src/lib/graphql/context';
 import { resolvers } from '@src/lib/graphql/resolvers';
 import { apiLogger } from 'lib/core/logger';
 import type { Context } from '@src/lib/types/component.types';
@@ -32,21 +29,7 @@ const server = new ApolloServer<Context>({
 
 // Create the handler
 const handler = startServerAndCreateNextHandler(server, {
-  context: async () => {
-    const { userId } = await auth();
-    const cache = await getCache();
-    const redisClient = cache.getRedisClient();
-    const loaders = createLoaders(db);
-
-    return {
-      db,
-      redis: redisClient,
-      loaders,
-      userId,
-      clerkClient,
-      user: null, // This will be populated by the auth middleware
-    } as Context;
-  },
+  context: createContext,
 });
 
 // Simple in-memory rate limiting
