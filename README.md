@@ -234,6 +234,8 @@ pnpm codegen
 pnpm dev
 
 DEBUG=* pnpm dev
+
+pnpm playwright test --reporter=line
 ```
 
 ### 7. Development Workflow
