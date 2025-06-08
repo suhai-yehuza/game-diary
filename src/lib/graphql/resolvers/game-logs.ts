@@ -1,4 +1,4 @@
-import { and, eq, sql, gte, lte, like, or, isNotNull, desc, asc } from 'drizzle-orm';
+import { and, eq, sql, gte, lte, like, or, isNotNull, desc, asc, ilike } from 'drizzle-orm';
 
 import { CACHE_KEYS } from '@src/lib/cache';
 import { withCache } from '@src/lib/db';
@@ -162,14 +162,21 @@ export const gameLogs = async (
       conditions.push(eq(schema.game_logs.classification, filters.classification));
     }
 
-    // Search text - search in notes, tags, and location
+    // Search text - search in notes, tags, location, and team info
     if (filters?.searchText) {
       const searchTerm = `%${filters.searchText}%`;
       conditions.push(
         or(
           like(schema.game_logs.notes, searchTerm),
           like(schema.game_logs.watchedLocation, searchTerm),
-          sql`${schema.game_logs.tags}::text LIKE ${searchTerm}`
+          sql`${schema.game_logs.tags}::text LIKE ${searchTerm}`,
+          // Team info in nba_games JSONB (use ilike for case-insensitive search)
+          ilike(sql`nba_games.teams->'home'->>'name'`, searchTerm),
+          ilike(sql`nba_games.teams->'home'->>'nickname'`, searchTerm),
+          ilike(sql`nba_games.teams->'home'->>'city'`, searchTerm),
+          ilike(sql`nba_games.teams->'visitors'->>'name'`, searchTerm),
+          ilike(sql`nba_games.teams->'visitors'->>'nickname'`, searchTerm),
+          ilike(sql`nba_games.teams->'visitors'->>'city'`, searchTerm)
         )
       );
     }
@@ -223,6 +230,7 @@ export const gameLogs = async (
     const [countResult] = await db
       .select({ count: sql<number>`cast(count(*) as int)` })
       .from(schema.game_logs)
+      .leftJoin(schema.nba_games, eq(schema.game_logs.gameId, schema.nba_games.id))
       .where(whereClause);
 
     const totalCount = countResult?.count || 0;
@@ -247,11 +255,15 @@ export const gameLogs = async (
         break;
     }
 
-    // Execute the query with proper offset and limit
-    const query = db
+    // When building the main query, join game_logs to nba_games
+    const baseQuery = db
       .select()
       .from(schema.game_logs)
-      .where(whereClause)
+      .leftJoin(schema.nba_games, eq(schema.game_logs.gameId, schema.nba_games.id))
+      .where(and(...conditions));
+
+    // Execute the query with proper offset and limit
+    const query = baseQuery
       .orderBy(orderByClause)
       .offset(offset)
       .limit(first || last || 10);
@@ -260,20 +272,20 @@ export const gameLogs = async (
 
     // Map the results
     const mappedLogs = items.map(log => ({
-      id: log.id,
-      userId: log.userId,
-      gameId: log.gameId,
-      watchedSetting: log.watchedSetting,
-      watchedDate: log.watchedDate,
-      watchedLocation: log.watchedLocation,
-      ratingForGame: log.ratingForGame,
-      watchedScope: log.watchedScope,
-      notes: log.notes,
-      tags: log.tags,
-      classification: log.classification,
-      createdAt: log.createdAt,
-      updatedAt: log.updatedAt,
-      deletedAt: log.deletedAt,
+      id: log.game_logs.id,
+      userId: log.game_logs.userId,
+      gameId: log.game_logs.gameId,
+      watchedSetting: log.game_logs.watchedSetting,
+      watchedDate: log.game_logs.watchedDate,
+      watchedLocation: log.game_logs.watchedLocation,
+      ratingForGame: log.game_logs.ratingForGame,
+      watchedScope: log.game_logs.watchedScope,
+      notes: log.game_logs.notes,
+      tags: log.game_logs.tags,
+      classification: log.game_logs.classification,
+      createdAt: log.game_logs.createdAt,
+      updatedAt: log.game_logs.updatedAt,
+      deletedAt: log.game_logs.deletedAt,
     }));
 
     return createConnection(mappedLogs, totalCount, args);

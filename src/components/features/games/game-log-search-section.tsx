@@ -114,6 +114,12 @@ const getClassificationStyles = (classification: string) => {
   }
 };
 
+// Helper function to ensure HTTPS URLs
+const ensureHttps = (url: string): string => {
+  if (!url) return '';
+  return url.replace(/^http:/, 'https:');
+};
+
 export function GameLogSearchSection({
   userId,
   initialSearchText = '',
@@ -533,13 +539,10 @@ export function GameLogSearchSection({
           ))}
         </div>
       ) : error ? (
-        <Card className="border-destructive/50">
-          <CardContent className="py-8">
-            <div className="text-center text-destructive">
-              Error loading game logs: {error.message}
-            </div>
-          </CardContent>
-        </Card>
+        <div className="p-4 text-red-600 bg-red-50 border border-red-200 rounded-md mb-4">
+          <strong>Error loading game logs.</strong>
+          <pre className="text-xs mt-2 whitespace-pre-wrap">{JSON.stringify(error, null, 2)}</pre>
+        </div>
       ) : games.length === 0 ? (
         <Card className="border-dashed">
           <CardContent className="flex flex-col items-center justify-center py-12">
@@ -579,7 +582,7 @@ export function GameLogSearchSection({
                         onClick={e => e.stopPropagation()}
                       >
                         <Avatar className="h-8 w-8">
-                          <AvatarImage src={log.user?.imageUrl || undefined} />
+                          <AvatarImage src={ensureHttps(log.user?.imageUrl ?? '') || undefined} />
                           <AvatarFallback className="text-xs">
                             {log.user?.firstName?.[0]}
                             {log.user?.lastName?.[0]}
@@ -613,7 +616,7 @@ export function GameLogSearchSection({
                             {log.game.teams?.visitors?.logo && (
                               <div className="relative h-6 w-6 flex-shrink-0">
                                 <Image
-                                  src={log.game.teams.visitors.logo}
+                                  src={ensureHttps(log.game.teams.visitors.logo)}
                                   alt={log.game.teams.visitors.name || 'Away'}
                                   fill
                                   sizes="24px"
@@ -635,7 +638,7 @@ export function GameLogSearchSection({
                             {log.game.teams?.home?.logo && (
                               <div className="relative h-6 w-6 flex-shrink-0">
                                 <Image
-                                  src={log.game.teams.home.logo}
+                                  src={ensureHttps(log.game.teams.home.logo)}
                                   alt={log.game.teams.home.name || 'Home'}
                                   fill
                                   sizes="24px"
