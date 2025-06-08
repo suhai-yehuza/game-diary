@@ -60,13 +60,11 @@ import { FRIENDSHIP_STATUS } from '@src/lib/types/config.types';
 import { cn } from '@src/lib/utils';
 import { formatCount } from '@src/lib/utils/format';
 
-const UserCard = ({ user }: { user: UserNode }) => {
+const UserCard = React.memo(({ user }: { user: UserNode }) => {
   const { user: currentUser } = useUser();
   const [sendFriendRequest, { loading: sendingRequest }] = useMutation(SEND_FRIEND_REQUEST);
   const [acceptFriendRequest, { loading: acceptingRequest }] = useMutation(ACCEPT_FRIEND_REQUEST);
   const [rejectFriendRequest, { loading: rejectingRequest }] = useMutation(REJECT_FRIEND_REQUEST);
-  // UPDATE_FRIENDSHIP_STATUS functionality temporarily disabled
-  const updatingStatus = false;
   const [removeFriend, { loading: removingFriend }] = useMutation(REMOVE_FRIEND);
 
   // Dropdown open states
@@ -92,7 +90,7 @@ const UserCard = ({ user }: { user: UserNode }) => {
   }, [user.createdAt]);
 
   // Determine friendship status
-  const getFriendshipStatus = () => {
+  const friendshipInfo = useMemo(() => {
     if (!currentUser) return null;
 
     // Check if current user initiated a friendship with this user
@@ -114,12 +112,10 @@ const UserCard = ({ user }: { user: UserNode }) => {
     }
 
     return { status: null, friendshipId: null, isReceivedRequest: false };
-  };
+  }, [currentUser, user.friendships, user.initiatedFriendships]);
 
-  const friendshipInfo = getFriendshipStatus();
-
-  const handleSendFriendRequest = async (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault(); // Prevent navigation
+  const handleSendFriendRequest = useCallback(async (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
     e.stopPropagation();
 
     try {
@@ -137,9 +133,9 @@ const UserCard = ({ user }: { user: UserNode }) => {
       logger.error('Error sending friend request:', error);
       toast.error('An unexpected error occurred');
     }
-  };
+  }, [user.id, displayName, sendFriendRequest]);
 
-  const handleAcceptRequest = async (e: React.MouseEvent<HTMLDivElement>) => {
+  const handleAcceptRequest = useCallback(async (e: React.MouseEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
 
@@ -153,7 +149,7 @@ const UserCard = ({ user }: { user: UserNode }) => {
 
       if (data?.acceptFriendRequest?.friendship) {
         toast.success(`You are now friends with ${displayName}`);
-        setFriendRequestDropdownOpen(false); // Close dropdown
+        setFriendRequestDropdownOpen(false);
       } else if (data?.acceptFriendRequest?.errors?.[0]) {
         toast.error(data.acceptFriendRequest.errors[0].message);
       }
@@ -161,9 +157,9 @@ const UserCard = ({ user }: { user: UserNode }) => {
       logger.error('Error accepting friend request:', error);
       toast.error('An unexpected error occurred');
     }
-  };
+  }, [friendshipInfo?.friendshipId, displayName, acceptFriendRequest]);
 
-  const handleRejectRequest = async (e: React.MouseEvent<HTMLDivElement>) => {
+  const handleRejectRequest = useCallback(async (e: React.MouseEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
 
@@ -177,7 +173,7 @@ const UserCard = ({ user }: { user: UserNode }) => {
 
       if (data?.rejectFriendRequest?.friendship) {
         toast.success('Friend request rejected');
-        setFriendRequestDropdownOpen(false); // Close dropdown
+        setFriendRequestDropdownOpen(false);
       } else if (data?.rejectFriendRequest?.errors?.[0]) {
         toast.error(data.rejectFriendRequest.errors[0].message);
       }
@@ -185,19 +181,9 @@ const UserCard = ({ user }: { user: UserNode }) => {
       logger.error('Error rejecting friend request:', error);
       toast.error('An unexpected error occurred');
     }
-  };
+  }, [friendshipInfo?.friendshipId, rejectFriendRequest]);
 
-  const handleBlockUser = async (e: React.MouseEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    if (!friendshipInfo?.friendshipId) return;
-
-    // Block functionality temporarily disabled
-    toast.error('Block functionality temporarily unavailable');
-  };
-
-  const handleRemoveFriend = async (e: React.MouseEvent<HTMLDivElement>) => {
+  const handleRemoveFriend = useCallback(async (e: React.MouseEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
 
@@ -211,7 +197,7 @@ const UserCard = ({ user }: { user: UserNode }) => {
 
       if (data?.removeFriend?.success) {
         toast.success(`You are no longer friends with ${displayName}`);
-        setFriendsDropdownOpen(false); // Close dropdown
+        setFriendsDropdownOpen(false);
       } else if (data?.removeFriend?.errors?.[0]) {
         toast.error(data.removeFriend.errors[0].message);
       }
@@ -219,9 +205,9 @@ const UserCard = ({ user }: { user: UserNode }) => {
       logger.error('Error removing friend:', error);
       toast.error('An unexpected error occurred');
     }
-  };
+  }, [friendshipInfo?.friendshipId, displayName, removeFriend]);
 
-  const handleCancelRequest = async (e: React.MouseEvent<HTMLDivElement>) => {
+  const handleCancelRequest = useCallback(async (e: React.MouseEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
 
@@ -235,7 +221,7 @@ const UserCard = ({ user }: { user: UserNode }) => {
 
       if (data?.removeFriend?.success) {
         toast.success('Friend request cancelled');
-        setSentRequestDropdownOpen(false); // Close dropdown
+        setSentRequestDropdownOpen(false);
       } else if (data?.removeFriend?.errors?.[0]) {
         toast.error(data.removeFriend.errors[0].message);
       }
@@ -243,31 +229,39 @@ const UserCard = ({ user }: { user: UserNode }) => {
       logger.error('Error cancelling friend request:', error);
       toast.error('An unexpected error occurred');
     }
-  };
+  }, [friendshipInfo?.friendshipId, removeFriend]);
+
+  const handleBlockUser = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    toast.error('Block functionality temporarily unavailable');
+  }, []);
+
+  const isLoading = useMemo(() => 
+    sendingRequest || acceptingRequest || rejectingRequest || removingFriend
+  , [sendingRequest, acceptingRequest, rejectingRequest, removingFriend]);
 
   const renderFriendshipStatus = () => {
     if (!friendshipInfo) return null;
-
-    const isLoading =
-      sendingRequest || acceptingRequest || rejectingRequest || updatingStatus || removingFriend;
 
     switch (friendshipInfo.status) {
       case FRIENDSHIP_STATUS.ACCEPTED:
         return (
           <DropdownMenu open={friendsDropdownOpen} onOpenChange={setFriendsDropdownOpen}>
-            <DropdownMenuTrigger asChild onClick={e => e.stopPropagation()}>
+            <DropdownMenuTrigger asChild>
               <Button
                 variant="secondary"
                 size="sm"
                 className="gap-0.5 bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/20 hover:bg-green-500/20 text-xs h-7 px-2"
                 disabled={isLoading}
+                onClick={e => e.stopPropagation()}
               >
                 <UserCheck className="h-2.5 w-2.5" />
                 Friends
                 <MoreVertical className="h-2.5 w-2.5 ml-0.5" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" onClick={e => e.stopPropagation()}>
+            <DropdownMenuContent align="end">
               <DropdownMenuItem
                 onClick={handleRemoveFriend}
                 disabled={isLoading}
@@ -296,19 +290,20 @@ const UserCard = ({ user }: { user: UserNode }) => {
               open={friendRequestDropdownOpen}
               onOpenChange={setFriendRequestDropdownOpen}
             >
-              <DropdownMenuTrigger asChild onClick={e => e.stopPropagation()}>
+              <DropdownMenuTrigger asChild>
                 <Button
                   variant="secondary"
                   size="sm"
                   className="gap-0.5 bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20 hover:bg-amber-500/20 text-xs h-7 px-2"
                   disabled={isLoading}
+                  onClick={e => e.stopPropagation()}
                 >
                   <UserPlus className="h-2.5 w-2.5" />
                   Accept Request
                   <MoreVertical className="h-2.5 w-2.5 ml-0.5" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" onClick={e => e.stopPropagation()}>
+              <DropdownMenuContent align="end">
                 <DropdownMenuItem
                   onClick={handleAcceptRequest}
                   disabled={isLoading}
@@ -331,19 +326,20 @@ const UserCard = ({ user }: { user: UserNode }) => {
         } else {
           return (
             <DropdownMenu open={sentRequestDropdownOpen} onOpenChange={setSentRequestDropdownOpen}>
-              <DropdownMenuTrigger asChild onClick={e => e.stopPropagation()}>
+              <DropdownMenuTrigger asChild>
                 <Button
                   variant="secondary"
                   size="sm"
                   className="gap-0.5 bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20 hover:bg-amber-500/20 text-xs h-7 px-2"
                   disabled={isLoading}
+                  onClick={e => e.stopPropagation()}
                 >
                   <UserPlus className="h-2.5 w-2.5" />
                   Request Sent
                   <MoreVertical className="h-2.5 w-2.5 ml-0.5" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" onClick={e => e.stopPropagation()}>
+              <DropdownMenuContent align="end">
                 <DropdownMenuItem
                   onClick={handleCancelRequest}
                   disabled={isLoading}
@@ -386,7 +382,7 @@ const UserCard = ({ user }: { user: UserNode }) => {
       case null:
         return (
           <Button
-            onClick={() => handleSendFriendRequest({} as React.MouseEvent<HTMLButtonElement>)}
+            onClick={handleSendFriendRequest}
             variant="secondary"
             size="sm"
             className="gap-0.5 bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/20 hover:bg-blue-500/20 text-xs h-7 px-2"
@@ -444,9 +440,11 @@ const UserCard = ({ user }: { user: UserNode }) => {
       </Card>
     </Link>
   );
-};
+});
 
-const UserCardSkeleton = () => (
+UserCard.displayName = 'UserCard';
+
+const UserCardSkeleton = React.memo(() => (
   <Card className="h-full">
     <CardContent className="p-6">
       <div className="flex items-start gap-4">
@@ -459,7 +457,9 @@ const UserCardSkeleton = () => (
       </div>
     </CardContent>
   </Card>
-);
+));
+
+UserCardSkeleton.displayName = 'UserCardSkeleton';
 
 export function UserSearchSection({ className }: UserSearchSectionProps) {
   const { user: currentUser } = useUser();
