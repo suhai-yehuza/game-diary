@@ -83,7 +83,7 @@ function SearchBarContent() {
 
   if (isFocused) {
     return (
-      <div className="fixed inset-0 z-[100] bg-black/70 flex items-center justify-center animate-fadeIn">
+      <div className="fixed inset-0 z-[100] bg-black/70 flex items-start justify-center pt-[12vh] animate-fadeIn">
         <form
           onSubmit={handleSearch}
           className="w-[300px] md:w-[400px] h-12 bg-background border border-[#27272a] shadow-2xl flex items-center px-4 py-2 rounded-md relative"
