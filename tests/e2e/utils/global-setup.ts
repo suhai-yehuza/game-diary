@@ -7,7 +7,7 @@ export const test = base.extend({
   page: async ({ page }, use) => {
     // Setup error handling
     setupErrorHandling(page);
-    
+
     // Use the page
     await use(page);
   },

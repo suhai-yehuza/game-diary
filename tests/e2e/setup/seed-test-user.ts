@@ -8,9 +8,8 @@ dotenvFlow.config({
 
 import { db } from '@src/lib/db';
 import { users } from '@src/lib/db/schema';
-import { seedLogger } from 'lib/core/logger';
+import { seedLogger } from '../../../lib/core/logger';
 import { TEST_USER } from '../utils/auth-utils';
-import type { ClerkExternalAccount } from '@src/lib/types/user.types';
 
 /**
  * Ensure test user exists in database for E2E tests
@@ -25,35 +24,32 @@ export async function seedTestUser() {
     });
 
     if (existingUser) {
-      seedLogger.info('✅ Test user already exists, updating...');
-
-      // Update existing test user with current data
-      await db
-        .update(users)
-        .set({
-          ...TEST_USER,
-          inboundFriendshipIds: [] as string[],
-          outboundFriendshipIds: [] as string[],
-          external_accounts: [] as ClerkExternalAccount[],
-          updatedAt: new Date(),
-        })
-        .where(eq(users.id, TEST_USER.id));
-    } else {
-      seedLogger.info('🆕 Creating new test user...');
-
-      // Create new test user with proper types
-      await db.insert(users).values({
-        ...TEST_USER,
-        inboundFriendshipIds: [] as string[],
-        outboundFriendshipIds: [] as string[],
-        external_accounts: [] as ClerkExternalAccount[],
-      });
+      seedLogger.info(`✅ Test user already exists: ${TEST_USER.emailAddresses[0].emailAddress}`);
+      return existingUser;
     }
 
-    seedLogger.info(`✅ Test user ready: ${TEST_USER.emailAddress}`);
-    return TEST_USER;
+    // Create test user
+    const [user] = await db
+      .insert(users)
+      .values({
+        id: TEST_USER.id,
+        username: `test-${TEST_USER.id}`,
+        firstName: TEST_USER.firstName,
+        lastName: TEST_USER.lastName,
+        emailAddress: TEST_USER.emailAddresses[0].emailAddress,
+        imageUrl: TEST_USER.imageUrl,
+        inboundFriendshipIds: [],
+        outboundFriendshipIds: [],
+        external_accounts: [],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .returning();
+
+    seedLogger.info(`✅ Test user created: ${TEST_USER.emailAddresses[0].emailAddress}`);
+    return user;
   } catch (error) {
-    seedLogger.error('❌ Failed to setup test user:', error);
+    seedLogger.error('Failed to seed test user:', error);
     throw error;
   }
 }

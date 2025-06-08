@@ -1,4 +1,4 @@
-import { expect, type Page, type Route } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
 import { setupTestAuth } from './auth-utils';
 import { seedLogger } from 'lib/core/logger';
 
@@ -23,118 +23,119 @@ export async function getPrimaryMainElement(page: Page) {
  * Waits for the page content to be fully loaded and interactive
  */
 export async function waitForPageContent(page: Page): Promise<void> {
-  // Wait for main content to be visible
-  await page.waitForSelector('main.grow', { state: 'visible' });
+  await page.waitForLoadState('domcontentloaded');
+  await page.waitForLoadState('networkidle');
 
-  // Wait for any loading spinners to disappear
-  await page.waitForSelector('.animate-spin', { state: 'hidden', timeout: 10000 }).catch(() => {
-    // Ignore if no loading spinner is found
+  await page.waitForFunction(() => {
+    const mainElements = document.querySelectorAll('main');
+    return Array.from(mainElements).some(
+      main =>
+        window.getComputedStyle(main).display !== 'none' &&
+        window.getComputedStyle(main).visibility !== 'hidden'
+    );
   });
 
   // Wait for any loading text to disappear
-  await page.waitForSelector('text=Loading games...', { state: 'hidden', timeout: 10000 }).catch(() => {
-    // Ignore if no loading text is found
-  });
-
-  // Wait for network to be idle
-  await page.waitForLoadState('networkidle');
-
-  // Additional wait to ensure React has finished rendering
-  await page.waitForTimeout(500);
+  await page
+    .waitForSelector('text=Loading games...', { state: 'hidden', timeout: 10000 })
+    .catch(() => {
+      // Ignore if no loading text is found
+    });
 }
 
 /**
  * Sets up API mocking for the test environment
  */
 export async function setupApiMocking(page: Page, withAuth = false) {
-  seedLogger.info('Setting up API mocking...');
-
   // Mock GraphQL API calls
-  await page.route('**/api/graphql', async (route) => {
+  await page.route('**/api/graphql', async route => {
     const request = route.request();
     const postData = request.postData();
-    
+    let mockResponse;
+
     try {
-      // Parse the GraphQL query
-      const { query, variables } = JSON.parse(postData || '{}');
-      
-      // Mock responses based on the query
-      let mockResponse = {};
-      
+      if (!postData) {
+        throw new Error('No post data found');
+      }
+
+      const { query } = JSON.parse(postData);
+
       if (query.includes('liveGames')) {
         mockResponse = {
           data: {
-            liveGames: []
-          }
+            liveGames: [],
+          },
         };
       } else if (query.includes('notifications')) {
         mockResponse = {
           data: {
-            notifications: []
-          }
+            notifications: [],
+          },
+        };
+      } else if (query.includes('games')) {
+        mockResponse = {
+          data: {
+            games: {
+              edges: [],
+              pageInfo: {
+                hasNextPage: false,
+                endCursor: null,
+              },
+            },
+          },
         };
       } else {
         // Default mock response for other queries
         mockResponse = {
-          data: {}
+          data: {},
         };
       }
 
-      seedLogger.info(`Mocking GraphQL query: ${query.split('(')[0]}`);
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify(mockResponse)
+        body: JSON.stringify(mockResponse),
       });
-    } catch (error) {
-      seedLogger.error('Error handling GraphQL request:', error);
-      // Return a valid but empty response instead of failing
+    } catch {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({ data: {} })
+        body: JSON.stringify({ data: {} }),
       });
     }
   });
 
   // Mock cache API calls
-  await page.route('**/api/cache*', async (route) => {
-    seedLogger.info(`Mocking API call: ${route.request().url()}`);
+  await page.route('**/api/cache*', async route => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
-      body: JSON.stringify({ data: [] })
+      body: JSON.stringify({ data: [] }),
     });
   });
 
   // Mock other API calls
-  await page.route('**/api/**', async (route) => {
-    seedLogger.info(`Mocking API call: ${route.request().url()}`);
+  await page.route('**/api/**', async route => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
-      body: JSON.stringify({ data: [] })
+      body: JSON.stringify({ data: [] }),
     });
   });
 
   // Setup authentication if requested
   if (withAuth) {
-    seedLogger.info('Setting up authentication...');
     await setupTestAuth(page);
   }
-
-  seedLogger.info('API mocking setup completed');
 }
 
 /**
  * Enhanced safe navigation with API mocking and retry logic
  */
 export async function safeGotoWithMocking(page: Page, url: string) {
-  seedLogger.info(`Navigating to ${url} with API mocking...`);
   await setupApiMocking(page);
   await page.goto(url);
   await waitForPageContent(page);
-  seedLogger.info(`Navigation to ${url} completed`);
 }
 
 /**
@@ -142,30 +143,27 @@ export async function safeGotoWithMocking(page: Page, url: string) {
  * This is the most frequently used pattern in our tests
  */
 export async function navigateWithMocking(page: Page, url: string) {
-  seedLogger.info(`Navigating to ${url} with API mocking...`);
   await setupApiMocking(page);
   await page.goto(url);
   await waitForPageContent(page);
-  seedLogger.info(`Navigation to ${url} completed`);
 }
 
 /**
  * Change viewport size and wait for layout to stabilize
  * Better alternative to waitForTimeout after viewport changes
  */
-export async function setViewportAndWaitForLayout(
-  page: Page,
-  size: { width: number; height: number }
-) {
+export const VIEWPORTS = {
+  mobile: { width: 375, height: 667 },
+  tablet: { width: 768, height: 1024 },
+  desktop: { width: 1920, height: 1080 },
+  large: { width: 2560, height: 1440 },
+} as const;
+
+export type ViewportSize = (typeof VIEWPORTS)[keyof typeof VIEWPORTS];
+
+export async function setViewportAndWaitForLayout(page: Page, size: ViewportSize) {
   await page.setViewportSize(size);
-  // Wait for layout to stabilize by checking main content is properly displayed
-  await page.waitForFunction(
-    () => {
-      const main = document.querySelector('main');
-      return main !== null && getComputedStyle(main).visibility !== 'hidden';
-    },
-    { timeout: 5000 }
-  );
+  await page.waitForLoadState('networkidle');
 }
 
 /**
@@ -207,16 +205,6 @@ export async function checkBasicPageStructure(page: Page) {
 }
 
 /**
- * Common viewport sizes for responsive testing
- */
-const VIEWPORTS = {
-  mobile: { width: 375, height: 667 },
-  tablet: { width: 768, height: 1024 },
-  desktop: { width: 1920, height: 1080 },
-  large: { width: 2560, height: 1440 },
-} as const;
-
-/**
  * Expands the mobile menu if needed based on viewport size
  */
 export async function expandMobileMenuIfNeeded(page: Page): Promise<void> {
@@ -228,7 +216,7 @@ export async function expandMobileMenuIfNeeded(page: Page): Promise<void> {
   // Check if menu is already expanded by looking for visible navigation links
   const menuButton = page.getByRole('button', { name: /menu/i });
   const isMenuButtonVisible = await menuButton.isVisible();
-  
+
   if (!isMenuButtonVisible) {
     return; // No menu button, navigation should be visible
   }
@@ -236,17 +224,17 @@ export async function expandMobileMenuIfNeeded(page: Page): Promise<void> {
   // Check if navigation is already visible
   const nbaLink = page.getByRole('link', { name: /nba/i });
   const isNavVisible = await nbaLink.isVisible();
-  
+
   if (isNavVisible) {
     return; // Navigation is already visible
   }
 
   // Click menu button to expand
   await menuButton.click();
-  
+
   // Wait for animation and menu to expand
   await page.waitForTimeout(300);
-  
+
   // Wait for navigation links to become visible
   await expect(nbaLink).toBeVisible({ timeout: 5000 });
 }
@@ -261,19 +249,20 @@ export async function testResponsiveness(
   const viewports = [
     { name: 'mobile', width: 375, height: 667 },
     { name: 'tablet', width: 768, height: 1024 },
-    { name: 'desktop', width: 1280, height: 800 }
+    { name: 'desktop', width: 1280, height: 800 },
   ];
 
   for (const viewport of viewports) {
-    console.log(`[SEED] INFO Testing viewport: ${viewport.name}`);
+    seedLogger.info(`[SEED] INFO Testing viewport: ${viewport.name}`);
     await page.setViewportSize({ width: viewport.width, height: viewport.height });
-    
+
     // Wait for layout to stabilize
     await page.waitForFunction(() => {
       const mainElements = document.querySelectorAll('main');
-      return Array.from(mainElements).some(main => 
-        window.getComputedStyle(main).display !== 'none' && 
-        window.getComputedStyle(main).visibility !== 'hidden'
+      return Array.from(mainElements).some(
+        main =>
+          window.getComputedStyle(main).display !== 'none' &&
+          window.getComputedStyle(main).visibility !== 'hidden'
       );
     });
 
@@ -297,12 +286,12 @@ export function setupErrorHandling(page: Page) {
         return;
       }
       // Log other errors but don't throw
-      seedLogger.error('Console error:', text);
+      console.error('Console error:', text);
     }
   });
 
   // Handle unhandled rejections
   page.on('pageerror', error => {
-    seedLogger.error('Page error:', error);
+    console.error('Page error:', error);
   });
 }
