@@ -137,6 +137,19 @@ function SearchBarContent() {
           autoComplete="off"
           spellCheck={false}
         />
+        {search_query && (
+          <button
+            type="button"
+            className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
+            aria-label="Clear search"
+            onClick={() => {
+              setSearchQuery('');
+              setDebouncedQuery('');
+            }}
+          >
+            <X className="h-5 w-5" />
+          </button>
+        )}
       </div>
     </form>
   );

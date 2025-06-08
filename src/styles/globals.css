@@ -700,3 +700,22 @@ body {
 .mobile-button-tap:active {
   transform: scale(0.98);
 }
+
+/* Hide browser default clear (cancel) button for search inputs */
+input[type='search']::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  appearance: none;
+  display: none;
+}
+input[type='search']::-ms-clear {
+  display: none;
+}
+input[type='search']::-ms-reveal {
+  display: none;
+}
+input[type='search']::-o-clear {
+  display: none;
+}
+input[type='search']::-moz-clear {
+  display: none;
+}

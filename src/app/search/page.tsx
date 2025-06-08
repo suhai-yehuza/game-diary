@@ -40,6 +40,12 @@ const formatArenaLocation = (arena: { name?: string; city?: string; state?: stri
   return parts.join(', ');
 };
 
+// Helper function to ensure HTTPS URLs
+const ensureHttps = (url: string): string => {
+  if (!url) return '';
+  return url.replace(/^http:/, 'https:');
+};
+
 function GameCard({ game }: { game: SearchGame }) {
   return (
     <Link href={`/sports/nba/games/${game.id}`} className="block">
@@ -64,7 +70,7 @@ function GameCard({ game }: { game: SearchGame }) {
             <div className="flex items-center gap-3">
               {game.teams.visitors.logo && (
                 <Image
-                  src={game.teams.visitors.logo}
+                  src={ensureHttps(game.teams.visitors.logo)}
                   alt={game.teams.visitors.name || 'Away team'}
                   width={48}
                   height={48}
@@ -88,7 +94,7 @@ function GameCard({ game }: { game: SearchGame }) {
             <div className="flex items-center gap-3">
               {game.teams.home.logo && (
                 <Image
-                  src={game.teams.home.logo}
+                  src={ensureHttps(game.teams.home.logo)}
                   alt={game.teams.home.name || 'Home team'}
                   width={48}
                   height={48}
