@@ -16,6 +16,7 @@ import { Input } from '@src/components/ui/input';
 function SearchBarContent() {
   const [search_query, setSearchQuery] = useState('');
   const [debounced_query, setDebouncedQuery] = useState('');
+  const [isFocused, setIsFocused] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
@@ -74,22 +75,55 @@ function SearchBarContent() {
     setDebouncedQuery(query);
   };
 
+  // For detaching effect
+  const baseFormClass =
+    'relative max-w-[180px] md:max-w-[220px] h-8 bg-background border border-[#27272a] shadow flex items-center px-2 transition-all duration-200 text-sm';
+  const detachedFormClass =
+    'fixed left-1/2 top-8 z-[100] -translate-x-1/2 w-[300px] md:w-[400px] h-12 bg-background border border-[#27272a] shadow-2xl flex items-center px-4 py-2';
+
   return (
-    <form onSubmit={handleSearch} className="relative">
-      <div className="relative">
-        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+    <form
+      onSubmit={handleSearch}
+      className={
+        isFocused
+          ? `${detachedFormClass} animate-fadeIn`
+          : baseFormClass
+      }
+      style={{}}
+      tabIndex={-1}
+    >
+      <div className="relative flex-1">
+        <Search className="absolute left-2 top-2 h-4 w-4 text-muted-foreground" />
         <Input
           type="search"
           placeholder={
             pathname?.startsWith('/protected/admin') ? 'Search users...' : 'Search games...'
           }
-          className="pl-8 w-[180px] sm:w-[200px] md:w-[250px] lg:w-[300px] transition-all duration-200"
+          className={
+            isFocused
+              ? 'pl-8 w-full h-8 md:h-10 text-base bg-transparent border-none focus:ring-0 outline-none transition-all duration-200'
+              : 'pl-8 w-full h-8 text-sm bg-transparent border-none focus:ring-0 outline-none transition-all duration-200'
+          }
           value={search_query}
           onChange={handleSearchChange}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
           autoComplete="off"
           spellCheck={false}
+          ref={input => { if (isFocused && input) input.focus(); }}
         />
       </div>
+      {/* X button for detached mode */}
+      {isFocused && (
+        <button
+          type="button"
+          className="ml-2 text-gray-400 hover:text-gray-600 focus:outline-none"
+          aria-label="Close search"
+          onMouseDown={e => { e.preventDefault(); setIsFocused(false); }}
+        >
+          <X className="h-5 w-5" />
+        </button>
+      )}
     </form>
   );
 }
@@ -289,7 +323,7 @@ export default function Header() {
               </div>
 
               {/* Right Section */}
-              <div className="flex items-center gap-4 sm:gap-6">
+              <div className="flex items-center w-full justify-end gap-2 sm:gap-4 relative">
                 {/* Mobile Search Button */}
                 <Button
                   variant="ghost"
@@ -297,24 +331,39 @@ export default function Header() {
                   className="sm:hidden"
                   aria-label="Toggle search"
                   onClick={() => {
-                    setIsSearchVisible(!isSearchVisible);
-                    // Close menu if open when toggling search
+                    setIsSearchVisible(true);
                     if (isMenuExpanded) setIsMenuExpanded(false);
                   }}
                 >
-                  {isSearchVisible ? <X className="h-5 w-5" /> : <Search className="h-5 w-5" />}
+                  <Search className="h-5 w-5" />
                 </Button>
 
-                {/* Search Bar */}
-                <div
-                  className={`${isSearchVisible ? 'block' : 'hidden'} sm:block absolute sm:relative top-16 sm:top-0 left-0 right-0 sm:left-auto sm:right-auto bg-background sm:bg-transparent p-4 sm:p-0 border-b sm:border-0`}
-                >
+                {/* Detachable Search Bar */}
+                {/* Mobile overlay */}
+                {isSearchVisible && (
+                  <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/40 sm:hidden" onClick={() => setIsSearchVisible(false)}>
+                    <div className="mt-8 w-full max-w-md bg-background rounded-full border border-[#27272a] shadow-lg flex items-center px-4 py-2 relative" onClick={e => e.stopPropagation()}>
+                      <SearchBar />
+                      <button
+                        className="ml-2 text-gray-400 hover:text-gray-600"
+                        onClick={() => setIsSearchVisible(false)}
+                        aria-label="Close search"
+                        type="button"
+                      >
+                        <X className="h-5 w-5" />
+                      </button>
+                    </div>
+                  </div>
+                )}
+                {/* Desktop search bar, right-aligned */}
+                <div className="hidden sm:flex items-center ml-auto mr-8 pr-4 relative">
                   <SearchBar />
+                  {/* Optional vertical divider for extra separation */}
+                  <div className="h-8 w-px bg-gray-200 dark:bg-gray-700 mx-6" />
                 </div>
-
-                <div className="flex items-center gap-4">
+                {/* Theme and Auth controls, always far right */}
+                <div className="flex items-center gap-2 sm:gap-4">
                   <ThemeToggle />
-
                   <SignedOut>
                     <SignInButton mode="modal">
                       <Button

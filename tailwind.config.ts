@@ -17,6 +17,18 @@ const config: Config = {
     },
     extend: {
       colors: {
+        // Clerk Main Theme Colors
+        'clerk-primary': '#005d99',
+        'clerk-accent': '#aa935a',
+        'clerk-gray': '#d6d6d6',
+        'clerk-bg': '#fafafa',
+        'clerk-bg-secondary': '#efefef',
+        // Clerk Dark Theme Colors
+        'dark-bg': '#18181b',
+        'dark-card': '#232326',
+        'dark-border': '#27272a',
+        'dark-text': '#a1a1aa',
+        'dark-text-main': '#fafafa',
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',
