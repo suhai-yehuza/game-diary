@@ -3,7 +3,7 @@
 import type { ApolloQueryResult } from '@apollo/client';
 import { format, isToday, isYesterday, isTomorrow } from 'date-fns';
 
-import { ProcessedGameData, SearchGame } from '@/lib/types/consolidated.types';
+import type { ProcessedGameData, SearchGame } from '@src/lib/types/consolidated.types';
 
 // Type for GameQueryResult
 type GameQueryResult = ApolloQueryResult<{ games: { edges: { node: SearchGame }[] } }>;

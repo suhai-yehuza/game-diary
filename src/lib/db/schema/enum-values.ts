@@ -6,7 +6,7 @@ import {
   type ReactionEmojiValue,
   type FriendshipStatusValue,
   type WatchedSettingValue,
-} from '@/lib/types/config.types';
+} from '@src/lib/types/config.types';
 
 // Game status enum
 export const GAME_STATUS = {

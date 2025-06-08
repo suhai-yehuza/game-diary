@@ -1,12 +1,12 @@
 import { eq, sql } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
 
-import { db } from '@/lib/db';
-import { game_logs, game_ratings, users } from '@/lib/db/schema';
-import { seasons, nba_games } from '@/lib/db/schema/nba-schemas';
-import { teams } from '@/lib/db/schema/team-schemas';
-import { seedLogger } from '@/lib/logger';
-import { CLASSIFICATION, WATCHED_SCOPE, WATCHED_SETTING } from '@/lib/types/config.types';
+import { db } from '@src/lib/db';
+import { game_logs, game_ratings, users } from '@src/lib/db/schema';
+import { seasons, nba_games } from '@src/lib/db/schema/nba-schemas';
+import { teams } from '@src/lib/db/schema/team-schemas';
+import { seedLogger } from 'lib/core/logger';
+import { CLASSIFICATION, WATCHED_SCOPE, WATCHED_SETTING } from '@src/lib/types/config.types';
 
 async function testGameRatingsTrigger() {
   seedLogger.info('Starting trigger test...');
@@ -71,7 +71,6 @@ async function testGameRatingsTrigger() {
         imageUrl: 'https://example.com/avatar1.png',
         createdAt: new Date(),
         updatedAt: new Date(),
-        timestamp: new Date(),
       },
       {
         id: userId2,
@@ -82,7 +81,6 @@ async function testGameRatingsTrigger() {
         imageUrl: 'https://example.com/avatar2.png',
         createdAt: new Date(),
         updatedAt: new Date(),
-        timestamp: new Date(),
       },
       {
         id: userId3,
@@ -93,7 +91,6 @@ async function testGameRatingsTrigger() {
         imageUrl: 'https://example.com/avatar3.png',
         createdAt: new Date(),
         updatedAt: new Date(),
-        timestamp: new Date(),
       },
     ]);
 
@@ -166,14 +163,14 @@ async function testGameRatingsTrigger() {
           win: 0,
           loss: 0,
           series: { win: 0, loss: 0 },
-          linescore: ['20', '20', '20', '30'],
+          linescore: [20, 20, 20, 30],
           points: 90,
         },
         visitors: {
           win: 0,
           loss: 0,
           series: { win: 0, loss: 0 },
-          linescore: ['20', '20', '20', '30'],
+          linescore: [20, 20, 20, 30],
           points: 90,
         },
       },

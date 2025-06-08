@@ -6,15 +6,15 @@ import Image from 'next/image';
 import { useRouter, useParams } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 
-import { Button } from '@/components/ui/button';
-import { logger } from '@/lib/logger';
-import { DBUser } from '@/lib/types/generated/graphql';
+import { Button } from '@src/components/ui/button';
+import { logger } from 'lib/core/logger';
+import type { DbUser } from '@src/lib/types/generated/graphql';
 export default function AdminUserProfilePage() {
   const params = useParams();
   const id = params?.id as string;
   const { user: currentUser, isLoaded } = useUser();
   const router = useRouter();
-  const [user, setUser] = useState<DBUser | null>(null);
+  const [user, setUser] = useState<DbUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {

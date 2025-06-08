@@ -2,11 +2,11 @@ import { useQuery } from '@apollo/client';
 import Image from 'next/image';
 import React from 'react';
 
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { GET_LIVE_GAMES } from '@/lib/graphql/queries';
-import { LiveGameEdge, LiveGamesData } from '@/lib/types/component.types';
-import type { ExtendedGame } from '@/lib/types/consolidated.types';
+import { Badge } from '@src/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@src/components/ui/card';
+import { GET_LIVE_GAMES } from '@src/lib/graphql/queries';
+import type { LiveGameEdge, LiveGamesData } from '@src/lib/types/component.types';
+import type { ExtendedGame } from '@src/lib/types/consolidated.types';
 
 export function LiveGamesSection() {
   const { data, loading, error } = useQuery<LiveGamesData>(GET_LIVE_GAMES, {

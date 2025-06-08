@@ -8,20 +8,20 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import React, { useState, useEffect } from 'react';
 
-import { GameLogModal } from '@/components/features/games';
-import { Button } from '@/components/ui/button';
-import { useAuthContext } from '@/contexts/AuthContext';
-import { fetchNbaGameById } from '@/lib/external-apis';
-import { GET_TEAM_GAME_STATS, GET_TEAM_H2H } from '@/lib/graphql/queries';
-import { logger } from '@/lib/logger';
-import {
+import { GameLogModal } from '@src/components/features/games';
+import { Button } from '@src/components/ui/button';
+import { useAuthContext } from '@/contexts/auth-context';
+import { fetchNbaGameById } from '@src/lib/external-apis';
+import { GET_TEAM_GAME_STATS, GET_TEAM_H2H } from '@src/lib/graphql/queries';
+import { logger } from 'lib/core/logger';
+import type {
   TeamDisplayProps,
   HeadToHeadProps,
   TeamStatsProps,
   Game,
-} from '@/lib/types/consolidated.types';
-import { GameLog } from '@/lib/types/generated/graphql';
-import { cn } from '@/lib/utils';
+} from '@src/lib/types/consolidated.types';
+import type { GameLog } from '@src/lib/types/generated/graphql';
+import { cn } from '@src/lib/utils';
 
 // Helper function to validate state values
 const isValidState = (state: string | undefined | null): boolean => {
@@ -74,7 +74,7 @@ const TeamDisplay = ({
     <div className={cn('text-center space-y-6', isHome ? 'flex-row-reverse text-right' : '')}>
       {team.logo && (
         <Image
-          src={hasImageError ? '/gamelog.svg' : team.logo}
+          src={hasImageError ? '/logos/gamelog.svg' : team.logo}
           alt={team.name}
           width={96}
           height={96}
@@ -213,7 +213,7 @@ const TeamStatsSection = ({ teamStats, team, isHome, loading, error }: TeamStats
         >
           <div className="flex items-center gap-4">
             <Image
-              src={team.logo || '/gamelog.svg'}
+              src={team.logo || '/logos/gamelog.svg'}
               alt={team.nickname}
               width={64}
               height={64}
@@ -241,7 +241,7 @@ const TeamStatsSection = ({ teamStats, team, isHome, loading, error }: TeamStats
         >
           <div className="flex items-center gap-4">
             <Image
-              src={team.logo || '/gamelog.svg'}
+              src={team.logo || '/logos/gamelog.svg'}
               alt={team.nickname}
               width={64}
               height={64}
@@ -267,7 +267,7 @@ const TeamStatsSection = ({ teamStats, team, isHome, loading, error }: TeamStats
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <Image
-              src={stats.team?.logo || team.logo || '/gamelog.svg'}
+              src={stats.team?.logo || team.logo || '/logos/gamelog.svg'}
               alt={stats.team?.nickname || team.nickname}
               width={64}
               height={64}

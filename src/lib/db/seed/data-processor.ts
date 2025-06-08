@@ -1,12 +1,12 @@
 import type { InferInsertModel } from 'drizzle-orm';
 import type { PgTable } from 'drizzle-orm/pg-core';
 
-import { API_CONFIG } from '@/lib/config/api.config';
-import { seedLogger } from '@/lib/logger';
-import type { DatabaseClient } from '@/lib/types/database.types';
-import type { GlobalWithGC } from '@/lib/types/global';
+import { API_CONFIG } from '@src/lib/config/api.config';
+import { seedLogger } from 'lib/core/logger';
+import type { DatabaseClient } from '@src/lib/types/database.types';
+import type { GlobalWithGC } from '@src/lib/types/global';
 
-import { OptimizedAPIClient } from './utils/api-client';
+import type { OptimizedAPIClient } from './utils/api-client';
 // Enhanced sleep function with jitter
 const sleep = (ms: number, jitter = true) => {
   const delay = jitter ? ms + Math.random() * 1000 : ms;

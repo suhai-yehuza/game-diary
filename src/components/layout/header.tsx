@@ -1,3 +1,5 @@
+/// <reference types="node" />
+
 'use client';
 import { SignInButton, SignedIn, SignedOut, UserButton, useUser } from '@clerk/nextjs';
 import { Search, X, Menu } from 'lucide-react';
@@ -6,10 +8,10 @@ import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import React, { useState, useEffect, useRef, Suspense } from 'react';
 
-import { ThemeToggle } from '@/components/common';
-import { LiveGamesBanner } from '@/components/features/games/live-games-banner';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { ThemeToggle } from '@src/components/common';
+import { LiveGamesBanner } from '@src/components/features/games/live-games-banner';
+import { Button } from '@src/components/ui/button';
+import { Input } from '@src/components/ui/input';
 
 function SearchBarContent() {
   const [search_query, setSearchQuery] = useState('');
@@ -18,7 +20,7 @@ function SearchBarContent() {
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const previousPathRef = useRef(pathname || '/');
-  const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const debounceTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Initialize search query from URL params
   useEffect(() => {
@@ -129,7 +131,7 @@ export default function Header() {
           <div className="pl-10">
             <Link href="/">
               <Image
-                src="/gamelog-large.svg"
+                src="/logos/gamelog-large.svg"
                 alt="Game Diary Logo"
                 width={32}
                 height={32}
@@ -165,9 +167,9 @@ export default function Header() {
                     {/* Brand & Dashboard Group */}
                     <li className="lg:relative">
                       <Link
-                        href="/community"
+                        href="/dashboard"
                         className={`block py-1.5 lg:py-0 text-base lg:text-sm transition-colors whitespace-nowrap ${
-                          isActive('/community')
+                          isActive('/dashboard')
                             ? 'text-blue-600 font-semibold'
                             : 'hover:text-blue-600'
                         }`}

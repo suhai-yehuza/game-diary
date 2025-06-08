@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { CLASSIFICATION, WATCHED_SCOPE, WATCHED_SETTING } from '@/lib/types/config.types';
+import { CLASSIFICATION, WATCHED_SCOPE, WATCHED_SETTING } from '@src/lib/types/config.types';
 
 export const createGameLogSchema = z.object({
   gameId: z.string().min(1, 'Game ID is required'),

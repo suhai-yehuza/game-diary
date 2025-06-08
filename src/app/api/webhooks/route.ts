@@ -1,11 +1,11 @@
 import { verifyWebhook } from '@clerk/nextjs/webhooks';
 import { eq, sql } from 'drizzle-orm';
-import { NextRequest } from 'next/server';
+import type { NextRequest } from 'next/server';
 
-import { users } from '@/lib/db/schema';
-import { db } from '@/lib/db/seed';
-import { apiLogger } from '@/lib/logger';
-import { ClerkUserData, ClerkDeletedUserData } from '@/lib/types/user.types';
+import { users } from '@src/lib/db/schema';
+import { db } from '@src/lib/db/seed';
+import { apiLogger } from 'lib/core/logger';
+import type { ClerkUserData, ClerkDeletedUserData } from '@src/lib/types/user.types';
 // Helper functions
 const createResponse = (message: string, status: number) => new Response(message, { status });
 
@@ -52,7 +52,6 @@ const handleUserCreated = async (data: ClerkUserData) => {
     inboundFriendshipIds: [],
     outboundFriendshipIds: [],
     banned: false,
-    timestamp: new Date(),
     // Clerk-specific fields
     last_sign_in_at: last_sign_in_at ? new Date(last_sign_in_at) : null,
     password_enabled: password_enabled || false,
@@ -128,7 +127,6 @@ const handleUserUpdated = async (data: ClerkUserData) => {
     imageUrl: image_url || profile_image_url || '',
     createdAt: new Date(created_at),
     updatedAt: new Date(updated_at),
-    timestamp: new Date(),
     // New Clerk-specific fields
     last_sign_in_at: last_sign_in_at ? new Date(last_sign_in_at) : null,
     password_enabled: password_enabled || false,
@@ -178,3 +176,6 @@ export async function POST(req: NextRequest) {
     );
   }
 }
+
+// Force Node.js runtime for database operations
+export const runtime = 'nodejs';

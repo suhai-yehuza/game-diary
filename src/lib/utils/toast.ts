@@ -1,4 +1,5 @@
-import type { ToastProps, ToasterToast, ToastAction } from '@/lib/types/notification.types';
+import type * as React from 'react';
+import type { ToastAction, ToastProps, ToasterToast } from '@src/lib/types/notification.types';
 
 export const TOAST_LIMIT = 5;
 

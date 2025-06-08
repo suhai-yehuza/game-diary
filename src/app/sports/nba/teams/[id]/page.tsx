@@ -5,11 +5,11 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import React, { useState, useEffect } from 'react';
 
-import { fetchNbaTeamById, fetchNbaTeamStats } from '@/lib/external-apis';
-import { logger } from '@/lib/logger';
-import type { TeamDisplayStats, Game } from '@/lib/types/consolidated.types';
-import { type Team } from '@/lib/types/generated/graphql';
-import { calculateTeamStats, getTeamStreak, getTeamLastTenGames } from '@/lib/utils/index.game';
+import { fetchNbaTeamById, fetchNbaTeamStats } from '@src/lib/external-apis';
+import { logger } from 'lib/core/logger';
+import type { TeamDisplayStats, Game } from '@src/lib/types/consolidated.types';
+import { type Team } from '@src/lib/types/generated/graphql';
+import { calculateTeamStats, getTeamStreak, getTeamLastTenGames } from '@src/lib/utils/game';
 export default function TeamPage() {
   const params = useParams();
   const teamId = params?.id as string;

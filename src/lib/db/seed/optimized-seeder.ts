@@ -2,13 +2,13 @@ import { config } from 'dotenv-flow';
 import { sql } from 'drizzle-orm';
 import { reset } from 'drizzle-seed';
 
-import { DB_CONFIG } from '@/lib/config/db.config';
-import * as schema from '@/lib/db/schema';
-import { initializeDb } from '@/lib/db/seed/config';
-import { seedLogger } from '@/lib/logger';
-import type { ApplicationSeederOptions } from '@/lib/types/consolidated.types';
-import type { DatabaseClient } from '@/lib/types/database.types';
-import { getCurrentSeason } from '@/lib/utils/index.time';
+import { DB_CONFIG } from '@src/lib/config/db.config';
+import * as schema from '@src/lib/db/schema';
+import { initializeDb } from '@src/lib/db/seed/config';
+import { seedLogger } from 'lib/core/logger';
+import type { ApplicationSeederOptions } from '@src/lib/types/consolidated.types';
+import type { DatabaseClient } from '@src/lib/types/database.types';
+import { getCurrentSeason } from '@src/lib/utils/time';
 
 import { DataProcessor, PerformanceMonitor } from './data-processor';
 import { OptimizedAPIClient } from './utils/api-client';
@@ -136,7 +136,11 @@ export class OptimizedSeeder {
       ...options,
     };
 
-    this.db = initializeDb();
+    this.db = initializeDb() as DatabaseClient;
+    // Add raw property to satisfy DatabaseClient interface
+    (this.db as typeof this.db & { raw: unknown; $client: unknown }).raw = (
+      this.db as typeof this.db & { $client: unknown }
+    ).$client;
     this.apiClient = new OptimizedAPIClient(this.options.concurrency);
     this.tableOps = new TableOperations(this.db);
     this.processor = new DataProcessor(this.db, this.apiClient, this.monitor);

@@ -4,7 +4,7 @@ import { join } from 'path';
 import { gql } from '@apollo/client';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 
-import { resolvers } from '@/lib/graphql/resolvers';
+import { resolvers } from '@src/lib/graphql/resolvers';
 
 // Read the schema from schema.graphql
 const schemaPath = join(process.cwd(), 'src/lib/graphql/schema.graphql');

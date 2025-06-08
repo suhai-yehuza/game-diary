@@ -4,8 +4,8 @@ import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { X } from 'lucide-react';
 import * as React from 'react';
 
-import { cn } from '@/lib/utils';
-import { dialogAnimationStyles } from '@/lib/utils/animations';
+import { cn } from '@src/lib/utils';
+import { dialogAnimationStyles } from '@src/lib/utils/animations';
 
 const Dialog = DialogPrimitive.Root;
 

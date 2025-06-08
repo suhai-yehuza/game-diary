@@ -1,8 +1,8 @@
 import { auth } from '@clerk/nextjs/server';
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse, type NextRequest } from 'next/server';
 
-import { getCache } from '@/lib/cache';
-import { cacheLogger } from '@/lib/logger';
+import { getCache } from '@src/lib/cache';
+import { cacheLogger } from 'lib/core/logger';
 
 // GET /api/cache?key=value
 export async function GET(request: NextRequest) {
@@ -93,3 +93,6 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
+
+// Force Node.js runtime for Redis operations and Clerk auth
+export const runtime = 'nodejs';

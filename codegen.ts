@@ -19,23 +19,11 @@ const config: CodegenConfig = {
     './src/lib/types/generated/types.ts': {
       plugins: ['typescript', 'typescript-resolvers'],
       config: {
-        contextType: '@/lib/types#Context',
+        contextType: '@/lib/types#ResolverContext',
         mappers: {
-          User: '@/lib/types#User',
-          UserSummary: '@/lib/types#UserSummary',
-          GameLog: '@/lib/types#GameLog',
-          Comment: '@/lib/types#Comment',
-          Reaction: '@/lib/types#Reaction',
-          Friendship: '@/lib/types#Friendship',
-          Game: '@/lib/types#Game',
-          GameStats: '@/lib/types#GameStats',
-          Team: '@/lib/types#Team',
-          Player: '@/lib/types#Player',
-          PlayerStats: '@/lib/types#PlayerStats',
-          Season: '@/lib/types#Season',
-          SeasonData: '@/lib/types#SeasonData',
-          Notification: '@/lib/types#Notification',
+          Player: '@/lib/types#DBPlayer',
           Activity: '@/lib/types#Activity',
+          Notification: '@/lib/types#AppNotification',
         },
         scalars: {
           Any: '@/lib/types/scalars#AnyScalar',

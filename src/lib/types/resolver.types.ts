@@ -1,52 +1,66 @@
-import type { Context } from '@/lib/types/component.types';
+import type { SortDirection } from './common.types';
+import type { DatabaseClient } from './database.types';
 
-// Common resolver context
-export type ResolverContext = Context;
-
-// Common pagination args used across all resolvers
-export interface PaginationArgs {
-  first?: number | null;
-  after?: string | null;
-  last?: number | null;
-  before?: string | null;
-}
-
-// Common filter args pattern
-export interface FilterArgs {
-  filters?: {
-    [key: string]: unknown;
+// Resolver Context Types
+export interface ResolverContext {
+  db: DatabaseClient;
+  user?: {
+    id: string;
+    email: string;
   };
 }
 
-// User-specific filter types
-export interface UserFilters {
+// Filter Types
+export interface FilterArgs {
   search?: string;
+  sortBy?: string;
+  sortDirection?: SortDirection;
+  [key: string]: unknown;
+}
+
+export interface PaginationArgs {
+  first?: number;
+  after?: string;
+  last?: number;
+  before?: string;
+}
+
+export interface UserFilters extends FilterArgs {
+  search?: string;
+  status?: string;
   role?: string;
+  joinedAfter?: Date;
+  joinedBefore?: Date;
+  isVerified?: boolean;
+  hasGameLogs?: boolean;
+  minGameLogs?: number;
+  orderBy?: string;
 }
 
-export interface UserSearchFilters {
-  hasGameLogs?: boolean | null;
-  minGameLogs?: number | null;
-  joinedAfter?: Date | null;
-  joinedBefore?: Date | null;
-  isVerified?: boolean | null;
-  friendshipStatus?: string | null;
-  orderBy?: string | null;
+export interface UserSearchFilters extends FilterArgs {
+  query?: string;
+  status?: string;
+  role?: string;
+  joinedAfter?: Date;
+  joinedBefore?: Date;
+  isVerified?: boolean;
+  hasGameLogs?: boolean;
+  minGameLogs?: number;
+  orderBy?: string;
 }
 
-// Player-specific filter types
-export interface PlayerFilters {
-  search?: string;
+export interface PlayerFilters extends FilterArgs {
+  team?: string;
   teamId?: string;
   position?: string;
   active?: boolean;
+  status?: string;
 }
 
-// Team-specific filter types
-export interface TeamFilters {
-  search?: string;
+export interface TeamFilters extends FilterArgs {
   conference?: string;
   division?: string;
+  search?: string;
   city?: string;
   code?: string;
 }

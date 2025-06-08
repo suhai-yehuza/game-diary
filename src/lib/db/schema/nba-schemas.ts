@@ -11,9 +11,9 @@ import {
   jsonb,
 } from 'drizzle-orm/pg-core';
 
-import { generateUUID } from '@/lib/utils/index.processing';
+import { generateUUID } from '@src/lib/utils/processing';
 
-import { JsonValue } from './shared-types';
+import type { JsonValue } from './shared-types';
 import { teams as baseTeams } from './team-schemas';
 
 // NBA Teams table extends base teams
@@ -73,7 +73,7 @@ export const nba_games = pgTable(
           win: number;
           loss: number;
         };
-        linescore: string[];
+        linescore: number[];
         points: number;
       };
       visitors: {
@@ -83,7 +83,7 @@ export const nba_games = pgTable(
           win: number;
           loss: number;
         };
-        linescore: string[];
+        linescore: number[];
         points: number;
       };
     }>(),

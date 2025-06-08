@@ -5,13 +5,12 @@ import { format } from 'date-fns';
 import Image from 'next/image';
 import React, { useState, useCallback } from 'react';
 
-import { Skeleton } from '@/components/ui/skeleton';
-import { API_CONFIG } from '@/lib/config/api.config';
-import { GET_SEASONS, GET_EXTERNAL_GAMES, GET_TEAMS, GET_PLAYERS } from '@/lib/graphql/queries';
-import { ConferenceType, DivisionType } from '@/lib/types/config.types';
-import { Game, GameStatus, Season, Team, Player } from '@/lib/types/generated/graphql';
-import { SortDirection } from '@/lib/types/shared.types';
-import { formatDateTime } from '@/lib/utils/index.time';
+import { Skeleton } from '@src/components/ui/skeleton';
+import { API_CONFIG } from '@src/lib/config/api.config';
+import { GET_EXTERNAL_GAMES, GET_TEAMS, GET_PLAYERS } from '@src/lib/graphql/queries';
+import type { ConferenceType, DivisionType } from '@src/lib/types/config.types';
+import type { Game, GameStatus, Team } from '@src/lib/types/generated/graphql';
+import type { SortDirection, DBPlayer } from '@src/lib/types/shared.types';
 
 export const NbaDataClient = () => {
   const [selectedConference, setSelectedConference] = useState<ConferenceType | 'all'>('all');
@@ -20,11 +19,9 @@ export const NbaDataClient = () => {
   const [sortBy] = useState<SortDirection>(API_CONFIG.pagination.DEFAULT_SORT_DIRECTION);
   const [searchTerm] = useState('');
 
-  const {
-    data: seasonData,
-    loading: loadingSeasons,
-    error: seasonsError,
-  } = useQuery<{ seasons: Season[] }>(GET_SEASONS);
+  // Seasons functionality temporarily disabled - query not available
+  const loadingSeasons = false;
+  const seasonsError = null;
   const {
     data,
     loading: gamesLoading,
@@ -62,7 +59,7 @@ export const NbaDataClient = () => {
     data: playersData,
     loading: loadingPlayers,
     error: playersError,
-  } = useQuery<{ players: { items: Player[] } }>(GET_PLAYERS, {
+  } = useQuery<{ players: { items: DBPlayer[] } }>(GET_PLAYERS, {
     variables: {
       filters: {
         position: selectedPosition !== 'all' ? selectedPosition : undefined,
@@ -86,7 +83,7 @@ export const NbaDataClient = () => {
     setSelectedPosition(position);
   }, []);
 
-  const currentSeason = seasonData?.seasons.find(season => season.isCurrent);
+  // Seasons functionality disabled
 
   const isLoading = loadingSeasons || gamesLoading || loadingTeams || loadingPlayers;
   const hasError = seasonsError || gamesError || teamsError || playersError;
@@ -122,10 +119,7 @@ export const NbaDataClient = () => {
       <div className="p-4 text-red-500 bg-red-50 rounded-lg">
         <p className="font-semibold">Error loading NBA data</p>
         <p className="text-sm">
-          {seasonsError?.message ||
-            gamesError?.message ||
-            teamsError?.message ||
-            playersError?.message}
+          {gamesError?.message || teamsError?.message || playersError?.message}
         </p>
       </div>
     );
@@ -173,29 +167,10 @@ export const NbaDataClient = () => {
         </select>
       </div>
 
-      {/* Current Season */}
+      {/* Current Season - Temporarily Disabled */}
       <section className="bg-white rounded-lg shadow p-6">
         <h2 className="text-2xl font-bold mb-4">Current Season</h2>
-        {currentSeason && (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div>
-              <h3 className="font-semibold">Season</h3>
-              <p>{currentSeason.year}</p>
-            </div>
-            <div>
-              <h3 className="font-semibold">Start Date</h3>
-              <p>{formatDateTime(currentSeason.startDate.toString())}</p>
-            </div>
-            <div>
-              <h3 className="font-semibold">End Date</h3>
-              <p>{formatDateTime(currentSeason.endDate.toString())}</p>
-            </div>
-            <div>
-              <h3 className="font-semibold">Current Season</h3>
-              <p>{currentSeason.isCurrent ? 'Yes' : 'No'}</p>
-            </div>
-          </div>
-        )}
+        <p className="text-gray-500">Season information temporarily unavailable</p>
       </section>
 
       {/* Today's Games */}
@@ -287,7 +262,7 @@ export const NbaDataClient = () => {
             </tr>
           </thead>
           <tbody>
-            {playersData?.players.items.map((player: Player) => (
+            {playersData?.players.items.map((player: DBPlayer) => (
               <tr key={player.id} className="border-t">
                 <td className="px-4 py-2">
                   {player.firstName} {player.lastName}

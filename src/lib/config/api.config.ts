@@ -1,4 +1,4 @@
-import { APIError } from '@/lib/errors/api.error';
+import { APIError } from '@src/lib/errors/api.error';
 import type {
   RangeConfig,
   BatchSizeConfig,
@@ -6,9 +6,9 @@ import type {
   ClassificationWeights,
   PaginationConfig,
   DistributionFunctions,
-} from '@/lib/types/config.types';
-import type { DatabaseSeedingConfig } from '@/lib/types/database.types';
-import type { SortDirection } from '@/lib/types/shared.types';
+} from '@src/lib/types/config.types';
+import type { DatabaseSeedingConfig } from '@src/lib/types/database.types';
+import type { SortDirection } from '@src/lib/types/shared.types';
 
 const XSMALL = 10;
 const SMALL = 10 * XSMALL;

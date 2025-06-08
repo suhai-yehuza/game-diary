@@ -1,8 +1,8 @@
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
-import { DBUser } from '@/lib/types/generated/graphql';
-import { UserSearchProps } from '@/lib/types/user.types';
+import type { DbUser } from '@src/lib/types/generated/graphql';
+import type { UserSearchProps } from '@src/lib/types/user.types';
 
 export function UserSearch({ users, onFilteredUsersChange }: UserSearchProps) {
   const searchParams = useSearchParams();
@@ -10,7 +10,7 @@ export function UserSearch({ users, onFilteredUsersChange }: UserSearchProps) {
   const searchQuery = searchParams?.get('q')?.toLowerCase() || '';
 
   useEffect(() => {
-    const filteredUsers = users.filter((user: DBUser) => {
+    const filteredUsers = users.filter((user: DbUser) => {
       if (!searchQuery) return true;
       return (
         user.emailAddress?.toLowerCase().includes(searchQuery) ||

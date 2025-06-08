@@ -14,43 +14,43 @@
  * - component-props.types
  */
 
-import { ApolloError, ApolloQueryResult, OperationVariables } from '@apollo/client';
-import { ChartData } from 'chart.js';
+import type * as React from 'react';
+import type { ApolloError, ApolloQueryResult, OperationVariables } from '@apollo/client';
 import type { InferSelectModel, sql } from 'drizzle-orm';
-import { ReactNode } from 'react';
+import type { ReactNode, RefObject, InputHTMLAttributes } from 'react';
 
-import { nba_games } from '@/lib/db/schema/nba-schemas';
-import { DataProcessor } from '@/lib/db/seed/data-processor';
-import { OptimizedAPIClient } from '@/lib/db/seed/utils/api-client';
-import { APIError, type Activity } from '@/lib/types/api.types';
+import type { nba_games } from '@src/lib/db/schema/nba-schemas';
+import type { DataProcessor } from '@src/lib/db/seed/data-processor';
+import type { OptimizedAPIClient } from '@src/lib/db/seed/utils/api-client';
+import type { APIError, Activity } from '@src/lib/types/api.types';
+import type { ChartData } from '@src/lib/types/chart';
 import type {
   GameStatusValue,
   WatchedSettingValue,
   WatchedScopeValue,
   ClassificationValue,
-} from '@/lib/types/config.types';
-import { DatabaseClient } from '@/lib/types/database.types';
+  ConferenceType,
+} from '@src/lib/types/config.types';
+import type { DatabaseClient } from '@src/lib/types/database.types';
 import type {
-  Player,
   Classification,
   TeamStats,
   Team,
   GameLog,
   TeamFilters,
   Friendship,
-  DBUser,
+  DbUser,
   FriendshipStatus,
-} from '@/lib/types/generated/graphql';
-import type { Friend, FriendGroup } from '@/lib/types/social.types';
+} from '@src/lib/types/generated/graphql';
+import type { DBPlayer } from '@src/lib/types/shared.types';
+import type { Friend, FriendGroup } from '@src/lib/types/social.types';
 
 // =============================================================================
 // ENUMS AND CONSTANTS
 // =============================================================================
 
-export enum ConferenceType {
-  EASTERN = 'eastern',
-  WESTERN = 'western',
-}
+// Re-export types from config.types.ts
+export type { ConferenceType };
 
 export enum DivisionType {
   ATLANTIC = 'atlantic',
@@ -622,8 +622,8 @@ export interface GameLogFormData {
   classification: ClassificationValue;
 }
 
-export interface GameLogByIdResponse {
-  gameLogById: import('./generated/graphql').GameLog;
+export interface GameLogResponse {
+  gameLog: import('./generated/graphql').GameLog;
 }
 
 // =============================================================================
@@ -1125,7 +1125,7 @@ export interface PlayerData {
   }>;
 }
 
-export interface PlayerWithOptionalPhoto extends Player {
+export interface PlayerWithOptionalPhoto extends DBPlayer {
   photoUrl?: string;
 }
 
@@ -1437,7 +1437,7 @@ export interface UseUserProfileProps {
 }
 
 export interface UseUserProfileReturn {
-  targetUser: DBUser | null;
+  targetUser: DbUser | null;
   dbUserId: string | null;
   currentUserDbId: string | null;
   friendshipStatus: FriendshipStatus | null | 'loading';

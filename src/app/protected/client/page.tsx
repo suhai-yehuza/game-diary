@@ -3,6 +3,8 @@
 import { useAuth, useUser } from '@clerk/nextjs';
 import React from 'react';
 
+export const dynamic = 'force-dynamic';
+
 export default function Page() {
   const { user } = useUser();
   const { isLoaded, isSignedIn, userId, sessionId, getToken } = useAuth();

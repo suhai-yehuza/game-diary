@@ -1,10 +1,10 @@
 import { sql, eq } from 'drizzle-orm';
-import { NeonHttpDatabase } from 'drizzle-orm/neon-http';
+import type { NeonHttpDatabase } from 'drizzle-orm/neon-http';
 import { varchar, timestamp } from 'drizzle-orm/pg-core';
 
-import { generateUUID } from '@/lib/utils/index.processing';
+import { generateUUID } from '@src/lib/utils/processing';
 
-import { SoftDeletableTable } from './shared-types';
+import type { SoftDeletableTable } from './shared-types';
 
 // Import required types for the functions below
 

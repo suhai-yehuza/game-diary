@@ -1,7 +1,7 @@
 import { performance } from 'perf_hooks';
 
-import { Cache } from '@/lib/cache/index';
-import { MonitoringMetrics } from '@/lib/types/consolidated.types';
+import { Cache } from '@src/lib/cache/index';
+import type { MonitoringMetrics } from '@src/lib/types/consolidated.types';
 
 // Performance monitoring
 export const monitorPerformance = {

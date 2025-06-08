@@ -15,22 +15,22 @@ import {
 import Link from 'next/link';
 import React, { useState } from 'react';
 
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@src/components/ui/avatar';
+import { Badge } from '@src/components/ui/badge';
+import { Button } from '@src/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Textarea } from '@/components/ui/textarea';
-import { useToast } from '@/components/ui/use-toast';
-import { API_CONFIG } from '@/lib/config/api.config';
-import { CREATE_COMMENT } from '@/lib/graphql/mutations';
-import { logger } from '@/lib/logger';
-import { CommentItemProps } from '@/lib/types/component.types';
-import { cn } from '@/lib/utils';
+} from '@src/components/ui/dropdown-menu';
+import { Textarea } from '@src/components/ui/textarea';
+import { useToast } from '@src/components/ui/use-toast';
+import { API_CONFIG } from '@src/lib/config/api.config';
+import { CREATE_COMMENT } from '@src/lib/graphql/mutations';
+import { logger } from 'lib/core/logger';
+import type { CommentItemProps } from '@src/lib/types/component.types';
+import { cn } from '@src/lib/utils';
 
 import { ReactionDisplay } from './reaction-display';
 export function CommentItem({

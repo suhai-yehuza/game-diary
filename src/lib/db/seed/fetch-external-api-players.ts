@@ -1,10 +1,10 @@
 import { eq, sql } from 'drizzle-orm';
 
-import { API_CONFIG } from '@/lib/config/api.config';
-import { nba_players, teams } from '@/lib/db/schema/nba-schemas';
-import { handleAPIError } from '@/lib/external-apis';
-import { seedLogger } from '@/lib/logger';
-import { PlayerApiResponse } from '@/lib/types/consolidated.types';
+import { API_CONFIG } from '@src/lib/config/api.config';
+import { nba_players, teams } from '@src/lib/db/schema/nba-schemas';
+import { handleAPIError } from '@src/lib/external-apis';
+import { seedLogger } from 'lib/core/logger';
+import type { PlayerApiResponse } from '@src/lib/types/consolidated.types';
 
 import { initializeClients } from './utils/initialize-clients';
 

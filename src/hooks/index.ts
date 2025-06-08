@@ -1,9 +1,9 @@
 // Existing hooks
 export { default as useMounted } from './use-mounted';
-export { useDebounce } from './useDebounce';
-export { usePagination } from './usePagination';
-export { useSearchFilters } from './useSearchFilters';
+export { useDebounce } from './use-debounce';
+export { usePagination } from './use-pagination';
+export { useSearchFilters } from './use-search-filters';
 
 // New app optimization hooks
-export { useUserProfile } from './useUserProfile';
-export { useGameData } from './useGameData';
+export { useUserProfile } from './use-user-profile';
+export { useGameData } from './use-game-data';

@@ -3,10 +3,10 @@ import { neon } from '@neondatabase/serverless';
 import { sql } from 'drizzle-orm';
 import { drizzle, type NeonHttpDatabase } from 'drizzle-orm/neon-http';
 
-import * as schema from '@/lib/db/schema';
-import { RawDatabaseClient } from '@/lib/types/consolidated.types';
-import type { BaseDatabaseClient, DatabaseConfig } from '@/lib/types/database.types';
-import { envSchema } from '@/lib/validations/env';
+import * as schema from '@src/lib/db/schema';
+import type { RawDatabaseClient } from '@src/lib/types/consolidated.types';
+import type { BaseDatabaseClient, DatabaseConfig } from '@src/lib/types/database.types';
+import { envSchema } from '@src/lib/validations/env';
 
 // Module-level database client
 let dbClient: BaseDatabaseClient | null = null;

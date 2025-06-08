@@ -3,19 +3,23 @@ import { SignInButton } from '@clerk/nextjs';
 import { Loader2 } from 'lucide-react';
 import React, { useState, useCallback, useMemo } from 'react';
 
-import { Button } from '@/components/ui/button';
-import { useToast } from '@/components/ui/use-toast';
-import { useAuthContext } from '@/contexts/AuthContext';
-import { useNotifications } from '@/contexts/NotificationContext';
-import { SEND_FRIEND_REQUEST, UPDATE_FRIENDSHIP_STATUS } from '@/lib/graphql/mutations';
-import { GET_FRIENDSHIPS } from '@/lib/graphql/queries';
-import { logger } from '@/lib/logger';
-import { FRIENDSHIP_STATUS } from '@/lib/types/config.types';
+import { Button } from '@src/components/ui/button';
+import { useToast } from '@src/components/ui/use-toast';
+import { useAuthContext } from '@/contexts/auth-context';
+import { useNotifications } from '@/contexts/notification-context';
 import {
+  SEND_FRIEND_REQUEST,
+  ACCEPT_FRIEND_REQUEST,
+  REJECT_FRIEND_REQUEST,
+} from '@src/lib/graphql/mutations';
+import { GET_USER_FRIENDSHIPS } from '@src/lib/graphql/queries';
+import { logger } from 'lib/core/logger';
+import { FRIENDSHIP_STATUS } from '@src/lib/types/config.types';
+import type {
   FriendRequestButtonProps,
   GetFriendshipsForUserResponse,
-} from '@/lib/types/consolidated.types';
-import { Friendship } from '@/lib/types/generated/graphql';
+} from '@src/lib/types/consolidated.types';
+import type { Friendship } from '@src/lib/types/generated/graphql';
 export function FriendRequestButton({ targetUserId }: FriendRequestButtonProps) {
   const { userId, isAuthenticated } = useAuthContext();
   const { toast } = useToast();
@@ -23,7 +27,7 @@ export function FriendRequestButton({ targetUserId }: FriendRequestButtonProps) 
   const [isLoading, setIsLoading] = useState(false);
 
   const { data: userData, loading: isLoadingFriendships } = useQuery<GetFriendshipsForUserResponse>(
-    GET_FRIENDSHIPS,
+    GET_USER_FRIENDSHIPS,
     {
       variables: { userId: userId },
       skip: !userId,
@@ -31,14 +35,15 @@ export function FriendRequestButton({ targetUserId }: FriendRequestButtonProps) 
   );
 
   const [sendFriendRequest] = useMutation(SEND_FRIEND_REQUEST);
-  const [updateFriendshipStatus] = useMutation(UPDATE_FRIENDSHIP_STATUS);
+  const [acceptFriendRequest] = useMutation(ACCEPT_FRIEND_REQUEST);
+  const [rejectFriendRequest] = useMutation(REJECT_FRIEND_REQUEST);
 
   const existingFriendship = useMemo(() => {
     if (!userData?.friendships) return null;
     return userData.friendships.find(
       (friendship: Friendship) =>
-        (friendship.subscriberId === userId && friendship.userId === targetUserId) ||
-        (friendship.subscriberId === targetUserId && friendship.userId === userId)
+        (friendship.initiator.id === userId && friendship.recipient.id === targetUserId) ||
+        (friendship.initiator.id === targetUserId && friendship.recipient.id === userId)
     );
   }, [userData?.friendships, userId, targetUserId]);
 
@@ -80,10 +85,9 @@ export function FriendRequestButton({ targetUserId }: FriendRequestButtonProps) 
     setIsLoading(true);
 
     try {
-      await updateFriendshipStatus({
+      await acceptFriendRequest({
         variables: {
-          id: existingFriendship.id,
-          status: FRIENDSHIP_STATUS.ACCEPTED,
+          friendshipId: existingFriendship.id,
         },
       });
 
@@ -107,17 +111,16 @@ export function FriendRequestButton({ targetUserId }: FriendRequestButtonProps) 
     } finally {
       setIsLoading(false);
     }
-  }, [existingFriendship, updateFriendshipStatus, addNotification, toast, userId]);
+  }, [existingFriendship, acceptFriendRequest, addNotification, toast, userId]);
 
   const handleRejectRequest = useCallback(async () => {
     if (!existingFriendship) return;
     setIsLoading(true);
 
     try {
-      await updateFriendshipStatus({
+      await rejectFriendRequest({
         variables: {
-          id: existingFriendship.id,
-          status: FRIENDSHIP_STATUS.REJECTED,
+          friendshipId: existingFriendship.id,
         },
       });
 
@@ -141,7 +144,7 @@ export function FriendRequestButton({ targetUserId }: FriendRequestButtonProps) 
     } finally {
       setIsLoading(false);
     }
-  }, [existingFriendship, updateFriendshipStatus, addNotification, toast, userId]);
+  }, [existingFriendship, rejectFriendRequest, addNotification, toast, userId]);
 
   if (!isAuthenticated) {
     return (
@@ -165,7 +168,7 @@ export function FriendRequestButton({ targetUserId }: FriendRequestButtonProps) 
   if (existingFriendship) {
     switch (existingFriendship.status) {
       case FRIENDSHIP_STATUS.PENDING:
-        if (existingFriendship.subscriberId === userId) {
+        if (existingFriendship.initiator.id === userId) {
           return (
             <Button variant="outline" size="sm" disabled>
               Request Sent

@@ -1,21 +1,21 @@
-import { Resolvers } from '@/lib/types/generated/graphql';
+import type { Resolvers } from '@src/lib/types/generated/types';
 
 // Import all resolver modules
-import * as commentResolvers from './comments.index';
-import * as gameLogResolvers from './game-logs.index';
-import * as gameResolvers from './games.index';
-import * as playerResolvers from './players.index';
-import * as reactionResolvers from './reactions.index';
-import * as teamResolvers from './teams.index';
-import * as userResolvers from './users.index';
+import * as commentResolvers from './comments';
+import * as gameLogResolvers from './game-logs';
+import * as gameResolvers from './games';
+import * as playerResolvers from './players';
+import * as reactionResolvers from './reactions';
+import * as teamResolvers from './teams';
+import * as userResolvers from './users';
 
 // Export type resolvers for direct use in index.ts
 export const { GameLog } = gameLogResolvers;
 export const { Comment } = commentResolvers;
 export const { Reaction } = reactionResolvers;
 
-// Export DBUser field resolvers
-export const DBUser = {
+// Export DbUser field resolvers
+export const DbUser = {
   friendships: userResolvers.friendships,
   initiatedFriendships: userResolvers.initiatedFriendships,
 };
@@ -27,7 +27,6 @@ export const Query = {
   game: gameResolvers.game,
   liveGames: gameResolvers.liveGames,
   gameLog: gameLogResolvers.gameLog,
-  gameLogById: gameLogResolvers.gameLogById,
   gameLogs: gameLogResolvers.gameLogs,
 
   // Player queries

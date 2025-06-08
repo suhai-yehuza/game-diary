@@ -2,7 +2,7 @@
 
 import React from 'react';
 
-import { NbaDataClient } from '@/components/features/games/nba-data-client';
+import { NbaDataClient } from '@src/components/features/games/nba-data-client';
 
 export default async function Page() {
   return (

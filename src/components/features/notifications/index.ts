@@ -1,2 +1,2 @@
 // Notification components exports
-export { NotificationCenter } from './NotificationCenter';
+export { NotificationCenter } from './notification-center';

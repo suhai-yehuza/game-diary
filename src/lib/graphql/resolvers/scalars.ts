@@ -40,15 +40,3 @@ export const ErrorResult = {
     return 'AuthenticationError';
   },
 };
-
-export const PaginatedItem = {
-  __resolveType(parent: Record<string, unknown>) {
-    if ('watchedDate' in parent) return 'GameLog';
-    if ('content' in parent) return 'Comment';
-    if ('date' in parent) return 'Game';
-    if ('position' in parent) return 'Player';
-    if ('points' in parent) return 'PlayerStats';
-    if ('username' in parent) return 'UserBase';
-    return null;
-  },
-};

@@ -1,15 +1,14 @@
 /**
  * API-related types including configuration, validation, response types, and activity tracking
  */
-
 import type {
-  Comment as GeneratedComment,
-  Reaction as GeneratedReaction,
-  TargetType as GeneratedTargetType,
-} from '@/lib/types/generated/graphql';
-
-// Re-export TargetType from generated types
-export type TargetType = GeneratedTargetType;
+  Comment,
+  Reaction,
+  Game,
+  UserSummary,
+  GameLog,
+  ParentType as TargetType,
+} from '@src/lib/types/generated/graphql';
 
 // API Configuration Types
 export interface APIConfig {
@@ -31,17 +30,18 @@ export interface RapidAPIConfig extends APIConfig {
 }
 
 // API Response Types
-export interface APIResponse<T> {
-  data: T;
-  status: number;
-  message?: string;
-  errors?: APIError[];
+export interface APIResponse<T = unknown> {
+  response?: T[];
+  data?: T[];
+  get?: string;
+  parameters?: Record<string, string>;
+  errors?: string[];
+  results?: number;
 }
 
 export interface APIError {
   code: string;
   message: string;
-  field?: string;
   details?: unknown;
 }
 
@@ -116,6 +116,136 @@ export interface APIParameters {
   h2h?: string;
 }
 
+export interface GameApiResponse {
+  id: string;
+  date: string;
+  homeTeam: {
+    id: string;
+    name: string;
+    nickname: string;
+    code: string;
+    logo: string;
+  };
+  awayTeam: {
+    id: string;
+    name: string;
+    nickname: string;
+    code: string;
+    logo: string;
+  };
+  homeScore: number;
+  awayScore: number;
+  status: string;
+  season: string;
+  period: number;
+  postseason: boolean;
+}
+
+export interface GameResponseData {
+  game: Game;
+  gameLog?: GameLog;
+}
+
+export interface PlayerApiResponse {
+  id: string;
+  firstName: string;
+  lastName: string;
+  birth: {
+    date: string;
+    country: string;
+  };
+  nba: {
+    start: number;
+    pro: number;
+  };
+  height: {
+    feets: number;
+    inches: number;
+    meters: number;
+  };
+  weight: {
+    pounds: number;
+    kilograms: number;
+  };
+  college: string;
+  affiliation: string;
+  leagues: {
+    standard: {
+      jersey: string;
+      active: boolean;
+      pos: string;
+    };
+  };
+}
+
+export interface TeamApiResponse {
+  id: string;
+  name: string;
+  nickname: string;
+  code: string;
+  logo: string;
+  city?: string;
+  state?: string;
+  conference?: string;
+  division?: string;
+}
+
+export interface UserApiResponse {
+  id: string;
+  username: string;
+  firstName: string;
+  lastName: string;
+  emailAddress?: string;
+  imageUrl?: string;
+}
+
+export interface Activity {
+  id: string;
+  userId: string;
+  message: string;
+  targetType: TargetType;
+  targetId: string;
+  createdAt: Date;
+  read: boolean;
+  type: ActivityType;
+}
+
+export interface ApiError {
+  message: string;
+  code?: string;
+  field?: string;
+}
+
+export interface ApiResponse<T> {
+  data?: T;
+  errors?: ApiError[];
+}
+
+export interface PaginationParams {
+  page?: number;
+  limit?: number;
+  cursor?: string;
+}
+
+export interface SearchParams {
+  query?: string;
+  filters?: Record<string, unknown>;
+  sort?: Record<string, 'asc' | 'desc'>;
+}
+
+export interface ApiRequestOptions {
+  pagination?: PaginationParams;
+  search?: SearchParams;
+  headers?: Record<string, string>;
+}
+
+export interface ExtendedNextApiRequest {
+  user?: UserSummary;
+  query: Record<string, string | string[]>;
+  body: Record<string, unknown>;
+  headers: Record<string, string>;
+}
+
 export type SeasonApiResponse = {
   get: string;
   parameters: APIParameters;
@@ -153,16 +283,16 @@ export type DistributionFunctions = {
 };
 
 // Activity Types
-export interface Activity {
-  id: string;
-  userId: string;
-  type: ActivityType;
-  targetId: string;
-  targetType: GeneratedTargetType;
-  metadata?: Record<string, unknown>;
-  createdAt: Date;
-  updatedAt: Date;
-}
+// export interface Activity {
+//   id: string;
+//   userId: string;
+//   type: ActivityType;
+//   targetId: string;
+//   targetType: TargetType;
+//   metadata?: Record<string, unknown>;
+//   createdAt: Date;
+//   updatedAt: Date;
+// }
 
 export type ActivityType =
   | 'game_log_created'
@@ -179,16 +309,16 @@ export type ActivityType =
   | 'watch';
 
 // Comment Types
-export interface DbComment extends GeneratedComment {
+export interface DbComment extends Comment {
   replies?: Comment[];
   parentId: string;
 }
 
 // Reaction Types
-export interface DbReaction extends GeneratedReaction {
+export interface DbReaction extends Reaction {
   target?: {
     id: string;
-    type: GeneratedTargetType;
+    type: TargetType;
     title?: string;
   };
   metadata?: Record<string, unknown>;
@@ -205,7 +335,7 @@ export interface TimelineItem {
   };
   target: {
     id: string;
-    type: GeneratedTargetType;
+    type: TargetType;
     title?: string;
     description?: string;
     image?: string;
@@ -228,7 +358,7 @@ export interface ActivityFeed {
 export interface ActivityStats {
   totalActivities: number;
   activitiesByType: Record<ActivityType, number>;
-  activitiesByTargetType: Record<GeneratedTargetType, number>;
+  activitiesByTargetType: Record<TargetType, number>;
   recentActivityCount: number;
   lastActivityDate?: Date;
 }

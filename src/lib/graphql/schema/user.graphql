@@ -1,0 +1,71 @@
+type UserSummary {
+  id: ID!
+  username: String!
+  firstName: String!
+  lastName: String!
+  emailAddress: String
+  imageUrl: String
+}
+
+type DBUser {
+  id: ID!
+  username: String!
+  firstName: String
+  lastName: String
+  emailAddress: String
+  email_verified: Boolean
+  email_verification_strategy: String
+  password_enabled: Boolean
+  two_factor_enabled: Boolean
+  imageUrl: String
+  banned: Boolean
+  last_sign_in_at: DateTime
+  external_id: String
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  deletedAt: DateTime
+  inboundFriendshipIds: [String!]
+  outboundFriendshipIds: [String!]
+  comments: [Comment!]!
+  reactions: [Reaction!]!
+  gameLogs: [GameLog!]!
+  friendships: [Friendship!]!
+  initiatedFriendships: [Friendship!]!
+}
+
+type Friendship {
+  id: ID!
+  status: FriendshipStatus!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  initiator: UserSummary!
+  recipient: UserSummary!
+}
+
+enum FriendshipStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  BLOCKED
+}
+
+type AcceptFriendRequestResponse {
+  errors: [ErrorResult!]
+  friendship: Friendship
+}
+
+type SendFriendRequestResponse {
+  errors: [ErrorResult!]
+  friendship: Friendship
+}
+
+type UpdateUserProfileResponse {
+  errors: [ErrorResult!]
+  user: UserSummary
+}
+
+input UpdateUserProfileInput {
+  firstName: String
+  lastName: String
+  imageUrl: String
+}

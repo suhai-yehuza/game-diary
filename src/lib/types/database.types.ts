@@ -1,7 +1,7 @@
 import type { NeonHttpDatabase } from 'drizzle-orm/neon-http';
 import type { Pool } from 'pg';
 
-import type * as schema from '@/lib/db/schema';
+import type * as schema from '@src/lib/db/schema';
 
 export type BaseDatabaseClient = NeonHttpDatabase<typeof schema>;
 
@@ -13,7 +13,9 @@ export interface DatabaseConfig {
   dbPool?: Pool;
 }
 
-export type DatabaseClient = BaseDatabaseClient;
+export interface DatabaseClient extends NeonHttpDatabase<typeof schema> {
+  raw?: unknown;
+}
 
 export interface DatabaseSeedingConfig {
   CONCURRENT_OPERATIONS: number;
@@ -29,6 +31,13 @@ export interface QueryOptions {
   retryAttempts?: number;
   retryDelay?: number;
   retries?: number; // Alias for retryAttempts for backward compatibility
+  limit?: number;
+  offset?: number;
+  orderBy?: {
+    column: string;
+    direction: 'asc' | 'desc';
+  };
+  where?: Record<string, unknown>;
 }
 
 export interface BatchProcessor<T, R> {
@@ -55,3 +64,59 @@ export type UuidGenerationOptions = {
   maxRetries?: number;
   batchSize?: number;
 };
+
+// Database Seeder Types
+export interface ApplicationSeederOptions {
+  db?: DatabaseClient;
+  apiClient: Record<string, unknown>;
+  processor: Record<string, unknown>;
+  tables?: string[];
+  appendingData?: boolean;
+  env?: string;
+  shouldResetDb?: boolean;
+  shouldTruncateTables?: boolean;
+  seasons?: number[];
+  skipExternalDb?: boolean;
+  skipApplicationDb?: boolean;
+  concurrency?: number;
+  batchSize?: number;
+  enableMonitoring?: boolean;
+  skipUsers?: boolean;
+}
+
+// Database Monitoring Types
+export interface MonitoringMetrics {
+  timestamp: Date;
+  cpuUsage: number;
+  memoryUsage: number;
+  activeConnections: number;
+  requestCount: number;
+  errorCount: number;
+  averageResponseTime: number;
+  queryPerformance: {
+    [key: string]: {
+      count: number;
+      totalTime: number;
+      avgTime: number;
+    };
+  };
+  apiCalls: {
+    [key: string]: number;
+  };
+  cacheMetrics: {
+    hits: number;
+    misses: number;
+    size: number;
+  };
+  apiMetrics: {
+    [key: string]: {
+      count: number;
+      success: number;
+      failure: number;
+      avgResponseTime: number;
+    };
+  };
+  errors: {
+    [key: string]: number;
+  };
+}

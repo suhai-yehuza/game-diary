@@ -1,0 +1,78 @@
+type Team {
+  id: ID!
+  name: String!
+  city: String
+  conference: String
+  division: String
+  code: String!
+  logoUrl: String
+  logo: String
+  nickname: String
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type TeamSummary {
+  id: String!
+  name: String!
+  nickname: String!
+  code: String!
+  logo: String
+}
+
+type ConferenceStanding {
+  name: String!
+  rank: Int!
+  win: Int!
+  loss: Int!
+}
+
+type TeamStats {
+  id: ID!
+  team: Team!
+  season: Int!
+  gamesPlayed: Int!
+  wins: Int!
+  losses: Int!
+  conferenceStanding: ConferenceStanding
+  pointsPerGame: Float!
+  fieldGoalPercentage: Float!
+  threePointPercentage: Float!
+  freeThrowPercentage: Float!
+  reboundsPerGame: Float!
+  assistsPerGame: Float!
+  stealsPerGame: Float!
+  blocksPerGame: Float!
+  turnoversPerGame: Float!
+  foulsPerGame: Float!
+  points: Int!
+  fgm: Int!
+  fga: Int!
+  fgp: String!
+  ftm: Int!
+  fta: Int!
+  ftp: String!
+  tpm: Int!
+  tpa: Int!
+  tpp: String!
+  longestRun: Int!
+  defReb: Int!
+  totReb: Int!
+  assists: Int!
+  pFouls: Int!
+  steals: Int!
+  turnovers: Int!
+  blocks: Int!
+  plusMinus: Int!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+input TeamFilters {
+  conference: String
+  division: String
+  search: String
+  city: String
+  code: String
+  pagination: PaginationInput
+}

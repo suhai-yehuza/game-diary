@@ -1,8 +1,8 @@
 import type { InferSelectModel } from 'drizzle-orm';
 
-import { nba_games } from '@/lib/db/schema/nba-schemas';
-import type { GameStatusValue, ClassificationType } from '@/lib/types/config.types';
-import type { SortDirection } from '@/lib/types/shared.types';
+import type { nba_games } from '@src/lib/db/schema/nba-schemas';
+import type { GameStatusValue, ClassificationType } from '@src/lib/types/config.types';
+import type { SortDirection } from '@src/lib/types/shared.types';
 
 // Database Types
 export type DBGameRecord = InferSelectModel<typeof nba_games>;
@@ -29,37 +29,53 @@ export interface GameScore {
   linescore?: number[];
 }
 
+export interface GameArena {
+  name?: string;
+  city?: string;
+  state?: string | null;
+  country?: string | null;
+}
+
+export interface GamePeriods {
+  current: number;
+  total: number;
+  endOfPeriod: boolean;
+}
+
+export interface GameStatus {
+  long?: string;
+  short?: string;
+  clock?: string | null;
+  halftime?: boolean;
+}
+
+export interface GameDate {
+  start: string;
+  end?: string;
+  duration?: string;
+}
+
+export interface GameTeams {
+  home: GameTeam;
+  visitors: GameTeam;
+}
+
+export interface GameScores {
+  home: GameScore;
+  visitors: GameScore;
+}
+
 export interface Game {
   id: string;
-  date: string | { start: string; end: string; duration: string };
-  status: {
-    long: string;
-    short: string;
-    clock?: string | null;
-    halftime?: boolean;
-  };
-  teams: {
-    home: GameTeam;
-    visitors: GameTeam;
-  };
-  scores: {
-    home: GameScore;
-    visitors: GameScore;
-  };
-  arena?: {
-    name: string;
-    city: string;
-    state?: string;
-    country?: string;
-  };
+  date: GameDate;
+  status: GameStatus;
+  teams: GameTeams;
+  scores: GameScores;
+  arena?: GameArena;
   league: string;
   season: number;
   stage: number;
-  periods?: {
-    current: number;
-    total: number;
-    endOfPeriod: boolean;
-  };
+  periods?: GamePeriods;
   officials?: string[];
   timesTied?: number;
   leadChanges?: number;
@@ -73,16 +89,6 @@ export interface Game {
 export type ExtendedGame = Game & { extended?: boolean };
 export type SearchGame = Game;
 
-export type GameTeams = {
-  home: GameTeam;
-  visitors: GameTeam;
-};
-
-export type GameScores = {
-  home: GameScore;
-  visitors: GameScore;
-};
-
 // Additional game-related types from common/types.ts
 export interface GameScoresLegacy {
   visitors?: {
@@ -91,20 +97,6 @@ export interface GameScoresLegacy {
   home?: {
     points?: number;
   };
-}
-
-export interface GameArena {
-  name?: string;
-  city?: string;
-  state?: string | null;
-  country?: string | null;
-}
-
-export interface GameStatus {
-  clock?: string;
-  halftime?: boolean;
-  long?: string;
-  short?: string;
 }
 
 export interface GameData {

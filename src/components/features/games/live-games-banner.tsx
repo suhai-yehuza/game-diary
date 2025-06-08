@@ -3,9 +3,9 @@ import { Activity } from 'lucide-react';
 import Link from 'next/link';
 import React from 'react';
 
-import { API_CONFIG } from '@/lib/config/api.config';
-import { GET_LIVE_GAMES } from '@/lib/graphql/queries';
-import { LiveGamesData } from '@/lib/types/consolidated.types';
+import { API_CONFIG } from '@src/lib/config/api.config';
+import { GET_LIVE_GAMES } from '@src/lib/graphql/queries';
+import type { LiveGamesData } from '@src/lib/types/consolidated.types';
 
 export function LiveGamesBanner() {
   const { data } = useQuery<LiveGamesData>(GET_LIVE_GAMES, {

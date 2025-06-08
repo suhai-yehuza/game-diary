@@ -20,22 +20,22 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
 
-import { CommentsSection, ReactionsSection } from '@/components/common';
-import { GameLogActions } from '@/components/features/games/game-log-actions';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
-import { StarRating } from '@/components/ui/star-rating';
-import { GET_GAME_LOG_BY_ID } from '@/lib/graphql/queries';
-import {
+import { CommentsSection, ReactionsSection } from '@src/components/common';
+import { GameLogActions } from '@src/components/features/games/game-log-actions';
+import { Avatar, AvatarFallback, AvatarImage } from '@src/components/ui/avatar';
+import { Badge } from '@src/components/ui/badge';
+import { Button } from '@src/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@src/components/ui/card';
+import { Skeleton } from '@src/components/ui/skeleton';
+import { StarRating } from '@src/components/ui/star-rating';
+import { GET_GAME_LOG } from '@src/lib/graphql/queries';
+import type {
   GameLogProps,
-  GameLogByIdResponse,
+  GameLogResponse,
   TeamDisplayProps,
   Arena,
-} from '@/lib/types/consolidated.types';
-import { cn } from '@/lib/utils';
+} from '@src/lib/types/consolidated.types';
+import { cn } from '@src/lib/utils';
 
 // Loading skeleton component
 const GameLogSkeleton = () => (
@@ -127,7 +127,9 @@ const TeamDisplay = ({
     {team?.logo ? (
       <Image
         src={
-          imageErrors?.[`${gameId}-${isHome ? 'home' : 'visitors'}`] ? '/gamelog.svg' : team.logo
+          imageErrors?.[`${gameId}-${isHome ? 'home' : 'visitors'}`]
+            ? '/logos/gamelog.svg'
+            : team.logo
         }
         alt={team.name || 'Team'}
         width={64}
@@ -189,7 +191,7 @@ export default function GameLogComponent({ gameLogId }: GameLogProps) {
     loading: gameLogLoading,
     error: gameLogError,
     refetch: refetchGameLog,
-  } = useQuery<GameLogByIdResponse>(GET_GAME_LOG_BY_ID, {
+  } = useQuery<GameLogResponse>(GET_GAME_LOG, {
     variables: { id: gameLogId },
     skip: !gameLogId,
   });
@@ -201,7 +203,7 @@ export default function GameLogComponent({ gameLogId }: GameLogProps) {
     return <ErrorState error={gameLogError} />;
   }
 
-  const gameLog = gameLogData?.gameLogById;
+  const gameLog = gameLogData?.gameLog;
 
   if (!gameLog) {
     return (
@@ -230,7 +232,7 @@ export default function GameLogComponent({ gameLogId }: GameLogProps) {
   }
 
   // Check if current user owns this game log
-  const isOwner = currentUser?.id === gameLog.userId;
+  const isOwner = currentUser?.id === gameLog.user.id;
 
   const gameDate = gameLog.game?.date?.start ? new Date(gameLog.game.date.start) : null;
   const watchDate = gameLog.watchedDate ? new Date(gameLog.watchedDate) : null;
@@ -290,7 +292,7 @@ export default function GameLogComponent({ gameLogId }: GameLogProps) {
               {/* Teams and Score */}
               <div className="flex items-center justify-between gap-4">
                 <TeamDisplay
-                  team={gameLog.game?.teams?.visitors}
+                  team={gameLog.game?.teams?.visitors as TeamDisplayProps['team']}
                   score={gameLog.game?.scores?.visitors?.points}
                   isHome={false}
                   imageErrors={imageErrors}
@@ -304,7 +306,7 @@ export default function GameLogComponent({ gameLogId }: GameLogProps) {
                 </div>
 
                 <TeamDisplay
-                  team={gameLog.game?.teams?.home}
+                  team={gameLog.game?.teams?.home as TeamDisplayProps['team']}
                   score={gameLog.game?.scores?.home?.points}
                   isHome={true}
                   imageErrors={imageErrors}

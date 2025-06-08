@@ -7,193 +7,75 @@ import { ApolloServer } from '@apollo/server';
 import { startServerAndCreateNextHandler } from '@as-integrations/next';
 import { auth, clerkClient } from '@clerk/nextjs/server';
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { constraintDirective, constraintDirectiveTypeDefs } from 'graphql-constraint-directive';
-import { NextRequest } from 'next/server';
+import type { NextRequest } from 'next/server';
 
-import { getCorsHeaders, handleApiError, createOptionsResponse } from '@/lib/api/utils';
-import { getCache } from '@/lib/cache';
-import { db } from '@/lib/db/seed';
-import { createLoaders } from '@/lib/graphql/loaders';
-import { resolvers } from '@/lib/graphql/resolvers';
-import { apiLogger } from '@/lib/logger';
-import type { RedisClient } from '@/lib/types/cache.types';
-import type { Context } from '@/lib/types/component.types';
+import { getCorsHeaders, handleApiError, createOptionsResponse } from '@src/lib/api/utils';
+import { getCache } from '@src/lib/cache';
+import { db } from '@src/lib/db/seed';
+import { createLoaders } from '@src/lib/graphql/loaders';
+import { resolvers } from '@src/lib/graphql/resolvers';
+import { apiLogger } from 'lib/core/logger';
+import type { Context } from '@src/lib/types/component.types';
+
 const typeDefs = readFileSync(join(process.cwd(), 'src/lib/graphql/schema.graphql'), 'utf-8');
 
 // Create the base schema
-let graphqlSchema = makeExecutableSchema({
-  typeDefs: [constraintDirectiveTypeDefs, typeDefs],
+const graphqlSchema = makeExecutableSchema({
+  typeDefs,
   resolvers,
 });
 
-// Apply the constraint directive to the schema
-graphqlSchema = constraintDirective()(graphqlSchema);
-
-// Rate limiting configuration
-const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute
-const MAX_REQUESTS_PER_WINDOW = 10000; // 10000 requests per minute (166 requests per second)
-const requestCounts = new Map<string, { count: number; resetTime: number }>();
-
-// Helper function to check rate limit
-function checkRateLimit(userId: string): {
-  allowed: boolean;
-  remaining: number;
-  resetTime: number;
-} {
-  const now = Date.now();
-  const userRequests = requestCounts.get(userId);
-
-  if (!userRequests || now > userRequests.resetTime) {
-    requestCounts.set(userId, { count: 1, resetTime: now + RATE_LIMIT_WINDOW });
-    return {
-      allowed: true,
-      remaining: MAX_REQUESTS_PER_WINDOW - 1,
-      resetTime: now + RATE_LIMIT_WINDOW,
-    };
-  }
-
-  if (userRequests.count >= MAX_REQUESTS_PER_WINDOW) {
-    return { allowed: false, remaining: 0, resetTime: userRequests.resetTime };
-  }
-
-  userRequests.count++;
-  return {
-    allowed: true,
-    remaining: MAX_REQUESTS_PER_WINDOW - userRequests.count,
-    resetTime: userRequests.resetTime,
-  };
-}
-
-const CACHE_TTL = 300; // 5 minutes in seconds
-const CLERK_RETRY_DELAY = 1000; // 1 second delay between retries
-const MAX_CLERK_RETRIES = 3;
-
-// Helper function to get user with retries and caching
-async function getUserWithRetry(
-  userId: string,
-  redisClient: RedisClient | null
-): Promise<Context['user'] | undefined> {
-  if (!redisClient) return undefined;
-
-  // Try to get from cache first
-  const cacheKey = `user:${userId}`;
-  const cachedUser = await redisClient?.get(cacheKey);
-
-  if (cachedUser) {
-    try {
-      // Handle both string and object formats
-      const parsedUser = typeof cachedUser === 'string' ? JSON.parse(cachedUser) : cachedUser;
-      return parsedUser as Context['user'];
-    } catch (e) {
-      apiLogger.error('Error parsing cached user:', e);
-      // If parsing fails, clear the invalid cache entry
-      await redisClient?.del(cacheKey);
-    }
-  }
-
-  // If not in cache, try to get from Clerk with retries
-  let retries = 0;
-  while (retries < MAX_CLERK_RETRIES) {
-    try {
-      const clerkClientInstance = await clerkClient();
-      const user = await clerkClientInstance.users.getUser(userId);
-      if (user) {
-        const dbUser = {
-          id: user.id,
-          username: user.username ?? '',
-          firstName: user.firstName || '',
-          lastName: user.lastName || '',
-          emailAddress: user.emailAddresses[0]?.emailAddress || '',
-          imageUrl: user.imageUrl,
-        };
-
-        // Cache the user data
-        if (redisClient) {
-          try {
-            // Ensure we're storing a string
-            const userString = JSON.stringify(dbUser);
-            await redisClient.setex(cacheKey, CACHE_TTL, userString);
-          } catch (cacheError) {
-            apiLogger.error('Error caching user:', cacheError);
-          }
-        }
-
-        return dbUser;
-      }
-      return undefined;
-    } catch (error) {
-      retries++;
-      if (error instanceof Error && error.message.includes('Too Many Requests')) {
-        if (retries < MAX_CLERK_RETRIES) {
-          // Wait before retrying
-          await new Promise(resolve => setTimeout(resolve, CLERK_RETRY_DELAY * retries));
-          continue;
-        }
-      }
-      throw error;
-    }
-  }
-  return undefined;
-}
-
+// Create Apollo Server instance
 const server = new ApolloServer<Context>({
   schema: graphqlSchema,
 });
 
+// Create the handler
 const handler = startServerAndCreateNextHandler(server, {
-  context: async (_req: NextRequest): Promise<Context> => {
-    const cache = getCache();
-    await cache.initializeRedis();
+  context: async () => {
+    const { userId } = await auth();
+    const cache = await getCache();
     const redisClient = cache.getRedisClient();
+    const loaders = createLoaders(db);
 
-    try {
-      // Get the current user from Clerk
-      const { userId } = await auth();
-      if (!userId) {
-        return {
-          db: db,
-          redis: redisClient,
-          user: undefined,
-          loaders: createLoaders(db),
-        } as Context;
-      }
-
-      // Check rate limit
-      const rateLimit = checkRateLimit(userId);
-      if (!rateLimit.allowed) {
-        throw new Error(
-          `Rate limit exceeded. Please try again in ${Math.ceil((rateLimit.resetTime - Date.now()) / 1000)} seconds.`
-        );
-      }
-
-      // Get user with retries and caching
-      const dbUser = await getUserWithRetry(userId, redisClient);
-
-      return {
-        db: db,
-        redis: redisClient,
-        user: dbUser,
-        loaders: createLoaders(db),
-      } as Context;
-    } catch (error) {
-      apiLogger.error('Context creation error:', error);
-      if (error instanceof Error) {
-        if (error.message.includes('Rate limit exceeded')) {
-          const resetTime = error.message.match(/\d+/)?.[0] || '60';
-          throw new Error(`Rate limit exceeded. Please try again in ${resetTime} seconds.`);
-        }
-        if (error.message.includes('Too Many Requests')) {
-          throw new Error('Service temporarily unavailable. Please try again in a few seconds.');
-        }
-      }
-      throw error;
-    }
+    return {
+      db,
+      redis: redisClient,
+      loaders,
+      userId,
+      clerkClient,
+      user: null, // This will be populated by the auth middleware
+    } as Context;
   },
 });
 
-export async function GET(request: Request) {
+// Simple in-memory rate limiting
+const requestCounts = new Map<string, { count: number; resetTime: number }>();
+const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute
+const MAX_REQUESTS = 50000; // 50,000 requests per minute
+
+async function graphqlHandler(req: NextRequest) {
   try {
-    const response = await handler(request);
+    // Get client IP
+    const ip = req.headers.get('x-forwarded-for') || 'unknown';
+
+    // Check rate limit
+    const now = Date.now();
+    const userRequests = requestCounts.get(ip);
+
+    if (userRequests && now < userRequests.resetTime) {
+      if (userRequests.count >= MAX_REQUESTS) {
+        return new Response(
+          JSON.stringify({ error: 'Rate limit exceeded. Please try again later.' }),
+          { status: 429, headers: { 'Content-Type': 'application/json' } }
+        );
+      }
+      userRequests.count++;
+    } else {
+      requestCounts.set(ip, { count: 1, resetTime: now + RATE_LIMIT_WINDOW });
+    }
+
+    const response = await handler(req);
     const headers = getCorsHeaders();
     Object.entries(headers).forEach(([key, value]) => {
       response.headers.set(key, value);
@@ -205,20 +87,11 @@ export async function GET(request: Request) {
   }
 }
 
-export async function POST(request: Request) {
-  try {
-    const response = await handler(request);
-    const headers = getCorsHeaders();
-    Object.entries(headers).forEach(([key, value]) => {
-      response.headers.set(key, value);
-    });
-    return response;
-  } catch (error) {
-    apiLogger.error('GraphQL Error:', error);
-    return handleApiError(error);
-  }
-}
+export { graphqlHandler as GET, graphqlHandler as POST };
 
 export async function OPTIONS() {
   return createOptionsResponse();
 }
+
+// Force Node.js runtime for this API route since we're using fs operations
+export const runtime = 'nodejs';

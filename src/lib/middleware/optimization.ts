@@ -1,11 +1,12 @@
-import { Request, Response, NextFunction } from 'express';
-import { rateLimit } from 'express-rate-limit';
-import { NextApiRequest, NextApiResponse } from 'next';
+import type { Request, Response, NextFunction } from 'express';
+import type { NextApiRequest, NextApiResponse } from 'next';
 
-import { apiLogger } from '@/lib/logger';
-import { monitoring } from '@/lib/monitoring';
-import { ExtendedNextApiRequest } from '@/lib/types/consolidated.types';
-import { responseUtils } from '@/lib/utils/index.response';
+import { apiLogger } from 'lib/core/logger';
+import { monitoring } from '@src/lib/monitoring';
+import type { ExtendedNextApiRequest } from '@src/lib/types/consolidated.types';
+import { responseUtils } from '@src/lib/utils/response';
+import { rateLimiters } from '@src/lib/config/rate-limit.config';
+
 // Field selection middleware
 export const fieldSelectionMiddleware = (
   req: ExtendedNextApiRequest,
@@ -74,15 +75,6 @@ export const compressionMiddleware = (_req: Request, res: Response, _next: NextF
   };
 };
 
-// Rate limiting middleware
-export const rateLimitMiddleware = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limit each IP to 100 requests per windowMs
-  message: 'Too many requests from this IP, please try again later.',
-  standardHeaders: true,
-  legacyHeaders: false,
-});
-
 // Error handling middleware
 export const errorHandlerMiddleware = (
   error: Error,
@@ -102,6 +94,6 @@ export const middleware = {
   apiMonitoring: apiMonitoringMiddleware,
   optimizeResponse: optimizeResponseMiddleware,
   compression: compressionMiddleware,
-  rateLimit: rateLimitMiddleware,
+  rateLimit: rateLimiters.api,
   errorHandler: errorHandlerMiddleware,
 };

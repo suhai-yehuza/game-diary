@@ -1,40 +1,63 @@
 import { eq, and } from 'drizzle-orm';
 import { GraphQLError } from 'graphql';
-import { z } from 'zod';
+import type { z } from 'zod';
 
-import { getCache, invalidateRelatedCaches } from '@/lib/cache';
-import { API_CONFIG } from '@/lib/config/api.config';
-import { db } from '@/lib/db';
-import * as schema from '@/lib/db/schema';
-import { Context } from '@/lib/graphql/context';
+import { getCache, invalidateRelatedCaches } from '@src/lib/cache';
+import { API_CONFIG } from '@src/lib/config/api.config';
+import { db } from '@src/lib/db';
+import * as schema from '@src/lib/db/schema';
+import type { Context } from '@src/lib/graphql/context';
 import {
   AuthenticationError,
   AuthorizationError,
   BusinessLogicError,
   NotFoundError,
   ValidationError,
-} from '@/lib/graphql/errors';
-import { transformUser } from '@/lib/graphql/resolvers/transformers';
-import { mapUserData } from '@/lib/graphql/resolvers/users.index';
-import { getEmojiKey } from '@/lib/graphql/utils';
-import { logger } from '@/lib/logger';
-import { WatchedSettingValue, REACTION_EMOJIS, ReactionEmojiKey } from '@/lib/types/config.types';
+} from '@src/lib/graphql/errors';
+import { transformUser } from '@src/lib/graphql/resolvers/transformers';
+import { mapUserData } from '@src/lib/graphql/resolvers/users';
+import { getEmojiKey } from '@src/lib/graphql/utils';
+import { logger } from 'lib/core/logger';
 import {
-  MutationcreateGameLogArgs,
-  MutationupdateGameLogArgs,
-  MutationdeleteGameLogArgs,
-  MutationcreateCommentArgs,
-  MutationupdateCommentArgs,
-  MutationdeleteCommentArgs,
-  MutationcreateReactionArgs,
-  MutationdeleteReactionArgs,
-  DBUser,
+  REACTION_EMOJIS,
+  FRIENDSHIP_STATUS,
+  type WatchedSettingValue,
+  type ReactionEmojiKey,
+} from '@src/lib/types/config.types';
+import type {
+  MutationCreateGameLogArgs,
+  MutationCreateCommentArgs,
+  MutationCreateReactionArgs,
+  MutationDeleteReactionArgs,
+  DbUser,
   ParentType,
   Classification,
-} from '@/lib/types/generated/graphql';
-import { generateUUID } from '@/lib/utils/index.processing';
-import { createCommentSchema, updateCommentSchema } from '@/lib/validations/comment';
-import { createGameLogSchema, updateGameLogSchema } from '@/lib/validations/game-log';
+  CreateGameLogInput,
+  CreateCommentInput,
+} from '@src/lib/types/generated/graphql';
+import { generateUUID } from '@src/lib/utils/processing';
+import { createCommentSchema, updateCommentSchema } from '@src/lib/validations/comment';
+import { createGameLogSchema, updateGameLogSchema } from '@src/lib/validations/game-log';
+
+// Define missing mutation argument types
+type MutationUpdateGameLogArgs = {
+  id: string;
+  input: CreateGameLogInput;
+};
+
+type MutationDeleteGameLogArgs = {
+  id: string;
+};
+
+type MutationUpdateCommentArgs = {
+  id: string;
+  input: CreateCommentInput;
+};
+
+type MutationDeleteCommentArgs = {
+  id: string;
+};
+
 // Helper functions
 const validateInput = <T>(schema: z.ZodSchema<T>, input: unknown): T => {
   const result = schema.safeParse(input);
@@ -64,7 +87,7 @@ function nullToUndefined<T>(value: T | null): T | undefined {
 }
 
 // Helper to fetch full user from DB
-async function getFullUser(db: typeof import('@/lib/db').db, userId: string) {
+async function getFullUser(db: typeof import('@src/lib/db').db, userId: string) {
   const users = await db.select().from(schema.users).where(eq(schema.users.id, userId)).limit(1);
   return users[0] || null;
 }
@@ -90,14 +113,13 @@ async function ensureUserExists(user: Context['user']) {
       username: user.username || `user_${user.id.slice(-8)}`,
       firstName: user.firstName || 'Unknown',
       lastName: user.lastName || 'DBUser',
-      emailAddress: user.emailAddress || `${user.id}@placeholder.com`,
+      emailAddress: user.emailAddresses[0].emailAddress || `${user.id}@placeholder.com`,
       imageUrl: user.imageUrl || '',
       inboundFriendshipIds: [],
       outboundFriendshipIds: [],
       banned: false,
       createdAt: new Date(),
       updatedAt: new Date(),
-      timestamp: new Date(),
       last_sign_in_at: null,
       password_enabled: false,
       two_factor_enabled: false,
@@ -115,7 +137,7 @@ async function ensureUserExists(user: Context['user']) {
 // Game Log Mutations
 export const createGameLog = async (
   _parent: unknown,
-  { input }: MutationcreateGameLogArgs,
+  { input }: MutationCreateGameLogArgs,
   context: Context
 ) => {
   try {
@@ -288,7 +310,7 @@ export const createGameLog = async (
           imageUrl: dbUser.imageUrl,
           createdAt: dbUser.createdAt,
           updatedAt: dbUser.updatedAt,
-        } as DBUser),
+        } as DbUser),
         classification: gameLog.classification as Classification,
         notes: gameLog.notes || undefined,
         ratingForGame: gameLog.ratingForGame,
@@ -308,7 +330,7 @@ export const createGameLog = async (
 
 export const updateGameLog = async (
   _parent: unknown,
-  { id, input }: MutationupdateGameLogArgs,
+  { id, input }: MutationUpdateGameLogArgs,
   context: Context
 ) => {
   try {
@@ -388,7 +410,7 @@ export const updateGameLog = async (
 
 export const deleteGameLog = async (
   _parent: unknown,
-  { id }: MutationdeleteGameLogArgs,
+  { id }: MutationDeleteGameLogArgs,
   { user, redis }: Context
 ) => {
   try {
@@ -429,7 +451,7 @@ export const deleteGameLog = async (
 // Comment Mutations
 export const createComment = async (
   _parent: unknown,
-  { input }: MutationcreateCommentArgs,
+  { input }: MutationCreateCommentArgs,
   context: Context
 ) => {
   try {
@@ -510,7 +532,7 @@ export const createComment = async (
 
 export const updateComment = async (
   _parent: unknown,
-  { id, input }: MutationupdateCommentArgs,
+  { id, input }: MutationUpdateCommentArgs,
   context: Context
 ) => {
   try {
@@ -564,7 +586,7 @@ export const updateComment = async (
 
 export const deleteComment = async (
   _parent: unknown,
-  { id }: MutationdeleteCommentArgs,
+  { id }: MutationDeleteCommentArgs,
   { user }: Context
 ) => {
   try {
@@ -596,7 +618,7 @@ export const deleteComment = async (
 // Reaction Mutations
 export const createReaction = async (
   _parent: unknown,
-  { input }: MutationcreateReactionArgs,
+  { input }: MutationCreateReactionArgs,
   context: Context
 ) => {
   try {
@@ -622,7 +644,7 @@ export const createReaction = async (
         and(
           eq(schema.reactions.userId, dbUser.id),
           eq(schema.reactions.targetId, input.targetId),
-          eq(schema.reactions.targetType, input.targetType),
+          eq(schema.reactions.targetType, input.targetType.toLowerCase() as 'game_log' | 'comment'),
           eq(schema.reactions.emoji, emoji)
         )
       )
@@ -644,7 +666,7 @@ export const createReaction = async (
         id: generateUUID(),
         userId: dbUser.id,
         targetId: input.targetId,
-        targetType: input.targetType,
+        targetType: input.targetType.toLowerCase() as 'game_log' | 'comment',
         emoji,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -670,7 +692,7 @@ export const createReaction = async (
 
 export const deleteReaction = async (
   _parent: unknown,
-  { id }: MutationdeleteReactionArgs,
+  { id }: MutationDeleteReactionArgs,
   context: Context
 ) => {
   try {
@@ -738,10 +760,10 @@ export const sendFriendRequest = async (
 
     if (existingFriendships.length > 0) {
       const existing = existingFriendships[0];
-      if (existing.status === 'Accepted') {
-        throw new BusinessLogicError('Already friends with this user', 'ALREADY_FRIENDS');
-      } else if (existing.status === 'Pending') {
-        throw new BusinessLogicError('Friend request already sent', 'REQUEST_ALREADY_SENT');
+      if (existing.status === FRIENDSHIP_STATUS.ACCEPTED) {
+        throw new Error('Users are already friends');
+      } else if (existing.status === FRIENDSHIP_STATUS.PENDING) {
+        throw new Error('Friend request already sent');
       }
     }
 
@@ -752,12 +774,15 @@ export const sendFriendRequest = async (
       .where(and(eq(schema.friendships.userId, userId), eq(schema.friendships.friendId, dbUser.id)))
       .limit(1);
 
-    if (reverseFriendships.length > 0 && reverseFriendships[0].status === 'Pending') {
+    if (
+      reverseFriendships.length > 0 &&
+      reverseFriendships[0].status === FRIENDSHIP_STATUS.PENDING
+    ) {
       // Auto-accept if there's a pending request from the target user
       const [updatedFriendship] = await db
         .update(schema.friendships)
         .set({
-          status: 'Accepted',
+          status: FRIENDSHIP_STATUS.ACCEPTED,
           updatedAt: new Date(),
         })
         .where(eq(schema.friendships.id, reverseFriendships[0].id))
@@ -768,7 +793,7 @@ export const sendFriendRequest = async (
           id: updatedFriendship.id,
           subscriberId: updatedFriendship.userId || '',
           userId: updatedFriendship.friendId || '',
-          status: 'Accepted',
+          status: FRIENDSHIP_STATUS.ACCEPTED,
           createdAt: updatedFriendship.createdAt,
           updatedAt: updatedFriendship.updatedAt,
           initiator: transformUser(mapUserData(targetUser)),
@@ -785,7 +810,7 @@ export const sendFriendRequest = async (
         id: generateUUID(),
         userId: dbUser.id,
         friendId: userId,
-        status: 'Pending',
+        status: FRIENDSHIP_STATUS.PENDING,
         createdAt: new Date(),
         updatedAt: new Date(),
       })
@@ -796,7 +821,7 @@ export const sendFriendRequest = async (
         id: friendship.id,
         subscriberId: friendship.userId || '',
         userId: friendship.friendId || '',
-        status: 'Pending',
+        status: FRIENDSHIP_STATUS.PENDING,
         createdAt: friendship.createdAt,
         updatedAt: friendship.updatedAt,
         initiator: transformUser(mapUserData(dbUser)),
@@ -842,7 +867,7 @@ export const acceptFriendRequest = async (
       throw new AuthorizationError('Not authorized to accept this friend request');
     }
 
-    if (friendship.status !== 'Pending') {
+    if (friendship.status !== FRIENDSHIP_STATUS.PENDING) {
       throw new BusinessLogicError('Friend request is not pending', 'REQUEST_NOT_PENDING');
     }
 
@@ -850,7 +875,7 @@ export const acceptFriendRequest = async (
     const [updatedFriendship] = await db
       .update(schema.friendships)
       .set({
-        status: 'Accepted',
+        status: FRIENDSHIP_STATUS.ACCEPTED,
         updatedAt: new Date(),
       })
       .where(eq(schema.friendships.id, friendshipId))
@@ -873,7 +898,7 @@ export const acceptFriendRequest = async (
         id: updatedFriendship.id,
         subscriberId: updatedFriendship.userId || '',
         userId: updatedFriendship.friendId || '',
-        status: 'Accepted',
+        status: FRIENDSHIP_STATUS.ACCEPTED,
         createdAt: updatedFriendship.createdAt,
         updatedAt: updatedFriendship.updatedAt,
         initiator: transformUser(mapUserData(initiatorUsers[0])),
@@ -919,7 +944,7 @@ export const rejectFriendRequest = async (
       throw new AuthorizationError('Not authorized to reject this friend request');
     }
 
-    if (friendship.status !== 'Pending') {
+    if (friendship.status !== FRIENDSHIP_STATUS.PENDING) {
       throw new BusinessLogicError('Friend request is not pending', 'REQUEST_NOT_PENDING');
     }
 
@@ -927,7 +952,7 @@ export const rejectFriendRequest = async (
     const [updatedFriendship] = await db
       .update(schema.friendships)
       .set({
-        status: 'Rejected',
+        status: FRIENDSHIP_STATUS.REJECTED,
         updatedAt: new Date(),
       })
       .where(eq(schema.friendships.id, friendshipId))
@@ -950,7 +975,7 @@ export const rejectFriendRequest = async (
         id: updatedFriendship.id,
         subscriberId: updatedFriendship.userId || '',
         userId: updatedFriendship.friendId || '',
-        status: 'Rejected',
+        status: FRIENDSHIP_STATUS.REJECTED,
         createdAt: updatedFriendship.createdAt,
         updatedAt: updatedFriendship.updatedAt,
         initiator: transformUser(mapUserData(initiatorUsers[0])),

@@ -10,8 +10,8 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { UsersTableProps } from '@/lib/types/user.types';
+} from '@src/components/ui/table';
+import type { UsersTableProps } from '@src/lib/types/user.types';
 
 export default function UsersTable({ users }: UsersTableProps) {
   return (

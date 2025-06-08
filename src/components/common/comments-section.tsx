@@ -20,20 +20,20 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Textarea } from '@/components/ui/textarea';
-import { useToast } from '@/components/ui/use-toast';
-import { clientCache, CLIENT_CACHE_KEYS } from '@/lib/cache/client';
-import { CREATE_COMMENT, DELETE_COMMENT, UPDATE_COMMENT } from '@/lib/graphql/mutations';
-import { GET_COMMENTS_WITH_FILTERS } from '@/lib/graphql/queries';
-import { logger } from '@/lib/logger';
-import { CommentEdge, CommentConnection } from '@/lib/types/component.types';
-import type { Comment } from '@/lib/types/generated/graphql';
-import { CommentsSectionProps, EditingComment } from '@/lib/types/social.types';
-import { cn } from '@/lib/utils';
+} from '@src/components/ui/alert-dialog';
+import { Avatar, AvatarFallback, AvatarImage } from '@src/components/ui/avatar';
+import { Button } from '@src/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@src/components/ui/card';
+import { Textarea } from '@src/components/ui/textarea';
+import { useToast } from '@src/components/ui/use-toast';
+import { clientCache, CLIENT_CACHE_KEYS } from '@src/lib/cache/client';
+import { CREATE_COMMENT, DELETE_COMMENT, UPDATE_COMMENT } from '@src/lib/graphql/mutations';
+import { GET_COMMENTS_WITH_FILTERS } from '@src/lib/graphql/queries';
+import { logger } from 'lib/core/logger';
+import type { CommentEdge, CommentConnection } from '@src/lib/types/component.types';
+import type { Comment } from '@src/lib/types/generated/graphql';
+import type { CommentsSectionProps, EditingComment } from '@src/lib/types/social.types';
+import { cn } from '@src/lib/utils';
 
 import { CommentItem } from './comment-item';
 
@@ -497,8 +497,7 @@ export function CommentsSection({ parentId, parentType, initialExpanded }: Comme
               variant="ghost"
               size="sm"
               className="h-8 w-8 p-0 hover:bg-transparent"
-              onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
-                e.stopPropagation();
+              onClick={() => {
                 setIsExpanded(!isExpanded);
               }}
             >

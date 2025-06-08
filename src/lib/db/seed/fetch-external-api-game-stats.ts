@@ -1,12 +1,15 @@
 import { eq } from 'drizzle-orm';
 
-import { API_CONFIG } from '@/lib/config/api.config';
-import { game_stats, teams } from '@/lib/db/schema';
-import { handleAPIError } from '@/lib/external-apis';
-import { seedLogger } from '@/lib/logger';
-import { GAME_STATUS_VALUES } from '@/lib/types/config.types';
-import type { GameTeamStatistic, TeamStatisticsResponseData } from '@/lib/types/consolidated.types';
-import { generateUUID } from '@/lib/utils/index.processing';
+import { API_CONFIG } from '@src/lib/config/api.config';
+import { game_stats, teams } from '@src/lib/db/schema';
+import { handleAPIError } from '@src/lib/external-apis';
+import { seedLogger } from 'lib/core/logger';
+import { GAME_STATUS_VALUES } from '@src/lib/types/config.types';
+import type {
+  GameTeamStatistic,
+  TeamStatisticsResponseData,
+} from '@src/lib/types/consolidated.types';
+import { generateUUID } from '@src/lib/utils/processing';
 
 import { initializeClients } from './utils/initialize-clients';
 // Database type for game_stats table insertion

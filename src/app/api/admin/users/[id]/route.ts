@@ -1,10 +1,10 @@
 import { auth, currentUser } from '@clerk/nextjs/server';
 import { eq } from 'drizzle-orm';
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse, type NextRequest } from 'next/server';
 
-import { users } from '@/lib/db/schema';
-import { db } from '@/lib/db/seed';
-import { apiLogger } from '@/lib/logger';
+import { users } from '@src/lib/db/schema';
+import { db } from '@src/lib/db/seed';
+import { apiLogger } from 'lib/core/logger';
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   try {
     const { id } = await params;
@@ -48,3 +48,6 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     return new NextResponse('Internal Server Error', { status: 500 });
   }
 }
+
+// Force Node.js runtime for database operations
+export const runtime = 'nodejs';

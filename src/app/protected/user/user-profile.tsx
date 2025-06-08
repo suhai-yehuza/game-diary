@@ -20,7 +20,6 @@ import {
   Lock,
   Users2,
   UserPlus,
-  UserCheck,
   UserX,
   Tv,
   ChevronDown,
@@ -30,21 +29,31 @@ import { useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 import { toast } from 'react-hot-toast';
 
-import { GameLogModal } from '@/components/features/games';
-import { GameLogActions } from '@/components/features/games/game-log-actions';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
-import { StarRating } from '@/components/ui/star-rating';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { SEND_FRIEND_REQUEST, ACCEPT_FRIEND_REQUEST, REMOVE_FRIEND } from '@/lib/graphql/mutations';
-import { GET_USER, GET_USER_FRIENDSHIPS, GET_USER_GAME_LOGS } from '@/lib/graphql/queries';
-import { logger } from '@/lib/logger';
-import { GameLog, Friendship, FriendshipStatus, DBUser } from '@/lib/types/generated/graphql';
-import { UserProfileProps } from '@/lib/types/user.types';
-import { cn } from '@/lib/utils';
+import { GameLogModal } from '@src/components/features/games';
+import { GameLogActions } from '@src/components/features/games/game-log-actions';
+import { Avatar, AvatarFallback, AvatarImage } from '@src/components/ui/avatar';
+import { Badge } from '@src/components/ui/badge';
+import { Button } from '@src/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@src/components/ui/card';
+import { Skeleton } from '@src/components/ui/skeleton';
+import { StarRating } from '@src/components/ui/star-rating';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@src/components/ui/tabs';
+import {
+  SEND_FRIEND_REQUEST,
+  ACCEPT_FRIEND_REQUEST,
+  REMOVE_FRIEND,
+} from '@src/lib/graphql/mutations';
+import { GET_USER, GET_USER_FRIENDSHIPS, GET_USER_GAME_LOGS } from '@src/lib/graphql/queries';
+import { logger } from 'lib/core/logger';
+import { FRIENDSHIP_STATUS } from '@src/lib/types/config.types';
+import type {
+  GameLog,
+  Friendship,
+  FriendshipStatus,
+  DbUser,
+} from '@src/lib/types/generated/graphql';
+import type { UserProfileProps } from '@src/lib/types/user.types';
+import { cn } from '@src/lib/utils';
 
 const classificationIcons = {
   Private: Lock,
@@ -60,7 +69,7 @@ const classificationColors = {
 
 export default function UserProfile({ targetUserId }: UserProfileProps) {
   const { user: currentUser } = useUser();
-  const [targetUser, setTargetUser] = useState<DBUser | null>(null);
+  const [targetUser, setTargetUser] = useState<DbUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [dbUserId, setDbUserId] = useState<string | null>(null);
   const [currentUserDbId, setCurrentUserDbId] = useState<string | null>(null);
@@ -118,7 +127,6 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
             external_id: '',
             inboundFriendshipIds: [],
             outboundFriendshipIds: [],
-            timestamp: new Date(),
             friendships: [],
             initiatedFriendships: [],
             createdAt: currentUser.createdAt ? new Date(currentUser.createdAt) : new Date(),
@@ -159,7 +167,7 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
     fetchUser();
   }, [targetUserId, currentUser]);
 
-  const { data: userData, loading: userLoading } = useQuery<{ user: DBUser }>(GET_USER, {
+  const { data: userData, loading: userLoading } = useQuery<{ user: DbUser }>(GET_USER, {
     variables: { id: dbUserId },
     skip: !dbUserId,
   });
@@ -375,7 +383,7 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
           </Button>
         );
 
-      case 'Pending':
+      case FRIENDSHIP_STATUS.PENDING:
         if (isPendingFromCurrentUser) {
           return (
             <Button
@@ -391,54 +399,48 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
           );
         } else {
           return (
-            <div className="flex gap-2">
+            <div className="flex items-center space-x-2">
               <Button
                 onClick={handleAcceptFriendRequest}
-                disabled={isLoading}
-                variant="default"
+                disabled={acceptingRequest || removingFriend}
                 size="sm"
-                className="gap-2"
+                className="bg-green-600 hover:bg-green-700 text-white"
               >
-                <UserCheck className="h-4 w-4" />
-                {isLoading ? 'Accepting...' : 'Accept Request'}
+                {acceptingRequest ? 'Accepting...' : 'Accept Request'}
               </Button>
               <Button
-                onClick={handleRemoveFriend}
-                disabled={isLoading}
+                onClick={() => setCurrentFriendship(null)}
+                disabled={acceptingRequest || removingFriend}
                 variant="outline"
                 size="sm"
-                className="gap-2 text-red-600 hover:text-red-700"
               >
-                <UserX className="h-4 w-4" />
                 Decline
               </Button>
             </div>
           );
         }
 
-      case 'Accepted':
+      case FRIENDSHIP_STATUS.ACCEPTED:
         return (
           <Button
-            onClick={handleRemoveFriend}
-            disabled={isLoading}
+            onClick={() => setCurrentFriendship(null)}
+            disabled={removingFriend || acceptingRequest}
             variant="outline"
             size="sm"
-            className="gap-2"
+            className="border-red-300 text-red-700 hover:bg-red-50"
           >
-            <UserCheck className="h-4 w-4" />
-            {isLoading ? 'Removing...' : 'Friends'}
+            {removingFriend ? 'Removing...' : 'Remove Friend'}
           </Button>
         );
 
-      case 'Rejected':
+      case FRIENDSHIP_STATUS.REJECTED:
         return (
-          <Button variant="outline" size="sm" disabled className="gap-2">
-            <UserX className="h-4 w-4" />
+          <Button disabled variant="outline" size="sm">
             Request Rejected
           </Button>
         );
 
-      case 'Blocked':
+      case FRIENDSHIP_STATUS.BLOCKED:
         return (
           <Button variant="outline" size="sm" disabled className="gap-2">
             <UserX className="h-4 w-4" />

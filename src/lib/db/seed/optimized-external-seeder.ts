@@ -1,29 +1,29 @@
 import { sql } from 'drizzle-orm';
 
-import { API_CONFIG } from '@/lib/config/api.config';
-import { games } from '@/lib/db/schema/game-schemas';
-import { seasons, teams, nba_players, nba_games } from '@/lib/db/schema/nba-schemas';
+import { API_CONFIG } from '@src/lib/config/api.config';
+import { games } from '@src/lib/db/schema/game-schemas';
+import { seasons, teams, nba_players, nba_games } from '@src/lib/db/schema/nba-schemas';
 import {
   fetchNbaSeasons,
   fetchNbaTeams,
   fetchNbaPlayers,
   fetchNbaGames,
-} from '@/lib/external-apis';
-import { seedLogger } from '@/lib/logger';
+} from '@src/lib/external-apis';
+import { seedLogger } from 'lib/core/logger';
 import type {
   PlayerApiResponse,
   GameApiResponse,
   GameResponseData,
   ApplicationSeederOptions,
-} from '@/lib/types/consolidated.types';
-import type { DatabaseClient } from '@/lib/types/database.types';
+} from '@src/lib/types/consolidated.types';
+import type { DatabaseClient } from '@src/lib/types/database.types';
 
 import { createDatabaseClient } from './config';
 import type { DataProcessor } from './data-processor';
 import { fetchAndProcessNBAGameStats } from './fetch-external-api-game-stats';
 import { fetchAndProcessNBAPlayerStats } from './fetch-external-api-player-stats';
 import { fetchAndProcessTeamH2H } from './fetch-external-api-team-h2h';
-import { OptimizedAPIClient } from './utils/api-client';
+import type { OptimizedAPIClient } from './utils/api-client';
 
 // Helper types
 type PlayerWithTeams = {
@@ -144,7 +144,11 @@ async function processSeasons(
   return seasonsToProcess;
 }
 
-async function processTeams(apiClient: OptimizedAPIClient, batchSize: number): Promise<void> {
+async function processTeams(
+  apiClient: OptimizedAPIClient,
+  db: DatabaseClient,
+  batchSize: number
+): Promise<void> {
   seedLogger.info('Starting to fetch NBA teams...');
   const teamsResponse = await fetchNbaTeams();
 
@@ -204,7 +208,6 @@ async function processTeams(apiClient: OptimizedAPIClient, batchSize: number): P
   seedLogger.info('Teams insertion completed.');
 
   // Verify teams were inserted
-  const db = createDatabaseClient();
   const insertedTeams = await db.query.teams.findMany();
   seedLogger.info(`Verification: Found ${insertedTeams.length} teams in database`);
   seedLogger.info('Team IDs in database:', insertedTeams.map(t => t.id).join(', '));
@@ -270,6 +273,7 @@ async function processPlayers(
 
 async function processGames(
   apiClient: OptimizedAPIClient,
+  db: DatabaseClient,
   season: number,
   batchSize: number
 ): Promise<void> {
@@ -283,10 +287,15 @@ async function processGames(
 
   seedLogger.info(`Processing ${gamesResponse.response.length} games for season ${season}`);
 
+  // Get all teams from database
+  const allTeams = await db.query.teams.findMany();
+  const teamIds = new Set(allTeams.map(team => team.id));
+  seedLogger.info(`Found ${teamIds.size} teams in database`);
+
   // Filter out games with invalid team IDs
   const validGames = gamesResponse.response.filter(game => {
-    const homeTeamId = game.teams?.home?.id;
-    const awayTeamId = game.teams?.visitors?.id;
+    const homeTeamId = game.teams?.home?.id?.toString();
+    const awayTeamId = game.teams?.visitors?.id?.toString();
 
     if (!homeTeamId || !awayTeamId) {
       seedLogger.warn(`Skipping game ${game.id} - missing team IDs:`, {
@@ -296,6 +305,17 @@ async function processGames(
       });
       return false;
     }
+
+    // Verify both teams exist in database
+    if (!teamIds.has(homeTeamId) || !teamIds.has(awayTeamId)) {
+      seedLogger.warn(`Skipping game ${game.id} - one or both teams not found in database:`, {
+        homeTeamId,
+        awayTeamId,
+        game,
+      });
+      return false;
+    }
+
     return true;
   });
 
@@ -359,7 +379,10 @@ async function processGames(
             win: game.scores.home.series?.win || 0,
             loss: game.scores.home.series?.loss || 0,
           },
-          linescore: (game.scores.home.linescore || []).map(String),
+          linescore: (game.scores.home.linescore || []).map(score => {
+            const num = Number(score);
+            return isNaN(num) ? 0 : Math.floor(num);
+          }),
           points: game.scores.home.points || 0,
         },
         visitors: {
@@ -369,7 +392,10 @@ async function processGames(
             win: game.scores.visitors.series?.win || 0,
             loss: game.scores.visitors.series?.loss || 0,
           },
-          linescore: (game.scores.visitors.linescore || []).map(String),
+          linescore: (game.scores.visitors.linescore || []).map(score => {
+            const num = Number(score);
+            return isNaN(num) ? 0 : Math.floor(num);
+          }),
           points: game.scores.visitors.points || 0,
         },
       },
@@ -494,28 +520,36 @@ async function processSeasonStats(
   await fetchAndProcessTeamH2H(db, season);
 }
 
-export async function appendOptimizedExternalData(
-  options: ApplicationSeederOptions
-): Promise<void> {
+export async function seedOptimizedExternalData(options: ApplicationSeederOptions): Promise<void> {
   const {
     seasons: inputSeasonYears = [],
     apiClient,
     processor,
     batchSize = API_CONFIG.databaseSeeding.BATCH_SIZE,
-    tables,
+    appendingData,
   } = options;
-  const db = createDatabaseClient();
-  seedLogger.info('Tables to check:', { tables });
 
   try {
+    // Create a single database client for the entire seeding process
+    const db = createDatabaseClient();
+    // Add raw property to satisfy DatabaseClient interface
+    (db as typeof db & { raw: unknown; $client: unknown }).raw = (
+      db as typeof db & { $client: unknown }
+    ).$client;
+
     // Process seasons
-    const seasonsToProcess = await processSeasons(apiClient, inputSeasonYears, batchSize);
+    const seasonsToProcess = await processSeasons(
+      apiClient,
+      inputSeasonYears,
+      batchSize,
+      appendingData
+    );
     seedLogger.info(
       `🏀 Processing ${seasonsToProcess.length} NBA seasons: ${seasonsToProcess.join(', ')}`
     );
 
     // Process teams
-    await processTeams(apiClient, batchSize);
+    await processTeams(apiClient, db, batchSize);
 
     // Process each season
     for (const season of seasonsToProcess) {
@@ -525,7 +559,7 @@ export async function appendOptimizedExternalData(
       await processPlayers(apiClient, db, season, batchSize);
 
       // Process games
-      await processGames(apiClient, season, batchSize);
+      await processGames(apiClient, db, season, batchSize);
 
       // Process game stats
       await processSeasonStats(
@@ -543,30 +577,35 @@ export async function appendOptimizedExternalData(
   }
 }
 
-export async function seedOptimizedExternalData(options: ApplicationSeederOptions): Promise<void> {
+export async function appendOptimizedExternalData(
+  options: ApplicationSeederOptions
+): Promise<void> {
   const {
     seasons: inputSeasonYears = [],
     apiClient,
     processor,
     batchSize = API_CONFIG.databaseSeeding.BATCH_SIZE,
-    appendingData,
+    tables,
   } = options;
-  const db = createDatabaseClient();
+
+  seedLogger.info('Tables to check:', { tables });
 
   try {
+    // Create a single database client for the entire seeding process
+    const db = createDatabaseClient();
+    // Add raw property to satisfy DatabaseClient interface
+    (db as typeof db & { raw: unknown; $client: unknown }).raw = (
+      db as typeof db & { $client: unknown }
+    ).$client;
+
     // Process seasons
-    const seasonsToProcess = await processSeasons(
-      apiClient,
-      inputSeasonYears,
-      batchSize,
-      appendingData
-    );
+    const seasonsToProcess = await processSeasons(apiClient, inputSeasonYears, batchSize);
     seedLogger.info(
       `🏀 Processing ${seasonsToProcess.length} NBA seasons: ${seasonsToProcess.join(', ')}`
     );
 
     // Process teams
-    await processTeams(apiClient, batchSize);
+    await processTeams(apiClient, db, batchSize);
 
     // Process each season
     for (const season of seasonsToProcess) {
@@ -576,7 +615,7 @@ export async function seedOptimizedExternalData(options: ApplicationSeederOption
       await processPlayers(apiClient, db, season, batchSize);
 
       // Process games
-      await processGames(apiClient, season, batchSize);
+      await processGames(apiClient, db, season, batchSize);
 
       // Process game stats
       await processSeasonStats(

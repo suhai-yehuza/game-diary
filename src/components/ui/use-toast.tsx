@@ -6,8 +6,8 @@ import type {
   ToastProps,
   ToastState as State,
   ToastAction as Action,
-} from '@/lib/types/notification.types';
-import { TOAST_LIMIT, createToast } from '@/lib/utils/toast';
+} from '@src/lib/types/notification.types';
+import { TOAST_LIMIT, createToast } from '@src/lib/utils/toast';
 
 // Create context for shared toast state
 const ToastContext = React.createContext<{

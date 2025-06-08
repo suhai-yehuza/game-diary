@@ -6,7 +6,8 @@ class ClientCache {
   private isClient: boolean;
 
   constructor() {
-    this.isClient = typeof window !== 'undefined';
+    // Check for window in a way that's safe for SSR
+    this.isClient = typeof window !== 'undefined' && typeof window.document !== 'undefined';
   }
 
   /**

@@ -8,9 +8,11 @@ import { useSearchParams } from 'next/navigation';
 import React, { Suspense } from 'react';
 
 import { filterGames, processGameData } from '@/app/search/utils/game-search';
-import { useDebounce } from '@/hooks/useDebounce';
-import { GET_GAMES } from '@/lib/graphql/queries';
-import { SearchGame } from '@/lib/types/consolidated.types';
+import { useDebounce } from '@/hooks/use-debounce';
+import { GET_GAMES } from '@src/lib/graphql/queries';
+import type { SearchGame } from '@src/lib/types/consolidated.types';
+
+export const dynamic = 'force-dynamic';
 
 // Helper function to validate state values
 const isValidState = (state: string | undefined | null): boolean => {

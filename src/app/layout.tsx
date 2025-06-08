@@ -3,10 +3,10 @@ import { Inter } from 'next/font/google';
 import React from 'react';
 import { Toaster as HotToaster } from 'react-hot-toast';
 
-import '@/app/styles/globals.css';
-import { Footer, Header } from '@/components/layout';
-import { ClientProviders } from '@/components/providers/client-providers';
-import { Toaster } from '@/components/ui/toaster';
+import '@/styles/globals.css';
+import { Footer, Header } from '@src/components/layout';
+import { ClientProviders } from '@src/components/providers/client-providers';
+import { Toaster } from '@src/components/ui/toaster';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -17,6 +17,10 @@ export const metadata: Metadata = {
   title: 'Game Diary',
   description: 'Your personal space to track and share your pro game watching experiences',
 };
+
+// Force dynamic rendering for this layout
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export default function RootLayout({
   children,

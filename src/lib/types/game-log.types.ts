@@ -1,10 +1,12 @@
+import type * as React from 'react';
 import type {
   WatchedSettingValue,
   WatchedScopeValue,
   ClassificationValue,
-} from '@/lib/types/config.types';
-import type { Game } from '@/lib/types/game.types';
-import type { GameLog } from '@/lib/types/generated/graphql';
+} from '@src/lib/types/config.types';
+import type { Game } from '@src/lib/types/game.types';
+import type { GameLog } from '@src/lib/types/generated/graphql';
+import type { FormEvent } from 'react';
 
 export interface GameLogInput {
   gameId: string;

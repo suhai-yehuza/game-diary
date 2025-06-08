@@ -164,6 +164,44 @@ pnpm db:migrate          # Run all pending migrations
 pnpm db:migrate:dev      # Run migrations in development
 pnpm db:migrate:prod     # Run migrations in production
 
+# 00
+> pnpm db:generate
+> pnpm db:migrate:dev
+> pnpm db:setup:dev
+
+# 01
+> tsx --max-old-space-size=24576 src/lib/db/seed/optimized-seeder.ts -- \
+  --batchSize=10 \
+  --concurrency=10 \
+  --seasons=2024 \
+  --resetDb=true \
+  --skipExternalDb=false \
+  --skipApplicationDb=true \
+  --enableMonitoring=true \
+  --aggregate-output
+
+# 02
+> tsx --max-old-space-size=24576 src/lib/db/seed/optimized-seeder.ts -- \
+  --batchSize=10 \
+  --concurrency=10 \
+  --resetDb=false \
+  --skipExternalDb=true \
+  --skipApplicationDb=false \
+  --enableMonitoring=true \
+  --aggregate-output
+
+# 03
+> tsx --max-old-space-size=24576 src/lib/db/seed/optimized-seeder.ts -- \
+  --batchSize=10 \
+  --concurrency=10 \
+  --seasons=2015,2016,2017,2018,2019,2020,2021,2022,2023 \
+  --resetDb=false \
+  --skipExternalDb=false \
+  --skipApplicationDb=true \
+  --appendingData=true \
+  --enableMonitoring=true \
+  --aggregate-output
+
 # Rollback migrations
 pnpm db:migrate:rollback           # Rollback last migration
 pnpm db:migrate:rollback 3         # Rollback last 3 migrations
@@ -194,64 +232,128 @@ pnpm codegen
 
 ```bash
 pnpm dev
+
+DEBUG=* pnpm dev
 ```
 
 ### 7. Development Workflow
 
 ```bash
-# Clean and reset development environment
-# pnpm clean:build && pnpm db:migrate:reset:dev
-# pnpm clean:build && pnpm db:migrate:reset:dev && pnpm migration:view
-pnpm clean:build && pnpm pnpm db:setup:test && pnpm db:view-migrations
+# Start development server
+pnpm dev
 
+# Run tests
+pnpm test              # Run unit tests
+pnpm test:watch        # Run tests in watch mode
+pnpm test:coverage     # Run tests with coverage
+pnpm test:e2e          # Run end-to-end tests
+pnpm test:e2e:ui       # Run e2e tests with UI
 
-# Advanced seeding options
-# Seed external db only
-tsx --max-old-space-size=24576 src/lib/db/seed/optimized-seeder.ts -- \
-  --concurrency=10 \
-  --seasons=2024 \
-  --resetDb=true \
-  --skipExternalDb=false \
-  --skipApplicationDb=true \
-  --enableMonitoring=true
+# Code quality
+pnpm lint              # Run ESLint
+pnpm lint:fix          # Fix linting issues
+pnpm format            # Format code with Prettier
+pnpm typecheck         # Type checking
+pnpm fix               # Run all fixes (lint, format, typecheck)
 
-# Seed application db only (requires existing external data)
-tsx --max-old-space-size=24576 src/lib/db/seed/optimized-seeder.ts -- \
-  --concurrency=10 \
-  --resetDb=false \
-  --skipExternalDb=true \
-  --skipApplicationDb=false \
-  --appendingData=false \
-  --skipUsers=false \
-  --enableMonitoring=true
+# Database management
+pnpm db:generate       # Generate database schema
+pnpm db:migrate:dev    # Run migrations
+pnpm db:seed:dev       # Seed database
+pnpm db:studio         # Open Drizzle Studio
 
-# Append external data for specific seasons
-tsx --max-old-space-size=24576 src/lib/db/seed/optimized-seeder.ts -- \
-  --concurrency=10 \
-  --seasons=2023,2022,2021,2020 \
-  --resetDb=false \
-  --skipExternalDb=false \
-  --skipApplicationDb=true \
-  --appendingData=true \
-  --enableMonitoring=true
-
-# Seed database with optimized settings
-pnpm run seed:optimized
-
-# Seed specific seasons
-pnpm run seed:optimized -- --seasons=2023,2024
-
-# Reset database and seed
-pnpm run seed:optimized -- --resetDb=true
-
-# Skip external data (NBA)
-pnpm run seed:optimized -- --skipExternalDb=true
-
-# Custom batch size and concurrency
-pnpm run seed:optimized -- --batchSize=100 --concurrency=5
+# GraphQL
+pnpm codegen           # Generate GraphQL types
+pnpm codegen:watch     # Watch for GraphQL changes
 ```
 
-Visit [http://localhost:3000](http://localhost:3000) to see the application.
+### 8. Dependency Management
+
+The project uses a comprehensive dependency management system with automated updates, security checks, and version control.
+
+#### Manual Dependency Management
+
+```bash
+# Check for outdated dependencies
+pnpm deps:check        # List outdated packages
+pnpm deps:audit        # Security audit
+pnpm deps:fix          # Fix security issues
+pnpm deps:clean        # Clean pnpm store
+pnpm deps:interactive  # Interactive update
+pnpm deps:manage       # Advanced dependency management
+```
+
+The `deps:manage` script provides an interactive way to:
+
+- View outdated packages grouped by type
+- Update dependencies to their latest versions
+- Automatically update package.json
+- Run post-update checks
+
+#### Automated Updates
+
+The project uses two automated update systems:
+
+1. **Renovate Bot**
+
+   - Weekly automated updates
+   - Grouped updates by package type
+   - Security vulnerability alerts
+   - Automatic merging of safe updates
+   - Configuration in `renovate.json`
+
+2. **GitHub Actions**
+   - Weekly dependency checks
+   - Automated PR creation
+   - Comprehensive testing
+   - Security audits
+   - Bundle size checks
+   - Configuration in `.github/workflows/dependency-updates.yml`
+
+#### Update Process
+
+1. **Weekly Updates**
+
+   - Renovate and GitHub Actions run weekly
+   - Updates are grouped by package type
+   - Security updates are prioritized
+
+2. **Update Checks**
+
+   - Type checking
+   - Linting
+   - Unit tests
+   - E2E tests
+   - Security audit
+   - Bundle size check
+
+3. **Update Workflow**
+   ```mermaid
+   graph TD
+     A[Check Dependencies] --> B{Updates Available?}
+     B -->|Yes| C[Create PR]
+     B -->|No| D[End]
+     C --> E[Run Tests]
+     E --> F{Tests Pass?}
+     F -->|Yes| G[Auto-merge]
+     F -->|No| H[Manual Review]
+   ```
+
+#### Security Features
+
+- Regular security audits
+- Vulnerability alerts
+- Automatic security updates
+- Bundle size monitoring
+- Type checking and linting
+
+#### Version Control
+
+- Exact versions in package.json
+- Lockfile maintenance
+- Version grouping
+- Update tracking
+- Rollback support
 
 ## 📁 Project Structure
 
@@ -259,7 +361,7 @@ Visit [http://localhost:3000](http://localhost:3000) to see the application.
 src/
 ├── app/                      # Next.js App Router pages
 │   ├── api/                  # API routes
-│   ├── community/            # Dashboard pages
+│   ├── dashboard/            # Dashboard pages
 │   ├── nba/                  # NBA-specific pages
 │   ├── protected/            # Protected user areas
 │   ├── sports/               # Sports category pages

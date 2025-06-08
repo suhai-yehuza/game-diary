@@ -1,8 +1,8 @@
 import React from 'react';
 
-import { ReactionDisplay } from '@/components/common/reaction-display';
-import { ReactionsSectionProps } from '@/lib/types/component.types';
-import { cn } from '@/lib/utils';
+import { ReactionDisplay } from '@src/components/common/reaction-display';
+import type { ReactionsSectionProps } from '@src/lib/types/component.types';
+import { cn } from '@src/lib/utils';
 
 export function ReactionsSection({
   targetId,

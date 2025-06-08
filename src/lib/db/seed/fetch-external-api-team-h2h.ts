@@ -1,9 +1,9 @@
 import { sql, and, eq } from 'drizzle-orm';
 import type { NeonHttpDatabase } from 'drizzle-orm/neon-http';
 
-import * as schema from '@/lib/db/schema';
-import { seedLogger } from '@/lib/logger';
-import { generateUUID } from '@/lib/utils/index.processing';
+import * as schema from '@src/lib/db/schema';
+import { seedLogger } from 'lib/core/logger';
+import { generateUUID } from '@src/lib/utils/processing';
 export async function fetchAndProcessTeamH2H(db: NeonHttpDatabase<typeof schema>, season: number) {
   seedLogger.info(`Seeding team head-to-head stats for the ${season} season...`);
 

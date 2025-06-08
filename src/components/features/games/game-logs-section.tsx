@@ -7,16 +7,16 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import React from 'react';
 
-import { ReactionsSection } from '@/components/common';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
-import { StarRating } from '@/components/ui/star-rating';
-import { CLASSIFICATION } from '@/lib/types/config.types';
-import { GameLogsSectionProps } from '@/lib/types/consolidated.types';
-import type { GameLog } from '@/lib/types/generated/graphql';
-import { cn } from '@/lib/utils';
+import { ReactionsSection } from '@src/components/common';
+import { Avatar, AvatarFallback, AvatarImage } from '@src/components/ui/avatar';
+import { Badge } from '@src/components/ui/badge';
+import { Card, CardContent, CardHeader } from '@src/components/ui/card';
+import { Skeleton } from '@src/components/ui/skeleton';
+import { StarRating } from '@src/components/ui/star-rating';
+import { CLASSIFICATION } from '@src/lib/types/config.types';
+import type { GameLogsSectionProps } from '@src/lib/types/consolidated.types';
+import type { GameLog } from '@src/lib/types/generated/graphql';
+import { cn } from '@src/lib/utils';
 
 import { GameLogActions } from './game-log-actions';
 
@@ -252,7 +252,7 @@ export function GameLogsSection({
               <div className="flex items-start justify-between gap-4">
                 {/* User Info */}
                 <Link
-                  href={`/protected/user/${log.userId}`}
+                  href={`/protected/user/${log.user.id}`}
                   className="flex items-center gap-3 hover:opacity-80 transition-opacity z-10"
                   onClick={e => e.stopPropagation()}
                 >
@@ -338,16 +338,13 @@ export function GameLogsSection({
                   targetId={log.id}
                   targetType="game_log"
                   reactions={
-                    log.reactions?.edges?.map(edge => ({
-                      ...edge.node,
-                      __typename: 'Reaction' as const,
-                    })) || []
+                    [] // TODO: Add reactions support to GameLog schema
                   }
-                  totalReactionCount={log.reactions?.totalCount || 0}
+                  totalReactionCount={0} // TODO: Add reactions support to GameLog schema
                 />
                 <div className="flex items-center gap-1 text-sm text-muted-foreground">
                   <MessageCircle className="h-4 w-4" />
-                  <span>{log.comments?.totalCount || 0} comments</span>
+                  <span>0 comments</span> {/* TODO: Add comments support to GameLog schema */}
                 </div>
               </div>
             </CardContent>

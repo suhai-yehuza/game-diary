@@ -1,12 +1,17 @@
-import { schema } from '@/lib/db/schema';
-import type { DatabaseConfig, DatabaseClient } from '@/lib/types/database.types';
+import { schema } from '@src/lib/db/schema';
+import type { DatabaseConfig, DatabaseClient } from '@src/lib/types/database.types';
 
 import { createDatabaseClient, getDb, initializeDb, closeDb } from './config';
 
 // Create and export the database client
-export const db: DatabaseClient = createDatabaseClient({
+export const db = createDatabaseClient({
   env: process.env.NODE_ENV || 'development',
 });
+
+// Add raw property to satisfy DatabaseClient interface
+(db as typeof db & { raw: unknown; $client: unknown }).raw = (
+  db as typeof db & { $client: unknown }
+).$client;
 
 // Export the schema
 export { schema };

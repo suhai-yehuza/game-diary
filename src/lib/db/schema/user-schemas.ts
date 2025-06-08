@@ -1,8 +1,8 @@
 import { sql } from 'drizzle-orm';
 import { pgTable, varchar, text, timestamp, boolean, unique, jsonb } from 'drizzle-orm/pg-core';
 
-import { FRIENDSHIP_STATUS, REACTION_EMOJIS, TARGET_TYPES } from '@/lib/types/config.types';
-import { generateUUID } from '@/lib/utils/index.processing';
+import { FRIENDSHIP_STATUS, REACTION_EMOJIS, TARGET_TYPES } from '@src/lib/types/config.types';
+import { generateUUID } from '@src/lib/utils/processing';
 
 // Users table
 export const users = pgTable('users', {
@@ -24,7 +24,6 @@ export const users = pgTable('users', {
   external_accounts: jsonb('external_accounts').notNull().default('[]'),
   createdAt: timestamp({ precision: 6, withTimezone: true }).notNull(),
   updatedAt: timestamp({ precision: 6, withTimezone: true }).notNull(),
-  timestamp: timestamp({ precision: 6, withTimezone: true }).notNull(),
   deletedAt: timestamp({ precision: 6, withTimezone: true }),
 });
 

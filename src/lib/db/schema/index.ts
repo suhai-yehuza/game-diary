@@ -1,11 +1,12 @@
-import { baseTableConfig } from '@/lib/db/schema/base-types';
+import { baseTableConfig } from '@src/lib/db/schema/base-types';
 import {
-  game_status_enum,
-  notification_type_enum,
-  reaction_type_enum,
-  watched_setting_enum,
-} from '@/lib/db/schema/enums';
-import { game_logs, game_ratings, games } from '@/lib/db/schema/game-schemas';
+  gameStatusEnum,
+  notificationTypeEnum,
+  reactionTypeEnum,
+  watchedSettingEnum,
+  friendshipStatusEnum,
+} from '@src/lib/db/schema/enums';
+import { game_logs, game_ratings, games } from '@src/lib/db/schema/game-schemas';
 import {
   nba_players,
   nba_player_stats,
@@ -13,11 +14,11 @@ import {
   seasons,
   nba_games,
   team_h2h,
-} from '@/lib/db/schema/nba-schemas';
-import { notifications } from '@/lib/db/schema/notification-schemas';
-import { teams } from '@/lib/db/schema/team-schemas';
-import type { Schema } from '@/lib/db/schema/types';
-import { users, friendships, reactions, comments } from '@/lib/db/schema/user-schemas';
+} from '@src/lib/db/schema/nba-schemas';
+import { notifications } from '@src/lib/db/schema/notification-schemas';
+import { teams } from '@src/lib/db/schema/team-schemas';
+import type { Schema } from '@src/lib/db/schema/types';
+import { users, friendships, reactions, comments } from '@src/lib/db/schema/user-schemas';
 
 import {
   usersRelations,
@@ -27,9 +28,9 @@ import {
 } from './relations';
 
 // Export all schema types
-export { baseTableConfig } from '@/lib/db/schema/base-types';
-export { comments } from '@/lib/db/schema/user-schemas';
-export { game_logs, game_ratings, games } from '@/lib/db/schema/game-schemas';
+export { baseTableConfig } from '@src/lib/db/schema/base-types';
+export { comments } from '@src/lib/db/schema/user-schemas';
+export { game_logs, game_ratings, games } from '@src/lib/db/schema/game-schemas';
 export {
   nba_games,
   nba_players,
@@ -37,10 +38,10 @@ export {
   game_stats,
   nba_player_stats,
   seasons,
-} from '@/lib/db/schema/nba-schemas';
-export { notifications } from '@/lib/db/schema/notification-schemas';
-export { teams } from '@/lib/db/schema/team-schemas';
-export { users, friendships, reactions } from '@/lib/db/schema/user-schemas';
+} from '@src/lib/db/schema/nba-schemas';
+export { notifications } from '@src/lib/db/schema/notification-schemas';
+export { teams } from '@src/lib/db/schema/team-schemas';
+export { users, friendships, reactions } from '@src/lib/db/schema/user-schemas';
 export {
   usersRelations,
   commentsRelations,
@@ -78,10 +79,10 @@ export const schema = {
   game_stats,
   seasons,
   enums: {
-    game_status: game_status_enum,
-    notification_type: notification_type_enum,
-    reaction_type: reaction_type_enum,
-    watchedSetting: watched_setting_enum,
+    game_status: gameStatusEnum,
+    notification_type: notificationTypeEnum,
+    reaction_type: reactionTypeEnum,
+    watchedSetting: watchedSettingEnum,
   },
   base: baseTableConfig,
 } as Schema;

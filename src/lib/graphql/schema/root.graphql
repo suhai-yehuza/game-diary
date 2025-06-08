@@ -1,0 +1,399 @@
+schema {
+  query: Query
+  mutation: Mutation
+}
+
+type Query {
+  # User queries
+  me: UserSummary
+  user(id: ID!): UserSummary
+  users(filters: UserFilters, pagination: PaginationInput): [UserSummary!]!
+  searchUsers(
+    first: Int
+    after: String
+    searchTerm: String
+    filters: UserSearchFilters
+  ): UserConnection!
+
+  # Game queries
+  game(id: ID!): Game
+  games(filters: GameFilters, pagination: PaginationInput): GameConnection!
+  liveGames(first: Int, after: String): GameConnection!
+  gameLog(id: ID!): GameLog
+  gameLogs(filters: GameLogFilters, pagination: PaginationInput): GameLogConnection!
+
+  # Team queries
+  team(id: ID!): Team
+  teams(filters: TeamFilters): TeamConnection!
+  teamStats(teamId: ID!, season: Int!): TeamStats
+  teamH2H(teamId: ID!, opponentId: ID!): TeamH2H
+  teamGameStats(gameId: ID!, teamId: String!): TeamStats
+
+  # Player queries
+  player(id: ID!): Player
+  players(filters: PlayerFilters, pagination: PaginationInput): PlayerConnection!
+  playerStats(playerId: ID!, gameId: ID!): PlayerStats
+
+  # Comment queries
+  comments(filters: CommentFilters): CommentConnection!
+
+  # Reaction queries
+  reactions(targetId: ID!, targetType: ParentType!): [Reaction!]!
+}
+
+type Mutation {
+  # User mutations
+  updateUserProfile(input: UpdateUserProfileInput!): UpdateUserProfileResponse!
+  sendFriendRequest(userId: ID!): SendFriendRequestResponse!
+  acceptFriendRequest(friendshipId: ID!): AcceptFriendRequestResponse!
+  rejectFriendRequest(friendshipId: ID!): RejectFriendRequestResponse!
+  removeFriend(friendshipId: ID!): RemoveFriendResponse!
+
+  # Game mutations
+  createGame(input: CreateGameInput!): CreateGameResponse!
+  createGameLog(input: CreateGameLogInput!): CreateGameLogResponse!
+  updateGameLog(id: ID!, input: CreateGameLogInput!): UpdateGameLogResponse!
+  deleteGameLog(id: ID!): DeleteGameLogResponse!
+
+  # Comment mutations
+  createComment(input: CreateCommentInput!): CreateCommentResponse!
+  updateComment(id: ID!, input: CreateCommentInput!): UpdateCommentResponse!
+  deleteComment(id: ID!): DeleteCommentResponse!
+
+  # Reaction mutations
+  createReaction(input: CreateReactionInput!): CreateReactionResponse!
+  deleteReaction(id: ID!): DeleteReactionResponse!
+}
+
+# Connection types
+type GameConnection {
+  edges: [GameEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type GameEdge {
+  cursor: String!
+  node: Game!
+}
+
+type GameLogConnection {
+  edges: [GameLogEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type GameLogEdge {
+  cursor: String!
+  node: GameLog!
+}
+
+type TeamConnection {
+  edges: [TeamEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type TeamEdge {
+  cursor: String!
+  node: Team!
+}
+
+type CommentConnection {
+  edges: [CommentEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type CommentEdge {
+  cursor: String!
+  node: Comment!
+}
+
+type UserConnection {
+  edges: [UserEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type UserEdge {
+  cursor: String!
+  node: UserSummary!
+}
+
+# Input types
+input GameFilters {
+  dateRange: DateRangeInput
+  status: GameStatusEnum
+  teamId: ID
+  search: String
+  season: Int
+  arena: String
+}
+
+input GameLogFilters {
+  userId: ID
+  gameId: ID
+  dateRange: DateRangeInput
+  classification: Classification
+  search: String
+  searchText: String
+  minRating: Int
+  maxRating: Int
+  watchedSetting: String
+  watchedLocation: String
+  tags: [String!]
+  hasNotes: Boolean
+  watchedDateRange: DateRangeInput
+  sortBy: String
+  sortDirection: String
+}
+
+input CommentFilters {
+  parentId: ID
+  parentType: ParentType
+  userId: ID
+  search: String
+}
+
+input CreateCommentInput {
+  content: String!
+  parentId: ID!
+  parentType: ParentType!
+}
+
+input CreateReactionInput {
+  emoji: ReactionEmojiType!
+  targetId: ID!
+  targetType: ParentType!
+}
+
+input UserFilters {
+  search: String
+  status: String
+  role: String
+  joinedAfter: DateTime
+  joinedBefore: DateTime
+  isVerified: Boolean
+  hasGameLogs: Boolean
+  minGameLogs: Int
+  orderBy: String
+}
+
+input UserSearchFilters {
+  search: String
+  status: String
+  role: String
+  joinedAfter: DateTime
+  joinedBefore: DateTime
+  isVerified: Boolean
+  hasGameLogs: Boolean
+  minGameLogs: Int
+  orderBy: String
+}
+
+# Enums
+enum ParentType {
+  GAME
+  GAME_LOG
+  COMMENT
+}
+
+enum ReactionEmojiType {
+  THUMBS_UP
+  THUMBS_DOWN
+  HEART
+  FIRE
+  EYES
+  ROCKET
+  LAUGH
+  SAD
+  ANGRY
+  WOW
+}
+
+# Response types
+type CreateCommentResponse {
+  comment: Comment
+  errors: [ErrorResult!]
+}
+
+type UpdateCommentResponse {
+  comment: Comment
+  errors: [ErrorResult!]
+}
+
+type DeleteCommentResponse {
+  success: Boolean!
+  errors: [ErrorResult!]
+}
+
+type UpdateGameLogResponse {
+  gameLog: GameLog
+  errors: [ErrorResult!]
+}
+
+type DeleteGameLogResponse {
+  success: Boolean!
+  errors: [ErrorResult!]
+}
+
+type CreateReactionResponse {
+  reaction: Reaction
+  errors: [ErrorResult!]
+}
+
+type DeleteReactionResponse {
+  success: Boolean!
+  errors: [ErrorResult!]
+}
+
+type RejectFriendRequestResponse {
+  friendship: Friendship
+  errors: [ErrorResult!]
+}
+
+type RemoveFriendResponse {
+  success: Boolean!
+  errors: [ErrorResult!]
+}
+
+# Types
+type Comment {
+  id: ID!
+  content: String!
+  user: UserSummary!
+  userId: ID!
+  parentId: ID!
+  parentType: ParentType!
+  depth: Int!
+  childComments(after: String, first: Int): CommentConnection!
+  reactions: [Reaction!]!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  deletedAt: DateTime
+}
+
+type Reaction {
+  id: ID!
+  emoji: ReactionEmojiType!
+  user: UserSummary!
+  userId: ID!
+  targetId: ID!
+  targetType: ParentType!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+# Player types
+type Player {
+  id: ID!
+  firstName: String
+  lastName: String
+  birth: PlayerBirth
+  nba: PlayerNba
+  height: PlayerHeight
+  weight: PlayerWeight
+  college: String
+  affiliation: String
+  leagues: PlayerLeagues
+  seasons_active: [PlayerSeason!]
+  position: String
+  seasonsActive: String
+  active: Boolean
+  jersey: String
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  stats: [PlayerStats!]!
+  games: [Game!]!
+}
+
+type PlayerBirth {
+  date: String
+  country: String
+}
+
+type PlayerNba {
+  start: Int
+  pro: Int
+}
+
+type PlayerHeight {
+  feets: String
+  inches: String
+  meters: String
+}
+
+type PlayerWeight {
+  pounds: String
+  kilograms: String
+}
+
+type PlayerLeagues {
+  standard: PlayerStandard
+}
+
+type PlayerStandard {
+  jersey: String
+  active: Boolean
+  pos: String
+}
+
+type PlayerSeason {
+  season: String
+  teams: [String!]
+}
+
+type PlayerConnection {
+  edges: [PlayerEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+  items: [Player!]!
+  total: Int!
+  hasMore: Boolean!
+  nextCursor: String
+}
+
+type PlayerEdge {
+  cursor: String!
+  node: Player!
+}
+
+type PlayerStats {
+  playerId: ID!
+  gameId: ID!
+  points: Int!
+  assists: Int!
+  rebounds: Int!
+  steals: Int!
+  blocks: Int!
+  turnovers: Int!
+  fouls: Int!
+  minutes: String!
+  fieldGoals: StatPercentage!
+  threePointers: StatPercentage!
+  freeThrows: StatPercentage!
+}
+
+type StatPercentage {
+  made: Int!
+  attempted: Int!
+  percentage: String!
+}
+
+input PlayerFilters {
+  search: String
+  teamId: ID
+  position: String
+  active: Boolean
+}
+
+# Team H2H type
+type TeamH2H {
+  teamId: ID!
+  opponentId: ID!
+  wins: Int!
+  losses: Int!
+  winPercentage: Float!
+  lastTenGames: String
+}

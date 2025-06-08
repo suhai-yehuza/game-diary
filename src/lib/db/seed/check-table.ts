@@ -1,6 +1,6 @@
 import { sql } from 'drizzle-orm';
 
-import { seedLogger } from '@/lib/logger';
+import { seedLogger } from 'lib/core/logger';
 
 import { createDatabaseClient } from './config';
 const env = process.argv[2] || 'development';

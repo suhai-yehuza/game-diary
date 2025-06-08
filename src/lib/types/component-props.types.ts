@@ -1,8 +1,7 @@
-import type { ChartData } from 'chart.js';
-
-import type { Activity } from '@/lib/types/api.types';
-import type { GameLog } from '@/lib/types/generated/graphql';
-import type { Friend, FriendGroup, Reaction } from '@/lib/types/social.types';
+import type { Activity } from '@src/lib/types/api.types';
+import type { ChartData } from '@src/lib/types/chart';
+import type { GameLog, Reaction } from '@src/lib/types/generated/graphql';
+import type { Friend, FriendGroup } from '@src/lib/types/social.types';
 
 export interface TeamSummary {
   id: string;

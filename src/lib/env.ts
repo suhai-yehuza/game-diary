@@ -1,3 +1,2 @@
-import { envSchema } from '@/lib/validations/env';
-
-export const env = envSchema.parse(process.env);
+// Re-export from the new location for backward compatibility
+export * from './core/env';

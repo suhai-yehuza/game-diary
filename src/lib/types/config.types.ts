@@ -5,7 +5,7 @@
  * - api-config.types.ts
  */
 
-import { SortDirection } from '@/lib/types/consolidated.types';
+import type { SortDirection } from '@src/lib/types/consolidated.types';
 
 // ============= Constants =============
 
@@ -76,10 +76,10 @@ export const CLASSIFICATION = {
 } as const;
 
 export const FRIENDSHIP_STATUS = {
-  ACCEPTED: 'Accepted',
-  BLOCKED: 'Blocked',
-  PENDING: 'Pending',
-  REJECTED: 'Rejected',
+  ACCEPTED: 'ACCEPTED',
+  BLOCKED: 'BLOCKED',
+  PENDING: 'PENDING',
+  REJECTED: 'REJECTED',
 } as const;
 
 export const WATCHED_SETTING = {

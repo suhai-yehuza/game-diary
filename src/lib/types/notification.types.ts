@@ -1,33 +1,57 @@
 import type { ReactElement } from 'react';
 
+// Notification Types
 export type NotificationType =
+  | 'success'
+  | 'error'
+  | 'warning'
+  | 'info'
   | 'friend_request'
   | 'friend_accepted'
   | 'friend_rejected'
-  | 'friend_removed'
-  | 'game_update'
-  | 'comment'
-  | 'reaction';
+  | 'friend_removed';
+
+export interface NotificationData {
+  userId?: string;
+  gameLogId?: string;
+  friendshipId?: string;
+  url?: string;
+  [key: string]: unknown;
+}
 
 export interface AppNotification {
   id: string;
-  type: string;
-  message: string;
-  timestamp: Date;
-  resolved: boolean;
   userId: string;
-  deletedAt?: Date | null;
-  title?: string;
-  description?: string;
+  type: NotificationType;
+  title: string;
+  message: string;
+  data?: NotificationData;
+  read: boolean;
+  readAt: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+  deletedAt: Date | null;
+  expiresAt?: Date | null;
+  priority?: 'low' | 'medium' | 'high' | 'urgent';
+  category?: string;
   actionUrl?: string;
+  imageUrl?: string;
   metadata?: Record<string, unknown>;
+
+  // Legacy properties for backward compatibility
+  timestamp?: Date;
+  resolved?: boolean;
+  description?: string;
 }
 
 export interface NotificationContextType {
   notifications: AppNotification[];
   unreadCount: number;
   addNotification: (
-    notification: Omit<AppNotification, 'id' | 'timestamp' | 'resolved' | 'deletedAt'>
+    notification: Omit<
+      AppNotification,
+      'id' | 'createdAt' | 'updatedAt' | 'read' | 'readAt' | 'deletedAt'
+    >
   ) => void;
   markAsRead: (id: string) => void;
   markAllAsRead: () => void;

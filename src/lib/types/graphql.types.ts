@@ -1,7 +1,7 @@
 import type DataLoader from 'dataloader';
-import { z } from 'zod';
+import type { z } from 'zod';
 
-import { createCommentSchema } from '@/lib/validations/comment';
+import type { createCommentSchema } from '@src/lib/validations/comment';
 
 export type CreateCommentInput = z.infer<typeof createCommentSchema>;
 
@@ -72,7 +72,7 @@ export interface DataLoaders {
   user: DataLoader<string, import('./generated/graphql').UserSummary | null>;
   game: DataLoader<string, import('./generated/graphql').Game | null>;
   team: DataLoader<string, import('./generated/graphql').Team | null>;
-  player: DataLoader<string, import('./generated/graphql').Player | null>;
+  player: DataLoader<string, import('@/lib/types/shared.types').DBPlayer | null>;
   gameLog: DataLoader<string, import('./generated/graphql').GameLog | null>;
   comment: DataLoader<string, import('./generated/graphql').Comment | null>;
   reaction: DataLoader<string, import('./generated/graphql').Reaction | null>;

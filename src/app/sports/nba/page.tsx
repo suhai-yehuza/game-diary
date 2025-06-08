@@ -5,12 +5,15 @@ import { useUser } from '@clerk/nextjs';
 import { isAfter } from 'date-fns';
 import React, { useState, useEffect, useCallback } from 'react';
 
-import { GameCard } from '@/components/features/games';
-import { API_CONFIG } from '@/lib/config/api.config';
-import { GET_GAMES } from '@/lib/graphql/queries';
-import { logger } from '@/lib/logger';
-import type { Game, GameEdge, GameQueryResponse } from '@/lib/types/consolidated.types';
-import { getCurrentSeason } from '@/lib/utils/index.time';
+import { GameCard } from '@src/components/features/games';
+import { API_CONFIG } from '@src/lib/config/api.config';
+import { GET_GAMES } from '@src/lib/graphql/queries';
+import { logger } from 'lib/core/logger';
+import type { Game, GameEdge, GameQueryResponse } from '@src/lib/types/consolidated.types';
+import { getCurrentSeason } from '@src/lib/utils/time';
+
+export const dynamic = 'force-dynamic';
+
 export default function NBAPage() {
   const { isLoaded } = useUser();
   const [isFetchingMore, setIsFetchingMore] = useState<boolean>(false);

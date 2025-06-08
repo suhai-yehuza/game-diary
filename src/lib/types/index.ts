@@ -9,14 +9,12 @@
 // Core Domain Types
 // ============================================================================
 export type {
-  // Game types that actually exist
+  // Game types
   Game,
   GameTeam,
   GameScore,
   GameStatistics,
   GameFilters,
-  GameApiResponse,
-  GameResponseData,
   GameField,
   GameDate,
   GameStatus,
@@ -24,92 +22,131 @@ export type {
   GamePeriods,
   ExtendedGame,
   SearchGame,
+} from './game.types';
 
-  // Game Log types
-  GameLogInput,
-  GameLogFormData,
-  GameLogFormProps,
-
-  // Component types that exist in consolidated
-  GameStatsProps,
-  TeamDisplayProps,
-
-  // Team and Player types
+export type {
+  // Team types
   TeamSummary,
-  Arena,
   TeamData,
   PlayerData,
   ApiTeam,
-
-  // Database types
-  DBGameRecord,
-} from './consolidated.types';
+  CustomTeam,
+  TeamWithSeasonStats,
+  TeamStat,
+  DBTeamStatistics,
+  DBTeamStandings,
+  DBWinLossRecord,
+  TeamStatisticsResponseData,
+  StandingResponseData,
+  TeamDisplayStats,
+  HeadToHeadData,
+  TeamStatsData,
+  HeadToHeadProps,
+  TeamStatsProps,
+} from './team.types';
 
 // ============================================================================
-// Component Types that exist in component-props.types
+// User & Social Types
 // ============================================================================
 export type {
+  UserSummary,
+  Friend,
+  FriendGroup,
+  UseUserProfileProps,
+  UseUserProfileReturn,
+  FriendProfileProps,
+  FriendGroupsProps,
+  FriendRequestButtonProps,
+  GetFriendshipsForUserResponse,
+} from './user.types';
+
+// ============================================================================
+// API & Response Types
+// ============================================================================
+export type {
+  APIResponse,
+  APIError,
+  GameApiResponse,
+  GameResponseData,
+  PlayerApiResponse,
+  SeasonApiResponse,
+  TeamApiResponse,
+  Activity,
+  TimeFilter,
+  ExtendedNextApiRequest,
+} from './api.types';
+
+// ============================================================================
+// Component Types
+// ============================================================================
+export type {
+  NavItem,
+  StatsChartProps,
   ActivityTimelineProps,
   FriendActivityProps,
-  StatsChartProps,
+  GameLogProps,
+  GameLogPageProps,
+  GameLogActionsProps,
+  GameLogsSectionProps,
+  GameLogSearchSectionProps,
+  InputProps,
+  AuthModalProps,
   ReactionDisplayProps,
   ReactionPickerProps,
-} from './component-props.types';
+  ExtendedReactionDisplayProps,
+  GQLValidationError,
+  GameLogInput,
+  GameLogFormData,
+  GameLogFormProps,
+  GameStatsProps,
+  TeamDisplayProps,
+} from './component.types';
 
 // ============================================================================
-// Configuration & Environment
+// Notification Types
+// ============================================================================
+export type { NotificationType, AppNotification } from './notification.types';
+
+// ============================================================================
+// Modular Type Exports (non-duplicates only)
 // ============================================================================
 export type {
-  GameStatusValue,
-  WatchedSettingValue,
-  WatchedScopeValue,
-  ClassificationValue,
-} from './config.types';
+  GamePlayerStats,
+  GameTeamStatistics,
+  GameTeamStatistic,
+  PlayerStatistics,
+} from './game-statistics.types';
 
-export type { EnvConfig, DbEnvConfig } from '../validations/env';
-export { envSchema, dbEnvSchema, validateRuntimeEnv } from '../validations/env';
+export type {
+  UseCreateGameLogProps,
+  UseGameDataProps,
+  ProcessedGames,
+  UseGameDataReturn,
+  PaginationHookOptions,
+  PaginationFetchResult,
+  FilterConfig,
+  UseSearchFiltersOptions,
+} from './hooks.types';
 
-// ============================================================================
-// Database & API Types
-// ============================================================================
-export type { DatabaseClient, QueryOptions } from './database.types';
-export type { CacheOptions, RedisClient } from './cache.types';
+export type {
+  APITeamResponse,
+  TeamResponseData,
+  TeamStatisticsApiResponse,
+} from './api-responses.types';
 
 // ============================================================================
 // GraphQL Types
 // ============================================================================
 export type {
-  Player,
   Team,
   GameLog,
   Classification,
   TeamStats,
-  TeamFilters,
+  TeamFilters as ResolverTeamFilters,
 } from './generated/graphql';
 
 // ============================================================================
-// Resolver Types
+// Database & Resolver Types
 // ============================================================================
-export type {
-  PaginationArgs,
-  UserFilters,
-  UserSearchFilters,
-  PlayerFilters,
-  TeamFilters as ResolverTeamFilters,
-  FilterArgs,
-  ResolverContext,
-} from './resolver.types';
-
-// ============================================================================
-// Validation Schemas
-// ============================================================================
-export type { TeamInput } from '../validations/team';
-export { teamSchema } from '../validations/team';
-
-export { createGameLogSchema } from '../validations/game-log';
-
-// ============================================================================
-// Utility Types
-// ============================================================================
-export type { RawTeamStatistics } from './shared.types';
-export type { AppNotification, NotificationType } from './notification.types';
+export type { DBPlayer } from './shared.types';
+export type { ResolverContext } from './resolver.types';

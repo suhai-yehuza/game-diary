@@ -11,18 +11,18 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import { Button } from '@/components/ui/button';
+} from '@src/components/ui/alert-dialog';
+import { Button } from '@src/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { useToast } from '@/components/ui/use-toast';
-import { useAuthContext } from '@/contexts/AuthContext';
-import { DELETE_GAME_LOG } from '@/lib/graphql/mutations';
-import { GameLogActionsProps } from '@/lib/types/consolidated.types';
+} from '@src/components/ui/dropdown-menu';
+import { useToast } from '@src/components/ui/use-toast';
+import { useAuthContext } from '@/contexts/auth-context';
+import { DELETE_GAME_LOG } from '@src/lib/graphql/mutations';
+import type { GameLogActionsProps } from '@src/lib/types/consolidated.types';
 
 import { GameLogModal } from './game-log-modal';
 
@@ -31,7 +31,7 @@ export function GameLogActions({ gameLog, onSuccess }: GameLogActionsProps) {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const { toast } = useToast();
   const { user } = useAuthContext();
-  const isOwner = user?.id === gameLog.userId;
+  const isOwner = user?.id === gameLog.user.id;
 
   const [deleteGameLog, { loading: isDeleting }] = useMutation(DELETE_GAME_LOG, {
     onCompleted: data => {
@@ -86,11 +86,7 @@ export function GameLogActions({ gameLog, onSuccess }: GameLogActionsProps) {
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button
-            variant="ghost"
-            className="h-8 w-8 p-0 hover:bg-muted/50"
-            onClick={e => e.stopPropagation()}
-          >
+          <Button variant="ghost" className="h-8 w-8 p-0 hover:bg-muted/50" onClick={() => {}}>
             <span className="sr-only">Open menu</span>
             <MoreVertical className="h-4 w-4" />
           </Button>
@@ -148,7 +144,7 @@ export function GameLogActions({ gameLog, onSuccess }: GameLogActionsProps) {
 
       {/* Edit Modal */}
       <GameLogModal
-        gameId={gameLog.gameId}
+        gameId={gameLog.game.id}
         mode="update"
         gameLog={gameLog}
         isOpen={isUpdateModalOpen}

@@ -1,10 +1,10 @@
 import { eq } from 'drizzle-orm';
 
-import { API_CONFIG } from '@/lib/config/api.config';
-import { nba_games } from '@/lib/db/schema';
-import { handleAPIError } from '@/lib/external-apis';
-import { seedLogger } from '@/lib/logger';
-import type { GameApiResponse } from '@/lib/types/consolidated.types';
+import { API_CONFIG } from '@src/lib/config/api.config';
+import { nba_games } from '@src/lib/db/schema';
+import { handleAPIError } from '@src/lib/external-apis';
+import { seedLogger } from 'lib/core/logger';
+import type { GameApiResponse } from '@src/lib/types/consolidated.types';
 
 import { initializeClients } from './utils/initialize-clients';
 
@@ -93,11 +93,17 @@ export async function fetchAndProcessNBAGames(season: number): Promise<void> {
           scores: {
             home: {
               ...game.scores.home,
-              linescore: (game.scores.home.linescore || []).map(String),
+              linescore: (game.scores.home.linescore || []).map(score => {
+                const num = Number(score);
+                return isNaN(num) ? 0 : num;
+              }),
             },
             visitors: {
               ...game.scores.visitors,
-              linescore: (game.scores.visitors.linescore || []).map(String),
+              linescore: (game.scores.visitors.linescore || []).map(score => {
+                const num = Number(score);
+                return isNaN(num) ? 0 : num;
+              }),
             },
           },
           officials: Array.isArray(game.officials) ? game.officials : [String(game.officials)],

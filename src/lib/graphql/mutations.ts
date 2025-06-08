@@ -1,6 +1,6 @@
 import { gql } from '@apollo/client';
 
-import { COMMENT_FRAGMENT, USER_SUMMARY_FRAGMENT } from '@/lib/graphql/queries';
+import { COMMENT_FRAGMENT, USER_SUMMARY_FRAGMENT } from '@src/lib/graphql/queries';
 
 export const CREATE_GAME = gql`
   mutation CreateGame($input: CreateGameInput!) {
@@ -9,13 +9,66 @@ export const CREATE_GAME = gql`
         id
         league
         season
-        date
-        stage
-        status
-        periods
-        arena
-        teams
-        scores
+        date {
+          start
+          end
+          duration
+        }
+        status {
+          clock
+          halftime
+          short
+          long
+        }
+        periods {
+          current
+          total
+          endOfPeriod
+        }
+        arena {
+          name
+          city
+          state
+          country
+        }
+        teams {
+          home {
+            id
+            name
+            nickname
+            code
+            logo
+          }
+          visitors {
+            id
+            name
+            nickname
+            code
+            logo
+          }
+        }
+        scores {
+          home {
+            win
+            loss
+            series {
+              win
+              loss
+            }
+            linescore
+            points
+          }
+          visitors {
+            win
+            loss
+            series {
+              win
+              loss
+            }
+            linescore
+            points
+          }
+        }
         officials
         timesTied
         leadChanges
@@ -24,26 +77,9 @@ export const CREATE_GAME = gql`
         updatedAt
       }
       errors {
-        ... on ValidationError {
-          field
-          message
-        }
-        ... on AuthenticationError {
-          message
-        }
-        ... on AuthorizationError {
-          message
-          requiredRole
-        }
-        ... on RateLimitError {
-          message
-          retryAfter
-        }
-        ... on BusinessLogicError {
-          message
-          code
-          details
-        }
+        message
+        code
+        field
       }
     }
   }
@@ -54,17 +90,13 @@ export const CREATE_GAME_LOG = gql`
     createGameLog(input: $input) {
       gameLog {
         id
-        userId
-        gameId
-        watchedSetting
-        watchedDate
-        ratingForGame
-        notes
-        tags
-        classification
-        createdAt
-        updatedAt
-        deletedAt
+        user {
+          id
+          username
+          firstName
+          lastName
+          imageUrl
+        }
         game {
           id
           date {
@@ -75,8 +107,8 @@ export const CREATE_GAME_LOG = gql`
           status {
             clock
             halftime
-            long
             short
+            long
           }
           arena {
             name
@@ -86,10 +118,49 @@ export const CREATE_GAME_LOG = gql`
           }
           league
           season
-          stage
-          periods
-          teams
-          scores
+          periods {
+            current
+            total
+            endOfPeriod
+          }
+          teams {
+            home {
+              id
+              name
+              nickname
+              code
+              logo
+            }
+            visitors {
+              id
+              name
+              nickname
+              code
+              logo
+            }
+          }
+          scores {
+            home {
+              win
+              loss
+              series {
+                win
+                loss
+              }
+              linescore
+              points
+            }
+            visitors {
+              win
+              loss
+              series {
+                win
+                loss
+              }
+              linescore
+              points
+            }
+          }
           officials
           timesTied
           leadChanges
@@ -97,40 +168,6 @@ export const CREATE_GAME_LOG = gql`
           createdAt
           updatedAt
         }
-      }
-      errors {
-        ... on ValidationError {
-          field
-          message
-        }
-        ... on AuthenticationError {
-          message
-        }
-        ... on AuthorizationError {
-          message
-          requiredRole
-        }
-        ... on RateLimitError {
-          message
-          retryAfter
-        }
-        ... on BusinessLogicError {
-          message
-          code
-          details
-        }
-      }
-    }
-  }
-`;
-
-export const UPDATE_GAME_LOG = gql`
-  mutation UpdateGameLog($id: ID!, $input: UpdateGameLogInput!) {
-    updateGameLog(id: $id, input: $input) {
-      gameLog {
-        id
-        userId
-        gameId
         watchedSetting
         watchedDate
         ratingForGame
@@ -139,32 +176,44 @@ export const UPDATE_GAME_LOG = gql`
         classification
         createdAt
         updatedAt
-        deletedAt
+      }
+      errors {
+        message
+        code
+        field
+      }
+    }
+  }
+`;
+
+export const UPDATE_GAME_LOG = gql`
+  mutation UpdateGameLog($id: ID!, $input: CreateGameLogInput!) {
+    updateGameLog(id: $id, input: $input) {
+      gameLog {
+        id
+        user {
+          id
+          username
+          firstName
+          lastName
+          imageUrl
+        }
         game {
           id
         }
+        watchedSetting
+        watchedDate
+        ratingForGame
+        notes
+        tags
+        classification
+        createdAt
+        updatedAt
       }
       errors {
-        ... on ValidationError {
-          field
-          message
-        }
-        ... on AuthenticationError {
-          message
-        }
-        ... on AuthorizationError {
-          message
-          requiredRole
-        }
-        ... on RateLimitError {
-          message
-          retryAfter
-        }
-        ... on BusinessLogicError {
-          message
-          code
-          details
-        }
+        message
+        code
+        field
       }
     }
   }
@@ -175,26 +224,9 @@ export const DELETE_GAME_LOG = gql`
     deleteGameLog(id: $id) {
       success
       errors {
-        ... on ValidationError {
-          field
-          message
-        }
-        ... on AuthenticationError {
-          message
-        }
-        ... on AuthorizationError {
-          message
-          requiredRole
-        }
-        ... on RateLimitError {
-          message
-          retryAfter
-        }
-        ... on BusinessLogicError {
-          message
-          code
-          details
-        }
+        message
+        code
+        field
       }
     }
   }
@@ -207,26 +239,9 @@ export const CREATE_COMMENT = gql`
         ...CommentFragment
       }
       errors {
-        ... on ValidationError {
-          field
-          message
-        }
-        ... on AuthenticationError {
-          message
-        }
-        ... on AuthorizationError {
-          message
-          requiredRole
-        }
-        ... on RateLimitError {
-          message
-          retryAfter
-        }
-        ... on BusinessLogicError {
-          message
-          code
-          details
-        }
+        message
+        code
+        field
       }
     }
   }
@@ -234,32 +249,15 @@ export const CREATE_COMMENT = gql`
 `;
 
 export const UPDATE_COMMENT = gql`
-  mutation UpdateComment($id: ID!, $input: UpdateCommentInput!) {
+  mutation UpdateComment($id: ID!, $input: CreateCommentInput!) {
     updateComment(id: $id, input: $input) {
       comment {
         ...CommentFragment
       }
       errors {
-        ... on ValidationError {
-          field
-          message
-        }
-        ... on AuthenticationError {
-          message
-        }
-        ... on AuthorizationError {
-          message
-          requiredRole
-        }
-        ... on RateLimitError {
-          message
-          retryAfter
-        }
-        ... on BusinessLogicError {
-          message
-          code
-          details
-        }
+        message
+        code
+        field
       }
     }
   }
@@ -271,26 +269,9 @@ export const DELETE_COMMENT = gql`
     deleteComment(id: $id) {
       success
       errors {
-        ... on ValidationError {
-          field
-          message
-        }
-        ... on AuthenticationError {
-          message
-        }
-        ... on AuthorizationError {
-          message
-          requiredRole
-        }
-        ... on RateLimitError {
-          message
-          retryAfter
-        }
-        ... on BusinessLogicError {
-          message
-          code
-          details
-        }
+        message
+        code
+        field
       }
     }
   }
@@ -312,30 +293,26 @@ export const CREATE_REACTION = gql`
         }
       }
       errors {
-        ... on ValidationError {
-          field
-          message
-        }
-        ... on AuthenticationError {
-          message
-        }
-        ... on AuthorizationError {
-          message
-          requiredRole
-        }
-        ... on RateLimitError {
-          message
-          retryAfter
-        }
-        ... on BusinessLogicError {
-          message
-          code
-          details
-        }
+        message
+        code
+        field
       }
     }
   }
   ${USER_SUMMARY_FRAGMENT}
+`;
+
+export const DELETE_REACTION = gql`
+  mutation DeleteReaction($id: ID!) {
+    deleteReaction(id: $id) {
+      success
+      errors {
+        message
+        code
+        field
+      }
+    }
+  }
 `;
 
 export const SEND_FRIEND_REQUEST = gql`
@@ -343,8 +320,6 @@ export const SEND_FRIEND_REQUEST = gql`
     sendFriendRequest(userId: $userId) {
       friendship {
         id
-        subscriberId
-        userId
         status
         createdAt
         updatedAt
@@ -356,26 +331,9 @@ export const SEND_FRIEND_REQUEST = gql`
         }
       }
       errors {
-        ... on ValidationError {
-          field
-          message
-        }
-        ... on AuthenticationError {
-          message
-        }
-        ... on AuthorizationError {
-          message
-          requiredRole
-        }
-        ... on RateLimitError {
-          message
-          retryAfter
-        }
-        ... on BusinessLogicError {
-          message
-          code
-          details
-        }
+        message
+        code
+        field
       }
     }
   }
@@ -387,8 +345,6 @@ export const ACCEPT_FRIEND_REQUEST = gql`
     acceptFriendRequest(friendshipId: $friendshipId) {
       friendship {
         id
-        subscriberId
-        userId
         status
         createdAt
         updatedAt
@@ -400,26 +356,9 @@ export const ACCEPT_FRIEND_REQUEST = gql`
         }
       }
       errors {
-        ... on ValidationError {
-          field
-          message
-        }
-        ... on AuthenticationError {
-          message
-        }
-        ... on AuthorizationError {
-          message
-          requiredRole
-        }
-        ... on RateLimitError {
-          message
-          retryAfter
-        }
-        ... on BusinessLogicError {
-          message
-          code
-          details
-        }
+        message
+        code
+        field
       }
     }
   }
@@ -431,8 +370,6 @@ export const REJECT_FRIEND_REQUEST = gql`
     rejectFriendRequest(friendshipId: $friendshipId) {
       friendship {
         id
-        subscriberId
-        userId
         status
         createdAt
         updatedAt
@@ -444,26 +381,9 @@ export const REJECT_FRIEND_REQUEST = gql`
         }
       }
       errors {
-        ... on ValidationError {
-          field
-          message
-        }
-        ... on AuthenticationError {
-          message
-        }
-        ... on AuthorizationError {
-          message
-          requiredRole
-        }
-        ... on RateLimitError {
-          message
-          retryAfter
-        }
-        ... on BusinessLogicError {
-          message
-          code
-          details
-        }
+        message
+        code
+        field
       }
     }
   }
@@ -475,71 +395,10 @@ export const REMOVE_FRIEND = gql`
     removeFriend(friendshipId: $friendshipId) {
       success
       errors {
-        ... on ValidationError {
-          field
-          message
-        }
-        ... on AuthenticationError {
-          message
-        }
-        ... on AuthorizationError {
-          message
-          requiredRole
-        }
-        ... on RateLimitError {
-          message
-          retryAfter
-        }
-        ... on BusinessLogicError {
-          message
-          code
-          details
-        }
+        message
+        code
+        field
       }
     }
   }
-`;
-
-export const UPDATE_FRIENDSHIP_STATUS = gql`
-  mutation UpdateFriendshipStatus($input: UpdateFriendshipStatusInput!) {
-    updateFriendshipStatus(input: $input) {
-      friendship {
-        id
-        subscriberId
-        userId
-        status
-        createdAt
-        updatedAt
-        initiator {
-          ...UserSummaryFragment
-        }
-        recipient {
-          ...UserSummaryFragment
-        }
-      }
-      errors {
-        ... on ValidationError {
-          field
-          message
-        }
-        ... on AuthenticationError {
-          message
-        }
-        ... on AuthorizationError {
-          message
-          requiredRole
-        }
-        ... on RateLimitError {
-          message
-          retryAfter
-        }
-        ... on BusinessLogicError {
-          message
-          code
-          details
-        }
-      }
-    }
-  }
-  ${USER_SUMMARY_FRAGMENT}
 `;

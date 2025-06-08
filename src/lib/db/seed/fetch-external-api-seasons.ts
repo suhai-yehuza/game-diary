@@ -1,10 +1,10 @@
 import { eq } from 'drizzle-orm';
 
-import { API_CONFIG } from '@/lib/config/api.config';
-import { seasons } from '@/lib/db/schema';
-import { handleAPIError } from '@/lib/external-apis';
-import { seedLogger } from '@/lib/logger';
-import { SeasonApiResponse } from '@/lib/types/consolidated.types';
+import { API_CONFIG } from '@src/lib/config/api.config';
+import { seasons } from '@src/lib/db/schema';
+import { handleAPIError } from '@src/lib/external-apis';
+import { seedLogger } from 'lib/core/logger';
+import type { SeasonApiResponse } from '@src/lib/types/consolidated.types';
 
 import { initializeClients } from './utils/initialize-clients';
 

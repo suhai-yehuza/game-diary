@@ -3,10 +3,10 @@ import { Agent } from 'https';
 import { Redis as UpstashRedis } from '@upstash/redis';
 import Redis from 'ioredis';
 
-import { cacheLogger } from '@/lib/logger';
-import type { RedisClient, RedisClientType } from '@/lib/types/cache.types';
-import { CACHE_TTL } from '@/lib/types/config.types';
-import { sleep } from '@/lib/utils/index.time';
+import { cacheLogger } from 'lib/core/logger';
+import type { RedisClient, RedisClientType } from '@src/lib/types/cache.types';
+import { CACHE_TTL } from '@src/lib/types/config.types';
+import { sleep } from '@src/lib/utils/time';
 
 // Cache keys with type safety
 export const CACHE_KEYS = {

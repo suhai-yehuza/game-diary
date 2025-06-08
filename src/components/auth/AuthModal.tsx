@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 import React, { useRef } from 'react';
 
-import { AuthModalProps } from '@/lib/types/consolidated.types';
+import type { AuthModalProps } from '@src/lib/types/consolidated.types';
 
 export function AuthModal({ children }: AuthModalProps) {
   const router = useRouter();

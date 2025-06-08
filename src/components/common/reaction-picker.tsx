@@ -3,16 +3,16 @@ import { useUser } from '@clerk/nextjs';
 import { SmilePlus } from 'lucide-react';
 import React, { useState } from 'react';
 
-import { Button } from '@/components/ui/button';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CREATE_REACTION } from '@/lib/graphql/mutations';
-import { GET_REACTIONS, GET_GAME_LOG_BY_ID } from '@/lib/graphql/queries';
-import { logger } from '@/lib/logger';
-import { ReactionsData } from '@/lib/types/component.types';
-import { REACTION_EMOJIS } from '@/lib/types/config.types';
-import { ReactionPickerProps } from '@/lib/types/consolidated.types';
-import type { ReactionEmojiType, Reaction } from '@/lib/types/generated/graphql';
-import { cn } from '@/lib/utils';
+import { Button } from '@src/components/ui/button';
+import { Popover, PopoverContent, PopoverTrigger } from '@src/components/ui/popover';
+import { CREATE_REACTION } from '@src/lib/graphql/mutations';
+import { GET_REACTIONS, GET_GAME_LOG } from '@src/lib/graphql/queries';
+import { logger } from 'lib/core/logger';
+import type { ReactionsData } from '@src/lib/types/component.types';
+import { REACTION_EMOJIS } from '@src/lib/types/config.types';
+import type { ReactionPickerProps } from '@src/lib/types/consolidated.types';
+import type { ReactionEmojiType, Reaction } from '@src/lib/types/generated/graphql';
+import { cn } from '@src/lib/utils';
 
 export function ReactionPicker({
   targetId,
@@ -87,13 +87,13 @@ export function ReactionPicker({
             });
           }
 
-          // If this is a game log, also update the GET_GAME_LOG_BY_ID cache
+          // If this is a game log, also update the GET_GAME_LOG cache
           if (targetType === 'game_log') {
             const gameLogData = cache.readQuery({
-              query: GET_GAME_LOG_BY_ID,
+              query: GET_GAME_LOG,
               variables: { id: targetId },
             }) as {
-              gameLogById: {
+              gameLog: {
                 reactions: {
                   edges: Array<{ node: Reaction; __typename: string; cursor: string }>;
                   totalCount: number;
@@ -101,12 +101,12 @@ export function ReactionPicker({
               };
             } | null;
 
-            if (gameLogData?.gameLogById?.reactions) {
+            if (gameLogData?.gameLog?.reactions) {
               let newEdges;
               if (data.createReaction.reaction) {
                 // Adding reaction
                 newEdges = [
-                  ...gameLogData.gameLogById.reactions.edges,
+                  ...gameLogData.gameLog.reactions.edges,
                   {
                     __typename: 'ReactionEdge',
                     cursor: `cursor-${data.createReaction.reaction.id}`,
@@ -125,19 +125,19 @@ export function ReactionPicker({
                 ];
               } else {
                 // Removing reaction
-                newEdges = gameLogData.gameLogById.reactions.edges.filter(
+                newEdges = gameLogData.gameLog.reactions.edges.filter(
                   edge => !(edge.node.userId === user.id && edge.node.emoji === emojiName)
                 );
               }
 
               cache.writeQuery({
-                query: GET_GAME_LOG_BY_ID,
+                query: GET_GAME_LOG,
                 variables: { id: targetId },
                 data: {
-                  gameLogById: {
-                    ...gameLogData.gameLogById,
+                  gameLog: {
+                    ...gameLogData.gameLog,
                     reactions: {
-                      ...gameLogData.gameLogById.reactions,
+                      ...gameLogData.gameLog.reactions,
                       edges: newEdges,
                       totalCount: newEdges.length,
                     },

@@ -1,27 +1,28 @@
 import { faker } from '@faker-js/faker';
 import { sql, desc } from 'drizzle-orm';
 
-import { API_CONFIG } from '@/lib/config/api.config';
-import { game_logs, games } from '@/lib/db/schema/game-schemas';
-import { users, friendships, reactions, comments } from '@/lib/db/schema/user-schemas';
-import { seedLogger } from '@/lib/logger';
+import { API_CONFIG } from '@src/lib/config/api.config';
+import { game_logs, games } from '@src/lib/db/schema/game-schemas';
+import { users, friendships, comments, type reactions } from '@src/lib/db/schema/user-schemas';
+import { seedLogger } from 'lib/core/logger';
 import {
   FRIENDSHIP_STATUS,
   WATCHED_SETTING,
   REACTION_EMOJIS,
-  FriendshipStatusValue,
-  WatchedSettingValue,
-  ReactionEmojiValue,
   WATCHED_SCOPE,
-  WatchedScopeValue,
   CLASSIFICATION,
-} from '@/lib/types/config.types';
-import type { ApplicationSeederOptions } from '@/lib/types/consolidated.types';
-import type { DatabaseClient } from '@/lib/types/database.types';
-import { generateUUID } from '@/lib/utils/index.processing';
-import { getCurrentSeason } from '@/lib/utils/index.time';
+  type FriendshipStatusValue,
+  type ReactionEmojiValue,
+  type WatchedSettingValue,
+  type WatchedScopeValue,
+} from '@src/lib/types/config.types';
+import type { ApplicationSeederOptions } from '@src/lib/types/consolidated.types';
+import type { DatabaseClient } from '@src/lib/types/database.types';
+import { generateUUID } from '@src/lib/utils/processing';
+import { getCurrentSeason } from '@src/lib/utils/time';
 
-type DBUser = typeof users.$inferSelect;
+// Type definitions
+type DbUser = typeof users.$inferSelect;
 type UserInsert = typeof users.$inferInsert;
 type FriendshipInsert = typeof friendships.$inferInsert;
 type GameLogInsert = typeof game_logs.$inferInsert;
@@ -34,21 +35,18 @@ async function* generateUsersStream(
   existingEmails: Set<string>,
   skipUsers: boolean = false
 ): AsyncGenerator<UserInsert, void, unknown> {
-  if (skipUsers) {
-    return;
-  }
+  if (skipUsers) return;
 
   let generated = 0;
-  let attempts = 0;
   const maxAttempts = targetCount * 2;
 
-  while (generated < targetCount && attempts < maxAttempts) {
-    attempts++;
+  while (generated < targetCount && generated < maxAttempts) {
     const username = `${faker.internet.username()}${faker.number.int({ min: 1, max: targetCount * 10 })}`;
     const email = `${username}@${faker.internet.domainName()}`;
 
     if (!existingEmails.has(email)) {
       existingEmails.add(email);
+      generated++;
 
       yield {
         id: generateUUID(),
@@ -62,7 +60,6 @@ async function* generateUsersStream(
         banned: false,
         createdAt: faker.date.past(),
         updatedAt: faker.date.recent(),
-        timestamp: faker.date.recent(),
         last_sign_in_at: null,
         password_enabled: false,
         two_factor_enabled: false,
@@ -72,8 +69,6 @@ async function* generateUsersStream(
         external_accounts: [],
         deletedAt: null,
       };
-
-      generated++;
     }
   }
 
@@ -84,10 +79,10 @@ async function* generateUsersStream(
 
 // Optimized friendship generator
 async function* generateFriendshipsStream(
-  userStream: AsyncGenerator<DBUser, void, unknown>
+  userStream: AsyncGenerator<UserInsert, void, unknown>
 ): AsyncGenerator<FriendshipInsert, void, unknown> {
-  const userChunks: DBUser[][] = [];
-  let currentChunk: DBUser[] = [];
+  const userChunks: UserInsert[][] = [];
+  let currentChunk: UserInsert[] = [];
 
   // Collect users into chunks
   for await (const user of userStream) {
@@ -103,10 +98,7 @@ async function* generateFriendshipsStream(
 
   for (const userChunk of userChunks) {
     for (const user of userChunk) {
-      // Only process 10% of users
-      if (Math.random() >= 0.1) {
-        continue;
-      }
+      if (Math.random() >= 0.1) continue; // Only process 10% of users
 
       const friendshipCount = API_CONFIG.ranges.FRIENDSHIP_RANGE.getRandom();
       const potentialFriends = userChunk.filter(u => u.id !== user.id);
@@ -128,18 +120,15 @@ async function* generateFriendshipsStream(
         };
       }
     }
-
-    // Yield control to prevent blocking
     await new Promise(resolve => setImmediate(resolve));
   }
 }
 
 // Optimized game logs generator
 async function* generateGameLogsStream(
-  userStream: AsyncGenerator<DBUser, void, unknown>,
+  userStream: AsyncGenerator<UserInsert, void, unknown>,
   db: DatabaseClient
 ): AsyncGenerator<GameLogInsert, void, unknown> {
-  // Get games from the latest season
   const latestSeasonGames = await db
     .select()
     .from(games)
@@ -151,12 +140,10 @@ async function* generateGameLogsStream(
     return;
   }
 
-  // Get the current season and set season boundaries
   const seasonYear = getCurrentSeason();
-  const seasonStartDate = new Date(seasonYear, 9, 1); // October 1st (month is 0-based)
-  const seasonEndDate = new Date(seasonYear + 1, 5, 30); // June 30th of next year
+  const seasonStartDate = new Date(seasonYear, 9, 1); // October 1st
+  const seasonEndDate = new Date(seasonYear + 1, 5, 30); // June 30th
 
-  // Filter games to only include those from the current season
   const currentSeasonGames = latestSeasonGames.filter(game => {
     const gameDate = new Date(game.date);
     return gameDate >= seasonStartDate && gameDate <= seasonEndDate;
@@ -166,19 +153,13 @@ async function* generateGameLogsStream(
     `Generating game logs from ${currentSeasonGames.length} games in the ${seasonYear}-${seasonYear + 1} season`
   );
 
-  // Track ratings for each game
   const gameRatings = new Map<string, { total: number; count: number }>();
-  let totalGameLogsGenerated = 0;
-  const targetUserCount = API_CONFIG.databaseSeeding.DEFAULT_SAMPLE_COUNT;
   let processedUsers = 0;
+  const targetUserCount = API_CONFIG.databaseSeeding.DEFAULT_SAMPLE_COUNT;
 
   for await (const user of userStream) {
-    processedUsers++;
-    if (processedUsers > targetUserCount) {
-      break;
-    }
+    if (++processedUsers > targetUserCount) break;
 
-    // Calculate how many game logs to generate for this user
     const gameLogCount = API_CONFIG.ranges.GAME_LOG_RANGE.getRandom();
     const selectedGames = faker.helpers.arrayElements(
       currentSeasonGames,
@@ -187,79 +168,40 @@ async function* generateGameLogsStream(
 
     for (const game of selectedGames) {
       const ratingForGame = faker.number.int({ min: 1, max: 5 });
-
-      // Update game ratings tracking
       const currentRating = gameRatings.get(game.id) || { total: 0, count: 0 };
       gameRatings.set(game.id, {
         total: currentRating.total + ratingForGame,
         count: currentRating.count + 1,
       });
 
-      // Extract watched date
-      let watchedDate: Date;
-      try {
-        if (game.date) {
-          watchedDate = new Date(game.date);
-        } else {
-          watchedDate = faker.date.recent();
-        }
-
-        if (isNaN(watchedDate.getTime())) {
-          watchedDate = faker.date.recent();
-        }
-      } catch {
-        watchedDate = faker.date.recent();
-      }
-
-      // Use weighted distribution for classifications from config
-      const classificationWeight = faker.number.float({ min: 0, max: 1 });
-      const { CLASSIFICATION_WEIGHTS } = API_CONFIG.classification;
-      const classification =
-        classificationWeight < CLASSIFICATION_WEIGHTS.protected
-          ? CLASSIFICATION.PROTECTED
-          : classificationWeight < CLASSIFICATION_WEIGHTS.protected + CLASSIFICATION_WEIGHTS.public
-            ? CLASSIFICATION.PUBLIC
-            : CLASSIFICATION.PRIVATE;
-
       yield {
         id: generateUUID(),
         userId: user.id,
         gameId: game.id,
+        watchedDate: new Date(game.date),
+        ratingForGame,
         watchedSetting: faker.helpers.arrayElement(
           Object.values(WATCHED_SETTING)
         ) as WatchedSettingValue,
-        watchedDate: watchedDate,
-        watchedLocation: faker.location.streetAddress(),
-        ratingForGame: ratingForGame,
         watchedScope: faker.helpers.arrayElement(Object.values(WATCHED_SCOPE)) as WatchedScopeValue,
         notes: faker.lorem.paragraph(),
-        tags: [],
-        classification,
         createdAt: faker.date.past(),
         updatedAt: faker.date.recent(),
         deletedAt: null,
+        tags: [],
+        classification: CLASSIFICATION.PUBLIC,
       };
-
-      totalGameLogsGenerated++;
-    }
-
-    // Yield control periodically
-    if (Math.random() < 0.1) {
-      // 10% chance to yield control
-      await new Promise(resolve => setImmediate(resolve));
     }
   }
-
-  seedLogger.info(`Generated ${totalGameLogsGenerated} game logs from ${processedUsers} users`);
 }
 
 // Optimized comments generator
 async function* generateCommentsStream(
-  userStream: AsyncGenerator<DBUser, void, unknown>,
+  userStream: AsyncGenerator<DbUser, void, unknown>,
   gameLogStream: AsyncGenerator<GameLogInsert, void, unknown>
 ): AsyncGenerator<CommentInsert, void, unknown> {
-  const userChunks: DBUser[][] = [];
-  let currentChunk: DBUser[] = [];
+  const userChunks: DbUser[][] = [];
+  let currentChunk: DbUser[] = [];
   let totalParentComments = 0;
   let skippedGameLogs = 0;
 
@@ -328,7 +270,7 @@ async function* generateCommentsStream(
 // Helper function to recursively generate child comments
 async function* generateChildComments(
   parentComment: CommentInsert,
-  userChunk: DBUser[],
+  userChunk: DbUser[],
   depth: number,
   maxDepth: number = 3 // Cap at 3 levels deep
 ): AsyncGenerator<CommentInsert, void, unknown> {
@@ -374,12 +316,12 @@ async function* generateChildComments(
 
 // Optimized reactions generator
 async function* generateReactionsStream(
-  userStream: AsyncGenerator<DBUser, void, unknown>,
+  userStream: AsyncGenerator<DbUser, void, unknown>,
   commentStream: AsyncGenerator<CommentInsert, void, unknown>,
   gameLogStream: AsyncGenerator<GameLogInsert, void, unknown>
 ): AsyncGenerator<ReactionInsert, void, unknown> {
-  const userChunks: DBUser[][] = [];
-  let currentChunk: DBUser[] = [];
+  const userChunks: DbUser[][] = [];
+  let currentChunk: DbUser[] = [];
 
   // Collect users into chunks
   for await (const user of userStream) {
@@ -476,7 +418,7 @@ async function* generateReactionsStream(
 }
 
 // Add new streaming functions
-async function* streamUsers(db: DatabaseClient): AsyncGenerator<DBUser, void, unknown> {
+async function* streamUsers(db: DatabaseClient): AsyncGenerator<DbUser, void, unknown> {
   const batchSize = API_CONFIG.databaseSeeding.BATCH_SIZE;
   let lastId: string | undefined;
 
@@ -542,12 +484,11 @@ async function* streamComments(db: DatabaseClient): AsyncGenerator<CommentInsert
   }
 }
 
-// Modify the main seeding function
+// Main seeding function
 export async function seedOptimizedApplicationData(
   options: ApplicationSeederOptions
 ): Promise<void> {
-  const { db, processor, batchSize = API_CONFIG.databaseSeeding.BATCH_SIZE, skipUsers } = options;
-
+  const { db, skipUsers = false } = options;
   if (!db) {
     throw new Error('Database client is required for seeding');
   }
@@ -555,63 +496,50 @@ export async function seedOptimizedApplicationData(
   const existingEmails = new Set<string>();
 
   try {
-    seedLogger.info('👥 Starting optimized application data seeding...');
-
     // Generate and insert users
-    if (!skipUsers) {
-      seedLogger.info('👤 Generating users...');
-      await processor.streamInsert(
-        users,
-        () => generateUsersStream(API_CONFIG.databaseSeeding.USER_COUNT, existingEmails, skipUsers),
-        batchSize,
-        'users'
-      );
-      seedLogger.info('👤 Users generated');
+    const userStream = generateUsersStream(
+      API_CONFIG.databaseSeeding.DEFAULT_SAMPLE_COUNT,
+      existingEmails,
+      skipUsers
+    );
+    const usersArray = [];
+    for await (const user of userStream) {
+      usersArray.push(user);
     }
+    await db.insert(users).values(usersArray);
 
     // Generate and insert friendships
-    seedLogger.info('🤝 Generating friendships...');
-    await processor.streamInsert(
-      friendships,
-      () => generateFriendshipsStream(streamUsers(db)),
-      batchSize,
-      'friendships'
+    const friendshipStream = generateFriendshipsStream(
+      generateUsersStream(
+        API_CONFIG.databaseSeeding.DEFAULT_SAMPLE_COUNT,
+        existingEmails,
+        skipUsers
+      )
     );
-    seedLogger.info('✅ Friendships generated');
+    const friendshipsArray = [];
+    for await (const friendship of friendshipStream) {
+      friendshipsArray.push(friendship);
+    }
+    await db.insert(friendships).values(friendshipsArray);
 
     // Generate and insert game logs
-    seedLogger.info('🎮 Generating game logs...');
-    await processor.streamInsert(
-      game_logs,
-      () => generateGameLogsStream(streamUsers(db), db),
-      batchSize,
-      'game_logs'
+    const gameLogStream = generateGameLogsStream(
+      generateUsersStream(
+        API_CONFIG.databaseSeeding.DEFAULT_SAMPLE_COUNT,
+        existingEmails,
+        skipUsers
+      ),
+      db
     );
-    seedLogger.info('✅ Game logs generated');
+    const gameLogsArray = [];
+    for await (const gameLog of gameLogStream) {
+      gameLogsArray.push(gameLog);
+    }
+    await db.insert(game_logs).values(gameLogsArray);
 
-    // Generate and insert comments
-    seedLogger.info('💬 Generating comments...');
-    await processor.streamInsert(
-      comments,
-      () => generateCommentsStream(streamUsers(db), streamGameLogs(db)),
-      batchSize,
-      'comments'
-    );
-    seedLogger.info('✅ Comments generated');
-
-    // Generate and insert reactions
-    seedLogger.info('👍 Generating reactions...');
-    await processor.streamInsert(
-      reactions,
-      () => generateReactionsStream(streamUsers(db), streamComments(db), streamGameLogs(db)),
-      batchSize,
-      'reactions'
-    );
-    seedLogger.info('✅ Reactions generated');
-
-    seedLogger.info('✅ Optimized application data seeding completed');
+    seedLogger.info('Successfully seeded application data');
   } catch (error) {
-    seedLogger.error('❌ Error during optimized application data seeding:', error);
+    seedLogger.error('Error seeding application data:', error);
     throw error;
   }
 }

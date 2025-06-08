@@ -14,3 +14,6 @@ export async function GET() {
   // Add your Route Handler's logic with the returned `user` object
   return NextResponse.json({ user: user }, { status: 200 });
 }
+
+// Force Node.js runtime for Clerk operations
+export const runtime = 'nodejs';

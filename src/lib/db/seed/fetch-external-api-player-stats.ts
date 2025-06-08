@@ -1,10 +1,10 @@
 import { sql } from 'drizzle-orm';
 
-import { API_CONFIG } from '@/lib/config/api.config';
-import { handleAPIError } from '@/lib/external-apis';
-import { seedLogger } from '@/lib/logger';
-import { PlayerStatistics } from '@/lib/types/consolidated.types';
-import { generateUUID } from '@/lib/utils/index.processing';
+import { API_CONFIG } from '@src/lib/config/api.config';
+import { handleAPIError } from '@src/lib/external-apis';
+import { seedLogger } from 'lib/core/logger';
+import type { PlayerStatistics } from '@src/lib/types/consolidated.types';
+import { generateUUID } from '@src/lib/utils/processing';
 
 import { nba_player_stats } from './schema';
 import { initializeClients } from './utils/initialize-clients';

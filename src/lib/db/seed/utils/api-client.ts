@@ -2,12 +2,12 @@ import { sql, type Table, type InferInsertModel } from 'drizzle-orm';
 import type { IndexColumn, PgUpdateSetSource } from 'drizzle-orm/pg-core';
 import pLimit from 'p-limit';
 
-import { getRapidApiConfig, validateAPIKey } from '@/lib/config/api.config';
-import { DB_CONFIG } from '@/lib/config/db.config';
-import { createRapidAPIClient } from '@/lib/external-apis';
-import { logger } from '@/lib/logger';
-import type { DatabaseClient } from '@/lib/types/database.types';
-import { sleep } from '@/lib/utils/index.time';
+import { getRapidApiConfig, validateAPIKey } from '@src/lib/config/api.config';
+import { DB_CONFIG } from '@src/lib/config/db.config';
+import { createRapidAPIClient } from '@src/lib/external-apis';
+import { logger } from 'lib/core/logger';
+import type { DatabaseClient } from '@src/lib/types/database.types';
+import { sleep } from '@src/lib/utils/time';
 
 import { createDatabaseClient } from '../config';
 // Circuit breaker pattern implementation
@@ -100,7 +100,11 @@ export class OptimizedAPIClient {
     const rapidApiConfig = getRapidApiConfig();
     const apiKey = validateAPIKey(rapidApiConfig.apiKey);
     this.client = createRapidAPIClient(apiKey);
-    this.db = createDatabaseClient();
+    this.db = createDatabaseClient() as DatabaseClient;
+    // Add raw property to satisfy DatabaseClient interface
+    (this.db as typeof this.db & { raw: unknown; $client: unknown }).raw = (
+      this.db as typeof this.db & { $client: unknown }
+    ).$client;
     this.circuitBreaker = new CircuitBreaker();
     this.rateLimiter = pLimit(concurrency);
   }

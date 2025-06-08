@@ -1,5 +1,5 @@
-import { getRapidApiConfig, validateAPIKey } from '@/lib/config/api.config';
-import { createRapidAPIClient } from '@/lib/external-apis';
+import { getRapidApiConfig, validateAPIKey } from '@src/lib/config/api.config';
+import { createRapidAPIClient } from '@src/lib/external-apis';
 
 import { createDatabaseClient } from '../config';
 

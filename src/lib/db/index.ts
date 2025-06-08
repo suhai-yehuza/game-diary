@@ -1,13 +1,15 @@
+/// <reference lib="dom" />
+
 import { neon, neonConfig } from '@neondatabase/serverless';
 import { drizzle, type NeonHttpDatabase } from 'drizzle-orm/neon-http';
 
-import { getCache } from '@/lib/cache';
-import { schema as dbSchema } from '@/lib/db/schema';
-import type { Schema } from '@/lib/db/schema/types';
-import { env as appEnv } from '@/lib/env';
-import { dbLogger } from '@/lib/logger';
-import { CACHE_TTL } from '@/lib/types/cache.types';
-import { type QueryOptions } from '@/lib/types/database.types';
+import { getCache } from '@src/lib/cache';
+import { schema as dbSchema } from '@src/lib/db/schema';
+import type { Schema } from '@src/lib/db/schema/types';
+import { env as appEnv } from '@src/lib/env';
+import { dbLogger } from 'lib/core/logger';
+import { CACHE_TTL } from '@src/lib/types/cache.types';
+import { type QueryOptions } from '@src/lib/types/database.types';
 
 // Initialize cache
 const cache = getCache();
@@ -18,7 +20,7 @@ neonConfig.useSecureWebSocket = true;
 neonConfig.pipelineTLS = true;
 neonConfig.pipelineConnect = false;
 // Add connection timeout and retry settings
-neonConfig.fetchFunction = (input: RequestInfo | URL, init?: RequestInit) => {
+neonConfig.fetchFunction = (input: string | URL | Request, init?: globalThis.RequestInit) => {
   return fetch(input, {
     ...init,
     // Add connection timeout
@@ -30,9 +32,34 @@ neonConfig.fetchFunction = (input: RequestInfo | URL, init?: RequestInit) => {
 
 // Create database connection with error handling
 let sql;
+let connectionAttempts = 0;
+const MAX_CONNECTION_ATTEMPTS = 3;
+const CONNECTION_RETRY_DELAY = 1000; // 1 second
+
+async function establishConnection() {
+  try {
+    sql = neon(appEnv.DATABASE_URL);
+    dbLogger.info('Database connection established successfully');
+    return sql;
+  } catch (error) {
+    connectionAttempts++;
+    dbLogger.error(`Database connection attempt ${connectionAttempts} failed:`, error);
+
+    if (connectionAttempts >= MAX_CONNECTION_ATTEMPTS) {
+      throw new Error(
+        'Database connection failed after multiple attempts. Please check your network connection and database URL.'
+      );
+    }
+
+    // Wait before retrying
+    await new Promise(resolve => setTimeout(resolve, CONNECTION_RETRY_DELAY * connectionAttempts));
+    return establishConnection();
+  }
+}
+
+// Initialize database connection
 try {
-  sql = neon(appEnv.DATABASE_URL);
-  dbLogger.info('Database connection established successfully');
+  sql = await establishConnection();
 } catch (error) {
   dbLogger.error('Failed to establish database connection:', error);
   throw new Error(
@@ -43,7 +70,10 @@ try {
 // Initialize database with schema
 export const db = drizzle(sql, {
   schema: dbSchema,
-}) as NeonHttpDatabase<Schema>;
+});
+
+// Add raw property to satisfy DatabaseClient interface
+(db as typeof db & { raw: typeof sql }).raw = sql;
 
 // Query optimization utilities with proper type safety
 export const withCache = async <T>(
@@ -171,7 +201,7 @@ export const monitorQuery = async <T>(
 
 // Database transaction wrapper with proper error handling
 export async function withDb<T>(
-  callback: (db: NeonHttpDatabase<Schema>) => Promise<T>,
+  callback: (db: NeonHttpDatabase<typeof dbSchema>) => Promise<T>,
   options: QueryOptions = {}
 ): Promise<T> {
   return monitorQuery(

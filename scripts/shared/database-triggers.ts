@@ -1,10 +1,10 @@
 import { sql } from 'drizzle-orm';
 
-import { createDatabaseClient } from '@/lib/db/seed/config';
-import { logger } from '@/lib/logger';
-import { TriggerSetupOptions } from '@/lib/types/consolidated.types';
+import type { createDatabaseClient } from '@src/lib/db/seed/config';
+import { logger } from 'lib/core/logger';
+import type { TriggerSetupOptions } from '@src/lib/types/consolidated.types';
 
-export async function createRatingStarsTrigger(
+async function createRatingStarsTrigger(
   db: ReturnType<typeof createDatabaseClient>,
   options: TriggerSetupOptions = {}
 ): Promise<void> {
@@ -41,7 +41,7 @@ export async function createRatingStarsTrigger(
   logger.info('✅ Rating stars trigger created');
 }
 
-export async function createGameRatingsTrigger(
+async function createGameRatingsTrigger(
   db: ReturnType<typeof createDatabaseClient>,
   options: TriggerSetupOptions = {}
 ): Promise<void> {
@@ -136,7 +136,7 @@ export async function createGameRatingsTrigger(
   logger.info('✅ Game ratings trigger created');
 }
 
-export async function checkExistingTriggers(
+async function checkExistingTriggers(
   db: ReturnType<typeof createDatabaseClient>
 ): Promise<string[]> {
   logger.info('🔍 Checking for existing triggers...');
@@ -151,7 +151,7 @@ export async function checkExistingTriggers(
   return existingTriggers.rows.map((row: any) => row.trigger_name);
 }
 
-export async function verifyTriggers(db: ReturnType<typeof createDatabaseClient>): Promise<void> {
+async function verifyTriggers(db: ReturnType<typeof createDatabaseClient>): Promise<void> {
   logger.info('🔍 Verifying triggers...');
 
   const triggers = await db.execute(sql`

@@ -1,7 +1,7 @@
 import * as React from 'react';
 
-import { InputProps } from '@/lib/types/consolidated.types';
-import { cn } from '@/lib/utils';
+import type { InputProps } from '@src/lib/types/consolidated.types';
+import { cn } from '@src/lib/utils';
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
   ({ className, type, spellCheck, ...props }, ref) => {

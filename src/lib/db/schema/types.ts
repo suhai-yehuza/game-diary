@@ -1,13 +1,13 @@
-import {
-  game_status_enum,
-  notification_type_enum,
-  reaction_type_enum,
-  watched_setting_enum,
-} from '@/lib/db/schema/enums';
+import type {
+  gameStatusEnum,
+  notificationTypeEnum,
+  reactionTypeEnum,
+  watchedSettingEnum,
+} from '@src/lib/db/schema/enums';
 
-import { baseTableConfig } from './base-types';
-import { game_logs, game_ratings, games } from './game-schemas';
-import {
+import type { baseTableConfig } from './base-types';
+import type { game_logs, game_ratings, games } from './game-schemas';
+import type {
   nba_players,
   nba_player_stats,
   game_stats,
@@ -15,15 +15,15 @@ import {
   nba_games,
   team_h2h,
 } from './nba-schemas';
-import { notifications } from './notification-schemas';
-import {
+import type { notifications } from './notification-schemas';
+import type {
   usersRelations,
   commentsRelations,
   reactionsRelations,
   gameLogsRelations,
 } from './relations';
-import { teams } from './team-schemas';
-import { reactions, users, friendships, comments } from './user-schemas';
+import type { teams } from './team-schemas';
+import type { reactions, users, friendships, comments } from './user-schemas';
 
 // Define base types for schema tables
 export type BaseTable = typeof baseTableConfig;
@@ -63,10 +63,10 @@ export type Schema = {
   game_stats: GameStatsTable;
   seasons: SeasonsTable;
   enums: {
-    game_status: typeof game_status_enum;
-    notification_type: typeof notification_type_enum;
-    reaction_type: typeof reaction_type_enum;
-    watchedSetting: typeof watched_setting_enum;
+    game_status: typeof gameStatusEnum;
+    notification_type: typeof notificationTypeEnum;
+    reaction_type: typeof reactionTypeEnum;
+    watchedSetting: typeof watchedSettingEnum;
   };
   base: typeof baseTableConfig;
 };

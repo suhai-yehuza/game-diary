@@ -1,27 +1,38 @@
 /**
  * Shared types used across the application
  */
+import type * as React from 'react';
 import type DataLoader from 'dataloader';
-import { type InferSelectModel } from 'drizzle-orm';
+import type { InferSelectModel } from 'drizzle-orm';
+import type { ReactNode, CSSProperties } from 'react';
 
-import { nba_games } from '@/lib/db/schema/nba-schemas';
-import type { GameRating } from '@/lib/types/game-log.types';
-import type { Classification, DBUser } from '@/lib/types/generated/graphql';
+import type { nba_games } from '@src/lib/db/schema/nba-schemas';
+import type { GameRating } from '@src/lib/types/game-log.types';
+import type {
+  Classification,
+  DbUser,
+  Game,
+  GameLog,
+  Comment,
+  Reaction,
+  Friendship,
+  Team,
+} from '@src/lib/types/generated/graphql';
 
 // Common Types
 export type SortDirection = 'asc' | 'desc';
 
 // DataLoader Types
 export interface Loaders {
-  user: DataLoader<string, DBUser | null>;
-  game: DataLoader<string, import('./generated/graphql').Game | null>;
-  gameLog: DataLoader<string, import('./generated/graphql').GameLog | null>;
+  user: DataLoader<string, DbUser | null>;
+  game: DataLoader<string, Game | null>;
+  gameLog: DataLoader<string, GameLog | null>;
   comment: DataLoader<string, import('./generated/graphql').Comment | null>;
   reaction: DataLoader<string, import('./generated/graphql').Reaction | null>;
   friendship: DataLoader<string, import('./generated/graphql').Friendship | null>;
-  player: DataLoader<string, import('./generated/graphql').Player | null>;
+  player: DataLoader<string, DBPlayer | null>;
   gameRating: DataLoader<string, GameRating | null>;
-  team: DataLoader<string, import('./generated/graphql').Team | null>;
+  team: DataLoader<string, Team | null>;
 }
 
 // Common Props Types
@@ -49,7 +60,7 @@ export type ValidatableValue = string | number | boolean | null | undefined;
 // Database Types
 export type DBGameRecord = InferSelectModel<typeof nba_games>;
 
-export type UserWithMetadata = DBUser & {
+export type UserWithMetadata = DbUser & {
   metadata?: {
     lastActive?: string;
     status?: 'online' | 'offline' | 'away';
@@ -58,22 +69,35 @@ export type UserWithMetadata = DBUser & {
 };
 
 // Base friendship types
-export interface Friendship {
-  id: string;
-  subscriberId: string;
-  userId: string;
-  status: string;
-  initiator: DBUser;
-  recipient: DBUser;
-  createdAt: Date;
-  updatedAt: Date;
-}
+// export interface Friendship {
+//   id: string;
+//   subscriberId: string;
+//   userId: string;
+//   status: string;
+//   initiator: DbUser;
+//   recipient: DbUser;
+//   createdAt: Date;
+//   updatedAt: Date;
+// }
 
 // Filter types
 export interface GameLogFilters {
   userId?: string;
   gameId?: string;
   classification?: Classification;
+  searchText?: string;
+  minRating?: number;
+  maxRating?: number;
+  watchedSetting?: string;
+  watchedLocation?: string;
+  tags?: string[];
+  hasNotes?: boolean;
+  watchedDateRange?: {
+    start?: Date;
+    end?: Date;
+  };
+  sortBy?: string;
+  sortDirection?: 'ASC' | 'DESC';
   createdAt?: {
     start?: Date;
     end?: Date;
@@ -87,26 +111,26 @@ export interface GameLogFilters {
 }
 
 // Base comment types
-export interface Comment {
-  id: string;
-  content: string;
-  userId: string;
-  parentId: string;
-  parentType: string;
-  createdAt: Date;
-  updatedAt: Date;
-  deletedAt?: Date;
-}
+// export interface Comment {
+//   id: string;
+//   content: string;
+//   userId: string;
+//   parentId: string;
+//   parentType: string;
+//   createdAt: Date;
+//   updatedAt: Date;
+//   deletedAt?: Date;
+// }
 
 // Base reaction types
-export interface Reaction {
-  id: string;
-  emoji: string;
-  userId: string;
-  targetId: string;
-  targetType: string;
-  createdAt: Date;
-}
+// export interface Reaction {
+//   id: string;
+//   emoji: string;
+//   userId: string;
+//   targetId: string;
+//   targetType: string;
+//   createdAt: Date;
+// }
 
 // Base player types
 export interface DBPlayer {
@@ -463,4 +487,30 @@ export interface UserSummary {
   lastName?: string;
   imageUrl?: string;
   emailAddress?: string;
+}
+
+export interface DBGameData {
+  id: string;
+  date: unknown;
+  status: Record<string, unknown> | null;
+  arena: unknown;
+  league: string;
+  season: number;
+  stage: number;
+  periods: unknown;
+  teams: Record<string, Record<string, unknown>> | null;
+  scores: unknown;
+  officials: unknown;
+  timesTied?: number | null;
+  leadChanges?: number | null;
+  nugget?: string | null;
+  createdAt: Date | string;
+  updatedAt: Date | string;
+}
+
+export interface DBArenaData {
+  name?: string;
+  city?: string;
+  state?: string;
+  country?: string;
 }

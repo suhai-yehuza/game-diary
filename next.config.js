@@ -1,125 +1,144 @@
+/* eslint-env node */
+/* global process, console */
+
 /** @type {import('next').NextConfig} */
 import path from 'path';
 import { fileURLToPath } from 'url';
 
+import bundleAnalyzer from '@next/bundle-analyzer';
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+const isDev = process.env.NODE_ENV === 'development';
+const isProd = process.env.NODE_ENV === 'production';
+
+// Bundle analyzer configuration
+const withBundleAnalyzer = bundleAnalyzer({
+  enabled: process.env.ANALYZE === 'true',
+});
+
 const nextConfig = {
+  // Performance optimizations
+  poweredByHeader: false,
+  compress: true,
+
+  // Production optimizations
+  ...(isProd && {
+    trailingSlash: false,
+    skipTrailingSlashRedirect: true,
+    output: 'standalone',
+    generateBuildId: async () => {
+      return 'game-diary-build-' + Date.now();
+    },
+  }),
+
+  // Experimental features
+  experimental: {
+    // Performance optimizations - exclude drizzle-orm to avoid conflict
+    optimizePackageImports: ['@apollo/client', 'react-hot-toast'],
+
+    // Keep drizzle-orm external for server components
+    serverComponentsExternalPackages: ['drizzle-orm'],
+  },
+
+  eslint: {
+    ignoreDuringBuilds: false,
+    dirs: ['src'],
+  },
+
+  typescript: {
+    ignoreBuildErrors: false,
+  },
+
   images: {
-    dangerouslyAllowSVG: true,
-    contentDispositionType: 'attachment',
-    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'api.dicebear.com',
-        pathname: '/7.x/**',
-      },
-      {
-        protocol: 'http',
-        hostname: 'upload.wikimedia.org',
-        pathname: '/wikipedia/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'upload.wikimedia.org',
-        pathname: '/wikipedia/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'cdn.nba.com',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'cdn.nba.net',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'stats.nba.com',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'ak-static.cms.nba.com',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
         hostname: 'img.clerk.com',
-        pathname: '/**',
       },
       {
         protocol: 'https',
         hostname: 'images.clerk.dev',
-        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'cdn.nba.com',
+      },
+      {
+        protocol: 'https',
+        hostname: '**.nba.com',
       },
     ],
   },
-  devIndicators: {
-    buildActivity: false,
-    buildActivityPosition: 'bottom-right',
-  },
-  output: 'standalone',
-  webpack: (config, { dev, isServer }) => {
-    // Optimize webpack cache settings
-    config.cache = {
-      type: 'filesystem',
-      buildDependencies: {
-        config: [__filename],
-      },
-      cacheDirectory: path.resolve(__dirname, '.next/cache'),
-      maxAge: 172800000, // 2 days
-      compression: 'gzip',
-      allowCollectingMemory: true,
-    };
 
-    // Exclude test data from production builds
-    if (!dev) {
-      config.module.rules.push({
-        test: /__tests__\/sample-data\//,
-        loader: 'ignore-loader',
-      });
-    }
-
-    if (!isServer) {
-      config.resolve.fallback = {
-        ...config.resolve.fallback,
-        fs: false,
-        net: false,
-        tls: false,
+  webpack: (config, { buildId, dev, isServer, defaultLoaders, webpack }) => {
+    // Optimization for build size
+    if (!dev && !isServer) {
+      config.resolve.alias = {
+        ...config.resolve.alias,
+        '@apollo/client': path.resolve(__dirname, 'node_modules/@apollo/client'),
       };
     }
 
+    // Handle CSV files
     config.module.rules.push({
-      test: /\.(graphql|gql)$/,
-      exclude: /node_modules/,
-      loader: 'graphql-tag/loader',
+      test: /\.csv$/,
+      loader: 'csv-loader',
+      options: {
+        dynamicTyping: true,
+        header: true,
+        skipEmptyLines: true,
+      },
     });
-
-    // Add type resolution for problematic modules
-    config.resolve.alias = {
-      ...config.resolve.alias,
-      'react-hook-form': path.resolve(__dirname, 'node_modules/react-hook-form'),
-      'react-datepicker': path.resolve(__dirname, 'node_modules/react-datepicker'),
-    };
 
     return config;
   },
-  typescript: {
-    // !! WARN !!
-    // Dangerously allow production builds to successfully complete even if
-    // your project has type errors.
-    // !! WARN !!
-    ignoreBuildErrors: true,
+
+  // Custom page extensions
+  pageExtensions: ['ts', 'tsx', 'js', 'jsx'],
+
+  // Asset optimization
+  assetPrefix: isDev ? '' : '',
+
+  // Environment variables
+  env: {
+    CUSTOM_KEY: 'value',
   },
-  experimental: {
-    serverActions: {
-      bodySizeLimit: '10mb',
-    },
+
+  // Headers
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'X-Frame-Options',
+            value: 'DENY',
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'strict-origin-when-cross-origin',
+          },
+        ],
+      },
+    ];
+  },
+
+  // Redirects
+  async redirects() {
+    return [
+      {
+        source: '/home',
+        destination: '/',
+        permanent: true,
+      },
+    ];
   },
 };
 
-export default nextConfig;
+export default withBundleAnalyzer(nextConfig);

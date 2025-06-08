@@ -1,5 +1,9 @@
-import { DBUser } from '@/lib/types/generated/graphql';
-import type { ValidatableValue } from '@/lib/types/shared.types';
+import type * as React from 'react';
+import type { Context } from 'react';
+import type { DbUser } from '@src/lib/types/generated/graphql';
+import type { ValidatableValue } from '@src/lib/types/shared.types';
+
+import type { Friendship, FriendshipStatus } from './generated/graphql';
 
 // Consolidated from auth.types.ts
 export type AuthUser = {
@@ -178,12 +182,12 @@ export interface ClerkDeletedUserData {
 
 export interface UserFields {
   userId: string;
-  user?: DBUser;
+  user?: DbUser;
 }
 
 export interface UserSearchProps {
-  users: DBUser[];
-  onFilteredUsersChange?: (filteredUsers: DBUser[]) => void;
+  users: DbUser[];
+  onFilteredUsersChange?: (filteredUsers: DbUser[]) => void;
   onUserSelect?: (userId: string) => void;
   excludeIds?: string[];
 }
@@ -193,16 +197,85 @@ export interface UserProfileProps {
 }
 
 export interface FriendProfileProps {
-  friendId: string;
-  onClose: () => void;
+  friend?: Friend;
+  friendId?: string;
+  onClose?: () => void;
 }
 
 export interface UsersTableProps {
-  users: DBUser[];
+  users: DbUser[];
 }
 
 export interface UserPageProps {
   params: {
     id: string;
   };
+}
+
+// Core User Types
+export interface UserSummary {
+  id: string;
+  username: string;
+  firstName?: string | null;
+  lastName?: string | null;
+  imageUrl?: string | null;
+  emailAddress?: string | null;
+}
+
+export interface Friend {
+  id: string;
+  username: string;
+  firstName?: string | null;
+  lastName?: string | null;
+  imageUrl?: string | null;
+  emailAddress?: string | null;
+  friendshipStatus: FriendshipStatus;
+  friendship?: Friendship;
+}
+
+export interface FriendGroup {
+  id: string;
+  name: string;
+  description?: string;
+  createdAt: string;
+  updatedAt: string;
+  members: Friend[];
+}
+
+// User Hook Types
+export interface UseUserProfileProps {
+  targetUserId?: string;
+}
+
+export interface UseUserProfileReturn {
+  targetUser: UserSummary | null;
+  dbUserId: string | null;
+  currentUserDbId: string | null;
+  friendshipStatus: FriendshipStatus | null | 'loading';
+  currentFriendship: Friendship | null;
+  isLoading: boolean;
+  isOwnProfile: boolean;
+  handleSendFriendRequest: () => void;
+  handleAcceptFriendRequest: () => void;
+  handleRemoveFriend: () => void;
+  sendingRequest: boolean;
+  acceptingRequest: boolean;
+  removingFriend: boolean;
+}
+
+// User Component Props
+export interface FriendGroupsProps {
+  groups: FriendGroup[];
+  friends?: Friend[];
+  onGroupUpdate?: (group: FriendGroup) => void;
+}
+
+export interface FriendRequestButtonProps {
+  targetUserId: string;
+  className?: string;
+}
+
+// User API Response Types
+export interface GetFriendshipsForUserResponse {
+  friendships: Friendship[];
 }

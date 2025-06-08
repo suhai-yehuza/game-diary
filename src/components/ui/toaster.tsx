@@ -9,9 +9,9 @@ import {
   ToastProvider,
   ToastTitle,
   ToastViewport,
-} from '@/components/ui/toast';
-import { useToast } from '@/components/ui/use-toast';
-import { type ToasterToast } from '@/lib/types/notification.types';
+} from '@src/components/ui/toast';
+import { useToast } from '@src/components/ui/use-toast';
+import { type ToasterToast } from '@src/lib/types/notification.types';
 
 export function Toaster() {
   const { toasts } = useToast();

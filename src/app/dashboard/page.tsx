@@ -2,11 +2,13 @@
 
 import { useState } from 'react';
 
-import { BasketballGameSearchSection } from '@/components/features/games/BasketballGameSearchSection';
-import { GameLogSearchSection } from '@/components/features/games/GameLogSearchSection';
-import { UserSearchSection } from '@/components/features/users/UserSearchSection';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { BasketballGameSearchSection } from '@src/components/features/games/basketball-game-search-section';
+import { GameLogSearchSection } from '@src/components/features/games/game-log-search-section';
+import { UserSearchSection } from '@src/components/features/users/user-search-section';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@src/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@src/components/ui/tabs';
+
+export const dynamic = 'force-dynamic';
 
 export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState('logs');

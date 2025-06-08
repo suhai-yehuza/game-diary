@@ -1,8 +1,8 @@
 import { sql } from 'drizzle-orm';
 import { pgTable, integer, text, timestamp, varchar, decimal, unique } from 'drizzle-orm/pg-core';
 
-import { CLASSIFICATION, WATCHED_SETTING, WATCHED_SCOPE } from '@/lib/types/config.types';
-import { generateUUID } from '@/lib/utils/index.processing';
+import { CLASSIFICATION, WATCHED_SETTING, WATCHED_SCOPE } from '@src/lib/types/config.types';
+import { generateUUID } from '@src/lib/utils/processing';
 
 import { nba_games } from './nba-schemas';
 import { teams } from './team-schemas';

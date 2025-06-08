@@ -1,14 +1,15 @@
+import type * as React from 'react';
 import type {
   Comment,
-  DBUser,
+  DbUser,
   ParentType,
   ReactionEmojiType,
   Reaction,
   Friendship,
-  Friendship as GraphQLFriendship,
-} from '@/lib/types/generated/graphql';
+} from '@src/lib/types/generated/graphql';
+import type { ComponentType } from 'react';
 
-export type { Comment, Reaction, GraphQLFriendship };
+export type { Comment, Reaction, Friendship };
 
 export type EditingComment = { id: string; content: string };
 
@@ -27,7 +28,7 @@ export interface CommentWithUser {
   createdAt: Date;
   updatedAt: Date;
   deletedAt: Date | null;
-  user: DBUser | null;
+  user: DbUser | null;
 }
 
 export interface ReactionWithUser {
@@ -38,7 +39,7 @@ export interface ReactionWithUser {
   targetId: string;
   targetType: ParentType;
   userId: string | null;
-  user: DBUser | null;
+  user: DbUser | null;
 }
 
 export interface ReactionPickerProps {
@@ -76,7 +77,7 @@ export enum SORT_DIRECTION {
 export type SortDirection = 'asc' | 'desc';
 
 export interface FriendRequest
-  extends Pick<GraphQLFriendship, 'id' | 'status' | 'createdAt' | 'updatedAt'> {
+  extends Pick<Friendship, 'id' | 'status' | 'createdAt' | 'updatedAt'> {
   sender: {
     id: string;
     username: string;

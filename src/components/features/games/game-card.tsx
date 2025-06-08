@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import React, { memo } from 'react';
 
-import { GameCardProps } from '@/lib/types/consolidated.types';
+import type { GameCardProps } from '@src/lib/types/consolidated.types';
 
 // Helper function to validate state values
 const isValidState = (state: string | undefined | null): boolean => {
@@ -121,7 +121,7 @@ export const GameCard = memo(({ game, index, imageErrors, onImageError }: GameCa
                   <Image
                     src={
                       imageErrors?.has(`${game.id}-visitors`)
-                        ? '/gamelog.svg'
+                        ? '/logos/gamelog.svg'
                         : game.teams.visitors.logo
                     }
                     alt={game.teams.visitors.name}
@@ -167,7 +167,9 @@ export const GameCard = memo(({ game, index, imageErrors, onImageError }: GameCa
                 <div className="relative w-16 h-16 flex-shrink-0">
                   <Image
                     src={
-                      imageErrors?.has(`${game.id}-home`) ? '/gamelog.svg' : game.teams.home.logo
+                      imageErrors?.has(`${game.id}-home`)
+                        ? '/logos/gamelog.svg'
+                        : game.teams.home.logo
                     }
                     alt={game.teams.home.name}
                     fill

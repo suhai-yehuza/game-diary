@@ -1,0 +1,24 @@
+# Generated types should be ignored by ESLint
+src/lib/types/generated/
+
+# Build outputs
+.next/
+out/
+dist/
+build/
+
+# Dependencies
+node_modules/
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Coverage
+coverage/
+.nyc_output/
+
+# Test outputs
+test-results-e2e/
+playwright-report/ 

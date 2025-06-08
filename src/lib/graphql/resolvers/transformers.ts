@@ -1,11 +1,11 @@
-import {
+import type {
   Comment as GraphQLComment,
   Reaction as GraphQLReaction,
   UserSummary as GraphQLUserSummary,
   Comment as DBComment,
   Reaction as DBReaction,
-  DBUser,
-} from '@/lib/types/generated/graphql';
+  DbUser,
+} from '@src/lib/types/generated/graphql';
 
 function transformReaction(reaction: DBReaction): GraphQLReaction {
   return {
@@ -20,7 +20,7 @@ function transformReaction(reaction: DBReaction): GraphQLReaction {
   };
 }
 
-export function transformUser(user: DBUser): DBUser {
+export function transformUser(user: DbUser): DbUser {
   return {
     id: user.id,
     username: user.username || '',
@@ -40,7 +40,6 @@ export function transformUser(user: DBUser): DBUser {
     email_verified: user.email_verified || false,
     email_verification_strategy: user.email_verification_strategy,
     external_id: user.external_id,
-    timestamp: user.timestamp,
     comments: [],
     reactions: [],
     gameLogs: [],
@@ -50,7 +49,7 @@ export function transformUser(user: DBUser): DBUser {
   };
 }
 
-export function transformUserToSummary(user: DBUser): GraphQLUserSummary {
+export function transformUserToSummary(user: DbUser): GraphQLUserSummary {
   return {
     id: user.id,
     username: user.username || '',

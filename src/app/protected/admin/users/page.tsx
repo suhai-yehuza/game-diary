@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import React, { useEffect, useState, Suspense } from 'react';
 
 import { UserSearch } from '@/app/protected/admin/search/UserSearch';
-import { Button } from '@/components/ui/button';
+import { Button } from '@src/components/ui/button';
 import {
   Table,
   TableBody,
@@ -15,16 +15,16 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { logger } from '@/lib/logger';
-import { DBUser } from '@/lib/types/generated/graphql';
+} from '@src/components/ui/table';
+import { logger } from 'lib/core/logger';
+import type { DbUser } from '@src/lib/types/generated/graphql';
 const ITEMS_PER_PAGE = 20;
 
 function AdminUsersContent() {
   const { user, isLoaded } = useUser();
   const router = useRouter();
-  const [users, setUsers] = useState<DBUser[]>([]);
-  const [filteredUsers, setFilteredUsers] = useState<DBUser[]>([]);
+  const [users, setUsers] = useState<DbUser[]>([]);
+  const [filteredUsers, setFilteredUsers] = useState<DbUser[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
 

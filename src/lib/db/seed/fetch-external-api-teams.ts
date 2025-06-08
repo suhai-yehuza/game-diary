@@ -1,10 +1,10 @@
 import { eq } from 'drizzle-orm';
 
-import { API_CONFIG } from '@/lib/config/api.config';
-import { teams } from '@/lib/db/schema';
-import { handleAPIError } from '@/lib/external-apis';
-import { seedLogger } from '@/lib/logger';
-import { ApiTeam, type ApiTeamResponse } from '@/lib/types/consolidated.types';
+import { API_CONFIG } from '@src/lib/config/api.config';
+import { teams } from '@src/lib/db/schema';
+import { handleAPIError } from '@src/lib/external-apis';
+import { seedLogger } from 'lib/core/logger';
+import type { ApiTeam, ApiTeamResponse } from '@src/lib/types/consolidated.types';
 
 import { initializeClients } from './utils/initialize-clients';
 

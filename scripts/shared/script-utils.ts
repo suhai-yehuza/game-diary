@@ -3,9 +3,9 @@ import { promisify } from 'util';
 
 import { sql } from 'drizzle-orm';
 
-import { createDatabaseClient } from '@/lib/db/seed/config';
-import { logger } from '@/lib/logger';
-import { ScriptOptions } from '@/lib/types/consolidated.types';
+import { createDatabaseClient } from '@src/lib/db/seed/config';
+import { logger } from 'lib/core/logger';
+import type { ScriptOptions } from '@src/lib/types/consolidated.types';
 
 export const execAsync = promisify(exec);
 
@@ -63,9 +63,13 @@ export async function runCommand(
     }
 
     return stdout;
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error(`❌ Failed: ${description}`);
-    logger.error(error.message);
+    if (error instanceof Error) {
+      logger.error(error.message);
+    } else {
+      logger.error(String(error));
+    }
     throw error;
   }
 }
@@ -154,7 +158,7 @@ export async function retryWithBackoff<T>(
   maxRetries = 3,
   baseDelay = 1000
 ): Promise<T> {
-  let lastError: Error;
+  let lastError: Error | undefined;
 
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
@@ -172,7 +176,9 @@ export async function retryWithBackoff<T>(
     }
   }
 
-  throw lastError!;
+  // This should never happen due to the throw in the loop,
+  // but TypeScript needs this for type safety
+  throw lastError ?? new Error('Retry failed with no error');
 }
 
 /**

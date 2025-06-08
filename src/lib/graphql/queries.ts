@@ -22,10 +22,49 @@ export const GAME_FRAGMENT = gql`
     }
     league
     season
-    stage
-    periods
-    teams
-    scores
+    periods {
+      current
+      total
+      endOfPeriod
+    }
+    teams {
+      home {
+        id
+        name
+        nickname
+        code
+        logo
+      }
+      visitors {
+        id
+        name
+        nickname
+        code
+        logo
+      }
+    }
+    scores {
+      home {
+        win
+        loss
+        series {
+          win
+          loss
+        }
+        linescore
+        points
+      }
+      visitors {
+        win
+        loss
+        series {
+          win
+          loss
+        }
+        linescore
+        points
+      }
+    }
     officials
     timesTied
     leadChanges
@@ -75,45 +114,32 @@ export const PLAYER_FRAGMENT = gql`
 
 export const PLAYER_STATS_FRAGMENT = gql`
   fragment PlayerStatsFragment on PlayerStats {
-    player {
-      ...PlayerFragment
-    }
-    team {
-      id
-      name
-      nickname
-      code
-      logo
-    }
-    game {
-      ...GameFragment
-    }
-    season
+    playerId
+    gameId
     points
-    pos
-    min
-    fgm
-    fga
-    fgp
-    ftm
-    fta
-    ftp
-    tpm
-    tpa
-    tpp
-    offReb
-    defReb
-    totReb
     assists
-    pFouls
+    rebounds
     steals
-    turnovers
     blocks
-    plusMinus
-    comment
+    turnovers
+    fouls
+    minutes
+    fieldGoals {
+      made
+      attempted
+      percentage
+    }
+    threePointers {
+      made
+      attempted
+      percentage
+    }
+    freeThrows {
+      made
+      attempted
+      percentage
+    }
   }
-  ${PLAYER_FRAGMENT}
-  ${GAME_FRAGMENT}
 `;
 
 export const BASIC_USER_FRAGMENT = gql`
@@ -187,8 +213,12 @@ export const COMMENT_FRAGMENT = gql`
 export const GAME_LOG_FRAGMENT = gql`
   fragment GameLogFragment on GameLog {
     id
-    userId
-    gameId
+    user {
+      ...UserSummaryFragment
+    }
+    game {
+      ...GameFragment
+    }
     watchedSetting
     watchedDate
     ratingForGame
@@ -197,11 +227,8 @@ export const GAME_LOG_FRAGMENT = gql`
     classification
     createdAt
     updatedAt
-    deletedAt
-    game {
-      ...GameFragment
-    }
   }
+  ${USER_SUMMARY_FRAGMENT}
   ${GAME_FRAGMENT}
 `;
 
@@ -215,23 +242,10 @@ export const GET_GAME_BY_ID = gql`
 `;
 
 // EXTERNAL API QUERIES
-export const GET_SEASONS = gql`
-  query GetSeasons {
-    seasons {
-      id
-      year
-      displayYear
-      startDate
-      endDate
-      isCurrent
-      isPlayoffs
-    }
-  }
-`;
 
 export const GET_EXTERNAL_GAMES = gql`
-  query GetExternalGames($filters: GameFilters, $first: Int, $after: String) {
-    games(filters: $filters, first: $first, after: $after) {
+  query GetExternalGames($filters: GameFilters, $pagination: PaginationInput) {
+    games(filters: $filters, pagination: $pagination) {
       edges {
         cursor
         node {
@@ -251,21 +265,30 @@ export const GET_EXTERNAL_GAMES = gql`
 `;
 
 export const GET_TEAMS = gql`
-  query GetTeams($filters: TeamFilters, $pagination: PaginationInput) {
-    teams(filters: $filters, pagination: $pagination) {
-      id
-      name
-      nickname
-      code
-      city
-      logo
-      conference
-      division
-      allStar
-      nbaFranchise
-      leagues
-      createdAt
-      updatedAt
+  query GetTeams($filters: TeamFilters) {
+    teams(filters: $filters) {
+      edges {
+        cursor
+        node {
+          id
+          name
+          nickname
+          code
+          city
+          logo
+          conference
+          division
+          createdAt
+          updatedAt
+        }
+      }
+      pageInfo {
+        hasNextPage
+        hasPreviousPage
+        startCursor
+        endCursor
+      }
+      totalCount
     }
   }
 `;
@@ -273,20 +296,27 @@ export const GET_TEAMS = gql`
 export const GET_PLAYERS = gql`
   query GetPlayers($filters: PlayerFilters, $pagination: PaginationInput) {
     players(filters: $filters, pagination: $pagination) {
-      items {
-        ...PlayerFragment
+      edges {
+        cursor
+        node {
+          ...PlayerFragment
+        }
       }
-      total
-      hasMore
-      nextCursor
+      pageInfo {
+        hasNextPage
+        hasPreviousPage
+        startCursor
+        endCursor
+      }
+      totalCount
     }
   }
   ${PLAYER_FRAGMENT}
 `;
 
 export const GET_COMMENTS_WITH_FILTERS = gql`
-  query GetCommentsWithFilters($parentId: ID!, $first: Int, $after: String) {
-    comments(parentId: $parentId, first: $first, after: $after) {
+  query GetCommentsWithFilters($filters: CommentFilters) {
+    comments(filters: $filters) {
       edges {
         cursor
         node {
@@ -445,193 +475,51 @@ export const GET_COMMENTS_WITH_FILTERS = gql`
 `;
 
 export const GET_USERS = gql`
-  query GetUsers($pagination: PaginationInput) {
-    users(pagination: $pagination) {
-      items {
-        ...BasicUserFragment
-      }
-      total
-      hasMore
-      nextCursor
+  query GetUsers($filters: UserFilters, $pagination: PaginationInput) {
+    users(filters: $filters, pagination: $pagination) {
+      ...UserSummaryFragment
     }
   }
-  ${BASIC_USER_FRAGMENT}
+  ${USER_SUMMARY_FRAGMENT}
 `;
 
 export const GET_USER = gql`
   query GetUser($id: ID!) {
     user(id: $id) {
-      ...BasicUserFragment
+      ...UserSummaryFragment
     }
   }
-  ${BASIC_USER_FRAGMENT}
+  ${USER_SUMMARY_FRAGMENT}
 `;
 
 export const GET_GAME_LOGS = gql`
-  query GetGameLogs($first: Int, $after: String, $filters: GameLogFilters) {
-    gameLogs(first: $first, after: $after, filters: $filters) {
+  query GetGameLogs($filters: GameLogFilters, $pagination: PaginationInput) {
+    gameLogs(filters: $filters, pagination: $pagination) {
       edges {
         cursor
         node {
-          id
-          userId
-          gameId
-          watchedSetting
-          watchedDate
-          watchedLocation
-          ratingForGame
-          watchedScope
-          notes
-          tags
-          classification
-          createdAt
-          updatedAt
-          deletedAt
-          user {
-            id
-            username
-            firstName
-            lastName
-            emailAddress
-            imageUrl
-          }
-          game {
-            id
-            teams
-            scores
-            date {
-              start
-              end
-              duration
-            }
-            arena {
-              name
-              city
-              state
-              country
-            }
-            status {
-              clock
-              halftime
-              long
-              short
-            }
-            timesTied
-            leadChanges
-            league
-            season
-          }
-          comments(first: 20) {
-            edges {
-              node {
-                id
-                userId
-                parentId
-                parentType
-                content
-                createdAt
-                updatedAt
-                deletedAt
-                user {
-                  id
-                  username
-                  emailAddress
-                  imageUrl
-                }
-                reactions {
-                  id
-                  emoji
-                  userId
-                  targetId
-                  targetType
-                  createdAt
-                  updatedAt
-                  user {
-                    id
-                    username
-                    emailAddress
-                    imageUrl
-                  }
-                }
-              }
-            }
-            totalCount
-          }
-          reactions(first: 20) {
-            edges {
-              node {
-                id
-                emoji
-                userId
-                targetId
-                targetType
-                createdAt
-                updatedAt
-                user {
-                  id
-                  username
-                  emailAddress
-                  imageUrl
-                }
-              }
-            }
-            totalCount
-          }
+          ...GameLogFragment
         }
       }
       pageInfo {
-        startCursor
-        endCursor
         hasNextPage
         hasPreviousPage
+        startCursor
+        endCursor
       }
       totalCount
     }
   }
+  ${GAME_LOG_FRAGMENT}
 `;
 
 export const GET_LIVE_GAMES = gql`
   query GetLiveGames($first: Int, $after: String) {
     liveGames(first: $first, after: $after) {
       edges {
+        cursor
         node {
-          id
-          date {
-            start
-            end
-            duration
-          }
-          status {
-            clock
-            halftime
-            long
-            short
-          }
-          arena {
-            name
-            city
-            state
-            country
-          }
-          league
-          season
-          stage
-          periods
-          scores
-          officials
-          timesTied
-          leadChanges
-          nugget
-          createdAt
-          updatedAt
-          homeTeamId
-          awayTeamId
-          teams
-          isCompleted
-          awayTeamScore
-          homeTeamScore
-          gameType
-          nbaGameId
+          ...GameFragment
         }
       }
       pageInfo {
@@ -643,61 +531,68 @@ export const GET_LIVE_GAMES = gql`
       totalCount
     }
   }
+  ${GAME_FRAGMENT}
 `;
 
 export const GET_TEAM_STATS = gql`
-  query GetTeamStats($teamId: ID!, $sort: TeamSortInput) {
-    teamStats(teamId: $teamId, sort: $sort) {
-      edges {
-        node {
-          id
-          team {
-            id
-            name
-            nickname
-            code
-            logo
-          }
-          season
-          games_played
-          wins
-          losses
-          points
-          field_goals_made
-          field_goals_attempted
-          field_goal_percentage
-          three_pointers_made
-          three_pointers_attempted
-          three_pointer_percentage
-          free_throws_made
-          free_throws_attempted
-          free_throw_percentage
-          offensive_rebounds
-          defensive_rebounds
-          total_rebounds
-          assists
-          steals
-          blocks
-          turnovers
-          personal_fouls
-          createdAt
-          updatedAt
-        }
+  query GetTeamStats($teamId: ID!, $season: Int!) {
+    teamStats(teamId: $teamId, season: $season) {
+      id
+      team {
+        id
+        name
+        nickname
+        code
+        logo
       }
-      pageInfo {
-        hasNextPage
-        hasPreviousPage
-        startCursor
-        endCursor
+      season
+      gamesPlayed
+      wins
+      losses
+      conferenceStanding {
+        name
+        rank
+        win
+        loss
       }
-      totalCount
+      pointsPerGame
+      fieldGoalPercentage
+      threePointPercentage
+      freeThrowPercentage
+      reboundsPerGame
+      assistsPerGame
+      stealsPerGame
+      blocksPerGame
+      turnoversPerGame
+      foulsPerGame
+      points
+      fgm
+      fga
+      fgp
+      ftm
+      fta
+      ftp
+      tpm
+      tpa
+      tpp
+      longestRun
+      defReb
+      totReb
+      assists
+      pFouls
+      steals
+      turnovers
+      blocks
+      plusMinus
+      createdAt
+      updatedAt
     }
   }
 `;
 
 export const GET_GAMES = gql`
-  query GetGames($filters: GameFilters, $first: Int, $after: String) {
-    games(filters: $filters, first: $first, after: $after) {
+  query GetGames($filters: GameFilters, $pagination: PaginationInput) {
+    games(filters: $filters, pagination: $pagination) {
       edges {
         cursor
         node {
@@ -717,53 +612,21 @@ export const GET_GAMES = gql`
 `;
 
 export const GET_REACTIONS = gql`
-  query GetReactions($targetId: ID!) {
-    reactions(targetId: $targetId) {
-      edges {
-        cursor
-        node {
-          id
-          emoji
-          userId
-          targetId
-          targetType
-          createdAt
-          updatedAt
-          user {
-            id
-            username
-            emailAddress
-            imageUrl
-          }
-        }
-      }
-      pageInfo {
-        hasNextPage
-        hasPreviousPage
-        startCursor
-        endCursor
-      }
-      totalCount
-    }
-  }
-`;
-
-export const GET_FRIENDSHIPS = gql`
-  query GetFriendships($userId: ID!) {
-    friendships(userId: $userId) {
+  query GetReactions($targetId: ID!, $targetType: ParentType!) {
+    reactions(targetId: $targetId, targetType: $targetType) {
       id
-      status
+      emoji
+      userId
+      targetId
+      targetType
       createdAt
       updatedAt
       user {
-        ...BasicUserFragment
-      }
-      friend {
-        ...BasicUserFragment
+        ...UserSummaryFragment
       }
     }
   }
-  ${BASIC_USER_FRAGMENT}
+  ${USER_SUMMARY_FRAGMENT}
 `;
 
 export const SEARCH_USERS = gql`
@@ -772,30 +635,7 @@ export const SEARCH_USERS = gql`
       edges {
         cursor
         node {
-          id
-          username
-          firstName
-          lastName
-          emailAddress
-          imageUrl
-          createdAt
-          gameLogs {
-            id
-          }
-          initiatedFriendships {
-            id
-            status
-            recipient {
-              id
-            }
-          }
-          friendships {
-            id
-            status
-            initiator {
-              id
-            }
-          }
+          ...UserSummaryFragment
         }
       }
       pageInfo {
@@ -807,34 +647,40 @@ export const SEARCH_USERS = gql`
       totalCount
     }
   }
+  ${USER_SUMMARY_FRAGMENT}
 `;
 
-export const GET_GAME_LOG_BY_ID = gql`
-  query GetGameLogById($id: ID!) {
-    gameLogById(id: $id) {
+export const GET_GAME_LOG = gql`
+  query GetGameLog($id: ID!) {
+    gameLog(id: $id) {
       ...GameLogFragment
-      ratingForGame
-      reactions(first: 20) {
+      reactions {
+        id
+        emoji
+        userId
+        targetId
+        targetType
+        createdAt
+        updatedAt
+        user {
+          id
+          username
+          emailAddress
+          imageUrl
+        }
+      }
+      comments(first: 20) {
         edges {
           node {
             id
-            emoji
-            userId
-            targetId
-            targetType
-            createdAt
-            updatedAt
+            content
             user {
               id
               username
-              emailAddress
               imageUrl
             }
           }
         }
-        totalCount
-      }
-      comments(first: 20) {
         totalCount
       }
     }
@@ -843,158 +689,32 @@ export const GET_GAME_LOG_BY_ID = gql`
 `;
 
 export const GET_USER_GAME_LOGS = gql`
-  query GetUserGameLogs($filters: GameLogFilters) {
-    gameLogs(filters: $filters) {
+  query GetUserGameLogs($filters: GameLogFilters, $pagination: PaginationInput) {
+    gameLogs(filters: $filters, pagination: $pagination) {
       edges {
         node {
-          id
-          userId
-          gameId
-          watchedSetting
-          watchedDate
-          watchedLocation
-          ratingForGame
-          watchedScope
-          notes
-          tags
-          classification
-          createdAt
-          updatedAt
-          deletedAt
-          user {
-            id
-            username
-            firstName
-            lastName
-            emailAddress
-            imageUrl
-          }
-          game {
-            id
-            teams
-            scores
-            date {
-              start
-              end
-              duration
-            }
-            arena {
-              name
-              city
-              state
-              country
-            }
-            status {
-              clock
-              halftime
-              long
-              short
-            }
-            timesTied
-            leadChanges
-            league
-            season
-          }
+          ...GameLogFragment
         }
+      }
+      pageInfo {
+        hasNextPage
+        hasPreviousPage
+        startCursor
+        endCursor
       }
       totalCount
     }
   }
+  ${GAME_LOG_FRAGMENT}
 `;
 
 export const GET_USER_FRIENDSHIPS = gql`
   query GetUserFriendships($userId: ID!) {
     user(id: $userId) {
-      id
-      initiatedFriendships {
-        id
-        status
-        createdAt
-        updatedAt
-        initiator {
-          id
-          emailAddress
-          imageUrl
-          firstName
-          lastName
-        }
-        recipient {
-          id
-          emailAddress
-          imageUrl
-          firstName
-          lastName
-        }
-      }
-      friendships {
-        id
-        status
-        createdAt
-        updatedAt
-        initiator {
-          id
-          emailAddress
-          imageUrl
-          firstName
-          lastName
-        }
-        recipient {
-          id
-          emailAddress
-          imageUrl
-          firstName
-          lastName
-        }
-      }
+      ...UserSummaryFragment
     }
   }
-`;
-
-export const GET_GAME_STATS = gql`
-  query GetGameStats($gameId: ID!) {
-    gameStats(gameId: $gameId) {
-      id
-      game {
-        id
-        date {
-          start
-        }
-        teams
-        scores
-      }
-      team {
-        id
-        name
-        nickname
-        code
-        logo
-      }
-      points
-      rebounds
-      assists
-      steals
-      blocks
-      turnovers
-      fouls
-      fieldGoals {
-        made
-        attempted
-        percentage
-      }
-      threePointers {
-        made
-        attempted
-        percentage
-      }
-      freeThrows {
-        made
-        attempted
-        percentage
-      }
-      createdAt
-      updatedAt
-    }
-  }
+  ${USER_SUMMARY_FRAGMENT}
 `;
 
 export const GET_TEAM_H2H = gql`
@@ -1022,29 +742,37 @@ export const GET_TEAM_GAME_STATS = gql`
         logo
       }
       season
-      games_played
+      gamesPlayed
       wins
       losses
       points
-      field_goals_made
-      field_goals_attempted
-      field_goal_percentage
-      three_pointers_made
-      three_pointers_attempted
-      three_pointer_percentage
-      free_throws_made
-      free_throws_attempted
-      free_throw_percentage
-      offensive_rebounds
-      defensive_rebounds
-      total_rebounds
+      fgm
+      fga
+      fgp
+      tpm
+      tpa
+      tpp
+      ftm
+      fta
+      ftp
+      defReb
+      totReb
       assists
       steals
       blocks
       turnovers
-      personal_fouls
+      pFouls
       createdAt
       updatedAt
     }
   }
+`;
+
+export const GET_ME = gql`
+  query GetMe {
+    me {
+      ...UserSummaryFragment
+    }
+  }
+  ${USER_SUMMARY_FRAGMENT}
 `;

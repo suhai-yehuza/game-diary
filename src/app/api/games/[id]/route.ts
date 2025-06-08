@@ -1,9 +1,9 @@
 import { eq } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
 
-import { db } from '@/lib/db';
-import { nba_games } from '@/lib/db/schema';
-import { apiLogger } from '@/lib/logger';
+import { db } from '@src/lib/db';
+import { nba_games } from '@src/lib/db/schema';
+import { apiLogger } from 'lib/core/logger';
 export async function GET(request: Request, { params }: { params: { id: string } }) {
   try {
     const game = await db.query.nba_games.findFirst({
@@ -27,3 +27,6 @@ export async function GET(request: Request, { params }: { params: { id: string }
     return new NextResponse('Internal Server Error', { status: 500 });
   }
 }
+
+// Force Node.js runtime for database operations
+export const runtime = 'nodejs';
