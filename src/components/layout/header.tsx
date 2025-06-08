@@ -78,9 +78,6 @@ function SearchBarContent() {
   // For detaching effect
   const baseFormClass =
     'relative max-w-[180px] md:max-w-[220px] h-8 bg-background border border-[#27272a] shadow flex items-center px-2 transition-all duration-200 text-sm';
-  const detachedFormClass =
-    'fixed left-1/2 top-20 z-[100] -translate-x-1/2 w-[300px] md:w-[400px] h-12 bg-background border border-[#27272a] shadow-2xl flex items-center px-4 py-2';
-
   if (isFocused) {
     return (
       <div className="fixed inset-0 z-[100] bg-black/70 flex items-start justify-center pt-[12vh] animate-fadeIn">
@@ -103,14 +100,19 @@ function SearchBarContent() {
               onBlur={() => setIsFocused(false)}
               autoComplete="off"
               spellCheck={false}
-              ref={input => { if (isFocused && input) input.focus(); }}
+              ref={input => {
+                if (isFocused && input) input.focus();
+              }}
             />
           </div>
           <button
             type="button"
             className="ml-2 text-gray-400 hover:text-gray-600 focus:outline-none"
             aria-label="Close search"
-            onMouseDown={e => { e.preventDefault(); setIsFocused(false); }}
+            onMouseDown={e => {
+              e.preventDefault();
+              setIsFocused(false);
+            }}
           >
             <X className="h-5 w-5" />
           </button>
@@ -119,11 +121,7 @@ function SearchBarContent() {
     );
   }
   return (
-    <form
-      onSubmit={handleSearch}
-      className={baseFormClass}
-      tabIndex={-1}
-    >
+    <form onSubmit={handleSearch} className={baseFormClass} tabIndex={-1}>
       <div className="relative flex-1">
         <Search className="absolute left-2 top-2 h-4 w-4 text-muted-foreground" />
         <Input
@@ -316,7 +314,7 @@ export default function Header() {
                           }`}
                           onClick={() => setIsMenuExpanded(false)}
                         >
-                          Home
+                          Profile
                         </Link>
                         <SignedIn>
                           {isLoaded && isAdmin && (
@@ -358,8 +356,14 @@ export default function Header() {
                 {/* Detachable Search Bar */}
                 {/* Mobile overlay */}
                 {isSearchVisible && (
-                  <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/40 sm:hidden" onClick={() => setIsSearchVisible(false)}>
-                    <div className="mt-8 w-full max-w-md bg-background rounded-full border border-[#27272a] shadow-lg flex items-center px-4 py-2 relative" onClick={e => e.stopPropagation()}>
+                  <div
+                    className="fixed inset-0 z-50 flex items-start justify-center bg-black/40 sm:hidden"
+                    onClick={() => setIsSearchVisible(false)}
+                  >
+                    <div
+                      className="mt-8 w-full max-w-md bg-background rounded-full border border-[#27272a] shadow-lg flex items-center px-4 py-2 relative"
+                      onClick={e => e.stopPropagation()}
+                    >
                       <SearchBar />
                       <button
                         className="ml-2 text-gray-400 hover:text-gray-600"

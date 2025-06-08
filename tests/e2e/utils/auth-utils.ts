@@ -17,6 +17,13 @@ interface ClerkMock {
   };
   signOut: () => Promise<void>;
   getToken: () => Promise<string>;
+  load: () => Promise<void>;
+  mountSignIn: () => Promise<void>;
+  mountSignUp: () => Promise<void>;
+  openSignIn: () => Promise<void>;
+  openSignUp: () => Promise<void>;
+  addListener: () => () => {};
+  removeListener: () => {};
 }
 
 interface ClerkMocks {
@@ -74,6 +81,13 @@ export async function mockClerkAuth(page: Page) {
         },
         signOut: () => Promise.resolve(),
         getToken: () => Promise.resolve('test_token_123'),
+        load: () => Promise.resolve(),
+        mountSignIn: () => Promise.resolve(),
+        mountSignUp: () => Promise.resolve(),
+        openSignIn: () => Promise.resolve(),
+        openSignUp: () => Promise.resolve(),
+        addListener: () => () => {},
+        removeListener: () => {},
       },
     };
 
