@@ -33,14 +33,14 @@ const nextConfig = {
     },
   }),
 
-  // Experimental features
+    // Experimental features
   experimental: {
     // Performance optimizations - exclude drizzle-orm to avoid conflict
     optimizePackageImports: ['@apollo/client', 'react-hot-toast'],
-
-    // Keep drizzle-orm external for server components
-    serverComponentsExternalPackages: ['drizzle-orm'],
   },
+
+  // External packages for server components (moved out of experimental)
+  serverExternalPackages: ['drizzle-orm'],
 
   eslint: {
     ignoreDuringBuilds: false,

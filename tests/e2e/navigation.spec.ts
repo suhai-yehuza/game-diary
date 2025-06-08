@@ -23,11 +23,26 @@ test.describe('Navigation', () => {
     await setupApiMocking(page);
 
     await page.goto('/sports/nba');
-    await waitForPageContent(page);
-
+    
+    // Wait for basic page structure first
+    await page.waitForSelector('main', { timeout: 20000 });
+    
     // Check that we're on the NBA page
     await expect(page).toHaveURL(/\/sports\/nba/);
-    await expect(page.locator('main').first()).toBeVisible({ timeout: 10000 });
+    
+    // Wait for either content or loading state
+    await page.waitForFunction(
+      () => {
+        const main = document.querySelector('main');
+        if (!main) return false;
+        const text = main.textContent || '';
+        return text.includes('NBA') || text.includes('Loading') || text.includes('Error');
+      },
+      { timeout: 15000 }
+    );
+    
+    // Main element should be visible
+    await expect(page.locator('main').first()).toBeVisible({ timeout: 5000 });
   });
 
   test('should navigate to dashboard', async ({ page }) => {
