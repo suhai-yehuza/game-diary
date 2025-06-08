@@ -69,6 +69,10 @@ const nextConfig = {
         protocol: 'https',
         hostname: '**.nba.com',
       },
+      {
+        protocol: 'https',
+        hostname: '**.wikimedia.org',
+      },
     ],
   },
 

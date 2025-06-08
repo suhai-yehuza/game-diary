@@ -106,6 +106,12 @@ const getStatusBadge = (status: string, isScheduled?: boolean, isFinished?: bool
   );
 };
 
+// Utility to ensure logo URLs use https
+function ensureHttps(url?: string) {
+  if (!url) return url;
+  return url.replace(/^http:\/\//, 'https://');
+}
+
 export function BasketballGameSearchSection() {
   const router = useRouter();
   const currentYear = getCurrentSeason();
@@ -564,7 +570,7 @@ export function BasketballGameSearchSection() {
                           {game.teams?.visitors?.logo && (
                             <div className="relative h-8 w-8 flex-shrink-0">
                               <Image
-                                src={game.teams.visitors.logo}
+                                src={ensureHttps(game.teams.visitors.logo) || ''}
                                 alt={game.teams.visitors.name || 'Away'}
                                 fill
                                 sizes="32px"
@@ -587,7 +593,7 @@ export function BasketballGameSearchSection() {
                           {game.teams?.home?.logo && (
                             <div className="relative h-8 w-8 flex-shrink-0">
                               <Image
-                                src={game.teams.home.logo}
+                                src={ensureHttps(game.teams.home.logo) || ''}
                                 alt={game.teams.home.name || 'Home'}
                                 fill
                                 sizes="32px"

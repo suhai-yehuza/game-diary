@@ -1229,9 +1229,8 @@ export interface Arena {
 
 export type GameCardProps = {
   game: SearchGame;
-  className?: string;
   index?: number;
-  imageErrors?: Set<string>;
+  imageErrors?: Record<string, boolean>;
   onImageError?: (gameId: string) => void;
 };
 

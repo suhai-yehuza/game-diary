@@ -34,6 +34,12 @@ const formatArenaLocation = (arena: { name?: string; city?: string; state?: stri
   return parts.join(', ');
 };
 
+// Utility to ensure logo URLs use https
+function ensureHttps(url?: string) {
+  if (!url) return url;
+  return url.replace(/^http:\/\//, 'https://');
+}
+
 export const GameCard = memo(({ game, index, imageErrors, onImageError }: GameCardProps) => {
   const router = useRouter();
   const isLive = game.status.long === 'In Play' || game.status.short === 'Live';
@@ -120,9 +126,9 @@ export const GameCard = memo(({ game, index, imageErrors, onImageError }: GameCa
                 <div className="relative w-16 h-16 flex-shrink-0">
                   <Image
                     src={
-                      imageErrors?.has(`${game.id}-visitors`)
+                      imageErrors?.[`${game.id}-visitors`]
                         ? '/logos/gamelog.svg'
-                        : game.teams.visitors.logo
+                        : ensureHttps(game.teams.visitors.logo) || ''
                     }
                     alt={game.teams.visitors.name}
                     fill
@@ -167,9 +173,9 @@ export const GameCard = memo(({ game, index, imageErrors, onImageError }: GameCa
                 <div className="relative w-16 h-16 flex-shrink-0">
                   <Image
                     src={
-                      imageErrors?.has(`${game.id}-home`)
+                      imageErrors?.[`${game.id}-home`]
                         ? '/logos/gamelog.svg'
-                        : game.teams.home.logo
+                        : ensureHttps(game.teams.home.logo) || ''
                     }
                     alt={game.teams.home.name}
                     fill
