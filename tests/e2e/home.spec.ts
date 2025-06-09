@@ -4,6 +4,7 @@ import {
   waitForPageContent,
   setupApiMocking,
   setViewportAndWaitForLayout,
+  navigateWithMocking,
 } from './utils/test-utils';
 
 test.describe('Home Page', () => {
@@ -30,6 +31,64 @@ test.describe('Home Page', () => {
     if (await sportsLink.isVisible()) {
       await expect(sportsLink).toBeVisible();
     }
+  });
+
+  test('should display live games banner when games are in progress', async ({ page }) => {
+    // Use default mocking which includes live games
+    await navigateWithMocking(page, '/');
+
+    // Check that the live games banner is visible
+    const liveGamesBanner = page.locator('[href="/sports/nba/live"]');
+    await expect(liveGamesBanner).toBeVisible({ timeout: 10000 });
+
+    // Check banner content
+    await expect(page.locator('text=Live Games')).toBeVisible();
+    await expect(page.locator('text=happening now')).toBeVisible();
+    await expect(page.locator('text=Click to view')).toBeVisible();
+
+    // Check that banner has the correct styling (red background)
+    const bannerElement = page.locator('.bg-gradient-to-r.from-red-500');
+    await expect(bannerElement).toBeVisible();
+
+    // Check for animated elements
+    await expect(page.locator('.animate-pulse')).toBeVisible();
+    await expect(page.locator('.animate-ping')).toBeVisible();
+  });
+
+  test('should navigate to live games page when clicking banner', async ({ page }) => {
+    await navigateWithMocking(page, '/');
+
+    // Wait for banner to be visible
+    const liveGamesBanner = page.locator('[href="/sports/nba/live"]');
+    await expect(liveGamesBanner).toBeVisible({ timeout: 10000 });
+
+    // Mock the live games page
+    await page.route('**/sports/nba/live', async route => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'text/html',
+        body: '<html><body><h1>Live NBA Games</h1></body></html>',
+      });
+    });
+
+    // Click the banner
+    await liveGamesBanner.click();
+
+    // Check that we navigated to the live games page
+    await expect(page).toHaveURL('/sports/nba/live');
+  });
+
+  test('should not display live games banner when no games are live', async ({ page }) => {
+    // Use empty live games mocking
+    await navigateWithMocking(page, '/', { emptyLiveGames: true });
+
+    // Check that the live games banner is not visible
+    const liveGamesBanner = page.locator('[href="/sports/nba/live"]');
+    await expect(liveGamesBanner).not.toBeVisible();
+
+    // Check that live games related text is not present
+    await expect(page.locator('text=Live Games')).not.toBeVisible();
+    await expect(page.locator('text=happening now')).not.toBeVisible();
   });
 
   test('should be responsive', async ({ page }) => {

@@ -3,6 +3,268 @@ import { setupTestAuth } from './auth-utils';
 import { seedLogger } from 'lib/core/logger';
 
 /**
+ * Mock data for live games
+ */
+const MOCK_LIVE_GAMES_DATA = {
+  data: {
+    liveGames: {
+      edges: [
+        {
+          cursor: 'cursor1',
+          node: {
+            id: '15458',
+            league: 'NBA',
+            season: 2024,
+            stage: 3,
+            date: {
+              start: new Date().toISOString(),
+              end: null,
+              duration: null,
+            },
+            status: {
+              clock: '10:46',
+              halftime: false,
+              short: '2',
+              long: 'In Play',
+            },
+            periods: {
+              current: 2,
+              total: 4,
+              endOfPeriod: false,
+            },
+            arena: {
+              name: 'Paycom Center',
+              city: 'Oklahoma City',
+              state: 'OK',
+              country: 'USA',
+            },
+            teams: {
+              visitors: {
+                id: '15',
+                name: 'Indiana Pacers',
+                nickname: 'Pacers',
+                code: 'IND',
+                logo: 'https://upload.wikimedia.org/wikipedia/fr/thumb/c/cf/Pacers_de_l%27Indiana_logo.svg/1180px-Pacers_de_l%27Indiana_logo.svg.png',
+              },
+              home: {
+                id: '25',
+                name: 'Oklahoma City Thunder',
+                nickname: 'Thunder',
+                code: 'OKC',
+                logo: 'https://upload.wikimedia.org/wikipedia/en/thumb/5/5d/Oklahoma_City_Thunder.svg/836px-Oklahoma_City_Thunder.svg.png',
+              },
+            },
+            scores: {
+              visitors: {
+                win: 42,
+                loss: 18,
+                series: {
+                  win: 2,
+                  loss: 1,
+                },
+                linescore: [24, 18, 0, 0],
+                points: 42,
+              },
+              home: {
+                win: 38,
+                loss: 22,
+                series: {
+                  win: 1,
+                  loss: 2,
+                },
+                linescore: [22, 20, 0, 0],
+                points: 42,
+              },
+            },
+            officials: ['James Capers', 'Scott Foster'],
+            timesTied: 3,
+            leadChanges: 8,
+            nugget: 'Game tied at halftime',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          },
+        },
+        {
+          cursor: 'cursor2',
+          node: {
+            id: '15459',
+            league: 'NBA',
+            season: 2024,
+            stage: 3,
+            date: {
+              start: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
+              end: null,
+              duration: null,
+            },
+            status: {
+              clock: '5:23',
+              halftime: false,
+              short: '4',
+              long: 'In Play',
+            },
+            periods: {
+              current: 4,
+              total: 4,
+              endOfPeriod: false,
+            },
+            arena: {
+              name: 'Chase Center',
+              city: 'San Francisco',
+              state: 'CA',
+              country: 'USA',
+            },
+            teams: {
+              visitors: {
+                id: '9',
+                name: 'Denver Nuggets',
+                nickname: 'Nuggets',
+                code: 'DEN',
+                logo: 'https://upload.wikimedia.org/wikipedia/en/7/76/Denver_Nuggets.svg',
+              },
+              home: {
+                id: '11',
+                name: 'Golden State Warriors',
+                nickname: 'Warriors',
+                code: 'GSW',
+                logo: 'https://upload.wikimedia.org/wikipedia/en/0/01/Golden_State_Warriors_logo.svg',
+              },
+            },
+            scores: {
+              visitors: {
+                win: 45,
+                loss: 15,
+                series: {
+                  win: 3,
+                  loss: 0,
+                },
+                linescore: [28, 25, 24, 18],
+                points: 95,
+              },
+              home: {
+                win: 38,
+                loss: 22,
+                series: {
+                  win: 0,
+                  loss: 3,
+                },
+                linescore: [22, 31, 26, 23],
+                points: 102,
+              },
+            },
+            officials: ['Tony Brothers', 'Ed Malloy'],
+            timesTied: 12,
+            leadChanges: 24,
+            nugget: 'Close game in the 4th quarter',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          },
+        },
+        {
+          cursor: 'cursor3',
+          node: {
+            id: '15460',
+            league: 'NBA',
+            season: 2024,
+            stage: 3,
+            date: {
+              start: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString(), // 1 hour ago
+              end: null,
+              duration: null,
+            },
+            status: {
+              clock: '0:00',
+              halftime: true,
+              short: 'HT',
+              long: 'Halftime',
+            },
+            periods: {
+              current: 2,
+              total: 4,
+              endOfPeriod: true,
+            },
+            arena: {
+              name: 'TD Garden',
+              city: 'Boston',
+              state: 'MA',
+              country: 'USA',
+            },
+            teams: {
+              visitors: {
+                id: '20',
+                name: 'Miami Heat',
+                nickname: 'Heat',
+                code: 'MIA',
+                logo: 'https://upload.wikimedia.org/wikipedia/en/f/fb/Miami_Heat_logo.svg',
+              },
+              home: {
+                id: '2',
+                name: 'Boston Celtics',
+                nickname: 'Celtics',
+                code: 'BOS',
+                logo: 'https://upload.wikimedia.org/wikipedia/en/8/8f/Boston_Celtics.svg',
+              },
+            },
+            scores: {
+              visitors: {
+                win: 35,
+                loss: 25,
+                series: {
+                  win: 1,
+                  loss: 1,
+                },
+                linescore: [28, 29, 0, 0],
+                points: 57,
+              },
+              home: {
+                win: 48,
+                loss: 12,
+                series: {
+                  win: 1,
+                  loss: 1,
+                },
+                linescore: [32, 27, 0, 0],
+                points: 59,
+              },
+            },
+            officials: ['Marc Davis', 'John Goble'],
+            timesTied: 5,
+            leadChanges: 11,
+            nugget: 'Tight game at halftime',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          },
+        },
+      ],
+      pageInfo: {
+        hasNextPage: false,
+        hasPreviousPage: false,
+        startCursor: 'cursor1',
+        endCursor: 'cursor3',
+      },
+      totalCount: 3,
+    },
+  },
+};
+
+/**
+ * Mock data for empty live games (no games currently live)
+ */
+const MOCK_EMPTY_LIVE_GAMES_DATA = {
+  data: {
+    liveGames: {
+      edges: [],
+      pageInfo: {
+        hasNextPage: false,
+        hasPreviousPage: false,
+        startCursor: null,
+        endCursor: null,
+      },
+      totalCount: 0,
+    },
+  },
+};
+
+/**
  * Wait for the page to fully load including all network requests
  */
 async function waitForPageLoad(page: Page) {
@@ -46,7 +308,7 @@ export async function waitForPageContent(page: Page): Promise<void> {
 /**
  * Sets up API mocking for the test environment
  */
-export async function setupApiMocking(page: Page, withAuth = false) {
+export async function setupApiMocking(page: Page, withAuth = false, options: { emptyLiveGames?: boolean } = {}) {
   // Mock GraphQL API calls
   await page.route('**/api/graphql', async route => {
     const request = route.request();
@@ -61,11 +323,7 @@ export async function setupApiMocking(page: Page, withAuth = false) {
       const { query } = JSON.parse(postData);
 
       if (query.includes('liveGames')) {
-        mockResponse = {
-          data: {
-            liveGames: [],
-          },
-        };
+        mockResponse = options.emptyLiveGames ? MOCK_EMPTY_LIVE_GAMES_DATA : MOCK_LIVE_GAMES_DATA;
       } else if (query.includes('notifications')) {
         mockResponse = {
           data: {
@@ -142,8 +400,8 @@ export async function safeGotoWithMocking(page: Page, url: string) {
  * Common test pattern: setup mocking, navigate, and wait for content
  * This is the most frequently used pattern in our tests
  */
-export async function navigateWithMocking(page: Page, url: string) {
-  await setupApiMocking(page);
+export async function navigateWithMocking(page: Page, url: string, options: { emptyLiveGames?: boolean } = {}) {
+  await setupApiMocking(page, false, options);
   await page.goto(url);
   await waitForPageContent(page);
 }
