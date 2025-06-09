@@ -9,7 +9,7 @@ import { CREATE_REACTION } from '@src/lib/graphql/mutations';
 import { GET_REACTIONS, GET_GAME_LOG } from '@src/lib/graphql/queries';
 import { logger } from 'lib/core/logger';
 import type { ReactionsData } from '@src/lib/types/component.types';
-import { REACTION_EMOJIS } from '@src/lib/types/config.types';
+import { REACTION_EMOJIS, EMOJI_TO_GRAPHQL_MAPPING } from '@src/lib/types/config.types';
 import type { ReactionPickerProps } from '@src/lib/types/consolidated.types';
 import type { ReactionEmojiType, Reaction } from '@src/lib/types/generated/graphql';
 import { cn } from '@src/lib/utils';
@@ -24,8 +24,11 @@ export function ReactionPicker({
   const { user } = useUser();
   const [createReaction] = useMutation(CREATE_REACTION);
 
-  const handleReaction = async (emojiName: ReactionEmojiType) => {
+  const handleReaction = async (frontendEmojiKey: keyof typeof REACTION_EMOJIS) => {
     if (!user) return;
+
+    // Map frontend emoji key to GraphQL enum value
+    const graphqlEmojiValue = EMOJI_TO_GRAPHQL_MAPPING[frontendEmojiKey] as ReactionEmojiType;
 
     try {
       await createReaction({
@@ -33,7 +36,7 @@ export function ReactionPicker({
           input: {
             targetId: targetId,
             targetType: targetType,
-            emoji: emojiName,
+            emoji: graphqlEmojiValue,
           },
         },
         update: (cache, { data }) => {
@@ -70,7 +73,7 @@ export function ReactionPicker({
             } else {
               // Removing reaction
               newEdges = existingData.reactions.edges.filter(
-                edge => !(edge.node.userId === user.id && edge.node.emoji === emojiName)
+                edge => !(edge.node.userId === user.id && edge.node.emoji === graphqlEmojiValue)
               );
             }
 
@@ -126,7 +129,7 @@ export function ReactionPicker({
               } else {
                 // Removing reaction
                 newEdges = gameLogData.gameLog.reactions.edges.filter(
-                  edge => !(edge.node.userId === user.id && edge.node.emoji === emojiName)
+                  edge => !(edge.node.userId === user.id && edge.node.emoji === graphqlEmojiValue)
                 );
               }
 
@@ -157,9 +160,10 @@ export function ReactionPicker({
     }
   };
 
-  const hasUserReacted = (emojiName: ReactionEmojiType) => {
+  const hasUserReacted = (frontendEmojiKey: keyof typeof REACTION_EMOJIS) => {
+    const graphqlEmojiValue = EMOJI_TO_GRAPHQL_MAPPING[frontendEmojiKey] as ReactionEmojiType;
     return existingReactions.some(
-      reaction => reaction.userId === user?.id && reaction.emoji === emojiName
+      reaction => reaction.userId === user?.id && reaction.emoji === graphqlEmojiValue
     );
   };
 
@@ -174,14 +178,15 @@ export function ReactionPicker({
       <PopoverContent className="w-64 p-3" align="start">
         <div className="grid grid-cols-6 gap-1">
           {Object.entries(REACTION_EMOJIS).map(([name, emoji]) => {
-            const hasReacted = hasUserReacted(name as ReactionEmojiType);
+            const emojiKey = name as keyof typeof REACTION_EMOJIS;
+            const hasReacted = hasUserReacted(emojiKey);
 
             return (
               <Button
                 key={name}
                 variant={hasReacted ? 'secondary' : 'ghost'}
                 size="sm"
-                onClick={() => handleReaction(name as ReactionEmojiType)}
+                onClick={() => handleReaction(emojiKey)}
                 className={cn('h-8 w-full p-0', hasReacted && 'ring-1 ring-primary/20')}
                 title={name.charAt(0) + name.slice(1).toLowerCase()}
               >

@@ -150,6 +150,31 @@ export const TARGET_TYPES = {
   comment: 'comment',
 } as const;
 
+// Mapping frontend emoji keys to GraphQL enum values
+export const EMOJI_TO_GRAPHQL_MAPPING = {
+  LIKE: 'THUMBS_UP',
+  LOVE: 'HEART',
+  LAUGH: 'LAUGH',
+  WOW: 'WOW',
+  SAD: 'SAD',
+  ANGRY: 'ANGRY',
+  FIRE: 'FIRE',
+  EYES: 'EYES',
+  ROCKET: 'ROCKET',
+  THUMBS_DOWN: 'THUMBS_DOWN',
+  // Map other emojis to closest GraphQL enum equivalent or default
+  CLAP: 'THUMBS_UP',
+  MUSCLE: 'FIRE',
+  GOAT: 'FIRE',
+  BULLSEYE: 'FIRE',
+  BASKETBALL: 'FIRE',
+  SOCCER: 'FIRE',
+  FOOTBALL: 'FIRE',
+  BASEBALL: 'FIRE',
+  TENNIS: 'FIRE',
+  GOLF: 'FIRE',
+} as const;
+
 export const LEAGUES = {
   NBA: 'NBA',
   NHL: 'NHL',
