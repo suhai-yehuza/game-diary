@@ -505,7 +505,7 @@ export const createComment = async (
         userId: dbUser.id,
         content: validatedInput.content,
         parentId: validatedInput.parentId,
-        parentType: validatedInput.parentType as 'game_log' | 'comment',
+        parentType: validatedInput.parentType,
         createdAt: new Date(),
         updatedAt: new Date(),
       })
@@ -646,7 +646,7 @@ export const createReaction = async (
         and(
           eq(schema.reactions.userId, dbUser.id),
           eq(schema.reactions.targetId, input.targetId),
-          eq(schema.reactions.targetType, input.targetType.toLowerCase() as 'game_log' | 'comment'),
+          eq(schema.reactions.targetType, input.targetType),
           eq(schema.reactions.emoji, emoji)
         )
       )

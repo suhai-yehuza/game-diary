@@ -74,7 +74,15 @@ const nextConfig = {
         hostname: 'upload.wikimedia.org',
       },
       {
+        protocol: 'http',
+        hostname: 'upload.wikimedia.org',
+      },
+      {
         protocol: 'https',
+        hostname: '**.wikimedia.org',
+      },
+      {
+        protocol: 'http',
         hostname: '**.wikimedia.org',
       },
     ],

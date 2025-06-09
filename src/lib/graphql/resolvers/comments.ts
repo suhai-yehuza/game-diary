@@ -35,11 +35,16 @@ async function getCommentDepth(
 
 export const comments = async (
   _parent: unknown,
-  args: PaginationArgs & { parentId: string },
+  args: {
+    filters?: { parentId?: string; parentType?: string };
+    pagination?: { first?: number; after?: string; last?: number };
+  },
   { db }: Context
 ) => {
   try {
-    const { first = 10, after, last, parentId } = args;
+    const { filters, pagination } = args;
+    const { parentId, parentType } = filters || {};
+    const { first = 10, after, last } = pagination || {};
 
     if (!parentId) {
       throw new Error('parentId is required');
@@ -47,6 +52,11 @@ export const comments = async (
 
     // Build the query conditions
     const conditions = [eq(schema.comments.parentId, parentId)];
+
+    // Add parentType filter if provided
+    if (parentType) {
+      conditions.push(eq(schema.comments.parentType, parentType as 'game_log' | 'comment'));
+    }
 
     // Get the total count
     const [countResult] = await db
@@ -83,7 +93,7 @@ export const comments = async (
       reactions: [], // Will be resolved by Comment type resolver
     }));
 
-    return createConnection(mappedComments, totalCount, args);
+    return createConnection(mappedComments, totalCount, { first, after, last });
   } catch (error) {
     handleResolverError(error, 'fetch comments');
   }

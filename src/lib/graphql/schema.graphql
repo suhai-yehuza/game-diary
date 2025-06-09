@@ -41,6 +41,7 @@ input DateRangeInput {
   end: DateTime
 }
 
+
 type UserSummary {
   id: ID!
   username: String!
@@ -112,6 +113,7 @@ input UpdateUserProfileInput {
   lastName: String
   imageUrl: String
 }
+
 
 type Game {
   id: ID!
@@ -253,6 +255,7 @@ type CreateGameLogResponse {
   gameLog: GameLog
 }
 
+
 type Team {
   id: ID!
   name: String!
@@ -332,6 +335,7 @@ input TeamFilters {
   pagination: PaginationInput
 }
 
+
 schema {
   query: Query
   mutation: Mutation
@@ -369,7 +373,7 @@ type Query {
   playerStats(playerId: ID!, gameId: ID!): PlayerStats
 
   # Comment queries
-  comments(filters: CommentFilters): CommentConnection!
+  comments(filters: CommentFilters, pagination: PaginationInput): CommentConnection!
 
   # Reaction queries
   reactions(targetId: ID!, targetType: ParentType!): [Reaction!]!
@@ -397,8 +401,6 @@ type Mutation {
   # Reaction mutations
   createReaction(input: CreateReactionInput!): CreateReactionResponse!
   deleteReaction(id: ID!): DeleteReactionResponse!
-  addReaction(emoji: String!, targetId: ID!, targetType: String!): Reaction!
-  removeReaction(emoji: String!, targetId: ID!, targetType: String!): Boolean!
 }
 
 # Connection types
@@ -530,9 +532,8 @@ input UserSearchFilters {
 
 # Enums
 enum ParentType {
-  GAME
-  GAME_LOG
-  COMMENT
+  game_log
+  comment
 }
 
 enum ReactionEmojiType {
@@ -612,13 +613,13 @@ type Comment {
 
 type Reaction {
   id: ID!
-  emoji: String!
+  emoji: ReactionEmojiType!
+  user: UserSummary!
   userId: ID!
   targetId: ID!
-  targetType: String!
+  targetType: ParentType!
   createdAt: DateTime!
   updatedAt: DateTime!
-  user: DBUser!
 }
 
 # Player types

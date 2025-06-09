@@ -82,8 +82,13 @@ export function CommentsSection({ parentId, parentType, initialExpanded }: Comme
 
   const { data, loading, error, refetch, fetchMore } = useQuery(GET_COMMENTS_WITH_FILTERS, {
     variables: {
-      parentId: parentId,
-      first: 10,
+      filters: {
+        parentId: parentId,
+        parentType: parentType,
+      },
+      pagination: {
+        first: 10,
+      },
     },
   });
 
@@ -149,9 +154,14 @@ export function CommentsSection({ parentId, parentType, initialExpanded }: Comme
           try {
             await fetchMore({
               variables: {
-                parentId,
-                first: 10,
-                after: data.comments.pageInfo.endCursor,
+                filters: {
+                  parentId,
+                  parentType,
+                },
+                pagination: {
+                  first: 10,
+                  after: data.comments.pageInfo.endCursor,
+                },
               },
               updateQuery: (prev, { fetchMoreResult }) => {
                 if (!fetchMoreResult) return prev;
@@ -184,7 +194,7 @@ export function CommentsSection({ parentId, parentType, initialExpanded }: Comme
 
     observer.observe(element);
     return () => observer.disconnect();
-  }, [data, loading, isFetchingMore, fetchMore, parentId]);
+  }, [data, loading, isFetchingMore, fetchMore, parentId, parentType]);
 
   const [createComment] = useMutation(CREATE_COMMENT, {
     optimisticResponse: ({ input }) => ({
@@ -199,7 +209,7 @@ export function CommentsSection({ parentId, parentType, initialExpanded }: Comme
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
           deletedAt: null,
-          depth: 0,
+          depth: input.parentType === 'comment' ? 1 : 0, // Set depth based on parent type
           user: {
             __typename: 'UserSummary',
             id: user?.id || '',
@@ -217,7 +227,7 @@ export function CommentsSection({ parentId, parentType, initialExpanded }: Comme
           },
         },
         errors: [],
-        __typename: 'CreateCommentPayload',
+        __typename: 'CreateCommentResponse',
       },
     }),
     update: (cache, { data }) => {
@@ -228,8 +238,13 @@ export function CommentsSection({ parentId, parentType, initialExpanded }: Comme
         const existingData = cache.readQuery({
           query: GET_COMMENTS_WITH_FILTERS,
           variables: {
-            parentId: parentId,
-            first: 10,
+            filters: {
+              parentId: parentId,
+              parentType: parentType,
+            },
+            pagination: {
+              first: 10,
+            },
           },
         }) as { comments: CommentConnection } | null;
 
@@ -244,8 +259,13 @@ export function CommentsSection({ parentId, parentType, initialExpanded }: Comme
         cache.writeQuery({
           query: GET_COMMENTS_WITH_FILTERS,
           variables: {
-            parentId: parentId,
-            first: 10,
+            filters: {
+              parentId: parentId,
+              parentType: parentType,
+            },
+            pagination: {
+              first: 10,
+            },
           },
           data: {
             comments: {
@@ -271,8 +291,13 @@ export function CommentsSection({ parentId, parentType, initialExpanded }: Comme
       {
         query: GET_COMMENTS_WITH_FILTERS,
         variables: {
-          parentId: parentId,
-          first: 10,
+          filters: {
+            parentId: parentId,
+            parentType: parentType,
+          },
+          pagination: {
+            first: 10,
+          },
         },
       },
     ],
@@ -315,8 +340,13 @@ export function CommentsSection({ parentId, parentType, initialExpanded }: Comme
         const existingData = cache.readQuery({
           query: GET_COMMENTS_WITH_FILTERS,
           variables: {
-            parentId: parentId,
-            first: 10,
+            filters: {
+              parentId: parentId,
+              parentType: parentType,
+            },
+            pagination: {
+              first: 10,
+            },
           },
         }) as { comments: CommentConnection } | null;
 
@@ -335,8 +365,13 @@ export function CommentsSection({ parentId, parentType, initialExpanded }: Comme
         cache.writeQuery({
           query: GET_COMMENTS_WITH_FILTERS,
           variables: {
-            parentId: parentId,
-            first: 10,
+            filters: {
+              parentId: parentId,
+              parentType: parentType,
+            },
+            pagination: {
+              first: 10,
+            },
           },
           data: {
             comments: {

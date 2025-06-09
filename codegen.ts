@@ -19,7 +19,7 @@ const config: CodegenConfig = {
     './src/lib/types/generated/types.ts': {
       plugins: ['typescript', 'typescript-resolvers'],
       config: {
-        contextType: '@/lib/types#ResolverContext',
+        contextType: '@/lib/graphql/context#Context',
         mappers: {
           Player: '@/lib/types#DBPlayer',
           Activity: '@/lib/types#Activity',

@@ -35,7 +35,7 @@ type Query {
   playerStats(playerId: ID!, gameId: ID!): PlayerStats
 
   # Comment queries
-  comments(filters: CommentFilters): CommentConnection!
+  comments(filters: CommentFilters, pagination: PaginationInput): CommentConnection!
 
   # Reaction queries
   reactions(targetId: ID!, targetType: ParentType!): [Reaction!]!
@@ -194,9 +194,8 @@ input UserSearchFilters {
 
 # Enums
 enum ParentType {
-  GAME
-  GAME_LOG
-  COMMENT
+  game_log
+  comment
 }
 
 enum ReactionEmojiType {

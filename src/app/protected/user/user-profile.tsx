@@ -31,6 +31,7 @@ import { toast } from 'react-hot-toast';
 
 import { GameLogModal } from '@src/components/features/games';
 import { GameLogActions } from '@src/components/features/games/game-log-actions';
+import { CommentsSection } from '@src/components/common/comments-section';
 import { Avatar, AvatarFallback, AvatarImage } from '@src/components/ui/avatar';
 import { Badge } from '@src/components/ui/badge';
 import { Button } from '@src/components/ui/button';
@@ -51,6 +52,7 @@ import type {
   Friendship,
   FriendshipStatus,
   DbUser,
+  ParentType,
 } from '@src/lib/types/generated/graphql';
 import type { UserProfileProps } from '@src/lib/types/user.types';
 import { cn } from '@src/lib/utils';
@@ -825,7 +827,7 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
                           )}
 
                           {/* Footer Section */}
-                          <div className="px-6 pb-6">
+                          <div className="px-6 pb-4">
                             <div className="flex items-center justify-between">
                               <div className="flex flex-wrap gap-2">
                                 {gameLog?.tags && gameLog.tags.length > 0 && (
@@ -846,6 +848,20 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
                                   addSuffix: true,
                                 })}
                               </div>
+                            </div>
+                          </div>
+
+                          {/* Comments Section */}
+                          <div
+                            className="border-t border-muted/50"
+                            onClick={e => e.stopPropagation()}
+                          >
+                            <div className="px-6 pb-6">
+                                                          <CommentsSection
+                              parentId={gameLog.id}
+                              parentType={'game_log' as ParentType}
+                              initialExpanded={false}
+                            />
                             </div>
                           </div>
                         </CardContent>

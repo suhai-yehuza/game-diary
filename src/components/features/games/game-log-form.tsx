@@ -99,7 +99,10 @@ export function GameLogForm({
 
           <div className="space-y-2">
             <Label>Watched Setting</Label>
-            <Select onValueChange={(value) => updateField('watchedSetting', value)} value={formData.watchedSetting as string}>
+            <Select
+              onValueChange={value => updateField('watchedSetting', value)}
+              value={formData.watchedSetting as string}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Select setting" />
               </SelectTrigger>
@@ -128,14 +131,17 @@ export function GameLogForm({
             <Label>Location (Optional)</Label>
             <Input
               value={formData.watchedLocation || ''}
-              onChange={(e) => updateField('watchedLocation', e.target.value)}
+              onChange={e => updateField('watchedLocation', e.target.value)}
               placeholder="Where did you watch the game? (optional)"
             />
           </div>
 
           <div className="space-y-2">
             <Label>Watched Scope</Label>
-            <Select onValueChange={(value) => updateField('watchedScope', value)} value={formData.watchedScope as string}>
+            <Select
+              onValueChange={value => updateField('watchedScope', value)}
+              value={formData.watchedScope as string}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Select scope" />
               </SelectTrigger>
@@ -152,7 +158,7 @@ export function GameLogForm({
           <div className="space-y-2">
             <Label>Rating</Label>
             <Select
-              onValueChange={(value) => updateField('ratingForGame', parseInt(value))}
+              onValueChange={value => updateField('ratingForGame', parseInt(value))}
               value={formData.ratingForGame.toString()}
             >
               <SelectTrigger>
@@ -170,7 +176,10 @@ export function GameLogForm({
 
           <div className="space-y-2">
             <Label>Classification</Label>
-            <Select onValueChange={(value) => updateField('classification', value)} value={formData.classification as string}>
+            <Select
+              onValueChange={value => updateField('classification', value)}
+              value={formData.classification as string}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Select classification" />
               </SelectTrigger>
@@ -188,7 +197,7 @@ export function GameLogForm({
             <Label>Notes</Label>
             <Textarea
               value={formData.notes || ''}
-              onChange={(e) => updateField('notes', e.target.value)}
+              onChange={e => updateField('notes', e.target.value)}
               placeholder="Add your thoughts about the game..."
               rows={4}
             />

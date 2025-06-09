@@ -11,11 +11,7 @@ import type { PaginationArgs } from '@src/lib/types/resolver.types';
 
 import { handleResolverError } from '../utils';
 
-export const gameLog = async (
-  _parent: unknown,
-  { id }: { id: string },
-  { db }: Context
-) => {
+export const gameLog = async (_parent: unknown, { id }: { id: string }, { db }: Context) => {
   try {
     const gameLog = await db
       .select()
@@ -288,7 +284,7 @@ export const GameLog = {
         .from(schema.users)
         .where(eq(schema.users.id, parent.userId))
         .limit(1);
-      
+
       const user = users[0];
       if (!user) {
         throw new Error(`User with ID ${parent.userId} not found`);
@@ -322,9 +318,14 @@ export const GameLog = {
     }
     return game;
   },
-  comments: async (parent: { id: string }, args: { first?: number; after?: string }, { db }: Context) => {
+  comments: async (
+    parent: { id: string },
+    args: { first?: number; after?: string },
+    { db }: Context
+  ) => {
     const { first = 10, after } = args;
-    if (!parent.id) return { edges: [], pageInfo: { hasNextPage: false, endCursor: null }, totalCount: 0 };
+    if (!parent.id)
+      return { edges: [], pageInfo: { hasNextPage: false, endCursor: null }, totalCount: 0 };
 
     // Fetch all comments for this game log, ordered by createdAt
     const allComments = await db

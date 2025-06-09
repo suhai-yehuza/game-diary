@@ -1,23 +1,11 @@
 'use client';
 
-import { gql, useQuery, useMutation } from '@apollo/client';
+import { useQuery, useMutation } from '@apollo/client';
 import { format } from 'date-fns';
-import {
-  ArrowLeft,
-  Calendar,
-  MapPin,
-  Star,
-  Trophy,
-  Tv,
-  Users,
-  Globe,
-  Shield,
-  Lock,
-} from 'lucide-react';
+import { ArrowLeft, MapPin, Star, Trophy, Tv, Users, Globe, Shield, Lock } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState } from 'react';
 import { useUser } from '@clerk/nextjs';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@src/components/ui/avatar';
@@ -26,29 +14,13 @@ import { Button } from '@src/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@src/components/ui/card';
 import { Skeleton } from '@src/components/ui/skeleton';
 import { StarRating } from '@src/components/ui/star-rating';
+import { CommentsSection } from '@src/components/common/comments-section';
+import { CREATE_REACTION, DELETE_REACTION } from '@src/lib/graphql/mutations';
 import { GET_GAME_LOG } from '@src/lib/graphql/queries';
-import { CLASSIFICATION, REACTION_EMOJIS, ReactionEmojiValue } from '@src/lib/types/config.types';
+import { CLASSIFICATION, REACTION_EMOJIS, type ReactionEmojiValue } from '@src/lib/types/config.types';
 import type { GameLogProps } from '@src/lib/types/consolidated.types';
-import type { GameLog } from '@src/lib/types/generated/graphql';
+import type { GameLog, ParentType } from '@src/lib/types/generated/graphql';
 import { cn } from '@src/lib/utils';
-
-const ADD_REACTION = gql`
-  mutation AddReaction($emoji: String!, $targetId: ID!, $targetType: String!) {
-    addReaction(emoji: $emoji, targetId: $targetId, targetType: $targetType) {
-      id
-      emoji
-      userId
-      targetId
-      targetType
-    }
-  }
-`;
-
-const REMOVE_REACTION = gql`
-  mutation RemoveReaction($emoji: String!, $targetId: ID!, $targetType: String!) {
-    removeReaction(emoji: $emoji, targetId: $targetId, targetType: $targetType)
-  }
-`;
 
 // Loading skeleton component
 const GameLogSkeleton = () => (
@@ -133,14 +105,9 @@ const getClassificationStyles = (classification: string) => {
 };
 
 export function GameLogView({ gameLogId }: GameLogProps) {
-  const router = useRouter();
   const { user } = useUser();
   const currentUserId = user?.id;
   const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
-  const [comments, setComments] = useState<any[]>([]);
-  const [hasNextPage, setHasNextPage] = useState(true);
-  const [endCursor, setEndCursor] = useState<string | null>(null);
-  const loaderRef = useRef<HTMLDivElement | null>(null);
   const [clickedEmoji, setClickedEmoji] = useState<string | null>(null);
 
   const handleImageError = (id: string) => {
@@ -151,42 +118,34 @@ export function GameLogView({ gameLogId }: GameLogProps) {
     data: gameLogData,
     loading: gameLogLoading,
     error: gameLogError,
-    fetchMore,
   } = useQuery<{ gameLog: GameLog }>(GET_GAME_LOG, {
-    variables: { id: gameLogId, commentsFirst: 10, commentsAfter: null as string | null },
+    variables: { id: gameLogId },
     skip: !gameLogId,
     notifyOnNetworkStatusChange: true,
-    onCompleted: data => {
-      if (data?.gameLog?.comments) {
-        setComments(data.gameLog.comments.edges);
-        setHasNextPage(data.gameLog.comments.pageInfo.hasNextPage);
-        setEndCursor(data.gameLog.comments.pageInfo.endCursor ?? null);
-      }
-    },
   });
 
   // Optimistic update helpers
-  const optimisticAdd = (emoji: string, targetId: string, targetType: string) => ({
+  const optimisticAdd = (_emoji: string, _targetId: string, _targetType: string) => ({
     addReaction: {
-      id: 'temp-id-' + emoji + '-' + targetId,
-      emoji,
+      id: 'temp-id-' + _emoji + '-' + _targetId,
+      emoji: _emoji,
       userId: currentUserId,
-      targetId,
-      targetType,
+      targetId: _targetId,
+      targetType: _targetType,
       __typename: 'Reaction',
     },
   });
 
-  const optimisticRemove = (emoji: string, targetId: string, targetType: string) => ({
+  const optimisticRemove = (_emoji: string, _targetId: string, _targetType: string) => ({
     removeReaction: true,
   });
 
-  const [addReaction] = useMutation(ADD_REACTION, {
+  const [createReaction] = useMutation(CREATE_REACTION, {
     optimisticResponse: ({ emoji, targetId, targetType }) =>
       optimisticAdd(emoji, targetId, targetType),
     // Optionally: update cache here for instant UI
   });
-  const [removeReaction] = useMutation(REMOVE_REACTION, {
+  const [deleteReaction] = useMutation(DELETE_REACTION, {
     optimisticResponse: ({ emoji, targetId, targetType }) =>
       optimisticRemove(emoji, targetId, targetType),
     // Optionally: update cache here for instant UI
@@ -201,42 +160,11 @@ export function GameLogView({ gameLogId }: GameLogProps) {
     setClickedEmoji(emoji);
     setTimeout(() => setClickedEmoji(null), 200);
     if (hasReacted) {
-      removeReaction({ variables: { emoji, targetId, targetType } });
+      deleteReaction({ variables: { emoji, targetId, targetType } });
     } else {
-      addReaction({ variables: { emoji, targetId, targetType } });
+      createReaction({ variables: { emoji, targetId, targetType } });
     }
   }
-
-  // Infinite scroll: load more comments when loaderRef is visible
-  const loadMoreComments = useCallback(() => {
-    if (!hasNextPage || !endCursor) return;
-    fetchMore({
-      variables: {
-        id: gameLogId,
-        commentsFirst: 10,
-        commentsAfter: endCursor as string,
-      },
-      updateQuery: (prev, { fetchMoreResult }) => {
-        if (!fetchMoreResult?.gameLog?.comments) return prev;
-        const newEdges = fetchMoreResult.gameLog.comments.edges;
-        setComments(prevComments => [...prevComments, ...newEdges]);
-        setHasNextPage(fetchMoreResult.gameLog.comments.pageInfo.hasNextPage);
-        setEndCursor(fetchMoreResult.gameLog.comments.pageInfo.endCursor ?? null);
-        return prev;
-      },
-    });
-  }, [hasNextPage, endCursor, fetchMore, gameLogId]);
-
-  useEffect(() => {
-    if (!loaderRef.current || !hasNextPage) return;
-    const observer = new IntersectionObserver(entries => {
-      if (entries[0].isIntersecting) {
-        loadMoreComments();
-      }
-    });
-    observer.observe(loaderRef.current);
-    return () => observer.disconnect();
-  }, [loadMoreComments, hasNextPage]);
 
   if (gameLogLoading) {
     return <GameLogSkeleton />;
@@ -390,7 +318,9 @@ export function GameLogView({ gameLogId }: GameLogProps) {
                 </div>
                 <div className="text-center">
                   <MapPin className="h-4 w-4 mx-auto mb-1 text-muted-foreground" />
-                  <p className="text-sm font-medium">{gameLog.game?.arena?.name || 'Unknown Arena'}</p>
+                  <p className="text-sm font-medium">
+                    {gameLog.game?.arena?.name || 'Unknown Arena'}
+                  </p>
                   <p className="text-xs text-muted-foreground">
                     {gameLog.game?.arena?.city && gameLog.game?.arena?.state
                       ? `${gameLog.game.arena.city}, ${gameLog.game.arena.state}`
@@ -409,7 +339,9 @@ export function GameLogView({ gameLogId }: GameLogProps) {
                   <p className="text-sm font-medium">Rating</p>
                   <div className="flex items-center justify-center gap-1">
                     <StarRating ratingForGame={gameLog.ratingForGame} size="sm" />
-                    <span className="text-xs text-muted-foreground">({gameLog.ratingForGame}/5)</span>
+                    <span className="text-xs text-muted-foreground">
+                      ({gameLog.ratingForGame}/5)
+                    </span>
                   </div>
                 </div>
               </div>
@@ -475,7 +407,8 @@ export function GameLogView({ gameLogId }: GameLogProps) {
             <div className="flex gap-2 mt-2">
               {Object.values(REACTION_EMOJIS).map((emoji: ReactionEmojiValue) => {
                 const hasReacted = gameLog.reactions.some(
-                  (r: { emoji: string; userId: string }) => r.emoji === emoji && r.userId === currentUserId
+                  (r: { emoji: string; userId: string }) =>
+                    r.emoji === emoji && r.userId === currentUserId
                 );
                 const count = gameLog.reactions.filter(
                   (r: { emoji: string }) => r.emoji === emoji
@@ -483,7 +416,7 @@ export function GameLogView({ gameLogId }: GameLogProps) {
                 return (
                   <button
                     key={emoji}
-                    onClick={() => handleReaction(emoji, gameLog.id, "GameLog", !!hasReacted)}
+                    onClick={() => handleReaction(emoji, gameLog.id, 'GameLog', !!hasReacted)}
                     className={`reaction-animate px-2 py-1 rounded-full border flex items-center gap-1 transition-transform duration-150 ${
                       clickedEmoji === emoji ? 'scale-125 bg-orange-100' : ''
                     } ${hasReacted ? 'border-primary text-primary font-bold' : 'border-gray-300'}`}
@@ -503,58 +436,8 @@ export function GameLogView({ gameLogId }: GameLogProps) {
         )}
 
         {/* Comments Section */}
-        <div className="mt-8">
-          <h3 className="text-lg font-semibold mb-2">Comments</h3>
-          <div className="space-y-2">
-            {comments.map(edge => (
-              <div key={edge.node.id} className="p-3 border rounded-lg bg-muted/30">
-                <div className="flex items-center gap-2 mb-1">
-                  <Avatar className="h-6 w-6">
-                    <AvatarImage src={edge.node.user?.imageUrl ?? undefined} />
-                    <AvatarFallback>
-                      {edge.node.user?.username?.charAt(0).toUpperCase() || 'U'}
-                    </AvatarFallback>
-                  </Avatar>
-                  <span className="font-medium text-sm">{edge.node.user?.username || 'Unknown'}</span>
-                </div>
-                <div className="text-sm text-foreground">{edge.node.content}</div>
-                <div className="flex gap-2 mt-1">
-                  {Object.values(REACTION_EMOJIS).map((emoji: ReactionEmojiValue) => {
-                    const hasReacted = edge.node.reactions?.some(
-                      (r: { emoji: string; userId: string }) => r.emoji === emoji && r.userId === currentUserId
-                    );
-                    const count = edge.node.reactions?.filter(
-                      (r: { emoji: string }) => r.emoji === emoji
-                    ).length || 0;
-                    return (
-                      <button
-                        key={emoji}
-                        onClick={() => handleReaction(emoji, edge.node.id, "Comment", !!hasReacted)}
-                        className={`reaction-animate px-2 py-1 rounded-full border flex items-center gap-1 transition-transform duration-150 ${
-                          clickedEmoji === emoji ? 'scale-125 bg-orange-100' : ''
-                        } ${hasReacted ? 'border-primary text-primary font-bold' : 'border-gray-300'}`}
-                        style={{ outline: 'none' }}
-                      >
-                        <span>{emoji}</span>
-                        {count > 0 && (
-                          <span className="ml-1 text-xs font-semibold bg-gray-200 rounded px-1">
-                            {count}
-                          </span>
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            ))}
-            {hasNextPage && (
-              <div ref={loaderRef} className="flex justify-center py-4">
-                <span className="text-muted-foreground">Loading more comments...</span>
-              </div>
-            )}
-          </div>
-        </div>
+        <CommentsSection parentId={gameLog.id} parentType={'game_log' as ParentType} initialExpanded={true} />
       </div>
     </div>
   );
-} 
+}

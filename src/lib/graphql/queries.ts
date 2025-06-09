@@ -199,12 +199,39 @@ export const COMMENT_FRAGMENT = gql`
     createdAt
     updatedAt
     deletedAt
+    depth
     reactions {
       id
       emoji
       user {
         ...UserSummaryFragment
       }
+    }
+    childComments(first: 5) {
+      edges {
+        node {
+          id
+          userId
+          parentId
+          parentType
+          content
+          createdAt
+          updatedAt
+          deletedAt
+          depth
+          user {
+            ...UserSummaryFragment
+          }
+          reactions {
+            id
+            emoji
+            user {
+              ...UserSummaryFragment
+            }
+          }
+        }
+      }
+      totalCount
     }
   }
   ${USER_SUMMARY_FRAGMENT}
@@ -315,8 +342,8 @@ export const GET_PLAYERS = gql`
 `;
 
 export const GET_COMMENTS_WITH_FILTERS = gql`
-  query GetCommentsWithFilters($filters: CommentFilters) {
-    comments(filters: $filters) {
+  query GetCommentsWithFilters($filters: CommentFilters, $pagination: PaginationInput) {
+    comments(filters: $filters, pagination: $pagination) {
       edges {
         cursor
         node {

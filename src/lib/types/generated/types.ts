@@ -1,7 +1,8 @@
 import type { AnyScalar } from '@/lib/types/scalars';
 import type { DateTimeScalar } from '@/lib/types/scalars';
 import type { GraphQLResolveInfo, GraphQLScalarType, GraphQLScalarTypeConfig } from 'graphql';
-import type { DBPlayer, Activity, AppNotification, ResolverContext } from '@/lib/types';
+import type { DBPlayer, Activity, AppNotification } from '@/lib/types';
+import type { Context } from '@/lib/graphql/context';
 export type Maybe<T> = T | null | undefined;
 export type InputMaybe<T> = T | null | undefined;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
@@ -461,9 +462,8 @@ export type PaginationInput = {
 };
 
 export type ParentType =
-  | 'COMMENT'
-  | 'GAME'
-  | 'GAME_LOG';
+  | 'comment'
+  | 'game_log';
 
 export type Player = {
   active: Maybe<Scalars['Boolean']['output']>;
@@ -586,6 +586,7 @@ export type Query = {
 
 export type QueryCommentsArgs = {
   filters: InputMaybe<CommentFilters>;
+  pagination: InputMaybe<PaginationInput>;
 };
 
 
@@ -1150,7 +1151,7 @@ export type ResolversParentTypes = {
   UserSummary: UserSummary;
 };
 
-export type AcceptFriendRequestResponseResolvers<ContextType = ResolverContext, ParentType extends ResolversParentTypes['AcceptFriendRequestResponse'] = ResolversParentTypes['AcceptFriendRequestResponse']> = {
+export type AcceptFriendRequestResponseResolvers<ContextType = Context, ParentType extends ResolversParentTypes['AcceptFriendRequestResponse'] = ResolversParentTypes['AcceptFriendRequestResponse']> = {
   errors?: Resolver<Maybe<Array<ResolversTypes['ErrorResult']>>, ParentType, ContextType>;
   friendship?: Resolver<Maybe<ResolversTypes['Friendship']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
@@ -1160,7 +1161,7 @@ export interface AnyScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes[
   name: 'Any';
 }
 
-export type ArenaResolvers<ContextType = ResolverContext, ParentType extends ResolversParentTypes['Arena'] = ResolversParentTypes['Arena']> = {
+export type ArenaResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Arena'] = ResolversParentTypes['Arena']> = {
   city?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   country?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -1168,25 +1169,25 @@ export type ArenaResolvers<ContextType = ResolverContext, ParentType extends Res
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type AuthenticationErrorResolvers<ContextType = ResolverContext, ParentType extends ResolversParentTypes['AuthenticationError'] = ResolversParentTypes['AuthenticationError']> = {
+export type AuthenticationErrorResolvers<ContextType = Context, ParentType extends ResolversParentTypes['AuthenticationError'] = ResolversParentTypes['AuthenticationError']> = {
   message?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type AuthorizationErrorResolvers<ContextType = ResolverContext, ParentType extends ResolversParentTypes['AuthorizationError'] = ResolversParentTypes['AuthorizationError']> = {
+export type AuthorizationErrorResolvers<ContextType = Context, ParentType extends ResolversParentTypes['AuthorizationError'] = ResolversParentTypes['AuthorizationError']> = {
   message?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   requiredRole?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type BusinessLogicErrorResolvers<ContextType = ResolverContext, ParentType extends ResolversParentTypes['BusinessLogicError'] = ResolversParentTypes['BusinessLogicError']> = {
+export type BusinessLogicErrorResolvers<ContextType = Context, ParentType extends ResolversParentTypes['BusinessLogicError'] = ResolversParentTypes['BusinessLogicError']> = {
   code?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   details?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   message?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type CommentResolvers<ContextType = ResolverContext, ParentType extends ResolversParentTypes['Comment'] = ResolversParentTypes['Comment']> = {
+export type CommentResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Comment'] = ResolversParentTypes['Comment']> = {
   childComments?: Resolver<ResolversTypes['CommentConnection'], ParentType, ContextType, Partial<CommentChildCommentsArgs>>;
   content?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
@@ -1202,20 +1203,20 @@ export type CommentResolvers<ContextType = ResolverContext, ParentType extends R
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type CommentConnectionResolvers<ContextType = ResolverContext, ParentType extends ResolversParentTypes['CommentConnection'] = ResolversParentTypes['CommentConnection']> = {
+export type CommentConnectionResolvers<ContextType = Context, ParentType extends ResolversParentTypes['CommentConnection'] = ResolversParentTypes['CommentConnection']> = {
   edges?: Resolver<Array<ResolversTypes['CommentEdge']>, ParentType, ContextType>;
   pageInfo?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
   totalCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type CommentEdgeResolvers<ContextType = ResolverContext, ParentType extends ResolversParentTypes['CommentEdge'] = ResolversParentTypes['CommentEdge']> = {
+export type CommentEdgeResolvers<ContextType = Context, ParentType extends ResolversParentTypes['CommentEdge'] = ResolversParentTypes['CommentEdge']> = {
   cursor?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   node?: Resolver<ResolversTypes['Comment'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type ConferenceStandingResolvers<ContextType = ResolverContext, ParentType extends ResolversParentTypes['ConferenceStanding'] = ResolversParentTypes['ConferenceStanding']> = {
+export type ConferenceStandingResolvers<ContextType = Context, ParentType extends ResolversParentTypes['ConferenceStanding'] = ResolversParentTypes['ConferenceStanding']> = {
   loss?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   rank?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
@@ -1223,31 +1224,31 @@ export type ConferenceStandingResolvers<ContextType = ResolverContext, ParentTyp
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type CreateCommentResponseResolvers<ContextType = ResolverContext, ParentType extends ResolversParentTypes['CreateCommentResponse'] = ResolversParentTypes['CreateCommentResponse']> = {
+export type CreateCommentResponseResolvers<ContextType = Context, ParentType extends ResolversParentTypes['CreateCommentResponse'] = ResolversParentTypes['CreateCommentResponse']> = {
   comment?: Resolver<Maybe<ResolversTypes['Comment']>, ParentType, ContextType>;
   errors?: Resolver<Maybe<Array<ResolversTypes['ErrorResult']>>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type CreateGameLogResponseResolvers<ContextType = ResolverContext, ParentType extends ResolversParentTypes['CreateGameLogResponse'] = ResolversParentTypes['CreateGameLogResponse']> = {
+export type CreateGameLogResponseResolvers<ContextType = Context, ParentType extends ResolversParentTypes['CreateGameLogResponse'] = ResolversParentTypes['CreateGameLogResponse']> = {
   errors?: Resolver<Maybe<Array<ResolversTypes['ErrorResult']>>, ParentType, ContextType>;
   gameLog?: Resolver<Maybe<ResolversTypes['GameLog']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type CreateGameResponseResolvers<ContextType = ResolverContext, ParentType extends ResolversParentTypes['CreateGameResponse'] = ResolversParentTypes['CreateGameResponse']> = {
+export type CreateGameResponseResolvers<ContextType = Context, ParentType extends ResolversParentTypes['CreateGameResponse'] = ResolversParentTypes['CreateGameResponse']> = {
   errors?: Resolver<Maybe<Array<ResolversTypes['ErrorResult']>>, ParentType, ContextType>;
   game?: Resolver<Maybe<ResolversTypes['Game']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type CreateReactionResponseResolvers<ContextType = ResolverContext, ParentType extends ResolversParentTypes['CreateReactionResponse'] = ResolversParentTypes['CreateReactionResponse']> = {
+export type CreateReactionResponseResolvers<ContextType = Context, ParentType extends ResolversParentTypes['CreateReactionResponse'] = ResolversParentTypes['CreateReactionResponse']> = {
   errors?: Resolver<Maybe<Array<ResolversTypes['ErrorResult']>>, ParentType, ContextType>;
   reaction?: Resolver<Maybe<ResolversTypes['Reaction']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type DbUserResolvers<ContextType = ResolverContext, ParentType extends ResolversParentTypes['DBUser'] = ResolversParentTypes['DBUser']> = {
+export type DbUserResolvers<ContextType = Context, ParentType extends ResolversParentTypes['DBUser'] = ResolversParentTypes['DBUser']> = {
   banned?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   comments?: Resolver<Array<ResolversTypes['Comment']>, ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
@@ -1278,32 +1279,32 @@ export interface DateTimeScalarConfig extends GraphQLScalarTypeConfig<ResolversT
   name: 'DateTime';
 }
 
-export type DeleteCommentResponseResolvers<ContextType = ResolverContext, ParentType extends ResolversParentTypes['DeleteCommentResponse'] = ResolversParentTypes['DeleteCommentResponse']> = {
+export type DeleteCommentResponseResolvers<ContextType = Context, ParentType extends ResolversParentTypes['DeleteCommentResponse'] = ResolversParentTypes['DeleteCommentResponse']> = {
   errors?: Resolver<Maybe<Array<ResolversTypes['ErrorResult']>>, ParentType, ContextType>;
   success?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type DeleteGameLogResponseResolvers<ContextType = ResolverContext, ParentType extends ResolversParentTypes['DeleteGameLogResponse'] = ResolversParentTypes['DeleteGameLogResponse']> = {
+export type DeleteGameLogResponseResolvers<ContextType = Context, ParentType extends ResolversParentTypes['DeleteGameLogResponse'] = ResolversParentTypes['DeleteGameLogResponse']> = {
   errors?: Resolver<Maybe<Array<ResolversTypes['ErrorResult']>>, ParentType, ContextType>;
   success?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type DeleteReactionResponseResolvers<ContextType = ResolverContext, ParentType extends ResolversParentTypes['DeleteReactionResponse'] = ResolversParentTypes['DeleteReactionResponse']> = {
+export type DeleteReactionResponseResolvers<ContextType = Context, ParentType extends ResolversParentTypes['DeleteReactionResponse'] = ResolversParentTypes['DeleteReactionResponse']> = {
   errors?: Resolver<Maybe<Array<ResolversTypes['ErrorResult']>>, ParentType, ContextType>;
   success?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type ErrorResultResolvers<ContextType = ResolverContext, ParentType extends ResolversParentTypes['ErrorResult'] = ResolversParentTypes['ErrorResult']> = {
+export type ErrorResultResolvers<ContextType = Context, ParentType extends ResolversParentTypes['ErrorResult'] = ResolversParentTypes['ErrorResult']> = {
   code?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   field?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   message?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type FriendshipResolvers<ContextType = ResolverContext, ParentType extends ResolversParentTypes['Friendship'] = ResolversParentTypes['Friendship']> = {
+export type FriendshipResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Friendship'] = ResolversParentTypes['Friendship']> = {
   createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   initiator?: Resolver<ResolversTypes['UserSummary'], ParentType, ContextType>;
@@ -1313,7 +1314,7 @@ export type FriendshipResolvers<ContextType = ResolverContext, ParentType extend
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type GameResolvers<ContextType = ResolverContext, ParentType extends ResolversParentTypes['Game'] = ResolversParentTypes['Game']> = {
+export type GameResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Game'] = ResolversParentTypes['Game']> = {
   arena?: Resolver<Maybe<ResolversTypes['Arena']>, ParentType, ContextType>;
   awayTeamId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   awayTeamScore?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
@@ -1340,27 +1341,27 @@ export type GameResolvers<ContextType = ResolverContext, ParentType extends Reso
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type GameConnectionResolvers<ContextType = ResolverContext, ParentType extends ResolversParentTypes['GameConnection'] = ResolversParentTypes['GameConnection']> = {
+export type GameConnectionResolvers<ContextType = Context, ParentType extends ResolversParentTypes['GameConnection'] = ResolversParentTypes['GameConnection']> = {
   edges?: Resolver<Array<ResolversTypes['GameEdge']>, ParentType, ContextType>;
   pageInfo?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
   totalCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type GameDateResolvers<ContextType = ResolverContext, ParentType extends ResolversParentTypes['GameDate'] = ResolversParentTypes['GameDate']> = {
+export type GameDateResolvers<ContextType = Context, ParentType extends ResolversParentTypes['GameDate'] = ResolversParentTypes['GameDate']> = {
   duration?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   end?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
   start?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type GameEdgeResolvers<ContextType = ResolverContext, ParentType extends ResolversParentTypes['GameEdge'] = ResolversParentTypes['GameEdge']> = {
+export type GameEdgeResolvers<ContextType = Context, ParentType extends ResolversParentTypes['GameEdge'] = ResolversParentTypes['GameEdge']> = {
   cursor?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   node?: Resolver<ResolversTypes['Game'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type GameLogResolvers<ContextType = ResolverContext, ParentType extends ResolversParentTypes['GameLog'] = ResolversParentTypes['GameLog']> = {
+export type GameLogResolvers<ContextType = Context, ParentType extends ResolversParentTypes['GameLog'] = ResolversParentTypes['GameLog']> = {
   classification?: Resolver<ResolversTypes['Classification'], ParentType, ContextType>;
   comments?: Resolver<ResolversTypes['CommentConnection'], ParentType, ContextType, Partial<GameLogCommentsArgs>>;
   createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
@@ -1379,33 +1380,33 @@ export type GameLogResolvers<ContextType = ResolverContext, ParentType extends R
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type GameLogConnectionResolvers<ContextType = ResolverContext, ParentType extends ResolversParentTypes['GameLogConnection'] = ResolversParentTypes['GameLogConnection']> = {
+export type GameLogConnectionResolvers<ContextType = Context, ParentType extends ResolversParentTypes['GameLogConnection'] = ResolversParentTypes['GameLogConnection']> = {
   edges?: Resolver<Array<ResolversTypes['GameLogEdge']>, ParentType, ContextType>;
   pageInfo?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
   totalCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type GameLogEdgeResolvers<ContextType = ResolverContext, ParentType extends ResolversParentTypes['GameLogEdge'] = ResolversParentTypes['GameLogEdge']> = {
+export type GameLogEdgeResolvers<ContextType = Context, ParentType extends ResolversParentTypes['GameLogEdge'] = ResolversParentTypes['GameLogEdge']> = {
   cursor?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   node?: Resolver<ResolversTypes['GameLog'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type GamePeriodsResolvers<ContextType = ResolverContext, ParentType extends ResolversParentTypes['GamePeriods'] = ResolversParentTypes['GamePeriods']> = {
+export type GamePeriodsResolvers<ContextType = Context, ParentType extends ResolversParentTypes['GamePeriods'] = ResolversParentTypes['GamePeriods']> = {
   current?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   endOfPeriod?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   total?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type GameScoresResolvers<ContextType = ResolverContext, ParentType extends ResolversParentTypes['GameScores'] = ResolversParentTypes['GameScores']> = {
+export type GameScoresResolvers<ContextType = Context, ParentType extends ResolversParentTypes['GameScores'] = ResolversParentTypes['GameScores']> = {
   home?: Resolver<ResolversTypes['TeamScore'], ParentType, ContextType>;
   visitors?: Resolver<ResolversTypes['TeamScore'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type GameStatusResolvers<ContextType = ResolverContext, ParentType extends ResolversParentTypes['GameStatus'] = ResolversParentTypes['GameStatus']> = {
+export type GameStatusResolvers<ContextType = Context, ParentType extends ResolversParentTypes['GameStatus'] = ResolversParentTypes['GameStatus']> = {
   clock?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   halftime?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   long?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -1413,13 +1414,13 @@ export type GameStatusResolvers<ContextType = ResolverContext, ParentType extend
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type GameTeamsResolvers<ContextType = ResolverContext, ParentType extends ResolversParentTypes['GameTeams'] = ResolversParentTypes['GameTeams']> = {
+export type GameTeamsResolvers<ContextType = Context, ParentType extends ResolversParentTypes['GameTeams'] = ResolversParentTypes['GameTeams']> = {
   home?: Resolver<ResolversTypes['TeamSummary'], ParentType, ContextType>;
   visitors?: Resolver<ResolversTypes['TeamSummary'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type MutationResolvers<ContextType = ResolverContext, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
+export type MutationResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
   acceptFriendRequest?: Resolver<ResolversTypes['AcceptFriendRequestResponse'], ParentType, ContextType, RequireFields<MutationAcceptFriendRequestArgs, 'friendshipId'>>;
   createComment?: Resolver<ResolversTypes['CreateCommentResponse'], ParentType, ContextType, RequireFields<MutationCreateCommentArgs, 'input'>>;
   createGame?: Resolver<ResolversTypes['CreateGameResponse'], ParentType, ContextType, RequireFields<MutationCreateGameArgs, 'input'>>;
@@ -1436,7 +1437,7 @@ export type MutationResolvers<ContextType = ResolverContext, ParentType extends 
   updateUserProfile?: Resolver<ResolversTypes['UpdateUserProfileResponse'], ParentType, ContextType, RequireFields<MutationUpdateUserProfileArgs, 'input'>>;
 };
 
-export type PageInfoResolvers<ContextType = ResolverContext, ParentType extends ResolversParentTypes['PageInfo'] = ResolversParentTypes['PageInfo']> = {
+export type PageInfoResolvers<ContextType = Context, ParentType extends ResolversParentTypes['PageInfo'] = ResolversParentTypes['PageInfo']> = {
   endCursor?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   hasNextPage?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   hasPreviousPage?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
@@ -1444,7 +1445,7 @@ export type PageInfoResolvers<ContextType = ResolverContext, ParentType extends 
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type PlayerResolvers<ContextType = ResolverContext, ParentType extends ResolversParentTypes['Player'] = ResolversParentTypes['Player']> = {
+export type PlayerResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Player'] = ResolversParentTypes['Player']> = {
   active?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   affiliation?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   birth?: Resolver<Maybe<ResolversTypes['PlayerBirth']>, ParentType, ContextType>;
@@ -1467,13 +1468,13 @@ export type PlayerResolvers<ContextType = ResolverContext, ParentType extends Re
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type PlayerBirthResolvers<ContextType = ResolverContext, ParentType extends ResolversParentTypes['PlayerBirth'] = ResolversParentTypes['PlayerBirth']> = {
+export type PlayerBirthResolvers<ContextType = Context, ParentType extends ResolversParentTypes['PlayerBirth'] = ResolversParentTypes['PlayerBirth']> = {
   country?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   date?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type PlayerConnectionResolvers<ContextType = ResolverContext, ParentType extends ResolversParentTypes['PlayerConnection'] = ResolversParentTypes['PlayerConnection']> = {
+export type PlayerConnectionResolvers<ContextType = Context, ParentType extends ResolversParentTypes['PlayerConnection'] = ResolversParentTypes['PlayerConnection']> = {
   edges?: Resolver<Array<ResolversTypes['PlayerEdge']>, ParentType, ContextType>;
   hasMore?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   items?: Resolver<Array<ResolversTypes['Player']>, ParentType, ContextType>;
@@ -1484,44 +1485,44 @@ export type PlayerConnectionResolvers<ContextType = ResolverContext, ParentType 
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type PlayerEdgeResolvers<ContextType = ResolverContext, ParentType extends ResolversParentTypes['PlayerEdge'] = ResolversParentTypes['PlayerEdge']> = {
+export type PlayerEdgeResolvers<ContextType = Context, ParentType extends ResolversParentTypes['PlayerEdge'] = ResolversParentTypes['PlayerEdge']> = {
   cursor?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   node?: Resolver<ResolversTypes['Player'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type PlayerHeightResolvers<ContextType = ResolverContext, ParentType extends ResolversParentTypes['PlayerHeight'] = ResolversParentTypes['PlayerHeight']> = {
+export type PlayerHeightResolvers<ContextType = Context, ParentType extends ResolversParentTypes['PlayerHeight'] = ResolversParentTypes['PlayerHeight']> = {
   feets?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   inches?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   meters?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type PlayerLeaguesResolvers<ContextType = ResolverContext, ParentType extends ResolversParentTypes['PlayerLeagues'] = ResolversParentTypes['PlayerLeagues']> = {
+export type PlayerLeaguesResolvers<ContextType = Context, ParentType extends ResolversParentTypes['PlayerLeagues'] = ResolversParentTypes['PlayerLeagues']> = {
   standard?: Resolver<Maybe<ResolversTypes['PlayerStandard']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type PlayerNbaResolvers<ContextType = ResolverContext, ParentType extends ResolversParentTypes['PlayerNba'] = ResolversParentTypes['PlayerNba']> = {
+export type PlayerNbaResolvers<ContextType = Context, ParentType extends ResolversParentTypes['PlayerNba'] = ResolversParentTypes['PlayerNba']> = {
   pro?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   start?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type PlayerSeasonResolvers<ContextType = ResolverContext, ParentType extends ResolversParentTypes['PlayerSeason'] = ResolversParentTypes['PlayerSeason']> = {
+export type PlayerSeasonResolvers<ContextType = Context, ParentType extends ResolversParentTypes['PlayerSeason'] = ResolversParentTypes['PlayerSeason']> = {
   season?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   teams?: Resolver<Maybe<Array<ResolversTypes['String']>>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type PlayerStandardResolvers<ContextType = ResolverContext, ParentType extends ResolversParentTypes['PlayerStandard'] = ResolversParentTypes['PlayerStandard']> = {
+export type PlayerStandardResolvers<ContextType = Context, ParentType extends ResolversParentTypes['PlayerStandard'] = ResolversParentTypes['PlayerStandard']> = {
   active?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   jersey?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   pos?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type PlayerStatsResolvers<ContextType = ResolverContext, ParentType extends ResolversParentTypes['PlayerStats'] = ResolversParentTypes['PlayerStats']> = {
+export type PlayerStatsResolvers<ContextType = Context, ParentType extends ResolversParentTypes['PlayerStats'] = ResolversParentTypes['PlayerStats']> = {
   assists?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   blocks?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   fieldGoals?: Resolver<ResolversTypes['StatPercentage'], ParentType, ContextType>;
@@ -1538,13 +1539,13 @@ export type PlayerStatsResolvers<ContextType = ResolverContext, ParentType exten
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type PlayerWeightResolvers<ContextType = ResolverContext, ParentType extends ResolversParentTypes['PlayerWeight'] = ResolversParentTypes['PlayerWeight']> = {
+export type PlayerWeightResolvers<ContextType = Context, ParentType extends ResolversParentTypes['PlayerWeight'] = ResolversParentTypes['PlayerWeight']> = {
   kilograms?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   pounds?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type QueryResolvers<ContextType = ResolverContext, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
+export type QueryResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
   comments?: Resolver<ResolversTypes['CommentConnection'], ParentType, ContextType, Partial<QueryCommentsArgs>>;
   game?: Resolver<Maybe<ResolversTypes['Game']>, ParentType, ContextType, RequireFields<QueryGameArgs, 'id'>>;
   gameLog?: Resolver<Maybe<ResolversTypes['GameLog']>, ParentType, ContextType, RequireFields<QueryGameLogArgs, 'id'>>;
@@ -1566,7 +1567,7 @@ export type QueryResolvers<ContextType = ResolverContext, ParentType extends Res
   users?: Resolver<Array<ResolversTypes['UserSummary']>, ParentType, ContextType, Partial<QueryUsersArgs>>;
 };
 
-export type ReactionResolvers<ContextType = ResolverContext, ParentType extends ResolversParentTypes['Reaction'] = ResolversParentTypes['Reaction']> = {
+export type ReactionResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Reaction'] = ResolversParentTypes['Reaction']> = {
   createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   emoji?: Resolver<ResolversTypes['ReactionEmojiType'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
@@ -1578,38 +1579,38 @@ export type ReactionResolvers<ContextType = ResolverContext, ParentType extends 
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type RejectFriendRequestResponseResolvers<ContextType = ResolverContext, ParentType extends ResolversParentTypes['RejectFriendRequestResponse'] = ResolversParentTypes['RejectFriendRequestResponse']> = {
+export type RejectFriendRequestResponseResolvers<ContextType = Context, ParentType extends ResolversParentTypes['RejectFriendRequestResponse'] = ResolversParentTypes['RejectFriendRequestResponse']> = {
   errors?: Resolver<Maybe<Array<ResolversTypes['ErrorResult']>>, ParentType, ContextType>;
   friendship?: Resolver<Maybe<ResolversTypes['Friendship']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type RemoveFriendResponseResolvers<ContextType = ResolverContext, ParentType extends ResolversParentTypes['RemoveFriendResponse'] = ResolversParentTypes['RemoveFriendResponse']> = {
+export type RemoveFriendResponseResolvers<ContextType = Context, ParentType extends ResolversParentTypes['RemoveFriendResponse'] = ResolversParentTypes['RemoveFriendResponse']> = {
   errors?: Resolver<Maybe<Array<ResolversTypes['ErrorResult']>>, ParentType, ContextType>;
   success?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type SendFriendRequestResponseResolvers<ContextType = ResolverContext, ParentType extends ResolversParentTypes['SendFriendRequestResponse'] = ResolversParentTypes['SendFriendRequestResponse']> = {
+export type SendFriendRequestResponseResolvers<ContextType = Context, ParentType extends ResolversParentTypes['SendFriendRequestResponse'] = ResolversParentTypes['SendFriendRequestResponse']> = {
   errors?: Resolver<Maybe<Array<ResolversTypes['ErrorResult']>>, ParentType, ContextType>;
   friendship?: Resolver<Maybe<ResolversTypes['Friendship']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type SeriesScoreResolvers<ContextType = ResolverContext, ParentType extends ResolversParentTypes['SeriesScore'] = ResolversParentTypes['SeriesScore']> = {
+export type SeriesScoreResolvers<ContextType = Context, ParentType extends ResolversParentTypes['SeriesScore'] = ResolversParentTypes['SeriesScore']> = {
   loss?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   win?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type StatPercentageResolvers<ContextType = ResolverContext, ParentType extends ResolversParentTypes['StatPercentage'] = ResolversParentTypes['StatPercentage']> = {
+export type StatPercentageResolvers<ContextType = Context, ParentType extends ResolversParentTypes['StatPercentage'] = ResolversParentTypes['StatPercentage']> = {
   attempted?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   made?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   percentage?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type TeamResolvers<ContextType = ResolverContext, ParentType extends ResolversParentTypes['Team'] = ResolversParentTypes['Team']> = {
+export type TeamResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Team'] = ResolversParentTypes['Team']> = {
   city?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   code?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   conference?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -1624,20 +1625,20 @@ export type TeamResolvers<ContextType = ResolverContext, ParentType extends Reso
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type TeamConnectionResolvers<ContextType = ResolverContext, ParentType extends ResolversParentTypes['TeamConnection'] = ResolversParentTypes['TeamConnection']> = {
+export type TeamConnectionResolvers<ContextType = Context, ParentType extends ResolversParentTypes['TeamConnection'] = ResolversParentTypes['TeamConnection']> = {
   edges?: Resolver<Array<ResolversTypes['TeamEdge']>, ParentType, ContextType>;
   pageInfo?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
   totalCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type TeamEdgeResolvers<ContextType = ResolverContext, ParentType extends ResolversParentTypes['TeamEdge'] = ResolversParentTypes['TeamEdge']> = {
+export type TeamEdgeResolvers<ContextType = Context, ParentType extends ResolversParentTypes['TeamEdge'] = ResolversParentTypes['TeamEdge']> = {
   cursor?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   node?: Resolver<ResolversTypes['Team'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type TeamH2HResolvers<ContextType = ResolverContext, ParentType extends ResolversParentTypes['TeamH2H'] = ResolversParentTypes['TeamH2H']> = {
+export type TeamH2HResolvers<ContextType = Context, ParentType extends ResolversParentTypes['TeamH2H'] = ResolversParentTypes['TeamH2H']> = {
   lastTenGames?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   losses?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   opponentId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
@@ -1647,7 +1648,7 @@ export type TeamH2HResolvers<ContextType = ResolverContext, ParentType extends R
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type TeamScoreResolvers<ContextType = ResolverContext, ParentType extends ResolversParentTypes['TeamScore'] = ResolversParentTypes['TeamScore']> = {
+export type TeamScoreResolvers<ContextType = Context, ParentType extends ResolversParentTypes['TeamScore'] = ResolversParentTypes['TeamScore']> = {
   linescore?: Resolver<Array<ResolversTypes['Int']>, ParentType, ContextType>;
   loss?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   points?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
@@ -1656,7 +1657,7 @@ export type TeamScoreResolvers<ContextType = ResolverContext, ParentType extends
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type TeamStatsResolvers<ContextType = ResolverContext, ParentType extends ResolversParentTypes['TeamStats'] = ResolversParentTypes['TeamStats']> = {
+export type TeamStatsResolvers<ContextType = Context, ParentType extends ResolversParentTypes['TeamStats'] = ResolversParentTypes['TeamStats']> = {
   assists?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   assistsPerGame?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
   blocks?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
@@ -1698,7 +1699,7 @@ export type TeamStatsResolvers<ContextType = ResolverContext, ParentType extends
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type TeamSummaryResolvers<ContextType = ResolverContext, ParentType extends ResolversParentTypes['TeamSummary'] = ResolversParentTypes['TeamSummary']> = {
+export type TeamSummaryResolvers<ContextType = Context, ParentType extends ResolversParentTypes['TeamSummary'] = ResolversParentTypes['TeamSummary']> = {
   code?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   logo?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -1707,38 +1708,38 @@ export type TeamSummaryResolvers<ContextType = ResolverContext, ParentType exten
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type UpdateCommentResponseResolvers<ContextType = ResolverContext, ParentType extends ResolversParentTypes['UpdateCommentResponse'] = ResolversParentTypes['UpdateCommentResponse']> = {
+export type UpdateCommentResponseResolvers<ContextType = Context, ParentType extends ResolversParentTypes['UpdateCommentResponse'] = ResolversParentTypes['UpdateCommentResponse']> = {
   comment?: Resolver<Maybe<ResolversTypes['Comment']>, ParentType, ContextType>;
   errors?: Resolver<Maybe<Array<ResolversTypes['ErrorResult']>>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type UpdateGameLogResponseResolvers<ContextType = ResolverContext, ParentType extends ResolversParentTypes['UpdateGameLogResponse'] = ResolversParentTypes['UpdateGameLogResponse']> = {
+export type UpdateGameLogResponseResolvers<ContextType = Context, ParentType extends ResolversParentTypes['UpdateGameLogResponse'] = ResolversParentTypes['UpdateGameLogResponse']> = {
   errors?: Resolver<Maybe<Array<ResolversTypes['ErrorResult']>>, ParentType, ContextType>;
   gameLog?: Resolver<Maybe<ResolversTypes['GameLog']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type UpdateUserProfileResponseResolvers<ContextType = ResolverContext, ParentType extends ResolversParentTypes['UpdateUserProfileResponse'] = ResolversParentTypes['UpdateUserProfileResponse']> = {
+export type UpdateUserProfileResponseResolvers<ContextType = Context, ParentType extends ResolversParentTypes['UpdateUserProfileResponse'] = ResolversParentTypes['UpdateUserProfileResponse']> = {
   errors?: Resolver<Maybe<Array<ResolversTypes['ErrorResult']>>, ParentType, ContextType>;
   user?: Resolver<Maybe<ResolversTypes['UserSummary']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type UserConnectionResolvers<ContextType = ResolverContext, ParentType extends ResolversParentTypes['UserConnection'] = ResolversParentTypes['UserConnection']> = {
+export type UserConnectionResolvers<ContextType = Context, ParentType extends ResolversParentTypes['UserConnection'] = ResolversParentTypes['UserConnection']> = {
   edges?: Resolver<Array<ResolversTypes['UserEdge']>, ParentType, ContextType>;
   pageInfo?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
   totalCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type UserEdgeResolvers<ContextType = ResolverContext, ParentType extends ResolversParentTypes['UserEdge'] = ResolversParentTypes['UserEdge']> = {
+export type UserEdgeResolvers<ContextType = Context, ParentType extends ResolversParentTypes['UserEdge'] = ResolversParentTypes['UserEdge']> = {
   cursor?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   node?: Resolver<ResolversTypes['UserSummary'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type UserSummaryResolvers<ContextType = ResolverContext, ParentType extends ResolversParentTypes['UserSummary'] = ResolversParentTypes['UserSummary']> = {
+export type UserSummaryResolvers<ContextType = Context, ParentType extends ResolversParentTypes['UserSummary'] = ResolversParentTypes['UserSummary']> = {
   emailAddress?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   firstName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
@@ -1748,7 +1749,7 @@ export type UserSummaryResolvers<ContextType = ResolverContext, ParentType exten
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type Resolvers<ContextType = ResolverContext> = {
+export type Resolvers<ContextType = Context> = {
   AcceptFriendRequestResponse?: AcceptFriendRequestResponseResolvers<ContextType>;
   Any?: GraphQLScalarType;
   Arena?: ArenaResolvers<ContextType>;
