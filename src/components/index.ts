@@ -2,7 +2,7 @@
 
 // Feature components
 export * from './features/games';
-export * from './features/friends';
+export * from '@src/app/protected/user/components/friends';
 export * from './features/notifications';
 
 // Layout components

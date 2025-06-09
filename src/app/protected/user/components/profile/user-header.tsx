@@ -1,41 +1,79 @@
 import { formatDistanceToNow } from 'date-fns';
-import { Users, Trophy, Clock } from 'lucide-react';
+import { Users, Trophy, Clock, Shield } from 'lucide-react';
 import React from 'react';
 
+import { GameLogModal } from '@src/components/features/games';
 import { Avatar, AvatarFallback, AvatarImage } from '@src/components/ui/avatar';
+import { Badge } from '@src/components/ui/badge';
 import { Card, CardContent } from '@src/components/ui/card';
+import type { GameLog, DbUser } from '@src/lib/types/generated/graphql';
+import { FriendshipManagement } from './friendship-management';
 
 interface UserHeaderProps {
-  user: {
-    firstName: string | null;
-    lastName: string | null;
-    imageUrl: string;
-    last_sign_in_at: number;
-    createdAt: number;
-  };
+  user: DbUser;
+  isOwnProfile: boolean;
+  currentUserId: string | null;
   stats: {
     totalGames: number;
     totalFriends: number;
     totalHours: number;
   };
+  onGameLogUpdate?: () => void;
+  onFriendshipUpdate?: () => void;
 }
 
-export function UserHeader({ user, stats }: UserHeaderProps) {
+export function UserHeader({
+  user,
+  isOwnProfile,
+  currentUserId,
+  stats,
+  onGameLogUpdate,
+  onFriendshipUpdate,
+}: UserHeaderProps) {
   const fullName = [user.firstName, user.lastName].filter(Boolean).join(' ') || 'Anonymous User';
-  const lastActive = formatDistanceToNow(new Date(user.last_sign_in_at), { addSuffix: true });
+  const lastActive = formatDistanceToNow(new Date(user.last_sign_in_at || user.createdAt), {
+    addSuffix: true,
+  });
   const memberSince = formatDistanceToNow(new Date(user.createdAt), { addSuffix: true });
 
   return (
     <div className="space-y-6">
       <div className="flex items-center space-x-4">
         <Avatar className="h-20 w-20">
-          <AvatarImage src={user.imageUrl} alt={fullName} />
+          <AvatarImage src={user.imageUrl || undefined} alt={fullName} />
           <AvatarFallback>{fullName.charAt(0)}</AvatarFallback>
         </Avatar>
-        <div>
-          <h2 className="text-2xl font-bold">{fullName}</h2>
+        <div className="flex-1">
+          <div className="flex items-center gap-2">
+            <h2 className="text-2xl font-bold">{fullName}</h2>
+            {user.email_verified && (
+              <Badge variant="secondary" className="gap-1">
+                <Shield className="h-3 w-3" />
+                Verified
+              </Badge>
+            )}
+          </div>
           <p className="text-muted-foreground">Last active {lastActive}</p>
           <p className="text-sm text-muted-foreground">Member since {memberSince}</p>
+
+          <div className="mt-4 flex gap-2">
+            {isOwnProfile && onGameLogUpdate && (
+              <GameLogModal
+                mode="create"
+                gameId={''}
+                gameLog={{} as GameLog}
+                onSuccess={onGameLogUpdate}
+              />
+            )}
+            {!isOwnProfile && currentUserId && onFriendshipUpdate && (
+              <FriendshipManagement
+                currentUserId={currentUserId}
+                targetUserId={user.id}
+                friendship={user.friendships[0] || null}
+                onFriendshipUpdate={onFriendshipUpdate}
+              />
+            )}
+          </div>
         </div>
       </div>
 

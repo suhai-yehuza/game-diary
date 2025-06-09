@@ -744,24 +744,14 @@ export type Reaction = {
 
 export enum ReactionEmojiType {
   Angry = 'ANGRY',
-  Baseball = 'BASEBALL',
-  Basketball = 'BASKETBALL',
-  Bullseye = 'BULLSEYE',
-  Clap = 'CLAP',
   Eyes = 'EYES',
   Fire = 'FIRE',
-  Football = 'FOOTBALL',
-  Goat = 'GOAT',
-  Golf = 'GOLF',
+  Heart = 'HEART',
   Laugh = 'LAUGH',
-  Like = 'LIKE',
-  Love = 'LOVE',
-  Muscle = 'MUSCLE',
   Rocket = 'ROCKET',
   Sad = 'SAD',
-  Soccer = 'SOCCER',
-  Tennis = 'TENNIS',
   ThumbsDown = 'THUMBS_DOWN',
+  ThumbsUp = 'THUMBS_UP',
   Wow = 'WOW'
 }
 

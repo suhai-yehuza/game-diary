@@ -700,24 +700,14 @@ export type Reaction = {
 
 export type ReactionEmojiType =
   | 'ANGRY'
-  | 'BASEBALL'
-  | 'BASKETBALL'
-  | 'BULLSEYE'
-  | 'CLAP'
   | 'EYES'
   | 'FIRE'
-  | 'FOOTBALL'
-  | 'GOAT'
-  | 'GOLF'
+  | 'HEART'
   | 'LAUGH'
-  | 'LIKE'
-  | 'LOVE'
-  | 'MUSCLE'
   | 'ROCKET'
   | 'SAD'
-  | 'SOCCER'
-  | 'TENNIS'
   | 'THUMBS_DOWN'
+  | 'THUMBS_UP'
   | 'WOW';
 
 export type RejectFriendRequestResponse = {

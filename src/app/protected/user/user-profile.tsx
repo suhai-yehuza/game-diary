@@ -75,6 +75,20 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
     imageUrl: userData.user.imageUrl || '/default-avatar.png',
     last_sign_in_at: new Date().getTime(),
     createdAt: new Date().getTime(),
+    comments: [],
+    friendships: [],
+    gameLogs: [],
+    initiatedFriendships: [],
+    email_verified: false,
+    email_verification_strategy: null,
+    external_id: null,
+    password_enabled: false,
+    two_factor_enabled: false,
+    banned: false,
+    deletedAt: null,
+    updatedAt: new Date().toISOString(),
+    reactions: [],
+    __typename: 'DBUser' as const,
   };
 
   const stats = {
@@ -88,7 +102,12 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
   return (
     <ErrorBoundary>
       <div className="space-y-8">
-        <UserHeader user={user} stats={stats} />
+        <UserHeader
+          user={user}
+          stats={stats}
+          isOwnProfile={isCurrentUser}
+          currentUserId={currentUser?.id || ''}
+        />
         {!isCurrentUser && (
           <FriendshipManagement
             targetUserId={targetUserId}
