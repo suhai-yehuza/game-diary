@@ -117,51 +117,67 @@ export function CommentItem({
   };
 
   return (
-    <div className={cn('group relative', isNested && 'ml-4 sm:ml-8')}>
+    <div className={cn('group relative', isNested && 'ml-6 sm:ml-10')}>
       {/* Thread Line for Nested Comments */}
-      {isNested && <div className="absolute left-0 top-0 bottom-0 w-px bg-border/50" />}
+      {isNested && (
+        <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-gradient-to-b from-border to-transparent" />
+      )}
 
       <div
         className={cn(
-          'relative rounded-lg transition-all duration-200',
-          isNested ? 'bg-muted/30 p-3' : 'bg-card border p-4',
-          !isNested && 'hover:shadow-sm'
+          'relative rounded-xl transition-all duration-300',
+          isNested
+            ? 'bg-muted/20 border border-border/30 p-4'
+            : 'bg-card/80 backdrop-blur-sm border border-border/50 p-5 hover:border-border hover:shadow-lg hover:shadow-black/5',
+          'hover:bg-card/90'
         )}
       >
         {/* Thread Connector */}
-        {isNested && <CornerDownRight className="absolute -left-4 top-6 h-4 w-4 text-border/50" />}
+        {isNested && (
+          <CornerDownRight className="absolute -left-5 top-7 h-4 w-4 text-muted-foreground/40" />
+        )}
 
         {/* Comment Header */}
-        <div className="flex items-start justify-between mb-3">
-          <div className="flex items-start gap-3">
+        <div className="flex items-start justify-between mb-4">
+          <div className="flex items-start gap-4">
             <Link
               href={`/protected/user/${comment.user?.id}`}
-              className="transition-transform hover:scale-105"
+              className="group/avatar transition-all duration-200 hover:scale-105"
             >
-              <Avatar className={cn('ring-2 ring-background', isNested ? 'h-8 w-8' : 'h-10 w-10')}>
+              <Avatar
+                className={cn(
+                  'ring-2 ring-background shadow-sm transition-all duration-200 group-hover/avatar:ring-primary/20',
+                  isNested ? 'h-9 w-9' : 'h-11 w-11'
+                )}
+              >
                 <AvatarImage src={comment.user?.imageUrl ?? undefined} />
-                <AvatarFallback className="text-sm font-medium">
+                <AvatarFallback
+                  className={cn(
+                    'font-semibold bg-gradient-to-br from-blue-500/10 to-purple-500/10 text-foreground',
+                    isNested ? 'text-xs' : 'text-sm'
+                  )}
+                >
                   {comment.user?.username?.[0]?.toUpperCase() ?? 'U'}
                 </AvatarFallback>
               </Avatar>
             </Link>
 
-            <div className="flex-1">
-              <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 flex-wrap mb-1">
                 <Link
                   href={`/protected/user/${comment.user?.id}`}
-                  className="font-semibold text-sm hover:underline"
+                  className="font-semibold text-foreground hover:text-primary transition-colors duration-200 hover:underline"
                 >
                   {comment.user?.username ?? 'Unknown User'}
                 </Link>
-                <span className="text-xs text-muted-foreground">
-                  {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true })}
-                </span>
                 {comment.depth > 0 && (
-                  <Badge variant="outline" className="text-[10px] px-1.5 py-0">
+                  <Badge variant="secondary" className="text-[10px] px-2 py-0.5 bg-muted/60">
                     Reply
                   </Badge>
                 )}
+              </div>
+              <div className="text-xs text-muted-foreground font-medium">
+                {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true })}
               </div>
             </div>
           </div>
@@ -173,21 +189,21 @@ export function CommentItem({
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
+                  className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-all duration-200 hover:bg-muted/50 rounded-lg"
                 >
-                  <MoreVertical className="h-3.5 w-3.5" />
+                  <MoreVertical className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={handleEditClick} className="cursor-pointer">
-                  <Pencil className="h-3.5 w-3.5 mr-2" />
+              <DropdownMenuContent align="end" className="w-40">
+                <DropdownMenuItem onClick={handleEditClick} className="cursor-pointer gap-2">
+                  <Pencil className="h-4 w-4" />
                   Edit
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={handleDeleteClick}
-                  className="cursor-pointer text-destructive focus:text-destructive"
+                  className="cursor-pointer gap-2 text-destructive focus:text-destructive"
                 >
-                  <Trash2 className="h-3.5 w-3.5 mr-2" />
+                  <Trash2 className="h-4 w-4" />
                   Delete
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -196,13 +212,15 @@ export function CommentItem({
         </div>
 
         {/* Comment Content */}
-        <div className={cn('text-sm leading-relaxed mb-3', isNested ? 'ml-11' : 'ml-0 sm:ml-13')}>
-          <p className="whitespace-pre-wrap break-words">{comment.content}</p>
+        <div className={cn('mb-4', isNested ? 'ml-13' : 'ml-0 sm:ml-15')}>
+          <p className="text-sm leading-relaxed text-foreground/90 whitespace-pre-wrap break-words font-medium">
+            {comment.content}
+          </p>
         </div>
 
         {/* Comment Footer */}
         <div
-          className={cn('flex items-center gap-1 flex-wrap', isNested ? 'ml-11' : 'ml-0 sm:ml-13')}
+          className={cn('flex items-center gap-2 flex-wrap', isNested ? 'ml-13' : 'ml-0 sm:ml-15')}
         >
           <ReactionDisplay
             targetId={comment.id}
@@ -216,9 +234,13 @@ export function CommentItem({
               variant="ghost"
               size="sm"
               onClick={() => setIsReplying(!isReplying)}
-              className="h-7 text-xs gap-1.5 px-2"
+              className={cn(
+                'h-8 text-xs gap-2 px-3 rounded-full font-medium transition-all duration-200',
+                'hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-950/50 dark:hover:text-blue-400',
+                isReplying && 'bg-blue-50 text-blue-600 dark:bg-blue-950/50 dark:text-blue-400'
+              )}
             >
-              <Reply className="h-3 w-3" />
+              <Reply className="h-3.5 w-3.5" />
               Reply
             </Button>
           )}
@@ -228,19 +250,28 @@ export function CommentItem({
               variant="ghost"
               size="sm"
               onClick={() => setShowReplies(!showReplies)}
-              className="h-7 text-xs gap-1.5 px-2"
+              className={cn(
+                'h-8 text-xs gap-2 px-3 rounded-full font-medium transition-all duration-200',
+                'hover:bg-muted/60 hover:text-foreground',
+                showReplies && 'bg-muted/60 text-foreground'
+              )}
             >
               {showReplies ? (
                 <>
-                  <ChevronUp className="h-3 w-3" />
-                  Hide {comment.childComments?.totalCount ?? 0}{' '}
-                  {(comment.childComments?.totalCount ?? 0) === 1 ? 'reply' : 'replies'}
+                  <ChevronUp className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">Hide</span>{' '}
+                  {comment.childComments?.totalCount ?? 0}{' '}
+                  <span className="hidden sm:inline">
+                    {(comment.childComments?.totalCount ?? 0) === 1 ? 'reply' : 'replies'}
+                  </span>
                 </>
               ) : (
                 <>
-                  <ChevronDown className="h-3 w-3" />
+                  <ChevronDown className="h-3.5 w-3.5" />
                   {comment.childComments?.totalCount ?? 0}{' '}
-                  {(comment.childComments?.totalCount ?? 0) === 1 ? 'reply' : 'replies'}
+                  <span className="hidden sm:inline">
+                    {(comment.childComments?.totalCount ?? 0) === 1 ? 'reply' : 'replies'}
+                  </span>
                 </>
               )}
             </Button>
@@ -251,25 +282,25 @@ export function CommentItem({
         {isReplying && (
           <div
             className={cn(
-              'mt-3 animate-in slide-in-from-top-2 duration-200',
-              isNested ? 'ml-11' : 'ml-0 sm:ml-13'
+              'mt-4 p-4 bg-muted/30 rounded-xl border border-border/30 animate-in slide-in-from-top-2 duration-300',
+              isNested ? 'ml-13' : 'ml-0 sm:ml-15'
             )}
           >
-            <form onSubmit={handleSubmitReply} className="space-y-2">
-              <div className="flex gap-2">
-                <Avatar className="h-7 w-7 mt-0.5">
+            <form onSubmit={handleSubmitReply} className="space-y-3">
+              <div className="flex gap-3">
+                <Avatar className="h-8 w-8 mt-1 ring-2 ring-background shadow-sm">
                   <AvatarImage src={user?.imageUrl || undefined} />
-                  <AvatarFallback className="text-xs">
+                  <AvatarFallback className="text-xs font-semibold bg-gradient-to-br from-green-500/10 to-blue-500/10">
                     {user?.firstName?.[0]}
                     {user?.lastName?.[0]}
                   </AvatarFallback>
                 </Avatar>
-                <div className="flex-1 space-y-2">
+                <div className="flex-1 space-y-3">
                   <Textarea
                     value={replyContent}
                     onChange={e => setReplyContent(e.target.value)}
-                    placeholder="Write a reply..."
-                    className="min-h-[80px] text-sm resize-none"
+                    placeholder="Write a thoughtful reply..."
+                    className="min-h-[80px] text-sm resize-none bg-background/50 border-border/50 rounded-lg focus:bg-background transition-colors"
                     onKeyDown={e => {
                       // Handle existing keyboard shortcuts
                       if (e.key === 'Escape') {
@@ -279,7 +310,7 @@ export function CommentItem({
                       if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
                         handleSubmitReply(e);
                       }
-                      
+
                       // Ensure spacebar works by explicitly handling it
                       if (e.key === ' ' || e.key === 'Space') {
                         e.stopPropagation();
@@ -288,12 +319,13 @@ export function CommentItem({
                         const start = textarea.selectionStart || 0;
                         const end = textarea.selectionEnd || 0;
                         const currentValue = textarea.value;
-                        const newValue = currentValue.slice(0, start) + ' ' + currentValue.slice(end);
-                        
+                        const newValue =
+                          currentValue.slice(0, start) + ' ' + currentValue.slice(end);
+
                         // Prevent default and manually handle the space
                         e.preventDefault();
                         setReplyContent(newValue);
-                        
+
                         // Restore cursor position after state update
                         setTimeout(() => {
                           textarea.setSelectionRange(start + 1, start + 1);
@@ -301,38 +333,43 @@ export function CommentItem({
                       }
                     }}
                   />
-                  <div className="flex gap-2 justify-end">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        setIsReplying(false);
-                        setReplyContent('');
-                      }}
-                      disabled={isSubmitting}
-                      className="h-7 text-xs"
-                    >
-                      Cancel
-                    </Button>
-                    <Button
-                      type="submit"
-                      size="sm"
-                      disabled={!replyContent.trim() || isSubmitting}
-                      className="h-7 text-xs gap-1.5"
-                    >
-                      {isSubmitting ? (
-                        <>
-                          <Loader2 className="h-3 w-3 animate-spin" />
-                          Posting...
-                        </>
-                      ) : (
-                        <>
-                          <Send className="h-3 w-3" />
-                          Reply
-                        </>
-                      )}
-                    </Button>
+                  <div className="flex gap-2 justify-between items-center">
+                    <div className="text-xs text-muted-foreground">
+                      Press Cmd+Enter to submit quickly
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setIsReplying(false);
+                          setReplyContent('');
+                        }}
+                        disabled={isSubmitting}
+                        className="h-8 text-xs px-3 rounded-full"
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        type="submit"
+                        size="sm"
+                        disabled={!replyContent.trim() || isSubmitting}
+                        className="h-8 text-xs gap-2 px-4 rounded-full bg-primary hover:bg-primary/90 transition-all"
+                      >
+                        {isSubmitting ? (
+                          <>
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            Posting...
+                          </>
+                        ) : (
+                          <>
+                            <Send className="h-3.5 w-3.5" />
+                            Reply
+                          </>
+                        )}
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -343,7 +380,7 @@ export function CommentItem({
 
       {/* Child Comments */}
       {showReplies && hasReplies && comment.childComments && (
-        <div className="mt-2 space-y-2 animate-in slide-in-from-top-2 duration-200">
+        <div className="mt-4 space-y-3 animate-in slide-in-from-top-2 duration-300">
           {comment.childComments.edges.map(({ node: childComment }) => (
             <CommentItem
               key={childComment.id}

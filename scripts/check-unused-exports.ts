@@ -73,6 +73,7 @@ const CONFIG = {
     'src/app/sports/nba/teams/[id]/page.tsx',
     'src/app/sports/nfl/page.tsx',
     'src/app/sports/nhl/page.tsx',
+    'src/app/sports/nba/live/page.tsx',
     'src/app/search/page.tsx',
 
     // Component index files

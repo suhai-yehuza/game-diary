@@ -1,12 +1,6 @@
 import { test } from './utils/global-setup';
 import { expect } from '@playwright/test';
-import {
-  waitForPageContent,
-  navigateWithMocking,
-  setViewportAndWaitForLayout,
-  VIEWPORTS,
-  testResponsiveness,
-} from './utils/test-utils';
+import { waitForPageContent, navigateWithMocking, testResponsiveness } from './utils/test-utils';
 
 test.describe('Live Games Page', () => {
   test('should display live games when games are in progress', async ({ page }) => {
@@ -74,7 +68,9 @@ test.describe('Live Games Page', () => {
     await expect(backLink).toHaveAttribute('href', '/sports/nba');
 
     // Check footer navigation link
-    const footerLink = page.locator('text=View all NBA games including scheduled and completed games');
+    const footerLink = page.locator(
+      'text=View all NBA games including scheduled and completed games'
+    );
     await expect(footerLink).toBeVisible();
     await expect(footerLink).toHaveAttribute('href', '/sports/nba');
   });
@@ -126,7 +122,7 @@ test.describe('Live Games Page', () => {
   });
 
   test('should be responsive across different viewport sizes', async ({ page }) => {
-    await testResponsiveness(page, async (viewport) => {
+    await testResponsiveness(page, async _viewport => {
       await navigateWithMocking(page, '/sports/nba/live');
 
       // Check that the page title is always visible
@@ -146,18 +142,19 @@ test.describe('Live Games Page', () => {
       const backLink = page.locator('text=Back to NBA');
       await expect(backLink).toBeVisible();
 
-      console.log(`✓ Live games page is responsive on ${viewport}`);
+      // Verify the page is responsive at this viewport
+      await expect(page.locator('h1')).toBeVisible();
     });
   });
 
   test('should handle loading states properly', async ({ page }) => {
     // Test loading state by delaying the API response
-    let resolveApiCall: () => void;
-    const apiPromise = new Promise<void>((resolve) => {
+    let resolveApiCall: (() => void) | undefined;
+    const apiPromise = new Promise<void>(resolve => {
       resolveApiCall = resolve;
     });
 
-    await page.route('**/api/graphql', async (route) => {
+    await page.route('**/api/graphql', async route => {
       // Wait for our signal before responding
       await apiPromise;
       await route.continue();
@@ -170,7 +167,9 @@ test.describe('Live Games Page', () => {
     await expect(page.locator('text=Loading live games...')).toBeVisible({ timeout: 1000 });
 
     // Resolve the API call
-    resolveApiCall!();
+    if (resolveApiCall) {
+      resolveApiCall();
+    }
     await navigationPromise;
     await waitForPageContent(page);
 
@@ -218,7 +217,7 @@ test.describe('Live Games Page', () => {
 
     // Check for proper button labels
     const gameButtons = page.locator('[role="button"]').filter({ hasText: /vs|@/ });
-    for (let i = 0; i < await gameButtons.count(); i++) {
+    for (let i = 0; i < (await gameButtons.count()); i++) {
       const button = gameButtons.nth(i);
       const ariaLabel = await button.getAttribute('aria-label');
       expect(ariaLabel).toBeTruthy();
@@ -251,9 +250,118 @@ test.describe('Live Games Page', () => {
 
     // Check for auto-refresh indicator
     await expect(page.locator('text=Auto-refreshing every 30 seconds')).toBeVisible();
-    
+
     // Check for the green pulse indicator
     const refreshIndicator = page.locator('.bg-green-500.animate-pulse');
     await expect(refreshIndicator).toBeVisible();
   });
-}); 
+
+  test('should display game indicators correctly', async ({ page }) => {
+    await page.goto('/live-games');
+    await page.waitForLoadState('networkidle');
+
+    // Check for live game indicators
+    const liveIndicators = await page.getByTestId('live-indicator').all();
+    expect(liveIndicators.length).toBeGreaterThan(0);
+
+    // Check for game status
+    const gameStatuses = await page.getByTestId('game-status').all();
+    for (const status of gameStatuses) {
+      const text = await status.textContent();
+      expect(text).toMatch(/^(Live|Halftime|End of Period|Final)$/);
+    }
+  });
+
+  test('should be responsive', async ({ page }) => {
+    await page.goto('/live-games');
+    await page.waitForLoadState('networkidle');
+
+    // Test mobile view
+    await page.setViewportSize({ width: 375, height: 667 });
+    await page.waitForTimeout(500); // Wait for layout to adjust
+
+    // Check if mobile-specific elements are visible
+    const mobileHeader = await page.getByTestId('mobile-header');
+    await expect(mobileHeader).toBeVisible();
+
+    // Test tablet view
+    await page.setViewportSize({ width: 768, height: 1024 });
+    await page.waitForTimeout(500);
+
+    // Check if tablet-specific elements are visible
+    const tabletHeader = await page.getByTestId('tablet-header');
+    await expect(tabletHeader).toBeVisible();
+
+    // Test desktop view
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.waitForTimeout(500);
+
+    // Check if desktop-specific elements are visible
+    const desktopHeader = await page.getByTestId('desktop-header');
+    await expect(desktopHeader).toBeVisible();
+  });
+
+  test('should handle loading states', async ({ page }) => {
+    await page.goto('/live-games');
+
+    // Check for loading skeleton
+    const loadingSkeleton = await page.getByTestId('loading-skeleton');
+    await expect(loadingSkeleton).toBeVisible();
+
+    // Wait for content to load
+    await page.waitForLoadState('networkidle');
+    await expect(loadingSkeleton).not.toBeVisible();
+  });
+
+  test('should display arena information', async ({ page }) => {
+    await page.goto('/live-games');
+    await page.waitForLoadState('networkidle');
+
+    // Check for arena information
+    const arenaInfo = await page.getByTestId('arena-info').all();
+    for (const arena of arenaInfo) {
+      const text = await arena.textContent();
+      expect(text).toMatch(/^[A-Za-z\s]+$/); // Arena names should only contain letters and spaces
+    }
+  });
+
+  test('should handle game updates', async ({ page }) => {
+    await page.goto('/live-games');
+    await page.waitForLoadState('networkidle');
+
+    // Get initial scores
+    const initialScores = await page.getByTestId('team-score').all();
+    const initialScoreTexts = await Promise.all(initialScores.map(score => score.textContent()));
+
+    // Wait for potential updates
+    await page.waitForTimeout(5000);
+
+    // Get updated scores
+    const updatedScores = await page.getByTestId('team-score').all();
+    const updatedScoreTexts = await Promise.all(updatedScores.map(score => score.textContent()));
+
+    // Scores should either be the same or different (if there was an update)
+    expect(updatedScoreTexts.length).toBe(initialScoreTexts.length);
+  });
+
+  test('should handle navigation', async ({ page }) => {
+    await page.goto('/live-games');
+    await page.waitForLoadState('networkidle');
+
+    // Click on a game
+    const firstGame = await page.getByTestId('game-card').first();
+    await firstGame.click();
+
+    // Should navigate to game details
+    await expect(page).toHaveURL(/\/games\/[a-zA-Z0-9-]+$/);
+  });
+
+  test('should handle different viewport sizes', async ({ page }) => {
+    await page.goto('/live-games');
+    await page.waitForLoadState('networkidle');
+
+    // Check if the page is responsive
+    const header = await page.getByTestId('page-header');
+    await expect(header).toBeVisible();
+  });
+});

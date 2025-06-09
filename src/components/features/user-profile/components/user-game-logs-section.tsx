@@ -13,10 +13,10 @@ import {
   MapPin,
   MessageSquare,
   Shield,
+  SmilePlus,
   Star,
   Trophy,
   Tv,
-  Users2,
 } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -26,6 +26,7 @@ import { GameLogActions } from '@src/components/features/games/game-log-actions'
 import { Badge } from '@src/components/ui/badge';
 import { Button } from '@src/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@src/components/ui/card';
+import { Popover, PopoverContent, PopoverTrigger } from '@src/components/ui/popover';
 import {
   Select,
   SelectContent,
@@ -34,8 +35,22 @@ import {
   SelectValue,
 } from '@src/components/ui/select';
 import { StarRating } from '@src/components/ui/star-rating';
-import type { GameLog } from '@src/lib/types/generated/graphql';
+import { useMutation, useQuery } from '@apollo/client';
+import { useUser } from '@clerk/nextjs';
+import {
+  REACTION_EMOJIS,
+  EMOJI_TO_GRAPHQL_MAPPING,
+  type ReactionEmojiValue,
+} from '@src/lib/types/config.types';
+import { CREATE_REACTION, DELETE_REACTION } from '@src/lib/graphql/mutations';
 import { cn } from '@src/lib/utils';
+import { GET_USER_GAME_LOGS } from '@src/lib/graphql/queries';
+import {
+  type GetUserGameLogsQuery,
+  type GetUserGameLogsQueryVariables,
+  type GameLog,
+  Classification,
+} from '@src/lib/types/generated/graphql';
 
 const classificationIcons = {
   Private: Lock,
@@ -49,30 +64,108 @@ const classificationColors = {
   Public: 'text-green-500 bg-green-50 border-green-200',
 };
 
+const ITEMS_PER_PAGE = 10;
+
+type GameLogNode = Omit<GetUserGameLogsQuery['gameLogs']['edges'][number]['node'], 'comments'>;
+
 interface UserGameLogsSectionProps {
-  gameLogs: GameLog[];
+  gameLogs: GameLogNode[];
   totalCount: number;
-  selectedClassification: string;
-  setSelectedClassification: (value: string) => void;
-  currentPage: number;
-  setCurrentPage: (page: number) => void;
   totalPages: number;
-  ITEMS_PER_PAGE: number;
-  refetchUserGameLogs: () => void;
 }
 
 export function UserGameLogsSection({
-  gameLogs,
-  totalCount,
-  selectedClassification,
-  setSelectedClassification,
-  currentPage,
-  setCurrentPage,
+  gameLogs: initialGameLogs,
+  totalCount: initialTotalCount,
   totalPages,
-  refetchUserGameLogs,
 }: UserGameLogsSectionProps) {
   const router = useRouter();
+  const { user } = useUser();
+  const currentUserId = user?.id;
   const [expandedNotes, setExpandedNotes] = useState<Set<string>>(new Set());
+  const [clickedEmoji, setClickedEmoji] = useState<string | null>(null);
+  const [selectedClassification, setSelectedClassification] = useState<Classification | 'all'>(
+    'all'
+  );
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const { data, refetch } = useQuery<GetUserGameLogsQuery, GetUserGameLogsQueryVariables>(
+    GET_USER_GAME_LOGS,
+    {
+      variables: {
+        pagination: {
+          first: ITEMS_PER_PAGE,
+          after: currentPage > 1 ? String((currentPage - 1) * ITEMS_PER_PAGE) : undefined,
+        },
+        filters: {
+          classification: selectedClassification === 'all' ? undefined : selectedClassification,
+        },
+      },
+    }
+  );
+
+  const gameLogs = data?.gameLogs?.edges.map(edge => edge.node) || initialGameLogs;
+  const totalCount = data?.gameLogs?.totalCount || initialTotalCount;
+
+  // Reaction mutations
+  const [createReaction] = useMutation(CREATE_REACTION, {
+    onCompleted: () => {
+      refetch();
+    },
+  });
+
+  const [deleteReaction] = useMutation(DELETE_REACTION, {
+    onCompleted: () => {
+      refetch();
+    },
+  });
+
+  // Helper function to convert emoji character to GraphQL enum value
+  function emojiToGraphQLEnum(emojiChar: ReactionEmojiValue): string {
+    // Find the key in REACTION_EMOJIS that corresponds to this emoji character
+    const emojiKey = Object.entries(REACTION_EMOJIS).find(([, char]) => char === emojiChar)?.[0];
+
+    if (!emojiKey) {
+      return 'THUMBS_UP'; // fallback
+    }
+
+    // Convert the key to GraphQL enum value
+    const graphqlEnum =
+      EMOJI_TO_GRAPHQL_MAPPING[emojiKey as keyof typeof EMOJI_TO_GRAPHQL_MAPPING] || 'THUMBS_UP';
+
+    return graphqlEnum;
+  }
+
+  function handleReaction(emoji: ReactionEmojiValue, targetId: string, hasReacted: boolean) {
+    if (!user) return;
+
+    setClickedEmoji(emoji);
+    setTimeout(() => setClickedEmoji(null), 200);
+
+    const graphqlEmojiEnum = emojiToGraphQLEnum(emoji);
+
+    if (hasReacted) {
+      // Find the reaction ID to delete
+      const gameLog = gameLogs.find(log => log.id === targetId);
+      const reaction = gameLog?.reactions?.find(
+        (r: { emoji: string; userId: string }) => r.emoji === emoji && r.userId === currentUserId
+      );
+
+      if (reaction?.id) {
+        deleteReaction({ variables: { id: reaction.id } });
+      }
+    } else {
+      createReaction({
+        variables: {
+          input: {
+            emoji: graphqlEmojiEnum,
+            targetId,
+            targetType: 'game_log',
+          },
+        },
+      });
+    }
+  }
 
   const toggleNotesExpansion = (gameLogId: string) => {
     setExpandedNotes(prev => {
@@ -116,7 +209,7 @@ export function UserGameLogsSection({
       acc[log.classification] = (acc[log.classification] || 0) + 1;
       return acc;
     },
-    {} as Record<string, number>
+    {} as Record<Classification, number>
   );
 
   return (
@@ -167,17 +260,24 @@ export function UserGameLogsSection({
       {/* Filter Controls */}
       <div className="flex items-center gap-4">
         <Filter className="h-4 w-4" />
-        <Select value={selectedClassification} onValueChange={setSelectedClassification}>
+        <Select
+          value={selectedClassification}
+          onValueChange={(value: Classification | 'all') => setSelectedClassification(value)}
+        >
           <SelectTrigger className="w-48">
             <SelectValue placeholder="Filter by visibility" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All ({totalCount})</SelectItem>
-            <SelectItem value="Public">Public ({classificationCounts.Public || 0})</SelectItem>
-            <SelectItem value="Protected">
-              Protected ({classificationCounts.Protected || 0})
+            <SelectItem value={Classification.Public}>
+              Public ({classificationCounts[Classification.Public] || 0})
             </SelectItem>
-            <SelectItem value="Private">Private ({classificationCounts.Private || 0})</SelectItem>
+            <SelectItem value={Classification.Protected}>
+              Protected ({classificationCounts[Classification.Protected] || 0})
+            </SelectItem>
+            <SelectItem value={Classification.Private}>
+              Private ({classificationCounts[Classification.Private] || 0})
+            </SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -197,7 +297,7 @@ export function UserGameLogsSection({
             </CardContent>
           </Card>
         ) : (
-          gameLogs.map(gameLog => {
+          gameLogs.map((gameLog: GameLogNode) => {
             const game = gameLog.game;
             const homeTeam = game.teams?.home;
             const awayTeam = game.teams?.visitors;
@@ -260,7 +360,7 @@ export function UserGameLogsSection({
                       </div>
                     </div>
                     <div className="flex items-center gap-2" data-interactive>
-                      <GameLogActions gameLog={gameLog} onSuccess={refetchUserGameLogs} />
+                      <GameLogActions gameLog={gameLog as GameLog} onSuccess={refetch} />
                     </div>
                   </div>
                 </CardHeader>
@@ -351,19 +451,125 @@ export function UserGameLogsSection({
                     </Badge>
                   </div>
 
-                  {/* Interaction Counts */}
-                  <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                    <div className="flex items-center gap-1">
-                      <Eye className="h-3 w-3" />
-                      <span>0 views</span>
+                  {/* Social Interactions */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                      <div className="flex items-center gap-1">
+                        <Eye className="h-3 w-3" />
+                        <span>0 views</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <MessageSquare className="h-3 w-3" />
+                        <span>0 comments</span>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-1">
-                      <MessageSquare className="h-3 w-3" />
-                      <span>0 comments</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Users2 className="h-3 w-3" />
-                      <span>0 reactions</span>
+
+                    {/* Reactions Section - Always visible when logged in */}
+                    <div className="flex items-center gap-2" data-interactive>
+                      {/* Debug info */}
+                      {process.env.NODE_ENV === 'development' && (
+                        <div className="text-xs bg-yellow-100 px-2 py-1 rounded">
+                          User: {user ? 'Logged in' : 'Not logged in'} | Reactions:{' '}
+                          {gameLog.reactions?.length || 0}
+                        </div>
+                      )}
+
+                      {/* Existing Reactions */}
+                      {gameLog.reactions && gameLog.reactions.length > 0 && (
+                        <div className="flex items-center gap-1">
+                          {Object.values(REACTION_EMOJIS).map((emoji: ReactionEmojiValue) => {
+                            const reactions =
+                              gameLog.reactions?.filter(
+                                (r: { emoji: string }) => r.emoji === emoji
+                              ) || [];
+                            const count = reactions.length;
+
+                            if (count === 0) return null;
+
+                            const hasReacted = reactions.some(
+                              (r: { emoji: string; userId: string }) => r.userId === currentUserId
+                            );
+
+                            return (
+                              <button
+                                key={emoji}
+                                onClick={e => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  handleReaction(emoji, gameLog.id, hasReacted);
+                                }}
+                                className={cn(
+                                  'inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs transition-all duration-200',
+                                  'hover:scale-105 border',
+                                  clickedEmoji === emoji && 'scale-110',
+                                  hasReacted
+                                    ? 'bg-primary/10 border-primary/30 text-primary'
+                                    : 'bg-muted/50 border-border hover:bg-muted'
+                                )}
+                              >
+                                <span className="text-sm">{emoji}</span>
+                                <span className="font-medium">{count}</span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
+
+                      {/* Reaction Picker - More visible */}
+                      {user ? (
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-8 px-3 py-1 text-xs border-primary/50 hover:bg-primary/10"
+                              onClick={e => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                              }}
+                            >
+                              <SmilePlus className="h-3 w-3 mr-1" />
+                              React
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-64 p-3" align="start">
+                            <div className="grid grid-cols-6 gap-1">
+                              {Object.entries(REACTION_EMOJIS).map(([name, emoji]) => {
+                                const hasReacted = gameLog.reactions?.some(
+                                  (r: { emoji: string; userId: string }) =>
+                                    r.emoji === emoji && r.userId === currentUserId
+                                );
+
+                                return (
+                                  <Button
+                                    key={name}
+                                    variant={hasReacted ? 'secondary' : 'ghost'}
+                                    size="sm"
+                                    onClick={e => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      handleReaction(
+                                        emoji as ReactionEmojiValue,
+                                        gameLog.id,
+                                        !!hasReacted
+                                      );
+                                    }}
+                                    className={cn(
+                                      'h-8 w-full p-0',
+                                      hasReacted && 'ring-1 ring-primary/20'
+                                    )}
+                                    title={name.charAt(0) + name.slice(1).toLowerCase()}
+                                  >
+                                    <span className="text-base">{emoji}</span>
+                                  </Button>
+                                );
+                              })}
+                            </div>
+                          </PopoverContent>
+                        </Popover>
+                      ) : (
+                        <div className="text-xs text-muted-foreground">Sign in to react</div>
+                      )}
                     </div>
                   </div>
                 </CardContent>

@@ -2,7 +2,7 @@
 
 import { useMutation } from '@apollo/client';
 import { MoreVertical, Pencil, Trash2 } from 'lucide-react';
-import { useState } from 'react';
+import React, { useState } from 'react';
 
 import {
   AlertDialog,
@@ -117,7 +117,10 @@ export function GameLogActions({ gameLog, onSuccess }: GameLogActionsProps) {
             <Pencil className="mr-2 h-4 w-4" />
             Edit
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={handleDeleteClick} className="cursor-pointer text-destructive focus:text-destructive">
+          <DropdownMenuItem
+            onClick={handleDeleteClick}
+            className="cursor-pointer text-destructive focus:text-destructive"
+          >
             <Trash2 className="mr-2 h-4 w-4" />
             Delete
           </DropdownMenuItem>

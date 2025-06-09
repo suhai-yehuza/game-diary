@@ -254,6 +254,21 @@ export const GAME_LOG_FRAGMENT = gql`
     notes
     tags
     classification
+    reactions {
+      id
+      emoji
+      userId
+      targetId
+      targetType
+      createdAt
+      updatedAt
+      user {
+        id
+        username
+        emailAddress
+        imageUrl
+      }
+    }
     createdAt
     updatedAt
   }

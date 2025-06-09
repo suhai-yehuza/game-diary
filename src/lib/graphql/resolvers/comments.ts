@@ -6,7 +6,6 @@ import * as schema from '@src/lib/db/schema';
 import { createConnection, parseCursor } from '@src/lib/graphql/utils';
 import { logger } from 'lib/core/logger';
 import type { Context } from '@src/lib/types/component.types';
-import type { PaginationArgs } from '@src/lib/types/resolver.types';
 
 import { handleResolverError } from '../utils';
 // Helper function to calculate comment depth

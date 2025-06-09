@@ -1,23 +1,40 @@
 'use client';
 
-import { useQuery, useMutation } from '@apollo/client';
 import { format } from 'date-fns';
-import { ArrowLeft, MapPin, Star, Trophy, Tv, Users, Globe, Shield, Lock } from 'lucide-react';
+import {
+  ArrowLeft,
+  Globe,
+  Lock,
+  MapPin,
+  Shield,
+  Star,
+  Trophy,
+  Tv,
+  Users,
+  SmilePlus,
+} from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import React, { useState } from 'react';
-import { useUser } from '@clerk/nextjs';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@src/components/ui/avatar';
 import { Badge } from '@src/components/ui/badge';
 import { Button } from '@src/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@src/components/ui/card';
 import { Skeleton } from '@src/components/ui/skeleton';
-import { StarRating } from '@src/components/ui/star-rating';
 import { CommentsSection } from '@src/components/common/comments-section';
+import { StarRating } from '@src/components/ui/star-rating';
+import { useQuery, useMutation } from '@apollo/client';
+import { useUser } from '@clerk/nextjs';
+import { Popover, PopoverContent, PopoverTrigger } from '@src/components/ui/popover';
+import {
+  CLASSIFICATION,
+  REACTION_EMOJIS,
+  EMOJI_TO_GRAPHQL_MAPPING,
+  type ReactionEmojiValue,
+} from '@src/lib/types/config.types';
 import { CREATE_REACTION, DELETE_REACTION } from '@src/lib/graphql/mutations';
 import { GET_GAME_LOG } from '@src/lib/graphql/queries';
-import { CLASSIFICATION, REACTION_EMOJIS, type ReactionEmojiValue } from '@src/lib/types/config.types';
 import type { GameLogProps } from '@src/lib/types/consolidated.types';
 import type { GameLog, ParentType } from '@src/lib/types/generated/graphql';
 import { cn } from '@src/lib/utils';
@@ -151,6 +168,22 @@ export function GameLogView({ gameLogId }: GameLogProps) {
     // Optionally: update cache here for instant UI
   });
 
+  // Helper function to convert emoji character to GraphQL enum value
+  function emojiToGraphQLEnum(emojiChar: ReactionEmojiValue): string {
+    // Find the key in REACTION_EMOJIS that corresponds to this emoji character
+    const emojiKey = Object.entries(REACTION_EMOJIS).find(([, char]) => char === emojiChar)?.[0];
+
+    if (!emojiKey) {
+      return 'THUMBS_UP'; // fallback
+    }
+
+    // Convert the key to GraphQL enum value
+    const graphqlEnum =
+      EMOJI_TO_GRAPHQL_MAPPING[emojiKey as keyof typeof EMOJI_TO_GRAPHQL_MAPPING] || 'THUMBS_UP';
+
+    return graphqlEnum;
+  }
+
   function handleReaction(
     emoji: ReactionEmojiValue,
     targetId: string,
@@ -159,10 +192,28 @@ export function GameLogView({ gameLogId }: GameLogProps) {
   ) {
     setClickedEmoji(emoji);
     setTimeout(() => setClickedEmoji(null), 200);
+
+    const graphqlEmojiEnum = emojiToGraphQLEnum(emoji);
+
     if (hasReacted) {
-      deleteReaction({ variables: { emoji, targetId, targetType } });
+      // Find the reaction ID to delete
+      const reaction = gameLogData?.gameLog?.reactions?.find(
+        (r: { emoji: string; userId: string }) => r.emoji === emoji && r.userId === currentUserId
+      );
+
+      if (reaction?.id) {
+        deleteReaction({ variables: { id: reaction.id } });
+      }
     } else {
-      createReaction({ variables: { emoji, targetId, targetType } });
+      createReaction({
+        variables: {
+          input: {
+            emoji: graphqlEmojiEnum,
+            targetId,
+            targetType,
+          },
+        },
+      });
     }
   }
 
@@ -377,13 +428,6 @@ export function GameLogView({ gameLogId }: GameLogProps) {
                 </div>
               </Link>
 
-              {gameLog.notes && (
-                <div className="mt-4 p-4 bg-muted/50 rounded-lg">
-                  <p className="text-sm font-medium mb-1">Notes</p>
-                  <p className="text-sm text-muted-foreground">{gameLog.notes}</p>
-                </div>
-              )}
-
               {gameLog.tags && gameLog.tags.length > 0 && (
                 <div className="mt-4">
                   <p className="text-sm font-medium mb-2">Tags</p>
@@ -400,43 +444,188 @@ export function GameLogView({ gameLogId }: GameLogProps) {
           </Card>
         )}
 
-        {/* Reactions Section */}
-        {gameLog.reactions && gameLog.reactions.length > 0 && (
-          <div className="mt-8">
-            <h3 className="text-lg font-semibold mb-2">Reactions</h3>
-            <div className="flex gap-2 mt-2">
-              {Object.values(REACTION_EMOJIS).map((emoji: ReactionEmojiValue) => {
-                const hasReacted = gameLog.reactions.some(
-                  (r: { emoji: string; userId: string }) =>
-                    r.emoji === emoji && r.userId === currentUserId
-                );
-                const count = gameLog.reactions.filter(
-                  (r: { emoji: string }) => r.emoji === emoji
-                ).length;
-                return (
-                  <button
-                    key={emoji}
-                    onClick={() => handleReaction(emoji, gameLog.id, 'GameLog', !!hasReacted)}
-                    className={`reaction-animate px-2 py-1 rounded-full border flex items-center gap-1 transition-transform duration-150 ${
-                      clickedEmoji === emoji ? 'scale-125 bg-orange-100' : ''
-                    } ${hasReacted ? 'border-primary text-primary font-bold' : 'border-gray-300'}`}
-                    style={{ outline: 'none' }}
-                  >
-                    <span>{emoji}</span>
-                    {count > 0 && (
-                      <span className="ml-1 text-xs font-semibold bg-gray-200 rounded px-1">
-                        {count}
-                      </span>
-                    )}
-                  </button>
-                );
-              })}
+        {/* Seamless Content & Community Card */}
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-50/80 via-white to-slate-50/60 dark:from-slate-900/80 dark:via-slate-800/90 dark:to-slate-900/60 backdrop-blur-sm border border-border/30 shadow-xl shadow-black/5">
+          {/* Floating gradient orbs for visual interest */}
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            <div className="absolute -top-20 -right-20 w-40 h-40 bg-gradient-to-br from-blue-400/10 to-purple-400/10 rounded-full blur-3xl"></div>
+            <div className="absolute -bottom-20 -left-20 w-40 h-40 bg-gradient-to-br from-green-400/10 to-blue-400/10 rounded-full blur-3xl"></div>
+          </div>
+
+          <div className="relative z-10">
+            {/* Personal Notes - Floating Section */}
+            {gameLog.notes && (
+              <div className="p-8 pb-6">
+                <div className="relative">
+                  {/* Decorative gradient bar */}
+                  <div className="absolute -left-2 top-0 bottom-0 w-1 bg-gradient-to-b from-blue-500/80 via-indigo-500/80 to-purple-500/80 rounded-full"></div>
+
+                  <div className="pl-6">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500/10 to-indigo-500/10 border border-blue-200/20 dark:border-blue-500/20">
+                        <span className="text-lg">📝</span>
+                      </div>
+                      <h3 className="text-lg font-semibold text-foreground tracking-tight">
+                        Personal Notes
+                      </h3>
+                    </div>
+
+                    <div className="bg-gradient-to-br from-blue-50/50 to-indigo-50/30 dark:from-blue-950/30 dark:to-indigo-950/20 rounded-xl p-5 backdrop-blur-sm border border-blue-100/20 dark:border-blue-500/10">
+                      <p className="text-foreground/90 leading-relaxed whitespace-pre-wrap font-medium">
+                        {gameLog.notes}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Community Reactions - Flowing Integration */}
+            {((gameLog.reactions && gameLog.reactions.length > 0) || user) && (
+              <div className={cn('px-8', gameLog.notes ? 'pb-6' : 'pt-8 pb-6')}>
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500/10 to-orange-500/10 border border-amber-200/20 dark:border-amber-500/20">
+                    <span className="text-lg">❤️</span>
+                  </div>
+                  <h3 className="text-lg font-semibold text-foreground tracking-tight">
+                    Community Reactions
+                  </h3>
+                </div>
+
+                <div className="flex flex-wrap gap-3">
+                  {/* Existing Reactions */}
+                  {gameLog.reactions &&
+                    gameLog.reactions.length > 0 &&
+                    Object.values(REACTION_EMOJIS).map((emoji: ReactionEmojiValue) => {
+                      const hasReacted = gameLog.reactions.some(
+                        (r: { emoji: string; userId: string }) =>
+                          r.emoji === emoji && r.userId === currentUserId
+                      );
+                      const count = gameLog.reactions.filter(
+                        (r: { emoji: string }) => r.emoji === emoji
+                      ).length;
+
+                      if (count === 0) return null;
+
+                      return (
+                        <button
+                          key={emoji}
+                          onClick={() => handleReaction(emoji, gameLog.id, 'GameLog', !!hasReacted)}
+                          className={cn(
+                            'group relative px-4 py-3 rounded-2xl transition-all duration-300 text-base font-medium',
+                            'hover:scale-105 hover:shadow-lg hover:shadow-black/10',
+                            'backdrop-blur-sm border',
+                            clickedEmoji === emoji && 'scale-110',
+                            hasReacted
+                              ? 'bg-gradient-to-r from-primary/20 to-primary/10 border-primary/30 text-primary shadow-lg shadow-primary/10'
+                              : 'bg-gradient-to-r from-white/60 to-white/40 dark:from-white/10 dark:to-white/5 border-border/40 hover:border-border/60 hover:bg-white/80 dark:hover:bg-white/10'
+                          )}
+                        >
+                          <div className="flex items-center gap-2">
+                            <span className="text-xl transition-transform group-hover:scale-110">
+                              {emoji}
+                            </span>
+                            <span
+                              className={cn(
+                                'text-sm font-bold px-2 py-1 rounded-full min-w-[24px] text-center transition-colors',
+                                hasReacted
+                                  ? 'bg-primary/20 text-primary'
+                                  : 'bg-muted/60 text-muted-foreground'
+                              )}
+                            >
+                              {count}
+                            </span>
+                          </div>
+                        </button>
+                      );
+                    })}
+
+                  {/* Add Reaction Picker */}
+                  {user && (
+                    <div className="relative">
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <button
+                            className={cn(
+                              'group relative px-4 py-3 rounded-2xl transition-all duration-300 text-base font-medium',
+                              'hover:scale-105 hover:shadow-lg hover:shadow-black/10',
+                              'backdrop-blur-sm border',
+                              'bg-gradient-to-r from-white/60 to-white/40 dark:from-white/10 dark:to-white/5 border-border/40 hover:border-border/60 hover:bg-white/80 dark:hover:bg-white/10'
+                            )}
+                          >
+                            <div className="flex items-center gap-2">
+                              <SmilePlus className="h-5 w-5 transition-transform group-hover:scale-110" />
+                              <span className="text-sm font-medium">React</span>
+                            </div>
+                          </button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-64 p-3" align="start">
+                          <div className="grid grid-cols-6 gap-1">
+                            {Object.entries(REACTION_EMOJIS).map(([name, emoji]) => {
+                              const hasReacted = gameLog.reactions?.some(
+                                (r: { emoji: string; userId: string }) =>
+                                  r.emoji === emoji && r.userId === currentUserId
+                              );
+
+                              return (
+                                <Button
+                                  key={name}
+                                  variant={hasReacted ? 'secondary' : 'ghost'}
+                                  size="sm"
+                                  onClick={() =>
+                                    handleReaction(
+                                      emoji as ReactionEmojiValue,
+                                      gameLog.id,
+                                      'GameLog',
+                                      !!hasReacted
+                                    )
+                                  }
+                                  className={cn(
+                                    'h-8 w-full p-0',
+                                    hasReacted && 'ring-1 ring-primary/20'
+                                  )}
+                                  title={name.charAt(0) + name.slice(1).toLowerCase()}
+                                >
+                                  <span className="text-base">{emoji}</span>
+                                </Button>
+                              );
+                            })}
+                          </div>
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Discussion Section - Seamless Integration */}
+            <div className="relative">
+              {/* Remove the transition gradient completely */}
+
+              {/* Only add top padding if there's content above */}
+              <div
+                className={cn(
+                  gameLog.notes || (gameLog.reactions && gameLog.reactions.length > 0)
+                    ? 'pt-8'
+                    : 'pt-0'
+                )}
+              >
+                {/* Remove the header section completely for true seamless integration */}
+
+                {/* Embedded Comments without any additional styling or containers */}
+                <div className="px-8 pb-8">
+                  <CommentsSection
+                    parentId={gameLog.id}
+                    parentType={'game_log' as ParentType}
+                    initialExpanded={true}
+                    embedded={true}
+                  />
+                </div>
+              </div>
             </div>
           </div>
-        )}
-
-        {/* Comments Section */}
-        <CommentsSection parentId={gameLog.id} parentType={'game_log' as ParentType} initialExpanded={true} />
+        </div>
       </div>
     </div>
   );

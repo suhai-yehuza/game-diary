@@ -19,10 +19,17 @@ import {
 } from '@src/components/ui/select';
 import { Textarea } from '@src/components/ui/textarea';
 import { Label } from '@src/components/ui/label';
-import { WATCHED_SETTING, CLASSIFICATION, WATCHED_SCOPE } from '@src/lib/types/config.types';
+import {
+  WATCHED_SETTING,
+  CLASSIFICATION,
+  WATCHED_SCOPE,
+  type WatchedSettingValue,
+  type WatchedScopeValue,
+} from '@src/lib/types/config.types';
 import type { GameLogFormProps, Game } from '@src/lib/types/consolidated.types';
 import type { ReactDatePickerProps } from '@src/lib/types/game-log.types';
-import type { CreateGameLogInput } from '@src/lib/types/generated/graphql';
+import type { CreateGameLogInput, Classification } from '@src/lib/types/generated/graphql';
+import { logger } from 'lib/core/logger';
 
 export function GameLogForm({
   formData: externalFormData,
@@ -35,9 +42,9 @@ export function GameLogForm({
   // Form state with safe defaults - ensure all Select values are always defined
   const [formData, setFormData] = useState<CreateGameLogInput>({
     gameId: '',
-    classification: CLASSIFICATION.PROTECTED as any,
-    watchedSetting: WATCHED_SETTING.TV as any,
-    watchedScope: WATCHED_SCOPE.FULL_GAME as any,
+    classification: CLASSIFICATION.PROTECTED as Classification,
+    watchedSetting: WATCHED_SETTING.TV as WatchedSettingValue,
+    watchedScope: WATCHED_SCOPE.FULL_GAME as WatchedScopeValue,
     watchedDate: new Date(),
     watchedLocation: '',
     ratingForGame: 3,
@@ -54,20 +61,20 @@ export function GameLogForm({
     if (externalFormData && !hasInitialized.current && !isUserInteracting) {
       const newFormData: CreateGameLogInput = {
         gameId: externalFormData.gameId,
-        watchedSetting: externalFormData.watchedSetting as any,
+        watchedSetting: externalFormData.watchedSetting as WatchedSettingValue,
         watchedDate: externalFormData.watchedDate,
         watchedLocation: externalFormData.watchedLocation || '',
         ratingForGame: externalFormData.ratingForGame,
-        watchedScope: externalFormData.watchedScope as any,
+        watchedScope: externalFormData.watchedScope as WatchedScopeValue,
         notes: externalFormData.notes || '',
         tags: externalFormData.tags || [],
-        classification: externalFormData.classification as any,
+        classification: externalFormData.classification as Classification,
       };
-      
+
       setFormData(newFormData);
       hasInitialized.current = true;
     }
-  }, [externalFormData?.gameId, isUserInteracting]); // Include isUserInteracting to prevent conflicts
+  }, [externalFormData, isUserInteracting]); // Include isUserInteracting to prevent conflicts
 
   // Update gameId when external selected game changes
   useEffect(() => {
@@ -88,22 +95,37 @@ export function GameLogForm({
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Ensure required fields are never null/undefined before submitting
     const safeFormData = {
       ...formData,
       ratingForGame: formData.ratingForGame ?? 3,
       // Classification should always be valid at this point
     };
-    
-    console.log('Submitting form data:', safeFormData);
+
+    logger.debug('Submitting form data:', safeFormData);
     if (onSubmit) {
       await onSubmit(safeFormData);
     }
   };
 
-  const updateField = (field: keyof CreateGameLogInput, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+  const updateField = <T extends keyof CreateGameLogInput>(
+    field: T,
+    value: CreateGameLogInput[T]
+  ) => {
+    if (field === 'classification') {
+      setFormData(prev => ({ ...prev, [field]: value as Classification }));
+    } else if (field === 'watchedSetting') {
+      setFormData(prev => ({ ...prev, [field]: value as WatchedSettingValue }));
+    } else if (field === 'watchedScope') {
+      setFormData(prev => ({ ...prev, [field]: value as WatchedScopeValue }));
+    } else {
+      setFormData(prev => ({ ...prev, [field]: value }));
+    }
+  };
+
+  const handleClassificationChange = (value: string) => {
+    updateField('classification', value as Classification);
   };
 
   return (
@@ -173,12 +195,12 @@ export function GameLogForm({
                   const end = input.selectionEnd || 0;
                   const currentValue = input.value;
                   const newValue = currentValue.slice(0, start) + ' ' + currentValue.slice(end);
-                  
+
                   // Prevent default and manually handle the space
                   e.preventDefault();
                   setIsUserInteracting(true);
                   updateField('watchedLocation', newValue);
-                  
+
                   // Restore cursor position after state update
                   setTimeout(() => {
                     input.setSelectionRange(start + 1, start + 1);
@@ -246,12 +268,7 @@ export function GameLogForm({
           <div className="space-y-2">
             <Label>Classification</Label>
             <Select
-              onValueChange={value => {
-                // Only update if we receive a valid non-empty value
-                if (value && typeof value === 'string' && value.trim() !== '') {
-                  updateField('classification', value);
-                }
-              }}
+              onValueChange={handleClassificationChange}
               value={formData.classification as string}
             >
               <SelectTrigger>
@@ -285,12 +302,12 @@ export function GameLogForm({
                   const end = textarea.selectionEnd || 0;
                   const currentValue = textarea.value;
                   const newValue = currentValue.slice(0, start) + ' ' + currentValue.slice(end);
-                  
+
                   // Prevent default and manually handle the space
                   e.preventDefault();
                   setIsUserInteracting(true);
                   updateField('notes', newValue);
-                  
+
                   // Restore cursor position after state update
                   setTimeout(() => {
                     textarea.setSelectionRange(start + 1, start + 1);

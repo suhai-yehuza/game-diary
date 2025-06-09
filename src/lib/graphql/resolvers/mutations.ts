@@ -29,7 +29,6 @@ import type {
   MutationCreateCommentArgs,
   MutationCreateReactionArgs,
   MutationDeleteReactionArgs,
-  DbUser,
   ParentType,
   Classification,
   CreateGameLogInput,

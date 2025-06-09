@@ -308,7 +308,11 @@ export async function waitForPageContent(page: Page): Promise<void> {
 /**
  * Sets up API mocking for the test environment
  */
-export async function setupApiMocking(page: Page, withAuth = false, options: { emptyLiveGames?: boolean } = {}) {
+export async function setupApiMocking(
+  page: Page,
+  withAuth = false,
+  options: { emptyLiveGames?: boolean } = {}
+) {
   // Mock GraphQL API calls
   await page.route('**/api/graphql', async route => {
     const request = route.request();
@@ -400,7 +404,11 @@ export async function safeGotoWithMocking(page: Page, url: string) {
  * Common test pattern: setup mocking, navigate, and wait for content
  * This is the most frequently used pattern in our tests
  */
-export async function navigateWithMocking(page: Page, url: string, options: { emptyLiveGames?: boolean } = {}) {
+export async function navigateWithMocking(
+  page: Page,
+  url: string,
+  options: { emptyLiveGames?: boolean } = {}
+) {
   await setupApiMocking(page, false, options);
   await page.goto(url);
   await waitForPageContent(page);

@@ -15,4 +15,4 @@ export const resolvers = {
   DBUser: queries.DbUser as unknown as Resolvers['DBUser'],
   GameLog: queries.GameLog as unknown as Resolvers['GameLog'],
   Comment: queries.Comment as unknown as Resolvers['Comment'],
-} as Resolvers;
+} as unknown as Resolvers;

@@ -1,6 +1,5 @@
 import DataLoader from 'dataloader';
 import { inArray, type InferSelectModel } from 'drizzle-orm';
-import type { NeonHttpDatabase } from 'drizzle-orm/neon-http';
 
 import { getCache } from '@src/lib/cache';
 import * as schema from '@src/lib/db/schema';

@@ -24,6 +24,7 @@ import {
   Tv,
   ChevronDown,
   ChevronRight,
+  SmilePlus,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
@@ -36,6 +37,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@src/components/ui/avatar';
 import { Badge } from '@src/components/ui/badge';
 import { Button } from '@src/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@src/components/ui/card';
+import { Popover, PopoverContent, PopoverTrigger } from '@src/components/ui/popover';
 import { Skeleton } from '@src/components/ui/skeleton';
 import { StarRating } from '@src/components/ui/star-rating';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@src/components/ui/tabs';
@@ -43,16 +45,24 @@ import {
   SEND_FRIEND_REQUEST,
   ACCEPT_FRIEND_REQUEST,
   REMOVE_FRIEND,
+  CREATE_REACTION,
+  DELETE_REACTION,
 } from '@src/lib/graphql/mutations';
-import { GET_USER, GET_USER_FRIENDSHIPS, GET_USER_GAME_LOGS } from '@src/lib/graphql/queries';
+import { GET_USER_FRIENDSHIPS, GET_USER_GAME_LOGS } from '@src/lib/graphql/queries';
 import { logger } from 'lib/core/logger';
-import { FRIENDSHIP_STATUS } from '@src/lib/types/config.types';
+import {
+  FRIENDSHIP_STATUS,
+  REACTION_EMOJIS,
+  EMOJI_TO_GRAPHQL_MAPPING,
+  type ReactionEmojiValue,
+} from '@src/lib/types/config.types';
 import type {
   GameLog,
   Friendship,
   FriendshipStatus,
-  DbUser,
   ParentType,
+  GetUserGameLogsQueryVariables,
+  Classification,
 } from '@src/lib/types/generated/graphql';
 import type { UserProfileProps } from '@src/lib/types/user.types';
 import { cn } from '@src/lib/utils';
@@ -69,21 +79,156 @@ const classificationColors = {
   Public: 'text-green-500 bg-green-50 border-green-200',
 };
 
+interface TargetUserState {
+  id: string;
+  username: string;
+  firstName: string | null;
+  lastName: string | null;
+  emailAddress: string;
+  imageUrl: string;
+  last_sign_in_at: number;
+  password_enabled: boolean;
+  two_factor_enabled: boolean;
+  email_verified: boolean;
+  email_verification_strategy: string;
+  banned: boolean;
+  comments: Array<{
+    id: string;
+    parentId: string;
+    parentType: string;
+    content: string;
+  }>;
+  reactions: Array<{
+    id: string;
+    emoji: string;
+    targetId: string;
+    targetType: string;
+  }>;
+  gameLogs: Array<{
+    id: string;
+  }>;
+  external_id: string;
+  inboundFriendshipIds: string[];
+  outboundFriendshipIds: string[];
+  friendships: Array<{
+    id: string;
+    status: string;
+  }>;
+  initiatedFriendships: Array<{
+    id: string;
+    status: string;
+  }>;
+  createdAt: number;
+  updatedAt: number;
+  deletedAt: number | null;
+  __typename: string;
+}
+
 export default function UserProfile({ targetUserId }: UserProfileProps) {
+  const router = useRouter();
   const { user: currentUser } = useUser();
-  const [targetUser, setTargetUser] = useState<DbUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [dbUserId, setDbUserId] = useState<string | null>(null);
+  const [targetUser, setTargetUser] = useState<TargetUserState | null>(null);
   const [currentUserDbId, setCurrentUserDbId] = useState<string | null>(null);
-  const [selectedClassification, setSelectedClassification] = useState<string>('all');
+  const [dbUserId, setDbUserId] = useState<string | null>(null);
+  const [currentFriendship, setCurrentFriendship] = useState<Friendship | null>(null);
+  const [selectedClassification, setSelectedClassification] = useState('all');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [expandedNotes, setExpandedNotes] = useState<Set<string>>(new Set());
   const [friendshipStatus, setFriendshipStatus] = useState<FriendshipStatus | null | 'loading'>(
     'loading'
   );
-  const [currentFriendship, setCurrentFriendship] = useState<Friendship | null>(null);
-  const [expandedNotes, setExpandedNotes] = useState<Set<string>>(new Set());
-  const router = useRouter();
-  const [currentPage, setCurrentPage] = useState(1);
-  const ITEMS_PER_PAGE = 10;
+
+  // Reaction state and handlers
+  const [clickedEmoji, setClickedEmoji] = useState<string | null>(null);
+  const [openPopovers, setOpenPopovers] = useState<Set<string>>(new Set());
+  const currentUserId = currentUserDbId;
+
+  // Reaction mutations
+  const [createReaction] = useMutation(CREATE_REACTION, {
+    onCompleted: () => {
+      refetchUserGameLogs(); // Refetch to get updated reaction counts
+    },
+  });
+
+  const [deleteReaction] = useMutation(DELETE_REACTION, {
+    onCompleted: () => {
+      refetchUserGameLogs(); // Refetch to get updated reaction counts
+    },
+  });
+
+  // Helper function to convert emoji character to GraphQL enum value
+  function emojiToGraphQLEnum(emojiChar: ReactionEmojiValue): string {
+    logger.debug('Converting emoji:', emojiChar);
+
+    // Find the key in REACTION_EMOJIS that corresponds to this emoji character
+    const emojiKey = Object.entries(REACTION_EMOJIS).find(([, char]) => char === emojiChar)?.[0];
+    logger.debug('Found emoji key:', emojiKey);
+
+    if (!emojiKey) {
+      logger.warn('Unknown emoji character:', emojiChar);
+      return 'THUMBS_UP'; // fallback
+    }
+
+    // Convert the key to GraphQL enum value
+    const graphqlEnum =
+      EMOJI_TO_GRAPHQL_MAPPING[emojiKey as keyof typeof EMOJI_TO_GRAPHQL_MAPPING] || 'THUMBS_UP';
+    logger.debug('Mapped to GraphQL enum:', graphqlEnum);
+
+    return graphqlEnum;
+  }
+
+  function handleReaction(emoji: ReactionEmojiValue, targetId: string, hasReacted: boolean) {
+    if (!currentUser) return;
+
+    setClickedEmoji(emoji);
+    setTimeout(() => setClickedEmoji(null), 200);
+
+    const graphqlEmojiEnum = emojiToGraphQLEnum(emoji);
+
+    if (hasReacted) {
+      // Find the reaction ID to delete
+      const gameLog = userGameLogsData?.gameLogs?.edges?.find(
+        (edge: { node: GameLog }) => edge.node.id === targetId
+      )?.node;
+
+      const reaction = gameLog?.reactions?.find(
+        (r: { emoji: string; userId: string }) => r.emoji === emoji && r.userId === currentUserId
+      );
+
+      if (reaction?.id) {
+        deleteReaction({ variables: { id: reaction.id } });
+      }
+    } else {
+      createReaction({
+        variables: {
+          input: {
+            emoji: graphqlEmojiEnum,
+            targetId,
+            targetType: 'game_log',
+          },
+        },
+      });
+    }
+
+    // Close the popover after reaction
+    setOpenPopovers(new Set());
+  }
+
+  function togglePopover(gameLogId: string) {
+    setOpenPopovers(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(gameLogId)) {
+        newSet.delete(gameLogId);
+      } else {
+        newSet.clear(); // Close all other popovers
+        newSet.add(gameLogId);
+      }
+      return newSet;
+    });
+  }
+
+  const ITEMS_PER_PAGE = 5;
 
   // Fetch current user's database ID
   useEffect(() => {
@@ -115,8 +260,8 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
             emailAddress: currentUser.emailAddresses[0]?.emailAddress || '',
             imageUrl: currentUser.imageUrl,
             last_sign_in_at: currentUser.lastSignInAt
-              ? new Date(currentUser.lastSignInAt)
-              : new Date(),
+              ? new Date(currentUser.lastSignInAt).getTime()
+              : new Date().getTime(),
             password_enabled: currentUser.passwordEnabled,
             two_factor_enabled: currentUser.twoFactorEnabled,
             email_verified: currentUser.emailAddresses[0]?.verification?.status === 'verified',
@@ -131,8 +276,12 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
             outboundFriendshipIds: [],
             friendships: [],
             initiatedFriendships: [],
-            createdAt: currentUser.createdAt ? new Date(currentUser.createdAt) : new Date(),
-            updatedAt: currentUser.updatedAt ? new Date(currentUser.updatedAt) : new Date(),
+            createdAt: currentUser.createdAt
+              ? new Date(currentUser.createdAt).getTime()
+              : new Date().getTime(),
+            updatedAt: currentUser.updatedAt
+              ? new Date(currentUser.updatedAt).getTime()
+              : new Date().getTime(),
             deletedAt: null,
             __typename: 'DBUser',
           });
@@ -168,11 +317,6 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
 
     fetchUser();
   }, [targetUserId, currentUser]);
-
-  const { data: userData, loading: userLoading } = useQuery<{ user: DbUser }>(GET_USER, {
-    variables: { id: dbUserId },
-    skip: !dbUserId,
-  });
 
   const {
     data: userGameLogsData,
@@ -324,8 +468,8 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
       target.closest('[data-comments-section]') ||
       // Button roles (excluding the card itself)
       (target.closest('[role="button"]') && target.closest('[role="button"]') !== cardElement) ||
-             // Any element with click handlers that should stop propagation
-       target.hasAttribute('data-prevent-card-click');
+      // Any element with click handlers that should stop propagation
+      target.hasAttribute('data-prevent-card-click');
 
     if (!isInteractiveElement) {
       router.push(`/protected/user/game-logs/${gameLogId}`);
@@ -340,7 +484,7 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
     );
   }
 
-  if (userLoading || userGameLogsLoading) {
+  if (userGameLogsLoading) {
     return (
       <div className="flex justify-center items-center h-64">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-gray-100"></div>
@@ -348,17 +492,16 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
     );
   }
 
-  const userProfile = userData?.user || targetUser;
   const allGameLogs = userGameLogsData?.gameLogs?.edges?.map(edge => edge.node) || [];
   const totalCount = userGameLogsData?.gameLogs?.totalCount || 0;
+  const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
+  const isOwnProfile = currentUser?.id === targetUserId;
 
   // Calculate pagination
-  const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const endIndex = startIndex + ITEMS_PER_PAGE;
   const gameLogs = allGameLogs.slice(startIndex, endIndex);
 
-  const isOwnProfile = currentUser?.id === targetUserId || !targetUserId;
   const isPendingFromCurrentUser = currentFriendship?.initiator.id === currentUserDbId;
 
   // Calculate stats from game logs
@@ -481,9 +624,9 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
         <div className="container mx-auto px-4 py-8">
           <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
             <Avatar className="h-32 w-32 ring-4 ring-background shadow-xl">
-              <AvatarImage src={userProfile?.imageUrl ?? undefined} />
+              <AvatarImage src={targetUser?.imageUrl ?? undefined} />
               <AvatarFallback className="text-3xl">
-                {userProfile?.username?.charAt(0).toUpperCase() || 'U'}
+                {targetUser?.username?.charAt(0).toUpperCase() || 'U'}
               </AvatarFallback>
             </Avatar>
 
@@ -491,24 +634,24 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
               <div className="flex flex-col md:flex-row items-center md:items-start gap-4">
                 <div>
                   <h1 className="text-3xl font-bold flex items-center gap-2">
-                    {userProfile?.username || 'Unknown User'}
-                    {userProfile?.email_verified && (
+                    {targetUser?.username || 'Unknown User'}
+                    {targetUser?.email_verified && (
                       <Badge variant="secondary" className="gap-1">
                         <Shield className="h-3 w-3" />
                         Verified
                       </Badge>
                     )}
                   </h1>
-                  {userProfile?.firstName || userProfile?.lastName ? (
+                  {targetUser?.firstName || targetUser?.lastName ? (
                     <p className="text-muted-foreground">
-                      {userProfile?.firstName} {userProfile?.lastName}
+                      {targetUser?.firstName} {targetUser?.lastName}
                     </p>
                   ) : null}
                   <p className="text-sm text-muted-foreground flex items-center gap-2 mt-2">
                     <Calendar className="h-4 w-4" />
                     Member since{' '}
-                    {userProfile?.createdAt
-                      ? new Date(userProfile.createdAt).toLocaleDateString('en-US', {
+                    {targetUser?.createdAt
+                      ? new Date(targetUser.createdAt).toLocaleDateString('en-US', {
                           month: 'long',
                           year: 'numeric',
                         })
@@ -522,14 +665,16 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
                       gameId={''}
                       gameLog={{} as GameLog}
                       onSuccess={() => {
-                        // Build filters object without undefined values
-                        const filters: any = { userId: dbUserId };
+                        const filters: GetUserGameLogsQueryVariables = {
+                          filters: { userId: dbUserId },
+                        };
                         if (selectedClassification !== 'all') {
-                          filters.classification = selectedClassification;
+                          filters.filters = {
+                            ...filters.filters,
+                            classification: selectedClassification as Classification,
+                          };
                         }
-                        refetchUserGameLogs({
-                          variables: { filters },
-                        });
+                        refetchUserGameLogs({ variables: { filters } });
                       }}
                     />
                   )}
@@ -559,7 +704,7 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
                   <CardContent className="p-4 text-center">
                     <Users2 className="h-8 w-8 mx-auto text-blue-500 mb-2" />
                     <p className="text-2xl font-bold">
-                      {userProfile?.initiatedFriendships?.length || 0}
+                      {targetUser?.initiatedFriendships?.length || 0}
                     </p>
                     <p className="text-xs text-muted-foreground">Friends</p>
                   </CardContent>
@@ -568,7 +713,7 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
                 <Card className="border-2">
                   <CardContent className="p-4 text-center">
                     <MessageSquare className="h-8 w-8 mx-auto text-green-500 mb-2" />
-                    <p className="text-2xl font-bold">{userProfile?.comments?.length || 0}</p>
+                    <p className="text-2xl font-bold">{targetUser?.comments?.length || 0}</p>
                     <p className="text-xs text-muted-foreground">Comments</p>
                   </CardContent>
                 </Card>
@@ -736,15 +881,16 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
                                 <GameLogActions
                                   gameLog={gameLog}
                                   onSuccess={() => {
-                                    // Build filters object without undefined values
-                                    const filters: any = { userId: dbUserId };
+                                    const filters: GetUserGameLogsQueryVariables = {
+                                      filters: { userId: dbUserId },
+                                    };
                                     if (selectedClassification !== 'all') {
-                                      filters.classification = selectedClassification;
+                                      filters.filters = {
+                                        ...filters.filters,
+                                        classification: selectedClassification as Classification,
+                                      };
                                     }
-                                    
-                                    refetchUserGameLogs({
-                                      variables: { filters },
-                                    });
+                                    refetchUserGameLogs({ variables: { filters } });
                                   }}
                                 />
                               )}
@@ -864,17 +1010,151 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
                             </div>
                           </div>
 
+                          {/* Social Interactions */}
+                          <div className="px-6 pb-4 border-t border-muted/50">
+                            <div className="flex items-center justify-between pt-4">
+                              <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                                <div className="flex items-center gap-1">
+                                  <Eye className="h-3 w-3" />
+                                  <span>0 views</span>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                  <MessageSquare className="h-3 w-3" />
+                                  <span>0 comments</span>
+                                </div>
+                              </div>
+
+                              {/* Reactions Section */}
+                              <div
+                                className="flex items-center gap-2"
+                                onClick={e => e.stopPropagation()}
+                              >
+                                {/* Existing Reactions */}
+                                {gameLog.reactions && gameLog.reactions.length > 0 && (
+                                  <div className="flex items-center gap-1">
+                                    {Object.values(REACTION_EMOJIS).map(
+                                      (emoji: ReactionEmojiValue) => {
+                                        const reactions =
+                                          gameLog.reactions?.filter(
+                                            (r: { emoji: string }) => r.emoji === emoji
+                                          ) || [];
+                                        const count = reactions.length;
+
+                                        if (count === 0) return null;
+
+                                        const hasReacted = reactions.some(
+                                          (r: { emoji: string; userId: string }) =>
+                                            r.userId === currentUserId
+                                        );
+
+                                        return (
+                                          <button
+                                            key={emoji}
+                                            onClick={e => {
+                                              e.preventDefault();
+                                              e.stopPropagation();
+                                              handleReaction(emoji, gameLog.id, hasReacted);
+                                            }}
+                                            className={cn(
+                                              'inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs transition-all duration-200',
+                                              'hover:scale-105 border',
+                                              clickedEmoji === emoji && 'scale-110',
+                                              hasReacted
+                                                ? 'bg-primary/10 border-primary/30 text-primary'
+                                                : 'bg-muted/50 border-border hover:bg-muted'
+                                            )}
+                                          >
+                                            <span className="text-sm">{emoji}</span>
+                                            <span className="font-medium">{count}</span>
+                                          </button>
+                                        );
+                                      }
+                                    )}
+                                  </div>
+                                )}
+
+                                {/* Reaction Picker */}
+                                {currentUser ? (
+                                  <Popover
+                                    open={openPopovers.has(gameLog.id)}
+                                    onOpenChange={open => {
+                                      if (open) {
+                                        togglePopover(gameLog.id);
+                                      } else {
+                                        setOpenPopovers(new Set());
+                                      }
+                                    }}
+                                  >
+                                    <PopoverTrigger asChild>
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="h-8 px-3 py-1 text-xs border-primary/50 hover:bg-primary/10"
+                                        onClick={e => {
+                                          e.preventDefault();
+                                          e.stopPropagation();
+                                          togglePopover(gameLog.id);
+                                        }}
+                                      >
+                                        <SmilePlus className="h-3 w-3 mr-1" />
+                                        React
+                                      </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-64 p-3" align="start">
+                                      <div className="grid grid-cols-6 gap-1">
+                                        {Object.entries(REACTION_EMOJIS).map(([name, emoji]) => {
+                                          const hasReacted = gameLog.reactions?.some(
+                                            (r: { emoji: string; userId: string }) =>
+                                              r.emoji === emoji && r.userId === currentUserId
+                                          );
+
+                                          return (
+                                            <Button
+                                              key={name}
+                                              variant={hasReacted ? 'secondary' : 'ghost'}
+                                              size="sm"
+                                              onClick={e => {
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                                handleReaction(
+                                                  emoji as ReactionEmojiValue,
+                                                  gameLog.id,
+                                                  !!hasReacted
+                                                );
+                                              }}
+                                              className={cn(
+                                                'h-8 w-full p-0',
+                                                hasReacted && 'ring-1 ring-primary/20'
+                                              )}
+                                              title={name.charAt(0) + name.slice(1).toLowerCase()}
+                                            >
+                                              <span className="text-base">{emoji}</span>
+                                            </Button>
+                                          );
+                                        })}
+                                      </div>
+                                    </PopoverContent>
+                                  </Popover>
+                                ) : (
+                                  <div className="text-xs text-muted-foreground">
+                                    Sign in to react
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+
                           {/* Comments Section */}
                           <div
                             className="border-t border-muted/50"
                             onClick={e => e.stopPropagation()}
                           >
                             <div className="px-6 pb-6">
-                                                          <CommentsSection
-                              parentId={gameLog.id}
-                              parentType={'game_log' as ParentType}
-                              initialExpanded={false}
-                            />
+                              <CommentsSection
+                                parentId={gameLog.id}
+                                parentType={'game_log' as ParentType}
+                                initialExpanded={false}
+                              />
                             </div>
                           </div>
                         </CardContent>

@@ -41,7 +41,6 @@ input DateRangeInput {
   end: DateTime
 }
 
-
 type UserSummary {
   id: ID!
   username: String!
@@ -113,7 +112,6 @@ input UpdateUserProfileInput {
   lastName: String
   imageUrl: String
 }
-
 
 type Game {
   id: ID!
@@ -255,7 +253,6 @@ type CreateGameLogResponse {
   gameLog: GameLog
 }
 
-
 type Team {
   id: ID!
   name: String!
@@ -334,7 +331,6 @@ input TeamFilters {
   code: String
   pagination: PaginationInput
 }
-
 
 schema {
   query: Query

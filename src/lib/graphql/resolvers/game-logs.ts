@@ -337,11 +337,11 @@ export const GameLog = {
     // Find the index of the comment after which to start
     let startIndex = 0;
     if (after) {
-      startIndex = allComments.findIndex((c: any) => c.id === after) + 1;
+      startIndex = allComments.findIndex((c: { id: string }) => c.id === after) + 1;
     }
     const paginatedComments = allComments.slice(startIndex, startIndex + first);
 
-    const edges = paginatedComments.map((comment: any) => ({
+    const edges = paginatedComments.map((comment: { id: string; [key: string]: unknown }) => ({
       cursor: comment.id,
       node: comment,
     }));

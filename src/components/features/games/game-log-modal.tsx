@@ -48,7 +48,7 @@ export function GameLogModal({
 }: GameLogModalProps) {
   const [internalIsOpen, setInternalIsOpen] = useState(false);
   const isOpen = externalIsOpen ?? internalIsOpen;
-  
+
   // Modal state handler with proper cleanup for different modal types
   const handleModalClose = (newOpen?: boolean) => {
     if (newOpen === true) {
@@ -313,31 +313,34 @@ export function GameLogModal({
   const handleSubmit = async (data: CreateGameLogInput) => {
     // Ensure ratingForGame is never null/undefined - this is a critical field
     const safeRatingForGame = data.ratingForGame ?? 3;
-    
+
     // CRITICAL: Validate all enum fields to prevent empty strings being sent to GraphQL
-    const safeClassification = (data.classification && 
-      typeof data.classification === 'string' && 
-      data.classification.trim() !== '' && 
-      Object.values(CLASSIFICATION).includes(data.classification as any))
-      ? data.classification 
-      : CLASSIFICATION.PROTECTED;
-      
-    const safeWatchedSetting = (data.watchedSetting && 
-      typeof data.watchedSetting === 'string' && 
-      data.watchedSetting.trim() !== '' && 
-      Object.values(WATCHED_SETTING).includes(data.watchedSetting as any))
-      ? data.watchedSetting 
-      : WATCHED_SETTING.TV;
-      
-    const safeWatchedScope = (data.watchedScope && 
-      typeof data.watchedScope === 'string' && 
-      data.watchedScope.trim() !== '' && 
-      Object.values(WATCHED_SCOPE).includes(data.watchedScope as any))
-      ? data.watchedScope 
-      : WATCHED_SCOPE.FULL_GAME;
-      
+    const safeClassification =
+      data.classification &&
+      typeof data.classification === 'string' &&
+      data.classification.trim() !== '' &&
+      Object.values(CLASSIFICATION).includes(data.classification as ClassificationValue)
+        ? data.classification
+        : CLASSIFICATION.PROTECTED;
+
+    const safeWatchedSetting =
+      data.watchedSetting &&
+      typeof data.watchedSetting === 'string' &&
+      data.watchedSetting.trim() !== '' &&
+      Object.values(WATCHED_SETTING).includes(data.watchedSetting as WatchedSettingValue)
+        ? data.watchedSetting
+        : WATCHED_SETTING.TV;
+
+    const safeWatchedScope =
+      data.watchedScope &&
+      typeof data.watchedScope === 'string' &&
+      data.watchedScope.trim() !== '' &&
+      Object.values(WATCHED_SCOPE).includes(data.watchedScope as WatchedScopeValue)
+        ? data.watchedScope
+        : WATCHED_SCOPE.FULL_GAME;
+
     // Validation complete - proceeding with mutation
-    
+
     if (mode === 'create') {
       // More robust check for selectedGame and its ID - handles different possible field names
       const selectedGameId =

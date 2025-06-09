@@ -3,7 +3,7 @@ import type DataLoader from 'dataloader';
 import type { NeonHttpDatabase } from 'drizzle-orm/neon-http';
 
 import { db } from '@src/lib/db';
-import * as schema from '@src/lib/db/schema';
+import type * as schema from '@src/lib/db/schema';
 import type { Context } from '@src/lib/types/component.types';
 import type { Reaction, UserSummary, Game, GameLog } from '@src/lib/types/generated/graphql';
 

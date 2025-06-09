@@ -151,6 +151,7 @@ export const TARGET_TYPES = {
 } as const;
 
 // Mapping frontend emoji keys to GraphQL enum values
+// Only includes the 10 valid ReactionEmojiType enum values from GraphQL schema
 export const EMOJI_TO_GRAPHQL_MAPPING = {
   LIKE: 'THUMBS_UP',
   LOVE: 'HEART',
@@ -162,17 +163,17 @@ export const EMOJI_TO_GRAPHQL_MAPPING = {
   EYES: 'EYES',
   ROCKET: 'ROCKET',
   THUMBS_DOWN: 'THUMBS_DOWN',
-  // Map other emojis to closest GraphQL enum equivalent or default
-  CLAP: 'THUMBS_UP',
-  MUSCLE: 'FIRE',
-  GOAT: 'FIRE',
-  BULLSEYE: 'FIRE',
-  BASKETBALL: 'FIRE',
-  SOCCER: 'FIRE',
-  FOOTBALL: 'FIRE',
-  BASEBALL: 'FIRE',
-  TENNIS: 'FIRE',
-  GOLF: 'FIRE',
+  // Map other emojis to closest GraphQL enum equivalent
+  CLAP: 'CLAP',
+  MUSCLE: 'MUSCLE',
+  GOAT: 'GOAT',
+  BULLSEYE: 'BULLSEYE',
+  BASKETBALL: 'BASKETBALL',
+  SOCCER: 'SOCCER',
+  FOOTBALL: 'FOOTBALL',
+  BASEBALL: 'BASEBALL',
+  TENNIS: 'TENNIS',
+  GOLF: 'GOLF',
 } as const;
 
 export const LEAGUES = {
