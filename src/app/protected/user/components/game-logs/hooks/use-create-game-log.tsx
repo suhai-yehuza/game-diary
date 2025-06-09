@@ -4,7 +4,7 @@ import { useMutation, useQuery } from '@apollo/client';
 import { useUser } from '@clerk/nextjs';
 import { useMemo } from 'react';
 
-import { useToast } from '@src/components/ui/use-toast';
+import { useToast } from '@src/app/components/ui/use-toast';
 import { CREATE_GAME_LOG } from '@src/lib/graphql/mutations';
 import { GET_GAMES } from '@src/lib/graphql/queries';
 import { logger } from 'lib/core/logger';

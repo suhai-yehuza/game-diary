@@ -3,8 +3,8 @@ import { SignInButton } from '@clerk/nextjs';
 import { Loader2 } from 'lucide-react';
 import React, { useState, useCallback, useMemo } from 'react';
 
-import { Button } from '@src/components/ui/button';
-import { useToast } from '@src/components/ui/use-toast';
+import { Button } from '@src/app/components/ui/button';
+import { useToast } from '@src/app/components/ui/use-toast';
 import { useAuthContext } from '@/contexts/auth-context';
 import { useNotifications } from '@/contexts/notification-context';
 import {

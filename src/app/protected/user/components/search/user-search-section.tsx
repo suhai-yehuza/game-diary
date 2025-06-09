@@ -23,28 +23,28 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { toast } from 'react-hot-toast';
 import { useDebounce } from 'use-debounce';
 
-import { Avatar, AvatarFallback, AvatarImage } from '@src/components/ui/avatar';
-import { Badge } from '@src/components/ui/badge';
-import { Button } from '@src/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@src/components/ui/card';
+import { Avatar, AvatarFallback, AvatarImage } from '@src/app/components/ui/avatar';
+import { Badge } from '@src/app/components/ui/badge';
+import { Button } from '@src/app/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@src/app/components/ui/card';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
   DropdownMenuSeparator,
-} from '@src/components/ui/dropdown-menu';
-import { Input } from '@src/components/ui/input';
-import { Label } from '@src/components/ui/label';
+} from '@src/app/components/ui/dropdown-menu';
+import { Input } from '@src/app/components/ui/input';
+import { Label } from '@src/app/components/ui/label';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@src/components/ui/select';
-import { Skeleton } from '@src/components/ui/skeleton';
-import { useNotifications } from '@/contexts/notification-context';
+} from '@src/app/components/ui/select';
+import { Skeleton } from '@src/app/components/ui/skeleton';
+import { useNotifications } from '@src/contexts/notification-context';
 import { clientCache, CLIENT_CACHE_KEYS } from '@src/lib/cache/client';
 import { API_CONFIG } from '@src/lib/config/api.config';
 import {

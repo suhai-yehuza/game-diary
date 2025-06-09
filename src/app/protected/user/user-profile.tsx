@@ -10,7 +10,7 @@ import { GameLogsSection } from './components/game-logs/game-logs-section';
 import { UserHeader } from './components/profile/user-header';
 import { GET_USER } from '@src/lib/graphql/queries';
 import type { GetUserQuery, GetUserQueryVariables } from '@src/lib/types/generated/graphql';
-import { Skeleton } from '@src/components/ui/skeleton';
+import { Skeleton } from '@src/app/components/ui/skeleton';
 
 interface UserProfileProps {
   targetUserId: string;

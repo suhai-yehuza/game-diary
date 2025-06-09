@@ -8,10 +8,10 @@ import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import React, { useState, useEffect, useRef, Suspense } from 'react';
 
-import { ThemeToggle } from '@src/components/common';
+import { ThemeToggle } from '@src/app/components/common';
 import { LiveGamesBanner } from '@src/app/dashboard/live-games-banner';
-import { Button } from '@src/components/ui/button';
-import { Input } from '@src/components/ui/input';
+import { Button } from '@src/app/components/ui/button';
+import { Input } from '@src/app/components/ui/input';
 
 function SearchBarContent() {
   const [search_query, setSearchQuery] = useState('');

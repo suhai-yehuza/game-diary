@@ -4,9 +4,9 @@ import React from 'react';
 import { Toaster as HotToaster } from 'react-hot-toast';
 
 import '@/styles/globals.css';
-import { Footer, Header } from '@src/components/layout';
-import { ClientProviders } from '@src/components/providers/client-providers';
-import { Toaster } from '@src/components/ui/toaster';
+import { Footer, Header } from '@src/app/components/layout';
+import { ClientProviders } from '@src/app/components/providers/client-providers';
+import { Toaster } from '@src/app/components/ui/toaster';
 
 const inter = Inter({
   subsets: ['latin'],

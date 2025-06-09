@@ -9,7 +9,7 @@ import { useParams } from 'next/navigation';
 import React, { useState, useEffect } from 'react';
 
 import { GameLogModal } from '@src/app/protected/user/components/game-logs/game-log-modal';
-import { Button } from '@src/components/ui/button';
+import { Button } from '@src/app/components/ui/button';
 import { useAuthContext } from '@/contexts/auth-context';
 import { fetchNbaGameById } from '@src/lib/external-apis';
 import { GET_TEAM_GAME_STATS, GET_TEAM_H2H } from '@src/lib/graphql/queries';

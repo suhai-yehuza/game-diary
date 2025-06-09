@@ -3,7 +3,7 @@ import { formatDistanceToNow } from 'date-fns';
 import Image from 'next/image';
 import React from 'react';
 
-import { StarRating } from '@src/components/ui/star-rating';
+import { StarRating } from '@src/app/components/ui/star-rating';
 import { GET_GAME_LOGS } from '@src/lib/graphql/queries';
 import type { GameLog } from '@src/lib/types/generated/graphql';
 

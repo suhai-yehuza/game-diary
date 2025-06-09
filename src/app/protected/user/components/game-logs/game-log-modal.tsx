@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
 import React, { useState, useMemo, useEffect } from 'react';
 import 'react-datepicker/dist/react-datepicker.css';
 
-import { Button } from '@src/components/ui/button';
+import { Button } from '@src/app/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -15,9 +15,9 @@ import {
   DialogTitle,
   DialogDescription,
   DialogTrigger,
-} from '@src/components/ui/dialog';
-import { Input } from '@src/components/ui/input';
-import { useToast } from '@src/components/ui/use-toast';
+} from '@src/app/components/ui/dialog';
+import { Input } from '@src/app/components/ui/input';
+import { useToast } from '@src/app/components/ui/use-toast';
 import { useAuthContext } from '@/contexts/auth-context';
 import { CREATE_GAME_LOG, UPDATE_GAME_LOG } from '@src/lib/graphql/mutations';
 import { GET_EXTERNAL_GAMES, GET_GAME_BY_ID } from '@src/lib/graphql/queries';

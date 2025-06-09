@@ -13,15 +13,15 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@src/components/ui/alert-dialog';
-import { Button } from '@src/components/ui/button';
+} from '@src/app/components/ui/alert-dialog';
+import { Button } from '@src/app/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@src/components/ui/dropdown-menu';
-import { useToast } from '@src/components/ui/use-toast';
+} from '@src/app/components/ui/dropdown-menu';
+import { useToast } from '@src/app/components/ui/use-toast';
 import { useAuthContext } from '@/contexts/auth-context';
 import { DELETE_GAME_LOG } from '@src/lib/graphql/mutations';
 import type { GameLogActionsProps } from '@src/lib/types/consolidated.types';

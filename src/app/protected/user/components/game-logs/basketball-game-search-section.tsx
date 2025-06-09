@@ -17,19 +17,19 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 
-import { Badge } from '@src/components/ui/badge';
-import { Button } from '@src/components/ui/button';
-import { Card, CardContent, CardHeader } from '@src/components/ui/card';
-import { Input } from '@src/components/ui/input';
-import { Label } from '@src/components/ui/label';
+import { Badge } from '@src/app/components/ui/badge';
+import { Button } from '@src/app/components/ui/button';
+import { Card, CardContent, CardHeader } from '@src/app/components/ui/card';
+import { Input } from '@src/app/components/ui/input';
+import { Label } from '@src/app/components/ui/label';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@src/components/ui/select';
-import { Skeleton } from '@src/components/ui/skeleton';
+} from '@src/app/components/ui/select';
+import { Skeleton } from '@src/app/components/ui/skeleton';
 import { API_CONFIG } from '@src/lib/config/api.config';
 import { GET_GAMES } from '@src/lib/graphql/queries';
 import type { Game } from '@src/lib/types/consolidated.types';

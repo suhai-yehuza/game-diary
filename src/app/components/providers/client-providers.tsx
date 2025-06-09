@@ -3,8 +3,8 @@
 import { ClerkProvider } from '@clerk/nextjs';
 import React from 'react';
 
-import { ApolloWrapper, ThemeProvider } from '@src/components/providers';
-import { ToastProvider } from '@src/components/ui/use-toast';
+import { ApolloWrapper, ThemeProvider } from '@src/app/components/providers';
+import { ToastProvider } from '@src/app/components/ui/use-toast';
 import { AuthProvider } from '@/contexts/auth-context';
 import { NotificationProvider } from '@/contexts/notification-context';
 

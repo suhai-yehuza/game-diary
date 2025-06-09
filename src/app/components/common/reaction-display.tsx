@@ -2,7 +2,7 @@ import { useQuery, useMutation } from '@apollo/client';
 import { useUser } from '@clerk/nextjs';
 import React, { useState } from 'react';
 
-import { Badge } from '@src/components/ui/badge';
+import { Badge } from '@src/app/components/ui/badge';
 import { CREATE_REACTION } from '@src/lib/graphql/mutations';
 import { GET_REACTIONS, GET_GAME_LOG } from '@src/lib/graphql/queries';
 import { logger } from 'lib/core/logger';

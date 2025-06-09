@@ -3,7 +3,7 @@ import { UserPlus, UserX } from 'lucide-react';
 import React from 'react';
 import { toast } from 'react-hot-toast';
 
-import { Button } from '@src/components/ui/button';
+import { Button } from '@src/app/components/ui/button';
 import {
   SEND_FRIEND_REQUEST,
   ACCEPT_FRIEND_REQUEST,

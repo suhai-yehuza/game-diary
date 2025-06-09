@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { useRouter, useParams } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 
-import { Button } from '@src/components/ui/button';
+import { Button } from '@src/app/components/ui/button';
 import { logger } from 'lib/core/logger';
 import type { DbUser } from '@src/lib/types/generated/graphql';
 export default function AdminUserProfilePage() {

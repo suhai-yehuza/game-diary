@@ -21,18 +21,18 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@src/components/ui/alert-dialog';
-import { Avatar, AvatarFallback, AvatarImage } from '@src/components/ui/avatar';
-import { Button } from '@src/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@src/components/ui/card';
+} from '@src/app/components/ui/alert-dialog';
+import { Avatar, AvatarFallback, AvatarImage } from '@src/app/components/ui/avatar';
+import { Button } from '@src/app/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@src/app/components/ui/card';
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@src/components/ui/dialog';
-import { Textarea } from '@src/components/ui/textarea';
+} from '@src/app/components/ui/dialog';
+import { Textarea } from '@src/app/components/ui/textarea';
 import { CREATE_COMMENT, UPDATE_COMMENT, DELETE_COMMENT } from '@src/lib/graphql/mutations';
 import { GET_COMMENTS_WITH_FILTERS } from '@src/lib/graphql/queries';
 import { API_CONFIG } from '@src/lib/config/api.config';

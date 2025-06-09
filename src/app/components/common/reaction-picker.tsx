@@ -3,8 +3,8 @@ import { useUser } from '@clerk/nextjs';
 import { SmilePlus } from 'lucide-react';
 import React, { useState } from 'react';
 
-import { Button } from '@src/components/ui/button';
-import { Popover, PopoverContent, PopoverTrigger } from '@src/components/ui/popover';
+import { Button } from '@src/app/components/ui/button';
+import { Popover, PopoverContent, PopoverTrigger } from '@src/app/components/ui/popover';
 import { CREATE_REACTION } from '@src/lib/graphql/mutations';
 import { GET_REACTIONS, GET_GAME_LOG } from '@src/lib/graphql/queries';
 import { logger } from 'lib/core/logger';

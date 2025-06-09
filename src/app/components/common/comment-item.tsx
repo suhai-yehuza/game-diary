@@ -15,17 +15,17 @@ import {
 import Link from 'next/link';
 import React, { useState } from 'react';
 
-import { Avatar, AvatarFallback, AvatarImage } from '@src/components/ui/avatar';
-import { Badge } from '@src/components/ui/badge';
-import { Button } from '@src/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@src/app/components/ui/avatar';
+import { Badge } from '@src/app/components/ui/badge';
+import { Button } from '@src/app/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@src/components/ui/dropdown-menu';
-import { Textarea } from '@src/components/ui/textarea';
-import { useToast } from '@src/components/ui/use-toast';
+} from '@src/app/components/ui/dropdown-menu';
+import { Textarea } from '@src/app/components/ui/textarea';
+import { useToast } from '@src/app/components/ui/use-toast';
 import { API_CONFIG } from '@src/lib/config/api.config';
 import { CREATE_COMMENT } from '@src/lib/graphql/mutations';
 import { logger } from 'lib/core/logger';

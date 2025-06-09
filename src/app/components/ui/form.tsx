@@ -4,7 +4,7 @@ import type * as LabelPrimitive from '@radix-ui/react-label';
 import { Slot } from '@radix-ui/react-slot';
 import * as React from 'react';
 
-import { Label } from '@src/components/ui/label';
+import { Label } from '@src/app/components/ui/label';
 import { cn } from '@src/lib/utils';
 
 // Simplified form implementation without react-hook-form dependencies

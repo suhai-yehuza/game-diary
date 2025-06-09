@@ -3,7 +3,7 @@
 import { SignIn } from '@clerk/nextjs';
 import React from 'react';
 
-import { AuthModal } from '@src/components/auth/AuthModal';
+import { AuthModal } from '@src/app/components/auth/AuthModal';
 
 export default function Page() {
   return (

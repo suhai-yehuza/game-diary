@@ -5,11 +5,11 @@ import React, { useState } from 'react';
 
 import { GameLogModal } from './game-log-modal';
 import { GameLogActions } from './game-log-actions';
-import { Button } from '@src/components/ui/button';
-import { Card, CardContent } from '@src/components/ui/card';
-import { Popover, PopoverContent, PopoverTrigger } from '@src/components/ui/popover';
-import { Skeleton } from '@src/components/ui/skeleton';
-import { StarRating } from '@src/components/ui/star-rating';
+import { Button } from '@src/app/components/ui/button';
+import { Card, CardContent } from '@src/app/components/ui/card';
+import { Popover, PopoverContent, PopoverTrigger } from '@src/app/components/ui/popover';
+import { Skeleton } from '@src/app/components/ui/skeleton';
+import { StarRating } from '@src/app/components/ui/star-rating';
 import { CREATE_REACTION, DELETE_REACTION } from '@src/lib/graphql/mutations';
 import { GET_USER_GAME_LOGS } from '@src/lib/graphql/queries';
 import {

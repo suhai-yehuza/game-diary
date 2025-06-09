@@ -5,7 +5,7 @@ import { format } from 'date-fns';
 import Image from 'next/image';
 import React, { useState, useCallback } from 'react';
 
-import { Skeleton } from '@src/components/ui/skeleton';
+import { Skeleton } from '@src/app/components/ui/skeleton';
 import { API_CONFIG } from '@src/lib/config/api.config';
 import { GET_EXTERNAL_GAMES, GET_TEAMS, GET_PLAYERS } from '@src/lib/graphql/queries';
 import type { ConferenceType, DivisionType } from '@src/lib/types/config.types';

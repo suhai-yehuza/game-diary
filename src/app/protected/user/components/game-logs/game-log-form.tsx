@@ -8,17 +8,17 @@ import 'react-datepicker/dist/react-datepicker.css';
 const ReactDatePicker =
   ReactDatePickerOriginal as unknown as React.ComponentType<ReactDatePickerProps>;
 
-import { Button } from '@src/components/ui/button';
-import { Input } from '@src/components/ui/input';
+import { Button } from '@src/app/components/ui/button';
+import { Input } from '@src/app/components/ui/input';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@src/components/ui/select';
-import { Textarea } from '@src/components/ui/textarea';
-import { Label } from '@src/components/ui/label';
+} from '@src/app/components/ui/select';
+import { Textarea } from '@src/app/components/ui/textarea';
+import { Label } from '@src/app/components/ui/label';
 import {
   WATCHED_SETTING,
   CLASSIFICATION,

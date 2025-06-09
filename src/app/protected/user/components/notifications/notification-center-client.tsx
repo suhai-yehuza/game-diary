@@ -5,10 +5,10 @@ import { Bell, Check, Trash2 } from 'lucide-react';
 import Image from 'next/image';
 import React, { useState } from 'react';
 
-import { Button } from '@src/components/ui/button';
-import { Popover, PopoverContent, PopoverTrigger } from '@src/components/ui/popover';
-import { ScrollArea } from '@src/components/ui/scroll-area';
-import { useNotifications } from '@/contexts/notification-context';
+import { Button } from '@src/app/components/ui/button';
+import { Popover, PopoverContent, PopoverTrigger } from '@src/app/components/ui/popover';
+import { ScrollArea } from '@src/app/components/ui/scroll-area';
+import { useNotifications } from '@src/contexts/notification-context';
 import type { AppNotification } from '@src/lib/types/notification.types';
 
 export default function NotificationCenterClient() {

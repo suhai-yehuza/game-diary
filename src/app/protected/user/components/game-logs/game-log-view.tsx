@@ -17,16 +17,16 @@ import Image from 'next/image';
 import Link from 'next/link';
 import React, { useState } from 'react';
 
-import { Avatar, AvatarFallback, AvatarImage } from '@src/components/ui/avatar';
-import { Badge } from '@src/components/ui/badge';
-import { Button } from '@src/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@src/components/ui/card';
-import { Skeleton } from '@src/components/ui/skeleton';
-import { CommentsSection } from '@src/components/common/comments-section';
-import { StarRating } from '@src/components/ui/star-rating';
+import { Avatar, AvatarFallback, AvatarImage } from '@src/app/components/ui/avatar';
+import { Badge } from '@src/app/components/ui/badge';
+import { Button } from '@src/app/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@src/app/components/ui/card';
+import { Skeleton } from '@src/app/components/ui/skeleton';
+import { CommentsSection } from '@src/app/components/common/comments-section';
+import { StarRating } from '@src/app/components/ui/star-rating';
 import { useQuery, useMutation } from '@apollo/client';
 import { useUser } from '@clerk/nextjs';
-import { Popover, PopoverContent, PopoverTrigger } from '@src/components/ui/popover';
+import { Popover, PopoverContent, PopoverTrigger } from '@src/app/components/ui/popover';
 import {
   CLASSIFICATION,
   REACTION_EMOJIS,

@@ -29,28 +29,9 @@ export const NOTIFICATION_TYPE = {
 export type NotificationTypeValue = (typeof NOTIFICATION_TYPE)[keyof typeof NOTIFICATION_TYPE];
 
 // Reaction type enum
-export const REACTION_TYPE = {
-  LIKE: 'LIKE',
-  LOVE: 'LOVE',
-  LAUGH: 'LAUGH',
-  WOW: 'WOW',
-  SAD: 'SAD',
-  ANGRY: 'ANGRY',
-  FIRE: 'FIRE',
-  CLAP: 'CLAP',
-  EYES: 'EYES',
-  ROCKET: 'ROCKET',
-  MUSCLE: 'MUSCLE',
-  GOAT: 'GOAT',
-  BULLSEYE: 'BULLSEYE',
-  THUMBS_DOWN: 'THUMBS_DOWN',
-  BASKETBALL: 'BASKETBALL',
-  SOCCER: 'SOCCER',
-  FOOTBALL: 'FOOTBALL',
-  BASEBALL: 'BASEBALL',
-  TENNIS: 'TENNIS',
-  GOLF: 'GOLF',
-} as const;
+export const REACTION_TYPE = Object.fromEntries(
+  Object.keys(REACTION_EMOJIS).map(key => [key, key])
+) as { [K in keyof typeof REACTION_EMOJIS]: K };
 
 export type ReactionTypeValue = (typeof REACTION_TYPE)[keyof typeof REACTION_TYPE];
 
