@@ -49,7 +49,7 @@ export function GameLogModal({
   const [internalIsOpen, setInternalIsOpen] = useState(false);
   const isOpen = externalIsOpen ?? internalIsOpen;
   
-  // Modal state handler with proper DOM cleanup
+  // Modal state handler with proper cleanup for different modal types
   const handleModalClose = (newOpen?: boolean) => {
     if (newOpen === true) {
       // Opening the modal
@@ -57,14 +57,16 @@ export function GameLogModal({
         setInternalIsOpen(true);
       }
     } else {
-      // Closing the modal - add delay to prevent DOM corruption
-      setTimeout(() => {
-        if (typeof onClose === 'function') {
-          onClose();
-        } else {
+      // Closing the modal
+      if (typeof onClose === 'function') {
+        // For externally controlled modals (update mode) - call immediately
+        onClose();
+      } else {
+        // For internally controlled modals (create mode) - add delay for cleanup
+        setTimeout(() => {
           setInternalIsOpen(false);
-        }
-      }, 150); // Sufficient delay for proper cleanup
+        }, 100);
+      }
     }
   };
 
