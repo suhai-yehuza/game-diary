@@ -1,30 +1,10 @@
 import { useMutation, useQuery } from '@apollo/client';
-import { formatDistanceToNow } from 'date-fns';
-import {
-  Calendar,
-  ChevronDown,
-  ChevronRight,
-  Clock,
-  Eye,
-  Filter,
-  Gamepad2,
-  Globe,
-  Lock,
-  MapPin,
-  MessageSquare,
-  Shield,
-  SmilePlus,
-  Star,
-  Trophy,
-  Tv,
-} from 'lucide-react';
-import Image from 'next/image';
+import { Filter, Gamepad2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
 
-import { GameLogModal } from '@src/components/features/games';
-import { GameLogActions } from '@src/components/features/games/game-log-actions';
-import { Badge } from '@src/components/ui/badge';
+import { GameLogModal } from './game-log-modal';
+import { GameLogActions } from './game-log-actions';
 import { Button } from '@src/components/ui/button';
 import { Card, CardContent } from '@src/components/ui/card';
 import { Popover, PopoverContent, PopoverTrigger } from '@src/components/ui/popover';
@@ -42,23 +22,9 @@ import type {
   GameLog,
   GetUserGameLogsQuery,
   GetUserGameLogsQueryVariables,
-  Comment,
   CommentConnection,
-  PageInfo,
 } from '@src/lib/types/generated/graphql';
 import { cn } from '@src/lib/utils';
-
-const classificationIcons = {
-  Private: Lock,
-  Protected: Shield,
-  Public: Globe,
-};
-
-const classificationColors = {
-  Private: 'text-red-500 bg-red-50 border-red-200',
-  Protected: 'text-amber-500 bg-amber-50 border-amber-200',
-  Public: 'text-green-500 bg-green-50 border-green-200',
-};
 
 const ITEMS_PER_PAGE = 10;
 
@@ -72,24 +38,20 @@ export function GameLogsSection({ userId, currentUserId }: GameLogsSectionProps)
   const [selectedClassification, setSelectedClassification] = useState<Classification | 'all'>(
     'all'
   );
-  const [expandedNotes, setExpandedNotes] = useState<Set<string>>(new Set());
   const [selectedGameLog, setSelectedGameLog] = useState<GameLog | null>(null);
-  const [clickedEmoji, setClickedEmoji] = useState<string | null>(null);
+  const [clickedEmoji, setClickedEmoji] = useState<ReactionEmojiValue | null>(null);
+  const [expandedNotes, setExpandedNotes] = useState<Set<string>>(new Set());
   const [currentPage, setCurrentPage] = useState(1);
 
   const {
     data: userGameLogsData,
-    loading,
+    loading: userGameLogsLoading,
     refetch: refetchUserGameLogs,
   } = useQuery<GetUserGameLogsQuery, GetUserGameLogsQueryVariables>(GET_USER_GAME_LOGS, {
     variables: {
       filters: {
         userId,
         classification: selectedClassification === 'all' ? undefined : selectedClassification,
-      },
-      pagination: {
-        first: ITEMS_PER_PAGE,
-        after: currentPage > 1 ? String((currentPage - 1) * ITEMS_PER_PAGE) : undefined,
       },
     },
   });
@@ -178,7 +140,7 @@ export function GameLogsSection({ userId, currentUserId }: GameLogsSectionProps)
     }
   };
 
-  if (loading) {
+  if (userGameLogsLoading) {
     return (
       <div className="space-y-4">
         {[...Array(3)].map((_, i) => (
@@ -188,20 +150,20 @@ export function GameLogsSection({ userId, currentUserId }: GameLogsSectionProps)
     );
   }
 
-  const gameLogs = (userGameLogsData?.gameLogs?.edges || []).map(edge => edge.node);
+  const gameLogs = userGameLogsData?.gameLogs?.edges?.map(edge => edge.node) || [];
   const gameLogsWithComments = gameLogs.map(gameLog => {
     const commentEdges =
-      (gameLog as any).comments?.edges?.map((edge: any) => ({
+      (gameLog as GameLog).comments?.edges?.map(edge => ({
         cursor: edge.cursor,
         node: edge.node,
       })) || [];
     const commentConnection: CommentConnection = {
       edges: commentEdges,
-      pageInfo: (gameLog as any).comments?.pageInfo || {
+      pageInfo: (gameLog as GameLog).comments?.pageInfo || {
         hasNextPage: false,
         hasPreviousPage: false,
       },
-      totalCount: (gameLog as any).comments?.totalCount || 0,
+      totalCount: (gameLog as GameLog).comments?.totalCount || 0,
     };
     return {
       ...gameLog,

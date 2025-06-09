@@ -1,18 +1,11 @@
 // Master components index - Single import point for all components
 
-// Feature components
-export * from './features/games';
 export * from '@src/app/protected/user/components/friends';
-export * from './features/notifications';
+export * from '@src/app/protected/user/components/game-logs';
+export * from '@src/app/protected/user/components/notifications';
 
-// Layout components
-export * from './layout';
-
-// Common components
+export * from './auth';
 export * from './common';
-
-// UI components
-export * from './ui';
-
-// Providers
+export * from './layout';
 export * from './providers';
+export * from './ui';

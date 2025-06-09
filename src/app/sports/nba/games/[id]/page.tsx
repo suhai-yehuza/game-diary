@@ -8,7 +8,7 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import React, { useState, useEffect } from 'react';
 
-import { GameLogModal } from '@src/components/features/games';
+import { GameLogModal } from '@src/app/protected/user/components/game-logs/game-log-modal';
 import { Button } from '@src/components/ui/button';
 import { useAuthContext } from '@/contexts/auth-context';
 import { fetchNbaGameById } from '@src/lib/external-apis';

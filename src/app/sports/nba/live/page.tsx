@@ -6,7 +6,7 @@ import { Activity, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import React from 'react';
 
-import { GameCard } from '@src/components/features/games';
+import { GameCard } from '@src/app/protected/user/components/game-logs/game-card';
 import { API_CONFIG } from '@src/lib/config/api.config';
 import { GET_LIVE_GAMES } from '@src/lib/graphql/queries';
 import { logger } from 'lib/core/logger';

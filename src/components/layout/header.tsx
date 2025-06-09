@@ -9,7 +9,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import React, { useState, useEffect, useRef, Suspense } from 'react';
 
 import { ThemeToggle } from '@src/components/common';
-import { LiveGamesBanner } from '@src/components/features/games/live-games-banner';
+import { LiveGamesBanner } from '@src/app/dashboard/live-games-banner';
 import { Button } from '@src/components/ui/button';
 import { Input } from '@src/components/ui/input';
 

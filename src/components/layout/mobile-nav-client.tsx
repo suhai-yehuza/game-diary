@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import React, { useState, useEffect, useRef } from 'react';
 
-import { NotificationCenter } from '@src/components/features/notifications';
+import { NotificationCenter } from '@src/app/protected/user/components/notifications';
 import type { NavItem } from '@src/lib/types/consolidated.types';
 
 const navItems: NavItem[] = [

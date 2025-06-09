@@ -5,7 +5,7 @@ import { useUser } from '@clerk/nextjs';
 import { isAfter } from 'date-fns';
 import React, { useState, useEffect, useCallback } from 'react';
 
-import { GameCard } from '@src/components/features/games';
+import { GameCard } from '@src/app/protected/user/components/game-logs/game-card';
 import { API_CONFIG } from '@src/lib/config/api.config';
 import { GET_GAMES } from '@src/lib/graphql/queries';
 import { logger } from 'lib/core/logger';

@@ -2,7 +2,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { Users, Trophy, Clock, Shield } from 'lucide-react';
 import React from 'react';
 
-import { GameLogModal } from '@src/components/features/games';
+import { GameLogModal } from '../game-logs/game-log-modal';
 import { Avatar, AvatarFallback, AvatarImage } from '@src/components/ui/avatar';
 import { Badge } from '@src/components/ui/badge';
 import { Card, CardContent } from '@src/components/ui/card';
