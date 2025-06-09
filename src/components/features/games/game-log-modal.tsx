@@ -113,7 +113,7 @@ export function GameLogModal({
         watchedSetting: gameLog.watchedSetting as WatchedSettingValue,
         watchedDate: gameLog.watchedDate ? new Date(gameLog.watchedDate) : new Date(),
         watchedLocation: gameLog.watchedLocation ?? '',
-        ratingForGame: gameLog.ratingForGame || 3,
+        ratingForGame: gameLog.ratingForGame,
         watchedScope: gameLog.watchedScope as WatchedScopeValue,
         notes: gameLog.notes ?? '',
         tags: gameLog.tags ?? [],
