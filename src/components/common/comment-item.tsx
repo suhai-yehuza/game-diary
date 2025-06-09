@@ -46,10 +46,29 @@ export function CommentItem({
   const [replyContent, setReplyContent] = useState('');
   const [showReplies, setShowReplies] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const canReply = (comment.depth ?? 0) < maxDepth;
   const hasReplies = (comment.childComments?.totalCount ?? 0) > 0;
   const isNested = comment.depth > 0;
+
+  const handleEditClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    // Close dropdown first, then open edit dialog after cleanup
+    setIsDropdownOpen(false);
+    setTimeout(() => {
+      onEdit(comment.id, comment.content);
+    }, 100);
+  };
+
+  const handleDeleteClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    // Close dropdown first, then open delete dialog after cleanup
+    setIsDropdownOpen(false);
+    setTimeout(() => {
+      onDelete(comment.id);
+    }, 100);
+  };
 
   const [createReply] = useMutation(CREATE_COMMENT, {
     onCompleted: () => {
@@ -149,7 +168,7 @@ export function CommentItem({
 
           {/* Actions Menu */}
           {user?.id === comment.user?.id && (
-            <DropdownMenu>
+            <DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="ghost"
@@ -160,13 +179,13 @@ export function CommentItem({
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => onEdit(comment.id, comment.content)}>
+                <DropdownMenuItem onClick={handleEditClick} className="cursor-pointer">
                   <Pencil className="h-3.5 w-3.5 mr-2" />
                   Edit
                 </DropdownMenuItem>
                 <DropdownMenuItem
-                  onClick={() => onDelete(comment.id)}
-                  className="text-destructive focus:text-destructive"
+                  onClick={handleDeleteClick}
+                  className="cursor-pointer text-destructive focus:text-destructive"
                 >
                   <Trash2 className="h-3.5 w-3.5 mr-2" />
                   Delete

@@ -21,6 +21,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@src/components/ui/alert-dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@src/components/ui/dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@src/components/ui/avatar';
 import { Button } from '@src/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@src/components/ui/card';
@@ -401,12 +408,16 @@ export function CommentsSection({ parentId, parentType, initialExpanded }: Comme
         return;
       }
       
+      // Don't call setEditingComment(null) here - let the mutation's onCompleted handle it to avoid double state management
+      
       toast({
         title: 'Comment Updated',
         description: 'Your comment has been updated successfully.',
       });
     } catch (error) {
       console.error('Error updating comment:', error);
+      // Close dialog even on error to prevent UI lock
+      setEditingComment(null);
       toast({
         title: 'Update Failed',
         description: 'Failed to update comment. Please try again.',
@@ -697,14 +708,14 @@ export function CommentsSection({ parentId, parentType, initialExpanded }: Comme
 
       {/* Edit Comment Dialog */}
       {editingComment && (
-        <AlertDialog open={!!editingComment} onOpenChange={() => setEditingComment(null)}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Edit Comment</AlertDialogTitle>
-              <AlertDialogDescription>
+        <Dialog open={!!editingComment} onOpenChange={() => setEditingComment(null)}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Edit Comment</DialogTitle>
+              <DialogDescription>
                 Make changes to your comment below. Click save when you're done.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
+              </DialogDescription>
+            </DialogHeader>
             <form onSubmit={handleUpdateComment}>
               <Textarea
                 value={editingComment.content}
@@ -743,8 +754,8 @@ export function CommentsSection({ parentId, parentType, initialExpanded }: Comme
                 <Button type="submit">Save Changes</Button>
               </div>
             </form>
-          </AlertDialogContent>
-        </AlertDialog>
+          </DialogContent>
+        </Dialog>
       )}
 
       {/* Delete Comment Dialog */}
