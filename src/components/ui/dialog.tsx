@@ -5,7 +5,7 @@ import { X } from 'lucide-react';
 import * as React from 'react';
 
 import { cn } from '@src/lib/utils';
-import { dialogAnimationStyles } from '@src/lib/utils/animations';
+// Animation styles removed due to import error
 
 const Dialog = DialogPrimitive.Root;
 
@@ -21,7 +21,10 @@ const DialogOverlay = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DialogPrimitive.Overlay
     ref={ref}
-    className={cn(dialogAnimationStyles.overlay, className)}
+    className={cn(
+      'fixed inset-0 z-50 bg-black/80 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
+      className
+    )}
     {...props}
   />
 ));
@@ -42,10 +45,6 @@ const DialogContent = React.forwardRef<
       {...props}
     >
       {children}
-      <DialogPrimitive.Close className={cn(dialogAnimationStyles.closeButton)}>
-        <X className="h-4 w-4" />
-        <span className="sr-only">Close</span>
-      </DialogPrimitive.Close>
     </DialogPrimitive.Content>
   </DialogPortal>
 ));

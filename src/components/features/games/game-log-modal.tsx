@@ -47,28 +47,24 @@ export function GameLogModal({
   onSuccess,
 }: GameLogModalProps) {
   const [internalIsOpen, setInternalIsOpen] = useState(false);
-  const [dialogKey, setDialogKey] = useState(0);
   const isOpen = externalIsOpen ?? internalIsOpen;
   
-  // Modal state handler with forced re-render on close
+  // Modal state handler with proper DOM cleanup
   const handleModalClose = (newOpen?: boolean) => {
     if (newOpen === true) {
-      // Opening the modal - for create mode
+      // Opening the modal
       if (typeof onClose !== 'function') {
         setInternalIsOpen(true);
       }
     } else {
-      // Closing the modal (newOpen is false or undefined)
-      // Force a dialog re-render to ensure proper cleanup
-      setDialogKey(prev => prev + 1);
-      
-      if (typeof onClose === 'function') {
-        // For externally controlled modals (update mode)
-        onClose();
-      } else {
-        // For internally controlled modals (create mode)
-        setInternalIsOpen(false);
-      }
+      // Closing the modal - add delay to prevent DOM corruption
+      setTimeout(() => {
+        if (typeof onClose === 'function') {
+          onClose();
+        } else {
+          setInternalIsOpen(false);
+        }
+      }, 150); // Sufficient delay for proper cleanup
     }
   };
 
@@ -579,7 +575,7 @@ export function GameLogModal({
 
   if (mode === 'create') {
     return (
-      <Dialog key={`create-${dialogKey}`} open={isOpen} onOpenChange={handleModalClose}>
+      <Dialog open={isOpen} onOpenChange={handleModalClose}>
         <DialogTrigger asChild>
           <Button
             variant="outline"
@@ -594,7 +590,7 @@ export function GameLogModal({
   }
 
   return (
-    <Dialog key={`update-${dialogKey}`} open={isOpen} onOpenChange={handleModalClose}>
+    <Dialog open={isOpen} onOpenChange={handleModalClose}>
       {dialogContent}
     </Dialog>
   );
