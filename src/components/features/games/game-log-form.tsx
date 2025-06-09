@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import ReactDatePickerOriginal from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 
@@ -46,11 +46,12 @@ export function GameLogForm({
   });
 
   const [selectedGame] = useState<Game | null>(null);
+  const [isUserInteracting, setIsUserInteracting] = useState(false);
+  const hasInitialized = useRef(false);
 
-  // Sync external formData with local state only when it actually changes (not on every render)
+  // Initialize form data from external data only when first provided and user is not interacting
   useEffect(() => {
-    if (externalFormData) {
-      // Trust the external form data - it has already been validated in the modal
+    if (externalFormData && !hasInitialized.current && !isUserInteracting) {
       const newFormData: CreateGameLogInput = {
         gameId: externalFormData.gameId,
         watchedSetting: externalFormData.watchedSetting as any,
@@ -64,18 +65,9 @@ export function GameLogForm({
       };
       
       setFormData(newFormData);
+      hasInitialized.current = true;
     }
-  }, [
-    externalFormData?.gameId,
-    externalFormData?.watchedSetting,
-    externalFormData?.watchedDate?.getTime(),
-    externalFormData?.watchedLocation,
-    externalFormData?.ratingForGame,
-    externalFormData?.watchedScope,
-    externalFormData?.notes,
-    externalFormData?.classification,
-    JSON.stringify(externalFormData?.tags),
-  ]);
+  }, [externalFormData?.gameId, isUserInteracting]); // Include isUserInteracting to prevent conflicts
 
   // Update gameId when external selected game changes
   useEffect(() => {
@@ -167,7 +159,34 @@ export function GameLogForm({
             <Label>Location (Optional)</Label>
             <Input
               value={formData.watchedLocation || ''}
-              onChange={e => updateField('watchedLocation', e.target.value)}
+              onChange={e => {
+                setIsUserInteracting(true);
+                updateField('watchedLocation', e.target.value);
+              }}
+              onKeyDown={e => {
+                // Ensure spacebar works by explicitly handling it
+                if (e.key === ' ' || e.key === 'Space') {
+                  e.stopPropagation();
+                  // Force the input to include the space
+                  const input = e.target as HTMLInputElement;
+                  const start = input.selectionStart || 0;
+                  const end = input.selectionEnd || 0;
+                  const currentValue = input.value;
+                  const newValue = currentValue.slice(0, start) + ' ' + currentValue.slice(end);
+                  
+                  // Prevent default and manually handle the space
+                  e.preventDefault();
+                  setIsUserInteracting(true);
+                  updateField('watchedLocation', newValue);
+                  
+                  // Restore cursor position after state update
+                  setTimeout(() => {
+                    input.setSelectionRange(start + 1, start + 1);
+                  }, 0);
+                }
+              }}
+              onFocus={() => setIsUserInteracting(true)}
+              onBlur={() => setTimeout(() => setIsUserInteracting(false), 100)}
               placeholder="Where did you watch the game? (optional)"
             />
           </div>
@@ -252,7 +271,34 @@ export function GameLogForm({
             <Label>Notes</Label>
             <Textarea
               value={formData.notes || ''}
-              onChange={e => updateField('notes', e.target.value)}
+              onChange={e => {
+                setIsUserInteracting(true);
+                updateField('notes', e.target.value);
+              }}
+              onKeyDown={e => {
+                // Ensure spacebar works by explicitly handling it
+                if (e.key === ' ' || e.key === 'Space') {
+                  e.stopPropagation();
+                  // Force the textarea to include the space
+                  const textarea = e.target as HTMLTextAreaElement;
+                  const start = textarea.selectionStart || 0;
+                  const end = textarea.selectionEnd || 0;
+                  const currentValue = textarea.value;
+                  const newValue = currentValue.slice(0, start) + ' ' + currentValue.slice(end);
+                  
+                  // Prevent default and manually handle the space
+                  e.preventDefault();
+                  setIsUserInteracting(true);
+                  updateField('notes', newValue);
+                  
+                  // Restore cursor position after state update
+                  setTimeout(() => {
+                    textarea.setSelectionRange(start + 1, start + 1);
+                  }, 0);
+                }
+              }}
+              onFocus={() => setIsUserInteracting(true)}
+              onBlur={() => setTimeout(() => setIsUserInteracting(false), 100)}
               placeholder="Add your thoughts about the game..."
               rows={4}
             />
