@@ -247,7 +247,9 @@ export const GAME_LOG_FRAGMENT = gql`
       ...GameFragment
     }
     watchedSetting
+    watchedScope
     watchedDate
+    watchedLocation
     ratingForGame
     notes
     tags

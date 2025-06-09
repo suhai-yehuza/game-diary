@@ -85,7 +85,7 @@ export function GameLogActions({ gameLog, onSuccess }: GameLogActionsProps) {
   }
 
   return (
-    <>
+    <div data-prevent-card-click>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" className="h-8 w-8 p-0 hover:bg-muted/50" onClick={() => {}}>
@@ -156,6 +156,6 @@ export function GameLogActions({ gameLog, onSuccess }: GameLogActionsProps) {
           onSuccess?.();
         }}
       />
-    </>
+    </div>
   );
 }

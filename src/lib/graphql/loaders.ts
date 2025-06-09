@@ -155,26 +155,35 @@ const createCacheAwareLoader = <T>(
   });
 };
 
-export function createLoaders(database: NeonHttpDatabase<typeof schema>) {
+export function createLoaders() {
+  // Using the directly imported db instance for consistent database access
+
   // User loader with caching
   const userLoader = createCacheAwareLoader<UserSummary | null>(
     async (userIds: readonly string[]) => {
-      const users = await database.query.users.findMany({
-        where: inArray(schema.users.id, Array.from(userIds)),
-      });
-      return userIds.map(id => {
-        const user = users.find(u => u.id === id);
-        if (!user) return null;
-        return {
-          id: user.id,
-          username: user.username || 'missing-username',
-          firstName: user.firstName || 'missing-first-name',
-          lastName: user.lastName || 'missing-last-name',
-          emailAddress: user.emailAddress || '',
-          imageUrl: user.imageUrl || undefined,
-          __typename: 'UserSummary',
-        } as UserSummary;
-      });
+      try {
+        // Use the imported db instead of the parameter to avoid undefined issues
+        const users = await db.query.users.findMany({
+          where: inArray(schema.users.id, Array.from(userIds)),
+        });
+        return userIds.map(id => {
+          const user = users.find(u => u.id === id);
+          if (!user) return null;
+          return {
+            id: user.id,
+            username: user.username || 'missing-username',
+            firstName: user.firstName || 'missing-first-name',
+            lastName: user.lastName || 'missing-last-name',
+            emailAddress: user.emailAddress || '',
+            imageUrl: user.imageUrl || undefined,
+            __typename: 'UserSummary',
+          } as UserSummary;
+        });
+      } catch (error) {
+        console.error('Error in userLoader:', error);
+        // Fallback to empty array if there's an error
+        return userIds.map(() => null);
+      }
     },
     (key: string) => `${CACHE_PREFIX}user:${key}`
   );
@@ -182,7 +191,7 @@ export function createLoaders(database: NeonHttpDatabase<typeof schema>) {
   // Game loader with caching
   const gameLoader = createCacheAwareLoader<Game>(
     async (ids: readonly string[]) => {
-      const games = await database
+      const games = await db
         .select()
         .from(schema.nba_games)
         .where(inArray(schema.nba_games.id, Array.from(ids)));
@@ -300,7 +309,7 @@ export function createLoaders(database: NeonHttpDatabase<typeof schema>) {
   // Team loader with caching
   const teamLoader = createCacheAwareLoader<Team>(
     async (ids: readonly string[]) => {
-      const results = await database
+      const results = await db
         .select()
         .from(schema.teams)
         .where(inArray(schema.teams.id, Array.from(ids)));
@@ -327,7 +336,7 @@ export function createLoaders(database: NeonHttpDatabase<typeof schema>) {
   );
 
   const playerLoader = new DataLoader<string, DBPlayer | null>(async (ids: readonly string[]) => {
-    const results = await database
+    const results = await db
       .select()
       .from(schema.nba_players)
       .where(inArray(schema.nba_players.id, Array.from(ids)));
@@ -365,7 +374,7 @@ export function createLoaders(database: NeonHttpDatabase<typeof schema>) {
   const gameLogsLoader = createGameLogsLoader(userLoader, gameLoader);
 
   const commentLoader = new DataLoader<string, Comment | null>(async (ids: readonly string[]) => {
-    const results = await database
+    const results = await db
       .select()
       .from(schema.comments)
       .where(inArray(schema.comments.id, Array.from(ids)));
@@ -401,7 +410,7 @@ export function createLoaders(database: NeonHttpDatabase<typeof schema>) {
   });
 
   const reactionLoader = new DataLoader<string, Reaction | null>(async (ids: readonly string[]) => {
-    const results = await database
+    const results = await db
       .select()
       .from(schema.reactions)
       .where(inArray(schema.reactions.id, Array.from(ids)));

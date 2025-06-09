@@ -32,7 +32,7 @@ export function GameLogForm({
   onCancel,
   submitLabel = 'Save',
 }: GameLogFormProps) {
-  // Form state
+  // Form state with safe defaults - ensure all Select values are always defined
   const [formData, setFormData] = useState<CreateGameLogInput>({
     gameId: '',
     classification: CLASSIFICATION.PROTECTED as any,
@@ -47,12 +47,35 @@ export function GameLogForm({
 
   const [selectedGame] = useState<Game | null>(null);
 
-  // Sync external formData with local state
+  // Sync external formData with local state only when it actually changes (not on every render)
   useEffect(() => {
     if (externalFormData) {
-      setFormData(prev => ({ ...prev, ...externalFormData }));
+      console.log('🎯 GameLogForm syncing data for:', externalFormData.gameId);
+      
+      // Trust the external form data - it has already been validated in the modal
+      setFormData({
+        gameId: externalFormData.gameId,
+        watchedSetting: externalFormData.watchedSetting as any,
+        watchedDate: externalFormData.watchedDate,
+        watchedLocation: externalFormData.watchedLocation || '',
+        ratingForGame: externalFormData.ratingForGame || 3,
+        watchedScope: externalFormData.watchedScope as any,
+        notes: externalFormData.notes || '',
+        tags: externalFormData.tags || [],
+        classification: externalFormData.classification as any,
+      });
     }
-  }, [externalFormData]);
+  }, [
+    externalFormData?.gameId,
+    externalFormData?.watchedSetting,
+    externalFormData?.watchedDate?.getTime(),
+    externalFormData?.watchedLocation,
+    externalFormData?.ratingForGame,
+    externalFormData?.watchedScope,
+    externalFormData?.notes,
+    externalFormData?.classification,
+    JSON.stringify(externalFormData?.tags),
+  ]);
 
   // Update gameId when external selected game changes
   useEffect(() => {
@@ -74,10 +97,11 @@ export function GameLogForm({
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Ensure ratingForGame is never null/undefined before submitting
+    // Ensure required fields are never null/undefined before submitting
     const safeFormData = {
       ...formData,
       ratingForGame: formData.ratingForGame ?? 3,
+      // Classification should always be valid at this point
     };
     
     console.log('Submitting form data:', safeFormData);
@@ -107,7 +131,16 @@ export function GameLogForm({
           <div className="space-y-2">
             <Label>Watched Setting</Label>
             <Select
-              onValueChange={value => updateField('watchedSetting', value)}
+              onValueChange={value => {
+                console.log('🎯 WatchedSetting Select onValueChange:', `"${value}" (type: ${typeof value})`);
+                // Only update if we receive a valid non-empty value
+                if (value && typeof value === 'string' && value.trim() !== '') {
+                  console.log('🎯 WatchedSetting: Accepting value:', value);
+                  updateField('watchedSetting', value);
+                } else {
+                  console.log('🎯 WatchedSetting: Rejecting empty/invalid value:', value);
+                }
+              }}
               value={formData.watchedSetting as string}
             >
               <SelectTrigger>
@@ -170,7 +203,7 @@ export function GameLogForm({
                 // Ensure we never set null/undefined/NaN - default to 3
                 updateField('ratingForGame', isNaN(rating) ? 3 : rating);
               }}
-              value={(formData.ratingForGame ?? 3).toString()}
+              value={formData.ratingForGame.toString()}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select rating" />
@@ -188,7 +221,16 @@ export function GameLogForm({
           <div className="space-y-2">
             <Label>Classification</Label>
             <Select
-              onValueChange={value => updateField('classification', value)}
+              onValueChange={value => {
+                console.log('🎯 Classification Select onValueChange:', `"${value}" (type: ${typeof value})`);
+                // Only update if we receive a valid non-empty value
+                if (value && typeof value === 'string' && value.trim() !== '') {
+                  console.log('🎯 Classification: Accepting value:', value);
+                  updateField('classification', value);
+                } else {
+                  console.log('🎯 Classification: Rejecting empty/invalid value:', value);
+                }
+              }}
               value={formData.classification as string}
             >
               <SelectTrigger>

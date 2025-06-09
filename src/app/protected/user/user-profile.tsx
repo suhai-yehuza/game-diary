@@ -299,14 +299,33 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
     const target = event.target as HTMLElement;
     const cardElement = event.currentTarget as HTMLElement;
 
-    // Check for buttons, links, and other interactive elements, but exclude the card itself
+    // More comprehensive check for interactive elements
     const isInteractiveElement =
+      // Direct interactive elements
       target.closest('button') ||
       target.closest('a') ||
+      target.closest('input') ||
+      target.closest('textarea') ||
+      target.closest('select') ||
+      target.closest('[contenteditable]') ||
+      // Form and interactive containers
+      target.closest('form') ||
       target.closest('[data-interactive]') ||
       target.closest('.dropdown-menu') ||
+      target.closest('[data-radix-dropdown-menu-content]') ||
       target.closest('[data-radix-popper-content-wrapper]') ||
-      (target.closest('[role="button"]') && target.closest('[role="button"]') !== cardElement);
+      // Dialog and modal elements
+      target.closest('[role="dialog"]') ||
+      target.closest('[data-dialog-content]') ||
+      target.closest('.dialog-content') ||
+      target.closest('[data-state="open"]') ||
+      target.closest('[data-radix-dialog-content]') ||
+      // Comments section
+      target.closest('[data-comments-section]') ||
+      // Button roles (excluding the card itself)
+      (target.closest('[role="button"]') && target.closest('[role="button"]') !== cardElement) ||
+             // Any element with click handlers that should stop propagation
+       target.hasAttribute('data-prevent-card-click');
 
     if (!isInteractiveElement) {
       router.push(`/protected/user/game-logs/${gameLogId}`);
@@ -503,10 +522,14 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
                       gameId={''}
                       gameLog={{} as GameLog}
                       onSuccess={() => {
+                        console.log('Create GameLogModal onSuccess called, refetching with userId:', dbUserId);
+                        // Build filters object without undefined values
+                        const filters: any = { userId: dbUserId };
+                        if (selectedClassification !== 'all') {
+                          filters.classification = selectedClassification;
+                        }
                         refetchUserGameLogs({
-                          variables: {
-                            userId: dbUserId,
-                          },
+                          variables: { filters },
                         });
                       }}
                     />
@@ -727,11 +750,31 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
                                 <GameLogActions
                                   gameLog={gameLog}
                                   onSuccess={() => {
-                                    refetchUserGameLogs({
-                                      variables: {
-                                        userId: dbUserId,
-                                      },
-                                    });
+                                    console.log('🔧 GameLogActions onSuccess started, userId:', dbUserId);
+                                    try {
+                                      console.log('🔧 About to call refetchUserGameLogs...');
+                                      // Build filters object without undefined values
+                                      const filters: any = { userId: dbUserId };
+                                      if (selectedClassification !== 'all') {
+                                        filters.classification = selectedClassification;
+                                      }
+                                      
+                                      const refetchPromise = refetchUserGameLogs({
+                                        variables: { filters },
+                                      });
+                                      console.log('🔧 refetchUserGameLogs called, promise:', refetchPromise);
+                                      
+                                      refetchPromise
+                                        .then((result) => {
+                                          console.log('🔧 refetchUserGameLogs completed successfully:', result);
+                                        })
+                                        .catch((error) => {
+                                          console.error('🔧 refetchUserGameLogs failed:', error);
+                                        });
+                                    } catch (error) {
+                                      console.error('🔧 Error in onSuccess callback:', error);
+                                    }
+                                    console.log('🔧 GameLogActions onSuccess completed');
                                   }}
                                 />
                               )}

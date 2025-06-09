@@ -48,7 +48,26 @@ export function GameLogModal({
 }: GameLogModalProps) {
   const [internalIsOpen, setInternalIsOpen] = useState(false);
   const isOpen = externalIsOpen ?? internalIsOpen;
-  const setIsOpen = typeof onClose === 'function' ? onClose : setInternalIsOpen;
+  
+  // Safe modal close function that ensures proper cleanup
+  const handleModalClose = (newOpen?: boolean) => {
+    console.log('🔧 handleModalClose called with:', newOpen, 'onClose type:', typeof onClose);
+    
+    // Close the modal when Dialog wants to close (newOpen === false) or when called directly (undefined)
+    if (newOpen === false || newOpen === undefined) {
+      // For externally controlled modals (update mode), use the provided onClose
+      if (typeof onClose === 'function') {
+        console.log('🔧 Calling external onClose function');
+        onClose();
+      } else {
+        // For internally controlled modals (create mode), use local state
+        console.log('🔧 Using internal state setInternalIsOpen');
+        setInternalIsOpen(false);
+      }
+    } else {
+      console.log('🔧 Modal close ignored, newOpen was:', newOpen);
+    }
+  };
 
   const { toast } = useToast();
   const { user } = useAuthContext();
@@ -84,20 +103,46 @@ export function GameLogModal({
     }
   }, [specificGameData, mode, gameId]);
 
-  // Form state - properly load existing values for update mode
-  const initialFormData: GameLogFormData = {
-    gameId: gameLog?.game?.id || gameId || '',
-    watchedSetting: (gameLog?.watchedSetting as WatchedSettingValue) || WATCHED_SETTING.TV,
-    watchedDate: gameLog?.watchedDate ? new Date(gameLog.watchedDate) : new Date(),
-    // For update mode, preserve existing values even if they're empty strings
-    watchedLocation: mode === 'update' ? (gameLog?.watchedLocation ?? '') : '',
-    ratingForGame: gameLog?.ratingForGame ?? 3,
-    watchedScope: (gameLog?.watchedScope as WatchedScopeValue) || WATCHED_SCOPE.FULL_GAME,
-    // For update mode, preserve existing notes even if empty
-    notes: mode === 'update' ? (gameLog?.notes ?? '') : '',
-    tags: gameLog?.tags ?? [],
-    classification: (gameLog?.classification as ClassificationValue) || CLASSIFICATION.PROTECTED,
-  };
+  // Form state - properly load existing values for update mode (memoized to prevent re-creation)
+  const initialFormData: GameLogFormData = useMemo(() => {
+    if (mode === 'update' && gameLog) {
+      // Debug: Log the actual database values
+      console.log('🔍 Loading game log for update:', gameLog.id);
+      
+      // For update mode, use all existing values from the database
+      // Add fallbacks for required fields that might be undefined or empty due to data integrity issues
+      const formData = {
+        gameId: gameLog.game?.id || '',
+        // Use database value directly to see what we're getting
+        watchedSetting: gameLog.watchedSetting as WatchedSettingValue,
+        watchedDate: gameLog.watchedDate ? new Date(gameLog.watchedDate) : new Date(),
+        watchedLocation: gameLog.watchedLocation ?? '',
+        ratingForGame: gameLog.ratingForGame || 3,
+        // Use database value directly to see what we're getting
+        watchedScope: gameLog.watchedScope as WatchedScopeValue,
+        notes: gameLog.notes ?? '',
+        tags: gameLog.tags ?? [],
+        // Use database value directly to see what we're getting  
+        classification: gameLog.classification as ClassificationValue,
+      };
+      
+      console.log('🎯 Form data ready for:', formData.gameId);
+      return formData;
+    } else {
+      // For create mode, use defaults
+      return {
+        gameId: gameId || '',
+        watchedSetting: WATCHED_SETTING.TV,
+        watchedDate: new Date(),
+        watchedLocation: '',
+        ratingForGame: 3,
+        watchedScope: WATCHED_SCOPE.FULL_GAME,
+        notes: '',
+        tags: [],
+        classification: CLASSIFICATION.PROTECTED,
+      };
+    }
+  }, [gameLog, gameId, mode]);
 
   // Mutations
   const [createGameLog, { loading: creating }] = useMutation(CREATE_GAME_LOG, {
@@ -108,7 +153,7 @@ export function GameLogModal({
           description: 'Your game log has been created successfully.',
         });
         resetForm();
-        setIsOpen(false);
+        handleModalClose();
         onSuccess?.();
 
         // Redirect to game log details page if created from a game details page
@@ -143,13 +188,18 @@ export function GameLogModal({
 
   const [updateGameLog, { loading: updating }] = useMutation(UPDATE_GAME_LOG, {
     onCompleted: data => {
+      console.log('🔧 UPDATE_GAME_LOG onCompleted called', data);
       if (data?.updateGameLog?.gameLog) {
+        console.log('🔧 Update successful, about to close modal and call onSuccess');
         toast({
           title: '✅ Updated!',
           description: 'Your game log has been updated successfully.',
         });
-        setIsOpen(false);
+        console.log('🔧 Calling handleModalClose...');
+        handleModalClose();
+        console.log('🔧 Calling onSuccess callback...');
         onSuccess?.();
+        console.log('🔧 onSuccess callback completed');
       } else if (data?.updateGameLog?.errors) {
         toast({
           title: '❌ Update Failed',
@@ -174,6 +224,7 @@ export function GameLogModal({
         variant: 'destructive',
       });
     },
+    // Let the onSuccess callback handle cache refresh to avoid race conditions
   });
 
   // Fetch games with pagination and search (only for create mode)
@@ -277,6 +328,36 @@ export function GameLogModal({
     // Ensure ratingForGame is never null/undefined - this is a critical field
     const safeRatingForGame = data.ratingForGame ?? 3;
     
+    // CRITICAL: Validate all enum fields to prevent empty strings being sent to GraphQL
+    const safeClassification = (data.classification && 
+      typeof data.classification === 'string' && 
+      data.classification.trim() !== '' && 
+      Object.values(CLASSIFICATION).includes(data.classification as any))
+      ? data.classification 
+      : CLASSIFICATION.PROTECTED;
+      
+    const safeWatchedSetting = (data.watchedSetting && 
+      typeof data.watchedSetting === 'string' && 
+      data.watchedSetting.trim() !== '' && 
+      Object.values(WATCHED_SETTING).includes(data.watchedSetting as any))
+      ? data.watchedSetting 
+      : WATCHED_SETTING.TV;
+      
+    const safeWatchedScope = (data.watchedScope && 
+      typeof data.watchedScope === 'string' && 
+      data.watchedScope.trim() !== '' && 
+      Object.values(WATCHED_SCOPE).includes(data.watchedScope as any))
+      ? data.watchedScope 
+      : WATCHED_SCOPE.FULL_GAME;
+      
+    console.log('🔍 Pre-mutation validation:', {
+      originalData: data,
+      safeClassification,
+      safeWatchedSetting,
+      safeWatchedScope,
+      safeRatingForGame
+    });
+    
     if (mode === 'create') {
       // More robust check for selectedGame and its ID - handles different possible field names
       const selectedGameId =
@@ -304,14 +385,14 @@ export function GameLogModal({
       try {
         const mutationInput = {
           gameId: selectedGameId,
-          watchedSetting: data.watchedSetting,
+          watchedSetting: safeWatchedSetting,
           watchedDate: data.watchedDate,
-          watchedLocation: data.watchedLocation,
+          watchedLocation: data.watchedLocation || '',
           ratingForGame: safeRatingForGame,
-          watchedScope: data.watchedScope,
-          notes: data.notes,
-          tags: data.tags,
-          classification: data.classification,
+          watchedScope: safeWatchedScope,
+          notes: data.notes || '',
+          tags: data.tags || [],
+          classification: safeClassification,
         };
 
         await createGameLog({
@@ -325,27 +406,20 @@ export function GameLogModal({
       }
     } else if (mode === 'update' && gameLog?.id) {
       try {
-        // Create update input that preserves existing values for unchanged fields
+        // Use validated safe values to prevent empty strings
         const updateInput = {
           gameId: gameLog.game?.id || data.gameId,
-          watchedSetting: data.watchedSetting || gameLog.watchedSetting,
-          watchedDate: data.watchedDate || (gameLog.watchedDate ? new Date(gameLog.watchedDate) : new Date()),
-          // For optional string fields, check if they're truly empty vs unchanged
-          watchedLocation: data.watchedLocation !== undefined && data.watchedLocation !== null 
-            ? data.watchedLocation 
-            : (gameLog.watchedLocation || ''),
+          watchedSetting: safeWatchedSetting,
+          watchedDate: data.watchedDate,
+          watchedLocation: data.watchedLocation || '',
           ratingForGame: safeRatingForGame,
-          watchedScope: data.watchedScope || gameLog.watchedScope,
-          // For notes, preserve existing if form data is empty or undefined
-          notes: data.notes !== undefined && data.notes !== null 
-            ? data.notes 
-            : (gameLog.notes || ''),
-          // For tags, preserve existing if form data is empty array or undefined
-          tags: (data.tags && data.tags.length > 0) 
-            ? data.tags 
-            : (gameLog.tags || []),
-          classification: data.classification || gameLog.classification,
+          watchedScope: safeWatchedScope,
+          notes: data.notes || '',
+          tags: data.tags || [],
+          classification: safeClassification,
         };
+
+        console.log('Update input payload:', updateInput);
 
         await updateGameLog({
           variables: {
@@ -388,7 +462,7 @@ export function GameLogModal({
           variant="ghost"
           size="icon"
           className="absolute right-0 top-0"
-          onClick={() => setIsOpen(false)}
+          onClick={() => handleModalClose()}
         >
           <X className="h-4 w-4" />
         </Button>
@@ -509,12 +583,13 @@ export function GameLogModal({
       )}
 
       <GameLogForm
+        key={`${mode}-${gameLog?.id || 'new'}`}
         formData={initialFormData}
         // @ts-expect-error - Type mismatch between generated GraphQL Game type and consolidated Game type
         selectedGame={selectedGame}
         loading={mode === 'create' ? creating : updating}
         onSubmit={handleSubmit}
-        onCancel={() => setIsOpen(false)}
+        onCancel={() => handleModalClose()}
         submitLabel={mode === 'create' ? 'Create Log' : 'Update Log'}
       />
     </DialogContent>
@@ -522,7 +597,7 @@ export function GameLogModal({
 
   if (mode === 'create') {
     return (
-      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <Dialog open={isOpen} onOpenChange={handleModalClose}>
         <DialogTrigger asChild>
           <Button
             variant="outline"
@@ -537,7 +612,7 @@ export function GameLogModal({
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={handleModalClose}>
       {dialogContent}
     </Dialog>
   );
