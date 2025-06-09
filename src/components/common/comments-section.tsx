@@ -312,85 +312,14 @@ export function CommentsSection({ parentId, parentType, initialExpanded }: Comme
   });
 
   const [updateCommentInSection] = useMutation(UPDATE_COMMENT, {
-    optimisticResponse: ({ id, input }) => {
-      const existingData = data?.comments?.edges?.find(
-        ({ node }: { node: Comment }) => node.id === id
-      );
-      const comment = existingData?.node;
-
-      return {
-        updateComment: {
-          __typename: 'UpdateCommentResponse',
-          comment: comment
-            ? {
-                ...comment,
-                content: input.content,
-                updatedAt: new Date().toISOString(),
-              }
-            : null,
-          errors: [],
-        },
-      };
-    },
-    update: (cache, { data }) => {
-      if (!data?.updateComment?.comment) return;
-
-      try {
-        // Use the same variables as the original query
-        const existingData = cache.readQuery({
-          query: GET_COMMENTS_WITH_FILTERS,
-          variables: {
-            filters: {
-              parentId: parentId,
-              parentType: parentType,
-            },
-            pagination: {
-              first: 10,
-            },
-          },
-        }) as { comments: CommentConnection } | null;
-
-        if (!existingData?.comments) return;
-
-        const newEdges = existingData.comments.edges.map((edge: CommentEdge) => {
-          if (edge.node.id === data.updateComment.comment.id) {
-            return {
-              ...edge,
-              node: data.updateComment.comment,
-            };
-          }
-          return edge;
-        });
-
-        cache.writeQuery({
-          query: GET_COMMENTS_WITH_FILTERS,
-          variables: {
-            filters: {
-              parentId: parentId,
-              parentType: parentType,
-            },
-            pagination: {
-              first: 10,
-            },
-          },
-          data: {
-            comments: {
-              __typename: 'CommentConnection',
-              edges: newEdges,
-              totalCount: existingData.comments.totalCount,
-              pageInfo: existingData.comments.pageInfo,
-            },
-          },
-        });
-      } catch (error) {
-        // If cache update fails, fallback to refetch
-        console.warn('Cache update failed for comment update, will refetch:', error);
-      }
-    },
-    onCompleted: () => {
+    onCompleted: (data) => {
+      console.log('Comment update completed:', data);
       setEditingComment(null);
+      // Always refetch to ensure we have the latest data
+      refetch();
     },
-    onError: error => {
+    onError: (error) => {
+      console.error('Comment update error:', error);
       toast({
         title: 'Error',
         description: error.message,
@@ -445,12 +374,45 @@ export function CommentsSection({ parentId, parentType, initialExpanded }: Comme
   const handleUpdateComment = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingComment) return;
-    await updateCommentInSection({
-      variables: {
-        id: editingComment.id,
-        input: { content: editingComment.content },
-      },
-    });
+    
+    console.log('Updating comment:', editingComment.id, 'with content:', editingComment.content);
+    
+    try {
+      const result = await updateCommentInSection({
+        variables: {
+          id: editingComment.id,
+          input: { 
+            content: editingComment.content,
+            parentId: parentId,
+            parentType: parentType
+          },
+        },
+      });
+      
+      console.log('Update result:', result);
+      
+      if (result.data?.updateComment?.errors && result.data.updateComment.errors.length > 0) {
+        console.error('Update errors:', result.data.updateComment.errors);
+        toast({
+          title: 'Update Failed',
+          description: result.data.updateComment.errors[0].message,
+          variant: 'destructive',
+        });
+        return;
+      }
+      
+      toast({
+        title: 'Comment Updated',
+        description: 'Your comment has been updated successfully.',
+      });
+    } catch (error) {
+      console.error('Error updating comment:', error);
+      toast({
+        title: 'Update Failed',
+        description: 'Failed to update comment. Please try again.',
+        variant: 'destructive',
+      });
+    }
   };
 
   const handleDeleteComment = async () => {
@@ -609,6 +571,27 @@ export function CommentsSection({ parentId, parentType, initialExpanded }: Comme
                               ref={textareaRef}
                               value={newComment}
                               onChange={e => setNewComment(e.target.value)}
+                              onKeyDown={e => {
+                                // Ensure spacebar works by explicitly handling it
+                                if (e.key === ' ' || e.key === 'Space') {
+                                  e.stopPropagation();
+                                  // Force the textarea to include the space
+                                  const textarea = e.target as HTMLTextAreaElement;
+                                  const start = textarea.selectionStart || 0;
+                                  const end = textarea.selectionEnd || 0;
+                                  const currentValue = textarea.value;
+                                  const newValue = currentValue.slice(0, start) + ' ' + currentValue.slice(end);
+                                  
+                                  // Prevent default and manually handle the space
+                                  e.preventDefault();
+                                  setNewComment(newValue);
+                                  
+                                  // Restore cursor position after state update
+                                  setTimeout(() => {
+                                    textarea.setSelectionRange(start + 1, start + 1);
+                                  }, 0);
+                                }
+                              }}
                               placeholder="Share your thoughts..."
                               className={cn(
                                 'min-h-[100px] resize-none rounded-lg',
@@ -718,17 +701,47 @@ export function CommentsSection({ parentId, parentType, initialExpanded }: Comme
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>Edit Comment</AlertDialogTitle>
+              <AlertDialogDescription>
+                Make changes to your comment below. Click save when you're done.
+              </AlertDialogDescription>
             </AlertDialogHeader>
             <form onSubmit={handleUpdateComment}>
               <Textarea
                 value={editingComment.content}
                 onChange={e => setEditingComment({ ...editingComment, content: e.target.value })}
+                onKeyDown={e => {
+                  // Ensure spacebar works by explicitly handling it
+                  if (e.key === ' ' || e.key === 'Space') {
+                    e.stopPropagation();
+                    // Force the textarea to include the space
+                    const textarea = e.target as HTMLTextAreaElement;
+                    const start = textarea.selectionStart || 0;
+                    const end = textarea.selectionEnd || 0;
+                    const currentValue = textarea.value;
+                    const newValue = currentValue.slice(0, start) + ' ' + currentValue.slice(end);
+                    
+                    // Prevent default and manually handle the space
+                    e.preventDefault();
+                    setEditingComment({ ...editingComment, content: newValue });
+                    
+                    // Restore cursor position after state update
+                    setTimeout(() => {
+                      textarea.setSelectionRange(start + 1, start + 1);
+                    }, 0);
+                  }
+                }}
                 className="min-h-[100px] mb-4"
               />
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction type="submit">Save Changes</AlertDialogAction>
-              </AlertDialogFooter>
+              <div className="flex justify-end gap-2">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => setEditingComment(null)}
+                >
+                  Cancel
+                </Button>
+                <Button type="submit">Save Changes</Button>
+              </div>
             </form>
           </AlertDialogContent>
         </AlertDialog>

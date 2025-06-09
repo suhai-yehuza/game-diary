@@ -252,12 +252,33 @@ export function CommentItem({
                     placeholder="Write a reply..."
                     className="min-h-[80px] text-sm resize-none"
                     onKeyDown={e => {
+                      // Handle existing keyboard shortcuts
                       if (e.key === 'Escape') {
                         setIsReplying(false);
                         setReplyContent('');
                       }
                       if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
                         handleSubmitReply(e);
+                      }
+                      
+                      // Ensure spacebar works by explicitly handling it
+                      if (e.key === ' ' || e.key === 'Space') {
+                        e.stopPropagation();
+                        // Force the textarea to include the space
+                        const textarea = e.target as HTMLTextAreaElement;
+                        const start = textarea.selectionStart || 0;
+                        const end = textarea.selectionEnd || 0;
+                        const currentValue = textarea.value;
+                        const newValue = currentValue.slice(0, start) + ' ' + currentValue.slice(end);
+                        
+                        // Prevent default and manually handle the space
+                        e.preventDefault();
+                        setReplyContent(newValue);
+                        
+                        // Restore cursor position after state update
+                        setTimeout(() => {
+                          textarea.setSelectionRange(start + 1, start + 1);
+                        }, 0);
                       }
                     }}
                   />
