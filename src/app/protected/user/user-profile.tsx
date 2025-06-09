@@ -654,19 +654,6 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
             <div className="mt-8">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-2xl font-bold">Game Logs</h2>
-                <div className="flex items-center space-x-2">
-                  <Filter className="h-4 w-4" />
-                  <select
-                    value={selectedClassification}
-                    onChange={e => setSelectedClassification(e.target.value)}
-                    className="border rounded px-2 py-1"
-                  >
-                    <option value="all">All</option>
-                    <option value="Private">Private</option>
-                    <option value="Protected">Protected</option>
-                    <option value="Public">Public</option>
-                  </select>
-                </div>
               </div>
 
               {userGameLogsLoading ? (
