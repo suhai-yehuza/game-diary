@@ -533,16 +533,26 @@ enum ParentType {
 }
 
 enum ReactionEmojiType {
-  THUMBS_UP
-  THUMBS_DOWN
-  HEART
-  FIRE
-  EYES
-  ROCKET
+  LIKE
+  LOVE
   LAUGH
+  WOW
   SAD
   ANGRY
-  WOW
+  FIRE
+  CLAP
+  EYES
+  ROCKET
+  MUSCLE
+  GOAT
+  BULLSEYE
+  THUMBS_DOWN
+  BASKETBALL
+  SOCCER
+  FOOTBALL
+  BASEBALL
+  TENNIS
+  GOLF
 }
 
 # Response types
