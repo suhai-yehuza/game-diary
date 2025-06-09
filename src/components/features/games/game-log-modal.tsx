@@ -50,10 +50,15 @@ export function GameLogModal({
   const [dialogKey, setDialogKey] = useState(0);
   const isOpen = externalIsOpen ?? internalIsOpen;
   
-  // Modal close function with forced re-render
+  // Modal state handler with forced re-render on close
   const handleModalClose = (newOpen?: boolean) => {
-    // Only process close events (when newOpen is false or undefined)
-    if (newOpen !== true) {
+    if (newOpen === true) {
+      // Opening the modal - for create mode
+      if (typeof onClose !== 'function') {
+        setInternalIsOpen(true);
+      }
+    } else {
+      // Closing the modal (newOpen is false or undefined)
       // Force a dialog re-render to ensure proper cleanup
       setDialogKey(prev => prev + 1);
       
