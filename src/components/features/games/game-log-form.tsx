@@ -73,9 +73,16 @@ export function GameLogForm({
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Submitting form data:', formData);
+    
+    // Ensure ratingForGame is never null/undefined before submitting
+    const safeFormData = {
+      ...formData,
+      ratingForGame: formData.ratingForGame ?? 3,
+    };
+    
+    console.log('Submitting form data:', safeFormData);
     if (onSubmit) {
-      await onSubmit(formData);
+      await onSubmit(safeFormData);
     }
   };
 
@@ -158,8 +165,12 @@ export function GameLogForm({
           <div className="space-y-2">
             <Label>Rating</Label>
             <Select
-              onValueChange={value => updateField('ratingForGame', parseInt(value))}
-              value={formData.ratingForGame.toString()}
+              onValueChange={value => {
+                const rating = parseInt(value);
+                // Ensure we never set null/undefined/NaN - default to 3
+                updateField('ratingForGame', isNaN(rating) ? 3 : rating);
+              }}
+              value={(formData.ratingForGame ?? 3).toString()}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select rating" />

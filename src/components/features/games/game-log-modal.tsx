@@ -84,16 +84,18 @@ export function GameLogModal({
     }
   }, [specificGameData, mode, gameId]);
 
-  // Form state - only pass initial data for update mode
+  // Form state - properly load existing values for update mode
   const initialFormData: GameLogFormData = {
     gameId: gameLog?.game?.id || gameId || '',
     watchedSetting: (gameLog?.watchedSetting as WatchedSettingValue) || WATCHED_SETTING.TV,
     watchedDate: gameLog?.watchedDate ? new Date(gameLog.watchedDate) : new Date(),
-    watchedLocation: gameLog?.watchedLocation || '',
-    ratingForGame: gameLog?.ratingForGame || 3,
+    // For update mode, preserve existing values even if they're empty strings
+    watchedLocation: mode === 'update' ? (gameLog?.watchedLocation ?? '') : '',
+    ratingForGame: gameLog?.ratingForGame ?? 3,
     watchedScope: (gameLog?.watchedScope as WatchedScopeValue) || WATCHED_SCOPE.FULL_GAME,
-    notes: gameLog?.notes || '',
-    tags: gameLog?.tags || [],
+    // For update mode, preserve existing notes even if empty
+    notes: mode === 'update' ? (gameLog?.notes ?? '') : '',
+    tags: gameLog?.tags ?? [],
     classification: (gameLog?.classification as ClassificationValue) || CLASSIFICATION.PROTECTED,
   };
 
@@ -272,6 +274,9 @@ export function GameLogModal({
   }, [gamesData?.games?.edges, searchQuery]);
 
   const handleSubmit = async (data: CreateGameLogInput) => {
+    // Ensure ratingForGame is never null/undefined - this is a critical field
+    const safeRatingForGame = data.ratingForGame ?? 3;
+    
     if (mode === 'create') {
       // More robust check for selectedGame and its ID - handles different possible field names
       const selectedGameId =
@@ -302,7 +307,7 @@ export function GameLogModal({
           watchedSetting: data.watchedSetting,
           watchedDate: data.watchedDate,
           watchedLocation: data.watchedLocation,
-          ratingForGame: data.ratingForGame,
+          ratingForGame: safeRatingForGame,
           watchedScope: data.watchedScope,
           notes: data.notes,
           tags: data.tags,
@@ -320,19 +325,32 @@ export function GameLogModal({
       }
     } else if (mode === 'update' && gameLog?.id) {
       try {
+        // Create update input that preserves existing values for unchanged fields
+        const updateInput = {
+          gameId: gameLog.game?.id || data.gameId,
+          watchedSetting: data.watchedSetting || gameLog.watchedSetting,
+          watchedDate: data.watchedDate || (gameLog.watchedDate ? new Date(gameLog.watchedDate) : new Date()),
+          // For optional string fields, check if they're truly empty vs unchanged
+          watchedLocation: data.watchedLocation !== undefined && data.watchedLocation !== null 
+            ? data.watchedLocation 
+            : (gameLog.watchedLocation || ''),
+          ratingForGame: safeRatingForGame,
+          watchedScope: data.watchedScope || gameLog.watchedScope,
+          // For notes, preserve existing if form data is empty or undefined
+          notes: data.notes !== undefined && data.notes !== null 
+            ? data.notes 
+            : (gameLog.notes || ''),
+          // For tags, preserve existing if form data is empty array or undefined
+          tags: (data.tags && data.tags.length > 0) 
+            ? data.tags 
+            : (gameLog.tags || []),
+          classification: data.classification || gameLog.classification,
+        };
+
         await updateGameLog({
           variables: {
             id: gameLog.id,
-            input: {
-              watchedSetting: data.watchedSetting,
-              watchedDate: data.watchedDate,
-              watchedLocation: data.watchedLocation,
-              ratingForGame: data.ratingForGame,
-              watchedScope: data.watchedScope,
-              notes: data.notes,
-              tags: data.tags,
-              classification: data.classification,
-            },
+            input: updateInput,
           },
         });
       } catch {
