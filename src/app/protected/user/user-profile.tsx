@@ -522,7 +522,6 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
                       gameId={''}
                       gameLog={{} as GameLog}
                       onSuccess={() => {
-                        console.log('Create GameLogModal onSuccess called, refetching with userId:', dbUserId);
                         // Build filters object without undefined values
                         const filters: any = { userId: dbUserId };
                         if (selectedClassification !== 'all') {
@@ -750,31 +749,15 @@ export default function UserProfile({ targetUserId }: UserProfileProps) {
                                 <GameLogActions
                                   gameLog={gameLog}
                                   onSuccess={() => {
-                                    console.log('🔧 GameLogActions onSuccess started, userId:', dbUserId);
-                                    try {
-                                      console.log('🔧 About to call refetchUserGameLogs...');
-                                      // Build filters object without undefined values
-                                      const filters: any = { userId: dbUserId };
-                                      if (selectedClassification !== 'all') {
-                                        filters.classification = selectedClassification;
-                                      }
-                                      
-                                      const refetchPromise = refetchUserGameLogs({
-                                        variables: { filters },
-                                      });
-                                      console.log('🔧 refetchUserGameLogs called, promise:', refetchPromise);
-                                      
-                                      refetchPromise
-                                        .then((result) => {
-                                          console.log('🔧 refetchUserGameLogs completed successfully:', result);
-                                        })
-                                        .catch((error) => {
-                                          console.error('🔧 refetchUserGameLogs failed:', error);
-                                        });
-                                    } catch (error) {
-                                      console.error('🔧 Error in onSuccess callback:', error);
+                                    // Build filters object without undefined values
+                                    const filters: any = { userId: dbUserId };
+                                    if (selectedClassification !== 'all') {
+                                      filters.classification = selectedClassification;
                                     }
-                                    console.log('🔧 GameLogActions onSuccess completed');
+                                    
+                                    refetchUserGameLogs({
+                                      variables: { filters },
+                                    });
                                   }}
                                 />
                               )}

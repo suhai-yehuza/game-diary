@@ -47,25 +47,23 @@ export function GameLogModal({
   onSuccess,
 }: GameLogModalProps) {
   const [internalIsOpen, setInternalIsOpen] = useState(false);
+  const [dialogKey, setDialogKey] = useState(0);
   const isOpen = externalIsOpen ?? internalIsOpen;
   
-  // Safe modal close function that ensures proper cleanup
+  // Modal close function with forced re-render
   const handleModalClose = (newOpen?: boolean) => {
-    console.log('🔧 handleModalClose called with:', newOpen, 'onClose type:', typeof onClose);
-    
-    // Close the modal when Dialog wants to close (newOpen === false) or when called directly (undefined)
-    if (newOpen === false || newOpen === undefined) {
-      // For externally controlled modals (update mode), use the provided onClose
+    // Only process close events (when newOpen is false or undefined)
+    if (newOpen !== true) {
+      // Force a dialog re-render to ensure proper cleanup
+      setDialogKey(prev => prev + 1);
+      
       if (typeof onClose === 'function') {
-        console.log('🔧 Calling external onClose function');
+        // For externally controlled modals (update mode)
         onClose();
       } else {
-        // For internally controlled modals (create mode), use local state
-        console.log('🔧 Using internal state setInternalIsOpen');
+        // For internally controlled modals (create mode)
         setInternalIsOpen(false);
       }
-    } else {
-      console.log('🔧 Modal close ignored, newOpen was:', newOpen);
     }
   };
 
@@ -106,28 +104,18 @@ export function GameLogModal({
   // Form state - properly load existing values for update mode (memoized to prevent re-creation)
   const initialFormData: GameLogFormData = useMemo(() => {
     if (mode === 'update' && gameLog) {
-      // Debug: Log the actual database values
-      console.log('🔍 Loading game log for update:', gameLog.id);
-      
       // For update mode, use all existing values from the database
-      // Add fallbacks for required fields that might be undefined or empty due to data integrity issues
-      const formData = {
+      return {
         gameId: gameLog.game?.id || '',
-        // Use database value directly to see what we're getting
         watchedSetting: gameLog.watchedSetting as WatchedSettingValue,
         watchedDate: gameLog.watchedDate ? new Date(gameLog.watchedDate) : new Date(),
         watchedLocation: gameLog.watchedLocation ?? '',
         ratingForGame: gameLog.ratingForGame || 3,
-        // Use database value directly to see what we're getting
         watchedScope: gameLog.watchedScope as WatchedScopeValue,
         notes: gameLog.notes ?? '',
         tags: gameLog.tags ?? [],
-        // Use database value directly to see what we're getting  
         classification: gameLog.classification as ClassificationValue,
       };
-      
-      console.log('🎯 Form data ready for:', formData.gameId);
-      return formData;
     } else {
       // For create mode, use defaults
       return {
@@ -188,18 +176,13 @@ export function GameLogModal({
 
   const [updateGameLog, { loading: updating }] = useMutation(UPDATE_GAME_LOG, {
     onCompleted: data => {
-      console.log('🔧 UPDATE_GAME_LOG onCompleted called', data);
       if (data?.updateGameLog?.gameLog) {
-        console.log('🔧 Update successful, about to close modal and call onSuccess');
         toast({
           title: '✅ Updated!',
           description: 'Your game log has been updated successfully.',
         });
-        console.log('🔧 Calling handleModalClose...');
         handleModalClose();
-        console.log('🔧 Calling onSuccess callback...');
         onSuccess?.();
-        console.log('🔧 onSuccess callback completed');
       } else if (data?.updateGameLog?.errors) {
         toast({
           title: '❌ Update Failed',
@@ -350,13 +333,7 @@ export function GameLogModal({
       ? data.watchedScope 
       : WATCHED_SCOPE.FULL_GAME;
       
-    console.log('🔍 Pre-mutation validation:', {
-      originalData: data,
-      safeClassification,
-      safeWatchedSetting,
-      safeWatchedScope,
-      safeRatingForGame
-    });
+    // Validation complete - proceeding with mutation
     
     if (mode === 'create') {
       // More robust check for selectedGame and its ID - handles different possible field names
@@ -419,7 +396,7 @@ export function GameLogModal({
           classification: safeClassification,
         };
 
-        console.log('Update input payload:', updateInput);
+        // Update input validated and ready
 
         await updateGameLog({
           variables: {
@@ -597,7 +574,7 @@ export function GameLogModal({
 
   if (mode === 'create') {
     return (
-      <Dialog open={isOpen} onOpenChange={handleModalClose}>
+      <Dialog key={`create-${dialogKey}`} open={isOpen} onOpenChange={handleModalClose}>
         <DialogTrigger asChild>
           <Button
             variant="outline"
@@ -612,7 +589,7 @@ export function GameLogModal({
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleModalClose}>
+    <Dialog key={`update-${dialogKey}`} open={isOpen} onOpenChange={handleModalClose}>
       {dialogContent}
     </Dialog>
   );
