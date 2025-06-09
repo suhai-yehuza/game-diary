@@ -184,7 +184,7 @@ export function GameLogModal({
           title: '✅ Updated!',
           description: 'Your game log has been updated successfully.',
         });
-        handleModalClose();
+        // Don't call handleModalClose() here - let onSuccess handle it to avoid double state management
         onSuccess?.();
       } else if (data?.updateGameLog?.errors) {
         toast({

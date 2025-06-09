@@ -31,6 +31,7 @@ import { GameLogModal } from './game-log-modal';
 export function GameLogActions({ gameLog, onSuccess }: GameLogActionsProps) {
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const { toast } = useToast();
   const { user } = useAuthContext();
   const isOwner = user?.id === gameLog.user.id;
@@ -84,33 +85,39 @@ export function GameLogActions({ gameLog, onSuccess }: GameLogActionsProps) {
     return null;
   }
 
+  const handleEditClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    // Close dropdown first, then open modal after cleanup
+    setIsDropdownOpen(false);
+    setTimeout(() => {
+      setIsUpdateModalOpen(true);
+    }, 100);
+  };
+
+  const handleDeleteClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    // Close dropdown first, then open dialog after cleanup
+    setIsDropdownOpen(false);
+    setTimeout(() => {
+      setIsDeleteDialogOpen(true);
+    }, 100);
+  };
+
   return (
     <div data-prevent-card-click>
-      <DropdownMenu>
+      <DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="h-8 w-8 p-0 hover:bg-muted/50" onClick={() => {}}>
+          <Button variant="ghost" className="h-8 w-8 p-0 hover:bg-muted/50">
             <span className="sr-only">Open menu</span>
             <MoreVertical className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-[160px]">
-          <DropdownMenuItem
-            onClick={e => {
-              e.stopPropagation();
-              setIsUpdateModalOpen(true);
-            }}
-            className="cursor-pointer"
-          >
+          <DropdownMenuItem onClick={handleEditClick} className="cursor-pointer">
             <Pencil className="mr-2 h-4 w-4" />
             Edit
           </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={e => {
-              e.stopPropagation();
-              setIsDeleteDialogOpen(true);
-            }}
-            className="cursor-pointer text-destructive focus:text-destructive"
-          >
+          <DropdownMenuItem onClick={handleDeleteClick} className="cursor-pointer text-destructive focus:text-destructive">
             <Trash2 className="mr-2 h-4 w-4" />
             Delete
           </DropdownMenuItem>
