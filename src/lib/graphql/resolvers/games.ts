@@ -40,12 +40,32 @@ const mapLiveGameData = (game: GameResponseData) => ({
     total: 0,
     endOfPeriod: false,
   },
-  scores: game.scores || {
+  scores: {
     home: {
-      points: 0,
+      win: game.scores?.home?.win || 0,
+      loss: game.scores?.home?.loss || 0,
+      series: {
+        win: game.scores?.home?.series?.win || 0,
+        loss: game.scores?.home?.series?.loss || 0,
+      },
+      linescore: (game.scores?.home?.linescore || []).map((score: string | number) => {
+        const numScore = typeof score === 'string' ? parseInt(score, 10) : score;
+        return isNaN(numScore) ? 0 : numScore;
+      }),
+      points: game.scores?.home?.points || 0,
     },
     visitors: {
-      points: 0,
+      win: game.scores?.visitors?.win || 0,
+      loss: game.scores?.visitors?.loss || 0,
+      series: {
+        win: game.scores?.visitors?.series?.win || 0,
+        loss: game.scores?.visitors?.series?.loss || 0,
+      },
+      linescore: (game.scores?.visitors?.linescore || []).map((score: string | number) => {
+        const numScore = typeof score === 'string' ? parseInt(score, 10) : score;
+        return isNaN(numScore) ? 0 : numScore;
+      }),
+      points: game.scores?.visitors?.points || 0,
     },
   },
   officials: game.officials || [],

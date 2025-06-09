@@ -26,7 +26,7 @@ export function LiveGamesBanner() {
       {/* Animated background pulse */}
       <div className="absolute inset-0 bg-gradient-to-r from-red-600 to-red-500 animate-pulse opacity-50" />
 
-      <Link href="/sports/nba" className="relative block">
+      <Link href="/sports/nba/live" className="relative block">
         <div className="container mx-auto px-4 py-2">
           <div className="flex items-center justify-center gap-2 text-sm font-medium">
             {/* Blinking dot indicator */}
