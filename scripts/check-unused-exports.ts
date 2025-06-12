@@ -59,10 +59,12 @@ const CONFIG = {
     'src/app/protected/admin/users/users-table.tsx',
     'src/app/protected/client/page.tsx',
     'src/app/protected/server/page.tsx',
+    'src/app/protected/user/components/search/index.ts',
     'src/app/protected/user/page.tsx',
     'src/app/protected/user/[id]/page.tsx',
     'src/app/protected/user/game-logs/[id]/page.tsx',
     'src/app/protected/user/user-profile.tsx',
+    'src/app/protected/user/user-profile-layout.tsx',
 
     // Sports pages
     'src/app/sports/all-sports/page.tsx',
