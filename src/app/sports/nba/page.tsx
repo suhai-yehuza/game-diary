@@ -173,7 +173,7 @@ export default function NBAPage() {
           <div>
             <h2 className="text-2xl font-semibold mb-4">Live Games</h2>
             <div className="flex flex-wrap justify-center items-start gap-4 w-full">
-              {liveGamesList.map((game, idx) => (
+              {liveGamesList.map((game) => (
                 <div
                   key={game.id}
                   className={liveGamesList.length === 1 ? "mx-auto max-w-md w-full" : "w-[350px]"}

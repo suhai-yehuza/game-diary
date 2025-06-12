@@ -43,6 +43,10 @@ function ensureHttps(url?: string) {
 export const GameCard = memo(({ game, index, imageErrors, onImageError }: GameCardProps) => {
   const router = useRouter();
   const isLive = game.status.long === 'In Play' || game.status.short === 'Live';
+  const gameDate = new Date(typeof game.date === 'string' ? game.date : game.date.start);
+  const isScheduled = game.status.long === 'Scheduled';
+  const isPastScheduled = isScheduled && gameDate < new Date();
+  const displayStatus = isPastScheduled ? 'Cancelled' : game.status.long;
   const winningTeam =
     game.scores.visitors.points > game.scores.home.points
       ? 'visitors'
@@ -104,11 +108,15 @@ export const GameCard = memo(({ game, index, imageErrors, onImageError }: GameCa
           {isLive ? (
             <div className="flex items-center gap-1 bg-gradient-to-r from-red-500/20 to-red-500/10 text-red-500 px-2 py-1 rounded-md text-xs font-bold shadow-sm">
               <div className="w-1 h-1 bg-red-500 rounded-sm animate-pulse shadow-sm" />
-              <span className="text-red-600">{game.status.long}</span>
+              <span className="text-red-600">{displayStatus}</span>
             </div>
           ) : (
-            <div className="text-sm font-medium px-2 py-1 rounded-md bg-purple-500/10 text-purple-500">
-              {game.status.long}
+            <div className={`text-sm font-medium px-2 py-1 rounded-md ${
+              isPastScheduled 
+                ? 'bg-red-500/10 text-red-500' 
+                : 'bg-purple-500/10 text-purple-500'
+            }`}>
+              {displayStatus}
             </div>
           )}
         </div>
