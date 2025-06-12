@@ -172,9 +172,14 @@ export default function NBAPage() {
         {liveGamesList.length > 0 && (
           <div>
             <h2 className="text-2xl font-semibold mb-4">Live Games</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {liveGamesList.map(game => (
-                <GameCard key={game.id} game={game} />
+            <div className="flex flex-wrap justify-center items-start gap-4 w-full">
+              {liveGamesList.map((game, idx) => (
+                <div
+                  key={game.id}
+                  className={liveGamesList.length === 1 ? "mx-auto max-w-md w-full" : "w-[350px]"}
+                >
+                  <GameCard game={game} />
+                </div>
               ))}
             </div>
           </div>

@@ -87,11 +87,11 @@ export const GameCard = memo(({ game, index, imageErrors, onImageError }: GameCa
       }}
     >
       {isLive && (
-        <div className="absolute top-0 left-0 right-0 bg-red-500 text-white text-center py-1 text-sm font-medium animate-pulse rounded-t-xl">
+        <div className="absolute top-0 left-0 right-0 bg-red-500 text-white text-center py-0.5 text-xs font-medium animate-pulse rounded-t-xl">
           Live
         </div>
       )}
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-4 mt-1">
         <div className="flex items-center gap-2">
           <span className="text-sm text-muted-foreground">
             {format(
@@ -102,12 +102,12 @@ export const GameCard = memo(({ game, index, imageErrors, onImageError }: GameCa
         </div>
         <div className="flex items-center gap-2">
           {isLive ? (
-            <div className="flex items-center gap-1.5 bg-gradient-to-r from-red-500/20 to-red-500/10 text-red-500 px-3 py-1.5 rounded-full text-sm font-bold shadow-sm">
-              <div className="w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse shadow-sm" />
+            <div className="flex items-center gap-1 bg-gradient-to-r from-red-500/20 to-red-500/10 text-red-500 px-2 py-1 rounded-md text-xs font-bold shadow-sm">
+              <div className="w-1 h-1 bg-red-500 rounded-sm animate-pulse shadow-sm" />
               <span className="text-red-600">{game.status.long}</span>
             </div>
           ) : (
-            <div className="text-sm font-medium px-2 py-1 rounded-full bg-purple-500/10 text-purple-500">
+            <div className="text-sm font-medium px-2 py-1 rounded-md bg-purple-500/10 text-purple-500">
               {game.status.long}
             </div>
           )}
