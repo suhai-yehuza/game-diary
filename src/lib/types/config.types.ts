@@ -33,8 +33,43 @@ export const REACTION_EMOJIS = {
   GOLF: '⛳',
 } as const;
 
+// Type for the keys of REACTION_EMOJIS
 export type ReactionEmojiKey = keyof typeof REACTION_EMOJIS;
+
+// Type for the values of REACTION_EMOJIS
 export type ReactionEmojiValue = (typeof REACTION_EMOJIS)[ReactionEmojiKey];
+
+// Type guard to check if a string is a valid ReactionEmojiKey
+export const isReactionEmojiKey = (key: string): key is ReactionEmojiKey => {
+  return key in REACTION_EMOJIS;
+};
+
+// Type guard to check if a string is a valid ReactionEmojiValue
+export const isReactionEmojiValue = (value: string): value is ReactionEmojiValue => {
+  return Object.values(REACTION_EMOJIS).includes(value as ReactionEmojiValue);
+};
+
+// Helper to get emoji value from key
+export const getEmojiValue = (key: ReactionEmojiKey): ReactionEmojiValue => {
+  return REACTION_EMOJIS[key];
+};
+
+// Helper to get key from emoji value
+export const getEmojiKey = (value: ReactionEmojiValue): ReactionEmojiKey => {
+  const entry = Object.entries(REACTION_EMOJIS).find(([_, v]) => v === value);
+  if (!entry) {
+    throw new Error(`Invalid emoji value: ${value}`);
+  }
+  return entry[0] as ReactionEmojiKey;
+};
+
+// Type for GraphQL enum values
+export type GraphQLReactionEmojiType = ReactionEmojiKey;
+
+// Type guard for GraphQL enum values
+export const isGraphQLReactionEmojiType = (value: string): value is GraphQLReactionEmojiType => {
+  return isReactionEmojiKey(value);
+};
 
 // Cache Configuration
 export const CACHE_TTL = {

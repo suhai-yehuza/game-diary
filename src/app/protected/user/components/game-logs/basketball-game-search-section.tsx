@@ -2,15 +2,7 @@
 
 import { useQuery } from '@apollo/client';
 import { format, isAfter } from 'date-fns';
-import {
-  Calendar,
-  Clock,
-  Search,
-  Trophy,
-  X,
-  MapPin,
-  ArrowUpDown,
-} from 'lucide-react';
+import { Calendar, Clock, Search, Trophy, X, MapPin, ArrowUpDown } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import React, { useState, useMemo, useEffect } from 'react';
@@ -68,7 +60,12 @@ const GameSkeleton = () => (
 
 type GameEdge = { cursor: string; node: Game };
 
-const getStatusBadge = (status: string, isScheduled?: boolean, isFinished?: boolean, isPastScheduled?: boolean) => {
+const getStatusBadge = (
+  status: string,
+  isScheduled?: boolean,
+  isFinished?: boolean,
+  isPastScheduled?: boolean
+) => {
   const statusLower = status.toLowerCase();
 
   if (statusLower.includes('live') || statusLower === 'in play') {
@@ -395,7 +392,8 @@ export function BasketballGameSearchSection() {
                 game.status.long.toLowerCase() === 'in play';
               const isScheduled =
                 game.status.long.toLowerCase() === 'scheduled' || isAfter(gameDate, new Date());
-              const isPastScheduled = game.status.long.toLowerCase() === 'scheduled' && gameDate < new Date();
+              const isPastScheduled =
+                game.status.long.toLowerCase() === 'scheduled' && gameDate < new Date();
               const isFinished = game.status.long.toLowerCase() === 'finished';
 
               return (
@@ -415,12 +413,14 @@ export function BasketballGameSearchSection() {
                         </div>
                         <div className="mt-1">
                           {/* Only show status badge if not cancelled or finished */}
-                          {!isPastScheduled && !isFinished && getStatusBadge(
-                            isScheduled ? game.date.start : game.status.long,
-                            isScheduled,
-                            isFinished,
-                            isPastScheduled
-                          )}
+                          {!isPastScheduled &&
+                            !isFinished &&
+                            getStatusBadge(
+                              isScheduled ? game.date.start : game.status.long,
+                              isScheduled,
+                              isFinished,
+                              isPastScheduled
+                            )}
                         </div>
                       </div>
                       {/* Only one right-aligned badge: Final > Cancelled > Scheduled */}

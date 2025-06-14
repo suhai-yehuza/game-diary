@@ -14,25 +14,28 @@ import {
   NotFoundError,
   ValidationError,
 } from '@src/lib/graphql/errors';
-import { transformUser } from '@src/lib/graphql/resolvers/transformers';
+import { transformUser, transformUserToSummary } from '@src/lib/graphql/resolvers/transformers';
 import { mapUserData } from '@src/lib/graphql/resolvers/users';
 import { getEmojiKey } from '@src/lib/graphql/utils';
 import { logger } from 'lib/core/logger';
 import {
-  REACTION_EMOJIS,
   FRIENDSHIP_STATUS,
   type WatchedSettingValue,
-  type ReactionEmojiKey,
+  type ReactionEmojiValue,
+  getEmojiValue,
+  isGraphQLReactionEmojiType,
 } from '@src/lib/types/config.types';
-import type {
-  MutationCreateGameLogArgs,
-  MutationCreateCommentArgs,
-  MutationCreateReactionArgs,
-  MutationDeleteReactionArgs,
-  ParentType,
-  Classification,
-  CreateGameLogInput,
-  CreateCommentInput,
+import {
+  type MutationCreateGameLogArgs,
+  type MutationCreateCommentArgs,
+  type MutationDeleteReactionArgs,
+  type ParentType,
+  type Classification,
+  type CreateGameLogInput,
+  type CreateCommentInput,
+  type CreateReactionInput,
+  type CreateReactionResponse,
+  ParentType as ParentTypeValue,
 } from '@src/lib/types/generated/graphql';
 import { generateUUID } from '@src/lib/utils/processing';
 import { createCommentSchema, updateCommentSchema } from '@src/lib/validations/comment';
@@ -135,6 +138,13 @@ async function ensureUserExists(user: Context['user']) {
     .returning();
 
   return newUser;
+}
+
+// Helper function to convert string to ParentType enum
+function toParentTypeEnum(val: string): ParentType {
+  if (val === 'game_log') return ParentTypeValue.GameLog;
+  if (val === 'comment') return ParentTypeValue.Comment;
+  throw new Error('Invalid ParentType from DB');
 }
 
 // Game Log Mutations
@@ -619,75 +629,71 @@ export const deleteComment = async (
 // Reaction Mutations
 export const createReaction = async (
   _parent: unknown,
-  { input }: MutationCreateReactionArgs,
+  { input }: { input: CreateReactionInput },
   context: Context
-) => {
+): Promise<CreateReactionResponse> => {
   try {
     const user = checkAuth(context.user);
 
-    // Ensure user exists in database
-    const dbUser = await ensureUserExists(user);
-    if (!dbUser) {
-      throw new AuthenticationError('Failed to verify user');
-    }
-
-    if (!(input.emoji in REACTION_EMOJIS)) {
-      throw new ValidationError('Invalid emoji');
-    }
-
-    const emoji = REACTION_EMOJIS[input.emoji as ReactionEmojiKey];
-
-    // Check for existing reaction with the same emoji type
-    const existingReactions = await db
-      .select()
-      .from(schema.reactions)
-      .where(
-        and(
-          eq(schema.reactions.userId, dbUser.id),
-          eq(schema.reactions.targetId, input.targetId),
-          eq(schema.reactions.targetType, input.targetType),
-          eq(schema.reactions.emoji, emoji)
-        )
-      )
-      .limit(1);
-    const existingReaction = existingReactions[0];
-
-    if (existingReaction) {
-      // Delete the existing reaction (toggle off)
-      await db.delete(schema.reactions).where(eq(schema.reactions.id, existingReaction.id));
+    // Validate the emoji type
+    if (!isGraphQLReactionEmojiType(input.emoji)) {
       return {
-        reaction: null,
+        errors: [
+          {
+            message: `Invalid emoji type: ${input.emoji}`,
+            code: 'INVALID_EMOJI_TYPE',
+          },
+        ],
       };
     }
 
-    // Create new reaction
-    const [reaction] = await db
+    // Get the emoji value
+    const emojiValue = getEmojiValue(input.emoji);
+
+    // Create the reaction
+    const [reaction] = await context.db
       .insert(schema.reactions)
       .values({
         id: generateUUID(),
-        userId: dbUser.id,
+        userId: user.id,
         targetId: input.targetId,
-        targetType: input.targetType.toLowerCase() as 'game_log' | 'comment',
-        emoji,
+        targetType: input.targetType as 'game_log' | 'comment',
+        emoji: emojiValue,
         createdAt: new Date(),
         updatedAt: new Date(),
       })
       .returning();
 
+    // Get the user data for the reaction
+    const [reactionUser] = await context.db
+      .select()
+      .from(schema.users)
+      .where(eq(schema.users.id, user.id))
+      .limit(1);
+
+    if (!reactionUser) {
+      throw new Error('User not found');
+    }
+
     return {
       reaction: {
-        id: reaction.id,
-        emoji: getEmojiKey(reaction.emoji),
-        userId: reaction.userId || '',
-        targetId: reaction.targetId,
-        targetType: reaction.targetType as ParentType,
-        createdAt: reaction.createdAt,
-        updatedAt: reaction.updatedAt,
-        user: dbUser ? transformUser(mapUserData(dbUser)) : null,
+        ...reaction,
+        emoji: getEmojiKey(reaction.emoji as ReactionEmojiValue),
+        targetType: toParentTypeEnum(reaction.targetType),
+        userId: reaction.userId || user.id, // Ensure userId is never null
+        user: transformUserToSummary(mapUserData(reactionUser)),
       },
     };
   } catch (error) {
-    handleError(error, 'create reaction');
+    console.error('Error creating reaction:', error);
+    return {
+      errors: [
+        {
+          message: 'Failed to create reaction',
+          code: 'CREATE_REACTION_ERROR',
+        },
+      ],
+    };
   }
 };
 
