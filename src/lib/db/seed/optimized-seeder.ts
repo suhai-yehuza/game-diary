@@ -149,9 +149,7 @@ export class OptimizedSeeder {
 
   async seed(): Promise<void> {
     try {
-      seedLogger.info(
-        `Starting optimized database seeding for ${this.options.env} environment...`
-      );
+      seedLogger.info(`Starting optimized database seeding for ${this.options.env} environment...`);
 
       if (!this.options.appendingData) {
         await this.prepareDatabaseState();

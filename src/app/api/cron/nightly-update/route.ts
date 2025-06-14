@@ -7,7 +7,7 @@ const execAsync = promisify(exec);
 
 export const runtime = 'nodejs';
 
-export async function GET(request: Request) {
+export async function GET(_request: Request) {
   try {
     // Get the project directory
     const projectDir = process.env.VERCEL_DIR || process.cwd();
@@ -33,4 +33,4 @@ export async function GET(request: Request) {
       { status: 500 }
     );
   }
-} 
+}

@@ -4,8 +4,8 @@
   "private": true,
   "type": "module",
   "engines": {
-    "node": ">=18.18.0",
-    "pnpm": ">=8.0.0"
+    "node": "22.15.0",
+    "pnpm": "10.12.0"
   },
   "scripts": {
     "// Development": "Core development commands",
@@ -214,7 +214,6 @@
     "babel-jest": "29.0.0",
     "beasties": "0.3.4",
     "browserify-zlib": "0.2.0",
-    "critters": "0.0.25",
     "crypto-browserify": "3.12.1",
     "dotenv": "16.4.7",
     "dotenv-flow": "4.1.0",

@@ -95,6 +95,7 @@ const CONFIG = {
     'src/components/layout/footer.tsx',
     'src/components/layout/header.tsx',
     'src/components/ui/toast.tsx',
+    'src/app/components/index.ts',
 
     // Hooks and utilities
     'src/hooks/index.ts',
