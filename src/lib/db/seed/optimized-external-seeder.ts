@@ -275,7 +275,8 @@ async function processGames(
   apiClient: OptimizedAPIClient,
   db: DatabaseClient,
   season: number,
-  batchSize: number
+  batchSize: number,
+  startDate?: string
 ): Promise<void> {
   seedLogger.info(`🎮 Fetching games for season ${season}...`);
   const gamesResponse = await fetchNbaGames(`season=${season}`);
@@ -292,7 +293,7 @@ async function processGames(
   const teamIds = new Set(allTeams.map(team => team.id));
   seedLogger.info(`Found ${teamIds.size} teams in database`);
 
-  // Filter out games with invalid team IDs
+  // Filter out games with invalid team IDs and apply startDate filter if provided
   const validGames = gamesResponse.response.filter(game => {
     const homeTeamId = game.teams?.home?.id?.toString();
     const awayTeamId = game.teams?.visitors?.id?.toString();
@@ -314,6 +315,16 @@ async function processGames(
         game,
       });
       return false;
+    }
+
+    // Apply startDate filter if provided
+    if (startDate) {
+      const gameDate = new Date(game.date.start);
+      const filterDate = new Date(startDate);
+      if (gameDate < filterDate) {
+        seedLogger.info(`Skipping game ${game.id} - before startDate ${startDate}`);
+        return false;
+      }
     }
 
     return true;
@@ -527,6 +538,7 @@ export async function seedOptimizedExternalData(options: ApplicationSeederOption
     processor,
     batchSize = API_CONFIG.databaseSeeding.BATCH_SIZE,
     appendingData,
+    startDate,
   } = options;
 
   try {
@@ -559,7 +571,7 @@ export async function seedOptimizedExternalData(options: ApplicationSeederOption
       await processPlayers(apiClient, db, season, batchSize);
 
       // Process games
-      await processGames(apiClient, db, season, batchSize);
+      await processGames(apiClient, db, season, batchSize, startDate);
 
       // Process game stats
       await processSeasonStats(

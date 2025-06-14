@@ -1556,6 +1556,7 @@ export interface ApplicationSeederOptions {
   batchSize?: number;
   enableMonitoring?: boolean;
   skipUsers?: boolean;
+  startDate?: string;
 }
 
 export interface ConnectionArgs {

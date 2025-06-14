@@ -133,6 +133,7 @@ export class OptimizedSeeder {
       appendingData: false,
       skipUsers: false,
       tables: [],
+      startDate: options.startDate || '',
       ...options,
     };
 
@@ -149,7 +150,7 @@ export class OptimizedSeeder {
   async seed(): Promise<void> {
     try {
       seedLogger.info(
-        `�� Starting optimized database seeding for ${this.options.env} environment...`
+        `Starting optimized database seeding for ${this.options.env} environment...`
       );
 
       if (!this.options.appendingData) {
@@ -290,6 +291,9 @@ if (import.meta.url === `file://${process.argv[1]}`) {
         break;
       case '--batchSize':
         options.batchSize = parseInt(value);
+        break;
+      case '--startDate':
+        options.startDate = value;
         break;
     }
   }
