@@ -10,12 +10,10 @@ import {
   X,
   MapPin,
   ArrowUpDown,
-  ChevronLeft,
-  ChevronRight,
 } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 
 import { Badge } from '@src/app/components/ui/badge';
 import { Button } from '@src/app/components/ui/button';
@@ -70,7 +68,7 @@ const GameSkeleton = () => (
 
 type GameEdge = { cursor: string; node: Game };
 
-const getStatusBadge = (status: string, isScheduled?: boolean, isFinished?: boolean) => {
+const getStatusBadge = (status: string, isScheduled?: boolean, isFinished?: boolean, isPastScheduled?: boolean) => {
   const statusLower = status.toLowerCase();
 
   if (statusLower.includes('live') || statusLower === 'in play') {
@@ -87,6 +85,15 @@ const getStatusBadge = (status: string, isScheduled?: boolean, isFinished?: bool
   // Don't show Final badge here anymore since it's shown on the right
   if (isFinished) {
     return null;
+  }
+
+  // For past scheduled games, show cancelled
+  if (isPastScheduled) {
+    return (
+      <Badge className="bg-red-500/10 text-red-500 border-red-500/20 text-xs py-0.5 px-1.5">
+        Cancelled
+      </Badge>
+    );
   }
 
   // For scheduled games, show the time
@@ -124,9 +131,7 @@ export function BasketballGameSearchSection() {
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
-  const [isNavigating, setIsNavigating] = useState(false);
   const [pageData, setPageData] = useState<{ [key: number]: Game[] }>({});
-  const [cursors, setCursors] = useState<{ [key: number]: string | null }>({ 1: null });
   const pageSize = API_CONFIG.pagination.DEFAULT_PAGE_SIZE;
 
   // Build filters object
@@ -154,7 +159,6 @@ export function BasketballGameSearchSection() {
     data: gamesData,
     loading: gamesLoading,
     error: gamesError,
-    fetchMore,
   } = useQuery(GET_GAMES, {
     variables: {
       first: pageSize,
@@ -167,9 +171,6 @@ export function BasketballGameSearchSection() {
       if (result?.games?.edges) {
         const games = result.games.edges.map((edge: GameEdge) => edge.node);
         setPageData(prev => ({ ...prev, 1: games }));
-        if (result.games.pageInfo?.endCursor) {
-          setCursors(prev => ({ ...prev, 2: result.games.pageInfo.endCursor }));
-        }
       }
     },
   });
@@ -183,123 +184,6 @@ export function BasketballGameSearchSection() {
     [pageData, currentPage, gamesData]
   );
   const totalCount = gamesData?.games?.totalCount || 0;
-  const hasNextPage = gamesData?.games?.pageInfo?.hasNextPage || false;
-  const hasPreviousPage = currentPage > 1;
-
-  // Pre-fetch next page data when user hovers over Next button
-  const prefetchNextPage = useCallback(async () => {
-    const nextPage = currentPage + 1;
-    const nextCursor = cursors[nextPage];
-
-    if (!pageData[nextPage] && nextCursor && hasNextPage) {
-      try {
-        await fetchMore({
-          variables: {
-            first: pageSize,
-            after: nextCursor,
-            filters,
-          },
-          updateQuery: (prev, { fetchMoreResult }) => {
-            if (fetchMoreResult?.games?.edges) {
-              const games = fetchMoreResult.games.edges.map((edge: GameEdge) => edge.node);
-              setPageData(prevData => ({ ...prevData, [nextPage]: games }));
-
-              if (fetchMoreResult.games.pageInfo?.endCursor) {
-                setCursors(prevCursors => ({
-                  ...prevCursors,
-                  [nextPage + 1]: fetchMoreResult.games.pageInfo.endCursor,
-                }));
-              }
-            }
-            return prev; // Don't update the main query
-          },
-        });
-      } catch (error) {
-        console.error('Error prefetching next page:', error);
-      }
-    }
-  }, [currentPage, cursors, pageData, hasNextPage, fetchMore, pageSize, filters]);
-
-  const handlePageChange = useCallback(
-    async (page: number) => {
-      if (gamesLoading || isNavigating) return;
-
-      const isNextPage = page > currentPage;
-
-      // If we already have the data cached, switch immediately
-      if (pageData[page]) {
-        setCurrentPage(page);
-        return;
-      }
-
-      setIsNavigating(true);
-
-      try {
-        if (isNextPage && hasNextPage) {
-          const cursor = cursors[page];
-          if (cursor) {
-            await fetchMore({
-              variables: {
-                first: pageSize,
-                after: cursor,
-                filters,
-              },
-              updateQuery: (prev, { fetchMoreResult }) => {
-                if (fetchMoreResult?.games?.edges) {
-                  const games = fetchMoreResult.games.edges.map((edge: GameEdge) => edge.node);
-                  setPageData(prevData => ({ ...prevData, [page]: games }));
-
-                  if (fetchMoreResult.games.pageInfo?.endCursor) {
-                    setCursors(prevCursors => ({
-                      ...prevCursors,
-                      [page + 1]: fetchMoreResult.games.pageInfo.endCursor,
-                    }));
-                  }
-                }
-                return prev;
-              },
-            });
-          }
-        } else if (!isNextPage && page === currentPage - 1) {
-          // For previous page, calculate cursor and fetch
-          const targetOffset = (page - 1) * pageSize;
-          const targetCursor = targetOffset > 0 ? btoa(targetOffset.toString()) : null;
-
-          await fetchMore({
-            variables: {
-              first: pageSize,
-              after: targetCursor,
-              filters,
-            },
-            updateQuery: (prev, { fetchMoreResult }) => {
-              if (fetchMoreResult?.games?.edges) {
-                const games = fetchMoreResult.games.edges.map((edge: GameEdge) => edge.node);
-                setPageData(prevData => ({ ...prevData, [page]: games }));
-              }
-              return prev;
-            },
-          });
-        }
-
-        setCurrentPage(page);
-      } catch (error) {
-        console.error('Error navigating pages:', error);
-      } finally {
-        setIsNavigating(false);
-      }
-    },
-    [
-      currentPage,
-      pageData,
-      cursors,
-      gamesLoading,
-      hasNextPage,
-      fetchMore,
-      pageSize,
-      filters,
-      isNavigating,
-    ]
-  );
 
   // Filter games by search text (client-side for current page only)
   const filteredGames = useMemo(() => {
@@ -348,7 +232,6 @@ export function BasketballGameSearchSection() {
     setSortBy('date');
     setCurrentPage(1);
     setPageData({});
-    setCursors({ 1: null });
   };
 
   const hasActiveFilters =
@@ -361,7 +244,6 @@ export function BasketballGameSearchSection() {
   useEffect(() => {
     setCurrentPage(1);
     setPageData({});
-    setCursors({ 1: null });
   }, [selectedSeason, selectedStatus, selectedTeam, sortBy]);
 
   return (
@@ -505,12 +387,7 @@ export function BasketballGameSearchSection() {
         </Card>
       ) : (
         <>
-          <div
-            className={cn(
-              'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 transition-opacity duration-200',
-              isNavigating && 'opacity-60'
-            )}
-          >
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {sortedGames.map((game: Game) => {
               const gameDate = new Date(game.date.start);
               const isLive =
@@ -518,6 +395,7 @@ export function BasketballGameSearchSection() {
                 game.status.long.toLowerCase() === 'in play';
               const isScheduled =
                 game.status.long.toLowerCase() === 'scheduled' || isAfter(gameDate, new Date());
+              const isPastScheduled = game.status.long.toLowerCase() === 'scheduled' && gameDate < new Date();
               const isFinished = game.status.long.toLowerCase() === 'finished';
 
               return (
@@ -525,7 +403,8 @@ export function BasketballGameSearchSection() {
                   key={game.id}
                   className={cn(
                     'overflow-hidden transition-all duration-200 hover:shadow-lg',
-                    isLive && 'border-red-500 ring-2 ring-red-500/20'
+                    isLive && 'border-red-500 ring-2 ring-red-500/20',
+                    isPastScheduled && 'border-red-500/50 ring-2 ring-red-500/10'
                   )}
                 >
                   <CardHeader className="pb-3">
@@ -535,26 +414,30 @@ export function BasketballGameSearchSection() {
                           {format(gameDate, 'MMM d, yyyy')}
                         </div>
                         <div className="mt-1">
-                          {getStatusBadge(
+                          {/* Only show status badge if not cancelled or finished */}
+                          {!isPastScheduled && !isFinished && getStatusBadge(
                             isScheduled ? game.date.start : game.status.long,
                             isScheduled,
-                            isFinished
+                            isFinished,
+                            isPastScheduled
                           )}
                         </div>
                       </div>
-                      {/* Scheduled Badge */}
-                      {isScheduled && (
+                      {/* Only one right-aligned badge: Final > Cancelled > Scheduled */}
+                      {isFinished ? (
+                        <Badge className="bg-cyan-400/10 text-cyan-700 border-cyan-400/20 gap-0.5 shrink-0 text-xs py-0.5 px-1.5">
+                          Final
+                        </Badge>
+                      ) : isPastScheduled ? (
+                        <Badge className="bg-red-500/10 text-red-500 border-red-500/20 gap-0.5 shrink-0 text-xs py-0.5 px-1.5">
+                          Cancelled
+                        </Badge>
+                      ) : isScheduled ? (
                         <Badge className="bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/20 gap-0.5 shrink-0 text-xs py-0.5 px-1.5">
                           <Calendar className="h-2.5 w-2.5" />
                           Scheduled
                         </Badge>
-                      )}
-                      {/* Final Badge */}
-                      {isFinished && (
-                        <Badge variant="secondary" className="shrink-0 text-xs py-0.5 px-1.5">
-                          Final
-                        </Badge>
-                      )}
+                      ) : null}
                     </div>
                   </CardHeader>
 
@@ -629,38 +512,6 @@ export function BasketballGameSearchSection() {
               );
             })}
           </div>
-
-          {/* Pagination */}
-          {(hasNextPage || hasPreviousPage) && (
-            <div className="flex items-center justify-center mt-8 gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={!hasPreviousPage || isNavigating}
-              >
-                <ChevronLeft className="h-4 w-4" />
-                Previous
-              </Button>
-
-              <div className="flex items-center gap-2 px-4">
-                <span className="text-sm text-muted-foreground">
-                  {isNavigating ? 'Loading...' : `Page ${currentPage}`}
-                </span>
-              </div>
-
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handlePageChange(currentPage + 1)}
-                onMouseEnter={prefetchNextPage}
-                disabled={!hasNextPage || isNavigating}
-              >
-                Next
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-            </div>
-          )}
         </>
       )}
     </div>
