@@ -71,7 +71,7 @@
     "analyze": "cross-env ANALYZE=true next build",
     "analyze:bundle": "npx @next/bundle-analyzer",
     "check:circular": "madge --circular --extensions ts,tsx src/",
-    "check:unused:exports": "tsx scripts/check-unused-exports.ts",
+    "check:unused:exports": "tsx scripts/utils/check-unused-exports.ts",
     "check:size": "size-limit",
     "check:lighthouse": "lhci autorun",
     "// Performance": "Performance monitoring and optimization",
