@@ -67,7 +67,10 @@ export default function LiveGamesPage() {
       {/* Header with NBA logo and gradient */}
       <div className="w-full bg-gradient-to-r from-blue-900 via-red-700 to-blue-900 py-6 mb-10 shadow-lg">
         <div className="container mx-auto flex items-center gap-4 px-4">
-          <Link href="/sports/nba" className="flex items-center gap-2 text-white/80 hover:text-white transition-colors">
+          <Link
+            href="/sports/nba"
+            className="flex items-center gap-2 text-white/80 hover:text-white transition-colors"
+          >
             <ArrowLeft className="h-5 w-5" />
             <span className="font-medium">Back to NBA</span>
           </Link>
@@ -101,7 +104,10 @@ export default function LiveGamesPage() {
         {liveGames.length > 0 ? (
           <div className="flex flex-wrap justify-center gap-8">
             {liveGames.map(game => (
-              <div key={game.id} className="w-full max-w-md transition-transform duration-200 hover:scale-105">
+              <div
+                key={game.id}
+                className="w-full max-w-md transition-transform duration-200 hover:scale-105"
+              >
                 <div className="rounded-2xl shadow-xl border border-red-500/30 bg-gradient-to-br from-gray-900 via-gray-950 to-gray-900 p-1">
                   <GameCard game={game} />
                 </div>

@@ -111,11 +111,11 @@ export const GameCard = memo(({ game, index, imageErrors, onImageError }: GameCa
               <span className="text-red-600">{displayStatus}</span>
             </div>
           ) : (
-            <div className={`text-sm font-medium px-2 py-1 rounded-md ${
-              isPastScheduled 
-                ? 'bg-red-500/10 text-red-500' 
-                : 'bg-purple-500/10 text-purple-500'
-            }`}>
+            <div
+              className={`text-sm font-medium px-2 py-1 rounded-md ${
+                isPastScheduled ? 'bg-red-500/10 text-red-500' : 'bg-purple-500/10 text-purple-500'
+              }`}
+            >
               {displayStatus}
             </div>
           )}

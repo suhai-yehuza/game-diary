@@ -202,6 +202,18 @@ pnpm db:migrate:prod     # Run migrations in production
   --enableMonitoring=true \
   --aggregate-output
 
+# 04 Nightly runs
+> tsx --max-old-space-size=24576 src/lib/db/seed/optimized-seeder.ts -- \
+  --batchSize=10 \
+  --concurrency=10 \
+  --seasons=<currentSeason> \
+  --resetDb=false \
+  --skipExternalDb=false \
+  --skipApplicationDb=true \
+  --appendingData=true \
+  --enableMonitoring=true \
+  --aggregate-output
+
 # Rollback migrations
 pnpm db:migrate:rollback           # Rollback last migration
 pnpm db:migrate:rollback 3         # Rollback last 3 migrations
