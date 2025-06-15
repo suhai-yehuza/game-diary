@@ -113,7 +113,7 @@ export const PLAYER_FRAGMENT = gql`
 `;
 
 export const PLAYER_STATS_FRAGMENT = gql`
-  fragment PlayerStatsFragment on PlayerStats {
+  fragment PlayerStatsFragment on IPlayerStats {
     playerId
     gameId
     points
@@ -124,21 +124,15 @@ export const PLAYER_STATS_FRAGMENT = gql`
     turnovers
     fouls
     minutes
-    fieldGoals {
-      made
-      attempted
-      percentage
-    }
-    threePointers {
-      made
-      attempted
-      percentage
-    }
-    freeThrows {
-      made
-      attempted
-      percentage
-    }
+    fieldGoalsMade
+    fieldGoalsAttempted
+    threePointersMade
+    threePointersAttempted
+    freeThrowsMade
+    freeThrowsAttempted
+    createdAt
+    updatedAt
+    deletedAt
   }
 `;
 
@@ -207,7 +201,7 @@ export const COMMENT_FRAGMENT = gql`
         ...UserSummaryFragment
       }
     }
-    childComments(first: 5) {
+    childComments {
       edges {
         node {
           id
@@ -322,8 +316,6 @@ export const GET_TEAMS = gql`
           logo
           conference
           division
-          createdAt
-          updatedAt
         }
       }
       pageInfo {
@@ -338,19 +330,13 @@ export const GET_TEAMS = gql`
 `;
 
 export const GET_PLAYERS = gql`
-  query GetPlayers($filters: PlayerFilters, $pagination: PaginationInput) {
+  query GetPlayers($filters: IPlayerFilters, $pagination: PaginationInput) {
     players(filters: $filters, pagination: $pagination) {
       edges {
         cursor
         node {
           ...PlayerFragment
         }
-      }
-      pageInfo {
-        hasNextPage
-        hasPreviousPage
-        startCursor
-        endCursor
       }
       totalCount
     }
@@ -394,7 +380,7 @@ export const GET_COMMENTS_WITH_FILTERS = gql`
               imageUrl
             }
           }
-          childComments(first: 10) {
+          childComments {
             edges {
               node {
                 id
@@ -426,80 +412,6 @@ export const GET_COMMENTS_WITH_FILTERS = gql`
                     emailAddress
                     imageUrl
                   }
-                }
-                childComments(first: 10) {
-                  edges {
-                    node {
-                      id
-                      userId
-                      parentId
-                      parentType
-                      content
-                      createdAt
-                      updatedAt
-                      deletedAt
-                      depth
-                      user {
-                        id
-                        username
-                        emailAddress
-                        imageUrl
-                      }
-                      reactions {
-                        id
-                        emoji
-                        userId
-                        targetId
-                        targetType
-                        createdAt
-                        updatedAt
-                        user {
-                          id
-                          username
-                          emailAddress
-                          imageUrl
-                        }
-                      }
-                      childComments(first: 10) {
-                        edges {
-                          node {
-                            id
-                            userId
-                            parentId
-                            parentType
-                            content
-                            createdAt
-                            updatedAt
-                            deletedAt
-                            depth
-                            user {
-                              id
-                              username
-                              emailAddress
-                              imageUrl
-                            }
-                            reactions {
-                              id
-                              emoji
-                              userId
-                              targetId
-                              targetType
-                              createdAt
-                              updatedAt
-                              user {
-                                id
-                                username
-                                emailAddress
-                                imageUrl
-                              }
-                            }
-                          }
-                        }
-                        totalCount
-                      }
-                    }
-                  }
-                  totalCount
                 }
               }
             }
@@ -581,55 +493,30 @@ export const GET_LIVE_GAMES = gql`
 export const GET_TEAM_STATS = gql`
   query GetTeamStats($teamId: ID!, $season: Int!) {
     teamStats(teamId: $teamId, season: $season) {
-      id
-      team {
-        id
-        name
-        nickname
-        code
-        logo
-      }
-      season
-      gamesPlayed
-      wins
-      losses
-      conferenceStanding {
-        name
-        rank
-        win
-        loss
-      }
-      pointsPerGame
-      fieldGoalPercentage
-      threePointPercentage
-      freeThrowPercentage
-      reboundsPerGame
-      assistsPerGame
-      stealsPerGame
-      blocksPerGame
-      turnoversPerGame
-      foulsPerGame
+      games
       points
-      fgm
-      fga
       fgp
-      ftm
-      fta
-      ftp
-      tpm
-      tpa
       tpp
-      longestRun
-      defReb
+      ftp
       totReb
       assists
-      pFouls
       steals
-      turnovers
       blocks
+      turnovers
+      pFouls
       plusMinus
-      createdAt
-      updatedAt
+      fastBreakPoints
+      pointsInPaint
+      biggestLead
+      secondChancePoints
+      pointsOffTurnovers
+      longestRun
+      assistsPerGame
+      blocksPerGame
+      pointsPerGame
+      reboundsPerGame
+      stealsPerGame
+      turnoversPerGame
     }
   }
 `;
@@ -713,7 +600,7 @@ export const GET_GAME_LOG = gql`
           imageUrl
         }
       }
-      comments(first: $commentsFirst, after: $commentsAfter) {
+      comments {
         edges {
           cursor
           node {
@@ -769,11 +656,8 @@ export const GET_USER_FRIENDSHIPS = gql`
 export const GET_TEAM_H2H = gql`
   query GetTeamH2H($teamId: ID!, $opponentId: ID!) {
     teamH2H(teamId: $teamId, opponentId: $opponentId) {
-      teamId
-      opponentId
       wins
       losses
-      winPercentage
       lastTenGames
     }
   }
@@ -782,37 +666,30 @@ export const GET_TEAM_H2H = gql`
 export const GET_TEAM_GAME_STATS = gql`
   query GetTeamGameStats($gameId: ID!, $teamId: String!) {
     teamGameStats(gameId: $gameId, teamId: $teamId) {
-      id
-      team {
-        id
-        name
-        nickname
-        code
-        logo
-      }
-      season
-      gamesPlayed
-      wins
-      losses
+      games
       points
-      fgm
-      fga
       fgp
-      tpm
-      tpa
       tpp
-      ftm
-      fta
       ftp
-      defReb
       totReb
       assists
       steals
       blocks
       turnovers
       pFouls
-      createdAt
-      updatedAt
+      plusMinus
+      fastBreakPoints
+      pointsInPaint
+      biggestLead
+      secondChancePoints
+      pointsOffTurnovers
+      longestRun
+      assistsPerGame
+      blocksPerGame
+      pointsPerGame
+      reboundsPerGame
+      stealsPerGame
+      turnoversPerGame
     }
   }
 `;

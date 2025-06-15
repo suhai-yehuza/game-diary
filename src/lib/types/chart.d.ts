@@ -1,11 +1,11 @@
 // Custom Chart.js type definitions to avoid SSR issues
-export interface ChartOptions {
+export interface IChartOptions {
   responsive?: boolean;
   maintainAspectRatio?: boolean;
   [key: string]: unknown;
 }
 
-export interface ChartDataset {
+export interface IChartDataset {
   label: string;
   data: number[];
   backgroundColor?: string | string[];
@@ -20,15 +20,15 @@ export interface ChartDataset {
   [key: string]: unknown;
 }
 
-export interface ChartData<TLabel = string> {
+export interface IChartData<TLabel = string> {
   labels?: TLabel[];
-  datasets: ChartDataset[];
+  datasets: IChartDataset[];
 }
 
-export interface ChartProps {
+export interface IChartProps {
   type: 'line' | 'bar' | 'pie' | 'doughnut' | 'radar' | 'polarArea';
-  data: ChartData;
-  options?: ChartOptions;
+  data: IChartData;
+  options?: IChartOptions;
 }
 
 // Module declaration for chart.js to avoid importing the actual library

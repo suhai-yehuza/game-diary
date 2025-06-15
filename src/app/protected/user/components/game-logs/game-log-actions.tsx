@@ -4,6 +4,7 @@ import { useMutation } from '@apollo/client';
 import { MoreVertical, Pencil, Trash2 } from 'lucide-react';
 import React, { useState } from 'react';
 
+import { useAuthContext } from '@/contexts/auth-context';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,19 +23,19 @@ import {
   DropdownMenuTrigger,
 } from '@src/app/components/ui/dropdown-menu';
 import { useToast } from '@src/app/components/ui/use-toast';
-import { useAuthContext } from '@/contexts/auth-context';
 import { DELETE_GAME_LOG } from '@src/lib/graphql/mutations';
-import type { GameLogActionsProps } from '@src/lib/types/consolidated.types';
+import type { IGameLogActionsProps } from '@src/lib/types';
+import type { IAuthUser } from '@src/lib/types/user.types';
 
 import { GameLogModal } from './game-log-modal';
 
-export function GameLogActions({ gameLog, onSuccess }: GameLogActionsProps) {
+export function GameLogActions({ gameLog, onSuccess }: IGameLogActionsProps) {
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const { toast } = useToast();
   const { user } = useAuthContext();
-  const isOwner = user?.id === gameLog.user.id;
+  const isOwner = user?.id === (gameLog.user as unknown as IAuthUser).id;
 
   const [deleteGameLog, { loading: isDeleting }] = useMutation(DELETE_GAME_LOG, {
     onCompleted: data => {

@@ -2,9 +2,9 @@ import { auth } from '@clerk/nextjs/server';
 import { eq } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
 
+import { apiLogger } from '@lib/core/logger';
 import { users } from '@src/lib/db/schema';
 import { db } from '@src/lib/db/seed';
-import { apiLogger } from 'lib/core/logger';
 export async function GET(request: Request, context: { params: { id: string } }) {
   try {
     const params = await context.params;

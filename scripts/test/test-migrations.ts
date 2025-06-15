@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
-import { logger } from 'lib/core/logger';
+
+import { logger } from '@lib/core/logger';
 
 // List migration files that would be executed
 function listMigrations() {

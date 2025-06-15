@@ -7,10 +7,10 @@ import path from 'path';
 
 import { neon, neonConfig } from '@neondatabase/serverless';
 
+import { logger } from '@lib/core/logger';
 import { db } from '@src/lib/db';
 import type { migrationVersions } from '@src/lib/db/schema/migration-schemas';
 import { env } from '@src/lib/env';
-import { logger } from 'lib/core/logger';
 
 const MIGRATIONS_DIR = path.join(process.cwd(), 'src/lib/db/migrations');
 
@@ -19,7 +19,7 @@ neonConfig.wsProxy = host => `${host}:5432/v1`;
 neonConfig.useSecureWebSocket = true;
 neonConfig.pipelineTLS = true;
 neonConfig.pipelineConnect = false;
-neonConfig.fetchFunction = (input: RequestInfo | URL, init?: RequestInit) => {
+neonConfig.fetchFunction = (input: RequestInfo | URL, init?: IRequestInit) => {
   return fetch(input, {
     ...init,
     signal: AbortSignal.timeout(30000), // 30 second timeout
@@ -35,7 +35,7 @@ type MigrationVersion = typeof migrationVersions.$inferSelect;
 
 // Type definitions for fetch API
 type RequestInfo = string | URL;
-interface RequestInit {
+interface IRequestInit {
   method?: string;
   headers?: Record<string, string>;
   body?: string | Buffer;

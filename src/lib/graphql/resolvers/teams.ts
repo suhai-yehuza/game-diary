@@ -2,11 +2,9 @@ import { and, eq, gt, lt, or, sql, type InferSelectModel } from 'drizzle-orm';
 
 import * as schema from '@src/lib/db/schema';
 import { BusinessLogicError } from '@src/lib/graphql/errors';
-import { createConnection } from '@src/lib/graphql/utils';
-import type { Context } from '@src/lib/types/component.types';
-import type { PaginationArgs, TeamFilters } from '@src/lib/types/resolver.types';
-
-import { handleResolverError } from '../utils';
+import { createConnection, handleResolverError } from '@src/lib/graphql/utils';
+import type { IContext } from '@src/lib/types/component.types';
+import type { IPaginationArgs, ITeamFilters } from '@src/lib/types/resolver.types';
 
 // Helper function to map team data
 const mapTeamData = (team: InferSelectModel<typeof schema.teams>) => ({
@@ -33,8 +31,8 @@ const mapTeamData = (team: InferSelectModel<typeof schema.teams>) => ({
 
 export const teams = async (
   _parent: unknown,
-  args: PaginationArgs & { filters?: TeamFilters },
-  { db }: Context
+  args: IPaginationArgs & { filters?: ITeamFilters },
+  { db }: IContext
 ) => {
   try {
     const { first = 10, after, last, before, filters } = args;
@@ -93,7 +91,7 @@ export const teams = async (
   }
 };
 
-export const team = async (_parent: unknown, { id }: { id: string }, { db }: Context) => {
+export const team = async (_parent: unknown, { id }: { id: string }, { db }: IContext) => {
   try {
     const team = await db
       .select()
@@ -113,7 +111,7 @@ export const team = async (_parent: unknown, { id }: { id: string }, { db }: Con
 export const teamH2H = async (
   _parent: unknown,
   { teamId, opponentId }: { teamId: string; opponentId: string },
-  { db }: Context
+  { db }: IContext
 ) => {
   try {
     const h2h = await db

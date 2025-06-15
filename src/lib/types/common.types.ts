@@ -1,67 +1,67 @@
 // Common utility types that are used across multiple domains
 
 // Re-export types from config.types.ts to maintain backward compatibility
-export type { ConferenceType, DivisionType } from './config.types';
+export type { IConferenceType, IDivisionType } from './config.types';
 
 // Common Types
-export type SortDirection = 'asc' | 'desc';
+export type ISortDirection = 'asc' | 'desc';
 
 // Pagination Types
-export interface PaginationInput {
+export interface IPaginationInput {
   page: number;
   limit: number;
 }
 
-export interface ConnectionArgs {
+export interface IConnectionArgs {
   first?: number | null;
   after?: string | null;
   last?: number | null;
   before?: string | null;
 }
 
-export interface Edge<T> {
+export interface IEdge<T> {
   cursor: string;
   node: T;
 }
 
-export interface PageInfo {
+export interface IPageInfo {
   hasNextPage: boolean;
   hasPreviousPage: boolean;
   startCursor: string | null;
   endCursor: string | null;
 }
 
-export interface Connection<T> {
-  edges: Edge<T>[];
-  pageInfo: PageInfo;
+export interface IConnection<T> {
+  edges: IEdge<T>[];
+  pageInfo: IPageInfo;
   totalCount: number;
 }
 
-export interface PaginationParams {
+export interface IPaginationParams {
   page: number;
   limit: number;
 }
 
-export interface SortParams {
+export interface ISortParams {
   sortBy: string;
-  sortDirection: SortDirection;
+  sortDirection: ISortDirection;
 }
 
-export interface FilterParams {
+export interface IFilterParams {
   search?: string;
   [key: string]: unknown;
 }
 
-export interface QueryParams extends PaginationParams, SortParams, FilterParams {}
+export interface IQueryParams extends IPaginationParams, ISortParams, IFilterParams {}
 
 // Database Types
-export interface RawDatabaseClient {
+export interface IRawDatabaseClient {
   execute: (query: string) => Promise<{ rows: unknown[] }>;
   query?: (query: string) => Promise<unknown>;
 }
 
 // Script Options
-export interface ScriptOptions {
+export interface IScriptOptions {
   env?: string;
   dryRun?: boolean;
   runTests?: boolean;
@@ -69,28 +69,28 @@ export interface ScriptOptions {
 }
 
 // Trigger Setup Options
-export interface TriggerSetupOptions {
+export interface ITriggerSetupOptions {
   env?: string;
   dropExisting?: boolean;
   skipVerification?: boolean;
 }
 
 // Migration Types
-export interface Migration {
+export interface IMigration {
   name: string;
   path: string;
   content: string;
   checksum: string;
 }
 
-export interface MigrationVerification {
+export interface IMigrationVerification {
   tables?: string[];
   functions?: string[];
   triggers?: string[];
   indexes?: string[];
 }
 
-export interface MigrationVersion {
+export interface IMigrationVersion {
   name: string;
   checksum: string;
   executed_at: string;
@@ -100,7 +100,7 @@ export interface MigrationVersion {
   rollback_executed: boolean;
 }
 
-export interface BaseError {
+export interface IBaseError {
   error: Error;
   component: string;
   errorInfo: {
@@ -113,7 +113,7 @@ export interface BaseError {
   [key: string]: unknown;
 }
 
-export interface DatabaseClientOptions {
+export interface IDatabaseClientOptions {
   enableLogs?: boolean;
   disablePreparedStatements?: boolean;
   schema?: Record<string, unknown>;

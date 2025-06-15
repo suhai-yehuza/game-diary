@@ -1,17 +1,20 @@
 import { and, eq, sql } from 'drizzle-orm';
 
+import { logger } from '@lib/core/logger';
 import * as schema from '@src/lib/db/schema';
-import { createConnection, parseCursor } from '@src/lib/graphql/utils';
-import { logger } from 'lib/core/logger';
-import type { Context } from '@src/lib/types/component.types';
-import type { PaginationArgs } from '@src/lib/types/resolver.types';
-
-import { handleResolverError, getEmojiKey } from '../utils';
+import {
+  createConnection,
+  parseCursor,
+  handleResolverError,
+  getEmojiKey,
+} from '@src/lib/graphql/utils';
+import type { IContext } from '@src/lib/types/component.types';
+import type { IPaginationArgs } from '@src/lib/types/resolver.types';
 
 export const reactions = async (
   _parent: unknown,
-  args: PaginationArgs & { targetId: string },
-  { db }: Context
+  args: IPaginationArgs & { targetId: string },
+  { db }: IContext
 ) => {
   try {
     const { first = 10, after, last, targetId } = args;
@@ -56,7 +59,7 @@ export const reactions = async (
 // Type resolver to convert emoji character to enum key and load user data
 export const Reaction = {
   emoji: (parent: { emoji: string }) => getEmojiKey(parent.emoji),
-  user: async (parent: { userId: string | null }, _args: unknown, { db }: Context) => {
+  user: async (parent: { userId: string | null }, _args: unknown, { db }: IContext) => {
     if (!parent.userId) return null;
     try {
       const users = await db

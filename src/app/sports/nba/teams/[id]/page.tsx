@@ -5,9 +5,9 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import React, { useState, useEffect } from 'react';
 
+import { logger } from '@lib/core/logger';
 import { fetchNbaTeamById, fetchNbaTeamStats } from '@src/lib/external-apis';
-import { logger } from 'lib/core/logger';
-import type { TeamDisplayStats, Game } from '@src/lib/types/consolidated.types';
+import type { ITeamDisplayStats, IGame } from '@src/lib/types';
 import { type Team } from '@src/lib/types/generated/graphql';
 import { calculateTeamStats, getTeamStreak, getTeamLastTenGames } from '@src/lib/utils/game';
 export default function TeamPage() {
@@ -16,8 +16,8 @@ export default function TeamPage() {
   const [teamData, setTeamData] = useState<Team | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [teamStats, setTeamStats] = useState<TeamDisplayStats | null>(null);
-  const [recentGames, setRecentGames] = useState<Game[]>([]);
+  const [teamStats, setTeamStats] = useState<ITeamDisplayStats | null>(null);
+  const [recentGames, setRecentGames] = useState<IGame[]>([]);
   const [teamTrends, setTeamTrends] = useState<{
     streak: { type: string; count: number };
     lastTen: string;
@@ -44,9 +44,6 @@ export default function TeamPage() {
           conference: apiTeam.conference,
           division: apiTeam.division,
           logo: apiTeam.logo,
-          logoUrl: apiTeam.logo,
-          createdAt: new Date(),
-          updatedAt: new Date(),
         };
         setTeamData(team);
         setLoading(false);
@@ -63,21 +60,14 @@ export default function TeamPage() {
     const loadTeamStats = async () => {
       try {
         const statsResponse = await fetchNbaTeamStats(`id=${teamId}&season=2024`);
-        const stats: TeamDisplayStats | undefined = statsResponse
+        const stats: ITeamDisplayStats | undefined = statsResponse
           ? {
               games: 0,
               points: statsResponse.points || 0,
-              fgm: statsResponse.fgm || 0,
-              fga: statsResponse.fga || 0,
-              fgp: statsResponse.fgp || '0',
-              ftm: statsResponse.ftm || 0,
-              fta: statsResponse.fta || 0,
-              ftp: statsResponse.ftp || '0',
-              tpm: statsResponse.tpm || 0,
-              tpa: statsResponse.tpa || 0,
-              tpp: statsResponse.tpp || '0',
+              fgp: String(statsResponse.fgp) || '0',
+              ftp: String(statsResponse.ftp) || '0',
+              tpp: String(statsResponse.tpp) || '0',
               longestRun: statsResponse.longestRun || 0,
-              defReb: statsResponse.defReb || 0,
               totReb: statsResponse.totReb || 0,
               assists: statsResponse.assists || 0,
               pFouls: statsResponse.pFouls || 0,
@@ -85,7 +75,7 @@ export default function TeamPage() {
               turnovers: statsResponse.turnovers || 0,
               blocks: statsResponse.blocks || 0,
               plusMinus: statsResponse.plusMinus || 0,
-              // The following are not present in TeamStats, so set to 0
+              // The following are not present in ITeamStats, so set to 0
               fastBreakPoints: 0,
               pointsInPaint: 0,
               biggestLead: 0,
@@ -154,9 +144,9 @@ export default function TeamPage() {
         <div className="max-w-4xl mx-auto space-y-8">
           {/* Team Header */}
           <div className="flex items-center space-x-4 mb-8">
-            {teamData.logoUrl && (
+            {teamData.logo && (
               <Image
-                src={teamData.logoUrl}
+                src={teamData.logo}
                 alt={`${teamData.name} logo`}
                 width={100}
                 height={100}
@@ -284,7 +274,7 @@ export default function TeamPage() {
             <div className="mt-8">
               <h3 className="text-lg font-medium mb-4">Recent Games</h3>
               <div className="grid grid-cols-1 gap-4">
-                {recentGames.map(game => (
+                {recentGames.map((game: IGame) => (
                   <div key={game.id} className="bg-card rounded-lg shadow-sm p-4">
                     <div className="flex justify-between items-center">
                       <div>

@@ -3,15 +3,9 @@
  * Types for external API responses and related data structures
  */
 
-import type { APIError } from './api.types';
+import type { IAPIError } from './api.types';
 
-export interface APITeamResponse {
-  id: number;
-  name: string;
-  code: string;
-}
-
-export interface GameResponseData {
+export interface IGameResponseData {
   id: number;
   league: string;
   season: number;
@@ -82,16 +76,16 @@ export interface GameResponseData {
   nugget?: string;
 }
 
-export interface GameApiResponse {
-  response: GameResponseData[];
-  data?: GameResponseData[];
+export interface IGameApiResponse {
+  response: IGameResponseData[];
+  data?: IGameResponseData[];
   get?: string;
   parameters?: Record<string, string>;
   errors?: string[];
   results?: number;
 }
 
-export interface PlayerApiResponse {
+export interface IPlayerApiResponse {
   response: {
     get: string;
     parameters: {
@@ -144,7 +138,7 @@ export interface PlayerApiResponse {
   };
 }
 
-export type SeasonApiResponse = {
+export type ISeasonApiResponse = {
   get: string;
   parameters: Record<string, string>;
   errors: string[];
@@ -152,7 +146,7 @@ export type SeasonApiResponse = {
   response: number[];
 };
 
-export type TeamApiResponse = {
+export type ITeamApiResponse = {
   get: string;
   parameters: Record<string, string>;
   errors: string[];
@@ -175,7 +169,7 @@ export type TeamApiResponse = {
   }>;
 };
 
-export interface APIResponse<T = unknown> {
+export interface IAPIResponse<T = unknown> {
   response?: T[];
   data?: T[];
   get?: string;
@@ -184,7 +178,7 @@ export interface APIResponse<T = unknown> {
   results?: number;
 }
 
-export interface TeamResponseData {
+export interface ITeamResponseData {
   id: number;
   name: string;
   nickname: string;
@@ -194,23 +188,23 @@ export interface TeamResponseData {
   allStar: boolean;
   nbaFranchise: boolean;
   leagues: {
-    standard?: { conference?: string; division?: string };
-    vegas?: { conference?: string; division?: string };
-    utah?: { conference?: string; division?: string };
-    sacramento?: { conference?: string; division?: string };
+    standard?: {
+      conference: string | null;
+      division: string | null;
+    };
   };
 }
 
-export type TeamStatisticsApiResponse = {
+export type ITeamStatisticsApiResponse = {
   get: string;
   parameters: Record<string, string>;
-  errors: APIError[];
+  errors: IAPIError[];
   results: number;
-  response: TeamStatisticsResponseData[];
-  data?: TeamStatisticsResponseData[]; // For backward compatibility
+  response: ITeamStatisticsResponseData[];
+  data?: ITeamStatisticsResponseData[]; // For backward compatibility
 };
 
-export interface TeamStatisticsResponseData {
+export interface ITeamStatisticsResponseData {
   team: {
     id: number;
     name: string;
@@ -248,7 +242,7 @@ export interface TeamStatisticsResponseData {
   }[];
 }
 
-export interface StandingResponseData {
+export interface IStandingResponseData {
   team: {
     id: number;
     name: string;

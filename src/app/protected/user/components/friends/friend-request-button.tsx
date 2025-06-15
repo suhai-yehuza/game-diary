@@ -3,36 +3,31 @@ import { SignInButton } from '@clerk/nextjs';
 import { Loader2 } from 'lucide-react';
 import React, { useState, useCallback, useMemo } from 'react';
 
-import { Button } from '@src/app/components/ui/button';
-import { useToast } from '@src/app/components/ui/use-toast';
 import { useAuthContext } from '@/contexts/auth-context';
 import { useNotifications } from '@/contexts/notification-context';
+import { logger } from '@lib/core/logger';
+import { Button } from '@src/app/components/ui/button';
+import { useToast } from '@src/app/components/ui/use-toast';
 import {
   SEND_FRIEND_REQUEST,
   ACCEPT_FRIEND_REQUEST,
   REJECT_FRIEND_REQUEST,
 } from '@src/lib/graphql/mutations';
 import { GET_USER_FRIENDSHIPS } from '@src/lib/graphql/queries';
-import { logger } from 'lib/core/logger';
+import type { IGetFriendshipsForUserResponse } from '@src/lib/types';
 import { FRIENDSHIP_STATUS } from '@src/lib/types/config.types';
-import type {
-  FriendRequestButtonProps,
-  GetFriendshipsForUserResponse,
-} from '@src/lib/types/consolidated.types';
 import type { Friendship } from '@src/lib/types/generated/graphql';
-export function FriendRequestButton({ targetUserId }: FriendRequestButtonProps) {
+export function FriendRequestButton({ targetUserId }: { targetUserId: string }) {
   const { userId, isAuthenticated } = useAuthContext();
   const { toast } = useToast();
   const { addNotification } = useNotifications();
   const [isLoading, setIsLoading] = useState(false);
 
-  const { data: userData, loading: isLoadingFriendships } = useQuery<GetFriendshipsForUserResponse>(
-    GET_USER_FRIENDSHIPS,
-    {
+  const { data: userData, loading: isLoadingFriendships } =
+    useQuery<IGetFriendshipsForUserResponse>(GET_USER_FRIENDSHIPS, {
       variables: { userId: userId },
       skip: !userId,
-    }
-  );
+    });
 
   const [sendFriendRequest] = useMutation(SEND_FRIEND_REQUEST);
   const [acceptFriendRequest] = useMutation(ACCEPT_FRIEND_REQUEST);

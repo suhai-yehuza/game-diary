@@ -3,9 +3,9 @@
 import { useAuth, useUser } from '@clerk/nextjs';
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
-import type { AuthContextType } from '@src/lib/types/user.types';
+import type { IAuthContextType } from '@src/lib/types/user.types';
 
-const AuthContext = createContext<AuthContextType>({
+const IAuthContext = createContext<IAuthContextType>({
   user: null,
   loading: false,
   userId: '',
@@ -18,7 +18,7 @@ export { useAuth };
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { userId, isSignedIn } = useAuth();
   const { user: clerkUser, isLoaded } = useUser();
-  const [authState, setAuthState] = useState<AuthContextType>({
+  const [authState, setAuthState] = useState<IAuthContextType>({
     user: null,
     loading: !isLoaded,
     userId: userId || '',
@@ -40,7 +40,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
   }, [userId, isSignedIn, clerkUser, isLoaded]);
 
-  return <AuthContext.Provider value={authState}>{children}</AuthContext.Provider>;
+  return <IAuthContext.Provider value={authState}>{children}</IAuthContext.Provider>;
 }
 
-export const useAuthContext = () => useContext(AuthContext);
+export const useAuthContext = () => useContext(IAuthContext);

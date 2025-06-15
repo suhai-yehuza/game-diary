@@ -3,15 +3,15 @@ import Image from 'next/image';
 import React, { useState } from 'react';
 
 import { GET_USERS } from '@src/lib/graphql/queries';
-import type { Friend } from '@src/lib/types/social.types';
+import type { IFriend } from '@src/lib/types/social.types';
 
-interface UserSearchProps {
+interface IUserSearchProps {
   onUserSelect: (userId: string) => void;
   excludeIds?: string[];
-  users?: Friend[];
+  users?: IFriend[];
 }
 
-export const UserSearch: React.FC<UserSearchProps> = ({
+export const UserSearch: React.FC<IUserSearchProps> = ({
   onUserSelect,
   excludeIds = [],
   users = [],
@@ -27,8 +27,8 @@ export const UserSearch: React.FC<UserSearchProps> = ({
   const allUsers = users.length > 0 ? users : data?.users || [];
 
   const filteredUsers = allUsers
-    .filter((user: Friend) => !excludeIds.includes(user.id))
-    .filter((user: Friend) => user.username.toLowerCase().includes(searchTerm.toLowerCase()))
+    .filter((user: IFriend) => !excludeIds.includes(user.id))
+    .filter((user: IFriend) => user.username.toLowerCase().includes(searchTerm.toLowerCase()))
     .slice(0, 10);
 
   const handleSearch = (value: string) => {
@@ -66,7 +66,7 @@ export const UserSearch: React.FC<UserSearchProps> = ({
         <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-300 rounded-lg shadow-lg z-50 max-h-64 overflow-y-auto animate-scale-in">
           {filteredUsers.length > 0 ? (
             <div className="py-2 stagger-children">
-              {filteredUsers.map((user: Friend, index: number) => (
+              {filteredUsers.map((user: IFriend, index: number) => (
                 <div
                   key={user.id}
                   onClick={() => handleUserSelect(user.id)}

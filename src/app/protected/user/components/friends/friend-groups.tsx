@@ -1,10 +1,10 @@
 import Image from 'next/image';
 import React, { useState } from 'react';
 
-import type { FriendGroup, FriendGroupsProps } from '@src/lib/types/social.types';
+import type { IFriend, IFriendGroup, IFriendGroupsProps } from '@src/lib/types/social.types';
 
-export const FriendGroups: React.FC<FriendGroupsProps> = ({ friends, onGroupUpdate }) => {
-  const [groups, setGroups] = useState<FriendGroup[]>([
+export const FriendGroups: React.FC<IFriendGroupsProps> = ({ friends, onGroupUpdate }) => {
+  const [groups, setGroups] = useState<IFriendGroup[]>([
     {
       id: '1',
       name: 'Close Friends',
@@ -24,7 +24,7 @@ export const FriendGroups: React.FC<FriendGroupsProps> = ({ friends, onGroupUpda
   ]);
 
   const [isCreating, setIsCreating] = useState(false);
-  const [newGroup, setNewGroup] = useState<Partial<FriendGroup>>({
+  const [newGroup, setNewGroup] = useState<Partial<IFriendGroup>>({
     name: '',
     description: '',
     color: '#3B82F6',
@@ -33,7 +33,7 @@ export const FriendGroups: React.FC<FriendGroupsProps> = ({ friends, onGroupUpda
 
   const handleCreateGroup = () => {
     if (newGroup.name && newGroup.description) {
-      const group: FriendGroup = {
+      const group: IFriendGroup = {
         id: Date.now().toString(),
         name: newGroup.name,
         description: newGroup.description,
@@ -54,7 +54,7 @@ export const FriendGroups: React.FC<FriendGroupsProps> = ({ friends, onGroupUpda
 
   const addFriendToGroup = (groupId: string, friendId: string) => {
     setGroups(
-      groups.map(group =>
+      groups.map((group: IFriendGroup) =>
         group.id === groupId && !group.friends.includes(friendId)
           ? { ...group, friends: [...group.friends, friendId] }
           : group
@@ -114,8 +114,8 @@ export const FriendGroups: React.FC<FriendGroupsProps> = ({ friends, onGroupUpda
                 Members ({group.friends.length})
               </div>
               <div className="flex flex-wrap gap-2">
-                {group.friends.slice(0, 3).map(friendId => {
-                  const friend = friends.find(f => f.id === friendId);
+                {group.friends.slice(0, 3).map((friendId: string) => {
+                  const friend = friends.find((f: IFriend) => f.id === friendId);
                   return friend ? (
                     <div
                       key={friend.id}
@@ -148,8 +148,8 @@ export const FriendGroups: React.FC<FriendGroupsProps> = ({ friends, onGroupUpda
               >
                 <option value="">Add friend...</option>
                 {friends
-                  .filter(f => !group.friends.includes(f.id))
-                  .map(friend => (
+                  .filter((f: IFriend) => !group.friends.includes(f.id))
+                  .map((friend: IFriend) => (
                     <option key={friend.id} value={friend.id}>
                       {friend.username}
                     </option>

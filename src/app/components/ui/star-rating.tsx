@@ -1,7 +1,7 @@
 import { Star } from 'lucide-react';
 import React from 'react';
 
-import type { StarRatingProps } from '@src/lib/types/game-log.types';
+import type { IStarRatingProps } from '@src/lib/types/game-log.types';
 import { cn } from '@src/lib/utils';
 
 const sizeMap = {
@@ -17,8 +17,8 @@ export function StarRating({
   size = 'md',
   className = '',
   onRatingChange,
-}: StarRatingProps) {
-  const stars = [];
+}: IStarRatingProps) {
+  const stars: React.ReactNode[] = [];
   const fullStars = Math.floor(ratingForGame);
   const hasHalfStar = ratingForGame % 1 >= 0.5;
   const emptyStars = maxRating - fullStars - (hasHalfStar ? 1 : 0);

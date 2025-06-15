@@ -2,22 +2,23 @@ import type { NeonHttpDatabase } from 'drizzle-orm/neon-http';
 import type { Pool } from 'pg';
 
 import type * as schema from '@src/lib/db/schema';
+import type { OptimizedAPIClient } from '@src/lib/db/seed/utils/api-client';
 
-export type BaseDatabaseClient = NeonHttpDatabase<typeof schema>;
+export type IBaseDatabaseClient = NeonHttpDatabase<typeof schema>;
 
-export type DatabaseRow = Record<string, unknown>;
+export type IDatabaseRow = Record<string, unknown>;
 
-export interface DatabaseConfig {
+export interface IDatabaseConfig {
   env?: string;
   connectionString?: string;
   dbPool?: Pool;
 }
 
-export interface DatabaseClient extends NeonHttpDatabase<typeof schema> {
+export interface IDatabaseClient extends NeonHttpDatabase<typeof schema> {
   raw?: unknown;
 }
 
-export interface DatabaseSeedingConfig {
+export interface IDatabaseSeedingConfig {
   CONCURRENT_OPERATIONS: number;
   BATCH_SIZE: number;
   MAX_RETRIES: number;
@@ -26,7 +27,7 @@ export interface DatabaseSeedingConfig {
   DEFAULT_SAMPLE_COUNT: number;
 }
 
-export interface QueryOptions {
+export interface IQueryOptions {
   timeout?: number;
   retryAttempts?: number;
   retryDelay?: number;
@@ -40,7 +41,7 @@ export interface QueryOptions {
   where?: Record<string, unknown>;
 }
 
-export interface BatchProcessor<T, R> {
+export interface IBatchProcessor<T, R> {
   processFn: (batch: T[], context?: Record<string, unknown>) => Promise<R>;
   context?: Record<string, unknown>;
 }
@@ -57,19 +58,19 @@ export class UuidGenerationError extends Error {
   }
 }
 
-export type UuidGenerationOptions = {
+export interface IUuidGenerationOptions {
   namespace?: string;
   logProgress?: boolean;
   useV7?: boolean;
   maxRetries?: number;
   batchSize?: number;
-};
+}
 
 // Database Seeder Types
-export interface ApplicationSeederOptions {
-  db?: DatabaseClient;
-  apiClient: Record<string, unknown>;
-  processor: Record<string, unknown>;
+export interface IApplicationSeederOptions {
+  db?: IDatabaseClient;
+  apiClient: OptimizedAPIClient;
+  processor: import('@src/lib/db/seed/data-processor').DataProcessor;
   tables?: string[];
   appendingData?: boolean;
   env?: string;
@@ -82,10 +83,11 @@ export interface ApplicationSeederOptions {
   batchSize?: number;
   enableMonitoring?: boolean;
   skipUsers?: boolean;
+  startDate?: string;
 }
 
 // Database Monitoring Types
-export interface MonitoringMetrics {
+export interface IMonitoringMetrics {
   timestamp: Date;
   cpuUsage: number;
   memoryUsage: number;

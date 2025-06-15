@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { apiLogger } from 'lib/core/logger';
+
+import { apiLogger } from '@lib/core/logger';
 
 /**
  * Common CORS headers for API routes

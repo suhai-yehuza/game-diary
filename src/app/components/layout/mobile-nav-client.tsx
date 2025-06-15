@@ -5,9 +5,9 @@ import { usePathname } from 'next/navigation';
 import React, { useState, useEffect, useRef } from 'react';
 
 import { NotificationCenter } from '@src/app/protected/user/components/notifications';
-import type { NavItem } from '@src/lib/types/consolidated.types';
+import type { INavItem } from '@src/lib/types/component.types';
 
-const navItems: NavItem[] = [
+const navItems: INavItem[] = [
   {
     label: 'Games',
     href: '/sports/nba',
@@ -215,7 +215,7 @@ export default function MobileNavClient() {
                       `}
                     >
                       <div className="ml-6 space-y-1 pt-1">
-                        {item.subItems.map((subItem, subIndex) => (
+                        {item.subItems.map((subItem: INavItem, subIndex: number) => (
                           <Link
                             key={subItem.href}
                             href={subItem.href}

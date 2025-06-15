@@ -1,10 +1,10 @@
 import { eq, sql } from 'drizzle-orm';
 
+import { seedLogger } from '@lib/core/logger';
 import { API_CONFIG } from '@src/lib/config/api.config';
 import { nba_players, teams } from '@src/lib/db/schema/nba-schemas';
 import { handleAPIError } from '@src/lib/external-apis';
-import { seedLogger } from 'lib/core/logger';
-import type { PlayerApiResponse } from '@src/lib/types/consolidated.types';
+import type { IPlayerApiResponse } from '@src/lib/types/api-responses.types';
 
 import { initializeClients } from './utils/initialize-clients';
 
@@ -19,7 +19,7 @@ export async function fetchAndProcessNBAPlayers(season: number): Promise<void> {
     for (const team of allTeams) {
       seedLogger.info(`Fetching NBA players for team ${team.id}'s ${season} season...`);
       try {
-        const res = await api.get<PlayerApiResponse>(`${API_CONFIG.endpoints.PLAYERS}`, {
+        const res = await api.get<IPlayerApiResponse>(`${API_CONFIG.endpoints.PLAYERS}`, {
           params: { team: team.id.toString(), season: season.toString() },
         });
 

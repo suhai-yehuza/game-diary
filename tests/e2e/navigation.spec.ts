@@ -1,4 +1,6 @@
 import { test, expect } from '@playwright/test';
+
+import { setupTestAuth } from './utils/auth-utils';
 import {
   setupApiMocking,
   waitForPageContent,
@@ -6,7 +8,6 @@ import {
   setupErrorHandling,
   expandMobileMenuIfNeeded,
 } from './utils/test-utils';
-import { setupTestAuth } from './utils/auth-utils';
 
 test.describe('Navigation', () => {
   test.beforeEach(async ({ page }) => {

@@ -1,15 +1,15 @@
 import type { Request, Response, NextFunction } from 'express';
 import type { NextApiRequest, NextApiResponse } from 'next';
 
-import { apiLogger } from 'lib/core/logger';
-import { monitoring } from '@src/lib/monitoring';
-import type { ExtendedNextApiRequest } from '@src/lib/types/consolidated.types';
-import { responseUtils } from '@src/lib/utils/response';
+import { apiLogger } from '@lib/core/logger';
 import { rateLimiters } from '@src/lib/config/rate-limit.config';
+import { monitoring } from '@src/lib/monitoring';
+import type { IExtendedNextApiRequest } from '@src/lib/types/api.types';
+import { responseUtils } from '@src/lib/utils/response';
 
 // Field selection middleware
 export const fieldSelectionMiddleware = (
-  req: ExtendedNextApiRequest,
+  req: IExtendedNextApiRequest,
   res: NextApiResponse,
   next: () => void
 ) => {
@@ -22,7 +22,7 @@ export const fieldSelectionMiddleware = (
 
 // Cursor-based pagination middleware
 export const cursorPaginationMiddleware = (
-  req: ExtendedNextApiRequest,
+  req: IExtendedNextApiRequest,
   res: NextApiResponse,
   next: () => void
 ) => {
@@ -78,7 +78,7 @@ export const compressionMiddleware = (_req: Request, res: Response, _next: NextF
 // Error handling middleware
 export const errorHandlerMiddleware = (
   error: Error,
-  req: ExtendedNextApiRequest,
+  req: IExtendedNextApiRequest,
   res: NextApiResponse,
   _next: () => void
 ) => {

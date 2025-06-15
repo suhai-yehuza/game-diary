@@ -2,14 +2,16 @@ import { formatDistanceToNow } from 'date-fns';
 import { Users, Trophy, Clock, Shield } from 'lucide-react';
 import React from 'react';
 
-import { GameLogModal } from '../game-logs/game-log-modal';
 import { Avatar, AvatarFallback, AvatarImage } from '@src/app/components/ui/avatar';
 import { Badge } from '@src/app/components/ui/badge';
 import { Card, CardContent } from '@src/app/components/ui/card';
 import type { GameLog, DbUser } from '@src/lib/types/generated/graphql';
+
+import { GameLogModal } from '../game-logs/game-log-modal';
+
 import { FriendshipManagement } from './friendship-management';
 
-interface UserHeaderProps {
+interface IUserHeaderProps {
   user: DbUser;
   isOwnProfile: boolean;
   currentUserId: string | null;
@@ -29,7 +31,7 @@ export function UserHeader({
   stats,
   onGameLogUpdate,
   onFriendshipUpdate,
-}: UserHeaderProps) {
+}: IUserHeaderProps) {
   const fullName = [user.firstName, user.lastName].filter(Boolean).join(' ') || 'Anonymous User';
   const lastActive = formatDistanceToNow(new Date(user.last_sign_in_at || user.createdAt), {
     addSuffix: true,

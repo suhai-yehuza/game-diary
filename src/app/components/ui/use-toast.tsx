@@ -3,26 +3,27 @@
 import * as React from 'react';
 
 import type {
-  ToastProps,
-  ToastState as State,
-  ToastAction as Action,
+  IToastProps,
+  IToastState,
+  IToastAction,
+  IToasterToast,
 } from '@src/lib/types/notification.types';
 import { TOAST_LIMIT, createToast } from '@src/lib/utils/toast';
 
 // Create context for shared toast state
 const ToastContext = React.createContext<{
-  state: State;
-  dispatch: React.Dispatch<Action>;
+  state: IToastState;
+  dispatch: React.Dispatch<IToastAction>;
 } | null>(null);
 
 // Toast Provider Component
 export function ToastProvider({ children }: { children: React.ReactNode }) {
-  const [state, setState] = React.useState<State>({
+  const [state, setState] = React.useState<IToastState>({
     toasts: [],
   });
 
-  const dispatch = React.useCallback((action: Action) => {
-    setState(currentState => {
+  const dispatch = React.useCallback((action: IToastAction) => {
+    setState((currentState: IToastState) => {
       const { toastId } = action;
 
       switch (action.type) {
@@ -40,7 +41,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
           if (!action.toast) return currentState;
           return {
             ...currentState,
-            toasts: currentState.toasts.map(t =>
+            toasts: currentState.toasts.map((t: IToasterToast) =>
               t.id === action.toast?.id ? { ...t, ...action.toast } : t
             ),
           };
@@ -50,12 +51,14 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
           if (toastId) {
             return {
               ...currentState,
-              toasts: currentState.toasts.map(t => (t.id === toastId ? { ...t, open: false } : t)),
+              toasts: currentState.toasts.map((t: IToasterToast) =>
+                t.id === toastId ? { ...t, open: false } : t
+              ),
             };
           }
           return {
             ...currentState,
-            toasts: currentState.toasts.map(t => ({ ...t, open: false })),
+            toasts: currentState.toasts.map((t: IToasterToast) => ({ ...t, open: false })),
           };
         }
 
@@ -65,7 +68,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
           }
           return {
             ...currentState,
-            toasts: currentState.toasts.filter(t => t.id !== action.toastId),
+            toasts: currentState.toasts.filter((t: IToasterToast) => t.id !== action.toastId),
           };
         }
 
@@ -89,7 +92,7 @@ export function useToast() {
   const { state, dispatch } = context;
 
   const toast = React.useCallback(
-    (props: ToastProps) => {
+    (props: IToastProps) => {
       return createToast(props, dispatch);
     },
     [dispatch]

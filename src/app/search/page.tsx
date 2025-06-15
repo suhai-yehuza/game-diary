@@ -4,13 +4,11 @@ import { useQuery } from '@apollo/client';
 import { format } from 'date-fns';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
-import React, { Suspense } from 'react';
+import React, { useState } from 'react';
 
-import { filterGames, processGameData } from '@/app/search/utils/game-search';
 import { useDebounce } from '@/hooks/use-debounce';
-import { GET_GAMES } from '@src/lib/graphql/queries';
-import type { SearchGame } from '@src/lib/types/consolidated.types';
+import { GET_GAMES } from '@/lib/graphql/queries';
+import { IGame, IGameArena } from '@/lib/types';
 
 export const dynamic = 'force-dynamic';
 
@@ -30,7 +28,7 @@ const isValidState = (state: string | undefined | null): boolean => {
 };
 
 // Helper function to format arena location
-const formatArenaLocation = (arena: { name?: string; city?: string; state?: string }): string => {
+const formatArenaLocation = (arena: IGameArena): string => {
   const parts = [];
 
   if (arena.name) parts.push(arena.name);
@@ -46,7 +44,7 @@ const ensureHttps = (url: string): string => {
   return url.replace(/^http:/, 'https:');
 };
 
-function GameCard({ game }: { game: SearchGame }) {
+function GameCard({ game }: { game: IGame }) {
   return (
     <Link href={`/sports/nba/games/${game.id}`} className="block">
       <div className="bg-card rounded-xl shadow-lg p-6 transform transition-all duration-300 ease-out hover:scale-[1.02] hover:shadow-xl cursor-pointer h-[280px] flex flex-col border border-border/50 hover:border-blue-500/50">
@@ -139,70 +137,93 @@ function GameCard({ game }: { game: SearchGame }) {
   );
 }
 
-function GameList({ games }: { games: SearchGame[] }) {
+interface IGameListProps {
+  games: IGame[];
+  isLoading: boolean;
+  hasError: boolean;
+}
+
+function GameList({ games, isLoading, hasError }: IGameListProps) {
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  if (hasError) {
+    return <div>Error loading games</div>;
+  }
+
   if (games.length === 0) {
     return (
       <div className="text-center py-8">
-        <p className="text-lg text-gray-600">No games found matching your search.</p>
+        <p className="text-gray-500">No games found</p>
       </div>
     );
   }
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 justify-items-center">
-      {games.map(game => (
+      {games.map((game: IGame) => (
         <GameCard key={game.id} game={game} />
       ))}
     </div>
   );
 }
 
-function SearchContent() {
-  const searchParams = useSearchParams();
-  const searchQuery = searchParams?.get('q') || '';
+export default function SearchPage() {
+  const [searchQuery, setSearchQuery] = useState('');
   const debouncedSearchQuery = useDebounce(searchQuery, 500);
 
-  const query2024 = useQuery<{ games: { edges: { node: SearchGame }[] } }>(GET_GAMES, {
+  const query2024 = useQuery<{ games: { edges: { node: IGame }[] } }>(GET_GAMES, {
     variables: {
       filters: { season: 2024 },
-      first: 2000,
     },
   });
 
-  const query2023 = useQuery<{ games: { edges: { node: SearchGame }[] } }>(GET_GAMES, {
+  const query2023 = useQuery<{ games: { edges: { node: IGame }[] } }>(GET_GAMES, {
     variables: {
       filters: { season: 2023 },
-      first: 2000,
     },
   });
 
-  const {
-    isLoading,
-    hasError,
-    games: allGames,
-  } = processGameData([
-    query2024 as unknown as Parameters<typeof processGameData>[0][0],
-    query2023 as unknown as Parameters<typeof processGameData>[0][0],
-  ]);
-  const filteredGames = filterGames(allGames, debouncedSearchQuery);
+  const isLoading = query2024.loading || query2023.loading;
+  const hasError = query2024.error || query2023.error;
 
-  if (isLoading) return <div className="p-4">Loading...</div>;
-  if (hasError) return <div className="p-4">Error loading games</div>;
+  const allGames = [
+    ...(query2024.data?.games.edges.map(edge => edge.node) || []),
+    ...(query2023.data?.games.edges.map(edge => edge.node) || []),
+  ];
+
+  const filteredGames = allGames.filter(game => {
+    if (!debouncedSearchQuery) return true;
+
+    const lowerQuery = debouncedSearchQuery.toLowerCase();
+    return (
+      game.teams.home.nickname.toLowerCase().includes(lowerQuery) ||
+      game.teams.visitors.nickname.toLowerCase().includes(lowerQuery) ||
+      (game.arena?.name?.toLowerCase().includes(lowerQuery) ?? false) ||
+      (game.arena?.city?.toLowerCase().includes(lowerQuery) ?? false) ||
+      (game.arena?.state?.toLowerCase().includes(lowerQuery) ?? false)
+    );
+  });
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold mb-6">
-        {debouncedSearchQuery ? `Search results for "${debouncedSearchQuery}"` : 'All Games'}
-      </h1>
-      <GameList games={filteredGames} />
-    </div>
-  );
-}
+      <div className="max-w-2xl mx-auto mb-8">
+        <input
+          type="text"
+          placeholder="Search games by team or location..."
+          value={searchQuery}
+          onChange={e => setSearchQuery(e.target.value)}
+          className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+      </div>
 
-export default function SearchPage() {
-  return (
-    <Suspense fallback={<div className="p-4">Loading...</div>}>
-      <SearchContent />
-    </Suspense>
+      <div>
+        <h1 className="text-2xl font-bold mb-6">
+          {debouncedSearchQuery ? `Search results for "${debouncedSearchQuery}"` : 'All Games'}
+        </h1>
+        <GameList games={filteredGames} isLoading={isLoading} hasError={!!hasError} />
+      </div>
+    </div>
   );
 }

@@ -6,9 +6,10 @@
     "baseUrl": ".",
     "paths": {
       "@src/*": ["./src/*"],
-      "@utils/*": ["./scripts/utils/*"]
+      "@utils/*": ["./scripts/utils/*"],
+      "@lib/*": ["./lib/*"]
     }
   },
-  "include": ["scripts/**/*.ts", "src/lib/types/**/*.ts"],
+  "include": ["scripts/**/*.ts", "src/lib/types/**/*.ts", "lib/**/*.ts"],
   "exclude": ["node_modules", "dist", "src/**/*.test.ts", "src/**/*.test.tsx"]
 }

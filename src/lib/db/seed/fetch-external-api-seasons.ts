@@ -1,10 +1,10 @@
 import { eq } from 'drizzle-orm';
 
+import { seedLogger } from '@lib/core/logger';
 import { API_CONFIG } from '@src/lib/config/api.config';
 import { seasons } from '@src/lib/db/schema';
 import { handleAPIError } from '@src/lib/external-apis';
-import { seedLogger } from 'lib/core/logger';
-import type { SeasonApiResponse } from '@src/lib/types/consolidated.types';
+import type { ISeasonApiResponse } from '@src/lib/types/api-responses.types';
 
 import { initializeClients } from './utils/initialize-clients';
 
@@ -13,7 +13,7 @@ export async function fetchAndProcessNBASeasons(): Promise<void> {
     const { db, api } = initializeClients();
 
     seedLogger.info('Fetching NBA seasons...');
-    const res = await api.get<SeasonApiResponse>(API_CONFIG.endpoints.SEASONS);
+    const res = await api.get<ISeasonApiResponse>(API_CONFIG.endpoints.SEASONS);
     seedLogger.info('Seasons response:', res);
 
     if (!res?.response) {

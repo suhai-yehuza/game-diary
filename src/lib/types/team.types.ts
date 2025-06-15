@@ -1,10 +1,10 @@
 import type { ApolloError } from '@apollo/client';
 
-import type { SortDirection } from './common.types';
-import type { Team, TeamStats } from './generated/graphql';
+import type { ISortDirection } from './common.types';
+import type { Team, ITeamStats } from './generated/graphql';
 
 // Core Team Types
-export interface TeamSummary {
+export interface ITeamSummary {
   id: string;
   code: string;
   logo: string;
@@ -12,7 +12,7 @@ export interface TeamSummary {
   nickname: string;
 }
 
-export interface TeamData {
+export interface ITeamData {
   id: string;
   name: string;
   nickname: string;
@@ -36,7 +36,7 @@ export interface TeamData {
   updatedAt: string;
 }
 
-export interface PlayerData {
+export interface IPlayerData {
   id: string;
   firstName: string;
   lastName: string;
@@ -72,7 +72,7 @@ export interface PlayerData {
   }>;
 }
 
-export interface ApiTeam {
+export interface IApiTeam {
   id: string | number;
   name: string;
   nickname?: string | null;
@@ -84,24 +84,22 @@ export interface ApiTeam {
   leagues?: Record<string, unknown>;
 }
 
-export type ApiTeamResponse = { response: ApiTeam[] };
-
-export interface CustomTeam extends Team {
+export interface ICustomTeam extends Team {
   isFavorite?: boolean;
 }
 
-export interface TeamFields {
+export interface ITeamFields {
   teamId: string;
-  team?: CustomTeam;
+  team?: ICustomTeam;
 }
 
-export interface TeamWithSeasonStats extends CustomTeam {
-  stats: TeamStats;
-  seasonStats: TeamStat[];
+export interface ITeamWithSeasonStats extends ICustomTeam {
+  stats: ITeamStats;
+  seasonStats: ITeamStat[];
   isFavorite?: boolean;
 }
 
-export interface TeamStat {
+export interface ITeamStat {
   id: string;
   season: string;
   wins: number;
@@ -113,20 +111,20 @@ export interface TeamStat {
   homeLosses: number;
   awayWins: number;
   awayLosses: number;
-  team: CustomTeam;
+  team: ICustomTeam;
 }
 
 // Team Filter Types
-export interface CustomTeamFilters {
+export interface ICustomTeamFilters {
   search?: string;
   conference?: string;
   division?: string;
   sortBy?: string;
-  sortDirection?: SortDirection;
+  sortDirection?: ISortDirection;
 }
 
 // Team Statistics Types
-export interface DBTeamStatistics {
+export interface IDBTeamStatistics {
   id: string;
   teamId: string;
   season: string;
@@ -146,8 +144,8 @@ export interface DBTeamStatistics {
   updatedAt: Date;
 }
 
-export interface DBTeamStandings {
-  team: CustomTeam;
+export interface IDBTeamStandings {
+  team: ICustomTeam;
   wins: number;
   losses: number;
   winPercentage: number;
@@ -158,7 +156,7 @@ export interface DBTeamStandings {
   conference: string;
 }
 
-export interface DBWinLossRecord {
+export interface IDBWinLossRecord {
   home: number;
   away: number;
   total: number;
@@ -166,7 +164,7 @@ export interface DBWinLossRecord {
   lastTen: string;
 }
 
-export interface TeamStatisticsResponseData {
+export interface ITeamStatisticsResponseData {
   team: {
     id: number;
     name: string;
@@ -204,7 +202,7 @@ export interface TeamStatisticsResponseData {
   }[];
 }
 
-export interface StandingResponseData {
+export interface IStandingResponseData {
   team: {
     id: number;
     name: string;
@@ -243,7 +241,7 @@ export interface StandingResponseData {
   winStreak: boolean;
 }
 
-export interface TeamDisplayStats {
+export interface ITeamDisplayStats {
   games: number;
   fastBreakPoints?: number;
   pointsInPaint?: number;
@@ -273,7 +271,7 @@ export interface TeamDisplayStats {
   points?: number;
 }
 
-export interface HeadToHeadData {
+export interface IHeadToHeadData {
   teamH2H?: {
     wins: number;
     losses: number;
@@ -282,7 +280,7 @@ export interface HeadToHeadData {
   };
 }
 
-export interface TeamStatsData {
+export interface ITeamStatsData {
   teamGameStats?: {
     team?: {
       logo?: string;
@@ -310,8 +308,8 @@ export interface TeamStatsData {
 }
 
 // Team Component Props
-export interface TeamDisplayProps {
-  team: TeamSummary | null;
+export interface ITeamDisplayProps {
+  team: ITeamSummary | null;
   score?: number;
   opponentScore?: number;
   isHome: boolean;
@@ -320,16 +318,16 @@ export interface TeamDisplayProps {
   gameId?: string;
 }
 
-export interface HeadToHeadProps {
-  h2hData: HeadToHeadData;
+export interface IHeadToHeadProps {
+  h2hData: IHeadToHeadData;
   homeTeam: { nickname: string; logo: string | null };
   awayTeam: { nickname: string; logo: string | null };
   loading: boolean;
   error: ApolloError | undefined;
 }
 
-export interface TeamStatsProps {
-  teamStats: TeamStatsData;
+export interface ITeamStatsProps {
+  teamStats: ITeamStatsData;
   team: { nickname: string; logo: string | null };
   isHome: boolean;
   loading: boolean;

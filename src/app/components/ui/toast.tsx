@@ -3,7 +3,7 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { X } from 'lucide-react';
 import * as React from 'react';
 
-import { type ToastProps, type ToastActionElement } from '@src/lib/types/notification.types';
+import { type IToastProps, type IToastActionElement } from '@src/lib/types/notification.types';
 import { cn } from '@src/lib/utils';
 
 const ToastProvider = ToastPrimitives.Provider;
@@ -107,8 +107,8 @@ const ToastDescription = React.forwardRef<
 ToastDescription.displayName = ToastPrimitives.Description.displayName;
 
 export {
-  type ToastProps,
-  type ToastActionElement,
+  type IToastProps,
+  type IToastActionElement,
   ToastProvider,
   ToastViewport,
   Toast,

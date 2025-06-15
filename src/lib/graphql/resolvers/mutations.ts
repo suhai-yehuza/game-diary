@@ -2,11 +2,11 @@ import { eq, and } from 'drizzle-orm';
 import { GraphQLError } from 'graphql';
 import type { z } from 'zod';
 
+import { logger } from '@lib/core/logger';
 import { getCache, invalidateRelatedCaches } from '@src/lib/cache';
 import { API_CONFIG } from '@src/lib/config/api.config';
 import { db } from '@src/lib/db';
 import * as schema from '@src/lib/db/schema';
-import type { Context } from '@src/lib/graphql/context';
 import {
   AuthenticationError,
   AuthorizationError,
@@ -17,11 +17,11 @@ import {
 import { transformUser, transformUserToSummary } from '@src/lib/graphql/resolvers/transformers';
 import { mapUserData } from '@src/lib/graphql/resolvers/users';
 import { getEmojiKey } from '@src/lib/graphql/utils';
-import { logger } from 'lib/core/logger';
+import type { IContext } from '@src/lib/types/component.types';
 import {
   FRIENDSHIP_STATUS,
-  type WatchedSettingValue,
-  type ReactionEmojiValue,
+  type IWatchedSettingValue,
+  type IReactionEmojiValue,
   getEmojiValue,
   isGraphQLReactionEmojiType,
 } from '@src/lib/types/config.types';
@@ -69,7 +69,7 @@ const validateInput = <T>(schema: z.ZodSchema<T>, input: unknown): T => {
   return result.data;
 };
 
-const checkAuth = (user: Context['user']) => {
+const checkAuth = (user: IContext['user']) => {
   if (!user) {
     throw new AuthenticationError('Authentication required');
   }
@@ -99,7 +99,7 @@ async function getFullUser(database: typeof db, userId: string) {
 }
 
 // Helper to ensure user exists in database (create if not)
-async function ensureUserExists(user: Context['user']) {
+async function ensureUserExists(user: IContext['user']) {
   if (!user) return null;
 
   // Check if user already exists
@@ -151,7 +151,7 @@ function toParentTypeEnum(val: string): ParentType {
 export const createGameLog = async (
   _parent: unknown,
   { input }: MutationCreateGameLogArgs,
-  context: Context
+  context: IContext
 ) => {
   try {
     const user = checkAuth(context.user);
@@ -329,7 +329,7 @@ export const createGameLog = async (
         watchedScope: gameLog.watchedScope,
         watchedDate: gameLog.watchedDate,
         watchedLocation: gameLog.watchedLocation || undefined,
-        watchedSetting: gameLog.watchedSetting as WatchedSettingValue,
+        watchedSetting: gameLog.watchedSetting as IWatchedSettingValue,
         createdAt: gameLog.createdAt,
         updatedAt: gameLog.updatedAt,
       },
@@ -342,7 +342,7 @@ export const createGameLog = async (
 export const updateGameLog = async (
   _parent: unknown,
   { id, input }: MutationUpdateGameLogArgs,
-  context: Context
+  context: IContext
 ) => {
   try {
     const user = checkAuth(context.user);
@@ -409,7 +409,7 @@ export const updateGameLog = async (
         watchedScope: updatedGameLog.watchedScope,
         watchedDate: updatedGameLog.watchedDate,
         watchedLocation: updatedGameLog.watchedLocation || undefined,
-        watchedSetting: updatedGameLog.watchedSetting as WatchedSettingValue,
+        watchedSetting: updatedGameLog.watchedSetting as IWatchedSettingValue,
         createdAt: updatedGameLog.createdAt,
         updatedAt: updatedGameLog.updatedAt,
       },
@@ -422,7 +422,7 @@ export const updateGameLog = async (
 export const deleteGameLog = async (
   _parent: unknown,
   { id }: MutationDeleteGameLogArgs,
-  { user, redis }: Context
+  { user, redis }: IContext
 ) => {
   try {
     const gameLogs = await db
@@ -463,7 +463,7 @@ export const deleteGameLog = async (
 export const createComment = async (
   _parent: unknown,
   { input }: MutationCreateCommentArgs,
-  context: Context
+  context: IContext
 ) => {
   try {
     const user = checkAuth(context.user);
@@ -544,7 +544,7 @@ export const createComment = async (
 export const updateComment = async (
   _parent: unknown,
   { id, input }: MutationUpdateCommentArgs,
-  context: Context
+  context: IContext
 ) => {
   try {
     const user = checkAuth(context.user);
@@ -598,7 +598,7 @@ export const updateComment = async (
 export const deleteComment = async (
   _parent: unknown,
   { id }: MutationDeleteCommentArgs,
-  { user }: Context
+  { user }: IContext
 ) => {
   try {
     const comments = await db
@@ -630,7 +630,7 @@ export const deleteComment = async (
 export const createReaction = async (
   _parent: unknown,
   { input }: { input: CreateReactionInput },
-  context: Context
+  context: IContext
 ): Promise<CreateReactionResponse> => {
   try {
     const user = checkAuth(context.user);
@@ -657,7 +657,7 @@ export const createReaction = async (
         id: generateUUID(),
         userId: user.id,
         targetId: input.targetId,
-        targetType: input.targetType as 'game_log' | 'comment',
+        targetType: input.targetType as unknown as 'game_log' | 'comment',
         emoji: emojiValue,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -678,8 +678,8 @@ export const createReaction = async (
     return {
       reaction: {
         ...reaction,
-        emoji: getEmojiKey(reaction.emoji as ReactionEmojiValue),
-        targetType: toParentTypeEnum(reaction.targetType),
+        emoji: getEmojiKey(reaction.emoji as IReactionEmojiValue),
+        targetType: toParentTypeEnum(reaction.targetType as string),
         userId: reaction.userId || user.id, // Ensure userId is never null
         user: transformUserToSummary(mapUserData(reactionUser)),
       },
@@ -700,7 +700,7 @@ export const createReaction = async (
 export const deleteReaction = async (
   _parent: unknown,
   { id }: MutationDeleteReactionArgs,
-  context: Context
+  context: IContext
 ) => {
   try {
     const user = checkAuth(context.user);
@@ -735,7 +735,7 @@ export const deleteReaction = async (
 export const sendFriendRequest = async (
   _parent: unknown,
   { userId }: { userId: string },
-  context: Context
+  context: IContext
 ) => {
   try {
     const user = checkAuth(context.user);
@@ -853,7 +853,7 @@ export const sendFriendRequest = async (
 export const acceptFriendRequest = async (
   _parent: unknown,
   { friendshipId }: { friendshipId: string },
-  context: Context
+  context: IContext
 ) => {
   try {
     const user = checkAuth(context.user);
@@ -930,7 +930,7 @@ export const acceptFriendRequest = async (
 export const rejectFriendRequest = async (
   _parent: unknown,
   { friendshipId }: { friendshipId: string },
-  context: Context
+  context: IContext
 ) => {
   try {
     const user = checkAuth(context.user);
@@ -1007,7 +1007,7 @@ export const rejectFriendRequest = async (
 export const removeFriend = async (
   _parent: unknown,
   { friendshipId }: { friendshipId: string },
-  context: Context
+  context: IContext
 ) => {
   try {
     const user = checkAuth(context.user);

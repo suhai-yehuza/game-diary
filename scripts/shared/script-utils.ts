@@ -3,16 +3,16 @@ import { promisify } from 'util';
 
 import { sql } from 'drizzle-orm';
 
+import { logger } from '@lib/core/logger';
 import { createDatabaseClient } from '@src/lib/db/seed/config';
-import { logger } from 'lib/core/logger';
-import type { ScriptOptions } from '@src/lib/types/consolidated.types';
+import type { IScriptOptions } from '@src/lib/types/common.types';
 
 export const execAsync = promisify(exec);
 
 /**
  * Parse command line arguments for common script options
  */
-export function parseScriptArgs(): ScriptOptions {
+export function parseScriptArgs(): IScriptOptions {
   const environment = process.argv[2] || 'development';
   const dryRun = process.argv.includes('--dry-run');
   const runTests = process.argv.includes('--test');
@@ -105,7 +105,7 @@ export async function wait(ms: number): Promise<void> {
 export function logScriptHeader(
   scriptName: string,
   env: string,
-  options: ScriptOptions = {}
+  options: IScriptOptions = {}
 ): void {
   logger.info(`🚀 Starting ${scriptName} for ${env} environment...`);
 

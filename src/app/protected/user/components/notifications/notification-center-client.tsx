@@ -9,14 +9,14 @@ import { Button } from '@src/app/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@src/app/components/ui/popover';
 import { ScrollArea } from '@src/app/components/ui/scroll-area';
 import { useNotifications } from '@src/contexts/notification-context';
-import type { AppNotification } from '@src/lib/types/notification.types';
+import type { IAppNotification } from '@src/lib/types/notification.types';
 
 export default function NotificationCenterClient() {
   const { notifications, unreadCount, markAsRead, markAllAsRead, clearNotifications } =
     useNotifications();
   const [removingItems, setRemovingItems] = useState<Set<string>>(new Set());
 
-  const handleMarkAsRead = (notification: AppNotification) => {
+  const handleMarkAsRead = (notification: IAppNotification) => {
     if (!notification.read) {
       markAsRead(notification.id);
     }
@@ -84,7 +84,7 @@ export default function NotificationCenterClient() {
             </div>
           ) : (
             <div className="p-2 space-y-1 stagger-children">
-              {notifications.map(notification => (
+              {notifications.map((notification: IAppNotification) => (
                 <div
                   key={notification.id}
                   className={`

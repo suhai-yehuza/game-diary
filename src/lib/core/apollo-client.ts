@@ -9,7 +9,7 @@ import {
 import { onError } from '@apollo/client/link/error';
 import { RetryLink } from '@apollo/client/link/retry';
 
-import { apiLogger } from 'lib/core/logger';
+import { apiLogger } from '@lib/core/logger';
 const httpLink = new HttpLink({
   uri: '/api/graphql',
   headers: {

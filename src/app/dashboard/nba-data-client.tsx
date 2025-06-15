@@ -5,18 +5,18 @@ import { format } from 'date-fns';
 import Image from 'next/image';
 import React, { useState, useCallback } from 'react';
 
+import type { Team, Game, GameStatus } from '@/lib/types/generated/graphql';
 import { Skeleton } from '@src/app/components/ui/skeleton';
 import { API_CONFIG } from '@src/lib/config/api.config';
 import { GET_EXTERNAL_GAMES, GET_TEAMS, GET_PLAYERS } from '@src/lib/graphql/queries';
-import type { ConferenceType, DivisionType } from '@src/lib/types/config.types';
-import type { Game, GameStatus, Team } from '@src/lib/types/generated/graphql';
-import type { SortDirection, DBPlayer } from '@src/lib/types/shared.types';
+import type { IConferenceType, IDivisionType } from '@src/lib/types/config.types';
+import type { ISortDirection, IDBPlayer } from '@src/lib/types/shared.types';
 
 export const NbaDataClient = () => {
-  const [selectedConference, setSelectedConference] = useState<ConferenceType | 'all'>('all');
-  const [selectedDivision, setSelectedDivision] = useState<DivisionType | 'all'>('all');
+  const [selectedConference, setSelectedConference] = useState<IConferenceType | 'all'>('all');
+  const [selectedDivision, setSelectedDivision] = useState<IDivisionType | 'all'>('all');
   const [selectedPosition, setSelectedPosition] = useState<string>('all');
-  const [sortBy] = useState<SortDirection>(API_CONFIG.pagination.DEFAULT_SORT_DIRECTION);
+  const [sortBy] = useState<ISortDirection>(API_CONFIG.pagination.DEFAULT_SORT_DIRECTION);
   const [searchTerm] = useState('');
 
   // Seasons functionality temporarily disabled - query not available
@@ -59,7 +59,7 @@ export const NbaDataClient = () => {
     data: playersData,
     loading: loadingPlayers,
     error: playersError,
-  } = useQuery<{ players: { items: DBPlayer[] } }>(GET_PLAYERS, {
+  } = useQuery<{ players: { items: IDBPlayer[] } }>(GET_PLAYERS, {
     variables: {
       filters: {
         position: selectedPosition !== 'all' ? selectedPosition : undefined,
@@ -71,11 +71,11 @@ export const NbaDataClient = () => {
     },
   });
 
-  const handleConferenceChange = useCallback((conference: ConferenceType | 'all') => {
+  const handleConferenceChange = useCallback((conference: IConferenceType | 'all') => {
     setSelectedConference(conference);
   }, []);
 
-  const handleDivisionChange = useCallback((division: DivisionType | 'all') => {
+  const handleDivisionChange = useCallback((division: IDivisionType | 'all') => {
     setSelectedDivision(division);
   }, []);
 
@@ -89,7 +89,7 @@ export const NbaDataClient = () => {
   const hasError = seasonsError || gamesError || teamsError || playersError;
 
   const filteredTeams =
-    teamsData?.teams.filter(team => {
+    teamsData?.teams.filter((team: Team) => {
       const matchesSearch = team.name.toLowerCase().includes(searchTerm.toLowerCase());
       const teamConference = team.conference;
       const teamDivision = team.division;
@@ -131,7 +131,7 @@ export const NbaDataClient = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
         <select
           value={selectedConference}
-          onChange={e => handleConferenceChange(e.target.value as ConferenceType | 'all')}
+          onChange={e => handleConferenceChange(e.target.value as IConferenceType | 'all')}
           className="p-2 border rounded"
         >
           <option value="East">Eastern Conference</option>
@@ -141,7 +141,7 @@ export const NbaDataClient = () => {
 
         <select
           value={selectedDivision || ''}
-          onChange={e => handleDivisionChange(e.target.value as DivisionType | 'all')}
+          onChange={e => handleDivisionChange(e.target.value as IDivisionType | 'all')}
           className="p-2 border rounded"
         >
           <option value="Atlantic">Atlantic</option>
@@ -229,9 +229,9 @@ export const NbaDataClient = () => {
           {filteredTeams.map((team: Team) => (
             <div key={team.id} className="border rounded-lg p-4">
               <div className="flex items-center gap-4">
-                {team.logoUrl && (
+                {team.logo && (
                   <Image
-                    src={team.logoUrl}
+                    src={team.logo}
                     alt={team.name}
                     width={48}
                     height={48}
@@ -262,7 +262,7 @@ export const NbaDataClient = () => {
             </tr>
           </thead>
           <tbody>
-            {playersData?.players.items.map((player: DBPlayer) => (
+            {playersData?.players.items.map((player: IDBPlayer) => (
               <tr key={player.id} className="border-t">
                 <td className="px-4 py-2">
                   {player.firstName} {player.lastName}

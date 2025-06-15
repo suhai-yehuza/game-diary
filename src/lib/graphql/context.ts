@@ -4,14 +4,14 @@ import type { NeonHttpDatabase } from 'drizzle-orm/neon-http';
 
 import { db } from '@src/lib/db';
 import type * as schema from '@src/lib/db/schema';
-import type { Context } from '@src/lib/types/component.types';
+import type { IContext } from '@src/lib/types/component.types';
 import type { Reaction, UserSummary, Game, GameLog } from '@src/lib/types/generated/graphql';
 
 import { createLoaders } from './loaders';
 
-export type { Context };
+export type { IContext };
 
-export async function createContext(): Promise<Context> {
+export async function createContext(): Promise<IContext> {
   const user = await currentUser();
   const redis = undefined; // Redis client will be undefined for now
 

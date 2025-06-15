@@ -3,16 +3,16 @@
 import { useQuery } from '@apollo/client';
 import { useUser } from '@clerk/nextjs';
 import { Activity, ArrowLeft } from 'lucide-react';
+import Image from 'next/image';
 import Link from 'next/link';
 import React from 'react';
-import Image from 'next/image';
 
+import { logger } from '@lib/core/logger';
 import { GameCard } from '@src/app/protected/user/components/game-logs/game-card';
 import { API_CONFIG } from '@src/lib/config/api.config';
 import { GET_LIVE_GAMES } from '@src/lib/graphql/queries';
-import { logger } from 'lib/core/logger';
+import type { IGame } from '@src/lib/types';
 import type { GetLiveGamesQuery } from '@src/lib/types/generated/graphql';
-import type { Game } from '@src/lib/types/consolidated.types';
 
 export const dynamic = 'force-dynamic';
 
@@ -60,7 +60,7 @@ export default function LiveGamesPage() {
   const liveGames = (data?.liveGames?.edges?.map(edge => ({
     ...edge.node,
     stage: edge.node.season ? 1 : 0, // Provide default stage value
-  })) || []) as Game[];
+  })) || []) as IGame[];
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-950 via-gray-900 to-gray-950">

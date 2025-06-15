@@ -2,8 +2,8 @@ import type { NeonHttpDatabase } from 'drizzle-orm/neon-http';
 import pLimit from 'p-limit';
 import { v4 as uuidv4, v7 as uuidv7 } from 'uuid';
 
+import { logger } from '@lib/core/logger';
 import { API_CONFIG } from '@src/lib/config/api.config';
-import { logger } from 'lib/core/logger';
 import { sleep } from '@src/lib/utils/time';
 // Define types locally to avoid circular dependency
 export type BatchProcessingOptions<T, R> = {

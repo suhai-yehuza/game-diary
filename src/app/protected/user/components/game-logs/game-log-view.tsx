@@ -1,5 +1,7 @@
 'use client';
 
+import { useQuery, useMutation } from '@apollo/client';
+import { useUser } from '@clerk/nextjs';
 import { format } from 'date-fns';
 import {
   ArrowLeft,
@@ -17,25 +19,23 @@ import Image from 'next/image';
 import Link from 'next/link';
 import React, { useState } from 'react';
 
+import { CommentsSection } from '@src/app/components/common/comments-section';
 import { Avatar, AvatarFallback, AvatarImage } from '@src/app/components/ui/avatar';
 import { Badge } from '@src/app/components/ui/badge';
 import { Button } from '@src/app/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@src/app/components/ui/card';
-import { Skeleton } from '@src/app/components/ui/skeleton';
-import { CommentsSection } from '@src/app/components/common/comments-section';
-import { StarRating } from '@src/app/components/ui/star-rating';
-import { useQuery, useMutation } from '@apollo/client';
-import { useUser } from '@clerk/nextjs';
 import { Popover, PopoverContent, PopoverTrigger } from '@src/app/components/ui/popover';
+import { Skeleton } from '@src/app/components/ui/skeleton';
+import { StarRating } from '@src/app/components/ui/star-rating';
+import { CREATE_REACTION, DELETE_REACTION } from '@src/lib/graphql/mutations';
+import { GET_GAME_LOG } from '@src/lib/graphql/queries';
+import type { IGameLogProps } from '@src/lib/types';
 import {
   CLASSIFICATION,
   REACTION_EMOJIS,
   EMOJI_TO_GRAPHQL_MAPPING,
-  type ReactionEmojiValue,
+  type IReactionEmojiValue,
 } from '@src/lib/types/config.types';
-import { CREATE_REACTION, DELETE_REACTION } from '@src/lib/graphql/mutations';
-import { GET_GAME_LOG } from '@src/lib/graphql/queries';
-import type { GameLogProps } from '@src/lib/types/consolidated.types';
 import type { GameLog, ParentType } from '@src/lib/types/generated/graphql';
 import { cn } from '@src/lib/utils';
 
@@ -121,7 +121,7 @@ const getClassificationStyles = (classification: string) => {
   }
 };
 
-export function GameLogView({ gameLogId }: GameLogProps) {
+export function GameLogView({ gameLogId }: IGameLogProps) {
   const { user } = useUser();
   const currentUserId = user?.id;
   const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
@@ -169,7 +169,7 @@ export function GameLogView({ gameLogId }: GameLogProps) {
   });
 
   // Helper function to convert emoji character to GraphQL enum value
-  function emojiToGraphQLEnum(emojiChar: ReactionEmojiValue): string {
+  function emojiToGraphQLEnum(emojiChar: IReactionEmojiValue): string {
     // Find the key in REACTION_EMOJIS that corresponds to this emoji character
     const emojiKey = Object.entries(REACTION_EMOJIS).find(([, char]) => char === emojiChar)?.[0];
 
@@ -185,7 +185,7 @@ export function GameLogView({ gameLogId }: GameLogProps) {
   }
 
   function handleReaction(
-    emoji: ReactionEmojiValue,
+    emoji: IReactionEmojiValue,
     targetId: string,
     targetType: string,
     hasReacted: boolean
@@ -496,7 +496,7 @@ export function GameLogView({ gameLogId }: GameLogProps) {
                   {/* Existing Reactions */}
                   {gameLog.reactions &&
                     gameLog.reactions.length > 0 &&
-                    Object.values(REACTION_EMOJIS).map((emoji: ReactionEmojiValue) => {
+                    Object.values(REACTION_EMOJIS).map((emoji: IReactionEmojiValue) => {
                       const hasReacted = gameLog.reactions.some(
                         (r: { emoji: string; userId: string }) =>
                           r.emoji === emoji && r.userId === currentUserId
@@ -574,7 +574,7 @@ export function GameLogView({ gameLogId }: GameLogProps) {
                                   size="sm"
                                   onClick={() =>
                                     handleReaction(
-                                      emoji as ReactionEmojiValue,
+                                      emoji as IReactionEmojiValue,
                                       gameLog.id,
                                       'GameLog',
                                       !!hasReacted

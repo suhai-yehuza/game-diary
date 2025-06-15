@@ -1,7 +1,7 @@
 import { performance } from 'perf_hooks';
 
 import { Cache } from '@src/lib/cache/index';
-import type { MonitoringMetrics } from '@src/lib/types/consolidated.types';
+import type { IMonitoringMetrics } from '@src/lib/types/database.types';
 
 // Performance monitoring
 export const monitorPerformance = {
@@ -37,7 +37,7 @@ export const monitorPerformance = {
 };
 
 class Monitoring {
-  private metrics: MonitoringMetrics = {
+  private metrics: IMonitoringMetrics = {
     timestamp: new Date(),
     cpuUsage: 0,
     memoryUsage: 0,
@@ -117,7 +117,7 @@ class Monitoring {
     this.metrics.errors[errorType] = (this.metrics.errors[errorType] || 0) + 1;
   }
 
-  getMetrics(): MonitoringMetrics {
+  getMetrics(): IMonitoringMetrics {
     return this.metrics;
   }
 }

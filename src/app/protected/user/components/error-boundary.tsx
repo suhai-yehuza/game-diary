@@ -1,11 +1,11 @@
 import React from 'react';
 
-interface ErrorBoundaryProps {
+interface IErrorBoundaryProps {
   children: React.ReactNode;
   fallback?: React.ReactNode;
 }
 
-interface ErrorBoundaryState {
+interface IErrorBoundaryState {
   hasError: boolean;
   error?: Error;
 }
@@ -14,13 +14,13 @@ interface ErrorBoundaryState {
  * An error boundary component that catches JavaScript errors anywhere in their child component tree,
  * logs those errors, and displays a fallback UI instead of the component tree that crashed.
  */
-export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  constructor(props: ErrorBoundaryProps) {
+export class ErrorBoundary extends React.Component<IErrorBoundaryProps, IErrorBoundaryState> {
+  constructor(props: IErrorBoundaryProps) {
     super(props);
     this.state = { hasError: false };
   }
 
-  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+  static getDerivedStateFromError(error: Error): IErrorBoundaryState {
     return { hasError: true, error };
   }
 

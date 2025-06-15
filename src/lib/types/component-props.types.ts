@@ -1,9 +1,9 @@
-import type { Activity, TimeFilter } from '@src/lib/types/api.types';
-import type { ChartData } from '@src/lib/types/chart';
+import type { IActivity, ITimeFilter } from '@src/lib/types/api.types';
+import type { IChartData } from '@src/lib/types/chart';
 import type { GameLog, Reaction } from '@src/lib/types/generated/graphql';
-import type { Friend, FriendGroup } from '@src/lib/types/social.types';
+import type { IFriend, IFriendGroup } from '@src/lib/types/social.types';
 
-export interface TeamSummary {
+export interface ITeamSummary {
   id: string;
   code: string;
   logo: string;
@@ -11,22 +11,23 @@ export interface TeamSummary {
   nickname: string;
 }
 
-export interface Arena {
+export interface IArena {
   name?: string;
   city?: string;
   state?: string;
 }
 
-export interface TeamDisplayProps {
-  team: TeamSummary | null;
+export interface ITeamDisplayProps {
+  team: ITeamSummary;
   score?: number;
+  opponentScore?: number;
   isHome: boolean;
   imageErrors?: Record<string, boolean>;
   onImageError?: (id: string) => void;
   gameId?: string;
 }
 
-export interface SeasonData {
+export interface ISeasonData {
   id: string;
   year: number;
   displayYear: string;
@@ -36,7 +37,7 @@ export interface SeasonData {
   isPlayoffs: boolean;
 }
 
-export interface TeamData {
+export interface ITeamData {
   id: string;
   name: string;
   nickname: string;
@@ -60,7 +61,7 @@ export interface TeamData {
   updatedAt: string;
 }
 
-export interface PlayerData {
+export interface IPlayerData {
   id: string;
   firstName: string;
   lastName: string;
@@ -96,59 +97,59 @@ export interface PlayerData {
   }>;
 }
 
-export type StatsChartProps = {
-  data: ChartData;
+export interface IStatsChartProps {
+  data: IChartData;
   type: 'line' | 'bar' | 'radar';
   title: string;
   height?: number;
   stacked?: boolean;
-};
+}
 
-export type ReactionDisplayProps = {
+export interface IReactionDisplayProps {
   targetId: string;
   targetType: string;
-};
+}
 
-export type ReactionPickerProps = {
+export interface IReactionPickerProps {
   targetId: string;
   targetType: string;
   existingReactions?: Reaction[];
   onReactionChanged?: () => void;
-};
+}
 
-export type FriendProfileProps = {
-  friend?: Friend;
+export interface IFriendProfileProps {
+  friend?: IFriend;
   friendId?: string;
   onClose?: () => void;
-};
+}
 
-export type FriendGroupsProps = {
-  groups: FriendGroup[];
-  friends?: Friend[];
-  onGroupUpdate?: (group: FriendGroup) => void;
-};
+export interface IFriendGroupsProps {
+  groups: IFriendGroup[];
+  friends?: IFriend[];
+  onGroupUpdate?: (group: IFriendGroup) => void;
+}
 
-export type FriendRequestButtonProps = {
+export interface IFriendRequestButtonProps {
   targetUserId: string;
   className?: string;
-};
+}
 
-export type ActivityTimelineProps = {
-  activities: Activity[];
+export interface IActivityTimelineProps {
+  activities: IActivity[];
   gameLogs: GameLog[];
-  timeFilter?: TimeFilter;
-};
+  timeFilter?: ITimeFilter;
+}
 
-export type FriendActivityProps = {
+export interface IFriendActivityProps {
   friendId: string;
-  activities: Activity[];
-};
+  activities: IActivity[];
+}
 
-export type NavItem = {
+export interface INavItem {
   href: string;
   label: string;
-  subItems?: NavItem[];
+  subItems?: INavItem[];
   icon?: string;
   isNew?: boolean;
   badge?: string | number;
-};
+}

@@ -3,7 +3,7 @@
  * Types related to game statistics, player stats, and team stats
  */
 
-export interface GamePlayerStats {
+export interface IGamePlayerStats {
   id: string;
   playerId: string;
   name: string;
@@ -31,16 +31,16 @@ export interface GamePlayerStats {
   };
 }
 
-export type GameTeamStatistics = {
+export interface IGameTeamStatistics {
   team: {
     id: number | string;
     name?: string;
     [key: string]: unknown;
   };
-  statistics: GameStatistics[];
-};
+  statistics: IGameStatistics[];
+}
 
-export interface GameStatistics {
+export interface IGameStatistics {
   playerId: string;
   teamId: string;
   minutes: string;
@@ -70,7 +70,7 @@ export interface GameStatistics {
   };
 }
 
-export interface GameTeamStatistic {
+export interface IGameTeamStatistic {
   fastBreakPoints?: number;
   pointsInPaint?: number;
   biggestLead?: number;
@@ -99,7 +99,7 @@ export interface GameTeamStatistic {
   points?: number;
 }
 
-export interface PlayerStatistics {
+export interface IPlayerStatistics {
   player: {
     id: number;
     firstName: string;

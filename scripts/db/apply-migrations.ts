@@ -4,9 +4,9 @@ import { join } from 'path';
 
 import { sql } from 'drizzle-orm';
 
+import { logger } from '@lib/core/logger';
 import { createDatabaseClient } from '@src/lib/db/seed/config';
-import { logger } from 'lib/core/logger';
-import type { Migration, MigrationVerification } from '@src/lib/types/consolidated.types';
+import type { IMigration, IMigrationVerification } from '@src/lib/types/common.types';
 
 // Get environment from command line argument or default to development
 const environment = process.argv[2] || 'development';
@@ -68,8 +68,8 @@ function parseSqlStatements(content: string): string[] {
 async function getVerificationData(
   db: ReturnType<typeof createDatabaseClient>,
   migrationName: string
-): Promise<MigrationVerification> {
-  const verification: MigrationVerification = {};
+): Promise<IMigrationVerification> {
+  const verification: IMigrationVerification = {};
 
   if (migrationName.includes('trigger')) {
     // Check for triggers
@@ -107,22 +107,22 @@ async function getVerificationData(
 
 // Compare verification data
 function compareVerification(
-  before: MigrationVerification,
-  after: MigrationVerification
+  before: IMigrationVerification,
+  after: IMigrationVerification
 ): {
-  added: MigrationVerification;
-  removed: MigrationVerification;
+  added: IMigrationVerification;
+  removed: IMigrationVerification;
 } {
-  const added: MigrationVerification = {};
-  const removed: MigrationVerification = {};
+  const added: IMigrationVerification = {};
+  const removed: IMigrationVerification = {};
 
   // Compare each type
   for (const key of ['tables', 'functions', 'triggers', 'indexes'] as const) {
     const beforeItems = before[key] || [];
     const afterItems = after[key] || [];
 
-    const addedItems = afterItems.filter(item => !beforeItems.includes(item));
-    const removedItems = beforeItems.filter(item => !afterItems.includes(item));
+    const addedItems = afterItems.filter((item: string) => !beforeItems.includes(item));
+    const removedItems = beforeItems.filter((item: string) => !afterItems.includes(item));
 
     if (addedItems.length > 0) {
       added[key] = addedItems;
@@ -177,7 +177,7 @@ async function applyMigrations() {
       .filter(file => file.endsWith('.sql'))
       .sort(); // Ensure migrations run in order
 
-    const migrations: Migration[] = files.map(file => {
+    const migrations: IMigration[] = files.map(file => {
       const path = join(migrationsDir, file);
       const content = readFileSync(path, 'utf8');
       const checksum = createHash('sha256').update(content).digest('hex');
@@ -254,8 +254,8 @@ ${migrations.map(m => `  - ${m.name}`).join('\n')}`);
       }
 
       const startTime = Date.now();
-      let verificationBefore: MigrationVerification = {};
-      let verificationAfter: MigrationVerification = {};
+      let verificationBefore: IMigrationVerification = {};
+      let verificationAfter: IMigrationVerification = {};
 
       try {
         // Get pre-migration verification data

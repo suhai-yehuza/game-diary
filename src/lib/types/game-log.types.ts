@@ -1,14 +1,14 @@
-import type * as React from 'react';
-import type {
-  WatchedSettingValue,
-  WatchedScopeValue,
-  ClassificationValue,
-} from '@src/lib/types/config.types';
-import type { Game } from '@src/lib/types/game.types';
-import type { GameLog } from '@src/lib/types/generated/graphql';
 import type { FormEvent } from 'react';
 
-export interface GameLogInput {
+import type {
+  IWatchedSettingValue,
+  IWatchedScopeValue,
+  IClassificationValue,
+} from '@src/lib/types/config.types';
+import type { IGame } from '@src/lib/types/game.types';
+import type { GameLog } from '@src/lib/types/generated/graphql';
+
+export interface IGameLogInput {
   gameId: string;
   watchedDate: string;
   watchedLocation?: string;
@@ -18,18 +18,19 @@ export interface GameLogInput {
   comment?: string;
 }
 
-export interface GameLogFormData {
-  watchedSetting: WatchedSettingValue;
+export interface IGameLogFormData {
+  gameId: string;
+  watchedSetting: IWatchedSettingValue;
   watchedDate: Date;
   watchedLocation: string;
   ratingForGame: number;
-  watchedScope: WatchedScopeValue;
+  watchedScope: IWatchedScopeValue;
   notes: string;
   tags: string[];
-  classification: ClassificationValue;
+  classification: IClassificationValue;
 }
 
-export interface GameRating {
+export interface IGameRating {
   id: string;
   gameId: string;
   averageRating: string;
@@ -38,7 +39,7 @@ export interface GameRating {
   updatedAt: string;
 }
 
-export interface GameRatingWithUser {
+export interface IGameRatingWithUser {
   id: string;
   ratingForGame: number;
   comment?: string;
@@ -52,18 +53,18 @@ export interface GameRatingWithUser {
 }
 
 // Component Props
-export interface GameLogFormProps {
+export interface IGameLogFormProps {
   onSuccess?: () => void;
-  formData?: GameLogFormData;
-  setFormData?: (data: GameLogFormData) => void;
-  selectedGame?: Game | null;
+  formData?: IGameLogFormData;
+  setFormData?: (data: IGameLogFormData) => void;
+  selectedGame?: IGame | null;
   loading?: boolean;
   onSubmit?: (e: React.FormEvent) => Promise<void>;
   onCancel?: () => void;
   submitLabel?: string;
 }
 
-export interface GameLogModalProps {
+export interface IGameLogModalProps {
   mode: 'create' | 'update';
   gameId?: string;
   gameLog?: GameLog;
@@ -72,7 +73,7 @@ export interface GameLogModalProps {
   onSuccess?: () => void;
 }
 
-export interface StarRatingProps {
+export interface IStarRatingProps {
   ratingForGame: number;
   maxRating?: number;
   size?: 'sm' | 'md' | 'lg' | 'xl';
@@ -80,7 +81,7 @@ export interface StarRatingProps {
   onRatingChange?: (rating: number) => void;
 }
 
-export interface ReactDatePickerProps {
+export interface IReactDatePickerProps {
   selected: Date | null;
   onChange: (date: Date | null) => void;
   className?: string;

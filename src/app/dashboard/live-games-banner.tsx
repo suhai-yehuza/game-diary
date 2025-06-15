@@ -5,17 +5,17 @@ import React from 'react';
 
 import { API_CONFIG } from '@src/lib/config/api.config';
 import { GET_LIVE_GAMES } from '@src/lib/graphql/queries';
-import type { LiveGamesData } from '@src/lib/types/consolidated.types';
+import type { IGameConnection } from '@src/lib/types';
 
 export function LiveGamesBanner() {
-  const { data } = useQuery<LiveGamesData>(GET_LIVE_GAMES, {
+  const { data } = useQuery<IGameConnection>(GET_LIVE_GAMES, {
     pollInterval: 30000, // Poll every 30 seconds
     variables: {
       first: API_CONFIG.pagination.HUGE_SIZE,
     },
   });
 
-  const liveGamesCount = data?.liveGames?.totalCount || 0;
+  const liveGamesCount = data?.totalCount || 0;
 
   if (liveGamesCount === 0) {
     return null;

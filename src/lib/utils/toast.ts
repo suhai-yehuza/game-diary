@@ -1,12 +1,13 @@
 import type * as React from 'react';
-import type { ToastAction, ToastProps, ToasterToast } from '@src/lib/types/notification.types';
+
+import type { IToastAction, IToastProps, IToasterToast } from '@src/lib/types/notification.types';
 
 export const TOAST_LIMIT = 5;
 
-export const createToast = (props: ToastProps, dispatch: React.Dispatch<ToastAction>) => {
+export const createToast = (props: IToastProps, dispatch: React.Dispatch<IToastAction>) => {
   const id = Math.random().toString(36).substring(2);
 
-  const update = (props: ToasterToast) =>
+  const update = (props: IToasterToast) =>
     dispatch({
       type: 'UPDATE_TOAST',
       toast: { ...props, id },

@@ -13,7 +13,7 @@ import { GET_USER_FRIENDSHIPS } from '@src/lib/graphql/queries';
 import { FRIENDSHIP_STATUS } from '@src/lib/types/config.types';
 import type { Friendship } from '@src/lib/types/generated/graphql';
 
-interface FriendshipManagementProps {
+interface IFriendshipManagementProps {
   currentUserId: string | null;
   targetUserId: string;
   friendship: Friendship | null;
@@ -25,7 +25,7 @@ export function FriendshipManagement({
   targetUserId,
   friendship,
   onFriendshipUpdate,
-}: FriendshipManagementProps) {
+}: IFriendshipManagementProps) {
   const isPendingFromCurrentUser = friendship?.initiator.id === currentUserId;
 
   // Send friend request mutation

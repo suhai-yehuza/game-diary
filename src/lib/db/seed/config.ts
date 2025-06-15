@@ -1,15 +1,14 @@
 /// <reference lib="es2015" />
 import { neon } from '@neondatabase/serverless';
-import { sql } from 'drizzle-orm';
 import { drizzle, type NeonHttpDatabase } from 'drizzle-orm/neon-http';
 
 import * as schema from '@src/lib/db/schema';
-import type { RawDatabaseClient } from '@src/lib/types/consolidated.types';
-import type { BaseDatabaseClient, DatabaseConfig } from '@src/lib/types/database.types';
+import type { IRawDatabaseClient } from '@src/lib/types/common.types';
+import type { IBaseDatabaseClient, IDatabaseConfig } from '@src/lib/types/database.types';
 import { envSchema } from '@src/lib/validations/env';
 
 // Module-level database client
-let dbClient: BaseDatabaseClient | null = null;
+let dbClient: IBaseDatabaseClient | null = null;
 
 const getConnectionString = () => {
   const env = envSchema.parse(process.env);
@@ -21,7 +20,7 @@ const createNeonClient = (connectionString: string) => {
 };
 
 export const createDatabaseClient = (
-  _config: DatabaseConfig = {}
+  _config: IDatabaseConfig = {}
 ): NeonHttpDatabase<typeof schema> => {
   const connectionString = getConnectionString();
   const sql = createNeonClient(connectionString);
@@ -49,12 +48,12 @@ export const closeDb = async () => {
   }
 };
 
-export type { DatabaseConfig };
+export type { IDatabaseConfig };
 
-export async function testConnection(db: BaseDatabaseClient | RawDatabaseClient): Promise<void> {
+export async function testConnection(db: IBaseDatabaseClient | IRawDatabaseClient): Promise<void> {
   // Try a simple query to test the connection
   if ('execute' in db && typeof db.execute === 'function') {
-    await db.execute(sql`SELECT 1`);
+    await db.execute('SELECT 1');
   } else if ('query' in db && typeof db.query === 'function') {
     await db.query('SELECT 1');
   } else {

@@ -1,12 +1,12 @@
 import { sql } from 'drizzle-orm';
 
+import { logger } from '@lib/core/logger';
 import type { createDatabaseClient } from '@src/lib/db/seed/config';
-import { logger } from 'lib/core/logger';
-import type { TriggerSetupOptions } from '@src/lib/types/consolidated.types';
+import type { ITriggerSetupOptions } from '@src/lib/types/common.types';
 
 async function createRatingStarsTrigger(
   db: ReturnType<typeof createDatabaseClient>,
-  options: TriggerSetupOptions = {}
+  options: ITriggerSetupOptions = {}
 ): Promise<void> {
   logger.info('⚡ Creating rating stars trigger...');
 
@@ -43,7 +43,7 @@ async function createRatingStarsTrigger(
 
 async function createGameRatingsTrigger(
   db: ReturnType<typeof createDatabaseClient>,
-  options: TriggerSetupOptions = {}
+  options: ITriggerSetupOptions = {}
 ): Promise<void> {
   logger.info('⚡ Creating game ratings trigger...');
 
@@ -148,7 +148,7 @@ async function checkExistingTriggers(
     AND trigger_name IN ('update_rating_stars_trigger', 'game_logs_ratings_trigger');
   `);
 
-  return existingTriggers.rows.map(row => (row as { trigger_name: string }).trigger_name);
+  return (existingTriggers.rows as { trigger_name: string }[]).map(row => row.trigger_name);
 }
 
 async function verifyTriggers(db: ReturnType<typeof createDatabaseClient>): Promise<void> {
@@ -179,7 +179,7 @@ async function verifyTriggers(db: ReturnType<typeof createDatabaseClient>): Prom
 
 export async function setupAllTriggers(
   db: ReturnType<typeof createDatabaseClient>,
-  options: TriggerSetupOptions = {}
+  options: ITriggerSetupOptions = {}
 ): Promise<void> {
   try {
     const existingTriggerNames = options.skipVerification ? [] : await checkExistingTriggers(db);

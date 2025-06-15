@@ -2,12 +2,11 @@ import { useQuery, useMutation } from '@apollo/client';
 import { useUser } from '@clerk/nextjs';
 import React, { useState } from 'react';
 
+import { logger } from '@lib/core/logger';
 import { Badge } from '@src/app/components/ui/badge';
 import { CREATE_REACTION } from '@src/lib/graphql/mutations';
 import { GET_REACTIONS, GET_GAME_LOG } from '@src/lib/graphql/queries';
-import { logger } from 'lib/core/logger';
 import { REACTION_EMOJIS } from '@src/lib/types/config.types';
-import type { ExtendedReactionDisplayProps } from '@src/lib/types/consolidated.types';
 import type { Reaction, ReactionEmojiType } from '@src/lib/types/generated/graphql';
 import { cn } from '@src/lib/utils';
 
@@ -19,7 +18,13 @@ export function ReactionDisplay({
   reactions: providedReactions,
   totalReactionCount: providedTotalCount,
   onReactionChange,
-}: ExtendedReactionDisplayProps) {
+}: {
+  targetId: string;
+  targetType: string;
+  reactions: Reaction[];
+  totalReactionCount: number;
+  onReactionChange: () => void;
+}) {
   const { user } = useUser();
   const [showAllReactions, setShowAllReactions] = useState(false);
 

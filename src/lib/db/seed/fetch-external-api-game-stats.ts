@@ -1,14 +1,11 @@
 import { eq } from 'drizzle-orm';
 
+import { seedLogger } from '@lib/core/logger';
 import { API_CONFIG } from '@src/lib/config/api.config';
 import { game_stats, teams } from '@src/lib/db/schema';
 import { handleAPIError } from '@src/lib/external-apis';
-import { seedLogger } from 'lib/core/logger';
+import type { IGameTeamStatistic, ITeamStatisticsResponseData } from '@src/lib/types';
 import { GAME_STATUS_VALUES } from '@src/lib/types/config.types';
-import type {
-  GameTeamStatistic,
-  TeamStatisticsResponseData,
-} from '@src/lib/types/consolidated.types';
 import { generateUUID } from '@src/lib/utils/processing';
 
 import { initializeClients } from './utils/initialize-clients';
@@ -33,7 +30,10 @@ function parsePercentageValue(value: number | string | null | undefined, default
   return isNaN(num) ? defaultValue.toFixed(2) : num.toFixed(2);
 }
 
-function processTeamStats(stats: GameTeamStatistic, prefix: 'home' | 'away'): Partial<DBGameStats> {
+function processTeamStats(
+  stats: IGameTeamStatistic,
+  prefix: 'home' | 'away'
+): Partial<DBGameStats> {
   return {
     [`${prefix}FastBreakPoints`]: parseNumericValueOrNull(stats.fastBreakPoints),
     [`${prefix}PointsInPaint`]: parseNumericValueOrNull(stats.pointsInPaint),
@@ -78,7 +78,7 @@ export async function fetchAndProcessNBAGameStats(gameId: string, season: number
     }
 
     seedLogger.info(`Fetching NBA game statistics for game ${gameId}...`);
-    const response = await api.get<{ response: TeamStatisticsResponseData[] }>(
+    const response = await api.get<{ response: ITeamStatisticsResponseData[] }>(
       `${API_CONFIG.endpoints.GAMES}/statistics?id=${gameId}`
     );
 
@@ -93,16 +93,16 @@ export async function fetchAndProcessNBAGameStats(gameId: string, season: number
     }
 
     const [homeTeamStats, awayTeamStats] = gameStats as unknown as [
-      TeamStatisticsResponseData,
-      TeamStatisticsResponseData,
+      ITeamStatisticsResponseData,
+      ITeamStatisticsResponseData,
     ];
     if (!homeTeamStats.statistics[0] && !awayTeamStats.statistics[0]) {
       seedLogger.info('Missing team statistics, skipping...');
       return;
     }
 
-    const homeStats = homeTeamStats.statistics[0] || ({} as GameTeamStatistic);
-    const awayStats = awayTeamStats.statistics[0] || ({} as GameTeamStatistic);
+    const homeStats = homeTeamStats.statistics[0] || ({} as IGameTeamStatistic);
+    const awayStats = awayTeamStats.statistics[0] || ({} as IGameTeamStatistic);
 
     // Verify both teams exist in our database
     const homeTeam = await db.query.teams.findFirst({

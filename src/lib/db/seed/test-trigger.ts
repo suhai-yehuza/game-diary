@@ -1,11 +1,11 @@
 import { eq, sql } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
 
+import { seedLogger } from '@lib/core/logger';
 import { db } from '@src/lib/db';
 import { game_logs, game_ratings, users } from '@src/lib/db/schema';
 import { seasons, nba_games } from '@src/lib/db/schema/nba-schemas';
 import { teams } from '@src/lib/db/schema/team-schemas';
-import { seedLogger } from 'lib/core/logger';
 import { CLASSIFICATION, WATCHED_SCOPE, WATCHED_SETTING } from '@src/lib/types/config.types';
 
 async function testGameRatingsTrigger() {

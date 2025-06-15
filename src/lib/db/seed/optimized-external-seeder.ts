@@ -1,5 +1,6 @@
 import { sql } from 'drizzle-orm';
 
+import { seedLogger } from '@lib/core/logger';
 import { API_CONFIG } from '@src/lib/config/api.config';
 import { games } from '@src/lib/db/schema/game-schemas';
 import { seasons, teams, nba_players, nba_games } from '@src/lib/db/schema/nba-schemas';
@@ -9,17 +10,11 @@ import {
   fetchNbaPlayers,
   fetchNbaGames,
 } from '@src/lib/external-apis';
-import { seedLogger } from 'lib/core/logger';
-import type {
-  PlayerApiResponse,
-  GameApiResponse,
-  GameResponseData,
-  ApplicationSeederOptions,
-} from '@src/lib/types/consolidated.types';
-import type { DatabaseClient } from '@src/lib/types/database.types';
+import type { IGameApiResponse, IPlayerApiResponse } from '@src/lib/types/api-responses.types';
+import type { IApplicationSeederOptions, IDatabaseClient } from '@src/lib/types/database.types';
 
 import { createDatabaseClient } from './config';
-import type { DataProcessor } from './data-processor';
+import { DataProcessor, PerformanceMonitor } from './data-processor';
 import { fetchAndProcessNBAGameStats } from './fetch-external-api-game-stats';
 import { fetchAndProcessNBAPlayerStats } from './fetch-external-api-player-stats';
 import { fetchAndProcessTeamH2H } from './fetch-external-api-team-h2h';
@@ -27,7 +22,7 @@ import type { OptimizedAPIClient } from './utils/api-client';
 
 // Helper types
 type PlayerWithTeams = {
-  player: PlayerApiResponse['response']['response'][0];
+  player: IPlayerApiResponse['response']['response'][0];
   teams: Set<string>;
 };
 
@@ -61,7 +56,7 @@ function createSeasonData(year: number, isCurrent: boolean): SeasonData {
 }
 
 function createPlayerData(
-  player: PlayerApiResponse['response']['response'][0],
+  player: IPlayerApiResponse['response']['response'][0],
   teams: Set<string>,
   existingSeasons: SeasonActive,
   season: number
@@ -146,7 +141,7 @@ async function processSeasons(
 
 async function processTeams(
   apiClient: OptimizedAPIClient,
-  db: DatabaseClient,
+  db: IDatabaseClient,
   batchSize: number
 ): Promise<void> {
   seedLogger.info('Starting to fetch NBA teams...');
@@ -217,7 +212,7 @@ async function processTeams(
 
 async function processPlayers(
   apiClient: OptimizedAPIClient,
-  db: DatabaseClient,
+  db: IDatabaseClient,
   season: number,
   batchSize: number
 ): Promise<void> {
@@ -273,7 +268,7 @@ async function processPlayers(
 
 async function processGames(
   apiClient: OptimizedAPIClient,
-  db: DatabaseClient,
+  db: IDatabaseClient,
   season: number,
   batchSize: number,
   startDate?: string
@@ -457,7 +452,7 @@ async function processGames(
 
 async function processSeasonStats(
   season: number,
-  games: GameApiResponse,
+  games: IGameApiResponse,
   processor: DataProcessor,
   batchSize: number
 ): Promise<void> {
@@ -467,20 +462,20 @@ async function processSeasonStats(
 
   // Process game stats
   await processor.processInChunks(
-    games.response,
-    async (gamesBatch: GameResponseData[]) => {
+    games.response.map(game => ({ response: [game] })),
+    async (gamesBatch: IGameApiResponse[]) => {
       const gameStatsPromises = gamesBatch.map(async game => {
         try {
           // Use the reliable game stats function
-          await fetchAndProcessNBAGameStats(game.id.toString(), season);
+          await fetchAndProcessNBAGameStats(game.response[0].id.toString(), season);
 
           // Get players for both teams using the seasonsActive field
           const [homeTeamPlayers, awayTeamPlayers] = await Promise.all([
             db.query.nba_players.findMany({
-              where: sql`"seasonsActive" @> ${JSON.stringify([{ season, teamIds: [game.teams.home.id.toString()] }])}`,
+              where: sql`"seasonsActive" @> ${JSON.stringify([{ season, teamIds: [game.response[0].teams.home.id.toString()] }])}`,
             }),
             db.query.nba_players.findMany({
-              where: sql`"seasonsActive" @> ${JSON.stringify([{ season, teamIds: [game.teams.visitors.id.toString()] }])}`,
+              where: sql`"seasonsActive" @> ${JSON.stringify([{ season, teamIds: [game.response[0].teams.visitors.id.toString()] }])}`,
             }),
           ]);
 
@@ -491,7 +486,11 @@ async function processSeasonStats(
           for (let i = 0; i < allPlayers.length; i += PLAYERS_PER_BATCH) {
             const playerBatch = allPlayers.slice(i, i + PLAYERS_PER_BATCH);
             const batchPromises = playerBatch.map(player =>
-              fetchAndProcessNBAPlayerStats(player.id.toString(), season, game.id.toString())
+              fetchAndProcessNBAPlayerStats(
+                player.id.toString(),
+                season,
+                game.response[0].id.toString()
+              )
             );
 
             // Wait for current batch to complete before starting next batch
@@ -505,7 +504,7 @@ async function processSeasonStats(
 
           return true;
         } catch (error) {
-          seedLogger.warn(`Failed to fetch game stats for game ${game.id}:`, error);
+          seedLogger.warn(`Failed to fetch game stats for game ${game.response[0].id}:`, error);
           return null;
         }
       });
@@ -531,7 +530,7 @@ async function processSeasonStats(
   await fetchAndProcessTeamH2H(db, season);
 }
 
-export async function seedOptimizedExternalData(options: ApplicationSeederOptions): Promise<void> {
+export async function seedOptimizedExternalData(options: IApplicationSeederOptions): Promise<void> {
   const {
     seasons: inputSeasonYears = [],
     apiClient,
@@ -548,6 +547,10 @@ export async function seedOptimizedExternalData(options: ApplicationSeederOption
     (db as typeof db & { raw: unknown; $client: unknown }).raw = (
       db as typeof db & { $client: unknown }
     ).$client;
+
+    // Ensure a real DataProcessor instance is used
+    const monitor = new PerformanceMonitor();
+    const realProcessor = processor || new DataProcessor(db, apiClient, monitor);
 
     // Process seasons
     const seasonsToProcess = await processSeasons(
@@ -577,7 +580,7 @@ export async function seedOptimizedExternalData(options: ApplicationSeederOption
       await processSeasonStats(
         season,
         await fetchNbaGames(`season=${season}`),
-        processor,
+        realProcessor,
         batchSize
       );
 
@@ -590,7 +593,7 @@ export async function seedOptimizedExternalData(options: ApplicationSeederOption
 }
 
 export async function appendOptimizedExternalData(
-  options: ApplicationSeederOptions
+  options: IApplicationSeederOptions
 ): Promise<void> {
   const {
     seasons: inputSeasonYears = [],
@@ -609,6 +612,10 @@ export async function appendOptimizedExternalData(
     (db as typeof db & { raw: unknown; $client: unknown }).raw = (
       db as typeof db & { $client: unknown }
     ).$client;
+
+    // Ensure a real DataProcessor instance is used
+    const monitor = new PerformanceMonitor();
+    const realProcessor = processor || new DataProcessor(db, apiClient, monitor);
 
     // Process seasons
     const seasonsToProcess = await processSeasons(apiClient, inputSeasonYears, batchSize);
@@ -633,7 +640,7 @@ export async function appendOptimizedExternalData(
       await processSeasonStats(
         season,
         await fetchNbaGames(`season=${season}`),
-        processor,
+        realProcessor,
         batchSize
       );
 

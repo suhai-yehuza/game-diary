@@ -2,12 +2,11 @@ import { config } from 'dotenv-flow';
 import { sql } from 'drizzle-orm';
 import { reset } from 'drizzle-seed';
 
+import { seedLogger } from '@lib/core/logger';
 import { DB_CONFIG } from '@src/lib/config/db.config';
 import * as schema from '@src/lib/db/schema';
 import { initializeDb } from '@src/lib/db/seed/config';
-import { seedLogger } from 'lib/core/logger';
-import type { ApplicationSeederOptions } from '@src/lib/types/consolidated.types';
-import type { DatabaseClient } from '@src/lib/types/database.types';
+import type { IApplicationSeederOptions, IDatabaseClient } from '@src/lib/types/database.types';
 import { getCurrentSeason } from '@src/lib/utils/time';
 
 import { DataProcessor, PerformanceMonitor } from './data-processor';
@@ -16,7 +15,7 @@ config();
 
 // Optimized table operations
 class TableOperations {
-  constructor(private db: DatabaseClient) {}
+  constructor(private db: IDatabaseClient) {}
 
   async tableExists(tableName: string): Promise<boolean> {
     const result = await this.db.execute<{ exists: boolean }>(sql`
@@ -108,18 +107,18 @@ class TableOperations {
 }
 
 export class OptimizedSeeder {
-  private db: DatabaseClient;
+  private db: IDatabaseClient;
   private apiClient: OptimizedAPIClient;
   private tableOps: TableOperations;
   private processor: DataProcessor;
-  private options: Required<Omit<ApplicationSeederOptions, 'apiClient' | 'processor' | 'db'>> & {
-    db?: DatabaseClient;
+  private options: Required<Omit<IApplicationSeederOptions, 'apiClient' | 'processor' | 'db'>> & {
+    db?: IDatabaseClient;
     apiClient?: OptimizedAPIClient;
     processor?: DataProcessor;
   };
   private monitor: PerformanceMonitor = new PerformanceMonitor();
 
-  constructor(options: Partial<ApplicationSeederOptions> = {}) {
+  constructor(options: Partial<IApplicationSeederOptions> = {}) {
     this.options = {
       env: 'development',
       shouldResetDb: false,
@@ -137,7 +136,7 @@ export class OptimizedSeeder {
       ...options,
     };
 
-    this.db = initializeDb() as DatabaseClient;
+    this.db = initializeDb() as IDatabaseClient;
     // Add raw property to satisfy DatabaseClient interface
     (this.db as typeof this.db & { raw: unknown; $client: unknown }).raw = (
       this.db as typeof this.db & { $client: unknown }
@@ -249,7 +248,7 @@ export class OptimizedSeeder {
 
 // CLI interface
 export async function runOptimizedSeeder(
-  options: Partial<ApplicationSeederOptions> = {}
+  options: Partial<IApplicationSeederOptions> = {}
 ): Promise<void> {
   const seeder = new OptimizedSeeder(options);
   await seeder.seed();
@@ -258,7 +257,7 @@ export async function runOptimizedSeeder(
 // Allow running directly from command line
 if (import.meta.url === `file://${process.argv[1]}`) {
   const args = process.argv.slice(2);
-  const options: Partial<ApplicationSeederOptions> = {};
+  const options: Partial<IApplicationSeederOptions> = {};
 
   for (const arg of args) {
     const [key, value] = arg.split('=');

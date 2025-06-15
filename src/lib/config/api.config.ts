@@ -1,14 +1,14 @@
 import { APIError } from '@src/lib/errors/api.error';
 import type {
-  RangeConfig,
-  BatchSizeConfig,
-  RateLimitConfig,
-  ClassificationWeights,
-  PaginationConfig,
-  DistributionFunctions,
+  IRangeConfig,
+  IBatchSizeConfig,
+  IRateLimitConfig,
+  IClassificationWeights,
+  IPaginationConfig,
+  IDistributionFunctions,
 } from '@src/lib/types/config.types';
-import type { DatabaseSeedingConfig } from '@src/lib/types/database.types';
-import type { SortDirection } from '@src/lib/types/shared.types';
+import type { IDatabaseSeedingConfig } from '@src/lib/types/database.types';
+import type { ISortDirection } from '@src/lib/types/shared.types';
 
 const XSMALL = 10;
 const SMALL = 10 * XSMALL;
@@ -29,7 +29,7 @@ export function validateAPIKey(key: string | undefined): string {
 }
 
 // Distribution functions
-const distributions: DistributionFunctions = {
+const distributions: IDistributionFunctions = {
   natural: (rand: number) => Math.pow(rand, 2),
   bellCurve: (u1: number, u2: number) => {
     const z0 = Math.sqrt(-2.0 * Math.log(u1)) * Math.cos(2.0 * Math.PI * u2);
@@ -40,7 +40,7 @@ const distributions: DistributionFunctions = {
   pareto: (rand: number, alpha = 1.16) => Math.pow(rand, -1 / alpha),
   exponential: (rand: number) => Math.exp(-2 * rand),
   powerLaw: (rand: number, exponent = -2) => Math.pow(rand, exponent),
-} as const;
+} as const satisfies IDistributionFunctions;
 
 // API Configuration
 export const API_CONFIG = {
@@ -60,7 +60,7 @@ export const API_CONFIG = {
     RETRY_DELAY: 2000,
     USER_COUNT: XLARGE,
     DEFAULT_SAMPLE_COUNT: MEDIUM,
-  } as const satisfies DatabaseSeedingConfig,
+  } as const satisfies IDatabaseSeedingConfig,
 
   ranges: {
     FRIENDSHIP_RANGE: {
@@ -71,7 +71,7 @@ export const API_CONFIG = {
         const normalizedValue = distributions.natural(rand);
         return Math.floor(Math.min(MEDIUM, normalizedValue * MEDIUM));
       },
-    } satisfies RangeConfig,
+    } satisfies IRangeConfig,
 
     GAME_LOG_RANGE: {
       min: 0,
@@ -82,7 +82,7 @@ export const API_CONFIG = {
         const value = distributions.bellCurve(u1, u2);
         return Math.floor(Math.max(0, Math.min(SMALL, value)));
       },
-    } satisfies RangeConfig,
+    } satisfies IRangeConfig,
 
     COMMENT_RANGE: {
       min: 0,
@@ -92,7 +92,7 @@ export const API_CONFIG = {
         const paretoValue = distributions.pareto(rand);
         return Math.floor(Math.max(0, Math.min(SMALL, paretoValue * SMALL)));
       },
-    } satisfies RangeConfig,
+    } satisfies IRangeConfig,
 
     CHILD_COMMENT_RANGE: {
       min: 0,
@@ -102,7 +102,7 @@ export const API_CONFIG = {
         const decayedValue = distributions.exponential(rand);
         return Math.floor(Math.max(0, Math.min(XSMALL, decayedValue * XSMALL)));
       },
-    } satisfies RangeConfig,
+    } satisfies IRangeConfig,
 
     REACTION_RANGE: {
       min: 0,
@@ -112,7 +112,7 @@ export const API_CONFIG = {
         const powerValue = distributions.powerLaw(rand);
         return Math.floor(Math.max(0, Math.min(SMALL, powerValue * SMALL)));
       },
-    } satisfies RangeConfig,
+    } satisfies IRangeConfig,
   } as const,
 
   classification: {
@@ -120,7 +120,7 @@ export const API_CONFIG = {
       private: 0.1,
       protected: 0.6,
       public: 0.3,
-    } satisfies ClassificationWeights,
+    } satisfies IClassificationWeights,
   } as const,
 
   rateLimit: {
@@ -128,7 +128,7 @@ export const API_CONFIG = {
     BASE_DELAY: 1000,
     MAX_DELAY: 5000,
     RATE_LIMIT_DELAY: 60000,
-  } as const satisfies RateLimitConfig,
+  } as const satisfies IRateLimitConfig,
 
   errors: {
     MISSING_API_KEY: 'API key is required',
@@ -152,14 +152,14 @@ export const API_CONFIG = {
     GAMES: 25,
     GAME_STATS: 10,
     PLAYERS: 50,
-  } as const satisfies BatchSizeConfig,
+  } as const satisfies IBatchSizeConfig,
 
   pagination: {
     DEFAULT_PAGE_SIZE: 15,
     HUGE_SIZE: 10000,
     MAX_CHILD_COMMENT_DEPTH: 3,
-    DEFAULT_SORT_DIRECTION: 'desc' as SortDirection,
-  } as const satisfies PaginationConfig,
+    DEFAULT_SORT_DIRECTION: 'desc' as ISortDirection,
+  } as const satisfies IPaginationConfig,
 } as const;
 
 export function getRapidApiConfig() {

@@ -2,11 +2,9 @@ import { and, eq, gt, lt, or, sql, type InferSelectModel } from 'drizzle-orm';
 
 import * as schema from '@src/lib/db/schema';
 import { BusinessLogicError } from '@src/lib/graphql/errors';
-import { createConnection } from '@src/lib/graphql/utils';
-import type { Context } from '@src/lib/types/component.types';
-import type { PaginationArgs, PlayerFilters } from '@src/lib/types/resolver.types';
-
-import { handleResolverError } from '../utils';
+import { createConnection, handleResolverError } from '@src/lib/graphql/utils';
+import type { IContext } from '@src/lib/types/component.types';
+import type { IPaginationArgs, IPlayerFilters } from '@src/lib/types/resolver.types';
 
 // Helper function to map player data
 const mapPlayerData = (player: InferSelectModel<typeof schema.nba_players>) => ({
@@ -32,8 +30,8 @@ const mapPlayerData = (player: InferSelectModel<typeof schema.nba_players>) => (
 
 export const players = async (
   _parent: unknown,
-  args: PaginationArgs & { filters?: PlayerFilters },
-  { db }: Context
+  args: IPaginationArgs & { filters?: IPlayerFilters },
+  { db }: IContext
 ) => {
   try {
     const { first = 10, after, last, before, filters } = args;
@@ -88,14 +86,14 @@ export const players = async (
   }
 };
 
-export const player = async (_parent: unknown, { id }: { id: string }, { db }: Context) => {
+export const player = async (_parent: unknown, { id }: { id: string }, { db }: IContext) => {
   try {
     const player = await db
       .select()
       .from(schema.nba_players)
       .where(eq(schema.nba_players.id, id))
       .limit(1)
-      .then(rows => rows[0]);
+      .then((rows: InferSelectModel<typeof schema.nba_players>[]) => rows[0]);
 
     if (!player) throw new BusinessLogicError(`Player with id ${id} not found`, 'PLAYER_NOT_FOUND');
 
@@ -108,7 +106,7 @@ export const player = async (_parent: unknown, { id }: { id: string }, { db }: C
 export const playerStats = async (
   _parent: unknown,
   { playerId, gameId }: { playerId: string; gameId: string },
-  { db }: Context
+  { db }: IContext
 ) => {
   try {
     const stats = await db
@@ -121,7 +119,7 @@ export const playerStats = async (
         )
       )
       .limit(1)
-      .then(rows => rows[0]);
+      .then((rows: InferSelectModel<typeof schema.nba_player_stats>[]) => rows[0]);
 
     if (!stats) {
       return {

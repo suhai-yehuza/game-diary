@@ -23,6 +23,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { toast } from 'react-hot-toast';
 import { useDebounce } from 'use-debounce';
 
+import { logger } from '@lib/core/logger';
 import { Avatar, AvatarFallback, AvatarImage } from '@src/app/components/ui/avatar';
 import { Badge } from '@src/app/components/ui/badge';
 import { Button } from '@src/app/components/ui/button';
@@ -54,13 +55,13 @@ import {
   REMOVE_FRIEND,
 } from '@src/lib/graphql/mutations';
 import { SEARCH_USERS } from '@src/lib/graphql/queries';
-import { logger } from 'lib/core/logger';
-import type { UserSearchSectionProps, UserNode, UserEdge } from '@src/lib/types/component.types';
+import type { IUserSearchSectionProps, IUserNode } from '@src/lib/types/component.types';
 import { FRIENDSHIP_STATUS } from '@src/lib/types/config.types';
+import type { UserEdge } from '@src/lib/types/generated/graphql';
 import { cn } from '@src/lib/utils';
 import { formatCount } from '@src/lib/utils/format';
 
-const UserCard = React.memo(({ user }: { user: UserNode }) => {
+const UserCard = React.memo(({ user }: { user: IUserNode }) => {
   const { user: currentUser } = useUser();
   const [sendFriendRequest, { loading: sendingRequest }] = useMutation(SEND_FRIEND_REQUEST);
   const [acceptFriendRequest, { loading: acceptingRequest }] = useMutation(ACCEPT_FRIEND_REQUEST);
@@ -477,7 +478,7 @@ const UserCardSkeleton = React.memo(() => (
 
 UserCardSkeleton.displayName = 'UserCardSkeleton';
 
-export function UserSearchSection({ className }: UserSearchSectionProps) {
+export function UserSearchSection({ className }: IUserSearchSectionProps) {
   const { user: currentUser } = useUser();
   const { addNotification } = useNotifications();
   const [searchTerm, setSearchTerm] = useState('');
@@ -493,7 +494,7 @@ export function UserSearchSection({ className }: UserSearchSectionProps) {
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const [isNavigating, setIsNavigating] = useState(false);
-  const [pageData, setPageData] = useState<{ [key: number]: UserNode[] }>({});
+  const [pageData, setPageData] = useState<{ [key: number]: IUserNode[] }>({});
   const [cursors, setCursors] = useState<{ [key: number]: string | null }>({ 1: null });
   const pageSize = API_CONFIG.pagination.DEFAULT_PAGE_SIZE;
 
@@ -695,7 +696,7 @@ export function UserSearchSection({ className }: UserSearchSectionProps) {
 
     const checkFriendRequests = async () => {
       const users = data.searchUsers.edges.map((edge: UserEdge) => edge.node);
-      const receivedRequests = users.filter((user: UserNode) => {
+      const receivedRequests = users.filter((user: IUserNode) => {
         const receivedFriendship = user.initiatedFriendships?.find(
           f => f.recipient.id === currentUser.id && f.status === FRIENDSHIP_STATUS.PENDING
         );
@@ -928,7 +929,7 @@ export function UserSearchSection({ className }: UserSearchSectionProps) {
                 isNavigating && 'opacity-60'
               )}
             >
-              {currentPageUsers.map((user: UserNode) => (
+              {currentPageUsers.map((user: IUserNode) => (
                 <UserCard key={user.id} user={user} />
               ))}
             </div>

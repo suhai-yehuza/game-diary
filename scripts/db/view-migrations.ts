@@ -1,8 +1,8 @@
 import { sql } from 'drizzle-orm';
 
+import { logger } from '@lib/core/logger';
 import { db } from '@src/lib/db';
-import { logger } from 'lib/core/logger';
-import type { MigrationVersion } from '@src/lib/types/consolidated.types';
+import type { IMigrationVersion } from '@src/lib/types/common.types';
 
 async function viewMigrations() {
   try {
@@ -29,7 +29,7 @@ async function viewMigrations() {
 
     // Map each row to MigrationVersion type
     (result.rows as Record<string, unknown>[]).forEach(row => {
-      const migration = row as unknown as MigrationVersion;
+      const migration = row as unknown as IMigrationVersion;
       logger.info('\nMigration:', migration.name);
       logger.info('Status:', migration.status);
       logger.info('Executed at:', migration.executed_at);

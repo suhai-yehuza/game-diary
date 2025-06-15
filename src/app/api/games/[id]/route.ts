@@ -1,9 +1,9 @@
 import { eq } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
 
+import { apiLogger } from '@lib/core/logger';
 import { db } from '@src/lib/db';
 import { nba_games } from '@src/lib/db/schema';
-import { apiLogger } from 'lib/core/logger';
 export async function GET(request: Request, { params }: { params: { id: string } }) {
   try {
     const game = await db.query.nba_games.findFirst({

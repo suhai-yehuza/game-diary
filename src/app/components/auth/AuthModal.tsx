@@ -3,9 +3,9 @@
 import { useRouter } from 'next/navigation';
 import React, { useRef } from 'react';
 
-import type { AuthModalProps } from '@src/lib/types/consolidated.types';
+import type { IAuthModalProps } from '@src/lib/types/component.types';
 
-export function AuthModal({ children }: AuthModalProps) {
+export function AuthModal({ children }: IAuthModalProps) {
   const router = useRouter();
   const modalRef = useRef<HTMLDivElement>(null);
 

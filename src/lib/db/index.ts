@@ -3,13 +3,13 @@
 import { neon, neonConfig } from '@neondatabase/serverless';
 import { drizzle, type NeonHttpDatabase } from 'drizzle-orm/neon-http';
 
+import { dbLogger } from '@lib/core/logger';
 import { getCache } from '@src/lib/cache';
 import { schema as dbSchema } from '@src/lib/db/schema';
 import type { Schema } from '@src/lib/db/schema/types';
 import { env as appEnv } from '@src/lib/env';
-import { dbLogger } from 'lib/core/logger';
 import { CACHE_TTL } from '@src/lib/types/cache.types';
-import { type QueryOptions } from '@src/lib/types/database.types';
+import { type IQueryOptions } from '@src/lib/types/database.types';
 
 // Initialize cache
 const cache = getCache();
@@ -144,7 +144,7 @@ export const batchQuery = async <T extends { id: string }>(
 export const monitorQuery = async <T>(
   name: string,
   queryFn: () => Promise<T>,
-  options: QueryOptions = {}
+  options: IQueryOptions = {}
 ): Promise<T> => {
   const {
     timeout = 30000, // 30 seconds default timeout
@@ -202,7 +202,7 @@ export const monitorQuery = async <T>(
 // Database transaction wrapper with proper error handling
 export async function withDb<T>(
   callback: (db: NeonHttpDatabase<typeof dbSchema>) => Promise<T>,
-  options: QueryOptions = {}
+  options: IQueryOptions = {}
 ): Promise<T> {
   return monitorQuery(
     'withDb',

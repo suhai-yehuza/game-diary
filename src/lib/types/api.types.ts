@@ -1,17 +1,23 @@
 /**
  * API-related types including configuration, validation, response types, and activity tracking
  */
-import type {
-  Comment,
-  Reaction,
-  Game,
-  UserSummary,
-  GameLog,
-  ParentType as TargetType,
-} from '@src/lib/types/generated/graphql';
+import type { NextApiRequest } from 'next';
+
+import type { Comment, Reaction, ParentType as TargetType } from '@src/lib/types/generated/graphql';
+
+// Extended NextApiRequest with additional properties
+export interface IExtendedNextApiRequest extends NextApiRequest {
+  selectedFields?: string[];
+  pagination?: {
+    first?: number;
+    after?: string;
+    last?: number;
+    before?: string;
+  };
+}
 
 // API Configuration Types
-export interface APIConfig {
+export interface IAPIConfig {
   baseUrl: string;
   endpoints: {
     [key: string]: string;
@@ -24,13 +30,13 @@ export interface APIConfig {
   cacheTTL: number;
 }
 
-export interface RapidAPIConfig extends APIConfig {
+export interface IRapidAPIConfig extends IAPIConfig {
   apiKey: string;
   host: string;
 }
 
 // API Response Types
-export interface APIResponse<T = unknown> {
+export interface IAPIResponse<T = unknown> {
   response?: T[];
   data?: T[];
   get?: string;
@@ -39,31 +45,31 @@ export interface APIResponse<T = unknown> {
   results?: number;
 }
 
-export interface APIError {
+export interface IAPIError {
   code: string;
   message: string;
   details?: unknown;
 }
 
 // Validation Types
-export interface ValidationError {
+export interface IValidationError {
   field: string;
   message: string;
   code?: string;
 }
 
-export interface ValidationResult {
+export interface IValidationResult {
   isValid: boolean;
-  errors: ValidationError[];
+  errors: IValidationError[];
 }
 
-export interface ValidationRule {
+export interface IValidationRule {
   validate: (value: unknown) => boolean;
   message: string;
 }
 
 // API Request Types
-export interface APIRequestOptions {
+export interface IAPIRequestOptions {
   method?: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
   headers?: Record<string, string>;
   body?: unknown;
@@ -73,16 +79,16 @@ export interface APIRequestOptions {
 }
 
 // API Client Types
-export interface APIClient {
-  get<T>(endpoint: string, options?: APIRequestOptions): Promise<APIResponse<T>>;
-  post<T>(endpoint: string, data: unknown, options?: APIRequestOptions): Promise<APIResponse<T>>;
-  put<T>(endpoint: string, data: unknown, options?: APIRequestOptions): Promise<APIResponse<T>>;
-  delete<T>(endpoint: string, options?: APIRequestOptions): Promise<APIResponse<T>>;
-  patch<T>(endpoint: string, data: unknown, options?: APIRequestOptions): Promise<APIResponse<T>>;
+export interface IAPIClient {
+  get<T>(endpoint: string, options?: IAPIRequestOptions): Promise<IAPIResponse<T>>;
+  post<T>(endpoint: string, data: unknown, options?: IAPIRequestOptions): Promise<IAPIResponse<T>>;
+  put<T>(endpoint: string, data: unknown, options?: IAPIRequestOptions): Promise<IAPIResponse<T>>;
+  delete<T>(endpoint: string, options?: IAPIRequestOptions): Promise<IAPIResponse<T>>;
+  patch<T>(endpoint: string, data: unknown, options?: IAPIRequestOptions): Promise<IAPIResponse<T>>;
 }
 
 // API Rate Limiting Types
-export interface RateLimitConfig {
+export interface IRateLimitConfig {
   windowMs: number;
   max: number;
   message?: string;
@@ -91,14 +97,14 @@ export interface RateLimitConfig {
 }
 
 // API Caching Types
-export interface CacheConfig {
+export interface ICacheConfig {
   ttl: number;
   maxSize?: number;
   strategy?: 'memory' | 'redis';
 }
 
 // API Monitoring Types
-export interface APIMetrics {
+export interface IAPIMetrics {
   endpoint: string;
   method: string;
   statusCode: number;
@@ -107,7 +113,7 @@ export interface APIMetrics {
   error?: string;
 }
 
-export interface APIParameters {
+export interface IAPIParameters {
   id?: string;
   date?: string;
   season?: string;
@@ -116,90 +122,8 @@ export interface APIParameters {
   h2h?: string;
 }
 
-export interface GameApiResponse {
-  id: string;
-  date: string;
-  homeTeam: {
-    id: string;
-    name: string;
-    nickname: string;
-    code: string;
-    logo: string;
-  };
-  awayTeam: {
-    id: string;
-    name: string;
-    nickname: string;
-    code: string;
-    logo: string;
-  };
-  homeScore: number;
-  awayScore: number;
-  status: string;
-  season: string;
-  period: number;
-  postseason: boolean;
-}
-
-export interface GameResponseData {
-  game: Game;
-  gameLog?: GameLog;
-}
-
-export interface PlayerApiResponse {
-  id: string;
-  firstName: string;
-  lastName: string;
-  birth: {
-    date: string;
-    country: string;
-  };
-  nba: {
-    start: number;
-    pro: number;
-  };
-  height: {
-    feets: number;
-    inches: number;
-    meters: number;
-  };
-  weight: {
-    pounds: number;
-    kilograms: number;
-  };
-  college: string;
-  affiliation: string;
-  leagues: {
-    standard: {
-      jersey: string;
-      active: boolean;
-      pos: string;
-    };
-  };
-}
-
-export interface TeamApiResponse {
-  id: string;
-  name: string;
-  nickname: string;
-  code: string;
-  logo: string;
-  city?: string;
-  state?: string;
-  conference?: string;
-  division?: string;
-}
-
-export interface UserApiResponse {
-  id: string;
-  username: string;
-  firstName: string;
-  lastName: string;
-  emailAddress?: string;
-  imageUrl?: string;
-}
-
-export interface Activity {
+// Activity Types
+export interface IActivity {
   id: string;
   userId: string;
   message: string;
@@ -207,94 +131,10 @@ export interface Activity {
   targetId: string;
   createdAt: Date;
   read: boolean;
-  type: ActivityType;
+  type: IActivityType;
 }
 
-export interface ApiError {
-  message: string;
-  code?: string;
-  field?: string;
-}
-
-export interface ApiResponse<T> {
-  data?: T;
-  errors?: ApiError[];
-}
-
-export interface PaginationParams {
-  page?: number;
-  limit?: number;
-  cursor?: string;
-}
-
-export interface SearchParams {
-  query?: string;
-  filters?: Record<string, unknown>;
-  sort?: Record<string, 'asc' | 'desc'>;
-}
-
-export interface ApiRequestOptions {
-  pagination?: PaginationParams;
-  search?: SearchParams;
-  headers?: Record<string, string>;
-}
-
-export interface ExtendedNextApiRequest {
-  user?: UserSummary;
-  query: Record<string, string | string[]>;
-  body: Record<string, unknown>;
-  headers: Record<string, string>;
-}
-
-export type SeasonApiResponse = {
-  get: string;
-  parameters: APIParameters;
-  errors: APIError[];
-  results: number;
-  response: number[];
-  data: number[]; // For backward compatibility
-};
-
-export type RangeConfig = {
-  min: number;
-  max: number;
-  step: number;
-};
-
-export type BatchSizeConfig = {
-  default: number;
-  max: number;
-  min: number;
-};
-
-export type APISeedingConfig = {
-  enabled: boolean;
-  batchSize: number;
-  maxRetries: number;
-  retryDelay: number;
-};
-
-export type ClassificationWeights = {
-  [key: string]: number;
-};
-
-export type DistributionFunctions = {
-  [key: string]: (value: number) => number;
-};
-
-// Activity Types
-// export interface Activity {
-//   id: string;
-//   userId: string;
-//   type: ActivityType;
-//   targetId: string;
-//   targetType: TargetType;
-//   metadata?: Record<string, unknown>;
-//   createdAt: Date;
-//   updatedAt: Date;
-// }
-
-export type ActivityType =
+export type IActivityType =
   | 'game_log_created'
   | 'game_log_updated'
   | 'friend_added'
@@ -308,14 +148,12 @@ export type ActivityType =
   | 'note'
   | 'watch';
 
-// Comment Types
-export interface DbComment extends Comment {
+export interface IDbComment extends Comment {
   replies?: Comment[];
   parentId: string;
 }
 
-// Reaction Types
-export interface DbReaction extends Reaction {
+export interface IDbReaction extends Reaction {
   target?: {
     id: string;
     type: TargetType;
@@ -324,10 +162,9 @@ export interface DbReaction extends Reaction {
   metadata?: Record<string, unknown>;
 }
 
-// Timeline Types
-export interface TimelineItem {
+export interface ITimelineItem {
   id: string;
-  type: ActivityType;
+  type: IActivityType;
   user: {
     id: string;
     name: string;
@@ -344,26 +181,24 @@ export interface TimelineItem {
   createdAt: Date;
 }
 
-export type TimeFilter = 'today' | 'week' | 'month' | 'year' | 'all';
+export type ITimeFilter = 'today' | 'week' | 'month' | 'year' | 'all';
 
-// Activity Feed Types
-export interface ActivityFeed {
-  items: TimelineItem[];
+export interface IActivityFeed {
+  items: ITimelineItem[];
   hasMore: boolean;
   nextCursor?: string;
   totalCount: number;
 }
 
-// Activity Stats Types
-export interface ActivityStats {
+export interface IActivityStats {
   totalActivities: number;
-  activitiesByType: Record<ActivityType, number>;
+  activitiesByType: Record<IActivityType, number>;
   activitiesByTargetType: Record<TargetType, number>;
   recentActivityCount: number;
   lastActivityDate?: Date;
 }
 
-export type ActivityTimelineProps = {
+export interface IActivityTimelineProps {
   gameLogs: Array<{
     id: string;
     createdAt: string;
@@ -378,8 +213,36 @@ export type ActivityTimelineProps = {
       };
     };
   }>;
-};
+}
 
-export interface FriendActivityProps {
+export interface IFriendActivityProps {
   friendId: string;
+}
+
+// API Configuration Types
+export interface IRangeConfig {
+  min: number;
+  max: number;
+  step: number;
+}
+
+export interface IBatchSizeConfig {
+  default: number;
+  max: number;
+  min: number;
+}
+
+export interface IAPISeedingConfig {
+  enabled: boolean;
+  batchSize: number;
+  maxRetries: number;
+  retryDelay: number;
+}
+
+export interface IClassificationWeights {
+  [key: string]: number;
+}
+
+export interface IDistributionFunctions {
+  [key: string]: (value: number) => number;
 }

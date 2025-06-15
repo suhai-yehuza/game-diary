@@ -2,9 +2,9 @@ import { auth, currentUser } from '@clerk/nextjs/server';
 import { desc } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
 
+import { apiLogger } from '@lib/core/logger';
 import { users } from '@src/lib/db/schema';
 import { db } from '@src/lib/db/seed';
-import { apiLogger } from 'lib/core/logger';
 export const dynamic = 'force-dynamic';
 
 export async function GET() {

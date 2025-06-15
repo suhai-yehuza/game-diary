@@ -8,18 +8,13 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import React, { useState, useEffect } from 'react';
 
-import { GameLogModal } from '@src/app/protected/user/components/game-logs/game-log-modal';
-import { Button } from '@src/app/components/ui/button';
 import { useAuthContext } from '@/contexts/auth-context';
+import { logger } from '@lib/core/logger';
+import { Button } from '@src/app/components/ui/button';
+import { GameLogModal } from '@src/app/protected/user/components/game-logs/game-log-modal';
 import { fetchNbaGameById } from '@src/lib/external-apis';
 import { GET_TEAM_GAME_STATS, GET_TEAM_H2H } from '@src/lib/graphql/queries';
-import { logger } from 'lib/core/logger';
-import type {
-  TeamDisplayProps,
-  HeadToHeadProps,
-  TeamStatsProps,
-  Game,
-} from '@src/lib/types/consolidated.types';
+import type { IGame, ITeamDisplayProps, IHeadToHeadProps, ITeamStatsProps } from '@src/lib/types';
 import type { GameLog } from '@src/lib/types/generated/graphql';
 import { cn } from '@src/lib/utils';
 
@@ -55,7 +50,6 @@ const formatArenaLocation = (arena: {
 };
 
 // Team display component
-
 const TeamDisplay = ({
   team,
   score,
@@ -64,7 +58,7 @@ const TeamDisplay = ({
   imageErrors,
   onImageError,
   gameId,
-}: TeamDisplayProps) => {
+}: ITeamDisplayProps) => {
   if (!team) return null;
 
   const imageKey = `${gameId}-${isHome ? 'home' : 'visitors'}`;
@@ -102,7 +96,7 @@ const TeamDisplay = ({
   );
 };
 
-const HeadToHeadSection = ({ h2hData, homeTeam, awayTeam, loading, error }: HeadToHeadProps) => {
+const HeadToHeadSection = ({ h2hData, homeTeam, awayTeam, loading, error }: IHeadToHeadProps) => {
   if (loading) {
     return (
       <div className="bg-card rounded-lg shadow-sm p-6">
@@ -184,7 +178,7 @@ const HeadToHeadSection = ({ h2hData, homeTeam, awayTeam, loading, error }: Head
   );
 };
 
-const TeamStatsSection = ({ teamStats, team, isHome, loading, error }: TeamStatsProps) => {
+const TeamStatsSection = ({ teamStats, team, isHome, loading, error }: ITeamStatsProps) => {
   if (loading) {
     return (
       <div className="bg-card rounded-xl shadow-lg overflow-hidden">
@@ -367,7 +361,7 @@ export default function GamePage() {
   const gameId = params.id as string;
   const { user } = useAuthContext();
   const userId = user?.id;
-  const [gameData, setGameData] = useState<Game | null>(null);
+  const [gameData, setGameData] = useState<IGame | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -419,7 +413,7 @@ export default function GamePage() {
         }
         const apiGame = response.response[0];
 
-        const game: Game = {
+        const game: IGame = {
           id: apiGame.id.toString(),
           date: {
             start: apiGame.date.start ? new Date(apiGame.date.start).toISOString() : '',

@@ -7,7 +7,7 @@ import { StarRating } from '@src/app/components/ui/star-rating';
 import { GET_GAME_LOGS } from '@src/lib/graphql/queries';
 import type { GameLog } from '@src/lib/types/generated/graphql';
 
-interface FriendProfileProps {
+interface IFriendProfileProps {
   friend: {
     id: string;
     username: string;
@@ -17,7 +17,7 @@ interface FriendProfileProps {
 
 import { FriendActivity } from './friend-activity';
 
-export const FriendProfile: React.FC<FriendProfileProps> = ({ friend }) => {
+export const FriendProfile: React.FC<IFriendProfileProps> = ({ friend }) => {
   const { loading, error, data } = useQuery(GET_GAME_LOGS, {
     variables: {
       userId: friend.id,

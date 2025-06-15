@@ -4,13 +4,13 @@
 /// <reference lib="es2015" />
 
 declare global {
-  type EmptyObject = Record<string, never>;
-  interface GlobalThis {
+  type IEmptyObject = Record<string, never>;
+  interface IGlobalThis {
     gc?: () => void;
   }
 }
 
-export interface GlobalWithGC {
+export interface IGlobalWithGC {
   gc?: () => void;
 }
 

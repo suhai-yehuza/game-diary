@@ -2,14 +2,12 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import ReactDatePickerOriginal from 'react-datepicker';
-import 'react-datepicker/dist/react-datepicker.css';
 
-// Type-safe component wrapper
-const ReactDatePicker =
-  ReactDatePickerOriginal as unknown as React.ComponentType<ReactDatePickerProps>;
+import 'react-datepicker/dist/react-datepicker.css';
 
 import { Button } from '@src/app/components/ui/button';
 import { Input } from '@src/app/components/ui/input';
+import { Label } from '@src/app/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -18,18 +16,20 @@ import {
   SelectValue,
 } from '@src/app/components/ui/select';
 import { Textarea } from '@src/app/components/ui/textarea';
-import { Label } from '@src/app/components/ui/label';
 import {
   WATCHED_SETTING,
   CLASSIFICATION,
   WATCHED_SCOPE,
-  type WatchedSettingValue,
-  type WatchedScopeValue,
+  type IWatchedSettingValue,
+  type IWatchedScopeValue,
 } from '@src/lib/types/config.types';
-import type { GameLogFormProps, Game } from '@src/lib/types/consolidated.types';
-import type { ReactDatePickerProps } from '@src/lib/types/game-log.types';
+import type { IGameLogFormProps, IReactDatePickerProps } from '@src/lib/types/game-log.types';
+import type { IGame } from '@src/lib/types/game.types';
 import type { CreateGameLogInput, Classification } from '@src/lib/types/generated/graphql';
-import { logger } from 'lib/core/logger';
+
+// Type-safe component wrapper
+const ReactDatePicker =
+  ReactDatePickerOriginal as unknown as React.ComponentType<IReactDatePickerProps>;
 
 export function GameLogForm({
   formData: externalFormData,
@@ -38,13 +38,13 @@ export function GameLogForm({
   onSubmit,
   onCancel,
   submitLabel = 'Save',
-}: GameLogFormProps) {
+}: IGameLogFormProps) {
   // Form state with safe defaults - ensure all Select values are always defined
   const [formData, setFormData] = useState<CreateGameLogInput>({
     gameId: '',
     classification: CLASSIFICATION.PROTECTED as Classification,
-    watchedSetting: WATCHED_SETTING.TV as WatchedSettingValue,
-    watchedScope: WATCHED_SCOPE.FULL_GAME as WatchedScopeValue,
+    watchedSetting: WATCHED_SETTING.TV as IWatchedSettingValue,
+    watchedScope: WATCHED_SCOPE.FULL_GAME as IWatchedScopeValue,
     watchedDate: new Date(),
     watchedLocation: '',
     ratingForGame: 3,
@@ -52,7 +52,7 @@ export function GameLogForm({
     tags: [],
   });
 
-  const [selectedGame] = useState<Game | null>(null);
+  const [selectedGame] = useState<IGame | null>(null);
   const [isUserInteracting, setIsUserInteracting] = useState(false);
   const hasInitialized = useRef(false);
 
@@ -61,20 +61,20 @@ export function GameLogForm({
     if (externalFormData && !hasInitialized.current && !isUserInteracting) {
       const newFormData: CreateGameLogInput = {
         gameId: externalFormData.gameId,
-        watchedSetting: externalFormData.watchedSetting as WatchedSettingValue,
+        watchedSetting: externalFormData.watchedSetting,
         watchedDate: externalFormData.watchedDate,
-        watchedLocation: externalFormData.watchedLocation || '',
+        watchedLocation: externalFormData.watchedLocation,
         ratingForGame: externalFormData.ratingForGame,
-        watchedScope: externalFormData.watchedScope as WatchedScopeValue,
-        notes: externalFormData.notes || '',
-        tags: externalFormData.tags || [],
+        watchedScope: externalFormData.watchedScope,
+        notes: externalFormData.notes,
+        tags: externalFormData.tags,
         classification: externalFormData.classification as Classification,
       };
 
       setFormData(newFormData);
       hasInitialized.current = true;
     }
-  }, [externalFormData, isUserInteracting]); // Include isUserInteracting to prevent conflicts
+  }, [externalFormData, isUserInteracting]);
 
   // Update gameId when external selected game changes
   useEffect(() => {
@@ -87,7 +87,7 @@ export function GameLogForm({
   const finalSelectedGame = externalSelectedGame || selectedGame;
   const isLoading = externalLoading || false;
 
-  const formatGameDateDisplay = (game: Game | null) => {
+  const formatGameDateDisplay = (game: IGame | null) => {
     if (!game) return '';
     const date = typeof game.date === 'string' ? new Date(game.date) : new Date(game.date.start);
     return date.toLocaleDateString();
@@ -100,12 +100,10 @@ export function GameLogForm({
     const safeFormData = {
       ...formData,
       ratingForGame: formData.ratingForGame ?? 3,
-      // Classification should always be valid at this point
     };
 
-    logger.debug('Submitting form data:', safeFormData);
     if (onSubmit) {
-      await onSubmit(safeFormData);
+      await onSubmit(safeFormData as unknown as React.FormEvent);
     }
   };
 
@@ -116,9 +114,9 @@ export function GameLogForm({
     if (field === 'classification') {
       setFormData(prev => ({ ...prev, [field]: value as Classification }));
     } else if (field === 'watchedSetting') {
-      setFormData(prev => ({ ...prev, [field]: value as WatchedSettingValue }));
+      setFormData(prev => ({ ...prev, [field]: value as IWatchedSettingValue }));
     } else if (field === 'watchedScope') {
-      setFormData(prev => ({ ...prev, [field]: value as WatchedScopeValue }));
+      setFormData(prev => ({ ...prev, [field]: value as IWatchedScopeValue }));
     } else {
       setFormData(prev => ({ ...prev, [field]: value }));
     }

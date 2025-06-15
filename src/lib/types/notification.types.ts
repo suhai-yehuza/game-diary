@@ -1,7 +1,7 @@
 import type { ReactElement } from 'react';
 
 // Notification Types
-export type NotificationType =
+export type INotificationType =
   | 'success'
   | 'error'
   | 'warning'
@@ -11,7 +11,7 @@ export type NotificationType =
   | 'friend_rejected'
   | 'friend_removed';
 
-export interface NotificationData {
+export interface INotificationData {
   userId?: string;
   gameLogId?: string;
   friendshipId?: string;
@@ -19,13 +19,13 @@ export interface NotificationData {
   [key: string]: unknown;
 }
 
-export interface AppNotification {
+export interface IAppNotification {
   id: string;
   userId: string;
-  type: NotificationType;
+  type: INotificationType;
   title: string;
   message: string;
-  data?: NotificationData;
+  data?: INotificationData;
   read: boolean;
   readAt: Date | null;
   createdAt: Date;
@@ -44,12 +44,12 @@ export interface AppNotification {
   description?: string;
 }
 
-export interface NotificationContextType {
-  notifications: AppNotification[];
+export interface INotificationContextType {
+  notifications: IAppNotification[];
   unreadCount: number;
   addNotification: (
     notification: Omit<
-      AppNotification,
+      IAppNotification,
       'id' | 'createdAt' | 'updatedAt' | 'read' | 'readAt' | 'deletedAt'
     >
   ) => void;
@@ -58,24 +58,29 @@ export interface NotificationContextType {
   clearNotifications: () => void;
 }
 
-// Consolidated from toast.types.ts
-export type ToastProps = {
+// Toast notification properties
+export interface IToastProps {
   id?: string;
   title: string;
   description?: string;
   variant?: 'default' | 'destructive';
   action?: ReactElement;
   open?: boolean;
-};
+}
 
-export type ToastActionElement = ReactElement;
+export type IToastActionElement = ReactElement;
 
-export type ToasterToast = ToastProps & { id: string; open?: boolean };
+export interface IToasterToast extends IToastProps {
+  id: string;
+  open?: boolean;
+}
 
-export type ToastState = { toasts: ToasterToast[] };
+export interface IToastState {
+  toasts: IToasterToast[];
+}
 
-export type ToastAction = {
+export interface IToastAction {
   type: 'ADD_TOAST' | 'REMOVE_TOAST' | 'UPDATE_TOAST' | 'DISMISS_TOAST';
-  toast?: ToasterToast;
+  toast?: IToasterToast;
   toastId?: string;
-};
+}

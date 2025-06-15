@@ -1,7 +1,9 @@
-import { envSchema } from '@src/lib/validations/env';
-import { logger } from 'lib/core/logger';
-import * as dotenvFlow from 'dotenv-flow';
 import * as path from 'path';
+
+import * as dotenvFlow from 'dotenv-flow';
+
+import { logger } from '@lib/core/logger';
+import { envSchema } from '@src/lib/validations/env';
 
 function verifyEnvironment(envFile: string) {
   const nodeEnv = process.env.NODE_ENV || 'development';

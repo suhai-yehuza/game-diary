@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import * as React from 'react';
 import { describe, it, expect, vi } from 'vitest';
 
-import { Button } from '@src/components/ui/button';
+import { Button } from '@src/app/components/ui/button';
 
 describe('Button', () => {
   it('renders with default props', () => {

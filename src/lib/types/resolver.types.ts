@@ -1,9 +1,9 @@
-import type { SortDirection } from './common.types';
-import type { DatabaseClient } from './database.types';
+import type { ISortDirection } from './common.types';
+import type { IDatabaseClient } from './database.types';
 
 // Resolver Context Types
-export interface ResolverContext {
-  db: DatabaseClient;
+export interface IResolverContext {
+  db: IDatabaseClient;
   user?: {
     id: string;
     email: string;
@@ -11,21 +11,21 @@ export interface ResolverContext {
 }
 
 // Filter Types
-export interface FilterArgs {
+export interface IFilterArgs {
   search?: string;
   sortBy?: string;
-  sortDirection?: SortDirection;
+  sortDirection?: ISortDirection;
   [key: string]: unknown;
 }
 
-export interface PaginationArgs {
+export interface IPaginationArgs {
   first?: number;
   after?: string;
   last?: number;
   before?: string;
 }
 
-export interface UserFilters extends FilterArgs {
+export interface IUserFilters extends IFilterArgs {
   search?: string;
   status?: string;
   role?: string;
@@ -37,7 +37,7 @@ export interface UserFilters extends FilterArgs {
   orderBy?: string;
 }
 
-export interface UserSearchFilters extends FilterArgs {
+export interface IUserSearchFilters extends IFilterArgs {
   query?: string;
   status?: string;
   role?: string;
@@ -49,7 +49,7 @@ export interface UserSearchFilters extends FilterArgs {
   orderBy?: string;
 }
 
-export interface PlayerFilters extends FilterArgs {
+export interface IPlayerFilters extends IFilterArgs {
   team?: string;
   teamId?: string;
   position?: string;
@@ -57,7 +57,7 @@ export interface PlayerFilters extends FilterArgs {
   status?: string;
 }
 
-export interface TeamFilters extends FilterArgs {
+export interface ITeamFilters extends IFilterArgs {
   conference?: string;
   division?: string;
   search?: string;

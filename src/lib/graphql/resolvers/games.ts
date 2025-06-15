@@ -1,19 +1,17 @@
-import { and, eq, or, sql } from 'drizzle-orm';
+import { and, eq, or, sql, type InferSelectModel } from 'drizzle-orm';
 
 import * as schema from '@src/lib/db/schema';
 import { fetchNbaLiveGames } from '@src/lib/external-apis';
 import { BusinessLogicError } from '@src/lib/graphql/errors';
-import { createConnection } from '@src/lib/graphql/utils';
-import type { Context } from '@src/lib/types/component.types';
-import type { GameResponseData } from '@src/lib/types/consolidated.types';
+import { createConnection, handleResolverError, mapGameData } from '@src/lib/graphql/utils';
+import type { IGameResponseData } from '@src/lib/types';
+import type { IContext } from '@src/lib/types/component.types';
 import type { GameFilters } from '@src/lib/types/generated/graphql';
-import type { PaginationArgs } from '@src/lib/types/resolver.types';
+import type { IPaginationArgs } from '@src/lib/types/resolver.types';
 import { getCurrentSeason } from '@src/lib/utils/index';
 
-import { handleResolverError, mapGameData } from '../utils';
-
 // Helper function to map live game data
-const mapLiveGameData = (game: GameResponseData) => ({
+const mapLiveGameData = (game: IGameResponseData) => ({
   id: game.id,
   date: game.date || {
     start: '',
@@ -89,8 +87,8 @@ const mapLiveGameData = (game: GameResponseData) => ({
 
 export const games = async (
   _parent: unknown,
-  args: PaginationArgs & { filters?: GameFilters },
-  { db }: Context
+  args: IPaginationArgs & { filters?: GameFilters },
+  { db }: IContext
 ) => {
   try {
     const { first = 1000, after, filters } = args;
@@ -146,14 +144,14 @@ export const games = async (
   }
 };
 
-export const game = async (_parent: unknown, { id }: { id: string }, { db }: Context) => {
+export const game = async (_parent: unknown, { id }: { id: string }, { db }: IContext) => {
   try {
     const game = await db
       .select()
       .from(schema.nba_games)
       .where(eq(schema.nba_games.id, id))
       .limit(1)
-      .then(rows => rows[0]);
+      .then((rows: InferSelectModel<typeof schema.nba_games>[]) => rows[0]);
 
     if (!game) throw new BusinessLogicError(`Game with id ${id} not found`, 'GAME_NOT_FOUND');
 
@@ -165,8 +163,8 @@ export const game = async (_parent: unknown, { id }: { id: string }, { db }: Con
 
 export const liveGames = async (
   _parent: unknown,
-  args: PaginationArgs,
-  { redis: _redis }: Context
+  args: IPaginationArgs,
+  { redis: _redis }: IContext
 ) => {
   try {
     const liveGames = await fetchNbaLiveGames();
@@ -187,7 +185,7 @@ export const liveGames = async (
 export const gameLog = async (
   _parent: unknown,
   { userId, gameId }: { userId: string; gameId: string },
-  { db }: Context
+  { db }: IContext
 ) => {
   try {
     const conditions = [eq(schema.game_logs.userId, userId), eq(schema.game_logs.gameId, gameId)];
@@ -197,7 +195,7 @@ export const gameLog = async (
       .from(schema.game_logs)
       .where(and(...conditions))
       .limit(1)
-      .then(rows => rows[0]);
+      .then((rows: InferSelectModel<typeof schema.game_logs>[]) => rows[0]);
 
     if (!gameLog) {
       return null;

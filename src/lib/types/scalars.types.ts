@@ -4,9 +4,9 @@
 
 import { GraphQLScalarType, Kind } from 'graphql';
 
-export type AnyScalar = unknown;
-export type JsonScalar = Record<string, unknown>;
-export type DateTimeScalar = Date;
+export type IAnyScalar = unknown;
+export type IJsonScalar = Record<string, unknown>;
+export type IDateTimeScalar = Date;
 
 export const dateTimeScalar = new GraphQLScalarType({
   name: 'DateTime',
@@ -36,21 +36,21 @@ export const jsonScalar = new GraphQLScalarType({
   name: 'JSON',
   description:
     'The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).',
-  serialize(value: unknown): JsonScalar {
+  serialize(value: unknown): IJsonScalar {
     if (typeof value === 'object' && value !== null) {
-      return value as JsonScalar;
+      return value as IJsonScalar;
     }
     throw new Error('GraphQL JSON Scalar serializer expected an object');
   },
-  parseValue(value: unknown): JsonScalar {
+  parseValue(value: unknown): IJsonScalar {
     if (typeof value === 'object' && value !== null) {
-      return value as JsonScalar;
+      return value as IJsonScalar;
     }
     throw new Error('GraphQL JSON Scalar parser expected an object');
   },
-  parseLiteral(ast): JsonScalar {
+  parseLiteral(ast): IJsonScalar {
     if (ast.kind === Kind.OBJECT) {
-      return ast as unknown as JsonScalar;
+      return ast as unknown as IJsonScalar;
     }
     throw new Error('GraphQL JSON Scalar parser expected an object literal');
   },
@@ -59,13 +59,13 @@ export const jsonScalar = new GraphQLScalarType({
 export const anyScalar = new GraphQLScalarType({
   name: 'Any',
   description: 'The `Any` scalar type represents any value.',
-  serialize(value: unknown): AnyScalar {
-    return value as AnyScalar;
+  serialize(value: unknown): IAnyScalar {
+    return value as IAnyScalar;
   },
-  parseValue(value: unknown): AnyScalar {
-    return value as AnyScalar;
+  parseValue(value: unknown): IAnyScalar {
+    return value as IAnyScalar;
   },
-  parseLiteral(ast): AnyScalar {
-    return ast as unknown as AnyScalar;
+  parseLiteral(ast): IAnyScalar {
+    return ast as unknown as IAnyScalar;
   },
 });

@@ -5,11 +5,11 @@ import React from 'react';
 import { Badge } from '@src/app/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@src/app/components/ui/card';
 import { GET_LIVE_GAMES } from '@src/lib/graphql/queries';
-import type { LiveGameEdge, LiveGamesData } from '@src/lib/types/component.types';
-import type { ExtendedGame } from '@src/lib/types/consolidated.types';
+import type { IExtendedGame } from '@src/lib/types';
+import type { ILiveGameEdge, ILiveGamesData } from '@src/lib/types/component.types';
 
 export function LiveGamesSection() {
-  const { data, loading, error } = useQuery<LiveGamesData>(GET_LIVE_GAMES, {
+  const { data, loading, error } = useQuery<ILiveGamesData>(GET_LIVE_GAMES, {
     pollInterval: 30000, // Poll every 30 seconds for live updates
     variables: {
       first: 10, // Limit to 10 live games
@@ -24,11 +24,11 @@ export function LiveGamesSection() {
   }
 
   // Extract games from the connection type
-  const live_games = data.liveGames.edges.map((edge: LiveGameEdge) => edge.node);
+  const live_games = data.liveGames.edges.map((edge: ILiveGameEdge) => edge.node);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      {live_games.map((game: ExtendedGame) => (
+      {live_games.map((game: IExtendedGame) => (
         <Card key={game.id} className="overflow-hidden">
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">

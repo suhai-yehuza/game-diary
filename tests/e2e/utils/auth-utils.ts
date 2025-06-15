@@ -1,7 +1,7 @@
 import type { Page } from '@playwright/test';
 
 // Type definitions for Clerk mocks
-interface ClerkMock {
+interface IClerkMock {
   isLoaded: boolean;
   isSignedIn: boolean;
   user: {
@@ -17,25 +17,12 @@ interface ClerkMock {
   };
   signOut: () => Promise<void>;
   getToken: () => Promise<string>;
-  load: () => Promise<void>;
-  mountSignIn: () => Promise<void>;
-  mountSignUp: () => Promise<void>;
-  openSignIn: () => Promise<void>;
-  openSignUp: () => Promise<void>;
-  addListener: () => () => {};
-  removeListener: () => {};
 }
 
-interface ClerkMocks {
-  Clerk: ClerkMock;
-}
-
-declare global {
-  interface Window {
-    Clerk: ClerkMock;
-    __CLERK_MOCKS__: ClerkMocks;
-  }
-}
+// Extend Window type to include Clerk
+type IExtendedWindow = Window & {
+  Clerk?: IClerkMock;
+};
 
 // Test user data - matches your database schema
 export const TEST_USER = {
@@ -64,35 +51,26 @@ export async function mockClerkAuth(page: Page) {
   });
 
   await page.addInitScript(() => {
-    const mockComponents = {
-      Clerk: {
-        isLoaded: true,
-        isSignedIn: true,
-        user: {
-          id: 'test_user_123',
-          firstName: 'Test',
-          lastName: 'User',
-          emailAddresses: [{ emailAddress: 'test@example.com' }],
-          imageUrl: 'https://example.com/avatar.jpg',
-        },
-        session: {
-          id: 'test_session_123',
-          token: 'test_token_123',
-        },
-        signOut: () => Promise.resolve(),
-        getToken: () => Promise.resolve('test_token_123'),
-        load: () => Promise.resolve(),
-        mountSignIn: () => Promise.resolve(),
-        mountSignUp: () => Promise.resolve(),
-        openSignIn: () => Promise.resolve(),
-        openSignUp: () => Promise.resolve(),
-        addListener: () => () => {},
-        removeListener: () => {},
+    const mockClerk: IClerkMock = {
+      isLoaded: true,
+      isSignedIn: true,
+      user: {
+        id: 'test_user_123',
+        firstName: 'Test',
+        lastName: 'User',
+        emailAddresses: [{ emailAddress: 'test@example.com' }],
+        imageUrl: 'https://example.com/avatar.jpg',
       },
+      session: {
+        id: 'test_session_123',
+        token: 'test_token_123',
+      },
+      signOut: () => Promise.resolve(),
+      getToken: () => Promise.resolve('test_token_123'),
     };
 
     // Export the components
-    Object.assign(window, mockComponents);
+    (window as IExtendedWindow).Clerk = mockClerk;
   });
 }
 
@@ -110,7 +88,7 @@ export async function setupTestAuth(page: Page) {
  */
 export async function verifyAuthenticated(page: Page) {
   const isAuthenticated = await page.evaluate(() => {
-    return window.Clerk?.isSignedIn === true;
+    return (window as IExtendedWindow).Clerk?.isSignedIn === true;
   });
 
   if (!isAuthenticated) {

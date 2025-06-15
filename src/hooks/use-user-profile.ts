@@ -3,17 +3,17 @@ import { useUser } from '@clerk/nextjs';
 import { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 
+import { logger } from '@lib/core/logger';
 import {
   SEND_FRIEND_REQUEST,
   ACCEPT_FRIEND_REQUEST,
   REMOVE_FRIEND,
 } from '@src/lib/graphql/mutations';
 import { GET_USER_FRIENDSHIPS } from '@src/lib/graphql/queries';
-import { logger } from 'lib/core/logger';
-import type { UseUserProfileProps, UseUserProfileReturn } from '@src/lib/types/consolidated.types';
+import type { IUseUserProfileProps, IUseUserProfileReturn } from '@src/lib/types';
 import type { DbUser, Friendship, FriendshipStatus } from '@src/lib/types/generated/graphql';
 
-export function useUserProfile({ targetUserId }: UseUserProfileProps): UseUserProfileReturn {
+export function useUserProfile({ targetUserId }: IUseUserProfileProps): IUseUserProfileReturn {
   const { user: currentUser } = useUser();
   const [targetUser, setTargetUser] = useState<DbUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);

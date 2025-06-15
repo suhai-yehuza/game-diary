@@ -1,11 +1,12 @@
 /**
- * Consolidated types for configuration and constants
- * This file combines types from:
- * - constants.types.ts
- * - api-config.types.ts
+ * Configuration and constants types
+ * This file contains types for:
+ * - Constants and enums
+ * - API configuration
+ * - Game-related constants
  */
 
-import type { SortDirection } from '@src/lib/types/consolidated.types';
+import type { ISortDirection } from '@src/lib/types/shared.types';
 
 // ============= Constants =============
 
@@ -34,40 +35,40 @@ export const REACTION_EMOJIS = {
 } as const;
 
 // Type for the keys of REACTION_EMOJIS
-export type ReactionEmojiKey = keyof typeof REACTION_EMOJIS;
+export type IReactionEmojiKey = keyof typeof REACTION_EMOJIS;
 
 // Type for the values of REACTION_EMOJIS
-export type ReactionEmojiValue = (typeof REACTION_EMOJIS)[ReactionEmojiKey];
+export type IReactionEmojiValue = (typeof REACTION_EMOJIS)[IReactionEmojiKey];
 
 // Type guard to check if a string is a valid ReactionEmojiKey
-export const isReactionEmojiKey = (key: string): key is ReactionEmojiKey => {
+export const isReactionEmojiKey = (key: string): key is IReactionEmojiKey => {
   return key in REACTION_EMOJIS;
 };
 
 // Type guard to check if a string is a valid ReactionEmojiValue
-export const isReactionEmojiValue = (value: string): value is ReactionEmojiValue => {
-  return Object.values(REACTION_EMOJIS).includes(value as ReactionEmojiValue);
+export const isReactionEmojiValue = (value: string): value is IReactionEmojiValue => {
+  return Object.values(REACTION_EMOJIS).includes(value as IReactionEmojiValue);
 };
 
 // Helper to get emoji value from key
-export const getEmojiValue = (key: ReactionEmojiKey): ReactionEmojiValue => {
+export const getEmojiValue = (key: IReactionEmojiKey): IReactionEmojiValue => {
   return REACTION_EMOJIS[key];
 };
 
 // Helper to get key from emoji value
-export const getEmojiKey = (value: ReactionEmojiValue): ReactionEmojiKey => {
+export const getEmojiKey = (value: IReactionEmojiValue): IReactionEmojiKey => {
   const entry = Object.entries(REACTION_EMOJIS).find(([_, v]) => v === value);
   if (!entry) {
     throw new Error(`Invalid emoji value: ${value}`);
   }
-  return entry[0] as ReactionEmojiKey;
+  return entry[0] as IReactionEmojiKey;
 };
 
 // Type for GraphQL enum values
-export type GraphQLReactionEmojiType = ReactionEmojiKey;
+export type IGraphQLReactionEmojiType = IReactionEmojiKey;
 
 // Type guard for GraphQL enum values
-export const isGraphQLReactionEmojiType = (value: string): value is GraphQLReactionEmojiType => {
+export const isGraphQLReactionEmojiType = (value: string): value is IGraphQLReactionEmojiType => {
   return isReactionEmojiKey(value);
 };
 
@@ -194,57 +195,55 @@ export const EMOJI_TO_GRAPHQL_MAPPING = Object.fromEntries(
 // ============= Type Definitions =============
 
 // Status and Settings Types
-export type ClassificationType = keyof typeof CLASSIFICATION;
-export type ConferenceType = keyof typeof CONFERENCES;
-export type DivisionType = keyof typeof DIVISIONS;
-export type GameStatusType = keyof typeof GAME_STATUS_VALUES;
-export type PermissionType = keyof typeof PERMISSIONS;
-export type ResourceType = keyof typeof RESOURCES;
-export type SortDirectionType = keyof typeof SORT_DIRECTION;
-export type TargetTypeValue = (typeof TARGET_TYPES)[keyof typeof TARGET_TYPES];
-export type ConferenceValue = (typeof CONFERENCES)[ConferenceType];
-export type DivisionValue = (typeof DIVISIONS)[DivisionType];
-export type GameStatusValue = (typeof GAME_STATUS_VALUES)[GameStatusType];
-export type SortDirectionValue = (typeof SORT_DIRECTION)[SortDirectionType];
-export type ClassificationValue = (typeof CLASSIFICATION)[ClassificationType];
-export type FriendshipStatusType = keyof typeof FRIENDSHIP_STATUS;
-export type FriendshipStatusValue = (typeof FRIENDSHIP_STATUS)[FriendshipStatusType];
-export type PermissionValue = (typeof PERMISSIONS)[PermissionType];
-export type ResourceValue = (typeof RESOURCES)[ResourceType];
-export type WatchedSettingType = keyof typeof WATCHED_SETTING;
-export type WatchedSettingValue = (typeof WATCHED_SETTING)[WatchedSettingType];
-export type WatchedScopeType = keyof typeof WATCHED_SCOPE;
-export type WatchedScopeValue = (typeof WATCHED_SCOPE)[WatchedScopeType];
+export type IClassificationType = keyof typeof CLASSIFICATION;
+export type IConferenceType = keyof typeof CONFERENCES;
+export type IDivisionType = keyof typeof DIVISIONS;
+export type IPermissionType = keyof typeof PERMISSIONS;
+export type IResourceType = keyof typeof RESOURCES;
+export type ISortDirectionType = keyof typeof SORT_DIRECTION;
+export type ITargetTypeValue = (typeof TARGET_TYPES)[keyof typeof TARGET_TYPES];
+export type IConferenceValue = (typeof CONFERENCES)[IConferenceType];
+export type IDivisionValue = (typeof DIVISIONS)[IDivisionType];
+export type IGameStatusType = keyof typeof GAME_STATUS_VALUES;
+export type ISortDirectionValue = (typeof SORT_DIRECTION)[ISortDirectionType];
+export type IClassificationValue = (typeof CLASSIFICATION)[IClassificationType];
+export type IFriendshipStatusType = keyof typeof FRIENDSHIP_STATUS;
+export type IFriendshipStatusValue = (typeof FRIENDSHIP_STATUS)[IFriendshipStatusType];
+export type IPermissionValue = (typeof PERMISSIONS)[IPermissionType];
+export type IResourceValue = (typeof RESOURCES)[IResourceType];
+export type IWatchedSettingType = keyof typeof WATCHED_SETTING;
+export type IWatchedSettingValue = (typeof WATCHED_SETTING)[IWatchedSettingType];
+export type IWatchedScopeType = keyof typeof WATCHED_SCOPE;
+export type IWatchedScopeValue = (typeof WATCHED_SCOPE)[IWatchedScopeType];
 
-// Configuration Types
-export type DistributionFunction = () => number;
+export type IDistributionFunction = () => number;
 
-export interface RangeConfig {
+export interface IRangeConfig {
   min: number;
   max: number;
-  getRandom: DistributionFunction;
+  getRandom: IDistributionFunction;
 }
 
-export interface BatchSizeConfig {
+export interface IBatchSizeConfig {
   GAMES: number;
   GAME_STATS: number;
   PLAYERS: number;
 }
 
-export interface RateLimitConfig {
+export interface IRateLimitConfig {
   MAX_RETRIES: number;
   BASE_DELAY: number;
   MAX_DELAY: number;
   RATE_LIMIT_DELAY: number;
 }
 
-export interface ClassificationWeights {
+export interface IClassificationWeights {
   private: number;
   protected: number;
   public: number;
 }
 
-export interface DistributionFunctions {
+export interface IDistributionFunctions {
   natural: (rand: number) => number;
   bellCurve: (u1: number, u2: number) => number;
   pareto: (rand: number, alpha?: number) => number;
@@ -252,22 +251,21 @@ export interface DistributionFunctions {
   powerLaw: (rand: number, exponent?: number) => number;
 }
 
-export interface PaginationConfig {
+export interface IPaginationConfig {
   DEFAULT_PAGE_SIZE: number;
   HUGE_SIZE: number;
-  DEFAULT_SORT_DIRECTION: SortDirection;
+  DEFAULT_SORT_DIRECTION: ISortDirection;
   MAX_CHILD_COMMENT_DEPTH: number;
 }
 
-// Utility Functions
-export const isValidReactionEmoji = (emoji: string): emoji is ReactionEmojiValue => {
-  return Object.values(REACTION_EMOJIS).includes(emoji as ReactionEmojiValue);
+export const isValidReactionEmoji = (emoji: string): emoji is IReactionEmojiValue => {
+  return isReactionEmojiValue(emoji);
 };
 
-export const isValidFriendshipStatus = (status: string): status is FriendshipStatusValue => {
-  return Object.values(FRIENDSHIP_STATUS).includes(status as FriendshipStatusValue);
+export const isValidFriendshipStatus = (status: string): status is IFriendshipStatusValue => {
+  return status in FRIENDSHIP_STATUS;
 };
 
-export const isValidWatchedSetting = (setting: string): setting is WatchedSettingValue => {
-  return Object.values(WATCHED_SETTING).includes(setting as WatchedSettingValue);
+export const isValidWatchedSetting = (setting: string): setting is IWatchedSettingValue => {
+  return setting in WATCHED_SETTING;
 };

@@ -3,10 +3,10 @@
 import type { ApolloQueryResult } from '@apollo/client';
 import { format, isToday, isYesterday, isTomorrow } from 'date-fns';
 
-import type { ProcessedGameData, SearchGame } from '@src/lib/types/consolidated.types';
+import type { ISearchGame } from '@src/lib/types';
 
 // Type for GameQueryResult
-type GameQueryResult = ApolloQueryResult<{ games: { edges: { node: SearchGame }[] } }>;
+type GameQueryResult = ApolloQueryResult<{ games: { edges: { node: ISearchGame }[] } }>;
 
 // Pure function to check if a string contains the search term
 const containsSearchTerm = (str: string | undefined, searchTerm: string): boolean => {
@@ -14,7 +14,7 @@ const containsSearchTerm = (str: string | undefined, searchTerm: string): boolea
 };
 
 // Pure function to sort games by date
-const sortGamesByDate = (games: SearchGame[]): SearchGame[] =>
+const sortGamesByDate = (games: ISearchGame[]): ISearchGame[] =>
   [...games].sort((a, b) => {
     const dateA = typeof a.date === 'string' ? a.date : a.date.start;
     const dateB = typeof b.date === 'string' ? b.date : b.date.start;
@@ -22,7 +22,7 @@ const sortGamesByDate = (games: SearchGame[]): SearchGame[] =>
   });
 
 // Pure function to ensure arena data is never null
-const ensureArenaData = (game: SearchGame): SearchGame => ({
+const ensureArenaData = (game: ISearchGame): ISearchGame => ({
   ...game,
   arena: game.arena
     ? {
@@ -34,8 +34,14 @@ const ensureArenaData = (game: SearchGame): SearchGame => ({
     : undefined,
 });
 
+interface IProcessedGameData {
+  isLoading: boolean;
+  hasError: boolean;
+  games: ISearchGame[];
+}
+
 // Pure function to process game data
-export const processGameData = (queries: GameQueryResult[]): ProcessedGameData => ({
+export const processGameData = (queries: GameQueryResult[]): IProcessedGameData => ({
   isLoading: queries.some(query => query.loading),
   hasError: queries.some(query => query.error),
   games: sortGamesByDate(
@@ -44,7 +50,7 @@ export const processGameData = (queries: GameQueryResult[]): ProcessedGameData =
 });
 
 // Pure function to filter games based on search query
-export const filterGames = (games: SearchGame[], searchQuery: string): SearchGame[] => {
+export const filterGames = (games: ISearchGame[], searchQuery: string): ISearchGame[] => {
   if (!searchQuery.trim()) return games;
 
   const lowerQuery = searchQuery.toLowerCase();
@@ -57,7 +63,7 @@ export const filterGames = (games: SearchGame[], searchQuery: string): SearchGam
     // Search in arena information
     if (game.arena && containsSearchTerm(game.arena.name, lowerQuery)) return true;
     if (game.arena && containsSearchTerm(game.arena.city, lowerQuery)) return true;
-    if (game.arena && containsSearchTerm(game.arena.state, lowerQuery)) return true;
+    if (game.arena && containsSearchTerm(game.arena.state || '', lowerQuery)) return true;
 
     // Search in game date (format: "MMM d, yyyy")
     const dateString = typeof game.date === 'string' ? game.date : game.date.start;

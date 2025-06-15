@@ -1,5 +1,7 @@
-import { test } from './utils/global-setup';
 import { expect } from '@playwright/test';
+
+import { setupTestAuth } from './utils/auth-utils';
+import { test } from './utils/global-setup';
 import {
   waitForPageContent,
   setupApiMocking,
@@ -7,7 +9,6 @@ import {
   VIEWPORTS,
   expandMobileMenuIfNeeded,
 } from './utils/test-utils';
-import { setupTestAuth } from './utils/auth-utils';
 
 // Run this suite on all browsers
 // (Playwright's default is to run all tests on all configured browsers)

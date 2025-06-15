@@ -8,6 +8,7 @@ dotenvFlow.config({
 
 import { db } from '@src/lib/db';
 import { users } from '@src/lib/db/schema';
+
 import { seedLogger } from '../../../lib/core/logger';
 import { TEST_USER } from '../utils/auth-utils';
 

@@ -5,11 +5,11 @@ import { useUser } from '@clerk/nextjs';
 import { isAfter } from 'date-fns';
 import React, { useState, useEffect, useCallback } from 'react';
 
+import { logger } from '@lib/core/logger';
 import { GameCard } from '@src/app/protected/user/components/game-logs/game-card';
 import { API_CONFIG } from '@src/lib/config/api.config';
 import { GET_GAMES } from '@src/lib/graphql/queries';
-import { logger } from 'lib/core/logger';
-import type { Game, GameEdge, GameQueryResponse } from '@src/lib/types/consolidated.types';
+import type { IGame, IGameEdge, IGameQueryResponse } from '@src/lib/types';
 import { getCurrentSeason } from '@src/lib/utils/time';
 
 export const dynamic = 'force-dynamic';
@@ -19,10 +19,10 @@ export default function NBAPage() {
   const [isFetchingMore, setIsFetchingMore] = useState<boolean>(false);
   const [currentSeason, setCurrentSeason] = useState<number>(getCurrentSeason());
   const [hasMoreSeasons, setHasMoreSeasons] = useState<boolean>(true);
-  const [games, setGames] = useState<Game[]>([]);
+  const [games, setGames] = useState<IGame[]>([]);
   const [showUpcomingGames, setShowUpcomingGames] = useState<boolean>(false);
 
-  const { loading, error, data, fetchMore } = useQuery<GameQueryResponse>(GET_GAMES, {
+  const { loading, error, data, fetchMore } = useQuery<IGameQueryResponse>(GET_GAMES, {
     variables: {
       filters: {
         season: currentSeason,
@@ -42,10 +42,10 @@ export default function NBAPage() {
 
   useEffect(() => {
     if (data?.games && Array.isArray(data.games.edges)) {
-      const newGames = data.games.edges.map((edge: GameEdge) => edge.node);
+      const newGames = data.games.edges.map((edge: IGameEdge) => edge.node);
       setGames(prevGames => {
         const gameMap = new Map(prevGames.map(game => [game.id, game]));
-        newGames.forEach(game => {
+        newGames.forEach((game: IGame) => {
           if (!gameMap.has(game.id)) {
             gameMap.set(game.id, game);
           }
@@ -79,10 +79,10 @@ export default function NBAPage() {
       });
 
       if (newData?.games.edges) {
-        const newGames = newData.games.edges.map((edge: GameEdge) => edge.node);
+        const newGames = newData.games.edges.map((edge: IGameEdge) => edge.node);
         setGames(prevGames => {
           const gameMap = new Map(prevGames.map(game => [game.id, game]));
-          newGames.forEach(game => {
+          newGames.forEach((game: IGame) => {
             if (!gameMap.has(game.id)) {
               gameMap.set(game.id, game);
             }
@@ -127,9 +127,9 @@ export default function NBAPage() {
       return acc;
     },
     { live: [], scheduled: [], completed: [] } as {
-      live: Game[];
-      scheduled: Game[];
-      completed: Game[];
+      live: IGame[];
+      scheduled: IGame[];
+      completed: IGame[];
     }
   );
 

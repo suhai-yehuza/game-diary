@@ -10,9 +10,9 @@ import {
   type GameStatusValue,
   type NotificationTypeValue,
   type ReactionTypeValue,
-  type ReactionEmojiValue,
-  type FriendshipStatusValue,
-  type WatchedSettingValue,
+  type IReactionEmojiValue,
+  type IFriendshipStatusValue,
+  type IWatchedSettingValue,
 } from './enum-values';
 
 // Convert enum values to tuples for pgEnum
@@ -26,16 +26,16 @@ const reactionTypeValues = Object.values(REACTION_TYPE) as [
   ...ReactionTypeValue[],
 ];
 const reactionEmojiValues = Object.values(REACTION_EMOJIS) as [
-  ReactionEmojiValue,
-  ...ReactionEmojiValue[],
+  IReactionEmojiValue,
+  ...IReactionEmojiValue[],
 ];
 const friendshipStatusValues = Object.values(FRIENDSHIP_STATUS) as [
-  FriendshipStatusValue,
-  ...FriendshipStatusValue[],
+  IFriendshipStatusValue,
+  ...IFriendshipStatusValue[],
 ];
 const watchedSettingValues = Object.values(WATCHED_SETTING) as [
-  WatchedSettingValue,
-  ...WatchedSettingValue[],
+  IWatchedSettingValue,
+  ...IWatchedSettingValue[],
 ];
 
 // Define enums
@@ -47,7 +47,7 @@ export const friendshipStatusEnum = pgEnum('friendship_status', friendshipStatus
 export const watchedSettingEnum = pgEnum('watched_setting', watchedSettingValues);
 export const reactionTargetEnum = pgEnum('reaction_target', ['game_log', 'comment']);
 
-export enum SortDirection {
+export enum ISortDirection {
   ASC = 'asc',
   DESC = 'desc',
 }

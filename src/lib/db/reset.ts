@@ -1,6 +1,6 @@
 import { sql } from 'drizzle-orm';
 
-import { dbLogger } from 'lib/core/logger';
+import { dbLogger } from '@lib/core/logger';
 
 import { db } from './index';
 export async function resetDatabase() {

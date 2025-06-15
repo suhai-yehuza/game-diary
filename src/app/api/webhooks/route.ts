@@ -2,14 +2,14 @@ import { verifyWebhook } from '@clerk/nextjs/webhooks';
 import { eq, sql } from 'drizzle-orm';
 import type { NextRequest } from 'next/server';
 
+import { apiLogger } from '@lib/core/logger';
 import { users } from '@src/lib/db/schema';
 import { db } from '@src/lib/db/seed';
-import { apiLogger } from 'lib/core/logger';
-import type { ClerkUserData, ClerkDeletedUserData } from '@src/lib/types/user.types';
+import type { IClerkUserData, IClerkDeletedUserData } from '@src/lib/types/user.types';
 // Helper functions
 const createResponse = (message: string, status: number) => new Response(message, { status });
 
-const handleUserCreated = async (data: ClerkUserData) => {
+const handleUserCreated = async (data: IClerkUserData) => {
   const {
     id,
     username,
@@ -96,7 +96,7 @@ const handleUserCreated = async (data: ClerkUserData) => {
   return createResponse('User created in database', 201);
 };
 
-const handleUserUpdated = async (data: ClerkUserData) => {
+const handleUserUpdated = async (data: IClerkUserData) => {
   const {
     id,
     username,
@@ -142,7 +142,7 @@ const handleUserUpdated = async (data: ClerkUserData) => {
   return createResponse('User updated in database', 200);
 };
 
-const handleUserDeleted = async (data: ClerkDeletedUserData) => {
+const handleUserDeleted = async (data: IClerkDeletedUserData) => {
   const { id, deleted } = data;
 
   if (!id) throw new Error('Missing user ID');
@@ -160,11 +160,11 @@ export async function POST(req: NextRequest) {
 
     switch (eventType) {
       case 'user.created':
-        return await handleUserCreated(evt.data as unknown as ClerkUserData);
+        return await handleUserCreated(evt.data as unknown as IClerkUserData);
       case 'user.updated':
-        return await handleUserUpdated(evt.data as unknown as ClerkUserData);
+        return await handleUserUpdated(evt.data as unknown as IClerkUserData);
       case 'user.deleted':
-        return await handleUserDeleted(evt.data as ClerkDeletedUserData);
+        return await handleUserDeleted(evt.data as IClerkDeletedUserData);
       default:
         return createResponse('Unhandled event type', 200);
     }

@@ -1,10 +1,10 @@
 import type { InferInsertModel } from 'drizzle-orm';
 import type { PgTable } from 'drizzle-orm/pg-core';
 
+import { seedLogger } from '@lib/core/logger';
 import { API_CONFIG } from '@src/lib/config/api.config';
-import { seedLogger } from 'lib/core/logger';
-import type { DatabaseClient } from '@src/lib/types/database.types';
-import type { GlobalWithGC } from '@src/lib/types/global';
+import type { IDatabaseClient } from '@src/lib/types/database.types';
+import type { IGlobalWithGC } from '@src/lib/types/global';
 
 import type { OptimizedAPIClient } from './utils/api-client';
 // Enhanced sleep function with jitter
@@ -50,7 +50,7 @@ export class PerformanceMonitor {
 // Memory-efficient data processor
 export class DataProcessor {
   constructor(
-    private db: DatabaseClient,
+    private db: IDatabaseClient,
     private apiClient: OptimizedAPIClient,
     private monitor: PerformanceMonitor
   ) {}
@@ -68,8 +68,8 @@ export class DataProcessor {
       await processor(chunk);
 
       // Force garbage collection hint for large datasets
-      if ((globalThis as GlobalWithGC).gc && i % (chunkSize * 10) === 0) {
-        const gc = (globalThis as GlobalWithGC).gc;
+      if ((globalThis as IGlobalWithGC).gc && i % (chunkSize * 10) === 0) {
+        const gc = (globalThis as IGlobalWithGC).gc;
         if (gc) {
           gc();
         }

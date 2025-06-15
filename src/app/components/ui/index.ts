@@ -16,8 +16,8 @@ export * from './alert-dialog';
 export * from './popover';
 export * from './toaster';
 export {
-  type ToastProps,
-  type ToastActionElement,
+  type IToastProps,
+  type IToastActionElement,
   ToastViewport,
   Toast,
   ToastTitle,

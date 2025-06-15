@@ -3,9 +3,10 @@
 import { execSync } from 'child_process';
 import { readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
-import { logger } from 'lib/core/logger';
 
-interface Package {
+import { logger } from '@lib/core/logger';
+
+interface IPackage {
   name: string;
   version: string;
   latest?: string;
@@ -13,14 +14,14 @@ interface Package {
   wanted?: string;
 }
 
-interface OutdatedPackage extends Package {
+interface IOutdatedPackage extends IPackage {
   current: string;
   latest: string;
   type: string;
   url: string;
 }
 
-function getOutdatedPackages(): OutdatedPackage[] {
+function getOutdatedPackages(): IOutdatedPackage[] {
   try {
     const output = execSync('pnpm outdated --json', { encoding: 'utf-8' });
     return JSON.parse(output);
@@ -48,7 +49,7 @@ function updatePackageJson(
   writeFileSync(join(process.cwd(), 'package.json'), JSON.stringify(packageJson, null, 2) + '\n');
 }
 
-function groupPackagesByType(packages: OutdatedPackage[]) {
+function groupPackagesByType(packages: IOutdatedPackage[]) {
   return packages.reduce(
     (acc, pkg) => {
       const type = pkg.type === 'dependencies' ? 'dependencies' : 'devDependencies';
@@ -56,11 +57,11 @@ function groupPackagesByType(packages: OutdatedPackage[]) {
       acc[type].push(pkg);
       return acc;
     },
-    {} as Record<string, OutdatedPackage[]>
+    {} as Record<string, IOutdatedPackage[]>
   );
 }
 
-function formatPackageList(packages: OutdatedPackage[]) {
+function formatPackageList(packages: IOutdatedPackage[]) {
   return packages.map(pkg => `${pkg.name}: ${pkg.current} -> ${pkg.latest}`).join('\n');
 }
 

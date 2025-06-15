@@ -2,31 +2,30 @@ import { useQuery } from '@apollo/client';
 import { isAfter } from 'date-fns';
 import { useState, useEffect, useCallback } from 'react';
 
+import { seedLogger } from '@lib/core/logger';
 import { API_CONFIG } from '@src/lib/config/api.config';
 import { GET_GAMES } from '@src/lib/graphql/queries';
-import { logger } from 'lib/core/logger';
 import type {
-  Game,
-  GameEdge,
-  GameQueryResponse,
-  UseGameDataProps,
-  UseGameDataReturn,
-  ProcessedGames,
-} from '@src/lib/types/consolidated.types';
+  IGame,
+  IGameEdge,
+  IGameQueryResponse,
+  IUseGameDataReturn,
+  IUseGameDataProps,
+} from '@src/lib/types';
 import { getCurrentSeason } from '@src/lib/utils/time';
 
 export function useGameData({
   initialSeason,
   initialFilters,
-}: UseGameDataProps = {}): UseGameDataReturn {
+}: IUseGameDataProps = {}): IUseGameDataReturn {
   const [isFetchingMore, setIsFetchingMore] = useState<boolean>(false);
   const [currentSeason, setCurrentSeason] = useState<number>(initialSeason || getCurrentSeason());
   const [hasMoreSeasons, setHasMoreSeasons] = useState<boolean>(true);
-  const [games, setGames] = useState<Game[]>([]);
+  const [games, setGames] = useState<IGame[]>([]);
   const [showUpcomingGames, setShowUpcomingGames] = useState<boolean>(false);
   const [hasShownInitialLoad, setHasShownInitialLoad] = useState(false);
 
-  const { loading, error, data, fetchMore } = useQuery<GameQueryResponse>(GET_GAMES, {
+  const { loading, error, data, fetchMore } = useQuery<IGameQueryResponse>(GET_GAMES, {
     variables: {
       filters: {
         season: currentSeason,
@@ -45,7 +44,7 @@ export function useGameData({
 
   useEffect(() => {
     if (data?.games && Array.isArray(data.games.edges)) {
-      const newGames = data.games.edges.map((edge: GameEdge) => edge.node);
+      const newGames = data.games.edges.map((edge: IGameEdge) => edge.node as IGame);
       setGames(prevGames => {
         const gameMap = new Map(prevGames.map(game => [game.id, game]));
         newGames.forEach(game => {
@@ -83,7 +82,7 @@ export function useGameData({
       });
 
       if (newData?.games.edges) {
-        const newGames = newData.games.edges.map((edge: GameEdge) => edge.node);
+        const newGames = newData.games.edges.map((edge: IGameEdge) => edge.node as IGame);
         setGames(prevGames => {
           const gameMap = new Map(prevGames.map(game => [game.id, game]));
           newGames.forEach(game => {
@@ -95,35 +94,29 @@ export function useGameData({
         });
       }
     } catch (error) {
-      logger.error('Error fetching more games:', error);
+      seedLogger.error('Error fetching more games:', error);
     } finally {
       setIsFetchingMore(false);
     }
   }, [data, fetchMore, currentSeason, hasMoreSeasons, initialFilters]);
 
   // Process games into their respective categories
-  const processedGames: ProcessedGames = games.reduce(
-    (acc, game) => {
+  const processedGames = games.reduce(
+    (acc: { live: IGame[]; scheduled: IGame[]; completed: IGame[] }, game: IGame) => {
       const now = new Date();
-
-      // Check if game is live
       if (game.status.long === 'In Play' || game.status.long === 'Live') {
         acc.live.push(game);
-      }
-      // Check if game is scheduled
-      else if (
+      } else if (
         game.status.long === 'Scheduled' ||
         isAfter(new Date(typeof game.date === 'string' ? game.date : game.date.start), now)
       ) {
         acc.scheduled.push(game);
-      }
-      // Check if game is completed
-      else if (game.status.long === 'Finished') {
+      } else if (game.status.long === 'Finished') {
         acc.completed.push(game);
       }
       return acc;
     },
-    { live: [], scheduled: [], completed: [] } as ProcessedGames
+    { live: [], scheduled: [], completed: [] }
   );
 
   // Sort all games by date first

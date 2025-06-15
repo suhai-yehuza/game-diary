@@ -22,7 +22,7 @@ import {
 import { Skeleton } from '@src/app/components/ui/skeleton';
 import { API_CONFIG } from '@src/lib/config/api.config';
 import { GET_GAMES } from '@src/lib/graphql/queries';
-import type { Game } from '@src/lib/types/consolidated.types';
+import type { IGame } from '@src/lib/types';
 import { cn } from '@src/lib/utils';
 import { formatCount } from '@src/lib/utils/format';
 import { getCurrentSeason } from '@src/lib/utils/time';
@@ -58,7 +58,7 @@ const GameSkeleton = () => (
   </Card>
 );
 
-type GameEdge = { cursor: string; node: Game };
+type IGameEdge = { cursor: string; node: IGame };
 
 const getStatusBadge = (
   status: string,
@@ -128,7 +128,7 @@ export function BasketballGameSearchSection() {
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageData, setPageData] = useState<{ [key: number]: Game[] }>({});
+  const [pageData, setPageData] = useState<{ [key: number]: IGame[] }>({});
   const pageSize = API_CONFIG.pagination.DEFAULT_PAGE_SIZE;
 
   // Build filters object
@@ -166,7 +166,7 @@ export function BasketballGameSearchSection() {
     fetchPolicy: 'cache-first',
     onCompleted: result => {
       if (result?.games?.edges) {
-        const games = result.games.edges.map((edge: GameEdge) => edge.node);
+        const games = result.games.edges.map((edge: IGameEdge) => edge.node);
         setPageData(prev => ({ ...prev, 1: games }));
       }
     },
@@ -176,7 +176,7 @@ export function BasketballGameSearchSection() {
   const games = useMemo(
     () =>
       pageData[currentPage] ||
-      (currentPage === 1 ? gamesData?.games?.edges?.map((edge: GameEdge) => edge.node) : []) ||
+      (currentPage === 1 ? gamesData?.games?.edges?.map((edge: IGameEdge) => edge.node) : []) ||
       [],
     [pageData, currentPage, gamesData]
   );
@@ -187,7 +187,7 @@ export function BasketballGameSearchSection() {
     if (!searchText.trim()) return games;
 
     const searchLower = searchText.toLowerCase();
-    return games.filter((game: Game) => {
+    return games.filter((game: IGame) => {
       const homeTeam = game.teams?.home?.nickname?.toLowerCase() || '';
       const awayTeam = game.teams?.visitors?.nickname?.toLowerCase() || '';
       const arena = game.arena?.name?.toLowerCase() || '';
@@ -207,11 +207,11 @@ export function BasketballGameSearchSection() {
     const sorted = [...filteredGames];
 
     if (sortBy === 'date') {
-      sorted.sort((a: Game, b: Game) => {
+      sorted.sort((a: IGame, b: IGame) => {
         return new Date(b.date.start).getTime() - new Date(a.date.start).getTime();
       });
     } else if (sortBy === 'score') {
-      sorted.sort((a: Game, b: Game) => {
+      sorted.sort((a: IGame, b: IGame) => {
         const totalA = (a.scores?.home?.points || 0) + (a.scores?.visitors?.points || 0);
         const totalB = (b.scores?.home?.points || 0) + (b.scores?.visitors?.points || 0);
         return totalB - totalA;
@@ -385,16 +385,16 @@ export function BasketballGameSearchSection() {
       ) : (
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {sortedGames.map((game: Game) => {
+            {sortedGames.map((game: IGame) => {
               const gameDate = new Date(game.date.start);
               const isLive =
-                game.status.long.toLowerCase().includes('live') ||
-                game.status.long.toLowerCase() === 'in play';
+                game.status.long?.toLowerCase().includes('live') ||
+                game.status.long?.toLowerCase() === 'in play';
               const isScheduled =
-                game.status.long.toLowerCase() === 'scheduled' || isAfter(gameDate, new Date());
+                game.status.long?.toLowerCase() === 'scheduled' || isAfter(gameDate, new Date());
               const isPastScheduled =
-                game.status.long.toLowerCase() === 'scheduled' && gameDate < new Date();
-              const isFinished = game.status.long.toLowerCase() === 'finished';
+                game.status.long?.toLowerCase() === 'scheduled' && gameDate < new Date();
+              const isFinished = game.status.long?.toLowerCase() === 'finished';
 
               return (
                 <Card
@@ -416,7 +416,7 @@ export function BasketballGameSearchSection() {
                           {!isPastScheduled &&
                             !isFinished &&
                             getStatusBadge(
-                              isScheduled ? game.date.start : game.status.long,
+                              isScheduled ? game.date.start : game.status.long || '',
                               isScheduled,
                               isFinished,
                               isPastScheduled

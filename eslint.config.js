@@ -1,10 +1,15 @@
-import js from '@eslint/js';
-import tseslint from '@typescript-eslint/eslint-plugin';
-import tseslintParser from '@typescript-eslint/parser';
+import eslint from '@eslint/js';
+import tseslint from 'typescript-eslint';
+import eslintPluginImport from 'eslint-plugin-import';
+import eslintPluginReact from 'eslint-plugin-react';
+import eslintPluginReactHooks from 'eslint-plugin-react-hooks';
+import eslintPluginJsxA11y from 'eslint-plugin-jsx-a11y';
+import eslintPluginFilenames from 'eslint-plugin-filenames';
+import eslintConfigPrettier from 'eslint-config-prettier';
 import nextPlugin from '@next/eslint-plugin-next/dist/index.js';
-import reactPlugin from 'eslint-plugin-react';
 import reactHooksPlugin from 'eslint-plugin-react-hooks';
 import jsxA11yPlugin from 'eslint-plugin-jsx-a11y';
+import filenamesPlugin from 'eslint-plugin-filenames';
 import globals from 'globals';
 
 export default [
@@ -31,17 +36,27 @@ export default [
       'playwright-report/**',
     ],
   },
-  js.configs.recommended,
+  eslint.configs.recommended,
+  ...tseslint.configs.recommended,
   {
     files: ['**/*.{ts,tsx,js,jsx}'],
+    plugins: {
+      import: eslintPluginImport,
+      react: eslintPluginReact,
+      'react-hooks': eslintPluginReactHooks,
+      'jsx-a11y': eslintPluginJsxA11y,
+      filenames: filenamesPlugin,
+      '@next/next': nextPlugin,
+    },
     languageOptions: {
-      parser: tseslintParser,
+      ecmaVersion: 'latest',
+      sourceType: 'module',
+      parser: tseslint.parser,
       parserOptions: {
-        ecmaVersion: 'latest',
-        sourceType: 'module',
         ecmaFeatures: {
           jsx: true,
         },
+        project: './tsconfig.json',
       },
       globals: {
         ...globals.browser,
@@ -49,27 +64,64 @@ export default [
         ...globals.es2021,
       },
     },
-    plugins: {
-      '@typescript-eslint': tseslint,
-      '@next/next': nextPlugin,
-      react: reactPlugin,
-      'react-hooks': reactHooksPlugin,
-      'jsx-a11y': jsxA11yPlugin,
+    settings: {
+      react: {
+        version: 'detect',
+      },
+      'import/resolver': {
+        typescript: {
+          project: './tsconfig.json',
+        },
+        node: {
+          extensions: ['.js', '.jsx', '.ts', '.tsx'],
+        },
+      },
     },
     rules: {
-      // TypeScript specific rules
-      '@typescript-eslint/no-explicit-any': 'warn',
-      '@typescript-eslint/explicit-function-return-type': 'off',
-      '@typescript-eslint/explicit-module-boundary-types': 'off',
-      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
-      '@typescript-eslint/no-non-null-assertion': 'warn',
-      '@typescript-eslint/consistent-type-imports': ['warn', { prefer: 'type-imports' }],
-
-      // React specific rules
+      // React and React Hooks rules
       'react/react-in-jsx-scope': 'off',
       'react/prop-types': 'off',
       'react-hooks/rules-of-hooks': 'error',
       'react-hooks/exhaustive-deps': 'warn',
+
+      // Import rules
+      'import/order': [
+        'error',
+        {
+          groups: ['builtin', 'external', 'internal', 'parent', 'sibling', 'index'],
+          'newlines-between': 'always',
+          alphabetize: { order: 'asc', caseInsensitive: true },
+        },
+      ],
+      'import/no-duplicates': 'error',
+      'import/no-unresolved': ['error', { ignore: ['^@src/', '^@lib/'] }],
+      'import/named': 'error',
+
+      // TypeScript rules
+      '@typescript-eslint/explicit-function-return-type': 'off',
+      '@typescript-eslint/explicit-module-boundary-types': 'off',
+      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+      '@typescript-eslint/naming-convention': [
+        'error',
+        {
+          selector: 'interface',
+          format: ['PascalCase'],
+          prefix: ['I'],
+        },
+        {
+          selector: 'typeAlias',
+          format: ['PascalCase'],
+        },
+        {
+          selector: 'enum',
+          format: ['PascalCase'],
+        },
+      ],
+
+      // Filename rules
+      // 'filenames/match-regex': ['error', '^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$'],
+      // 'filenames/match-exported': ['error', 'pascal'],
 
       // Next.js specific rules
       '@next/next/no-html-link-for-pages': 'error',
@@ -92,10 +144,32 @@ export default [
       'no-unused-expressions': 'warn',
       'no-unused-vars': 'off', // Turn off base rule as it can report incorrect errors
     },
-    settings: {
-      react: {
-        version: 'detect',
-      },
+  },
+  {
+    files: ['src/**/*.tsx'],
+    rules: {
+      // 'filenames/match-regex': ['error', '^[A-Z][a-zA-Z0-9]*$'],
+      // 'filenames/match-exported': ['error', 'pascal'],
     },
   },
+  {
+    files: ['src/app/**/*.tsx'],
+    rules: {
+      // 'filenames/match-regex': ['error', '^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$'],
+      // 'filenames/match-exported': 'off',
+    },
+  },
+  {
+    files: ['src/**/*.test.ts', 'src/**/*.test.tsx'],
+    rules: {
+      // 'filenames/match-regex': ['error', '^[a-z][a-z0-9]*(?:-[a-z0-9]+)*.test$'],
+    },
+  },
+  {
+    files: ['src/**/*.types.ts'],
+    rules: {
+      // 'filenames/match-regex': ['error', '^[a-z][a-zA-Z0-9]*.types$'],
+    },
+  },
+  eslintConfigPrettier,
 ];

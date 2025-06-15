@@ -1,8 +1,9 @@
 import type DataLoader from 'dataloader';
 import type { z } from 'zod';
 
+import type { IDBPlayer } from '@/lib/types/shared.types';
 import type { createCommentSchema } from '@src/lib/validations/comment';
-import type { DBPlayer } from '@/lib/types/shared.types';
+
 import type {
   UserSummary,
   Game,
@@ -13,14 +14,14 @@ import type {
   Friendship,
 } from './generated/graphql';
 
-export type CreateCommentInput = z.infer<typeof createCommentSchema>;
+export type ICreateCommentInput = z.infer<typeof createCommentSchema>;
 
-export interface SendFriendRequestInput {
+export interface ISendFriendRequestInput {
   subscriberId: string;
 }
 
 // Define types generically to avoid circular dependency
-export type GameRecord = {
+export interface IGameRecord {
   id: string;
   league: string;
   season: number;
@@ -37,9 +38,9 @@ export type GameRecord = {
   nugget?: string;
   createdAt: Date;
   updatedAt: Date;
-};
+}
 
-export type GameLogRecord = {
+export interface IGameLogRecord {
   id: string;
   userId: string | null;
   gameId: string;
@@ -54,9 +55,9 @@ export type GameLogRecord = {
   createdAt: Date;
   updatedAt: Date;
   deletedAt?: Date;
-};
+}
 
-export type CommentRecord = {
+export interface ICommentRecord {
   id: string;
   userId: string | null;
   parentId: string;
@@ -65,9 +66,9 @@ export type CommentRecord = {
   createdAt: Date;
   updatedAt: Date;
   deletedAt?: Date;
-};
+}
 
-export type ReactionRecord = {
+export interface IReactionRecord {
   id: string;
   userId: string | null;
   targetType: string;
@@ -75,14 +76,14 @@ export type ReactionRecord = {
   emoji: string;
   createdAt: Date;
   updatedAt: Date;
-};
+}
 
 // Define DataLoaders interface to match actual DataLoader instances
-export interface DataLoaders {
+export interface IDataLoaders {
   user: DataLoader<string, UserSummary | null>;
   game: DataLoader<string, Game | null>;
   team: DataLoader<string, Team | null>;
-  player: DataLoader<string, DBPlayer | null>;
+  player: DataLoader<string, IDBPlayer | null>;
   gameLog: DataLoader<string, GameLog | null>;
   comment: DataLoader<string, Comment | null>;
   reaction: DataLoader<string, Reaction | null>;

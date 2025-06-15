@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import React, { memo } from 'react';
 
-import type { GameCardProps } from '@src/lib/types/consolidated.types';
+import type { IGameArena, IGameCardProps } from '@src/lib/types';
 
 // Helper function to validate state values
 const isValidState = (state: string | undefined | null): boolean => {
@@ -24,7 +24,7 @@ const isValidState = (state: string | undefined | null): boolean => {
 };
 
 // Helper function to format arena location
-const formatArenaLocation = (arena: { name?: string; city?: string; state?: string }): string => {
+const formatArenaLocation = (arena: IGameArena): string => {
   const parts = [];
 
   if (arena.name) parts.push(arena.name);
@@ -40,7 +40,7 @@ function ensureHttps(url?: string) {
   return url.replace(/^http:\/\//, 'https://');
 }
 
-export const GameCard = memo(({ game, index, imageErrors, onImageError }: GameCardProps) => {
+export const GameCard = memo(({ game, index, imageErrors, onImageError }: IGameCardProps) => {
   const router = useRouter();
   const isLive = game.status.long === 'In Play' || game.status.short === 'Live';
   const gameDate = new Date(typeof game.date === 'string' ? game.date : game.date.start);
@@ -134,7 +134,7 @@ export const GameCard = memo(({ game, index, imageErrors, onImageError }: GameCa
                 <div className="relative w-16 h-16 flex-shrink-0">
                   <Image
                     src={
-                      imageErrors?.[`${game.id}-visitors`]
+                      imageErrors?.has(`${game.id}-visitors`)
                         ? '/logos/gamelog.svg'
                         : ensureHttps(game.teams.visitors.logo) || ''
                     }
@@ -181,7 +181,7 @@ export const GameCard = memo(({ game, index, imageErrors, onImageError }: GameCa
                 <div className="relative w-16 h-16 flex-shrink-0">
                   <Image
                     src={
-                      imageErrors?.[`${game.id}-home`]
+                      imageErrors?.has(`${game.id}-home`)
                         ? '/logos/gamelog.svg'
                         : ensureHttps(game.teams.home.logo) || ''
                     }
@@ -235,7 +235,7 @@ export const GameCard = memo(({ game, index, imageErrors, onImageError }: GameCa
             <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
             <circle cx="12" cy="10" r="3" />
           </svg>
-          {game.arena && formatArenaLocation(game.arena)}
+          {game.arena && formatArenaLocation(game.arena as IGameArena)}
         </div>
       </div>
     </div>

@@ -8,11 +8,11 @@ This directory contains all the type definitions used throughout the application
 - `generated/`: Contains auto-generated types from GraphQL schema
 - `common.types.ts`: Common utility types
 - `constants.types.ts`: Type definitions for constants
-- `consolidated.types.ts`: All game-related types (consolidated from various sources)
+- `game.types.ts`: All game-related types
 - `graphql.types.ts`: GraphQL-specific types
 - `notification.types.ts`: Notification system types
 - `shared.types.ts`: Re-exports commonly used types
-- `consolidated.types.ts`: Team-related types
+- `team.types.ts`: Team-related types
 - `user.types.ts`: User and authentication types
 - `validation.types.ts`: Zod schemas and validation types
 

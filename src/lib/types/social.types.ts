@@ -1,4 +1,5 @@
 import type * as React from 'react';
+
 import type {
   Comment,
   DbUser,
@@ -10,15 +11,18 @@ import type {
 
 export type { Comment, Reaction, Friendship };
 
-export type EditingComment = { id: string; content: string };
+export interface IEditingComment {
+  id: string;
+  content: string;
+}
 
-export interface CommentsSectionProps {
+export interface ICommentsSectionProps {
   parentId: string;
   parentType: ParentType;
   initialExpanded?: boolean;
 }
 
-export interface CommentWithUser {
+export interface ICommentWithUser {
   id: string;
   userId: string;
   parentId: string | null;
@@ -30,7 +34,7 @@ export interface CommentWithUser {
   user: DbUser | null;
 }
 
-export interface ReactionWithUser {
+export interface IReactionWithUser {
   id: string;
   emoji: ReactionEmojiType;
   createdAt: Date;
@@ -41,20 +45,20 @@ export interface ReactionWithUser {
   user: DbUser | null;
 }
 
-export interface ReactionPickerProps {
+export interface IReactionPickerProps {
   targetId: string;
   targetType: string;
   existingReactions?: Reaction[];
   onReactionChanged?: () => void;
 }
 
-export interface Friend {
+export interface IFriend {
   id: string;
   username: string;
   avatar: string;
 }
 
-export interface FriendGroup {
+export interface IFriendGroup {
   id: string;
   name: string;
   description: string;
@@ -63,19 +67,19 @@ export interface FriendGroup {
   imageUrl: string;
 }
 
-export interface FriendGroupsProps {
-  friends: Friend[];
-  onGroupUpdate: (group: FriendGroup) => void;
+export interface IFriendGroupsProps {
+  friends: IFriend[];
+  onGroupUpdate: (group: IFriendGroup) => void;
 }
 
-export enum SORT_DIRECTION {
-  ASC = 'asc',
-  DESC = 'desc',
-}
+export const ISortDirection = {
+  ASC: 'asc',
+  DESC: 'desc',
+} as const;
 
-export type SortDirection = 'asc' | 'desc';
+export type ISortDirection = (typeof ISortDirection)[keyof typeof ISortDirection];
 
-export interface FriendRequest
+export interface IFriendRequest
   extends Pick<Friendship, 'id' | 'status' | 'createdAt' | 'updatedAt'> {
   sender: {
     id: string;
@@ -90,20 +94,20 @@ export interface FriendRequest
   mutualFriends?: number;
 }
 
-export interface FriendRequestButtonProps {
-  target_userId: string;
-  target_username?: string;
-  target_avatar?: string;
+export interface IFriendRequestButtonProps {
+  targetUserId: string;
+  targetUsername?: string;
+  targetAvatar?: string;
 }
 
-export interface GetFriendshipsForUserResponse {
+export interface IGetFriendshipsForUserResponse {
   friendships: Friendship[];
 }
 
-export type NavItem = {
+export interface INavItem {
   title: string;
   href: string;
   icon?: React.ComponentType<{ className?: string }>;
-  subItems?: NavItem[];
+  subItems?: INavItem[];
   isActive?: boolean;
-};
+}

@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import React, { useEffect, useState, Suspense } from 'react';
 
 import { UserSearch } from '@/app/protected/admin/search/UserSearch';
+import { logger } from '@lib/core/logger';
 import { Button } from '@src/app/components/ui/button';
 import {
   Table,
@@ -16,7 +17,6 @@ import {
   TableHeader,
   TableRow,
 } from '@src/app/components/ui/table';
-import { logger } from 'lib/core/logger';
 import type { DbUser } from '@src/lib/types/generated/graphql';
 const ITEMS_PER_PAGE = 20;
 

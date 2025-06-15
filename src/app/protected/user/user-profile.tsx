@@ -4,15 +4,16 @@ import { useQuery } from '@apollo/client/react/hooks';
 import { useUser } from '@clerk/nextjs';
 import React from 'react';
 
-import { ErrorBoundary } from './components/error-boundary';
-import { FriendshipManagement } from './components/profile/friendship-management';
-import { GameLogsSection } from './components/game-logs/game-logs-section';
-import { UserHeader } from './components/profile/user-header';
+import { Skeleton } from '@src/app/components/ui/skeleton';
 import { GET_USER } from '@src/lib/graphql/queries';
 import type { GetUserQuery, GetUserQueryVariables } from '@src/lib/types/generated/graphql';
-import { Skeleton } from '@src/app/components/ui/skeleton';
 
-interface UserProfileProps {
+import { ErrorBoundary } from './components/error-boundary';
+import { GameLogsSection } from './components/game-logs/game-logs-section';
+import { FriendshipManagement } from './components/profile/friendship-management';
+import { UserHeader } from './components/profile/user-header';
+
+interface IUserProfileProps {
   targetUserId: string;
 }
 
@@ -20,7 +21,7 @@ interface UserProfileProps {
  * A component that displays a user's profile, including their header information,
  * friendship management (if viewing another user's profile), and game logs.
  */
-export default function UserProfile({ targetUserId }: UserProfileProps) {
+export default function UserProfile({ targetUserId }: IUserProfileProps) {
   const { user: currentUser } = useUser();
 
   const {

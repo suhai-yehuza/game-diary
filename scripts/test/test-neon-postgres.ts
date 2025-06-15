@@ -2,8 +2,8 @@ import 'dotenv-flow/config';
 
 import { sql } from 'drizzle-orm';
 
+import { logger } from '@lib/core/logger';
 import { createDatabaseClient, testConnection } from '@src/lib/db/seed/config';
-import { logger } from 'lib/core/logger';
 async function main() {
   try {
     // Create database client

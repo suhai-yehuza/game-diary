@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { logger } from 'lib/core/logger';
+import { logger } from '@lib/core/logger';
 
 // Better build detection that works across different environments
 const isServer = typeof window === 'undefined';

@@ -1,4 +1,4 @@
-export interface GameResponseData {
+export interface IGameResponseData {
   id: number;
   league: string;
   season: number;
@@ -69,16 +69,16 @@ export interface GameResponseData {
   nugget?: string;
 }
 
-export interface GameApiResponse {
-  response: GameResponseData[];
-  data?: GameResponseData[];
+export interface IGameApiResponse {
+  response: IGameResponseData[];
+  data?: IGameResponseData[];
   get?: string;
   parameters?: Record<string, string>;
   errors?: string[];
   results?: number;
 }
 
-export interface PlayerApiResponse {
+export interface IPlayerApiResponse {
   response: {
     get: string;
     parameters: {
@@ -162,7 +162,7 @@ export type TeamApiResponse = {
   }>;
 };
 
-export interface PlayerStatistics {
+export interface IPlayerStatistics {
   player: {
     id: number;
     firstName: string;

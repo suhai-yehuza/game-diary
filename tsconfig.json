@@ -24,7 +24,7 @@
       "@/*": ["./src/*"],
       "@src/*": ["./src/*"],
       "@utils/*": ["./scripts/utils/*"],
-      "lib/*": ["./lib/*"]
+      "@lib/*": ["./lib/*"]
     },
     "typeRoots": ["./node_modules/@types"],
     "baseUrl": ".",
@@ -47,9 +47,6 @@
     "!.next/types/**/*.ts",
     "out",
     "coverage",
-    "**/*.test.ts",
-    "**/*.test.tsx",
-    "**/__tests__/**",
     "**/dist/**",
     "src/lib/types/generated/**"
   ]

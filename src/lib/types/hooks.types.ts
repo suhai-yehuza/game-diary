@@ -3,33 +3,35 @@
  * Types related to custom hooks and their return values
  */
 
-import type { ApolloError, ApolloQueryResult, OperationVariables } from '@apollo/client';
+import type { OperationVariables, ApolloQueryResult } from '@apollo/client';
 
+import type { IGame } from './game.types';
 import type { Game, DbUser, Friendship, FriendshipStatus } from './generated/graphql';
 
-export interface UseCreateGameLogProps {
+export interface IUseCreateGameLogProps {
   onSuccess?: () => void;
 }
 
-export interface UseGameDataProps {
+export interface IUseGameDataProps {
   initialSeason?: number;
-  initialFilters?: {
-    season?: number;
-    status?: string;
-  };
+  initialFilters?: Record<string, unknown>;
 }
 
-export interface ProcessedGames {
+export interface IProcessedGames {
   live: Game[];
   scheduled: Game[];
   completed: Game[];
 }
 
-export interface UseGameDataReturn {
-  games: Game[];
-  processedGames: ProcessedGames;
+export interface IUseGameDataReturn {
+  games: IGame[];
+  processedGames: {
+    live: IGame[];
+    scheduled: IGame[];
+    completed: IGame[];
+  };
   loading: boolean;
-  error: ApolloError | null;
+  error: Error | null;
   hasShownInitialLoad: boolean;
   isFetchingMore: boolean;
   currentSeason: number;
@@ -40,18 +42,18 @@ export interface UseGameDataReturn {
   canLoadMore: boolean;
 }
 
-export interface PaginationHookOptions<T> {
+export interface IPaginationHookOptions<T> {
   pageSize: number;
   fetchMore: (options: {
     variables: OperationVariables;
-    updateQuery: (prev: unknown, options: { fetchMoreResult?: PaginationFetchResult }) => unknown;
+    updateQuery: (prev: unknown, options: { fetchMoreResult?: IPaginationFetchResult }) => unknown;
   }) => Promise<ApolloQueryResult<unknown>>;
   data?: { edges?: Array<{ node: T; cursor: string }> };
   hasNextPage?: boolean;
   filters: Record<string, unknown>;
 }
 
-export interface PaginationFetchResult {
+export interface IPaginationFetchResult {
   games?: {
     edges: Array<{ node: unknown }>;
     pageInfo: {
@@ -68,23 +70,23 @@ export interface PaginationFetchResult {
   };
 }
 
-export interface FilterConfig {
+export interface IFilterConfig {
   [key: string]: {
     defaultValue: string | number;
     type?: 'string' | 'number' | 'boolean';
   };
 }
 
-export interface UseSearchFiltersOptions {
-  filterConfig: FilterConfig;
+export interface IUseSearchFiltersOptions {
+  filterConfig: IFilterConfig;
   additionalFilters?: Record<string, unknown>;
 }
 
-export interface UseUserProfileProps {
+export interface IUseUserProfileProps {
   targetUserId?: string;
 }
 
-export interface UseUserProfileReturn {
+export interface IUseUserProfileReturn {
   targetUser: DbUser | null;
   dbUserId: string | null;
   currentUserDbId: string | null;

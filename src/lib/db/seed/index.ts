@@ -1,5 +1,5 @@
 import { schema } from '@src/lib/db/schema';
-import type { DatabaseConfig, DatabaseClient } from '@src/lib/types/database.types';
+import type { IDatabaseConfig, IDatabaseClient } from '@src/lib/types/database.types';
 
 import { createDatabaseClient, getDb, initializeDb, closeDb } from './config';
 
@@ -23,4 +23,4 @@ export { createDatabaseClient, getDb, initializeDb, closeDb };
 export const getDbClient = () => db;
 
 // Export types
-export type { DatabaseConfig, DatabaseClient };
+export type { IDatabaseConfig, IDatabaseClient };

@@ -1,14 +1,14 @@
+import { apiLogger } from '@lib/core/logger';
 import { API_CONFIG, getRapidApiConfig, validateAPIKey } from '@src/lib/config/api.config';
 import { APIError } from '@src/lib/errors/api.error';
-import { apiLogger } from 'lib/core/logger';
-import type { SeasonApiResponse } from '@src/lib/types/api.types';
 import type {
-  PlayerApiResponse,
-  GameApiResponse,
-  ApiTeamResponse,
-} from '@src/lib/types/consolidated.types';
-import type { TeamStats } from '@src/lib/types/generated/graphql';
-import type { APIConfigOptions } from '@src/lib/types/shared.types';
+  IPlayerApiResponse,
+  IGameApiResponse,
+  ITeamApiResponse,
+  ISeasonApiResponse,
+} from '@src/lib/types';
+import type { ITeamStats } from '@src/lib/types/generated/graphql';
+import type { IAPIConfigOptions } from '@src/lib/types/shared.types';
 import { sleep } from '@src/lib/utils/time';
 
 // ============================================================================
@@ -20,7 +20,7 @@ import { sleep } from '@src/lib/utils/time';
  */
 export async function fetchWithRetry(
   url: string,
-  config: APIConfigOptions,
+  config: IAPIConfigOptions,
   attempts: number = config.retryAttempts ?? API_CONFIG.request.retryAttempts,
   delayBetweenBatches: number = API_CONFIG.rateLimit.BASE_DELAY
 ): Promise<Response> {
@@ -150,7 +150,7 @@ export function handleAPIError(error: unknown): never {
 /**
  * Create a config object for NBA API calls
  */
-function createNbaApiConfig(): APIConfigOptions {
+function createNbaApiConfig(): IAPIConfigOptions {
   const rapidApiConfig = {
     baseUrl: process.env.NEXT_PUBLIC_RAPID_API_BASE_URL || '',
     host: process.env.NEXT_PUBLIC_RAPID_API_HOST || '',
@@ -182,7 +182,7 @@ function getNbaApiBaseUrl(): string {
 /**
  * Fetch NBA seasons
  */
-export async function fetchNbaSeasons(): Promise<SeasonApiResponse> {
+export async function fetchNbaSeasons(): Promise<ISeasonApiResponse> {
   const res = await fetchWithRetry(
     `${getNbaApiBaseUrl()}/${API_CONFIG.endpoints.SEASONS}`,
     createNbaApiConfig(),
@@ -199,7 +199,7 @@ export async function fetchNbaSeasons(): Promise<SeasonApiResponse> {
 /**
  * Fetch NBA games with optional query parameters
  */
-export async function fetchNbaGames(queryParams: string): Promise<GameApiResponse> {
+export async function fetchNbaGames(queryParams: string): Promise<IGameApiResponse> {
   const cleanQueryParams = queryParams.startsWith('?') ? queryParams.slice(1) : queryParams;
   const url = `${getNbaApiBaseUrl()}/${API_CONFIG.endpoints.GAMES}${cleanQueryParams ? `?${cleanQueryParams}` : ''}`;
 
@@ -220,7 +220,7 @@ export async function fetchNbaGames(queryParams: string): Promise<GameApiRespons
 /**
  * Fetch a specific NBA game by ID
  */
-export async function fetchNbaGameById(id: string): Promise<GameApiResponse> {
+export async function fetchNbaGameById(id: string): Promise<IGameApiResponse> {
   const res = await fetchWithRetry(
     `${getNbaApiBaseUrl()}/${API_CONFIG.endpoints.GAMES}?id=${id}`,
     createNbaApiConfig(),
@@ -238,7 +238,7 @@ export async function fetchNbaGameById(id: string): Promise<GameApiResponse> {
 /**
  * Fetch currently live NBA games
  */
-export async function fetchNbaLiveGames(): Promise<GameApiResponse> {
+export async function fetchNbaLiveGames(): Promise<IGameApiResponse> {
   const url = `${getNbaApiBaseUrl()}/${API_CONFIG.endpoints.GAMES}?live=all`;
 
   const config = createNbaApiConfig();
@@ -290,73 +290,27 @@ export async function fetchNbaLiveGames(): Promise<GameApiResponse> {
 /**
  * Fetch NBA teams with optional query parameters
  */
-export async function fetchNbaTeams(queryParams?: string): Promise<ApiTeamResponse> {
-  const url = queryParams
-    ? `${getNbaApiBaseUrl()}/${API_CONFIG.endpoints.TEAMS}?${queryParams}`
-    : `${getNbaApiBaseUrl()}/${API_CONFIG.endpoints.TEAMS}`;
-  apiLogger.info('Fetching NBA teams from URL:', url);
+export async function fetchNbaTeams(queryParams?: string): Promise<ITeamApiResponse> {
+  const url = `${getNbaApiBaseUrl()}/${API_CONFIG.endpoints.TEAMS}${queryParams ? `?${queryParams}` : ''}`;
 
-  const res = await fetchWithRetry(
-    url,
-    createNbaApiConfig(),
-    API_CONFIG.rateLimit.MAX_RETRIES,
-    API_CONFIG.rateLimit.BASE_DELAY
-  );
+  const config = createNbaApiConfig();
 
-  if (!res.ok) {
-    throw new Error(
-      `Failed to fetch NBA teams. Status: ${res.status}, StatusText: ${res.statusText}`
+  try {
+    const res = await fetchWithRetry(
+      url,
+      config,
+      API_CONFIG.rateLimit.MAX_RETRIES,
+      API_CONFIG.rateLimit.BASE_DELAY
     );
-  }
 
-  const data = await res.json();
-  apiLogger.info('Raw NBA teams response:', JSON.stringify(data, null, 2));
-
-  // Validate response structure
-  if (!data || !data.response || !Array.isArray(data.response)) {
-    throw new Error('Invalid response structure from NBA teams API');
-  }
-
-  // Filter for valid teams (must have ID and name)
-  const validTeams = data.response.filter(
-    (team: { id?: number; name?: string; nbaFranchise?: boolean }) => {
-      if (!team.id) {
-        apiLogger.warn('Team missing ID:', team);
-        return false;
-      }
-      if (!team.name) {
-        apiLogger.warn('Team missing name:', team);
-        return false;
-      }
-      return true;
+    if (!res.ok) {
+      throw new Error(`Failed to fetch NBA teams. Error: ${res}`);
     }
-  );
 
-  if (validTeams.length === 0) {
-    throw new Error('No valid teams found in API response');
+    return res.json();
+  } catch (error) {
+    handleAPIError(error);
   }
-
-  // Log team IDs for verification
-  apiLogger.info(
-    'Team IDs from API:',
-    validTeams.map((team: { id: number }) => team.id).join(', ')
-  );
-  apiLogger.info(
-    'NBA Franchise teams:',
-    validTeams.filter((team: { nbaFranchise?: boolean }) => team.nbaFranchise).length
-  );
-  apiLogger.info(
-    'Non-NBA Franchise teams:',
-    validTeams.filter((team: { nbaFranchise?: boolean }) => !team.nbaFranchise).length
-  );
-
-  return {
-    get: 'teams',
-    parameters: {},
-    errors: [],
-    results: validTeams.length,
-    response: validTeams,
-  } as ApiTeamResponse;
 }
 
 /**
@@ -375,7 +329,7 @@ export async function fetchNbaTeamById(teamId: string) {
 /**
  * Fetch NBA players with optional query parameters
  */
-export async function fetchNbaPlayers(queryParams: string): Promise<PlayerApiResponse> {
+export async function fetchNbaPlayers(queryParams: string): Promise<IPlayerApiResponse> {
   const cleanQueryParams = queryParams.startsWith('?') ? queryParams.slice(1) : queryParams;
   const url = `${getNbaApiBaseUrl()}/${API_CONFIG.endpoints.PLAYERS}${cleanQueryParams ? `?${cleanQueryParams}` : ''}`;
   const res = await fetchWithRetry(
@@ -388,13 +342,13 @@ export async function fetchNbaPlayers(queryParams: string): Promise<PlayerApiRes
   const data = await res.json();
   return {
     response: data,
-  } as PlayerApiResponse;
+  } as IPlayerApiResponse;
 }
 
 /**
  * Fetch NBA team statistics with query parameters
  */
-export async function fetchNbaTeamStats(queryParams: string): Promise<TeamStats> {
+export async function fetchNbaTeamStats(queryParams: string): Promise<ITeamStats> {
   const res = await fetchWithRetry(
     `${getNbaApiBaseUrl()}/${API_CONFIG.endpoints.TEAMS}/statistics?${queryParams}`,
     createNbaApiConfig(),

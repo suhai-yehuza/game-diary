@@ -2,17 +2,19 @@ import { and, eq, gt, lt, or, sql, gte, lte, desc, asc, type InferSelectModel } 
 
 import * as schema from '@src/lib/db/schema';
 import { BusinessLogicError } from '@src/lib/graphql/errors';
-import { createConnection, parseCursor } from '@src/lib/graphql/utils';
-import type { Context } from '@src/lib/types/component.types';
+import { createConnection, parseCursor, handleResolverError } from '@src/lib/graphql/utils';
+import type { IContext } from '@src/lib/types/component.types';
 import type {
   DbUser,
   Friendship,
   FriendshipStatus,
   UserSummary,
 } from '@src/lib/types/generated/graphql';
-import type { PaginationArgs, UserFilters, UserSearchFilters } from '@src/lib/types/resolver.types';
-
-import { handleResolverError } from '../utils';
+import type {
+  IPaginationArgs,
+  IUserFilters,
+  IUserSearchFilters,
+} from '@src/lib/types/resolver.types';
 
 // Helper function to map user data from either DatabaseRow or InferSelectModel<typeof schema.users>
 export function mapUserData(user: InferSelectModel<typeof schema.users>): DbUser {
@@ -46,8 +48,8 @@ export function mapUserData(user: InferSelectModel<typeof schema.users>): DbUser
 
 export const searchUsers = async (
   _parent: unknown,
-  args: PaginationArgs & { searchTerm?: string; filters?: UserSearchFilters },
-  { db, user: _currentUser }: Context
+  args: IPaginationArgs & { searchTerm?: string; filters?: IUserSearchFilters },
+  { db, user: _currentUser }: IContext
 ) => {
   try {
     const { first = 20, after, searchTerm, filters } = args;
@@ -188,8 +190,8 @@ export const searchUsers = async (
 
 export const users = async (
   _parent: unknown,
-  args: PaginationArgs & { filters?: UserFilters },
-  { db }: Context
+  args: IPaginationArgs & { filters?: IUserFilters },
+  { db }: IContext
 ) => {
   try {
     const { first = 10, after, last, before, filters } = args;
@@ -237,7 +239,7 @@ export const users = async (
   }
 };
 
-export const user = async (_parent: unknown, { id }: { id: string }, { db }: Context) => {
+export const user = async (_parent: unknown, { id }: { id: string }, { db }: IContext) => {
   try {
     const user = await db
       .select()
@@ -254,7 +256,7 @@ export const user = async (_parent: unknown, { id }: { id: string }, { db }: Con
   }
 };
 
-export const me = async (_parent: unknown, _args: unknown, { db, user }: Context) => {
+export const me = async (_parent: unknown, _args: unknown, { db, user }: IContext) => {
   try {
     if (!user) throw new BusinessLogicError('Not authenticated', 'NOT_AUTHENTICATED');
 
@@ -273,7 +275,7 @@ export const me = async (_parent: unknown, _args: unknown, { db, user }: Context
   }
 };
 
-export const friendships = async (parent: DbUser, _args: unknown, { db }: Context) => {
+export const friendships = async (parent: DbUser, _args: unknown, { db }: IContext) => {
   try {
     // Fetch friendships where this user is the recipient
     const friendships = await db
@@ -299,7 +301,7 @@ export const friendships = async (parent: DbUser, _args: unknown, { db }: Contex
   }
 };
 
-export const initiatedFriendships = async (parent: DbUser, _args: unknown, { db }: Context) => {
+export const initiatedFriendships = async (parent: DbUser, _args: unknown, { db }: IContext) => {
   try {
     // Fetch friendships where this user is the initiator
     const friendships = await db

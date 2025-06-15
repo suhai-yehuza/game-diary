@@ -11,14 +11,14 @@ import {
   ToastViewport,
 } from '@src/app/components/ui/toast';
 import { useToast } from '@src/app/components/ui/use-toast';
-import { type ToasterToast } from '@src/lib/types/notification.types';
+import { type IToasterToast } from '@src/lib/types/notification.types';
 
 export function Toaster() {
   const { toasts } = useToast();
 
   return (
     <ToastProvider>
-      {toasts.map(function (toast: ToasterToast) {
+      {toasts.map(function (toast: IToasterToast) {
         const { id, title, description, action, open, variant, ...rest } = toast;
 
         return (

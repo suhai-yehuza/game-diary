@@ -1,9 +1,9 @@
 import { sql } from 'drizzle-orm';
 
+import { seedLogger } from '@lib/core/logger';
 import { API_CONFIG } from '@src/lib/config/api.config';
 import { handleAPIError } from '@src/lib/external-apis';
-import { seedLogger } from 'lib/core/logger';
-import type { PlayerStatistics } from '@src/lib/types/consolidated.types';
+import type { IGameStatistics } from '@src/lib/types/game-statistics.types';
 import { generateUUID } from '@src/lib/utils/processing';
 
 import { nba_player_stats } from './schema';
@@ -58,12 +58,12 @@ export async function fetchAndProcessNBAPlayerStats(
       setTimeout(() => reject(new Error('API request timeout')), API_TIMEOUT);
     });
 
-    const responsePromise = api.get<{ response: PlayerStatistics[] }>(
+    const responsePromise = api.get<{ response: IGameStatistics[] }>(
       `${API_CONFIG.endpoints.PLAYERS}/statistics?id=${playerId}&season=${season}&game=${gameId}`
     );
 
     const response = (await Promise.race([responsePromise, timeoutPromise])) as {
-      response: PlayerStatistics[];
+      response: IGameStatistics[];
     };
 
     if (!response?.response) {
@@ -94,27 +94,27 @@ export async function fetchAndProcessNBAPlayerStats(
     }
 
     // Process and store player statistics in the database with retry
-    const playerGameStats = playerStats[0] as PlayerStatistics;
+    const playerGameStats = playerStats[0] as IGameStatistics;
     await retryDatabaseOperation(() =>
       db.insert(nba_player_stats).values({
         id: generateUUID(),
         playerId: playerId,
         gameId: gameId,
-        teamId: playerGameStats?.team?.id?.toString() || '',
-        minutes: playerGameStats?.min ? String(playerGameStats.min) : '',
+        teamId: playerGameStats?.teamId || '',
+        minutes: playerGameStats?.minutes || '0',
         points: playerGameStats?.points || 0,
-        rebounds: playerGameStats?.totReb || 0,
+        rebounds: playerGameStats?.rebounds || 0,
         assists: playerGameStats?.assists || 0,
         steals: playerGameStats?.steals || 0,
         blocks: playerGameStats?.blocks || 0,
         turnovers: playerGameStats?.turnovers || 0,
-        fouls: playerGameStats?.pFouls || 0,
-        fieldGoalsMade: playerGameStats?.fgm || 0,
-        fieldGoalsAttempted: playerGameStats?.fga || 0,
-        threePointersMade: playerGameStats?.tpm || 0,
-        threePointersAttempted: playerGameStats?.tpa || 0,
-        freeThrowsMade: playerGameStats?.ftm || 0,
-        freeThrowsAttempted: playerGameStats?.fta || 0,
+        fouls: playerGameStats?.fouls || 0,
+        fieldGoalsMade: playerGameStats?.fieldGoals?.made || 0,
+        fieldGoalsAttempted: playerGameStats?.fieldGoals?.attempted || 0,
+        threePointersMade: playerGameStats?.threePointers?.made || 0,
+        threePointersAttempted: playerGameStats?.threePointers?.attempted || 0,
+        freeThrowsMade: playerGameStats?.freeThrows?.made || 0,
+        freeThrowsAttempted: playerGameStats?.freeThrows?.attempted || 0,
         createdAt: new Date(),
         updatedAt: new Date(),
       })

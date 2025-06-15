@@ -19,16 +19,16 @@ const config: CodegenConfig = {
     './src/lib/types/generated/types.ts': {
       plugins: ['typescript', 'typescript-resolvers'],
       config: {
-        contextType: '@/lib/graphql/context#Context',
+        contextType: '@/lib/graphql/context#IContext',
         mappers: {
-          Player: '@/lib/types#DBPlayer',
-          Activity: '@/lib/types#Activity',
-          Notification: '@/lib/types#AppNotification',
+          Player: '@/lib/types#IDBPlayer',
+          Activity: '@/lib/types#IActivity',
+          Notification: '@/lib/types#IAppNotification',
         },
         scalars: {
-          Any: '@/lib/types/scalars#AnyScalar',
-          JSON: '@/lib/types/scalars#JsonScalar',
-          DateTime: '@/lib/types/scalars#DateTimeScalar',
+          Any: '@/lib/types/scalars#IAnyScalar',
+          JSON: '@/lib/types/scalars#IJsonScalar',
+          DateTime: '@/lib/types/scalars#IDateTimeScalar',
         },
         strictScalars: true,
         useTypeImports: true,

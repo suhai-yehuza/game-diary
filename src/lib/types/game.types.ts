@@ -1,16 +1,21 @@
 import type { InferSelectModel } from 'drizzle-orm';
 
 import type { nba_games } from '@src/lib/db/schema/nba-schemas';
-import type { GameStatusValue, ClassificationType } from '@src/lib/types/config.types';
-import type { SortDirection } from '@src/lib/types/shared.types';
+import type {
+  GAME_STATUS_VALUES,
+  IClassificationType as ClassificationType,
+} from '@src/lib/types/config.types';
+import type { ISortDirection } from '@src/lib/types/shared.types';
 
 // Database Types
-export type DBGameRecord = InferSelectModel<typeof nba_games>;
+export type IDBGameRecord = InferSelectModel<typeof nba_games>;
 
-export type GameWithPossibleId = Game & { gameId?: string };
+export interface IGameWithPossibleId extends IGame {
+  gameId?: string;
+}
 
 // Core Game Types
-export interface GameTeam {
+export interface IGameTeam {
   id: string;
   name: string;
   nickname: string;
@@ -18,7 +23,7 @@ export interface GameTeam {
   logo: string | null;
 }
 
-export interface GameScore {
+export interface IGameScore {
   points: number;
   win?: number;
   loss?: number;
@@ -29,68 +34,85 @@ export interface GameScore {
   linescore?: number[];
 }
 
-export interface GameArena {
+export interface IGameArena {
   name?: string;
   city?: string;
   state?: string | null;
   country?: string | null;
 }
 
-export interface GamePeriods {
+export interface IGamePeriods {
   current: number;
   total: number;
   endOfPeriod: boolean;
 }
 
-export interface GameStatus {
+export interface IGameStatus {
   long?: string;
   short?: string;
   clock?: string | null;
   halftime?: boolean;
 }
 
-export interface GameDate {
+export interface IGameDate {
   start: string;
   end?: string;
   duration?: string;
 }
 
-export interface GameTeams {
-  home: GameTeam;
-  visitors: GameTeam;
+export interface IGameTeams {
+  home: IGameTeam;
+  visitors: IGameTeam;
 }
 
-export interface GameScores {
-  home: GameScore;
-  visitors: GameScore;
+export interface IGameScores {
+  home: IGameScore;
+  visitors: IGameScore;
 }
 
-export interface Game {
+export interface IGame {
   id: string;
-  date: GameDate;
-  status: GameStatus;
-  teams: GameTeams;
-  scores: GameScores;
-  arena?: GameArena;
+  date: {
+    start: string;
+    end: string | null;
+    duration: string | number | null;
+  };
+  status: {
+    long: string;
+    short: string;
+    clock?: string | null;
+    halftime?: boolean;
+  };
+  arena?: IGameArena;
   league: string;
   season: number;
   stage: number;
-  periods?: GamePeriods;
+  periods?: IGamePeriods;
+  teams: IGameTeams;
+  scores: IGameScores;
   officials?: string[];
-  timesTied?: number;
-  leadChanges?: number;
-  nugget?: string;
+  timesTied?: number | null;
+  leadChanges?: number | null;
+  nugget?: string | null;
   createdAt?: string;
   updatedAt?: string;
   homeTeamId?: string;
   awayTeamId?: string;
+  isCompleted?: boolean;
+  awayTeamScore?: number | null;
+  homeTeamScore?: number | null;
+  gameType?: string;
+  nbaGameId?: string;
 }
 
-export type ExtendedGame = Game & { extended?: boolean };
-export type SearchGame = Game;
+export interface IExtendedGame extends IGame {
+  extended?: boolean;
+}
+
+export type ISearchGame = IGame;
 
 // Additional game-related types from common/types.ts
-export interface GameScoresLegacy {
+export interface IGameScoresLegacy {
   visitors?: {
     points?: number;
   };
@@ -99,12 +121,12 @@ export interface GameScoresLegacy {
   };
 }
 
-export interface GameData {
+export interface IGameData {
   id: string;
   date: string;
   status: string;
-  homeTeam: GameTeam;
-  awayTeam: GameTeam;
+  homeTeam: IGameTeam;
+  awayTeam: IGameTeam;
   homeTeamScore: number;
   awayTeamScore: number;
   arena?: {
@@ -129,7 +151,7 @@ export interface GameData {
   updatedAt: string;
 }
 
-export interface MappedGame {
+export interface IMappedGame {
   id: string;
   date: {
     start: string;
@@ -147,7 +169,7 @@ export interface MappedGame {
   season: number;
   stage: number;
   periods: unknown[];
-  scores: GameScoresLegacy;
+  scores: IGameScoresLegacy;
   officials: string[];
   timesTied: number | null;
   leadChanges: number | null;
@@ -157,8 +179,8 @@ export interface MappedGame {
   homeTeamId: string;
   awayTeamId: string;
   teams: {
-    home: GameTeam | null;
-    visitors: GameTeam | null;
+    home: IGameTeam | null;
+    visitors: IGameTeam | null;
   };
   is_completed: boolean;
   awayTeamScore: number | null;
@@ -168,7 +190,7 @@ export interface MappedGame {
 }
 
 // Game Statistics Types
-export interface GameTeamStatistic {
+export interface IGameTeamStatistic {
   fastBreakPoints?: number;
   pointsInPaint?: number;
   biggestLead?: number;
@@ -197,24 +219,24 @@ export interface GameTeamStatistic {
   points?: number;
 }
 
-export interface GameTeamWithStats extends GameTeam {
-  stats?: GameTeamStatistics;
+export interface IGameTeamWithStats extends IGameTeam {
+  stats: IGameTeamStatistic;
 }
 
-export type GameTeamStatistics = {
+export interface IGameTeamStatistics {
   team: {
     id: number | string;
     name?: string;
     [key: string]: unknown;
   };
-  statistics: GameStatistics[];
-};
-
-export interface GameWithStatistics extends Game {
-  statistics: GameStatistics[];
+  statistics: IGameStatistics[];
 }
 
-export interface GameStatistics {
+export interface IGameWithStatistics extends IGame {
+  statistics: IGameStatistics[];
+}
+
+export interface IGameStatistics {
   playerId: string;
   teamId: string;
   minutes: string;
@@ -244,12 +266,12 @@ export interface GameStatistics {
 }
 
 // Game Filter Types
-export interface GameFilters {
+export interface IGameFilters {
   gameId?: string;
   homeTeamId?: string;
   awayTeamId?: string;
   season?: number;
-  status?: GameStatusValue;
+  status?: (typeof GAME_STATUS_VALUES)[keyof typeof GAME_STATUS_VALUES];
   dateRange?: {
     start: Date;
     end?: Date;
@@ -265,7 +287,7 @@ export interface GameFilters {
   officials?: string[];
   teamId?: string;
   sortBy?: string;
-  sortDirection?: SortDirection;
+  sortDirection?: ISortDirection;
   pagination?: {
     first?: number;
     after?: string;
@@ -279,12 +301,12 @@ export interface GameFilters {
   nugget?: string;
 }
 
-export interface GameSortInput {
+export interface IGameSortInput {
   field: string;
   direction: 'asc' | 'desc';
 }
 
-export type GameField =
+export type IGameField =
   | 'season'
   | 'league'
   | 'date'
@@ -303,12 +325,12 @@ export type GameField =
   | 'updatedAt';
 
 // Game Query Types
-export interface GameEdge {
-  node: Game;
+export interface IGameEdge {
+  node: IGame;
 }
 
-export interface GameConnection {
-  edges: GameEdge[];
+export interface IGameConnection {
+  edges: IGameEdge[];
   pageInfo: {
     hasNextPage: boolean;
     endCursor: string | null;
@@ -316,22 +338,34 @@ export interface GameConnection {
   totalCount: number;
 }
 
-export interface GameQueryResponse {
-  games: GameConnection;
+export interface IGameQueryResponse {
+  games: {
+    edges: IGameEdge[];
+    pageInfo: {
+      hasNextPage: boolean;
+      endCursor: string;
+    };
+  };
 }
 
 // Game Component Props
-export type GameCardProps = {
-  game: SearchGame;
+export interface IGameCardProps {
+  game: ISearchGame;
   className?: string;
   index?: number;
   imageErrors?: Set<string>;
   onImageError?: (gameId: string) => void;
-};
+}
 
-export type GamesListProps = {
-  games: Game[];
+export interface IGamesListProps {
+  games: IGame[];
   loading?: boolean;
-  initialFilters?: GameFilters;
-  onGameSelect?: (game: Game) => void;
-};
+  initialFilters?: IGameFilters;
+  onGameSelect?: (game: IGame) => void;
+}
+
+export interface IProcessedGames {
+  live: IGame[];
+  scheduled: IGame[];
+  completed: IGame[];
+}

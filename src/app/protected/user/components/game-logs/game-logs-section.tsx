@@ -3,8 +3,6 @@ import { Filter, Gamepad2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
 
-import { GameLogModal } from './game-log-modal';
-import { GameLogActions } from './game-log-actions';
 import { Button } from '@src/app/components/ui/button';
 import { Card, CardContent } from '@src/app/components/ui/card';
 import { Popover, PopoverContent, PopoverTrigger } from '@src/app/components/ui/popover';
@@ -15,7 +13,7 @@ import { GET_USER_GAME_LOGS } from '@src/lib/graphql/queries';
 import {
   REACTION_EMOJIS,
   EMOJI_TO_GRAPHQL_MAPPING,
-  type ReactionEmojiValue,
+  type IReactionEmojiValue,
 } from '@src/lib/types/config.types';
 import type {
   Classification,
@@ -26,20 +24,23 @@ import type {
 } from '@src/lib/types/generated/graphql';
 import { cn } from '@src/lib/utils';
 
+import { GameLogActions } from './game-log-actions';
+import { GameLogModal } from './game-log-modal';
+
 const ITEMS_PER_PAGE = 10;
 
-interface GameLogsSectionProps {
+interface IGameLogsSectionProps {
   userId: string;
   currentUserId: string | null;
 }
 
-export function GameLogsSection({ userId, currentUserId }: GameLogsSectionProps) {
+export function GameLogsSection({ userId, currentUserId }: IGameLogsSectionProps) {
   const router = useRouter();
   const [selectedClassification, setSelectedClassification] = useState<Classification | 'all'>(
     'all'
   );
   const [selectedGameLog, setSelectedGameLog] = useState<GameLog | null>(null);
-  const [clickedEmoji, setClickedEmoji] = useState<ReactionEmojiValue | null>(null);
+  const [clickedEmoji, setClickedEmoji] = useState<IReactionEmojiValue | null>(null);
   const [expandedNotes, setExpandedNotes] = useState<Set<string>>(new Set());
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -70,7 +71,7 @@ export function GameLogsSection({ userId, currentUserId }: GameLogsSectionProps)
   });
 
   // Helper function to convert emoji character to GraphQL enum value
-  function emojiToGraphQLEnum(emojiChar: ReactionEmojiValue): string {
+  function emojiToGraphQLEnum(emojiChar: IReactionEmojiValue): string {
     const emojiKey = Object.entries(REACTION_EMOJIS).find(([, char]) => char === emojiChar)?.[0];
     if (!emojiKey) return 'THUMBS_UP';
     return (
@@ -78,7 +79,7 @@ export function GameLogsSection({ userId, currentUserId }: GameLogsSectionProps)
     );
   }
 
-  function handleReaction(emoji: ReactionEmojiValue, targetId: string, hasReacted: boolean) {
+  function handleReaction(emoji: IReactionEmojiValue, targetId: string, hasReacted: boolean) {
     if (!currentUserId) return;
 
     setClickedEmoji(emoji);
@@ -194,21 +195,21 @@ export function GameLogsSection({ userId, currentUserId }: GameLogsSectionProps)
                 All
               </Button>
               <Button
-                variant={selectedClassification === 'Public' ? 'default' : 'ghost'}
+                variant={String(selectedClassification) === 'Public' ? 'default' : 'ghost'}
                 className="w-full justify-start"
                 onClick={() => setSelectedClassification('Public' as Classification)}
               >
                 Public
               </Button>
               <Button
-                variant={selectedClassification === 'Protected' ? 'default' : 'ghost'}
+                variant={String(selectedClassification) === 'Protected' ? 'default' : 'ghost'}
                 className="w-full justify-start"
                 onClick={() => setSelectedClassification('Protected' as Classification)}
               >
                 Protected
               </Button>
               <Button
-                variant={selectedClassification === 'Private' ? 'default' : 'ghost'}
+                variant={String(selectedClassification) === 'Private' ? 'default' : 'ghost'}
                 className="w-full justify-start"
                 onClick={() => setSelectedClassification('Private' as Classification)}
               >

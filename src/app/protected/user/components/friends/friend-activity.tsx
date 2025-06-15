@@ -2,24 +2,24 @@ import { formatDistanceToNow } from 'date-fns';
 import Image from 'next/image';
 import React from 'react';
 
-import type { Friend } from '@src/lib/types/social.types';
+import type { IFriend } from '@src/lib/types/social.types';
 
-interface Activity {
+interface IActivity {
   id: string;
   type: 'game_logged' | 'friend_added' | 'achievement';
-  user: Friend;
+  user: IFriend;
   description: string;
   timestamp: string;
   gameTitle?: string;
   achievement?: string;
 }
 
-interface FriendActivityProps {
-  activities: Activity[];
+interface IFriendActivityProps {
+  activities: IActivity[];
   isLoading?: boolean;
 }
 
-export const FriendActivity: React.FC<FriendActivityProps> = ({ activities, isLoading }) => {
+export const FriendActivity: React.FC<IFriendActivityProps> = ({ activities, isLoading }) => {
   if (isLoading) {
     return (
       <div className="space-y-4">
@@ -47,7 +47,7 @@ export const FriendActivity: React.FC<FriendActivityProps> = ({ activities, isLo
     );
   }
 
-  const getActivityIcon = (type: Activity['type']) => {
+  const getActivityIcon = (type: IActivity['type']) => {
     switch (type) {
       case 'game_logged':
         return '🎮';
@@ -60,7 +60,7 @@ export const FriendActivity: React.FC<FriendActivityProps> = ({ activities, isLo
     }
   };
 
-  const getActivityColor = (type: Activity['type']) => {
+  const getActivityColor = (type: IActivity['type']) => {
     switch (type) {
       case 'game_logged':
         return 'bg-blue-100 text-blue-800';

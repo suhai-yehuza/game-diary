@@ -4,14 +4,17 @@ import { useMutation, useQuery } from '@apollo/client';
 import { useUser } from '@clerk/nextjs';
 import { useMemo } from 'react';
 
+import { logger } from '@lib/core/logger';
 import { useToast } from '@src/app/components/ui/use-toast';
 import { CREATE_GAME_LOG } from '@src/lib/graphql/mutations';
 import { GET_GAMES } from '@src/lib/graphql/queries';
-import { logger } from 'lib/core/logger';
-import type { UseCreateGameLogProps } from '@src/lib/types/consolidated.types';
-import type { CreateGameLogInput } from '@src/lib/types/generated/graphql';
+import type { IGameLogInput } from '@src/lib/types/game-log.types';
 
-export function useCreateGameLog({ onSuccess }: UseCreateGameLogProps = {}) {
+interface IUseCreateGameLogProps {
+  onSuccess?: () => void;
+}
+
+export function useCreateGameLog({ onSuccess }: IUseCreateGameLogProps = {}) {
   const { toast } = useToast();
   const { user } = useUser();
 
@@ -62,7 +65,7 @@ export function useCreateGameLog({ onSuccess }: UseCreateGameLogProps = {}) {
     },
   });
 
-  const submitGameLog = async (data: CreateGameLogInput) => {
+  const submitGameLog = async (data: IGameLogInput) => {
     if (!user?.id) {
       toast({
         title: 'Error',

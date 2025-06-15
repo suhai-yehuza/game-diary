@@ -8,11 +8,11 @@ import { startServerAndCreateNextHandler } from '@as-integrations/next';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import type { NextRequest } from 'next/server';
 
+import { apiLogger } from '@lib/core/logger';
 import { getCorsHeaders, handleApiError, createOptionsResponse } from '@src/lib/api/utils';
 import { createContext } from '@src/lib/graphql/context';
 import { resolvers } from '@src/lib/graphql/resolvers';
-import { apiLogger } from 'lib/core/logger';
-import type { Context } from '@src/lib/types/component.types';
+import type { IContext } from '@src/lib/types/component.types';
 
 const typeDefs = readFileSync(join(process.cwd(), 'src/lib/graphql/schema.graphql'), 'utf-8');
 
@@ -23,7 +23,7 @@ const graphqlSchema = makeExecutableSchema({
 });
 
 // Create Apollo Server instance
-const server = new ApolloServer<Context>({
+const server = new ApolloServer<IContext>({
   schema: graphqlSchema,
 });
 

@@ -1,8 +1,8 @@
 import { auth } from '@clerk/nextjs/server';
 import { NextResponse, type NextRequest } from 'next/server';
 
+import { cacheLogger } from '@lib/core/logger';
 import { getCache } from '@src/lib/cache';
-import { cacheLogger } from 'lib/core/logger';
 
 // GET /api/cache?key=value
 export async function GET(request: NextRequest) {

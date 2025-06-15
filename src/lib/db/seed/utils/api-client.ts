@@ -2,11 +2,11 @@ import { sql, type Table, type InferInsertModel } from 'drizzle-orm';
 import type { IndexColumn, PgUpdateSetSource } from 'drizzle-orm/pg-core';
 import pLimit from 'p-limit';
 
+import { logger } from '@lib/core/logger';
 import { getRapidApiConfig, validateAPIKey } from '@src/lib/config/api.config';
 import { DB_CONFIG } from '@src/lib/config/db.config';
 import { createRapidAPIClient } from '@src/lib/external-apis';
-import { logger } from 'lib/core/logger';
-import type { DatabaseClient } from '@src/lib/types/database.types';
+import type { IDatabaseClient } from '@src/lib/types/database.types';
 import { sleep } from '@src/lib/utils/time';
 
 import { createDatabaseClient } from '../config';
@@ -92,7 +92,7 @@ export async function withRetry<T>(
 // Optimized API client with connection pooling and rate limiting
 export class OptimizedAPIClient {
   private client: ReturnType<typeof createRapidAPIClient>;
-  private db: DatabaseClient;
+  private db: IDatabaseClient;
   private circuitBreaker: CircuitBreaker;
   private rateLimiter: ReturnType<typeof pLimit>;
 
@@ -100,7 +100,7 @@ export class OptimizedAPIClient {
     const rapidApiConfig = getRapidApiConfig();
     const apiKey = validateAPIKey(rapidApiConfig.apiKey);
     this.client = createRapidAPIClient(apiKey);
-    this.db = createDatabaseClient() as DatabaseClient;
+    this.db = createDatabaseClient() as IDatabaseClient;
     // Add raw property to satisfy DatabaseClient interface
     (this.db as typeof this.db & { raw: unknown; $client: unknown }).raw = (
       this.db as typeof this.db & { $client: unknown }

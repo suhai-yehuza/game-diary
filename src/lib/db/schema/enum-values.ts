@@ -3,9 +3,9 @@ import {
   REACTION_EMOJIS,
   FRIENDSHIP_STATUS,
   WATCHED_SETTING,
-  type ReactionEmojiValue,
-  type FriendshipStatusValue,
-  type WatchedSettingValue,
+  type IReactionEmojiValue,
+  type IFriendshipStatusValue,
+  type IWatchedSettingValue,
 } from '@src/lib/types/config.types';
 
 // Game status enum
@@ -40,7 +40,7 @@ export {
   REACTION_EMOJIS,
   FRIENDSHIP_STATUS,
   WATCHED_SETTING,
-  type ReactionEmojiValue,
-  type FriendshipStatusValue,
-  type WatchedSettingValue,
+  type IReactionEmojiValue,
+  type IFriendshipStatusValue,
+  type IWatchedSettingValue,
 };

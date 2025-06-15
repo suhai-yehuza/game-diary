@@ -3,7 +3,7 @@ import React from 'react';
 /**
  * Props for the UserProfileLayout component
  */
-interface UserProfileLayoutProps {
+interface IUserProfileLayoutProps {
   /** The title to display at the top of the profile page */
   title: string;
   /** The content to render inside the layout */
@@ -14,7 +14,7 @@ interface UserProfileLayoutProps {
  * A layout component that provides a consistent structure for user profile pages.
  * It includes a title and a card container for the main content.
  */
-export default function UserProfileLayout({ title, children }: UserProfileLayoutProps) {
+export default function UserProfileLayout({ title, children }: IUserProfileLayoutProps) {
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">

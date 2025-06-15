@@ -1,23 +1,41 @@
+import type { IGameScores } from '@/lib/types/game.types';
+import { logger } from '@lib/core/logger';
 import { getCache } from '@src/lib/cache';
 import { BusinessLogicError } from '@src/lib/graphql/errors';
-import { logger } from 'lib/core/logger';
 import { CACHE_TTL } from '@src/lib/types/cache.types';
 import { REACTION_EMOJIS } from '@src/lib/types/config.types';
-import type {
-  ConnectionArgs,
-  PaginationParams,
-  Edge,
-  PageInfo,
-  Connection,
-} from '@src/lib/types/consolidated.types';
-import type { DatabaseRow } from '@src/lib/types/database.types';
+import type { IDatabaseRow } from '@src/lib/types/database.types';
 import type { ReactionEmojiType } from '@src/lib/types/generated/graphql';
-import type { GameScores } from '@/lib/types/game.types';
+import type { IPaginationArgs } from '@src/lib/types/resolver.types';
+
+interface IEdge<T> {
+  cursor: string;
+  node: T;
+}
+
+interface IPageInfo {
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
+  startCursor: string | null;
+  endCursor: string | null;
+}
+
+interface IConnection<T> {
+  edges: IEdge<T>[];
+  pageInfo: IPageInfo;
+  totalCount: number;
+}
+
+type IConnectionArgs = IPaginationArgs;
 
 /**
  * Parse connection arguments and return pagination parameters
  */
-export function parsePaginationArgs(args: ConnectionArgs): PaginationParams {
+export function parsePaginationArgs(args: IPaginationArgs): {
+  limit: number;
+  offset: number;
+  isForward: boolean;
+} {
   const { first, after, last, before } = args;
 
   // Default pagination settings
@@ -63,7 +81,7 @@ export function parseCursor(cursor: string): number {
 /**
  * Create edges from items with offset-based cursors
  */
-export function createEdges<T>(items: T[], offset: number): Edge<T>[] {
+export function createEdges<T>(items: T[], offset: number): IEdge<T>[] {
   return items.map((item, index) => ({
     cursor: createCursor(offset + index),
     node: item,
@@ -74,12 +92,12 @@ export function createEdges<T>(items: T[], offset: number): Edge<T>[] {
  * Create page info for the connection
  */
 export function createPageInfo<T>(
-  edges: Edge<T>[],
+  edges: IEdge<T>[],
   totalCount: number,
   limit: number,
   offset: number,
   isForward: boolean
-): PageInfo {
+): IPageInfo {
   const hasNextPage = isForward ? offset + edges.length < totalCount : false;
   const hasPreviousPage = isForward ? offset > 0 : offset + limit < totalCount;
 
@@ -97,8 +115,8 @@ export function createPageInfo<T>(
 export function createConnection<T>(
   items: T[],
   totalCount: number,
-  args: ConnectionArgs
-): Connection<T> {
+  args: IConnectionArgs
+): IConnection<T> {
   const { limit, offset, isForward } = parsePaginationArgs(args);
 
   // Take only the requested number of items
@@ -117,7 +135,7 @@ export function createConnection<T>(
 /**
  * Create an empty connection
  */
-export function createEmptyConnection<T>(): Connection<T> {
+export function createEmptyConnection<T>(): IConnection<T> {
   return {
     edges: [],
     pageInfo: {
@@ -137,7 +155,7 @@ export const getEmojiKey = (emojiCharacter: string): ReactionEmojiType => {
 };
 
 // Helper function to map game data to GraphQL type
-export const mapGameData = (game: DatabaseRow) => {
+export const mapGameData = (game: IDatabaseRow) => {
   const arenaData = game.arena as
     | { name?: string; city?: string; state?: string | null; country?: string | null }
     | string
@@ -227,34 +245,34 @@ export const mapGameData = (game: DatabaseRow) => {
       game.scores && typeof game.scores === 'object'
         ? {
             home: {
-              win: Number((game.scores as GameScores).home?.win) || 0,
-              loss: Number((game.scores as GameScores).home?.loss) || 0,
+              win: Number((game.scores as IGameScores).home?.win) || 0,
+              loss: Number((game.scores as IGameScores).home?.loss) || 0,
               series: {
-                win: Number((game.scores as GameScores).home?.series?.win) || 0,
-                loss: Number((game.scores as GameScores).home?.series?.loss) || 0,
+                win: Number((game.scores as IGameScores).home?.series?.win) || 0,
+                loss: Number((game.scores as IGameScores).home?.series?.loss) || 0,
               },
-              linescore: ((game.scores as GameScores).home?.linescore || []).map(
+              linescore: ((game.scores as IGameScores).home?.linescore || []).map(
                 (score: number) => {
                   const num = Number(score);
                   return isNaN(num) ? 0 : Math.floor(num);
                 }
               ),
-              points: Number((game.scores as GameScores).home?.points) || 0,
+              points: Number((game.scores as IGameScores).home?.points) || 0,
             },
             visitors: {
-              win: Number((game.scores as GameScores).visitors?.win) || 0,
-              loss: Number((game.scores as GameScores).visitors?.loss) || 0,
+              win: Number((game.scores as IGameScores).visitors?.win) || 0,
+              loss: Number((game.scores as IGameScores).visitors?.loss) || 0,
               series: {
-                win: Number((game.scores as GameScores).visitors?.series?.win) || 0,
-                loss: Number((game.scores as GameScores).visitors?.series?.loss) || 0,
+                win: Number((game.scores as IGameScores).visitors?.series?.win) || 0,
+                loss: Number((game.scores as IGameScores).visitors?.series?.loss) || 0,
               },
-              linescore: ((game.scores as GameScores).visitors?.linescore || []).map(
+              linescore: ((game.scores as IGameScores).visitors?.linescore || []).map(
                 (score: number) => {
                   const num = Number(score);
                   return isNaN(num) ? 0 : Math.floor(num);
                 }
               ),
-              points: Number((game.scores as GameScores).visitors?.points) || 0,
+              points: Number((game.scores as IGameScores).visitors?.points) || 0,
             },
           }
         : {

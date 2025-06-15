@@ -1,24 +1,35 @@
-import { and, eq, sql, gte, lte, like, or, isNotNull, desc, asc, ilike } from 'drizzle-orm';
+import {
+  and,
+  eq,
+  sql,
+  gte,
+  lte,
+  like,
+  or,
+  isNotNull,
+  desc,
+  asc,
+  ilike,
+  type InferSelectModel,
+} from 'drizzle-orm';
 
+import { logger } from '@lib/core/logger';
 import { CACHE_KEYS } from '@src/lib/cache';
 import { withCache } from '@src/lib/db';
 import * as schema from '@src/lib/db/schema';
-import { createConnection, parseCursor } from '@src/lib/graphql/utils';
-import { logger } from 'lib/core/logger';
-import type { Context } from '@src/lib/types/component.types';
+import { createConnection, parseCursor, handleResolverError } from '@src/lib/graphql/utils';
+import type { IContext } from '@src/lib/types/component.types';
 import type { GameLogFilters } from '@src/lib/types/generated/graphql';
-import type { PaginationArgs } from '@src/lib/types/resolver.types';
+import type { IPaginationArgs } from '@src/lib/types/resolver.types';
 
-import { handleResolverError } from '../utils';
-
-export const gameLog = async (_parent: unknown, { id }: { id: string }, { db }: Context) => {
+export const gameLog = async (_parent: unknown, { id }: { id: string }, { db }: IContext) => {
   try {
     const gameLog = await db
       .select()
       .from(schema.game_logs)
       .where(eq(schema.game_logs.id, id))
       .limit(1)
-      .then(rows => rows[0]);
+      .then((rows: InferSelectModel<typeof schema.game_logs>[]) => rows[0]);
 
     if (!gameLog) {
       return null;
@@ -47,8 +58,8 @@ export const gameLog = async (_parent: unknown, { id }: { id: string }, { db }: 
 
 export const gameLogs = async (
   _parent: unknown,
-  args: PaginationArgs & { filters?: GameLogFilters },
-  { db }: Context
+  args: IPaginationArgs & { filters?: GameLogFilters },
+  { db }: IContext
 ) => {
   try {
     const { first = 10, after, last, filters } = args;
@@ -259,7 +270,7 @@ export const GameLog = {
   user: async (
     parent: { userId: string },
     _args: Record<string, unknown>,
-    { loaders, db }: Context
+    { loaders, db }: IContext
   ) => {
     if (!parent.userId) {
       throw new Error('User ID is required for GameLog');
@@ -307,7 +318,7 @@ export const GameLog = {
   game: async (
     parent: { gameId: string },
     _args: Record<string, unknown>,
-    { loaders }: Context
+    { loaders }: IContext
   ) => {
     if (!parent.gameId || !loaders) {
       throw new Error('Game ID is required for GameLog');
@@ -321,7 +332,7 @@ export const GameLog = {
   comments: async (
     parent: { id: string },
     args: { first?: number; after?: string },
-    { db }: Context
+    { db }: IContext
   ) => {
     const { first = 10, after } = args;
     if (!parent.id)
@@ -358,7 +369,7 @@ export const GameLog = {
       totalCount: allComments.length,
     };
   },
-  reactions: async (parent: { id: string }, _args: Record<string, unknown>, { db }: Context) => {
+  reactions: async (parent: { id: string }, _args: Record<string, unknown>, { db }: IContext) => {
     if (!parent.id) return [];
     const reactions = await db
       .select()

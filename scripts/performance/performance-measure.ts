@@ -9,13 +9,14 @@ import { execSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { logger } from 'lib/core/logger';
+
+import { logger } from '@lib/core/logger';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const rootDir = path.resolve(__dirname, '..');
 
-interface PerformanceMetrics {
+interface IPerformanceMetrics {
   timestamp: string;
   buildTime: number;
   bundleSize: {
@@ -61,7 +62,7 @@ async function measureBuildTime(): Promise<number> {
   }
 }
 
-async function analyzeBundleSize(): Promise<PerformanceMetrics['bundleSize']> {
+async function analyzeBundleSize(): Promise<IPerformanceMetrics['bundleSize']> {
   logger.info('📦 Analyzing bundle size...');
 
   const buildDir = path.join(rootDir, '.next');
@@ -71,7 +72,7 @@ async function analyzeBundleSize(): Promise<PerformanceMetrics['bundleSize']> {
     throw new Error('Build directory not found. Run build first.');
   }
 
-  const bundleSize: PerformanceMetrics['bundleSize'] = {
+  const bundleSize: IPerformanceMetrics['bundleSize'] = {
     total: 0,
     pages: {},
     chunks: {},
@@ -109,7 +110,7 @@ async function analyzeBundleSize(): Promise<PerformanceMetrics['bundleSize']> {
   return bundleSize;
 }
 
-async function analyzeDependencies(): Promise<PerformanceMetrics['dependencies']> {
+async function analyzeDependencies(): Promise<IPerformanceMetrics['dependencies']> {
   logger.info('📋 Analyzing dependencies...');
 
   const packageJsonPath = path.join(rootDir, 'package.json');
@@ -126,7 +127,7 @@ async function analyzeDependencies(): Promise<PerformanceMetrics['dependencies']
   return { production, development, total };
 }
 
-async function measureTypecheck(): Promise<PerformanceMetrics['typecheck']> {
+async function measureTypecheck(): Promise<IPerformanceMetrics['typecheck']> {
   logger.info('�� Running TypeScript type check...');
 
   const startTime = Date.now();
@@ -172,7 +173,7 @@ async function measureTypecheck(): Promise<PerformanceMetrics['typecheck']> {
   return { time, errors };
 }
 
-async function saveMetrics(metrics: PerformanceMetrics): Promise<void> {
+async function saveMetrics(metrics: IPerformanceMetrics): Promise<void> {
   const metricsDir = path.join(rootDir, 'coverage', 'performance');
   if (!fs.existsSync(metricsDir)) {
     fs.mkdirSync(metricsDir, { recursive: true });
@@ -185,7 +186,7 @@ async function saveMetrics(metrics: PerformanceMetrics): Promise<void> {
   fs.writeFileSync(metricsFile, JSON.stringify(metrics, null, 2));
 
   // Append to history
-  let history: PerformanceMetrics[] = [];
+  let history: IPerformanceMetrics[] = [];
   if (fs.existsSync(historyFile)) {
     try {
       history = JSON.parse(fs.readFileSync(historyFile, 'utf-8'));
@@ -206,7 +207,7 @@ async function saveMetrics(metrics: PerformanceMetrics): Promise<void> {
   logger.info(`💾 Performance metrics saved to ${metricsFile}`);
 }
 
-export async function measurePerformance(): Promise<PerformanceMetrics> {
+export async function measurePerformance(): Promise<IPerformanceMetrics> {
   logger.info('🚀 Starting performance measurement...\n');
 
   const startTime = Date.now();
@@ -219,7 +220,7 @@ export async function measurePerformance(): Promise<PerformanceMetrics> {
       measureTypecheck(),
     ]);
 
-    const metrics: PerformanceMetrics = {
+    const metrics: IPerformanceMetrics = {
       timestamp: new Date().toISOString(),
       buildTime,
       bundleSize,

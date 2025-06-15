@@ -4,12 +4,12 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 
 import { useToast } from '@src/app/components/ui/use-toast';
 import { clientCache, CLIENT_CACHE_KEYS } from '@src/lib/cache/client';
-import type { AppNotification, NotificationContextType } from '@src/lib/types/notification.types';
+import type { IAppNotification, INotificationContextType } from '@src/lib/types/notification.types';
 
-const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
+const NotificationContext = createContext<INotificationContextType | undefined>(undefined);
 
 export function NotificationProvider({ children }: { children: React.ReactNode }) {
-  const [notifications, setNotifications] = useState<AppNotification[]>([]);
+  const [notifications, setNotifications] = useState<IAppNotification[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
   const { toast } = useToast();
 
@@ -23,13 +23,13 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
 
     const loadNotifications = async () => {
       try {
-        const savedNotifications = await clientCache.getItem<AppNotification[]>(
+        const savedNotifications = await clientCache.getItem<IAppNotification[]>(
           CLIENT_CACHE_KEYS.NOTIFICATIONS
         );
 
         if (savedNotifications && Array.isArray(savedNotifications)) {
           // Convert date strings back to Date objects
-          const notificationsWithDates = savedNotifications.map((n: AppNotification) => ({
+          const notificationsWithDates = savedNotifications.map((n: IAppNotification) => ({
             ...n,
             timestamp: n.timestamp ? new Date(n.timestamp) : new Date(n.createdAt),
             deletedAt: n.deletedAt ? new Date(n.deletedAt) : null,
@@ -76,11 +76,11 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
 
   const addNotification = (
     notification: Omit<
-      AppNotification,
+      IAppNotification,
       'id' | 'createdAt' | 'updatedAt' | 'read' | 'readAt' | 'deletedAt'
     >
   ) => {
-    const newNotification: AppNotification = {
+    const newNotification: IAppNotification = {
       id: Math.random().toString(36).substring(7),
       ...notification,
       read: false,

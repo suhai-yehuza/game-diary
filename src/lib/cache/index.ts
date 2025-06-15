@@ -3,8 +3,8 @@ import { Agent } from 'https';
 import { Redis as UpstashRedis } from '@upstash/redis';
 import Redis from 'ioredis';
 
-import { cacheLogger } from 'lib/core/logger';
-import type { RedisClient, RedisClientType } from '@src/lib/types/cache.types';
+import { cacheLogger } from '@lib/core/logger';
+import type { IRedisClient, IRedisClientType } from '@src/lib/types/cache.types';
 import { CACHE_TTL } from '@src/lib/types/config.types';
 import { sleep } from '@src/lib/utils/time';
 
@@ -47,10 +47,10 @@ export const CACHE_KEYS = {
  * Cache class for handling Redis operations with support for both Upstash and IORedis
  */
 export class Cache {
-  private client: RedisClient | null = null;
+  private client: IRedisClient | null = null;
   private isRedisAvailable = false;
   private initializationPromise: Promise<void> | null = null;
-  private clientType: RedisClientType = null;
+  private clientType: IRedisClientType = null;
 
   /**
    * Check if Redis is available
@@ -550,7 +550,7 @@ export class Cache {
   /**
    * Get the underlying Redis client
    */
-  getRedisClient(): RedisClient | null {
+  getRedisClient(): IRedisClient | null {
     return this.client;
   }
 }

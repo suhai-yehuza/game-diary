@@ -1,6 +1,8 @@
-import { analyzeTsConfig } from 'ts-unused-exports';
 import path from 'path';
-import { logger } from 'lib/core/logger';
+
+import { analyzeTsConfig } from 'ts-unused-exports';
+
+import { logger } from '@lib/core/logger';
 
 // Types
 type LocationInFile = {
@@ -35,7 +37,7 @@ const CONFIG = {
     'tailwind.config.ts',
 
     // Scripts
-    'lib/core/logger.ts',
+    '@lib/core/logger.ts',
     'scripts/db/drizzle-migrate.ts',
     'scripts/performance/performance-measure.ts',
     'scripts/shared/script-utils.ts',

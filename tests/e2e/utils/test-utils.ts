@@ -1,6 +1,8 @@
 import { expect, type Page } from '@playwright/test';
+
+import { seedLogger } from '@lib/core/logger';
+
 import { setupTestAuth } from './auth-utils';
-import { seedLogger } from 'lib/core/logger';
 
 /**
  * Mock data for live games

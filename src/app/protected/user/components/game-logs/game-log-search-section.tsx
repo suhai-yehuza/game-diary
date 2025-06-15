@@ -41,8 +41,8 @@ import { Skeleton } from '@src/app/components/ui/skeleton';
 import { StarRating } from '@src/app/components/ui/star-rating';
 import { API_CONFIG } from '@src/lib/config/api.config';
 import { GET_GAME_LOGS } from '@src/lib/graphql/queries';
+import type { IGameLogSearchSectionProps } from '@src/lib/types';
 import { CLASSIFICATION } from '@src/lib/types/config.types';
-import type { GameLogSearchSectionProps } from '@src/lib/types/consolidated.types';
 import type { GameLog, GameLogEdge } from '@src/lib/types/generated/graphql';
 import { cn } from '@src/lib/utils';
 import { formatCount } from '@src/lib/utils/format';
@@ -54,14 +54,14 @@ const GameLogSortBy = {
   Rating: 'RATING' as const,
 };
 
-// Constants for SortDirection
-const SortDirection = {
+// Constants for ISortDirection
+const ISortDirection = {
   Asc: 'ASC' as const,
   Desc: 'DESC' as const,
 };
 
 type GameLogSortByType = (typeof GameLogSortBy)[keyof typeof GameLogSortBy];
-type SortDirectionType = (typeof SortDirection)[keyof typeof SortDirection];
+type SortDirectionType = (typeof ISortDirection)[keyof typeof ISortDirection];
 
 // Loading skeleton component
 const GameLogSkeleton = () => (
@@ -126,7 +126,7 @@ const ensureHttps = (url: string): string => {
 export function GameLogSearchSection({
   userId,
   initialSearchText = '',
-}: GameLogSearchSectionProps) {
+}: IGameLogSearchSectionProps) {
   const router = useRouter();
   const [searchText, setSearchText] = useState(initialSearchText);
   const [selectedRating, setSelectedRating] = useState<string>('all');
@@ -134,7 +134,7 @@ export function GameLogSearchSection({
   const [selectedClassification, setSelectedClassification] = useState<string>('all');
   const [hasNotes, setHasNotes] = useState<string>('all');
   const [sortBy, setSortBy] = useState<GameLogSortByType>(GameLogSortBy.CreatedAt);
-  const [sortDirection, setSortDirection] = useState<SortDirectionType>(SortDirection.Desc);
+  const [sortDirection, setSortDirection] = useState<SortDirectionType>(ISortDirection.Desc);
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -348,7 +348,7 @@ export function GameLogSearchSection({
     setSelectedClassification('all');
     setHasNotes('all');
     setSortBy(GameLogSortBy.CreatedAt);
-    setSortDirection(SortDirection.Desc);
+    setSortDirection(ISortDirection.Desc);
     setCurrentPage(1);
     setPageData({});
     setCursors({ 1: null });
@@ -492,8 +492,8 @@ export function GameLogSearchSection({
                 <SelectValue placeholder="Order" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={SortDirection.Desc}>Newest first</SelectItem>
-                <SelectItem value={SortDirection.Asc}>Oldest first</SelectItem>
+                <SelectItem value={ISortDirection.Desc}>Newest first</SelectItem>
+                <SelectItem value={ISortDirection.Asc}>Oldest first</SelectItem>
               </SelectContent>
             </Select>
           </div>

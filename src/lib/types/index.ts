@@ -10,143 +10,150 @@
 // ============================================================================
 export type {
   // Game types
-  Game,
-  GameTeam,
-  GameScore,
-  GameStatistics,
-  GameFilters,
-  GameField,
-  GameDate,
-  GameStatus,
-  GameArena,
-  GamePeriods,
-  ExtendedGame,
-  SearchGame,
+  IGame,
+  IGameTeam,
+  IGameScore,
+  IGameStatistics,
+  IGameFilters,
+  IGameDate,
+  IGameStatus,
+  IGameArena,
+  IGamePeriods,
+  IExtendedGame,
+  ISearchGame,
+  IGameCardProps,
+  IGamesListProps,
+  IGameTeamStatistics,
+  IGameTeams,
+  IGameScores,
+  IGameWithPossibleId,
+  IGameEdge,
+  IGameConnection,
+  IGameQueryResponse,
+  IGameWithStatistics,
+  IGameTeamWithStats,
+  IGameTeamStatistic,
+  IGameScoresLegacy,
+  IGameData,
+  IMappedGame,
+  IGameSortInput,
+  IGameField,
+  IDBGameRecord,
 } from './game.types';
 
 export type {
   // Team types
-  TeamSummary,
-  TeamData,
-  PlayerData,
-  ApiTeam,
-  CustomTeam,
-  TeamWithSeasonStats,
-  TeamStat,
-  DBTeamStatistics,
-  DBTeamStandings,
-  DBWinLossRecord,
-  TeamStatisticsResponseData,
-  StandingResponseData,
-  TeamDisplayStats,
-  HeadToHeadData,
-  TeamStatsData,
-  HeadToHeadProps,
-  TeamStatsProps,
+  ITeamSummary,
+  ITeamData,
+  IPlayerData,
+  IApiTeam,
+  ICustomTeam,
+  ITeamWithSeasonStats,
+  ITeamStat,
+  IDBTeamStatistics,
+  IDBTeamStandings,
+  IDBWinLossRecord,
+  ITeamStatisticsResponseData,
+  IStandingResponseData,
+  ITeamDisplayStats,
+  IHeadToHeadData,
+  ITeamStatsData,
+  IHeadToHeadProps,
+  ITeamStatsProps,
 } from './team.types';
 
 // ============================================================================
 // User & Social Types
 // ============================================================================
 export type {
-  UserSummary,
-  Friend,
-  FriendGroup,
-  UseUserProfileProps,
-  UseUserProfileReturn,
-  FriendProfileProps,
-  FriendGroupsProps,
-  FriendRequestButtonProps,
-  GetFriendshipsForUserResponse,
+  IUserSummary,
+  IFriend,
+  IFriendGroup,
+  IUseUserProfileProps,
+  IUseUserProfileReturn,
+  IFriendProfileProps,
+  IFriendGroupsProps,
+  IGetFriendshipsForUserResponse,
 } from './user.types';
 
 // ============================================================================
-// API & Response Types
+// API Types
 // ============================================================================
 export type {
-  APIResponse,
-  APIError,
-  GameApiResponse,
-  GameResponseData,
-  PlayerApiResponse,
-  SeasonApiResponse,
-  TeamApiResponse,
-  Activity,
-  TimeFilter,
-  ExtendedNextApiRequest,
+  IAPIConfig,
+  IAPIClient,
+  IAPIResponse,
+  IValidationError,
+  IValidationResult,
+  IValidationRule,
+  IAPIRequestOptions,
+  IRateLimitConfig,
+  ICacheConfig,
+  IAPIMetrics,
+  IAPIParameters,
 } from './api.types';
 
 // ============================================================================
 // Component Types
 // ============================================================================
 export type {
-  NavItem,
-  StatsChartProps,
-  ActivityTimelineProps,
-  FriendActivityProps,
-  GameLogProps,
-  GameLogPageProps,
-  GameLogActionsProps,
-  GameLogsSectionProps,
-  GameLogSearchSectionProps,
-  InputProps,
-  AuthModalProps,
-  ReactionDisplayProps,
-  ReactionPickerProps,
-  ExtendedReactionDisplayProps,
-  GQLValidationError,
-  GameLogInput,
-  GameLogFormData,
-  GameLogFormProps,
-  GameStatsProps,
-  TeamDisplayProps,
+  INavItem,
+  IStatsChartProps,
+  IGameLogProps,
+  IGameLogPageProps,
+  IGameLogActionsProps,
+  IGameLogsSectionProps,
+  IGameLogSearchSectionProps,
+  IInputProps,
+  IAuthModalProps,
+  IGQLValidationError,
+  IGameLogInput,
+  IGameLogFormData,
+  IGameLogFormProps,
+  IGameStatsProps,
+  ITeamDisplayProps,
 } from './component.types';
 
 // ============================================================================
 // Notification Types
 // ============================================================================
-export type { NotificationType, AppNotification } from './notification.types';
+export type { INotificationType, IAppNotification } from './notification.types';
 
 // ============================================================================
-// Modular Type Exports (non-duplicates only)
+// API Response Types
 // ============================================================================
 export type {
-  GamePlayerStats,
-  GameTeamStatistics,
-  GameTeamStatistic,
-  PlayerStatistics,
-} from './game-statistics.types';
-
-export type {
-  UseCreateGameLogProps,
-  UseGameDataProps,
-  ProcessedGames,
-  UseGameDataReturn,
-  PaginationHookOptions,
-  PaginationFetchResult,
-  FilterConfig,
-  UseSearchFiltersOptions,
-} from './hooks.types';
-
-export type {
-  APITeamResponse,
-  TeamResponseData,
-  TeamStatisticsApiResponse,
+  IGameResponseData,
+  IGameApiResponse,
+  IPlayerApiResponse,
+  ISeasonApiResponse,
+  ITeamApiResponse,
+  ITeamResponseData,
+  ITeamStatisticsApiResponse,
 } from './api-responses.types';
 
 // ============================================================================
-// GraphQL Types
+// Generated Types
 // ============================================================================
-export type {
-  Team,
-  GameLog,
-  Classification,
-  TeamStats,
-  TeamFilters as ResolverTeamFilters,
-} from './generated/graphql';
+export type { Team, GameLog, Classification, ITeamStats } from './generated/graphql';
 
 // ============================================================================
 // Database & Resolver Types
 // ============================================================================
-export type { DBPlayer } from './shared.types';
-export type { ResolverContext } from './resolver.types';
+export type { IDBPlayer, IActivity } from './shared.types';
+export type { IResolverContext } from './resolver.types';
+
+// ============================================================================
+// Hook Types
+// ============================================================================
+export type { IUseGameDataProps, IUseGameDataReturn, IProcessedGames } from './hooks.types';
+
+// ============================================================================
+// Pagination Types
+// ============================================================================
+export type { IPaginationHookOptions, IPaginationFetchResult } from './pagination.types';
+
+// ============================================================================
+// Search Types
+// ============================================================================
+export type { IFilterConfig, IUseSearchFiltersOptions } from './search.types';

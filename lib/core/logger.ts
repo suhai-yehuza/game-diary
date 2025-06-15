@@ -5,7 +5,7 @@ export enum LogLevel {
   ERROR = 3,
 }
 
-export interface LoggerConfig {
+export interface ILoggerConfig {
   level: LogLevel;
   enableTimestamp: boolean;
   enableColors: boolean;
@@ -13,14 +13,14 @@ export interface LoggerConfig {
   enableFileInfo: boolean;
 }
 
-const defaultConfig: LoggerConfig = {
+const defaultConfig: ILoggerConfig = {
   level: process.env.NODE_ENV === 'production' ? LogLevel.WARN : LogLevel.DEBUG,
   enableTimestamp: true,
   enableColors: process.env.NODE_ENV !== 'production',
   enableFileInfo: process.env.NODE_ENV === 'development',
 };
 
-export interface GraphQLErrorDetails {
+export interface IGraphQLErrorDetails {
   message?: string;
   location?: unknown;
   path?: string | string[];
@@ -28,9 +28,9 @@ export interface GraphQLErrorDetails {
 }
 
 class Logger {
-  private config: LoggerConfig;
+  private config: ILoggerConfig;
 
-  constructor(config: LoggerConfig = defaultConfig) {
+  constructor(config: ILoggerConfig = defaultConfig) {
     this.config = { ...defaultConfig, ...config };
   }
 
@@ -122,7 +122,7 @@ class Logger {
     // Add detailed error information for GraphQL errors
     if (message.includes('GraphQL error')) {
       try {
-        let errorDetails: GraphQLErrorDetails;
+        let errorDetails: IGraphQLErrorDetails;
 
         // Handle both string and object error formats
         if (typeof args[0] === 'string') {
@@ -135,7 +135,7 @@ class Logger {
           };
         } else {
           // Handle object format
-          errorDetails = args[0] as GraphQLErrorDetails;
+          errorDetails = args[0] as IGraphQLErrorDetails;
         }
 
         const formattedErrorDetails = {
@@ -213,7 +213,7 @@ class Logger {
   }
 
   // Create specialized loggers for different modules
-  createChild(prefix: string, config?: Partial<LoggerConfig>): Logger {
+  createChild(prefix: string, config?: Partial<ILoggerConfig>): Logger {
     return new Logger({
       ...this.config,
       ...config,
@@ -222,7 +222,7 @@ class Logger {
   }
 
   // Update logger configuration
-  updateConfig(newConfig: Partial<LoggerConfig>): void {
+  updateConfig(newConfig: Partial<ILoggerConfig>): void {
     this.config = { ...this.config, ...newConfig };
   }
 }

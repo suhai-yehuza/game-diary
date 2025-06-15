@@ -1,11 +1,11 @@
 import { useState, useMemo, useCallback } from 'react';
 
-import type { UseSearchFiltersOptions } from '@src/lib/types/consolidated.types';
+import type { IUseSearchFiltersOptions } from '@src/lib/types/search.types';
 
 export function useSearchFilters({
   filterConfig,
   additionalFilters = {},
-}: UseSearchFiltersOptions) {
+}: IUseSearchFiltersOptions) {
   // Initialize filter state based on config
   const initialState = useMemo(() => {
     const state: Record<string, string | number | boolean> = {};

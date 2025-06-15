@@ -9,13 +9,13 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-import { logger } from 'lib/core/logger';
+import { logger } from '@lib/core/logger';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const rootDir = path.resolve(__dirname, '..');
 
-interface PerformanceMetrics {
+interface IPerformanceMetrics {
   timestamp: string;
   buildTime: number;
   bundleSize: {
@@ -40,7 +40,7 @@ interface PerformanceMetrics {
   };
 }
 
-interface PerformanceTrend {
+interface IPerformanceTrend {
   metric: string;
   current: number;
   previous: number;
@@ -66,7 +66,7 @@ function calculateTrend(
   current: number,
   previous: number,
   lowerIsBetter = true
-): PerformanceTrend['trend'] {
+): IPerformanceTrend['trend'] {
   const changePercent = previous === 0 ? 0 : ((current - previous) / previous) * 100;
   const threshold = 5; // 5% threshold for significant change
 
@@ -81,7 +81,7 @@ function calculateTrend(
   }
 }
 
-function analyzeTrends(history: PerformanceMetrics[]): PerformanceTrend[] {
+function analyzeTrends(history: IPerformanceMetrics[]): IPerformanceTrend[] {
   if (history.length < 2) {
     return [];
   }
@@ -93,7 +93,7 @@ function analyzeTrends(history: PerformanceMetrics[]): PerformanceTrend[] {
     return [];
   }
 
-  const trends: PerformanceTrend[] = [
+  const trends: IPerformanceTrend[] = [
     {
       metric: 'Build Time',
       current: current.buildTime,
@@ -147,7 +147,7 @@ function analyzeTrends(history: PerformanceMetrics[]): PerformanceTrend[] {
   return trends;
 }
 
-function generateTrendIcon(trend: PerformanceTrend['trend']): string {
+function generateTrendIcon(trend: IPerformanceTrend['trend']): string {
   switch (trend) {
     case 'improving':
       return '📈 ';
@@ -158,7 +158,7 @@ function generateTrendIcon(trend: PerformanceTrend['trend']): string {
   }
 }
 
-function generateMarkdownReport(metrics: PerformanceMetrics, trends: PerformanceTrend[]): string {
+function generateMarkdownReport(metrics: IPerformanceMetrics, trends: IPerformanceTrend[]): string {
   const report = `# Performance Report
 
 Generated: ${new Date(metrics.timestamp).toLocaleString()}
@@ -215,7 +215,10 @@ ${Object.entries(metrics.bundleSize.chunks)
   return report;
 }
 
-function generateRecommendations(metrics: PerformanceMetrics, trends: PerformanceTrend[]): string {
+function generateRecommendations(
+  metrics: IPerformanceMetrics,
+  trends: IPerformanceTrend[]
+): string {
   const recommendations: string[] = [];
 
   // Build time recommendations
@@ -277,9 +280,9 @@ async function generateReport(): Promise<void> {
     throw new Error('No performance metrics found. Run "pnpm perf:measure" first.');
   }
 
-  const metrics: PerformanceMetrics = JSON.parse(fs.readFileSync(latestFile, 'utf-8'));
+  const metrics: IPerformanceMetrics = JSON.parse(fs.readFileSync(latestFile, 'utf-8'));
 
-  let history: PerformanceMetrics[] = [];
+  let history: IPerformanceMetrics[] = [];
   if (fs.existsSync(historyFile)) {
     history = JSON.parse(fs.readFileSync(historyFile, 'utf-8'));
   }

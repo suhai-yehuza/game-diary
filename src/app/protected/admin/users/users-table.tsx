@@ -11,9 +11,10 @@ import {
   TableHeader,
   TableRow,
 } from '@src/app/components/ui/table';
-import type { UsersTableProps } from '@src/lib/types/user.types';
+import type { DbUser } from '@src/lib/types/generated/graphql';
+import type { IUsersTableProps } from '@src/lib/types/user.types';
 
-export default function UsersTable({ users }: UsersTableProps) {
+export default function UsersTable({ users }: IUsersTableProps) {
   return (
     <div className="rounded-md border">
       <Table>
@@ -27,7 +28,7 @@ export default function UsersTable({ users }: UsersTableProps) {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {users.map(user => (
+          {users.map((user: DbUser) => (
             <TableRow key={user.id}>
               <TableCell className="font-medium">
                 <div className="flex items-center space-x-3">

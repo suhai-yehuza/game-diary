@@ -1,5 +1,6 @@
-import { test } from './utils/global-setup';
 import { expect } from '@playwright/test';
+
+import { test } from './utils/global-setup';
 import {
   waitForPageContent,
   setupApiMocking,

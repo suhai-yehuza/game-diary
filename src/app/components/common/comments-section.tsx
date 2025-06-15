@@ -33,12 +33,12 @@ import {
   DialogTitle,
 } from '@src/app/components/ui/dialog';
 import { Textarea } from '@src/app/components/ui/textarea';
+import { API_CONFIG } from '@src/lib/config/api.config';
 import { CREATE_COMMENT, UPDATE_COMMENT, DELETE_COMMENT } from '@src/lib/graphql/mutations';
 import { GET_COMMENTS_WITH_FILTERS } from '@src/lib/graphql/queries';
-import { API_CONFIG } from '@src/lib/config/api.config';
-import type { CommentConnection } from '@src/lib/types/component.types';
-import type { CommentsSectionProps } from '@src/lib/types/social.types';
+import type { ICommentConnection } from '@src/lib/types/component.types';
 import type { Comment, CreateCommentInput } from '@src/lib/types/generated/graphql';
+import type { ICommentsSectionProps } from '@src/lib/types/social.types';
 import { cn } from '@src/lib/utils';
 
 import { CommentItem } from './comment-item';
@@ -48,7 +48,7 @@ export function CommentsSection({
   parentType,
   initialExpanded = false,
   embedded = false,
-}: CommentsSectionProps & { embedded?: boolean }) {
+}: ICommentsSectionProps & { embedded?: boolean }) {
   const { user } = useUser();
   const [newComment, setNewComment] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -64,7 +64,7 @@ export function CommentsSection({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
-  const { data, loading, error, fetchMore, refetch } = useQuery<{ comments: CommentConnection }>(
+  const { data, loading, error, fetchMore, refetch } = useQuery<{ comments: ICommentConnection }>(
     GET_COMMENTS_WITH_FILTERS,
     {
       variables: {

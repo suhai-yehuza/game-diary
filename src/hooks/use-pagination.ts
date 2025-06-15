@@ -1,9 +1,9 @@
 import { useState, useCallback, useMemo } from 'react';
 
 import type {
-  PaginationHookOptions,
-  PaginationFetchResult,
-} from '@src/lib/types/consolidated.types';
+  IPaginationHookOptions,
+  IPaginationFetchResult,
+} from '@src/lib/types/pagination.types';
 
 export function usePagination<T>({
   pageSize,
@@ -11,7 +11,7 @@ export function usePagination<T>({
   data,
   hasNextPage = false,
   filters,
-}: PaginationHookOptions<T>) {
+}: IPaginationHookOptions<T>) {
   const [currentPage, setCurrentPage] = useState(1);
   const [isNavigating, setIsNavigating] = useState(false);
   const [pageData, setPageData] = useState<{ [key: number]: T[] }>({});
@@ -40,7 +40,7 @@ export function usePagination<T>({
             filters,
           },
           updateQuery: (prev, { fetchMoreResult }) => {
-            const result = fetchMoreResult as PaginationFetchResult;
+            const result = fetchMoreResult as IPaginationFetchResult;
             if (result?.games?.edges || result?.gameLogs?.edges) {
               const edges = result.games?.edges || result.gameLogs?.edges;
               const items = edges?.map((edge: { node: unknown }) => edge.node as T) || [];
@@ -50,7 +50,7 @@ export function usePagination<T>({
               if (pageInfo?.endCursor) {
                 setCursors(prevCursors => ({
                   ...prevCursors,
-                  [nextPage + 1]: pageInfo.endCursor,
+                  [nextPage + 1]: pageInfo.endCursor || null,
                 }));
               }
             }
@@ -88,7 +88,7 @@ export function usePagination<T>({
                 filters,
               },
               updateQuery: (prev, { fetchMoreResult }) => {
-                const result = fetchMoreResult as PaginationFetchResult;
+                const result = fetchMoreResult as IPaginationFetchResult;
                 if (result?.games?.edges || result?.gameLogs?.edges) {
                   const edges = result.games?.edges || result.gameLogs?.edges;
                   const items = edges?.map((edge: { node: unknown }) => edge.node as T) || [];
@@ -98,7 +98,7 @@ export function usePagination<T>({
                   if (pageInfo?.endCursor) {
                     setCursors(prevCursors => ({
                       ...prevCursors,
-                      [page + 1]: pageInfo.endCursor,
+                      [page + 1]: pageInfo.endCursor || null,
                     }));
                   }
                 }
@@ -118,7 +118,7 @@ export function usePagination<T>({
               filters,
             },
             updateQuery: (prev, { fetchMoreResult }) => {
-              const result = fetchMoreResult as PaginationFetchResult;
+              const result = fetchMoreResult as IPaginationFetchResult;
               if (result?.games?.edges || result?.gameLogs?.edges) {
                 const edges = result.games?.edges || result.gameLogs?.edges;
                 const items = edges?.map((edge: { node: unknown }) => edge.node as T) || [];
@@ -146,7 +146,7 @@ export function usePagination<T>({
   }, []);
 
   // Initialize page data when query data is available
-  const initializePageData = useCallback((queryData: PaginationFetchResult) => {
+  const initializePageData = useCallback((queryData: IPaginationFetchResult) => {
     if (queryData?.games?.edges || queryData?.gameLogs?.edges) {
       const edges = queryData.games?.edges || queryData.gameLogs?.edges;
       const items = edges?.map((edge: { node: unknown }) => edge.node as T) || [];
@@ -154,7 +154,7 @@ export function usePagination<T>({
 
       const pageInfo = queryData.games?.pageInfo || queryData.gameLogs?.pageInfo;
       if (pageInfo?.endCursor) {
-        setCursors(prev => ({ ...prev, 2: pageInfo.endCursor }));
+        setCursors(prev => ({ ...prev, 2: pageInfo.endCursor || null }));
       }
     }
   }, []);

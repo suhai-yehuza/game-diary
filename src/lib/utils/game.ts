@@ -1,13 +1,14 @@
 import { eq, and, or, type InferSelectModel } from 'drizzle-orm';
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
 
+import { logger } from '@lib/core/logger';
 import * as schema from '@src/lib/db/schema';
-import { logger } from 'lib/core/logger';
+import type { IGameTeams, IGameScores, IDBGameRecord } from '@src/lib/types';
 import { GAME_STATUS_VALUES } from '@src/lib/types/config.types';
-import type { GameTeams, GameScores, DBGameRecord } from '@src/lib/types/consolidated.types';
 import type { Game, Arena, GameStatus, GamePeriods, Team } from '@src/lib/types/generated/graphql';
-import type { DBPlayer as Player } from '@src/lib/types/shared.types';
-function isDBGameRecord(game: unknown): game is DBGameRecord {
+import type { IDBPlayer as Player } from '@src/lib/types/shared.types';
+
+function isDBGameRecord(game: unknown): game is IDBGameRecord {
   if (!game || typeof game !== 'object') return false;
 
   const record = game as Record<string, unknown>;
@@ -27,10 +28,10 @@ function isDBGameRecord(game: unknown): game is DBGameRecord {
   );
 }
 
-function convertDBGameToNBAGame(game: DBGameRecord): Game {
+function convertDBGameToNBAGame(game: IDBGameRecord): Game {
   try {
-    const teams = game.teams as unknown as GameTeams;
-    const scores = game.scores as unknown as GameScores;
+    const teams = game.teams as unknown as IGameTeams;
+    const scores = game.scores as unknown as IGameScores;
     const status = game.status as GameStatus;
     const periods = game.periods as GamePeriods;
     const gameDate = game.date ? new Date(game.date.start) : new Date();
@@ -161,10 +162,6 @@ export function getWinningTeam(game: Game): Team | null {
     ...winningTeam,
     city: '',
     conference: '',
-    createdAt: new Date(),
-    division: '',
-    updatedAt: new Date(),
-    logoUrl: winningTeam.logo || '',
     __typename: 'Team',
   };
 }
@@ -300,7 +297,7 @@ export async function getH2HData(
             .where(eq(schema.nba_games.id, gameId))
             .then(
               (records: InferSelectModel<typeof schema.nba_games>[]) =>
-                records[0] as unknown as DBGameRecord
+                records[0] as unknown as IDBGameRecord
             );
 
           if (!game || !isDBGameRecord(game)) {

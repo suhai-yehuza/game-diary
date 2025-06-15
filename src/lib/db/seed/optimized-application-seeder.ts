@@ -1,35 +1,34 @@
 import { faker } from '@faker-js/faker';
 import { desc } from 'drizzle-orm';
 
+import { seedLogger } from '@lib/core/logger';
 import { API_CONFIG } from '@src/lib/config/api.config';
 import { game_logs, games } from '@src/lib/db/schema/game-schemas';
 import { users, friendships } from '@src/lib/db/schema/user-schemas';
-import { seedLogger } from 'lib/core/logger';
 import {
   FRIENDSHIP_STATUS,
   WATCHED_SETTING,
   WATCHED_SCOPE,
   CLASSIFICATION,
-  type FriendshipStatusValue,
-  type WatchedSettingValue,
-  type WatchedScopeValue,
+  IWatchedScopeValue,
+  IWatchedSettingValue,
+  IFriendshipStatusValue,
 } from '@src/lib/types/config.types';
-import type { ApplicationSeederOptions } from '@src/lib/types/consolidated.types';
-import type { DatabaseClient } from '@src/lib/types/database.types';
+import type { IApplicationSeederOptions, IDatabaseClient } from '@src/lib/types/database.types';
 import { generateUUID } from '@src/lib/utils/processing';
 import { getCurrentSeason } from '@src/lib/utils/time';
 
 // Type definitions
-type UserInsert = typeof users.$inferInsert;
-type FriendshipInsert = typeof friendships.$inferInsert;
-type GameLogInsert = typeof game_logs.$inferInsert;
+type IUserInsert = typeof users.$inferInsert;
+type IFriendshipInsert = typeof friendships.$inferInsert;
+type IGameLogInsert = typeof game_logs.$inferInsert;
 
 // Memory-efficient user generator
 async function* generateUsersStream(
   targetCount: number,
   existingEmails: Set<string>,
   skipUsers: boolean = false
-): AsyncGenerator<UserInsert, void, unknown> {
+): AsyncGenerator<IUserInsert, void, unknown> {
   if (skipUsers) return;
 
   let generated = 0;
@@ -74,10 +73,10 @@ async function* generateUsersStream(
 
 // Optimized friendship generator
 async function* generateFriendshipsStream(
-  userStream: AsyncGenerator<UserInsert, void, unknown>
-): AsyncGenerator<FriendshipInsert, void, unknown> {
-  const userChunks: UserInsert[][] = [];
-  let currentChunk: UserInsert[] = [];
+  userStream: AsyncGenerator<IUserInsert, void, unknown>
+): AsyncGenerator<IFriendshipInsert, void, unknown> {
+  const userChunks: IUserInsert[][] = [];
+  let currentChunk: IUserInsert[] = [];
 
   // Collect users into chunks
   for await (const user of userStream) {
@@ -109,7 +108,7 @@ async function* generateFriendshipsStream(
           userId: friend.id,
           status: faker.helpers.arrayElement(
             Object.values(FRIENDSHIP_STATUS)
-          ) as FriendshipStatusValue,
+          ) as IFriendshipStatusValue,
           createdAt: faker.date.past(),
           updatedAt: faker.date.recent(),
         };
@@ -121,9 +120,9 @@ async function* generateFriendshipsStream(
 
 // Optimized game logs generator
 async function* generateGameLogsStream(
-  userStream: AsyncGenerator<UserInsert, void, unknown>,
-  db: DatabaseClient
-): AsyncGenerator<GameLogInsert, void, unknown> {
+  userStream: AsyncGenerator<IUserInsert, void, unknown>,
+  db: IDatabaseClient
+): AsyncGenerator<IGameLogInsert, void, unknown> {
   const latestSeasonGames = await db
     .select()
     .from(games)
@@ -177,8 +176,10 @@ async function* generateGameLogsStream(
         ratingForGame,
         watchedSetting: faker.helpers.arrayElement(
           Object.values(WATCHED_SETTING)
-        ) as WatchedSettingValue,
-        watchedScope: faker.helpers.arrayElement(Object.values(WATCHED_SCOPE)) as WatchedScopeValue,
+        ) as IWatchedSettingValue,
+        watchedScope: faker.helpers.arrayElement(
+          Object.values(WATCHED_SCOPE)
+        ) as IWatchedScopeValue,
         notes: faker.lorem.paragraph(),
         createdAt: faker.date.past(),
         updatedAt: faker.date.recent(),
@@ -192,7 +193,7 @@ async function* generateGameLogsStream(
 
 // Main seeding function
 export async function seedOptimizedApplicationData(
-  options: ApplicationSeederOptions
+  options: IApplicationSeederOptions
 ): Promise<void> {
   const { db, skipUsers = false } = options;
   if (!db) {

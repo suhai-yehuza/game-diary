@@ -4,8 +4,7 @@ import { promisify } from 'util';
 
 import { sql } from 'drizzle-orm';
 
-import { logger } from 'lib/core/logger';
-
+import { logger } from '@lib/core/logger';
 import { createDatabaseClient } from '@src/lib/db/seed/config';
 
 const execAsync = promisify(exec);

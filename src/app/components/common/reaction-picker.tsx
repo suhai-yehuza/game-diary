@@ -3,14 +3,13 @@ import { useUser } from '@clerk/nextjs';
 import { SmilePlus } from 'lucide-react';
 import React, { useState } from 'react';
 
+import { logger } from '@lib/core/logger';
 import { Button } from '@src/app/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@src/app/components/ui/popover';
 import { CREATE_REACTION } from '@src/lib/graphql/mutations';
 import { GET_REACTIONS, GET_GAME_LOG } from '@src/lib/graphql/queries';
-import { logger } from 'lib/core/logger';
-import type { ReactionsData } from '@src/lib/types/component.types';
+import type { IReactionsData } from '@src/lib/types/component.types';
 import { REACTION_EMOJIS, EMOJI_TO_GRAPHQL_MAPPING } from '@src/lib/types/config.types';
-import type { ReactionPickerProps } from '@src/lib/types/consolidated.types';
 import type { ReactionEmojiType, Reaction } from '@src/lib/types/generated/graphql';
 import { cn } from '@src/lib/utils';
 
@@ -19,7 +18,12 @@ export function ReactionPicker({
   targetType,
   existingReactions = [],
   onReactionChanged,
-}: ReactionPickerProps) {
+}: {
+  targetId: string;
+  targetType: string;
+  existingReactions: Reaction[];
+  onReactionChanged: () => void;
+}) {
   const [isOpen, setIsOpen] = useState(false);
   const { user } = useUser();
   const [createReaction] = useMutation(CREATE_REACTION);
@@ -43,7 +47,7 @@ export function ReactionPicker({
           if (!data?.createReaction) return;
 
           // Update GET_REACTIONS cache
-          const existingData = cache.readQuery<ReactionsData>({
+          const existingData = cache.readQuery<IReactionsData>({
             query: GET_REACTIONS,
             variables: { targetId },
           });
@@ -73,7 +77,8 @@ export function ReactionPicker({
             } else {
               // Removing reaction
               newEdges = existingData.reactions.edges.filter(
-                edge => !(edge.node.userId === user.id && edge.node.emoji === graphqlEmojiValue)
+                (edge: { node: Reaction }) =>
+                  !(edge.node.userId === user.id && edge.node.emoji === graphqlEmojiValue)
               );
             }
 
@@ -129,7 +134,8 @@ export function ReactionPicker({
               } else {
                 // Removing reaction
                 newEdges = gameLogData.gameLog.reactions.edges.filter(
-                  edge => !(edge.node.userId === user.id && edge.node.emoji === graphqlEmojiValue)
+                  (edge: { node: Reaction }) =>
+                    !(edge.node.userId === user.id && edge.node.emoji === graphqlEmojiValue)
                 );
               }
 

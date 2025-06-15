@@ -1,12 +1,12 @@
 /**
  * Shared types used across the application
  */
-import type * as React from 'react';
 import type DataLoader from 'dataloader';
 import type { InferSelectModel } from 'drizzle-orm';
+import type * as React from 'react';
 
 import type { nba_games } from '@src/lib/db/schema/nba-schemas';
-import type { GameRating } from '@src/lib/types/game-log.types';
+import type { IGameRating } from '@src/lib/types/game-log.types';
 import type {
   Classification,
   DbUser,
@@ -19,68 +19,56 @@ import type {
 } from '@src/lib/types/generated/graphql';
 
 // Common Types
-export type SortDirection = 'asc' | 'desc';
+export type ISortDirection = 'asc' | 'desc';
 
 // DataLoader Types
-export interface Loaders {
+export interface ILoaders {
   user: DataLoader<string, DbUser | null>;
   game: DataLoader<string, Game | null>;
   gameLog: DataLoader<string, GameLog | null>;
   comment: DataLoader<string, Comment | null>;
   reaction: DataLoader<string, Reaction | null>;
   friendship: DataLoader<string, Friendship | null>;
-  player: DataLoader<string, DBPlayer | null>;
-  gameRating: DataLoader<string, GameRating | null>;
+  player: DataLoader<string, IDBPlayer | null>;
+  gameRating: DataLoader<string, IGameRating | null>;
   team: DataLoader<string, Team | null>;
 }
 
 // Common Props Types
-export interface BaseProps {
+export interface IBaseProps {
   className?: string;
   style?: React.CSSProperties;
   children?: React.ReactNode;
 }
 
 // Common Utility Types
-export type DeepPartial<T> = {
-  [P in keyof T]?: T[P] extends object ? DeepPartial<T[P]> : T[P];
+export type IDeepPartial<T> = {
+  [P in keyof T]?: T[P] extends object ? IDeepPartial<T[P]> : T[P];
 };
 
 // Common Event Types
-export interface BaseEvent {
+export interface IBaseEvent {
   type: string;
   timestamp: Date;
   metadata?: Record<string, unknown>;
 }
 
 // Base types that can be shared across different type files
-export type ValidatableValue = string | number | boolean | null | undefined;
+export type IValidatableValue = string | number | boolean | null | undefined;
 
 // Database Types
-export type DBGameRecord = InferSelectModel<typeof nba_games>;
+export type IDBGameRecord = InferSelectModel<typeof nba_games>;
 
-export type UserWithMetadata = DbUser & {
+export interface IUserWithMetadata extends DbUser {
   metadata?: {
     lastActive?: string;
     status?: 'online' | 'offline' | 'away';
     lastSeen?: string;
   };
-};
-
-// Base friendship types
-// export interface Friendship {
-//   id: string;
-//   subscriberId: string;
-//   userId: string;
-//   status: string;
-//   initiator: DbUser;
-//   recipient: DbUser;
-//   createdAt: Date;
-//   updatedAt: Date;
-// }
+}
 
 // Filter types
-export interface GameLogFilters {
+export interface IGameLogFilters {
   userId?: string;
   gameId?: string;
   classification?: Classification;
@@ -109,30 +97,8 @@ export interface GameLogFilters {
   };
 }
 
-// Base comment types
-// export interface Comment {
-//   id: string;
-//   content: string;
-//   userId: string;
-//   parentId: string;
-//   parentType: string;
-//   createdAt: Date;
-//   updatedAt: Date;
-//   deletedAt?: Date;
-// }
-
-// Base reaction types
-// export interface Reaction {
-//   id: string;
-//   emoji: string;
-//   userId: string;
-//   targetId: string;
-//   targetType: string;
-//   createdAt: Date;
-// }
-
 // Base player types
-export interface DBPlayer {
+export interface IDBPlayer {
   id: string;
   firstName?: string;
   lastName?: string;
@@ -184,7 +150,7 @@ export interface DBPlayer {
 }
 
 // Base API types
-export interface APIConfigOptions {
+export interface IAPIConfigOptions {
   baseUrl: string;
   apiKey: string;
   host: string;
@@ -196,10 +162,10 @@ export interface APIConfigOptions {
   body?: unknown;
 }
 
-export type LeagueType = 'NBA' | 'WNBA' | 'NCAA' | 'G-League';
+export type ILeagueType = 'NBA' | 'WNBA' | 'NCAA' | 'G-League';
 
 // Game and API response types (moved from common.types.ts)
-export interface APIGame {
+export interface IAPIGame {
   id: string;
   date: string;
   status: {
@@ -226,13 +192,12 @@ export interface APIGame {
   };
 }
 
-export interface GameLogResponse {
+export interface IGameLogResponse {
   id: string;
   userId: string;
   gameId: string;
   watchedSetting: string;
   watchedDate: string;
-  watchedLocation: string;
   ratingForGame: number;
   watchedScope: string;
   notes: string;
@@ -372,11 +337,11 @@ export interface GameLogResponse {
   };
 }
 
-export interface GameLogsResponse {
+export interface IGameLogsResponse {
   gameLogs: {
     edges: Array<{
       cursor: string;
-      node: GameLogResponse;
+      node: IGameLogResponse;
     }>;
     pageInfo: {
       startCursor: string;
@@ -388,7 +353,7 @@ export interface GameLogsResponse {
   };
 }
 
-export interface RawTeamStatistics {
+export interface IRawTeamStatistics {
   games: number;
   points: number;
   fgp: string;
@@ -409,64 +374,7 @@ export interface RawTeamStatistics {
   longestRun: number;
 }
 
-export interface StandingApiResponse {
-  get: string;
-  parameters: {
-    league: string;
-    season: string;
-    conference?: string;
-    division?: string;
-    team?: string;
-  };
-  errors: Error[];
-  results: number;
-  response: Standing[];
-}
-
-export interface Standing {
-  league: string;
-  season: number;
-  team: {
-    id: number;
-    name: string;
-    nickname: string;
-    code: string;
-    logo: string;
-  };
-  conference: {
-    name: string;
-    rank: number;
-    win: number;
-    loss: number;
-  };
-  division: {
-    name: string;
-    rank: number;
-    win: number;
-    loss: number;
-    gamesBehind: string | null;
-  };
-  win: {
-    home: number;
-    away: number;
-    total: number;
-    percentage: string;
-    lastTen: number;
-  };
-  loss: {
-    home: number;
-    away: number;
-    total: number;
-    percentage: string;
-    lastTen: number;
-  };
-  gamesBehind: string | null;
-  streak: number;
-  winStreak: boolean;
-  tieBreakerPoints: number | null;
-}
-
-export interface LeaguesApiResponse {
+export interface ILeaguesApiResponse {
   get: string;
   parameters: Record<string, string>;
   errors: Error[];
@@ -479,16 +387,7 @@ export interface LeaguesApiResponse {
   }>;
 }
 
-export interface UserSummary {
-  id: string;
-  username: string;
-  firstName?: string;
-  lastName?: string;
-  imageUrl?: string;
-  emailAddress?: string;
-}
-
-export interface DBGameData {
+export interface IDBGameData {
   id: string;
   date: unknown;
   status: Record<string, unknown> | null;
@@ -507,9 +406,21 @@ export interface DBGameData {
   updatedAt: Date | string;
 }
 
-export interface DBArenaData {
+export interface IDBArenaData {
   name?: string;
   city?: string;
   state?: string;
   country?: string;
+}
+
+// Activity Types
+export interface IActivity {
+  id: string;
+  type: string;
+  userId: string;
+  targetId: string;
+  targetType: string;
+  metadata?: Record<string, unknown>;
+  createdAt: Date;
+  updatedAt: Date;
 }

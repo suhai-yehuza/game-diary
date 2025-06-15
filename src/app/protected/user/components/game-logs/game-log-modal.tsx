@@ -4,9 +4,10 @@ import { useMutation, useQuery } from '@apollo/client';
 import { SignInButton } from '@clerk/nextjs';
 import { X, Search } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, FormEvent } from 'react';
 import 'react-datepicker/dist/react-datepicker.css';
 
+import { useAuthContext } from '@/contexts/auth-context';
 import { Button } from '@src/app/components/ui/button';
 import {
   Dialog,
@@ -18,21 +19,20 @@ import {
 } from '@src/app/components/ui/dialog';
 import { Input } from '@src/app/components/ui/input';
 import { useToast } from '@src/app/components/ui/use-toast';
-import { useAuthContext } from '@/contexts/auth-context';
 import { CREATE_GAME_LOG, UPDATE_GAME_LOG } from '@src/lib/graphql/mutations';
 import { GET_EXTERNAL_GAMES, GET_GAME_BY_ID } from '@src/lib/graphql/queries';
+import type { IGameEdge } from '@src/lib/types';
 import {
   CLASSIFICATION,
   WATCHED_SETTING,
   WATCHED_SCOPE,
-  type ClassificationValue,
-  type WatchedSettingValue,
-  type WatchedScopeValue,
+  type IClassificationValue,
+  type IWatchedSettingValue,
+  type IWatchedScopeValue,
 } from '@src/lib/types/config.types';
-import type { GameEdge, GameLogFormData } from '@src/lib/types/consolidated.types';
-import type { GameLogModalProps } from '@src/lib/types/game-log.types';
-import type { GameWithPossibleId } from '@src/lib/types/game.types';
-import type { Game, CreateGameLogInput } from '@src/lib/types/generated/graphql';
+import type { IGameLogFormData, IGameLogModalProps } from '@src/lib/types/game-log.types';
+import type { IGameWithPossibleId } from '@src/lib/types/game.types';
+import type { Game, CreateGameLogInput, Classification } from '@src/lib/types/generated/graphql';
 import { getCurrentSeason } from '@src/lib/utils/index';
 import { formatGameDate } from '@src/lib/utils/time';
 
@@ -45,7 +45,7 @@ export function GameLogModal({
   isOpen: externalIsOpen,
   onClose,
   onSuccess,
-}: GameLogModalProps) {
+}: IGameLogModalProps) {
   const [internalIsOpen, setInternalIsOpen] = useState(false);
   const isOpen = externalIsOpen ?? internalIsOpen;
 
@@ -105,19 +105,19 @@ export function GameLogModal({
   }, [specificGameData, mode, gameId]);
 
   // Form state - properly load existing values for update mode (memoized to prevent re-creation)
-  const initialFormData: GameLogFormData = useMemo(() => {
+  const initialFormData: CreateGameLogInput = useMemo(() => {
     if (mode === 'update' && gameLog) {
       // For update mode, use all existing values from the database
       return {
         gameId: gameLog.game?.id || '',
-        watchedSetting: gameLog.watchedSetting as WatchedSettingValue,
+        watchedSetting: gameLog.watchedSetting as IWatchedSettingValue,
         watchedDate: gameLog.watchedDate ? new Date(gameLog.watchedDate) : new Date(),
         watchedLocation: gameLog.watchedLocation ?? '',
         ratingForGame: gameLog.ratingForGame,
-        watchedScope: gameLog.watchedScope as WatchedScopeValue,
+        watchedScope: gameLog.watchedScope as IWatchedScopeValue,
         notes: gameLog.notes ?? '',
         tags: gameLog.tags ?? [],
-        classification: gameLog.classification as ClassificationValue,
+        classification: gameLog.classification as Classification,
       };
     } else {
       // For create mode, use defaults
@@ -130,7 +130,7 @@ export function GameLogModal({
         watchedScope: WATCHED_SCOPE.FULL_GAME,
         notes: '',
         tags: [],
-        classification: CLASSIFICATION.PROTECTED,
+        classification: CLASSIFICATION.PROTECTED as Classification,
       };
     }
   }, [gameLog, gameId, mode]);
@@ -241,7 +241,7 @@ export function GameLogModal({
     }
 
     const searchLower = searchQuery.toLowerCase();
-    const filtered = gamesData.games.edges.filter((edge: GameEdge) => {
+    const filtered = gamesData.games.edges.filter((edge: IGameEdge) => {
       const game = edge.node;
 
       // Team search fields
@@ -319,7 +319,7 @@ export function GameLogModal({
       data.classification &&
       typeof data.classification === 'string' &&
       data.classification.trim() !== '' &&
-      Object.values(CLASSIFICATION).includes(data.classification as ClassificationValue)
+      Object.values(CLASSIFICATION).includes(data.classification as unknown as IClassificationValue)
         ? data.classification
         : CLASSIFICATION.PROTECTED;
 
@@ -327,7 +327,7 @@ export function GameLogModal({
       data.watchedSetting &&
       typeof data.watchedSetting === 'string' &&
       data.watchedSetting.trim() !== '' &&
-      Object.values(WATCHED_SETTING).includes(data.watchedSetting as WatchedSettingValue)
+      Object.values(WATCHED_SETTING).includes(data.watchedSetting as IWatchedSettingValue)
         ? data.watchedSetting
         : WATCHED_SETTING.TV;
 
@@ -335,7 +335,7 @@ export function GameLogModal({
       data.watchedScope &&
       typeof data.watchedScope === 'string' &&
       data.watchedScope.trim() !== '' &&
-      Object.values(WATCHED_SCOPE).includes(data.watchedScope as WatchedScopeValue)
+      Object.values(WATCHED_SCOPE).includes(data.watchedScope as IWatchedScopeValue)
         ? data.watchedScope
         : WATCHED_SCOPE.FULL_GAME;
 
@@ -344,7 +344,7 @@ export function GameLogModal({
     if (mode === 'create') {
       // More robust check for selectedGame and its ID - handles different possible field names
       const selectedGameId =
-        selectedGame?.id || (selectedGame as unknown as GameWithPossibleId)?.gameId || gameId;
+        selectedGame?.id || (selectedGame as unknown as IGameWithPossibleId)?.gameId || gameId;
 
       if (!selectedGame) {
         toast({
@@ -475,7 +475,7 @@ export function GameLogModal({
           {loadingGames && <div>Loading games...</div>}
 
           <div className="space-y-2 max-h-[200px] overflow-y-auto">
-            {filteredGames.map((edge: GameEdge) => (
+            {filteredGames.map((edge: IGameEdge) => (
               <div
                 key={edge.node.id}
                 className="p-3 border rounded-lg cursor-pointer hover:bg-gray-50"
@@ -567,11 +567,11 @@ export function GameLogModal({
 
       <GameLogForm
         key={`${mode}-${gameLog?.id || 'new'}`}
-        formData={initialFormData}
+        formData={initialFormData as unknown as IGameLogFormData}
         // @ts-expect-error - Type mismatch between generated GraphQL Game type and consolidated Game type
         selectedGame={selectedGame}
         loading={mode === 'create' ? creating : updating}
-        onSubmit={handleSubmit}
+        onSubmit={handleSubmit as unknown as (e: FormEvent<Element>) => Promise<void>}
         onCancel={() => handleModalClose()}
         submitLabel={mode === 'create' ? 'Create Log' : 'Update Log'}
       />

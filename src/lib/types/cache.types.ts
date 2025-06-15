@@ -5,11 +5,11 @@ import type { Redis as UpstashRedis } from '@upstash/redis';
 import type IORedis from 'ioredis';
 
 // Redis client types
-export type RedisClient = UpstashRedis | IORedis;
-export type RedisClientType = 'upstash' | 'ioredis' | null;
+export type IRedisClient = UpstashRedis | IORedis;
+export type IRedisClientType = 'upstash' | 'ioredis' | null;
 
 // Redis Configuration
-export interface RedisConfig {
+export interface IRedisConfig {
   host: string;
   port: number;
   password?: string;
@@ -55,21 +55,21 @@ export const CACHE_KEY_PREFIX = {
 } as const;
 
 // Cache configuration types
-export interface RedisCacheConfig {
+export interface IRedisCacheConfig {
   ttl: number;
   prefix: string;
   maxSize?: number;
   maxAge?: number;
 }
 
-export interface CacheOptions {
+export interface ICacheOptions {
   ttl?: number;
   prefix?: string;
   maxSize?: number;
   maxAge?: number;
 }
 
-export interface CacheStats {
+export interface ICacheStats {
   hits: number;
   misses: number;
   keys: number;
@@ -77,7 +77,7 @@ export interface CacheStats {
   lastCleanup: Date;
 }
 
-export interface CacheMetrics {
+export interface ICacheMetrics {
   hitRate: number;
   missRate: number;
   evictionRate: number;

@@ -1,8 +1,8 @@
-import * as React from 'react';
 import { formatDistanceToNow } from 'date-fns';
+import * as React from 'react';
 import { useState } from 'react';
 
-interface ActivityItem {
+interface IActivityItem {
   id: string;
   title: string;
   description: string;
@@ -13,12 +13,12 @@ interface ActivityItem {
   details?: Record<string, string | number>;
 }
 
-interface ActivityTimelineProps {
-  activities: ActivityItem[];
+interface IActivityTimelineProps {
+  activities: IActivityItem[];
   isLoading?: boolean;
 }
 
-export const ActivityTimeline: React.FC<ActivityTimelineProps> = ({
+export const ActivityTimeline: React.FC<IActivityTimelineProps> = ({
   activities,
   isLoading = false,
 }) => {

@@ -1,10 +1,10 @@
 import { eq } from 'drizzle-orm';
 
+import { seedLogger } from '@lib/core/logger';
 import { API_CONFIG } from '@src/lib/config/api.config';
 import { teams } from '@src/lib/db/schema';
 import { handleAPIError } from '@src/lib/external-apis';
-import { seedLogger } from 'lib/core/logger';
-import type { ApiTeam, ApiTeamResponse } from '@src/lib/types/consolidated.types';
+import type { ITeamApiResponse, ITeamResponseData } from '@src/lib/types';
 
 import { initializeClients } from './utils/initialize-clients';
 
@@ -14,7 +14,7 @@ export async function fetchAndProcessNBATeams(): Promise<void> {
 
     seedLogger.info('Fetching NBA teams...');
 
-    const res = await api.get<ApiTeamResponse>(API_CONFIG.endpoints.TEAMS);
+    const res = await api.get<ITeamApiResponse>(API_CONFIG.endpoints.TEAMS);
     seedLogger.info('Teams response:', res);
 
     if (!res?.response) {
@@ -22,7 +22,7 @@ export async function fetchAndProcessNBATeams(): Promise<void> {
     }
 
     // Filter only NBA teams (those with nbaFranchise flag) and handle capitalized boolean
-    const nbaTeams = res.response.filter((team: ApiTeam) => Boolean(team.nbaFranchise));
+    const nbaTeams = res.response.filter((team: ITeamResponseData) => Boolean(team.nbaFranchise));
     seedLogger.info(
       `There are ${nbaTeams.length} NBA teams, and ${res.response.length} teams in total`
     );

@@ -1,26 +1,25 @@
 import type * as React from 'react';
-import type { DbUser } from '@src/lib/types/generated/graphql';
-import type { ValidatableValue } from '@src/lib/types/shared.types';
 
-import type { Friendship, FriendshipStatus } from './generated/graphql';
+import type { DbUser, Friendship, FriendshipStatus } from '@src/lib/types/generated/graphql';
+import type { IValidatableValue } from '@src/lib/types/shared.types';
 
-// Consolidated from auth.types.ts
-export type AuthUser = {
+// User authentication properties
+export interface IAuthUser {
   id: string;
   username?: string;
   email: string;
-};
+}
 
-export type AuthContextType = {
-  user: AuthUser | null;
+export interface IAuthContextType {
+  user: IAuthUser | null;
   loading: boolean;
   userId: string;
   isAuthenticated: boolean;
-};
+}
 
-export type AuthContext = React.Context<AuthContextType>;
+export type IAuthContext = React.Context<IAuthContextType>;
 
-export interface ExternalUserAccount {
+export interface IExternalUserAccount {
   id: string;
   provider: string;
   provider_user_id?: string;
@@ -28,12 +27,12 @@ export interface ExternalUserAccount {
   userId?: string;
   username?: string;
   emailAddress?: string;
-  public_metadata?: Record<string, ValidatableValue>;
+  public_metadata?: Record<string, IValidatableValue>;
   createdAt?: Date;
   updatedAt?: Date;
 }
 
-export interface ClerkEmailAddress {
+export interface IClerkEmailAddress {
   created_at: number;
   email_address: string;
   id: string;
@@ -53,11 +52,11 @@ export interface ClerkEmailAddress {
   };
 }
 
-export interface ClerkMetadata {
+export interface IClerkMetadata {
   [key: string]: string | number | boolean | null | undefined;
 }
 
-export interface ClerkEnterpriseAccount {
+export interface IClerkEnterpriseAccount {
   id: string;
   name: string;
   domain: string;
@@ -65,14 +64,14 @@ export interface ClerkEnterpriseAccount {
   updated_at: number;
 }
 
-export interface ClerkPasskey {
+export interface IClerkPasskey {
   id: string;
   name: string;
   created_at: number;
   updated_at: number;
 }
 
-export interface ClerkPhoneNumber {
+export interface IClerkPhoneNumber {
   id: string;
   phone_number: string;
   verification: {
@@ -85,7 +84,7 @@ export interface ClerkPhoneNumber {
   updated_at: number;
 }
 
-export interface ClerkSamlAccount {
+export interface IClerkSamlAccount {
   id: string;
   provider: string;
   provider_user_id: string;
@@ -93,7 +92,7 @@ export interface ClerkSamlAccount {
   updated_at: number;
 }
 
-export interface ClerkWeb3Wallet {
+export interface IClerkWeb3Wallet {
   id: string;
   address: string;
   chain: string;
@@ -101,7 +100,7 @@ export interface ClerkWeb3Wallet {
   updated_at: number;
 }
 
-export interface ClerkExternalAccount {
+export interface IClerkExternalAccount {
   approved_scopes: string;
   avatar_url: string;
   created_at: number;
@@ -120,7 +119,7 @@ export interface ClerkExternalAccount {
   picture: string;
   provider: string;
   provider_user_id: string;
-  public_metadata: ClerkMetadata;
+  public_metadata: IClerkMetadata;
   updated_at: number;
   username: string | null;
   verification: {
@@ -131,15 +130,15 @@ export interface ClerkExternalAccount {
   };
 }
 
-export interface ClerkUserData {
+export interface IClerkUserData {
   backup_code_enabled: boolean;
   banned: boolean;
   create_organization_enabled: boolean;
   created_at: number;
   delete_self_enabled: boolean;
-  email_addresses: ClerkEmailAddress[];
-  enterprise_accounts: ClerkEnterpriseAccount[];
-  external_accounts: ClerkExternalAccount[];
+  email_addresses: IClerkEmailAddress[];
+  enterprise_accounts: IClerkEnterpriseAccount[];
+  external_accounts: IClerkExternalAccount[];
   external_id: string | null;
   first_name: string | null;
   has_image: boolean;
@@ -154,65 +153,65 @@ export interface ClerkUserData {
   mfa_disabled_at: number | null;
   mfa_enabled_at: number | null;
   object: 'user';
-  passkeys: ClerkPasskey[];
+  passkeys: IClerkPasskey[];
   password_enabled: boolean;
-  phone_numbers: ClerkPhoneNumber[];
+  phone_numbers: IClerkPhoneNumber[];
   primary_email_address_id: string;
   primary_phone_number_id: string | null;
   primary_web3_wallet_id: string | null;
-  private_metadata: ClerkMetadata;
+  private_metadata: IClerkMetadata;
   profile_image_url: string;
-  public_metadata: ClerkMetadata;
-  saml_accounts: ClerkSamlAccount[];
+  public_metadata: IClerkMetadata;
+  saml_accounts: IClerkSamlAccount[];
   totp_enabled: boolean;
   two_factor_enabled: boolean;
-  unsafe_metadata: ClerkMetadata;
+  unsafe_metadata: IClerkMetadata;
   updated_at: number;
   username: string | null;
   verification_attempts_remaining: number;
-  web3_wallets: ClerkWeb3Wallet[];
+  web3_wallets: IClerkWeb3Wallet[];
 }
 
-export interface ClerkDeletedUserData {
+export interface IClerkDeletedUserData {
   deleted: boolean;
   id: string;
   object: 'user';
 }
 
-export interface UserFields {
+export interface IUserFields {
   userId: string;
   user?: DbUser;
 }
 
-export interface UserSearchProps {
+export interface IUserSearchProps {
   users: DbUser[];
   onFilteredUsersChange?: (filteredUsers: DbUser[]) => void;
   onUserSelect?: (userId: string) => void;
   excludeIds?: string[];
 }
 
-export interface UserProfileProps {
+export interface IUserProfileProps {
   targetUserId: string;
 }
 
-export interface FriendProfileProps {
-  friend?: Friend;
+export interface IFriendProfileProps {
+  friend?: IFriend;
   friendId?: string;
   onClose?: () => void;
 }
 
-export interface UsersTableProps {
+export interface IUsersTableProps {
   users: DbUser[];
 }
 
-export interface UserPageProps {
+export interface IUserPageProps {
   params: {
     id: string;
   };
 }
 
 // Core User Types
-export interface UserSummary {
+export interface IUserSummary {
   id: string;
   username: string;
   firstName?: string | null;
@@ -221,7 +220,7 @@ export interface UserSummary {
   emailAddress?: string | null;
 }
 
-export interface Friend {
+export interface IFriend {
   id: string;
   username: string;
   firstName?: string | null;
@@ -232,22 +231,22 @@ export interface Friend {
   friendship?: Friendship;
 }
 
-export interface FriendGroup {
+export interface IFriendGroup {
   id: string;
   name: string;
   description?: string;
   createdAt: string;
   updatedAt: string;
-  members: Friend[];
+  members: IFriend[];
 }
 
 // User Hook Types
-export interface UseUserProfileProps {
+export interface IUseUserProfileProps {
   targetUserId?: string;
 }
 
-export interface UseUserProfileReturn {
-  targetUser: UserSummary | null;
+export interface IUseUserProfileReturn {
+  targetUser: IUserSummary | null;
   dbUserId: string | null;
   currentUserDbId: string | null;
   friendshipStatus: FriendshipStatus | null | 'loading';
@@ -263,18 +262,13 @@ export interface UseUserProfileReturn {
 }
 
 // User Component Props
-export interface FriendGroupsProps {
-  groups: FriendGroup[];
-  friends?: Friend[];
-  onGroupUpdate?: (group: FriendGroup) => void;
-}
-
-export interface FriendRequestButtonProps {
-  targetUserId: string;
-  className?: string;
+export interface IFriendGroupsProps {
+  groups: IFriendGroup[];
+  friends?: IFriend[];
+  onGroupUpdate?: (group: IFriendGroup) => void;
 }
 
 // User API Response Types
-export interface GetFriendshipsForUserResponse {
+export interface IGetFriendshipsForUserResponse {
   friendships: Friendship[];
 }

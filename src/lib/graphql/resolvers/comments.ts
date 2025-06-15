@@ -1,13 +1,12 @@
 import { and, eq, sql } from 'drizzle-orm';
 import type { NeonHttpDatabase } from 'drizzle-orm/neon-http';
 
+import { logger } from '@lib/core/logger';
 import { API_CONFIG } from '@src/lib/config/api.config';
 import * as schema from '@src/lib/db/schema';
-import { createConnection, parseCursor } from '@src/lib/graphql/utils';
-import { logger } from 'lib/core/logger';
-import type { Context } from '@src/lib/types/component.types';
+import { createConnection, parseCursor, handleResolverError } from '@src/lib/graphql/utils';
+import type { IContext } from '@src/lib/types/component.types';
 
-import { handleResolverError } from '../utils';
 // Helper function to calculate comment depth
 async function getCommentDepth(
   commentId: string,
@@ -38,7 +37,7 @@ export const comments = async (
     filters?: { parentId?: string; parentType?: string };
     pagination?: { first?: number; after?: string; last?: number };
   },
-  { db }: Context
+  { db }: IContext
 ) => {
   try {
     const { filters, pagination } = args;
@@ -100,7 +99,7 @@ export const comments = async (
 
 // Export Comment type resolver
 export const Comment = {
-  user: async (parent: { userId: string | null }, _args: unknown, { db }: Context) => {
+  user: async (parent: { userId: string | null }, _args: unknown, { db }: IContext) => {
     if (!parent.userId) return null;
     try {
       const users = await db
@@ -127,7 +126,7 @@ export const Comment = {
       return null;
     }
   },
-  reactions: async (parent: { id: string }, _args: Record<string, unknown>, { db }: Context) => {
+  reactions: async (parent: { id: string }, _args: Record<string, unknown>, { db }: IContext) => {
     try {
       // For comments, we'll return a limited set of reactions
       // The frontend can load more if needed via a separate query
@@ -155,7 +154,7 @@ export const Comment = {
   childComments: async (
     parent: { id: string },
     args: { first?: number; after?: string },
-    { db }: Context
+    { db }: IContext
   ) => {
     try {
       const { first = 10, after } = args;
@@ -231,7 +230,7 @@ export const Comment = {
   depth: async (
     parent: { id: string; parentId: string; parentType: string },
     _args: Record<string, unknown>,
-    { db }: Context
+    { db }: IContext
   ) => {
     try {
       // If parent is a game_log or the root, depth is 0
