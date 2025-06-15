@@ -27,16 +27,6 @@ export interface ITeamDisplayProps {
   gameId?: string;
 }
 
-export interface ISeasonData {
-  id: string;
-  year: number;
-  displayYear: string;
-  startDate: string;
-  endDate: string;
-  isCurrent: boolean;
-  isPlayoffs: boolean;
-}
-
 export interface ITeamData {
   id: string;
   name: string;

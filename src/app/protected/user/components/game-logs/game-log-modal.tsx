@@ -21,18 +21,15 @@ import { Input } from '@src/app/components/ui/input';
 import { useToast } from '@src/app/components/ui/use-toast';
 import { CREATE_GAME_LOG, UPDATE_GAME_LOG } from '@src/lib/graphql/mutations';
 import { GET_EXTERNAL_GAMES, GET_GAME_BY_ID } from '@src/lib/graphql/queries';
-import type { IGameEdge } from '@src/lib/types';
 import {
-  CLASSIFICATION,
   WATCHED_SETTING,
   WATCHED_SCOPE,
-  type IClassificationValue,
   type IWatchedSettingValue,
   type IWatchedScopeValue,
 } from '@src/lib/types/config.types';
-import { IGameLogModalProps, type IGameLogFormData } from '@src/lib/types/game-log.types';
 import type { IGame } from '@src/lib/types/game.types';
 import { Classification, type CreateGameLogInput } from '@src/lib/types/generated/graphql';
+import type { IGameLogModalProps, IGameEdge } from '@src/lib/types/misc.types';
 import { getCurrentSeason } from '@src/lib/utils/index';
 import { formatGameDate } from '@src/lib/utils/time';
 
@@ -105,9 +102,8 @@ export function GameLogModal({
   }, [specificGameData, mode, gameId]);
 
   // Form state - properly load existing values for update mode (memoized to prevent re-creation)
-  const initialFormData: IGameLogFormData = useMemo(() => {
+  const initialFormData: CreateGameLogInput = useMemo(() => {
     if (mode === 'update' && gameLog) {
-      // For update mode, use all existing values from the database
       return {
         gameId: gameLog.game?.id || '',
         watchedSetting: gameLog.watchedSetting as IWatchedSettingValue,
@@ -117,10 +113,10 @@ export function GameLogModal({
         watchedScope: gameLog.watchedScope as IWatchedScopeValue,
         notes: gameLog.notes ?? '',
         tags: gameLog.tags ?? [],
-        classification: gameLog.classification as IClassificationValue,
+        classification:
+          Classification[gameLog.classification.toUpperCase() as keyof typeof Classification],
       };
     } else {
-      // For create mode, use defaults
       return {
         gameId: gameId || '',
         watchedSetting: WATCHED_SETTING.TV,
@@ -130,7 +126,7 @@ export function GameLogModal({
         watchedScope: WATCHED_SCOPE.FULL_GAME,
         notes: '',
         tags: [],
-        classification: CLASSIFICATION.PROTECTED,
+        classification: Classification.Protected,
       };
     }
   }, [gameLog, gameId, mode]);
@@ -309,96 +305,40 @@ export function GameLogModal({
     return filtered;
   }, [gamesData?.games?.edges, searchQuery]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const formData = e.target as unknown as IGameLogFormData;
-
-    // Ensure ratingForGame is never null/undefined - this is a critical field
-    const safeRatingForGame = formData.ratingForGame ?? 3;
-
-    // Validation complete - proceeding with mutation
-
+  const handleSubmit = async (formData: CreateGameLogInput) => {
     if (mode === 'create') {
-      // More robust check for selectedGame and its ID - handles different possible field names
       const selectedGameId = selectedGame?.id || gameId;
-
-      if (!selectedGame) {
-        toast({
-          title: '⚠️ No Game Selected',
-          description: 'Please select a game before creating your log.',
-          variant: 'destructive',
-        });
-        return;
-      }
-
-      if (!selectedGameId) {
+      if (!selectedGame || !selectedGameId) {
         toast({
           title: '⚠️ Invalid Game',
-          description:
-            'The selected game appears to be invalid. Please try selecting a different game.',
+          description: 'Please select a valid game before creating your log.',
           variant: 'destructive',
         });
         return;
       }
 
       try {
-        const classificationEnum = (
-          formData.classification as IClassificationValue
-        ).toUpperCase() as keyof typeof Classification;
-        const classificationValue = Classification[classificationEnum];
-
-        const mutationInput: CreateGameLogInput = {
-          gameId: selectedGameId,
-          watchedSetting: formData.watchedSetting,
-          watchedDate: formData.watchedDate,
-          watchedLocation: formData.watchedLocation || '',
-          ratingForGame: safeRatingForGame,
-          watchedScope: formData.watchedScope,
-          notes: formData.notes || '',
-          tags: formData.tags || [],
-          classification: classificationValue,
-        };
-
         await createGameLog({
           variables: {
-            input: mutationInput,
+            input: {
+              ...formData,
+              gameId: selectedGameId,
+            },
           },
         });
       } catch {
-        // Error is already handled by the mutation's onError callback
-        // No additional handling needed here
+        // Error handled by mutation
       }
     } else if (mode === 'update' && gameLog?.id) {
       try {
-        // Use validated safe values to prevent empty strings
-        const classificationEnum = (
-          formData.classification as IClassificationValue
-        ).toUpperCase() as keyof typeof Classification;
-        const classificationValue = Classification[classificationEnum];
-
-        const updateInput: CreateGameLogInput = {
-          gameId: gameLog.game?.id || formData.gameId,
-          watchedSetting: formData.watchedSetting,
-          watchedDate: formData.watchedDate,
-          watchedLocation: formData.watchedLocation || '',
-          ratingForGame: safeRatingForGame,
-          watchedScope: formData.watchedScope,
-          notes: formData.notes || '',
-          tags: formData.tags || [],
-          classification: classificationValue,
-        };
-
-        // Update input validated and ready
-
         await updateGameLog({
           variables: {
             id: gameLog.id,
-            input: updateInput,
+            input: formData,
           },
         });
       } catch {
-        // Error is already handled by the mutation's onError callback
-        // No additional handling needed here
+        // Error handled by mutation
       }
     }
   };

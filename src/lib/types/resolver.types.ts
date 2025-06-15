@@ -19,10 +19,10 @@ export interface IFilterArgs {
 }
 
 export interface IPaginationArgs {
-  first?: number;
-  after?: string;
-  last?: number;
-  before?: string;
+  first?: number | null;
+  after?: string | null;
+  last?: number | null;
+  before?: string | null;
 }
 
 export interface IUserFilters extends IFilterArgs {

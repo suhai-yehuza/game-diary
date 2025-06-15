@@ -23,9 +23,9 @@ import {
   type IWatchedSettingValue,
   type IWatchedScopeValue,
 } from '@src/lib/types/config.types';
-import type { IGameLogFormProps, IReactDatePickerProps } from '@src/lib/types/game-log.types';
 import type { IGame } from '@src/lib/types/game.types';
 import type { CreateGameLogInput, Classification } from '@src/lib/types/generated/graphql';
+import type { IGameLogFormProps, IReactDatePickerProps } from '@src/lib/types/misc.types';
 
 // Type-safe component wrapper
 const ReactDatePicker =
@@ -103,7 +103,7 @@ export function GameLogForm({
     };
 
     if (onSubmit) {
-      await onSubmit(safeFormData as unknown as React.FormEvent);
+      await onSubmit(safeFormData);
     }
   };
 
@@ -167,11 +167,17 @@ export function GameLogForm({
           <div className="space-y-2">
             <Label>Watched Date</Label>
             <ReactDatePicker
-              selected={formData.watchedDate ? new Date(formData.watchedDate) : null}
-              onChange={(date: Date | null) => updateField('watchedDate', date)}
-              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-              dateFormat="MMMM d, yyyy"
+              selected={formData.watchedDate || new Date()}
+              onChange={date => {
+                if (date) {
+                  updateField('watchedDate', date);
+                }
+              }}
+              onFocus={() => setIsUserInteracting(true)}
+              onBlur={() => setTimeout(() => setIsUserInteracting(false), 100)}
               placeholderText="Select date"
+              dateFormat="MMMM d, yyyy"
+              className="w-full"
             />
           </div>
 

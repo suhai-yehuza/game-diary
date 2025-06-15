@@ -24,7 +24,7 @@ import {
 } from '@src/app/components/ui/dropdown-menu';
 import { useToast } from '@src/app/components/ui/use-toast';
 import { DELETE_GAME_LOG } from '@src/lib/graphql/mutations';
-import type { IGameLogActionsProps } from '@src/lib/types';
+import type { IGameLogActionsProps } from '@src/lib/types/misc.types';
 import type { IAuthUser } from '@src/lib/types/user.types';
 
 import { GameLogModal } from './game-log-modal';

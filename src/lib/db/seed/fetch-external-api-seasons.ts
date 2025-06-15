@@ -2,9 +2,10 @@ import { eq } from 'drizzle-orm';
 
 import { seedLogger } from '@lib/core/logger';
 import { API_CONFIG } from '@src/lib/config/api.config';
-import { seasons } from '@src/lib/db/schema';
+import { seasons } from '@src/lib/db/schema/nba-schemas';
 import { handleAPIError } from '@src/lib/external-apis';
 import type { ISeasonApiResponse } from '@src/lib/types/api-responses.types';
+import type { ISeasonData } from '@src/lib/types/misc.types';
 
 import { initializeClients } from './utils/initialize-clients';
 
@@ -41,7 +42,7 @@ export async function fetchAndProcessNBASeasons(): Promise<void> {
         continue;
       }
 
-      const seasonData = {
+      const seasonData: ISeasonData = {
         id: year,
         year: year,
         displayYear: `${year}-${(year + 1).toString().slice(-2)}`,

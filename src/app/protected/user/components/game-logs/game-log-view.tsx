@@ -29,7 +29,6 @@ import { Skeleton } from '@src/app/components/ui/skeleton';
 import { StarRating } from '@src/app/components/ui/star-rating';
 import { CREATE_REACTION, DELETE_REACTION } from '@src/lib/graphql/mutations';
 import { GET_GAME_LOG } from '@src/lib/graphql/queries';
-import type { IGameLogProps } from '@src/lib/types';
 import {
   CLASSIFICATION,
   REACTION_EMOJIS,
@@ -37,6 +36,7 @@ import {
   type IReactionEmojiValue,
 } from '@src/lib/types/config.types';
 import type { GameLog, ParentType } from '@src/lib/types/generated/graphql';
+import type { IGameLogProps } from '@src/lib/types/misc.types';
 import { cn } from '@src/lib/utils';
 
 // Loading skeleton component

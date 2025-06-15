@@ -15,13 +15,9 @@ import {
   IFriendshipStatusValue,
 } from '@src/lib/types/config.types';
 import type { IApplicationSeederOptions, IDatabaseClient } from '@src/lib/types/database.types';
+import type { IUserInsert, IFriendshipInsert, IGameLogInsert } from '@src/lib/types/misc.types';
 import { generateUUID } from '@src/lib/utils/processing';
 import { getCurrentSeason } from '@src/lib/utils/time';
-
-// Type definitions
-type IUserInsert = typeof users.$inferInsert;
-type IFriendshipInsert = typeof friendships.$inferInsert;
-type IGameLogInsert = typeof game_logs.$inferInsert;
 
 // Memory-efficient user generator
 async function* generateUsersStream(

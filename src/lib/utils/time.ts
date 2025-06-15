@@ -1,4 +1,4 @@
-import type { DateFields } from '@src/lib/types/misc.types';
+import type { IDateFields } from '@src/lib/types/misc.types';
 
 /**
  * Gets the current NBA season year.
@@ -19,7 +19,7 @@ export function getCurrentSeason(): number {
   return year;
 }
 
-export function getDateFields(item: DateFields) {
+export function getDateFields(item: IDateFields) {
   return {
     createdAt: item.createdAt,
     updatedAt: item.updatedAt,
@@ -40,7 +40,7 @@ export function formatDateForExport(date: Date): string {
   return date.toISOString().split('T')[0];
 }
 
-export function formatDateFields<T extends DateFields>(obj: T): T {
+export function formatDateFields<T extends IDateFields>(obj: T): T {
   const result = { ...obj };
   if (result.createdAt) result.createdAt = new Date(result.createdAt);
   if (result.updatedAt) result.updatedAt = new Date(result.updatedAt);

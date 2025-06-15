@@ -12,6 +12,7 @@ import {
 } from '@src/lib/external-apis';
 import type { IGameApiResponse, IPlayerApiResponse } from '@src/lib/types/api-responses.types';
 import type { IApplicationSeederOptions, IDatabaseClient } from '@src/lib/types/database.types';
+import type { ISeasonData } from '@src/lib/types/misc.types';
 
 import { createDatabaseClient } from './config';
 import { DataProcessor, PerformanceMonitor } from './data-processor';
@@ -26,22 +27,10 @@ type PlayerWithTeams = {
   teams: Set<string>;
 };
 
-type SeasonData = {
-  id: number;
-  year: number;
-  displayYear: string;
-  startDate: Date;
-  endDate: Date;
-  isCurrent: boolean;
-  isPlayoffs: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-};
-
 type SeasonActive = Array<{ season: number; teamIds: string[] }>;
 
 // Helper functions
-function createSeasonData(year: number, isCurrent: boolean): SeasonData {
+function createSeasonData(year: number, isCurrent: boolean): ISeasonData {
   return {
     id: year,
     year,

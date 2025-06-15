@@ -63,7 +63,7 @@ export default function DashboardPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <GameLogSearchSection />
+                <GameLogSearchSection userId="some-user-id" />
               </CardContent>
             </Card>
           </TabsContent>

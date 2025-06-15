@@ -55,9 +55,10 @@ import {
   REMOVE_FRIEND,
 } from '@src/lib/graphql/mutations';
 import { SEARCH_USERS } from '@src/lib/graphql/queries';
-import type { IUserSearchSectionProps, IUserNode } from '@src/lib/types/component.types';
+import type { IUserSearchSectionProps } from '@src/lib/types/component.types';
 import { FRIENDSHIP_STATUS } from '@src/lib/types/config.types';
 import type { UserEdge } from '@src/lib/types/generated/graphql';
+import type { IUserNode } from '@src/lib/types/misc.types';
 import { cn } from '@src/lib/utils';
 import { formatCount } from '@src/lib/utils/format';
 

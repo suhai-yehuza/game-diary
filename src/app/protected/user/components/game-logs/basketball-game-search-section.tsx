@@ -22,7 +22,8 @@ import {
 import { Skeleton } from '@src/app/components/ui/skeleton';
 import { API_CONFIG } from '@src/lib/config/api.config';
 import { GET_GAMES } from '@src/lib/graphql/queries';
-import type { IGame } from '@src/lib/types';
+import type { IGame } from '@src/lib/types/game.types';
+import type { IGameEdge } from '@src/lib/types/misc.types';
 import { cn } from '@src/lib/utils';
 import { formatCount } from '@src/lib/utils/format';
 import { getCurrentSeason } from '@src/lib/utils/time';
@@ -57,8 +58,6 @@ const GameSkeleton = () => (
     </CardContent>
   </Card>
 );
-
-type IGameEdge = { cursor: string; node: IGame };
 
 const getStatusBadge = (
   status: string,

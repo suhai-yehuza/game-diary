@@ -324,5 +324,6 @@ export class PerformanceTracker {
   }
 }
 
+// Export types
 export type OptimizationConfig = typeof OPTIMIZATION_CONFIG;
 export type PerformanceThresholds = typeof PERFORMANCE_THRESHOLDS;

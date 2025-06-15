@@ -4,42 +4,8 @@ import { v4 as uuidv4, v7 as uuidv7 } from 'uuid';
 
 import { logger } from '@lib/core/logger';
 import { API_CONFIG } from '@src/lib/config/api.config';
+import type { IBatchProcessingOptions, IUuidGenerationOptions } from '@src/lib/types/misc.types';
 import { sleep } from '@src/lib/utils/time';
-// Define types locally to avoid circular dependency
-export type BatchProcessingOptions<T, R> = {
-  items: T[];
-  batchSize: number;
-  tableName?: string;
-  processFn: (batch: T[], context?: Record<string, unknown>) => Promise<R>;
-  context?: Record<string, unknown>;
-  delayBetweenBatches?: number;
-  maxRetries?: number;
-  retryDelay?: number;
-  concurrencyLimit?: number;
-  dbPool?: NeonHttpDatabase<Record<string, unknown>>;
-  useTransactions?: boolean;
-  onProgress?: (progress: number) => void;
-};
-
-export class UuidGenerationError extends Error {
-  code: string;
-  details?: string;
-
-  constructor(message: string, code: string = 'UUID_GENERATION_ERROR', details?: string) {
-    super(message);
-    this.name = 'UuidGenerationError';
-    this.code = code;
-    this.details = details;
-  }
-}
-
-export type UuidGenerationOptions = {
-  namespace?: string;
-  logProgress?: boolean;
-  useV7?: boolean;
-  maxRetries?: number;
-  batchSize?: number;
-};
 
 /**
  * Unified batch processing function that can handle various use cases:
@@ -60,7 +26,7 @@ export async function processInBatches<T, R = void>({
   concurrencyLimit,
   dbPool,
   useTransactions = false,
-}: BatchProcessingOptions<T, R>): Promise<R[]> {
+}: IBatchProcessingOptions<T, R>): Promise<R[]> {
   const batches = Array.from({ length: Math.ceil(items.length / batchSize) }, (_, i) =>
     items.slice(i * batchSize, (i + 1) * batchSize)
   );
@@ -142,7 +108,7 @@ async function withTransaction<T>(
 /**
  * Generates a UUID with additional entropy and collision detection
  */
-export const generateUUID = (options: UuidGenerationOptions = {}): string => {
+export const generateUUID = (options: IUuidGenerationOptions = {}): string => {
   const { useV7 = true } = options;
   const generator = useV7 ? uuidv7 : uuidv4;
   return generator();
@@ -151,7 +117,10 @@ export const generateUUID = (options: UuidGenerationOptions = {}): string => {
 /**
  * Generates a batch of unique UUIDs with collision detection
  */
-export const generateUuidBatch = (count: number, options: UuidGenerationOptions = {}): string[] => {
+export const generateUuidBatch = (
+  count: number,
+  options: IUuidGenerationOptions = {}
+): string[] => {
   const { useV7 = true, maxRetries = 5, batchSize = 1000, logProgress = true } = options;
   const uuids = new Set<string>();
   let attempts = 0;
@@ -219,5 +188,17 @@ export class UuidPool {
 
   used(): number {
     return this.currentIndex;
+  }
+}
+
+export class UuidGenerationError extends Error {
+  code: string;
+  details?: string;
+
+  constructor(message: string, code: string = 'UUID_GENERATION_ERROR', details?: string) {
+    super(message);
+    this.name = 'UuidGenerationError';
+    this.code = code;
+    this.details = details;
   }
 }

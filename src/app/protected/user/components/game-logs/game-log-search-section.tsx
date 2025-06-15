@@ -41,27 +41,28 @@ import { Skeleton } from '@src/app/components/ui/skeleton';
 import { StarRating } from '@src/app/components/ui/star-rating';
 import { API_CONFIG } from '@src/lib/config/api.config';
 import { GET_GAME_LOGS } from '@src/lib/graphql/queries';
-import type { IGameLogSearchSectionProps } from '@src/lib/types';
 import { CLASSIFICATION } from '@src/lib/types/config.types';
 import type { GameLog, GameLogEdge } from '@src/lib/types/generated/graphql';
+import type {
+  IGameLogSearchSectionProps,
+  GameLogSortByType,
+  SortDirectionType,
+} from '@src/lib/types/misc.types';
 import { cn } from '@src/lib/utils';
 import { formatCount } from '@src/lib/utils/format';
 
 // Constants for GameLogSortBy
 const GameLogSortBy = {
-  CreatedAt: 'CREATED_AT' as const,
-  WatchedDate: 'WATCHED_DATE' as const,
-  Rating: 'RATING' as const,
+  CreatedAt: 'CREATED_AT' as GameLogSortByType,
+  WatchedDate: 'WATCHED_DATE' as GameLogSortByType,
+  Rating: 'RATING' as GameLogSortByType,
 };
 
 // Constants for ISortDirection
 const ISortDirection = {
-  Asc: 'ASC' as const,
-  Desc: 'DESC' as const,
+  Asc: 'ASC' as SortDirectionType,
+  Desc: 'DESC' as SortDirectionType,
 };
-
-type GameLogSortByType = (typeof GameLogSortBy)[keyof typeof GameLogSortBy];
-type SortDirectionType = (typeof ISortDirection)[keyof typeof ISortDirection];
 
 // Loading skeleton component
 const GameLogSkeleton = () => (
