@@ -51,14 +51,9 @@ export type BusinessLogicError = {
 };
 
 export type Classification =
-  | 'BOX_SCORE'
-  | 'HIGHLIGHTS'
-  | 'NEWS'
-  | 'OTHER'
-  | 'RECAP'
-  | 'SOCIAL'
-  | 'STATS'
-  | 'WATCHED';
+  | 'Private'
+  | 'Protected'
+  | 'Public';
 
 export type Comment = {
   childComments: CommentConnection;
@@ -216,10 +211,10 @@ export type Friendship = {
 };
 
 export type FriendshipStatus =
-  | 'ACCEPTED'
-  | 'BLOCKED'
-  | 'PENDING'
-  | 'REJECTED';
+  | 'Accepted'
+  | 'Blocked'
+  | 'Pending'
+  | 'Rejected';
 
 export type Game = {
   arena: Maybe<Arena>;
@@ -340,11 +335,10 @@ export type GameStatus = {
 };
 
 export type GameStatusEnum =
-  | 'CANCELLED'
-  | 'FINISHED'
-  | 'LIVE'
-  | 'POSTPONED'
-  | 'SCHEDULED';
+  | 'Cancelled'
+  | 'Finished'
+  | 'Live'
+  | 'Scheduled';
 
 export type GameTeams = {
   home: TeamSummary;
@@ -730,8 +724,7 @@ export type ReactionEmojiType =
   | 'FOOTBALL'
   | 'GOAT'
   | 'GOLF'
-  | 'HAHA'
-  | 'LIKE'
+  | 'LAUGH'
   | 'LOVE'
   | 'MUSCLE'
   | 'ROCKET'
@@ -739,6 +732,7 @@ export type ReactionEmojiType =
   | 'SOCCER'
   | 'TENNIS'
   | 'THUMBS_DOWN'
+  | 'THUMBS_UP'
   | 'WOW';
 
 export type RejectFriendRequestResponse = {

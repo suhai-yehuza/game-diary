@@ -12,7 +12,8 @@ import type { ISortDirection } from '@src/lib/types/shared.types';
 
 // Reaction emoji source of truth
 export const REACTION_EMOJIS = {
-  LIKE: '👍',
+  THUMBS_UP: '👍',
+  THUMBS_DOWN: '👎',
   LOVE: '❤️',
   LAUGH: '😂',
   WOW: '😮',
@@ -25,7 +26,6 @@ export const REACTION_EMOJIS = {
   MUSCLE: '💪',
   GOAT: '🐐',
   BULLSEYE: '🎯',
-  THUMBS_DOWN: '👎',
   BASKETBALL: '🏀',
   SOCCER: '⚽',
   FOOTBALL: '🏈',
@@ -112,10 +112,10 @@ export const CLASSIFICATION = {
 } as const;
 
 export const FRIENDSHIP_STATUS = {
-  ACCEPTED: 'ACCEPTED',
-  BLOCKED: 'BLOCKED',
-  PENDING: 'PENDING',
-  REJECTED: 'REJECTED',
+  ACCEPTED: 'Accepted',
+  BLOCKED: 'Blocked',
+  PENDING: 'Pending',
+  REJECTED: 'Rejected',
 } as const;
 
 export const WATCHED_SETTING = {

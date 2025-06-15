@@ -155,10 +155,10 @@ type Friendship {
 }
 
 enum FriendshipStatus {
-  PENDING
-  ACCEPTED
-  REJECTED
-  BLOCKED
+  Accepted
+  Blocked
+  Pending
+  Rejected
 }
 
 # Game Types
@@ -257,22 +257,16 @@ type GameLog {
 }
 
 enum Classification {
-  WATCHED
-  HIGHLIGHTS
-  RECAP
-  BOX_SCORE
-  STATS
-  NEWS
-  SOCIAL
-  OTHER
+  Private
+  Protected
+  Public
 }
 
 enum GameStatusEnum {
-  SCHEDULED
-  LIVE
-  FINISHED
-  CANCELLED
-  POSTPONED
+  Scheduled
+  Live
+  Finished
+  Cancelled
 }
 
 # Team Types
@@ -386,20 +380,20 @@ type Reaction {
 }
 
 enum ReactionEmojiType {
-  LIKE
+  THUMBS_UP
+  THUMBS_DOWN
   LOVE
-  HAHA
+  LAUGH
   WOW
   SAD
   ANGRY
   FIRE
-  ROCKET
-  EYES
   CLAP
+  EYES
+  ROCKET
   MUSCLE
   GOAT
   BULLSEYE
-  THUMBS_DOWN
   BASKETBALL
   SOCCER
   FOOTBALL

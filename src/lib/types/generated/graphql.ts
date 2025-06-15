@@ -51,14 +51,9 @@ export type BusinessLogicError = {
 };
 
 export enum Classification {
-  BoxScore = 'BOX_SCORE',
-  Highlights = 'HIGHLIGHTS',
-  News = 'NEWS',
-  Other = 'OTHER',
-  Recap = 'RECAP',
-  Social = 'SOCIAL',
-  Stats = 'STATS',
-  Watched = 'WATCHED'
+  Private = 'Private',
+  Protected = 'Protected',
+  Public = 'Public'
 }
 
 export type Comment = {
@@ -231,10 +226,10 @@ export type Friendship = {
 };
 
 export enum FriendshipStatus {
-  Accepted = 'ACCEPTED',
-  Blocked = 'BLOCKED',
-  Pending = 'PENDING',
-  Rejected = 'REJECTED'
+  Accepted = 'Accepted',
+  Blocked = 'Blocked',
+  Pending = 'Pending',
+  Rejected = 'Rejected'
 }
 
 export type Game = {
@@ -366,11 +361,10 @@ export type GameStatus = {
 };
 
 export enum GameStatusEnum {
-  Cancelled = 'CANCELLED',
-  Finished = 'FINISHED',
-  Live = 'LIVE',
-  Postponed = 'POSTPONED',
-  Scheduled = 'SCHEDULED'
+  Cancelled = 'Cancelled',
+  Finished = 'Finished',
+  Live = 'Live',
+  Scheduled = 'Scheduled'
 }
 
 export type GameTeams = {
@@ -776,8 +770,7 @@ export enum ReactionEmojiType {
   Football = 'FOOTBALL',
   Goat = 'GOAT',
   Golf = 'GOLF',
-  Haha = 'HAHA',
-  Like = 'LIKE',
+  Laugh = 'LAUGH',
   Love = 'LOVE',
   Muscle = 'MUSCLE',
   Rocket = 'ROCKET',
@@ -785,6 +778,7 @@ export enum ReactionEmojiType {
   Soccer = 'SOCCER',
   Tennis = 'TENNIS',
   ThumbsDown = 'THUMBS_DOWN',
+  ThumbsUp = 'THUMBS_UP',
   Wow = 'WOW'
 }
 
