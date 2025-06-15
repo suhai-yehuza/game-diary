@@ -6,27 +6,8 @@ import { CACHE_TTL } from '@src/lib/types/cache.types';
 import { REACTION_EMOJIS } from '@src/lib/types/config.types';
 import type { IDatabaseRow } from '@src/lib/types/database.types';
 import type { ReactionEmojiType } from '@src/lib/types/generated/graphql';
+import type { IEdge, IPageInfo, IConnection, IConnectionArgs } from '@src/lib/types/misc.types';
 import type { IPaginationArgs } from '@src/lib/types/resolver.types';
-
-interface IEdge<T> {
-  cursor: string;
-  node: T;
-}
-
-interface IPageInfo {
-  hasNextPage: boolean;
-  hasPreviousPage: boolean;
-  startCursor: string | null;
-  endCursor: string | null;
-}
-
-interface IConnection<T> {
-  edges: IEdge<T>[];
-  pageInfo: IPageInfo;
-  totalCount: number;
-}
-
-type IConnectionArgs = IPaginationArgs;
 
 /**
  * Parse connection arguments and return pagination parameters

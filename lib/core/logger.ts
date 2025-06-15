@@ -1,3 +1,5 @@
+import type { ILoggerConfig } from '@src/lib/types/misc.types';
+
 export enum LogLevel {
   DEBUG = 0,
   INFO = 1,
@@ -5,27 +7,13 @@ export enum LogLevel {
   ERROR = 3,
 }
 
-export interface ILoggerConfig {
-  level: LogLevel;
-  enableTimestamp: boolean;
-  enableColors: boolean;
-  prefix?: string;
-  enableFileInfo: boolean;
-}
-
 const defaultConfig: ILoggerConfig = {
   level: process.env.NODE_ENV === 'production' ? LogLevel.WARN : LogLevel.DEBUG,
   enableTimestamp: true,
   enableColors: process.env.NODE_ENV !== 'production',
   enableFileInfo: process.env.NODE_ENV === 'development',
+  prefix: undefined,
 };
-
-export interface IGraphQLErrorDetails {
-  message?: string;
-  location?: unknown;
-  path?: string | string[];
-  extensions?: Record<string, unknown>;
-}
 
 class Logger {
   private config: ILoggerConfig;
@@ -122,7 +110,12 @@ class Logger {
     // Add detailed error information for GraphQL errors
     if (message.includes('GraphQL error')) {
       try {
-        let errorDetails: IGraphQLErrorDetails;
+        let errorDetails: {
+          message?: string;
+          location?: unknown;
+          path?: string | string[];
+          extensions?: Record<string, unknown>;
+        };
 
         // Handle both string and object error formats
         if (typeof args[0] === 'string') {
@@ -135,7 +128,12 @@ class Logger {
           };
         } else {
           // Handle object format
-          errorDetails = args[0] as IGraphQLErrorDetails;
+          errorDetails = args[0] as {
+            message?: string;
+            location?: unknown;
+            path?: string | string[];
+            extensions?: Record<string, unknown>;
+          };
         }
 
         const formattedErrorDetails = {
@@ -216,8 +214,8 @@ class Logger {
   createChild(prefix: string, config?: Partial<ILoggerConfig>): Logger {
     return new Logger({
       ...this.config,
-      ...config,
-      prefix: this.config.prefix ? `${this.config.prefix}:${prefix}` : prefix,
+      prefix,
+      ...(config || {}),
     });
   }
 

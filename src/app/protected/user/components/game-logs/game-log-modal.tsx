@@ -1,10 +1,10 @@
 'use client';
 
-import { useMutation, useQuery } from '@apollo/client';
+import { useQuery, useMutation } from '@apollo/client';
 import { SignInButton } from '@clerk/nextjs';
 import { X, Search } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import React, { useState, useMemo, useEffect, FormEvent } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import 'react-datepicker/dist/react-datepicker.css';
 
 import { useAuthContext } from '@/contexts/auth-context';
@@ -30,9 +30,9 @@ import {
   type IWatchedSettingValue,
   type IWatchedScopeValue,
 } from '@src/lib/types/config.types';
-import type { IGameLogFormData, IGameLogModalProps } from '@src/lib/types/game-log.types';
-import type { IGameWithPossibleId } from '@src/lib/types/game.types';
-import type { Game, CreateGameLogInput, Classification } from '@src/lib/types/generated/graphql';
+import { IGameLogModalProps, type IGameLogFormData } from '@src/lib/types/game-log.types';
+import type { IGame } from '@src/lib/types/game.types';
+import { Classification, type CreateGameLogInput } from '@src/lib/types/generated/graphql';
 import { getCurrentSeason } from '@src/lib/utils/index';
 import { formatGameDate } from '@src/lib/utils/time';
 
@@ -77,7 +77,13 @@ export function GameLogModal({
 
   // Game search state (only for create mode when no gameId is provided)
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedGame, setSelectedGame] = useState<Game | null>(null);
+  const [selectedGame, setSelectedGame] = useState<IGame | null>(null);
+
+  // Fetch specific game when gameId is provided (for create mode)
+  const { data: specificGameData, loading: loadingSpecificGame } = useQuery(GET_GAME_BY_ID, {
+    variables: { id: gameId },
+    skip: !gameId || mode === 'update' || !isOpen,
+  });
 
   // Reset selected game when search query changes
   useEffect(() => {
@@ -87,25 +93,19 @@ export function GameLogModal({
   // Set selectedGame for update mode
   useEffect(() => {
     if (mode === 'update' && gameLog?.game) {
-      setSelectedGame(gameLog.game as unknown as Game);
+      setSelectedGame(gameLog.game as unknown as IGame);
     }
   }, [mode, gameLog]);
-
-  // Fetch specific game when gameId is provided (for create mode)
-  const { data: specificGameData, loading: loadingSpecificGame } = useQuery(GET_GAME_BY_ID, {
-    variables: { id: gameId },
-    skip: !gameId || mode === 'update' || !isOpen,
-  });
 
   // Auto-select game when fetched by ID
   useEffect(() => {
     if (specificGameData?.game && mode === 'create' && gameId) {
-      setSelectedGame(specificGameData.game as unknown as Game);
+      setSelectedGame(specificGameData.game as unknown as IGame);
     }
   }, [specificGameData, mode, gameId]);
 
   // Form state - properly load existing values for update mode (memoized to prevent re-creation)
-  const initialFormData: CreateGameLogInput = useMemo(() => {
+  const initialFormData: IGameLogFormData = useMemo(() => {
     if (mode === 'update' && gameLog) {
       // For update mode, use all existing values from the database
       return {
@@ -117,7 +117,7 @@ export function GameLogModal({
         watchedScope: gameLog.watchedScope as IWatchedScopeValue,
         notes: gameLog.notes ?? '',
         tags: gameLog.tags ?? [],
-        classification: gameLog.classification as Classification,
+        classification: gameLog.classification as IClassificationValue,
       };
     } else {
       // For create mode, use defaults
@@ -130,7 +130,7 @@ export function GameLogModal({
         watchedScope: WATCHED_SCOPE.FULL_GAME,
         notes: '',
         tags: [],
-        classification: CLASSIFICATION.PROTECTED as Classification,
+        classification: CLASSIFICATION.PROTECTED,
       };
     }
   }, [gameLog, gameId, mode]);
@@ -184,7 +184,7 @@ export function GameLogModal({
           title: '✅ Updated!',
           description: 'Your game log has been updated successfully.',
         });
-        // Don't call handleModalClose() here - let onSuccess handle it to avoid double state management
+        handleModalClose();
         onSuccess?.();
       } else if (data?.updateGameLog?.errors) {
         toast({
@@ -210,7 +210,6 @@ export function GameLogModal({
         variant: 'destructive',
       });
     },
-    // Let the onSuccess callback handle cache refresh to avoid race conditions
   });
 
   // Fetch games with pagination and search (only for create mode)
@@ -310,41 +309,18 @@ export function GameLogModal({
     return filtered;
   }, [gamesData?.games?.edges, searchQuery]);
 
-  const handleSubmit = async (data: CreateGameLogInput) => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const formData = e.target as unknown as IGameLogFormData;
+
     // Ensure ratingForGame is never null/undefined - this is a critical field
-    const safeRatingForGame = data.ratingForGame ?? 3;
-
-    // CRITICAL: Validate all enum fields to prevent empty strings being sent to GraphQL
-    const safeClassification =
-      data.classification &&
-      typeof data.classification === 'string' &&
-      data.classification.trim() !== '' &&
-      Object.values(CLASSIFICATION).includes(data.classification as unknown as IClassificationValue)
-        ? data.classification
-        : CLASSIFICATION.PROTECTED;
-
-    const safeWatchedSetting =
-      data.watchedSetting &&
-      typeof data.watchedSetting === 'string' &&
-      data.watchedSetting.trim() !== '' &&
-      Object.values(WATCHED_SETTING).includes(data.watchedSetting as IWatchedSettingValue)
-        ? data.watchedSetting
-        : WATCHED_SETTING.TV;
-
-    const safeWatchedScope =
-      data.watchedScope &&
-      typeof data.watchedScope === 'string' &&
-      data.watchedScope.trim() !== '' &&
-      Object.values(WATCHED_SCOPE).includes(data.watchedScope as IWatchedScopeValue)
-        ? data.watchedScope
-        : WATCHED_SCOPE.FULL_GAME;
+    const safeRatingForGame = formData.ratingForGame ?? 3;
 
     // Validation complete - proceeding with mutation
 
     if (mode === 'create') {
       // More robust check for selectedGame and its ID - handles different possible field names
-      const selectedGameId =
-        selectedGame?.id || (selectedGame as unknown as IGameWithPossibleId)?.gameId || gameId;
+      const selectedGameId = selectedGame?.id || gameId;
 
       if (!selectedGame) {
         toast({
@@ -366,16 +342,21 @@ export function GameLogModal({
       }
 
       try {
-        const mutationInput = {
+        const classificationEnum = (
+          formData.classification as IClassificationValue
+        ).toUpperCase() as keyof typeof Classification;
+        const classificationValue = Classification[classificationEnum];
+
+        const mutationInput: CreateGameLogInput = {
           gameId: selectedGameId,
-          watchedSetting: safeWatchedSetting,
-          watchedDate: data.watchedDate,
-          watchedLocation: data.watchedLocation || '',
+          watchedSetting: formData.watchedSetting,
+          watchedDate: formData.watchedDate,
+          watchedLocation: formData.watchedLocation || '',
           ratingForGame: safeRatingForGame,
-          watchedScope: safeWatchedScope,
-          notes: data.notes || '',
-          tags: data.tags || [],
-          classification: safeClassification,
+          watchedScope: formData.watchedScope,
+          notes: formData.notes || '',
+          tags: formData.tags || [],
+          classification: classificationValue,
         };
 
         await createGameLog({
@@ -390,16 +371,21 @@ export function GameLogModal({
     } else if (mode === 'update' && gameLog?.id) {
       try {
         // Use validated safe values to prevent empty strings
-        const updateInput = {
-          gameId: gameLog.game?.id || data.gameId,
-          watchedSetting: safeWatchedSetting,
-          watchedDate: data.watchedDate,
-          watchedLocation: data.watchedLocation || '',
+        const classificationEnum = (
+          formData.classification as IClassificationValue
+        ).toUpperCase() as keyof typeof Classification;
+        const classificationValue = Classification[classificationEnum];
+
+        const updateInput: CreateGameLogInput = {
+          gameId: gameLog.game?.id || formData.gameId,
+          watchedSetting: formData.watchedSetting,
+          watchedDate: formData.watchedDate,
+          watchedLocation: formData.watchedLocation || '',
           ratingForGame: safeRatingForGame,
-          watchedScope: safeWatchedScope,
-          notes: data.notes || '',
-          tags: data.tags || [],
-          classification: safeClassification,
+          watchedScope: formData.watchedScope,
+          notes: formData.notes || '',
+          tags: formData.tags || [],
+          classification: classificationValue,
         };
 
         // Update input validated and ready
@@ -480,12 +466,12 @@ export function GameLogModal({
                 key={edge.node.id}
                 className="p-3 border rounded-lg cursor-pointer hover:bg-gray-50"
                 onClick={() => {
-                  setSelectedGame(edge.node as unknown as Game);
+                  setSelectedGame(edge.node as unknown as IGame);
                 }}
                 onKeyDown={e => {
                   if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault();
-                    setSelectedGame(edge.node as unknown as Game);
+                    setSelectedGame(edge.node as unknown as IGame);
                   }
                 }}
                 role="button"
@@ -554,9 +540,9 @@ export function GameLogModal({
                   ? selectedGame.date
                   : {
                       start:
-                        selectedGame.date.start instanceof Date
-                          ? selectedGame.date.start.toISOString()
-                          : selectedGame.date.start,
+                        typeof selectedGame.date.start === 'string'
+                          ? selectedGame.date.start
+                          : new Date(selectedGame.date.start).toISOString(),
                     }
               )}{' '}
               • {selectedGame.arena?.name || 'Unknown Arena'}
@@ -567,11 +553,10 @@ export function GameLogModal({
 
       <GameLogForm
         key={`${mode}-${gameLog?.id || 'new'}`}
-        formData={initialFormData as unknown as IGameLogFormData}
-        // @ts-expect-error - Type mismatch between generated GraphQL Game type and consolidated Game type
+        formData={initialFormData}
         selectedGame={selectedGame}
         loading={mode === 'create' ? creating : updating}
-        onSubmit={handleSubmit as unknown as (e: FormEvent<Element>) => Promise<void>}
+        onSubmit={handleSubmit}
         onCancel={() => handleModalClose()}
         submitLabel={mode === 'create' ? 'Create Log' : 'Update Log'}
       />

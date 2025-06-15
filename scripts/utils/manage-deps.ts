@@ -5,21 +5,7 @@ import { readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
 
 import { logger } from '@lib/core/logger';
-
-interface IPackage {
-  name: string;
-  version: string;
-  latest?: string;
-  type?: string;
-  wanted?: string;
-}
-
-interface IOutdatedPackage extends IPackage {
-  current: string;
-  latest: string;
-  type: string;
-  url: string;
-}
+import type { IOutdatedPackage } from '@src/lib/types/misc.types';
 
 function getOutdatedPackages(): IOutdatedPackage[] {
   try {

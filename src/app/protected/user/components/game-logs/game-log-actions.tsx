@@ -78,10 +78,6 @@ export function GameLogActions({ gameLog, onSuccess }: IGameLogActionsProps) {
     });
   };
 
-  const gameTitle = gameLog.game?.teams
-    ? `${gameLog.game.teams.visitors?.name} vs ${gameLog.game.teams.home?.name}`
-    : 'this game log';
-
   if (!isOwner) {
     return null;
   }
@@ -135,7 +131,7 @@ export function GameLogActions({ gameLog, onSuccess }: IGameLogActionsProps) {
             <AlertDialogTitle>Delete Game Log</AlertDialogTitle>
             <AlertDialogDescription>
               Are you sure you want to delete your game log for{' '}
-              <span className="font-semibold">{gameTitle}</span>?
+              <span className="font-semibold">{gameLog.id}</span>?
               <br />
               <br />
               This action cannot be undone and will permanently remove the game log from your
@@ -157,7 +153,7 @@ export function GameLogActions({ gameLog, onSuccess }: IGameLogActionsProps) {
 
       {/* Edit Modal */}
       <GameLogModal
-        gameId={gameLog.game.id}
+        gameId={gameLog.id}
         mode="update"
         gameLog={gameLog}
         isOpen={isUpdateModalOpen}

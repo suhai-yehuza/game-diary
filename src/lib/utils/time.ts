@@ -1,9 +1,4 @@
-// Define locally to avoid circular dependency
-type DateFields = {
-  createdAt: Date;
-  updatedAt: Date;
-  deletedAt?: Date;
-};
+import type { DateFields } from '@src/lib/types/misc.types';
 
 /**
  * Gets the current NBA season year.

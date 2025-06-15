@@ -22,17 +22,13 @@ import type {
   GetUserGameLogsQueryVariables,
   CommentConnection,
 } from '@src/lib/types/generated/graphql';
+import type { IGameLogsSectionProps } from '@src/lib/types/misc.types';
 import { cn } from '@src/lib/utils';
 
 import { GameLogActions } from './game-log-actions';
 import { GameLogModal } from './game-log-modal';
 
 const ITEMS_PER_PAGE = 10;
-
-interface IGameLogsSectionProps {
-  userId: string;
-  currentUserId: string | null;
-}
 
 export function GameLogsSection({ userId, currentUserId }: IGameLogsSectionProps) {
   const router = useRouter();
@@ -89,7 +85,7 @@ export function GameLogsSection({ userId, currentUserId }: IGameLogsSectionProps
 
     if (hasReacted) {
       const gameLog = userGameLogsData?.gameLogs?.edges.find(
-        edge => edge.node.id === targetId
+        edge => edge.node.game.id === targetId
       )?.node;
       const reaction = gameLog?.reactions?.find(
         (r: { emoji: string; userId: string }) => r.emoji === emoji && r.userId === currentUserId

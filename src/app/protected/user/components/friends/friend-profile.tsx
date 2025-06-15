@@ -6,14 +6,7 @@ import React from 'react';
 import { StarRating } from '@src/app/components/ui/star-rating';
 import { GET_GAME_LOGS } from '@src/lib/graphql/queries';
 import type { GameLog } from '@src/lib/types/generated/graphql';
-
-interface IFriendProfileProps {
-  friend: {
-    id: string;
-    username: string;
-    avatar: string;
-  };
-}
+import type { IFriendProfileProps } from '@src/lib/types/misc.types';
 
 import { FriendActivity } from './friend-activity';
 

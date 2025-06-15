@@ -8,7 +8,7 @@ import React, { useState } from 'react';
 
 import { useDebounce } from '@/hooks/use-debounce';
 import { GET_GAMES } from '@/lib/graphql/queries';
-import { IGame, IGameArena } from '@/lib/types';
+import { IGame, IGameArena, IGameListProps } from '@/lib/types';
 
 export const dynamic = 'force-dynamic';
 
@@ -135,12 +135,6 @@ function GameCard({ game }: { game: IGame }) {
       </div>
     </Link>
   );
-}
-
-interface IGameListProps {
-  games: IGame[];
-  isLoading: boolean;
-  hasError: boolean;
 }
 
 function GameList({ games, isLoading, hasError }: IGameListProps) {

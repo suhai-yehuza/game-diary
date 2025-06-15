@@ -1,53 +1,11 @@
-// This file is intentionally left empty
-
-import type { ApolloQueryResult } from '@apollo/client';
 import { format, isToday, isYesterday, isTomorrow } from 'date-fns';
 
 import type { ISearchGame } from '@src/lib/types';
-
-// Type for GameQueryResult
-type GameQueryResult = ApolloQueryResult<{ games: { edges: { node: ISearchGame }[] } }>;
 
 // Pure function to check if a string contains the search term
 const containsSearchTerm = (str: string | undefined, searchTerm: string): boolean => {
   return str ? str.toLowerCase().includes(searchTerm.toLowerCase()) : false;
 };
-
-// Pure function to sort games by date
-const sortGamesByDate = (games: ISearchGame[]): ISearchGame[] =>
-  [...games].sort((a, b) => {
-    const dateA = typeof a.date === 'string' ? a.date : a.date.start;
-    const dateB = typeof b.date === 'string' ? b.date : b.date.start;
-    return new Date(dateB).getTime() - new Date(dateA).getTime();
-  });
-
-// Pure function to ensure arena data is never null
-const ensureArenaData = (game: ISearchGame): ISearchGame => ({
-  ...game,
-  arena: game.arena
-    ? {
-        name: game.arena.name || '',
-        city: game.arena.city || '',
-        state: game.arena.state || '',
-        country: game.arena.country || '',
-      }
-    : undefined,
-});
-
-interface IProcessedGameData {
-  isLoading: boolean;
-  hasError: boolean;
-  games: ISearchGame[];
-}
-
-// Pure function to process game data
-export const processGameData = (queries: GameQueryResult[]): IProcessedGameData => ({
-  isLoading: queries.some(query => query.loading),
-  hasError: queries.some(query => query.error),
-  games: sortGamesByDate(
-    queries.flatMap(query => query.data?.games?.edges.map(edge => ensureArenaData(edge.node)) || [])
-  ),
-});
 
 // Pure function to filter games based on search query
 export const filterGames = (games: ISearchGame[], searchQuery: string): ISearchGame[] => {

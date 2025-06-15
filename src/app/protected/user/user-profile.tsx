@@ -7,15 +7,12 @@ import React from 'react';
 import { Skeleton } from '@src/app/components/ui/skeleton';
 import { GET_USER } from '@src/lib/graphql/queries';
 import type { GetUserQuery, GetUserQueryVariables } from '@src/lib/types/generated/graphql';
+import type { IUserProfileProps } from '@src/lib/types/misc.types';
 
 import { ErrorBoundary } from './components/error-boundary';
 import { GameLogsSection } from './components/game-logs/game-logs-section';
 import { FriendshipManagement } from './components/profile/friendship-management';
 import { UserHeader } from './components/profile/user-header';
-
-interface IUserProfileProps {
-  targetUserId: string;
-}
 
 /**
  * A component that displays a user's profile, including their header information,

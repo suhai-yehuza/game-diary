@@ -9,10 +9,7 @@ import { useToast } from '@src/app/components/ui/use-toast';
 import { CREATE_GAME_LOG } from '@src/lib/graphql/mutations';
 import { GET_GAMES } from '@src/lib/graphql/queries';
 import type { IGameLogInput } from '@src/lib/types/game-log.types';
-
-interface IUseCreateGameLogProps {
-  onSuccess?: () => void;
-}
+import type { IUseCreateGameLogProps } from '@src/lib/types/misc.types';
 
 export function useCreateGameLog({ onSuccess }: IUseCreateGameLogProps = {}) {
   const { toast } = useToast();

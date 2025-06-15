@@ -11,35 +11,11 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 import { logger } from '@lib/core/logger';
+import type { IPerformanceMetrics } from '@src/lib/types/misc.types';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const rootDir = path.resolve(__dirname, '..');
-
-interface IPerformanceMetrics {
-  timestamp: string;
-  buildTime: number;
-  bundleSize: {
-    total: number;
-    pages: Record<string, number>;
-    chunks: Record<string, number>;
-  };
-  dependencies: {
-    production: number;
-    development: number;
-    total: number;
-  };
-  typecheck: {
-    time: number;
-    errors: number;
-  };
-  lighthouse?: {
-    performance: number;
-    accessibility: number;
-    bestPractices: number;
-    seo: number;
-  };
-}
 
 async function measureBuildTime(): Promise<number> {
   logger.info('📏 Measuring build time...');

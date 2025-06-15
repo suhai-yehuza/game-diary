@@ -1,14 +1,6 @@
 import React from 'react';
 
-/**
- * Props for the UserProfileLayout component
- */
-interface IUserProfileLayoutProps {
-  /** The title to display at the top of the profile page */
-  title: string;
-  /** The content to render inside the layout */
-  children: React.ReactNode;
-}
+import type { IUserProfileLayoutProps } from '@src/lib/types/misc.types';
 
 /**
  * A layout component that provides a consistent structure for user profile pages.

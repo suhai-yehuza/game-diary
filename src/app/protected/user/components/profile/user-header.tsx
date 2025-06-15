@@ -5,24 +5,12 @@ import React from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@src/app/components/ui/avatar';
 import { Badge } from '@src/app/components/ui/badge';
 import { Card, CardContent } from '@src/app/components/ui/card';
-import type { GameLog, DbUser } from '@src/lib/types/generated/graphql';
+import type { GameLog } from '@src/lib/types/generated/graphql';
+import type { IUserHeaderProps } from '@src/lib/types/misc.types';
 
 import { GameLogModal } from '../game-logs/game-log-modal';
 
 import { FriendshipManagement } from './friendship-management';
-
-interface IUserHeaderProps {
-  user: DbUser;
-  isOwnProfile: boolean;
-  currentUserId: string | null;
-  stats: {
-    totalGames: number;
-    totalFriends: number;
-    totalHours: number;
-  };
-  onGameLogUpdate?: () => void;
-  onFriendshipUpdate?: () => void;
-}
 
 export function UserHeader({
   user,

@@ -10,24 +10,20 @@ import type { GameLog } from '@src/lib/types/generated/graphql';
 
 export interface IGameLogInput {
   gameId: string;
-  watchedDate: string;
-  watchedLocation?: string;
-  watchedSetting?: string;
-  watchedScope?: string;
+  watchedDate: Date;
+  watchedSetting: IWatchedSettingValue;
+  watchedScope: IWatchedScopeValue;
+  classification: IClassificationValue;
   ratingForGame: number;
-  comment?: string;
+  watchedLocation?: string;
+  notes?: string;
+  tags?: string[];
 }
 
-export interface IGameLogFormData {
-  gameId: string;
-  watchedSetting: IWatchedSettingValue;
-  watchedDate: Date;
-  watchedLocation: string;
-  ratingForGame: number;
-  watchedScope: IWatchedScopeValue;
-  notes: string;
-  tags: string[];
-  classification: IClassificationValue;
+export interface IGameLogFormData extends IGameLogInput {
+  id?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface IGameRating {

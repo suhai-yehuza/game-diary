@@ -3,13 +3,8 @@ import Image from 'next/image';
 import React, { useState } from 'react';
 
 import { GET_USERS } from '@src/lib/graphql/queries';
+import type { IUserSearchProps } from '@src/lib/types/misc.types';
 import type { IFriend } from '@src/lib/types/social.types';
-
-interface IUserSearchProps {
-  onUserSelect: (userId: string) => void;
-  excludeIds?: string[];
-  users?: IFriend[];
-}
 
 export const UserSearch: React.FC<IUserSearchProps> = ({
   onUserSelect,

@@ -11,6 +11,7 @@ import { logger } from '@lib/core/logger';
 import { db } from '@src/lib/db';
 import type { migrationVersions } from '@src/lib/db/schema/migration-schemas';
 import { env } from '@src/lib/env';
+import type { IRequestInit } from '@src/lib/types/misc.types';
 
 const MIGRATIONS_DIR = path.join(process.cwd(), 'src/lib/db/migrations');
 
@@ -35,12 +36,6 @@ type MigrationVersion = typeof migrationVersions.$inferSelect;
 
 // Type definitions for fetch API
 type RequestInfo = string | URL;
-interface IRequestInit {
-  method?: string;
-  headers?: Record<string, string>;
-  body?: string | Buffer;
-  signal?: AbortSignal;
-}
 
 async function getMigrationFiles(): Promise<string[]> {
   const types = ['base', 'feature', 'trigger'];

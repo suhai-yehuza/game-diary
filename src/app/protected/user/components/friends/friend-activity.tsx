@@ -2,22 +2,7 @@ import { formatDistanceToNow } from 'date-fns';
 import Image from 'next/image';
 import React from 'react';
 
-import type { IFriend } from '@src/lib/types/social.types';
-
-interface IActivity {
-  id: string;
-  type: 'game_logged' | 'friend_added' | 'achievement';
-  user: IFriend;
-  description: string;
-  timestamp: string;
-  gameTitle?: string;
-  achievement?: string;
-}
-
-interface IFriendActivityProps {
-  activities: IActivity[];
-  isLoading?: boolean;
-}
+import type { IFriendActivityProps, IActivity } from '@src/lib/types/misc.types';
 
 export const FriendActivity: React.FC<IFriendActivityProps> = ({ activities, isLoading }) => {
   if (isLoading) {

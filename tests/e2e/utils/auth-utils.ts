@@ -1,28 +1,6 @@
 import type { Page } from '@playwright/test';
 
-// Type definitions for Clerk mocks
-interface IClerkMock {
-  isLoaded: boolean;
-  isSignedIn: boolean;
-  user: {
-    id: string;
-    firstName: string;
-    lastName: string;
-    emailAddresses: Array<{ emailAddress: string }>;
-    imageUrl: string;
-  };
-  session: {
-    id: string;
-    token: string;
-  };
-  signOut: () => Promise<void>;
-  getToken: () => Promise<string>;
-}
-
-// Extend Window type to include Clerk
-type IExtendedWindow = Window & {
-  Clerk?: IClerkMock;
-};
+import type { IClerkMock, IExtendedWindow } from '@src/lib/types/misc.types';
 
 // Test user data - matches your database schema
 export const TEST_USER = {

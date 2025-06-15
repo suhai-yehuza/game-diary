@@ -39,6 +39,7 @@ export const gameLog = async (_parent: unknown, { id }: { id: string }, { db }: 
       id: gameLog.id,
       userId: gameLog.userId,
       gameId: gameLog.gameId,
+      game: { id: gameLog.gameId },
       watchedSetting: gameLog.watchedSetting,
       watchedDate: gameLog.watchedDate,
       watchedLocation: gameLog.watchedLocation,

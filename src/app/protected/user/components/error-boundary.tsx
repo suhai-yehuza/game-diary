@@ -1,14 +1,6 @@
 import React from 'react';
 
-interface IErrorBoundaryProps {
-  children: React.ReactNode;
-  fallback?: React.ReactNode;
-}
-
-interface IErrorBoundaryState {
-  hasError: boolean;
-  error?: Error;
-}
+import type { IErrorBoundaryProps, IErrorBoundaryState } from '@src/lib/types/misc.types';
 
 /**
  * An error boundary component that catches JavaScript errors anywhere in their child component tree,

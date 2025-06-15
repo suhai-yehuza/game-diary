@@ -14,6 +14,12 @@ export interface IGameWithPossibleId extends IGame {
   gameId?: string;
 }
 
+export interface IGameListProps {
+  games: IGame[];
+  isLoading: boolean;
+  hasError: boolean;
+}
+
 // Core Game Types
 export interface IGameTeam {
   id: string;

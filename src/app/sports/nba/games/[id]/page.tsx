@@ -491,7 +491,13 @@ export default function GamePage() {
             </Link>
             <div className="flex items-center gap-4">
               {userId ? (
-                <GameLogModal mode="create" gameId={gameId} gameLog={{} as GameLog} />
+                <GameLogModal
+                  mode="create"
+                  gameId={gameId}
+                  gameLog={{} as GameLog}
+                  onClose={() => {}}
+                  onSuccess={() => {}}
+                />
               ) : (
                 <SignInButton mode="modal">
                   <Button

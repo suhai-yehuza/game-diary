@@ -39,6 +39,7 @@ export type {
   IGameSortInput,
   IGameField,
   IDBGameRecord,
+  IGameListProps,
 } from './game.types';
 
 export type {

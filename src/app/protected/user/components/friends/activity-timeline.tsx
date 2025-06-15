@@ -2,21 +2,7 @@ import { formatDistanceToNow } from 'date-fns';
 import * as React from 'react';
 import { useState } from 'react';
 
-interface IActivityItem {
-  id: string;
-  title: string;
-  description: string;
-  type: string;
-  timestamp: string;
-  gameTitle?: string;
-  score?: string | number;
-  details?: Record<string, string | number>;
-}
-
-interface IActivityTimelineProps {
-  activities: IActivityItem[];
-  isLoading?: boolean;
-}
+import type { IActivityTimelineProps } from '@src/lib/types/misc.types';
 
 export const ActivityTimeline: React.FC<IActivityTimelineProps> = ({
   activities,

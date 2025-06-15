@@ -510,7 +510,9 @@ export function GameLogView({ gameLogId }: IGameLogProps) {
                       return (
                         <button
                           key={emoji}
-                          onClick={() => handleReaction(emoji, gameLog.id, 'GameLog', !!hasReacted)}
+                          onClick={() =>
+                            handleReaction(emoji, gameLog.game.id, 'GameLog', !!hasReacted)
+                          }
                           className={cn(
                             'group relative px-4 py-3 rounded-2xl transition-all duration-300 text-base font-medium',
                             'hover:scale-105 hover:shadow-lg hover:shadow-black/10',
@@ -575,7 +577,7 @@ export function GameLogView({ gameLogId }: IGameLogProps) {
                                   onClick={() =>
                                     handleReaction(
                                       emoji as IReactionEmojiValue,
-                                      gameLog.id,
+                                      gameLog.game.id,
                                       'GameLog',
                                       !!hasReacted
                                     )
@@ -616,7 +618,7 @@ export function GameLogView({ gameLogId }: IGameLogProps) {
                 {/* Embedded Comments without any additional styling or containers */}
                 <div className="px-8 pb-8">
                   <CommentsSection
-                    parentId={gameLog.id}
+                    parentId={gameLog.game.id}
                     parentType={'game_log' as ParentType}
                     initialExpanded={true}
                     embedded={true}

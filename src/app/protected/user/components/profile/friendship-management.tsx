@@ -11,14 +11,7 @@ import {
 } from '@src/lib/graphql/mutations';
 import { GET_USER_FRIENDSHIPS } from '@src/lib/graphql/queries';
 import { FRIENDSHIP_STATUS } from '@src/lib/types/config.types';
-import type { Friendship } from '@src/lib/types/generated/graphql';
-
-interface IFriendshipManagementProps {
-  currentUserId: string | null;
-  targetUserId: string;
-  friendship: Friendship | null;
-  onFriendshipUpdate: () => void;
-}
+import type { IFriendshipManagementProps } from '@src/lib/types/misc.types';
 
 export function FriendshipManagement({
   currentUserId,
