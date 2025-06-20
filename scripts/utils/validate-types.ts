@@ -13,7 +13,23 @@ function findTypeDefinitions(): string[] {
     const grepCommand = `grep -rn --exclude-dir=node_modules --exclude-dir=.next --exclude-dir=dist --exclude-dir=build --exclude-dir=scripts --include="*.ts" --include="*.tsx" -E "^(export )?(type|interface) " . | grep -v "z.infer<"`;
     const output = execSync(grepCommand, { encoding: 'utf-8' });
 
-    return output.split('\n').filter(Boolean);
+    return output
+      .split('\n')
+      .filter(Boolean)
+      .filter(line => {
+        // Filter out re-exports (export type { ... } from './...')
+        const parts = line.split(':');
+        if (parts.length >= 3) {
+          const typeDefinition = parts.slice(2).join(':').trim();
+          // Handle both single-line and multi-line re-exports
+          const isReExport =
+            (typeDefinition.includes('from ') && typeDefinition.includes('{')) ||
+            typeDefinition.match(/^export\s+type\s+\{\s*$/) ||
+            typeDefinition.match(/^export\s+type\s+\{[^}]*$/);
+          return !isReExport;
+        }
+        return true;
+      });
   } catch (error) {
     if (error instanceof Error && 'status' in error && error.status === 1) {
       // grep returns 1 when no matches are found, which is fine

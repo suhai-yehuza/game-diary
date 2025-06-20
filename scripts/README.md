@@ -23,6 +23,7 @@ This directory contains utility scripts for development, testing, and maintenanc
 
 - Dependency management
 - Environment verification
+- Type validation and fixing
 - Schema combination
 - Custom migration handling
 
@@ -70,9 +71,62 @@ pnpm deps:manage
 # Verify environment
 pnpm verify-env
 
+# Validate types
+pnpm validate:types
+
+# Automatically fix type violations
+pnpm fix:types
+
 # Combine GraphQL schemas
 pnpm schema:combine
 ```
+
+### Type Management
+
+```bash
+# Validate that all types are in the correct location
+pnpm validate:types
+
+# Automatically fix type violations
+pnpm fix:types
+
+# Combined: validate then fix
+pnpm validate:types:fix
+```
+
+#### Extensible Type Violation Fixing
+
+The `fix-type-violations.ts` script uses a **configuration-driven** approach that makes it easy to handle new violation patterns without code changes.
+
+**Features**:
+
+- **Configuration-based rules**: Add new fix patterns via `fix-type-violations.config.ts`
+- **Multiple fix strategies**: Remove-and-import, move-to-types, rewrite-file, custom handlers
+- **Pattern matching**: RegExp or string-based file matching
+- **Smart import handling**: Automatically updates import statements
+- **Safety limits**: Configurable limits to prevent unintended mass changes
+- **Verification**: Optional post-fix validation
+
+**Adding New Fix Rules**:
+
+```typescript
+// In fix-type-violations.config.ts
+{
+  name: 'New Feature Types',
+  filePattern: /^src\/components\/new-feature\/.*\.ts$/,
+  strategy: 'move-to-types',
+  targetTypesFile: 'feature.types.ts',
+  importPath: '@src/lib/types/feature.types',
+  description: 'Move new feature types to dedicated types file'
+}
+```
+
+**Available Strategies**:
+
+- `remove-and-import`: Remove duplicate types and add import
+- `move-to-types`: Move types to appropriate types file
+- `rewrite-file`: Completely rewrite file (for complex reorganization)
+- `custom`: Use custom handler function
 
 ### Testing
 
@@ -106,6 +160,9 @@ pnpm test:redis
 
 - `manage-deps.ts` - Dependency management
 - `verify-env.ts` - Environment verification
+- `validate-types.ts` - Type location validation
+- `fix-type-violations.ts` - **Extensible** automatic type violation fixing
+- `fix-type-violations.config.ts` - Configuration for type violation fixes
 - `combine-schema.ts` - GraphQL schema combination
 
 ### Test Scripts

@@ -1,6 +1,5 @@
 import { faker } from '@faker-js/faker';
 import { desc } from 'drizzle-orm';
-import type { InferInsertModel } from 'drizzle-orm';
 import type { NeonHttpDatabase } from 'drizzle-orm/neon-http';
 
 import { seedLogger } from '@lib/core/logger';
@@ -21,12 +20,15 @@ import type {
   IWatchedSettingValue,
   IFriendshipStatusValue,
 } from '@src/lib/types';
-import type { UserInsert, FriendshipInsert, GameLogInsert } from '@src/lib/types/seeding.types';
+import type {
+  UserInsert,
+  FriendshipInsert,
+  GameLogInsert,
+  CommentInsert,
+  ReactionInsert,
+} from '@src/lib/types/seeding.types';
 import { generateUUID } from '@src/lib/utils/processing';
 import { getCurrentSeason } from '@src/lib/utils/time';
-
-type CommentInsert = InferInsertModel<typeof comments>;
-type ReactionInsert = InferInsertModel<typeof reactions>;
 
 // Statistical Distribution Utilities
 class StatisticalDistributions {

@@ -2,36 +2,7 @@ import { type VariantProps } from 'class-variance-authority';
 import { type NeonHttpDatabase } from 'drizzle-orm/neon-http';
 
 import type { badgeVariants } from '@src/app/components/ui/badge';
-import type { baseTableConfig } from '@src/lib/db/schema/base-types';
-import type {
-  gameStatusEnum,
-  notificationTypeEnum,
-  reactionTypeEnum,
-  watchedSettingEnum,
-} from '@src/lib/db/schema/enums';
-import type {
-  usersRelations,
-  commentsRelations,
-  reactionsRelations,
-  gameLogsRelations,
-} from '@src/lib/db/schema/relations';
-import type {
-  UsersTable,
-  TeamsTable,
-  CommentsTable,
-  ReactionsTable,
-  NotificationsTable,
-  FriendshipsTable,
-  GameLogsTable,
-  GameRatingsTable,
-  GamesTable,
-  NBAGamesTable,
-  TeamH2HTable,
-  NBAPlayersTable,
-  NBAPlayerStatsTable,
-  GameStatsTable,
-  SeasonsTable,
-} from '@src/lib/db/schema/types';
+import type { Schema, Relations } from '@src/lib/types/database.types';
 import type { IGame } from '@src/lib/types/game.types';
 import type { GameLog, CreateGameLogInput } from '@src/lib/types/generated/graphql';
 
@@ -448,38 +419,9 @@ export interface ISeasonData {
   updatedAt: Date;
 }
 
-// From src/lib/db/schema/types.ts
-export interface ISchema {
-  users: UsersTable & { relations: typeof usersRelations };
-  teams: TeamsTable;
-  comments: CommentsTable & { relations: typeof commentsRelations };
-  reactions: ReactionsTable & { relations: typeof reactionsRelations };
-  notifications: NotificationsTable;
-  friendships: FriendshipsTable;
-  game_logs: GameLogsTable & { relations: typeof gameLogsRelations };
-  game_ratings: GameRatingsTable;
-  games: GamesTable;
-  nba_games: NBAGamesTable;
-  team_h2h: TeamH2HTable;
-  nba_players: NBAPlayersTable;
-  nba_player_stats: NBAPlayerStatsTable;
-  game_stats: GameStatsTable;
-  seasons: SeasonsTable;
-  enums: {
-    game_status: typeof gameStatusEnum;
-    notification_type: typeof notificationTypeEnum;
-    reaction_type: typeof reactionTypeEnum;
-    watchedSetting: typeof watchedSettingEnum;
-  };
-  base: typeof baseTableConfig;
-}
-
-export interface IRelations {
-  users: typeof usersRelations;
-  comments: typeof commentsRelations;
-  reactions: typeof reactionsRelations;
-  game_logs: typeof gameLogsRelations;
-}
+// Schema and Relations types are now imported from database.types.ts
+export type ISchema = Schema;
+export type IRelations = Relations;
 
 // From src/lib/validations/env.ts
 export interface IEnvConfig {

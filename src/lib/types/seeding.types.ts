@@ -19,6 +19,8 @@ export type MadeAttempted = { made?: number; attempted?: number } | null | undef
 export type UserInsert = InferInsertModel<typeof schema.users>;
 export type FriendshipInsert = InferInsertModel<typeof schema.friendships>;
 export type GameLogInsert = InferInsertModel<typeof schema.game_logs>;
+export type CommentInsert = InferInsertModel<typeof schema.comments>;
+export type ReactionInsert = InferInsertModel<typeof schema.reactions>;
 
 // Select type for teams
 export type TeamRow = InferSelectModel<typeof schema.teams>;
