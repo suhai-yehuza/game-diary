@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 import React, { useRef } from 'react';
 
-import type { IAuthModalProps } from '@src/lib/types/component.types';
+import type { IAuthModalProps } from '@src/lib/types';
 
 export function AuthModal({ children }: IAuthModalProps) {
   const router = useRouter();
@@ -24,7 +24,7 @@ export function AuthModal({ children }: IAuthModalProps) {
   return (
     <div className="relative min-h-[calc(100vh-4rem)] flex items-center justify-center">
       <div
-        className="absolute inset-0 bg-background/80"
+        className="absolute inset-0 bg-[hsl(var(--background))] bg-opacity-80"
         onClick={handleBackdropClick}
         onKeyDown={handleBackdropKeyDown}
         role="button"

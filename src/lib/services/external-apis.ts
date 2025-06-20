@@ -2,13 +2,13 @@ import { apiLogger } from '@lib/core/logger';
 import { API_CONFIG, getRapidApiConfig, validateAPIKey } from '@src/lib/config/api.config';
 import { APIError } from '@src/lib/errors/api.error';
 import type {
+  ITeamStats,
   IPlayerApiResponse,
   IGameApiResponse,
   ITeamApiResponse,
   ISeasonApiResponse,
+  IAPIConfigOptions,
 } from '@src/lib/types';
-import type { ITeamStats } from '@src/lib/types/generated/graphql';
-import type { IAPIConfigOptions } from '@src/lib/types/shared.types';
 import { sleep } from '@src/lib/utils/time';
 
 // ============================================================================

@@ -29,14 +29,10 @@ import { Skeleton } from '@src/app/components/ui/skeleton';
 import { StarRating } from '@src/app/components/ui/star-rating';
 import { CREATE_REACTION, DELETE_REACTION } from '@src/lib/graphql/mutations';
 import { GET_GAME_LOG } from '@src/lib/graphql/queries';
-import {
-  CLASSIFICATION,
-  REACTION_EMOJIS,
-  EMOJI_TO_GRAPHQL_MAPPING,
-  type IReactionEmojiValue,
-} from '@src/lib/types/config.types';
-import type { GameLog, ParentType } from '@src/lib/types/generated/graphql';
-import type { IGameLogProps } from '@src/lib/types/misc.types';
+import { CLASSIFICATION, REACTION_EMOJIS, EMOJI_TO_GRAPHQL_MAPPING } from '@src/lib/types';
+import type { ParentType, IReactionEmojiValue } from '@src/lib/types';
+import type { IGameLogProps } from '@src/lib/types/game-log.types';
+import type { GameLog } from '@src/lib/types/generated/graphql';
 import { cn } from '@src/lib/utils';
 
 // Loading skeleton component
@@ -445,7 +441,7 @@ export function GameLogView({ gameLogId }: IGameLogProps) {
         )}
 
         {/* Seamless Content & Community Card */}
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-50/80 via-white to-slate-50/60 dark:from-slate-900/80 dark:via-slate-800/90 dark:to-slate-900/60 backdrop-blur-sm border border-border/30 shadow-xl shadow-black/5">
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-50/80 via-white to-slate-50/60 dark:from-slate-900/80 dark:via-slate-800/90 dark:to-slate-900/60 backdrop-blur-sm border border-[hsl(var(--border))] border-opacity-30 shadow-xl shadow-black/5">
           {/* Floating gradient orbs for visual interest */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
             <div className="absolute -top-20 -right-20 w-40 h-40 bg-gradient-to-br from-blue-400/10 to-purple-400/10 rounded-full blur-3xl"></div>
@@ -520,7 +516,7 @@ export function GameLogView({ gameLogId }: IGameLogProps) {
                             clickedEmoji === emoji && 'scale-110',
                             hasReacted
                               ? 'bg-gradient-to-r from-primary/20 to-primary/10 border-primary/30 text-primary shadow-lg shadow-primary/10'
-                              : 'bg-gradient-to-r from-white/60 to-white/40 dark:from-white/10 dark:to-white/5 border-border/40 hover:border-border/60 hover:bg-white/80 dark:hover:bg-white/10'
+                              : 'bg-gradient-to-r from-white/60 to-white/40 dark:from-white/10 dark:to-white/5 border-[hsl(var(--border))] border-opacity-40 hover:border-[hsl(var(--border))] border-opacity-60 hover:bg-white/80 dark:hover:bg-white/10'
                           )}
                         >
                           <div className="flex items-center gap-2">
@@ -552,7 +548,7 @@ export function GameLogView({ gameLogId }: IGameLogProps) {
                               'group relative px-4 py-3 rounded-2xl transition-all duration-300 text-base font-medium',
                               'hover:scale-105 hover:shadow-lg hover:shadow-black/10',
                               'backdrop-blur-sm border',
-                              'bg-gradient-to-r from-white/60 to-white/40 dark:from-white/10 dark:to-white/5 border-border/40 hover:border-border/60 hover:bg-white/80 dark:hover:bg-white/10'
+                              'bg-gradient-to-r from-white/60 to-white/40 dark:from-white/10 dark:to-white/5 border-[hsl(var(--border))] border-opacity-40 hover:border-[hsl(var(--border))] border-opacity-60 hover:bg-white/80 dark:hover:bg-white/10'
                             )}
                           >
                             <div className="flex items-center gap-2">

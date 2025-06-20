@@ -1,10 +1,10 @@
-import { and, eq, gt, lt, or, sql, type InferSelectModel } from 'drizzle-orm';
+import { and, eq, gt, lt, or, sql } from 'drizzle-orm';
+import type { InferSelectModel } from 'drizzle-orm';
 
 import * as schema from '@src/lib/db/schema';
 import { BusinessLogicError } from '@src/lib/graphql/errors';
 import { createConnection, handleResolverError } from '@src/lib/graphql/utils';
-import type { IContext } from '@src/lib/types/component.types';
-import type { IPaginationArgs, IPlayerFilters } from '@src/lib/types/resolver.types';
+import type { IContext, IPaginationArgs, IPlayerFilters } from '@src/lib/types';
 
 // Helper function to map player data
 const mapPlayerData = (player: InferSelectModel<typeof schema.nba_players>) => ({
@@ -33,6 +33,10 @@ export const players = async (
   args: IPaginationArgs & { filters?: IPlayerFilters },
   { db }: IContext
 ) => {
+  if (!db) {
+    throw new Error('Database connection not available');
+  }
+
   try {
     const { first = 10, after, last, before, filters } = args;
 
@@ -54,7 +58,9 @@ export const players = async (
       conditions.push(eq(schema.nba_players.pos, filters.position));
     }
     if (filters?.active !== undefined) {
-      conditions.push(eq(schema.nba_players.active, filters.active));
+      if (filters.active !== null) {
+        conditions.push(eq(schema.nba_players.active, filters.active));
+      }
     }
     if (after) {
       conditions.push(gt(schema.nba_players.id, after));
@@ -87,6 +93,10 @@ export const players = async (
 };
 
 export const player = async (_parent: unknown, { id }: { id: string }, { db }: IContext) => {
+  if (!db) {
+    throw new Error('Database connection not available');
+  }
+
   try {
     const player = await db
       .select()
@@ -108,6 +118,10 @@ export const playerStats = async (
   { playerId, gameId }: { playerId: string; gameId: string },
   { db }: IContext
 ) => {
+  if (!db) {
+    throw new Error('Database connection not available');
+  }
+
   try {
     const stats = await db
       .select()

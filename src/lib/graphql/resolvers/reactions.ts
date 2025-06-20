@@ -8,14 +8,17 @@ import {
   handleResolverError,
   getEmojiKey,
 } from '@src/lib/graphql/utils';
-import type { IContext } from '@src/lib/types/component.types';
-import type { IPaginationArgs } from '@src/lib/types/resolver.types';
+import type { IContext, IPaginationArgs } from '@src/lib/types';
 
 export const reactions = async (
   _parent: unknown,
   args: IPaginationArgs & { targetId: string },
   { db }: IContext
 ) => {
+  if (!db) {
+    throw new Error('Database connection not available');
+  }
+
   try {
     const { first = 10, after, last, targetId } = args;
 
@@ -60,7 +63,7 @@ export const reactions = async (
 export const Reaction = {
   emoji: (parent: { emoji: string }) => getEmojiKey(parent.emoji),
   user: async (parent: { userId: string | null }, _args: unknown, { db }: IContext) => {
-    if (!parent.userId) return null;
+    if (!parent.userId || !db) return null;
     try {
       const users = await db
         .select()

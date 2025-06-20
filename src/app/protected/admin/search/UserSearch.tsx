@@ -1,8 +1,7 @@
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
-import type { DbUser } from '@src/lib/types/generated/graphql';
-import type { IUserSearchProps } from '@src/lib/types/user.types';
+import type { DbUser, IUserSearchProps } from '@src/lib/types';
 
 export function UserSearch({ users, onFilteredUsersChange }: IUserSearchProps) {
   const searchParams = useSearchParams();

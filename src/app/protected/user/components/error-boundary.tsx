@@ -1,6 +1,6 @@
 import React from 'react';
 
-import type { IErrorBoundaryProps, IErrorBoundaryState } from '@src/lib/types/misc.types';
+import type { IErrorBoundaryProps, IErrorBoundaryState } from '@src/lib/types';
 
 /**
  * An error boundary component that catches JavaScript errors anywhere in their child component tree,
@@ -20,17 +20,20 @@ export class ErrorBoundary extends React.Component<IErrorBoundaryProps, IErrorBo
     console.error('Error caught by error boundary:', error, errorInfo);
   }
 
-  render() {
+  render(): React.ReactNode {
     if (this.state.hasError) {
+      if (this.props.fallback) {
+        const FallbackComponent = this.props.fallback;
+        return <FallbackComponent error={this.state.error!} />;
+      }
+
       return (
-        this.props.fallback || (
-          <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-            <h2 className="text-lg font-semibold text-red-800">Something went wrong</h2>
-            <p className="mt-2 text-sm text-red-600">
-              {this.state.error?.message || 'An unexpected error occurred'}
-            </p>
-          </div>
-        )
+        <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+          <h2 className="text-lg font-semibold text-red-800">Something went wrong</h2>
+          <p className="mt-2 text-sm text-red-600">
+            {this.state.error?.message || 'An unexpected error occurred'}
+          </p>
+        </div>
       );
     }
 

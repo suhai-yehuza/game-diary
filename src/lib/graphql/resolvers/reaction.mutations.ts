@@ -3,7 +3,7 @@ import { GraphQLError } from 'graphql';
 import type { z } from 'zod';
 
 import { logger } from '@lib/core/logger';
-import { invalidateRelatedCaches } from '@src/lib/cache';
+import { invalidateRelatedCaches, getCache } from '@src/lib/cache';
 import { db } from '@src/lib/db';
 import * as schema from '@src/lib/db/schema';
 import {
@@ -12,11 +12,11 @@ import {
   NotFoundError,
   ValidationError,
 } from '@src/lib/graphql/errors';
-import type { IContext } from '@src/lib/types/component.types';
 import type {
+  IContext,
   MutationCreateReactionArgs,
   MutationDeleteReactionArgs,
-} from '@src/lib/types/generated/graphql';
+} from '@src/lib/types';
 import { createReactionSchema } from '@src/lib/validations/reaction';
 
 import { ensureUserExists } from './utils';
@@ -127,8 +127,10 @@ export const createReaction = async (
 
     // Invalidate related caches
     if (context.redis) {
+      const cache = getCache();
+      await cache.initializeRedis();
       await invalidateRelatedCaches(
-        context.redis,
+        cache,
         validatedInput.targetType === 'game_log' ? 'game_log' : 'user',
         validatedInput.targetId
       );
@@ -165,8 +167,10 @@ export const deleteReaction = async (
 
     // Invalidate related caches
     if (context.redis) {
+      const cache = getCache();
+      await cache.initializeRedis();
       await invalidateRelatedCaches(
-        context.redis,
+        cache,
         reaction.targetType === 'game_log' ? 'game_log' : 'user',
         reaction.targetId
       );

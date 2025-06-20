@@ -1,4 +1,4 @@
-import type { IDateFields } from '@src/lib/types/misc.types';
+import type { IDateFields, ISeasonOption, ISeasonRange } from '@src/lib/types';
 
 /**
  * Gets the current NBA season year.
@@ -17,6 +17,50 @@ export function getCurrentSeason(): number {
   }
 
   return year;
+}
+
+/**
+ * Gets the season range from current year back to a specified number of years
+ */
+export function getSeasonRange(years: number): ISeasonRange {
+  const current = getCurrentSeason();
+  return {
+    start: current - years + 1,
+    end: current,
+    current,
+  };
+}
+
+/**
+ * Creates an array of season options for selection
+ */
+export function createSeasonOptions(range: ISeasonRange): ISeasonOption[] {
+  return Array.from({ length: range.end - range.start + 1 }, (_, i) => {
+    const year = range.end - i;
+    return {
+      value: year,
+      label: `${year}-${(year + 1).toString().slice(-2)}`,
+      isCurrent: year === range.current,
+    };
+  });
+}
+
+/**
+ * Validates if a given year is a valid NBA season
+ */
+export function isValidSeason(year: number): boolean {
+  const currentYear = new Date().getFullYear();
+  return year >= 1946 && year <= currentYear; // NBA started in 1946
+}
+
+/**
+ * Gets the season start and end dates for a given year
+ */
+export function getSeasonDates(year: number): { start: Date; end: Date } {
+  return {
+    start: new Date(year, 9, 1), // October 1st
+    end: new Date(year + 1, 5, 30), // June 30th
+  };
 }
 
 export function getDateFields(item: IDateFields) {

@@ -12,7 +12,10 @@ async function main() {
     const result = await db.execute(sql`
       SELECT COUNT(*) as count FROM ${sql.identifier(tableName)};
     `);
-    seedLogger.info(`Record count in ${tableName}:`, result.rows[0].count);
+    seedLogger.info(
+      `Record count in ${tableName}:`,
+      (result as unknown as { rows: Array<{ count: number }> }).rows[0].count
+    );
   } catch (error) {
     seedLogger.error('Error:', error);
     process.exit(1);

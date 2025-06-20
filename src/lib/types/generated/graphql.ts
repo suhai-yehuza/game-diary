@@ -1,12 +1,16 @@
-/* eslint-disable */
-import { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/core';
-export type Maybe<T> = T | null;
-export type InputMaybe<T> = Maybe<T>;
+import type { IAnyScalar } from '@/lib/types/scalars';
+import type { IDateTimeScalar } from '@/lib/types/scalars';
+import type { GraphQLResolveInfo, GraphQLScalarType, GraphQLScalarTypeConfig } from 'graphql';
+import type { IDBPlayer, IActivity, IAppNotification, IContext } from '@/lib/types';
+export type Maybe<T> = T | null | undefined;
+export type InputMaybe<T> = T | null | undefined;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
 export type MakeOptional<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]?: Maybe<T[SubKey]> };
 export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]: Maybe<T[SubKey]> };
 export type MakeEmpty<T extends { [key: string]: unknown }, K extends keyof T> = { [_ in K]?: never };
 export type Incremental<T> = T | { [P in keyof T]?: P extends ' $fragmentName' | '__typename' ? T[P] : never };
+export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
+export type RequireFields<T, K extends keyof T> = Omit<T, K> & { [P in K]-?: NonNullable<T[P]> };
 /** All built-in and custom scalars, mapped to their actual values */
 export type Scalars = {
   ID: { input: string; output: string; }
@@ -14,54 +18,47 @@ export type Scalars = {
   Boolean: { input: boolean; output: boolean; }
   Int: { input: number; output: number; }
   Float: { input: number; output: number; }
-  Any: { input: any; output: any; }
-  DateTime: { input: any; output: any; }
+  Any: { input: IAnyScalar; output: IAnyScalar; }
+  DateTime: { input: IDateTimeScalar; output: IDateTimeScalar; }
 };
 
 export type AcceptFriendRequestResponse = {
-  __typename?: 'AcceptFriendRequestResponse';
-  errors?: Maybe<Array<ErrorResult>>;
-  friendship?: Maybe<Friendship>;
+  errors: Maybe<Array<ErrorResult>>;
+  friendship: Maybe<Friendship>;
 };
 
 export type Arena = {
-  __typename?: 'Arena';
-  city?: Maybe<Scalars['String']['output']>;
-  country?: Maybe<Scalars['String']['output']>;
+  city: Maybe<Scalars['String']['output']>;
+  country: Maybe<Scalars['String']['output']>;
   name: Scalars['String']['output'];
-  state?: Maybe<Scalars['String']['output']>;
+  state: Maybe<Scalars['String']['output']>;
 };
 
 export type AuthenticationError = {
-  __typename?: 'AuthenticationError';
   message: Scalars['String']['output'];
 };
 
 export type AuthorizationError = {
-  __typename?: 'AuthorizationError';
   message: Scalars['String']['output'];
-  requiredRole?: Maybe<Scalars['String']['output']>;
+  requiredRole: Maybe<Scalars['String']['output']>;
 };
 
 export type BusinessLogicError = {
-  __typename?: 'BusinessLogicError';
   code: Scalars['String']['output'];
-  details?: Maybe<Scalars['String']['output']>;
+  details: Maybe<Scalars['String']['output']>;
   message: Scalars['String']['output'];
 };
 
-export enum Classification {
-  Private = 'Private',
-  Protected = 'Protected',
-  Public = 'Public'
-}
+export type Classification =
+  | 'Private'
+  | 'Protected'
+  | 'Public';
 
 export type Comment = {
-  __typename?: 'Comment';
   childComments: CommentConnection;
   content: Scalars['String']['output'];
   createdAt: Scalars['DateTime']['output'];
-  deletedAt?: Maybe<Scalars['DateTime']['output']>;
+  deletedAt: Maybe<Scalars['DateTime']['output']>;
   depth: Scalars['Int']['output'];
   id: Scalars['ID']['output'];
   parentId: Scalars['ID']['output'];
@@ -73,14 +70,12 @@ export type Comment = {
 };
 
 export type CommentConnection = {
-  __typename?: 'CommentConnection';
   edges: Array<CommentEdge>;
   pageInfo: PageInfo;
   totalCount: Scalars['Int']['output'];
 };
 
 export type CommentEdge = {
-  __typename?: 'CommentEdge';
   cursor: Scalars['String']['output'];
   node: Comment;
 };
@@ -93,7 +88,6 @@ export type CommentFilters = {
 };
 
 export type ConferenceStanding = {
-  __typename?: 'ConferenceStanding';
   loss: Scalars['Int']['output'];
   name: Scalars['String']['output'];
   win: Scalars['Int']['output'];
@@ -106,9 +100,8 @@ export type CreateCommentInput = {
 };
 
 export type CreateCommentResponse = {
-  __typename?: 'CreateCommentResponse';
-  comment?: Maybe<Comment>;
-  errors?: Maybe<Array<ErrorResult>>;
+  comment: Maybe<Comment>;
+  errors: Maybe<Array<ErrorResult>>;
 };
 
 export type CreateGameInput = {
@@ -135,15 +128,13 @@ export type CreateGameLogInput = {
 };
 
 export type CreateGameLogResponse = {
-  __typename?: 'CreateGameLogResponse';
-  errors?: Maybe<Array<ErrorResult>>;
-  gameLog?: Maybe<GameLog>;
+  errors: Maybe<Array<ErrorResult>>;
+  gameLog: Maybe<GameLog>;
 };
 
 export type CreateGameResponse = {
-  __typename?: 'CreateGameResponse';
-  errors?: Maybe<Array<ErrorResult>>;
-  game?: Maybe<Game>;
+  errors: Maybe<Array<ErrorResult>>;
+  game: Maybe<Game>;
 };
 
 export type CreateReactionInput = {
@@ -153,34 +144,32 @@ export type CreateReactionInput = {
 };
 
 export type CreateReactionResponse = {
-  __typename?: 'CreateReactionResponse';
-  errors?: Maybe<Array<ErrorResult>>;
-  reaction?: Maybe<Reaction>;
+  errors: Maybe<Array<ErrorResult>>;
+  reaction: Maybe<Reaction>;
 };
 
 export type DbUser = {
-  __typename?: 'DBUser';
-  banned?: Maybe<Scalars['Boolean']['output']>;
+  banned: Maybe<Scalars['Boolean']['output']>;
   comments: Array<Comment>;
   createdAt: Scalars['DateTime']['output'];
-  deletedAt?: Maybe<Scalars['DateTime']['output']>;
-  emailAddress?: Maybe<Scalars['String']['output']>;
-  email_verification_strategy?: Maybe<Scalars['String']['output']>;
-  email_verified?: Maybe<Scalars['Boolean']['output']>;
-  external_id?: Maybe<Scalars['String']['output']>;
-  firstName?: Maybe<Scalars['String']['output']>;
+  deletedAt: Maybe<Scalars['DateTime']['output']>;
+  emailAddress: Maybe<Scalars['String']['output']>;
+  email_verification_strategy: Maybe<Scalars['String']['output']>;
+  email_verified: Maybe<Scalars['Boolean']['output']>;
+  external_id: Maybe<Scalars['String']['output']>;
+  firstName: Maybe<Scalars['String']['output']>;
   friendships: Array<Friendship>;
   gameLogs: Array<GameLog>;
   id: Scalars['ID']['output'];
-  imageUrl?: Maybe<Scalars['String']['output']>;
-  inboundFriendshipIds?: Maybe<Array<Scalars['String']['output']>>;
+  imageUrl: Maybe<Scalars['String']['output']>;
+  inboundFriendshipIds: Maybe<Array<Scalars['String']['output']>>;
   initiatedFriendships: Array<Friendship>;
-  lastName?: Maybe<Scalars['String']['output']>;
-  last_sign_in_at?: Maybe<Scalars['DateTime']['output']>;
-  outboundFriendshipIds?: Maybe<Array<Scalars['String']['output']>>;
-  password_enabled?: Maybe<Scalars['Boolean']['output']>;
+  lastName: Maybe<Scalars['String']['output']>;
+  last_sign_in_at: Maybe<Scalars['DateTime']['output']>;
+  outboundFriendshipIds: Maybe<Array<Scalars['String']['output']>>;
+  password_enabled: Maybe<Scalars['Boolean']['output']>;
   reactions: Array<Reaction>;
-  two_factor_enabled?: Maybe<Scalars['Boolean']['output']>;
+  two_factor_enabled: Maybe<Scalars['Boolean']['output']>;
   updatedAt: Scalars['DateTime']['output'];
   username: Scalars['String']['output'];
 };
@@ -191,32 +180,27 @@ export type DateRangeInput = {
 };
 
 export type DeleteCommentResponse = {
-  __typename?: 'DeleteCommentResponse';
-  errors?: Maybe<Array<ErrorResult>>;
+  errors: Maybe<Array<ErrorResult>>;
   success: Scalars['Boolean']['output'];
 };
 
 export type DeleteGameLogResponse = {
-  __typename?: 'DeleteGameLogResponse';
-  errors?: Maybe<Array<ErrorResult>>;
+  errors: Maybe<Array<ErrorResult>>;
   success: Scalars['Boolean']['output'];
 };
 
 export type DeleteReactionResponse = {
-  __typename?: 'DeleteReactionResponse';
-  errors?: Maybe<Array<ErrorResult>>;
+  errors: Maybe<Array<ErrorResult>>;
   success: Scalars['Boolean']['output'];
 };
 
 export type ErrorResult = {
-  __typename?: 'ErrorResult';
-  code?: Maybe<Scalars['String']['output']>;
-  field?: Maybe<Scalars['String']['output']>;
+  code: Maybe<Scalars['String']['output']>;
+  field: Maybe<Scalars['String']['output']>;
   message: Scalars['String']['output'];
 };
 
 export type Friendship = {
-  __typename?: 'Friendship';
   createdAt: Scalars['DateTime']['output'];
   id: Scalars['ID']['output'];
   initiator: UserSummary;
@@ -225,56 +209,51 @@ export type Friendship = {
   updatedAt: Scalars['DateTime']['output'];
 };
 
-export enum FriendshipStatus {
-  Accepted = 'Accepted',
-  Blocked = 'Blocked',
-  Pending = 'Pending',
-  Rejected = 'Rejected'
-}
+export type FriendshipStatus =
+  | 'Accepted'
+  | 'Blocked'
+  | 'Pending'
+  | 'Rejected';
 
 export type Game = {
-  __typename?: 'Game';
-  arena?: Maybe<Arena>;
+  arena: Maybe<Arena>;
   awayTeamId: Scalars['String']['output'];
-  awayTeamScore?: Maybe<Scalars['Int']['output']>;
+  awayTeamScore: Maybe<Scalars['Int']['output']>;
   createdAt: Scalars['DateTime']['output'];
   date: GameDate;
   gameType: Scalars['String']['output'];
   homeTeamId: Scalars['String']['output'];
-  homeTeamScore?: Maybe<Scalars['Int']['output']>;
+  homeTeamScore: Maybe<Scalars['Int']['output']>;
   id: Scalars['ID']['output'];
   isCompleted: Scalars['Boolean']['output'];
-  leadChanges?: Maybe<Scalars['Int']['output']>;
-  league?: Maybe<Scalars['String']['output']>;
-  nbaGameId?: Maybe<Scalars['ID']['output']>;
-  nugget?: Maybe<Scalars['String']['output']>;
+  leadChanges: Maybe<Scalars['Int']['output']>;
+  league: Maybe<Scalars['String']['output']>;
+  nbaGameId: Maybe<Scalars['ID']['output']>;
+  nugget: Maybe<Scalars['String']['output']>;
   officials: Array<Scalars['String']['output']>;
   periods: GamePeriods;
   scores: GameScores;
-  season?: Maybe<Scalars['Int']['output']>;
-  stage?: Maybe<Scalars['Int']['output']>;
+  season: Maybe<Scalars['Int']['output']>;
+  stage: Maybe<Scalars['Int']['output']>;
   status: GameStatus;
   teams: GameTeams;
-  timesTied?: Maybe<Scalars['Int']['output']>;
+  timesTied: Maybe<Scalars['Int']['output']>;
   updatedAt: Scalars['DateTime']['output'];
 };
 
 export type GameConnection = {
-  __typename?: 'GameConnection';
   edges: Array<GameEdge>;
   pageInfo: PageInfo;
   totalCount: Scalars['Int']['output'];
 };
 
 export type GameDate = {
-  __typename?: 'GameDate';
-  duration?: Maybe<Scalars['Int']['output']>;
-  end?: Maybe<Scalars['DateTime']['output']>;
+  duration: Maybe<Scalars['Int']['output']>;
+  end: Maybe<Scalars['DateTime']['output']>;
   start: Scalars['DateTime']['output'];
 };
 
 export type GameEdge = {
-  __typename?: 'GameEdge';
   cursor: Scalars['String']['output'];
   node: Game;
 };
@@ -289,34 +268,31 @@ export type GameFilters = {
 };
 
 export type GameLog = {
-  __typename?: 'GameLog';
   classification: Classification;
   comments: CommentConnection;
   createdAt: Scalars['DateTime']['output'];
-  deletedAt?: Maybe<Scalars['DateTime']['output']>;
+  deletedAt: Maybe<Scalars['DateTime']['output']>;
   game: Game;
   id: Scalars['ID']['output'];
-  notes?: Maybe<Scalars['String']['output']>;
+  notes: Maybe<Scalars['String']['output']>;
   ratingForGame: Scalars['Int']['output'];
   reactions: Array<Reaction>;
-  tags?: Maybe<Array<Scalars['String']['output']>>;
+  tags: Maybe<Array<Scalars['String']['output']>>;
   updatedAt: Scalars['DateTime']['output'];
   user: UserSummary;
-  watchedDate?: Maybe<Scalars['DateTime']['output']>;
-  watchedLocation?: Maybe<Scalars['String']['output']>;
-  watchedScope?: Maybe<Scalars['String']['output']>;
-  watchedSetting?: Maybe<Scalars['String']['output']>;
+  watchedDate: Maybe<Scalars['DateTime']['output']>;
+  watchedLocation: Maybe<Scalars['String']['output']>;
+  watchedScope: Maybe<Scalars['String']['output']>;
+  watchedSetting: Maybe<Scalars['String']['output']>;
 };
 
 export type GameLogConnection = {
-  __typename?: 'GameLogConnection';
   edges: Array<GameLogEdge>;
   pageInfo: PageInfo;
   totalCount: Scalars['Int']['output'];
 };
 
 export type GameLogEdge = {
-  __typename?: 'GameLogEdge';
   cursor: Scalars['String']['output'];
   node: GameLog;
 };
@@ -340,35 +316,30 @@ export type GameLogFilters = {
 };
 
 export type GamePeriods = {
-  __typename?: 'GamePeriods';
   current: Scalars['Int']['output'];
   endOfPeriod: Scalars['Boolean']['output'];
   total: Scalars['Int']['output'];
 };
 
 export type GameScores = {
-  __typename?: 'GameScores';
   home: TeamScore;
   visitors: TeamScore;
 };
 
 export type GameStatus = {
-  __typename?: 'GameStatus';
-  clock?: Maybe<Scalars['String']['output']>;
+  clock: Maybe<Scalars['String']['output']>;
   halftime: Scalars['Boolean']['output'];
   long: Scalars['String']['output'];
   short: Scalars['String']['output'];
 };
 
-export enum GameStatusEnum {
-  Cancelled = 'Cancelled',
-  Finished = 'Finished',
-  Live = 'Live',
-  Scheduled = 'Scheduled'
-}
+export type GameStatusEnum =
+  | 'Cancelled'
+  | 'Finished'
+  | 'Live'
+  | 'Scheduled';
 
 export type GameTeams = {
-  __typename?: 'GameTeams';
   home: TeamSummary;
   visitors: TeamSummary;
 };
@@ -385,39 +356,36 @@ export type IPlayerFilters = {
 };
 
 export type IPlayerStats = {
-  __typename?: 'IPlayerStats';
-  assists?: Maybe<Scalars['Int']['output']>;
-  blocks?: Maybe<Scalars['Int']['output']>;
+  assists: Maybe<Scalars['Int']['output']>;
+  blocks: Maybe<Scalars['Int']['output']>;
   createdAt: Scalars['DateTime']['output'];
-  deletedAt?: Maybe<Scalars['DateTime']['output']>;
-  fieldGoalsAttempted?: Maybe<Scalars['Int']['output']>;
-  fieldGoalsMade?: Maybe<Scalars['Int']['output']>;
-  fouls?: Maybe<Scalars['Int']['output']>;
-  freeThrowsAttempted?: Maybe<Scalars['Int']['output']>;
-  freeThrowsMade?: Maybe<Scalars['Int']['output']>;
+  deletedAt: Maybe<Scalars['DateTime']['output']>;
+  fieldGoalsAttempted: Maybe<Scalars['Int']['output']>;
+  fieldGoalsMade: Maybe<Scalars['Int']['output']>;
+  fouls: Maybe<Scalars['Int']['output']>;
+  freeThrowsAttempted: Maybe<Scalars['Int']['output']>;
+  freeThrowsMade: Maybe<Scalars['Int']['output']>;
   gameId: Scalars['ID']['output'];
   id: Scalars['ID']['output'];
-  minutes?: Maybe<Scalars['String']['output']>;
+  minutes: Maybe<Scalars['String']['output']>;
   playerId: Scalars['ID']['output'];
-  points?: Maybe<Scalars['Int']['output']>;
-  rebounds?: Maybe<Scalars['Int']['output']>;
-  steals?: Maybe<Scalars['Int']['output']>;
+  points: Maybe<Scalars['Int']['output']>;
+  rebounds: Maybe<Scalars['Int']['output']>;
+  steals: Maybe<Scalars['Int']['output']>;
   teamId: Scalars['ID']['output'];
-  threePointersAttempted?: Maybe<Scalars['Int']['output']>;
-  threePointersMade?: Maybe<Scalars['Int']['output']>;
-  turnovers?: Maybe<Scalars['Int']['output']>;
+  threePointersAttempted: Maybe<Scalars['Int']['output']>;
+  threePointersMade: Maybe<Scalars['Int']['output']>;
+  turnovers: Maybe<Scalars['Int']['output']>;
   updatedAt: Scalars['DateTime']['output'];
 };
 
 export type ITeamH2H = {
-  __typename?: 'ITeamH2H';
-  lastTenGames?: Maybe<Scalars['String']['output']>;
+  lastTenGames: Maybe<Scalars['String']['output']>;
   losses: Scalars['Int']['output'];
   wins: Scalars['Int']['output'];
 };
 
 export type ITeamStats = {
-  __typename?: 'ITeamStats';
   assists: Scalars['Int']['output'];
   assistsPerGame: Scalars['Float']['output'];
   biggestLead: Scalars['Int']['output'];
@@ -445,7 +413,6 @@ export type ITeamStats = {
 };
 
 export type Mutation = {
-  __typename?: 'Mutation';
   acceptFriendRequest: AcceptFriendRequestResponse;
   createComment: CreateCommentResponse;
   createGame: CreateGameResponse;
@@ -529,11 +496,10 @@ export type MutationUpdateGameLogArgs = {
 };
 
 export type PageInfo = {
-  __typename?: 'PageInfo';
-  endCursor?: Maybe<Scalars['String']['output']>;
+  endCursor: Maybe<Scalars['String']['output']>;
   hasNextPage: Scalars['Boolean']['output'];
   hasPreviousPage: Scalars['Boolean']['output'];
-  startCursor?: Maybe<Scalars['String']['output']>;
+  startCursor: Maybe<Scalars['String']['output']>;
 };
 
 export type PaginationInput = {
@@ -543,110 +509,98 @@ export type PaginationInput = {
   last?: InputMaybe<Scalars['Int']['input']>;
 };
 
-export enum ParentType {
-  Comment = 'comment',
-  GameLog = 'game_log'
-}
+export type ParentType =
+  | 'comment'
+  | 'game_log';
 
 export type Player = {
-  __typename?: 'Player';
-  active?: Maybe<Scalars['Boolean']['output']>;
-  affiliation?: Maybe<Scalars['String']['output']>;
-  birth?: Maybe<PlayerBirth>;
-  college?: Maybe<Scalars['String']['output']>;
-  firstName?: Maybe<Scalars['String']['output']>;
-  height?: Maybe<PlayerHeight>;
+  active: Maybe<Scalars['Boolean']['output']>;
+  affiliation: Maybe<Scalars['String']['output']>;
+  birth: Maybe<PlayerBirth>;
+  college: Maybe<Scalars['String']['output']>;
+  firstName: Maybe<Scalars['String']['output']>;
+  height: Maybe<PlayerHeight>;
   id: Scalars['ID']['output'];
-  lastName?: Maybe<Scalars['String']['output']>;
-  leagues?: Maybe<PlayerLeagues>;
-  nba?: Maybe<PlayerNba>;
-  seasons_active?: Maybe<Array<PlayerSeason>>;
-  weight?: Maybe<PlayerWeight>;
+  lastName: Maybe<Scalars['String']['output']>;
+  leagues: Maybe<PlayerLeagues>;
+  nba: Maybe<PlayerNba>;
+  seasons_active: Maybe<Array<PlayerSeason>>;
+  weight: Maybe<PlayerWeight>;
 };
 
 export type PlayerBirth = {
-  __typename?: 'PlayerBirth';
-  country?: Maybe<Scalars['String']['output']>;
-  date?: Maybe<Scalars['String']['output']>;
+  country: Maybe<Scalars['String']['output']>;
+  date: Maybe<Scalars['String']['output']>;
 };
 
 export type PlayerConnection = {
-  __typename?: 'PlayerConnection';
   edges: Array<PlayerEdge>;
   hasMore: Scalars['Boolean']['output'];
   totalCount: Scalars['Int']['output'];
 };
 
 export type PlayerEdge = {
-  __typename?: 'PlayerEdge';
   cursor: Scalars['String']['output'];
   node: Player;
 };
 
 export type PlayerHeight = {
-  __typename?: 'PlayerHeight';
-  feets?: Maybe<Scalars['String']['output']>;
-  inches?: Maybe<Scalars['String']['output']>;
-  meters?: Maybe<Scalars['String']['output']>;
+  feets: Maybe<Scalars['String']['output']>;
+  inches: Maybe<Scalars['String']['output']>;
+  meters: Maybe<Scalars['String']['output']>;
 };
 
 export type PlayerLeagues = {
-  __typename?: 'PlayerLeagues';
-  standard?: Maybe<PlayerStandard>;
+  standard: Maybe<PlayerStandard>;
 };
 
 export type PlayerNba = {
-  __typename?: 'PlayerNba';
-  pro?: Maybe<Scalars['Int']['output']>;
-  start?: Maybe<Scalars['Int']['output']>;
+  pro: Maybe<Scalars['Int']['output']>;
+  start: Maybe<Scalars['Int']['output']>;
 };
 
 export type PlayerSeason = {
-  __typename?: 'PlayerSeason';
-  season?: Maybe<Scalars['String']['output']>;
-  teams?: Maybe<Array<Scalars['String']['output']>>;
+  season: Maybe<Scalars['String']['output']>;
+  teams: Maybe<Array<Scalars['String']['output']>>;
 };
 
 export type PlayerStandard = {
-  __typename?: 'PlayerStandard';
-  active?: Maybe<Scalars['Boolean']['output']>;
-  jersey?: Maybe<Scalars['String']['output']>;
-  pos?: Maybe<Scalars['String']['output']>;
+  active: Maybe<Scalars['Boolean']['output']>;
+  jersey: Maybe<Scalars['String']['output']>;
+  pos: Maybe<Scalars['String']['output']>;
 };
 
 export type PlayerWeight = {
-  __typename?: 'PlayerWeight';
-  kilograms?: Maybe<Scalars['String']['output']>;
-  pounds?: Maybe<Scalars['String']['output']>;
+  kilograms: Maybe<Scalars['String']['output']>;
+  pounds: Maybe<Scalars['String']['output']>;
 };
 
 export type Query = {
-  __typename?: 'Query';
   comments: CommentConnection;
-  game?: Maybe<Game>;
-  gameLog?: Maybe<GameLog>;
+  game: Maybe<Game>;
+  gameLog: Maybe<GameLog>;
   gameLogs: GameLogConnection;
   games: GameConnection;
   liveGames: GameConnection;
-  me?: Maybe<UserSummary>;
-  player?: Maybe<Player>;
-  playerStats?: Maybe<IPlayerStats>;
+  me: Maybe<UserSummary>;
+  player: Maybe<Player>;
+  playerStats: Maybe<IPlayerStats>;
   players: PlayerConnection;
   reactions: Array<Reaction>;
   searchUsers: UserConnection;
-  team?: Maybe<Team>;
-  teamGameStats?: Maybe<ITeamStats>;
-  teamH2H?: Maybe<ITeamH2H>;
-  teamStats?: Maybe<ITeamStats>;
+  team: Maybe<Team>;
+  teamGameStats: Maybe<ITeamStats>;
+  teamH2H: Maybe<ITeamH2H>;
+  teamStats: Maybe<ITeamStats>;
   teams: TeamConnection;
-  user?: Maybe<UserSummary>;
+  user: Maybe<UserSummary>;
   users: Array<UserSummary>;
 };
 
 
 export type QueryCommentsArgs = {
-  filters?: InputMaybe<CommentFilters>;
-  pagination?: InputMaybe<PaginationInput>;
+  filters: InputMaybe<CommentFilters>;
+  pagination: InputMaybe<PaginationInput>;
 };
 
 
@@ -661,20 +615,20 @@ export type QueryGameLogArgs = {
 
 
 export type QueryGameLogsArgs = {
-  filters?: InputMaybe<GameLogFilters>;
-  pagination?: InputMaybe<PaginationInput>;
+  filters: InputMaybe<GameLogFilters>;
+  pagination: InputMaybe<PaginationInput>;
 };
 
 
 export type QueryGamesArgs = {
-  filters?: InputMaybe<GameFilters>;
-  pagination?: InputMaybe<PaginationInput>;
+  filters: InputMaybe<GameFilters>;
+  pagination: InputMaybe<PaginationInput>;
 };
 
 
 export type QueryLiveGamesArgs = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  first?: InputMaybe<Scalars['Int']['input']>;
+  after: InputMaybe<Scalars['String']['input']>;
+  first: InputMaybe<Scalars['Int']['input']>;
 };
 
 
@@ -690,8 +644,8 @@ export type QueryPlayerStatsArgs = {
 
 
 export type QueryPlayersArgs = {
-  filters?: InputMaybe<IPlayerFilters>;
-  pagination?: InputMaybe<PaginationInput>;
+  filters: InputMaybe<IPlayerFilters>;
+  pagination: InputMaybe<PaginationInput>;
 };
 
 
@@ -702,10 +656,10 @@ export type QueryReactionsArgs = {
 
 
 export type QuerySearchUsersArgs = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  filters?: InputMaybe<UserSearchFilters>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  searchTerm?: InputMaybe<Scalars['String']['input']>;
+  after: InputMaybe<Scalars['String']['input']>;
+  filters: InputMaybe<UserSearchFilters>;
+  first: InputMaybe<Scalars['Int']['input']>;
+  searchTerm: InputMaybe<Scalars['String']['input']>;
 };
 
 
@@ -733,7 +687,7 @@ export type QueryTeamStatsArgs = {
 
 
 export type QueryTeamsArgs = {
-  filters?: InputMaybe<TeamFilters>;
+  filters: InputMaybe<TeamFilters>;
 };
 
 
@@ -743,12 +697,11 @@ export type QueryUserArgs = {
 
 
 export type QueryUsersArgs = {
-  filters?: InputMaybe<UserFilters>;
-  pagination?: InputMaybe<PaginationInput>;
+  filters: InputMaybe<UserFilters>;
+  pagination: InputMaybe<PaginationInput>;
 };
 
 export type Reaction = {
-  __typename?: 'Reaction';
   createdAt: Scalars['DateTime']['output'];
   emoji: ReactionEmojiType;
   id: Scalars['ID']['output'];
@@ -759,81 +712,73 @@ export type Reaction = {
   userId: Scalars['ID']['output'];
 };
 
-export enum ReactionEmojiType {
-  Angry = 'ANGRY',
-  Baseball = 'BASEBALL',
-  Basketball = 'BASKETBALL',
-  Bullseye = 'BULLSEYE',
-  Clap = 'CLAP',
-  Eyes = 'EYES',
-  Fire = 'FIRE',
-  Football = 'FOOTBALL',
-  Goat = 'GOAT',
-  Golf = 'GOLF',
-  Laugh = 'LAUGH',
-  Love = 'LOVE',
-  Muscle = 'MUSCLE',
-  Rocket = 'ROCKET',
-  Sad = 'SAD',
-  Soccer = 'SOCCER',
-  Tennis = 'TENNIS',
-  ThumbsDown = 'THUMBS_DOWN',
-  ThumbsUp = 'THUMBS_UP',
-  Wow = 'WOW'
-}
+export type ReactionEmojiType =
+  | 'ANGRY'
+  | 'BASEBALL'
+  | 'BASKETBALL'
+  | 'BULLSEYE'
+  | 'CLAP'
+  | 'EYES'
+  | 'FIRE'
+  | 'FOOTBALL'
+  | 'GOAT'
+  | 'GOLF'
+  | 'LAUGH'
+  | 'LOVE'
+  | 'MUSCLE'
+  | 'ROCKET'
+  | 'SAD'
+  | 'SOCCER'
+  | 'TENNIS'
+  | 'THUMBS_DOWN'
+  | 'THUMBS_UP'
+  | 'WOW';
 
 export type RejectFriendRequestResponse = {
-  __typename?: 'RejectFriendRequestResponse';
-  errors?: Maybe<Array<ErrorResult>>;
-  friendship?: Maybe<Friendship>;
+  errors: Maybe<Array<ErrorResult>>;
+  friendship: Maybe<Friendship>;
 };
 
 export type RemoveFriendResponse = {
-  __typename?: 'RemoveFriendResponse';
-  errors?: Maybe<Array<ErrorResult>>;
+  errors: Maybe<Array<ErrorResult>>;
   success: Scalars['Boolean']['output'];
 };
 
 export type SendFriendRequestResponse = {
-  __typename?: 'SendFriendRequestResponse';
-  errors?: Maybe<Array<ErrorResult>>;
-  friendship?: Maybe<Friendship>;
+  errors: Maybe<Array<ErrorResult>>;
+  friendship: Maybe<Friendship>;
 };
 
 export type SeriesScore = {
-  __typename?: 'SeriesScore';
   loss: Scalars['Int']['output'];
   win: Scalars['Int']['output'];
 };
 
 export type Team = {
-  __typename?: 'Team';
-  city?: Maybe<Scalars['String']['output']>;
+  city: Maybe<Scalars['String']['output']>;
   code: Scalars['String']['output'];
-  conference?: Maybe<Scalars['String']['output']>;
-  country?: Maybe<Scalars['String']['output']>;
-  division?: Maybe<Scalars['String']['output']>;
-  h2h?: Maybe<ITeamH2H>;
+  conference: Maybe<Scalars['String']['output']>;
+  country: Maybe<Scalars['String']['output']>;
+  division: Maybe<Scalars['String']['output']>;
+  h2h: Maybe<ITeamH2H>;
   id: Scalars['ID']['output'];
-  league?: Maybe<Scalars['String']['output']>;
-  logo?: Maybe<Scalars['String']['output']>;
+  league: Maybe<Scalars['String']['output']>;
+  logo: Maybe<Scalars['String']['output']>;
   name: Scalars['String']['output'];
   nickname: Scalars['String']['output'];
-  season?: Maybe<Scalars['Int']['output']>;
-  standings?: Maybe<Array<ConferenceStanding>>;
-  state?: Maybe<Scalars['String']['output']>;
-  stats?: Maybe<ITeamStats>;
+  season: Maybe<Scalars['Int']['output']>;
+  standings: Maybe<Array<ConferenceStanding>>;
+  state: Maybe<Scalars['String']['output']>;
+  stats: Maybe<ITeamStats>;
 };
 
 export type TeamConnection = {
-  __typename?: 'TeamConnection';
   edges: Array<TeamEdge>;
   pageInfo: PageInfo;
   totalCount: Scalars['Int']['output'];
 };
 
 export type TeamEdge = {
-  __typename?: 'TeamEdge';
   cursor: Scalars['String']['output'];
   node: Team;
 };
@@ -848,7 +793,6 @@ export type TeamFilters = {
 };
 
 export type TeamScore = {
-  __typename?: 'TeamScore';
   linescore: Array<Scalars['Int']['output']>;
   loss: Scalars['Int']['output'];
   points: Scalars['Int']['output'];
@@ -857,10 +801,9 @@ export type TeamScore = {
 };
 
 export type TeamSummary = {
-  __typename?: 'TeamSummary';
   code: Scalars['String']['output'];
   id: Scalars['String']['output'];
-  logo?: Maybe<Scalars['String']['output']>;
+  logo: Maybe<Scalars['String']['output']>;
   name: Scalars['String']['output'];
   nickname: Scalars['String']['output'];
 };
@@ -871,9 +814,8 @@ export type UpdateCommentInput = {
 };
 
 export type UpdateCommentResponse = {
-  __typename?: 'UpdateCommentResponse';
-  comment?: Maybe<Comment>;
-  errors?: Maybe<Array<ErrorResult>>;
+  comment: Maybe<Comment>;
+  errors: Maybe<Array<ErrorResult>>;
 };
 
 export type UpdateGameLogInput = {
@@ -889,26 +831,22 @@ export type UpdateGameLogInput = {
 };
 
 export type UpdateGameLogResponse = {
-  __typename?: 'UpdateGameLogResponse';
-  errors?: Maybe<Array<ErrorResult>>;
-  gameLog?: Maybe<GameLog>;
+  errors: Maybe<Array<ErrorResult>>;
+  gameLog: Maybe<GameLog>;
 };
 
 export type UpdateUserProfileResponse = {
-  __typename?: 'UpdateUserProfileResponse';
-  errors?: Maybe<Array<ErrorResult>>;
-  user?: Maybe<UserSummary>;
+  errors: Maybe<Array<ErrorResult>>;
+  user: Maybe<UserSummary>;
 };
 
 export type UserConnection = {
-  __typename?: 'UserConnection';
   edges: Array<UserEdge>;
   pageInfo: PageInfo;
   totalCount: Scalars['Int']['output'];
 };
 
 export type UserEdge = {
-  __typename?: 'UserEdge';
   cursor: Scalars['String']['output'];
   node: UserSummary;
 };
@@ -938,11 +876,10 @@ export type UserSearchFilters = {
 };
 
 export type UserSummary = {
-  __typename?: 'UserSummary';
-  emailAddress?: Maybe<Scalars['String']['output']>;
+  emailAddress: Maybe<Scalars['String']['output']>;
   firstName: Scalars['String']['output'];
   id: Scalars['ID']['output'];
-  imageUrl?: Maybe<Scalars['String']['output']>;
+  imageUrl: Maybe<Scalars['String']['output']>;
   lastName: Scalars['String']['output'];
   username: Scalars['String']['output'];
 };
@@ -952,14 +889,14 @@ export type CreateGameMutationVariables = Exact<{
 }>;
 
 
-export type CreateGameMutation = { __typename?: 'Mutation', createGame: { __typename?: 'CreateGameResponse', game?: { __typename?: 'Game', id: string, league?: string | null, season?: number | null, officials: Array<string>, timesTied?: number | null, leadChanges?: number | null, nugget?: string | null, createdAt: any, updatedAt: any, date: { __typename?: 'GameDate', start: any, end?: any | null, duration?: number | null }, status: { __typename?: 'GameStatus', clock?: string | null, halftime: boolean, short: string, long: string }, periods: { __typename?: 'GamePeriods', current: number, total: number, endOfPeriod: boolean }, arena?: { __typename?: 'Arena', name: string, city?: string | null, state?: string | null, country?: string | null } | null, teams: { __typename?: 'GameTeams', home: { __typename?: 'TeamSummary', id: string, name: string, nickname: string, code: string, logo?: string | null }, visitors: { __typename?: 'TeamSummary', id: string, name: string, nickname: string, code: string, logo?: string | null } }, scores: { __typename?: 'GameScores', home: { __typename?: 'TeamScore', win: number, loss: number, linescore: Array<number>, points: number, series: { __typename?: 'SeriesScore', win: number, loss: number } }, visitors: { __typename?: 'TeamScore', win: number, loss: number, linescore: Array<number>, points: number, series: { __typename?: 'SeriesScore', win: number, loss: number } } } } | null, errors?: Array<{ __typename?: 'ErrorResult', message: string, code?: string | null, field?: string | null }> | null } };
+export type CreateGameMutation = { createGame: { game: { id: string, league: string | null | undefined, season: number | null | undefined, officials: Array<string>, timesTied: number | null | undefined, leadChanges: number | null | undefined, nugget: string | null | undefined, createdAt: IDateTimeScalar, updatedAt: IDateTimeScalar, date: { start: IDateTimeScalar, end: IDateTimeScalar | null | undefined, duration: number | null | undefined }, status: { clock: string | null | undefined, halftime: boolean, short: string, long: string }, periods: { current: number, total: number, endOfPeriod: boolean }, arena: { name: string, city: string | null | undefined, state: string | null | undefined, country: string | null | undefined } | null | undefined, teams: { home: { id: string, name: string, nickname: string, code: string, logo: string | null | undefined }, visitors: { id: string, name: string, nickname: string, code: string, logo: string | null | undefined } }, scores: { home: { win: number, loss: number, linescore: Array<number>, points: number, series: { win: number, loss: number } }, visitors: { win: number, loss: number, linescore: Array<number>, points: number, series: { win: number, loss: number } } } } | null | undefined, errors: Array<{ message: string, code: string | null | undefined, field: string | null | undefined }> | null | undefined } };
 
 export type CreateGameLogMutationVariables = Exact<{
   input: CreateGameLogInput;
 }>;
 
 
-export type CreateGameLogMutation = { __typename?: 'Mutation', createGameLog: { __typename?: 'CreateGameLogResponse', gameLog?: { __typename?: 'GameLog', id: string, watchedSetting?: string | null, watchedDate?: any | null, ratingForGame: number, notes?: string | null, tags?: Array<string> | null, classification: Classification, createdAt: any, updatedAt: any, user: { __typename?: 'UserSummary', id: string, username: string, firstName: string, lastName: string, imageUrl?: string | null }, game: { __typename?: 'Game', id: string, league?: string | null, season?: number | null, officials: Array<string>, timesTied?: number | null, leadChanges?: number | null, nugget?: string | null, createdAt: any, updatedAt: any, date: { __typename?: 'GameDate', start: any, end?: any | null, duration?: number | null }, status: { __typename?: 'GameStatus', clock?: string | null, halftime: boolean, short: string, long: string }, arena?: { __typename?: 'Arena', name: string, city?: string | null, state?: string | null, country?: string | null } | null, periods: { __typename?: 'GamePeriods', current: number, total: number, endOfPeriod: boolean }, teams: { __typename?: 'GameTeams', home: { __typename?: 'TeamSummary', id: string, name: string, nickname: string, code: string, logo?: string | null }, visitors: { __typename?: 'TeamSummary', id: string, name: string, nickname: string, code: string, logo?: string | null } }, scores: { __typename?: 'GameScores', home: { __typename?: 'TeamScore', win: number, loss: number, linescore: Array<number>, points: number, series: { __typename?: 'SeriesScore', win: number, loss: number } }, visitors: { __typename?: 'TeamScore', win: number, loss: number, linescore: Array<number>, points: number, series: { __typename?: 'SeriesScore', win: number, loss: number } } } } } | null, errors?: Array<{ __typename?: 'ErrorResult', message: string, code?: string | null, field?: string | null }> | null } };
+export type CreateGameLogMutation = { createGameLog: { gameLog: { id: string, watchedSetting: string | null | undefined, watchedDate: IDateTimeScalar | null | undefined, ratingForGame: number, notes: string | null | undefined, tags: Array<string> | null | undefined, classification: Classification, createdAt: IDateTimeScalar, updatedAt: IDateTimeScalar, user: { id: string, username: string, firstName: string, lastName: string, imageUrl: string | null | undefined }, game: { id: string, league: string | null | undefined, season: number | null | undefined, officials: Array<string>, timesTied: number | null | undefined, leadChanges: number | null | undefined, nugget: string | null | undefined, createdAt: IDateTimeScalar, updatedAt: IDateTimeScalar, date: { start: IDateTimeScalar, end: IDateTimeScalar | null | undefined, duration: number | null | undefined }, status: { clock: string | null | undefined, halftime: boolean, short: string, long: string }, arena: { name: string, city: string | null | undefined, state: string | null | undefined, country: string | null | undefined } | null | undefined, periods: { current: number, total: number, endOfPeriod: boolean }, teams: { home: { id: string, name: string, nickname: string, code: string, logo: string | null | undefined }, visitors: { id: string, name: string, nickname: string, code: string, logo: string | null | undefined } }, scores: { home: { win: number, loss: number, linescore: Array<number>, points: number, series: { win: number, loss: number } }, visitors: { win: number, loss: number, linescore: Array<number>, points: number, series: { win: number, loss: number } } } } } | null | undefined, errors: Array<{ message: string, code: string | null | undefined, field: string | null | undefined }> | null | undefined } };
 
 export type UpdateGameLogMutationVariables = Exact<{
   id: Scalars['ID']['input'];
@@ -967,21 +904,21 @@ export type UpdateGameLogMutationVariables = Exact<{
 }>;
 
 
-export type UpdateGameLogMutation = { __typename?: 'Mutation', updateGameLog: { __typename?: 'UpdateGameLogResponse', gameLog?: { __typename?: 'GameLog', id: string, watchedSetting?: string | null, watchedDate?: any | null, ratingForGame: number, notes?: string | null, tags?: Array<string> | null, classification: Classification, createdAt: any, updatedAt: any, user: { __typename?: 'UserSummary', id: string, username: string, firstName: string, lastName: string, imageUrl?: string | null }, game: { __typename?: 'Game', id: string } } | null, errors?: Array<{ __typename?: 'ErrorResult', message: string, code?: string | null, field?: string | null }> | null } };
+export type UpdateGameLogMutation = { updateGameLog: { gameLog: { id: string, watchedSetting: string | null | undefined, watchedDate: IDateTimeScalar | null | undefined, ratingForGame: number, notes: string | null | undefined, tags: Array<string> | null | undefined, classification: Classification, createdAt: IDateTimeScalar, updatedAt: IDateTimeScalar, user: { id: string, username: string, firstName: string, lastName: string, imageUrl: string | null | undefined }, game: { id: string } } | null | undefined, errors: Array<{ message: string, code: string | null | undefined, field: string | null | undefined }> | null | undefined } };
 
 export type DeleteGameLogMutationVariables = Exact<{
   id: Scalars['ID']['input'];
 }>;
 
 
-export type DeleteGameLogMutation = { __typename?: 'Mutation', deleteGameLog: { __typename?: 'DeleteGameLogResponse', success: boolean, errors?: Array<{ __typename?: 'ErrorResult', message: string, code?: string | null, field?: string | null }> | null } };
+export type DeleteGameLogMutation = { deleteGameLog: { success: boolean, errors: Array<{ message: string, code: string | null | undefined, field: string | null | undefined }> | null | undefined } };
 
 export type CreateCommentMutationVariables = Exact<{
   input: CreateCommentInput;
 }>;
 
 
-export type CreateCommentMutation = { __typename?: 'Mutation', createComment: { __typename?: 'CreateCommentResponse', comment?: { __typename?: 'Comment', id: string, userId: string, parentId: string, parentType: ParentType, content: string, createdAt: any, updatedAt: any, deletedAt?: any | null, depth: number, user: { __typename?: 'UserSummary', id: string, username: string, firstName: string, lastName: string, emailAddress?: string | null, imageUrl?: string | null }, reactions: Array<{ __typename?: 'Reaction', id: string, emoji: ReactionEmojiType, user: { __typename?: 'UserSummary', id: string, username: string, firstName: string, lastName: string, emailAddress?: string | null, imageUrl?: string | null } }>, childComments: { __typename?: 'CommentConnection', totalCount: number, edges: Array<{ __typename?: 'CommentEdge', node: { __typename?: 'Comment', id: string, userId: string, parentId: string, parentType: ParentType, content: string, createdAt: any, updatedAt: any, deletedAt?: any | null, depth: number, user: { __typename?: 'UserSummary', id: string, username: string, firstName: string, lastName: string, emailAddress?: string | null, imageUrl?: string | null }, reactions: Array<{ __typename?: 'Reaction', id: string, emoji: ReactionEmojiType, user: { __typename?: 'UserSummary', id: string, username: string, firstName: string, lastName: string, emailAddress?: string | null, imageUrl?: string | null } }> } }> } } | null, errors?: Array<{ __typename?: 'ErrorResult', message: string, code?: string | null, field?: string | null }> | null } };
+export type CreateCommentMutation = { createComment: { comment: { id: string, userId: string, parentId: string, parentType: ParentType, content: string, createdAt: IDateTimeScalar, updatedAt: IDateTimeScalar, deletedAt: IDateTimeScalar | null | undefined, depth: number, user: { id: string, username: string, firstName: string, lastName: string, emailAddress: string | null | undefined, imageUrl: string | null | undefined }, reactions: Array<{ id: string, emoji: ReactionEmojiType, user: { id: string, username: string, firstName: string, lastName: string, emailAddress: string | null | undefined, imageUrl: string | null | undefined } }>, childComments: { totalCount: number, edges: Array<{ node: { id: string, userId: string, parentId: string, parentType: ParentType, content: string, createdAt: IDateTimeScalar, updatedAt: IDateTimeScalar, deletedAt: IDateTimeScalar | null | undefined, depth: number, user: { id: string, username: string, firstName: string, lastName: string, emailAddress: string | null | undefined, imageUrl: string | null | undefined }, reactions: Array<{ id: string, emoji: ReactionEmojiType, user: { id: string, username: string, firstName: string, lastName: string, emailAddress: string | null | undefined, imageUrl: string | null | undefined } }> } }> } } | null | undefined, errors: Array<{ message: string, code: string | null | undefined, field: string | null | undefined }> | null | undefined } };
 
 export type UpdateCommentMutationVariables = Exact<{
   id: Scalars['ID']['input'];
@@ -989,139 +926,139 @@ export type UpdateCommentMutationVariables = Exact<{
 }>;
 
 
-export type UpdateCommentMutation = { __typename?: 'Mutation', updateComment: { __typename?: 'UpdateCommentResponse', comment?: { __typename?: 'Comment', id: string, userId: string, parentId: string, parentType: ParentType, content: string, createdAt: any, updatedAt: any, deletedAt?: any | null, depth: number, user: { __typename?: 'UserSummary', id: string, username: string, firstName: string, lastName: string, emailAddress?: string | null, imageUrl?: string | null }, reactions: Array<{ __typename?: 'Reaction', id: string, emoji: ReactionEmojiType, user: { __typename?: 'UserSummary', id: string, username: string, firstName: string, lastName: string, emailAddress?: string | null, imageUrl?: string | null } }>, childComments: { __typename?: 'CommentConnection', totalCount: number, edges: Array<{ __typename?: 'CommentEdge', node: { __typename?: 'Comment', id: string, userId: string, parentId: string, parentType: ParentType, content: string, createdAt: any, updatedAt: any, deletedAt?: any | null, depth: number, user: { __typename?: 'UserSummary', id: string, username: string, firstName: string, lastName: string, emailAddress?: string | null, imageUrl?: string | null }, reactions: Array<{ __typename?: 'Reaction', id: string, emoji: ReactionEmojiType, user: { __typename?: 'UserSummary', id: string, username: string, firstName: string, lastName: string, emailAddress?: string | null, imageUrl?: string | null } }> } }> } } | null, errors?: Array<{ __typename?: 'ErrorResult', message: string, code?: string | null, field?: string | null }> | null } };
+export type UpdateCommentMutation = { updateComment: { comment: { id: string, userId: string, parentId: string, parentType: ParentType, content: string, createdAt: IDateTimeScalar, updatedAt: IDateTimeScalar, deletedAt: IDateTimeScalar | null | undefined, depth: number, user: { id: string, username: string, firstName: string, lastName: string, emailAddress: string | null | undefined, imageUrl: string | null | undefined }, reactions: Array<{ id: string, emoji: ReactionEmojiType, user: { id: string, username: string, firstName: string, lastName: string, emailAddress: string | null | undefined, imageUrl: string | null | undefined } }>, childComments: { totalCount: number, edges: Array<{ node: { id: string, userId: string, parentId: string, parentType: ParentType, content: string, createdAt: IDateTimeScalar, updatedAt: IDateTimeScalar, deletedAt: IDateTimeScalar | null | undefined, depth: number, user: { id: string, username: string, firstName: string, lastName: string, emailAddress: string | null | undefined, imageUrl: string | null | undefined }, reactions: Array<{ id: string, emoji: ReactionEmojiType, user: { id: string, username: string, firstName: string, lastName: string, emailAddress: string | null | undefined, imageUrl: string | null | undefined } }> } }> } } | null | undefined, errors: Array<{ message: string, code: string | null | undefined, field: string | null | undefined }> | null | undefined } };
 
 export type DeleteCommentMutationVariables = Exact<{
   id: Scalars['ID']['input'];
 }>;
 
 
-export type DeleteCommentMutation = { __typename?: 'Mutation', deleteComment: { __typename?: 'DeleteCommentResponse', success: boolean, errors?: Array<{ __typename?: 'ErrorResult', message: string, code?: string | null, field?: string | null }> | null } };
+export type DeleteCommentMutation = { deleteComment: { success: boolean, errors: Array<{ message: string, code: string | null | undefined, field: string | null | undefined }> | null | undefined } };
 
 export type CreateReactionMutationVariables = Exact<{
   input: CreateReactionInput;
 }>;
 
 
-export type CreateReactionMutation = { __typename?: 'Mutation', createReaction: { __typename?: 'CreateReactionResponse', reaction?: { __typename?: 'Reaction', id: string, emoji: ReactionEmojiType, targetId: string, targetType: ParentType, userId: string, createdAt: any, updatedAt: any, user: { __typename?: 'UserSummary', id: string, username: string, firstName: string, lastName: string, emailAddress?: string | null, imageUrl?: string | null } } | null, errors?: Array<{ __typename?: 'ErrorResult', message: string, code?: string | null, field?: string | null }> | null } };
+export type CreateReactionMutation = { createReaction: { reaction: { id: string, emoji: ReactionEmojiType, targetId: string, targetType: ParentType, userId: string, createdAt: IDateTimeScalar, updatedAt: IDateTimeScalar, user: { id: string, username: string, firstName: string, lastName: string, emailAddress: string | null | undefined, imageUrl: string | null | undefined } } | null | undefined, errors: Array<{ message: string, code: string | null | undefined, field: string | null | undefined }> | null | undefined } };
 
 export type DeleteReactionMutationVariables = Exact<{
   id: Scalars['ID']['input'];
 }>;
 
 
-export type DeleteReactionMutation = { __typename?: 'Mutation', deleteReaction: { __typename?: 'DeleteReactionResponse', success: boolean, errors?: Array<{ __typename?: 'ErrorResult', message: string, code?: string | null, field?: string | null }> | null } };
+export type DeleteReactionMutation = { deleteReaction: { success: boolean, errors: Array<{ message: string, code: string | null | undefined, field: string | null | undefined }> | null | undefined } };
 
 export type SendFriendRequestMutationVariables = Exact<{
   userId: Scalars['ID']['input'];
 }>;
 
 
-export type SendFriendRequestMutation = { __typename?: 'Mutation', sendFriendRequest: { __typename?: 'SendFriendRequestResponse', friendship?: { __typename?: 'Friendship', id: string, status: FriendshipStatus, createdAt: any, updatedAt: any, initiator: { __typename?: 'UserSummary', id: string, username: string, firstName: string, lastName: string, emailAddress?: string | null, imageUrl?: string | null }, recipient: { __typename?: 'UserSummary', id: string, username: string, firstName: string, lastName: string, emailAddress?: string | null, imageUrl?: string | null } } | null, errors?: Array<{ __typename?: 'ErrorResult', message: string, code?: string | null, field?: string | null }> | null } };
+export type SendFriendRequestMutation = { sendFriendRequest: { friendship: { id: string, status: FriendshipStatus, createdAt: IDateTimeScalar, updatedAt: IDateTimeScalar, initiator: { id: string, username: string, firstName: string, lastName: string, emailAddress: string | null | undefined, imageUrl: string | null | undefined }, recipient: { id: string, username: string, firstName: string, lastName: string, emailAddress: string | null | undefined, imageUrl: string | null | undefined } } | null | undefined, errors: Array<{ message: string, code: string | null | undefined, field: string | null | undefined }> | null | undefined } };
 
 export type AcceptFriendRequestMutationVariables = Exact<{
   friendshipId: Scalars['ID']['input'];
 }>;
 
 
-export type AcceptFriendRequestMutation = { __typename?: 'Mutation', acceptFriendRequest: { __typename?: 'AcceptFriendRequestResponse', friendship?: { __typename?: 'Friendship', id: string, status: FriendshipStatus, createdAt: any, updatedAt: any, initiator: { __typename?: 'UserSummary', id: string, username: string, firstName: string, lastName: string, emailAddress?: string | null, imageUrl?: string | null }, recipient: { __typename?: 'UserSummary', id: string, username: string, firstName: string, lastName: string, emailAddress?: string | null, imageUrl?: string | null } } | null, errors?: Array<{ __typename?: 'ErrorResult', message: string, code?: string | null, field?: string | null }> | null } };
+export type AcceptFriendRequestMutation = { acceptFriendRequest: { friendship: { id: string, status: FriendshipStatus, createdAt: IDateTimeScalar, updatedAt: IDateTimeScalar, initiator: { id: string, username: string, firstName: string, lastName: string, emailAddress: string | null | undefined, imageUrl: string | null | undefined }, recipient: { id: string, username: string, firstName: string, lastName: string, emailAddress: string | null | undefined, imageUrl: string | null | undefined } } | null | undefined, errors: Array<{ message: string, code: string | null | undefined, field: string | null | undefined }> | null | undefined } };
 
 export type RejectFriendRequestMutationVariables = Exact<{
   friendshipId: Scalars['ID']['input'];
 }>;
 
 
-export type RejectFriendRequestMutation = { __typename?: 'Mutation', rejectFriendRequest: { __typename?: 'RejectFriendRequestResponse', friendship?: { __typename?: 'Friendship', id: string, status: FriendshipStatus, createdAt: any, updatedAt: any, initiator: { __typename?: 'UserSummary', id: string, username: string, firstName: string, lastName: string, emailAddress?: string | null, imageUrl?: string | null }, recipient: { __typename?: 'UserSummary', id: string, username: string, firstName: string, lastName: string, emailAddress?: string | null, imageUrl?: string | null } } | null, errors?: Array<{ __typename?: 'ErrorResult', message: string, code?: string | null, field?: string | null }> | null } };
+export type RejectFriendRequestMutation = { rejectFriendRequest: { friendship: { id: string, status: FriendshipStatus, createdAt: IDateTimeScalar, updatedAt: IDateTimeScalar, initiator: { id: string, username: string, firstName: string, lastName: string, emailAddress: string | null | undefined, imageUrl: string | null | undefined }, recipient: { id: string, username: string, firstName: string, lastName: string, emailAddress: string | null | undefined, imageUrl: string | null | undefined } } | null | undefined, errors: Array<{ message: string, code: string | null | undefined, field: string | null | undefined }> | null | undefined } };
 
 export type RemoveFriendMutationVariables = Exact<{
   friendshipId: Scalars['ID']['input'];
 }>;
 
 
-export type RemoveFriendMutation = { __typename?: 'Mutation', removeFriend: { __typename?: 'RemoveFriendResponse', success: boolean, errors?: Array<{ __typename?: 'ErrorResult', message: string, code?: string | null, field?: string | null }> | null } };
+export type RemoveFriendMutation = { removeFriend: { success: boolean, errors: Array<{ message: string, code: string | null | undefined, field: string | null | undefined }> | null | undefined } };
 
-export type GameFragmentFragment = { __typename?: 'Game', id: string, league?: string | null, season?: number | null, officials: Array<string>, timesTied?: number | null, leadChanges?: number | null, nugget?: string | null, createdAt: any, updatedAt: any, date: { __typename?: 'GameDate', start: any, end?: any | null, duration?: number | null }, status: { __typename?: 'GameStatus', clock?: string | null, halftime: boolean, long: string, short: string }, arena?: { __typename?: 'Arena', name: string, city?: string | null, state?: string | null, country?: string | null } | null, periods: { __typename?: 'GamePeriods', current: number, total: number, endOfPeriod: boolean }, teams: { __typename?: 'GameTeams', home: { __typename?: 'TeamSummary', id: string, name: string, nickname: string, code: string, logo?: string | null }, visitors: { __typename?: 'TeamSummary', id: string, name: string, nickname: string, code: string, logo?: string | null } }, scores: { __typename?: 'GameScores', home: { __typename?: 'TeamScore', win: number, loss: number, linescore: Array<number>, points: number, series: { __typename?: 'SeriesScore', win: number, loss: number } }, visitors: { __typename?: 'TeamScore', win: number, loss: number, linescore: Array<number>, points: number, series: { __typename?: 'SeriesScore', win: number, loss: number } } } };
+export type GameFragmentFragment = { id: string, league: string | null | undefined, season: number | null | undefined, officials: Array<string>, timesTied: number | null | undefined, leadChanges: number | null | undefined, nugget: string | null | undefined, createdAt: IDateTimeScalar, updatedAt: IDateTimeScalar, date: { start: IDateTimeScalar, end: IDateTimeScalar | null | undefined, duration: number | null | undefined }, status: { clock: string | null | undefined, halftime: boolean, long: string, short: string }, arena: { name: string, city: string | null | undefined, state: string | null | undefined, country: string | null | undefined } | null | undefined, periods: { current: number, total: number, endOfPeriod: boolean }, teams: { home: { id: string, name: string, nickname: string, code: string, logo: string | null | undefined }, visitors: { id: string, name: string, nickname: string, code: string, logo: string | null | undefined } }, scores: { home: { win: number, loss: number, linescore: Array<number>, points: number, series: { win: number, loss: number } }, visitors: { win: number, loss: number, linescore: Array<number>, points: number, series: { win: number, loss: number } } } };
 
-export type PlayerFragmentFragment = { __typename?: 'Player', id: string, firstName?: string | null, lastName?: string | null, college?: string | null, affiliation?: string | null, birth?: { __typename?: 'PlayerBirth', date?: string | null, country?: string | null } | null, nba?: { __typename?: 'PlayerNba', start?: number | null, pro?: number | null } | null, height?: { __typename?: 'PlayerHeight', feets?: string | null, inches?: string | null, meters?: string | null } | null, weight?: { __typename?: 'PlayerWeight', pounds?: string | null, kilograms?: string | null } | null, leagues?: { __typename?: 'PlayerLeagues', standard?: { __typename?: 'PlayerStandard', jersey?: string | null, active?: boolean | null, pos?: string | null } | null } | null, seasons_active?: Array<{ __typename?: 'PlayerSeason', season?: string | null, teams?: Array<string> | null }> | null };
+export type PlayerFragmentFragment = { id: string, firstName: string | null | undefined, lastName: string | null | undefined, college: string | null | undefined, affiliation: string | null | undefined, birth: { date: string | null | undefined, country: string | null | undefined } | null | undefined, nba: { start: number | null | undefined, pro: number | null | undefined } | null | undefined, height: { feets: string | null | undefined, inches: string | null | undefined, meters: string | null | undefined } | null | undefined, weight: { pounds: string | null | undefined, kilograms: string | null | undefined } | null | undefined, leagues: { standard: { jersey: string | null | undefined, active: boolean | null | undefined, pos: string | null | undefined } | null | undefined } | null | undefined, seasons_active: Array<{ season: string | null | undefined, teams: Array<string> | null | undefined }> | null | undefined };
 
-export type PlayerStatsFragmentFragment = { __typename?: 'IPlayerStats', playerId: string, gameId: string, points?: number | null, assists?: number | null, rebounds?: number | null, steals?: number | null, blocks?: number | null, turnovers?: number | null, fouls?: number | null, minutes?: string | null, fieldGoalsMade?: number | null, fieldGoalsAttempted?: number | null, threePointersMade?: number | null, threePointersAttempted?: number | null, freeThrowsMade?: number | null, freeThrowsAttempted?: number | null, createdAt: any, updatedAt: any, deletedAt?: any | null };
+export type PlayerStatsFragmentFragment = { playerId: string, gameId: string, points: number | null | undefined, assists: number | null | undefined, rebounds: number | null | undefined, steals: number | null | undefined, blocks: number | null | undefined, turnovers: number | null | undefined, fouls: number | null | undefined, minutes: string | null | undefined, fieldGoalsMade: number | null | undefined, fieldGoalsAttempted: number | null | undefined, threePointersMade: number | null | undefined, threePointersAttempted: number | null | undefined, freeThrowsMade: number | null | undefined, freeThrowsAttempted: number | null | undefined, createdAt: IDateTimeScalar, updatedAt: IDateTimeScalar, deletedAt: IDateTimeScalar | null | undefined };
 
-export type BasicUserFragmentFragment = { __typename?: 'DBUser', id: string, username: string, firstName?: string | null, lastName?: string | null, emailAddress?: string | null, imageUrl?: string | null, createdAt: any, updatedAt: any, deletedAt?: any | null, comments: Array<{ __typename?: 'Comment', id: string, parentId: string, parentType: ParentType, content: string }>, reactions: Array<{ __typename?: 'Reaction', id: string, emoji: ReactionEmojiType, targetId: string, targetType: ParentType }>, gameLogs: Array<{ __typename?: 'GameLog', id: string }>, initiatedFriendships: Array<{ __typename?: 'Friendship', id: string, status: FriendshipStatus }> };
+export type BasicUserFragmentFragment = { id: string, username: string, firstName: string | null | undefined, lastName: string | null | undefined, emailAddress: string | null | undefined, imageUrl: string | null | undefined, createdAt: IDateTimeScalar, updatedAt: IDateTimeScalar, deletedAt: IDateTimeScalar | null | undefined, comments: Array<{ id: string, parentId: string, parentType: ParentType, content: string }>, reactions: Array<{ id: string, emoji: ReactionEmojiType, targetId: string, targetType: ParentType }>, gameLogs: Array<{ id: string }>, initiatedFriendships: Array<{ id: string, status: FriendshipStatus }> };
 
-export type UserSummaryFragmentFragment = { __typename?: 'UserSummary', id: string, username: string, firstName: string, lastName: string, emailAddress?: string | null, imageUrl?: string | null };
+export type UserSummaryFragmentFragment = { id: string, username: string, firstName: string, lastName: string, emailAddress: string | null | undefined, imageUrl: string | null | undefined };
 
-export type CommentFragmentFragment = { __typename?: 'Comment', id: string, userId: string, parentId: string, parentType: ParentType, content: string, createdAt: any, updatedAt: any, deletedAt?: any | null, depth: number, user: { __typename?: 'UserSummary', id: string, username: string, firstName: string, lastName: string, emailAddress?: string | null, imageUrl?: string | null }, reactions: Array<{ __typename?: 'Reaction', id: string, emoji: ReactionEmojiType, user: { __typename?: 'UserSummary', id: string, username: string, firstName: string, lastName: string, emailAddress?: string | null, imageUrl?: string | null } }>, childComments: { __typename?: 'CommentConnection', totalCount: number, edges: Array<{ __typename?: 'CommentEdge', node: { __typename?: 'Comment', id: string, userId: string, parentId: string, parentType: ParentType, content: string, createdAt: any, updatedAt: any, deletedAt?: any | null, depth: number, user: { __typename?: 'UserSummary', id: string, username: string, firstName: string, lastName: string, emailAddress?: string | null, imageUrl?: string | null }, reactions: Array<{ __typename?: 'Reaction', id: string, emoji: ReactionEmojiType, user: { __typename?: 'UserSummary', id: string, username: string, firstName: string, lastName: string, emailAddress?: string | null, imageUrl?: string | null } }> } }> } };
+export type CommentFragmentFragment = { id: string, userId: string, parentId: string, parentType: ParentType, content: string, createdAt: IDateTimeScalar, updatedAt: IDateTimeScalar, deletedAt: IDateTimeScalar | null | undefined, depth: number, user: { id: string, username: string, firstName: string, lastName: string, emailAddress: string | null | undefined, imageUrl: string | null | undefined }, reactions: Array<{ id: string, emoji: ReactionEmojiType, user: { id: string, username: string, firstName: string, lastName: string, emailAddress: string | null | undefined, imageUrl: string | null | undefined } }>, childComments: { totalCount: number, edges: Array<{ node: { id: string, userId: string, parentId: string, parentType: ParentType, content: string, createdAt: IDateTimeScalar, updatedAt: IDateTimeScalar, deletedAt: IDateTimeScalar | null | undefined, depth: number, user: { id: string, username: string, firstName: string, lastName: string, emailAddress: string | null | undefined, imageUrl: string | null | undefined }, reactions: Array<{ id: string, emoji: ReactionEmojiType, user: { id: string, username: string, firstName: string, lastName: string, emailAddress: string | null | undefined, imageUrl: string | null | undefined } }> } }> } };
 
-export type GameLogFragmentFragment = { __typename?: 'GameLog', id: string, watchedSetting?: string | null, watchedScope?: string | null, watchedDate?: any | null, watchedLocation?: string | null, ratingForGame: number, notes?: string | null, tags?: Array<string> | null, classification: Classification, createdAt: any, updatedAt: any, user: { __typename?: 'UserSummary', id: string, username: string, firstName: string, lastName: string, emailAddress?: string | null, imageUrl?: string | null }, game: { __typename?: 'Game', id: string, league?: string | null, season?: number | null, officials: Array<string>, timesTied?: number | null, leadChanges?: number | null, nugget?: string | null, createdAt: any, updatedAt: any, date: { __typename?: 'GameDate', start: any, end?: any | null, duration?: number | null }, status: { __typename?: 'GameStatus', clock?: string | null, halftime: boolean, long: string, short: string }, arena?: { __typename?: 'Arena', name: string, city?: string | null, state?: string | null, country?: string | null } | null, periods: { __typename?: 'GamePeriods', current: number, total: number, endOfPeriod: boolean }, teams: { __typename?: 'GameTeams', home: { __typename?: 'TeamSummary', id: string, name: string, nickname: string, code: string, logo?: string | null }, visitors: { __typename?: 'TeamSummary', id: string, name: string, nickname: string, code: string, logo?: string | null } }, scores: { __typename?: 'GameScores', home: { __typename?: 'TeamScore', win: number, loss: number, linescore: Array<number>, points: number, series: { __typename?: 'SeriesScore', win: number, loss: number } }, visitors: { __typename?: 'TeamScore', win: number, loss: number, linescore: Array<number>, points: number, series: { __typename?: 'SeriesScore', win: number, loss: number } } } }, reactions: Array<{ __typename?: 'Reaction', id: string, emoji: ReactionEmojiType, userId: string, targetId: string, targetType: ParentType, createdAt: any, updatedAt: any, user: { __typename?: 'UserSummary', id: string, username: string, emailAddress?: string | null, imageUrl?: string | null } }> };
+export type GameLogFragmentFragment = { id: string, watchedSetting: string | null | undefined, watchedScope: string | null | undefined, watchedDate: IDateTimeScalar | null | undefined, watchedLocation: string | null | undefined, ratingForGame: number, notes: string | null | undefined, tags: Array<string> | null | undefined, classification: Classification, createdAt: IDateTimeScalar, updatedAt: IDateTimeScalar, user: { id: string, username: string, firstName: string, lastName: string, emailAddress: string | null | undefined, imageUrl: string | null | undefined }, game: { id: string, league: string | null | undefined, season: number | null | undefined, officials: Array<string>, timesTied: number | null | undefined, leadChanges: number | null | undefined, nugget: string | null | undefined, createdAt: IDateTimeScalar, updatedAt: IDateTimeScalar, date: { start: IDateTimeScalar, end: IDateTimeScalar | null | undefined, duration: number | null | undefined }, status: { clock: string | null | undefined, halftime: boolean, long: string, short: string }, arena: { name: string, city: string | null | undefined, state: string | null | undefined, country: string | null | undefined } | null | undefined, periods: { current: number, total: number, endOfPeriod: boolean }, teams: { home: { id: string, name: string, nickname: string, code: string, logo: string | null | undefined }, visitors: { id: string, name: string, nickname: string, code: string, logo: string | null | undefined } }, scores: { home: { win: number, loss: number, linescore: Array<number>, points: number, series: { win: number, loss: number } }, visitors: { win: number, loss: number, linescore: Array<number>, points: number, series: { win: number, loss: number } } } }, reactions: Array<{ id: string, emoji: ReactionEmojiType, userId: string, targetId: string, targetType: ParentType, createdAt: IDateTimeScalar, updatedAt: IDateTimeScalar, user: { id: string, username: string, emailAddress: string | null | undefined, imageUrl: string | null | undefined } }> };
 
 export type GetGameByIdQueryVariables = Exact<{
   id: Scalars['ID']['input'];
 }>;
 
 
-export type GetGameByIdQuery = { __typename?: 'Query', game?: { __typename?: 'Game', id: string, league?: string | null, season?: number | null, officials: Array<string>, timesTied?: number | null, leadChanges?: number | null, nugget?: string | null, createdAt: any, updatedAt: any, date: { __typename?: 'GameDate', start: any, end?: any | null, duration?: number | null }, status: { __typename?: 'GameStatus', clock?: string | null, halftime: boolean, long: string, short: string }, arena?: { __typename?: 'Arena', name: string, city?: string | null, state?: string | null, country?: string | null } | null, periods: { __typename?: 'GamePeriods', current: number, total: number, endOfPeriod: boolean }, teams: { __typename?: 'GameTeams', home: { __typename?: 'TeamSummary', id: string, name: string, nickname: string, code: string, logo?: string | null }, visitors: { __typename?: 'TeamSummary', id: string, name: string, nickname: string, code: string, logo?: string | null } }, scores: { __typename?: 'GameScores', home: { __typename?: 'TeamScore', win: number, loss: number, linescore: Array<number>, points: number, series: { __typename?: 'SeriesScore', win: number, loss: number } }, visitors: { __typename?: 'TeamScore', win: number, loss: number, linescore: Array<number>, points: number, series: { __typename?: 'SeriesScore', win: number, loss: number } } } } | null };
+export type GetGameByIdQuery = { game: { id: string, league: string | null | undefined, season: number | null | undefined, officials: Array<string>, timesTied: number | null | undefined, leadChanges: number | null | undefined, nugget: string | null | undefined, createdAt: IDateTimeScalar, updatedAt: IDateTimeScalar, date: { start: IDateTimeScalar, end: IDateTimeScalar | null | undefined, duration: number | null | undefined }, status: { clock: string | null | undefined, halftime: boolean, long: string, short: string }, arena: { name: string, city: string | null | undefined, state: string | null | undefined, country: string | null | undefined } | null | undefined, periods: { current: number, total: number, endOfPeriod: boolean }, teams: { home: { id: string, name: string, nickname: string, code: string, logo: string | null | undefined }, visitors: { id: string, name: string, nickname: string, code: string, logo: string | null | undefined } }, scores: { home: { win: number, loss: number, linescore: Array<number>, points: number, series: { win: number, loss: number } }, visitors: { win: number, loss: number, linescore: Array<number>, points: number, series: { win: number, loss: number } } } } | null | undefined };
 
 export type GetExternalGamesQueryVariables = Exact<{
-  filters?: InputMaybe<GameFilters>;
-  pagination?: InputMaybe<PaginationInput>;
+  filters: InputMaybe<GameFilters>;
+  pagination: InputMaybe<PaginationInput>;
 }>;
 
 
-export type GetExternalGamesQuery = { __typename?: 'Query', games: { __typename?: 'GameConnection', totalCount: number, edges: Array<{ __typename?: 'GameEdge', cursor: string, node: { __typename?: 'Game', id: string, league?: string | null, season?: number | null, officials: Array<string>, timesTied?: number | null, leadChanges?: number | null, nugget?: string | null, createdAt: any, updatedAt: any, date: { __typename?: 'GameDate', start: any, end?: any | null, duration?: number | null }, status: { __typename?: 'GameStatus', clock?: string | null, halftime: boolean, long: string, short: string }, arena?: { __typename?: 'Arena', name: string, city?: string | null, state?: string | null, country?: string | null } | null, periods: { __typename?: 'GamePeriods', current: number, total: number, endOfPeriod: boolean }, teams: { __typename?: 'GameTeams', home: { __typename?: 'TeamSummary', id: string, name: string, nickname: string, code: string, logo?: string | null }, visitors: { __typename?: 'TeamSummary', id: string, name: string, nickname: string, code: string, logo?: string | null } }, scores: { __typename?: 'GameScores', home: { __typename?: 'TeamScore', win: number, loss: number, linescore: Array<number>, points: number, series: { __typename?: 'SeriesScore', win: number, loss: number } }, visitors: { __typename?: 'TeamScore', win: number, loss: number, linescore: Array<number>, points: number, series: { __typename?: 'SeriesScore', win: number, loss: number } } } } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
+export type GetExternalGamesQuery = { games: { totalCount: number, edges: Array<{ cursor: string, node: { id: string, league: string | null | undefined, season: number | null | undefined, officials: Array<string>, timesTied: number | null | undefined, leadChanges: number | null | undefined, nugget: string | null | undefined, createdAt: IDateTimeScalar, updatedAt: IDateTimeScalar, date: { start: IDateTimeScalar, end: IDateTimeScalar | null | undefined, duration: number | null | undefined }, status: { clock: string | null | undefined, halftime: boolean, long: string, short: string }, arena: { name: string, city: string | null | undefined, state: string | null | undefined, country: string | null | undefined } | null | undefined, periods: { current: number, total: number, endOfPeriod: boolean }, teams: { home: { id: string, name: string, nickname: string, code: string, logo: string | null | undefined }, visitors: { id: string, name: string, nickname: string, code: string, logo: string | null | undefined } }, scores: { home: { win: number, loss: number, linescore: Array<number>, points: number, series: { win: number, loss: number } }, visitors: { win: number, loss: number, linescore: Array<number>, points: number, series: { win: number, loss: number } } } } }>, pageInfo: { hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null | undefined, endCursor: string | null | undefined } } };
 
 export type GetTeamsQueryVariables = Exact<{
-  filters?: InputMaybe<TeamFilters>;
+  filters: InputMaybe<TeamFilters>;
 }>;
 
 
-export type GetTeamsQuery = { __typename?: 'Query', teams: { __typename?: 'TeamConnection', totalCount: number, edges: Array<{ __typename?: 'TeamEdge', cursor: string, node: { __typename?: 'Team', id: string, name: string, nickname: string, code: string, city?: string | null, logo?: string | null, conference?: string | null, division?: string | null } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
+export type GetTeamsQuery = { teams: { totalCount: number, edges: Array<{ cursor: string, node: { id: string, name: string, nickname: string, code: string, city: string | null | undefined, logo: string | null | undefined, conference: string | null | undefined, division: string | null | undefined } }>, pageInfo: { hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null | undefined, endCursor: string | null | undefined } } };
 
 export type GetPlayersQueryVariables = Exact<{
-  filters?: InputMaybe<IPlayerFilters>;
-  pagination?: InputMaybe<PaginationInput>;
+  filters: InputMaybe<IPlayerFilters>;
+  pagination: InputMaybe<PaginationInput>;
 }>;
 
 
-export type GetPlayersQuery = { __typename?: 'Query', players: { __typename?: 'PlayerConnection', totalCount: number, edges: Array<{ __typename?: 'PlayerEdge', cursor: string, node: { __typename?: 'Player', id: string, firstName?: string | null, lastName?: string | null, college?: string | null, affiliation?: string | null, birth?: { __typename?: 'PlayerBirth', date?: string | null, country?: string | null } | null, nba?: { __typename?: 'PlayerNba', start?: number | null, pro?: number | null } | null, height?: { __typename?: 'PlayerHeight', feets?: string | null, inches?: string | null, meters?: string | null } | null, weight?: { __typename?: 'PlayerWeight', pounds?: string | null, kilograms?: string | null } | null, leagues?: { __typename?: 'PlayerLeagues', standard?: { __typename?: 'PlayerStandard', jersey?: string | null, active?: boolean | null, pos?: string | null } | null } | null, seasons_active?: Array<{ __typename?: 'PlayerSeason', season?: string | null, teams?: Array<string> | null }> | null } }> } };
+export type GetPlayersQuery = { players: { totalCount: number, edges: Array<{ cursor: string, node: { id: string, firstName: string | null | undefined, lastName: string | null | undefined, college: string | null | undefined, affiliation: string | null | undefined, birth: { date: string | null | undefined, country: string | null | undefined } | null | undefined, nba: { start: number | null | undefined, pro: number | null | undefined } | null | undefined, height: { feets: string | null | undefined, inches: string | null | undefined, meters: string | null | undefined } | null | undefined, weight: { pounds: string | null | undefined, kilograms: string | null | undefined } | null | undefined, leagues: { standard: { jersey: string | null | undefined, active: boolean | null | undefined, pos: string | null | undefined } | null | undefined } | null | undefined, seasons_active: Array<{ season: string | null | undefined, teams: Array<string> | null | undefined }> | null | undefined } }> } };
 
 export type GetCommentsWithFiltersQueryVariables = Exact<{
-  filters?: InputMaybe<CommentFilters>;
-  pagination?: InputMaybe<PaginationInput>;
+  filters: InputMaybe<CommentFilters>;
+  pagination: InputMaybe<PaginationInput>;
 }>;
 
 
-export type GetCommentsWithFiltersQuery = { __typename?: 'Query', comments: { __typename?: 'CommentConnection', totalCount: number, edges: Array<{ __typename?: 'CommentEdge', cursor: string, node: { __typename?: 'Comment', id: string, userId: string, parentId: string, parentType: ParentType, content: string, createdAt: any, updatedAt: any, deletedAt?: any | null, depth: number, user: { __typename?: 'UserSummary', id: string, username: string, emailAddress?: string | null, imageUrl?: string | null }, reactions: Array<{ __typename?: 'Reaction', id: string, emoji: ReactionEmojiType, userId: string, targetId: string, targetType: ParentType, createdAt: any, updatedAt: any, user: { __typename?: 'UserSummary', id: string, username: string, emailAddress?: string | null, imageUrl?: string | null } }>, childComments: { __typename?: 'CommentConnection', totalCount: number, edges: Array<{ __typename?: 'CommentEdge', node: { __typename?: 'Comment', id: string, userId: string, parentId: string, parentType: ParentType, content: string, createdAt: any, updatedAt: any, deletedAt?: any | null, depth: number, user: { __typename?: 'UserSummary', id: string, username: string, emailAddress?: string | null, imageUrl?: string | null }, reactions: Array<{ __typename?: 'Reaction', id: string, emoji: ReactionEmojiType, userId: string, targetId: string, targetType: ParentType, createdAt: any, updatedAt: any, user: { __typename?: 'UserSummary', id: string, username: string, emailAddress?: string | null, imageUrl?: string | null } }> } }> } } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
+export type GetCommentsWithFiltersQuery = { comments: { totalCount: number, edges: Array<{ cursor: string, node: { id: string, userId: string, parentId: string, parentType: ParentType, content: string, createdAt: IDateTimeScalar, updatedAt: IDateTimeScalar, deletedAt: IDateTimeScalar | null | undefined, depth: number, user: { id: string, username: string, emailAddress: string | null | undefined, imageUrl: string | null | undefined }, reactions: Array<{ id: string, emoji: ReactionEmojiType, userId: string, targetId: string, targetType: ParentType, createdAt: IDateTimeScalar, updatedAt: IDateTimeScalar, user: { id: string, username: string, emailAddress: string | null | undefined, imageUrl: string | null | undefined } }>, childComments: { totalCount: number, edges: Array<{ node: { id: string, userId: string, parentId: string, parentType: ParentType, content: string, createdAt: IDateTimeScalar, updatedAt: IDateTimeScalar, deletedAt: IDateTimeScalar | null | undefined, depth: number, user: { id: string, username: string, emailAddress: string | null | undefined, imageUrl: string | null | undefined }, reactions: Array<{ id: string, emoji: ReactionEmojiType, userId: string, targetId: string, targetType: ParentType, createdAt: IDateTimeScalar, updatedAt: IDateTimeScalar, user: { id: string, username: string, emailAddress: string | null | undefined, imageUrl: string | null | undefined } }> } }> } } }>, pageInfo: { hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null | undefined, endCursor: string | null | undefined } } };
 
 export type GetUsersQueryVariables = Exact<{
-  filters?: InputMaybe<UserFilters>;
-  pagination?: InputMaybe<PaginationInput>;
+  filters: InputMaybe<UserFilters>;
+  pagination: InputMaybe<PaginationInput>;
 }>;
 
 
-export type GetUsersQuery = { __typename?: 'Query', users: Array<{ __typename?: 'UserSummary', id: string, username: string, firstName: string, lastName: string, emailAddress?: string | null, imageUrl?: string | null }> };
+export type GetUsersQuery = { users: Array<{ id: string, username: string, firstName: string, lastName: string, emailAddress: string | null | undefined, imageUrl: string | null | undefined }> };
 
 export type GetUserQueryVariables = Exact<{
   id: Scalars['ID']['input'];
 }>;
 
 
-export type GetUserQuery = { __typename?: 'Query', user?: { __typename?: 'UserSummary', id: string, username: string, firstName: string, lastName: string, emailAddress?: string | null, imageUrl?: string | null } | null };
+export type GetUserQuery = { user: { id: string, username: string, firstName: string, lastName: string, emailAddress: string | null | undefined, imageUrl: string | null | undefined } | null | undefined };
 
 export type GetGameLogsQueryVariables = Exact<{
-  filters?: InputMaybe<GameLogFilters>;
-  pagination?: InputMaybe<PaginationInput>;
+  filters: InputMaybe<GameLogFilters>;
+  pagination: InputMaybe<PaginationInput>;
 }>;
 
 
-export type GetGameLogsQuery = { __typename?: 'Query', gameLogs: { __typename?: 'GameLogConnection', totalCount: number, edges: Array<{ __typename?: 'GameLogEdge', cursor: string, node: { __typename?: 'GameLog', id: string, watchedSetting?: string | null, watchedScope?: string | null, watchedDate?: any | null, watchedLocation?: string | null, ratingForGame: number, notes?: string | null, tags?: Array<string> | null, classification: Classification, createdAt: any, updatedAt: any, user: { __typename?: 'UserSummary', id: string, username: string, firstName: string, lastName: string, emailAddress?: string | null, imageUrl?: string | null }, game: { __typename?: 'Game', id: string, league?: string | null, season?: number | null, officials: Array<string>, timesTied?: number | null, leadChanges?: number | null, nugget?: string | null, createdAt: any, updatedAt: any, date: { __typename?: 'GameDate', start: any, end?: any | null, duration?: number | null }, status: { __typename?: 'GameStatus', clock?: string | null, halftime: boolean, long: string, short: string }, arena?: { __typename?: 'Arena', name: string, city?: string | null, state?: string | null, country?: string | null } | null, periods: { __typename?: 'GamePeriods', current: number, total: number, endOfPeriod: boolean }, teams: { __typename?: 'GameTeams', home: { __typename?: 'TeamSummary', id: string, name: string, nickname: string, code: string, logo?: string | null }, visitors: { __typename?: 'TeamSummary', id: string, name: string, nickname: string, code: string, logo?: string | null } }, scores: { __typename?: 'GameScores', home: { __typename?: 'TeamScore', win: number, loss: number, linescore: Array<number>, points: number, series: { __typename?: 'SeriesScore', win: number, loss: number } }, visitors: { __typename?: 'TeamScore', win: number, loss: number, linescore: Array<number>, points: number, series: { __typename?: 'SeriesScore', win: number, loss: number } } } }, reactions: Array<{ __typename?: 'Reaction', id: string, emoji: ReactionEmojiType, userId: string, targetId: string, targetType: ParentType, createdAt: any, updatedAt: any, user: { __typename?: 'UserSummary', id: string, username: string, emailAddress?: string | null, imageUrl?: string | null } }> } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
+export type GetGameLogsQuery = { gameLogs: { totalCount: number, edges: Array<{ cursor: string, node: { id: string, watchedSetting: string | null | undefined, watchedScope: string | null | undefined, watchedDate: IDateTimeScalar | null | undefined, watchedLocation: string | null | undefined, ratingForGame: number, notes: string | null | undefined, tags: Array<string> | null | undefined, classification: Classification, createdAt: IDateTimeScalar, updatedAt: IDateTimeScalar, user: { id: string, username: string, firstName: string, lastName: string, emailAddress: string | null | undefined, imageUrl: string | null | undefined }, game: { id: string, league: string | null | undefined, season: number | null | undefined, officials: Array<string>, timesTied: number | null | undefined, leadChanges: number | null | undefined, nugget: string | null | undefined, createdAt: IDateTimeScalar, updatedAt: IDateTimeScalar, date: { start: IDateTimeScalar, end: IDateTimeScalar | null | undefined, duration: number | null | undefined }, status: { clock: string | null | undefined, halftime: boolean, long: string, short: string }, arena: { name: string, city: string | null | undefined, state: string | null | undefined, country: string | null | undefined } | null | undefined, periods: { current: number, total: number, endOfPeriod: boolean }, teams: { home: { id: string, name: string, nickname: string, code: string, logo: string | null | undefined }, visitors: { id: string, name: string, nickname: string, code: string, logo: string | null | undefined } }, scores: { home: { win: number, loss: number, linescore: Array<number>, points: number, series: { win: number, loss: number } }, visitors: { win: number, loss: number, linescore: Array<number>, points: number, series: { win: number, loss: number } } } }, reactions: Array<{ id: string, emoji: ReactionEmojiType, userId: string, targetId: string, targetType: ParentType, createdAt: IDateTimeScalar, updatedAt: IDateTimeScalar, user: { id: string, username: string, emailAddress: string | null | undefined, imageUrl: string | null | undefined } }> } }>, pageInfo: { hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null | undefined, endCursor: string | null | undefined } } };
 
 export type GetLiveGamesQueryVariables = Exact<{
-  first?: InputMaybe<Scalars['Int']['input']>;
-  after?: InputMaybe<Scalars['String']['input']>;
+  first: InputMaybe<Scalars['Int']['input']>;
+  after: InputMaybe<Scalars['String']['input']>;
 }>;
 
 
-export type GetLiveGamesQuery = { __typename?: 'Query', liveGames: { __typename?: 'GameConnection', totalCount: number, edges: Array<{ __typename?: 'GameEdge', cursor: string, node: { __typename?: 'Game', id: string, league?: string | null, season?: number | null, officials: Array<string>, timesTied?: number | null, leadChanges?: number | null, nugget?: string | null, createdAt: any, updatedAt: any, date: { __typename?: 'GameDate', start: any, end?: any | null, duration?: number | null }, status: { __typename?: 'GameStatus', clock?: string | null, halftime: boolean, long: string, short: string }, arena?: { __typename?: 'Arena', name: string, city?: string | null, state?: string | null, country?: string | null } | null, periods: { __typename?: 'GamePeriods', current: number, total: number, endOfPeriod: boolean }, teams: { __typename?: 'GameTeams', home: { __typename?: 'TeamSummary', id: string, name: string, nickname: string, code: string, logo?: string | null }, visitors: { __typename?: 'TeamSummary', id: string, name: string, nickname: string, code: string, logo?: string | null } }, scores: { __typename?: 'GameScores', home: { __typename?: 'TeamScore', win: number, loss: number, linescore: Array<number>, points: number, series: { __typename?: 'SeriesScore', win: number, loss: number } }, visitors: { __typename?: 'TeamScore', win: number, loss: number, linescore: Array<number>, points: number, series: { __typename?: 'SeriesScore', win: number, loss: number } } } } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
+export type GetLiveGamesQuery = { liveGames: { totalCount: number, edges: Array<{ cursor: string, node: { id: string, league: string | null | undefined, season: number | null | undefined, officials: Array<string>, timesTied: number | null | undefined, leadChanges: number | null | undefined, nugget: string | null | undefined, createdAt: IDateTimeScalar, updatedAt: IDateTimeScalar, date: { start: IDateTimeScalar, end: IDateTimeScalar | null | undefined, duration: number | null | undefined }, status: { clock: string | null | undefined, halftime: boolean, long: string, short: string }, arena: { name: string, city: string | null | undefined, state: string | null | undefined, country: string | null | undefined } | null | undefined, periods: { current: number, total: number, endOfPeriod: boolean }, teams: { home: { id: string, name: string, nickname: string, code: string, logo: string | null | undefined }, visitors: { id: string, name: string, nickname: string, code: string, logo: string | null | undefined } }, scores: { home: { win: number, loss: number, linescore: Array<number>, points: number, series: { win: number, loss: number } }, visitors: { win: number, loss: number, linescore: Array<number>, points: number, series: { win: number, loss: number } } } } }>, pageInfo: { hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null | undefined, endCursor: string | null | undefined } } };
 
 export type GetTeamStatsQueryVariables = Exact<{
   teamId: Scalars['ID']['input'];
@@ -1129,15 +1066,15 @@ export type GetTeamStatsQueryVariables = Exact<{
 }>;
 
 
-export type GetTeamStatsQuery = { __typename?: 'Query', teamStats?: { __typename?: 'ITeamStats', games: number, points: number, fgp: number, tpp: number, ftp: number, totReb: number, assists: number, steals: number, blocks: number, turnovers: number, pFouls: number, plusMinus: number, fastBreakPoints: number, pointsInPaint: number, biggestLead: number, secondChancePoints: number, pointsOffTurnovers: number, longestRun: number, assistsPerGame: number, blocksPerGame: number, pointsPerGame: number, reboundsPerGame: number, stealsPerGame: number, turnoversPerGame: number } | null };
+export type GetTeamStatsQuery = { teamStats: { games: number, points: number, fgp: number, tpp: number, ftp: number, totReb: number, assists: number, steals: number, blocks: number, turnovers: number, pFouls: number, plusMinus: number, fastBreakPoints: number, pointsInPaint: number, biggestLead: number, secondChancePoints: number, pointsOffTurnovers: number, longestRun: number, assistsPerGame: number, blocksPerGame: number, pointsPerGame: number, reboundsPerGame: number, stealsPerGame: number, turnoversPerGame: number } | null | undefined };
 
 export type GetGamesQueryVariables = Exact<{
-  filters?: InputMaybe<GameFilters>;
-  pagination?: InputMaybe<PaginationInput>;
+  filters: InputMaybe<GameFilters>;
+  pagination: InputMaybe<PaginationInput>;
 }>;
 
 
-export type GetGamesQuery = { __typename?: 'Query', games: { __typename?: 'GameConnection', totalCount: number, edges: Array<{ __typename?: 'GameEdge', cursor: string, node: { __typename?: 'Game', id: string, league?: string | null, season?: number | null, officials: Array<string>, timesTied?: number | null, leadChanges?: number | null, nugget?: string | null, createdAt: any, updatedAt: any, date: { __typename?: 'GameDate', start: any, end?: any | null, duration?: number | null }, status: { __typename?: 'GameStatus', clock?: string | null, halftime: boolean, long: string, short: string }, arena?: { __typename?: 'Arena', name: string, city?: string | null, state?: string | null, country?: string | null } | null, periods: { __typename?: 'GamePeriods', current: number, total: number, endOfPeriod: boolean }, teams: { __typename?: 'GameTeams', home: { __typename?: 'TeamSummary', id: string, name: string, nickname: string, code: string, logo?: string | null }, visitors: { __typename?: 'TeamSummary', id: string, name: string, nickname: string, code: string, logo?: string | null } }, scores: { __typename?: 'GameScores', home: { __typename?: 'TeamScore', win: number, loss: number, linescore: Array<number>, points: number, series: { __typename?: 'SeriesScore', win: number, loss: number } }, visitors: { __typename?: 'TeamScore', win: number, loss: number, linescore: Array<number>, points: number, series: { __typename?: 'SeriesScore', win: number, loss: number } } } } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
+export type GetGamesQuery = { games: { totalCount: number, edges: Array<{ cursor: string, node: { id: string, league: string | null | undefined, season: number | null | undefined, officials: Array<string>, timesTied: number | null | undefined, leadChanges: number | null | undefined, nugget: string | null | undefined, createdAt: IDateTimeScalar, updatedAt: IDateTimeScalar, date: { start: IDateTimeScalar, end: IDateTimeScalar | null | undefined, duration: number | null | undefined }, status: { clock: string | null | undefined, halftime: boolean, long: string, short: string }, arena: { name: string, city: string | null | undefined, state: string | null | undefined, country: string | null | undefined } | null | undefined, periods: { current: number, total: number, endOfPeriod: boolean }, teams: { home: { id: string, name: string, nickname: string, code: string, logo: string | null | undefined }, visitors: { id: string, name: string, nickname: string, code: string, logo: string | null | undefined } }, scores: { home: { win: number, loss: number, linescore: Array<number>, points: number, series: { win: number, loss: number } }, visitors: { win: number, loss: number, linescore: Array<number>, points: number, series: { win: number, loss: number } } } } }>, pageInfo: { hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null | undefined, endCursor: string | null | undefined } } };
 
 export type GetReactionsQueryVariables = Exact<{
   targetId: Scalars['ID']['input'];
@@ -1145,41 +1082,41 @@ export type GetReactionsQueryVariables = Exact<{
 }>;
 
 
-export type GetReactionsQuery = { __typename?: 'Query', reactions: Array<{ __typename?: 'Reaction', id: string, emoji: ReactionEmojiType, userId: string, targetId: string, targetType: ParentType, createdAt: any, updatedAt: any, user: { __typename?: 'UserSummary', id: string, username: string, firstName: string, lastName: string, emailAddress?: string | null, imageUrl?: string | null } }> };
+export type GetReactionsQuery = { reactions: Array<{ id: string, emoji: ReactionEmojiType, userId: string, targetId: string, targetType: ParentType, createdAt: IDateTimeScalar, updatedAt: IDateTimeScalar, user: { id: string, username: string, firstName: string, lastName: string, emailAddress: string | null | undefined, imageUrl: string | null | undefined } }> };
 
 export type SearchUsersQueryVariables = Exact<{
-  first?: InputMaybe<Scalars['Int']['input']>;
-  after?: InputMaybe<Scalars['String']['input']>;
-  searchTerm?: InputMaybe<Scalars['String']['input']>;
-  filters?: InputMaybe<UserSearchFilters>;
+  first: InputMaybe<Scalars['Int']['input']>;
+  after: InputMaybe<Scalars['String']['input']>;
+  searchTerm: InputMaybe<Scalars['String']['input']>;
+  filters: InputMaybe<UserSearchFilters>;
 }>;
 
 
-export type SearchUsersQuery = { __typename?: 'Query', searchUsers: { __typename?: 'UserConnection', totalCount: number, edges: Array<{ __typename?: 'UserEdge', cursor: string, node: { __typename?: 'UserSummary', id: string, username: string, firstName: string, lastName: string, emailAddress?: string | null, imageUrl?: string | null } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
+export type SearchUsersQuery = { searchUsers: { totalCount: number, edges: Array<{ cursor: string, node: { id: string, username: string, firstName: string, lastName: string, emailAddress: string | null | undefined, imageUrl: string | null | undefined } }>, pageInfo: { hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null | undefined, endCursor: string | null | undefined } } };
 
 export type GetGameLogQueryVariables = Exact<{
   id: Scalars['ID']['input'];
-  commentsFirst?: InputMaybe<Scalars['Int']['input']>;
-  commentsAfter?: InputMaybe<Scalars['String']['input']>;
+  commentsFirst: InputMaybe<Scalars['Int']['input']>;
+  commentsAfter: InputMaybe<Scalars['String']['input']>;
 }>;
 
 
-export type GetGameLogQuery = { __typename?: 'Query', gameLog?: { __typename?: 'GameLog', id: string, watchedSetting?: string | null, watchedScope?: string | null, watchedDate?: any | null, watchedLocation?: string | null, ratingForGame: number, notes?: string | null, tags?: Array<string> | null, classification: Classification, createdAt: any, updatedAt: any, reactions: Array<{ __typename?: 'Reaction', id: string, emoji: ReactionEmojiType, userId: string, targetId: string, targetType: ParentType, createdAt: any, updatedAt: any, user: { __typename?: 'UserSummary', id: string, username: string, emailAddress?: string | null, imageUrl?: string | null } }>, comments: { __typename?: 'CommentConnection', totalCount: number, edges: Array<{ __typename?: 'CommentEdge', cursor: string, node: { __typename?: 'Comment', id: string, content: string, user: { __typename?: 'UserSummary', id: string, username: string, imageUrl?: string | null } } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null } }, user: { __typename?: 'UserSummary', id: string, username: string, firstName: string, lastName: string, emailAddress?: string | null, imageUrl?: string | null }, game: { __typename?: 'Game', id: string, league?: string | null, season?: number | null, officials: Array<string>, timesTied?: number | null, leadChanges?: number | null, nugget?: string | null, createdAt: any, updatedAt: any, date: { __typename?: 'GameDate', start: any, end?: any | null, duration?: number | null }, status: { __typename?: 'GameStatus', clock?: string | null, halftime: boolean, long: string, short: string }, arena?: { __typename?: 'Arena', name: string, city?: string | null, state?: string | null, country?: string | null } | null, periods: { __typename?: 'GamePeriods', current: number, total: number, endOfPeriod: boolean }, teams: { __typename?: 'GameTeams', home: { __typename?: 'TeamSummary', id: string, name: string, nickname: string, code: string, logo?: string | null }, visitors: { __typename?: 'TeamSummary', id: string, name: string, nickname: string, code: string, logo?: string | null } }, scores: { __typename?: 'GameScores', home: { __typename?: 'TeamScore', win: number, loss: number, linescore: Array<number>, points: number, series: { __typename?: 'SeriesScore', win: number, loss: number } }, visitors: { __typename?: 'TeamScore', win: number, loss: number, linescore: Array<number>, points: number, series: { __typename?: 'SeriesScore', win: number, loss: number } } } } } | null };
+export type GetGameLogQuery = { gameLog: { id: string, watchedSetting: string | null | undefined, watchedScope: string | null | undefined, watchedDate: IDateTimeScalar | null | undefined, watchedLocation: string | null | undefined, ratingForGame: number, notes: string | null | undefined, tags: Array<string> | null | undefined, classification: Classification, createdAt: IDateTimeScalar, updatedAt: IDateTimeScalar, reactions: Array<{ id: string, emoji: ReactionEmojiType, userId: string, targetId: string, targetType: ParentType, createdAt: IDateTimeScalar, updatedAt: IDateTimeScalar, user: { id: string, username: string, emailAddress: string | null | undefined, imageUrl: string | null | undefined } }>, comments: { totalCount: number, edges: Array<{ cursor: string, node: { id: string, content: string, user: { id: string, username: string, imageUrl: string | null | undefined } } }>, pageInfo: { hasNextPage: boolean, endCursor: string | null | undefined } }, user: { id: string, username: string, firstName: string, lastName: string, emailAddress: string | null | undefined, imageUrl: string | null | undefined }, game: { id: string, league: string | null | undefined, season: number | null | undefined, officials: Array<string>, timesTied: number | null | undefined, leadChanges: number | null | undefined, nugget: string | null | undefined, createdAt: IDateTimeScalar, updatedAt: IDateTimeScalar, date: { start: IDateTimeScalar, end: IDateTimeScalar | null | undefined, duration: number | null | undefined }, status: { clock: string | null | undefined, halftime: boolean, long: string, short: string }, arena: { name: string, city: string | null | undefined, state: string | null | undefined, country: string | null | undefined } | null | undefined, periods: { current: number, total: number, endOfPeriod: boolean }, teams: { home: { id: string, name: string, nickname: string, code: string, logo: string | null | undefined }, visitors: { id: string, name: string, nickname: string, code: string, logo: string | null | undefined } }, scores: { home: { win: number, loss: number, linescore: Array<number>, points: number, series: { win: number, loss: number } }, visitors: { win: number, loss: number, linescore: Array<number>, points: number, series: { win: number, loss: number } } } } } | null | undefined };
 
 export type GetUserGameLogsQueryVariables = Exact<{
-  filters?: InputMaybe<GameLogFilters>;
-  pagination?: InputMaybe<PaginationInput>;
+  filters: InputMaybe<GameLogFilters>;
+  pagination: InputMaybe<PaginationInput>;
 }>;
 
 
-export type GetUserGameLogsQuery = { __typename?: 'Query', gameLogs: { __typename?: 'GameLogConnection', totalCount: number, edges: Array<{ __typename?: 'GameLogEdge', node: { __typename?: 'GameLog', id: string, watchedSetting?: string | null, watchedScope?: string | null, watchedDate?: any | null, watchedLocation?: string | null, ratingForGame: number, notes?: string | null, tags?: Array<string> | null, classification: Classification, createdAt: any, updatedAt: any, user: { __typename?: 'UserSummary', id: string, username: string, firstName: string, lastName: string, emailAddress?: string | null, imageUrl?: string | null }, game: { __typename?: 'Game', id: string, league?: string | null, season?: number | null, officials: Array<string>, timesTied?: number | null, leadChanges?: number | null, nugget?: string | null, createdAt: any, updatedAt: any, date: { __typename?: 'GameDate', start: any, end?: any | null, duration?: number | null }, status: { __typename?: 'GameStatus', clock?: string | null, halftime: boolean, long: string, short: string }, arena?: { __typename?: 'Arena', name: string, city?: string | null, state?: string | null, country?: string | null } | null, periods: { __typename?: 'GamePeriods', current: number, total: number, endOfPeriod: boolean }, teams: { __typename?: 'GameTeams', home: { __typename?: 'TeamSummary', id: string, name: string, nickname: string, code: string, logo?: string | null }, visitors: { __typename?: 'TeamSummary', id: string, name: string, nickname: string, code: string, logo?: string | null } }, scores: { __typename?: 'GameScores', home: { __typename?: 'TeamScore', win: number, loss: number, linescore: Array<number>, points: number, series: { __typename?: 'SeriesScore', win: number, loss: number } }, visitors: { __typename?: 'TeamScore', win: number, loss: number, linescore: Array<number>, points: number, series: { __typename?: 'SeriesScore', win: number, loss: number } } } }, reactions: Array<{ __typename?: 'Reaction', id: string, emoji: ReactionEmojiType, userId: string, targetId: string, targetType: ParentType, createdAt: any, updatedAt: any, user: { __typename?: 'UserSummary', id: string, username: string, emailAddress?: string | null, imageUrl?: string | null } }> } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
+export type GetUserGameLogsQuery = { gameLogs: { totalCount: number, edges: Array<{ node: { id: string, watchedSetting: string | null | undefined, watchedScope: string | null | undefined, watchedDate: IDateTimeScalar | null | undefined, watchedLocation: string | null | undefined, ratingForGame: number, notes: string | null | undefined, tags: Array<string> | null | undefined, classification: Classification, createdAt: IDateTimeScalar, updatedAt: IDateTimeScalar, user: { id: string, username: string, firstName: string, lastName: string, emailAddress: string | null | undefined, imageUrl: string | null | undefined }, game: { id: string, league: string | null | undefined, season: number | null | undefined, officials: Array<string>, timesTied: number | null | undefined, leadChanges: number | null | undefined, nugget: string | null | undefined, createdAt: IDateTimeScalar, updatedAt: IDateTimeScalar, date: { start: IDateTimeScalar, end: IDateTimeScalar | null | undefined, duration: number | null | undefined }, status: { clock: string | null | undefined, halftime: boolean, long: string, short: string }, arena: { name: string, city: string | null | undefined, state: string | null | undefined, country: string | null | undefined } | null | undefined, periods: { current: number, total: number, endOfPeriod: boolean }, teams: { home: { id: string, name: string, nickname: string, code: string, logo: string | null | undefined }, visitors: { id: string, name: string, nickname: string, code: string, logo: string | null | undefined } }, scores: { home: { win: number, loss: number, linescore: Array<number>, points: number, series: { win: number, loss: number } }, visitors: { win: number, loss: number, linescore: Array<number>, points: number, series: { win: number, loss: number } } } }, reactions: Array<{ id: string, emoji: ReactionEmojiType, userId: string, targetId: string, targetType: ParentType, createdAt: IDateTimeScalar, updatedAt: IDateTimeScalar, user: { id: string, username: string, emailAddress: string | null | undefined, imageUrl: string | null | undefined } }> } }>, pageInfo: { hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null | undefined, endCursor: string | null | undefined } } };
 
 export type GetUserFriendshipsQueryVariables = Exact<{
   userId: Scalars['ID']['input'];
 }>;
 
 
-export type GetUserFriendshipsQuery = { __typename?: 'Query', user?: { __typename?: 'UserSummary', id: string, username: string, firstName: string, lastName: string, emailAddress?: string | null, imageUrl?: string | null } | null };
+export type GetUserFriendshipsQuery = { user: { id: string, username: string, firstName: string, lastName: string, emailAddress: string | null | undefined, imageUrl: string | null | undefined } | null | undefined };
 
 export type GetTeamH2HQueryVariables = Exact<{
   teamId: Scalars['ID']['input'];
@@ -1187,7 +1124,7 @@ export type GetTeamH2HQueryVariables = Exact<{
 }>;
 
 
-export type GetTeamH2HQuery = { __typename?: 'Query', teamH2H?: { __typename?: 'ITeamH2H', wins: number, losses: number, lastTenGames?: string | null } | null };
+export type GetTeamH2HQuery = { teamH2H: { wins: number, losses: number, lastTenGames: string | null | undefined } | null | undefined };
 
 export type GetTeamGameStatsQueryVariables = Exact<{
   gameId: Scalars['ID']['input'];
@@ -1195,49 +1132,901 @@ export type GetTeamGameStatsQueryVariables = Exact<{
 }>;
 
 
-export type GetTeamGameStatsQuery = { __typename?: 'Query', teamGameStats?: { __typename?: 'ITeamStats', games: number, points: number, fgp: number, tpp: number, ftp: number, totReb: number, assists: number, steals: number, blocks: number, turnovers: number, pFouls: number, plusMinus: number, fastBreakPoints: number, pointsInPaint: number, biggestLead: number, secondChancePoints: number, pointsOffTurnovers: number, longestRun: number, assistsPerGame: number, blocksPerGame: number, pointsPerGame: number, reboundsPerGame: number, stealsPerGame: number, turnoversPerGame: number } | null };
+export type GetTeamGameStatsQuery = { teamGameStats: { games: number, points: number, fgp: number, tpp: number, ftp: number, totReb: number, assists: number, steals: number, blocks: number, turnovers: number, pFouls: number, plusMinus: number, fastBreakPoints: number, pointsInPaint: number, biggestLead: number, secondChancePoints: number, pointsOffTurnovers: number, longestRun: number, assistsPerGame: number, blocksPerGame: number, pointsPerGame: number, reboundsPerGame: number, stealsPerGame: number, turnoversPerGame: number } | null | undefined };
 
 export type GetMeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetMeQuery = { __typename?: 'Query', me?: { __typename?: 'UserSummary', id: string, username: string, firstName: string, lastName: string, emailAddress?: string | null, imageUrl?: string | null } | null };
+export type GetMeQuery = { me: { id: string, username: string, firstName: string, lastName: string, emailAddress: string | null | undefined, imageUrl: string | null | undefined } | null | undefined };
 
-export const PlayerFragmentFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"PlayerFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Player"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"firstName"}},{"kind":"Field","name":{"kind":"Name","value":"lastName"}},{"kind":"Field","name":{"kind":"Name","value":"birth"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"date"}},{"kind":"Field","name":{"kind":"Name","value":"country"}}]}},{"kind":"Field","name":{"kind":"Name","value":"nba"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"start"}},{"kind":"Field","name":{"kind":"Name","value":"pro"}}]}},{"kind":"Field","name":{"kind":"Name","value":"height"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"feets"}},{"kind":"Field","name":{"kind":"Name","value":"inches"}},{"kind":"Field","name":{"kind":"Name","value":"meters"}}]}},{"kind":"Field","name":{"kind":"Name","value":"weight"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"pounds"}},{"kind":"Field","name":{"kind":"Name","value":"kilograms"}}]}},{"kind":"Field","name":{"kind":"Name","value":"college"}},{"kind":"Field","name":{"kind":"Name","value":"affiliation"}},{"kind":"Field","name":{"kind":"Name","value":"leagues"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"standard"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"jersey"}},{"kind":"Field","name":{"kind":"Name","value":"active"}},{"kind":"Field","name":{"kind":"Name","value":"pos"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"seasons_active"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"season"}},{"kind":"Field","name":{"kind":"Name","value":"teams"}}]}}]}}]} as unknown as DocumentNode<PlayerFragmentFragment, unknown>;
-export const PlayerStatsFragmentFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"PlayerStatsFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"IPlayerStats"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"playerId"}},{"kind":"Field","name":{"kind":"Name","value":"gameId"}},{"kind":"Field","name":{"kind":"Name","value":"points"}},{"kind":"Field","name":{"kind":"Name","value":"assists"}},{"kind":"Field","name":{"kind":"Name","value":"rebounds"}},{"kind":"Field","name":{"kind":"Name","value":"steals"}},{"kind":"Field","name":{"kind":"Name","value":"blocks"}},{"kind":"Field","name":{"kind":"Name","value":"turnovers"}},{"kind":"Field","name":{"kind":"Name","value":"fouls"}},{"kind":"Field","name":{"kind":"Name","value":"minutes"}},{"kind":"Field","name":{"kind":"Name","value":"fieldGoalsMade"}},{"kind":"Field","name":{"kind":"Name","value":"fieldGoalsAttempted"}},{"kind":"Field","name":{"kind":"Name","value":"threePointersMade"}},{"kind":"Field","name":{"kind":"Name","value":"threePointersAttempted"}},{"kind":"Field","name":{"kind":"Name","value":"freeThrowsMade"}},{"kind":"Field","name":{"kind":"Name","value":"freeThrowsAttempted"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"deletedAt"}}]}}]} as unknown as DocumentNode<PlayerStatsFragmentFragment, unknown>;
-export const BasicUserFragmentFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"BasicUserFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"DBUser"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"username"}},{"kind":"Field","name":{"kind":"Name","value":"firstName"}},{"kind":"Field","name":{"kind":"Name","value":"lastName"}},{"kind":"Field","name":{"kind":"Name","value":"emailAddress"}},{"kind":"Field","name":{"kind":"Name","value":"imageUrl"}},{"kind":"Field","name":{"kind":"Name","value":"comments"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"parentId"}},{"kind":"Field","name":{"kind":"Name","value":"parentType"}},{"kind":"Field","name":{"kind":"Name","value":"content"}}]}},{"kind":"Field","name":{"kind":"Name","value":"reactions"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"emoji"}},{"kind":"Field","name":{"kind":"Name","value":"targetId"}},{"kind":"Field","name":{"kind":"Name","value":"targetType"}}]}},{"kind":"Field","name":{"kind":"Name","value":"gameLogs"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}},{"kind":"Field","name":{"kind":"Name","value":"initiatedFriendships"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"status"}}]}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"deletedAt"}}]}}]} as unknown as DocumentNode<BasicUserFragmentFragment, unknown>;
-export const UserSummaryFragmentFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"UserSummaryFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"UserSummary"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"username"}},{"kind":"Field","name":{"kind":"Name","value":"firstName"}},{"kind":"Field","name":{"kind":"Name","value":"lastName"}},{"kind":"Field","name":{"kind":"Name","value":"emailAddress"}},{"kind":"Field","name":{"kind":"Name","value":"imageUrl"}}]}}]} as unknown as DocumentNode<UserSummaryFragmentFragment, unknown>;
-export const CommentFragmentFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"CommentFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Comment"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"user"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"UserSummaryFragment"}}]}},{"kind":"Field","name":{"kind":"Name","value":"userId"}},{"kind":"Field","name":{"kind":"Name","value":"parentId"}},{"kind":"Field","name":{"kind":"Name","value":"parentType"}},{"kind":"Field","name":{"kind":"Name","value":"content"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"deletedAt"}},{"kind":"Field","name":{"kind":"Name","value":"depth"}},{"kind":"Field","name":{"kind":"Name","value":"reactions"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"emoji"}},{"kind":"Field","name":{"kind":"Name","value":"user"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"UserSummaryFragment"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"childComments"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"edges"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"node"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"userId"}},{"kind":"Field","name":{"kind":"Name","value":"parentId"}},{"kind":"Field","name":{"kind":"Name","value":"parentType"}},{"kind":"Field","name":{"kind":"Name","value":"content"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"deletedAt"}},{"kind":"Field","name":{"kind":"Name","value":"depth"}},{"kind":"Field","name":{"kind":"Name","value":"user"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"UserSummaryFragment"}}]}},{"kind":"Field","name":{"kind":"Name","value":"reactions"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"emoji"}},{"kind":"Field","name":{"kind":"Name","value":"user"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"UserSummaryFragment"}}]}}]}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"totalCount"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"UserSummaryFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"UserSummary"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"username"}},{"kind":"Field","name":{"kind":"Name","value":"firstName"}},{"kind":"Field","name":{"kind":"Name","value":"lastName"}},{"kind":"Field","name":{"kind":"Name","value":"emailAddress"}},{"kind":"Field","name":{"kind":"Name","value":"imageUrl"}}]}}]} as unknown as DocumentNode<CommentFragmentFragment, unknown>;
-export const GameFragmentFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"GameFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Game"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"date"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"start"}},{"kind":"Field","name":{"kind":"Name","value":"end"}},{"kind":"Field","name":{"kind":"Name","value":"duration"}}]}},{"kind":"Field","name":{"kind":"Name","value":"status"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"clock"}},{"kind":"Field","name":{"kind":"Name","value":"halftime"}},{"kind":"Field","name":{"kind":"Name","value":"long"}},{"kind":"Field","name":{"kind":"Name","value":"short"}}]}},{"kind":"Field","name":{"kind":"Name","value":"arena"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"city"}},{"kind":"Field","name":{"kind":"Name","value":"state"}},{"kind":"Field","name":{"kind":"Name","value":"country"}}]}},{"kind":"Field","name":{"kind":"Name","value":"league"}},{"kind":"Field","name":{"kind":"Name","value":"season"}},{"kind":"Field","name":{"kind":"Name","value":"periods"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"current"}},{"kind":"Field","name":{"kind":"Name","value":"total"}},{"kind":"Field","name":{"kind":"Name","value":"endOfPeriod"}}]}},{"kind":"Field","name":{"kind":"Name","value":"teams"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"home"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"nickname"}},{"kind":"Field","name":{"kind":"Name","value":"code"}},{"kind":"Field","name":{"kind":"Name","value":"logo"}}]}},{"kind":"Field","name":{"kind":"Name","value":"visitors"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"nickname"}},{"kind":"Field","name":{"kind":"Name","value":"code"}},{"kind":"Field","name":{"kind":"Name","value":"logo"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"scores"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"home"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"win"}},{"kind":"Field","name":{"kind":"Name","value":"loss"}},{"kind":"Field","name":{"kind":"Name","value":"series"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"win"}},{"kind":"Field","name":{"kind":"Name","value":"loss"}}]}},{"kind":"Field","name":{"kind":"Name","value":"linescore"}},{"kind":"Field","name":{"kind":"Name","value":"points"}}]}},{"kind":"Field","name":{"kind":"Name","value":"visitors"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"win"}},{"kind":"Field","name":{"kind":"Name","value":"loss"}},{"kind":"Field","name":{"kind":"Name","value":"series"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"win"}},{"kind":"Field","name":{"kind":"Name","value":"loss"}}]}},{"kind":"Field","name":{"kind":"Name","value":"linescore"}},{"kind":"Field","name":{"kind":"Name","value":"points"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"officials"}},{"kind":"Field","name":{"kind":"Name","value":"timesTied"}},{"kind":"Field","name":{"kind":"Name","value":"leadChanges"}},{"kind":"Field","name":{"kind":"Name","value":"nugget"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}}]}}]} as unknown as DocumentNode<GameFragmentFragment, unknown>;
-export const GameLogFragmentFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"GameLogFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"GameLog"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"user"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"UserSummaryFragment"}}]}},{"kind":"Field","name":{"kind":"Name","value":"game"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"GameFragment"}}]}},{"kind":"Field","name":{"kind":"Name","value":"watchedSetting"}},{"kind":"Field","name":{"kind":"Name","value":"watchedScope"}},{"kind":"Field","name":{"kind":"Name","value":"watchedDate"}},{"kind":"Field","name":{"kind":"Name","value":"watchedLocation"}},{"kind":"Field","name":{"kind":"Name","value":"ratingForGame"}},{"kind":"Field","name":{"kind":"Name","value":"notes"}},{"kind":"Field","name":{"kind":"Name","value":"tags"}},{"kind":"Field","name":{"kind":"Name","value":"classification"}},{"kind":"Field","name":{"kind":"Name","value":"reactions"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"emoji"}},{"kind":"Field","name":{"kind":"Name","value":"userId"}},{"kind":"Field","name":{"kind":"Name","value":"targetId"}},{"kind":"Field","name":{"kind":"Name","value":"targetType"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"user"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"username"}},{"kind":"Field","name":{"kind":"Name","value":"emailAddress"}},{"kind":"Field","name":{"kind":"Name","value":"imageUrl"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"UserSummaryFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"UserSummary"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"username"}},{"kind":"Field","name":{"kind":"Name","value":"firstName"}},{"kind":"Field","name":{"kind":"Name","value":"lastName"}},{"kind":"Field","name":{"kind":"Name","value":"emailAddress"}},{"kind":"Field","name":{"kind":"Name","value":"imageUrl"}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"GameFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Game"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"date"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"start"}},{"kind":"Field","name":{"kind":"Name","value":"end"}},{"kind":"Field","name":{"kind":"Name","value":"duration"}}]}},{"kind":"Field","name":{"kind":"Name","value":"status"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"clock"}},{"kind":"Field","name":{"kind":"Name","value":"halftime"}},{"kind":"Field","name":{"kind":"Name","value":"long"}},{"kind":"Field","name":{"kind":"Name","value":"short"}}]}},{"kind":"Field","name":{"kind":"Name","value":"arena"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"city"}},{"kind":"Field","name":{"kind":"Name","value":"state"}},{"kind":"Field","name":{"kind":"Name","value":"country"}}]}},{"kind":"Field","name":{"kind":"Name","value":"league"}},{"kind":"Field","name":{"kind":"Name","value":"season"}},{"kind":"Field","name":{"kind":"Name","value":"periods"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"current"}},{"kind":"Field","name":{"kind":"Name","value":"total"}},{"kind":"Field","name":{"kind":"Name","value":"endOfPeriod"}}]}},{"kind":"Field","name":{"kind":"Name","value":"teams"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"home"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"nickname"}},{"kind":"Field","name":{"kind":"Name","value":"code"}},{"kind":"Field","name":{"kind":"Name","value":"logo"}}]}},{"kind":"Field","name":{"kind":"Name","value":"visitors"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"nickname"}},{"kind":"Field","name":{"kind":"Name","value":"code"}},{"kind":"Field","name":{"kind":"Name","value":"logo"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"scores"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"home"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"win"}},{"kind":"Field","name":{"kind":"Name","value":"loss"}},{"kind":"Field","name":{"kind":"Name","value":"series"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"win"}},{"kind":"Field","name":{"kind":"Name","value":"loss"}}]}},{"kind":"Field","name":{"kind":"Name","value":"linescore"}},{"kind":"Field","name":{"kind":"Name","value":"points"}}]}},{"kind":"Field","name":{"kind":"Name","value":"visitors"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"win"}},{"kind":"Field","name":{"kind":"Name","value":"loss"}},{"kind":"Field","name":{"kind":"Name","value":"series"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"win"}},{"kind":"Field","name":{"kind":"Name","value":"loss"}}]}},{"kind":"Field","name":{"kind":"Name","value":"linescore"}},{"kind":"Field","name":{"kind":"Name","value":"points"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"officials"}},{"kind":"Field","name":{"kind":"Name","value":"timesTied"}},{"kind":"Field","name":{"kind":"Name","value":"leadChanges"}},{"kind":"Field","name":{"kind":"Name","value":"nugget"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}}]}}]} as unknown as DocumentNode<GameLogFragmentFragment, unknown>;
-export const CreateGameDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"CreateGame"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"CreateGameInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"createGame"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"game"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"league"}},{"kind":"Field","name":{"kind":"Name","value":"season"}},{"kind":"Field","name":{"kind":"Name","value":"date"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"start"}},{"kind":"Field","name":{"kind":"Name","value":"end"}},{"kind":"Field","name":{"kind":"Name","value":"duration"}}]}},{"kind":"Field","name":{"kind":"Name","value":"status"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"clock"}},{"kind":"Field","name":{"kind":"Name","value":"halftime"}},{"kind":"Field","name":{"kind":"Name","value":"short"}},{"kind":"Field","name":{"kind":"Name","value":"long"}}]}},{"kind":"Field","name":{"kind":"Name","value":"periods"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"current"}},{"kind":"Field","name":{"kind":"Name","value":"total"}},{"kind":"Field","name":{"kind":"Name","value":"endOfPeriod"}}]}},{"kind":"Field","name":{"kind":"Name","value":"arena"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"city"}},{"kind":"Field","name":{"kind":"Name","value":"state"}},{"kind":"Field","name":{"kind":"Name","value":"country"}}]}},{"kind":"Field","name":{"kind":"Name","value":"teams"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"home"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"nickname"}},{"kind":"Field","name":{"kind":"Name","value":"code"}},{"kind":"Field","name":{"kind":"Name","value":"logo"}}]}},{"kind":"Field","name":{"kind":"Name","value":"visitors"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"nickname"}},{"kind":"Field","name":{"kind":"Name","value":"code"}},{"kind":"Field","name":{"kind":"Name","value":"logo"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"scores"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"home"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"win"}},{"kind":"Field","name":{"kind":"Name","value":"loss"}},{"kind":"Field","name":{"kind":"Name","value":"series"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"win"}},{"kind":"Field","name":{"kind":"Name","value":"loss"}}]}},{"kind":"Field","name":{"kind":"Name","value":"linescore"}},{"kind":"Field","name":{"kind":"Name","value":"points"}}]}},{"kind":"Field","name":{"kind":"Name","value":"visitors"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"win"}},{"kind":"Field","name":{"kind":"Name","value":"loss"}},{"kind":"Field","name":{"kind":"Name","value":"series"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"win"}},{"kind":"Field","name":{"kind":"Name","value":"loss"}}]}},{"kind":"Field","name":{"kind":"Name","value":"linescore"}},{"kind":"Field","name":{"kind":"Name","value":"points"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"officials"}},{"kind":"Field","name":{"kind":"Name","value":"timesTied"}},{"kind":"Field","name":{"kind":"Name","value":"leadChanges"}},{"kind":"Field","name":{"kind":"Name","value":"nugget"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}}]}},{"kind":"Field","name":{"kind":"Name","value":"errors"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"message"}},{"kind":"Field","name":{"kind":"Name","value":"code"}},{"kind":"Field","name":{"kind":"Name","value":"field"}}]}}]}}]}}]} as unknown as DocumentNode<CreateGameMutation, CreateGameMutationVariables>;
-export const CreateGameLogDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"CreateGameLog"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"CreateGameLogInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"createGameLog"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"gameLog"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"user"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"username"}},{"kind":"Field","name":{"kind":"Name","value":"firstName"}},{"kind":"Field","name":{"kind":"Name","value":"lastName"}},{"kind":"Field","name":{"kind":"Name","value":"imageUrl"}}]}},{"kind":"Field","name":{"kind":"Name","value":"game"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"date"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"start"}},{"kind":"Field","name":{"kind":"Name","value":"end"}},{"kind":"Field","name":{"kind":"Name","value":"duration"}}]}},{"kind":"Field","name":{"kind":"Name","value":"status"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"clock"}},{"kind":"Field","name":{"kind":"Name","value":"halftime"}},{"kind":"Field","name":{"kind":"Name","value":"short"}},{"kind":"Field","name":{"kind":"Name","value":"long"}}]}},{"kind":"Field","name":{"kind":"Name","value":"arena"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"city"}},{"kind":"Field","name":{"kind":"Name","value":"state"}},{"kind":"Field","name":{"kind":"Name","value":"country"}}]}},{"kind":"Field","name":{"kind":"Name","value":"league"}},{"kind":"Field","name":{"kind":"Name","value":"season"}},{"kind":"Field","name":{"kind":"Name","value":"periods"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"current"}},{"kind":"Field","name":{"kind":"Name","value":"total"}},{"kind":"Field","name":{"kind":"Name","value":"endOfPeriod"}}]}},{"kind":"Field","name":{"kind":"Name","value":"teams"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"home"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"nickname"}},{"kind":"Field","name":{"kind":"Name","value":"code"}},{"kind":"Field","name":{"kind":"Name","value":"logo"}}]}},{"kind":"Field","name":{"kind":"Name","value":"visitors"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"nickname"}},{"kind":"Field","name":{"kind":"Name","value":"code"}},{"kind":"Field","name":{"kind":"Name","value":"logo"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"scores"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"home"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"win"}},{"kind":"Field","name":{"kind":"Name","value":"loss"}},{"kind":"Field","name":{"kind":"Name","value":"series"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"win"}},{"kind":"Field","name":{"kind":"Name","value":"loss"}}]}},{"kind":"Field","name":{"kind":"Name","value":"linescore"}},{"kind":"Field","name":{"kind":"Name","value":"points"}}]}},{"kind":"Field","name":{"kind":"Name","value":"visitors"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"win"}},{"kind":"Field","name":{"kind":"Name","value":"loss"}},{"kind":"Field","name":{"kind":"Name","value":"series"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"win"}},{"kind":"Field","name":{"kind":"Name","value":"loss"}}]}},{"kind":"Field","name":{"kind":"Name","value":"linescore"}},{"kind":"Field","name":{"kind":"Name","value":"points"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"officials"}},{"kind":"Field","name":{"kind":"Name","value":"timesTied"}},{"kind":"Field","name":{"kind":"Name","value":"leadChanges"}},{"kind":"Field","name":{"kind":"Name","value":"nugget"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}}]}},{"kind":"Field","name":{"kind":"Name","value":"watchedSetting"}},{"kind":"Field","name":{"kind":"Name","value":"watchedDate"}},{"kind":"Field","name":{"kind":"Name","value":"ratingForGame"}},{"kind":"Field","name":{"kind":"Name","value":"notes"}},{"kind":"Field","name":{"kind":"Name","value":"tags"}},{"kind":"Field","name":{"kind":"Name","value":"classification"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}}]}},{"kind":"Field","name":{"kind":"Name","value":"errors"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"message"}},{"kind":"Field","name":{"kind":"Name","value":"code"}},{"kind":"Field","name":{"kind":"Name","value":"field"}}]}}]}}]}}]} as unknown as DocumentNode<CreateGameLogMutation, CreateGameLogMutationVariables>;
-export const UpdateGameLogDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateGameLog"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"CreateGameLogInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"updateGameLog"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}},{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"gameLog"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"user"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"username"}},{"kind":"Field","name":{"kind":"Name","value":"firstName"}},{"kind":"Field","name":{"kind":"Name","value":"lastName"}},{"kind":"Field","name":{"kind":"Name","value":"imageUrl"}}]}},{"kind":"Field","name":{"kind":"Name","value":"game"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}},{"kind":"Field","name":{"kind":"Name","value":"watchedSetting"}},{"kind":"Field","name":{"kind":"Name","value":"watchedDate"}},{"kind":"Field","name":{"kind":"Name","value":"ratingForGame"}},{"kind":"Field","name":{"kind":"Name","value":"notes"}},{"kind":"Field","name":{"kind":"Name","value":"tags"}},{"kind":"Field","name":{"kind":"Name","value":"classification"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}}]}},{"kind":"Field","name":{"kind":"Name","value":"errors"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"message"}},{"kind":"Field","name":{"kind":"Name","value":"code"}},{"kind":"Field","name":{"kind":"Name","value":"field"}}]}}]}}]}}]} as unknown as DocumentNode<UpdateGameLogMutation, UpdateGameLogMutationVariables>;
-export const DeleteGameLogDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"DeleteGameLog"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"deleteGameLog"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"success"}},{"kind":"Field","name":{"kind":"Name","value":"errors"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"message"}},{"kind":"Field","name":{"kind":"Name","value":"code"}},{"kind":"Field","name":{"kind":"Name","value":"field"}}]}}]}}]}}]} as unknown as DocumentNode<DeleteGameLogMutation, DeleteGameLogMutationVariables>;
-export const CreateCommentDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"CreateComment"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"CreateCommentInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"createComment"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"comment"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"CommentFragment"}}]}},{"kind":"Field","name":{"kind":"Name","value":"errors"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"message"}},{"kind":"Field","name":{"kind":"Name","value":"code"}},{"kind":"Field","name":{"kind":"Name","value":"field"}}]}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"UserSummaryFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"UserSummary"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"username"}},{"kind":"Field","name":{"kind":"Name","value":"firstName"}},{"kind":"Field","name":{"kind":"Name","value":"lastName"}},{"kind":"Field","name":{"kind":"Name","value":"emailAddress"}},{"kind":"Field","name":{"kind":"Name","value":"imageUrl"}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"CommentFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Comment"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"user"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"UserSummaryFragment"}}]}},{"kind":"Field","name":{"kind":"Name","value":"userId"}},{"kind":"Field","name":{"kind":"Name","value":"parentId"}},{"kind":"Field","name":{"kind":"Name","value":"parentType"}},{"kind":"Field","name":{"kind":"Name","value":"content"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"deletedAt"}},{"kind":"Field","name":{"kind":"Name","value":"depth"}},{"kind":"Field","name":{"kind":"Name","value":"reactions"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"emoji"}},{"kind":"Field","name":{"kind":"Name","value":"user"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"UserSummaryFragment"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"childComments"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"edges"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"node"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"userId"}},{"kind":"Field","name":{"kind":"Name","value":"parentId"}},{"kind":"Field","name":{"kind":"Name","value":"parentType"}},{"kind":"Field","name":{"kind":"Name","value":"content"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"deletedAt"}},{"kind":"Field","name":{"kind":"Name","value":"depth"}},{"kind":"Field","name":{"kind":"Name","value":"user"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"UserSummaryFragment"}}]}},{"kind":"Field","name":{"kind":"Name","value":"reactions"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"emoji"}},{"kind":"Field","name":{"kind":"Name","value":"user"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"UserSummaryFragment"}}]}}]}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"totalCount"}}]}}]}}]} as unknown as DocumentNode<CreateCommentMutation, CreateCommentMutationVariables>;
-export const UpdateCommentDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateComment"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"CreateCommentInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"updateComment"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}},{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"comment"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"CommentFragment"}}]}},{"kind":"Field","name":{"kind":"Name","value":"errors"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"message"}},{"kind":"Field","name":{"kind":"Name","value":"code"}},{"kind":"Field","name":{"kind":"Name","value":"field"}}]}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"UserSummaryFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"UserSummary"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"username"}},{"kind":"Field","name":{"kind":"Name","value":"firstName"}},{"kind":"Field","name":{"kind":"Name","value":"lastName"}},{"kind":"Field","name":{"kind":"Name","value":"emailAddress"}},{"kind":"Field","name":{"kind":"Name","value":"imageUrl"}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"CommentFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Comment"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"user"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"UserSummaryFragment"}}]}},{"kind":"Field","name":{"kind":"Name","value":"userId"}},{"kind":"Field","name":{"kind":"Name","value":"parentId"}},{"kind":"Field","name":{"kind":"Name","value":"parentType"}},{"kind":"Field","name":{"kind":"Name","value":"content"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"deletedAt"}},{"kind":"Field","name":{"kind":"Name","value":"depth"}},{"kind":"Field","name":{"kind":"Name","value":"reactions"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"emoji"}},{"kind":"Field","name":{"kind":"Name","value":"user"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"UserSummaryFragment"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"childComments"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"edges"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"node"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"userId"}},{"kind":"Field","name":{"kind":"Name","value":"parentId"}},{"kind":"Field","name":{"kind":"Name","value":"parentType"}},{"kind":"Field","name":{"kind":"Name","value":"content"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"deletedAt"}},{"kind":"Field","name":{"kind":"Name","value":"depth"}},{"kind":"Field","name":{"kind":"Name","value":"user"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"UserSummaryFragment"}}]}},{"kind":"Field","name":{"kind":"Name","value":"reactions"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"emoji"}},{"kind":"Field","name":{"kind":"Name","value":"user"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"UserSummaryFragment"}}]}}]}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"totalCount"}}]}}]}}]} as unknown as DocumentNode<UpdateCommentMutation, UpdateCommentMutationVariables>;
-export const DeleteCommentDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"DeleteComment"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"deleteComment"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"success"}},{"kind":"Field","name":{"kind":"Name","value":"errors"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"message"}},{"kind":"Field","name":{"kind":"Name","value":"code"}},{"kind":"Field","name":{"kind":"Name","value":"field"}}]}}]}}]}}]} as unknown as DocumentNode<DeleteCommentMutation, DeleteCommentMutationVariables>;
-export const CreateReactionDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"CreateReaction"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"CreateReactionInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"createReaction"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"reaction"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"emoji"}},{"kind":"Field","name":{"kind":"Name","value":"targetId"}},{"kind":"Field","name":{"kind":"Name","value":"targetType"}},{"kind":"Field","name":{"kind":"Name","value":"userId"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"user"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"UserSummaryFragment"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"errors"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"message"}},{"kind":"Field","name":{"kind":"Name","value":"code"}},{"kind":"Field","name":{"kind":"Name","value":"field"}}]}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"UserSummaryFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"UserSummary"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"username"}},{"kind":"Field","name":{"kind":"Name","value":"firstName"}},{"kind":"Field","name":{"kind":"Name","value":"lastName"}},{"kind":"Field","name":{"kind":"Name","value":"emailAddress"}},{"kind":"Field","name":{"kind":"Name","value":"imageUrl"}}]}}]} as unknown as DocumentNode<CreateReactionMutation, CreateReactionMutationVariables>;
-export const DeleteReactionDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"DeleteReaction"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"deleteReaction"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"success"}},{"kind":"Field","name":{"kind":"Name","value":"errors"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"message"}},{"kind":"Field","name":{"kind":"Name","value":"code"}},{"kind":"Field","name":{"kind":"Name","value":"field"}}]}}]}}]}}]} as unknown as DocumentNode<DeleteReactionMutation, DeleteReactionMutationVariables>;
-export const SendFriendRequestDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"SendFriendRequest"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"userId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"sendFriendRequest"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"userId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"userId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"friendship"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"initiator"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"UserSummaryFragment"}}]}},{"kind":"Field","name":{"kind":"Name","value":"recipient"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"UserSummaryFragment"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"errors"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"message"}},{"kind":"Field","name":{"kind":"Name","value":"code"}},{"kind":"Field","name":{"kind":"Name","value":"field"}}]}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"UserSummaryFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"UserSummary"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"username"}},{"kind":"Field","name":{"kind":"Name","value":"firstName"}},{"kind":"Field","name":{"kind":"Name","value":"lastName"}},{"kind":"Field","name":{"kind":"Name","value":"emailAddress"}},{"kind":"Field","name":{"kind":"Name","value":"imageUrl"}}]}}]} as unknown as DocumentNode<SendFriendRequestMutation, SendFriendRequestMutationVariables>;
-export const AcceptFriendRequestDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"AcceptFriendRequest"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"friendshipId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"acceptFriendRequest"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"friendshipId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"friendshipId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"friendship"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"initiator"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"UserSummaryFragment"}}]}},{"kind":"Field","name":{"kind":"Name","value":"recipient"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"UserSummaryFragment"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"errors"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"message"}},{"kind":"Field","name":{"kind":"Name","value":"code"}},{"kind":"Field","name":{"kind":"Name","value":"field"}}]}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"UserSummaryFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"UserSummary"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"username"}},{"kind":"Field","name":{"kind":"Name","value":"firstName"}},{"kind":"Field","name":{"kind":"Name","value":"lastName"}},{"kind":"Field","name":{"kind":"Name","value":"emailAddress"}},{"kind":"Field","name":{"kind":"Name","value":"imageUrl"}}]}}]} as unknown as DocumentNode<AcceptFriendRequestMutation, AcceptFriendRequestMutationVariables>;
-export const RejectFriendRequestDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"RejectFriendRequest"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"friendshipId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"rejectFriendRequest"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"friendshipId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"friendshipId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"friendship"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"initiator"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"UserSummaryFragment"}}]}},{"kind":"Field","name":{"kind":"Name","value":"recipient"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"UserSummaryFragment"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"errors"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"message"}},{"kind":"Field","name":{"kind":"Name","value":"code"}},{"kind":"Field","name":{"kind":"Name","value":"field"}}]}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"UserSummaryFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"UserSummary"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"username"}},{"kind":"Field","name":{"kind":"Name","value":"firstName"}},{"kind":"Field","name":{"kind":"Name","value":"lastName"}},{"kind":"Field","name":{"kind":"Name","value":"emailAddress"}},{"kind":"Field","name":{"kind":"Name","value":"imageUrl"}}]}}]} as unknown as DocumentNode<RejectFriendRequestMutation, RejectFriendRequestMutationVariables>;
-export const RemoveFriendDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"RemoveFriend"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"friendshipId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"removeFriend"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"friendshipId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"friendshipId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"success"}},{"kind":"Field","name":{"kind":"Name","value":"errors"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"message"}},{"kind":"Field","name":{"kind":"Name","value":"code"}},{"kind":"Field","name":{"kind":"Name","value":"field"}}]}}]}}]}}]} as unknown as DocumentNode<RemoveFriendMutation, RemoveFriendMutationVariables>;
-export const GetGameByIdDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetGameById"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"game"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"GameFragment"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"GameFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Game"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"date"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"start"}},{"kind":"Field","name":{"kind":"Name","value":"end"}},{"kind":"Field","name":{"kind":"Name","value":"duration"}}]}},{"kind":"Field","name":{"kind":"Name","value":"status"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"clock"}},{"kind":"Field","name":{"kind":"Name","value":"halftime"}},{"kind":"Field","name":{"kind":"Name","value":"long"}},{"kind":"Field","name":{"kind":"Name","value":"short"}}]}},{"kind":"Field","name":{"kind":"Name","value":"arena"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"city"}},{"kind":"Field","name":{"kind":"Name","value":"state"}},{"kind":"Field","name":{"kind":"Name","value":"country"}}]}},{"kind":"Field","name":{"kind":"Name","value":"league"}},{"kind":"Field","name":{"kind":"Name","value":"season"}},{"kind":"Field","name":{"kind":"Name","value":"periods"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"current"}},{"kind":"Field","name":{"kind":"Name","value":"total"}},{"kind":"Field","name":{"kind":"Name","value":"endOfPeriod"}}]}},{"kind":"Field","name":{"kind":"Name","value":"teams"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"home"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"nickname"}},{"kind":"Field","name":{"kind":"Name","value":"code"}},{"kind":"Field","name":{"kind":"Name","value":"logo"}}]}},{"kind":"Field","name":{"kind":"Name","value":"visitors"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"nickname"}},{"kind":"Field","name":{"kind":"Name","value":"code"}},{"kind":"Field","name":{"kind":"Name","value":"logo"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"scores"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"home"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"win"}},{"kind":"Field","name":{"kind":"Name","value":"loss"}},{"kind":"Field","name":{"kind":"Name","value":"series"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"win"}},{"kind":"Field","name":{"kind":"Name","value":"loss"}}]}},{"kind":"Field","name":{"kind":"Name","value":"linescore"}},{"kind":"Field","name":{"kind":"Name","value":"points"}}]}},{"kind":"Field","name":{"kind":"Name","value":"visitors"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"win"}},{"kind":"Field","name":{"kind":"Name","value":"loss"}},{"kind":"Field","name":{"kind":"Name","value":"series"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"win"}},{"kind":"Field","name":{"kind":"Name","value":"loss"}}]}},{"kind":"Field","name":{"kind":"Name","value":"linescore"}},{"kind":"Field","name":{"kind":"Name","value":"points"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"officials"}},{"kind":"Field","name":{"kind":"Name","value":"timesTied"}},{"kind":"Field","name":{"kind":"Name","value":"leadChanges"}},{"kind":"Field","name":{"kind":"Name","value":"nugget"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}}]}}]} as unknown as DocumentNode<GetGameByIdQuery, GetGameByIdQueryVariables>;
-export const GetExternalGamesDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetExternalGames"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"filters"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"GameFilters"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"pagination"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"PaginationInput"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"games"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"filters"},"value":{"kind":"Variable","name":{"kind":"Name","value":"filters"}}},{"kind":"Argument","name":{"kind":"Name","value":"pagination"},"value":{"kind":"Variable","name":{"kind":"Name","value":"pagination"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"edges"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"cursor"}},{"kind":"Field","name":{"kind":"Name","value":"node"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"GameFragment"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"pageInfo"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"hasNextPage"}},{"kind":"Field","name":{"kind":"Name","value":"hasPreviousPage"}},{"kind":"Field","name":{"kind":"Name","value":"startCursor"}},{"kind":"Field","name":{"kind":"Name","value":"endCursor"}}]}},{"kind":"Field","name":{"kind":"Name","value":"totalCount"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"GameFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Game"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"date"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"start"}},{"kind":"Field","name":{"kind":"Name","value":"end"}},{"kind":"Field","name":{"kind":"Name","value":"duration"}}]}},{"kind":"Field","name":{"kind":"Name","value":"status"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"clock"}},{"kind":"Field","name":{"kind":"Name","value":"halftime"}},{"kind":"Field","name":{"kind":"Name","value":"long"}},{"kind":"Field","name":{"kind":"Name","value":"short"}}]}},{"kind":"Field","name":{"kind":"Name","value":"arena"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"city"}},{"kind":"Field","name":{"kind":"Name","value":"state"}},{"kind":"Field","name":{"kind":"Name","value":"country"}}]}},{"kind":"Field","name":{"kind":"Name","value":"league"}},{"kind":"Field","name":{"kind":"Name","value":"season"}},{"kind":"Field","name":{"kind":"Name","value":"periods"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"current"}},{"kind":"Field","name":{"kind":"Name","value":"total"}},{"kind":"Field","name":{"kind":"Name","value":"endOfPeriod"}}]}},{"kind":"Field","name":{"kind":"Name","value":"teams"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"home"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"nickname"}},{"kind":"Field","name":{"kind":"Name","value":"code"}},{"kind":"Field","name":{"kind":"Name","value":"logo"}}]}},{"kind":"Field","name":{"kind":"Name","value":"visitors"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"nickname"}},{"kind":"Field","name":{"kind":"Name","value":"code"}},{"kind":"Field","name":{"kind":"Name","value":"logo"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"scores"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"home"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"win"}},{"kind":"Field","name":{"kind":"Name","value":"loss"}},{"kind":"Field","name":{"kind":"Name","value":"series"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"win"}},{"kind":"Field","name":{"kind":"Name","value":"loss"}}]}},{"kind":"Field","name":{"kind":"Name","value":"linescore"}},{"kind":"Field","name":{"kind":"Name","value":"points"}}]}},{"kind":"Field","name":{"kind":"Name","value":"visitors"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"win"}},{"kind":"Field","name":{"kind":"Name","value":"loss"}},{"kind":"Field","name":{"kind":"Name","value":"series"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"win"}},{"kind":"Field","name":{"kind":"Name","value":"loss"}}]}},{"kind":"Field","name":{"kind":"Name","value":"linescore"}},{"kind":"Field","name":{"kind":"Name","value":"points"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"officials"}},{"kind":"Field","name":{"kind":"Name","value":"timesTied"}},{"kind":"Field","name":{"kind":"Name","value":"leadChanges"}},{"kind":"Field","name":{"kind":"Name","value":"nugget"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}}]}}]} as unknown as DocumentNode<GetExternalGamesQuery, GetExternalGamesQueryVariables>;
-export const GetTeamsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetTeams"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"filters"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"TeamFilters"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"teams"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"filters"},"value":{"kind":"Variable","name":{"kind":"Name","value":"filters"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"edges"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"cursor"}},{"kind":"Field","name":{"kind":"Name","value":"node"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"nickname"}},{"kind":"Field","name":{"kind":"Name","value":"code"}},{"kind":"Field","name":{"kind":"Name","value":"city"}},{"kind":"Field","name":{"kind":"Name","value":"logo"}},{"kind":"Field","name":{"kind":"Name","value":"conference"}},{"kind":"Field","name":{"kind":"Name","value":"division"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"pageInfo"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"hasNextPage"}},{"kind":"Field","name":{"kind":"Name","value":"hasPreviousPage"}},{"kind":"Field","name":{"kind":"Name","value":"startCursor"}},{"kind":"Field","name":{"kind":"Name","value":"endCursor"}}]}},{"kind":"Field","name":{"kind":"Name","value":"totalCount"}}]}}]}}]} as unknown as DocumentNode<GetTeamsQuery, GetTeamsQueryVariables>;
-export const GetPlayersDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetPlayers"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"filters"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"IPlayerFilters"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"pagination"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"PaginationInput"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"players"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"filters"},"value":{"kind":"Variable","name":{"kind":"Name","value":"filters"}}},{"kind":"Argument","name":{"kind":"Name","value":"pagination"},"value":{"kind":"Variable","name":{"kind":"Name","value":"pagination"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"edges"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"cursor"}},{"kind":"Field","name":{"kind":"Name","value":"node"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"PlayerFragment"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"totalCount"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"PlayerFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Player"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"firstName"}},{"kind":"Field","name":{"kind":"Name","value":"lastName"}},{"kind":"Field","name":{"kind":"Name","value":"birth"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"date"}},{"kind":"Field","name":{"kind":"Name","value":"country"}}]}},{"kind":"Field","name":{"kind":"Name","value":"nba"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"start"}},{"kind":"Field","name":{"kind":"Name","value":"pro"}}]}},{"kind":"Field","name":{"kind":"Name","value":"height"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"feets"}},{"kind":"Field","name":{"kind":"Name","value":"inches"}},{"kind":"Field","name":{"kind":"Name","value":"meters"}}]}},{"kind":"Field","name":{"kind":"Name","value":"weight"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"pounds"}},{"kind":"Field","name":{"kind":"Name","value":"kilograms"}}]}},{"kind":"Field","name":{"kind":"Name","value":"college"}},{"kind":"Field","name":{"kind":"Name","value":"affiliation"}},{"kind":"Field","name":{"kind":"Name","value":"leagues"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"standard"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"jersey"}},{"kind":"Field","name":{"kind":"Name","value":"active"}},{"kind":"Field","name":{"kind":"Name","value":"pos"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"seasons_active"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"season"}},{"kind":"Field","name":{"kind":"Name","value":"teams"}}]}}]}}]} as unknown as DocumentNode<GetPlayersQuery, GetPlayersQueryVariables>;
-export const GetCommentsWithFiltersDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetCommentsWithFilters"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"filters"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"CommentFilters"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"pagination"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"PaginationInput"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"comments"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"filters"},"value":{"kind":"Variable","name":{"kind":"Name","value":"filters"}}},{"kind":"Argument","name":{"kind":"Name","value":"pagination"},"value":{"kind":"Variable","name":{"kind":"Name","value":"pagination"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"edges"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"cursor"}},{"kind":"Field","name":{"kind":"Name","value":"node"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"userId"}},{"kind":"Field","name":{"kind":"Name","value":"parentId"}},{"kind":"Field","name":{"kind":"Name","value":"parentType"}},{"kind":"Field","name":{"kind":"Name","value":"content"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"deletedAt"}},{"kind":"Field","name":{"kind":"Name","value":"depth"}},{"kind":"Field","name":{"kind":"Name","value":"user"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"username"}},{"kind":"Field","name":{"kind":"Name","value":"emailAddress"}},{"kind":"Field","name":{"kind":"Name","value":"imageUrl"}}]}},{"kind":"Field","name":{"kind":"Name","value":"reactions"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"emoji"}},{"kind":"Field","name":{"kind":"Name","value":"userId"}},{"kind":"Field","name":{"kind":"Name","value":"targetId"}},{"kind":"Field","name":{"kind":"Name","value":"targetType"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"user"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"username"}},{"kind":"Field","name":{"kind":"Name","value":"emailAddress"}},{"kind":"Field","name":{"kind":"Name","value":"imageUrl"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"childComments"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"edges"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"node"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"userId"}},{"kind":"Field","name":{"kind":"Name","value":"parentId"}},{"kind":"Field","name":{"kind":"Name","value":"parentType"}},{"kind":"Field","name":{"kind":"Name","value":"content"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"deletedAt"}},{"kind":"Field","name":{"kind":"Name","value":"depth"}},{"kind":"Field","name":{"kind":"Name","value":"user"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"username"}},{"kind":"Field","name":{"kind":"Name","value":"emailAddress"}},{"kind":"Field","name":{"kind":"Name","value":"imageUrl"}}]}},{"kind":"Field","name":{"kind":"Name","value":"reactions"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"emoji"}},{"kind":"Field","name":{"kind":"Name","value":"userId"}},{"kind":"Field","name":{"kind":"Name","value":"targetId"}},{"kind":"Field","name":{"kind":"Name","value":"targetType"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"user"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"username"}},{"kind":"Field","name":{"kind":"Name","value":"emailAddress"}},{"kind":"Field","name":{"kind":"Name","value":"imageUrl"}}]}}]}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"totalCount"}}]}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"pageInfo"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"hasNextPage"}},{"kind":"Field","name":{"kind":"Name","value":"hasPreviousPage"}},{"kind":"Field","name":{"kind":"Name","value":"startCursor"}},{"kind":"Field","name":{"kind":"Name","value":"endCursor"}}]}},{"kind":"Field","name":{"kind":"Name","value":"totalCount"}}]}}]}}]} as unknown as DocumentNode<GetCommentsWithFiltersQuery, GetCommentsWithFiltersQueryVariables>;
-export const GetUsersDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetUsers"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"filters"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"UserFilters"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"pagination"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"PaginationInput"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"users"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"filters"},"value":{"kind":"Variable","name":{"kind":"Name","value":"filters"}}},{"kind":"Argument","name":{"kind":"Name","value":"pagination"},"value":{"kind":"Variable","name":{"kind":"Name","value":"pagination"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"UserSummaryFragment"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"UserSummaryFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"UserSummary"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"username"}},{"kind":"Field","name":{"kind":"Name","value":"firstName"}},{"kind":"Field","name":{"kind":"Name","value":"lastName"}},{"kind":"Field","name":{"kind":"Name","value":"emailAddress"}},{"kind":"Field","name":{"kind":"Name","value":"imageUrl"}}]}}]} as unknown as DocumentNode<GetUsersQuery, GetUsersQueryVariables>;
-export const GetUserDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetUser"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"user"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"UserSummaryFragment"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"UserSummaryFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"UserSummary"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"username"}},{"kind":"Field","name":{"kind":"Name","value":"firstName"}},{"kind":"Field","name":{"kind":"Name","value":"lastName"}},{"kind":"Field","name":{"kind":"Name","value":"emailAddress"}},{"kind":"Field","name":{"kind":"Name","value":"imageUrl"}}]}}]} as unknown as DocumentNode<GetUserQuery, GetUserQueryVariables>;
-export const GetGameLogsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetGameLogs"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"filters"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"GameLogFilters"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"pagination"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"PaginationInput"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"gameLogs"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"filters"},"value":{"kind":"Variable","name":{"kind":"Name","value":"filters"}}},{"kind":"Argument","name":{"kind":"Name","value":"pagination"},"value":{"kind":"Variable","name":{"kind":"Name","value":"pagination"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"edges"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"cursor"}},{"kind":"Field","name":{"kind":"Name","value":"node"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"GameLogFragment"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"pageInfo"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"hasNextPage"}},{"kind":"Field","name":{"kind":"Name","value":"hasPreviousPage"}},{"kind":"Field","name":{"kind":"Name","value":"startCursor"}},{"kind":"Field","name":{"kind":"Name","value":"endCursor"}}]}},{"kind":"Field","name":{"kind":"Name","value":"totalCount"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"UserSummaryFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"UserSummary"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"username"}},{"kind":"Field","name":{"kind":"Name","value":"firstName"}},{"kind":"Field","name":{"kind":"Name","value":"lastName"}},{"kind":"Field","name":{"kind":"Name","value":"emailAddress"}},{"kind":"Field","name":{"kind":"Name","value":"imageUrl"}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"GameFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Game"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"date"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"start"}},{"kind":"Field","name":{"kind":"Name","value":"end"}},{"kind":"Field","name":{"kind":"Name","value":"duration"}}]}},{"kind":"Field","name":{"kind":"Name","value":"status"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"clock"}},{"kind":"Field","name":{"kind":"Name","value":"halftime"}},{"kind":"Field","name":{"kind":"Name","value":"long"}},{"kind":"Field","name":{"kind":"Name","value":"short"}}]}},{"kind":"Field","name":{"kind":"Name","value":"arena"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"city"}},{"kind":"Field","name":{"kind":"Name","value":"state"}},{"kind":"Field","name":{"kind":"Name","value":"country"}}]}},{"kind":"Field","name":{"kind":"Name","value":"league"}},{"kind":"Field","name":{"kind":"Name","value":"season"}},{"kind":"Field","name":{"kind":"Name","value":"periods"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"current"}},{"kind":"Field","name":{"kind":"Name","value":"total"}},{"kind":"Field","name":{"kind":"Name","value":"endOfPeriod"}}]}},{"kind":"Field","name":{"kind":"Name","value":"teams"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"home"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"nickname"}},{"kind":"Field","name":{"kind":"Name","value":"code"}},{"kind":"Field","name":{"kind":"Name","value":"logo"}}]}},{"kind":"Field","name":{"kind":"Name","value":"visitors"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"nickname"}},{"kind":"Field","name":{"kind":"Name","value":"code"}},{"kind":"Field","name":{"kind":"Name","value":"logo"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"scores"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"home"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"win"}},{"kind":"Field","name":{"kind":"Name","value":"loss"}},{"kind":"Field","name":{"kind":"Name","value":"series"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"win"}},{"kind":"Field","name":{"kind":"Name","value":"loss"}}]}},{"kind":"Field","name":{"kind":"Name","value":"linescore"}},{"kind":"Field","name":{"kind":"Name","value":"points"}}]}},{"kind":"Field","name":{"kind":"Name","value":"visitors"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"win"}},{"kind":"Field","name":{"kind":"Name","value":"loss"}},{"kind":"Field","name":{"kind":"Name","value":"series"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"win"}},{"kind":"Field","name":{"kind":"Name","value":"loss"}}]}},{"kind":"Field","name":{"kind":"Name","value":"linescore"}},{"kind":"Field","name":{"kind":"Name","value":"points"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"officials"}},{"kind":"Field","name":{"kind":"Name","value":"timesTied"}},{"kind":"Field","name":{"kind":"Name","value":"leadChanges"}},{"kind":"Field","name":{"kind":"Name","value":"nugget"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"GameLogFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"GameLog"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"user"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"UserSummaryFragment"}}]}},{"kind":"Field","name":{"kind":"Name","value":"game"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"GameFragment"}}]}},{"kind":"Field","name":{"kind":"Name","value":"watchedSetting"}},{"kind":"Field","name":{"kind":"Name","value":"watchedScope"}},{"kind":"Field","name":{"kind":"Name","value":"watchedDate"}},{"kind":"Field","name":{"kind":"Name","value":"watchedLocation"}},{"kind":"Field","name":{"kind":"Name","value":"ratingForGame"}},{"kind":"Field","name":{"kind":"Name","value":"notes"}},{"kind":"Field","name":{"kind":"Name","value":"tags"}},{"kind":"Field","name":{"kind":"Name","value":"classification"}},{"kind":"Field","name":{"kind":"Name","value":"reactions"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"emoji"}},{"kind":"Field","name":{"kind":"Name","value":"userId"}},{"kind":"Field","name":{"kind":"Name","value":"targetId"}},{"kind":"Field","name":{"kind":"Name","value":"targetType"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"user"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"username"}},{"kind":"Field","name":{"kind":"Name","value":"emailAddress"}},{"kind":"Field","name":{"kind":"Name","value":"imageUrl"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}}]}}]} as unknown as DocumentNode<GetGameLogsQuery, GetGameLogsQueryVariables>;
-export const GetLiveGamesDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetLiveGames"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"first"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"after"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"liveGames"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"first"},"value":{"kind":"Variable","name":{"kind":"Name","value":"first"}}},{"kind":"Argument","name":{"kind":"Name","value":"after"},"value":{"kind":"Variable","name":{"kind":"Name","value":"after"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"edges"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"cursor"}},{"kind":"Field","name":{"kind":"Name","value":"node"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"GameFragment"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"pageInfo"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"hasNextPage"}},{"kind":"Field","name":{"kind":"Name","value":"hasPreviousPage"}},{"kind":"Field","name":{"kind":"Name","value":"startCursor"}},{"kind":"Field","name":{"kind":"Name","value":"endCursor"}}]}},{"kind":"Field","name":{"kind":"Name","value":"totalCount"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"GameFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Game"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"date"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"start"}},{"kind":"Field","name":{"kind":"Name","value":"end"}},{"kind":"Field","name":{"kind":"Name","value":"duration"}}]}},{"kind":"Field","name":{"kind":"Name","value":"status"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"clock"}},{"kind":"Field","name":{"kind":"Name","value":"halftime"}},{"kind":"Field","name":{"kind":"Name","value":"long"}},{"kind":"Field","name":{"kind":"Name","value":"short"}}]}},{"kind":"Field","name":{"kind":"Name","value":"arena"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"city"}},{"kind":"Field","name":{"kind":"Name","value":"state"}},{"kind":"Field","name":{"kind":"Name","value":"country"}}]}},{"kind":"Field","name":{"kind":"Name","value":"league"}},{"kind":"Field","name":{"kind":"Name","value":"season"}},{"kind":"Field","name":{"kind":"Name","value":"periods"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"current"}},{"kind":"Field","name":{"kind":"Name","value":"total"}},{"kind":"Field","name":{"kind":"Name","value":"endOfPeriod"}}]}},{"kind":"Field","name":{"kind":"Name","value":"teams"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"home"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"nickname"}},{"kind":"Field","name":{"kind":"Name","value":"code"}},{"kind":"Field","name":{"kind":"Name","value":"logo"}}]}},{"kind":"Field","name":{"kind":"Name","value":"visitors"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"nickname"}},{"kind":"Field","name":{"kind":"Name","value":"code"}},{"kind":"Field","name":{"kind":"Name","value":"logo"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"scores"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"home"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"win"}},{"kind":"Field","name":{"kind":"Name","value":"loss"}},{"kind":"Field","name":{"kind":"Name","value":"series"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"win"}},{"kind":"Field","name":{"kind":"Name","value":"loss"}}]}},{"kind":"Field","name":{"kind":"Name","value":"linescore"}},{"kind":"Field","name":{"kind":"Name","value":"points"}}]}},{"kind":"Field","name":{"kind":"Name","value":"visitors"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"win"}},{"kind":"Field","name":{"kind":"Name","value":"loss"}},{"kind":"Field","name":{"kind":"Name","value":"series"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"win"}},{"kind":"Field","name":{"kind":"Name","value":"loss"}}]}},{"kind":"Field","name":{"kind":"Name","value":"linescore"}},{"kind":"Field","name":{"kind":"Name","value":"points"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"officials"}},{"kind":"Field","name":{"kind":"Name","value":"timesTied"}},{"kind":"Field","name":{"kind":"Name","value":"leadChanges"}},{"kind":"Field","name":{"kind":"Name","value":"nugget"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}}]}}]} as unknown as DocumentNode<GetLiveGamesQuery, GetLiveGamesQueryVariables>;
-export const GetTeamStatsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetTeamStats"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"teamId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"season"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"teamStats"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"teamId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"teamId"}}},{"kind":"Argument","name":{"kind":"Name","value":"season"},"value":{"kind":"Variable","name":{"kind":"Name","value":"season"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"games"}},{"kind":"Field","name":{"kind":"Name","value":"points"}},{"kind":"Field","name":{"kind":"Name","value":"fgp"}},{"kind":"Field","name":{"kind":"Name","value":"tpp"}},{"kind":"Field","name":{"kind":"Name","value":"ftp"}},{"kind":"Field","name":{"kind":"Name","value":"totReb"}},{"kind":"Field","name":{"kind":"Name","value":"assists"}},{"kind":"Field","name":{"kind":"Name","value":"steals"}},{"kind":"Field","name":{"kind":"Name","value":"blocks"}},{"kind":"Field","name":{"kind":"Name","value":"turnovers"}},{"kind":"Field","name":{"kind":"Name","value":"pFouls"}},{"kind":"Field","name":{"kind":"Name","value":"plusMinus"}},{"kind":"Field","name":{"kind":"Name","value":"fastBreakPoints"}},{"kind":"Field","name":{"kind":"Name","value":"pointsInPaint"}},{"kind":"Field","name":{"kind":"Name","value":"biggestLead"}},{"kind":"Field","name":{"kind":"Name","value":"secondChancePoints"}},{"kind":"Field","name":{"kind":"Name","value":"pointsOffTurnovers"}},{"kind":"Field","name":{"kind":"Name","value":"longestRun"}},{"kind":"Field","name":{"kind":"Name","value":"assistsPerGame"}},{"kind":"Field","name":{"kind":"Name","value":"blocksPerGame"}},{"kind":"Field","name":{"kind":"Name","value":"pointsPerGame"}},{"kind":"Field","name":{"kind":"Name","value":"reboundsPerGame"}},{"kind":"Field","name":{"kind":"Name","value":"stealsPerGame"}},{"kind":"Field","name":{"kind":"Name","value":"turnoversPerGame"}}]}}]}}]} as unknown as DocumentNode<GetTeamStatsQuery, GetTeamStatsQueryVariables>;
-export const GetGamesDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetGames"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"filters"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"GameFilters"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"pagination"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"PaginationInput"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"games"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"filters"},"value":{"kind":"Variable","name":{"kind":"Name","value":"filters"}}},{"kind":"Argument","name":{"kind":"Name","value":"pagination"},"value":{"kind":"Variable","name":{"kind":"Name","value":"pagination"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"edges"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"cursor"}},{"kind":"Field","name":{"kind":"Name","value":"node"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"GameFragment"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"pageInfo"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"hasNextPage"}},{"kind":"Field","name":{"kind":"Name","value":"hasPreviousPage"}},{"kind":"Field","name":{"kind":"Name","value":"startCursor"}},{"kind":"Field","name":{"kind":"Name","value":"endCursor"}}]}},{"kind":"Field","name":{"kind":"Name","value":"totalCount"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"GameFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Game"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"date"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"start"}},{"kind":"Field","name":{"kind":"Name","value":"end"}},{"kind":"Field","name":{"kind":"Name","value":"duration"}}]}},{"kind":"Field","name":{"kind":"Name","value":"status"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"clock"}},{"kind":"Field","name":{"kind":"Name","value":"halftime"}},{"kind":"Field","name":{"kind":"Name","value":"long"}},{"kind":"Field","name":{"kind":"Name","value":"short"}}]}},{"kind":"Field","name":{"kind":"Name","value":"arena"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"city"}},{"kind":"Field","name":{"kind":"Name","value":"state"}},{"kind":"Field","name":{"kind":"Name","value":"country"}}]}},{"kind":"Field","name":{"kind":"Name","value":"league"}},{"kind":"Field","name":{"kind":"Name","value":"season"}},{"kind":"Field","name":{"kind":"Name","value":"periods"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"current"}},{"kind":"Field","name":{"kind":"Name","value":"total"}},{"kind":"Field","name":{"kind":"Name","value":"endOfPeriod"}}]}},{"kind":"Field","name":{"kind":"Name","value":"teams"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"home"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"nickname"}},{"kind":"Field","name":{"kind":"Name","value":"code"}},{"kind":"Field","name":{"kind":"Name","value":"logo"}}]}},{"kind":"Field","name":{"kind":"Name","value":"visitors"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"nickname"}},{"kind":"Field","name":{"kind":"Name","value":"code"}},{"kind":"Field","name":{"kind":"Name","value":"logo"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"scores"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"home"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"win"}},{"kind":"Field","name":{"kind":"Name","value":"loss"}},{"kind":"Field","name":{"kind":"Name","value":"series"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"win"}},{"kind":"Field","name":{"kind":"Name","value":"loss"}}]}},{"kind":"Field","name":{"kind":"Name","value":"linescore"}},{"kind":"Field","name":{"kind":"Name","value":"points"}}]}},{"kind":"Field","name":{"kind":"Name","value":"visitors"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"win"}},{"kind":"Field","name":{"kind":"Name","value":"loss"}},{"kind":"Field","name":{"kind":"Name","value":"series"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"win"}},{"kind":"Field","name":{"kind":"Name","value":"loss"}}]}},{"kind":"Field","name":{"kind":"Name","value":"linescore"}},{"kind":"Field","name":{"kind":"Name","value":"points"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"officials"}},{"kind":"Field","name":{"kind":"Name","value":"timesTied"}},{"kind":"Field","name":{"kind":"Name","value":"leadChanges"}},{"kind":"Field","name":{"kind":"Name","value":"nugget"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}}]}}]} as unknown as DocumentNode<GetGamesQuery, GetGamesQueryVariables>;
-export const GetReactionsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetReactions"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"targetId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"targetType"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ParentType"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"reactions"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"targetId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"targetId"}}},{"kind":"Argument","name":{"kind":"Name","value":"targetType"},"value":{"kind":"Variable","name":{"kind":"Name","value":"targetType"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"emoji"}},{"kind":"Field","name":{"kind":"Name","value":"userId"}},{"kind":"Field","name":{"kind":"Name","value":"targetId"}},{"kind":"Field","name":{"kind":"Name","value":"targetType"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"user"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"UserSummaryFragment"}}]}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"UserSummaryFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"UserSummary"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"username"}},{"kind":"Field","name":{"kind":"Name","value":"firstName"}},{"kind":"Field","name":{"kind":"Name","value":"lastName"}},{"kind":"Field","name":{"kind":"Name","value":"emailAddress"}},{"kind":"Field","name":{"kind":"Name","value":"imageUrl"}}]}}]} as unknown as DocumentNode<GetReactionsQuery, GetReactionsQueryVariables>;
-export const SearchUsersDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"SearchUsers"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"first"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"after"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"searchTerm"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"filters"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"UserSearchFilters"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"searchUsers"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"first"},"value":{"kind":"Variable","name":{"kind":"Name","value":"first"}}},{"kind":"Argument","name":{"kind":"Name","value":"after"},"value":{"kind":"Variable","name":{"kind":"Name","value":"after"}}},{"kind":"Argument","name":{"kind":"Name","value":"searchTerm"},"value":{"kind":"Variable","name":{"kind":"Name","value":"searchTerm"}}},{"kind":"Argument","name":{"kind":"Name","value":"filters"},"value":{"kind":"Variable","name":{"kind":"Name","value":"filters"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"edges"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"cursor"}},{"kind":"Field","name":{"kind":"Name","value":"node"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"UserSummaryFragment"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"pageInfo"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"hasNextPage"}},{"kind":"Field","name":{"kind":"Name","value":"hasPreviousPage"}},{"kind":"Field","name":{"kind":"Name","value":"startCursor"}},{"kind":"Field","name":{"kind":"Name","value":"endCursor"}}]}},{"kind":"Field","name":{"kind":"Name","value":"totalCount"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"UserSummaryFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"UserSummary"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"username"}},{"kind":"Field","name":{"kind":"Name","value":"firstName"}},{"kind":"Field","name":{"kind":"Name","value":"lastName"}},{"kind":"Field","name":{"kind":"Name","value":"emailAddress"}},{"kind":"Field","name":{"kind":"Name","value":"imageUrl"}}]}}]} as unknown as DocumentNode<SearchUsersQuery, SearchUsersQueryVariables>;
-export const GetGameLogDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetGameLog"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"commentsFirst"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"commentsAfter"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"gameLog"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"GameLogFragment"}},{"kind":"Field","name":{"kind":"Name","value":"reactions"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"emoji"}},{"kind":"Field","name":{"kind":"Name","value":"userId"}},{"kind":"Field","name":{"kind":"Name","value":"targetId"}},{"kind":"Field","name":{"kind":"Name","value":"targetType"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"user"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"username"}},{"kind":"Field","name":{"kind":"Name","value":"emailAddress"}},{"kind":"Field","name":{"kind":"Name","value":"imageUrl"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"comments"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"edges"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"cursor"}},{"kind":"Field","name":{"kind":"Name","value":"node"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"content"}},{"kind":"Field","name":{"kind":"Name","value":"user"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"username"}},{"kind":"Field","name":{"kind":"Name","value":"imageUrl"}}]}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"pageInfo"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"hasNextPage"}},{"kind":"Field","name":{"kind":"Name","value":"endCursor"}}]}},{"kind":"Field","name":{"kind":"Name","value":"totalCount"}}]}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"UserSummaryFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"UserSummary"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"username"}},{"kind":"Field","name":{"kind":"Name","value":"firstName"}},{"kind":"Field","name":{"kind":"Name","value":"lastName"}},{"kind":"Field","name":{"kind":"Name","value":"emailAddress"}},{"kind":"Field","name":{"kind":"Name","value":"imageUrl"}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"GameFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Game"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"date"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"start"}},{"kind":"Field","name":{"kind":"Name","value":"end"}},{"kind":"Field","name":{"kind":"Name","value":"duration"}}]}},{"kind":"Field","name":{"kind":"Name","value":"status"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"clock"}},{"kind":"Field","name":{"kind":"Name","value":"halftime"}},{"kind":"Field","name":{"kind":"Name","value":"long"}},{"kind":"Field","name":{"kind":"Name","value":"short"}}]}},{"kind":"Field","name":{"kind":"Name","value":"arena"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"city"}},{"kind":"Field","name":{"kind":"Name","value":"state"}},{"kind":"Field","name":{"kind":"Name","value":"country"}}]}},{"kind":"Field","name":{"kind":"Name","value":"league"}},{"kind":"Field","name":{"kind":"Name","value":"season"}},{"kind":"Field","name":{"kind":"Name","value":"periods"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"current"}},{"kind":"Field","name":{"kind":"Name","value":"total"}},{"kind":"Field","name":{"kind":"Name","value":"endOfPeriod"}}]}},{"kind":"Field","name":{"kind":"Name","value":"teams"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"home"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"nickname"}},{"kind":"Field","name":{"kind":"Name","value":"code"}},{"kind":"Field","name":{"kind":"Name","value":"logo"}}]}},{"kind":"Field","name":{"kind":"Name","value":"visitors"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"nickname"}},{"kind":"Field","name":{"kind":"Name","value":"code"}},{"kind":"Field","name":{"kind":"Name","value":"logo"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"scores"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"home"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"win"}},{"kind":"Field","name":{"kind":"Name","value":"loss"}},{"kind":"Field","name":{"kind":"Name","value":"series"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"win"}},{"kind":"Field","name":{"kind":"Name","value":"loss"}}]}},{"kind":"Field","name":{"kind":"Name","value":"linescore"}},{"kind":"Field","name":{"kind":"Name","value":"points"}}]}},{"kind":"Field","name":{"kind":"Name","value":"visitors"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"win"}},{"kind":"Field","name":{"kind":"Name","value":"loss"}},{"kind":"Field","name":{"kind":"Name","value":"series"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"win"}},{"kind":"Field","name":{"kind":"Name","value":"loss"}}]}},{"kind":"Field","name":{"kind":"Name","value":"linescore"}},{"kind":"Field","name":{"kind":"Name","value":"points"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"officials"}},{"kind":"Field","name":{"kind":"Name","value":"timesTied"}},{"kind":"Field","name":{"kind":"Name","value":"leadChanges"}},{"kind":"Field","name":{"kind":"Name","value":"nugget"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"GameLogFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"GameLog"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"user"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"UserSummaryFragment"}}]}},{"kind":"Field","name":{"kind":"Name","value":"game"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"GameFragment"}}]}},{"kind":"Field","name":{"kind":"Name","value":"watchedSetting"}},{"kind":"Field","name":{"kind":"Name","value":"watchedScope"}},{"kind":"Field","name":{"kind":"Name","value":"watchedDate"}},{"kind":"Field","name":{"kind":"Name","value":"watchedLocation"}},{"kind":"Field","name":{"kind":"Name","value":"ratingForGame"}},{"kind":"Field","name":{"kind":"Name","value":"notes"}},{"kind":"Field","name":{"kind":"Name","value":"tags"}},{"kind":"Field","name":{"kind":"Name","value":"classification"}},{"kind":"Field","name":{"kind":"Name","value":"reactions"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"emoji"}},{"kind":"Field","name":{"kind":"Name","value":"userId"}},{"kind":"Field","name":{"kind":"Name","value":"targetId"}},{"kind":"Field","name":{"kind":"Name","value":"targetType"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"user"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"username"}},{"kind":"Field","name":{"kind":"Name","value":"emailAddress"}},{"kind":"Field","name":{"kind":"Name","value":"imageUrl"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}}]}}]} as unknown as DocumentNode<GetGameLogQuery, GetGameLogQueryVariables>;
-export const GetUserGameLogsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetUserGameLogs"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"filters"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"GameLogFilters"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"pagination"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"PaginationInput"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"gameLogs"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"filters"},"value":{"kind":"Variable","name":{"kind":"Name","value":"filters"}}},{"kind":"Argument","name":{"kind":"Name","value":"pagination"},"value":{"kind":"Variable","name":{"kind":"Name","value":"pagination"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"edges"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"node"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"GameLogFragment"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"pageInfo"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"hasNextPage"}},{"kind":"Field","name":{"kind":"Name","value":"hasPreviousPage"}},{"kind":"Field","name":{"kind":"Name","value":"startCursor"}},{"kind":"Field","name":{"kind":"Name","value":"endCursor"}}]}},{"kind":"Field","name":{"kind":"Name","value":"totalCount"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"UserSummaryFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"UserSummary"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"username"}},{"kind":"Field","name":{"kind":"Name","value":"firstName"}},{"kind":"Field","name":{"kind":"Name","value":"lastName"}},{"kind":"Field","name":{"kind":"Name","value":"emailAddress"}},{"kind":"Field","name":{"kind":"Name","value":"imageUrl"}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"GameFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Game"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"date"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"start"}},{"kind":"Field","name":{"kind":"Name","value":"end"}},{"kind":"Field","name":{"kind":"Name","value":"duration"}}]}},{"kind":"Field","name":{"kind":"Name","value":"status"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"clock"}},{"kind":"Field","name":{"kind":"Name","value":"halftime"}},{"kind":"Field","name":{"kind":"Name","value":"long"}},{"kind":"Field","name":{"kind":"Name","value":"short"}}]}},{"kind":"Field","name":{"kind":"Name","value":"arena"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"city"}},{"kind":"Field","name":{"kind":"Name","value":"state"}},{"kind":"Field","name":{"kind":"Name","value":"country"}}]}},{"kind":"Field","name":{"kind":"Name","value":"league"}},{"kind":"Field","name":{"kind":"Name","value":"season"}},{"kind":"Field","name":{"kind":"Name","value":"periods"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"current"}},{"kind":"Field","name":{"kind":"Name","value":"total"}},{"kind":"Field","name":{"kind":"Name","value":"endOfPeriod"}}]}},{"kind":"Field","name":{"kind":"Name","value":"teams"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"home"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"nickname"}},{"kind":"Field","name":{"kind":"Name","value":"code"}},{"kind":"Field","name":{"kind":"Name","value":"logo"}}]}},{"kind":"Field","name":{"kind":"Name","value":"visitors"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"nickname"}},{"kind":"Field","name":{"kind":"Name","value":"code"}},{"kind":"Field","name":{"kind":"Name","value":"logo"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"scores"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"home"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"win"}},{"kind":"Field","name":{"kind":"Name","value":"loss"}},{"kind":"Field","name":{"kind":"Name","value":"series"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"win"}},{"kind":"Field","name":{"kind":"Name","value":"loss"}}]}},{"kind":"Field","name":{"kind":"Name","value":"linescore"}},{"kind":"Field","name":{"kind":"Name","value":"points"}}]}},{"kind":"Field","name":{"kind":"Name","value":"visitors"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"win"}},{"kind":"Field","name":{"kind":"Name","value":"loss"}},{"kind":"Field","name":{"kind":"Name","value":"series"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"win"}},{"kind":"Field","name":{"kind":"Name","value":"loss"}}]}},{"kind":"Field","name":{"kind":"Name","value":"linescore"}},{"kind":"Field","name":{"kind":"Name","value":"points"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"officials"}},{"kind":"Field","name":{"kind":"Name","value":"timesTied"}},{"kind":"Field","name":{"kind":"Name","value":"leadChanges"}},{"kind":"Field","name":{"kind":"Name","value":"nugget"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"GameLogFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"GameLog"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"user"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"UserSummaryFragment"}}]}},{"kind":"Field","name":{"kind":"Name","value":"game"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"GameFragment"}}]}},{"kind":"Field","name":{"kind":"Name","value":"watchedSetting"}},{"kind":"Field","name":{"kind":"Name","value":"watchedScope"}},{"kind":"Field","name":{"kind":"Name","value":"watchedDate"}},{"kind":"Field","name":{"kind":"Name","value":"watchedLocation"}},{"kind":"Field","name":{"kind":"Name","value":"ratingForGame"}},{"kind":"Field","name":{"kind":"Name","value":"notes"}},{"kind":"Field","name":{"kind":"Name","value":"tags"}},{"kind":"Field","name":{"kind":"Name","value":"classification"}},{"kind":"Field","name":{"kind":"Name","value":"reactions"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"emoji"}},{"kind":"Field","name":{"kind":"Name","value":"userId"}},{"kind":"Field","name":{"kind":"Name","value":"targetId"}},{"kind":"Field","name":{"kind":"Name","value":"targetType"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"user"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"username"}},{"kind":"Field","name":{"kind":"Name","value":"emailAddress"}},{"kind":"Field","name":{"kind":"Name","value":"imageUrl"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}}]}}]} as unknown as DocumentNode<GetUserGameLogsQuery, GetUserGameLogsQueryVariables>;
-export const GetUserFriendshipsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetUserFriendships"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"userId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"user"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"userId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"UserSummaryFragment"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"UserSummaryFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"UserSummary"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"username"}},{"kind":"Field","name":{"kind":"Name","value":"firstName"}},{"kind":"Field","name":{"kind":"Name","value":"lastName"}},{"kind":"Field","name":{"kind":"Name","value":"emailAddress"}},{"kind":"Field","name":{"kind":"Name","value":"imageUrl"}}]}}]} as unknown as DocumentNode<GetUserFriendshipsQuery, GetUserFriendshipsQueryVariables>;
-export const GetTeamH2HDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetTeamH2H"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"teamId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"opponentId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"teamH2H"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"teamId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"teamId"}}},{"kind":"Argument","name":{"kind":"Name","value":"opponentId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"opponentId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"wins"}},{"kind":"Field","name":{"kind":"Name","value":"losses"}},{"kind":"Field","name":{"kind":"Name","value":"lastTenGames"}}]}}]}}]} as unknown as DocumentNode<GetTeamH2HQuery, GetTeamH2HQueryVariables>;
-export const GetTeamGameStatsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetTeamGameStats"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"gameId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"teamId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"teamGameStats"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"gameId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"gameId"}}},{"kind":"Argument","name":{"kind":"Name","value":"teamId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"teamId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"games"}},{"kind":"Field","name":{"kind":"Name","value":"points"}},{"kind":"Field","name":{"kind":"Name","value":"fgp"}},{"kind":"Field","name":{"kind":"Name","value":"tpp"}},{"kind":"Field","name":{"kind":"Name","value":"ftp"}},{"kind":"Field","name":{"kind":"Name","value":"totReb"}},{"kind":"Field","name":{"kind":"Name","value":"assists"}},{"kind":"Field","name":{"kind":"Name","value":"steals"}},{"kind":"Field","name":{"kind":"Name","value":"blocks"}},{"kind":"Field","name":{"kind":"Name","value":"turnovers"}},{"kind":"Field","name":{"kind":"Name","value":"pFouls"}},{"kind":"Field","name":{"kind":"Name","value":"plusMinus"}},{"kind":"Field","name":{"kind":"Name","value":"fastBreakPoints"}},{"kind":"Field","name":{"kind":"Name","value":"pointsInPaint"}},{"kind":"Field","name":{"kind":"Name","value":"biggestLead"}},{"kind":"Field","name":{"kind":"Name","value":"secondChancePoints"}},{"kind":"Field","name":{"kind":"Name","value":"pointsOffTurnovers"}},{"kind":"Field","name":{"kind":"Name","value":"longestRun"}},{"kind":"Field","name":{"kind":"Name","value":"assistsPerGame"}},{"kind":"Field","name":{"kind":"Name","value":"blocksPerGame"}},{"kind":"Field","name":{"kind":"Name","value":"pointsPerGame"}},{"kind":"Field","name":{"kind":"Name","value":"reboundsPerGame"}},{"kind":"Field","name":{"kind":"Name","value":"stealsPerGame"}},{"kind":"Field","name":{"kind":"Name","value":"turnoversPerGame"}}]}}]}}]} as unknown as DocumentNode<GetTeamGameStatsQuery, GetTeamGameStatsQueryVariables>;
-export const GetMeDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetMe"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"me"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"UserSummaryFragment"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"UserSummaryFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"UserSummary"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"username"}},{"kind":"Field","name":{"kind":"Name","value":"firstName"}},{"kind":"Field","name":{"kind":"Name","value":"lastName"}},{"kind":"Field","name":{"kind":"Name","value":"emailAddress"}},{"kind":"Field","name":{"kind":"Name","value":"imageUrl"}}]}}]} as unknown as DocumentNode<GetMeQuery, GetMeQueryVariables>;
+
+
+export type ResolverTypeWrapper<T> = Promise<T> | T;
+
+
+export type ResolverWithResolve<TResult, TParent, TContext, TArgs> = {
+  resolve: ResolverFn<TResult, TParent, TContext, TArgs>;
+};
+export type Resolver<TResult, TParent = {}, TContext = {}, TArgs = {}> = ResolverFn<TResult, TParent, TContext, TArgs> | ResolverWithResolve<TResult, TParent, TContext, TArgs>;
+
+export type ResolverFn<TResult, TParent, TContext, TArgs> = (
+  parent: TParent,
+  args: TArgs,
+  context: TContext,
+  info: GraphQLResolveInfo
+) => Promise<TResult> | TResult;
+
+export type SubscriptionSubscribeFn<TResult, TParent, TContext, TArgs> = (
+  parent: TParent,
+  args: TArgs,
+  context: TContext,
+  info: GraphQLResolveInfo
+) => AsyncIterable<TResult> | Promise<AsyncIterable<TResult>>;
+
+export type SubscriptionResolveFn<TResult, TParent, TContext, TArgs> = (
+  parent: TParent,
+  args: TArgs,
+  context: TContext,
+  info: GraphQLResolveInfo
+) => TResult | Promise<TResult>;
+
+export interface SubscriptionSubscriberObject<TResult, TKey extends string, TParent, TContext, TArgs> {
+  subscribe: SubscriptionSubscribeFn<{ [key in TKey]: TResult }, TParent, TContext, TArgs>;
+  resolve?: SubscriptionResolveFn<TResult, { [key in TKey]: TResult }, TContext, TArgs>;
+}
+
+export interface SubscriptionResolverObject<TResult, TParent, TContext, TArgs> {
+  subscribe: SubscriptionSubscribeFn<any, TParent, TContext, TArgs>;
+  resolve: SubscriptionResolveFn<TResult, any, TContext, TArgs>;
+}
+
+export type SubscriptionObject<TResult, TKey extends string, TParent, TContext, TArgs> =
+  | SubscriptionSubscriberObject<TResult, TKey, TParent, TContext, TArgs>
+  | SubscriptionResolverObject<TResult, TParent, TContext, TArgs>;
+
+export type SubscriptionResolver<TResult, TKey extends string, TParent = {}, TContext = {}, TArgs = {}> =
+  | ((...args: any[]) => SubscriptionObject<TResult, TKey, TParent, TContext, TArgs>)
+  | SubscriptionObject<TResult, TKey, TParent, TContext, TArgs>;
+
+export type TypeResolveFn<TTypes, TParent = {}, TContext = {}> = (
+  parent: TParent,
+  context: TContext,
+  info: GraphQLResolveInfo
+) => Maybe<TTypes> | Promise<Maybe<TTypes>>;
+
+export type IsTypeOfResolverFn<T = {}, TContext = {}> = (obj: T, context: TContext, info: GraphQLResolveInfo) => boolean | Promise<boolean>;
+
+export type NextResolverFn<T> = () => Promise<T>;
+
+export type DirectiveResolverFn<TResult = {}, TParent = {}, TContext = {}, TArgs = {}> = (
+  next: NextResolverFn<TResult>,
+  parent: TParent,
+  args: TArgs,
+  context: TContext,
+  info: GraphQLResolveInfo
+) => TResult | Promise<TResult>;
+
+
+
+/** Mapping between all available schema types and the resolvers types */
+export type ResolversTypes = {
+  AcceptFriendRequestResponse: ResolverTypeWrapper<AcceptFriendRequestResponse>;
+  Any: ResolverTypeWrapper<Scalars['Any']['output']>;
+  Arena: ResolverTypeWrapper<Arena>;
+  AuthenticationError: ResolverTypeWrapper<AuthenticationError>;
+  AuthorizationError: ResolverTypeWrapper<AuthorizationError>;
+  Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>;
+  BusinessLogicError: ResolverTypeWrapper<BusinessLogicError>;
+  Classification: Classification;
+  Comment: ResolverTypeWrapper<Comment>;
+  CommentConnection: ResolverTypeWrapper<CommentConnection>;
+  CommentEdge: ResolverTypeWrapper<CommentEdge>;
+  CommentFilters: CommentFilters;
+  ConferenceStanding: ResolverTypeWrapper<ConferenceStanding>;
+  CreateCommentInput: CreateCommentInput;
+  CreateCommentResponse: ResolverTypeWrapper<CreateCommentResponse>;
+  CreateGameInput: CreateGameInput;
+  CreateGameLogInput: CreateGameLogInput;
+  CreateGameLogResponse: ResolverTypeWrapper<CreateGameLogResponse>;
+  CreateGameResponse: ResolverTypeWrapper<CreateGameResponse>;
+  CreateReactionInput: CreateReactionInput;
+  CreateReactionResponse: ResolverTypeWrapper<CreateReactionResponse>;
+  DBUser: ResolverTypeWrapper<DbUser>;
+  DateRangeInput: DateRangeInput;
+  DateTime: ResolverTypeWrapper<Scalars['DateTime']['output']>;
+  DeleteCommentResponse: ResolverTypeWrapper<DeleteCommentResponse>;
+  DeleteGameLogResponse: ResolverTypeWrapper<DeleteGameLogResponse>;
+  DeleteReactionResponse: ResolverTypeWrapper<DeleteReactionResponse>;
+  ErrorResult: ResolverTypeWrapper<ErrorResult>;
+  Float: ResolverTypeWrapper<Scalars['Float']['output']>;
+  Friendship: ResolverTypeWrapper<Friendship>;
+  FriendshipStatus: FriendshipStatus;
+  Game: ResolverTypeWrapper<Game>;
+  GameConnection: ResolverTypeWrapper<GameConnection>;
+  GameDate: ResolverTypeWrapper<GameDate>;
+  GameEdge: ResolverTypeWrapper<GameEdge>;
+  GameFilters: GameFilters;
+  GameLog: ResolverTypeWrapper<GameLog>;
+  GameLogConnection: ResolverTypeWrapper<GameLogConnection>;
+  GameLogEdge: ResolverTypeWrapper<GameLogEdge>;
+  GameLogFilters: GameLogFilters;
+  GamePeriods: ResolverTypeWrapper<GamePeriods>;
+  GameScores: ResolverTypeWrapper<GameScores>;
+  GameStatus: ResolverTypeWrapper<GameStatus>;
+  GameStatusEnum: GameStatusEnum;
+  GameTeams: ResolverTypeWrapper<GameTeams>;
+  ID: ResolverTypeWrapper<Scalars['ID']['output']>;
+  IPlayerFilters: IPlayerFilters;
+  IPlayerStats: ResolverTypeWrapper<IPlayerStats>;
+  ITeamH2H: ResolverTypeWrapper<ITeamH2H>;
+  ITeamStats: ResolverTypeWrapper<ITeamStats>;
+  Int: ResolverTypeWrapper<Scalars['Int']['output']>;
+  Mutation: ResolverTypeWrapper<{}>;
+  PageInfo: ResolverTypeWrapper<PageInfo>;
+  PaginationInput: PaginationInput;
+  ParentType: ParentType;
+  Player: ResolverTypeWrapper<IDBPlayer>;
+  PlayerBirth: ResolverTypeWrapper<PlayerBirth>;
+  PlayerConnection: ResolverTypeWrapper<Omit<PlayerConnection, 'edges'> & { edges: Array<ResolversTypes['PlayerEdge']> }>;
+  PlayerEdge: ResolverTypeWrapper<Omit<PlayerEdge, 'node'> & { node: ResolversTypes['Player'] }>;
+  PlayerHeight: ResolverTypeWrapper<PlayerHeight>;
+  PlayerLeagues: ResolverTypeWrapper<PlayerLeagues>;
+  PlayerNba: ResolverTypeWrapper<PlayerNba>;
+  PlayerSeason: ResolverTypeWrapper<PlayerSeason>;
+  PlayerStandard: ResolverTypeWrapper<PlayerStandard>;
+  PlayerWeight: ResolverTypeWrapper<PlayerWeight>;
+  Query: ResolverTypeWrapper<{}>;
+  Reaction: ResolverTypeWrapper<Reaction>;
+  ReactionEmojiType: ReactionEmojiType;
+  RejectFriendRequestResponse: ResolverTypeWrapper<RejectFriendRequestResponse>;
+  RemoveFriendResponse: ResolverTypeWrapper<RemoveFriendResponse>;
+  SendFriendRequestResponse: ResolverTypeWrapper<SendFriendRequestResponse>;
+  SeriesScore: ResolverTypeWrapper<SeriesScore>;
+  String: ResolverTypeWrapper<Scalars['String']['output']>;
+  Team: ResolverTypeWrapper<Team>;
+  TeamConnection: ResolverTypeWrapper<TeamConnection>;
+  TeamEdge: ResolverTypeWrapper<TeamEdge>;
+  TeamFilters: TeamFilters;
+  TeamScore: ResolverTypeWrapper<TeamScore>;
+  TeamSummary: ResolverTypeWrapper<TeamSummary>;
+  UpdateCommentInput: UpdateCommentInput;
+  UpdateCommentResponse: ResolverTypeWrapper<UpdateCommentResponse>;
+  UpdateGameLogInput: UpdateGameLogInput;
+  UpdateGameLogResponse: ResolverTypeWrapper<UpdateGameLogResponse>;
+  UpdateUserProfileResponse: ResolverTypeWrapper<UpdateUserProfileResponse>;
+  UserConnection: ResolverTypeWrapper<UserConnection>;
+  UserEdge: ResolverTypeWrapper<UserEdge>;
+  UserFilters: UserFilters;
+  UserSearchFilters: UserSearchFilters;
+  UserSummary: ResolverTypeWrapper<UserSummary>;
+};
+
+/** Mapping between all available schema types and the resolvers parents */
+export type ResolversParentTypes = {
+  AcceptFriendRequestResponse: AcceptFriendRequestResponse;
+  Any: Scalars['Any']['output'];
+  Arena: Arena;
+  AuthenticationError: AuthenticationError;
+  AuthorizationError: AuthorizationError;
+  Boolean: Scalars['Boolean']['output'];
+  BusinessLogicError: BusinessLogicError;
+  Comment: Comment;
+  CommentConnection: CommentConnection;
+  CommentEdge: CommentEdge;
+  CommentFilters: CommentFilters;
+  ConferenceStanding: ConferenceStanding;
+  CreateCommentInput: CreateCommentInput;
+  CreateCommentResponse: CreateCommentResponse;
+  CreateGameInput: CreateGameInput;
+  CreateGameLogInput: CreateGameLogInput;
+  CreateGameLogResponse: CreateGameLogResponse;
+  CreateGameResponse: CreateGameResponse;
+  CreateReactionInput: CreateReactionInput;
+  CreateReactionResponse: CreateReactionResponse;
+  DBUser: DbUser;
+  DateRangeInput: DateRangeInput;
+  DateTime: Scalars['DateTime']['output'];
+  DeleteCommentResponse: DeleteCommentResponse;
+  DeleteGameLogResponse: DeleteGameLogResponse;
+  DeleteReactionResponse: DeleteReactionResponse;
+  ErrorResult: ErrorResult;
+  Float: Scalars['Float']['output'];
+  Friendship: Friendship;
+  Game: Game;
+  GameConnection: GameConnection;
+  GameDate: GameDate;
+  GameEdge: GameEdge;
+  GameFilters: GameFilters;
+  GameLog: GameLog;
+  GameLogConnection: GameLogConnection;
+  GameLogEdge: GameLogEdge;
+  GameLogFilters: GameLogFilters;
+  GamePeriods: GamePeriods;
+  GameScores: GameScores;
+  GameStatus: GameStatus;
+  GameTeams: GameTeams;
+  ID: Scalars['ID']['output'];
+  IPlayerFilters: IPlayerFilters;
+  IPlayerStats: IPlayerStats;
+  ITeamH2H: ITeamH2H;
+  ITeamStats: ITeamStats;
+  Int: Scalars['Int']['output'];
+  Mutation: {};
+  PageInfo: PageInfo;
+  PaginationInput: PaginationInput;
+  Player: IDBPlayer;
+  PlayerBirth: PlayerBirth;
+  PlayerConnection: Omit<PlayerConnection, 'edges'> & { edges: Array<ResolversParentTypes['PlayerEdge']> };
+  PlayerEdge: Omit<PlayerEdge, 'node'> & { node: ResolversParentTypes['Player'] };
+  PlayerHeight: PlayerHeight;
+  PlayerLeagues: PlayerLeagues;
+  PlayerNba: PlayerNba;
+  PlayerSeason: PlayerSeason;
+  PlayerStandard: PlayerStandard;
+  PlayerWeight: PlayerWeight;
+  Query: {};
+  Reaction: Reaction;
+  RejectFriendRequestResponse: RejectFriendRequestResponse;
+  RemoveFriendResponse: RemoveFriendResponse;
+  SendFriendRequestResponse: SendFriendRequestResponse;
+  SeriesScore: SeriesScore;
+  String: Scalars['String']['output'];
+  Team: Team;
+  TeamConnection: TeamConnection;
+  TeamEdge: TeamEdge;
+  TeamFilters: TeamFilters;
+  TeamScore: TeamScore;
+  TeamSummary: TeamSummary;
+  UpdateCommentInput: UpdateCommentInput;
+  UpdateCommentResponse: UpdateCommentResponse;
+  UpdateGameLogInput: UpdateGameLogInput;
+  UpdateGameLogResponse: UpdateGameLogResponse;
+  UpdateUserProfileResponse: UpdateUserProfileResponse;
+  UserConnection: UserConnection;
+  UserEdge: UserEdge;
+  UserFilters: UserFilters;
+  UserSearchFilters: UserSearchFilters;
+  UserSummary: UserSummary;
+};
+
+export type AcceptFriendRequestResponseResolvers<ContextType = IContext, ParentType extends ResolversParentTypes['AcceptFriendRequestResponse'] = ResolversParentTypes['AcceptFriendRequestResponse']> = {
+  errors?: Resolver<Maybe<Array<ResolversTypes['ErrorResult']>>, ParentType, ContextType>;
+  friendship?: Resolver<Maybe<ResolversTypes['Friendship']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export interface AnyScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['Any'], any> {
+  name: 'Any';
+}
+
+export type ArenaResolvers<ContextType = IContext, ParentType extends ResolversParentTypes['Arena'] = ResolversParentTypes['Arena']> = {
+  city?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  country?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  state?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type AuthenticationErrorResolvers<ContextType = IContext, ParentType extends ResolversParentTypes['AuthenticationError'] = ResolversParentTypes['AuthenticationError']> = {
+  message?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type AuthorizationErrorResolvers<ContextType = IContext, ParentType extends ResolversParentTypes['AuthorizationError'] = ResolversParentTypes['AuthorizationError']> = {
+  message?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  requiredRole?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type BusinessLogicErrorResolvers<ContextType = IContext, ParentType extends ResolversParentTypes['BusinessLogicError'] = ResolversParentTypes['BusinessLogicError']> = {
+  code?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  details?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  message?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type CommentResolvers<ContextType = IContext, ParentType extends ResolversParentTypes['Comment'] = ResolversParentTypes['Comment']> = {
+  childComments?: Resolver<ResolversTypes['CommentConnection'], ParentType, ContextType>;
+  content?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  deletedAt?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
+  depth?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  parentId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  parentType?: Resolver<ResolversTypes['ParentType'], ParentType, ContextType>;
+  reactions?: Resolver<Array<ResolversTypes['Reaction']>, ParentType, ContextType>;
+  updatedAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  user?: Resolver<ResolversTypes['UserSummary'], ParentType, ContextType>;
+  userId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type CommentConnectionResolvers<ContextType = IContext, ParentType extends ResolversParentTypes['CommentConnection'] = ResolversParentTypes['CommentConnection']> = {
+  edges?: Resolver<Array<ResolversTypes['CommentEdge']>, ParentType, ContextType>;
+  pageInfo?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
+  totalCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type CommentEdgeResolvers<ContextType = IContext, ParentType extends ResolversParentTypes['CommentEdge'] = ResolversParentTypes['CommentEdge']> = {
+  cursor?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  node?: Resolver<ResolversTypes['Comment'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type ConferenceStandingResolvers<ContextType = IContext, ParentType extends ResolversParentTypes['ConferenceStanding'] = ResolversParentTypes['ConferenceStanding']> = {
+  loss?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  win?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type CreateCommentResponseResolvers<ContextType = IContext, ParentType extends ResolversParentTypes['CreateCommentResponse'] = ResolversParentTypes['CreateCommentResponse']> = {
+  comment?: Resolver<Maybe<ResolversTypes['Comment']>, ParentType, ContextType>;
+  errors?: Resolver<Maybe<Array<ResolversTypes['ErrorResult']>>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type CreateGameLogResponseResolvers<ContextType = IContext, ParentType extends ResolversParentTypes['CreateGameLogResponse'] = ResolversParentTypes['CreateGameLogResponse']> = {
+  errors?: Resolver<Maybe<Array<ResolversTypes['ErrorResult']>>, ParentType, ContextType>;
+  gameLog?: Resolver<Maybe<ResolversTypes['GameLog']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type CreateGameResponseResolvers<ContextType = IContext, ParentType extends ResolversParentTypes['CreateGameResponse'] = ResolversParentTypes['CreateGameResponse']> = {
+  errors?: Resolver<Maybe<Array<ResolversTypes['ErrorResult']>>, ParentType, ContextType>;
+  game?: Resolver<Maybe<ResolversTypes['Game']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type CreateReactionResponseResolvers<ContextType = IContext, ParentType extends ResolversParentTypes['CreateReactionResponse'] = ResolversParentTypes['CreateReactionResponse']> = {
+  errors?: Resolver<Maybe<Array<ResolversTypes['ErrorResult']>>, ParentType, ContextType>;
+  reaction?: Resolver<Maybe<ResolversTypes['Reaction']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type DbUserResolvers<ContextType = IContext, ParentType extends ResolversParentTypes['DBUser'] = ResolversParentTypes['DBUser']> = {
+  banned?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
+  comments?: Resolver<Array<ResolversTypes['Comment']>, ParentType, ContextType>;
+  createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  deletedAt?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
+  emailAddress?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  email_verification_strategy?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  email_verified?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
+  external_id?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  firstName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  friendships?: Resolver<Array<ResolversTypes['Friendship']>, ParentType, ContextType>;
+  gameLogs?: Resolver<Array<ResolversTypes['GameLog']>, ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  imageUrl?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  inboundFriendshipIds?: Resolver<Maybe<Array<ResolversTypes['String']>>, ParentType, ContextType>;
+  initiatedFriendships?: Resolver<Array<ResolversTypes['Friendship']>, ParentType, ContextType>;
+  lastName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  last_sign_in_at?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
+  outboundFriendshipIds?: Resolver<Maybe<Array<ResolversTypes['String']>>, ParentType, ContextType>;
+  password_enabled?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
+  reactions?: Resolver<Array<ResolversTypes['Reaction']>, ParentType, ContextType>;
+  two_factor_enabled?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
+  updatedAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  username?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export interface DateTimeScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['DateTime'], any> {
+  name: 'DateTime';
+}
+
+export type DeleteCommentResponseResolvers<ContextType = IContext, ParentType extends ResolversParentTypes['DeleteCommentResponse'] = ResolversParentTypes['DeleteCommentResponse']> = {
+  errors?: Resolver<Maybe<Array<ResolversTypes['ErrorResult']>>, ParentType, ContextType>;
+  success?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type DeleteGameLogResponseResolvers<ContextType = IContext, ParentType extends ResolversParentTypes['DeleteGameLogResponse'] = ResolversParentTypes['DeleteGameLogResponse']> = {
+  errors?: Resolver<Maybe<Array<ResolversTypes['ErrorResult']>>, ParentType, ContextType>;
+  success?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type DeleteReactionResponseResolvers<ContextType = IContext, ParentType extends ResolversParentTypes['DeleteReactionResponse'] = ResolversParentTypes['DeleteReactionResponse']> = {
+  errors?: Resolver<Maybe<Array<ResolversTypes['ErrorResult']>>, ParentType, ContextType>;
+  success?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type ErrorResultResolvers<ContextType = IContext, ParentType extends ResolversParentTypes['ErrorResult'] = ResolversParentTypes['ErrorResult']> = {
+  code?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  field?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  message?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type FriendshipResolvers<ContextType = IContext, ParentType extends ResolversParentTypes['Friendship'] = ResolversParentTypes['Friendship']> = {
+  createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  initiator?: Resolver<ResolversTypes['UserSummary'], ParentType, ContextType>;
+  recipient?: Resolver<ResolversTypes['UserSummary'], ParentType, ContextType>;
+  status?: Resolver<ResolversTypes['FriendshipStatus'], ParentType, ContextType>;
+  updatedAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type GameResolvers<ContextType = IContext, ParentType extends ResolversParentTypes['Game'] = ResolversParentTypes['Game']> = {
+  arena?: Resolver<Maybe<ResolversTypes['Arena']>, ParentType, ContextType>;
+  awayTeamId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  awayTeamScore?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  date?: Resolver<ResolversTypes['GameDate'], ParentType, ContextType>;
+  gameType?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  homeTeamId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  homeTeamScore?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  isCompleted?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  leadChanges?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  league?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  nbaGameId?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType>;
+  nugget?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  officials?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
+  periods?: Resolver<ResolversTypes['GamePeriods'], ParentType, ContextType>;
+  scores?: Resolver<ResolversTypes['GameScores'], ParentType, ContextType>;
+  season?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  stage?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  status?: Resolver<ResolversTypes['GameStatus'], ParentType, ContextType>;
+  teams?: Resolver<ResolversTypes['GameTeams'], ParentType, ContextType>;
+  timesTied?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  updatedAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type GameConnectionResolvers<ContextType = IContext, ParentType extends ResolversParentTypes['GameConnection'] = ResolversParentTypes['GameConnection']> = {
+  edges?: Resolver<Array<ResolversTypes['GameEdge']>, ParentType, ContextType>;
+  pageInfo?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
+  totalCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type GameDateResolvers<ContextType = IContext, ParentType extends ResolversParentTypes['GameDate'] = ResolversParentTypes['GameDate']> = {
+  duration?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  end?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
+  start?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type GameEdgeResolvers<ContextType = IContext, ParentType extends ResolversParentTypes['GameEdge'] = ResolversParentTypes['GameEdge']> = {
+  cursor?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  node?: Resolver<ResolversTypes['Game'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type GameLogResolvers<ContextType = IContext, ParentType extends ResolversParentTypes['GameLog'] = ResolversParentTypes['GameLog']> = {
+  classification?: Resolver<ResolversTypes['Classification'], ParentType, ContextType>;
+  comments?: Resolver<ResolversTypes['CommentConnection'], ParentType, ContextType>;
+  createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  deletedAt?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
+  game?: Resolver<ResolversTypes['Game'], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  notes?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  ratingForGame?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  reactions?: Resolver<Array<ResolversTypes['Reaction']>, ParentType, ContextType>;
+  tags?: Resolver<Maybe<Array<ResolversTypes['String']>>, ParentType, ContextType>;
+  updatedAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  user?: Resolver<ResolversTypes['UserSummary'], ParentType, ContextType>;
+  watchedDate?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
+  watchedLocation?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  watchedScope?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  watchedSetting?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type GameLogConnectionResolvers<ContextType = IContext, ParentType extends ResolversParentTypes['GameLogConnection'] = ResolversParentTypes['GameLogConnection']> = {
+  edges?: Resolver<Array<ResolversTypes['GameLogEdge']>, ParentType, ContextType>;
+  pageInfo?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
+  totalCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type GameLogEdgeResolvers<ContextType = IContext, ParentType extends ResolversParentTypes['GameLogEdge'] = ResolversParentTypes['GameLogEdge']> = {
+  cursor?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  node?: Resolver<ResolversTypes['GameLog'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type GamePeriodsResolvers<ContextType = IContext, ParentType extends ResolversParentTypes['GamePeriods'] = ResolversParentTypes['GamePeriods']> = {
+  current?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  endOfPeriod?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  total?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type GameScoresResolvers<ContextType = IContext, ParentType extends ResolversParentTypes['GameScores'] = ResolversParentTypes['GameScores']> = {
+  home?: Resolver<ResolversTypes['TeamScore'], ParentType, ContextType>;
+  visitors?: Resolver<ResolversTypes['TeamScore'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type GameStatusResolvers<ContextType = IContext, ParentType extends ResolversParentTypes['GameStatus'] = ResolversParentTypes['GameStatus']> = {
+  clock?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  halftime?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  long?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  short?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type GameTeamsResolvers<ContextType = IContext, ParentType extends ResolversParentTypes['GameTeams'] = ResolversParentTypes['GameTeams']> = {
+  home?: Resolver<ResolversTypes['TeamSummary'], ParentType, ContextType>;
+  visitors?: Resolver<ResolversTypes['TeamSummary'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type IPlayerStatsResolvers<ContextType = IContext, ParentType extends ResolversParentTypes['IPlayerStats'] = ResolversParentTypes['IPlayerStats']> = {
+  assists?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  blocks?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  deletedAt?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
+  fieldGoalsAttempted?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  fieldGoalsMade?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  fouls?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  freeThrowsAttempted?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  freeThrowsMade?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  gameId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  minutes?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  playerId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  points?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  rebounds?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  steals?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  teamId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  threePointersAttempted?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  threePointersMade?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  turnovers?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  updatedAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type ITeamH2HResolvers<ContextType = IContext, ParentType extends ResolversParentTypes['ITeamH2H'] = ResolversParentTypes['ITeamH2H']> = {
+  lastTenGames?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  losses?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  wins?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type ITeamStatsResolvers<ContextType = IContext, ParentType extends ResolversParentTypes['ITeamStats'] = ResolversParentTypes['ITeamStats']> = {
+  assists?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  assistsPerGame?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
+  biggestLead?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  blocks?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  blocksPerGame?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
+  fastBreakPoints?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  fgp?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
+  ftp?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
+  games?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  longestRun?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  pFouls?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  plusMinus?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  points?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  pointsInPaint?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  pointsOffTurnovers?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  pointsPerGame?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
+  reboundsPerGame?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
+  secondChancePoints?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  steals?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  stealsPerGame?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
+  totReb?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  tpp?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
+  turnovers?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  turnoversPerGame?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type MutationResolvers<ContextType = IContext, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
+  acceptFriendRequest?: Resolver<ResolversTypes['AcceptFriendRequestResponse'], ParentType, ContextType, RequireFields<MutationAcceptFriendRequestArgs, 'friendshipId'>>;
+  createComment?: Resolver<ResolversTypes['CreateCommentResponse'], ParentType, ContextType, RequireFields<MutationCreateCommentArgs, 'input'>>;
+  createGame?: Resolver<ResolversTypes['CreateGameResponse'], ParentType, ContextType, RequireFields<MutationCreateGameArgs, 'input'>>;
+  createGameLog?: Resolver<ResolversTypes['CreateGameLogResponse'], ParentType, ContextType, RequireFields<MutationCreateGameLogArgs, 'input'>>;
+  createReaction?: Resolver<ResolversTypes['CreateReactionResponse'], ParentType, ContextType, RequireFields<MutationCreateReactionArgs, 'input'>>;
+  deleteComment?: Resolver<ResolversTypes['DeleteCommentResponse'], ParentType, ContextType, RequireFields<MutationDeleteCommentArgs, 'id'>>;
+  deleteGameLog?: Resolver<ResolversTypes['DeleteGameLogResponse'], ParentType, ContextType, RequireFields<MutationDeleteGameLogArgs, 'id'>>;
+  deleteReaction?: Resolver<ResolversTypes['DeleteReactionResponse'], ParentType, ContextType, RequireFields<MutationDeleteReactionArgs, 'id'>>;
+  rejectFriendRequest?: Resolver<ResolversTypes['RejectFriendRequestResponse'], ParentType, ContextType, RequireFields<MutationRejectFriendRequestArgs, 'friendshipId'>>;
+  removeFriend?: Resolver<ResolversTypes['RemoveFriendResponse'], ParentType, ContextType, RequireFields<MutationRemoveFriendArgs, 'friendshipId'>>;
+  sendFriendRequest?: Resolver<ResolversTypes['SendFriendRequestResponse'], ParentType, ContextType, RequireFields<MutationSendFriendRequestArgs, 'userId'>>;
+  updateComment?: Resolver<ResolversTypes['UpdateCommentResponse'], ParentType, ContextType, RequireFields<MutationUpdateCommentArgs, 'id' | 'input'>>;
+  updateGameLog?: Resolver<ResolversTypes['UpdateGameLogResponse'], ParentType, ContextType, RequireFields<MutationUpdateGameLogArgs, 'id' | 'input'>>;
+};
+
+export type PageInfoResolvers<ContextType = IContext, ParentType extends ResolversParentTypes['PageInfo'] = ResolversParentTypes['PageInfo']> = {
+  endCursor?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  hasNextPage?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  hasPreviousPage?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  startCursor?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type PlayerResolvers<ContextType = IContext, ParentType extends ResolversParentTypes['Player'] = ResolversParentTypes['Player']> = {
+  active?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
+  affiliation?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  birth?: Resolver<Maybe<ResolversTypes['PlayerBirth']>, ParentType, ContextType>;
+  college?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  firstName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  height?: Resolver<Maybe<ResolversTypes['PlayerHeight']>, ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  lastName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  leagues?: Resolver<Maybe<ResolversTypes['PlayerLeagues']>, ParentType, ContextType>;
+  nba?: Resolver<Maybe<ResolversTypes['PlayerNba']>, ParentType, ContextType>;
+  seasons_active?: Resolver<Maybe<Array<ResolversTypes['PlayerSeason']>>, ParentType, ContextType>;
+  weight?: Resolver<Maybe<ResolversTypes['PlayerWeight']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type PlayerBirthResolvers<ContextType = IContext, ParentType extends ResolversParentTypes['PlayerBirth'] = ResolversParentTypes['PlayerBirth']> = {
+  country?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  date?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type PlayerConnectionResolvers<ContextType = IContext, ParentType extends ResolversParentTypes['PlayerConnection'] = ResolversParentTypes['PlayerConnection']> = {
+  edges?: Resolver<Array<ResolversTypes['PlayerEdge']>, ParentType, ContextType>;
+  hasMore?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  totalCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type PlayerEdgeResolvers<ContextType = IContext, ParentType extends ResolversParentTypes['PlayerEdge'] = ResolversParentTypes['PlayerEdge']> = {
+  cursor?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  node?: Resolver<ResolversTypes['Player'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type PlayerHeightResolvers<ContextType = IContext, ParentType extends ResolversParentTypes['PlayerHeight'] = ResolversParentTypes['PlayerHeight']> = {
+  feets?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  inches?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  meters?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type PlayerLeaguesResolvers<ContextType = IContext, ParentType extends ResolversParentTypes['PlayerLeagues'] = ResolversParentTypes['PlayerLeagues']> = {
+  standard?: Resolver<Maybe<ResolversTypes['PlayerStandard']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type PlayerNbaResolvers<ContextType = IContext, ParentType extends ResolversParentTypes['PlayerNba'] = ResolversParentTypes['PlayerNba']> = {
+  pro?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  start?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type PlayerSeasonResolvers<ContextType = IContext, ParentType extends ResolversParentTypes['PlayerSeason'] = ResolversParentTypes['PlayerSeason']> = {
+  season?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  teams?: Resolver<Maybe<Array<ResolversTypes['String']>>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type PlayerStandardResolvers<ContextType = IContext, ParentType extends ResolversParentTypes['PlayerStandard'] = ResolversParentTypes['PlayerStandard']> = {
+  active?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
+  jersey?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  pos?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type PlayerWeightResolvers<ContextType = IContext, ParentType extends ResolversParentTypes['PlayerWeight'] = ResolversParentTypes['PlayerWeight']> = {
+  kilograms?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  pounds?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type QueryResolvers<ContextType = IContext, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
+  comments?: Resolver<ResolversTypes['CommentConnection'], ParentType, ContextType, Partial<QueryCommentsArgs>>;
+  game?: Resolver<Maybe<ResolversTypes['Game']>, ParentType, ContextType, RequireFields<QueryGameArgs, 'id'>>;
+  gameLog?: Resolver<Maybe<ResolversTypes['GameLog']>, ParentType, ContextType, RequireFields<QueryGameLogArgs, 'id'>>;
+  gameLogs?: Resolver<ResolversTypes['GameLogConnection'], ParentType, ContextType, Partial<QueryGameLogsArgs>>;
+  games?: Resolver<ResolversTypes['GameConnection'], ParentType, ContextType, Partial<QueryGamesArgs>>;
+  liveGames?: Resolver<ResolversTypes['GameConnection'], ParentType, ContextType, Partial<QueryLiveGamesArgs>>;
+  me?: Resolver<Maybe<ResolversTypes['UserSummary']>, ParentType, ContextType>;
+  player?: Resolver<Maybe<ResolversTypes['Player']>, ParentType, ContextType, RequireFields<QueryPlayerArgs, 'id'>>;
+  playerStats?: Resolver<Maybe<ResolversTypes['IPlayerStats']>, ParentType, ContextType, RequireFields<QueryPlayerStatsArgs, 'gameId' | 'playerId'>>;
+  players?: Resolver<ResolversTypes['PlayerConnection'], ParentType, ContextType, Partial<QueryPlayersArgs>>;
+  reactions?: Resolver<Array<ResolversTypes['Reaction']>, ParentType, ContextType, RequireFields<QueryReactionsArgs, 'targetId' | 'targetType'>>;
+  searchUsers?: Resolver<ResolversTypes['UserConnection'], ParentType, ContextType, Partial<QuerySearchUsersArgs>>;
+  team?: Resolver<Maybe<ResolversTypes['Team']>, ParentType, ContextType, RequireFields<QueryTeamArgs, 'id'>>;
+  teamGameStats?: Resolver<Maybe<ResolversTypes['ITeamStats']>, ParentType, ContextType, RequireFields<QueryTeamGameStatsArgs, 'gameId' | 'teamId'>>;
+  teamH2H?: Resolver<Maybe<ResolversTypes['ITeamH2H']>, ParentType, ContextType, RequireFields<QueryTeamH2HArgs, 'opponentId' | 'teamId'>>;
+  teamStats?: Resolver<Maybe<ResolversTypes['ITeamStats']>, ParentType, ContextType, RequireFields<QueryTeamStatsArgs, 'season' | 'teamId'>>;
+  teams?: Resolver<ResolversTypes['TeamConnection'], ParentType, ContextType, Partial<QueryTeamsArgs>>;
+  user?: Resolver<Maybe<ResolversTypes['UserSummary']>, ParentType, ContextType, RequireFields<QueryUserArgs, 'id'>>;
+  users?: Resolver<Array<ResolversTypes['UserSummary']>, ParentType, ContextType, Partial<QueryUsersArgs>>;
+};
+
+export type ReactionResolvers<ContextType = IContext, ParentType extends ResolversParentTypes['Reaction'] = ResolversParentTypes['Reaction']> = {
+  createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  emoji?: Resolver<ResolversTypes['ReactionEmojiType'], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  targetId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  targetType?: Resolver<ResolversTypes['ParentType'], ParentType, ContextType>;
+  updatedAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  user?: Resolver<ResolversTypes['UserSummary'], ParentType, ContextType>;
+  userId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type RejectFriendRequestResponseResolvers<ContextType = IContext, ParentType extends ResolversParentTypes['RejectFriendRequestResponse'] = ResolversParentTypes['RejectFriendRequestResponse']> = {
+  errors?: Resolver<Maybe<Array<ResolversTypes['ErrorResult']>>, ParentType, ContextType>;
+  friendship?: Resolver<Maybe<ResolversTypes['Friendship']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type RemoveFriendResponseResolvers<ContextType = IContext, ParentType extends ResolversParentTypes['RemoveFriendResponse'] = ResolversParentTypes['RemoveFriendResponse']> = {
+  errors?: Resolver<Maybe<Array<ResolversTypes['ErrorResult']>>, ParentType, ContextType>;
+  success?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type SendFriendRequestResponseResolvers<ContextType = IContext, ParentType extends ResolversParentTypes['SendFriendRequestResponse'] = ResolversParentTypes['SendFriendRequestResponse']> = {
+  errors?: Resolver<Maybe<Array<ResolversTypes['ErrorResult']>>, ParentType, ContextType>;
+  friendship?: Resolver<Maybe<ResolversTypes['Friendship']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type SeriesScoreResolvers<ContextType = IContext, ParentType extends ResolversParentTypes['SeriesScore'] = ResolversParentTypes['SeriesScore']> = {
+  loss?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  win?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type TeamResolvers<ContextType = IContext, ParentType extends ResolversParentTypes['Team'] = ResolversParentTypes['Team']> = {
+  city?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  code?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  conference?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  country?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  division?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  h2h?: Resolver<Maybe<ResolversTypes['ITeamH2H']>, ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  league?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  logo?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  nickname?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  season?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  standings?: Resolver<Maybe<Array<ResolversTypes['ConferenceStanding']>>, ParentType, ContextType>;
+  state?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  stats?: Resolver<Maybe<ResolversTypes['ITeamStats']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type TeamConnectionResolvers<ContextType = IContext, ParentType extends ResolversParentTypes['TeamConnection'] = ResolversParentTypes['TeamConnection']> = {
+  edges?: Resolver<Array<ResolversTypes['TeamEdge']>, ParentType, ContextType>;
+  pageInfo?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
+  totalCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type TeamEdgeResolvers<ContextType = IContext, ParentType extends ResolversParentTypes['TeamEdge'] = ResolversParentTypes['TeamEdge']> = {
+  cursor?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  node?: Resolver<ResolversTypes['Team'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type TeamScoreResolvers<ContextType = IContext, ParentType extends ResolversParentTypes['TeamScore'] = ResolversParentTypes['TeamScore']> = {
+  linescore?: Resolver<Array<ResolversTypes['Int']>, ParentType, ContextType>;
+  loss?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  points?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  series?: Resolver<ResolversTypes['SeriesScore'], ParentType, ContextType>;
+  win?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type TeamSummaryResolvers<ContextType = IContext, ParentType extends ResolversParentTypes['TeamSummary'] = ResolversParentTypes['TeamSummary']> = {
+  code?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  logo?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  nickname?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type UpdateCommentResponseResolvers<ContextType = IContext, ParentType extends ResolversParentTypes['UpdateCommentResponse'] = ResolversParentTypes['UpdateCommentResponse']> = {
+  comment?: Resolver<Maybe<ResolversTypes['Comment']>, ParentType, ContextType>;
+  errors?: Resolver<Maybe<Array<ResolversTypes['ErrorResult']>>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type UpdateGameLogResponseResolvers<ContextType = IContext, ParentType extends ResolversParentTypes['UpdateGameLogResponse'] = ResolversParentTypes['UpdateGameLogResponse']> = {
+  errors?: Resolver<Maybe<Array<ResolversTypes['ErrorResult']>>, ParentType, ContextType>;
+  gameLog?: Resolver<Maybe<ResolversTypes['GameLog']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type UpdateUserProfileResponseResolvers<ContextType = IContext, ParentType extends ResolversParentTypes['UpdateUserProfileResponse'] = ResolversParentTypes['UpdateUserProfileResponse']> = {
+  errors?: Resolver<Maybe<Array<ResolversTypes['ErrorResult']>>, ParentType, ContextType>;
+  user?: Resolver<Maybe<ResolversTypes['UserSummary']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type UserConnectionResolvers<ContextType = IContext, ParentType extends ResolversParentTypes['UserConnection'] = ResolversParentTypes['UserConnection']> = {
+  edges?: Resolver<Array<ResolversTypes['UserEdge']>, ParentType, ContextType>;
+  pageInfo?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
+  totalCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type UserEdgeResolvers<ContextType = IContext, ParentType extends ResolversParentTypes['UserEdge'] = ResolversParentTypes['UserEdge']> = {
+  cursor?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  node?: Resolver<ResolversTypes['UserSummary'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type UserSummaryResolvers<ContextType = IContext, ParentType extends ResolversParentTypes['UserSummary'] = ResolversParentTypes['UserSummary']> = {
+  emailAddress?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  firstName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  imageUrl?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  lastName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  username?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type Resolvers<ContextType = IContext> = {
+  AcceptFriendRequestResponse?: AcceptFriendRequestResponseResolvers<ContextType>;
+  Any?: GraphQLScalarType;
+  Arena?: ArenaResolvers<ContextType>;
+  AuthenticationError?: AuthenticationErrorResolvers<ContextType>;
+  AuthorizationError?: AuthorizationErrorResolvers<ContextType>;
+  BusinessLogicError?: BusinessLogicErrorResolvers<ContextType>;
+  Comment?: CommentResolvers<ContextType>;
+  CommentConnection?: CommentConnectionResolvers<ContextType>;
+  CommentEdge?: CommentEdgeResolvers<ContextType>;
+  ConferenceStanding?: ConferenceStandingResolvers<ContextType>;
+  CreateCommentResponse?: CreateCommentResponseResolvers<ContextType>;
+  CreateGameLogResponse?: CreateGameLogResponseResolvers<ContextType>;
+  CreateGameResponse?: CreateGameResponseResolvers<ContextType>;
+  CreateReactionResponse?: CreateReactionResponseResolvers<ContextType>;
+  DBUser?: DbUserResolvers<ContextType>;
+  DateTime?: GraphQLScalarType;
+  DeleteCommentResponse?: DeleteCommentResponseResolvers<ContextType>;
+  DeleteGameLogResponse?: DeleteGameLogResponseResolvers<ContextType>;
+  DeleteReactionResponse?: DeleteReactionResponseResolvers<ContextType>;
+  ErrorResult?: ErrorResultResolvers<ContextType>;
+  Friendship?: FriendshipResolvers<ContextType>;
+  Game?: GameResolvers<ContextType>;
+  GameConnection?: GameConnectionResolvers<ContextType>;
+  GameDate?: GameDateResolvers<ContextType>;
+  GameEdge?: GameEdgeResolvers<ContextType>;
+  GameLog?: GameLogResolvers<ContextType>;
+  GameLogConnection?: GameLogConnectionResolvers<ContextType>;
+  GameLogEdge?: GameLogEdgeResolvers<ContextType>;
+  GamePeriods?: GamePeriodsResolvers<ContextType>;
+  GameScores?: GameScoresResolvers<ContextType>;
+  GameStatus?: GameStatusResolvers<ContextType>;
+  GameTeams?: GameTeamsResolvers<ContextType>;
+  IPlayerStats?: IPlayerStatsResolvers<ContextType>;
+  ITeamH2H?: ITeamH2HResolvers<ContextType>;
+  ITeamStats?: ITeamStatsResolvers<ContextType>;
+  Mutation?: MutationResolvers<ContextType>;
+  PageInfo?: PageInfoResolvers<ContextType>;
+  Player?: PlayerResolvers<ContextType>;
+  PlayerBirth?: PlayerBirthResolvers<ContextType>;
+  PlayerConnection?: PlayerConnectionResolvers<ContextType>;
+  PlayerEdge?: PlayerEdgeResolvers<ContextType>;
+  PlayerHeight?: PlayerHeightResolvers<ContextType>;
+  PlayerLeagues?: PlayerLeaguesResolvers<ContextType>;
+  PlayerNba?: PlayerNbaResolvers<ContextType>;
+  PlayerSeason?: PlayerSeasonResolvers<ContextType>;
+  PlayerStandard?: PlayerStandardResolvers<ContextType>;
+  PlayerWeight?: PlayerWeightResolvers<ContextType>;
+  Query?: QueryResolvers<ContextType>;
+  Reaction?: ReactionResolvers<ContextType>;
+  RejectFriendRequestResponse?: RejectFriendRequestResponseResolvers<ContextType>;
+  RemoveFriendResponse?: RemoveFriendResponseResolvers<ContextType>;
+  SendFriendRequestResponse?: SendFriendRequestResponseResolvers<ContextType>;
+  SeriesScore?: SeriesScoreResolvers<ContextType>;
+  Team?: TeamResolvers<ContextType>;
+  TeamConnection?: TeamConnectionResolvers<ContextType>;
+  TeamEdge?: TeamEdgeResolvers<ContextType>;
+  TeamScore?: TeamScoreResolvers<ContextType>;
+  TeamSummary?: TeamSummaryResolvers<ContextType>;
+  UpdateCommentResponse?: UpdateCommentResponseResolvers<ContextType>;
+  UpdateGameLogResponse?: UpdateGameLogResponseResolvers<ContextType>;
+  UpdateUserProfileResponse?: UpdateUserProfileResponseResolvers<ContextType>;
+  UserConnection?: UserConnectionResolvers<ContextType>;
+  UserEdge?: UserEdgeResolvers<ContextType>;
+  UserSummary?: UserSummaryResolvers<ContextType>;
+};
+

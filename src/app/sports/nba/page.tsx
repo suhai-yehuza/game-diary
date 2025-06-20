@@ -110,18 +110,29 @@ export default function NBAPage() {
   const processedGames = sortedGames.reduce(
     (acc, game) => {
       // Check if game is live
-      if (game.status.long === 'In Play' || game.status.long === 'Live') {
+      if (
+        (typeof game.status === 'object' &&
+          game.status !== null &&
+          game.status.long === 'In Play') ||
+        (typeof game.status === 'object' && game.status !== null && game.status.long === 'Live')
+      ) {
         acc.live.push(game);
       }
       // Check if game is scheduled
       else if (
-        game.status.long === 'Scheduled' ||
+        (typeof game.status === 'object' &&
+          game.status !== null &&
+          game.status.long === 'Scheduled') ||
         isAfter(new Date(typeof game.date === 'string' ? game.date : game.date.start), now)
       ) {
         acc.scheduled.push(game);
       }
       // Check if game is completed
-      else if (game.status.long === 'Finished') {
+      else if (
+        typeof game.status === 'object' &&
+        game.status !== null &&
+        game.status.long === 'Finished'
+      ) {
         acc.completed.push(game);
       }
       return acc;

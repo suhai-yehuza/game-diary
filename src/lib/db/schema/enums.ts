@@ -1,30 +1,28 @@
 import { pgEnum } from 'drizzle-orm/pg-core';
 
 import {
+  type IGameStatusValue,
+  type INotificationTypeValue,
+  type IReactionEmojiValue,
+  type IFriendshipStatusValue,
+  type IWatchedSettingValue,
+} from '@src/lib/types';
+
+import {
   GAME_STATUS,
   NOTIFICATION_TYPE,
   REACTION_TYPE,
   REACTION_EMOJIS,
   FRIENDSHIP_STATUS,
   WATCHED_SETTING,
-  type GameStatusValue,
-  type NotificationTypeValue,
-  type ReactionTypeValue,
-  type IReactionEmojiValue,
-  type IFriendshipStatusValue,
-  type IWatchedSettingValue,
 } from './enum-values';
 
-// Convert enum values to tuples for pgEnum
-const gameStatusValues = Object.values(GAME_STATUS) as [GameStatusValue, ...GameStatusValue[]];
+const gameStatusValues = Object.values(GAME_STATUS) as [IGameStatusValue, ...IGameStatusValue[]];
 const notificationTypeValues = Object.values(NOTIFICATION_TYPE) as [
-  NotificationTypeValue,
-  ...NotificationTypeValue[],
+  INotificationTypeValue,
+  ...INotificationTypeValue[],
 ];
-const reactionTypeValues = Object.values(REACTION_TYPE) as [
-  ReactionTypeValue,
-  ...ReactionTypeValue[],
-];
+const reactionTypeValues = Object.values(REACTION_TYPE) as [string, ...string[]];
 const reactionEmojiValues = Object.values(REACTION_EMOJIS) as [
   IReactionEmojiValue,
   ...IReactionEmojiValue[],
@@ -46,8 +44,3 @@ export const reactionEmojiEnum = pgEnum('reaction_emoji', reactionEmojiValues);
 export const friendshipStatusEnum = pgEnum('friendship_status', friendshipStatusValues);
 export const watchedSettingEnum = pgEnum('watched_setting', watchedSettingValues);
 export const reactionTargetEnum = pgEnum('reaction_target', ['game_log', 'comment']);
-
-export enum ISortDirection {
-  ASC = 'asc',
-  DESC = 'desc',
-}

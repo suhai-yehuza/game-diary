@@ -12,14 +12,14 @@ import {
   NotFoundError,
   ValidationError,
 } from '@src/lib/graphql/errors';
-import type { IContext } from '@src/lib/types/component.types';
-import { FRIENDSHIP_STATUS } from '@src/lib/types/config.types';
 import type {
+  IContext,
   MutationSendFriendRequestArgs,
   MutationAcceptFriendRequestArgs,
   MutationRejectFriendRequestArgs,
   MutationRemoveFriendArgs,
-} from '@src/lib/types/generated/graphql';
+} from '@src/lib/types';
+import { FRIENDSHIP_STATUS } from '@src/lib/types';
 import { sendFriendRequestSchema, friendshipIdSchema } from '@src/lib/validations/friendship';
 
 import { ensureUserExists } from './utils';

@@ -16,18 +16,13 @@ import {
   SelectValue,
 } from '@src/app/components/ui/select';
 import { Textarea } from '@src/app/components/ui/textarea';
-import {
-  WATCHED_SETTING,
-  CLASSIFICATION,
-  WATCHED_SCOPE,
-  type IWatchedSettingValue,
-  type IWatchedScopeValue,
-} from '@src/lib/types/config.types';
-import type { IGame } from '@src/lib/types/game.types';
-import type { CreateGameLogInput, Classification } from '@src/lib/types/generated/graphql';
-import type { IGameLogFormProps, IReactDatePickerProps } from '@src/lib/types/misc.types';
+import { WATCHED_SETTING, CLASSIFICATION, WATCHED_SCOPE } from '@src/lib/types';
+import type { IWatchedSettingValue, IWatchedScopeValue } from '@src/lib/types';
+import type { IReactDatePickerProps, IGameLogFormProps } from '@src/lib/types/game-log-form.types';
+import type { IGameData } from '@src/lib/types/game-log.types';
+import type { Classification, CreateGameLogInput } from '@src/lib/types/generated/graphql';
 
-// Type-safe component wrapper
+// Type-safe component wrapper with proper type casting
 const ReactDatePicker =
   ReactDatePickerOriginal as unknown as React.ComponentType<IReactDatePickerProps>;
 
@@ -41,18 +36,18 @@ export function GameLogForm({
 }: IGameLogFormProps) {
   // Form state with safe defaults - ensure all Select values are always defined
   const [formData, setFormData] = useState<CreateGameLogInput>({
-    gameId: '',
-    classification: CLASSIFICATION.PROTECTED as Classification,
-    watchedSetting: WATCHED_SETTING.TV as IWatchedSettingValue,
-    watchedScope: WATCHED_SCOPE.FULL_GAME as IWatchedScopeValue,
-    watchedDate: new Date(),
-    watchedLocation: '',
-    ratingForGame: 3,
-    notes: '',
-    tags: [],
+    gameId: externalFormData?.gameId || '',
+    classification: (externalFormData?.classification as Classification) || 'Protected',
+    watchedSetting: externalFormData?.watchedSetting || 'TV',
+    watchedScope: externalFormData?.watchedScope || 'FULL_GAME',
+    watchedDate: externalFormData?.watchedDate || new Date().toISOString(),
+    watchedLocation: externalFormData?.watchedLocation || undefined,
+    ratingForGame: externalFormData?.ratingForGame || 3,
+    notes: externalFormData?.notes || undefined,
+    tags: externalFormData?.tags || undefined,
   });
 
-  const [selectedGame] = useState<IGame | null>(null);
+  const [selectedGame] = useState<IGameData | null>(externalSelectedGame || null);
   const [isUserInteracting, setIsUserInteracting] = useState(false);
   const hasInitialized = useRef(false);
 
@@ -61,14 +56,14 @@ export function GameLogForm({
     if (externalFormData && !hasInitialized.current && !isUserInteracting) {
       const newFormData: CreateGameLogInput = {
         gameId: externalFormData.gameId,
-        watchedSetting: externalFormData.watchedSetting,
-        watchedDate: externalFormData.watchedDate,
-        watchedLocation: externalFormData.watchedLocation,
-        ratingForGame: externalFormData.ratingForGame,
-        watchedScope: externalFormData.watchedScope,
-        notes: externalFormData.notes,
-        tags: externalFormData.tags,
-        classification: externalFormData.classification as Classification,
+        watchedSetting: externalFormData.watchedSetting || 'TV',
+        watchedDate: externalFormData.watchedDate || new Date().toISOString(),
+        watchedLocation: externalFormData.watchedLocation || undefined,
+        ratingForGame: externalFormData.ratingForGame || 3,
+        watchedScope: externalFormData.watchedScope || 'FULL_GAME',
+        notes: externalFormData.notes || undefined,
+        tags: externalFormData.tags || undefined,
+        classification: (externalFormData.classification as Classification) || 'Protected',
       };
 
       setFormData(newFormData);
@@ -87,7 +82,7 @@ export function GameLogForm({
   const finalSelectedGame = externalSelectedGame || selectedGame;
   const isLoading = externalLoading || false;
 
-  const formatGameDateDisplay = (game: IGame | null) => {
+  const formatGameDateDisplay = (game: IGameData | null) => {
     if (!game) return '';
     const date = typeof game.date === 'string' ? new Date(game.date) : new Date(game.date.start);
     return date.toLocaleDateString();
@@ -97,9 +92,17 @@ export function GameLogForm({
     e.preventDefault();
 
     // Ensure required fields are never null/undefined before submitting
-    const safeFormData = {
+    const safeFormData: CreateGameLogInput = {
       ...formData,
-      ratingForGame: formData.ratingForGame ?? 3,
+      gameId: formData.gameId || '',
+      ratingForGame: formData.ratingForGame || 3,
+      classification: (formData.classification as Classification) || 'Protected',
+      watchedSetting: formData.watchedSetting || 'TV',
+      watchedScope: formData.watchedScope || 'FULL_GAME',
+      watchedDate: formData.watchedDate || new Date().toISOString(),
+      watchedLocation: formData.watchedLocation || undefined,
+      notes: formData.notes || undefined,
+      tags: formData.tags || undefined,
     };
 
     if (onSubmit) {
@@ -112,18 +115,38 @@ export function GameLogForm({
     value: CreateGameLogInput[T]
   ) => {
     if (field === 'classification') {
-      setFormData(prev => ({ ...prev, [field]: value as Classification }));
+      const safeValue = (value as string) || 'Protected';
+      setFormData(prev => ({ ...prev, [field]: safeValue as Classification }));
     } else if (field === 'watchedSetting') {
-      setFormData(prev => ({ ...prev, [field]: value as IWatchedSettingValue }));
+      const safeValue = (value as string) || 'TV';
+      setFormData(prev => ({ ...prev, [field]: safeValue as IWatchedSettingValue }));
     } else if (field === 'watchedScope') {
-      setFormData(prev => ({ ...prev, [field]: value as IWatchedScopeValue }));
+      const safeValue = (value as string) || 'FULL_GAME';
+      setFormData(prev => ({ ...prev, [field]: safeValue as IWatchedScopeValue }));
+    } else if (field === 'ratingForGame') {
+      const safeValue = typeof value === 'number' ? value : 3;
+      setFormData(prev => ({ ...prev, [field]: safeValue }));
+    } else if (field === 'watchedDate') {
+      const safeValue = value instanceof Date ? value.toISOString() : (value as string);
+      setFormData(prev => ({ ...prev, [field]: safeValue }));
     } else {
       setFormData(prev => ({ ...prev, [field]: value }));
     }
   };
 
   const handleClassificationChange = (value: string) => {
-    updateField('classification', value as Classification);
+    const safeValue = value || 'Protected';
+    updateField('classification', safeValue as Classification);
+  };
+
+  // Convert string date to Date object for the date picker
+  const getDateForPicker = (dateString?: string | null): Date | null => {
+    if (!dateString) return null;
+    try {
+      return new Date(dateString);
+    } catch {
+      return null;
+    }
   };
 
   return (
@@ -146,7 +169,7 @@ export function GameLogForm({
               onValueChange={value => {
                 // Only update if we receive a valid non-empty value
                 if (value && typeof value === 'string' && value.trim() !== '') {
-                  updateField('watchedSetting', value);
+                  updateField('watchedSetting', value as IWatchedSettingValue);
                 }
               }}
               value={formData.watchedSetting as string}
@@ -167,10 +190,10 @@ export function GameLogForm({
           <div className="space-y-2">
             <Label>Watched Date</Label>
             <ReactDatePicker
-              selected={formData.watchedDate || new Date()}
-              onChange={date => {
+              selected={getDateForPicker(formData.watchedDate)}
+              onChange={(date: Date | null) => {
                 if (date) {
-                  updateField('watchedDate', date);
+                  updateField('watchedDate', date.toISOString());
                 }
               }}
               onFocus={() => setIsUserInteracting(true)}
@@ -182,50 +205,47 @@ export function GameLogForm({
           </div>
 
           <div className="space-y-2">
-            <Label>Location (Optional)</Label>
+            <Label>Watched Location</Label>
             <Input
+              type="text"
               value={formData.watchedLocation || ''}
-              onChange={e => {
-                setIsUserInteracting(true);
-                updateField('watchedLocation', e.target.value);
-              }}
-              onKeyDown={e => {
-                // Ensure spacebar works by explicitly handling it
-                if (e.key === ' ' || e.key === 'Space') {
-                  e.stopPropagation();
-                  // Force the input to include the space
-                  const input = e.target as HTMLInputElement;
-                  const start = input.selectionStart || 0;
-                  const end = input.selectionEnd || 0;
-                  const currentValue = input.value;
-                  const newValue = currentValue.slice(0, start) + ' ' + currentValue.slice(end);
+              onChange={e => updateField('watchedLocation', e.target.value || undefined)}
+              placeholder="e.g., Home, Arena, Bar, etc."
+            />
+          </div>
 
-                  // Prevent default and manually handle the space
-                  e.preventDefault();
-                  setIsUserInteracting(true);
-                  updateField('watchedLocation', newValue);
-
-                  // Restore cursor position after state update
-                  setTimeout(() => {
-                    input.setSelectionRange(start + 1, start + 1);
-                  }, 0);
+          <div className="space-y-2">
+            <Label>Rating</Label>
+            <Select
+              onValueChange={value => {
+                const rating = parseInt(value, 10);
+                if (!isNaN(rating)) {
+                  updateField('ratingForGame', rating);
                 }
               }}
-              onFocus={() => setIsUserInteracting(true)}
-              onBlur={() => setTimeout(() => setIsUserInteracting(false), 100)}
-              placeholder="Where did you watch the game? (optional)"
-            />
+              value={formData.ratingForGame.toString()}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select rating" />
+              </SelectTrigger>
+              <SelectContent>
+                {[1, 2, 3, 4, 5].map(rating => (
+                  <SelectItem key={rating} value={rating.toString()}>
+                    {rating} {rating === 1 ? 'Star' : 'Stars'}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-2">
             <Label>Watched Scope</Label>
             <Select
               onValueChange={value => {
-                // Ignore empty/invalid values to prevent resetting during initialization
-                if (!value || value.trim() === '') {
-                  return;
+                // Only update if we receive a valid non-empty value
+                if (value && typeof value === 'string' && value.trim() !== '') {
+                  updateField('watchedScope', value as IWatchedScopeValue);
                 }
-                updateField('watchedScope', value);
               }}
               value={formData.watchedScope as string}
             >
@@ -243,38 +263,8 @@ export function GameLogForm({
           </div>
 
           <div className="space-y-2">
-            <Label>Rating</Label>
-            <Select
-              onValueChange={value => {
-                // Ignore empty/invalid values to prevent resetting during initialization
-                if (!value || value.trim() === '') {
-                  return;
-                }
-                const rating = parseInt(value);
-                // Ensure we never set null/undefined/NaN - default to 3
-                updateField('ratingForGame', isNaN(rating) ? 3 : rating);
-              }}
-              value={(formData.ratingForGame ?? 3).toString()}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select rating" />
-              </SelectTrigger>
-              <SelectContent>
-                {[1, 2, 3, 4, 5].map(rating => (
-                  <SelectItem key={rating} value={rating.toString()}>
-                    {rating}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
             <Label>Classification</Label>
-            <Select
-              onValueChange={handleClassificationChange}
-              value={formData.classification as string}
-            >
+            <Select onValueChange={handleClassificationChange} value={formData.classification}>
               <SelectTrigger>
                 <SelectValue placeholder="Select classification" />
               </SelectTrigger>
@@ -292,46 +282,33 @@ export function GameLogForm({
             <Label>Notes</Label>
             <Textarea
               value={formData.notes || ''}
-              onChange={e => {
-                setIsUserInteracting(true);
-                updateField('notes', e.target.value);
-              }}
-              onKeyDown={e => {
-                // Ensure spacebar works by explicitly handling it
-                if (e.key === ' ' || e.key === 'Space') {
-                  e.stopPropagation();
-                  // Force the textarea to include the space
-                  const textarea = e.target as HTMLTextAreaElement;
-                  const start = textarea.selectionStart || 0;
-                  const end = textarea.selectionEnd || 0;
-                  const currentValue = textarea.value;
-                  const newValue = currentValue.slice(0, start) + ' ' + currentValue.slice(end);
-
-                  // Prevent default and manually handle the space
-                  e.preventDefault();
-                  setIsUserInteracting(true);
-                  updateField('notes', newValue);
-
-                  // Restore cursor position after state update
-                  setTimeout(() => {
-                    textarea.setSelectionRange(start + 1, start + 1);
-                  }, 0);
-                }
-              }}
-              onFocus={() => setIsUserInteracting(true)}
-              onBlur={() => setTimeout(() => setIsUserInteracting(false), 100)}
-              placeholder="Add your thoughts about the game..."
+              onChange={e => updateField('notes', e.target.value || undefined)}
+              placeholder="Share your thoughts about the game..."
               rows={4}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Tags</Label>
+            <Input
+              type="text"
+              value={Array.isArray(formData.tags) ? formData.tags.join(', ') : ''}
+              onChange={e => {
+                const tags = e.target.value
+                  .split(',')
+                  .map(tag => tag.trim())
+                  .filter(tag => tag.length > 0);
+                updateField('tags', tags.length > 0 ? tags : undefined);
+              }}
+              placeholder="Enter tags separated by commas (e.g., overtime, buzzer-beater, rivalry)"
             />
           </div>
         </div>
 
         <div className="flex justify-end space-x-2 pt-4 border-t">
-          {onCancel && (
-            <Button type="button" variant="outline" onClick={onCancel}>
-              Cancel
-            </Button>
-          )}
+          <Button type="button" variant="outline" onClick={onCancel}>
+            Cancel
+          </Button>
           <Button type="submit" disabled={isLoading}>
             {isLoading ? 'Saving...' : submitLabel}
           </Button>

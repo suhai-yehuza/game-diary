@@ -5,21 +5,25 @@ import React from 'react';
 
 import { StarRating } from '@src/app/components/ui/star-rating';
 import { GET_GAME_LOGS } from '@src/lib/graphql/queries';
-import type { GameLog } from '@src/lib/types/generated/graphql';
-import type { IFriendProfileProps } from '@src/lib/types/misc.types';
+import type { IFriendProfileProps, GameLog } from '@src/lib/types';
 
 import { FriendActivity } from './friend-activity';
 
 export const FriendProfile: React.FC<IFriendProfileProps> = ({ friend }) => {
   const { loading, error, data } = useQuery(GET_GAME_LOGS, {
     variables: {
-      userId: friend.id,
+      userId: friend?.id || '',
       pagination: {
         limit: 10,
         offset: 0,
       },
     },
+    skip: !friend?.id,
   });
+
+  if (!friend) {
+    return <div className="text-red-500">Friend not found</div>;
+  }
 
   if (loading) {
     return (
@@ -72,7 +76,7 @@ export const FriendProfile: React.FC<IFriendProfileProps> = ({ friend }) => {
       <div className="bg-white rounded-lg p-6 shadow-sm animate-fade-in">
         <div className="flex items-center gap-4">
           <Image
-            src={friend.avatar}
+            src={friend.avatar || friend.imageUrl || '/default-avatar.png'}
             alt={friend.username}
             width={64}
             height={64}
@@ -121,7 +125,7 @@ export const FriendProfile: React.FC<IFriendProfileProps> = ({ friend }) => {
       {/* Recent Activity */}
       <div className="bg-white rounded-lg p-6 shadow-sm animate-slide-in-up">
         <h2 className="text-xl font-bold mb-4">Recent Activity</h2>
-        <FriendActivity activities={mockActivities} isLoading={loading} />
+        <FriendActivity userId={friend.id} activities={mockActivities} isLoading={false} />
       </div>
 
       {/* Recent Game Logs */}

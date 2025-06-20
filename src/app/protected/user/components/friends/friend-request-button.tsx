@@ -14,9 +14,10 @@ import {
   REJECT_FRIEND_REQUEST,
 } from '@src/lib/graphql/mutations';
 import { GET_USER_FRIENDSHIPS } from '@src/lib/graphql/queries';
+import { FRIENDSHIP_STATUS } from '@src/lib/types';
 import type { IGetFriendshipsForUserResponse } from '@src/lib/types';
-import { FRIENDSHIP_STATUS } from '@src/lib/types/config.types';
 import type { Friendship } from '@src/lib/types/generated/graphql';
+
 export function FriendRequestButton({ targetUserId }: { targetUserId: string }) {
   const { userId, isAuthenticated } = useAuthContext();
   const { toast } = useToast();

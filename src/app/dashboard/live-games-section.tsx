@@ -5,8 +5,7 @@ import React from 'react';
 import { Badge } from '@src/app/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@src/app/components/ui/card';
 import { GET_LIVE_GAMES } from '@src/lib/graphql/queries';
-import type { IExtendedGame } from '@src/lib/types';
-import type { ILiveGameEdge, ILiveGamesData } from '@src/lib/types/component.types';
+import type { ILiveGamesData, IExtendedGame } from '@src/lib/types';
 
 export function LiveGamesSection() {
   const { data, loading, error } = useQuery<ILiveGamesData>(GET_LIVE_GAMES, {
@@ -24,7 +23,7 @@ export function LiveGamesSection() {
   }
 
   // Extract games from the connection type
-  const live_games = data.liveGames.edges.map((edge: ILiveGameEdge) => edge.node);
+  const live_games = data.liveGames.edges.map((edge: { node: IExtendedGame }) => edge.node);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

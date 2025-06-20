@@ -9,7 +9,7 @@ import {
 
 async function setupTriggers() {
   const options = parseScriptArgs();
-  const env = options.env ?? 'development';
+  const env = options.environment ?? 'development';
   logScriptHeader('Database Triggers Setup', env);
 
   try {

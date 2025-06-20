@@ -4,7 +4,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { apiLogger } from '@lib/core/logger';
 import { rateLimiters } from '@src/lib/config/rate-limit.config';
 import { monitoring } from '@src/lib/monitoring';
-import type { IExtendedNextApiRequest } from '@src/lib/types/api.types';
+import type { IExtendedNextApiRequest } from '@src/lib/types';
 import { responseUtils } from '@src/lib/utils/response';
 
 // Field selection middleware
@@ -13,7 +13,8 @@ export const fieldSelectionMiddleware = (
   res: NextApiResponse,
   next: () => void
 ) => {
-  const selectedFields = req.query.selectedFields as string[] | undefined;
+  const query = req.query as Record<string, unknown>;
+  const selectedFields = query.selectedFields as string[] | undefined;
   if (selectedFields) {
     req.selectedFields = selectedFields;
   }
@@ -26,7 +27,8 @@ export const cursorPaginationMiddleware = (
   res: NextApiResponse,
   next: () => void
 ) => {
-  const { first, after, last, before } = req.query;
+  const query = req.query as Record<string, unknown>;
+  const { first, after, last, before } = query;
   if (first || after || last || before) {
     req.pagination = {
       first: first ? parseInt(first as string, 10) : undefined,

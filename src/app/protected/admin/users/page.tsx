@@ -17,7 +17,7 @@ import {
   TableHeader,
   TableRow,
 } from '@src/app/components/ui/table';
-import type { DbUser } from '@src/lib/types/generated/graphql';
+import type { DbUser } from '@src/lib/types';
 const ITEMS_PER_PAGE = 20;
 
 function AdminUsersContent() {

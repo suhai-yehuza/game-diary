@@ -1,59 +1,77 @@
-import {
-  and,
-  eq,
-  sql,
-  gte,
-  lte,
-  like,
-  or,
-  isNotNull,
-  desc,
-  asc,
-  ilike,
-  type InferSelectModel,
-} from 'drizzle-orm';
+import { and, eq, sql, gte, lte, like, or, isNotNull, desc, asc, ilike } from 'drizzle-orm';
 
-import { logger } from '@lib/core/logger';
+import { seedLogger } from '@lib/core/logger';
 import { CACHE_KEYS } from '@src/lib/cache';
 import { withCache } from '@src/lib/db';
 import * as schema from '@src/lib/db/schema';
 import { createConnection, parseCursor, handleResolverError } from '@src/lib/graphql/utils';
-import type { IContext } from '@src/lib/types/component.types';
-import type { GameLogFilters } from '@src/lib/types/generated/graphql';
-import type { IPaginationArgs } from '@src/lib/types/resolver.types';
+import type { IContext, GameLogFilters, IPaginationArgs, IGameLog } from '@src/lib/types';
 
-export const gameLog = async (_parent: unknown, { id }: { id: string }, { db }: IContext) => {
+export const gameLog = async (
+  _parent: unknown,
+  { id }: { id: string },
+  { db }: IContext
+): Promise<IGameLog | null> => {
+  if (!db) {
+    throw new Error('Database connection not available');
+  }
+
   try {
     const gameLog = await db
       .select()
       .from(schema.game_logs)
       .where(eq(schema.game_logs.id, id))
-      .limit(1)
-      .then((rows: InferSelectModel<typeof schema.game_logs>[]) => rows[0]);
+      .then((rows: Record<string, unknown>[]) => rows[0]);
 
     if (!gameLog) {
       return null;
     }
 
     return {
-      id: gameLog.id,
-      userId: gameLog.userId,
-      gameId: gameLog.gameId,
-      game: { id: gameLog.gameId },
-      watchedSetting: gameLog.watchedSetting,
-      watchedDate: gameLog.watchedDate,
-      watchedLocation: gameLog.watchedLocation,
-      ratingForGame: gameLog.ratingForGame,
-      watchedScope: gameLog.watchedScope,
-      notes: gameLog.notes,
-      tags: gameLog.tags,
-      classification: gameLog.classification,
-      createdAt: gameLog.createdAt,
-      updatedAt: gameLog.updatedAt,
-      deletedAt: gameLog.deletedAt,
+      id: String(gameLog.id),
+      gameId: String(gameLog.gameId),
+      userId: String(gameLog.userId),
+      watchedSetting:
+        ((gameLog as Record<string, unknown>).watchedSetting as string | null) || null,
+      watchedScope: ((gameLog as Record<string, unknown>).watchedScope as string | null) || null,
+      watchedDate:
+        ((gameLog as Record<string, unknown>).watchedDate as Date | string | null) || new Date(),
+      watchedLocation:
+        ((gameLog as Record<string, unknown>).watchedLocation as string | null) || null,
+      ratingForGame: Number((gameLog as Record<string, unknown>).ratingForGame || 0),
+      notes: ((gameLog as Record<string, unknown>).notes as string | null) || null,
+      tags: ((gameLog as Record<string, unknown>).tags as string[] | null) || null,
+      classification:
+        ((gameLog as Record<string, unknown>).classification as
+          | 'Private'
+          | 'Protected'
+          | 'Public'
+          | null) || 'Protected',
+      deletedAt: ((gameLog as Record<string, unknown>).deletedAt as Date | null) || null,
+      playerId: String(gameLog.userId),
+      teamId: String(gameLog.teamId || ''),
+      points: Number(gameLog.points || 0),
+      rebounds: Number(gameLog.rebounds || 0),
+      assists: Number(gameLog.assists || 0),
+      steals: Number(gameLog.steals || 0),
+      blocks: Number(gameLog.blocks || 0),
+      turnovers: Number(gameLog.turnovers || 0),
+      fouls: Number(gameLog.fouls || 0),
+      minutes: Number(gameLog.minutes || 0),
+      fgMade: Number(gameLog.fgMade || 0),
+      fgAttempted: Number(gameLog.fgAttempted || 0),
+      threePointMade: Number(gameLog.threePointMade || 0),
+      threePointAttempted: Number(gameLog.threePointAttempted || 0),
+      ftMade: Number(gameLog.ftMade || 0),
+      ftAttempted: Number(gameLog.ftAttempted || 0),
+      plusMinus: Number(gameLog.plusMinus || 0),
+      createdAt: gameLog.createdAt as Date,
+      updatedAt: gameLog.updatedAt as Date,
+      user: gameLog.user as IGameLog['user'],
     };
   } catch (error) {
-    handleResolverError(error, 'fetch game log');
+    handleResolverError(error, 'gameLog');
+    return null;
   }
 };
 
@@ -62,6 +80,10 @@ export const gameLogs = async (
   args: IPaginationArgs & { filters?: GameLogFilters },
   { db }: IContext
 ) => {
+  if (!db) {
+    throw new Error('Database connection not available');
+  }
+
   try {
     const { first = 10, after, last, filters } = args;
 
@@ -98,7 +120,7 @@ export const gameLogs = async (
           .limit(1000); // Arbitrary high limit for all logs
 
         // Map the results
-        const mappedLogs = items.map(log => ({
+        const mappedLogs = items.map((log: typeof schema.game_logs.$inferSelect) => ({
           id: log.id,
           userId: log.userId,
           gameId: log.gameId,
@@ -189,10 +211,12 @@ export const gameLogs = async (
     // Date range filter
     if (filters?.watchedDateRange) {
       if (filters.watchedDateRange.start) {
-        conditions.push(gte(schema.game_logs.watchedDate, filters.watchedDateRange.start));
+        conditions.push(
+          gte(schema.game_logs.watchedDate, new Date(filters.watchedDateRange.start))
+        );
       }
       if (filters.watchedDateRange.end) {
-        conditions.push(lte(schema.game_logs.watchedDate, filters.watchedDateRange.end));
+        conditions.push(lte(schema.game_logs.watchedDate, new Date(filters.watchedDateRange.end)));
       }
     }
 
@@ -243,22 +267,27 @@ export const gameLogs = async (
     const items = await query;
 
     // Map the results
-    const mappedLogs = items.map(log => ({
-      id: log.game_logs.id,
-      userId: log.game_logs.userId,
-      gameId: log.game_logs.gameId,
-      watchedSetting: log.game_logs.watchedSetting,
-      watchedDate: log.game_logs.watchedDate,
-      watchedLocation: log.game_logs.watchedLocation,
-      ratingForGame: log.game_logs.ratingForGame,
-      watchedScope: log.game_logs.watchedScope,
-      notes: log.game_logs.notes,
-      tags: log.game_logs.tags,
-      classification: log.game_logs.classification,
-      createdAt: log.game_logs.createdAt,
-      updatedAt: log.game_logs.updatedAt,
-      deletedAt: log.game_logs.deletedAt,
-    }));
+    const mappedLogs = items.map(
+      (log: {
+        game_logs: typeof schema.game_logs.$inferSelect;
+        nba_games: typeof schema.nba_games.$inferSelect | null;
+      }) => ({
+        id: log.game_logs.id,
+        userId: log.game_logs.userId,
+        gameId: log.game_logs.gameId,
+        watchedSetting: log.game_logs.watchedSetting,
+        watchedDate: log.game_logs.watchedDate,
+        watchedLocation: log.game_logs.watchedLocation,
+        ratingForGame: log.game_logs.ratingForGame,
+        watchedScope: log.game_logs.watchedScope,
+        notes: log.game_logs.notes,
+        tags: log.game_logs.tags,
+        classification: log.game_logs.classification,
+        createdAt: log.game_logs.createdAt,
+        updatedAt: log.game_logs.updatedAt,
+        deletedAt: log.game_logs.deletedAt,
+      })
+    );
 
     return createConnection(mappedLogs, totalCount, args);
   } catch (error) {
@@ -285,11 +314,15 @@ export const GameLog = {
           return user;
         }
       } catch (error) {
-        logger.warn('Failed to load user from loader, falling back to direct query:', error);
+        seedLogger.warn('Failed to load user from loader, falling back to direct query:', error);
       }
     }
 
     // Fallback to direct database query
+    if (!db) {
+      throw new Error('Database connection not available');
+    }
+
     try {
       const users = await db
         .select()
@@ -312,7 +345,7 @@ export const GameLog = {
         imageUrl: user.imageUrl || '',
       };
     } catch (error) {
-      logger.error(`Failed to fetch user ${parent.userId}:`, error);
+      seedLogger.error(`Failed to fetch user ${parent.userId}:`, error);
       throw new Error(`Failed to fetch user with ID ${parent.userId}`);
     }
   },
@@ -338,6 +371,10 @@ export const GameLog = {
     const { first = 10, after } = args;
     if (!parent.id)
       return { edges: [], pageInfo: { hasNextPage: false, endCursor: null }, totalCount: 0 };
+
+    if (!db) {
+      throw new Error('Database connection not available');
+    }
 
     // Fetch all comments for this game log, ordered by createdAt
     const allComments = await db
@@ -372,6 +409,11 @@ export const GameLog = {
   },
   reactions: async (parent: { id: string }, _args: Record<string, unknown>, { db }: IContext) => {
     if (!parent.id) return [];
+
+    if (!db) {
+      throw new Error('Database connection not available');
+    }
+
     const reactions = await db
       .select()
       .from(schema.reactions)

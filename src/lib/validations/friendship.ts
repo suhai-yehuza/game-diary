@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { FRIENDSHIP_STATUS } from '@src/lib/types/config.types';
+import { FRIENDSHIP_STATUS } from '@src/lib/types';
 
 export const sendFriendRequestSchema = z.object({
   userId: z.string().uuid(),

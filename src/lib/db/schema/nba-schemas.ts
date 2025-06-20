@@ -11,7 +11,7 @@ import {
   jsonb,
 } from 'drizzle-orm/pg-core';
 
-import type { JsonValue } from '@src/lib/types/misc.types';
+import type { JsonValue } from '@src/lib/types';
 import { generateUUID } from '@src/lib/utils/processing';
 
 import { teams as baseTeams } from './team-schemas';

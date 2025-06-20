@@ -1,7 +1,7 @@
 import { sql } from 'drizzle-orm';
 import { pgTable, varchar, text, timestamp, boolean, unique, jsonb } from 'drizzle-orm/pg-core';
 
-import { FRIENDSHIP_STATUS, REACTION_EMOJIS, TARGET_TYPES } from '@src/lib/types/config.types';
+import { FRIENDSHIP_STATUS, REACTION_EMOJIS, TARGET_TYPES } from '@src/lib/types';
 import { generateUUID } from '@src/lib/utils/processing';
 
 // Users table

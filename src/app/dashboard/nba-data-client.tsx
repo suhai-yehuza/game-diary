@@ -5,23 +5,15 @@ import { format } from 'date-fns';
 import Image from 'next/image';
 import React, { useState, useCallback } from 'react';
 
-import type { Team, Game, GameStatus } from '@/lib/types/generated/graphql';
 import { Skeleton } from '@src/app/components/ui/skeleton';
-import { API_CONFIG } from '@src/lib/config/api.config';
 import { GET_EXTERNAL_GAMES, GET_TEAMS, GET_PLAYERS } from '@src/lib/graphql/queries';
-import type { IConferenceType, IDivisionType } from '@src/lib/types/config.types';
-import type { ISortDirection, IDBPlayer } from '@src/lib/types/shared.types';
+import type { Team, Game, IDBPlayer, IConferenceType, IDivisionType } from '@src/lib/types';
 
 export const NbaDataClient = () => {
   const [selectedConference, setSelectedConference] = useState<IConferenceType | 'all'>('all');
   const [selectedDivision, setSelectedDivision] = useState<IDivisionType | 'all'>('all');
   const [selectedPosition, setSelectedPosition] = useState<string>('all');
-  const [sortBy] = useState<ISortDirection>(API_CONFIG.pagination.DEFAULT_SORT_DIRECTION);
-  const [searchTerm] = useState('');
 
-  // Seasons functionality temporarily disabled - query not available
-  const loadingSeasons = false;
-  const seasonsError = null;
   const {
     data,
     loading: gamesLoading,
@@ -43,6 +35,7 @@ export const NbaDataClient = () => {
       pagination: { first: 10 },
     },
   });
+
   const {
     data: teamsData,
     loading: loadingTeams,
@@ -55,61 +48,40 @@ export const NbaDataClient = () => {
       },
     },
   });
+
   const {
     data: playersData,
     loading: loadingPlayers,
     error: playersError,
-  } = useQuery<{ players: { items: IDBPlayer[] } }>(GET_PLAYERS, {
+  } = useQuery<{ players: IDBPlayer[] }>(GET_PLAYERS, {
     variables: {
       filters: {
         position: selectedPosition !== 'all' ? selectedPosition : undefined,
       },
-      pagination: {
-        first: API_CONFIG.pagination.DEFAULT_PAGE_SIZE,
-      },
-      sortBy,
     },
   });
 
-  const handleConferenceChange = useCallback((conference: IConferenceType | 'all') => {
-    setSelectedConference(conference);
+  const handleConferenceChange = useCallback((value: IConferenceType | 'all') => {
+    setSelectedConference(value);
   }, []);
 
-  const handleDivisionChange = useCallback((division: IDivisionType | 'all') => {
-    setSelectedDivision(division);
+  const handleDivisionChange = useCallback((value: IDivisionType | 'all') => {
+    setSelectedDivision(value);
   }, []);
 
-  const handlePositionChange = useCallback((position: string) => {
-    setSelectedPosition(position);
+  const handlePositionChange = useCallback((value: string) => {
+    setSelectedPosition(value);
   }, []);
 
-  // Seasons functionality disabled
-
-  const isLoading = loadingSeasons || gamesLoading || loadingTeams || loadingPlayers;
-  const hasError = seasonsError || gamesError || teamsError || playersError;
-
-  const filteredTeams =
-    teamsData?.teams.filter((team: Team) => {
-      const matchesSearch = team.name.toLowerCase().includes(searchTerm.toLowerCase());
-      const teamConference = team.conference;
-      const teamDivision = team.division;
-      const matchesConference =
-        selectedConference === 'all' || teamConference === selectedConference;
-      const matchesDivision = selectedDivision === 'all' || teamDivision === selectedDivision;
-      return matchesSearch && matchesConference && matchesDivision;
-    }) ?? [];
+  const hasError = Boolean(gamesError || teamsError || playersError);
+  const isLoading = gamesLoading || loadingTeams || loadingPlayers;
 
   if (isLoading) {
     return (
-      <div className="space-y-8 p-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-          <Skeleton className="h-10 w-full" />
-          <Skeleton className="h-10 w-full" />
-          <Skeleton className="h-10 w-full" />
-        </div>
-        <Skeleton className="h-48 w-full" />
-        <Skeleton className="h-96 w-full" />
-        <Skeleton className="h-96 w-full" />
+      <div className="space-y-4 p-4">
+        <Skeleton className="h-8 w-full" />
+        <Skeleton className="h-32 w-full" />
+        <Skeleton className="h-32 w-full" />
       </div>
     );
   }
@@ -140,7 +112,7 @@ export const NbaDataClient = () => {
         </select>
 
         <select
-          value={selectedDivision || ''}
+          value={selectedDivision}
           onChange={e => handleDivisionChange(e.target.value as IDivisionType | 'all')}
           className="p-2 border rounded"
         >
@@ -167,115 +139,98 @@ export const NbaDataClient = () => {
         </select>
       </div>
 
-      {/* Current Season - Temporarily Disabled */}
-      <section className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-2xl font-bold mb-4">Current Season</h2>
-        <p className="text-gray-500">Season information temporarily unavailable</p>
-      </section>
-
-      {/* Today's Games */}
-      <section className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-2xl font-bold mb-4">Today&apos;s Games</h2>
-        <div className="grid gap-4">
-          {data?.games.items.map((game: Game) => (
-            <div key={game.id} className="border rounded-lg p-4">
-              <div className="grid grid-cols-3 items-center">
-                <div className="text-right">
-                  <h3 className="font-bold">{game.teams.visitors.name}</h3>
-                  <p className="text-gray-600">
-                    {game.scores.visitors.win}-{game.scores.visitors.loss}
-                  </p>
-                </div>
-                <div className="text-center">
-                  <p className="text-sm text-gray-500">
-                    {typeof game.status === 'string'
-                      ? game.status
-                      : (game.status as GameStatus).long?.toString() || game.status.toString()}
-                  </p>
-                  <p className="text-2xl font-bold">
-                    {game.scores.visitors.points} - {game.scores.home.points}
-                  </p>
-
-                  {game.periods && (
-                    <p className="text-sm">
-                      Q{game.periods.current}{' '}
-                      {typeof game.status === 'string'
-                        ? ''
-                        : (game.status as { clock?: string }).clock}
-                    </p>
-                  )}
-                </div>
-                <div>
-                  <h3 className="font-bold">{game.teams.home.name}</h3>
-                  <p className="text-gray-600">
-                    {game.scores.home.win}-{game.scores.home.loss}
-                  </p>
-                </div>
+      {/* Games List */}
+      <div className="space-y-4">
+        <h2 className="text-2xl font-bold">Today's Games</h2>
+        {data?.games.items.map(game => (
+          <div key={game.id} className="p-4 border rounded-lg">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                {game.teams.home.logo && (
+                  <Image
+                    src={game.teams.home.logo}
+                    alt={game.teams.home.name}
+                    width={40}
+                    height={40}
+                    className="rounded-full"
+                  />
+                )}
+                <span>{game.teams.home.name}</span>
               </div>
-              <div className="mt-2 text-center text-sm text-gray-500">
-                {typeof game.arena === 'string'
-                  ? game.arena
-                  : `${(game.arena as { name: string; city: string; state: string }).name}, ${(game.arena as { name: string; city: string; state: string }).city}, ${(game.arena as { name: string; city: string; state: string }).state}`}
+              <div className="text-lg font-bold">
+                {game.scores.home.points} - {game.scores.visitors.points}
+              </div>
+              <div className="flex items-center space-x-4">
+                <span>{game.teams.visitors.name}</span>
+                {game.teams.visitors.logo && (
+                  <Image
+                    src={game.teams.visitors.logo}
+                    alt={game.teams.visitors.name}
+                    width={40}
+                    height={40}
+                    className="rounded-full"
+                  />
+                )}
               </div>
             </div>
-          ))}
-        </div>
-      </section>
+            <div className="mt-2 text-sm text-gray-500">
+              {game.status.long} - {game.date.start}
+            </div>
+          </div>
+        ))}
+      </div>
 
-      {/* Teams */}
-      <section className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-2xl font-bold mb-4">Teams</h2>
+      {/* Teams List */}
+      <div className="space-y-4">
+        <h2 className="text-2xl font-bold">Teams</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredTeams.map((team: Team) => (
-            <div key={team.id} className="border rounded-lg p-4">
-              <div className="flex items-center gap-4">
+          {teamsData?.teams.map(team => (
+            <div key={team.id} className="p-4 border rounded-lg">
+              <div className="flex items-center space-x-4">
                 {team.logo && (
                   <Image
                     src={team.logo}
                     alt={team.name}
-                    width={48}
-                    height={48}
+                    width={40}
+                    height={40}
                     className="rounded-full"
                   />
                 )}
                 <div>
-                  <h3 className="font-bold">{team.name}</h3>
-                  <p className="text-sm text-gray-600">
-                    {team.conference} Conference - {team.division} Division
+                  <h3 className="font-semibold">{team.name}</h3>
+                  <p className="text-sm text-gray-500">
+                    {team.conference} - {team.division}
                   </p>
                 </div>
               </div>
             </div>
           ))}
         </div>
-      </section>
+      </div>
 
-      {/* Players */}
-      <section className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-2xl font-bold mb-4">Players</h2>
-        <table className="w-full">
-          <thead>
-            <tr className="border-b">
-              <th className="text-left px-4 py-2">Name</th>
-              <th className="text-left px-4 py-2">Position</th>
-              <th className="text-left px-4 py-2">Team</th>
-            </tr>
-          </thead>
-          <tbody>
-            {playersData?.players.items.map((player: IDBPlayer) => (
-              <tr key={player.id} className="border-t">
-                <td className="px-4 py-2">
-                  {player.firstName} {player.lastName}
-                </td>
-                <td className="px-4 py-2">{player.leagues?.standard?.pos || 'N/A'}</td>
-                <td className="px-4 py-2">
-                  {player.leagues?.standard?.active ? 'Active' : 'Inactive'}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </section>
+      {/* Players List */}
+      <div className="space-y-4">
+        <h2 className="text-2xl font-bold">Players</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {playersData?.players.map(player => (
+            <div key={player.id} className="p-4 border rounded-lg">
+              <div className="flex items-center space-x-4">
+                <Image
+                  src={player.jersey || '/images/default-player.png'}
+                  alt={`${player.firstName} ${player.lastName}`}
+                  width={40}
+                  height={40}
+                  className="rounded-full"
+                />
+                <div>
+                  <h3 className="font-semibold">{`${player.firstName} ${player.lastName}`}</h3>
+                  <p className="text-sm text-gray-500">{player.leagues?.standard?.pos || 'N/A'}</p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 };

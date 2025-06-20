@@ -3,8 +3,7 @@ import Image from 'next/image';
 import React, { useState } from 'react';
 
 import { GET_USERS } from '@src/lib/graphql/queries';
-import type { IUserSearchProps } from '@src/lib/types/misc.types';
-import type { IFriend } from '@src/lib/types/social.types';
+import type { IFriend, IUserSearchProps } from '@src/lib/types';
 
 export const UserSearch: React.FC<IUserSearchProps> = ({
   onUserSelect,
@@ -32,7 +31,9 @@ export const UserSearch: React.FC<IUserSearchProps> = ({
   };
 
   const handleUserSelect = (userId: string) => {
-    onUserSelect(userId);
+    if (onUserSelect) {
+      onUserSelect(userId);
+    }
     setSearchTerm('');
     setIsSearching(false);
   };

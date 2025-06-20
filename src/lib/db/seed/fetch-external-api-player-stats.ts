@@ -3,7 +3,8 @@ import { sql } from 'drizzle-orm';
 import { seedLogger } from '@lib/core/logger';
 import { API_CONFIG } from '@src/lib/config/api.config';
 import { handleAPIError } from '@src/lib/external-apis';
-import type { IGameStatistics } from '@src/lib/types/game-statistics.types';
+import type { IGameStatistics } from '@src/lib/types';
+import type { MadeAttempted } from '@src/lib/types/seeding.types';
 import { generateUUID } from '@src/lib/utils/processing';
 
 import { nba_player_stats } from './schema';
@@ -103,18 +104,38 @@ export async function fetchAndProcessNBAPlayerStats(
         teamId: playerGameStats?.teamId || '',
         minutes: playerGameStats?.minutes || '0',
         points: playerGameStats?.points || 0,
-        rebounds: playerGameStats?.rebounds || 0,
         assists: playerGameStats?.assists || 0,
+        rebounds: playerGameStats?.rebounds || 0,
         steals: playerGameStats?.steals || 0,
         blocks: playerGameStats?.blocks || 0,
         turnovers: playerGameStats?.turnovers || 0,
         fouls: playerGameStats?.fouls || 0,
-        fieldGoalsMade: playerGameStats?.fieldGoals?.made || 0,
-        fieldGoalsAttempted: playerGameStats?.fieldGoals?.attempted || 0,
-        threePointersMade: playerGameStats?.threePointers?.made || 0,
-        threePointersAttempted: playerGameStats?.threePointers?.attempted || 0,
-        freeThrowsMade: playerGameStats?.freeThrows?.made || 0,
-        freeThrowsAttempted: playerGameStats?.freeThrows?.attempted || 0,
+        fieldGoalsMade:
+          typeof playerGameStats?.fieldGoals === 'object' && playerGameStats?.fieldGoals !== null
+            ? (playerGameStats.fieldGoals as MadeAttempted)?.made || 0
+            : 0,
+        fieldGoalsAttempted:
+          typeof playerGameStats?.fieldGoals === 'object' && playerGameStats?.fieldGoals !== null
+            ? (playerGameStats.fieldGoals as MadeAttempted)?.attempted || 0
+            : 0,
+        threePointersMade:
+          typeof playerGameStats?.threePointers === 'object' &&
+          playerGameStats?.threePointers !== null
+            ? (playerGameStats.threePointers as MadeAttempted)?.made || 0
+            : 0,
+        threePointersAttempted:
+          typeof playerGameStats?.threePointers === 'object' &&
+          playerGameStats?.threePointers !== null
+            ? (playerGameStats.threePointers as MadeAttempted)?.attempted || 0
+            : 0,
+        freeThrowsMade:
+          typeof playerGameStats?.freeThrows === 'object' && playerGameStats?.freeThrows !== null
+            ? (playerGameStats.freeThrows as MadeAttempted)?.made || 0
+            : 0,
+        freeThrowsAttempted:
+          typeof playerGameStats?.freeThrows === 'object' && playerGameStats?.freeThrows !== null
+            ? (playerGameStats.freeThrows as MadeAttempted)?.attempted || 0
+            : 0,
         createdAt: new Date(),
         updatedAt: new Date(),
       })

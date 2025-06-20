@@ -12,7 +12,7 @@ import { apiLogger } from '@lib/core/logger';
 import { getCorsHeaders, handleApiError, createOptionsResponse } from '@src/lib/api/utils';
 import { createContext } from '@src/lib/graphql/context';
 import { resolvers } from '@src/lib/graphql/resolvers';
-import type { IContext } from '@src/lib/types/component.types';
+import type { IContext } from '@src/lib/types';
 
 const typeDefs = readFileSync(join(process.cwd(), 'src/lib/graphql/schema.graphql'), 'utf-8');
 

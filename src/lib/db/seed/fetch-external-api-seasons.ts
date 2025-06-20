@@ -4,8 +4,7 @@ import { seedLogger } from '@lib/core/logger';
 import { API_CONFIG } from '@src/lib/config/api.config';
 import { seasons } from '@src/lib/db/schema/nba-schemas';
 import { handleAPIError } from '@src/lib/external-apis';
-import type { ISeasonApiResponse } from '@src/lib/types/api-responses.types';
-import type { ISeasonData } from '@src/lib/types/misc.types';
+import type { ISeasonApiResponse, ISeasonData } from '@src/lib/types';
 
 import { initializeClients } from './utils/initialize-clients';
 

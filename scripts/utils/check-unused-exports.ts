@@ -4,25 +4,16 @@ import { analyzeTsConfig } from 'ts-unused-exports';
 
 import { logger } from '@lib/core/logger';
 
-// Types
-type LocationInFile = {
-  line: number;
-};
+import { parseScriptArgs } from '../shared/script-utils';
 
+// Types
+type ArgType = string;
 type ExportNameAndLocation = {
   exportName: string;
-  location?: LocationInFile;
+  location?: {
+    line: number;
+  };
 };
-
-type UnusedExportsResult = {
-  [filePath: string]: ExportNameAndLocation[];
-};
-
-type ArgType =
-  | '--allowUnusedTypes'
-  | '--ignoreLocallyUsed'
-  | '--showLineNumber'
-  | `--ignoreFiles=${string}`;
 
 // Configuration
 const CONFIG = {
@@ -145,7 +136,12 @@ const formatter = {
     return location ? `   - ${exportName} (line ${location.line})` : `   - ${exportName}`;
   },
 
-  printUnusedExports(result: UnusedExportsResult): void {
+  printUnusedExports(result: unknown): number {
+    if (!result || typeof result !== 'object') {
+      logger.info('✅ No unused exports found!');
+      return 0;
+    }
+
     let totalUnusedFiles = 0;
 
     for (const [filePath, exports] of Object.entries(result)) {
@@ -153,35 +149,52 @@ const formatter = {
         totalUnusedFiles++;
         logger.info(`📁 ${filePath}`);
         exports.forEach(exportInfo => {
-          logger.info(formatter.formatExportInfo(exportInfo));
+          if (typeof exportInfo === 'object' && exportInfo !== null && 'exportName' in exportInfo) {
+            logger.info(formatter.formatExportInfo(exportInfo as ExportNameAndLocation));
+          }
         });
         logger.info(''); // Add empty line between files
       }
     }
 
     logger.info(`Total files with unused exports: ${totalUnusedFiles}`);
+    return totalUnusedFiles;
   },
 };
 
 // Main functionality
 async function checkUnusedExports(): Promise<void> {
   try {
+    const options = parseScriptArgs();
+    logger.info(`🔍 Checking unused exports in ${options.environment} environment...`);
+
     const args = utils.buildArgs();
     logger.info('Arguments:', args);
 
     const result = await analyzeTsConfig(CONFIG.tsConfigPath, args);
+    if (!result || typeof result !== 'object') {
+      throw new Error('Invalid result from analyzeTsConfig');
+    }
+
     logger.info('Raw result from analyzeTsConfig:', JSON.stringify(result, null, 2));
 
-    if (!result || !result.unusedExports || Object.keys(result.unusedExports).length === 0) {
+    if (Object.keys(result).length === 0) {
       logger.info('✅ No unused exports found!');
       process.exit(0);
     }
 
     logger.info('\n🔍 Unused exports found:\n');
-    formatter.printUnusedExports(result.unusedExports);
-    process.exit(1);
+    const totalUnusedFiles = formatter.printUnusedExports(result);
+    process.exit(totalUnusedFiles > 0 ? 1 : 0);
   } catch (error) {
-    logger.error('❌ Error checking unused exports:', error);
+    if (error instanceof Error) {
+      logger.error('❌ Error checking unused exports:', error.message);
+      if (error.stack) {
+        logger.error(error.stack);
+      }
+    } else {
+      logger.error('❌ Error checking unused exports:', String(error));
+    }
     process.exit(1);
   }
 }

@@ -3,7 +3,7 @@ import { GraphQLError } from 'graphql';
 import type { z } from 'zod';
 
 import { logger } from '@lib/core/logger';
-import { invalidateRelatedCaches } from '@src/lib/cache';
+import { invalidateRelatedCaches, getCache } from '@src/lib/cache';
 import { db } from '@src/lib/db';
 import * as schema from '@src/lib/db/schema';
 import {
@@ -12,12 +12,12 @@ import {
   NotFoundError,
   ValidationError,
 } from '@src/lib/graphql/errors';
-import type { IContext } from '@src/lib/types/component.types';
 import type {
+  IContext,
   MutationCreateGameLogArgs,
   MutationUpdateGameLogArgs,
   MutationDeleteGameLogArgs,
-} from '@src/lib/types/generated/graphql';
+} from '@src/lib/types';
 import { createGameLogSchema, updateGameLogSchema } from '@src/lib/validations/game-log';
 
 import { ensureUserExists } from './utils';
@@ -123,7 +123,9 @@ export const createGameLog = async (
 
     // Invalidate related caches
     if (context.redis) {
-      await invalidateRelatedCaches(context.redis, 'game_log', validatedInput.gameId);
+      const cache = getCache();
+      await cache.initializeRedis();
+      await invalidateRelatedCaches(cache, 'game_log', gameLog.gameId);
     }
 
     return { gameLog, errors: null };
@@ -182,7 +184,9 @@ export const updateGameLog = async (
 
     // Invalidate related caches
     if (context.redis) {
-      await invalidateRelatedCaches(context.redis, 'game_log', gameLog.gameId);
+      const cache = getCache();
+      await cache.initializeRedis();
+      await invalidateRelatedCaches(cache, 'game_log', gameLog.gameId);
     }
 
     return { gameLog: updatedGameLog, errors: null };
@@ -228,7 +232,9 @@ export const deleteGameLog = async (
 
     // Invalidate related caches
     if (context.redis) {
-      await invalidateRelatedCaches(context.redis, 'game_log', gameLog.gameId);
+      const cache = getCache();
+      await cache.initializeRedis();
+      await invalidateRelatedCaches(cache, 'game_log', gameLog.gameId);
     }
 
     return { success: true, errors: null };

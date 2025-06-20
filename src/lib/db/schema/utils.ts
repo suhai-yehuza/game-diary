@@ -2,19 +2,8 @@ import { sql, eq } from 'drizzle-orm';
 import type { NeonHttpDatabase } from 'drizzle-orm/neon-http';
 import { varchar, timestamp } from 'drizzle-orm/pg-core';
 
-import type { SoftDeletableTable } from '@src/lib/types/misc.types';
+import type { SoftDeletableTable } from '@src/lib/types';
 import { generateUUID } from '@src/lib/utils/processing';
-
-// Import required types for the functions below
-
-// Define JsonValue locally to avoid circular dependency
-export type JsonValue =
-  | string
-  | number
-  | boolean
-  | null
-  | JsonValue[]
-  | { [key: string]: JsonValue };
 
 // Common field generators
 export const createIdField = () => ({

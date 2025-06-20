@@ -5,12 +5,12 @@ import { Slot } from '@radix-ui/react-slot';
 import * as React from 'react';
 
 import { Label } from '@src/app/components/ui/label';
-import type { FormFieldContextValue, FormItemContextValue } from '@src/lib/types/misc.types';
+import type { IFormFieldContextValue, IFormItemContextValue } from '@src/lib/types';
 import { cn } from '@src/lib/utils';
 
 // Simplified form implementation without react-hook-form dependencies
-const FormFieldContext = React.createContext<FormFieldContextValue>({} as FormFieldContextValue);
-const FormItemContext = React.createContext<FormItemContextValue>({} as FormItemContextValue);
+const FormFieldContext = React.createContext<IFormFieldContextValue>({} as IFormFieldContextValue);
+const FormItemContext = React.createContext<IFormItemContextValue>({} as IFormItemContextValue);
 
 // Simple form wrapper
 const Form = ({ children, ...props }: React.FormHTMLAttributes<HTMLFormElement>) => {

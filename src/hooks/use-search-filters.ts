@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback } from 'react';
 
-import type { IUseSearchFiltersOptions } from '@src/lib/types/search.types';
+import type { IUseSearchFiltersOptions } from '@src/lib/types';
 
 export function useSearchFilters({
   filterConfig,

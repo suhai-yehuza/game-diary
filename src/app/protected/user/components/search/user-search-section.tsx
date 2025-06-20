@@ -55,10 +55,8 @@ import {
   REMOVE_FRIEND,
 } from '@src/lib/graphql/mutations';
 import { SEARCH_USERS } from '@src/lib/graphql/queries';
-import type { IUserSearchSectionProps } from '@src/lib/types/component.types';
-import { FRIENDSHIP_STATUS } from '@src/lib/types/config.types';
-import type { UserEdge } from '@src/lib/types/generated/graphql';
-import type { IUserNode } from '@src/lib/types/misc.types';
+import type { IUserSearchSectionProps, IUserNode, UserEdge } from '@src/lib/types';
+import { FRIENDSHIP_STATUS } from '@src/lib/types';
 import { cn } from '@src/lib/utils';
 import { formatCount } from '@src/lib/utils/format';
 
@@ -841,7 +839,7 @@ export function UserSearchSection({ className }: IUserSearchSectionProps) {
                   <Input
                     type="number"
                     placeholder="Any"
-                    value={minGameLogs || ''}
+                    value={minGameLogs?.toString() || ''}
                     onChange={e => {
                       const value = e.target.value ? parseInt(e.target.value) : null;
                       setMinGameLogs(value);

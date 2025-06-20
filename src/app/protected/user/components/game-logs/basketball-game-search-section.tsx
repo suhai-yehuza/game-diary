@@ -1,10 +1,8 @@
 'use client';
 
 import { useQuery } from '@apollo/client';
-import { format, isAfter } from 'date-fns';
-import { Calendar, Clock, Search, Trophy, X, MapPin, ArrowUpDown } from 'lucide-react';
-import Image from 'next/image';
-import { useRouter } from 'next/navigation';
+import { format } from 'date-fns';
+import { Calendar, Clock, Search, MapPin, ArrowUpDown, X } from 'lucide-react';
 import React, { useState, useMemo, useEffect } from 'react';
 
 import { Badge } from '@src/app/components/ui/badge';
@@ -22,102 +20,38 @@ import {
 import { Skeleton } from '@src/app/components/ui/skeleton';
 import { API_CONFIG } from '@src/lib/config/api.config';
 import { GET_GAMES } from '@src/lib/graphql/queries';
-import type { IGame } from '@src/lib/types/game.types';
-import type { IGameEdge } from '@src/lib/types/misc.types';
-import { cn } from '@src/lib/utils';
+import type { IGame, IGameEdge, IGameQueryResponse } from '@src/lib/types';
 import { formatCount } from '@src/lib/utils/format';
-import { getCurrentSeason } from '@src/lib/utils/time';
+import { getCurrentSeason, getSeasonRange, createSeasonOptions } from '@src/lib/utils/time';
 
 // Loading skeleton component
-const GameSkeleton = () => (
-  <Card className="overflow-hidden">
-    <CardHeader className="pb-3">
+const GameCardSkeleton = () => (
+  <Card className="w-full">
+    <CardHeader className="p-4">
       <div className="flex items-center justify-between">
-        <Skeleton className="h-5 w-32" />
-        <Skeleton className="h-6 w-20" />
+        <Skeleton className="h-6 w-32" />
+        <Skeleton className="h-6 w-24" />
       </div>
     </CardHeader>
-    <CardContent>
-      <div className="space-y-3">
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <Skeleton className="h-8 w-8 rounded" />
-            <Skeleton className="h-5 w-24" />
-          </div>
-          <Skeleton className="h-6 w-8" />
+    <CardContent className="p-4">
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <Skeleton className="h-8 w-24" />
+          <Skeleton className="h-8 w-24" />
         </div>
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <Skeleton className="h-8 w-8 rounded" />
-            <Skeleton className="h-5 w-24" />
-          </div>
-          <Skeleton className="h-6 w-8" />
+        <div className="flex items-center justify-between">
+          <Skeleton className="h-6 w-32" />
+          <Skeleton className="h-6 w-32" />
         </div>
-        <Skeleton className="h-4 w-full" />
       </div>
     </CardContent>
   </Card>
 );
 
-const getStatusBadge = (
-  status: string,
-  isScheduled?: boolean,
-  isFinished?: boolean,
-  isPastScheduled?: boolean
-) => {
-  const statusLower = status.toLowerCase();
-
-  if (statusLower.includes('live') || statusLower === 'in play') {
-    return (
-      <Badge className="bg-red-500 text-white border-red-500 text-xs py-0.5 px-1.5">
-        <div className="flex items-center gap-0.5">
-          <div className="h-1.5 w-1.5 bg-white rounded-full animate-pulse" />
-          LIVE
-        </div>
-      </Badge>
-    );
-  }
-
-  // Don't show Final badge here anymore since it's shown on the right
-  if (isFinished) {
-    return null;
-  }
-
-  // For past scheduled games, show cancelled
-  if (isPastScheduled) {
-    return (
-      <Badge className="bg-red-500/10 text-red-500 border-red-500/20 text-xs py-0.5 px-1.5">
-        Cancelled
-      </Badge>
-    );
-  }
-
-  // For scheduled games, show the time
-  if (isScheduled) {
-    return (
-      <Badge variant="outline" className="text-xs py-0.5 px-1.5">
-        {format(new Date(status), 'h:mm a')}
-      </Badge>
-    );
-  }
-
-  // For other statuses, show the status
-  return (
-    <Badge variant="outline" className="text-xs py-0.5 px-1.5">
-      {status}
-    </Badge>
-  );
-};
-
-// Utility to ensure logo URLs use https
-function ensureHttps(url?: string) {
-  if (!url) return url;
-  return url.replace(/^http:\/\//, 'https://');
-}
-
 export function BasketballGameSearchSection() {
-  const router = useRouter();
   const currentYear = getCurrentSeason();
+  const seasonRange = getSeasonRange(currentYear - 2014); // Show seasons from 2015 to current
+  const seasonOptions = createSeasonOptions(seasonRange);
 
   const [searchText, setSearchText] = useState('');
   const [selectedSeason, setSelectedSeason] = useState(currentYear.toString());
@@ -155,7 +89,7 @@ export function BasketballGameSearchSection() {
     data: gamesData,
     loading: gamesLoading,
     error: gamesError,
-  } = useQuery(GET_GAMES, {
+  } = useQuery<IGameQueryResponse>(GET_GAMES, {
     variables: {
       first: pageSize,
       after: null,
@@ -179,45 +113,46 @@ export function BasketballGameSearchSection() {
       [],
     [pageData, currentPage, gamesData]
   );
-  const totalCount = gamesData?.games?.totalCount || 0;
 
-  // Filter games by search text (client-side for current page only)
+  // Filter games based on search text
   const filteredGames = useMemo(() => {
-    if (!searchText.trim()) return games;
+    if (!searchText) return games;
 
     const searchLower = searchText.toLowerCase();
-    return games.filter((game: IGame) => {
-      const homeTeam = game.teams?.home?.nickname?.toLowerCase() || '';
-      const awayTeam = game.teams?.visitors?.nickname?.toLowerCase() || '';
-      const arena = game.arena?.name?.toLowerCase() || '';
-      const city = game.arena?.city?.toLowerCase() || '';
+    return games.filter(game => {
+      const visitorTeam = game.teams.visitors.name.toLowerCase();
+      const homeTeam = game.teams.home.name.toLowerCase();
+      const arena =
+        typeof game.arena === 'string' ? game.arena : game.arena?.name?.toLowerCase() || '';
+      const city = typeof game.arena === 'string' ? '' : game.arena?.city?.toLowerCase() || '';
 
       return (
+        visitorTeam.includes(searchLower) ||
         homeTeam.includes(searchLower) ||
-        awayTeam.includes(searchLower) ||
         arena.includes(searchLower) ||
         city.includes(searchLower)
       );
     });
   }, [games, searchText]);
 
-  // Sort games
+  // Sort games based on selected sort option
   const sortedGames = useMemo(() => {
-    const sorted = [...filteredGames];
+    return [...filteredGames].sort((a, b) => {
+      const dateA = new Date(typeof a.date === 'string' ? a.date : a.date.start);
+      const dateB = new Date(typeof b.date === 'string' ? b.date : b.date.start);
 
-    if (sortBy === 'date') {
-      sorted.sort((a: IGame, b: IGame) => {
-        return new Date(b.date.start).getTime() - new Date(a.date.start).getTime();
-      });
-    } else if (sortBy === 'score') {
-      sorted.sort((a: IGame, b: IGame) => {
-        const totalA = (a.scores?.home?.points || 0) + (a.scores?.visitors?.points || 0);
-        const totalB = (b.scores?.home?.points || 0) + (b.scores?.visitors?.points || 0);
-        return totalB - totalA;
-      });
-    }
-
-    return sorted;
+      switch (sortBy) {
+        case 'date':
+          return dateB.getTime() - dateA.getTime();
+        case 'score': {
+          const scoreA = (a.scores?.visitors?.points || 0) + (a.scores?.home?.points || 0);
+          const scoreB = (b.scores?.visitors?.points || 0) + (b.scores?.home?.points || 0);
+          return scoreB - scoreA;
+        }
+        default:
+          return 0;
+      }
+    });
   }, [filteredGames, sortBy]);
 
   const clearFilters = () => {
@@ -272,10 +207,10 @@ export function BasketballGameSearchSection() {
                 <SelectValue placeholder="Season" />
               </SelectTrigger>
               <SelectContent>
-                {/* Show seasons from 2015 to current year */}
-                {Array.from({ length: currentYear - 2014 }, (_, i) => currentYear - i).map(year => (
-                  <SelectItem key={year} value={year.toString()}>
-                    {year}-{(year + 1).toString().slice(2)}
+                {seasonOptions.map(option => (
+                  <SelectItem key={option.value} value={option.value.toString()}>
+                    {option.label}
+                    {option.isCurrent && ' (Current)'}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -288,28 +223,28 @@ export function BasketballGameSearchSection() {
             <Select value={selectedStatus} onValueChange={setSelectedStatus}>
               <SelectTrigger className="w-[140px]">
                 <Clock className="mr-2 h-4 w-4" />
-                <SelectValue placeholder="All status" />
+                <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All games</SelectItem>
+                <SelectItem value="all">All</SelectItem>
+                <SelectItem value="scheduled">Scheduled</SelectItem>
                 <SelectItem value="live">Live</SelectItem>
                 <SelectItem value="finished">Finished</SelectItem>
-                <SelectItem value="scheduled">Scheduled</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
-          {/* Sort Options */}
+          {/* Sort Filter */}
           <div className="space-y-2">
-            <Label className="text-sm">Sort by</Label>
+            <Label className="text-sm">Sort By</Label>
             <Select value={sortBy} onValueChange={setSortBy}>
               <SelectTrigger className="w-[140px]">
                 <ArrowUpDown className="mr-2 h-4 w-4" />
-                <SelectValue placeholder="Sort by" />
+                <SelectValue placeholder="Sort By" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="date">Date</SelectItem>
-                <SelectItem value="score">Total Score</SelectItem>
+                <SelectItem value="score">Score</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -328,191 +263,131 @@ export function BasketballGameSearchSection() {
       {!gamesLoading && (
         <div className="flex items-center justify-between">
           <p className="text-sm text-muted-foreground">
-            {totalCount > 0 ? (
+            {gamesData?.games?.totalCount && gamesData?.games?.totalCount > 0 ? (
               <>
                 Showing {(currentPage - 1) * pageSize + 1}-
-                {Math.min(currentPage * pageSize, totalCount)} of {formatCount(totalCount)}{' '}
-                {totalCount === 1 ? 'game' : 'games'}
+                {Math.min(currentPage * pageSize, gamesData?.games?.totalCount)} of{' '}
+                {formatCount(gamesData?.games?.totalCount)}{' '}
+                {gamesData?.games?.totalCount === 1 ? 'game' : 'games'}
                 {searchText &&
                   ` (showing ${sortedGames.length} on this page matching "${searchText}")`}
               </>
             ) : (
               <>
-                Found {formatCount(totalCount)} {totalCount === 1 ? 'game' : 'games'}
+                Found {formatCount(gamesData?.games?.totalCount ?? 0)}{' '}
+                {gamesData?.games?.totalCount === 1 ? 'game' : 'games'}
                 {searchText &&
                   ` (showing ${sortedGames.length} on this page matching "${searchText}")`}
               </>
             )}
           </p>
-          {totalCount > pageSize && (
+          {(gamesData?.games?.totalCount ?? 0) > pageSize && (
             <p className="text-sm text-muted-foreground">
-              Page {currentPage} of {Math.ceil(totalCount / pageSize)}
+              Page {currentPage} of {Math.ceil((gamesData?.games?.totalCount ?? 0) / pageSize)}
             </p>
           )}
         </div>
       )}
 
-      {/* Games Grid */}
-      {gamesLoading && !gamesData ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[...Array(pageSize)].map((_, i) => (
-            <GameSkeleton key={i} />
-          ))}
-        </div>
-      ) : gamesError ? (
-        <Card className="border-destructive/50">
-          <CardContent className="py-8">
-            <div className="text-center text-destructive">
-              Error loading games: {gamesError.message}
-            </div>
-          </CardContent>
-        </Card>
-      ) : sortedGames.length === 0 ? (
-        <Card className="border-dashed">
-          <CardContent className="flex flex-col items-center justify-center py-12">
-            <Trophy className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="font-semibold text-lg mb-2">No games found</h3>
-            <p className="text-muted-foreground text-center max-w-sm">
-              {searchText && games.length > 0
-                ? 'No games on this page match your search. Try navigating to other pages or clearing the search.'
-                : hasActiveFilters
-                  ? 'Try adjusting your filters to find more games.'
-                  : 'No games are available for the selected criteria.'}
-            </p>
-          </CardContent>
-        </Card>
-      ) : (
-        <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {sortedGames.map((game: IGame) => {
-              const gameDate = new Date(game.date.start);
-              const isLive =
-                game.status.long?.toLowerCase().includes('live') ||
-                game.status.long?.toLowerCase() === 'in play';
-              const isScheduled =
-                game.status.long?.toLowerCase() === 'scheduled' || isAfter(gameDate, new Date());
-              const isPastScheduled =
-                game.status.long?.toLowerCase() === 'scheduled' && gameDate < new Date();
-              const isFinished = game.status.long?.toLowerCase() === 'finished';
+      {/* Pagination Info */}
+      <div className="flex items-center justify-between mt-4">
+        <p className="text-sm text-muted-foreground">
+          {gamesData?.games?.totalCount !== undefined ? (
+            <>
+              Showing {sortedGames.length} of {formatCount(gamesData.games.totalCount)} games
+              {searchText && ` (filtered by "${searchText}")`}
+            </>
+          ) : (
+            'No games found'
+          )}
+        </p>
+        {gamesData?.games?.pageInfo?.hasNextPage && (
+          <Button
+            variant="outline"
+            onClick={() => setCurrentPage(prev => prev + 1)}
+            disabled={gamesLoading}
+          >
+            Load More
+          </Button>
+        )}
+      </div>
 
-              return (
-                <Card
-                  key={game.id}
-                  className={cn(
-                    'overflow-hidden transition-all duration-200 hover:shadow-lg',
-                    isLive && 'border-red-500 ring-2 ring-red-500/20',
-                    isPastScheduled && 'border-red-500/50 ring-2 ring-red-500/10'
-                  )}
-                >
-                  <CardHeader className="pb-3">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex flex-col">
-                        <div className="text-sm text-muted-foreground">
-                          {format(gameDate, 'MMM d, yyyy')}
-                        </div>
-                        <div className="mt-1">
-                          {/* Only show status badge if not cancelled or finished */}
-                          {!isPastScheduled &&
-                            !isFinished &&
-                            getStatusBadge(
-                              isScheduled ? game.date.start : game.status.long || '',
-                              isScheduled,
-                              isFinished,
-                              isPastScheduled
-                            )}
-                        </div>
-                      </div>
-                      {/* Only one right-aligned badge: Final > Cancelled > Scheduled */}
-                      {isFinished ? (
-                        <Badge className="bg-cyan-400/10 text-cyan-700 border-cyan-400/20 gap-0.5 shrink-0 text-xs py-0.5 px-1.5">
-                          Final
-                        </Badge>
-                      ) : isPastScheduled ? (
-                        <Badge className="bg-red-500/10 text-red-500 border-red-500/20 gap-0.5 shrink-0 text-xs py-0.5 px-1.5">
-                          Cancelled
-                        </Badge>
-                      ) : isScheduled ? (
-                        <Badge className="bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/20 gap-0.5 shrink-0 text-xs py-0.5 px-1.5">
-                          <Calendar className="h-2.5 w-2.5" />
-                          Scheduled
-                        </Badge>
-                      ) : null}
-                    </div>
-                  </CardHeader>
-
-                  <CardContent
-                    className="space-y-3 cursor-pointer hover:bg-accent/50 transition-colors"
-                    onClick={() => router.push(`/sports/nba/games/${game.id}`)}
-                  >
-                    {/* Teams */}
-                    <div className="space-y-2">
-                      {/* Away Team */}
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          {game.teams?.visitors?.logo && (
-                            <div className="relative h-8 w-8 flex-shrink-0">
-                              <Image
-                                src={ensureHttps(game.teams.visitors.logo) || ''}
-                                alt={game.teams.visitors.name || 'Away'}
-                                fill
-                                sizes="32px"
-                                className="object-contain"
-                              />
-                            </div>
-                          )}
-                          <span className="font-medium text-sm">
-                            {game.teams?.visitors?.nickname || game.teams?.visitors?.name}
-                          </span>
-                        </div>
-                        <span className="font-bold text-lg">
-                          {game.scores?.visitors?.points || 0}
-                        </span>
-                      </div>
-
-                      {/* Home Team */}
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          {game.teams?.home?.logo && (
-                            <div className="relative h-8 w-8 flex-shrink-0">
-                              <Image
-                                src={ensureHttps(game.teams.home.logo) || ''}
-                                alt={game.teams.home.name || 'Home'}
-                                fill
-                                sizes="32px"
-                                className="object-contain"
-                              />
-                            </div>
-                          )}
-                          <span className="font-medium text-sm">
-                            {game.teams?.home?.nickname || game.teams?.home?.name}
-                          </span>
-                        </div>
-                        <span className="font-bold text-lg">{game.scores?.home?.points || 0}</span>
-                      </div>
-                    </div>
-
-                    {/* Game Details */}
-                    <div className="space-y-1 text-xs text-muted-foreground">
-                      <div className="flex items-center gap-1">
-                        <MapPin className="h-3 w-3" />
-                        <span>
-                          {game.arena?.name}, {game.arena?.city}
-                        </span>
-                      </div>
-                      {game.timesTied !== undefined && game.leadChanges !== undefined && (
-                        <div className="flex items-center gap-4">
-                          <span>Times tied: {game.timesTied}</span>
-                          <span>Lead changes: {game.leadChanges}</span>
-                        </div>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
+      {/* Game List */}
+      <div className="space-y-4">
+        {gamesLoading ? (
+          // Loading state
+          Array.from({ length: 3 }).map((_, i) => <GameCardSkeleton key={i} />)
+        ) : gamesError ? (
+          // Error state
+          <div className="text-center text-red-500">
+            Error loading games. Please try again later.
           </div>
-        </>
-      )}
+        ) : sortedGames.length === 0 ? (
+          // Empty state
+          <div className="text-center text-muted-foreground">No games found.</div>
+        ) : (
+          // Game list
+          sortedGames.map(game => (
+            <Card key={game.id} className="w-full">
+              <CardHeader className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm text-muted-foreground">
+                      {format(
+                        new Date(typeof game.date === 'string' ? game.date : game.date.start),
+                        'MMM d, yyyy'
+                      )}
+                    </span>
+                  </div>
+                  <Badge
+                    variant={
+                      game.status.long === 'Finished'
+                        ? 'secondary'
+                        : game.status.long === 'Live'
+                          ? 'destructive'
+                          : 'default'
+                    }
+                  >
+                    {game.status.long}
+                  </Badge>
+                </div>
+              </CardHeader>
+              <CardContent className="p-4">
+                <div className="space-y-4">
+                  {/* Teams */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <span className="font-medium">{game.teams.visitors.name}</span>
+                      <span className="text-muted-foreground">
+                        {game.scores?.visitors?.points || 0}
+                      </span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <span className="font-medium">{game.teams.home.name}</span>
+                      <span className="text-muted-foreground">
+                        {game.scores?.home?.points || 0}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Arena */}
+                  {game.arena && (
+                    <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                      <MapPin className="h-4 w-4" />
+                      <span>
+                        {typeof game.arena === 'string'
+                          ? game.arena
+                          : `${game.arena.name}, ${game.arena.city}${game.arena.state ? `, ${game.arena.state}` : ''}`}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          ))
+        )}
+      </div>
     </div>
   );
 }

@@ -2,7 +2,7 @@ import { eq } from 'drizzle-orm';
 
 import { db } from '@src/lib/db';
 import * as schema from '@src/lib/db/schema';
-import type { IContext } from '@src/lib/types/component.types';
+import type { IContext } from '@src/lib/types';
 
 // Helper to ensure user exists in database (create if not)
 export async function ensureUserExists(user: IContext['user']) {
@@ -25,7 +25,7 @@ export async function ensureUserExists(user: IContext['user']) {
       username: user.username || `user_${user.id.slice(-8)}`,
       firstName: user.firstName || 'Unknown',
       lastName: user.lastName || 'DBUser',
-      emailAddress: user.emailAddresses[0].emailAddress || `${user.id}@placeholder.com`,
+      emailAddress: user.emailAddresses?.[0]?.emailAddress || `${user.id}@placeholder.com`,
       imageUrl: user.imageUrl || '',
       inboundFriendshipIds: [],
       outboundFriendshipIds: [],

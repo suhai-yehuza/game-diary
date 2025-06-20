@@ -8,8 +8,7 @@ import { logger } from '@lib/core/logger';
 import { useToast } from '@src/app/components/ui/use-toast';
 import { CREATE_GAME_LOG } from '@src/lib/graphql/mutations';
 import { GET_GAMES } from '@src/lib/graphql/queries';
-import type { IGameLogInput } from '@src/lib/types/game-log.types';
-import type { IUseCreateGameLogProps } from '@src/lib/types/misc.types';
+import type { IGameLogInput, IUseCreateGameLogProps } from '@src/lib/types';
 
 export function useCreateGameLog({ onSuccess }: IUseCreateGameLogProps = {}) {
   const { toast } = useToast();

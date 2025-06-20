@@ -1,10 +1,11 @@
 import type { InferInsertModel } from 'drizzle-orm';
+import type { NeonHttpDatabase } from 'drizzle-orm/neon-http';
 import type { PgTable } from 'drizzle-orm/pg-core';
 
 import { seedLogger } from '@lib/core/logger';
 import { API_CONFIG } from '@src/lib/config/api.config';
-import type { IDatabaseClient } from '@src/lib/types/database.types';
-import type { IGlobalWithGC } from '@src/lib/types/global';
+import type * as schema from '@src/lib/db/schema';
+import type { IGlobalWithGC } from '@src/lib/types';
 
 import type { OptimizedAPIClient } from './utils/api-client';
 // Enhanced sleep function with jitter
@@ -50,7 +51,7 @@ export class PerformanceMonitor {
 // Memory-efficient data processor
 export class DataProcessor {
   constructor(
-    private db: IDatabaseClient,
+    private db: NeonHttpDatabase<typeof schema>,
     private apiClient: OptimizedAPIClient,
     private monitor: PerformanceMonitor
   ) {}

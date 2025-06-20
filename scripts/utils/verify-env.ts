@@ -5,27 +5,29 @@ import * as dotenvFlow from 'dotenv-flow';
 import { logger } from '@lib/core/logger';
 import { envSchema } from '@src/lib/validations/env';
 
+import { parseScriptArgs } from '../shared/script-utils';
+
 function verifyEnvironment(envFile: string) {
-  const nodeEnv = process.env.NODE_ENV || 'development';
-  const isProduction = nodeEnv === 'production';
-
-  logger.info(`\n🔍 Verifying environment variables in ${envFile}...`);
-
-  // Only try to load .env files in non-production environments
-  if (!isProduction) {
-    // Load environment variables from the specified file
-    const result = dotenvFlow.config({
-      path: process.cwd(),
-      node_env: path.basename(envFile, '.env'),
-    });
-
-    if (result.error) {
-      logger.error(`Failed to load ${envFile}: ${result.error.message}`);
-      return false;
-    }
-  }
-
   try {
+    const options = parseScriptArgs();
+    const nodeEnv = options.environment || 'development';
+    const isProduction = nodeEnv === 'production';
+
+    logger.info(`\n🔍 Verifying environment variables in ${envFile} for ${nodeEnv} environment...`);
+
+    // Only try to load .env files in non-production environments
+    if (!isProduction) {
+      // Load environment variables from the specified file
+      const result = dotenvFlow.config({
+        path: process.cwd(),
+        node_env: path.basename(envFile, '.env'),
+      });
+
+      if (result.error) {
+        throw new Error(`Failed to load ${envFile}: ${result.error.message}`);
+      }
+    }
+
     // Validate full environment schema
     const env = envSchema.parse(process.env);
     logger.info('✅ All required environment variables are present and valid');
@@ -59,7 +61,12 @@ function verifyEnvironment(envFile: string) {
     return true;
   } catch (error) {
     if (error instanceof Error) {
-      logger.error(`❌ Environment validation failed: ${error.message}`);
+      logger.error('❌ Environment validation failed:', error.message);
+      if (error.stack) {
+        logger.error(error.stack);
+      }
+    } else {
+      logger.error('❌ Environment validation failed:', String(error));
     }
     return false;
   }

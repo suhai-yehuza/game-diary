@@ -93,15 +93,23 @@ export default [
           alphabetize: { order: 'asc', caseInsensitive: true },
         },
       ],
-      'import/no-duplicates': 'error',
+      'import/no-duplicates': ['error', { considerQueryString: true, 'prefer-inline': false }],
       'import/no-unresolved': ['error', { ignore: ['^@src/', '^@lib/'] }],
       'import/named': 'error',
 
       // TypeScript rules
       '@typescript-eslint/explicit-function-return-type': 'off',
       '@typescript-eslint/explicit-module-boundary-types': 'off',
-      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/no-explicit-any': 'error',
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        {
+          prefer: 'type-imports',
+          disallowTypeAnnotations: false,
+          fixStyle: 'separate-type-imports',
+        },
+      ],
       '@typescript-eslint/naming-convention': [
         'error',
         {
@@ -140,7 +148,7 @@ export default [
       // General rules
       'no-console': ['warn', { allow: ['warn', 'error'] }],
       'no-debugger': 'warn',
-      'no-duplicate-imports': 'error',
+      'no-duplicate-imports': 'off', // Handled by import/no-duplicates with better type support
       'no-unused-expressions': 'warn',
       'no-unused-vars': 'off', // Turn off base rule as it can report incorrect errors
     },
@@ -172,4 +180,20 @@ export default [
     },
   },
   eslintConfigPrettier,
+  // Move the specific file configuration to the end to ensure it takes precedence
+  {
+    files: [
+      'src/lib/types/graphql.types.ts',
+      // 'src/lib/graphql/resolvers/games.ts',
+      'src/lib/graphql/resolvers/comments.ts',
+      'src/lib/graphql/resolvers/comment.mutations.ts',
+      'src/lib/db/seed/fetch-external-api-player-stats.ts',
+      'src/lib/db/seed/optimized-external-seeder.ts',
+      'src/lib/db/seed/optimized-seeder.ts',
+      // 'src/app/sports/nba/games/[id]/page.tsx',
+    ],
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'warn',
+    },
+  },
 ];

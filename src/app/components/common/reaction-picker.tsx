@@ -8,9 +8,8 @@ import { Button } from '@src/app/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@src/app/components/ui/popover';
 import { CREATE_REACTION } from '@src/lib/graphql/mutations';
 import { GET_REACTIONS, GET_GAME_LOG } from '@src/lib/graphql/queries';
-import type { IReactionsData } from '@src/lib/types/component.types';
-import { REACTION_EMOJIS, EMOJI_TO_GRAPHQL_MAPPING } from '@src/lib/types/config.types';
-import type { ReactionEmojiType, Reaction } from '@src/lib/types/generated/graphql';
+import { REACTION_EMOJIS, EMOJI_TO_GRAPHQL_MAPPING } from '@src/lib/types';
+import type { IReactionsData, ReactionEmojiType, Reaction } from '@src/lib/types';
 import { cn } from '@src/lib/utils';
 
 export function ReactionPicker({
@@ -77,14 +76,17 @@ export function ReactionPicker({
             } else {
               // Removing reaction
               newEdges = existingData.reactions.edges.filter(
-                (edge: { node: Reaction }) =>
-                  !(edge.node.userId === user.id && edge.node.emoji === graphqlEmojiValue)
+                (edge: {
+                  node: { id: string; emoji: string; userId: string };
+                  __typename: string;
+                  cursor: string;
+                }) => !(edge.node.userId === user.id && edge.node.emoji === graphqlEmojiValue)
               );
             }
 
             cache.writeQuery({
               query: GET_REACTIONS,
-              variables: { targetId },
+              variables: { targetId, targetType },
               data: {
                 reactions: {
                   ...existingData.reactions,
@@ -134,8 +136,11 @@ export function ReactionPicker({
               } else {
                 // Removing reaction
                 newEdges = gameLogData.gameLog.reactions.edges.filter(
-                  (edge: { node: Reaction }) =>
-                    !(edge.node.userId === user.id && edge.node.emoji === graphqlEmojiValue)
+                  (edge: {
+                    node: { id: string; emoji: string; userId: string };
+                    __typename: string;
+                    cursor: string;
+                  }) => !(edge.node.userId === user.id && edge.node.emoji === graphqlEmojiValue)
                 );
               }
 

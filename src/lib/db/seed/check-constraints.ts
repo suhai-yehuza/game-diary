@@ -29,7 +29,10 @@ async function main() {
       WHERE tc.constraint_type = 'FOREIGN KEY'
         AND (tc.table_name = ${tableName} OR ccu.table_name = ${tableName});
     `);
-    seedLogger.info(`Foreign key constraints for ${tableName}:`, result.rows);
+    seedLogger.info(
+      `Foreign key constraints for ${tableName}:`,
+      (result as unknown as { rows: unknown[] }).rows
+    );
   } catch (error) {
     seedLogger.error('Error:', error);
     process.exit(1);

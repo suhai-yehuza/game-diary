@@ -24,8 +24,8 @@ import {
 } from '@src/app/components/ui/dropdown-menu';
 import { useToast } from '@src/app/components/ui/use-toast';
 import { DELETE_GAME_LOG } from '@src/lib/graphql/mutations';
-import type { IGameLogActionsProps } from '@src/lib/types/misc.types';
-import type { IAuthUser } from '@src/lib/types/user.types';
+import type { IAuthUser } from '@src/lib/types';
+import type { IGameLogActionsProps } from '@src/lib/types/game-log.types';
 
 import { GameLogModal } from './game-log-modal';
 
@@ -66,7 +66,8 @@ export function GameLogActions({ gameLog, onSuccess }: IGameLogActionsProps) {
     },
     update: (cache, { data }) => {
       if (data?.deleteGameLog?.success) {
-        cache.evict({ id: cache.identify(gameLog) });
+        // Use the cache ID directly instead of trying to identify the gameLog object
+        cache.evict({ id: `GameLog:${gameLog.id}` });
         cache.gc();
       }
     },
@@ -153,7 +154,6 @@ export function GameLogActions({ gameLog, onSuccess }: IGameLogActionsProps) {
 
       {/* Edit Modal */}
       <GameLogModal
-        gameId={gameLog.id}
         mode="update"
         gameLog={gameLog}
         isOpen={isUpdateModalOpen}

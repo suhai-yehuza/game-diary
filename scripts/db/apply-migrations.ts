@@ -6,7 +6,7 @@ import { sql } from 'drizzle-orm';
 
 import { logger } from '@lib/core/logger';
 import { createDatabaseClient } from '@src/lib/db/seed/config';
-import type { IMigration, IMigrationVerification } from '@src/lib/types/common.types';
+import type { IMigration, IMigrationVerification } from '@src/lib/types';
 
 // Get environment from command line argument or default to development
 const environment = process.argv[2] || 'development';
@@ -69,7 +69,10 @@ async function getVerificationData(
   db: ReturnType<typeof createDatabaseClient>,
   migrationName: string
 ): Promise<IMigrationVerification> {
-  const verification: IMigrationVerification = {};
+  const verification: IMigrationVerification = {
+    version: '1.0',
+    isValid: true,
+  };
 
   if (migrationName.includes('trigger')) {
     // Check for triggers
@@ -79,7 +82,7 @@ async function getVerificationData(
       WHERE tgname NOT LIKE 'RI_%' 
       AND tgname NOT LIKE 'pg_%'
       ORDER BY tgname;
-    `)) as { rows: { name: string }[] };
+    `)) as unknown as { rows: { name: string }[] };
     verification.triggers = triggers.rows.map(r => r.name);
 
     // Check for functions
@@ -88,7 +91,7 @@ async function getVerificationData(
       FROM pg_proc 
       WHERE pronamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'public')
       ORDER BY proname;
-    `)) as { rows: { name: string }[] };
+    `)) as unknown as { rows: { name: string }[] };
     verification.functions = functions.rows.map(r => r.name);
   }
 
@@ -99,7 +102,7 @@ async function getVerificationData(
     WHERE schemaname = 'public' 
     AND indexname NOT LIKE '%_pkey'
     ORDER BY indexname;
-  `)) as { rows: { name: string }[] };
+  `)) as unknown as { rows: { name: string }[] };
   verification.indexes = indexes.rows.map(r => r.name);
 
   return verification;
@@ -113,8 +116,8 @@ function compareVerification(
   added: IMigrationVerification;
   removed: IMigrationVerification;
 } {
-  const added: IMigrationVerification = {};
-  const removed: IMigrationVerification = {};
+  const added: IMigrationVerification = { version: '1.0', isValid: true };
+  const removed: IMigrationVerification = { version: '1.0', isValid: true };
 
   // Compare each type
   for (const key of ['tables', 'functions', 'triggers', 'indexes'] as const) {
@@ -183,7 +186,9 @@ async function applyMigrations() {
       const checksum = createHash('sha256').update(content).digest('hex');
 
       return {
+        version: '1.0',
         name: file,
+        status: 'pending',
         path,
         content,
         checksum,
@@ -202,7 +207,9 @@ ${migrations.map(m => `  - ${m.name}`).join('\n')}`);
       SELECT name, checksum, status, executed_at 
       FROM migration_versions 
       ORDER BY name;
-    `)) as { rows: { name: string; checksum: string; status: string; executed_at: string }[] });
+    `)) as unknown as {
+          rows: { name: string; checksum: string; status: string; executed_at: string }[];
+        });
 
     const appliedMap = new Map(appliedMigrations.rows.map(row => [row.name, row]));
 
@@ -228,7 +235,7 @@ ${migrations.map(m => `  - ${m.name}`).join('\n')}`);
             `⚠️  ${migration.name} - Checksum mismatch! File may have been modified after application.`
           );
           logger.warn(`    Applied checksum: ${applied.checksum.substring(0, 8)}...`);
-          logger.warn(`    Current checksum: ${migration.checksum.substring(0, 8)}...`);
+          logger.warn(`    Current checksum: ${migration.checksum?.substring(0, 8)}...`);
 
           if (!dryRun) {
             // Record the checksum mismatch but don't re-run the migration
@@ -254,8 +261,14 @@ ${migrations.map(m => `  - ${m.name}`).join('\n')}`);
       }
 
       const startTime = Date.now();
-      let verificationBefore: IMigrationVerification = {};
-      let verificationAfter: IMigrationVerification = {};
+      let verificationBefore: IMigrationVerification = {
+        version: '1.0',
+        isValid: true,
+      };
+      let verificationAfter: IMigrationVerification = {
+        version: '1.0',
+        isValid: true,
+      };
 
       try {
         // Get pre-migration verification data
@@ -263,7 +276,7 @@ ${migrations.map(m => `  - ${m.name}`).join('\n')}`);
         verificationBefore = await getVerificationData(db, migration.name);
 
         // Parse and execute statements
-        const statements = parseSqlStatements(migration.content);
+        const statements = parseSqlStatements(migration.content || '');
         logger.info(`   📄 Executing ${statements.length} SQL statements...`);
 
         for (let i = 0; i < statements.length; i++) {

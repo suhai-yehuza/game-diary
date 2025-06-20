@@ -3,7 +3,7 @@
 import { useAuth, useUser } from '@clerk/nextjs';
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
-import type { IAuthContextType } from '@src/lib/types/user.types';
+import type { IAuthContextType } from '@src/lib/types';
 
 const IAuthContext = createContext<IAuthContextType>({
   user: null,

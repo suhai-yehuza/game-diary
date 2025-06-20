@@ -8,7 +8,7 @@ import React, { useEffect, useState } from 'react';
 
 import { logger } from '@lib/core/logger';
 import { Button } from '@src/app/components/ui/button';
-import type { DbUser } from '@src/lib/types/generated/graphql';
+import type { DbUser } from '@src/lib/types';
 export default function AdminUserProfilePage() {
   const params = useParams();
   const id = params?.id as string;

@@ -19,9 +19,15 @@ export const filterGames = (games: ISearchGame[], searchQuery: string): ISearchG
     if (containsSearchTerm(game.teams.visitors.name, lowerQuery)) return true;
 
     // Search in arena information
-    if (game.arena && containsSearchTerm(game.arena.name, lowerQuery)) return true;
-    if (game.arena && containsSearchTerm(game.arena.city, lowerQuery)) return true;
-    if (game.arena && containsSearchTerm(game.arena.state || '', lowerQuery)) return true;
+    if (game.arena) {
+      if (typeof game.arena === 'string') {
+        if (containsSearchTerm(game.arena, lowerQuery)) return true;
+      } else {
+        if (containsSearchTerm(game.arena.name, lowerQuery)) return true;
+        if (containsSearchTerm(game.arena.city, lowerQuery)) return true;
+        if (containsSearchTerm(game.arena.state || '', lowerQuery)) return true;
+      }
+    }
 
     // Search in game date (format: "MMM d, yyyy")
     const dateString = typeof game.date === 'string' ? game.date : game.date.start;
@@ -39,13 +45,25 @@ export const filterGames = (games: ISearchGame[], searchQuery: string): ISearchG
     if (lowerQuery === 'today' && isToday(new Date(dateString))) return true;
     if (lowerQuery === 'yesterday' && isYesterday(new Date(dateString))) return true;
     if (lowerQuery === 'tomorrow' && isTomorrow(new Date(dateString))) return true;
-    if (lowerQuery === 'finals' && game.arena && containsSearchTerm(game.arena.name, 'finals'))
+    if (
+      lowerQuery === 'finals' &&
+      game.arena &&
+      typeof game.arena === 'object' &&
+      containsSearchTerm(game.arena.name, 'finals')
+    )
       return true;
-    if (lowerQuery === 'playoffs' && game.arena && containsSearchTerm(game.arena.name, 'playoffs'))
+    if (
+      lowerQuery === 'playoffs' &&
+      game.arena &&
+      typeof game.arena === 'object' &&
+      containsSearchTerm(game.arena.name, 'playoffs')
+    )
       return true;
     if (
       (lowerQuery === 'overtime' || lowerQuery === 'ot') &&
       game.arena &&
+      game.arena &&
+      typeof game.arena === 'object' &&
       containsSearchTerm(game.arena.name, 'overtime')
     )
       return true;

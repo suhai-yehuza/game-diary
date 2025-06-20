@@ -11,8 +11,7 @@ import { logger } from '@lib/core/logger';
 import { GameCard } from '@src/app/protected/user/components/game-logs/game-card';
 import { API_CONFIG } from '@src/lib/config/api.config';
 import { GET_LIVE_GAMES } from '@src/lib/graphql/queries';
-import type { IGame } from '@src/lib/types';
-import type { GetLiveGamesQuery } from '@src/lib/types/generated/graphql';
+import type { IGame, GetLiveGamesQuery } from '@src/lib/types';
 
 export const dynamic = 'force-dynamic';
 
@@ -59,8 +58,8 @@ export default function LiveGamesPage() {
   // Convert GraphQL result to Game type with proper type assertion
   const liveGames = (data?.liveGames?.edges?.map(edge => ({
     ...edge.node,
-    stage: edge.node.season ? 1 : 0, // Provide default stage value
-  })) || []) as IGame[];
+    stage: (edge.node as Record<string, unknown>).season ? 1 : 0, // Provide default stage value
+  })) || []) as unknown as IGame[];
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-950 via-gray-900 to-gray-950">

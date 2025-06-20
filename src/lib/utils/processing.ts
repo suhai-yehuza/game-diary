@@ -4,7 +4,7 @@ import { v4 as uuidv4, v7 as uuidv7 } from 'uuid';
 
 import { logger } from '@lib/core/logger';
 import { API_CONFIG } from '@src/lib/config/api.config';
-import type { IBatchProcessingOptions, IUuidGenerationOptions } from '@src/lib/types/misc.types';
+import type { IBatchProcessingOptions, IUuidGenerationOptions } from '@src/lib/types';
 import { sleep } from '@src/lib/utils/time';
 
 /**
@@ -27,8 +27,8 @@ export async function processInBatches<T, R = void>({
   dbPool,
   useTransactions = false,
 }: IBatchProcessingOptions<T, R>): Promise<R[]> {
-  const batches = Array.from({ length: Math.ceil(items.length / batchSize) }, (_, i) =>
-    items.slice(i * batchSize, (i + 1) * batchSize)
+  const batches = Array.from({ length: Math.ceil((items?.length || 0) / batchSize) }, (_, i) =>
+    (items || []).slice(i * batchSize, (i + 1) * batchSize)
   );
 
   const results: R[] = [];
@@ -42,13 +42,15 @@ export async function processInBatches<T, R = void>({
     while (!success && retries < maxRetries) {
       try {
         let result: R;
-        if (useTransactions && dbPool) {
+        if (useTransactions && dbPool && processFn) {
           const db = dbPool;
           result = await withTransaction(db, async tx => {
-            return await processFn(batch, { ...context, db: tx });
+            return await processFn!(batch, { ...context, db: tx });
           });
-        } else {
+        } else if (processFn) {
           result = await processFn(batch, context);
+        } else {
+          throw new Error('No processing function provided');
         }
         success = true;
         logger.info(`Successfully processed batch ${index + 1}/${batches.length} for ${tableName}`);

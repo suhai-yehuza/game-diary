@@ -75,10 +75,6 @@ export const envSchema = z.object({
   NEXT_PUBLIC_RAPID_API_BASE_URL: z.string().url(),
 });
 
-export type EnvConfig = z.infer<typeof envSchema>;
-export type DbEnvConfig = z.infer<typeof dbEnvSchema>;
-export type BuildEnvConfig = z.infer<typeof buildEnvSchema>;
-
 // Runtime validation helper
 export function validateRuntimeEnv() {
   if (!isBuild && isServer) {

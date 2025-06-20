@@ -1,4 +1,4 @@
-import type { PaginationInput, InputMaybe } from '@src/lib/types/generated/graphql';
+import type { PaginationInput, InputMaybe } from '@src/lib/types';
 
 export function paginateResults<T extends { id: string }>(
   results: T[] | null | undefined,

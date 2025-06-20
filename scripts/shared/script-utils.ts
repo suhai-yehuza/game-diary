@@ -5,9 +5,11 @@ import { sql } from 'drizzle-orm';
 
 import { logger } from '@lib/core/logger';
 import { createDatabaseClient } from '@src/lib/db/seed/config';
-import type { IScriptOptions } from '@src/lib/types/common.types';
+import type { IScriptOptions } from '@src/lib/types';
 
-export const execAsync = promisify(exec);
+export const execAsync = promisify(exec) as (
+  command: string
+) => Promise<{ stdout: string; stderr: string }>;
 
 /**
  * Parse command line arguments for common script options
@@ -19,7 +21,7 @@ export function parseScriptArgs(): IScriptOptions {
   const verbose = process.argv.includes('--verbose');
 
   return {
-    env: environment,
+    environment,
     dryRun,
     runTests,
     verbose,
@@ -105,7 +107,7 @@ export async function wait(ms: number): Promise<void> {
 export function logScriptHeader(
   scriptName: string,
   env: string,
-  options: IScriptOptions = {}
+  options: Partial<IScriptOptions> = {}
 ): void {
   logger.info(`🚀 Starting ${scriptName} for ${env} environment...`);
 
@@ -189,13 +191,13 @@ export async function tableExists(
   tableName: string
 ): Promise<boolean> {
   try {
-    const result = await db.execute(sql`
+    const result = (await db.execute(sql`
       SELECT EXISTS (
         SELECT FROM information_schema.tables 
         WHERE table_schema = 'public' 
         AND table_name = ${tableName}
       ) as exists;
-    `);
+    `)) as unknown as { rows: Array<{ exists: boolean }> };
 
     return Boolean(result.rows[0]?.exists);
   } catch {

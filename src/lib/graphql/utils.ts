@@ -1,13 +1,17 @@
-import type { IGameScores } from '@/lib/types/game.types';
+import type {
+  IGameScores,
+  IEdge,
+  IPageInfo,
+  IConnection,
+  IConnectionArgs,
+  IPaginationArgs,
+  IDatabaseRow,
+  ReactionEmojiType,
+} from '@/lib/types';
+import { CACHE_TTL, REACTION_EMOJIS } from '@/lib/types';
 import { logger } from '@lib/core/logger';
 import { getCache } from '@src/lib/cache';
 import { BusinessLogicError } from '@src/lib/graphql/errors';
-import { CACHE_TTL } from '@src/lib/types/cache.types';
-import { REACTION_EMOJIS } from '@src/lib/types/config.types';
-import type { IDatabaseRow } from '@src/lib/types/database.types';
-import type { ReactionEmojiType } from '@src/lib/types/generated/graphql';
-import type { IEdge, IPageInfo, IConnection, IConnectionArgs } from '@src/lib/types/misc.types';
-import type { IPaginationArgs } from '@src/lib/types/resolver.types';
 
 /**
  * Parse connection arguments and return pagination parameters
@@ -141,7 +145,7 @@ export const mapGameData = (game: IDatabaseRow) => {
     | { name?: string; city?: string; state?: string | null; country?: string | null }
     | string
     | null;
-  const teams = game.teams as { home: { id: string }; visitors: { id: string } } | null;
+  const teams = game.teams as { home: { id: number }; visitors: { id: number } } | null;
 
   // Parse the date field
   let [dateStart, dateEnd, dateDuration] = ['', '', ''];
@@ -223,7 +227,10 @@ export const mapGameData = (game: IDatabaseRow) => {
     stage: typeof game.stage === 'number' ? game.stage : Number(game.stage ?? 0),
     periods: game.periods ?? [],
     scores:
-      game.scores && typeof game.scores === 'object'
+      game.scores &&
+      typeof game.scores === 'object' &&
+      (game.scores as IGameScores).home &&
+      (game.scores as IGameScores).visitors
         ? {
             home: {
               win: Number((game.scores as IGameScores).home?.win) || 0,
@@ -233,7 +240,7 @@ export const mapGameData = (game: IDatabaseRow) => {
                 loss: Number((game.scores as IGameScores).home?.series?.loss) || 0,
               },
               linescore: ((game.scores as IGameScores).home?.linescore || []).map(
-                (score: number) => {
+                (score: string | number) => {
                   const num = Number(score);
                   return isNaN(num) ? 0 : Math.floor(num);
                 }
@@ -248,7 +255,7 @@ export const mapGameData = (game: IDatabaseRow) => {
                 loss: Number((game.scores as IGameScores).visitors?.series?.loss) || 0,
               },
               linescore: ((game.scores as IGameScores).visitors?.linescore || []).map(
-                (score: number) => {
+                (score: string | number) => {
                   const num = Number(score);
                   return isNaN(num) ? 0 : Math.floor(num);
                 }
@@ -264,12 +271,15 @@ export const mapGameData = (game: IDatabaseRow) => {
     timesTied: typeof game.timesTied === 'number' ? game.timesTied : null,
     leadChanges: typeof game.leadChanges === 'number' ? game.leadChanges : null,
     nugget: typeof game.nugget === 'string' ? game.nugget : null,
-    createdAt: game.createdAt instanceof Date ? game.createdAt : new Date(game.createdAt as string),
-    updatedAt: game.updatedAt instanceof Date ? game.updatedAt : new Date(game.updatedAt as string),
+    createdAt: new Date(String(game.createdAt || '')),
+    updatedAt: new Date(String(game.updatedAt || '')),
     homeTeamId: teams?.home?.id || '',
     awayTeamId: teams?.visitors?.id || '',
-    teams: game.teams ?? {},
-    is_completed: game.status === 'Finished',
+    teams: teams && teams.home && teams.visitors ? teams : { home: null, visitors: null },
+    is_completed:
+      typeof game.status === 'string'
+        ? game.status === 'Finished'
+        : (game.status as { long?: string })?.long === 'Finished',
   };
 };
 
@@ -300,3 +310,30 @@ export const getCachedData = async <T>(
   await cache.set(cacheKey, data, ttl);
   return data;
 };
+
+export function formatGameDate(
+  date: string | Date | { start?: string; end?: string | null; duration?: string }
+): string {
+  if (typeof date === 'string') {
+    return new Date(date).toISOString();
+  }
+  if (date instanceof Date) {
+    return date.toISOString();
+  }
+  if (date.start) {
+    return new Date(date.start).toISOString();
+  }
+  return new Date().toISOString();
+}
+
+export function formatGameStatus(
+  status: string | { long?: string; short?: string; clock?: string | null; halftime?: boolean }
+): string {
+  if (typeof status === 'string') {
+    return status;
+  }
+  if (status.clock) {
+    return `${status.long || ''} - ${status.clock}`;
+  }
+  return status.long || '';
+}

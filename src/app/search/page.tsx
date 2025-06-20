@@ -8,7 +8,7 @@ import React, { useState } from 'react';
 
 import { useDebounce } from '@/hooks/use-debounce';
 import { GET_GAMES } from '@/lib/graphql/queries';
-import { IGame, IGameArena, IGameListProps } from '@/lib/types';
+import type { IGame, IGameArena, IGameListProps } from '@/lib/types';
 
 export const dynamic = 'force-dynamic';
 
@@ -47,7 +47,7 @@ const ensureHttps = (url: string): string => {
 function GameCard({ game }: { game: IGame }) {
   return (
     <Link href={`/sports/nba/games/${game.id}`} className="block">
-      <div className="bg-card rounded-xl shadow-lg p-6 transform transition-all duration-300 ease-out hover:scale-[1.02] hover:shadow-xl cursor-pointer h-[280px] flex flex-col border border-border/50 hover:border-blue-500/50">
+      <div className="bg-[hsl(var(--card))] rounded-xl shadow-lg p-6 transform transition-all duration-300 ease-out hover:scale-[1.02] hover:shadow-xl cursor-pointer h-[280px] flex flex-col border border-[hsl(var(--border))] border-opacity-50 hover:border-blue-500/50">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <span className="text-sm text-muted-foreground">
@@ -129,7 +129,12 @@ function GameCard({ game }: { game: IGame }) {
               <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
               <circle cx="12" cy="10" r="3" />
             </svg>
-            {game.arena && formatArenaLocation(game.arena)}
+            {game.arena &&
+              formatArenaLocation(
+                typeof game.arena === 'string'
+                  ? { name: game.arena, city: '', state: null, country: null }
+                  : game.arena
+              )}
           </div>
         </div>
       </div>
@@ -194,9 +199,12 @@ export default function SearchPage() {
     return (
       game.teams.home.nickname.toLowerCase().includes(lowerQuery) ||
       game.teams.visitors.nickname.toLowerCase().includes(lowerQuery) ||
-      (game.arena?.name?.toLowerCase().includes(lowerQuery) ?? false) ||
-      (game.arena?.city?.toLowerCase().includes(lowerQuery) ?? false) ||
-      (game.arena?.state?.toLowerCase().includes(lowerQuery) ?? false)
+      (game.arena && typeof game.arena === 'string'
+        ? game.arena.toLowerCase().includes(lowerQuery)
+        : typeof game.arena === 'object' &&
+          ((game.arena.name?.toLowerCase().includes(lowerQuery) ?? false) ||
+            (game.arena.city?.toLowerCase().includes(lowerQuery) ?? false) ||
+            (game.arena.state?.toLowerCase().includes(lowerQuery) ?? false)))
     );
   });
 

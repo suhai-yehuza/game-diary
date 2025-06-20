@@ -1,7 +1,7 @@
 'use client';
 
 import { useMutation, useQuery } from '@apollo/client';
-import { useUser, SignInButton } from '@clerk/nextjs';
+import { SignInButton, useUser } from '@clerk/nextjs';
 import {
   ChevronDown,
   ChevronUp,
@@ -36,12 +36,42 @@ import { Textarea } from '@src/app/components/ui/textarea';
 import { API_CONFIG } from '@src/lib/config/api.config';
 import { CREATE_COMMENT, UPDATE_COMMENT, DELETE_COMMENT } from '@src/lib/graphql/mutations';
 import { GET_COMMENTS_WITH_FILTERS } from '@src/lib/graphql/queries';
-import type { ICommentConnection } from '@src/lib/types/component.types';
-import type { Comment, CreateCommentInput } from '@src/lib/types/generated/graphql';
-import type { ICommentsSectionProps } from '@src/lib/types/social.types';
+import type { ICommentsSectionProps, ICommentForDisplay } from '@src/lib/types';
+import type {
+  Comment,
+  CreateCommentInput,
+  ParentType,
+  CommentConnection,
+} from '@src/lib/types/generated/graphql';
 import { cn } from '@src/lib/utils';
 
 import { CommentItem } from './comment-item';
+
+// Helper function to map Comment to ICommentForDisplay
+const mapCommentToDisplay = (comment: Comment): ICommentForDisplay => ({
+  id: comment.id,
+  content: comment.content,
+  createdAt: comment.createdAt,
+  depth: comment.depth,
+  user: {
+    id: comment.user.id,
+    username: comment.user.username,
+    imageUrl: comment.user.imageUrl || undefined,
+  },
+  childComments: comment.childComments
+    ? {
+        totalCount: comment.childComments.totalCount,
+        edges: comment.childComments.edges.map(edge => ({
+          node: mapCommentToDisplay(edge.node),
+        })),
+      }
+    : undefined,
+  reactions: comment.reactions.map(reaction => ({
+    id: reaction.id,
+    emoji: reaction.emoji,
+    userId: reaction.userId,
+  })),
+});
 
 export function CommentsSection({
   parentId,
@@ -64,11 +94,11 @@ export function CommentsSection({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
-  const { data, loading, error, fetchMore, refetch } = useQuery<{ comments: ICommentConnection }>(
+  const { data, loading, error, fetchMore, refetch } = useQuery<{ comments: CommentConnection }>(
     GET_COMMENTS_WITH_FILTERS,
     {
       variables: {
-        filters: { parentId, parentType },
+        filters: { parentId, parentType: parentType as ParentType },
         pagination: { first: API_CONFIG.pagination.DEFAULT_PAGE_SIZE },
       },
       notifyOnNetworkStatusChange: true,
@@ -81,7 +111,7 @@ export function CommentsSection({
       {
         query: GET_COMMENTS_WITH_FILTERS,
         variables: {
-          filters: { parentId, parentType },
+          filters: { parentId, parentType: parentType as ParentType },
           pagination: { first: API_CONFIG.pagination.DEFAULT_PAGE_SIZE },
         },
       },
@@ -94,7 +124,7 @@ export function CommentsSection({
       {
         query: GET_COMMENTS_WITH_FILTERS,
         variables: {
-          filters: { parentId, parentType },
+          filters: { parentId, parentType: parentType as ParentType },
           pagination: { first: API_CONFIG.pagination.DEFAULT_PAGE_SIZE },
         },
       },
@@ -107,7 +137,7 @@ export function CommentsSection({
       {
         query: GET_COMMENTS_WITH_FILTERS,
         variables: {
-          filters: { parentId, parentType },
+          filters: { parentId, parentType: parentType as ParentType },
           pagination: { first: API_CONFIG.pagination.DEFAULT_PAGE_SIZE },
         },
       },
@@ -203,7 +233,7 @@ export function CommentsSection({
     try {
       const input: CreateCommentInput = {
         parentId,
-        parentType,
+        parentType: parentType as ParentType,
         content: newComment.trim(),
       };
 
@@ -229,7 +259,7 @@ export function CommentsSection({
     try {
       const input: CreateCommentInput = {
         parentId,
-        parentType,
+        parentType: parentType as ParentType,
         content: editingComment.content.trim(),
       };
 
@@ -260,7 +290,7 @@ export function CommentsSection({
 
   if (loading && !data) {
     return (
-      <Card className="overflow-hidden border-border/50">
+      <Card className="overflow-hidden border-[hsl(var(--border))] border-opacity-50">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <MessageCircle className="h-5 w-5" />
@@ -316,7 +346,7 @@ export function CommentsSection({
             className={cn(
               'w-full justify-start gap-4 h-auto py-4 px-6 rounded-xl',
               'bg-muted/30 hover:bg-muted/50',
-              'border border-border/50 hover:border-border',
+              'border border-[hsl(var(--border))] border-opacity-50 hover:border-[hsl(var(--border))]',
               'transition-all duration-200',
               'text-muted-foreground hover:text-foreground'
             )}
@@ -332,7 +362,7 @@ export function CommentsSection({
           </Button>
         ) : (
           <form onSubmit={handleSubmitComment} className="space-y-4">
-            <div className="rounded-xl bg-muted/20 border border-border/50 p-4">
+            <div className="rounded-xl bg-muted/20 border border-[hsl(var(--border))] border-opacity-50 p-4">
               <div className="flex gap-3">
                 <Avatar className="h-8 w-8 mt-1">
                   <AvatarImage src={user.imageUrl || undefined} />
@@ -431,10 +461,14 @@ export function CommentsSection({
               )}
             >
               <CommentItem
-                comment={node}
+                comment={mapCommentToDisplay(node)}
                 onEdit={(id, content) => setEditingComment({ id, content })}
                 onDelete={setDeleteCommentId}
-                refetchComments={refetch}
+                refetchComments={
+                  refetch as unknown as (
+                    variables?: Record<string, unknown>
+                  ) => Promise<Record<string, unknown>>
+                }
               />
             </div>
           ))}
@@ -533,11 +567,11 @@ export function CommentsSection({
 
   return (
     <>
-      <Card className="overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 border-border/50 bg-card/80 backdrop-blur-sm">
+      <Card className="overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 border-[hsl(var(--border))] border-opacity-50 bg-[hsl(var(--card))] bg-opacity-80 backdrop-blur-sm">
         <CardHeader
           className={cn(
             'cursor-pointer select-none bg-gradient-to-r from-muted/40 via-muted/30 to-muted/40 hover:from-muted/60 hover:via-muted/50 hover:to-muted/60 transition-all duration-300',
-            isExpanded && 'border-b border-border/30'
+            isExpanded && 'border-b border-[hsl(var(--border))] border-opacity-30'
           )}
           onClick={() => setIsExpanded(!isExpanded)}
         >

@@ -5,8 +5,7 @@ import React from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@src/app/components/ui/avatar';
 import { Badge } from '@src/app/components/ui/badge';
 import { Card, CardContent } from '@src/app/components/ui/card';
-import type { GameLog } from '@src/lib/types/generated/graphql';
-import type { IUserHeaderProps } from '@src/lib/types/misc.types';
+import type { IUserHeaderProps, GameLog } from '@src/lib/types';
 
 import { GameLogModal } from '../game-logs/game-log-modal';
 
@@ -21,10 +20,15 @@ export function UserHeader({
   onFriendshipUpdate,
 }: IUserHeaderProps) {
   const fullName = [user.firstName, user.lastName].filter(Boolean).join(' ') || 'Anonymous User';
-  const lastActive = formatDistanceToNow(new Date(user.last_sign_in_at || user.createdAt), {
+  const lastActive = formatDistanceToNow(
+    new Date(user.last_sign_in_at || user.createdAt || Date.now()),
+    {
+      addSuffix: true,
+    }
+  );
+  const memberSince = formatDistanceToNow(new Date(user.createdAt || Date.now()), {
     addSuffix: true,
   });
-  const memberSince = formatDistanceToNow(new Date(user.createdAt), { addSuffix: true });
 
   return (
     <div className="space-y-6">
@@ -50,8 +54,9 @@ export function UserHeader({
             {isOwnProfile && onGameLogUpdate && (
               <GameLogModal
                 mode="create"
-                gameId={''}
                 gameLog={{} as GameLog}
+                isOpen={false}
+                onClose={() => {}}
                 onSuccess={onGameLogUpdate}
               />
             )}
@@ -59,7 +64,7 @@ export function UserHeader({
               <FriendshipManagement
                 currentUserId={currentUserId}
                 targetUserId={user.id}
-                friendship={user.friendships[0] || null}
+                friendship={undefined}
                 onFriendshipUpdate={onFriendshipUpdate}
               />
             )}
@@ -74,21 +79,21 @@ export function UserHeader({
               <Trophy className="h-5 w-5 text-yellow-500" />
               <div>
                 <p className="text-sm font-medium">Games</p>
-                <p className="text-2xl font-bold">{stats.totalGames}</p>
+                <p className="text-2xl font-bold">{stats?.totalGames || 0}</p>
               </div>
             </div>
             <div className="flex items-center space-x-2">
               <Users className="h-5 w-5 text-blue-500" />
               <div>
                 <p className="text-sm font-medium">Friends</p>
-                <p className="text-2xl font-bold">{stats.totalFriends}</p>
+                <p className="text-2xl font-bold">{stats?.totalFriends || 0}</p>
               </div>
             </div>
             <div className="flex items-center space-x-2">
               <Clock className="h-5 w-5 text-green-500" />
               <div>
                 <p className="text-sm font-medium">Hours</p>
-                <p className="text-2xl font-bold">{stats.totalHours}</p>
+                <p className="text-2xl font-bold">{stats?.totalHours || 0}</p>
               </div>
             </div>
           </div>

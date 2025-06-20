@@ -1,12 +1,10 @@
 /**
  * Custom scalar type definitions for GraphQL
  */
+import { GraphQLScalarType } from 'graphql';
+import { Kind } from 'graphql/language';
 
-import { GraphQLScalarType, Kind } from 'graphql';
-
-export type IAnyScalar = unknown;
-export type IJsonScalar = Record<string, unknown>;
-export type IDateTimeScalar = Date;
+import type { IAnyScalar, IJsonScalar } from './consolidated.types';
 
 export const dateTimeScalar = new GraphQLScalarType({
   name: 'DateTime',

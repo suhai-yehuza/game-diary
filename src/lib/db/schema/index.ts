@@ -16,8 +16,8 @@ import {
 } from '@src/lib/db/schema/nba-schemas';
 import { notifications } from '@src/lib/db/schema/notification-schemas';
 import { teams } from '@src/lib/db/schema/team-schemas';
-import type { Schema } from '@src/lib/db/schema/types';
 import { users, friendships, reactions, comments } from '@src/lib/db/schema/user-schemas';
+import type { Schema } from '@src/lib/types';
 
 import {
   usersRelations,

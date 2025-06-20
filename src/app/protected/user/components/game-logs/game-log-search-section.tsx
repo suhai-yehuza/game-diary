@@ -41,13 +41,9 @@ import { Skeleton } from '@src/app/components/ui/skeleton';
 import { StarRating } from '@src/app/components/ui/star-rating';
 import { API_CONFIG } from '@src/lib/config/api.config';
 import { GET_GAME_LOGS } from '@src/lib/graphql/queries';
-import { CLASSIFICATION } from '@src/lib/types/config.types';
-import type { GameLog, GameLogEdge } from '@src/lib/types/generated/graphql';
-import type {
-  IGameLogSearchSectionProps,
-  GameLogSortByType,
-  SortDirectionType,
-} from '@src/lib/types/misc.types';
+import { CLASSIFICATION, SORT_DIRECTION } from '@src/lib/types';
+import type { GameLogSortByType, ISortDirectionType, GameLog, GameLogEdge } from '@src/lib/types';
+import type { IGameLogSearchSectionProps } from '@src/lib/types/game-log.types';
 import { cn } from '@src/lib/utils';
 import { formatCount } from '@src/lib/utils/format';
 
@@ -56,12 +52,6 @@ const GameLogSortBy = {
   CreatedAt: 'CREATED_AT' as GameLogSortByType,
   WatchedDate: 'WATCHED_DATE' as GameLogSortByType,
   Rating: 'RATING' as GameLogSortByType,
-};
-
-// Constants for ISortDirection
-const ISortDirection = {
-  Asc: 'ASC' as SortDirectionType,
-  Desc: 'DESC' as SortDirectionType,
 };
 
 // Loading skeleton component
@@ -135,7 +125,7 @@ export function GameLogSearchSection({
   const [selectedClassification, setSelectedClassification] = useState<string>('all');
   const [hasNotes, setHasNotes] = useState<string>('all');
   const [sortBy, setSortBy] = useState<GameLogSortByType>(GameLogSortBy.CreatedAt);
-  const [sortDirection, setSortDirection] = useState<SortDirectionType>(ISortDirection.Desc);
+  const [sortDirection, setSortDirection] = useState<ISortDirectionType>(SORT_DIRECTION.DESC);
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -349,7 +339,7 @@ export function GameLogSearchSection({
     setSelectedClassification('all');
     setHasNotes('all');
     setSortBy(GameLogSortBy.CreatedAt);
-    setSortDirection(ISortDirection.Desc);
+    setSortDirection(SORT_DIRECTION.DESC);
     setCurrentPage(1);
     setPageData({});
     setCursors({ 1: null });
@@ -487,14 +477,14 @@ export function GameLogSearchSection({
             <Label className="text-sm">Order</Label>
             <Select
               value={sortDirection}
-              onValueChange={value => setSortDirection(value as SortDirectionType)}
+              onValueChange={value => setSortDirection(value as ISortDirectionType)}
             >
               <SelectTrigger className="w-[120px]">
                 <SelectValue placeholder="Order" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={ISortDirection.Desc}>Newest first</SelectItem>
-                <SelectItem value={ISortDirection.Asc}>Oldest first</SelectItem>
+                <SelectItem value={SORT_DIRECTION.DESC}>Newest first</SelectItem>
+                <SelectItem value={SORT_DIRECTION.ASC}>Oldest first</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -704,7 +694,7 @@ export function GameLogSearchSection({
                       {/* Tags */}
                       {log.tags && log.tags.length > 0 && (
                         <div className="flex flex-wrap gap-1 mt-2">
-                          {log.tags.slice(0, 3).map((tag, index) => (
+                          {log.tags.slice(0, 3).map((tag: string, index: number) => (
                             <Badge
                               key={index}
                               variant="outline"

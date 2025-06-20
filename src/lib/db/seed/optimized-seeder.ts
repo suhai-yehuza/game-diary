@@ -1,16 +1,19 @@
 import { config } from 'dotenv-flow';
 import { sql } from 'drizzle-orm';
+import type { NeonHttpDatabase } from 'drizzle-orm/neon-http';
 import { reset } from 'drizzle-seed';
 
 import { seedLogger } from '@lib/core/logger';
 import { DB_CONFIG } from '@src/lib/config/db.config';
 import * as schema from '@src/lib/db/schema';
 import { initializeDb } from '@src/lib/db/seed/config';
-import type { IApplicationSeederOptions, IDatabaseClient } from '@src/lib/types/database.types';
+import type { IApplicationSeederOptions, IDatabaseClient } from '@src/lib/types';
+import type { ITableExistsResult, ITableCountResult } from '@src/lib/types/seeding.types';
 import { getCurrentSeason } from '@src/lib/utils/time';
 
 import { DataProcessor, PerformanceMonitor } from './data-processor';
 import { OptimizedAPIClient } from './utils/api-client';
+
 config();
 
 // Optimized table operations
@@ -18,7 +21,7 @@ class TableOperations {
   constructor(private db: IDatabaseClient) {}
 
   async tableExists(tableName: string): Promise<boolean> {
-    const result = await this.db.execute<{ exists: boolean }>(sql`
+    const result = await this.db.execute(sql`
       SELECT EXISTS (
         SELECT 1 
         FROM information_schema.tables 
@@ -26,16 +29,16 @@ class TableOperations {
         AND table_name = ${tableName}
       )
     `);
-    return result.rows[0].exists;
+    return (result as unknown as ITableExistsResult).rows[0].exists;
   }
 
   async getTableSize(tableName: string): Promise<number> {
     if (!(await this.tableExists(tableName))) return 0;
 
-    const result = await this.db.execute<{ count: number }>(sql`
+    const result = await this.db.execute(sql`
       SELECT COUNT(*) as count FROM ${sql.identifier(tableName)}
     `);
-    return result.rows[0].count;
+    return (result as unknown as ITableCountResult).rows[0].count;
   }
 
   async truncateTablesOptimized(tables: string[], type: 'external' | 'internal'): Promise<void> {
@@ -136,14 +139,14 @@ export class OptimizedSeeder {
       ...options,
     };
 
-    this.db = initializeDb() as IDatabaseClient;
-    // Add raw property to satisfy DatabaseClient interface
-    (this.db as typeof this.db & { raw: unknown; $client: unknown }).raw = (
-      this.db as typeof this.db & { $client: unknown }
-    ).$client;
+    this.db = initializeDb();
     this.apiClient = new OptimizedAPIClient(this.options.concurrency);
     this.tableOps = new TableOperations(this.db);
-    this.processor = new DataProcessor(this.db, this.apiClient, this.monitor);
+    this.processor = new DataProcessor(
+      this.db as NeonHttpDatabase<typeof schema>,
+      this.apiClient,
+      this.monitor
+    );
   }
 
   async seed(): Promise<void> {
@@ -171,7 +174,7 @@ export class OptimizedSeeder {
   private async prepareDatabaseState(): Promise<void> {
     if (this.options.shouldResetDb) {
       seedLogger.info('🔄 Resetting database...');
-      await reset(this.db, schema);
+      await reset(this.db as NeonHttpDatabase<typeof schema>, schema);
       seedLogger.info('✅ Database reset complete');
     } else if (this.options.shouldTruncateTables) {
       await this.truncateTables();
@@ -234,7 +237,7 @@ export class OptimizedSeeder {
     const { seedOptimizedApplicationData } = await import('./optimized-application-seeder');
 
     await seedOptimizedApplicationData({
-      db: this.db,
+      db: this.db as NeonHttpDatabase<typeof schema>,
       apiClient: this.apiClient,
       processor: this.processor,
       batchSize: this.options.batchSize,

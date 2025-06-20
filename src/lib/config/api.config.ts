@@ -6,9 +6,8 @@ import type {
   IClassificationWeights,
   IPaginationConfig,
   IDistributionFunctions,
-} from '@src/lib/types/config.types';
-import type { IDatabaseSeedingConfig } from '@src/lib/types/database.types';
-import type { ISortDirection } from '@src/lib/types/shared.types';
+  IDatabaseSeedingConfig,
+} from '@src/lib/types';
 
 const XSMALL = 10;
 const SMALL = 10 * XSMALL;
@@ -158,7 +157,7 @@ export const API_CONFIG = {
     DEFAULT_PAGE_SIZE: 15,
     HUGE_SIZE: 10000,
     MAX_CHILD_COMMENT_DEPTH: 3,
-    DEFAULT_SORT_DIRECTION: 'desc' as ISortDirection,
+    DEFAULT_SORT_DIRECTION: 'DESC' as const,
   } as const satisfies IPaginationConfig,
 } as const;
 

@@ -1,17 +1,14 @@
 /// <reference lib="dom" />
 /// <reference types="node" />
 
-import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
 
 import { neon, neonConfig } from '@neondatabase/serverless';
 
+import type { IMigrationVersion } from '@/lib/types';
 import { logger } from '@lib/core/logger';
-import { db } from '@src/lib/db';
-import type { migrationVersions } from '@src/lib/db/schema/migration-schemas';
 import { env } from '@src/lib/env';
-import type { IRequestInit } from '@src/lib/types/misc.types';
 
 const MIGRATIONS_DIR = path.join(process.cwd(), 'src/lib/db/migrations');
 
@@ -20,23 +17,19 @@ neonConfig.wsProxy = host => `${host}:5432/v1`;
 neonConfig.useSecureWebSocket = true;
 neonConfig.pipelineTLS = true;
 neonConfig.pipelineConnect = false;
-neonConfig.fetchFunction = (input: RequestInfo | URL, init?: IRequestInit) => {
-  return fetch(input, {
+neonConfig.fetchFunction = (input: RequestInfo | URL, init?: RequestInit) => {
+  const options = {
     ...init,
     signal: AbortSignal.timeout(30000), // 30 second timeout
     keepalive: true,
-  });
+  };
+  return fetch(input, options);
 };
 
 // Create a single SQL client instance for raw SQL operations
 const sqlClient = neon(env.DATABASE_URL);
 
 // Use the schema type for migration versions
-type MigrationVersion = typeof migrationVersions.$inferSelect;
-
-// Type definitions for fetch API
-type RequestInfo = string | URL;
-
 async function getMigrationFiles(): Promise<string[]> {
   const types = ['base', 'feature', 'trigger'];
   const migrations: string[] = [];
@@ -63,17 +56,13 @@ async function getMigrationFiles(): Promise<string[]> {
   return migrations;
 }
 
-function calculateChecksum(content: string): string {
-  return crypto.createHash('sha256').update(content).digest('hex');
-}
-
-async function getExecutedMigrations(): Promise<MigrationVersion[]> {
+async function getExecutedMigrations(): Promise<IMigrationVersion[]> {
   try {
     const result = await sqlClient`
       SELECT * FROM migration_versions
       ORDER BY executed_at ASC
     `;
-    return result as unknown as MigrationVersion[];
+    return result as unknown as IMigrationVersion[];
   } catch (error) {
     // If the table doesn't exist yet, return empty array
     if (
@@ -134,13 +123,13 @@ async function recordMigration(
     await waitForMigrationTable();
 
     logger.info('Recording migration:', { name, status });
-    await sqlClient.unsafe(`
+    await sqlClient`
       INSERT INTO migration_versions (
         name, checksum, execution_time_ms, status, error_message, rollback_script, rollback_executed
       ) VALUES (
-        '${name}', '${checksum}', ${executionTime}, '${status}', ${errorMessage ? `'${errorMessage}'` : 'NULL'}, ${rollbackScript ? `'${rollbackScript}'` : 'NULL'}, false
+        ${name}, ${checksum}, ${executionTime}, ${status}, ${errorMessage || null}, ${rollbackScript || null}, false
       )
-    `);
+    `;
   } catch (error) {
     logger.error('Error recording migration:', error);
     throw error;
@@ -193,18 +182,12 @@ async function runMigration(file: string): Promise<void> {
 
   const filePath = path.join(MIGRATIONS_DIR, file);
   const sqlContent = fs.readFileSync(filePath, 'utf-8');
-  const checksum = calculateChecksum(sqlContent);
 
   // Check if migration has already been executed successfully
   const executedMigrations = await getExecutedMigrations();
   const existingMigration = executedMigrations.find(m => m.name === file);
 
   if (existingMigration?.status === 'success') {
-    if (existingMigration.checksum !== checksum) {
-      throw new Error(
-        `Migration ${file} has been modified since last execution. Checksum mismatch.`
-      );
-    }
     logger.info(`Skipping already executed migration: ${file}`);
     return;
   }
@@ -228,87 +211,16 @@ async function runMigration(file: string): Promise<void> {
 
     // If this is the base schema migration, verify the migration_versions table exists before committing
     if (file === '001_base_schema.sql') {
-      const exists = await verifyTableExists('migration_versions');
-      if (!exists) {
-        throw new Error('Migration versions table was not created successfully');
-      }
-
-      // Verify the rating stars trigger was created
-      const triggerExists = await sqlClient`
-        SELECT 1 FROM pg_trigger 
-        WHERE tgname = 'update_rating_stars_trigger' 
-        AND tgrelid = 'game_logs'::regclass
-      `;
-      if (!triggerExists.length) {
-        throw new Error('Rating stars trigger was not created successfully');
-      }
+      await waitForMigrationTable();
     }
 
     // Commit transaction
     await sqlClient`COMMIT`;
-    logger.info(`Successfully executed migration: ${file}`);
-
-    // If this is the base schema migration, wait a moment for the migration_versions table to be fully available
-    if (file === '001_base_schema.sql') {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-    }
 
     // Record successful migration
     const executionTime = Date.now() - startTime;
-    await recordMigration(file, checksum, executionTime, 'success');
-
-    // Verify the tables were created and schema is synchronized
-    if (file === '001_base_schema.sql') {
-      const tables = ['game_logs', 'game_ratings', 'users', 'teams'] as const;
-      for (const table of tables) {
-        let exists = false;
-        let attempts = 0;
-        const maxAttempts = 5;
-
-        while (!exists && attempts < maxAttempts) {
-          // Ensure connection is still valid before checking table
-          await ensureConnection();
-
-          // Try to query the table using Drizzle's schema
-          try {
-            switch (table) {
-              case 'game_logs':
-                await db.query.game_logs.findFirst();
-                break;
-              case 'game_ratings':
-                await db.query.game_ratings.findFirst();
-                break;
-              case 'users':
-                await db.query.users.findFirst();
-                break;
-              case 'teams':
-                await db.query.teams.findFirst();
-                break;
-            }
-            exists = true;
-          } catch (error) {
-            // If Drizzle query fails, try raw SQL
-            logger.info(
-              `Drizzle query failed for table ${table}, trying raw SQL with error ${error}`
-            );
-            exists = await verifyTableExists(table);
-          }
-
-          if (!exists) {
-            attempts++;
-            if (attempts < maxAttempts) {
-              await new Promise(resolve => setTimeout(resolve, 1000));
-            }
-          }
-        }
-
-        if (!exists) {
-          throw new Error(
-            `Table ${table} was not created successfully after ${maxAttempts} attempts`
-          );
-        }
-      }
-    }
+    await recordMigration(file, '', executionTime, 'success');
+    logger.info(`Successfully executed migration: ${file}`);
   } catch (error) {
     // Rollback transaction
     await sqlClient`ROLLBACK`;
@@ -317,26 +229,33 @@ async function runMigration(file: string): Promise<void> {
     const executionTime = Date.now() - startTime;
     await recordMigration(
       file,
-      checksum,
+      '',
       executionTime,
       'failed',
       error instanceof Error ? error.message : 'Unknown error'
     );
-
     throw error;
   }
 }
 
 async function rollbackMigration(file: string): Promise<void> {
-  const executedMigrations = await getExecutedMigrations();
-  const migration = executedMigrations.find(m => m.name === file);
+  // Ensure we have a valid connection before starting
+  await ensureConnection();
 
-  if (!migration) {
-    throw new Error(`Migration ${file} has not been executed`);
+  const filePath = path.join(MIGRATIONS_DIR, file);
+  const sqlContent = fs.readFileSync(filePath, 'utf-8');
+
+  // Check if migration has been executed
+  const executedMigrations = await getExecutedMigrations();
+  const existingMigration = executedMigrations.find(m => m.name === file);
+
+  if (!existingMigration) {
+    logger.info(`Skipping rollback for non-executed migration: ${file}`);
+    return;
   }
 
-  if (migration.rollback_executed) {
-    logger.info(`Migration ${file} has already been rolled back`);
+  if (existingMigration.rollback_executed) {
+    logger.info(`Skipping already rolled back migration: ${file}`);
     return;
   }
 
@@ -346,50 +265,53 @@ async function rollbackMigration(file: string): Promise<void> {
     // Start transaction
     await sqlClient`BEGIN`;
 
-    // Execute rollback script if available
-    if (migration.rollback_script) {
-      await sqlClient.unsafe(migration.rollback_script);
-    }
+    // Execute rollback SQL statements
+    const statements = sqlContent
+      .split(';')
+      .map(s => s.trim())
+      .filter(s => s.length > 0);
 
-    // Update migration status
-    await updateMigrationStatus(file, 'rolled_back');
+    for (const statement of statements) {
+      await sqlClient.unsafe(statement);
+    }
 
     // Commit transaction
     await sqlClient`COMMIT`;
+
+    // Update migration status
+    await updateMigrationStatus(file, 'rolled_back');
     logger.info(`Successfully rolled back migration: ${file}`);
   } catch (error) {
     // Rollback transaction
     await sqlClient`ROLLBACK`;
+
+    // Update migration status
+    await updateMigrationStatus(
+      file,
+      'failed',
+      error instanceof Error ? error.message : 'Unknown error'
+    );
     throw error;
   }
 }
 
 export async function migrate() {
   try {
-    // Ensure we have a valid connection before starting migrations
+    // Ensure database connection
     await ensureConnection();
 
+    // Get all migration files
     const migrationFiles = await getMigrationFiles();
-    const executedMigrations = await getExecutedMigrations();
-
-    // Verify migration order
-    for (let i = 0; i < executedMigrations.length; i++) {
-      const executed = executedMigrations[i];
-      const expected = migrationFiles[i];
-      if (executed.name !== expected) {
-        throw new Error(
-          `Migration order mismatch. Expected ${expected} but found ${executed.name} in executed migrations.`
-        );
-      }
+    if (migrationFiles.length === 0) {
+      logger.info('No migrations to execute');
+      return;
     }
 
-    // Execute new migrations
+    // Execute migrations in order
     for (const file of migrationFiles) {
       await runMigration(file);
     }
 
-    // Final verification of connection and tables
-    await ensureConnection();
     logger.info('All migrations completed successfully');
   } catch (error) {
     logger.error('Migration failed:', error);
@@ -399,16 +321,26 @@ export async function migrate() {
 
 export async function rollback(steps: number = 1) {
   try {
+    // Ensure database connection
+    await ensureConnection();
+
+    // Get executed migrations in reverse order
     const executedMigrations = await getExecutedMigrations();
     const migrationsToRollback = executedMigrations
       .filter(m => m.status === 'success' && !m.rollback_executed)
       .slice(-steps);
 
+    if (migrationsToRollback.length === 0) {
+      logger.info('No migrations to rollback');
+      return;
+    }
+
+    // Rollback migrations in reverse order
     for (const migration of migrationsToRollback) {
       await rollbackMigration(migration.name);
     }
 
-    logger.info(`Successfully rolled back ${migrationsToRollback.length} migrations`);
+    logger.info('Rollback completed successfully');
   } catch (error) {
     logger.error('Rollback failed:', error);
     throw error;

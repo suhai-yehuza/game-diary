@@ -21,65 +21,44 @@ import { Input } from '@src/app/components/ui/input';
 import { useToast } from '@src/app/components/ui/use-toast';
 import { CREATE_GAME_LOG, UPDATE_GAME_LOG } from '@src/lib/graphql/mutations';
 import { GET_EXTERNAL_GAMES, GET_GAME_BY_ID } from '@src/lib/graphql/queries';
-import {
-  WATCHED_SETTING,
-  WATCHED_SCOPE,
-  type IWatchedSettingValue,
-  type IWatchedScopeValue,
-} from '@src/lib/types/config.types';
-import type { IGame } from '@src/lib/types/game.types';
-import { Classification, type CreateGameLogInput } from '@src/lib/types/generated/graphql';
-import type { IGameLogModalProps, IGameEdge } from '@src/lib/types/misc.types';
+import { WATCHED_SETTING, WATCHED_SCOPE, CLASSIFICATION } from '@src/lib/types';
+import type { IWatchedSettingValue, IWatchedScopeValue, IGame } from '@src/lib/types';
+import type {
+  IGameEdge,
+  IExtendedGameLogModalProps,
+  IGameData,
+} from '@src/lib/types/game-log.types';
+import type { Classification, CreateGameLogInput } from '@src/lib/types/generated/graphql';
 import { getCurrentSeason } from '@src/lib/utils/index';
 import { formatGameDate } from '@src/lib/utils/time';
 
 import { GameLogForm } from './game-log-form';
 
+function valueToKey<T extends Record<string, string>>(obj: T, value: string): keyof T | undefined {
+  return (Object.keys(obj) as (keyof T)[]).find(key => obj[key] === value);
+}
+
 export function GameLogModal({
-  mode,
-  gameId,
-  gameLog,
-  isOpen: externalIsOpen,
+  isOpen,
   onClose,
+  mode,
+  gameLog,
   onSuccess,
-}: IGameLogModalProps) {
-  const [internalIsOpen, setInternalIsOpen] = useState(false);
-  const isOpen = externalIsOpen ?? internalIsOpen;
-
-  // Modal state handler with proper cleanup for different modal types
-  const handleModalClose = (newOpen?: boolean) => {
-    if (newOpen === true) {
-      // Opening the modal
-      if (typeof onClose !== 'function') {
-        setInternalIsOpen(true);
-      }
-    } else {
-      // Closing the modal
-      if (typeof onClose === 'function') {
-        // For externally controlled modals (update mode) - call immediately
-        onClose();
-      } else {
-        // For internally controlled modals (create mode) - add delay for cleanup
-        setTimeout(() => {
-          setInternalIsOpen(false);
-        }, 100);
-      }
-    }
-  };
-
+}: IExtendedGameLogModalProps) {
   const { toast } = useToast();
+  const [selectedGame, setSelectedGame] = useState<IGameData | null>(null);
+
   const { user } = useAuthContext();
   const authUserId = user?.id;
   const router = useRouter();
 
   // Game search state (only for create mode when no gameId is provided)
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedGame, setSelectedGame] = useState<IGame | null>(null);
 
   // Fetch specific game when gameId is provided (for create mode)
   const { data: specificGameData, loading: loadingSpecificGame } = useQuery(GET_GAME_BY_ID, {
-    variables: { id: gameId },
-    skip: !gameId || mode === 'update' || !isOpen,
+    variables: { id: gameLog?.game ? (gameLog.game as { id: string }).id : undefined },
+    skip: !(gameLog?.game && (gameLog.game as { id: string }).id) || mode === 'edit' || !isOpen,
   });
 
   // Reset selected game when search query changes
@@ -89,47 +68,50 @@ export function GameLogModal({
 
   // Set selectedGame for update mode
   useEffect(() => {
-    if (mode === 'update' && gameLog?.game) {
-      setSelectedGame(gameLog.game as unknown as IGame);
+    if (mode === 'edit' && gameLog?.game) {
+      setSelectedGame(gameLog.game as unknown as IGameData);
     }
   }, [mode, gameLog]);
 
   // Auto-select game when fetched by ID
   useEffect(() => {
-    if (specificGameData?.game && mode === 'create' && gameId) {
-      setSelectedGame(specificGameData.game as unknown as IGame);
+    if (
+      specificGameData?.game &&
+      mode === 'create' &&
+      gameLog?.game &&
+      (gameLog.game as { id: string }).id
+    ) {
+      setSelectedGame(specificGameData.game as unknown as IGameData);
     }
-  }, [specificGameData, mode, gameId]);
+  }, [specificGameData, mode, gameLog?.game]);
 
   // Form state - properly load existing values for update mode (memoized to prevent re-creation)
-  const initialFormData: CreateGameLogInput = useMemo(() => {
-    if (mode === 'update' && gameLog) {
-      return {
-        gameId: gameLog.game?.id || '',
-        watchedSetting: gameLog.watchedSetting as IWatchedSettingValue,
-        watchedDate: gameLog.watchedDate ? new Date(gameLog.watchedDate) : new Date(),
-        watchedLocation: gameLog.watchedLocation ?? '',
+  const initialFormData: CreateGameLogInput = gameLog
+    ? {
+        gameId: gameLog.game ? (gameLog.game as { id: string }).id : '',
+        watchedSetting: (valueToKey(WATCHED_SETTING, gameLog.watchedSetting || '') ??
+          'TV') as IWatchedSettingValue,
+        watchedDate: gameLog.watchedDate ? new Date(gameLog.watchedDate).toISOString() : undefined,
+        watchedLocation: gameLog.watchedLocation ?? undefined,
         ratingForGame: gameLog.ratingForGame,
-        watchedScope: gameLog.watchedScope as IWatchedScopeValue,
-        notes: gameLog.notes ?? '',
-        tags: gameLog.tags ?? [],
-        classification:
-          Classification[gameLog.classification.toUpperCase() as keyof typeof Classification],
-      };
-    } else {
-      return {
-        gameId: gameId || '',
-        watchedSetting: WATCHED_SETTING.TV,
-        watchedDate: new Date(),
-        watchedLocation: '',
+        watchedScope: (valueToKey(WATCHED_SCOPE, gameLog.watchedScope || '') ??
+          'FULL_GAME') as IWatchedScopeValue,
+        notes: gameLog.notes ?? undefined,
+        tags: gameLog.tags ?? undefined,
+        classification: (valueToKey(CLASSIFICATION, gameLog.classification || '') ??
+          'Protected') as Classification,
+      }
+    : {
+        gameId: '',
+        watchedSetting: 'TV' as IWatchedSettingValue,
+        watchedDate: new Date().toISOString(),
+        watchedLocation: undefined,
         ratingForGame: 3,
-        watchedScope: WATCHED_SCOPE.FULL_GAME,
-        notes: '',
-        tags: [],
-        classification: Classification.Protected,
+        watchedScope: 'FULL_GAME' as IWatchedScopeValue,
+        notes: undefined,
+        tags: undefined,
+        classification: 'Protected' as Classification,
       };
-    }
-  }, [gameLog, gameId, mode]);
 
   // Mutations
   const [createGameLog, { loading: creating }] = useMutation(CREATE_GAME_LOG, {
@@ -140,11 +122,11 @@ export function GameLogModal({
           description: 'Your game log has been created successfully.',
         });
         resetForm();
-        handleModalClose();
+        onClose();
         onSuccess?.();
 
         // Redirect to game log details page if created from a game details page
-        if (gameId && data.createGameLog.gameLog.id) {
+        if (gameLog?.game && (gameLog.game as { id: string }).id && data.createGameLog.gameLog.id) {
           router.push(`/protected/user/game-logs/${data.createGameLog.gameLog.id}`);
         }
       } else if (data?.createGameLog?.errors) {
@@ -180,7 +162,7 @@ export function GameLogModal({
           title: '✅ Updated!',
           description: 'Your game log has been updated successfully.',
         });
-        handleModalClose();
+        onClose();
         onSuccess?.();
       } else if (data?.updateGameLog?.errors) {
         toast({
@@ -217,7 +199,7 @@ export function GameLogModal({
       first: 5000,
       after: null,
     },
-    skip: !isOpen || mode === 'update' || !!gameId,
+    skip: !isOpen || mode === 'edit' || !!(gameLog?.game && (gameLog.game as { id: string }).id),
   });
 
   // Handle search input changes (only for create mode)
@@ -228,68 +210,29 @@ export function GameLogModal({
 
   // Filter games based on search query
   const filteredGames = useMemo(() => {
-    if (!gamesData?.games?.edges) {
-      return [];
-    }
-    if (!searchQuery.trim()) {
-      return gamesData.games.edges;
-    }
+    if (!gamesData?.games?.edges) return [];
+    if (!searchQuery) return gamesData.games.edges;
 
     const searchLower = searchQuery.toLowerCase();
-    const filtered = gamesData.games.edges.filter((edge: IGameEdge) => {
-      const game = edge.node;
-
-      // Team search fields
-      const homeTeam = game.teams?.home;
-      const awayTeam = game.teams?.visitors;
-
-      // Check home team fields
+    const filtered = gamesData.games.edges.filter(({ node: game }: { node: IGame }) => {
       const homeTeamMatch =
-        homeTeam &&
-        ((typeof homeTeam.name === 'string' && homeTeam.name.toLowerCase().includes(searchLower)) ||
-          (typeof homeTeam.nickname === 'string' &&
-            homeTeam.nickname.toLowerCase().includes(searchLower)) ||
-          (typeof homeTeam.code === 'string' &&
-            homeTeam.code.toLowerCase().includes(searchLower)) ||
-          (typeof homeTeam.id === 'string' && homeTeam.id.toLowerCase().includes(searchLower)));
-
-      // Check away team fields
+        game.teams?.home?.name?.toLowerCase().includes(searchLower) ||
+        game.teams?.home?.nickname?.toLowerCase().includes(searchLower) ||
+        game.teams?.home?.code?.toLowerCase().includes(searchLower);
       const awayTeamMatch =
-        awayTeam &&
-        ((typeof awayTeam.name === 'string' && awayTeam.name.toLowerCase().includes(searchLower)) ||
-          (typeof awayTeam.nickname === 'string' &&
-            awayTeam.nickname.toLowerCase().includes(searchLower)) ||
-          (typeof awayTeam.code === 'string' &&
-            awayTeam.code.toLowerCase().includes(searchLower)) ||
-          (typeof awayTeam.id === 'string' && awayTeam.id.toLowerCase().includes(searchLower)));
-
-      // Arena search fields
-      const arena = game.arena;
+        game.teams?.visitors?.name?.toLowerCase().includes(searchLower) ||
+        game.teams?.visitors?.nickname?.toLowerCase().includes(searchLower) ||
+        game.teams?.visitors?.code?.toLowerCase().includes(searchLower);
       const arenaMatch =
-        arena &&
-        ((typeof arena.name === 'string' && arena.name.toLowerCase().includes(searchLower)) ||
-          (typeof arena.city === 'string' && arena.city.toLowerCase().includes(searchLower)) ||
-          (typeof arena.state === 'string' && arena.state.toLowerCase().includes(searchLower)) ||
-          (typeof arena.country === 'string' && arena.country.toLowerCase().includes(searchLower)));
-
-      // Game date
-      const dateMatch =
-        typeof game.date === 'string'
-          ? (game.date as string).toLowerCase().includes(searchLower)
-          : formatGameDate(game.date).toLowerCase().includes(searchLower);
-
-      // Game status
-      const statusMatch =
-        (typeof game.status?.long === 'string' &&
-          game.status.long.toLowerCase().includes(searchLower)) ||
-        (typeof game.status?.short === 'string' &&
-          game.status.short.toLowerCase().includes(searchLower));
-
-      // League and season
+        typeof game.arena === 'string'
+          ? game.arena.toLowerCase().includes(searchLower)
+          : game.arena?.name?.toLowerCase().includes(searchLower);
+      const dateMatch = formatGameDate(game.date).toLowerCase().includes(searchLower);
+      const statusMatch = game.status?.long?.toLowerCase().includes(searchLower);
       const leagueMatch =
         typeof game.league === 'string' && game.league.toLowerCase().includes(searchLower);
       const seasonMatch =
-        typeof game.season === 'number' && game.season.toString().includes(searchLower);
+        typeof game.season === 'number' && String(game.season).includes(searchLower);
 
       return (
         homeTeamMatch ||
@@ -307,7 +250,8 @@ export function GameLogModal({
 
   const handleSubmit = async (formData: CreateGameLogInput) => {
     if (mode === 'create') {
-      const selectedGameId = selectedGame?.id || gameId;
+      const selectedGameId =
+        selectedGame?.id || (gameLog?.game ? (gameLog.game as { id: string }).id : undefined);
       if (!selectedGame || !selectedGameId) {
         toast({
           title: '⚠️ Invalid Game',
@@ -329,7 +273,7 @@ export function GameLogModal({
       } catch {
         // Error handled by mutation
       }
-    } else if (mode === 'update' && gameLog?.id) {
+    } else if (mode === 'edit' && gameLog?.id) {
       try {
         await updateGameLog({
           variables: {
@@ -345,7 +289,7 @@ export function GameLogModal({
 
   const resetForm = () => {
     // Only clear selectedGame if we're not using a pre-selected gameId
-    if (!gameId) {
+    if (!(gameLog?.game && (gameLog.game as { id: string }).id)) {
       setSelectedGame(null);
       setSearchQuery('');
     }
@@ -371,7 +315,7 @@ export function GameLogModal({
           variant="ghost"
           size="icon"
           className="absolute right-0 top-0"
-          onClick={() => handleModalClose()}
+          onClick={() => onClose()}
         >
           <X className="h-4 w-4" />
         </Button>
@@ -385,76 +329,82 @@ export function GameLogModal({
         </DialogDescription>
       </DialogHeader>
 
-      {mode === 'create' && !gameId && !selectedGame && (
-        <div className="space-y-4 mb-6">
-          <div className="relative">
-            <Input
-              type="text"
-              value={searchQuery}
-              onChange={handleSearchChange}
-              placeholder="Search by team name, nickname, code, arena, date, status..."
-              className="pl-10"
-            />
-            <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-500" />
-          </div>
+      {mode === 'create' &&
+        !(gameLog?.game && (gameLog.game as { id: string }).id) &&
+        !selectedGame && (
+          <div className="space-y-4 mb-6">
+            <div className="relative">
+              <Input
+                type="text"
+                value={searchQuery}
+                onChange={handleSearchChange}
+                placeholder="Search by team name, nickname, code, arena, date, status..."
+                className="pl-10"
+              />
+              <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-500" />
+            </div>
 
-          {loadingGames && <div>Loading games...</div>}
+            {loadingGames && <div>Loading games...</div>}
 
-          <div className="space-y-2 max-h-[200px] overflow-y-auto">
-            {filteredGames.map((edge: IGameEdge) => (
-              <div
-                key={edge.node.id}
-                className="p-3 border rounded-lg cursor-pointer hover:bg-gray-50"
-                onClick={() => {
-                  setSelectedGame(edge.node as unknown as IGame);
-                }}
-                onKeyDown={e => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    setSelectedGame(edge.node as unknown as IGame);
-                  }
-                }}
-                role="button"
-                tabIndex={0}
-                aria-label={`Select game: ${edge.node.teams?.home?.name || 'Unknown'} vs ${edge.node.teams?.visitors?.name || 'Unknown'}`}
-              >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">
-                      {edge.node.teams?.home?.name && edge.node.teams?.visitors?.name
-                        ? `${edge.node.teams.home.name} vs ${edge.node.teams.visitors.name}`
-                        : 'Unknown Teams'}
-                    </p>
-                    <p className="text-sm text-gray-500">
-                      {formatGameDate(edge.node.date)} • {edge.node.arena?.name || 'Unknown Arena'}
-                    </p>
-                  </div>
-                  <div className="text-sm text-gray-500">
-                    {edge.node.league} • {edge.node.season}
+            <div className="space-y-2 max-h-[200px] overflow-y-auto">
+              {filteredGames.map((edge: IGameEdge) => (
+                <div
+                  key={edge.node.id}
+                  className="p-3 border rounded-lg cursor-pointer hover:bg-gray-50"
+                  onClick={() => {
+                    setSelectedGame(edge.node as unknown as IGameData);
+                  }}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      setSelectedGame(edge.node as unknown as IGameData);
+                    }
+                  }}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`Select game: ${edge.node.teams?.home?.name || 'Unknown'} vs ${edge.node.teams?.visitors?.name || 'Unknown'}`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium">
+                        {edge.node.teams?.home?.name && edge.node.teams?.visitors?.name
+                          ? `${edge.node.teams.home.name} vs ${edge.node.teams.visitors.name}`
+                          : 'Unknown Teams'}
+                      </p>
+                      <p className="text-sm text-gray-500">
+                        {formatGameDate(edge.node.date)} •{' '}
+                        {edge.node.arena?.name || 'Unknown Arena'}
+                      </p>
+                    </div>
+                    <div className="text-sm text-gray-500">
+                      {edge.node.league} • {edge.node.season}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-            {!loadingGames && filteredGames.length === 0 && (
-              <div className="text-center text-gray-500 py-4">
-                No games found matching your search
-              </div>
-            )}
+              ))}
+              {!loadingGames && filteredGames.length === 0 && (
+                <div className="text-center text-gray-500 py-4">
+                  No games found matching your search
+                </div>
+              )}
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {mode === 'create' && gameId && loadingSpecificGame && (
-        <div className="mb-6 text-center">
-          <div>Loading game details...</div>
-        </div>
-      )}
+      {mode === 'create' &&
+        gameLog?.game &&
+        (gameLog.game as { id: string }).id &&
+        loadingSpecificGame && (
+          <div className="mb-6 text-center">
+            <div>Loading game details...</div>
+          </div>
+        )}
 
       {mode === 'create' && selectedGame && !loadingSpecificGame && (
         <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
           <div className="flex items-center justify-between mb-2">
             <h4 className="font-medium text-blue-900">Selected Game</h4>
-            {!gameId && (
+            {!(gameLog?.game && (gameLog.game as { id: string }).id) && (
               <Button
                 variant="ghost"
                 size="sm"
@@ -497,7 +447,7 @@ export function GameLogModal({
         selectedGame={selectedGame}
         loading={mode === 'create' ? creating : updating}
         onSubmit={handleSubmit}
-        onCancel={() => handleModalClose()}
+        onCancel={() => onClose()}
         submitLabel={mode === 'create' ? 'Create Log' : 'Update Log'}
       />
     </DialogContent>
@@ -505,7 +455,7 @@ export function GameLogModal({
 
   if (mode === 'create') {
     return (
-      <Dialog open={isOpen} onOpenChange={handleModalClose}>
+      <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogTrigger asChild>
           <Button
             variant="outline"
@@ -520,7 +470,7 @@ export function GameLogModal({
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleModalClose}>
+    <Dialog open={isOpen} onOpenChange={onClose}>
       {dialogContent}
     </Dialog>
   );

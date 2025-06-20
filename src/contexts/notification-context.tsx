@@ -4,7 +4,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 
 import { useToast } from '@src/app/components/ui/use-toast';
 import { clientCache, CLIENT_CACHE_KEYS } from '@src/lib/cache/client';
-import type { IAppNotification, INotificationContextType } from '@src/lib/types/notification.types';
+import type { IAppNotification, INotificationContextType } from '@src/lib/types';
 
 const NotificationContext = createContext<INotificationContextType | undefined>(undefined);
 

@@ -20,9 +20,12 @@ export async function seedTestUser() {
     seedLogger.info('🧪 Setting up E2E test user...');
 
     // Check if test user already exists
-    const existingUser = await db.query.users.findFirst({
-      where: eq(users.id, TEST_USER.id),
-    });
+    const existingUser = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, TEST_USER.id))
+      .limit(1)
+      .then(rows => rows[0]);
 
     if (existingUser) {
       seedLogger.info(`✅ Test user already exists: ${TEST_USER.emailAddresses[0].emailAddress}`);

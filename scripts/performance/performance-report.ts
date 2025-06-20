@@ -10,7 +10,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 import { logger } from '@lib/core/logger';
-import type { IPerformanceMetrics, IPerformanceTrend } from '@src/lib/types/misc.types';
+import type { IPerformanceMetrics, IPerformanceTrend } from '@src/lib/types';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

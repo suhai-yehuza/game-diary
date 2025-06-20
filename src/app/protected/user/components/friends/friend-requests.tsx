@@ -12,10 +12,8 @@ import {
   REMOVE_FRIEND,
 } from '@src/lib/graphql/mutations';
 import { GET_USER_FRIENDSHIPS } from '@src/lib/graphql/queries';
-import { FRIENDSHIP_STATUS } from '@src/lib/types/config.types';
-import type { Friendship } from '@src/lib/types/generated/graphql';
-import type { ISortDirection } from '@src/lib/types/shared.types';
-import type { IFriendRequest } from '@src/lib/types/social.types';
+import { FRIENDSHIP_STATUS } from '@src/lib/types';
+import type { ISortDirection, IFriendRequest, Friendship } from '@src/lib/types';
 
 import { UserSearch } from './user-search';
 
@@ -359,7 +357,10 @@ export const FriendRequests: React.FC = () => {
                       </p>
                       {request.mutualFriends && (
                         <p className="text-sm text-blue-500">
-                          {request.mutualFriends} mutual friends
+                          {Array.isArray(request.mutualFriends)
+                            ? request.mutualFriends.length
+                            : request.mutualFriends}{' '}
+                          mutual friends
                         </p>
                       )}
                     </div>
@@ -432,7 +433,10 @@ export const FriendRequests: React.FC = () => {
                       </p>
                       {request.mutualFriends && (
                         <p className="text-sm text-blue-500">
-                          {request.mutualFriends} mutual friends
+                          {Array.isArray(request.mutualFriends)
+                            ? request.mutualFriends.length
+                            : request.mutualFriends}{' '}
+                          mutual friends
                         </p>
                       )}
                     </div>

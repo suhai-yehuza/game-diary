@@ -1,6 +1,6 @@
 import type { Page } from '@playwright/test';
 
-import type { IClerkMock, IExtendedWindow } from '@src/lib/types/misc.types';
+import type { IClerkMock, IExtendedWindow } from '@src/lib/types';
 
 // Test user data - matches your database schema
 export const TEST_USER = {
@@ -33,11 +33,12 @@ export async function mockClerkAuth(page: Page) {
       isLoaded: true,
       isSignedIn: true,
       user: {
-        id: 'test_user_123',
+        id: 'test-user-id',
+        username: 'testuser',
         firstName: 'Test',
         lastName: 'User',
         emailAddresses: [{ emailAddress: 'test@example.com' }],
-        imageUrl: 'https://example.com/avatar.jpg',
+        imageUrl: 'https://test.com/avatar.jpg',
       },
       session: {
         id: 'test_session_123',

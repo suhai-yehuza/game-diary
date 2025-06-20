@@ -4,6 +4,7 @@ import * as React from 'react';
 
 import {
   Toast,
+  ToastAction,
   ToastClose,
   ToastDescription,
   ToastProvider,
@@ -11,7 +12,7 @@ import {
   ToastViewport,
 } from '@src/app/components/ui/toast';
 import { useToast } from '@src/app/components/ui/use-toast';
-import { type IToasterToast } from '@src/lib/types/notification.types';
+import type { IToasterToast } from '@src/lib/types';
 
 export function Toaster() {
   const { toasts } = useToast();
@@ -27,7 +28,11 @@ export function Toaster() {
               {title && <ToastTitle>{title}</ToastTitle>}
               {description && <ToastDescription>{description}</ToastDescription>}
             </div>
-            {action}
+            {action && (
+              <ToastAction altText={action.altText} onClick={action.onClick}>
+                {action.altText}
+              </ToastAction>
+            )}
             <ToastClose />
           </Toast>
         );

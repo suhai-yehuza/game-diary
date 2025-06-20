@@ -4,14 +4,21 @@ import { sql } from 'drizzle-orm';
 import { logger } from '@lib/core/logger';
 import { createDatabaseClient } from '@src/lib/db/seed/config';
 
+import { parseScriptArgs } from '../shared/script-utils';
+
 async function testConnection() {
   try {
     logger.info('🔌 Testing database connection...');
 
-    const db = createDatabaseClient();
+    const options = parseScriptArgs();
+    const db = createDatabaseClient({ env: options.environment });
 
     // Test basic connection
-    const result = await db.execute(sql`SELECT NOW() as current_time, version() as db_version`);
+    const result = (await db.execute(
+      sql`SELECT NOW() as current_time, version() as db_version`
+    )) as unknown as {
+      rows: Array<{ current_time: Date; db_version: string }>;
+    };
     logger.info('✅ Database connection successful!');
     logger.info('Current time:', result.rows[0]?.current_time);
     logger.info('Database version:', result.rows[0]?.db_version);
@@ -28,7 +35,8 @@ async function testConnectionStability() {
   try {
     logger.info('\n🔄 Testing connection stability with multiple operations...');
 
-    const db = createDatabaseClient();
+    const options = parseScriptArgs();
+    const db = createDatabaseClient({ env: options.environment });
 
     // Create a test table
     await db.execute(sql`
@@ -56,7 +64,11 @@ async function testConnectionStability() {
     }
 
     // Verify all insertions
-    const count = await db.execute(sql`SELECT COUNT(*) as count FROM connection_test`);
+    const count = (await db.execute(
+      sql`SELECT COUNT(*) as count FROM connection_test`
+    )) as unknown as {
+      rows: Array<{ count: number }>;
+    };
     logger.info(`✅ Successfully inserted ${count.rows[0]?.count} items`);
 
     // Test a larger batch operation
@@ -70,7 +82,11 @@ async function testConnectionStability() {
     `)
     );
 
-    const finalCount = await db.execute(sql`SELECT COUNT(*) as count FROM connection_test`);
+    const finalCount = (await db.execute(
+      sql`SELECT COUNT(*) as count FROM connection_test`
+    )) as unknown as {
+      rows: Array<{ count: number }>;
+    };
     logger.info(`✅ Total items after batch: ${finalCount.rows[0]?.count}`);
 
     // Clean up
@@ -91,7 +107,8 @@ async function testErrorRecovery() {
   try {
     logger.info('\n🛠️ Testing error handling...');
 
-    const db = createDatabaseClient();
+    const options = parseScriptArgs();
+    const db = createDatabaseClient({ env: options.environment });
 
     // Test invalid query handling
     try {
@@ -102,7 +119,9 @@ async function testErrorRecovery() {
     }
 
     // Verify database is still functional after error
-    const result = await db.execute(sql`SELECT 1 as test`);
+    const result = (await db.execute(sql`SELECT 1 as test`)) as unknown as {
+      rows: Array<{ test: number }>;
+    };
     logger.info(`✅ Database functional after error: ${result.rows[0]?.test}`);
   } catch (error) {
     logger.error(

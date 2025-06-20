@@ -1,15 +1,15 @@
 /// <reference lib="dom" />
 
 import { neon, neonConfig } from '@neondatabase/serverless';
-import { drizzle, type NeonHttpDatabase } from 'drizzle-orm/neon-http';
+import { drizzle } from 'drizzle-orm/neon-http';
+import type { NeonHttpDatabase } from 'drizzle-orm/neon-http';
 
 import { dbLogger } from '@lib/core/logger';
 import { getCache } from '@src/lib/cache';
 import { schema as dbSchema } from '@src/lib/db/schema';
-import type { Schema } from '@src/lib/db/schema/types';
 import { env as appEnv } from '@src/lib/env';
-import { CACHE_TTL } from '@src/lib/types/cache.types';
-import { type IQueryOptions } from '@src/lib/types/database.types';
+import { CACHE_TTL } from '@src/lib/types';
+import { type IQueryOptions } from '@src/lib/types';
 
 // Initialize cache
 const cache = getCache();
@@ -218,10 +218,6 @@ export async function withDb<T>(
     options
   );
 }
-
-// Export types
-export type { NeonHttpDatabase };
-export type { Schema };
 
 // Export schema
 export { dbSchema as schema };

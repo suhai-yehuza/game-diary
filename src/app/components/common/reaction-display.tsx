@@ -3,11 +3,10 @@ import { useUser } from '@clerk/nextjs';
 import React, { useState } from 'react';
 
 import { logger } from '@lib/core/logger';
-import { Badge } from '@src/app/components/ui/badge';
 import { CREATE_REACTION } from '@src/lib/graphql/mutations';
 import { GET_REACTIONS, GET_GAME_LOG } from '@src/lib/graphql/queries';
-import { REACTION_EMOJIS } from '@src/lib/types/config.types';
-import type { Reaction, ReactionEmojiType } from '@src/lib/types/generated/graphql';
+import { REACTION_EMOJIS } from '@src/lib/types';
+import type { Reaction, ReactionEmojiType } from '@src/lib/types';
 import { cn } from '@src/lib/utils';
 
 import { ReactionPicker } from './reaction-picker';
@@ -269,13 +268,12 @@ export function ReactionDisplay({
 
       {/* Show more reactions indicator */}
       {totalCount > reactions.length && (
-        <Badge
-          variant="secondary"
-          className="cursor-pointer hover:bg-secondary/80"
+        <button
+          className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-secondary text-secondary-foreground cursor-pointer hover:bg-secondary/80"
           onClick={() => setShowAllReactions(true)}
         >
           +{totalCount - reactions.length} more
-        </Badge>
+        </button>
       )}
 
       {/* Reaction Picker */}

@@ -25,7 +25,7 @@ export function useGameData({
   const [showUpcomingGames, setShowUpcomingGames] = useState<boolean>(false);
   const [hasShownInitialLoad, setHasShownInitialLoad] = useState(false);
 
-  const { loading, error, data, fetchMore } = useQuery<IGameQueryResponse>(GET_GAMES, {
+  const { loading, error, data, fetchMore, refetch } = useQuery<IGameQueryResponse>(GET_GAMES, {
     variables: {
       filters: {
         season: currentSeason,
@@ -133,6 +133,7 @@ export function useGameData({
     processedGames,
     loading,
     error: error || null,
+    refetch: () => refetch().then(() => {}),
     hasShownInitialLoad,
     isFetchingMore,
     currentSeason,

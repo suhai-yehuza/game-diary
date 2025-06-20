@@ -1,11 +1,4 @@
-import type { ILoggerConfig } from '@src/lib/types/misc.types';
-
-export enum LogLevel {
-  DEBUG = 0,
-  INFO = 1,
-  WARN = 2,
-  ERROR = 3,
-}
+import { LogLevel, type ILoggerConfig } from '@src/lib/types';
 
 const defaultConfig: ILoggerConfig = {
   level: process.env.NODE_ENV === 'production' ? LogLevel.WARN : LogLevel.DEBUG,
@@ -31,7 +24,7 @@ class Logger {
   private getColorCode(level: LogLevel): string {
     if (!this.config.enableColors) return '';
 
-    const colors = {
+    const colors: Record<LogLevel, string> = {
       [LogLevel.DEBUG]: '\x1b[36m', // Cyan
       [LogLevel.INFO]: '\x1b[32m', // Green
       [LogLevel.WARN]: '\x1b[33m', // Yellow
@@ -46,7 +39,7 @@ class Logger {
   }
 
   private getLevelString(level: LogLevel): string {
-    const levels = {
+    const levels: Record<LogLevel, string> = {
       [LogLevel.DEBUG]: 'DEBUG',
       [LogLevel.INFO]: 'INFO',
       [LogLevel.WARN]: 'WARN',

@@ -11,8 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from '@src/app/components/ui/table';
-import type { DbUser } from '@src/lib/types/generated/graphql';
-import type { IUsersTableProps } from '@src/lib/types/user.types';
+import type { IUsersTableProps, DbUser } from '@src/lib/types';
 
 export default function UsersTable({ users }: IUsersTableProps) {
   return (

@@ -1,15 +1,19 @@
-import { sql, type Table, type InferInsertModel } from 'drizzle-orm';
-import type { IndexColumn, PgUpdateSetSource } from 'drizzle-orm/pg-core';
+import type { Table, InferInsertModel } from 'drizzle-orm';
+import { sql } from 'drizzle-orm';
+import type { IndexColumn } from 'drizzle-orm/pg-core';
 import pLimit from 'p-limit';
 
-import { logger } from '@lib/core/logger';
+import { seedLogger as logger } from '@lib/core/logger';
 import { getRapidApiConfig, validateAPIKey } from '@src/lib/config/api.config';
 import { DB_CONFIG } from '@src/lib/config/db.config';
 import { createRapidAPIClient } from '@src/lib/external-apis';
-import type { IDatabaseClient } from '@src/lib/types/database.types';
+import type { IMonitoringMetrics } from '@src/lib/types/consolidated.types';
+import type { DatabaseClient, IBatchInsertOptions } from '@src/lib/types/seeding.types';
 import { sleep } from '@src/lib/utils/time';
 
 import { createDatabaseClient } from '../config';
+import { getCacheManager, API_CONFIG } from '../optimization-config';
+
 // Circuit breaker pattern implementation
 class CircuitBreaker {
   private failures = 0;
@@ -92,19 +96,23 @@ export async function withRetry<T>(
 // Optimized API client with connection pooling and rate limiting
 export class OptimizedAPIClient {
   private client: ReturnType<typeof createRapidAPIClient>;
-  private db: IDatabaseClient;
+  private db: DatabaseClient;
   private circuitBreaker: CircuitBreaker;
   private rateLimiter: ReturnType<typeof pLimit>;
+  private requestQueue: (() => Promise<unknown>)[] = [];
+  private metrics: IMonitoringMetrics = {
+    timestamp: new Date(),
+    queryPerformance: {},
+    apiMetrics: {},
+    errors: {},
+    cpuUsage: 0,
+  };
 
   constructor(concurrency: number = DB_CONFIG.seeding.external.CONCURRENT_OPERATIONS) {
     const rapidApiConfig = getRapidApiConfig();
     const apiKey = validateAPIKey(rapidApiConfig.apiKey);
     this.client = createRapidAPIClient(apiKey);
-    this.db = createDatabaseClient() as IDatabaseClient;
-    // Add raw property to satisfy DatabaseClient interface
-    (this.db as typeof this.db & { raw: unknown; $client: unknown }).raw = (
-      this.db as typeof this.db & { $client: unknown }
-    ).$client;
+    this.db = createDatabaseClient();
     this.circuitBreaker = new CircuitBreaker();
     this.rateLimiter = pLimit(concurrency);
   }
@@ -179,82 +187,16 @@ export class OptimizedAPIClient {
           if (typeof tableName === 'string' && tableName === 'nba_players') {
             // Process each player individually to properly handle seasonsActive
             for (const player of batch) {
-              await this.db
-                .insert(table)
-                .values(player)
-                .onConflictDoUpdate({
-                  target: conflictTarget,
-                  set: {
-                    firstName: sql`EXCLUDED."firstName"`,
-                    lastName: sql`EXCLUDED."lastName"`,
-                    birth: sql`EXCLUDED.birth`,
-                    nba: sql`EXCLUDED.nba`,
-                    height: sql`EXCLUDED.height`,
-                    weight: sql`EXCLUDED.weight`,
-                    college: sql`EXCLUDED.college`,
-                    affiliation: sql`EXCLUDED.affiliation`,
-                    jersey: sql`EXCLUDED.jersey`,
-                    active: sql`EXCLUDED.active`,
-                    pos: sql`EXCLUDED.pos`,
-                    seasonsActive: sql`CASE
-                      WHEN nba_players."seasonsActive" IS NULL THEN EXCLUDED."seasonsActive"
-                      WHEN NOT EXISTS (
-                        SELECT 1
-                        FROM jsonb_array_elements(nba_players."seasonsActive") AS existing_season
-                        WHERE existing_season->>'season' = EXCLUDED."seasonsActive"[1]->>'season'
-                      ) THEN nba_players."seasonsActive" || EXCLUDED."seasonsActive"
-                      ELSE (
-                        SELECT jsonb_agg(
-                          CASE
-                            WHEN season->>'season' = EXCLUDED."seasonsActive"[1]->>'season' THEN
-                              jsonb_build_object(
-                                'season', season->>'season',
-                                'teamIds', (
-                                  SELECT jsonb_agg(DISTINCT teamId)
-                                  FROM (
-                                    SELECT jsonb_array_elements_text(season->'teamIds') AS teamId
-                                    UNION
-                                    SELECT jsonb_array_elements_text(EXCLUDED."seasonsActive"[1]->'teamIds')
-                                  ) AS combined_teams
-                                )
-                              )
-                            ELSE season
-                          END
-                        )
-                        FROM jsonb_array_elements(nba_players."seasonsActive") AS season
-                      )
-                    END`,
-                    updatedAt: sql`EXCLUDED."updatedAt"`,
-                  },
-                });
+              // Simplified insert without complex upsert logic
+              await this.db.insert(table).values(player);
             }
           } else {
-            // For other camelCase tables, use standard upsert with quoted column names
-            await this.db
-              .insert(table)
-              .values(batch)
-              .onConflictDoUpdate({
-                target: conflictTarget,
-                set: Object.fromEntries(
-                  Object.keys(batch[0])
-                    .filter(key => key !== 'id' && key !== 'createdAt')
-                    .map(key => [key, sql`EXCLUDED.${sql.raw(`"${key}"`)}`])
-                ) as PgUpdateSetSource<T>,
-              });
+            // For other camelCase tables, use standard insert
+            await this.db.insert(table).values(batch);
           }
         } else {
-          // For other tables, use standard upsert
-          await this.db
-            .insert(table)
-            .values(batch)
-            .onConflictDoUpdate({
-              target: conflictTarget,
-              set: Object.fromEntries(
-                Object.keys(batch[0])
-                  .filter(key => key !== 'id' && key !== 'createdAt')
-                  .map(key => [key, sql`EXCLUDED.${sql.raw('"' + key + '"')}`])
-              ) as PgUpdateSetSource<T>,
-            });
+          // For other tables, use standard insert
+          await this.db.insert(table).values(batch);
         }
       } catch (error) {
         logger.error(`Error inserting batch ${i / batchSize + 1}:`, error);
@@ -295,5 +237,154 @@ export class OptimizedAPIClient {
 
   getDatabase() {
     return this.db;
+  }
+
+  async request<T>(url: string, options?: RequestInit): Promise<T> {
+    return new Promise<T>((resolve, reject) => {
+      const task = async () => {
+        try {
+          const startTime = Date.now();
+          const response = await fetch(url, {
+            ...options,
+            headers: {
+              'X-RapidAPI-Key': API_CONFIG.rapidApi.key,
+              'X-RapidAPI-Host': API_CONFIG.rapidApi.host,
+              ...options?.headers,
+            },
+          });
+
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          }
+
+          const result = await response.json();
+          const duration = Date.now() - startTime;
+
+          // Update metrics
+          this.updateMetrics(url, duration, 'success');
+
+          resolve(result as T);
+        } catch (error) {
+          this.updateMetrics(url, 0, 'error');
+          reject(error);
+        }
+      };
+
+      this.requestQueue.push(task);
+      this.processQueue();
+    });
+  }
+
+  private async processQueue(): Promise<void> {
+    if (this.requestQueue.length === 0) return;
+
+    const tasks = this.requestQueue.splice(0, this.rateLimiter.concurrency);
+    await Promise.allSettled(tasks.map(task => task()));
+
+    if (this.requestQueue.length > 0) {
+      await this.processQueue();
+    }
+  }
+
+  private updateMetrics(url: string, duration: number, status: 'success' | 'error'): void {
+    const endpoint = new URL(url).pathname;
+
+    if (!this.metrics.apiMetrics[endpoint]) {
+      this.metrics.apiMetrics[endpoint] = {
+        count: 0,
+        totalTime: 0,
+        avgTime: 0,
+        errors: 0,
+        failure: 0,
+        success: 0,
+        avgResponseTime: 0,
+      };
+    }
+
+    const metric = this.metrics.apiMetrics[endpoint];
+    metric.count++;
+    metric.totalTime += duration;
+    metric.avgTime = metric.totalTime / metric.count;
+
+    if (status === 'success') {
+      metric.success++;
+    } else {
+      metric.errors++;
+      metric.failure++;
+    }
+
+    metric.avgResponseTime = metric.avgTime;
+  }
+
+  async batchInsert({
+    table,
+    data,
+    batchSize = 100,
+    tableName,
+  }: IBatchInsertOptions): Promise<void> {
+    const cache = getCacheManager();
+    const cacheKey = `batch_insert_${tableName}_${data.length}`;
+
+    // Check cache first
+    const cached = await cache.get(cacheKey);
+    if (cached) {
+      logger.info(`Using cached batch insert for ${tableName}`);
+      return;
+    }
+
+    logger.info(`Batch inserting ${data.length} records into ${tableName || 'table'}`);
+
+    for (let i = 0; i < data.length; i += batchSize) {
+      const batch = data.slice(i, i + batchSize);
+
+      try {
+        // Remove the problematic casting - let TypeScript infer the types
+        if (table && batch.length > 0) {
+          await this.db.insert(table).values(batch);
+        }
+
+        logger.info(
+          `Inserted batch ${Math.floor(i / batchSize) + 1}/${Math.ceil(data.length / batchSize)} for ${tableName || 'table'}`
+        );
+      } catch (error) {
+        logger.error(`Error in batch insert for ${tableName}:`, error);
+
+        // Try individual inserts on batch failure
+        for (const item of batch) {
+          try {
+            await this.db.insert(table).values([item]);
+          } catch (individualError) {
+            logger.error(`Failed to insert individual item in ${tableName}:`, individualError);
+          }
+        }
+      }
+    }
+
+    // Cache the result
+    await cache.set(cacheKey, true, 300); // Cache for 5 minutes
+  }
+
+  async executeQuery<T>(query: string, _params?: unknown[]): Promise<T[]> {
+    try {
+      const result = await this.db.execute(sql.raw(query));
+      return result.rows as T[];
+    } catch (error) {
+      logger.error('Query execution failed:', error);
+      throw error;
+    }
+  }
+
+  getMetrics(): IMonitoringMetrics {
+    return { ...this.metrics };
+  }
+
+  resetMetrics(): void {
+    this.metrics = {
+      timestamp: new Date(),
+      queryPerformance: {},
+      apiMetrics: {},
+      errors: {},
+      cpuUsage: 0,
+    };
   }
 }

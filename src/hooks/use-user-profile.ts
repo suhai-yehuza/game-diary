@@ -10,8 +10,15 @@ import {
   REMOVE_FRIEND,
 } from '@src/lib/graphql/mutations';
 import { GET_USER_FRIENDSHIPS } from '@src/lib/graphql/queries';
-import type { IUseUserProfileProps, IUseUserProfileReturn } from '@src/lib/types';
-import type { DbUser, Friendship, FriendshipStatus } from '@src/lib/types/generated/graphql';
+import type {
+  IUseUserProfileProps,
+  IUseUserProfileReturn,
+  DbUser,
+  Friendship,
+  FriendshipStatus,
+  IFriendshipStatusValue,
+  IFriendRequest,
+} from '@src/lib/types';
 
 export function useUserProfile({ targetUserId }: IUseUserProfileProps): IUseUserProfileReturn {
   const { user: currentUser } = useUser();
@@ -55,8 +62,8 @@ export function useUserProfile({ targetUserId }: IUseUserProfileProps): IUseUser
             emailAddress: currentUser.emailAddresses[0]?.emailAddress || '',
             imageUrl: currentUser.imageUrl,
             last_sign_in_at: currentUser.lastSignInAt
-              ? new Date(currentUser.lastSignInAt)
-              : new Date(),
+              ? new Date(currentUser.lastSignInAt).toISOString()
+              : new Date().toISOString(),
             password_enabled: currentUser.passwordEnabled,
             two_factor_enabled: currentUser.twoFactorEnabled,
             email_verified: currentUser.emailAddresses[0]?.verification?.status === 'verified',
@@ -71,10 +78,13 @@ export function useUserProfile({ targetUserId }: IUseUserProfileProps): IUseUser
             outboundFriendshipIds: [],
             friendships: [],
             initiatedFriendships: [],
-            createdAt: currentUser.createdAt ? new Date(currentUser.createdAt) : new Date(),
-            updatedAt: currentUser.updatedAt ? new Date(currentUser.updatedAt) : new Date(),
+            createdAt: currentUser.createdAt
+              ? new Date(currentUser.createdAt).toISOString()
+              : new Date().toISOString(),
+            updatedAt: currentUser.updatedAt
+              ? new Date(currentUser.updatedAt).toISOString()
+              : new Date().toISOString(),
             deletedAt: null,
-            __typename: 'DBUser',
           });
         }
         // Fetch the current user's database record
@@ -201,12 +211,38 @@ export function useUserProfile({ targetUserId }: IUseUserProfileProps): IUseUser
   const isOwnProfile = currentUser?.id === targetUserId || !targetUserId;
 
   return {
-    targetUser,
-    dbUserId,
-    currentUserDbId,
-    friendshipStatus,
-    currentFriendship,
+    gameLogs: [],
+    friends: [],
     isLoading,
+    error: null,
+    refetch: async () => {},
+    user: targetUser
+      ? {
+          id: targetUser.id,
+          username: targetUser.username,
+          firstName: targetUser.firstName ?? undefined,
+          lastName: targetUser.lastName ?? undefined,
+          email: targetUser.emailAddress ?? undefined,
+          imageUrl: targetUser.imageUrl ?? undefined,
+          isAuthenticated: true,
+        }
+      : null,
+    targetUser: targetUser
+      ? {
+          id: targetUser.id,
+          username: targetUser.username,
+          firstName: targetUser.firstName ?? undefined,
+          lastName: targetUser.lastName ?? undefined,
+          email: targetUser.emailAddress ?? undefined,
+          imageUrl: targetUser.imageUrl ?? undefined,
+          isAuthenticated: true,
+        }
+      : null,
+    dbUserId: targetUser?.id || null,
+    currentUserDbId: currentUserDbId || null,
+    friendshipStatus:
+      friendshipStatus === 'loading' ? null : (friendshipStatus as IFriendshipStatusValue | null),
+    currentFriendship: currentFriendship as unknown as IFriendRequest | null,
     isOwnProfile,
     handleSendFriendRequest,
     handleAcceptFriendRequest,

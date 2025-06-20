@@ -2,7 +2,7 @@ import { sql } from 'drizzle-orm';
 
 import { logger } from '@lib/core/logger';
 import type { createDatabaseClient } from '@src/lib/db/seed/config';
-import type { ITriggerSetupOptions } from '@src/lib/types/common.types';
+import type { ITriggerSetupOptions } from '@src/lib/types';
 
 async function createRatingStarsTrigger(
   db: ReturnType<typeof createDatabaseClient>,
@@ -141,20 +141,20 @@ async function checkExistingTriggers(
 ): Promise<string[]> {
   logger.info('🔍 Checking for existing triggers...');
 
-  const existingTriggers = await db.execute(sql`
+  const existingTriggers = (await db.execute(sql`
     SELECT trigger_name 
     FROM information_schema.triggers 
     WHERE trigger_schema = 'public' 
     AND trigger_name IN ('update_rating_stars_trigger', 'game_logs_ratings_trigger');
-  `);
+  `)) as unknown as { rows: { trigger_name: string }[] };
 
-  return (existingTriggers.rows as { trigger_name: string }[]).map(row => row.trigger_name);
+  return existingTriggers.rows.map(row => row.trigger_name);
 }
 
 async function verifyTriggers(db: ReturnType<typeof createDatabaseClient>): Promise<void> {
   logger.info('🔍 Verifying triggers...');
 
-  const triggers = await db.execute(sql`
+  const triggers = (await db.execute(sql`
     SELECT 
       trigger_name,
       event_manipulation,
@@ -164,16 +164,20 @@ async function verifyTriggers(db: ReturnType<typeof createDatabaseClient>): Prom
     WHERE trigger_schema = 'public' 
     AND trigger_name IN ('update_rating_stars_trigger', 'game_logs_ratings_trigger')
     ORDER BY trigger_name;
-  `);
-
-  logger.info('📋 Installed triggers:');
-  triggers.rows.forEach(trigger => {
-    const t = trigger as {
+  `)) as unknown as {
+    rows: Array<{
       trigger_name: string;
       event_object_table: string;
       event_manipulation: string;
-    };
-    logger.info(`  - ${t.trigger_name} on ${t.event_object_table} (${t.event_manipulation})`);
+      action_statement: string;
+    }>;
+  };
+
+  logger.info('📋 Installed triggers:');
+  triggers.rows.forEach(trigger => {
+    logger.info(
+      `  - ${trigger.trigger_name} on ${trigger.event_object_table} (${trigger.event_manipulation})`
+    );
   });
 }
 

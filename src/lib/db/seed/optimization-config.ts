@@ -325,5 +325,58 @@ export class PerformanceTracker {
 }
 
 // Export types
-export type OptimizationConfig = typeof OPTIMIZATION_CONFIG;
-export type PerformanceThresholds = typeof PERFORMANCE_THRESHOLDS;
+
+// Add missing getCacheManager function
+import type { ICacheManager } from '@src/lib/types/seeding.types';
+
+// Simple in-memory cache implementation
+class InMemoryCache implements ICacheManager {
+  private cache = new Map<string, { value: unknown; expires: number }>();
+
+  async get(key: string): Promise<unknown> {
+    const item = this.cache.get(key);
+    if (!item || item.expires < Date.now()) {
+      this.cache.delete(key);
+      return undefined;
+    }
+    return item.value;
+  }
+
+  async set(key: string, value: unknown, ttl = 3600000): Promise<void> {
+    const expires = Date.now() + ttl;
+    this.cache.set(key, { value, expires });
+  }
+
+  async del(key: string): Promise<void> {
+    this.cache.delete(key);
+  }
+
+  async clear(): Promise<void> {
+    this.cache.clear();
+  }
+}
+
+let cacheManager: ICacheManager | null = null;
+
+export function getCacheManager(): ICacheManager {
+  if (!cacheManager) {
+    cacheManager = new InMemoryCache();
+  }
+  return cacheManager;
+}
+
+// Add missing API_CONFIG export
+export const API_CONFIG = {
+  rapidApi: {
+    key: process.env.RAPID_API_KEY || '',
+    host: process.env.RAPID_API_HOST || 'api-nba-v1.p.rapidapi.com',
+    baseUrl: 'https://api-nba-v1.p.rapidapi.com',
+  },
+  nbaApi: {
+    key: process.env.NBA_API_KEY || '',
+    host: process.env.NBA_API_HOST || 'nba-stats-db.herokuapp.com',
+    baseUrl: 'https://nba-stats-db.herokuapp.com',
+  },
+  timeout: 30000,
+  retries: 3,
+} as const;

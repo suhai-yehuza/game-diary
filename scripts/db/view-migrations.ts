@@ -2,9 +2,17 @@ import { sql } from 'drizzle-orm';
 
 import { logger } from '@lib/core/logger';
 import { db } from '@src/lib/db';
-import type { IMigrationVersion } from '@src/lib/types/common.types';
+import type { IMigrationVersion } from '@src/lib/types';
+
+import { parseScriptArgs } from '../shared/script-utils';
 
 async function viewMigrations() {
+  const options = parseScriptArgs();
+  const env = options.environment ?? 'development';
+
+  logger.info(`\nMigration Versions (${env} environment):`);
+  logger.info('==================');
+
   try {
     const result = await db.execute(sql`
       SELECT 
@@ -19,36 +27,51 @@ async function viewMigrations() {
       ORDER BY executed_at DESC
     `);
 
-    logger.info('\nMigration Versions:');
-    logger.info('==================');
-
-    if (result.rows.length === 0) {
+    if (!result.rows || result.rows.length === 0) {
       logger.info('No migrations found.');
       return;
     }
 
     // Map each row to MigrationVersion type
-    (result.rows as Record<string, unknown>[]).forEach(row => {
-      const migration = row as unknown as IMigrationVersion;
+    const migrations = result.rows as unknown as IMigrationVersion[];
+
+    migrations.forEach(migration => {
+      const executedAt = new Date(migration.executed_at).toLocaleString();
+      const executionTime = migration.execution_time_ms
+        ? `${migration.execution_time_ms}ms`
+        : 'N/A';
+
       logger.info('\nMigration:', migration.name);
       logger.info('Status:', migration.status);
-      logger.info('Executed at:', migration.executed_at);
-      logger.info('Execution time:', migration.execution_time_ms, 'ms');
+      logger.info('Executed at:', executedAt);
+      logger.info('Execution time:', executionTime);
+
       if (migration.error_message) {
         logger.info('Error:', migration.error_message);
       }
+
       logger.info('Rollback executed:', migration.rollback_executed);
       logger.info('Checksum:', migration.checksum);
       logger.info('------------------');
     });
+
+    logger.info(`\nTotal migrations: ${migrations.length}`);
   } catch (error) {
-    logger.error('Error viewing migrations:', error);
-  } finally {
-    process.exit(0);
+    logger.error(
+      'Error viewing migrations:',
+      error instanceof Error ? error.message : String(error)
+    );
+    process.exit(1);
   }
 }
 
 // Run if this file is executed directly
 if (import.meta.url === `file://${process.argv[1]}`) {
-  viewMigrations().catch(error => logger.error('Migration viewing failed:', error));
+  viewMigrations().catch(error => {
+    logger.error(
+      'Migration viewing failed:',
+      error instanceof Error ? error.message : String(error)
+    );
+    process.exit(1);
+  });
 }

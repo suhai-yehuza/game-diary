@@ -2,7 +2,7 @@ import type { InferSelectModel } from 'drizzle-orm';
 import { GraphQLError } from 'graphql';
 
 import type { users } from '@src/lib/db/schema';
-import { RESOURCES, PERMISSIONS } from '@src/lib/types/config.types';
+import { RESOURCES } from '@src/lib/types';
 
 // Custom Error Classes
 export class ValidationError extends GraphQLError {
@@ -79,91 +79,6 @@ export class ForeignKeyViolationError extends BusinessLogicError {
     super(message, 'FOREIGN_KEY_VIOLATION');
   }
 }
-
-// Permission Checker
-export const checkPermission = (
-  user: InferSelectModel<typeof users>,
-  resource: (typeof RESOURCES)[keyof typeof RESOURCES],
-  permission: (typeof PERMISSIONS)[keyof typeof PERMISSIONS],
-  resourceId?: string
-) => {
-  if (!user) {
-    throw new AuthenticationError('Authentication required');
-  }
-
-  // Admin has all permissions
-  if (!user.banned) {
-    return true;
-  }
-
-  // Check resource-specific permissions
-  switch (resource) {
-    case RESOURCES.USER:
-      // Users can only read/write their own data
-      if (resourceId && resourceId !== user.id) {
-        throw new AuthorizationError('Cannot access other user data');
-      }
-      return true;
-
-    case RESOURCES.GAME_LOG:
-      // Users can read public game logs and their own
-      if (permission === PERMISSIONS.READ) {
-        return true;
-      }
-      // Users can only write/delete their own game logs
-      if (resourceId && resourceId !== user.id) {
-        throw new AuthorizationError('Cannot modify other user game logs');
-      }
-      return true;
-
-    case RESOURCES.COMMENT:
-      // Users can read all comments
-      if (permission === PERMISSIONS.READ) {
-        return true;
-      }
-      // Users can only write/delete their own comments
-      if (resourceId && resourceId !== user.id) {
-        throw new AuthorizationError('Cannot modify other user comments');
-      }
-      return true;
-
-    case RESOURCES.REACTION:
-      // Users can read all reactions
-      if (permission === PERMISSIONS.READ) {
-        return true;
-      }
-      // Users can only write/delete their own reactions
-      if (resourceId && resourceId !== user.id) {
-        throw new AuthorizationError('Cannot modify other user reactions');
-      }
-      return true;
-
-    case RESOURCES.FRIENDSHIP:
-      // Users can read their own friendships
-      if (permission === PERMISSIONS.READ) {
-        return true;
-      }
-      // Users can only write/delete their own friendships
-      if (resourceId && resourceId !== user.id) {
-        throw new AuthorizationError('Cannot modify other user friendships');
-      }
-      return true;
-
-    case RESOURCES.GAME_RATING:
-      // Users can read all game ratings
-      if (permission === PERMISSIONS.READ) {
-        return true;
-      }
-      // Users can only write/delete their own game ratings
-      if (resourceId && resourceId !== user.id) {
-        throw new AuthorizationError('Cannot modify other user game ratings');
-      }
-      return true;
-
-    default:
-      throw new AuthorizationError(`Unknown resource: ${resource}`);
-  }
-};
 
 // Field-level Permission Checker
 export const checkFieldPermission = (

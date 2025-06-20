@@ -1,12 +1,11 @@
-import { eq, and, or, type InferSelectModel } from 'drizzle-orm';
+import { eq, and, or } from 'drizzle-orm';
+import type { InferSelectModel } from 'drizzle-orm';
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
 
 import { logger } from '@lib/core/logger';
 import * as schema from '@src/lib/db/schema';
-import type { IGameTeams, IGameScores, IDBGameRecord } from '@src/lib/types';
-import { GAME_STATUS_VALUES } from '@src/lib/types/config.types';
-import type { Game, Arena, GameStatus, GamePeriods, Team } from '@src/lib/types/generated/graphql';
-import type { IDBPlayer as Player } from '@src/lib/types/shared.types';
+import { GAME_STATUS_VALUES } from '@src/lib/types';
+import type { IDBGameRecord, Game, Arena, GameScores, Team } from '@src/lib/types';
 
 function isDBGameRecord(game: unknown): game is IDBGameRecord {
   if (!game || typeof game !== 'object') return false;
@@ -29,110 +28,105 @@ function isDBGameRecord(game: unknown): game is IDBGameRecord {
 }
 
 function convertDBGameToNBAGame(game: IDBGameRecord): Game {
-  try {
-    const teams = game.teams as unknown as IGameTeams;
-    const scores = game.scores as unknown as IGameScores;
-    const status = game.status as GameStatus;
-    const periods = game.periods as GamePeriods;
-    const gameDate = game.date ? new Date(game.date.start) : new Date();
-    const createdAt = new Date(game.createdAt);
-    const updatedAt = new Date(game.updatedAt);
+  const gameDate = typeof game.date === 'string' ? game.date : game.date.start;
+  const status =
+    typeof game.status === 'string'
+      ? { long: game.status, short: game.status, clock: null, halftime: false }
+      : game.status;
+  const periods =
+    typeof game.periods === 'string' ? { current: 1, total: 4, endOfPeriod: false } : game.periods;
 
-    if (!teams?.home?.id || !teams?.visitors?.id) {
-      throw new Error('Invalid team data in game record');
-    }
-
-    if (!scores?.home?.points || !scores?.visitors?.points) {
-      throw new Error('Invalid score data in game record');
-    }
-
-    return {
-      id: game.id,
-      date: {
-        start: gameDate,
-        end: gameDate,
-        duration: 120,
+  return {
+    id: game.id,
+    date: {
+      start: gameDate,
+      end: gameDate,
+      duration: 120,
+    },
+    status: {
+      clock: status.clock,
+      halftime: status.halftime,
+      long: status.long,
+      short: status.short.toString(),
+    },
+    arena: (typeof game.arena === 'string'
+      ? (JSON.parse(game.arena) as Arena)
+      : {
+          name: game.arena?.name ?? '',
+          city: game.arena?.city ?? '',
+          state: game.arena?.state ?? null,
+          country: game.arena?.country ?? null,
+        }) as Arena,
+    league: typeof game.league === 'string' ? game.league : String(game.league || ''),
+    season: typeof game.season === 'string' ? parseInt(game.season) : game.season,
+    stage: game.stage || null,
+    periods: {
+      current: periods.current,
+      total: periods.total,
+      endOfPeriod: periods.endOfPeriod,
+    },
+    teams: game.teams
+      ? {
+          home: { ...game.teams.home, id: game.teams.home.id.toString() },
+          visitors: { ...game.teams.visitors, id: game.teams.visitors.id.toString() },
+        }
+      : {
+          home: { id: '', name: '', nickname: '', code: '', logo: '' },
+          visitors: { id: '', name: '', nickname: '', code: '', logo: '' },
+        },
+    scores: {
+      home: {
+        win: game.scores?.home?.win || 0,
+        loss: game.scores?.home?.loss || 0,
+        series: {
+          win: game.scores?.home?.series?.win || 0,
+          loss: game.scores?.home?.series?.loss || 0,
+        },
+        linescore: (game.scores?.home?.linescore || [])
+          .map(score => (typeof score === 'number' ? score : Number(score)))
+          .filter(score => !isNaN(score)),
+        points: game.scores?.home?.points || 0,
       },
-      status: {
-        clock: status.clock,
-        halftime: status.halftime,
-        long: status.long,
-        short: status.short,
+      visitors: {
+        win: game.scores?.visitors?.win || 0,
+        loss: game.scores?.visitors?.loss || 0,
+        series: {
+          win: game.scores?.visitors?.series?.win || 0,
+          loss: game.scores?.visitors?.series?.loss || 0,
+        },
+        linescore: (game.scores?.visitors?.linescore || [])
+          .map(score => (typeof score === 'number' ? score : Number(score)))
+          .filter(score => !isNaN(score)),
+        points: game.scores?.visitors?.points || 0,
       },
-      arena: (typeof game.arena === 'string'
-        ? (JSON.parse(game.arena) as Arena)
-        : {
-            name: game.arena?.name ?? null,
-            city: game.arena?.city ?? null,
-            state: game.arena?.state ?? null,
-            country: game.arena?.country ?? null,
-          }) as Arena,
-      league: game.league,
-      season: game.season,
-      stage: game.stage,
-      periods: {
-        current: periods.current,
-        total: periods.total,
-        endOfPeriod: periods.endOfPeriod,
-      },
-      teams: game.teams
-        ? {
-            home: { ...game.teams.home, id: game.teams.home.id.toString() },
-            visitors: { ...game.teams.visitors, id: game.teams.visitors.id.toString() },
-          }
-        : {
-            home: { id: '', name: '', nickname: '', code: '', logo: '' },
-            visitors: { id: '', name: '', nickname: '', code: '', logo: '' },
-          },
-      scores: game.scores
-        ? {
-            home: {
-              ...game.scores.home,
-              linescore: (game.scores.home.linescore || []).map(score => {
-                const num = Number(score);
-                return isNaN(num) ? 0 : Math.floor(num);
-              }),
-            },
-            visitors: {
-              ...game.scores.visitors,
-              linescore: (game.scores.visitors.linescore || []).map(score => {
-                const num = Number(score);
-                return isNaN(num) ? 0 : Math.floor(num);
-              }),
-            },
-          }
-        : {
-            home: { win: 0, loss: 0, series: { win: 0, loss: 0 }, linescore: [], points: 0 },
-            visitors: { win: 0, loss: 0, series: { win: 0, loss: 0 }, linescore: [], points: 0 },
-          },
-      officials: game.officials as string[],
-      timesTied: game.timesTied ?? null,
-      leadChanges: game.leadChanges ?? null,
-      nugget: game.nugget ?? null,
-      createdAt: createdAt,
-      updatedAt: updatedAt,
-      isCompleted: status.long === GAME_STATUS_VALUES.FINISHED,
-      awayTeamId: teams.visitors.id.toString(),
-      homeTeamId: teams.home.id.toString(),
-      awayTeamScore: scores.visitors.points || 0,
-      homeTeamScore: scores.home.points || 0,
-      gameType: 'Regular Season',
-      nbaGameId: game.id,
-    };
-  } catch (error) {
-    logger.error('Error converting game record:', error);
-    throw new Error('Failed to convert game record to NBA game format');
-  }
+    } as GameScores,
+    officials: (game.officials || []).map(official =>
+      typeof official === 'string'
+        ? official
+        : typeof official === 'object' && 'name' in official
+          ? official.name
+          : String(official)
+    ),
+    timesTied: game.timesTied || 0,
+    leadChanges: game.leadChanges || 0,
+    nugget: game.nugget || '',
+    createdAt:
+      typeof game.createdAt === 'string' ? game.createdAt : new Date(game.createdAt).toISOString(),
+    updatedAt:
+      typeof game.updatedAt === 'string' ? game.updatedAt : new Date(game.updatedAt).toISOString(),
+    homeTeamId: game.teams?.home?.id?.toString() || '',
+    awayTeamId: game.teams?.visitors?.id?.toString() || '',
+    homeTeamScore: game.scores?.home?.points || null,
+    awayTeamScore: game.scores?.visitors?.points || null,
+    gameType: 'regular',
+    isCompleted: status.long === 'Finished',
+    nbaGameId: game.id,
+  };
 }
 
 export function getTeamFullName(team: Team): string {
   if (!team?.name) return 'Unknown Team';
   return team.nickname ? `${team.name} ${team.nickname}` : team.name;
-}
-
-export function getPlayerDisplayName(player: Player): string {
-  if (!player?.firstName) return 'Unknown Player';
-  return player.lastName ? `${player.firstName} ${player.lastName}` : player.firstName;
 }
 
 export function calculateGameScore(game: Game): string {
@@ -162,8 +156,16 @@ export function getWinningTeam(game: Game): Team | null {
     ...winningTeam,
     city: '',
     conference: '',
+    country: null,
+    division: null,
+    h2h: null,
+    league: null,
+    season: null,
+    standings: null,
+    state: null,
+    stats: null,
     __typename: 'Team',
-  };
+  } as Team;
 }
 
 export function sortGamesByDate(games: Game[]): Game[] {

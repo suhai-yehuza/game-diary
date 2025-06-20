@@ -6,11 +6,9 @@ import { db } from '@src/lib/db';
 import { nba_games } from '@src/lib/db/schema';
 export async function GET(request: Request, { params }: { params: { id: string } }) {
   try {
-    const game = await db.query.nba_games.findFirst({
-      where: eq(nba_games.id, params.id),
-    });
+    const game = await db.select().from(nba_games).where(eq(nba_games.id, params.id)).limit(1);
 
-    if (!game) {
+    if (!game || game.length === 0) {
       return new NextResponse('Game not found', { status: 404 });
     }
 
@@ -19,8 +17,8 @@ export async function GET(request: Request, { params }: { params: { id: string }
       parameters: { id: params.id },
       errors: [],
       results: 1,
-      response: [game],
-      data: [game],
+      response: game,
+      data: game,
     });
   } catch (error) {
     apiLogger.error('Error fetching game:', error);

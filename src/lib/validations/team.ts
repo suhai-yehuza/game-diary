@@ -11,5 +11,3 @@ export const teamSchema = z.object({
   division: z.string().min(1, 'Division is required'),
   logoUrl: z.string().url('Logo URL must be a valid URL').optional(),
 });
-
-export type TeamInput = z.infer<typeof teamSchema>;

@@ -1,7 +1,7 @@
 import { Star } from 'lucide-react';
 import React from 'react';
 
-import type { IStarRatingProps } from '@src/lib/types/game-log.types';
+import type { IStarRatingProps } from '@src/lib/types';
 import { cn } from '@src/lib/utils';
 
 const sizeMap = {

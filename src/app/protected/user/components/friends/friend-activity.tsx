@@ -2,7 +2,7 @@ import { formatDistanceToNow } from 'date-fns';
 import Image from 'next/image';
 import React from 'react';
 
-import type { IFriendActivityProps, IActivity } from '@src/lib/types/misc.types';
+import type { IFriendActivityProps, IActivity } from '@src/lib/types';
 
 export const FriendActivity: React.FC<IFriendActivityProps> = ({ activities, isLoading }) => {
   if (isLoading) {
@@ -24,7 +24,7 @@ export const FriendActivity: React.FC<IFriendActivityProps> = ({ activities, isL
     );
   }
 
-  if (activities.length === 0) {
+  if (!activities || activities.length === 0) {
     return (
       <div className="text-center py-8 text-gray-500 animate-fade-in">
         <p>No friend activity yet</p>
@@ -68,17 +68,17 @@ export const FriendActivity: React.FC<IFriendActivityProps> = ({ activities, isL
         >
           {/* User avatar */}
           <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center">
-            {activity.user.avatar ? (
+            {activity.user?.avatar ? (
               <Image
                 src={activity.user.avatar}
-                alt={activity.user.username}
+                alt={activity.user.username || 'User'}
                 width={40}
                 height={40}
                 className="w-10 h-10 rounded-full"
               />
             ) : (
               <span className="text-gray-600 font-medium">
-                {activity.user.username.charAt(0).toUpperCase()}
+                {(activity.user?.username || 'U').charAt(0).toUpperCase()}
               </span>
             )}
           </div>
@@ -96,7 +96,7 @@ export const FriendActivity: React.FC<IFriendActivityProps> = ({ activities, isL
                   </span>
                 </div>
                 <p className="text-sm text-gray-900">
-                  <span className="font-medium">{activity.user.username}</span>{' '}
+                  <span className="font-medium">{activity.user?.username || 'Unknown User'}</span>{' '}
                   {activity.description}
                 </p>
                 {activity.gameTitle && (

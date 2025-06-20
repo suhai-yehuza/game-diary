@@ -4,7 +4,7 @@ import React from 'react';
 
 import UserProfile from '@/app/protected/user/user-profile';
 import UserProfileLayout from '@/app/protected/user/user-profile-layout';
-import type { IUserPageProps } from '@src/lib/types/user.types';
+import type { IUserPageProps } from '@src/lib/types';
 
 export default async function UserProfilePage({ params }: IUserPageProps) {
   const { userId } = await auth();

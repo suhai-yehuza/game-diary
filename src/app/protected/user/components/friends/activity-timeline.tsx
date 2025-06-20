@@ -2,7 +2,7 @@ import { formatDistanceToNow } from 'date-fns';
 import * as React from 'react';
 import { useState } from 'react';
 
-import type { IActivityTimelineProps } from '@src/lib/types/misc.types';
+import type { IActivityTimelineProps } from '@src/lib/types';
 
 export const ActivityTimeline: React.FC<IActivityTimelineProps> = ({
   activities,
@@ -84,12 +84,14 @@ export const ActivityTimeline: React.FC<IActivityTimelineProps> = ({
                     {activity.details && (
                       <div className="mt-3 p-3 bg-gray-50 rounded-lg">
                         <div className="grid grid-cols-2 gap-2 text-sm">
-                          {Object.entries(activity.details).map(([key, value]) => (
-                            <div key={key} className="flex justify-between">
-                              <span className="text-gray-500 capitalize">{key}:</span>
-                              <span className="font-medium">{value}</span>
-                            </div>
-                          ))}
+                          {Object.entries(activity.details).map(
+                            ([key, value]: [string, unknown]) => (
+                              <div key={key} className="flex justify-between">
+                                <span className="text-gray-500 capitalize">{key}:</span>
+                                <span className="font-medium">{String(value)}</span>
+                              </div>
+                            )
+                          )}
                         </div>
                       </div>
                     )}

@@ -1,10 +1,10 @@
-import { and, eq, gt, lt, or, sql, type InferSelectModel } from 'drizzle-orm';
+import { and, eq, gt, lt, or, sql } from 'drizzle-orm';
+import type { InferSelectModel } from 'drizzle-orm';
 
 import * as schema from '@src/lib/db/schema';
 import { BusinessLogicError } from '@src/lib/graphql/errors';
 import { createConnection, handleResolverError } from '@src/lib/graphql/utils';
-import type { IContext } from '@src/lib/types/component.types';
-import type { IPaginationArgs, ITeamFilters } from '@src/lib/types/resolver.types';
+import type { IContext, IPaginationArgs, ITeamFilters } from '@src/lib/types';
 
 // Helper function to map team data
 const mapTeamData = (team: InferSelectModel<typeof schema.teams>) => ({
@@ -34,6 +34,10 @@ export const teams = async (
   args: IPaginationArgs & { filters?: ITeamFilters },
   { db }: IContext
 ) => {
+  if (!db) {
+    throw new Error('Database connection not available');
+  }
+
   try {
     const { first = 10, after, last, before, filters } = args;
 
@@ -92,13 +96,17 @@ export const teams = async (
 };
 
 export const team = async (_parent: unknown, { id }: { id: string }, { db }: IContext) => {
+  if (!db) {
+    throw new Error('Database connection not available');
+  }
+
   try {
     const team = await db
       .select()
       .from(schema.teams)
       .where(eq(schema.teams.id, id))
       .limit(1)
-      .then(rows => rows[0]);
+      .then((rows: InferSelectModel<typeof schema.teams>[]) => rows[0]);
 
     if (!team) throw new BusinessLogicError(`Team with id ${id} not found`, 'TEAM_NOT_FOUND');
 
@@ -113,6 +121,10 @@ export const teamH2H = async (
   { teamId, opponentId }: { teamId: string; opponentId: string },
   { db }: IContext
 ) => {
+  if (!db) {
+    throw new Error('Database connection not available');
+  }
+
   try {
     const h2h = await db
       .select()
@@ -126,7 +138,7 @@ export const teamH2H = async (
         )
       )
       .limit(1)
-      .then(rows => rows[0]);
+      .then((rows: InferSelectModel<typeof schema.team_h2h>[]) => rows[0]);
 
     if (!h2h) {
       return {

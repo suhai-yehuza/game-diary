@@ -4,7 +4,7 @@ import { seedLogger } from '@lib/core/logger';
 import { API_CONFIG } from '@src/lib/config/api.config';
 import { nba_players, teams } from '@src/lib/db/schema/nba-schemas';
 import { handleAPIError } from '@src/lib/external-apis';
-import type { IPlayerApiResponse } from '@src/lib/types/api-responses.types';
+import type { IPlayerApiResponse } from '@src/lib/types';
 
 import { initializeClients } from './utils/initialize-clients';
 

@@ -29,10 +29,12 @@ import { Textarea } from '@src/app/components/ui/textarea';
 import { useToast } from '@src/app/components/ui/use-toast';
 import { API_CONFIG } from '@src/lib/config/api.config';
 import { CREATE_COMMENT } from '@src/lib/graphql/mutations';
-import type { ICommentItemProps } from '@src/lib/types/component.types';
+import type { ICommentItemProps } from '@src/lib/types';
+import type { ReactionEmojiType, ParentType, Reaction } from '@src/lib/types/generated/graphql';
 import { cn } from '@src/lib/utils';
 
 import { ReactionDisplay } from './reaction-display';
+
 export function CommentItem({
   comment,
   onEdit,
@@ -57,7 +59,7 @@ export function CommentItem({
     // Close dropdown first, then open edit dialog after cleanup
     setIsDropdownOpen(false);
     setTimeout(() => {
-      onEdit(comment.id, comment.content);
+      onEdit?.(comment.id, comment.content);
     }, 100);
   };
 
@@ -66,7 +68,7 @@ export function CommentItem({
     // Close dropdown first, then open delete dialog after cleanup
     setIsDropdownOpen(false);
     setTimeout(() => {
-      onDelete(comment.id);
+      onDelete?.(comment.id);
     }, 100);
   };
 
@@ -127,9 +129,9 @@ export function CommentItem({
         className={cn(
           'relative rounded-xl transition-all duration-300',
           isNested
-            ? 'bg-muted/20 border border-border/30 p-4'
-            : 'bg-card/80 backdrop-blur-sm border border-border/50 p-5 hover:border-border hover:shadow-lg hover:shadow-black/5',
-          'hover:bg-card/90'
+            ? 'bg-muted/20 border border-[hsl(var(--border))] border-opacity-30 p-4'
+            : 'bg-[hsl(var(--card))] bg-opacity-80 backdrop-blur-sm border border-[hsl(var(--border))] border-opacity-50 p-5 hover:border-[hsl(var(--border))] hover:shadow-lg hover:shadow-black/5',
+          'hover:bg-[hsl(var(--card))] hover:bg-opacity-90'
         )}
       >
         {/* Thread Connector */}
@@ -225,7 +227,25 @@ export function CommentItem({
           <ReactionDisplay
             targetId={comment.id}
             targetType="comment"
-            reactions={comment.reactions}
+            reactions={(comment.reactions || []).map(
+              r =>
+                ({
+                  ...r,
+                  emoji: r.emoji as ReactionEmojiType,
+                  targetId: comment.id,
+                  targetType: 'comment' as ParentType,
+                  createdAt: new Date().toISOString(),
+                  updatedAt: new Date().toISOString(),
+                  user: {
+                    id: r.userId,
+                    username: '',
+                    firstName: '',
+                    lastName: '',
+                    emailAddress: null,
+                    imageUrl: null,
+                  },
+                }) as Reaction
+            )}
             totalReactionCount={comment.reactions?.length ?? 0}
             onReactionChange={refetchComments ?? (() => {})}
           />
@@ -283,7 +303,7 @@ export function CommentItem({
         {isReplying && (
           <div
             className={cn(
-              'mt-4 p-4 bg-muted/30 rounded-xl border border-border/30 animate-in slide-in-from-top-2 duration-300',
+              'mt-4 p-4 bg-muted/30 rounded-xl border border-[hsl(var(--border))] border-opacity-30 animate-in slide-in-from-top-2 duration-300',
               isNested ? 'ml-13' : 'ml-0 sm:ml-15'
             )}
           >
@@ -301,7 +321,7 @@ export function CommentItem({
                     value={replyContent}
                     onChange={e => setReplyContent(e.target.value)}
                     placeholder="Write a thoughtful reply..."
-                    className="min-h-[80px] text-sm resize-none bg-background/50 border-border/50 rounded-lg focus:bg-background transition-colors"
+                    className="min-h-[80px] text-sm resize-none bg-[hsl(var(--background))] bg-opacity-50 border-[hsl(var(--border))] border-opacity-50 rounded-lg focus:bg-[hsl(var(--background))] transition-colors"
                     onKeyDown={e => {
                       // Handle existing keyboard shortcuts
                       if (e.key === 'Escape') {
@@ -382,7 +402,7 @@ export function CommentItem({
       {/* Child Comments */}
       {showReplies && hasReplies && comment.childComments && (
         <div className="mt-4 space-y-3 animate-in slide-in-from-top-2 duration-300">
-          {comment.childComments.edges.map(({ node: childComment }) => (
+          {comment.childComments.edges.map(({ node: childComment }: { node: typeof comment }) => (
             <CommentItem
               key={childComment.id}
               comment={childComment}

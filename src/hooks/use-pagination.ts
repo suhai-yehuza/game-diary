@@ -1,9 +1,6 @@
 import { useState, useCallback, useMemo } from 'react';
 
-import type {
-  IPaginationHookOptions,
-  IPaginationFetchResult,
-} from '@src/lib/types/pagination.types';
+import type { IPaginationHookOptions, IPaginationFetchResult } from '@src/lib/types';
 
 export function usePagination<T>({
   pageSize,

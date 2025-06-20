@@ -6,7 +6,7 @@ import { db } from '@src/lib/db';
 import { game_logs, game_ratings, users } from '@src/lib/db/schema';
 import { seasons, nba_games } from '@src/lib/db/schema/nba-schemas';
 import { teams } from '@src/lib/db/schema/team-schemas';
-import { CLASSIFICATION, WATCHED_SCOPE, WATCHED_SETTING } from '@src/lib/types/config.types';
+import { CLASSIFICATION, WATCHED_SCOPE, WATCHED_SETTING } from '@src/lib/types';
 
 async function testGameRatingsTrigger() {
   seedLogger.info('Starting trigger test...');

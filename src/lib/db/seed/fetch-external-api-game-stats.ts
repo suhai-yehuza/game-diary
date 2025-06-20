@@ -1,17 +1,15 @@
 import { eq } from 'drizzle-orm';
 
+import { GAME_STATUS_VALUES } from '@/lib/types';
 import { seedLogger } from '@lib/core/logger';
 import { API_CONFIG } from '@src/lib/config/api.config';
 import { game_stats, teams } from '@src/lib/db/schema';
 import { handleAPIError } from '@src/lib/external-apis';
-import type { IGameTeamStatistic, ITeamStatisticsResponseData } from '@src/lib/types';
-import { GAME_STATUS_VALUES } from '@src/lib/types/config.types';
+import type { IGameTeamStatistic, ITeamStatisticsResponseData, DBGameStats } from '@src/lib/types';
 import { generateUUID } from '@src/lib/utils/processing';
 
 import { initializeClients } from './utils/initialize-clients';
 // Database type for game_stats table insertion
-type DBGameStats = typeof game_stats.$inferInsert;
-
 function parseNumericValue(value: number | string | null | undefined, defaultValue = 0): number {
   if (value === null || value === undefined) return defaultValue;
   const num = typeof value === 'string' ? parseFloat(value) : value;
@@ -124,13 +122,41 @@ export async function fetchAndProcessNBAGameStats(gameId: string, season: number
     const gameStatsData: DBGameStats = {
       id: generateUUID(),
       gameId: gameId,
+      teamId: homeTeamStats.team.id.toString(),
       seasonId: season,
-      homeTeamId: homeTeamStats.team.id.toString(),
-      awayTeamId: awayTeamStats.team.id.toString(),
+      homeTeamId: homeTeamStats.team.id.toString() || '',
+      awayTeamId: awayTeamStats.team.id.toString() || '',
       homeTeamScore: homeStats.points || 0,
       awayTeamScore: awayStats.points || 0,
       gameDate: now, // TODO: add game date
       status: GAME_STATUS_VALUES.FINISHED,
+      // Required properties with defaults
+      points: homeStats.points || 0,
+      fgm: homeStats.fgm || 0,
+      fga: homeStats.fga || 0,
+      fgp: homeStats.fgp || 0,
+      ftm: homeStats.ftm || 0,
+      fta: homeStats.fta || 0,
+      ftp: homeStats.ftp || 0,
+      tpm: homeStats.tpm || 0,
+      tpa: homeStats.tpa || 0,
+      tpp: homeStats.tpp || 0,
+      offReb: homeStats.offReb || 0,
+      defReb: homeStats.defReb || 0,
+      totReb: homeStats.totReb || 0,
+      assists: homeStats.assists || 0,
+      pFouls: homeStats.pFouls || 0,
+      steals: homeStats.steals || 0,
+      turnovers: homeStats.turnovers || 0,
+      blocks: homeStats.blocks || 0,
+      plusMinus: homeStats.plusMinus || 0,
+      min: homeStats.min || '0',
+      fastBreakPoints: homeStats.fastBreakPoints || 0,
+      pointsInPaint: homeStats.pointsInPaint || 0,
+      biggestLead: homeStats.biggestLead || 0,
+      secondChancePoints: homeStats.secondChancePoints || 0,
+      pointsOffTurnovers: homeStats.pointsOffTurnovers || 0,
+      longestRun: homeStats.longestRun || 0,
       ...processTeamStats(homeStats, 'home'),
       ...processTeamStats(awayStats, 'away'),
       createdAt: now,
@@ -140,7 +166,7 @@ export async function fetchAndProcessNBAGameStats(gameId: string, season: number
     // Use upsert instead of insert to handle potential race conditions
     await db
       .insert(game_stats)
-      .values(gameStatsData)
+      .values(gameStatsData as typeof game_stats.$inferInsert)
       .onConflictDoNothing({ target: game_stats.gameId });
 
     seedLogger.info(`Successfully processed and stored statistics for game ${gameId}`);

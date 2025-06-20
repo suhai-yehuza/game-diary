@@ -10,8 +10,8 @@ import {
   REMOVE_FRIEND,
 } from '@src/lib/graphql/mutations';
 import { GET_USER_FRIENDSHIPS } from '@src/lib/graphql/queries';
-import { FRIENDSHIP_STATUS } from '@src/lib/types/config.types';
-import type { IFriendshipManagementProps } from '@src/lib/types/misc.types';
+import { FRIENDSHIP_STATUS } from '@src/lib/types';
+import type { IFriendshipManagementProps } from '@src/lib/types';
 
 export function FriendshipManagement({
   currentUserId,
@@ -25,7 +25,9 @@ export function FriendshipManagement({
   const [sendFriendRequest, { loading: sendingRequest }] = useMutation(SEND_FRIEND_REQUEST, {
     onCompleted: data => {
       if (data?.sendFriendRequest?.friendship) {
-        onFriendshipUpdate();
+        if (onFriendshipUpdate) {
+          onFriendshipUpdate(data.sendFriendRequest.friendship);
+        }
         toast.success('Friend request sent!');
       }
     },
@@ -39,7 +41,9 @@ export function FriendshipManagement({
   const [acceptFriendRequest, { loading: acceptingRequest }] = useMutation(ACCEPT_FRIEND_REQUEST, {
     onCompleted: data => {
       if (data?.acceptFriendRequest?.friendship) {
-        onFriendshipUpdate();
+        if (onFriendshipUpdate) {
+          onFriendshipUpdate(data.acceptFriendRequest.friendship);
+        }
         toast.success('Friend request accepted!');
       }
     },
@@ -52,7 +56,9 @@ export function FriendshipManagement({
   // Remove friend mutation
   const [removeFriend, { loading: removingFriend }] = useMutation(REMOVE_FRIEND, {
     onCompleted: () => {
-      onFriendshipUpdate();
+      if (onFriendshipUpdate) {
+        onFriendshipUpdate(null);
+      }
       toast.success('Friend removed');
     },
     onError: error => {
@@ -145,7 +151,11 @@ export function FriendshipManagement({
               {acceptingRequest ? 'Accepting...' : 'Accept Request'}
             </Button>
             <Button
-              onClick={() => onFriendshipUpdate()}
+              onClick={() => {
+                if (onFriendshipUpdate) {
+                  onFriendshipUpdate(null);
+                }
+              }}
               disabled={acceptingRequest || removingFriend}
               variant="outline"
               size="sm"

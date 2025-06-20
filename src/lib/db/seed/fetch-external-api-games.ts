@@ -43,26 +43,41 @@ export async function fetchAndProcessNBAGames(season: number): Promise<void> {
 
       seedLogger.info('Game value:', game);
       try {
+        // Type guards for date and status
+        const dateObj =
+          typeof game.date === 'object' && game.date !== null && 'start' in game.date
+            ? (game.date as { start?: string; end?: string; duration?: string })
+            : {};
+        const statusObj =
+          typeof game.status === 'object' &&
+          game.status !== null &&
+          ('clock' in game.status || 'halftime' in game.status)
+            ? (game.status as { clock?: string; halftime?: boolean; short?: string; long?: string })
+            : {};
         // Prepare data for nba_games table
         const nbaGameData = {
           id: game.id.toString(),
-          league: game.league,
-          season: game.season,
+          league: typeof game.league === 'string' ? game.league : '',
+          season: typeof game.season === 'number' ? game.season : 0,
           date: {
-            start: game.date.start,
-            end: game.date.end || null,
-            duration: game.date.duration || null,
+            start: dateObj.start || '',
+            end: dateObj.end || null,
+            duration: dateObj.duration || null,
           },
           homeTeamId: game.teams.home.id.toString(),
           awayTeamId: game.teams.visitors.id.toString(),
-          stage: game.stage,
+          stage: typeof game.stage === 'number' ? game.stage : 0,
           status: {
-            clock: game.status.clock || null,
-            halftime: game.status.halftime || false,
-            short: game.status.short || '',
-            long: game.status.long || '',
+            clock: statusObj.clock || null,
+            halftime: statusObj.halftime || false,
+            short: statusObj.short || '',
+            long: statusObj.long || '',
           },
-          periods: game.periods,
+          periods: {
+            current: game.periods?.current ?? 0,
+            total: game.periods?.total ?? 0,
+            endOfPeriod: game.periods?.endOfPeriod ?? false,
+          },
           arena:
             typeof game.arena === 'string'
               ? { name: game.arena, city: '', state: null, country: null }
@@ -90,22 +105,33 @@ export async function fetchAndProcessNBAGames(season: number): Promise<void> {
               logo: game.teams.visitors.logo,
             },
           },
-          scores: {
-            home: {
-              ...game.scores.home,
-              linescore: (game.scores.home.linescore || []).map(score => {
-                const num = Number(score);
-                return isNaN(num) ? 0 : num;
-              }),
-            },
-            visitors: {
-              ...game.scores.visitors,
-              linescore: (game.scores.visitors.linescore || []).map(score => {
-                const num = Number(score);
-                return isNaN(num) ? 0 : num;
-              }),
-            },
-          },
+          scores: game.scores
+            ? {
+                home: {
+                  ...game.scores.home,
+                  linescore: (game.scores.home.linescore || []).map(score => {
+                    const num = Number(score);
+                    return isNaN(num) ? 0 : num;
+                  }),
+                },
+                visitors: {
+                  ...game.scores.visitors,
+                  linescore: (game.scores.visitors.linescore || []).map(score => {
+                    const num = Number(score);
+                    return isNaN(num) ? 0 : num;
+                  }),
+                },
+              }
+            : {
+                home: { win: 0, loss: 0, series: { win: 0, loss: 0 }, linescore: [], points: 0 },
+                visitors: {
+                  win: 0,
+                  loss: 0,
+                  series: { win: 0, loss: 0 },
+                  linescore: [],
+                  points: 0,
+                },
+              },
           officials: Array.isArray(game.officials) ? game.officials : [String(game.officials)],
           timesTied: game.timesTied || 0,
           leadChanges: game.leadChanges || 0,
@@ -115,10 +141,13 @@ export async function fetchAndProcessNBAGames(season: number): Promise<void> {
         };
 
         // Store in nba_games table
-        await db.insert(nba_games).values(nbaGameData).onConflictDoUpdate({
-          target: nba_games.id,
-          set: nbaGameData,
-        });
+        await db
+          .insert(nba_games)
+          .values(nbaGameData as typeof nba_games.$inferInsert)
+          .onConflictDoUpdate({
+            target: nba_games.id,
+            set: nbaGameData as typeof nba_games.$inferInsert,
+          });
 
         seedLogger.info('Successfully stored game:', game.id);
       } catch (error) {

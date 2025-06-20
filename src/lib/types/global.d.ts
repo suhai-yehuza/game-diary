@@ -10,8 +10,4 @@ declare global {
   }
 }
 
-export interface IGlobalWithGC {
-  gc?: () => void;
-}
-
 export {};

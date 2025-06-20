@@ -5,7 +5,7 @@ import type {
   Comment as DBComment,
   Reaction as DBReaction,
   DbUser,
-} from '@src/lib/types/generated/graphql';
+} from '@src/lib/types';
 
 function transformReaction(reaction: DBReaction): GraphQLReaction {
   return {
@@ -45,7 +45,6 @@ export function transformUser(user: DbUser): DbUser {
     gameLogs: [],
     friendships: user.friendships || [],
     initiatedFriendships: user.initiatedFriendships || [],
-    __typename: 'DBUser',
   };
 }
 
@@ -57,7 +56,6 @@ export function transformUserToSummary(user: DbUser): GraphQLUserSummary {
     firstName: user.firstName || '',
     lastName: user.lastName || '',
     imageUrl: user.imageUrl || '',
-    __typename: 'UserSummary',
   };
 }
 
@@ -73,7 +71,6 @@ export function transformComment(comment: DBComment): GraphQLComment {
     deletedAt: comment.deletedAt,
     reactions: comment.reactions.map(transformReaction),
     user: comment.user,
-    __typename: 'Comment',
     childComments: {
       edges: [],
       pageInfo: {

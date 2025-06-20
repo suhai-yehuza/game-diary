@@ -1,6 +1,7 @@
 import { expect, type Page } from '@playwright/test';
 
 import { seedLogger } from '@lib/core/logger';
+import type { IViewportSize } from '@src/lib/types';
 
 import { setupTestAuth } from './auth-utils';
 
@@ -427,9 +428,7 @@ export const VIEWPORTS = {
   large: { width: 2560, height: 1440 },
 } as const;
 
-export type ViewportSize = (typeof VIEWPORTS)[keyof typeof VIEWPORTS];
-
-export async function setViewportAndWaitForLayout(page: Page, size: ViewportSize) {
+export async function setViewportAndWaitForLayout(page: Page, size: IViewportSize) {
   await page.setViewportSize(size);
   await page.waitForLoadState('networkidle');
 }

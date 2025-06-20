@@ -21,4 +21,3 @@ export function initializeClients() {
 /**
  * Type for the return value of initializeClients
  */
-export type ClientsConfig = ReturnType<typeof initializeClients>;

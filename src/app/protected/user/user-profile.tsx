@@ -6,8 +6,7 @@ import React from 'react';
 
 import { Skeleton } from '@src/app/components/ui/skeleton';
 import { GET_USER } from '@src/lib/graphql/queries';
-import type { GetUserQuery, GetUserQueryVariables } from '@src/lib/types/generated/graphql';
-import type { IUserProfileProps } from '@src/lib/types/misc.types';
+import type { IUserProfileProps, GetUserQuery, GetUserQueryVariables } from '@src/lib/types';
 
 import { ErrorBoundary } from './components/error-boundary';
 import { GameLogsSection } from './components/game-logs/game-logs-section';
@@ -68,9 +67,12 @@ export default function UserProfile({ targetUserId }: IUserProfileProps) {
 
   const user = {
     ...userData.user,
-    firstName: userData.user.firstName || null,
-    lastName: userData.user.lastName || null,
-    imageUrl: userData.user.imageUrl || '/default-avatar.png',
+    id: (userData.user as unknown as { id: string }).id,
+    username: (userData.user as unknown as { username: string }).username,
+    firstName: ((userData.user as Record<string, unknown>).firstName as string) || undefined,
+    lastName: ((userData.user as Record<string, unknown>).lastName as string) || undefined,
+    imageUrl:
+      ((userData.user as Record<string, unknown>).imageUrl as string) || '/default-avatar.png',
     last_sign_in_at: new Date().getTime(),
     createdAt: new Date().getTime(),
     comments: [],
@@ -114,7 +116,18 @@ export default function UserProfile({ targetUserId }: IUserProfileProps) {
             onFriendshipUpdate={() => {}}
           />
         )}
-        <GameLogsSection userId={targetUserId} currentUserId={currentUser?.id || ''} />
+        <GameLogsSection
+          userId={targetUserId}
+          currentUser={
+            currentUser
+              ? {
+                  id: currentUser.id,
+                  username: currentUser.username || '',
+                  imageUrl: currentUser.imageUrl || '',
+                }
+              : undefined
+          }
+        />
       </div>
     </ErrorBoundary>
   );

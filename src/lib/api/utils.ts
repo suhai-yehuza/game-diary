@@ -1,6 +1,24 @@
 import { NextResponse } from 'next/server';
+import { z } from 'zod';
 
 import { apiLogger } from '@lib/core/logger';
+
+// Define error response schema
+const ErrorResponseSchema = z.object({
+  error: z.string(),
+  message: z.string(),
+  status: z.number(),
+  code: z.string().optional(),
+});
+
+// Define rate limit response schema
+const RateLimitResponseSchema = z.object({
+  error: z.string(),
+  message: z.string(),
+  status: z.number(),
+  resetTime: z.string(),
+  code: z.literal('RATE_LIMIT_EXCEEDED'),
+});
 
 /**
  * Common CORS headers for API routes
@@ -35,35 +53,36 @@ export function createOptionsResponse(): NextResponse {
 }
 
 /**
- * Create an error response with appropriate status and CORS headers
+ * Create a standardized error response
  */
 export function createErrorResponse(
   message: string,
-  status: number = 500,
-  additionalHeaders?: Record<string, string>
+  status = 500,
+  code = 'INTERNAL_SERVER_ERROR'
 ): NextResponse {
-  apiLogger.error(`API Error (${status}): ${message}`);
-  const response = NextResponse.json(
-    {
-      error: message,
-      status,
-      timestamp: new Date().toISOString(),
-    },
-    {
-      status,
-      headers: additionalHeaders,
-    }
-  );
-  return addCorsHeaders(response);
+  const response = ErrorResponseSchema.parse({
+    error: 'Error',
+    message,
+    status,
+    code,
+  });
+
+  return NextResponse.json(response, { status });
 }
 
 /**
  * Create a rate limit error response
  */
-export function createRateLimitResponse(message: string, retryAfter: string): NextResponse {
-  return createErrorResponse(message, 429, {
-    'Retry-After': retryAfter,
+export function createRateLimitResponse(message: string, resetTime: string): NextResponse {
+  const response = RateLimitResponseSchema.parse({
+    error: 'Rate Limit Exceeded',
+    message,
+    status: 429,
+    resetTime,
+    code: 'RATE_LIMIT_EXCEEDED',
   });
+
+  return NextResponse.json(response, { status: 429 });
 }
 
 /**

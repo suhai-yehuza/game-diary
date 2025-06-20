@@ -3,7 +3,7 @@ import { GraphQLError } from 'graphql';
 import type { z } from 'zod';
 
 import { logger } from '@lib/core/logger';
-import { invalidateRelatedCaches } from '@src/lib/cache/index';
+import { invalidateRelatedCaches, getCache } from '@src/lib/cache/index';
 import { db } from '@src/lib/db';
 import * as schema from '@src/lib/db/schema';
 import {
@@ -12,12 +12,12 @@ import {
   NotFoundError,
   ValidationError,
 } from '@src/lib/graphql/errors';
-import type { IContext } from '@src/lib/types/component.types';
 import type {
+  IContext,
   MutationCreateCommentArgs,
   MutationUpdateCommentArgs,
   MutationDeleteCommentArgs,
-} from '@src/lib/types/generated/graphql';
+} from '@src/lib/types';
 import { createCommentSchema, updateCommentSchema } from '@src/lib/validations/comment';
 
 import { ensureUserExists } from './utils';
@@ -105,9 +105,11 @@ export const createComment = async (
       })
       .returning();
 
-    // Invalidate related caches
+    // Cache invalidation using proper Cache instance
     if (context.redis) {
-      await invalidateRelatedCaches(context.redis, 'user', user.id);
+      const cache = getCache();
+      await cache.initializeRedis();
+      await invalidateRelatedCaches(cache, 'user', user.id);
     }
 
     return { comment, errors: null };
@@ -155,9 +157,11 @@ export const updateComment = async (
       .where(eq(schema.comments.id, id))
       .returning();
 
-    // Invalidate related caches
+    // Cache invalidation using proper Cache instance
     if (context.redis) {
-      await invalidateRelatedCaches(context.redis, 'user', user.id);
+      const cache = getCache();
+      await cache.initializeRedis();
+      await invalidateRelatedCaches(cache, 'user', user.id);
     }
 
     return { comment: updatedComment, errors: null };
@@ -201,9 +205,11 @@ export const deleteComment = async (
       })
       .where(eq(schema.comments.id, id));
 
-    // Invalidate related caches
+    // Cache invalidation using proper Cache instance
     if (context.redis) {
-      await invalidateRelatedCaches(context.redis, 'user', user.id);
+      const cache = getCache();
+      await cache.initializeRedis();
+      await invalidateRelatedCaches(cache, 'user', user.id);
     }
 
     return { success: true, errors: null };

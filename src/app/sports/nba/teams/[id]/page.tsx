@@ -7,8 +7,7 @@ import React, { useState, useEffect } from 'react';
 
 import { logger } from '@lib/core/logger';
 import { fetchNbaTeamById, fetchNbaTeamStats } from '@src/lib/external-apis';
-import type { ITeamDisplayStats, IGame } from '@src/lib/types';
-import { type Team } from '@src/lib/types/generated/graphql';
+import type { ITeamDisplayStats, IGame, Team } from '@src/lib/types';
 import { calculateTeamStats, getTeamStreak, getTeamLastTenGames } from '@src/lib/utils/game';
 export default function TeamPage() {
   const params = useParams();
@@ -44,6 +43,13 @@ export default function TeamPage() {
           conference: apiTeam.conference,
           division: apiTeam.division,
           logo: apiTeam.logo,
+          country: 'USA', // Default value
+          h2h: { lastTenGames: null, losses: 0, wins: 0 }, // Default h2h structure
+          league: 'NBA', // Default value
+          season: new Date().getFullYear(), // Current year
+          state: apiTeam.state || '', // Default empty string
+          standings: null, // Default null
+          stats: null, // Default null
         };
         setTeamData(team);
         setLoading(false);
@@ -128,8 +134,8 @@ export default function TeamPage() {
   if (!teamData) return <div>No team data found</div>;
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b border-border">
+    <div className="min-h-screen bg-[hsl(var(--background))]">
+      <header className="border-b border-[hsl(var(--border))]">
         <div className="container mx-auto px-4 py-6">
           <Link
             href="/sports/nba"
@@ -165,7 +171,7 @@ export default function TeamPage() {
 
           {/* Team Info */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="bg-card rounded-lg shadow-sm p-6">
+            <div className="bg-[hsl(var(--card))] rounded-lg shadow-sm p-6">
               <h3 className="text-lg font-medium mb-4">Team Information</h3>
               <div className="space-y-4">
                 <div>
@@ -184,7 +190,7 @@ export default function TeamPage() {
             </div>
 
             {/* Team Stats */}
-            <div className="bg-card rounded-lg shadow-sm p-6">
+            <div className="bg-[hsl(var(--card))] rounded-lg shadow-sm p-6">
               <h3 className="text-lg font-medium mb-4">Season Statistics</h3>
               {teamStats ? (
                 <div className="space-y-4">
@@ -192,12 +198,20 @@ export default function TeamPage() {
                     <div>
                       <p className="text-sm text-muted-foreground">Points Per Game</p>
                       <p className="text-2xl font-bold">
-                        {teamStats.points ? (teamStats.points / teamStats.games).toFixed(1) : '0.0'}
+                        {(teamStats as Record<string, number | string>).points
+                          ? (
+                              ((teamStats as Record<string, number | string>).points as number) /
+                              (((teamStats as Record<string, number | string>).games as number) ||
+                                1)
+                            ).toFixed(1)
+                          : '0.0'}
                       </p>
                     </div>
                     <div>
                       <p className="text-sm text-muted-foreground">Field Goal %</p>
-                      <p className="text-2xl font-bold">{teamStats.fgp}%</p>
+                      <p className="text-2xl font-bold">
+                        {(teamStats as Record<string, number | string>).fgp}%
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -211,7 +225,7 @@ export default function TeamPage() {
           {teamTrends && (
             <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
               {/* Current Streak */}
-              <div className="bg-card rounded-lg shadow-sm p-6">
+              <div className="bg-[hsl(var(--card))] rounded-lg shadow-sm p-6">
                 <h3 className="text-lg font-medium mb-4">Current Streak</h3>
                 <div className="flex items-center gap-2">
                   <span className="text-2xl font-bold">
@@ -226,7 +240,7 @@ export default function TeamPage() {
               </div>
 
               {/* Last 10 Games */}
-              <div className="bg-card rounded-lg shadow-sm p-6">
+              <div className="bg-[hsl(var(--card))] rounded-lg shadow-sm p-6">
                 <h3 className="text-lg font-medium mb-4">Last 10 Games</h3>
                 <div className="flex gap-1">
                   {teamTrends.lastTen.split('').map((result, index) => (
@@ -243,7 +257,7 @@ export default function TeamPage() {
               </div>
 
               {/* Recent Performance */}
-              <div className="bg-card rounded-lg shadow-sm p-6">
+              <div className="bg-[hsl(var(--card))] rounded-lg shadow-sm p-6">
                 <h3 className="text-lg font-medium mb-4">Recent Performance</h3>
                 <div className="space-y-2">
                   <div>
@@ -275,7 +289,7 @@ export default function TeamPage() {
               <h3 className="text-lg font-medium mb-4">Recent Games</h3>
               <div className="grid grid-cols-1 gap-4">
                 {recentGames.map((game: IGame) => (
-                  <div key={game.id} className="bg-card rounded-lg shadow-sm p-4">
+                  <div key={game.id} className="bg-[hsl(var(--card))] rounded-lg shadow-sm p-4">
                     <div className="flex justify-between items-center">
                       <div>
                         <p className="text-sm text-muted-foreground">
@@ -288,7 +302,11 @@ export default function TeamPage() {
                         </p>
                       </div>
                       <div className="text-right">
-                        <p className="text-sm text-muted-foreground">{game.status.long}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {typeof game.status === 'object' && game.status !== null
+                            ? game.status.long
+                            : ''}
+                        </p>
                         <p className="font-medium">
                           {game.scores.home.points} - {game.scores.visitors.points}
                         </p>

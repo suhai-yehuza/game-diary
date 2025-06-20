@@ -2,12 +2,7 @@
 
 import * as React from 'react';
 
-import type {
-  IToastProps,
-  IToastState,
-  IToastAction,
-  IToasterToast,
-} from '@src/lib/types/notification.types';
+import type { IToastProps, IToastState, IToastAction, IToasterToast } from '@src/lib/types';
 import { TOAST_LIMIT, createToast } from '@src/lib/utils/toast';
 
 // Create context for shared toast state

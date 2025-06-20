@@ -1,5 +1,3 @@
-import type { Resolvers } from '@src/lib/types/generated/types';
-
 // Import all resolver modules
 import * as commentResolvers from './comments';
 import * as gameLogResolvers from './game-logs';
@@ -11,7 +9,7 @@ import * as userResolvers from './users';
 
 // Export type resolvers for direct use in index.ts
 export const { GameLog } = gameLogResolvers;
-export const { Comment } = commentResolvers;
+export const Comment = commentResolvers.commentResolvers.Comment;
 export const { Reaction } = reactionResolvers;
 
 // Export DbUser field resolvers
@@ -46,8 +44,8 @@ export const Query = {
   searchUsers: userResolvers.searchUsers,
 
   // Comment queries
-  comments: commentResolvers.comments,
+  comments: commentResolvers.commentResolvers.Query.comments,
 
   // Reaction queries
   reactions: reactionResolvers.reactions,
-} as unknown as Resolvers['Query'];
+};

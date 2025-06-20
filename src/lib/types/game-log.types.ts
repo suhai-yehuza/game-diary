@@ -1,87 +1,95 @@
-import type { FormEvent } from 'react';
+// Game log related type definitions
 
-import type {
-  IWatchedSettingValue,
-  IWatchedScopeValue,
-  IClassificationValue,
-} from '@src/lib/types/config.types';
-import type { IGame } from '@src/lib/types/game.types';
-import type { GameLog } from '@src/lib/types/generated/graphql';
+import type { IAuthUser } from '@src/lib/types';
+import type { GameLog, GameLogFragmentFragment } from '@src/lib/types/generated/graphql';
 
-export interface IGameLogInput {
-  gameId: string;
-  watchedDate: Date;
-  watchedSetting: IWatchedSettingValue;
-  watchedScope: IWatchedScopeValue;
-  classification: IClassificationValue;
-  ratingForGame: number;
-  watchedLocation?: string;
-  notes?: string;
+export interface IFilters {
+  searchText?: string;
+  classification?: string;
+  dateRange?: {
+    start: Date;
+    end?: Date;
+  };
   tags?: string[];
 }
 
-export interface IGameLogFormData extends IGameLogInput {
-  id?: string;
-  createdAt?: string;
-  updatedAt?: string;
-}
-
-export interface IGameRating {
-  id: string;
-  gameId: string;
-  averageRating: string;
-  totalRatings: number;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface IGameRatingWithUser {
-  id: string;
-  ratingForGame: number;
-  comment?: string;
-  createdAt: string;
-  updatedAt: string;
-  user: {
+export interface IGameLogsSectionProps {
+  userId: string;
+  currentUser?: {
     id: string;
     username: string;
-    photoUrl?: string;
+    imageUrl?: string;
   };
 }
 
-// Component Props
-export interface IGameLogFormProps {
+export interface IGameLogProps {
+  gameLog: GameLog;
+  showActions?: boolean;
+  onEdit?: (gameLog: GameLog) => void;
+  onDelete?: (gameLogId: string) => void;
+  gameLogId?: string;
+}
+
+export interface IGameData {
+  id: string;
+  date: string | { start: string };
+  season: string;
+  teams: {
+    visitors: {
+      id: string;
+      name: string;
+      nickname: string;
+      code: string;
+      score: number;
+    };
+    home: {
+      id: string;
+      name: string;
+      nickname: string;
+      code: string;
+      score: number;
+    };
+  };
+  status: {
+    long: string;
+    short: string;
+    clock?: string;
+    halftime?: boolean;
+  };
+  period: number;
+  time?: string;
+  arena?: {
+    name: string;
+    city: string;
+    state?: string;
+    country?: string;
+  };
+  league: string;
+}
+
+export interface IGameEdge {
+  node: IGameData;
+}
+
+export interface IExtendedGameLogModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  mode: 'create' | 'edit' | 'update';
+  gameLog?: GameLogFragmentFragment;
   onSuccess?: () => void;
-  formData?: IGameLogFormData;
-  setFormData?: (data: IGameLogFormData) => void;
-  selectedGame?: IGame | null;
-  loading?: boolean;
-  onSubmit?: (e: React.FormEvent) => Promise<void>;
-  onCancel?: () => void;
-  submitLabel?: string;
 }
 
-export interface IGameLogModalProps {
-  mode: 'create' | 'update';
-  gameId?: string;
-  gameLog?: GameLog;
-  isOpen?: boolean;
-  onClose?: () => void;
-  onSuccess?: () => void;
+export interface IGameLogSearchSectionProps {
+  onFiltersChange?: (filters: Record<string, unknown>) => void;
+  initialFilters?: Record<string, unknown>;
+  userId?: string;
+  initialSearchText?: string;
 }
 
-export interface IStarRatingProps {
-  ratingForGame: number;
-  maxRating?: number;
-  size?: 'sm' | 'md' | 'lg' | 'xl';
-  className?: string;
-  onRatingChange?: (rating: number) => void;
-}
-
-export interface IReactDatePickerProps {
-  selected: Date | null;
-  onChange: (date: Date | null) => void;
-  className?: string;
-  dateFormat?: string;
-  placeholderText?: string;
-  disabled?: boolean;
+export interface IGameLogActionsProps {
+  gameLog: GameLogFragmentFragment;
+  onEdit?: (gameLog: GameLogFragmentFragment) => void;
+  onDelete?: (gameLogId: string) => void;
+  currentUser?: IAuthUser;
+  onSuccess?: (variables?: Partial<{ [key: string]: unknown }>) => Promise<{ data?: unknown }>;
 }

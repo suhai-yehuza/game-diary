@@ -1,110 +1,37 @@
-import DataLoader from 'dataloader';
-import { inArray, type InferSelectModel } from 'drizzle-orm';
+import { default as DataLoader } from 'dataloader';
+import { inArray } from 'drizzle-orm';
+import type { InferSelectModel } from 'drizzle-orm';
 
 import { getCache } from '@src/lib/cache';
 import * as schema from '@src/lib/db/schema';
 import { db } from '@src/lib/db/seed';
-import { REACTION_EMOJIS, GAME_STATUS_VALUES } from '@src/lib/types/config.types';
+import { GAME_STATUS_VALUES } from '@src/lib/types';
 import type {
+  IDBTeam,
+  DBPlayer,
   Game,
   GameLog,
   Comment,
   Reaction,
   Team,
-  ParentType as GraphQLParentType,
+  ParentType,
   GameTeams,
   GameScores,
-  ReactionEmojiType as GraphQLReactionEmojiType,
   TeamScore,
   GameDate,
   GameStatus,
   GamePeriods,
   Arena,
   TeamSummary,
-} from '@src/lib/types/generated/graphql';
-
-// Type definitions
-type UserSummary = {
-  id: string;
-  username: string;
-  firstName: string;
-  lastName: string;
-  emailAddress: string;
-  imageUrl?: string;
-  __typename: 'UserSummary';
-};
-
-type DBTeam = {
-  id: string;
-  createdAt: Date | null;
-  updatedAt: Date | null;
-  deletedAt: Date | null;
-  name: string;
-  code: string;
-  city: string;
-  state: string;
-  country: string;
-  conference: string | null;
-  division: string | null;
-  logoUrl: string | null;
-  isActive: boolean;
-};
-
-type DBPlayer = {
-  id: string;
-  firstName: string;
-  lastName: string;
-  position: string;
-  jerseyNumber: string;
-  isActive: boolean;
-  teamId: string;
-  birth: {
-    date: string;
-    country: string;
-    state: string | null;
-    city: string | null;
-  };
-  nba: {
-    start: number;
-    pro: number;
-  };
-  height: {
-    feets: string;
-    inches: string;
-    meters: string;
-  };
-  weight: {
-    pounds: string;
-    kilograms: string;
-  };
-  college: string | null;
-  affiliation: string | null;
-  seasons_active?: { season: number; teams: string[] }[];
-  createdAt: Date;
-  updatedAt: Date;
-};
-
-type ReactionEmojiType = GraphQLReactionEmojiType;
-type ParentType = GraphQLParentType;
+  UserSummary,
+  ReactionEmojiType,
+} from '@src/lib/types';
 
 // Cache configuration
 const CACHE_TTL = 60 * 5; // 5 minutes
 const CACHE_PREFIX = 'graphql:loader:';
 
 // Helper functions
-const getEmojiKey = (emojiCharacter: string): ReactionEmojiType => {
-  const entry = Object.entries(REACTION_EMOJIS).find(([, char]) => char === emojiCharacter);
-  if (!entry) {
-    throw new Error(`Invalid emoji character: ${emojiCharacter}`);
-  }
-  return entry[0] as ReactionEmojiType;
-};
-
-const safeDateConversion = (date: unknown): Date => {
-  if (date instanceof Date) return date;
-  if (typeof date === 'string' || typeof date === 'number') return new Date(date);
-  return new Date();
-};
 
 // Generic cache-aware loader factory
 const createCacheAwareLoader = <T>(
@@ -175,7 +102,6 @@ export function createLoaders() {
             lastName: user.lastName || 'missing-last-name',
             emailAddress: user.emailAddress || '',
             imageUrl: user.imageUrl || undefined,
-            __typename: 'UserSummary',
           } as UserSummary;
         });
       } catch (error) {
@@ -244,8 +170,8 @@ export function createLoaders() {
             halftime: game.status?.halftime || false,
           } as GameStatus,
           teams: {
-            home: mapDbTeamToGameTeam(homeTeam as DBTeam),
-            visitors: mapDbTeamToGameTeam(visitorsTeam as DBTeam),
+            home: mapDbTeamToGameTeam(homeTeam as IDBTeam),
+            visitors: mapDbTeamToGameTeam(visitorsTeam as IDBTeam),
           } as GameTeams,
           scores: {
             home: {
@@ -291,14 +217,15 @@ export function createLoaders() {
           timesTied: game.timesTied || 0,
           leadChanges: game.leadChanges || 0,
           nugget: game.nugget || null,
-          createdAt: game.createdAt,
-          updatedAt: game.updatedAt,
+          createdAt: game.createdAt.toISOString(),
+          updatedAt: game.updatedAt.toISOString(),
           homeTeamId: homeTeam?.id.toString() || '',
           awayTeamId: visitorsTeam?.id.toString() || '',
           isCompleted: game.status?.short === 'Final',
           homeTeamScore: homeScores?.points || 0,
           awayTeamScore: visitorsScores?.points || 0,
           gameType: 'REGULAR',
+          nbaGameId: game.id,
         } as Game;
       });
     },
@@ -323,12 +250,16 @@ export function createLoaders() {
           conference: team.conference ?? null,
           division: team.division ?? null,
           code: team.code,
-          logoUrl: team.logoUrl ?? null,
           logo: team.logoUrl ?? null,
           nickname: team.name ?? null,
-          createdAt: new Date(0),
-          updatedAt: new Date(0),
-        };
+          country: null, // Add missing Team properties
+          h2h: null,
+          league: null,
+          season: null,
+          standings: null,
+          state: null,
+          stats: null,
+        } as Team;
       });
     },
     (key: string) => `${CACHE_PREFIX}team:${key}`
@@ -346,6 +277,7 @@ export function createLoaders() {
         id: player.id,
         firstName: player.firstName,
         lastName: player.lastName,
+        active: player.active || false,
         position: player.pos || '',
         jerseyNumber: player.jersey || '',
         isActive: player.active || false,
@@ -356,10 +288,10 @@ export function createLoaders() {
         weight: player.weight as DBPlayer['weight'],
         college: player.college || null,
         affiliation: player.affiliation || null,
-        seasons_active: player.seasonsActive
+        seasonsActive: player.seasonsActive
           ? player.seasonsActive.map((s: { season: number; teamIds: string[] }) => ({
               season: s.season,
-              teams: s.teamIds,
+              teamIds: s.teamIds,
             }))
           : undefined,
         createdAt: player.createdAt,
@@ -384,11 +316,11 @@ export function createLoaders() {
         id: comment.id,
         userId: comment.userId || '',
         parentId: comment.parentId || '',
-        parentType: (comment.parentType?.toLowerCase() || 'comment') as GraphQLParentType,
+        parentType: (comment.parentType?.toLowerCase() || 'comment') as ParentType,
         content: comment.content || '',
-        createdAt: new Date(comment.createdAt),
-        updatedAt: new Date(comment.updatedAt),
-        deletedAt: comment.deletedAt,
+        createdAt: new Date(comment.createdAt).toISOString(),
+        updatedAt: new Date(comment.updatedAt).toISOString(),
+        deletedAt: comment.deletedAt?.toISOString() || null,
         user: null as unknown as UserSummary,
         reactions: [],
         childComments: {
@@ -418,14 +350,13 @@ export function createLoaders() {
     results.forEach(reaction => {
       reactionMap.set(reaction.id, {
         id: reaction.id,
-        emoji: getEmojiKey(reaction.emoji),
+        emoji: reaction.emoji as unknown as ReactionEmojiType,
         user: null as unknown as UserSummary,
         userId: reaction.userId || '',
         targetId: reaction.targetId || '',
         targetType: convertToParentType(reaction.targetType),
-        createdAt: new Date(reaction.createdAt),
-        updatedAt: new Date(reaction.updatedAt),
-        __typename: 'Reaction',
+        createdAt: new Date(reaction.createdAt).toISOString(),
+        updatedAt: new Date(reaction.updatedAt).toISOString(),
       });
     });
 
@@ -444,7 +375,7 @@ export function createLoaders() {
 }
 
 // Helper function to map database team to GraphQL team
-function mapDbTeamToGameTeam(dbTeam: DBTeam | undefined): TeamSummary {
+function mapDbTeamToGameTeam(dbTeam: IDBTeam | undefined): TeamSummary {
   if (!dbTeam) {
     return {
       id: '',
@@ -452,7 +383,6 @@ function mapDbTeamToGameTeam(dbTeam: DBTeam | undefined): TeamSummary {
       nickname: '',
       code: '',
       logo: null,
-      __typename: 'TeamSummary',
     };
   }
   return {
@@ -461,7 +391,6 @@ function mapDbTeamToGameTeam(dbTeam: DBTeam | undefined): TeamSummary {
     nickname: dbTeam.name,
     code: dbTeam.code,
     logo: dbTeam.logoUrl || null,
-    __typename: 'TeamSummary',
   };
 }
 
@@ -550,13 +479,16 @@ export const createGameLogsLoader = (
 
       const game: Game = {
         id: dbGame.id,
-        date: gameDate,
+        date: {
+          start: gameDate.start,
+          end: gameDate.end,
+          duration: gameDate.duration,
+        },
         status: {
           clock: dbGame.status?.clock || null,
           halftime: dbGame.status?.halftime || false,
           long: dbGame.status?.long || '',
           short: String(dbGame.status?.short || ''),
-          __typename: 'GameStatus',
         },
         arena: {
           name:
@@ -585,7 +517,22 @@ export const createGameLogsLoader = (
           total: 4,
           endOfPeriod: false,
         },
-        teams: dbGame.teams,
+        teams: {
+          home: {
+            id: dbGame.teams?.home?.id?.toString() || '',
+            name: dbGame.teams?.home?.name || '',
+            nickname: dbGame.teams?.home?.nickname || '',
+            code: dbGame.teams?.home?.code || '',
+            logo: dbGame.teams?.home?.logo || null,
+          },
+          visitors: {
+            id: dbGame.teams?.visitors?.id?.toString() || '',
+            name: dbGame.teams?.visitors?.name || '',
+            nickname: dbGame.teams?.visitors?.nickname || '',
+            code: dbGame.teams?.visitors?.code || '',
+            logo: dbGame.teams?.visitors?.logo || null,
+          },
+        },
         scores: dbGame.scores,
         officials: dbGame.officials || [],
         timesTied: dbGame.timesTied || 0,
@@ -597,13 +544,12 @@ export const createGameLogsLoader = (
             : false,
         gameType: 'REGULAR',
         nbaGameId: dbGame.id,
-        __typename: 'Game',
         homeTeamId,
         awayTeamId,
         homeTeamScore,
         awayTeamScore,
-        createdAt: safeDateConversion(dbGame.createdAt),
-        updatedAt: safeDateConversion(dbGame.updatedAt),
+        createdAt: log.createdAt.toISOString(),
+        updatedAt: log.updatedAt.toISOString(),
       };
 
       return {
@@ -616,12 +562,12 @@ export const createGameLogsLoader = (
         notes: log.notes || undefined,
         ratingForGame: log.ratingForGame,
         tags: log.tags || [],
-        watchedDate: log.watchedDate,
+        watchedDate: log.watchedDate?.toISOString() || null,
         watchedScope: log.watchedScope,
         watchedSetting: log.watchedSetting,
         watchedLocation: log.watchedLocation || undefined,
-        createdAt: safeDateConversion(log.createdAt),
-        updatedAt: safeDateConversion(log.updatedAt),
+        createdAt: log.createdAt.toISOString(),
+        updatedAt: log.updatedAt.toISOString(),
         deletedAt: log.deletedAt,
         comments: {
           edges: [],
@@ -634,7 +580,6 @@ export const createGameLogsLoader = (
           totalCount: 0,
         },
         reactions: [],
-        __typename: 'GameLog',
       } as GameLog;
     });
 
@@ -665,9 +610,9 @@ export const createCommentsLoader = (userLoader: DataLoader<string, UserSummary>
           parentId: comment.parentId,
           parentType: convertToParentType(comment.parentType),
           reactions: [],
-          createdAt: new Date(comment.createdAt),
-          updatedAt: new Date(comment.updatedAt),
-          deletedAt: comment.deletedAt || undefined,
+          createdAt: new Date(comment.createdAt).toISOString(),
+          updatedAt: new Date(comment.updatedAt).toISOString(),
+          deletedAt: comment.deletedAt?.toISOString() || null,
           childComments: {
             edges: [],
             pageInfo: {
@@ -679,7 +624,6 @@ export const createCommentsLoader = (userLoader: DataLoader<string, UserSummary>
             totalCount: 0,
           },
           depth: 0,
-          __typename: 'Comment',
         } as Comment;
       });
     });
@@ -705,14 +649,13 @@ export const createReactionsLoader = (userLoader: DataLoader<string, UserSummary
         const user = users[userIds.indexOf(reaction.userId || '')] as UserSummary;
         return {
           id: reaction.id,
-          emoji: getEmojiKey(reaction.emoji) as ReactionEmojiType,
+          emoji: reaction.emoji as ReactionEmojiType,
           user,
           userId: reaction.userId || '',
           targetId: reaction.targetId,
           targetType: convertToParentType(reaction.targetType),
-          createdAt: new Date(reaction.createdAt),
-          updatedAt: new Date(reaction.updatedAt),
-          __typename: 'Reaction',
+          createdAt: new Date(reaction.createdAt).toISOString(),
+          updatedAt: new Date(reaction.updatedAt).toISOString(),
         } as Reaction;
       });
     });
@@ -739,13 +682,16 @@ export const createDbGameBySeasonLoader = () => {
 
           const gameData: Game = {
             id: game.id,
-            date: createSafeGameDate(game.date),
+            date: {
+              start: game.date?.start || new Date().toISOString(),
+              end: game.date?.end || null,
+              duration: game.date?.duration || null,
+            } as GameDate,
             status: {
               clock: game.status?.clock || null,
               halftime: game.status?.halftime || false,
               long: game.status?.long || '',
               short: String(game.status?.short || ''),
-              __typename: 'GameStatus',
             },
             arena: {
               name: typeof game.arena === 'string' ? game.arena : game.arena?.name || '',
@@ -771,7 +717,6 @@ export const createDbGameBySeasonLoader = () => {
                 nickname: game.teams?.home?.name || '',
                 code: game.teams?.home?.code || '',
                 logo: game.teams?.home?.logo || null,
-                __typename: 'TeamSummary',
               },
               visitors: {
                 id: game.teams?.visitors?.id?.toString() || '',
@@ -779,7 +724,6 @@ export const createDbGameBySeasonLoader = () => {
                 nickname: game.teams?.visitors?.name || '',
                 code: game.teams?.visitors?.code || '',
                 logo: game.teams?.visitors?.logo || null,
-                __typename: 'TeamSummary',
               },
             },
             scores: createSafeGameScores(game.scores),
@@ -793,13 +737,12 @@ export const createDbGameBySeasonLoader = () => {
                 : false,
             gameType: 'REGULAR',
             nbaGameId: game.id,
-            createdAt: safeDateConversion(game.createdAt),
-            updatedAt: safeDateConversion(game.updatedAt),
+            createdAt: game.createdAt.toISOString(),
+            updatedAt: game.updatedAt.toISOString(),
             homeTeamId,
             awayTeamId,
             homeTeamScore,
             awayTeamScore,
-            __typename: 'Game',
           };
 
           return gameData;
@@ -809,25 +752,6 @@ export const createDbGameBySeasonLoader = () => {
 };
 
 // Type-safe transformation utilities
-const createSafeGameDate = (
-  date: unknown
-): { start: Date; end: Date | null; duration: number | null } => {
-  if (!date) {
-    return { start: new Date(), end: null, duration: null };
-  }
-
-  if (typeof date === 'object' && date !== null) {
-    const dateObj = date as { start?: unknown; end?: unknown; duration?: unknown };
-    return {
-      start: safeDateConversion(dateObj.start),
-      end: dateObj.end ? safeDateConversion(dateObj.end) : null,
-      duration: typeof dateObj.duration === 'number' ? dateObj.duration : null,
-    };
-  }
-
-  return { start: safeDateConversion(date), end: null, duration: null };
-};
-
 const createSafeGameScores = (scores: unknown): GameScores => {
   if (!scores || typeof scores !== 'object') {
     return {

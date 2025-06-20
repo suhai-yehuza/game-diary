@@ -1,21 +1,20 @@
 import { faker } from '@faker-js/faker';
 import { desc } from 'drizzle-orm';
+import type { NeonHttpDatabase } from 'drizzle-orm/neon-http';
 
 import { seedLogger } from '@lib/core/logger';
 import { API_CONFIG } from '@src/lib/config/api.config';
+import type * as schema from '@src/lib/db/schema';
 import { game_logs, games } from '@src/lib/db/schema/game-schemas';
 import { users, friendships } from '@src/lib/db/schema/user-schemas';
-import {
-  FRIENDSHIP_STATUS,
-  WATCHED_SETTING,
-  WATCHED_SCOPE,
-  CLASSIFICATION,
+import { FRIENDSHIP_STATUS, WATCHED_SETTING, WATCHED_SCOPE, CLASSIFICATION } from '@src/lib/types';
+import type {
+  IApplicationSeederOptions,
   IWatchedScopeValue,
   IWatchedSettingValue,
   IFriendshipStatusValue,
-} from '@src/lib/types/config.types';
-import type { IApplicationSeederOptions, IDatabaseClient } from '@src/lib/types/database.types';
-import type { IUserInsert, IFriendshipInsert, IGameLogInsert } from '@src/lib/types/misc.types';
+} from '@src/lib/types';
+import type { UserInsert, FriendshipInsert, GameLogInsert } from '@src/lib/types/seeding.types';
 import { generateUUID } from '@src/lib/utils/processing';
 import { getCurrentSeason } from '@src/lib/utils/time';
 
@@ -24,7 +23,7 @@ async function* generateUsersStream(
   targetCount: number,
   existingEmails: Set<string>,
   skipUsers: boolean = false
-): AsyncGenerator<IUserInsert, void, unknown> {
+): AsyncGenerator<UserInsert, void, unknown> {
   if (skipUsers) return;
 
   let generated = 0;
@@ -50,14 +49,13 @@ async function* generateUsersStream(
         banned: false,
         createdAt: faker.date.past(),
         updatedAt: faker.date.recent(),
-        last_sign_in_at: null,
+        last_sign_in_at: faker.date.recent(),
         password_enabled: false,
         two_factor_enabled: false,
         email_verified: true,
-        email_verification_strategy: null,
-        external_id: null,
+        email_verification_strategy: 'email_code',
+        external_id: generateUUID(),
         external_accounts: [],
-        deletedAt: null,
       };
     }
   }
@@ -69,10 +67,10 @@ async function* generateUsersStream(
 
 // Optimized friendship generator
 async function* generateFriendshipsStream(
-  userStream: AsyncGenerator<IUserInsert, void, unknown>
-): AsyncGenerator<IFriendshipInsert, void, unknown> {
-  const userChunks: IUserInsert[][] = [];
-  let currentChunk: IUserInsert[] = [];
+  userStream: AsyncGenerator<UserInsert, void, unknown>
+): AsyncGenerator<FriendshipInsert, void, unknown> {
+  const userChunks: UserInsert[][] = [];
+  let currentChunk: UserInsert[] = [];
 
   // Collect users into chunks
   for await (const user of userStream) {
@@ -116,9 +114,9 @@ async function* generateFriendshipsStream(
 
 // Optimized game logs generator
 async function* generateGameLogsStream(
-  userStream: AsyncGenerator<IUserInsert, void, unknown>,
-  db: IDatabaseClient
-): AsyncGenerator<IGameLogInsert, void, unknown> {
+  userStream: AsyncGenerator<UserInsert, void, unknown>,
+  db: NeonHttpDatabase<typeof schema>
+): AsyncGenerator<GameLogInsert, void, unknown> {
   const latestSeasonGames = await db
     .select()
     .from(games)
@@ -134,7 +132,7 @@ async function* generateGameLogsStream(
   const seasonStartDate = new Date(seasonYear, 9, 1); // October 1st
   const seasonEndDate = new Date(seasonYear + 1, 5, 30); // June 30th
 
-  const currentSeasonGames = latestSeasonGames.filter(game => {
+  const currentSeasonGames = latestSeasonGames.filter((game: { date: string | Date }) => {
     const gameDate = new Date(game.date);
     return gameDate >= seasonStartDate && gameDate <= seasonEndDate;
   });
@@ -157,9 +155,10 @@ async function* generateGameLogsStream(
     );
 
     for (const game of selectedGames) {
+      const gameRecord = game as { id: string; date: string | Date };
       const ratingForGame = faker.number.int({ min: 1, max: 5 });
-      const currentRating = gameRatings.get(game.id) || { total: 0, count: 0 };
-      gameRatings.set(game.id, {
+      const currentRating = gameRatings.get(gameRecord.id) || { total: 0, count: 0 };
+      gameRatings.set(gameRecord.id, {
         total: currentRating.total + ratingForGame,
         count: currentRating.count + 1,
       });
@@ -167,8 +166,8 @@ async function* generateGameLogsStream(
       yield {
         id: generateUUID(),
         userId: user.id,
-        gameId: game.id,
-        watchedDate: new Date(game.date),
+        gameId: gameRecord.id,
+        watchedDate: new Date(gameRecord.date),
         ratingForGame,
         watchedSetting: faker.helpers.arrayElement(
           Object.values(WATCHED_SETTING)
@@ -189,7 +188,7 @@ async function* generateGameLogsStream(
 
 // Main seeding function
 export async function seedOptimizedApplicationData(
-  options: IApplicationSeederOptions
+  options: Omit<IApplicationSeederOptions, 'db'> & { db: NeonHttpDatabase<typeof schema> }
 ): Promise<void> {
   const { db, skipUsers = false } = options;
   if (!db) {

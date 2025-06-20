@@ -8,6 +8,7 @@
     "forceConsistentCasingInFileNames": true,
     "noEmit": true,
     "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
     "module": "esnext",
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
@@ -24,7 +25,8 @@
       "@/*": ["./src/*"],
       "@src/*": ["./src/*"],
       "@utils/*": ["./scripts/utils/*"],
-      "@lib/*": ["./lib/*"]
+      "@lib/*": ["./lib/*"],
+      "@app/*": ["./src/app/*"]
     },
     "typeRoots": ["./node_modules/@types"],
     "baseUrl": ".",

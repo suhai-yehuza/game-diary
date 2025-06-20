@@ -8,18 +8,10 @@ const config: CodegenConfig = {
   documents: ['./src/**/*.ts', './src/**/*.tsx'],
   ignoreNoDocuments: true,
   generates: {
-    './src/lib/types/generated/': {
-      preset: 'client',
-      plugins: [],
-      presetConfig: {
-        gqlTagName: 'gql',
-        fragmentMasking: false,
-      },
-    },
-    './src/lib/types/generated/types.ts': {
-      plugins: ['typescript', 'typescript-resolvers'],
+    './src/lib/types/generated/graphql.ts': {
+      plugins: ['typescript', 'typescript-operations', 'typescript-resolvers'],
       config: {
-        contextType: '@/lib/graphql/context#IContext',
+        contextType: '@/lib/types#IContext',
         mappers: {
           Player: '@/lib/types#IDBPlayer',
           Activity: '@/lib/types#IActivity',
@@ -47,6 +39,8 @@ const config: CodegenConfig = {
           typeNames: 'change-case-all#pascalCase',
           enumValues: 'change-case-all#upperCase',
         },
+        documentMode: 'documentNode',
+        preResolveTypes: true,
       },
     },
   },

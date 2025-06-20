@@ -6,7 +6,7 @@ import {
   type IReactionEmojiValue,
   type IFriendshipStatusValue,
   type IWatchedSettingValue,
-} from '@src/lib/types/config.types';
+} from '@src/lib/types';
 
 // Game status enum
 export const GAME_STATUS = {
@@ -14,8 +14,6 @@ export const GAME_STATUS = {
   Live: 'Live',
   FINISHED: 'Finished',
 } as const;
-
-export type GameStatusValue = (typeof GAME_STATUS)[keyof typeof GAME_STATUS];
 
 // Notification type enum
 export const NOTIFICATION_TYPE = {
@@ -26,16 +24,11 @@ export const NOTIFICATION_TYPE = {
   REACTION: 'REACTION',
 } as const;
 
-export type NotificationTypeValue = (typeof NOTIFICATION_TYPE)[keyof typeof NOTIFICATION_TYPE];
-
 // Reaction type enum
 export const REACTION_TYPE = Object.fromEntries(
   Object.keys(REACTION_EMOJIS).map(key => [key, key])
 ) as { [K in keyof typeof REACTION_EMOJIS]: K };
 
-export type ReactionTypeValue = (typeof REACTION_TYPE)[keyof typeof REACTION_TYPE];
-
-// Re-export imported enums and types
 export {
   REACTION_EMOJIS,
   FRIENDSHIP_STATUS,

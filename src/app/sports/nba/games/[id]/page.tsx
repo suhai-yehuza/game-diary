@@ -9,13 +9,12 @@ import { useParams } from 'next/navigation';
 import React, { useState, useEffect } from 'react';
 
 import { useAuthContext } from '@/contexts/auth-context';
-import { logger } from '@lib/core/logger';
 import { Button } from '@src/app/components/ui/button';
 import { GameLogModal } from '@src/app/protected/user/components/game-logs/game-log-modal';
 import { fetchNbaGameById } from '@src/lib/external-apis';
 import { GET_TEAM_GAME_STATS, GET_TEAM_H2H } from '@src/lib/graphql/queries';
-import type { IGame, ITeamDisplayProps, IHeadToHeadProps, ITeamStatsProps } from '@src/lib/types';
-import type { GameLog } from '@src/lib/types/generated/graphql';
+import type { IGame, IGameApiResponse } from '@src/lib/types';
+import type { IHeadToHeadData, ITeamGameStats } from '@src/lib/types/nba.types';
 import { cn } from '@src/lib/utils';
 
 // Helper function to validate state values
@@ -58,7 +57,15 @@ const TeamDisplay = ({
   imageErrors,
   onImageError,
   gameId,
-}: ITeamDisplayProps) => {
+}: {
+  team: { id: string; name: string; nickname: string; code: string; logo?: string };
+  score?: number;
+  opponentScore?: number;
+  isHome: boolean;
+  imageErrors?: Record<string, boolean>;
+  onImageError?: (key: string) => void;
+  gameId: string;
+}) => {
   if (!team) return null;
 
   const imageKey = `${gameId}-${isHome ? 'home' : 'visitors'}`;
@@ -96,11 +103,33 @@ const TeamDisplay = ({
   );
 };
 
-const HeadToHeadSection = ({ h2hData, homeTeam, awayTeam, loading, error }: IHeadToHeadProps) => {
+// Add these interfaces before the HeadToHeadSection component
+const defaultHeadToHead = {
+  wins: 0,
+  losses: 0,
+  winPercentage: '0.0%',
+  lastTenGames: [],
+};
+
+const HeadToHeadSection = ({
+  h2hData,
+  homeTeam,
+  awayTeam,
+  loading,
+  error,
+}: {
+  h2hData: IHeadToHeadData | null;
+  homeTeam: { nickname: string };
+  awayTeam: { nickname: string };
+  loading: boolean;
+  error: unknown;
+}) => {
+  const h2h = h2hData?.teamHeadToHead || defaultHeadToHead;
+
   if (loading) {
     return (
-      <div className="bg-card rounded-lg shadow-sm p-6">
-        <h3 className="text-lg font-medium mb-6">Head-to-Head</h3>
+      <div className="bg-[hsl(var(--card))] rounded-lg shadow-sm p-6">
+        <h3 className="text-lg font-medium mb-6">Head-to-Head Record</h3>
         <div className="flex justify-center items-center py-8">
           <div className="animate-spin rounded-full h-8 w-8 border-4 border-blue-500 border-t-transparent"></div>
         </div>
@@ -110,27 +139,17 @@ const HeadToHeadSection = ({ h2hData, homeTeam, awayTeam, loading, error }: IHea
 
   if (error) {
     return (
-      <div className="bg-card rounded-lg shadow-sm p-6">
-        <h3 className="text-lg font-medium mb-6">Head-to-Head</h3>
+      <div className="bg-[hsl(var(--card))] rounded-lg shadow-sm p-6">
+        <h3 className="text-lg font-medium mb-6">Head-to-Head Record</h3>
         <div className="text-red-500 text-center py-8">
-          <p className="text-sm">Error loading H2H data</p>
+          <p className="text-sm">Error loading head-to-head data</p>
         </div>
       </div>
     );
   }
 
-  const h2h = h2hData?.teamH2H;
-  if (!h2h) {
-    return (
-      <div className="bg-card rounded-lg shadow-sm p-6">
-        <h3 className="text-lg font-medium mb-6">Head-to-Head</h3>
-        <p className="text-muted-foreground text-center py-8">No head-to-head data available</p>
-      </div>
-    );
-  }
-
   return (
-    <div className="bg-card rounded-lg shadow-sm p-6">
+    <div className="bg-[hsl(var(--card))] rounded-lg shadow-sm p-6">
       <h3 className="text-lg font-medium mb-6">Head-to-Head Record</h3>
       <div className="space-y-6">
         <div className="grid grid-cols-3 gap-4 text-center">
@@ -154,7 +173,7 @@ const HeadToHeadSection = ({ h2hData, homeTeam, awayTeam, loading, error }: IHea
           <p className="text-xl font-bold">{h2h.winPercentage}</p>
         </div>
 
-        {h2h.lastTenGames && h2h.lastTenGames.length > 0 && (
+        {h2h.lastTenGames.length > 0 && (
           <div>
             <p className="text-sm text-muted-foreground mb-2">
               Last {h2h.lastTenGames.length} Games
@@ -178,10 +197,22 @@ const HeadToHeadSection = ({ h2hData, homeTeam, awayTeam, loading, error }: IHea
   );
 };
 
-const TeamStatsSection = ({ teamStats, team, isHome, loading, error }: ITeamStatsProps) => {
+const TeamStatsSection = ({
+  teamStats,
+  team,
+  isHome,
+  loading,
+  error,
+}: {
+  teamStats: ITeamGameStats | null;
+  team: { nickname: string; logo?: string };
+  isHome: boolean;
+  loading: boolean;
+  error: unknown;
+}) => {
   if (loading) {
     return (
-      <div className="bg-card rounded-xl shadow-lg overflow-hidden">
+      <div className="bg-[hsl(var(--card))] rounded-xl shadow-lg overflow-hidden">
         <div
           className={`bg-gradient-to-r ${isHome ? 'from-orange-600 to-red-600' : 'from-blue-600 to-purple-600'} p-6`}
         >
@@ -201,7 +232,7 @@ const TeamStatsSection = ({ teamStats, team, isHome, loading, error }: ITeamStat
 
   if (error) {
     return (
-      <div className="bg-card rounded-xl shadow-lg overflow-hidden">
+      <div className="bg-[hsl(var(--card))] rounded-xl shadow-lg overflow-hidden">
         <div
           className={`bg-gradient-to-r ${isHome ? 'from-orange-600 to-red-600' : 'from-blue-600 to-purple-600'} p-6`}
         >
@@ -229,7 +260,7 @@ const TeamStatsSection = ({ teamStats, team, isHome, loading, error }: ITeamStat
   const stats = teamStats?.teamGameStats;
   if (!stats) {
     return (
-      <div className="bg-card rounded-xl shadow-lg overflow-hidden">
+      <div className="bg-[hsl(var(--card))] rounded-xl shadow-lg overflow-hidden">
         <div
           className={`bg-gradient-to-r ${isHome ? 'from-orange-600 to-red-600' : 'from-blue-600 to-purple-600'} p-6`}
         >
@@ -253,7 +284,7 @@ const TeamStatsSection = ({ teamStats, team, isHome, loading, error }: ITeamStat
   }
 
   return (
-    <div className="bg-card rounded-xl shadow-lg overflow-hidden">
+    <div className="bg-[hsl(var(--card))] rounded-xl shadow-lg overflow-hidden">
       {/* Team Header */}
       <div
         className={`bg-gradient-to-r ${isHome ? 'from-orange-600 to-red-600' : 'from-blue-600 to-purple-600'} p-6`}
@@ -403,84 +434,113 @@ export default function GamePage() {
     skip: !homeTeamId || !awayTeamId,
   });
 
+  const processGameData = (data: IGameApiResponse['response'][0]): IGame => {
+    const now = new Date();
+    return {
+      id: String(data.id),
+      league: data.league || 'NBA',
+      season: data.season,
+      status: {
+        long: typeof data.status === 'string' ? data.status : data.status.long || '',
+        short: typeof data.status === 'string' ? data.status : data.status.short || '',
+        clock: typeof data.status === 'string' ? null : data.status.clock || null,
+        halftime: typeof data.status === 'string' ? false : (data.status.halftime ?? false),
+      },
+      date:
+        typeof data.date === 'string'
+          ? { start: data.date, end: null, duration: null }
+          : {
+              start: data.date.start || '',
+              end: data.date.end || null,
+              duration: data.date.duration || null,
+            },
+      teams: {
+        home: {
+          id: Number(data.teams.home.id),
+          name: data.teams.home.name,
+          nickname: data.teams.home.nickname || '',
+          code: data.teams.home.code || '',
+          logo: data.teams.home.logo || '',
+        },
+        visitors: {
+          id: Number(data.teams.visitors.id),
+          name: data.teams.visitors.name,
+          nickname: data.teams.visitors.nickname || '',
+          code: data.teams.visitors.code || '',
+          logo: data.teams.visitors.logo || '',
+        },
+      },
+      scores: {
+        home: {
+          points: data.teams.home.score,
+          win: data.scores?.home.win || 0,
+          loss: data.scores?.home.loss || 0,
+          linescore: data.scores?.home.linescore || [],
+          series: {
+            win: data.scores?.home.series?.win || 0,
+            loss: data.scores?.home.series?.loss || 0,
+          },
+        },
+        visitors: {
+          points: data.teams.visitors.score,
+          win: data.scores?.visitors.win || 0,
+          loss: data.scores?.visitors.loss || 0,
+          linescore: data.scores?.visitors.linescore || [],
+          series: {
+            win: data.scores?.visitors.series?.win || 0,
+            loss: data.scores?.visitors.series?.loss || 0,
+          },
+        },
+      },
+      periods: {
+        current: data.periods?.current || 0,
+        total: data.periods?.total || 0,
+        endOfPeriod: data.periods?.endOfPeriod || false,
+      },
+      arena: {
+        name: typeof data.arena === 'string' ? data.arena : data.arena?.name || '',
+        city: data.arena?.city || '',
+        state: data.arena?.state || '',
+        country: data.arena?.country || '',
+      },
+      createdAt: now,
+      updatedAt: now,
+      officials: data.officials || [],
+      timesTied: data.timesTied || 0,
+      leadChanges: data.leadChanges || 0,
+      nugget: data.nugget,
+    };
+  };
+
   useEffect(() => {
-    const loadGameData = async () => {
+    const fetchGameData = async () => {
       try {
-        setLoading(true);
         const response = await fetchNbaGameById(gameId);
-        if (!response.response || response.response.length === 0) {
-          throw new Error('Game not found');
+        if (response && response.data && response.data.length > 0) {
+          const processedData = processGameData(
+            response.data[0] as IGameApiResponse['response'][0]
+          );
+          setGameData(processedData);
+        } else {
+          setError('Game not found');
         }
-        const apiGame = response.response[0];
-
-        const game: IGame = {
-          id: apiGame.id.toString(),
-          date: {
-            start: apiGame.date.start ? new Date(apiGame.date.start).toISOString() : '',
-            end: apiGame.date.end ? new Date(apiGame.date.end).toISOString() : '',
-            duration: apiGame.date.duration || '',
-          },
-          status: {
-            long: apiGame.status.long || '',
-            short: apiGame.status.short || '',
-            clock: apiGame.status.clock ?? undefined,
-            halftime: apiGame.status.halftime ?? undefined,
-          },
-          teams: {
-            home: {
-              id: apiGame.teams.home.id.toString(),
-              name: apiGame.teams.home.name,
-              nickname: apiGame.teams.home.nickname,
-              code: apiGame.teams.home.code,
-              logo: apiGame.teams.home.logo || null,
-            },
-            visitors: {
-              id: apiGame.teams.visitors.id.toString(),
-              name: apiGame.teams.visitors.name,
-              nickname: apiGame.teams.visitors.nickname,
-              code: apiGame.teams.visitors.code,
-              logo: apiGame.teams.visitors.logo || null,
-            },
-          },
-          scores: {
-            home: { points: apiGame.scores.home.points },
-            visitors: { points: apiGame.scores.visitors.points },
-          },
-          arena: {
-            name: apiGame.arena.name || '',
-            city: apiGame.arena.city || '',
-            state: apiGame.arena.state ?? undefined,
-            country: apiGame.arena.country ?? undefined,
-          },
-          league: apiGame.league || '',
-          season: apiGame.season || 0,
-          stage: apiGame.stage || 0,
-          periods: apiGame.periods,
-          officials: Array.isArray(apiGame.officials) ? apiGame.officials : [],
-          timesTied: apiGame.timesTied === null ? undefined : apiGame.timesTied,
-          leadChanges: apiGame.leadChanges === null ? undefined : apiGame.leadChanges,
-          nugget: apiGame.nugget ?? undefined,
-        };
-
-        setGameData(game);
         setLoading(false);
-      } catch (error) {
-        logger.error('Error loading game data:', error);
-        setError('Failed to load game data');
+      } catch (err) {
+        setError('Failed to fetch game data: ' + err);
         setLoading(false);
       }
     };
 
-    loadGameData();
-  }, [params.id, gameId]);
+    fetchGameData();
+  }, [gameId]);
 
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;
   if (!gameData) return <div>Game not found</div>;
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b border-border">
+    <div className="min-h-screen bg-[hsl(var(--background))]">
+      <header className="border-b border-[hsl(var(--border))]">
         <div className="container mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
             <Link
@@ -492,9 +552,9 @@ export default function GamePage() {
             <div className="flex items-center gap-4">
               {userId ? (
                 <GameLogModal
+                  isOpen={true}
                   mode="create"
-                  gameId={gameId}
-                  gameLog={{} as GameLog}
+                  gameLog={undefined}
                   onClose={() => {}}
                   onSuccess={() => {}}
                 />
@@ -541,16 +601,20 @@ export default function GamePage() {
                 </p>
               </div>
             </div>
-            <div className="text-lg font-medium">{gameData?.status.long}</div>
+            <div className="text-lg font-medium">
+              {typeof gameData?.status === 'object' && gameData?.status !== null
+                ? gameData.status.long
+                : ''}
+            </div>
           </div>
 
           {/* Scoreboard */}
-          <div className="bg-card rounded-lg shadow-sm p-8">
+          <div className="bg-[hsl(var(--card))] rounded-lg shadow-sm p-8">
             <div className="grid grid-cols-3 gap-8">
               {/* Away Team */}
               <TeamDisplay
                 team={{
-                  id: gameData?.teams.visitors.id || '',
+                  id: String(gameData?.teams.visitors.id || ''),
                   code: gameData?.teams.visitors.code || '',
                   logo: gameData?.teams.visitors.logo || '',
                   name: gameData?.teams.visitors.name || '',
@@ -566,9 +630,11 @@ export default function GamePage() {
 
               {/* Score */}
               <div className="text-center flex flex-col justify-center space-y-4">
-                {gameData?.status.clock && (
-                  <div className="text-muted-foreground">{gameData?.status.clock}</div>
-                )}
+                {typeof gameData?.status === 'object' &&
+                  gameData?.status !== null &&
+                  gameData.status.clock && (
+                    <div className="text-muted-foreground">{gameData.status.clock}</div>
+                  )}
                 <div className="text-4xl font-bold">
                   {gameData?.scores.visitors.points} - {gameData?.scores.home.points}
                 </div>
@@ -577,7 +643,7 @@ export default function GamePage() {
               {/* Home Team */}
               <TeamDisplay
                 team={{
-                  id: gameData?.teams.home.id || '',
+                  id: String(gameData?.teams.home.id || ''),
                   code: gameData?.teams.home.code || '',
                   logo: gameData?.teams.home.logo || '',
                   name: gameData?.teams.home.name || '',
@@ -596,12 +662,20 @@ export default function GamePage() {
           {/* Game Details and Head-to-Head */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Arena Info */}
-            <div className="bg-card rounded-lg shadow-sm p-6">
+            <div className="bg-[hsl(var(--card))] rounded-lg shadow-sm p-6">
               <h3 className="text-lg font-medium mb-6">Arena Information</h3>
               <div className="space-y-2">
-                <p className="font-medium">{gameData?.arena?.name || ''}</p>
+                <p className="font-medium">
+                  {typeof gameData?.arena === 'string'
+                    ? gameData.arena
+                    : gameData?.arena?.name || ''}
+                </p>
                 <p className="text-muted-foreground">
-                  {formatArenaLocation(gameData?.arena || {})}
+                  {formatArenaLocation(
+                    typeof gameData?.arena === 'string'
+                      ? { name: gameData.arena, city: '', state: null, country: null }
+                      : gameData?.arena || {}
+                  )}
                 </p>
               </div>
 
@@ -656,7 +730,7 @@ export default function GamePage() {
 
           {/* Officials */}
           {(gameData?.officials?.length ?? 0) > 0 && (
-            <div className="bg-card rounded-lg shadow-sm p-6">
+            <div className="bg-[hsl(var(--card))] rounded-lg shadow-sm p-6">
               <h3 className="text-lg font-medium mb-4">Officials</h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
                 {(gameData?.officials || []).map((official: string, index: number) => (
@@ -670,7 +744,7 @@ export default function GamePage() {
 
           {/* Game Nugget */}
           {gameData?.nugget && (
-            <div className="bg-card rounded-lg shadow-sm p-6">
+            <div className="bg-[hsl(var(--card))] rounded-lg shadow-sm p-6">
               <h3 className="text-lg font-medium mb-4">Game Highlight</h3>
               <p className="text-muted-foreground">{gameData?.nugget}</p>
             </div>

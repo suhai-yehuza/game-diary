@@ -14,58 +14,35 @@ import {
   NotFoundError,
   ValidationError,
 } from '@src/lib/graphql/errors';
-import { transformUser, transformUserToSummary } from '@src/lib/graphql/resolvers/transformers';
+import { transformUser } from '@src/lib/graphql/resolvers/transformers';
 import { mapUserData } from '@src/lib/graphql/resolvers/users';
 import { getEmojiKey } from '@src/lib/graphql/utils';
-import type { IContext } from '@src/lib/types/component.types';
-import {
-  FRIENDSHIP_STATUS,
-  type IWatchedSettingValue,
-  type IReactionEmojiValue,
-  getEmojiValue,
-  isGraphQLReactionEmojiType,
-} from '@src/lib/types/config.types';
-import {
-  type MutationCreateGameLogArgs,
-  type MutationCreateCommentArgs,
-  type MutationDeleteReactionArgs,
-  type ParentType,
-  type Classification,
-  type CreateGameLogInput,
-  type CreateCommentInput,
-  type CreateReactionInput,
-  type CreateReactionResponse,
-  ParentType as ParentTypeValue,
-} from '@src/lib/types/generated/graphql';
+import { FRIENDSHIP_STATUS, getEmojiValue, isGraphQLReactionEmojiType } from '@src/lib/types';
+import type { IContext, IWatchedSettingValue, IReactionEmojiValue } from '@src/lib/types';
+import type {
+  Classification,
+  ParentType,
+  MutationCreateGameLogArgs,
+  MutationUpdateGameLogArgs,
+  MutationDeleteGameLogArgs,
+  MutationCreateCommentArgs,
+  MutationUpdateCommentArgs,
+  MutationDeleteCommentArgs,
+  MutationDeleteReactionArgs,
+  CreateReactionInput,
+  CreateReactionResponse,
+} from '@src/lib/types/graphql-mutations.types';
+import { ParentTypeValue } from '@src/lib/types/graphql-mutations.types';
 import { generateUUID } from '@src/lib/utils/processing';
 import { createCommentSchema, updateCommentSchema } from '@src/lib/validations/comment';
 import { createGameLogSchema, updateGameLogSchema } from '@src/lib/validations/game-log';
 
-// Define missing mutation argument types
-type MutationUpdateGameLogArgs = {
-  id: string;
-  input: CreateGameLogInput;
-};
-
-type MutationDeleteGameLogArgs = {
-  id: string;
-};
-
-type MutationUpdateCommentArgs = {
-  id: string;
-  input: CreateCommentInput;
-};
-
-type MutationDeleteCommentArgs = {
-  id: string;
-};
-
-// Helper functions
 const validateInput = <T>(schema: z.ZodSchema<T>, input: unknown): T => {
   const result = schema.safeParse(input);
   if (!result.success) {
     throw new ValidationError(result.error.errors[0].message);
   }
+
   return result.data;
 };
 
@@ -119,7 +96,7 @@ async function ensureUserExists(user: IContext['user']) {
       username: user.username || `user_${user.id.slice(-8)}`,
       firstName: user.firstName || 'Unknown',
       lastName: user.lastName || 'DBUser',
-      emailAddress: user.emailAddresses[0].emailAddress || `${user.id}@placeholder.com`,
+      emailAddress: user.email || `${user.id}@placeholder.com`,
       imageUrl: user.imageUrl || '',
       inboundFriendshipIds: [],
       outboundFriendshipIds: [],
@@ -651,7 +628,7 @@ export const createReaction = async (
     const emojiValue = getEmojiValue(input.emoji);
 
     // Create the reaction
-    const [reaction] = await context.db
+    const [reaction] = await (context.db as typeof db)
       .insert(schema.reactions)
       .values({
         id: generateUUID(),
@@ -665,7 +642,7 @@ export const createReaction = async (
       .returning();
 
     // Get the user data for the reaction
-    const [reactionUser] = await context.db
+    const [reactionUser] = await (context.db as typeof db)
       .select()
       .from(schema.users)
       .where(eq(schema.users.id, user.id))
@@ -677,11 +654,13 @@ export const createReaction = async (
 
     return {
       reaction: {
-        ...reaction,
+        id: reaction.id,
         emoji: getEmojiKey(reaction.emoji as IReactionEmojiValue),
+        userId: reaction.userId || user.id,
+        targetId: reaction.targetId,
         targetType: toParentTypeEnum(reaction.targetType as string),
-        userId: reaction.userId || user.id, // Ensure userId is never null
-        user: transformUserToSummary(mapUserData(reactionUser)),
+        createdAt: reaction.createdAt,
+        updatedAt: reaction.updatedAt,
       },
     };
   } catch (error) {

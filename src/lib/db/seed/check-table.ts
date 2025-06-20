@@ -15,7 +15,10 @@ async function main() {
       WHERE table_name = ${tableName}
       ORDER BY ordinal_position;
     `);
-    seedLogger.info(`Table structure for ${tableName}:`, result.rows);
+    seedLogger.info(
+      `Table structure for ${tableName}:`,
+      (result as unknown as { rows: unknown[] }).rows
+    );
   } catch (error) {
     seedLogger.error('Error:', error);
     process.exit(1);

@@ -1,20 +1,19 @@
-import { and, eq, gt, lt, or, sql, gte, lte, desc, asc, type InferSelectModel } from 'drizzle-orm';
+import { and, eq, gt, lt, or, sql, gte, lte, desc, asc } from 'drizzle-orm';
+import type { InferSelectModel } from 'drizzle-orm';
 
 import * as schema from '@src/lib/db/schema';
 import { BusinessLogicError } from '@src/lib/graphql/errors';
 import { createConnection, parseCursor, handleResolverError } from '@src/lib/graphql/utils';
-import type { IContext } from '@src/lib/types/component.types';
 import type {
+  IContext,
   DbUser,
   Friendship,
   FriendshipStatus,
   UserSummary,
-} from '@src/lib/types/generated/graphql';
-import type {
   IPaginationArgs,
   IUserFilters,
   IUserSearchFilters,
-} from '@src/lib/types/resolver.types';
+} from '@src/lib/types';
 
 // Helper function to map user data from either DatabaseRow or InferSelectModel<typeof schema.users>
 export function mapUserData(user: InferSelectModel<typeof schema.users>): DbUser {
@@ -28,10 +27,10 @@ export function mapUserData(user: InferSelectModel<typeof schema.users>): DbUser
     inboundFriendshipIds: user.inboundFriendshipIds || [],
     outboundFriendshipIds: user.outboundFriendshipIds || [],
     banned: user.banned || false,
-    createdAt: user.createdAt,
-    updatedAt: user.updatedAt,
-    deletedAt: user.deletedAt,
-    last_sign_in_at: user.last_sign_in_at,
+    createdAt: user.createdAt.toISOString(),
+    updatedAt: user.updatedAt.toISOString(),
+    deletedAt: user.deletedAt?.toISOString() || null,
+    last_sign_in_at: user.last_sign_in_at?.toISOString() || null,
     password_enabled: user.password_enabled || false,
     two_factor_enabled: user.two_factor_enabled || false,
     email_verified: user.email_verified || false,
@@ -42,7 +41,6 @@ export function mapUserData(user: InferSelectModel<typeof schema.users>): DbUser
     gameLogs: [],
     friendships: [],
     initiatedFriendships: [],
-    __typename: 'DBUser',
   };
 }
 
@@ -106,6 +104,10 @@ export const searchUsers = async (
       );
     }
 
+    if (!db) {
+      throw new Error('Database connection not available');
+    }
+
     // Build the query
     const query = db
       .select({
@@ -157,21 +159,23 @@ export const searchUsers = async (
 
     // Map users with game log data
     const mappedUsers = await Promise.all(
-      results.map(async result => {
-        const userData = mapUserData(result.user);
+      results.map(
+        async (result: { user: InferSelectModel<typeof schema.users>; gameLogCount: number }) => {
+          const userData = mapUserData(result.user);
 
-        // Fetch game log IDs for this user (limit to avoid performance issues)
-        const gameLogs = await db
-          .select({ id: schema.game_logs.id })
-          .from(schema.game_logs)
-          .where(eq(schema.game_logs.userId, result.user.id))
-          .limit(100);
+          // Fetch game log IDs for this user (limit to avoid performance issues)
+          const gameLogs = await db
+            .select({ id: schema.game_logs.id })
+            .from(schema.game_logs)
+            .where(eq(schema.game_logs.userId, result.user.id))
+            .limit(100);
 
-        return {
-          ...userData,
-          gameLogs,
-        };
-      })
+          return {
+            ...userData,
+            gameLogs,
+          };
+        }
+      )
     );
 
     // Get total count for pagination info
@@ -193,6 +197,10 @@ export const users = async (
   args: IPaginationArgs & { filters?: IUserFilters },
   { db }: IContext
 ) => {
+  if (!db) {
+    throw new Error('Database connection not available');
+  }
+
   try {
     const { first = 10, after, last, before, filters } = args;
 
@@ -240,13 +248,17 @@ export const users = async (
 };
 
 export const user = async (_parent: unknown, { id }: { id: string }, { db }: IContext) => {
+  if (!db) {
+    throw new Error('Database connection not available');
+  }
+
   try {
     const user = await db
       .select()
       .from(schema.users)
       .where(eq(schema.users.id, id))
       .limit(1)
-      .then(rows => rows[0]);
+      .then((rows: InferSelectModel<typeof schema.users>[]) => rows[0]);
 
     if (!user) throw new BusinessLogicError(`User with id ${id} not found`, 'USER_NOT_FOUND');
 
@@ -257,6 +269,10 @@ export const user = async (_parent: unknown, { id }: { id: string }, { db }: ICo
 };
 
 export const me = async (_parent: unknown, _args: unknown, { db, user }: IContext) => {
+  if (!db) {
+    throw new Error('Database connection not available');
+  }
+
   try {
     if (!user) throw new BusinessLogicError('Not authenticated', 'NOT_AUTHENTICATED');
 
@@ -265,7 +281,7 @@ export const me = async (_parent: unknown, _args: unknown, { db, user }: IContex
       .from(schema.users)
       .where(eq(schema.users.id, user.id))
       .limit(1)
-      .then(rows => rows[0]);
+      .then((rows: InferSelectModel<typeof schema.users>[]) => rows[0]);
 
     if (!userData) throw new BusinessLogicError('User not found', 'USER_NOT_FOUND');
 
@@ -276,6 +292,10 @@ export const me = async (_parent: unknown, _args: unknown, { db, user }: IContex
 };
 
 export const friendships = async (parent: DbUser, _args: unknown, { db }: IContext) => {
+  if (!db) {
+    throw new Error('Database connection not available');
+  }
+
   try {
     // Fetch friendships where this user is the recipient
     const friendships = await db
@@ -285,7 +305,7 @@ export const friendships = async (parent: DbUser, _args: unknown, { db }: IConte
       .orderBy(schema.friendships.createdAt);
 
     // Map to GraphQL format
-    return friendships.map(friendship => ({
+    return friendships.map((friendship: InferSelectModel<typeof schema.friendships>) => ({
       id: friendship.id,
       status: friendship.status as FriendshipStatus,
       createdAt: friendship.createdAt,
@@ -302,6 +322,10 @@ export const friendships = async (parent: DbUser, _args: unknown, { db }: IConte
 };
 
 export const initiatedFriendships = async (parent: DbUser, _args: unknown, { db }: IContext) => {
+  if (!db) {
+    throw new Error('Database connection not available');
+  }
+
   try {
     // Fetch friendships where this user is the initiator
     const friendships = await db
@@ -312,7 +336,7 @@ export const initiatedFriendships = async (parent: DbUser, _args: unknown, { db 
 
     // Map to GraphQL format with full user data
     const friendshipsWithUsers = await Promise.all(
-      friendships.map(async friendship => {
+      friendships.map(async (friendship: InferSelectModel<typeof schema.friendships>) => {
         const [initiatorData, recipientData] = await Promise.all([
           db
             .select()
@@ -329,8 +353,8 @@ export const initiatedFriendships = async (parent: DbUser, _args: unknown, { db 
         return {
           id: friendship.id,
           status: friendship.status as FriendshipStatus,
-          createdAt: friendship.createdAt,
-          updatedAt: friendship.updatedAt,
+          createdAt: friendship.createdAt.toISOString(),
+          updatedAt: friendship.updatedAt.toISOString(),
           subscriberId: friendship.userId || '',
           userId: friendship.friendId || '',
           initiator: initiatorData[0]
@@ -341,8 +365,8 @@ export const initiatedFriendships = async (parent: DbUser, _args: unknown, { db 
                 imageUrl: initiatorData[0].imageUrl,
                 firstName: initiatorData[0].firstName,
                 lastName: initiatorData[0].lastName,
-                createdAt: initiatorData[0].createdAt,
-                updatedAt: initiatorData[0].updatedAt,
+                createdAt: initiatorData[0].createdAt.toISOString(),
+                updatedAt: initiatorData[0].updatedAt.toISOString(),
               }
             : null,
           recipient: recipientData[0]
@@ -353,8 +377,8 @@ export const initiatedFriendships = async (parent: DbUser, _args: unknown, { db 
                 imageUrl: recipientData[0].imageUrl,
                 firstName: recipientData[0].firstName,
                 lastName: recipientData[0].lastName,
-                createdAt: recipientData[0].createdAt,
-                updatedAt: recipientData[0].updatedAt,
+                createdAt: recipientData[0].createdAt.toISOString(),
+                updatedAt: recipientData[0].updatedAt.toISOString(),
               }
             : null,
         };

@@ -3,30 +3,32 @@ import * as dotenvFlow from 'dotenv-flow';
 import { logger } from '@lib/core/logger';
 import { buildEnvSchema } from '@src/lib/validations/env';
 
+import { parseScriptArgs } from '../shared/script-utils';
+
 function verifyEnvironment() {
-  const nodeEnv = process.env.NODE_ENV || 'development';
-  const isProduction = nodeEnv === 'production';
-  const isVercel = process.env.VERCEL === '1';
-
-  logger.info(`\n🔍 Verifying environment variables for ${nodeEnv} environment...`);
-  if (isVercel) {
-    logger.info('🚀 Detected Vercel deployment - using build-time validation');
-  }
-
-  // Only try to load .env files in non-production environments
-  if (!isProduction) {
-    const result = dotenvFlow.config({
-      path: process.cwd(),
-      node_env: nodeEnv,
-    });
-
-    if (result.error) {
-      logger.error(`Failed to load environment: ${result.error.message}`);
-      return false;
-    }
-  }
-
   try {
+    const options = parseScriptArgs();
+    const nodeEnv = options.environment || 'development';
+    const isProduction = nodeEnv === 'production';
+    const isVercel = process.env.VERCEL === '1';
+
+    logger.info(`\n🔍 Verifying environment variables for ${nodeEnv} environment...`);
+    if (isVercel) {
+      logger.info('🚀 Detected Vercel deployment - using build-time validation');
+    }
+
+    // Only try to load .env files in non-production environments
+    if (!isProduction) {
+      const result = dotenvFlow.config({
+        path: process.cwd(),
+        node_env: nodeEnv,
+      });
+
+      if (result.error) {
+        throw new Error(`Failed to load environment: ${result.error.message}`);
+      }
+    }
+
     // Use build-time schema for validation (less strict)
     const env = buildEnvSchema.parse(process.env);
     logger.info('✅ All required build-time environment variables are present and valid');
@@ -72,7 +74,12 @@ function verifyEnvironment() {
     return true;
   } catch (error) {
     if (error instanceof Error) {
-      logger.error(`❌ Environment validation failed: ${error.message}`);
+      logger.error('❌ Environment validation failed:', error.message);
+      if (error.stack) {
+        logger.error(error.stack);
+      }
+    } else {
+      logger.error('❌ Environment validation failed:', String(error));
     }
     return false;
   }
