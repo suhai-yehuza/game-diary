@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import React, { useState, useEffect, useRef } from 'react';
 
 import { NotificationCenter } from '@src/app/protected/user/components/notifications';
-import type { INavItem } from '@src/lib/types/component.types';
+import type { INavItem } from '@src/lib/types';
 
 const navItems: INavItem[] = [
   {

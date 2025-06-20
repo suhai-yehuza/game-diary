@@ -77,13 +77,13 @@ function SearchBarContent() {
 
   // For detaching effect
   const baseFormClass =
-    'relative max-w-[180px] md:max-w-[220px] h-8 bg-background border border-[#27272a] shadow flex items-center px-2 transition-all duration-200 text-sm';
+    'relative max-w-[180px] md:max-w-[220px] h-8 bg-[hsl(var(--background))] border border-[#27272a] shadow flex items-center px-2 transition-all duration-200 text-sm';
   if (isFocused) {
     return (
       <div className="fixed inset-0 z-[100] bg-black/70 flex items-start justify-center pt-[12vh] animate-fadeIn">
         <form
           onSubmit={handleSearch}
-          className="w-[300px] md:w-[400px] h-12 bg-background border border-[#27272a] shadow-2xl flex items-center px-4 py-2 rounded-md relative"
+          className="w-[300px] md:w-[400px] h-12 bg-[hsl(var(--background))] border border-[#27272a] shadow-2xl flex items-center px-4 py-2 rounded-md relative"
           tabIndex={-1}
         >
           <div className="relative flex-1">
@@ -222,7 +222,7 @@ export default function Header() {
 
                 {/* Navigation Links */}
                 <div
-                  className={`${!isMenuExpanded ? 'hidden' : 'block'} lg:block absolute lg:relative top-16 left-0 right-0 lg:top-0 bg-background lg:bg-transparent z-50 shadow-lg lg:shadow-none`}
+                  className={`${!isMenuExpanded ? 'hidden' : 'block'} lg:block absolute lg:relative top-16 left-0 right-0 lg:top-0 bg-[hsl(var(--background))] lg:bg-transparent z-50 shadow-lg lg:shadow-none`}
                 >
                   <ul className="flex flex-col lg:flex-row space-y-2 lg:space-y-0 lg:space-x-20 2xl:space-x-24 p-4 lg:p-0 text-sm font-medium">
                     {/* Brand & Dashboard Group */}
@@ -374,7 +374,7 @@ export default function Header() {
                     onClick={() => setIsSearchVisible(false)}
                   >
                     <div
-                      className="mt-8 w-full max-w-md bg-background rounded-full border border-[#27272a] shadow-lg flex items-center px-4 py-2 relative"
+                      className="mt-8 w-full max-w-md bg-[hsl(var(--background))] rounded-full border border-[#27272a] shadow-lg flex items-center px-4 py-2 relative"
                       onClick={e => e.stopPropagation()}
                     >
                       <SearchBar />
