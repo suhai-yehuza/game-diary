@@ -169,7 +169,9 @@ export class OptimizedAPIClient {
       return;
     }
 
-    logger.info(`Bulk inserting ${data.length} ${operation} records in batches of ${batchSize}`);
+    logger.info(
+      `Bulk inserting ${data.length} ${operation} records in batches of ${batchSize} with conflict handling`
+    );
 
     for (let i = 0; i < data.length; i += batchSize) {
       const batch = data.slice(i, i + batchSize);
@@ -187,20 +189,77 @@ export class OptimizedAPIClient {
           if (typeof tableName === 'string' && tableName === 'nba_players') {
             // Process each player individually to properly handle seasonsActive
             for (const player of batch) {
-              // Simplified insert without complex upsert logic
-              await this.db.insert(table).values(player);
+              try {
+                const playerRecord = player as InferInsertModel<T> & Record<string, unknown>;
+                await this.db
+                  .insert(table)
+                  .values(player)
+                  .onConflictDoUpdate({
+                    target: conflictTarget,
+                    set: {
+                      updatedAt: new Date(),
+                      // Only update non-critical fields on conflict
+                      active: playerRecord.active,
+                      jersey: playerRecord.jersey,
+                      seasonsActive: playerRecord.seasonsActive,
+                    } as Partial<InferInsertModel<T>>,
+                  });
+              } catch (playerError) {
+                const playerRecord = player as InferInsertModel<T> & Record<string, unknown>;
+                logger.warn(
+                  `Failed to insert/update player ${playerRecord.id || 'unknown'}, trying insert with ignore:`,
+                  playerError
+                );
+                try {
+                  await this.db
+                    .insert(table)
+                    .values(player)
+                    .onConflictDoNothing({ target: conflictTarget });
+                } catch (ignoreError) {
+                  logger.error(
+                    `Failed to insert player ${playerRecord.id || 'unknown'} even with ignore:`,
+                    ignoreError
+                  );
+                }
+              }
             }
           } else {
-            // For other camelCase tables, use standard insert
-            await this.db.insert(table).values(batch);
+            // For other camelCase tables, use insert with conflict ignore
+            await this.db
+              .insert(table)
+              .values(batch)
+              .onConflictDoNothing({ target: conflictTarget });
           }
         } else {
-          // For other tables, use standard insert
-          await this.db.insert(table).values(batch);
+          // For regular tables, use insert with conflict ignore
+          await this.db.insert(table).values(batch).onConflictDoNothing({ target: conflictTarget });
         }
+
+        logger.info(
+          `Successfully processed batch ${Math.floor(i / batchSize) + 1} for ${operation}`
+        );
       } catch (error) {
-        logger.error(`Error inserting batch ${i / batchSize + 1}:`, error);
-        throw error;
+        logger.error(
+          `Error inserting batch ${Math.floor(i / batchSize) + 1} for ${operation}:`,
+          error
+        );
+
+        // Fallback: try individual inserts with conflict handling
+        logger.info(`Attempting individual inserts for batch ${Math.floor(i / batchSize) + 1}...`);
+        for (const item of batch) {
+          try {
+            await this.db
+              .insert(table)
+              .values([item])
+              .onConflictDoNothing({ target: conflictTarget });
+          } catch (individualError) {
+            const itemRecord = item as InferInsertModel<T> & Record<string, unknown>;
+            logger.warn(`Failed to insert individual item in ${operation}:`, {
+              item: itemRecord.id || 'unknown',
+              error: individualError,
+            });
+          }
+        }
       }
     }
   }

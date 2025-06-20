@@ -275,8 +275,8 @@ export function createLoaders() {
     results.forEach(player => {
       playerMap.set(player.id, {
         id: player.id,
-        firstName: player.firstName,
-        lastName: player.lastName,
+        firstName: player.firstName || '',
+        lastName: player.lastName || '',
         active: player.active || false,
         position: player.pos || '',
         jerseyNumber: player.jersey || '',
