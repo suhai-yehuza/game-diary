@@ -77,13 +77,13 @@ function SearchBarContent() {
 
   // For detaching effect
   const baseFormClass =
-    'relative max-w-[180px] md:max-w-[220px] h-8 bg-[hsl(var(--background))] border border-[#27272a] shadow flex items-center px-2 transition-all duration-200 text-sm';
+    'relative max-w-[180px] md:max-w-[220px] h-8 bg-background border border-[#27272a] shadow flex items-center px-2 transition-all duration-200 text-sm rounded-none';
   if (isFocused) {
     return (
       <div className="fixed inset-0 z-[100] bg-black/70 flex items-start justify-center pt-[12vh] animate-fadeIn">
         <form
           onSubmit={handleSearch}
-          className="w-[300px] md:w-[400px] h-12 bg-[hsl(var(--background))] border border-[#27272a] shadow-2xl flex items-center px-4 py-2 rounded-md relative"
+          className="w-[300px] md:w-[400px] h-12 flex items-center px-4 py-2 relative"
           tabIndex={-1}
         >
           <div className="relative flex-1">
@@ -93,7 +93,7 @@ function SearchBarContent() {
               placeholder={
                 pathname?.startsWith('/protected/admin') ? 'Search users...' : 'Search games...'
               }
-              className="pl-8 w-full h-8 md:h-10 text-base bg-transparent border-none focus:ring-0 outline-none transition-all duration-200"
+              className="pl-8 pr-8 w-full h-8 md:h-10 text-base bg-transparent border-none focus:ring-0 outline-none transition-all duration-200 rounded-none"
               value={search_query}
               onChange={handleSearchChange}
               onFocus={() => setIsFocused(true)}
@@ -104,18 +104,18 @@ function SearchBarContent() {
                 if (isFocused && input) input.focus();
               }}
             />
+            <button
+              type="button"
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
+              aria-label="Close search"
+              onMouseDown={e => {
+                e.preventDefault();
+                setIsFocused(false);
+              }}
+            >
+              <X className="h-4 w-4" />
+            </button>
           </div>
-          <button
-            type="button"
-            className="ml-2 text-gray-400 hover:text-gray-600 focus:outline-none"
-            aria-label="Close search"
-            onMouseDown={e => {
-              e.preventDefault();
-              setIsFocused(false);
-            }}
-          >
-            <X className="h-5 w-5" />
-          </button>
         </form>
       </div>
     );
@@ -129,7 +129,7 @@ function SearchBarContent() {
           placeholder={
             pathname?.startsWith('/protected/admin') ? 'Search users...' : 'Search games...'
           }
-          className="pl-8 w-full h-8 text-sm bg-transparent border-none focus:ring-0 outline-none transition-all duration-200"
+          className="pl-8 w-full h-8 text-sm bg-transparent border-none focus:ring-0 outline-none transition-all duration-200 rounded-none"
           value={search_query}
           onChange={handleSearchChange}
           onFocus={() => setIsFocused(true)}
@@ -222,7 +222,7 @@ export default function Header() {
 
                 {/* Navigation Links */}
                 <div
-                  className={`${!isMenuExpanded ? 'hidden' : 'block'} lg:block absolute lg:relative top-16 left-0 right-0 lg:top-0 bg-[hsl(var(--background))] lg:bg-transparent z-50 shadow-lg lg:shadow-none`}
+                  className={`${!isMenuExpanded ? 'hidden' : 'block'} lg:block absolute lg:relative top-16 left-0 right-0 lg:top-0 bg-background lg:bg-transparent z-50 shadow-lg lg:shadow-none`}
                 >
                   <ul className="flex flex-col lg:flex-row space-y-2 lg:space-y-0 lg:space-x-20 2xl:space-x-24 p-4 lg:p-0 text-sm font-medium">
                     {/* Brand & Dashboard Group */}
@@ -232,7 +232,7 @@ export default function Header() {
                         className={`block py-1.5 lg:py-0 text-base lg:text-sm transition-colors whitespace-nowrap ${
                           isActive('/dashboard')
                             ? 'text-blue-600 font-semibold'
-                            : 'hover:text-blue-600'
+                            : 'text-muted-foreground hover:text-blue-600'
                         }`}
                         onClick={() => setIsMenuExpanded(false)}
                       >
@@ -249,7 +249,7 @@ export default function Header() {
                           className={`block py-1.5 lg:py-0 text-base lg:text-sm transition-colors whitespace-nowrap ${
                             isActive('/sports/nba')
                               ? 'text-blue-600 font-semibold'
-                              : 'hover:text-blue-600'
+                              : 'text-muted-foreground hover:text-blue-600'
                           }`}
                           onClick={() => setIsMenuExpanded(false)}
                         >
@@ -260,7 +260,7 @@ export default function Header() {
                           className={`block py-1.5 lg:py-0 text-base lg:text-sm transition-colors whitespace-nowrap ${
                             isActive('/sports/nfl')
                               ? 'text-blue-600 font-semibold'
-                              : 'hover:text-blue-600'
+                              : 'text-muted-foreground hover:text-blue-600'
                           }`}
                           onClick={() => setIsMenuExpanded(false)}
                         >
@@ -271,7 +271,7 @@ export default function Header() {
                           className={`block py-1.5 lg:py-0 text-base lg:text-sm transition-colors whitespace-nowrap ${
                             isActive('/sports/mlb')
                               ? 'text-blue-600 font-semibold'
-                              : 'hover:text-blue-600'
+                              : 'text-muted-foreground hover:text-blue-600'
                           }`}
                           onClick={() => setIsMenuExpanded(false)}
                         >
@@ -282,7 +282,7 @@ export default function Header() {
                           className={`block py-1.5 lg:py-0 text-base lg:text-sm transition-colors whitespace-nowrap ${
                             isActive('/sports/nhl')
                               ? 'text-blue-600 font-semibold'
-                              : 'hover:text-blue-600'
+                              : 'text-muted-foreground hover:text-blue-600'
                           }`}
                           onClick={() => setIsMenuExpanded(false)}
                         >
@@ -293,7 +293,7 @@ export default function Header() {
                           className={`block py-1.5 lg:py-0 text-base lg:text-sm transition-colors whitespace-nowrap ${
                             isActive('/sports/mls')
                               ? 'text-blue-600 font-semibold'
-                              : 'hover:text-blue-600'
+                              : 'text-muted-foreground hover:text-blue-600'
                           }`}
                           onClick={() => setIsMenuExpanded(false)}
                         >
@@ -374,7 +374,7 @@ export default function Header() {
                     onClick={() => setIsSearchVisible(false)}
                   >
                     <div
-                      className="mt-8 w-full max-w-md bg-[hsl(var(--background))] rounded-full border border-[#27272a] shadow-lg flex items-center px-4 py-2 relative"
+                      className="mt-8 w-full max-w-md bg-background rounded-full border border-[#27272a] shadow-lg flex items-center px-4 py-2 relative"
                       onClick={e => e.stopPropagation()}
                     >
                       <SearchBar />
