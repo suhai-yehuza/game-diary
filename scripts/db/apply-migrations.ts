@@ -327,16 +327,15 @@ ${migrations.map(m => `  - ${m.name}`).join('\n')}`);
           logger.info(`      ➖ Triggers removed: ${removed.triggers.join(', ')}`);
         }
 
-        // Record successful migration
+        // Record successful migration (without verification column for now)
         await db.execute(sql`
-          INSERT INTO migration_versions (name, checksum, execution_time_ms, status, verification)
-          VALUES (${migration.name}, ${migration.checksum}, ${executionTime}, 'success', ${JSON.stringify({ added, removed })})
+          INSERT INTO migration_versions (name, checksum, execution_time_ms, status)
+          VALUES (${migration.name}, ${migration.checksum}, ${executionTime}, 'success')
           ON CONFLICT (name) DO UPDATE
           SET checksum = ${migration.checksum},
               execution_time_ms = ${executionTime},
               status = 'success',
               error_message = NULL,
-              verification = ${JSON.stringify({ added, removed })},
               executed_at = CURRENT_TIMESTAMP;
         `);
 

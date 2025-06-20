@@ -1,5 +1,5 @@
 {
-  "id": "16b65241-4b36-459b-abc0-f54d1394fb83",
+  "id": "d22b3c3d-e856-47fd-a2c2-1db0a9ccafff",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -13,7 +13,7 @@
           "type": "varchar(255)",
           "primaryKey": true,
           "notNull": true,
-          "default": "'01978ac4-a021-753b-bbbe-62f21cad2d72'"
+          "default": "'01978c09-627e-744d-ac4e-2381750662fd'"
         },
         "userId": {
           "name": "userId",
@@ -88,7 +88,7 @@
           "type": "varchar(255)",
           "primaryKey": true,
           "notNull": true,
-          "default": "'01978ac4-a021-753b-bbbe-5c202a306f44'"
+          "default": "'01978c09-627e-744d-ac4e-1f866ab39942'"
         },
         "friendId": {
           "name": "friendId",
@@ -173,7 +173,7 @@
           "type": "varchar(255)",
           "primaryKey": true,
           "notNull": true,
-          "default": "'01978ac4-a021-753b-bbbe-6cf318258ad9'"
+          "default": "'01978c09-627f-7425-bea6-5abb5526fe6c'"
         },
         "userId": {
           "name": "userId",
@@ -304,7 +304,7 @@
           "type": "varchar(255)",
           "primaryKey": true,
           "notNull": true,
-          "default": "'01978ac4-a021-753b-bbbe-71d7f89fa9b7'"
+          "default": "'01978c09-627f-7425-bea6-5ed5f3a74f5b'"
         },
         "gameId": {
           "name": "gameId",
@@ -381,7 +381,7 @@
           "type": "varchar(255)",
           "primaryKey": true,
           "notNull": true,
-          "default": "'01978ac4-a01e-779f-a202-e18b632bdb5a'"
+          "default": "'01978c09-627c-77fc-bfe6-8c062f46a073'"
         },
         "gameId": {
           "name": "gameId",
@@ -819,7 +819,7 @@
           "type": "varchar(255)",
           "primaryKey": true,
           "notNull": true,
-          "default": "'01978ac4-a021-753b-bbbe-6941f65bc93d'"
+          "default": "'01978c09-627f-7425-bea6-5793d4935c38'"
         },
         "gameType": {
           "name": "gameType",
@@ -937,7 +937,7 @@
           "type": "text",
           "primaryKey": true,
           "notNull": true,
-          "default": "'01978ac4-a01e-779f-a202-d816d0b9bdb0'"
+          "default": "'01978c09-627b-7386-b90e-f50395b882e0'"
         },
         "league": {
           "name": "league",
@@ -1231,7 +1231,7 @@
           "name": "firstName",
           "type": "varchar(255)",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "lastName": {
           "name": "lastName",
@@ -1432,7 +1432,7 @@
           "type": "varchar(255)",
           "primaryKey": true,
           "notNull": true,
-          "default": "'01978ac4-a021-753b-bbbe-65446797ac6a'"
+          "default": "'01978c09-627f-7425-bea6-5101284e4955'"
         },
         "userId": {
           "name": "userId",
@@ -1591,7 +1591,7 @@
           "type": "varchar(255)",
           "primaryKey": true,
           "notNull": true,
-          "default": "'01978ac4-a01e-779f-a202-de4a83730241'"
+          "default": "'01978c09-627c-77fc-bfe6-8a0bb6b6f523'"
         },
         "team1Id": {
           "name": "team1Id",
@@ -1797,7 +1797,7 @@
           "type": "varchar(255)",
           "primaryKey": true,
           "notNull": true,
-          "default": "'01978ac4-a021-753b-bbbe-5a85b3e3f648'"
+          "default": "'01978c09-627e-744d-ac4e-191c903fa08e'"
         },
         "username": {
           "name": "username",

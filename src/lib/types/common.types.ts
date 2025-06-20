@@ -84,10 +84,24 @@ export interface IMigration {
 }
 
 export interface IMigrationVerification {
+  version: string;
+  isValid: boolean;
   tables?: string[];
   functions?: string[];
   triggers?: string[];
   indexes?: string[];
+  added?: {
+    tables?: string[];
+    functions?: string[];
+    triggers?: string[];
+    indexes?: string[];
+  };
+  removed?: {
+    tables?: string[];
+    functions?: string[];
+    triggers?: string[];
+    indexes?: string[];
+  };
 }
 
 export interface IMigrationVersion {

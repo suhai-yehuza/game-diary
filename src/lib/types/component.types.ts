@@ -4,7 +4,7 @@ import type DataLoader from 'dataloader';
 import type { NeonHttpDatabase } from 'drizzle-orm/neon-http';
 import type { ReactNode } from 'react';
 
-import { Cache } from '@src/lib/cache';
+import type { Cache } from '@src/lib/cache';
 import type * as schema from '@src/lib/db/schema';
 import type { IExtendedGame } from '@src/lib/types';
 import type { IChartData } from '@src/lib/types/chart';

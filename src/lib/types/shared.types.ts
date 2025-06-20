@@ -6,7 +6,6 @@ import type { InferSelectModel } from 'drizzle-orm';
 import type * as React from 'react';
 
 import type { nba_games } from '@src/lib/db/schema/nba-schemas';
-import type { IGameRating } from '@src/lib/types/game-log.types';
 import type {
   Classification,
   DbUser,
@@ -30,7 +29,7 @@ export interface ILoaders {
   reaction: DataLoader<string, Reaction | null>;
   friendship: DataLoader<string, Friendship | null>;
   player: DataLoader<string, IDBPlayer | null>;
-  gameRating: DataLoader<string, IGameRating | null>;
+  gameRating: DataLoader<string, unknown | null>;
   team: DataLoader<string, Team | null>;
 }
 

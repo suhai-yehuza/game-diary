@@ -1,7 +1,7 @@
 import { type VariantProps } from 'class-variance-authority';
 import { type NeonHttpDatabase } from 'drizzle-orm/neon-http';
 
-import { badgeVariants } from '@src/app/components/ui/badge';
+import type { badgeVariants } from '@src/app/components/ui/badge';
 import type { baseTableConfig } from '@src/lib/db/schema/base-types';
 import type {
   gameStatusEnum,
@@ -136,7 +136,7 @@ export interface IOutdatedPackage extends IPackage {
 
 // From lib/core/logger.ts, line 7
 export interface ILoggerConfig {
-  level: import('@lib/core/logger').LogLevel;
+  level: import('@src/lib/types').LogLevel;
   enableTimestamp: boolean;
   enableColors: boolean;
   prefix?: string;

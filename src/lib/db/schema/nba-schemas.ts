@@ -148,7 +148,7 @@ export const seasons = pgTable('seasons', {
 // NBA Players table
 export const nba_players = pgTable('nba_players', {
   id: varchar('id', { length: 255 }).primaryKey(),
-  firstName: varchar('firstName', { length: 255 }).notNull(),
+  firstName: varchar('firstName', { length: 255 }),
   lastName: varchar('lastName', { length: 255 }).notNull(),
   birth: jsonb('birth'),
   nba: jsonb('nba'),

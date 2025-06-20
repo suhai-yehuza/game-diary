@@ -185,6 +185,7 @@ pnpm db:migrate:prod     # Run migrations in production
   --batchSize=10 \
   --concurrency=10 \
   --resetDb=false \
+  --seasons=2024 \
   --skipExternalDb=true \
   --skipApplicationDb=false \
   --enableMonitoring=true \

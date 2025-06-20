@@ -1,5 +1,5 @@
 CREATE TABLE "comments" (
-	"id" varchar(255) PRIMARY KEY DEFAULT '01978ac4-a021-753b-bbbe-62f21cad2d72' NOT NULL,
+	"id" varchar(255) PRIMARY KEY DEFAULT '01978c09-627e-744d-ac4e-2381750662fd' NOT NULL,
 	"userId" varchar(255),
 	"parentId" varchar(255) NOT NULL,
 	"parentType" varchar(50) NOT NULL,
@@ -10,7 +10,7 @@ CREATE TABLE "comments" (
 );
 --> statement-breakpoint
 CREATE TABLE "friendships" (
-	"id" varchar(255) PRIMARY KEY DEFAULT '01978ac4-a021-753b-bbbe-5c202a306f44' NOT NULL,
+	"id" varchar(255) PRIMARY KEY DEFAULT '01978c09-627e-744d-ac4e-1f866ab39942' NOT NULL,
 	"friendId" varchar(255),
 	"userId" varchar(255),
 	"status" varchar(50) DEFAULT 'Pending' NOT NULL,
@@ -21,7 +21,7 @@ CREATE TABLE "friendships" (
 );
 --> statement-breakpoint
 CREATE TABLE "game_logs" (
-	"id" varchar(255) PRIMARY KEY DEFAULT '01978ac4-a021-753b-bbbe-6cf318258ad9' NOT NULL,
+	"id" varchar(255) PRIMARY KEY DEFAULT '01978c09-627f-7425-bea6-5abb5526fe6c' NOT NULL,
 	"userId" varchar(255),
 	"gameId" varchar(255) NOT NULL,
 	"classification" varchar(50) DEFAULT 'Protected' NOT NULL,
@@ -39,7 +39,7 @@ CREATE TABLE "game_logs" (
 );
 --> statement-breakpoint
 CREATE TABLE "game_ratings" (
-	"id" varchar(255) PRIMARY KEY DEFAULT '01978ac4-a021-753b-bbbe-71d7f89fa9b7' NOT NULL,
+	"id" varchar(255) PRIMARY KEY DEFAULT '01978c09-627f-7425-bea6-5ed5f3a74f5b' NOT NULL,
 	"gameId" varchar(255) NOT NULL,
 	"averageRating" numeric(3, 2) DEFAULT '0.00' NOT NULL,
 	"totalRatings" integer DEFAULT 0 NOT NULL,
@@ -50,7 +50,7 @@ CREATE TABLE "game_ratings" (
 );
 --> statement-breakpoint
 CREATE TABLE "game_stats" (
-	"id" varchar(255) PRIMARY KEY DEFAULT '01978ac4-a01e-779f-a202-e18b632bdb5a' NOT NULL,
+	"id" varchar(255) PRIMARY KEY DEFAULT '01978c09-627c-77fc-bfe6-8c062f46a073' NOT NULL,
 	"gameId" varchar(255) NOT NULL,
 	"seasonId" integer NOT NULL,
 	"homeTeamId" varchar(255) NOT NULL,
@@ -117,7 +117,7 @@ CREATE TABLE "game_stats" (
 );
 --> statement-breakpoint
 CREATE TABLE "games" (
-	"id" varchar(255) PRIMARY KEY DEFAULT '01978ac4-a021-753b-bbbe-6941f65bc93d' NOT NULL,
+	"id" varchar(255) PRIMARY KEY DEFAULT '01978c09-627f-7425-bea6-5793d4935c38' NOT NULL,
 	"gameType" varchar(50) DEFAULT 'nba' NOT NULL,
 	"nbaGameId" varchar(255),
 	"date" timestamp NOT NULL,
@@ -132,7 +132,7 @@ CREATE TABLE "games" (
 );
 --> statement-breakpoint
 CREATE TABLE "nba_games" (
-	"id" text PRIMARY KEY DEFAULT '01978ac4-a01e-779f-a202-d816d0b9bdb0' NOT NULL,
+	"id" text PRIMARY KEY DEFAULT '01978c09-627b-7386-b90e-f50395b882e0' NOT NULL,
 	"league" text NOT NULL,
 	"season" integer NOT NULL,
 	"date" jsonb,
@@ -177,7 +177,7 @@ CREATE TABLE "nba_player_stats" (
 --> statement-breakpoint
 CREATE TABLE "nba_players" (
 	"id" varchar(255) PRIMARY KEY NOT NULL,
-	"firstName" varchar(255) NOT NULL,
+	"firstName" varchar(255),
 	"lastName" varchar(255) NOT NULL,
 	"birth" jsonb,
 	"nba" jsonb,
@@ -209,7 +209,7 @@ CREATE TABLE "notifications" (
 );
 --> statement-breakpoint
 CREATE TABLE "reactions" (
-	"id" varchar(255) PRIMARY KEY DEFAULT '01978ac4-a021-753b-bbbe-65446797ac6a' NOT NULL,
+	"id" varchar(255) PRIMARY KEY DEFAULT '01978c09-627f-7425-bea6-5101284e4955' NOT NULL,
 	"userId" varchar(255),
 	"targetType" varchar(50) NOT NULL,
 	"targetId" varchar(255) NOT NULL,
@@ -234,7 +234,7 @@ CREATE TABLE "seasons" (
 );
 --> statement-breakpoint
 CREATE TABLE "team_h2h" (
-	"id" varchar(255) PRIMARY KEY DEFAULT '01978ac4-a01e-779f-a202-de4a83730241' NOT NULL,
+	"id" varchar(255) PRIMARY KEY DEFAULT '01978c09-627c-77fc-bfe6-8a0bb6b6f523' NOT NULL,
 	"team1Id" varchar(255) NOT NULL,
 	"team2Id" varchar(255) NOT NULL,
 	"season" integer NOT NULL,
@@ -266,7 +266,7 @@ CREATE TABLE "teams" (
 );
 --> statement-breakpoint
 CREATE TABLE "users" (
-	"id" varchar(255) PRIMARY KEY DEFAULT '01978ac4-a021-753b-bbbe-5a85b3e3f648' NOT NULL,
+	"id" varchar(255) PRIMARY KEY DEFAULT '01978c09-627e-744d-ac4e-191c903fa08e' NOT NULL,
 	"username" varchar(255) NOT NULL,
 	"firstName" varchar(255) NOT NULL,
 	"lastName" varchar(255) NOT NULL,

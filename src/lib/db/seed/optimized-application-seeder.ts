@@ -65,56 +65,50 @@ async function* generateUsersStream(
   }
 }
 
-// Optimized friendship generator
-async function* generateFriendshipsStream(
-  userStream: AsyncGenerator<UserInsert, void, unknown>
+// Optimized friendship generator from existing users
+async function* generateFriendshipsFromUsers(
+  insertedUsers: UserInsert[]
 ): AsyncGenerator<FriendshipInsert, void, unknown> {
-  const userChunks: UserInsert[][] = [];
-  let currentChunk: UserInsert[] = [];
-
-  // Collect users into chunks
-  for await (const user of userStream) {
-    currentChunk.push(user);
-    if (currentChunk.length >= 100) {
-      userChunks.push(currentChunk);
-      currentChunk = [];
-    }
-  }
-  if (currentChunk.length > 0) {
-    userChunks.push(currentChunk);
+  if (insertedUsers.length === 0) {
+    seedLogger.warn('No users provided for friendship generation');
+    return;
   }
 
-  for (const userChunk of userChunks) {
-    for (const user of userChunk) {
-      if (Math.random() >= 0.1) continue; // Only process 10% of users
+  // Only process a small percentage of users to create friendships
+  const usersToProcess = insertedUsers.filter(() => Math.random() < 0.05); // 5% of users
 
-      const friendshipCount = API_CONFIG.ranges.FRIENDSHIP_RANGE.getRandom();
-      const potentialFriends = userChunk.filter(u => u.id !== user.id);
-      const selectedFriends = faker.helpers.arrayElements(
-        potentialFriends,
-        Math.min(friendshipCount, potentialFriends.length)
-      );
+  for (const user of usersToProcess) {
+    // Limit friendships to a realistic number
+    const friendshipCount = Math.min(
+      faker.number.int({ min: 1, max: 10 }), // Max 10 friends per user
+      insertedUsers.length - 1
+    );
 
-      for (const friend of selectedFriends) {
-        yield {
-          id: generateUUID(),
-          friendId: user.id,
-          userId: friend.id,
-          status: faker.helpers.arrayElement(
-            Object.values(FRIENDSHIP_STATUS)
-          ) as IFriendshipStatusValue,
-          createdAt: faker.date.past(),
-          updatedAt: faker.date.recent(),
-        };
-      }
+    // Select random friends from the inserted users (excluding self)
+    const potentialFriends = insertedUsers.filter(u => u.id !== user.id);
+    const selectedFriends = faker.helpers.arrayElements(
+      potentialFriends,
+      Math.min(friendshipCount, potentialFriends.length)
+    );
+
+    for (const friend of selectedFriends) {
+      yield {
+        id: generateUUID(),
+        friendId: user.id,
+        userId: friend.id,
+        status: faker.helpers.arrayElement(
+          Object.values(FRIENDSHIP_STATUS)
+        ) as IFriendshipStatusValue,
+        createdAt: faker.date.past(),
+        updatedAt: faker.date.recent(),
+      };
     }
-    await new Promise(resolve => setImmediate(resolve));
   }
 }
 
-// Optimized game logs generator
-async function* generateGameLogsStream(
-  userStream: AsyncGenerator<UserInsert, void, unknown>,
+// Optimized game logs generator from existing users
+async function* generateGameLogsFromUsers(
+  insertedUsers: UserInsert[],
   db: NeonHttpDatabase<typeof schema>
 ): AsyncGenerator<GameLogInsert, void, unknown> {
   const latestSeasonGames = await db
@@ -125,6 +119,11 @@ async function* generateGameLogsStream(
 
   if (latestSeasonGames.length === 0) {
     seedLogger.warn('No games found in the latest season');
+    return;
+  }
+
+  if (insertedUsers.length === 0) {
+    seedLogger.warn('No users provided for game log generation');
     return;
   }
 
@@ -142,13 +141,16 @@ async function* generateGameLogsStream(
   );
 
   const gameRatings = new Map<string, { total: number; count: number }>();
-  let processedUsers = 0;
-  const targetUserCount = API_CONFIG.databaseSeeding.DEFAULT_SAMPLE_COUNT;
 
-  for await (const user of userStream) {
-    if (++processedUsers > targetUserCount) break;
+  // Process a subset of users to create game logs
+  const usersToProcess = insertedUsers.slice(0, Math.min(100, insertedUsers.length)); // Limit to 100 users
 
-    const gameLogCount = API_CONFIG.ranges.GAME_LOG_RANGE.getRandom();
+  for (const user of usersToProcess) {
+    const gameLogCount = Math.min(
+      faker.number.int({ min: 1, max: 20 }), // Max 20 game logs per user
+      currentSeasonGames.length
+    );
+
     const selectedGames = faker.helpers.arrayElements(
       currentSeasonGames,
       Math.min(gameLogCount, currentSeasonGames.length)
@@ -210,34 +212,55 @@ export async function seedOptimizedApplicationData(
     }
     await db.insert(users).values(usersArray);
 
-    // Generate and insert friendships
-    const friendshipStream = generateFriendshipsStream(
-      generateUsersStream(
-        API_CONFIG.databaseSeeding.DEFAULT_SAMPLE_COUNT,
-        existingEmails,
-        skipUsers
-      )
-    );
-    const friendshipsArray = [];
+    // Generate and insert friendships in batches using the SAME users that were inserted
+    const friendshipStream = generateFriendshipsFromUsers(usersArray);
+
+    const FRIENDSHIP_BATCH_SIZE = 300; // Safe batch size
+    let friendshipsArray = [];
+    let batchCount = 0;
+
     for await (const friendship of friendshipStream) {
       friendshipsArray.push(friendship);
-    }
-    await db.insert(friendships).values(friendshipsArray);
 
-    // Generate and insert game logs
-    const gameLogStream = generateGameLogsStream(
-      generateUsersStream(
-        API_CONFIG.databaseSeeding.DEFAULT_SAMPLE_COUNT,
-        existingEmails,
-        skipUsers
-      ),
-      db
-    );
-    const gameLogsArray = [];
+      if (friendshipsArray.length >= FRIENDSHIP_BATCH_SIZE) {
+        await db.insert(friendships).values(friendshipsArray);
+        seedLogger.info(
+          `Inserted friendship batch ${++batchCount} (${friendshipsArray.length} records)`
+        );
+        friendshipsArray = [];
+      }
+    }
+
+    // Insert remaining friendships
+    if (friendshipsArray.length > 0) {
+      await db.insert(friendships).values(friendshipsArray);
+      seedLogger.info(`Inserted final friendship batch (${friendshipsArray.length} records)`);
+    }
+
+    // Generate and insert game logs in batches using the SAME users that were inserted
+    const gameLogStream = generateGameLogsFromUsers(usersArray, db);
+
+    const GAME_LOG_BATCH_SIZE = 100; // Safe batch size for game logs
+    let gameLogsArray = [];
+    let gameLogBatchCount = 0;
+
     for await (const gameLog of gameLogStream) {
       gameLogsArray.push(gameLog);
+
+      if (gameLogsArray.length >= GAME_LOG_BATCH_SIZE) {
+        await db.insert(game_logs).values(gameLogsArray);
+        seedLogger.info(
+          `Inserted game log batch ${++gameLogBatchCount} (${gameLogsArray.length} records)`
+        );
+        gameLogsArray = [];
+      }
     }
-    await db.insert(game_logs).values(gameLogsArray);
+
+    // Insert remaining game logs
+    if (gameLogsArray.length > 0) {
+      await db.insert(game_logs).values(gameLogsArray);
+      seedLogger.info(`Inserted final game log batch (${gameLogsArray.length} records)`);
+    }
 
     seedLogger.info('Successfully seeded application data');
   } catch (error) {
