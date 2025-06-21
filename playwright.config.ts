@@ -8,7 +8,7 @@ export default defineConfig({
   /* Global test timeout */
   timeout: 45000,
   /* Run tests in files in parallel */
-  fullyParallel: true,
+  fullyParallel: false,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
   forbidOnly: !!process.env.CI,
   /* Retry on CI only */
@@ -22,14 +22,20 @@ export default defineConfig({
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
+      fullyParallel: false,
+      workers: 1,
     },
     {
       name: 'firefox',
       use: { ...devices['Desktop Firefox'] },
+      fullyParallel: false,
+      workers: 1,
     },
     {
       name: 'webkit',
       use: { ...devices['Desktop Safari'] },
+      fullyParallel: false,
+      workers: 1,
     },
     // Mobile Chrome with reduced parallelism
     {
@@ -47,6 +53,7 @@ export default defineConfig({
         },
       },
       fullyParallel: false,
+      workers: 1,
     },
     // Mobile Safari with maximum stability
     {
