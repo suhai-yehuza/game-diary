@@ -1,20 +1,9 @@
-import { auth } from '@clerk/nextjs/server';
-import { redirect } from 'next/navigation';
+'use client';
+
 import React from 'react';
 
-import UserProfile from '@/app/protected/user/user-profile';
-import UserProfileLayout from '@/app/protected/user/user-profile-layout';
+import UserProfile from './user-profile';
 
-export default async function UserProfilePage() {
-  const { userId } = await auth();
-
-  if (!userId) {
-    redirect('/sign-in');
-  }
-
-  return (
-    <UserProfileLayout title="Your Profile">
-      <UserProfile targetUserId={userId} />
-    </UserProfileLayout>
-  );
+export default function UserPage() {
+  return <UserProfile />;
 }
