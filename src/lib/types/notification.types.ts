@@ -35,7 +35,7 @@ export interface IAppNotification {
   priority?: 'low' | 'medium' | 'high' | 'urgent';
   category?: string;
   actionUrl?: string;
-  imageUrl?: string;
+  image_url?: string;
   metadata?: Record<string, unknown>;
 
   // Legacy properties for backward compatibility

@@ -57,10 +57,10 @@ export function useUserProfile({ targetUserId }: IUseUserProfileProps): IUseUser
           setTargetUser({
             id: currentUser.id,
             username: currentUser.username || '',
-            firstName: currentUser.firstName || '',
-            lastName: currentUser.lastName || '',
+            first_name: currentUser.firstName || '',
+            last_name: currentUser.lastName || '',
             emailAddress: currentUser.emailAddresses[0]?.emailAddress || '',
-            imageUrl: currentUser.imageUrl,
+            image_url: currentUser.imageUrl,
             last_sign_in_at: currentUser.lastSignInAt
               ? new Date(currentUser.lastSignInAt).toISOString()
               : new Date().toISOString(),
@@ -220,10 +220,10 @@ export function useUserProfile({ targetUserId }: IUseUserProfileProps): IUseUser
       ? {
           id: targetUser.id,
           username: targetUser.username,
-          firstName: targetUser.firstName ?? undefined,
-          lastName: targetUser.lastName ?? undefined,
+          first_name: targetUser.first_name ?? undefined,
+          last_name: targetUser.last_name ?? undefined,
           email: targetUser.emailAddress ?? undefined,
-          imageUrl: targetUser.imageUrl ?? undefined,
+          image_url: targetUser.image_url ?? undefined,
           isAuthenticated: true,
         }
       : null,
@@ -231,10 +231,10 @@ export function useUserProfile({ targetUserId }: IUseUserProfileProps): IUseUser
       ? {
           id: targetUser.id,
           username: targetUser.username,
-          firstName: targetUser.firstName ?? undefined,
-          lastName: targetUser.lastName ?? undefined,
+          first_name: targetUser.first_name ?? undefined,
+          last_name: targetUser.last_name ?? undefined,
           email: targetUser.emailAddress ?? undefined,
-          imageUrl: targetUser.imageUrl ?? undefined,
+          image_url: targetUser.image_url ?? undefined,
           isAuthenticated: true,
         }
       : null,

@@ -132,7 +132,7 @@ export const FriendGroups: React.FC<IFriendGroupsProps> = ({ friends, onGroupUpd
                       className="flex items-center gap-1 bg-gray-100 rounded-full px-2 py-1"
                     >
                       <Image
-                        src={friend.avatar || friend.imageUrl || '/default-avatar.png'}
+                        src={friend.avatar || friend.image_url || '/default-avatar.png'}
                         alt={friend.username}
                         width={16}
                         height={16}

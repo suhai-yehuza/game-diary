@@ -312,7 +312,9 @@ export const GameLog = {
       try {
         const user = await loaders.userLoader.load(parent.userId);
         if (user) {
-          return mapDbUserToUser(user);
+          if (typeof user !== 'object' || user === null || Object.keys(user).length === 0)
+            return null;
+          return mapDbUserToUser(user as Record<string, unknown>);
         }
       } catch (error) {
         seedLogger.warn('Failed to load user from loader, falling back to direct query:', error);
@@ -336,8 +338,8 @@ export const GameLog = {
         throw new Error(`User with ID ${parent.userId} not found`);
       }
 
-      // Return a UserSummary object to match the GraphQL schema
-      return mapDbUserToUser(user);
+      if (typeof user !== 'object' || user === null || Object.keys(user).length === 0) return null;
+      return mapDbUserToUser(user as Record<string, unknown>);
     } catch {
       seedLogger.error('Failed to fetch user');
     }

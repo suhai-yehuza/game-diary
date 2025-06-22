@@ -81,9 +81,9 @@ export default function AdminUserProfilePage() {
       ) : user ? (
         <div className="space-y-6">
           <div className="flex items-center space-x-4">
-            {user.imageUrl && (
+            {user.image_url && (
               <Image
-                src={user.imageUrl}
+                src={user.image_url}
                 alt={user.username || 'User avatar'}
                 width={64}
                 height={64}

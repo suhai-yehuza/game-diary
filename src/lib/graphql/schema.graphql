@@ -113,23 +113,23 @@ input DateRangeInput {
 type UserSummary {
   id: ID!
   username: String!
-  firstName: String!
-  lastName: String!
+  first_name: String!
+  last_name: String!
   emailAddress: String
-  imageUrl: String
+  image_url: String
 }
 
 type DBUser {
   id: ID!
   username: String!
-  firstName: String
-  lastName: String
+  first_name: String
+  last_name: String
   emailAddress: String
   email_verified: Boolean
   email_verification_strategy: String
   password_enabled: Boolean
   two_factor_enabled: Boolean
-  imageUrl: String
+  image_url: String
   banned: Boolean
   last_sign_in_at: DateTime
   external_id: String

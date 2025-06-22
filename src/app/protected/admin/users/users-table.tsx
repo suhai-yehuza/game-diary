@@ -31,9 +31,9 @@ export default function UsersTable({ users }: IUsersTableProps) {
             <TableRow key={user.id}>
               <TableCell className="font-medium">
                 <div className="flex items-center space-x-3">
-                  {user.imageUrl && (
+                  {user.image_url && (
                     <Image
-                      src={user.imageUrl || '/default-avatar.png'}
+                      src={user.image_url || '/default-avatar.png'}
                       alt={user.username ?? 'User avatar'}
                       className="w-8 h-8 rounded-full"
                       width={32}

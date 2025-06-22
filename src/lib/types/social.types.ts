@@ -111,3 +111,19 @@ export interface INavItem {
   subItems?: INavItem[];
   isActive?: boolean;
 }
+
+export interface IComment {
+  id: string;
+  userId: string;
+  parentId: string;
+  parentType: string;
+  content: string;
+  createdAt: Date;
+  updatedAt: Date;
+  deletedAt?: Date;
+  user?: {
+    id: string;
+    username: string;
+    image_url: string;
+  };
+}

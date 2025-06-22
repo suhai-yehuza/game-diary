@@ -24,7 +24,9 @@ export async function ensureUserExists(user: IContext['user']) {
     .values({
       id: user.id,
       username: user.username || `user_${user.id.slice(-8)}`,
-      ...mapDbUserToUser(user),
+      ...(typeof user === 'object' && user !== null
+        ? mapDbUserToUser(user as unknown as Record<string, unknown>)
+        : {}),
       emailAddress: user.emailAddresses?.[0]?.emailAddress || `${user.id}@placeholder.com`,
       inboundFriendshipIds: [],
       outboundFriendshipIds: [],

@@ -69,10 +69,10 @@ export default function UserProfile({ targetUserId }: IUserProfileProps) {
     ...userData.user,
     id: (userData.user as unknown as { id: string }).id,
     username: (userData.user as unknown as { username: string }).username,
-    firstName: ((userData.user as Record<string, unknown>).firstName as string) || undefined,
-    lastName: ((userData.user as Record<string, unknown>).lastName as string) || undefined,
-    imageUrl:
-      ((userData.user as Record<string, unknown>).imageUrl as string) || '/default-avatar.png',
+    first_name: ((userData.user as Record<string, unknown>).first_name as string) || undefined,
+    last_name: ((userData.user as Record<string, unknown>).last_name as string) || undefined,
+    image_url:
+      ((userData.user as Record<string, unknown>).image_url as string) || '/default-avatar.png',
     last_sign_in_at: new Date().getTime(),
     createdAt: new Date().getTime(),
     comments: [],
@@ -103,7 +103,12 @@ export default function UserProfile({ targetUserId }: IUserProfileProps) {
     <ErrorBoundary>
       <div className="space-y-8">
         <UserHeader
-          user={user}
+          user={{
+            ...user,
+            first_name: user.first_name ?? '',
+            last_name: user.last_name ?? '',
+            image_url: user.image_url ?? '',
+          }}
           stats={stats}
           isOwnProfile={isCurrentUser}
           currentUserId={currentUser?.id || ''}

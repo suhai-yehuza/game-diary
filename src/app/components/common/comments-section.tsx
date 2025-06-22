@@ -56,7 +56,7 @@ const mapCommentToDisplay = (comment: Comment): ICommentForDisplay => ({
   user: {
     id: comment.user.id,
     username: comment.user.username,
-    imageUrl: comment.user.imageUrl || undefined,
+    image_url: comment.user.image_url || undefined,
   },
   childComments: comment.childComments
     ? {

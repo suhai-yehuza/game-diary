@@ -25,9 +25,9 @@ export function transformUser(user: DbUser): DbUser {
     id: user.id,
     username: user.username || '',
     emailAddress: user.emailAddress || '',
-    imageUrl: user.imageUrl || '',
-    firstName: user.firstName || '',
-    lastName: user.lastName || '',
+    image_url: user.image_url || '',
+    first_name: user.first_name || '',
+    last_name: user.last_name || '',
     inboundFriendshipIds: user.inboundFriendshipIds || [],
     outboundFriendshipIds: user.outboundFriendshipIds || [],
     banned: user.banned || false,
@@ -53,9 +53,9 @@ export function transformUserToSummary(user: DbUser): GraphQLUserSummary {
     id: user.id,
     username: user.username || '',
     emailAddress: user.emailAddress || '',
-    firstName: user.firstName || '',
-    lastName: user.lastName || '',
-    imageUrl: user.imageUrl || '',
+    first_name: user.first_name || '',
+    last_name: user.last_name || '',
+    image_url: user.image_url || '',
   };
 }
 

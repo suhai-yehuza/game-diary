@@ -42,10 +42,10 @@ export async function seedTestUser() {
       .values({
         id: TEST_USER.id,
         username,
-        first_name: TEST_USER.firstName,
-        last_name: TEST_USER.lastName,
+        first_name: TEST_USER.first_name,
+        last_name: TEST_USER.last_name,
         emailAddress: TEST_USER.emailAddresses[0].emailAddress,
-        image_url: TEST_USER.imageUrl,
+        image_url: TEST_USER.image_url,
         inboundFriendshipIds: [],
         outboundFriendshipIds: [],
         external_accounts: [],

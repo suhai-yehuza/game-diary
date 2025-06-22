@@ -409,15 +409,15 @@ export function GameLogView({ gameLogId }: IGameLogProps) {
               <Link href={`/protected/user/${gameLog.user.id}`}>
                 <div className="flex items-center gap-4 p-4 rounded-lg hover:bg-muted/50 transition-colors">
                   <Avatar className="h-12 w-12">
-                    <AvatarImage src={gameLog.user.imageUrl || undefined} />
+                    <AvatarImage src={gameLog.user.image_url || undefined} />
                     <AvatarFallback>
-                      {gameLog.user.firstName?.[0]}
-                      {gameLog.user.lastName?.[0]}
+                      {gameLog.user.first_name?.[0]}
+                      {gameLog.user.last_name?.[0]}
                     </AvatarFallback>
                   </Avatar>
                   <div>
                     <p className="font-semibold">
-                      {gameLog.user.firstName} {gameLog.user.lastName}
+                      {gameLog.user.first_name} {gameLog.user.last_name}
                     </p>
                     <p className="text-sm text-muted-foreground">@{gameLog.user.username}</p>
                   </div>

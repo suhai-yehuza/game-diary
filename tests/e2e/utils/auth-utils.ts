@@ -5,10 +5,10 @@ import type { IClerkMock, IExtendedWindow } from '@src/lib/types';
 // Test user data - matches your database schema
 export const TEST_USER = {
   id: 'test_user_123',
-  firstName: 'Test',
-  lastName: 'User',
+  first_name: 'Test',
+  last_name: 'User',
   emailAddresses: [{ emailAddress: 'test@example.com' }],
-  imageUrl: 'https://example.com/avatar.jpg',
+  image_url: 'https://example.com/avatar.jpg',
 };
 
 /**
@@ -35,10 +35,10 @@ export async function mockClerkAuth(page: Page) {
       user: {
         id: 'test-user-id',
         username: 'testuser',
-        firstName: 'Test',
-        lastName: 'User',
+        first_name: 'Test',
+        last_name: 'User',
         emailAddresses: [{ emailAddress: 'test@example.com' }],
-        imageUrl: 'https://test.com/avatar.jpg',
+        image_url: 'https://test.com/avatar.jpg',
       },
       session: {
         id: 'test_session_123',

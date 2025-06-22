@@ -19,7 +19,7 @@ export function UserHeader({
   onGameLogUpdate,
   onFriendshipUpdate,
 }: IUserHeaderProps) {
-  const fullName = [user.firstName, user.lastName].filter(Boolean).join(' ') || 'Anonymous User';
+  const fullName = [user.first_name, user.last_name].filter(Boolean).join(' ') || 'Anonymous User';
   const lastActive = formatDistanceToNow(
     new Date(user.last_sign_in_at || user.createdAt || Date.now()),
     {
@@ -34,7 +34,7 @@ export function UserHeader({
     <div className="space-y-6">
       <div className="flex items-center space-x-4">
         <Avatar className="h-20 w-20">
-          <AvatarImage src={user.imageUrl || undefined} alt={fullName} />
+          <AvatarImage src={user.image_url || undefined} alt={fullName} />
           <AvatarFallback>{fullName.charAt(0)}</AvatarFallback>
         </Avatar>
         <div className="flex-1">

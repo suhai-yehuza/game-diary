@@ -27,10 +27,10 @@ export async function createContext(): Promise<IContext> {
       ? {
           id: user.id,
           username: user.username || '',
-          firstName: user.firstName || undefined,
-          lastName: user.lastName || undefined,
+          first_name: user.firstName || undefined,
+          last_name: user.lastName || undefined,
           email: user.primaryEmailAddress?.emailAddress || undefined,
-          imageUrl: user.imageUrl || undefined,
+          image_url: user.imageUrl || undefined,
         }
       : undefined,
     loaders: {

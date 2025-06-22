@@ -140,10 +140,10 @@ export const BASIC_USER_FRAGMENT = gql`
   fragment BasicUserFragment on DBUser {
     id
     username
-    firstName
-    lastName
+    first_name
+    last_name
     emailAddress
-    imageUrl
+    image_url
     comments {
       id
       parentId
@@ -173,27 +173,25 @@ export const USER_SUMMARY_FRAGMENT = gql`
   fragment UserSummaryFragment on UserSummary {
     id
     username
-    firstName
-    lastName
+    first_name
+    last_name
     emailAddress
-    imageUrl
+    image_url
   }
 `;
 
 export const COMMENT_FRAGMENT = gql`
   fragment CommentFragment on Comment {
     id
-    user {
-      ...UserSummaryFragment
-    }
     userId
     parentId
     parentType
     content
     createdAt
     updatedAt
-    deletedAt
-    depth
+    user {
+      ...UserSummaryFragment
+    }
     reactions {
       id
       emoji
@@ -202,6 +200,7 @@ export const COMMENT_FRAGMENT = gql`
       }
     }
     childComments {
+      totalCount
       edges {
         node {
           id
@@ -211,8 +210,6 @@ export const COMMENT_FRAGMENT = gql`
           content
           createdAt
           updatedAt
-          deletedAt
-          depth
           user {
             ...UserSummaryFragment
           }
@@ -225,7 +222,6 @@ export const COMMENT_FRAGMENT = gql`
           }
         }
       }
-      totalCount
     }
   }
   ${USER_SUMMARY_FRAGMENT}
@@ -234,12 +230,7 @@ export const COMMENT_FRAGMENT = gql`
 export const GAME_LOG_FRAGMENT = gql`
   fragment GameLogFragment on GameLog {
     id
-    user {
-      ...UserSummaryFragment
-    }
-    game {
-      ...GameFragment
-    }
+    classification
     watchedSetting
     watchedScope
     watchedDate
@@ -247,27 +238,67 @@ export const GAME_LOG_FRAGMENT = gql`
     ratingForGame
     notes
     tags
-    classification
-    reactions {
-      id
-      emoji
-      userId
-      targetId
-      targetType
-      createdAt
-      updatedAt
-      user {
-        id
-        username
-        emailAddress
-        imageUrl
-      }
-    }
     createdAt
     updatedAt
+    user {
+      ...UserSummaryFragment
+    }
+    game {
+      id
+      league
+      season
+      date {
+        start
+        end
+        duration
+      }
+      status {
+        clock
+        halftime
+        short
+        long
+      }
+      teams {
+        home {
+          id
+          name
+          nickname
+          code
+          logo
+        }
+        visitors {
+          id
+          name
+          nickname
+          code
+          logo
+        }
+      }
+      scores {
+        home {
+          win
+          loss
+          linescore
+          points
+          series {
+            win
+            loss
+          }
+        }
+        visitors {
+          win
+          loss
+          linescore
+          points
+          series {
+            win
+            loss
+          }
+        }
+      }
+    }
   }
   ${USER_SUMMARY_FRAGMENT}
-  ${GAME_FRAGMENT}
 `;
 
 export const GET_GAME_BY_ID = gql`
@@ -363,7 +394,7 @@ export const GET_COMMENTS_WITH_FILTERS = gql`
             id
             username
             emailAddress
-            imageUrl
+            image_url
           }
           reactions {
             id
@@ -377,7 +408,7 @@ export const GET_COMMENTS_WITH_FILTERS = gql`
               id
               username
               emailAddress
-              imageUrl
+              image_url
             }
           }
           childComments {
@@ -396,7 +427,7 @@ export const GET_COMMENTS_WITH_FILTERS = gql`
                   id
                   username
                   emailAddress
-                  imageUrl
+                  image_url
                 }
                 reactions {
                   id
@@ -410,7 +441,7 @@ export const GET_COMMENTS_WITH_FILTERS = gql`
                     id
                     username
                     emailAddress
-                    imageUrl
+                    image_url
                   }
                 }
               }
@@ -597,7 +628,7 @@ export const GET_GAME_LOG = gql`
           id
           username
           emailAddress
-          imageUrl
+          image_url
         }
       }
       comments {
@@ -609,7 +640,7 @@ export const GET_GAME_LOG = gql`
             user {
               id
               username
-              imageUrl
+              image_url
             }
           }
         }
@@ -697,6 +728,22 @@ export const GET_TEAM_GAME_STATS = gql`
 export const GET_ME = gql`
   query GetMe {
     me {
+      ...UserSummaryFragment
+    }
+  }
+  ${USER_SUMMARY_FRAGMENT}
+`;
+
+export const FRIENDSHIP_FRAGMENT = gql`
+  fragment FriendshipFragment on Friendship {
+    id
+    status
+    createdAt
+    updatedAt
+    initiator {
+      ...UserSummaryFragment
+    }
+    recipient {
       ...UserSummaryFragment
     }
   }

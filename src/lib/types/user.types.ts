@@ -173,18 +173,18 @@ export interface IUserPageProps {
 export interface IUserSummary {
   id: string;
   username: string;
-  firstName?: string | null;
-  lastName?: string | null;
-  imageUrl?: string | null;
+  first_name?: string | null;
+  last_name?: string | null;
+  image_url?: string | null;
   emailAddress?: string | null;
 }
 
 export interface IFriend {
   id: string;
   username: string;
-  firstName?: string | null;
-  lastName?: string | null;
-  imageUrl?: string | null;
+  first_name?: string | null;
+  last_name?: string | null;
+  image_url?: string | null;
   emailAddress?: string | null;
   friendshipStatus: FriendshipStatus;
   friendship?: Friendship;

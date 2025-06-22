@@ -795,8 +795,8 @@ export interface ITeamFilters {
 export interface IUserFilters {
   username?: string;
   email?: string;
-  firstName?: string;
-  lastName?: string;
+  first_name?: string;
+  last_name?: string;
   search?: string;
 }
 
@@ -818,9 +818,9 @@ export interface IUserSearchSectionProps {
 export interface IUserNode {
   id: string;
   username: string;
-  firstName?: string | null;
-  lastName?: string | null;
-  imageUrl?: string | null;
+  first_name?: string | null;
+  last_name?: string | null;
+  image_url?: string | null;
   createdAt: string;
   gameLogs?: unknown[];
   friendships?: Array<{
@@ -1198,7 +1198,7 @@ export interface ICommentForDisplay {
   user: {
     id: string;
     username: string;
-    imageUrl?: string;
+    image_url?: string;
   };
   childComments?: {
     totalCount: number;
@@ -1585,9 +1585,9 @@ export interface IGameLog {
   user?: {
     id: string;
     username: string;
-    firstName?: string;
-    lastName?: string;
-    imageUrl?: string;
+    first_name?: string;
+    last_name?: string;
+    image_url?: string;
   };
   game?: {
     id: string;
@@ -1615,7 +1615,7 @@ export interface IGameLog {
     id: string;
     emoji: string;
     userId: string;
-    user: { id: string; username: string; imageUrl: string | null };
+    user: { id: string; username: string; image_url: string | null };
   }>;
 }
 
@@ -1629,7 +1629,7 @@ export interface IComment {
   user: {
     id: string;
     username: string;
-    imageUrl: string;
+    image_url: string;
   };
   game: {
     id: string;
@@ -1656,7 +1656,7 @@ export interface IReaction {
   user?: {
     id: string;
     username: string;
-    imageUrl?: string;
+    image_url?: string;
   };
 }
 
@@ -1933,9 +1933,9 @@ export interface IAuthContextType {
   user?: {
     id: string;
     username?: string;
-    firstName?: string;
-    lastName?: string;
-    imageUrl?: string;
+    first_name?: string;
+    last_name?: string;
+    image_url?: string;
     email?: string;
   } | null;
   userId?: string;
@@ -2117,9 +2117,9 @@ export interface IFriendActivityProps {
 export interface IFriend {
   id: string;
   username: string;
-  firstName?: string;
-  lastName?: string;
-  imageUrl?: string;
+  first_name?: string;
+  last_name?: string;
+  image_url?: string;
   avatar?: string;
 }
 
@@ -2161,41 +2161,41 @@ export interface IFriendRequest {
   initiator: {
     id: string;
     username?: string;
-    firstName?: string;
-    lastName?: string;
-    imageUrl?: string;
+    first_name?: string;
+    last_name?: string;
+    image_url?: string;
     avatar?: string;
   };
   fromUser: {
     id: string;
     username: string;
-    firstName?: string;
-    lastName?: string;
-    imageUrl?: string;
+    first_name?: string;
+    last_name?: string;
+    image_url?: string;
     avatar?: string;
   };
   toUser: {
     id: string;
     username: string;
-    firstName?: string;
-    lastName?: string;
-    imageUrl?: string;
+    first_name?: string;
+    last_name?: string;
+    image_url?: string;
     avatar?: string;
   };
   sender: {
     id: string;
     username: string;
-    firstName?: string;
-    lastName?: string;
-    imageUrl?: string;
+    first_name?: string;
+    last_name?: string;
+    image_url?: string;
     avatar?: string;
   };
   receiver: {
     id: string;
     username: string;
-    firstName?: string;
-    lastName?: string;
-    imageUrl?: string;
+    first_name?: string;
+    last_name?: string;
+    image_url?: string;
     avatar?: string;
   };
   mutualFriends?: Array<{
@@ -2219,10 +2219,10 @@ export interface IGameCardProps {
 export interface IAuthUser {
   id: string;
   username: string;
-  firstName?: string;
-  lastName?: string;
+  first_name?: string;
+  last_name?: string;
   email?: string;
-  imageUrl?: string;
+  image_url?: string;
   isAuthenticated?: boolean;
   // Additional authentication fields
   last_sign_in_at?: string | number;
@@ -2298,10 +2298,10 @@ export function mapDbUserToAuthUser(dbUser: DbUser): IAuthUser {
   return {
     id: dbUser.id,
     username: dbUser.username,
-    firstName: dbUser.firstName || undefined,
-    lastName: dbUser.lastName || undefined,
+    first_name: dbUser.first_name || undefined,
+    last_name: dbUser.last_name || undefined,
     email: dbUser.emailAddress || undefined,
-    imageUrl: dbUser.imageUrl || undefined,
+    image_url: dbUser.image_url || undefined,
     isAuthenticated: true,
   };
 }

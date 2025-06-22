@@ -72,7 +72,7 @@ const UserCard = React.memo(({ user }: { user: IUserNode }) => {
   const [friendsDropdownOpen, setFriendsDropdownOpen] = useState(false);
   const [sentRequestDropdownOpen, setSentRequestDropdownOpen] = useState(false);
 
-  const fullName = [user.firstName, user.lastName].filter(Boolean).join(' ');
+  const fullName = [user.first_name, user.last_name].filter(Boolean).join(' ');
   const displayName = fullName || user.username;
   const gameLogCount = user.gameLogs?.length || 0;
 
@@ -420,7 +420,7 @@ const UserCard = React.memo(({ user }: { user: IUserNode }) => {
         <CardContent className="p-6">
           <div className="flex items-start gap-4">
             <Avatar className="h-16 w-16 ring-2 ring-background group-hover:ring-primary/20 transition-all">
-              <AvatarImage src={user.imageUrl || undefined} alt={displayName} />
+              <AvatarImage src={user.image_url || undefined} alt={displayName} />
               <AvatarFallback className="text-lg font-semibold">
                 {displayName.charAt(0).toUpperCase()}
               </AvatarFallback>
@@ -713,10 +713,10 @@ export function UserSearchSection({ className }: IUserSearchSectionProps) {
             addNotification({
               type: 'friend_request',
               title: 'New Friend Request',
-              message: `${user.firstName || user.username} sent you a friend request`,
+              message: `${user.first_name || user.username} sent you a friend request`,
               userId: user.id,
               metadata: {
-                avatar: user.imageUrl,
+                avatar: user.image_url,
                 username: user.username,
               },
             });

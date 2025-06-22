@@ -152,7 +152,7 @@ export function CommentItem({
                   isNested ? 'h-9 w-9' : 'h-11 w-11'
                 )}
               >
-                <AvatarImage src={comment.user?.imageUrl ?? undefined} />
+                <AvatarImage src={comment.user?.image_url ?? undefined} />
                 <AvatarFallback
                   className={cn(
                     'font-semibold bg-gradient-to-br from-blue-500/10 to-purple-500/10 text-foreground',
@@ -239,10 +239,10 @@ export function CommentItem({
                   user: {
                     id: r.userId,
                     username: '',
-                    firstName: '',
-                    lastName: '',
+                    first_name: '',
+                    last_name: '',
                     emailAddress: null,
-                    imageUrl: null,
+                    image_url: null,
                   },
                 }) as Reaction
             )}

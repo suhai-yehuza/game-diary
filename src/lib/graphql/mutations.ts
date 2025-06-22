@@ -93,9 +93,9 @@ export const CREATE_GAME_LOG = gql`
         user {
           id
           username
-          firstName
-          lastName
-          imageUrl
+          first_name
+          last_name
+          image_url
         }
         game {
           id
@@ -194,9 +194,9 @@ export const UPDATE_GAME_LOG = gql`
         user {
           id
           username
-          firstName
-          lastName
-          imageUrl
+          first_name
+          last_name
+          image_url
         }
         game {
           id

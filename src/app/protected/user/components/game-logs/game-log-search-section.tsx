@@ -576,15 +576,15 @@ export function GameLogSearchSection({
                         onClick={e => e.stopPropagation()}
                       >
                         <Avatar className="h-8 w-8">
-                          <AvatarImage src={ensureHttps(log.user?.imageUrl ?? '') || undefined} />
+                          <AvatarImage src={ensureHttps(log.user?.image_url ?? '') || undefined} />
                           <AvatarFallback className="text-xs">
-                            {log.user?.firstName?.[0]}
-                            {log.user?.lastName?.[0]}
+                            {log.user?.first_name?.[0]}
+                            {log.user?.last_name?.[0]}
                           </AvatarFallback>
                         </Avatar>
                         <div className="min-w-0">
                           <p className="text-sm font-medium truncate">
-                            {log.user?.firstName} {log.user?.lastName}
+                            {log.user?.first_name} {log.user?.last_name}
                           </p>
                           <p className="text-xs text-muted-foreground">@{log.user?.username}</p>
                         </div>

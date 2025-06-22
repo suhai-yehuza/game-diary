@@ -152,10 +152,10 @@ export interface IUserSearchSectionProps {
 export interface IUserNode {
   id: string;
   username: string;
-  firstName?: string | null;
-  lastName?: string | null;
+  first_name?: string | null;
+  last_name?: string | null;
   emailAddress: string;
-  imageUrl?: string | null;
+  image_url?: string | null;
   createdAt: string;
   gameLogs?: { id: string }[];
   initiatedFriendships?: {

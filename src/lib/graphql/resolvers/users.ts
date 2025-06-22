@@ -373,7 +373,7 @@ export const initiatedFriendships = async (parent: DbUser, _args: unknown, { db 
       })
     );
 
-    return friendshipsWithUsers.filter(f => f.initiator && f.recipient) as Friendship[];
+    return friendshipsWithUsers.filter(f => f.initiator && f.recipient) as unknown as Friendship[];
   } catch (error) {
     handleResolverError(error, 'fetch user initiated friendships');
     return [];

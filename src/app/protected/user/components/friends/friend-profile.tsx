@@ -76,7 +76,7 @@ export const FriendProfile: React.FC<IFriendProfileProps> = ({ friend }) => {
       <div className="bg-white rounded-lg p-6 shadow-sm animate-fade-in">
         <div className="flex items-center gap-4">
           <Image
-            src={friend.avatar || friend.imageUrl || '/default-avatar.png'}
+            src={friend.avatar || friend.image_url || '/default-avatar.png'}
             alt={friend.username}
             width={64}
             height={64}
