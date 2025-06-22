@@ -45,11 +45,14 @@ const distributions: IDistributionFunctions = {
 export const API_CONFIG = {
   endpoints: {
     GAMES: '/games',
+    GAME_STATISTICS: '/games/statistics',
     PLAYERS: '/players',
+    PLAYER_STATISTICS: '/players/statistics',
     SEASONS: '/seasons',
     LEAGUES: '/leagues',
     STANDINGS: '/standings',
     TEAMS: '/teams',
+    TEAM_STATISTICS: '/teams/statistics',
   } as const,
 
   databaseSeeding: {
