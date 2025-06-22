@@ -191,6 +191,12 @@ function AdminExperimentalContent() {
   };
 
   useEffect(() => {
+    if (selectedTab === 'games' && gamesSubTab === 'live') {
+      handleFetch(API_CONFIG.endpoints.GAMES, { live: 'all' });
+    }
+  }, [selectedTab, gamesSubTab]);
+
+  useEffect(() => {
     const tabsWithForms = ['games', 'teams', 'players', 'standings'];
     if (tabsWithForms.includes(selectedTab)) {
       setData(null);
@@ -258,15 +264,33 @@ function AdminExperimentalContent() {
           <div className="flex gap-2 border-b">
             <button
               className={`px-4 py-2 text-sm font-medium ${gamesSubTab === 'games' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-500 hover:text-blue-600'}`}
-              onClick={() => setGamesSubTab('games')}
+              onClick={() => {
+                setGamesSubTab('games');
+                setData(null);
+                setError(null);
+              }}
             >
               Games
             </button>
             <button
               className={`px-4 py-2 text-sm font-medium ${gamesSubTab === 'stats' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-500 hover:text-blue-600'}`}
-              onClick={() => setGamesSubTab('stats')}
+              onClick={() => {
+                setGamesSubTab('stats');
+                setData(null);
+                setError(null);
+              }}
             >
               Game Stats
+            </button>
+            <button
+              className={`px-4 py-2 text-sm font-medium ${gamesSubTab === 'live' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-500 hover:text-blue-600'}`}
+              onClick={() => {
+                setGamesSubTab('live');
+                setData(null);
+                setError(null);
+              }}
+            >
+              Live Games
             </button>
           </div>
           {gamesSubTab === 'games' && (
@@ -363,6 +387,12 @@ function AdminExperimentalContent() {
                 {loading ? 'Fetching...' : 'Fetch Stats'}
               </Button>
             </form>
+          )}
+          {gamesSubTab === 'live' && (
+            <div className="mt-4 p-4 border rounded-md bg-gray-50 dark:bg-gray-900/50">
+              <h3 className="text-lg font-semibold mb-1">Live Games</h3>
+              <p className="text-sm text-gray-500 mb-4">Fetching all currently live games...</p>
+            </div>
           )}
         </div>
       )}
