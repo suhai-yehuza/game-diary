@@ -2,7 +2,7 @@
 
 'use client';
 import { SignInButton, SignedIn, SignedOut, UserButton, useUser } from '@clerk/nextjs';
-import { Search, X, Menu } from 'lucide-react';
+import { ChevronDown, Menu, Search, X } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
@@ -10,6 +10,12 @@ import React, { useState, useEffect, useRef, Suspense } from 'react';
 
 import { ThemeToggle } from '@src/app/components/common';
 import { Button } from '@src/app/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@src/app/components/ui/dropdown-menu';
 import { Input } from '@src/app/components/ui/input';
 import { LiveGamesBanner } from '@src/app/dashboard/live-games-banner';
 
@@ -331,17 +337,34 @@ export default function Header() {
                         </Link>
                         <SignedIn>
                           {isLoaded && isAdmin && (
-                            <Link
-                              href="/protected/admin/users"
-                              className={`block py-1.5 lg:py-0 text-base lg:text-sm transition-colors whitespace-nowrap ${
-                                isActive('/protected/admin')
-                                  ? 'text-blue-600 font-semibold'
-                                  : 'hover:text-blue-600'
-                              }`}
-                              onClick={() => setIsMenuExpanded(false)}
-                            >
-                              Admin
-                            </Link>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  className={`flex items-center gap-1 py-1.5 lg:py-0 text-base lg:text-sm transition-colors whitespace-nowrap ${
+                                    isActive('/protected/admin')
+                                      ? 'text-blue-600 font-semibold'
+                                      : 'hover:text-blue-600'
+                                  }`}
+                                  onClick={() => setIsMenuExpanded(false)}
+                                >
+                                  Admin
+                                  <ChevronDown className="h-3 w-3" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="start" className="w-48">
+                                <DropdownMenuItem asChild>
+                                  <Link href="/protected/admin/users" className="w-full">
+                                    Users
+                                  </Link>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem asChild>
+                                  <Link href="/protected/admin/experimental" className="w-full">
+                                    Experimental
+                                  </Link>
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
                           )}
                         </SignedIn>
                       </div>
