@@ -354,13 +354,13 @@ export default function Header() {
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="start" className="w-48">
                                 <DropdownMenuItem asChild>
-                                  <Link href="/protected/admin/users" className="w-full">
-                                    Users
+                                  <Link href="/protected/admin/experimental" className="w-full">
+                                    External API
                                   </Link>
                                 </DropdownMenuItem>
                                 <DropdownMenuItem asChild>
-                                  <Link href="/protected/admin/experimental" className="w-full">
-                                    Experimental
+                                  <Link href="/protected/admin/database" className="w-full">
+                                    Database
                                   </Link>
                                 </DropdownMenuItem>
                               </DropdownMenuContent>

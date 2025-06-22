@@ -10,7 +10,6 @@ import { Input } from '@src/app/components/ui/input';
 import { Label } from '@src/app/components/ui/label';
 import { getRapidApiConfig, validateAPIKey, API_CONFIG } from '@src/lib/config/api.config';
 import { createRapidAPIClient } from '@src/lib/services/external-apis';
-// import { Checkbox } from '@src/app/components/ui/checkbox';
 
 const NAV_ITEMS = [
   {
