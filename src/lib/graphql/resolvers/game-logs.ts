@@ -4,6 +4,7 @@ import { seedLogger } from '@lib/core/logger';
 import { CACHE_KEYS } from '@src/lib/cache';
 import { withCache } from '@src/lib/db';
 import * as schema from '@src/lib/db/schema';
+import { mapDbUserToUser } from '@src/lib/db/schema/user-schemas';
 import { createConnection, parseCursor, handleResolverError } from '@src/lib/graphql/utils';
 import type { IContext, GameLogFilters, IPaginationArgs, IGameLog } from '@src/lib/types';
 
@@ -311,7 +312,7 @@ export const GameLog = {
       try {
         const user = await loaders.userLoader.load(parent.userId);
         if (user) {
-          return user;
+          return mapDbUserToUser(user);
         }
       } catch (error) {
         seedLogger.warn('Failed to load user from loader, falling back to direct query:', error);
@@ -336,88 +337,9 @@ export const GameLog = {
       }
 
       // Return a UserSummary object to match the GraphQL schema
-      return {
-        id: user.id,
-        username: user.username || '',
-        firstName: user.firstName || '',
-        lastName: user.lastName || '',
-        emailAddress: user.emailAddress || '',
-        imageUrl: user.imageUrl || '',
-      };
-    } catch (error) {
-      seedLogger.error(`Failed to fetch user ${parent.userId}:`, error);
-      throw new Error(`Failed to fetch user with ID ${parent.userId}`);
+      return mapDbUserToUser(user);
+    } catch {
+      seedLogger.error('Failed to fetch user');
     }
-  },
-  game: async (
-    parent: { gameId: string },
-    _args: Record<string, unknown>,
-    { loaders }: IContext
-  ) => {
-    if (!parent.gameId || !loaders) {
-      throw new Error('Game ID is required for GameLog');
-    }
-    const game = await loaders.gameLoader?.load(parent.gameId);
-    if (!game) {
-      throw new Error(`Game with ID ${parent.gameId} not found`);
-    }
-    return game;
-  },
-  comments: async (
-    parent: { id: string },
-    args: { first?: number; after?: string },
-    { db }: IContext
-  ) => {
-    const { first = 10, after } = args;
-    if (!parent.id)
-      return { edges: [], pageInfo: { hasNextPage: false, endCursor: null }, totalCount: 0 };
-
-    if (!db) {
-      throw new Error('Database connection not available');
-    }
-
-    // Fetch all comments for this game log, ordered by createdAt
-    const allComments = await db
-      .select()
-      .from(schema.comments)
-      .where(eq(schema.comments.parentId, parent.id))
-      .orderBy(desc(schema.comments.createdAt));
-
-    // Find the index of the comment after which to start
-    let startIndex = 0;
-    if (after) {
-      startIndex = allComments.findIndex((c: { id: string }) => c.id === after) + 1;
-    }
-    const paginatedComments = allComments.slice(startIndex, startIndex + first);
-
-    const edges = paginatedComments.map((comment: { id: string; [key: string]: unknown }) => ({
-      cursor: comment.id,
-      node: comment,
-    }));
-
-    const hasNextPage = startIndex + first < allComments.length;
-    const endCursor = edges.length > 0 ? edges[edges.length - 1].cursor : null;
-
-    return {
-      edges,
-      pageInfo: {
-        hasNextPage,
-        endCursor,
-      },
-      totalCount: allComments.length,
-    };
-  },
-  reactions: async (parent: { id: string }, _args: Record<string, unknown>, { db }: IContext) => {
-    if (!parent.id) return [];
-
-    if (!db) {
-      throw new Error('Database connection not available');
-    }
-
-    const reactions = await db
-      .select()
-      .from(schema.reactions)
-      .where(eq(schema.reactions.targetId, parent.id));
-    return reactions || [];
   },
 };

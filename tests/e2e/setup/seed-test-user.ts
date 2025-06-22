@@ -33,20 +33,24 @@ export async function seedTestUser() {
     }
 
     // Create test user
+    const username = (TEST_USER as { username?: string }).username || `test-${TEST_USER.id}`;
+    const createdAt = (TEST_USER as { createdAt?: Date }).createdAt || new Date();
+    const updatedAt = (TEST_USER as { updatedAt?: Date }).updatedAt || new Date();
+
     const [user] = await db
       .insert(users)
       .values({
         id: TEST_USER.id,
-        username: `test-${TEST_USER.id}`,
-        firstName: TEST_USER.firstName,
-        lastName: TEST_USER.lastName,
+        username,
+        first_name: TEST_USER.firstName,
+        last_name: TEST_USER.lastName,
         emailAddress: TEST_USER.emailAddresses[0].emailAddress,
-        imageUrl: TEST_USER.imageUrl,
+        image_url: TEST_USER.imageUrl,
         inboundFriendshipIds: [],
         outboundFriendshipIds: [],
         external_accounts: [],
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt,
+        updatedAt,
       })
       .returning();
 

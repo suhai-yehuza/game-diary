@@ -7,6 +7,7 @@ import { getCache, invalidateRelatedCaches } from '@src/lib/cache';
 import { API_CONFIG } from '@src/lib/config/api.config';
 import { db } from '@src/lib/db';
 import * as schema from '@src/lib/db/schema';
+import { mapDbUserToUser } from '@src/lib/db/schema/user-schemas';
 import {
   AuthenticationError,
   AuthorizationError,
@@ -94,10 +95,7 @@ async function ensureUserExists(user: IContext['user']) {
     .values({
       id: user.id,
       username: user.username || `user_${user.id.slice(-8)}`,
-      firstName: user.firstName || 'Unknown',
-      lastName: user.lastName || 'DBUser',
       emailAddress: user.email || `${user.id}@placeholder.com`,
-      imageUrl: user.imageUrl || '',
       inboundFriendshipIds: [],
       outboundFriendshipIds: [],
       banned: false,
@@ -292,12 +290,7 @@ export const createGameLog = async (
         userId: gameLog.userId || '',
         game: mappedGame,
         user: {
-          id: dbUser.id,
-          username: dbUser.username || '',
-          firstName: dbUser.firstName || '',
-          lastName: dbUser.lastName || '',
-          emailAddress: dbUser.emailAddress || '',
-          imageUrl: dbUser.imageUrl || '',
+          ...mapDbUserToUser(dbUser),
         },
         classification: gameLog.classification as Classification,
         notes: gameLog.notes || undefined,

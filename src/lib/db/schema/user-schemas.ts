@@ -137,3 +137,17 @@ export const reactions = pgTable(
     emojiCheck: sql`CHECK (emoji IN ('${sql.join(Object.values(REACTION_EMOJIS), "','")}'))`,
   })
 );
+
+// Utility: map DB user (snake_case) to camelCase user
+export function mapDbUserToUser(user: Record<string, unknown> | null | undefined) {
+  if (!user) return user;
+  return {
+    ...user,
+    firstName: user.first_name ?? null,
+    lastName: user.last_name ?? null,
+    imageUrl: user.image_url ?? null,
+    // Optionally remove snake_case fields if you want
+    // Remove snake_case fields to avoid confusion
+    // id, username, emailAddress, etc. are already camelCase
+  };
+}

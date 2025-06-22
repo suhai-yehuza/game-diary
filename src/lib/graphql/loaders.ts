@@ -4,6 +4,7 @@ import type { InferSelectModel } from 'drizzle-orm';
 
 import { getCache } from '@src/lib/cache';
 import * as schema from '@src/lib/db/schema';
+import { mapDbUserToUser } from '@src/lib/db/schema/user-schemas';
 import { db } from '@src/lib/db/seed';
 import { GAME_STATUS_VALUES } from '@src/lib/types';
 import type {
@@ -99,12 +100,7 @@ export function createLoaders() {
           const user = users.find(u => u.id === id);
           if (!user) return null;
           return {
-            id: user.id,
-            username: user.username || 'missing-username',
-            firstName: user.firstName || 'missing-first-name',
-            lastName: user.lastName || 'missing-last-name',
-            emailAddress: user.emailAddress || '',
-            imageUrl: user.imageUrl || undefined,
+            ...mapDbUserToUser(user),
           } as UserSummary;
         });
       } catch (error) {

@@ -2,6 +2,7 @@ import { and, eq, sql } from 'drizzle-orm';
 
 import { logger } from '@lib/core/logger';
 import * as schema from '@src/lib/db/schema';
+import { mapDbUserToUser } from '@src/lib/db/schema/user-schemas';
 import {
   createConnection,
   parseCursor,
@@ -78,10 +79,7 @@ export const Reaction = {
       return {
         id: user.id,
         username: user.username || '',
-        firstName: user.firstName || '',
-        lastName: user.lastName || '',
-        emailAddress: user.emailAddress || '',
-        imageUrl: user.imageUrl || undefined,
+        ...mapDbUserToUser(user),
         __typename: 'UserSummary',
       };
     } catch (error) {

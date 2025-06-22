@@ -210,10 +210,10 @@ async function* generateUsersStream(
       yield {
         id: generateUUID(),
         username,
-        firstName: faker.person.firstName(),
-        lastName: faker.person.lastName(),
+        first_name: faker.person.firstName(),
+        last_name: faker.person.lastName(),
         emailAddress: email,
-        imageUrl: `https://api.dicebear.com/7.x/avataaars/svg?seed=${username}`,
+        image_url: `https://api.dicebear.com/7.x/avataaars/svg?seed=${username}`,
         inboundFriendshipIds: [],
         outboundFriendshipIds: [],
         banned: false,

@@ -2,6 +2,7 @@ import { and, eq, gt, lt, or, sql, gte, lte, desc, asc } from 'drizzle-orm';
 import type { InferSelectModel } from 'drizzle-orm';
 
 import * as schema from '@src/lib/db/schema';
+import { mapDbUserToUser } from '@src/lib/db/schema/user-schemas';
 import { BusinessLogicError } from '@src/lib/graphql/errors';
 import { createConnection, parseCursor, handleResolverError } from '@src/lib/graphql/utils';
 import type {
@@ -21,9 +22,9 @@ export function mapUserData(user: InferSelectModel<typeof schema.users>): DbUser
     id: user.id,
     username: user.username || '',
     emailAddress: user.emailAddress || '',
-    imageUrl: user.imageUrl || '',
-    firstName: user.firstName || '',
-    lastName: user.lastName || '',
+    image_url: user.image_url || '',
+    first_name: user.first_name || '',
+    last_name: user.last_name || '',
     inboundFriendshipIds: user.inboundFriendshipIds || [],
     outboundFriendshipIds: user.outboundFriendshipIds || [],
     banned: user.banned || false,
@@ -41,6 +42,7 @@ export function mapUserData(user: InferSelectModel<typeof schema.users>): DbUser
     gameLogs: [],
     friendships: [],
     initiatedFriendships: [],
+    ...mapDbUserToUser(user),
   };
 }
 
@@ -57,16 +59,16 @@ export const searchUsers = async (
     // Build query conditions
     const conditions = [];
 
-    // Search term - search in username, firstName, lastName, emailAddress
+    // Search term - search in username, first_name, last_name, emailAddress
     if (searchTerm && searchTerm.trim()) {
       const searchPattern = `%${searchTerm.trim()}%`;
       conditions.push(
         or(
           sql`${schema.users.username} ILIKE ${searchPattern}`,
-          sql`${schema.users.firstName} ILIKE ${searchPattern}`,
-          sql`${schema.users.lastName} ILIKE ${searchPattern}`,
+          sql`${schema.users.first_name} ILIKE ${searchPattern}`,
+          sql`${schema.users.last_name} ILIKE ${searchPattern}`,
           sql`${schema.users.emailAddress} ILIKE ${searchPattern}`,
-          sql`CONCAT(${schema.users.firstName}, ' ', ${schema.users.lastName}) ILIKE ${searchPattern}`
+          sql`CONCAT(${schema.users.first_name}, ' ', ${schema.users.last_name}) ILIKE ${searchPattern}`
         )
       );
     }
@@ -210,8 +212,8 @@ export const users = async (
       const searchTerm = `%${filters.search}%`;
       conditions.push(
         or(
-          sql`${schema.users.firstName} ILIKE ${searchTerm}`,
-          sql`${schema.users.lastName} ILIKE ${searchTerm}`,
+          sql`${schema.users.first_name} ILIKE ${searchTerm}`,
+          sql`${schema.users.last_name} ILIKE ${searchTerm}`,
           sql`${schema.users.emailAddress} ILIKE ${searchTerm}`,
           sql`${schema.users.username} ILIKE ${searchTerm}`
         )
@@ -359,26 +361,12 @@ export const initiatedFriendships = async (parent: DbUser, _args: unknown, { db 
           userId: friendship.friendId || '',
           initiator: initiatorData[0]
             ? {
-                id: initiatorData[0].id,
-                username: initiatorData[0].username,
-                emailAddress: initiatorData[0].emailAddress,
-                imageUrl: initiatorData[0].imageUrl,
-                firstName: initiatorData[0].firstName,
-                lastName: initiatorData[0].lastName,
-                createdAt: initiatorData[0].createdAt.toISOString(),
-                updatedAt: initiatorData[0].updatedAt.toISOString(),
+                ...mapDbUserToUser(initiatorData[0]),
               }
             : null,
           recipient: recipientData[0]
             ? {
-                id: recipientData[0].id,
-                username: recipientData[0].username,
-                emailAddress: recipientData[0].emailAddress,
-                imageUrl: recipientData[0].imageUrl,
-                firstName: recipientData[0].firstName,
-                lastName: recipientData[0].lastName,
-                createdAt: recipientData[0].createdAt.toISOString(),
-                updatedAt: recipientData[0].updatedAt.toISOString(),
+                ...mapDbUserToUser(recipientData[0]),
               }
             : null,
         };
