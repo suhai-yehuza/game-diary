@@ -5,7 +5,7 @@ import { join } from 'path';
 import { sql } from 'drizzle-orm';
 
 import { logger } from '@lib/core/logger';
-import { createDatabaseClient } from '@src/lib/db/seed/config';
+import { createDatabaseClient } from '@src/lib/db';
 import type { IMigration, IMigrationVerification } from '@src/lib/types';
 
 // Get environment from command line argument or default to development

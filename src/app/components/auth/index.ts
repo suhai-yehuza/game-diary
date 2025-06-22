@@ -1,1 +1,1 @@
-export { AuthModal } from './AuthModal';
+// Auth components will be added here when needed

@@ -72,12 +72,7 @@ export interface IFriendGroupsProps {
   onGroupUpdate: (group: IFriendGroup) => void;
 }
 
-export const ISortDirection = {
-  ASC: 'asc',
-  DESC: 'desc',
-} as const;
-
-export type ISortDirection = (typeof ISortDirection)[keyof typeof ISortDirection];
+// ISortDirection is now imported from core.types.ts
 
 export interface IFriendRequest
   extends Pick<Friendship, 'id' | 'status' | 'createdAt' | 'updatedAt'> {

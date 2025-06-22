@@ -4,7 +4,7 @@ import { promisify } from 'util';
 import { sql } from 'drizzle-orm';
 
 import { logger } from '@lib/core/logger';
-import { createDatabaseClient } from '@src/lib/db/seed/config';
+import { createDatabaseClient } from '@src/lib/db';
 import type { IScriptOptions } from '@src/lib/types';
 
 export const execAsync = promisify(exec) as (
@@ -15,13 +15,13 @@ export const execAsync = promisify(exec) as (
  * Parse command line arguments for common script options
  */
 export function parseScriptArgs(): IScriptOptions {
-  const environment = process.argv[2] || 'development';
+  const env = process.argv[2] || 'development';
   const dryRun = process.argv.includes('--dry-run');
   const runTests = process.argv.includes('--test');
   const verbose = process.argv.includes('--verbose');
 
   return {
-    environment,
+    env,
     dryRun,
     runTests,
     verbose,

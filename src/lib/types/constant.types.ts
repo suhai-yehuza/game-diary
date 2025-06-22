@@ -32,6 +32,79 @@ export const REACTION_EMOJIS = {
   GOLF: '⛳',
 } as const;
 
+// Enums as Constant Objects
+export const CLASSIFICATION = {
+  PRIVATE: 'PRIVATE',
+  PROTECTED: 'PROTECTED',
+  PUBLIC: 'PUBLIC',
+} as const;
+
+export const FRIENDSHIP_STATUS = {
+  ACCEPTED: 'ACCEPTED',
+  BLOCKED: 'BLOCKED',
+  PENDING: 'PENDING',
+  REJECTED: 'REJECTED',
+} as const;
+
+export const WATCHED_SETTING = {
+  TV: 'TV',
+  ARENA: 'ARENA',
+  PHONE: 'PHONE',
+  LAPTOP: 'LAPTOP',
+  BAR: 'BAR',
+  HOME: 'HOME',
+  OTHER: 'OTHER',
+} as const;
+
+export const WATCHED_SCOPE = {
+  FULL_GAME: 'FULL_GAME',
+  HALF_GAME: 'HALF_GAME',
+  HIGHLIGHTS: 'HIGHLIGHTS',
+  PRE_GAME: 'PRE_GAME',
+  POST_GAME: 'POST_GAME',
+  SHORTS: 'SHORTS',
+  OTHER: 'OTHER',
+} as const;
+
+export const CONFERENCES = {
+  EAST: 'EAST',
+  WEST: 'WEST',
+} as const;
+
+export const DIVISIONS = {
+  ATLANTIC: 'ATLANTIC',
+  CENTRAL: 'CENTRAL',
+  SOUTHEAST: 'SOUTHEAST',
+  NORTHWEST: 'NORTHWEST',
+  PACIFIC: 'PACIFIC',
+  SOUTHWEST: 'SOUTHWEST',
+} as const;
+
+export const GAME_STATUS_VALUES = {
+  FINISHED: 'FINISHED',
+  LIVE: 'LIVE',
+  SCHEDULED: 'SCHEDULED',
+} as const;
+
+export const RESOURCES = {
+  USER: 'USER',
+  GAME_LOG: 'GAME_LOG',
+  COMMENT: 'COMMENT',
+  REACTION: 'REACTION',
+  FRIENDSHIP: 'FRIENDSHIP',
+  GAME_RATING: 'GAME_RATING',
+} as const;
+
+export const SORT_DIRECTION = {
+  ASC: 'ASC',
+  DESC: 'DESC',
+} as const;
+
+export const TARGET_TYPES = {
+  GAME_LOG: 'GAME_LOG',
+  COMMENT: 'COMMENT',
+} as const;
+
 // Type for the keys of REACTION_EMOJIS
 export type IReactionEmojiKey = keyof typeof REACTION_EMOJIS;
 
@@ -101,79 +174,6 @@ export const validDivisions = [
 export const validConferences = ['Eastern', 'Western'] as const;
 
 export const validPositions = ['PG', 'SG', 'SF', 'PF', 'C'] as const;
-
-// Enums as Constant Objects
-export const CLASSIFICATION = {
-  PRIVATE: 'Private',
-  PROTECTED: 'Protected',
-  PUBLIC: 'Public',
-} as const;
-
-export const FRIENDSHIP_STATUS = {
-  ACCEPTED: 'Accepted',
-  BLOCKED: 'Blocked',
-  PENDING: 'Pending',
-  REJECTED: 'Rejected',
-} as const;
-
-export const WATCHED_SETTING = {
-  TV: 'TV',
-  ARENA: 'Arena',
-  PHONE: 'Phone',
-  LAPTOP: 'Laptop',
-  BAR: 'Bar',
-  HOME: 'Home',
-  OTHER: 'Other',
-} as const;
-
-export const WATCHED_SCOPE = {
-  FULL_GAME: 'Full Game',
-  HALF_GAME: 'Half Game',
-  HIGHLIGHTS: 'Highlights',
-  PRE_GAME: 'Pre-Game',
-  POST_GAME: 'Post-Game',
-  SHORTS: 'Shorts',
-  OTHER: 'Other',
-} as const;
-
-export const CONFERENCES = {
-  EAST: 'east',
-  WEST: 'west',
-} as const;
-
-export const DIVISIONS = {
-  ATLANTIC: 'atlantic',
-  CENTRAL: 'central',
-  SOUTHEAST: 'southeast',
-  NORTHWEST: 'northwest',
-  PACIFIC: 'pacific',
-  SOUTHWEST: 'southwest',
-} as const;
-
-export const GAME_STATUS_VALUES = {
-  FINISHED: 'Finished',
-  Live: 'Live',
-  SCHEDULED: 'Scheduled',
-} as const;
-
-export const RESOURCES = {
-  USER: 'user',
-  GAME_LOG: 'game_log',
-  COMMENT: 'comment',
-  REACTION: 'reaction',
-  FRIENDSHIP: 'friendship',
-  GAME_RATING: 'game_rating',
-} as const;
-
-export const SORT_DIRECTION = {
-  ASC: 'ASC',
-  DESC: 'DESC',
-} as const;
-
-export const TARGET_TYPES = {
-  game_log: 'game_log',
-  comment: 'comment',
-} as const;
 
 // Mapping frontend emoji keys to GraphQL enum values
 // Generated from REACTION_EMOJIS to ensure they stay in sync
@@ -257,3 +257,24 @@ export const isValidWatchedSetting = (
 ): setting is (typeof WATCHED_SETTING)[IWatchedSettingType] => {
   return setting in WATCHED_SETTING;
 };
+
+// Simple context interface for GraphQL
+export interface IContext {
+  user?: {
+    id: string;
+    username: string;
+  };
+}
+
+// Helper functions to generate enum arrays from constants for database schema usage
+export const getEnumValues = {
+  gameStatus: () => Object.values(GAME_STATUS_VALUES) as [string, ...string[]],
+  friendshipStatus: () => Object.values(FRIENDSHIP_STATUS) as [string, ...string[]],
+  watchedSetting: () => Object.values(WATCHED_SETTING) as [string, ...string[]],
+  watchedScope: () => Object.values(WATCHED_SCOPE) as [string, ...string[]],
+  classification: () => Object.values(CLASSIFICATION) as [string, ...string[]],
+  targetTypes: () => Object.values(TARGET_TYPES) as [string, ...string[]],
+  reactionEmojis: () => Object.values(REACTION_EMOJIS) as [string, ...string[]],
+  resources: () => Object.values(RESOURCES) as [string, ...string[]],
+  sortDirection: () => Object.values(SORT_DIRECTION) as [string, ...string[]],
+} as const;

@@ -11,6 +11,7 @@ import {
   friendships,
   game_ratings,
   notifications,
+  games,
 } from '@src/lib/db/schema';
 
 export async function GET(request: NextRequest, { params }: { params: { table: string } }) {
@@ -35,6 +36,7 @@ export async function GET(request: NextRequest, { params }: { params: { table: s
       friendships,
       game_ratings,
       notifications,
+      games,
     };
 
     const selectedTable = tableMap[table as keyof typeof tableMap];

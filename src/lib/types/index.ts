@@ -1,13 +1,16 @@
 /**
- * This file serves as a centralized type export for the Game Diary application.
- * It re-exports types from our consolidated types file and generated GraphQL types.
+ * Types Index
+ * Centralized type exports for the Game Diary application
  */
 
-// Re-export all types from generated GraphQL types
-export * from './generated/graphql';
+// Core types (common, pagination, search, database, migration)
+export * from './core.types';
 
-// Re-export custom types
-export * from './consolidated.types';
-export * from './constant.types';
-export * from './scalars.types';
+// UI types (toasts, notifications, charts)
 export * from './ui.types';
+
+// Social types (comments, reactions, friendships)
+export * from './social.types';
+
+// Constants and enums
+export * from './constant.types';

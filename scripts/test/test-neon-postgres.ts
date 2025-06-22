@@ -3,7 +3,7 @@ import 'dotenv-flow/config';
 import { sql } from 'drizzle-orm';
 
 import { logger } from '@lib/core/logger';
-import { createDatabaseClient, testConnection } from '@src/lib/db/seed/config';
+import { createDatabaseClient, testConnection } from '@src/lib/db';
 
 import { parseScriptArgs } from '../shared/script-utils';
 

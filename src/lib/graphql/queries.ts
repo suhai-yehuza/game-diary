@@ -22,117 +22,25 @@ export const GAME_FRAGMENT = gql`
     }
     league
     season
+    stage
     periods {
       current
       total
       endOfPeriod
     }
-    teams {
-      home {
-        id
-        name
-        nickname
-        code
-        logo
-      }
-      visitors {
-        id
-        name
-        nickname
-        code
-        logo
-      }
-    }
-    scores {
-      home {
-        win
-        loss
-        series {
-          win
-          loss
-        }
-        linescore
-        points
-      }
-      visitors {
-        win
-        loss
-        series {
-          win
-          loss
-        }
-        linescore
-        points
-      }
-    }
     officials
     timesTied
     leadChanges
     nugget
+    homeTeamId
+    awayTeamId
+    isCompleted
+    awayTeamScore
+    homeTeamScore
+    gameType
+    nbaGameId
     createdAt
     updatedAt
-  }
-`;
-
-export const PLAYER_FRAGMENT = gql`
-  fragment PlayerFragment on Player {
-    id
-    firstName
-    lastName
-    birth {
-      date
-      country
-    }
-    nba {
-      start
-      pro
-    }
-    height {
-      feets
-      inches
-      meters
-    }
-    weight {
-      pounds
-      kilograms
-    }
-    college
-    affiliation
-    leagues {
-      standard {
-        jersey
-        active
-        pos
-      }
-    }
-    seasons_active {
-      season
-      teams
-    }
-  }
-`;
-
-export const PLAYER_STATS_FRAGMENT = gql`
-  fragment PlayerStatsFragment on IPlayerStats {
-    playerId
-    gameId
-    points
-    assists
-    rebounds
-    steals
-    blocks
-    turnovers
-    fouls
-    minutes
-    fieldGoalsMade
-    fieldGoalsAttempted
-    threePointersMade
-    threePointersAttempted
-    freeThrowsMade
-    freeThrowsAttempted
-    createdAt
-    updatedAt
-    deletedAt
   }
 `;
 
@@ -187,6 +95,7 @@ export const COMMENT_FRAGMENT = gql`
     parentId
     parentType
     content
+    depth
     createdAt
     updatedAt
     user {
@@ -199,110 +108,100 @@ export const COMMENT_FRAGMENT = gql`
         ...UserSummaryFragment
       }
     }
-    childComments {
-      totalCount
-      edges {
-        node {
-          id
-          userId
-          parentId
-          parentType
-          content
-          createdAt
-          updatedAt
-          user {
-            ...UserSummaryFragment
-          }
-          reactions {
-            id
-            emoji
-            user {
-              ...UserSummaryFragment
-            }
-          }
-        }
-      }
-    }
   }
-  ${USER_SUMMARY_FRAGMENT}
 `;
 
-export const GAME_LOG_FRAGMENT = gql`
-  fragment GameLogFragment on GameLog {
+export const REACTION_FRAGMENT = gql`
+  fragment ReactionFragment on Reaction {
     id
-    classification
-    watchedSetting
-    watchedScope
-    watchedDate
-    watchedLocation
-    ratingForGame
-    notes
-    tags
+    emoji
+    userId
+    targetId
+    targetType
     createdAt
     updatedAt
     user {
       ...UserSummaryFragment
     }
-    game {
-      id
-      league
-      season
-      date {
-        start
-        end
-        duration
-      }
-      status {
-        clock
-        halftime
-        short
-        long
-      }
-      teams {
-        home {
-          id
-          name
-          nickname
-          code
-          logo
-        }
-        visitors {
-          id
-          name
-          nickname
-          code
-          logo
-        }
-      }
-      scores {
-        home {
-          win
-          loss
-          linescore
-          points
-          series {
-            win
-            loss
-          }
-        }
-        visitors {
-          win
-          loss
-          linescore
-          points
-          series {
-            win
-            loss
-          }
-        }
-      }
-    }
   }
-  ${USER_SUMMARY_FRAGMENT}
 `;
 
-export const GET_GAME_BY_ID = gql`
-  query GetGameById($id: ID!) {
+export const GAME_LOG_FRAGMENT = gql`
+  fragment GameLogFragment on GameLog {
+    id
+    ratingForGame
+    notes
+    tags
+    watchedDate
+    watchedSetting
+    watchedLocation
+    watchedScope
+    classification
+    createdAt
+    updatedAt
+    deletedAt
+    user {
+      ...UserSummaryFragment
+    }
+    game {
+      ...GameFragment
+    }
+    comments {
+      edges {
+        node {
+          ...CommentFragment
+        }
+        cursor
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+      totalCount
+    }
+    reactions {
+      ...ReactionFragment
+    }
+  }
+`;
+
+export const FRIENDSHIP_FRAGMENT = gql`
+  fragment FriendshipFragment on Friendship {
+    id
+    status
+    createdAt
+    updatedAt
+    initiator {
+      ...UserSummaryFragment
+    }
+    recipient {
+      ...UserSummaryFragment
+    }
+  }
+`;
+
+// Queries
+export const GET_GAMES = gql`
+  query GetGames($filters: GameFilters, $pagination: PaginationInput) {
+    games(filters: $filters, pagination: $pagination) {
+      edges {
+        node {
+          ...GameFragment
+        }
+        cursor
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+      totalCount
+    }
+  }
+  ${GAME_FRAGMENT}
+`;
+
+export const GET_GAME = gql`
+  query GetGame($id: ID!) {
     game(id: $id) {
       ...GameFragment
     }
@@ -310,21 +209,17 @@ export const GET_GAME_BY_ID = gql`
   ${GAME_FRAGMENT}
 `;
 
-// EXTERNAL API QUERIES
-
-export const GET_EXTERNAL_GAMES = gql`
-  query GetExternalGames($filters: GameFilters, $pagination: PaginationInput) {
-    games(filters: $filters, pagination: $pagination) {
+export const GET_LIVE_GAMES = gql`
+  query GetLiveGames($first: Int, $after: String) {
+    liveGames(first: $first, after: $after) {
       edges {
-        cursor
         node {
           ...GameFragment
         }
+        cursor
       }
       pageInfo {
         hasNextPage
-        hasPreviousPage
-        startCursor
         endCursor
       }
       totalCount
@@ -333,132 +228,40 @@ export const GET_EXTERNAL_GAMES = gql`
   ${GAME_FRAGMENT}
 `;
 
-export const GET_TEAMS = gql`
-  query GetTeams($filters: TeamFilters) {
-    teams(filters: $filters) {
+export const GET_GAME_LOGS = gql`
+  query GetGameLogs($filters: GameLogFilters, $pagination: PaginationInput) {
+    gameLogs(filters: $filters, pagination: $pagination) {
       edges {
-        cursor
         node {
-          id
-          name
-          nickname
-          code
-          city
-          logo
-          conference
-          division
+          ...GameLogFragment
         }
+        cursor
       }
       pageInfo {
         hasNextPage
-        hasPreviousPage
-        startCursor
         endCursor
       }
       totalCount
     }
   }
+  ${GAME_LOG_FRAGMENT}
+  ${GAME_FRAGMENT}
+  ${USER_SUMMARY_FRAGMENT}
+  ${COMMENT_FRAGMENT}
+  ${REACTION_FRAGMENT}
 `;
 
-export const GET_PLAYERS = gql`
-  query GetPlayers($filters: IPlayerFilters, $pagination: PaginationInput) {
-    players(filters: $filters, pagination: $pagination) {
-      edges {
-        cursor
-        node {
-          ...PlayerFragment
-        }
-      }
-      totalCount
+export const GET_GAME_LOG = gql`
+  query GetGameLog($id: ID!) {
+    gameLog(id: $id) {
+      ...GameLogFragment
     }
   }
-  ${PLAYER_FRAGMENT}
-`;
-
-export const GET_COMMENTS_WITH_FILTERS = gql`
-  query GetCommentsWithFilters($filters: CommentFilters, $pagination: PaginationInput) {
-    comments(filters: $filters, pagination: $pagination) {
-      edges {
-        cursor
-        node {
-          id
-          userId
-          parentId
-          parentType
-          content
-          createdAt
-          updatedAt
-          deletedAt
-          depth
-          user {
-            id
-            username
-            emailAddress
-            image_url
-          }
-          reactions {
-            id
-            emoji
-            userId
-            targetId
-            targetType
-            createdAt
-            updatedAt
-            user {
-              id
-              username
-              emailAddress
-              image_url
-            }
-          }
-          childComments {
-            edges {
-              node {
-                id
-                userId
-                parentId
-                parentType
-                content
-                createdAt
-                updatedAt
-                deletedAt
-                depth
-                user {
-                  id
-                  username
-                  emailAddress
-                  image_url
-                }
-                reactions {
-                  id
-                  emoji
-                  userId
-                  targetId
-                  targetType
-                  createdAt
-                  updatedAt
-                  user {
-                    id
-                    username
-                    emailAddress
-                    image_url
-                  }
-                }
-              }
-            }
-            totalCount
-          }
-        }
-      }
-      pageInfo {
-        hasNextPage
-        hasPreviousPage
-        startCursor
-        endCursor
-      }
-      totalCount
-    }
-  }
+  ${GAME_LOG_FRAGMENT}
+  ${GAME_FRAGMENT}
+  ${USER_SUMMARY_FRAGMENT}
+  ${COMMENT_FRAGMENT}
+  ${REACTION_FRAGMENT}
 `;
 
 export const GET_USERS = gql`
@@ -479,273 +282,52 @@ export const GET_USER = gql`
   ${USER_SUMMARY_FRAGMENT}
 `;
 
-export const GET_GAME_LOGS = gql`
-  query GetGameLogs($filters: GameLogFilters, $pagination: PaginationInput) {
-    gameLogs(filters: $filters, pagination: $pagination) {
+export const SEARCH_USERS = gql`
+  query SearchUsers($first: Int, $after: String, $searchTerm: String, $filters: UserSearchFilters) {
+    searchUsers(first: $first, after: $after, searchTerm: $searchTerm, filters: $filters) {
       edges {
-        cursor
         node {
-          ...GameLogFragment
+          ...UserSummaryFragment
         }
+        cursor
       }
       pageInfo {
         hasNextPage
-        hasPreviousPage
-        startCursor
         endCursor
       }
       totalCount
     }
   }
-  ${GAME_LOG_FRAGMENT}
+  ${USER_SUMMARY_FRAGMENT}
 `;
 
-export const GET_LIVE_GAMES = gql`
-  query GetLiveGames($first: Int, $after: String) {
-    liveGames(first: $first, after: $after) {
+export const GET_COMMENTS = gql`
+  query GetComments($filters: CommentFilters, $pagination: PaginationInput) {
+    comments(filters: $filters, pagination: $pagination) {
       edges {
-        cursor
         node {
-          ...GameFragment
+          ...CommentFragment
         }
+        cursor
       }
       pageInfo {
         hasNextPage
-        hasPreviousPage
-        startCursor
         endCursor
       }
       totalCount
     }
   }
-  ${GAME_FRAGMENT}
-`;
-
-export const GET_TEAM_STATS = gql`
-  query GetTeamStats($teamId: ID!, $season: Int!) {
-    teamStats(teamId: $teamId, season: $season) {
-      games
-      points
-      fgp
-      tpp
-      ftp
-      totReb
-      assists
-      steals
-      blocks
-      turnovers
-      pFouls
-      plusMinus
-      fastBreakPoints
-      pointsInPaint
-      biggestLead
-      secondChancePoints
-      pointsOffTurnovers
-      longestRun
-      assistsPerGame
-      blocksPerGame
-      pointsPerGame
-      reboundsPerGame
-      stealsPerGame
-      turnoversPerGame
-    }
-  }
-`;
-
-export const GET_GAMES = gql`
-  query GetGames($filters: GameFilters, $pagination: PaginationInput) {
-    games(filters: $filters, pagination: $pagination) {
-      edges {
-        cursor
-        node {
-          ...GameFragment
-        }
-      }
-      pageInfo {
-        hasNextPage
-        hasPreviousPage
-        startCursor
-        endCursor
-      }
-      totalCount
-    }
-  }
-  ${GAME_FRAGMENT}
+  ${COMMENT_FRAGMENT}
+  ${USER_SUMMARY_FRAGMENT}
+  ${REACTION_FRAGMENT}
 `;
 
 export const GET_REACTIONS = gql`
   query GetReactions($targetId: ID!, $targetType: ParentType!) {
     reactions(targetId: $targetId, targetType: $targetType) {
-      id
-      emoji
-      userId
-      targetId
-      targetType
-      createdAt
-      updatedAt
-      user {
-        ...UserSummaryFragment
-      }
+      ...ReactionFragment
     }
   }
-  ${USER_SUMMARY_FRAGMENT}
-`;
-
-export const SEARCH_USERS = gql`
-  query SearchUsers($first: Int, $after: String, $searchTerm: String, $filters: UserSearchFilters) {
-    searchUsers(first: $first, after: $after, searchTerm: $searchTerm, filters: $filters) {
-      edges {
-        cursor
-        node {
-          ...UserSummaryFragment
-        }
-      }
-      pageInfo {
-        hasNextPage
-        hasPreviousPage
-        startCursor
-        endCursor
-      }
-      totalCount
-    }
-  }
-  ${USER_SUMMARY_FRAGMENT}
-`;
-
-export const GET_GAME_LOG = gql`
-  query GetGameLog($id: ID!, $commentsFirst: Int, $commentsAfter: String) {
-    gameLog(id: $id) {
-      ...GameLogFragment
-      reactions {
-        id
-        emoji
-        userId
-        targetId
-        targetType
-        createdAt
-        updatedAt
-        user {
-          id
-          username
-          emailAddress
-          image_url
-        }
-      }
-      comments {
-        edges {
-          cursor
-          node {
-            id
-            content
-            user {
-              id
-              username
-              image_url
-            }
-          }
-        }
-        pageInfo {
-          hasNextPage
-          endCursor
-        }
-        totalCount
-      }
-    }
-  }
-  ${GAME_LOG_FRAGMENT}
-`;
-
-export const GET_USER_GAME_LOGS = gql`
-  query GetUserGameLogs($filters: GameLogFilters, $pagination: PaginationInput) {
-    gameLogs(filters: $filters, pagination: $pagination) {
-      edges {
-        node {
-          ...GameLogFragment
-        }
-      }
-      pageInfo {
-        hasNextPage
-        hasPreviousPage
-        startCursor
-        endCursor
-      }
-      totalCount
-    }
-  }
-  ${GAME_LOG_FRAGMENT}
-`;
-
-export const GET_USER_FRIENDSHIPS = gql`
-  query GetUserFriendships($userId: ID!) {
-    user(id: $userId) {
-      ...UserSummaryFragment
-    }
-  }
-  ${USER_SUMMARY_FRAGMENT}
-`;
-
-export const GET_TEAM_H2H = gql`
-  query GetTeamH2H($teamId: ID!, $opponentId: ID!) {
-    teamH2H(teamId: $teamId, opponentId: $opponentId) {
-      wins
-      losses
-      lastTenGames
-    }
-  }
-`;
-
-export const GET_TEAM_GAME_STATS = gql`
-  query GetTeamGameStats($gameId: ID!, $teamId: String!) {
-    teamGameStats(gameId: $gameId, teamId: $teamId) {
-      games
-      points
-      fgp
-      tpp
-      ftp
-      totReb
-      assists
-      steals
-      blocks
-      turnovers
-      pFouls
-      plusMinus
-      fastBreakPoints
-      pointsInPaint
-      biggestLead
-      secondChancePoints
-      pointsOffTurnovers
-      longestRun
-      assistsPerGame
-      blocksPerGame
-      pointsPerGame
-      reboundsPerGame
-      stealsPerGame
-      turnoversPerGame
-    }
-  }
-`;
-
-export const GET_ME = gql`
-  query GetMe {
-    me {
-      ...UserSummaryFragment
-    }
-  }
-  ${USER_SUMMARY_FRAGMENT}
-`;
-
-export const FRIENDSHIP_FRAGMENT = gql`
-  fragment FriendshipFragment on Friendship {
-    id
-    status
-    createdAt
-    updatedAt
-    initiator {
-      ...UserSummaryFragment
-    }
-    recipient {
-      ...UserSummaryFragment
-    }
-  }
+  ${REACTION_FRAGMENT}
   ${USER_SUMMARY_FRAGMENT}
 `;

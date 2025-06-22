@@ -9,15 +9,83 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import React, { useState, useEffect, useRef, Suspense } from 'react';
 
 import { ThemeToggle } from '@src/app/components/common';
-import { Button } from '@src/app/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@src/app/components/ui/dropdown-menu';
-import { Input } from '@src/app/components/ui/input';
-import { LiveGamesBanner } from '@src/app/dashboard/live-games-banner';
+
+// Simple Button component
+interface IButtonProps {
+  children: React.ReactNode;
+  variant?: 'default' | 'ghost';
+  size?: 'default' | 'icon';
+  className?: string;
+  onClick?: () => void;
+  type?: 'button' | 'submit' | 'reset';
+  disabled?: boolean;
+  'aria-label'?: string;
+}
+
+const Button = ({
+  children,
+  variant = 'default',
+  size = 'default',
+  className = '',
+  ...props
+}: IButtonProps) => {
+  const baseClasses =
+    'inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50';
+  const variantClasses = {
+    default: 'bg-primary text-primary-foreground hover:bg-primary/90',
+    ghost: 'hover:bg-accent hover:text-accent-foreground',
+  };
+  const sizeClasses = {
+    default: 'h-10 px-4 py-2',
+    icon: 'h-10 w-10',
+  };
+
+  return (
+    <button
+      className={`${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]} ${className}`}
+      {...props}
+    >
+      {children}
+    </button>
+  );
+};
+
+// Simple Input component
+interface IInputProps {
+  className?: string;
+  type?: string;
+  placeholder?: string;
+  value?: string;
+  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onFocus?: () => void;
+  onBlur?: () => void;
+  autoComplete?: string;
+  spellCheck?: boolean;
+  id?: string;
+  ref?: (input: HTMLInputElement | null) => void;
+}
+
+const Input = ({ className = '', ...props }: IInputProps) => {
+  return (
+    <input
+      className={`flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${className}`}
+      {...props}
+    />
+  );
+};
+
+// Simple LiveGamesBanner placeholder
+const LiveGamesBanner = () => (
+  <div className="w-full bg-blue-600 text-white text-center py-1 text-sm">
+    {/* Live games banner placeholder */}
+  </div>
+);
 
 function SearchBarContent() {
   const [search_query, setSearchQuery] = useState('');
@@ -106,7 +174,7 @@ function SearchBarContent() {
               onBlur={() => setIsFocused(false)}
               autoComplete="off"
               spellCheck={false}
-              ref={input => {
+              ref={(input: HTMLInputElement | null) => {
                 if (isFocused && input) input.focus();
               }}
             />

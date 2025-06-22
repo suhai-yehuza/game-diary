@@ -5,10 +5,10 @@ import fs from 'fs';
 import path from 'path';
 
 import { neon, neonConfig } from '@neondatabase/serverless';
+import { env } from '@src/lib/env';
 
 import type { IMigrationVersion } from '@/lib/types';
 import { logger } from '@lib/core/logger';
-import { env } from '@src/lib/env';
 
 const MIGRATIONS_DIR = path.join(process.cwd(), 'src/lib/db/migrations');
 

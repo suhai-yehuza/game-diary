@@ -5,7 +5,6 @@ import { Toaster as HotToaster } from 'react-hot-toast';
 
 import '@/styles/globals.css';
 import { Footer, Header } from '@src/app/components/layout';
-import { ClientProviders } from '@src/app/components/providers/client-providers';
 import { Toaster } from '@src/app/components/ui/toaster';
 
 const inter = Inter({
@@ -30,13 +29,11 @@ export default function RootLayout({
   return (
     <html lang="en" className="scroll-smooth antialiased" suppressHydrationWarning>
       <body className={`flex min-h-screen flex-col ${inter.className}`}>
-        <ClientProviders>
-          <Header />
-          <main className="grow">{children}</main>
-          <Footer />
-          <Toaster />
-          <HotToaster position="top-center" />
-        </ClientProviders>
+        <Header />
+        <main className="grow">{children}</main>
+        <Footer />
+        <Toaster />
+        <HotToaster position="top-center" />
       </body>
     </html>
   );

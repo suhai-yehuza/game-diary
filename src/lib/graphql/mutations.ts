@@ -1,6 +1,13 @@
 import { gql } from '@apollo/client';
 
-import { COMMENT_FRAGMENT, USER_SUMMARY_FRAGMENT } from '@src/lib/graphql/queries';
+import {
+  COMMENT_FRAGMENT,
+  USER_SUMMARY_FRAGMENT,
+  GAME_LOG_FRAGMENT,
+  GAME_FRAGMENT,
+  REACTION_FRAGMENT,
+  FRIENDSHIP_FRAGMENT,
+} from '@src/lib/graphql/queries';
 
 export const CREATE_GAME = gql`
   mutation CreateGame($input: CreateGameInput!) {
@@ -9,6 +16,7 @@ export const CREATE_GAME = gql`
         id
         league
         season
+        stage
         date {
           start
           end
@@ -31,48 +39,17 @@ export const CREATE_GAME = gql`
           state
           country
         }
-        teams {
-          home {
-            id
-            name
-            nickname
-            code
-            logo
-          }
-          visitors {
-            id
-            name
-            nickname
-            code
-            logo
-          }
-        }
-        scores {
-          home {
-            win
-            loss
-            series {
-              win
-              loss
-            }
-            linescore
-            points
-          }
-          visitors {
-            win
-            loss
-            series {
-              win
-              loss
-            }
-            linescore
-            points
-          }
-        }
         officials
         timesTied
         leadChanges
         nugget
+        homeTeamId
+        awayTeamId
+        isCompleted
+        awayTeamScore
+        homeTeamScore
+        gameType
+        nbaGameId
         createdAt
         updatedAt
       }
@@ -89,93 +66,7 @@ export const CREATE_GAME_LOG = gql`
   mutation CreateGameLog($input: CreateGameLogInput!) {
     createGameLog(input: $input) {
       gameLog {
-        id
-        user {
-          id
-          username
-          first_name
-          last_name
-          image_url
-        }
-        game {
-          id
-          date {
-            start
-            end
-            duration
-          }
-          status {
-            clock
-            halftime
-            short
-            long
-          }
-          arena {
-            name
-            city
-            state
-            country
-          }
-          league
-          season
-          periods {
-            current
-            total
-            endOfPeriod
-          }
-          teams {
-            home {
-              id
-              name
-              nickname
-              code
-              logo
-            }
-            visitors {
-              id
-              name
-              nickname
-              code
-              logo
-            }
-          }
-          scores {
-            home {
-              win
-              loss
-              series {
-                win
-                loss
-              }
-              linescore
-              points
-            }
-            visitors {
-              win
-              loss
-              series {
-                win
-                loss
-              }
-              linescore
-              points
-            }
-          }
-          officials
-          timesTied
-          leadChanges
-          nugget
-          createdAt
-          updatedAt
-        }
-        watchedSetting
-        watchedDate
-        ratingForGame
-        notes
-        tags
-        classification
-        createdAt
-        updatedAt
+        ...GameLogFragment
       }
       errors {
         message
@@ -184,31 +75,18 @@ export const CREATE_GAME_LOG = gql`
       }
     }
   }
+  ${GAME_LOG_FRAGMENT}
+  ${GAME_FRAGMENT}
+  ${USER_SUMMARY_FRAGMENT}
+  ${COMMENT_FRAGMENT}
+  ${REACTION_FRAGMENT}
 `;
 
 export const UPDATE_GAME_LOG = gql`
   mutation UpdateGameLog($id: ID!, $input: CreateGameLogInput!) {
     updateGameLog(id: $id, input: $input) {
       gameLog {
-        id
-        user {
-          id
-          username
-          first_name
-          last_name
-          image_url
-        }
-        game {
-          id
-        }
-        watchedSetting
-        watchedDate
-        ratingForGame
-        notes
-        tags
-        classification
-        createdAt
-        updatedAt
+        ...GameLogFragment
       }
       errors {
         message
@@ -217,6 +95,11 @@ export const UPDATE_GAME_LOG = gql`
       }
     }
   }
+  ${GAME_LOG_FRAGMENT}
+  ${GAME_FRAGMENT}
+  ${USER_SUMMARY_FRAGMENT}
+  ${COMMENT_FRAGMENT}
+  ${REACTION_FRAGMENT}
 `;
 
 export const DELETE_GAME_LOG = gql`
@@ -246,6 +129,8 @@ export const CREATE_COMMENT = gql`
     }
   }
   ${COMMENT_FRAGMENT}
+  ${USER_SUMMARY_FRAGMENT}
+  ${REACTION_FRAGMENT}
 `;
 
 export const UPDATE_COMMENT = gql`
@@ -262,6 +147,8 @@ export const UPDATE_COMMENT = gql`
     }
   }
   ${COMMENT_FRAGMENT}
+  ${USER_SUMMARY_FRAGMENT}
+  ${REACTION_FRAGMENT}
 `;
 
 export const DELETE_COMMENT = gql`
@@ -281,16 +168,7 @@ export const CREATE_REACTION = gql`
   mutation CreateReaction($input: CreateReactionInput!) {
     createReaction(input: $input) {
       reaction {
-        id
-        emoji
-        targetId
-        targetType
-        userId
-        createdAt
-        updatedAt
-        user {
-          ...UserSummaryFragment
-        }
+        ...ReactionFragment
       }
       errors {
         message
@@ -299,6 +177,7 @@ export const CREATE_REACTION = gql`
       }
     }
   }
+  ${REACTION_FRAGMENT}
   ${USER_SUMMARY_FRAGMENT}
 `;
 
@@ -319,16 +198,7 @@ export const SEND_FRIEND_REQUEST = gql`
   mutation SendFriendRequest($userId: ID!) {
     sendFriendRequest(userId: $userId) {
       friendship {
-        id
-        status
-        createdAt
-        updatedAt
-        initiator {
-          ...UserSummaryFragment
-        }
-        recipient {
-          ...UserSummaryFragment
-        }
+        ...FriendshipFragment
       }
       errors {
         message
@@ -337,6 +207,7 @@ export const SEND_FRIEND_REQUEST = gql`
       }
     }
   }
+  ${FRIENDSHIP_FRAGMENT}
   ${USER_SUMMARY_FRAGMENT}
 `;
 
@@ -344,16 +215,7 @@ export const ACCEPT_FRIEND_REQUEST = gql`
   mutation AcceptFriendRequest($friendshipId: ID!) {
     acceptFriendRequest(friendshipId: $friendshipId) {
       friendship {
-        id
-        status
-        createdAt
-        updatedAt
-        initiator {
-          ...UserSummaryFragment
-        }
-        recipient {
-          ...UserSummaryFragment
-        }
+        ...FriendshipFragment
       }
       errors {
         message
@@ -362,6 +224,7 @@ export const ACCEPT_FRIEND_REQUEST = gql`
       }
     }
   }
+  ${FRIENDSHIP_FRAGMENT}
   ${USER_SUMMARY_FRAGMENT}
 `;
 
@@ -369,16 +232,7 @@ export const REJECT_FRIEND_REQUEST = gql`
   mutation RejectFriendRequest($friendshipId: ID!) {
     rejectFriendRequest(friendshipId: $friendshipId) {
       friendship {
-        id
-        status
-        createdAt
-        updatedAt
-        initiator {
-          ...UserSummaryFragment
-        }
-        recipient {
-          ...UserSummaryFragment
-        }
+        ...FriendshipFragment
       }
       errors {
         message
@@ -387,6 +241,7 @@ export const REJECT_FRIEND_REQUEST = gql`
       }
     }
   }
+  ${FRIENDSHIP_FRAGMENT}
   ${USER_SUMMARY_FRAGMENT}
 `;
 

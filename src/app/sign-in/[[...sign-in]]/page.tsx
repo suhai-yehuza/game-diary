@@ -1,22 +1,9 @@
-'use client';
-
 import { SignIn } from '@clerk/nextjs';
-import React from 'react';
 
-import { AuthModal } from '@src/app/components/auth/AuthModal';
-
-export default function Page() {
+export default function SignInPage() {
   return (
-    <AuthModal>
-      <SignIn
-        routing="hash"
-        appearance={{
-          elements: {
-            modalBackdrop: 'bg-transparent',
-            modalContent: 'w-full max-w-md mx-auto',
-          },
-        }}
-      />
-    </AuthModal>
+    <div className="flex items-center justify-center min-h-screen">
+      <SignIn />
+    </div>
   );
 }

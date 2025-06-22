@@ -2,24 +2,24 @@ import { sql } from 'drizzle-orm';
 import { pgTable, integer, text, timestamp, varchar, decimal, unique } from 'drizzle-orm/pg-core';
 
 import { CLASSIFICATION, WATCHED_SETTING, WATCHED_SCOPE } from '@src/lib/types';
-import { generateUUID } from '@src/lib/utils/processing';
 
-import { nba_games } from './nba-schemas';
-import { teams } from './team-schemas';
 import { users } from './user-schemas';
+
+/**
+ * Simple UUID generator
+ */
+function generateUUID(): string {
+  return crypto.randomUUID();
+}
 
 // Games table
 export const games = pgTable('games', {
   id: varchar('id', { length: 255 }).primaryKey().default(generateUUID()),
   gameType: varchar('gameType', { length: 50 }).notNull().default('nba'),
-  nbaGameId: varchar('nbaGameId', { length: 255 }).references(() => nba_games.id),
+  nbaGameId: varchar('nbaGameId', { length: 255 }),
   date: timestamp('date').notNull(),
-  homeTeamId: varchar('homeTeamId', { length: 255 })
-    .notNull()
-    .references(() => teams.id),
-  awayTeamId: varchar('awayTeamId', { length: 255 })
-    .notNull()
-    .references(() => teams.id),
+  homeTeamId: varchar('homeTeamId', { length: 255 }).notNull(),
+  awayTeamId: varchar('awayTeamId', { length: 255 }).notNull(),
   homeTeamScore: integer('homeTeamScore'),
   awayTeamScore: integer('awayTeamScore'),
   status: varchar('status', { length: 50 }).notNull(),
@@ -36,7 +36,7 @@ export const game_logs = pgTable(
     userId: varchar('userId', { length: 255 }).references(() => users.id),
     gameId: varchar('gameId', { length: 255 })
       .notNull()
-      .references(() => nba_games.id),
+      .references(() => games.id),
     classification: varchar('classification', { length: 50 })
       .notNull()
       .default(CLASSIFICATION.PROTECTED),
@@ -66,7 +66,7 @@ export const game_ratings = pgTable(
     id: varchar('id', { length: 255 }).primaryKey().default(generateUUID()),
     gameId: varchar('gameId', { length: 255 })
       .notNull()
-      .references(() => nba_games.id),
+      .references(() => games.id),
     averageRating: decimal('averageRating', { precision: 3, scale: 2 }).notNull().default('0.00'),
     totalRatings: integer('totalRatings').notNull().default(0),
     createdAt: timestamp('createdAt').defaultNow().notNull(),

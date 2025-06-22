@@ -11,16 +11,13 @@ const config: CodegenConfig = {
     './src/lib/types/generated/graphql.ts': {
       plugins: ['typescript', 'typescript-operations', 'typescript-resolvers'],
       config: {
-        contextType: '@/lib/types#IContext',
         mappers: {
-          Player: '@/lib/types#IDBPlayer',
-          Activity: '@/lib/types#IActivity',
-          Notification: '@/lib/types#IAppNotification',
+          // Removed mappers for types that don't exist in consolidated structure
         },
         scalars: {
-          Any: '@/lib/types/scalars#IAnyScalar',
-          JSON: '@/lib/types/scalars#IJsonScalar',
-          DateTime: '@/lib/types/scalars#IDateTimeScalar',
+          Any: '@src/lib/types/declarations.d#IAnyScalar',
+          JSON: '@src/lib/types/declarations.d#IAnyScalar',
+          DateTime: '@src/lib/types/declarations.d#IDateTimeScalar',
         },
         strictScalars: true,
         useTypeImports: true,

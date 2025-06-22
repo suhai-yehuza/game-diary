@@ -2,10 +2,8 @@
 
 import { Bell, Database, Heart, Loader2, MessageSquare, Star, UserPlus, Users } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
-import { Badge } from '@src/app/components/ui/badge';
-import { Button } from '@src/app/components/ui/button';
 import {
   Card,
   CardContent,
@@ -21,6 +19,52 @@ interface IApiResponse {
   data?: Record<string, unknown>[];
   error?: string;
 }
+
+// Simple Badge component
+interface IBadgeProps {
+  children: React.ReactNode;
+  variant?: 'default' | 'secondary';
+  className?: string;
+}
+
+const Badge = ({ children, variant = 'default', className = '' }: IBadgeProps) => (
+  <span
+    className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
+      variant === 'secondary' ? 'bg-gray-100 text-gray-800' : 'bg-blue-100 text-blue-800'
+    } ${className}`}
+  >
+    {children}
+  </span>
+);
+
+// Simple Button component
+interface IButtonProps {
+  children: React.ReactNode;
+  variant?: 'default' | 'outline';
+  size?: 'default' | 'sm';
+  className?: string;
+  onClick?: () => void;
+  disabled?: boolean;
+}
+
+const Button = ({
+  children,
+  variant = 'default',
+  size = 'default',
+  className = '',
+  ...props
+}: IButtonProps) => (
+  <button
+    className={`inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 ${
+      variant === 'outline'
+        ? 'border border-input bg-background hover:bg-accent hover:text-accent-foreground'
+        : 'bg-primary text-primary-foreground hover:bg-primary/90'
+    } ${size === 'sm' ? 'h-9 px-3' : 'h-10 px-4 py-2'} ${className}`}
+    {...props}
+  >
+    {children}
+  </button>
+);
 
 function AdminDatabaseContent() {
   const searchParams = useSearchParams();
@@ -80,6 +124,21 @@ function AdminDatabaseContent() {
         icon: Bell,
         description: 'User notifications and alerts',
         fields: ['id', 'userId', 'type', 'title', 'message', 'createdAt'],
+      },
+      nba_games: {
+        title: 'NBA Games',
+        icon: Database,
+        description: 'NBA game data and schedules',
+        fields: [
+          'id',
+          'league',
+          'season',
+          'date',
+          'homeTeamId',
+          'awayTeamId',
+          'status',
+          'createdAt',
+        ],
       },
     }),
     []
@@ -232,7 +291,7 @@ function AdminDatabaseContent() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-7">
+        <TabsList className="grid w-full grid-cols-8">
           {Object.entries(tableConfigs).map(([key, config]) => (
             <TabsTrigger key={key} value={key} className="flex items-center gap-2">
               <config.icon className="h-4 w-4" />

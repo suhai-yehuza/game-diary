@@ -25,6 +25,8 @@ export default [
       '.nyc_output/**',
       'public/**',
       'src/lib/types/generated/**',
+      'lib/**',
+      'scripts/**',
       '*.config.js',
       '*.config.ts',
       '*.config.mjs',

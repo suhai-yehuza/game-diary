@@ -22,18 +22,6 @@ type Query {
   gameLog(id: ID!): GameLog
   gameLogs(filters: GameLogFilters, pagination: PaginationInput): GameLogConnection!
 
-  # Team queries
-  team(id: ID!): Team
-  teams(filters: TeamFilters): TeamConnection!
-  teamStats(teamId: ID!, season: Int!): ITeamStats
-  teamH2H(teamId: ID!, opponentId: ID!): ITeamH2H
-  teamGameStats(gameId: ID!, teamId: String!): ITeamStats
-
-  # Player queries
-  player(id: ID!): Player
-  players(filters: IPlayerFilters, pagination: PaginationInput): PlayerConnection!
-  playerStats(playerId: ID!, gameId: ID!): IPlayerStats
-
   # Comment queries
   comments(filters: CommentFilters, pagination: PaginationInput): CommentConnection!
 
@@ -171,8 +159,6 @@ type Game {
   season: Int
   stage: Int
   periods: GamePeriods!
-  teams: GameTeams!
-  scores: GameScores!
   officials: [String!]!
   timesTied: Int
   leadChanges: Int
@@ -205,29 +191,6 @@ type GamePeriods {
   current: Int!
   total: Int!
   endOfPeriod: Boolean!
-}
-
-type GameTeams {
-  home: TeamSummary!
-  visitors: TeamSummary!
-}
-
-type GameScores {
-  home: TeamScore!
-  visitors: TeamScore!
-}
-
-type TeamScore {
-  win: Int!
-  loss: Int!
-  series: SeriesScore!
-  linescore: [Int!]!
-  points: Int!
-}
-
-type SeriesScore {
-  win: Int!
-  loss: Int!
 }
 
 type Arena {
@@ -267,72 +230,6 @@ enum GameStatusEnum {
   Live
   Finished
   Cancelled
-}
-
-# Team Types
-type Team {
-  id: ID!
-  name: String!
-  nickname: String!
-  code: String!
-  city: String
-  state: String
-  country: String
-  logo: String
-  conference: String
-  division: String
-  league: String
-  season: Int
-  stats: ITeamStats
-  h2h: ITeamH2H
-  standings: [ConferenceStanding!]
-}
-
-type TeamSummary {
-  id: String!
-  code: String!
-  name: String!
-  nickname: String!
-  logo: String
-}
-
-type ConferenceStanding {
-  name: String!
-  win: Int!
-  loss: Int!
-}
-
-type ITeamStats {
-  games: Int!
-  points: Int!
-  fgp: Float!
-  tpp: Float!
-  ftp: Float!
-  totReb: Int!
-  assists: Int!
-  steals: Int!
-  blocks: Int!
-  turnovers: Int!
-  pFouls: Int!
-  plusMinus: Int!
-  fastBreakPoints: Int!
-  pointsInPaint: Int!
-  biggestLead: Int!
-  secondChancePoints: Int!
-  pointsOffTurnovers: Int!
-  longestRun: Int!
-  assistsPerGame: Float!
-  blocksPerGame: Float!
-  pointsPerGame: Float!
-  reboundsPerGame: Float!
-  stealsPerGame: Float!
-  turnoversPerGame: Float!
-}
-
-type ITeamH2H {
-  wins: Int!
-  losses: Int!
-  lastTenGames: String
 }
 
 # Comment Types
@@ -402,58 +299,6 @@ enum ReactionEmojiType {
   GOLF
 }
 
-# Player Types
-type Player {
-  id: ID!
-  firstName: String
-  lastName: String
-  birth: PlayerBirth
-  height: PlayerHeight
-  weight: PlayerWeight
-  college: String
-  affiliation: String
-  nba: PlayerNba
-  leagues: PlayerLeagues
-  seasons_active: [PlayerSeason!]
-  active: Boolean
-}
-
-type PlayerBirth {
-  date: String
-  country: String
-}
-
-type PlayerHeight {
-  feets: String
-  inches: String
-  meters: String
-}
-
-type PlayerWeight {
-  pounds: String
-  kilograms: String
-}
-
-type PlayerNba {
-  start: Int
-  pro: Int
-}
-
-type PlayerLeagues {
-  standard: PlayerStandard
-}
-
-type PlayerStandard {
-  jersey: String
-  active: Boolean
-  pos: String
-}
-
-type PlayerSeason {
-  season: String
-  teams: [String!]
-}
-
 # Connection Types
 type GameConnection {
   edges: [GameEdge!]!
@@ -477,17 +322,6 @@ type GameLogEdge {
   node: GameLog!
 }
 
-type TeamConnection {
-  edges: [TeamEdge!]!
-  pageInfo: PageInfo!
-  totalCount: Int!
-}
-
-type TeamEdge {
-  cursor: String!
-  node: Team!
-}
-
 type UserConnection {
   edges: [UserEdge!]!
   pageInfo: PageInfo!
@@ -497,17 +331,6 @@ type UserConnection {
 type UserEdge {
   cursor: String!
   node: UserSummary!
-}
-
-type PlayerConnection {
-  edges: [PlayerEdge!]!
-  hasMore: Boolean!
-  totalCount: Int!
-}
-
-type PlayerEdge {
-  cursor: String!
-  node: Player!
 }
 
 # Input Types
@@ -621,26 +444,6 @@ input UserSearchFilters {
   orderBy: String
 }
 
-input TeamFilters {
-  conference: String
-  division: String
-  search: String
-  city: String
-  code: String
-  pagination: PaginationInput
-}
-
-input IPlayerFilters {
-  team: String
-  teamId: String
-  position: String
-  active: Boolean
-  status: String
-  search: String
-  sortBy: String
-  sortDirection: String
-}
-
 # Response Types
 type CreateCommentResponse {
   comment: Comment
@@ -710,28 +513,4 @@ type RemoveFriendResponse {
 type UpdateUserProfileResponse {
   errors: [ErrorResult!]
   user: UserSummary
-}
-
-type IPlayerStats {
-  id: ID!
-  playerId: ID!
-  gameId: ID!
-  teamId: ID!
-  points: Int
-  assists: Int
-  rebounds: Int
-  steals: Int
-  blocks: Int
-  turnovers: Int
-  fouls: Int
-  minutes: String
-  fieldGoalsMade: Int
-  fieldGoalsAttempted: Int
-  threePointersMade: Int
-  threePointersAttempted: Int
-  freeThrowsMade: Int
-  freeThrowsAttempted: Int
-  createdAt: DateTime!
-  updatedAt: DateTime!
-  deletedAt: DateTime
 }

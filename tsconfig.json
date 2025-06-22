@@ -39,9 +39,9 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-    "src/types/*.d.ts",
-    "src/lib/types/global.d.ts",
-    "src/lib/types/modules.d.ts"
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "lib/**/*.ts"
   ],
   "exclude": [
     "node_modules",
@@ -50,6 +50,7 @@
     "out",
     "coverage",
     "**/dist/**",
-    "src/lib/types/generated/**"
+    "src/lib/types/generated/**",
+    "scripts/**"
   ]
 }

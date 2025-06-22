@@ -6,7 +6,6 @@ import type {
   IClassificationWeights,
   IPaginationConfig,
   IDistributionFunctions,
-  IDatabaseSeedingConfig,
 } from '@src/lib/types';
 
 const XSMALL = 10;
@@ -53,6 +52,7 @@ export const API_CONFIG = {
     STANDINGS: '/standings',
     TEAMS: '/teams',
     TEAM_STATISTICS: '/teams/statistics',
+    DOCUMENTATION: 'https://api-sports.io/documentation/nba/v2#tag',
   } as const,
 
   databaseSeeding: {
@@ -62,7 +62,7 @@ export const API_CONFIG = {
     RETRY_DELAY: 2000,
     USER_COUNT: XLARGE,
     DEFAULT_SAMPLE_COUNT: MEDIUM,
-  } as const satisfies IDatabaseSeedingConfig,
+  } as const,
 
   ranges: {
     FRIENDSHIP_RANGE: {

@@ -1,7 +1,6 @@
 import { relations } from 'drizzle-orm';
 
-import { game_logs, game_ratings, games } from './game-schemas';
-import { teams, team_h2h, nba_games, nba_players, nba_player_stats } from './nba-schemas';
+import { game_logs, game_ratings } from './game-schemas';
 import { users, friendships, comments, reactions } from './user-schemas';
 
 // User-related relations
@@ -41,20 +40,4 @@ export const gameLogsRelations = relations(game_logs, ({ one, many }) => ({
 
 export const game_ratings_relations = relations(game_ratings, ({ many }) => ({
   game_logs: many(game_logs),
-}));
-
-// NBA-related relations
-export const team_h2h_relations = relations(team_h2h, ({ many }) => ({
-  games: many(nba_games),
-}));
-
-export const teams_relations = relations(teams, ({ many }) => ({
-  players: many(nba_players),
-  homeGames: many(games, { relationName: 'homeTeam' }),
-  awayGames: many(games, { relationName: 'awayTeam' }),
-}));
-
-export const players_relations = relations(nba_players, ({ many }) => ({
-  teams: many(teams),
-  playerStats: many(nba_player_stats),
 }));

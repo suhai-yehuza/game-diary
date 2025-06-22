@@ -1,11 +1,16 @@
-// Master components index - Single import point for all components
+/**
+ * Component exports
+ * This file serves as the main entry point for all reusable components.
+ */
 
-export * from '@src/app/protected/user/components/friends';
-export * from '@src/app/protected/user/components/game-logs';
-export * from '@src/app/protected/user/components/notifications';
-
-export * from './auth';
-export * from './common';
+// Export layout components
 export * from './layout';
-export * from './providers';
+
+// Export common components
+export * from './common';
+
+// Export UI components
 export * from './ui';
+
+// Export provider components
+export * from './providers';

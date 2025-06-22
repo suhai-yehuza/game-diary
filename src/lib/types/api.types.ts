@@ -1,12 +1,21 @@
 /**
- * API-related types including configuration, validation, response types, and activity tracking
+ * API Types
+ * All API-related types including configuration, validation, response types, and activity tracking
  */
-import type { NextApiRequest } from 'next';
-
 import type { Comment, Reaction, ParentType as TargetType } from '@src/lib/types/generated/graphql';
 
-// Extended NextApiRequest with additional properties
-export interface IExtendedNextApiRequest extends NextApiRequest {
+// ========================================
+// API REQUEST & RESPONSE TYPES
+// ========================================
+
+// Extended NextApiRequest with additional properties (Next.js compatible)
+export interface IExtendedNextApiRequest {
+  query?: { [key: string]: string | string[] };
+  body?: unknown;
+  cookies?: { [key: string]: string };
+  headers?: { [key: string]: string | string[] };
+  method?: string;
+  url?: string;
   selectedFields?: string[];
   pagination?: {
     first?: number;
@@ -16,7 +25,26 @@ export interface IExtendedNextApiRequest extends NextApiRequest {
   };
 }
 
-// API Configuration Types
+// Generic API Response
+export interface IAPIResponse<T = unknown> {
+  response?: T[];
+  data?: T[];
+  get?: string;
+  parameters?: Record<string, string>;
+  errors?: string[];
+  results?: number;
+}
+
+export interface IAPIError {
+  code: string;
+  message: string;
+  details?: unknown;
+}
+
+// ========================================
+// API CONFIGURATION TYPES
+// ========================================
+
 export interface IAPIConfig {
   baseUrl: string;
   endpoints: {
@@ -35,23 +63,36 @@ export interface IRapidAPIConfig extends IAPIConfig {
   host: string;
 }
 
-// API Response Types
-export interface IAPIResponse<T = unknown> {
-  response?: T[];
-  data?: T[];
-  get?: string;
-  parameters?: Record<string, string>;
-  errors?: string[];
-  results?: number;
+export interface IAPIRequestOptions {
+  method?: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
+  headers?: Record<string, string>;
+  body?: unknown;
+  params?: Record<string, string>;
+  timeout?: number;
+  retries?: number;
 }
 
-export interface IAPIError {
-  code: string;
-  message: string;
-  details?: unknown;
+export interface IAPIClient {
+  get<T>(endpoint: string, options?: IAPIRequestOptions): Promise<IAPIResponse<T>>;
+  post<T>(endpoint: string, data: unknown, options?: IAPIRequestOptions): Promise<IAPIResponse<T>>;
+  put<T>(endpoint: string, data: unknown, options?: IAPIRequestOptions): Promise<IAPIResponse<T>>;
+  delete<T>(endpoint: string, options?: IAPIRequestOptions): Promise<IAPIResponse<T>>;
+  patch<T>(endpoint: string, data: unknown, options?: IAPIRequestOptions): Promise<IAPIResponse<T>>;
 }
 
-// Validation Types
+export interface IAPIParameters {
+  id?: string;
+  date?: string;
+  season?: string;
+  team?: string;
+  live?: string;
+  h2h?: string;
+}
+
+// ========================================
+// VALIDATION TYPES
+// ========================================
+
 export interface IValidationError {
   field: string;
   message: string;
@@ -68,42 +109,16 @@ export interface IValidationRule {
   message: string;
 }
 
-// API Request Types
-export interface IAPIRequestOptions {
-  method?: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
-  headers?: Record<string, string>;
-  body?: unknown;
-  params?: Record<string, string>;
-  timeout?: number;
-  retries?: number;
-}
+// ========================================
+// API INFRASTRUCTURE TYPES
+// ========================================
 
-// API Client Types
-export interface IAPIClient {
-  get<T>(endpoint: string, options?: IAPIRequestOptions): Promise<IAPIResponse<T>>;
-  post<T>(endpoint: string, data: unknown, options?: IAPIRequestOptions): Promise<IAPIResponse<T>>;
-  put<T>(endpoint: string, data: unknown, options?: IAPIRequestOptions): Promise<IAPIResponse<T>>;
-  delete<T>(endpoint: string, options?: IAPIRequestOptions): Promise<IAPIResponse<T>>;
-  patch<T>(endpoint: string, data: unknown, options?: IAPIRequestOptions): Promise<IAPIResponse<T>>;
-}
-
-// API Rate Limiting Types
-export interface IRateLimitConfig {
-  windowMs: number;
-  max: number;
-  message?: string;
-  statusCode?: number;
-  headers?: boolean;
-}
-
-// API Caching Types
 export interface ICacheConfig {
   ttl: number;
   maxSize?: number;
   strategy?: 'memory' | 'redis';
 }
 
-// API Monitoring Types
 export interface IAPIMetrics {
   endpoint: string;
   method: string;
@@ -113,16 +128,266 @@ export interface IAPIMetrics {
   error?: string;
 }
 
-export interface IAPIParameters {
-  id?: string;
-  date?: string;
-  season?: string;
-  team?: string;
-  live?: string;
-  h2h?: string;
+// ========================================
+// EXTERNAL API RESPONSE TYPES
+// ========================================
+
+export interface IGameResponseData {
+  id: number;
+  league: string;
+  season: number;
+  date: {
+    start: string;
+    end?: string;
+    duration?: string;
+  };
+  stage: number;
+  status: {
+    clock?: string;
+    halftime: boolean;
+    short: string;
+    long: string;
+  };
+  periods: {
+    current: number;
+    total: number;
+    endOfPeriod: boolean;
+  };
+  arena: {
+    name: string;
+    city: string;
+    state?: string;
+    country?: string;
+  };
+  teams: {
+    home: {
+      id: number;
+      name: string;
+      nickname: string;
+      code: string;
+      logo: string;
+    };
+    visitors: {
+      id: number;
+      name: string;
+      nickname: string;
+      code: string;
+      logo: string;
+    };
+  };
+  scores: {
+    home: {
+      win: number;
+      loss: number;
+      series: {
+        win: number;
+        loss: number;
+      };
+      linescore: number[];
+      points: number;
+    };
+    visitors: {
+      win: number;
+      loss: number;
+      series: {
+        win: number;
+        loss: number;
+      };
+      linescore: number[];
+      points: number;
+    };
+  };
+  officials: string[];
+  timesTied: number;
+  leadChanges: number;
+  nugget?: string;
 }
 
-// Activity Types
+export interface IGameApiResponse {
+  response: IGameResponseData[];
+  data?: IGameResponseData[];
+  get?: string;
+  parameters?: Record<string, string>;
+  errors?: string[];
+  results?: number;
+}
+
+export interface ITeamResponseData {
+  id: number;
+  name: string;
+  nickname: string;
+  code: string;
+  city: string;
+  logo: string;
+  allStar: boolean;
+  nbaFranchise: boolean;
+  leagues: {
+    standard?: {
+      conference: string | null;
+      division: string | null;
+    };
+  };
+}
+
+export type ITeamApiResponse = {
+  get: string;
+  parameters: Record<string, string>;
+  errors: string[];
+  results: number;
+  response: ITeamResponseData[];
+};
+
+export interface ITeamStatisticsResponseData {
+  team: {
+    id: number;
+    name: string;
+    nickname: string;
+    code: string;
+    logo: string;
+  };
+  statistics: {
+    games: number;
+    fastBreakPoints: number;
+    pointsInPaint: number;
+    biggestLead: number;
+    secondChancePoints: number;
+    pointsOffTurnovers: number;
+    longestRun: number;
+    points: number;
+    fgm: number;
+    fga: number;
+    fgp: string;
+    ftm: number;
+    fta: number;
+    ftp: string;
+    tpm: number;
+    tpa: number;
+    tpp: string;
+    offReb: number;
+    defReb: number;
+    totReb: number;
+    assists: number;
+    pFouls: number;
+    steals: number;
+    turnovers: number;
+    blocks: number;
+    plusMinus: number;
+  }[];
+}
+
+export type ITeamStatisticsApiResponse = {
+  get: string;
+  parameters: Record<string, string>;
+  errors: IAPIError[];
+  results: number;
+  response: ITeamStatisticsResponseData[];
+  data?: ITeamStatisticsResponseData[];
+};
+
+export interface IPlayerApiResponse {
+  response: {
+    get: string;
+    parameters: {
+      team: string;
+      season: string;
+    };
+    errors: string[];
+    results: number;
+    response: Array<{
+      id: number;
+      firstname: string;
+      lastname: string;
+      birth?: {
+        date: string | null;
+        country: string | null;
+      };
+      nba?: {
+        start: number;
+        pro: number;
+      };
+      height?: {
+        feets: string | null;
+        inches: string | null;
+        meters: string | null;
+      };
+      weight?: {
+        pounds: string | null;
+        kilograms: string | null;
+      };
+      college: string | null;
+      affiliation: string | null;
+      leagues?: {
+        standard?: {
+          jersey: number | null;
+          active: boolean;
+          pos: string;
+        };
+        vegas?: {
+          jersey: number | null;
+          active: boolean;
+          pos: string;
+        };
+        utah?: {
+          jersey: number | null;
+          active: boolean;
+          pos: string;
+        };
+      };
+    }>;
+  };
+}
+
+export type ISeasonApiResponse = {
+  get: string;
+  parameters: Record<string, string>;
+  errors: string[];
+  results: number;
+  response: number[];
+};
+
+export interface IStandingResponseData {
+  team: {
+    id: number;
+    name: string;
+    nickname: string;
+    code: string;
+    logo: string;
+  };
+  conference: {
+    name: string;
+    rank: number;
+    win: number;
+    loss: number;
+  };
+  division: {
+    name: string;
+    rank: number;
+    win: number;
+    loss: number;
+    gamesBehind: string;
+  };
+  win: {
+    home: number;
+    away: number;
+    total: number;
+    percentage: string;
+    lastTen: number;
+  };
+  loss: {
+    home: number;
+    away: number;
+    total: number;
+    percentage: string;
+    lastTen: number;
+  };
+  streak: number;
+  winStreak: boolean;
+}
+
+// ========================================
+// ACTIVITY TYPES
+// ========================================
+
 export interface IActivity {
   id: string;
   userId: string;
@@ -217,32 +482,4 @@ export interface IActivityTimelineProps {
 
 export interface IFriendActivityProps {
   friendId: string;
-}
-
-// API Configuration Types
-export interface IRangeConfig {
-  min: number;
-  max: number;
-  step: number;
-}
-
-export interface IBatchSizeConfig {
-  default: number;
-  max: number;
-  min: number;
-}
-
-export interface IAPISeedingConfig {
-  enabled: boolean;
-  batchSize: number;
-  maxRetries: number;
-  retryDelay: number;
-}
-
-export interface IClassificationWeights {
-  [key: string]: number;
-}
-
-export interface IDistributionFunctions {
-  [key: string]: (value: number) => number;
 }

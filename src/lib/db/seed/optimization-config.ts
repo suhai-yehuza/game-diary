@@ -327,7 +327,7 @@ export class PerformanceTracker {
 // Export types
 
 // Add missing getCacheManager function
-import type { ICacheManager } from '@src/lib/types/seeding.types';
+import type { ICacheManager } from '@src/lib/types/infrastructure.types';
 
 // Simple in-memory cache implementation
 class InMemoryCache implements ICacheManager {

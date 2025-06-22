@@ -1,9 +1,12 @@
-import { sql, eq } from 'drizzle-orm';
-import type { NeonHttpDatabase } from 'drizzle-orm/neon-http';
+import { sql } from 'drizzle-orm';
 import { varchar, timestamp } from 'drizzle-orm/pg-core';
 
-import type { SoftDeletableTable } from '@src/lib/types';
-import { generateUUID } from '@src/lib/utils/processing';
+/**
+ * Simple UUID generator
+ */
+function generateUUID(): string {
+  return crypto.randomUUID();
+}
 
 // Common field generators
 export const createIdField = () => ({
@@ -27,27 +30,6 @@ export const createIndex = (name: string, table: string, columns: string[]) =>
 
 // Soft delete helper functions
 export const softDelete = {
-  users: async (db: NeonHttpDatabase<{ users: SoftDeletableTable }>, userId: string) => {
-    const { users } = await import('./user-schemas');
-    return await db.update(users).set({ deletedAt: new Date() }).where(eq(users.id, userId));
-  },
-
-  gameLogs: async (db: NeonHttpDatabase<{ game_logs: SoftDeletableTable }>, gameLogId: string) => {
-    const { game_logs } = await import('./game-schemas');
-    return await db
-      .update(game_logs)
-      .set({ deletedAt: new Date() })
-      .where(eq(game_logs.id, gameLogId));
-  },
-
-  comments: async (db: NeonHttpDatabase<{ comments: SoftDeletableTable }>, commentId: string) => {
-    const { comments } = await import('./user-schemas');
-    return await db
-      .update(comments)
-      .set({ deletedAt: new Date() })
-      .where(eq(comments.id, commentId));
-  },
-
   // Helper function to check if a record is soft deleted
   isDeleted: (record: { deletedAt: Date | null }) => {
     return record.deletedAt !== null;

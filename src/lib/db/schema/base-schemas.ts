@@ -1,6 +1,11 @@
-import { varchar, timestamp, integer } from 'drizzle-orm/pg-core';
+import { integer, varchar, timestamp } from 'drizzle-orm/pg-core';
 
-import { generateUUID } from '@src/lib/utils/processing';
+/**
+ * Simple UUID generator
+ */
+function generateUUID(): string {
+  return crypto.randomUUID();
+}
 
 // Base table configuration that can be shared across different schema files
 export const baseTableConfig = {
