@@ -123,6 +123,7 @@ export const sendFriendRequest = async (
 
     // Invalidate related caches
     const cache = getCache();
+    await cache.initializeRedis();
     await cache.del(`user:${user.id}`);
     await cache.del(`user:${userId}`);
 
@@ -173,6 +174,7 @@ export const acceptFriendRequest = async (
 
     // Invalidate related caches
     const cache = getCache();
+    await cache.initializeRedis();
     await cache.del(`user:${user.id}`);
     await cache.del(`user:${friendship.userId}`);
 
@@ -223,6 +225,7 @@ export const rejectFriendRequest = async (
 
     // Invalidate related caches
     const cache = getCache();
+    await cache.initializeRedis();
     await cache.del(`user:${user.id}`);
     await cache.del(`user:${friendship.userId}`);
 
@@ -299,6 +302,7 @@ export const removeFriend = async (
 
     // Invalidate related caches
     const cache = getCache();
+    await cache.initializeRedis();
     await cache.del(`user:${user.id}`);
     await cache.del(`user:${friendship.friendId}`);
 

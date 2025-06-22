@@ -41,6 +41,9 @@ const createCacheAwareLoader = <T>(
 ) => {
   return new DataLoader<string, T | null>(async keys => {
     const cache = getCache();
+    // Initialize Redis before using cache operations
+    await cache.initializeRedis();
+
     const cacheKeys = keys.map(cacheKeyFn);
     const cachedResults = await Promise.all(cacheKeys.map(key => cache.get<T>(key)));
 

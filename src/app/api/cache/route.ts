@@ -24,6 +24,9 @@ export async function GET(request: NextRequest) {
     const userKey = `user:${userId}:${key}`;
 
     const cache = getCache();
+    // Initialize Redis before using cache operations
+    await cache.initializeRedis();
+
     const value = await cache.get(userKey);
 
     cacheLogger.info(`[API Cache GET] Retrieved key: ${userKey}`);
@@ -54,6 +57,9 @@ export async function POST(request: NextRequest) {
     const userKey = `user:${userId}:${key}`;
 
     const cache = getCache();
+    // Initialize Redis before using cache operations
+    await cache.initializeRedis();
+
     const success = await cache.set(userKey, value, ttl);
 
     cacheLogger.info(`[API Cache SET] Set key: ${userKey}, success: ${success}`);
@@ -84,6 +90,9 @@ export async function DELETE(request: NextRequest) {
     const userKey = `user:${userId}:${key}`;
 
     const cache = getCache();
+    // Initialize Redis before using cache operations
+    await cache.initializeRedis();
+
     const success = await cache.del(userKey);
 
     cacheLogger.info(`[API Cache DELETE] Deleted key: ${userKey}, success: ${success}`);

@@ -82,6 +82,9 @@ export const withCache = async <T>(
   ttl = CACHE_TTL.USER_GAME_LOGS // Default to user game logs cache TTL
 ): Promise<T> => {
   try {
+    // Initialize Redis before using cache operations
+    await cache.initializeRedis();
+
     const cached = await cache.get<T>(key);
     if (cached) return cached;
 
@@ -103,6 +106,9 @@ export const batchQuery = async <T extends { id: string }>(
   ttl = CACHE_TTL.GAME // Default to game cache TTL
 ): Promise<Map<string, T>> => {
   try {
+    // Initialize Redis before using cache operations
+    await cache.initializeRedis();
+
     // Try to get from cache first
     const cachedResults = new Map<string, T>();
 
