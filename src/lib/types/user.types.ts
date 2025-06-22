@@ -56,77 +56,36 @@ export interface IClerkMetadata {
   [key: string]: string | number | boolean | null | undefined;
 }
 
-export interface IClerkEnterpriseAccount {
-  id: string;
-  name: string;
-  domain: string;
-  created_at: number;
-  updated_at: number;
-}
-
-export interface IClerkPasskey {
-  id: string;
-  name: string;
-  created_at: number;
-  updated_at: number;
-}
-
-export interface IClerkPhoneNumber {
-  id: string;
-  phone_number: string;
-  verification: {
-    attempts: number | null;
-    expire_at: number | null;
-    status: string;
-    strategy: string;
-  };
-  created_at: number;
-  updated_at: number;
-}
-
-export interface IClerkSamlAccount {
-  id: string;
-  provider: string;
-  provider_user_id: string;
-  created_at: number;
-  updated_at: number;
-}
-
-export interface IClerkWeb3Wallet {
-  id: string;
-  address: string;
-  chain: string;
-  created_at: number;
-  updated_at: number;
-}
+// Type aliases for empty arrays in Clerk response
+export type IClerkPhoneNumber = unknown[];
+export type IClerkWeb3Wallet = unknown[];
+export type IClerkPasskey = unknown[];
+export type IClerkSamlAccount = unknown[];
+export type IClerkEnterpriseAccount = unknown[];
 
 export interface IClerkExternalAccount {
-  approved_scopes: string;
-  avatar_url: string;
-  created_at: number;
-  email_address: string;
-  external_account_id: string;
-  family_name: string;
-  first_name: string;
-  given_name: string;
-  google_id: string;
-  id: string;
-  identification_id: string;
-  image_url: string;
-  label: string | null;
-  last_name: string;
   object: string;
-  picture: string;
+  id: string;
   provider: string;
+  identification_id: string;
   provider_user_id: string;
-  public_metadata: IClerkMetadata;
-  updated_at: number;
+  approved_scopes: string;
+  email_address: string;
+  first_name: string;
+  last_name: string;
+  avatar_url: string;
+  image_url: string;
   username: string | null;
+  phone_number: string | null;
+  public_metadata: Record<string, unknown>;
+  label: string | null;
+  created_at: number;
+  updated_at: number;
   verification: {
-    attempts: number | null;
-    expire_at: number | null;
     status: string;
     strategy: string;
+    attempts: number | null;
+    expire_at: number | null;
   };
 }
 
@@ -271,4 +230,57 @@ export interface IFriendGroupsProps {
 // User API Response Types
 export interface IGetFriendshipsForUserResponse {
   friendships: Friendship[];
+}
+
+// Clerk user interface matching Clerk API response
+export interface IClerkUser {
+  id: string;
+  object: 'user';
+  username: string | null;
+  first_name: string | null;
+  last_name: string | null;
+  image_url: string | null;
+  has_image: boolean;
+  primary_email_address_id: string;
+  primary_phone_number_id: string | null;
+  primary_web3_wallet_id: string | null;
+  password_enabled: boolean;
+  two_factor_enabled: boolean;
+  totp_enabled: boolean;
+  backup_code_enabled: boolean;
+  email_addresses: IClerkEmailAddress[];
+  phone_numbers: IClerkPhoneNumber[];
+  web3_wallets: IClerkWeb3Wallet[];
+  passkeys: IClerkPasskey[];
+  external_accounts: IClerkExternalAccount[];
+  saml_accounts: IClerkSamlAccount[];
+  enterprise_accounts: IClerkEnterpriseAccount[];
+  public_metadata: Record<string, unknown>;
+  private_metadata: Record<string, unknown>;
+  unsafe_metadata: Record<string, unknown>;
+  external_id: string | null;
+  last_sign_in_at: number | null;
+  banned: boolean;
+  locked: boolean;
+  lockout_expires_in_seconds: number | null;
+  verification_attempts_remaining: number;
+  created_at: number;
+  updated_at: number;
+  delete_self_enabled: boolean;
+  create_organization_enabled: boolean;
+  last_active_at: number;
+  mfa_enabled_at: number | null;
+  mfa_disabled_at: number | null;
+  legal_accepted_at: number | null;
+  profile_image_url: string | null;
+}
+
+// Database user interface extending Clerk user, with DB-specific fields
+export interface IDbUser extends IClerkUser {
+  createdAt: Date;
+  updatedAt: Date;
+  deletedAt?: Date | null;
+  // Add any other DB-specific fields here
+  inboundFriendshipIds: string[];
+  outboundFriendshipIds: string[];
 }

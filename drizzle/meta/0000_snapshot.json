@@ -1,5 +1,5 @@
 {
-  "id": "d22b3c3d-e856-47fd-a2c2-1db0a9ccafff",
+  "id": "5136ffd4-5fef-4939-b54c-fe990fc6e421",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -13,7 +13,7 @@
           "type": "varchar(255)",
           "primaryKey": true,
           "notNull": true,
-          "default": "'01978c09-627e-744d-ac4e-2381750662fd'"
+          "default": "'01979589-73ac-765b-a771-c4f536910691'"
         },
         "userId": {
           "name": "userId",
@@ -88,7 +88,7 @@
           "type": "varchar(255)",
           "primaryKey": true,
           "notNull": true,
-          "default": "'01978c09-627e-744d-ac4e-1f866ab39942'"
+          "default": "'01979589-73ac-765b-a771-c2d11b5681c9'"
         },
         "friendId": {
           "name": "friendId",
@@ -173,7 +173,7 @@
           "type": "varchar(255)",
           "primaryKey": true,
           "notNull": true,
-          "default": "'01978c09-627f-7425-bea6-5abb5526fe6c'"
+          "default": "'01979589-73ac-765b-a771-d2eaef93b9e2'"
         },
         "userId": {
           "name": "userId",
@@ -304,7 +304,7 @@
           "type": "varchar(255)",
           "primaryKey": true,
           "notNull": true,
-          "default": "'01978c09-627f-7425-bea6-5ed5f3a74f5b'"
+          "default": "'01979589-73ac-765b-a771-d44ac84bd66a'"
         },
         "gameId": {
           "name": "gameId",
@@ -381,7 +381,7 @@
           "type": "varchar(255)",
           "primaryKey": true,
           "notNull": true,
-          "default": "'01978c09-627c-77fc-bfe6-8c062f46a073'"
+          "default": "'01979589-73a9-7188-814b-dc6354edf661'"
         },
         "gameId": {
           "name": "gameId",
@@ -819,7 +819,7 @@
           "type": "varchar(255)",
           "primaryKey": true,
           "notNull": true,
-          "default": "'01978c09-627f-7425-bea6-5793d4935c38'"
+          "default": "'01979589-73ac-765b-a771-cf31120d7000'"
         },
         "gameType": {
           "name": "gameType",
@@ -937,7 +937,7 @@
           "type": "text",
           "primaryKey": true,
           "notNull": true,
-          "default": "'01978c09-627b-7386-b90e-f50395b882e0'"
+          "default": "'01979589-73a8-701d-9c0e-13f90ec3f98e'"
         },
         "league": {
           "name": "league",
@@ -1432,7 +1432,7 @@
           "type": "varchar(255)",
           "primaryKey": true,
           "notNull": true,
-          "default": "'01978c09-627f-7425-bea6-5101284e4955'"
+          "default": "'01979589-73ac-765b-a771-ca161c747b6c'"
         },
         "userId": {
           "name": "userId",
@@ -1591,7 +1591,7 @@
           "type": "varchar(255)",
           "primaryKey": true,
           "notNull": true,
-          "default": "'01978c09-627c-77fc-bfe6-8a0bb6b6f523'"
+          "default": "'01979589-73a8-701d-9c0e-150346b0bfc1'"
         },
         "team1Id": {
           "name": "team1Id",
@@ -1797,25 +1797,51 @@
           "type": "varchar(255)",
           "primaryKey": true,
           "notNull": true,
-          "default": "'01978c09-627e-744d-ac4e-191c903fa08e'"
+          "default": "'01979589-73ab-77e9-aec9-50aa7317f87e'"
+        },
+        "object": {
+          "name": "object",
+          "type": "varchar(10)",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'user'"
         },
         "username": {
           "name": "username",
           "type": "varchar(255)",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
-        "firstName": {
-          "name": "firstName",
+        "first_name": {
+          "name": "first_name",
           "type": "varchar(255)",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
-        "lastName": {
-          "name": "lastName",
+        "last_name": {
+          "name": "last_name",
           "type": "varchar(255)",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
+        },
+        "image_url": {
+          "name": "image_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "has_image": {
+          "name": "has_image",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "profile_image_url": {
+          "name": "profile_image_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
         },
         "emailAddress": {
           "name": "emailAddress",
@@ -1823,36 +1849,21 @@
           "primaryKey": false,
           "notNull": true
         },
-        "imageUrl": {
-          "name": "imageUrl",
-          "type": "text",
+        "primary_email_address_id": {
+          "name": "primary_email_address_id",
+          "type": "varchar(255)",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
-        "inboundFriendshipIds": {
-          "name": "inboundFriendshipIds",
-          "type": "text[]",
+        "primary_phone_number_id": {
+          "name": "primary_phone_number_id",
+          "type": "varchar(255)",
           "primaryKey": false,
-          "notNull": true,
-          "default": "'{}'"
+          "notNull": false
         },
-        "outboundFriendshipIds": {
-          "name": "outboundFriendshipIds",
-          "type": "text[]",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'{}'"
-        },
-        "banned": {
-          "name": "banned",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": false
-        },
-        "last_sign_in_at": {
-          "name": "last_sign_in_at",
-          "type": "timestamp (6) with time zone",
+        "primary_web3_wallet_id": {
+          "name": "primary_web3_wallet_id",
+          "type": "varchar(255)",
           "primaryKey": false,
           "notNull": false
         },
@@ -1865,6 +1876,20 @@
         },
         "two_factor_enabled": {
           "name": "two_factor_enabled",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "totp_enabled": {
+          "name": "totp_enabled",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "backup_code_enabled": {
+          "name": "backup_code_enabled",
           "type": "boolean",
           "primaryKey": false,
           "notNull": true,
@@ -1883,6 +1908,13 @@
           "primaryKey": false,
           "notNull": false
         },
+        "verification_attempts_remaining": {
+          "name": "verification_attempts_remaining",
+          "type": "varchar(10)",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'100'"
+        },
         "external_id": {
           "name": "external_id",
           "type": "varchar(255)",
@@ -1895,6 +1927,117 @@
           "primaryKey": false,
           "notNull": true,
           "default": "'[]'"
+        },
+        "public_metadata": {
+          "name": "public_metadata",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'"
+        },
+        "private_metadata": {
+          "name": "private_metadata",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'"
+        },
+        "unsafe_metadata": {
+          "name": "unsafe_metadata",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'"
+        },
+        "banned": {
+          "name": "banned",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "locked": {
+          "name": "locked",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "lockout_expires_in_seconds": {
+          "name": "lockout_expires_in_seconds",
+          "type": "varchar(20)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "delete_self_enabled": {
+          "name": "delete_self_enabled",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "create_organization_enabled": {
+          "name": "create_organization_enabled",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "last_sign_in_at": {
+          "name": "last_sign_in_at",
+          "type": "timestamp (6) with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "last_active_at": {
+          "name": "last_active_at",
+          "type": "timestamp (6) with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "mfa_enabled_at": {
+          "name": "mfa_enabled_at",
+          "type": "timestamp (6) with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "mfa_disabled_at": {
+          "name": "mfa_disabled_at",
+          "type": "timestamp (6) with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "legal_accepted_at": {
+          "name": "legal_accepted_at",
+          "type": "timestamp (6) with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp (6) with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp (6) with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "inboundFriendshipIds": {
+          "name": "inboundFriendshipIds",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'"
+        },
+        "outboundFriendshipIds": {
+          "name": "outboundFriendshipIds",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'"
         },
         "createdAt": {
           "name": "createdAt",

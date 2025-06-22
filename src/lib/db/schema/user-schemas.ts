@@ -6,22 +6,61 @@ import { generateUUID } from '@src/lib/utils/processing';
 
 // Users table
 export const users = pgTable('users', {
+  // Core user fields
   id: varchar('id', { length: 255 }).primaryKey().default(generateUUID()),
-  username: varchar('username', { length: 255 }).notNull(),
-  firstName: varchar('firstName', { length: 255 }).notNull(),
-  lastName: varchar('lastName', { length: 255 }).notNull(),
+  object: varchar('object', { length: 10 }).notNull().default('user'),
+  username: varchar('username', { length: 255 }),
+  first_name: varchar('first_name', { length: 255 }),
+  last_name: varchar('last_name', { length: 255 }),
+  image_url: text('image_url'),
+  has_image: boolean('has_image').notNull().default(false),
+  profile_image_url: text('profile_image_url'),
+
+  // Email and contact fields
   emailAddress: varchar('emailAddress', { length: 255 }).notNull().unique(),
-  imageUrl: text('imageUrl').notNull(),
-  inboundFriendshipIds: text('inboundFriendshipIds').array().notNull().default([]),
-  outboundFriendshipIds: text('outboundFriendshipIds').array().notNull().default([]),
-  banned: boolean('banned').notNull().default(false),
-  last_sign_in_at: timestamp({ precision: 6, withTimezone: true }),
+  primary_email_address_id: varchar('primary_email_address_id', { length: 255 }),
+  primary_phone_number_id: varchar('primary_phone_number_id', { length: 255 }),
+  primary_web3_wallet_id: varchar('primary_web3_wallet_id', { length: 255 }),
+
+  // Authentication and security fields
   password_enabled: boolean('password_enabled').notNull().default(false),
   two_factor_enabled: boolean('two_factor_enabled').notNull().default(false),
+  totp_enabled: boolean('totp_enabled').notNull().default(false),
+  backup_code_enabled: boolean('backup_code_enabled').notNull().default(false),
   email_verified: boolean('email_verified').notNull().default(false),
   email_verification_strategy: varchar('email_verification_strategy', { length: 50 }),
+  verification_attempts_remaining: varchar('verification_attempts_remaining', { length: 10 })
+    .notNull()
+    .default('100'),
+
+  // External accounts and metadata
   external_id: varchar('external_id', { length: 255 }),
   external_accounts: jsonb('external_accounts').notNull().default('[]'),
+  public_metadata: jsonb('public_metadata').notNull().default('{}'),
+  private_metadata: jsonb('private_metadata').notNull().default('{}'),
+  unsafe_metadata: jsonb('unsafe_metadata').notNull().default('{}'),
+
+  // Status and flags
+  banned: boolean('banned').notNull().default(false),
+  locked: boolean('locked').notNull().default(false),
+  lockout_expires_in_seconds: varchar('lockout_expires_in_seconds', { length: 20 }),
+  delete_self_enabled: boolean('delete_self_enabled').notNull().default(true),
+  create_organization_enabled: boolean('create_organization_enabled').notNull().default(true),
+
+  // Timestamps
+  last_sign_in_at: timestamp({ precision: 6, withTimezone: true }),
+  last_active_at: timestamp({ precision: 6, withTimezone: true }),
+  mfa_enabled_at: timestamp({ precision: 6, withTimezone: true }),
+  mfa_disabled_at: timestamp({ precision: 6, withTimezone: true }),
+  legal_accepted_at: timestamp({ precision: 6, withTimezone: true }),
+  created_at: timestamp({ precision: 6, withTimezone: true }),
+  updated_at: timestamp({ precision: 6, withTimezone: true }),
+
+  // Friendship arrays
+  inboundFriendshipIds: text('inboundFriendshipIds').array().notNull().default([]),
+  outboundFriendshipIds: text('outboundFriendshipIds').array().notNull().default([]),
+
+  // Database-specific fields
   createdAt: timestamp({ precision: 6, withTimezone: true }).notNull(),
   updatedAt: timestamp({ precision: 6, withTimezone: true }).notNull(),
   deletedAt: timestamp({ precision: 6, withTimezone: true }),
