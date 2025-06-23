@@ -9,6 +9,7 @@ import {
   ToastDescription,
   ToastTitle,
   ToastViewport,
+  ToastProvider,
 } from '@src/app/components/ui/toast';
 import { useToast } from '@src/app/components/ui/use-toast';
 import type { IToasterToast } from '@src/lib/types';
@@ -17,7 +18,7 @@ export function Toaster() {
   const { toasts } = useToast();
 
   return (
-    <>
+    <ToastProvider>
       {toasts.map(function (toast: IToasterToast) {
         const { id, title, description, action, open, variant, ...rest } = toast;
 
@@ -37,6 +38,6 @@ export function Toaster() {
         );
       })}
       <ToastViewport />
-    </>
+    </ToastProvider>
   );
 }
