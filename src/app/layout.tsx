@@ -5,7 +5,7 @@ import { Toaster as HotToaster } from 'react-hot-toast';
 
 import '@/styles/globals.css';
 import { Footer, Header } from '@src/app/components/layout';
-import { ClerkProviderWrapper } from '@src/app/components/providers';
+import { ClerkProviderWrapper, ThemeProvider } from '@src/app/components/providers';
 import { Toaster } from '@src/app/components/ui/toaster';
 import { ToastProvider } from '@src/app/components/ui/use-toast';
 
@@ -31,15 +31,22 @@ export default function RootLayout({
   return (
     <html lang="en" className="scroll-smooth antialiased" suppressHydrationWarning>
       <body className={`flex min-h-screen flex-col ${inter.className}`}>
-        <ClerkProviderWrapper>
-          <ToastProvider>
-            <Header />
-            <main className="grow">{children}</main>
-            <Footer />
-            <Toaster />
-            <HotToaster position="top-center" />
-          </ToastProvider>
-        </ClerkProviderWrapper>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <ClerkProviderWrapper>
+            <ToastProvider>
+              <Header />
+              <main className="grow">{children}</main>
+              <Footer />
+              <Toaster />
+              <HotToaster position="top-center" />
+            </ToastProvider>
+          </ClerkProviderWrapper>
+        </ThemeProvider>
       </body>
     </html>
   );
