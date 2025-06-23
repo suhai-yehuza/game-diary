@@ -10,7 +10,7 @@
   "scripts": {
     "// Development": "Core development commands",
     "dev": "next dev --turbo",
-    "build": "tsx scripts/utils/verify-env-build.ts && next build",
+    "build": "tsx scripts/utils/verify-env.ts --build && next build",
     "start": "next start",
     "clean": "rm -rf .next out coverage src/lib/types/generated test-results-e2e playwright-report .nyc_output dist && mkdir -p coverage",
     "clean:deps": "rm -rf node_modules package-lock.json yarn.lock pnpm-lock.yaml && pnpm install",
