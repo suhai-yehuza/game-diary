@@ -245,3 +245,6 @@ export type DirectiveResolverFn<
   context: TContext,
   info: GraphQLResolveInfo
 ) => TResult | Promise<TResult>;
+
+// Database types
+export type Database = ReturnType<typeof import('drizzle-orm/neon-http').drizzle>;

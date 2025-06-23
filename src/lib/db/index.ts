@@ -2,15 +2,29 @@ import { neon } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-http';
 
 import * as schema from '@src/lib/db/schema';
+import type { Database } from '@src/lib/types/infrastructure.types';
 
-const sql = neon(process.env.DATABASE_URL!);
-export const db = drizzle(sql, { schema });
+// Only create database connection if DATABASE_URL is available
+let sql: ReturnType<typeof neon> | null = null;
+let db: Database | null = null;
 
-export type Database = typeof db;
+if (process.env.DATABASE_URL) {
+  try {
+    sql = neon(process.env.DATABASE_URL);
+    db = drizzle(sql, { schema });
+  } catch (error) {
+    console.warn('Failed to initialize database connection:', error);
+  }
+}
+
+export { db };
 
 // Create database client function for scripts
 export function createDatabaseClient(_options?: { env?: string }) {
-  const databaseUrl = process.env.DATABASE_URL!;
+  const databaseUrl = process.env.DATABASE_URL;
+  if (!databaseUrl) {
+    throw new Error('DATABASE_URL environment variable is required');
+  }
   const sql = neon(databaseUrl);
   return drizzle(sql, { schema });
 }

@@ -2,7 +2,7 @@
 
 import { Bell, Database, Heart, Loader2, MessageSquare, Star, UserPlus, Users } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import {
   Card,
@@ -11,22 +11,10 @@ import {
   CardHeader,
   CardTitle,
 } from '@src/app/components/ui/card';
-import { ScrollArea } from '@src/app/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@src/app/components/ui/tabs';
-
-interface IApiResponse {
-  success: boolean;
-  data?: Record<string, unknown>[];
-  error?: string;
-}
+import type { IApiResponse, IBadgeProps, IAdminButtonProps } from '@src/lib/types/ui.types';
 
 // Simple Badge component
-interface IBadgeProps {
-  children: React.ReactNode;
-  variant?: 'default' | 'secondary';
-  className?: string;
-}
-
 const Badge = ({ children, variant = 'default', className = '' }: IBadgeProps) => (
   <span
     className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
@@ -38,22 +26,13 @@ const Badge = ({ children, variant = 'default', className = '' }: IBadgeProps) =
 );
 
 // Simple Button component
-interface IButtonProps {
-  children: React.ReactNode;
-  variant?: 'default' | 'outline';
-  size?: 'default' | 'sm';
-  className?: string;
-  onClick?: () => void;
-  disabled?: boolean;
-}
-
 const Button = ({
   children,
   variant = 'default',
   size = 'default',
   className = '',
   ...props
-}: IButtonProps) => (
+}: IAdminButtonProps) => (
   <button
     className={`inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 ${
       variant === 'outline'
@@ -228,7 +207,7 @@ function AdminDatabaseContent() {
                 </span>
               </div>
 
-              <ScrollArea className="h-96 w-full border rounded-md">
+              <div className="h-96 w-full border rounded-md">
                 <div className="p-4">
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm">
@@ -267,7 +246,7 @@ function AdminDatabaseContent() {
                     </div>
                   )}
                 </div>
-              </ScrollArea>
+              </div>
             </div>
           ) : (
             <div className="text-center py-8 text-muted-foreground">

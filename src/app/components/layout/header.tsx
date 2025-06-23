@@ -15,19 +15,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@src/app/components/ui/dropdown-menu';
+import type { IButtonProps, IInputProps } from '@src/lib/types/ui.types';
 
 // Simple Button component
-interface IButtonProps {
-  children: React.ReactNode;
-  variant?: 'default' | 'ghost';
-  size?: 'default' | 'icon';
-  className?: string;
-  onClick?: () => void;
-  type?: 'button' | 'submit' | 'reset';
-  disabled?: boolean;
-  'aria-label'?: string;
-}
-
 const Button = ({
   children,
   variant = 'default',
@@ -57,20 +47,6 @@ const Button = ({
 };
 
 // Simple Input component
-interface IInputProps {
-  className?: string;
-  type?: string;
-  placeholder?: string;
-  value?: string;
-  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onFocus?: () => void;
-  onBlur?: () => void;
-  autoComplete?: string;
-  spellCheck?: boolean;
-  id?: string;
-  ref?: (input: HTMLInputElement | null) => void;
-}
-
 const Input = ({ className = '', ...props }: IInputProps) => {
   return (
     <input

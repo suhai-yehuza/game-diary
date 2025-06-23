@@ -22,6 +22,14 @@ export async function GET(request: NextRequest, { params }: { params: { table: s
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
+    // Check if database is connected
+    if (!db) {
+      return NextResponse.json(
+        { success: false, error: 'Database connection not available' },
+        { status: 503 }
+      );
+    }
+
     // Check if user is admin (you may need to implement this check based on your user roles)
     // For now, we'll allow any authenticated user to access this endpoint
 

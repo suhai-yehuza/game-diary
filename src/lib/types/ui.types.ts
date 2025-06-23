@@ -122,3 +122,51 @@ export interface IChartDataset {
   borderWidth?: number;
   [key: string]: unknown;
 }
+
+// Component interfaces from header.tsx
+export interface IButtonProps {
+  children: React.ReactNode;
+  variant?: 'default' | 'ghost';
+  size?: 'default' | 'icon';
+  className?: string;
+  onClick?: () => void;
+  type?: 'button' | 'submit' | 'reset';
+  disabled?: boolean;
+  'aria-label'?: string;
+}
+
+export interface IInputProps {
+  className?: string;
+  type?: string;
+  placeholder?: string;
+  value?: string;
+  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onFocus?: () => void;
+  onBlur?: () => void;
+  autoComplete?: string;
+  spellCheck?: boolean;
+  id?: string;
+  ref?: (input: HTMLInputElement | null) => void;
+}
+
+// Component interfaces from admin database page
+export interface IApiResponse {
+  success: boolean;
+  data?: Record<string, unknown>[];
+  error?: string;
+}
+
+export interface IBadgeProps {
+  children: React.ReactNode;
+  variant?: 'default' | 'secondary';
+  className?: string;
+}
+
+export interface IAdminButtonProps {
+  children: React.ReactNode;
+  variant?: 'default' | 'outline';
+  size?: 'default' | 'sm';
+  className?: string;
+  onClick?: () => void;
+  disabled?: boolean;
+}
