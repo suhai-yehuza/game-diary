@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
+import { MOCK_LIVE_GAMES } from '@/lib/mock/live-games.mock';
 import type { INbaGamesApiResponse } from '@/lib/types/nba.api.types';
 import { API_CONFIG, getRapidApiConfig } from '@src/lib/config/api.config';
 
@@ -54,11 +55,19 @@ export default function LiveGamesBanner() {
         live: 'all',
       });
 
-      setLiveGames(data);
+      // Use mock data if API returns no live games
+      if (data.results === 0 || data.response.length === 0) {
+        setLiveGames(MOCK_LIVE_GAMES);
+      } else {
+        setLiveGames(data);
+      }
     } catch (err) {
       const error = err as Error;
       setError(error.message);
       console.error('Failed to fetch live games:', error);
+
+      // Use mock data as fallback on error
+      setLiveGames(MOCK_LIVE_GAMES);
     } finally {
       setLoading(false);
     }
@@ -73,12 +82,13 @@ export default function LiveGamesBanner() {
     return () => clearInterval(interval);
   }, []);
 
-  // Don't show banner if no live games or if there's an error
-  if (loading || error || !liveGames || liveGames.results === 0) {
+  // Don't show banner if loading or if there's an error and no mock data
+  if (loading || (error && !liveGames)) {
     return null;
   }
 
-  const games = liveGames.response;
+  // Use mock data if no live games from API
+  const games = liveGames?.response || MOCK_LIVE_GAMES.response;
 
   return (
     <div className="w-full bg-gradient-to-r from-red-600 to-red-700 text-white">

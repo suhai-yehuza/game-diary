@@ -1,9 +1,9 @@
 'use client';
 
 import Image from 'next/image';
-import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
+import { MOCK_LIVE_GAMES } from '@/lib/mock/live-games.mock';
 import type { INbaGamesApiResponse } from '@/lib/types/nba.api.types';
 import { API_CONFIG, getRapidApiConfig } from '@src/lib/config/api.config';
 
@@ -55,11 +55,19 @@ export default function LiveGamesDetail() {
         live: 'all',
       });
 
-      setLiveGames(data);
+      // Use mock data if API returns no live games
+      if (data.results === 0 || data.response.length === 0) {
+        setLiveGames(MOCK_LIVE_GAMES);
+      } else {
+        setLiveGames(data);
+      }
     } catch (err) {
       const error = err as Error;
       setError(error.message);
       console.error('Failed to fetch live games:', error);
+
+      // Use mock data as fallback on error
+      setLiveGames(MOCK_LIVE_GAMES);
     } finally {
       setLoading(false);
     }
@@ -76,78 +84,73 @@ export default function LiveGamesDetail() {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center py-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-lg">Loading live games...</p>
+        </div>
       </div>
     );
   }
 
-  if (error) {
+  if (error && !liveGames) {
     return (
-      <div className="text-center py-8 text-red-600">
-        <p>Failed to load live games: {error}</p>
-        <button
-          onClick={fetchLiveGames}
-          className="mt-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-        >
-          Retry
-        </button>
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center">
+          <p className="text-red-600 text-lg">Error loading live games: {error}</p>
+          <button
+            onClick={fetchLiveGames}
+            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          >
+            Retry
+          </button>
+        </div>
       </div>
     );
   }
 
-  if (!liveGames || liveGames.results === 0) {
+  // Use mock data if no live games from API
+  const games = liveGames?.response || MOCK_LIVE_GAMES.response;
+
+  if (games.length === 0) {
     return (
-      <div className="text-center py-8 text-gray-500">
-        <p>No live games at the moment</p>
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-4">No Live Games</h1>
+          <p className="text-gray-600">There are currently no live NBA games.</p>
+        </div>
       </div>
     );
   }
-
-  const games = liveGames.response;
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold flex items-center space-x-2">
-          <div className="flex items-center space-x-1">
-            <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
-            <span>Live Games</span>
-          </div>
-        </h2>
-        <div className="text-sm text-gray-500">
-          {games.length} {games.length === 1 ? 'Game' : 'Games'} Live
-        </div>
+    <div className="container mx-auto px-4 py-8">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold mb-2">Live NBA Games</h1>
+        <p className="text-gray-600">
+          {games.length} {games.length === 1 ? 'game' : 'games'} currently live
+        </p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {games.map(game => (
           <div
             key={game.id}
-            className="bg-white dark:bg-gray-800 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 overflow-hidden"
+            className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-700"
           >
-            {/* Game Header */}
-            <div className="bg-gradient-to-r from-red-600 to-red-700 text-white p-3">
-              <div className="flex items-center justify-between text-sm">
-                <div className="flex items-center space-x-2">
-                  <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
-                  <span className="font-semibold">LIVE</span>
-                </div>
-                <div className="text-right">
-                  <div className="font-mono text-lg">
-                    {game.status.clock || 'Q' + game.periods.current}
-                  </div>
-                  <div className="text-xs opacity-75">
-                    {game.status.halftime ? 'HALFTIME' : game.status.long}
-                  </div>
-                </div>
+            {/* Game Status */}
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center space-x-2">
+                <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                <span className="text-sm font-semibold text-red-600 dark:text-red-400">LIVE</span>
               </div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">{game.status.long}</div>
             </div>
 
             {/* Teams and Scores */}
-            <div className="p-4">
+            <div className="space-y-4">
               {/* Away Team */}
-              <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
                   <div className="w-8 h-8 relative">
                     <Image
@@ -158,14 +161,17 @@ export default function LiveGamesDetail() {
                     />
                   </div>
                   <div>
-                    <div className="font-semibold text-sm">{game.teams.visitors.name}</div>
-                    <div className="text-xs text-gray-500">
-                      {game.scores.visitors.win}-{game.scores.visitors.loss}
+                    <div className="font-semibold">{game.teams.visitors.name}</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                      {game.teams.visitors.nickname}
                     </div>
                   </div>
                 </div>
                 <div className="text-2xl font-bold">{game.scores.visitors.points}</div>
               </div>
+
+              {/* VS */}
+              <div className="text-center text-gray-500 text-sm">VS</div>
 
               {/* Home Team */}
               <div className="flex items-center justify-between">
@@ -179,46 +185,42 @@ export default function LiveGamesDetail() {
                     />
                   </div>
                   <div>
-                    <div className="font-semibold text-sm">{game.teams.home.name}</div>
-                    <div className="text-xs text-gray-500">
-                      {game.scores.home.win}-{game.scores.home.loss}
+                    <div className="font-semibold">{game.teams.home.name}</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                      {game.teams.home.nickname}
                     </div>
                   </div>
                 </div>
                 <div className="text-2xl font-bold">{game.scores.home.points}</div>
               </div>
-
-              {/* Game Details */}
-              <div className="mt-4 pt-3 border-t border-gray-200 dark:border-gray-700">
-                <div className="grid grid-cols-2 gap-4 text-xs text-gray-600 dark:text-gray-400">
-                  <div>
-                    <span className="font-medium">Arena:</span> {game.arena.name}
-                  </div>
-                  <div>
-                    <span className="font-medium">City:</span> {game.arena.city}
-                  </div>
-                  <div>
-                    <span className="font-medium">Lead Changes:</span> {game.leadChanges}
-                  </div>
-                  <div>
-                    <span className="font-medium">Times Tied:</span> {game.timesTied}
-                  </div>
-                </div>
-
-                {game.nugget && (
-                  <div className="mt-2 text-xs text-blue-600 dark:text-blue-400">{game.nugget}</div>
-                )}
-              </div>
             </div>
 
-            {/* Action Button */}
-            <div className="px-4 pb-4">
-              <Link
-                href={`/sports/nba/game/${game.id}`}
-                className="w-full bg-blue-600 text-white text-center py-2 rounded-md hover:bg-blue-700 transition-colors text-sm font-medium"
-              >
-                View Details
-              </Link>
+            {/* Game Details */}
+            <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <span className="text-gray-600 dark:text-gray-400">Arena:</span>
+                  <div className="font-medium">{game.arena.name}</div>
+                  <div className="text-gray-600 dark:text-gray-400">
+                    {game.arena.city}, {game.arena.state}
+                  </div>
+                </div>
+                <div>
+                  <span className="text-gray-600 dark:text-gray-400">Period:</span>
+                  <div className="font-medium">
+                    {game.periods.current} of {game.periods.total}
+                  </div>
+                  {game.status.clock && (
+                    <div className="text-yellow-600 dark:text-yellow-400 font-mono">
+                      {game.status.clock}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {game.nugget && (
+                <div className="mt-2 text-xs text-blue-600 dark:text-blue-400">{game.nugget}</div>
+              )}
             </div>
           </div>
         ))}
