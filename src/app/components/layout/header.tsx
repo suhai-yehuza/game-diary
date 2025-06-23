@@ -9,6 +9,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import React, { useState, useEffect, useRef, Suspense } from 'react';
 
 import { ThemeToggle } from '@src/app/components/common';
+import LiveGamesBanner from '@src/app/components/live-games-banner';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -55,13 +56,6 @@ const Input = ({ className = '', ...props }: IInputProps) => {
     />
   );
 };
-
-// Simple LiveGamesBanner placeholder
-const LiveGamesBanner = () => (
-  <div className="w-full bg-blue-600 text-white text-center py-1 text-sm">
-    {/* Live games banner placeholder */}
-  </div>
-);
 
 function SearchBarContent() {
   const [search_query, setSearchQuery] = useState('');
@@ -348,6 +342,17 @@ export default function Header() {
                           onClick={() => setIsMenuExpanded(false)}
                         >
                           MLS
+                        </Link>
+                        <Link
+                          href="/sports/live"
+                          className={`block py-1.5 lg:py-0 text-base lg:text-sm transition-colors whitespace-nowrap ${
+                            isActive('/sports/live')
+                              ? 'text-blue-600 font-semibold'
+                              : 'text-muted-foreground hover:text-blue-600'
+                          }`}
+                          onClick={() => setIsMenuExpanded(false)}
+                        >
+                          Live Games
                         </Link>
                         <Link
                           href="/sports/all-sports"
