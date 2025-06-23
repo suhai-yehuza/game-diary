@@ -14,3 +14,6 @@ export * from './social.types';
 
 // Constants and enums
 export * from './constant.types';
+
+// External API types (NBA API endpoints and responses)
+export * from './nba.api.types';
