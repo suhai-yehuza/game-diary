@@ -1,5 +1,5 @@
-// Re-export from client
-export * from './client';
+// Removed client export as client.ts was deleted
+// export * from './client';
 
 // Additional cache utilities for scripts
 export async function testRedisConnection(): Promise<boolean> {

@@ -1,8 +1,3 @@
-/**
- * Infrastructure Types
- * Cache, seeding, database, and GraphQL-related type definitions
- */
-
 import type { InferInsertModel } from 'drizzle-orm';
 import type { NeonHttpDatabase } from 'drizzle-orm/neon-http';
 import type { PgTable } from 'drizzle-orm/pg-core';
@@ -11,10 +6,6 @@ import type { GraphQLResolveInfo } from 'graphql';
 import type * as schema from '@src/lib/db/schema';
 
 import type { Maybe } from './generated/graphql';
-
-// ========================================
-// CACHE TYPES
-// ========================================
 
 // Redis client types
 export type IRedisClient = unknown; // Simplified to avoid import issues

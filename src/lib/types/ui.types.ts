@@ -1,12 +1,3 @@
-/**
- * UI Types
- * UI-related type definitions including toasts, notifications, and interface components
- */
-
-// ========================================
-// TOAST TYPES
-// ========================================
-
 export interface IToastProps {
   id?: string;
   title?: string;
@@ -169,4 +160,9 @@ export interface IAdminButtonProps {
   className?: string;
   onClick?: () => void;
   disabled?: boolean;
+}
+
+// Provider interfaces
+export interface IClerkProviderWrapperProps {
+  children: React.ReactNode;
 }

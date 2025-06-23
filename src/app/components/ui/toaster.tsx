@@ -7,7 +7,6 @@ import {
   ToastAction,
   ToastClose,
   ToastDescription,
-  ToastProvider,
   ToastTitle,
   ToastViewport,
 } from '@src/app/components/ui/toast';
@@ -18,7 +17,7 @@ export function Toaster() {
   const { toasts } = useToast();
 
   return (
-    <ToastProvider>
+    <>
       {toasts.map(function (toast: IToasterToast) {
         const { id, title, description, action, open, variant, ...rest } = toast;
 
@@ -38,6 +37,6 @@ export function Toaster() {
         );
       })}
       <ToastViewport />
-    </ToastProvider>
+    </>
   );
 }
