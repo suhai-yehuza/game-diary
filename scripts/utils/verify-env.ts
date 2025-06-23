@@ -1,6 +1,6 @@
 import * as path from 'path';
 
-import * as dotenvFlow from 'dotenv-flow';
+import * as dotenv from 'dotenv';
 
 import { logger } from '@lib/core/logger';
 import { envSchema, buildEnvSchema } from '@src/lib/validations/env';
@@ -27,14 +27,28 @@ function verifyEnvironment(envFile?: string, isBuildTime = false) {
 
     // Only try to load .env files in non-production environments
     if (!isProduction) {
-      const result = dotenvFlow.config({
-        path: process.cwd(),
-        node_env: isBuildTime ? nodeEnv : path.basename(envFile!, '.env'),
-      });
+      try {
+        if (isBuildTime) {
+          // For build-time, load based on current NODE_ENV
+          const envFile = nodeEnv === 'production' ? '.env.production' : '.env.development';
+          const envPath = path.join(process.cwd(), envFile);
+          const result = dotenv.config({ path: envPath });
 
-      if (result.error) {
+          if (result.error) {
+            throw new Error(`Failed to load environment: ${result.error.message}`);
+          }
+        } else {
+          // For full validation, load the specific file
+          const envPath = path.join(process.cwd(), envFile!);
+          const result = dotenv.config({ path: envPath });
+
+          if (result.error) {
+            throw new Error(`Failed to load ${envFile}: ${result.error.message}`);
+          }
+        }
+      } catch (error) {
         throw new Error(
-          `Failed to load ${isBuildTime ? 'environment' : envFile}: ${result.error.message}`
+          `Environment file not found: ${isBuildTime ? 'current environment' : envFile}`
         );
       }
     }
@@ -130,7 +144,7 @@ if (isBuildTime) {
   }
 } else {
   // Full validation - check all environment files
-  const envFiles = ['.env.development', '.env.production', '.env.local'];
+  const envFiles = ['.env.development', '.env.production'];
   let allValid = true;
 
   for (const envFile of envFiles) {
