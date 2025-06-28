@@ -11,7 +11,8 @@
       "@shared/*": ["./scripts/shared/*"],
       "@lib/*": ["./lib/*"],
       "@app/*": ["./src/app/*"]
-    }
+    },
+    "types": ["node"]
   },
   "include": ["scripts/**/*.ts", "src/lib/types/**/*.ts", "lib/**/*.ts"],
   "exclude": ["node_modules", "dist", "src/**/*.test.ts", "src/**/*.test.tsx"]

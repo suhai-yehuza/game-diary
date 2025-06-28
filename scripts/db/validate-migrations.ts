@@ -11,7 +11,7 @@ async function validateMigrations() {
   const migrationsDir = join(process.cwd(), 'src/lib/db/migrations');
 
   try {
-    const sqlFiles = (await readdir(migrationsDir, { recursive: true })).filter(file =>
+    const sqlFiles = (await readdir(migrationsDir, { recursive: true })).filter((file: string) =>
       file.endsWith('.sql')
     );
 
@@ -21,7 +21,7 @@ async function validateMigrations() {
     }
 
     logger.info('✅ Found the following migration files:');
-    sqlFiles.forEach(f => logger.info(`   - ${f}`));
+    sqlFiles.forEach((f: string) => logger.info(`   - ${f}`));
     logger.info('✅ All required migration files are present in src/lib/db/migrations');
   } catch (error) {
     logger.error('❌ Error validating migrations:', error);
