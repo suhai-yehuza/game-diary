@@ -161,7 +161,7 @@ function AdminDatabaseContent() {
       // Auto-fetch data for the specified tab
       void handleFetch(tabParam);
     }
-  }, [searchParams, handleFetch, tableConfigs]);
+  }, [searchParams, handleFetch]);
 
   const formatValue = (value: unknown, _field: string): string => {
     if (value === null || value === undefined) return 'N/A';

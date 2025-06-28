@@ -67,8 +67,8 @@ export async function GET(
       db.execute(countQuery),
     ]);
 
-    const data = dataResult.rows ?? [];
-    const total = (countResult.rows?.[0] as { total: string })?.total ?? '0';
+    const data = dataResult.rows;
+    const total = (countResult.rows?.[0] as { total: string })?.total;
 
     return NextResponse.json({
       data,

@@ -31,7 +31,7 @@ export function ThemeToggle({ className }: Readonly<IThemeToggleProps>) {
     <div
       className={`inline-flex items-center bg-[#18181b] dark:bg-[#18181b] rounded-full p-0.5 border border-[#27272a] ${className ?? ''}`}
     >
-      {themes.map(themeOption => (
+      {themes.map((themeOption: Readonly<(typeof themes)[0]>) => (
         <button
           key={themeOption.name}
           onClick={() => setTheme(themeOption.name)}

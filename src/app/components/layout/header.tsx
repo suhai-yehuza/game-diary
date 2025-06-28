@@ -147,7 +147,7 @@ function SearchBarContent() {
               autoComplete="off"
               spellCheck={false}
               ref={(input: HTMLInputElement | null) => {
-                if (isFocused && input) input.focus();
+                if (input) input.focus();
               }}
             />
             <button
@@ -492,7 +492,7 @@ export default function Header() {
                     {user?.firstName} {user?.lastName}
                   </span>
                   <span className="text-xs text-gray-500">
-                    ({user?.emailAddresses[0]?.emailAddress})
+                    ({user?.emailAddresses?.[0]?.emailAddress})
                   </span>
                 </div>
                 <UserButton afterSignOutUrl="/" />
