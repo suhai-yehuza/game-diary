@@ -3,6 +3,9 @@
  * Centralized type exports for the Game Diary application
  */
 
+// Admin Experimental types
+export * from './admin-experimental.types';
+
 // Core types
 export * from './core.types';
 

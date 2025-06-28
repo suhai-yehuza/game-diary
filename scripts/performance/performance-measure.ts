@@ -6,16 +6,16 @@
  */
 
 import { execSync } from 'child_process';
-import fs from 'fs';
-import path from 'path';
+import { existsSync, mkdirSync, writeFileSync, readFileSync, readdirSync, statSync } from 'fs';
+import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
-import { logger } from '../../lib/core/logger';
-import type { IPerformanceMetrics } from '../../src/lib/types';
+import { logger } from '@lib/core/logger';
+import type { IPerformanceMetrics } from '@src/lib/types';
 
 const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const rootDir = path.resolve(__dirname, '..');
+const __dirname = dirname(__filename);
+const rootDir = join(__dirname, '..');
 
 async function measureBuildTime(): Promise<number> {
   logger.info('📏 Measuring build time...');
@@ -41,10 +41,10 @@ async function measureBuildTime(): Promise<number> {
 async function analyzeBundleSize(): Promise<IPerformanceMetrics['bundleSize']> {
   logger.info('📦 Analyzing bundle size...');
 
-  const buildDir = path.join(rootDir, '.next');
-  const staticDir = path.join(buildDir, 'static');
+  const buildDir = join(rootDir, '.next');
+  const staticDir = join(buildDir, 'static');
 
-  if (!fs.existsSync(staticDir)) {
+  if (!existsSync(staticDir)) {
     throw new Error('Build directory not found. Run build first.');
   }
 
@@ -55,13 +55,13 @@ async function analyzeBundleSize(): Promise<IPerformanceMetrics['bundleSize']> {
   };
 
   // Analyze pages
-  const pagesDir = path.join(staticDir, 'chunks', 'pages');
-  if (fs.existsSync(pagesDir)) {
-    const pageFiles = fs.readdirSync(pagesDir);
+  const pagesDir = join(staticDir, 'chunks', 'pages');
+  if (existsSync(pagesDir)) {
+    const pageFiles = readdirSync(pagesDir);
     for (const file of pageFiles) {
       if (file.endsWith('.js')) {
-        const filePath = path.join(pagesDir, file);
-        const stats = fs.statSync(filePath);
+        const filePath = join(pagesDir, file);
+        const stats = statSync(filePath);
         bundleSize.pages[file] = stats.size;
         bundleSize.total += stats.size;
       }
@@ -69,13 +69,13 @@ async function analyzeBundleSize(): Promise<IPerformanceMetrics['bundleSize']> {
   }
 
   // Analyze app chunks
-  const appDir = path.join(staticDir, 'chunks', 'app');
-  if (fs.existsSync(appDir)) {
-    const chunkFiles = fs.readdirSync(appDir);
+  const appDir = join(staticDir, 'chunks', 'app');
+  if (existsSync(appDir)) {
+    const chunkFiles = readdirSync(appDir);
     for (const file of chunkFiles) {
       if (file.endsWith('.js')) {
-        const filePath = path.join(appDir, file);
-        const stats = fs.statSync(filePath);
+        const filePath = join(appDir, file);
+        const stats = statSync(filePath);
         bundleSize.chunks[file] = stats.size;
         bundleSize.total += stats.size;
       }
@@ -89,8 +89,8 @@ async function analyzeBundleSize(): Promise<IPerformanceMetrics['bundleSize']> {
 async function analyzeDependencies(): Promise<IPerformanceMetrics['dependencies']> {
   logger.info('📋 Analyzing dependencies...');
 
-  const packageJsonPath = path.join(rootDir, 'package.json');
-  const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
+  const packageJsonPath = join(rootDir, 'package.json');
+  const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8'));
 
   const production = Object.keys(packageJson.dependencies || {}).length;
   const development = Object.keys(packageJson.devDependencies || {}).length;
@@ -150,22 +150,22 @@ async function measureTypecheck(): Promise<IPerformanceMetrics['typecheck']> {
 }
 
 async function saveMetrics(metrics: IPerformanceMetrics): Promise<void> {
-  const metricsDir = path.join(rootDir, 'coverage', 'performance');
-  if (!fs.existsSync(metricsDir)) {
-    fs.mkdirSync(metricsDir, { recursive: true });
+  const metricsDir = join(rootDir, 'coverage', 'performance');
+  if (!existsSync(metricsDir)) {
+    mkdirSync(metricsDir, { recursive: true });
   }
 
-  const metricsFile = path.join(metricsDir, 'latest.json');
-  const historyFile = path.join(metricsDir, 'history.json');
+  const metricsFile = join(metricsDir, 'latest.json');
+  const historyFile = join(metricsDir, 'history.json');
 
   // Save latest metrics
-  fs.writeFileSync(metricsFile, JSON.stringify(metrics, null, 2));
+  writeFileSync(metricsFile, JSON.stringify(metrics, null, 2));
 
   // Append to history
   let history: IPerformanceMetrics[] = [];
-  if (fs.existsSync(historyFile)) {
+  if (existsSync(historyFile)) {
     try {
-      history = JSON.parse(fs.readFileSync(historyFile, 'utf-8'));
+      history = JSON.parse(readFileSync(historyFile, 'utf-8'));
     } catch {
       logger.warn('Could not read performance history, starting fresh');
     }
@@ -178,7 +178,7 @@ async function saveMetrics(metrics: IPerformanceMetrics): Promise<void> {
     history = history.slice(-50);
   }
 
-  fs.writeFileSync(historyFile, JSON.stringify(history, null, 2));
+  writeFileSync(historyFile, JSON.stringify(history, null, 2));
 
   logger.info(`💾 Performance metrics saved to ${metricsFile}`);
 }

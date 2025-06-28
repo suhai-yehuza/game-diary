@@ -1,12 +1,15 @@
-import { readFileSync } from 'fs';
+#!/usr/bin/env tsx
+
+import { existsSync, readFileSync } from 'fs';
 import { join } from 'path';
+import { fileURLToPath } from 'url';
 
 import * as dotenv from 'dotenv';
 
 import { logger } from '@lib/core/logger';
 import { envSchema } from '@src/lib/validations/env';
 
-import { parseScriptArgs } from '../shared/script-utils';
+import { parseScriptArgs } from '@shared/script-utils';
 
 function verifyEnvironment(envFile?: string, isBuildTime = false) {
   try {

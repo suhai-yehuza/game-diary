@@ -1,8 +1,10 @@
+#!/usr/bin/env tsx
+
 import { execSync } from 'child_process';
 
-import { logger } from '../../lib/core/logger';
+import { logger } from '@lib/core/logger';
 
-import { parseScriptArgs } from '../shared/script-utils';
+import { parseScriptArgs } from '@shared/script-utils';
 
 const TYPES_DIR = 'src/lib/types';
 const EXCLUDED_DIRS = ['node_modules', '.next', 'dist', 'build', 'scripts'];

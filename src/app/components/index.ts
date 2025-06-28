@@ -4,13 +4,13 @@
  */
 
 // Export layout components
-export * from './layout';
+export * from '@/app/components/layout';
 
 // Export common components
-export * from './common';
+export * from '@/app/components/common';
 
 // Export UI components
-export * from './ui';
+export * from '@/app/components/ui';
 
 // Export provider components
-export * from './providers';
+export * from '@/app/components/providers';

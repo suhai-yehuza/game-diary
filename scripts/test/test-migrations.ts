@@ -1,9 +1,11 @@
+#!/usr/bin/env tsx
+
 import fs from 'fs';
 import path from 'path';
 
-import { logger } from '../../lib/core/logger';
+import { logger } from '@lib/core/logger';
 
-import { parseScriptArgs } from '../shared/script-utils';
+import { parseScriptArgs } from '@shared/script-utils';
 
 // List migration files that would be executed
 async function listMigrations() {

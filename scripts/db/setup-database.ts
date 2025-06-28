@@ -1,19 +1,23 @@
+#!/usr/bin/env tsx
+
 import 'dotenv-flow/config';
 import { exec } from 'child_process';
 import { promisify } from 'util';
+import { execSync } from 'child_process';
+import { existsSync, mkdirSync } from 'fs';
+import { join } from 'path';
 
 import { sql } from 'drizzle-orm';
 
-import { logger } from '../../lib/core/logger';
-import { createDatabaseClient } from '../../src/lib/db';
-import { setupAllTriggers } from '../shared/database-triggers';
+import { logger } from '@lib/core/logger';
+import { createDatabaseClient } from '@src/lib/db';
+import { setupAllTriggers } from '@shared/database-triggers';
 import {
   parseScriptArgs,
-  initDatabase,
   logScriptHeader,
   logScriptFooter,
   handleScriptError,
-} from '../shared/script-utils';
+} from '@shared/script-utils';
 
 const execAsync = promisify(exec);
 

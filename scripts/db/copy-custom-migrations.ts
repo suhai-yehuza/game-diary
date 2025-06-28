@@ -1,7 +1,9 @@
+#!/usr/bin/env tsx
+
 import { copyFileSync, mkdirSync, readdirSync } from 'fs';
 import { join } from 'path';
 
-import { logger } from '../../lib/core/logger';
+import { logger } from '@lib/core/logger';
 const sourceDir = join(process.cwd(), 'src/lib/db/migrations');
 const targetDir = join(process.cwd(), 'drizzle');
 

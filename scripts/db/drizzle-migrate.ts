@@ -1,15 +1,19 @@
+#!/usr/bin/env tsx
+
 /// <reference lib="dom" />
 /// <reference types="node" />
 
-import fs from 'fs';
-import path from 'path';
+import { execSync } from 'child_process';
+import { existsSync, mkdirSync, readFileSync, writeFileSync, readdirSync } from 'fs';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
 
 import { neon, neonConfig } from '@neondatabase/serverless';
 
-import type { IMigrationVersion } from '../../src/lib/types';
-import { logger } from '../../lib/core/logger';
+import { logger } from '@lib/core/logger';
+import type { IMigrationVersion } from '@src/lib/types';
 
-const MIGRATIONS_DIR = path.join(process.cwd(), 'src/lib/db/migrations');
+const MIGRATIONS_DIR = join(process.cwd(), 'src/lib/db/migrations');
 
 // Configure neon for better stability
 neonConfig.wsProxy = host => `${host}:5432/v1`;
@@ -34,21 +38,19 @@ async function getMigrationFiles(): Promise<string[]> {
   const migrations: string[] = [];
 
   // first add all the .sql files in the immediate root migrations directory
-  const files = fs
-    .readdirSync(MIGRATIONS_DIR)
+  const files = readdirSync(MIGRATIONS_DIR)
     .filter(file => file.endsWith('.sql'))
     .sort(); // Ensure files are processed in order
-  migrations.push(...files.map(file => path.join(file)));
+  migrations.push(...files.map(file => join(file)));
 
   // then add all the .sql files in the child directories
   for (const type of types) {
-    const typeDir = path.join(MIGRATIONS_DIR, type);
-    if (fs.existsSync(typeDir)) {
-      const files = fs
-        .readdirSync(typeDir)
+    const typeDir = join(MIGRATIONS_DIR, type);
+    if (existsSync(typeDir)) {
+      const files = readdirSync(typeDir)
         .filter(file => file.endsWith('.sql'))
         .sort();
-      migrations.push(...files.map(file => path.join(type, file)));
+      migrations.push(...files.map(file => join(type, file)));
     }
   }
 
@@ -179,8 +181,8 @@ async function runMigration(file: string): Promise<void> {
   // Ensure we have a valid connection before starting
   await ensureConnection();
 
-  const filePath = path.join(MIGRATIONS_DIR, file);
-  const sqlContent = fs.readFileSync(filePath, 'utf-8');
+  const filePath = join(MIGRATIONS_DIR, file);
+  const sqlContent = readFileSync(filePath, 'utf-8');
 
   // Check if migration has already been executed successfully
   const executedMigrations = await getExecutedMigrations();
@@ -241,8 +243,8 @@ async function rollbackMigration(file: string): Promise<void> {
   // Ensure we have a valid connection before starting
   await ensureConnection();
 
-  const filePath = path.join(MIGRATIONS_DIR, file);
-  const sqlContent = fs.readFileSync(filePath, 'utf-8');
+  const filePath = join(MIGRATIONS_DIR, file);
+  const sqlContent = readFileSync(filePath, 'utf-8');
 
   // Check if migration has been executed
   const executedMigrations = await getExecutedMigrations();

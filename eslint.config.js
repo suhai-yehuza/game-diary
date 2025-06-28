@@ -119,6 +119,22 @@ export default [
       'import/no-named-as-default': 'warn',
       'import/no-unused-modules': 'warn',
       'import/no-relative-parent-imports': 'off',
+      'import/no-relative-packages': 'error',
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['../*'],
+              message: 'Use alias imports (@/, @src/, @lib/) instead of relative imports',
+            },
+            {
+              group: ['./*'],
+              message: 'Use alias imports (@/, @src/, @lib/) instead of relative imports',
+            },
+          ],
+        },
+      ],
 
       // TypeScript rules
       '@typescript-eslint/explicit-function-return-type': 'off',

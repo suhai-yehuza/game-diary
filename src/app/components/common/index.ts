@@ -1,2 +1,2 @@
 // Common reusable components exports
-export { ThemeToggle } from './theme-toggle';
+export { ThemeToggle } from '@/app/components/common/theme-toggle';

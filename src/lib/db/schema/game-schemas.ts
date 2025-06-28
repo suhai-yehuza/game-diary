@@ -1,9 +1,8 @@
 import { sql } from 'drizzle-orm';
 import { pgTable, integer, text, timestamp, varchar, decimal, unique } from 'drizzle-orm/pg-core';
 
+import { users } from '@/lib/db/schema/user-schemas';
 import { CLASSIFICATION, WATCHED_SETTING, WATCHED_SCOPE } from '@src/lib/types';
-
-import { users } from './user-schemas';
 
 /**
  * Simple UUID generator

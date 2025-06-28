@@ -1,10 +1,13 @@
+#!/usr/bin/env tsx
+
 import path from 'path';
+import { execSync } from 'child_process';
 
 import { analyzeTsConfig } from 'ts-unused-exports';
 
-import { logger } from '../../lib/core/logger';
+import { logger } from '@lib/core/logger';
 
-import { parseScriptArgs } from '../shared/script-utils';
+import { parseScriptArgs } from '@shared/script-utils';
 
 // Types
 type ArgType = string;

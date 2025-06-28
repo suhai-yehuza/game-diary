@@ -1,7 +1,7 @@
 import { relations } from 'drizzle-orm';
 
-import { game_logs, game_ratings } from './game-schemas';
-import { users, friendships, comments, reactions } from './user-schemas';
+import { game_logs, game_ratings } from '@/lib/db/schema/game-schemas';
+import { users, friendships, comments, reactions } from '@/lib/db/schema/user-schemas';
 
 // User-related relations
 export const usersRelations = relations(users, ({ many }) => ({

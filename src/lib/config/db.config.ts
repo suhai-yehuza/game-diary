@@ -1,4 +1,4 @@
-import { API_CONFIG } from './api.config';
+import { API_CONFIG } from '@/lib/config/api.config';
 
 export const DB_CONFIG = {
   seeding: {

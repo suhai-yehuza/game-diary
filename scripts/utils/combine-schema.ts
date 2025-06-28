@@ -1,9 +1,11 @@
+#!/usr/bin/env tsx
+
 import fs from 'fs';
 import path from 'path';
 
-import { logger } from '../../lib/core/logger';
+import { logger } from '@lib/core/logger';
 
-import { parseScriptArgs } from '../shared/script-utils';
+import { parseScriptArgs } from '@shared/script-utils';
 
 const SCHEMA_DIR = path.join(process.cwd(), 'src/lib/graphql/schema');
 const OUTPUT_FILE = path.join(process.cwd(), 'src/lib/graphql/schema.graphql');

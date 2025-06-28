@@ -7,15 +7,14 @@ import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import React, { useState, useEffect, useRef, Suspense } from 'react';
 
-import { ThemeToggle } from '@src/app/components/common';
-
-import { LiveGamesBanner } from '../live-games-banner';
+import { ThemeToggle } from '@/app/components/common';
+import { LiveGamesBanner } from '@/app/components/live-games-banner';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
-} from '../ui/dropdown-menu';
+} from '@/app/components/ui/dropdown-menu';
 
 function SearchBarContent() {
   const [search_query, setSearchQuery] = useState('');

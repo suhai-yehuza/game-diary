@@ -2,10 +2,6 @@
 
 import React, { useEffect } from 'react';
 
-import { API_CONFIG } from '../../../../lib/config/api.config';
-import { TABS } from '../../../../lib/types/constant.types';
-import type { TabValue } from '../../../../lib/types/constant.types';
-
 import {
   Button,
   GamesForm,
@@ -16,14 +12,20 @@ import {
   PlayerStatsForm,
   StandingsForm,
   DataDisplay,
-} from './components';
-import { useApiFetch, useFormState, useTabState } from './hooks';
+} from '@/app/protected/admin/experimental/components';
+import { useApiFetch, useFormState, useTabState } from '@/app/protected/admin/experimental/hooks';
+import { API_CONFIG } from '@/lib/config/api.config';
+import type {
+  NavigationTabsProps,
+  SimpleEndpointsProps,
+  GamesSectionProps,
+  TabValue,
+  TeamsSectionProps,
+  PlayersSectionProps,
+} from '@/lib/types';
+import { TABS } from '@/lib/types';
 
 // Navigation Tabs Component
-type NavigationTabsProps = {
-  selectedTab: TabValue;
-  setSelectedTab: (tab: TabValue) => void;
-};
 function NavigationTabs(props: Readonly<NavigationTabsProps>) {
   const { selectedTab, setSelectedTab } = props;
   const tabs: TabValue[] = [
@@ -54,11 +56,6 @@ function NavigationTabs(props: Readonly<NavigationTabsProps>) {
 }
 
 // Simple Endpoints Component
-type SimpleEndpointsProps = {
-  selectedTab: TabValue;
-  loading: boolean;
-  handleFetch: (endpoint: string, params: Record<string, string>) => Promise<void>;
-};
 function SimpleEndpoints(props: Readonly<SimpleEndpointsProps>) {
   const { selectedTab, loading, handleFetch } = props;
   if (!(selectedTab === TABS.SEASONS || selectedTab === TABS.LEAGUES)) return null;
@@ -85,17 +82,6 @@ function SimpleEndpoints(props: Readonly<SimpleEndpointsProps>) {
 }
 
 // Games Section Component
-type GamesSectionProps = {
-  gamesSubTab: string;
-  setGamesSubTab: (tab: string) => void;
-  gameParams: Record<string, string>;
-  setGameParams: (params: Record<string, string>) => void;
-  gameStatsId: string;
-  setGameStatsId: (id: string) => void;
-  loading: boolean;
-  handleFetchGames: (e: React.FormEvent) => void;
-  handleFetchGameStats: (e: React.FormEvent) => void;
-};
 function GamesSection(props: Readonly<GamesSectionProps>) {
   const {
     gamesSubTab,
@@ -169,17 +155,6 @@ function GamesSection(props: Readonly<GamesSectionProps>) {
 }
 
 // Teams Section Component
-type TeamsSectionProps = {
-  teamsSubTab: string;
-  setTeamsSubTab: (tab: string) => void;
-  teamParams: Record<string, string>;
-  setTeamParams: (params: Record<string, string>) => void;
-  teamStatsParams: Record<string, string>;
-  setTeamStatsParams: (params: Record<string, string>) => void;
-  loading: boolean;
-  handleFetchTeams: (e: React.FormEvent) => void;
-  handleFetchTeamStats: (e: React.FormEvent) => void;
-};
 function TeamsSection(props: Readonly<TeamsSectionProps>) {
   const {
     teamsSubTab,
@@ -237,17 +212,6 @@ function TeamsSection(props: Readonly<TeamsSectionProps>) {
 }
 
 // Players Section Component
-type PlayersSectionProps = {
-  playersSubTab: string;
-  setPlayersSubTab: (tab: string) => void;
-  playerParams: Record<string, string>;
-  setPlayerParams: (params: Record<string, string>) => void;
-  playerStatsParams: Record<string, string>;
-  setPlayerStatsParams: (params: Record<string, string>) => void;
-  loading: boolean;
-  handleFetchPlayers: (e: React.FormEvent) => void;
-  handleFetchPlayerStats: (e: React.FormEvent) => void;
-};
 function PlayersSection(props: Readonly<PlayersSectionProps>) {
   const {
     playersSubTab,
@@ -304,9 +268,19 @@ function PlayersSection(props: Readonly<PlayersSectionProps>) {
   );
 }
 
+// Main Content Component
 function AdminExperimentalContent() {
-  // const rapidApiConfig = useMemo(() => getRapidApiConfig(), []);
   const { data, loading, error, handleFetch, clearData } = useApiFetch();
+  const {
+    selectedTab,
+    setSelectedTab,
+    gamesSubTab,
+    setGamesSubTab,
+    teamsSubTab,
+    setTeamsSubTab,
+    playersSubTab,
+    setPlayersSubTab,
+  } = useTabState();
   const {
     gameParams,
     setGameParams,
@@ -323,23 +297,12 @@ function AdminExperimentalContent() {
     standingsParams,
     setStandingsParams,
   } = useFormState();
-  const {
-    selectedTab,
-    setSelectedTab,
-    gamesSubTab,
-    setGamesSubTab,
-    teamsSubTab,
-    setTeamsSubTab,
-    playersSubTab,
-    setPlayersSubTab,
-  } = useTabState();
 
   // Clear data when tab changes
   useEffect(() => {
     clearData();
   }, [selectedTab, clearData]);
 
-  // Form handlers
   const handleFetchGames = (e: Readonly<React.FormEvent>) => {
     e.preventDefault();
     void handleFetch(API_CONFIG.endpoints.GAMES, gameParams);
@@ -375,27 +338,52 @@ function AdminExperimentalContent() {
     void handleFetch(API_CONFIG.endpoints.STANDINGS, standingsParams, ['league', 'season']);
   };
 
-  // Auto-fetch seasons on mount
+  // Auto-fetch data on component mount
   useEffect(() => {
-    const fetchData = async () => {
-      await handleFetch(API_CONFIG.endpoints.SEASONS, {});
+    const fetchInitialData = async () => {
+      // Fetch initial data based on selected tab
+      switch (selectedTab) {
+        case TABS.SEASONS:
+          await handleFetch(API_CONFIG.endpoints.SEASONS, {});
+          break;
+        case TABS.LEAGUES:
+          await handleFetch(API_CONFIG.endpoints.LEAGUES, {});
+          break;
+        case TABS.GAMES:
+          // Don't auto-fetch games as they require parameters
+          break;
+        case TABS.TEAMS:
+          // Don't auto-fetch teams as they require parameters
+          break;
+        case TABS.PLAYERS:
+          // Don't auto-fetch players as they require parameters
+          break;
+        case TABS.STANDINGS:
+          // Don't auto-fetch standings as they require parameters
+          break;
+        default:
+          break;
+      }
     };
-    void fetchData();
-  }, [handleFetch]);
+
+    void fetchInitialData();
+  }, [selectedTab, handleFetch]);
 
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-8">Admin Experimental Page</h1>
+      <p className="text-gray-600 dark:text-gray-400 mb-8">
+        This is an experimental admin page for testing and development purposes.
+      </p>
 
       <NavigationTabs selectedTab={selectedTab} setSelectedTab={setSelectedTab} />
 
-      <SimpleEndpoints selectedTab={selectedTab} loading={loading} handleFetch={handleFetch} />
+      {selectedTab === TABS.SEASONS && (
+        <SimpleEndpoints selectedTab={selectedTab} loading={loading} handleFetch={handleFetch} />
+      )}
 
-      {/* Show error if present */}
-      {error && (
-        <div className="my-4 p-4 bg-red-100 text-red-800 border border-red-300 rounded">
-          <strong>Error:</strong> {error}
-        </div>
+      {selectedTab === TABS.LEAGUES && (
+        <SimpleEndpoints selectedTab={selectedTab} loading={loading} handleFetch={handleFetch} />
       )}
 
       {selectedTab === TABS.GAMES && (
@@ -441,14 +429,12 @@ function AdminExperimentalContent() {
       )}
 
       {selectedTab === TABS.STANDINGS && (
-        <div className="mb-6">
-          <StandingsForm
-            standingsParams={standingsParams}
-            setStandingsParams={setStandingsParams}
-            loading={loading}
-            onSubmit={handleFetchStandings}
-          />
-        </div>
+        <StandingsForm
+          standingsParams={standingsParams}
+          setStandingsParams={setStandingsParams}
+          loading={loading}
+          onSubmit={handleFetchStandings}
+        />
       )}
 
       <DataDisplay data={data} loading={loading} error={error} selectedTab={selectedTab} />

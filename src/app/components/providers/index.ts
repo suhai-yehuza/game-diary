@@ -1,3 +1,3 @@
 // Provider components exports
-export { ThemeProvider } from './theme-provider';
-export { ClerkProviderWrapper } from './clerk-provider';
+export { ThemeProvider } from '@/app/components/providers/theme-provider';
+export { ClerkProviderWrapper } from '@/app/components/providers/clerk-provider';

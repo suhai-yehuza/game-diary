@@ -1,8 +1,10 @@
+#!/usr/bin/env tsx
+
 import { sql } from 'drizzle-orm';
 
-import { logger } from '../../lib/core/logger';
-import type { createDatabaseClient } from '../../src/lib/db';
-import type { ITriggerSetupOptions } from '../../src/lib/types';
+import { logger } from '@lib/core/logger';
+import type { createDatabaseClient } from '@src/lib/db';
+import type { ITriggerSetupOptions } from '@src/lib/types';
 
 async function createRatingStarsTrigger(
   db: ReturnType<typeof createDatabaseClient>,

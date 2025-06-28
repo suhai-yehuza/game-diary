@@ -1,9 +1,11 @@
+#!/usr/bin/env tsx
+
 import { execSync } from 'child_process';
 import fs from 'fs';
 
-import { logger } from '../../lib/core/logger';
+import { logger } from '@lib/core/logger';
 
-import { parseScriptArgs } from '../shared/script-utils';
+import { parseScriptArgs } from '@shared/script-utils';
 
 import {
   TYPE_FIX_RULES,

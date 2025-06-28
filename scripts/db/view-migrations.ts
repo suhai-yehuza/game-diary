@@ -1,10 +1,12 @@
+#!/usr/bin/env tsx
+
 import { sql } from 'drizzle-orm';
 
-import { logger } from '../../lib/core/logger';
-import { createDatabaseClient } from '../../src/lib/db';
-import type { IMigrationVersion } from '../../src/lib/types';
+import { logger } from '@lib/core/logger';
+import { createDatabaseClient } from '@src/lib/db';
+import type { IMigrationVersion } from '@src/lib/types';
 
-import { parseScriptArgs } from '../shared/script-utils';
+import { parseScriptArgs } from '@shared/script-utils';
 
 async function viewMigrations() {
   const options = parseScriptArgs();

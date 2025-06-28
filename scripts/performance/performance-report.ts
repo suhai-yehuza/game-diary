@@ -5,16 +5,16 @@
  * Analyzes performance metrics and generates comprehensive reports
  */
 
-import fs from 'fs';
-import path from 'path';
+import { existsSync, readFileSync, writeFileSync } from 'fs';
+import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
-import { logger } from '../../lib/core/logger';
-import type { IPerformanceMetrics, IPerformanceTrend } from '../../src/lib/types';
+import { logger } from '@lib/core/logger';
+import type { IPerformanceMetrics, IPerformanceTrend } from '@src/lib/types';
 
 const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const rootDir = path.resolve(__dirname, '../..');
+const __dirname = dirname(__filename);
+const rootDir = join(__dirname, '../..');
 
 function formatBytes(bytes: number): string {
   if (bytes === 0) return '0 B';
@@ -251,27 +251,27 @@ function generateRecommendations(
 async function generateReport(): Promise<void> {
   logger.info('📊 Generating performance report...');
 
-  const metricsDir = path.join(rootDir, 'coverage', 'performance');
-  const latestFile = path.join(metricsDir, 'latest.json');
-  const historyFile = path.join(metricsDir, 'history.json');
+  const metricsDir = join(rootDir, 'coverage', 'performance');
+  const latestFile = join(metricsDir, 'latest.json');
+  const historyFile = join(metricsDir, 'history.json');
 
-  if (!fs.existsSync(latestFile)) {
+  if (!existsSync(latestFile)) {
     throw new Error('No performance metrics found. Run "pnpm perf:measure" first.');
   }
 
-  const metrics: IPerformanceMetrics = JSON.parse(fs.readFileSync(latestFile, 'utf-8'));
+  const metrics: IPerformanceMetrics = JSON.parse(readFileSync(latestFile, 'utf-8'));
 
   let history: IPerformanceMetrics[] = [];
-  if (fs.existsSync(historyFile)) {
-    history = JSON.parse(fs.readFileSync(historyFile, 'utf-8'));
+  if (existsSync(historyFile)) {
+    history = JSON.parse(readFileSync(historyFile, 'utf-8'));
   }
 
   const trends = analyzeTrends(history);
   const report = generateMarkdownReport(metrics, trends);
 
   // Save report
-  const reportFile = path.join(metricsDir, 'report.md');
-  fs.writeFileSync(reportFile, report);
+  const reportFile = join(metricsDir, 'report.md');
+  writeFileSync(reportFile, report);
 
   logger.info(`📋 Performance report generated: ${reportFile}`);
   logger.info('\n' + report);
