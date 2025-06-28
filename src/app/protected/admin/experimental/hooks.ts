@@ -16,13 +16,9 @@ export const useApiFetch = () => {
   }, []);
 
   const handleFetch = useCallback(
-    async (
-      endpoint: Readonly<string>,
-      params: Readonly<Record<string, string>>,
-      requiredParams: ReadonlyArray<string> = []
-    ) => {
+    async (endpoint: string, params: Record<string, string>, requiredFields: string[] = []) => {
       // Validate required parameters
-      const missingParams = requiredParams.filter(param => !params[param]);
+      const missingParams = requiredFields.filter(param => !params[param]);
       if (missingParams.length > 0) {
         setError(`Missing required parameters: ${missingParams.join(', ')}`);
         return;
@@ -71,7 +67,7 @@ export const useApiFetch = () => {
 
 // Form state hook
 export const useFormState = () => {
-  const [gameParams, setGameParams] = useState<Readonly<Record<string, string>>>({
+  const [gameParams, setGameParams] = useState<Record<string, string>>({
     id: '',
     date: '',
     season: '',
@@ -82,7 +78,7 @@ export const useFormState = () => {
 
   const [gameStatsId, setGameStatsId] = useState<string>('');
 
-  const [teamParams, setTeamParams] = useState<Readonly<Record<string, string>>>({
+  const [teamParams, setTeamParams] = useState<Record<string, string>>({
     id: '',
     name: '',
     code: '',
@@ -92,13 +88,13 @@ export const useFormState = () => {
     search: '',
   });
 
-  const [teamStatsParams, setTeamStatsParams] = useState<Readonly<Record<string, string>>>({
+  const [teamStatsParams, setTeamStatsParams] = useState<Record<string, string>>({
     id: '',
     season: '',
     stage: '',
   });
 
-  const [playerParams, setPlayerParams] = useState<Readonly<Record<string, string>>>({
+  const [playerParams, setPlayerParams] = useState<Record<string, string>>({
     id: '',
     name: '',
     team: '',
@@ -107,14 +103,14 @@ export const useFormState = () => {
     search: '',
   });
 
-  const [playerStatsParams, setPlayerStatsParams] = useState<Readonly<Record<string, string>>>({
+  const [playerStatsParams, setPlayerStatsParams] = useState<Record<string, string>>({
     id: '',
     game: '',
     team: '',
     season: '',
   });
 
-  const [standingsParams, setStandingsParams] = useState<Readonly<Record<string, string>>>({
+  const [standingsParams, setStandingsParams] = useState<Record<string, string>>({
     league: '',
     season: '',
     team: '',

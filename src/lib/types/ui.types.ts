@@ -64,7 +64,7 @@ export interface INotificationContextType {
       'id' | 'createdAt' | 'updatedAt' | 'read' | 'readAt' | 'deletedAt'
     >
   ) => void;
-  markAsRead: (id: Readonly<string>) => void;
+  markAsRead: (id: string) => void;
   markAllAsRead: () => void;
   clearNotifications: () => void;
 }
@@ -104,13 +104,13 @@ export interface IInputProps {
   type?: string;
   placeholder?: string;
   value?: string;
-  onChange?: (e: Readonly<React.ChangeEvent<HTMLInputElement>>) => void;
+  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onFocus?: () => void;
   onBlur?: () => void;
   autoComplete?: string;
   spellCheck?: boolean;
   id?: string;
-  ref?: (input: Readonly<HTMLInputElement | null>) => void;
+  ref?: (input: HTMLInputElement | null) => void;
 }
 
 // Component interfaces from admin database page
@@ -144,28 +144,28 @@ export interface IClerkProviderWrapperProps {
 // CARD COMPONENT TYPES
 // ========================================
 
-export interface ICardProps extends Readonly<React.ComponentProps<'div'>> {
-  children: Readonly<React.ReactNode>;
+export interface ICardProps extends React.ComponentProps<'div'> {
+  children: React.ReactNode;
 }
 
-export interface ICardHeaderProps extends Readonly<React.ComponentProps<'div'>> {
-  children: Readonly<React.ReactNode>;
+export interface ICardHeaderProps extends React.ComponentProps<'div'> {
+  children: React.ReactNode;
 }
 
-export interface ICardTitleProps extends Readonly<React.ComponentProps<'h3'>> {
-  children: Readonly<React.ReactNode>;
+export interface ICardTitleProps extends React.ComponentProps<'h3'> {
+  children: React.ReactNode;
 }
 
-export interface ICardDescriptionProps extends Readonly<React.ComponentProps<'p'>> {
-  children: Readonly<React.ReactNode>;
+export interface ICardDescriptionProps extends React.ComponentProps<'p'> {
+  children: React.ReactNode;
 }
 
-export interface ICardContentProps extends Readonly<React.ComponentProps<'div'>> {
-  children: Readonly<React.ReactNode>;
+export interface ICardContentProps extends React.ComponentProps<'div'> {
+  children: React.ReactNode;
 }
 
-export interface ICardFooterProps extends Readonly<React.ComponentProps<'div'>> {
-  children: Readonly<React.ReactNode>;
+export interface ICardFooterProps extends React.ComponentProps<'div'> {
+  children: React.ReactNode;
 }
 
 export type FieldConfig = {

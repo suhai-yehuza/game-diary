@@ -25,10 +25,11 @@ function SearchBarContent() {
   const pathname = usePathname();
   const previousPathRef = useRef(pathname || '/');
   const debounceTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const SEARCH_DEBOUNCE_MS = 500;
 
   // Initialize search query from URL params
   useEffect(() => {
-    const query = searchParams?.get('q');
+    const query = searchParams.get('q');
     if (query) {
       setSearchQuery(query);
       setDebouncedQuery(query);
@@ -55,7 +56,7 @@ function SearchBarContent() {
       const trimmedQuery = debounced_query.trim();
       if (trimmedQuery) {
         const encodedQuery = encodeURIComponent(trimmedQuery);
-        if (pathname?.startsWith('/protected/admin')) {
+        if (pathname.startsWith('/protected/admin')) {
           router.push(`/protected/admin/users?q=${encodedQuery}`);
         } else {
           router.push(`/search?q=${encodedQuery}`);
@@ -64,7 +65,7 @@ function SearchBarContent() {
         // Return to the previous page when search is cleared
         router.push(previousPathRef.current);
       }
-    }, 500);
+    }, SEARCH_DEBOUNCE_MS);
   }, [debounced_query, router, pathname]);
 
   const handleSearch = (e: React.FormEvent) => {
@@ -94,7 +95,7 @@ function SearchBarContent() {
             <input
               type="search"
               placeholder={
-                pathname?.startsWith('/protected/admin') ? 'Search users...' : 'Search games...'
+                pathname.startsWith('/protected/admin') ? 'Search users...' : 'Search games...'
               }
               className="pl-8 w-full h-8 md:h-10 text-base bg-transparent border-none focus:ring-0 outline-none transition-all duration-200"
               value={search_query}
@@ -104,7 +105,7 @@ function SearchBarContent() {
               autoComplete="off"
               spellCheck={false}
               ref={(input: HTMLInputElement | null) => {
-                if (isFocused && input) input.focus();
+                if (isFocused) input?.focus();
               }}
             />
           </div>
@@ -130,7 +131,7 @@ function SearchBarContent() {
         <input
           type="search"
           placeholder={
-            pathname?.startsWith('/protected/admin') ? 'Search users...' : 'Search games...'
+            pathname.startsWith('/protected/admin') ? 'Search users...' : 'Search games...'
           }
           className="pl-8 w-full h-8 text-sm bg-transparent border-none focus:ring-0 outline-none transition-all duration-200"
           value={search_query}
@@ -174,9 +175,9 @@ export function Header() {
 
   const isActive = (path: string) => {
     if (path === '/') {
-      return pathname === path || pathname?.startsWith('/protected/user');
+      return pathname === path || pathname.startsWith('/protected/user');
     }
-    return pathname === path || pathname?.startsWith(`${path}/`);
+    return pathname === path || pathname.startsWith(`${path}/`);
   };
 
   const emailAddress = user?.emailAddresses?.[0]?.emailAddress;
@@ -214,7 +215,7 @@ export function Header() {
                 aria-label="Toggle menu"
                 onClick={() => {
                   setIsMenuExpanded(!isMenuExpanded);
-                  if (isSearchVisible) setIsSearchVisible(false);
+                  setIsSearchVisible(false);
                 }}
                 className="lg:hidden mr-4"
               >

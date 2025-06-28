@@ -1,11 +1,8 @@
 import type { IRapidAPIConfig } from '@/lib/types/external.api.types';
 
-export const createRapidAPIClient = (config: Readonly<IRapidAPIConfig>) => {
+export const createRapidAPIClient = (config: IRapidAPIConfig) => {
   return {
-    async fetch<T>(
-      endpoint: Readonly<string>,
-      params: Readonly<Record<string, string>> = {}
-    ): Promise<T> {
+    async fetch<T>(endpoint: string, params: Record<string, string> = {}): Promise<T> {
       const url = new URL(`${config.baseUrl}${endpoint}`);
       Object.entries(params).forEach(([key, value]) => {
         if (value && value.trim() !== '') {

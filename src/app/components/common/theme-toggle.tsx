@@ -24,7 +24,7 @@ const themes = [
   },
 ];
 
-export function ThemeToggle({ className }: Readonly<IThemeToggleProps>) {
+export function ThemeToggle({ className }: IThemeToggleProps) {
   const { setTheme, theme } = useTheme();
   const mounted = useMounted();
 

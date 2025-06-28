@@ -3,10 +3,7 @@ import { NextResponse } from 'next/server';
 import { logger } from '@lib/core/logger';
 import { createDatabaseClient } from '@src/lib/db';
 
-export async function GET(
-  request: Readonly<Request>,
-  { params }: Readonly<{ params: Promise<{ table: string }> }>
-) {
+export async function GET(request: Request, { params }: { params: Promise<{ table: string }> }) {
   try {
     const { table } = await params;
     const { searchParams } = new URL(request.url);

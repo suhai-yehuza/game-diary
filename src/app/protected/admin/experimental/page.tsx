@@ -26,7 +26,7 @@ import type {
 import { TABS } from '@/lib/types/constant.types';
 
 // Navigation Tabs Component
-function NavigationTabs(props: Readonly<NavigationTabsProps>) {
+function NavigationTabs(props: NavigationTabsProps) {
   const { selectedTab, setSelectedTab } = props;
   const tabs: TabValue[] = [
     TABS.SEASONS as TabValue,
@@ -56,7 +56,7 @@ function NavigationTabs(props: Readonly<NavigationTabsProps>) {
 }
 
 // Simple Endpoints Component
-function SimpleEndpoints(props: Readonly<SimpleEndpointsProps>) {
+function SimpleEndpoints(props: SimpleEndpointsProps) {
   const { selectedTab, loading, handleFetch } = props;
   if (!(selectedTab === TABS.SEASONS || selectedTab === TABS.LEAGUES)) return null;
   const handleClick = () => {
@@ -82,7 +82,7 @@ function SimpleEndpoints(props: Readonly<SimpleEndpointsProps>) {
 }
 
 // Games Section Component
-function GamesSection(props: Readonly<GamesSectionProps>) {
+function GamesSection(props: GamesSectionProps) {
   const {
     gamesSubTab,
     setGamesSubTab,
@@ -165,7 +165,7 @@ function GamesSection(props: Readonly<GamesSectionProps>) {
 }
 
 // Teams Section Component
-function TeamsSection(props: Readonly<TeamsSectionProps>) {
+function TeamsSection(props: TeamsSectionProps) {
   const {
     teamsSubTab,
     setTeamsSubTab,
@@ -222,7 +222,7 @@ function TeamsSection(props: Readonly<TeamsSectionProps>) {
 }
 
 // Players Section Component
-function PlayersSection(props: Readonly<PlayersSectionProps>) {
+function PlayersSection(props: PlayersSectionProps) {
   const {
     playersSubTab,
     setPlayersSubTab,
@@ -313,37 +313,37 @@ function AdminExperimentalContent() {
     clearData();
   }, [selectedTab, clearData]);
 
-  const handleFetchGames = (e: Readonly<React.FormEvent>) => {
+  const handleFetchGames = (e: React.FormEvent) => {
     e.preventDefault();
     void handleFetch(API_CONFIG.endpoints.GAMES, gameParams);
   };
 
-  const handleFetchGameStats = (e: Readonly<React.FormEvent>) => {
+  const handleFetchGameStats = (e: React.FormEvent) => {
     e.preventDefault();
     void handleFetch(API_CONFIG.endpoints.GAME_STATISTICS, { id: gameStatsId }, ['id']);
   };
 
-  const handleFetchTeams = (e: Readonly<React.FormEvent>) => {
+  const handleFetchTeams = (e: React.FormEvent) => {
     e.preventDefault();
     void handleFetch(API_CONFIG.endpoints.TEAMS, teamParams);
   };
 
-  const handleFetchTeamStats = (e: Readonly<React.FormEvent>) => {
+  const handleFetchTeamStats = (e: React.FormEvent) => {
     e.preventDefault();
     void handleFetch(API_CONFIG.endpoints.TEAM_STATISTICS, teamStatsParams, ['id', 'season']);
   };
 
-  const handleFetchPlayers = (e: Readonly<React.FormEvent>) => {
+  const handleFetchPlayers = (e: React.FormEvent) => {
     e.preventDefault();
     void handleFetch(API_CONFIG.endpoints.PLAYERS, playerParams);
   };
 
-  const handleFetchPlayerStats = (e: Readonly<React.FormEvent>) => {
+  const handleFetchPlayerStats = (e: React.FormEvent) => {
     e.preventDefault();
     void handleFetch(API_CONFIG.endpoints.PLAYER_STATISTICS, playerStatsParams);
   };
 
-  const handleStandingsFormSubmit = (e: Readonly<React.FormEvent>) => {
+  const handleStandingsFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     void handleFetch(API_CONFIG.endpoints.STANDINGS, standingsParams, ['league', 'season']);
   };
@@ -453,6 +453,6 @@ function AdminExperimentalContent() {
   );
 }
 
-export default function AdminExperimentalPage() {
+export function AdminExperimentalPage() {
   return <AdminExperimentalContent />;
 }

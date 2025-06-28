@@ -10,25 +10,23 @@ import type {
 } from '@/lib/types/component.types';
 import { cn } from '@/lib/utils';
 
-const Card = React.forwardRef<HTMLDivElement, Readonly<ICardProps>>(
-  ({ className, ...props }, ref) => (
-    <div
-      ref={ref}
-      className={cn('rounded-lg border bg-card text-card-foreground shadow-sm', className)}
-      {...props}
-    />
-  )
-);
+const Card = React.forwardRef<HTMLDivElement, ICardProps>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn('rounded-lg border bg-card text-card-foreground shadow-sm', className)}
+    {...props}
+  />
+));
 Card.displayName = 'Card';
 
-const CardHeader = React.forwardRef<HTMLDivElement, Readonly<ICardHeaderProps>>(
+const CardHeader = React.forwardRef<HTMLDivElement, ICardHeaderProps>(
   ({ className, ...props }, ref) => (
     <div ref={ref} className={cn('flex flex-col space-y-1.5 p-6', className)} {...props} />
   )
 );
 CardHeader.displayName = 'CardHeader';
 
-const CardTitle = React.forwardRef<HTMLHeadingElement, Readonly<ICardTitleProps>>(
+const CardTitle = React.forwardRef<HTMLHeadingElement, ICardTitleProps>(
   ({ className, children, ...props }, ref) => (
     <h3
       ref={ref}
@@ -41,21 +39,21 @@ const CardTitle = React.forwardRef<HTMLHeadingElement, Readonly<ICardTitleProps>
 );
 CardTitle.displayName = 'CardTitle';
 
-const CardDescription = React.forwardRef<HTMLParagraphElement, Readonly<ICardDescriptionProps>>(
+const CardDescription = React.forwardRef<HTMLParagraphElement, ICardDescriptionProps>(
   ({ className, ...props }, ref) => (
     <p ref={ref} className={cn('text-sm text-muted-foreground', className)} {...props} />
   )
 );
 CardDescription.displayName = 'CardDescription';
 
-const CardContent = React.forwardRef<HTMLDivElement, Readonly<ICardContentProps>>(
+const CardContent = React.forwardRef<HTMLDivElement, ICardContentProps>(
   ({ className, ...props }, ref) => (
     <div ref={ref} className={cn('p-6 pt-0', className)} {...props} />
   )
 );
 CardContent.displayName = 'CardContent';
 
-const CardFooter = React.forwardRef<HTMLDivElement, Readonly<ICardFooterProps>>(
+const CardFooter = React.forwardRef<HTMLDivElement, ICardFooterProps>(
   ({ className, ...props }, ref) => (
     <div ref={ref} className={cn('flex items-center p-6 pt-0', className)} {...props} />
   )

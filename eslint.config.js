@@ -4,11 +4,8 @@ import eslintPluginImport from 'eslint-plugin-import';
 import eslintPluginReact from 'eslint-plugin-react';
 import eslintPluginReactHooks from 'eslint-plugin-react-hooks';
 import eslintPluginJsxA11y from 'eslint-plugin-jsx-a11y';
-import eslintPluginFilenames from 'eslint-plugin-filenames';
 import eslintConfigPrettier from 'eslint-config-prettier';
 import nextPlugin from '@next/eslint-plugin-next/dist/index.js';
-import reactHooksPlugin from 'eslint-plugin-react-hooks';
-import jsxA11yPlugin from 'eslint-plugin-jsx-a11y';
 import filenamesPlugin from 'eslint-plugin-filenames';
 import globals from 'globals';
 
@@ -182,45 +179,6 @@ export default [
       '@typescript-eslint/no-base-to-string': 'error',
       '@typescript-eslint/no-unnecessary-condition': 'warn',
       '@typescript-eslint/prefer-readonly': 'warn',
-      '@typescript-eslint/prefer-readonly-parameter-types': [
-        'warn',
-        {
-          ignoreInferredTypes: true,
-          treatMethodsAsReadonly: true,
-          checkParameterProperties: false,
-          allow: [
-            'HTMLElement',
-            'Request',
-            'React.ReactNode',
-            'React.ComponentPropsWithoutRef',
-            'React.HTMLAttributes',
-            'React.FormEvent',
-            'React.MouseEvent',
-            'React.KeyboardEvent',
-            'React.ChangeEvent',
-            'ThemeProviderProps',
-            'ClassValue',
-            'Date',
-            'Promise',
-            'Record',
-            'URL',
-            'URLSearchParams',
-            'string',
-            'number',
-            'boolean',
-            'string[]',
-            'number[]',
-            'unknown',
-            'any',
-            'IRapidAPIConfig',
-            'IClerkProviderWrapperProps',
-            'FormEvent',
-            'MouseEvent',
-            'KeyboardEvent',
-            'ChangeEvent',
-          ],
-        },
-      ],
       '@typescript-eslint/no-array-constructor': 'error',
       '@typescript-eslint/no-empty-function': 'warn',
       '@typescript-eslint/no-inferrable-types': 'error',

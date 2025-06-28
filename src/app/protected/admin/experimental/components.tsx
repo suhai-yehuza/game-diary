@@ -26,8 +26,8 @@ export const DynamicForm = ({
   description,
   submitLabel,
   className = '',
-}: Readonly<DynamicFormProps>) => {
-  const handleFormSubmit = (e: Readonly<React.FormEvent>) => {
+}: DynamicFormProps) => {
+  const handleFormSubmit = (e: React.FormEvent) => {
     void onSubmit(e);
   };
   return (
@@ -38,7 +38,7 @@ export const DynamicForm = ({
       <h3 className="text-lg font-semibold mb-1">{title}</h3>
       {description && <p className="text-sm text-gray-500 mb-4">{description}</p>}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {fields.map((field: Readonly<FieldConfig>) => (
+        {fields.map((field: FieldConfig) => (
           <div key={field.id}>
             <Label htmlFor={field.id} required={field.required}>
               {field.label}
@@ -61,7 +61,7 @@ export const DynamicForm = ({
   );
 };
 
-export const Button = (props: Readonly<ButtonProps>) => {
+export const Button = (props: ButtonProps) => {
   const {
     children,
     variant = 'default',
@@ -88,7 +88,7 @@ export const Button = (props: Readonly<ButtonProps>) => {
   );
 };
 
-export const Input = (props: Readonly<InputProps>) => {
+export const Input = (props: InputProps) => {
   const {
     className = '',
     type = 'text',
@@ -114,7 +114,7 @@ export const Input = (props: Readonly<InputProps>) => {
   );
 };
 
-export const Label = (props: Readonly<LabelProps>) => {
+export const Label = (props: LabelProps) => {
   const { children, htmlFor, className = '', required = false } = props;
 
   return (
@@ -128,7 +128,7 @@ export const Label = (props: Readonly<LabelProps>) => {
   );
 };
 
-export const GamesForm = (props: Readonly<GamesFormProps>) => {
+export const GamesForm = (props: GamesFormProps) => {
   const { gameParams, setGameParams, loading, onSubmit } = props;
   const fields = [
     {
@@ -195,7 +195,7 @@ export const GamesForm = (props: Readonly<GamesFormProps>) => {
   );
 };
 
-export const GameStatsForm = (props: Readonly<GameStatsFormProps>) => {
+export const GameStatsForm = (props: GameStatsFormProps) => {
   const { gameStatsId, setGameStatsId, loading, onSubmit } = props;
   const fields = [
     {
@@ -219,7 +219,7 @@ export const GameStatsForm = (props: Readonly<GameStatsFormProps>) => {
   );
 };
 
-export const TeamsForm = (props: Readonly<TeamsFormProps>) => {
+export const TeamsForm = (props: TeamsFormProps) => {
   const { teamParams, setTeamParams, loading, onSubmit } = props;
   const fields = [
     {
@@ -277,7 +277,7 @@ export const TeamsForm = (props: Readonly<TeamsFormProps>) => {
   );
 };
 
-export const TeamStatsForm = (props: Readonly<TeamStatsFormProps>) => {
+export const TeamStatsForm = (props: TeamStatsFormProps) => {
   const { teamStatsParams, setTeamStatsParams, loading, onSubmit } = props;
   const fields = [
     {
@@ -337,7 +337,7 @@ export const TeamStatsForm = (props: Readonly<TeamStatsFormProps>) => {
   );
 };
 
-export const PlayersForm = (props: Readonly<PlayersFormProps>) => {
+export const PlayersForm = (props: PlayersFormProps) => {
   const { playerParams, setPlayerParams, loading, onSubmit } = props;
   const fields = [
     {
@@ -404,7 +404,7 @@ export const PlayersForm = (props: Readonly<PlayersFormProps>) => {
   );
 };
 
-export const PlayerStatsForm = (props: Readonly<PlayerStatsFormProps>) => {
+export const PlayerStatsForm = (props: PlayerStatsFormProps) => {
   const { playerStatsParams, setPlayerStatsParams, loading, onSubmit } = props;
   const fields = [
     {
@@ -472,7 +472,7 @@ export const PlayerStatsForm = (props: Readonly<PlayerStatsFormProps>) => {
   );
 };
 
-export const StandingsForm = (props: Readonly<StandingsFormProps>) => {
+export const StandingsForm = (props: StandingsFormProps) => {
   const { standingsParams, setStandingsParams, loading, onSubmit } = props;
   const fields = [
     {
@@ -523,7 +523,7 @@ export const StandingsForm = (props: Readonly<StandingsFormProps>) => {
   );
 };
 
-export const DataDisplay = (props: Readonly<DataDisplayProps>) => {
+export const DataDisplay = (props: DataDisplayProps) => {
   const { data, loading, error, selectedTab } = props;
 
   if (loading) {

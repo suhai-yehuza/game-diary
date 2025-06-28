@@ -20,11 +20,7 @@ export const metadata: Metadata = {
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-export function AppLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className="scroll-smooth antialiased" suppressHydrationWarning>
       <body className={`flex min-h-screen flex-col ${inter.className}`}>

@@ -4,8 +4,8 @@ import { NextResponse } from 'next/server';
 import { getRapidApiConfig } from '@src/lib/config/api.config';
 
 export async function GET(
-  request: Readonly<NextRequest>,
-  { params }: Readonly<{ readonly params: Promise<{ readonly endpoint: readonly string[] }> }>
+  request: NextRequest,
+  { params }: { params: Promise<{ endpoint: string[] }> }
 ) {
   try {
     const rapidApiConfig = getRapidApiConfig();

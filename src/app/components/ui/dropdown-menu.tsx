@@ -23,9 +23,7 @@ const DropdownMenuRadioGroup = DropdownMenuPrimitive.RadioGroup;
 
 const DropdownMenuSubTrigger = React.forwardRef<
   React.ElementRef<typeof DropdownMenuPrimitive.SubTrigger>,
-  Readonly<
-    React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.SubTrigger> & { inset?: boolean }
-  >
+  React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.SubTrigger> & { inset?: boolean }
 >((props, ref) => {
   const { className, inset, children, ...rest } = props;
   return (
@@ -47,7 +45,7 @@ DropdownMenuSubTrigger.displayName = DropdownMenuPrimitive.SubTrigger.displayNam
 
 const DropdownMenuSubContent = React.forwardRef<
   React.ElementRef<typeof DropdownMenuPrimitive.SubContent>,
-  Readonly<React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.SubContent>>
+  React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.SubContent>
 >((props, ref) => {
   const { className, ...rest } = props;
   return (
@@ -65,7 +63,7 @@ DropdownMenuSubContent.displayName = DropdownMenuPrimitive.SubContent.displayNam
 
 const DropdownMenuContent = React.forwardRef<
   React.ElementRef<typeof DropdownMenuPrimitive.Content>,
-  Readonly<React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Content>>
+  React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Content>
 >((props, ref) => {
   const { className, sideOffset = DEFAULT_SIDE_OFFSET, ...rest } = props;
   return (
@@ -87,7 +85,7 @@ DropdownMenuContent.displayName = DropdownMenuPrimitive.Content.displayName;
 
 const DropdownMenuItem = React.forwardRef<
   React.ElementRef<typeof DropdownMenuPrimitive.Item>,
-  Readonly<React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Item> & { inset?: boolean }>
+  React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Item> & { inset?: boolean }
 >((props, ref) => {
   const { className, inset, ...rest } = props;
   return (
@@ -106,7 +104,7 @@ DropdownMenuItem.displayName = DropdownMenuPrimitive.Item.displayName;
 
 const DropdownMenuCheckboxItem = React.forwardRef<
   React.ElementRef<typeof DropdownMenuPrimitive.CheckboxItem>,
-  Readonly<React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.CheckboxItem>>
+  React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.CheckboxItem>
 >((props, ref) => {
   const { className, children, checked, ...rest } = props;
   return (
@@ -132,7 +130,7 @@ DropdownMenuCheckboxItem.displayName = DropdownMenuPrimitive.CheckboxItem.displa
 
 const DropdownMenuRadioItem = React.forwardRef<
   React.ElementRef<typeof DropdownMenuPrimitive.RadioItem>,
-  Readonly<React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.RadioItem>>
+  React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.RadioItem>
 >((props, ref) => {
   const { className, children, ...rest } = props;
   return (
@@ -157,7 +155,7 @@ DropdownMenuRadioItem.displayName = DropdownMenuPrimitive.RadioItem.displayName;
 
 const DropdownMenuLabel = React.forwardRef<
   React.ElementRef<typeof DropdownMenuPrimitive.Label>,
-  Readonly<React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Label> & { inset?: boolean }>
+  React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Label> & { inset?: boolean }
 >((props, ref) => {
   const { className, inset, ...rest } = props;
   return (
@@ -172,7 +170,7 @@ DropdownMenuLabel.displayName = DropdownMenuPrimitive.Label.displayName;
 
 const DropdownMenuSeparator = React.forwardRef<
   React.ElementRef<typeof DropdownMenuPrimitive.Separator>,
-  Readonly<React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Separator>>
+  React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Separator>
 >((props, ref) => {
   const { className, ...rest } = props;
   return (
@@ -185,7 +183,7 @@ const DropdownMenuSeparator = React.forwardRef<
 });
 DropdownMenuSeparator.displayName = DropdownMenuPrimitive.Separator.displayName;
 
-const DropdownMenuShortcut = (props: Readonly<React.HTMLAttributes<HTMLSpanElement>>) => {
+const DropdownMenuShortcut = (props: React.HTMLAttributes<HTMLSpanElement>) => {
   const { className, ...rest } = props;
   return <span className={cn('ml-auto text-xs tracking-widest opacity-60', className)} {...rest} />;
 };

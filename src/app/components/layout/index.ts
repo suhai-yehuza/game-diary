@@ -1,3 +1,3 @@
 // Layout components exports
-export { default as Header } from '@/app/components/layout/header';
-export { default as Footer } from '@/app/components/layout/footer';
+export { Header } from '@/app/components/layout/header';
+export { Footer } from '@/app/components/layout/footer';

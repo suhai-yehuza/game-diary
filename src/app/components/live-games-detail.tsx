@@ -21,7 +21,7 @@ function isGamesApiResponse(data: unknown): data is IGamesApiResponse {
   );
 }
 
-export function LiveGamesDetail({ rapidApiConfig }: Readonly<{ rapidApiConfig: IRapidAPIConfig }>) {
+export function LiveGamesDetail({ rapidApiConfig }: { rapidApiConfig: IRapidAPIConfig }) {
   const [liveGames, setLiveGames] = useState<IGamesApiResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

@@ -5,7 +5,8 @@ import type { GraphQLResolveInfo } from 'graphql';
 
 import type * as schema from '@src/lib/db/schema';
 
-import type { Maybe } from './generated/graphql';
+// Define Maybe type locally since generated types don't exist
+export type Maybe<T> = T | null | undefined;
 
 // Redis client types
 export type IRedisClient = unknown; // Simplified to avoid import issues
@@ -245,8 +246,8 @@ export type IsTypeOfResolverFn<T = object, TContext = object> = (
   info: GraphQLResolveInfo
 ) => boolean | Promise<boolean>;
 
-export type NextResolverFn<T> = (args: Readonly<T>) => Promise<T>;
-export type MiddlewareFn<T> = (context: Readonly<T>, next: () => Promise<void>) => Promise<void>;
+export type NextResolverFn<T> = (args: T) => Promise<T>;
+export type MiddlewareFn<T> = (context: T, next: () => Promise<void>) => Promise<void>;
 
 export type DirectiveResolverFn<
   TResult = object,
@@ -264,4 +265,4 @@ export type DirectiveResolverFn<
 // Database types
 export type Database = ReturnType<typeof import('drizzle-orm/neon-http').drizzle>;
 
-export type SomeOtherType = (arg: Readonly<string>) => void;
+export type SomeOtherType = (arg: string) => void;

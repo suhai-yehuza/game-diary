@@ -22,7 +22,7 @@ if (connectionString) {
 export { db };
 
 // Create database client function for scripts
-export function createDatabaseClient(_options?: Readonly<{ env?: string }>) {
+export function createDatabaseClient(_options?: { env?: string }) {
   const databaseUrl = process.env.DATABASE_URL ?? '';
   if (!databaseUrl) {
     throw new Error('DATABASE_URL environment variable is required');
@@ -33,8 +33,8 @@ export function createDatabaseClient(_options?: Readonly<{ env?: string }>) {
 
 // Test database connection function for scripts
 export async function testConnection(
-  config: Readonly<{ connectionString: string }>,
-  _logger: Readonly<{ info: (msg: string) => void; error: (msg: string) => void }>
+  config: { connectionString: string },
+  _logger: { info: (msg: string) => void; error: (msg: string) => void }
 ): Promise<boolean> {
   try {
     const db = config.connectionString ? drizzle(neon(config.connectionString), { schema }) : null;

@@ -61,7 +61,7 @@ export interface IQueryParams extends IPaginationParams, ISortParams, IFilterPar
 // Apollo Client Pagination (simplified)
 export interface IPaginationHookOptions<T> {
   pageSize: number;
-  fetchMore: (options: Readonly<unknown>) => Promise<unknown>;
+  fetchMore: (options: unknown) => Promise<unknown>;
   data?: {
     edges?: Array<{
       node: T;
@@ -114,15 +114,15 @@ export interface IUseSearchFiltersOptions {
 // ========================================
 
 export interface IRawDatabaseClient {
-  execute: (query: Readonly<string>) => Promise<{ rows: unknown[] }>;
-  query?: (query: Readonly<string>) => Promise<unknown>;
+  execute: (query: string) => Promise<{ rows: unknown[] }>;
+  query?: (query: string) => Promise<unknown>;
 }
 
 export interface IDatabaseClientOptions {
   enableLogs?: boolean;
   disablePreparedStatements?: boolean;
   schema?: Record<string, unknown>;
-  execute: (query: Readonly<string>) => Promise<{ rows: unknown[] }>;
+  execute: (query: string) => Promise<{ rows: unknown[] }>;
 }
 
 // ========================================

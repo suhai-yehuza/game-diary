@@ -122,12 +122,12 @@ export const isReactionEmojiValue = (value: string): value is IReactionEmojiValu
 };
 
 // Helper to get emoji value from key
-export const getEmojiValue = (key: Readonly<IReactionEmojiKey>): IReactionEmojiValue => {
+export const getEmojiValue = (key: IReactionEmojiKey): IReactionEmojiValue => {
   return REACTION_EMOJIS[key];
 };
 
 // Helper to get key from emoji value
-export const getEmojiKey = (value: Readonly<IReactionEmojiValue>): IReactionEmojiKey => {
+export const getEmojiKey = (value: IReactionEmojiValue): IReactionEmojiKey => {
   const entry = Object.entries(REACTION_EMOJIS).find(([_, v]) => v === value);
   if (!entry) {
     throw new Error(`Invalid emoji value: ${value}`);
