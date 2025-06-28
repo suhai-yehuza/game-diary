@@ -1,4 +1,4 @@
-import type { ILeaguesApiResponse } from '@/lib/types/external.api.types';
+import type { ILeaguesApiResponse } from '@/lib/types/externalApiTypes';
 
 export const MOCK_NBA_LEAGUES: ILeaguesApiResponse = {
   get: 'leagues',

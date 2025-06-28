@@ -12,7 +12,7 @@ import {
   CardTitle,
 } from '@src/app/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@src/app/components/ui/tabs';
-import type { IApiResponse, IBadgeProps, IAdminButtonProps } from '@src/lib/types/ui.types';
+import type { IApiResponse, IBadgeProps, IAdminButtonProps } from '@src/lib/types/uiTypes';
 
 // Constants
 const TABLE_DISPLAY_LIMIT = 50;

@@ -4,7 +4,7 @@ import { Sun, Moon, Monitor } from 'lucide-react';
 import { useTheme } from 'next-themes';
 
 import { useMounted } from '@/hooks/use-mounted';
-import type { IThemeToggleProps } from '@/lib/types/component.types';
+import type { IThemeToggleProps } from '@/lib/types/componentTypes';
 
 const themes = [
   {

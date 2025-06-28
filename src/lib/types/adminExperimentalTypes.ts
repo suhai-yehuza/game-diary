@@ -96,7 +96,7 @@ export type DataDisplayProps = {
 };
 
 // NavigationTabs
-import type { TabValue } from '@/lib/types/constant.types';
+import type { TabValue } from '@/lib/types/constantTypes';
 export type NavigationTabsProps = {
   selectedTab: TabValue;
   setSelectedTab: (tab: TabValue) => void;

@@ -14,8 +14,8 @@ import type {
   PlayerStatsFormProps,
   StandingsFormProps,
   DataDisplayProps,
-} from '@/lib/types/admin-experimental.types';
-import type { DynamicFormProps, FieldConfig } from '@/lib/types/ui.types';
+} from '@/lib/types/adminExperimentalTypes';
+import type { DynamicFormProps, FieldConfig } from '@/lib/types/uiTypes';
 
 // --- DynamicForm abstraction ---
 export const DynamicForm = ({

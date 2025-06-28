@@ -2,8 +2,8 @@ import Link from 'next/link';
 import { useEffect, useState, useCallback } from 'react';
 
 import { INTERNAL_PROXY_ENDPOINTS } from '@/lib/config/api.config';
-import { MOCK_LIVE_GAMES } from '@/lib/mock/live-games.mock';
-import type { IGamesApiResponse } from '@/lib/types/external.api.types';
+import { MOCK_LIVE_GAMES } from '@/lib/mock/liveGamesMock';
+import type { IGamesApiResponse } from '@/lib/types/externalApiTypes';
 
 // Constants
 const REFRESH_INTERVAL_MS = 30000;

@@ -2,7 +2,7 @@
 
 import { ClerkProvider } from '@clerk/nextjs';
 
-import type { IClerkProviderWrapperProps } from '@src/lib/types/ui.types';
+import type { IClerkProviderWrapperProps } from '@src/lib/types/uiTypes';
 
 export function ClerkProviderWrapper({ children }: IClerkProviderWrapperProps) {
   return (

@@ -114,9 +114,9 @@ export interface ICacheMetrics {
 }
 
 export interface ICacheManager {
-  get(key: string): Promise<unknown>;
-  set(key: string, value: unknown, ttl?: number): Promise<void>;
-  del(key: string): Promise<void>;
+  get<T>(key: string): Promise<T | null>;
+  set<T>(key: string, value: T, ttl?: number): Promise<void>;
+  delete(key: string): Promise<void>;
   clear(): Promise<void>;
 }
 
@@ -263,6 +263,33 @@ export type DirectiveResolverFn<
 ) => TResult | Promise<TResult>;
 
 // Database types
-export type Database = ReturnType<typeof import('drizzle-orm/neon-http').drizzle>;
+export type Database = NeonHttpDatabase<typeof schema>;
 
+// GraphQL types
+export type GraphQLContext = {
+  user?: {
+    id: string;
+    email: string;
+    banned: boolean;
+  };
+};
+
+export type GraphQLResolver<T = unknown, Args = unknown> = (
+  parent: T,
+  args: Args,
+  context: GraphQLContext,
+  info: GraphQLResolveInfo
+) => Promise<unknown> | unknown;
+
+// Performance types
+export interface IPerformanceMetrics {
+  operation: string;
+  duration: number;
+  timestamp: number;
+  metadata?: Record<string, unknown>;
+}
+
+// Utility types
+export type AsyncFunction<T = unknown> = () => Promise<T>;
+export type SyncFunction<T = unknown> = () => T;
 export type SomeOtherType = (arg: string) => void;

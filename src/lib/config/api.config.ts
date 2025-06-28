@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { APIError } from '@src/lib/errors/api.error';
+import { APIError } from '@src/lib/errors/apiError';
 import type {
   IRangeConfig,
   IBatchSizeConfig,

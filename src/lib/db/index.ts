@@ -2,7 +2,7 @@ import { neon } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-http';
 
 import * as schema from '@src/lib/db/schema';
-import type { Database } from '@src/lib/types/infrastructure.types';
+import type { Database } from '@src/lib/types/infrastructureTypes';
 
 // Only create database connection if DATABASE_URL is available
 let sql: ReturnType<typeof neon> | null = null;

@@ -1,4 +1,4 @@
-import type { IStandingsApiResponse } from '@/lib/types/external.api.types';
+import type { IStandingsApiResponse } from '@/lib/types/externalApiTypes';
 
 export const MOCK_NBA_STANDINGS: IStandingsApiResponse = {
   get: 'standings',

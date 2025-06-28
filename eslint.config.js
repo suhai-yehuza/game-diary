@@ -197,6 +197,8 @@ export default [
       '@typescript-eslint/unified-signatures': 'error',
 
       // Filename rules
+      // Note: eslint-plugin-filenames is not compatible with ESLint v9+ flat config
+      // Use custom scripts or pre-commit hooks for filename validation instead
 
       // Next.js specific rules
       '@next/next/no-html-link-for-pages': 'error',

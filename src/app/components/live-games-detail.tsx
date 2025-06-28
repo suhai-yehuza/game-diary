@@ -3,8 +3,8 @@
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
 
-import { MOCK_LIVE_GAMES } from '@/lib/mock/live-games.mock';
-import type { IGamesApiResponse, IRapidAPIConfig } from '@/lib/types/external.api.types';
+import { MOCK_LIVE_GAMES } from '@/lib/mock/liveGamesMock';
+import type { IGamesApiResponse, IRapidAPIConfig } from '@/lib/types/externalApiTypes';
 import { createRapidAPIClient } from '@/lib/utils/api-client';
 import { API_CONFIG } from '@src/lib/config/api.config';
 

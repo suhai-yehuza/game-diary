@@ -338,43 +338,43 @@ export class PerformanceTracker {
 // Export types
 
 // Add missing getCacheManager function
-import type { ICacheManager } from '@src/lib/types/infrastructure.types';
+import type { ICacheManager } from '@src/lib/types/infrastructureTypes';
 
-// Time constants
-const TIME_CONSTANTS = {
-  HOUR_IN_MS: SECONDS_PER_MINUTE * SECONDS_PER_MINUTE * MILLISECONDS_PER_SECOND, // 1 hour in milliseconds
-  MINUTES_PER_HOUR: SECONDS_PER_MINUTE,
-  SECONDS_PER_MINUTE,
-  MILLISECONDS_PER_SECOND,
-} as const;
+// Cache TTL constant
+const CACHE_TTL_MS = 3600000; // 1 hour in milliseconds
 
 // Note: Methods must be async to satisfy ICacheManager interface, even if not using await
 class InMemoryCache implements ICacheManager {
   private readonly cache = new Map<string, { value: unknown; expires: number }>();
 
-  async get(key: string): Promise<unknown> {
-    await Promise.resolve();
+  async get<T>(key: string): Promise<T | null> {
+    await Promise.resolve(); // Satisfy async requirement
     const item = this.cache.get(key);
-    if (!item || item.expires < Date.now()) {
+    if (!item) return null;
+
+    if (Date.now() > item.expires) {
       this.cache.delete(key);
-      return undefined;
+      return null;
     }
-    return item.value;
+
+    return item.value as T;
   }
 
-  async set(key: string, value: unknown, ttl = TIME_CONSTANTS.HOUR_IN_MS): Promise<void> {
-    await Promise.resolve();
-    const expires = Date.now() + ttl;
-    this.cache.set(key, { value, expires });
+  async set<T>(key: string, value: T, ttl: number = CACHE_TTL_MS): Promise<void> {
+    await Promise.resolve(); // Satisfy async requirement
+    this.cache.set(key, {
+      value,
+      expires: Date.now() + ttl,
+    });
   }
 
-  async del(key: string): Promise<void> {
-    await Promise.resolve();
+  async delete(key: string): Promise<void> {
+    await Promise.resolve(); // Satisfy async requirement
     this.cache.delete(key);
   }
 
   async clear(): Promise<void> {
-    await Promise.resolve();
+    await Promise.resolve(); // Satisfy async requirement
     this.cache.clear();
   }
 }

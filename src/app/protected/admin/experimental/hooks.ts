@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 
-import type { TabValue } from '@/lib/types/constant.types';
-import { TABS } from '@/lib/types/constant.types';
+import type { TabValue } from '@/lib/types/constantTypes';
+import { TABS } from '@/lib/types/constantTypes';
 
 // API fetch hook
 export const useApiFetch = () => {

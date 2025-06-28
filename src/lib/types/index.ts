@@ -4,19 +4,19 @@
  */
 
 // Admin Experimental types
-export * from './admin-experimental.types';
+export * from './adminExperimentalTypes';
 
 // Core types
-export * from './core.types';
+export * from './coreTypes';
 
 // External API types (NBA API endpoints and responses)
-export * from './external.api.types';
+export * from './externalApiTypes';
 
 // UI types (toasts, notifications, charts)
-export * from './ui.types';
+export * from './uiTypes';
 
 // Constant types
-export * from './constant.types';
+export * from './constantTypes';
 
 // Generated types
 export * from './generated/graphql';
