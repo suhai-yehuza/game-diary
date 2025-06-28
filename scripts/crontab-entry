@@ -1,2 +1,0 @@
-# Run nightly NBA data update at 3 AM every day
-0 3 * * * cd $VERCEL_DIR && ./scripts/nightly-update.sh >> $VERCEL_DIR/logs/cron.log 2>&1 
