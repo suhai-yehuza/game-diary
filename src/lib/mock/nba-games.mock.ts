@@ -1,5 +1,41 @@
 import type { IGamesApiResponse } from '@/lib/types/external.api.types';
 
+// Constants for basketball scores
+const BASKETBALL_SCORES = {
+  QUARTER_1: {
+    KNICKS: 28,
+    CELTICS: 30,
+    WARRIORS: 25,
+    LAKERS: 22,
+    HEAT: 32,
+    SIXERS: 35,
+    SUNS: 28,
+  },
+  QUARTER_2: {
+    KNICKS: 32,
+    CELTICS: 35,
+    WARRIORS: 28,
+    LAKERS: 30,
+    HEAT: 28,
+    SIXERS: 30,
+    SUNS: 30,
+  },
+  QUARTER_3: {
+    WARRIORS: 30,
+    LAKERS: 32,
+    HEAT: 25,
+    SIXERS: 28,
+    SUNS: 25,
+  },
+  QUARTER_4: {
+    WARRIORS: 25,
+    LAKERS: 28,
+    HEAT: 30,
+    SIXERS: 25,
+    SUNS: 35,
+  },
+} as const;
+
 export const MOCK_NBA_GAMES: IGamesApiResponse = {
   get: 'games',
   parameters: {
@@ -60,7 +96,7 @@ export const MOCK_NBA_GAMES: IGamesApiResponse = {
             win: 0,
             loss: 0,
           },
-          linescore: [28, 32, 0, 0],
+          linescore: [BASKETBALL_SCORES.QUARTER_1.KNICKS, BASKETBALL_SCORES.QUARTER_2.KNICKS, 0, 0],
           points: 60,
         },
         visitors: {
@@ -70,7 +106,12 @@ export const MOCK_NBA_GAMES: IGamesApiResponse = {
             win: 0,
             loss: 0,
           },
-          linescore: [30, 35, 0, 0],
+          linescore: [
+            BASKETBALL_SCORES.QUARTER_1.CELTICS,
+            BASKETBALL_SCORES.QUARTER_2.CELTICS,
+            0,
+            0,
+          ],
           points: 65,
         },
       },
@@ -130,7 +171,12 @@ export const MOCK_NBA_GAMES: IGamesApiResponse = {
             win: 0,
             loss: 0,
           },
-          linescore: [25, 28, 30, 25],
+          linescore: [
+            BASKETBALL_SCORES.QUARTER_1.WARRIORS,
+            BASKETBALL_SCORES.QUARTER_2.WARRIORS,
+            BASKETBALL_SCORES.QUARTER_3.WARRIORS,
+            BASKETBALL_SCORES.QUARTER_4.WARRIORS,
+          ],
           points: 108,
         },
         visitors: {
@@ -140,7 +186,12 @@ export const MOCK_NBA_GAMES: IGamesApiResponse = {
             win: 0,
             loss: 0,
           },
-          linescore: [22, 30, 32, 28],
+          linescore: [
+            BASKETBALL_SCORES.QUARTER_1.LAKERS,
+            BASKETBALL_SCORES.QUARTER_2.LAKERS,
+            BASKETBALL_SCORES.QUARTER_3.LAKERS,
+            BASKETBALL_SCORES.QUARTER_4.LAKERS,
+          ],
           points: 112,
         },
       },
@@ -200,7 +251,12 @@ export const MOCK_NBA_GAMES: IGamesApiResponse = {
             win: 0,
             loss: 0,
           },
-          linescore: [32, 28, 25, 30],
+          linescore: [
+            BASKETBALL_SCORES.QUARTER_1.HEAT,
+            BASKETBALL_SCORES.QUARTER_2.HEAT,
+            BASKETBALL_SCORES.QUARTER_3.HEAT,
+            BASKETBALL_SCORES.QUARTER_4.HEAT,
+          ],
           points: 115,
         },
         visitors: {
@@ -210,7 +266,12 @@ export const MOCK_NBA_GAMES: IGamesApiResponse = {
             win: 0,
             loss: 0,
           },
-          linescore: [35, 30, 28, 25],
+          linescore: [
+            BASKETBALL_SCORES.QUARTER_1.SIXERS,
+            BASKETBALL_SCORES.QUARTER_2.SIXERS,
+            BASKETBALL_SCORES.QUARTER_3.SIXERS,
+            BASKETBALL_SCORES.QUARTER_4.SIXERS,
+          ],
           points: 118,
         },
       },
@@ -340,7 +401,12 @@ export const MOCK_NBA_GAMES: IGamesApiResponse = {
             win: 0,
             loss: 0,
           },
-          linescore: [30, 25, 28, 32],
+          linescore: [
+            BASKETBALL_SCORES.QUARTER_1.LAKERS,
+            BASKETBALL_SCORES.QUARTER_2.LAKERS,
+            BASKETBALL_SCORES.QUARTER_3.LAKERS,
+            BASKETBALL_SCORES.QUARTER_4.LAKERS,
+          ],
           points: 115,
         },
         visitors: {
@@ -350,7 +416,12 @@ export const MOCK_NBA_GAMES: IGamesApiResponse = {
             win: 0,
             loss: 0,
           },
-          linescore: [28, 30, 25, 35],
+          linescore: [
+            BASKETBALL_SCORES.QUARTER_1.SUNS,
+            BASKETBALL_SCORES.QUARTER_2.SUNS,
+            BASKETBALL_SCORES.QUARTER_3.SUNS,
+            BASKETBALL_SCORES.QUARTER_4.SUNS,
+          ],
           points: 118,
         },
       },

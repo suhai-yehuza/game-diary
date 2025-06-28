@@ -329,6 +329,11 @@ export class PerformanceTracker {
 // Add missing getCacheManager function
 import type { ICacheManager } from '@src/lib/types/infrastructure.types';
 
+// Time constants
+const TIME_CONSTANTS = {
+  HOUR_IN_MS: 60 * 60 * 1000, // 1 hour in milliseconds
+} as const;
+
 // Note: Methods must be async to satisfy ICacheManager interface, even if not using await
 class InMemoryCache implements ICacheManager {
   private readonly cache = new Map<string, { value: unknown; expires: number }>();
@@ -343,7 +348,7 @@ class InMemoryCache implements ICacheManager {
     return item.value;
   }
 
-  async set(key: string, value: unknown, ttl = 3600000): Promise<void> {
+  async set(key: string, value: unknown, ttl = TIME_CONSTANTS.HOUR_IN_MS): Promise<void> {
     await Promise.resolve();
     const expires = Date.now() + ttl;
     this.cache.set(key, { value, expires });

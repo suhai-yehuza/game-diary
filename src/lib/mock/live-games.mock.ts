@@ -1,9 +1,35 @@
 import type { IGamesApiResponse } from '@/lib/types/external.api.types';
 
+// Constants for common basketball scores
+const BASKETBALL_SCORES = {
+  QUARTER_1: {
+    KNICKS: 28,
+    CELTICS: 30,
+    WARRIORS: 25,
+    LAKERS: 22,
+    HEAT: 32,
+    SIXERS: 35,
+  },
+  QUARTER_2: {
+    KNICKS: 32,
+    CELTICS: 35,
+    WARRIORS: 28,
+    LAKERS: 30,
+    HEAT: 28,
+    SIXERS: 30,
+  },
+  QUARTER_3: {
+    WARRIORS: 30,
+    LAKERS: 32,
+  },
+} as const;
+
 export const MOCK_LIVE_GAMES: IGamesApiResponse = {
   get: 'games',
   parameters: {
-    live: 'all',
+    league: '12',
+    season: '2023-24',
+    date: '2024-12-23',
   },
   errors: [],
   results: 3,
@@ -19,7 +45,7 @@ export const MOCK_LIVE_GAMES: IGamesApiResponse = {
       },
       stage: 2,
       status: {
-        clock: '8:32',
+        clock: '5:30',
         halftime: false,
         short: 'Q3',
         long: '3rd Quarter',
@@ -59,7 +85,7 @@ export const MOCK_LIVE_GAMES: IGamesApiResponse = {
             win: 0,
             loss: 0,
           },
-          linescore: [28, 32, 0, 0],
+          linescore: [BASKETBALL_SCORES.QUARTER_1.KNICKS, BASKETBALL_SCORES.QUARTER_2.KNICKS, 0, 0],
           points: 60,
         },
         visitors: {
@@ -69,7 +95,12 @@ export const MOCK_LIVE_GAMES: IGamesApiResponse = {
             win: 0,
             loss: 0,
           },
-          linescore: [30, 35, 0, 0],
+          linescore: [
+            BASKETBALL_SCORES.QUARTER_1.CELTICS,
+            BASKETBALL_SCORES.QUARTER_2.CELTICS,
+            0,
+            0,
+          ],
           points: 65,
         },
       },
@@ -129,7 +160,12 @@ export const MOCK_LIVE_GAMES: IGamesApiResponse = {
             win: 0,
             loss: 0,
           },
-          linescore: [25, 28, 30, 0],
+          linescore: [
+            BASKETBALL_SCORES.QUARTER_1.WARRIORS,
+            BASKETBALL_SCORES.QUARTER_2.WARRIORS,
+            BASKETBALL_SCORES.QUARTER_3.WARRIORS,
+            0,
+          ],
           points: 83,
         },
         visitors: {
@@ -139,7 +175,12 @@ export const MOCK_LIVE_GAMES: IGamesApiResponse = {
             win: 0,
             loss: 0,
           },
-          linescore: [22, 30, 32, 0],
+          linescore: [
+            BASKETBALL_SCORES.QUARTER_1.LAKERS,
+            BASKETBALL_SCORES.QUARTER_2.LAKERS,
+            BASKETBALL_SCORES.QUARTER_3.LAKERS,
+            0,
+          ],
           points: 84,
         },
       },
@@ -199,7 +240,7 @@ export const MOCK_LIVE_GAMES: IGamesApiResponse = {
             win: 0,
             loss: 0,
           },
-          linescore: [32, 28, 0, 0],
+          linescore: [BASKETBALL_SCORES.QUARTER_1.HEAT, BASKETBALL_SCORES.QUARTER_2.HEAT, 0, 0],
           points: 60,
         },
         visitors: {
@@ -209,7 +250,7 @@ export const MOCK_LIVE_GAMES: IGamesApiResponse = {
             win: 0,
             loss: 0,
           },
-          linescore: [35, 30, 0, 0],
+          linescore: [BASKETBALL_SCORES.QUARTER_1.SIXERS, BASKETBALL_SCORES.QUARTER_2.SIXERS, 0, 0],
           points: 65,
         },
       },

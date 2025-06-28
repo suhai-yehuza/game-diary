@@ -131,3 +131,31 @@ export interface IAdminButtonProps {
 export interface IClerkProviderWrapperProps {
   children: React.ReactNode;
 }
+
+// ========================================
+// CARD COMPONENT TYPES
+// ========================================
+
+export interface ICardProps extends Readonly<React.ComponentProps<'div'>> {
+  children: Readonly<React.ReactNode>;
+}
+
+export interface ICardHeaderProps extends Readonly<React.ComponentProps<'div'>> {
+  children: Readonly<React.ReactNode>;
+}
+
+export interface ICardTitleProps extends Readonly<React.ComponentProps<'h3'>> {
+  children: Readonly<React.ReactNode>;
+}
+
+export interface ICardDescriptionProps extends Readonly<React.ComponentProps<'p'>> {
+  children: Readonly<React.ReactNode>;
+}
+
+export interface ICardContentProps extends Readonly<React.ComponentProps<'div'>> {
+  children: Readonly<React.ReactNode>;
+}
+
+export interface ICardFooterProps extends Readonly<React.ComponentProps<'div'>> {
+  children: Readonly<React.ReactNode>;
+}

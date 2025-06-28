@@ -1,10 +1,12 @@
-import type { ComponentProps, ReactNode } from 'react';
-
+import type {
+  ICardProps,
+  ICardHeaderProps,
+  ICardTitleProps,
+  ICardDescriptionProps,
+  ICardContentProps,
+  ICardFooterProps,
+} from '@src/lib/types/ui.types';
 import { cn } from '@src/lib/utils';
-
-interface ICardProps extends Readonly<ComponentProps<'div'>> {
-  children: Readonly<ReactNode>;
-}
 
 export function Card({ className, children, ...props }: Readonly<ICardProps>) {
   return (
@@ -17,10 +19,6 @@ export function Card({ className, children, ...props }: Readonly<ICardProps>) {
   );
 }
 
-interface ICardHeaderProps extends Readonly<ComponentProps<'div'>> {
-  children: Readonly<ReactNode>;
-}
-
 export function CardHeader({ className, children, ...props }: Readonly<ICardHeaderProps>) {
   return (
     <div className={cn('flex flex-col space-y-1.5 p-6', className)} {...props}>
@@ -29,20 +27,12 @@ export function CardHeader({ className, children, ...props }: Readonly<ICardHead
   );
 }
 
-interface ICardTitleProps extends Readonly<ComponentProps<'h3'>> {
-  children: Readonly<ReactNode>;
-}
-
 export function CardTitle({ className, children, ...props }: Readonly<ICardTitleProps>) {
   return (
     <h3 className={cn('text-2xl font-semibold leading-none tracking-tight', className)} {...props}>
       {children}
     </h3>
   );
-}
-
-interface ICardDescriptionProps extends Readonly<ComponentProps<'p'>> {
-  children: Readonly<ReactNode>;
 }
 
 export function CardDescription({
@@ -57,20 +47,12 @@ export function CardDescription({
   );
 }
 
-interface ICardContentProps extends Readonly<ComponentProps<'div'>> {
-  children: Readonly<ReactNode>;
-}
-
 export function CardContent({ className, children, ...props }: Readonly<ICardContentProps>) {
   return (
     <div className={cn('p-6 pt-0', className)} {...props}>
       {children}
     </div>
   );
-}
-
-interface ICardFooterProps extends Readonly<ComponentProps<'div'>> {
-  children: Readonly<ReactNode>;
 }
 
 export function CardFooter({ className, children, ...props }: Readonly<ICardFooterProps>) {

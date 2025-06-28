@@ -250,11 +250,19 @@ export interface IOutdatedPackage {
 // LOGGING TYPES
 // ========================================
 
+// Log level constants
+const LOG_LEVEL_VALUES = {
+  DEBUG: 0,
+  INFO: 1,
+  WARN: 2,
+  ERROR: 3,
+} as const;
+
 export enum LogLevel {
-  DEBUG = 0,
-  INFO = 1,
-  WARN = 2,
-  ERROR = 3,
+  DEBUG = LOG_LEVEL_VALUES.DEBUG,
+  INFO = LOG_LEVEL_VALUES.INFO,
+  WARN = LOG_LEVEL_VALUES.WARN,
+  ERROR = LOG_LEVEL_VALUES.ERROR,
 }
 
 export interface ILoggerConfig {

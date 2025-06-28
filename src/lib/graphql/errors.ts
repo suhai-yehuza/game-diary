@@ -92,7 +92,7 @@ export const checkFieldPermission = (
   }
 
   // Admin has access to all fields
-  if (!user.banned) {
+  if (user.banned === false) {
     return true;
   }
 
@@ -120,22 +120,23 @@ export const checkFieldPermission = (
 export const errorTypeResolver = {
   ErrorResult: {
     __resolveType(obj: GraphQLError) {
-      if (obj.extensions?.code === 'VALIDATION_ERROR') {
+      const code = obj.extensions?.code;
+      if (code === 'VALIDATION_ERROR') {
         return 'ValidationError';
       }
-      if (obj.extensions?.code === 'NOT_FOUND_ERROR') {
+      if (code === 'NOT_FOUND_ERROR') {
         return 'NotFoundError';
       }
-      if (obj.extensions?.code === 'AUTHENTICATION_ERROR') {
+      if (code === 'AUTHENTICATION_ERROR') {
         return 'AuthenticationError';
       }
-      if (obj.extensions?.code === 'AUTHORIZATION_ERROR') {
+      if (code === 'AUTHORIZATION_ERROR') {
         return 'AuthorizationError';
       }
-      if (obj.extensions?.code === 'RATE_LIMIT_ERROR') {
+      if (code === 'RATE_LIMIT_ERROR') {
         return 'RateLimitError';
       }
-      if (obj.extensions?.code === 'BUSINESS_LOGIC_ERROR') {
+      if (code === 'BUSINESS_LOGIC_ERROR') {
         return 'BusinessLogicError';
       }
       return null;

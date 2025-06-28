@@ -6,8 +6,12 @@ const TIME_CONSTANTS = {
   MILLISECONDS_PER_SECOND: 1000,
 } as const;
 
-const RATE_LIMIT_VALUES = {
+const RATE_LIMIT_CONSTANTS = {
   REQUESTS_PER_WINDOW: 15,
+} as const;
+
+const RATE_LIMIT_VALUES = {
+  REQUESTS_PER_WINDOW: RATE_LIMIT_CONSTANTS.REQUESTS_PER_WINDOW,
   WINDOW_SIZE_SECONDS: TIME_CONSTANTS.SECONDS_PER_MINUTE,
   WINDOW_SIZE_MS: TIME_CONSTANTS.MILLISECONDS_PER_SECOND,
 } as const;
@@ -17,6 +21,17 @@ const RATE_LIMIT_CONFIG = {
   DEFAULT_REQUESTS: RATE_LIMIT_VALUES.REQUESTS_PER_WINDOW,
   STRICT_WINDOW_MS: RATE_LIMIT_VALUES.WINDOW_SIZE_SECONDS * RATE_LIMIT_VALUES.WINDOW_SIZE_MS,
   STRICT_REQUESTS: RATE_LIMIT_VALUES.REQUESTS_PER_WINDOW,
+} as const;
+
+// Additional constants for specific rate limits
+const GRAPHQL_RATE_LIMIT = {
+  WINDOW_MS: TIME_CONSTANTS.SECONDS_PER_MINUTE * TIME_CONSTANTS.MILLISECONDS_PER_SECOND,
+  MAX_REQUESTS: 50000,
+} as const;
+
+const AUTH_RATE_LIMIT = {
+  WINDOW_MS: 15 * TIME_CONSTANTS.SECONDS_PER_MINUTE * TIME_CONSTANTS.MILLISECONDS_PER_SECOND,
+  MAX_REQUESTS: 100,
 } as const;
 
 // Global rate limit configuration
@@ -41,16 +56,16 @@ export const RATE_LIMIT_CONFIG_FULL = {
 
   // GraphQL specific routes
   graphql: {
-    windowMs: 60 * 1000, // 1 minute
-    max: 50000, // 50000 requests per minute
+    windowMs: GRAPHQL_RATE_LIMIT.WINDOW_MS,
+    max: GRAPHQL_RATE_LIMIT.MAX_REQUESTS,
     message: 'GraphQL rate limit exceeded, please try again later.',
     standardHeaders: true,
     legacyHeaders: false,
   },
   // Auth routes (more strict)
   auth: {
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100, // 100 requests per window
+    windowMs: AUTH_RATE_LIMIT.WINDOW_MS,
+    max: AUTH_RATE_LIMIT.MAX_REQUESTS,
     message: 'Too many authentication attempts, please try again later.',
     standardHeaders: true,
     legacyHeaders: false,
