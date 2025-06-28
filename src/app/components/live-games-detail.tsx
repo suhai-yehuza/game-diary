@@ -4,7 +4,7 @@ import Image from 'next/image';
 import { useEffect, useState } from 'react';
 
 import { MOCK_LIVE_GAMES } from '@/lib/mock/live-games.mock';
-import type { INbaGamesApiResponse } from '@/lib/types/nba.api.types';
+import type { IGamesApiResponse } from '@/lib/types/external.api.types';
 import { API_CONFIG, getRapidApiConfig } from '@src/lib/config/api.config';
 
 // API Client function
@@ -41,7 +41,7 @@ const createRapidAPIClient = () => {
 };
 
 export default function LiveGamesDetail() {
-  const [liveGames, setLiveGames] = useState<INbaGamesApiResponse | null>(null);
+  const [liveGames, setLiveGames] = useState<IGamesApiResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -51,7 +51,7 @@ export default function LiveGamesDetail() {
       setError(null);
 
       const client = createRapidAPIClient();
-      const data = await client.fetch<INbaGamesApiResponse>(API_CONFIG.endpoints.GAMES, {
+      const data = await client.fetch<IGamesApiResponse>(API_CONFIG.endpoints.GAMES, {
         live: 'all',
       });
 

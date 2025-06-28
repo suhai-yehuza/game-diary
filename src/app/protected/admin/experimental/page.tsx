@@ -6,16 +6,12 @@ import type { FormEvent, ChangeEvent } from 'react';
 import React, { useEffect, Suspense, useState } from 'react';
 
 import type {
-  INbaSeasonsApiResponse,
-  INbaLeaguesApiResponse,
-  INbaGamesApiResponse,
-  INbaTeamsApiResponse,
-  INbaPlayersApiResponse,
-  INbaStandingsApiResponse,
-  INbaTeamStatisticsApiResponse,
-  INbaGameStatisticsApiResponse,
-  INbaPlayerStatisticsApiResponse,
-} from '@/lib/types/nba.api.types';
+  IGamesApiResponse,
+  ISeasonsApiResponse,
+  ITeamsApiResponse,
+  IPlayersApiResponse,
+  IStandingsApiResponse,
+} from '@/lib/types/external.api.types';
 import { API_CONFIG, getRapidApiConfig } from '@src/lib/config/api.config';
 
 // API Client function
@@ -177,15 +173,11 @@ function AdminExperimentalContent() {
   const [teamsSubTab, setTeamsSubTab] = useState('teams');
   const [playersSubTab, setPlayersSubTab] = useState('players');
   const [data, setData] = useState<
-    | INbaSeasonsApiResponse
-    | INbaLeaguesApiResponse
-    | INbaGamesApiResponse
-    | INbaTeamsApiResponse
-    | INbaPlayersApiResponse
-    | INbaStandingsApiResponse
-    | INbaTeamStatisticsApiResponse
-    | INbaGameStatisticsApiResponse
-    | INbaPlayerStatisticsApiResponse
+    | ISeasonsApiResponse
+    | ITeamsApiResponse
+    | IGamesApiResponse
+    | IPlayersApiResponse
+    | IStandingsApiResponse
     | null
   >(null);
   const [loading, setLoading] = useState(false);
@@ -273,23 +265,23 @@ function AdminExperimentalContent() {
       // Determine the response type based on the endpoint
       let data;
       if (endpoint.includes('/seasons')) {
-        data = await client.fetch<INbaSeasonsApiResponse>(endpoint, activeParams);
+        data = await client.fetch<ISeasonsApiResponse>(endpoint, activeParams);
       } else if (endpoint.includes('/leagues')) {
-        data = await client.fetch<INbaLeaguesApiResponse>(endpoint, activeParams);
+        data = await client.fetch<ITeamsApiResponse>(endpoint, activeParams);
       } else if (endpoint.includes('/games/statistics')) {
-        data = await client.fetch<INbaGameStatisticsApiResponse>(endpoint, activeParams);
+        data = await client.fetch<IGamesApiResponse>(endpoint, activeParams);
       } else if (endpoint.includes('/games')) {
-        data = await client.fetch<INbaGamesApiResponse>(endpoint, activeParams);
+        data = await client.fetch<IGamesApiResponse>(endpoint, activeParams);
       } else if (endpoint.includes('/teams/statistics')) {
-        data = await client.fetch<INbaTeamStatisticsApiResponse>(endpoint, activeParams);
+        data = await client.fetch<ITeamsApiResponse>(endpoint, activeParams);
       } else if (endpoint.includes('/teams')) {
-        data = await client.fetch<INbaTeamsApiResponse>(endpoint, activeParams);
+        data = await client.fetch<ITeamsApiResponse>(endpoint, activeParams);
       } else if (endpoint.includes('/players/statistics')) {
-        data = await client.fetch<INbaPlayerStatisticsApiResponse>(endpoint, activeParams);
+        data = await client.fetch<IGamesApiResponse>(endpoint, activeParams);
       } else if (endpoint.includes('/players')) {
-        data = await client.fetch<INbaPlayersApiResponse>(endpoint, activeParams);
+        data = await client.fetch<IPlayersApiResponse>(endpoint, activeParams);
       } else if (endpoint.includes('/standings')) {
-        data = await client.fetch<INbaStandingsApiResponse>(endpoint, activeParams);
+        data = await client.fetch<IStandingsApiResponse>(endpoint, activeParams);
       } else {
         throw new Error(`Unknown endpoint: ${endpoint}`);
       }
@@ -361,9 +353,9 @@ function AdminExperimentalContent() {
         // Determine the response type based on the selected tab
         let data;
         if (selectedTab === 'seasons') {
-          data = await client.fetch<INbaSeasonsApiResponse>(selectedItem.endpoint);
+          data = await client.fetch<ISeasonsApiResponse>(selectedItem.endpoint);
         } else if (selectedTab === 'leagues') {
-          data = await client.fetch<INbaLeaguesApiResponse>(selectedItem.endpoint);
+          data = await client.fetch<ITeamsApiResponse>(selectedItem.endpoint);
         } else {
           throw new Error(`Unexpected tab: ${selectedTab}`);
         }

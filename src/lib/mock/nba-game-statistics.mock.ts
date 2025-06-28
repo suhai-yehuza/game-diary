@@ -1,6 +1,6 @@
-import type { INbaGameStatisticsApiResponse } from '@/lib/types/nba.api.types';
+import type { IGameStatisticsApiResponse } from '@/lib/types/external.api.types';
 
-export const MOCK_NBA_GAME_STATISTICS: INbaGameStatisticsApiResponse = {
+export const MOCK_NBA_GAME_STATISTICS: IGameStatisticsApiResponse = {
   get: 'games/statistics',
   parameters: {
     id: '1234567',

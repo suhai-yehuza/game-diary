@@ -1,6 +1,6 @@
-import type { INbaGamesApiResponse } from '@/lib/types/nba.api.types';
+import type { IGamesApiResponse } from '@/lib/types/external.api.types';
 
-export const MOCK_NBA_GAMES: INbaGamesApiResponse = {
+export const MOCK_NBA_GAMES: IGamesApiResponse = {
   get: 'games',
   parameters: {
     season: '2024',

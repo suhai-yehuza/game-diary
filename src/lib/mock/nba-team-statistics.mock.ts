@@ -1,6 +1,6 @@
-import type { INbaTeamStatisticsApiResponse } from '@/lib/types/nba.api.types';
+import type { ITeamStatisticsApiResponse } from '@/lib/types/external.api.types';
 
-export const MOCK_NBA_TEAM_STATISTICS: INbaTeamStatisticsApiResponse = {
+export const MOCK_NBA_TEAM_STATISTICS: ITeamStatisticsApiResponse = {
   get: 'teams/statistics',
   parameters: {
     id: '584',

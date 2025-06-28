@@ -1,6 +1,6 @@
-import type { INbaSeasonsApiResponse } from '@/lib/types/nba.api.types';
+import type { ISeasonsApiResponse } from '@/lib/types/external.api.types';
 
-export const MOCK_NBA_SEASONS: INbaSeasonsApiResponse = {
+export const MOCK_NBA_SEASONS: ISeasonsApiResponse = {
   get: 'seasons',
   parameters: {},
   errors: [],

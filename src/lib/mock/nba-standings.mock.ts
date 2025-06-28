@@ -1,6 +1,6 @@
-import type { INbaStandingsApiResponse } from '@/lib/types/nba.api.types';
+import type { IStandingsApiResponse } from '@/lib/types/external.api.types';
 
-export const MOCK_NBA_STANDINGS: INbaStandingsApiResponse = {
+export const MOCK_NBA_STANDINGS: IStandingsApiResponse = {
   get: 'standings',
   parameters: {
     league: '12',

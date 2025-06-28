@@ -1,6 +1,6 @@
-import type { INbaTeamsApiResponse } from '@/lib/types/nba.api.types';
+import type { ITeamsApiResponse } from '@/lib/types/external.api.types';
 
-export const MOCK_NBA_TEAMS: INbaTeamsApiResponse = {
+export const MOCK_NBA_TEAMS: ITeamsApiResponse = {
   get: 'teams',
   parameters: {
     league: '12',

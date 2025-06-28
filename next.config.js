@@ -36,7 +36,7 @@ const nextConfig = {
   // Experimental features
   experimental: {
     // Performance optimizations - exclude drizzle-orm to avoid conflict
-    optimizePackageImports: ['@apollo/client', 'react-hot-toast'],
+    optimizePackageImports: ['@apollo/client'],
   },
 
   // External packages for server components (moved out of experimental)

@@ -3,17 +3,20 @@
  * Centralized type exports for the Game Diary application
  */
 
-// Core types (common, pagination, search, database, migration)
+// Core types
 export * from './core.types';
+
+// External API types (NBA API endpoints and responses)
+export * from './external.api.types';
 
 // UI types (toasts, notifications, charts)
 export * from './ui.types';
 
-// Social types (comments, reactions, friendships)
+// Social types
 export * from './social.types';
 
-// Constants and enums
+// Constant types
 export * from './constant.types';
 
-// External API types (NBA API endpoints and responses)
-export * from './nba.api.types';
+// Generated types
+export * from './generated/graphql';
