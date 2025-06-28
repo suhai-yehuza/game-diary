@@ -18,15 +18,13 @@ import {
 import { useApiFetch, useFormState, useTabState } from './hooks';
 
 // Navigation Tabs Component
-function NavigationTabs({
-  selectedTab,
-  setSelectedTab,
-}: {
+type NavigationTabsProps = {
   selectedTab: string;
   setSelectedTab: (tab: string) => void;
-}) {
+};
+function NavigationTabs(props: Readonly<NavigationTabsProps>) {
+  const { selectedTab, setSelectedTab } = props;
   const tabs = ['seasons', 'leagues', 'games', 'teams', 'players', 'standings'];
-
   return (
     <div className="flex flex-wrap gap-2 border-b mb-6">
       {tabs.map(tab => (
@@ -47,23 +45,19 @@ function NavigationTabs({
 }
 
 // Simple Endpoints Component
-function SimpleEndpoints({
-  selectedTab,
-  loading,
-  handleFetch,
-}: {
+type SimpleEndpointsProps = {
   selectedTab: string;
   loading: boolean;
   handleFetch: (endpoint: string, params: Record<string, string>) => Promise<void>;
-}) {
+};
+function SimpleEndpoints(props: Readonly<SimpleEndpointsProps>) {
+  const { selectedTab, loading, handleFetch } = props;
   if (!['seasons', 'leagues'].includes(selectedTab)) return null;
-
   const handleClick = () => {
     const endpoint =
       selectedTab === 'seasons' ? API_CONFIG.endpoints.SEASONS : API_CONFIG.endpoints.LEAGUES;
     void handleFetch(endpoint, {});
   };
-
   return (
     <div className="mb-6">
       <div className="mt-4 p-4 border rounded-md bg-gray-50 dark:bg-gray-900/50">
@@ -82,17 +76,7 @@ function SimpleEndpoints({
 }
 
 // Games Section Component
-function GamesSection({
-  gamesSubTab,
-  setGamesSubTab,
-  gameParams,
-  setGameParams,
-  gameStatsId,
-  setGameStatsId,
-  loading,
-  handleFetchGames,
-  handleFetchGameStats,
-}: {
+type GamesSectionProps = {
   gamesSubTab: string;
   setGamesSubTab: (tab: string) => void;
   gameParams: Record<string, string>;
@@ -102,7 +86,19 @@ function GamesSection({
   loading: boolean;
   handleFetchGames: (e: React.FormEvent) => void;
   handleFetchGameStats: (e: React.FormEvent) => void;
-}) {
+};
+function GamesSection(props: Readonly<GamesSectionProps>) {
+  const {
+    gamesSubTab,
+    setGamesSubTab,
+    gameParams,
+    setGameParams,
+    gameStatsId,
+    setGameStatsId,
+    loading,
+    handleFetchGames,
+    handleFetchGameStats,
+  } = props;
   return (
     <div className="mb-6">
       <div className="flex gap-2 border-b">
@@ -137,7 +133,6 @@ function GamesSection({
           Live Games
         </button>
       </div>
-
       {gamesSubTab === 'games' && (
         <GamesForm
           gameParams={gameParams}
@@ -146,7 +141,6 @@ function GamesSection({
           onSubmit={handleFetchGames}
         />
       )}
-
       {gamesSubTab === 'stats' && (
         <GameStatsForm
           gameStatsId={gameStatsId}
@@ -155,7 +149,6 @@ function GamesSection({
           onSubmit={handleFetchGameStats}
         />
       )}
-
       {gamesSubTab === 'live' && (
         <div className="mt-4 p-4 border rounded-md bg-gray-50 dark:bg-gray-900/50">
           <h3 className="text-lg font-semibold mb-1">Live Games</h3>
@@ -167,17 +160,7 @@ function GamesSection({
 }
 
 // Teams Section Component
-function TeamsSection({
-  teamsSubTab,
-  setTeamsSubTab,
-  teamParams,
-  setTeamParams,
-  teamStatsParams,
-  setTeamStatsParams,
-  loading,
-  handleFetchTeams,
-  handleFetchTeamStats,
-}: {
+type TeamsSectionProps = {
   teamsSubTab: string;
   setTeamsSubTab: (tab: string) => void;
   teamParams: Record<string, string>;
@@ -187,7 +170,19 @@ function TeamsSection({
   loading: boolean;
   handleFetchTeams: (e: React.FormEvent) => void;
   handleFetchTeamStats: (e: React.FormEvent) => void;
-}) {
+};
+function TeamsSection(props: Readonly<TeamsSectionProps>) {
+  const {
+    teamsSubTab,
+    setTeamsSubTab,
+    teamParams,
+    setTeamParams,
+    teamStatsParams,
+    setTeamStatsParams,
+    loading,
+    handleFetchTeams,
+    handleFetchTeamStats,
+  } = props;
   return (
     <div className="mb-6">
       <div className="flex gap-2 border-b">
@@ -212,7 +207,6 @@ function TeamsSection({
           Team Stats
         </button>
       </div>
-
       {teamsSubTab === 'teams' && (
         <TeamsForm
           teamParams={teamParams}
@@ -221,7 +215,6 @@ function TeamsSection({
           onSubmit={handleFetchTeams}
         />
       )}
-
       {teamsSubTab === 'stats' && (
         <TeamStatsForm
           teamStatsParams={teamStatsParams}
@@ -235,17 +228,7 @@ function TeamsSection({
 }
 
 // Players Section Component
-function PlayersSection({
-  playersSubTab,
-  setPlayersSubTab,
-  playerParams,
-  setPlayerParams,
-  playerStatsParams,
-  setPlayerStatsParams,
-  loading,
-  handleFetchPlayers,
-  handleFetchPlayerStats,
-}: {
+type PlayersSectionProps = {
   playersSubTab: string;
   setPlayersSubTab: (tab: string) => void;
   playerParams: Record<string, string>;
@@ -255,7 +238,19 @@ function PlayersSection({
   loading: boolean;
   handleFetchPlayers: (e: React.FormEvent) => void;
   handleFetchPlayerStats: (e: React.FormEvent) => void;
-}) {
+};
+function PlayersSection(props: Readonly<PlayersSectionProps>) {
+  const {
+    playersSubTab,
+    setPlayersSubTab,
+    playerParams,
+    setPlayerParams,
+    playerStatsParams,
+    setPlayerStatsParams,
+    loading,
+    handleFetchPlayers,
+    handleFetchPlayerStats,
+  } = props;
   return (
     <div className="mb-6">
       <div className="flex gap-2 border-b">
@@ -280,7 +275,6 @@ function PlayersSection({
           Player Stats
         </button>
       </div>
-
       {playersSubTab === 'players' && (
         <PlayersForm
           playerParams={playerParams}
@@ -289,7 +283,6 @@ function PlayersSection({
           onSubmit={handleFetchPlayers}
         />
       )}
-
       {playersSubTab === 'stats' && (
         <PlayerStatsForm
           playerStatsParams={playerStatsParams}
@@ -338,37 +331,37 @@ function AdminExperimentalContent() {
   }, [selectedTab, clearData]);
 
   // Form handlers
-  const handleFetchGames = (e: React.FormEvent) => {
+  const handleFetchGames = (e: Readonly<React.FormEvent>) => {
     e.preventDefault();
     void handleFetch(API_CONFIG.endpoints.GAMES, gameParams);
   };
 
-  const handleFetchGameStats = (e: React.FormEvent) => {
+  const handleFetchGameStats = (e: Readonly<React.FormEvent>) => {
     e.preventDefault();
     void handleFetch(API_CONFIG.endpoints.GAME_STATISTICS, { id: gameStatsId }, ['id']);
   };
 
-  const handleFetchTeams = (e: React.FormEvent) => {
+  const handleFetchTeams = (e: Readonly<React.FormEvent>) => {
     e.preventDefault();
     void handleFetch(API_CONFIG.endpoints.TEAMS, teamParams);
   };
 
-  const handleFetchTeamStats = (e: React.FormEvent) => {
+  const handleFetchTeamStats = (e: Readonly<React.FormEvent>) => {
     e.preventDefault();
     void handleFetch(API_CONFIG.endpoints.TEAM_STATISTICS, teamStatsParams, ['id', 'season']);
   };
 
-  const handleFetchPlayers = (e: React.FormEvent) => {
+  const handleFetchPlayers = (e: Readonly<React.FormEvent>) => {
     e.preventDefault();
     void handleFetch(API_CONFIG.endpoints.PLAYERS, playerParams);
   };
 
-  const handleFetchPlayerStats = (e: React.FormEvent) => {
+  const handleFetchPlayerStats = (e: Readonly<React.FormEvent>) => {
     e.preventDefault();
     void handleFetch(API_CONFIG.endpoints.PLAYER_STATISTICS, playerStatsParams);
   };
 
-  const handleFetchStandings = (e: React.FormEvent) => {
+  const handleFetchStandings = (e: Readonly<React.FormEvent>) => {
     e.preventDefault();
     void handleFetch(API_CONFIG.endpoints.STANDINGS, standingsParams, ['league', 'season']);
   };
@@ -457,4 +450,3 @@ function AdminExperimentalContent() {
 export function AdminExperimentalPage() {
   return <AdminExperimentalContent />;
 }
-export default AdminExperimentalPage;
