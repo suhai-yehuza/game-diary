@@ -9,7 +9,6 @@ import React, { useState, useEffect, useRef, Suspense } from 'react';
 
 import { ThemeToggle } from '@src/app/components/common';
 
-import { getRapidApiConfig } from '../../../lib/config/api.config';
 import { LiveGamesBanner } from '../live-games-banner';
 import {
   DropdownMenu,
@@ -190,7 +189,7 @@ export default function Header() {
   return (
     <>
       {/* Live Games Banner */}
-      <LiveGamesBanner rapidApiConfig={getRapidApiConfig()} />
+      <LiveGamesBanner />
 
       <header className="w-full border-b lg:border-b">
         <div className="flex h-16 items-center justify-between w-full">

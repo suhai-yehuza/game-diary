@@ -1,10 +1,8 @@
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 
 import { MOCK_LIVE_GAMES } from '@/lib/mock/live-games.mock';
-import type { IGamesApiResponse, IRapidAPIConfig } from '@/lib/types/external.api.types';
-import { createRapidAPIClient } from '@/lib/utils/api-client';
-import { API_CONFIG } from '@src/lib/config/api.config';
+import type { IGamesApiResponse } from '@/lib/types/external.api.types';
 
 // Constants
 const REFRESH_INTERVAL_MS = 30000;
@@ -20,20 +18,19 @@ function isGamesApiResponse(data: unknown): data is IGamesApiResponse {
   );
 }
 
-export function LiveGamesBanner({ rapidApiConfig }: { rapidApiConfig: IRapidAPIConfig }) {
+export function LiveGamesBanner() {
   const [liveGames, setLiveGames] = useState<IGamesApiResponse | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
-  const fetchLiveGames = async () => {
+  const fetchLiveGames = useCallback(async () => {
     try {
-      setLoading(true);
-      setError(null);
+      // Use the server-side API route instead of calling external API directly
+      const response = await fetch('/api/live-games?live=all');
 
-      const client = createRapidAPIClient(rapidApiConfig);
-      const data = await client.fetch<IGamesApiResponse | unknown>(API_CONFIG.endpoints.GAMES, {
-        live: 'all',
-      });
+      if (!response.ok) {
+        throw new Error(`API request failed: ${response.status} ${response.statusText}`);
+      }
+
+      const data = (await response.json()) as unknown;
 
       // Use mock data if API returns no live games
       if (isGamesApiResponse(data) && (data.results === 0 || data.response.length === 0)) {
@@ -44,16 +41,11 @@ export function LiveGamesBanner({ rapidApiConfig }: { rapidApiConfig: IRapidAPIC
         setLiveGames(MOCK_LIVE_GAMES);
       }
     } catch (err) {
-      const error = err instanceof Error ? err : new Error(String(err));
-      setError(error.message);
-      console.error('Failed to fetch live games:', error);
-
-      // Use mock data as fallback on error
+      // Silently handle errors and use mock data
+      console.warn('Failed to fetch live games, using mock data:', err);
       setLiveGames(MOCK_LIVE_GAMES);
-    } finally {
-      setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     void fetchLiveGames();
@@ -64,14 +56,9 @@ export function LiveGamesBanner({ rapidApiConfig }: { rapidApiConfig: IRapidAPIC
     }, REFRESH_INTERVAL_MS);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [fetchLiveGames]);
 
-  // Don't show banner if loading or if there's an error and no mock data
-  if (loading || (error && !liveGames)) {
-    return null;
-  }
-
-  // Use mock data if no live games from API
+  // Always show banner with mock data if no live games from API
   const games = liveGames?.response ?? MOCK_LIVE_GAMES.response;
 
   return (
