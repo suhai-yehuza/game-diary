@@ -156,12 +156,12 @@ function AdminDatabaseContent() {
   // Handle URL parameters for tab selection
   useEffect(() => {
     const tabParam = searchParams.get('tab');
-    if (tabParam && Object.prototype.hasOwnProperty.call(tableConfigs, tabParam)) {
+    if (tabParam && tabParam in tableConfigs) {
       setActiveTab(tabParam);
       // Auto-fetch data for the specified tab
       void handleFetch(tabParam);
     }
-  }, [searchParams, handleFetch]);
+  }, [searchParams, handleFetch, tableConfigs]);
 
   const formatValue = (value: unknown, _field: string): string => {
     if (value === null || value === undefined) return 'N/A';

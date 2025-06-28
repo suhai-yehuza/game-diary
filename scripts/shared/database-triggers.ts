@@ -1,8 +1,8 @@
 import { sql } from 'drizzle-orm';
 
-import { logger } from '@lib/core/logger';
-import type { createDatabaseClient } from '@src/lib/db';
-import type { ITriggerSetupOptions } from '@src/lib/types';
+import { logger } from '../../lib/core/logger';
+import type { createDatabaseClient } from '../../src/lib/db';
+import type { ITriggerSetupOptions } from '../../src/lib/types';
 
 async function createRatingStarsTrigger(
   db: ReturnType<typeof createDatabaseClient>,
@@ -59,7 +59,7 @@ async function createGameRatingsTrigger(
                 DELETE FROM game_ratings WHERE "gameId" = OLD."gameId";
             ELSE
                 UPDATE game_ratings
-                SET 
+                SET
                     "averageRating" = (
                         SELECT ROUND(AVG("ratingForGame")::numeric, 2)
                         FROM game_logs
@@ -78,7 +78,7 @@ async function createGameRatingsTrigger(
 
         IF (TG_OP = 'INSERT') THEN
             INSERT INTO game_ratings ("id", "gameId", "averageRating", "totalRatings", "createdAt", "updatedAt")
-            SELECT 
+            SELECT
                 gen_random_uuid()::text,
                 NEW."gameId",
                 ROUND(AVG("ratingForGame")::numeric, 2),
@@ -88,7 +88,7 @@ async function createGameRatingsTrigger(
             FROM game_logs
             WHERE "gameId" = NEW."gameId"
             ON CONFLICT ("gameId") DO UPDATE
-            SET 
+            SET
                 "averageRating" = EXCLUDED."averageRating",
                 "totalRatings" = EXCLUDED."totalRatings",
                 "updatedAt" = NOW();
@@ -97,7 +97,7 @@ async function createGameRatingsTrigger(
 
         IF (TG_OP = 'UPDATE') THEN
             UPDATE game_ratings
-            SET 
+            SET
                 "averageRating" = (
                     SELECT ROUND(AVG("ratingForGame")::numeric, 2)
                     FROM game_logs
@@ -142,9 +142,9 @@ async function checkExistingTriggers(
   logger.info('🔍 Checking for existing triggers...');
 
   const existingTriggers = (await db.execute(sql`
-    SELECT trigger_name 
-    FROM information_schema.triggers 
-    WHERE trigger_schema = 'public' 
+    SELECT trigger_name
+    FROM information_schema.triggers
+    WHERE trigger_schema = 'public'
     AND trigger_name IN ('update_rating_stars_trigger', 'game_logs_ratings_trigger');
   `)) as unknown as { rows: { trigger_name: string }[] };
 
@@ -155,13 +155,13 @@ async function verifyTriggers(db: ReturnType<typeof createDatabaseClient>): Prom
   logger.info('🔍 Verifying triggers...');
 
   const triggers = (await db.execute(sql`
-    SELECT 
+    SELECT
       trigger_name,
       event_manipulation,
       event_object_table,
       action_statement
-    FROM information_schema.triggers 
-    WHERE trigger_schema = 'public' 
+    FROM information_schema.triggers
+    WHERE trigger_schema = 'public'
     AND trigger_name IN ('update_rating_stars_trigger', 'game_logs_ratings_trigger')
     ORDER BY trigger_name;
   `)) as unknown as {

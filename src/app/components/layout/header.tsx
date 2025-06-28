@@ -222,7 +222,7 @@ export default function Header() {
     return pathname === path || pathname.startsWith(`${path}/`);
   };
 
-  const emailAddress = user?.emailAddresses?.[0]?.emailAddress;
+  const emailAddress = user?.emailAddresses[0]?.emailAddress;
   const adminEmails = process.env.NEXT_PUBLIC_ADMIN_EMAILS
     ? process.env.NEXT_PUBLIC_ADMIN_EMAILS.split(',')
     : [];
@@ -492,7 +492,7 @@ export default function Header() {
                     {user?.firstName} {user?.lastName}
                   </span>
                   <span className="text-xs text-gray-500">
-                    ({user?.emailAddresses?.[0]?.emailAddress})
+                    ({user?.emailAddresses[0]?.emailAddress})
                   </span>
                 </div>
                 <UserButton afterSignOutUrl="/" />

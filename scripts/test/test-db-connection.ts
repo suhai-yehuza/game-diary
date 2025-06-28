@@ -1,11 +1,12 @@
 import 'dotenv-flow/config';
 
 import { sql } from 'drizzle-orm';
+import { execSync } from 'child_process';
 
-import { logger } from '../../lib/core/logger';
-import { createDatabaseClient, testConnection } from '../../src/lib/db';
+import { logger } from '@lib/core/logger';
+import { createDatabaseClient, testConnection } from '@src/lib/db';
 
-import { parseScriptArgs } from '../shared/script-utils';
+import { parseScriptArgs } from '@shared/script-utils';
 
 async function testBasicConnection() {
   try {

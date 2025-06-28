@@ -77,9 +77,9 @@ async function getVerificationData(
   if (migrationName.includes('trigger')) {
     // Check for triggers
     const triggers = (await db.execute(sql`
-      SELECT tgname as name 
-      FROM pg_trigger 
-      WHERE tgname NOT LIKE 'RI_%' 
+      SELECT tgname as name
+      FROM pg_trigger
+      WHERE tgname NOT LIKE 'RI_%'
       AND tgname NOT LIKE 'pg_%'
       ORDER BY tgname;
     `)) as unknown as { rows: { name: string }[] };
@@ -87,8 +87,8 @@ async function getVerificationData(
 
     // Check for functions
     const functions = (await db.execute(sql`
-      SELECT proname as name 
-      FROM pg_proc 
+      SELECT proname as name
+      FROM pg_proc
       WHERE pronamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'public')
       ORDER BY proname;
     `)) as unknown as { rows: { name: string }[] };
@@ -97,9 +97,9 @@ async function getVerificationData(
 
   // Always check indexes
   const indexes = (await db.execute(sql`
-    SELECT indexname as name 
-    FROM pg_indexes 
-    WHERE schemaname = 'public' 
+    SELECT indexname as name
+    FROM pg_indexes
+    WHERE schemaname = 'public'
     AND indexname NOT LIKE '%_pkey'
     ORDER BY indexname;
   `)) as unknown as { rows: { name: string }[] };
@@ -204,8 +204,8 @@ ${migrations.map(m => `  - ${m.name}`).join('\n')}`);
     const appliedMigrations = dryRun
       ? { rows: [] }
       : ((await db.execute(sql`
-      SELECT name, checksum, status, executed_at 
-      FROM migration_versions 
+      SELECT name, checksum, status, executed_at
+      FROM migration_versions
       ORDER BY name;
     `)) as unknown as {
           rows: { name: string; checksum: string; status: string; executed_at: string }[];
@@ -240,7 +240,7 @@ ${migrations.map(m => `  - ${m.name}`).join('\n')}`);
           if (!dryRun) {
             // Record the checksum mismatch but don't re-run the migration
             await db.execute(sql`
-              UPDATE migration_versions 
+              UPDATE migration_versions
               SET error_message = ${`Checksum mismatch detected on ${new Date().toISOString()}`}
               WHERE name = ${migration.name};
             `);

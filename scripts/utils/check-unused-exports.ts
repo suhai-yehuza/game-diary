@@ -2,7 +2,7 @@ import path from 'path';
 
 import { analyzeTsConfig } from 'ts-unused-exports';
 
-import { logger } from '@lib/core/logger';
+import { logger } from '../../lib/core/logger';
 
 import { parseScriptArgs } from '../shared/script-utils';
 
@@ -26,30 +26,6 @@ const CONFIG = {
     'drizzle.config.ts',
     'playwright.config.ts',
     'tailwind.config.ts',
-
-    // // Scripts
-    // '@lib/core/logger.ts',
-    // 'scripts/db/drizzle-migrate.ts',
-    // 'scripts/performance/performance-measure.ts',
-    // 'scripts/shared/script-utils.ts',
-    // 'tests/e2e/utils/test-utils.ts',
-
-    // // App root and middleware
-    // 'src/middleware.ts',
-    // 'src/app/api/graphql/route.ts',
-    // 'src/app/layout.tsx',
-    // 'src/app/not-found.tsx',
-    // 'src/app/page.tsx',
-    // 'src/app/dashboard/page.tsx',
-
-    // // Auth pages
-    // 'src/app/sign-in/[[...sign-in]]/page.tsx',
-    // 'src/app/sign-up/[[...sign-up]]/page.tsx',
-
-    // // GraphQL and types
-    // 'src/lib/graphql/resolvers/schema.ts',
-    // 'src/lib/types/generated/index.ts',
-    // 'src/lib/types/scalars/index.ts',
   ],
 } as const;
 

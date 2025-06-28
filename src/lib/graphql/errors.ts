@@ -93,7 +93,7 @@ export const checkFieldPermission = (
 
   // Admin has access to all fields
   if (user.banned) {
-    return true;
+    throw new AuthorizationError('Account is banned');
   }
 
   // Check field-specific permissions

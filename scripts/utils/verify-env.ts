@@ -1,11 +1,12 @@
-import * as path from 'path';
+import { readFileSync } from 'fs';
+import { join } from 'path';
 
 import * as dotenv from 'dotenv';
 
 import { logger } from '@lib/core/logger';
 import { envSchema } from '@src/lib/validations/env';
 
-import { parseScriptArgs } from '../shared/script-utils';
+import { parseScriptArgs } from '@shared/script-utils';
 
 function verifyEnvironment(envFile?: string, isBuildTime = false) {
   try {
@@ -31,7 +32,7 @@ function verifyEnvironment(envFile?: string, isBuildTime = false) {
         if (isBuildTime) {
           // For build-time, load based on current NODE_ENV
           const envFile = nodeEnv === 'production' ? '.env.production' : '.env.development';
-          const envPath = path.join(process.cwd(), envFile);
+          const envPath = join(process.cwd(), envFile);
           const result = dotenv.config({ path: envPath });
 
           if (result.error) {
@@ -39,7 +40,7 @@ function verifyEnvironment(envFile?: string, isBuildTime = false) {
           }
         } else {
           // For full validation, load the specific file
-          const envPath = path.join(process.cwd(), envFile!);
+          const envPath = join(process.cwd(), envFile!);
           const result = dotenv.config({ path: envPath });
 
           if (result.error) {

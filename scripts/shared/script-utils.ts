@@ -193,8 +193,8 @@ export async function tableExists(
   try {
     const result = (await db.execute(sql`
       SELECT EXISTS (
-        SELECT FROM information_schema.tables 
-        WHERE table_schema = 'public' 
+        SELECT FROM information_schema.tables
+        WHERE table_schema = 'public'
         AND table_name = ${tableName}
       ) as exists;
     `)) as unknown as { rows: Array<{ exists: boolean }> };

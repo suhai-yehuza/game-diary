@@ -165,7 +165,14 @@ export default [
       '@typescript-eslint/no-base-to-string': 'error',
       '@typescript-eslint/no-unnecessary-condition': 'warn',
       '@typescript-eslint/prefer-readonly': 'warn',
-      '@typescript-eslint/prefer-readonly-parameter-types': 'warn',
+      '@typescript-eslint/prefer-readonly-parameter-types': [
+        'warn',
+        {
+          ignoreInferredTypes: true,
+          treatMethodsAsReadonly: true,
+          checkParameterProperties: false,
+        },
+      ],
       '@typescript-eslint/no-array-constructor': 'error',
       '@typescript-eslint/no-empty-function': 'warn',
       '@typescript-eslint/no-inferrable-types': 'error',

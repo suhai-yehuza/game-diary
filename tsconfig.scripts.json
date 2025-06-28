@@ -5,9 +5,12 @@
     "rootDir": ".",
     "baseUrl": ".",
     "paths": {
+      "@/*": ["./src/*"],
       "@src/*": ["./src/*"],
       "@utils/*": ["./scripts/utils/*"],
-      "@lib/*": ["./lib/*"]
+      "@shared/*": ["./scripts/shared/*"],
+      "@lib/*": ["./lib/*"],
+      "@app/*": ["./src/app/*"]
     }
   },
   "include": ["scripts/**/*.ts", "src/lib/types/**/*.ts", "lib/**/*.ts"],

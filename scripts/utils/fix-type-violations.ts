@@ -1,7 +1,7 @@
 import { execSync } from 'child_process';
 import fs from 'fs';
 
-import { logger } from '@lib/core/logger';
+import { logger } from '../../lib/core/logger';
 
 import { parseScriptArgs } from '../shared/script-utils';
 
