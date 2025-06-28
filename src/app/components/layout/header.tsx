@@ -361,12 +361,15 @@ function Navigation(
 }
 
 function getUserName(u: unknown): string {
+  if (!u || typeof u !== 'object') return '';
   const userObj = u as Record<string, unknown>;
   const firstName = typeof userObj.firstName === 'string' ? userObj.firstName : '';
   const lastName = typeof userObj.lastName === 'string' ? userObj.lastName : '';
   return `${firstName} ${lastName}`.trim();
 }
+
 function getUserEmail(u: unknown): string {
+  if (!u || typeof u !== 'object') return '';
   const userObj = u as Record<string, unknown>;
   if (Array.isArray(userObj.emailAddresses) && userObj.emailAddresses.length > 0) {
     const email = userObj.emailAddresses[0] as Record<string, unknown>;

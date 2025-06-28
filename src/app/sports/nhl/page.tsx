@@ -19,3 +19,4 @@ export function NHLPage() {
     </section>
   );
 }
+export default NHLPage;

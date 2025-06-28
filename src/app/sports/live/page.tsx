@@ -14,3 +14,4 @@ export function LiveGamesPage() {
     </div>
   );
 }
+export default LiveGamesPage;

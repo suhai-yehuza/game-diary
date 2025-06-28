@@ -316,3 +316,4 @@ export function AdminDatabasePage() {
     </div>
   );
 }
+export default AdminDatabasePage;

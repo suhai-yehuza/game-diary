@@ -440,3 +440,4 @@ function AdminExperimentalContent() {
 export function AdminExperimentalPage() {
   return <AdminExperimentalContent />;
 }
+export default AdminExperimentalPage;

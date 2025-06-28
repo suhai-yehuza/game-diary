@@ -19,3 +19,4 @@ export function MLBPage() {
     </section>
   );
 }
+export default MLBPage;
