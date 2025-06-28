@@ -202,5 +202,12 @@ export function getRapidApiConfig(): IRapidAPIConfig {
     apiKey: env.NEXT_PUBLIC_RAPID_API_KEY,
     host: env.NEXT_PUBLIC_RAPID_API_HOST,
     endpoints: API_CONFIG.endpoints,
+    headers: {
+      'X-RapidAPI-Key': env.NEXT_PUBLIC_RAPID_API_KEY,
+      'X-RapidAPI-Host': env.NEXT_PUBLIC_RAPID_API_HOST,
+    },
+    timeout: API_CONFIG.timeout,
+    retries: API_CONFIG.retryAttempts,
+    cacheTTL: 300000, // 5 minutes in milliseconds
   };
 }
