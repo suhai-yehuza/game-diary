@@ -11,7 +11,7 @@ export const runtime = 'nodejs';
 export async function GET(_request: Request) {
   try {
     // Get the project directory
-    const projectDir = process.env.VERCEL_DIR || process.cwd();
+    const projectDir = process.env.VERCEL_DIR ?? process.cwd();
     const scriptPath = path.join(projectDir, 'scripts', 'nightly-update.sh');
 
     // Execute the script

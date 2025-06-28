@@ -12,7 +12,7 @@ export async function GET() {
   const user = await currentUser();
 
   // Add your Route Handler's logic with the returned `user` object
-  return NextResponse.json({ user: user }, { status: 200 });
+  return NextResponse.json({ user }, { status: 200 });
 }
 
 // Force Node.js runtime for Clerk operations

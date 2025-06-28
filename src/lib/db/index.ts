@@ -10,7 +10,7 @@ let db: Database | null = null;
 
 if (process.env.DATABASE_URL) {
   try {
-    sql = neon(process.env.DATABASE_URL);
+    sql = neon(process.env.DATABASE_URL ?? '');
     db = drizzle(sql, { schema });
   } catch (error) {
     console.warn('Failed to initialize database connection:', error);
@@ -21,7 +21,7 @@ export { db };
 
 // Create database client function for scripts
 export function createDatabaseClient(_options?: { env?: string }) {
-  const databaseUrl = process.env.DATABASE_URL;
+  const databaseUrl = process.env.DATABASE_URL ?? '';
   if (!databaseUrl) {
     throw new Error('DATABASE_URL environment variable is required');
   }
@@ -34,7 +34,7 @@ export async function testConnection(
   dbInstance?: ReturnType<typeof createDatabaseClient>
 ): Promise<boolean> {
   try {
-    const db = dbInstance || createDatabaseClient();
+    const db = dbInstance ?? createDatabaseClient();
     await db.execute('SELECT 1');
     return true;
   } catch {

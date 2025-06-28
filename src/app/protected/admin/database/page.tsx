@@ -45,6 +45,10 @@ const Button = ({
   </button>
 );
 
+function isRecordArray(data: unknown): data is Record<string, unknown>[] {
+  return Array.isArray(data) && data.every(item => typeof item === 'object' && item !== null);
+}
+
 function AdminDatabaseContent() {
   const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState('users');
@@ -129,12 +133,13 @@ function AdminDatabaseContent() {
 
     try {
       const response = await fetch(`/api/admin/database/${tableName}`);
-      const result: IApiResponse = await response.json();
+      const result = (await response.json()) as IApiResponse;
 
-      if (result.success && result.data) {
-        setData(prev => ({ ...prev, [tableName]: result.data! }));
+      if (result.success && isRecordArray(result.data)) {
+        setData({ [tableName]: result.data });
       } else {
-        setError(result.error || `Failed to fetch ${tableName} data`);
+        setData({ [tableName]: [] });
+        setError(result.error ?? `Failed to fetch ${tableName} data`);
       }
     } catch (err) {
       setError(
@@ -151,7 +156,7 @@ function AdminDatabaseContent() {
     if (tabParam && tableConfigs[tabParam as keyof typeof tableConfigs]) {
       setActiveTab(tabParam);
       // Auto-fetch data for the specified tab
-      handleFetch(tabParam);
+      void handleFetch(tabParam);
     }
   }, [searchParams, handleFetch, tableConfigs]);
 
@@ -160,7 +165,10 @@ function AdminDatabaseContent() {
     if (typeof value === 'boolean') return value ? 'Yes' : 'No';
     if (value instanceof Date) return value.toLocaleDateString();
     if (typeof value === 'object') return JSON.stringify(value);
-    return String(value);
+    if (typeof value === 'string') return value;
+    if (typeof value === 'number') return value.toString();
+    if (typeof value === 'symbol') return value.toString();
+    return '[Unknown]';
   };
 
   const renderTable = (tableName: string) => {
@@ -179,7 +187,7 @@ function AdminDatabaseContent() {
                 <CardDescription>{config.description}</CardDescription>
               </div>
             </div>
-            <Button onClick={() => handleFetch(tableName)} disabled={loading} size="sm">
+            <Button onClick={() => void handleFetch(tableName)} disabled={loading} size="sm">
               {loading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -224,7 +232,14 @@ function AdminDatabaseContent() {
                       </thead>
                       <tbody>
                         {tableData.slice(0, 50).map((row, index) => (
-                          <tr key={String(row.id) || index} className="border-b hover:bg-gray-50">
+                          <tr
+                            key={
+                              typeof row.id === 'string' || typeof row.id === 'number'
+                                ? String(row.id)
+                                : String(index)
+                            }
+                            className="border-b hover:bg-gray-50"
+                          >
                             {config.fields.map(field => (
                               <td key={field} className="p-2 text-xs">
                                 <div
@@ -251,7 +266,9 @@ function AdminDatabaseContent() {
           ) : (
             <div className="text-center py-8 text-muted-foreground">
               <Database className="mx-auto h-12 w-12 mb-4 opacity-50" />
-              <p>No data loaded. Click "Fetch Data" to load {config.title.toLowerCase()}.</p>
+              <p>
+                No data loaded. Click &quot;Fetch Data&quot; to load {config.title.toLowerCase()}.
+              </p>
             </div>
           )}
         </CardContent>

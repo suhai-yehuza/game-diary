@@ -34,11 +34,21 @@ const createRapidAPIClient = () => {
         throw new Error(`API request failed: ${response.status} ${response.statusText}`);
       }
 
-      const data = await response.json();
-      return data as T;
+      const data = (await response.json()) as T;
+      return data;
     },
   };
 };
+
+function isGamesApiResponse(data: unknown): data is IGamesApiResponse {
+  return (
+    typeof data === 'object' &&
+    data !== null &&
+    'results' in data &&
+    'response' in data &&
+    Array.isArray((data as IGamesApiResponse).response)
+  );
+}
 
 export default function LiveGamesDetail() {
   const [liveGames, setLiveGames] = useState<IGamesApiResponse | null>(null);
@@ -51,18 +61,20 @@ export default function LiveGamesDetail() {
       setError(null);
 
       const client = createRapidAPIClient();
-      const data = await client.fetch<IGamesApiResponse>(API_CONFIG.endpoints.GAMES, {
+      const data = await client.fetch<IGamesApiResponse | unknown>(API_CONFIG.endpoints.GAMES, {
         live: 'all',
       });
 
       // Use mock data if API returns no live games
-      if (data.results === 0 || data.response.length === 0) {
+      if (isGamesApiResponse(data) && (data.results === 0 || data.response.length === 0)) {
         setLiveGames(MOCK_LIVE_GAMES);
-      } else {
+      } else if (isGamesApiResponse(data)) {
         setLiveGames(data);
+      } else {
+        setLiveGames(MOCK_LIVE_GAMES);
       }
     } catch (err) {
-      const error = err as Error;
+      const error = err instanceof Error ? err : new Error(String(err));
       setError(error.message);
       console.error('Failed to fetch live games:', error);
 
@@ -74,10 +86,12 @@ export default function LiveGamesDetail() {
   };
 
   useEffect(() => {
-    fetchLiveGames();
+    void fetchLiveGames();
 
     // Refresh live games every 30 seconds
-    const interval = setInterval(fetchLiveGames, 30000);
+    const interval = setInterval(() => {
+      void fetchLiveGames();
+    }, 30000);
 
     return () => clearInterval(interval);
   }, []);
@@ -86,7 +100,7 @@ export default function LiveGamesDetail() {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto" />
           <p className="mt-4 text-lg">Loading live games...</p>
         </div>
       </div>
@@ -99,7 +113,9 @@ export default function LiveGamesDetail() {
         <div className="text-center">
           <p className="text-red-600 text-lg">Error loading live games: {error}</p>
           <button
-            onClick={fetchLiveGames}
+            onClick={() => {
+              void fetchLiveGames();
+            }}
             className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
           >
             Retry
@@ -110,7 +126,7 @@ export default function LiveGamesDetail() {
   }
 
   // Use mock data if no live games from API
-  const games = liveGames?.response || MOCK_LIVE_GAMES.response;
+  const games = liveGames?.response ?? MOCK_LIVE_GAMES.response;
 
   if (games.length === 0) {
     return (
@@ -141,7 +157,7 @@ export default function LiveGamesDetail() {
             {/* Game Status */}
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center space-x-2">
-                <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
                 <span className="text-sm font-semibold text-red-600 dark:text-red-400">LIVE</span>
               </div>
               <div className="text-sm text-gray-600 dark:text-gray-400">{game.status.long}</div>

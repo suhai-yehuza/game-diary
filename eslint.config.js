@@ -85,6 +85,22 @@ export default [
       'react/prop-types': 'off',
       'react-hooks/rules-of-hooks': 'error',
       'react-hooks/exhaustive-deps': 'warn',
+      'react/jsx-key': 'error',
+      'react/jsx-no-duplicate-props': 'error',
+      'react/jsx-no-undef': 'error',
+      'react/no-array-index-key': 'warn',
+      'react/no-danger': 'warn',
+      'react/no-deprecated': 'error',
+      'react/no-direct-mutation-state': 'error',
+      'react/no-find-dom-node': 'error',
+      'react/no-is-mounted': 'error',
+      'react/no-render-return-value': 'error',
+      'react/no-string-refs': 'error',
+      'react/no-unescaped-entities': 'error',
+      'react/no-unknown-property': 'error',
+      'react/no-unsafe': ['error', { checkAliases: true }],
+      'react/self-closing-comp': 'error',
+      'react/sort-comp': 'error',
 
       // Import rules
       'import/order': [
@@ -96,8 +112,12 @@ export default [
         },
       ],
       'import/no-duplicates': ['error', { considerQueryString: true, 'prefer-inline': false }],
-      'import/no-unresolved': ['error', { ignore: ['^@src/', '^@lib/'] }],
+      'import/no-unresolved': ['error', { ignore: ['^@/', '^@src/', '^@lib/'] }],
       'import/named': 'error',
+      'import/no-default-export': 'warn',
+      'import/no-named-as-default': 'warn',
+      'import/no-unused-modules': 'warn',
+      'import/no-relative-parent-imports': 'off',
 
       // TypeScript rules
       '@typescript-eslint/explicit-function-return-type': 'off',
@@ -128,15 +148,49 @@ export default [
           format: ['PascalCase'],
         },
       ],
+      '@typescript-eslint/no-non-null-assertion': 'warn',
+      '@typescript-eslint/prefer-nullish-coalescing': 'error',
+      '@typescript-eslint/prefer-optional-chain': 'error',
+      '@typescript-eslint/no-unnecessary-type-assertion': 'error',
+      '@typescript-eslint/no-floating-promises': 'error',
+      '@typescript-eslint/await-thenable': 'error',
+      '@typescript-eslint/no-misused-promises': 'error',
+      '@typescript-eslint/require-await': 'error',
+      '@typescript-eslint/return-await': 'error',
+      '@typescript-eslint/no-unsafe-assignment': 'error',
+      '@typescript-eslint/no-unsafe-call': 'error',
+      '@typescript-eslint/no-unsafe-member-access': 'error',
+      '@typescript-eslint/no-unsafe-return': 'error',
+      '@typescript-eslint/restrict-template-expressions': 'error',
+      '@typescript-eslint/no-base-to-string': 'error',
+      '@typescript-eslint/no-unnecessary-condition': 'warn',
+      '@typescript-eslint/prefer-readonly': 'warn',
+      '@typescript-eslint/prefer-readonly-parameter-types': 'warn',
+      '@typescript-eslint/no-array-constructor': 'error',
+      '@typescript-eslint/no-empty-function': 'warn',
+      '@typescript-eslint/no-inferrable-types': 'error',
+      '@typescript-eslint/no-namespace': 'error',
+      '@typescript-eslint/no-this-alias': 'error',
+      '@typescript-eslint/no-var-requires': 'error',
+      '@typescript-eslint/prefer-as-const': 'error',
+      '@typescript-eslint/prefer-function-type': 'error',
+      '@typescript-eslint/prefer-includes': 'error',
+      '@typescript-eslint/prefer-namespace-keyword': 'error',
+      '@typescript-eslint/prefer-reduce-type-parameter': 'error',
+      '@typescript-eslint/prefer-string-starts-ends-with': 'error',
+      '@typescript-eslint/triple-slash-reference': 'error',
+      '@typescript-eslint/type-annotation-spacing': 'error',
+      '@typescript-eslint/unbound-method': 'error',
+      '@typescript-eslint/unified-signatures': 'error',
 
       // Filename rules
-      // 'filenames/match-regex': ['error', '^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$'],
-      // 'filenames/match-exported': ['error', 'pascal'],
 
       // Next.js specific rules
       '@next/next/no-html-link-for-pages': 'error',
       '@next/next/no-img-element': 'warn',
       '@next/next/no-unwanted-polyfillio': 'error',
+      '@next/next/no-sync-scripts': 'error',
+      '@next/next/no-page-custom-font': 'warn',
 
       // Accessibility rules
       'jsx-a11y/alt-text': 'warn',
@@ -146,6 +200,110 @@ export default [
       'jsx-a11y/aria-role': 'warn',
       'jsx-a11y/role-has-required-aria-props': 'warn',
       'jsx-a11y/role-supports-aria-props': 'warn',
+      'jsx-a11y/click-events-have-key-events': 'warn',
+      'jsx-a11y/no-static-element-interactions': 'warn',
+      'jsx-a11y/heading-has-content': 'warn',
+      'jsx-a11y/html-has-lang': 'error',
+      'jsx-a11y/lang': 'error',
+      'jsx-a11y/no-autofocus': 'warn',
+      'jsx-a11y/no-distracting-elements': 'error',
+      'jsx-a11y/no-redundant-roles': 'error',
+      'jsx-a11y/scope': 'error',
+
+      // Security rules
+      'no-eval': 'error',
+      'no-implied-eval': 'error',
+      'no-new-func': 'error',
+      'no-script-url': 'error',
+      'no-unsafe-optional-chaining': 'error',
+
+      // Performance rules
+      'no-loop-func': 'error',
+      'no-param-reassign': 'error',
+      'no-return-assign': 'error',
+      'no-self-compare': 'error',
+      'no-sequences': 'error',
+      'no-throw-literal': 'error',
+      'no-unmodified-loop-condition': 'error',
+      'no-unused-labels': 'error',
+      'no-useless-call': 'error',
+      'no-useless-concat': 'error',
+      'no-useless-return': 'error',
+      'prefer-const': 'error',
+      'prefer-spread': 'error',
+      'prefer-template': 'error',
+
+      // Complexity and maintainability rules
+      complexity: ['warn', 10],
+      'max-depth': ['warn', 4],
+      'max-lines': ['warn', 300],
+      'max-lines-per-function': ['warn', 50],
+      'max-nested-callbacks': ['warn', 3],
+      'max-params': ['warn', 4],
+      'max-statements': ['warn', 20],
+      'no-magic-numbers': ['warn', { ignore: [-1, 0, 1, 2], ignoreArrayIndexes: true }],
+
+      // Code quality rules
+      'array-callback-return': 'error',
+      'consistent-return': 'error',
+      'default-case': 'error',
+      'default-case-last': 'error',
+      eqeqeq: 'error',
+      'no-alert': 'error',
+      'no-caller': 'error',
+      'no-case-declarations': 'error',
+      'no-else-return': 'warn',
+      'no-empty': 'warn',
+      'no-empty-pattern': 'error',
+      'no-extra-bind': 'error',
+      'no-extra-label': 'error',
+      'no-fallthrough': 'error',
+      'no-global-assign': 'error',
+      'no-implicit-coercion': 'error',
+      'no-implicit-globals': 'error',
+      'no-implied-eval': 'error',
+      'no-invalid-regexp': 'error',
+      'no-irregular-whitespace': 'error',
+      'no-iterator': 'error',
+      'no-labels': 'error',
+      'no-lone-blocks': 'error',
+      'no-multi-spaces': 'error',
+      'no-multi-str': 'error',
+      'no-new': 'error',
+      'no-octal': 'error',
+      'no-octal-escape': 'error',
+      'no-proto': 'error',
+      'no-redeclare': 'error',
+      'no-regex-spaces': 'error',
+      'no-restricted-properties': 'error',
+      'no-return-await': 'error',
+      'no-self-assign': 'error',
+      'no-sparse-arrays': 'error',
+      'no-template-curly-in-string': 'error',
+      'no-this-before-super': 'error',
+      'no-undef': 'error',
+      'no-unreachable': 'error',
+      'no-unsafe-finally': 'error',
+      'no-unsafe-negation': 'error',
+      'no-unsafe-optional-chaining': 'error',
+      'no-useless-backreference': 'error',
+      'no-useless-catch': 'error',
+      'no-useless-escape': 'error',
+      'no-useless-rename': 'error',
+      'no-var': 'error',
+      'object-shorthand': 'error',
+      'prefer-arrow-callback': 'error',
+      'prefer-destructuring': 'warn',
+      'prefer-numeric-literals': 'error',
+      'prefer-object-spread': 'error',
+      'prefer-promise-reject-errors': 'error',
+      'prefer-rest-params': 'error',
+      radix: 'error',
+      'require-await': 'error',
+      'require-yield': 'error',
+      'use-isnan': 'error',
+      'valid-typeof': 'error',
+      yoda: 'error',
 
       // General rules
       'no-console': ['warn', { allow: ['warn', 'error'] }],
@@ -153,49 +311,72 @@ export default [
       'no-duplicate-imports': 'off', // Handled by import/no-duplicates with better type support
       'no-unused-expressions': 'warn',
       'no-unused-vars': 'off', // Turn off base rule as it can report incorrect errors
+      curly: 'error',
+      'dot-notation': 'error',
+      'eol-last': 'error',
+      indent: 'off', // Handled by Prettier
+      'linebreak-style': 'off', // Handled by Prettier
+      quotes: 'off', // Handled by Prettier
+      semi: 'off', // Handled by Prettier
+      'comma-dangle': 'off', // Handled by Prettier
+      'object-curly-spacing': 'off', // Handled by Prettier
+      'array-bracket-spacing': 'off', // Handled by Prettier
+      'space-before-function-paren': 'off', // Handled by Prettier
+      'space-before-blocks': 'off', // Handled by Prettier
+      'keyword-spacing': 'off', // Handled by Prettier
+      'space-infix-ops': 'off', // Handled by Prettier
+      'comma-spacing': 'off', // Handled by Prettier
+      'brace-style': 'off', // Handled by Prettier
+      'max-len': 'off', // Handled by Prettier
     },
   },
   {
     files: ['src/**/*.tsx'],
     rules: {
-      // 'filenames/match-regex': ['error', '^[A-Z][a-zA-Z0-9]*$'],
-      // 'filenames/match-exported': ['error', 'pascal'],
+      // removed filenames rules
     },
   },
   {
     files: ['src/app/**/*.tsx'],
     rules: {
-      // 'filenames/match-regex': ['error', '^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$'],
-      // 'filenames/match-exported': 'off',
+      // removed filenames rules
     },
   },
   {
     files: ['src/**/*.test.ts', 'src/**/*.test.tsx'],
     rules: {
-      // 'filenames/match-regex': ['error', '^[a-z][a-z0-9]*(?:-[a-z0-9]+)*.test$'],
+      // removed filenames rules
+      'no-magic-numbers': 'off',
+      'max-lines-per-function': 'off',
+      complexity: 'off',
     },
   },
   {
     files: ['src/**/*.types.ts'],
     rules: {
-      // 'filenames/match-regex': ['error', '^[a-z][a-zA-Z0-9]*.types$'],
+      // removed filenames rules
+    },
+  },
+  {
+    files: ['src/**/*.api.ts', 'src/**/*.api.tsx'],
+    rules: {
+      // removed filenames rules
+    },
+  },
+  {
+    files: ['src/lib/graphql/**/*.ts'],
+    rules: {
+      'max-lines-per-function': 'off',
+      complexity: 'off',
+    },
+  },
+  {
+    files: ['src/lib/db/seed/**/*.ts'],
+    rules: {
+      'max-lines-per-function': 'off',
+      complexity: 'off',
+      'no-console': 'off',
     },
   },
   eslintConfigPrettier,
-  // Move the specific file configuration to the end to ensure it takes precedence
-  {
-    files: [
-      'src/lib/types/graphql.types.ts',
-      // 'src/lib/graphql/resolvers/games.ts',
-      'src/lib/graphql/resolvers/comments.ts',
-      'src/lib/graphql/resolvers/comment.mutations.ts',
-      'src/lib/db/seed/fetch-external-api-player-stats.ts',
-      'src/lib/db/seed/optimized-external-seeder.ts',
-      'src/lib/db/seed/optimized-seeder.ts',
-      // 'src/app/sports/nba/games/[id]/page.tsx',
-    ],
-    rules: {
-      '@typescript-eslint/no-explicit-any': 'warn',
-    },
-  },
 ];

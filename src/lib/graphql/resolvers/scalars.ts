@@ -11,7 +11,16 @@ export const DateTime = new GraphQLScalarType({
     if (typeof value === 'string') {
       return new Date(value).toISOString();
     }
-    throw new TypeError('DateTime cannot serialize value: ' + value);
+    throw new TypeError(
+      `DateTime cannot serialize value: ${
+        typeof value === 'string' ||
+        typeof value === 'number' ||
+        typeof value === 'boolean' ||
+        typeof value === 'symbol'
+          ? String(value)
+          : '[Unknown]'
+      }`
+    );
   },
   parseValue(value: unknown): Date | null {
     if (typeof value === 'string' || value instanceof Date) {

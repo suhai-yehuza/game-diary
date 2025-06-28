@@ -7,6 +7,6 @@ export class APIError extends Error {
   ) {
     super(message);
     this.name = 'APIError';
-    this.code = code || 'API_ERROR';
+    this.code = code ?? 'API_ERROR';
   }
 }

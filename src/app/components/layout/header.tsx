@@ -217,7 +217,7 @@ export default function Header() {
     if (path === '/') {
       return pathname === path || pathname?.startsWith('/protected/user');
     }
-    return pathname === path || pathname?.startsWith(path + '/');
+    return pathname === path || pathname?.startsWith(`${path}/`);
   };
 
   const emailAddress = user?.emailAddresses?.[0]?.emailAddress;

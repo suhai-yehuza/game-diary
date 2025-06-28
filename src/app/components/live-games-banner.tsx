@@ -34,11 +34,21 @@ const createRapidAPIClient = () => {
         throw new Error(`API request failed: ${response.status} ${response.statusText}`);
       }
 
-      const data = await response.json();
-      return data as T;
+      const data = (await response.json()) as T;
+      return data;
     },
   };
 };
+
+function isGamesApiResponse(data: unknown): data is IGamesApiResponse {
+  return (
+    typeof data === 'object' &&
+    data !== null &&
+    'results' in data &&
+    'response' in data &&
+    Array.isArray((data as IGamesApiResponse).response)
+  );
+}
 
 export default function LiveGamesBanner() {
   const [liveGames, setLiveGames] = useState<IGamesApiResponse | null>(null);
@@ -51,18 +61,20 @@ export default function LiveGamesBanner() {
       setError(null);
 
       const client = createRapidAPIClient();
-      const data = await client.fetch<IGamesApiResponse>(API_CONFIG.endpoints.GAMES, {
+      const data = await client.fetch<IGamesApiResponse | unknown>(API_CONFIG.endpoints.GAMES, {
         live: 'all',
       });
 
       // Use mock data if API returns no live games
-      if (data.results === 0 || data.response.length === 0) {
+      if (isGamesApiResponse(data) && (data.results === 0 || data.response.length === 0)) {
         setLiveGames(MOCK_LIVE_GAMES);
-      } else {
+      } else if (isGamesApiResponse(data)) {
         setLiveGames(data);
+      } else {
+        setLiveGames(MOCK_LIVE_GAMES);
       }
     } catch (err) {
-      const error = err as Error;
+      const error = err instanceof Error ? err : new Error(String(err));
       setError(error.message);
       console.error('Failed to fetch live games:', error);
 
@@ -74,10 +86,12 @@ export default function LiveGamesBanner() {
   };
 
   useEffect(() => {
-    fetchLiveGames();
+    void fetchLiveGames();
 
     // Refresh live games every 30 seconds
-    const interval = setInterval(fetchLiveGames, 30000);
+    const interval = setInterval(() => {
+      void fetchLiveGames();
+    }, 30000);
 
     return () => clearInterval(interval);
   }, []);
@@ -88,7 +102,7 @@ export default function LiveGamesBanner() {
   }
 
   // Use mock data if no live games from API
-  const games = liveGames?.response || MOCK_LIVE_GAMES.response;
+  const games = liveGames?.response ?? MOCK_LIVE_GAMES.response;
 
   return (
     <div className="w-full bg-gradient-to-r from-red-600 to-red-700 text-white">
@@ -96,7 +110,7 @@ export default function LiveGamesBanner() {
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <div className="flex items-center space-x-1">
-              <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+              <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
               <span className="text-sm font-semibold">LIVE</span>
             </div>
             <span className="text-sm">

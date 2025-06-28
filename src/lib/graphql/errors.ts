@@ -36,7 +36,7 @@ export class AuthenticationError extends GraphQLError {
 }
 
 export class AuthorizationError extends GraphQLError {
-  constructor(message: string, code: string = 'FORBIDDEN') {
+  constructor(message: string, code = 'FORBIDDEN') {
     super(message, {
       extensions: {
         code,
@@ -47,7 +47,7 @@ export class AuthorizationError extends GraphQLError {
 }
 
 export class RateLimitError extends GraphQLError {
-  constructor(message: string, code: string = 'RATE_LIMIT_EXCEEDED') {
+  constructor(message: string, code = 'RATE_LIMIT_EXCEEDED') {
     super(message, {
       extensions: {
         code,

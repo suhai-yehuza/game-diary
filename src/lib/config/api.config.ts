@@ -167,11 +167,11 @@ export const API_CONFIG = {
 export function getRapidApiConfig() {
   return {
     apiKey: validateAPIKey(process.env.NEXT_PUBLIC_RAPID_API_KEY),
-    baseUrl: process.env.NEXT_PUBLIC_RAPID_API_BASE_URL || '',
-    host: process.env.NEXT_PUBLIC_RAPID_API_HOST || '',
+    baseUrl: process.env.NEXT_PUBLIC_RAPID_API_BASE_URL ?? '',
+    host: process.env.NEXT_PUBLIC_RAPID_API_HOST ?? '',
     headers: {
-      'x-rapidapi-host': process.env.NEXT_PUBLIC_RAPID_API_HOST || '',
-      'x-rapidapi-key': process.env.NEXT_PUBLIC_RAPID_API_KEY || '',
+      'x-rapidapi-host': process.env.NEXT_PUBLIC_RAPID_API_HOST ?? '',
+      'x-rapidapi-key': process.env.NEXT_PUBLIC_RAPID_API_KEY ?? '',
     },
   };
 }

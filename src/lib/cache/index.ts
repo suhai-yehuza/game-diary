@@ -2,7 +2,7 @@
 // export * from './client';
 
 // Additional cache utilities for scripts
-export async function testRedisConnection(): Promise<boolean> {
+export function testRedisConnection(): boolean {
   try {
     // Simple connection test - placeholder implementation
     console.warn('Redis connection test not implemented');

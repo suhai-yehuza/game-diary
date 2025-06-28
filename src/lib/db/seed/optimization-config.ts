@@ -251,7 +251,7 @@ export const ENVIRONMENT_CONFIGS = {
 } as const;
 
 // Utility function to get configuration for current environment
-export function getOptimizationConfig(env: string = 'development') {
+export function getOptimizationConfig(env = 'development') {
   switch (env) {
     case 'production':
       return ENVIRONMENT_CONFIGS.production;
@@ -264,8 +264,8 @@ export function getOptimizationConfig(env: string = 'development') {
 
 // Performance monitoring utilities
 export class PerformanceTracker {
-  private metrics = new Map<string, number[]>();
-  private timers = new Map<string, number>();
+  private readonly metrics = new Map<string, number[]>();
+  private readonly timers = new Map<string, number>();
 
   startTimer(operation: string): void {
     this.timers.set(operation, Date.now());
@@ -329,11 +329,12 @@ export class PerformanceTracker {
 // Add missing getCacheManager function
 import type { ICacheManager } from '@src/lib/types/infrastructure.types';
 
-// Simple in-memory cache implementation
+// Note: Methods must be async to satisfy ICacheManager interface, even if not using await
 class InMemoryCache implements ICacheManager {
-  private cache = new Map<string, { value: unknown; expires: number }>();
+  private readonly cache = new Map<string, { value: unknown; expires: number }>();
 
   async get(key: string): Promise<unknown> {
+    await Promise.resolve();
     const item = this.cache.get(key);
     if (!item || item.expires < Date.now()) {
       this.cache.delete(key);
@@ -343,15 +344,18 @@ class InMemoryCache implements ICacheManager {
   }
 
   async set(key: string, value: unknown, ttl = 3600000): Promise<void> {
+    await Promise.resolve();
     const expires = Date.now() + ttl;
     this.cache.set(key, { value, expires });
   }
 
   async del(key: string): Promise<void> {
+    await Promise.resolve();
     this.cache.delete(key);
   }
 
   async clear(): Promise<void> {
+    await Promise.resolve();
     this.cache.clear();
   }
 }
@@ -359,22 +363,20 @@ class InMemoryCache implements ICacheManager {
 let cacheManager: ICacheManager | null = null;
 
 export function getCacheManager(): ICacheManager {
-  if (!cacheManager) {
-    cacheManager = new InMemoryCache();
-  }
+  cacheManager ??= new InMemoryCache();
   return cacheManager;
 }
 
 // Add missing API_CONFIG export
 export const API_CONFIG = {
   rapidApi: {
-    key: process.env.RAPID_API_KEY || '',
-    host: process.env.RAPID_API_HOST || 'api-nba-v1.p.rapidapi.com',
+    key: process.env.RAPID_API_KEY ?? '',
+    host: process.env.RAPID_API_HOST ?? 'api-nba-v1.p.rapidapi.com',
     baseUrl: 'https://api-nba-v1.p.rapidapi.com',
   },
   nbaApi: {
-    key: process.env.NBA_API_KEY || '',
-    host: process.env.NBA_API_HOST || 'nba-stats-db.herokuapp.com',
+    key: process.env.NBA_API_KEY ?? '',
+    host: process.env.NBA_API_HOST ?? 'nba-stats-db.herokuapp.com',
     baseUrl: 'https://nba-stats-db.herokuapp.com',
   },
   timeout: 30000,

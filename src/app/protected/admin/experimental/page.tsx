@@ -41,8 +41,8 @@ const createRapidAPIClient = () => {
         throw new Error(`API request failed: ${response.status} ${response.statusText}`);
       }
 
-      const data = await response.json();
-      return data as T;
+      const data = (await response.json()) as T;
+      return data;
     },
   };
 };
@@ -165,6 +165,22 @@ const NAV_ITEMS = [
   },
 ];
 
+function isSeasonsApiResponse(data: unknown): data is ISeasonsApiResponse {
+  return typeof data === 'object' && data !== null && 'results' in data && 'response' in data;
+}
+function isTeamsApiResponse(data: unknown): data is ITeamsApiResponse {
+  return typeof data === 'object' && data !== null && 'results' in data && 'response' in data;
+}
+function isGamesApiResponse(data: unknown): data is IGamesApiResponse {
+  return typeof data === 'object' && data !== null && 'results' in data && 'response' in data;
+}
+function isPlayersApiResponse(data: unknown): data is IPlayersApiResponse {
+  return typeof data === 'object' && data !== null && 'results' in data && 'response' in data;
+}
+function isStandingsApiResponse(data: unknown): data is IStandingsApiResponse {
+  return typeof data === 'object' && data !== null && 'results' in data && 'response' in data;
+}
+
 function AdminExperimentalContent() {
   const { user, isLoaded } = useUser();
   const router = useRouter();
@@ -227,7 +243,7 @@ function AdminExperimentalContent() {
 
   useEffect(() => {
     if (!isLoaded) return;
-    const adminEmails = process.env.NEXT_PUBLIC_ADMIN_EMAILS?.split(',') || [];
+    const adminEmails = process.env.NEXT_PUBLIC_ADMIN_EMAILS?.split(',') ?? [];
     const emailAddress = user?.emailAddresses[0].emailAddress;
     if (!emailAddress || !adminEmails.includes(emailAddress)) {
       router.push('/');
@@ -263,32 +279,48 @@ function AdminExperimentalContent() {
       const client = createRapidAPIClient();
 
       // Determine the response type based on the endpoint
-      let data;
+      let data: unknown;
       if (endpoint.includes('/seasons')) {
-        data = await client.fetch<ISeasonsApiResponse>(endpoint, activeParams);
+        data = await client.fetch<unknown>(endpoint, activeParams);
+        if (isSeasonsApiResponse(data)) setData(data);
+        else setData(null);
       } else if (endpoint.includes('/leagues')) {
-        data = await client.fetch<ITeamsApiResponse>(endpoint, activeParams);
+        data = await client.fetch<unknown>(endpoint, activeParams);
+        if (isTeamsApiResponse(data)) setData(data);
+        else setData(null);
       } else if (endpoint.includes('/games/statistics')) {
-        data = await client.fetch<IGamesApiResponse>(endpoint, activeParams);
+        data = await client.fetch<unknown>(endpoint, activeParams);
+        if (isGamesApiResponse(data)) setData(data);
+        else setData(null);
       } else if (endpoint.includes('/games')) {
-        data = await client.fetch<IGamesApiResponse>(endpoint, activeParams);
+        data = await client.fetch<unknown>(endpoint, activeParams);
+        if (isGamesApiResponse(data)) setData(data);
+        else setData(null);
       } else if (endpoint.includes('/teams/statistics')) {
-        data = await client.fetch<ITeamsApiResponse>(endpoint, activeParams);
+        data = await client.fetch<unknown>(endpoint, activeParams);
+        if (isTeamsApiResponse(data)) setData(data);
+        else setData(null);
       } else if (endpoint.includes('/teams')) {
-        data = await client.fetch<ITeamsApiResponse>(endpoint, activeParams);
+        data = await client.fetch<unknown>(endpoint, activeParams);
+        if (isTeamsApiResponse(data)) setData(data);
+        else setData(null);
       } else if (endpoint.includes('/players/statistics')) {
-        data = await client.fetch<IGamesApiResponse>(endpoint, activeParams);
+        data = await client.fetch<unknown>(endpoint, activeParams);
+        if (isGamesApiResponse(data)) setData(data);
+        else setData(null);
       } else if (endpoint.includes('/players')) {
-        data = await client.fetch<IPlayersApiResponse>(endpoint, activeParams);
+        data = await client.fetch<unknown>(endpoint, activeParams);
+        if (isPlayersApiResponse(data)) setData(data);
+        else setData(null);
       } else if (endpoint.includes('/standings')) {
-        data = await client.fetch<IStandingsApiResponse>(endpoint, activeParams);
+        data = await client.fetch<unknown>(endpoint, activeParams);
+        if (isStandingsApiResponse(data)) setData(data);
+        else setData(null);
       } else {
         throw new Error(`Unknown endpoint: ${endpoint}`);
       }
-
-      setData(data);
     } catch (err) {
-      const error = err as Error;
+      const error = err instanceof Error ? err : new Error(String(err));
       setError(error.message || 'Unknown error');
       console.error('API Error:', error);
     } finally {
@@ -298,36 +330,36 @@ function AdminExperimentalContent() {
 
   const handleFetchGames = (e: FormEvent) => {
     e.preventDefault();
-    handleFetch(API_CONFIG.endpoints.GAMES, gameParams);
+    void handleFetch(API_CONFIG.endpoints.GAMES, gameParams);
   };
   const handleFetchGameStats = (e: FormEvent) => {
     e.preventDefault();
-    handleFetch(API_CONFIG.endpoints.GAME_STATISTICS, { id: gameStatsId }, ['id']);
+    void handleFetch(API_CONFIG.endpoints.GAME_STATISTICS, { id: gameStatsId }, ['id']);
   };
   const handleFetchTeams = (e: FormEvent) => {
     e.preventDefault();
-    handleFetch(API_CONFIG.endpoints.TEAMS, teamParams);
+    void handleFetch(API_CONFIG.endpoints.TEAMS, teamParams);
   };
   const handleFetchTeamStats = (e: FormEvent) => {
     e.preventDefault();
-    handleFetch(API_CONFIG.endpoints.TEAM_STATISTICS, teamStatsParams, ['id', 'season']);
+    void handleFetch(API_CONFIG.endpoints.TEAM_STATISTICS, teamStatsParams, ['id', 'season']);
   };
   const handleFetchPlayers = (e: FormEvent) => {
     e.preventDefault();
-    handleFetch(API_CONFIG.endpoints.PLAYERS, playerParams);
+    void handleFetch(API_CONFIG.endpoints.PLAYERS, playerParams);
   };
   const handleFetchPlayerStats = (e: FormEvent) => {
     e.preventDefault();
-    handleFetch(API_CONFIG.endpoints.PLAYER_STATISTICS, playerStatsParams);
+    void handleFetch(API_CONFIG.endpoints.PLAYER_STATISTICS, playerStatsParams);
   };
   const handleFetchStandings = (e: FormEvent) => {
     e.preventDefault();
-    handleFetch(API_CONFIG.endpoints.STANDINGS, standingsParams, ['league', 'season']);
+    void handleFetch(API_CONFIG.endpoints.STANDINGS, standingsParams, ['league', 'season']);
   };
 
   useEffect(() => {
     if (selectedTab === 'games' && gamesSubTab === 'live') {
-      handleFetch(API_CONFIG.endpoints.GAMES, { live: 'all' });
+      void handleFetch(API_CONFIG.endpoints.GAMES, { live: 'all' });
     }
   }, [selectedTab, gamesSubTab]);
 
@@ -369,14 +401,14 @@ function AdminExperimentalContent() {
       }
     };
 
-    fetchData();
+    void fetchData();
   }, [selectedTab]);
 
   if (!isLoaded) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-gray-100"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-gray-100" />
         </div>
       </div>
     );
@@ -973,7 +1005,7 @@ function AdminExperimentalContent() {
           <div className="text-left max-w-full overflow-x-auto bg-gray-100 dark:bg-gray-900 rounded p-4 mt-4">
             {loading && (
               <div className="flex items-center justify-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
                 <span className="ml-2">Loading data...</span>
               </div>
             )}
@@ -1005,7 +1037,7 @@ export default function AdminExperimentalPage() {
       fallback={
         <div className="container mx-auto px-4 py-8">
           <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-gray-100"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-gray-100" />
           </div>
         </div>
       }
