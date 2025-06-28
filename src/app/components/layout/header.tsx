@@ -71,7 +71,7 @@ function SearchBarContent() {
 
   // Initialize search query from URL params
   useEffect(() => {
-    const query = searchParams?.get('q');
+    const query = searchParams.get('q');
     if (query) {
       setSearchQuery(query);
       setDebouncedQuery(query);
@@ -98,7 +98,7 @@ function SearchBarContent() {
       const trimmedQuery = debounced_query.trim();
       if (trimmedQuery) {
         const encodedQuery = encodeURIComponent(trimmedQuery);
-        if (pathname?.startsWith('/protected/admin')) {
+        if (pathname.startsWith('/protected/admin')) {
           router.push(`/protected/admin/users?q=${encodedQuery}`);
         } else {
           router.push(`/search?q=${encodedQuery}`);
@@ -137,7 +137,7 @@ function SearchBarContent() {
             <Input
               type="search"
               placeholder={
-                pathname?.startsWith('/protected/admin') ? 'Search users...' : 'Search games...'
+                pathname.startsWith('/protected/admin') ? 'Search users...' : 'Search games...'
               }
               className="pl-8 pr-8 w-full h-8 md:h-10 text-base bg-transparent border-none focus:ring-0 outline-none transition-all duration-200 rounded-none"
               value={search_query}
@@ -173,7 +173,7 @@ function SearchBarContent() {
         <Input
           type="search"
           placeholder={
-            pathname?.startsWith('/protected/admin') ? 'Search users...' : 'Search games...'
+            pathname.startsWith('/protected/admin') ? 'Search users...' : 'Search games...'
           }
           className="pl-8 w-full h-8 text-sm bg-transparent border-none focus:ring-0 outline-none transition-all duration-200 rounded-none"
           value={search_query}
@@ -217,9 +217,9 @@ export default function Header() {
 
   const isActive = (path: string) => {
     if (path === '/') {
-      return pathname === path || pathname?.startsWith('/protected/user');
+      return pathname === path || pathname.startsWith('/protected/user');
     }
-    return pathname === path || pathname?.startsWith(`${path}/`);
+    return pathname === path || pathname.startsWith(`${path}/`);
   };
 
   const emailAddress = user?.emailAddresses?.[0]?.emailAddress;

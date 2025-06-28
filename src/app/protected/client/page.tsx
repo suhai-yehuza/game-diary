@@ -25,3 +25,5 @@ export function ClientProtectedPage() {
     </section>
   );
 }
+
+export default ClientProtectedPage;

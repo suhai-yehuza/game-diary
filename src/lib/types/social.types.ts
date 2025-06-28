@@ -1,15 +1,50 @@
 import type { ComponentType } from 'react';
 
-import type {
-  Comment,
-  DbUser,
-  ParentType,
-  ReactionEmojiType,
-  Reaction,
-  Friendship,
-} from '@src/lib/types/generated/graphql';
+// Local type definitions to avoid GraphQL dependency
+export type Comment = {
+  id: string;
+  content: string;
+  createdAt: Date;
+  updatedAt: Date;
+  userId: string;
+  targetId: string;
+  targetType: ParentType;
+};
 
-export type { Comment, Reaction, Friendship };
+export type Reaction = {
+  id: string;
+  type: string;
+  createdAt: Date;
+  updatedAt: Date;
+  userId: string;
+  targetId: string;
+  targetType: ParentType;
+};
+
+export type Friendship = {
+  id: string;
+  status: string;
+  createdAt: Date;
+  updatedAt: Date;
+  initiator: { id: string; username: string };
+  recipient: { id: string; username: string };
+};
+
+export type DbUser = {
+  id: string;
+  username: string;
+  first_name?: string;
+  last_name?: string;
+  emailAddress?: string;
+  image_url?: string;
+  banned?: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+export type ParentType = 'COMMENT' | 'GAME_LOG' | 'USER';
+
+export type ReactionEmojiType = 'LIKE' | 'LOVE' | 'LAUGH' | 'WOW' | 'SAD' | 'ANGRY';
 
 export interface IEditingComment {
   id: string;

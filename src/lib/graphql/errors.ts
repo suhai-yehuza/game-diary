@@ -82,7 +82,7 @@ export class ForeignKeyViolationError extends BusinessLogicError {
 
 // Field-level Permission Checker
 export const checkFieldPermission = (
-  user: InferSelectModel<typeof users>,
+  user: Readonly<InferSelectModel<typeof users>>,
   resource: (typeof RESOURCES)[keyof typeof RESOURCES],
   field: string,
   resourceId?: string
@@ -92,7 +92,7 @@ export const checkFieldPermission = (
   }
 
   // Admin has access to all fields
-  if (!user.banned) {
+  if (user.banned) {
     return true;
   }
 

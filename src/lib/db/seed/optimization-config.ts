@@ -201,6 +201,10 @@ export const PERFORMANCE_THRESHOLDS = {
   },
 } as const;
 
+// Constants for magic numbers
+const SECONDS_PER_MINUTE = 60;
+const MILLISECONDS_PER_SECOND = 1000;
+
 // Environment-specific configurations
 export const ENVIRONMENT_CONFIGS = {
   development: {
@@ -214,6 +218,13 @@ export const ENVIRONMENT_CONFIGS = {
       ...OPTIMIZATION_CONFIG.monitoring,
       enabled: true,
       log_interval: 100,
+    },
+    connectionPool: {
+      min: 2,
+      max: 10,
+      idleTimeoutMillis: SECONDS_PER_MINUTE * MILLISECONDS_PER_SECOND, // 60 seconds
+      acquireTimeoutMillis: SECONDS_PER_MINUTE * MILLISECONDS_PER_SECOND, // 60 seconds
+      reapIntervalMillis: SECONDS_PER_MINUTE * MILLISECONDS_PER_SECOND, // 60 seconds
     },
   },
 

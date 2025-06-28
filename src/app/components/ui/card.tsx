@@ -1,66 +1,65 @@
-import type {
-  ICardProps,
-  ICardHeaderProps,
-  ICardTitleProps,
-  ICardDescriptionProps,
-  ICardContentProps,
-  ICardFooterProps,
-} from '@src/lib/types/ui.types';
-import { cn } from '@src/lib/utils';
+import * as React from 'react';
 
-export function Card(props: Readonly<ICardProps>) {
-  const { className, children, ...rest } = props;
-  return (
-    <div
-      className={cn('rounded-lg border bg-card text-card-foreground shadow-sm', className)}
-      {...rest}
-    >
-      {children}
-    </div>
-  );
-}
+import { cn } from '@/lib/utils';
 
-export function CardHeader(props: Readonly<ICardHeaderProps>) {
-  const { className, children, ...rest } = props;
-  return (
-    <div className={cn('flex flex-col space-y-1.5 p-6', className)} {...rest}>
-      {children}
-    </div>
-  );
-}
+type ICardProps = Readonly<React.HTMLAttributes<HTMLDivElement>>;
 
-export function CardTitle(props: Readonly<ICardTitleProps>) {
-  const { className, children, ...rest } = props;
-  return (
-    <h3 className={cn('text-2xl font-semibold leading-none tracking-tight', className)} {...rest}>
-      {children}
-    </h3>
-  );
-}
+const Card = React.forwardRef<HTMLDivElement, ICardProps>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn('rounded-lg border bg-card text-card-foreground shadow-sm', className)}
+    {...props}
+  />
+));
+Card.displayName = 'Card';
 
-export function CardDescription(props: Readonly<ICardDescriptionProps>) {
-  const { className, children, ...rest } = props;
-  return (
-    <p className={cn('text-sm text-muted-foreground', className)} {...rest}>
-      {children}
-    </p>
-  );
-}
+type ICardHeaderProps = Readonly<React.HTMLAttributes<HTMLDivElement>>;
 
-export function CardContent(props: Readonly<ICardContentProps>) {
-  const { className, children, ...rest } = props;
-  return (
-    <div className={cn('p-6 pt-0', className)} {...rest}>
-      {children}
-    </div>
-  );
-}
+const CardHeader = React.forwardRef<HTMLDivElement, ICardHeaderProps>(
+  ({ className, ...props }, ref) => (
+    <div ref={ref} className={cn('flex flex-col space-y-1.5 p-6', className)} {...props} />
+  )
+);
+CardHeader.displayName = 'CardHeader';
 
-export function CardFooter(props: Readonly<ICardFooterProps>) {
-  const { className, children, ...rest } = props;
-  return (
-    <div className={cn('flex items-center p-6 pt-0', className)} {...rest}>
-      {children}
-    </div>
-  );
-}
+type ICardTitleProps = Readonly<React.HTMLAttributes<HTMLHeadingElement>>;
+
+const CardTitle = React.forwardRef<HTMLParagraphElement, ICardTitleProps>(
+  ({ className, ...props }, ref) => (
+    <h3
+      ref={ref}
+      className={cn('text-2xl font-semibold leading-none tracking-tight', className)}
+      {...props}
+    />
+  )
+);
+CardTitle.displayName = 'CardTitle';
+
+type ICardDescriptionProps = Readonly<React.HTMLAttributes<HTMLParagraphElement>>;
+
+const CardDescription = React.forwardRef<HTMLParagraphElement, ICardDescriptionProps>(
+  ({ className, ...props }, ref) => (
+    <p ref={ref} className={cn('text-sm text-muted-foreground', className)} {...props} />
+  )
+);
+CardDescription.displayName = 'CardDescription';
+
+type ICardContentProps = Readonly<React.HTMLAttributes<HTMLDivElement>>;
+
+const CardContent = React.forwardRef<HTMLDivElement, ICardContentProps>(
+  ({ className, ...props }, ref) => (
+    <div ref={ref} className={cn('p-6 pt-0', className)} {...props} />
+  )
+);
+CardContent.displayName = 'CardContent';
+
+type ICardFooterProps = Readonly<React.HTMLAttributes<HTMLDivElement>>;
+
+const CardFooter = React.forwardRef<HTMLDivElement, ICardFooterProps>(
+  ({ className, ...props }, ref) => (
+    <div ref={ref} className={cn('flex items-center p-6 pt-0', className)} {...props} />
+  )
+);
+CardFooter.displayName = 'CardFooter';
+
+export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent };

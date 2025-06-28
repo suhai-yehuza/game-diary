@@ -1,83 +1,86 @@
-import { auth } from '@clerk/nextjs/server';
-import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
-import { db } from '@src/lib/db';
-import {
-  users,
-  game_logs,
-  comments,
-  reactions,
-  friendships,
-  game_ratings,
-  notifications,
-  games,
-} from '@src/lib/db/schema';
-
-const MAX_RECORDS = 100;
+import { logger } from '@lib/core/logger';
+import { createDatabaseClient } from '@src/lib/db';
 
 export async function GET(
-  request: Readonly<NextRequest>,
-  context: Readonly<{ params: Promise<{ table: string }> }>
+  request: Readonly<Request>,
+  { params }: Readonly<{ params: Promise<{ table: string }> }>
 ) {
   try {
-    // Check authentication
-    const { userId } = await auth();
-    if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const { table } = await params;
+    const { searchParams } = new URL(request.url);
+    const page = parseInt(searchParams.get('page') ?? '1', 10);
+    const limit = parseInt(searchParams.get('limit') ?? '10', 10);
+    const search = searchParams.get('search') ?? '';
+
+    logger.info(`Fetching data from table: ${table}`);
+
+    const db = createDatabaseClient();
+    const offset = (page - 1) * limit;
+
+    // Build dynamic query based on table
+    let query = '';
+    let countQuery = '';
+    const queryParams: unknown[] = [];
+
+    switch (table) {
+      case 'users':
+        query = `
+          SELECT id, email, first_name, last_name, created_at, updated_at
+          FROM users
+          WHERE (email ILIKE $1 OR first_name ILIKE $1 OR last_name ILIKE $1)
+          ORDER BY created_at DESC
+          LIMIT $2 OFFSET $3
+        `;
+        countQuery = `
+          SELECT COUNT(*) as total
+          FROM users
+          WHERE (email ILIKE $1 OR first_name ILIKE $1 OR last_name ILIKE $1)
+        `;
+        queryParams.push(`%${search}%`, limit, offset);
+        break;
+
+      case 'games':
+        query = `
+          SELECT id, title, description, created_at, updated_at
+          FROM games
+          WHERE title ILIKE $1
+          ORDER BY created_at DESC
+          LIMIT $2 OFFSET $3
+        `;
+        countQuery = `
+          SELECT COUNT(*) as total
+          FROM games
+          WHERE title ILIKE $1
+        `;
+        queryParams.push(`%${search}%`, limit, offset);
+        break;
+
+      default:
+        return NextResponse.json({ error: `Table '${table}' not supported` }, { status: 400 });
     }
 
-    const resolvedParams = await context.params;
-    const tableName = resolvedParams.table;
+    // Execute queries
+    const [dataResult, countResult] = await Promise.all([
+      db.execute(query),
+      db.execute(countQuery),
+    ]);
 
-    // Check if database is connected
-    if (!db) {
-      return NextResponse.json(
-        { success: false, error: 'Database connection not available' },
-        { status: 503 }
-      );
-    }
-
-    // Check if user is admin (you may need to implement this check based on your user roles)
-    // For now, we'll allow any authenticated user to access this endpoint
-
-    // Define table mappings
-    const tableMap = {
-      users,
-      game_logs,
-      comments,
-      reactions,
-      friendships,
-      game_ratings,
-      notifications,
-      games,
-    };
-
-    const selectedTable = tableMap[tableName as keyof typeof tableMap];
-
-    if (!selectedTable) {
-      return NextResponse.json(
-        { success: false, error: `Table '${tableName}' not found` },
-        { status: 404 }
-      );
-    }
-
-    // Fetch data from the selected table
-    const data = await db.select().from(selectedTable).limit(MAX_RECORDS);
+    const data = dataResult.rows ?? [];
+    const total = (countResult.rows?.[0] as { total: string })?.total ?? '0';
 
     return NextResponse.json({
-      success: true,
       data,
-      count: data.length,
+      pagination: {
+        page,
+        limit,
+        total: parseInt(total, 10),
+        pages: Math.ceil(parseInt(total, 10) / limit),
+      },
     });
   } catch (error) {
-    console.error('Database query error:', error);
-    return NextResponse.json(
-      {
-        success: false,
-        error: error instanceof Error ? error.message : 'Internal server error',
-      },
-      { status: 500 }
-    );
+    logger.error('Error fetching data:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
