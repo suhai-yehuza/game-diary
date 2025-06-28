@@ -19,25 +19,25 @@ export function ThemeToggle() {
 
   return (
     <div className="inline-flex items-center bg-[#18181b] dark:bg-[#18181b] rounded-full p-0.5 border border-[#27272a]">
-      {themes.map(t => (
+      {themes.map(themeOption => (
         <button
-          key={t.value}
-          onClick={() => setTheme(t.value)}
+          key={themeOption.value}
+          onClick={() => setTheme(themeOption.value)}
           className={`w-7 h-7 flex items-center justify-center rounded-full transition
             ${
-              theme === t.value
+              theme === themeOption.value
                 ? 'bg-[#232326] border border-[#3f3f46] shadow'
-                : t.value === 'system' && theme === 'system'
+                : themeOption.value === 'system' && theme === 'system'
                   ? 'bg-[#232326] border border-[#3f3f46] shadow'
                   : 'hover:bg-[#232326] border border-transparent'
             }
             text-[#a1a1aa]
           `}
-          aria-label={t.label}
-          aria-pressed={theme === t.value}
+          aria-label={themeOption.label}
+          aria-pressed={theme === themeOption.value}
           type="button"
         >
-          {t.icon}
+          {themeOption.icon}
         </button>
       ))}
     </div>

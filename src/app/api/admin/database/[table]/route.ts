@@ -18,7 +18,7 @@ const MAX_RECORDS = 100;
 
 export async function GET(
   request: Readonly<NextRequest>,
-  { params }: Readonly<{ params: Promise<{ table: string }> }>
+  context: Readonly<{ params: Promise<{ table: string }> }>
 ) {
   try {
     // Check authentication
@@ -27,7 +27,7 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const resolvedParams = await params;
+    const resolvedParams = await context.params;
     const tableName = resolvedParams.table;
 
     // Check if database is connected
