@@ -5,44 +5,12 @@ import { useEffect, useState } from 'react';
 
 import { MOCK_LIVE_GAMES } from '@/lib/mock/live-games.mock';
 import type { IGamesApiResponse } from '@/lib/types/external.api.types';
-import { API_CONFIG, getRapidApiConfig } from '@src/lib/config/api.config';
+import { createRapidAPIClient } from '@/lib/utils/api-client';
+import { API_CONFIG } from '@src/lib/config/api.config';
 
 // Constants
 const REFRESH_INTERVAL_MS = 30000;
 const MAX_DISPLAY_GAMES = 3;
-
-// API Client function
-const createRapidAPIClient = () => {
-  const config = getRapidApiConfig();
-
-  return {
-    async fetch<T>(endpoint: string, params: Record<string, string> = {}): Promise<T> {
-      const url = new URL(`${config.baseUrl}${endpoint}`);
-
-      // Add query parameters
-      Object.entries(params).forEach(([key, value]) => {
-        if (value && value.trim() !== '') {
-          url.searchParams.append(key, value);
-        }
-      });
-
-      const response = await fetch(url.toString(), {
-        method: 'GET',
-        headers: {
-          ...config.headers,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`API request failed: ${response.status} ${response.statusText}`);
-      }
-
-      const data = (await response.json()) as T;
-      return data;
-    },
-  };
-};
 
 function isGamesApiResponse(data: unknown): data is IGamesApiResponse {
   return (

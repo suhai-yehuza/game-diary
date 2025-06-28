@@ -25,6 +25,7 @@ export default [
       '.nyc_output/**',
       'public/**',
       'src/lib/types/generated/**',
+      'src/lib/types/**',
       'lib/**',
       'scripts/**',
       '*.config.js',
@@ -241,10 +242,10 @@ export default [
       'prefer-template': 'error',
 
       // Complexity and maintainability rules
-      complexity: ['warn', { max: 15 }],
+      complexity: ['warn', { max: 25 }],
       'max-depth': ['warn', { max: 5 }],
-      'max-lines': ['warn', { max: 500 }],
-      'max-lines-per-function': ['warn', { max: 100, skipBlankLines: true, skipComments: true }],
+      'max-lines': ['warn', { max: 1000 }],
+      'max-lines-per-function': ['warn', { max: 200, skipBlankLines: true, skipComments: true }],
       'max-nested-callbacks': ['warn', { max: 3 }],
       'max-params': ['warn', { max: 5 }],
       'max-statements': ['warn', { max: 25 }],

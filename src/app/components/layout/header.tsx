@@ -27,7 +27,7 @@ const Button = ({
   size = 'default',
   className = '',
   ...props
-}: IButtonProps) => {
+}: Readonly<IButtonProps>) => {
   const baseClasses =
     'inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50';
   const variantClasses = {
@@ -142,11 +142,11 @@ function SearchBarContent() {
               className="pl-8 pr-8 w-full h-8 md:h-10 text-base bg-transparent border-none focus:ring-0 outline-none transition-all duration-200 rounded-none"
               value={search_query}
               onChange={handleSearchChange}
-              onFocus={() => setIsFocused(true)}
-              onBlur={() => setIsFocused(false)}
+              onFocus={(_: Readonly<React.FocusEvent>) => setIsFocused(true)}
+              onBlur={(_: Readonly<React.FocusEvent>) => setIsFocused(false)}
               autoComplete="off"
               spellCheck={false}
-              ref={(input: HTMLInputElement | null) => {
+              ref={(input: Readonly<HTMLInputElement | null>) => {
                 if (input) input.focus();
               }}
             />
@@ -154,9 +154,15 @@ function SearchBarContent() {
               type="button"
               className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
               aria-label="Close search"
-              onMouseDown={e => {
+              onMouseDown={(e: Readonly<React.MouseEvent>) => {
                 e.preventDefault();
                 setIsFocused(false);
+              }}
+              onKeyDown={(e: Readonly<React.KeyboardEvent>) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  setIsFocused(false);
+                }
               }}
             >
               <X className="h-4 w-4" />
@@ -178,8 +184,8 @@ function SearchBarContent() {
           className="pl-8 w-full h-8 text-sm bg-transparent border-none focus:ring-0 outline-none transition-all duration-200 rounded-none"
           value={search_query}
           onChange={handleSearchChange}
-          onFocus={() => setIsFocused(true)}
-          onBlur={() => setIsFocused(false)}
+          onFocus={(_: Readonly<React.FocusEvent>) => setIsFocused(true)}
+          onBlur={(_: Readonly<React.FocusEvent>) => setIsFocused(false)}
           autoComplete="off"
           spellCheck={false}
         />
@@ -188,7 +194,7 @@ function SearchBarContent() {
             type="button"
             className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
             aria-label="Clear search"
-            onClick={() => {
+            onClick={(_: Readonly<React.MouseEvent>) => {
               setSearchQuery('');
               setDebouncedQuery('');
             }}
@@ -209,11 +215,273 @@ function SearchBar() {
   );
 }
 
-export default function Header() {
+function Navigation(
+  props: Readonly<{
+    isMenuExpanded: boolean;
+    setIsMenuExpanded: (v: boolean) => void;
+    isSearchVisible: boolean;
+    setIsSearchVisible: (v: boolean) => void;
+    isActive: (path: Readonly<string>) => boolean;
+    isAdmin: boolean;
+    isLoaded: boolean;
+    user: unknown;
+  }>
+) {
+  const {
+    isMenuExpanded,
+    setIsMenuExpanded,
+    isSearchVisible,
+    setIsSearchVisible,
+    isActive,
+    isAdmin,
+    isLoaded,
+  } = props;
+  return (
+    <nav className="flex-1 container mx-auto px-2 sm:px-4 lg:px-6">
+      <div className="flex h-16 items-center justify-between">
+        {/* Left Section */}
+        <div className="flex items-center">
+          {/* Mobile Menu Button */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="lg:hidden"
+            aria-label="Toggle menu"
+            onClick={(_: Readonly<React.MouseEvent>) => {
+              setIsMenuExpanded(!isMenuExpanded);
+              // Close search if open when toggling menu
+              if (isSearchVisible) setIsSearchVisible(false);
+            }}
+          >
+            <Menu className="h-5 w-5" />
+          </Button>
+
+          {/* Navigation Links */}
+          <div
+            className={`${!isMenuExpanded ? 'hidden' : 'block'} lg:block absolute lg:relative top-16 left-0 right-0 lg:top-0 bg-background lg:bg-transparent z-50 shadow-lg lg:shadow-none`}
+            role="menu"
+            tabIndex={-1}
+          >
+            <ul className="flex flex-col lg:flex-row space-y-2 lg:space-y-0 lg:space-x-20 2xl:space-x-24 p-4 lg:p-0 text-sm font-medium">
+              {/* Brand & Dashboard Group */}
+              <li className="lg:relative">
+                <Link
+                  href="/dashboard"
+                  className={`block py-1.5 lg:py-0 text-base lg:text-sm transition-colors whitespace-nowrap ${
+                    isActive('/dashboard')
+                      ? 'text-blue-600 font-semibold'
+                      : 'text-muted-foreground hover:text-blue-600'
+                  }`}
+                  onClick={(_: Readonly<React.MouseEvent>) => setIsMenuExpanded(false)}
+                >
+                  Dashboard
+                </Link>
+                <div className="hidden lg:block absolute -right-10 2xl:-right-12 top-1/2 -translate-y-1/2 h-4 w-px bg-gray-200 dark:bg-gray-700" />
+              </li>
+              {/* Sports Group */}
+              <li className="lg:relative">
+                <div className="flex flex-col lg:flex-row lg:items-center lg:space-x-4 2xl:space-x-6">
+                  {['nba', 'nfl', 'mlb', 'nhl', 'mls', 'live', 'all-sports'].map(
+                    (sport: Readonly<string>) => (
+                      <Link
+                        key={sport}
+                        href={`/sports/${sport}`}
+                        className={`block py-1.5 lg:py-0 text-base lg:text-sm transition-colors whitespace-nowrap ${
+                          isActive(`/sports/${sport}`)
+                            ? 'text-blue-600 font-semibold'
+                            : sport === 'all-sports'
+                              ? 'hover:text-blue-600'
+                              : 'text-muted-foreground hover:text-blue-600'
+                        }`}
+                        onClick={(_: Readonly<React.MouseEvent>) => setIsMenuExpanded(false)}
+                      >
+                        {sport === 'all-sports'
+                          ? 'All Sports'
+                          : sport === 'live'
+                            ? 'Live Games'
+                            : sport.toUpperCase()}
+                      </Link>
+                    )
+                  )}
+                </div>
+                <div className="hidden lg:block absolute -right-10 2xl:-right-12 top-1/2 -translate-y-1/2 h-4 w-px bg-gray-200 dark:bg-gray-700" />
+              </li>
+              {/* User & Admin Group */}
+              <li>
+                <div className="flex flex-col lg:flex-row lg:items-center lg:space-x-4 2xl:space-x-6">
+                  <Link
+                    href="/protected/user"
+                    className={`block py-1.5 lg:py-0 text-base lg:text-sm transition-colors whitespace-nowrap ${
+                      isActive('/protected/user')
+                        ? 'text-blue-600 font-semibold'
+                        : 'hover:text-blue-600'
+                    }`}
+                    onClick={(_: Readonly<React.MouseEvent>) => setIsMenuExpanded(false)}
+                  >
+                    Profile
+                  </Link>
+                  <SignedIn>
+                    {isLoaded && isAdmin && (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            className={`flex items-center gap-1 py-1.5 lg:py-0 text-base lg:text-sm transition-colors whitespace-nowrap ${
+                              isActive('/protected/admin')
+                                ? 'text-blue-600 font-semibold'
+                                : 'hover:text-blue-600'
+                            }`}
+                            onClick={(_: Readonly<React.MouseEvent>) => setIsMenuExpanded(false)}
+                          >
+                            Admin
+                            <ChevronDown className="h-3 w-3" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="start" className="w-48">
+                          <DropdownMenuItem asChild>
+                            <Link href="/protected/admin/experimental" className="w-full">
+                              External API
+                            </Link>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem asChild>
+                            <Link href="/protected/admin/database" className="w-full">
+                              Database
+                            </Link>
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    )}
+                  </SignedIn>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </nav>
+  );
+}
+
+function getUserName(u: unknown): string {
+  const userObj = u as Record<string, unknown>;
+  const firstName = typeof userObj.firstName === 'string' ? userObj.firstName : '';
+  const lastName = typeof userObj.lastName === 'string' ? userObj.lastName : '';
+  return `${firstName} ${lastName}`.trim();
+}
+function getUserEmail(u: unknown): string {
+  const userObj = u as Record<string, unknown>;
+  if (Array.isArray(userObj.emailAddresses) && userObj.emailAddresses.length > 0) {
+    const email = userObj.emailAddresses[0] as Record<string, unknown>;
+    if (typeof email.emailAddress === 'string') {
+      return email.emailAddress;
+    }
+  }
+  return '';
+}
+
+function RightSection(
+  props: Readonly<{
+    isSearchVisible: boolean;
+    setIsSearchVisible: (v: boolean) => void;
+    isMenuExpanded: boolean;
+    setIsMenuExpanded: (v: boolean) => void;
+    user: unknown;
+  }>
+) {
+  const { isSearchVisible, setIsSearchVisible, isMenuExpanded, setIsMenuExpanded, user } = props;
+  return (
+    <>
+      <div className="flex items-center w-full justify-end gap-2 sm:gap-4 relative">
+        {/* Mobile Search Button */}
+        <Button
+          variant="ghost"
+          size="icon"
+          className="sm:hidden"
+          aria-label="Toggle search"
+          onClick={(_: Readonly<React.MouseEvent>) => {
+            setIsSearchVisible(true);
+            if (isMenuExpanded) setIsMenuExpanded(false);
+          }}
+        >
+          <Search className="h-5 w-5" />
+        </Button>
+        {/* Detachable Search Bar */}
+        {/* Mobile overlay */}
+        {isSearchVisible && (
+          <div
+            className="fixed inset-0 z-50 flex items-start justify-center bg-black/40 sm:hidden"
+            role="dialog"
+            tabIndex={-1}
+            aria-modal="true"
+            onClick={(_: Readonly<React.MouseEvent>) => setIsSearchVisible(false)}
+            onKeyDown={(e: Readonly<React.KeyboardEvent>) => {
+              if (e.key === 'Escape') {
+                setIsSearchVisible(false);
+              }
+            }}
+          >
+            <div
+              className="mt-8 w-full max-w-md bg-background rounded-full border border-[#27272a] shadow-lg flex items-center px-4 py-2 relative"
+              onClick={(e: Readonly<React.MouseEvent>) => e.stopPropagation()}
+              onKeyDown={(e: Readonly<React.KeyboardEvent>) => {
+                if (e.key === 'Escape') {
+                  setIsSearchVisible(false);
+                }
+              }}
+              role="dialog"
+              tabIndex={0}
+            >
+              <SearchBar />
+              <button
+                className="ml-2 text-gray-400 hover:text-gray-600"
+                onClick={(_: Readonly<React.MouseEvent>) => setIsSearchVisible(false)}
+                aria-label="Close search"
+                type="button"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+          </div>
+        )}
+        {/* Desktop search bar, right-aligned */}
+        <div className="hidden sm:flex items-center ml-auto mr-8 pr-4 relative">
+          <SearchBar />
+          {/* Optional vertical divider for extra separation */}
+          <div className="hidden lg:block absolute -right-10 2xl:-right-12 top-1/2 -translate-y-1/2 h-4 w-px bg-gray-200 dark:bg-gray-700" />
+        </div>
+      </div>
+      {/* Theme and Auth controls, always far right, outside nav */}
+      <div className="flex items-center gap-2 sm:gap-4 pr-10">
+        <ThemeToggle />
+        <SignedOut>
+          <SignInButton mode="modal">
+            <Button
+              type="button"
+              className="bg-[#757575] text-white hover:bg-[#616161] focus:ring-4 focus:outline-none focus:ring-gray-400 font-medium rounded-lg text-sm px-4 py-2 sm:px-5 sm:py-2.5 text-center border border-gray-600 dark:bg-[#e5e5e5] dark:text-gray-800 dark:hover:bg-[#d4d4d4] dark:focus:ring-gray-300"
+            >
+              Sign In
+            </Button>
+          </SignInButton>
+        </SignedOut>
+        <SignedIn>
+          <div className="flex items-center space-x-4">
+            <div className="hidden md:flex items-center space-x-2">
+              <span className="text-sm text-gray-600 dark:text-gray-300">{getUserName(user)}</span>
+              <span className="text-xs text-gray-500">({getUserEmail(user)})</span>
+            </div>
+            <UserButton afterSignOutUrl="/" />
+          </div>
+        </SignedIn>
+      </div>
+    </>
+  );
+}
+
+export function Header() {
   const [isSearchVisible, setIsSearchVisible] = useState(false);
   const [isMenuExpanded, setIsMenuExpanded] = useState(false);
   const pathname = usePathname() || '/';
-  const { user, isLoaded } = useUser();
+  const { user } = useUser();
 
   const isActive = (path: Readonly<string>) => {
     if (path === '/') {
@@ -226,13 +494,11 @@ export default function Header() {
   const adminEmails = process.env.NEXT_PUBLIC_ADMIN_EMAILS
     ? process.env.NEXT_PUBLIC_ADMIN_EMAILS.split(',')
     : [];
-  const isAdmin = isLoaded && emailAddress && adminEmails.includes(emailAddress);
+  const isAdmin = Boolean(emailAddress && adminEmails.includes(emailAddress));
 
   return (
     <>
-      {/* Live Games Banner */}
       <LiveGamesBanner />
-
       <header className="w-full border-b lg:border-b">
         <div className="flex h-16 items-center justify-between w-full">
           <div className="pl-10">
@@ -247,258 +513,23 @@ export default function Header() {
               />
             </Link>
           </div>
-          <nav className="flex-1 container mx-auto px-2 sm:px-4 lg:px-6">
-            <div className="flex h-16 items-center justify-between">
-              {/* Left Section */}
-              <div className="flex items-center">
-                {/* Mobile Menu Button */}
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="lg:hidden"
-                  aria-label="Toggle menu"
-                  onClick={() => {
-                    setIsMenuExpanded(!isMenuExpanded);
-                    // Close search if open when toggling menu
-                    if (isSearchVisible) setIsSearchVisible(false);
-                  }}
-                >
-                  <Menu className="h-5 w-5" />
-                </Button>
-
-                {/* Navigation Links */}
-                <div
-                  className={`${!isMenuExpanded ? 'hidden' : 'block'} lg:block absolute lg:relative top-16 left-0 right-0 lg:top-0 bg-background lg:bg-transparent z-50 shadow-lg lg:shadow-none`}
-                >
-                  <ul className="flex flex-col lg:flex-row space-y-2 lg:space-y-0 lg:space-x-20 2xl:space-x-24 p-4 lg:p-0 text-sm font-medium">
-                    {/* Brand & Dashboard Group */}
-                    <li className="lg:relative">
-                      <Link
-                        href="/dashboard"
-                        className={`block py-1.5 lg:py-0 text-base lg:text-sm transition-colors whitespace-nowrap ${
-                          isActive('/dashboard')
-                            ? 'text-blue-600 font-semibold'
-                            : 'text-muted-foreground hover:text-blue-600'
-                        }`}
-                        onClick={() => setIsMenuExpanded(false)}
-                      >
-                        Dashboard
-                      </Link>
-                      <div className="hidden lg:block absolute -right-10 2xl:-right-12 top-1/2 -translate-y-1/2 h-4 w-px bg-gray-200 dark:bg-gray-700" />
-                    </li>
-
-                    {/* Sports Group */}
-                    <li className="lg:relative">
-                      <div className="flex flex-col lg:flex-row lg:items-center lg:space-x-4 2xl:space-x-6">
-                        <Link
-                          href="/sports/nba"
-                          className={`block py-1.5 lg:py-0 text-base lg:text-sm transition-colors whitespace-nowrap ${
-                            isActive('/sports/nba')
-                              ? 'text-blue-600 font-semibold'
-                              : 'text-muted-foreground hover:text-blue-600'
-                          }`}
-                          onClick={() => setIsMenuExpanded(false)}
-                        >
-                          NBA
-                        </Link>
-                        <Link
-                          href="/sports/nfl"
-                          className={`block py-1.5 lg:py-0 text-base lg:text-sm transition-colors whitespace-nowrap ${
-                            isActive('/sports/nfl')
-                              ? 'text-blue-600 font-semibold'
-                              : 'text-muted-foreground hover:text-blue-600'
-                          }`}
-                          onClick={() => setIsMenuExpanded(false)}
-                        >
-                          NFL
-                        </Link>
-                        <Link
-                          href="/sports/mlb"
-                          className={`block py-1.5 lg:py-0 text-base lg:text-sm transition-colors whitespace-nowrap ${
-                            isActive('/sports/mlb')
-                              ? 'text-blue-600 font-semibold'
-                              : 'text-muted-foreground hover:text-blue-600'
-                          }`}
-                          onClick={() => setIsMenuExpanded(false)}
-                        >
-                          MLB
-                        </Link>
-                        <Link
-                          href="/sports/nhl"
-                          className={`block py-1.5 lg:py-0 text-base lg:text-sm transition-colors whitespace-nowrap ${
-                            isActive('/sports/nhl')
-                              ? 'text-blue-600 font-semibold'
-                              : 'text-muted-foreground hover:text-blue-600'
-                          }`}
-                          onClick={() => setIsMenuExpanded(false)}
-                        >
-                          NHL
-                        </Link>
-                        <Link
-                          href="/sports/mls"
-                          className={`block py-1.5 lg:py-0 text-base lg:text-sm transition-colors whitespace-nowrap ${
-                            isActive('/sports/mls')
-                              ? 'text-blue-600 font-semibold'
-                              : 'text-muted-foreground hover:text-blue-600'
-                          }`}
-                          onClick={() => setIsMenuExpanded(false)}
-                        >
-                          MLS
-                        </Link>
-                        <Link
-                          href="/sports/live"
-                          className={`block py-1.5 lg:py-0 text-base lg:text-sm transition-colors whitespace-nowrap ${
-                            isActive('/sports/live')
-                              ? 'text-blue-600 font-semibold'
-                              : 'text-muted-foreground hover:text-blue-600'
-                          }`}
-                          onClick={() => setIsMenuExpanded(false)}
-                        >
-                          Live Games
-                        </Link>
-                        <Link
-                          href="/sports/all-sports"
-                          className={`block py-1.5 lg:py-0 text-base lg:text-sm transition-colors whitespace-nowrap ${
-                            isActive('/sports/all-sports')
-                              ? 'text-blue-600 font-semibold'
-                              : 'hover:text-blue-600'
-                          }`}
-                          onClick={() => setIsMenuExpanded(false)}
-                        >
-                          All Sports
-                        </Link>
-                      </div>
-                      {/* Optional vertical divider for extra separation */}
-                      <div className="hidden lg:block absolute -right-10 2xl:-right-12 top-1/2 -translate-y-1/2 h-4 w-px bg-gray-200 dark:bg-gray-700" />
-                    </li>
-
-                    {/* User & Admin Group */}
-                    <li>
-                      <div className="flex flex-col lg:flex-row lg:items-center lg:space-x-4 2xl:space-x-6">
-                        <Link
-                          href="/protected/user"
-                          className={`block py-1.5 lg:py-0 text-base lg:text-sm transition-colors whitespace-nowrap ${
-                            isActive('/protected/user')
-                              ? 'text-blue-600 font-semibold'
-                              : 'hover:text-blue-600'
-                          }`}
-                          onClick={() => setIsMenuExpanded(false)}
-                        >
-                          Profile
-                        </Link>
-                        <SignedIn>
-                          {isLoaded && isAdmin && (
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  className={`flex items-center gap-1 py-1.5 lg:py-0 text-base lg:text-sm transition-colors whitespace-nowrap ${
-                                    isActive('/protected/admin')
-                                      ? 'text-blue-600 font-semibold'
-                                      : 'hover:text-blue-600'
-                                  }`}
-                                  onClick={() => setIsMenuExpanded(false)}
-                                >
-                                  Admin
-                                  <ChevronDown className="h-3 w-3" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="start" className="w-48">
-                                <DropdownMenuItem asChild>
-                                  <Link href="/protected/admin/experimental" className="w-full">
-                                    External API
-                                  </Link>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem asChild>
-                                  <Link href="/protected/admin/database" className="w-full">
-                                    Database
-                                  </Link>
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          )}
-                        </SignedIn>
-                      </div>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-
-              {/* Right Section */}
-              <div className="flex items-center w-full justify-end gap-2 sm:gap-4 relative">
-                {/* Mobile Search Button */}
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="sm:hidden"
-                  aria-label="Toggle search"
-                  onClick={() => {
-                    setIsSearchVisible(true);
-                    if (isMenuExpanded) setIsMenuExpanded(false);
-                  }}
-                >
-                  <Search className="h-5 w-5" />
-                </Button>
-
-                {/* Detachable Search Bar */}
-                {/* Mobile overlay */}
-                {isSearchVisible && (
-                  <div
-                    className="fixed inset-0 z-50 flex items-start justify-center bg-black/40 sm:hidden"
-                    onClick={() => setIsSearchVisible(false)}
-                  >
-                    <div
-                      className="mt-8 w-full max-w-md bg-background rounded-full border border-[#27272a] shadow-lg flex items-center px-4 py-2 relative"
-                      onClick={e => e.stopPropagation()}
-                    >
-                      <SearchBar />
-                      <button
-                        className="ml-2 text-gray-400 hover:text-gray-600"
-                        onClick={() => setIsSearchVisible(false)}
-                        aria-label="Close search"
-                        type="button"
-                      >
-                        <X className="h-5 w-5" />
-                      </button>
-                    </div>
-                  </div>
-                )}
-                {/* Desktop search bar, right-aligned */}
-                <div className="hidden sm:flex items-center ml-auto mr-8 pr-4 relative">
-                  <SearchBar />
-                  {/* Optional vertical divider for extra separation */}
-                  <div className="hidden lg:block absolute -right-10 2xl:-right-12 top-1/2 -translate-y-1/2 h-4 w-px bg-gray-200 dark:bg-gray-700" />
-                </div>
-              </div>
-            </div>
-          </nav>
-          {/* Theme and Auth controls, always far right, outside nav */}
-          <div className="flex items-center gap-2 sm:gap-4 pr-10">
-            <ThemeToggle />
-            <SignedOut>
-              <SignInButton mode="modal">
-                <Button
-                  type="button"
-                  className="bg-[#757575] text-white hover:bg-[#616161] focus:ring-4 focus:outline-none focus:ring-gray-400 font-medium rounded-lg text-sm px-4 py-2 sm:px-5 sm:py-2.5 text-center border border-gray-600 dark:bg-[#e5e5e5] dark:text-gray-800 dark:hover:bg-[#d4d4d4] dark:focus:ring-gray-300"
-                >
-                  Sign In
-                </Button>
-              </SignInButton>
-            </SignedOut>
-            <SignedIn>
-              <div className="flex items-center space-x-4">
-                <div className="hidden md:flex items-center space-x-2">
-                  <span className="text-sm text-gray-600 dark:text-gray-300">
-                    {user?.firstName} {user?.lastName}
-                  </span>
-                  <span className="text-xs text-gray-500">
-                    ({user?.emailAddresses[0]?.emailAddress})
-                  </span>
-                </div>
-                <UserButton afterSignOutUrl="/" />
-              </div>
-            </SignedIn>
-          </div>
+          <Navigation
+            isMenuExpanded={isMenuExpanded}
+            setIsMenuExpanded={setIsMenuExpanded}
+            isSearchVisible={isSearchVisible}
+            setIsSearchVisible={setIsSearchVisible}
+            isActive={isActive}
+            isAdmin={isAdmin}
+            isLoaded={Boolean(user)}
+            user={user}
+          />
+          <RightSection
+            isSearchVisible={isSearchVisible}
+            setIsSearchVisible={setIsSearchVisible}
+            isMenuExpanded={isMenuExpanded}
+            setIsMenuExpanded={setIsMenuExpanded}
+            user={user}
+          />
         </div>
       </header>
     </>
