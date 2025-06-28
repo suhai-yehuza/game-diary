@@ -1,6 +1,6 @@
-import LiveGamesDetail from '@src/app/components/live-games-detail';
+import { LiveGamesDetail } from '@src/app/components/live-games-detail';
 
-export default function LiveGamesPage() {
+export function LiveGamesPage() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-6">

@@ -27,11 +27,11 @@ const NEW_COMPONENT_RULE: IFixRule = {
  */
 const NEW_MIDDLEWARE_RULE: IFixRule = {
   name: 'api-middleware-types',
-  description: 'Move API middleware types to api.types.ts',
+  description: 'Move API middleware types to external.api.types.ts',
   filePattern: /^src\/middleware\/.*\.ts$/,
   strategy: 'move-to-types',
-  targetTypesFile: 'api.types.ts',
-  importPath: '@src/lib/types/api.types',
+  targetTypesFile: 'external.api.types.ts',
+  importPath: '@src/lib/types/external.api.types',
 };
 
 /**

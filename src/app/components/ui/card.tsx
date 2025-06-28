@@ -1,61 +1,82 @@
-import * as React from 'react';
+import type { ComponentProps, ReactNode } from 'react';
 
 import { cn } from '@src/lib/utils';
 
-const Card = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
-  ({ className, ...props }, ref) => (
+interface ICardProps extends Readonly<ComponentProps<'div'>> {
+  children: Readonly<ReactNode>;
+}
+
+export function Card({ className, children, ...props }: Readonly<ICardProps>) {
+  return (
     <div
-      ref={ref}
-      className={cn(
-        'rounded-lg border bg-[hsl(var(--card))] text-[hsl(var(--card-foreground))] shadow-sm',
-        className
-      )}
-      {...props}
-    />
-  )
-);
-Card.displayName = 'Card';
-
-const CardHeader = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
-  ({ className, ...props }, ref) => (
-    <div ref={ref} className={cn('flex flex-col space-y-1.5 p-6', className)} {...props} />
-  )
-);
-CardHeader.displayName = 'CardHeader';
-
-const CardTitle = React.forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLHeadingElement>>(
-  ({ className, children = '', ...props }, ref) => (
-    <h3
-      ref={ref}
-      className={cn('text-2xl font-semibold leading-none tracking-tight', className)}
+      className={cn('rounded-lg border bg-card text-card-foreground shadow-sm', className)}
       {...props}
     >
       {children}
+    </div>
+  );
+}
+
+interface ICardHeaderProps extends Readonly<ComponentProps<'div'>> {
+  children: Readonly<ReactNode>;
+}
+
+export function CardHeader({ className, children, ...props }: Readonly<ICardHeaderProps>) {
+  return (
+    <div className={cn('flex flex-col space-y-1.5 p-6', className)} {...props}>
+      {children}
+    </div>
+  );
+}
+
+interface ICardTitleProps extends Readonly<ComponentProps<'h3'>> {
+  children: Readonly<ReactNode>;
+}
+
+export function CardTitle({ className, children, ...props }: Readonly<ICardTitleProps>) {
+  return (
+    <h3 className={cn('text-2xl font-semibold leading-none tracking-tight', className)} {...props}>
+      {children}
     </h3>
-  )
-);
-CardTitle.displayName = 'CardTitle';
+  );
+}
 
-const CardDescription = React.forwardRef<
-  HTMLParagraphElement,
-  React.HTMLAttributes<HTMLParagraphElement>
->(({ className, ...props }, ref) => (
-  <p ref={ref} className={cn('text-sm text-muted-foreground', className)} {...props} />
-));
-CardDescription.displayName = 'CardDescription';
+interface ICardDescriptionProps extends Readonly<ComponentProps<'p'>> {
+  children: Readonly<ReactNode>;
+}
 
-const CardContent = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
-  ({ className, ...props }, ref) => (
-    <div ref={ref} className={cn('p-6 pt-0', className)} {...props} />
-  )
-);
-CardContent.displayName = 'CardContent';
+export function CardDescription({
+  className,
+  children,
+  ...props
+}: Readonly<ICardDescriptionProps>) {
+  return (
+    <p className={cn('text-sm text-muted-foreground', className)} {...props}>
+      {children}
+    </p>
+  );
+}
 
-const CardFooter = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
-  ({ className, ...props }, ref) => (
-    <div ref={ref} className={cn('flex items-center p-6 pt-0', className)} {...props} />
-  )
-);
-CardFooter.displayName = 'CardFooter';
+interface ICardContentProps extends Readonly<ComponentProps<'div'>> {
+  children: Readonly<ReactNode>;
+}
 
-export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent };
+export function CardContent({ className, children, ...props }: Readonly<ICardContentProps>) {
+  return (
+    <div className={cn('p-6 pt-0', className)} {...props}>
+      {children}
+    </div>
+  );
+}
+
+interface ICardFooterProps extends Readonly<ComponentProps<'div'>> {
+  children: Readonly<ReactNode>;
+}
+
+export function CardFooter({ className, children, ...props }: Readonly<ICardFooterProps>) {
+  return (
+    <div className={cn('flex items-center p-6 pt-0', className)} {...props}>
+      {children}
+    </div>
+  );
+}

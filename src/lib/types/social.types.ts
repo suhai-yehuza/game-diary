@@ -1,4 +1,4 @@
-import type * as React from 'react';
+import type { ComponentType } from 'react';
 
 import type {
   Comment,
@@ -102,7 +102,7 @@ export interface IGetFriendshipsForUserResponse {
 export interface INavItem {
   title: string;
   href: string;
-  icon?: React.ComponentType<{ className?: string }>;
+  icon?: ComponentType<{ className?: string }>;
   subItems?: INavItem[];
   isActive?: boolean;
 }

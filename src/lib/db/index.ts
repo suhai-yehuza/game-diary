@@ -8,9 +8,11 @@ import type { Database } from '@src/lib/types/infrastructure.types';
 let sql: ReturnType<typeof neon> | null = null;
 let db: Database | null = null;
 
-if (process.env.DATABASE_URL) {
+const connectionString = process.env.DATABASE_URL ?? process.env.POSTGRES_URL ?? '';
+
+if (connectionString) {
   try {
-    sql = neon(process.env.DATABASE_URL ?? '');
+    sql = neon(connectionString);
     db = drizzle(sql, { schema });
   } catch (error) {
     console.warn('Failed to initialize database connection:', error);

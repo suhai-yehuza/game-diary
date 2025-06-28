@@ -5,7 +5,7 @@ const isAuthRoute = createRouteMatcher(['/sign-in(.*)', '/sign-up(.*)']);
 const isProtectedRoute = createRouteMatcher(['/protected(.*)']);
 // const isAdminRoute = createRouteMatcher(['/protected/admin(.*)']);
 
-export default clerkMiddleware(async (auth, req) => {
+export const middleware = clerkMiddleware(async (auth, req) => {
   if (isProtectedRoute(req)) {
     await auth.protect();
   }

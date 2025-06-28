@@ -8,6 +8,8 @@
 /// <reference lib="esnext" />
 /// <reference lib="es2015" />
 
+import type React from 'react';
+
 // ========================================
 // GLOBAL TYPES
 // ========================================
@@ -54,5 +56,17 @@ export type DateTime = string;
 export type Any = unknown;
 export type IDateTimeScalar = string;
 export type IAnyScalar = unknown;
+
+export declare module '*.svg' {
+  export const ReactComponent: React.FunctionComponent<React.SVGAttributes<SVGElement>>;
+}
+
+export declare module '*.png' {
+  export const src: string;
+}
+
+export declare module '*.jpg' {
+  export const src: string;
+}
 
 export {};

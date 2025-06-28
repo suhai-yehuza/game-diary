@@ -7,6 +7,10 @@ import { MOCK_LIVE_GAMES } from '@/lib/mock/live-games.mock';
 import type { IGamesApiResponse } from '@/lib/types/external.api.types';
 import { API_CONFIG, getRapidApiConfig } from '@src/lib/config/api.config';
 
+// Constants
+const REFRESH_INTERVAL_MS = 30000;
+const MAX_DISPLAY_GAMES = 3;
+
 // API Client function
 const createRapidAPIClient = () => {
   const config = getRapidApiConfig();
@@ -50,7 +54,7 @@ function isGamesApiResponse(data: unknown): data is IGamesApiResponse {
   );
 }
 
-export default function LiveGamesBanner() {
+export function LiveGamesBanner() {
   const [liveGames, setLiveGames] = useState<IGamesApiResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -91,7 +95,7 @@ export default function LiveGamesBanner() {
     // Refresh live games every 30 seconds
     const interval = setInterval(() => {
       void fetchLiveGames();
-    }, 30000);
+    }, REFRESH_INTERVAL_MS);
 
     return () => clearInterval(interval);
   }, []);
@@ -119,7 +123,7 @@ export default function LiveGamesBanner() {
           </div>
 
           <div className="flex items-center space-x-4 overflow-x-auto">
-            {games.slice(0, 3).map(game => (
+            {games.slice(0, MAX_DISPLAY_GAMES).map(game => (
               <div key={game.id} className="flex items-center space-x-2 text-xs whitespace-nowrap">
                 <div className="flex items-center space-x-1">
                   <span className="font-medium">{game.teams.visitors.code}</span>
@@ -134,8 +138,8 @@ export default function LiveGamesBanner() {
                 {game.status.halftime && <span className="text-yellow-300">HALFTIME</span>}
               </div>
             ))}
-            {games.length > 3 && (
-              <span className="text-xs opacity-75">+{games.length - 3} more</span>
+            {games.length > MAX_DISPLAY_GAMES && (
+              <span className="text-xs opacity-75">+{games.length - MAX_DISPLAY_GAMES} more</span>
             )}
             <Link
               href="/sports/live"

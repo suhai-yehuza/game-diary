@@ -8,8 +8,8 @@ import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import React, { useState, useEffect, useRef, Suspense } from 'react';
 
-import { ThemeToggle } from '@src/app/components/common';
-import LiveGamesBanner from '@src/app/components/live-games-banner';
+import { ThemeToggle } from '@/app/components/common/theme-toggle';
+import { LiveGamesBanner } from '@/app/components/live-games-banner';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -484,7 +484,17 @@ export default function Header() {
               </SignInButton>
             </SignedOut>
             <SignedIn>
-              <UserButton />
+              <div className="flex items-center space-x-4">
+                <div className="hidden md:flex items-center space-x-2">
+                  <span className="text-sm text-gray-600 dark:text-gray-300">
+                    {user?.firstName} {user?.lastName}
+                  </span>
+                  <span className="text-xs text-gray-500">
+                    ({user?.emailAddresses[0]?.emailAddress})
+                  </span>
+                </div>
+                <UserButton afterSignOutUrl="/" />
+              </div>
             </SignedIn>
           </div>
         </div>

@@ -1,24 +1,41 @@
+import { z } from 'zod';
+
 import { APIError } from '@src/lib/errors/api.error';
 import type {
   IRangeConfig,
   IBatchSizeConfig,
-  IRateLimitConfig,
   IClassificationWeights,
   IPaginationConfig,
   IDistributionFunctions,
 } from '@src/lib/types';
 
-const XSMALL = 10;
-const SMALL = 10 * XSMALL;
-const MEDIUM = 10 * SMALL;
-const LARGE = 10 * MEDIUM;
-const XLARGE = 10 * LARGE;
+const BASE_MULTIPLIER = 10;
+const XSMALL = BASE_MULTIPLIER;
+const SMALL = BASE_MULTIPLIER * XSMALL;
+const MEDIUM = BASE_MULTIPLIER * SMALL;
+const LARGE = BASE_MULTIPLIER * MEDIUM;
+const XLARGE = BASE_MULTIPLIER * LARGE;
+
+// Constants for magic numbers
+const DEFAULT_TIMEOUT_MS = 10000;
+const DEFAULT_RETRY_ATTEMPTS = 10;
+const UNAUTHORIZED_STATUS = 401;
+const RATE_LIMIT_BACKOFF_MULTIPLIER = -2.0;
+const RATE_LIMIT_BASE_DELAY = 1.16;
+const RATE_LIMIT_MIN_DELAY = -2;
+
+// Environment validation schema
+const envSchema = z.object({
+  RAPIDAPI_KEY: z.string().min(1, 'RAPIDAPI_KEY is required'),
+  RAPIDAPI_HOST: z.string().min(1, 'RAPIDAPI_HOST is required'),
+  RAPIDAPI_BASE_URL: z.string().url('RAPIDAPI_BASE_URL must be a valid URL'),
+});
 
 export function validateAPIKey(key: string | undefined): string {
   if (!key) {
     throw new APIError(
       API_CONFIG.errors.MISSING_API_KEY,
-      401,
+      UNAUTHORIZED_STATUS,
       'MISSING_API_KEY',
       'MISSING_API_KEY'
     );
@@ -30,31 +47,44 @@ export function validateAPIKey(key: string | undefined): string {
 const distributions: IDistributionFunctions = {
   natural: (rand: number) => Math.pow(rand, 2),
   bellCurve: (u1: number, u2: number) => {
-    const z0 = Math.sqrt(-2.0 * Math.log(u1)) * Math.cos(2.0 * Math.PI * u2);
+    const z0 =
+      Math.sqrt(RATE_LIMIT_BACKOFF_MULTIPLIER * Math.log(u1)) * Math.cos(2.0 * Math.PI * u2);
     const mean = 50;
     const stdDev = 16.67;
     return z0 * stdDev + mean;
   },
-  pareto: (rand: number, alpha = 1.16) => Math.pow(rand, -1 / alpha),
-  exponential: (rand: number) => Math.exp(-2 * rand),
-  powerLaw: (rand: number, exponent = -2) => Math.pow(rand, exponent),
+  pareto: (rand: number, alpha = RATE_LIMIT_BASE_DELAY) => Math.pow(rand, -1 / alpha),
+  exponential: (rand: number) => Math.exp(RATE_LIMIT_MIN_DELAY * rand),
+  powerLaw: (rand: number, exponent = RATE_LIMIT_MIN_DELAY) => Math.pow(rand, exponent),
 } as const satisfies IDistributionFunctions;
 
 // API Configuration
 export const API_CONFIG = {
+  baseUrl: process.env.RAPIDAPI_BASE_URL ?? 'https://api-sports.io/v1',
+  timeout: DEFAULT_TIMEOUT_MS,
+  retryAttempts: DEFAULT_RETRY_ATTEMPTS,
+  retryDelay: DEFAULT_TIMEOUT_MS,
+  maxRetries: DEFAULT_RETRY_ATTEMPTS,
   endpoints: {
-    GAMES: '/games',
-    GAME_STATISTICS: '/games/statistics',
-    PLAYERS: '/players',
-    PLAYER_STATISTICS: '/players/statistics',
     SEASONS: '/seasons',
     LEAGUES: '/leagues',
-    STANDINGS: '/standings',
+    GAMES: '/games',
+    GAME_STATISTICS: '/games/statistics',
     TEAMS: '/teams',
     TEAM_STATISTICS: '/teams/statistics',
-    DOCUMENTATION: 'https://api-sports.io/documentation/nba/v2#tag',
-  } as const,
-
+    PLAYERS: '/players',
+    PLAYER_STATISTICS: '/players/statistics',
+    STANDINGS: '/standings',
+  },
+  errorCodes: {
+    UNAUTHORIZED: UNAUTHORIZED_STATUS,
+  },
+  rateLimit: {
+    backoffMultiplier: RATE_LIMIT_BACKOFF_MULTIPLIER,
+    baseDelay: RATE_LIMIT_BASE_DELAY,
+    minDelay: RATE_LIMIT_MIN_DELAY,
+    maxDelay: RATE_LIMIT_MIN_DELAY,
+  },
   databaseSeeding: {
     CONCURRENT_OPERATIONS: 3,
     BATCH_SIZE: 15,
@@ -125,13 +155,6 @@ export const API_CONFIG = {
     } satisfies IClassificationWeights,
   } as const,
 
-  rateLimit: {
-    MAX_RETRIES: 3,
-    BASE_DELAY: 1000,
-    MAX_DELAY: 5000,
-    RATE_LIMIT_DELAY: 60000,
-  } as const satisfies IRateLimitConfig,
-
   errors: {
     MISSING_API_KEY: 'API key is required',
     INVALID_API_KEY: 'Invalid API key',
@@ -165,13 +188,13 @@ export const API_CONFIG = {
 } as const;
 
 export function getRapidApiConfig() {
+  const env = envSchema.parse(process.env);
+
   return {
-    apiKey: validateAPIKey(process.env.NEXT_PUBLIC_RAPID_API_KEY),
-    baseUrl: process.env.NEXT_PUBLIC_RAPID_API_BASE_URL ?? '',
-    host: process.env.NEXT_PUBLIC_RAPID_API_HOST ?? '',
+    baseUrl: env.RAPIDAPI_BASE_URL,
     headers: {
-      'x-rapidapi-host': process.env.NEXT_PUBLIC_RAPID_API_HOST ?? '',
-      'x-rapidapi-key': process.env.NEXT_PUBLIC_RAPID_API_KEY ?? '',
+      'X-RapidAPI-Key': env.RAPIDAPI_KEY,
+      'X-RapidAPI-Host': env.RAPIDAPI_HOST,
     },
   };
 }

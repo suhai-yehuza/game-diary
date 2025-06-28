@@ -49,11 +49,11 @@ export const TYPE_FIX_RULES: IFixRule[] = [
   },
   {
     name: 'api-route-types',
-    description: 'Move API route types to api.types.ts',
+    description: 'Move API route types to external.api.types.ts',
     filePattern: /^src\/app\/api\/.*\.ts$/,
     strategy: 'move-to-types',
-    targetTypesFile: 'api.types.ts',
-    importPath: '@src/lib/types/api.types',
+    targetTypesFile: 'external.api.types.ts',
+    importPath: '@src/lib/types/external.api.types',
   },
   {
     name: 'component-types',
@@ -97,8 +97,8 @@ export const TYPE_MOVEMENT_RULES: ITypeMovementRule[] = [
   },
   {
     sourcePattern: /^src\/app\/api\//,
-    targetFile: 'api.types.ts',
-    importPath: '@src/lib/types/api.types',
+    targetFile: 'external.api.types.ts',
+    importPath: '@src/lib/types/external.api.types',
   },
   {
     sourcePattern: /^src\/(app\/components|components)\//,
@@ -129,7 +129,7 @@ export const COMMON_TYPE_IMPORTS = {
     "import type { NeonHttpDatabase } from 'drizzle-orm/neon-http';",
     "import type * as schema from '@src/lib/db/schema';",
   ],
-  'api.types.ts': ["import type { NextRequest, NextResponse } from 'next/server';"],
+  'external.api.types.ts': ["import type { NextRequest, NextResponse } from 'next/server';"],
   'component.types.ts': ["import type { ReactNode, ComponentProps } from 'react';"],
 };
 

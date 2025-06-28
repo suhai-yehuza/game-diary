@@ -1031,7 +1031,7 @@ function AdminExperimentalContent() {
   );
 }
 
-export default function AdminExperimentalPage() {
+export function AdminExperimentalPage() {
   return (
     <Suspense
       fallback={

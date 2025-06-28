@@ -5,7 +5,7 @@ import React from 'react';
 
 export const dynamic = 'force-dynamic';
 
-export default function Page() {
+export function ClientProtectedPage() {
   const { user } = useUser();
   const { isLoaded, isSignedIn, userId, sessionId, getToken } = useAuth();
 

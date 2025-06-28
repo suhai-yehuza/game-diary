@@ -19,4 +19,4 @@ export * from './social.types';
 export * from './constant.types';
 
 // Generated types
-export * from './generated/graphql';
+// export * from './generated/graphql'; // Commented out if file does not exist

@@ -3,7 +3,7 @@
 import { useUser } from '@clerk/nextjs';
 import React from 'react';
 
-export default function Page() {
+export function MLBPage() {
   const { isLoaded, isSignedIn, user } = useUser();
 
   return (
@@ -11,7 +11,7 @@ export default function Page() {
       <div className="container mx-auto px-4 text-center">
         <h1 className="text-3xl font-bold">This will be the MLB page</h1>
         {isLoaded && isSignedIn ? (
-          <p className="mt-4">You are logged in as {user?.firstName}</p>
+          <p className="mt-4">You are logged in as {user.firstName}</p>
         ) : (
           <p className="mt-4">You are not logged in</p>
         )}

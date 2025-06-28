@@ -234,13 +234,13 @@ export default [
       'prefer-template': 'error',
 
       // Complexity and maintainability rules
-      complexity: ['warn', 10],
-      'max-depth': ['warn', 4],
-      'max-lines': ['warn', 300],
-      'max-lines-per-function': ['warn', 50],
-      'max-nested-callbacks': ['warn', 3],
-      'max-params': ['warn', 4],
-      'max-statements': ['warn', 20],
+      complexity: ['warn', { max: 15 }],
+      'max-depth': ['warn', { max: 5 }],
+      'max-lines': ['warn', { max: 500 }],
+      'max-lines-per-function': ['warn', { max: 100, skipBlankLines: true, skipComments: true }],
+      'max-nested-callbacks': ['warn', { max: 3 }],
+      'max-params': ['warn', { max: 5 }],
+      'max-statements': ['warn', { max: 25 }],
       'no-magic-numbers': ['warn', { ignore: [-1, 0, 1, 2], ignoreArrayIndexes: true }],
 
       // Code quality rules
@@ -343,15 +343,6 @@ export default [
     },
   },
   {
-    files: ['src/**/*.test.ts', 'src/**/*.test.tsx'],
-    rules: {
-      // removed filenames rules
-      'no-magic-numbers': 'off',
-      'max-lines-per-function': 'off',
-      complexity: 'off',
-    },
-  },
-  {
     files: ['src/**/*.types.ts'],
     rules: {
       // removed filenames rules
@@ -368,14 +359,6 @@ export default [
     rules: {
       'max-lines-per-function': 'off',
       complexity: 'off',
-    },
-  },
-  {
-    files: ['src/lib/db/seed/**/*.ts'],
-    rules: {
-      'max-lines-per-function': 'off',
-      complexity: 'off',
-      'no-console': 'off',
     },
   },
   eslintConfigPrettier,

@@ -5,11 +5,11 @@ import Image from 'next/image';
 import Link from 'next/link';
 import React from 'react';
 
-import useMounted from '@/hooks/use-mounted';
+import { useMounted } from '@/hooks/use-mounted';
 
 export const dynamic = 'force-dynamic';
 
-export default function Home() {
+export function Home() {
   const { isLoaded, isSignedIn } = useUser();
   const mounted = useMounted();
 
@@ -19,6 +19,16 @@ export default function Home() {
 
   // Don't block rendering if auth is not loaded yet
   const showAuthState = isLoaded;
+
+  try {
+    // ... existing code ...
+  } catch (error) {
+    if (error instanceof Error) {
+      // handle error.message or similar
+    } else {
+      // handle unknown error
+    }
+  }
 
   return (
     <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">

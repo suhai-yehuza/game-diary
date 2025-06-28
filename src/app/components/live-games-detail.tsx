@@ -7,6 +7,9 @@ import { MOCK_LIVE_GAMES } from '@/lib/mock/live-games.mock';
 import type { IGamesApiResponse } from '@/lib/types/external.api.types';
 import { API_CONFIG, getRapidApiConfig } from '@src/lib/config/api.config';
 
+// Constants
+const REFRESH_INTERVAL_MS = 30000;
+
 // API Client function
 const createRapidAPIClient = () => {
   const config = getRapidApiConfig();
@@ -50,7 +53,7 @@ function isGamesApiResponse(data: unknown): data is IGamesApiResponse {
   );
 }
 
-export default function LiveGamesDetail() {
+export function LiveGamesDetail() {
   const [liveGames, setLiveGames] = useState<IGamesApiResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -91,7 +94,7 @@ export default function LiveGamesDetail() {
     // Refresh live games every 30 seconds
     const interval = setInterval(() => {
       void fetchLiveGames();
-    }, 30000);
+    }, REFRESH_INTERVAL_MS);
 
     return () => clearInterval(interval);
   }, []);
@@ -227,8 +230,8 @@ export default function LiveGamesDetail() {
                     {game.periods.current} of {game.periods.total}
                   </div>
                   {game.status.clock && (
-                    <div className="text-yellow-600 dark:text-yellow-400 font-mono">
-                      {game.status.clock}
+                    <div className="text-gray-600 dark:text-gray-400">
+                      Time: {game.status.clock}
                     </div>
                   )}
                 </div>

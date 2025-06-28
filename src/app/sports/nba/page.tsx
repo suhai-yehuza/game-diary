@@ -4,9 +4,9 @@ import { useUser } from '@clerk/nextjs';
 import Link from 'next/link';
 import React from 'react';
 
-import LiveGamesDetail from '@src/app/components/live-games-detail';
+import { LiveGamesDetail } from '@src/app/components/live-games-detail';
 
-export default function Page() {
+export function NBAPage() {
   const { isLoaded, isSignedIn, user } = useUser();
 
   return (
@@ -38,7 +38,7 @@ export default function Page() {
         <div>
           <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
             <p className="text-sm text-blue-800 dark:text-blue-200">
-              Welcome back, {user?.firstName}! You can access live games and API testing features.
+              Welcome back, {user.firstName}! You can access live games and API testing features.
             </p>
           </div>
 

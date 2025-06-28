@@ -306,7 +306,7 @@ function AdminDatabaseContent() {
   );
 }
 
-export default function AdminDatabasePage() {
+export function AdminDatabasePage() {
   return (
     <div className="min-h-screen bg-background">
       <AdminDatabaseContent />
