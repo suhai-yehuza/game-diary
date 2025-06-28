@@ -1,6 +1,6 @@
 import { execSync } from 'child_process';
 
-import { logger } from '@lib/core/logger';
+import { logger } from '../../lib/core/logger';
 
 import { parseScriptArgs } from '../shared/script-utils';
 

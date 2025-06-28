@@ -3,6 +3,7 @@
 import { useTheme } from 'next-themes';
 
 import { useMounted } from '@/hooks/use-mounted';
+import type { IThemeToggleProps } from '@/lib/types/component.types';
 
 const themes = [
   {
@@ -14,10 +15,6 @@ const themes = [
     icon: '🌙',
   },
 ];
-
-interface IThemeToggleProps {
-  readonly className?: string;
-}
 
 export function ThemeToggle({ className }: Readonly<IThemeToggleProps>) {
   const { setTheme, theme } = useTheme();
