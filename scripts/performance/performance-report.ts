@@ -9,12 +9,12 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-import { logger } from '@lib/core/logger';
-import type { IPerformanceMetrics, IPerformanceTrend } from '@src/lib/types';
+import { logger } from '../../lib/core/logger';
+import type { IPerformanceMetrics, IPerformanceTrend } from '../../src/lib/types';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const rootDir = path.resolve(__dirname, '..');
+const rootDir = path.resolve(__dirname, '../..');
 
 function formatBytes(bytes: number): string {
   if (bytes === 0) return '0 B';
@@ -63,17 +63,21 @@ function analyzeTrends(history: IPerformanceMetrics[]): IPerformanceTrend[] {
   const trends: IPerformanceTrend[] = [
     {
       metric: 'Build Time',
-      current: current.buildTime,
-      previous: previous.buildTime,
-      change: current.buildTime - previous.buildTime,
+      period: 'latest',
+      current: current.buildTime as number,
+      previous: previous.buildTime as number,
+      change: (current.buildTime as number) - (previous.buildTime as number),
       changePercent:
-        previous.buildTime === 0
+        (previous.buildTime as number) === 0
           ? 0
-          : ((current.buildTime - previous.buildTime) / previous.buildTime) * 100,
-      trend: calculateTrend(current.buildTime, previous.buildTime, true),
+          : (((current.buildTime as number) - (previous.buildTime as number)) /
+              (previous.buildTime as number)) *
+            100,
+      trend: calculateTrend(current.buildTime as number, previous.buildTime as number, true),
     },
     {
       metric: 'Bundle Size',
+      period: 'latest',
       current: current.bundleSize.total,
       previous: previous.bundleSize.total,
       change: current.bundleSize.total - previous.bundleSize.total,
@@ -86,6 +90,7 @@ function analyzeTrends(history: IPerformanceMetrics[]): IPerformanceTrend[] {
     },
     {
       metric: 'TypeScript Errors',
+      period: 'latest',
       current: current.typecheck.errors,
       previous: previous.typecheck.errors,
       change: current.typecheck.errors - previous.typecheck.errors,
@@ -98,6 +103,7 @@ function analyzeTrends(history: IPerformanceMetrics[]): IPerformanceTrend[] {
     },
     {
       metric: 'Dependencies',
+      period: 'latest',
       current: current.dependencies.total,
       previous: previous.dependencies.total,
       change: current.dependencies.total - previous.dependencies.total,
@@ -122,18 +128,24 @@ function generateTrendIcon(trend: IPerformanceTrend['trend']): string {
       return '📉 ';
     case 'stable':
       return '➡️  ';
+    case 'up':
+      return '📈 ';
+    case 'down':
+      return '📉 ';
+    default:
+      return '➡️  ';
   }
 }
 
 function generateMarkdownReport(metrics: IPerformanceMetrics, trends: IPerformanceTrend[]): string {
   const report = `# Performance Report
 
-Generated: ${new Date(metrics.timestamp).toLocaleString()}
+Generated: ${new Date(metrics.timestamp || new Date().toISOString()).toLocaleString()}
 
 ## 📊 Current Metrics
 
 ### Build Performance
-- **Build Time**: ${formatDuration(metrics.buildTime)}
+- **Build Time**: ${formatDuration(metrics.buildTime as number)}
 - **TypeScript Check**: ${formatDuration(metrics.typecheck.time)} (${metrics.typecheck.errors} errors)
 
 ### Bundle Analysis
@@ -153,10 +165,10 @@ ${
     ? trends
         .map(
           trend => `
-### ${generateTrendIcon(trend.trend)} ${trend.metric}
-- **Current**: ${trend.metric === 'Bundle Size' ? formatBytes(trend.current) : trend.metric.includes('Time') ? formatDuration(trend.current) : trend.current}
-- **Previous**: ${trend.metric === 'Bundle Size' ? formatBytes(trend.previous) : trend.metric.includes('Time') ? formatDuration(trend.previous) : trend.previous}
-- **Change**: ${trend.change > 0 ? '+' : ''}${trend.metric === 'Bundle Size' ? formatBytes(Math.abs(trend.change)) : trend.metric.includes('Time') ? formatDuration(Math.abs(trend.change)) : Math.abs(trend.change)} (${trend.changePercent > 0 ? '+' : ''}${trend.changePercent.toFixed(1)}%)
+### ${generateTrendIcon(trend.trend)} ${trend.metric || 'Unknown'}
+- **Current**: ${trend.metric === 'Bundle Size' ? formatBytes(trend.current || 0) : trend.metric?.includes('Time') ? formatDuration(trend.current || 0) : trend.current || 0}
+- **Previous**: ${trend.metric === 'Bundle Size' ? formatBytes(trend.previous || 0) : trend.metric?.includes('Time') ? formatDuration(trend.previous || 0) : trend.previous || 0}
+- **Change**: ${(trend.change || 0) > 0 ? '+' : ''}${trend.metric === 'Bundle Size' ? formatBytes(Math.abs(trend.change || 0)) : trend.metric?.includes('Time') ? formatDuration(Math.abs(trend.change || 0)) : Math.abs(trend.change || 0)} (${(trend.changePercent || 0) > 0 ? '+' : ''}${(trend.changePercent || 0).toFixed(1)}%)
 `
         )
         .join('\n')
@@ -170,9 +182,9 @@ ${generateRecommendations(metrics, trends)}
 ## 📋 Largest Bundle Chunks
 
 ${Object.entries(metrics.bundleSize.chunks)
-  .sort(([, a], [, b]) => b - a)
+  .sort(([, a], [, b]) => (b as number) - (a as number))
   .slice(0, 10)
-  .map(([name, size]) => `- **${name}**: ${formatBytes(size)}`)
+  .map(([name, size]) => `- **${name}**: ${formatBytes(size as number)}`)
   .join('\n')}
 
 ---
@@ -189,7 +201,7 @@ function generateRecommendations(
   const recommendations: string[] = [];
 
   // Build time recommendations
-  if (metrics.buildTime > 180000) {
+  if ((metrics.buildTime as number) > 180000) {
     // 3 minutes
     recommendations.push(
       '⏰ **Build time is high** - Consider optimizing webpack configuration or reducing bundle size'
@@ -220,9 +232,9 @@ function generateRecommendations(
 
   // Trend-based recommendations
   trends.forEach(trend => {
-    if (trend.trend === 'degrading' && Math.abs(trend.changePercent) > 10) {
+    if (trend.trend === 'degrading' && Math.abs(trend.changePercent || 0) > 10) {
       recommendations.push(
-        `📉 **${trend.metric} is degrading** - Investigate recent changes that may have impacted performance`
+        `📉 **${trend.metric || 'Unknown'} is degrading** - Investigate recent changes that may have impacted performance`
       );
     }
   });

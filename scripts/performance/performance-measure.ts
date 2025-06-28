@@ -10,8 +10,8 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-import { logger } from '@lib/core/logger';
-import type { IPerformanceMetrics } from '@src/lib/types';
+import { logger } from '../../lib/core/logger';
+import type { IPerformanceMetrics } from '../../src/lib/types';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -198,6 +198,9 @@ export async function measurePerformance(): Promise<IPerformanceMetrics> {
 
     const metrics: IPerformanceMetrics = {
       timestamp: new Date().toISOString(),
+      loadTime: 0, // Placeholder - would need actual load time measurement
+      renderTime: 0, // Placeholder - would need actual render time measurement
+      memoryUsage: 0, // Placeholder - would need actual memory measurement
       buildTime,
       bundleSize,
       dependencies,

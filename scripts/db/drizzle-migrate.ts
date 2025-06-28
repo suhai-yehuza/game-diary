@@ -5,10 +5,9 @@ import fs from 'fs';
 import path from 'path';
 
 import { neon, neonConfig } from '@neondatabase/serverless';
-import { env } from '@src/lib/env';
 
-import type { IMigrationVersion } from '@/lib/types';
-import { logger } from '@lib/core/logger';
+import type { IMigrationVersion } from '../../src/lib/types';
+import { logger } from '../../lib/core/logger';
 
 const MIGRATIONS_DIR = path.join(process.cwd(), 'src/lib/db/migrations');
 
@@ -27,7 +26,7 @@ neonConfig.fetchFunction = (input: RequestInfo | URL, init?: RequestInit) => {
 };
 
 // Create a single SQL client instance for raw SQL operations
-const sqlClient = neon(env.DATABASE_URL);
+const sqlClient = neon(process.env.DATABASE_URL!);
 
 // Use the schema type for migration versions
 async function getMigrationFiles(): Promise<string[]> {

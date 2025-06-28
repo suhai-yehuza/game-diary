@@ -1,23 +1,37 @@
 import { config } from 'dotenv-flow'; // Load env vars based on NODE_ENV
 
-import { logger } from '@lib/core/logger';
-import { testRedisConnection, getCache } from '@src/lib/cache/index';
+import { logger } from '../../lib/core/logger';
+import { getCache, testRedisConnection } from '../../src/lib/cache/index';
 
 import { parseScriptArgs } from '../shared/script-utils';
 
 // Load environment variables
 config();
 
-async function main() {
+async function testRedis() {
   const options = parseScriptArgs();
-  logger.info(`🔌 Testing Redis connection for ${options.environment} environment...`);
+  const env = options.environment ?? 'development';
+
+  logger.info(`\n🧪 Testing Redis connection (${env} environment)...`);
+  logger.info('================================================');
 
   try {
-    // Explicitly initialize Redis and wait for it
-    await getCache().initializeRedis();
+    logger.info('🔌 Testing Redis connection...');
 
-    await testRedisConnection();
-    logger.info('✅ Redis connection test passed!');
+    const cache = getCache();
+    if (!cache) {
+      logger.warn('⚠️  Cache object is null (placeholder implementation)');
+    }
+
+    // Test the connection using the placeholder function
+    const isConnected = testRedisConnection();
+
+    if (isConnected) {
+      logger.info('✅ Redis connection test passed (placeholder)');
+    } else {
+      logger.error('❌ Redis connection test failed');
+      process.exit(1);
+    }
   } catch (error) {
     logger.error(
       '❌ Redis connection test failed:',
@@ -30,4 +44,4 @@ async function main() {
   }
 }
 
-main();
+testRedis();

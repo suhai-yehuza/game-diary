@@ -135,6 +135,8 @@ export interface IScriptOptions {
   dryRun?: boolean;
   runTests?: boolean;
   verbose?: boolean;
+  mode?: string; // For scripts that support different modes (e.g., 'complete', 'triggers-only', 'basic', 'full')
+  test?: boolean; // Alternative to runTests for consistency
 }
 
 export interface ITriggerSetupOptions {

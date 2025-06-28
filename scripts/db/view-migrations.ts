@@ -1,8 +1,8 @@
 import { sql } from 'drizzle-orm';
 
-import { logger } from '@lib/core/logger';
-import { db } from '@src/lib/db';
-import type { IMigrationVersion } from '@src/lib/types';
+import { logger } from '../../lib/core/logger';
+import { createDatabaseClient } from '../../src/lib/db';
+import type { IMigrationVersion } from '../../src/lib/types';
 
 import { parseScriptArgs } from '../shared/script-utils';
 
@@ -14,8 +14,10 @@ async function viewMigrations() {
   logger.info('==================');
 
   try {
+    const db = createDatabaseClient({ env });
+
     const result = await db.execute(sql`
-      SELECT 
+      SELECT
         name,
         checksum,
         executed_at,

@@ -1,7 +1,7 @@
 import type { CodegenConfig } from '@graphql-codegen/cli';
-import { loadEnvConfig } from '@next/env';
+import { config as dotenvConfig } from 'dotenv-flow';
 
-loadEnvConfig(process.cwd());
+dotenvConfig();
 
 const config: CodegenConfig = {
   schema: './src/lib/graphql/schema.graphql',
