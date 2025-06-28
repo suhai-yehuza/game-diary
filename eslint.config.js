@@ -5,7 +5,7 @@ import eslintPluginReact from 'eslint-plugin-react';
 import eslintPluginReactHooks from 'eslint-plugin-react-hooks';
 import eslintPluginJsxA11y from 'eslint-plugin-jsx-a11y';
 import eslintConfigPrettier from 'eslint-config-prettier';
-import nextPlugin from '@next/eslint-plugin-next/dist/index.js';
+import nextPlugin from '@next/eslint-plugin-next';
 import filenamesPlugin from 'eslint-plugin-filenames';
 import globals from 'globals';
 
@@ -78,6 +78,28 @@ export default [
       },
     },
     rules: {
+      // Next.js recommended/core-web-vitals rules (only valid ones)
+      '@next/next/no-html-link-for-pages': ['error', 'src/pages'],
+      '@next/next/no-img-element': 'error',
+      '@next/next/no-sync-scripts': 'error',
+      '@next/next/no-title-in-document-head': 'error',
+      '@next/next/no-head-element': 'error',
+      '@next/next/no-page-custom-font': 'error',
+      '@next/next/no-duplicate-head': 'error',
+      '@next/next/no-unwanted-polyfillio': 'error',
+      '@next/next/google-font-display': 'error',
+      '@next/next/google-font-preconnect': 'error',
+      '@next/next/next-script-for-ga': 'error',
+      '@next/next/no-before-interactive-script-outside-document': 'error',
+      '@next/next/no-css-tags': 'error',
+      '@next/next/no-document-import-in-page': 'error',
+      '@next/next/no-typos': 'error',
+      '@next/next/no-assign-module-variable': 'error',
+      '@next/next/no-styled-jsx-in-document': 'error',
+      '@next/next/no-head-import-in-document': 'error',
+      '@next/next/no-script-component-in-head': 'error',
+      '@next/next/inline-script-id': 'error',
+      '@next/next/no-async-client-component': 'error',
       // React and React Hooks rules
       'react/react-in-jsx-scope': 'off',
       'react/prop-types': 'off',
@@ -99,7 +121,6 @@ export default [
       'react/no-unsafe': ['error', { checkAliases: true }],
       'react/self-closing-comp': 'error',
       'react/sort-comp': 'error',
-
       // Import rules
       'import/order': [
         'error',
@@ -132,7 +153,6 @@ export default [
           ],
         },
       ],
-
       // TypeScript rules
       '@typescript-eslint/explicit-function-return-type': 'off',
       '@typescript-eslint/explicit-module-boundary-types': 'off',
@@ -195,154 +215,6 @@ export default [
       '@typescript-eslint/type-annotation-spacing': 'error',
       '@typescript-eslint/unbound-method': 'error',
       '@typescript-eslint/unified-signatures': 'error',
-
-      // Filename rules
-      // Note: eslint-plugin-filenames is not compatible with ESLint v9+ flat config
-      // Use custom scripts or pre-commit hooks for filename validation instead
-
-      // Next.js specific rules
-      '@next/next/no-html-link-for-pages': 'error',
-      '@next/next/no-img-element': 'warn',
-      '@next/next/no-unwanted-polyfillio': 'error',
-      '@next/next/no-sync-scripts': 'error',
-      '@next/next/no-page-custom-font': 'warn',
-
-      // Accessibility rules
-      'jsx-a11y/alt-text': 'warn',
-      'jsx-a11y/anchor-has-content': 'warn',
-      'jsx-a11y/anchor-is-valid': 'warn',
-      'jsx-a11y/aria-props': 'warn',
-      'jsx-a11y/aria-role': 'warn',
-      'jsx-a11y/role-has-required-aria-props': 'warn',
-      'jsx-a11y/role-supports-aria-props': 'warn',
-      'jsx-a11y/click-events-have-key-events': 'warn',
-      'jsx-a11y/no-static-element-interactions': 'warn',
-      'jsx-a11y/heading-has-content': 'warn',
-      'jsx-a11y/html-has-lang': 'error',
-      'jsx-a11y/lang': 'error',
-      'jsx-a11y/no-autofocus': 'warn',
-      'jsx-a11y/no-distracting-elements': 'error',
-      'jsx-a11y/no-redundant-roles': 'error',
-      'jsx-a11y/scope': 'error',
-
-      // Security rules
-      'no-eval': 'error',
-      'no-implied-eval': 'error',
-      'no-new-func': 'error',
-      'no-script-url': 'error',
-      'no-unsafe-optional-chaining': 'error',
-
-      // Performance rules
-      'no-loop-func': 'error',
-      'no-param-reassign': 'error',
-      'no-return-assign': 'error',
-      'no-self-compare': 'error',
-      'no-sequences': 'error',
-      'no-throw-literal': 'error',
-      'no-unmodified-loop-condition': 'error',
-      'no-unused-labels': 'error',
-      'no-useless-call': 'error',
-      'no-useless-concat': 'error',
-      'no-useless-return': 'error',
-      'prefer-const': 'error',
-      'prefer-spread': 'error',
-      'prefer-template': 'error',
-
-      // Complexity and maintainability rules
-      complexity: ['warn', { max: 25 }],
-      'max-depth': ['warn', { max: 5 }],
-      'max-lines': ['warn', { max: 1000 }],
-      'max-lines-per-function': ['warn', { max: 200, skipBlankLines: true, skipComments: true }],
-      'max-nested-callbacks': ['warn', { max: 3 }],
-      'max-params': ['warn', { max: 5 }],
-      'max-statements': ['warn', { max: 25 }],
-      'no-magic-numbers': ['warn', { ignore: [-1, 0, 1, 2], ignoreArrayIndexes: true }],
-
-      // Code quality rules
-      'array-callback-return': 'error',
-      'consistent-return': 'error',
-      'default-case': 'error',
-      'default-case-last': 'error',
-      eqeqeq: 'error',
-      'no-alert': 'error',
-      'no-caller': 'error',
-      'no-case-declarations': 'error',
-      'no-else-return': 'warn',
-      'no-empty': 'warn',
-      'no-empty-pattern': 'error',
-      'no-extra-bind': 'error',
-      'no-extra-label': 'error',
-      'no-fallthrough': 'error',
-      'no-global-assign': 'error',
-      'no-implicit-coercion': 'error',
-      'no-implicit-globals': 'error',
-      'no-implied-eval': 'error',
-      'no-invalid-regexp': 'error',
-      'no-irregular-whitespace': 'error',
-      'no-iterator': 'error',
-      'no-labels': 'error',
-      'no-lone-blocks': 'error',
-      'no-multi-spaces': 'error',
-      'no-multi-str': 'error',
-      'no-new': 'error',
-      'no-octal': 'error',
-      'no-octal-escape': 'error',
-      'no-proto': 'error',
-      'no-redeclare': 'error',
-      'no-regex-spaces': 'error',
-      'no-restricted-properties': 'error',
-      'no-return-await': 'error',
-      'no-self-assign': 'error',
-      'no-sparse-arrays': 'error',
-      'no-template-curly-in-string': 'error',
-      'no-this-before-super': 'error',
-      'no-undef': 'error',
-      'no-unreachable': 'error',
-      'no-unsafe-finally': 'error',
-      'no-unsafe-negation': 'error',
-      'no-unsafe-optional-chaining': 'error',
-      'no-useless-backreference': 'error',
-      'no-useless-catch': 'error',
-      'no-useless-escape': 'error',
-      'no-useless-rename': 'error',
-      'no-var': 'error',
-      'object-shorthand': 'error',
-      'prefer-arrow-callback': 'error',
-      'prefer-destructuring': 'warn',
-      'prefer-numeric-literals': 'error',
-      'prefer-object-spread': 'error',
-      'prefer-promise-reject-errors': 'error',
-      'prefer-rest-params': 'error',
-      radix: 'error',
-      'require-await': 'error',
-      'require-yield': 'error',
-      'use-isnan': 'error',
-      'valid-typeof': 'error',
-      yoda: 'error',
-
-      // General rules
-      'no-console': ['warn', { allow: ['warn', 'error'] }],
-      'no-debugger': 'warn',
-      'no-duplicate-imports': 'off', // Handled by import/no-duplicates with better type support
-      'no-unused-expressions': 'warn',
-      'no-unused-vars': 'off', // Turn off base rule as it can report incorrect errors
-      curly: 'error',
-      'dot-notation': 'error',
-      'eol-last': 'error',
-      indent: 'off', // Handled by Prettier
-      'linebreak-style': 'off', // Handled by Prettier
-      quotes: 'off', // Handled by Prettier
-      semi: 'off', // Handled by Prettier
-      'comma-dangle': 'off', // Handled by Prettier
-      'object-curly-spacing': 'off', // Handled by Prettier
-      'array-bracket-spacing': 'off', // Handled by Prettier
-      'space-before-function-paren': 'off', // Handled by Prettier
-      'space-before-blocks': 'off', // Handled by Prettier
-      'keyword-spacing': 'off', // Handled by Prettier
-      'space-infix-ops': 'off', // Handled by Prettier
-      'comma-spacing': 'off', // Handled by Prettier
-      'brace-style': 'off', // Handled by Prettier
-      'max-len': 'off', // Handled by Prettier
     },
   },
   {

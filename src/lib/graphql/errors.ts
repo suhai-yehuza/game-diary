@@ -2,7 +2,7 @@ import type { InferSelectModel } from 'drizzle-orm';
 import { GraphQLError } from 'graphql';
 
 import type { users } from '@src/lib/db/schema';
-import { RESOURCES } from '@src/lib/types';
+import { RESOURCES } from '@src/lib/types/constantTypes';
 
 // Custom Error Classes
 export class ValidationError extends GraphQLError {
@@ -87,10 +87,6 @@ export const checkFieldPermission = (
   field: string,
   resourceId?: string
 ) => {
-  if (!user) {
-    throw new AuthenticationError('Authentication required');
-  }
-
   // Admin has access to all fields
   if (user.banned) {
     throw new AuthorizationError('Account is banned');

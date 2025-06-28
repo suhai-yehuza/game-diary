@@ -105,7 +105,7 @@ function SearchBarContent() {
               autoComplete="off"
               spellCheck={false}
               ref={(input: HTMLInputElement | null) => {
-                if (isFocused) input?.focus();
+                input?.focus();
               }}
             />
           </div>
@@ -167,6 +167,144 @@ function SearchBar() {
   );
 }
 
+function NavigationLinks({
+  isActive,
+  _isMenuExpanded,
+  setIsMenuExpanded,
+  isLoaded,
+  isAdmin,
+}: {
+  isActive: (path: string) => boolean;
+  _isMenuExpanded: boolean;
+  setIsMenuExpanded: (expanded: boolean) => void;
+  isLoaded: boolean;
+  isAdmin: boolean;
+}) {
+  return (
+    <ul className="flex flex-col lg:flex-row space-y-2 lg:space-y-0 lg:space-x-20 2xl:space-x-24 p-4 lg:p-0 text-sm font-medium">
+      {/* Brand & Dashboard Group */}
+      <li className="lg:relative">
+        <Link
+          href="/dashboard"
+          className={`block py-1.5 lg:py-0 text-base lg:text-sm transition-colors whitespace-nowrap ${
+            isActive('/dashboard') ? 'text-blue-600 font-semibold' : 'hover:text-blue-600'
+          }`}
+          onClick={() => setIsMenuExpanded(false)}
+        >
+          Dashboard
+        </Link>
+        <div className="hidden lg:block absolute -right-10 2xl:-right-12 top-1/2 -translate-y-1/2 h-4 w-px bg-gray-200 dark:bg-gray-700" />
+      </li>
+
+      {/* Sports Group */}
+      <li className="lg:relative">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:space-x-4 2xl:space-x-6">
+          <Link
+            href="/sports/nba"
+            className={`block py-1.5 lg:py-0 text-base lg:text-sm transition-colors whitespace-nowrap ${
+              isActive('/sports/nba') ? 'text-blue-600 font-semibold' : 'hover:text-blue-600'
+            }`}
+            onClick={() => setIsMenuExpanded(false)}
+          >
+            NBA
+          </Link>
+          <Link
+            href="/sports/nfl"
+            className={`block py-1.5 lg:py-0 text-base lg:text-sm transition-colors whitespace-nowrap ${
+              isActive('/sports/nfl') ? 'text-blue-600 font-semibold' : 'hover:text-blue-600'
+            }`}
+            onClick={() => setIsMenuExpanded(false)}
+          >
+            NFL
+          </Link>
+          <Link
+            href="/sports/mlb"
+            className={`block py-1.5 lg:py-0 text-base lg:text-sm transition-colors whitespace-nowrap ${
+              isActive('/sports/mlb') ? 'text-blue-600 font-semibold' : 'hover:text-blue-600'
+            }`}
+            onClick={() => setIsMenuExpanded(false)}
+          >
+            MLB
+          </Link>
+          <Link
+            href="/sports/nhl"
+            className={`block py-1.5 lg:py-0 text-base lg:text-sm transition-colors whitespace-nowrap ${
+              isActive('/sports/nhl') ? 'text-blue-600 font-semibold' : 'hover:text-blue-600'
+            }`}
+            onClick={() => setIsMenuExpanded(false)}
+          >
+            NHL
+          </Link>
+          <Link
+            href="/sports/mls"
+            className={`block py-1.5 lg:py-0 text-base lg:text-sm transition-colors whitespace-nowrap ${
+              isActive('/sports/mls') ? 'text-blue-600 font-semibold' : 'hover:text-blue-600'
+            }`}
+            onClick={() => setIsMenuExpanded(false)}
+          >
+            MLS
+          </Link>
+          <Link
+            href="/sports/all-sports"
+            className={`block py-1.5 lg:py-0 text-base lg:text-sm transition-colors whitespace-nowrap ${
+              isActive('/sports/all-sports') ? 'text-blue-600 font-semibold' : 'hover:text-blue-600'
+            }`}
+            onClick={() => setIsMenuExpanded(false)}
+          >
+            All Sports
+          </Link>
+        </div>
+        <div className="hidden lg:block absolute -right-10 2xl:-right-12 top-1/2 -translate-y-1/2 h-4 w-px bg-gray-200 dark:bg-gray-700" />
+      </li>
+
+      {/* User & Admin Group */}
+      <li>
+        <div className="flex flex-col lg:flex-row lg:items-center lg:space-x-4 2xl:space-x-6">
+          <Link
+            href="/protected/user"
+            className={`block py-1.5 lg:py-0 text-base lg:text-sm transition-colors whitespace-nowrap ${
+              isActive('/protected/user') ? 'text-blue-600 font-semibold' : 'hover:text-blue-600'
+            }`}
+            onClick={() => setIsMenuExpanded(false)}
+          >
+            Profile
+          </Link>
+          <SignedIn>
+            {isLoaded && isAdmin && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    className={`flex items-center gap-1 py-1.5 lg:py-0 text-base lg:text-sm transition-colors whitespace-nowrap ${
+                      isActive('/protected/admin')
+                        ? 'text-blue-600 font-semibold'
+                        : 'hover:text-blue-600'
+                    }`}
+                  >
+                    Admin
+                    <ChevronDown className="h-3 w-3" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-48">
+                  <DropdownMenuItem asChild>
+                    <Link href="/protected/admin/experimental" className="w-full">
+                      External API
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/protected/admin/database" className="w-full">
+                      Database
+                    </Link>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+          </SignedIn>
+        </div>
+      </li>
+    </ul>
+  );
+}
+
 export function Header() {
   const [isSearchVisible, setIsSearchVisible] = useState(false);
   const [isMenuExpanded, setIsMenuExpanded] = useState(false);
@@ -180,11 +318,11 @@ export function Header() {
     return pathname === path || pathname.startsWith(`${path}/`);
   };
 
-  const emailAddress = user?.emailAddresses?.[0]?.emailAddress;
+  const emailAddress = user?.emailAddresses[0].emailAddress;
   const adminEmails = process.env.NEXT_PUBLIC_ADMIN_EMAILS
     ? process.env.NEXT_PUBLIC_ADMIN_EMAILS.split(',')
     : [];
-  const isAdmin = isLoaded && emailAddress && adminEmails.includes(emailAddress);
+  const isAdmin = Boolean(isLoaded && emailAddress && adminEmails.includes(emailAddress));
 
   return (
     <>
@@ -226,143 +364,13 @@ export function Header() {
               <div
                 className={`${!isMenuExpanded ? 'hidden' : 'block'} lg:block absolute lg:relative top-16 left-0 right-0 lg:top-0 bg-background lg:bg-transparent z-50 shadow-lg lg:shadow-none`}
               >
-                <ul className="flex flex-col lg:flex-row space-y-2 lg:space-y-0 lg:space-x-20 2xl:space-x-24 p-4 lg:p-0 text-sm font-medium">
-                  {/* Brand & Dashboard Group */}
-                  <li className="lg:relative">
-                    <Link
-                      href="/dashboard"
-                      className={`block py-1.5 lg:py-0 text-base lg:text-sm transition-colors whitespace-nowrap ${
-                        isActive('/dashboard')
-                          ? 'text-blue-600 font-semibold'
-                          : 'hover:text-blue-600'
-                      }`}
-                      onClick={() => setIsMenuExpanded(false)}
-                    >
-                      Dashboard
-                    </Link>
-                    <div className="hidden lg:block absolute -right-10 2xl:-right-12 top-1/2 -translate-y-1/2 h-4 w-px bg-gray-200 dark:bg-gray-700" />
-                  </li>
-
-                  {/* Sports Group */}
-                  <li className="lg:relative">
-                    <div className="flex flex-col lg:flex-row lg:items-center lg:space-x-4 2xl:space-x-6">
-                      <Link
-                        href="/sports/nba"
-                        className={`block py-1.5 lg:py-0 text-base lg:text-sm transition-colors whitespace-nowrap ${
-                          isActive('/sports/nba')
-                            ? 'text-blue-600 font-semibold'
-                            : 'hover:text-blue-600'
-                        }`}
-                        onClick={() => setIsMenuExpanded(false)}
-                      >
-                        NBA
-                      </Link>
-                      <Link
-                        href="/sports/nfl"
-                        className={`block py-1.5 lg:py-0 text-base lg:text-sm transition-colors whitespace-nowrap ${
-                          isActive('/sports/nfl')
-                            ? 'text-blue-600 font-semibold'
-                            : 'hover:text-blue-600'
-                        }`}
-                        onClick={() => setIsMenuExpanded(false)}
-                      >
-                        NFL
-                      </Link>
-                      <Link
-                        href="/sports/mlb"
-                        className={`block py-1.5 lg:py-0 text-base lg:text-sm transition-colors whitespace-nowrap ${
-                          isActive('/sports/mlb')
-                            ? 'text-blue-600 font-semibold'
-                            : 'hover:text-blue-600'
-                        }`}
-                        onClick={() => setIsMenuExpanded(false)}
-                      >
-                        MLB
-                      </Link>
-                      <Link
-                        href="/sports/nhl"
-                        className={`block py-1.5 lg:py-0 text-base lg:text-sm transition-colors whitespace-nowrap ${
-                          isActive('/sports/nhl')
-                            ? 'text-blue-600 font-semibold'
-                            : 'hover:text-blue-600'
-                        }`}
-                        onClick={() => setIsMenuExpanded(false)}
-                      >
-                        NHL
-                      </Link>
-                      <Link
-                        href="/sports/mls"
-                        className={`block py-1.5 lg:py-0 text-base lg:text-sm transition-colors whitespace-nowrap ${
-                          isActive('/sports/mls')
-                            ? 'text-blue-600 font-semibold'
-                            : 'hover:text-blue-600'
-                        }`}
-                        onClick={() => setIsMenuExpanded(false)}
-                      >
-                        MLS
-                      </Link>
-                      <Link
-                        href="/sports/all-sports"
-                        className={`block py-1.5 lg:py-0 text-base lg:text-sm transition-colors whitespace-nowrap ${
-                          isActive('/sports/all-sports')
-                            ? 'text-blue-600 font-semibold'
-                            : 'hover:text-blue-600'
-                        }`}
-                        onClick={() => setIsMenuExpanded(false)}
-                      >
-                        All Sports
-                      </Link>
-                    </div>
-                    <div className="hidden lg:block absolute -right-10 2xl:-right-12 top-1/2 -translate-y-1/2 h-4 w-px bg-gray-200 dark:bg-gray-700" />
-                  </li>
-
-                  {/* User & Admin Group */}
-                  <li>
-                    <div className="flex flex-col lg:flex-row lg:items-center lg:space-x-4 2xl:space-x-6">
-                      <Link
-                        href="/protected/user"
-                        className={`block py-1.5 lg:py-0 text-base lg:text-sm transition-colors whitespace-nowrap ${
-                          isActive('/protected/user')
-                            ? 'text-blue-600 font-semibold'
-                            : 'hover:text-blue-600'
-                        }`}
-                        onClick={() => setIsMenuExpanded(false)}
-                      >
-                        Profile
-                      </Link>
-                      <SignedIn>
-                        {isLoaded && isAdmin && (
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <button
-                                className={`flex items-center gap-1 py-1.5 lg:py-0 text-base lg:text-sm transition-colors whitespace-nowrap ${
-                                  isActive('/protected/admin')
-                                    ? 'text-blue-600 font-semibold'
-                                    : 'hover:text-blue-600'
-                                }`}
-                              >
-                                Admin
-                                <ChevronDown className="h-3 w-3" />
-                              </button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="start" className="w-48">
-                              <DropdownMenuItem asChild>
-                                <Link href="/protected/admin/experimental" className="w-full">
-                                  External API
-                                </Link>
-                              </DropdownMenuItem>
-                              <DropdownMenuItem asChild>
-                                <Link href="/protected/admin/database" className="w-full">
-                                  Database
-                                </Link>
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        )}
-                      </SignedIn>
-                    </div>
-                  </li>
-                </ul>
+                <NavigationLinks
+                  isActive={isActive}
+                  _isMenuExpanded={isMenuExpanded}
+                  setIsMenuExpanded={setIsMenuExpanded}
+                  isLoaded={isLoaded}
+                  isAdmin={isAdmin}
+                />
               </div>
             </div>
           </nav>
@@ -414,10 +422,27 @@ export function Header() {
           <div
             className="fixed inset-0 z-50 flex items-start justify-center bg-black/40 sm:hidden"
             onClick={() => setIsSearchVisible(false)}
+            onKeyDown={e => {
+              if (e.key === 'Escape') {
+                setIsSearchVisible(false);
+              }
+            }}
+            role="button"
+            tabIndex={0}
+            aria-label="Close search overlay"
           >
             <div
               className="mt-8 w-full max-w-md bg-background rounded-full border border-[#27272a] shadow-lg flex items-center px-4 py-2 relative"
               onClick={e => e.stopPropagation()}
+              onKeyDown={e => {
+                if (e.key === 'Escape') {
+                  e.stopPropagation();
+                  setIsSearchVisible(false);
+                }
+              }}
+              role="button"
+              tabIndex={0}
+              aria-label="Search container"
             >
               <SearchBar />
               <button

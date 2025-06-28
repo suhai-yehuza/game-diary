@@ -177,7 +177,6 @@ function AdminDatabaseContent() {
   const renderTable = (tableName: string) => {
     const config = tableConfigs[tableName as keyof typeof tableConfigs];
     const tableData = data[tableName] || [];
-    const hasData = tableData.length > 0;
 
     return (
       <Card>
@@ -209,32 +208,45 @@ function AdminDatabaseContent() {
             </div>
           )}
 
-          {hasData ? (
-            <div className="space-y-4">
-              <div className="flex items-center gap-2">
-                <Badge variant="secondary">{tableData.length} records</Badge>
-                <span className="text-sm text-muted-foreground">
-                  Last updated: {new Date().toLocaleTimeString()}
-                </span>
-              </div>
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <Badge variant="secondary">{tableData.length} records</Badge>
+              <span className="text-sm text-muted-foreground">
+                Last updated: {new Date().toLocaleTimeString()}
+              </span>
+            </div>
 
-              <div className="h-96 w-full border rounded-md">
-                <div className="p-4">
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className="border-b">
-                          {config.fields.map(field => (
-                            <th key={field} className="text-left p-2 font-medium">
-                              {field
-                                .replace(/([A-Z])/g, ' $1')
-                                .replace(/^./, str => str.toUpperCase())}
-                            </th>
-                          ))}
+            <div className="h-96 w-full border rounded-md">
+              <div className="p-4">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b">
+                        {config.fields.map(field => (
+                          <th key={field} className="text-left p-2 font-medium">
+                            {field
+                              .replace(/([A-Z])/g, ' $1')
+                              .replace(/^./, str => str.toUpperCase())}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {tableData.length === 0 ? (
+                        <tr>
+                          <td
+                            colSpan={config.fields.length}
+                            className="text-center py-8 text-muted-foreground"
+                          >
+                            <Database className="mx-auto h-12 w-12 mb-4 opacity-50" />
+                            <p>
+                              No data loaded. Click &quot;Fetch Data&quot; to load{' '}
+                              {config.title.toLowerCase()}.
+                            </p>
+                          </td>
                         </tr>
-                      </thead>
-                      <tbody>
-                        {tableData.slice(0, TABLE_DISPLAY_LIMIT).map((row, index) => (
+                      ) : (
+                        tableData.slice(0, TABLE_DISPLAY_LIMIT).map((row, index) => (
                           <tr
                             key={
                               typeof row.id === 'string' || typeof row.id === 'number'
@@ -254,26 +266,19 @@ function AdminDatabaseContent() {
                               </td>
                             ))}
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                  {tableData.length > TABLE_DISPLAY_LIMIT && (
-                    <div className="mt-4 text-center text-sm text-muted-foreground">
-                      Showing first {TABLE_DISPLAY_LIMIT} of {tableData.length} records
-                    </div>
-                  )}
+                        ))
+                      )}
+                    </tbody>
+                  </table>
                 </div>
+                {tableData.length > 0 && (
+                  <div className="mt-4 text-center text-sm text-muted-foreground">
+                    Showing first {TABLE_DISPLAY_LIMIT} of {tableData.length} records
+                  </div>
+                )}
               </div>
             </div>
-          ) : (
-            <div className="text-center py-8 text-muted-foreground">
-              <Database className="mx-auto h-12 w-12 mb-4 opacity-50" />
-              <p>
-                No data loaded. Click &quot;Fetch Data&quot; to load {config.title.toLowerCase()}.
-              </p>
-            </div>
-          )}
+          </div>
         </CardContent>
       </Card>
     );

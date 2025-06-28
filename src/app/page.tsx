@@ -7,9 +7,7 @@ import React from 'react';
 
 import { useMounted } from '@/hooks/use-mounted';
 
-export const dynamic = 'force-dynamic';
-
-export default function HomePage() {
+export function HomePage() {
   const { isLoaded, isSignedIn } = useUser();
   const mounted = useMounted();
 

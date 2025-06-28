@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 
 import { MOCK_LIVE_GAMES } from '@/lib/mock/liveGamesMock';
 import type { IGamesApiResponse, IRapidAPIConfig } from '@/lib/types/externalApiTypes';
@@ -26,7 +26,7 @@ export function LiveGamesDetail({ rapidApiConfig }: { rapidApiConfig: IRapidAPIC
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchLiveGames = async () => {
+  const fetchLiveGames = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -54,7 +54,7 @@ export function LiveGamesDetail({ rapidApiConfig }: { rapidApiConfig: IRapidAPIC
     } finally {
       setLoading(false);
     }
-  };
+  }, [rapidApiConfig]);
 
   useEffect(() => {
     void fetchLiveGames();
@@ -65,7 +65,7 @@ export function LiveGamesDetail({ rapidApiConfig }: { rapidApiConfig: IRapidAPIC
     }, REFRESH_INTERVAL_MS);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [fetchLiveGames]);
 
   if (loading) {
     return (
