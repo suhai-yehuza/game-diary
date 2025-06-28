@@ -2,14 +2,14 @@ import 'dotenv-flow/config';
 
 import { sql } from 'drizzle-orm';
 
-import { logger } from '@lib/core/logger';
-import { createDatabaseClient } from '@src/lib/db';
+import { logger } from '../../lib/core/logger';
+import { createDatabaseClient, testConnection } from '../../src/lib/db';
 
 import { parseScriptArgs } from '../shared/script-utils';
 
-async function testConnection() {
+async function testBasicConnection() {
   try {
-    logger.info('🔌 Testing database connection...');
+    logger.info('🔌 Testing basic database connection...');
 
     const options = parseScriptArgs();
     const db = createDatabaseClient({ env: options.environment });
@@ -23,6 +23,12 @@ async function testConnection() {
     logger.info('✅ Database connection successful!');
     logger.info('Current time:', result.rows[0]?.current_time);
     logger.info('Database version:', result.rows[0]?.db_version);
+
+    // Test a simple query (from test-neon-postgres.ts)
+    const simpleResult = (await db.execute(sql`SELECT NOW() as current_time`)) as unknown as {
+      rows: Array<{ current_time: Date }>;
+    };
+    logger.info('✅ Query test passed! Current time:', simpleResult.rows[0].current_time);
 
     return db;
   } catch (error) {
@@ -136,20 +142,30 @@ async function testErrorRecovery() {
 
 async function main() {
   try {
-    await testConnection();
-    await testConnectionStability();
-    await testErrorRecovery();
+    const options = parseScriptArgs();
+    const mode = options.mode ?? 'full'; // 'basic' | 'full'
 
-    logger.info('\n🎉 All database tests passed successfully!');
-    logger.info('\n💡 Your database seeding should now be more stable with:');
-    logger.info('   - Reduced batch sizes (15 items per batch)');
-    logger.info('   - Enhanced retry logic with exponential backoff');
-    logger.info('   - Better network error detection and handling');
-    logger.info('   - Connection stability improvements');
-    logger.info('   - 30-second connection timeout');
-    logger.info('   - Connection keep-alive enabled');
+    if (mode === 'basic') {
+      // Basic connection test only (from test-neon-postgres.ts)
+      await testBasicConnection();
+      logger.info('✅ Basic database tests passed successfully!');
+    } else {
+      // Full comprehensive test suite
+      await testBasicConnection();
+      await testConnectionStability();
+      await testErrorRecovery();
 
-    logger.info('\n🚀 Try running your seeder again - it should be much more stable now!');
+      logger.info('\n🎉 All database tests passed successfully!');
+      logger.info('\n💡 Your database seeding should now be more stable with:');
+      logger.info('   - Reduced batch sizes (15 items per batch)');
+      logger.info('   - Enhanced retry logic with exponential backoff');
+      logger.info('   - Better network error detection and handling');
+      logger.info('   - Connection stability improvements');
+      logger.info('   - 30-second connection timeout');
+      logger.info('   - Connection keep-alive enabled');
+
+      logger.info('\n🚀 Try running your seeder again - it should be much more stable now!');
+    }
   } catch (error) {
     logger.error(
       '\n❌ Database tests failed:',
