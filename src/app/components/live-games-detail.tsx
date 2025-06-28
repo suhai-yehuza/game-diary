@@ -4,7 +4,7 @@ import Image from 'next/image';
 import { useEffect, useState } from 'react';
 
 import { MOCK_LIVE_GAMES } from '@/lib/mock/live-games.mock';
-import type { IGamesApiResponse } from '@/lib/types/external.api.types';
+import type { IGamesApiResponse, IRapidAPIConfig } from '@/lib/types/external.api.types';
 import { createRapidAPIClient } from '@/lib/utils/api-client';
 import { API_CONFIG } from '@src/lib/config/api.config';
 
@@ -21,7 +21,7 @@ function isGamesApiResponse(data: unknown): data is IGamesApiResponse {
   );
 }
 
-export function LiveGamesDetail() {
+export function LiveGamesDetail({ rapidApiConfig }: { rapidApiConfig: IRapidAPIConfig }) {
   const [liveGames, setLiveGames] = useState<IGamesApiResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -31,7 +31,7 @@ export function LiveGamesDetail() {
       setLoading(true);
       setError(null);
 
-      const client = createRapidAPIClient();
+      const client = createRapidAPIClient(rapidApiConfig);
       const data = await client.fetch<IGamesApiResponse | unknown>(API_CONFIG.endpoints.GAMES, {
         live: 'all',
       });

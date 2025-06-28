@@ -1,6 +1,8 @@
 import { LiveGamesDetail } from '@src/app/components/live-games-detail';
+import { getRapidApiConfig } from '@src/lib/config/api.config';
 
 export function LiveGamesPage() {
+  const rapidApiConfig = getRapidApiConfig();
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-6">
@@ -10,8 +12,9 @@ export function LiveGamesPage() {
         </p>
       </div>
 
-      <LiveGamesDetail />
+      <LiveGamesDetail rapidApiConfig={rapidApiConfig} />
     </div>
   );
 }
+
 export default LiveGamesPage;

@@ -5,9 +5,11 @@ import Link from 'next/link';
 import React from 'react';
 
 import { LiveGamesDetail } from '@src/app/components/live-games-detail';
+import { getRapidApiConfig } from '@src/lib/config/api.config';
 
 export function NBAPage() {
   const { isLoaded, isSignedIn, user } = useUser();
+  const rapidApiConfig = getRapidApiConfig();
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -42,7 +44,7 @@ export function NBAPage() {
             </p>
           </div>
 
-          <LiveGamesDetail />
+          <LiveGamesDetail rapidApiConfig={rapidApiConfig} />
         </div>
       ) : (
         <div className="text-center py-12">
@@ -52,7 +54,7 @@ export function NBAPage() {
           </p>
           <Link
             href="/sign-in"
-            className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+            className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
             Sign In
           </Link>

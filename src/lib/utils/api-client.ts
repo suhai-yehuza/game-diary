@@ -1,8 +1,6 @@
-import { getRapidApiConfig } from '@/lib/config/api.config';
+import type { IRapidAPIConfig } from '@/lib/types/external.api.types';
 
-export const createRapidAPIClient = () => {
-  const config = getRapidApiConfig();
-
+export const createRapidAPIClient = (config: IRapidAPIConfig) => {
   return {
     async fetch<T>(
       endpoint: Readonly<string>,

@@ -1,14 +1,15 @@
 import { useState, useCallback } from 'react';
 
+import type { IRapidAPIConfig } from '@/lib/types/external.api.types';
 import { createRapidAPIClient } from '@/lib/utils/api-client';
 
 // API fetch hook
-export const useApiFetch = () => {
+export const useApiFetch = (rapidApiConfig: IRapidAPIConfig) => {
   const [data, setData] = useState<unknown>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const client = createRapidAPIClient();
+  const client = createRapidAPIClient(rapidApiConfig);
 
   const handleFetch = useCallback(
     async (

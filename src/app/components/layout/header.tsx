@@ -9,7 +9,6 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import React, { useState, useEffect, useRef, Suspense } from 'react';
 
 import { ThemeToggle } from '@/app/components/common/theme-toggle';
-import { LiveGamesBanner } from '@/app/components/live-games-banner';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -502,7 +501,6 @@ export function Header() {
 
   return (
     <>
-      <LiveGamesBanner />
       <header className="w-full border-b lg:border-b">
         <div className="flex h-16 items-center justify-between w-full">
           <div className="pl-10">

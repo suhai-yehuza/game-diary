@@ -7,6 +7,7 @@ import type {
   IClassificationWeights,
   IPaginationConfig,
   IDistributionFunctions,
+  IRapidAPIConfig,
 } from '@src/lib/types';
 
 const BASE_MULTIPLIER = 10;
@@ -26,9 +27,11 @@ const RATE_LIMIT_MIN_DELAY = -2;
 
 // Environment validation schema
 const envSchema = z.object({
-  RAPIDAPI_KEY: z.string().min(1, 'RAPIDAPI_KEY is required'),
-  RAPIDAPI_HOST: z.string().min(1, 'RAPIDAPI_HOST is required'),
-  RAPIDAPI_BASE_URL: z.string().url('RAPIDAPI_BASE_URL must be a valid URL'),
+  NEXT_PUBLIC_RAPID_API_KEY: z.string().min(1, 'NEXT_PUBLIC_RAPID_API_KEY is required'),
+  NEXT_PUBLIC_RAPID_API_HOST: z.string().min(1, 'NEXT_PUBLIC_RAPID_API_HOST is required'),
+  NEXT_PUBLIC_RAPID_API_BASE_URL: z
+    .string()
+    .url('NEXT_PUBLIC_RAPID_API_BASE_URL must be a valid URL'),
 });
 
 export function validateAPIKey(key: string | undefined): string {
@@ -60,7 +63,7 @@ const distributions: IDistributionFunctions = {
 
 // API Configuration
 export const API_CONFIG = {
-  baseUrl: process.env.RAPIDAPI_BASE_URL ?? 'https://api-sports.io/v1',
+  baseUrl: process.env.NEXT_PUBLIC_RAPID_API_BASE_URL ?? 'https://api-sports.io/v1',
   timeout: DEFAULT_TIMEOUT_MS,
   retryAttempts: DEFAULT_RETRY_ATTEMPTS,
   retryDelay: DEFAULT_TIMEOUT_MS,
@@ -187,14 +190,20 @@ export const API_CONFIG = {
   } as const satisfies IPaginationConfig,
 } as const;
 
-export function getRapidApiConfig() {
+export function getRapidApiConfig(): IRapidAPIConfig {
   const env = envSchema.parse(process.env);
 
   return {
-    baseUrl: env.RAPIDAPI_BASE_URL,
+    baseUrl: env.NEXT_PUBLIC_RAPID_API_BASE_URL,
+    apiKey: env.NEXT_PUBLIC_RAPID_API_KEY,
+    host: env.NEXT_PUBLIC_RAPID_API_HOST,
+    endpoints: API_CONFIG.endpoints,
     headers: {
-      'X-RapidAPI-Key': env.RAPIDAPI_KEY,
-      'X-RapidAPI-Host': env.RAPIDAPI_HOST,
+      'X-RapidAPI-Key': env.NEXT_PUBLIC_RAPID_API_KEY,
+      'X-RapidAPI-Host': env.NEXT_PUBLIC_RAPID_API_HOST,
     },
+    timeout: API_CONFIG.timeout ?? 10000,
+    retries: API_CONFIG.retryAttempts ?? 3,
+    cacheTTL: 60, // Set a default cache TTL (seconds) or use from config if available
   };
 }
