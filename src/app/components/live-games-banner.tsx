@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { useEffect, useState, useCallback } from 'react';
 
+import { INTERNAL_PROXY_ENDPOINTS } from '@/lib/config/api.config';
 import { MOCK_LIVE_GAMES } from '@/lib/mock/live-games.mock';
 import type { IGamesApiResponse } from '@/lib/types/external.api.types';
 
@@ -24,7 +25,7 @@ export function LiveGamesBanner() {
   const fetchLiveGames = useCallback(async () => {
     try {
       // Use the server-side API route instead of calling external API directly
-      const response = await fetch('/api/live-games?live=all');
+      const response = await fetch(`${INTERNAL_PROXY_ENDPOINTS.GAMES}?live=all`);
 
       if (!response.ok) {
         throw new Error(`API request failed: ${response.status} ${response.statusText}`);

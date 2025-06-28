@@ -2,7 +2,7 @@
 
 import React, { useEffect } from 'react';
 
-import { getRapidApiConfig } from '../../../../lib/config/api.config';
+import { API_CONFIG } from '../../../../lib/config/api.config';
 
 import {
   Button,
@@ -59,7 +59,9 @@ function SimpleEndpoints({
   if (!['seasons', 'leagues'].includes(selectedTab)) return null;
 
   const handleClick = () => {
-    void handleFetch(selectedTab, {});
+    const endpoint =
+      selectedTab === 'seasons' ? API_CONFIG.endpoints.SEASONS : API_CONFIG.endpoints.LEAGUES;
+    void handleFetch(endpoint, {});
   };
 
   return (
@@ -301,7 +303,8 @@ function PlayersSection({
 }
 
 function AdminExperimentalContent() {
-  const { data, loading, error, handleFetch } = useApiFetch(getRapidApiConfig());
+  // const rapidApiConfig = useMemo(() => getRapidApiConfig(), []);
+  const { data, loading, error, handleFetch } = useApiFetch();
   const {
     gameParams,
     setGameParams,
@@ -332,43 +335,43 @@ function AdminExperimentalContent() {
   // Form handlers
   const handleFetchGames = (e: React.FormEvent) => {
     e.preventDefault();
-    void handleFetch('games', gameParams);
+    void handleFetch(API_CONFIG.endpoints.GAMES, gameParams);
   };
 
   const handleFetchGameStats = (e: React.FormEvent) => {
     e.preventDefault();
-    void handleFetch('games/statistics', { id: gameStatsId }, ['id']);
+    void handleFetch(API_CONFIG.endpoints.GAME_STATISTICS, { id: gameStatsId }, ['id']);
   };
 
   const handleFetchTeams = (e: React.FormEvent) => {
     e.preventDefault();
-    void handleFetch('teams', teamParams);
+    void handleFetch(API_CONFIG.endpoints.TEAMS, teamParams);
   };
 
   const handleFetchTeamStats = (e: React.FormEvent) => {
     e.preventDefault();
-    void handleFetch('teams/statistics', teamStatsParams, ['id', 'season']);
+    void handleFetch(API_CONFIG.endpoints.TEAM_STATISTICS, teamStatsParams, ['id', 'season']);
   };
 
   const handleFetchPlayers = (e: React.FormEvent) => {
     e.preventDefault();
-    void handleFetch('players', playerParams);
+    void handleFetch(API_CONFIG.endpoints.PLAYERS, playerParams);
   };
 
   const handleFetchPlayerStats = (e: React.FormEvent) => {
     e.preventDefault();
-    void handleFetch('players/statistics', playerStatsParams);
+    void handleFetch(API_CONFIG.endpoints.PLAYER_STATISTICS, playerStatsParams);
   };
 
   const handleFetchStandings = (e: React.FormEvent) => {
     e.preventDefault();
-    void handleFetch('standings', standingsParams, ['league', 'season']);
+    void handleFetch(API_CONFIG.endpoints.STANDINGS, standingsParams, ['league', 'season']);
   };
 
   // Auto-fetch seasons on mount
   useEffect(() => {
     const fetchData = async () => {
-      await handleFetch('seasons', {});
+      await handleFetch(API_CONFIG.endpoints.SEASONS, {});
     };
     void fetchData();
   }, [handleFetch]);
@@ -380,6 +383,13 @@ function AdminExperimentalContent() {
       <NavigationTabs selectedTab={selectedTab} setSelectedTab={setSelectedTab} />
 
       <SimpleEndpoints selectedTab={selectedTab} loading={loading} handleFetch={handleFetch} />
+
+      {/* Show error if present */}
+      {error && (
+        <div className="my-4 p-4 bg-red-100 text-red-800 border border-red-300 rounded">
+          <strong>Error:</strong> {error}
+        </div>
+      )}
 
       {selectedTab === 'games' && (
         <GamesSection

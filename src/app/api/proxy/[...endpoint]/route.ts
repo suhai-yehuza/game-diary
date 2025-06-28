@@ -3,18 +3,22 @@ import { NextResponse } from 'next/server';
 
 import { getRapidApiConfig } from '@src/lib/config/api.config';
 
-export async function GET(request: Readonly<NextRequest>) {
+export async function GET(
+  request: Readonly<NextRequest>,
+  { params }: { readonly params: Promise<{ readonly endpoint: readonly string[] }> }
+) {
   try {
     const rapidApiConfig = getRapidApiConfig();
-    const { searchParams } = new URL(request.url);
+    const resolvedParams = await params;
+    const endpointPath = `/${resolvedParams.endpoint.join('/')}`;
+    const apiUrl = new URL(endpointPath, rapidApiConfig.baseUrl);
 
-    // Build the API URL with query parameters
-    const apiUrl = new URL('/games', rapidApiConfig.baseUrl);
+    // Forward query params
+    const { searchParams } = new URL(request.url);
     searchParams.forEach((value, key) => {
       apiUrl.searchParams.append(key, value);
     });
 
-    // Make the request from server-side
     const response = await fetch(apiUrl.toString(), {
       method: 'GET',
       headers: {
@@ -24,15 +28,9 @@ export async function GET(request: Readonly<NextRequest>) {
       },
     });
 
-    if (!response.ok) {
-      throw new Error(`API request failed: ${response.status} ${response.statusText}`);
-    }
-
-    const data = (await response.json()) as unknown;
-
-    return NextResponse.json(data);
+    const data: unknown = await response.json();
+    return NextResponse.json(data, { status: response.status });
   } catch (error) {
-    console.error('Live games API error:', error);
-    return NextResponse.json({ error: 'Failed to fetch live games' }, { status: 500 });
+    return NextResponse.json({ error: (error as Error).message }, { status: 500 });
   }
 }

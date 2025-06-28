@@ -63,7 +63,7 @@ const distributions: IDistributionFunctions = {
 
 // API Configuration
 export const API_CONFIG = {
-  baseUrl: process.env.NEXT_PUBLIC_RAPID_API_BASE_URL ?? 'https://api-sports.io/v1',
+  baseUrl: process.env.NEXT_PUBLIC_RAPID_API_BASE_URL ?? 'http://v2.nba.api-sports.io',
   timeout: DEFAULT_TIMEOUT_MS,
   retryAttempts: DEFAULT_RETRY_ATTEMPTS,
   retryDelay: DEFAULT_TIMEOUT_MS,
@@ -197,8 +197,11 @@ export function getRapidApiConfig(): IRapidAPIConfig {
     NEXT_PUBLIC_RAPID_API_BASE_URL: process.env.NEXT_PUBLIC_RAPID_API_BASE_URL,
   });
 
+  // Ensure base URL doesn't have trailing slash to avoid double slashes
+  const baseUrl = env.NEXT_PUBLIC_RAPID_API_BASE_URL.replace(/\/$/, '');
+
   return {
-    baseUrl: env.NEXT_PUBLIC_RAPID_API_BASE_URL,
+    baseUrl,
     apiKey: env.NEXT_PUBLIC_RAPID_API_KEY,
     host: env.NEXT_PUBLIC_RAPID_API_HOST,
     endpoints: API_CONFIG.endpoints,
@@ -211,3 +214,8 @@ export function getRapidApiConfig(): IRapidAPIConfig {
     cacheTTL: 300000, // 5 minutes in milliseconds
   };
 }
+
+export const INTERNAL_PROXY_ENDPOINTS = {
+  GAMES: '/api/proxy/games',
+  // Add more as needed
+};

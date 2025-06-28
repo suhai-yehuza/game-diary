@@ -1,15 +1,10 @@
 import { useState, useCallback } from 'react';
 
-import type { IRapidAPIConfig } from '@/lib/types/external.api.types';
-import { createRapidAPIClient } from '@/lib/utils/api-client';
-
 // API fetch hook
-export const useApiFetch = (rapidApiConfig: IRapidAPIConfig) => {
+export const useApiFetch = () => {
   const [data, setData] = useState<unknown>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  const client = createRapidAPIClient(rapidApiConfig);
 
   const handleFetch = useCallback(
     async (
@@ -24,18 +19,34 @@ export const useApiFetch = (rapidApiConfig: IRapidAPIConfig) => {
         return;
       }
 
-      // Check if at least one parameter is provided
-      const hasAnyParam = Object.values(params).some(value => value.trim() !== '');
-      if (!hasAnyParam) {
-        setError('At least one parameter is required');
-        return;
+      // Only require at least one parameter for endpoints that need it
+      if (!endpoint.endsWith('/seasons') && !endpoint.endsWith('/leagues')) {
+        const hasAnyParam = Object.values(params).some(value => value.trim() !== '');
+        if (!hasAnyParam) {
+          setError('At least one parameter is required');
+          return;
+        }
       }
 
       setLoading(true);
       setError(null);
 
       try {
-        const result = await client.fetch(endpoint, params);
+        // Build query string
+        const url = new URL(`/api/proxy${endpoint}`, window.location.origin);
+        Object.entries(params).forEach(([key, value]) => {
+          if (value && value.trim() !== '') {
+            url.searchParams.append(key, value);
+          }
+        });
+        const response = await fetch(url.toString(), {
+          method: 'GET',
+        });
+        if (!response.ok) {
+          throw new Error(`API request failed: ${response.status} ${response.statusText}`);
+        }
+        // Use unknown and type guard for result
+        const result: unknown = await response.json();
         setData(result);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'An error occurred');
@@ -43,7 +54,7 @@ export const useApiFetch = (rapidApiConfig: IRapidAPIConfig) => {
         setLoading(false);
       }
     },
-    [client]
+    []
   );
 
   return { data, loading, error, handleFetch };
@@ -51,7 +62,7 @@ export const useApiFetch = (rapidApiConfig: IRapidAPIConfig) => {
 
 // Form state hook
 export const useFormState = () => {
-  const [gameParams, setGameParams] = useState<Record<string, string>>({
+  const [gameParams, setGameParams] = useState<Readonly<Record<string, string>>>({
     id: '',
     date: '',
     season: '',
@@ -62,7 +73,7 @@ export const useFormState = () => {
 
   const [gameStatsId, setGameStatsId] = useState<string>('');
 
-  const [teamParams, setTeamParams] = useState<Record<string, string>>({
+  const [teamParams, setTeamParams] = useState<Readonly<Record<string, string>>>({
     id: '',
     name: '',
     code: '',
@@ -72,13 +83,13 @@ export const useFormState = () => {
     search: '',
   });
 
-  const [teamStatsParams, setTeamStatsParams] = useState<Record<string, string>>({
+  const [teamStatsParams, setTeamStatsParams] = useState<Readonly<Record<string, string>>>({
     id: '',
     season: '',
     stage: '',
   });
 
-  const [playerParams, setPlayerParams] = useState<Record<string, string>>({
+  const [playerParams, setPlayerParams] = useState<Readonly<Record<string, string>>>({
     id: '',
     name: '',
     team: '',
@@ -87,14 +98,14 @@ export const useFormState = () => {
     search: '',
   });
 
-  const [playerStatsParams, setPlayerStatsParams] = useState<Record<string, string>>({
+  const [playerStatsParams, setPlayerStatsParams] = useState<Readonly<Record<string, string>>>({
     id: '',
     game: '',
     team: '',
     season: '',
   });
 
-  const [standingsParams, setStandingsParams] = useState<Record<string, string>>({
+  const [standingsParams, setStandingsParams] = useState<Readonly<Record<string, string>>>({
     league: '',
     season: '',
     team: '',
