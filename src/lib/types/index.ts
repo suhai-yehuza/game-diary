@@ -12,11 +12,8 @@ export * from './external.api.types';
 // UI types (toasts, notifications, charts)
 export * from './ui.types';
 
-// Social types
-export * from './social.types';
-
 // Constant types
 export * from './constant.types';
 
 // Generated types
-// export * from './generated/graphql'; // Commented out if file does not exist
+export * from './generated/graphql';

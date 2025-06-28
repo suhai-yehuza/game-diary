@@ -16,9 +16,6 @@ import type React from 'react';
 
 declare global {
   type IEmptyObject = Record<string, never>;
-  interface IGlobalThis {
-    gc?: () => void;
-  }
 }
 
 // ========================================

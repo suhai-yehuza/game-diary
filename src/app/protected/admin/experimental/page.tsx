@@ -23,7 +23,7 @@ const createRapidAPIClient = () => {
       const url = new URL(`${config.baseUrl}${endpoint}`);
 
       // Add query parameters
-      Object.entries(params).forEach(([key, value]) => {
+      Object.entries(params).forEach(([key, value]: Readonly<[string, string]>) => {
         if (value && value.trim() !== '') {
           url.searchParams.append(key, value);
         }
@@ -251,9 +251,9 @@ function AdminExperimentalContent() {
   }, [user, isLoaded, router]);
 
   const handleFetch = async (
-    endpoint: string,
-    params: Record<string, string>,
-    requiredParams: string[] = []
+    endpoint: Readonly<string>,
+    params: Readonly<Record<string, string>>,
+    requiredParams: ReadonlyArray<string> = []
   ) => {
     setLoading(true);
     setError(null);
@@ -328,31 +328,31 @@ function AdminExperimentalContent() {
     }
   };
 
-  const handleFetchGames = (e: FormEvent) => {
+  const handleFetchGames = (e: Readonly<FormEvent>) => {
     e.preventDefault();
     void handleFetch(API_CONFIG.endpoints.GAMES, gameParams);
   };
-  const handleFetchGameStats = (e: FormEvent) => {
+  const handleFetchGameStats = (e: Readonly<FormEvent>) => {
     e.preventDefault();
     void handleFetch(API_CONFIG.endpoints.GAME_STATISTICS, { id: gameStatsId }, ['id']);
   };
-  const handleFetchTeams = (e: FormEvent) => {
+  const handleFetchTeams = (e: Readonly<FormEvent>) => {
     e.preventDefault();
     void handleFetch(API_CONFIG.endpoints.TEAMS, teamParams);
   };
-  const handleFetchTeamStats = (e: FormEvent) => {
+  const handleFetchTeamStats = (e: Readonly<FormEvent>) => {
     e.preventDefault();
     void handleFetch(API_CONFIG.endpoints.TEAM_STATISTICS, teamStatsParams, ['id', 'season']);
   };
-  const handleFetchPlayers = (e: FormEvent) => {
+  const handleFetchPlayers = (e: Readonly<FormEvent>) => {
     e.preventDefault();
     void handleFetch(API_CONFIG.endpoints.PLAYERS, playerParams);
   };
-  const handleFetchPlayerStats = (e: FormEvent) => {
+  const handleFetchPlayerStats = (e: Readonly<FormEvent>) => {
     e.preventDefault();
     void handleFetch(API_CONFIG.endpoints.PLAYER_STATISTICS, playerStatsParams);
   };
-  const handleFetchStandings = (e: FormEvent) => {
+  const handleFetchStandings = (e: Readonly<FormEvent>) => {
     e.preventDefault();
     void handleFetch(API_CONFIG.endpoints.STANDINGS, standingsParams, ['league', 'season']);
   };

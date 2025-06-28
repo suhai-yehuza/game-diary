@@ -245,7 +245,8 @@ export type IsTypeOfResolverFn<T = object, TContext = object> = (
   info: GraphQLResolveInfo
 ) => boolean | Promise<boolean>;
 
-export type NextResolverFn<T> = () => Promise<T>;
+export type NextResolverFn<T> = (args: Readonly<T>) => Promise<T>;
+export type MiddlewareFn<T> = (context: Readonly<T>, next: () => Promise<void>) => Promise<void>;
 
 export type DirectiveResolverFn<
   TResult = object,

@@ -108,6 +108,7 @@ export interface IValidationResult {
 export interface IValidationRule {
   validate: (value: Readonly<unknown>) => boolean;
   message: string;
+  mapResponse?: (response: Readonly<unknown>) => Readonly<unknown>;
 }
 
 // ========================================
