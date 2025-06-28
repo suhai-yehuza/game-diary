@@ -3,7 +3,7 @@ import * as path from 'path';
 import * as dotenv from 'dotenv';
 
 import { logger } from '@lib/core/logger';
-import { envSchema, buildEnvSchema } from '@src/lib/validations/env';
+import { envSchema } from '@src/lib/validations/env';
 
 import { parseScriptArgs } from '../shared/script-utils';
 
@@ -53,9 +53,8 @@ function verifyEnvironment(envFile?: string, isBuildTime = false) {
       }
     }
 
-    // Choose schema based on validation type
-    const schema = isBuildTime ? buildEnvSchema : envSchema;
-    const env = schema.parse(process.env);
+    // Use the single comprehensive schema for all validation
+    const env = envSchema.parse(process.env);
 
     if (isBuildTime) {
       logger.info('✅ All required build-time environment variables are present and valid');
