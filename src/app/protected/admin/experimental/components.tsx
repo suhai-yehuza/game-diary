@@ -3,17 +3,18 @@
 import type { ChangeEvent, FormEvent } from 'react';
 import React from 'react';
 
-export const Button = (
-  props: Readonly<{
-    readonly children: React.ReactNode;
-    readonly variant?: 'default' | 'outline';
-    readonly size?: 'default' | 'sm';
-    readonly className?: string;
-    readonly disabled?: boolean;
-    readonly type?: 'button' | 'submit' | 'reset';
-    readonly onClick?: () => void;
-  }>
-) => {
+import { TABS } from '../../../../lib/types/constant.types';
+
+type ButtonProps = {
+  readonly children: React.ReactNode;
+  readonly variant?: 'default' | 'outline';
+  readonly size?: 'default' | 'sm';
+  readonly className?: string;
+  readonly disabled?: boolean;
+  readonly type?: 'button' | 'submit' | 'reset';
+  readonly onClick?: () => void;
+};
+export const Button = (props: Readonly<ButtonProps>) => {
   const {
     children,
     variant = 'default',
@@ -40,17 +41,16 @@ export const Button = (
   );
 };
 
-export const Input = (
-  props: Readonly<{
-    readonly className?: string;
-    readonly type?: string;
-    readonly placeholder?: string;
-    readonly value?: string;
-    readonly onChange?: (e: Readonly<ChangeEvent<HTMLInputElement>>) => void;
-    readonly id?: string;
-    readonly required?: boolean;
-  }>
-) => {
+type InputProps = {
+  readonly className?: string;
+  readonly type?: string;
+  readonly placeholder?: string;
+  readonly value?: string;
+  readonly onChange?: (e: Readonly<ChangeEvent<HTMLInputElement>>) => void;
+  readonly id?: string;
+  readonly required?: boolean;
+};
+export const Input = (props: Readonly<InputProps>) => {
   const {
     className = '',
     type = 'text',
@@ -76,13 +76,12 @@ export const Input = (
   );
 };
 
-export const Label = (
-  props: Readonly<{
-    readonly children: React.ReactNode;
-    readonly htmlFor?: string;
-    readonly className?: string;
-  }>
-) => {
+type LabelProps = {
+  readonly children: React.ReactNode;
+  readonly htmlFor?: string;
+  readonly className?: string;
+};
+export const Label = (props: Readonly<LabelProps>) => {
   const { children, htmlFor, className = '' } = props;
 
   return (
@@ -95,14 +94,13 @@ export const Label = (
   );
 };
 
-export const GamesForm = (
-  props: Readonly<{
-    readonly gameParams: Record<string, string>;
-    readonly setGameParams: (params: Readonly<Record<string, string>>) => void;
-    readonly loading: boolean;
-    readonly onSubmit: (e: Readonly<FormEvent>) => void;
-  }>
-) => {
+type GamesFormProps = {
+  readonly gameParams: Record<string, string>;
+  readonly setGameParams: (params: Readonly<Record<string, string>>) => void;
+  readonly loading: boolean;
+  readonly onSubmit: (e: Readonly<FormEvent>) => void;
+};
+export const GamesForm = (props: Readonly<GamesFormProps>) => {
   const { gameParams, setGameParams, loading, onSubmit } = props;
 
   return (
@@ -187,14 +185,13 @@ export const GamesForm = (
   );
 };
 
-export const GameStatsForm = (
-  props: Readonly<{
-    readonly gameStatsId: string;
-    readonly setGameStatsId: (id: Readonly<string>) => void;
-    readonly loading: boolean;
-    readonly onSubmit: (e: Readonly<FormEvent>) => void;
-  }>
-) => {
+type GameStatsFormProps = {
+  readonly gameStatsId: string;
+  readonly setGameStatsId: (id: Readonly<string>) => void;
+  readonly loading: boolean;
+  readonly onSubmit: (e: Readonly<FormEvent>) => void;
+};
+export const GameStatsForm = (props: Readonly<GameStatsFormProps>) => {
   const { gameStatsId, setGameStatsId, loading, onSubmit } = props;
 
   return (
@@ -220,14 +217,13 @@ export const GameStatsForm = (
   );
 };
 
-export const TeamsForm = (
-  props: Readonly<{
-    readonly teamParams: Record<string, string>;
-    readonly setTeamParams: (params: Readonly<Record<string, string>>) => void;
-    readonly loading: boolean;
-    readonly onSubmit: (e: Readonly<FormEvent>) => void;
-  }>
-) => {
+type TeamsFormProps = {
+  readonly teamParams: Record<string, string>;
+  readonly setTeamParams: (params: Readonly<Record<string, string>>) => void;
+  readonly loading: boolean;
+  readonly onSubmit: (e: Readonly<FormEvent>) => void;
+};
+export const TeamsForm = (props: Readonly<TeamsFormProps>) => {
   const { teamParams, setTeamParams, loading, onSubmit } = props;
 
   return (
@@ -320,14 +316,13 @@ export const TeamsForm = (
   );
 };
 
-export const TeamStatsForm = (
-  props: Readonly<{
-    readonly teamStatsParams: Record<string, string>;
-    readonly setTeamStatsParams: (params: Readonly<Record<string, string>>) => void;
-    readonly loading: boolean;
-    readonly onSubmit: (e: Readonly<FormEvent>) => void;
-  }>
-) => {
+type TeamStatsFormProps = {
+  readonly teamStatsParams: Record<string, string>;
+  readonly setTeamStatsParams: (params: Readonly<Record<string, string>>) => void;
+  readonly loading: boolean;
+  readonly onSubmit: (e: Readonly<FormEvent>) => void;
+};
+export const TeamStatsForm = (props: Readonly<TeamStatsFormProps>) => {
   const { teamStatsParams, setTeamStatsParams, loading, onSubmit } = props;
 
   return (
@@ -381,14 +376,13 @@ export const TeamStatsForm = (
   );
 };
 
-export const PlayersForm = (
-  props: Readonly<{
-    readonly playerParams: Record<string, string>;
-    readonly setPlayerParams: (params: Readonly<Record<string, string>>) => void;
-    readonly loading: boolean;
-    readonly onSubmit: (e: Readonly<FormEvent>) => void;
-  }>
-) => {
+type PlayersFormProps = {
+  readonly playerParams: Record<string, string>;
+  readonly setPlayerParams: (params: Readonly<Record<string, string>>) => void;
+  readonly loading: boolean;
+  readonly onSubmit: (e: Readonly<FormEvent>) => void;
+};
+export const PlayersForm = (props: Readonly<PlayersFormProps>) => {
   const { playerParams, setPlayerParams, loading, onSubmit } = props;
 
   return (
@@ -470,14 +464,13 @@ export const PlayersForm = (
   );
 };
 
-export const PlayerStatsForm = (
-  props: Readonly<{
-    readonly playerStatsParams: Record<string, string>;
-    readonly setPlayerStatsParams: (params: Readonly<Record<string, string>>) => void;
-    readonly loading: boolean;
-    readonly onSubmit: (e: Readonly<FormEvent>) => void;
-  }>
-) => {
+type PlayerStatsFormProps = {
+  readonly playerStatsParams: Record<string, string>;
+  readonly setPlayerStatsParams: (params: Readonly<Record<string, string>>) => void;
+  readonly loading: boolean;
+  readonly onSubmit: (e: Readonly<FormEvent>) => void;
+};
+export const PlayerStatsForm = (props: Readonly<PlayerStatsFormProps>) => {
   const { playerStatsParams, setPlayerStatsParams, loading, onSubmit } = props;
 
   return (
@@ -537,14 +530,13 @@ export const PlayerStatsForm = (
   );
 };
 
-export const StandingsForm = (
-  props: Readonly<{
-    readonly standingsParams: Record<string, string>;
-    readonly setStandingsParams: (params: Readonly<Record<string, string>>) => void;
-    readonly loading: boolean;
-    readonly onSubmit: (e: Readonly<FormEvent>) => void;
-  }>
-) => {
+type StandingsFormProps = {
+  readonly standingsParams: Record<string, string>;
+  readonly setStandingsParams: (params: Readonly<Record<string, string>>) => void;
+  readonly loading: boolean;
+  readonly onSubmit: (e: Readonly<FormEvent>) => void;
+};
+export const StandingsForm = (props: Readonly<StandingsFormProps>) => {
   const { standingsParams, setStandingsParams, loading, onSubmit } = props;
 
   return (
@@ -620,14 +612,13 @@ export const StandingsForm = (
   );
 };
 
-export const DataDisplay = (
-  props: Readonly<{
-    readonly data: unknown;
-    readonly loading: boolean;
-    readonly error: string | null;
-    readonly selectedTab: string;
-  }>
-) => {
+type DataDisplayProps = {
+  readonly data: unknown;
+  readonly loading: boolean;
+  readonly error: string | null;
+  readonly selectedTab: string;
+};
+export const DataDisplay = (props: Readonly<DataDisplayProps>) => {
   const { data, loading, error, selectedTab } = props;
 
   return (
@@ -697,39 +688,39 @@ export const DataDisplay = (
 
 export const NAV_ITEMS = [
   {
-    key: 'seasons',
+    key: TABS.SEASONS,
     label: 'Seasons',
     url: 'https://api-sports.io/documentation/nba/v2#tag/Seasons',
-    endpoint: 'seasons',
+    endpoint: TABS.SEASONS,
   },
   {
-    key: 'leagues',
+    key: TABS.LEAGUES,
     label: 'Leagues',
     url: 'https://api-sports.io/documentation/nba/v2#tag/Leagues',
-    endpoint: 'leagues',
+    endpoint: TABS.LEAGUES,
   },
   {
-    key: 'games',
+    key: TABS.GAMES,
     label: 'Games',
     url: 'https://api-sports.io/documentation/nba/v2#tag/Games',
-    endpoint: 'games',
+    endpoint: TABS.GAMES,
   },
   {
-    key: 'teams',
+    key: TABS.TEAMS,
     label: 'Teams',
     url: 'https://api-sports.io/documentation/nba/v2#tag/Teams',
-    endpoint: 'teams',
+    endpoint: TABS.TEAMS,
   },
   {
-    key: 'players',
+    key: TABS.PLAYERS,
     label: 'Players',
     url: 'https://api-sports.io/documentation/nba/v2#tag/Players',
-    endpoint: 'players',
+    endpoint: TABS.PLAYERS,
   },
   {
-    key: 'standings',
+    key: TABS.STANDINGS,
     label: 'Standings',
     url: 'https://api-sports.io/documentation/nba/v2#tag/Standings',
-    endpoint: 'standings',
+    endpoint: TABS.STANDINGS,
   },
 ] as const;

@@ -278,3 +278,15 @@ export const getEnumValues = {
   resources: () => Object.values(RESOURCES) as [string, ...string[]],
   sortDirection: () => Object.values(SORT_DIRECTION) as [string, ...string[]],
 } as const;
+
+export const TABS = {
+  STANDINGS: 'standings',
+  PLAYERS: 'players',
+  TEAMS: 'teams',
+  GAMES: 'games',
+  LEAGUES: 'leagues',
+  SEASONS: 'seasons',
+} as const;
+
+export type TabKey = keyof typeof TABS;
+export type TabValue = (typeof TABS)[TabKey];

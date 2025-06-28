@@ -3,6 +3,8 @@
 import React, { useEffect } from 'react';
 
 import { API_CONFIG } from '../../../../lib/config/api.config';
+import { TABS } from '../../../../lib/types/constant.types';
+import type { TabValue } from '../../../../lib/types/constant.types';
 
 import {
   Button,
@@ -19,12 +21,19 @@ import { useApiFetch, useFormState, useTabState } from './hooks';
 
 // Navigation Tabs Component
 type NavigationTabsProps = {
-  selectedTab: string;
-  setSelectedTab: (tab: string) => void;
+  selectedTab: TabValue;
+  setSelectedTab: (tab: TabValue) => void;
 };
 function NavigationTabs(props: Readonly<NavigationTabsProps>) {
   const { selectedTab, setSelectedTab } = props;
-  const tabs = ['seasons', 'leagues', 'games', 'teams', 'players', 'standings'];
+  const tabs: TabValue[] = [
+    TABS.SEASONS,
+    TABS.LEAGUES,
+    TABS.GAMES,
+    TABS.TEAMS,
+    TABS.PLAYERS,
+    TABS.STANDINGS,
+  ];
   return (
     <div className="flex flex-wrap gap-2 border-b mb-6">
       {tabs.map(tab => (
@@ -46,16 +55,16 @@ function NavigationTabs(props: Readonly<NavigationTabsProps>) {
 
 // Simple Endpoints Component
 type SimpleEndpointsProps = {
-  selectedTab: string;
+  selectedTab: TabValue;
   loading: boolean;
   handleFetch: (endpoint: string, params: Record<string, string>) => Promise<void>;
 };
 function SimpleEndpoints(props: Readonly<SimpleEndpointsProps>) {
   const { selectedTab, loading, handleFetch } = props;
-  if (!['seasons', 'leagues'].includes(selectedTab)) return null;
+  if (!(selectedTab === TABS.SEASONS || selectedTab === TABS.LEAGUES)) return null;
   const handleClick = () => {
     const endpoint =
-      selectedTab === 'seasons' ? API_CONFIG.endpoints.SEASONS : API_CONFIG.endpoints.LEAGUES;
+      selectedTab === TABS.SEASONS ? API_CONFIG.endpoints.SEASONS : API_CONFIG.endpoints.LEAGUES;
     void handleFetch(endpoint, {});
   };
   return (
@@ -104,11 +113,11 @@ function GamesSection(props: Readonly<GamesSectionProps>) {
       <div className="flex gap-2 border-b">
         <button
           className={`px-4 py-2 text-sm font-medium ${
-            gamesSubTab === 'games'
+            gamesSubTab === TABS.GAMES
               ? 'border-b-2 border-blue-600 text-blue-600'
               : 'text-gray-500 hover:text-blue-600'
           }`}
-          onClick={() => setGamesSubTab('games')}
+          onClick={() => setGamesSubTab(TABS.GAMES)}
         >
           Games
         </button>
@@ -133,7 +142,7 @@ function GamesSection(props: Readonly<GamesSectionProps>) {
           Live Games
         </button>
       </div>
-      {gamesSubTab === 'games' && (
+      {gamesSubTab === TABS.GAMES && (
         <GamesForm
           gameParams={gameParams}
           setGameParams={setGameParams}
@@ -188,11 +197,11 @@ function TeamsSection(props: Readonly<TeamsSectionProps>) {
       <div className="flex gap-2 border-b">
         <button
           className={`px-4 py-2 text-sm font-medium ${
-            teamsSubTab === 'teams'
+            teamsSubTab === TABS.TEAMS
               ? 'border-b-2 border-blue-600 text-blue-600'
               : 'text-gray-500 hover:text-blue-600'
           }`}
-          onClick={() => setTeamsSubTab('teams')}
+          onClick={() => setTeamsSubTab(TABS.TEAMS)}
         >
           Teams
         </button>
@@ -207,7 +216,7 @@ function TeamsSection(props: Readonly<TeamsSectionProps>) {
           Team Stats
         </button>
       </div>
-      {teamsSubTab === 'teams' && (
+      {teamsSubTab === TABS.TEAMS && (
         <TeamsForm
           teamParams={teamParams}
           setTeamParams={setTeamParams}
@@ -256,11 +265,11 @@ function PlayersSection(props: Readonly<PlayersSectionProps>) {
       <div className="flex gap-2 border-b">
         <button
           className={`px-4 py-2 text-sm font-medium ${
-            playersSubTab === 'players'
+            playersSubTab === TABS.PLAYERS
               ? 'border-b-2 border-blue-600 text-blue-600'
               : 'text-gray-500 hover:text-blue-600'
           }`}
-          onClick={() => setPlayersSubTab('players')}
+          onClick={() => setPlayersSubTab(TABS.PLAYERS)}
         >
           Players
         </button>
@@ -275,7 +284,7 @@ function PlayersSection(props: Readonly<PlayersSectionProps>) {
           Player Stats
         </button>
       </div>
-      {playersSubTab === 'players' && (
+      {playersSubTab === TABS.PLAYERS && (
         <PlayersForm
           playerParams={playerParams}
           setPlayerParams={setPlayerParams}
@@ -389,7 +398,7 @@ function AdminExperimentalContent() {
         </div>
       )}
 
-      {selectedTab === 'games' && (
+      {selectedTab === TABS.GAMES && (
         <GamesSection
           gamesSubTab={gamesSubTab}
           setGamesSubTab={setGamesSubTab}
@@ -403,7 +412,7 @@ function AdminExperimentalContent() {
         />
       )}
 
-      {selectedTab === 'teams' && (
+      {selectedTab === TABS.TEAMS && (
         <TeamsSection
           teamsSubTab={teamsSubTab}
           setTeamsSubTab={setTeamsSubTab}
@@ -417,7 +426,7 @@ function AdminExperimentalContent() {
         />
       )}
 
-      {selectedTab === 'players' && (
+      {selectedTab === TABS.PLAYERS && (
         <PlayersSection
           playersSubTab={playersSubTab}
           setPlayersSubTab={setPlayersSubTab}
@@ -431,7 +440,7 @@ function AdminExperimentalContent() {
         />
       )}
 
-      {selectedTab === 'standings' && (
+      {selectedTab === TABS.STANDINGS && (
         <div className="mb-6">
           <StandingsForm
             standingsParams={standingsParams}

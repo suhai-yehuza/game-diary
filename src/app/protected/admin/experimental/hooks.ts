@@ -1,5 +1,8 @@
 import { useState, useCallback } from 'react';
 
+import type { TabValue } from '../../../../lib/types/constant.types';
+import { TABS } from '../../../../lib/types/constant.types';
+
 // API fetch hook
 export const useApiFetch = () => {
   const [data, setData] = useState<unknown>(null);
@@ -139,7 +142,7 @@ export const useFormState = () => {
 
 // Tab state hook
 export const useTabState = () => {
-  const [selectedTab, setSelectedTab] = useState<string>('seasons');
+  const [selectedTab, setSelectedTab] = useState<TabValue>(TABS.SEASONS);
   const [gamesSubTab, setGamesSubTab] = useState<string>('games');
   const [teamsSubTab, setTeamsSubTab] = useState<string>('teams');
   const [playersSubTab, setPlayersSubTab] = useState<string>('players');
