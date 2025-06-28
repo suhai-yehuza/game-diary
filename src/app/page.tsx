@@ -9,7 +9,7 @@ import { useMounted } from '@/hooks/use-mounted';
 
 export const dynamic = 'force-dynamic';
 
-export function Home() {
+export function HomePage() {
   const { isLoaded, isSignedIn } = useUser();
   const mounted = useMounted();
 
@@ -110,5 +110,3 @@ export function Home() {
     </div>
   );
 }
-
-export default Home;

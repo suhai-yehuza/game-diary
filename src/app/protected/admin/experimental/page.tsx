@@ -23,18 +23,18 @@ import type {
   TeamsSectionProps,
   PlayersSectionProps,
 } from '@/lib/types';
-import { TABS } from '@/lib/types';
+import { TABS } from '@/lib/types/constant.types';
 
 // Navigation Tabs Component
 function NavigationTabs(props: Readonly<NavigationTabsProps>) {
   const { selectedTab, setSelectedTab } = props;
   const tabs: TabValue[] = [
-    TABS.SEASONS,
-    TABS.LEAGUES,
-    TABS.GAMES,
-    TABS.TEAMS,
-    TABS.PLAYERS,
-    TABS.STANDINGS,
+    TABS.SEASONS as TabValue,
+    TABS.LEAGUES as TabValue,
+    TABS.GAMES as TabValue,
+    TABS.TEAMS as TabValue,
+    TABS.PLAYERS as TabValue,
+    TABS.STANDINGS as TabValue,
   ];
   return (
     <div className="flex flex-wrap gap-2 border-b mb-6">
@@ -93,6 +93,7 @@ function GamesSection(props: Readonly<GamesSectionProps>) {
     loading,
     handleFetchGames,
     handleFetchGameStats,
+    handleFetch,
   } = props;
   return (
     <div className="mb-6">
@@ -148,6 +149,15 @@ function GamesSection(props: Readonly<GamesSectionProps>) {
         <div className="mt-4 p-4 border rounded-md bg-gray-50 dark:bg-gray-900/50">
           <h3 className="text-lg font-semibold mb-1">Live Games</h3>
           <p className="text-sm text-gray-500 mb-4">Fetching all currently live games...</p>
+          <Button
+            onClick={() => {
+              void handleFetch(API_CONFIG.endpoints.GAMES, { live: 'all' });
+            }}
+            disabled={loading}
+            className="mt-2"
+          >
+            {loading ? 'Fetching...' : 'Refetch Live Games'}
+          </Button>
         </div>
       )}
     </div>
@@ -333,21 +343,21 @@ function AdminExperimentalContent() {
     void handleFetch(API_CONFIG.endpoints.PLAYER_STATISTICS, playerStatsParams);
   };
 
-  const handleFetchStandings = (e: Readonly<React.FormEvent>) => {
+  const handleStandingsFormSubmit = (e: Readonly<React.FormEvent>) => {
     e.preventDefault();
     void handleFetch(API_CONFIG.endpoints.STANDINGS, standingsParams, ['league', 'season']);
   };
 
   // Auto-fetch data on component mount
   useEffect(() => {
-    const fetchInitialData = async () => {
+    const fetchInitialData = () => {
       // Fetch initial data based on selected tab
       switch (selectedTab) {
         case TABS.SEASONS:
-          await handleFetch(API_CONFIG.endpoints.SEASONS, {});
+          void handleFetch(API_CONFIG.endpoints.SEASONS, {});
           break;
         case TABS.LEAGUES:
-          await handleFetch(API_CONFIG.endpoints.LEAGUES, {});
+          void handleFetch(API_CONFIG.endpoints.LEAGUES, {});
           break;
         case TABS.GAMES:
           // Don't auto-fetch games as they require parameters
@@ -366,7 +376,7 @@ function AdminExperimentalContent() {
       }
     };
 
-    void fetchInitialData();
+    fetchInitialData();
   }, [selectedTab, handleFetch]);
 
   return (
@@ -397,6 +407,7 @@ function AdminExperimentalContent() {
           loading={loading}
           handleFetchGames={handleFetchGames}
           handleFetchGameStats={handleFetchGameStats}
+          handleFetch={handleFetch}
         />
       )}
 
@@ -433,7 +444,7 @@ function AdminExperimentalContent() {
           standingsParams={standingsParams}
           setStandingsParams={setStandingsParams}
           loading={loading}
-          onSubmit={handleFetchStandings}
+          onSubmit={handleStandingsFormSubmit}
         />
       )}
 
@@ -442,8 +453,6 @@ function AdminExperimentalContent() {
   );
 }
 
-function AdminExperimentalPage() {
+export default function AdminExperimentalPage() {
   return <AdminExperimentalContent />;
 }
-
-export default AdminExperimentalPage;

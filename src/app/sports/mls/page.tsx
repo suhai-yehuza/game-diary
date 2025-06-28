@@ -19,5 +19,3 @@ export function MLSPage() {
     </section>
   );
 }
-
-export default MLSPage;

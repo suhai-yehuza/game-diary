@@ -5,7 +5,7 @@ import React from 'react';
 
 export const dynamic = 'force-dynamic';
 
-export function ClientProtectedPage() {
+export function ProtectedClientPage() {
   const { user } = useUser();
   const { isLoaded, isSignedIn, userId, sessionId, getToken } = useAuth();
 
@@ -25,5 +25,3 @@ export function ClientProtectedPage() {
     </section>
   );
 }
-
-export default ClientProtectedPage;

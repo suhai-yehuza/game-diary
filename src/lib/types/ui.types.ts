@@ -9,6 +9,12 @@ export type INotificationType =
   | 'error'
   | 'warning'
   | 'info'
+  | 'reaction_added'
+  | 'reaction_removed'
+  | 'reaction_updated'
+  | 'comment_added'
+  | 'comment_updated'
+  | 'comment_deleted'
   | 'friend_request'
   | 'friend_accepted'
   | 'friend_rejected'
@@ -17,6 +23,8 @@ export type INotificationType =
 export interface INotificationData {
   userId?: string;
   gameLogId?: string;
+  commentId?: string;
+  reactionId?: string;
   friendshipId?: string;
   url?: string;
   [key: string]: unknown;
@@ -159,3 +167,23 @@ export interface ICardContentProps extends Readonly<React.ComponentProps<'div'>>
 export interface ICardFooterProps extends Readonly<React.ComponentProps<'div'>> {
   children: Readonly<React.ReactNode>;
 }
+
+export type FieldConfig = {
+  label: string;
+  id: string;
+  type?: string;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  required?: boolean;
+  placeholder?: string;
+};
+
+export type DynamicFormProps = {
+  fields: FieldConfig[];
+  onSubmit: (e: React.FormEvent) => void;
+  loading: boolean;
+  title: string;
+  description?: string;
+  submitLabel: string;
+  className?: string;
+};

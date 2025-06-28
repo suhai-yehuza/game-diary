@@ -2,7 +2,7 @@
 
 import React from 'react';
 
-export default function Footer() {
+export function Footer() {
   return (
     <footer className="w-full border-t py-4">
       <div className="container mx-auto px-4">

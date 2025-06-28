@@ -5,7 +5,7 @@ import { getRapidApiConfig } from '@src/lib/config/api.config';
 
 export async function GET(
   request: Readonly<NextRequest>,
-  { params }: { readonly params: Promise<{ readonly endpoint: readonly string[] }> }
+  { params }: Readonly<{ readonly params: Promise<{ readonly endpoint: readonly string[] }> }>
 ) {
   try {
     const rapidApiConfig = getRapidApiConfig();

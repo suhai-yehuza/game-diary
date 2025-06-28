@@ -15,6 +15,51 @@ import type {
   StandingsFormProps,
   DataDisplayProps,
 } from '@/lib/types/admin-experimental.types';
+import type { DynamicFormProps, FieldConfig } from '@/lib/types/ui.types';
+
+// --- DynamicForm abstraction ---
+export const DynamicForm = ({
+  fields,
+  onSubmit,
+  loading,
+  title,
+  description,
+  submitLabel,
+  className = '',
+}: Readonly<DynamicFormProps>) => {
+  const handleFormSubmit = (e: Readonly<React.FormEvent>) => {
+    void onSubmit(e);
+  };
+  return (
+    <form
+      onSubmit={handleFormSubmit}
+      className={`mt-4 p-4 border rounded-md bg-gray-50 dark:bg-gray-900/50 ${className}`}
+    >
+      <h3 className="text-lg font-semibold mb-1">{title}</h3>
+      {description && <p className="text-sm text-gray-500 mb-4">{description}</p>}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {fields.map((field: Readonly<FieldConfig>) => (
+          <div key={field.id}>
+            <Label htmlFor={field.id} required={field.required}>
+              {field.label}
+            </Label>
+            <Input
+              id={field.id}
+              type={field.type ?? 'text'}
+              placeholder={field.placeholder}
+              value={field.value}
+              onChange={field.onChange}
+              required={field.required}
+            />
+          </div>
+        ))}
+      </div>
+      <Button type="submit" disabled={loading} className="mt-4">
+        {loading ? 'Loading...' : submitLabel}
+      </Button>
+    </form>
+  );
+};
 
 export const Button = (props: Readonly<ButtonProps>) => {
   const {
@@ -70,7 +115,7 @@ export const Input = (props: Readonly<InputProps>) => {
 };
 
 export const Label = (props: Readonly<LabelProps>) => {
-  const { children, htmlFor, className = '' } = props;
+  const { children, htmlFor, className = '', required = false } = props;
 
   return (
     <label
@@ -78,431 +123,403 @@ export const Label = (props: Readonly<LabelProps>) => {
       className={`text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 ${className}`}
     >
       {children}
+      {required && <span className="text-red-600 ml-1">*</span>}
     </label>
   );
 };
 
 export const GamesForm = (props: Readonly<GamesFormProps>) => {
   const { gameParams, setGameParams, loading, onSubmit } = props;
-
+  const fields = [
+    {
+      label: 'Game ID',
+      id: 'game-id',
+      type: 'number',
+      placeholder: 'e.g. 12345',
+      value: gameParams.id,
+      onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
+        setGameParams({ ...gameParams, id: e.target.value }),
+    },
+    {
+      label: 'Date',
+      id: 'game-date',
+      type: 'date',
+      value: gameParams.date,
+      onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
+        setGameParams({ ...gameParams, date: e.target.value }),
+    },
+    {
+      label: 'Season',
+      id: 'game-season',
+      type: 'number',
+      placeholder: 'YYYY',
+      value: gameParams.season,
+      onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
+        setGameParams({ ...gameParams, season: e.target.value }),
+    },
+    {
+      label: 'League',
+      id: 'game-league',
+      placeholder: 'e.g. standard',
+      value: gameParams.league,
+      onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
+        setGameParams({ ...gameParams, league: e.target.value }),
+    },
+    {
+      label: 'Team ID',
+      id: 'game-team',
+      type: 'number',
+      placeholder: 'e.g. 1',
+      value: gameParams.team,
+      onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
+        setGameParams({ ...gameParams, team: e.target.value }),
+    },
+    {
+      label: 'Head-to-Head (h2h)',
+      id: 'game-h2h',
+      placeholder: 'e.g. 1-4',
+      value: gameParams.h2h,
+      onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
+        setGameParams({ ...gameParams, h2h: e.target.value }),
+    },
+  ];
   return (
-    <form onSubmit={onSubmit} className="mt-4 p-4 border rounded-md bg-gray-50 dark:bg-gray-900/50">
-      <h3 className="text-lg font-semibold mb-1">Games Query Parameters</h3>
-      <p className="text-sm text-gray-500 mb-4">At least one parameter is required.</p>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <div>
-          <Label htmlFor="game-id">Game ID</Label>
-          <Input
-            id="game-id"
-            type="number"
-            placeholder="e.g. 12345"
-            value={gameParams.id}
-            onChange={e => setGameParams({ ...gameParams, id: e.target.value })}
-          />
-        </div>
-        <div>
-          <Label htmlFor="game-date">Date</Label>
-          <Input
-            id="game-date"
-            type="date"
-            value={gameParams.date}
-            onChange={e => setGameParams({ ...gameParams, date: e.target.value })}
-          />
-        </div>
-        <div>
-          <Label htmlFor="game-season">Season</Label>
-          <Input
-            id="game-season"
-            type="number"
-            placeholder="YYYY"
-            value={gameParams.season}
-            onChange={e => setGameParams({ ...gameParams, season: e.target.value })}
-          />
-        </div>
-        <div>
-          <Label htmlFor="game-league">League</Label>
-          <Input
-            id="game-league"
-            placeholder="e.g. standard"
-            value={gameParams.league}
-            onChange={e => setGameParams({ ...gameParams, league: e.target.value })}
-          />
-        </div>
-        <div>
-          <Label htmlFor="game-team">Team ID</Label>
-          <Input
-            id="game-team"
-            type="number"
-            placeholder="e.g. 1"
-            value={gameParams.team}
-            onChange={e => setGameParams({ ...gameParams, team: e.target.value })}
-          />
-        </div>
-        <div>
-          <Label htmlFor="game-h2h">Head-to-Head (h2h)</Label>
-          <Input
-            id="game-h2h"
-            placeholder="e.g. 1-4"
-            value={gameParams.h2h}
-            onChange={e => setGameParams({ ...gameParams, h2h: e.target.value })}
-          />
-        </div>
-      </div>
-      <Button type="submit" disabled={loading} className="mt-4">
-        {loading ? 'Fetching...' : 'Fetch Games'}
-      </Button>
-    </form>
+    <DynamicForm
+      fields={fields}
+      onSubmit={e => void onSubmit(e)}
+      loading={loading}
+      title="Games Query Parameters"
+      description="At least one parameter is required."
+      submitLabel="Fetch Games"
+    />
   );
 };
 
 export const GameStatsForm = (props: Readonly<GameStatsFormProps>) => {
   const { gameStatsId, setGameStatsId, loading, onSubmit } = props;
-
+  const fields = [
+    {
+      label: 'Game ID',
+      id: 'game-stats-id',
+      type: 'number',
+      placeholder: 'e.g. 12345',
+      value: gameStatsId,
+      onChange: (e: React.ChangeEvent<HTMLInputElement>) => setGameStatsId(e.target.value),
+      required: true,
+    },
+  ];
   return (
-    <form onSubmit={onSubmit} className="mt-4 p-4 border rounded-md bg-gray-50 dark:bg-gray-900/50">
-      <h3 className="text-lg font-semibold mb-4">Game Statistics Query</h3>
-      <div>
-        <Label htmlFor="game-stats-id">Game ID</Label>
-        <Input
-          id="game-stats-id"
-          type="number"
-          placeholder="e.g. 12345"
-          value={gameStatsId}
-          onChange={e => setGameStatsId(e.target.value)}
-          required
-        />
-      </div>
-      <Button type="submit" disabled={loading} className="mt-4">
-        {loading ? 'Fetching...' : 'Fetch Game Statistics'}
-      </Button>
-    </form>
+    <DynamicForm
+      fields={fields}
+      onSubmit={e => void onSubmit(e)}
+      loading={loading}
+      title="Game Statistics Query"
+      submitLabel="Fetch Game Statistics"
+    />
   );
 };
 
 export const TeamsForm = (props: Readonly<TeamsFormProps>) => {
   const { teamParams, setTeamParams, loading, onSubmit } = props;
-
+  const fields = [
+    {
+      label: 'Team ID',
+      id: 'team-id',
+      type: 'number',
+      placeholder: 'e.g. 1',
+      value: teamParams.id,
+      onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
+        setTeamParams({ ...teamParams, id: e.target.value }),
+    },
+    {
+      label: 'Season',
+      id: 'team-season',
+      type: 'number',
+      placeholder: 'YYYY',
+      value: teamParams.season,
+      onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
+        setTeamParams({ ...teamParams, season: e.target.value }),
+    },
+    {
+      label: 'League',
+      id: 'team-league',
+      placeholder: 'e.g. standard',
+      value: teamParams.league,
+      onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
+        setTeamParams({ ...teamParams, league: e.target.value }),
+    },
+    {
+      label: 'Conference',
+      id: 'team-conference',
+      placeholder: 'e.g. East',
+      value: teamParams.conference,
+      onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
+        setTeamParams({ ...teamParams, conference: e.target.value }),
+    },
+    {
+      label: 'Division',
+      id: 'team-division',
+      placeholder: 'e.g. Atlantic',
+      value: teamParams.division,
+      onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
+        setTeamParams({ ...teamParams, division: e.target.value }),
+    },
+  ];
   return (
-    <form onSubmit={onSubmit} className="mt-4 p-4 border rounded-md bg-gray-50 dark:bg-gray-900/50">
-      <h3 className="text-lg font-semibold mb-1">Teams Query Parameters</h3>
-      <p className="text-sm text-gray-500 mb-4">At least one parameter is required.</p>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <div>
-          <Label htmlFor="team-id">Team ID</Label>
-          <Input
-            id="team-id"
-            type="number"
-            placeholder="e.g. 1"
-            value={teamParams.id}
-            onChange={e => setTeamParams({ ...teamParams, id: e.target.value })}
-          />
-        </div>
-        <div>
-          <Label htmlFor="team-season">Season</Label>
-          <Input
-            id="team-season"
-            type="number"
-            placeholder="YYYY"
-            value={teamParams.season}
-            onChange={e => setTeamParams({ ...teamParams, season: e.target.value })}
-          />
-        </div>
-        <div>
-          <Label htmlFor="team-league">League</Label>
-          <Input
-            id="team-league"
-            placeholder="e.g. standard"
-            value={teamParams.league}
-            onChange={e => setTeamParams({ ...teamParams, league: e.target.value })}
-          />
-        </div>
-        <div>
-          <Label htmlFor="team-conference">Conference</Label>
-          <Input
-            id="team-conference"
-            placeholder="e.g. East"
-            value={teamParams.conference}
-            onChange={e => setTeamParams({ ...teamParams, conference: e.target.value })}
-          />
-        </div>
-        <div>
-          <Label htmlFor="team-division">Division</Label>
-          <Input
-            id="team-division"
-            placeholder="e.g. Atlantic"
-            value={teamParams.division}
-            onChange={e => setTeamParams({ ...teamParams, division: e.target.value })}
-          />
-        </div>
-      </div>
-      <Button type="submit" disabled={loading} className="mt-4">
-        {loading ? 'Fetching...' : 'Fetch Teams'}
-      </Button>
-    </form>
+    <DynamicForm
+      fields={fields}
+      onSubmit={e => void onSubmit(e)}
+      loading={loading}
+      title="Teams Query Parameters"
+      description="At least one parameter is required."
+      submitLabel="Fetch Teams"
+    />
   );
 };
 
 export const TeamStatsForm = (props: Readonly<TeamStatsFormProps>) => {
   const { teamStatsParams, setTeamStatsParams, loading, onSubmit } = props;
-
+  const fields = [
+    {
+      label: 'Team ID',
+      id: 'team-stats-id',
+      type: 'number',
+      placeholder: 'e.g. 1',
+      value: teamStatsParams.id,
+      onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
+        setTeamStatsParams({ ...teamStatsParams, id: e.target.value }),
+      required: true,
+    },
+    {
+      label: 'Season',
+      id: 'team-stats-season',
+      type: 'number',
+      placeholder: 'YYYY',
+      value: teamStatsParams.season,
+      onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
+        setTeamStatsParams({ ...teamStatsParams, season: e.target.value }),
+      required: true,
+    },
+    {
+      label: 'League',
+      id: 'team-stats-league',
+      placeholder: 'e.g. standard',
+      value: teamStatsParams.league,
+      onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
+        setTeamStatsParams({ ...teamStatsParams, league: e.target.value }),
+    },
+    {
+      label: 'Conference',
+      id: 'team-stats-conference',
+      placeholder: 'e.g. East',
+      value: teamStatsParams.conference,
+      onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
+        setTeamStatsParams({ ...teamStatsParams, conference: e.target.value }),
+    },
+    {
+      label: 'Division',
+      id: 'team-stats-division',
+      placeholder: 'e.g. Atlantic',
+      value: teamStatsParams.division,
+      onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
+        setTeamStatsParams({ ...teamStatsParams, division: e.target.value }),
+    },
+  ];
   return (
-    <form onSubmit={onSubmit} className="mt-4 p-4 border rounded-md bg-gray-50 dark:bg-gray-900/50">
-      <h3 className="text-lg font-semibold mb-1">Team Statistics Query Parameters</h3>
-      <p className="text-sm text-gray-500 mb-4">At least one parameter is required.</p>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <div>
-          <Label htmlFor="team-stats-id">Team ID</Label>
-          <Input
-            id="team-stats-id"
-            type="number"
-            placeholder="e.g. 1"
-            value={teamStatsParams.id}
-            onChange={e => setTeamStatsParams({ ...teamStatsParams, id: e.target.value })}
-          />
-        </div>
-        <div>
-          <Label htmlFor="team-stats-season">Season</Label>
-          <Input
-            id="team-stats-season"
-            type="number"
-            placeholder="YYYY"
-            value={teamStatsParams.season}
-            onChange={e => setTeamStatsParams({ ...teamStatsParams, season: e.target.value })}
-          />
-        </div>
-        <div>
-          <Label htmlFor="team-stats-league">League</Label>
-          <Input
-            id="team-stats-league"
-            placeholder="e.g. standard"
-            value={teamStatsParams.league}
-            onChange={e => setTeamStatsParams({ ...teamStatsParams, league: e.target.value })}
-          />
-        </div>
-        <div>
-          <Label htmlFor="team-stats-conference">Conference</Label>
-          <Input
-            id="team-stats-conference"
-            placeholder="e.g. East"
-            value={teamStatsParams.conference}
-            onChange={e => setTeamStatsParams({ ...teamStatsParams, conference: e.target.value })}
-          />
-        </div>
-        <div>
-          <Label htmlFor="team-stats-division">Division</Label>
-          <Input
-            id="team-stats-division"
-            placeholder="e.g. Atlantic"
-            value={teamStatsParams.division}
-            onChange={e => setTeamStatsParams({ ...teamStatsParams, division: e.target.value })}
-          />
-        </div>
-      </div>
-      <Button type="submit" disabled={loading} className="mt-4">
-        {loading ? 'Fetching...' : 'Fetch Team Statistics'}
-      </Button>
-    </form>
+    <DynamicForm
+      fields={fields}
+      onSubmit={e => void onSubmit(e)}
+      loading={loading}
+      title="Team Statistics Query Parameters"
+      description="At least one parameter is required."
+      submitLabel="Fetch Team Statistics"
+    />
   );
 };
 
 export const PlayersForm = (props: Readonly<PlayersFormProps>) => {
   const { playerParams, setPlayerParams, loading, onSubmit } = props;
-
+  const fields = [
+    {
+      label: 'Player ID',
+      id: 'player-id',
+      type: 'number',
+      placeholder: 'e.g. 1',
+      value: playerParams.id,
+      onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
+        setPlayerParams({ ...playerParams, id: e.target.value }),
+    },
+    {
+      label: 'Season',
+      id: 'player-season',
+      type: 'number',
+      placeholder: 'YYYY',
+      value: playerParams.season,
+      onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
+        setPlayerParams({ ...playerParams, season: e.target.value }),
+    },
+    {
+      label: 'League',
+      id: 'player-league',
+      placeholder: 'e.g. standard',
+      value: playerParams.league,
+      onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
+        setPlayerParams({ ...playerParams, league: e.target.value }),
+    },
+    {
+      label: 'Team ID',
+      id: 'player-team',
+      type: 'number',
+      placeholder: 'e.g. 1',
+      value: playerParams.team,
+      onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
+        setPlayerParams({ ...playerParams, team: e.target.value }),
+    },
+    {
+      label: 'Conference',
+      id: 'player-conference',
+      placeholder: 'e.g. East',
+      value: playerParams.conference,
+      onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
+        setPlayerParams({ ...playerParams, conference: e.target.value }),
+    },
+    {
+      label: 'Division',
+      id: 'player-division',
+      placeholder: 'e.g. Atlantic',
+      value: playerParams.division,
+      onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
+        setPlayerParams({ ...playerParams, division: e.target.value }),
+    },
+  ];
   return (
-    <form onSubmit={onSubmit} className="mt-4 p-4 border rounded-md bg-gray-50 dark:bg-gray-900/50">
-      <h3 className="text-lg font-semibold mb-1">Players Query Parameters</h3>
-      <p className="text-sm text-gray-500 mb-4">At least one parameter is required.</p>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <div>
-          <Label htmlFor="player-id">Player ID</Label>
-          <Input
-            id="player-id"
-            type="number"
-            placeholder="e.g. 1"
-            value={playerParams.id}
-            onChange={e => setPlayerParams({ ...playerParams, id: e.target.value })}
-          />
-        </div>
-        <div>
-          <Label htmlFor="player-season">Season</Label>
-          <Input
-            id="player-season"
-            type="number"
-            placeholder="YYYY"
-            value={playerParams.season}
-            onChange={e => setPlayerParams({ ...playerParams, season: e.target.value })}
-          />
-        </div>
-        <div>
-          <Label htmlFor="player-league">League</Label>
-          <Input
-            id="player-league"
-            placeholder="e.g. standard"
-            value={playerParams.league}
-            onChange={e => setPlayerParams({ ...playerParams, league: e.target.value })}
-          />
-        </div>
-        <div>
-          <Label htmlFor="player-team">Team ID</Label>
-          <Input
-            id="player-team"
-            type="number"
-            placeholder="e.g. 1"
-            value={playerParams.team}
-            onChange={e => setPlayerParams({ ...playerParams, team: e.target.value })}
-          />
-        </div>
-        <div>
-          <Label htmlFor="player-conference">Conference</Label>
-          <Input
-            id="player-conference"
-            placeholder="e.g. East"
-            value={playerParams.conference}
-            onChange={e => setPlayerParams({ ...playerParams, conference: e.target.value })}
-          />
-        </div>
-        <div>
-          <Label htmlFor="player-division">Division</Label>
-          <Input
-            id="player-division"
-            placeholder="e.g. Atlantic"
-            value={playerParams.division}
-            onChange={e => setPlayerParams({ ...playerParams, division: e.target.value })}
-          />
-        </div>
-      </div>
-      <Button type="submit" disabled={loading} className="mt-4">
-        {loading ? 'Fetching...' : 'Fetch Players'}
-      </Button>
-    </form>
+    <DynamicForm
+      fields={fields}
+      onSubmit={e => void onSubmit(e)}
+      loading={loading}
+      title="Players Query Parameters"
+      description="At least one parameter is required."
+      submitLabel="Fetch Players"
+    />
   );
 };
 
 export const PlayerStatsForm = (props: Readonly<PlayerStatsFormProps>) => {
   const { playerStatsParams, setPlayerStatsParams, loading, onSubmit } = props;
-
+  const fields = [
+    {
+      label: 'Player ID',
+      id: 'player-stats-id',
+      type: 'number',
+      placeholder: 'e.g. 1',
+      value: playerStatsParams.id,
+      onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
+        setPlayerStatsParams({ ...playerStatsParams, id: e.target.value }),
+      required: true,
+    },
+    {
+      label: 'Season',
+      id: 'player-stats-season',
+      type: 'number',
+      placeholder: 'YYYY',
+      value: playerStatsParams.season,
+      onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
+        setPlayerStatsParams({ ...playerStatsParams, season: e.target.value }),
+    },
+    {
+      label: 'League',
+      id: 'player-stats-league',
+      placeholder: 'e.g. standard',
+      value: playerStatsParams.league,
+      onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
+        setPlayerStatsParams({ ...playerStatsParams, league: e.target.value }),
+    },
+    {
+      label: 'Team ID',
+      id: 'player-stats-team',
+      type: 'number',
+      placeholder: 'e.g. 1',
+      value: playerStatsParams.team,
+      onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
+        setPlayerStatsParams({ ...playerStatsParams, team: e.target.value }),
+    },
+    {
+      label: 'Conference',
+      id: 'player-stats-conference',
+      placeholder: 'e.g. East',
+      value: playerStatsParams.conference,
+      onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
+        setPlayerStatsParams({ ...playerStatsParams, conference: e.target.value }),
+    },
+    {
+      label: 'Division',
+      id: 'player-stats-division',
+      placeholder: 'e.g. Atlantic',
+      value: playerStatsParams.division,
+      onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
+        setPlayerStatsParams({ ...playerStatsParams, division: e.target.value }),
+    },
+  ];
   return (
-    <form onSubmit={onSubmit} className="mt-4 p-4 border rounded-md bg-gray-50 dark:bg-gray-900/50">
-      <h3 className="text-lg font-semibold mb-1">Player Statistics Query Parameters</h3>
-      <p className="text-sm text-gray-500 mb-4">At least one parameter is required.</p>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <div>
-          <Label htmlFor="player-stats-id">Player ID</Label>
-          <Input
-            id="player-stats-id"
-            type="number"
-            placeholder="e.g. 1"
-            value={playerStatsParams.id}
-            onChange={e => setPlayerStatsParams({ ...playerStatsParams, id: e.target.value })}
-          />
-        </div>
-        <div>
-          <Label htmlFor="player-stats-season">Season</Label>
-          <Input
-            id="player-stats-season"
-            type="number"
-            placeholder="YYYY"
-            value={playerStatsParams.season}
-            onChange={e => setPlayerStatsParams({ ...playerStatsParams, season: e.target.value })}
-          />
-        </div>
-        <div>
-          <Label htmlFor="player-stats-league">League</Label>
-          <Input
-            id="player-stats-league"
-            placeholder="e.g. standard"
-            value={playerStatsParams.league}
-            onChange={e => setPlayerStatsParams({ ...playerStatsParams, league: e.target.value })}
-          />
-        </div>
-        <div>
-          <Label htmlFor="player-stats-team">Team ID</Label>
-          <Input
-            id="player-stats-team"
-            type="number"
-            placeholder="e.g. 1"
-            value={playerStatsParams.team}
-            onChange={e => setPlayerStatsParams({ ...playerStatsParams, team: e.target.value })}
-          />
-        </div>
-        <div>
-          <Label htmlFor="player-stats-conference">Conference</Label>
-          <Input
-            id="player-stats-conference"
-            placeholder="e.g. East"
-            value={playerStatsParams.conference}
-            onChange={e =>
-              setPlayerStatsParams({ ...playerStatsParams, conference: e.target.value })
-            }
-          />
-        </div>
-        <div>
-          <Label htmlFor="player-stats-division">Division</Label>
-          <Input
-            id="player-stats-division"
-            placeholder="e.g. Atlantic"
-            value={playerStatsParams.division}
-            onChange={e => setPlayerStatsParams({ ...playerStatsParams, division: e.target.value })}
-          />
-        </div>
-      </div>
-      <Button type="submit" disabled={loading} className="mt-4">
-        {loading ? 'Fetching...' : 'Fetch Player Statistics'}
-      </Button>
-    </form>
+    <DynamicForm
+      fields={fields}
+      onSubmit={e => void onSubmit(e)}
+      loading={loading}
+      title="Player Statistics Query Parameters"
+      description="At least one parameter is required."
+      submitLabel="Fetch Player Statistics"
+    />
   );
 };
 
 export const StandingsForm = (props: Readonly<StandingsFormProps>) => {
   const { standingsParams, setStandingsParams, loading, onSubmit } = props;
-
+  const fields = [
+    {
+      label: 'Season',
+      id: 'standings-season',
+      type: 'number',
+      placeholder: 'YYYY',
+      value: standingsParams.season,
+      onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
+        setStandingsParams({ ...standingsParams, season: e.target.value }),
+      required: true,
+    },
+    {
+      label: 'League',
+      id: 'standings-league',
+      placeholder: 'e.g. standard',
+      value: standingsParams.league,
+      onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
+        setStandingsParams({ ...standingsParams, league: e.target.value }),
+      required: true,
+    },
+    {
+      label: 'Conference',
+      id: 'standings-conference',
+      placeholder: 'e.g. East',
+      value: standingsParams.conference,
+      onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
+        setStandingsParams({ ...standingsParams, conference: e.target.value }),
+    },
+    {
+      label: 'Division',
+      id: 'standings-division',
+      placeholder: 'e.g. Atlantic',
+      value: standingsParams.division,
+      onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
+        setStandingsParams({ ...standingsParams, division: e.target.value }),
+    },
+  ];
   return (
-    <form onSubmit={onSubmit} className="mt-4 p-4 border rounded-md bg-gray-50 dark:bg-gray-900/50">
-      <h3 className="text-lg font-semibold mb-1">Standings Query Parameters</h3>
-      <p className="text-sm text-gray-500 mb-4">At least one parameter is required.</p>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <div>
-          <Label htmlFor="standings-season">Season</Label>
-          <Input
-            id="standings-season"
-            type="number"
-            placeholder="YYYY"
-            value={standingsParams.season}
-            onChange={e => setStandingsParams({ ...standingsParams, season: e.target.value })}
-          />
-        </div>
-        <div>
-          <Label htmlFor="standings-league">League</Label>
-          <Input
-            id="standings-league"
-            placeholder="e.g. standard"
-            value={standingsParams.league}
-            onChange={e => setStandingsParams({ ...standingsParams, league: e.target.value })}
-          />
-        </div>
-        <div>
-          <Label htmlFor="standings-conference">Conference</Label>
-          <Input
-            id="standings-conference"
-            placeholder="e.g. East"
-            value={standingsParams.conference}
-            onChange={e => setStandingsParams({ ...standingsParams, conference: e.target.value })}
-          />
-        </div>
-        <div>
-          <Label htmlFor="standings-division">Division</Label>
-          <Input
-            id="standings-division"
-            placeholder="e.g. Atlantic"
-            value={standingsParams.division}
-            onChange={e => setStandingsParams({ ...standingsParams, division: e.target.value })}
-          />
-        </div>
-      </div>
-      <Button type="submit" disabled={loading} className="mt-4">
-        {loading ? 'Fetching...' : 'Fetch Standings'}
-      </Button>
-    </form>
+    <DynamicForm
+      fields={fields}
+      onSubmit={e => void onSubmit(e)}
+      loading={loading}
+      title="Standings Query Parameters"
+      description="At least one parameter is required."
+      submitLabel="Fetch Standings"
+    />
   );
 };
 

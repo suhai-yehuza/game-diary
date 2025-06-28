@@ -21,7 +21,7 @@ function isGamesApiResponse(data: unknown): data is IGamesApiResponse {
   );
 }
 
-export function LiveGamesDetail({ rapidApiConfig }: { rapidApiConfig: IRapidAPIConfig }) {
+export function LiveGamesDetail({ rapidApiConfig }: Readonly<{ rapidApiConfig: IRapidAPIConfig }>) {
   const [liveGames, setLiveGames] = useState<IGamesApiResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -97,9 +97,9 @@ export function LiveGamesDetail({ rapidApiConfig }: { rapidApiConfig: IRapidAPIC
   }
 
   // Use mock data if no live games from API
-  const games = liveGames?.response ?? MOCK_LIVE_GAMES.response;
+  const gamesData = liveGames?.response ?? MOCK_LIVE_GAMES.response;
 
-  if (games.length === 0) {
+  if (gamesData.length === 0) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="text-center">
@@ -115,12 +115,12 @@ export function LiveGamesDetail({ rapidApiConfig }: { rapidApiConfig: IRapidAPIC
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">Live NBA Games</h1>
         <p className="text-gray-600">
-          {games.length} {games.length === 1 ? 'game' : 'games'} currently live
+          {gamesData.length} {gamesData.length === 1 ? 'game' : 'games'} currently live
         </p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {games.map(game => (
+        {gamesData.map(game => (
           <div
             key={game.id}
             className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-700"

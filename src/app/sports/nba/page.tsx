@@ -63,5 +63,3 @@ export function NBAPage() {
     </div>
   );
 }
-
-export default NBAPage;

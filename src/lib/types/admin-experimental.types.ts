@@ -28,6 +28,7 @@ export type LabelProps = {
   readonly children: ReactNode;
   readonly htmlFor?: string;
   readonly className?: string;
+  readonly required?: boolean;
 };
 
 // GamesForm
@@ -35,7 +36,7 @@ export type GamesFormProps = {
   readonly gameParams: Readonly<Record<string, string>>;
   readonly setGameParams: (params: Readonly<Record<string, string>>) => void;
   readonly loading: boolean;
-  readonly onSubmit: (e: Readonly<FormEvent>) => void;
+  readonly onSubmit: (e: Readonly<FormEvent>) => void | Promise<void>;
 };
 
 // GameStatsForm
@@ -43,7 +44,7 @@ export type GameStatsFormProps = {
   readonly gameStatsId: string;
   readonly setGameStatsId: (id: Readonly<string>) => void;
   readonly loading: boolean;
-  readonly onSubmit: (e: Readonly<FormEvent>) => void;
+  readonly onSubmit: (e: Readonly<FormEvent>) => void | Promise<void>;
 };
 
 // TeamsForm
@@ -51,7 +52,7 @@ export type TeamsFormProps = {
   readonly teamParams: Readonly<Record<string, string>>;
   readonly setTeamParams: (params: Readonly<Record<string, string>>) => void;
   readonly loading: boolean;
-  readonly onSubmit: (e: Readonly<FormEvent>) => void;
+  readonly onSubmit: (e: Readonly<FormEvent>) => void | Promise<void>;
 };
 
 // TeamStatsForm
@@ -59,7 +60,7 @@ export type TeamStatsFormProps = {
   readonly teamStatsParams: Readonly<Record<string, string>>;
   readonly setTeamStatsParams: (params: Readonly<Record<string, string>>) => void;
   readonly loading: boolean;
-  readonly onSubmit: (e: Readonly<FormEvent>) => void;
+  readonly onSubmit: (e: Readonly<FormEvent>) => void | Promise<void>;
 };
 
 // PlayersForm
@@ -67,7 +68,7 @@ export type PlayersFormProps = {
   readonly playerParams: Readonly<Record<string, string>>;
   readonly setPlayerParams: (params: Readonly<Record<string, string>>) => void;
   readonly loading: boolean;
-  readonly onSubmit: (e: Readonly<FormEvent>) => void;
+  readonly onSubmit: (e: Readonly<FormEvent>) => void | Promise<void>;
 };
 
 // PlayerStatsForm
@@ -75,7 +76,7 @@ export type PlayerStatsFormProps = {
   readonly playerStatsParams: Readonly<Record<string, string>>;
   readonly setPlayerStatsParams: (params: Readonly<Record<string, string>>) => void;
   readonly loading: boolean;
-  readonly onSubmit: (e: Readonly<FormEvent>) => void;
+  readonly onSubmit: (e: Readonly<FormEvent>) => void | Promise<void>;
 };
 
 // StandingsForm
@@ -83,7 +84,7 @@ export type StandingsFormProps = {
   readonly standingsParams: Readonly<Record<string, string>>;
   readonly setStandingsParams: (params: Readonly<Record<string, string>>) => void;
   readonly loading: boolean;
-  readonly onSubmit: (e: Readonly<FormEvent>) => void;
+  readonly onSubmit: (e: Readonly<FormEvent>) => void | Promise<void>;
 };
 
 // DataDisplay
@@ -119,6 +120,7 @@ export type GamesSectionProps = {
   loading: boolean;
   handleFetchGames: (e: Readonly<FormEvent>) => void;
   handleFetchGameStats: (e: Readonly<FormEvent>) => void;
+  handleFetch: (endpoint: string, params: Record<string, string>) => void;
 };
 
 // TeamsSection

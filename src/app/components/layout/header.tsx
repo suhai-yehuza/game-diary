@@ -166,7 +166,7 @@ function SearchBar() {
   );
 }
 
-export default function Header() {
+export function Header() {
   const [isSearchVisible, setIsSearchVisible] = useState(false);
   const [isMenuExpanded, setIsMenuExpanded] = useState(false);
   const pathname = usePathname() || '/';

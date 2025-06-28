@@ -2,7 +2,7 @@ import { auth } from '@clerk/nextjs/server';
 import { redirect } from 'next/navigation';
 import React from 'react';
 
-export default async function ProtectedLayout({ children }: { children: React.ReactNode }) {
+export async function ProtectedLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const { userId } = await auth();
 
   if (!userId) {

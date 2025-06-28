@@ -19,4 +19,3 @@ export function NFLPage() {
     </section>
   );
 }
-export default NFLPage;
