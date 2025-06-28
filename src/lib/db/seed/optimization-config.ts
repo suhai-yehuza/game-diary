@@ -332,6 +332,9 @@ import type { ICacheManager } from '@src/lib/types/infrastructure.types';
 // Time constants
 const TIME_CONSTANTS = {
   HOUR_IN_MS: 60 * 60 * 1000, // 1 hour in milliseconds
+  MINUTES_PER_HOUR: 60,
+  SECONDS_PER_MINUTE: 60,
+  MILLISECONDS_PER_SECOND: 1000,
 } as const;
 
 // Note: Methods must be async to satisfy ICacheManager interface, even if not using await

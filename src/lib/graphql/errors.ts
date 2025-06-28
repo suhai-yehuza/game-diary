@@ -92,7 +92,7 @@ export const checkFieldPermission = (
   }
 
   // Admin has access to all fields
-  if (user.banned === false) {
+  if (!user.banned) {
     return true;
   }
 
@@ -120,7 +120,7 @@ export const checkFieldPermission = (
 export const errorTypeResolver = {
   ErrorResult: {
     __resolveType(obj: GraphQLError) {
-      const code = obj.extensions?.code;
+      const { code } = obj.extensions;
       if (code === 'VALIDATION_ERROR') {
         return 'ValidationError';
       }

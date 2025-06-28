@@ -14,6 +14,9 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@src/app/components/ui/tabs';
 import type { IApiResponse, IBadgeProps, IAdminButtonProps } from '@src/lib/types/ui.types';
 
+// Constants
+const TABLE_DISPLAY_LIMIT = 50;
+
 // Simple Badge component
 const Badge = ({ children, variant = 'default', className = '' }: IBadgeProps) => (
   <span
@@ -231,7 +234,7 @@ function AdminDatabaseContent() {
                         </tr>
                       </thead>
                       <tbody>
-                        {tableData.slice(0, 50).map((row, index) => (
+                        {tableData.slice(0, TABLE_DISPLAY_LIMIT).map((row, index) => (
                           <tr
                             key={
                               typeof row.id === 'string' || typeof row.id === 'number'
@@ -255,9 +258,9 @@ function AdminDatabaseContent() {
                       </tbody>
                     </table>
                   </div>
-                  {tableData.length > 50 && (
+                  {tableData.length > TABLE_DISPLAY_LIMIT && (
                     <div className="mt-4 text-center text-sm text-muted-foreground">
-                      Showing first 50 of {tableData.length} records
+                      Showing first {TABLE_DISPLAY_LIMIT} of {tableData.length} records
                     </div>
                   )}
                 </div>
