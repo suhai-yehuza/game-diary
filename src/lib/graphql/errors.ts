@@ -92,7 +92,7 @@ export const checkFieldPermission = (
   }
 
   // Admin has access to all fields
-  if (user.banned === true) {
+  if (user.banned) {
     return true;
   }
 
