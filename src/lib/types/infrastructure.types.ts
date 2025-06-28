@@ -262,3 +262,5 @@ export type DirectiveResolverFn<
 
 // Database types
 export type Database = ReturnType<typeof import('drizzle-orm/neon-http').drizzle>;
+
+export type SomeOtherType = (arg: Readonly<string>) => void;

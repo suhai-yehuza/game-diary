@@ -56,7 +56,7 @@ export interface INotificationContextType {
       'id' | 'createdAt' | 'updatedAt' | 'read' | 'readAt' | 'deletedAt'
     >
   ) => void;
-  markAsRead: (id: string) => void;
+  markAsRead: (id: Readonly<string>) => void;
   markAllAsRead: () => void;
   clearNotifications: () => void;
 }
@@ -96,13 +96,13 @@ export interface IInputProps {
   type?: string;
   placeholder?: string;
   value?: string;
-  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onChange?: (e: Readonly<React.ChangeEvent<HTMLInputElement>>) => void;
   onFocus?: () => void;
   onBlur?: () => void;
   autoComplete?: string;
   spellCheck?: boolean;
   id?: string;
-  ref?: (input: HTMLInputElement | null) => void;
+  ref?: (input: Readonly<HTMLInputElement | null>) => void;
 }
 
 // Component interfaces from admin database page

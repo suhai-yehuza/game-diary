@@ -18,7 +18,7 @@ import type { IApiResponse, IBadgeProps, IAdminButtonProps } from '@src/lib/type
 const TABLE_DISPLAY_LIMIT = 50;
 
 // Simple Badge component
-const Badge = ({ children, variant = 'default', className = '' }: IBadgeProps) => (
+const Badge = ({ children, variant = 'default', className = '' }: Readonly<IBadgeProps>) => (
   <span
     className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
       variant === 'secondary' ? 'bg-gray-100 text-gray-800' : 'bg-blue-100 text-blue-800'
@@ -130,7 +130,7 @@ function AdminDatabaseContent() {
     []
   );
 
-  const handleFetch = useCallback(async (tableName: string) => {
+  const handleFetch = useCallback(async (tableName: Readonly<string>) => {
     setLoading(true);
     setError(null);
 
@@ -174,7 +174,7 @@ function AdminDatabaseContent() {
     return '[Unknown]';
   };
 
-  const renderTable = (tableName: string) => {
+  const renderTable = (tableName: Readonly<string>) => {
     const config = tableConfigs[tableName as keyof typeof tableConfigs];
     const tableData = data[tableName] || [];
     const hasData = tableData.length > 0;

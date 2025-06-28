@@ -104,7 +104,7 @@ export interface IFriendGroup {
 
 export interface IFriendGroupsProps {
   friends: IFriend[];
-  onGroupUpdate: (group: IFriendGroup) => void;
+  onGroupUpdate: (group: Readonly<IFriendGroup>) => void;
 }
 
 // ISortDirection is now imported from core.types.ts

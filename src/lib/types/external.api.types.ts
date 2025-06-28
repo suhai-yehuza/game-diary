@@ -106,7 +106,7 @@ export interface IValidationResult {
 }
 
 export interface IValidationRule {
-  validate: (value: unknown) => boolean;
+  validate: (value: Readonly<unknown>) => boolean;
   message: string;
 }
 

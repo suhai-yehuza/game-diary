@@ -23,7 +23,11 @@ export const createSoftDeleteField = () => ({
 });
 
 // Index creation helper
-export const createIndex = (name: string, table: string, columns: string[]) =>
+export const createIndex = (
+  name: Readonly<string>,
+  table: Readonly<string>,
+  columns: ReadonlyArray<string>
+) =>
   sql`CREATE INDEX IF NOT EXISTS ${sql.identifier(name)} ON ${sql.identifier(table)} (${sql.join(
     columns.map(col => sql.identifier(col))
   )})`;
@@ -31,12 +35,12 @@ export const createIndex = (name: string, table: string, columns: string[]) =>
 // Soft delete helper functions
 export const softDelete = {
   // Helper function to check if a record is soft deleted
-  isDeleted: (record: { deletedAt: Date | null }) => {
+  isDeleted: (record: Readonly<{ deletedAt: Date | null }>) => {
     return record.deletedAt !== null;
   },
 
   // Helper function to filter out soft deleted records
-  filterDeleted: <T extends { deletedAt: Date | null }>(records: T[]) => {
+  filterDeleted: <T extends { deletedAt: Date | null }>(records: ReadonlyArray<T>) => {
     return records.filter(record => record.deletedAt === null);
   },
 };

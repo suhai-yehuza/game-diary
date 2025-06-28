@@ -50,7 +50,7 @@ const Button = ({
 };
 
 // Simple Input component
-const Input = ({ className = '', ...props }: IInputProps) => {
+const Input = ({ className = '', ...props }: Readonly<IInputProps>) => {
   return (
     <input
       className={`flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${className}`}
@@ -110,12 +110,12 @@ function SearchBarContent() {
     }, DEBOUNCE_DELAY);
   }, [debounced_query, router, pathname]);
 
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = (e: Readonly<React.FormEvent>) => {
     e.preventDefault();
     setDebouncedQuery(search_query);
   };
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSearchChange = (e: Readonly<React.ChangeEvent<HTMLInputElement>>) => {
     const query = e.target.value;
     setSearchQuery(query);
     setDebouncedQuery(query);
@@ -215,7 +215,7 @@ export default function Header() {
   const pathname = usePathname() || '/';
   const { user, isLoaded } = useUser();
 
-  const isActive = (path: string) => {
+  const isActive = (path: Readonly<string>) => {
     if (path === '/') {
       return pathname === path || pathname.startsWith('/protected/user');
     }
