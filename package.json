@@ -62,7 +62,7 @@
     "// Analysis": "Code analysis and optimization",
     "analyze": "ANALYZE=true next build",
     "analyze:bundle": "npx @next/bundle-analyzer",
-    "check:circular": "madge --circular --extensions ts,tsx src/",
+    "check:circular": "tsx scripts/utils/check-circular-deps.ts",
     "check:unused:exports": "tsx scripts/utils/check-unused-exports.ts",
     "check:size": "size-limit",
     "// Performance": "Performance monitoring and optimization",

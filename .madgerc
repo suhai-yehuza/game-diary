@@ -1,7 +1,18 @@
 {
   "excludeRegExp": [
-    "lib/types/generated/graphql.ts"
+    "lib/types/generated/graphql.ts",
+    "tailwind.config.ts",
+    "next.config.js",
+    "drizzle.config.ts",
+    "vitest.config.ts",
+    "playwright.config.ts",
+    "eslint.config.js",
+    "postcss.config.mjs",
+    "codegen.ts"
   ],
-  "extensions": [".ts", ".tsx"],
+  "extensions": [
+    ".ts",
+    ".tsx"
+  ],
   "baseDir": "src"
-} 
+}
