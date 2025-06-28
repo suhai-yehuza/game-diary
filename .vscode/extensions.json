@@ -1,0 +1,15 @@
+{
+  "recommendations": [
+    "esbenp.prettier-vscode",
+    "dbaeumer.vscode-eslint",
+    "streetsidesoftware.code-spell-checker",
+    "eamodio.gitlens",
+    "usernamehw.errorlens",
+    "ms-vsliveshare.vsliveshare",
+    "orta.vscode-jest",
+    "firsttris.vscode-jest-runner",
+    "ms-azuretools.vscode-docker",
+    "GraphQL.vscode-graphql",
+    "bradlc.vscode-tailwindcss"
+  ]
+}
