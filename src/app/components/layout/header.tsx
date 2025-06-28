@@ -142,8 +142,8 @@ function SearchBarContent() {
               className="pl-8 pr-8 w-full h-8 md:h-10 text-base bg-transparent border-none focus:ring-0 outline-none transition-all duration-200 rounded-none"
               value={search_query}
               onChange={handleSearchChange}
-              onFocus={(_: Readonly<React.FocusEvent>) => setIsFocused(true)}
-              onBlur={(_: Readonly<React.FocusEvent>) => setIsFocused(false)}
+              onFocus={() => setIsFocused(true)}
+              onBlur={() => setIsFocused(false)}
               autoComplete="off"
               spellCheck={false}
               ref={(input: Readonly<HTMLInputElement | null>) => {
@@ -154,16 +154,7 @@ function SearchBarContent() {
               type="button"
               className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
               aria-label="Close search"
-              onMouseDown={(e: Readonly<React.MouseEvent>) => {
-                e.preventDefault();
-                setIsFocused(false);
-              }}
-              onKeyDown={(e: Readonly<React.KeyboardEvent>) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  setIsFocused(false);
-                }
-              }}
+              onClick={() => setIsFocused(false)}
             >
               <X className="h-4 w-4" />
             </button>
@@ -184,8 +175,8 @@ function SearchBarContent() {
           className="pl-8 w-full h-8 text-sm bg-transparent border-none focus:ring-0 outline-none transition-all duration-200 rounded-none"
           value={search_query}
           onChange={handleSearchChange}
-          onFocus={(_: Readonly<React.FocusEvent>) => setIsFocused(true)}
-          onBlur={(_: Readonly<React.FocusEvent>) => setIsFocused(false)}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
           autoComplete="off"
           spellCheck={false}
         />
@@ -194,7 +185,7 @@ function SearchBarContent() {
             type="button"
             className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
             aria-label="Clear search"
-            onClick={(_: Readonly<React.MouseEvent>) => {
+            onClick={() => {
               setSearchQuery('');
               setDebouncedQuery('');
             }}
@@ -247,7 +238,7 @@ function Navigation(
             size="icon"
             className="lg:hidden"
             aria-label="Toggle menu"
-            onClick={(_: Readonly<React.MouseEvent>) => {
+            onClick={() => {
               setIsMenuExpanded(!isMenuExpanded);
               // Close search if open when toggling menu
               if (isSearchVisible) setIsSearchVisible(false);
@@ -272,7 +263,7 @@ function Navigation(
                       ? 'text-blue-600 font-semibold'
                       : 'text-muted-foreground hover:text-blue-600'
                   }`}
-                  onClick={(_: Readonly<React.MouseEvent>) => setIsMenuExpanded(false)}
+                  onClick={() => setIsMenuExpanded(false)}
                 >
                   Dashboard
                 </Link>
@@ -293,7 +284,7 @@ function Navigation(
                               ? 'hover:text-blue-600'
                               : 'text-muted-foreground hover:text-blue-600'
                         }`}
-                        onClick={(_: Readonly<React.MouseEvent>) => setIsMenuExpanded(false)}
+                        onClick={() => setIsMenuExpanded(false)}
                       >
                         {sport === 'all-sports'
                           ? 'All Sports'
@@ -316,7 +307,7 @@ function Navigation(
                         ? 'text-blue-600 font-semibold'
                         : 'hover:text-blue-600'
                     }`}
-                    onClick={(_: Readonly<React.MouseEvent>) => setIsMenuExpanded(false)}
+                    onClick={() => setIsMenuExpanded(false)}
                   >
                     Profile
                   </Link>
@@ -331,7 +322,7 @@ function Navigation(
                                 ? 'text-blue-600 font-semibold'
                                 : 'hover:text-blue-600'
                             }`}
-                            onClick={(_: Readonly<React.MouseEvent>) => setIsMenuExpanded(false)}
+                            onClick={() => setIsMenuExpanded(false)}
                           >
                             Admin
                             <ChevronDown className="h-3 w-3" />
@@ -398,7 +389,7 @@ function RightSection(
           size="icon"
           className="sm:hidden"
           aria-label="Toggle search"
-          onClick={(_: Readonly<React.MouseEvent>) => {
+          onClick={() => {
             setIsSearchVisible(true);
             if (isMenuExpanded) setIsMenuExpanded(false);
           }}
@@ -413,7 +404,7 @@ function RightSection(
             role="dialog"
             tabIndex={-1}
             aria-modal="true"
-            onClick={(_: Readonly<React.MouseEvent>) => setIsSearchVisible(false)}
+            onClick={() => setIsSearchVisible(false)}
             onKeyDown={(e: Readonly<React.KeyboardEvent>) => {
               if (e.key === 'Escape') {
                 setIsSearchVisible(false);
@@ -422,7 +413,7 @@ function RightSection(
           >
             <div
               className="mt-8 w-full max-w-md bg-background rounded-full border border-[#27272a] shadow-lg flex items-center px-4 py-2 relative"
-              onClick={(e: Readonly<React.MouseEvent>) => e.stopPropagation()}
+              onClick={() => {}}
               onKeyDown={(e: Readonly<React.KeyboardEvent>) => {
                 if (e.key === 'Escape') {
                   setIsSearchVisible(false);
@@ -434,7 +425,7 @@ function RightSection(
               <SearchBar />
               <button
                 className="ml-2 text-gray-400 hover:text-gray-600"
-                onClick={(_: Readonly<React.MouseEvent>) => setIsSearchVisible(false)}
+                onClick={() => setIsSearchVisible(false)}
                 aria-label="Close search"
                 type="button"
               >
