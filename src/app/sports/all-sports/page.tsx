@@ -24,3 +24,5 @@ export function AllSportsPage() {
     </section>
   );
 }
+
+export default AllSportsPage;

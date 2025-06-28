@@ -7,3 +7,5 @@ export function SignUpPage() {
     </div>
   );
 }
+
+export default SignUpPage;

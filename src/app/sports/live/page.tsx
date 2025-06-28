@@ -1,18 +1,23 @@
-import { LiveGamesDetail } from '@src/app/components/live-games-detail';
-import { getRapidApiConfig } from '@src/lib/config/api.config';
+'use client';
+
+import { useUser } from '@clerk/nextjs';
+import React from 'react';
 
 export function LiveGamesPage() {
-  const rapidApiConfig = getRapidApiConfig();
-  return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold mb-2">Live Games</h1>
-        <p className="text-gray-600 dark:text-gray-400">
-          Watch live NBA games with real-time scores and updates
-        </p>
-      </div>
+  const { isLoaded, isSignedIn, user } = useUser();
 
-      <LiveGamesDetail rapidApiConfig={rapidApiConfig} />
-    </div>
+  return (
+    <section className="min-h-[calc(100vh-4rem)] flex items-center justify-center">
+      <div className="container mx-auto px-4 text-center">
+        <h1 className="text-3xl font-bold">This will be the Live Games page</h1>
+        {isLoaded && isSignedIn ? (
+          <p className="mt-4">You are logged in as {user.firstName}</p>
+        ) : (
+          <p className="mt-4">You are not logged in</p>
+        )}
+      </div>
+    </section>
   );
 }
+
+export default LiveGamesPage;
