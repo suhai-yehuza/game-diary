@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/prefer-readonly-parameter-types */
 'use client';
 
 import React, { useEffect } from 'react';

@@ -21,13 +21,9 @@ import type { IButtonProps, IInputProps } from '@src/lib/types/ui.types';
 const DEBOUNCE_DELAY = 500;
 
 // Simple Button component
-const Button = ({
-  children,
-  variant = 'default',
-  size = 'default',
-  className = '',
-  ...props
-}: Readonly<IButtonProps>) => {
+const Button = (props: Readonly<IButtonProps>) => {
+  const { children, variant = 'default', size = 'default', className = '', ...rest } = props;
+
   const baseClasses =
     'inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50';
   const variantClasses = {
@@ -42,7 +38,7 @@ const Button = ({
   return (
     <button
       className={`${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]} ${className}`}
-      {...props}
+      {...rest}
     >
       {children}
     </button>
@@ -50,11 +46,13 @@ const Button = ({
 };
 
 // Simple Input component
-const Input = ({ className = '', ...props }: Readonly<IInputProps>) => {
+const Input = (props: Readonly<IInputProps>) => {
+  const { className = '', ...rest } = props;
+
   return (
     <input
       className={`flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${className}`}
-      {...props}
+      {...rest}
     />
   );
 };
@@ -110,15 +108,29 @@ function SearchBarContent() {
     }, DEBOUNCE_DELAY);
   }, [debounced_query, router, pathname]);
 
-  const handleSearch = (e: Readonly<React.FormEvent>) => {
+  // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
+  const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     setDebouncedQuery(search_query);
   };
 
-  const handleSearchChange = (e: Readonly<React.ChangeEvent<HTMLInputElement>>) => {
+  // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value;
     setSearchQuery(query);
     setDebouncedQuery(query);
+  };
+
+  const handleFocus = () => setIsFocused(true);
+  const handleBlur = () => setIsFocused(false);
+  const handleClearSearch = () => {
+    setSearchQuery('');
+    setDebouncedQuery('');
+  };
+  const handleCloseSearch = () => setIsFocused(false);
+  // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
+  const handleRefCallback = (input: HTMLInputElement | null) => {
+    if (input) input.focus();
   };
 
   // For detaching effect
@@ -142,19 +154,17 @@ function SearchBarContent() {
               className="pl-8 pr-8 w-full h-8 md:h-10 text-base bg-transparent border-none focus:ring-0 outline-none transition-all duration-200 rounded-none"
               value={search_query}
               onChange={handleSearchChange}
-              onFocus={() => setIsFocused(true)}
-              onBlur={() => setIsFocused(false)}
+              onFocus={handleFocus}
+              onBlur={handleBlur}
               autoComplete="off"
               spellCheck={false}
-              ref={(input: Readonly<HTMLInputElement | null>) => {
-                if (input) input.focus();
-              }}
+              ref={handleRefCallback}
             />
             <button
               type="button"
               className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
               aria-label="Close search"
-              onClick={() => setIsFocused(false)}
+              onClick={handleCloseSearch}
             >
               <X className="h-4 w-4" />
             </button>
@@ -175,8 +185,8 @@ function SearchBarContent() {
           className="pl-8 w-full h-8 text-sm bg-transparent border-none focus:ring-0 outline-none transition-all duration-200 rounded-none"
           value={search_query}
           onChange={handleSearchChange}
-          onFocus={() => setIsFocused(true)}
-          onBlur={() => setIsFocused(false)}
+          onFocus={handleFocus}
+          onBlur={handleBlur}
           autoComplete="off"
           spellCheck={false}
         />
@@ -185,10 +195,7 @@ function SearchBarContent() {
             type="button"
             className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
             aria-label="Clear search"
-            onClick={() => {
-              setSearchQuery('');
-              setDebouncedQuery('');
-            }}
+            onClick={handleClearSearch}
           >
             <X className="h-5 w-5" />
           </button>
@@ -405,7 +412,7 @@ function RightSection(
             tabIndex={-1}
             aria-modal="true"
             onClick={() => setIsSearchVisible(false)}
-            onKeyDown={(e: Readonly<React.KeyboardEvent>) => {
+            onKeyDown={(e: React.KeyboardEvent) => {
               if (e.key === 'Escape') {
                 setIsSearchVisible(false);
               }
@@ -413,8 +420,11 @@ function RightSection(
           >
             <div
               className="mt-8 w-full max-w-md bg-background rounded-full border border-[#27272a] shadow-lg flex items-center px-4 py-2 relative"
-              onClick={() => {}}
-              onKeyDown={(e: Readonly<React.KeyboardEvent>) => {
+              onClick={(e: React.MouseEvent) => {
+                // Prevent event bubbling to parent
+                e.stopPropagation();
+              }}
+              onKeyDown={(e: React.KeyboardEvent) => {
                 if (e.key === 'Escape') {
                   setIsSearchVisible(false);
                 }

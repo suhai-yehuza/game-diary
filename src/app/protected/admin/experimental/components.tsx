@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/prefer-readonly-parameter-types */
 // This file will be populated with components as needed
 
 import type { ChangeEvent, FormEvent } from 'react';
