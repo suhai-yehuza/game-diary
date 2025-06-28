@@ -2,13 +2,14 @@ import { exec } from 'child_process';
 import path from 'path';
 import { promisify } from 'util';
 
+import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
 const execAsync = promisify(exec);
 
 export const runtime = 'nodejs';
 
-export async function GET(_request: Request) {
+export async function GET(_request: Readonly<NextRequest>) {
   try {
     // Get the project directory
     const projectDir = process.env.VERCEL_DIR ?? process.cwd();

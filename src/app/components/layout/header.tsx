@@ -18,6 +18,8 @@ import {
 } from '@src/app/components/ui/dropdown-menu';
 import type { IButtonProps, IInputProps } from '@src/lib/types/ui.types';
 
+const DEBOUNCE_DELAY = 500;
+
 // Simple Button component
 const Button = ({
   children,
@@ -105,7 +107,7 @@ function SearchBarContent() {
         // Return to the previous page when search is cleared
         router.push(previousPathRef.current);
       }
-    }, 500);
+    }, DEBOUNCE_DELAY);
   }, [debounced_query, router, pathname]);
 
   const handleSearch = (e: React.FormEvent) => {

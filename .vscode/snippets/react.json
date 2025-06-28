@@ -1,0 +1,85 @@
+{
+  "React Functional Component": {
+    "prefix": "rfc",
+    "body": [
+      "import type { ReactNode } from 'react';",
+      "",
+      "interface I${1:ComponentName}Props {",
+      "  children?: ReactNode;",
+      "}",
+      "",
+      "export function ${1:ComponentName}({ children }: I${1:ComponentName}Props) {",
+      "  return (",
+      "    <div>",
+      "      {children}",
+      "    </div>",
+      "  );",
+      "}"
+    ],
+    "description": "Create a React functional component with TypeScript"
+  },
+  "React Hook": {
+    "prefix": "rhook",
+    "body": [
+      "import { useState, useEffect } from 'react';",
+      "",
+      "export function use${1:HookName}() {",
+      "  const [${2:state}, set${2/(.*)/${2:/capitalize}/}] = useState<${3:string}>('');",
+      "",
+      "  useEffect(() => {",
+      "    // ${4:Effect logic}",
+      "  }, []);",
+      "",
+      "  return {",
+      "    ${2:state},",
+      "    set${2/(.*)/${2:/capitalize}/},",
+      "  };",
+      "}"
+    ],
+    "description": "Create a custom React hook"
+  },
+  "Next.js Page": {
+    "prefix": "npage",
+    "body": [
+      "export default function ${1:PageName}Page() {",
+      "  return (",
+      "    <div className=\"container mx-auto px-4 py-8\">",
+      "      <h1 className=\"text-3xl font-bold mb-6\">${1:PageName}</h1>",
+      "      <p className=\"text-gray-600\">${2:Page description}</p>",
+      "    </div>",
+      "  );",
+      "}"
+    ],
+    "description": "Create a Next.js page component"
+  },
+  "TypeScript Interface": {
+    "prefix": "tinterface",
+    "body": ["interface I${1:InterfaceName} {", "  ${2:property}: ${3:string};", "}"],
+    "description": "Create a TypeScript interface"
+  },
+  "TypeScript Type": {
+    "prefix": "ttype",
+    "body": ["type ${1:TypeName} = {", "  ${2:property}: ${3:string};", "};"],
+    "description": "Create a TypeScript type"
+  },
+  "Console Log": {
+    "prefix": "clog",
+    "body": ["console.log('${1:label}:', ${2:value});"],
+    "description": "Console log with label"
+  },
+  "Try Catch": {
+    "prefix": "trycatch",
+    "body": [
+      "try {",
+      "  ${1:// code}",
+      "} catch (error) {",
+      "  if (error instanceof Error) {",
+      "    console.error('${2:Error message}:', error.message);",
+      "  } else {",
+      "    console.error('${2:Error message}:', error);",
+      "  }",
+      "}"
+    ],
+    "description": "Try catch block with error handling"
+  }
+}

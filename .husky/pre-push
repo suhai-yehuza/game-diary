@@ -1,0 +1,4 @@
+#!/usr/bin/env sh
+
+# Run type checking and tests before push
+pnpm typecheck && pnpm test:coverage

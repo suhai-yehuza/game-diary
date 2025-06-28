@@ -14,13 +14,21 @@ import {
   games,
 } from '@src/lib/db/schema';
 
-export async function GET(request: NextRequest, { params }: { params: { table: string } }) {
+const MAX_RECORDS = 100;
+
+export async function GET(
+  request: Readonly<NextRequest>,
+  { params }: Readonly<{ params: Promise<{ table: string }> }>
+) {
   try {
     // Check authentication
     const { userId } = await auth();
     if (!userId) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    const resolvedParams = await params;
+    const tableName = resolvedParams.table;
 
     // Check if database is connected
     if (!db) {
@@ -32,8 +40,6 @@ export async function GET(request: NextRequest, { params }: { params: { table: s
 
     // Check if user is admin (you may need to implement this check based on your user roles)
     // For now, we'll allow any authenticated user to access this endpoint
-
-    const { table } = params;
 
     // Define table mappings
     const tableMap = {
@@ -47,17 +53,17 @@ export async function GET(request: NextRequest, { params }: { params: { table: s
       games,
     };
 
-    const selectedTable = tableMap[table as keyof typeof tableMap];
+    const selectedTable = tableMap[tableName as keyof typeof tableMap];
 
     if (!selectedTable) {
       return NextResponse.json(
-        { success: false, error: `Table '${table}' not found` },
+        { success: false, error: `Table '${tableName}' not found` },
         { status: 404 }
       );
     }
 
     // Fetch data from the selected table
-    const data = await db.select().from(selectedTable).limit(100);
+    const data = await db.select().from(selectedTable).limit(MAX_RECORDS);
 
     return NextResponse.json({
       success: true,
