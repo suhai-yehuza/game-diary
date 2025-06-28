@@ -2,6 +2,8 @@
 
 import React, { useEffect } from 'react';
 
+import { getRapidApiConfig } from '../../../../lib/config/api.config';
+
 import {
   Button,
   GamesForm,
@@ -299,7 +301,7 @@ function PlayersSection({
 }
 
 function AdminExperimentalContent() {
-  const { data, loading, error, handleFetch } = useApiFetch();
+  const { data, loading, error, handleFetch } = useApiFetch(getRapidApiConfig());
   const {
     gameParams,
     setGameParams,

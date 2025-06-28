@@ -191,19 +191,16 @@ export const API_CONFIG = {
 } as const;
 
 export function getRapidApiConfig(): IRapidAPIConfig {
-  const env = envSchema.parse(process.env);
+  const env = envSchema.parse({
+    NEXT_PUBLIC_RAPID_API_KEY: process.env.NEXT_PUBLIC_RAPID_API_KEY,
+    NEXT_PUBLIC_RAPID_API_HOST: process.env.NEXT_PUBLIC_RAPID_API_HOST,
+    NEXT_PUBLIC_RAPID_API_BASE_URL: process.env.NEXT_PUBLIC_RAPID_API_BASE_URL,
+  });
 
   return {
     baseUrl: env.NEXT_PUBLIC_RAPID_API_BASE_URL,
     apiKey: env.NEXT_PUBLIC_RAPID_API_KEY,
     host: env.NEXT_PUBLIC_RAPID_API_HOST,
     endpoints: API_CONFIG.endpoints,
-    headers: {
-      'X-RapidAPI-Key': env.NEXT_PUBLIC_RAPID_API_KEY,
-      'X-RapidAPI-Host': env.NEXT_PUBLIC_RAPID_API_HOST,
-    },
-    timeout: API_CONFIG.timeout ?? 10000,
-    retries: API_CONFIG.retryAttempts ?? 3,
-    cacheTTL: 60, // Set a default cache TTL (seconds) or use from config if available
   };
 }
