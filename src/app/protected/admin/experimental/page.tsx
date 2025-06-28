@@ -442,6 +442,8 @@ function AdminExperimentalContent() {
   );
 }
 
-export function AdminExperimentalPage() {
+function AdminExperimentalPage() {
   return <AdminExperimentalContent />;
 }
+
+export default AdminExperimentalPage;
