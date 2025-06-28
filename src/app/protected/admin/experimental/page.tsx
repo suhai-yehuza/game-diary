@@ -304,7 +304,7 @@ function PlayersSection({
 
 function AdminExperimentalContent() {
   // const rapidApiConfig = useMemo(() => getRapidApiConfig(), []);
-  const { data, loading, error, handleFetch } = useApiFetch();
+  const { data, loading, error, handleFetch, clearData } = useApiFetch();
   const {
     gameParams,
     setGameParams,
@@ -331,6 +331,11 @@ function AdminExperimentalContent() {
     playersSubTab,
     setPlayersSubTab,
   } = useTabState();
+
+  // Clear data when tab changes
+  useEffect(() => {
+    clearData();
+  }, [selectedTab, clearData]);
 
   // Form handlers
   const handleFetchGames = (e: React.FormEvent) => {

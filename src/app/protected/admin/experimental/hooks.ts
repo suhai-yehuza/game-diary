@@ -6,6 +6,12 @@ export const useApiFetch = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const clearData = useCallback(() => {
+    setData(null);
+    setLoading(false);
+    setError(null);
+  }, []);
+
   const handleFetch = useCallback(
     async (
       endpoint: Readonly<string>,
@@ -57,7 +63,7 @@ export const useApiFetch = () => {
     []
   );
 
-  return { data, loading, error, handleFetch };
+  return { data, loading, error, handleFetch, clearData };
 };
 
 // Form state hook
