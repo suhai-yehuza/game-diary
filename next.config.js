@@ -85,6 +85,10 @@ const nextConfig = {
         protocol: 'http',
         hostname: '**.wikimedia.org',
       },
+      {
+        protocol: 'https',
+        hostname: 'media.api-sports.io',
+      },
     ],
   },
 

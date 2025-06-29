@@ -4,9 +4,8 @@ import Image from 'next/image';
 import { useEffect, useState, useCallback } from 'react';
 
 import { MOCK_LIVE_GAMES } from '@/lib/mock/liveGamesMock';
-import type { IGamesApiResponse, IRapidAPIConfig } from '@/lib/types/externalApiTypes';
-import { createRapidAPIClient } from '@/lib/utils/api-client';
-import { API_CONFIG } from '@src/lib/config/api.config';
+import type { IGamesApiResponse } from '@/lib/types/externalApiTypes';
+import { INTERNAL_PROXY_ENDPOINTS } from '@src/lib/config/api.config';
 
 // Constants
 const REFRESH_INTERVAL_MS = 30000;
@@ -21,7 +20,7 @@ function isGamesApiResponse(data: unknown): data is IGamesApiResponse {
   );
 }
 
-export function LiveGamesDetail({ rapidApiConfig }: { rapidApiConfig: IRapidAPIConfig }) {
+export function LiveGamesDetail() {
   const [liveGames, setLiveGames] = useState<IGamesApiResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -31,10 +30,12 @@ export function LiveGamesDetail({ rapidApiConfig }: { rapidApiConfig: IRapidAPIC
       setLoading(true);
       setError(null);
 
-      const client = createRapidAPIClient(rapidApiConfig);
-      const data = await client.fetch<IGamesApiResponse | unknown>(API_CONFIG.endpoints.GAMES, {
-        live: 'all',
-      });
+      // Use the internal proxy endpoint to avoid CORS issues
+      const response = await fetch(`${INTERNAL_PROXY_ENDPOINTS.GAMES}?live=all`);
+      if (!response.ok) {
+        throw new Error(`API request failed: ${response.status} ${response.statusText}`);
+      }
+      const data = (await response.json()) as unknown;
 
       // Use mock data if API returns no live games
       if (isGamesApiResponse(data) && (data.results === 0 || data.response.length === 0)) {
@@ -48,13 +49,11 @@ export function LiveGamesDetail({ rapidApiConfig }: { rapidApiConfig: IRapidAPIC
       const error = err instanceof Error ? err : new Error(String(err));
       setError(error.message);
       console.error('Failed to fetch live games:', error);
-
-      // Use mock data as fallback on error
       setLiveGames(MOCK_LIVE_GAMES);
     } finally {
       setLoading(false);
     }
-  }, [rapidApiConfig]);
+  }, []);
 
   useEffect(() => {
     void fetchLiveGames();
