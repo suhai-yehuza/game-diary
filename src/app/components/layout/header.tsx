@@ -27,6 +27,9 @@ function SearchBarContent() {
   const debounceTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const SEARCH_DEBOUNCE_MS = 500;
 
+  // Check if we're on a 404 page
+  const is404Page = !pathname || pathname === '/_not-found' || pathname.includes('404');
+
   // Initialize search query from URL params
   useEffect(() => {
     const query = searchParams.get('q');
@@ -48,25 +51,50 @@ function SearchBarContent() {
 
   // Handle URL updates when debounced query changes
   useEffect(() => {
+    // Skip entirely if we're on a 404 page
+    if (is404Page) {
+      return;
+    }
+
     if (debounceTimeoutRef.current) {
       clearTimeout(debounceTimeoutRef.current);
     }
 
     debounceTimeoutRef.current = setTimeout(() => {
       const trimmedQuery = debounced_query.trim();
-      if (trimmedQuery) {
+
+      // Double-check we're not on a 404 page before navigation
+      if (is404Page) {
+        return;
+      }
+
+      // Only navigate if we have a valid pathname and query
+      if (trimmedQuery && pathname && pathname !== '/_not-found' && !pathname.includes('404')) {
         const encodedQuery = encodeURIComponent(trimmedQuery);
         if (pathname.startsWith('/protected/admin')) {
           router.push(`/protected/admin/users?q=${encodedQuery}`);
         } else {
           router.push(`/search?q=${encodedQuery}`);
         }
-      } else {
-        // Return to the previous page when search is cleared
-        router.push(previousPathRef.current);
+      } else if (
+        !trimmedQuery &&
+        pathname &&
+        pathname !== '/_not-found' &&
+        !pathname.includes('404')
+      ) {
+        // Return to the previous page when search is cleared, but only if it's a valid path
+        const previousPath = previousPathRef.current;
+        if (
+          previousPath &&
+          previousPath !== '/_not-found' &&
+          !previousPath.includes('404') &&
+          previousPath !== pathname
+        ) {
+          router.push(previousPath);
+        }
       }
     }, SEARCH_DEBOUNCE_MS);
-  }, [debounced_query, router, pathname]);
+  }, [debounced_query, router, pathname, is404Page]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
