@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 
 import { INTERNAL_PROXY_ENDPOINTS } from '@/lib/config/api.config';
 import { MOCK_LIVE_GAMES } from '@/lib/mock/liveGamesMock';

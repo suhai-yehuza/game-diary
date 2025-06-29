@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 
 import { MOCK_LIVE_GAMES } from '@/lib/mock/liveGamesMock';
 import type { IGamesApiResponse } from '@/lib/types/externalApiTypes';
@@ -20,12 +20,13 @@ function isGamesApiResponse(data: unknown): data is IGamesApiResponse {
   );
 }
 
-export function LiveGamesDetail() {
-  const [liveGames, setLiveGames] = useState<IGamesApiResponse | null>(null);
+export function LiveGamesDetail({ data }: { data?: IGamesApiResponse } = {}) {
+  const [liveGames, setLiveGames] = useState<IGamesApiResponse | null>(data ?? null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const fetchLiveGames = useCallback(async () => {
+    if (data) return; // Don't fetch if data is provided via prop
     try {
       setLoading(true);
       setError(null);
@@ -35,13 +36,16 @@ export function LiveGamesDetail() {
       if (!response.ok) {
         throw new Error(`API request failed: ${response.status} ${response.statusText}`);
       }
-      const data = (await response.json()) as unknown;
+      const dataResult = (await response.json()) as unknown;
 
       // Use mock data if API returns no live games
-      if (isGamesApiResponse(data) && (data.results === 0 || data.response.length === 0)) {
+      if (
+        isGamesApiResponse(dataResult) &&
+        (dataResult.results === 0 || dataResult.response.length === 0)
+      ) {
         setLiveGames(MOCK_LIVE_GAMES);
-      } else if (isGamesApiResponse(data)) {
-        setLiveGames(data);
+      } else if (isGamesApiResponse(dataResult)) {
+        setLiveGames(dataResult);
       } else {
         setLiveGames(MOCK_LIVE_GAMES);
       }
@@ -53,18 +57,20 @@ export function LiveGamesDetail() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [data]);
 
   useEffect(() => {
-    void fetchLiveGames();
-
-    // Refresh live games every 30 seconds
-    const interval = setInterval(() => {
+    if (!data) {
       void fetchLiveGames();
-    }, REFRESH_INTERVAL_MS);
 
-    return () => clearInterval(interval);
-  }, [fetchLiveGames]);
+      // Refresh live games every 30 seconds
+      const interval = setInterval(() => {
+        void fetchLiveGames();
+      }, REFRESH_INTERVAL_MS);
+
+      return () => clearInterval(interval);
+    }
+  }, [fetchLiveGames, data]);
 
   if (loading) {
     return (
