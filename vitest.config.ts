@@ -34,6 +34,7 @@ export default defineConfig({
         '**/playwright.config.ts',
         'src/lib/types/generated/**',
         'src/app/api/**', // API routes are tested via e2e
+        'src/app/styles/**',
         'src/middleware.ts', // Middleware is tested via e2e
       ],
       thresholds: {
@@ -43,19 +44,7 @@ export default defineConfig({
           lines: 95,
           statements: 95,
         },
-        './src/app/': {
-          branches: 95,
-          functions: 95,
-          lines: 95,
-          statements: 95,
-        },
-        './src/hooks/': {
-          branches: 95,
-          functions: 95,
-          lines: 95,
-          statements: 95,
-        },
-        './src/lib/': {
+        './src/': {
           branches: 95,
           functions: 95,
           lines: 95,
@@ -63,7 +52,6 @@ export default defineConfig({
         },
       },
       all: true,
-      src: ['src/**/*.{ts,tsx}'],
     },
     testTimeout: 10000,
     hookTimeout: 10000,

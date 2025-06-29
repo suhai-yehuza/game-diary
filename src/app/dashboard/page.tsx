@@ -4,10 +4,11 @@ import React from 'react';
 
 export function DashboardPage() {
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-4xl font-bold">Hello World</h1>
+    <div className="min-h-screen bg-background">
+      <div className="container mx-auto p-6">
+        <h1 className="text-2xl font-bold">Dashboard</h1>
+        <p className="text-muted-foreground">Welcome to your dashboard.</p>
+      </div>
     </div>
   );
 }
-
-export default DashboardPage;

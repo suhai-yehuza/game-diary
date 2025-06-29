@@ -454,7 +454,9 @@ function AdminExperimentalContent() {
 }
 
 export function AdminExperimentalPage() {
-  return <AdminExperimentalContent />;
+  return (
+    <div className="min-h-screen bg-background">
+      <AdminExperimentalContent />
+    </div>
+  );
 }
-
-export default AdminExperimentalPage;

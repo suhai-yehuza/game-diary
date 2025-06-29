@@ -16,6 +16,9 @@ describe('API Client Utils', () => {
       timeout: 10000,
       retries: 3,
       cacheTTL: 300000,
+      endpoints: {
+        test: '/test-endpoint',
+      },
     };
 
     const client = createRapidAPIClient(config);
@@ -35,6 +38,9 @@ describe('API Client Utils', () => {
       timeout: 10000,
       retries: 3,
       cacheTTL: 300000,
+      endpoints: {
+        test: '/test-endpoint',
+      },
     };
 
     // Test that the config has the correct values

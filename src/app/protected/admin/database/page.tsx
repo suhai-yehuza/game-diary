@@ -177,7 +177,6 @@ function AdminDatabaseContent() {
   const renderTable = (tableName: string) => {
     const config = tableConfigs[tableName as keyof typeof tableConfigs];
     const tableData = data[tableName] || [];
-
     return (
       <Card>
         <CardHeader>
@@ -271,11 +270,9 @@ function AdminDatabaseContent() {
                     </tbody>
                   </table>
                 </div>
-                {tableData.length > 0 && (
-                  <div className="mt-4 text-center text-sm text-muted-foreground">
-                    Showing first {TABLE_DISPLAY_LIMIT} of {tableData.length} records
-                  </div>
-                )}
+                <div className="mt-4 text-center text-sm text-muted-foreground">
+                  Showing first {TABLE_DISPLAY_LIMIT} of {tableData.length} records
+                </div>
               </div>
             </div>
           </div>
@@ -321,5 +318,3 @@ export function AdminDatabasePage() {
     </div>
   );
 }
-
-export default AdminDatabasePage;
