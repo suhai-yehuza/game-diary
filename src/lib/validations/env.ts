@@ -18,9 +18,9 @@ export const envSchema = z.object({
   UPSTASH_REDIS_REST_URL: z.string().url().optional(),
   UPSTASH_REDIS_REST_TOKEN: z.string().optional(),
   REDIS_URL: z.string().optional(),
-  NEXT_PUBLIC_RAPID_API_HOST: z.string().min(1, 'NEXT_PUBLIC_RAPID_API_HOST is required'),
-  NEXT_PUBLIC_RAPID_API_KEY: z.string().min(1, 'NEXT_PUBLIC_RAPID_API_KEY is required'),
-  NEXT_PUBLIC_RAPID_API_BASE_URL: z.string().min(1, 'NEXT_PUBLIC_RAPID_API_BASE_URL is required'),
+  NEXT_PUBLIC_RAPID_API_HOST: z.string().optional(),
+  NEXT_PUBLIC_RAPID_API_KEY: z.string().optional(),
+  NEXT_PUBLIC_RAPID_API_BASE_URL: z.string().optional(),
 });
 
 export type IEnv = z.infer<typeof envSchema>;

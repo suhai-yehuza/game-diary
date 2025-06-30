@@ -21,11 +21,15 @@ function verifyEnvironment(envFile?: string, isBuildTime = false) {
     const nodeEnv = options.environment || 'development';
     const isProduction = nodeEnv === 'production';
     const isVercel = process.env.VERCEL === '1';
+    const isCI = process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true';
 
     if (isBuildTime) {
       logger.info(`\n🔍 Verifying environment variables for ${nodeEnv} environment...`);
       if (isVercel) {
         logger.info('🚀 Detected Vercel deployment - using build-time validation');
+      }
+      if (isCI) {
+        logger.info('🤖 Detected CI environment - using environment variables');
       }
     } else {
       logger.info(
@@ -33,17 +37,22 @@ function verifyEnvironment(envFile?: string, isBuildTime = false) {
       );
     }
 
-    // Only try to load .env files in non-production environments
-    if (!isProduction) {
+    // Only try to load .env files in non-production environments and when not in CI
+    if (!isProduction && !isCI) {
       try {
         if (isBuildTime) {
           // For build-time, load based on current NODE_ENV
           const envFile = nodeEnv === 'production' ? '.env.production' : '.env.development';
           const envPath = join(process.cwd(), envFile);
-          const result = dotenv.config({ path: envPath });
 
-          if (result.error) {
-            throw new Error(`Failed to load environment: ${result.error.message}`);
+          // Only try to load if file exists
+          if (existsSync(envPath)) {
+            const result = dotenv.config({ path: envPath });
+            if (result.error) {
+              throw new Error(`Failed to load environment: ${result.error.message}`);
+            }
+          } else {
+            logger.info(`⚠️ Environment file not found: ${envFile} (using environment variables)`);
           }
         } else {
           // For full validation, load the specific file
@@ -55,9 +64,15 @@ function verifyEnvironment(envFile?: string, isBuildTime = false) {
           }
         }
       } catch (error) {
-        throw new Error(
-          `Environment file not found: ${isBuildTime ? 'current environment' : envFile}`
-        );
+        if (isCI) {
+          logger.info(
+            `ℹ️ Skipping environment file validation in CI: ${error instanceof Error ? error.message : String(error)}`
+          );
+        } else {
+          throw new Error(
+            `Environment file not found: ${isBuildTime ? 'current environment' : envFile}`
+          );
+        }
       }
     }
 
@@ -74,6 +89,9 @@ function verifyEnvironment(envFile?: string, isBuildTime = false) {
     logger.info(`\nEnvironment: ${env.NODE_ENV}`);
     if (isBuildTime && isVercel) {
       logger.info('Deployment: Vercel');
+    }
+    if (isCI) {
+      logger.info('Environment: CI/CD Pipeline');
     }
 
     logger.info('Database configuration:');
