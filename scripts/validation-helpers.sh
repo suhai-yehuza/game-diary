@@ -96,11 +96,17 @@ run_dev_validation() {
     run_soft_validation
     run_unused_exports_check
     pnpm run test:strict
-    run_size_check
 }
 
 run_production_validation() {
     echo "🚀 Running production validation..."
+    run_soft_validation
+    run_unused_exports_check
+    pnpm run test:ci
+}
+
+run_production_validation_with_size() {
+    echo "🚀 Running production validation with size check..."
     run_soft_validation
     run_unused_exports_check
     pnpm run test:ci

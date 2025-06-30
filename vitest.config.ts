@@ -60,6 +60,7 @@ export default defineConfig({
     environmentOptions: {
       jsdom: {
         resources: 'usable',
+        pretendToBeVisual: true,
       },
     },
   },
@@ -72,4 +73,7 @@ export default defineConfig({
     },
   },
   plugins: [tsconfigPaths()],
+  define: {
+    'process.env.NODE_ENV': '"test"',
+  },
 });

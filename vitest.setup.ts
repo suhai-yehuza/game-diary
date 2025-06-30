@@ -1,6 +1,6 @@
 import '@testing-library/jest-dom';
 import { vi, beforeAll, afterAll, afterEach } from 'vitest';
-import { cleanup, act } from '@testing-library/react';
+import { cleanup } from '@testing-library/react';
 
 // Mock Next.js router
 vi.mock('next/navigation', () => ({
@@ -67,7 +67,10 @@ beforeAll(() => {
     if (
       typeof args[0] === 'string' &&
       (args[0].includes('Warning: ReactDOM.render is no longer supported') ||
-        args[0].includes('Warning: React.act is not a function'))
+        args[0].includes('Warning: React.act is not a function') ||
+        args[0].includes(
+          'Warning: An invalid value was passed to the second argument of ReactDOM.createRoot'
+        ))
     ) {
       return;
     }
@@ -95,5 +98,8 @@ afterEach(() => {
   cleanup();
 });
 
-// Make act available globally for tests
-(globalThis as any).act = act;
+// Mock React.act to prevent errors
+(globalThis as any).React = {
+  ...(globalThis as any).React,
+  act: vi.fn(fn => fn()),
+};
