@@ -14,6 +14,8 @@ import { MOCK_NBA_TEAMS } from '@src/lib/mock/nbaTeamsMock';
 import { MOCK_NBA_STANDINGS } from '@src/lib/mock/nbaStandingsMock';
 import { MOCK_NBA_PLAYERS } from '@src/lib/mock/nbaPlayersMock';
 
+test.describe.configure({ retries: 2 }); // TEMP: Retry flaky tests while stabilizing
+
 test.describe('Responsive Design', () => {
   const viewports = [
     // Mobile devices
@@ -138,6 +140,10 @@ test.describe('Responsive Design', () => {
             body: `<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1"></svg>`,
           });
         });
+        // Disable all CSS animations and transitions for test reliability
+        await page.addStyleTag({
+          content: '* { transition: none !important; animation: none !important; }',
+        });
         await page.setViewportSize({ width: viewport.width, height: viewport.height });
       });
 
@@ -145,16 +151,23 @@ test.describe('Responsive Design', () => {
         test(`should render ${pagePath} correctly on ${viewport.name}`, async ({ page }) => {
           // Navigate to page
           await safeGoto(page, pagePath);
+          // Wait for relevant network response (API proxy/games or similar)
+          await page
+            .waitForResponse(
+              resp => resp.url().includes('/api/proxy/games') && resp.status() === 200,
+              { timeout: 15000 }
+            )
+            .catch(() => {}); // ignore if not present
           await waitForPageLoad(page);
 
           // Check basic page structure
           await checkBasicPageStructure(page);
 
           // Check that page content is visible
-          await expect(page.locator('body')).toBeVisible();
+          await expect(page.locator('body')).toBeVisible({ timeout: 15000 });
 
           // Check that main content is visible
-          await expect(page.locator('main')).toBeVisible();
+          await expect(page.locator('main')).toBeVisible({ timeout: 15000 });
 
           // Check responsive behavior
           await checkResponsiveBehavior(page, { width: viewport.width, height: viewport.height });

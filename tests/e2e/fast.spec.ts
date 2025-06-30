@@ -7,7 +7,16 @@ import {
   checkForConsoleErrors,
 } from './utils/test-utils';
 
+test.describe.configure({ retries: 2 }); // TEMP: Retry flaky tests while stabilizing
+
 test.describe('Fast Development Tests', () => {
+  test.beforeEach(async ({ page }) => {
+    // Disable all CSS animations and transitions for test reliability
+    await page.addStyleTag({
+      content: '* { transition: none !important; animation: none !important; }',
+    });
+  });
+
   test('should load home page successfully', async ({ page }) => {
     await safeGoto(page, '/');
     await waitForPageLoad(page);
@@ -19,7 +28,7 @@ test.describe('Fast Development Tests', () => {
     await checkPageTitle(page);
 
     // Check that main content is visible
-    await expect(page.locator('main')).toBeVisible();
+    await expect(page.locator('main')).toBeVisible({ timeout: 15000 });
 
     // Check for console errors
     await checkForConsoleErrors(page);

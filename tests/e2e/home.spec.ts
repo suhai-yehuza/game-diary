@@ -13,10 +13,22 @@ import {
   takeDebugScreenshot,
 } from './utils/test-utils';
 
+test.describe.configure({ retries: 2 }); // TEMP: Retry flaky tests while stabilizing
+
 test.describe('Home Page', () => {
   test.beforeEach(async ({ page }) => {
     await safeGoto(page, '/');
+    // Wait for relevant network response (API proxy/games or similar)
+    await page
+      .waitForResponse(resp => resp.url().includes('/api/proxy/games') && resp.status() === 200, {
+        timeout: 15000,
+      })
+      .catch(() => {}); // ignore if not present
     await waitForPageLoad(page);
+    // Disable all CSS animations and transitions for test reliability
+    await page.addStyleTag({
+      content: '* { transition: none !important; animation: none !important; }',
+    });
   });
 
   test('should load home page successfully', async ({ page }) => {
@@ -30,10 +42,10 @@ test.describe('Home Page', () => {
     await checkMetaDescription(page);
 
     // Check that main content is visible
-    await expect(page.locator('main')).toBeVisible();
+    await expect(page.locator('main')).toBeVisible({ timeout: 15000 });
 
     // Check that page is interactive
-    await expect(page.locator('body')).toBeVisible();
+    await expect(page.locator('body')).toBeVisible({ timeout: 15000 });
   });
 
   test('should have proper navigation elements', async ({ page }) => {

@@ -9,6 +9,9 @@
 # - TIMING_QUIET=1: Suppress timing output
 # - TIMING_LOG=1: Log timing to file
 
+# Set TIMING_LOG=1 by default unless explicitly set
+: "${TIMING_LOG:=1}"
+
 if [ $# -eq 0 ]; then
     echo "Usage: $0 <pnpm-command>"
     echo "Example: $0 test:e2e:fast"

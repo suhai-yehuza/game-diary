@@ -14,6 +14,7 @@ export default defineConfig({
   /* Retry on CI only */
   retries: process.env.CI ? 2 : 1,
   /* Increased workers for better parallelism */
+  // workers: 1,
   workers: process.env.CI ? 2 : 6,
 
   /* Configure projects for major browsers with mobile optimizations */
@@ -109,6 +110,6 @@ export default defineConfig({
     command: 'NODE_ENV=development pnpm dev -p 8080',
     url: 'http://localhost:8080',
     reuseExistingServer: !process.env.CI,
-    timeout: 60 * 1000, // Reduced from 120s to 60s for Next.js to start
+    timeout: 2 * 60 * 1000, // Increased to 2 minutes for slow server startup
   },
 });

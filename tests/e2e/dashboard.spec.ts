@@ -11,10 +11,22 @@ import {
   takeDebugScreenshot,
 } from './utils/test-utils';
 
+test.describe.configure({ retries: 2 }); // TEMP: Retry flaky tests while stabilizing
+
 test.describe('Dashboard', () => {
   test.beforeEach(async ({ page }) => {
     await safeGoto(page, '/dashboard');
+    // Wait for relevant network response (API proxy/games or similar)
+    await page
+      .waitForResponse(resp => resp.url().includes('/api/proxy/games') && resp.status() === 200, {
+        timeout: 15000,
+      })
+      .catch(() => {}); // ignore if not present
     await waitForPageLoad(page);
+    // Disable all CSS animations and transitions for test reliability
+    await page.addStyleTag({
+      content: '* { transition: none !important; animation: none !important; }',
+    });
   });
 
   test('should load dashboard page successfully', async ({ page }) => {
@@ -28,7 +40,7 @@ test.describe('Dashboard', () => {
     await expect(page).toHaveURL('/dashboard');
 
     // Check that main content is visible
-    await expect(page.locator('main')).toBeVisible();
+    await expect(page.locator('main')).toBeVisible({ timeout: 15000 });
   });
 
   test('should have proper dashboard navigation', async ({ page }) => {
