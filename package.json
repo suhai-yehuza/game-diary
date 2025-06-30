@@ -11,6 +11,7 @@
     "_development_": "Development commands",
     "dev": "next dev --turbo",
     "start": "next start",
+    "push_and_merge": "git push && git checkout staging && git merge syehuza/demo && git push && git checkout syehuza/demo",
     "_build_clean_": "Build and clean commands",
     "build": "tsx scripts/utils/verify-env.ts --build && next build",
     "build:analyze": "ANALYZE=true pnpm build",
