@@ -25,7 +25,7 @@ pnpm start                  # Start production server
 
 # Testing
 pnpm test:e2e:fast         # Fast e2e tests (Chromium only)
-pnpm test:e2e:fast:timeout # Fast e2e tests with 5min timeout
+pnpm test:e2e:fast:watch   # Fast e2e tests in watch mode
 pnpm test:e2e:debug        # Debug e2e test issues
 
 # Validation
@@ -43,25 +43,24 @@ pnpm db:studio             # Open database studio
 
 ### Core E2E Commands
 
-| Command                      | Description                 | Use Case                  |
-| ---------------------------- | --------------------------- | ------------------------- |
-| `pnpm test:e2e`              | All browsers with coverage  | Full test suite           |
-| `pnpm test:e2e:fast`         | Chromium only with coverage | Quick development testing |
-| `pnpm test:e2e:fast:timeout` | Chromium with 5min timeout  | Reliable fast testing     |
-| `pnpm test:e2e:ui`           | Interactive UI mode         | Debugging tests           |
-| `pnpm test:e2e:debug`        | Debug information           | Troubleshooting           |
+| Command                    | Description                 | Use Case                  |
+| -------------------------- | --------------------------- | ------------------------- |
+| `pnpm test:e2e`            | All browsers with coverage  | Full test suite           |
+| `pnpm test:e2e:fast`       | Chromium only (fast config) | Quick development testing |
+| `pnpm test:e2e:fast:watch` | Fast tests in watch mode    | Interactive development   |
+| `pnpm test:e2e:ui`         | Interactive UI mode         | Debugging tests           |
+| `pnpm test:e2e:debug`      | Debug information           | Troubleshooting           |
 
 ### Browser-Specific Testing
 
-| Command                  | Description          | Browsers/Devices                |
-| ------------------------ | -------------------- | ------------------------------- |
-| `pnpm test:e2e:chromium` | Chromium browser     | Desktop Chromium                |
-| `pnpm test:e2e:firefox`  | Firefox browser      | Desktop Firefox                 |
-| `pnpm test:e2e:safari`   | Safari browser       | Desktop Safari                  |
-| `pnpm test:e2e:mobile`   | Mobile devices       | Chrome, Safari, iPhones         |
-| `pnpm test:e2e:tablet`   | Tablet devices       | iPad, Samsung Galaxy Tab        |
-| `pnpm test:e2e:desktop`  | All desktop browsers | Chromium, Firefox, Safari, Edge |
-| `pnpm test:e2e:ipad`     | iPad-specific        | iPad landscape/portrait         |
+| Command                  | Description          | Browsers/Devices          |
+| ------------------------ | -------------------- | ------------------------- |
+| `pnpm test:e2e:chromium` | Chromium browser     | Desktop Chromium          |
+| `pnpm test:e2e:firefox`  | Firefox browser      | Desktop Firefox           |
+| `pnpm test:e2e:safari`   | Safari browser       | Desktop Safari            |
+| `pnpm test:e2e:mobile`   | Mobile devices       | Mobile Chrome, iPhone     |
+| `pnpm test:e2e:tablet`   | Tablet devices       | Tablet (iPad-like)        |
+| `pnpm test:e2e:desktop`  | All desktop browsers | Chromium, Firefox, Safari |
 
 ### Responsive & Cross-Browser Testing
 
@@ -74,13 +73,12 @@ pnpm db:studio             # Open database studio
 
 ### Coverage & Reporting
 
-| Command                               | Description                   | Output               |
-| ------------------------------------- | ----------------------------- | -------------------- |
-| `pnpm test:e2e:coverage`              | All browsers with coverage    | Coverage report      |
-| `pnpm test:e2e:coverage:fast`         | Chromium with coverage        | Fast coverage report |
-| `pnpm test:e2e:coverage:fast:timeout` | Chromium with timeout         | Reliable coverage    |
-| `pnpm test:e2e:coverage:report`       | Generate coverage report only | JSON/HTML report     |
-| `pnpm test:e2e:coverage:html`         | Generate and open HTML report | Browser report       |
+| Command                         | Description                   | Output               |
+| ------------------------------- | ----------------------------- | -------------------- |
+| `pnpm test:e2e:coverage`        | All browsers with coverage    | Coverage report      |
+| `pnpm test:e2e:coverage:fast`   | Chromium with coverage        | Fast coverage report |
+| `pnpm test:e2e:coverage:report` | Generate coverage report only | JSON/HTML report     |
+| `pnpm test:e2e:coverage:html`   | Generate and open HTML report | Browser report       |
 
 ### E2E Helper Scripts
 
@@ -367,7 +365,7 @@ pkill -f 'next dev\|playwright\|chromium\|firefox\|webkit'
 rm -rf playwright-report test-results coverage/e2e
 
 # Run with timeout
-pnpm test:e2e:fast:timeout
+pnpm test:e2e:fast
 ```
 
 #### Validation Failures

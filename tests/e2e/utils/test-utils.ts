@@ -1,15 +1,10 @@
 import { Page, expect, Locator } from '@playwright/test';
+import { TestConfig } from '@src/lib/types/e2e-test-types';
 
 /**
  * Test utilities for e2e tests
  * Provides common functions for page navigation, element checks, and test helpers
  */
-
-export interface TestConfig {
-  baseUrl: string;
-  timeout: number;
-  retries: number;
-}
 
 export const DEFAULT_CONFIG: TestConfig = {
   baseUrl: 'http://localhost:8080',

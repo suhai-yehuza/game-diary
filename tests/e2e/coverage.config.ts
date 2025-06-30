@@ -5,20 +5,7 @@
  * Coverage is measured by the number of user journeys and critical paths tested.
  */
 
-export interface CoverageTarget {
-  category: string;
-  target: number; // percentage
-  description: string;
-  testFiles: string[];
-}
-
-export interface TestCategory {
-  name: string;
-  description: string;
-  priority: 'critical' | 'high' | 'medium' | 'low';
-  userJourneys: string[];
-  testFiles: string[];
-}
+import { CoverageTarget, TestCategory } from '@src/lib/types/e2e-test-types';
 
 export const COVERAGE_TARGETS: CoverageTarget[] = [
   {

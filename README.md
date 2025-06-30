@@ -434,7 +434,7 @@ pnpm start                  # Start production server
 
 # Testing
 pnpm test:e2e:fast         # Fast e2e tests (Chromium only)
-pnpm test:e2e:fast:timeout # Fast e2e tests with 5min timeout
+pnpm test:e2e:fast:watch   # Fast e2e tests in watch mode
 pnpm test:e2e:debug        # Debug e2e test issues
 
 # Validation

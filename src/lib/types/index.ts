@@ -18,5 +18,8 @@ export * from './uiTypes';
 // Constant types
 export * from './constantTypes';
 
+// E2E test types
+export * from './e2e-test-types';
+
 // Generated types
 export * from './generated/graphql';

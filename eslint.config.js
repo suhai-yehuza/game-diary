@@ -137,7 +137,7 @@ export default [
       'import/no-duplicates': ['error', { considerQueryString: true, 'prefer-inline': false }],
       'import/no-unresolved': ['error', { ignore: ['^@/', '^@src/', '^@lib/'] }],
       'import/named': 'error',
-      'import/no-default-export': 'warn',
+      'import/no-default-export': 'off',
       'import/no-named-as-default': 'warn',
       'import/no-unused-modules': 'warn',
       'import/no-relative-parent-imports': 'off',

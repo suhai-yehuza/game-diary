@@ -2,7 +2,7 @@ import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import React from 'react';
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 
-import { AdminDatabasePage } from '@src/app/protected/admin/database/page';
+import AdminDatabasePage from '@src/app/protected/admin/database/page';
 
 // Mock Next.js useSearchParams
 const mockSearchParams = new Map();
