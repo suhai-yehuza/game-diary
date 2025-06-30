@@ -1,4 +1,4 @@
 #!/usr/bin/env sh
 
 # Run comprehensive build and validation before push
-pnpm clean:build
+pnpm clean:build && pnpm test:e2e:responsive

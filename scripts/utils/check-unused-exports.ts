@@ -21,7 +21,8 @@ type ExportNameAndLocation = {
 // Configuration
 const CONFIG = {
   tsConfigPath: path.resolve(process.cwd(), 'tsconfig.json'),
-  defaultArgs: ['--allowUnusedTypes', '--ignoreLocallyUsed', '--showLineNumber'] as const,
+  // defaultArgs: ['--allowUnusedTypes', '--ignoreLocallyUsed', '--showLineNumber'] as const,
+  defaultArgs: ['--ignoreLocallyUsed', '--showLineNumber'] as const,
   ignoreFiles: [
     // Configuration files
     'codegen.ts',
@@ -29,6 +30,12 @@ const CONFIG = {
     'drizzle.config.ts',
     'playwright.config.ts',
     'tailwind.config.ts',
+    'playwright.fast.config.ts',
+    'src/lib/types/declarations.d.ts',
+    'src/lib/types/index.ts',
+    'src/app/not-found.tsx',
+    'src/app/sign-in/[[...sign-in]]/page.tsx',
+    'src/app/sign-up/[[...sign-up]]/page.tsx',
   ],
 } as const;
 
