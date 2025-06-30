@@ -1,0 +1,129 @@
+import { defineConfig, devices } from '@playwright/test';
+
+/**
+ * @see https://playwright.dev/docs/test-configuration
+ * Popular browsers only configuration - reduces test complexity and flakiness
+ */
+export default defineConfig({
+  testDir: './tests/e2e',
+  /* Global test timeout */
+  timeout: 60000,
+  /* Run tests in files in parallel */
+  fullyParallel: true,
+  /* Fail the build on CI if you accidentally left test.only in the source code. */
+  forbidOnly: !!process.env.CI,
+  /* Retry on CI only */
+  retries: process.env.CI ? 2 : 1,
+  /* Optimized workers for better stability */
+  workers: process.env.CI ? 2 : 4,
+  /* Enable test sharding for better distribution */
+  shard: process.env.SHARD
+    ? { total: parseInt(process.env.SHARD_TOTAL || '1'), current: parseInt(process.env.SHARD) }
+    : undefined,
+
+  /* Configure projects for most popular browsers only */
+  projects: [
+    // Chrome/Chromium - Most popular browser (~65% market share)
+    {
+      name: 'chromium',
+      use: {
+        ...devices['Desktop Chrome'],
+        // Optimize for stability
+        launchOptions: {
+          args: [
+            '--disable-dev-shm-usage',
+            '--no-sandbox',
+            '--disable-setuid-sandbox',
+            '--disable-gpu',
+            '--disable-web-security',
+            '--disable-features=VizDisplayCompositor',
+            '--disable-background-timer-throttling',
+            '--disable-backgrounding-occluded-windows',
+            '--disable-renderer-backgrounding',
+          ],
+        },
+      },
+    },
+    // Safari/WebKit - Important for iOS/macOS users (~20% market share)
+    {
+      name: 'webkit',
+      use: {
+        ...devices['Desktop Safari'],
+        // Optimize for stability
+        launchOptions: {
+          args: ['--disable-dev-shm-usage', '--no-sandbox'],
+        },
+      },
+    },
+    // Mobile Chrome - Mobile testing representative
+    {
+      name: 'Mobile Chrome',
+      use: {
+        ...devices['Pixel 5'],
+        launchOptions: {
+          args: [
+            '--disable-dev-shm-usage',
+            '--no-sandbox',
+            '--disable-setuid-sandbox',
+            '--disable-gpu',
+            '--disable-web-security',
+            '--disable-features=VizDisplayCompositor',
+            '--disable-background-timer-throttling',
+            '--disable-backgrounding-occluded-windows',
+            '--disable-renderer-backgrounding',
+          ],
+        },
+      },
+    },
+  ],
+  /* Reporter to use. See https://playwright.dev/docs/test-reporters */
+  reporter: [
+    ['html'],
+    ['json', { outputFile: 'test-results/results.json' }],
+    ['junit', { outputFile: 'test-results/results.xml' }],
+  ],
+  /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
+  use: {
+    /* Base URL to use in actions like `await page.goto('/')`. */
+    baseURL: 'http://localhost:8080',
+
+    /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
+    trace: 'on-first-retry',
+
+    /* Take screenshot on failure only */
+    screenshot: 'only-on-failure',
+
+    /* Record video on failure only */
+    video: 'retain-on-failure',
+
+    /* Optimized timeouts for better stability */
+    actionTimeout: 20000,
+    navigationTimeout: 40000,
+
+    /* Fail tests on console errors */
+    launchOptions: {
+      args: ['--disable-dev-shm-usage'],
+    },
+    contextOptions: {
+      ignoreHTTPSErrors: true,
+      // Optimize for stability
+      viewport: { width: 1280, height: 720 },
+      deviceScaleFactor: 1,
+      isMobile: false,
+      hasTouch: false,
+      javaScriptEnabled: true,
+      acceptDownloads: true,
+    },
+  },
+
+  /* Run your local dev server before starting the tests */
+  webServer: {
+    command: 'pnpm dev -p 8080',
+    url: 'http://localhost:8080',
+    reuseExistingServer: !process.env.CI,
+    timeout: 60 * 1000,
+    // Add health check for better reliability
+    stdout: 'pipe',
+    stderr: 'pipe',
+  },
+});

@@ -1,23 +1,23 @@
 import { defineConfig, devices } from '@playwright/test';
 
 /**
- * Fast test configuration for development
- * Minimal browser coverage for quick feedback
+ * Smoke test configuration for post-deployment validation
+ * Quick tests to ensure deployment was successful
  */
 export default defineConfig({
   testDir: './tests/e2e',
-  /* Reduced timeout for faster feedback */
-  timeout: 30000,
+  /* Very short timeout for quick feedback */
+  timeout: 15000,
   /* Run tests in files in parallel */
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
   forbidOnly: !!process.env.CI,
-  /* No retries for faster feedback */
+  /* No retries for immediate feedback */
   retries: 0,
-  /* Single worker for development */
+  /* Single worker for smoke tests */
   workers: 1,
 
-  /* Configure projects for fast development testing */
+  /* Configure projects for smoke testing */
   projects: [
     // Only Chromium for fastest execution
     {
@@ -40,14 +40,14 @@ export default defineConfig({
       },
     },
   ],
-  /* Simple reporter for development */
+  /* Simple reporter for smoke tests */
   reporter: 'list',
   /* Shared settings for all the projects below. */
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
-    baseURL: 'http://localhost:8080',
+    baseURL: process.env.DEPLOYMENT_URL || 'http://localhost:8080',
 
-    /* Minimal tracing for speed */
+    /* No tracing for speed */
     trace: 'off',
 
     /* Screenshots only on failure */
@@ -56,9 +56,9 @@ export default defineConfig({
     /* No video for speed */
     video: 'off',
 
-    /* Faster timeouts for development */
-    actionTimeout: 10000,
-    navigationTimeout: 20000,
+    /* Very fast timeouts for smoke tests */
+    actionTimeout: 5000,
+    navigationTimeout: 10000,
 
     /* Optimized context options */
     launchOptions: {
@@ -75,11 +75,5 @@ export default defineConfig({
     },
   },
 
-  /* Run your local dev server before starting the tests */
-  webServer: {
-    command: 'pnpm dev -p 8080',
-    url: 'http://localhost:8080',
-    reuseExistingServer: true,
-    timeout: 30 * 1000,
-  },
+  /* No web server for smoke tests - test against deployed URL */
 });
