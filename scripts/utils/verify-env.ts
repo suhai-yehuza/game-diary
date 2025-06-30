@@ -21,7 +21,10 @@ function verifyEnvironment(envFile?: string, isBuildTime = false) {
     const nodeEnv = options.environment || 'development';
     const isProduction = nodeEnv === 'production';
     const isVercel = process.env.VERCEL === '1';
-    const isCI = process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true';
+    const isCI =
+      process.env.CI === 'true' ||
+      process.env.GITHUB_ACTIONS === 'true' ||
+      process.env.VERCEL === '1';
 
     if (isBuildTime) {
       logger.info(`\n🔍 Verifying environment variables for ${nodeEnv} environment...`);
@@ -74,6 +77,10 @@ function verifyEnvironment(envFile?: string, isBuildTime = false) {
           );
         }
       }
+    } else if (isCI) {
+      logger.info(
+        '🤖 CI environment detected - skipping environment file loading, using environment variables'
+      );
     }
 
     // Use the single comprehensive schema for all validation
@@ -169,19 +176,37 @@ if (isBuildTime) {
   }
 } else {
   // Full validation - check all environment files
-  const envFiles = ['.env.development', '.env.production'];
-  let allValid = true;
+  const isCI =
+    process.env.CI === 'true' ||
+    process.env.GITHUB_ACTIONS === 'true' ||
+    process.env.VERCEL === '1';
 
-  for (const envFile of envFiles) {
-    const isValid = verifyEnvironment(envFile, false);
+  if (isCI) {
+    // In CI, just validate current environment variables
+    logger.info('🤖 CI environment detected - validating current environment variables only');
+    const isValid = verifyEnvironment(undefined, true);
+
     if (!isValid) {
-      allValid = false;
+      process.exit(1);
+    } else {
+      logger.info('\n✨ Environment validation successful!');
     }
-  }
-
-  if (!allValid) {
-    process.exit(1);
   } else {
-    logger.info('\n✨ All environment files are valid!');
+    // In development, check all environment files
+    const envFiles = ['.env.development', '.env.production'];
+    let allValid = true;
+
+    for (const envFile of envFiles) {
+      const isValid = verifyEnvironment(envFile, false);
+      if (!isValid) {
+        allValid = false;
+      }
+    }
+
+    if (!allValid) {
+      process.exit(1);
+    } else {
+      logger.info('\n✨ All environment files are valid!');
+    }
   }
 }
