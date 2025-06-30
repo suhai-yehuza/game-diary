@@ -106,7 +106,7 @@ export default defineConfig({
 
   /* Run your local dev server before starting the tests */
   webServer: {
-    command: 'pnpm dev -p 8080',
+    command: 'NODE_ENV=development pnpm dev -p 8080',
     url: 'http://localhost:8080',
     reuseExistingServer: !process.env.CI,
     timeout: 60 * 1000, // Reduced from 120s to 60s for Next.js to start

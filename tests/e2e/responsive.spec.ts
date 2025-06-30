@@ -9,6 +9,10 @@ import {
   checkForConsoleErrors,
   takeDebugScreenshot,
 } from './utils/test-utils';
+import { MOCK_NBA_GAMES } from '@src/lib/mock/nbaGamesMock';
+import { MOCK_NBA_TEAMS } from '@src/lib/mock/nbaTeamsMock';
+import { MOCK_NBA_STANDINGS } from '@src/lib/mock/nbaStandingsMock';
+import { MOCK_NBA_PLAYERS } from '@src/lib/mock/nbaPlayersMock';
 
 test.describe('Responsive Design', () => {
   const viewports = [
@@ -48,6 +52,92 @@ test.describe('Responsive Design', () => {
   for (const viewport of viewports) {
     test.describe(`${viewport.name} (${viewport.width}x${viewport.height})`, () => {
       test.beforeEach(async ({ page }) => {
+        // Mock Clerk CDN JS requests to avoid network flakiness and ChunkLoadError
+        await page.route('https://meet-kite-73.clerk.accounts.dev/npm/@clerk/clerk-js*', route => {
+          route.fulfill({
+            status: 200,
+            contentType: 'application/javascript',
+            body: '',
+          });
+        });
+        // Mock Clerk session endpoint to simulate a signed-in user
+        await page.route('https://api.clerk.dev/v1/client/sessions/*', route => {
+          route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify({
+              object: 'session',
+              id: 'sess_test',
+              status: 'active',
+              user_id: 'user_test',
+              last_active_organization_id: null,
+            }),
+          });
+        });
+        // Mock Clerk user endpoint
+        await page.route('https://api.clerk.dev/v1/client/users/*', route => {
+          route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify({
+              object: 'user',
+              id: 'user_test',
+              email_addresses: [{ id: 'email_test', email_address: 'test@example.com' }],
+            }),
+          });
+        });
+        // Mock NBA API endpoints with realistic data
+        await page.route('https://api-nba-v1.p.rapidapi.com/games*', route => {
+          route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify(MOCK_NBA_GAMES),
+          });
+        });
+        await page.route('https://api-nba-v1.p.rapidapi.com/teams*', route => {
+          route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify(MOCK_NBA_TEAMS),
+          });
+        });
+        await page.route('https://api-nba-v1.p.rapidapi.com/standings*', route => {
+          route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify(MOCK_NBA_STANDINGS),
+          });
+        });
+        await page.route('https://api-nba-v1.p.rapidapi.com/players*', route => {
+          route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify(MOCK_NBA_PLAYERS),
+          });
+        });
+        // Fallback for any other NBA API endpoint
+        await page.route('https://api-nba-v1.p.rapidapi.com/**', route => {
+          route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify({ mocked: true, message: 'Mocked NBA API fallback response' }),
+          });
+        });
+        await page.route('https://nba-stats-db.herokuapp.com/**', route => {
+          route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify({ mocked: true, message: 'Mocked NBA Stats DB response' }),
+          });
+        });
+        await page.route('https://media.api-sports.io/**', route => {
+          // For images, return a 1x1 transparent SVG
+          route.fulfill({
+            status: 200,
+            contentType: 'image/svg+xml',
+            body: `<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1"></svg>`,
+          });
+        });
         await page.setViewportSize({ width: viewport.width, height: viewport.height });
       });
 
@@ -393,31 +483,15 @@ test.describe('Responsive Design', () => {
       await safeGoto(page, '/sign-in');
       await waitForPageLoad(page);
 
-      // Check for input fields
-      const inputs = page.locator('input, textarea');
-      if ((await inputs.count()) > 0) {
-        let input = inputs.first();
-        // If input is not visible, try to reveal it (e.g., by clicking search toggle)
-        if (!(await input.isVisible())) {
-          const searchToggle = page.locator('button[aria-label="Toggle search"]');
-          if (await searchToggle.isVisible()) {
-            await searchToggle.click();
-            await page.waitForTimeout(300); // allow animation
-          }
-        }
-        // Re-fetch input in case DOM changed
-        input = inputs.first();
-        // Wait for input to become visible (up to 2s)
-        await expect(input).toBeVisible({ timeout: 2000 });
+      // Target the visible sign-in input by label
+      const emailInput = page.getByLabel('Email address');
+      await expect(emailInput).toBeVisible({ timeout: 2000 });
+      await emailInput.click();
+      await emailInput.fill('test@example.com');
+      await page.waitForTimeout(500);
 
-        // Test keyboard interaction
-        await input.click();
-        await input.fill('test');
-        await page.waitForTimeout(500);
-
-        // Check that virtual keyboard doesn't break layout
-        await expect(page.locator('body')).toBeVisible();
-      }
+      // Check that virtual keyboard doesn't break layout
+      await expect(page.locator('body')).toBeVisible();
     });
   });
 

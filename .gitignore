@@ -15,6 +15,7 @@
 test-results
 playwright-report
 playwright/.cache
+debug-main-not-found.png
 
 # next.js
 /.next/
