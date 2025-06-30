@@ -95,7 +95,7 @@ run_dev_validation() {
     echo "🚀 Running development validation..."
     run_soft_validation
     run_unused_exports_check
-    pnpm run test:dev
+    pnpm run test:strict
     run_size_check
 }
 
@@ -103,6 +103,6 @@ run_production_validation() {
     echo "🚀 Running production validation..."
     run_soft_validation
     run_unused_exports_check
-    pnpm run test:all
+    pnpm run test:strict && pnpm run test:e2e
     run_size_check
 }

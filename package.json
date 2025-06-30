@@ -28,8 +28,9 @@
     "test": "vitest run",
     "test:all": "pnpm test:coverage && pnpm test:e2e",
     "test:coverage": "vitest run --coverage && node scripts/print-coverage-link.cjs",
+    "test:strict": "vitest run --reporter=verbose --coverage && node scripts/print-coverage-link.cjs",
     "test:dev": "pnpm test:fast",
-    "test:fast": "pnpm test:coverage && pnpm test:e2e:fast",
+    "test:fast": "pnpm test:strict && pnpm test:e2e:fast",
     "test:ui": "vitest --ui",
     "test:watch": "vitest",
     "_e2e_core_": "E2E Testing - Core",
@@ -153,7 +154,7 @@
     "_git_hooks_": "Git hooks and utilities",
     "postinstall": "husky",
     "pre-commit": "lint-staged",
-    "pre-push": "pnpm run typecheck && pnpm run test:coverage",
+    "pre-push": "pnpm run typecheck && pnpm run test:strict",
     "verify-env": "tsx scripts/utils/verify-env.ts"
   },
   "dependencies": {
