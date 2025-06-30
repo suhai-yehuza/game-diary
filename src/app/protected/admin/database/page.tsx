@@ -177,7 +177,7 @@ function AdminDatabaseContent() {
 
   const renderTable = (tableName: string) => {
     const config = tableConfigs[tableName as keyof typeof tableConfigs];
-    const tableData = data[tableName] || [];
+    const tableData = data[tableName] ?? [];
     return (
       <Card>
         <CardHeader>

@@ -1,0 +1,129 @@
+
+ DEV  v3.2.4 /Users/syehuza/work_bench/game-diary
+
+ ✓ tests/unit/lib/utils.test.ts > API Client Utils > creates RapidAPI client with correct configuration 0ms
+ ✓ tests/unit/lib/utils.test.ts > API Client Utils > builds URL with parameters correctly 0ms
+ ✓ tests/unit/lib/utils.test.ts > Utility Functions > cn (className utility) > combines class names correctly 2ms
+ ✓ tests/unit/lib/utils.test.ts > Utility Functions > cn (className utility) > handles conditional classes 0ms
+ ✓ tests/unit/lib/utils.test.ts > Utility Functions > cn (className utility) > handles arrays of classes 0ms
+ ✓ tests/unit/lib/utils.test.ts > Utility Functions > cn (className utility) > handles objects with boolean values 0ms
+ ✓ tests/unit/lib/utils.test.ts > Utility Functions > cn (className utility) > handles mixed input types 0ms
+ ✓ tests/unit/lib/utils.test.ts > Utility Functions > cn (className utility) > handles undefined and null values 0ms
+ ✓ tests/unit/lib/utils.test.ts > Utility Functions > cn (className utility) > handles empty strings 0ms
+ ✓ tests/unit/lib/utils.test.ts > Utility Functions > cn (className utility) > handles Tailwind class conflicts 0ms
+ ✓ tests/unit/lib/utils.test.ts > Utility Functions > cn (className utility) > handles complex Tailwind conflicts 0ms
+ ✓ tests/unit/lib/utils.test.ts > Utility Functions > cn (className utility) > handles spacing conflicts 0ms
+ ✓ tests/unit/lib/utils.test.ts > Utility Functions > cn (className utility) > handles flex conflicts 0ms
+ ✓ tests/unit/lib/utils.test.ts > Utility Functions > formatDate > formats date correctly 9ms
+ ✓ tests/unit/lib/utils.test.ts > Utility Functions > formatDate > handles different date formats 0ms
+ ✓ tests/unit/lib/utils.test.ts > Utility Functions > formatDate > handles edge case dates 0ms
+ ✓ tests/unit/lib/utils.test.ts > Utility Functions > formatDate > handles current date 0ms
+ ✓ tests/unit/lib/utils.test.ts > Utility Functions > formatDate > handles invalid date gracefully 0ms
+ ✓ tests/unit/lib/utils.test.ts > Utility Functions > Integration tests > can use both utilities together 0ms
+ ✓ tests/unit/lib/utils.test.ts > Utility Functions > Integration tests > handles complex scenarios 0ms
+ ✓ tests/unit/lib/utils-index.test.ts > Utility Functions > cn (className utility) > combines class names correctly 3ms
+ ✓ tests/unit/lib/utils-index.test.ts > Utility Functions > cn (className utility) > handles conditional classes 0ms
+ ✓ tests/unit/lib/utils-index.test.ts > Utility Functions > cn (className utility) > handles arrays of classes 0ms
+ ✓ tests/unit/lib/utils-index.test.ts > Utility Functions > cn (className utility) > handles objects with boolean values 0ms
+ ✓ tests/unit/lib/utils-index.test.ts > Utility Functions > cn (className utility) > handles mixed input types 0ms
+ ✓ tests/unit/lib/utils-index.test.ts > Utility Functions > cn (className utility) > handles undefined and null values 0ms
+ ✓ tests/unit/lib/utils-index.test.ts > Utility Functions > cn (className utility) > handles empty strings 0ms
+ ✓ tests/unit/lib/utils-index.test.ts > Utility Functions > cn (className utility) > handles Tailwind class conflicts 0ms
+ ✓ tests/unit/lib/utils-index.test.ts > Utility Functions > cn (className utility) > handles complex Tailwind conflicts 0ms
+ ✓ tests/unit/lib/utils-index.test.ts > Utility Functions > cn (className utility) > handles spacing conflicts 0ms
+ ✓ tests/unit/lib/utils-index.test.ts > Utility Functions > cn (className utility) > handles flex conflicts 0ms
+ ✓ tests/unit/lib/utils-index.test.ts > Utility Functions > formatDate > formats date correctly 10ms
+ ✓ tests/unit/lib/utils-index.test.ts > Utility Functions > formatDate > handles different date formats 0ms
+ ✓ tests/unit/lib/utils-index.test.ts > Utility Functions > formatDate > handles edge case dates 0ms
+ ✓ tests/unit/lib/utils-index.test.ts > Utility Functions > formatDate > handles current date 0ms
+ ✓ tests/unit/lib/utils-index.test.ts > Utility Functions > formatDate > handles invalid date gracefully 0ms
+ ✓ tests/unit/lib/utils-index.test.ts > Utility Functions > Integration tests > can use both utilities together 0ms
+ ✓ tests/unit/lib/utils-index.test.ts > Utility Functions > Integration tests > handles complex scenarios 0ms
+ ✓ tests/unit/components/ui/card.test.tsx > Card UI Components > renders Card with children and custom class 13ms
+ ✓ tests/unit/components/ui/card.test.tsx > Card UI Components > renders CardHeader with children and custom class 2ms
+ ✓ tests/unit/components/ui/card.test.tsx > Card UI Components > renders CardTitle with children and custom class 2ms
+ ✓ tests/unit/components/ui/card.test.tsx > Card UI Components > renders CardDescription with children and custom class 1ms
+ ✓ tests/unit/components/ui/card.test.tsx > Card UI Components > renders CardContent with children and custom class 1ms
+ ✓ tests/unit/components/ui/card.test.tsx > Card UI Components > renders CardFooter with children and custom class 1ms
+ ✓ tests/unit/components/ui/tabs.test.tsx > Tabs Components > Tabs > renders tabs root with correct props 13ms
+ ✓ tests/unit/components/ui/tabs.test.tsx > Tabs Components > Tabs > forwards ref correctly 2ms
+ ✓ tests/unit/components/ui/tabs.test.tsx > Tabs Components > TabsList > renders tabs list with correct styling 3ms
+ ✓ tests/unit/components/ui/tabs.test.tsx > Tabs Components > TabsList > forwards ref correctly 1ms
+ ✓ tests/unit/components/ui/tabs.test.tsx > Tabs Components > TabsTrigger > renders tabs trigger with correct props 2ms
+ ✓ tests/unit/components/ui/tabs.test.tsx > Tabs Components > TabsTrigger > handles click events 2ms
+ ✓ tests/unit/components/ui/tabs.test.tsx > Tabs Components > TabsTrigger > forwards ref correctly 1ms
+ ✓ tests/unit/components/ui/tabs.test.tsx > Tabs Components > TabsTrigger > applies disabled state correctly 1ms
+ ✓ tests/unit/components/ui/tabs.test.tsx > Tabs Components > TabsContent > renders tabs content with correct props 1ms
+ ✓ tests/unit/components/ui/tabs.test.tsx > Tabs Components > TabsContent > forwards ref correctly 1ms
+ ✓ tests/unit/components/ui/tabs.test.tsx > Tabs Components > Complete Tabs Integration > renders complete tabs structure 5ms
+ ✓ tests/unit/components/ui/tabs.test.tsx > Tabs Components > Complete Tabs Integration > handles multiple triggers and content 1ms
+ ✓ tests/unit/components/ui/tabs.test.tsx > Tabs Components > Accessibility > supports keyboard navigation 1ms
+ ✓ tests/unit/components/ui/tabs.test.tsx > Tabs Components > Accessibility > supports disabled state 1ms
+ ✓ tests/unit/components/ui/dropdown-menu.test.tsx > DropdownMenu Components > Basic DropdownMenu > renders basic dropdown menu structure 16ms
+ ✓ tests/unit/components/ui/dropdown-menu.test.tsx > DropdownMenu Components > Basic DropdownMenu > renders trigger with correct text 3ms
+ ✓ tests/unit/components/ui/dropdown-menu.test.tsx > DropdownMenu Components > DropdownMenuItem > renders menu item with correct content 1ms
+ ✓ tests/unit/components/ui/dropdown-menu.test.tsx > DropdownMenu Components > DropdownMenuItem > applies custom className 1ms
+ ✓ tests/unit/components/ui/dropdown-menu.test.tsx > DropdownMenu Components > DropdownMenuItem > handles inset prop 1ms
+ ✓ tests/unit/components/ui/dropdown-menu.test.tsx > DropdownMenu Components > DropdownMenuCheckboxItem > renders checkbox item with correct state 2ms
+ ✓ tests/unit/components/ui/dropdown-menu.test.tsx > DropdownMenu Components > DropdownMenuCheckboxItem > shows check icon when checked 1ms
+ ✓ tests/unit/components/ui/dropdown-menu.test.tsx > DropdownMenu Components > DropdownMenuRadioItem > renders radio item correctly 1ms
+ ✓ tests/unit/components/ui/dropdown-menu.test.tsx > DropdownMenu Components > DropdownMenuRadioItem > shows dot icon 1ms
+ ✓ tests/unit/components/ui/dropdown-menu.test.tsx > DropdownMenu Components > DropdownMenuLabel > renders label with correct text 1ms
+ ✓ tests/unit/components/ui/dropdown-menu.test.tsx > DropdownMenu Components > DropdownMenuLabel > handles inset prop 1ms
+ ✓ tests/unit/components/ui/dropdown-menu.test.tsx > DropdownMenu Components > DropdownMenuSeparator > renders separator correctly 1ms
+ ✓ tests/unit/components/ui/dropdown-menu.test.tsx > DropdownMenu Components > DropdownMenuShortcut > renders shortcut with correct text 1ms
+ ✓ tests/unit/components/ui/dropdown-menu.test.tsx > DropdownMenu Components > DropdownMenuGroup > renders group correctly 1ms
+ ✓ tests/unit/components/ui/dropdown-menu.test.tsx > DropdownMenu Components > DropdownMenuRadioGroup > renders radio group correctly 2ms
+ ✓ tests/unit/components/ui/dropdown-menu.test.tsx > DropdownMenu Components > DropdownMenuSub > renders sub menu correctly 1ms
+ ✓ tests/unit/components/ui/dropdown-menu.test.tsx > DropdownMenu Components > Complex DropdownMenu > renders complex dropdown with all components 2ms
+ ✓ tests/unit/components/ui/dropdown-menu.test.tsx > DropdownMenu Components > Accessibility > supports keyboard navigation 2ms
+ ✓ tests/unit/components/ui/dropdown-menu.test.tsx > DropdownMenu Components > Accessibility > handles disabled state 1ms
+ ✓ tests/unit/components/live-games-banner.test.tsx > LiveGamesBanner > renders live games banner with mock data when API fails 22ms
+ ✓ tests/unit/components/live-games-banner.test.tsx > LiveGamesBanner > renders live games banner with API data when successful 9ms
+ ✓ tests/unit/components/live-games-banner.test.tsx > LiveGamesBanner > uses mock data when API returns empty results 4ms
+ ✓ tests/unit/components/live-games-banner.test.tsx > LiveGamesBanner > handles API response with invalid data structure 4ms
+ ✓ tests/unit/components/live-games-banner.test.tsx > LiveGamesBanner > handles API error response 4ms
+ ✓ tests/unit/components/live-games-banner.test.tsx > LiveGamesBanner > shows correct game count for single game 4ms
+ ✓ tests/unit/components/live-games-banner.test.tsx > LiveGamesBanner > limits displayed games to maximum of 3 5ms
+ ✓ tests/unit/components/live-games-banner.test.tsx > LiveGamesBanner > includes View All link with correct href 3ms
+ ✓ tests/unit/components/live-games-banner.test.tsx > LiveGamesBanner > calls API with correct endpoint 3ms
+ ✓ tests/unit/components/live-games-detail.test.tsx > LiveGamesDetail > renders loading state initially 19ms
+ ✓ tests/unit/components/live-games-detail.test.tsx > LiveGamesDetail > renders live games with API data when successful 15ms
+ ✓ tests/unit/components/live-games-detail.test.tsx > LiveGamesDetail > renders mock data when API fails 13ms
+ ✓ tests/unit/components/live-games-detail.test.tsx > LiveGamesDetail > shows no games message when API returns empty results 11ms
+ ✓ tests/unit/components/live-games-detail.test.tsx > LiveGamesDetail > handles API error response 11ms
+ ✓ tests/unit/components/live-games-detail.test.tsx > LiveGamesDetail > displays game details correctly 15ms
+ ✓ tests/unit/components/live-games-detail.test.tsx > LiveGamesDetail > handles games without nugget 11ms
+ ✓ tests/unit/components/live-games-detail.test.tsx > LiveGamesDetail > calls API with correct endpoint 8ms
+ ✓ tests/unit/components/live-games-detail.test.tsx > LiveGamesDetail > shows correct game count for single game 7ms
+ ✓ tests/unit/components/admin-database.test.tsx > AdminDatabasePage > renders database management page with tabs 64ms
+ ✓ tests/unit/components/admin-database.test.tsx > AdminDatabasePage > shows users tab by default 13ms
+ ✓ tests/unit/components/admin-database.test.tsx > AdminDatabasePage > switches to different tab when clicked 22ms
+ ✓ tests/unit/components/admin-database.test.tsx > AdminDatabasePage > fetches and displays data when Fetch Data is clicked 26ms
+ ✓ tests/unit/components/admin-database.test.tsx > AdminDatabasePage > handles API error when fetching data 27ms
+ ✓ tests/unit/components/admin-database.test.tsx > AdminDatabasePage > handles network error when fetching data 24ms
+ ✓ tests/unit/components/admin-database.test.tsx > AdminDatabasePage > formats different data types correctly 24ms
+ ✓ tests/unit/components/admin-database.test.tsx > AdminDatabasePage > handles null and undefined values 20ms
+ ✓ tests/unit/hooks/use-mounted.test.tsx > useMounted > returns true after mount 6ms
+ ✓ tests/unit/lib/validation.test.ts > Environment Validation > validates required environment variables 1ms
+ ✓ tests/unit/lib/validation.test.ts > Environment Validation > allows missing API variables (they are optional) 0ms
+ ✓ tests/unit/lib/validation.test.ts > Environment Validation > rejects invalid NEXTAUTH_URL 1ms
+ ✓ tests/unit/lib/validation.test.ts > Environment Validation > rejects missing required DATABASE_URL 0ms
+ ✓ tests/unit/lib/config.test.ts > API Configuration > has required endpoints 1ms
+ ✓ tests/unit/lib/config.test.ts > API Configuration > has timeout configuration 0ms
+ ✓ tests/unit/lib/config.test.ts > API Configuration > has retry configuration 0ms
+ ✓ tests/unit/lib/config.test.ts > API Configuration > has error codes 0ms
+ ✓ tests/unit/components/admin-database.test.tsx > AdminDatabasePage > limits displayed records to 50 38ms
+ ✓ tests/unit/components/admin-database.test.tsx > AdminDatabasePage > switches to tab based on URL parameter 19ms
+ ✓ tests/unit/components/admin-database.test.tsx > AdminDatabasePage > auto-fetches data when tab is specified in URL 23ms
+ ✓ tests/unit/components/admin-database.test.tsx > AdminDatabasePage > handles invalid tab parameter gracefully 8ms
+ ✓ tests/unit/components/admin-database.test.tsx > AdminDatabasePage > disables fetch button while loading 12ms
+ ✓ tests/unit/components/admin-database.test.tsx > AdminDatabasePage > shows last updated timestamp 16ms
+
+ Test Files  11 passed (11)
+      Tests  118 passed (118)
+   Start at  07:54:56
+   Duration  1.16s (transform 311ms, setup 1.90s, collect 585ms, tests 640ms, environment 3.26s, prepare 491ms)
+
+ PASS  Waiting for file changes...
+       press h to show help, press q to quit
