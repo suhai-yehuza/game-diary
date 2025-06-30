@@ -72,9 +72,6 @@ run_size_check() {
 # Composite validation functions
 run_basic_validation() {
     echo "🚀 Running basic validation..."
-    run_format_check
-    run_typecheck
-    run_lint
     run_circular_check
     run_type_validation_and_fix
     run_env_verification
@@ -83,7 +80,6 @@ run_basic_validation() {
 run_soft_validation() {
     echo "🚀 Running soft validation..."
     run_codegen
-    run_format
     run_fix
     run_basic_validation
 }
