@@ -103,6 +103,6 @@ run_production_validation() {
     echo "🚀 Running production validation..."
     run_soft_validation
     run_unused_exports_check
-    pnpm run test:strict && pnpm run test:e2e
+    pnpm run test:ci
     run_size_check
 }
