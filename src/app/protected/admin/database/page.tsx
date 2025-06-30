@@ -156,7 +156,8 @@ function AdminDatabaseContent() {
   // Handle URL parameters for tab selection
   useEffect(() => {
     const tabParam = searchParams.get('tab');
-    if (tabParam && tabParam in tableConfigs) {
+
+    if (tabParam && Object.keys(tableConfigs).includes(tabParam)) {
       setActiveTab(tabParam);
       // Auto-fetch data for the specified tab
       void handleFetch(tabParam);
