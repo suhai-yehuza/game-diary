@@ -13,7 +13,7 @@ export function Footer() {
             <ul className="space-y-1 text-xs text-gray-600">
               <li>
                 <button
-                  className="hover:text-blue-600 text-left"
+                  className="hover:text-blue-600 text-left min-w-[44px] min-h-[44px]"
                   onClick={() => {
                     /* TODO: Navigate to About Us */
                   }}
@@ -23,7 +23,7 @@ export function Footer() {
               </li>
               <li>
                 <button
-                  className="hover:text-blue-600 text-left"
+                  className="hover:text-blue-600 text-left min-w-[44px] min-h-[44px]"
                   onClick={() => {
                     /* TODO: Navigate to News */
                   }}
@@ -40,7 +40,7 @@ export function Footer() {
             <ul className="space-y-1 text-xs text-gray-600">
               <li>
                 <button
-                  className="hover:text-blue-600 text-left"
+                  className="hover:text-blue-600 text-left min-w-[44px] min-h-[44px]"
                   onClick={() => {
                     /* TODO: Navigate to API */
                   }}
@@ -50,7 +50,7 @@ export function Footer() {
               </li>
               <li>
                 <button
-                  className="hover:text-blue-600 text-left"
+                  className="hover:text-blue-600 text-left min-w-[44px] min-h-[44px]"
                   onClick={() => {
                     /* TODO: Navigate to Contact */
                   }}
@@ -67,7 +67,7 @@ export function Footer() {
             <ul className="space-y-1 text-xs text-gray-600">
               <li>
                 <button
-                  className="hover:text-blue-600 text-left"
+                  className="hover:text-blue-600 text-left min-w-[44px] min-h-[44px]"
                   onClick={() => {
                     /* TODO: Open X/Twitter */
                   }}
@@ -77,7 +77,7 @@ export function Footer() {
               </li>
               <li>
                 <button
-                  className="hover:text-blue-600 text-left"
+                  className="hover:text-blue-600 text-left min-w-[44px] min-h-[44px]"
                   onClick={() => {
                     /* TODO: Open YouTube */
                   }}
@@ -94,7 +94,7 @@ export function Footer() {
             <ul className="space-y-1 text-xs text-gray-600">
               <li>
                 <button
-                  className="hover:text-blue-600 text-left"
+                  className="hover:text-blue-600 text-left min-w-[44px] min-h-[44px]"
                   onClick={() => {
                     /* TODO: Navigate to Privacy Policy */
                   }}

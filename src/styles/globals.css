@@ -732,3 +732,17 @@ input[type='search']::-o-clear {
 input[type='search']::-moz-clear {
   display: none;
 }
+
+a,
+button,
+[role='button'] {
+  min-width: 44px;
+  min-height: 44px;
+}
+
+footer a {
+  min-width: 44px;
+  min-height: 44px;
+  display: inline-block;
+  text-align: center;
+}

@@ -65,7 +65,6 @@ export const Button = (props: ButtonProps) => {
   const {
     children,
     variant = 'default',
-    size = 'default',
     className = '',
     disabled = false,
     type = 'button',
@@ -80,7 +79,7 @@ export const Button = (props: ButtonProps) => {
         variant === 'outline'
           ? 'border border-input bg-background hover:bg-accent hover:text-accent-foreground'
           : 'bg-primary text-primary-foreground hover:bg-primary/90'
-      } ${size === 'sm' ? 'h-9 px-3' : 'h-10 px-4 py-2'} ${className}`}
+      } h-11 px-4 py-2 ${className}`}
       {...rest}
     >
       {children}
@@ -108,7 +107,7 @@ export const Input = (props: InputProps) => {
       value={value}
       onChange={onChange}
       required={required}
-      className={`flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${className}`}
+      className={`flex h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${className}`}
       {...rest}
     />
   );

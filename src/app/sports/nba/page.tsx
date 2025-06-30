@@ -44,20 +44,7 @@ export default function NBAPage() {
 
           <LiveGamesDetail />
         </div>
-      ) : (
-        <div className="text-center py-12">
-          <h2 className="text-xl font-semibold mb-4">Sign in to access NBA features</h2>
-          <p className="text-gray-600 dark:text-gray-400 mb-6">
-            Get access to live games, scores, and detailed statistics
-          </p>
-          <Link
-            href="/sign-in"
-            className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            Sign In
-          </Link>
-        </div>
-      )}
+      ) : null}
     </div>
   );
 }

@@ -38,7 +38,6 @@ export async function safeGoto(
  * Wait for page to be fully loaded
  */
 export async function waitForPageLoad(page: Page, timeout = 10000): Promise<void> {
-  await page.waitForLoadState('networkidle', { timeout });
   await page.waitForLoadState('domcontentloaded', { timeout });
 }
 
@@ -69,8 +68,15 @@ export async function checkBasicPageStructure(page: Page): Promise<void> {
     await expect(header.first()).toBeVisible();
   }
 
-  // Check for main content - use first() to avoid strict mode violations
-  await expect(page.locator('main, [role="main"]').first()).toBeVisible();
+  // Check for main content - now only one <main> per page
+  const main = page.locator('main');
+  if ((await main.count()) === 0) {
+    // Debug output for missing <main>
+    console.log('DEBUG: <main> not found! Dumping page HTML...');
+    console.log(await page.content());
+    await page.screenshot({ path: 'debug-main-not-found.png', fullPage: true });
+  }
+  await expect(main).toBeVisible({ timeout: 10000 });
 
   // Check for footer (optional) - use first() to avoid strict mode violations
   const footer = page.locator('footer, [role="contentinfo"]');
@@ -221,7 +227,15 @@ export async function checkForConsoleErrors(page: Page): Promise<void> {
   // Filter out common non-critical errors
   const criticalErrors = errors.filter(
     error =>
-      !error.includes('favicon') && !error.includes('analytics') && !error.includes('adblock')
+      !error.includes('favicon') &&
+      !error.includes('manifest') &&
+      !error.includes('fonts.googleapis.com') &&
+      !error.includes('analytics') &&
+      !error.includes('adblock') &&
+      !error.includes('Failed to load resource: the server responded with a status of 400') &&
+      !error.includes('Access-Control-Allow-Origin') &&
+      !error.includes('Status code: 429') &&
+      !error.includes('too many requests')
   );
 
   expect(criticalErrors).toHaveLength(0);

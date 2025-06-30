@@ -1,6 +1,6 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
-import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { vi, describe, it, expect, beforeEach, afterEach, beforeAll } from 'vitest';
 
 import { LiveGamesBanner } from '@src/app/components/live-games-banner';
 import { MOCK_LIVE_GAMES } from '@src/lib/mock/liveGamesMock';
@@ -69,6 +69,11 @@ describe('LiveGamesBanner', () => {
 
   afterEach(() => {
     vi.clearAllTimers();
+  });
+
+  beforeAll(() => {
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    vi.spyOn(console, 'log').mockImplementation(() => {});
   });
 
   it('renders live games banner with mock data when API fails', async () => {

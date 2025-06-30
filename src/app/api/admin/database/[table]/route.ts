@@ -24,7 +24,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ tabl
     switch (table) {
       case 'users':
         query = `
-          SELECT id, email, first_name, last_name, created_at, updated_at
+          SELECT *
           FROM users
           WHERE (email ILIKE $1 OR first_name ILIKE $1 OR last_name ILIKE $1)
           ORDER BY created_at DESC
@@ -37,10 +37,9 @@ export async function GET(request: Request, { params }: { params: Promise<{ tabl
         `;
         queryParams.push(`%${search}%`, limit, offset);
         break;
-
       case 'games':
         query = `
-          SELECT id, title, description, created_at, updated_at
+          SELECT *
           FROM games
           WHERE title ILIKE $1
           ORDER BY created_at DESC
@@ -53,7 +52,41 @@ export async function GET(request: Request, { params }: { params: Promise<{ tabl
         `;
         queryParams.push(`%${search}%`, limit, offset);
         break;
-
+      case 'game_logs':
+        query = `SELECT * FROM game_logs ORDER BY createdAt DESC LIMIT $1 OFFSET $2`;
+        countQuery = `SELECT COUNT(*) as total FROM game_logs`;
+        queryParams.push(limit, offset);
+        break;
+      case 'game_ratings':
+        query = `SELECT * FROM game_ratings ORDER BY createdAt DESC LIMIT $1 OFFSET $2`;
+        countQuery = `SELECT COUNT(*) as total FROM game_ratings`;
+        queryParams.push(limit, offset);
+        break;
+      case 'comments':
+        query = `SELECT * FROM comments ORDER BY createdAt DESC LIMIT $1 OFFSET $2`;
+        countQuery = `SELECT COUNT(*) as total FROM comments`;
+        queryParams.push(limit, offset);
+        break;
+      case 'reactions':
+        query = `SELECT * FROM reactions ORDER BY createdAt DESC LIMIT $1 OFFSET $2`;
+        countQuery = `SELECT COUNT(*) as total FROM reactions`;
+        queryParams.push(limit, offset);
+        break;
+      case 'friendships':
+        query = `SELECT * FROM friendships ORDER BY createdAt DESC LIMIT $1 OFFSET $2`;
+        countQuery = `SELECT COUNT(*) as total FROM friendships`;
+        queryParams.push(limit, offset);
+        break;
+      case 'notifications':
+        query = `SELECT * FROM notifications ORDER BY createdAt DESC LIMIT $1 OFFSET $2`;
+        countQuery = `SELECT COUNT(*) as total FROM notifications`;
+        queryParams.push(limit, offset);
+        break;
+      case 'nba_games':
+        query = `SELECT * FROM nba_games ORDER BY createdAt DESC LIMIT $1 OFFSET $2`;
+        countQuery = `SELECT COUNT(*) as total FROM nba_games`;
+        queryParams.push(limit, offset);
+        break;
       default:
         return NextResponse.json({ error: `Table '${table}' not supported` }, { status: 400 });
     }

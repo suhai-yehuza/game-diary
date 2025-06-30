@@ -28,7 +28,7 @@ case "$1" in
         echo "  soft      - Codegen, format, fix, + basic validation"
         echo "  full      - Soft validation + unused exports + size check"
         echo "  dev       - Soft validation + unused exports + dev tests + size check"
-        echo "  production- Soft validation + unused exports + all tests + size check"
+        echo "  production- Soft validation + unused exports + the responsive tests + size check"
         exit 1
         ;;
 esac

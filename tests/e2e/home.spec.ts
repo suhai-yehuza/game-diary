@@ -30,7 +30,7 @@ test.describe('Home Page', () => {
     await checkMetaDescription(page);
 
     // Check that main content is visible
-    await expect(page.locator('main').first()).toBeVisible();
+    await expect(page.locator('main')).toBeVisible();
 
     // Check that page is interactive
     await expect(page.locator('body')).toBeVisible();
@@ -194,7 +194,7 @@ test.describe('Home Page', () => {
     }
 
     // Check that content is readable on mobile
-    const mainContent = page.locator('main').first();
+    const mainContent = page.locator('main');
     await expect(mainContent).toBeVisible();
   });
 
@@ -203,7 +203,7 @@ test.describe('Home Page', () => {
     await checkResponsiveBehavior(page, { width: 768, height: 1024 });
 
     // Check that layout adapts properly
-    const mainContent = page.locator('main').first();
+    const mainContent = page.locator('main');
     await expect(mainContent).toBeVisible();
   });
 

@@ -9,6 +9,9 @@ import nextPlugin from '@next/eslint-plugin-next';
 import filenamesPlugin from 'eslint-plugin-filenames';
 import globals from 'globals';
 
+// ENFORCEMENT: Only one <main> element is allowed per page/component. Do not add additional <main> elements in any file. This is required for accessibility and E2E test reliability.
+// If you need to center or wrap content, use <div> or other semantic elements instead.
+
 export default [
   // Global ignores - must be first
   {
@@ -38,6 +41,7 @@ export default [
       '**/*.test.{ts,tsx,js,jsx}',
       '**/*.spec.{ts,tsx,js,jsx}',
       'vitest.setup.ts',
+      '.eslintrc.js',
     ],
   },
   eslint.configs.recommended,

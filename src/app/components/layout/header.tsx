@@ -96,7 +96,7 @@ function SearchBarContent() {
 
   // For detaching effect
   const baseFormClass =
-    'relative max-w-[180px] md:max-w-[220px] h-8 bg-background border border-[#27272a] shadow flex items-center px-2 transition-all duration-200 text-sm';
+    'relative max-w-[180px] md:max-w-[220px] h-11 bg-background border border-[#27272a] shadow flex items-center px-2 transition-all duration-200 text-sm';
   if (isFocused) {
     return (
       <div className="fixed inset-0 z-[100] bg-black/70 flex items-start justify-center pt-[12vh] animate-fadeIn">
@@ -112,7 +112,7 @@ function SearchBarContent() {
               placeholder={
                 pathname.startsWith('/protected/admin') ? 'Search users...' : 'Search games...'
               }
-              className="pl-8 w-full h-8 md:h-10 text-base bg-transparent border-none focus:ring-0 outline-none transition-all duration-200"
+              className="pl-8 w-full h-11 md:h-11 text-base bg-transparent border-none focus:ring-0 outline-none transition-all duration-200"
               value={search_query}
               onChange={handleSearchChange}
               onFocus={() => setIsFocused(true)}
@@ -148,7 +148,7 @@ function SearchBarContent() {
           placeholder={
             pathname.startsWith('/protected/admin') ? 'Search users...' : 'Search games...'
           }
-          className="pl-8 w-full h-8 text-sm bg-transparent border-none focus:ring-0 outline-none transition-all duration-200"
+          className="pl-8 w-full h-11 text-sm bg-transparent border-none focus:ring-0 outline-none transition-all duration-200"
           value={search_query}
           onChange={handleSearchChange}
           onFocus={() => setIsFocused(true)}
@@ -348,13 +348,13 @@ export function Header() {
         <div className="flex h-16 items-center justify-between w-full">
           {/* Logo - Left */}
           <div className="pl-10">
-            <Link href="/">
+            <Link href="/" className="min-w-[44px] min-h-[44px] flex items-center justify-center">
               <Image
                 src="/logos/gamelog-large.svg"
                 alt="Game Diary Logo"
-                width={32}
-                height={32}
-                className="w-8 h-8 cursor-pointer"
+                width={44}
+                height={44}
+                className="w-11 h-11 cursor-pointer"
                 style={{ height: 'auto' }}
               />
             </Link>
@@ -420,7 +420,7 @@ export function Header() {
               <SignInButton mode="modal">
                 <button
                   type="button"
-                  className="bg-[#757575] text-white hover:bg-[#616161] focus:ring-4 focus:outline-none focus:ring-gray-400 font-medium rounded-lg text-sm px-4 py-2 sm:px-5 sm:py-2.5 text-center border border-gray-600 dark:bg-[#e5e5e5] dark:text-gray-800 dark:hover:bg-[#d4d4d4] dark:focus:ring-gray-300"
+                  className="bg-[#757575] text-white hover:bg-[#616161] focus:ring-4 focus:outline-none focus:ring-gray-400 font-medium rounded-lg text-sm px-4 py-2 sm:px-5 sm:py-2.5 text-center border border-gray-600 dark:bg-[#e5e5e5] dark:text-gray-800 dark:hover:bg-[#d4d4d4] dark:focus:ring-gray-300 min-w-[44px] min-h-[44px] flex-shrink-0 whitespace-nowrap"
                 >
                   Sign In
                 </button>
@@ -435,7 +435,7 @@ export function Header() {
         {/* Mobile Search Overlay */}
         {isSearchVisible && (
           <div
-            className="fixed inset-0 z-50 flex items-start justify-center bg-black/40 sm:hidden"
+            className="fixed inset-0 z-50 flex items-start justify-center bg-black/40 sm:hidden min-w-[44px] min-h-[44px]"
             onClick={() => setIsSearchVisible(false)}
             onKeyDown={e => {
               if (e.key === 'Escape') {
@@ -447,7 +447,7 @@ export function Header() {
             aria-label="Close search overlay"
           >
             <div
-              className="mt-8 w-full max-w-md bg-background rounded-full border border-[#27272a] shadow-lg flex items-center px-4 py-2 relative"
+              className="mt-8 w-full max-w-md bg-background rounded-full border border-[#27272a] shadow-lg flex items-center px-4 py-2 relative min-w-[44px] min-h-[44px]"
               onClick={e => e.stopPropagation()}
               onKeyDown={e => {
                 if (e.key === 'Escape') {

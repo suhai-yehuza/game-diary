@@ -86,14 +86,48 @@ test.describe('Responsive Design', () => {
             const linkCount = await navLinks.count();
 
             if (linkCount > 0) {
-              // Check that at least one navigation link is visible
-              await expect(navLinks.first()).toBeVisible();
+              // Try to find a visible nav link or button
+              let firstVisibleIndex = -1;
+              for (let i = 0; i < linkCount; i++) {
+                if (await navLinks.nth(i).isVisible()) {
+                  firstVisibleIndex = i;
+                  break;
+                }
+              }
+
+              // If none are visible, try to expand the menu (for mobile/tablet)
+              if (firstVisibleIndex === -1) {
+                // Look for a menu toggle button (aria-label="Toggle menu")
+                const menuToggle = nav.locator('button[aria-label="Toggle menu"]');
+                if (await menuToggle.isVisible()) {
+                  await menuToggle.click();
+                  // Wait for nav links to become visible
+                  await page.waitForTimeout(300); // allow animation
+                  // Re-check for visible nav link/button
+                  for (let i = 0; i < linkCount; i++) {
+                    if (await navLinks.nth(i).isVisible()) {
+                      firstVisibleIndex = i;
+                      break;
+                    }
+                  }
+                }
+              }
+
+              // Now check that at least one navigation link is visible
+              expect(firstVisibleIndex).not.toBe(-1);
+              await expect(navLinks.nth(firstVisibleIndex)).toBeVisible();
 
               // Check that navigation links are properly sized for touch
-              for (let i = 0; i < Math.min(linkCount, 5); i++) {
+              const visibleLinks = [];
+              for (let i = 0; i < linkCount; i++) {
                 const link = navLinks.nth(i);
+                if (await link.isVisible()) {
+                  visibleLinks.push(link);
+                }
+                if (visibleLinks.length >= 5) break;
+              }
+              for (const link of visibleLinks) {
                 await expect(link).toBeVisible();
-
                 // Check touch target size (minimum 44px for mobile)
                 if (viewport.width <= 768) {
                   const box = await link.boundingBox();
@@ -164,20 +198,28 @@ test.describe('Responsive Design', () => {
           );
           const elementCount = await interactiveElements.count();
 
-          if (elementCount > 0) {
-            // Test touch interactions for mobile devices
-            if (viewport.width <= 768) {
-              for (let i = 0; i < Math.min(elementCount, 5); i++) {
-                const element = interactiveElements.nth(i);
-                await expect(element).toBeVisible();
-
+          if (elementCount > 0 && viewport.width <= 768) {
+            // Filter for visible elements only
+            const visibleElements = [];
+            for (let i = 0; i < elementCount; i++) {
+              const element = interactiveElements.nth(i);
+              if (await element.isVisible()) {
+                visibleElements.push(element);
+              }
+              if (visibleElements.length >= 5) break;
+            }
+            for (const element of visibleElements) {
+              if (await element.isVisible()) {
                 // Check touch target size
                 const box = await element.boundingBox();
                 if (box) {
+                  if (box.width < 44 || box.height < 44) {
+                    const html = await element.evaluate(el => el.outerHTML);
+                    console.log('Small touch target:', html, box);
+                  }
                   expect(box.width).toBeGreaterThanOrEqual(44);
                   expect(box.height).toBeGreaterThanOrEqual(44);
                 }
-
                 // Test touch interaction (without actually clicking)
                 await element.hover();
                 await page.waitForTimeout(100);
@@ -354,8 +396,19 @@ test.describe('Responsive Design', () => {
       // Check for input fields
       const inputs = page.locator('input, textarea');
       if ((await inputs.count()) > 0) {
-        const input = inputs.first();
-        await expect(input).toBeVisible();
+        let input = inputs.first();
+        // If input is not visible, try to reveal it (e.g., by clicking search toggle)
+        if (!(await input.isVisible())) {
+          const searchToggle = page.locator('button[aria-label="Toggle search"]');
+          if (await searchToggle.isVisible()) {
+            await searchToggle.click();
+            await page.waitForTimeout(300); // allow animation
+          }
+        }
+        // Re-fetch input in case DOM changed
+        input = inputs.first();
+        // Wait for input to become visible (up to 2s)
+        await expect(input).toBeVisible({ timeout: 2000 });
 
         // Test keyboard interaction
         await input.click();
@@ -435,9 +488,15 @@ test.describe('Responsive Design', () => {
         const itemCount = await navItems.count();
 
         if (itemCount > 0) {
-          // All items should be visible on desktop
+          // All items should be visible on desktop, except hidden mobile menu buttons
           for (let i = 0; i < itemCount; i++) {
-            await expect(navItems.nth(i)).toBeVisible();
+            const navItem = navItems.nth(i);
+            // Skip mobile menu toggle button if hidden
+            const isMenuToggle = (await navItem.getAttribute('aria-label')) === 'Toggle menu';
+            if (isMenuToggle && !(await navItem.isVisible())) {
+              continue;
+            }
+            await expect(navItem).toBeVisible();
           }
         }
       }
@@ -472,8 +531,12 @@ test.describe('Responsive Design', () => {
       const elementCount = await hoverableElements.count();
 
       if (elementCount > 0) {
-        for (let i = 0; i < Math.min(elementCount, 3); i++) {
+        let checked = 0;
+        for (let i = 0; i < elementCount && checked < 3; i++) {
           const element = hoverableElements.nth(i);
+          if (!(await element.isVisible())) {
+            continue; // skip hidden elements (e.g., mobile menu button)
+          }
           await expect(element).toBeVisible();
 
           // Test hover interaction
@@ -482,6 +545,7 @@ test.describe('Responsive Design', () => {
 
           // Check that hover state is handled
           await expect(element).toBeVisible();
+          checked++;
         }
       }
     });

@@ -37,30 +37,33 @@ const AUTH_RATE_LIMIT = {
   MAX_REQUESTS: 100,
 } as const;
 
+// Loosen or disable rate limiting for local/test environments
+const isDevOrTest = process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test';
+
 // Global rate limit configuration
 export const RATE_LIMIT_CONFIG_FULL = {
   // Default rate limit: 1000 requests per 15 minutes
   default: {
     windowMs: RATE_LIMIT_CONFIG.DEFAULT_WINDOW_MS,
-    max: RATE_LIMIT_CONFIG.DEFAULT_REQUESTS,
+    max: isDevOrTest ? 100000 : RATE_LIMIT_CONFIG.DEFAULT_REQUESTS,
   },
 
   // Strict rate limit: 1000 requests per minute
   strict: {
     windowMs: RATE_LIMIT_CONFIG.STRICT_WINDOW_MS,
-    max: RATE_LIMIT_CONFIG.STRICT_REQUESTS,
+    max: isDevOrTest ? 100000 : RATE_LIMIT_CONFIG.STRICT_REQUESTS,
   },
 
   // API rate limit: 1000 requests per 15 minutes
   api: {
     windowMs: RATE_LIMIT_CONFIG.DEFAULT_WINDOW_MS,
-    max: RATE_LIMIT_CONFIG.DEFAULT_REQUESTS,
+    max: isDevOrTest ? 100000 : RATE_LIMIT_CONFIG.DEFAULT_REQUESTS,
   },
 
   // GraphQL specific routes
   graphql: {
     windowMs: GRAPHQL_RATE_LIMIT.WINDOW_MS,
-    max: GRAPHQL_RATE_LIMIT.MAX_REQUESTS,
+    max: isDevOrTest ? 100000 : GRAPHQL_RATE_LIMIT.MAX_REQUESTS,
     message: 'GraphQL rate limit exceeded, please try again later.',
     standardHeaders: true,
     legacyHeaders: false,
@@ -68,7 +71,7 @@ export const RATE_LIMIT_CONFIG_FULL = {
   // Auth routes (more strict)
   auth: {
     windowMs: AUTH_RATE_LIMIT.WINDOW_MS,
-    max: AUTH_RATE_LIMIT.MAX_REQUESTS,
+    max: isDevOrTest ? 100000 : AUTH_RATE_LIMIT.MAX_REQUESTS,
     message: 'Too many authentication attempts, please try again later.',
     standardHeaders: true,
     legacyHeaders: false,

@@ -40,7 +40,7 @@ export function ThemeToggle({ className }: IThemeToggleProps) {
         <button
           key={themeOption.name}
           onClick={() => setTheme(themeOption.name)}
-          className={`flex items-center justify-center h-7 w-7 rounded-full transition-colors mx-0.5
+          className={`flex items-center justify-center h-11 w-11 rounded-full transition-colors mx-0.5
             ${theme === themeOption.name ? 'bg-[#232329] text-white shadow' : 'text-[#71717a] hover:text-white'}
           `}
           aria-label={themeOption.label}
