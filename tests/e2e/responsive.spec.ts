@@ -64,10 +64,7 @@ test.describe('Responsive Design', () => {
           await expect(page.locator('body')).toBeVisible();
 
           // Check that main content is visible
-          const main = page.locator('main');
-          if ((await main.count()) > 0) {
-            await expect(main).toBeVisible();
-          }
+          await expect(page.locator('main')).toBeVisible();
 
           // Check responsive behavior
           await checkResponsiveBehavior(page, { width: viewport.width, height: viewport.height });
@@ -256,10 +253,7 @@ test.describe('Responsive Design', () => {
         }
 
         // Check that main content is always visible
-        const main = page.locator('main');
-        if ((await main.count()) > 0) {
-          await expect(main).toBeVisible();
-        }
+        await expect(page.locator('main')).toBeVisible();
       }
     });
 
@@ -299,11 +293,9 @@ test.describe('Responsive Design', () => {
 
         // Check that content doesn't overflow
         const main = page.locator('main');
-        if ((await main.count()) > 0) {
-          const box = await main.boundingBox();
-          if (box) {
-            expect(box.x + box.width).toBeLessThanOrEqual(size.width);
-          }
+        const box = await main.boundingBox();
+        if (box) {
+          expect(box.x + box.width).toBeLessThanOrEqual(size.width);
         }
       }
     });

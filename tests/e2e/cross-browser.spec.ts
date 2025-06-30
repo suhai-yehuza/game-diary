@@ -91,10 +91,7 @@ test.describe('Cross Browser Compatibility', () => {
             await expect(page.locator('body')).toBeVisible();
 
             // Check that main content is visible
-            const main = page.locator('main');
-            if ((await main.count()) > 0) {
-              await expect(main).toBeVisible();
-            }
+            await expect(page.locator('main')).toBeVisible();
           });
 
           test(`should have proper functionality on ${pagePath} [UA${uaIdx}-P${pageIdx}]`, async ({
@@ -220,10 +217,7 @@ test.describe('Cross Browser Compatibility', () => {
             await expect(page.locator('body')).toBeVisible();
 
             // Check that main content is visible
-            const main = page.locator('main');
-            if ((await main.count()) > 0) {
-              await expect(main).toBeVisible();
-            }
+            await expect(page.locator('main')).toBeVisible();
 
             // Check that page structure is maintained
             await checkBasicPageStructure(page);
@@ -329,18 +323,15 @@ test.describe('Cross Browser Compatibility', () => {
       await waitForPageLoad(page);
 
       // Check that layout is consistent
-      const main = page.locator('main');
-      if ((await main.count()) > 0) {
-        await expect(main).toBeVisible();
+      await expect(page.locator('main')).toBeVisible();
 
-        // Check that content is properly positioned
-        const box = await main.boundingBox();
-        if (box) {
-          expect(box.x).toBeGreaterThanOrEqual(0);
-          expect(box.y).toBeGreaterThanOrEqual(0);
-          expect(box.width).toBeGreaterThan(0);
-          expect(box.height).toBeGreaterThan(0);
-        }
+      // Check that content is properly positioned
+      const box = await page.locator('main').boundingBox();
+      if (box) {
+        expect(box.x).toBeGreaterThanOrEqual(0);
+        expect(box.y).toBeGreaterThanOrEqual(0);
+        expect(box.width).toBeGreaterThan(0);
+        expect(box.height).toBeGreaterThan(0);
       }
     });
 

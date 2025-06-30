@@ -8,9 +8,9 @@ export default function SignInPage() {
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
       <ClerkProviderWrapper>
         <Header />
-        <main className="grow flex items-center justify-center min-h-[60vh]">
+        <div className="grow flex items-center justify-center min-h-[60vh]">
           <SignIn />
-        </main>
+        </div>
         <Footer />
       </ClerkProviderWrapper>
     </ThemeProvider>

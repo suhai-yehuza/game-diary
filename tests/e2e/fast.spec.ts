@@ -19,7 +19,7 @@ test.describe('Fast Development Tests', () => {
     await checkPageTitle(page);
 
     // Check that main content is visible
-    await expect(page.locator('main').first()).toBeVisible();
+    await expect(page.locator('main')).toBeVisible();
 
     // Check for console errors
     await checkForConsoleErrors(page);
@@ -77,13 +77,13 @@ test.describe('Fast Development Tests', () => {
     await waitForPageLoad(page);
 
     // Check we're on a sports page
-    await expect(page.locator('main').first()).toBeVisible();
+    await expect(page.locator('main')).toBeVisible();
 
     // Navigate back to home
     await page.click('a[href="/"]');
     await waitForPageLoad(page);
 
     // Check we're back on home
-    await expect(page.locator('main').first()).toBeVisible();
+    await expect(page.locator('main')).toBeVisible();
   });
 });
