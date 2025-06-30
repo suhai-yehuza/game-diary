@@ -1,3 +1,7 @@
+/**
+ * @fileoverview Applies database migrations for the current environment.
+ * Run with: pnpm db:migrate or tsx scripts/db/apply-migrations.ts
+ */
 import { createHash } from 'crypto';
 import { readFileSync, readdirSync } from 'fs';
 import { join } from 'path';

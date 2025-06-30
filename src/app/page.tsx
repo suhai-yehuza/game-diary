@@ -7,7 +7,7 @@ import React from 'react';
 
 import { useMounted } from '@/hooks/use-mounted';
 
-export function HomePage() {
+export default function HomePage() {
   const { isLoaded, isSignedIn } = useUser();
   const mounted = useMounted();
 

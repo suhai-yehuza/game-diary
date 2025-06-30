@@ -3,7 +3,7 @@
 import { useUser } from '@clerk/nextjs';
 import React from 'react';
 
-export function MLBPage() {
+export default function MLBPage() {
   const { isLoaded, isSignedIn, user } = useUser();
 
   return (

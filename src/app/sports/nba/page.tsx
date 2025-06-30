@@ -6,7 +6,7 @@ import React from 'react';
 
 import { LiveGamesDetail } from '@src/app/components/live-games-detail';
 
-export function NBAPage() {
+export default function NBAPage() {
   const { isLoaded, isSignedIn, user } = useUser();
 
   return (

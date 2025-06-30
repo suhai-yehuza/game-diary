@@ -1,4 +1,8 @@
 #!/usr/bin/env tsx
+/**
+ * @fileoverview Validates the integrity and order of database migrations.
+ * Run with: pnpm db:validate-migrations or tsx scripts/db/validate-migrations.ts
+ */
 
 import { readdir } from 'fs/promises';
 import { join } from 'path';

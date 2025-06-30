@@ -3,7 +3,7 @@
 import { useUser } from '@clerk/nextjs';
 import React from 'react';
 
-export function LiveGamesPage() {
+export default function LiveGamesPage() {
   const { isLoaded, isSignedIn, user } = useUser();
 
   return (

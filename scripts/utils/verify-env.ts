@@ -1,4 +1,8 @@
 #!/usr/bin/env tsx
+/**
+ * @fileoverview Verifies that all required environment variables are set and valid.
+ * Run with: pnpm verify-env or tsx scripts/utils/verify-env.ts
+ */
 
 import { existsSync, readFileSync } from 'fs';
 import { join } from 'path';

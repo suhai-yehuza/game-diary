@@ -5,39 +5,33 @@ import { defineConfig, devices } from '@playwright/test';
  */
 export default defineConfig({
   testDir: './tests/e2e',
-  /* Global test timeout */
-  timeout: 45000,
+  /* Global test timeout - reduced from 120s to 60s */
+  timeout: 60000,
   /* Run tests in files in parallel */
-  fullyParallel: false,
+  fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
   forbidOnly: !!process.env.CI,
   /* Retry on CI only */
   retries: process.env.CI ? 2 : 1,
-  /* Opt out of parallel tests on CI. */
-  workers: process.env.CI ? 1 : undefined,
+  /* Increased workers for better parallelism */
+  workers: process.env.CI ? 2 : 6,
 
   /* Configure projects for major browsers with mobile optimizations */
   projects: [
-    // Desktop browsers can run in parallel
+    // Desktop browsers - reduced from 6 to 3 core browsers
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
-      fullyParallel: false,
-      workers: 1,
     },
     {
       name: 'firefox',
       use: { ...devices['Desktop Firefox'] },
-      fullyParallel: false,
-      workers: 1,
     },
     {
       name: 'webkit',
       use: { ...devices['Desktop Safari'] },
-      fullyParallel: false,
-      workers: 1,
     },
-    // Mobile Chrome with reduced parallelism
+    // Mobile Chrome - single mobile representative
     {
       name: 'Mobile Chrome',
       use: {
@@ -52,32 +46,33 @@ export default defineConfig({
           ],
         },
       },
-      fullyParallel: false,
-      workers: 1,
     },
-    // Mobile Safari with maximum stability
+    // iPhone - single iOS representative
     {
-      name: 'Mobile Safari',
+      name: 'iPhone',
       use: {
         ...devices['iPhone 12'],
         launchOptions: {
           args: [
+            '--disable-dev-shm-usage',
+            '--no-sandbox',
+            '--disable-setuid-sandbox',
+            '--disable-gpu',
             '--disable-web-security',
-            '--disable-features=VizDisplayCompositor',
-            '--disable-ipc-flooding-protection',
           ],
         },
-        contextOptions: {
-          permissions: ['geolocation'],
-          geolocation: { latitude: 37.7749, longitude: -122.4194 },
-        },
-        actionTimeout: 20000,
-        navigationTimeout: 40000,
       },
-      fullyParallel: false,
-      timeout: 60000,
-      // Force sequential execution for Mobile Safari
-      workers: 1,
+    },
+    // Tablet - single tablet representative
+    {
+      name: 'Tablet',
+      use: {
+        ...devices['Desktop Chrome'],
+        viewport: { width: 1024, height: 768 },
+        deviceScaleFactor: 1,
+        userAgent:
+          'Mozilla/5.0 (iPad; CPU OS 17_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2 Mobile/15E148 Safari/604.1',
+      },
     },
   ],
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
@@ -90,15 +85,15 @@ export default defineConfig({
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
 
-    /* Take screenshot on failure */
+    /* Take screenshot on failure only */
     screenshot: 'only-on-failure',
 
-    /* Record video on failure */
+    /* Record video on failure only */
     video: 'retain-on-failure',
 
-    /* Increase timeout for mobile browsers */
-    actionTimeout: 15000,
-    navigationTimeout: 30000,
+    /* Reduced timeouts for faster execution */
+    actionTimeout: 10000, // Reduced from 15000
+    navigationTimeout: 20000, // Reduced from 30000
 
     /* Fail tests on console errors */
     launchOptions: {
@@ -114,6 +109,6 @@ export default defineConfig({
     command: 'pnpm dev -p 8080',
     url: 'http://localhost:8080',
     reuseExistingServer: !process.env.CI,
-    timeout: 120 * 1000, // 2 minutes for Next.js to start
+    timeout: 60 * 1000, // Reduced from 120s to 60s for Next.js to start
   },
 });

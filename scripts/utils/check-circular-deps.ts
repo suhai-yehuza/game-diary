@@ -1,4 +1,8 @@
 #!/usr/bin/env tsx
+/**
+ * @fileoverview Checks for circular dependencies in the codebase.
+ * Run with: pnpm check:circular or tsx scripts/utils/check-circular-deps.ts
+ */
 
 import { execSync } from 'child_process';
 import { existsSync } from 'fs';

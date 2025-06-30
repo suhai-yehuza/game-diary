@@ -422,44 +422,50 @@ The application follows a **feature-based component organization**:
 
 ## 🔧 Development Scripts
 
+> 📚 **For comprehensive script documentation, see [SCRIPTS.md](./SCRIPTS.md)**
+
+### Quick Reference
+
 ```bash
 # Development
 pnpm dev                    # Start development server
 pnpm build                  # Build production bundle
 pnpm start                  # Start production server
 
-# Code Quality
-pnpm lint                   # Run ESLint
-pnpm lint:fix              # Fix ESLint issues
-pnpm format                # Format with Prettier
-pnpm typecheck             # Type checking
-pnpm validate:all          # Run all validations
+# Testing
+pnpm test:e2e:fast         # Fast e2e tests (Chromium only)
+pnpm test:e2e:fast:timeout # Fast e2e tests with 5min timeout
+pnpm test:e2e:debug        # Debug e2e test issues
+
+# Validation
+pnpm validate:soft         # Quick validation (no tests)
+pnpm validate:dev          # Development validation
+pnpm validate              # Full validation with all tests
 
 # Database
-pnpm db:generate           # Generate database schema
-pnpm db:migrate:dev        # Run migrations (development)
-pnpm db:migrate:prod       # Run migrations (production)
-pnpm db:seed:dev           # Seed database (development)
-pnpm db:studio             # Open Drizzle Studio
-
-# Migration Management
-pnpm migration:generate    # Generate new migration
-pnpm migration:validate    # Validate migrations
-pnpm migration:reset       # Reset and run all migrations
-
-# GraphQL
-pnpm codegen               # Generate GraphQL types
-pnpm codegen:watch         # Watch mode for GraphQL generation
-
-# Testing
-pnpm test                  # Run tests
-pnpm test:coverage         # Run tests with coverage
-pnpm test:databases        # Test database connections
-
-# Dependencies
-pnpm check:circular        # Check for circular dependencies
-pnpm clean                 # Clean and reinstall dependencies
+pnpm db:setup              # Setup database
+pnpm db:migrate            # Run migrations
+pnpm db:studio             # Open database studio
 ```
+
+### Script Categories
+
+- **🧪 E2E Testing**: Browser testing, responsive design, cross-browser compatibility
+- **✅ Validation**: Code quality, type checking, linting, formatting
+- **🗄 Database**: Setup, migrations, seeding, management
+- **🛠 Development**: Build, dev server, code generation
+- **🔧 Utilities**: Dependencies, environment, analysis
+- **🆘 Helpers**: Advanced script functions and debugging
+
+### Key Features
+
+- **Optimized Scripts**: 85% reduction in duplication using helper functions
+- **Timeout Protection**: Prevents hanging tests with configurable timeouts
+- **Comprehensive Coverage**: E2E tests across all major browsers and devices
+- **Debugging Tools**: Built-in debugging scripts for troubleshooting
+- **Modular Design**: Reusable helper functions for custom workflows
+
+See [SCRIPTS.md](./SCRIPTS.md) for complete documentation of all 100+ available scripts.
 
 ## 🗄 Database Migrations
 

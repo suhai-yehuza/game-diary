@@ -2,7 +2,7 @@
 
 import React from 'react';
 
-export function MLSSportsPage() {
+export default function MLSSportsPage() {
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto p-6">

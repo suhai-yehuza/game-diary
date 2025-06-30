@@ -1,6 +1,6 @@
 import React from 'react';
 
-export function NotFoundPage() {
+export default function NotFoundPage() {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center">
       <div className="text-center">

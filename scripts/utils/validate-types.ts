@@ -1,4 +1,8 @@
 #!/usr/bin/env tsx
+/**
+ * @fileoverview Validates TypeScript types across the codebase.
+ * Run with: pnpm validate:types or tsx scripts/utils/validate-types.ts
+ */
 
 import { execSync } from 'child_process';
 

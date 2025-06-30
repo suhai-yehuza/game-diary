@@ -1,4 +1,8 @@
 #!/usr/bin/env tsx
+/**
+ * @fileoverview Sets up the database for the specified environment and mode.
+ * Run with: pnpm db:setup or tsx scripts/db/setup-database.ts
+ */
 
 import 'dotenv-flow/config';
 import { exec } from 'child_process';

@@ -3,7 +3,7 @@
 import { useAuth, useUser } from '@clerk/nextjs';
 import React from 'react';
 
-export function ProtectedClientPage() {
+export default function ProtectedClientPage() {
   const { user } = useUser();
   const { isLoaded, isSignedIn, userId, sessionId, getToken } = useAuth();
 
