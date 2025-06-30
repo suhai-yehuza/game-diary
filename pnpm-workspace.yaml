@@ -1,3 +1,6 @@
+packages:
+  - .
+
 ignoredBuiltDependencies:
   - '@apollo/protobufjs'
   - '@clerk/shared'
