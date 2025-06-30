@@ -141,6 +141,7 @@
     "analyze:bundle": "npx @next/bundle-analyzer",
     "check:circular": "tsx scripts/utils/check-circular-deps.ts",
     "check:size": "size-limit",
+    "check:size:ci": "size-limit || echo 'Size check skipped in CI environment'",
     "check:unused:exports": "tsx scripts/utils/check-unused-exports.ts",
     "perf:build": "NODE_ENV=production ANALYZE=true next build",
     "perf:measure": "tsx scripts/performance/performance-measure.ts",

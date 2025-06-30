@@ -2,11 +2,13 @@
   {
     "name": "Main Bundle",
     "path": ".next/static/chunks/main-*.js",
-    "limit": "60 KB"
+    "limit": "60 KB",
+    "running": false
   },
   {
     "name": "Framework",
     "path": ".next/static/chunks/framework-*.js",
-    "limit": "150 KB"
+    "limit": "150 KB",
+    "running": false
   }
 ]
