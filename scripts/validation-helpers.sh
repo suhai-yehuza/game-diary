@@ -111,14 +111,14 @@ run_full_validation() {
     pnpm run build
     run_soft_validation
     run_unused_exports_check
-    echo "🔍 Running test:strict..."
-    pnpm run test:strict
+    echo "🔍 Running test:unit..."
+    pnpm run test:unit
     echo "🔍 Running test:e2e:fast..."
     pnpm run test:e2e:fast
 }
 
 run_dev_build() {
-    echo "🚀 Running development build (dev validation + test:ci)..."
+    echo "🚀 Running development build"
     run_full_validation
     run_size_check
     # Add any extra dev build steps here if needed
@@ -127,13 +127,7 @@ run_dev_build() {
 run_production_validation() {
     echo "🚀 Running production validation (extends full validation)..."
     run_full_validation
-    # Add any prod-specific steps here if needed
-}
-
-run_production_validation_with_size() {
-    echo "🚀 Running production validation with size check..."
-    run_soft_validation
-    run_unused_exports_check
-    pnpm run test:e2e:ci
+    pnpm run test:e2e:critical
     run_size_check
+    # Add any prod-specific steps here if needed
 }
