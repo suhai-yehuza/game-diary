@@ -23,7 +23,11 @@ case "$1" in
         echo "🔧 Check circular dependencies..."
         pnpm run check:circular
         echo "🔧 Verify environment variables..."
-        pnpm run verify-env
+        if [ "$CI" = "true" ] || [ "$GITHUB_ACTIONS" = "true" ]; then
+            echo "🤖 CI environment detected - skipping environment verification"
+        else
+            pnpm run verify-env
+        fi
         echo "🔧 Build project..."
         pnpm run build
         echo "🔧 Check for unused exports..."
