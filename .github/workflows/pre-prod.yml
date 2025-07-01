@@ -15,7 +15,8 @@ on:
 
 env:
   NODE_VERSION: '22'
-  PNPM_VERSION: '8'
+  PNPM_VERSION: '10'
+  DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
 jobs:
   # Pre-deployment E2E Tests

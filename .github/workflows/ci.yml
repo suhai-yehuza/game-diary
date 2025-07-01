@@ -10,6 +10,7 @@ on:
 env:
   NODE_VERSION: '22'
   PNPM_VERSION: '10'
+  DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
 jobs:
   # Lint and Type Check
