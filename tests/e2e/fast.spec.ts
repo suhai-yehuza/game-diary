@@ -17,7 +17,7 @@ test.describe('Fast Development Tests', () => {
     });
   });
 
-  test('should load home page successfully', async ({ page }) => {
+  test('@smoke should load home page successfully', async ({ page }) => {
     await safeGoto(page, '/');
     await waitForPageLoad(page);
 
@@ -34,7 +34,7 @@ test.describe('Fast Development Tests', () => {
     await checkForConsoleErrors(page);
   });
 
-  test('should load sign-in page', async ({ page }) => {
+  test('@smoke should load sign-in page', async ({ page }) => {
     await safeGoto(page, '/sign-in');
     await page.waitForLoadState('domcontentloaded');
 
@@ -48,7 +48,7 @@ test.describe('Fast Development Tests', () => {
     await checkForConsoleErrors(page);
   });
 
-  test('should load sign-up page', async ({ page }) => {
+  test('@smoke should load sign-up page', async ({ page }) => {
     await safeGoto(page, '/sign-up');
     await page.waitForLoadState('domcontentloaded');
 
@@ -62,7 +62,7 @@ test.describe('Fast Development Tests', () => {
     await checkForConsoleErrors(page);
   });
 
-  test('should load NBA sports page', async ({ page }) => {
+  test('@critical should load NBA sports page', async ({ page }) => {
     await safeGoto(page, '/sports/nba');
     await waitForPageLoad(page);
 
@@ -76,7 +76,7 @@ test.describe('Fast Development Tests', () => {
     await checkForConsoleErrors(page);
   });
 
-  test('should handle basic navigation', async ({ page }) => {
+  test('@critical should handle basic navigation', async ({ page }) => {
     // Start at home
     await safeGoto(page, '/');
     await waitForPageLoad(page);
