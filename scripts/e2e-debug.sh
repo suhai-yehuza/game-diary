@@ -21,7 +21,7 @@ echo "  Browser processes: $(pgrep -f 'chromium\|firefox\|webkit' | wc -l | tr -
 
 echo ""
 echo "🌐 Port Status:"
-echo "  Port 8080 (dev server): $(lsof -i:8080 2>/dev/null | wc -l | tr -d ' ') connections"
+echo "  Port 8081 (dev server): $(lsof -i:8081 2>/dev/null | wc -l | tr -d ' ') connections"
 echo "  Port 9323 (HTML report): $(lsof -i:9323 2>/dev/null | wc -l | tr -d ' ') connections"
 
 echo ""
@@ -59,6 +59,6 @@ echo ""
 echo "🚀 Quick Fixes:"
 echo "  1. Kill all processes: pkill -f 'next dev\|playwright\|chromium\|firefox\|webkit'"
 echo "  2. Clean artifacts: rm -rf playwright-report test-results coverage/e2e"
-echo "  3. Restart dev server: pnpm dev -p 8080"
+echo "  3. Restart dev server: pnpm dev -p 8081"
 echo "  4. Run fast tests: pnpm test:e2e:fast"
 echo "  5. Run without coverage: ./scripts/e2e-run.sh 'playwright test --project=chromium' 'Debug'"

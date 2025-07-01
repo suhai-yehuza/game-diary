@@ -17,7 +17,7 @@ kill_e2e_processes() {
     pkill -f "firefox" 2>/dev/null || true
     pkill -f "chromium" 2>/dev/null || true
     pkill -f "webkit" 2>/dev/null || true
-    kill $(lsof -t -i:8080) 2>/dev/null || true
+    kill $(lsof -t -i:8081) 2>/dev/null || true
     kill $(lsof -t -i:9323) 2>/dev/null || true
     pkill -f "node.*playwright" 2>/dev/null || true
     pkill -f "npx.*playwright" 2>/dev/null || true
@@ -31,13 +31,13 @@ setup_e2e_trap() {
 # Start dev server
 start_e2e_server() {
     echo "🚀 Starting e2e test server..."
-    pnpm dev -p 8080 &
+    pnpm dev -p 8081 &
 }
 
 # Wait for server to be ready
 wait_for_e2e_server() {
     echo "⏳ Waiting for server to be ready..."
-    wait-on http://localhost:8080
+    wait-on http://localhost:8081
 }
 
 # Run e2e test with full setup
