@@ -98,7 +98,7 @@ export default defineConfig({
 
     /* Fail tests on console errors */
     launchOptions: {
-      args: ['--disable-dev-shm-usage'],
+      args: [], // Removed global --disable-dev-shm-usage flag
     },
     contextOptions: {
       ignoreHTTPSErrors: true,

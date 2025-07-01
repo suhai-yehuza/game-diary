@@ -49,7 +49,7 @@ All e2e scripts are now organized into logical groups with clear section headers
 
 - `test:e2e:dev` → `test:e2e:fast` (clearer naming)
 - `test:e2e:dev:watch` → `test:e2e:fast:watch` (consistent with fast naming)
-- `test:fast` now uses `test:e2e:fast` instead of the old `test:e2e:fast:dev`
+- `test:e2e:fast` now uses `test:e2e:fast` instead of the old `test:e2e:fast:dev`
 
 ## New Script Structure
 

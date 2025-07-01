@@ -95,7 +95,7 @@ jobs:
             - Performed security audit
             - Checked bundle size impact
           branch: chore/update-dependencies
-          base: main
+          base: master
           labels: dependencies,security
           delete-branch: true
 
