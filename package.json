@@ -9,7 +9,7 @@
   },
   "scripts": {
     "_development_": "Development commands",
-    "dev": "next dev --turbo",
+    "dev": "next dev --turbo -p ${PORT:-3100}",
     "start": "next start",
     "push_and_merge": "git push && git checkout staging && git merge syehuza/demo && git push && git checkout syehuza/demo",
     "_build_clean_": "Build and clean commands",
