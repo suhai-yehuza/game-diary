@@ -3,15 +3,21 @@
 # Validation Helper Functions
 # Usage: source scripts/validation-helpers.sh
 
-# Core validation steps
+# Clean up
+run_clean() {
+    echo "🔍 Cleaning up..."
+    pnpm run clean
+}
+
+# Atomic validation steps
 run_format_check() {
     echo "🔍 Checking code format..."
     pnpm run format:check
 }
 
-run_typecheck() {
-    echo "🔍 Running TypeScript type check..."
-    pnpm run typecheck
+run_format() {
+    echo "🔧 Formatting code..."
+    pnpm run format
 }
 
 run_lint() {
@@ -19,9 +25,14 @@ run_lint() {
     pnpm run lint
 }
 
-run_circular_check() {
-    echo "🔍 Checking for circular dependencies..."
-    pnpm run check:circular
+run_lint_fix() {
+    echo "🔧 Fixing lint issues..."
+    pnpm run lint:fix
+}
+
+run_typecheck() {
+    echo "🔍 Running TypeScript type check..."
+    pnpm run typecheck
 }
 
 run_type_validation() {
@@ -36,7 +47,8 @@ run_type_fix() {
 
 run_type_validation_and_fix() {
     echo "🔍 Validating and fixing TypeScript types..."
-    pnpm run validate:types:fix
+    run_type_validation
+    run_type_fix
 }
 
 run_env_verification() {
@@ -49,16 +61,6 @@ run_codegen() {
     pnpm run codegen
 }
 
-run_format() {
-    echo "🔧 Formatting code..."
-    pnpm run format
-}
-
-run_fix() {
-    echo "🔧 Running lint and format fixes..."
-    pnpm run fix
-}
-
 run_unused_exports_check() {
     echo "🔍 Checking for unused exports..."
     pnpm run check:unused:exports
@@ -69,7 +71,17 @@ run_size_check() {
     pnpm run check:size
 }
 
-# Composite validation functions
+# Composite validation functions (use only atomic helpers)
+run_fix() {
+    run_lint_fix
+    run_format
+    run_type_validation
+    run_type_fix
+    run_typecheck
+    run_lint_fix
+    run_format
+}
+
 run_basic_validation() {
     echo "🚀 Running basic validation..."
     run_circular_check
@@ -84,25 +96,38 @@ run_soft_validation() {
     run_basic_validation
 }
 
-run_full_validation() {
-    echo "🚀 Running full validation..."
+run_prebuild() {
+    echo "🚀 Running prebuild steps..."
+    run_clean
+    run_codegen
+    run_fix
     run_soft_validation
-    run_unused_exports_check
-    run_size_check
 }
 
-run_dev_validation() {
-    echo "🚀 Running development validation..."
+run_full_validation() {
+    echo "🚀 Running full validation (prebuild, build, validate, test:ci)..."
+    run_prebuild
+    echo "🔧 Building project..."
+    pnpm run build
     run_soft_validation
     run_unused_exports_check
+    echo "🔍 Running test:strict..."
     pnpm run test:strict
+    echo "🔍 Running test:e2e:fast..."
+    pnpm run test:e2e:fast
+}
+
+run_dev_build() {
+    echo "🚀 Running development build (dev validation + test:ci)..."
+    run_full_validation
+    run_size_check
+    # Add any extra dev build steps here if needed
 }
 
 run_production_validation() {
-    echo "🚀 Running production validation..."
-    run_soft_validation
-    run_unused_exports_check
-    pnpm run test:e2e:ci
+    echo "🚀 Running production validation (extends full validation)..."
+    run_full_validation
+    # Add any prod-specific steps here if needed
 }
 
 run_production_validation_with_size() {

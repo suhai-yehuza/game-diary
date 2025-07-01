@@ -40,7 +40,7 @@ This document outlines the reconciliation work performed to ensure consistency b
 
 - **Status**: ✅ **No issues found**
 - **Verification**: The validation scripts correctly reference:
-  - `pnpm run test:dev` → maps to `test:fast` → maps to `test:e2e:fast`
+  - `pnpm run test:dev` → maps to `test:e2e:fast` → maps to `test:e2e:fast`
   - `pnpm run test:all` → maps to `test:e2e` (full e2e suite)
 
 #### validation-run.sh
@@ -56,7 +56,7 @@ This document outlines the reconciliation work performed to ensure consistency b
 validate:dev
 ├── run_dev_validation()
 │   └── pnpm run test:dev
-│       └── test:fast
+│       └── test:e2e:fast
 │           └── test:coverage + test:e2e:fast
 │               └── Unit tests + Fast e2e tests
 
@@ -104,7 +104,7 @@ test:e2e                    # Main entry point (all browsers with coverage)
 
 2. **Development Validation** (`validate:dev`)
 
-   - ✅ Calls `test:dev` → `test:fast` → `test:e2e:fast`
+   - ✅ Calls `test:dev` → `test:e2e:fast` → `test:e2e:fast`
    - ✅ Fast e2e tests run correctly
 
 3. **Production Validation** (`validate`)
