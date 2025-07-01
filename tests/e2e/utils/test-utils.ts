@@ -7,7 +7,7 @@ import { TestConfig } from '@src/lib/types/e2e-test-types';
  */
 
 export const DEFAULT_CONFIG: TestConfig = {
-  baseUrl: 'http://localhost:8080',
+  baseUrl: 'http://localhost:8081',
   timeout: 30000,
   retries: 2,
 };

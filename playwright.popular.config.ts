@@ -85,7 +85,7 @@ export default defineConfig({
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
-    baseURL: 'http://localhost:8080',
+    baseURL: 'http://localhost:8081',
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
@@ -118,9 +118,9 @@ export default defineConfig({
 
   /* Run your local dev server before starting the tests */
   webServer: {
-    command: 'pnpm dev -p 8080',
-    url: 'http://localhost:8080',
-    reuseExistingServer: !process.env.CI,
+    command: 'pnpm dev -p 8081',
+    url: 'http://localhost:8081',
+    reuseExistingServer: true,
     timeout: 60 * 1000,
     // Add health check for better reliability
     stdout: 'pipe',
