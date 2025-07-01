@@ -34,28 +34,8 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
       - run: pnpm install --frozen-lockfile
-      - name: Clean up
-        run: pnpm run clean:all
-      - name: Generate GraphQL code
-        run: pnpm run codegen
-      - name: Fix lint and format issues
-        run: pnpm run lint:fix && pnpm run format
-      - name: Validate and fix TypeScript types
-        run: pnpm run validate:types && pnpm run fix:types
-      - name: TypeScript type check
-        run: pnpm run typecheck
-      - name: Fix lint and format issues again
-        run: pnpm run lint:fix && pnpm run format
-      - name: Check circular dependencies
-        run: pnpm run check:circular:deps
-      - name: Verify environment variables
-        run: pnpm run verify-env
-      - name: Build project
-        run: pnpm run build
-      - name: Check for unused exports
-        run: pnpm run check:unused:exports
-      - name: Check bundle size
-        run: pnpm run check:size
+      - name: Run CI Quality Gate
+        run: ./scripts/ci-quality-gate.sh preview
 
   unit-tests:
     name: Unit Tests
@@ -78,10 +58,8 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
       - run: pnpm install --frozen-lockfile
-      - name: Install Playwright Browsers
-        run: pnpm exec playwright install --with-deps
-      - name: Run unit tests
-        run: pnpm run test:unit
+      - name: Run CI Unit Tests
+        run: ./scripts/ci-unit-tests.sh
       - uses: codecov/codecov-action@v4
         if: success()
         with:
@@ -113,10 +91,8 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
       - run: pnpm install --frozen-lockfile
-      - name: Install Playwright Browsers
-        run: pnpm exec playwright install --with-deps
-      - name: Run E2E tests
-        run: pnpm run test:e2e:${{ matrix.test }}
+      - name: Run CI E2E Tests
+        run: ./scripts/ci-e2e-tests.sh ${{ matrix.test }}
 
   deploy:
     name: Deploy to Vercel Preview
