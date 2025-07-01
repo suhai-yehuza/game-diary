@@ -1,5 +1,10 @@
 {
-  "buildCommand": "pnpm validate:soft && pnpm build && pnpm check:size",
+  "git": {
+    "deploymentEnabled": {
+      "github": false
+    }
+  },
+  "buildCommand": "pnpm run build",
   "outputDirectory": ".next",
   "installCommand": "pnpm install --frozen-lockfile",
   "framework": "nextjs",
