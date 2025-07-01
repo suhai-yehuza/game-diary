@@ -49,9 +49,9 @@ export default defineConfig({
       name: 'webkit',
       use: {
         ...devices['Desktop Safari'],
-        // Optimize for stability
+        // Optimize for stability - no Chromium-specific flags
         launchOptions: {
-          args: ['--disable-dev-shm-usage', '--no-sandbox'],
+          args: [],
         },
       },
     },
@@ -102,7 +102,7 @@ export default defineConfig({
 
     /* Fail tests on console errors */
     launchOptions: {
-      args: ['--disable-dev-shm-usage'],
+      args: [], // Removed global --disable-dev-shm-usage flag
     },
     contextOptions: {
       ignoreHTTPSErrors: true,
