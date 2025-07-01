@@ -71,6 +71,11 @@ run_size_check() {
     pnpm run check:size
 }
 
+run_circular_check() {
+    echo "🔍 Checking circular dependencies..."
+    pnpm run check:circular
+}
+
 # Composite validation functions (use only atomic helpers)
 run_fix() {
     run_lint_fix

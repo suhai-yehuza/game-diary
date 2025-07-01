@@ -63,7 +63,7 @@ const distributions: IDistributionFunctions = {
 
 // API Configuration
 export const API_CONFIG = {
-  baseUrl: process.env.NEXT_PUBLIC_RAPID_API_BASE_URL ?? 'http://v2.nba.api-sports.io',
+  baseUrl: process.env.NEXT_PUBLIC_RAPID_API_BASE_URL ?? 'https://v2.nba.api-sports.io',
   timeout: DEFAULT_TIMEOUT_MS,
   retryAttempts: DEFAULT_RETRY_ATTEMPTS,
   retryDelay: DEFAULT_TIMEOUT_MS,
