@@ -1,9 +1,4 @@
 {
-  "git": {
-    "deploymentEnabled": {
-      "github": false
-    }
-  },
   "buildCommand": "pnpm run build",
   "outputDirectory": ".next",
   "installCommand": "pnpm install --frozen-lockfile",
