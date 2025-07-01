@@ -17,6 +17,7 @@ jobs:
   quality-gate:
     name: Quality Gate (Lint, Typecheck, Format, Build)
     runs-on: ubuntu-latest
+    environment: Production
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -41,6 +42,7 @@ jobs:
     name: Unit Tests
     needs: [quality-gate]
     runs-on: ubuntu-latest
+    environment: Production
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -71,6 +73,7 @@ jobs:
     name: E2E Tests
     needs: [unit-tests]
     runs-on: ubuntu-latest
+    environment: Production
     strategy:
       matrix:
         test: [smoke, critical]
@@ -98,6 +101,7 @@ jobs:
     name: Comprehensive E2E Tests
     needs: [e2e]
     runs-on: ubuntu-latest
+    environment: Production
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -134,6 +138,7 @@ jobs:
     needs: [quality-gate, unit-tests, e2e, e2e-comprehensive]
     runs-on: ubuntu-latest
     if: success()
+    environment: Production
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -167,6 +172,7 @@ jobs:
     needs: [deploy]
     runs-on: ubuntu-latest
     if: success()
+    environment: Production
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
