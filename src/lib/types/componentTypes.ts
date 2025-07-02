@@ -1,6 +1,7 @@
 // Types file: component.types.ts
 
 import type { HTMLAttributes } from 'react';
+import { PropsWithChildren } from 'react';
 
 // Types moved from src/app/components/ui/card.tsx
 export type ICardProps = HTMLAttributes<HTMLDivElement>;
@@ -16,5 +17,21 @@ export interface IThemeToggleProps {
 }
 
 export interface IComponentProps {
+  className?: string;
+}
+
+export type NavItemProps = PropsWithChildren<{
+  href: string;
+  isActive: boolean;
+  className?: string;
+}>;
+
+export interface ISignUpButtonProps {
+  children: React.ReactNode;
+  className?: string;
+}
+
+export interface ISignInButtonProps {
+  children: React.ReactNode;
   className?: string;
 }

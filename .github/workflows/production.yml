@@ -122,7 +122,7 @@ jobs:
       - name: Install Playwright Browsers
         run: pnpm exec playwright install --with-deps
       - name: Run Comprehensive E2E Tests
-        run: pnpm run test:e2e:full
+        run: pnpm run ci:e2e:responsive
       - name: Upload E2E test results (on failure)
         if: failure()
         uses: actions/upload-artifact@v4

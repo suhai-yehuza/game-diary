@@ -8,9 +8,7 @@ import eslintConfigPrettier from 'eslint-config-prettier';
 import nextPlugin from '@next/eslint-plugin-next';
 import filenamesPlugin from 'eslint-plugin-filenames';
 import globals from 'globals';
-
-// ENFORCEMENT: Only one <main> element is allowed per page/component. Do not add additional <main> elements in any file. This is required for accessibility and E2E test reliability.
-// If you need to center or wrap content, use <div> or other semantic elements instead.
+import noDuplicateMainRule from './scripts/eslint-rules/no-duplicate-main.js';
 
 export default [
   // Global ignores - must be first
@@ -55,6 +53,11 @@ export default [
       'jsx-a11y': eslintPluginJsxA11y,
       filenames: filenamesPlugin,
       '@next/next': nextPlugin,
+      'custom-rules': {
+        rules: {
+          'no-duplicate-main': noDuplicateMainRule,
+        },
+      },
     },
     languageOptions: {
       ecmaVersion: 'latest',
@@ -223,6 +226,9 @@ export default [
       '@typescript-eslint/type-annotation-spacing': 'error',
       '@typescript-eslint/unbound-method': 'error',
       '@typescript-eslint/unified-signatures': 'error',
+      // Rules from legacy .eslintrc.js
+      'jsx-a11y/no-redundant-roles': 'error',
+      'custom-rules/no-duplicate-main': 'error',
     },
   },
   {
