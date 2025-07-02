@@ -136,6 +136,7 @@
     "ci:e2e:run:coverage": "./scripts/e2e-run-with-coverage.sh",
     "ci:e2e:run:coverage:full": "./scripts/e2e-run-with-coverage-full.sh",
     "ci:e2e:responsive": "./scripts/e2e-responsive.sh",
+    "timed:ci:e2e:responsive": "./scripts/time-script.sh ci:e2e:responsive",
     "ci:e2e:debug": "./scripts/e2e-debug.sh",
     "ci:e2e:optimize": "./scripts/e2e-optimize.sh",
     "=====Push and Merge Scripts=====": "=====+=====+=====+=====+=====",
