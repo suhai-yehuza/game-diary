@@ -15,6 +15,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from '@/app/components/ui/dropdown-menu';
+import type { NavItemProps } from '@/lib/types/componentTypes';
 
 function SearchBarContent() {
   const [search_query, setSearchQuery] = useState('');
@@ -182,142 +183,96 @@ function SearchBar() {
   );
 }
 
+function NavItem({ href, isActive, children, className = '', ...props }: NavItemProps) {
+  return (
+    <Link
+      href={href}
+      className={`block py-1.5 lg:py-0 text-base lg:text-sm transition-colors whitespace-nowrap flex items-center h-full ${isActive ? 'text-blue-600 font-semibold' : 'hover:text-blue-600'} ${className}`}
+      {...props}
+    >
+      {children}
+    </Link>
+  );
+}
+
 function NavigationLinks({
   isActive,
   _isMenuExpanded,
-  setIsMenuExpanded,
+  _setIsMenuExpanded,
   isLoaded,
   isAdmin,
 }: {
   isActive: (path: string) => boolean;
   _isMenuExpanded: boolean;
-  setIsMenuExpanded: (expanded: boolean) => void;
+  _setIsMenuExpanded: (expanded: boolean) => void;
   isLoaded: boolean;
   isAdmin: boolean;
 }) {
   return (
-    <ul className="flex flex-col lg:flex-row space-y-2 lg:space-y-0 lg:space-x-20 2xl:space-x-24 p-4 lg:p-0 text-sm font-medium">
-      {/* Brand & Dashboard Group */}
-      <li className="lg:relative">
-        <Link
-          href="/dashboard"
-          className={`block py-1.5 lg:py-0 text-base lg:text-sm transition-colors whitespace-nowrap ${
-            isActive('/dashboard') ? 'text-blue-600 font-semibold' : 'hover:text-blue-600'
-          }`}
-          onClick={() => setIsMenuExpanded(false)}
-        >
-          Dashboard
-        </Link>
-        <div className="hidden lg:block absolute -right-10 2xl:-right-12 top-1/2 -translate-y-1/2 h-4 w-px bg-gray-200 dark:bg-gray-700" />
-      </li>
-
-      {/* Sports Group */}
-      <li className="lg:relative">
-        <div className="flex flex-col lg:flex-row lg:items-center lg:space-x-4 2xl:space-x-6">
-          <Link
-            href="/sports/nba"
-            className={`block py-1.5 lg:py-0 text-base lg:text-sm transition-colors whitespace-nowrap ${
-              isActive('/sports/nba') ? 'text-blue-600 font-semibold' : 'hover:text-blue-600'
-            }`}
-            onClick={() => setIsMenuExpanded(false)}
-          >
-            NBA
-          </Link>
-          <Link
-            href="/sports/nfl"
-            className={`block py-1.5 lg:py-0 text-base lg:text-sm transition-colors whitespace-nowrap ${
-              isActive('/sports/nfl') ? 'text-blue-600 font-semibold' : 'hover:text-blue-600'
-            }`}
-            onClick={() => setIsMenuExpanded(false)}
-          >
-            NFL
-          </Link>
-          <Link
-            href="/sports/mlb"
-            className={`block py-1.5 lg:py-0 text-base lg:text-sm transition-colors whitespace-nowrap ${
-              isActive('/sports/mlb') ? 'text-blue-600 font-semibold' : 'hover:text-blue-600'
-            }`}
-            onClick={() => setIsMenuExpanded(false)}
-          >
-            MLB
-          </Link>
-          <Link
-            href="/sports/nhl"
-            className={`block py-1.5 lg:py-0 text-base lg:text-sm transition-colors whitespace-nowrap ${
-              isActive('/sports/nhl') ? 'text-blue-600 font-semibold' : 'hover:text-blue-600'
-            }`}
-            onClick={() => setIsMenuExpanded(false)}
-          >
-            NHL
-          </Link>
-          <Link
-            href="/sports/mls"
-            className={`block py-1.5 lg:py-0 text-base lg:text-sm transition-colors whitespace-nowrap ${
-              isActive('/sports/mls') ? 'text-blue-600 font-semibold' : 'hover:text-blue-600'
-            }`}
-            onClick={() => setIsMenuExpanded(false)}
-          >
-            MLS
-          </Link>
-          <Link
-            href="/sports/all-sports"
-            className={`block py-1.5 lg:py-0 text-base lg:text-sm transition-colors whitespace-nowrap ${
-              isActive('/sports/all-sports') ? 'text-blue-600 font-semibold' : 'hover:text-blue-600'
-            }`}
-            onClick={() => setIsMenuExpanded(false)}
-          >
-            All Sports
-          </Link>
-        </div>
-        <div className="hidden lg:block absolute -right-10 2xl:-right-12 top-1/2 -translate-y-1/2 h-4 w-px bg-gray-200 dark:bg-gray-700" />
-      </li>
-
-      {/* User & Admin Group */}
-      <li>
-        <div className="flex flex-col lg:flex-row lg:items-center lg:space-x-4 2xl:space-x-6">
-          <Link
-            href="/protected/user"
-            className={`block py-1.5 lg:py-0 text-base lg:text-sm transition-colors whitespace-nowrap ${
-              isActive('/protected/user') ? 'text-blue-600 font-semibold' : 'hover:text-blue-600'
-            }`}
-            onClick={() => setIsMenuExpanded(false)}
-          >
-            Profile
-          </Link>
-          <SignedIn>
-            {isLoaded && isAdmin && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button
-                    className={`flex items-center gap-1 py-1.5 lg:py-0 text-base lg:text-sm transition-colors whitespace-nowrap ${
-                      isActive('/protected/admin')
-                        ? 'text-blue-600 font-semibold'
-                        : 'hover:text-blue-600'
-                    }`}
-                  >
-                    Admin
-                    <ChevronDown className="h-3 w-3" />
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-48">
-                  <DropdownMenuItem asChild>
-                    <Link href="/protected/admin/experimental" className="w-full">
-                      External API
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/protected/admin/database" className="w-full">
-                      Database
-                    </Link>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
-          </SignedIn>
-        </div>
-      </li>
-    </ul>
+    <nav className="flex items-center h-full space-x-6 text-sm font-medium">
+      {/* Dashboard + Sports */}
+      <NavItem href="/dashboard" isActive={isActive('/dashboard')}>
+        Dashboard
+      </NavItem>
+      <NavItem href="/sports/nba" isActive={isActive('/sports/nba')}>
+        NBA
+      </NavItem>
+      <NavItem href="/sports/nfl" isActive={isActive('/sports/nfl')}>
+        NFL
+      </NavItem>
+      <NavItem href="/sports/mlb" isActive={isActive('/sports/mlb')}>
+        MLB
+      </NavItem>
+      <NavItem href="/sports/nhl" isActive={isActive('/sports/nhl')}>
+        NHL
+      </NavItem>
+      <NavItem href="/sports/mls" isActive={isActive('/sports/mls')}>
+        MLS
+      </NavItem>
+      <NavItem href="/sports/all" isActive={isActive('/sports/all')}>
+        All Sports
+      </NavItem>
+      {/* Divider */}
+      <div className="hidden lg:block h-6 w-px bg-gray-200 dark:bg-gray-700 mx-3" />
+      {/* Profile + Admin */}
+      <NavItem href="/profile" isActive={isActive('/profile')}>
+        Profile
+      </NavItem>
+      {isLoaded && (
+        <SignedIn>
+          {isAdmin && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <NavItem href="/protected/admin" isActive={isActive('/protected/admin')}>
+                  Admin
+                  <ChevronDown className="h-3 w-3 ml-1" />
+                </NavItem>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-48">
+                <DropdownMenuItem asChild>
+                  <Link href="/protected/admin/experimental" className="w-full">
+                    External API
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/protected/admin/database" className="w-full">
+                    Database
+                  </Link>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+        </SignedIn>
+      )}
+    </nav>
   );
+}
+
+function ClientOnlyNavigationLinks(props: React.ComponentProps<typeof NavigationLinks>) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  if (!mounted) return null;
+  return <NavigationLinks {...props} />;
 }
 
 export function Header() {
@@ -339,15 +294,18 @@ export function Header() {
     : [];
   const isAdmin = Boolean(isLoaded && emailAddress && adminEmails.includes(emailAddress));
 
+  // Don't show live games banner on authentication pages
+  const isAuthPage = pathname.startsWith('/sign-in') || pathname.startsWith('/sign-up');
+
   return (
     <>
       {/* Live Games Banner */}
-      <LiveGamesBanner />
+      {!isAuthPage && <LiveGamesBanner />}
 
       <header className="w-full border-b lg:border-b">
-        <div className="flex h-16 items-center justify-between w-full">
+        <div className="grid grid-cols-[auto_1fr_auto] h-16 items-center w-full">
           {/* Logo - Left */}
-          <div className="pl-10">
+          <div className="pl-10 flex items-center">
             <Link href="/" className="min-w-[44px] min-h-[44px] flex items-center justify-center">
               <Image
                 src="/logos/gamelog-large.svg"
@@ -361,7 +319,7 @@ export function Header() {
           </div>
 
           {/* Navigation - Center */}
-          <nav className="flex-1 flex justify-center">
+          <nav className="flex justify-center">
             <div className="flex h-16 items-center">
               {/* Mobile Menu Button */}
               <button
@@ -379,10 +337,10 @@ export function Header() {
               <div
                 className={`${!isMenuExpanded ? 'hidden' : 'block'} lg:block absolute lg:relative top-16 left-0 right-0 lg:top-0 bg-background lg:bg-transparent z-50 shadow-lg lg:shadow-none`}
               >
-                <NavigationLinks
+                <ClientOnlyNavigationLinks
                   isActive={isActive}
                   _isMenuExpanded={isMenuExpanded}
-                  setIsMenuExpanded={setIsMenuExpanded}
+                  _setIsMenuExpanded={setIsMenuExpanded}
                   isLoaded={isLoaded}
                   isAdmin={isAdmin}
                 />
@@ -391,7 +349,7 @@ export function Header() {
           </nav>
 
           {/* Right Section - Search, Theme, Auth */}
-          <div className="flex items-center gap-2 sm:gap-4 pr-10">
+          <div className="pr-10 flex items-center gap-2 sm:gap-4 justify-end">
             {/* Mobile Search Button */}
             <button
               aria-label="Toggle search"
@@ -417,14 +375,9 @@ export function Header() {
 
             {/* Auth Controls */}
             <SignedOut>
-              <SignInButton mode="modal">
-                <button
-                  type="button"
-                  className="bg-[#757575] text-white hover:bg-[#616161] focus:ring-4 focus:outline-none focus:ring-gray-400 font-medium rounded-lg text-sm px-4 py-2 sm:px-5 sm:py-2.5 text-center border border-gray-600 dark:bg-[#e5e5e5] dark:text-gray-800 dark:hover:bg-[#d4d4d4] dark:focus:ring-gray-300 min-w-[44px] min-h-[44px] flex-shrink-0 whitespace-nowrap"
-                >
-                  Sign In
-                </button>
-              </SignInButton>
+              <span className="bg-[#757575] text-white hover:bg-[#616161] focus:ring-4 focus:outline-none focus:ring-gray-400 font-medium rounded-lg text-sm px-4 py-2 sm:px-5 sm:py-2.5 text-center border border-gray-600 dark:bg-[#e5e5e5] dark:text-gray-800 dark:hover:bg-[#d4d4d4] dark:focus:ring-gray-300 min-w-[44px] min-h-[44px] flex-shrink-0 whitespace-nowrap">
+                <SignInButton mode="modal">Sign In</SignInButton>
+              </span>
             </SignedOut>
             <SignedIn>
               <UserButton />

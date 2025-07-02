@@ -746,3 +746,14 @@ footer a {
   display: inline-block;
   text-align: center;
 }
+
+/* Dark mode support for injected modal close buttons */
+.dark .cl-modal-close-btn {
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: #ccc !important;
+}
+
+.dark .cl-modal-close-btn:hover {
+  background: rgba(255, 255, 255, 0.2) !important;
+  color: #fff !important;
+}

@@ -41,7 +41,7 @@ function NavigationTabs(props: NavigationTabsProps) {
       {tabs.map(tab => (
         <button
           key={tab}
-          className={`px-4 py-2 text-sm font-medium ${
+          className={`px-4 py-2 text-sm font-medium cursor-pointer ${
             selectedTab === tab
               ? 'border-b-2 border-blue-600 text-blue-600'
               : 'text-gray-500 hover:text-blue-600'
@@ -99,7 +99,7 @@ function GamesSection(props: GamesSectionProps) {
     <div className="mb-6">
       <div className="flex gap-2 border-b">
         <button
-          className={`px-4 py-2 text-sm font-medium ${
+          className={`px-4 py-2 text-sm font-medium cursor-pointer ${
             gamesSubTab === TABS.GAMES
               ? 'border-b-2 border-blue-600 text-blue-600'
               : 'text-gray-500 hover:text-blue-600'
@@ -109,7 +109,7 @@ function GamesSection(props: GamesSectionProps) {
           Games
         </button>
         <button
-          className={`px-4 py-2 text-sm font-medium ${
+          className={`px-4 py-2 text-sm font-medium cursor-pointer ${
             gamesSubTab === 'stats'
               ? 'border-b-2 border-blue-600 text-blue-600'
               : 'text-gray-500 hover:text-blue-600'
@@ -119,7 +119,7 @@ function GamesSection(props: GamesSectionProps) {
           Game Stats
         </button>
         <button
-          className={`px-4 py-2 text-sm font-medium ${
+          className={`px-4 py-2 text-sm font-medium cursor-pointer ${
             gamesSubTab === 'live'
               ? 'border-b-2 border-blue-600 text-blue-600'
               : 'text-gray-500 hover:text-blue-600'
@@ -181,7 +181,7 @@ function TeamsSection(props: TeamsSectionProps) {
     <div className="mb-6">
       <div className="flex gap-2 border-b">
         <button
-          className={`px-4 py-2 text-sm font-medium ${
+          className={`px-4 py-2 text-sm font-medium cursor-pointer ${
             teamsSubTab === TABS.TEAMS
               ? 'border-b-2 border-blue-600 text-blue-600'
               : 'text-gray-500 hover:text-blue-600'
@@ -191,7 +191,7 @@ function TeamsSection(props: TeamsSectionProps) {
           Teams
         </button>
         <button
-          className={`px-4 py-2 text-sm font-medium ${
+          className={`px-4 py-2 text-sm font-medium cursor-pointer ${
             teamsSubTab === 'stats'
               ? 'border-b-2 border-blue-600 text-blue-600'
               : 'text-gray-500 hover:text-blue-600'
@@ -238,7 +238,7 @@ function PlayersSection(props: PlayersSectionProps) {
     <div className="mb-6">
       <div className="flex gap-2 border-b">
         <button
-          className={`px-4 py-2 text-sm font-medium ${
+          className={`px-4 py-2 text-sm font-medium cursor-pointer ${
             playersSubTab === TABS.PLAYERS
               ? 'border-b-2 border-blue-600 text-blue-600'
               : 'text-gray-500 hover:text-blue-600'
@@ -248,7 +248,7 @@ function PlayersSection(props: PlayersSectionProps) {
           Players
         </button>
         <button
-          className={`px-4 py-2 text-sm font-medium ${
+          className={`px-4 py-2 text-sm font-medium cursor-pointer ${
             playersSubTab === 'stats'
               ? 'border-b-2 border-blue-600 text-blue-600'
               : 'text-gray-500 hover:text-blue-600'
