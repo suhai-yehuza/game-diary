@@ -21,7 +21,7 @@
     "timed:clean:build:prod": "./scripts/time-script.sh clean:build:prod",
     "clean:all": "pnpm clean && pnpm clean:deps && pnpm clean:cache",
     "clean:cache": "rm -rf .next/cache .eslintcache && pnpm clean",
-    "clean:deps": "rm -rf node_modules package-lock.json yarn.lock pnpm-lock.yaml && pnpm install",
+    "clean:deps": "rm -rf node_modules package-lock.json yarn.lock pnpm-lock.yaml && pnpm install --no-frozen-lockfile",
     "prebuild": "pnpm clean:all && pnpm codegen && pnpm fix && pnpm validate:soft",
     "lint": "eslint . --ext .ts,.tsx,.js,.jsx --max-warnings 0",
     "lint:fix": "eslint . --ext .ts,.tsx,.js,.jsx --fix",
