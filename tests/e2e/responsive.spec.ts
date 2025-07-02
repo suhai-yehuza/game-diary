@@ -52,7 +52,24 @@ test.describe('Responsive Design', () => {
   ];
 
   for (const viewport of viewports) {
+    // Determine which browser to use based on viewport size
+    const isDesktopViewport = viewport.width >= 1024;
+    const browserName = isDesktopViewport ? 'chromium' : 'Mobile Chrome';
+
     test.describe(`${viewport.name} (${viewport.width}x${viewport.height})`, () => {
+      test.use({
+        ...(isDesktopViewport
+          ? {
+              deviceScaleFactor: 1,
+              isMobile: false,
+              hasTouch: false,
+            }
+          : {
+              deviceScaleFactor: 2,
+              isMobile: true,
+              hasTouch: true,
+            }),
+      });
       test.beforeEach(async ({ page }) => {
         // Mock Clerk CDN JS requests to avoid network flakiness and ChunkLoadError
         await page.route('https://meet-kite-73.clerk.accounts.dev/npm/@clerk/clerk-js*', route => {
@@ -182,17 +199,39 @@ test.describe('Responsive Design', () => {
           // Check for navigation elements
           const nav = page.locator('nav, [role="navigation"]');
           if ((await nav.count()) > 0) {
-            await expect(nav.first()).toBeVisible();
+            // If there are multiple nav elements, check the first one that's visible
+            let visibleNavFound = false;
+            for (let i = 0; i < (await nav.count()); i++) {
+              const navElement = nav.nth(i);
+              if (await navElement.isVisible()) {
+                await expect(navElement).toBeVisible();
+                visibleNavFound = true;
+                break; // Only check the first visible nav element
+              }
+            }
+            // If no visible nav found, check the first one anyway
+            if (!visibleNavFound) {
+              await expect(nav.first()).toBeVisible();
+            }
 
             // Check that navigation is accessible
-            const navLinks = nav.locator('a, button');
+            // Look for navigation links in all nav elements, including nested ones
+            const navLinks = page.locator('nav a, nav button');
+
+            // Wait for navigation links to be loaded (ClientOnlyNavigationLinks component)
+            await page.waitForTimeout(1000);
+
             const linkCount = await navLinks.count();
 
             if (linkCount > 0) {
               // Try to find a visible nav link or button
               let firstVisibleIndex = -1;
               for (let i = 0; i < linkCount; i++) {
-                if (await navLinks.nth(i).isVisible()) {
+                const link = navLinks.nth(i);
+                const isVisible = await link.isVisible();
+                const text = await link.textContent();
+                // Skip empty links and look for actual navigation links
+                if (isVisible && text && text.trim() !== '') {
                   firstVisibleIndex = i;
                   break;
                 }
@@ -201,14 +240,41 @@ test.describe('Responsive Design', () => {
               // If none are visible, try to expand the menu (for mobile/tablet)
               if (firstVisibleIndex === -1) {
                 // Look for a menu toggle button (aria-label="Toggle menu")
-                const menuToggle = nav.locator('button[aria-label="Toggle menu"]');
+                const menuToggle = page.locator('button[aria-label="Toggle menu"]');
                 if (await menuToggle.isVisible()) {
                   await menuToggle.click();
                   // Wait for nav links to become visible
-                  await page.waitForTimeout(300); // allow animation
+                  await page.waitForTimeout(500); // allow animation
                   // Re-check for visible nav link/button
                   for (let i = 0; i < linkCount; i++) {
-                    if (await navLinks.nth(i).isVisible()) {
+                    const link = navLinks.nth(i);
+                    const isVisible = await link.isVisible();
+                    const text = await link.textContent();
+                    // Skip empty links and look for actual navigation links
+                    if (isVisible && text && text.trim() !== '') {
+                      firstVisibleIndex = i;
+                      break;
+                    }
+                  }
+                }
+              }
+
+              // If still no visible links, check if we're on a viewport where navigation should be visible by default
+              if (firstVisibleIndex === -1 && viewport.width >= 1024) {
+                // On desktop, navigation should be visible by default
+                // Let's check if there are any navigation elements at all
+                const allNavElements = page.locator('nav');
+                const navCount = await allNavElements.count();
+                if (navCount > 0) {
+                  // If we have nav elements but no visible links, this might be a timing issue
+                  // Let's wait a bit more and try again
+                  await page.waitForTimeout(1000);
+                  for (let i = 0; i < linkCount; i++) {
+                    const link = navLinks.nth(i);
+                    const isVisible = await link.isVisible();
+                    const text = await link.textContent();
+                    // Skip empty links and look for actual navigation links
+                    if (isVisible && text && text.trim() !== '') {
                       firstVisibleIndex = i;
                       break;
                     }

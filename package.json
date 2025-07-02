@@ -141,7 +141,16 @@
     "ci:e2e:optimize": "./scripts/e2e-optimize.sh",
     "=====Push and Merge Scripts=====": "=====+=====+=====+=====+=====",
     "push_and_merge": "./scripts/push-and-merge.sh",
-    "push_and_merge:help": "./scripts/push-and-merge.sh --help"
+    "push_and_merge:help": "./scripts/push-and-merge.sh --help",
+    "=====Debug Scripts=====": "=====+=====+=====+=====+=====",
+    "test:generate-results": "./scripts/generate-test-results.sh",
+    "test:generate-results:fast": "./scripts/generate-test-results.sh playwright.fast.config.ts",
+    "test:generate-results:popular": "./scripts/generate-test-results.sh playwright.popular.config.ts",
+    "test:generate-results:responsive": "./scripts/generate-test-results.sh playwright.popular.config.ts tests/e2e/responsive.spec.ts",
+    "test:failing": "./scripts/run-failing-files.sh",
+    "test:failing:fast": "./scripts/run-failing-files.sh playwright.fast.config.ts line",
+    "test:failing:popular": "./scripts/run-failing-files.sh playwright.popular.config.ts line",
+    "test:failing:responsive": "./scripts/run-failing-files.sh playwright.popular.config.ts line tests/e2e/responsive.spec.ts"
   },
   "dependencies": {
     "@apollo/client": "3.13.8",

@@ -437,6 +437,12 @@ pnpm test:e2e:fast         # Fast e2e tests (Chromium only)
 pnpm test:e2e:fast:watch   # Fast e2e tests in watch mode
 pnpm test:e2e:debug        # Debug e2e test issues
 
+# Debug Failing Tests (Efficient Development)
+pnpm test:generate-results:fast        # Generate test results for analysis
+pnpm test:failing:fast                 # Run only failing tests (fast config)
+pnpm test:generate-results:responsive  # Generate responsive test results
+pnpm test:failing:responsive           # Run only failing responsive tests
+
 # Validation
 pnpm validate:soft         # Quick validation (no tests)
 pnpm validate:dev          # Development validation
