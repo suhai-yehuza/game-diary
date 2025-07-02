@@ -75,8 +75,45 @@ check_current_branch() {
 # Check if there are uncommitted changes
 check_working_directory() {
     if ! git diff-index --quiet HEAD --; then
-        log_warn "You have uncommitted changes. Please commit or stash them first."
-        exit 1
+        local unstaged_files=$(git diff --name-only)
+        local staged_files=$(git diff --cached --name-only)
+
+        # Check if only auto-generated files have changes
+        local auto_files=("pnpm-lock.yaml" "package-lock.json" "yarn.lock")
+        local has_other_changes=false
+        local auto_files_changed=()
+
+        # Check unstaged files
+        for file in $unstaged_files; do
+            if [[ " ${auto_files[@]} " =~ " ${file} " ]]; then
+                auto_files_changed+=("$file")
+            else
+                has_other_changes=true
+            fi
+        done
+
+        # Check staged files
+        for file in $staged_files; do
+            if [[ " ${auto_files[@]} " =~ " ${file} " ]]; then
+                auto_files_changed+=("$file")
+            else
+                has_other_changes=true
+            fi
+        done
+
+        if [[ "$has_other_changes" == false && ${#auto_files_changed[@]} -gt 0 ]]; then
+            log_info "Auto-generated files have changes: ${auto_files_changed[*]}"
+            log_info "Discarding auto-generated file changes and proceeding..."
+            git checkout -- "${auto_files_changed[@]}"
+            log_info "Successfully discarded auto-generated file changes"
+        else
+            log_warn "You have uncommitted changes that need to be handled before merging."
+            log_info "Files with changes:"
+            git status --porcelain
+            log_info ""
+            log_info "Please commit or stash these changes and run the script again."
+            exit 1
+        fi
     fi
 }
 
