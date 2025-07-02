@@ -140,7 +140,8 @@
     "ci:e2e:debug": "./scripts/e2e-debug.sh",
     "ci:e2e:optimize": "./scripts/e2e-optimize.sh",
     "=====Push and Merge Scripts=====": "=====+=====+=====+=====+=====",
-    "push_and_merge": "git push && git checkout staging && git merge syehuza/demo && git push && git checkout syehuza/demo"
+    "push_and_merge": "./scripts/push-and-merge.sh",
+    "push_and_merge:help": "./scripts/push-and-merge.sh --help"
   },
   "dependencies": {
     "@apollo/client": "3.13.8",
