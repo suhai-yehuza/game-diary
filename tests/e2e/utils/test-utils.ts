@@ -62,6 +62,13 @@ export async function checkElementExists(
  * Check basic page structure (header, main content, footer)
  */
 export async function checkBasicPageStructure(page: Page): Promise<void> {
+  // Check if page shows API error (rate limiting)
+  const pageContent = await page.content();
+  if (pageContent.includes('too_many_requests') || pageContent.includes('Too many requests')) {
+    console.log('Skipping page structure check due to API rate limiting');
+    return;
+  }
+
   // Check for header (optional - some pages might not have one)
   const header = page.locator('header, [role="banner"]');
   if ((await header.count()) > 0) {
