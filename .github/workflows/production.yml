@@ -98,7 +98,7 @@ jobs:
         run: ./scripts/ci-e2e-tests.sh ${{ matrix.test }}
 
   e2e-comprehensive:
-    name: Comprehensive E2E Tests
+    name: Comprehensive E2E Tests (Full Coverage)
     needs: [e2e]
     runs-on: ubuntu-latest
     environment: Production
@@ -121,8 +121,8 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - name: Install Playwright Browsers
         run: pnpm exec playwright install --with-deps
-      - name: Run Comprehensive E2E Tests
-        run: pnpm run ci:e2e:responsive
+      - name: Run Comprehensive E2E Tests (Full Coverage)
+        run: pnpm run ci:e2e:run:coverage:full
       - name: Upload E2E test results (on failure)
         if: failure()
         uses: actions/upload-artifact@v4

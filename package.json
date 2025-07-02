@@ -119,6 +119,7 @@
     "verify-env": "tsx scripts/utils/verify-env.ts",
     "=====Main CI Pipeline Scripts=====": "=====+=====+=====+=====+=====",
     "ci:preview": "./scripts/ci-runner.sh preview",
+    "ci:staging": "./scripts/ci-runner.sh staging",
     "ci:production": "./scripts/ci-runner.sh production",
     "=====Individual CI Job Scripts=====": "=====+=====+=====+=====+=====",
     "ci:quality-gate": "./scripts/ci-quality-gate.sh",
