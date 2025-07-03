@@ -4,10 +4,18 @@ import { useAuth, useUser } from '@clerk/nextjs';
 import React from 'react';
 
 export default function ProtectedClientPage() {
-  const { user } = useUser();
-  const { isLoaded, isSignedIn, userId, sessionId, getToken } = useAuth();
+  const userData = (useUser as () => { user: { firstName?: string } | null })();
+  const authData = (
+    useAuth as () => {
+      isLoaded: boolean;
+      isSignedIn: boolean;
+      userId: string;
+      sessionId: string;
+      getToken: () => Promise<string | null>;
+    }
+  )();
 
-  if (!isLoaded || !isSignedIn) {
+  if (!authData.isLoaded || !authData.isSignedIn) {
     return null;
   }
 
@@ -15,10 +23,10 @@ export default function ProtectedClientPage() {
     <section className="py-24">
       <div className="container">
         <h1 className="text-3xl font-bold">This is a client-side page</h1>
-        <p className="mt-4">You are logged in as {user?.firstName}</p>
-        <p>UserId: {userId}</p>
-        <p>SessionId: {sessionId}</p>
-        <p>Token: {getToken()}</p>
+        <p className="mt-4">You are logged in as {userData.user?.firstName}</p>
+        <p>UserId: {authData.userId}</p>
+        <p>SessionId: {authData.sessionId}</p>
+        <p>Token: {authData.getToken()}</p>
       </div>
     </section>
   );

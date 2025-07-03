@@ -279,7 +279,12 @@ export function Header() {
   const [isSearchVisible, setIsSearchVisible] = useState(false);
   const [isMenuExpanded, setIsMenuExpanded] = useState(false);
   const pathname = usePathname() || '/';
-  const { user, isLoaded } = useUser();
+  const userData = (
+    useUser as () => {
+      user: { emailAddresses: Array<{ emailAddress: string }> } | null;
+      isLoaded: boolean;
+    }
+  )();
 
   const isActive = (path: string) => {
     if (path === '/') {
@@ -288,11 +293,11 @@ export function Header() {
     return pathname === path || pathname.startsWith(`${path}/`);
   };
 
-  const emailAddress = user?.emailAddresses[0].emailAddress;
+  const emailAddress = userData.user?.emailAddresses[0]?.emailAddress;
   const adminEmails = process.env.NEXT_PUBLIC_ADMIN_EMAILS
     ? process.env.NEXT_PUBLIC_ADMIN_EMAILS.split(',')
     : [];
-  const isAdmin = Boolean(isLoaded && emailAddress && adminEmails.includes(emailAddress));
+  const isAdmin = Boolean(userData.isLoaded && emailAddress && adminEmails.includes(emailAddress));
 
   // Don't show live games banner on authentication pages
   const isAuthPage = pathname.startsWith('/sign-in') || pathname.startsWith('/sign-up');
@@ -341,7 +346,7 @@ export function Header() {
                   isActive={isActive}
                   _isMenuExpanded={isMenuExpanded}
                   _setIsMenuExpanded={setIsMenuExpanded}
-                  isLoaded={isLoaded}
+                  isLoaded={userData.isLoaded}
                   isAdmin={isAdmin}
                 />
               </div>

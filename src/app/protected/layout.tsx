@@ -3,9 +3,9 @@ import { redirect } from 'next/navigation';
 import React from 'react';
 
 export default async function ProtectedLayout({ children }: { children: React.ReactNode }) {
-  const { userId } = await auth();
+  const authData = await (auth as () => Promise<{ userId: string | null }>)();
 
-  if (!userId) {
+  if (!authData.userId) {
     redirect('/sign-in');
   }
 

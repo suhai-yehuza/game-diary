@@ -4,14 +4,16 @@ import { useUser } from '@clerk/nextjs';
 import React from 'react';
 
 export default function LiveGamesPage() {
-  const { isLoaded, isSignedIn, user } = useUser();
+  const userData = (
+    useUser as () => { isLoaded: boolean; isSignedIn: boolean; user: { firstName?: string } | null }
+  )();
 
   return (
     <section className="min-h-[calc(100vh-4rem)] flex items-center justify-center">
       <div className="container mx-auto px-4 text-center">
         <h1 className="text-3xl font-bold">This will be the Live Games page</h1>
-        {isLoaded && isSignedIn ? (
-          <p className="mt-4">You are logged in as {user.firstName}</p>
+        {userData.isLoaded && userData.isSignedIn ? (
+          <p className="mt-4">You are logged in as {userData.user?.firstName}</p>
         ) : (
           <p className="mt-4">You are not logged in</p>
         )}

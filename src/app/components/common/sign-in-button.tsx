@@ -6,13 +6,15 @@ import { useEffect, useRef, useState } from 'react';
 import type { ISignInButtonProps } from '@/lib/types/componentTypes';
 
 export function SignInButton({ children, className }: ISignInButtonProps) {
-  const { openSignIn } = useClerk();
+  const clerk = (useClerk as () => { openSignIn: () => void } | null)();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null);
 
   const handleSignIn = () => {
-    setIsModalOpen(true);
-    openSignIn();
+    if (clerk?.openSignIn) {
+      setIsModalOpen(true);
+      clerk.openSignIn();
+    }
   };
 
   // Handle click outside to close modal (no X injection)
@@ -20,14 +22,18 @@ export function SignInButton({ children, className }: ISignInButtonProps) {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as Node;
       if (isModalOpen && modalRef.current && !modalRef.current.contains(target)) {
-        openSignIn();
+        if (clerk?.openSignIn) {
+          clerk.openSignIn();
+        }
         setIsModalOpen(false);
       }
     };
 
     const handleEscapeKey = (event: KeyboardEvent) => {
       if (isModalOpen && event.key === 'Escape') {
-        openSignIn();
+        if (clerk?.openSignIn) {
+          clerk.openSignIn();
+        }
         setIsModalOpen(false);
       }
     };
@@ -44,7 +50,7 @@ export function SignInButton({ children, className }: ISignInButtonProps) {
       document.removeEventListener('mousedown', handleClickOutside);
       document.removeEventListener('keydown', handleEscapeKey);
     };
-  }, [isModalOpen, openSignIn]);
+  }, [isModalOpen, clerk]);
 
   return (
     <div ref={modalRef}>

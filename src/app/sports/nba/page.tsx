@@ -7,7 +7,9 @@ import React from 'react';
 import { LiveGamesDetail } from '@src/app/components/live-games-detail';
 
 export default function NBAPage() {
-  const { isLoaded, isSignedIn, user } = useUser();
+  const userData = (
+    useUser as () => { isLoaded: boolean; isSignedIn: boolean; user: { firstName?: string } | null }
+  )();
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -34,11 +36,12 @@ export default function NBAPage() {
         </div>
       </div>
 
-      {isLoaded && isSignedIn ? (
+      {userData.isLoaded && userData.isSignedIn ? (
         <div>
           <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
             <p className="text-sm text-blue-800 dark:text-blue-200">
-              Welcome back, {user.firstName}! You can access live games and API testing features.
+              Welcome back, {userData.user?.firstName}! You can access live games and API testing
+              features.
             </p>
           </div>
 

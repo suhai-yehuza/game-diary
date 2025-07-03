@@ -8,7 +8,7 @@ import React from 'react';
 import { useMounted } from '@/hooks/use-mounted';
 
 export default function HomePage() {
-  const { isLoaded, isSignedIn } = useUser();
+  const userData = (useUser as () => { isLoaded: boolean; isSignedIn: boolean })();
   const mounted = useMounted();
 
   if (!mounted) {
@@ -16,7 +16,7 @@ export default function HomePage() {
   }
 
   // Don't block rendering if auth is not loaded yet
-  const showAuthState = isLoaded;
+  const showAuthState = userData.isLoaded;
 
   try {
     // ... existing code ...
@@ -47,7 +47,7 @@ export default function HomePage() {
 
         <div className="flex gap-6 items-center justify-center mt-8">
           {showAuthState ? (
-            isSignedIn ? (
+            userData.isSignedIn ? (
               <Link
                 href="/protected/user"
                 className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
