@@ -1,5 +1,13 @@
 name: Vercel Staging Deployment
 
+# Optimized staging deployment workflow with:
+# - Parallel job execution (unit-tests and e2e run in parallel)
+# - GitHub Playwright action for faster browser installation
+# - Comprehensive artifact uploads for debugging
+# - Vercel CLI caching
+# - Better error handling and conditional deployment
+# - Debug environment information
+
 env:
   VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
   VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
@@ -43,6 +51,8 @@ jobs:
     needs: [quality-gate]
     runs-on: ubuntu-latest
     environment: Staging
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -68,12 +78,23 @@ jobs:
           file: ./coverage/lcov.info
           flags: unittests
           name: codecov-umbrella
+      - name: Upload unit test results (on failure)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-test-results
+          path: |
+            coverage/
+            test-results/
+          retention-days: 7
 
   e2e:
     name: E2E Tests
-    needs: [unit-tests]
+    needs: [quality-gate]
     runs-on: ubuntu-latest
     environment: Staging
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
     strategy:
       matrix:
         test: [smoke, critical]
@@ -94,14 +115,30 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
       - run: pnpm install --frozen-lockfile
+      - name: Install Playwright Browsers
+        uses: microsoft/playwright-github-action@v1
+        with:
+          browsers: chromium firefox webkit
       - name: Run CI E2E Tests
         run: ./scripts/ci-e2e-tests.sh ${{ matrix.test }}
+      - name: Upload E2E test results (on failure)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-${{ matrix.test }}-results
+          path: |
+            test-results/
+            playwright-report/
+          retention-days: 7
 
   e2e-responsive:
     name: Comprehensive E2E Tests (Responsive)
-    needs: [e2e]
+    needs: [unit-tests, e2e]
     runs-on: ubuntu-latest
     environment: Staging
+    timeout-minutes: 60
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -120,9 +157,20 @@ jobs:
             ${{ runner.os }}-pnpm-store-
       - run: pnpm install --frozen-lockfile
       - name: Install Playwright Browsers
-        run: pnpm exec playwright install --with-deps
+        uses: microsoft/playwright-github-action@v1
+        with:
+          browsers: chromium firefox webkit
+      - name: Debug Environment
+        run: |
+          echo "Node version: $(node --version)"
+          echo "PNPM version: $(pnpm --version)"
+          echo "Playwright version: $(pnpm exec playwright --version)"
+          echo "Working directory: $(pwd)"
+          echo "Scripts directory contents:"
+          ls -la scripts/
       - name: Run Comprehensive E2E Tests (Responsive)
         run: pnpm run ci:e2e:responsive
+        continue-on-error: false
       - name: Upload E2E test results (on failure)
         if: failure()
         uses: actions/upload-artifact@v4
@@ -137,7 +185,7 @@ jobs:
     name: Deploy to Vercel Staging
     needs: [quality-gate, unit-tests, e2e, e2e-responsive]
     runs-on: ubuntu-latest
-    if: success()
+    if: success() && needs.quality-gate.result == 'success' && needs.unit-tests.result == 'success' && needs.e2e.result == 'success' && needs.e2e-responsive.result == 'success'
     environment: Staging
     steps:
       - uses: actions/checkout@v4
@@ -157,7 +205,16 @@ jobs:
             ${{ runner.os }}-pnpm-store-
       - run: pnpm install --frozen-lockfile
       - name: Install Playwright Browsers
-        run: pnpm exec playwright install --with-deps
+        uses: microsoft/playwright-github-action@v1
+        with:
+          browsers: chromium firefox webkit
+      - name: Cache Vercel CLI
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-vercel-cli-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-vercel-cli-
       - name: Install Vercel CLI
         run: npm install --global vercel@latest
       - name: Pull Vercel Environment Information
@@ -173,6 +230,8 @@ jobs:
     runs-on: ubuntu-latest
     if: success()
     environment: Staging
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -191,7 +250,9 @@ jobs:
             ${{ runner.os }}-pnpm-store-
       - run: pnpm install --frozen-lockfile
       - name: Install Playwright Browsers
-        run: pnpm exec playwright install --with-deps
+        uses: microsoft/playwright-github-action@v1
+        with:
+          browsers: chromium firefox webkit
       - run: pnpm timed:test:e2e:smoke
       - name: Upload smoke test results (on failure)
         if: failure()

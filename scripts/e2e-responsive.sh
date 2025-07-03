@@ -3,7 +3,9 @@
 # E2E Responsive Test Runner
 # Usage: ./scripts/e2e-responsive.sh [timeout-seconds]
 
-source "$(dirname "$0")/e2e-helpers.sh"
+# Get the directory where this script is located
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "${SCRIPT_DIR}/e2e-helpers.sh"
 
 # Default timeout of 60 minutes for responsive tests (they can be slow due to multiple viewports)
 DEFAULT_TIMEOUT=3600
