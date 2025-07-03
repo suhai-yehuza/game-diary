@@ -6,7 +6,7 @@
 # Clean up
 run_clean() {
     echo "🔍 Cleaning up..."
-    pnpm run clean
+    pnpm run clean:all
 }
 
 # Atomic validation steps
