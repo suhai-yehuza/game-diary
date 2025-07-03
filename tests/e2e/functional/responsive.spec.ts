@@ -10,15 +10,18 @@ import {
   checkForConsoleErrors,
   takeDebugScreenshot,
   setupE2EMocking,
-} from './utils/test-utils';
+} from '@tests/e2e/utils/test-utils';
 import { MOCK_NBA_GAMES } from '@src/lib/mock/nbaGamesMock';
 import { MOCK_NBA_TEAMS } from '@src/lib/mock/nbaTeamsMock';
 import { MOCK_NBA_STANDINGS } from '@src/lib/mock/nbaStandingsMock';
 import { MOCK_NBA_PLAYERS } from '@src/lib/mock/nbaPlayersMock';
 
+// Import and re-export critical tests to extend them
+import '@tests/e2e/functional/critical.spec';
+
 test.describe.configure({ retries: 3 }); // Increased retries for better stability
 
-test.describe('Responsive Design', () => {
+test.describe('Responsive Tests (Extends Critical)', () => {
   const viewports = [
     // Mobile devices
     { name: 'iPhone SE', width: 375, height: 667 },
@@ -84,7 +87,9 @@ test.describe('Responsive Design', () => {
       });
 
       for (const pagePath of testPages) {
-        test(`should render ${pagePath} correctly on ${viewport.name}`, async ({ page }) => {
+        test(`@responsive should render ${pagePath} correctly on ${viewport.name}`, async ({
+          page,
+        }) => {
           // Navigate to page with comprehensive mocking
           await safeGotoWithMocking(page, pagePath);
           await waitForPageLoad(page);
@@ -150,7 +155,7 @@ test.describe('Responsive Design', () => {
           await checkResponsiveBehavior(page, { width: viewport.width, height: viewport.height });
         });
 
-        test(`should have proper navigation on ${viewport.name} for ${pagePath}`, async ({
+        test(`@responsive should have proper navigation on ${viewport.name} for ${pagePath}`, async ({
           page,
         }) => {
           await safeGotoWithMocking(page, pagePath);
@@ -230,7 +235,7 @@ test.describe('Responsive Design', () => {
           }
         });
 
-        test(`should have proper content layout on ${viewport.name} for ${pagePath}`, async ({
+        test(`@responsive should have proper content layout on ${viewport.name} for ${pagePath}`, async ({
           page,
         }) => {
           await safeGotoWithMocking(page, pagePath);
@@ -295,7 +300,7 @@ test.describe('Responsive Design', () => {
           }
         });
 
-        test(`should handle touch interactions on ${viewport.name} for ${pagePath}`, async ({
+        test(`@responsive should handle touch interactions on ${viewport.name} for ${pagePath}`, async ({
           page,
         }) => {
           await safeGotoWithMocking(page, pagePath);
@@ -387,7 +392,7 @@ test.describe('Responsive Design', () => {
           }
         });
 
-        test(`should have proper accessibility on ${viewport.name} for ${pagePath}`, async ({
+        test(`@responsive should have proper accessibility on ${viewport.name} for ${pagePath}`, async ({
           page,
         }) => {
           await safeGotoWithMocking(page, pagePath);
@@ -422,7 +427,7 @@ test.describe('Responsive Design', () => {
           }
         });
 
-        test(`should have good performance on ${viewport.name} for ${pagePath}`, async ({
+        test(`@responsive should have good performance on ${viewport.name} for ${pagePath}`, async ({
           page,
         }) => {
           await safeGotoWithMocking(page, pagePath);
@@ -441,7 +446,7 @@ test.describe('Responsive Design', () => {
           }
         });
 
-        test(`should not have console errors on ${viewport.name} for ${pagePath}`, async ({
+        test(`@responsive should not have console errors on ${viewport.name} for ${pagePath}`, async ({
           page,
         }) => {
           await safeGotoWithMocking(page, pagePath);
@@ -463,7 +468,7 @@ test.describe('Responsive Design', () => {
   }
 
   test.describe('Cross-Viewport Consistency', () => {
-    test('should maintain consistent navigation across viewports', async ({ page }) => {
+    test('@responsive should maintain consistent navigation across viewports', async ({ page }) => {
       const testViewports = [
         { width: 375, height: 667 }, // Mobile
         { width: 768, height: 1024 }, // Tablet
@@ -491,7 +496,7 @@ test.describe('Responsive Design', () => {
       }
     });
 
-    test('should handle orientation changes', async ({ page }) => {
+    test('@responsive should handle orientation changes', async ({ page }) => {
       // Test portrait orientation
       await page.setViewportSize({ width: 375, height: 667 });
       await safeGotoWithMocking(page, '/');
@@ -505,7 +510,7 @@ test.describe('Responsive Design', () => {
       await expect(page.locator('body')).toBeVisible();
     });
 
-    test('should handle dynamic viewport changes', async ({ page }) => {
+    test('@responsive should handle dynamic viewport changes', async ({ page }) => {
       await safeGotoWithMocking(page, '/');
       await waitForPageLoad(page);
 
@@ -540,7 +545,7 @@ test.describe('Responsive Design', () => {
   });
 
   test.describe('Mobile-Specific Features', () => {
-    test('should handle mobile navigation menu', async ({ page }) => {
+    test('@responsive should handle mobile navigation menu', async ({ page }) => {
       await page.setViewportSize({ width: 375, height: 667 });
       await safeGotoWithMocking(page, '/');
       await waitForPageLoad(page);
@@ -588,7 +593,7 @@ test.describe('Responsive Design', () => {
       }
     });
 
-    test('should handle mobile touch gestures', async ({ page }) => {
+    test('@responsive should handle mobile touch gestures', async ({ page }) => {
       await page.setViewportSize({ width: 375, height: 667 });
       await safeGotoWithMocking(page, '/sports/nba');
       await waitForPageLoad(page);
@@ -612,7 +617,7 @@ test.describe('Responsive Design', () => {
       }
     });
 
-    test('should handle mobile keyboard', async ({ page }) => {
+    test('@responsive should handle mobile keyboard', async ({ page }) => {
       await page.setViewportSize({ width: 375, height: 667 });
       await safeGoto(page, '/sign-in');
       await waitForPageLoad(page);
@@ -640,7 +645,7 @@ test.describe('Responsive Design', () => {
   });
 
   test.describe('Tablet-Specific Features', () => {
-    test('should handle tablet navigation', async ({ page }) => {
+    test('@responsive should handle tablet navigation', async ({ page }) => {
       await page.setViewportSize({ width: 768, height: 1024 });
       await safeGoto(page, '/');
       await waitForPageLoad(page);
@@ -670,7 +675,7 @@ test.describe('Responsive Design', () => {
       }
     });
 
-    test('should handle tablet content layout', async ({ page }) => {
+    test('@responsive should handle tablet content layout', async ({ page }) => {
       await page.setViewportSize({ width: 768, height: 1024 });
       await safeGoto(page, '/sports/nba');
       await waitForPageLoad(page);

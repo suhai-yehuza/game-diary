@@ -5,7 +5,7 @@ import { defineConfig, devices } from '@playwright/test';
  * Popular browsers only configuration - reduces test complexity and flakiness
  */
 export default defineConfig({
-  testDir: './tests/e2e',
+  testDir: './tests/e2e/functional',
   /* Global test timeout */
   timeout: 90000,
   /* Run tests in files in parallel */

@@ -8,7 +8,7 @@ import {
   checkPerformanceMetrics,
   checkForConsoleErrors,
   takeDebugScreenshot,
-} from './utils/test-utils';
+} from '@tests/e2e/utils/test-utils';
 
 test.describe('Navigation', () => {
   test.beforeEach(async ({ page }) => {

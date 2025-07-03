@@ -9,7 +9,7 @@ import {
   checkForConsoleErrors,
   checkSEOElements,
   takeDebugScreenshot,
-} from './utils/test-utils';
+} from '@tests/e2e/utils/test-utils';
 
 test.describe('Cross Browser Compatibility', () => {
   const testPages = [

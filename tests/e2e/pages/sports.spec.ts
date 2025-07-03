@@ -9,7 +9,7 @@ import {
   checkForConsoleErrors,
   checkResponsiveBehavior,
   takeDebugScreenshot,
-} from './utils/test-utils';
+} from '@tests/e2e/utils/test-utils';
 
 test.describe('Sports Pages', () => {
   const sportsPages = [

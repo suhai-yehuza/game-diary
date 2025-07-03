@@ -1,8 +1,8 @@
 import { test, expect } from '@playwright/test';
-import { setupE2EMocking, safeGotoWithMocking } from './utils/test-utils';
+import { setupE2EMocking, safeGotoWithMocking } from '@tests/e2e/utils/test-utils';
 
-test.describe('Mock Verification', () => {
-  test('should use mock data for API calls', async ({ page }) => {
+test.describe('Mock Verification (Prerequisite)', () => {
+  test('@fast should use mock data for API calls', async ({ page }) => {
     // Set up comprehensive mocking
     await setupE2EMocking(page);
 
@@ -28,7 +28,7 @@ test.describe('Mock Verification', () => {
     expect(textContent!.length).toBeGreaterThan(100); // Should have meaningful content
   });
 
-  test('should mock external API endpoints', async ({ page }) => {
+  test('@fast should mock external API endpoints', async ({ page }) => {
     await setupE2EMocking(page);
 
     // Navigate to a page that would normally make external API calls
@@ -48,7 +48,7 @@ test.describe('Mock Verification', () => {
     expect(pageContent).not.toContain('Rate limit exceeded');
   });
 
-  test('should handle live games endpoint correctly', async ({ page }) => {
+  test('@fast should handle live games endpoint correctly', async ({ page }) => {
     await setupE2EMocking(page);
 
     // Navigate to live games page

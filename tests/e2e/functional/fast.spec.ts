@@ -5,11 +5,14 @@ import {
   checkBasicPageStructure,
   checkPageTitle,
   checkForConsoleErrors,
-} from './utils/test-utils';
+} from '@tests/e2e/utils/test-utils';
+
+// Import and re-export mock verification tests as prerequisite
+import '@tests/e2e/functional/mock-verification.spec';
 
 test.describe.configure({ retries: 2 }); // TEMP: Retry flaky tests while stabilizing
 
-test.describe('Fast Development Tests', () => {
+test.describe('Fast Development Tests (Base Level)', () => {
   test.beforeEach(async ({ page }) => {
     // Disable all CSS animations and transitions for test reliability
     await page.addStyleTag({
@@ -17,7 +20,7 @@ test.describe('Fast Development Tests', () => {
     });
   });
 
-  test('@smoke should load home page successfully', async ({ page }) => {
+  test('@fast should load home page successfully', async ({ page }) => {
     await safeGoto(page, '/');
     await waitForPageLoad(page);
 
@@ -34,7 +37,7 @@ test.describe('Fast Development Tests', () => {
     await checkForConsoleErrors(page);
   });
 
-  test('@smoke should load sign-in page', async ({ page }) => {
+  test('@fast should load sign-in page', async ({ page }) => {
     await safeGoto(page, '/sign-in');
     await page.waitForLoadState('domcontentloaded');
 
@@ -48,7 +51,7 @@ test.describe('Fast Development Tests', () => {
     await checkForConsoleErrors(page);
   });
 
-  test('@smoke should load sign-up page', async ({ page }) => {
+  test('@fast should load sign-up page', async ({ page }) => {
     await safeGoto(page, '/sign-up');
     await page.waitForLoadState('domcontentloaded');
 
@@ -62,7 +65,7 @@ test.describe('Fast Development Tests', () => {
     await checkForConsoleErrors(page);
   });
 
-  test('@critical should load NBA sports page', async ({ page }) => {
+  test('@fast should load NBA sports page', async ({ page }) => {
     await safeGoto(page, '/sports/nba');
     await waitForPageLoad(page);
 
@@ -76,7 +79,7 @@ test.describe('Fast Development Tests', () => {
     await checkForConsoleErrors(page);
   });
 
-  test('@critical should handle basic navigation', async ({ page }) => {
+  test('@fast should handle basic navigation', async ({ page }) => {
     // Start at home
     await safeGoto(page, '/');
     await waitForPageLoad(page);

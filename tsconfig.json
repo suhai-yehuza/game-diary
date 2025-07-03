@@ -25,7 +25,8 @@
       "@src/*": ["./src/*"],
       "@utils/*": ["./scripts/utils/*"],
       "@lib/*": ["./lib/*"],
-      "@app/*": ["./src/app/*"]
+      "@app/*": ["./src/app/*"],
+      "@tests/*": ["./tests/*"]
     },
     "typeRoots": ["./node_modules/@types"],
     "baseUrl": ".",
