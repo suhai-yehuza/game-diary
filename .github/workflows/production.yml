@@ -157,7 +157,7 @@ jobs:
       - name: Install Playwright Browsers
         run: pnpm exec playwright install --with-deps
       - name: Run E2E Responsive Tests
-        run: ./scripts/e2e-responsive.sh
+        run: ./scripts/e2e-run.sh responsive 3600
       - name: Upload E2E responsive test results (on failure)
         if: failure()
         uses: actions/upload-artifact@v4

@@ -165,7 +165,7 @@ jobs:
           echo "Scripts directory contents:"
           ls -la scripts/
       - name: Run Responsive E2E Tests
-        run: ./scripts/e2e-responsive.sh
+        run: ./scripts/e2e-run.sh responsive 3600
         continue-on-error: false
       - name: Upload E2E test results (on failure)
         if: failure()
