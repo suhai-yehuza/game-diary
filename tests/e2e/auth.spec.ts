@@ -41,22 +41,14 @@ test.describe('Authentication', () => {
         await expect(signInForm.first()).toBeVisible();
 
         // Check for email input
-        const emailInput = page.locator(
-          'input[type="email"], input[name="email"], [data-testid="email-input"]'
-        );
-        if ((await emailInput.count()) > 0) {
-          await expect(emailInput.first()).toBeVisible();
-          await expect(emailInput.first()).toBeEnabled();
-        }
+        const emailInput = page.getByRole('textbox', { name: /email/i });
+        await expect(emailInput).toBeVisible();
+        await expect(emailInput).toBeEnabled();
 
         // Check for password input
-        const passwordInput = page.locator(
-          'input[type="password"], input[name="password"], [data-testid="password-input"]'
-        );
-        if ((await passwordInput.count()) > 0) {
-          await expect(passwordInput.first()).toBeVisible();
-          await expect(passwordInput.first()).toBeEnabled();
-        }
+        const passwordInput = page.getByLabel(/password/i);
+        await expect(passwordInput).toBeVisible();
+        await expect(passwordInput).toBeEnabled();
 
         // Check for submit button
         const submitButton = page.locator(
@@ -89,12 +81,8 @@ test.describe('Authentication', () => {
 
     test('should handle sign in with valid credentials', async ({ page }) => {
       // This test would require mock authentication or test credentials
-      const emailInput = page.locator(
-        'input[type="email"], input[name="email"], [data-testid="email-input"]'
-      );
-      const passwordInput = page.locator(
-        'input[type="password"], input[name="password"], [data-testid="password-input"]'
-      );
+      const emailInput = page.getByRole('textbox', { name: /email/i });
+      const passwordInput = page.getByLabel(/password/i);
       const submitButton = page.locator(
         'button[type="submit"], input[type="submit"], [data-testid="sign-in-button"]'
       );
@@ -105,8 +93,8 @@ test.describe('Authentication', () => {
         (await submitButton.count()) > 0
       ) {
         // Fill in test credentials
-        await emailInput.first().fill(testData.user.email);
-        await passwordInput.first().fill(testData.user.password);
+        await emailInput.fill(testData.user.email);
+        await passwordInput.fill(testData.user.password);
 
         // Submit form
         await submitButton.first().click();
@@ -118,12 +106,8 @@ test.describe('Authentication', () => {
     });
 
     test('should handle sign in with invalid credentials', async ({ page }) => {
-      const emailInput = page.locator(
-        'input[type="email"], input[name="email"], [data-testid="email-input"]'
-      );
-      const passwordInput = page.locator(
-        'input[type="password"], input[name="password"], [data-testid="password-input"]'
-      );
+      const emailInput = page.getByRole('textbox', { name: /email/i });
+      const passwordInput = page.getByLabel(/password/i);
       const submitButton = page.locator(
         'button[type="submit"], input[type="submit"], [data-testid="sign-in-button"]'
       );
@@ -134,8 +118,8 @@ test.describe('Authentication', () => {
         (await submitButton.count()) > 0
       ) {
         // Fill in invalid credentials
-        await emailInput.first().fill('invalid@example.com');
-        await passwordInput.first().fill('wrongpassword');
+        await emailInput.fill('invalid@example.com');
+        await passwordInput.fill('wrongpassword');
 
         // Submit form
         await submitButton.first().click();
@@ -233,39 +217,25 @@ test.describe('Authentication', () => {
         await expect(signUpForm.first()).toBeVisible();
 
         // Check for name input
-        const nameInput = page.locator(
-          'input[name="name"], input[name="fullName"], [data-testid="name-input"]'
-        );
-        if ((await nameInput.count()) > 0) {
-          await expect(nameInput.first()).toBeVisible();
-          await expect(nameInput.first()).toBeEnabled();
-        }
+        const nameInput = page.getByRole('textbox', { name: /name|full name/i });
+        await expect(nameInput).toBeVisible();
+        await expect(nameInput).toBeEnabled();
 
         // Check for email input
-        const emailInput = page.locator(
-          'input[type="email"], input[name="email"], [data-testid="email-input"]'
-        );
-        if ((await emailInput.count()) > 0) {
-          await expect(emailInput.first()).toBeVisible();
-          await expect(emailInput.first()).toBeEnabled();
-        }
+        const emailInput = page.getByRole('textbox', { name: /email/i });
+        await expect(emailInput).toBeVisible();
+        await expect(emailInput).toBeEnabled();
 
         // Check for password input
-        const passwordInput = page.locator(
-          'input[type="password"], input[name="password"], [data-testid="password-input"]'
-        );
-        if ((await passwordInput.count()) > 0) {
-          await expect(passwordInput.first()).toBeVisible();
-          await expect(passwordInput.first()).toBeEnabled();
-        }
+        const passwordInput = page.getByLabel(/password/i);
+        await expect(passwordInput).toBeVisible();
+        await expect(passwordInput).toBeEnabled();
 
-        // Check for confirm password input
-        const confirmPasswordInput = page.locator(
-          'input[name="confirmPassword"], input[name="passwordConfirm"], [data-testid="confirm-password-input"]'
-        );
-        if ((await confirmPasswordInput.count()) > 0) {
-          await expect(confirmPasswordInput.first()).toBeVisible();
-          await expect(confirmPasswordInput.first()).toBeEnabled();
+        // Check for confirm password input (if present)
+        const confirmPasswordInput = page.getByLabel(/confirm password|password confirm/i).first();
+        if (await confirmPasswordInput.count().catch(() => false)) {
+          await expect(confirmPasswordInput).toBeVisible();
+          await expect(confirmPasswordInput).toBeEnabled();
         }
 
         // Check for submit button
@@ -299,18 +269,10 @@ test.describe('Authentication', () => {
 
     test('should handle sign up with valid data', async ({ page }) => {
       // This test would require mock registration or test setup
-      const nameInput = page.locator(
-        'input[name="name"], input[name="fullName"], [data-testid="name-input"]'
-      );
-      const emailInput = page.locator(
-        'input[type="email"], input[name="email"], [data-testid="email-input"]'
-      );
-      const passwordInput = page.locator(
-        'input[type="password"], input[name="password"], [data-testid="password-input"]'
-      );
-      const confirmPasswordInput = page.locator(
-        'input[name="confirmPassword"], input[name="passwordConfirm"], [data-testid="confirm-password-input"]'
-      );
+      const nameInput = page.getByRole('textbox', { name: /name|full name/i });
+      const emailInput = page.getByRole('textbox', { name: /email/i });
+      const passwordInput = page.getByLabel(/password/i);
+      const confirmPasswordInput = page.getByLabel(/confirm password|password confirm/i).first();
       const submitButton = page.locator(
         'button[type="submit"], input[type="submit"], [data-testid="sign-up-button"]'
       );
@@ -322,12 +284,12 @@ test.describe('Authentication', () => {
         (await submitButton.count()) > 0
       ) {
         // Fill in test data
-        await nameInput.first().fill(testData.user.name);
-        await emailInput.first().fill(testData.user.email);
-        await passwordInput.first().fill(testData.user.password);
+        await nameInput.fill(testData.user.name);
+        await emailInput.fill(testData.user.email);
+        await passwordInput.fill(testData.user.password);
 
         if ((await confirmPasswordInput.count()) > 0) {
-          await confirmPasswordInput.first().fill(testData.user.password);
+          await confirmPasswordInput.fill(testData.user.password);
         }
 
         // Submit form
@@ -340,15 +302,9 @@ test.describe('Authentication', () => {
     });
 
     test('should handle sign up with existing email', async ({ page }) => {
-      const nameInput = page.locator(
-        'input[name="name"], input[name="fullName"], [data-testid="name-input"]'
-      );
-      const emailInput = page.locator(
-        'input[type="email"], input[name="email"], [data-testid="email-input"]'
-      );
-      const passwordInput = page.locator(
-        'input[type="password"], input[name="password"], [data-testid="password-input"]'
-      );
+      const nameInput = page.getByRole('textbox', { name: /name|full name/i });
+      const emailInput = page.getByRole('textbox', { name: /email/i });
+      const passwordInput = page.getByLabel(/password/i);
       const submitButton = page.locator(
         'button[type="submit"], input[type="submit"], [data-testid="sign-up-button"]'
       );
@@ -360,9 +316,9 @@ test.describe('Authentication', () => {
         (await submitButton.count()) > 0
       ) {
         // Fill in existing email
-        await nameInput.first().fill(testData.user.name);
-        await emailInput.first().fill('existing@example.com');
-        await passwordInput.first().fill(testData.user.password);
+        await nameInput.fill(testData.user.name);
+        await emailInput.fill('existing@example.com');
+        await passwordInput.fill(testData.user.password);
 
         // Submit form
         await submitButton.first().click();
@@ -438,15 +394,9 @@ test.describe('Authentication', () => {
       await waitForPageLoad(page);
 
       // Fill out sign up form
-      const nameInput = page.locator(
-        'input[name="name"], input[name="fullName"], [data-testid="name-input"]'
-      );
-      const emailInput = page.locator(
-        'input[type="email"], input[name="email"], [data-testid="email-input"]'
-      );
-      const passwordInput = page.locator(
-        'input[type="password"], input[name="password"], [data-testid="password-input"]'
-      );
+      const nameInput = page.getByRole('textbox', { name: /name|full name/i });
+      const emailInput = page.getByRole('textbox', { name: /email/i });
+      const passwordInput = page.getByLabel(/password/i);
       const submitButton = page.locator(
         'button[type="submit"], input[type="submit"], [data-testid="sign-up-button"]'
       );
@@ -457,9 +407,9 @@ test.describe('Authentication', () => {
         (await passwordInput.count()) > 0 &&
         (await submitButton.count()) > 0
       ) {
-        await nameInput.first().fill(testData.user.name);
-        await emailInput.first().fill(testData.user.email);
-        await passwordInput.first().fill(testData.user.password);
+        await nameInput.fill(testData.user.name);
+        await emailInput.fill(testData.user.email);
+        await passwordInput.fill(testData.user.password);
 
         await submitButton.first().click();
         await page.waitForTimeout(2000);
@@ -529,12 +479,8 @@ test.describe('Authentication', () => {
         await safeGoto(page, '/sign-in');
         await waitForPageLoad(page);
 
-        const emailInput = page.locator(
-          'input[type="email"], input[name="email"], [data-testid="email-input"]'
-        );
-        const passwordInput = page.locator(
-          'input[type="password"], input[name="password"], [data-testid="password-input"]'
-        );
+        const emailInput = page.getByRole('textbox', { name: /email/i });
+        const passwordInput = page.getByLabel(/password/i);
         const submitButton = page.locator(
           'button[type="submit"], input[type="submit"], [data-testid="sign-in-button"]'
         );
@@ -545,10 +491,10 @@ test.describe('Authentication', () => {
           (await submitButton.count()) > 0
         ) {
           if (scenario.email) {
-            await emailInput.first().fill(scenario.email);
+            await emailInput.fill(scenario.email);
           }
           if (scenario.password) {
-            await passwordInput.first().fill(scenario.password);
+            await passwordInput.fill(scenario.password);
           }
 
           await submitButton.first().click();

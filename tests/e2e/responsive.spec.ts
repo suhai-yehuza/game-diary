@@ -632,12 +632,22 @@ test.describe('Responsive Design', () => {
 
     test('should handle mobile keyboard', async ({ page }) => {
       await page.setViewportSize({ width: 375, height: 667 });
-      await safeGotoWithMocking(page, '/sign-in');
+      await safeGoto(page, '/sign-in');
       await waitForPageLoad(page);
 
-      // Target the visible sign-in input by label
-      const emailInput = page.getByLabel('Email address');
-      await expect(emailInput).toBeVisible({ timeout: 2000 });
+      // If a 'Sign In' button is visible (e.g., in header), click it to open the sign-in form/modal
+      const signInButton = page.getByRole('button', { name: /sign in/i });
+      if (await signInButton.isVisible().catch(() => false)) {
+        await signInButton.click();
+        await page.waitForTimeout(500);
+      }
+
+      // Scroll to the main content area in case the form is off-screen
+      await page.locator('main').scrollIntoViewIfNeeded();
+
+      // Try to find the email textbox by role and label
+      const emailInput = page.getByRole('textbox', { name: /email/i });
+      await expect(emailInput).toBeVisible({ timeout: 5000 });
       await emailInput.click();
       await emailInput.fill('test@example.com');
       await page.waitForTimeout(500);
