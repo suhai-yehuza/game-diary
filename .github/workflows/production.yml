@@ -2,7 +2,7 @@ name: Vercel Production Deployment
 
 # Optimized production deployment workflow with:
 # - Parallel job execution (unit-tests and e2e run in parallel)
-# - GitHub Playwright action for faster browser installation
+# - Optimized Playwright installation using npx
 # - Comprehensive artifact uploads for debugging
 # - Vercel CLI caching
 # - Better error handling and conditional deployment
@@ -116,9 +116,7 @@ jobs:
             ${{ runner.os }}-pnpm-store-
       - run: pnpm install --frozen-lockfile
       - name: Install Playwright Browsers
-        uses: microsoft/playwright-github-action@v1
-        with:
-          browsers: chromium firefox webkit
+        run: pnpm exec playwright install --with-deps
       - name: Run CI E2E Tests
         run: ./scripts/ci-e2e-tests.sh ${{ matrix.test }}
       - name: Upload E2E test results (on failure)
@@ -157,9 +155,7 @@ jobs:
             ${{ runner.os }}-pnpm-store-
       - run: pnpm install --frozen-lockfile
       - name: Install Playwright Browsers
-        uses: microsoft/playwright-github-action@v1
-        with:
-          browsers: chromium firefox webkit
+        run: pnpm exec playwright install --with-deps
       - name: Debug Environment
         run: |
           echo "Node version: $(node --version)"
@@ -204,9 +200,7 @@ jobs:
             ${{ runner.os }}-pnpm-store-
       - run: pnpm install --frozen-lockfile
       - name: Install Playwright Browsers
-        uses: microsoft/playwright-github-action@v1
-        with:
-          browsers: chromium firefox webkit
+        run: pnpm exec playwright install --with-deps
       - name: Cache Vercel CLI
         uses: actions/cache@v4
         with:
@@ -249,9 +243,7 @@ jobs:
             ${{ runner.os }}-pnpm-store-
       - run: pnpm install --frozen-lockfile
       - name: Install Playwright Browsers
-        uses: microsoft/playwright-github-action@v1
-        with:
-          browsers: chromium firefox webkit
+        run: pnpm exec playwright install --with-deps
       - run: pnpm timed:test:e2e:smoke
       - name: Upload smoke test results (on failure)
         if: failure()
