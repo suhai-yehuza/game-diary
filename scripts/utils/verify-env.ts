@@ -73,8 +73,13 @@ function validateEnvironment(): void {
       errors.push('DATABASE_URL is required for all environments');
     }
 
-    // Clerk keys are required for production/staging (unless in test/E2E)
-    if (!isTest && !isE2E && (env.NODE_ENV === 'production' || env.NODE_ENV === 'staging')) {
+    // Clerk keys are required for production/staging (unless in test/E2E or CI)
+    if (
+      !isTest &&
+      !isE2E &&
+      !isCI &&
+      (env.NODE_ENV === 'production' || env.NODE_ENV === 'staging')
+    ) {
       if (!env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY) {
         errors.push('NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY is required for production/staging');
       }
@@ -121,7 +126,7 @@ function validateEnvironment(): void {
     console.log('\n📋 Environment Summary:');
     console.log(`  Database: ${env.DATABASE_URL ? '✅ Configured' : '❌ Missing'}`);
     console.log(
-      `  Clerk Auth: ${env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ? '✅ Configured' : '⚠️  Not configured'}`
+      `  Clerk Auth: ${env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ? '✅ Configured' : isCI ? '⚠️  Skipped in CI' : '⚠️  Not configured'}`
     );
     console.log(
       `  RapidAPI: ${env.NEXT_PUBLIC_RAPID_API_KEY ? '✅ Configured' : '⚠️  Not configured'}`
