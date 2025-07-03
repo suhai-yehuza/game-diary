@@ -9,8 +9,8 @@ This document outlines the optimization of `package.json` scripts to reduce redu
 ### 1. **Eliminated Redundant Timed Scripts**
 
 - **Before**: 15+ individual `timed:*` scripts
-- **After**: Single `timed` script that can time any command
-- **Usage**: `pnpm timed "pnpm build"` or `pnpm timed "pnpm test:unit"`
+- **After**: Use `pnpm run timed <script>` to time any script, e.g. `pnpm run timed build`
+- **Usage**: `pnpm run timed build` or `pnpm run timed test:unit`
 
 ### 2. **Consolidated Duplicate E2E Tests**
 
@@ -49,13 +49,13 @@ This document outlines the optimization of `package.json` scripts to reduce redu
 
 ```bash
 # Time a build
-pnpm timed "pnpm build"
+pnpm run timed build
 
 # Time tests
-pnpm timed "pnpm test:unit"
+pnpm run timed test:unit
 
 # Time validation
-pnpm timed "pnpm validate:ci"
+pnpm run timed validate:ci
 ```
 
 ### Common Development Workflows
@@ -131,7 +131,7 @@ pnpm ci:quality-gate
 pnpm timed:build
 
 # New way
-pnpm timed "pnpm build"
+pnpm run timed build
 ```
 
 ### From Duplicate E2E Tests
@@ -159,7 +159,7 @@ pnpm test:e2e:smoke
 The following scripts are marked as deprecated but kept for backward compatibility:
 
 - `ci:validation:*` - Use the new validation scripts instead
-- Legacy timed scripts - Use `pnpm timed "<command>"` instead
+- Legacy timed scripts - Use `pnpm run timed "<command>"` instead
 
 ## Future Improvements
 

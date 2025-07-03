@@ -14,23 +14,23 @@
 
 **Removed:**
 
-- `timed:build`
-- `timed:clean`
-- `timed:clean:build`
-- `timed:clean:build:prod`
-- `timed:lint`
-- `timed:typecheck`
-- `timed:format`
-- `timed:test:unit`
-- `timed:validate`
-- `timed:validate:ci`
-- `timed:validate:predeploy`
-- `timed:validate:all`
-- `timed:test:e2e:smoke`
-- `timed:test:e2e:critical`
-- `timed:test:e2e:full`
-- `timed:ci:e2e:run:coverage:full`
-- `timed:ci:e2e:responsive`
+- `pnpm run timed build`
+- `pnpm run timed clean`
+- `pnpm run timed clean:build`
+- `pnpm run timed clean:build:prod`
+- `pnpm run timed lint`
+- `pnpm run timed typecheck`
+- `pnpm run timed format`
+- `pnpm run timed test:unit`
+- `pnpm run timed validate`
+- `pnpm run timed validate:ci`
+- `pnpm run timed validate:predeploy`
+- `pnpm run timed validate:all`
+- `pnpm run timed test:e2e:smoke`
+- `pnpm run timed test:e2e:critical`
+- `pnpm run timed test:e2e:full`
+- `pnpm run timed ci:e2e:run:coverage:full`
+- `pnpm run timed ci:e2e:responsive`
 
 **Replaced with:**
 
