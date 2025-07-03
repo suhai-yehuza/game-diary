@@ -16,7 +16,7 @@ else
     pnpm run lint:fix && pnpm run format
     pnpm run check:circular
     # Skip: pnpm run verify-env
-    pnpm run build
+    NODE_ENV=production pnpm run build
     pnpm run check:unused:exports
     pnpm run check:size
 fi
