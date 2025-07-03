@@ -28,7 +28,7 @@ fi
 # Verify that the required function exists
 if ! type run_e2e_test >/dev/null 2>&1; then
     echo "❌ Error: run_e2e_test function not found after sourcing e2e-helpers.sh"
-    echo "Available functions:"
+    echo "🔍 Debug: Available functions:"
     declare -F | grep -E "(clean_e2e_artifacts|kill_e2e_processes|setup_e2e_trap|start_e2e_server|wait_for_e2e_server|run_e2e_test)" || echo "No e2e functions found"
     exit 1
 fi
@@ -49,12 +49,29 @@ export E2E_TESTING=true
 export FORCE_MOCK_API=true
 echo "🔧 E2E testing environment variables set"
 
+# Run the test with proper timeout handling
+echo "🧪 Running responsive tests with timeout: ${TIMEOUT}s"
+
+# Create a temporary script for timeout handling
+TEMP_SCRIPT=$(mktemp)
+cat > "$TEMP_SCRIPT" << 'EOF'
+#!/bin/bash
+set -e
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "${SCRIPT_DIR}/e2e-helpers.sh"
+run_e2e_test "playwright test tests/e2e/responsive.spec.ts" "Responsive Design Tests"
+EOF
+chmod +x "$TEMP_SCRIPT"
+
 # Use timeout wrapper if timeout is provided
 if command -v gtimeout >/dev/null 2>&1; then
-    gtimeout $TIMEOUT run_e2e_test "playwright test tests/e2e/responsive.spec.ts" "Responsive Design Tests"
+    gtimeout $TIMEOUT "$TEMP_SCRIPT"
 elif command -v timeout >/dev/null 2>&1; then
-    timeout $TIMEOUT run_e2e_test "playwright test tests/e2e/responsive.spec.ts" "Responsive Design Tests"
+    timeout $TIMEOUT "$TEMP_SCRIPT"
 else
     echo "⚠️  Timeout command not available, running without timeout"
     run_e2e_test "playwright test tests/e2e/responsive.spec.ts" "Responsive Design Tests"
 fi
+
+# Clean up temp script
+rm -f "$TEMP_SCRIPT"

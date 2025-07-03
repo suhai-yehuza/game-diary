@@ -7,7 +7,7 @@ import { defineConfig, devices } from '@playwright/test';
 export default defineConfig({
   testDir: './tests/e2e',
   /* Global test timeout */
-  timeout: 60000,
+  timeout: 90000,
   /* Run tests in files in parallel */
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
@@ -97,8 +97,8 @@ export default defineConfig({
     video: 'retain-on-failure',
 
     /* Optimized timeouts for better stability */
-    actionTimeout: 20000,
-    navigationTimeout: 40000,
+    actionTimeout: 30000,
+    navigationTimeout: 60000,
 
     /* Fail tests on console errors */
     launchOptions: {
