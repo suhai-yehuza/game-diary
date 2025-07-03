@@ -5,46 +5,117 @@
 
 set -e  # Exit on any error
 
+# Define step functions
+run_quality_gate() {
+    local environment=$1
+    echo "📋 Step $2: Quality Gate (Validation)"
+    ./scripts/ci-quality-gate.sh "$environment"
+}
+
+run_unit_tests() {
+    echo "📋 Step $1: Unit Tests"
+    ./scripts/ci-unit-tests.sh
+}
+
+run_e2e_fast() {
+    echo "📋 Step $1: E2E Fast Tests"
+    ./scripts/ci-e2e-tests.sh fast
+}
+
+run_e2e_critical() {
+    echo "📋 Step $1: E2E Critical Tests"
+    ./scripts/ci-e2e-tests.sh critical
+}
+
+run_e2e_responsive() {
+    echo "📋 Step $1: E2E Responsive Tests"
+    ./scripts/e2e-responsive.sh
+}
+
+run_e2e_coverage_full() {
+    echo "📋 Step $1: E2E Comprehensive Tests with Coverage"
+    ./scripts/e2e-run-with-coverage-full.sh
+}
+
+# Define pipeline configurations
+get_preview_pipeline() {
+    echo "quality_gate:preview unit_tests e2e_fast"
+}
+
+get_staging_pipeline() {
+    echo "quality_gate:production unit_tests e2e_fast e2e_critical e2e_responsive"
+}
+
+get_production_pipeline() {
+    echo "quality_gate:production unit_tests e2e_fast e2e_critical e2e_responsive e2e_coverage_full"
+}
+
+# Execute pipeline
+execute_pipeline() {
+    local environment=$1
+    local pipeline_steps
+
+    case "$environment" in
+        "preview")
+            pipeline_steps=$(get_preview_pipeline)
+            ;;
+        "staging")
+            pipeline_steps=$(get_staging_pipeline)
+            ;;
+        "production")
+            pipeline_steps=$(get_production_pipeline)
+            ;;
+        *)
+            echo "Error: Unknown environment '$environment'"
+            exit 1
+            ;;
+    esac
+
+    echo "🚀 Running CI ${environment} Pipeline..."
+
+    local step_number=1
+    IFS=' ' read -ra steps <<< "$pipeline_steps"
+
+    for step in "${steps[@]}"; do
+        IFS=':' read -ra step_parts <<< "$step"
+        local step_name=${step_parts[0]}
+        local step_arg=${step_parts[1]:-}
+
+        case "$step_name" in
+            "quality_gate")
+                run_quality_gate "$step_arg" "$step_number"
+                ;;
+            "unit_tests")
+                run_unit_tests "$step_number"
+                ;;
+            "e2e_fast")
+                run_e2e_fast "$step_number"
+                ;;
+            "e2e_critical")
+                run_e2e_critical "$step_number"
+                ;;
+            "e2e_responsive")
+                run_e2e_responsive "$step_number"
+                ;;
+            "e2e_coverage_full")
+                run_e2e_coverage_full "$step_number"
+                ;;
+            *)
+                echo "Error: Unknown step '$step_name'"
+                exit 1
+                ;;
+        esac
+
+        ((step_number++))
+    done
+
+    echo "✅ CI ${environment} Pipeline completed successfully!"
+}
+
+# Main execution
 case "$1" in
-    "preview")
-        echo "🚀 Running CI Preview Pipeline..."
-        echo "📋 Step 1: Quality Gate (Validation)"
-        ./scripts/ci-quality-gate.sh preview
-        echo "📋 Step 2: Unit Tests"
-        ./scripts/ci-unit-tests.sh
-        echo "📋 Step 3: E2E Fast Tests"
-        ./scripts/ci-e2e-tests.sh fast
-        echo "✅ CI Preview Pipeline completed successfully!"
-        ;;
-    "staging")
-        echo "🚀 Running CI Staging Pipeline..."
-        echo "📋 Step 1: Quality Gate (Validation)"
-        ./scripts/ci-quality-gate.sh production
-        echo "📋 Step 2: Unit Tests"
-        ./scripts/ci-unit-tests.sh
-        echo "📋 Step 3: E2E Fast Tests"
-        ./scripts/ci-e2e-tests.sh fast
-        echo "📋 Step 4: E2E Critical Tests"
-        ./scripts/ci-e2e-tests.sh critical
-        echo "📋 Step 5: E2E Responsive Tests"
-        ./scripts/e2e-responsive.sh
-        echo "✅ CI Staging Pipeline completed successfully!"
-        ;;
-    "production")
-        echo "🚀 Running CI Production Pipeline..."
-        echo "📋 Step 1: Quality Gate (Validation)"
-        ./scripts/ci-quality-gate.sh production
-        echo "📋 Step 2: Unit Tests"
-        ./scripts/ci-unit-tests.sh
-        echo "📋 Step 3: E2E Fast Tests"
-        ./scripts/ci-e2e-tests.sh fast
-        echo "📋 Step 4: E2E Critical Tests"
-        ./scripts/ci-e2e-tests.sh critical
-        echo "📋 Step 5: E2E Responsive Tests"
-        ./scripts/e2e-responsive.sh
-        echo "📋 Step 6: E2E Comprehensive Tests with Coverage"
-        ./scripts/e2e-run-with-coverage-full.sh
-        echo "✅ CI Production Pipeline completed successfully!"
+    "preview"|"staging"|"production")
+        execute_pipeline "$1"
         ;;
     *)
         echo "Usage: $0 [preview|production|staging]"

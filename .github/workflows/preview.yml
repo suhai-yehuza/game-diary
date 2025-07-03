@@ -132,9 +132,9 @@ jobs:
 
   deploy:
     name: Deploy to Vercel Preview
-    needs: [quality-gate, unit-tests, e2e]
+    needs: [unit-tests, e2e]
     runs-on: ubuntu-latest
-    if: success() && needs.quality-gate.result == 'success' && needs.unit-tests.result == 'success' && needs.e2e.result == 'success'
+    if: success() && needs.unit-tests.result == 'success' && needs.e2e.result == 'success'
     environment: Preview
     steps:
       - uses: actions/checkout@v4

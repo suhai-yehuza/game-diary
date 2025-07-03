@@ -130,7 +130,7 @@ jobs:
           retention-days: 7
 
   e2e-responsive:
-    name: Comprehensive E2E Tests (Responsive)
+    name: Responsive E2E Tests
     needs: [unit-tests, e2e]
     runs-on: ubuntu-latest
     environment: Staging
@@ -164,8 +164,8 @@ jobs:
           echo "Working directory: $(pwd)"
           echo "Scripts directory contents:"
           ls -la scripts/
-      - name: Run Comprehensive E2E Tests (Responsive)
-        run: pnpm run ci:e2e:responsive
+      - name: Run Responsive E2E Tests
+        run: ./scripts/e2e-responsive.sh
         continue-on-error: false
       - name: Upload E2E test results (on failure)
         if: failure()
@@ -179,9 +179,9 @@ jobs:
 
   deploy:
     name: Deploy to Vercel Staging
-    needs: [quality-gate, unit-tests, e2e, e2e-responsive]
+    needs: [e2e-responsive]
     runs-on: ubuntu-latest
-    if: success() && needs.quality-gate.result == 'success' && needs.unit-tests.result == 'success' && needs.e2e.result == 'success' && needs.e2e-responsive.result == 'success'
+    if: success() && needs.e2e-responsive.result == 'success'
     environment: Staging
     steps:
       - uses: actions/checkout@v4

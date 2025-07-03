@@ -129,9 +129,48 @@ jobs:
             playwright-report/
           retention-days: 7
 
+  e2e-responsive:
+    name: E2E Responsive Tests
+    needs: [unit-tests, e2e]
+    runs-on: ubuntu-latest
+    environment: Production
+    timeout-minutes: 45
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+      - run: pnpm install --frozen-lockfile
+      - name: Install Playwright Browsers
+        run: pnpm exec playwright install --with-deps
+      - name: Run E2E Responsive Tests
+        run: ./scripts/e2e-responsive.sh
+      - name: Upload E2E responsive test results (on failure)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-responsive-results
+          path: |
+            test-results/
+            playwright-report/
+          retention-days: 7
+
   e2e-comprehensive:
     name: Comprehensive E2E Tests (Full Coverage)
-    needs: [unit-tests, e2e]
+    needs: [e2e-responsive]
     runs-on: ubuntu-latest
     environment: Production
     timeout-minutes: 90
@@ -178,9 +217,9 @@ jobs:
 
   deploy:
     name: Deploy to Vercel Production
-    needs: [quality-gate, unit-tests, e2e, e2e-comprehensive]
+    needs: [e2e-comprehensive]
     runs-on: ubuntu-latest
-    if: success() && needs.quality-gate.result == 'success' && needs.unit-tests.result == 'success' && needs.e2e.result == 'success' && needs.e2e-comprehensive.result == 'success'
+    if: success() && needs.e2e-comprehensive.result == 'success'
     environment: Production
     steps:
       - uses: actions/checkout@v4
