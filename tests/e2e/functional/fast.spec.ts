@@ -7,8 +7,7 @@ import {
   checkForConsoleErrors,
 } from '@tests/e2e/utils/test-utils';
 
-// Import and re-export mock verification tests as prerequisite
-import '@tests/e2e/functional/mock-verification.spec';
+// Mock verification is handled by the compound runner
 
 test.describe.configure({ retries: 2 }); // TEMP: Retry flaky tests while stabilizing
 

@@ -16,8 +16,7 @@ import { MOCK_NBA_TEAMS } from '@src/lib/mock/nbaTeamsMock';
 import { MOCK_NBA_STANDINGS } from '@src/lib/mock/nbaStandingsMock';
 import { MOCK_NBA_PLAYERS } from '@src/lib/mock/nbaPlayersMock';
 
-// Import and re-export critical tests to extend them
-import '@tests/e2e/functional/critical.spec';
+// Critical tests are handled by the compound runner
 
 test.describe.configure({ retries: 3 }); // Increased retries for better stability
 

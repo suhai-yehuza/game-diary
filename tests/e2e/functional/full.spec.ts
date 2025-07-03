@@ -20,8 +20,7 @@ import {
   cleanupTestData,
 } from '@tests/e2e/utils/test-utils';
 
-// Import and re-export responsive tests to extend them
-import '@tests/e2e/functional/responsive.spec';
+// Responsive tests are handled by the compound runner
 
 test.describe.configure({ retries: 3 });
 

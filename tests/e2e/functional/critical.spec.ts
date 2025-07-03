@@ -11,8 +11,7 @@ import {
   takeDebugScreenshot,
 } from '@tests/e2e/utils/test-utils';
 
-// Import and re-export smoke tests to extend them
-import '@tests/e2e/functional/smoke.spec';
+// Smoke tests are handled by the compound runner
 
 test.describe.configure({ retries: 2 });
 

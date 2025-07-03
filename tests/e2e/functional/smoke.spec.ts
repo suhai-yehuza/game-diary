@@ -9,8 +9,7 @@ import {
   checkPerformanceMetrics,
 } from '@tests/e2e/utils/test-utils';
 
-// Import and re-export fast tests to extend them
-import '@tests/e2e/functional/fast.spec';
+// Fast tests are handled by the compound runner
 
 test.describe.configure({ retries: 2 });
 
