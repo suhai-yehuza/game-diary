@@ -2,6 +2,11 @@ import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
 import { getRapidApiConfig } from '@src/lib/config/api.config';
+import { MOCK_LIVE_GAMES } from '@src/lib/mock/liveGamesMock';
+import { MOCK_NBA_GAMES } from '@src/lib/mock/nbaGamesMock';
+import { MOCK_NBA_PLAYERS } from '@src/lib/mock/nbaPlayersMock';
+import { MOCK_NBA_STANDINGS } from '@src/lib/mock/nbaStandingsMock';
+import { MOCK_NBA_TEAMS } from '@src/lib/mock/nbaTeamsMock';
 
 export async function GET(
   request: NextRequest,
@@ -27,14 +32,42 @@ export async function GET(
 
     if (isTestOrFallback) {
       console.log('[API Proxy] Using mock response for test/fallback environment');
-      // Return mock data for test environments or when API is not properly configured
-      return NextResponse.json({
-        get: resolvedParams.endpoint.join('/'),
-        parameters: Object.fromEntries(searchParams.entries()),
-        errors: [],
-        results: 0,
-        response: [],
-      });
+
+      // Return appropriate mock data based on the endpoint
+      const endpoint = resolvedParams.endpoint.join('/');
+      const parameters = Object.fromEntries(searchParams.entries());
+
+      let mockResponse;
+
+      switch (endpoint) {
+        case 'games':
+          if (parameters.live === 'all') {
+            mockResponse = MOCK_LIVE_GAMES;
+          } else {
+            mockResponse = MOCK_NBA_GAMES;
+          }
+          break;
+        case 'teams':
+          mockResponse = MOCK_NBA_TEAMS;
+          break;
+        case 'standings':
+          mockResponse = MOCK_NBA_STANDINGS;
+          break;
+        case 'players':
+          mockResponse = MOCK_NBA_PLAYERS;
+          break;
+        default:
+          // Fallback for unknown endpoints
+          mockResponse = {
+            get: endpoint,
+            parameters,
+            errors: [],
+            results: 0,
+            response: [],
+          };
+      }
+
+      return NextResponse.json(mockResponse);
     }
 
     const response = await fetch(apiUrl.toString(), {

@@ -12,26 +12,70 @@ clean_e2e_artifacts() {
 # Kill all related processes
 kill_e2e_processes() {
     echo "🔄 Killing e2e-related processes..."
-    pkill -f "next dev" 2>/dev/null || true
-    pkill -f "playwright" 2>/dev/null || true
-    pkill -f "firefox" 2>/dev/null || true
-    pkill -f "chromium" 2>/dev/null || true
-    pkill -f "webkit" 2>/dev/null || true
-    kill $(lsof -t -i:8081) 2>/dev/null || true
-    kill $(lsof -t -i:9323) 2>/dev/null || true
-    pkill -f "node.*playwright" 2>/dev/null || true
-    pkill -f "npx.*playwright" 2>/dev/null || true
+
+    # Only kill processes if we're actually exiting (not just a test failure)
+    if [ "$E2E_CLEANUP_ONLY" = "1" ]; then
+        echo "🧹 Cleanup mode - only killing test processes"
+        pkill -f "playwright" 2>/dev/null || true
+        pkill -f "firefox" 2>/dev/null || true
+        pkill -f "chromium" 2>/dev/null || true
+        pkill -f "webkit" 2>/dev/null || true
+        kill $(lsof -t -i:9323) 2>/dev/null || true
+        pkill -f "node.*playwright" 2>/dev/null || true
+        pkill -f "npx.*playwright" 2>/dev/null || true
+    else
+        echo "🔄 Full cleanup - killing all processes including server"
+        pkill -f "next dev" 2>/dev/null || true
+        pkill -f "playwright" 2>/dev/null || true
+        pkill -f "firefox" 2>/dev/null || true
+        pkill -f "chromium" 2>/dev/null || true
+        pkill -f "webkit" 2>/dev/null || true
+        kill $(lsof -t -i:8081) 2>/dev/null || true
+        kill $(lsof -t -i:9323) 2>/dev/null || true
+        pkill -f "node.*playwright" 2>/dev/null || true
+        pkill -f "npx.*playwright" 2>/dev/null || true
+    fi
 }
 
 # Setup trap for cleanup
 setup_e2e_trap() {
-    trap 'kill_e2e_processes' EXIT
+    # Only set up trap if not already set
+    if [ -z "$E2E_TRAP_SET" ]; then
+        trap 'kill_e2e_processes' EXIT
+        export E2E_TRAP_SET=1
+    fi
 }
 
 # Start dev server
 start_e2e_server() {
     echo "🚀 Starting e2e test server..."
-    pnpm dev -p 8081 &
+
+    # Check if server is already running
+    if curl -s http://localhost:8081 >/dev/null 2>&1; then
+        echo "✅ Server already running on port 8081"
+        return 0
+    fi
+
+    # Start server in background with E2E environment variables
+    E2E_TESTING=true FORCE_MOCK_API=true pnpm dev -p 8081 > /tmp/e2e-server.log 2>&1 &
+    local server_pid=$!
+
+    # Wait for server to start
+    local attempts=0
+    local max_attempts=30
+    while [ $attempts -lt $max_attempts ]; do
+        if curl -s http://localhost:8081 >/dev/null 2>&1; then
+            echo "✅ Server started successfully (PID: $server_pid)"
+            return 0
+        fi
+        sleep 1
+        attempts=$((attempts + 1))
+    done
+
+    echo "❌ Failed to start server after $max_attempts attempts"
+    echo "Server logs:"
+    cat /tmp/e2e-server.log
+    return 1
 }
 
 # Wait for server to be ready
@@ -50,7 +94,16 @@ run_e2e_test() {
     setup_e2e_trap
     start_e2e_server
     wait_for_e2e_server
+
+    # Set cleanup mode to only kill test processes, not the server
+    export E2E_CLEANUP_ONLY=1
     eval "$test_command"
+    local exit_code=$?
+
+    # Reset cleanup mode
+    unset E2E_CLEANUP_ONLY
+
+    return $exit_code
 }
 
 # Run e2e test with coverage
@@ -143,10 +196,16 @@ run_e2e_test_with_coverage_fast() {
     start_e2e_server
     wait_for_e2e_server
 
+    # Set cleanup mode to only kill test processes, not the server
+    export E2E_CLEANUP_ONLY=1
+
     # Run test directly (no background process, no HTML report waiting)
     echo "🚀 Starting test execution..."
     eval "$test_command"
     local exit_code=$?
+
+    # Reset cleanup mode
+    unset E2E_CLEANUP_ONLY
 
     echo "📊 Generating coverage report..."
     tsx scripts/e2e-coverage-report.ts

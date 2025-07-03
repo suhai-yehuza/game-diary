@@ -191,11 +191,13 @@ export const API_CONFIG = {
 } as const;
 
 export function getRapidApiConfig(): IRapidAPIConfig {
-  // Check if we're in a test environment
+  // Check if we're in a test environment or E2E testing
   const isTest =
     process.env.NODE_ENV === 'test' ||
     process.env.CI === 'true' ||
-    process.env.GITHUB_ACTIONS === 'true';
+    process.env.GITHUB_ACTIONS === 'true' ||
+    process.env.E2E_TESTING === 'true' ||
+    process.env.FORCE_MOCK_API === 'true';
 
   if (isTest) {
     // Return mock config for test environments

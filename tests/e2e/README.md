@@ -10,6 +10,83 @@ The tests are already configured and ready to run. The setup includes:
 - **Test Files**: Located in `tests/e2e/`
 - **Utilities**: Common test utilities in `tests/e2e/utils/`
 
+## Mocking Strategy
+
+To avoid API rate limiting issues and ensure reliable E2E tests, we use a comprehensive mocking strategy:
+
+### Environment Variables
+
+Set these environment variables to enable mock mode:
+
+- `E2E_TESTING=true` - Enables E2E testing mode
+- `FORCE_MOCK_API=true` - Forces API proxy to return mock data
+
+### Mock Data Sources
+
+Mock data is sourced from `src/lib/mock/`:
+
+- `nbaGamesMock.ts` - NBA games data
+- `nbaTeamsMock.ts` - NBA teams data
+- `nbaStandingsMock.ts` - NBA standings data
+- `nbaPlayersMock.ts` - NBA players data
+- `liveGamesMock.ts` - Live games data
+
+### API Proxy Mocking
+
+The API proxy (`src/app/api/proxy/[...endpoint]/route.ts`) automatically returns mock data when:
+
+- `NODE_ENV === 'test'`
+- `CI === 'true'`
+- `GITHUB_ACTIONS === 'true'`
+- `E2E_TESTING === 'true'`
+- `FORCE_MOCK_API === 'true'`
+
+### Playwright Route Mocking
+
+The `setupE2EMocking()` function in `utils/test-utils.ts` mocks:
+
+- All `/api/proxy/**` endpoints with appropriate mock data
+- External API calls (RapidAPI, NBA Stats DB)
+- Clerk authentication endpoints
+- External image requests
+- CDN requests
+
+### Usage
+
+```typescript
+import { setupE2EMocking, safeGotoWithMocking } from './utils/test-utils';
+
+test('my test', async ({ page }) => {
+  // Set up comprehensive mocking
+  await setupE2EMocking(page);
+
+  // Navigate with automatic mocking
+  await safeGotoWithMocking(page, '/sports/nba');
+
+  // Your test assertions...
+});
+```
+
+### Verification
+
+Run the mock verification test to ensure mocking is working:
+
+```bash
+pnpm test:e2e:mock-verification
+```
+
+## Test Files
+
+- `responsive.spec.ts` - Responsive design tests across multiple viewports
+- `mock-verification.spec.ts` - Verifies that mocking is working correctly
+- `fast.spec.ts` - Fast smoke tests
+- `auth.spec.ts` - Authentication tests
+- `dashboard.spec.ts` - Dashboard functionality tests
+- `navigation.spec.ts` - Navigation tests
+- `sports.spec.ts` - Sports page tests
+- `home.spec.ts` - Home page tests
+- `cross-browser.spec.ts` - Cross-browser compatibility tests
+
 ## Running Tests
 
 ### Run All Tests

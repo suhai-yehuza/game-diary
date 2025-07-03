@@ -9,6 +9,12 @@ set -e  # Exit on any error
 case "$1" in
     "smoke"|"critical"|"fast")
         echo "🚀 Running CI E2E Tests ($1)..."
+
+        # Set environment variables for E2E testing
+        export E2E_TESTING=true
+        export FORCE_MOCK_API=true
+        echo "🔧 E2E testing environment variables set"
+
         echo "🔧 Install Playwright browsers..."
         pnpm exec playwright install --with-deps
         echo "🔧 Run E2E tests ($1)..."

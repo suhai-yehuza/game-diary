@@ -59,6 +59,7 @@
     "test:e2e:install-browsers": "npx playwright install --with-deps",
     "test:e2e:debug:ui": "pnpm playwright test --ui",
     "test:e2e:smoke:deployed": "DEPLOYMENT_URL=$VERCEL_URL playwright test tests/e2e/fast.spec.ts --config=playwright.smoke.config.ts",
+    "test:e2e:mock-verification": "E2E_TESTING=true FORCE_MOCK_API=true playwright test tests/e2e/mock-verification.spec.ts",
     "test:e2e:pre-deploy": "pnpm test:e2e:responsive:popular && pnpm test:e2e:performance",
     "test:e2e:post-deploy": "pnpm test:e2e:smoke:deployed",
     "test:e2e:load": "pnpm playwright test tests/e2e/responsive.spec.ts --config=playwright.popular.config.ts --project=chromium --workers=3",
