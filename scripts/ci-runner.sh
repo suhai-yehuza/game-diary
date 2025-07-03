@@ -27,7 +27,7 @@ case "$1" in
         echo "📋 Step 4: E2E Critical Tests"
         ./scripts/ci-e2e-tests.sh critical
         echo "📋 Step 5: E2E Responsive Tests"
-        pnpm run ci:e2e:responsive
+        ./scripts/e2e-responsive.sh
         echo "✅ CI Staging Pipeline completed successfully!"
         ;;
     "production")
@@ -40,8 +40,10 @@ case "$1" in
         ./scripts/ci-e2e-tests.sh fast
         echo "📋 Step 4: E2E Critical Tests"
         ./scripts/ci-e2e-tests.sh critical
-        echo "📋 Step 5: E2E Comprehensive Tests with Coverage"
-        pnpm run ci:e2e:run:coverage:full
+        echo "📋 Step 5: E2E Responsive Tests"
+        ./scripts/e2e-responsive.sh
+        echo "📋 Step 6: E2E Comprehensive Tests with Coverage"
+        ./scripts/e2e-run-with-coverage-full.sh
         echo "✅ CI Production Pipeline completed successfully!"
         ;;
     *)

@@ -45,8 +45,6 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: false,
     dirs: ['src'],
-    // Configure Next.js ESLint plugin
-    extends: ['next/core-web-vitals'],
   },
 
   typescript: {
