@@ -1,0 +1,7 @@
+{
+  "status": "soaking",
+  "environment": "staging",
+  "start_time": "2025-07-04T06:54:18Z",
+  "duration": 60,
+  "url": "http://localhost:8081"
+}

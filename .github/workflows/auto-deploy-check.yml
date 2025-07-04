@@ -1,0 +1,62 @@
+name: Auto-Deployment Check
+
+# Cron job workflow that checks for scheduled auto-deployments
+# Runs every hour to check if production deployment is due
+
+on:
+  schedule:
+    # Run every hour
+    - cron: '0 * * * *'
+  # Manual trigger for testing
+  workflow_dispatch:
+
+jobs:
+  check-auto-deploy:
+    name: Check Auto-Deployment
+    runs-on: ubuntu-latest
+    environment: Production
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      VERCEL_STAGING_URL: ${{ secrets.VERCEL_STAGING_URL }}
+      VERCEL_PRODUCTION_URL: ${{ secrets.VERCEL_PRODUCTION_URL }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: '10'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+      - run: pnpm install --frozen-lockfile
+      - name: Check Auto-Deployment Status
+        run: ./scripts/deployment-manager.sh auto-deploy check
+      - name: Trigger Production Deployment (if due)
+        if: success()
+        run: |
+          # Check if auto-deployment was triggered
+          if ./scripts/deployment-manager.sh status | grep -q "Status: scheduled"; then
+            echo "Auto-deployment is due - triggering production workflow"
+            # Trigger production workflow via repository dispatch
+            curl -X POST \
+              -H "Accept: application/vnd.github.v3+json" \
+              -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+              https://api.github.com/repos/${{ github.repository }}/dispatches \
+              -d '{"event_type":"auto-deploy-production"}'
+          else
+            echo "No auto-deployment due at this time"
+          fi
+      - name: Upload deployment logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: auto-deploy-check-logs
+          path: ./.deployments/
+          retention-days: 7

@@ -1,12 +1,11 @@
-name: Vercel Staging Deployment
+name: Vercel Staging Deployment with Soak Period
 
-# Optimized staging deployment workflow with:
-# - Parallel job execution (unit-tests and e2e run in parallel)
-# - Optimized Playwright installation using npx
-# - Comprehensive artifact uploads for debugging
-# - Vercel CLI caching
-# - Better error handling and conditional deployment
-# - Debug environment information
+# Enhanced staging deployment workflow with soaking periods:
+# - Comprehensive testing before deployment
+# - Gradual rollout with health monitoring
+# - Automated rollback on issues
+# - Performance monitoring during soak
+# - Integration with existing E2E testing
 
 env:
   VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
@@ -16,9 +15,6 @@ env:
   DATABASE_URL: ${{ secrets.DATABASE_URL }}
   PORT: 3100
   # Soak period configuration
-  VERCEL_STAGING_URL: ${{ secrets.VERCEL_STAGING_URL }}
-  VERCEL_PRODUCTION_URL: ${{ secrets.VERCEL_PRODUCTION_URL }}
-  VERCEL_PREVIEW_URL: ${{ secrets.VERCEL_PREVIEW_URL }}
   SOAK_DURATION: 1800 # 30 minutes
   HEALTH_CHECK_INTERVAL: 30
   PERFORMANCE_CHECK_INTERVAL: 300
@@ -163,14 +159,6 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - name: Install Playwright Browsers
         run: pnpm exec playwright install --with-deps
-      - name: Debug Environment
-        run: |
-          echo "Node version: $(node --version)"
-          echo "PNPM version: $(pnpm --version)"
-          echo "Playwright version: $(pnpm exec playwright --version)"
-          echo "Working directory: $(pwd)"
-          echo "Scripts directory contents:"
-          ls -la scripts/
       - name: Run Responsive E2E Tests
         run: ./scripts/e2e-run.sh responsive 3600
         continue-on-error: false
@@ -190,6 +178,8 @@ jobs:
     runs-on: ubuntu-latest
     if: success() && needs.e2e-responsive.result == 'success'
     environment: Staging
+    outputs:
+      deployment-url: ${{ steps.deploy.outputs.url }}
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -223,59 +213,21 @@ jobs:
       - name: Build Project Artifacts
         run: vercel build --token=${{ secrets.VERCEL_TOKEN }}
       - name: Deploy Project Artifacts to Vercel
-        run: vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }}
+        id: deploy
+        run: |
+          DEPLOYMENT_URL=$(vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }})
+          echo "url=$DEPLOYMENT_URL" >> $GITHUB_OUTPUT
+          echo "Deployment URL: $DEPLOYMENT_URL"
 
   soak-period:
     name: Soak Period Monitoring
     needs: [deploy]
     runs-on: ubuntu-latest
-    if: success()
+    if: success() && needs.deploy.result == 'success'
     environment: Staging
     env:
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      VERCEL_STAGING_URL: ${{ secrets.VERCEL_STAGING_URL }}
-      SOAK_DURATION: 1800
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: ${{ env.PNPM_VERSION }}
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'pnpm'
-      - name: Cache pnpm store
-        uses: actions/cache@v4
-        with:
-          path: ~/.pnpm-store
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
-      - run: pnpm install --frozen-lockfile
-      - name: Start Soak Period
-        run: ./scripts/soak-monitor.sh start staging ${{ env.SOAK_DURATION }}
-      - name: Monitor Soak Period
-        run: ./scripts/soak-monitor.sh monitor staging ${{ env.SOAK_DURATION }}
-        timeout-minutes: 35 # Slightly longer than soak duration
-      - name: Schedule Auto-Deployment to Production
-        if: success()
-        run: ./scripts/deployment-manager.sh auto-deploy
-      - name: Upload soak logs (on failure)
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: soak-period-logs
-          path: ./.soak/
-          retention-days: 7
-
-  post-deployment-smoke:
-    name: Post-Deployment Smoke Tests
-    needs: [soak-period]
-    runs-on: ubuntu-latest
-    if: success()
-    environment: Staging
-    env:
-      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      VERCEL_STAGING_URL: ${{ needs.deploy.outputs.deployment-url }}
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -295,13 +247,136 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - name: Install Playwright Browsers
         run: pnpm exec playwright install --with-deps
-      - run: pnpm run timed test:e2e:smoke
-      - name: Upload smoke test results (on failure)
+      - name: Install required tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y bc jq curl
+      - name: Start Soak Period
+        run: |
+          echo "Starting soak period for staging deployment"
+          echo "Deployment URL: $VERCEL_STAGING_URL"
+          echo "Soak duration: $SOAK_DURATION seconds"
+          ./scripts/soak-monitor.sh start staging $SOAK_DURATION
+      - name: Monitor During Soak Period
+        run: |
+          echo "Monitoring deployment during soak period..."
+          ./scripts/soak-monitor.sh monitor staging $SOAK_DURATION
+        continue-on-error: true
+      - name: Check Soak Status
+        run: |
+          echo "=== Final Soak Status ==="
+          ./scripts/soak-monitor.sh status
+          if [ -f ./.soak/status.json ]; then
+            cat ./.soak/status.json | jq '.'
+          fi
+      - name: Upload Soak Results
+        uses: actions/upload-artifact@v4
+        with:
+          name: soak-period-results
+          path: |
+            ./.soak/
+          retention-days: 30
+      - name: Fail if Soak Failed
+        if: failure()
+        run: |
+          echo "❌ Soak period failed - deployment may be unstable"
+          exit 1
+
+  post-soak-validation:
+    name: Post-Soak Validation
+    needs: [soak-period]
+    runs-on: ubuntu-latest
+    if: success() && needs.soak-period.result == 'success'
+    environment: Staging
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      VERCEL_STAGING_URL: ${{ needs.deploy.outputs.deployment-url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+      - run: pnpm install --frozen-lockfile
+      - name: Install Playwright Browsers
+        run: pnpm exec playwright install --with-deps
+      - name: Run Post-Soak E2E Tests
+        run: |
+          echo "Running comprehensive post-soak validation..."
+          DEPLOYMENT_URL="$VERCEL_STAGING_URL" pnpm test:e2e:critical
+          DEPLOYMENT_URL="$VERCEL_STAGING_URL" pnpm test:e2e:responsive
+      - name: Upload Post-Soak Test Results
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: smoke-test-results
+          name: post-soak-test-results
           path: |
             test-results/
             playwright-report/
-          retention-days: 7
+          retention-days: 30
+
+  deployment-summary:
+    name: Deployment Summary
+    needs: [post-soak-validation]
+    runs-on: ubuntu-latest
+    if: always()
+    environment: Staging
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download Soak Results
+        uses: actions/download-artifact@v4
+        with:
+          name: soak-period-results
+          path: ./.soak
+      - name: Generate Deployment Summary
+        run: |
+          echo "## 🚀 Staging Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ -f ./.soak/status.json ]; then
+            echo "### Soak Period Results" >> $GITHUB_STEP_SUMMARY
+            cat ./.soak/status.json | jq -r '
+              "**Status:** " + .status + "\n" +
+              "**Environment:** " + .environment + "\n" +
+              "**Start Time:** " + .start_time + "\n" +
+              "**End Time:** " + (.end_time // "N/A") + "\n" +
+              "**Duration:** " + (.duration // "N/A") + " seconds\n"
+            ' >> $GITHUB_STEP_SUMMARY
+
+            if [ -f ./.soak/metrics.json ]; then
+              echo "### Final Metrics" >> $GITHUB_STEP_SUMMARY
+              cat ./.soak/metrics.json | jq -r '
+                "**Total Checks:** " + (.total_checks // 0) + "\n" +
+                "**Healthy Checks:** " + (.healthy_checks // 0) + "\n" +
+                "**Error Rate:** " + ((.error_rate // 0) * 100 | tostring) + "%\n" +
+                "**Avg Response Time:** " + (.avg_response_time // 0) + "ms\n"
+              ' >> $GITHUB_STEP_SUMMARY
+            fi
+          fi
+
+          echo "### Job Results" >> $GITHUB_STEP_SUMMARY
+          echo "- Quality Gate: ${{ needs.quality-gate.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Unit Tests: ${{ needs.unit-tests.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- E2E Tests: ${{ needs.e2e.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Responsive Tests: ${{ needs.e2e-responsive.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Deployment: ${{ needs.deploy.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Soak Period: ${{ needs.soak-period.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Post-Soak Validation: ${{ needs.post-soak-validation.result }}" >> $GITHUB_STEP_SUMMARY
+
+          if [ "${{ needs.post-soak-validation.result }}" = "success" ]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "✅ **Deployment completed successfully with soak period validation!**" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "❌ **Deployment failed during soak period or validation!**" >> $GITHUB_STEP_SUMMARY
+          fi

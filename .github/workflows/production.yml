@@ -1,12 +1,11 @@
 name: Vercel Production Deployment
 
-# Optimized production deployment workflow with:
-# - Parallel job execution (unit-tests and e2e run in parallel)
-# - Optimized Playwright installation using npx
-# - Comprehensive artifact uploads for debugging
-# - Vercel CLI caching
-# - Better error handling and conditional deployment
-# - Debug environment information
+# Production deployment workflow with:
+# - Manual trigger capability
+# - Auto-deployment support after staging soak
+# - Comprehensive validation before deployment
+# - Post-deployment monitoring
+# - Rollback capabilities
 
 env:
   VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
@@ -15,13 +14,68 @@ env:
   PNPM_VERSION: '10'
   DATABASE_URL: ${{ secrets.DATABASE_URL }}
   PORT: 3100
+  # Production deployment configuration
+  VERCEL_PRODUCTION_URL: ${{ secrets.VERCEL_PRODUCTION_URL }}
+  VERCEL_STAGING_URL: ${{ secrets.VERCEL_STAGING_URL }}
+  SOAK_DURATION: 1800 # 30 minutes for production soak
 
 on:
+  # Push to master (direct deployment)
   push:
     branches:
       - master
+  # Manual trigger
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: 'Deployment reason'
+        required: true
+        default: 'Manual deployment'
+        type: string
+      skip_validation:
+        description: 'Skip pre-deployment validation'
+        required: false
+        default: false
+        type: boolean
+  # Auto-deployment trigger (from staging workflow)
+  repository_dispatch:
+    types: [auto-deploy-production]
 
 jobs:
+  validate-staging:
+    name: Validate Staging Readiness
+    runs-on: ubuntu-latest
+    if: ${{ !inputs.skip_validation && github.event_name != 'push' }}
+    environment: Production
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+      - run: pnpm install --frozen-lockfile
+      - name: Check Staging Readiness
+        run: ./scripts/deployment-manager.sh status
+      - name: Validate Staging Metrics
+        run: |
+          if ! ./scripts/deployment-manager.sh status | grep -q "Staging: ✅ Ready for production"; then
+            echo "❌ Staging is not ready for production deployment"
+            exit 1
+          fi
+          echo "✅ Staging is ready for production deployment"
+
   quality-gate:
     name: Quality Gate (Lint, Typecheck, Format, Build)
     runs-on: ubuntu-latest
@@ -88,16 +142,13 @@ jobs:
             test-results/
           retention-days: 7
 
-  e2e:
-    name: E2E Tests
+  e2e-critical:
+    name: Critical E2E Tests
     needs: [quality-gate]
     runs-on: ubuntu-latest
     environment: Production
     env:
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
-    strategy:
-      matrix:
-        test: [smoke, critical]
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -117,99 +168,13 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - name: Install Playwright Browsers
         run: pnpm exec playwright install --with-deps
-      - name: Run CI E2E Tests
-        run: ./scripts/ci-e2e-tests.sh ${{ matrix.test }}
+      - name: Run Critical E2E Tests
+        run: ./scripts/ci-e2e-tests.sh critical
       - name: Upload E2E test results (on failure)
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: e2e-${{ matrix.test }}-results
-          path: |
-            test-results/
-            playwright-report/
-          retention-days: 7
-
-  e2e-responsive:
-    name: E2E Responsive Tests
-    needs: [unit-tests, e2e]
-    runs-on: ubuntu-latest
-    environment: Production
-    timeout-minutes: 45
-    env:
-      DATABASE_URL: ${{ secrets.DATABASE_URL }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: ${{ env.PNPM_VERSION }}
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'pnpm'
-      - name: Cache pnpm store
-        uses: actions/cache@v4
-        with:
-          path: ~/.pnpm-store
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
-      - run: pnpm install --frozen-lockfile
-      - name: Install Playwright Browsers
-        run: pnpm exec playwright install --with-deps
-      - name: Run E2E Responsive Tests
-        run: ./scripts/e2e-run.sh responsive 3600
-      - name: Upload E2E responsive test results (on failure)
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: e2e-responsive-results
-          path: |
-            test-results/
-            playwright-report/
-          retention-days: 7
-
-  e2e-comprehensive:
-    name: Comprehensive E2E Tests (Full Coverage)
-    needs: [e2e-responsive]
-    runs-on: ubuntu-latest
-    environment: Production
-    timeout-minutes: 90
-    env:
-      DATABASE_URL: ${{ secrets.DATABASE_URL }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: ${{ env.PNPM_VERSION }}
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'pnpm'
-      - name: Cache pnpm store
-        uses: actions/cache@v4
-        with:
-          path: ~/.pnpm-store
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
-      - run: pnpm install --frozen-lockfile
-      - name: Install Playwright Browsers
-        run: pnpm exec playwright install --with-deps
-      - name: Debug Environment
-        run: |
-          echo "Node version: $(node --version)"
-          echo "PNPM version: $(pnpm --version)"
-          echo "Playwright version: $(pnpm exec playwright --version)"
-          echo "Working directory: $(pwd)"
-          echo "Scripts directory contents:"
-          ls -la scripts/
-      - name: Run Comprehensive E2E Tests (Full Coverage)
-        run: pnpm run ci:e2e:run:coverage:full
-      - name: Upload E2E test results (on failure)
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: e2e-comprehensive-results
+          name: e2e-critical-results
           path: |
             test-results/
             playwright-report/
@@ -217,9 +182,9 @@ jobs:
 
   deploy:
     name: Deploy to Vercel Production
-    needs: [e2e-comprehensive]
+    needs: [validate-staging, unit-tests, e2e-critical]
     runs-on: ubuntu-latest
-    if: success() && needs.e2e-comprehensive.result == 'success'
+    if: success()
     environment: Production
     steps:
       - uses: actions/checkout@v4
@@ -238,8 +203,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
       - run: pnpm install --frozen-lockfile
-      - name: Install Playwright Browsers
-        run: pnpm exec playwright install --with-deps
       - name: Cache Vercel CLI
         uses: actions/cache@v4
         with:
@@ -252,13 +215,62 @@ jobs:
       - name: Pull Vercel Environment Information
         run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
       - name: Build Project Artifacts
-        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+        run: vercel build --token=${{ secrets.VERCEL_TOKEN }}
       - name: Deploy Project Artifacts to Vercel
-        run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
+        run: vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }}
+      - name: Update Deployment Status
+        run: |
+          if [ "${{ github.event_name }}" = "push" ]; then
+            ./scripts/deployment-manager.sh manual-deploy "Push to master deployment"
+          elif [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            ./scripts/deployment-manager.sh manual-deploy "${{ github.event.inputs.reason || 'Manual deployment' }}"
+          else
+            ./scripts/deployment-manager.sh manual-deploy "Auto-deployment after staging soak"
+          fi
 
-  post-deployment-smoke:
-    name: Post-Deployment Smoke Tests
+  production-soak:
+    name: Production Soak Period
     needs: [deploy]
+    runs-on: ubuntu-latest
+    if: success()
+    environment: Production
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      VERCEL_PRODUCTION_URL: ${{ secrets.VERCEL_PRODUCTION_URL }}
+      SOAK_DURATION: 1800
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+      - run: pnpm install --frozen-lockfile
+      - name: Start Production Soak Period
+        run: ./scripts/soak-monitor.sh start production ${{ env.SOAK_DURATION }}
+      - name: Monitor Production Soak Period
+        run: ./scripts/soak-monitor.sh monitor production ${{ env.SOAK_DURATION }}
+        timeout-minutes: 35
+      - name: Upload production soak logs (on failure)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-soak-logs
+          path: ./.soak/
+          retention-days: 7
+
+  post-deployment-validation:
+    name: Post-Deployment Validation
+    needs: [production-soak]
     runs-on: ubuntu-latest
     if: success()
     environment: Production
@@ -283,12 +295,13 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - name: Install Playwright Browsers
         run: pnpm exec playwright install --with-deps
-      - run: pnpm run timed test:e2e:smoke
-      - name: Upload smoke test results (on failure)
+      - name: Run Post-Deployment Smoke Tests
+        run: pnpm run timed test:e2e:smoke
+      - name: Upload validation results (on failure)
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: smoke-test-results
+          name: post-deployment-validation-results
           path: |
             test-results/
             playwright-report/

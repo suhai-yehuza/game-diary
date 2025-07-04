@@ -1,0 +1,5 @@
+[0;34m[2025-07-03 23:54:04][0m No active soak period found
+[0;34m[2025-07-03 23:54:18][0m Starting soak period for staging deployment
+[0;34m[2025-07-03 23:54:18][0m Deployment URL: http://localhost:8081
+[0;34m[2025-07-03 23:54:18][0m Soak duration: 60 seconds
+[0;32m[2025-07-03 23:54:18] ✅[0m Soak period started for staging
