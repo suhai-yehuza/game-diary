@@ -239,7 +239,7 @@ function NavigationLinks({
         Profile
       </NavItem>
       {isLoaded && (
-        <Suspense fallback={null}>
+        <Suspense fallback={<div className="w-20 h-6 bg-gray-200 rounded animate-pulse" />}>
           <SignedIn>
             {isAdmin && (
               <DropdownMenu>
@@ -275,6 +275,30 @@ function ClientOnlyNavigationLinks(props: React.ComponentProps<typeof Navigation
   useEffect(() => setMounted(true), []);
   if (!mounted) return null;
   return <NavigationLinks {...props} />;
+}
+
+function ClientOnlyAuthControls() {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
+  if (!mounted) {
+    return <div className="w-10 h-10 bg-gray-200 rounded animate-pulse" />;
+  }
+
+  return (
+    <Suspense fallback={<div className="w-10 h-10 bg-gray-200 rounded animate-pulse" />}>
+      <div className="flex items-center">
+        <SignedOut>
+          <span className="bg-[#757575] text-white hover:bg-[#616161] focus:ring-4 focus:outline-none focus:ring-gray-400 font-medium rounded-lg text-sm px-4 py-2 sm:px-5 sm:py-2.5 text-center border border-gray-600 dark:bg-[#e5e5e5] dark:text-gray-800 dark:hover:bg-[#d4d4d4] dark:focus:ring-gray-300 min-w-[44px] min-h-[44px] flex-shrink-0 whitespace-nowrap">
+            <SignInButton mode="modal">Sign In</SignInButton>
+          </span>
+        </SignedOut>
+        <SignedIn>
+          <UserButton />
+        </SignedIn>
+      </div>
+    </Suspense>
+  );
 }
 
 export function Header() {
@@ -393,16 +417,7 @@ export function Header() {
             <ThemeToggle />
 
             {/* Auth Controls */}
-            <Suspense fallback={null}>
-              <SignedOut>
-                <span className="bg-[#757575] text-white hover:bg-[#616161] focus:ring-4 focus:outline-none focus:ring-gray-400 font-medium rounded-lg text-sm px-4 py-2 sm:px-5 sm:py-2.5 text-center border border-gray-600 dark:bg-[#e5e5e5] dark:text-gray-800 dark:hover:bg-[#d4d4d4] dark:focus:ring-gray-300 min-w-[44px] min-h-[44px] flex-shrink-0 whitespace-nowrap">
-                  <SignInButton mode="modal">Sign In</SignInButton>
-                </span>
-              </SignedOut>
-              <SignedIn>
-                <UserButton />
-              </SignedIn>
-            </Suspense>
+            <ClientOnlyAuthControls />
           </div>
         </div>
 

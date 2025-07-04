@@ -2,7 +2,38 @@
 
 import { SignIn } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
-import { useEffect, useRef, useCallback, Suspense } from 'react';
+import type { ReactNode } from 'react';
+import { useEffect, useRef, useCallback, Suspense, Component } from 'react';
+
+// Error boundary for Clerk components
+class ClerkErrorBoundary extends Component<
+  { children: ReactNode; fallback?: ReactNode },
+  { hasError: boolean }
+> {
+  static getDerivedStateFromError(): { hasError: boolean } {
+    return { hasError: true };
+  }
+
+  constructor(props: { children: ReactNode; fallback?: ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  componentDidCatch(error: Error) {
+    // Only log Clerk-related errors during development/testing
+    if (error.message.includes('Clerk') || error.message.includes('useSession')) {
+      console.warn('Clerk component error caught:', error.message);
+    }
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return this.props.fallback ?? <div>Authentication temporarily unavailable</div>;
+    }
+
+    return this.props.children;
+  }
+}
 
 export function SignInPage() {
   const router = useRouter();
@@ -80,9 +111,23 @@ export function SignInPage() {
 
   return (
     <div ref={containerRef} className="grow flex items-center justify-center min-h-[60vh]">
-      <Suspense fallback={<div>Loading...</div>}>
-        <SignIn />
-      </Suspense>
+      <ClerkErrorBoundary
+        fallback={
+          <div className="flex items-center justify-center p-8">
+            Authentication temporarily unavailable
+          </div>
+        }
+      >
+        <Suspense
+          fallback={
+            <div className="flex items-center justify-center p-8">Loading sign-in form...</div>
+          }
+        >
+          <div className="w-full max-w-md">
+            <SignIn />
+          </div>
+        </Suspense>
+      </ClerkErrorBoundary>
     </div>
   );
 }
