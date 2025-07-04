@@ -13,9 +13,11 @@ import { baseTableConfig } from '@/lib/db/schema/base-schemas';
 import { users } from '@/lib/db/schema/user-schemas';
 import { CLASSIFICATION, WATCHED_SETTING, WATCHED_SCOPE } from '@src/lib/types';
 
-// Games table - extending base table configuration
-export const games = pgTable('games', {
-  ...baseTableConfig,
+// NBA Games table - extending base table configuration
+export const nba_games = pgTable('nba_games', {
+  id: varchar('id', { length: 20 }).primaryKey(), // External API game ID
+  created_at: timestamp('created_at').defaultNow().notNull(),
+  updated_at: timestamp('updated_at').defaultNow().notNull(),
   game_type: varchar('game_type', { length: 50 }).notNull().default('nba'),
   nba_game_id: varchar('nba_game_id', { length: 255 }),
   date: timestamp('date').notNull(),
@@ -88,7 +90,7 @@ export const game_logs = pgTable(
     user_id: varchar('user_id', { length: 255 }).references(() => users.id),
     game_id: varchar('game_id', { length: 255 })
       .notNull()
-      .references(() => games.id),
+      .references(() => nba_games.id),
     classification: varchar('classification', { length: 50 })
       .notNull()
       .default(CLASSIFICATION.PROTECTED),
@@ -117,7 +119,7 @@ export const game_ratings = pgTable(
     ...baseTableConfig,
     game_id: varchar('game_id', { length: 255 })
       .notNull()
-      .references(() => games.id),
+      .references(() => nba_games.id),
     average_rating: decimal('average_rating', { precision: 3, scale: 2 }).notNull().default('0.00'),
     total_ratings: integer('total_ratings').notNull().default(0),
   },

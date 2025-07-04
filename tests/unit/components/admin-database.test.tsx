@@ -79,16 +79,16 @@ describe('AdminDatabasePage', () => {
         username: 'testuser',
         first_name: 'Test',
         last_name: 'User',
-        emailAddress: 'test@example.com',
-        createdAt: '2024-01-01T00:00:00Z',
+        email_address: 'test@example.com',
+        created_at: '2024-01-01T00:00:00Z',
       },
       {
         id: 2,
         username: 'anotheruser',
         first_name: 'Another',
         last_name: 'User',
-        emailAddress: 'another@example.com',
-        createdAt: '2024-01-02T00:00:00Z',
+        email_address: 'another@example.com',
+        created_at: '2024-01-02T00:00:00Z',
       },
     ];
 
@@ -153,8 +153,8 @@ describe('AdminDatabasePage', () => {
         username: 'testuser',
         first_name: 'Test',
         last_name: 'User',
-        emailAddress: 'test@example.com',
-        createdAt: '2024-01-01T00:00:00Z',
+        email_address: 'test@example.com',
+        created_at: '2024-01-01T00:00:00Z',
       },
     ];
 
@@ -183,8 +183,8 @@ describe('AdminDatabasePage', () => {
         username: 'testuser',
         first_name: null,
         last_name: undefined,
-        emailAddress: '',
-        createdAt: '2024-01-01T00:00:00Z',
+        email_address: '',
+        created_at: '2024-01-01T00:00:00Z',
       },
     ];
 
@@ -209,8 +209,8 @@ describe('AdminDatabasePage', () => {
     const mockData = Array.from({ length: 60 }, (_, i) => ({
       id: i + 1,
       username: `user${i + 1}`,
-      emailAddress: `user${i + 1}@example.com`,
-      createdAt: '2024-01-01T00:00:00Z',
+      email_address: `user${i + 1}@example.com`,
+      created_at: '2024-01-01T00:00:00Z',
     }));
 
     global.fetch = vi.fn().mockResolvedValue({
@@ -240,17 +240,18 @@ describe('AdminDatabasePage', () => {
   });
 
   it('auto-fetches data when tab is specified in URL', async () => {
-    mockSearchParams.set('tab', 'game_logs');
+    mockSearchParams.set('tab', 'nba_games');
 
     const mockData = [
       {
         id: 1,
-        userId: 1,
-        gameId: 123,
-        ratingForGame: 5,
-        watchedSetting: 'live',
-        watchedDate: '2024-01-01T00:00:00Z',
-        createdAt: '2024-01-01T00:00:00Z',
+        league: 'NBA',
+        season: '2023-24',
+        date: '2024-01-01',
+        home_team_id: 10,
+        away_team_id: 20,
+        status: 'scheduled',
+        created_at: '2024-01-01T00:00:00Z',
       },
     ];
 
@@ -262,17 +263,19 @@ describe('AdminDatabasePage', () => {
     render(<AdminDatabasePage />);
 
     await waitFor(() => {
-      const matches = screen.queryAllByText(content =>
-        content.includes('User game watching history and ratings')
+      const matches = screen.queryAllByText(
+        content => typeof content === 'string' && content.includes('NBA game data and schedules')
       );
       expect(matches.length).toBeGreaterThan(0);
       expect(screen.getByText('1 records')).toBeInTheDocument();
-      expect(screen.getByText('123')).toBeInTheDocument();
-      expect(screen.getByText('5')).toBeInTheDocument();
-      expect(screen.getByText('live')).toBeInTheDocument();
+      expect(screen.getByText('NBA')).toBeInTheDocument();
+      expect(screen.getByText('2023-24')).toBeInTheDocument();
+      expect(screen.getByText('10')).toBeInTheDocument();
+      expect(screen.getByText('20')).toBeInTheDocument();
+      expect(screen.getByText('scheduled')).toBeInTheDocument();
     });
 
-    expect(global.fetch).toHaveBeenCalledWith('/api/admin/database/game_logs');
+    expect(global.fetch).toHaveBeenCalledWith('/api/admin/database/nba_games');
   });
 
   it('handles invalid tab parameter gracefully', () => {
@@ -303,8 +306,8 @@ describe('AdminDatabasePage', () => {
       {
         id: 1,
         username: 'testuser',
-        emailAddress: 'test@example.com',
-        createdAt: '2024-01-01T00:00:00Z',
+        email_address: 'test@example.com',
+        created_at: '2024-01-01T00:00:00Z',
       },
     ];
 

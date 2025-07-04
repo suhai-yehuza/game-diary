@@ -5,7 +5,7 @@ import {
   gameLogsRelations,
 } from '@/lib/db/schema/relations';
 import {
-  games,
+  nba_games,
   game_logs,
   game_ratings,
   teams,
@@ -27,7 +27,7 @@ export {
 export * from '@src/lib/types/schema-types';
 export { comments } from '@src/lib/db/schema/user-schemas';
 export {
-  games,
+  nba_games,
   game_logs,
   game_ratings,
   teams,
@@ -54,7 +54,7 @@ export const schema = {
   },
   notifications,
   friendships,
-  games,
+  nba_games,
   teams,
   nba_players,
   leagues,
