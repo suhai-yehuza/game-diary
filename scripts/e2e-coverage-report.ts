@@ -14,8 +14,8 @@
  * based on the coverage targets defined in tests/e2e/coverage.config.ts
  */
 
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
-import { join } from 'path';
+import { readFileSync, writeFileSync, existsSync, mkdirSync, readdirSync } from 'fs';
+import { join, dirname } from 'path';
 import {
   COVERAGE_TARGETS,
   TEST_CATEGORIES,
@@ -58,21 +58,30 @@ function parseTestResults(resultsPath: string): TestResult[] {
   try {
     const content = readFileSync(resultsPath, 'utf-8');
     const results = JSON.parse(content);
-    return (
-      results.suites?.flatMap(
-        (suite: any) =>
-          suite.specs?.flatMap(
-            (spec: any) =>
-              spec.tests?.map((test: any) => ({
+
+    const testResults: TestResult[] = [];
+
+    // Navigate through the nested structure: suites -> suites -> specs -> tests -> results
+    results.suites?.forEach((suite: any) => {
+      suite.suites?.forEach((nestedSuite: any) => {
+        nestedSuite.specs?.forEach((spec: any) => {
+          spec.tests?.forEach((test: any) => {
+            // Each test can have multiple results (one per browser/project)
+            test.results?.forEach((result: any) => {
+              testResults.push({
                 testFile: spec.file || 'unknown',
-                testName: test.title,
-                status: test.outcome,
-                duration: test.duration || 0,
-                error: test.error?.message,
-              })) || []
-          ) || []
-      ) || []
-    );
+                testName: spec.title,
+                status: result.status as 'passed' | 'failed' | 'skipped',
+                duration: result.duration || 0,
+                error: result.errors?.[0]?.message,
+              });
+            });
+          });
+        });
+      });
+    });
+
+    return testResults;
   } catch (error) {
     console.error('Error parsing test results:', error);
     return [];
@@ -340,7 +349,7 @@ function generateHTMLReport(report: CoverageReport): string {
 
 function main() {
   const args = process.argv.slice(2);
-  const resultsPath = args[0] || 'test-results-e2e/results.json';
+  const resultsPath = args[0] || 'test-results/results.json';
   const outputDir = args[1] || COVERAGE_REPORT_CONFIG.outputDir;
 
   console.log('🔍 Analyzing E2E test coverage...');
@@ -348,6 +357,29 @@ function main() {
   // Parse test results
   const testResults = parseTestResults(resultsPath);
   console.log(`📊 Found ${testResults.length} test results`);
+
+  // If no test results found, provide helpful message
+  if (testResults.length === 0) {
+    console.log('⚠️  No test results found. This could mean:');
+    console.log('   • Tests were interrupted or failed to complete');
+    console.log('   • Test results file is in a different location');
+    console.log('   • Tests are still running');
+    console.log(`   • Expected location: ${resultsPath}`);
+    console.log('');
+    console.log('📋 Available test result files:');
+    try {
+      const testResultsDir = join(__dirname, '..', dirname(resultsPath));
+      if (existsSync(testResultsDir)) {
+        const files = readdirSync(testResultsDir);
+        files.forEach((file: string) => console.log(`   • ${file}`));
+      } else {
+        console.log(`   • Directory ${testResultsDir} does not exist`);
+      }
+    } catch (error) {
+      console.log('   • Could not check for existing files');
+    }
+    console.log('');
+  }
 
   // Generate coverage report
   const report = generateCoverageReport(testResults);

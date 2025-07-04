@@ -40,8 +40,14 @@ export default defineConfig({
       },
     },
   ],
-  /* Simple reporter for development */
-  reporter: 'list',
+  /* Reporter configuration for development and coverage */
+  reporter: process.env.CI
+    ? [
+        ['list'],
+        ['json', { outputFile: 'test-results/results.json' }],
+        ['junit', { outputFile: 'test-results/results.xml' }],
+      ]
+    : [['list'], ['json', { outputFile: 'test-results/results.json' }]],
   /* Shared settings for all the projects below. */
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
