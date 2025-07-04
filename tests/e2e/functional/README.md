@@ -46,7 +46,7 @@ import '@tests/e2e/functional/smoke.spec'; // Extends smoke tests
 ```bash
 # Run specific levels
 pnpm test:e2e:mock-verification
-pnpm test:e2e:fast
+pnpm test:e2e:quickie
 pnpm test:e2e:smoke
 pnpm test:e2e:critical
 pnpm test:e2e:responsive

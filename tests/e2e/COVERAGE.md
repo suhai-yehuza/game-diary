@@ -127,7 +127,7 @@ The test suite includes comprehensive utilities in `tests/e2e/utils/test-utils.t
 pnpm test:e2e
 
 # Run fast e2e tests (Chromium only)
-pnpm test:e2e:fast
+pnpm test:e2e:quickie
 
 # Run e2e tests with UI
 pnpm test:e2e:ui
@@ -249,7 +249,7 @@ For faster CI execution:
 
 ```bash
 # Run tests in parallel (if supported)
-pnpm test:e2e:fast --workers=4
+pnpm test:e2e:quickie --workers=4
 ```
 
 ## Monitoring and Alerts

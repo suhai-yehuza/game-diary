@@ -14,7 +14,7 @@ This document outlines the optimization of `package.json` scripts to reduce redu
 
 ### 2. **Consolidated Duplicate E2E Tests**
 
-- **Removed**: `test:e2e:fast` and `test:e2e:smoke` (they were identical)
+- **Removed**: `test:e2e:quickie` and `test:e2e:smoke` (they were identical)
 - **Kept**: `test:e2e:smoke` as the primary smoke test
 - **Maintained**: All other E2E test variations for specific use cases
 
@@ -138,7 +138,7 @@ pnpm run timed build
 
 ```bash
 # Old way (both did the same thing)
-pnpm test:e2e:fast
+pnpm test:e2e:quickie
 pnpm test:e2e:smoke
 
 # New way (use smoke)

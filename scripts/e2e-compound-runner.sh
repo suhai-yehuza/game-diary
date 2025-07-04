@@ -93,7 +93,7 @@ main() {
     # Level 1: Fast Tests (Base Level)
     print_status "Level 1: Fast Tests (Base Level)"
     print_status "Purpose: Basic smoke tests for quick feedback"
-    run_test "Fast Tests" "pnpm test:e2e:fast"
+    run_test "Fast Tests" "pnpm test:e2e:quickie"
 
     # Level 2: Smoke Tests (Extends Fast)
     print_status "Level 2: Smoke Tests (Extends Fast)"
@@ -161,7 +161,7 @@ case "${1:-}" in
         ;;
     --fast-only)
         print_status "Running only Fast Tests..."
-        run_test "Fast Tests" "pnpm test:e2e:fast"
+        run_test "Fast Tests" "pnpm test:e2e:quickie"
         exit 0
         ;;
     --smoke-only)

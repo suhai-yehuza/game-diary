@@ -95,8 +95,8 @@ SHARD_TOTAL=2
 
 ```bash
 # Fast development testing
-pnpm test:e2e:fast              # Fast tests (Chromium only)
-pnpm test:e2e:fast:watch        # Watch mode for development
+pnpm test:e2e:quickie              # Fast tests (Chromium only)
+pnpm test:e2e:quickie:watch        # Watch mode for development
 pnpm test:e2e:dev               # Alias for fast tests
 pnpm test:e2e:dev:watch         # Alias for fast watch mode
 ```
@@ -209,8 +209,8 @@ pnpm test:e2e:ui                # Launch Playwright UI mode
 
 ```bash
 # Quick development cycle
-pnpm test:e2e:fast              # Fast feedback
-pnpm test:e2e:fast:watch        # Continuous testing
+pnpm test:e2e:quickie              # Fast feedback
+pnpm test:e2e:quickie:watch        # Continuous testing
 
 # Debug issues
 pnpm test:e2e:debug:headed      # Visual debugging
@@ -329,7 +329,7 @@ pnpm test:e2e:lint              # Code quality
 
 # After PR feedback
 pnpm test:e2e:debug:headed      # Debug specific issues
-pnpm test:e2e:fast:watch        # Continuous testing during fixes
+pnpm test:e2e:quickie:watch        # Continuous testing during fixes
 ```
 
 #### **Release Preparation**
@@ -352,7 +352,7 @@ pnpm test:e2e:smoke:deployed    # Smoke tests on live site
 ```bash
 # Start development
 pnpm test:e2e:server            # Start dev server
-pnpm test:e2e:fast:watch        # Continuous testing
+pnpm test:e2e:quickie:watch        # Continuous testing
 
 # Feature testing
 pnpm test:e2e:responsive        # Test responsive behavior
@@ -371,7 +371,7 @@ pnpm test:e2e:debug:headed      # Visual debugging
 pnpm test:e2e:debug:ui          # Interactive debugging
 
 # Test fix
-pnpm test:e2e:fast              # Quick validation
+pnpm test:e2e:quickie              # Quick validation
 pnpm test:e2e:responsive        # Ensure no regressions
 
 # Final validation

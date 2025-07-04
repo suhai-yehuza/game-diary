@@ -1,19 +1,13 @@
 import { sql } from 'drizzle-orm';
 import { pgTable, varchar, text, timestamp, boolean, unique, jsonb } from 'drizzle-orm/pg-core';
 
+import { baseTableConfig } from '@/lib/db/schema/base-schemas';
 import { FRIENDSHIP_STATUS, REACTION_EMOJIS, TARGET_TYPES } from '@src/lib/types';
 
-/**
- * Simple UUID generator
- */
-function generateUUID(): string {
-  return crypto.randomUUID();
-}
-
-// Users table
+// Users table - extending base table configuration
 export const users = pgTable('users', {
+  ...baseTableConfig,
   // Core user fields
-  id: varchar('id', { length: 255 }).primaryKey().default(generateUUID()),
   object: varchar('object', { length: 10 }).notNull().default('user'),
   username: varchar('username', { length: 255 }),
   first_name: varchar('first_name', { length: 255 }),
@@ -53,7 +47,7 @@ export const users = pgTable('users', {
   delete_self_enabled: boolean('delete_self_enabled').notNull().default(true),
   create_organization_enabled: boolean('create_organization_enabled').notNull().default(true),
 
-  // Timestamps
+  // Timestamps (keeping original field names for compatibility)
   last_sign_in_at: timestamp({ precision: 6, withTimezone: true }),
   last_active_at: timestamp({ precision: 6, withTimezone: true }),
   mfa_enabled_at: timestamp({ precision: 6, withTimezone: true }),
@@ -65,27 +59,19 @@ export const users = pgTable('users', {
   // Friendship arrays
   inboundFriendshipIds: text('inboundFriendshipIds').array().notNull().default([]),
   outboundFriendshipIds: text('outboundFriendshipIds').array().notNull().default([]),
-
-  // Database-specific fields
-  createdAt: timestamp({ precision: 6, withTimezone: true }).notNull(),
-  updatedAt: timestamp({ precision: 6, withTimezone: true }).notNull(),
-  deletedAt: timestamp({ precision: 6, withTimezone: true }),
 });
 
-// Friendships table
+// Friendships table - extending base table configuration
 export const friendships = pgTable(
   'friendships',
   {
-    id: varchar('id', { length: 255 }).primaryKey().default(generateUUID()),
+    ...baseTableConfig,
     friendId: varchar('friendId', { length: 255 }).references(() => users.id),
     userId: varchar('userId', { length: 255 }).references(() => users.id),
     status: varchar('status', { length: 50 })
       .notNull()
       .default(FRIENDSHIP_STATUS.PENDING)
       .$type<(typeof FRIENDSHIP_STATUS)[keyof typeof FRIENDSHIP_STATUS]>(),
-    createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp('updatedAt', { withTimezone: true }).notNull().defaultNow(),
-    deletedAt: timestamp('deletedAt', { withTimezone: true }).default(sql`null`),
   },
   table => ({
     friendUserUnique: unique().on(table.friendId, table.userId),
@@ -93,20 +79,17 @@ export const friendships = pgTable(
   })
 );
 
-// Comments table
+// Comments table - extending base table configuration
 export const comments = pgTable(
   'comments',
   {
-    id: varchar('id', { length: 255 }).primaryKey().default(generateUUID()),
+    ...baseTableConfig,
     userId: varchar('userId', { length: 255 }).references(() => users.id),
     parentId: varchar('parentId', { length: 255 }).notNull(),
     parentType: varchar('parentType', { length: 50 })
       .notNull()
       .$type<(typeof TARGET_TYPES)[keyof typeof TARGET_TYPES]>(),
     content: text('content').notNull(),
-    createdAt: timestamp('createdAt').notNull().defaultNow(),
-    updatedAt: timestamp('updatedAt').notNull().defaultNow(),
-    deletedAt: timestamp('deletedAt').default(sql`null`),
   },
   _table => ({
     commentIndex: sql`CREATE INDEX IF NOT EXISTS idx_comments_parent ON comments (parentId, parentType)`,
@@ -117,11 +100,11 @@ export const comments = pgTable(
   })
 );
 
-// Reactions table
+// Reactions table - extending base table configuration
 export const reactions = pgTable(
   'reactions',
   {
-    id: varchar('id', { length: 255 }).primaryKey().default(generateUUID()),
+    ...baseTableConfig,
     userId: varchar('userId', { length: 255 }).references(() => users.id),
     targetType: varchar('targetType', { length: 50 })
       .notNull()
@@ -130,9 +113,6 @@ export const reactions = pgTable(
     emoji: varchar('emoji', { length: 10 })
       .notNull()
       .$type<(typeof REACTION_EMOJIS)[keyof typeof REACTION_EMOJIS]>(),
-    createdAt: timestamp('createdAt').notNull().defaultNow(),
-    updatedAt: timestamp('updatedAt').notNull().defaultNow(),
-    deletedAt: timestamp('deletedAt').default(sql`null`),
   },
   _table => ({
     reactionIndex: sql`CREATE INDEX IF NOT EXISTS idx_reactions_target ON reactions (targetId, targetType)`,

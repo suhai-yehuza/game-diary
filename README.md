@@ -433,8 +433,8 @@ pnpm build                  # Build production bundle
 pnpm start                  # Start production server
 
 # Testing
-pnpm test:e2e:fast         # Fast e2e tests (Chromium only)
-pnpm test:e2e:fast:watch   # Fast e2e tests in watch mode
+pnpm test:e2e:quickie         # Fast e2e tests (Chromium only)
+pnpm test:e2e:quickie:watch   # Fast e2e tests in watch mode
 pnpm test:e2e:debug        # Debug e2e test issues
 
 # Debug Failing Tests (Efficient Development)

@@ -1,19 +1,12 @@
-import { sql } from 'drizzle-orm';
 import { pgTable, integer, text, timestamp, varchar, decimal, unique } from 'drizzle-orm/pg-core';
 
+import { baseTableConfig } from '@/lib/db/schema/base-schemas';
 import { users } from '@/lib/db/schema/user-schemas';
 import { CLASSIFICATION, WATCHED_SETTING, WATCHED_SCOPE } from '@src/lib/types';
 
-/**
- * Simple UUID generator
- */
-function generateUUID(): string {
-  return crypto.randomUUID();
-}
-
-// Games table
+// Games table - extending base table configuration
 export const games = pgTable('games', {
-  id: varchar('id', { length: 255 }).primaryKey().default(generateUUID()),
+  ...baseTableConfig,
   gameType: varchar('gameType', { length: 50 }).notNull().default('nba'),
   nbaGameId: varchar('nbaGameId', { length: 255 }),
   date: timestamp('date').notNull(),
@@ -22,16 +15,13 @@ export const games = pgTable('games', {
   homeTeamScore: integer('homeTeamScore'),
   awayTeamScore: integer('awayTeamScore'),
   status: varchar('status', { length: 50 }).notNull(),
-  createdAt: timestamp('createdAt').defaultNow().notNull(),
-  updatedAt: timestamp('updatedAt').defaultNow().notNull(),
-  deletedAt: timestamp('deletedAt').default(sql`null`),
 });
 
-// Game logs table
+// Game logs table - extending base table configuration
 export const game_logs = pgTable(
   'game_logs',
   {
-    id: varchar('id', { length: 255 }).primaryKey().default(generateUUID()),
+    ...baseTableConfig,
     userId: varchar('userId', { length: 255 }).references(() => users.id),
     gameId: varchar('gameId', { length: 255 })
       .notNull()
@@ -48,9 +38,6 @@ export const game_logs = pgTable(
     ratingForGame: integer('ratingForGame').notNull(),
     notes: text('notes').default(''),
     tags: text('tags').array().default([]),
-    createdAt: timestamp({ precision: 6, withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp({ precision: 6, withTimezone: true }).notNull().defaultNow(),
-    deletedAt: timestamp({ precision: 6, withTimezone: true }),
   },
   _table => ({
     // Ensure a user can only have one game log per game
@@ -58,19 +45,16 @@ export const game_logs = pgTable(
   })
 );
 
-// Game ratings table
+// Game ratings table - extending base table configuration
 export const game_ratings = pgTable(
   'game_ratings',
   {
-    id: varchar('id', { length: 255 }).primaryKey().default(generateUUID()),
+    ...baseTableConfig,
     gameId: varchar('gameId', { length: 255 })
       .notNull()
       .references(() => games.id),
     averageRating: decimal('averageRating', { precision: 3, scale: 2 }).notNull().default('0.00'),
     totalRatings: integer('totalRatings').notNull().default(0),
-    createdAt: timestamp('createdAt').defaultNow().notNull(),
-    updatedAt: timestamp('updatedAt').defaultNow().notNull(),
-    deletedAt: timestamp('deletedAt').default(sql`null`),
   },
   _table => ({
     // Add unique constraint on gameId

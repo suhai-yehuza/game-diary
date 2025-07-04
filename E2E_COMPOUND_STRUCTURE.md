@@ -118,7 +118,7 @@ Mock Verification (Prerequisite) → Fast (Base) → Smoke → Critical → Resp
 
 ```bash
 # Quick feedback during development
-pnpm test:e2e:fast
+pnpm test:e2e:quickie
 
 # Basic validation before committing
 pnpm test:e2e:smoke
