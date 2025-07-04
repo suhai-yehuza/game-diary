@@ -2,12 +2,12 @@
 
 # CI E2E Tests Script
 # Usage: ./scripts/ci-e2e-tests.sh [test-type]
-# Test types: smoke, critical, fast
+# Test types: smoke, critical, quickie
 
 set -e  # Exit on any error
 
 case "$1" in
-    "smoke"|"critical"|"fast")
+    "smoke"|"critical"|"quickie")
         echo "🚀 Running CI E2E Tests ($1)..."
 
         # Set environment variables for E2E testing
@@ -22,10 +22,10 @@ case "$1" in
         echo "✅ CI E2E Tests ($1) completed successfully!"
         ;;
     *)
-        echo "Usage: $0 [smoke|critical|fast]"
+        echo "Usage: $0 [smoke|critical|quickie]"
         echo "  smoke     - Run E2E smoke tests"
         echo "  critical  - Run E2E critical tests"
-        echo "  fast      - Run E2E fast tests"
+        echo "  quickie   - Run E2E quickie tests"
         exit 1
         ;;
 esac

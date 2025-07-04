@@ -72,7 +72,7 @@ scripts/
 ./scripts/timed-run.sh pnpm build
 
 # Time pnpm script commands with enhanced logging
-./scripts/timed-run.sh script test:e2e:fast
+./scripts/timed-run.sh script test:e2e:quickie
 ```
 
 **Modes:**
@@ -179,7 +179,7 @@ Provides system information, process status, port status, and quick fixes.
 ```bash
 ./scripts/ci-e2e-tests.sh smoke
 ./scripts/ci-e2e-tests.sh critical
-./scripts/ci-e2e-tests.sh fast
+./scripts/ci-e2e-tests.sh quickie
 ```
 
 ### CI Quality Gate (`ci-quality-gate.sh`)
@@ -269,14 +269,14 @@ Most scripts are integrated into package.json for easy access:
 
 ```bash
 # E2E testing
-pnpm test:e2e:fast
+pnpm test:e2e:quickie
 pnpm test:e2e:smoke
 pnpm test:e2e:critical
 pnpm test:e2e:responsive
 pnpm test:e2e:full
 
 # Timing
-pnpm timed test:e2e:fast
+pnpm timed test:e2e:quickie
 
 # Failing tests
 pnpm test:failing
