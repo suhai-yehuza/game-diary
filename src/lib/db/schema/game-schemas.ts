@@ -1,4 +1,13 @@
-import { pgTable, integer, text, timestamp, varchar, decimal, unique } from 'drizzle-orm/pg-core';
+import {
+  pgTable,
+  integer,
+  text,
+  timestamp,
+  varchar,
+  decimal,
+  unique,
+  boolean,
+} from 'drizzle-orm/pg-core';
 
 import { baseTableConfig } from '@/lib/db/schema/base-schemas';
 import { users } from '@/lib/db/schema/user-schemas';
@@ -15,6 +24,60 @@ export const games = pgTable('games', {
   home_team_score: integer('home_team_score'),
   away_team_score: integer('away_team_score'),
   status: varchar('status', { length: 50 }).notNull(),
+});
+
+// Teams table
+export const teams = pgTable('teams', {
+  id: varchar('id', { length: 20 }).primaryKey(), // External API team ID
+  created_at: timestamp('created_at').defaultNow().notNull(),
+  updated_at: timestamp('updated_at').defaultNow().notNull(),
+  deleted_at: timestamp({ precision: 6, withTimezone: true }),
+  name: varchar('name', { length: 255 }).notNull(),
+  nickname: varchar('nickname', { length: 100 }),
+  code: varchar('code', { length: 10 }),
+  city: varchar('city', { length: 100 }),
+  logo: text('logo'),
+  all_star: boolean('all_star').notNull().default(false),
+  nba_franchise: boolean('nba_franchise').notNull().default(false),
+  leagues: text('leagues'), // Store as JSON string
+});
+
+// NBA Players table
+export const nba_players = pgTable('nba_players', {
+  id: varchar('id', { length: 20 }).primaryKey(), // External API player ID
+  created_at: timestamp('created_at').defaultNow().notNull(),
+  updated_at: timestamp('updated_at').defaultNow().notNull(),
+  deleted_at: timestamp({ precision: 6, withTimezone: true }),
+  first_name: varchar('first_name', { length: 100 }).notNull(),
+  last_name: varchar('last_name', { length: 100 }).notNull(),
+  birth: text('birth'), // Store as JSON string
+  nba: text('nba'), // Store as JSON string
+  height: text('height'), // Store as JSON string
+  weight: text('weight'), // Store as JSON string
+  college: varchar('college', { length: 100 }),
+  affiliation: varchar('affiliation', { length: 100 }),
+  teams: text('teams'), // Store as JSON string: array of { season: season_id, teams_played_for: [] }
+  leagues: text('leagues'), // Store as JSON string
+  image_url: text('image_url'),
+});
+
+// Leagues table
+export const leagues = pgTable('leagues', {
+  ...baseTableConfig,
+  name: varchar('name', { length: 255 }).notNull(),
+  code: varchar('code', { length: 20 }),
+  country: varchar('country', { length: 100 }),
+  logo_url: text('logo_url'),
+});
+
+// Seasons table
+export const seasons = pgTable('seasons', {
+  ...baseTableConfig,
+  year: integer('year').notNull(),
+  league: varchar('league', { length: 255 }).references(() => leagues.name),
+  start_date: varchar('start_date', { length: 20 }),
+  end_date: varchar('end_date', { length: 20 }),
+  status: varchar('status', { length: 50 }),
 });
 
 // Game logs table - extending base table configuration

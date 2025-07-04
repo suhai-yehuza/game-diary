@@ -4,7 +4,15 @@ import {
   reactionsRelations,
   gameLogsRelations,
 } from '@/lib/db/schema/relations';
-import { games, game_logs, game_ratings } from '@src/lib/db/schema/game-schemas';
+import {
+  games,
+  game_logs,
+  game_ratings,
+  teams,
+  nba_players,
+  leagues,
+  seasons,
+} from '@src/lib/db/schema/game-schemas';
 import { notifications } from '@src/lib/db/schema/notification-schemas';
 import { users, friendships, reactions, comments } from '@src/lib/db/schema/user-schemas';
 
@@ -18,7 +26,15 @@ export {
 // Export all schema types
 export * from '@src/lib/types/schema-types';
 export { comments } from '@src/lib/db/schema/user-schemas';
-export { games, game_logs, game_ratings } from '@src/lib/db/schema/game-schemas';
+export {
+  games,
+  game_logs,
+  game_ratings,
+  teams,
+  nba_players,
+  leagues,
+  seasons,
+} from '@src/lib/db/schema/game-schemas';
 export { notifications } from '@src/lib/db/schema/notification-schemas';
 export { users, friendships, reactions } from '@src/lib/db/schema/user-schemas';
 
@@ -39,6 +55,10 @@ export const schema = {
   notifications,
   friendships,
   games,
+  teams,
+  nba_players,
+  leagues,
+  seasons,
   game_logs: {
     ...game_logs,
     relations: gameLogsRelations,
