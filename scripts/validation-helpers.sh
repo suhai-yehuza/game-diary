@@ -2,6 +2,9 @@
 
 # Validation Helper Functions
 # Usage: source scripts/validation-helpers.sh
+#
+# NOTE: For fail-fast behavior when sourcing, ensure 'set -e' is enabled in the parent shell.
+set -euo pipefail
 
 # =============================================================================
 # ATOMIC VALIDATION STEPS (Single responsibility functions)
