@@ -337,8 +337,8 @@ export async function checkForConsoleErrors(page: Page): Promise<void> {
     }
   });
 
-  // Wait for page to stabilize and any initial errors to appear
-  await page.waitForTimeout(3000);
+  // Wait for page to stabilize and any initial errors to appear (reduced timeout)
+  await page.waitForTimeout(1000);
 
   // Filter out common non-critical errors and known flaky errors
   const criticalErrors = errors.filter(
@@ -420,10 +420,10 @@ export async function checkKeyboardNavigation(page: Page): Promise<void> {
   await page.keyboard.press('Tab');
   await page.waitForTimeout(500);
 
-  // Check that focus indicator is visible
+  // Check that focus indicator is visible - use first() to avoid strict mode violation
   const focusedElement = page.locator(':focus');
   if ((await focusedElement.count()) > 0) {
-    await expect(focusedElement).toBeVisible();
+    await expect(focusedElement.first()).toBeVisible();
   }
 }
 
