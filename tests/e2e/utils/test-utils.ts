@@ -31,10 +31,26 @@ export async function safeGoto(
   } catch (error) {
     console.error(`Failed to navigate to ${url}:`, error);
 
-    // If it's a connection refused error, the server might be down
-    if (error instanceof Error && error.message.includes('ERR_CONNECTION_REFUSED')) {
-      console.error('Server appears to be down. Please ensure the development server is running.');
-      console.error('You can start it with: pnpm dev -p 8081');
+    // Enhanced error handling for different network issues
+    if (error instanceof Error) {
+      if (
+        error.message.includes('ERR_CONNECTION_REFUSED') ||
+        error.message.includes('ERR_INTERNET_DISCONNECTED') ||
+        error.message.includes('net::ERR_CONNECTION_REFUSED') ||
+        error.message.includes('net::ERR_INTERNET_DISCONNECTED')
+      ) {
+        console.error('❌ Network connection issue detected:');
+        console.error('  - Server might be down or not responding');
+        console.error('  - Network connectivity issues');
+        console.error('  - Please ensure the development server is running: pnpm dev -p 8081');
+        console.error('  - Check if port 8081 is available and not blocked');
+
+        // Try to provide more helpful debugging info
+        console.error('🔍 Debugging steps:');
+        console.error('  1. Check if server is running: curl http://localhost:8081');
+        console.error('  2. Check port availability: lsof -i:8081');
+        console.error('  3. Restart the development server');
+      }
     }
 
     throw error;

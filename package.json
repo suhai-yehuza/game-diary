@@ -145,7 +145,7 @@
     "ci:e2e-tests": "./scripts/ci-e2e-tests.sh",
     "ci:e2e:run": "./scripts/e2e-run.sh basic",
     "ci:e2e:run:coverage": "./scripts/e2e-run.sh coverage",
-    "ci:e2e:run:coverage:full": "./scripts/e2e-run.sh coverage-full",
+    "ci:e2e:run:coverage:full": "./scripts/e2e-run.sh coverage-full 'playwright test tests/e2e/functional/full.spec.ts' 'Full E2E Coverage Tests' 7200",
     "ci:e2e:responsive": "./scripts/e2e-run.sh responsive",
     "ci:e2e:debug": "./scripts/e2e-debug.sh",
     "=====Legacy CI Validation (Deprecated)=====": "=====+=====+=====+=====+=====",

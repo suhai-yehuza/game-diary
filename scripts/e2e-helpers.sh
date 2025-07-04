@@ -56,25 +56,57 @@ start_e2e_server() {
         return 0
     fi
 
+    # Kill any existing processes on port 8081
+    echo "🧹 Cleaning up any existing processes on port 8081..."
+    kill $(lsof -t -i:8081) 2>/dev/null || true
+    sleep 2
+
     # Start server in background with E2E environment variables
+    echo "🚀 Starting development server..."
     E2E_TESTING=true FORCE_MOCK_API=true pnpm dev -p 8081 > /tmp/e2e-server.log 2>&1 &
     local server_pid=$!
 
-    # Wait for server to start
+    # Wait for server to start with better error handling
     local attempts=0
-    local max_attempts=30
+    local max_attempts=60  # Increased timeout
+    echo "⏳ Waiting for server to start..."
+
     while [ $attempts -lt $max_attempts ]; do
         if curl -s http://localhost:8081 >/dev/null 2>&1; then
             echo "✅ Server started successfully (PID: $server_pid)"
+            # Additional wait to ensure server is fully ready
+            sleep 3
             return 0
         fi
+
+        # Check if server process is still running
+        if ! kill -0 $server_pid 2>/dev/null; then
+            echo "❌ Server process died unexpectedly"
+            echo "Server logs:"
+            cat /tmp/e2e-server.log
+            return 1
+        fi
+
         sleep 1
         attempts=$((attempts + 1))
+
+        # Show progress every 10 attempts
+        if [ $((attempts % 10)) -eq 0 ]; then
+            echo "⏳ Still waiting... (attempt $attempts/$max_attempts)"
+        fi
     done
 
     echo "❌ Failed to start server after $max_attempts attempts"
     echo "Server logs:"
     cat /tmp/e2e-server.log
+
+    # Try to get more diagnostic information
+    echo "🔍 Diagnostic information:"
+    echo "Processes on port 8081:"
+    lsof -i:8081 2>/dev/null || echo "No processes found"
+    echo "Recent server logs:"
+    tail -20 /tmp/e2e-server.log
+
     return 1
 }
 
