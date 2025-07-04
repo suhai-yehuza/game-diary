@@ -21,6 +21,7 @@ show_usage() {
     echo "  $0                                   # Use defaults: $DEFAULT_SOURCE_BRANCH -> $DEFAULT_TARGET_BRANCH"
     echo "  $0 feature-branch                    # feature-branch -> $DEFAULT_TARGET_BRANCH"
     echo "  $0 feature-branch main               # feature-branch -> main"
+    echo "  $0 feature-branch staging-soak       # feature-branch -> staging-soak (with soak period)"
     echo "  $0 '' main                           # $DEFAULT_SOURCE_BRANCH -> main"
     echo ""
 }

@@ -65,6 +65,9 @@ get_deployment_url() {
         "staging")
             echo "${VERCEL_STAGING_URL:-http://localhost:8081}"
             ;;
+        "staging-soak")
+            echo "${VERCEL_STAGING_URL:-http://localhost:8081}"
+            ;;
         "production")
             echo "${VERCEL_PRODUCTION_URL:-http://localhost:8081}"
             ;;
@@ -206,7 +209,7 @@ perform_rollback() {
         log "Rolling back production deployment..."
         # Add your rollback logic here
         # Example: vercel rollback --token=$VERCEL_TOKEN
-    elif [ "$environment" = "staging" ]; then
+    elif [ "$environment" = "staging" ] || [ "$environment" = "staging-soak" ]; then
         log "Rolling back staging deployment..."
         # Add your rollback logic here
     fi
@@ -374,7 +377,7 @@ case "${1:-}" in
         echo "  rollback [env] [reason]   - Perform rollback"
         echo "  status                    - Show current soak status"
         echo ""
-        echo "Environments: preview, staging, production"
+        echo "Environments: preview, staging, staging-soak, production"
         echo "Duration: seconds (default: $DEFAULT_SOAK_DURATION)"
         exit 1
         ;;

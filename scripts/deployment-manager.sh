@@ -64,6 +64,9 @@ get_deployment_url() {
         "staging")
             echo "${VERCEL_STAGING_URL:-http://localhost:8081}"
             ;;
+        "staging-soak")
+            echo "${VERCEL_STAGING_URL:-http://localhost:8081}"
+            ;;
         "production")
             echo "${VERCEL_PRODUCTION_URL:-http://localhost:8081}"
             ;;

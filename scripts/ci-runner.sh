@@ -46,6 +46,10 @@ get_staging_pipeline() {
     echo "quality_gate:production unit_tests e2e_fast e2e_critical e2e_responsive"
 }
 
+get_staging_soak_pipeline() {
+    echo "quality_gate:production unit_tests e2e_fast e2e_critical e2e_responsive"
+}
+
 get_production_pipeline() {
     echo "quality_gate:production unit_tests e2e_fast e2e_critical e2e_responsive e2e_coverage_full"
 }
@@ -61,6 +65,9 @@ execute_pipeline() {
             ;;
         "staging")
             pipeline_steps=$(get_staging_pipeline)
+            ;;
+        "staging-soak")
+            pipeline_steps=$(get_staging_soak_pipeline)
             ;;
         "production")
             pipeline_steps=$(get_production_pipeline)
@@ -114,14 +121,15 @@ execute_pipeline() {
 
 # Main execution
 case "$1" in
-    "preview"|"staging"|"production")
+    "preview"|"staging"|"staging-soak"|"production")
         execute_pipeline "$1"
         ;;
     *)
-        echo "Usage: $0 [preview|production|staging]"
-        echo "  preview    - Run CI preview pipeline (validation + unit + e2e fast)"
-        echo "  staging    - Run CI staging pipeline (validation + unit + e2e fast + e2e critical + e2e responsive)"
-        echo "  production - Run CI production pipeline (validation + unit + e2e fast + e2e critical + e2e coverage full)"
+        echo "Usage: $0 [preview|production|staging|staging-soak]"
+        echo "  preview     - Run CI preview pipeline (validation + unit + e2e fast)"
+        echo "  staging     - Run CI staging pipeline (validation + unit + e2e fast + e2e critical + e2e responsive)"
+        echo "  staging-soak - Run CI staging with soak pipeline (validation + unit + e2e fast + e2e critical + e2e responsive)"
+        echo "  production  - Run CI production pipeline (validation + unit + e2e fast + e2e critical + e2e coverage full)"
         exit 1
         ;;
 esac

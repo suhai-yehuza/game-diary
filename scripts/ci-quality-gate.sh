@@ -6,7 +6,7 @@
 set -e  # Exit on any error
 
 case "$1" in
-    "preview"|"staging"|"production")
+    "preview"|"staging"|"staging-soak"|"production")
         echo "🚀 Running CI Quality Gate ($1)..."
         echo "🔧 Clean up..."
         pnpm run clean:all
@@ -40,6 +40,7 @@ case "$1" in
         echo "Usage: $0 [preview|staging|production]"
         echo "  preview    - Run quality gate for preview (validation only)"
         echo "  staging    - Run quality gate for staging (validation only)"
+    echo "  staging-soak - Run quality gate for staging with soak period (validation only)"
         echo "  production - Run quality gate for production (validation only)"
         exit 1
         ;;
