@@ -14,7 +14,7 @@ export const usersRelations = relations(users, ({ many }) => ({
 // Comment-related relations
 export const commentsRelations = relations(comments, ({ one, many }) => ({
   user: one(users, {
-    fields: [comments.userId],
+    fields: [comments.user_id],
     references: [users.id],
   }),
   reactions: many(reactions),
@@ -23,7 +23,7 @@ export const commentsRelations = relations(comments, ({ one, many }) => ({
 // Reaction-related relations
 export const reactionsRelations = relations(reactions, ({ one }) => ({
   user: one(users, {
-    fields: [reactions.userId],
+    fields: [reactions.user_id],
     references: [users.id],
   }),
 }));
@@ -31,7 +31,7 @@ export const reactionsRelations = relations(reactions, ({ one }) => ({
 // Game-related relations
 export const gameLogsRelations = relations(game_logs, ({ one, many }) => ({
   user: one(users, {
-    fields: [game_logs.userId],
+    fields: [game_logs.user_id],
     references: [users.id],
   }),
   comments: many(comments),

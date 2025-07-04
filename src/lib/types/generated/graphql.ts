@@ -22,14 +22,6 @@ export type AcceptFriendRequestResponse = {
   friendship?: Maybe<Friendship>;
 };
 
-export type Arena = {
-  __typename?: 'Arena';
-  city?: Maybe<Scalars['String']['output']>;
-  country?: Maybe<Scalars['String']['output']>;
-  name: Scalars['String']['output'];
-  state?: Maybe<Scalars['String']['output']>;
-};
-
 export type AuthenticationError = {
   __typename?: 'AuthenticationError';
   message: Scalars['String']['output'];
@@ -49,25 +41,25 @@ export type BusinessLogicError = {
 };
 
 export enum Classification {
-  Private = 'Private',
-  Protected = 'Protected',
-  Public = 'Public'
+  Private = 'PRIVATE',
+  Protected = 'PROTECTED',
+  Public = 'PUBLIC'
 }
 
 export type Comment = {
   __typename?: 'Comment';
   childComments: CommentConnection;
   content: Scalars['String']['output'];
-  createdAt: Scalars['DateTime']['output'];
-  deletedAt?: Maybe<Scalars['DateTime']['output']>;
+  created_at: Scalars['DateTime']['output'];
+  deleted_at?: Maybe<Scalars['DateTime']['output']>;
   depth: Scalars['Int']['output'];
   id: Scalars['ID']['output'];
-  parentId: Scalars['ID']['output'];
-  parentType: ParentType;
+  parent_id: Scalars['ID']['output'];
+  parent_type: ParentType;
   reactions: Array<Reaction>;
-  updatedAt: Scalars['DateTime']['output'];
+  updated_at: Scalars['DateTime']['output'];
   user: UserSummary;
-  userId: Scalars['ID']['output'];
+  user_id: Scalars['ID']['output'];
 };
 
 export type CommentConnection = {
@@ -103,26 +95,26 @@ export type CreateCommentResponse = {
 };
 
 export type CreateGameInput = {
-  awayTeamId: Scalars['String']['input'];
+  away_team_id: Scalars['String']['input'];
+  away_team_score?: InputMaybe<Scalars['Int']['input']>;
   date: Scalars['DateTime']['input'];
-  gameType: Scalars['String']['input'];
-  homeTeamId: Scalars['String']['input'];
-  league: Scalars['String']['input'];
-  nbaGameId?: InputMaybe<Scalars['ID']['input']>;
-  season: Scalars['Int']['input'];
-  stage: Scalars['Int']['input'];
+  game_type: Scalars['String']['input'];
+  home_team_id: Scalars['String']['input'];
+  home_team_score?: InputMaybe<Scalars['Int']['input']>;
+  nba_game_id?: InputMaybe<Scalars['ID']['input']>;
+  status: Scalars['String']['input'];
 };
 
 export type CreateGameLogInput = {
   classification: Classification;
   gameId: Scalars['ID']['input'];
   notes?: InputMaybe<Scalars['String']['input']>;
-  ratingForGame: Scalars['Int']['input'];
+  rating_for_game: Scalars['Int']['input'];
   tags?: InputMaybe<Array<Scalars['String']['input']>>;
-  watchedDate?: InputMaybe<Scalars['DateTime']['input']>;
-  watchedLocation?: InputMaybe<Scalars['String']['input']>;
-  watchedScope?: InputMaybe<Scalars['String']['input']>;
-  watchedSetting?: InputMaybe<Scalars['String']['input']>;
+  watched_date?: InputMaybe<Scalars['DateTime']['input']>;
+  watched_location?: InputMaybe<Scalars['String']['input']>;
+  watched_scope?: InputMaybe<Scalars['String']['input']>;
+  watched_setting?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type CreateGameLogResponse = {
@@ -138,7 +130,7 @@ export type CreateGameResponse = {
 };
 
 export type CreateReactionInput = {
-  emoji: ReactionEmojiType;
+  emoji: Scalars['String']['input'];
   targetId: Scalars['ID']['input'];
   targetType: ParentType;
 };
@@ -151,28 +143,32 @@ export type CreateReactionResponse = {
 
 export type DbUser = {
   __typename?: 'DBUser';
-  banned?: Maybe<Scalars['Boolean']['output']>;
+  bio?: Maybe<Scalars['String']['output']>;
   comments: Array<Comment>;
-  createdAt: Scalars['DateTime']['output'];
-  deletedAt?: Maybe<Scalars['DateTime']['output']>;
-  emailAddress?: Maybe<Scalars['String']['output']>;
-  email_verification_strategy?: Maybe<Scalars['String']['output']>;
-  email_verified?: Maybe<Scalars['Boolean']['output']>;
+  created_at: Scalars['DateTime']['output'];
+  deleted_at?: Maybe<Scalars['DateTime']['output']>;
+  email_address?: Maybe<Scalars['String']['output']>;
   external_id?: Maybe<Scalars['String']['output']>;
   first_name?: Maybe<Scalars['String']['output']>;
   friendships: Array<Friendship>;
   gameLogs: Array<GameLog>;
+  has_image: Scalars['Boolean']['output'];
   id: Scalars['ID']['output'];
   image_url?: Maybe<Scalars['String']['output']>;
-  inboundFriendshipIds?: Maybe<Array<Scalars['String']['output']>>;
+  inbound_friendship_ids?: Maybe<Array<Scalars['String']['output']>>;
   initiatedFriendships: Array<Friendship>;
+  last_active_at?: Maybe<Scalars['DateTime']['output']>;
   last_name?: Maybe<Scalars['String']['output']>;
   last_sign_in_at?: Maybe<Scalars['DateTime']['output']>;
-  outboundFriendshipIds?: Maybe<Array<Scalars['String']['output']>>;
-  password_enabled?: Maybe<Scalars['Boolean']['output']>;
+  object: Scalars['String']['output'];
+  outbound_friendship_ids?: Maybe<Array<Scalars['String']['output']>>;
+  preferred_language?: Maybe<Scalars['String']['output']>;
+  primary_email_address_id?: Maybe<Scalars['String']['output']>;
+  primary_phone_number_id?: Maybe<Scalars['String']['output']>;
+  profile_image_url?: Maybe<Scalars['String']['output']>;
   reactions: Array<Reaction>;
-  two_factor_enabled?: Maybe<Scalars['Boolean']['output']>;
-  updatedAt: Scalars['DateTime']['output'];
+  timezone?: Maybe<Scalars['String']['output']>;
+  updated_at: Scalars['DateTime']['output'];
   username: Scalars['String']['output'];
 };
 
@@ -208,44 +204,34 @@ export type ErrorResult = {
 
 export type Friendship = {
   __typename?: 'Friendship';
-  createdAt: Scalars['DateTime']['output'];
+  created_at: Scalars['DateTime']['output'];
   id: Scalars['ID']['output'];
   initiator: UserSummary;
   recipient: UserSummary;
   status: FriendshipStatus;
-  updatedAt: Scalars['DateTime']['output'];
+  updated_at: Scalars['DateTime']['output'];
 };
 
 export enum FriendshipStatus {
-  Accepted = 'Accepted',
-  Blocked = 'Blocked',
-  Pending = 'Pending',
-  Rejected = 'Rejected'
+  Accepted = 'ACCEPTED',
+  Blocked = 'BLOCKED',
+  Pending = 'PENDING',
+  Rejected = 'REJECTED'
 }
 
 export type Game = {
   __typename?: 'Game';
-  arena?: Maybe<Arena>;
-  awayTeamId: Scalars['String']['output'];
-  awayTeamScore?: Maybe<Scalars['Int']['output']>;
-  createdAt: Scalars['DateTime']['output'];
-  date: GameDate;
-  gameType: Scalars['String']['output'];
-  homeTeamId: Scalars['String']['output'];
-  homeTeamScore?: Maybe<Scalars['Int']['output']>;
+  away_team_id: Scalars['String']['output'];
+  away_team_score?: Maybe<Scalars['Int']['output']>;
+  created_at: Scalars['DateTime']['output'];
+  date: Scalars['DateTime']['output'];
+  game_type: Scalars['String']['output'];
+  home_team_id: Scalars['String']['output'];
+  home_team_score?: Maybe<Scalars['Int']['output']>;
   id: Scalars['ID']['output'];
-  isCompleted: Scalars['Boolean']['output'];
-  leadChanges?: Maybe<Scalars['Int']['output']>;
-  league?: Maybe<Scalars['String']['output']>;
-  nbaGameId?: Maybe<Scalars['ID']['output']>;
-  nugget?: Maybe<Scalars['String']['output']>;
-  officials: Array<Scalars['String']['output']>;
-  periods: GamePeriods;
-  season?: Maybe<Scalars['Int']['output']>;
-  stage?: Maybe<Scalars['Int']['output']>;
-  status: GameStatus;
-  timesTied?: Maybe<Scalars['Int']['output']>;
-  updatedAt: Scalars['DateTime']['output'];
+  nba_game_id?: Maybe<Scalars['ID']['output']>;
+  status: Scalars['String']['output'];
+  updated_at: Scalars['DateTime']['output'];
 };
 
 export type GameConnection = {
@@ -253,13 +239,6 @@ export type GameConnection = {
   edges: Array<GameEdge>;
   pageInfo: PageInfo;
   totalCount: Scalars['Int']['output'];
-};
-
-export type GameDate = {
-  __typename?: 'GameDate';
-  duration?: Maybe<Scalars['Int']['output']>;
-  end?: Maybe<Scalars['DateTime']['output']>;
-  start: Scalars['DateTime']['output'];
 };
 
 export type GameEdge = {
@@ -281,20 +260,20 @@ export type GameLog = {
   __typename?: 'GameLog';
   classification: Classification;
   comments: CommentConnection;
-  createdAt: Scalars['DateTime']['output'];
-  deletedAt?: Maybe<Scalars['DateTime']['output']>;
+  created_at: Scalars['DateTime']['output'];
+  deleted_at?: Maybe<Scalars['DateTime']['output']>;
   game: Game;
   id: Scalars['ID']['output'];
   notes?: Maybe<Scalars['String']['output']>;
-  ratingForGame: Scalars['Int']['output'];
+  rating_for_game: Scalars['Int']['output'];
   reactions: Array<Reaction>;
   tags?: Maybe<Array<Scalars['String']['output']>>;
-  updatedAt: Scalars['DateTime']['output'];
+  updated_at: Scalars['DateTime']['output'];
   user: UserSummary;
-  watchedDate?: Maybe<Scalars['DateTime']['output']>;
-  watchedLocation?: Maybe<Scalars['String']['output']>;
-  watchedScope?: Maybe<Scalars['String']['output']>;
-  watchedSetting?: Maybe<Scalars['String']['output']>;
+  watched_date?: Maybe<Scalars['DateTime']['output']>;
+  watched_location?: Maybe<Scalars['String']['output']>;
+  watched_scope?: Maybe<Scalars['String']['output']>;
+  watched_setting?: Maybe<Scalars['String']['output']>;
 };
 
 export type GameLogConnection = {
@@ -328,26 +307,11 @@ export type GameLogFilters = {
   watchedSetting?: InputMaybe<Scalars['String']['input']>;
 };
 
-export type GamePeriods = {
-  __typename?: 'GamePeriods';
-  current: Scalars['Int']['output'];
-  endOfPeriod: Scalars['Boolean']['output'];
-  total: Scalars['Int']['output'];
-};
-
-export type GameStatus = {
-  __typename?: 'GameStatus';
-  clock?: Maybe<Scalars['String']['output']>;
-  halftime: Scalars['Boolean']['output'];
-  long: Scalars['String']['output'];
-  short: Scalars['String']['output'];
-};
-
 export enum GameStatusEnum {
-  Cancelled = 'Cancelled',
-  Finished = 'Finished',
-  Live = 'Live',
-  Scheduled = 'Scheduled'
+  Cancelled = 'CANCELLED',
+  Finished = 'FINISHED',
+  Live = 'LIVE',
+  Scheduled = 'SCHEDULED'
 }
 
 export type Mutation = {
@@ -425,13 +389,13 @@ export type MutationSendFriendRequestArgs = {
 
 export type MutationUpdateCommentArgs = {
   id: Scalars['ID']['input'];
-  input: CreateCommentInput;
+  input: UpdateCommentInput;
 };
 
 
 export type MutationUpdateGameLogArgs = {
   id: Scalars['ID']['input'];
-  input: CreateGameLogInput;
+  input: UpdateGameLogInput;
 };
 
 export type PageInfo = {
@@ -450,8 +414,8 @@ export type PaginationInput = {
 };
 
 export enum ParentType {
-  Comment = 'comment',
-  GameLog = 'game_log'
+  Comment = 'COMMENT',
+  GameLog = 'GAME_LOG'
 }
 
 export type Query = {
@@ -530,38 +494,15 @@ export type QueryUsersArgs = {
 
 export type Reaction = {
   __typename?: 'Reaction';
-  createdAt: Scalars['DateTime']['output'];
-  emoji: ReactionEmojiType;
+  created_at: Scalars['DateTime']['output'];
+  emoji: Scalars['String']['output'];
   id: Scalars['ID']['output'];
-  targetId: Scalars['ID']['output'];
-  targetType: ParentType;
-  updatedAt: Scalars['DateTime']['output'];
+  target_id: Scalars['ID']['output'];
+  target_type: ParentType;
+  updated_at: Scalars['DateTime']['output'];
   user: UserSummary;
-  userId: Scalars['ID']['output'];
+  user_id: Scalars['ID']['output'];
 };
-
-export enum ReactionEmojiType {
-  Angry = 'ANGRY',
-  Baseball = 'BASEBALL',
-  Basketball = 'BASKETBALL',
-  Bullseye = 'BULLSEYE',
-  Clap = 'CLAP',
-  Eyes = 'EYES',
-  Fire = 'FIRE',
-  Football = 'FOOTBALL',
-  Goat = 'GOAT',
-  Golf = 'GOLF',
-  Laugh = 'LAUGH',
-  Love = 'LOVE',
-  Muscle = 'MUSCLE',
-  Rocket = 'ROCKET',
-  Sad = 'SAD',
-  Soccer = 'SOCCER',
-  Tennis = 'TENNIS',
-  ThumbsDown = 'THUMBS_DOWN',
-  ThumbsUp = 'THUMBS_UP',
-  Wow = 'WOW'
-}
 
 export type RejectFriendRequestResponse = {
   __typename?: 'RejectFriendRequestResponse';
@@ -583,7 +524,6 @@ export type SendFriendRequestResponse = {
 
 export type UpdateCommentInput = {
   content: Scalars['String']['input'];
-  id: Scalars['ID']['input'];
 };
 
 export type UpdateCommentResponse = {
@@ -594,14 +534,13 @@ export type UpdateCommentResponse = {
 
 export type UpdateGameLogInput = {
   classification?: InputMaybe<Classification>;
-  id: Scalars['ID']['input'];
   notes?: InputMaybe<Scalars['String']['input']>;
-  ratingForGame?: InputMaybe<Scalars['Int']['input']>;
+  rating_for_game?: InputMaybe<Scalars['Int']['input']>;
   tags?: InputMaybe<Array<Scalars['String']['input']>>;
-  watchedDate?: InputMaybe<Scalars['DateTime']['input']>;
-  watchedLocation?: InputMaybe<Scalars['String']['input']>;
-  watchedScope?: InputMaybe<Scalars['String']['input']>;
-  watchedSetting?: InputMaybe<Scalars['String']['input']>;
+  watched_date?: InputMaybe<Scalars['DateTime']['input']>;
+  watched_location?: InputMaybe<Scalars['String']['input']>;
+  watched_scope?: InputMaybe<Scalars['String']['input']>;
+  watched_setting?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type UpdateGameLogResponse = {
@@ -655,7 +594,7 @@ export type UserSearchFilters = {
 
 export type UserSummary = {
   __typename?: 'UserSummary';
-  emailAddress?: Maybe<Scalars['String']['output']>;
+  email_address?: Maybe<Scalars['String']['output']>;
   first_name: Scalars['String']['output'];
   id: Scalars['ID']['output'];
   image_url?: Maybe<Scalars['String']['output']>;

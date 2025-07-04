@@ -3,44 +3,16 @@ import { gql } from '@apollo/client';
 export const GAME_FRAGMENT = gql`
   fragment GameFragment on Game {
     id
-    date {
-      start
-      end
-      duration
-    }
-    status {
-      clock
-      halftime
-      long
-      short
-    }
-    arena {
-      name
-      city
-      state
-      country
-    }
-    league
-    season
-    stage
-    periods {
-      current
-      total
-      endOfPeriod
-    }
-    officials
-    timesTied
-    leadChanges
-    nugget
-    homeTeamId
-    awayTeamId
-    isCompleted
-    awayTeamScore
-    homeTeamScore
-    gameType
-    nbaGameId
-    createdAt
-    updatedAt
+    date
+    status
+    game_type
+    nba_game_id
+    home_team_id
+    away_team_id
+    home_team_score
+    away_team_score
+    created_at
+    updated_at
   }
 `;
 
@@ -50,19 +22,30 @@ export const BASIC_USER_FRAGMENT = gql`
     username
     first_name
     last_name
-    emailAddress
+    email_address
     image_url
+    object
+    has_image
+    profile_image_url
+    primary_email_address_id
+    primary_phone_number_id
+    external_id
+    last_active_at
+    last_sign_in_at
+    bio
+    timezone
+    preferred_language
     comments {
       id
-      parentId
-      parentType
+      parent_id
+      parent_type
       content
     }
     reactions {
       id
       emoji
-      targetId
-      targetType
+      target_id
+      target_type
     }
     gameLogs {
       id
@@ -71,9 +54,9 @@ export const BASIC_USER_FRAGMENT = gql`
       id
       status
     }
-    createdAt
-    updatedAt
-    deletedAt
+    created_at
+    updated_at
+    deleted_at
   }
 `;
 
@@ -83,7 +66,7 @@ export const USER_SUMMARY_FRAGMENT = gql`
     username
     first_name
     last_name
-    emailAddress
+    email_address
     image_url
   }
 `;
@@ -91,13 +74,13 @@ export const USER_SUMMARY_FRAGMENT = gql`
 export const COMMENT_FRAGMENT = gql`
   fragment CommentFragment on Comment {
     id
-    userId
-    parentId
-    parentType
+    user_id
+    parent_id
+    parent_type
     content
     depth
-    createdAt
-    updatedAt
+    created_at
+    updated_at
     user {
       ...UserSummaryFragment
     }
@@ -115,11 +98,11 @@ export const REACTION_FRAGMENT = gql`
   fragment ReactionFragment on Reaction {
     id
     emoji
-    userId
-    targetId
-    targetType
-    createdAt
-    updatedAt
+    user_id
+    target_id
+    target_type
+    created_at
+    updated_at
     user {
       ...UserSummaryFragment
     }
@@ -129,17 +112,17 @@ export const REACTION_FRAGMENT = gql`
 export const GAME_LOG_FRAGMENT = gql`
   fragment GameLogFragment on GameLog {
     id
-    ratingForGame
+    rating_for_game
     notes
     tags
-    watchedDate
-    watchedSetting
-    watchedLocation
-    watchedScope
+    watched_date
+    watched_setting
+    watched_location
+    watched_scope
     classification
-    createdAt
-    updatedAt
-    deletedAt
+    created_at
+    updated_at
+    deleted_at
     user {
       ...UserSummaryFragment
     }
@@ -169,8 +152,8 @@ export const FRIENDSHIP_FRAGMENT = gql`
   fragment FriendshipFragment on Friendship {
     id
     status
-    createdAt
-    updatedAt
+    created_at
+    updated_at
     initiator {
       ...UserSummaryFragment
     }

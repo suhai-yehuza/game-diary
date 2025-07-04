@@ -480,13 +480,13 @@ export default function ProfilePage() {
                       </div>
                     </div>
 
-                    {Object.keys(user.publicMetadata || {}).length > 0 && (
+                    {Object.keys(user.publicMetadata).length > 0 && (
                       <div className="p-4 border rounded-lg">
                         <label className="text-sm font-medium text-muted-foreground">
                           Public Metadata
                         </label>
                         <div className="mt-2 p-3 bg-muted rounded-lg">
-                          <pre className="text-sm font-mono text-xs overflow-auto">
+                          <pre className="text-sm font-mono overflow-auto">
                             {JSON.stringify(user.publicMetadata, null, 2)}
                           </pre>
                         </div>

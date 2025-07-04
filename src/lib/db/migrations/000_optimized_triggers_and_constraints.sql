@@ -1,53 +1,6 @@
 -- ============================================================================
--- SECTION 1: GAME LOGS - Unique constraint and cleanup
+-- SECTION 1: GAME RATINGS - Auto-update triggers
 -- ============================================================================
-
--- Remove any duplicate game logs that might exist
--- Keep only the most recent game log for each user-game combination
-WITH ranked_logs AS (
-  SELECT 
-    id,
-    ROW_NUMBER() OVER (
-      PARTITION BY "userId", "gameId" 
-      ORDER BY "createdAt" DESC
-    ) as rn
-  FROM game_logs
-  WHERE "userId" IS NOT NULL 
-    AND "gameId" IS NOT NULL
-    AND "deletedAt" IS NULL
-)
-DELETE FROM game_logs 
-WHERE id IN (
-  SELECT id 
-  FROM ranked_logs 
-  WHERE rn > 1
-);
-
--- Add unique constraint to ensure one game log per user per game (if it doesn't exist)
-DO $$
-BEGIN
-  IF NOT EXISTS (
-    SELECT 1 FROM information_schema.table_constraints 
-    WHERE constraint_name = 'game_logs_user_game_unique' 
-    AND table_name = 'game_logs'
-  ) THEN
-    ALTER TABLE game_logs 
-    ADD CONSTRAINT game_logs_user_game_unique 
-    UNIQUE ("userId", "gameId");
-  END IF;
-END $$;
-
--- Create performance index for game logs
-CREATE INDEX IF NOT EXISTS idx_game_logs_user_game 
-ON game_logs ("userId", "gameId") 
-WHERE "deletedAt" IS NULL;
-
--- ============================================================================
--- SECTION 2: GAME RATINGS - Auto-update triggers
--- ============================================================================
-
--- Drop existing function and trigger if they exist
-DROP FUNCTION IF EXISTS update_game_ratings() CASCADE;
 
 -- Create function to update game ratings when game logs change
 CREATE OR REPLACE FUNCTION update_game_ratings()
@@ -56,24 +9,24 @@ BEGIN
     -- Handle DELETE operations
     IF (TG_OP = 'DELETE') THEN
         -- Delete the game rating if no logs remain
-        IF NOT EXISTS (SELECT 1 FROM game_logs WHERE "gameId" = OLD."gameId") THEN
-            DELETE FROM game_ratings WHERE "gameId" = OLD."gameId";
+        IF NOT EXISTS (SELECT 1 FROM game_logs WHERE game_id = OLD.game_id) THEN
+            DELETE FROM game_ratings WHERE game_id = OLD.game_id;
         ELSE
             -- Update the average rating and total count
             UPDATE game_ratings
-            SET 
-                "averageRating" = (
-                    SELECT ROUND(AVG("ratingForGame")::numeric, 2)
+            SET
+                average_rating = (
+                    SELECT ROUND(AVG(rating_for_game)::numeric, 2)
                     FROM game_logs
-                    WHERE "gameId" = OLD."gameId"
+                    WHERE game_id = OLD.game_id
                 ),
-                "totalRatings" = (
+                total_ratings = (
                     SELECT COUNT(*)
                     FROM game_logs
-                    WHERE "gameId" = OLD."gameId"
+                    WHERE game_id = OLD.game_id
                 ),
-                "updatedAt" = NOW()
-            WHERE "gameId" = OLD."gameId";
+                updated_at = NOW()
+            WHERE game_id = OLD.game_id;
         END IF;
         RETURN OLD;
     END IF;
@@ -81,20 +34,20 @@ BEGIN
     -- Handle INSERT operations
     IF (TG_OP = 'INSERT') THEN
         -- Insert or update the game rating
-        INSERT INTO game_ratings ("gameId", "averageRating", "totalRatings", "createdAt", "updatedAt")
-        SELECT 
-            NEW."gameId",
-            ROUND(AVG("ratingForGame")::numeric, 2),
+        INSERT INTO game_ratings (game_id, average_rating, total_ratings, created_at, updated_at)
+        SELECT
+            NEW.game_id,
+            ROUND(AVG(rating_for_game)::numeric, 2),
             COUNT(*),
             NOW(),
             NOW()
         FROM game_logs
-        WHERE "gameId" = NEW."gameId"
-        ON CONFLICT ("gameId") DO UPDATE
-        SET 
-            "averageRating" = EXCLUDED."averageRating",
-            "totalRatings" = EXCLUDED."totalRatings",
-            "updatedAt" = NOW();
+        WHERE game_id = NEW.game_id
+        ON CONFLICT (game_id) DO UPDATE
+        SET
+            average_rating = EXCLUDED.average_rating,
+            total_ratings = EXCLUDED.total_ratings,
+            updated_at = NOW();
         RETURN NEW;
     END IF;
 
@@ -102,19 +55,19 @@ BEGIN
     IF (TG_OP = 'UPDATE') THEN
         -- Update the game rating
         UPDATE game_ratings
-        SET 
-            "averageRating" = (
-                SELECT ROUND(AVG("ratingForGame")::numeric, 2)
+        SET
+            average_rating = (
+                SELECT ROUND(AVG(rating_for_game)::numeric, 2)
                 FROM game_logs
-                WHERE "gameId" = NEW."gameId"
+                WHERE game_id = NEW.game_id
             ),
-            "totalRatings" = (
+            total_ratings = (
                 SELECT COUNT(*)
                 FROM game_logs
-                WHERE "gameId" = NEW."gameId"
+                WHERE game_id = NEW.game_id
             ),
-            "updatedAt" = NOW()
-        WHERE "gameId" = NEW."gameId";
+            updated_at = NOW()
+        WHERE game_id = NEW.game_id;
         RETURN NEW;
     END IF;
 
@@ -123,14 +76,13 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Create the game ratings trigger
-DROP TRIGGER IF EXISTS game_logs_ratings_trigger ON game_logs;
 CREATE TRIGGER game_logs_ratings_trigger
     AFTER INSERT OR UPDATE OR DELETE ON game_logs
     FOR EACH ROW
     EXECUTE FUNCTION update_game_ratings();
 
 -- ============================================================================
--- SECTION 3: FRIENDSHIP NOTIFICATIONS - Auto-notification triggers
+-- SECTION 2: FRIENDSHIP NOTIFICATIONS - Auto-notification triggers
 -- ============================================================================
 
 -- Function to generate UUID v4 (reusable utility)
@@ -151,88 +103,87 @@ BEGIN
     -- Create notification for new pending friend requests
     IF NEW.status = 'Pending' AND (TG_OP = 'INSERT' OR (TG_OP = 'UPDATE' AND OLD.status != 'Pending')) THEN
         -- Get sender's username and name
-        SELECT username, CONCAT("firstName", ' ', "lastName") 
+        SELECT username, CONCAT(first_name, ' ', last_name)
         INTO sender_username, sender_name
-        FROM users 
-        WHERE id = NEW."userId";
-        
+        FROM users
+        WHERE id = NEW.user_id;
+
         -- Use username if name is not available
         IF sender_name IS NULL OR sender_name = ' ' THEN
             sender_name := sender_username;
         END IF;
-        
+
         -- Create notification for the recipient
         INSERT INTO notifications (
-            id, "userId", type, title, message, "targetId", "targetType", 
-            resolved, "createdAt", "updatedAt"
+            id, user_id, type, title, message, target_id, target_type,
+            resolved, created_at, updated_at
         ) VALUES (
-            generate_uuid_v4(), NEW."friendId", 'friend_request', 'New Friend Request',
+            generate_uuid_v4(), NEW.friend_id, 'friend_request', 'New Friend Request',
             sender_name || ' sent you a friend request', NEW.id, 'friendship',
             false, NOW(), NOW()
         );
     END IF;
-    
+
     -- Create notification when friend request is accepted
     IF NEW.status = 'Accepted' AND TG_OP = 'UPDATE' AND OLD.status = 'Pending' THEN
         -- Get acceptor's username and name
-        SELECT username, CONCAT("firstName", ' ', "lastName") 
+        SELECT username, CONCAT(first_name, ' ', last_name)
         INTO sender_username, sender_name
-        FROM users 
-        WHERE id = NEW."friendId";
-        
+        FROM users
+        WHERE id = NEW.friend_id;
+
         -- Use username if name is not available
         IF sender_name IS NULL OR sender_name = ' ' THEN
             sender_name := sender_username;
         END IF;
-        
+
         -- Create notification for the original sender
         INSERT INTO notifications (
-            id, "userId", type, title, message, "targetId", "targetType",
-            resolved, "createdAt", "updatedAt"
+            id, user_id, type, title, message, target_id, target_type,
+            resolved, created_at, updated_at
         ) VALUES (
-            generate_uuid_v4(), NEW."userId", 'friend_request_accepted', 'Friend Request Accepted',
+            generate_uuid_v4(), NEW.user_id, 'friend_request_accepted', 'Friend Request Accepted',
             sender_name || ' accepted your friend request', NEW.id, 'friendship',
             false, NOW(), NOW()
         );
     END IF;
-    
+
     -- Create notification when friend request is rejected
     IF NEW.status = 'Rejected' AND TG_OP = 'UPDATE' AND OLD.status = 'Pending' THEN
         -- Get rejector's username and name
-        SELECT username, CONCAT("firstName", ' ', "lastName") 
+        SELECT username, CONCAT(first_name, ' ', last_name)
         INTO sender_username, sender_name
-        FROM users 
-        WHERE id = NEW."friendId";
-        
+        FROM users
+        WHERE id = NEW.friend_id;
+
         -- Use username if name is not available
         IF sender_name IS NULL OR sender_name = ' ' THEN
             sender_name := sender_username;
         END IF;
-        
+
         -- Create notification for the original sender
         INSERT INTO notifications (
-            id, "userId", type, title, message, "targetId", "targetType",
-            resolved, "createdAt", "updatedAt"
+            id, user_id, type, title, message, target_id, target_type,
+            resolved, created_at, updated_at
         ) VALUES (
-            generate_uuid_v4(), NEW."userId", 'friend_request_rejected', 'Friend Request Declined',
+            generate_uuid_v4(), NEW.user_id, 'friend_request_rejected', 'Friend Request Declined',
             sender_name || ' declined your friend request', NEW.id, 'friendship',
             false, NOW(), NOW()
         );
     END IF;
-    
+
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
 -- Create friendship notification triggers
-DROP TRIGGER IF EXISTS friendship_notification_trigger ON friendships;
 CREATE TRIGGER friendship_notification_trigger
     AFTER INSERT OR UPDATE ON friendships
     FOR EACH ROW
     EXECUTE FUNCTION create_friend_request_notification();
 
 -- ============================================================================
--- SECTION 4: FRIENDSHIP USER ARRAYS - Track pending friendships in user arrays
+-- SECTION 3: FRIENDSHIP USER ARRAYS - Track pending friendships in user arrays
 -- ============================================================================
 
 -- Function to update user friendship arrays (only tracks PENDING friendships)
@@ -243,54 +194,50 @@ BEGIN
         -- Only add to arrays if the friendship is pending
         IF NEW.status = 'Pending' THEN
             -- Add friendship ID to outbound array for initiator
-            UPDATE users 
-            SET "outboundFriendshipIds" = array_append(COALESCE("outboundFriendshipIds", ARRAY[]::VARCHAR[]), NEW.id)
-            WHERE id = NEW."userId";
-            
+            UPDATE users
+            SET outbound_friendship_ids = array_append(COALESCE(outbound_friendship_ids, ARRAY[]::VARCHAR[]), NEW.id)
+            WHERE id = NEW.user_id;
+
             -- Add friendship ID to inbound array for recipient
-            UPDATE users 
-            SET "inboundFriendshipIds" = array_append(COALESCE("inboundFriendshipIds", ARRAY[]::VARCHAR[]), NEW.id)
-            WHERE id = NEW."friendId";
+            UPDATE users
+            SET inbound_friendship_ids = array_append(COALESCE(inbound_friendship_ids, ARRAY[]::VARCHAR[]), NEW.id)
+            WHERE id = NEW.friend_id;
         END IF;
-        
+
     ELSIF TG_OP = 'UPDATE' THEN
         -- If status changed from Pending to something else, remove from arrays
         IF OLD.status = 'Pending' AND NEW.status != 'Pending' THEN
             -- Remove friendship ID from outbound array for initiator
-            UPDATE users 
-            SET "outboundFriendshipIds" = array_remove(COALESCE("outboundFriendshipIds", ARRAY[]::VARCHAR[]), OLD.id)
-            WHERE id = OLD."userId";
-            
+            UPDATE users
+            SET outbound_friendship_ids = array_remove(COALESCE(outbound_friendship_ids, ARRAY[]::VARCHAR[]), OLD.id)
+            WHERE id = OLD.user_id;
+
             -- Remove friendship ID from inbound array for recipient
-            UPDATE users 
-            SET "inboundFriendshipIds" = array_remove(COALESCE("inboundFriendshipIds", ARRAY[]::VARCHAR[]), OLD.id)
-            WHERE id = OLD."friendId";
+            UPDATE users
+            SET inbound_friendship_ids = array_remove(COALESCE(inbound_friendship_ids, ARRAY[]::VARCHAR[]), OLD.id)
+            WHERE id = OLD.friend_id;
         END IF;
-        
+
     ELSIF TG_OP = 'DELETE' THEN
         -- If the deleted friendship was pending, remove from arrays
         IF OLD.status = 'Pending' THEN
             -- Remove friendship ID from outbound array for initiator
-            UPDATE users 
-            SET "outboundFriendshipIds" = array_remove(COALESCE("outboundFriendshipIds", ARRAY[]::VARCHAR[]), OLD.id)
-            WHERE id = OLD."userId";
-            
+            UPDATE users
+            SET outbound_friendship_ids = array_remove(COALESCE(outbound_friendship_ids, ARRAY[]::VARCHAR[]), OLD.id)
+            WHERE id = OLD.user_id;
+
             -- Remove friendship ID from inbound array for recipient
-            UPDATE users 
-            SET "inboundFriendshipIds" = array_remove(COALESCE("inboundFriendshipIds", ARRAY[]::VARCHAR[]), OLD.id)
-            WHERE id = OLD."friendId";
+            UPDATE users
+            SET inbound_friendship_ids = array_remove(COALESCE(inbound_friendship_ids, ARRAY[]::VARCHAR[]), OLD.id)
+            WHERE id = OLD.friend_id;
         END IF;
     END IF;
-    
+
     RETURN COALESCE(NEW, OLD);
 END;
 $$ LANGUAGE plpgsql;
 
 -- Create friendship user arrays triggers
-DROP TRIGGER IF EXISTS update_friendship_user_arrays_insert ON friendships;
-DROP TRIGGER IF EXISTS update_friendship_user_arrays_update ON friendships;
-DROP TRIGGER IF EXISTS update_friendship_user_arrays_delete ON friendships;
-
 CREATE TRIGGER update_friendship_user_arrays_insert
     AFTER INSERT ON friendships
     FOR EACH ROW
@@ -307,25 +254,25 @@ CREATE TRIGGER update_friendship_user_arrays_delete
     EXECUTE FUNCTION update_friendship_user_arrays();
 
 -- ============================================================================
--- SECTION 5: PERFORMANCE INDEXES
+-- SECTION 4: PERFORMANCE INDEXES
 -- ============================================================================
 
 -- Notification indexes for better query performance
-CREATE INDEX IF NOT EXISTS idx_notifications_userId_resolved 
-    ON notifications("userId", resolved);
+CREATE INDEX IF NOT EXISTS idx_notifications_user_id_resolved
+    ON notifications(user_id, resolved);
 
-CREATE INDEX IF NOT EXISTS idx_notifications_targetId_targetType 
-    ON notifications("targetId", "targetType");
+CREATE INDEX IF NOT EXISTS idx_notifications_target_id_target_type
+    ON notifications(target_id, target_type);
 
 -- User friendship array indexes for better performance
-CREATE INDEX IF NOT EXISTS idx_users_inbound_friendships 
-    ON users USING GIN("inboundFriendshipIds");
+CREATE INDEX IF NOT EXISTS idx_users_inbound_friendships
+    ON users USING GIN(inbound_friendship_ids);
 
-CREATE INDEX IF NOT EXISTS idx_users_outbound_friendships 
-    ON users USING GIN("outboundFriendshipIds");
+CREATE INDEX IF NOT EXISTS idx_users_outbound_friendships
+    ON users USING GIN(outbound_friendship_ids);
 
 -- ============================================================================
--- SECTION 6: UTILITY FUNCTIONS
+-- SECTION 5: UTILITY FUNCTIONS
 -- ============================================================================
 
 -- Function to rebuild friendship arrays (utility for data consistency)
@@ -334,16 +281,16 @@ CREATE OR REPLACE FUNCTION rebuild_user_friendship_arrays()
 RETURNS void AS $$
 BEGIN
     UPDATE users u
-    SET 
-        "outboundFriendshipIds" = COALESCE((
+    SET
+        outbound_friendship_ids = COALESCE((
             SELECT array_agg(f.id)
             FROM friendships f
-            WHERE f."userId" = u.id AND f.status = 'Pending'
+            WHERE f.user_id = u.id AND f.status = 'Pending'
         ), ARRAY[]::VARCHAR[]),
-        "inboundFriendshipIds" = COALESCE((
+        inbound_friendship_ids = COALESCE((
             SELECT array_agg(f.id)
             FROM friendships f
-            WHERE f."friendId" = u.id AND f.status = 'Pending'
+            WHERE f.friend_id = u.id AND f.status = 'Pending'
         ), ARRAY[]::VARCHAR[]);
 END;
 $$ LANGUAGE plpgsql;
@@ -352,10 +299,9 @@ $$ LANGUAGE plpgsql;
 -- MIGRATION COMPLETE
 -- ============================================================================
 -- This migration includes:
--- 1. Game log unique constraints and deduplication
--- 2. Auto-updating game ratings triggers
--- 3. Friendship notification triggers  
--- 4. User friendship array maintenance triggers
--- 5. Performance indexes for all new functionality
--- 6. Utility functions for maintenance
--- ============================================================================ 
+-- 1. Auto-updating game ratings triggers
+-- 2. Friendship notification triggers
+-- 3. User friendship array maintenance triggers
+-- 4. Performance indexes for all new functionality
+-- 5. Utility functions for maintenance
+-- ============================================================================

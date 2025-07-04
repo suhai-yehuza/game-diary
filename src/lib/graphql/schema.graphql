@@ -39,12 +39,12 @@ type Mutation {
   # Game mutations
   createGame(input: CreateGameInput!): CreateGameResponse!
   createGameLog(input: CreateGameLogInput!): CreateGameLogResponse!
-  updateGameLog(id: ID!, input: CreateGameLogInput!): UpdateGameLogResponse!
+  updateGameLog(id: ID!, input: UpdateGameLogInput!): UpdateGameLogResponse!
   deleteGameLog(id: ID!): DeleteGameLogResponse!
 
   # Comment mutations
   createComment(input: CreateCommentInput!): CreateCommentResponse!
-  updateComment(id: ID!, input: CreateCommentInput!): UpdateCommentResponse!
+  updateComment(id: ID!, input: UpdateCommentInput!): UpdateCommentResponse!
   deleteComment(id: ID!): DeleteCommentResponse!
 
   # Reaction mutations
@@ -103,7 +103,7 @@ type UserSummary {
   username: String!
   first_name: String!
   last_name: String!
-  emailAddress: String
+  email_address: String
   image_url: String
 }
 
@@ -112,20 +112,24 @@ type DBUser {
   username: String!
   first_name: String
   last_name: String
-  emailAddress: String
-  email_verified: Boolean
-  email_verification_strategy: String
-  password_enabled: Boolean
-  two_factor_enabled: Boolean
+  email_address: String
   image_url: String
-  banned: Boolean
-  last_sign_in_at: DateTime
+  object: String!
+  has_image: Boolean!
+  profile_image_url: String
+  primary_email_address_id: String
+  primary_phone_number_id: String
   external_id: String
-  createdAt: DateTime!
-  updatedAt: DateTime!
-  deletedAt: DateTime
-  inboundFriendshipIds: [String!]
-  outboundFriendshipIds: [String!]
+  last_active_at: DateTime
+  last_sign_in_at: DateTime
+  bio: String
+  timezone: String
+  preferred_language: String
+  created_at: DateTime!
+  updated_at: DateTime!
+  deleted_at: DateTime
+  inbound_friendship_ids: [String!]
+  outbound_friendship_ids: [String!]
   comments: [Comment!]!
   reactions: [Reaction!]!
   gameLogs: [GameLog!]!
@@ -136,100 +140,64 @@ type DBUser {
 type Friendship {
   id: ID!
   status: FriendshipStatus!
-  createdAt: DateTime!
-  updatedAt: DateTime!
+  created_at: DateTime!
+  updated_at: DateTime!
   initiator: UserSummary!
   recipient: UserSummary!
 }
 
 enum FriendshipStatus {
-  Accepted
-  Blocked
-  Pending
-  Rejected
+  ACCEPTED
+  BLOCKED
+  PENDING
+  REJECTED
 }
 
 # Game Types
 type Game {
   id: ID!
-  date: GameDate!
-  status: GameStatus!
-  arena: Arena
-  league: String
-  season: Int
-  stage: Int
-  periods: GamePeriods!
-  officials: [String!]!
-  timesTied: Int
-  leadChanges: Int
-  nugget: String
-  createdAt: DateTime!
-  updatedAt: DateTime!
-  homeTeamId: String!
-  awayTeamId: String!
-  isCompleted: Boolean!
-  awayTeamScore: Int
-  homeTeamScore: Int
-  gameType: String!
-  nbaGameId: ID
-}
-
-type GameDate {
-  start: DateTime!
-  end: DateTime
-  duration: Int
-}
-
-type GameStatus {
-  clock: String
-  halftime: Boolean!
-  short: String!
-  long: String!
-}
-
-type GamePeriods {
-  current: Int!
-  total: Int!
-  endOfPeriod: Boolean!
-}
-
-type Arena {
-  name: String!
-  city: String
-  state: String
-  country: String
+  date: DateTime!
+  status: String!
+  game_type: String!
+  nba_game_id: ID
+  home_team_id: String!
+  away_team_id: String!
+  home_team_score: Int
+  away_team_score: Int
+  created_at: DateTime!
+  updated_at: DateTime!
 }
 
 type GameLog {
   id: ID!
   game: Game!
   user: UserSummary!
-  ratingForGame: Int!
+  rating_for_game: Int!
   notes: String
   tags: [String!]
-  watchedDate: DateTime
-  watchedSetting: String
-  watchedLocation: String
-  watchedScope: String
+  watched_date: DateTime
+  watched_setting: String
+  watched_location: String
+  watched_scope: String
   classification: Classification!
-  createdAt: DateTime!
-  updatedAt: DateTime!
-  deletedAt: DateTime
+  created_at: DateTime!
+  updated_at: DateTime!
+  deleted_at: DateTime
   comments: CommentConnection!
   reactions: [Reaction!]!
 }
 
 enum Classification {
-  Private
-  Protected
-  Public
+  PRIVATE
+  PROTECTED
+  PUBLIC
 }
 
 enum GameStatusEnum {
-  Scheduled
-  Live
-  Finished
-  Cancelled
+  SCHEDULED
+  LIVE
+  FINISHED
+  CANCELLED
 }
 
 # Comment Types
@@ -237,20 +205,20 @@ type Comment {
   id: ID!
   content: String!
   user: UserSummary!
-  userId: ID!
-  parentId: ID!
-  parentType: ParentType!
+  user_id: ID!
+  parent_id: ID!
+  parent_type: ParentType!
   depth: Int!
-  createdAt: DateTime!
-  updatedAt: DateTime!
-  deletedAt: DateTime
+  created_at: DateTime!
+  updated_at: DateTime!
+  deleted_at: DateTime
   childComments: CommentConnection!
   reactions: [Reaction!]!
 }
 
 enum ParentType {
-  game_log
-  comment
+  GAME_LOG
+  COMMENT
 }
 
 type CommentConnection {
@@ -267,36 +235,13 @@ type CommentEdge {
 # Reaction Types
 type Reaction {
   id: ID!
-  emoji: ReactionEmojiType!
+  emoji: String!
   user: UserSummary!
-  userId: ID!
-  targetId: ID!
-  targetType: ParentType!
-  createdAt: DateTime!
-  updatedAt: DateTime!
-}
-
-enum ReactionEmojiType {
-  THUMBS_UP
-  THUMBS_DOWN
-  LOVE
-  LAUGH
-  WOW
-  SAD
-  ANGRY
-  FIRE
-  CLAP
-  EYES
-  ROCKET
-  MUSCLE
-  GOAT
-  BULLSEYE
-  BASKETBALL
-  SOCCER
-  FOOTBALL
-  BASEBALL
-  TENNIS
-  GOLF
+  user_id: ID!
+  target_id: ID!
+  target_type: ParentType!
+  created_at: DateTime!
+  updated_at: DateTime!
 }
 
 # Connection Types
@@ -375,49 +320,47 @@ input CreateCommentInput {
 }
 
 input UpdateCommentInput {
-  id: ID!
   content: String!
 }
 
 input CreateReactionInput {
-  emoji: ReactionEmojiType!
+  emoji: String!
   targetId: ID!
   targetType: ParentType!
 }
 
 input CreateGameLogInput {
   gameId: ID!
-  ratingForGame: Int!
+  rating_for_game: Int!
   notes: String
   tags: [String!]
-  watchedDate: DateTime
-  watchedSetting: String
-  watchedLocation: String
-  watchedScope: String
+  watched_date: DateTime
+  watched_setting: String
+  watched_location: String
+  watched_scope: String
   classification: Classification!
 }
 
 input UpdateGameLogInput {
-  id: ID!
-  ratingForGame: Int
+  rating_for_game: Int
   notes: String
   tags: [String!]
-  watchedDate: DateTime
-  watchedSetting: String
-  watchedLocation: String
-  watchedScope: String
+  watched_date: DateTime
+  watched_setting: String
+  watched_location: String
+  watched_scope: String
   classification: Classification
 }
 
 input CreateGameInput {
   date: DateTime!
-  homeTeamId: String!
-  awayTeamId: String!
-  league: String!
-  season: Int!
-  stage: Int!
-  gameType: String!
-  nbaGameId: ID
+  home_team_id: String!
+  away_team_id: String!
+  game_type: String!
+  nba_game_id: ID
+  status: String!
+  home_team_score: Int
+  away_team_score: Int
 }
 
 input UserFilters {

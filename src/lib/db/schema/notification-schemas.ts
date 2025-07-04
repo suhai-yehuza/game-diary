@@ -5,15 +5,15 @@ import { users } from '@/lib/db/schema/user-schemas';
 
 export const notifications = pgTable('notifications', {
   id: varchar('id', { length: 255 }).primaryKey(),
-  userId: varchar('userId', { length: 255 }).references(() => users.id),
+  user_id: varchar('user_id', { length: 255 }).references(() => users.id),
   type: varchar('type', { length: 50 }).notNull(),
   title: varchar('title', { length: 255 }).notNull(),
   message: text('message').notNull(),
-  targetId: varchar('targetId', { length: 255 }),
-  targetType: varchar('targetType', { length: 50 }),
+  target_id: varchar('target_id', { length: 255 }),
+  target_type: varchar('target_type', { length: 50 }),
   resolved: boolean('resolved').notNull().default(false),
-  createdAt: timestamp('createdAt').defaultNow().notNull(),
-  updatedAt: timestamp('updatedAt').defaultNow().notNull(),
-  deletedAt: timestamp('deletedAt').default(sql`null`),
+  created_at: timestamp('created_at').defaultNow().notNull(),
+  updated_at: timestamp('updated_at').defaultNow().notNull(),
+  deleted_at: timestamp('deleted_at').default(sql`null`),
   read: boolean('read').default(false),
 });

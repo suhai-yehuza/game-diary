@@ -13,9 +13,9 @@ export const createIdField = () => ({
 });
 
 export const createTimestampFields = () => ({
-  createdAt: timestamp('createdAt').defaultNow().notNull(),
-  updatedAt: timestamp('updatedAt').defaultNow().notNull(),
-  deletedAt: timestamp({ precision: 6, withTimezone: true }),
+  created_at: timestamp('created_at').defaultNow().notNull(),
+  updated_at: timestamp('updated_at').defaultNow().notNull(),
+  deleted_at: timestamp({ precision: 6, withTimezone: true }),
 });
 
 // Base table configuration that can be shared across different schema files

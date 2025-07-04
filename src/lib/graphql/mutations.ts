@@ -14,44 +14,16 @@ export const CREATE_GAME = gql`
     createGame(input: $input) {
       game {
         id
-        league
-        season
-        stage
-        date {
-          start
-          end
-          duration
-        }
-        status {
-          clock
-          halftime
-          short
-          long
-        }
-        periods {
-          current
-          total
-          endOfPeriod
-        }
-        arena {
-          name
-          city
-          state
-          country
-        }
-        officials
-        timesTied
-        leadChanges
-        nugget
-        homeTeamId
-        awayTeamId
-        isCompleted
-        awayTeamScore
-        homeTeamScore
-        gameType
-        nbaGameId
-        createdAt
-        updatedAt
+        date
+        status
+        game_type
+        nba_game_id
+        home_team_id
+        away_team_id
+        home_team_score
+        away_team_score
+        created_at
+        updated_at
       }
       errors {
         message
@@ -83,7 +55,7 @@ export const CREATE_GAME_LOG = gql`
 `;
 
 export const UPDATE_GAME_LOG = gql`
-  mutation UpdateGameLog($id: ID!, $input: CreateGameLogInput!) {
+  mutation UpdateGameLog($id: ID!, $input: UpdateGameLogInput!) {
     updateGameLog(id: $id, input: $input) {
       gameLog {
         ...GameLogFragment
@@ -134,7 +106,7 @@ export const CREATE_COMMENT = gql`
 `;
 
 export const UPDATE_COMMENT = gql`
-  mutation UpdateComment($id: ID!, $input: CreateCommentInput!) {
+  mutation UpdateComment($id: ID!, $input: UpdateCommentInput!) {
     updateComment(id: $id, input: $input) {
       comment {
         ...CommentFragment

@@ -87,23 +87,18 @@ export const checkFieldPermission = (
   field: string,
   resourceId?: string
 ) => {
-  // Admin has access to all fields
-  if (user.banned) {
-    throw new AuthorizationError('Account is banned');
-  }
-
   // Check field-specific permissions
   switch (resource) {
     case RESOURCES.USER:
       // Users can only access their own sensitive fields
-      if (['emailAddress', 'banned'].includes(field) && resourceId !== user.id) {
+      if (['email_address'].includes(field) && resourceId !== user.id) {
         throw new AuthorizationError(`Cannot access ${field} field`);
       }
       return true;
 
     case RESOURCES.GAME_LOG:
       // Users can only modify their own game logs
-      if (['watchedSetting', 'classification'].includes(field) && resourceId !== user.id) {
+      if (['watched_setting', 'classification'].includes(field) && resourceId !== user.id) {
         throw new AuthorizationError(`Cannot modify ${field} field`);
       }
       return true;
