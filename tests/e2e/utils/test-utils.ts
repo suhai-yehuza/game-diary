@@ -1,5 +1,5 @@
 import { Page, expect, Locator } from '@playwright/test';
-import { TestConfig } from '@src/lib/types/e2e-test-types';
+import { TestConfig } from '../../../src/lib/types/e2e-test-types';
 
 /**
  * Test utilities for e2e tests
@@ -531,11 +531,11 @@ export async function setupE2EMocking(page: Page): Promise<void> {
     console.log(`🔧 Mocking API proxy endpoint: ${endpoint}`);
 
     // Import mock data dynamically to avoid circular dependencies
-    const { MOCK_NBA_GAMES } = await import('@src/lib/mock/nbaGamesMock');
-    const { MOCK_NBA_TEAMS } = await import('@src/lib/mock/nbaTeamsMock');
-    const { MOCK_NBA_STANDINGS } = await import('@src/lib/mock/nbaStandingsMock');
-    const { MOCK_NBA_PLAYERS } = await import('@src/lib/mock/nbaPlayersMock');
-    const { MOCK_LIVE_GAMES } = await import('@src/lib/mock/liveGamesMock');
+    const { MOCK_NBA_GAMES } = await import('../../../src/lib/mock/nbaGamesMock');
+    const { MOCK_NBA_TEAMS } = await import('../../../src/lib/mock/nbaTeamsMock');
+    const { MOCK_NBA_STANDINGS } = await import('../../../src/lib/mock/nbaStandingsMock');
+    const { MOCK_NBA_PLAYERS } = await import('../../../src/lib/mock/nbaPlayersMock');
+    const { MOCK_LIVE_GAMES } = await import('../../../src/lib/mock/liveGamesMock');
 
     let mockResponse;
 
@@ -616,7 +616,7 @@ export async function setupE2EMocking(page: Page): Promise<void> {
   // Also mock the API proxy with a more specific pattern
   await page.route('**/api/proxy/games**', async route => {
     console.log(`🔧 Mocking games API proxy: ${route.request().url()}`);
-    const { MOCK_NBA_GAMES } = await import('@src/lib/mock/nbaGamesMock');
+    const { MOCK_NBA_GAMES } = await import('../../../src/lib/mock/nbaGamesMock');
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
@@ -626,7 +626,7 @@ export async function setupE2EMocking(page: Page): Promise<void> {
 
   await page.route('**/api/proxy/teams**', async route => {
     console.log(`🔧 Mocking teams API proxy: ${route.request().url()}`);
-    const { MOCK_NBA_TEAMS } = await import('@src/lib/mock/nbaTeamsMock');
+    const { MOCK_NBA_TEAMS } = await import('../../../src/lib/mock/nbaTeamsMock');
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
@@ -636,7 +636,7 @@ export async function setupE2EMocking(page: Page): Promise<void> {
 
   await page.route('**/api/proxy/standings**', async route => {
     console.log(`🔧 Mocking standings API proxy: ${route.request().url()}`);
-    const { MOCK_NBA_STANDINGS } = await import('@src/lib/mock/nbaStandingsMock');
+    const { MOCK_NBA_STANDINGS } = await import('../../../src/lib/mock/nbaStandingsMock');
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
