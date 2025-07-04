@@ -29,7 +29,7 @@ export async function GET(_request: NextRequest) {
         external_services: externalCheck,
       },
       version: process.env.npm_package_version ?? 'unknown',
-      environment: process.env.NODE_ENV ?? 'development',
+      environment: process.env.NODE_ENV,
     };
 
     return NextResponse.json(healthResponse, { status: statusCode });
