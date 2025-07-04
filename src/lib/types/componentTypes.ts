@@ -1,6 +1,6 @@
 // Types file: component.types.ts
 
-import type { HTMLAttributes } from 'react';
+import type { HTMLAttributes, ReactNode } from 'react';
 import { PropsWithChildren } from 'react';
 
 // Types moved from src/app/components/ui/card.tsx
@@ -34,4 +34,9 @@ export interface ISignUpButtonProps {
 export interface ISignInButtonProps {
   children: React.ReactNode;
   className?: string;
+}
+
+// Types moved from src/app/components/providers/client-providers.tsx
+export interface IClientProvidersProps {
+  children: ReactNode;
 }

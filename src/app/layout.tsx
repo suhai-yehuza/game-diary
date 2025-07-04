@@ -5,7 +5,7 @@ import React from 'react';
 import '@/styles/globals.css';
 
 import { Footer, Header } from '@src/app/components/layout';
-import { ClerkProviderWrapper, ThemeProvider } from '@src/app/components/providers';
+import { ClientProviders } from '@src/app/components/providers';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -25,18 +25,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className="scroll-smooth antialiased" suppressHydrationWarning>
       <body className={`flex min-h-screen flex-col ${inter.className}`}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <ClerkProviderWrapper>
-            <Header />
-            <main className="grow">{children}</main>
-            <Footer />
-          </ClerkProviderWrapper>
-        </ThemeProvider>
+        <ClientProviders>
+          <Header />
+          <main className="grow">{children}</main>
+          <Footer />
+        </ClientProviders>
       </body>
     </html>
   );

@@ -5,6 +5,11 @@ import { ClerkProvider } from '@clerk/nextjs';
 import type { IClerkProviderWrapperProps } from '@src/lib/types/uiTypes';
 
 export function ClerkProviderWrapper({ children }: IClerkProviderWrapperProps) {
+  if (!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY) {
+    console.warn('NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY is not set');
+    return <>{children}</>;
+  }
+
   return (
     <ClerkProvider
       publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}

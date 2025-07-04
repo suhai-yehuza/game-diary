@@ -44,8 +44,8 @@ export const TYPE_FIX_RULES: IFixRule[] = [
     description: 'Move database component types to appropriate types files',
     filePattern: /^src\/lib\/db\/.*\.ts$/,
     strategy: 'move-to-types',
-    targetTypesFile: 'database.types.ts',
-    importPath: '@src/lib/types/database.types',
+    targetTypesFile: 'schema-types.ts',
+    importPath: '@src/lib/types/schema-types',
   },
   {
     name: 'api-route-types',
@@ -92,8 +92,8 @@ export const TYPE_MOVEMENT_RULES: ITypeMovementRule[] = [
   },
   {
     sourcePattern: /^src\/lib\/db\//,
-    targetFile: 'database.types.ts',
-    importPath: '@src/lib/types/database.types',
+    targetFile: 'schema-types.ts',
+    importPath: '@src/lib/types/schema-types',
   },
   {
     sourcePattern: /^src\/app\/api\//,
@@ -125,7 +125,7 @@ export const COMMON_TYPE_IMPORTS = {
     "import type { InferInsertModel, InferSelectModel } from 'drizzle-orm';",
     "import type * as schema from '@src/lib/db/schema';",
   ],
-  'database.types.ts': [
+  'schema-types.ts': [
     "import type { NeonHttpDatabase } from 'drizzle-orm/neon-http';",
     "import type * as schema from '@src/lib/db/schema';",
   ],
