@@ -235,7 +235,7 @@ function NavigationLinks({
       {/* Divider */}
       <div className="hidden lg:block h-6 w-px bg-gray-200 dark:bg-gray-700 mx-3" />
       {/* Profile + Admin */}
-      <NavItem href="/profile" isActive={isActive('/profile')}>
+      <NavItem href="/protected/user" isActive={isActive('/protected/user')}>
         Profile
       </NavItem>
       {isLoaded && (
