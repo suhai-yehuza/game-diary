@@ -286,6 +286,7 @@ export const TABS = {
   GAMES: 'games',
   LEAGUES: 'leagues',
   SEASONS: 'seasons',
+  SEARCH: 'search',
 } as const;
 
 export type TabKey = keyof typeof TABS;

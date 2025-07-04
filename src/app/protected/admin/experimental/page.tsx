@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import {
   Button,
@@ -35,6 +35,7 @@ function NavigationTabs(props: NavigationTabsProps) {
     TABS.TEAMS as TabValue,
     TABS.PLAYERS as TabValue,
     TABS.STANDINGS as TabValue,
+    TABS.SEARCH as TabValue,
   ];
   return (
     <div className="flex flex-wrap gap-2 border-b mb-6">
@@ -278,6 +279,74 @@ function PlayersSection(props: PlayersSectionProps) {
   );
 }
 
+// Search Section Component
+function SearchSection({
+  loading,
+  handleFetch,
+  data,
+}: {
+  loading: boolean;
+  handleFetch: (endpoint: string, params: Record<string, string>) => Promise<void>;
+  data: unknown;
+}) {
+  const [subTab, setSubTab] = useState<'teams' | 'players'>('teams');
+  const [searchValue, setSearchValue] = useState('');
+  const [searchClicked, setSearchClicked] = useState(false);
+
+  function handleSearch(e: React.FormEvent) {
+    e.preventDefault();
+    setSearchClicked(true);
+    if (subTab === 'teams') {
+      void handleFetch('/teams', { search: searchValue });
+    } else {
+      void handleFetch('/players', { search: searchValue });
+    }
+  }
+
+  return (
+    <div className="mb-6">
+      <div className="flex gap-2 border-b mb-4">
+        <button
+          className={`px-4 py-2 text-sm font-medium cursor-pointer ${subTab === 'teams' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-500 hover:text-blue-600'}`}
+          onClick={() => setSubTab('teams')}
+        >
+          Teams
+        </button>
+        <button
+          className={`px-4 py-2 text-sm font-medium cursor-pointer ${subTab === 'players' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-500 hover:text-blue-600'}`}
+          onClick={() => setSubTab('players')}
+        >
+          Players
+        </button>
+      </div>
+      <form onSubmit={handleSearch} className="flex gap-2 items-center mb-4">
+        <input
+          type="text"
+          className="border rounded px-3 py-2 w-64"
+          placeholder={`Search ${subTab.charAt(0).toUpperCase() + subTab.slice(1)}`}
+          value={searchValue}
+          onChange={e => setSearchValue(e.target.value)}
+        />
+        <button
+          type="submit"
+          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+          disabled={loading || !searchValue.trim()}
+        >
+          {loading ? 'Searching...' : 'Search'}
+        </button>
+      </form>
+      {searchClicked && (
+        <div className="mt-4">
+          <h3 className="text-lg font-semibold mb-2">Results</h3>
+          <pre className="text-sm overflow-auto max-h-96 bg-white dark:bg-gray-800 p-4 rounded border">
+            {data ? JSON.stringify(data, null, 2) : 'No results'}
+          </pre>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // Main Content Component
 function AdminExperimentalContent() {
   const { data, loading, error, handleFetch, clearData } = useApiFetch();
@@ -448,7 +517,13 @@ function AdminExperimentalContent() {
         />
       )}
 
-      <DataDisplay data={data} loading={loading} error={error} selectedTab={selectedTab} />
+      {selectedTab === TABS.SEARCH && (
+        <SearchSection loading={loading} handleFetch={handleFetch} data={data} />
+      )}
+
+      {selectedTab !== TABS.SEARCH && (
+        <DataDisplay data={data} loading={loading} error={error} selectedTab={selectedTab} />
+      )}
     </div>
   );
 }
