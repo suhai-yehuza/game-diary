@@ -65,7 +65,7 @@ function AdminDatabaseContent() {
         title: 'Users',
         icon: Users,
         description: 'User accounts and profiles',
-        fields: ['id', 'username', 'first_name', 'last_name', 'emailAddress', 'createdAt'],
+        fields: ['id', 'username', 'first_name', 'last_name', 'email_address', 'created_at'],
       },
       game_logs: {
         title: 'Game Logs',
@@ -73,43 +73,43 @@ function AdminDatabaseContent() {
         description: 'User game watching history and ratings',
         fields: [
           'id',
-          'userId',
-          'gameId',
-          'ratingForGame',
-          'watchedSetting',
-          'watchedDate',
-          'createdAt',
+          'user_id',
+          'game_id',
+          'rating_for_game',
+          'watched_setting',
+          'watched_date',
+          'created_at',
         ],
       },
       comments: {
         title: 'Comments',
         icon: MessageSquare,
         description: 'User comments on game logs and other content',
-        fields: ['id', 'userId', 'parentId', 'parentType', 'content', 'createdAt'],
+        fields: ['id', 'user_id', 'parent_id', 'parent_type', 'content', 'created_at'],
       },
       reactions: {
         title: 'Reactions',
         icon: Heart,
         description: 'User reactions (emojis) on content',
-        fields: ['id', 'userId', 'targetId', 'targetType', 'emoji', 'createdAt'],
+        fields: ['id', 'user_id', 'target_id', 'target_type', 'emoji', 'created_at'],
       },
       friendships: {
         title: 'Friendships',
         icon: UserPlus,
         description: 'User friendship relationships and status',
-        fields: ['id', 'userId', 'friendId', 'status', 'createdAt'],
+        fields: ['id', 'user_id', 'friend_id', 'status', 'created_at'],
       },
       game_ratings: {
         title: 'Game Ratings',
         icon: Star,
         description: 'Aggregated game ratings and statistics',
-        fields: ['gameId', 'averageRating', 'totalRatings', 'createdAt'],
+        fields: ['game_id', 'average_rating', 'total_ratings', 'created_at'],
       },
       notifications: {
         title: 'Notifications',
         icon: Bell,
         description: 'User notifications and alerts',
-        fields: ['id', 'userId', 'type', 'title', 'message', 'createdAt'],
+        fields: ['id', 'user_id', 'type', 'title', 'message', 'created_at'],
       },
       nba_games: {
         title: 'NBA Games',
@@ -120,10 +120,51 @@ function AdminDatabaseContent() {
           'league',
           'season',
           'date',
-          'homeTeamId',
-          'awayTeamId',
+          'home_team_id',
+          'away_team_id',
           'status',
-          'createdAt',
+          'created_at',
+        ],
+      },
+      nba_players: {
+        title: 'Players',
+        icon: Users,
+        description: 'NBA player data and profiles',
+        fields: [
+          'id',
+          'first_name',
+          'last_name',
+          'birth',
+          'nba',
+          'height',
+          'weight',
+          'college',
+          'affiliation',
+          'teams',
+          'leagues',
+          'image_url',
+          'created_at',
+          'updated_at',
+          'deleted_at',
+        ],
+      },
+      teams: {
+        title: 'Teams',
+        icon: Users,
+        description: 'NBA teams data and info',
+        fields: [
+          'id',
+          'name',
+          'nickname',
+          'code',
+          'city',
+          'logo',
+          'all_star',
+          'nba_franchise',
+          'leagues',
+          'created_at',
+          'updated_at',
+          'deleted_at',
         ],
       },
     }),
@@ -293,11 +334,15 @@ function AdminDatabaseContent() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-8">
+        <TabsList className="flex flex-col md:flex-row w-full md:space-x-2 space-y-2 md:space-y-0">
           {Object.entries(tableConfigs).map(([key, config]) => (
-            <TabsTrigger key={key} value={key} className="flex items-center gap-2">
+            <TabsTrigger
+              key={key}
+              value={key}
+              className="flex-1 flex items-center gap-2 min-w-0 truncate justify-center"
+            >
               <config.icon className="h-4 w-4" />
-              <span className="hidden sm:inline">{config.title}</span>
+              <span className="hidden sm:inline truncate">{config.title}</span>
             </TabsTrigger>
           ))}
         </TabsList>
