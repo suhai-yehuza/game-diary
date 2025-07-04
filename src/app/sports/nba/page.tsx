@@ -7,9 +7,25 @@ import React from 'react';
 import { LiveGamesDetail } from '@src/app/components/live-games-detail';
 
 export default function NBAPage() {
-  const userData = (
-    useUser as () => { isLoaded: boolean; isSignedIn: boolean; user: { firstName?: string } | null }
-  )();
+  // Safely use useUser with fallback values
+  let userData: { isLoaded: boolean; isSignedIn: boolean; user: { firstName?: string } | null } = {
+    isLoaded: false,
+    isSignedIn: false,
+    user: null,
+  };
+
+  try {
+    userData = (
+      useUser as () => {
+        isLoaded: boolean;
+        isSignedIn: boolean;
+        user: { firstName?: string } | null;
+      }
+    )();
+  } catch (error) {
+    // Fallback values if useUser is not available (e.g., ClerkProvider not ready)
+    console.warn('useUser not available, using fallback values:', error);
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">

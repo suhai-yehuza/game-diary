@@ -1,6 +1,10 @@
-'use client';
-
+import type { Metadata } from 'next';
 import React from 'react';
+
+export const metadata: Metadata = {
+  title: 'Dashboard | Game Diary',
+  description: 'Your personal game diary dashboard',
+};
 
 export default function DashboardPage() {
   return (

@@ -8,7 +8,16 @@ import React from 'react';
 import { useMounted } from '@/hooks/use-mounted';
 
 export default function HomePage() {
-  const userData = (useUser as () => { isLoaded: boolean; isSignedIn: boolean })();
+  // Safely use useUser with fallback values
+  let userData: { isLoaded: boolean; isSignedIn: boolean } = { isLoaded: false, isSignedIn: false };
+
+  try {
+    userData = (useUser as () => { isLoaded: boolean; isSignedIn: boolean })();
+  } catch (error) {
+    // Fallback values if useUser is not available (e.g., ClerkProvider not ready)
+    console.warn('useUser not available, using fallback values:', error);
+  }
+
   const mounted = useMounted();
 
   if (!mounted) {

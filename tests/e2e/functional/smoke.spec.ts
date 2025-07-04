@@ -146,18 +146,49 @@ test.describe('Smoke Tests (Extends Fast)', () => {
     await safeGoto(page, '/');
     await waitForPageLoad(page);
 
-    // Navigate to sports
-    await page.click('a[href*="/sports"]');
+    // Check if we're on mobile and need to open the menu
+    const isMobile = await page.evaluate(() => window.innerWidth < 1024);
+
+    if (isMobile) {
+      // Open mobile menu first
+      const menuButton = page.locator('button[aria-label="Toggle menu"]');
+      await expect(menuButton).toBeVisible();
+      await menuButton.click();
+      await page.waitForTimeout(500); // Wait for menu animation
+    }
+
+    // Navigate to sports - be more specific to avoid the "View All" link
+    const sportsLink = page.locator('nav a[href*="/sports"]').first();
+    await expect(sportsLink).toBeVisible();
+    await sportsLink.click();
     await waitForPageLoad(page);
     await expect(page.locator('main')).toBeVisible();
 
     // Navigate to dashboard
-    await page.click('a[href*="/dashboard"]');
+    if (isMobile) {
+      // Reopen mobile menu for dashboard link
+      const menuButton = page.locator('button[aria-label="Toggle menu"]');
+      await menuButton.click();
+      await page.waitForTimeout(500);
+    }
+
+    const dashboardLink = page.locator('nav a[href*="/dashboard"]').first();
+    await expect(dashboardLink).toBeVisible();
+    await dashboardLink.click();
     await waitForPageLoad(page);
     await expect(page.locator('main')).toBeVisible();
 
     // Navigate back to home
-    await page.click('a[href="/"]');
+    if (isMobile) {
+      // Reopen mobile menu for home link
+      const menuButton = page.locator('button[aria-label="Toggle menu"]');
+      await menuButton.click();
+      await page.waitForTimeout(500);
+    }
+
+    const homeLink = page.locator('nav a[href="/"], a[href="/"]').first();
+    await expect(homeLink).toBeVisible();
+    await homeLink.click();
     await waitForPageLoad(page);
     await expect(page.locator('main')).toBeVisible();
   });

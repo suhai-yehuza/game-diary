@@ -4,16 +4,45 @@ import { useAuth, useUser } from '@clerk/nextjs';
 import React from 'react';
 
 export default function ProtectedClientPage() {
-  const userData = (useUser as () => { user: { firstName?: string } | null })();
-  const authData = (
-    useAuth as () => {
-      isLoaded: boolean;
-      isSignedIn: boolean;
-      userId: string;
-      sessionId: string;
-      getToken: () => Promise<string | null>;
-    }
-  )();
+  // Safely use useUser with fallback values
+  let userData: { user: { firstName?: string } | null } = { user: null };
+
+  try {
+    userData = (useUser as () => { user: { firstName?: string } | null })();
+  } catch (error) {
+    // Fallback values if useUser is not available (e.g., ClerkProvider not ready)
+    console.warn('useUser not available, using fallback values:', error);
+  }
+
+  // Safely use useAuth with fallback values
+  let authData: {
+    isLoaded: boolean;
+    isSignedIn: boolean;
+    userId: string;
+    sessionId: string;
+    getToken: () => Promise<string | null>;
+  } = {
+    isLoaded: false,
+    isSignedIn: false,
+    userId: '',
+    sessionId: '',
+    getToken: () => Promise.resolve(null),
+  };
+
+  try {
+    authData = (
+      useAuth as () => {
+        isLoaded: boolean;
+        isSignedIn: boolean;
+        userId: string;
+        sessionId: string;
+        getToken: () => Promise<string | null>;
+      }
+    )();
+  } catch (error) {
+    // Fallback values if useAuth is not available (e.g., ClerkProvider not ready)
+    console.warn('useAuth not available, using fallback values:', error);
+  }
 
   if (!authData.isLoaded || !authData.isSignedIn) {
     return null;

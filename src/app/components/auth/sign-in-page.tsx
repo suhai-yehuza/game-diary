@@ -2,7 +2,7 @@
 
 import { SignIn } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback, Suspense } from 'react';
 
 export function SignInPage() {
   const router = useRouter();
@@ -80,7 +80,9 @@ export function SignInPage() {
 
   return (
     <div ref={containerRef} className="grow flex items-center justify-center min-h-[60vh]">
-      <SignIn />
+      <Suspense fallback={<div>Loading...</div>}>
+        <SignIn />
+      </Suspense>
     </div>
   );
 }

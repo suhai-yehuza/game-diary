@@ -132,7 +132,7 @@ export type FriendshipInsert = InferInsertModel<typeof schema.friendships>;
 export type GameLogInsert = InferInsertModel<typeof schema.game_logs>;
 export type CommentInsert = InferInsertModel<typeof schema.comments>;
 export type ReactionInsert = InferInsertModel<typeof schema.reactions>;
-export type GameInsert = InferInsertModel<typeof schema.games>;
+export type GameInsert = InferInsertModel<typeof schema.nba_games>;
 
 // Database client type
 export type DatabaseClient = NeonHttpDatabase<typeof schema>;

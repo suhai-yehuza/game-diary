@@ -4,9 +4,25 @@ import { useUser } from '@clerk/nextjs';
 import React from 'react';
 
 export default function NHLPage() {
-  const userData = (
-    useUser as () => { isLoaded: boolean; isSignedIn: boolean; user: { firstName?: string } | null }
-  )();
+  // Safely use useUser with fallback values
+  let userData: { isLoaded: boolean; isSignedIn: boolean; user: { firstName?: string } | null } = {
+    isLoaded: false,
+    isSignedIn: false,
+    user: null,
+  };
+
+  try {
+    userData = (
+      useUser as () => {
+        isLoaded: boolean;
+        isSignedIn: boolean;
+        user: { firstName?: string } | null;
+      }
+    )();
+  } catch (error) {
+    // Fallback values if useUser is not available (e.g., ClerkProvider not ready)
+    console.warn('useUser not available, using fallback values:', error);
+  }
 
   return (
     <section className="min-h-[calc(100vh-4rem)] flex items-center justify-center">

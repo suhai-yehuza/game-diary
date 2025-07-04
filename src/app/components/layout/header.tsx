@@ -239,30 +239,32 @@ function NavigationLinks({
         Profile
       </NavItem>
       {isLoaded && (
-        <SignedIn>
-          {isAdmin && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <NavItem href="/protected/admin" isActive={isActive('/protected/admin')}>
-                  Admin
-                  <ChevronDown className="h-3 w-3 ml-1" />
-                </NavItem>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-48">
-                <DropdownMenuItem asChild>
-                  <Link href="/protected/admin/experimental" className="w-full">
-                    External API
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/protected/admin/database" className="w-full">
-                    Database
-                  </Link>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
-        </SignedIn>
+        <Suspense fallback={null}>
+          <SignedIn>
+            {isAdmin && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <NavItem href="/protected/admin" isActive={isActive('/protected/admin')}>
+                    Admin
+                    <ChevronDown className="h-3 w-3 ml-1" />
+                  </NavItem>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-48">
+                  <DropdownMenuItem asChild>
+                    <Link href="/protected/admin/experimental" className="w-full">
+                      External API
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/protected/admin/database" className="w-full">
+                      Database
+                    </Link>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+          </SignedIn>
+        </Suspense>
       )}
     </nav>
   );
@@ -279,12 +281,24 @@ export function Header() {
   const [isSearchVisible, setIsSearchVisible] = useState(false);
   const [isMenuExpanded, setIsMenuExpanded] = useState(false);
   const pathname = usePathname() || '/';
-  const userData = (
-    useUser as () => {
-      user: { emailAddresses: Array<{ emailAddress: string }> } | null;
-      isLoaded: boolean;
-    }
-  )();
+
+  // Safely use useUser with fallback values
+  let userData: {
+    user: { emailAddresses: Array<{ emailAddress: string }> } | null;
+    isLoaded: boolean;
+  } = { user: null, isLoaded: false };
+
+  try {
+    userData = (
+      useUser as () => {
+        user: { emailAddresses: Array<{ emailAddress: string }> } | null;
+        isLoaded: boolean;
+      }
+    )();
+  } catch (error) {
+    // Fallback values if useUser is not available (e.g., ClerkProvider not ready)
+    console.warn('useUser not available, using fallback values:', error);
+  }
 
   const isActive = (path: string) => {
     if (path === '/') {
@@ -340,7 +354,7 @@ export function Header() {
 
               {/* Navigation Links */}
               <div
-                className={`${!isMenuExpanded ? 'hidden' : 'block'} lg:block absolute lg:relative top-16 left-0 right-0 lg:top-0 bg-background lg:bg-transparent z-50 shadow-lg lg:shadow-none`}
+                className={`${!isMenuExpanded ? 'hidden' : 'block'} lg:block absolute lg:relative top-16 left-0 right-0 lg:top-0 bg-background lg:bg-transparent z-50 shadow-lg lg:shadow-none border-b lg:border-b-0`}
               >
                 <ClientOnlyNavigationLinks
                   isActive={isActive}
@@ -379,14 +393,16 @@ export function Header() {
             <ThemeToggle />
 
             {/* Auth Controls */}
-            <SignedOut>
-              <span className="bg-[#757575] text-white hover:bg-[#616161] focus:ring-4 focus:outline-none focus:ring-gray-400 font-medium rounded-lg text-sm px-4 py-2 sm:px-5 sm:py-2.5 text-center border border-gray-600 dark:bg-[#e5e5e5] dark:text-gray-800 dark:hover:bg-[#d4d4d4] dark:focus:ring-gray-300 min-w-[44px] min-h-[44px] flex-shrink-0 whitespace-nowrap">
-                <SignInButton mode="modal">Sign In</SignInButton>
-              </span>
-            </SignedOut>
-            <SignedIn>
-              <UserButton />
-            </SignedIn>
+            <Suspense fallback={null}>
+              <SignedOut>
+                <span className="bg-[#757575] text-white hover:bg-[#616161] focus:ring-4 focus:outline-none focus:ring-gray-400 font-medium rounded-lg text-sm px-4 py-2 sm:px-5 sm:py-2.5 text-center border border-gray-600 dark:bg-[#e5e5e5] dark:text-gray-800 dark:hover:bg-[#d4d4d4] dark:focus:ring-gray-300 min-w-[44px] min-h-[44px] flex-shrink-0 whitespace-nowrap">
+                  <SignInButton mode="modal">Sign In</SignInButton>
+                </span>
+              </SignedOut>
+              <SignedIn>
+                <UserButton />
+              </SignedIn>
+            </Suspense>
           </div>
         </div>
 
