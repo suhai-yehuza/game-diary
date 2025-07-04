@@ -180,7 +180,21 @@
     "test:failing": "./scripts/run-failing.sh files",
     "test:failing:fast": "./scripts/run-failing.sh files playwright.fast.config.ts line",
     "test:failing:popular": "./scripts/run-failing.sh files playwright.popular.config.ts line",
-    "test:failing:responsive": "./scripts/run-failing.sh files playwright.popular.config.ts line tests/e2e/functional/responsive.spec.ts"
+    "test:failing:responsive": "./scripts/run-failing.sh files playwright.popular.config.ts line tests/e2e/functional/responsive.spec.ts",
+    "=====Database Seeding=====": "=====+=====+=====+=====+=====",
+    "seed": "tsx src/lib/db/seed/index.ts",
+    "seed:help": "tsx src/lib/db/seed/index.ts --help",
+    "seed:external": "tsx src/lib/db/seed/index.ts --external",
+    "seed:user": "tsx src/lib/db/seed/index.ts --user",
+    "seed:all": "tsx src/lib/db/seed/index.ts --all",
+    "seed:clear-user": "tsx src/lib/db/seed/index.ts --clear-user",
+    "seed:small": "tsx src/lib/db/seed/index.ts --scenario small",
+    "seed:medium": "tsx src/lib/db/seed/index.ts --scenario medium",
+    "seed:large": "tsx src/lib/db/seed/index.ts --scenario large",
+    "seed:custom": "tsx src/lib/db/seed/index.ts --scenario custom",
+    "seed:dry-run": "tsx src/lib/db/seed/index.ts --dry-run",
+    "seed:validate": "tsx scripts/test-seeding-dependencies-simple.ts",
+    "seed:test-cli": "tsx scripts/test-command-line-seeding.ts"
   },
   "dependencies": {
     "@apollo/client": "3.13.8",

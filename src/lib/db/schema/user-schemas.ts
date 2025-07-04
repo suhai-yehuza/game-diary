@@ -1,5 +1,5 @@
 import { sql } from 'drizzle-orm';
-import { pgTable, varchar, text, timestamp, boolean, unique } from 'drizzle-orm/pg-core';
+import { pgTable, varchar, text, timestamp, boolean, unique, integer } from 'drizzle-orm/pg-core';
 
 import { baseTableConfig } from '@/lib/db/schema/base-schemas';
 import { FRIENDSHIP_STATUS, REACTION_EMOJIS, TARGET_TYPES } from '@src/lib/types';
@@ -78,13 +78,16 @@ export const comments = pgTable(
       .notNull()
       .$type<(typeof TARGET_TYPES)[keyof typeof TARGET_TYPES]>(),
     content: text('content').notNull(),
+    depth: integer('depth').notNull().default(0), // Track comment nesting depth (0-5)
   },
   _table => ({
     commentIndex: sql`CREATE INDEX IF NOT EXISTS idx_comments_parent ON comments (parent_id, parent_type)`,
     commentUserIndex: sql`CREATE INDEX IF NOT EXISTS idx_comments_user ON comments (user_id)`,
     commentCreatedIndex: sql`CREATE INDEX IF NOT EXISTS idx_comments_created ON comments (created_at)`,
     commentDeletedIndex: sql`CREATE INDEX IF NOT EXISTS idx_comments_deleted_at ON comments (deleted_at)`,
+    commentDepthIndex: sql`CREATE INDEX IF NOT EXISTS idx_comments_depth ON comments (depth)`,
     parentTypeCheck: sql`CHECK (parent_type IN ('${sql.join(Object.values(TARGET_TYPES), "','")}'))`,
+    depthCheck: sql`CHECK (depth >= 0 AND depth <= 5)`, // Enforce max depth of 5
   })
 );
 
