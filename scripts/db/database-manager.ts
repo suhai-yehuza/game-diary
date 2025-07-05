@@ -14,6 +14,7 @@ import { promisify } from 'util';
 
 import { sql } from 'drizzle-orm';
 import { neon, neonConfig } from '@neondatabase/serverless';
+import { neon as neonDirect } from '@neondatabase/serverless';
 
 import { logger } from '@lib/core/logger';
 import { createDatabaseClient } from '@src/lib/db';
@@ -44,6 +45,8 @@ neonConfig.fetchFunction = (input: RequestInfo | URL, init?: RequestInit) => {
 
 // Create a single SQL client instance for raw SQL operations
 const sqlClient = neon(process.env.DATABASE_URL!);
+
+const sqlDirect = neonDirect(process.env.DATABASE_URL!);
 
 // ============================================================================
 // SHARED UTILITIES
@@ -826,75 +829,238 @@ async function setupDatabase(
  * Truncate tables based on scope
  */
 async function truncateTables(scope: 'internal' | 'external' | 'all'): Promise<void> {
+  logger.info(`Connecting to database: ${process.env.DATABASE_URL}`);
   await ensureConnection();
+
+  // Debug: List all tables in public schema
+  const tables = await sqlClient.unsafe(
+    `SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'`
+  );
+  logger.info('Tables in public schema:', JSON.stringify(tables));
+  const testCount = await sqlClient.unsafe('SELECT COUNT(*) as count FROM "seasons"');
+  logger.info('Manual SELECT COUNT(*) from seasons:', JSON.stringify(testCount));
 
   logger.info(`🗑️  Truncating ${scope} tables...`);
 
+  // Helper to truncate a single table and commit
+  async function truncateSingleTable(table: string) {
+    try {
+      const before = await sqlClient.unsafe(`SELECT COUNT(*) as count FROM "${table}"`);
+      logger.info(
+        `Table ${table} before: ${(before as unknown as any[])[0]?.count ?? 'unknown'} rows`
+      );
+      await sqlClient.unsafe('TRUNCATE TABLE "' + table + '" CASCADE');
+      const after = await sqlClient.unsafe(`SELECT COUNT(*) as count FROM "${table}"`);
+      logger.info(
+        `Table ${table} after: ${(after as unknown as any[])[0]?.count ?? 'unknown'} rows`
+      );
+      logger.info(`✅ Truncated ${table}`);
+    } catch (error) {
+      logger.error(`❌ Error truncating ${table}:`, error);
+    }
+  }
+
+  if (scope === 'internal' || scope === 'all') {
+    logger.info('Truncating internal tables...');
+    await truncateAllInternalTables();
+  }
+
+  if (scope === 'external' || scope === 'all') {
+    logger.info('Truncating external tables...');
+    await truncateAllExternalTables();
+  }
+
+  logger.info(`✅ Finished truncating ${scope} tables`);
+}
+
+async function truncateAllInternalTables() {
   try {
-    // Start transaction
-    await sqlClient.unsafe('BEGIN');
+    // Truncate each table individually with hardcoded statements
+    logger.info('Truncating users table...');
+    const beforeUsers = await sqlClient`SELECT COUNT(*) as count FROM "users"`;
+    logger.info(`Table users before: ${beforeUsers[0]?.count ?? 'unknown'} rows`);
+    await sqlDirect`TRUNCATE TABLE "users" CASCADE`;
+    const afterUsers = await sqlClient`SELECT COUNT(*) as count FROM "users"`;
+    logger.info(`Table users after: ${afterUsers[0]?.count ?? 'unknown'} rows`);
+    logger.info('✅ Truncated users');
 
-    if (scope === 'internal' || scope === 'all') {
-      logger.info('Truncating internal tables...');
+    logger.info('Truncating game_logs table...');
+    const beforeGameLogs = await sqlClient`SELECT COUNT(*) as count FROM "game_logs"`;
+    logger.info(`Table game_logs before: ${beforeGameLogs[0]?.count ?? 'unknown'} rows`);
+    await sqlDirect`TRUNCATE TABLE "game_logs" CASCADE`;
+    const afterGameLogs = await sqlClient`SELECT COUNT(*) as count FROM "game_logs"`;
+    logger.info(`Table game_logs after: ${afterGameLogs[0]?.count ?? 'unknown'} rows`);
+    logger.info('✅ Truncated game_logs');
 
-      // Internal tables (user-generated content)
-      const internalTables = [
-        'game_logs',
-        'friendships',
-        'reactions',
-        'comments',
-        'notifications',
-        'user_preferences',
-        'user_sessions',
-      ];
+    logger.info('Truncating game_ratings table...');
+    const beforeGameRatings = await sqlClient`SELECT COUNT(*) as count FROM "game_ratings"`;
+    logger.info(`Table game_ratings before: ${beforeGameRatings[0]?.count ?? 'unknown'} rows`);
+    await sqlDirect`TRUNCATE TABLE "game_ratings" CASCADE`;
+    const afterGameRatings = await sqlClient`SELECT COUNT(*) as count FROM "game_ratings"`;
+    logger.info(`Table game_ratings after: ${afterGameRatings[0]?.count ?? 'unknown'} rows`);
+    logger.info('✅ Truncated game_ratings');
 
-      for (const table of internalTables) {
-        try {
-          await sqlClient.unsafe(`TRUNCATE TABLE "${table}" CASCADE`);
-          logger.info(`✅ Truncated ${table}`);
-        } catch (error) {
-          logger.warn(
-            `⚠️  Could not truncate ${table}: ${error instanceof Error ? error.message : String(error)}`
-          );
-        }
-      }
-    }
+    logger.info('Truncating friendships table...');
+    const beforeFriendships = await sqlClient`SELECT COUNT(*) as count FROM "friendships"`;
+    logger.info(`Table friendships before: ${beforeFriendships[0]?.count ?? 'unknown'} rows`);
+    await sqlDirect`TRUNCATE TABLE "friendships" CASCADE`;
+    const afterFriendships = await sqlClient`SELECT COUNT(*) as count FROM "friendships"`;
+    logger.info(`Table friendships after: ${afterFriendships[0]?.count ?? 'unknown'} rows`);
+    logger.info('✅ Truncated friendships');
 
-    if (scope === 'external' || scope === 'all') {
-      logger.info('Truncating external tables...');
+    logger.info('Truncating reactions table...');
+    const beforeReactions = await sqlClient`SELECT COUNT(*) as count FROM "reactions"`;
+    logger.info(`Table reactions before: ${beforeReactions[0]?.count ?? 'unknown'} rows`);
+    await sqlDirect`TRUNCATE TABLE "reactions" CASCADE`;
+    const afterReactions = await sqlClient`SELECT COUNT(*) as count FROM "reactions"`;
+    logger.info(`Table reactions after: ${afterReactions[0]?.count ?? 'unknown'} rows`);
+    logger.info('✅ Truncated reactions');
 
-      // External tables (API data)
-      const externalTables = [
-        'nba_games',
-        'nba_teams',
-        'nba_players',
-        'nba_seasons',
-        'nba_leagues',
-        'nba_standings',
-        'nba_game_statistics',
-        'nba_player_statistics',
-        'nba_team_statistics',
-      ];
+    logger.info('Truncating comments table...');
+    const beforeComments = await sqlClient`SELECT COUNT(*) as count FROM "comments"`;
+    logger.info(`Table comments before: ${beforeComments[0]?.count ?? 'unknown'} rows`);
+    await sqlDirect`TRUNCATE TABLE "comments" CASCADE`;
+    const afterComments = await sqlClient`SELECT COUNT(*) as count FROM "comments"`;
+    logger.info(`Table comments after: ${afterComments[0]?.count ?? 'unknown'} rows`);
+    logger.info('✅ Truncated comments');
 
-      for (const table of externalTables) {
-        try {
-          await sqlClient.unsafe(`TRUNCATE TABLE "${table}" CASCADE`);
-          logger.info(`✅ Truncated ${table}`);
-        } catch (error) {
-          logger.warn(
-            `⚠️  Could not truncate ${table}: ${error instanceof Error ? error.message : String(error)}`
-          );
-        }
-      }
-    }
-
-    // Commit transaction
-    await sqlClient.unsafe('COMMIT');
-    logger.info(`✅ Successfully truncated ${scope} tables`);
+    logger.info('Truncating notifications table...');
+    const beforeNotifications = await sqlClient`SELECT COUNT(*) as count FROM "notifications"`;
+    logger.info(`Table notifications before: ${beforeNotifications[0]?.count ?? 'unknown'} rows`);
+    await sqlDirect`TRUNCATE TABLE "notifications" CASCADE`;
+    const afterNotifications = await sqlClient`SELECT COUNT(*) as count FROM "notifications"`;
+    logger.info(`Table notifications after: ${afterNotifications[0]?.count ?? 'unknown'} rows`);
+    logger.info('✅ Truncated notifications');
   } catch (error) {
-    await sqlClient.unsafe('ROLLBACK');
-    logger.error('❌ Error truncating tables:', error);
-    throw error;
+    logger.error('❌ Error truncating internal tables:', error);
+  }
+}
+
+async function truncateAllExternalTables() {
+  try {
+    // Truncate each table individually with hardcoded statements
+    logger.info('Truncating seasons table...');
+    const beforeSeasons = await sqlClient`SELECT COUNT(*) as count FROM "seasons"`;
+    logger.info(`Table seasons before: ${beforeSeasons[0]?.count ?? 'unknown'} rows`);
+    await sqlDirect`TRUNCATE TABLE "seasons" CASCADE`;
+    const afterSeasons = await sqlClient`SELECT COUNT(*) as count FROM "seasons"`;
+    logger.info(`Table seasons after: ${afterSeasons[0]?.count ?? 'unknown'} rows`);
+    logger.info('✅ Truncated seasons');
+
+    logger.info('Truncating leagues table...');
+    const beforeLeagues = await sqlClient`SELECT COUNT(*) as count FROM "leagues"`;
+    logger.info(`Table leagues before: ${beforeLeagues[0]?.count ?? 'unknown'} rows`);
+    await sqlDirect`TRUNCATE TABLE "leagues" CASCADE`;
+    const afterLeagues = await sqlClient`SELECT COUNT(*) as count FROM "leagues"`;
+    logger.info(`Table leagues after: ${afterLeagues[0]?.count ?? 'unknown'} rows`);
+    logger.info('✅ Truncated leagues');
+
+    logger.info('Truncating teams table...');
+    const beforeTeams = await sqlClient`SELECT COUNT(*) as count FROM "teams"`;
+    logger.info(`Table teams before: ${beforeTeams[0]?.count ?? 'unknown'} rows`);
+    await sqlDirect`TRUNCATE TABLE "teams" CASCADE`;
+    const afterTeams = await sqlClient`SELECT COUNT(*) as count FROM "teams"`;
+    logger.info(`Table teams after: ${afterTeams[0]?.count ?? 'unknown'} rows`);
+    logger.info('✅ Truncated teams');
+
+    logger.info('Truncating nba_games table...');
+    const beforeGames = await sqlClient`SELECT COUNT(*) as count FROM "nba_games"`;
+    logger.info(`Table nba_games before: ${beforeGames[0]?.count ?? 'unknown'} rows`);
+    await sqlDirect`TRUNCATE TABLE "nba_games" CASCADE`;
+    const afterGames = await sqlClient`SELECT COUNT(*) as count FROM "nba_games"`;
+    logger.info(`Table nba_games after: ${afterGames[0]?.count ?? 'unknown'} rows`);
+    logger.info('✅ Truncated nba_games');
+
+    logger.info('Truncating nba_players table...');
+    const beforePlayers = await sqlClient`SELECT COUNT(*) as count FROM "nba_players"`;
+    logger.info(`Table nba_players before: ${beforePlayers[0]?.count ?? 'unknown'} rows`);
+    await sqlDirect`TRUNCATE TABLE "nba_players" CASCADE`;
+    const afterPlayers = await sqlClient`SELECT COUNT(*) as count FROM "nba_players"`;
+    logger.info(`Table nba_players after: ${afterPlayers[0]?.count ?? 'unknown'} rows`);
+    logger.info('✅ Truncated nba_players');
+  } catch (error) {
+    logger.error('❌ Error truncating external tables:', error);
+  }
+}
+
+async function dropTables(scope: 'internal' | 'external' | 'all'): Promise<void> {
+  logger.info(`Connecting to database: ${process.env.DATABASE_URL}`);
+  await ensureConnection();
+
+  logger.info(`🗑️  Dropping ${scope} tables...`);
+
+  if (scope === 'internal' || scope === 'all') {
+    logger.info('Dropping internal tables...');
+    await dropAllInternalTables();
+  }
+
+  if (scope === 'external' || scope === 'all') {
+    logger.info('Dropping external tables...');
+    await dropAllExternalTables();
+  }
+
+  logger.info(`✅ Finished dropping ${scope} tables`);
+}
+
+async function dropAllInternalTables() {
+  try {
+    // Drop each table individually with hardcoded statements
+    logger.info('Dropping notifications table...');
+    await sqlDirect`DROP TABLE IF EXISTS "notifications" CASCADE`;
+    logger.info('✅ Dropped notifications');
+
+    logger.info('Dropping comments table...');
+    await sqlDirect`DROP TABLE IF EXISTS "comments" CASCADE`;
+    logger.info('✅ Dropped comments');
+
+    logger.info('Dropping reactions table...');
+    await sqlDirect`DROP TABLE IF EXISTS "reactions" CASCADE`;
+    logger.info('✅ Dropped reactions');
+
+    logger.info('Dropping friendships table...');
+    await sqlDirect`DROP TABLE IF EXISTS "friendships" CASCADE`;
+    logger.info('✅ Dropped friendships');
+
+    logger.info('Dropping game_ratings table...');
+    await sqlDirect`DROP TABLE IF EXISTS "game_ratings" CASCADE`;
+    logger.info('✅ Dropped game_ratings');
+
+    logger.info('Dropping game_logs table...');
+    await sqlDirect`DROP TABLE IF EXISTS "game_logs" CASCADE`;
+    logger.info('✅ Dropped game_logs');
+
+    logger.info('Dropping users table...');
+    await sqlDirect`DROP TABLE IF EXISTS "users" CASCADE`;
+    logger.info('✅ Dropped users');
+  } catch (error) {
+    logger.error('❌ Error dropping internal tables:', error);
+  }
+}
+
+async function dropAllExternalTables() {
+  try {
+    // Drop each table individually with hardcoded statements
+    logger.info('Dropping nba_players table...');
+    await sqlDirect`DROP TABLE IF EXISTS "nba_players" CASCADE`;
+    logger.info('✅ Dropped nba_players');
+
+    logger.info('Dropping nba_games table...');
+    await sqlDirect`DROP TABLE IF EXISTS "nba_games" CASCADE`;
+    logger.info('✅ Dropped nba_games');
+
+    logger.info('Dropping teams table...');
+    await sqlDirect`DROP TABLE IF EXISTS "teams" CASCADE`;
+    logger.info('✅ Dropped teams');
+
+    logger.info('Dropping leagues table...');
+    await sqlDirect`DROP TABLE IF EXISTS "leagues" CASCADE`;
+    logger.info('✅ Dropped leagues');
+
+    logger.info('Dropping seasons table...');
+    await sqlDirect`DROP TABLE IF EXISTS "seasons" CASCADE`;
+    logger.info('✅ Dropped seasons');
+  } catch (error) {
+    logger.error('❌ Error dropping external tables:', error);
   }
 }
 
@@ -942,11 +1108,49 @@ async function main(): Promise<void> {
         break;
 
       case 'truncate':
-        const scope = args[1] as 'internal' | 'external' | 'all';
-        if (!scope) {
+        // Parse scope from --scope=value format or direct value
+        let scope: 'internal' | 'external' | 'all';
+        const scopeArg = args[1];
+
+        if (!scopeArg) {
           throw new Error('Scope is required: --scope=internal|external|all');
         }
+
+        // Handle --scope=value format
+        if (scopeArg.startsWith('--scope=')) {
+          scope = scopeArg.split('=')[1] as 'internal' | 'external' | 'all';
+        } else {
+          scope = scopeArg as 'internal' | 'external' | 'all';
+        }
+
+        if (!['internal', 'external', 'all'].includes(scope)) {
+          throw new Error('Invalid scope. Must be: internal|external|all');
+        }
+
         await truncateTables(scope);
+        break;
+
+      case 'drop':
+        // Parse scope from --scope=value format or direct value
+        let dropScope: 'internal' | 'external' | 'all';
+        const dropScopeArg = args[1];
+
+        if (!dropScopeArg) {
+          throw new Error('Scope is required: --scope=internal|external|all');
+        }
+
+        // Handle --scope=value format
+        if (dropScopeArg.startsWith('--scope=')) {
+          dropScope = dropScopeArg.split('=')[1] as 'internal' | 'external' | 'all';
+        } else {
+          dropScope = dropScopeArg as 'internal' | 'external' | 'all';
+        }
+
+        if (!['internal', 'external', 'all'].includes(dropScope)) {
+          throw new Error('Invalid scope. Must be: internal|external|all');
+        }
+
+        await dropTables(dropScope);
         break;
 
       default:
@@ -963,6 +1167,7 @@ Commands:
   setup [complete|triggers-only] Setup database (default: complete)
   copy-migrations              Copy custom migrations to drizzle directory
   truncate --scope=<scope>     Truncate tables (scope: internal|external|all)
+  drop --scope=<scope>         Drop tables (scope: internal|external|all)
 
 Options:
   --env=<environment>          Environment (default: development)
@@ -974,6 +1179,7 @@ Examples:
   tsx scripts/db/database-manager.ts migrate-file drizzle/000_schema_with_cascade.sql
   tsx scripts/db/database-manager.ts setup complete
   tsx scripts/db/database-manager.ts truncate --scope=internal
+  tsx scripts/db/database-manager.ts drop --scope=external
         `);
         break;
     }
@@ -1000,6 +1206,7 @@ export {
   setupDatabase,
   copyCustomMigrations,
   truncateTables,
+  dropTables,
   parseSqlStatements,
   ensureConnection,
   verifyConnection,
