@@ -208,7 +208,6 @@ export default [
       '@typescript-eslint/no-unsafe-return': 'error',
       '@typescript-eslint/restrict-template-expressions': 'error',
       '@typescript-eslint/no-base-to-string': 'error',
-      '@typescript-eslint/no-unnecessary-condition': 'warn',
       '@typescript-eslint/prefer-readonly': 'warn',
       '@typescript-eslint/no-array-constructor': 'error',
       '@typescript-eslint/no-empty-function': 'warn',

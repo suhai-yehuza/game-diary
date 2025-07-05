@@ -107,7 +107,7 @@ export default defineConfig({
 
   /* Run your local dev server before starting the tests */
   webServer: {
-    command: 'NODE_ENV=development pnpm dev -p 8081',
+    command: 'NODE_ENV=development E2E_TESTING=true pnpm dev -p 8081',
     url: 'http://localhost:8081',
     reuseExistingServer: true,
     timeout: 60 * 1000,

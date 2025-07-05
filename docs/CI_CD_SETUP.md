@@ -135,7 +135,7 @@ pnpm test:e2e:load              # Load testing simulation
 ```bash
 # CI pipeline scripts
 pnpm test:e2e:ci                # Main CI test (popular browsers)
-pnpm test:e2e:ci:fast           # Fast CI test (Chromium only)
+pnpm test:e2e:ci:quickie           # Fast CI test (Chromium only)
 pnpm test:e2e:ci:full           # Full CI test (sharded)
 pnpm test:e2e:ci:performance    # Performance CI test
 
@@ -156,7 +156,7 @@ pnpm test:e2e:sharded           # Run tests in 2 shards
 ```bash
 # Coverage testing
 pnpm test:e2e:coverage          # All browsers with coverage
-pnpm test:e2e:coverage:fast     # Chromium with coverage
+pnpm test:e2e:coverage:quickie     # Chromium with coverage
 pnpm test:e2e:coverage:html     # Generate HTML coverage report
 pnpm test:e2e:coverage:report   # Generate coverage report only
 ```
@@ -225,7 +225,7 @@ pnpm test:e2e:wait              # Wait for server to be ready
 
 ```bash
 # Quick validation before committing
-pnpm test:e2e:ci:fast           # Simulate PR testing
+pnpm test:e2e:ci:quickie           # Simulate PR testing
 pnpm test:e2e:lint              # Code quality checks
 
 # Responsive design validation
@@ -243,7 +243,7 @@ pnpm test:e2e:ci:full           # Full test suite (sharded)
 
 # Coverage testing
 pnpm test:e2e:coverage          # All browsers with coverage
-pnpm test:e2e:coverage:fast     # Chromium with coverage
+pnpm test:e2e:coverage:quickie     # Chromium with coverage
 ```
 
 ### **Deployment Validation**
@@ -323,7 +323,7 @@ pnpm test:e2e:performance       # Performance-focused tests
 
 ```bash
 # Before submitting PR
-pnpm test:e2e:ci:fast           # Quick validation
+pnpm test:e2e:ci:quickie           # Quick validation
 pnpm test:e2e:responsive        # Responsive design check
 pnpm test:e2e:lint              # Code quality
 
@@ -375,7 +375,7 @@ pnpm test:e2e:quickie              # Quick validation
 pnpm test:e2e:responsive        # Ensure no regressions
 
 # Final validation
-pnpm test:e2e:ci:fast           # Simulate CI environment
+pnpm test:e2e:ci:quickie           # Simulate CI environment
 ```
 
 ### **CI/CD Pipeline Examples**
@@ -384,7 +384,7 @@ pnpm test:e2e:ci:fast           # Simulate CI environment
 
 ```bash
 # Local PR validation
-pnpm test:e2e:ci:fast           # Fast CI simulation
+pnpm test:e2e:ci:quickie           # Fast CI simulation
 pnpm test:e2e:lint              # Code quality
 
 # Full validation (if needed)

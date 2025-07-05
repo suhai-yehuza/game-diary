@@ -238,7 +238,6 @@ export function validateConfigForUseCase(
  * Example usage in seeding script
  */
 export function exampleUsage() {
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   const config = getConfigByEnvironment(process.env.NODE_ENV || 'development');
 
   // Validate configuration

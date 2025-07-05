@@ -1,7 +1,5 @@
-/// <reference types="node" />
 'use client';
-import { SignInButton, SignedIn, SignedOut, UserButton, useUser } from '@clerk/nextjs';
-import { Search, X, Menu, ChevronDown } from 'lucide-react';
+import { Search, X, Menu } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
@@ -9,16 +7,7 @@ import React, { useState, useEffect, useRef, Suspense } from 'react';
 
 import { ThemeToggle } from '@/app/components/common';
 import { LiveGamesBanner } from '@/app/components/live-games-banner';
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-} from '@/app/components/ui/dropdown-menu';
 import type { NavItemProps } from '@/lib/types/componentTypes';
-
-// Check if we're in a test environment
-const isTestEnvironment = process.env.E2E_TESTING === 'true' || process.env.NODE_ENV === 'test';
 
 function SearchBarContent() {
   const [search_query, setSearchQuery] = useState('');
@@ -198,65 +187,6 @@ function NavItem({ href, isActive, children, className = '', ...props }: NavItem
   );
 }
 
-function AdminNavContent({ isActive }: { isActive: (path: string) => boolean }) {
-  const { user, isLoaded } = useUser();
-
-  // Check if user is admin based on email
-  const adminEmails = process.env.NEXT_PUBLIC_ADMIN_EMAILS
-    ? process.env.NEXT_PUBLIC_ADMIN_EMAILS.split(',')
-    : [];
-  const isAdmin = Boolean(
-    isLoaded &&
-      user?.emailAddresses?.[0]?.emailAddress &&
-      adminEmails.includes(user.emailAddresses[0].emailAddress)
-  );
-
-  if (!isLoaded || !isAdmin) {
-    return null;
-  }
-
-  return (
-    <Suspense fallback={<div className="w-20 h-6 bg-gray-200 rounded animate-pulse" />}>
-      <SignedIn>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <NavItem href="/protected/admin" isActive={isActive('/protected/admin')}>
-              Admin
-              <ChevronDown className="h-3 w-3 ml-1" />
-            </NavItem>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="w-48">
-            <DropdownMenuItem asChild>
-              <Link href="/protected/admin/experimental" className="w-full">
-                External API
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link href="/protected/admin/database" className="w-full">
-                Database
-              </Link>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </SignedIn>
-    </Suspense>
-  );
-}
-
-function AdminNav({ isActive }: { isActive: (path: string) => boolean }) {
-  // In test environment, don't render admin nav
-  if (isTestEnvironment) {
-    return null;
-  }
-
-  try {
-    return <AdminNavContent isActive={isActive} />;
-  } catch {
-    // If Clerk is not available (e.g., in test environment), don't render admin nav
-    return null;
-  }
-}
-
 function NavigationLinks({
   isActive,
   _isMenuExpanded,
@@ -292,11 +222,10 @@ function NavigationLinks({
       </NavItem>
       {/* Divider */}
       <div className="hidden lg:block h-6 w-px bg-gray-200 dark:bg-gray-700 mx-3" />
-      {/* Profile + Admin */}
+      {/* Profile - no admin nav in test environment */}
       <NavItem href="/protected/user" isActive={isActive('/protected/user')}>
         Profile
       </NavItem>
-      <AdminNav isActive={isActive} />
     </nav>
   );
 }
@@ -308,23 +237,6 @@ function ClientOnlyNavigationLinks(props: React.ComponentProps<typeof Navigation
   return <NavigationLinks {...props} />;
 }
 
-function AuthControlsContent() {
-  return (
-    <Suspense fallback={<div className="w-10 h-10 bg-gray-200 rounded animate-pulse" />}>
-      <div className="flex items-center">
-        <SignedOut>
-          <span className="bg-[#757575] text-white hover:bg-[#616161] focus:ring-4 focus:outline-none focus:ring-gray-400 font-medium rounded-lg text-sm px-4 py-2 sm:px-5 sm:py-2.5 text-center border border-gray-600 dark:bg-[#e5e5e5] dark:text-gray-800 dark:hover:bg-[#d4d4d4] dark:focus:ring-gray-300 min-w-[44px] min-h-[44px] flex-shrink-0 whitespace-nowrap">
-            <SignInButton mode="modal">Sign In</SignInButton>
-          </span>
-        </SignedOut>
-        <SignedIn>
-          <UserButton />
-        </SignedIn>
-      </div>
-    </Suspense>
-  );
-}
-
 function ClientOnlyAuthControls() {
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
@@ -334,19 +246,10 @@ function ClientOnlyAuthControls() {
   }
 
   // In test environment, show a placeholder instead of auth controls
-  if (isTestEnvironment) {
-    return <div className="w-10 h-10 bg-gray-200 rounded animate-pulse" />;
-  }
-
-  try {
-    return <AuthControlsContent />;
-  } catch {
-    // If Clerk is not available, show a placeholder
-    return <div className="w-10 h-10 bg-gray-200 rounded animate-pulse" />;
-  }
+  return <div className="w-10 h-10 bg-gray-200 rounded animate-pulse" />;
 }
 
-export function Header() {
+export function TestHeader() {
   const [isSearchVisible, setIsSearchVisible] = useState(false);
   const [isMenuExpanded, setIsMenuExpanded] = useState(false);
   const pathname = usePathname() || '/';

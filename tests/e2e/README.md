@@ -483,7 +483,7 @@ pnpm test:e2e:compound
 
 # Run specific levels only
 pnpm test:e2e:compound:mock-verification
-pnpm test:e2e:compound:fast
+pnpm test:e2e:compound:quickie
 pnpm test:e2e:compound:smoke
 pnpm test:e2e:compound:critical
 pnpm test:e2e:compound:responsive

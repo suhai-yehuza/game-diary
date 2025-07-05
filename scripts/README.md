@@ -280,7 +280,7 @@ pnpm timed test:e2e:quickie
 
 # Failing tests
 pnpm test:failing
-pnpm test:failing:fast
+pnpm test:failing:quickie
 pnpm test:failing:popular
 
 # CI/CD

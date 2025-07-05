@@ -174,7 +174,7 @@ pnpm test:e2e:all-viewports
 pnpm test:e2e:coverage
 
 # Run fast tests with coverage
-pnpm test:e2e:coverage:fast
+pnpm test:e2e:coverage:quickie
 
 # Generate coverage report
 pnpm test:e2e:coverage:report

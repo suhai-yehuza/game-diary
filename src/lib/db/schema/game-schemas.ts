@@ -18,6 +18,7 @@ export const nba_games = pgTable('nba_games', {
   id: varchar('id', { length: 20 }).primaryKey(), // External API game ID
   created_at: timestamp('created_at').defaultNow().notNull(),
   updated_at: timestamp('updated_at').defaultNow().notNull(),
+  deleted_at: timestamp({ precision: 6, withTimezone: true }),
   game_type: varchar('game_type', { length: 50 }).notNull().default('nba'),
   nba_game_id: varchar('nba_game_id', { length: 255 }),
   date: timestamp('date').notNull(),

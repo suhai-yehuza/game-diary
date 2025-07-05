@@ -266,3 +266,7 @@ export const INTERNAL_PROXY_ENDPOINTS = {
   GAMES: '/api/proxy/games',
   // Add more as needed
 };
+
+// Add test environment detection
+export const isTestEnvironment =
+  process.env.E2E_TESTING === 'true' || process.env.NODE_ENV === 'test';

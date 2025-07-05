@@ -409,7 +409,6 @@ async function main() {
   }
 
   // Load environment-specific configuration
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   const environment = options.environment ?? process.env.NODE_ENV ?? 'development';
   loadEnvironmentConfig(environment);
 
