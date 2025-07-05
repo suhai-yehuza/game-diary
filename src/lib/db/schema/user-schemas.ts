@@ -54,8 +54,12 @@ export const friendships = pgTable(
   'friendships',
   {
     ...baseTableConfig,
-    friend_id: varchar('friend_id', { length: 255 }).references(() => users.id),
-    user_id: varchar('user_id', { length: 255 }).references(() => users.id),
+    friend_id: varchar('friend_id', { length: 255 }).references(() => users.id, {
+      onDelete: 'cascade',
+    }),
+    user_id: varchar('user_id', { length: 255 }).references(() => users.id, {
+      onDelete: 'cascade',
+    }),
     status: varchar('status', { length: 50 })
       .notNull()
       .default(FRIENDSHIP_STATUS.PENDING)
@@ -72,7 +76,9 @@ export const comments = pgTable(
   'comments',
   {
     ...baseTableConfig,
-    user_id: varchar('user_id', { length: 255 }).references(() => users.id),
+    user_id: varchar('user_id', { length: 255 }).references(() => users.id, {
+      onDelete: 'cascade',
+    }),
     parent_id: varchar('parent_id', { length: 255 }).notNull(),
     parent_type: varchar('parent_type', { length: 50 })
       .notNull()
@@ -96,7 +102,9 @@ export const reactions = pgTable(
   'reactions',
   {
     ...baseTableConfig,
-    user_id: varchar('user_id', { length: 255 }).references(() => users.id),
+    user_id: varchar('user_id', { length: 255 }).references(() => users.id, {
+      onDelete: 'cascade',
+    }),
     target_type: varchar('target_type', { length: 50 })
       .notNull()
       .$type<(typeof TARGET_TYPES)[keyof typeof TARGET_TYPES]>(),

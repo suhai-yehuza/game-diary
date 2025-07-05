@@ -2,7 +2,16 @@ import { faker } from '@faker-js/faker';
 import { neon } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-http';
 
-import { schema } from '@src/lib/db/schema';
+import {
+  users,
+  friendships,
+  game_logs,
+  comments,
+  reactions,
+  nba_games,
+  notifications,
+  game_ratings,
+} from '@src/lib/db/schema';
 import {
   generateGameRating,
   generateCommentCount,
@@ -181,7 +190,7 @@ export function generateUsers(count: number): ISeedUser[] {
   for (let i = 0; i < count; i++) {
     const firstName = faker.person.firstName();
     const lastName = faker.person.lastName();
-    const username = faker.internet.userName({ firstName, lastName });
+    const username = faker.internet.username({ firstName, lastName });
     users.push({
       id: `user_${i + 1}`,
       object: 'user',
@@ -536,117 +545,118 @@ export async function seedUserData(
   _distributionConfig?: IStatisticalSeedingConfig
 ) {
   const databaseUrl = process.env.DATABASE_URL ?? process.env.POSTGRES_URL ?? '';
+
   if (!databaseUrl) {
     throw new Error('DATABASE_URL or POSTGRES_URL environment variable is required');
   }
+
   const sql = neon(databaseUrl);
-  const db = drizzle(sql, { schema }) as unknown as Database;
-  const finalConfig: ISeedingConfig = { ...DEFAULT_CONFIG, ...config };
-  console.log('👥 Starting user data seeding with Faker.js...');
+  const db = drizzle(sql) as unknown as Database;
+
+  // Merge provided config with defaults
+  const finalConfig = { ...DEFAULT_CONFIG, ...config };
+
+  console.log('🌱 Starting user data seeding...');
   console.log(`📊 Configuration: ${finalConfig.userCount} users`);
+
   try {
-    // Get actual seeded data to reference
-    const teams = await db.select().from(schema.teams);
-    const games = await db.select().from(schema.nba_games);
-    const players = await db.select().from(schema.nba_players);
-    if (teams.length === 0 || games.length === 0) {
-      throw new Error(
-        'External API data must be seeded first. Please run seed:external before seed:user'
+    // Step 1: Create and insert users
+    console.log('👥 Step 1: Creating and inserting users...');
+    const userData = generateUsers(finalConfig.userCount);
+
+    for (const user of userData) {
+      await db.insert(users).values(user);
+    }
+    console.log(`✅ Created ${userData.length} users`);
+
+    // Step 2: For each user, create 0-N friendships
+    console.log('🤝 Step 2: Creating friendships for each user...');
+    const friendshipData = generateFriendships(userData, finalConfig);
+
+    for (const friendship of friendshipData) {
+      await db.insert(friendships).values(friendship);
+    }
+    console.log(`✅ Created ${friendshipData.length} friendships`);
+
+    // Step 3: Get valid game IDs from the database
+    console.log('🎮 Step 3: Getting valid game IDs...');
+    const validGames = await db.select({ id: nba_games.id }).from(nba_games);
+    const gameIds = validGames.map(game => game.id);
+
+    if (gameIds.length === 0) {
+      console.warn('⚠️  No games found in database. Please run external API seeding first.');
+      return;
+    }
+    console.log(`✅ Found ${gameIds.length} valid games`);
+
+    // Step 4: For each user, create 0-N game_logs using valid game_ids
+    console.log('📝 Step 4: Creating game logs for each user...');
+    const gameLogData = generateGameLogs(userData, gameIds, finalConfig);
+
+    for (const gameLog of gameLogData) {
+      await db.insert(game_logs).values(gameLog);
+    }
+    console.log(`✅ Created ${gameLogData.length} game logs`);
+
+    // Step 5: For each game_log, create 0-N comments from valid users and 0-N reactions
+    console.log('💬 Step 5: Creating comments and reactions for game logs...');
+    const commentData = generateComments(userData, gameLogData, finalConfig);
+
+    for (const comment of commentData) {
+      await db.insert(comments).values(comment);
+    }
+    console.log(`✅ Created ${commentData.length} comments`);
+
+    // Step 6: For each comment, create 0-N child comments within depth range and 0-N reactions
+    console.log('🔄 Step 6: Creating child comments and reactions...');
+
+    // Generate nested comments (child comments)
+    const allComments = [...commentData];
+    const commentId = { value: commentData.length + 1 };
+
+    for (const parentComment of commentData) {
+      // Generate child comments with depth constraints
+      generateNestedComments(
+        parentComment,
+        allComments,
+        userData,
+        commentId,
+        1, // Start at depth 1
+        finalConfig
       );
     }
-    console.log(
-      `📊 Found ${teams.length} teams, ${games.length} games, and ${players.length} players to reference`
-    );
-    // Use actual game IDs from seeded data
-    const gameIds = games.map((game: { id: string }) => game.id);
-    console.log(`🎲 Generating ${finalConfig.userCount} users with realistic data...`);
-    // Generate all the data
-    const users = generateUsers(finalConfig.userCount);
-    const friendships = generateFriendships(users, finalConfig);
-    const gameLogs = generateGameLogs(users, gameIds, finalConfig);
-    const comments = generateComments(users, gameLogs, finalConfig);
-    const reactions = generateReactions(users, gameLogs, comments, finalConfig);
 
-    console.log(`📈 Generated data summary:`);
-    console.log(`   Users: ${users.length}`);
-    console.log(`   Friendships: ${friendships.length}`);
-    console.log(`   Game Logs: ${gameLogs.length}`);
-    console.log(`   Comments: ${comments.length}`);
-    console.log(`   Reactions: ${reactions.length}`);
-    console.log(`   Notifications: Will be auto-generated by triggers`);
-    console.log(`   Game Ratings: Will be auto-generated by triggers`);
-    // Seed users
-    console.log('👤 Seeding users...');
-    for (const user of users) {
-      await db.insert(schema.users).values(user).onConflictDoNothing();
+    // Insert all child comments that were added to allComments array
+    const childComments = allComments.slice(commentData.length);
+    for (const childComment of childComments) {
+      await db.insert(comments).values(childComment);
     }
-    console.log(`✅ Seeded ${users.length} users`);
-    // Seed friendships
-    console.log('🤝 Seeding friendships...');
-    for (const friendship of friendships) {
-      await db.insert(schema.friendships).values(friendship).onConflictDoNothing();
-    }
-    console.log(`✅ Seeded ${friendships.length} friendships`);
-    // Seed game logs
-    console.log('📝 Seeding game logs...');
-    for (const gameLog of gameLogs) {
-      await db.insert(schema.game_logs).values(gameLog).onConflictDoNothing();
-    }
-    console.log(`✅ Seeded ${gameLogs.length} game logs`);
-    // Seed comments in dependency order (parents first, then children)
-    console.log('💬 Seeding comments...');
-    const commentsByDepth = new Map<number, ISeedComment[]>();
+    console.log(`✅ Created ${allComments.length - commentData.length} child comments`);
 
-    // Group comments by depth
-    for (const comment of comments) {
-      if (!commentsByDepth.has(comment.depth)) {
-        commentsByDepth.set(comment.depth, []);
-      }
-      const commentsAtDepth = commentsByDepth.get(comment.depth);
-      if (commentsAtDepth) {
-        commentsAtDepth.push(comment);
-      }
-    }
+    // Step 7: Generate reactions for game logs, comments, and child comments
+    console.log('👍 Step 7: Creating reactions...');
+    const reactionData = generateReactions(userData, gameLogData, allComments, finalConfig);
 
-    // Seed comments by depth (0 first, then 1, 2, 3, 4, 5)
-    for (let depth = 0; depth <= 5; depth++) {
-      const commentsAtDepth = commentsByDepth.get(depth) ?? [];
-      if (commentsAtDepth.length > 0) {
-        console.log(`   Seeding ${commentsAtDepth.length} comments at depth ${depth}...`);
-        for (const comment of commentsAtDepth) {
-          await db.insert(schema.comments).values(comment).onConflictDoNothing();
-        }
-      }
+    for (const reaction of reactionData) {
+      await db.insert(reactions).values(reaction);
     }
-    console.log(`✅ Seeded ${comments.length} comments`);
-    // Seed reactions
-    console.log('👍 Seeding reactions...');
-    for (const reaction of reactions) {
-      await db.insert(schema.reactions).values(reaction).onConflictDoNothing();
-    }
-    console.log(`✅ Seeded ${reactions.length} reactions`);
+    console.log(`✅ Created ${reactionData.length} reactions`);
 
     console.log('🎉 User data seeding completed successfully!');
-    console.log('🔔 Notifications will be automatically generated by database triggers');
-    console.log('⭐ Game ratings will be automatically generated by database triggers');
 
-    // Log final summary
-    const userCount = await db.select().from(schema.users);
-    const friendshipCount = await db.select().from(schema.friendships);
-    const gameLogCount = await db.select().from(schema.game_logs);
-    const commentCount = await db.select().from(schema.comments);
-    const reactionCount = await db.select().from(schema.reactions);
-    const notificationCount = await db.select().from(schema.notifications);
-    const gameRatingCount = await db.select().from(schema.game_ratings);
+    // Log summary
+    const userCount = await db.select().from(users);
+    const friendshipCount = await db.select().from(friendships);
+    const gameLogCount = await db.select().from(game_logs);
+    const commentCount = await db.select().from(comments);
+    const reactionCount = await db.select().from(reactions);
 
-    console.log('\n📊 Final Database Summary:');
+    console.log('\n📊 Seeding Summary:');
     console.log(`   Users: ${userCount.length}`);
     console.log(`   Friendships: ${friendshipCount.length}`);
     console.log(`   Game Logs: ${gameLogCount.length}`);
     console.log(`   Comments: ${commentCount.length}`);
     console.log(`   Reactions: ${reactionCount.length}`);
-    console.log(`   Notifications: ${notificationCount.length} (auto-generated)`);
-    console.log(`   Game Ratings: ${gameRatingCount.length} (auto-generated)`);
   } catch (error) {
     console.error('❌ Error seeding user data:', error);
     throw error;
@@ -662,19 +672,19 @@ export async function clearUserData() {
   }
 
   const sql = neon(databaseUrl);
-  const db = drizzle(sql, { schema }) as unknown as Database;
+  const db = drizzle(sql) as unknown as Database;
 
   console.log('🧹 Clearing user data...');
 
   try {
     // Clear in reverse order of dependencies
-    await db.delete(schema.notifications);
-    await db.delete(schema.reactions);
-    await db.delete(schema.comments);
-    await db.delete(schema.game_logs);
-    await db.delete(schema.game_ratings);
-    await db.delete(schema.friendships);
-    await db.delete(schema.users);
+    await db.delete(notifications);
+    await db.delete(reactions);
+    await db.delete(comments);
+    await db.delete(game_logs);
+    await db.delete(game_ratings);
+    await db.delete(friendships);
+    await db.delete(users);
 
     console.log('✅ User data cleared successfully!');
   } catch (error) {

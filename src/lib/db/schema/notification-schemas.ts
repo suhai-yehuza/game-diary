@@ -5,7 +5,7 @@ import { users } from '@/lib/db/schema/user-schemas';
 
 export const notifications = pgTable('notifications', {
   id: varchar('id', { length: 255 }).primaryKey(),
-  user_id: varchar('user_id', { length: 255 }).references(() => users.id),
+  user_id: varchar('user_id', { length: 255 }).references(() => users.id, { onDelete: 'cascade' }),
   type: varchar('type', { length: 50 }).notNull(),
   title: varchar('title', { length: 255 }).notNull(),
   message: text('message').notNull(),

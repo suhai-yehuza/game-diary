@@ -6,7 +6,7 @@ import { execSync } from 'child_process';
 import { logger } from '@lib/core/logger';
 import { createDatabaseClient, testConnection } from '@src/lib/db';
 
-import { parseScriptArgs } from '@shared/script-utils';
+import { parseScriptArgs } from '../utils/script-utils';
 
 async function testBasicConnection() {
   try {

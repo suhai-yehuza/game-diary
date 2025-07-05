@@ -10,11 +10,13 @@
  * 4. Comment depth constraints are valid
  */
 
+import { resolve } from 'path';
+import { config } from 'dotenv';
 import { neon } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-http';
 import { sql } from 'drizzle-orm';
 
-import { schema } from '@/lib/db/schema';
+import { schema } from '../src/lib/db/schema';
 
 interface ValidationResult {
   test: string;
@@ -23,7 +25,26 @@ interface ValidationResult {
   count?: number;
 }
 
+function loadEnvironmentConfig() {
+  // Load environment variables from .env file
+  const envPath = resolve(process.cwd(), '.env');
+
+  try {
+    const result = config({ path: envPath });
+    if (result.error) {
+      console.warn('⚠️  Could not load .env file, using system environment variables');
+    } else {
+      console.log('📁 Loaded environment from: .env');
+    }
+  } catch {
+    console.warn('⚠️  Could not load .env file, using system environment variables');
+  }
+}
+
 async function validateSeedingDependencies(): Promise<void> {
+  // Load environment variables
+  loadEnvironmentConfig();
+
   const databaseUrl = process.env.DATABASE_URL ?? process.env.POSTGRES_URL ?? '';
   if (!databaseUrl) {
     throw new Error('DATABASE_URL or POSTGRES_URL environment variable is required');

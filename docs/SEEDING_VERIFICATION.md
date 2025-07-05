@@ -1,5 +1,7 @@
 # Seeding Verification
 
+> **Note:** Seeding and test scripts are now managed via the unified CLI or pnpm scripts. See the main README for details.
+
 This document verifies that all required data types are properly generated and seeded in the database.
 
 ## ✅ Verified Data Types
@@ -121,13 +123,13 @@ The seeding uses realistic statistical distributions:
 To verify seeding functions without database connection:
 
 ```bash
-tsx scripts/test-seeding-functions.ts
+tsx scripts/tests/test-seeding-functions.ts
 ```
 
 To run full seeding (requires database):
 
 ```bash
-npm run seed:user
+pnpm seed:internal
 ```
 
 ## 📝 Conclusion

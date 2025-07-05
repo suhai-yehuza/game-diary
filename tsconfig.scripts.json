@@ -8,7 +8,7 @@
       "@/*": ["./src/*"],
       "@src/*": ["./src/*"],
       "@utils/*": ["./scripts/utils/*"],
-      "@shared/*": ["./scripts/shared/*"],
+      "@shared/*": ["./scripts/utils/*"],
       "@lib/*": ["./lib/*"],
       "@app/*": ["./src/app/*"]
     },

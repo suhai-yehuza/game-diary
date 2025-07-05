@@ -5,7 +5,7 @@ import path from 'path';
 
 import { logger } from '@lib/core/logger';
 
-import { parseScriptArgs } from '@shared/script-utils';
+import { parseScriptArgs } from '../utils/script-utils';
 
 // List migration files that would be executed
 async function listMigrations() {

@@ -1,5 +1,7 @@
 # CI/CD Setup with E2E Testing
 
+> **Note:** E2E and workflow scripts are now consolidated. Use `pnpm e2e:*` and `pnpm workflow:*` for all test and workflow operations.
+
 This document describes the CI/CD pipeline setup with comprehensive E2E testing integration.
 
 ## Overview
@@ -95,10 +97,10 @@ SHARD_TOTAL=2
 
 ```bash
 # Fast development testing
-pnpm test:e2e:quickie              # Fast tests (Chromium only)
-pnpm test:e2e:quickie:watch        # Watch mode for development
-pnpm test:e2e:dev               # Alias for fast tests
-pnpm test:e2e:dev:watch         # Alias for fast watch mode
+pnpm e2e:run quickie              # Fast tests (Chromium only)
+pnpm e2e:run quickie:watch        # Watch mode for development
+pnpm e2e:run dev               # Alias for fast tests
+pnpm e2e:run dev:watch         # Alias for fast watch mode
 ```
 
 ### 🌐 **Browser-Specific Testing**
@@ -120,10 +122,10 @@ pnpm test:e2e:all-browsers      # All browsers (desktop + mobile + tablet)
 
 ```bash
 # Core features
-pnpm test:e2e:responsive        # Responsive design tests
-pnpm test:e2e:responsive:popular # Popular browsers only
-pnpm test:e2e:cross-browser     # Cross-browser compatibility
-pnpm test:e2e:all-viewports     # Responsive + cross-browser
+pnpm e2e:responsive        # Responsive design tests
+pnpm e2e:responsive        # Popular browsers only
+pnpm e2e:run cross-browser     # Cross-browser compatibility
+pnpm e2e:run all-viewports     # Responsive + cross-browser
 
 # Performance and optimization
 pnpm test:e2e:performance       # Performance-focused tests
@@ -134,14 +136,14 @@ pnpm test:e2e:load              # Load testing simulation
 
 ```bash
 # CI pipeline scripts
-pnpm test:e2e:ci                # Main CI test (popular browsers)
-pnpm test:e2e:ci:quickie           # Fast CI test (Chromium only)
-pnpm test:e2e:ci:full           # Full CI test (sharded)
-pnpm test:e2e:ci:performance    # Performance CI test
+pnpm ci:e2e-tests                # Main CI test (popular browsers)
+pnpm ci:e2e-tests quickie           # Fast CI test (Chromium only)
+pnpm ci:e2e-tests full           # Full CI test (sharded)
+pnpm ci:e2e-tests performance    # Performance CI test
 
 # Deployment scripts
-pnpm test:e2e:pre-deploy        # Pre-deployment validation
-pnpm test:e2e:post-deploy       # Post-deployment smoke tests
+pnpm workflow:soak pre-deploy        # Pre-deployment validation
+pnpm workflow:soak post-deploy       # Post-deployment smoke tests
 ```
 
 ### 🧪 **Test Sharding and Parallelization**
@@ -173,11 +175,11 @@ pnpm test:e2e:smoke:deployed    # Smoke tests against deployed URL
 
 ```bash
 # Debug scripts
-pnpm test:e2e:debug             # Original debug script (e2e-debug.sh)
-pnpm test:e2e:debug:headed      # Headed browser mode
-pnpm test:e2e:debug:ui          # Playwright UI mode
-pnpm test:e2e:debug:playwright  # Headed debug mode
-pnpm test:e2e:show-report       # Show test reports
+pnpm e2e:debug             # Debug E2E tests
+pnpm e2e:debug --headed    # Headed browser mode
+pnpm e2e:debug --ui        # Playwright UI mode
+pnpm e2e:debug --trace     # Headed debug mode
+pnpm e2e:coverage --html   # Show test reports
 ```
 
 ### ⚡ **Optimization and Maintenance**

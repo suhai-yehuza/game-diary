@@ -7,7 +7,7 @@ import { join } from 'path';
 import { logger } from '@lib/core/logger';
 import type { IOutdatedPackage } from '@src/lib/types';
 
-import { parseScriptArgs } from '@shared/script-utils';
+import { parseScriptArgs } from './script-utils';
 
 function getOutdatedPackages(): IOutdatedPackage[] {
   try {

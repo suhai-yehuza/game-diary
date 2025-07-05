@@ -1,5 +1,7 @@
 # Soaking Period Implementation
 
+> **Note:** All soak period operations are now managed via the consolidated workflow script: `./scripts/workflow.sh soak ...` or `pnpm workflow:soak ...`.
+
 This document describes the soaking period implementation for safe deployments with health monitoring, performance tracking, and automated rollback capabilities.
 
 ## Overview
@@ -95,35 +97,35 @@ VERCEL_PRODUCTION_URL=https://your-app.vercel.app
 
 ```bash
 # Start a soak period
-pnpm soak:start staging 1800  # 30 minutes
+pnpm workflow:soak start staging 1800  # 30 minutes
 
 # Monitor during soak period
-pnpm soak:monitor staging 1800
+pnpm workflow:soak monitor staging 1800
 
 # Check soak status
-pnpm soak:status
+pnpm workflow:soak status
 
 # Perform manual rollback
-pnpm soak:rollback staging "Performance degradation"
+pnpm workflow:soak rollback staging "Performance degradation"
 
 # Test soak functionality (5 minutes)
-pnpm soak:test
+pnpm workflow:soak start staging 300 && pnpm workflow:soak monitor staging 300
 ```
 
 ### Direct Script Usage
 
 ```bash
 # Start soak period
-./scripts/soak-monitor.sh start staging 1800
+./scripts/workflow.sh soak start staging 1800
 
 # Monitor deployment
-./scripts/soak-monitor.sh monitor staging 1800
+./scripts/workflow.sh soak monitor staging 1800
 
 # Check status
-./scripts/soak-monitor.sh status
+./scripts/workflow.sh soak status
 
 # Manual rollback
-./scripts/soak-monitor.sh rollback staging "Manual intervention"
+./scripts/workflow.sh soak rollback staging "Manual intervention"
 ```
 
 ### CI/CD Integration
@@ -138,10 +140,10 @@ soak-period:
   runs-on: ubuntu-latest
   steps:
     - name: Start Soak Period
-      run: ./scripts/soak-monitor.sh start staging $SOAK_DURATION
+      run: ./scripts/workflow.sh soak start staging $SOAK_DURATION
 
     - name: Monitor During Soak Period
-      run: ./scripts/soak-monitor.sh monitor staging $SOAK_DURATION
+      run: ./scripts/workflow.sh soak monitor staging $SOAK_DURATION
 ```
 
 ## Health Check API
@@ -222,14 +224,14 @@ Automatic rollback occurs when:
 
 ```bash
 # Triggered automatically when thresholds are exceeded
-./scripts/soak-monitor.sh rollback staging "Error rate exceeded threshold"
+./scripts/workflow.sh soak rollback staging "Error rate exceeded threshold"
 ```
 
 ### Manual Rollback
 
 ```bash
 # Manual intervention
-./scripts/soak-monitor.sh rollback staging "Manual rollback required"
+./scripts/workflow.sh soak rollback staging "Manual rollback required"
 ```
 
 ### Rollback Actions
@@ -265,7 +267,7 @@ The soaking period integrates seamlessly with your existing CI/CD pipeline:
 
 ```bash
 # Check current soak status
-pnpm soak:status
+pnpm workflow:soak status
 ```
 
 Output:
@@ -344,7 +346,7 @@ URL: https://your-app-staging.vercel.app
 3. **Rollback Failures**
    ```bash
    # Manual rollback
-   pnpm soak:rollback staging "Manual intervention"
+   pnpm workflow:soak rollback staging "Manual intervention"
    ```
 
 ### Debug Commands

@@ -1,348 +1,364 @@
 # Scripts Directory
 
-This directory contains utility scripts for development, testing, CI/CD, and maintenance tasks.
+This directory contains utility scripts for development, testing, CI/CD, and maintenance tasks, now consolidated under a unified CLI system.
+
+## 🚀 Unified CLI System
+
+All script operations are now accessible through a single, well-organized CLI:
+
+```bash
+tsx scripts/cli.ts <command> <subcommand> [options]
+```
+
+## 🐚 Consolidated Shell Scripts
+
+The shell scripts have been consolidated into four main categories for better organization:
+
+### E2E Testing (`e2e.sh`)
+
+```bash
+# Run basic E2E tests
+./scripts/e2e.sh run basic 'playwright test --project=chromium' 'Chromium tests' 300
+
+# Run compound E2E tests
+./scripts/e2e.sh compound --fast-only
+
+# Debug E2E tests
+./scripts/e2e.sh debug --ui
+
+# Optimize E2E tests
+./scripts/e2e.sh optimize --analyze
+
+# Generate coverage reports
+./scripts/e2e.sh coverage --fast
+
+# Run responsive tests
+./scripts/e2e.sh responsive 3600
+```
+
+### CI Pipeline (`ci.sh`)
+
+```bash
+# Run full CI pipeline
+./scripts/ci.sh run preview
+./scripts/ci.sh run staging
+./scripts/ci.sh run production
+
+# Run individual CI components
+./scripts/ci.sh quality-gate production
+./scripts/ci.sh unit-tests
+./scripts/ci.sh e2e-tests quickie
+
+# Quick pipeline shortcuts
+./scripts/ci.sh preview
+./scripts/ci.sh staging
+./scripts/ci.sh production
+```
+
+### Validation (`validate.sh`)
+
+```bash
+# Run validation workflows
+./scripts/validate.sh basic
+./scripts/validate.sh dev
+./scripts/validate.sh full
+./scripts/validate.sh staging
+./scripts/validate.sh production
+
+# Run individual validation checks
+./scripts/validate.sh circular
+./scripts/validate.sh types
+./scripts/validate.sh env
+./scripts/validate.sh size
+./scripts/validate.sh unused
+```
+
+### Workflow (`workflow.sh`)
+
+```bash
+# Git operations
+./scripts/workflow.sh push-merge feature-branch main
+
+# Deployment management
+./scripts/workflow.sh deploy auto-deploy production
+./scripts/workflow.sh deploy status staging
+
+# Soak period management
+./scripts/workflow.sh soak start staging 600
+./scripts/workflow.sh soak monitor staging
+
+# Timed script execution
+./scripts/workflow.sh timed 'pnpm test' 300
+```
+
+### Available Commands
+
+#### Database Operations (`db`)
+
+```bash
+tsx scripts/cli.ts db migrate [options]       # Run database migrations
+tsx scripts/cli.ts db setup complete          # Setup database
+tsx scripts/cli.ts db truncate --scope=internal # Truncate tables
+tsx scripts/cli.ts db view                    # View migration history
+tsx scripts/cli.ts db validate                # Validate migrations
+tsx scripts/cli.ts db copy-migrations         # Copy custom migrations
+```
+
+#### Testing Operations (`test`)
+
+```bash
+tsx scripts/cli.ts test e2e [options]         # Run E2E tests
+tsx scripts/cli.ts test e2e-compound [options] # Run compound E2E tests
+tsx scripts/cli.ts test e2e-debug             # Run E2E debug utilities
+tsx scripts/cli.ts test e2e-optimize [options] # Run E2E optimization
+tsx scripts/cli.ts test failing [options]     # Run failing tests
+tsx scripts/cli.ts test coverage [options]    # Generate coverage report
+tsx scripts/cli.ts test db-connection [options] # Test database connection
+tsx scripts/cli.ts test migrations [options]  # Test migrations
+tsx scripts/cli.ts test redis [options]       # Test Redis connection
+tsx scripts/cli.ts test cascade-delete [options] # Test cascade delete
+tsx scripts/cli.ts test seeding [options]     # Test seeding functions
+tsx scripts/cli.ts test seeding-deps [options] # Test seeding dependencies
+tsx scripts/cli.ts test seeding-cli [options] # Test seeding CLI
+tsx scripts/cli.ts test notifications [options] # Test notification triggers
+tsx scripts/cli.ts test distributions [options] # Test statistical distributions
+tsx scripts/cli.ts test configurable [options] # Test configurable distributions
+```
+
+#### CI/CD Operations (`ci`)
+
+```bash
+tsx scripts/cli.ts ci runner [environment]    # Run CI pipeline
+tsx scripts/cli.ts ci unit-tests              # Run CI unit tests
+tsx scripts/cli.ts ci e2e-tests [type]        # Run CI E2E tests
+tsx scripts/cli.ts ci quality-gate            # Run CI quality gate
+```
+
+#### Validation Operations (`validate`)
+
+```bash
+tsx scripts/cli.ts validate run [type]        # Run validation pipeline
+tsx scripts/cli.ts validate helpers [options] # Run validation helpers
+```
+
+#### Utility Operations (`utils`)
+
+```bash
+tsx scripts/cli.ts utils fix-types [options]  # Fix type violations
+tsx scripts/cli.ts utils validate-types [options] # Validate types
+tsx scripts/cli.ts utils check-circular [options] # Check circular dependencies
+tsx scripts/cli.ts utils check-unused [options] # Check unused exports
+tsx scripts/cli.ts utils manage-deps [options] # Manage dependencies
+tsx scripts/cli.ts utils verify-env [options] # Verify environment
+tsx scripts/cli.ts utils combine-schema [options] # Combine schema
+```
+
+#### Performance Operations (`perf`)
+
+```bash
+tsx scripts/cli.ts perf measure [options]     # Measure performance
+tsx scripts/cli.ts perf report [options]      # Generate performance report
+```
+
+#### Workflow Operations (`workflow`)
+
+```bash
+tsx scripts/cli.ts workflow push-merge [options] # Run push and merge workflow
+tsx scripts/cli.ts workflow deploy [options]  # Run deployment manager
+tsx scripts/cli.ts workflow soak [options]    # Run soak monitor
+tsx scripts/cli.ts workflow timed [options]   # Run timed execution
+tsx scripts/cli.ts workflow generate-results [options] # Generate test results
+tsx scripts/cli.ts workflow rename [options]  # Rename files to kebab case
+```
 
 ## 📁 Directory Structure
 
 ```
 scripts/
-├── e2e-run.sh                    # Consolidated E2E test runner
-├── timed-run.sh                  # Consolidated timing utility
-├── run-failing.sh                # Consolidated failing tests runner
-├── e2e-compound-runner.sh        # Compound test hierarchy runner
-├── e2e-helpers.sh                # E2E test helper functions
-├── e2e-debug.sh                  # E2E debugging utilities
-├── e2e-optimize.sh               # E2E optimization utilities
-├── ci-runner.sh                  # CI/CD pipeline runner
-├── ci-unit-tests.sh              # CI unit tests
-├── ci-e2e-tests.sh               # CI E2E tests
-├── ci-quality-gate.sh            # CI quality gate
-├── validation-run.sh             # Validation runner
-├── validation-helpers.sh         # Validation helper functions
-├── push-and-merge.sh             # Git workflow automation
-├── generate-test-results.sh      # Test results generation
-├── print-coverage-link.cjs       # Coverage link printer
-├── rename-to-kebab-case.sh       # File renaming utility
-├── e2e-coverage-report.ts        # E2E coverage reporting
-├── db/                           # Database scripts
-├── utils/                        # Utility scripts
-├── test/                         # Test utilities
-├── performance/                  # Performance scripts
-├── eslint-rules/                 # ESLint rules
-├── shared/                       # Shared utilities
-└── README.md                     # This file
+├── cli.ts                    # 🆕 Unified CLI entry point
+├── db/                       # Database management scripts
+│   ├── database-manager.ts   # 🆕 Unified database operations
+│   ├── migrate.ts            # Backward compatibility wrapper
+│   └── README.md             # Database operations documentation
+├── tests/                    # 🆕 Consolidated test scripts
+│   ├── test-cascade-delete.ts
+│   ├── test-seeding-functions.ts
+│   ├── test-seeding-dependencies-simple.ts
+│   ├── test-command-line-seeding.ts
+│   ├── test-notification-triggers.ts
+│   ├── test-statistical-distributions.ts
+│   └── test-configurable-distributions.ts
+├── utils/                    # Utility scripts
+│   ├── fix-type-violations.ts
+│   ├── validate-types.ts
+│   ├── check-circular-deps.ts
+│   ├── check-unused-exports.ts
+│   ├── manage-deps.ts
+│   ├── verify-env.ts
+│   └── combine-schema.ts
+├── performance/              # Performance measurement scripts
+│   ├── performance-measure.ts
+│   └── performance-report.ts
+├── test/                     # Database test utilities
+│   ├── test-db-connection.ts
+│   ├── test-migrations.ts
+│   └── test-redis.ts
+├── shared/                   # Shared utilities
+│   ├── database-triggers.ts
+│   └── script-utils.ts
+├── eslint-rules/             # ESLint custom rules
+│   └── no-duplicate-main.js
+├── e2e.sh                    # 🆕 Consolidated E2E testing script
+├── ci.sh                     # 🆕 Consolidated CI pipeline script
+├── validate.sh               # 🆕 Consolidated validation script
+├── workflow.sh               # 🆕 Consolidated workflow script
+├── e2e-run.sh                # E2E test runner (legacy)
+├── e2e-compound-runner.sh    # Compound test hierarchy runner (legacy)
+├── e2e-helpers.sh            # E2E test helper functions (legacy)
+├── e2e-debug.sh              # E2E debugging utilities (legacy)
+├── e2e-optimize.sh           # E2E optimization utilities (legacy)
+├── ci-runner.sh              # CI/CD pipeline runner (legacy)
+├── ci-unit-tests.sh          # CI unit tests (legacy)
+├── ci-e2e-tests.sh           # CI E2E tests (legacy)
+├── ci-quality-gate.sh        # CI quality gate (legacy)
+├── validation-run.sh         # Validation runner (legacy)
+├── validation-helpers.sh     # Validation helper functions (legacy)
+├── push-and-merge.sh         # Git workflow automation (legacy)
+├── deployment-manager.sh     # Deployment management (legacy)
+├── soak-monitor.sh           # Soak testing monitor (legacy)
+├── timed-run.sh              # Timing utility (legacy)
+├── run-failing.sh            # Failing tests runner (legacy)
+├── generate-test-results.sh  # Test results generation (legacy)
+├── e2e-coverage-report.ts    # E2E coverage reporting
+├── print-coverage-link.cjs   # Coverage link printer
+├── rename-to-kebab-case.sh   # File renaming utility
+├── tsconfig.json             # TypeScript configuration
+├── README.md                 # This file
+└── README-DEBUG.md           # Debug documentation
 ```
 
-## 🚀 Core Scripts
+## 🔄 Migration from Old Scripts
 
-### E2E Test Runner (`e2e-run.sh`)
+### Database Scripts
 
-**Consolidated E2E test execution with multiple modes.**
+- **Old**: `tsx scripts/db/apply-migrations.ts`
+- **New**: `tsx scripts/cli.ts db migrate`
+
+- **Old**: `tsx scripts/db/setup-database.ts`
+- **New**: `tsx scripts/cli.ts db setup complete`
+
+- **Old**: `tsx scripts/db/truncate-tables.ts --scope=internal`
+- **New**: `tsx scripts/cli.ts db truncate --scope=internal`
+
+### Test Scripts
+
+- **Old**: `tsx scripts/test-cascade-delete.ts`
+- **New**: `tsx scripts/cli.ts test cascade-delete`
+
+- **Old**: `tsx scripts/test-seeding-functions.ts`
+- **New**: `tsx scripts/cli.ts test seeding`
+
+### Utility Scripts
+
+- **Old**: `tsx scripts/utils/fix-type-violations.ts`
+- **New**: `tsx scripts/cli.ts utils fix-types`
+
+- **Old**: `tsx scripts/utils/validate-types.ts`
+- **New**: `tsx scripts/cli.ts utils validate-types`
+
+### Shell Scripts
+
+| Legacy Command                                         | New Command                                            |
+| ------------------------------------------------------ | ------------------------------------------------------ |
+| `./scripts/ci-runner.sh preview`                       | `./scripts/ci.sh preview`                              |
+| `./scripts/e2e-run.sh basic 'playwright test' 'Tests'` | `./scripts/e2e.sh run basic 'playwright test' 'Tests'` |
+| `./scripts/validation-run.sh basic`                    | `./scripts/validate.sh basic`                          |
+| `./scripts/push-and-merge.sh`                          | `./scripts/workflow.sh push-merge`                     |
+| `./scripts/deployment-manager.sh status`               | `./scripts/workflow.sh deploy status`                  |
+| `./scripts/soak-monitor.sh start`                      | `./scripts/workflow.sh soak start`                     |
+| `./scripts/timed-run.sh 'pnpm test'`                   | `./scripts/workflow.sh timed 'pnpm test'`              |
+
+## 🎯 Benefits of Consolidation
+
+1. **Unified Interface**: Single entry point for all script operations
+2. **Consistent Patterns**: All operations use the same error handling and logging
+3. **Better Documentation**: Centralized help and usage information
+4. **Easier Maintenance**: Shared utilities and common patterns
+5. **Improved Discoverability**: Clear command structure and help system
+6. **Backward Compatibility**: Old scripts still work through wrappers
+
+## 🧪 Testing
+
+### Running Tests
 
 ```bash
-# Basic test execution
-./scripts/e2e-run.sh basic "playwright test --project=chromium" "Chromium tests" 300
+# Run all E2E tests
+tsx scripts/cli.ts test e2e basic
 
-# Coverage testing (fast)
-./scripts/e2e-run.sh coverage "playwright test tests/e2e/functional/fast.spec.ts" "Fast tests"
+# Run specific test categories
+tsx scripts/cli.ts test cascade-delete
+tsx scripts/cli.ts test seeding
+tsx scripts/cli.ts test notifications
 
-# Full coverage testing (waits for HTML reports)
-./scripts/e2e-run.sh coverage-full "playwright test tests/e2e/functional/full.spec.ts" "Full tests" 600
-
-# Responsive design testing
-./scripts/e2e-run.sh responsive 3600
+# Run database tests
+tsx scripts/cli.ts test db-connection
+tsx scripts/cli.ts test migrations
+tsx scripts/cli.ts test redis
 ```
 
-**Modes:**
+### Test Scripts Location
 
-- `basic` - Basic test execution (default)
-- `coverage` - Test execution with coverage (fast)
-- `coverage-full` - Test execution with full coverage (waits for HTML reports)
-- `responsive` - Responsive design testing
+All test scripts are now organized in `scripts/tests/` for better organization and discoverability.
 
-### Timed Run (`timed-run.sh`)
+## 🔧 Development
 
-**Consolidated timing utility for any command execution.**
+### Adding New Commands
 
-```bash
-# Time any command
-./scripts/timed-run.sh command "pnpm build"
+To add a new command to the CLI:
 
-# Time pnpm commands
-./scripts/timed-run.sh pnpm build
+1. Add a new case in the appropriate handler function in `cli.ts`
+2. Update the help text in `showHelp()`
+3. Add any necessary utility functions
+4. Update this README
 
-# Time pnpm script commands with enhanced logging
-./scripts/timed-run.sh script test:e2e:quickie
-```
+### Script Organization
 
-**Modes:**
+- **Core scripts**: Keep in root `scripts/` directory
+- **Test scripts**: Move to `scripts/tests/`
+- **Utility scripts**: Keep in `scripts/utils/`
+- **Database scripts**: Keep in `scripts/db/`
+- **Performance scripts**: Keep in `scripts/performance/`
 
-- `command` - Time any command (default)
-- `pnpm` - Time pnpm commands
-- `script` - Time pnpm script commands with enhanced logging
+## 📚 Additional Documentation
 
-**Environment Variables:**
+- [Database Operations](db/README.md) - Detailed database management guide
+- [Debug Guide](README-DEBUG.md) - Debugging and troubleshooting
+- [Package.json Scripts](../package.json) - NPM script definitions
 
-- `TIMING_QUIET=1` - Suppress timing output
-- `TIMING_LOG=1` - Log timing to file (default: enabled)
-
-### Failing Tests Runner (`run-failing.sh`)
-
-**Consolidated failing tests execution.**
-
-```bash
-# Run individual failing tests
-./scripts/run-failing.sh tests playwright.fast.config.ts line
-
-# Run entire failing test files
-./scripts/run-failing.sh files playwright.popular.config.ts line tests/e2e/functional/responsive.spec.ts
-```
-
-**Modes:**
-
-- `tests` - Run individual failing tests (default)
-- `files` - Run entire failing test files
-
-## 🧪 Testing Scripts
-
-### Compound Test Runner (`e2e-compound-runner.sh`)
-
-**Run the compound test hierarchy in sequence.**
-
-```bash
-# Run all tests in sequence
-./scripts/e2e-compound-runner.sh
-
-# Run specific levels only
-./scripts/e2e-compound-runner.sh --fast-only
-./scripts/e2e-compound-runner.sh --smoke-only
-./scripts/e2e-compound-runner.sh --critical-only
-./scripts/e2e-compound-runner.sh --responsive-only
-./scripts/e2e-compound-runner.sh --full-only
-```
-
-### E2E Debug (`e2e-debug.sh`)
-
-**Debugging utilities for E2E tests.**
-
-```bash
-./scripts/e2e-debug.sh
-```
-
-Provides system information, process status, port status, and quick fixes.
-
-### E2E Optimize (`e2e-optimize.sh`)
-
-**Optimization utilities for E2E tests.**
-
-```bash
-# Clean test artifacts
-./scripts/e2e-optimize.sh clean
-
-# Optimize system for testing
-./scripts/e2e-optimize.sh optimize
-
-# Monitor system resources
-./scripts/e2e-optimize.sh monitor
-
-# Analyze test performance
-./scripts/e2e-optimize.sh analyze
-
-# Setup optimized environment
-./scripts/e2e-optimize.sh setup
-```
-
-## 🔧 CI/CD Scripts
-
-### CI Runner (`ci-runner.sh`)
-
-**Main CI/CD pipeline runner.**
-
-```bash
-./scripts/ci-runner.sh preview
-./scripts/ci-runner.sh staging
-./scripts/ci-runner.sh production
-```
-
-### CI Unit Tests (`ci-unit-tests.sh`)
-
-**CI unit tests execution.**
-
-```bash
-./scripts/ci-unit-tests.sh
-```
-
-### CI E2E Tests (`ci-e2e-tests.sh`)
-
-**CI E2E tests execution.**
-
-```bash
-./scripts/ci-e2e-tests.sh smoke
-./scripts/ci-e2e-tests.sh critical
-./scripts/ci-e2e-tests.sh quickie
-```
-
-### CI Quality Gate (`ci-quality-gate.sh`)
-
-**CI quality gate checks.**
-
-```bash
-./scripts/ci-quality-gate.sh
-```
-
-## 📊 Validation Scripts
-
-### Validation Runner (`validation-run.sh`)
-
-**Validation pipeline runner.**
-
-```bash
-./scripts/validation-run.sh basic
-./scripts/validation-run.sh soft
-./scripts/validation-run.sh full
-./scripts/validation-run.sh dev
-./scripts/validation-run.sh production
-```
-
-## 🗄️ Database Scripts
-
-Located in `scripts/db/`:
-
-- `setup-database.ts` - Database setup
-- `apply-migrations.ts` - Migration application
-- `drizzle-migrate.ts` - Drizzle migration utilities
-- `validate-migrations.ts` - Migration validation
-- `view-migrations.ts` - Migration viewing
-- `copy-custom-migrations.ts` - Custom migration copying
-
-## 🛠️ Utility Scripts
-
-Located in `scripts/utils/`:
-
-- `verify-env.ts` - Environment verification
-- `check-unused-exports.ts` - Unused exports checking
-- `validate-types.ts` - Type validation
-- `check-circular-deps.ts` - Circular dependency checking
-- `fix-type-violations.ts` - Type violation fixing
-- `combine-schema.ts` - Schema combination
-- `manage-deps.ts` - Dependency management
-
-## 📈 Performance Scripts
-
-Located in `scripts/performance/`:
-
-- `performance-measure.ts` - Performance measurement
-- `performance-report.ts` - Performance reporting
-
-## 🔍 Test Utilities
-
-Located in `scripts/test/`:
-
-- `test-db-connection.ts` - Database connection testing
-- `test-migrations.ts` - Migration testing
-- `test-redis.ts` - Redis testing
-
-## 📝 Workflow Scripts
-
-### Push and Merge (`push-and-merge.sh`)
-
-**Git workflow automation.**
-
-```bash
-./scripts/push-and-merge.sh
-./scripts/push-and-merge.sh --help
-```
-
-### Generate Test Results (`generate-test-results.sh`)
-
-**Test results generation.**
-
-```bash
-./scripts/generate-test-results.sh
-./scripts/generate-test-results.sh playwright.fast.config.ts
-./scripts/generate-test-results.sh playwright.popular.config.ts tests/e2e/functional/responsive.spec.ts
-```
-
-## 🎯 Package.json Integration
-
-Most scripts are integrated into package.json for easy access:
-
-```bash
-# E2E testing
-pnpm test:e2e:quickie
-pnpm test:e2e:smoke
-pnpm test:e2e:critical
-pnpm test:e2e:responsive
-pnpm test:e2e:full
-
-# Timing
-pnpm timed test:e2e:quickie
-
-# Failing tests
-pnpm test:failing
-pnpm test:failing:quickie
-pnpm test:failing:popular
-
-# CI/CD
-pnpm ci:unit-tests
-pnpm ci:e2e-tests
-pnpm ci:quality-gate
-
-# Validation
-pnpm validate
-pnpm validate:ci
-pnpm validate:all
-```
-
-## 🔄 Recent Consolidations
-
-The following scripts have been consolidated to reduce complexity:
-
-### E2E Testing (Consolidated into `e2e-run.sh`)
-
-- ❌ `e2e-run-with-coverage.sh` → ✅ `e2e-run.sh coverage`
-- ❌ `e2e-run-with-coverage-full.sh` → ✅ `e2e-run.sh coverage-full`
-- ❌ `e2e-responsive.sh` → ✅ `e2e-run.sh responsive`
-
-### Timing (Consolidated into `timed-run.sh`)
-
-- ❌ `timed-pnpm.sh` → ✅ `timed-run.sh pnpm`
-- ❌ `time-script.sh` → ✅ `timed-run.sh script`
-
-### Failing Tests (Consolidated into `run-failing.sh`)
-
-- ❌ `run-failing-tests.sh` → ✅ `run-failing.sh tests`
-- ❌ `run-failing-files.sh` → ✅ `run-failing.sh files`
-
-## 📚 Best Practices
-
-1. **Use package.json scripts** when possible for better integration
-2. **Check script help** with `--help` or `-h` flags
-3. **Use appropriate modes** for different use cases
-4. **Leverage environment variables** for customization
-5. **Check script documentation** before use
-
-## 🆘 Troubleshooting
+## 🚨 Troubleshooting
 
 ### Common Issues
 
-1. **Script not found**: Ensure script is executable (`chmod +x script.sh`)
-2. **Permission denied**: Check file permissions and ownership
-3. **Dependencies missing**: Install required tools (Node.js, pnpm, etc.)
-4. **Environment issues**: Check environment variables and configuration
+1. **Command not found**: Ensure you're using the correct command structure
+2. **Environment variables**: The CLI automatically loads environment variables
+3. **Database connection**: Check your `DATABASE_URL` environment variable
+4. **Permission errors**: Ensure scripts have execute permissions
 
-### Debug Commands
+### Getting Help
 
 ```bash
-# Check script permissions
-ls -la scripts/
+# Show general help
+tsx scripts/cli.ts
 
-# Test script execution
-./scripts/e2e-debug.sh
+# Show help for specific command
+tsx scripts/cli.ts db --help
+tsx scripts/cli.ts test --help
+```
 
-# Check environment
-./scripts/utils/verify-env.ts
+### Debug Mode
 
-# Validate setup
-./scripts/validation-run.sh basic
+Enable debug logging by setting the environment variable:
+
+```bash
+DEBUG=true tsx scripts/cli.ts <command> <subcommand>
 ```

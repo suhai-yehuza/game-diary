@@ -18,7 +18,7 @@ import type { DistributionConfigPreset, ScenarioKey } from '@src/lib/types/seedi
  * This script provides functions to seed all database tables with mock data:
  *
  * External API Data (seasons, leagues, teams, nba_games, nba_players):
- * - Leagues: NBA, WNBA
+ * - Leagues: NBA
  * - Seasons: 2022, 2023, 2024
  * - Teams: Lakers, Celtics, Warriors, Heat, Bulls
  * - Players: LeBron James, Stephen Curry, Kevin Durant
@@ -89,13 +89,13 @@ function showHelp() {
   console.log(`
 🌱 Database Seeding Script
 
-Usage: npm run seed [options]
+Usage: pnpm run seed [options]
 
 Options:
   --help, -h                    Show this help message
   --external, -e                Seed only external API data (NBA data)
-  --user, -u                    Seed only user data
-  --all, -a                     Seed both external API and user data (default)
+  --internal, -i                Seed only internal app data (users, friendships, etc.)
+  --all, -a                     Seed both external API and internal app data (default)
   --clear-user, -c              Clear all user data before seeding
   --scenario <scenario>         Use predefined seeding scenario
   --users <count>               Number of users to generate (for custom scenario)
@@ -122,19 +122,20 @@ Distribution Presets:
   demo                          Demo-optimized patterns
 
 Examples:
-  npm run seed                                    # Seed all data with medium scenario
-  npm run seed --scenario small                   # Seed with small dataset
-  npm run seed --scenario large                   # Seed with large dataset
-  npm run seed --users 50                         # Seed with 50 custom users
-  npm run seed --distribution realistic           # Use realistic distribution patterns
-  npm run seed --distribution=high-engagement     # Use high engagement patterns
-  npm run seed --scenario=large --distribution=demo # Large dataset with demo patterns
-  npm run seed --env=staging --scenario=medium    # Staging environment with medium dataset
-  npm run seed --env=production --scenario=large --distribution=realistic # Production with realistic data
-  npm run seed --external                         # Seed only NBA data
-  npm run seed --user                             # Seed only user data
-  npm run seed --clear-user                       # Clear user data before seeding
-  npm run seed --dry-run                          # Show what would be seeded
+  pnpm run seed                                    # Seed all data with medium scenario
+  pnpm run seed --scenario small                   # Seed with small dataset
+  pnpm run seed --scenario large                   # Seed with large dataset
+  pnpm run seed --users 50                         # Seed with 50 custom users
+  pnpm run seed --distribution realistic           # Use realistic distribution patterns
+  pnpm run seed --distribution=high-engagement     # Use high engagement patterns
+  pnpm run seed --scenario=large --distribution=demo # Large dataset with demo patterns
+  pnpm run seed --env=staging --scenario=medium    # Staging environment with medium dataset
+  pnpm run seed --env=production --scenario=large --distribution=realistic # Production with realistic data
+  pnpm run seed --external                         # Seed only NBA data
+  pnpm run seed --internal                         # Seed only internal app data
+  pnpm run seed --all                              # Seed both external and internal data
+  pnpm run seed --clear-user                       # Clear user data before seeding
+  pnpm run seed --dry-run                          # Show what would be seeded
 
 Environment Variables:
   DATABASE_URL                  Database connection URL
@@ -148,6 +149,7 @@ function parseArguments() {
   const options: {
     help?: boolean;
     external?: boolean;
+    internal?: boolean;
     user?: boolean;
     all?: boolean;
     clearUser?: boolean;
@@ -177,6 +179,10 @@ function parseArguments() {
       case '--external':
       case '-e':
         options.external = true;
+        break;
+      case '--internal':
+      case '-i':
+        options.internal = true;
         break;
       case '--user':
       case '-u':
@@ -273,6 +279,7 @@ function handleOptionWithValue(
   options: {
     help?: boolean;
     external?: boolean;
+    internal?: boolean;
     user?: boolean;
     all?: boolean;
     clearUser?: boolean;
@@ -425,8 +432,8 @@ async function main() {
   );
 
   // Determine what to seed
-  const seedExternal = options.external ?? options.all ?? !options.user;
-  const seedUser = options.user ?? options.all ?? !options.user;
+  const seedExternal = options.external ?? options.all ?? (!options.internal && !options.user);
+  const seedInternal = options.internal ?? options.all ?? (!options.external && !options.user);
 
   // Determine scenario
   const scenario: ScenarioKey = options.scenario ?? 'MEDIUM';
@@ -465,10 +472,10 @@ async function main() {
       console.log(`✅ User data cleared in ${clearTime.toFixed(2)}ms`);
     }
 
-    // Seed user data if requested
-    if (seedUser) {
-      performanceTracker.startTimer('user_data_seeding');
-      console.log('\n👥 Seeding user data...');
+    // Seed internal app data if requested
+    if (seedInternal) {
+      performanceTracker.startTimer('internal_data_seeding');
+      console.log('\n👥 Seeding internal app data...');
 
       // Get distribution configuration
       const distributionConfig = options.distribution
@@ -478,8 +485,8 @@ async function main() {
       // Pass scenario configuration and optimization config to seedUserData
       const config = getScenarioConfig(scenario, userCount);
       await seedUserData(config, optimizationConfig, distributionConfig);
-      const userTime = performanceTracker.endTimer('user_data_seeding');
-      console.log(`✅ User data seeding completed in ${userTime.toFixed(2)}ms`);
+      const internalTime = performanceTracker.endTimer('internal_data_seeding');
+      console.log(`✅ Internal app data seeding completed in ${internalTime.toFixed(2)}ms`);
     }
 
     const totalTime = performanceTracker.endTimer('total_seeding');

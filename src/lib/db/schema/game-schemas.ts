@@ -7,11 +7,24 @@ import {
   decimal,
   unique,
   boolean,
+  serial,
 } from 'drizzle-orm/pg-core';
 
 import { baseTableConfig } from '@/lib/db/schema/base-schemas';
 import { users } from '@/lib/db/schema/user-schemas';
 import { CLASSIFICATION, WATCHED_SETTING, WATCHED_SCOPE } from '@src/lib/types';
+
+// Leagues table
+export const leagues = pgTable('leagues', {
+  id: serial('id').primaryKey(),
+  name: varchar('name', { length: 255 }).notNull().unique(),
+});
+
+// Seasons table
+export const seasons = pgTable('seasons', {
+  id: serial('id').primaryKey(),
+  year: integer('year').notNull().unique(),
+});
 
 // NBA Games table - extending base table configuration
 export const nba_games = pgTable('nba_games', {
@@ -42,7 +55,7 @@ export const teams = pgTable('teams', {
   logo: text('logo'),
   all_star: boolean('all_star').notNull().default(false),
   nba_franchise: boolean('nba_franchise').notNull().default(false),
-  leagues: text('leagues'), // Store as JSON string
+  conference: varchar('conference', { length: 100 }),
 });
 
 // NBA Players table
@@ -51,8 +64,8 @@ export const nba_players = pgTable('nba_players', {
   created_at: timestamp('created_at').defaultNow().notNull(),
   updated_at: timestamp('updated_at').defaultNow().notNull(),
   deleted_at: timestamp({ precision: 6, withTimezone: true }),
-  first_name: varchar('first_name', { length: 100 }).notNull(),
-  last_name: varchar('last_name', { length: 100 }).notNull(),
+  first_name: varchar('first_name', { length: 100 }).notNull().default('missing-first-name'),
+  last_name: varchar('last_name', { length: 100 }).notNull().default('missing-last-name'),
   birth: text('birth'), // Store as JSON string
   nba: text('nba'), // Store as JSON string
   height: text('height'), // Store as JSON string
@@ -64,34 +77,17 @@ export const nba_players = pgTable('nba_players', {
   image_url: text('image_url'),
 });
 
-// Leagues table
-export const leagues = pgTable('leagues', {
-  ...baseTableConfig,
-  name: varchar('name', { length: 255 }).notNull(),
-  code: varchar('code', { length: 20 }),
-  country: varchar('country', { length: 100 }),
-  logo_url: text('logo_url'),
-});
-
-// Seasons table
-export const seasons = pgTable('seasons', {
-  ...baseTableConfig,
-  year: integer('year').notNull(),
-  league: varchar('league', { length: 255 }).references(() => leagues.name),
-  start_date: varchar('start_date', { length: 20 }),
-  end_date: varchar('end_date', { length: 20 }),
-  status: varchar('status', { length: 50 }),
-});
-
 // Game logs table - extending base table configuration
 export const game_logs = pgTable(
   'game_logs',
   {
     ...baseTableConfig,
-    user_id: varchar('user_id', { length: 255 }).references(() => users.id),
+    user_id: varchar('user_id', { length: 255 }).references(() => users.id, {
+      onDelete: 'cascade',
+    }),
     game_id: varchar('game_id', { length: 255 })
       .notNull()
-      .references(() => nba_games.id),
+      .references(() => nba_games.id, { onDelete: 'cascade' }),
     classification: varchar('classification', { length: 50 })
       .notNull()
       .default(CLASSIFICATION.PROTECTED),
@@ -120,7 +116,7 @@ export const game_ratings = pgTable(
     ...baseTableConfig,
     game_id: varchar('game_id', { length: 255 })
       .notNull()
-      .references(() => nba_games.id),
+      .references(() => nba_games.id, { onDelete: 'cascade' }),
     average_rating: decimal('average_rating', { precision: 3, scale: 2 }).notNull().default('0.00'),
     total_ratings: integer('total_ratings').notNull().default(0),
   },

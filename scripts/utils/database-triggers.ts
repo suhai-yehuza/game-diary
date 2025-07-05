@@ -6,43 +6,6 @@ import { logger } from '@lib/core/logger';
 import type { createDatabaseClient } from '@src/lib/db';
 import type { ITriggerSetupOptions } from '@src/lib/types';
 
-async function createRatingStarsTrigger(
-  db: ReturnType<typeof createDatabaseClient>,
-  options: ITriggerSetupOptions = {}
-): Promise<void> {
-  logger.info('⚡ Creating rating stars trigger...');
-
-  // Create or replace the function
-  await db.execute(sql`
-    CREATE OR REPLACE FUNCTION update_rating_stars()
-    RETURNS TRIGGER AS $$
-    BEGIN
-      NEW."ratingStars" = REPEAT('⭐', NEW."ratingForGame");
-      RETURN NEW;
-    END;
-    $$ LANGUAGE plpgsql;
-  `);
-
-  // Drop existing trigger if requested
-  if (options.dropExisting) {
-    await db.execute(sql`
-      DROP TRIGGER IF EXISTS update_rating_stars_trigger ON game_logs;
-      DROP FUNCTION IF EXISTS update_rating_stars();
-    `);
-  }
-
-  // Create the trigger
-  await db.execute(sql`
-    CREATE TRIGGER update_rating_stars_trigger
-      BEFORE INSERT OR UPDATE OF "ratingForGame"
-      ON game_logs
-      FOR EACH ROW
-      EXECUTE FUNCTION update_rating_stars();
-  `);
-
-  logger.info('✅ Rating stars trigger created');
-}
-
 async function createGameRatingsTrigger(
   db: ReturnType<typeof createDatabaseClient>,
   options: ITriggerSetupOptions = {}
@@ -122,9 +85,7 @@ async function createGameRatingsTrigger(
 
   // Drop existing trigger if requested
   if (options.dropExisting) {
-    await db.execute(sql`
-      DROP TRIGGER IF EXISTS game_logs_ratings_trigger ON game_logs;
-    `);
+    await db.execute(sql`DROP TRIGGER IF EXISTS game_logs_ratings_trigger ON game_logs`);
   }
 
   // Create the trigger
@@ -190,27 +151,14 @@ export async function setupAllTriggers(
   try {
     const existingTriggerNames = options.skipVerification ? [] : await checkExistingTriggers(db);
 
-    // Create rating stars trigger if it doesn't exist
-    if (options.dropExisting || !existingTriggerNames.includes('update_rating_stars_trigger')) {
-      await createRatingStarsTrigger(db, options);
-    } else {
-      logger.info('✓ Rating stars trigger already exists');
-    }
-
-    // Create game ratings trigger if it doesn't exist
+    // Only create game ratings trigger
     if (options.dropExisting || !existingTriggerNames.includes('game_logs_ratings_trigger')) {
       await createGameRatingsTrigger(db, options);
     } else {
       logger.info('✓ Game ratings trigger already exists');
     }
-
-    if (!options.skipVerification) {
-      await verifyTriggers(db);
-    }
-
-    logger.info('🎉 All triggers set up successfully!');
-  } catch (error) {
-    logger.error('❌ Error setting up triggers:', error);
-    throw error;
+  } catch (err) {
+    logger.error('❌ Error setting up triggers:', err);
+    throw err;
   }
 }

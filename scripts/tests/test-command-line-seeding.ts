@@ -40,7 +40,7 @@ environments.forEach(environment => {
 
 console.log('\n🔍 Testing Help Command:');
 try {
-  const helpOutput = execSync('npm run seed -- --help', { encoding: 'utf8' });
+  const helpOutput = execSync('pnpm run seed -- --help', { encoding: 'utf8' });
   console.log('✅ Help command works correctly');
   console.log('   Shows all available options including --scenario, --distribution, and --env');
 } catch (error) {
@@ -107,7 +107,7 @@ testCases.forEach((testCase, index) => {
   console.log(`\n${index + 1}. Testing: ${testCase.description}`);
 
   try {
-    let command = `npm run seed -- --dry-run`;
+    let command = `pnpm run seed -- --dry-run`;
     const format = testCase.useEqualsFormat ? '=' : ' ';
 
     command += ` --scenario${format}${testCase.scenario}`;
@@ -145,12 +145,12 @@ testCases.forEach((testCase, index) => {
 });
 
 console.log('\n📝 Example Commands for Real Usage:');
-console.log('   npm run seed -- --scenario=small --distribution=realistic');
-console.log('   npm run seed -- --scenario=large --distribution=performance');
-console.log('   npm run seed -- --scenario=custom --users=100 --distribution=demo');
-console.log('   npm run seed -- --env=staging --scenario=medium --distribution=high-engagement');
+console.log('   pnpm run seed -- --scenario=small --distribution=realistic');
+console.log('   pnpm run seed -- --scenario=large --distribution=performance');
+console.log('   pnpm run seed -- --scenario=custom --users=100 --distribution=demo');
+console.log('   pnpm run seed -- --env=staging --scenario=medium --distribution=high-engagement');
 console.log(
-  '   npm run seed -- --env=production --scenario=large --distribution=realistic --dry-run'
+  '   pnpm run seed -- --env=production --scenario=large --distribution=realistic --dry-run'
 );
 console.log('\n💡 Both formats work: --option=value or --option value');
 

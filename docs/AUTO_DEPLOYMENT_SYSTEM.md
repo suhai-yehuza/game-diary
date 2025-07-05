@@ -1,5 +1,7 @@
 # Auto-Deployment System
 
+> **Note:** All deployment management operations are now managed via the consolidated workflow script: `./scripts/workflow.sh deploy ...` or `pnpm workflow:deploy ...`.
+
 This document describes the automated production deployment system with 48-hour soaking periods and manual controls.
 
 ## 🎯 Overview
@@ -40,45 +42,45 @@ Staging Branch Push
 
 ### 1. Deployment Manager Script
 
-**File**: `scripts/deployment-manager.sh`
+**File**: `scripts/workflow.sh`
 
 **Commands**:
 
 ```bash
 # Schedule auto-deployment (after staging soak)
-./scripts/deployment-manager.sh auto-deploy
+./scripts/workflow.sh deploy auto-deploy
 
 # Check if auto-deployment is due
-./scripts/deployment-manager.sh auto-deploy check
+./scripts/workflow.sh deploy auto-deploy check
 
 # Manual deployment to production
-./scripts/deployment-manager.sh manual-deploy "Hotfix deployment"
+./scripts/workflow.sh deploy manual-deploy "Hotfix deployment"
 
 # Rollback production
-./scripts/deployment-manager.sh rollback production "Bug fix"
+./scripts/workflow.sh deploy rollback production "Bug fix"
 
 # Check deployment status
-./scripts/deployment-manager.sh status
+./scripts/workflow.sh deploy status
 
 # View deployment history
-./scripts/deployment-manager.sh history
+./scripts/workflow.sh deploy history
 ```
 
 ### 2. Package.json Scripts
 
 ```bash
 # Auto-deployment
-pnpm deploy:auto              # Schedule auto-deployment
-pnpm deploy:auto:check        # Check if due
+pnpm workflow:deploy auto-deploy              # Schedule auto-deployment
+pnpm workflow:deploy auto-deploy check        # Check if due
 
 # Manual controls
-pnpm deploy:manual            # Deploy immediately
-pnpm deploy:rollback          # Rollback production
+pnpm workflow:deploy manual-deploy            # Deploy immediately
+pnpm workflow:deploy rollback                 # Rollback production
 
 # Status and history
-pnpm deploy:status            # Current status
-pnpm deploy:history           # Deployment history
-pnpm deploy:list              # Status + history
+pnpm workflow:deploy status                   # Current status
+pnpm workflow:deploy history                  # Deployment history
+pnpm workflow:deploy list                     # Status + history
 ```
 
 ### 3. GitHub Workflows
@@ -132,7 +134,7 @@ pnpm deploy:list              # Status + history
 
 ```bash
 # Deploy immediately with reason
-pnpm deploy:manual "Critical hotfix"
+pnpm workflow:deploy manual-deploy "Critical hotfix"
 
 # Or via GitHub Actions UI
 # Go to Actions → Production → Run workflow
@@ -142,23 +144,23 @@ pnpm deploy:manual "Critical hotfix"
 
 ```bash
 # Rollback production
-pnpm deploy:rollback production "Critical bug found"
+pnpm workflow:deploy rollback production "Critical bug found"
 
 # Check rollback status
-pnpm deploy:status
+pnpm workflow:deploy status
 ```
 
 ### Check Deployment Status
 
 ```bash
 # Current status
-pnpm deploy:status
+pnpm workflow:deploy status
 
 # Deployment history
-pnpm deploy:history
+pnpm workflow:deploy history
 
 # Both status and history
-pnpm deploy:list
+pnpm workflow:deploy list
 ```
 
 ## ⚙️ Configuration
@@ -194,7 +196,7 @@ Set these in your repository settings:
 
 ```bash
 # Check current status
-./scripts/deployment-manager.sh status
+./scripts/workflow.sh deploy status
 
 # Output includes:
 # - Current deployment status
@@ -246,10 +248,10 @@ Set these in your repository settings:
 
 ```bash
 # Check if scheduled
-pnpm deploy:status
+pnpm workflow:deploy status
 
 # Manually trigger check
-pnpm deploy:auto:check
+pnpm workflow:deploy auto-deploy check
 
 # Check cron job logs in GitHub Actions
 ```
@@ -270,7 +272,7 @@ cat ./.soak/metrics.json
 
 ```bash
 # Check deployment status
-pnpm deploy:status
+pnpm workflow:deploy status
 
 # Check logs
 cat ./.deployments/deploy.log

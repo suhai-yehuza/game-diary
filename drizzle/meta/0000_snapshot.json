@@ -1,5 +1,5 @@
 {
-  "id": "1027618e-eab1-4709-8cb4-8ac6a1552be2",
+  "id": "07852743-cbe2-4fa5-a3a3-faa6b3aa292c",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -13,7 +13,7 @@
           "type": "varchar(255)",
           "primaryKey": true,
           "notNull": true,
-          "default": "'700df261-f799-4d0b-bdc9-371940836770'"
+          "default": "'2674388e-dfdd-4541-97c6-921c5a2f186a'"
         },
         "created_at": {
           "name": "created_at",
@@ -58,6 +58,13 @@
           "type": "text",
           "primaryKey": false,
           "notNull": true
+        },
+        "depth": {
+          "name": "depth",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
         }
       },
       "indexes": {},
@@ -87,7 +94,7 @@
           "type": "varchar(255)",
           "primaryKey": true,
           "notNull": true,
-          "default": "'700df261-f799-4d0b-bdc9-371940836770'"
+          "default": "'2674388e-dfdd-4541-97c6-921c5a2f186a'"
         },
         "created_at": {
           "name": "created_at",
@@ -171,7 +178,7 @@
           "type": "varchar(255)",
           "primaryKey": true,
           "notNull": true,
-          "default": "'700df261-f799-4d0b-bdc9-371940836770'"
+          "default": "'2674388e-dfdd-4541-97c6-921c5a2f186a'"
         },
         "created_at": {
           "name": "created_at",
@@ -271,10 +278,10 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
-        "game_logs_game_id_games_id_fk": {
-          "name": "game_logs_game_id_games_id_fk",
+        "game_logs_game_id_nba_games_id_fk": {
+          "name": "game_logs_game_id_nba_games_id_fk",
           "tableFrom": "game_logs",
-          "tableTo": "games",
+          "tableTo": "nba_games",
           "columnsFrom": ["game_id"],
           "columnsTo": ["id"],
           "onDelete": "no action",
@@ -302,7 +309,7 @@
           "type": "varchar(255)",
           "primaryKey": true,
           "notNull": true,
-          "default": "'700df261-f799-4d0b-bdc9-371940836770'"
+          "default": "'2674388e-dfdd-4541-97c6-921c5a2f186a'"
         },
         "created_at": {
           "name": "created_at",
@@ -347,10 +354,10 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "game_ratings_game_id_games_id_fk": {
-          "name": "game_ratings_game_id_games_id_fk",
+        "game_ratings_game_id_nba_games_id_fk": {
+          "name": "game_ratings_game_id_nba_games_id_fk",
           "tableFrom": "game_ratings",
-          "tableTo": "games",
+          "tableTo": "nba_games",
           "columnsFrom": ["game_id"],
           "columnsTo": ["id"],
           "onDelete": "no action",
@@ -369,16 +376,46 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.games": {
-      "name": "games",
+    "public.leagues": {
+      "name": "leagues",
       "schema": "",
       "columns": {
         "id": {
           "name": "id",
-          "type": "varchar(255)",
+          "type": "serial",
           "primaryKey": true,
-          "notNull": true,
-          "default": "'700df261-f799-4d0b-bdc9-371940836770'"
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "leagues_name_unique": {
+          "name": "leagues_name_unique",
+          "nullsNotDistinct": false,
+          "columns": ["name"]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.nba_games": {
+      "name": "nba_games",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "varchar(20)",
+          "primaryKey": true,
+          "notNull": true
         },
         "created_at": {
           "name": "created_at",
@@ -448,6 +485,111 @@
           "type": "varchar(50)",
           "primaryKey": false,
           "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.nba_players": {
+      "name": "nba_players",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "varchar(20)",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "deleted_at": {
+          "name": "deleted_at",
+          "type": "timestamp (6) with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "first_name": {
+          "name": "first_name",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "last_name": {
+          "name": "last_name",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "birth": {
+          "name": "birth",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "nba": {
+          "name": "nba",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "height": {
+          "name": "height",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "weight": {
+          "name": "weight",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "college": {
+          "name": "college",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "affiliation": {
+          "name": "affiliation",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "teams": {
+          "name": "teams",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "leagues": {
+          "name": "leagues",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "image_url": {
+          "name": "image_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
         }
       },
       "indexes": {},
@@ -567,7 +709,7 @@
           "type": "varchar(255)",
           "primaryKey": true,
           "notNull": true,
-          "default": "'700df261-f799-4d0b-bdc9-371940836770'"
+          "default": "'2674388e-dfdd-4541-97c6-921c5a2f186a'"
         },
         "created_at": {
           "name": "created_at",
@@ -634,6 +776,126 @@
           "columns": ["user_id", "target_type", "target_id", "emoji"]
         }
       },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.seasons": {
+      "name": "seasons",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "year": {
+          "name": "year",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "seasons_year_unique": {
+          "name": "seasons_year_unique",
+          "nullsNotDistinct": false,
+          "columns": ["year"]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.teams": {
+      "name": "teams",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "varchar(20)",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "deleted_at": {
+          "name": "deleted_at",
+          "type": "timestamp (6) with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "nickname": {
+          "name": "nickname",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "code": {
+          "name": "code",
+          "type": "varchar(10)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "city": {
+          "name": "city",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "logo": {
+          "name": "logo",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "all_star": {
+          "name": "all_star",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "nba_franchise": {
+          "name": "nba_franchise",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "leagues": {
+          "name": "leagues",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false

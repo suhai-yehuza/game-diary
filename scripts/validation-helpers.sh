@@ -10,6 +10,12 @@ set -euo pipefail
 # ATOMIC VALIDATION STEPS (Single responsibility functions)
 # =============================================================================
 
+# Cleanup
+run_clean() {
+    echo "🧹 Cleaning up..."
+    pnpm run clean:all
+}
+
 # Code Quality Checks
 run_format_check() {
     echo "🔍 Checking code format..."
@@ -31,6 +37,12 @@ run_lint_fix() {
     pnpm run lint:fix
 }
 
+# Code Generation
+run_codegen() {
+    echo "🔧 Generating GraphQL code..."
+    pnpm run codegen
+}
+
 # Type Safety Checks
 run_typecheck() {
     echo "🔍 Running TypeScript type check..."
@@ -45,12 +57,6 @@ run_type_validation() {
 run_type_fix() {
     echo "🔧 Fixing TypeScript type violations..."
     pnpm run fix:types
-}
-
-# Code Generation
-run_codegen() {
-    echo "🔧 Generating GraphQL code..."
-    pnpm run codegen
 }
 
 # Build
@@ -79,12 +85,6 @@ run_unused_exports_check() {
 run_size_check() {
     echo "🔍 Checking bundle size..."
     pnpm run check:size
-}
-
-# Cleanup
-run_clean() {
-    echo "🧹 Cleaning up..."
-    pnpm run clean:all
 }
 
 # =============================================================================
@@ -173,27 +173,27 @@ run_e2e_pages_test_validation() {
 
 run_e2e_compound_test_validation() {
     echo "🚀 Running E2E compound test validation..."
-    pnpm run test:e2e:compound
+    pnpm e2e:compound
 }
 
 run_e2e_performance_test_validation() {
     echo "🚀 Running E2E performance test validation..."
-    pnpm run test:e2e:performance
+    pnpm e2e:run performance
 }
 
 run_e2e_load_test_validation() {
     echo "🚀 Running E2E load test validation..."
-    pnpm run test:e2e:load
+    pnpm e2e:run load
 }
 
 run_e2e_pre_deploy_test_validation() {
     echo "🚀 Running E2E pre-deploy test validation..."
-    pnpm run test:e2e:pre-deploy
+    pnpm test:e2e:pre-deploy
 }
 
 run_e2e_post_deploy_test_validation() {
     echo "🚀 Running E2E post-deploy test validation..."
-    pnpm run test:e2e:post-deploy
+    pnpm test:e2e:post-deploy
 }
 
 # =============================================================================

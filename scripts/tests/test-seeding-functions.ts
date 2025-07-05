@@ -157,8 +157,8 @@ try {
   console.log(`   ✅ All comments have valid depths (0-5): ${validCommentDepths}`);
 
   // Check that game logs have valid ratings
-  const validRatings = gameLogs.every(gl => gl.rating_for_game >= 1 && gl.rating_for_game <= 10);
-  console.log(`   ✅ All game logs have valid ratings (1-10): ${validRatings}`);
+  const validRatings = gameLogs.every(gl => gl.rating_for_game >= 1 && gl.rating_for_game <= 5);
+  console.log(`   ✅ All game logs have valid ratings (1-5): ${validRatings}`);
 
   console.log('\n🎉 All seeding functions are working correctly!');
   console.log('✅ Reactions and friendships are being generated as expected.');

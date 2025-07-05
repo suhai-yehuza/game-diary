@@ -1,5 +1,7 @@
 # CI/CD Environment Variables Setup
 
+> **Note:** Soak period operations are now managed via the consolidated workflow script: `./scripts/workflow.sh soak ...` or `pnpm workflow:soak ...`.
+
 This guide shows you exactly where to set environment variables for soaking periods in your CI/CD pipeline.
 
 ## 🎯 Quick Setup Steps
@@ -85,10 +87,10 @@ Your staging workflow (`.github/workflows/staging.yml`) now includes:
 
 ```bash
 # Test with local development server
-VERCEL_STAGING_URL=http://localhost:3000 ./scripts/soak-monitor.sh start staging 60
+VERCEL_STAGING_URL=http://localhost:3000 ./scripts/workflow.sh soak start staging 60
 
 # Check status
-./scripts/soak-monitor.sh status
+./scripts/workflow.sh soak status
 ```
 
 ### CI/CD Testing

@@ -6,16 +6,16 @@ The Game Diary seeding system now supports comprehensive command-line configurat
 
 ```bash
 # Basic seeding with default settings
-npm run seed
+pnpm run seed
 
 # Small dataset with realistic patterns
-npm run seed -- --scenario=small --distribution=realistic
+pnpm run seed -- --scenario=small --distribution=realistic
 
 # Large dataset optimized for performance
-npm run seed -- --scenario=large --distribution=performance
+pnpm run seed -- --scenario=large --distribution=performance
 
 # Custom dataset with specific user count
-npm run seed -- --scenario=custom --users=100 --distribution=demo
+pnpm run seed -- --scenario=custom --users=100 --distribution=demo
 ```
 
 ## 📊 Seeding Scenarios
@@ -35,10 +35,10 @@ Scenarios control the volume and complexity of generated data:
 
 ```bash
 # Use predefined scenario
-npm run seed -- --scenario=small
+pnpm run seed -- --scenario=small
 
 # Custom scenario with specific user count
-npm run seed -- --scenario=custom --users=75
+pnpm run seed -- --scenario=custom --users=75
 ```
 
 ## 🌍 Environment Configuration
@@ -58,16 +58,16 @@ The seeding system supports different environments that affect performance optim
 
 ```bash
 # Development environment (default)
-npm run seed -- --env=development
+pnpm run seed -- --env=development
 
 # Staging environment
-npm run seed -- --env=staging --scenario=medium
+pnpm run seed -- --env=staging --scenario=medium
 
 # Production environment
-npm run seed -- --env=production --scenario=large --distribution=realistic
+pnpm run seed -- --env=production --scenario=large --distribution=realistic
 
 # Test environment
-npm run seed -- --env=test --scenario=small --distribution=uniform
+pnpm run seed -- --env=test --scenario=small --distribution=uniform
 ```
 
 **Important**: The `--env` flag loads the corresponding `.env` file:
@@ -111,13 +111,13 @@ All environment variables are loaded from the specified environment file:
 
 ```bash
 # Seed staging database with staging environment variables
-npm run seed -- --env=staging --scenario=medium
+pnpm run seed -- --env=staging --scenario=medium
 
 # Seed production database with production environment variables
-npm run seed -- --env=production --scenario=large --distribution=realistic
+pnpm run seed -- --env=production --scenario=large --distribution=realistic
 
 # Seed development database (default)
-npm run seed -- --scenario=small
+pnpm run seed -- --scenario=small
 ```
 
 ## 📈 Statistical Distribution Presets
@@ -141,10 +141,10 @@ Distribution presets control how realistic the generated data patterns are:
 
 ```bash
 # Use specific distribution preset
-npm run seed -- --distribution=realistic
+pnpm run seed -- --distribution=realistic
 
 # Combine scenario and distribution
-npm run seed -- --scenario=large --distribution=performance
+pnpm run seed -- --scenario=large --distribution=performance
 ```
 
 ## 🔧 Command-Line Options
@@ -175,13 +175,13 @@ The seeding system supports both formats for options with values:
 
 ```bash
 # Space-separated format (traditional)
-npm run seed -- --scenario small --users 100
+pnpm run seed -- --scenario small --users 100
 
 # Equals format (modern)
-npm run seed -- --scenario=small --users=100
+pnpm run seed -- --scenario=small --users=100
 
 # Mixed format (both work together)
-npm run seed -- --scenario=small --users 100 --distribution=realistic
+pnpm run seed -- --scenario=small --users 100 --distribution=realistic
 ```
 
 ## 📝 Usage Examples
@@ -190,39 +190,39 @@ npm run seed -- --scenario=small --users 100 --distribution=realistic
 
 ```bash
 # Quick development setup
-npm run seed -- --scenario=small --distribution=development
+pnpm run seed -- --scenario=small --distribution=development
 
 # Testing with uniform patterns
-npm run seed -- --scenario=medium --distribution=uniform
+pnpm run seed -- --scenario=medium --distribution=uniform
 
 # Performance testing
-npm run seed -- --scenario=large --distribution=performance
+pnpm run seed -- --scenario=large --distribution=performance
 ```
 
 ### Production Scenarios
 
 ```bash
 # Realistic production data
-npm run seed -- --env=production --scenario=large --distribution=realistic
+pnpm run seed -- --env=production --scenario=large --distribution=realistic
 
 # High engagement demo
-npm run seed -- --env=staging --scenario=medium --distribution=high-engagement
+pnpm run seed -- --env=staging --scenario=medium --distribution=high-engagement
 
 # Demo presentation
-npm run seed -- --env=production --scenario=custom --users=200 --distribution=demo
+pnpm run seed -- --env=production --scenario=custom --users=200 --distribution=demo
 ```
 
 ### Testing Scenarios
 
 ```bash
 # Controlled testing environment
-npm run seed -- --env=test --scenario=small --distribution=testing
+pnpm run seed -- --env=test --scenario=small --distribution=testing
 
 # Low engagement testing
-npm run seed -- --env=test --scenario=medium --distribution=low-engagement
+pnpm run seed -- --env=test --scenario=medium --distribution=low-engagement
 
 # Custom testing setup
-npm run seed -- --env=test --scenario=custom --users=50 --distribution=uniform
+pnpm run seed -- --env=test --scenario=custom --users=50 --distribution=uniform
 ```
 
 ## 🔍 Dry Run Mode
@@ -231,13 +231,13 @@ Preview what would be seeded without actually running the seeding:
 
 ```bash
 # Preview small realistic dataset
-npm run seed -- --scenario=small --distribution=realistic --dry-run
+pnpm run seed -- --scenario=small --distribution=realistic --dry-run
 
 # Preview large performance dataset
-npm run seed -- --scenario=large --distribution=performance --dry-run
+pnpm run seed -- --scenario=large --distribution=performance --dry-run
 
 # Preview custom dataset
-npm run seed -- --env=staging --scenario=custom --users=100 --distribution=demo --dry-run
+pnpm run seed -- --env=staging --scenario=custom --users=100 --distribution=demo --dry-run
 ```
 
 Example dry run output:
@@ -337,17 +337,17 @@ The system provides clear error messages for invalid options:
 
 ```bash
 # Invalid scenario
-npm run seed -- --scenario invalid
+pnpm run seed -- --scenario invalid
 # ❌ Unknown scenario: invalid
 # Available scenarios: small, medium, large, custom
 
 # Invalid distribution
-npm run seed -- --distribution invalid
+pnpm run seed -- --distribution invalid
 # ❌ Unknown distribution preset: invalid
 # Available presets: realistic, uniform, high-engagement, low-engagement, performance, development, testing, demo
 
 # Invalid user count
-npm run seed -- --users -5
+pnpm run seed -- --users -5
 # ❌ User count must be a positive number
 ```
 
@@ -384,3 +384,7 @@ The command-line seeding system provides:
 ✅ **Performance Options**: Optimize for different use cases
 
 This makes the seeding system adaptable to any environment, from quick development testing to production-ready realistic data generation.
+
+# Command Line Seeding
+
+> **Note:** Seeding and test scripts are now managed via the unified CLI or pnpm scripts. See the main README for details.

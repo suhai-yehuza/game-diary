@@ -7,7 +7,7 @@ import fs from 'fs';
 import { analyzeTsConfig } from 'ts-unused-exports';
 
 import { logger } from '@lib/core/logger';
-import { parseScriptArgs } from '../shared/script-utils';
+import { parseScriptArgs } from './script-utils';
 
 // Types
 type ArgType = string;

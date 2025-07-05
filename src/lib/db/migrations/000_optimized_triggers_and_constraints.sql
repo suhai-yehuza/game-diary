@@ -8,8 +8,43 @@
 -- Add depth column with default value 0
 ALTER TABLE "comments" ADD COLUMN IF NOT EXISTS "depth" integer NOT NULL DEFAULT 0;
 
--- Add constraint to ensure depth is between 0 and 5
-ALTER TABLE "comments" ADD CONSTRAINT IF NOT EXISTS "comments_depth_check" CHECK (depth >= 0 AND depth <= 5);
+-- Add constraint to ensure depth is between 0 and 5 (only if it doesn't exist)
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.table_constraints
+        WHERE table_name = 'comments'
+        AND constraint_name = 'comments_depth_check'
+    ) THEN
+        ALTER TABLE "comments" ADD CONSTRAINT "comments_depth_check" CHECK (depth >= 0 AND depth <= 5);
+    END IF;
+END $$;
+
+-- Add constraint to ensure watched_setting only allows valid WATCHED_SETTING enum values
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.table_constraints
+        WHERE table_name = 'game_logs'
+        AND constraint_name = 'game_logs_watched_setting_check'
+    ) THEN
+        ALTER TABLE "game_logs" ADD CONSTRAINT "game_logs_watched_setting_check"
+        CHECK (watched_setting IN ('TV', 'ARENA', 'PHONE', 'LAPTOP', 'BAR', 'HOME', 'OTHER'));
+    END IF;
+END $$;
+
+-- Add constraint to ensure watched_scope only allows valid WATCHED_SCOPE enum values
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.table_constraints
+        WHERE table_name = 'game_logs'
+        AND constraint_name = 'game_logs_watched_scope_check'
+    ) THEN
+        ALTER TABLE "game_logs" ADD CONSTRAINT "game_logs_watched_scope_check"
+        CHECK (watched_scope IN ('FULL_GAME', 'HALF_GAME', 'HIGHLIGHTS', 'PRE_GAME', 'POST_GAME', 'SHORTS', 'OTHER'));
+    END IF;
+END $$;
 
 -- Create index on depth for efficient querying
 CREATE INDEX IF NOT EXISTS "idx_comments_depth" ON "comments" ("depth");
@@ -95,6 +130,8 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- Drop the trigger if it exists before creating it
+DROP TRIGGER IF EXISTS game_logs_ratings_trigger ON game_logs;
 -- Create the game ratings trigger
 CREATE TRIGGER game_logs_ratings_trigger
     AFTER INSERT OR UPDATE OR DELETE ON game_logs
