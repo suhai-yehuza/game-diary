@@ -1,11 +1,12 @@
 'use client';
 
+import { SignedIn, SignedOut } from '@clerk/nextjs';
 import Image from 'next/image';
 import Link from 'next/link';
 import React from 'react';
 
 import { useMounted } from '@/hooks/use-mounted';
-import { TestSafeSignedIn, TestSafeSignedOut } from '@/lib/utils/clerk-test-utils';
+import { isE2ETest, TestSafeSignedIn, TestSafeSignedOut } from '@/lib/utils/clerk-test-utils';
 
 export default function HomePage() {
   const mounted = useMounted();
@@ -13,6 +14,10 @@ export default function HomePage() {
   if (!mounted) {
     return null;
   }
+
+  // Choose the correct components based on environment
+  const SignedInComponent = isE2ETest ? TestSafeSignedIn : SignedIn;
+  const SignedOutComponent = isE2ETest ? TestSafeSignedOut : SignedOut;
 
   return (
     <section className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
@@ -32,15 +37,15 @@ export default function HomePage() {
         </div>
 
         <div className="flex gap-6 items-center justify-center mt-8">
-          <TestSafeSignedIn>
+          <SignedInComponent>
             <Link
               href="/protected/user"
               className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
             >
               Go to Dashboard
             </Link>
-          </TestSafeSignedIn>
-          <TestSafeSignedOut>
+          </SignedInComponent>
+          <SignedOutComponent>
             <Link
               href="/sign-in"
               className="px-6 py-3 bg-[#757575] text-white rounded-lg hover:bg-[#616161] border border-gray-600 transition-colors dark:bg-[#e5e5e5] dark:text-gray-800 dark:hover:bg-[#d4d4d4] dark:border-gray-300"
@@ -53,7 +58,7 @@ export default function HomePage() {
             >
               Sign Up
             </Link>
-          </TestSafeSignedOut>
+          </SignedOutComponent>
         </div>
       </div>
       <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
