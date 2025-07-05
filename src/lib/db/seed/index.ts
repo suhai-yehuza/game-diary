@@ -474,6 +474,32 @@ async function main() {
 
     // Seed internal app data if requested
     if (seedInternal) {
+      // Validate that external data exists before proceeding with internal seeding
+      if (!seedExternal) {
+        console.log('\n🔍 Validating external data exists before internal seeding...');
+        const { neon } = await import('@neondatabase/serverless');
+        const { drizzle } = await import('drizzle-orm/neon-http');
+        const { nba_games } = await import('@src/lib/db/schema');
+
+        const databaseUrl = process.env.DATABASE_URL ?? process.env.POSTGRES_URL ?? '';
+        if (!databaseUrl) {
+          throw new Error('DATABASE_URL or POSTGRES_URL environment variable is required');
+        }
+
+        const sql = neon(databaseUrl);
+        const db = drizzle(sql);
+
+        const validGames = await db.select({ id: nba_games.id }).from(nba_games);
+        if (validGames.length === 0) {
+          throw new Error(
+            '❌ No external data found. Please run external seeding first or use --all to seed both external and internal data.'
+          );
+        }
+        console.log(
+          `✅ Found ${validGames.length} external games - proceeding with internal seeding`
+        );
+      }
+
       performanceTracker.startTimer('internal_data_seeding');
       console.log('\n👥 Seeding internal app data...');
 

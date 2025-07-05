@@ -164,6 +164,7 @@
     "db:view-migrations": "tsx scripts/db/database-manager.ts view",
     "db:copy-custom-migrations": "tsx scripts/db/database-manager.ts copy-migrations",
     "=====Database Seeding=====": "=====+=====+=====+=====+=====",
+    "hard:reset": "pnpm run drop:all && pnpm run pre:seed && pnpm run seed:all && pnpm run seed:validate",
     "pre:seed": "pnpm run db:generate && pnpm run db:setup && pnpm run db:migrate",
     "truncate:internal": "tsx scripts/db/database-manager.ts truncate --scope=internal",
     "truncate:external": "tsx scripts/db/database-manager.ts truncate --scope=external",

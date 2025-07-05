@@ -1,5 +1,5 @@
 {
-  "id": "07852743-cbe2-4fa5-a3a3-faa6b3aa292c",
+  "id": "1a5a8f02-352e-401a-9411-32d3f6127fae",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -13,7 +13,7 @@
           "type": "varchar(255)",
           "primaryKey": true,
           "notNull": true,
-          "default": "'2674388e-dfdd-4541-97c6-921c5a2f186a'"
+          "default": "'255f4e54-62fa-4a2b-9f27-11eae7b26c3d'"
         },
         "created_at": {
           "name": "created_at",
@@ -75,7 +75,7 @@
           "tableTo": "users",
           "columnsFrom": ["user_id"],
           "columnsTo": ["id"],
-          "onDelete": "no action",
+          "onDelete": "cascade",
           "onUpdate": "no action"
         }
       },
@@ -94,7 +94,7 @@
           "type": "varchar(255)",
           "primaryKey": true,
           "notNull": true,
-          "default": "'2674388e-dfdd-4541-97c6-921c5a2f186a'"
+          "default": "'255f4e54-62fa-4a2b-9f27-11eae7b26c3d'"
         },
         "created_at": {
           "name": "created_at",
@@ -144,7 +144,7 @@
           "tableTo": "users",
           "columnsFrom": ["friend_id"],
           "columnsTo": ["id"],
-          "onDelete": "no action",
+          "onDelete": "cascade",
           "onUpdate": "no action"
         },
         "friendships_user_id_users_id_fk": {
@@ -153,7 +153,7 @@
           "tableTo": "users",
           "columnsFrom": ["user_id"],
           "columnsTo": ["id"],
-          "onDelete": "no action",
+          "onDelete": "cascade",
           "onUpdate": "no action"
         }
       },
@@ -178,7 +178,7 @@
           "type": "varchar(255)",
           "primaryKey": true,
           "notNull": true,
-          "default": "'2674388e-dfdd-4541-97c6-921c5a2f186a'"
+          "default": "'255f4e54-62fa-4a2b-9f27-11eae7b26c3d'"
         },
         "created_at": {
           "name": "created_at",
@@ -275,7 +275,7 @@
           "tableTo": "users",
           "columnsFrom": ["user_id"],
           "columnsTo": ["id"],
-          "onDelete": "no action",
+          "onDelete": "cascade",
           "onUpdate": "no action"
         },
         "game_logs_game_id_nba_games_id_fk": {
@@ -284,7 +284,7 @@
           "tableTo": "nba_games",
           "columnsFrom": ["game_id"],
           "columnsTo": ["id"],
-          "onDelete": "no action",
+          "onDelete": "cascade",
           "onUpdate": "no action"
         }
       },
@@ -309,7 +309,7 @@
           "type": "varchar(255)",
           "primaryKey": true,
           "notNull": true,
-          "default": "'2674388e-dfdd-4541-97c6-921c5a2f186a'"
+          "default": "'255f4e54-62fa-4a2b-9f27-11eae7b26c3d'"
         },
         "created_at": {
           "name": "created_at",
@@ -360,7 +360,7 @@
           "tableTo": "nba_games",
           "columnsFrom": ["game_id"],
           "columnsTo": ["id"],
-          "onDelete": "no action",
+          "onDelete": "cascade",
           "onUpdate": "no action"
         }
       },
@@ -529,13 +529,15 @@
           "name": "first_name",
           "type": "varchar(100)",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "default": "'missing-first-name'"
         },
         "last_name": {
           "name": "last_name",
           "type": "varchar(100)",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "default": "'missing-last-name'"
         },
         "birth": {
           "name": "birth",
@@ -690,7 +692,7 @@
           "tableTo": "users",
           "columnsFrom": ["user_id"],
           "columnsTo": ["id"],
-          "onDelete": "no action",
+          "onDelete": "cascade",
           "onUpdate": "no action"
         }
       },
@@ -709,7 +711,7 @@
           "type": "varchar(255)",
           "primaryKey": true,
           "notNull": true,
-          "default": "'2674388e-dfdd-4541-97c6-921c5a2f186a'"
+          "default": "'255f4e54-62fa-4a2b-9f27-11eae7b26c3d'"
         },
         "created_at": {
           "name": "created_at",
@@ -764,7 +766,7 @@
           "tableTo": "users",
           "columnsFrom": ["user_id"],
           "columnsTo": ["id"],
-          "onDelete": "no action",
+          "onDelete": "cascade",
           "onUpdate": "no action"
         }
       },
@@ -885,9 +887,9 @@
           "notNull": true,
           "default": false
         },
-        "leagues": {
-          "name": "leagues",
-          "type": "text",
+        "conference": {
+          "name": "conference",
+          "type": "varchar(100)",
           "primaryKey": false,
           "notNull": false
         }
