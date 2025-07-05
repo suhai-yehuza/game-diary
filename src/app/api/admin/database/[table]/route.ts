@@ -53,37 +53,37 @@ export async function GET(request: Request, { params }: { params: Promise<{ tabl
         queryParams.push(`%${search}%`, limit, offset);
         break;
       case 'game_logs':
-        query = `SELECT * FROM game_logs ORDER BY createdAt DESC LIMIT $1 OFFSET $2`;
+        query = `SELECT * FROM game_logs ORDER BY created_at DESC LIMIT $1 OFFSET $2`;
         countQuery = `SELECT COUNT(*) as total FROM game_logs`;
         queryParams.push(limit, offset);
         break;
       case 'game_ratings':
-        query = `SELECT * FROM game_ratings ORDER BY createdAt DESC LIMIT $1 OFFSET $2`;
+        query = `SELECT * FROM game_ratings ORDER BY created_at DESC LIMIT $1 OFFSET $2`;
         countQuery = `SELECT COUNT(*) as total FROM game_ratings`;
         queryParams.push(limit, offset);
         break;
       case 'comments':
-        query = `SELECT * FROM comments ORDER BY createdAt DESC LIMIT $1 OFFSET $2`;
+        query = `SELECT * FROM comments ORDER BY created_at DESC LIMIT $1 OFFSET $2`;
         countQuery = `SELECT COUNT(*) as total FROM comments`;
         queryParams.push(limit, offset);
         break;
       case 'reactions':
-        query = `SELECT * FROM reactions ORDER BY createdAt DESC LIMIT $1 OFFSET $2`;
+        query = `SELECT * FROM reactions ORDER BY created_at DESC LIMIT $1 OFFSET $2`;
         countQuery = `SELECT COUNT(*) as total FROM reactions`;
         queryParams.push(limit, offset);
         break;
       case 'friendships':
-        query = `SELECT * FROM friendships ORDER BY createdAt DESC LIMIT $1 OFFSET $2`;
+        query = `SELECT * FROM friendships ORDER BY created_at DESC LIMIT $1 OFFSET $2`;
         countQuery = `SELECT COUNT(*) as total FROM friendships`;
         queryParams.push(limit, offset);
         break;
       case 'notifications':
-        query = `SELECT * FROM notifications ORDER BY createdAt DESC LIMIT $1 OFFSET $2`;
+        query = `SELECT * FROM notifications ORDER BY created_at DESC LIMIT $1 OFFSET $2`;
         countQuery = `SELECT COUNT(*) as total FROM notifications`;
         queryParams.push(limit, offset);
         break;
       case 'nba_games':
-        query = `SELECT * FROM nba_games ORDER BY createdAt DESC LIMIT $1 OFFSET $2`;
+        query = `SELECT * FROM nba_games ORDER BY created_at DESC LIMIT $1 OFFSET $2`;
         countQuery = `SELECT COUNT(*) as total FROM nba_games`;
         queryParams.push(limit, offset);
         break;

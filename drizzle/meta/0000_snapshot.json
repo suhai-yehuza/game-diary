@@ -1,5 +1,5 @@
 {
-  "id": "1a5a8f02-352e-401a-9411-32d3f6127fae",
+  "id": "9e73bb18-1d98-474c-bccd-aa3b0e4a81d1",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -13,7 +13,7 @@
           "type": "varchar(255)",
           "primaryKey": true,
           "notNull": true,
-          "default": "'255f4e54-62fa-4a2b-9f27-11eae7b26c3d'"
+          "default": "'13698f33-d83a-4a09-a5b4-f825e9083979'"
         },
         "created_at": {
           "name": "created_at",
@@ -94,7 +94,7 @@
           "type": "varchar(255)",
           "primaryKey": true,
           "notNull": true,
-          "default": "'255f4e54-62fa-4a2b-9f27-11eae7b26c3d'"
+          "default": "'13698f33-d83a-4a09-a5b4-f825e9083979'"
         },
         "created_at": {
           "name": "created_at",
@@ -178,7 +178,7 @@
           "type": "varchar(255)",
           "primaryKey": true,
           "notNull": true,
-          "default": "'255f4e54-62fa-4a2b-9f27-11eae7b26c3d'"
+          "default": "'13698f33-d83a-4a09-a5b4-f825e9083979'"
         },
         "created_at": {
           "name": "created_at",
@@ -309,7 +309,7 @@
           "type": "varchar(255)",
           "primaryKey": true,
           "notNull": true,
-          "default": "'255f4e54-62fa-4a2b-9f27-11eae7b26c3d'"
+          "default": "'13698f33-d83a-4a09-a5b4-f825e9083979'"
         },
         "created_at": {
           "name": "created_at",
@@ -711,7 +711,7 @@
           "type": "varchar(255)",
           "primaryKey": true,
           "notNull": true,
-          "default": "'255f4e54-62fa-4a2b-9f27-11eae7b26c3d'"
+          "default": "'13698f33-d83a-4a09-a5b4-f825e9083979'"
         },
         "created_at": {
           "name": "created_at",

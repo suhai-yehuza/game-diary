@@ -20,61 +20,61 @@ async function createGameRatingsTrigger(
         v_id VARCHAR(255);
     BEGIN
         IF (TG_OP = 'DELETE') THEN
-            IF NOT EXISTS (SELECT 1 FROM game_logs WHERE "gameId" = OLD."gameId") THEN
-                DELETE FROM game_ratings WHERE "gameId" = OLD."gameId";
+            IF NOT EXISTS (SELECT 1 FROM game_logs WHERE game_id = OLD.game_id) THEN
+                DELETE FROM game_ratings WHERE game_id = OLD.game_id;
             ELSE
                 UPDATE game_ratings
                 SET
-                    "averageRating" = (
-                        SELECT ROUND(AVG("ratingForGame")::numeric, 2)
+                    average_rating = (
+                        SELECT ROUND(AVG(rating_for_game)::numeric, 2)
                         FROM game_logs
-                        WHERE "gameId" = OLD."gameId"
+                        WHERE game_id = OLD.game_id
                     ),
-                    "totalRatings" = (
+                    total_ratings = (
                         SELECT COUNT(*)
                         FROM game_logs
-                        WHERE "gameId" = OLD."gameId"
+                        WHERE game_id = OLD.game_id
                     ),
-                    "updatedAt" = NOW()
-                WHERE "gameId" = OLD."gameId";
+                    updated_at = NOW()
+                WHERE game_id = OLD.game_id;
             END IF;
             RETURN OLD;
         END IF;
 
         IF (TG_OP = 'INSERT') THEN
-            INSERT INTO game_ratings ("id", "gameId", "averageRating", "totalRatings", "createdAt", "updatedAt")
+            INSERT INTO game_ratings (id, game_id, average_rating, total_ratings, created_at, updated_at)
             SELECT
                 gen_random_uuid()::text,
-                NEW."gameId",
-                ROUND(AVG("ratingForGame")::numeric, 2),
+                NEW.game_id,
+                ROUND(AVG(rating_for_game)::numeric, 2),
                 COUNT(*),
                 NOW(),
                 NOW()
             FROM game_logs
-            WHERE "gameId" = NEW."gameId"
-            ON CONFLICT ("gameId") DO UPDATE
+            WHERE game_id = NEW.game_id
+            ON CONFLICT (game_id) DO UPDATE
             SET
-                "averageRating" = EXCLUDED."averageRating",
-                "totalRatings" = EXCLUDED."totalRatings",
-                "updatedAt" = NOW();
+                average_rating = EXCLUDED.average_rating,
+                total_ratings = EXCLUDED.total_ratings,
+                updated_at = NOW();
             RETURN NEW;
         END IF;
 
         IF (TG_OP = 'UPDATE') THEN
             UPDATE game_ratings
             SET
-                "averageRating" = (
-                    SELECT ROUND(AVG("ratingForGame")::numeric, 2)
+                average_rating = (
+                    SELECT ROUND(AVG(rating_for_game)::numeric, 2)
                     FROM game_logs
-                    WHERE "gameId" = NEW."gameId"
+                    WHERE game_id = NEW.game_id
                 ),
-                "totalRatings" = (
+                total_ratings = (
                     SELECT COUNT(*)
                     FROM game_logs
-                    WHERE "gameId" = NEW."gameId"
+                    WHERE game_id = NEW.game_id
                 ),
-                "updatedAt" = NOW()
-            WHERE "gameId" = NEW."gameId";
+                updated_at = NOW()
+            WHERE game_id = NEW.game_id;
             RETURN NEW;
         END IF;
 

@@ -1,5 +1,5 @@
 CREATE TABLE "comments" (
-	"id" varchar(255) PRIMARY KEY DEFAULT '255f4e54-62fa-4a2b-9f27-11eae7b26c3d' NOT NULL,
+	"id" varchar(255) PRIMARY KEY DEFAULT '13698f33-d83a-4a09-a5b4-f825e9083979' NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL,
 	"deleted_at" timestamp (6) with time zone,
@@ -11,7 +11,7 @@ CREATE TABLE "comments" (
 );
 --> statement-breakpoint
 CREATE TABLE "friendships" (
-	"id" varchar(255) PRIMARY KEY DEFAULT '255f4e54-62fa-4a2b-9f27-11eae7b26c3d' NOT NULL,
+	"id" varchar(255) PRIMARY KEY DEFAULT '13698f33-d83a-4a09-a5b4-f825e9083979' NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL,
 	"deleted_at" timestamp (6) with time zone,
@@ -22,7 +22,7 @@ CREATE TABLE "friendships" (
 );
 --> statement-breakpoint
 CREATE TABLE "game_logs" (
-	"id" varchar(255) PRIMARY KEY DEFAULT '255f4e54-62fa-4a2b-9f27-11eae7b26c3d' NOT NULL,
+	"id" varchar(255) PRIMARY KEY DEFAULT '13698f33-d83a-4a09-a5b4-f825e9083979' NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL,
 	"deleted_at" timestamp (6) with time zone,
@@ -40,7 +40,7 @@ CREATE TABLE "game_logs" (
 );
 --> statement-breakpoint
 CREATE TABLE "game_ratings" (
-	"id" varchar(255) PRIMARY KEY DEFAULT '255f4e54-62fa-4a2b-9f27-11eae7b26c3d' NOT NULL,
+	"id" varchar(255) PRIMARY KEY DEFAULT '13698f33-d83a-4a09-a5b4-f825e9083979' NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL,
 	"deleted_at" timestamp (6) with time zone,
@@ -105,7 +105,7 @@ CREATE TABLE "notifications" (
 );
 --> statement-breakpoint
 CREATE TABLE "reactions" (
-	"id" varchar(255) PRIMARY KEY DEFAULT '255f4e54-62fa-4a2b-9f27-11eae7b26c3d' NOT NULL,
+	"id" varchar(255) PRIMARY KEY DEFAULT '13698f33-d83a-4a09-a5b4-f825e9083979' NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL,
 	"deleted_at" timestamp (6) with time zone,
