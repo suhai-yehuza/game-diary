@@ -36,31 +36,67 @@ import type { DistributionConfigPreset, ScenarioKey } from '@src/lib/types/seedi
  * when game logs are created.
  */
 
+// Helper function to generate reaction configuration based on comment configuration
+function generateReactionConfig(commentConfig: { min: number; max: number }, multiplier = 1) {
+  return {
+    reactionsPerGameLog: {
+      min: commentConfig.min * multiplier,
+      max: commentConfig.max * multiplier,
+    },
+    reactionsPerComment: {
+      min: Math.max(1, commentConfig.min),
+      max: Math.max(2, commentConfig.max),
+    },
+  };
+}
+
+// Comprehensive helper function to generate all seeding configuration
+function generateSeedingConfig(
+  userCount: number,
+  gameLogsMultiplier = 1,
+  commentsMultiplier = 1,
+  reactionsMultiplier = 1
+) {
+  const baseGameLogs = { min: 0, max: 10 };
+  const baseComments = { min: 0, max: 10 };
+
+  return {
+    userCount,
+    gameLogsPerUser: {
+      min: Math.floor(baseGameLogs.min * gameLogsMultiplier),
+      max: Math.floor(baseGameLogs.max * gameLogsMultiplier),
+    },
+    commentsPerGameLog: {
+      min: Math.floor(baseComments.min * commentsMultiplier),
+      max: Math.floor(baseComments.max * commentsMultiplier),
+    },
+    ...generateReactionConfig(
+      {
+        min: Math.floor(baseComments.min * commentsMultiplier),
+        max: Math.floor(baseComments.max * commentsMultiplier),
+      },
+      reactionsMultiplier
+    ),
+  };
+}
+
 // Configuration for different data generation scenarios
 const SEEDING_SCENARIOS = {
   SMALL: {
     description: 'Small dataset for development/testing',
-    userCount: 20,
-    gameLogsPerUser: { min: 2, max: 5 },
-    commentsPerGameLog: { min: 1, max: 3 },
+    ...generateSeedingConfig(100, 0.5, 1, 1),
   },
   MEDIUM: {
     description: 'Medium dataset for staging/demo',
-    userCount: 100,
-    gameLogsPerUser: { min: 3, max: 10 },
-    commentsPerGameLog: { min: 1, max: 5 },
+    ...generateSeedingConfig(1000, 2, 3, 4),
   },
   LARGE: {
     description: 'Large dataset for performance testing',
-    userCount: 500,
-    gameLogsPerUser: { min: 5, max: 20 },
-    commentsPerGameLog: { min: 2, max: 8 },
+    ...generateSeedingConfig(1000000, 2, 4, 10),
   },
   CUSTOM: {
     description: 'Custom dataset with specified parameters',
-    userCount: 0, // Will be set via command line
-    gameLogsPerUser: { min: 3, max: 15 },
-    commentsPerGameLog: { min: 1, max: 5 },
+    ...generateSeedingConfig(0, 1.5, 1, 1.5), // userCount will be overridden by command line
   },
 } as const;
 
@@ -387,6 +423,12 @@ function showDryRunInfo(
   console.log(
     `💬 Comments per Game Log: ${config.commentsPerGameLog.min}-${config.commentsPerGameLog.max}`
   );
+  console.log(
+    `👍 Reactions per Game Log: ${config.reactionsPerGameLog.min}-${config.reactionsPerGameLog.max}`
+  );
+  console.log(
+    `👍 Reactions per Comment: ${config.reactionsPerComment.min}-${config.reactionsPerComment.max}`
+  );
   if (distribution) {
     console.log(`📈 Distribution Preset: ${distribution.toUpperCase()}`);
   }
@@ -394,15 +436,23 @@ function showDryRunInfo(
   // Calculate estimated totals
   const avgGameLogs = (config.gameLogsPerUser.min + config.gameLogsPerUser.max) / 2;
   const avgComments = (config.commentsPerGameLog.min + config.commentsPerGameLog.max) / 2;
+  const avgReactionsPerGameLog =
+    (config.reactionsPerGameLog.min + config.reactionsPerGameLog.max) / 2;
+  const avgReactionsPerComment =
+    (config.reactionsPerComment.min + config.reactionsPerComment.max) / 2;
   const totalGameLogs = Math.floor(config.userCount * avgGameLogs);
   const totalComments = Math.floor(totalGameLogs * avgComments);
-  const totalReactions = Math.floor(totalGameLogs * 3 + totalComments * 1.5); // Rough estimate
+  const totalReactionsOnGameLogs = Math.floor(totalGameLogs * avgReactionsPerGameLog);
+  const totalReactionsOnComments = Math.floor(totalComments * avgReactionsPerComment);
+  const totalReactions = totalReactionsOnGameLogs + totalReactionsOnComments;
   const totalNotifications = Math.floor(config.userCount * 10); // Rough estimate
 
   console.log('\n📈 Estimated Totals:');
   console.log(`   Game Logs: ~${totalGameLogs}`);
   console.log(`   Comments: ~${totalComments}`);
-  console.log(`   Reactions: ~${totalReactions}`);
+  console.log(`   Reactions on Game Logs: ~${totalReactionsOnGameLogs}`);
+  console.log(`   Reactions on Comments: ~${totalReactionsOnComments}`);
+  console.log(`   Total Reactions: ~${totalReactions}`);
   console.log(`   Notifications: ~${totalNotifications}`);
   console.log(`   Friendships: ~${Math.floor(config.userCount * 5)}`); // Rough estimate
 }
