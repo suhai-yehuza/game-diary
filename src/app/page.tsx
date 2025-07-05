@@ -1,6 +1,6 @@
 'use client';
 
-import { useUser } from '@clerk/nextjs';
+import { SignedIn, SignedOut } from '@clerk/nextjs';
 import Image from 'next/image';
 import Link from 'next/link';
 import React from 'react';
@@ -8,33 +8,10 @@ import React from 'react';
 import { useMounted } from '@/hooks/use-mounted';
 
 export default function HomePage() {
-  // Safely use useUser with fallback values
-  let userData: { isLoaded: boolean; isSignedIn: boolean } = { isLoaded: false, isSignedIn: false };
-
-  try {
-    userData = (useUser as () => { isLoaded: boolean; isSignedIn: boolean })();
-  } catch (error) {
-    // Fallback values if useUser is not available (e.g., ClerkProvider not ready)
-    console.warn('useUser not available, using fallback values:', error);
-  }
-
   const mounted = useMounted();
 
   if (!mounted) {
     return null;
-  }
-
-  // Don't block rendering if auth is not loaded yet
-  const showAuthState = userData.isLoaded;
-
-  try {
-    // ... existing code ...
-  } catch (error) {
-    if (error instanceof Error) {
-      // handle error.message or similar
-    } else {
-      // handle unknown error
-    }
   }
 
   return (
@@ -55,32 +32,15 @@ export default function HomePage() {
         </div>
 
         <div className="flex gap-6 items-center justify-center mt-8">
-          {showAuthState ? (
-            userData.isSignedIn ? (
-              <Link
-                href="/protected/user"
-                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                Go to Dashboard
-              </Link>
-            ) : (
-              <div className="flex gap-4">
-                <Link
-                  href="/sign-in"
-                  className="px-6 py-3 bg-[#757575] text-white rounded-lg hover:bg-[#616161] border border-gray-600 transition-colors dark:bg-[#e5e5e5] dark:text-gray-800 dark:hover:bg-[#d4d4d4] dark:border-gray-300"
-                >
-                  Sign In
-                </Link>
-                <Link
-                  href="/sign-up"
-                  className="px-6 py-3 border border-[#757575] text-[#757575] rounded-lg hover:bg-[#f3f3f3] transition-colors dark:border-[#e5e5e5] dark:text-[#e5e5e5] dark:hover:bg-[#232326]"
-                >
-                  Sign Up
-                </Link>
-              </div>
-            )
-          ) : (
-            // Show default state while auth is loading
+          <SignedIn>
+            <Link
+              href="/protected/user"
+              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Go to Dashboard
+            </Link>
+          </SignedIn>
+          <SignedOut>
             <div className="flex gap-4">
               <Link
                 href="/sign-in"
@@ -95,7 +55,7 @@ export default function HomePage() {
                 Sign Up
               </Link>
             </div>
-          )}
+          </SignedOut>
         </div>
       </div>
       <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">

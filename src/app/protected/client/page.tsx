@@ -4,47 +4,10 @@ import { useAuth, useUser } from '@clerk/nextjs';
 import React from 'react';
 
 export default function ProtectedClientPage() {
-  // Safely use useUser with fallback values
-  let userData: { user: { firstName?: string } | null } = { user: null };
+  const { isLoaded, isSignedIn, userId, sessionId, getToken } = useAuth();
+  const { user } = useUser();
 
-  try {
-    userData = (useUser as () => { user: { firstName?: string } | null })();
-  } catch (error) {
-    // Fallback values if useUser is not available (e.g., ClerkProvider not ready)
-    console.warn('useUser not available, using fallback values:', error);
-  }
-
-  // Safely use useAuth with fallback values
-  let authData: {
-    isLoaded: boolean;
-    isSignedIn: boolean;
-    userId: string;
-    sessionId: string;
-    getToken: () => Promise<string | null>;
-  } = {
-    isLoaded: false,
-    isSignedIn: false,
-    userId: '',
-    sessionId: '',
-    getToken: () => Promise.resolve(null),
-  };
-
-  try {
-    authData = (
-      useAuth as () => {
-        isLoaded: boolean;
-        isSignedIn: boolean;
-        userId: string;
-        sessionId: string;
-        getToken: () => Promise<string | null>;
-      }
-    )();
-  } catch (error) {
-    // Fallback values if useAuth is not available (e.g., ClerkProvider not ready)
-    console.warn('useAuth not available, using fallback values:', error);
-  }
-
-  if (!authData.isLoaded || !authData.isSignedIn) {
+  if (!isLoaded || !isSignedIn) {
     return null;
   }
 
@@ -52,10 +15,10 @@ export default function ProtectedClientPage() {
     <section className="py-24">
       <div className="container">
         <h1 className="text-3xl font-bold">This is a client-side page</h1>
-        <p className="mt-4">You are logged in as {userData.user?.firstName}</p>
-        <p>UserId: {authData.userId}</p>
-        <p>SessionId: {authData.sessionId}</p>
-        <p>Token: {authData.getToken()}</p>
+        <p className="mt-4">You are logged in as {user?.firstName}</p>
+        <p>UserId: {userId}</p>
+        <p>SessionId: {sessionId}</p>
+        <p>Token: {getToken()}</p>
       </div>
     </section>
   );

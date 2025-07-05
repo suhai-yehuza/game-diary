@@ -1,32 +1,12 @@
 'use client';
 
-import { useUser } from '@clerk/nextjs';
+import { SignedIn, useUser } from '@clerk/nextjs';
 import Link from 'next/link';
 import React from 'react';
 
 import { LiveGamesDetail } from '@src/app/components/live-games-detail';
 
 export default function NBAPage() {
-  // Safely use useUser with fallback values
-  let userData: { isLoaded: boolean; isSignedIn: boolean; user: { firstName?: string } | null } = {
-    isLoaded: false,
-    isSignedIn: false,
-    user: null,
-  };
-
-  try {
-    userData = (
-      useUser as () => {
-        isLoaded: boolean;
-        isSignedIn: boolean;
-        user: { firstName?: string } | null;
-      }
-    )();
-  } catch (error) {
-    // Fallback values if useUser is not available (e.g., ClerkProvider not ready)
-    console.warn('useUser not available, using fallback values:', error);
-  }
-
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-6">
@@ -52,18 +32,24 @@ export default function NBAPage() {
         </div>
       </div>
 
-      {userData.isLoaded && userData.isSignedIn ? (
+      <SignedIn>
         <div>
           <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-            <p className="text-sm text-blue-800 dark:text-blue-200">
-              Welcome back, {userData.user?.firstName}! You can access live games and API testing
-              features.
-            </p>
+            <UserWelcome />
           </div>
 
           <LiveGamesDetail />
         </div>
-      ) : null}
+      </SignedIn>
     </div>
+  );
+}
+
+function UserWelcome() {
+  const { user } = useUser();
+  return (
+    <p className="text-sm text-blue-800 dark:text-blue-200">
+      Welcome back, {user?.firstName}! You can access live games and API testing features.
+    </p>
   );
 }

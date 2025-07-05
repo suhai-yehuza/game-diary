@@ -1,41 +1,27 @@
 'use client';
 
-import { useUser } from '@clerk/nextjs';
+import { SignedIn, SignedOut, useUser } from '@clerk/nextjs';
 import React from 'react';
 
 export default function NHLPage() {
-  // Safely use useUser with fallback values
-  let userData: { isLoaded: boolean; isSignedIn: boolean; user: { firstName?: string } | null } = {
-    isLoaded: false,
-    isSignedIn: false,
-    user: null,
-  };
-
-  try {
-    userData = (
-      useUser as () => {
-        isLoaded: boolean;
-        isSignedIn: boolean;
-        user: { firstName?: string } | null;
-      }
-    )();
-  } catch (error) {
-    // Fallback values if useUser is not available (e.g., ClerkProvider not ready)
-    console.warn('useUser not available, using fallback values:', error);
-  }
-
   return (
     <section className="min-h-[calc(100vh-4rem)] flex items-center justify-center">
       <div className="container mx-auto px-4 text-center">
         <h1 className="text-3xl font-bold">This will be the NHL page</h1>
-        {userData.isLoaded && userData.isSignedIn ? (
-          <p className="mt-4">You are logged in as {userData.user?.firstName}</p>
-        ) : (
+        <SignedIn>
+          <UserGreeting />
+        </SignedIn>
+        <SignedOut>
           <p className="mt-4">You are not logged in</p>
-        )}
+        </SignedOut>
       </div>
     </section>
   );
+}
+
+function UserGreeting() {
+  const { user } = useUser();
+  return <p className="mt-4">You are logged in as {user?.firstName}</p>;
 }
 
 export function NHLSportsPage() {

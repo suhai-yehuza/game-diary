@@ -195,18 +195,59 @@ function NavItem({ href, isActive, children, className = '', ...props }: NavItem
   );
 }
 
+function AdminNav({ isActive }: { isActive: (path: string) => boolean }) {
+  const { user, isLoaded } = useUser();
+
+  // Check if user is admin based on email
+  const adminEmails = process.env.NEXT_PUBLIC_ADMIN_EMAILS
+    ? process.env.NEXT_PUBLIC_ADMIN_EMAILS.split(',')
+    : [];
+  const isAdmin = Boolean(
+    isLoaded &&
+      user?.emailAddresses?.[0]?.emailAddress &&
+      adminEmails.includes(user.emailAddresses[0].emailAddress)
+  );
+
+  if (!isLoaded || !isAdmin) {
+    return null;
+  }
+
+  return (
+    <Suspense fallback={<div className="w-20 h-6 bg-gray-200 rounded animate-pulse" />}>
+      <SignedIn>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <NavItem href="/protected/admin" isActive={isActive('/protected/admin')}>
+              Admin
+              <ChevronDown className="h-3 w-3 ml-1" />
+            </NavItem>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" className="w-48">
+            <DropdownMenuItem asChild>
+              <Link href="/protected/admin/experimental" className="w-full">
+                External API
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link href="/protected/admin/database" className="w-full">
+                Database
+              </Link>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </SignedIn>
+    </Suspense>
+  );
+}
+
 function NavigationLinks({
   isActive,
   _isMenuExpanded,
   _setIsMenuExpanded,
-  isLoaded,
-  isAdmin,
 }: {
   isActive: (path: string) => boolean;
   _isMenuExpanded: boolean;
   _setIsMenuExpanded: (expanded: boolean) => void;
-  isLoaded: boolean;
-  isAdmin: boolean;
 }) {
   return (
     <nav className="flex items-center h-full space-x-6 text-sm font-medium">
@@ -238,34 +279,7 @@ function NavigationLinks({
       <NavItem href="/protected/user" isActive={isActive('/protected/user')}>
         Profile
       </NavItem>
-      {isLoaded && (
-        <Suspense fallback={<div className="w-20 h-6 bg-gray-200 rounded animate-pulse" />}>
-          <SignedIn>
-            {isAdmin && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <NavItem href="/protected/admin" isActive={isActive('/protected/admin')}>
-                    Admin
-                    <ChevronDown className="h-3 w-3 ml-1" />
-                  </NavItem>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-48">
-                  <DropdownMenuItem asChild>
-                    <Link href="/protected/admin/experimental" className="w-full">
-                      External API
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/protected/admin/database" className="w-full">
-                      Database
-                    </Link>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
-          </SignedIn>
-        </Suspense>
-      )}
+      <AdminNav isActive={isActive} />
     </nav>
   );
 }
@@ -306,36 +320,12 @@ export function Header() {
   const [isMenuExpanded, setIsMenuExpanded] = useState(false);
   const pathname = usePathname() || '/';
 
-  // Safely use useUser with fallback values
-  let userData: {
-    user: { emailAddresses: Array<{ emailAddress: string }> } | null;
-    isLoaded: boolean;
-  } = { user: null, isLoaded: false };
-
-  try {
-    userData = (
-      useUser as () => {
-        user: { emailAddresses: Array<{ emailAddress: string }> } | null;
-        isLoaded: boolean;
-      }
-    )();
-  } catch (error) {
-    // Fallback values if useUser is not available (e.g., ClerkProvider not ready)
-    console.warn('useUser not available, using fallback values:', error);
-  }
-
   const isActive = (path: string) => {
     if (path === '/') {
       return pathname === path || pathname.startsWith('/protected/user');
     }
     return pathname === path || pathname.startsWith(`${path}/`);
   };
-
-  const emailAddress = userData.user?.emailAddresses[0]?.emailAddress;
-  const adminEmails = process.env.NEXT_PUBLIC_ADMIN_EMAILS
-    ? process.env.NEXT_PUBLIC_ADMIN_EMAILS.split(',')
-    : [];
-  const isAdmin = Boolean(userData.isLoaded && emailAddress && adminEmails.includes(emailAddress));
 
   // Don't show live games banner on authentication pages
   const isAuthPage = pathname.startsWith('/sign-in') || pathname.startsWith('/sign-up');
@@ -384,8 +374,6 @@ export function Header() {
                   isActive={isActive}
                   _isMenuExpanded={isMenuExpanded}
                   _setIsMenuExpanded={setIsMenuExpanded}
-                  isLoaded={userData.isLoaded}
-                  isAdmin={isAdmin}
                 />
               </div>
             </div>
