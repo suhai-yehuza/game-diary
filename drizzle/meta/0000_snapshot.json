@@ -1,5 +1,5 @@
 {
-  "id": "9e73bb18-1d98-474c-bccd-aa3b0e4a81d1",
+  "id": "3728fa2b-6c87-4ffd-b456-92a217170a7c",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -13,7 +13,7 @@
           "type": "varchar(255)",
           "primaryKey": true,
           "notNull": true,
-          "default": "'13698f33-d83a-4a09-a5b4-f825e9083979'"
+          "default": "'c51d3865-89b3-4b4e-9f54-5548256d7bc6'"
         },
         "created_at": {
           "name": "created_at",
@@ -94,7 +94,7 @@
           "type": "varchar(255)",
           "primaryKey": true,
           "notNull": true,
-          "default": "'13698f33-d83a-4a09-a5b4-f825e9083979'"
+          "default": "'c51d3865-89b3-4b4e-9f54-5548256d7bc6'"
         },
         "created_at": {
           "name": "created_at",
@@ -178,7 +178,7 @@
           "type": "varchar(255)",
           "primaryKey": true,
           "notNull": true,
-          "default": "'13698f33-d83a-4a09-a5b4-f825e9083979'"
+          "default": "'c51d3865-89b3-4b4e-9f54-5548256d7bc6'"
         },
         "created_at": {
           "name": "created_at",
@@ -309,7 +309,7 @@
           "type": "varchar(255)",
           "primaryKey": true,
           "notNull": true,
-          "default": "'13698f33-d83a-4a09-a5b4-f825e9083979'"
+          "default": "'c51d3865-89b3-4b4e-9f54-5548256d7bc6'"
         },
         "created_at": {
           "name": "created_at",
@@ -339,7 +339,7 @@
         },
         "average_rating": {
           "name": "average_rating",
-          "type": "numeric(3, 2)",
+          "type": "numeric(4, 2)",
           "primaryKey": false,
           "notNull": true,
           "default": "'0.00'"
@@ -711,7 +711,7 @@
           "type": "varchar(255)",
           "primaryKey": true,
           "notNull": true,
-          "default": "'13698f33-d83a-4a09-a5b4-f825e9083979'"
+          "default": "'c51d3865-89b3-4b4e-9f54-5548256d7bc6'"
         },
         "created_at": {
           "name": "created_at",

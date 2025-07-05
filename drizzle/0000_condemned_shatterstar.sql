@@ -1,5 +1,5 @@
 CREATE TABLE "comments" (
-	"id" varchar(255) PRIMARY KEY DEFAULT '13698f33-d83a-4a09-a5b4-f825e9083979' NOT NULL,
+	"id" varchar(255) PRIMARY KEY DEFAULT 'c51d3865-89b3-4b4e-9f54-5548256d7bc6' NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL,
 	"deleted_at" timestamp (6) with time zone,
@@ -11,7 +11,7 @@ CREATE TABLE "comments" (
 );
 --> statement-breakpoint
 CREATE TABLE "friendships" (
-	"id" varchar(255) PRIMARY KEY DEFAULT '13698f33-d83a-4a09-a5b4-f825e9083979' NOT NULL,
+	"id" varchar(255) PRIMARY KEY DEFAULT 'c51d3865-89b3-4b4e-9f54-5548256d7bc6' NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL,
 	"deleted_at" timestamp (6) with time zone,
@@ -22,7 +22,7 @@ CREATE TABLE "friendships" (
 );
 --> statement-breakpoint
 CREATE TABLE "game_logs" (
-	"id" varchar(255) PRIMARY KEY DEFAULT '13698f33-d83a-4a09-a5b4-f825e9083979' NOT NULL,
+	"id" varchar(255) PRIMARY KEY DEFAULT 'c51d3865-89b3-4b4e-9f54-5548256d7bc6' NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL,
 	"deleted_at" timestamp (6) with time zone,
@@ -40,12 +40,12 @@ CREATE TABLE "game_logs" (
 );
 --> statement-breakpoint
 CREATE TABLE "game_ratings" (
-	"id" varchar(255) PRIMARY KEY DEFAULT '13698f33-d83a-4a09-a5b4-f825e9083979' NOT NULL,
+	"id" varchar(255) PRIMARY KEY DEFAULT 'c51d3865-89b3-4b4e-9f54-5548256d7bc6' NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL,
 	"deleted_at" timestamp (6) with time zone,
 	"game_id" varchar(255) NOT NULL,
-	"average_rating" numeric(3, 2) DEFAULT '0.00' NOT NULL,
+	"average_rating" numeric(4, 2) DEFAULT '0.00' NOT NULL,
 	"total_ratings" integer DEFAULT 0 NOT NULL,
 	CONSTRAINT "game_ratings_game_id_unique" UNIQUE("game_id")
 );
@@ -105,7 +105,7 @@ CREATE TABLE "notifications" (
 );
 --> statement-breakpoint
 CREATE TABLE "reactions" (
-	"id" varchar(255) PRIMARY KEY DEFAULT '13698f33-d83a-4a09-a5b4-f825e9083979' NOT NULL,
+	"id" varchar(255) PRIMARY KEY DEFAULT 'c51d3865-89b3-4b4e-9f54-5548256d7bc6' NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL,
 	"deleted_at" timestamp (6) with time zone,

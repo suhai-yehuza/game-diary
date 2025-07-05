@@ -117,7 +117,7 @@ export const game_ratings = pgTable(
     game_id: varchar('game_id', { length: 255 })
       .notNull()
       .references(() => nba_games.id, { onDelete: 'cascade' }),
-    average_rating: decimal('average_rating', { precision: 3, scale: 2 }).notNull().default('0.00'),
+    average_rating: decimal('average_rating', { precision: 4, scale: 2 }).notNull().default('0.00'),
     total_ratings: integer('total_ratings').notNull().default(0),
   },
   _table => ({
