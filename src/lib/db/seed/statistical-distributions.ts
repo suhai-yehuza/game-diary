@@ -137,10 +137,11 @@ export function generateUserEngagement(): number {
  * - Most games get average ratings
  * - Few games get very high or very low ratings
  * - Mimics real rating patterns
+ * - Scale: 1-5 (1=Poor, 5=Excellent)
  */
 export function generateGameRating(): number {
   // Beta distribution with parameters that create realistic rating patterns
-  const rating = betaDistribution(2.5, 2.5, 1, 10);
+  const rating = betaDistribution(2.5, 2.5, 1, 5);
   return Math.round(rating);
 }
 
@@ -644,7 +645,7 @@ export function generateGameRatingWithConfig(config: IStatisticalSeedingConfig):
   }
 
   // Use beta distribution for realistic rating patterns
-  const rating = betaDistribution(2.5, 2.5, 1, 10);
+  const rating = betaDistribution(2.5, 2.5, 1, 5);
   return Math.round(rating);
 }
 

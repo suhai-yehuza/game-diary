@@ -9,8 +9,8 @@
   },
   "scripts": {
     "=====Development=====": "=====+=====+=====+=====+=====",
-    "dev": "next dev --turbo -p ${PORT:-3100}",
-    "dev:staging": "NODE_ENV=staging next dev --turbo -p ${PORT:-3101}",
+    "dev": "next dev --turbo -p ${PORT:-3000}",
+    "dev:staging": "NODE_ENV=staging next dev --turbo -p ${PORT:-3001}",
     "start": "next start",
     "start:staging": "NODE_ENV=staging next start",
     "build": "next build",

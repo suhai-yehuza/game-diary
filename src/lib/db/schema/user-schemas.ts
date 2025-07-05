@@ -8,9 +8,6 @@ import { FRIENDSHIP_STATUS, REACTION_EMOJIS, TARGET_TYPES } from '@src/lib/types
 export const users = pgTable('users', {
   // Use Clerk user ID as the primary key
   id: varchar('id', { length: 255 }).primaryKey(), // This will be the Clerk user ID
-  created_at: timestamp('created_at').defaultNow().notNull(),
-  updated_at: timestamp('updated_at').defaultNow().notNull(),
-  deleted_at: timestamp({ precision: 6, withTimezone: true }),
 
   // Core user fields (matching Clerk structure)
   object: varchar('object', { length: 10 }).notNull().default('user'),
@@ -47,13 +44,15 @@ export const users = pgTable('users', {
     .array()
     .notNull()
     .default([]),
+  created_at: timestamp('created_at').defaultNow().notNull(),
+  updated_at: timestamp('updated_at').defaultNow().notNull(),
+  deleted_at: timestamp({ precision: 6, withTimezone: true }),
 });
 
 // Friendships table - extending base table configuration
 export const friendships = pgTable(
   'friendships',
   {
-    ...baseTableConfig,
     friend_id: varchar('friend_id', { length: 255 }).references(() => users.id, {
       onDelete: 'cascade',
     }),
@@ -64,6 +63,7 @@ export const friendships = pgTable(
       .notNull()
       .default(FRIENDSHIP_STATUS.PENDING)
       .$type<(typeof FRIENDSHIP_STATUS)[keyof typeof FRIENDSHIP_STATUS]>(),
+    ...baseTableConfig,
   },
   table => ({
     friendUserUnique: unique().on(table.friend_id, table.user_id),
@@ -75,7 +75,6 @@ export const friendships = pgTable(
 export const comments = pgTable(
   'comments',
   {
-    ...baseTableConfig,
     user_id: varchar('user_id', { length: 255 }).references(() => users.id, {
       onDelete: 'cascade',
     }),
@@ -85,6 +84,7 @@ export const comments = pgTable(
       .$type<(typeof TARGET_TYPES)[keyof typeof TARGET_TYPES]>(),
     content: text('content').notNull(),
     depth: integer('depth').notNull().default(0), // Track comment nesting depth (0-5)
+    ...baseTableConfig,
   },
   _table => ({
     commentIndex: sql`CREATE INDEX IF NOT EXISTS idx_comments_parent ON comments (parent_id, parent_type)`,
@@ -101,7 +101,6 @@ export const comments = pgTable(
 export const reactions = pgTable(
   'reactions',
   {
-    ...baseTableConfig,
     user_id: varchar('user_id', { length: 255 }).references(() => users.id, {
       onDelete: 'cascade',
     }),
@@ -112,6 +111,7 @@ export const reactions = pgTable(
     emoji: varchar('emoji', { length: 10 })
       .notNull()
       .$type<(typeof REACTION_EMOJIS)[keyof typeof REACTION_EMOJIS]>(),
+    ...baseTableConfig,
   },
   _table => ({
     reactionIndex: sql`CREATE INDEX IF NOT EXISTS idx_reactions_target ON reactions (target_id, target_type)`,

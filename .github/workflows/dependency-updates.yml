@@ -24,7 +24,7 @@ jobs:
       NODE_VERSION: '22'
       PNPM_VERSION: '10'
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      PORT: 3100
+      PORT: 3000
 
     steps:
       - name: Checkout repository

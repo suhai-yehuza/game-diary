@@ -29,9 +29,6 @@ export const seasons = pgTable('seasons', {
 // NBA Games table - extending base table configuration
 export const nba_games = pgTable('nba_games', {
   id: varchar('id', { length: 20 }).primaryKey(), // External API game ID
-  created_at: timestamp('created_at').defaultNow().notNull(),
-  updated_at: timestamp('updated_at').defaultNow().notNull(),
-  deleted_at: timestamp({ precision: 6, withTimezone: true }),
   game_type: varchar('game_type', { length: 50 }).notNull().default('nba'),
   nba_game_id: varchar('nba_game_id', { length: 255 }),
   date: timestamp('date').notNull(),
@@ -40,14 +37,14 @@ export const nba_games = pgTable('nba_games', {
   home_team_score: integer('home_team_score'),
   away_team_score: integer('away_team_score'),
   status: varchar('status', { length: 50 }).notNull(),
+  created_at: timestamp('created_at').defaultNow().notNull(),
+  updated_at: timestamp('updated_at').defaultNow().notNull(),
+  deleted_at: timestamp({ precision: 6, withTimezone: true }),
 });
 
 // Teams table
 export const teams = pgTable('teams', {
   id: varchar('id', { length: 20 }).primaryKey(), // External API team ID
-  created_at: timestamp('created_at').defaultNow().notNull(),
-  updated_at: timestamp('updated_at').defaultNow().notNull(),
-  deleted_at: timestamp({ precision: 6, withTimezone: true }),
   name: varchar('name', { length: 255 }).notNull(),
   nickname: varchar('nickname', { length: 100 }),
   code: varchar('code', { length: 10 }),
@@ -56,14 +53,14 @@ export const teams = pgTable('teams', {
   all_star: boolean('all_star').notNull().default(false),
   nba_franchise: boolean('nba_franchise').notNull().default(false),
   conference: varchar('conference', { length: 100 }),
+  created_at: timestamp('created_at').defaultNow().notNull(),
+  updated_at: timestamp('updated_at').defaultNow().notNull(),
+  deleted_at: timestamp({ precision: 6, withTimezone: true }),
 });
 
 // NBA Players table
 export const nba_players = pgTable('nba_players', {
   id: varchar('id', { length: 20 }).primaryKey(), // External API player ID
-  created_at: timestamp('created_at').defaultNow().notNull(),
-  updated_at: timestamp('updated_at').defaultNow().notNull(),
-  deleted_at: timestamp({ precision: 6, withTimezone: true }),
   first_name: varchar('first_name', { length: 100 }).notNull().default('missing-first-name'),
   last_name: varchar('last_name', { length: 100 }).notNull().default('missing-last-name'),
   birth: text('birth'), // Store as JSON string
@@ -75,13 +72,15 @@ export const nba_players = pgTable('nba_players', {
   teams: text('teams'), // Store as JSON string: array of { season: season_id, teams_played_for: [] }
   leagues: text('leagues'), // Store as JSON string
   image_url: text('image_url'),
+  created_at: timestamp('created_at').defaultNow().notNull(),
+  updated_at: timestamp('updated_at').defaultNow().notNull(),
+  deleted_at: timestamp({ precision: 6, withTimezone: true }),
 });
 
 // Game logs table - extending base table configuration
 export const game_logs = pgTable(
   'game_logs',
   {
-    ...baseTableConfig,
     user_id: varchar('user_id', { length: 255 }).references(() => users.id, {
       onDelete: 'cascade',
     }),
@@ -102,6 +101,7 @@ export const game_logs = pgTable(
     rating_for_game: integer('rating_for_game').notNull(),
     notes: text('notes').default(''),
     tags: text('tags').array().default([]),
+    ...baseTableConfig,
   },
   _table => ({
     // Ensure a user can only have one game log per game
@@ -113,12 +113,12 @@ export const game_logs = pgTable(
 export const game_ratings = pgTable(
   'game_ratings',
   {
-    ...baseTableConfig,
     game_id: varchar('game_id', { length: 255 })
       .notNull()
       .references(() => nba_games.id, { onDelete: 'cascade' }),
     average_rating: decimal('average_rating', { precision: 4, scale: 2 }).notNull().default('0.00'),
     total_ratings: integer('total_ratings').notNull().default(0),
+    ...baseTableConfig,
   },
   _table => ({
     // Add unique constraint on game_id

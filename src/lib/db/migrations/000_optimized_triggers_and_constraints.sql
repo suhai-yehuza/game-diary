@@ -89,8 +89,9 @@ BEGIN
     -- Handle INSERT operations
     IF (TG_OP = 'INSERT') THEN
         -- Insert or update the game rating
-        INSERT INTO game_ratings (game_id, average_rating, total_ratings, created_at, updated_at)
+        INSERT INTO game_ratings (id, game_id, average_rating, total_ratings, created_at, updated_at)
         SELECT
+            gen_random_uuid()::text,
             NEW.game_id,
             ROUND(AVG(rating_for_game)::numeric, 2),
             COUNT(*),

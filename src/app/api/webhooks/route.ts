@@ -1,11 +1,7 @@
 import { verifyWebhook } from '@clerk/nextjs/webhooks';
 import type { NextRequest } from 'next/server';
 
-import {
-  handleUserCreated,
-  handleUserUpdated,
-  handleUserDeleted,
-} from '@/app/api/webhooks/clerk/handlers';
+import { handleUserCreated, handleUserUpdated, handleUserDeleted } from '@/app/api/webhooks/clerk';
 import { db } from '@/lib/db';
 import type { IClerkDeletedUserData, IClerkUserData } from '@/lib/types/clerk-types';
 import { webhookLogger } from '@lib/core/logger';

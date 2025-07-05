@@ -349,7 +349,6 @@ export function generateComments(
   config: ISeedingConfig
 ): ISeedComment[] {
   const comments: ISeedComment[] = [];
-  let commentId = 1;
 
   for (const gameLog of gameLogs) {
     // Use realistic comment count distribution (Poisson + Power Law for viral content)
@@ -365,7 +364,7 @@ export function generateComments(
       if (commenter.id === gameLog.user_id) continue; // Skip if same user
 
       const comment: ISeedComment = {
-        id: `comment_${commentId++}`,
+        id: crypto.randomUUID(),
         user_id: commenter.id,
         parent_id: gameLog.id,
         parent_type: TARGET_TYPES.GAME_LOG, // Type assertion for compatibility
@@ -375,7 +374,7 @@ export function generateComments(
       comments.push(comment);
 
       // Recursively generate nested comments (up to 5 levels deep)
-      generateNestedComments(comment, comments, users, { value: commentId }, 1, config);
+      generateNestedComments(comment, comments, users, 1, config);
     }
   }
   return comments;
@@ -386,7 +385,6 @@ function generateNestedComments(
   parentComment: ISeedComment,
   comments: ISeedComment[],
   users: ISeedUser[],
-  commentId: { value: number },
   currentDepth: number,
   config: ISeedingConfig
 ) {
@@ -403,7 +401,7 @@ function generateNestedComments(
     const replier = faker.helpers.arrayElement(users.filter(u => u.id !== parentComment.user_id));
 
     const reply: ISeedComment = {
-      id: `comment_${commentId.value++}`,
+      id: crypto.randomUUID(),
       user_id: replier.id,
       parent_id: parentComment.id,
       parent_type: TARGET_TYPES.COMMENT,
@@ -413,7 +411,7 @@ function generateNestedComments(
     comments.push(reply);
 
     // Recursively generate replies to this reply
-    generateNestedComments(reply, comments, users, commentId, currentDepth + 1, config);
+    generateNestedComments(reply, comments, users, currentDepth + 1, config);
   }
 }
 
@@ -498,7 +496,6 @@ export function generateReactions(
   config: ISeedingConfig
 ): ISeedReaction[] {
   const reactions: ISeedReaction[] = [];
-  let reactionId = 1;
 
   // Generate reactions on game logs
   for (const gameLog of gameLogs) {
@@ -508,7 +505,7 @@ export function generateReactions(
     for (const reactor of reactors) {
       if (reactor.id === gameLog.user_id) continue; // Skip if same user
       reactions.push({
-        id: `reaction_${reactionId++}`,
+        id: crypto.randomUUID(),
         user_id: reactor.id,
         target_type: TARGET_TYPES.GAME_LOG,
         target_id: gameLog.id,
@@ -527,7 +524,7 @@ export function generateReactions(
       for (const reactor of reactors) {
         if (reactor.id === comment.user_id) continue; // Skip if same user
         reactions.push({
-          id: `reaction_${reactionId++}`,
+          id: crypto.randomUUID(),
           user_id: reactor.id,
           target_type: TARGET_TYPES.COMMENT,
           target_id: comment.id,
@@ -598,44 +595,18 @@ export async function seedUserData(
     }
     console.log(`✅ Created ${gameLogData.length} game logs`);
 
-    // Step 5: For each game_log, create 0-N comments from valid users and 0-N reactions
-    console.log('💬 Step 5: Creating comments and reactions for game logs...');
+    // Step 5: For each game_log, create 0-N comments (including nested comments) from valid users
+    console.log('💬 Step 5: Creating comments for game logs...');
     const commentData = generateComments(userData, gameLogData, finalConfig);
 
     for (const comment of commentData) {
       await db.insert(comments).values(comment);
     }
-    console.log(`✅ Created ${commentData.length} comments`);
+    console.log(`✅ Created ${commentData.length} comments (including nested comments)`);
 
-    // Step 6: For each comment, create 0-N child comments within depth range and 0-N reactions
-    console.log('🔄 Step 6: Creating child comments and reactions...');
-
-    // Generate nested comments (child comments)
-    const allComments = [...commentData];
-    const commentId = { value: commentData.length + 1 };
-
-    for (const parentComment of commentData) {
-      // Generate child comments with depth constraints
-      generateNestedComments(
-        parentComment,
-        allComments,
-        userData,
-        commentId,
-        1, // Start at depth 1
-        finalConfig
-      );
-    }
-
-    // Insert all child comments that were added to allComments array
-    const childComments = allComments.slice(commentData.length);
-    for (const childComment of childComments) {
-      await db.insert(comments).values(childComment);
-    }
-    console.log(`✅ Created ${allComments.length - commentData.length} child comments`);
-
-    // Step 7: Generate reactions for game logs, comments, and child comments
-    console.log('👍 Step 7: Creating reactions...');
-    const reactionData = generateReactions(userData, gameLogData, allComments, finalConfig);
+    // Step 6: Generate reactions for game logs and comments
+    console.log('👍 Step 6: Creating reactions...');
+    const reactionData = generateReactions(userData, gameLogData, commentData, finalConfig);
 
     for (const reaction of reactionData) {
       await db.insert(reactions).values(reaction);
