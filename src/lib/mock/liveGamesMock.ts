@@ -1,4 +1,4 @@
-import type { IGamesApiResponse } from '@/lib/types/externalApiTypes';
+import type { IGamesApiResponse } from '@/lib/types';
 
 // Constants for common basketball scores
 const BASKETBALL_SCORES = {

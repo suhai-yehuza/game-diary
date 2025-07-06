@@ -1,4 +1,4 @@
-import type { IRapidAPIConfig } from '@/lib/types/externalApiTypes';
+import type { IRapidAPIConfig } from '@/lib/types';
 
 export const createRapidAPIClient = (config: IRapidAPIConfig) => {
   return {

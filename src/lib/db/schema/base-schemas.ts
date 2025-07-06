@@ -1,15 +1,17 @@
 import { varchar, timestamp } from 'drizzle-orm/pg-core';
 
+import { generateUUIDv7 } from '@src/lib/utils/id-generator';
+
 /**
- * Simple UUID generator
+ * Enhanced ID generator using UUID v7 for better collision resistance and time-ordering
  */
-function generateUUID(): string {
-  return crypto.randomUUID();
+function generateId(): string {
+  return generateUUIDv7();
 }
 
 // Common field generators
 export const createIdField = () => ({
-  id: varchar('id', { length: 255 }).primaryKey().default(generateUUID()),
+  id: varchar('id', { length: 255 }).primaryKey().default(generateId()),
 });
 
 export const createTimestampFields = () => ({

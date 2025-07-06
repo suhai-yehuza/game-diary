@@ -1,4 +1,4 @@
-import type { IPlayersApiResponse } from '@/lib/types/externalApiTypes';
+import type { IPlayersApiResponse } from '@/lib/types';
 
 export const MOCK_NBA_PLAYERS: IPlayersApiResponse = {
   get: 'players',

@@ -1,4 +1,4 @@
-import type { ISeasonsApiResponse } from '@/lib/types/externalApiTypes';
+import type { ISeasonsApiResponse } from '@/lib/types';
 
 export const MOCK_NBA_SEASONS: ISeasonsApiResponse = {
   get: 'seasons',

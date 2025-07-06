@@ -4,7 +4,7 @@
  * This file contains all type definitions used by the database seeding system.
  */
 
-import type { IReactionEmojiValue } from '@src/lib/types';
+import type { IReactionEmojiValue } from './constantTypes';
 
 // ============================================================================
 // SEEDING CONFIGURATION TYPES
@@ -21,6 +21,8 @@ export interface ISeedingConfig {
 }
 
 export type ScenarioKey = 'SMALL' | 'MEDIUM' | 'LARGE' | 'CUSTOM';
+
+export type IdGeneratorType = 'uuidv7' | 'ulid' | 'nanoid' | 'cuid2' | 'uuid';
 
 // ============================================================================
 // SEED DATA TYPES

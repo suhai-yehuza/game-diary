@@ -3,7 +3,7 @@ import type { NextRequest } from 'next/server';
 
 import { handleUserCreated, handleUserUpdated, handleUserDeleted } from '@/app/api/webhooks/clerk';
 import { db } from '@/lib/db';
-import type { IClerkDeletedUserData, IClerkUserData } from '@/lib/types/clerk-types';
+import type { IClerkDeletedUserData, IClerkUserData } from '@/lib/types';
 import { webhookLogger } from '@lib/core/logger';
 
 // Helper functions

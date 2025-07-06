@@ -116,6 +116,67 @@ export function betaDistribution(alpha: number, beta: number, min: number, max: 
 // ============================================================================
 
 /**
+ * Game Popularity Distribution (Pareto)
+ * - 20% of games get 80% of the game logs
+ * - Creates realistic distribution where some games are much more popular
+ * - Returns popularity weights for each game
+ */
+export function generateGamePopularityWeights(gameCount: number, alpha = 2.5): number[] {
+  const weights: number[] = [];
+
+  for (let i = 0; i < gameCount; i++) {
+    // Generate Pareto-distributed weight with stronger concentration
+    const weight = paretoDistribution(0.01, 1.0, alpha);
+    weights.push(weight);
+  }
+
+  // Normalize weights so they sum to 1
+  const totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
+  return weights.map(weight => weight / totalWeight);
+}
+
+/**
+ * Select games based on popularity weights
+ * - Uses weighted random selection to favor popular games
+ * - Returns array of selected game indices
+ */
+export function selectGamesByPopularity(
+  gameCount: number,
+  targetCount: number,
+  popularityWeights: number[]
+): number[] {
+  const selectedIndices: number[] = [];
+  const availableIndices = Array.from({ length: gameCount }, (_, i) => i);
+
+  for (let i = 0; i < targetCount && availableIndices.length > 0; i++) {
+    // Calculate cumulative weights for available games
+    const availableWeights = availableIndices.map(index => popularityWeights[index]);
+    const totalWeight = availableWeights.reduce((sum, weight) => sum + weight, 0);
+
+    // Generate random value
+    const randomValue = Math.random() * totalWeight;
+
+    // Find the selected game based on cumulative weights
+    let cumulativeWeight = 0;
+    let selectedIndex = 0;
+
+    for (let j = 0; j < availableWeights.length; j++) {
+      cumulativeWeight += availableWeights[j];
+      if (cumulativeWeight >= randomValue) {
+        selectedIndex = j;
+        break;
+      }
+    }
+
+    // Add the selected game and remove it from available games
+    selectedIndices.push(availableIndices[selectedIndex]);
+    availableIndices.splice(selectedIndex, 1);
+  }
+
+  return selectedIndices;
+}
+
+/**
  * User Engagement Pattern (Pareto + Normal)
  * - 20% of users are highly engaged (80% of activity)
  * - 80% of users are moderately engaged

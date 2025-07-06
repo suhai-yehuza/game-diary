@@ -5,12 +5,12 @@ import { drizzle } from 'drizzle-orm/neon-http';
 
 import { getRapidApiConfig } from '@src/lib/config/api.config';
 import * as schema from '@src/lib/db/schema';
+import type { Database } from '@src/lib/types/dbTypes';
 import type {
   ITeamsApiResponse,
   IPlayersApiResponse,
   IGamesApiResponse,
 } from '@src/lib/types/externalApiTypes';
-import type { Database } from '@src/lib/types/infrastructureTypes';
 import { createRapidAPIClient } from '@src/lib/utils/api-client';
 
 // Fetch real NBA data from API
@@ -102,8 +102,42 @@ export async function seedExternalApiData(_optimizationConfig?: unknown) {
       console.log(`✅ Seeded ${seasonsData.response.length} seasons`);
     }
 
-    // Step 3: For each season (earliest to latest), fetch and insert all games
-    console.log('🎮 Step 3: Fetching and inserting games for each season...');
+    // Step 3: Fetch and insert teams
+    console.log('🏀 Step 3: Fetching and inserting teams...');
+    const teamsData = await fetchNBAData<ITeamsApiResponse>(apiClient, '/teams', {});
+
+    console.log(`📡 Fetched teams data:`, JSON.stringify(teamsData, null, 2));
+
+    if (teamsData.response && teamsData.response.length > 0) {
+      for (const team of teamsData.response) {
+        console.log(`   🏀 Processing team: ${team.name} (ID: ${team.id})`);
+        try {
+          await db
+            .insert(schema.teams)
+            .values({
+              id: team.id.toString(),
+              name: team.name,
+              nickname: team.nickname,
+              code: team.code,
+              city: team.city,
+              logo: team.logo,
+              all_star: team.allStar,
+              nba_franchise: team.nbaFranchise,
+              conference: JSON.stringify([team.leagues?.standard?.conference ?? 'NBA']),
+            })
+            .onConflictDoNothing();
+          console.log(`   ✅ Inserted team: ${team.name}`);
+        } catch (error) {
+          console.error(`   ❌ Error inserting team ${team.name}:`, error);
+        }
+      }
+      console.log(`✅ Seeded ${teamsData.response.length} teams`);
+    } else {
+      console.warn('⚠️  No teams returned from API or empty response');
+    }
+
+    // Step 4: For each season (earliest to latest), fetch and insert all games
+    console.log('🎮 Step 4: Fetching and inserting games for each season...');
     const sortedSeasons = seasonsData.response.sort((a, b) => a - b);
 
     for (const season of sortedSeasons) {
@@ -143,40 +177,6 @@ export async function seedExternalApiData(_optimizationConfig?: unknown) {
         console.warn(`   ⚠️  Could not fetch games for season ${season}:`, error);
         continue; // Continue with next season
       }
-    }
-
-    // Step 4: Fetch and insert teams
-    console.log('🏀 Step 4: Fetching and inserting teams...');
-    const teamsData = await fetchNBAData<ITeamsApiResponse>(apiClient, '/teams', {});
-
-    console.log(`📡 Fetched teams data:`, JSON.stringify(teamsData, null, 2));
-
-    if (teamsData.response && teamsData.response.length > 0) {
-      for (const team of teamsData.response) {
-        console.log(`   🏀 Processing team: ${team.name} (ID: ${team.id})`);
-        try {
-          await db
-            .insert(schema.teams)
-            .values({
-              id: team.id.toString(),
-              name: team.name,
-              nickname: team.nickname,
-              code: team.code,
-              city: team.city,
-              logo: team.logo,
-              all_star: team.allStar,
-              nba_franchise: team.nbaFranchise,
-              conference: JSON.stringify([team.leagues?.standard?.conference ?? 'NBA']),
-            })
-            .onConflictDoNothing();
-          console.log(`   ✅ Inserted team: ${team.name}`);
-        } catch (error) {
-          console.error(`   ❌ Error inserting team ${team.name}:`, error);
-        }
-      }
-      console.log(`✅ Seeded ${teamsData.response.length} teams`);
-    } else {
-      console.warn('⚠️  No teams returned from API or empty response');
     }
 
     // Step 5: For each team, fetch and insert players with duplicate handling
@@ -268,6 +268,7 @@ export async function seedExternalApiData(_optimizationConfig?: unknown) {
                     teams: [
                       {
                         team_id: team.id.toString(),
+
                         team_name: team.name,
                       },
                     ],

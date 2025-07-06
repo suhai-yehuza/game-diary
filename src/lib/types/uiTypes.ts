@@ -141,32 +141,10 @@ export interface IClerkProviderWrapperProps {
 }
 
 // ========================================
-// CARD COMPONENT TYPES
+// CARD COMPONENT TYPES - moved to componentTypes.ts
 // ========================================
 
-export interface ICardProps extends React.ComponentProps<'div'> {
-  children: React.ReactNode;
-}
-
-export interface ICardHeaderProps extends React.ComponentProps<'div'> {
-  children: React.ReactNode;
-}
-
-export interface ICardTitleProps extends React.ComponentProps<'h3'> {
-  children: React.ReactNode;
-}
-
-export interface ICardDescriptionProps extends React.ComponentProps<'p'> {
-  children: React.ReactNode;
-}
-
-export interface ICardContentProps extends React.ComponentProps<'div'> {
-  children: React.ReactNode;
-}
-
-export interface ICardFooterProps extends React.ComponentProps<'div'> {
-  children: React.ReactNode;
-}
+// Card component types are now exported from componentTypes.ts
 
 export type FieldConfig = {
   label: string;

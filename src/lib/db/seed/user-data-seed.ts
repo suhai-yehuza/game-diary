@@ -15,9 +15,10 @@ import {
 import {
   generateGameRating,
   generateCommentCount,
-  generateReactionCount,
   generateActivityAge,
   generateUserBehavior,
+  generateGamePopularityWeights,
+  selectGamesByPopularity,
 } from '@src/lib/db/seed/statistical-distributions';
 import {
   CLASSIFICATION,
@@ -27,7 +28,7 @@ import {
   REACTION_EMOJIS,
   TARGET_TYPES,
 } from '@src/lib/types';
-import type { Database } from '@src/lib/types/infrastructureTypes';
+import type { Database } from '@src/lib/types/dbTypes';
 import type {
   IStatisticalSeedingConfig,
   ISeedUser,
@@ -37,6 +38,7 @@ import type {
   ISeedReaction,
   ISeedingConfig,
 } from '@src/lib/types/seeding-types';
+import { generateUUIDv7 } from '@src/lib/utils/id-generator';
 
 // Configuration for data generation
 const GENERATION_CONFIG = {
@@ -192,7 +194,7 @@ export function generateUsers(count: number): ISeedUser[] {
     const lastName = faker.person.lastName();
     const username = faker.internet.username({ firstName, lastName });
     users.push({
-      id: `user_${i + 1}`,
+      id: generateUUIDv7(),
       object: 'user',
       username,
       first_name: firstName,
@@ -243,7 +245,6 @@ function generateUserBio(): string {
 // Generate friendships between users
 export function generateFriendships(users: ISeedUser[], config: ISeedingConfig): ISeedFriendship[] {
   const friendships: ISeedFriendship[] = [];
-  let friendshipId = 1;
   for (const user of users) {
     const friendshipCount = faker.number.int({
       min: config.friendshipsPerUser.min,
@@ -272,7 +273,7 @@ export function generateFriendships(users: ISeedUser[], config: ISeedingConfig):
         FRIENDSHIP_STATUS.ACCEPTED, // Higher chance of accepted
       ]);
       friendships.push({
-        id: `friendship_${friendshipId++}`,
+        id: generateUUIDv7(),
         friend_id: friend.id,
         user_id: user.id,
         status,
@@ -289,7 +290,10 @@ export function generateGameLogs(
   config: ISeedingConfig
 ): ISeedGameLog[] {
   const gameLogs: ISeedGameLog[] = [];
-  let gameLogId = 1;
+
+  // Generate game popularity weights using Pareto distribution
+  // This ensures 20% of games get 80% of the game logs
+  const gamePopularityWeights = generateGamePopularityWeights(gameIds.length);
 
   for (const user of users) {
     // Use user engagement to determine activity level
@@ -303,8 +307,13 @@ export function generateGameLogs(
     });
     const gameLogCount = Math.round(baseGameLogCount * engagementMultiplier);
 
-    // Select random games for this user
-    const userGames = faker.helpers.arrayElements(gameIds, Math.min(gameLogCount, gameIds.length));
+    // Select games based on popularity weights (Pareto distribution)
+    const selectedGameIndices = selectGamesByPopularity(
+      gameIds.length,
+      Math.min(gameLogCount, gameIds.length),
+      gamePopularityWeights
+    );
+    const userGames = selectedGameIndices.map(index => gameIds[index]);
 
     for (const gameId of userGames) {
       // Generate realistic activity age (most recent, some older)
@@ -322,7 +331,7 @@ export function generateGameLogs(
       const rating = generateGameRating();
 
       gameLogs.push({
-        id: `game_log_${gameLogId++}`,
+        id: generateUUIDv7(),
         user_id: user.id,
         game_id: gameId,
         classification,
@@ -364,7 +373,7 @@ export function generateComments(
       if (commenter.id === gameLog.user_id) continue; // Skip if same user
 
       const comment: ISeedComment = {
-        id: crypto.randomUUID(),
+        id: generateUUIDv7(),
         user_id: commenter.id,
         parent_id: gameLog.id,
         parent_type: TARGET_TYPES.GAME_LOG, // Type assertion for compatibility
@@ -401,7 +410,7 @@ function generateNestedComments(
     const replier = faker.helpers.arrayElement(users.filter(u => u.id !== parentComment.user_id));
 
     const reply: ISeedComment = {
-      id: crypto.randomUUID(),
+      id: generateUUIDv7(),
       user_id: replier.id,
       parent_id: parentComment.id,
       parent_type: TARGET_TYPES.COMMENT,
@@ -492,20 +501,19 @@ function generateChildCommentContent(): string {
 export function generateReactions(
   users: ISeedUser[],
   gameLogs: ISeedGameLog[],
-  comments: ISeedComment[],
-  config: ISeedingConfig
-): ISeedReaction[] {
+  comments: ISeedComment[]
+) {
   const reactions: ISeedReaction[] = [];
 
   // Generate reactions on game logs
   for (const gameLog of gameLogs) {
-    // Use realistic reaction count distribution (Pareto distribution)
-    const reactionCount = generateReactionCount();
+    // Random number of reactions per game log (0 to 100)
+    const reactionCount = faker.number.int({ min: 0, max: 100 });
     const reactors = faker.helpers.arrayElements(users, Math.min(reactionCount, users.length));
     for (const reactor of reactors) {
       if (reactor.id === gameLog.user_id) continue; // Skip if same user
       reactions.push({
-        id: crypto.randomUUID(),
+        id: generateUUIDv7(),
         user_id: reactor.id,
         target_type: TARGET_TYPES.GAME_LOG,
         target_id: gameLog.id,
@@ -515,16 +523,14 @@ export function generateReactions(
   }
   // Generate reactions on comments
   for (const comment of comments) {
-    const reactionCount = faker.number.int({
-      min: config.reactionsPerComment.min,
-      max: config.reactionsPerComment.max,
-    });
+    // Random number of reactions per comment (0 to 100)
+    const reactionCount = faker.number.int({ min: 0, max: 100 });
     if (reactionCount > 0) {
       const reactors = faker.helpers.arrayElements(users, Math.min(reactionCount, users.length));
       for (const reactor of reactors) {
         if (reactor.id === comment.user_id) continue; // Skip if same user
         reactions.push({
-          id: crypto.randomUUID(),
+          id: generateUUIDv7(),
           user_id: reactor.id,
           target_type: TARGET_TYPES.COMMENT,
           target_id: comment.id,
@@ -606,7 +612,7 @@ export async function seedUserData(
 
     // Step 6: Generate reactions for game logs and comments
     console.log('👍 Step 6: Creating reactions...');
-    const reactionData = generateReactions(userData, gameLogData, commentData, finalConfig);
+    const reactionData = generateReactions(userData, gameLogData, commentData);
 
     for (const reaction of reactionData) {
       await db.insert(reactions).values(reaction);

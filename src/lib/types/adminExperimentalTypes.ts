@@ -1,5 +1,6 @@
 // Types for Admin Experimental components and pages
 import type { ReactNode, FormEvent } from 'react';
+import type { TabValue } from './constantTypes';
 
 // Button
 export type ButtonProps = {
@@ -96,7 +97,6 @@ export type DataDisplayProps = {
 };
 
 // NavigationTabs
-import type { TabValue } from '@/lib/types/constantTypes';
 export type NavigationTabsProps = {
   selectedTab: TabValue;
   setSelectedTab: (tab: TabValue) => void;
