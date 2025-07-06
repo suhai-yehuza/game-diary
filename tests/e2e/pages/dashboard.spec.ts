@@ -220,25 +220,34 @@ test.describe('Dashboard', () => {
   });
 
   test('should handle dashboard search functionality', async ({ page }) => {
-    // Check for search input
+    await page.goto('/dashboard');
+    await page.waitForLoadState('networkidle');
+
+    // Click the search icon/button if present (for mobile/detachable UI)
+    const searchIcon = page.locator(
+      '[data-testid="search-icon"], .search-icon, button[aria-label*="search"]'
+    );
+    if ((await searchIcon.count()) > 0) {
+      await searchIcon.first().click();
+    }
+
+    // Re-query for the search input after UI detaches
     const searchInput = page.locator(
       '[data-testid="search"], input[type="search"], input[placeholder*="search"], input[placeholder*="Search"]'
     );
-    if ((await searchInput.count()) > 0) {
-      await expect(searchInput.first()).toBeVisible();
-      await expect(searchInput.first()).toBeEnabled();
+    await expect(searchInput.first()).toBeVisible();
+    await expect(searchInput.first()).toBeEnabled();
 
-      // Test search functionality
-      await searchInput.first().fill('test');
-      await page.waitForTimeout(1000);
+    // Test search functionality
+    await searchInput.first().fill('test');
+    await page.waitForTimeout(1000);
 
-      // Check that search results or no results message is shown
-      const searchResults = page.locator(
-        '[data-testid="search-results"], .search-results, [data-section="search"]'
-      );
-      if ((await searchResults.count()) > 0) {
-        await expect(searchResults.first()).toBeVisible();
-      }
+    // Check that search results or no results message is shown
+    const searchResults = page.locator(
+      '[data-testid="search-results"], .search-results, [data-section="search"]'
+    );
+    if ((await searchResults.count()) > 0) {
+      await expect(searchResults.first()).toBeVisible();
     }
   });
 
