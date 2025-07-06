@@ -55,7 +55,7 @@
     "test:e2e:performance": "playwright test tests/e2e/functional/full.spec.ts --config=playwright.popular.config.ts --project=chromium --workers=1",
     "test:e2e:pages": "playwright test tests/e2e/pages/ --config=playwright.pages.config.ts",
     "test:e2e:pages:home": "playwright test tests/e2e/pages/home.spec.ts --config=playwright.pages.config.ts",
-    "test:e2e:pages:navigation": "playwright test tests/e2e/pages/navigation.spec.ts --config=playwright.pages.config.ts",
+    "test:e2e:navigation": "playwright test tests/e2e/functional/navigation.spec.ts --config=playwright.sanity.config.ts",
     "test:e2e:pages:auth": "playwright test tests/e2e/pages/auth.spec.ts --config=playwright.pages.config.ts",
     "test:e2e:pages:dashboard": "playwright test tests/e2e/pages/dashboard.spec.ts --config=playwright.pages.config.ts",
     "test:e2e:pages:sports": "playwright test tests/e2e/pages/sports.spec.ts --config=playwright.pages.config.ts",
