@@ -30,31 +30,33 @@ export default function HomePage() {
         </div>
       </div>
       <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <Link href="/dashboard" passHref legacyBehavior>
-          <a className="flex items-center gap-2 hover:underline hover:underline-offset-4">
-            <Image
-              aria-hidden
-              src="/icons/file.svg"
-              alt="File icon"
-              width={16}
-              height={16}
-              sizes="16px"
-            />
-            How to log a game
-          </a>
+        <Link
+          href="/dashboard"
+          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
+        >
+          <Image
+            aria-hidden
+            src="/icons/file.svg"
+            alt="File icon"
+            width={16}
+            height={16}
+            sizes="16px"
+          />
+          How to log a game
         </Link>
-        <Link href="/dashboard" passHref legacyBehavior>
-          <a className="flex items-center gap-2 hover:underline hover:underline-offset-4">
-            <Image
-              aria-hidden
-              src="/icons/window.svg"
-              alt="Window icon"
-              width={16}
-              height={16}
-              sizes="16px"
-            />
-            Example game logs
-          </a>
+        <Link
+          href="/dashboard"
+          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
+        >
+          <Image
+            aria-hidden
+            src="/icons/window.svg"
+            alt="Window icon"
+            width={16}
+            height={16}
+            sizes="16px"
+          />
+          Example game logs
         </Link>
       </footer>
     </section>
