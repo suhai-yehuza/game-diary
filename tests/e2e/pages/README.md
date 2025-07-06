@@ -35,10 +35,10 @@ pnpm test:e2e:pages
 pnpm test:e2e:pages:home
 
 # Navigation tests
-pnpm test:e2e:pages:navigation
+pnpm test:e2e:navigation
 
 # Authentication tests
-pnpm test:e2e:pages:auth
+pnpm test:e2e:clerk-auth
 
 # Dashboard tests
 pnpm test:e2e:pages:dashboard
@@ -47,7 +47,7 @@ pnpm test:e2e:pages:dashboard
 pnpm test:e2e:pages:sports
 
 # Cross-browser tests
-pnpm test:e2e:pages:cross-browser
+pnpm test:e2e:cross-browser
 ```
 
 ## Configuration

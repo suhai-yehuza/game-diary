@@ -407,11 +407,11 @@ pnpm test:e2e:pages
 
 # Run specific page tests
 pnpm test:e2e:pages:home
-pnpm test:e2e:pages:navigation
-pnpm test:e2e:pages:auth
+pnpm test:e2e:navigation
+pnpm test:e2e:clerk-auth
 pnpm test:e2e:pages:dashboard
 pnpm test:e2e:pages:sports
-pnpm test:e2e:pages:cross-browser
+pnpm test:e2e:cross-browser
 ```
 
 ## Test Configuration
