@@ -33,6 +33,16 @@ class TriggerValidator {
     this.db = createDatabaseClient({ env: 'development' });
   }
 
+  // Static method for global cleanup
+  static async globalCleanup() {
+    const db = createDatabaseClient({ env: 'development' });
+    await db.execute(
+      sql`DELETE FROM game_logs WHERE id LIKE 'testtrig_%' OR user_id LIKE 'testtrig_%'`
+    );
+    await db.execute(sql`DELETE FROM game_ratings WHERE game_id LIKE 'testtrig_%'`);
+    await db.execute(sql`DELETE FROM users WHERE id LIKE 'testtrig_%'`);
+  }
+
   private async getTestUsers(): Promise<{ user1Id: string; user2Id: string }> {
     const users = (await this.db.execute(sql`
       SELECT id FROM users ORDER BY created_at ASC LIMIT 2
@@ -61,7 +71,7 @@ class TriggerValidator {
     `);
 
     // Create a unique test NBA game id (max 20 chars)
-    const gameId = `tg_${generateId().slice(0, 16)}`; // 'tg_' + 16 chars = 18 chars
+    const gameId = `ttg_${generateId().replace(/-/g, '').slice(0, 16)}`; // 'ttg_' + 16 chars = 19 chars, fits varchar(20)
 
     // Insert a test NBA game with error logging
     try {
@@ -138,8 +148,8 @@ class TriggerValidator {
   private async testGameRatingsInsert(): Promise<boolean> {
     try {
       const gameId = await this.getTestGame();
-      const userId1 = `test_user_${generateId()}`;
-      const userId2 = `test_user_${generateId()}`;
+      const userId1 = `testtrig_user_${generateId()}`;
+      const userId2 = `testtrig_user_${generateId()}`;
       // Insert two users
       await this.db.execute(sql`
         INSERT INTO users (id, username, email_address, created_at, updated_at)
@@ -172,8 +182,8 @@ class TriggerValidator {
   private async testGameRatingsUpdate(): Promise<boolean> {
     try {
       const gameId = await this.getTestGame();
-      const userId1 = `test_user_${generateId()}`;
-      const userId2 = `test_user_${generateId()}`;
+      const userId1 = `testtrig_user_${generateId()}`;
+      const userId2 = `testtrig_user_${generateId()}`;
       // Insert two users
       await this.db.execute(sql`
         INSERT INTO users (id, username, email_address, created_at, updated_at)
@@ -212,8 +222,8 @@ class TriggerValidator {
   private async testGameRatingsDelete(): Promise<boolean> {
     try {
       const gameId = await this.getTestGame();
-      const userId1 = `test_user_${generateId()}`;
-      const userId2 = `test_user_${generateId()}`;
+      const userId1 = `testtrig_user_${generateId()}`;
+      const userId2 = `testtrig_user_${generateId()}`;
       // Insert two users
       await this.db.execute(sql`
         INSERT INTO users (id, username, email_address, created_at, updated_at)
@@ -254,10 +264,10 @@ class TriggerValidator {
   // ============================================================================
 
   private async testCommentOnGameLog(): Promise<boolean> {
-    const user1Id = `test_user_${generateId()}`;
-    const user2Id = `test_user_${generateId()}`;
+    const user1Id = `testtrig_user_${generateId()}`;
+    const user2Id = `testtrig_user_${generateId()}`;
     const gameId = await this.getTestGame();
-    const gameLogId = `test_gamelog_${generateId()}`;
+    const gameLogId = `testtrig_gamelog_${generateId()}`;
     const commentId = `test_comment_${generateId()}`;
 
     try {
@@ -304,10 +314,10 @@ class TriggerValidator {
   }
 
   private async testCommentReply(): Promise<boolean> {
-    const user1Id = `test_user_${generateId()}`;
-    const user2Id = `test_user_${generateId()}`;
+    const user1Id = `testtrig_user_${generateId()}`;
+    const user2Id = `testtrig_user_${generateId()}`;
     const gameId = await this.getTestGame();
-    const gameLogId = `test_gamelog_${generateId()}`;
+    const gameLogId = `testtrig_gamelog_${generateId()}`;
     const parentCommentId = `test_parent_comment_${generateId()}`;
     const replyId = `test_reply_${generateId()}`;
 
@@ -361,9 +371,9 @@ class TriggerValidator {
   }
 
   private async testSelfComment(): Promise<boolean> {
-    const user1Id = `test_user_${generateId()}`;
+    const user1Id = `testtrig_user_${generateId()}`;
     const gameId = await this.getTestGame();
-    const gameLogId = `test_gamelog_${generateId()}`;
+    const gameLogId = `testtrig_gamelog_${generateId()}`;
     const commentId = `test_self_comment_${generateId()}`;
 
     try {
@@ -413,10 +423,10 @@ class TriggerValidator {
   // ============================================================================
 
   private async testReactionOnGameLog(): Promise<boolean> {
-    const user1Id = `test_user_${generateId()}`;
-    const user2Id = `test_user_${generateId()}`;
+    const user1Id = `testtrig_user_${generateId()}`;
+    const user2Id = `testtrig_user_${generateId()}`;
     const gameId = await this.getTestGame();
-    const gameLogId = `test_gamelog_${generateId()}`;
+    const gameLogId = `testtrig_gamelog_${generateId()}`;
     const reactionId = `test_reaction_${generateId()}`;
 
     try {
@@ -463,10 +473,10 @@ class TriggerValidator {
   }
 
   private async testReactionOnComment(): Promise<boolean> {
-    const user1Id = `test_user_${generateId()}`;
-    const user2Id = `test_user_${generateId()}`;
+    const user1Id = `testtrig_user_${generateId()}`;
+    const user2Id = `testtrig_user_${generateId()}`;
     const gameId = await this.getTestGame();
-    const gameLogId = `test_gamelog_${generateId()}`;
+    const gameLogId = `testtrig_gamelog_${generateId()}`;
     const commentId = `test_comment_${generateId()}`;
     const reactionId = `test_reaction_${generateId()}`;
 
@@ -521,9 +531,9 @@ class TriggerValidator {
   }
 
   private async testSelfReaction(): Promise<boolean> {
-    const user1Id = `test_user_${generateId()}`;
+    const user1Id = `testtrig_user_${generateId()}`;
     const gameId = await this.getTestGame();
-    const gameLogId = `test_gamelog_${generateId()}`;
+    const gameLogId = `testtrig_gamelog_${generateId()}`;
     const reactionId = `test_self_reaction_${generateId()}`;
 
     try {
@@ -573,9 +583,9 @@ class TriggerValidator {
   // ============================================================================
 
   private async testFriendRequest(): Promise<boolean> {
-    const user1Id = `test_user_${generateId()}`;
-    const user2Id = `test_user_${generateId()}`;
-    const friendshipId = `test_friendship_${generateId()}`;
+    const user1Id = `testtrig_user_${generateId()}`;
+    const user2Id = `testtrig_user_${generateId()}`;
+    const friendshipId = `testtrig_friendship_${generateId()}`;
 
     try {
       // Create test users
@@ -617,9 +627,9 @@ class TriggerValidator {
   }
 
   private async testFriendAccept(): Promise<boolean> {
-    const user1Id = `test_user_${generateId()}`;
-    const user2Id = `test_user_${generateId()}`;
-    const friendshipId = `test_friendship_${generateId()}`;
+    const user1Id = `testtrig_user_${generateId()}`;
+    const user2Id = `testtrig_user_${generateId()}`;
+    const friendshipId = `testtrig_friendship_${generateId()}`;
 
     try {
       // Create test users
@@ -667,7 +677,7 @@ class TriggerValidator {
 
   private async testFriendReject(): Promise<boolean> {
     const { user1Id, user2Id } = await this.getTestUsers();
-    const friendshipId = `test_friendship_${generateId()}`;
+    const friendshipId = `testtrig_friendship_${generateId()}`;
 
     try {
       // Create pending friend request first
@@ -757,6 +767,9 @@ async function main(): Promise<void> {
   try {
     const validator = new TriggerValidator();
     await validator.runAllTests();
+    // Global cleanup to remove any leftover test data
+    // Consider adding ON DELETE CASCADE to your schema for users/game_logs if appropriate
+    await TriggerValidator.globalCleanup();
   } catch (error) {
     logger.error('❌ Trigger validation failed:', error);
     process.exit(1);
