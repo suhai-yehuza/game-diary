@@ -20,7 +20,7 @@ export interface ISeedingConfig {
   childCommentChance: number;
 }
 
-export type ScenarioKey = 'SMALL' | 'MEDIUM' | 'LARGE' | 'CUSTOM';
+export type ScenarioKey = 'SMALL' | 'MEDIUM' | 'LARGE' | 'PARETO-DEMO' | 'CUSTOM';
 
 export type IdGeneratorType = 'uuidv7' | 'ulid' | 'nanoid' | 'cuid2' | 'uuid';
 

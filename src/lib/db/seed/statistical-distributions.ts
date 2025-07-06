@@ -31,10 +31,12 @@ export function paretoDistribution(
   alpha = 1.16 // 80/20 rule parameter
 ): number {
   const u = Math.random();
+  // Standard Pareto distribution formula
   const paretoValue = Math.pow(1 - u, -1 / alpha);
 
-  // Scale to desired range
-  const scaledValue = min + ((max - min) * (paretoValue - 1)) / (Math.pow(0.8, -1 / alpha) - 1);
+  // Scale to desired range using proper Pareto scaling
+  // For alpha = 1.16, this creates approximately 80/20 distribution
+  const scaledValue = min + ((max - min) * (paretoValue - 1)) / (Math.pow(0.2, -1 / alpha) - 1);
   return Math.max(min, Math.min(max, scaledValue));
 }
 
@@ -121,24 +123,35 @@ export function betaDistribution(alpha: number, beta: number, min: number, max: 
  * - Creates realistic distribution where some games are much more popular
  * - Returns popularity weights for each game
  */
-export function generateGamePopularityWeights(gameCount: number, alpha = 2.5): number[] {
+export function generateGamePopularityWeights(gameCount: number, alpha = 1.16): number[] {
   const weights: number[] = [];
 
+  // Create a continuous Pareto distribution
+  // Each game gets a weight based on its rank following a power law
   for (let i = 0; i < gameCount; i++) {
-    // Generate Pareto-distributed weight with stronger concentration
-    const weight = paretoDistribution(0.01, 1.0, alpha);
+    // Rank from 1 (most popular) to gameCount (least popular)
+    const rank = i + 1;
+
+    // Pareto distribution: weight = 1 / (rank^alpha)
+    // This creates a smooth power law distribution
+    const weight = 1 / Math.pow(rank, alpha);
     weights.push(weight);
   }
 
-  // Normalize weights so they sum to 1
-  const totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
-  return weights.map(weight => weight / totalWeight);
+  // Shuffle the weights to randomize which games are popular
+  for (let i = weights.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [weights[i], weights[j]] = [weights[j], weights[i]];
+  }
+
+  return weights;
 }
 
 /**
  * Select games based on popularity weights
  * - Uses weighted random selection to favor popular games
  * - Returns array of selected game indices
+ * - Allows repetition to create realistic Pareto distribution
  */
 export function selectGamesByPopularity(
   gameCount: number,
@@ -146,31 +159,26 @@ export function selectGamesByPopularity(
   popularityWeights: number[]
 ): number[] {
   const selectedIndices: number[] = [];
-  const availableIndices = Array.from({ length: gameCount }, (_, i) => i);
 
-  for (let i = 0; i < targetCount && availableIndices.length > 0; i++) {
-    // Calculate cumulative weights for available games
-    const availableWeights = availableIndices.map(index => popularityWeights[index]);
-    const totalWeight = availableWeights.reduce((sum, weight) => sum + weight, 0);
-
-    // Generate random value
+  for (let i = 0; i < targetCount; i++) {
+    // Generate random value based on total weights
+    const totalWeight = popularityWeights.reduce((sum, weight) => sum + weight, 0);
     const randomValue = Math.random() * totalWeight;
 
     // Find the selected game based on cumulative weights
     let cumulativeWeight = 0;
     let selectedIndex = 0;
 
-    for (let j = 0; j < availableWeights.length; j++) {
-      cumulativeWeight += availableWeights[j];
+    for (let j = 0; j < popularityWeights.length; j++) {
+      cumulativeWeight += popularityWeights[j];
       if (cumulativeWeight >= randomValue) {
         selectedIndex = j;
         break;
       }
     }
 
-    // Add the selected game and remove it from available games
-    selectedIndices.push(availableIndices[selectedIndex]);
-    availableIndices.splice(selectedIndex, 1);
+    // Add the selected game (allows repetition for Pareto distribution)
+    selectedIndices.push(selectedIndex);
   }
 
   return selectedIndices;
@@ -558,6 +566,118 @@ export const DISTRIBUTION_CONFIG_PRESETS = {
     enableTimeDecay: false,
   },
 
+  // Pareto distribution (80/20 rule) for all data types
+  PARETO: {
+    userEngagement: { type: 'pareto', parameters: { min: 0.1, max: 1.0, alpha: 1.0 } },
+    userActivityFrequency: { type: 'pareto', parameters: { min: 1, max: 30, alpha: 1.0 } },
+    userFriendCount: { type: 'pareto', parameters: { min: 0, max: 200, alpha: 1.0 } },
+    userContentQuality: { type: 'pareto', parameters: { min: 0.1, max: 1.0, alpha: 1.0 } },
+    userActivityAge: { type: 'pareto', parameters: { min: 0, max: 365, alpha: 1.0 } },
+    gameRating: { type: 'pareto', parameters: { min: 1, max: 10, alpha: 1.0 } },
+    commentCount: { type: 'pareto', parameters: { min: 0, max: 20, alpha: 1.0 } },
+    reactionCount: { type: 'pareto', parameters: { min: 0, max: 50, alpha: 1.0 } },
+    contentViralProbability: { type: 'pareto', parameters: { min: 0, max: 1, alpha: 1.0 } },
+    activityAge: { type: 'pareto', parameters: { min: 0, max: 365, alpha: 1.0 } },
+    responseTime: { type: 'pareto', parameters: { min: 0, max: 24, alpha: 1.0 } },
+    sessionDuration: { type: 'pareto', parameters: { min: 5, max: 120, alpha: 1.0 } },
+    gameLogsPerUser: { type: 'pareto', parameters: { min: 3, max: 15, alpha: 1.0 } },
+    gameLogClassification: { type: 'pareto', parameters: { min: 0, max: 1, alpha: 1.0 } },
+    gameLogTags: { type: 'pareto', parameters: { min: 1, max: 5, alpha: 1.0 } },
+    friendshipStatus: { type: 'pareto', parameters: { min: 0, max: 1, alpha: 1.0 } },
+    notificationFrequency: { type: 'pareto', parameters: { min: 0, max: 10, alpha: 1.0 } },
+    enableRealisticPatterns: false,
+    enableViralContent: false,
+    enablePowerUsers: false,
+    enableTimeDecay: false,
+  },
+
+  // Normal distribution (bell curve) for all data types
+  NORMAL: {
+    userEngagement: { type: 'normal', parameters: { mean: 0.5, stdDev: 0.15, min: 0.1, max: 1.0 } },
+    userActivityFrequency: { type: 'normal', parameters: { mean: 15, stdDev: 8, min: 1, max: 30 } },
+    userFriendCount: { type: 'normal', parameters: { mean: 100, stdDev: 50, min: 0, max: 200 } },
+    userContentQuality: {
+      type: 'normal',
+      parameters: { mean: 0.5, stdDev: 0.2, min: 0.1, max: 1.0 },
+    },
+    userActivityAge: { type: 'normal', parameters: { mean: 180, stdDev: 90, min: 0, max: 365 } },
+    gameRating: { type: 'normal', parameters: { mean: 5.5, stdDev: 1.5, min: 1, max: 10 } },
+    commentCount: { type: 'normal', parameters: { mean: 10, stdDev: 5, min: 0, max: 20 } },
+    reactionCount: { type: 'normal', parameters: { mean: 25, stdDev: 12, min: 0, max: 50 } },
+    contentViralProbability: {
+      type: 'normal',
+      parameters: { mean: 0.5, stdDev: 0.2, min: 0, max: 1 },
+    },
+    activityAge: { type: 'normal', parameters: { mean: 180, stdDev: 90, min: 0, max: 365 } },
+    responseTime: { type: 'normal', parameters: { mean: 12, stdDev: 6, min: 0, max: 24 } },
+    sessionDuration: { type: 'normal', parameters: { mean: 60, stdDev: 30, min: 5, max: 120 } },
+    gameLogsPerUser: { type: 'normal', parameters: { mean: 9, stdDev: 4, min: 3, max: 15 } },
+    gameLogClassification: {
+      type: 'normal',
+      parameters: { mean: 0.5, stdDev: 0.2, min: 0, max: 1 },
+    },
+    gameLogTags: { type: 'normal', parameters: { mean: 3, stdDev: 1, min: 1, max: 5 } },
+    friendshipStatus: { type: 'normal', parameters: { mean: 0.5, stdDev: 0.2, min: 0, max: 1 } },
+    notificationFrequency: {
+      type: 'normal',
+      parameters: { mean: 5, stdDev: 2.5, min: 0, max: 10 },
+    },
+    enableRealisticPatterns: false,
+    enableViralContent: false,
+    enablePowerUsers: false,
+    enableTimeDecay: false,
+  },
+
+  // Exponential distribution for all data types
+  EXPONENTIAL: {
+    userEngagement: { type: 'exponential', parameters: { lambda: 2.0, min: 0.1, max: 1.0 } },
+    userActivityFrequency: { type: 'exponential', parameters: { lambda: 0.1, min: 1, max: 30 } },
+    userFriendCount: { type: 'exponential', parameters: { lambda: 0.01, min: 0, max: 200 } },
+    userContentQuality: { type: 'exponential', parameters: { lambda: 2.0, min: 0.1, max: 1.0 } },
+    userActivityAge: { type: 'exponential', parameters: { lambda: 0.005, min: 0, max: 365 } },
+    gameRating: { type: 'exponential', parameters: { lambda: 0.5, min: 1, max: 10 } },
+    commentCount: { type: 'exponential', parameters: { lambda: 0.2, min: 0, max: 20 } },
+    reactionCount: { type: 'exponential', parameters: { lambda: 0.1, min: 0, max: 50 } },
+    contentViralProbability: { type: 'exponential', parameters: { lambda: 2.0, min: 0, max: 1 } },
+    activityAge: { type: 'exponential', parameters: { lambda: 0.005, min: 0, max: 365 } },
+    responseTime: { type: 'exponential', parameters: { lambda: 0.1, min: 0, max: 24 } },
+    sessionDuration: { type: 'exponential', parameters: { lambda: 0.02, min: 5, max: 120 } },
+    gameLogsPerUser: { type: 'exponential', parameters: { lambda: 0.3, min: 3, max: 15 } },
+    gameLogClassification: { type: 'exponential', parameters: { lambda: 2.0, min: 0, max: 1 } },
+    gameLogTags: { type: 'exponential', parameters: { lambda: 0.5, min: 1, max: 5 } },
+    friendshipStatus: { type: 'exponential', parameters: { lambda: 2.0, min: 0, max: 1 } },
+    notificationFrequency: { type: 'exponential', parameters: { lambda: 0.2, min: 0, max: 10 } },
+    enableRealisticPatterns: false,
+    enableViralContent: false,
+    enablePowerUsers: false,
+    enableTimeDecay: false,
+  },
+
+  // Poisson distribution for all data types
+  POISSON: {
+    userEngagement: { type: 'poisson', parameters: { lambda: 5 } },
+    userActivityFrequency: { type: 'poisson', parameters: { lambda: 15 } },
+    userFriendCount: { type: 'poisson', parameters: { lambda: 100 } },
+    userContentQuality: { type: 'poisson', parameters: { lambda: 5 } },
+    userActivityAge: { type: 'poisson', parameters: { lambda: 180 } },
+    gameRating: { type: 'poisson', parameters: { lambda: 5 } },
+    commentCount: { type: 'poisson', parameters: { lambda: 10 } },
+    reactionCount: { type: 'poisson', parameters: { lambda: 25 } },
+    contentViralProbability: { type: 'poisson', parameters: { lambda: 5 } },
+    activityAge: { type: 'poisson', parameters: { lambda: 180 } },
+    responseTime: { type: 'poisson', parameters: { lambda: 12 } },
+    sessionDuration: { type: 'poisson', parameters: { lambda: 60 } },
+    gameLogsPerUser: { type: 'poisson', parameters: { lambda: 9 } },
+    gameLogClassification: { type: 'poisson', parameters: { lambda: 5 } },
+    gameLogTags: { type: 'poisson', parameters: { lambda: 3 } },
+    friendshipStatus: { type: 'poisson', parameters: { lambda: 5 } },
+    notificationFrequency: { type: 'poisson', parameters: { lambda: 5 } },
+    enableRealisticPatterns: false,
+    enableViralContent: false,
+    enablePowerUsers: false,
+    enableTimeDecay: false,
+  },
+
   // High engagement patterns
   HIGH_ENGAGEMENT: {
     ...DEFAULT_DISTRIBUTION_CONFIG,
@@ -701,12 +821,16 @@ export function generateUserEngagementWithConfig(config: IStatisticalSeedingConf
  * Generate game rating based on configuration
  */
 export function generateGameRatingWithConfig(config: IStatisticalSeedingConfig): number {
+  let rating: number;
+
   if (!config.enableRealisticPatterns) {
-    return generateValue(config.gameRating);
+    rating = generateValue(config.gameRating);
+  } else {
+    // Use beta distribution for realistic rating patterns
+    rating = betaDistribution(2.5, 2.5, 1, 5);
   }
 
-  // Use beta distribution for realistic rating patterns
-  const rating = betaDistribution(2.5, 2.5, 1, 5);
+  // Always return an integer for game ratings
   return Math.round(rating);
 }
 

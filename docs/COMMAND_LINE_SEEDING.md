@@ -50,34 +50,65 @@ The seeding system supports different environments that affect performance optim
 | Environment   | Use Case          | Performance | Data Patterns | Description                   |
 | ------------- | ----------------- | ----------- | ------------- | ----------------------------- |
 | `development` | Local development | Balanced    | Development   | Default for local development |
-| `staging`     | Staging/QA        | Optimized   | Realistic     | Pre-production testing        |
-| `production`  | Production        | High        | Realistic     | Production environment        |
-| `test`        | Testing           | Fast        | Controlled    | Automated testing             |
+| `staging`     | Staging           | Optimized   | Staging       | For pre-production testing    |
+| `production`  | Production        | Maximum     | Production    | For live deployments          |
+| `test`        | Testing           | Fast        | Test          | For CI and automated tests    |
 
-### Using Environments
+## 📈 Distribution Presets
+
+The following distribution presets are supported (case-insensitive, use either --distribution=foo or --distribution foo):
+
+| Preset          | Description                                         |
+| --------------- | --------------------------------------------------- |
+| realistic       | Realistic social media patterns (Pareto, Power Law) |
+| uniform         | Uniform random distribution (for testing)           |
+| pareto          | Pareto distribution (80/20 rule) for all data types |
+| normal          | Normal distribution (bell curve) for all data types |
+| exponential     | Exponential distribution for all data types         |
+| poisson         | Poisson distribution for all data types             |
+| high-engagement | High user engagement patterns                       |
+| low-engagement  | Low user engagement patterns                        |
+| performance     | Optimized for performance testing                   |
+| development     | Development-friendly patterns                       |
+| testing         | Testing-optimized patterns                          |
+| demo            | Demo-optimized patterns                             |
+
+### Usage Examples
 
 ```bash
-# Development environment (default)
-pnpm run seed -- --env=development
+# Seed with the default (medium) scenario and realistic distribution
+pnpm hard:reset:internal
 
-# Staging environment
-pnpm run seed -- --env=staging --scenario=medium
+# Seed with a small scenario and Pareto distribution (80/20 rule)
+pnpm hard:reset:internal --scenario small --distribution pareto
 
-# Production environment
-pnpm run seed -- --env=production --scenario=large --distribution=realistic
+# Seed with a small scenario and normal (bell curve) distribution
+pnpm hard:reset:internal --scenario small --distribution normal
 
-# Test environment
-pnpm run seed -- --env=test --scenario=small --distribution=uniform
+# Seed with a small scenario and uniform distribution
+pnpm hard:reset:internal --scenario small --distribution uniform
+
+# Seed with a small scenario and exponential distribution
+pnpm hard:reset:internal --scenario small --distribution exponential
+
+# Seed with a small scenario and poisson distribution
+pnpm hard:reset:internal --scenario small --distribution poisson
+
+# All CLI options accept both --foo=bar and --foo bar forms
+pnpm hard:reset:internal --scenario=small --distribution=pareto
+pnpm hard:reset:internal --scenario small --distribution pareto
 ```
 
-**Important**: The `--env` flag loads the corresponding `.env` file:
+### What does the distribution affect?
 
-- `--env=development` → loads `.env.development`
-- `--env=staging` → loads `.env.staging`
-- `--env=production` → loads `.env.production`
-- `--env=test` → loads `.env.test`
+- Game logs per user
+- Comments per game log
+- Reactions per game log/comment
+- Friendships per user
+- User engagement
+- ...and more
 
-This ensures you're seeding the correct database for each environment!
+The selected distribution is applied consistently to all seeded data types.
 
 ## 🗄️ Environment-Specific Database Seeding
 

@@ -158,6 +158,159 @@ export const CUSTOM_CONFIG: IStatisticalSeedingConfig = createCustomDistribution
   enableViralContent: true,
 });
 
+export const PARETO_DEMO_CONFIG: IStatisticalSeedingConfig = {
+  // User-related distributions
+  userEngagement: {
+    type: 'pareto',
+    parameters: {
+      alpha: 1.16, // 80/20 rule
+      min: 0.1,
+      max: 2.0,
+    },
+  },
+  userActivityFrequency: {
+    type: 'exponential',
+    parameters: {
+      lambda: 0.3,
+      min: 1,
+      max: 30,
+    },
+  },
+  userFriendCount: {
+    type: 'power-law',
+    parameters: {
+      alpha: 2.0,
+      min: 0,
+      max: 200,
+    },
+  },
+  userContentQuality: {
+    type: 'normal',
+    parameters: {
+      mean: 0.6,
+      stdDev: 0.2,
+      min: 0.1,
+      max: 1.0,
+    },
+  },
+  userActivityAge: {
+    type: 'exponential',
+    parameters: {
+      lambda: 0.1,
+      min: 0,
+      max: 365,
+    },
+  },
+
+  // Content-related distributions
+  gameRating: {
+    type: 'normal',
+    parameters: {
+      mean: 3.5,
+      stdDev: 0.8,
+      min: 1,
+      max: 5,
+    },
+  },
+  commentCount: {
+    type: 'pareto',
+    parameters: {
+      alpha: 1.5,
+      min: 0,
+      max: 100,
+    },
+  },
+  reactionCount: {
+    type: 'pareto',
+    parameters: {
+      alpha: 1.3,
+      min: 0,
+      max: 200,
+    },
+  },
+  contentViralProbability: {
+    type: 'uniform',
+    parameters: {
+      min: 0,
+      max: 1,
+    },
+  },
+
+  // Time-related distributions
+  activityAge: {
+    type: 'exponential',
+    parameters: {
+      lambda: 0.1,
+      min: 0,
+      max: 365,
+    },
+  },
+  responseTime: {
+    type: 'exponential',
+    parameters: {
+      lambda: 0.1,
+      min: 0,
+      max: 24,
+    },
+  },
+  sessionDuration: {
+    type: 'normal',
+    parameters: {
+      mean: 30,
+      stdDev: 15,
+      min: 5,
+      max: 120,
+    },
+  },
+
+  // Game log distributions
+  gameLogsPerUser: {
+    type: 'pareto',
+    parameters: {
+      alpha: 1.16,
+      min: 50,
+      max: 200,
+    },
+  },
+  gameLogClassification: {
+    type: 'uniform',
+    parameters: {
+      min: 0,
+      max: 1,
+    },
+  },
+  gameLogTags: {
+    type: 'uniform',
+    parameters: {
+      min: 1,
+      max: 4,
+    },
+  },
+
+  // Social distributions
+  friendshipStatus: {
+    type: 'uniform',
+    parameters: {
+      min: 0,
+      max: 1,
+    },
+  },
+  notificationFrequency: {
+    type: 'exponential',
+    parameters: {
+      lambda: 0.5,
+      min: 0,
+      max: 10,
+    },
+  },
+
+  // Advanced settings
+  enableRealisticPatterns: true,
+  enableViralContent: true,
+  enablePowerUsers: true,
+  enableTimeDecay: true,
+};
+
 // ============================================================================
 // CONFIGURATION UTILITIES
 // ============================================================================
@@ -181,6 +334,8 @@ export function getConfigByEnvironment(environment: string): IStatisticalSeeding
       return DEMO_CONFIG;
     case 'custom':
       return CUSTOM_CONFIG;
+    case 'pareto-demo':
+      return PARETO_DEMO_CONFIG;
     default:
       return DEFAULT_DISTRIBUTION_CONFIG;
   }
@@ -210,7 +365,7 @@ export function createConfigWithOverrides(
  */
 export function validateConfigForUseCase(
   config: IStatisticalSeedingConfig,
-  useCase: 'development' | 'testing' | 'performance' | 'demo'
+  useCase: 'development' | 'testing' | 'performance' | 'demo' | 'pareto-demo'
 ): boolean {
   switch (useCase) {
     case 'development':
@@ -224,6 +379,15 @@ export function validateConfigForUseCase(
 
     case 'demo':
       return config.enableViralContent && config.userEngagement.parameters.mean > 0.5;
+
+    case 'pareto-demo':
+      return !!(
+        config.userEngagement &&
+        config.gameRating &&
+        config.commentCount &&
+        config.reactionCount &&
+        config.activityAge
+      );
 
     default:
       return true;
@@ -293,6 +457,7 @@ export function compareConfigurations() {
     performance: PERFORMANCE_CONFIG,
     demo: DEMO_CONFIG,
     custom: CUSTOM_CONFIG,
+    paretoDemo: PARETO_DEMO_CONFIG,
   };
 
   const comparison = Object.entries(configs).map(([name, config]) => ({
@@ -316,6 +481,7 @@ export default {
   PERFORMANCE_CONFIG,
   DEMO_CONFIG,
   CUSTOM_CONFIG,
+  PARETO_DEMO_CONFIG,
   getConfigByEnvironment,
   getConfigByPreset,
   createConfigWithOverrides,

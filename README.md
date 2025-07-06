@@ -1558,3 +1558,43 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
    # Clean up
    dropdb game_diary_test
    ```
+
+## Seeding the Database
+
+You can now control the statistical distribution used for all seeded data (game logs, comments, reactions, friendships, etc.) using the `--distribution` flag.
+
+### Usage Examples
+
+```sh
+# Seed with the default (medium) scenario and realistic distribution
+pnpm hard:reset:internal
+
+# Seed with a small scenario and Pareto distribution (80/20 rule)
+pnpm hard:reset:internal --scenario small --distribution pareto
+
+# Seed with a small scenario and normal (bell curve) distribution
+pnpm hard:reset:internal --scenario small --distribution normal
+
+# Seed with a small scenario and uniform distribution
+pnpm hard:reset:internal --scenario small --distribution uniform
+
+# Seed with a small scenario and exponential distribution
+pnpm hard:reset:internal --scenario small --distribution exponential
+
+# Seed with a small scenario and poisson distribution
+pnpm hard:reset:internal --scenario small --distribution poisson
+
+# List of available distribution presets:
+#   realistic, uniform, pareto, normal, exponential, poisson, high-engagement, low-engagement, performance, development, testing, demo
+```
+
+### What does the distribution affect?
+
+- Game logs per user
+- Comments per game log
+- Reactions per game log/comment
+- Friendships per user
+- User engagement
+- ...and more
+
+The selected distribution is applied consistently to all seeded data types.

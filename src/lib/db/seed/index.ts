@@ -9,6 +9,7 @@ import {
 } from '@src/lib/db/seed/distribution-config-examples';
 import { seedExternalApiData } from '@src/lib/db/seed/external-api-seed';
 import { getOptimizationConfig, PerformanceTracker } from '@src/lib/db/seed/optimization-config';
+import { DISTRIBUTION_CONFIG_PRESETS } from '@src/lib/db/seed/statistical-distributions';
 import { seedUserData, clearUserData } from '@src/lib/db/seed/user-data-seed';
 import type { DistributionConfigPreset, ScenarioKey } from '@src/lib/types/seeding-types';
 import { formatDuration } from '@src/lib/utils/format-duration';
@@ -37,29 +38,17 @@ import { formatDuration } from '@src/lib/utils/format-duration';
  * when game logs are created.
  */
 
-// Helper function to generate reaction configuration based on comment configuration
-function generateReactionConfig(commentConfig: { min: number; max: number }, multiplier = 1) {
-  return {
-    reactionsPerGameLog: {
-      min: commentConfig.min * multiplier,
-      max: commentConfig.max * multiplier,
-    },
-    reactionsPerComment: {
-      min: Math.max(1, commentConfig.min),
-      max: Math.max(2, commentConfig.max),
-    },
-  };
-}
-
 // Comprehensive helper function to generate all seeding configuration
 function generateSeedingConfig(
   userCount: number,
   gameLogsMultiplier = 1,
   commentsMultiplier = 1,
-  reactionsMultiplier = 1
+  reactionsMultiplier = 1,
+  friendshipsMultiplier = 1
 ) {
   const baseGameLogs = { min: 0, max: 10 };
   const baseComments = { min: 0, max: 10 };
+  const baseFriendships = { min: 2, max: 8 };
 
   return {
     userCount,
@@ -71,13 +60,19 @@ function generateSeedingConfig(
       min: Math.floor(baseComments.min * commentsMultiplier),
       max: Math.floor(baseComments.max * commentsMultiplier),
     },
-    ...generateReactionConfig(
-      {
-        min: Math.floor(baseComments.min * commentsMultiplier),
-        max: Math.floor(baseComments.max * commentsMultiplier),
-      },
-      reactionsMultiplier
-    ),
+    friendshipsPerUser: {
+      min: Math.floor(baseFriendships.min * friendshipsMultiplier),
+      max: Math.floor(baseFriendships.max * friendshipsMultiplier),
+    },
+    reactionsPerGameLog: {
+      min: Math.floor(baseComments.min * commentsMultiplier * reactionsMultiplier),
+      max: Math.floor(baseComments.max * commentsMultiplier * reactionsMultiplier),
+    },
+    reactionsPerComment: {
+      min: Math.max(1, Math.floor(baseComments.min * commentsMultiplier)),
+      max: Math.max(2, Math.floor(baseComments.max * commentsMultiplier)),
+    },
+    childCommentChance: 0.3, // 30% chance of child comments
   };
 }
 
@@ -85,19 +80,23 @@ function generateSeedingConfig(
 const SEEDING_SCENARIOS = {
   SMALL: {
     description: 'Small dataset for development/testing',
-    ...generateSeedingConfig(100, 0.5, 1, 1),
+    ...generateSeedingConfig(100, 0.5, 1, 1, 1),
   },
   MEDIUM: {
-    description: 'Medium dataset for staging/demo',
-    ...generateSeedingConfig(1000, 2, 3, 4),
+    description: 'Medium dataset for staging/demo (10x SMALL)',
+    ...generateSeedingConfig(1000, 0.5, 1, 1, 1), // 10x users, same multipliers as SMALL
   },
   LARGE: {
-    description: 'Large dataset for performance testing',
-    ...generateSeedingConfig(1000000, 2, 4, 10),
+    description: 'Large dataset for performance testing (100x SMALL)',
+    ...generateSeedingConfig(10000, 0.5, 1, 1, 1), // 100x users, same multipliers as SMALL
+  },
+  'PARETO-DEMO': {
+    description: 'Demonstrate Pareto distribution with many game logs per user',
+    ...generateSeedingConfig(50, 20, 2, 3, 1), // 50 users, 20x more game logs per user
   },
   CUSTOM: {
     description: 'Custom dataset with specified parameters',
-    ...generateSeedingConfig(0, 1.5, 1, 1.5), // userCount will be overridden by command line
+    ...generateSeedingConfig(0, 1.5, 1, 1.5, 1), // userCount will be overridden by command line
   },
 } as const;
 
@@ -123,6 +122,9 @@ function loadEnvironmentConfig(environment?: string) {
 }
 
 function showHelp() {
+  const validPresets = Object.keys(DISTRIBUTION_CONFIG_PRESETS)
+    .map(p => p.toLowerCase())
+    .join(', ');
   console.log(`
 🌱 Database Seeding Script
 
@@ -146,17 +148,11 @@ Scenarios:
   small                         ${SEEDING_SCENARIOS.SMALL.description}
   medium                        ${SEEDING_SCENARIOS.MEDIUM.description}
   large                         ${SEEDING_SCENARIOS.LARGE.description}
+  pareto-demo                   ${SEEDING_SCENARIOS['PARETO-DEMO'].description}
   custom                        ${SEEDING_SCENARIOS.CUSTOM.description}
 
 Distribution Presets:
-  realistic                     Realistic social media patterns (Pareto, Power Law)
-  uniform                       Uniform random distribution (for testing)
-  high-engagement               High user engagement patterns
-  low-engagement                Low user engagement patterns
-  performance                   Optimized for performance testing
-  development                   Development-friendly patterns
-  testing                       Testing-optimized patterns
-  demo                          Demo-optimized patterns
+  ${validPresets}
 
 Examples:
   pnpm run seed                                    # Seed all data with medium scenario
@@ -268,18 +264,10 @@ function parseArguments() {
         if (i + 1 < args.length) {
           const distributionInput = args[++i];
           const distribution = distributionInput.toLowerCase();
-          const validPresets = [
-            'realistic',
-            'uniform',
-            'high-engagement',
-            'low-engagement',
-            'performance',
-            'development',
-            'testing',
-            'demo',
-          ];
-          if (validPresets.includes(distribution)) {
-            options.distribution = distribution;
+          const validPresets = Object.keys(DISTRIBUTION_CONFIG_PRESETS).map(p => p.toLowerCase());
+          const matchedIndex = validPresets.indexOf(distribution);
+          if (matchedIndex !== -1) {
+            options.distribution = Object.keys(DISTRIBUTION_CONFIG_PRESETS)[matchedIndex];
           } else {
             console.error(`❌ Unknown distribution preset: ${distributionInput}`);
             console.log('Available presets:', validPresets.join(', '));
@@ -355,18 +343,10 @@ function handleOptionWithValue(
     }
     case '--distribution': {
       const distribution = value.toLowerCase();
-      const validPresets = [
-        'realistic',
-        'uniform',
-        'high-engagement',
-        'low-engagement',
-        'performance',
-        'development',
-        'testing',
-        'demo',
-      ];
-      if (validPresets.includes(distribution)) {
-        options.distribution = distribution;
+      const validPresets = Object.keys(DISTRIBUTION_CONFIG_PRESETS).map(p => p.toLowerCase());
+      const matchedIndex = validPresets.indexOf(distribution);
+      if (matchedIndex !== -1) {
+        options.distribution = Object.keys(DISTRIBUTION_CONFIG_PRESETS)[matchedIndex];
       } else {
         console.error(`❌ Unknown distribution preset: ${value}`);
         console.log('Available presets:', validPresets.join(', '));
@@ -430,6 +410,9 @@ function showDryRunInfo(
   console.log(
     `👍 Reactions per Comment: ${config.reactionsPerComment.min}-${config.reactionsPerComment.max}`
   );
+  console.log(
+    `🤝 Friendships per User: ${config.friendshipsPerUser.min}-${config.friendshipsPerUser.max}`
+  );
   if (distribution) {
     console.log(`📈 Distribution Preset: ${distribution.toUpperCase()}`);
   }
@@ -441,11 +424,13 @@ function showDryRunInfo(
     (config.reactionsPerGameLog.min + config.reactionsPerGameLog.max) / 2;
   const avgReactionsPerComment =
     (config.reactionsPerComment.min + config.reactionsPerComment.max) / 2;
+  const avgFriendships = (config.friendshipsPerUser.min + config.friendshipsPerUser.max) / 2;
   const totalGameLogs = Math.floor(config.userCount * avgGameLogs);
   const totalComments = Math.floor(totalGameLogs * avgComments);
   const totalReactionsOnGameLogs = Math.floor(totalGameLogs * avgReactionsPerGameLog);
   const totalReactionsOnComments = Math.floor(totalComments * avgReactionsPerComment);
   const totalReactions = totalReactionsOnGameLogs + totalReactionsOnComments;
+  const totalFriendships = Math.floor(config.userCount * avgFriendships);
   const totalNotifications = Math.floor(config.userCount * 10); // Rough estimate
 
   console.log('\n📈 Estimated Totals:');
@@ -454,8 +439,8 @@ function showDryRunInfo(
   console.log(`   Reactions on Game Logs: ~${totalReactionsOnGameLogs}`);
   console.log(`   Reactions on Comments: ~${totalReactionsOnComments}`);
   console.log(`   Total Reactions: ~${totalReactions}`);
+  console.log(`   Friendships: ~${totalFriendships}`);
   console.log(`   Notifications: ~${totalNotifications}`);
-  console.log(`   Friendships: ~${Math.floor(config.userCount * 5)}`); // Rough estimate
 }
 
 async function main() {
