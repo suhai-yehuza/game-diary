@@ -171,6 +171,30 @@ async function createNotificationTriggers(
             );
         END IF;
 
+        -- Create notification when friend request is rejected
+        IF NEW.status = 'Rejected' AND TG_OP = 'UPDATE' AND OLD.status = 'Pending' THEN
+            -- Get rejector's username and name
+            SELECT username, CONCAT(first_name, ' ', last_name)
+            INTO sender_username, sender_name
+            FROM users
+            WHERE id = NEW.friend_id;
+
+            -- Use username if name is not available
+            IF sender_name IS NULL OR sender_name = ' ' THEN
+                sender_name := sender_username;
+            END IF;
+
+            -- Create notification for the original sender
+            INSERT INTO notifications (
+                id, user_id, type, title, message, target_id, target_type,
+                resolved, created_at, updated_at
+            ) VALUES (
+                generate_uuid_v4(), NEW.user_id, 'friend_request_rejected', 'Friend Request Declined',
+                sender_name || ' declined your friend request', NEW.id, 'friendship',
+                false, NOW(), NOW()
+            );
+        END IF;
+
         RETURN NEW;
     END;
     $$ LANGUAGE plpgsql;
