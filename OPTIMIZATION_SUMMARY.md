@@ -100,7 +100,7 @@ deps:audit, deps:check, deps:clean, deps:fix, deps:interactive, deps:manage, dep
 postinstall, pre-commit, pre-push, verify-env
 
 =====CI Pipeline Scripts=====
-ci:preview, ci:staging, ci:production, test:ci, ci:quality-gate, ci:unit-tests, ci:e2e-tests, ci:e2e:run, ci:e2e:run:coverage, ci:e2e:run:coverage:full, ci:e2e:responsive, ci:e2e:debug, ci:e2e:optimize
+ci:preview, ci:staging, ci:production, test:ci, ci:quality-gate, ci:unit-tests, ci:e2e-tests
 
 =====Legacy CI Validation (Deprecated)=====
 ci:validation:basic, ci:validation:soft, ci:validation:full, ci:validation:dev, ci:validation:dev-build, ci:validation:production

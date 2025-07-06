@@ -254,21 +254,21 @@ export async function seedExternalApiData(_optimizationConfig?: unknown) {
               .insert(schema.nba_players)
               .values({
                 id: playerId,
-                first_name: player.firstname,
-                last_name: player.lastname,
+                first_name: player.firstname ?? 'missing-first-name',
+                last_name: player.lastname ?? 'missing-last-name',
                 birth: JSON.stringify(player.birth ?? {}),
                 nba: JSON.stringify(player.nba ?? {}),
                 height: JSON.stringify(player.height ?? {}),
                 weight: JSON.stringify(player.weight ?? {}),
-                college: player.college,
-                affiliation: player.affiliation,
+                college: player.college ?? 'missing-college',
+                affiliation: player.affiliation ?? 'missing-affiliation',
                 teams: JSON.stringify([
                   {
                     season: '2024',
                     teams: [
                       {
                         team_id: team.id.toString(),
-
+                        team_code: team.code,
                         team_name: team.name,
                       },
                     ],

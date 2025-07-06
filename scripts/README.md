@@ -181,13 +181,7 @@ scripts/
 │   ├── migrate.ts            # Backward compatibility wrapper
 │   └── README.md             # Database operations documentation
 ├── tests/                    # 🆕 Consolidated test scripts
-│   ├── test-cascade-delete.ts
-│   ├── test-seeding-functions.ts
-│   ├── test-seeding-dependencies-simple.ts
-│   ├── test-command-line-seeding.ts
-│   ├── test-notification-triggers.ts
-│   ├── test-statistical-distributions.ts
-│   └── test-configurable-distributions.ts
+│   └── test-all-triggers.ts  # Comprehensive trigger validation
 ├── utils/                    # Utility scripts
 │   ├── fix-type-violations.ts
 │   ├── validate-types.ts
@@ -199,10 +193,7 @@ scripts/
 ├── performance/              # Performance measurement scripts
 │   ├── performance-measure.ts
 │   └── performance-report.ts
-├── test/                     # Database test utilities
-│   ├── test-db-connection.ts
-│   ├── test-migrations.ts
-│   └── test-redis.ts
+
 ├── shared/                   # Shared utilities
 │   ├── database-triggers.ts
 │   └── script-utils.ts
@@ -253,10 +244,12 @@ scripts/
 ### Test Scripts
 
 - **Old**: `tsx scripts/test-cascade-delete.ts`
-- **New**: `tsx scripts/cli.ts test cascade-delete`
+- **New**: `tsx scripts/cli.ts test cascade-delete` (removed)
 
 - **Old**: `tsx scripts/test-seeding-functions.ts`
-- **New**: `tsx scripts/cli.ts test seeding`
+- **New**: `tsx scripts/cli.ts test seeding` (removed)
+
+**Note**: Most individual test scripts have been consolidated into `test-all-triggers.ts` for comprehensive trigger validation.
 
 ### Utility Scripts
 
@@ -295,15 +288,16 @@ scripts/
 # Run all E2E tests
 tsx scripts/cli.ts test e2e basic
 
-# Run specific test categories
-tsx scripts/cli.ts test cascade-delete
-tsx scripts/cli.ts test seeding
-tsx scripts/cli.ts test notifications
+# Run comprehensive trigger validation
+tsx scripts/cli.ts test all-triggers
 
-# Run database tests
-tsx scripts/cli.ts test db-connection
-tsx scripts/cli.ts test migrations
-tsx scripts/cli.ts test redis
+# Run E2E tests
+tsx scripts/cli.ts test e2e basic
+tsx scripts/cli.ts test e2e-compound
+tsx scripts/cli.ts test e2e-debug
+tsx scripts/cli.ts test e2e-optimize
+tsx scripts/cli.ts test failing
+tsx scripts/cli.ts test coverage
 ```
 
 ### Test Scripts Location

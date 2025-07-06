@@ -125,70 +125,17 @@ async function handleTesting(subcommand: string, args: string[]): Promise<void> 
         'Generating coverage report'
       );
       break;
-    case 'db-connection':
+    case 'all-triggers':
       await runCommand(
-        `tsx scripts/test/test-db-connection.ts ${args.join(' ')}`,
-        'Testing database connection'
+        `tsx scripts/tests/test-all-triggers.ts ${args.join(' ')}`,
+        'Testing all database triggers'
       );
       break;
-    case 'migrations':
-      await runCommand(
-        `tsx scripts/test/test-migrations.ts ${args.join(' ')}`,
-        'Testing migrations'
-      );
-      break;
-    case 'redis':
-      await runCommand(
-        `tsx scripts/test/test-redis.ts ${args.join(' ')}`,
-        'Testing Redis connection'
-      );
-      break;
-    case 'cascade-delete':
-      await runCommand(
-        `tsx scripts/tests/test-cascade-delete.ts ${args.join(' ')}`,
-        'Testing cascade delete'
-      );
-      break;
-    case 'seeding':
-      await runCommand(
-        `tsx scripts/tests/test-seeding-functions.ts ${args.join(' ')}`,
-        'Testing seeding functions'
-      );
-      break;
-    case 'seeding-deps':
-      await runCommand(
-        `tsx scripts/tests/test-seeding-dependencies-simple.ts ${args.join(' ')}`,
-        'Testing seeding dependencies'
-      );
-      break;
-    case 'seeding-cli':
-      await runCommand(
-        `tsx scripts/tests/test-command-line-seeding.ts ${args.join(' ')}`,
-        'Testing seeding CLI'
-      );
-      break;
-    case 'notifications':
-      await runCommand(
-        `tsx scripts/tests/test-notification-triggers.ts ${args.join(' ')}`,
-        'Testing notification triggers'
-      );
-      break;
-    case 'distributions':
-      await runCommand(
-        `tsx scripts/tests/test-statistical-distributions.ts ${args.join(' ')}`,
-        'Testing statistical distributions'
-      );
-      break;
-    case 'configurable':
-      await runCommand(
-        `tsx scripts/tests/test-configurable-distributions.ts ${args.join(' ')}`,
-        'Testing configurable distributions'
-      );
-      break;
+
     default:
       logger.error(`Unknown testing subcommand: ${subcommand}`);
       logger.info(
-        'Available testing commands: e2e, e2e-compound, e2e-debug, e2e-optimize, failing, coverage, db-connection, migrations, redis, cascade-delete, seeding, seeding-deps, seeding-cli, notifications, distributions, configurable'
+        'Available testing commands: e2e, e2e-compound, e2e-debug, e2e-optimize, failing, coverage, all-triggers'
       );
       process.exit(1);
   }

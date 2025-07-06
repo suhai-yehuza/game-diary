@@ -59,6 +59,11 @@ run_type_fix() {
     pnpm run fix:types
 }
 
+run_db_triggers_validation() {
+    echo "🔍 Validating database triggers..."
+    pnpm run db:test:all-triggers
+}
+
 # Build
 run_build() {
     echo "🔧 Building project..."
@@ -108,6 +113,7 @@ run_basic_validation() {
     run_type_validation
     run_type_fix
     run_env_verification
+    run_db_triggers_validation
 }
 
 # Code Quality Validation (format + lint + types)

@@ -1,5 +1,5 @@
 {
-  "id": "1211f056-31a2-4466-8de2-c91d98f17814",
+  "id": "9ae22029-3301-4302-8059-767771d3b85b",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -44,7 +44,7 @@
           "type": "varchar(255)",
           "primaryKey": true,
           "notNull": true,
-          "default": "'0197ddba-c818-7e5b-b0ad-2d9a9f6d7659'"
+          "default": "'0197de24-132d-7edd-92b9-83970d0aff98'"
         },
         "created_at": {
           "name": "created_at",
@@ -113,7 +113,7 @@
           "type": "varchar(255)",
           "primaryKey": true,
           "notNull": true,
-          "default": "'0197ddba-c818-7e5b-b0ad-2d9a9f6d7659'"
+          "default": "'0197de24-132d-7edd-92b9-83970d0aff98'"
         },
         "created_at": {
           "name": "created_at",
@@ -244,7 +244,7 @@
           "type": "varchar(255)",
           "primaryKey": true,
           "notNull": true,
-          "default": "'0197ddba-c818-7e5b-b0ad-2d9a9f6d7659'"
+          "default": "'0197de24-132d-7edd-92b9-83970d0aff98'"
         },
         "created_at": {
           "name": "created_at",
@@ -329,7 +329,7 @@
           "type": "varchar(255)",
           "primaryKey": true,
           "notNull": true,
-          "default": "'0197ddba-c818-7e5b-b0ad-2d9a9f6d7659'"
+          "default": "'0197de24-132d-7edd-92b9-83970d0aff98'"
         },
         "created_at": {
           "name": "created_at",
@@ -735,7 +735,7 @@
           "type": "varchar(255)",
           "primaryKey": true,
           "notNull": true,
-          "default": "'0197ddba-c818-7e5b-b0ad-2d9a9f6d7659'"
+          "default": "'0197de24-132d-7edd-92b9-83970d0aff98'"
         },
         "created_at": {
           "name": "created_at",
@@ -1049,7 +1049,13 @@
       "indexes": {},
       "foreignKeys": {},
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
+      "uniqueConstraints": {
+        "users_email_address_unique": {
+          "name": "users_email_address_unique",
+          "nullsNotDistinct": false,
+          "columns": ["email_address"]
+        }
+      },
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false

@@ -5,49 +5,55 @@ import { baseTableConfig } from '@/lib/db/schema/base-schemas';
 import { FRIENDSHIP_STATUS, REACTION_EMOJIS, TARGET_TYPES } from '@src/lib/types';
 
 // Users table - minimal schema focusing on app-specific data and relationships
-export const users = pgTable('users', {
-  // Use Clerk user ID as the primary key
-  id: varchar('id', { length: 255 }).primaryKey(), // This will be the Clerk user ID
+export const users = pgTable(
+  'users',
+  {
+    // Use Clerk user ID as the primary key
+    id: varchar('id', { length: 255 }).primaryKey(), // This will be the Clerk user ID
 
-  // Core user fields (matching Clerk structure)
-  object: varchar('object', { length: 10 }).notNull().default('user'),
-  username: varchar('username', { length: 255 }),
-  first_name: varchar('first_name', { length: 255 }),
-  last_name: varchar('last_name', { length: 255 }),
-  image_url: text('image_url'),
-  has_image: boolean('has_image').notNull().default(false),
-  profile_image_url: text('profile_image_url'),
+    // Core user fields (matching Clerk structure)
+    object: varchar('object', { length: 10 }).notNull().default('user'),
+    username: varchar('username', { length: 255 }),
+    first_name: varchar('first_name', { length: 255 }),
+    last_name: varchar('last_name', { length: 255 }),
+    image_url: text('image_url'),
+    has_image: boolean('has_image').notNull().default(false),
+    profile_image_url: text('profile_image_url'),
 
-  // Primary contact information (matching Clerk structure)
-  primary_email_address_id: varchar('primary_email_address_id', { length: 255 }),
-  primary_phone_number_id: varchar('primary_phone_number_id', { length: 255 }),
+    // Primary contact information (matching Clerk structure)
+    primary_email_address_id: varchar('primary_email_address_id', { length: 255 }),
+    primary_phone_number_id: varchar('primary_phone_number_id', { length: 255 }),
 
-  // Convenience field for primary email address
-  email_address: varchar('email_address', { length: 255 }), // email_addresses[0].email_address
+    // Convenience field for primary email address
+    email_address: varchar('email_address', { length: 255 }), // email_addresses[0].email_address
 
-  // Clerk-specific fields
-  external_id: varchar('external_id', { length: 255 }),
-  last_active_at: timestamp({ precision: 6, withTimezone: true }),
-  last_sign_in_at: timestamp({ precision: 6, withTimezone: true }),
+    // Clerk-specific fields
+    external_id: varchar('external_id', { length: 255 }),
+    last_active_at: timestamp({ precision: 6, withTimezone: true }),
+    last_sign_in_at: timestamp({ precision: 6, withTimezone: true }),
 
-  // App-specific user data (not available from Clerk)
-  bio: text('bio'),
-  timezone: varchar('timezone', { length: 50 }),
-  preferred_language: varchar('preferred_language', { length: 10 }).default('en'),
+    // App-specific user data (not available from Clerk)
+    bio: text('bio'),
+    timezone: varchar('timezone', { length: 50 }),
+    preferred_language: varchar('preferred_language', { length: 10 }).default('en'),
 
-  // Friendship arrays
-  inbound_friendship_ids: varchar('inbound_friendship_ids', { length: 255 })
-    .array()
-    .notNull()
-    .default([]),
-  outbound_friendship_ids: varchar('outbound_friendship_ids', { length: 255 })
-    .array()
-    .notNull()
-    .default([]),
-  created_at: timestamp('created_at').defaultNow().notNull(),
-  updated_at: timestamp('updated_at').defaultNow().notNull(),
-  deleted_at: timestamp({ precision: 6, withTimezone: true }),
-});
+    // Friendship arrays
+    inbound_friendship_ids: varchar('inbound_friendship_ids', { length: 255 })
+      .array()
+      .notNull()
+      .default([]),
+    outbound_friendship_ids: varchar('outbound_friendship_ids', { length: 255 })
+      .array()
+      .notNull()
+      .default([]),
+    created_at: timestamp('created_at').defaultNow().notNull(),
+    updated_at: timestamp('updated_at').defaultNow().notNull(),
+    deleted_at: timestamp({ precision: 6, withTimezone: true }),
+  },
+  table => ({
+    emailUnique: unique().on(table.email_address),
+  })
+);
 
 // Friendships table - extending base table configuration
 export const friendships = pgTable(

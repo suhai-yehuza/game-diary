@@ -232,7 +232,7 @@ pnpm test:e2e:lint              # Code quality checks
 
 # Responsive design validation
 pnpm test:e2e:responsive        # Test all viewports
-pnpm test:e2e:responsive:popular # Test popular browsers only
+pnpm test:e2e:responsive # Test popular browsers only
 ```
 
 ### **CI/CD Simulation**
@@ -362,7 +362,7 @@ pnpm test:e2e:cross-browser     # Test browser compatibility
 
 # Debug issues
 pnpm test:e2e:debug:ui          # Interactive debugging
-pnpm test:e2e:show-report       # View test results
+pnpm open:test:report       # View test results
 ```
 
 #### **Bug Fixing Workflow**
@@ -549,7 +549,7 @@ pnpm playwright test tests/e2e/responsive.spec.ts
 pnpm playwright test --project=chromium
 
 # Generate test report
-pnpm test:e2e:show-report
+pnpm open:test:report
 ```
 
 ## Best Practices

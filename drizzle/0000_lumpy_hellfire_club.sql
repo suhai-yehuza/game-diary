@@ -4,7 +4,7 @@ CREATE TABLE "comments" (
 	"parent_type" varchar(50) NOT NULL,
 	"content" text NOT NULL,
 	"depth" integer DEFAULT 0 NOT NULL,
-	"id" varchar(255) PRIMARY KEY DEFAULT '0197ddba-c818-7e5b-b0ad-2d9a9f6d7659' NOT NULL,
+	"id" varchar(255) PRIMARY KEY DEFAULT '0197de24-132d-7edd-92b9-83970d0aff98' NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL,
 	"deleted_at" timestamp (6) with time zone
@@ -14,7 +14,7 @@ CREATE TABLE "friendships" (
 	"friend_id" varchar(255),
 	"user_id" varchar(255),
 	"status" varchar(50) DEFAULT 'PENDING' NOT NULL,
-	"id" varchar(255) PRIMARY KEY DEFAULT '0197ddba-c818-7e5b-b0ad-2d9a9f6d7659' NOT NULL,
+	"id" varchar(255) PRIMARY KEY DEFAULT '0197de24-132d-7edd-92b9-83970d0aff98' NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL,
 	"deleted_at" timestamp (6) with time zone,
@@ -32,7 +32,7 @@ CREATE TABLE "game_logs" (
 	"rating_for_game" integer NOT NULL,
 	"notes" text DEFAULT '',
 	"tags" text[] DEFAULT '{}',
-	"id" varchar(255) PRIMARY KEY DEFAULT '0197ddba-c818-7e5b-b0ad-2d9a9f6d7659' NOT NULL,
+	"id" varchar(255) PRIMARY KEY DEFAULT '0197de24-132d-7edd-92b9-83970d0aff98' NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL,
 	"deleted_at" timestamp (6) with time zone,
@@ -43,7 +43,7 @@ CREATE TABLE "game_ratings" (
 	"game_id" varchar(255) NOT NULL,
 	"average_rating" numeric(4, 2) DEFAULT '0.00' NOT NULL,
 	"total_ratings" integer DEFAULT 0 NOT NULL,
-	"id" varchar(255) PRIMARY KEY DEFAULT '0197ddba-c818-7e5b-b0ad-2d9a9f6d7659' NOT NULL,
+	"id" varchar(255) PRIMARY KEY DEFAULT '0197de24-132d-7edd-92b9-83970d0aff98' NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL,
 	"deleted_at" timestamp (6) with time zone,
@@ -109,7 +109,7 @@ CREATE TABLE "reactions" (
 	"target_type" varchar(50) NOT NULL,
 	"target_id" varchar(255) NOT NULL,
 	"emoji" varchar(10) NOT NULL,
-	"id" varchar(255) PRIMARY KEY DEFAULT '0197ddba-c818-7e5b-b0ad-2d9a9f6d7659' NOT NULL,
+	"id" varchar(255) PRIMARY KEY DEFAULT '0197de24-132d-7edd-92b9-83970d0aff98' NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL,
 	"deleted_at" timestamp (6) with time zone,
@@ -159,7 +159,8 @@ CREATE TABLE "users" (
 	"outbound_friendship_ids" varchar(255)[] DEFAULT '{}' NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL,
-	"deleted_at" timestamp (6) with time zone
+	"deleted_at" timestamp (6) with time zone,
+	CONSTRAINT "users_email_address_unique" UNIQUE("email_address")
 );
 --> statement-breakpoint
 ALTER TABLE "comments" ADD CONSTRAINT "comments_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
