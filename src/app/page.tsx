@@ -21,20 +21,11 @@ export default function HomePage() {
         </div>
 
         <div className="flex gap-6 items-center justify-center mt-8">
-          <Link href="/protected/user" passHref legacyBehavior>
-            <a className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-              Go to Dashboard
-            </a>
-          </Link>
-          <Link href="/sign-in" passHref legacyBehavior>
-            <a className="px-6 py-3 bg-[#757575] text-white rounded-lg hover:bg-[#616161] border border-gray-600 transition-colors dark:bg-[#e5e5e5] dark:text-gray-800 dark:hover:bg-[#d4d4d4] dark:border-gray-300">
-              Sign In
-            </a>
-          </Link>
-          <Link href="/sign-up" passHref legacyBehavior>
-            <a className="px-6 py-3 border border-[#757575] text-[#757575] rounded-lg hover:bg-[#f3f3f3] transition-colors dark:border-[#e5e5e5] dark:text-[#e5e5e5] dark:hover:bg-[#232326]">
-              Sign Up
-            </a>
+          <Link
+            href="/protected/user"
+            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Go to Dashboard
           </Link>
         </div>
       </div>
