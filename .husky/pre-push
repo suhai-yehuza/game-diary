@@ -1,22 +1,4 @@
 #!/usr/bin/env sh
 
-# Run comprehensive build and validation before push
-# Skip environment verification in local development
-if [ "$CI" = "true" ] || [ "$GITHUB_ACTIONS" = "true" ]; then
-    echo "🤖 CI environment detected - running full validation"
-    pnpm clean:build
-else
-    echo "🏠 Local environment detected - running validation without environment check"
-    # Run validation steps manually, skipping environment verification
-    pnpm run clean:all
-    pnpm run codegen
-    pnpm run lint:fix && pnpm run format
-    pnpm run validate:types && pnpm run fix:types
-    pnpm run typecheck
-    pnpm run lint:fix && pnpm run format
-    pnpm run check:circular
-    # Skip: pnpm run verify-env
-    NODE_ENV=production pnpm run build
-    pnpm run check:unused:exports
-    pnpm run check:size
-fi
+# Run comprehensive pre-push validation
+./scripts/db/pre-push-validation.sh

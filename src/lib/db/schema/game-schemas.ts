@@ -37,6 +37,8 @@ export const nba_games = pgTable('nba_games', {
   home_team_score: integer('home_team_score'),
   away_team_score: integer('away_team_score'),
   status: varchar('status', { length: 50 }).notNull(),
+  average_rating: decimal('average_rating', { precision: 4, scale: 2 }).notNull().default('0.00'),
+  total_ratings: integer('total_ratings').notNull().default(0),
   created_at: timestamp('created_at').defaultNow().notNull(),
   updated_at: timestamp('updated_at').defaultNow().notNull(),
   deleted_at: timestamp({ precision: 6, withTimezone: true }),

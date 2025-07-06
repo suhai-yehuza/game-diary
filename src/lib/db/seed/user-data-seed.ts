@@ -562,61 +562,87 @@ export async function seedUserData(
   console.log('🌱 Starting user data seeding...');
   console.log(`📊 Configuration: ${finalConfig.userCount} users`);
 
+  // Timing utility function
+  const timeStep = async <T>(stepName: string, stepFunction: () => Promise<T>): Promise<T> => {
+    const startTime = Date.now();
+    const result = await stepFunction();
+    const endTime = Date.now();
+    const duration = endTime - startTime;
+    console.log(`✅ ${stepName} completed in ${duration}ms`);
+    return result;
+  };
+
   try {
     // Step 1: Create and insert users
     console.log('👥 Step 1: Creating and inserting users...');
-    const userData = generateUsers(finalConfig.userCount);
-
-    for (const user of userData) {
-      await db.insert(users).values(user);
-    }
+    const userData = await timeStep('User generation and insertion', async () => {
+      const userList = generateUsers(finalConfig.userCount);
+      for (const user of userList) {
+        await db.insert(users).values(user);
+      }
+      return userList;
+    });
     console.log(`✅ Created ${userData.length} users`);
 
     // Step 2: For each user, create 0-N friendships
     console.log('🤝 Step 2: Creating friendships for each user...');
-    const friendshipData = generateFriendships(userData, finalConfig);
-
-    for (const friendship of friendshipData) {
-      await db.insert(friendships).values(friendship);
-    }
+    const friendshipData = await timeStep('Friendship generation and insertion', async () => {
+      const friendshipList = generateFriendships(userData, finalConfig);
+      for (const friendship of friendshipList) {
+        await db.insert(friendships).values(friendship);
+      }
+      return friendshipList;
+    });
     console.log(`✅ Created ${friendshipData.length} friendships`);
 
     // Step 3: Get valid game IDs from the database
     console.log('🎮 Step 3: Getting valid game IDs...');
-    const validGames = await db.select({ id: nba_games.id }).from(nba_games);
-    const gameIds = validGames.map(game => game.id);
+    const gameIds = await timeStep('Game ID retrieval', async () => {
+      const validGames = await db.select({ id: nba_games.id }).from(nba_games);
+      const ids = validGames.map(game => game.id);
+      if (ids.length === 0) {
+        console.warn('⚠️  No games found in database. Please run external API seeding first.');
+        return [];
+      }
+      return ids;
+    });
+    console.log(`✅ Found ${gameIds.length} valid games`);
 
     if (gameIds.length === 0) {
-      console.warn('⚠️  No games found in database. Please run external API seeding first.');
       return;
     }
-    console.log(`✅ Found ${gameIds.length} valid games`);
 
     // Step 4: For each user, create 0-N game_logs using valid game_ids
     console.log('📝 Step 4: Creating game logs for each user...');
-    const gameLogData = generateGameLogs(userData, gameIds, finalConfig);
-
-    for (const gameLog of gameLogData) {
-      await db.insert(game_logs).values(gameLog);
-    }
+    const gameLogData = await timeStep('Game log generation and insertion', async () => {
+      const gameLogs = generateGameLogs(userData, gameIds, finalConfig);
+      for (const gameLog of gameLogs) {
+        await db.insert(game_logs).values(gameLog);
+      }
+      return gameLogs;
+    });
     console.log(`✅ Created ${gameLogData.length} game logs`);
 
     // Step 5: For each game_log, create 0-N comments (including nested comments) from valid users
     console.log('💬 Step 5: Creating comments for game logs...');
-    const commentData = generateComments(userData, gameLogData, finalConfig);
-
-    for (const comment of commentData) {
-      await db.insert(comments).values(comment);
-    }
+    const commentData = await timeStep('Comment generation and insertion', async () => {
+      const commentList = generateComments(userData, gameLogData, finalConfig);
+      for (const comment of commentList) {
+        await db.insert(comments).values(comment);
+      }
+      return commentList;
+    });
     console.log(`✅ Created ${commentData.length} comments (including nested comments)`);
 
     // Step 6: Generate reactions for game logs and comments
     console.log('👍 Step 6: Creating reactions...');
-    const reactionData = generateReactions(userData, gameLogData, commentData);
-
-    for (const reaction of reactionData) {
-      await db.insert(reactions).values(reaction);
-    }
+    const reactionData = await timeStep('Reaction generation and insertion', async () => {
+      const reactionList = generateReactions(userData, gameLogData, commentData);
+      for (const reaction of reactionList) {
+        await db.insert(reactions).values(reaction);
+      }
+      return reactionList;
+    });
     console.log(`✅ Created ${reactionData.length} reactions`);
 
     console.log('🎉 User data seeding completed successfully!');
@@ -653,15 +679,25 @@ export async function clearUserData() {
 
   console.log('🧹 Clearing user data...');
 
+  // Timing utility function
+  const timeStep = async <T>(stepName: string, stepFunction: () => Promise<T>): Promise<T> => {
+    const startTime = Date.now();
+    const result = await stepFunction();
+    const endTime = Date.now();
+    const duration = endTime - startTime;
+    console.log(`✅ ${stepName} completed in ${duration}ms`);
+    return result;
+  };
+
   try {
     // Clear in reverse order of dependencies
-    await db.delete(notifications);
-    await db.delete(reactions);
-    await db.delete(comments);
-    await db.delete(game_logs);
-    await db.delete(game_ratings);
-    await db.delete(friendships);
-    await db.delete(users);
+    await timeStep('Clear notifications', () => db.delete(notifications));
+    await timeStep('Clear reactions', () => db.delete(reactions));
+    await timeStep('Clear comments', () => db.delete(comments));
+    await timeStep('Clear game logs', () => db.delete(game_logs));
+    await timeStep('Clear game ratings', () => db.delete(game_ratings));
+    await timeStep('Clear friendships', () => db.delete(friendships));
+    await timeStep('Clear users', () => db.delete(users));
 
     console.log('✅ User data cleared successfully!');
   } catch (error) {

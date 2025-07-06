@@ -672,6 +672,72 @@ async function validateMigrations(): Promise<void> {
   }
 }
 
+/**
+ * Validate that all required triggers and functions are present in the database
+ */
+async function validateTriggers(): Promise<void> {
+  logger.info('🔍 Validating triggers and functions in database...');
+
+  try {
+    // Check for required triggers
+    const requiredTriggers = [
+      'game_logs_ratings_trigger',
+      'comment_notification_trigger',
+      'reaction_notification_trigger',
+      'friendship_notification_trigger',
+      'update_friendship_user_arrays_insert',
+      'update_friendship_user_arrays_update',
+      'update_friendship_user_arrays_delete',
+    ];
+
+    const triggerResults = await sqlClient`
+      SELECT trigger_name
+      FROM information_schema.triggers
+      WHERE trigger_name = ANY(${requiredTriggers})
+    `;
+
+    const foundTriggers = triggerResults.map(r => r.trigger_name);
+    const missingTriggers = requiredTriggers.filter(t => !foundTriggers.includes(t));
+
+    if (missingTriggers.length > 0) {
+      logger.error(`❌ Missing triggers: ${missingTriggers.join(', ')}`);
+      throw new Error(`Missing required triggers: ${missingTriggers.join(', ')}`);
+    }
+
+    logger.info(`✅ All ${requiredTriggers.length} required triggers are present`);
+
+    // Check for required functions
+    const requiredFunctions = [
+      'update_game_ratings',
+      'generate_uuid_v4',
+      'create_comment_notification',
+      'create_reaction_notification',
+      'create_friend_request_notification',
+      'update_friendship_user_arrays',
+      'rebuild_user_friendship_arrays',
+    ];
+
+    const functionResults = await sqlClient`
+      SELECT routine_name
+      FROM information_schema.routines
+      WHERE routine_name = ANY(${requiredFunctions})
+    `;
+
+    const foundFunctions = functionResults.map(r => r.routine_name);
+    const missingFunctions = requiredFunctions.filter(f => !foundFunctions.includes(f));
+
+    if (missingFunctions.length > 0) {
+      logger.error(`❌ Missing functions: ${missingFunctions.join(', ')}`);
+      throw new Error(`Missing required functions: ${missingFunctions.join(', ')}`);
+    }
+
+    logger.info(`✅ All ${requiredFunctions.length} required functions are present`);
+  } catch (error) {
+    logger.error('❌ Trigger validation failed:', error);
+    throw error;
+  }
+}
+
 // ============================================================================
 // DATABASE SETUP OPERATIONS
 // ============================================================================
@@ -763,7 +829,7 @@ async function setupDatabase(
       }
 
       // Step 2: Generate Drizzle migrations
-      await runCommand('pnpm db:generate', 'Generating Drizzle migrations');
+      await runCommand('pnpm db:generate:safe', 'Generating Drizzle migrations (safe mode)');
 
       // Step 3: Copy custom migrations
       await copyCustomMigrations();
@@ -1098,6 +1164,10 @@ async function main(): Promise<void> {
         await validateMigrations();
         break;
 
+      case 'validate-triggers':
+        await validateTriggers();
+        break;
+
       case 'setup':
         const mode = (args[1] as 'complete' | 'triggers-only') || 'complete';
         await setupDatabase(mode, options.environment, options.test);
@@ -1164,6 +1234,7 @@ Commands:
   migrate-file <path> [--dry-run] Apply a specific migration file
   view                         View migration history
   validate                     Validate migration files
+  validate-triggers            Validate triggers and functions in database
   setup [complete|triggers-only] Setup database (default: complete)
   copy-migrations              Copy custom migrations to drizzle directory
   truncate --scope=<scope>     Truncate tables (scope: internal|external|all)

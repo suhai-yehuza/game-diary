@@ -135,7 +135,7 @@ NODE_ENV="development"                           # Environment
 
 ```bash
 # Generate database schema
-pnpm db:generate
+pnpm db:generate:safe
 
 # Run migrations
 pnpm db:migrate:dev
@@ -165,7 +165,7 @@ pnpm db:migrate:dev      # Run migrations in development
 pnpm db:migrate:prod     # Run migrations in production
 
 # 00
-> pnpm db:generate
+> pnpm db:generate:safe
 > pnpm db:migrate:dev
 > pnpm db:setup:dev
 
@@ -275,7 +275,7 @@ pnpm typecheck         # Type checking
 pnpm fix               # Run all fixes (lint, format, typecheck)
 
 # Database management
-pnpm db:generate       # Generate database schema
+pnpm db:generate:safe   # Generate database schema (preserves triggers)
 pnpm db:migrate:dev    # Run migrations
 pnpm db:seed:dev       # Seed database
 pnpm db:studio         # Open Drizzle Studio

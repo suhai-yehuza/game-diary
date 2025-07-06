@@ -1,4 +1,4 @@
 #!/usr/bin/env sh
 
-# Run lint-staged on staged files
-npx lint-staged
+# Run comprehensive pre-commit validation
+./scripts/db/pre-commit-validation.sh

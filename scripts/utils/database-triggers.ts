@@ -115,7 +115,7 @@ async function createNotificationTriggers(
     $$ LANGUAGE plpgsql;
   `);
 
-  // Create friendship notification function and trigger
+  // Create friendship notification function
   await db.execute(sql`
     CREATE OR REPLACE FUNCTION create_friend_request_notification()
     RETURNS TRIGGER AS $$
@@ -171,30 +171,6 @@ async function createNotificationTriggers(
             );
         END IF;
 
-        -- Create notification when friend request is rejected
-        IF NEW.status = 'Rejected' AND TG_OP = 'UPDATE' AND OLD.status = 'Pending' THEN
-            -- Get rejector's username and name
-            SELECT username, CONCAT(first_name, ' ', last_name)
-            INTO sender_username, sender_name
-            FROM users
-            WHERE id = NEW.friend_id;
-
-            -- Use username if name is not available
-            IF sender_name IS NULL OR sender_name = ' ' THEN
-                sender_name := sender_username;
-            END IF;
-
-            -- Create notification for the original sender
-            INSERT INTO notifications (
-                id, user_id, type, title, message, target_id, target_type,
-                resolved, created_at, updated_at
-            ) VALUES (
-                generate_uuid_v4(), NEW.user_id, 'friend_request_rejected', 'Friend Request Declined',
-                sender_name || ' declined your friend request', NEW.id, 'friendship',
-                false, NOW(), NOW()
-            );
-        END IF;
-
         RETURN NEW;
     END;
     $$ LANGUAGE plpgsql;
@@ -208,7 +184,10 @@ async function createNotificationTriggers(
         commenter_username VARCHAR;
         commenter_name VARCHAR;
         target_owner_id VARCHAR;
-        target_content TEXT;
+        target_content VARCHAR;
+        target_type_name VARCHAR;
+        parent_comment_id VARCHAR;
+        parent_commenter_id VARCHAR;
     BEGIN
         -- Skip if user is commenting on their own content
         IF TG_OP = 'INSERT' THEN
@@ -223,48 +202,66 @@ async function createNotificationTriggers(
                 commenter_name := commenter_username;
             END IF;
 
-            -- Handle different parent types
-            IF NEW.parent_type = 'GAME_LOG' THEN
+            -- Handle different target types
+            IF NEW.target_type = 'GAME_LOG' THEN
                 -- Get game log owner and content
                 SELECT user_id, notes
                 INTO target_owner_id, target_content
                 FROM game_logs
-                WHERE id = NEW.parent_id;
+                WHERE id = NEW.target_id;
 
                 -- Skip if commenting on own game log
                 IF target_owner_id = NEW.user_id THEN
                     RETURN NEW;
                 END IF;
 
-                -- Create notification for game log owner
-                INSERT INTO notifications (
-                    id, user_id, type, title, message, target_id, target_type,
-                    resolved, created_at, updated_at
-                ) VALUES (
-                    generate_uuid_v4(), target_owner_id, 'comment_added', 'New Comment on Your Game Log',
-                    commenter_name || ' commented on your game log', NEW.id, 'comment',
-                    false, NOW(), NOW()
-                );
+                target_type_name := 'game log';
 
-            ELSIF NEW.parent_type = 'COMMENT' THEN
+            ELSIF NEW.target_type = 'COMMENT' THEN
                 -- Get parent comment owner and content
-                SELECT user_id, content
-                INTO target_owner_id, target_content
+                SELECT user_id, content, parent_id
+                INTO target_owner_id, target_content, parent_comment_id
                 FROM comments
-                WHERE id = NEW.parent_id;
+                WHERE id = NEW.target_id;
 
                 -- Skip if replying to own comment
                 IF target_owner_id = NEW.user_id THEN
                     RETURN NEW;
                 END IF;
 
-                -- Create notification for parent comment owner
+                target_type_name := 'comment';
+
+                -- If this is a reply to a comment, notify the parent commenter
+                IF parent_comment_id IS NOT NULL THEN
+                    SELECT user_id INTO parent_commenter_id
+                    FROM comments
+                    WHERE id = parent_comment_id;
+
+                    -- Skip if replying to own comment
+                    IF parent_commenter_id = NEW.user_id THEN
+                        RETURN NEW;
+                    END IF;
+
+                    -- Create notification for parent commenter
+                    INSERT INTO notifications (
+                        id, user_id, type, title, message, target_id, target_type,
+                        resolved, created_at, updated_at
+                    ) VALUES (
+                        generate_uuid_v4(), parent_commenter_id, 'comment_reply', 'New Reply to Your Comment',
+                        commenter_name || ' replied to your comment', NEW.id, 'comment',
+                        false, NOW(), NOW()
+                    );
+                END IF;
+            END IF;
+
+            -- Create notification for content owner (if different from parent commenter)
+            IF target_owner_id IS NOT NULL AND target_owner_id != NEW.user_id THEN
                 INSERT INTO notifications (
                     id, user_id, type, title, message, target_id, target_type,
                     resolved, created_at, updated_at
                 ) VALUES (
-                    generate_uuid_v4(), target_owner_id, 'comment_reply', 'New Reply to Your Comment',
-                    commenter_name || ' replied to your comment', NEW.id, 'comment',
+                    generate_uuid_v4(), target_owner_id, 'comment_added', 'New Comment on Your ' || target_type_name,
+                    commenter_name || ' commented on your ' || target_type_name, NEW.id, 'comment',
                     false, NOW(), NOW()
                 );
             END IF;
@@ -345,11 +342,94 @@ async function createNotificationTriggers(
     $$ LANGUAGE plpgsql;
   `);
 
+  // Create friendship user arrays function
+  await db.execute(sql`
+    CREATE OR REPLACE FUNCTION update_friendship_user_arrays()
+    RETURNS TRIGGER AS $$
+    BEGIN
+        IF TG_OP = 'INSERT' THEN
+            -- Only add to arrays if the friendship is pending
+            IF NEW.status = 'Pending' THEN
+                -- Add friendship ID to outbound array for initiator
+                UPDATE users
+                SET outbound_friendship_ids = array_append(COALESCE(outbound_friendship_ids, ARRAY[]::VARCHAR[]), NEW.id)
+                WHERE id = NEW.user_id;
+
+                -- Add friendship ID to inbound array for recipient
+                UPDATE users
+                SET inbound_friendship_ids = array_append(COALESCE(inbound_friendship_ids, ARRAY[]::VARCHAR[]), NEW.id)
+                WHERE id = NEW.friend_id;
+            END IF;
+
+        ELSIF TG_OP = 'UPDATE' THEN
+            -- If status changed from Pending to something else, remove from arrays
+            IF OLD.status = 'Pending' AND NEW.status != 'Pending' THEN
+                -- Remove friendship ID from outbound array for initiator
+                UPDATE users
+                SET outbound_friendship_ids = array_remove(COALESCE(outbound_friendship_ids, ARRAY[]::VARCHAR[]), OLD.id)
+                WHERE id = OLD.user_id;
+
+                -- Remove friendship ID from inbound array for recipient
+                UPDATE users
+                SET inbound_friendship_ids = array_remove(COALESCE(inbound_friendship_ids, ARRAY[]::VARCHAR[]), OLD.id)
+                WHERE id = OLD.friend_id;
+            END IF;
+
+        ELSIF TG_OP = 'DELETE' THEN
+            -- If the deleted friendship was pending, remove from arrays
+            IF OLD.status = 'Pending' THEN
+                -- Remove friendship ID from outbound array for initiator
+                UPDATE users
+                SET outbound_friendship_ids = array_remove(COALESCE(outbound_friendship_ids, ARRAY[]::VARCHAR[]), OLD.id)
+                WHERE id = OLD.user_id;
+
+                -- Remove friendship ID from inbound array for recipient
+                UPDATE users
+                SET inbound_friendship_ids = array_remove(COALESCE(inbound_friendship_ids, ARRAY[]::VARCHAR[]), OLD.id)
+                WHERE id = OLD.friend_id;
+            END IF;
+        END IF;
+
+        RETURN COALESCE(NEW, OLD);
+    END;
+    $$ LANGUAGE plpgsql;
+  `);
+
+  // Create rebuild user friendship arrays function
+  await db.execute(sql`
+    CREATE OR REPLACE FUNCTION rebuild_user_friendship_arrays()
+    RETURNS void AS $$
+    BEGIN
+        UPDATE users u
+        SET
+            outbound_friendship_ids = COALESCE((
+                SELECT array_agg(f.id)
+                FROM friendships f
+                WHERE f.user_id = u.id AND f.status = 'Pending'
+            ), ARRAY[]::VARCHAR[]),
+            inbound_friendship_ids = COALESCE((
+                SELECT array_agg(f.id)
+                FROM friendships f
+                WHERE f.friend_id = u.id AND f.status = 'Pending'
+            ), ARRAY[]::VARCHAR[]);
+    END;
+    $$ LANGUAGE plpgsql;
+  `);
+
   // Drop existing triggers if requested
   if (options.dropExisting) {
     await db.execute(sql`DROP TRIGGER IF EXISTS friendship_notification_trigger ON friendships`);
     await db.execute(sql`DROP TRIGGER IF EXISTS comment_notification_trigger ON comments`);
     await db.execute(sql`DROP TRIGGER IF EXISTS reaction_notification_trigger ON reactions`);
+    await db.execute(
+      sql`DROP TRIGGER IF EXISTS update_friendship_user_arrays_insert ON friendships`
+    );
+    await db.execute(
+      sql`DROP TRIGGER IF EXISTS update_friendship_user_arrays_update ON friendships`
+    );
+    await db.execute(
+      sql`DROP TRIGGER IF EXISTS update_friendship_user_arrays_delete ON friendships`
+    );
   }
 
   // Create all notification triggers
@@ -374,6 +454,28 @@ async function createNotificationTriggers(
         EXECUTE FUNCTION create_reaction_notification();
   `);
 
+  // Create friendship user arrays triggers
+  await db.execute(sql`
+    CREATE TRIGGER update_friendship_user_arrays_insert
+        AFTER INSERT ON friendships
+        FOR EACH ROW
+        EXECUTE FUNCTION update_friendship_user_arrays();
+  `);
+
+  await db.execute(sql`
+    CREATE TRIGGER update_friendship_user_arrays_update
+        AFTER UPDATE ON friendships
+        FOR EACH ROW
+        EXECUTE FUNCTION update_friendship_user_arrays();
+  `);
+
+  await db.execute(sql`
+    CREATE TRIGGER update_friendship_user_arrays_delete
+        AFTER DELETE ON friendships
+        FOR EACH ROW
+        EXECUTE FUNCTION update_friendship_user_arrays();
+  `);
+
   logger.info('✅ Notification triggers created');
 }
 
@@ -391,7 +493,10 @@ async function checkExistingTriggers(
       'game_logs_ratings_trigger',
       'friendship_notification_trigger',
       'comment_notification_trigger',
-      'reaction_notification_trigger'
+      'reaction_notification_trigger',
+      'update_friendship_user_arrays_insert',
+      'update_friendship_user_arrays_update',
+      'update_friendship_user_arrays_delete'
     );
   `)) as unknown as { rows: { trigger_name: string }[] };
 
@@ -453,7 +558,10 @@ export async function setupAllTriggers(
       options.dropExisting ||
       !existingTriggerNames.includes('friendship_notification_trigger') ||
       !existingTriggerNames.includes('comment_notification_trigger') ||
-      !existingTriggerNames.includes('reaction_notification_trigger')
+      !existingTriggerNames.includes('reaction_notification_trigger') ||
+      !existingTriggerNames.includes('update_friendship_user_arrays_insert') ||
+      !existingTriggerNames.includes('update_friendship_user_arrays_update') ||
+      !existingTriggerNames.includes('update_friendship_user_arrays_delete')
     ) {
       await createNotificationTriggers(db, options);
     } else {

@@ -1,5 +1,5 @@
-import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
 
 import { getRapidApiConfig } from '@src/lib/config/api.config';
 import { MOCK_LIVE_GAMES } from '@src/lib/mock/liveGamesMock';

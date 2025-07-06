@@ -486,7 +486,7 @@ async function main() {
   const seedInternal = options.internal ?? options.all ?? (!options.external && !options.user);
 
   // Determine scenario
-  const scenario: ScenarioKey = options.scenario ?? 'MEDIUM';
+  const scenario: ScenarioKey = options.scenario ?? 'SMALL';
   const userCount = options.userCount;
 
   if (options.dryRun) {
