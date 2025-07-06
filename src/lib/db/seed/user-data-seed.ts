@@ -544,6 +544,8 @@ export function generateReactions(
 ) {
   const reactions: ISeedReaction[] = [];
   const maxReactionsPerBatch = 10000; // Limit memory usage for very large datasets
+  let hasWarnedLarge = false;
+  let hasWarnedVeryLarge = false;
 
   // Generate reactions on game logs
   for (const gameLog of gameLogs) {
@@ -567,11 +569,12 @@ export function generateReactions(
           emoji: faker.helpers.arrayElement(Object.values(REACTION_EMOJIS)),
         });
 
-        // Memory management: if we're getting too many reactions, warn the user
-        if (reactions.length > maxReactionsPerBatch) {
+        // Memory management: warn only once when thresholds are crossed
+        if (!hasWarnedLarge && reactions.length > maxReactionsPerBatch) {
           console.warn(
             `⚠️  Large reaction dataset detected: ${reactions.length} reactions generated so far`
           );
+          hasWarnedLarge = true;
         }
       }
     }
@@ -599,11 +602,12 @@ export function generateReactions(
           emoji: faker.helpers.arrayElement(Object.values(REACTION_EMOJIS)),
         });
 
-        // Memory management: if we're getting too many reactions, warn the user
-        if (reactions.length > maxReactionsPerBatch * 2) {
+        // Memory management: warn only once when thresholds are crossed
+        if (!hasWarnedVeryLarge && reactions.length > maxReactionsPerBatch * 2) {
           console.warn(
             `⚠️  Very large reaction dataset detected: ${reactions.length} reactions generated so far`
           );
+          hasWarnedVeryLarge = true;
         }
       }
     }
