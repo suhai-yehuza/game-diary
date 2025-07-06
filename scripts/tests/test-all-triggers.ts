@@ -254,12 +254,20 @@ class TriggerValidator {
   // ============================================================================
 
   private async testCommentOnGameLog(): Promise<boolean> {
-    const { user1Id, user2Id } = await this.getTestUsers();
+    const user1Id = `test_user_${generateId()}`;
+    const user2Id = `test_user_${generateId()}`;
     const gameId = await this.getTestGame();
     const gameLogId = `test_gamelog_${generateId()}`;
     const commentId = `test_comment_${generateId()}`;
 
     try {
+      // Create test users
+      await this.db.execute(sql`
+        INSERT INTO users (id, username, email_address, created_at, updated_at)
+        VALUES (${user1Id}, 'user1', ${user1Id + '@test.com'}, NOW(), NOW()),
+               (${user2Id}, 'user2', ${user2Id + '@test.com'}, NOW(), NOW())
+      `);
+
       // Create test game log
       await this.db.execute(sql`
         INSERT INTO game_logs (id, user_id, game_id, notes, rating_for_game, watched_date, created_at, updated_at)
@@ -273,8 +281,8 @@ class TriggerValidator {
 
       // Create comment
       await this.db.execute(sql`
-        INSERT INTO comments (id, user_id, parent_id, parent_type, content, created_at, updated_at)
-        VALUES (${commentId}, ${user2Id}, ${gameLogId}, 'GAME_LOG', 'Great game!', NOW(), NOW())
+        INSERT INTO comments (id, user_id, parent_id, parent_type, content, depth, created_at, updated_at)
+        VALUES (${commentId}, ${user2Id}, ${gameLogId}, 'GAME_LOG', 'Great game!', 0, NOW(), NOW())
       `);
 
       // Check if notification was created
@@ -291,17 +299,26 @@ class TriggerValidator {
       // Cleanup
       await this.db.execute(sql`DELETE FROM comments WHERE id = ${commentId}`);
       await this.db.execute(sql`DELETE FROM game_logs WHERE id = ${gameLogId}`);
+      await this.db.execute(sql`DELETE FROM users WHERE id IN (${user1Id}, ${user2Id})`);
     }
   }
 
   private async testCommentReply(): Promise<boolean> {
-    const { user1Id, user2Id } = await this.getTestUsers();
+    const user1Id = `test_user_${generateId()}`;
+    const user2Id = `test_user_${generateId()}`;
     const gameId = await this.getTestGame();
     const gameLogId = `test_gamelog_${generateId()}`;
     const parentCommentId = `test_parent_comment_${generateId()}`;
     const replyId = `test_reply_${generateId()}`;
 
     try {
+      // Create test users
+      await this.db.execute(sql`
+        INSERT INTO users (id, username, email_address, created_at, updated_at)
+        VALUES (${user1Id}, 'user1', ${user1Id + '@test.com'}, NOW(), NOW()),
+               (${user2Id}, 'user2', ${user2Id + '@test.com'}, NOW(), NOW())
+      `);
+
       // Create test game log
       await this.db.execute(sql`
         INSERT INTO game_logs (id, user_id, game_id, notes, rating_for_game, watched_date, created_at, updated_at)
@@ -310,8 +327,8 @@ class TriggerValidator {
 
       // Create parent comment
       await this.db.execute(sql`
-        INSERT INTO comments (id, user_id, parent_id, parent_type, content, created_at, updated_at)
-        VALUES (${parentCommentId}, ${user2Id}, ${gameLogId}, 'GAME_LOG', 'Parent comment', NOW(), NOW())
+        INSERT INTO comments (id, user_id, parent_id, parent_type, content, depth, created_at, updated_at)
+        VALUES (${parentCommentId}, ${user2Id}, ${gameLogId}, 'GAME_LOG', 'Parent comment', 0, NOW(), NOW())
       `);
 
       // Get notification count before
@@ -321,8 +338,8 @@ class TriggerValidator {
 
       // Create reply
       await this.db.execute(sql`
-        INSERT INTO comments (id, user_id, parent_id, parent_type, content, created_at, updated_at)
-        VALUES (${replyId}, ${user1Id}, ${parentCommentId}, 'COMMENT', 'Reply to comment', NOW(), NOW())
+        INSERT INTO comments (id, user_id, parent_id, parent_type, content, depth, created_at, updated_at)
+        VALUES (${replyId}, ${user1Id}, ${parentCommentId}, 'COMMENT', 'Reply to comment', 1, NOW(), NOW())
       `);
 
       // Check if notification was created
@@ -339,16 +356,23 @@ class TriggerValidator {
       // Cleanup
       await this.db.execute(sql`DELETE FROM comments WHERE id IN (${replyId}, ${parentCommentId})`);
       await this.db.execute(sql`DELETE FROM game_logs WHERE id = ${gameLogId}`);
+      await this.db.execute(sql`DELETE FROM users WHERE id IN (${user1Id}, ${user2Id})`);
     }
   }
 
   private async testSelfComment(): Promise<boolean> {
-    const { user1Id } = await this.getTestUsers();
+    const user1Id = `test_user_${generateId()}`;
     const gameId = await this.getTestGame();
     const gameLogId = `test_gamelog_${generateId()}`;
     const commentId = `test_self_comment_${generateId()}`;
 
     try {
+      // Create test user
+      await this.db.execute(sql`
+        INSERT INTO users (id, username, email_address, created_at, updated_at)
+        VALUES (${user1Id}, 'user1', ${user1Id + '@test.com'}, NOW(), NOW())
+      `);
+
       // Create test game log
       await this.db.execute(sql`
         INSERT INTO game_logs (id, user_id, game_id, notes, rating_for_game, watched_date, created_at, updated_at)
@@ -362,8 +386,8 @@ class TriggerValidator {
 
       // Create self-comment
       await this.db.execute(sql`
-        INSERT INTO comments (id, user_id, parent_id, parent_type, content, created_at, updated_at)
-        VALUES (${commentId}, ${user1Id}, ${gameLogId}, 'GAME_LOG', 'Self comment', NOW(), NOW())
+        INSERT INTO comments (id, user_id, parent_id, parent_type, content, depth, created_at, updated_at)
+        VALUES (${commentId}, ${user1Id}, ${gameLogId}, 'GAME_LOG', 'Self comment', 0, NOW(), NOW())
       `);
 
       // Check that no notification was created
@@ -380,6 +404,7 @@ class TriggerValidator {
       // Cleanup
       await this.db.execute(sql`DELETE FROM comments WHERE id = ${commentId}`);
       await this.db.execute(sql`DELETE FROM game_logs WHERE id = ${gameLogId}`);
+      await this.db.execute(sql`DELETE FROM users WHERE id = ${user1Id}`);
     }
   }
 
@@ -388,12 +413,20 @@ class TriggerValidator {
   // ============================================================================
 
   private async testReactionOnGameLog(): Promise<boolean> {
-    const { user1Id, user2Id } = await this.getTestUsers();
+    const user1Id = `test_user_${generateId()}`;
+    const user2Id = `test_user_${generateId()}`;
     const gameId = await this.getTestGame();
     const gameLogId = `test_gamelog_${generateId()}`;
     const reactionId = `test_reaction_${generateId()}`;
 
     try {
+      // Create test users
+      await this.db.execute(sql`
+        INSERT INTO users (id, username, email_address, created_at, updated_at)
+        VALUES (${user1Id}, 'user1', ${user1Id + '@test.com'}, NOW(), NOW()),
+               (${user2Id}, 'user2', ${user2Id + '@test.com'}, NOW(), NOW())
+      `);
+
       // Create test game log
       await this.db.execute(sql`
         INSERT INTO game_logs (id, user_id, game_id, notes, rating_for_game, watched_date, created_at, updated_at)
@@ -425,17 +458,26 @@ class TriggerValidator {
       // Cleanup
       await this.db.execute(sql`DELETE FROM reactions WHERE id = ${reactionId}`);
       await this.db.execute(sql`DELETE FROM game_logs WHERE id = ${gameLogId}`);
+      await this.db.execute(sql`DELETE FROM users WHERE id IN (${user1Id}, ${user2Id})`);
     }
   }
 
   private async testReactionOnComment(): Promise<boolean> {
-    const { user1Id, user2Id } = await this.getTestUsers();
+    const user1Id = `test_user_${generateId()}`;
+    const user2Id = `test_user_${generateId()}`;
     const gameId = await this.getTestGame();
     const gameLogId = `test_gamelog_${generateId()}`;
     const commentId = `test_comment_${generateId()}`;
     const reactionId = `test_reaction_${generateId()}`;
 
     try {
+      // Create test users
+      await this.db.execute(sql`
+        INSERT INTO users (id, username, email_address, created_at, updated_at)
+        VALUES (${user1Id}, 'user1', ${user1Id + '@test.com'}, NOW(), NOW()),
+               (${user2Id}, 'user2', ${user2Id + '@test.com'}, NOW(), NOW())
+      `);
+
       // Create test game log
       await this.db.execute(sql`
         INSERT INTO game_logs (id, user_id, game_id, notes, rating_for_game, watched_date, created_at, updated_at)
@@ -444,8 +486,8 @@ class TriggerValidator {
 
       // Create test comment
       await this.db.execute(sql`
-        INSERT INTO comments (id, user_id, parent_id, parent_type, content, created_at, updated_at)
-        VALUES (${commentId}, ${user1Id}, ${gameLogId}, 'GAME_LOG', 'Test comment', NOW(), NOW())
+        INSERT INTO comments (id, user_id, parent_id, parent_type, content, depth, created_at, updated_at)
+        VALUES (${commentId}, ${user1Id}, ${gameLogId}, 'GAME_LOG', 'Test comment', 0, NOW(), NOW())
       `);
 
       // Get notification count before
@@ -474,16 +516,23 @@ class TriggerValidator {
       await this.db.execute(sql`DELETE FROM reactions WHERE id = ${reactionId}`);
       await this.db.execute(sql`DELETE FROM comments WHERE id = ${commentId}`);
       await this.db.execute(sql`DELETE FROM game_logs WHERE id = ${gameLogId}`);
+      await this.db.execute(sql`DELETE FROM users WHERE id IN (${user1Id}, ${user2Id})`);
     }
   }
 
   private async testSelfReaction(): Promise<boolean> {
-    const { user1Id } = await this.getTestUsers();
+    const user1Id = `test_user_${generateId()}`;
     const gameId = await this.getTestGame();
     const gameLogId = `test_gamelog_${generateId()}`;
     const reactionId = `test_self_reaction_${generateId()}`;
 
     try {
+      // Create test user
+      await this.db.execute(sql`
+        INSERT INTO users (id, username, email_address, created_at, updated_at)
+        VALUES (${user1Id}, 'user1', ${user1Id + '@test.com'}, NOW(), NOW())
+      `);
+
       // Create test game log
       await this.db.execute(sql`
         INSERT INTO game_logs (id, user_id, game_id, notes, rating_for_game, watched_date, created_at, updated_at)
@@ -515,6 +564,7 @@ class TriggerValidator {
       // Cleanup
       await this.db.execute(sql`DELETE FROM reactions WHERE id = ${reactionId}`);
       await this.db.execute(sql`DELETE FROM game_logs WHERE id = ${gameLogId}`);
+      await this.db.execute(sql`DELETE FROM users WHERE id = ${user1Id}`);
     }
   }
 
@@ -523,10 +573,18 @@ class TriggerValidator {
   // ============================================================================
 
   private async testFriendRequest(): Promise<boolean> {
-    const { user1Id, user2Id } = await this.getTestUsers();
+    const user1Id = `test_user_${generateId()}`;
+    const user2Id = `test_user_${generateId()}`;
     const friendshipId = `test_friendship_${generateId()}`;
 
     try {
+      // Create test users
+      await this.db.execute(sql`
+        INSERT INTO users (id, username, email_address, created_at, updated_at)
+        VALUES (${user1Id}, 'user1', ${user1Id + '@test.com'}, NOW(), NOW()),
+               (${user2Id}, 'user2', ${user2Id + '@test.com'}, NOW(), NOW())
+      `);
+
       // Get notification count before
       const beforeCount = (await this.db.execute(sql`
         SELECT COUNT(*) as count FROM notifications WHERE user_id = ${user2Id}
@@ -551,14 +609,23 @@ class TriggerValidator {
     } finally {
       // Cleanup
       await this.db.execute(sql`DELETE FROM friendships WHERE id = ${friendshipId}`);
+      await this.db.execute(sql`DELETE FROM users WHERE id IN (${user1Id}, ${user2Id})`);
     }
   }
 
   private async testFriendAccept(): Promise<boolean> {
-    const { user1Id, user2Id } = await this.getTestUsers();
+    const user1Id = `test_user_${generateId()}`;
+    const user2Id = `test_user_${generateId()}`;
     const friendshipId = `test_friendship_${generateId()}`;
 
     try {
+      // Create test users
+      await this.db.execute(sql`
+        INSERT INTO users (id, username, email_address, created_at, updated_at)
+        VALUES (${user1Id}, 'user1', ${user1Id + '@test.com'}, NOW(), NOW()),
+               (${user2Id}, 'user2', ${user2Id + '@test.com'}, NOW(), NOW())
+      `);
+
       // Create pending friend request first
       await this.db.execute(sql`
         INSERT INTO friendships (id, user_id, friend_id, status, created_at, updated_at)

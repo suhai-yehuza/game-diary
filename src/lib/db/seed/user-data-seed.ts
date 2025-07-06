@@ -57,10 +57,10 @@ const GENERATION_CONFIG = {
     CHILD_COMMENT_CHANCE: 0.3, // 30% chance of child comments
   },
   REACTIONS: {
-    MIN_PER_GAME_LOG: 2,
-    MAX_PER_GAME_LOG: 8,
-    MIN_PER_COMMENT: 1,
-    MAX_PER_COMMENT: 3,
+    MIN_PER_GAME_LOG: 1,
+    MAX_PER_GAME_LOG: 4,
+    MIN_PER_COMMENT: 0,
+    MAX_PER_COMMENT: 2,
   },
 } as const;
 
@@ -501,30 +501,42 @@ function generateChildCommentContent(): string {
 export function generateReactions(
   users: ISeedUser[],
   gameLogs: ISeedGameLog[],
-  comments: ISeedComment[]
+  comments: ISeedComment[],
+  config: ISeedingConfig
 ) {
   const reactions: ISeedReaction[] = [];
 
   // Generate reactions on game logs
   for (const gameLog of gameLogs) {
-    // Random number of reactions per game log (0 to 100)
-    const reactionCount = faker.number.int({ min: 0, max: 100 });
-    const reactors = faker.helpers.arrayElements(users, Math.min(reactionCount, users.length));
-    for (const reactor of reactors) {
-      if (reactor.id === gameLog.user_id) continue; // Skip if same user
-      reactions.push({
-        id: generateUUIDv7(),
-        user_id: reactor.id,
-        target_type: TARGET_TYPES.GAME_LOG,
-        target_id: gameLog.id,
-        emoji: faker.helpers.arrayElement(Object.values(REACTION_EMOJIS)),
-      });
+    // Use configuration for reaction count per game log
+    const reactionCount = faker.number.int({
+      min: config.reactionsPerGameLog.min,
+      max: config.reactionsPerGameLog.max,
+    });
+
+    if (reactionCount > 0) {
+      const reactors = faker.helpers.arrayElements(users, Math.min(reactionCount, users.length));
+      for (const reactor of reactors) {
+        if (reactor.id === gameLog.user_id) continue; // Skip if same user
+        reactions.push({
+          id: generateUUIDv7(),
+          user_id: reactor.id,
+          target_type: TARGET_TYPES.GAME_LOG,
+          target_id: gameLog.id,
+          emoji: faker.helpers.arrayElement(Object.values(REACTION_EMOJIS)),
+        });
+      }
     }
   }
+
   // Generate reactions on comments
   for (const comment of comments) {
-    // Random number of reactions per comment (0 to 100)
-    const reactionCount = faker.number.int({ min: 0, max: 100 });
+    // Use configuration for reaction count per comment
+    const reactionCount = faker.number.int({
+      min: config.reactionsPerComment.min,
+      max: config.reactionsPerComment.max,
+    });
+
     if (reactionCount > 0) {
       const reactors = faker.helpers.arrayElements(users, Math.min(reactionCount, users.length));
       for (const reactor of reactors) {
@@ -577,9 +589,8 @@ export async function seedUserData(
     console.log('👥 Step 1: Creating and inserting users...');
     const userData = await timeStep('User generation and insertion', async () => {
       const userList = generateUsers(finalConfig.userCount);
-      for (const user of userList) {
-        await db.insert(users).values(user);
-      }
+      // Use batch insert for better performance
+      await db.insert(users).values(userList);
       return userList;
     });
     console.log(`✅ Created ${userData.length} users`);
@@ -588,9 +599,8 @@ export async function seedUserData(
     console.log('🤝 Step 2: Creating friendships for each user...');
     const friendshipData = await timeStep('Friendship generation and insertion', async () => {
       const friendshipList = generateFriendships(userData, finalConfig);
-      for (const friendship of friendshipList) {
-        await db.insert(friendships).values(friendship);
-      }
+      // Use batch insert for better performance
+      await db.insert(friendships).values(friendshipList);
       return friendshipList;
     });
     console.log(`✅ Created ${friendshipData.length} friendships`);
@@ -616,9 +626,8 @@ export async function seedUserData(
     console.log('📝 Step 4: Creating game logs for each user...');
     const gameLogData = await timeStep('Game log generation and insertion', async () => {
       const gameLogs = generateGameLogs(userData, gameIds, finalConfig);
-      for (const gameLog of gameLogs) {
-        await db.insert(game_logs).values(gameLog);
-      }
+      // Use batch insert for better performance
+      await db.insert(game_logs).values(gameLogs);
       return gameLogs;
     });
     console.log(`✅ Created ${gameLogData.length} game logs`);
@@ -627,9 +636,8 @@ export async function seedUserData(
     console.log('💬 Step 5: Creating comments for game logs...');
     const commentData = await timeStep('Comment generation and insertion', async () => {
       const commentList = generateComments(userData, gameLogData, finalConfig);
-      for (const comment of commentList) {
-        await db.insert(comments).values(comment);
-      }
+      // Use batch insert for better performance
+      await db.insert(comments).values(commentList);
       return commentList;
     });
     console.log(`✅ Created ${commentData.length} comments (including nested comments)`);
@@ -637,10 +645,32 @@ export async function seedUserData(
     // Step 6: Generate reactions for game logs and comments
     console.log('👍 Step 6: Creating reactions...');
     const reactionData = await timeStep('Reaction generation and insertion', async () => {
-      const reactionList = generateReactions(userData, gameLogData, commentData);
-      for (const reaction of reactionList) {
-        await db.insert(reactions).values(reaction);
+      const reactionList = generateReactions(userData, gameLogData, commentData, finalConfig);
+
+      // Log expected reaction count for transparency
+      const expectedGameLogReactions =
+        gameLogData.length *
+        ((finalConfig.reactionsPerGameLog.min + finalConfig.reactionsPerGameLog.max) / 2);
+      const expectedCommentReactions =
+        commentData.length *
+        ((finalConfig.reactionsPerComment.min + finalConfig.reactionsPerComment.max) / 2);
+      const totalExpected = Math.round(expectedGameLogReactions + expectedCommentReactions);
+
+      console.log(`📊 Expected reactions: ~${totalExpected} (${reactionList.length} actual)`);
+
+      // Insert reactions in smaller batches to avoid "value too large to transmit" error
+      const BATCH_SIZE = 100; // Smaller batch size for reactions
+      for (let i = 0; i < reactionList.length; i += BATCH_SIZE) {
+        const batch = reactionList.slice(i, i + BATCH_SIZE);
+        await db.insert(reactions).values(batch);
+
+        // Log progress for large datasets
+        if (reactionList.length > 500) {
+          const progress = Math.round(((i + batch.length) / reactionList.length) * 100);
+          console.log(`📈 Reaction insertion progress: ${progress}%`);
+        }
       }
+
       return reactionList;
     });
     console.log(`✅ Created ${reactionData.length} reactions`);

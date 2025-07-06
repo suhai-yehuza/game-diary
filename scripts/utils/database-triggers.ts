@@ -184,10 +184,8 @@ async function createNotificationTriggers(
         commenter_username VARCHAR;
         commenter_name VARCHAR;
         target_owner_id VARCHAR;
+        target_title VARCHAR;
         target_content VARCHAR;
-        target_type_name VARCHAR;
-        parent_comment_id VARCHAR;
-        parent_commenter_id VARCHAR;
     BEGIN
         -- Skip if user is commenting on their own content
         IF TG_OP = 'INSERT' THEN
@@ -202,66 +200,48 @@ async function createNotificationTriggers(
                 commenter_name := commenter_username;
             END IF;
 
-            -- Handle different target types
-            IF NEW.target_type = 'GAME_LOG' THEN
+            -- Handle different parent types
+            IF NEW.parent_type = 'GAME_LOG' THEN
                 -- Get game log owner and content
                 SELECT user_id, notes
                 INTO target_owner_id, target_content
                 FROM game_logs
-                WHERE id = NEW.target_id;
+                WHERE id = NEW.parent_id;
 
                 -- Skip if commenting on own game log
                 IF target_owner_id = NEW.user_id THEN
                     RETURN NEW;
                 END IF;
 
-                target_type_name := 'game log';
+                -- Create notification for game log owner
+                INSERT INTO notifications (
+                    id, user_id, type, title, message, target_id, target_type,
+                    resolved, created_at, updated_at
+                ) VALUES (
+                    generate_uuid_v4(), target_owner_id, 'comment_added', 'New Comment on Your Game Log',
+                    commenter_name || ' commented on your game log', NEW.id, 'comment',
+                    false, NOW(), NOW()
+                );
 
-            ELSIF NEW.target_type = 'COMMENT' THEN
+            ELSIF NEW.parent_type = 'COMMENT' THEN
                 -- Get parent comment owner and content
-                SELECT user_id, content, parent_id
-                INTO target_owner_id, target_content, parent_comment_id
+                SELECT user_id, content
+                INTO target_owner_id, target_content
                 FROM comments
-                WHERE id = NEW.target_id;
+                WHERE id = NEW.parent_id;
 
                 -- Skip if replying to own comment
                 IF target_owner_id = NEW.user_id THEN
                     RETURN NEW;
                 END IF;
 
-                target_type_name := 'comment';
-
-                -- If this is a reply to a comment, notify the parent commenter
-                IF parent_comment_id IS NOT NULL THEN
-                    SELECT user_id INTO parent_commenter_id
-                    FROM comments
-                    WHERE id = parent_comment_id;
-
-                    -- Skip if replying to own comment
-                    IF parent_commenter_id = NEW.user_id THEN
-                        RETURN NEW;
-                    END IF;
-
-                    -- Create notification for parent commenter
-                    INSERT INTO notifications (
-                        id, user_id, type, title, message, target_id, target_type,
-                        resolved, created_at, updated_at
-                    ) VALUES (
-                        generate_uuid_v4(), parent_commenter_id, 'comment_reply', 'New Reply to Your Comment',
-                        commenter_name || ' replied to your comment', NEW.id, 'comment',
-                        false, NOW(), NOW()
-                    );
-                END IF;
-            END IF;
-
-            -- Create notification for content owner (if different from parent commenter)
-            IF target_owner_id IS NOT NULL AND target_owner_id != NEW.user_id THEN
+                -- Create notification for parent comment owner
                 INSERT INTO notifications (
                     id, user_id, type, title, message, target_id, target_type,
                     resolved, created_at, updated_at
                 ) VALUES (
-                    generate_uuid_v4(), target_owner_id, 'comment_added', 'New Comment on Your ' || target_type_name,
-                    commenter_name || ' commented on your ' || target_type_name, NEW.id, 'comment',
+                    generate_uuid_v4(), target_owner_id, 'comment_reply', 'New Reply to Your Comment',
+                    commenter_name || ' replied to your comment', NEW.id, 'comment',
                     false, NOW(), NOW()
                 );
             END IF;
