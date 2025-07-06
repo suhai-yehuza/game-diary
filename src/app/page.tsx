@@ -1,24 +1,7 @@
-'use client';
-
-import { SignedIn, SignedOut } from '@clerk/nextjs';
 import Image from 'next/image';
 import Link from 'next/link';
-import React from 'react';
-
-import { useMounted } from '@/hooks/use-mounted';
-import { isE2ETest, TestSafeSignedIn, TestSafeSignedOut } from '@/lib/utils/clerk-test-utils';
 
 export default function HomePage() {
-  const mounted = useMounted();
-
-  if (!mounted) {
-    return null;
-  }
-
-  // Choose the correct components based on environment
-  const SignedInComponent = isE2ETest ? TestSafeSignedIn : SignedIn;
-  const SignedOutComponent = isE2ETest ? TestSafeSignedOut : SignedOut;
-
   return (
     <section className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
       <div className="flex flex-col gap-[32px] row-start-2 items-center justify-center text-center max-w-3xl">
@@ -37,44 +20,35 @@ export default function HomePage() {
         </div>
 
         <div className="flex gap-6 items-center justify-center mt-8">
-          <SignedInComponent>
-            <Link
-              href="/protected/user"
-              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-            >
+          <Link href="/protected/user" passHref legacyBehavior>
+            <a className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
               Go to Dashboard
-            </Link>
-          </SignedInComponent>
-          <SignedOutComponent>
-            <Link
-              href="/sign-in"
-              className="px-6 py-3 bg-[#757575] text-white rounded-lg hover:bg-[#616161] border border-gray-600 transition-colors dark:bg-[#e5e5e5] dark:text-gray-800 dark:hover:bg-[#d4d4d4] dark:border-gray-300"
-            >
+            </a>
+          </Link>
+          <Link href="/sign-in" passHref legacyBehavior>
+            <a className="px-6 py-3 bg-[#757575] text-white rounded-lg hover:bg-[#616161] border border-gray-600 transition-colors dark:bg-[#e5e5e5] dark:text-gray-800 dark:hover:bg-[#d4d4d4] dark:border-gray-300">
               Sign In
-            </Link>
-            <Link
-              href="/sign-up"
-              className="px-6 py-3 border border-[#757575] text-[#757575] rounded-lg hover:bg-[#f3f3f3] transition-colors dark:border-[#e5e5e5] dark:text-[#e5e5e5] dark:hover:bg-[#232326]"
-            >
+            </a>
+          </Link>
+          <Link href="/sign-up" passHref legacyBehavior>
+            <a className="px-6 py-3 border border-[#757575] text-[#757575] rounded-lg hover:bg-[#f3f3f3] transition-colors dark:border-[#e5e5e5] dark:text-[#e5e5e5] dark:hover:bg-[#232326]">
               Sign Up
-            </Link>
-          </SignedOutComponent>
+            </a>
+          </Link>
         </div>
       </div>
       <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <Link
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="/dashboard"
-        >
-          <Image aria-hidden src="/icons/file.svg" alt="File icon" width={16} height={16} />
-          How to log a game
+        <Link href="/dashboard" passHref legacyBehavior>
+          <a className="flex items-center gap-2 hover:underline hover:underline-offset-4">
+            <Image aria-hidden src="/icons/file.svg" alt="File icon" width={16} height={16} />
+            How to log a game
+          </a>
         </Link>
-        <Link
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="/dashboard"
-        >
-          <Image aria-hidden src="/icons/window.svg" alt="Window icon" width={16} height={16} />
-          Example game logs
+        <Link href="/dashboard" passHref legacyBehavior>
+          <a className="flex items-center gap-2 hover:underline hover:underline-offset-4">
+            <Image aria-hidden src="/icons/window.svg" alt="Window icon" width={16} height={16} />
+            Example game logs
+          </a>
         </Link>
       </footer>
     </section>
