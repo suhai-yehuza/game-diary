@@ -609,6 +609,9 @@ class TriggerValidator {
     } finally {
       // Cleanup
       await this.db.execute(sql`DELETE FROM friendships WHERE id = ${friendshipId}`);
+      await this.db.execute(
+        sql`DELETE FROM notifications WHERE user_id IN (${user1Id}, ${user2Id})`
+      );
       await this.db.execute(sql`DELETE FROM users WHERE id IN (${user1Id}, ${user2Id})`);
     }
   }
@@ -655,6 +658,10 @@ class TriggerValidator {
     } finally {
       // Cleanup
       await this.db.execute(sql`DELETE FROM friendships WHERE id = ${friendshipId}`);
+      await this.db.execute(
+        sql`DELETE FROM notifications WHERE user_id IN (${user1Id}, ${user2Id})`
+      );
+      await this.db.execute(sql`DELETE FROM users WHERE id IN (${user1Id}, ${user2Id})`);
     }
   }
 
@@ -692,6 +699,10 @@ class TriggerValidator {
     } finally {
       // Cleanup
       await this.db.execute(sql`DELETE FROM friendships WHERE id = ${friendshipId}`);
+      await this.db.execute(
+        sql`DELETE FROM notifications WHERE user_id IN (${user1Id}, ${user2Id})`
+      );
+      await this.db.execute(sql`DELETE FROM users WHERE id IN (${user1Id}, ${user2Id})`);
     }
   }
 

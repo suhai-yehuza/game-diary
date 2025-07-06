@@ -12,6 +12,7 @@ import type {
   IGamesApiResponse,
 } from '@src/lib/types/externalApiTypes';
 import { createRapidAPIClient } from '@src/lib/utils/api-client';
+import { formatDuration } from '@src/lib/utils/format-duration';
 
 // Fetch real NBA data from API
 async function fetchNBAData<T>(
@@ -51,7 +52,7 @@ export async function seedExternalApiData(_optimizationConfig?: unknown) {
     const result = await stepFunction();
     const endTime = Date.now();
     const duration = endTime - startTime;
-    console.log(`✅ ${stepName} completed in ${duration}ms`);
+    console.log(`✅ ${stepName} completed in ${formatDuration(duration)}`);
     return result;
   };
 
@@ -348,7 +349,7 @@ export async function clearExternalApiData() {
     const result = await stepFunction();
     const endTime = Date.now();
     const duration = endTime - startTime;
-    console.log(`✅ ${stepName} completed in ${duration}ms`);
+    console.log(`✅ ${stepName} completed in ${formatDuration(duration)}`);
     return result;
   };
 

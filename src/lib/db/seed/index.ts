@@ -11,6 +11,7 @@ import { seedExternalApiData } from '@src/lib/db/seed/external-api-seed';
 import { getOptimizationConfig, PerformanceTracker } from '@src/lib/db/seed/optimization-config';
 import { seedUserData, clearUserData } from '@src/lib/db/seed/user-data-seed';
 import type { DistributionConfigPreset, ScenarioKey } from '@src/lib/types/seeding-types';
+import { formatDuration } from '@src/lib/utils/format-duration';
 
 /**
  * Main seeding orchestrator for the Game Diary database
@@ -510,7 +511,7 @@ async function main() {
       console.log('\n🏀 Seeding external API data (NBA)...');
       await seedExternalApiData(optimizationConfig);
       const externalTime = performanceTracker.endTimer('external_api_seeding');
-      console.log(`✅ External API seeding completed in ${externalTime.toFixed(2)}ms`);
+      console.log(`✅ External API seeding completed in ${formatDuration(externalTime)}`);
     }
 
     // Clear user data if requested
@@ -519,7 +520,7 @@ async function main() {
       console.log('\n🧹 Clearing existing user data...');
       await clearUserData();
       const clearTime = performanceTracker.endTimer('clear_user_data');
-      console.log(`✅ User data cleared in ${clearTime.toFixed(2)}ms`);
+      console.log(`✅ User data cleared in ${formatDuration(clearTime)}`);
     }
 
     // Seed internal app data if requested
@@ -562,12 +563,12 @@ async function main() {
       const config = getScenarioConfig(scenario, userCount);
       await seedUserData(config, optimizationConfig, distributionConfig);
       const internalTime = performanceTracker.endTimer('internal_data_seeding');
-      console.log(`✅ Internal app data seeding completed in ${internalTime.toFixed(2)}ms`);
+      console.log(`✅ Internal app data seeding completed in ${formatDuration(internalTime)}`);
     }
 
     const totalTime = performanceTracker.endTimer('total_seeding');
     console.log('\n✅ Database seeding completed successfully!');
-    console.log(`⏱️  Total time: ${totalTime.toFixed(2)}ms`);
+    console.log(`⏱️  Total time: ${formatDuration(totalTime)}`);
 
     // Show performance metrics
     const metrics = performanceTracker.getMetrics();
@@ -576,7 +577,7 @@ async function main() {
       const performance = performanceTracker.checkThresholds(operation);
       const emoji = performance === 'good' ? '🟢' : performance === 'acceptable' ? '🟡' : '🔴';
       console.log(
-        `${emoji} ${operation}: ${stats.avg.toFixed(2)}ms avg (${stats.count} operations)`
+        `${emoji} ${operation}: ${formatDuration(stats.avg)} avg (${stats.count} operations)`
       );
     });
   } catch (error) {

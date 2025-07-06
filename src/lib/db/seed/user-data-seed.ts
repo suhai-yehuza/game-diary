@@ -38,6 +38,7 @@ import type {
   ISeedReaction,
   ISeedingConfig,
 } from '@src/lib/types/seeding-types';
+import { formatDuration } from '@src/lib/utils/format-duration';
 import { generateUUIDv7 } from '@src/lib/utils/id-generator';
 
 // Configuration for data generation
@@ -580,7 +581,7 @@ export async function seedUserData(
     const result = await stepFunction();
     const endTime = Date.now();
     const duration = endTime - startTime;
-    console.log(`✅ ${stepName} completed in ${duration}ms`);
+    console.log(`✅ ${stepName} completed in ${formatDuration(duration)}`);
     return result;
   };
 
@@ -715,7 +716,7 @@ export async function clearUserData() {
     const result = await stepFunction();
     const endTime = Date.now();
     const duration = endTime - startTime;
-    console.log(`✅ ${stepName} completed in ${duration}ms`);
+    console.log(`✅ ${stepName} completed in ${formatDuration(duration)}`);
     return result;
   };
 
