@@ -43,7 +43,7 @@ export const handleUserUpdated = async (data: IClerkUserData) => {
     updated_at: new Date(),
   };
 
-  await db?.update(users).set(userData).where(eq(users.id, id));
+  await db()?.update(users).set(userData).where(eq(users.id, id));
   webhookLogger.info(`User ${id} updated successfully in database`);
   return createResponse('User updated in database', 200);
 };

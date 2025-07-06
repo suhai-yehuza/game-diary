@@ -106,6 +106,7 @@ class TriggerValidator {
       { name: 'Friendship Notifications - Request', test: this.testFriendRequest.bind(this) },
       { name: 'Friendship Notifications - Accept', test: this.testFriendAccept.bind(this) },
       { name: 'Friendship Notifications - Reject', test: this.testFriendReject.bind(this) },
+      { name: 'Friendship Notifications - Remove', test: this.testFriendRemove.bind(this) },
     ];
 
     for (const test of tests) {
@@ -709,6 +710,54 @@ class TriggerValidator {
     } finally {
       // Cleanup
       await this.db.execute(sql`DELETE FROM friendships WHERE id = ${friendshipId}`);
+      await this.db.execute(
+        sql`DELETE FROM notifications WHERE user_id IN (${user1Id}, ${user2Id})`
+      );
+      await this.db.execute(sql`DELETE FROM users WHERE id IN (${user1Id}, ${user2Id})`);
+    }
+  }
+
+  private async testFriendRemove(): Promise<boolean> {
+    const user1Id = `testtrig_user_${generateId()}`;
+    const user2Id = `testtrig_user_${generateId()}`;
+    const friendshipId = `testtrig_friendship_${generateId()}`;
+
+    try {
+      // Create test users
+      await this.db.execute(sql`
+        INSERT INTO users (id, username, email_address, created_at, updated_at)
+        VALUES (${user1Id}, 'user1', ${user1Id + '@test.com'}, NOW(), NOW()),
+               (${user2Id}, 'user2', ${user2Id + '@test.com'}, NOW(), NOW())
+      `);
+
+      // Create accepted friendship first
+      await this.db.execute(sql`
+        INSERT INTO friendships (id, user_id, friend_id, status, created_at, updated_at)
+        VALUES (${friendshipId}, ${user1Id}, ${user2Id}, 'Accepted', NOW(), NOW())
+      `);
+
+      // Get notification count before
+      const beforeCount = (await this.db.execute(sql`
+        SELECT COUNT(*) as count FROM notifications WHERE user_id = ${user2Id}
+      `)) as any;
+
+      // Delete friendship to trigger friend_removed notification
+      await this.db.execute(sql`
+        DELETE FROM friendships WHERE id = ${friendshipId}
+      `);
+
+      // Check if notification was created
+      const afterCount = (await this.db.execute(sql`
+        SELECT COUNT(*) as count FROM notifications WHERE user_id = ${user2Id}
+      `)) as any;
+
+      if (afterCount.rows[0].count <= beforeCount.rows[0].count) {
+        throw new Error('Notification was not created for friend removal');
+      }
+
+      return true;
+    } finally {
+      // Cleanup
       await this.db.execute(
         sql`DELETE FROM notifications WHERE user_id IN (${user1Id}, ${user2Id})`
       );

@@ -12,6 +12,7 @@ export default function HomePage() {
             width={200}
             height={50}
             priority
+            sizes="(max-width: 600px) 150px, 200px"
           />
           <h1 className="text-4xl font-bold tracking-tight">Welcome to Game Diary</h1>
           <p className="text-xl text-gray-600 dark:text-gray-300">
@@ -40,13 +41,27 @@ export default function HomePage() {
       <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
         <Link href="/dashboard" passHref legacyBehavior>
           <a className="flex items-center gap-2 hover:underline hover:underline-offset-4">
-            <Image aria-hidden src="/icons/file.svg" alt="File icon" width={16} height={16} />
+            <Image
+              aria-hidden
+              src="/icons/file.svg"
+              alt="File icon"
+              width={16}
+              height={16}
+              sizes="16px"
+            />
             How to log a game
           </a>
         </Link>
         <Link href="/dashboard" passHref legacyBehavior>
           <a className="flex items-center gap-2 hover:underline hover:underline-offset-4">
-            <Image aria-hidden src="/icons/window.svg" alt="Window icon" width={16} height={16} />
+            <Image
+              aria-hidden
+              src="/icons/window.svg"
+              alt="Window icon"
+              width={16}
+              height={16}
+              sizes="16px"
+            />
             Example game logs
           </a>
         </Link>

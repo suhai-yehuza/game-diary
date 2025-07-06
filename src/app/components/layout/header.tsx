@@ -376,6 +376,9 @@ export function Header() {
                 alt="Game Diary Logo"
                 width={44}
                 height={44}
+                sizes="(max-width: 600px) 36px, 44px"
+                loading="eager"
+                priority
                 className="w-11 h-11 cursor-pointer"
                 style={{ height: 'auto' }}
               />

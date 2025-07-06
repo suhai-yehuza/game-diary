@@ -40,12 +40,12 @@ export const middleware = (
 
 export const config = {
   matcher: [
-    // Skip Next.js internals and all static files, unless found in search params
-    '/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
-    '/((?!.*\\..*|_next).*)',
-    // Always run for the home page
+    // Specific routes that need middleware
+    '/protected/:path*',
+    '/sign-in/:path*',
+    '/sign-up/:path*',
+    '/api/:path*',
+    // Home page
     '/',
-    // Always run for API routes
-    '/(api|trpc)(.*)',
   ],
 };

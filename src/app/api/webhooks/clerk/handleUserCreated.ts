@@ -49,7 +49,7 @@ export const handleUserCreated = async (data: IClerkUserData) => {
     outbound_friendship_ids: [],
   };
 
-  await db?.insert(users).values(userData);
+  await db()?.insert(users).values(userData);
   webhookLogger.info(`User ${id} created successfully in database`);
   return createResponse('User created in database', 201);
 };

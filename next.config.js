@@ -35,8 +35,16 @@ const nextConfig = {
 
   // Experimental features
   experimental: {
-    // Performance optimizations - exclude drizzle-orm to avoid conflict
-    optimizePackageImports: ['@apollo/client'],
+    // Performance optimizations
+    optimizePackageImports: [
+      '@apollo/client',
+      '@clerk/nextjs',
+      'lucide-react',
+      'clsx',
+      'tailwind-merge',
+    ],
+    // Optimize bundle size
+    optimizeCss: true,
   },
 
   // External packages for server components (moved out of experimental)
@@ -99,6 +107,13 @@ const nextConfig = {
         ...config.resolve.alias,
         '@apollo/client': path.resolve(__dirname, 'node_modules/@apollo/client'),
       };
+
+      // Enable tree shaking
+      config.optimization = {
+        ...config.optimization,
+        usedExports: true,
+        sideEffects: false,
+      };
     }
 
     // Handle CSV files
@@ -111,6 +126,17 @@ const nextConfig = {
         skipEmptyLines: true,
       },
     });
+
+    // Bundle analyzer
+    if (process.env.ANALYZE === 'true') {
+      const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
+      config.plugins.push(
+        new BundleAnalyzerPlugin({
+          analyzerMode: 'static',
+          openAnalyzer: false,
+        })
+      );
+    }
 
     return config;
   },

@@ -15,7 +15,7 @@ export const handleUserDeleted = async (data: IClerkDeletedUserData) => {
   if (!data.deleted) return createResponse('User not deleted in Clerk', 200);
 
   // Soft delete by setting deleted_at
-  await db
+  await db()
     ?.update(users)
     .set({
       deleted_at: new Date(),

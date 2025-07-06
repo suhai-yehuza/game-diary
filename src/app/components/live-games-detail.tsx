@@ -1,76 +1,15 @@
 'use client';
 
 import Image from 'next/image';
-import React, { useEffect, useState, useCallback } from 'react';
+import React from 'react';
 
-import { MOCK_LIVE_GAMES } from '@/lib/mock/liveGamesMock';
+import { useLiveGames } from '@/hooks/use-live-games';
 import type { IGamesApiResponse } from '@/lib/types/externalApiTypes';
-import { INTERNAL_PROXY_ENDPOINTS } from '@src/lib/config/api.config';
-
-// Constants
-const REFRESH_INTERVAL_MS = 30000;
-
-function isGamesApiResponse(data: unknown): data is IGamesApiResponse {
-  return (
-    typeof data === 'object' &&
-    data !== null &&
-    'results' in data &&
-    'response' in data &&
-    Array.isArray((data as IGamesApiResponse).response)
-  );
-}
 
 export function LiveGamesDetail({ data }: { data?: IGamesApiResponse } = {}) {
-  const [liveGames, setLiveGames] = useState<IGamesApiResponse | null>(data ?? null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchLiveGames = useCallback(async () => {
-    if (data) return; // Don't fetch if data is provided via prop
-    try {
-      setLoading(true);
-      setError(null);
-
-      // Use the internal proxy endpoint to avoid CORS issues
-      const response = await fetch(`${INTERNAL_PROXY_ENDPOINTS.GAMES}?live=all`);
-      if (!response.ok) {
-        throw new Error(`API request failed: ${response.status} ${response.statusText}`);
-      }
-      const dataResult = (await response.json()) as unknown;
-
-      // Use mock data if API returns no live games
-      if (
-        isGamesApiResponse(dataResult) &&
-        (dataResult.results === 0 || dataResult.response.length === 0)
-      ) {
-        setLiveGames(MOCK_LIVE_GAMES);
-      } else if (isGamesApiResponse(dataResult)) {
-        setLiveGames(dataResult);
-      } else {
-        setLiveGames(MOCK_LIVE_GAMES);
-      }
-    } catch (err) {
-      const error = err instanceof Error ? err : new Error(String(err));
-      setError(error.message);
-      console.error('Failed to fetch live games:', error);
-      setLiveGames(MOCK_LIVE_GAMES);
-    } finally {
-      setLoading(false);
-    }
-  }, [data]);
-
-  useEffect(() => {
-    if (!data) {
-      void fetchLiveGames();
-
-      // Refresh live games every 30 seconds
-      const interval = setInterval(() => {
-        void fetchLiveGames();
-      }, REFRESH_INTERVAL_MS);
-
-      return () => clearInterval(interval);
-    }
-  }, [fetchLiveGames, data]);
+  const { games, loading, error } = useLiveGames({
+    initialData: data,
+  });
 
   if (loading) {
     return (
@@ -83,14 +22,14 @@ export function LiveGamesDetail({ data }: { data?: IGamesApiResponse } = {}) {
     );
   }
 
-  if (error && !liveGames) {
+  if (error && games.length === 0) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="text-center">
           <p className="text-red-600 text-lg">Error loading live games: {error}</p>
           <button
             onClick={() => {
-              void fetchLiveGames();
+              window.location.reload();
             }}
             className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
           >
@@ -101,10 +40,7 @@ export function LiveGamesDetail({ data }: { data?: IGamesApiResponse } = {}) {
     );
   }
 
-  // Use mock data if no live games from API
-  const gamesData = liveGames?.response ?? MOCK_LIVE_GAMES.response;
-
-  if (gamesData.length === 0) {
+  if (games.length === 0) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="text-center">
@@ -120,12 +56,12 @@ export function LiveGamesDetail({ data }: { data?: IGamesApiResponse } = {}) {
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">Live NBA Games</h1>
         <p className="text-gray-600">
-          {gamesData.length} {gamesData.length === 1 ? 'game' : 'games'} currently live
+          {games.length} {games.length === 1 ? 'game' : 'games'} currently live
         </p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {gamesData.map(game => (
+        {games.map(game => (
           <div
             key={game.id}
             className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-700"
@@ -150,6 +86,8 @@ export function LiveGamesDetail({ data }: { data?: IGamesApiResponse } = {}) {
                       alt={game.teams.visitors.name}
                       fill
                       className="object-contain"
+                      sizes="32px"
+                      loading="lazy"
                     />
                   </div>
                   <div>
@@ -174,6 +112,8 @@ export function LiveGamesDetail({ data }: { data?: IGamesApiResponse } = {}) {
                       alt={game.teams.home.name}
                       fill
                       className="object-contain"
+                      sizes="32px"
+                      loading="lazy"
                     />
                   </div>
                   <div>

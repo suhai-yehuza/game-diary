@@ -1,5 +1,6 @@
 import { faker } from '@faker-js/faker';
 import { neon } from '@neondatabase/serverless';
+import { eq } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/neon-http';
 
 import {
@@ -62,6 +63,13 @@ const GENERATION_CONFIG = {
     MAX_PER_GAME_LOG: 4,
     MIN_PER_COMMENT: 0,
     MAX_PER_COMMENT: 2,
+  },
+  SAFETY_LIMITS: {
+    MAX_USERS: 100000,
+    MAX_GAME_LOGS_PER_USER: 50,
+    MAX_COMMENTS_PER_GAME_LOG: 100,
+    MAX_REACTIONS_PER_ITEM: 200,
+    MAX_TOTAL_RECORDS: 10000000, // 10M records max
   },
 } as const;
 
@@ -246,17 +254,20 @@ function generateUserBio(): string {
 // Generate friendships between users
 export function generateFriendships(users: ISeedUser[], config: ISeedingConfig): ISeedFriendship[] {
   const friendships: ISeedFriendship[] = [];
+
   for (const user of users) {
     const friendshipCount = faker.number.int({
       min: config.friendshipsPerUser.min,
       max: config.friendshipsPerUser.max,
     });
+
     // Pick unique friends for this user
     const potentialFriends = users.filter(u => u.id !== user.id);
     const selectedFriends = faker.helpers.arrayElements(
       potentialFriends,
       Math.min(friendshipCount, potentialFriends.length)
     );
+
     for (const friend of selectedFriends) {
       // Avoid duplicate friendships (user1-user2 and user2-user1)
       if (
@@ -268,11 +279,17 @@ export function generateFriendships(users: ISeedUser[], config: ISeedingConfig):
       ) {
         continue;
       }
-      const status = faker.helpers.arrayElement([
-        FRIENDSHIP_STATUS.ACCEPTED,
-        FRIENDSHIP_STATUS.PENDING,
-        FRIENDSHIP_STATUS.ACCEPTED, // Higher chance of accepted
+
+      // Create more realistic friendship scenarios that will trigger notifications
+      // 60% pending (will create friend request notifications)
+      // 30% accepted (will create acceptance notifications when status changes)
+      // 10% rejected (will create rejection notifications when status changes)
+      const status = faker.helpers.weightedArrayElement([
+        { value: FRIENDSHIP_STATUS.PENDING, weight: 60 },
+        { value: FRIENDSHIP_STATUS.ACCEPTED, weight: 30 },
+        { value: FRIENDSHIP_STATUS.REJECTED, weight: 10 },
       ]);
+
       friendships.push({
         id: generateUUIDv7(),
         friend_id: friend.id,
@@ -281,6 +298,7 @@ export function generateFriendships(users: ISeedUser[], config: ISeedingConfig):
       });
     }
   }
+
   return friendships;
 }
 
@@ -506,6 +524,7 @@ export function generateReactions(
   config: ISeedingConfig
 ) {
   const reactions: ISeedReaction[] = [];
+  const maxReactionsPerBatch = 10000; // Limit memory usage for very large datasets
 
   // Generate reactions on game logs
   for (const gameLog of gameLogs) {
@@ -526,6 +545,13 @@ export function generateReactions(
           target_id: gameLog.id,
           emoji: faker.helpers.arrayElement(Object.values(REACTION_EMOJIS)),
         });
+
+        // Memory management: if we're getting too many reactions, warn the user
+        if (reactions.length > maxReactionsPerBatch) {
+          console.warn(
+            `⚠️  Large reaction dataset detected: ${reactions.length} reactions generated so far`
+          );
+        }
       }
     }
   }
@@ -549,16 +575,26 @@ export function generateReactions(
           target_id: comment.id,
           emoji: faker.helpers.arrayElement(Object.values(REACTION_EMOJIS)),
         });
+
+        // Memory management: if we're getting too many reactions, warn the user
+        if (reactions.length > maxReactionsPerBatch * 2) {
+          console.warn(
+            `⚠️  Very large reaction dataset detected: ${reactions.length} reactions generated so far`
+          );
+        }
       }
     }
   }
+
+  console.log(`📊 Generated ${reactions.length} total reactions`);
   return reactions;
 }
 
 export async function seedUserData(
   config?: Partial<ISeedingConfig>,
   _optimizationConfig?: unknown,
-  _distributionConfig?: IStatisticalSeedingConfig
+  _distributionConfig?: IStatisticalSeedingConfig,
+  _options?: { overrideSafetyLimits?: boolean }
 ) {
   const databaseUrl = process.env.DATABASE_URL ?? process.env.POSTGRES_URL ?? '';
 
@@ -572,8 +608,95 @@ export async function seedUserData(
   // Merge provided config with defaults
   const finalConfig = { ...DEFAULT_CONFIG, ...config };
 
+  // Validate configuration for potential issues
+  const validateConfiguration = (config: ISeedingConfig, _overrideSafetyLimits = false) => {
+    const estimatedGameLogs =
+      config.userCount * ((config.gameLogsPerUser.min + config.gameLogsPerUser.max) / 2);
+    const estimatedComments =
+      estimatedGameLogs * ((config.commentsPerGameLog.min + config.commentsPerGameLog.max) / 2);
+    const estimatedReactions =
+      (estimatedGameLogs + estimatedComments) *
+      ((config.reactionsPerGameLog.min + config.reactionsPerGameLog.max) / 2);
+    const totalRecords =
+      config.userCount + estimatedGameLogs + estimatedComments + estimatedReactions;
+
+    console.log('📊 Estimated data volume:');
+    console.log(`   Users: ${config.userCount}`);
+    console.log(`   Game Logs: ~${Math.round(estimatedGameLogs)}`);
+    console.log(`   Comments: ~${Math.round(estimatedComments)}`);
+    console.log(`   Reactions: ~${Math.round(estimatedReactions)}`);
+    console.log(`   Total records: ~${Math.round(totalRecords)}`);
+
+    // Check safety limits
+    const safetyLimits = GENERATION_CONFIG.SAFETY_LIMITS;
+    let hasWarnings = false;
+
+    if (config.userCount > safetyLimits.MAX_USERS) {
+      console.warn(
+        `⚠️  WARNING: User count (${config.userCount}) exceeds safety limit (${safetyLimits.MAX_USERS})`
+      );
+      console.warn('   This may take a very long time to complete');
+      hasWarnings = true;
+    }
+
+    if (config.gameLogsPerUser.max > safetyLimits.MAX_GAME_LOGS_PER_USER) {
+      console.warn(
+        `⚠️  WARNING: Max game logs per user (${config.gameLogsPerUser.max}) exceeds safety limit (${safetyLimits.MAX_GAME_LOGS_PER_USER})`
+      );
+      hasWarnings = true;
+    }
+
+    if (config.commentsPerGameLog.max > safetyLimits.MAX_COMMENTS_PER_GAME_LOG) {
+      console.warn(
+        `⚠️  WARNING: Max comments per game log (${config.commentsPerGameLog.max}) exceeds safety limit (${safetyLimits.MAX_COMMENTS_PER_GAME_LOG})`
+      );
+      hasWarnings = true;
+    }
+
+    if (
+      config.reactionsPerGameLog.max > safetyLimits.MAX_REACTIONS_PER_ITEM ||
+      config.reactionsPerComment.max > safetyLimits.MAX_REACTIONS_PER_ITEM
+    ) {
+      console.warn(
+        `⚠️  WARNING: Max reactions per item exceeds safety limit (${safetyLimits.MAX_REACTIONS_PER_ITEM})`
+      );
+      hasWarnings = true;
+    }
+
+    if (totalRecords > safetyLimits.MAX_TOTAL_RECORDS) {
+      console.warn(
+        `⚠️  WARNING: Total estimated records (${Math.round(totalRecords)}) exceeds safety limit (${safetyLimits.MAX_TOTAL_RECORDS})`
+      );
+      console.warn('   This may cause memory issues or database timeouts');
+      hasWarnings = true;
+    }
+
+    // Additional warnings for large datasets
+    if (estimatedReactions > 1000000) {
+      console.warn('⚠️  WARNING: Very large reaction dataset expected (>1M reactions)');
+      console.warn('   This may take a long time and consume significant memory');
+      hasWarnings = true;
+    }
+
+    if (estimatedComments > 500000) {
+      console.warn('⚠️  WARNING: Large comment dataset expected (>500K comments)');
+      console.warn('   This may take significant time to process');
+      hasWarnings = true;
+    }
+
+    if (hasWarnings) {
+      console.warn('💡 TIP: Consider using a smaller scenario or reducing multipliers');
+      console.warn('   Use --scenario small for testing, or --scenario medium for staging');
+    }
+
+    return { estimatedGameLogs, estimatedComments, estimatedReactions };
+  };
+
   console.log('🌱 Starting user data seeding...');
   console.log(`📊 Configuration: ${finalConfig.userCount} users`);
+
+  // Validate configuration
+  validateConfiguration(finalConfig, _options?.overrideSafetyLimits);
 
   // Timing utility function
   const timeStep = async <T>(stepName: string, stepFunction: () => Promise<T>): Promise<T> => {
@@ -585,13 +708,78 @@ export async function seedUserData(
     return result;
   };
 
+  // Dynamic batch sizing based on data size
+  const getOptimalBatchSize = (dataSize: number, _dataType: string): number => {
+    // For very large datasets, use smaller batches
+    if (dataSize > 100000) return 50;
+    if (dataSize > 50000) return 100;
+    if (dataSize > 10000) return 250;
+    if (dataSize > 5000) return 500;
+    if (dataSize > 1000) return 1000;
+    return 2000; // Default for smaller datasets
+  };
+
+  // Enhanced batch insertion with retry logic and memory management
+  const batchInsert = async <T>(
+    table: Parameters<typeof db.insert>[0],
+    data: T[],
+    dataType: string,
+    customBatchSize?: number
+  ): Promise<T[]> => {
+    if (data.length === 0) return data;
+
+    const batchSize = customBatchSize ?? getOptimalBatchSize(data.length, dataType);
+    const maxRetries = 3;
+    const retryDelay = 1000; // 1 second
+
+    console.log(`📦 Inserting ${data.length} ${dataType} in batches of ${batchSize}`);
+
+    for (let i = 0; i < data.length; i += batchSize) {
+      const batch = data.slice(i, i + batchSize);
+      let retries = 0;
+      let success = false;
+
+      while (retries < maxRetries && !success) {
+        try {
+          await db.insert(table).values(batch);
+          success = true;
+        } catch (error) {
+          retries++;
+          console.warn(
+            `⚠️  Batch insertion failed for ${dataType} (attempt ${retries}/${maxRetries}):`,
+            error
+          );
+
+          if (retries < maxRetries) {
+            console.log(`⏳ Retrying in ${retryDelay}ms...`);
+            await new Promise(resolve => setTimeout(resolve, retryDelay));
+          } else {
+            console.error(`❌ Failed to insert ${dataType} batch after ${maxRetries} attempts`);
+            throw error;
+          }
+        }
+      }
+
+      // Log progress for large datasets
+      if (data.length > batchSize) {
+        const progress = Math.round(((i + batch.length) / data.length) * 100);
+        console.log(
+          `📈 ${dataType} insertion progress: ${progress}% (${i + batch.length}/${data.length})`
+        );
+      }
+
+      // Memory management: clear batch from memory
+      batch.length = 0;
+    }
+    return data;
+  };
+
   try {
     // Step 1: Create and insert users
     console.log('👥 Step 1: Creating and inserting users...');
     const userData = await timeStep('User generation and insertion', async () => {
       const userList = generateUsers(finalConfig.userCount);
-      // Use batch insert for better performance
-      await db.insert(users).values(userList);
+      await batchInsert(users, userList, 'Users');
       return userList;
     });
     console.log(`✅ Created ${userData.length} users`);
@@ -600,11 +788,55 @@ export async function seedUserData(
     console.log('🤝 Step 2: Creating friendships for each user...');
     const friendshipData = await timeStep('Friendship generation and insertion', async () => {
       const friendshipList = generateFriendships(userData, finalConfig);
-      // Use batch insert for better performance
-      await db.insert(friendships).values(friendshipList);
+      await batchInsert(friendships, friendshipList, 'Friendships');
       return friendshipList;
     });
     console.log(`✅ Created ${friendshipData.length} friendships`);
+
+    // Step 2.5: Simulate accepting/rejecting some pending friend requests to trigger notifications
+    console.log('📬 Step 2.5: Simulating friend request responses...');
+    await timeStep('Friend request response simulation', async () => {
+      const pendingFriendships = friendshipData.filter(f => f.status === FRIENDSHIP_STATUS.PENDING);
+
+      if (pendingFriendships.length > 0) {
+        console.log(`📊 Found ${pendingFriendships.length} pending friend requests to process`);
+
+        // Process a subset of pending friendships to simulate real-world scenarios
+        const friendshipsToProcess = faker.helpers.arrayElements(
+          pendingFriendships,
+          Math.min(pendingFriendships.length, Math.floor(pendingFriendships.length * 0.7)) // Process 70% of pending
+        );
+
+        let acceptedCount = 0;
+        let rejectedCount = 0;
+
+        for (const friendship of friendshipsToProcess) {
+          // 80% chance to accept, 20% chance to reject
+          const newStatus = faker.helpers.weightedArrayElement([
+            { value: FRIENDSHIP_STATUS.ACCEPTED, weight: 80 },
+            { value: FRIENDSHIP_STATUS.REJECTED, weight: 20 },
+          ]);
+
+          // Update the friendship status to trigger acceptance/rejection notifications
+          await db
+            .update(friendships)
+            .set({ status: newStatus, updated_at: new Date() })
+            .where(eq(friendships.id, friendship.id));
+
+          if (newStatus === FRIENDSHIP_STATUS.ACCEPTED) {
+            acceptedCount++;
+          } else {
+            rejectedCount++;
+          }
+        }
+
+        console.log(
+          `✅ Processed ${friendshipsToProcess.length} friend requests (${acceptedCount} accepted, ${rejectedCount} rejected)`
+        );
+      } else {
+        console.log('ℹ️  No pending friend requests to process');
+      }
+    });
 
     // Step 3: Get valid game IDs from the database
     console.log('🎮 Step 3: Getting valid game IDs...');
@@ -627,8 +859,7 @@ export async function seedUserData(
     console.log('📝 Step 4: Creating game logs for each user...');
     const gameLogData = await timeStep('Game log generation and insertion', async () => {
       const gameLogs = generateGameLogs(userData, gameIds, finalConfig);
-      // Use batch insert for better performance
-      await db.insert(game_logs).values(gameLogs);
+      await batchInsert(game_logs, gameLogs, 'Game Logs');
       return gameLogs;
     });
     console.log(`✅ Created ${gameLogData.length} game logs`);
@@ -637,8 +868,7 @@ export async function seedUserData(
     console.log('💬 Step 5: Creating comments for game logs...');
     const commentData = await timeStep('Comment generation and insertion', async () => {
       const commentList = generateComments(userData, gameLogData, finalConfig);
-      // Use batch insert for better performance
-      await db.insert(comments).values(commentList);
+      await batchInsert(comments, commentList, 'Comments');
       return commentList;
     });
     console.log(`✅ Created ${commentData.length} comments (including nested comments)`);
@@ -659,18 +889,8 @@ export async function seedUserData(
 
       console.log(`📊 Expected reactions: ~${totalExpected} (${reactionList.length} actual)`);
 
-      // Insert reactions in smaller batches to avoid "value too large to transmit" error
-      const BATCH_SIZE = 100; // Smaller batch size for reactions
-      for (let i = 0; i < reactionList.length; i += BATCH_SIZE) {
-        const batch = reactionList.slice(i, i + BATCH_SIZE);
-        await db.insert(reactions).values(batch);
-
-        // Log progress for large datasets
-        if (reactionList.length > 500) {
-          const progress = Math.round(((i + batch.length) / reactionList.length) * 100);
-          console.log(`📈 Reaction insertion progress: ${progress}%`);
-        }
-      }
+      // Use smaller batch size for reactions due to their high volume
+      await batchInsert(reactions, reactionList, 'Reactions', 50);
 
       return reactionList;
     });
@@ -684,6 +904,7 @@ export async function seedUserData(
     const gameLogCount = await db.select().from(game_logs);
     const commentCount = await db.select().from(comments);
     const reactionCount = await db.select().from(reactions);
+    const notificationCount = await db.select().from(notifications);
 
     console.log('\n📊 Seeding Summary:');
     console.log(`   Users: ${userCount.length}`);
@@ -691,6 +912,14 @@ export async function seedUserData(
     console.log(`   Game Logs: ${gameLogCount.length}`);
     console.log(`   Comments: ${commentCount.length}`);
     console.log(`   Reactions: ${reactionCount.length}`);
+    console.log(`   Notifications: ${notificationCount.length}`);
+
+    // Log notification breakdown
+    if (notificationCount.length > 0) {
+      console.log('\n📬 Notification Breakdown:');
+      console.log(`   Total notifications: ${notificationCount.length}`);
+      console.log(`   (Notification types will be logged in the database summary)`);
+    }
   } catch (error) {
     console.error('❌ Error seeding user data:', error);
     throw error;

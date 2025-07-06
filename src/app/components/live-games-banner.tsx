@@ -1,66 +1,13 @@
 import Link from 'next/link';
-import React, { useEffect, useState, useCallback } from 'react';
+import React from 'react';
 
-import { INTERNAL_PROXY_ENDPOINTS } from '@/lib/config/api.config';
-import { MOCK_LIVE_GAMES } from '@/lib/mock/liveGamesMock';
-import type { IGamesApiResponse } from '@/lib/types/externalApiTypes';
+import { useLiveGames } from '@/hooks/use-live-games';
 
 // Constants
-const REFRESH_INTERVAL_MS = 30000;
 const MAX_DISPLAY_GAMES = 3;
 
-function isGamesApiResponse(data: unknown): data is IGamesApiResponse {
-  return (
-    typeof data === 'object' &&
-    data !== null &&
-    'results' in data &&
-    'response' in data &&
-    Array.isArray((data as IGamesApiResponse).response)
-  );
-}
-
 export function LiveGamesBanner() {
-  const [liveGames, setLiveGames] = useState<IGamesApiResponse | null>(null);
-
-  const fetchLiveGames = useCallback(async () => {
-    try {
-      // Use the server-side API route instead of calling external API directly
-      const response = await fetch(`${INTERNAL_PROXY_ENDPOINTS.GAMES}?live=all`);
-
-      if (!response.ok) {
-        throw new Error(`API request failed: ${response.status} ${response.statusText}`);
-      }
-
-      const data = (await response.json()) as unknown;
-
-      // Use mock data if API returns no live games
-      if (isGamesApiResponse(data) && (data.results === 0 || data.response.length === 0)) {
-        setLiveGames(MOCK_LIVE_GAMES);
-      } else if (isGamesApiResponse(data)) {
-        setLiveGames(data);
-      } else {
-        setLiveGames(MOCK_LIVE_GAMES);
-      }
-    } catch (err) {
-      // Silently handle errors and use mock data
-      console.warn('Failed to fetch live games, using mock data:', err);
-      setLiveGames(MOCK_LIVE_GAMES);
-    }
-  }, []);
-
-  useEffect(() => {
-    void fetchLiveGames();
-
-    // Refresh live games every 30 seconds
-    const interval = setInterval(() => {
-      void fetchLiveGames();
-    }, REFRESH_INTERVAL_MS);
-
-    return () => clearInterval(interval);
-  }, [fetchLiveGames]);
-
-  // Always show banner with mock data if no live games from API
-  const games = liveGames?.response ?? MOCK_LIVE_GAMES.response;
+  const { games } = useLiveGames();
 
   return (
     <div className="w-full bg-gradient-to-r from-red-600 to-red-700 text-white">

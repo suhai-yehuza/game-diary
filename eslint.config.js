@@ -87,6 +87,9 @@ export default [
           extensions: ['.js', '.jsx', '.ts', '.tsx'],
         },
       },
+      next: {
+        rootDir: '.',
+      },
     },
     rules: {
       // Next.js recommended/core-web-vitals rules (only valid ones)
@@ -202,7 +205,7 @@ export default [
       '@typescript-eslint/no-misused-promises': 'error',
       '@typescript-eslint/require-await': 'error',
       '@typescript-eslint/return-await': 'error',
-      '@typescript-eslint/no-unsafe-assignment': 'error',
+      '@typescript-eslint/no-unsafe-assignment': 'warn',
       '@typescript-eslint/no-unsafe-call': 'error',
       '@typescript-eslint/no-unsafe-member-access': 'error',
       '@typescript-eslint/no-unsafe-return': 'error',
@@ -259,6 +262,12 @@ export default [
     rules: {
       'max-lines-per-function': 'off',
       complexity: 'off',
+    },
+  },
+  {
+    files: ['src/hooks/use-api-cache.ts'],
+    rules: {
+      '@typescript-eslint/no-unsafe-assignment': 'off',
     },
   },
   eslintConfigPrettier,

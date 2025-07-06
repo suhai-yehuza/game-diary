@@ -40,7 +40,7 @@ export async function GET(_request: NextRequest) {
       status: 'error',
       timestamp: new Date().toISOString(),
       response_time: responseTime,
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: error instanceof Error ? error.message : String(error),
       checks: {
         database: { healthy: false, error: 'Health check failed' },
         external_services: { healthy: false, error: 'Health check failed' },
@@ -61,7 +61,9 @@ async function checkDatabase() {
       };
     }
 
-    await db.execute('SELECT 1 as health_check');
+    // Get database instance and execute query
+    const database = db();
+    await database.execute('SELECT 1 as health_check');
 
     return {
       healthy: true,

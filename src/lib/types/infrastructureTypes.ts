@@ -63,9 +63,9 @@ export interface ICacheOptions {
 export interface ICacheStats {
   hits: number;
   misses: number;
-  keys: number;
+  sets: number;
+  deletes: number;
   size: number;
-  lastCleanup: Date;
 }
 
 export interface ICacheMetrics {
@@ -94,3 +94,19 @@ export interface ICacheManager {
 export type AsyncFunction<T = unknown> = () => Promise<T>;
 export type SyncFunction<T = unknown> = () => T;
 export type SomeOtherType = (arg: string) => void;
+
+// ========================================
+// CACHE TYPES
+// ========================================
+
+export interface ICacheEntry {
+  value: unknown;
+  timestamp: number;
+  ttl: number;
+}
+
+export interface ICacheConfig {
+  defaultTTL?: number;
+  maxSize?: number;
+  enableRedis?: boolean;
+}

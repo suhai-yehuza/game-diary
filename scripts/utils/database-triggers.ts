@@ -420,6 +420,41 @@ async function createNotificationTriggers(
     $$ LANGUAGE plpgsql;
   `);
 
+  // Create friendship deletion notification function
+  await db.execute(sql`
+    CREATE OR REPLACE FUNCTION create_friend_removed_notification()
+    RETURNS TRIGGER AS $$
+    DECLARE
+        remover_username VARCHAR;
+        remover_name VARCHAR;
+    BEGIN
+        -- Create notification for the other user when a friendship is deleted
+        -- Get the remover's info
+        SELECT username, CONCAT(first_name, ' ', last_name)
+        INTO remover_username, remover_name
+        FROM users
+        WHERE id = OLD.user_id;
+
+        -- Use username if name is not available
+        IF remover_name IS NULL OR remover_name = ' ' THEN
+            remover_name := remover_username;
+        END IF;
+
+        -- Create notification for the friend
+        INSERT INTO notifications (
+            id, user_id, type, title, message, target_id, target_type,
+            resolved, created_at, updated_at
+        ) VALUES (
+            generate_uuid_v4(), OLD.friend_id, 'friend_removed', 'Friend Removed',
+            remover_name || ' removed you as a friend', OLD.id, 'friendship',
+            false, NOW(), NOW()
+        );
+
+        RETURN OLD;
+    END;
+    $$ LANGUAGE plpgsql;
+  `);
+
   // Drop existing triggers if requested
   if (options.dropExisting) {
     await db.execute(sql`DROP TRIGGER IF EXISTS friendship_notification_trigger ON friendships`);
@@ -433,6 +468,9 @@ async function createNotificationTriggers(
     );
     await db.execute(
       sql`DROP TRIGGER IF EXISTS update_friendship_user_arrays_delete ON friendships`
+    );
+    await db.execute(
+      sql`DROP TRIGGER IF EXISTS friendship_deletion_notification_trigger ON friendships`
     );
   }
 
@@ -480,6 +518,14 @@ async function createNotificationTriggers(
         EXECUTE FUNCTION update_friendship_user_arrays();
   `);
 
+  // Create friendship deletion notification trigger
+  await db.execute(sql`
+    CREATE TRIGGER friendship_deletion_notification_trigger
+        AFTER DELETE ON friendships
+        FOR EACH ROW
+        EXECUTE FUNCTION create_friend_removed_notification();
+  `);
+
   logger.info('✅ Notification triggers created');
 }
 
@@ -500,7 +546,8 @@ async function checkExistingTriggers(
       'reaction_notification_trigger',
       'update_friendship_user_arrays_insert',
       'update_friendship_user_arrays_update',
-      'update_friendship_user_arrays_delete'
+      'update_friendship_user_arrays_delete',
+      'friendship_deletion_notification_trigger'
     );
   `)) as unknown as { rows: { trigger_name: string }[] };
 
@@ -565,7 +612,8 @@ export async function setupAllTriggers(
       !existingTriggerNames.includes('reaction_notification_trigger') ||
       !existingTriggerNames.includes('update_friendship_user_arrays_insert') ||
       !existingTriggerNames.includes('update_friendship_user_arrays_update') ||
-      !existingTriggerNames.includes('update_friendship_user_arrays_delete')
+      !existingTriggerNames.includes('update_friendship_user_arrays_delete') ||
+      !existingTriggerNames.includes('friendship_deletion_notification_trigger')
     ) {
       await createNotificationTriggers(db, options);
     } else {

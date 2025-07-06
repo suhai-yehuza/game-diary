@@ -32,3 +32,12 @@ export type BaseGameFields = {
   away_team_score: string;
   status: string;
 };
+
+// Types moved from src/lib/db/index.ts
+export interface IDatabaseConfig {
+  connectionString: string;
+  poolSize?: number;
+  connectionTimeout?: number;
+  retryAttempts?: number;
+  retryDelay?: number;
+}

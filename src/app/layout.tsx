@@ -4,8 +4,8 @@ import React from 'react';
 
 import '@/styles/globals.css';
 
-import { Footer, Header } from '@src/app/components/layout';
-import { TestHeader } from '@src/app/components/layout/test-header';
+import { LazyHeader, LazyTestHeader } from '@/components/lazy/header';
+import { Footer } from '@src/app/components/layout';
 import { ClientProviders, TestProviders } from '@src/app/components/providers';
 
 const inter = Inter({
@@ -18,9 +18,9 @@ export const metadata: Metadata = {
   description: 'Your personal space to track and share your pro game watching experiences',
 };
 
-// Force dynamic rendering for this layout
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
+// Optimize rendering - only force dynamic when necessary
+// export const dynamic = 'force-dynamic';
+// export const revalidate = 0;
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   // Use TestProviders during E2E tests to prevent Clerk authentication errors
@@ -38,7 +38,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className="scroll-smooth antialiased" suppressHydrationWarning>
       <body className={`flex min-h-screen flex-col ${inter.className}`}>
         <Providers>
-          {isTestEnvironment ? <TestHeader /> : <Header />}
+          {isTestEnvironment ? <LazyTestHeader /> : <LazyHeader />}
           <main className="grow">{children}</main>
           <Footer />
         </Providers>
