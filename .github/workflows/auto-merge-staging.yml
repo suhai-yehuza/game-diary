@@ -1,0 +1,90 @@
+name: Auto PR: Staging to Master After 24h Soak
+
+on:
+  schedule:
+    - cron: '0 * * * *'  # every hour
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  auto-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fetch all branches
+        run: |
+          git fetch origin master
+          git fetch origin staging
+
+      - name: Get latest staging commit info
+        id: info
+        run: |
+          STAGING_COMMIT=$(git rev-parse origin/staging)
+          STAGING_TIME=$(git show -s --format=%ct $STAGING_COMMIT)
+          NOW=$(date +%s)
+          AGE=$(( (NOW - STAGING_TIME) / 3600 ))
+          echo "staging_commit=$STAGING_COMMIT" >> $GITHUB_OUTPUT
+          echo "staging_time=$STAGING_TIME" >> $GITHUB_OUTPUT
+          echo "age=$AGE" >> $GITHUB_OUTPUT
+
+      - name: Check if staging commit is already in master or too new
+        id: check
+        run: |
+          git fetch origin master
+          STAGING_COMMIT=${{ steps.info.outputs.staging_commit }}
+          AGE=${{ steps.info.outputs.age }}
+          if git merge-base --is-ancestor $STAGING_COMMIT origin/master; then
+            echo "Staging commit is already in master. Exiting."
+            echo "should_continue=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          if [ "$AGE" -lt 24 ]; then
+            echo "Staging commit is only $AGE hours old. Exiting."
+            echo "should_continue=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          echo "should_continue=true" >> $GITHUB_OUTPUT
+
+      - name: Find existing PR
+        id: find_pr
+        if: steps.check.outputs.should_continue == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prs = await github.rest.pulls.list({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              head: `${context.repo.owner}:staging`,
+              base: 'master',
+            });
+            if (prs.data.length > 0) {
+              core.setOutput('pr_number', prs.data[0].number);
+            } else {
+              core.setOutput('pr_number', '');
+            }
+
+      - name: Create PR if not exists
+        id: create_pr
+        if: steps.check.outputs.should_continue == 'true' && steps.find_pr.outputs.pr_number == ''
+        uses: peter-evans/create-pull-request@v6
+        with:
+          title: 'Auto: Merge staging to master after 24h soak'
+          body: 'This PR was automatically created after the latest staging commit soaked for 24 hours.'
+          base: master
+          branch: staging
+          draft: false
+          delete-branch: false
+
+      - name: Enable automerge on PR
+        if: steps.check.outputs.should_continue == 'true'
+        uses: peter-evans/enable-pull-request-automerge@v3
+        with:
+          pull-request-number: ${{ steps.find_pr.outputs.pr_number || steps.create_pr.outputs.pull-request-number }}
+          merge-method: squash

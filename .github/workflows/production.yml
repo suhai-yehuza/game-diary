@@ -20,11 +20,13 @@ env:
   SOAK_DURATION: 1800 # 30 minutes for production soak
 
 on:
-  # Push to master (direct deployment)
+  # Scheduled: 9am PT (Standard Time: Nov–Mar, 17:00 UTC; Daylight Time: Mar–Nov, 16:00 UTC)
+  schedule:
+    - cron: '0 17 * * 1-4' # 9am PT, Mon-Thu, Standard Time
+    - cron: '0 16 * * 1-4' # 9am PT, Mon-Thu, Daylight Time
   push:
     branches:
       - master
-  # Manual trigger
   workflow_dispatch:
     inputs:
       reason:
@@ -37,7 +39,6 @@ on:
         required: false
         default: false
         type: boolean
-  # Auto-deployment trigger (from staging workflow)
   repository_dispatch:
     types: [auto-deploy-production]
 
@@ -226,6 +227,16 @@ jobs:
             ./scripts/deployment-manager.sh manual-deploy "${{ github.event.inputs.reason || 'Manual deployment' }}"
           else
             ./scripts/deployment-manager.sh manual-deploy "Auto-deployment after staging soak"
+          fi
+      - name: Check commit age (must be at least 24 hours old)
+        run: |
+          git fetch origin master
+          LATEST_COMMIT_TIME=$(git log -1 --format=%ct origin/master)
+          NOW=$(date +%s)
+          AGE=$(( (NOW - LATEST_COMMIT_TIME) / 3600 ))
+          if [ "$AGE" -lt 24 ]; then
+            echo "Latest commit is less than 24 hours old ($AGE hours). Skipping deployment."
+            exit 78
           fi
 
   production-soak:
