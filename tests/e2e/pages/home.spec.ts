@@ -116,18 +116,26 @@ test.describe('Home Page', () => {
   });
 
   test('should have proper authentication links', async ({ page }) => {
-    // Check for sign in link
+    // Check for sign in link or button in header
     const signInLink = page.locator('a[href*="/sign-in"], a[href*="/login"]');
+    const signInButton = page.locator('header').getByRole('button', { name: /sign in/i });
     if ((await signInLink.count()) > 0) {
       await expect(signInLink.first()).toBeVisible();
       await expect(signInLink.first()).toBeEnabled();
+    } else if (await signInButton.isVisible().catch(() => false)) {
+      await expect(signInButton).toBeVisible();
+      await expect(signInButton).toBeEnabled();
     }
 
-    // Check for sign up link
+    // Check for sign up link or button in header
     const signUpLink = page.locator('a[href*="/sign-up"], a[href*="/register"]');
+    const signUpButton = page.locator('header').getByRole('button', { name: /sign up/i });
     if ((await signUpLink.count()) > 0) {
       await expect(signUpLink.first()).toBeVisible();
       await expect(signUpLink.first()).toBeEnabled();
+    } else if (await signUpButton.isVisible().catch(() => false)) {
+      await expect(signUpButton).toBeVisible();
+      await expect(signUpButton).toBeEnabled();
     }
   });
 

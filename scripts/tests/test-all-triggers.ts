@@ -677,10 +677,18 @@ class TriggerValidator {
   }
 
   private async testFriendReject(): Promise<boolean> {
-    const { user1Id, user2Id } = await this.getTestUsers();
+    const user1Id = `testtrig_user_${generateId()}`;
+    const user2Id = `testtrig_user_${generateId()}`;
     const friendshipId = `testtrig_friendship_${generateId()}`;
 
     try {
+      // Create test users
+      await this.db.execute(sql`
+        INSERT INTO users (id, username, email_address, created_at, updated_at)
+        VALUES (${user1Id}, 'user1', ${user1Id + '@test.com'}, NOW(), NOW()),
+               (${user2Id}, 'user2', ${user2Id + '@test.com'}, NOW(), NOW())
+      `);
+
       // Create pending friend request first
       await this.db.execute(sql`
         INSERT INTO friendships (id, user_id, friend_id, status, created_at, updated_at)

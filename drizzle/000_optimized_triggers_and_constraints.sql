@@ -159,7 +159,7 @@ DECLARE
     sender_name VARCHAR;
 BEGIN
     -- Create notification for new pending friend requests
-    IF UPPER(NEW.status) = 'PENDING' AND (TG_OP = 'INSERT' OR (TG_OP = 'UPDATE' AND UPPER(OLD.status) != 'PENDING')) THEN
+    IF NEW.status = 'Pending' AND (TG_OP = 'INSERT' OR (TG_OP = 'UPDATE' AND OLD.status != 'Pending')) THEN
         -- Get sender's username and name
         SELECT username, CONCAT(first_name, ' ', last_name)
         INTO sender_username, sender_name
@@ -183,7 +183,7 @@ BEGIN
     END IF;
 
     -- Create notification when friend request is accepted
-    IF UPPER(NEW.status) = 'ACCEPTED' AND TG_OP = 'UPDATE' AND UPPER(OLD.status) = 'PENDING' THEN
+    IF NEW.status = 'Accepted' AND TG_OP = 'UPDATE' AND OLD.status = 'Pending' THEN
         -- Get acceptor's username and name
         SELECT username, CONCAT(first_name, ' ', last_name)
         INTO sender_username, sender_name
@@ -207,7 +207,7 @@ BEGIN
     END IF;
 
     -- Create notification when friend request is rejected
-    IF UPPER(NEW.status) = 'REJECTED' AND TG_OP = 'UPDATE' AND UPPER(OLD.status) = 'PENDING' THEN
+    IF NEW.status = 'Rejected' AND TG_OP = 'UPDATE' AND OLD.status = 'Pending' THEN
         -- Get rejector's username and name
         SELECT username, CONCAT(first_name, ' ', last_name)
         INTO sender_username, sender_name

@@ -1,3 +1,4 @@
+import { sql } from 'drizzle-orm';
 import {
   pgTable,
   integer,
@@ -108,6 +109,7 @@ export const game_logs = pgTable(
   _table => ({
     // Ensure a user can only have one game log per game
     userGameUnique: unique().on(_table.user_id, _table.game_id),
+    ratingCheck: sql`CHECK (rating_for_game >= 1 AND rating_for_game <= 5)`,
   })
 );
 
@@ -125,5 +127,6 @@ export const game_ratings = pgTable(
   _table => ({
     // Add unique constraint on game_id
     uniqueGameId: unique().on(_table.game_id),
+    averageRatingCheck: sql`CHECK (average_rating >= 1 AND average_rating <= 5)`,
   })
 );

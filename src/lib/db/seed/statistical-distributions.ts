@@ -467,7 +467,7 @@ export const DEFAULT_DISTRIBUTION_CONFIG: IStatisticalSeedingConfig = {
   // Content-related distributions
   gameRating: {
     type: 'beta',
-    parameters: { alpha: 2.5, beta: 2.5, min: 1, max: 10 },
+    parameters: { alpha: 2.5, beta: 2.5, min: 1, max: 5 },
   },
   commentCount: {
     type: 'poisson',
@@ -548,7 +548,7 @@ export const DISTRIBUTION_CONFIG_PRESETS = {
     userFriendCount: { type: 'uniform', parameters: { min: 0, max: 200 } },
     userContentQuality: { type: 'uniform', parameters: { min: 0.1, max: 1.0 } },
     userActivityAge: { type: 'uniform', parameters: { min: 0, max: 365 } },
-    gameRating: { type: 'uniform', parameters: { min: 1, max: 10 } },
+    gameRating: { type: 'uniform', parameters: { min: 1, max: 5 } },
     commentCount: { type: 'uniform', parameters: { min: 0, max: 20 } },
     reactionCount: { type: 'uniform', parameters: { min: 0, max: 50 } },
     contentViralProbability: { type: 'uniform', parameters: { min: 0, max: 1 } },
@@ -573,7 +573,7 @@ export const DISTRIBUTION_CONFIG_PRESETS = {
     userFriendCount: { type: 'pareto', parameters: { min: 0, max: 200, alpha: 1.0 } },
     userContentQuality: { type: 'pareto', parameters: { min: 0.1, max: 1.0, alpha: 1.0 } },
     userActivityAge: { type: 'pareto', parameters: { min: 0, max: 365, alpha: 1.0 } },
-    gameRating: { type: 'pareto', parameters: { min: 1, max: 10, alpha: 1.0 } },
+    gameRating: { type: 'pareto', parameters: { min: 1, max: 5, alpha: 1.0 } },
     commentCount: { type: 'pareto', parameters: { min: 0, max: 20, alpha: 1.0 } },
     reactionCount: { type: 'pareto', parameters: { min: 0, max: 50, alpha: 1.0 } },
     contentViralProbability: { type: 'pareto', parameters: { min: 0, max: 1, alpha: 1.0 } },
@@ -601,7 +601,7 @@ export const DISTRIBUTION_CONFIG_PRESETS = {
       parameters: { mean: 0.5, stdDev: 0.2, min: 0.1, max: 1.0 },
     },
     userActivityAge: { type: 'normal', parameters: { mean: 180, stdDev: 90, min: 0, max: 365 } },
-    gameRating: { type: 'normal', parameters: { mean: 5.5, stdDev: 1.5, min: 1, max: 10 } },
+    gameRating: { type: 'normal', parameters: { mean: 3, stdDev: 1, min: 1, max: 5 } },
     commentCount: { type: 'normal', parameters: { mean: 10, stdDev: 5, min: 0, max: 20 } },
     reactionCount: { type: 'normal', parameters: { mean: 25, stdDev: 12, min: 0, max: 50 } },
     contentViralProbability: {
@@ -635,7 +635,7 @@ export const DISTRIBUTION_CONFIG_PRESETS = {
     userFriendCount: { type: 'exponential', parameters: { lambda: 0.01, min: 0, max: 200 } },
     userContentQuality: { type: 'exponential', parameters: { lambda: 2.0, min: 0.1, max: 1.0 } },
     userActivityAge: { type: 'exponential', parameters: { lambda: 0.005, min: 0, max: 365 } },
-    gameRating: { type: 'exponential', parameters: { lambda: 0.5, min: 1, max: 10 } },
+    gameRating: { type: 'exponential', parameters: { lambda: 0.5, min: 1, max: 5 } },
     commentCount: { type: 'exponential', parameters: { lambda: 0.2, min: 0, max: 20 } },
     reactionCount: { type: 'exponential', parameters: { lambda: 0.1, min: 0, max: 50 } },
     contentViralProbability: { type: 'exponential', parameters: { lambda: 2.0, min: 0, max: 1 } },
@@ -831,7 +831,7 @@ export function generateGameRatingWithConfig(config: IStatisticalSeedingConfig):
   }
 
   // Always return an integer for game ratings
-  return Math.round(rating);
+  return Math.max(1, Math.min(5, Math.round(rating)));
 }
 
 /**

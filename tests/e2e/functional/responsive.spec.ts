@@ -622,7 +622,7 @@ test.describe('Responsive Tests (Extends Critical)', () => {
       await waitForPageLoad(page);
 
       // If a 'Sign In' button is visible (e.g., in header), click it to open the sign-in form/modal
-      const signInButton = page.getByRole('button', { name: /sign in/i });
+      const signInButton = page.locator('header').getByRole('button', { name: /sign in/i });
       if (await signInButton.isVisible().catch(() => false)) {
         await signInButton.click();
         await page.waitForTimeout(500);

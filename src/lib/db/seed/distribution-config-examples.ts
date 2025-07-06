@@ -29,7 +29,7 @@ export const DEVELOPMENT_CONFIG: IStatisticalSeedingConfig = {
   ...DEFAULT_DISTRIBUTION_CONFIG,
   // Use uniform distributions for predictable results
   userEngagement: { type: 'uniform', parameters: { min: 0.3, max: 0.7 } },
-  gameRating: { type: 'uniform', parameters: { min: 5, max: 8 } },
+  gameRating: { type: 'uniform', parameters: { min: 1, max: 5 } },
   commentCount: { type: 'uniform', parameters: { min: 0, max: 5 } },
   reactionCount: { type: 'uniform', parameters: { min: 0, max: 10 } },
   // Disable realistic patterns for faster generation
@@ -116,7 +116,7 @@ export const DEMO_CONFIG: IStatisticalSeedingConfig = {
   },
   gameRating: {
     type: 'beta',
-    parameters: { alpha: 3.0, beta: 2.0, min: 1, max: 10 },
+    parameters: { alpha: 3.0, beta: 2.0, min: 1, max: 5 },
   },
   // Enable viral content for demo impact
   enableRealisticPatterns: true,
@@ -150,7 +150,7 @@ export const CUSTOM_CONFIG: IStatisticalSeedingConfig = createCustomDistribution
     customFunction: () => {
       const isHighRated = Math.random() < 0.2; // 20% highly rated
       return isHighRated
-        ? Math.floor(Math.random() * 3) + 8 // 8-10
+        ? 5 // Clamp to 5
         : Math.floor(Math.random() * 5) + 1; // 1-5
     },
   },
