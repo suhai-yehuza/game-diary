@@ -9,6 +9,7 @@ import {
   checkForConsoleErrors,
   takeDebugScreenshot,
 } from '@tests/e2e/utils/test-utils';
+import { testSignInModal } from '@tests/e2e/utils/auth-modal';
 
 test.describe('Navigation', () => {
   test.beforeEach(async ({ page }) => {
@@ -64,46 +65,9 @@ test.describe('Navigation', () => {
     await expect(page.locator('main')).toBeVisible();
   });
 
-  test('should navigate to sign in page', async ({ page }) => {
-    // Navigate to sign in page
-    await safeGoto(page, '/sign-in');
-    await waitForPageLoad(page);
-
-    // Check basic page structure
-    await checkBasicPageStructure(page);
-
-    // Check page title
-    await checkPageTitle(page);
-
-    // Check that we're on sign in page
-    await expect(page).toHaveURL(/\/sign-in/);
-
-    // Check for sign in form elements
-    const signInForm = page.locator('form, [data-testid="sign-in-form"]');
-    if ((await signInForm.count()) > 0) {
-      await expect(signInForm.first()).toBeVisible();
-    }
-  });
-
-  test('should navigate to sign up page', async ({ page }) => {
-    // Navigate to sign up page
-    await safeGoto(page, '/sign-up');
-    await waitForPageLoad(page);
-
-    // Check basic page structure
-    await checkBasicPageStructure(page);
-
-    // Check page title
-    await checkPageTitle(page);
-
-    // Check that we're on sign up page
-    await expect(page).toHaveURL(/\/sign-up/);
-
-    // Check for sign up form elements
-    const signUpForm = page.locator('form, [data-testid="sign-up-form"]');
-    if ((await signUpForm.count()) > 0) {
-      await expect(signUpForm.first()).toBeVisible();
-    }
+  test('should show and close the sign in modal', async ({ page }) => {
+    await safeGoto(page, '/');
+    await testSignInModal(page, 'click-outside');
   });
 
   test('should navigate to protected routes', async ({ page }) => {
@@ -175,8 +139,6 @@ test.describe('Navigation', () => {
       '/sports/all-sports',
       '/sports/live',
       '/dashboard',
-      '/sign-in',
-      '/sign-up',
     ];
 
     for (const url of testUrls) {
@@ -197,12 +159,7 @@ test.describe('Navigation', () => {
 
   test('should handle navigation with query parameters', async ({ page }) => {
     // Test navigation with query parameters
-    const testUrls = [
-      '/sports/nba?season=2024',
-      '/sports/nfl?week=1',
-      '/dashboard?tab=profile',
-      '/sign-in?redirect=/dashboard',
-    ];
+    const testUrls = ['/sports/nba?season=2024', '/sports/nfl?week=1', '/dashboard?tab=profile'];
 
     for (const url of testUrls) {
       // Navigate to URL with query parameters

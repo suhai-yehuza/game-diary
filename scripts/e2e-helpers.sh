@@ -63,7 +63,7 @@ start_e2e_server() {
 
     # Start server in background with E2E environment variables
     echo "🚀 Starting development server..."
-    E2E_TESTING=true FORCE_MOCK_API=true pnpm dev -p 8081 > /tmp/e2e-server.log 2>&1 &
+    FORCE_MOCK_API=true pnpm dev -p 8081 > /tmp/e2e-server.log 2>&1 &
     local server_pid=$!
 
     # Wait for server to start with better error handling

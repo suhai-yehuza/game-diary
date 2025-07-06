@@ -54,7 +54,12 @@ export function SignInButton({ children, className }: ISignInButtonProps) {
 
   return (
     <div ref={modalRef}>
-      <button type="button" onClick={handleSignIn} className={className}>
+      <button
+        type="button"
+        onClick={handleSignIn}
+        className={className}
+        data-testid="sign-in-button"
+      >
         {children}
       </button>
     </div>

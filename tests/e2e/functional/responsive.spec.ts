@@ -15,6 +15,7 @@ import { MOCK_NBA_GAMES } from '@src/lib/mock/nbaGamesMock';
 import { MOCK_NBA_TEAMS } from '@src/lib/mock/nbaTeamsMock';
 import { MOCK_NBA_STANDINGS } from '@src/lib/mock/nbaStandingsMock';
 import { MOCK_NBA_PLAYERS } from '@src/lib/mock/nbaPlayersMock';
+import { testSignInModal } from '@tests/e2e/utils/auth-modal';
 
 // Critical tests are handled by the compound runner
 
@@ -51,8 +52,6 @@ test.describe('Responsive Tests (Extends Critical)', () => {
     '/sports/all-sports',
     '/sports/live',
     '/dashboard',
-    '/sign-in',
-    '/sign-up',
   ];
 
   for (const viewport of viewports) {
@@ -117,7 +116,6 @@ test.describe('Responsive Tests (Extends Critical)', () => {
               try {
                 await expect(element.first()).toBeVisible({ timeout: 5000 });
                 mainContentFound = true;
-                console.log(`Found main content using selector: ${selector}`);
                 break;
               } catch (error) {
                 console.log(`Selector ${selector} found but not visible`);
@@ -618,20 +616,16 @@ test.describe('Responsive Tests (Extends Critical)', () => {
 
     test('@responsive should handle mobile keyboard', async ({ page }) => {
       await page.setViewportSize({ width: 375, height: 667 });
-      await safeGoto(page, '/sign-in');
+      await safeGoto(page, '/');
       await waitForPageLoad(page);
 
-      // If a 'Sign In' button is visible (e.g., in header), click it to open the sign-in form/modal
-      const signInButton = page.locator('header').getByRole('button', { name: /sign in/i });
-      if (await signInButton.isVisible().catch(() => false)) {
-        await signInButton.click();
-        await page.waitForTimeout(500);
-      }
+      // Open the sign-in modal from the header
+      const signInButton = page.getByRole('button', { name: /sign in/i });
+      await expect(signInButton).toBeVisible();
+      await signInButton.click();
+      await page.waitForTimeout(500);
 
-      // Scroll to the main content area in case the form is off-screen
-      await page.locator('main').scrollIntoViewIfNeeded();
-
-      // Try to find the email textbox by role and label
+      // Wait for modal to appear and find the email input
       const emailInput = page.getByRole('textbox', { name: /email/i });
       await expect(emailInput).toBeVisible({ timeout: 5000 });
       await emailInput.click();
@@ -640,6 +634,11 @@ test.describe('Responsive Tests (Extends Critical)', () => {
 
       // Check that virtual keyboard doesn't break layout
       await expect(page.locator('body')).toBeVisible();
+    });
+
+    test('should show and close the sign in modal (responsive)', async ({ page }) => {
+      await safeGoto(page, '/');
+      await testSignInModal(page, 'escape');
     });
   });
 

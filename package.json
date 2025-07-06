@@ -47,7 +47,7 @@
     "test:all:strict": "pnpm test:strict && pnpm test:e2e:quickie",
     "=====E2E Testing=====": "=====+=====+=====+=====+=====",
     "test:e2e:mock-verification": "playwright test tests/e2e/functional/mock-verification.spec.ts --config=playwright.fast.config.ts",
-    "test:e2e:quickie": "playwright test --grep @fast --config=playwright.fast.config.ts",
+    "test:e2e:sanity": "playwright test --grep @sanity --config=playwright.sanity.config.ts",
     "test:e2e:smoke": "playwright test tests/e2e/functional/smoke.spec.ts --config=playwright.fast.config.ts",
     "test:e2e:critical": "playwright test tests/e2e/functional/critical.spec.ts --config=playwright.popular.config.ts",
     "test:e2e:responsive": "playwright test tests/e2e/functional/responsive.spec.ts --config=playwright.popular.config.ts",
@@ -229,7 +229,9 @@
     "test:failing:legacy": "./scripts/run-failing.sh files",
     "test:failing:quickie:legacy": "./scripts/run-failing.sh files playwright.fast.config.ts line",
     "test:failing:popular:legacy": "./scripts/run-failing.sh files playwright.popular.config.ts line",
-    "test:failing:responsive:legacy": "./scripts/run-failing.sh files playwright.popular.config.ts line tests/e2e/functional/responsive.spec.ts"
+    "test:failing:responsive:legacy": "./scripts/run-failing.sh files playwright.popular.config.ts line tests/e2e/functional/responsive.spec.ts",
+    "test:e2e:clerk-auth": "playwright test tests/e2e/pages/clerk-auth.spec.ts --config=playwright.pages.config.ts",
+    "e2e:sanity": "pnpm test:e2e:sanity"
   },
   "dependencies": {
     "@apollo/client": "3.13.8",

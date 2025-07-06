@@ -1,7 +1,6 @@
 // Export all lazy loading components
 export { LazyLiveGamesDetail } from '@/components/lazy/live-games-detail';
 export { LazyAdminExperimentalPage } from '@/components/lazy/admin-experimental';
-export { LazyHeader, LazyTestHeader } from '@/components/lazy/header';
 export {
   LazyNBAPage,
   LazyNFLPage,

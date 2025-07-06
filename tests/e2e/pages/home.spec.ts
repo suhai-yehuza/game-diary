@@ -12,6 +12,7 @@ import {
   checkResponsiveBehavior,
   takeDebugScreenshot,
 } from '@tests/e2e/utils/test-utils';
+import { testSignInModal } from '@tests/e2e/utils/auth-modal';
 
 test.describe.configure({ retries: 2 }); // TEMP: Retry flaky tests while stabilizing
 
@@ -115,28 +116,9 @@ test.describe('Home Page', () => {
     }
   });
 
-  test('should have proper authentication links', async ({ page }) => {
-    // Check for sign in link or button in header
-    const signInLink = page.locator('a[href*="/sign-in"], a[href*="/login"]');
-    const signInButton = page.locator('header').getByRole('button', { name: /sign in/i });
-    if ((await signInLink.count()) > 0) {
-      await expect(signInLink.first()).toBeVisible();
-      await expect(signInLink.first()).toBeEnabled();
-    } else if (await signInButton.isVisible().catch(() => false)) {
-      await expect(signInButton).toBeVisible();
-      await expect(signInButton).toBeEnabled();
-    }
-
-    // Check for sign up link or button in header
-    const signUpLink = page.locator('a[href*="/sign-up"], a[href*="/register"]');
-    const signUpButton = page.locator('header').getByRole('button', { name: /sign up/i });
-    if ((await signUpLink.count()) > 0) {
-      await expect(signUpLink.first()).toBeVisible();
-      await expect(signUpLink.first()).toBeEnabled();
-    } else if (await signUpButton.isVisible().catch(() => false)) {
-      await expect(signUpButton).toBeVisible();
-      await expect(signUpButton).toBeEnabled();
-    }
+  test('should show and close the sign in modal', async ({ page }) => {
+    await safeGoto(page, '/');
+    await testSignInModal(page, 'escape');
   });
 
   test('should have proper content sections', async ({ page }) => {
@@ -160,7 +142,7 @@ test.describe('Home Page', () => {
   test('should have proper call-to-action elements', async ({ page }) => {
     // Check for CTA buttons
     const ctaButtons = page.locator(
-      'button:has-text("Get Started"), button:has-text("Sign Up"), button:has-text("Learn More"), a[href*="/sign-up"]'
+      'button:has-text("Get Started"), button:has-text("Learn More")'
     );
     const ctaCount = await ctaButtons.count();
 

@@ -22,8 +22,6 @@ test.describe('Cross Browser Compatibility', () => {
     '/sports/all-sports',
     '/sports/live',
     '/dashboard',
-    '/sign-in',
-    '/sign-up',
   ];
 
   const userAgents = [

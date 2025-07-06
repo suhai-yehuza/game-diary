@@ -43,7 +43,6 @@ show_usage() {
     echo "  $0 responsive 3600"
     echo ""
     echo "Environment variables:"
-    echo "  E2E_TESTING=true - Enable E2E testing mode"
     echo "  FORCE_MOCK_API=true - Force API mocking"
 }
 
@@ -54,8 +53,6 @@ run_basic_tests() {
     local timeout="$3"
 
     # Set environment variables for E2E testing
-    export E2E_TESTING=true
-    export FORCE_MOCK_API=true
     echo "🔧 E2E testing environment variables set"
 
     # Add timeout wrapper if timeout is provided
@@ -127,8 +124,6 @@ run_responsive_tests() {
     echo "⏰ Timeout: ${timeout} seconds"
 
     # Set environment variables for E2E testing
-    export E2E_TESTING=true
-    export FORCE_MOCK_API=true
     echo "🔧 E2E testing environment variables set"
 
     # Create a temporary script for timeout handling

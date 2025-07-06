@@ -3,7 +3,6 @@
 import Link from 'next/link';
 import React from 'react';
 
-import { TestSafeSignedIn } from '@/lib/utils/clerk-test-utils';
 import { LiveGamesDetail } from '@src/app/components/live-games-detail';
 
 export default function NBAPage() {
@@ -32,15 +31,13 @@ export default function NBAPage() {
         </div>
       </div>
 
-      <TestSafeSignedIn>
-        <div>
-          <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-            <UserWelcome />
-          </div>
-
-          <LiveGamesDetail />
+      <div>
+        <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+          <UserWelcome />
         </div>
-      </TestSafeSignedIn>
+
+        <LiveGamesDetail />
+      </div>
     </section>
   );
 }

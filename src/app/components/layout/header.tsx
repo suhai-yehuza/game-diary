@@ -17,9 +17,6 @@ import {
 } from '@/app/components/ui/dropdown-menu';
 import type { NavItemProps } from '@/lib/types/componentTypes';
 
-// Check if we're in a test environment
-const isTestEnvironment = process.env.E2E_TESTING === 'true' || process.env.NODE_ENV === 'test';
-
 function SearchBarContent() {
   const [search_query, setSearchQuery] = useState('');
   const [debounced_query, setDebouncedQuery] = useState('');
@@ -244,17 +241,13 @@ function AdminNavContent({ isActive }: { isActive: (path: string) => boolean }) 
 }
 
 function AdminNav({ isActive }: { isActive: (path: string) => boolean }) {
-  // In test environment, don't render admin nav
-  if (isTestEnvironment) {
-    return null;
-  }
-
-  try {
-    return <AdminNavContent isActive={isActive} />;
-  } catch {
-    // If Clerk is not available (e.g., in test environment), don't render admin nav
-    return null;
-  }
+  return (
+    <Suspense fallback={<div className="w-20 h-6 bg-gray-200 rounded animate-pulse" />}>
+      <SignedIn>
+        <AdminNavContent isActive={isActive} />
+      </SignedIn>
+    </Suspense>
+  );
 }
 
 function NavigationLinks({
@@ -314,7 +307,9 @@ function AuthControlsContent() {
       <div className="flex items-center">
         <SignedOut>
           <span className="bg-blue-600 text-white hover:bg-blue-700 focus:ring-2 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-1 shadow-sm transition-all border border-blue-700 min-w-[44px] min-h-[32px] flex-shrink-0 whitespace-nowrap">
-            <SignInButton mode="modal">Sign In</SignInButton>
+            <SignInButton mode="modal" data-testid="sign-in-button">
+              Sign In
+            </SignInButton>
           </span>
         </SignedOut>
         <SignedIn>
@@ -326,24 +321,11 @@ function AuthControlsContent() {
 }
 
 function ClientOnlyAuthControls() {
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
-
-  if (!mounted) {
-    return <div className="w-10 h-10 bg-gray-200 rounded animate-pulse" />;
-  }
-
-  // In test environment, show a placeholder instead of auth controls
-  if (isTestEnvironment) {
-    return <div className="w-10 h-10 bg-gray-200 rounded animate-pulse" />;
-  }
-
-  try {
-    return <AuthControlsContent />;
-  } catch {
-    // If Clerk is not available, show a placeholder
-    return <div className="w-10 h-10 bg-gray-200 rounded animate-pulse" />;
-  }
+  return (
+    <Suspense fallback={<div className="w-10 h-10 bg-gray-200 rounded animate-pulse" />}>
+      <AuthControlsContent />
+    </Suspense>
+  );
 }
 
 export function Header() {

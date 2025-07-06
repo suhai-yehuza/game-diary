@@ -42,7 +42,6 @@ const requiredEnvSchema = z.object({
   // CI/Testing flags
   CI: z.string().optional(),
   GITHUB_ACTIONS: z.string().optional(),
-  E2E_TESTING: z.string().optional(),
   FORCE_MOCK_API: z.string().optional(),
 });
 
@@ -52,13 +51,9 @@ function validateEnvironment(): void {
   console.log('🔍 Validating environment variables...');
 
   const isCI = process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true';
-  const isTest = process.env.NODE_ENV === 'test' || process.env.E2E_TESTING === 'true';
-  const isE2E = process.env.E2E_TESTING === 'true';
 
   console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`CI: ${isCI}`);
-  console.log(`Test: ${isTest}`);
-  console.log(`E2E: ${isE2E}`);
 
   try {
     // Parse and validate environment variables
@@ -74,12 +69,7 @@ function validateEnvironment(): void {
     }
 
     // Clerk keys are required for production/staging (unless in test/E2E or CI)
-    if (
-      !isTest &&
-      !isE2E &&
-      !isCI &&
-      (env.NODE_ENV === 'production' || env.NODE_ENV === 'staging')
-    ) {
+    if (!isCI && (env.NODE_ENV === 'production' || env.NODE_ENV === 'staging')) {
       if (!env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY) {
         errors.push('NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY is required for production/staging');
       }
@@ -100,7 +90,7 @@ function validateEnvironment(): void {
     }
 
     // Redis is optional but recommended for production
-    if (!isTest && !isE2E && env.NODE_ENV === 'production') {
+    if (!env.NODE_ENV === 'production') {
       if (!env.UPSTASH_REDIS_REST_URL && !env.REDIS_URL) {
         warnings.push('Redis URL not configured - caching may be limited');
       }

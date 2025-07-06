@@ -18,7 +18,6 @@ To avoid API rate limiting issues and ensure reliable E2E tests, we use a compre
 
 Set these environment variables to enable mock mode:
 
-- `E2E_TESTING=true` - Enables E2E testing mode
 - `FORCE_MOCK_API=true` - Forces API proxy to return mock data
 
 ### Mock Data Sources
@@ -38,7 +37,6 @@ The API proxy (`src/app/api/proxy/[...endpoint]/route.ts`) automatically returns
 - `NODE_ENV === 'test'`
 - `CI === 'true'`
 - `GITHUB_ACTIONS === 'true'`
-- `E2E_TESTING === 'true'`
 - `FORCE_MOCK_API === 'true'`
 
 ### Playwright Route Mocking

@@ -1,5 +1,6 @@
 import { Page, expect, Locator } from '@playwright/test';
 import { TestConfig } from '../../../src/lib/types/e2e-test-types';
+import { PERFORMANCE_THRESHOLDS } from './constants';
 
 /**
  * Test utilities for e2e tests

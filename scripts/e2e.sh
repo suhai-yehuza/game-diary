@@ -86,8 +86,6 @@ run_basic_tests() {
     local timeout="$4"
 
     # Set environment variables for E2E testing
-    export E2E_TESTING=true
-    export FORCE_MOCK_API=true
     log_info "E2E testing environment variables set"
 
     case "$mode" in
@@ -178,8 +176,7 @@ run_debug_tests() {
 
     # Set debug environment variables
     export PWDEBUG=1
-    export E2E_TESTING=true
-    export FORCE_MOCK_API=true
+    log_info "E2E testing environment variables set"
 
     for opt in $options; do
         case "$opt" in
@@ -268,8 +265,6 @@ run_responsive_tests() {
     log_info "Timeout: ${timeout} seconds"
 
     # Set environment variables for E2E testing
-    export E2E_TESTING=true
-    export FORCE_MOCK_API=true
     log_info "E2E testing environment variables set"
 
     # Run responsive tests with timeout
