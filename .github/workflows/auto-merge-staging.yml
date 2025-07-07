@@ -28,6 +28,20 @@ jobs:
         run: |
           gh auth status || echo "GitHub CLI not authenticated, proceeding with token..."
 
+      - name: Ensure auto-merge label exists
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Check if auto-merge label exists, create if it doesn't
+          if ! gh label list --json name --jq '.[] | select(.name == "auto-merge")' 2>/dev/null | grep -q "auto-merge"; then
+            echo "Creating auto-merge label..."
+            gh label create "auto-merge" \
+              --description "Automated pull request for staging to master merge" \
+              --color "0e8a16" 2>/dev/null || echo "Label creation failed or already exists"
+          else
+            echo "auto-merge label already exists"
+          fi
+
       - name: Fetch all branches
         run: |
           git fetch origin master
@@ -63,6 +77,7 @@ jobs:
               --base master \
               --head staging \
               --label "auto-merge"
+            echo "PR created successfully with auto-merge label"
           else
             echo "PR #$PR_NUMBER already exists, updating..."
           fi
