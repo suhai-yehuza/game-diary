@@ -1,0 +1,124 @@
+name: Check and Merge Staging to Master (Hourly)
+
+# Hourly workflow that:
+# - Checks for successful staging commits that are 24+ hours old
+# - Merges those commits to master if they're not already there
+# - Only processes commits that have passed staging validation
+
+on:
+  schedule:
+    - cron: '0 * * * *' # every hour
+
+permissions:
+  contents: write
+
+jobs:
+  check-and-merge:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: staging
+
+      - name: Set up Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Fetch all branches
+        run: |
+          git fetch origin master
+          git fetch origin staging
+
+      - name: Get staging commits not in master
+        id: get_commits
+        run: |
+          # Get all staging commits that are not in master
+          STAGING_COMMITS=$(git log --oneline origin/master..origin/staging --format="%H %ct %s" | tac)
+
+          if [ -z "$STAGING_COMMITS" ]; then
+            echo "No new commits in staging"
+            echo "commits_to_process=" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          echo "Found commits in staging not in master:"
+          echo "$STAGING_COMMITS"
+
+          # Process each commit to check if it's 24+ hours old
+          CURRENT_TIME=$(date +%s)
+          COMMITS_TO_MERGE=""
+
+          while IFS= read -r line; do
+            if [ -n "$line" ]; then
+              COMMIT_HASH=$(echo "$line" | cut -d' ' -f1)
+              COMMIT_TIME=$(echo "$line" | cut -d' ' -f2)
+              COMMIT_MSG=$(echo "$line" | cut -d' ' -f3-)
+
+              AGE_HOURS=$(( (CURRENT_TIME - COMMIT_TIME) / 3600 ))
+
+              echo "Commit: $COMMIT_HASH"
+              echo "  Age: $AGE_HOURS hours"
+              echo "  Message: $COMMIT_MSG"
+
+              if [ "$AGE_HOURS" -ge 24 ]; then
+                echo "  ✅ Ready for merge (24+ hours old)"
+                COMMITS_TO_MERGE="$COMMITS_TO_MERGE $COMMIT_HASH"
+              else
+                echo "  ⏳ Not ready yet ($AGE_HOURS hours old)"
+              fi
+            fi
+          done <<< "$STAGING_COMMITS"
+
+          if [ -n "$COMMITS_TO_MERGE" ]; then
+            echo "commits_to_process=true" >> $GITHUB_OUTPUT
+            echo "commits_list=$COMMITS_TO_MERGE" >> $GITHUB_OUTPUT
+          else
+            echo "commits_to_process=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Merge commits to master
+        if: steps.get_commits.outputs.commits_to_process == 'true'
+        run: |
+          echo "Merging commits to master..."
+
+          # Checkout master
+          git checkout master
+          git pull origin master
+
+          # Merge each commit individually
+          for commit in ${{ steps.get_commits.outputs.commits_list }}; do
+            echo "Merging commit: $commit"
+
+            # Check if fast-forward merge is possible
+            if git merge-base --is-ancestor master "$commit"; then
+              echo "Fast-forward merge possible for $commit"
+              git merge --ff-only "$commit"
+            else
+              echo "Creating merge commit for $commit"
+              git merge --no-ff "$commit" -m "Merge staging commit $commit to master"
+            fi
+          done
+
+          # Push to master
+          git push origin master
+
+          echo "Successfully merged commits to master"
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "## 🔄 Hourly Staging to Master Check" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Commits to Process:** ${{ steps.get_commits.outputs.commits_to_process }}" >> $GITHUB_STEP_SUMMARY
+
+          if [ "${{ steps.get_commits.outputs.commits_to_process }}" = "true" ]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "✅ **Successfully merged commits to master**" >> $GITHUB_STEP_SUMMARY
+            echo "**Commits merged:** ${{ steps.get_commits.outputs.commits_list }}" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "⏭️ **No commits ready for merge (must be 24+ hours old)**" >> $GITHUB_STEP_SUMMARY
+          fi

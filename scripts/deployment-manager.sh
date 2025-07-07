@@ -151,6 +151,7 @@ add_to_history() {
 schedule_auto_deploy() {
     local staging_deploy_time=$(date +%s)
     local prod_deploy_time=$((staging_deploy_time + AUTO_DEPLOY_DELAY))
+    # Cross-platform date formatting: Linux (CI) first, then macOS fallback
     local prod_deploy_date=$(date -u -d "@$prod_deploy_time" +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || date -u -r "$prod_deploy_time" +%Y-%m-%dT%H:%M:%SZ)
 
     log_info "Scheduling auto-deployment to production for: $prod_deploy_date"
@@ -177,11 +178,11 @@ check_auto_deploy_due() {
     local scheduled_time=$(cat "$schedule_file" | jq -r '.prod_deploy_time')
     local current_time=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 
-    # Convert to timestamps for comparison
-    local scheduled_timestamp=$(date -d "$scheduled_time" +%s 2>/dev/null || date -r "$scheduled_time" +%s)
-    local current_timestamp=$(date -d "$current_time" +%s 2>/dev/null || date -r "$current_time" +%s)
+    # Convert to timestamps for comparison - cross-platform: Linux (CI) first, then macOS fallback
+    local scheduled_timestamp=$(date -d "$scheduled_time" +%s 2>/dev/null || date -j -f "%Y-%m-%dT%H:%M:%SZ" "$scheduled_time" +%s 2>/dev/null || date -r "$scheduled_time" +%s 2>/dev/null || echo "0")
+    local current_timestamp=$(date -d "$current_time" +%s 2>/dev/null || date -j -f "%Y-%m-%dT%H:%M:%SZ" "$current_time" +%s 2>/dev/null || date -r "$current_time" +%s 2>/dev/null || echo "0")
 
-    if [ $current_timestamp -ge $scheduled_timestamp ]; then
+    if [ "$scheduled_timestamp" != "0" ] && [ "$current_timestamp" != "0" ] && [ $current_timestamp -ge $scheduled_timestamp ]; then
         return 0
     else
         return 1
@@ -267,8 +268,8 @@ show_deployment_status() {
         echo "Scheduled Production Deploy: $scheduled_time"
 
         local current_time=$(date -u +%Y-%m-%dT%H:%M:%SZ)
-        local scheduled_timestamp=$(date -d "$scheduled_time" +%s 2>/dev/null || date -r "$scheduled_time" +%s)
-        local current_timestamp=$(date -d "$current_time" +%s 2>/dev/null || date -r "$current_time" +%s)
+        local scheduled_timestamp=$(date -d "$scheduled_time" +%s 2>/dev/null || date -j -f "%Y-%m-%dT%H:%M:%SZ" "$scheduled_time" +%s 2>/dev/null || date -r "$scheduled_time" +%s 2>/dev/null || echo "0")
+        local current_timestamp=$(date -d "$current_time" +%s 2>/dev/null || date -j -f "%Y-%m-%dT%H:%M:%SZ" "$current_time" +%s 2>/dev/null || date -r "$current_time" +%s 2>/dev/null || echo "0")
         local time_remaining=$((scheduled_timestamp - current_timestamp))
 
         if [ $time_remaining -gt 0 ]; then

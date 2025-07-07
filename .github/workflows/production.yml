@@ -2,9 +2,10 @@ name: Vercel Production Deployment
 
 # Production deployment workflow with:
 # - Manual trigger capability
-# - Auto-deployment support after staging soak
+# - Scheduled deployments (M-Th 9AM PT)
+# - Push to master deployments
 # - Comprehensive validation before deployment
-# - Post-deployment monitoring
+# - Post-deployment validation (soak period handled in staging)
 # - Rollback capabilities
 
 env:
@@ -17,7 +18,6 @@ env:
   # Production deployment configuration
   VERCEL_PRODUCTION_URL: ${{ secrets.VERCEL_PRODUCTION_URL }}
   VERCEL_STAGING_URL: ${{ secrets.VERCEL_STAGING_URL }}
-  SOAK_DURATION: 1800 # 30 minutes for production soak
   NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
   CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
   CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
@@ -43,8 +43,7 @@ on:
         required: false
         default: false
         type: boolean
-  repository_dispatch:
-    types: [auto-deploy-production]
+  # Auto-deploy removed - production deployments are now manual or scheduled only
 
 jobs:
   validate-staging:
@@ -281,7 +280,7 @@ jobs:
           elif [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             ./scripts/deployment-manager.sh manual-deploy "${{ github.event.inputs.reason || 'Manual deployment' }}"
           else
-            ./scripts/deployment-manager.sh manual-deploy "Auto-deployment after staging soak"
+            ./scripts/deployment-manager.sh manual-deploy "Scheduled production deployment"
           fi
       - name: Check commit age (must be at least 24 hours old)
         run: |
@@ -294,49 +293,9 @@ jobs:
             exit 78
           fi
 
-  production-soak:
-    name: Production Soak Period
-    needs: [deploy]
-    runs-on: ubuntu-latest
-    if: success()
-    environment: Production
-    env:
-      DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      VERCEL_PRODUCTION_URL: ${{ secrets.VERCEL_PRODUCTION_URL }}
-      SOAK_DURATION: 1800
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: ${{ env.PNPM_VERSION }}
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'pnpm'
-      - name: Cache pnpm store
-        uses: actions/cache@v4
-        with:
-          path: ~/.pnpm-store
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
-      - run: pnpm install --frozen-lockfile
-      - name: Start Production Soak Period
-        run: ./scripts/soak-monitor.sh start production ${{ env.SOAK_DURATION }}
-      - name: Monitor Production Soak Period
-        run: ./scripts/soak-monitor.sh monitor production ${{ env.SOAK_DURATION }}
-        timeout-minutes: 35
-      - name: Upload production soak logs (on failure)
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: production-soak-logs
-          path: ./.soak/
-          retention-days: 7
-
   post-deployment-smoke:
     name: Post-Deployment Smoke Tests
-    needs: [production-soak]
+    needs: [deploy]
     runs-on: ubuntu-latest
     if: success()
     environment: Production

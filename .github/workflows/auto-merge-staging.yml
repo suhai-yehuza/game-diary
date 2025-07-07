@@ -1,4 +1,8 @@
-name: Auto PR - Staging to Master After 24h Soak
+name: Auto Merge - Staging to Master
+
+# Auto-merge workflow that runs hourly to merge staging into master
+# whenever there are new commits in staging that are not yet in master
+# Note: This is now a backup mechanism since staging pushes trigger immediate merges
 
 on:
   schedule:
@@ -9,7 +13,7 @@ permissions:
   pull-requests: write
 
 jobs:
-  auto-pr:
+  auto-merge:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -22,69 +26,58 @@ jobs:
           git fetch origin master
           git fetch origin staging
 
-      - name: Get latest staging commit info
-        id: info
-        run: |
-          STAGING_COMMIT=$(git rev-parse origin/staging)
-          STAGING_TIME=$(git show -s --format=%ct $STAGING_COMMIT)
-          NOW=$(date +%s)
-          AGE=$(( (NOW - STAGING_TIME) / 3600 ))
-          echo "staging_commit=$STAGING_COMMIT" >> $GITHUB_OUTPUT
-          echo "staging_time=$STAGING_TIME" >> $GITHUB_OUTPUT
-          echo "age=$AGE" >> $GITHUB_OUTPUT
-
-      - name: Check if staging commit is already in master or too new
+      - name: Check if staging has new commits
         id: check
         run: |
-          git fetch origin master
-          STAGING_COMMIT=${{ steps.info.outputs.staging_commit }}
-          AGE=${{ steps.info.outputs.age }}
-          if git merge-base --is-ancestor $STAGING_COMMIT origin/master; then
-            echo "Staging commit is already in master. Exiting."
-            echo "should_continue=false" >> $GITHUB_OUTPUT
-            exit 0
+          STAGING_COMMIT=$(git rev-parse origin/staging)
+          MASTER_COMMIT=$(git rev-parse origin/master)
+
+          if [ "$STAGING_COMMIT" = "$MASTER_COMMIT" ]; then
+            echo "staging_ahead=false" >> $GITHUB_OUTPUT
+            echo "No new commits in staging"
+          else
+            echo "staging_ahead=true" >> $GITHUB_OUTPUT
+            echo "Staging is ahead of master"
           fi
-          if [ "$AGE" -lt 24 ]; then
-            echo "Staging commit is only $AGE hours old. Exiting."
-            echo "should_continue=false" >> $GITHUB_OUTPUT
-            exit 0
+
+      - name: Create or update PR
+        if: steps.check.outputs.staging_ahead == 'true'
+        run: |
+          # Check if PR already exists
+          PR_NUMBER=$(gh pr list --head staging --base master --json number --jq '.[0].number' 2>/dev/null || echo "")
+
+          if [ -z "$PR_NUMBER" ]; then
+            echo "Creating new PR from staging to master"
+            gh pr create \
+              --title "Auto-merge: staging → master" \
+              --body "Automated PR from staging to master branch" \
+              --base master \
+              --head staging \
+              --label "auto-merge"
+          else
+            echo "PR #$PR_NUMBER already exists, updating..."
           fi
-          echo "should_continue=true" >> $GITHUB_OUTPUT
 
-      - name: Find existing PR
-        id: find_pr
-        if: steps.check.outputs.should_continue == 'true'
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const prs = await github.rest.pulls.list({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              state: 'open',
-              head: `${context.repo.owner}:staging`,
-              base: 'master',
-            });
-            if (prs.data.length > 0) {
-              core.setOutput('pr_number', prs.data[0].number);
-            } else {
-              core.setOutput('pr_number', '');
-            }
+      - name: Enable auto-merge
+        if: steps.check.outputs.staging_ahead == 'true'
+        run: |
+          PR_NUMBER=$(gh pr list --head staging --base master --json number --jq '.[0].number')
+          if [ ! -z "$PR_NUMBER" ]; then
+            echo "Enabling auto-merge for PR #$PR_NUMBER"
+            gh pr merge $PR_NUMBER --auto --merge
+          fi
 
-      - name: Create PR if not exists
-        id: create_pr
-        if: steps.check.outputs.should_continue == 'true' && steps.find_pr.outputs.pr_number == ''
-        uses: peter-evans/create-pull-request@v6
-        with:
-          title: 'Auto: Merge staging to master after 24h soak'
-          body: 'This PR was automatically created after the latest staging commit soaked for 24 hours.'
-          base: master
-          branch: staging
-          draft: false
-          delete-branch: false
+      - name: Summary
+        if: always()
+        run: |
+          echo "## 🔄 Auto-Merge Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Staging Ahead of Master:** ${{ steps.check.outputs.staging_ahead }}" >> $GITHUB_STEP_SUMMARY
 
-      - name: Enable automerge on PR
-        if: steps.check.outputs.should_continue == 'true'
-        uses: peter-evans/enable-pull-request-automerge@v3
-        with:
-          pull-request-number: ${{ steps.find_pr.outputs.pr_number || steps.create_pr.outputs.pull-request-number }}
-          merge-method: squash
+          if [ "${{ steps.check.outputs.staging_ahead }}" = "true" ]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "✅ **PR created/updated and auto-merge enabled**" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "⏭️ **No new commits to merge**" >> $GITHUB_STEP_SUMMARY
+          fi
