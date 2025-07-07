@@ -15,13 +15,18 @@ permissions:
 jobs:
   auto-merge:
     runs-on: ubuntu-latest
-    env:
-      GH_TOKEN: ${{ github.token }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Authenticate GitHub CLI
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh auth status || echo "GitHub CLI not authenticated, proceeding with token..."
 
       - name: Fetch all branches
         run: |
@@ -44,6 +49,8 @@ jobs:
 
       - name: Create or update PR
         if: steps.check.outputs.staging_ahead == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           # Check if PR already exists
           PR_NUMBER=$(gh pr list --head staging --base master --json number --jq '.[0].number' 2>/dev/null || echo "")
@@ -62,6 +69,8 @@ jobs:
 
       - name: Enable auto-merge
         if: steps.check.outputs.staging_ahead == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           PR_NUMBER=$(gh pr list --head staging --base master --json number --jq '.[0].number')
           if [ ! -z "$PR_NUMBER" ]; then
