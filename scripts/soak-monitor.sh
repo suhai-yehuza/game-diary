@@ -20,6 +20,8 @@ SOAK_METRICS_FILE="$SOAK_CONFIG_DIR/metrics.json"
 # Ensure soak directory exists before any logging
 init_soak_dir() {
     mkdir -p "$SOAK_CONFIG_DIR"
+    # Ensure log file exists
+    touch "$SOAK_LOG_FILE"
 }
 init_soak_dir
 
@@ -301,6 +303,8 @@ start_soak() {
     # Validate deployment URL
     if ! validate_deployment_url "$url" "$environment"; then
         log_error "Cannot start soak period: invalid deployment URL"
+        # Still create status file to indicate failure
+        echo "{\"status\":\"failed\",\"environment\":\"$environment\",\"start_time\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",\"duration\":$duration,\"url\":\"$url\",\"error\":\"Invalid deployment URL\"}" > "$SOAK_STATUS_FILE"
         exit 1
     fi
 
@@ -324,6 +328,8 @@ monitor_soak() {
     # Validate deployment URL
     if ! validate_deployment_url "$url" "$environment"; then
         log_error "Cannot monitor soak period: invalid deployment URL"
+        # Create failure status file
+        echo "{\"status\":\"failed\",\"environment\":\"$environment\",\"start_time\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",\"duration\":$duration,\"url\":\"$url\",\"error\":\"Invalid deployment URL during monitoring\"}" > "$SOAK_STATUS_FILE"
         exit 1
     fi
 
@@ -335,6 +341,9 @@ monitor_soak() {
     # Initialize files
     touch "$SOAK_CONFIG_DIR/health_checks.json"
     touch "$SOAK_CONFIG_DIR/performance_checks.json"
+
+    # Set up trap to ensure we always create final status file
+    trap 'create_final_status "$environment" "Interrupted"' INT TERM
 
     while [ $(date +%s) -lt $end_time ]; do
         local current_time=$(date +%s)
@@ -389,10 +398,22 @@ monitor_soak() {
     log_success "Soak period completed successfully for $environment"
     log "Final metrics: $final_metrics"
 
-    echo "{\"status\":\"completed\",\"environment\":\"$environment\",\"end_time\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",\"final_metrics\":$final_metrics}" > "$SOAK_STATUS_FILE"
+    create_final_status "$environment" "completed" "$final_metrics"
+}
 
-    # Save final metrics
-    echo "$final_metrics" > "$SOAK_METRICS_FILE"
+# Create final status file
+create_final_status() {
+    local environment=$1
+    local status=$2
+    local final_metrics=${3:-"null"}
+
+    if [ "$status" = "completed" ]; then
+        echo "{\"status\":\"completed\",\"environment\":\"$environment\",\"end_time\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",\"final_metrics\":$final_metrics}" > "$SOAK_STATUS_FILE"
+        # Save final metrics
+        echo "$final_metrics" > "$SOAK_METRICS_FILE"
+    else
+        echo "{\"status\":\"$status\",\"environment\":\"$environment\",\"end_time\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",\"error\":\"Soak period $status\"}" > "$SOAK_STATUS_FILE"
+    fi
 }
 
 # Show soak status

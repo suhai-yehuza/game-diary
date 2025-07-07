@@ -285,13 +285,17 @@ jobs:
           echo "=== Pre-monitor soak directory check ==="
           ls -la ./.soak/ 2>/dev/null || echo "Soak directory not found before monitoring"
 
-          # Monitor with error handling
-          if ./scripts/soak-monitor.sh monitor staging $SOAK_DURATION; then
-            echo "✅ Soak monitoring completed successfully"
-          else
-            echo "❌ Soak monitoring failed"
-            # Don't exit here, let the artifact upload still happen
-          fi
+          # Ensure soak directory exists before monitoring
+          mkdir -p ./.soak
+
+          # Monitor with error handling and timeout
+          timeout $SOAK_DURATION ./scripts/soak-monitor.sh monitor staging $SOAK_DURATION || {
+            echo "❌ Soak monitoring failed or timed out"
+            # Create a failure status file
+            echo '{"status":"failed","environment":"staging","end_time":"'$(date -u +%Y-%m-%dT%H:%M:%SZ)'","error":"Soak monitoring failed or timed out"}' > ./.soak/status.json
+          }
+
+          echo "✅ Soak monitoring step completed"
         continue-on-error: true
       - name: Check Soak Status
         run: |
@@ -324,16 +328,13 @@ jobs:
         run: |
           echo "=== Preparing and uploading soak results ==="
 
-          # Ensure soak directory exists
-          if [ ! -d ./.soak/ ]; then
-            echo "Creating soak directory..."
-            mkdir -p ./.soak
-          fi
+          # Always ensure soak directory exists
+          mkdir -p ./.soak
 
-          # Ensure status file exists
+          # Always ensure status file exists with fallback content
           if [ ! -f ./.soak/status.json ]; then
             echo "Creating fallback status file..."
-            echo '{"status":"failed","error":"Soak period did not complete properly","timestamp":"'$(date -u +%Y-%m-%dT%H:%M:%SZ)'"}' > ./.soak/status.json
+            echo '{"status":"failed","error":"Soak period did not complete properly","timestamp":"'$(date -u +%Y-%m-%dT%H:%M:%SZ)'","environment":"staging"}' > ./.soak/status.json
           fi
 
           # Create a summary file
@@ -352,6 +353,16 @@ jobs:
           echo "Status file exists: $([ -f ./.soak/status.json ] && echo "yes" || echo "no")" >> ./.soak/debug.log
           echo "Directory contents:" >> ./.soak/debug.log
           ls -la ./.soak/ >> ./.soak/debug.log 2>&1 || echo "Directory listing failed" >> ./.soak/debug.log
+
+          # Create a minimal metrics file if it doesn't exist
+          if [ ! -f ./.soak/metrics.json ]; then
+            echo '{"total_checks":0,"healthy_checks":0,"error_rate":1.0,"avg_response_time":0}' > ./.soak/metrics.json
+          fi
+
+          # Create a minimal log file if it doesn't exist
+          if [ ! -f ./.soak/soak.log ]; then
+            echo "[$(date +'%Y-%m-%d %H:%M:%S')] Soak period log initialized" > ./.soak/soak.log
+          fi
 
           echo "Soak directory contents:"
           ls -la ./.soak/
