@@ -253,31 +253,103 @@ jobs:
           echo "Starting soak period for staging deployment"
           echo "Deployment URL: $VERCEL_STAGING_URL"
           echo "Soak duration: $SOAK_DURATION seconds"
-          ./scripts/soak-monitor.sh start staging $SOAK_DURATION
+
+          # Debug: Check if soak script exists and is executable
+          ls -la ./scripts/soak-monitor.sh
+
+          # Debug: Check environment variables
+          echo "Environment check:"
+          echo "VERCEL_STAGING_URL: $VERCEL_STAGING_URL"
+          echo "SOAK_DURATION: $SOAK_DURATION"
+          echo "DATABASE_URL: ${DATABASE_URL:0:20}..."
+
+          # Start soak period with error handling
+          if ./scripts/soak-monitor.sh start staging $SOAK_DURATION; then
+            echo "✅ Soak period started successfully"
+          else
+            echo "❌ Failed to start soak period"
+            exit 1
+          fi
       - name: Monitor During Soak Period
         run: |
           echo "Monitoring deployment during soak period..."
-          ./scripts/soak-monitor.sh monitor staging $SOAK_DURATION
+
+          # Debug: Check if soak directory was created
+          echo "=== Pre-monitor soak directory check ==="
+          ls -la ./.soak/ 2>/dev/null || echo "Soak directory not found before monitoring"
+
+          # Monitor with error handling
+          if ./scripts/soak-monitor.sh monitor staging $SOAK_DURATION; then
+            echo "✅ Soak monitoring completed successfully"
+          else
+            echo "❌ Soak monitoring failed"
+            # Don't exit here, let the artifact upload still happen
+          fi
         continue-on-error: true
       - name: Check Soak Status
         run: |
           echo "=== Final Soak Status ==="
           ./scripts/soak-monitor.sh status
+
           echo "=== Soak Directory Contents ==="
-          ls -la ./.soak/ || echo "Soak directory not found"
+          if [ -d ./.soak/ ]; then
+            ls -la ./.soak/
+            echo "=== Soak Directory Size ==="
+            du -sh ./.soak/
+            echo "=== All Files in Soak Directory ==="
+            find ./.soak/ -type f -exec ls -la {} \;
+          else
+            echo "❌ Soak directory not found"
+            echo "Creating minimal soak directory for artifact upload..."
+            mkdir -p ./.soak
+            echo '{"status":"failed","error":"Soak directory was not created","timestamp":"'$(date -u +%Y-%m-%dT%H:%M:%SZ)'"}' > ./.soak/status.json
+          fi
+
           if [ -f ./.soak/status.json ]; then
             echo "=== Status File ==="
-            cat ./.soak/status.json | jq '.'
+            cat ./.soak/status.json | jq '.' 2>/dev/null || cat ./.soak/status.json
           else
-            echo "Status file not found"
+            echo "❌ Status file not found"
+            echo "Creating minimal status file..."
+            echo '{"status":"failed","error":"Status file was not created","timestamp":"'$(date -u +%Y-%m-%dT%H:%M:%SZ)'"}' > ./.soak/status.json
           fi
       - name: Upload Soak Results
+        run: |
+          echo "=== Preparing soak results for upload ==="
+
+          # Ensure soak directory exists
+          if [ ! -d ./.soak/ ]; then
+            echo "Creating soak directory..."
+            mkdir -p ./.soak
+          fi
+
+          # Ensure status file exists
+          if [ ! -f ./.soak/status.json ]; then
+            echo "Creating fallback status file..."
+            echo '{"status":"failed","error":"Soak period did not complete properly","timestamp":"'$(date -u +%Y-%m-%dT%H:%M:%SZ)'"}' > ./.soak/status.json
+          fi
+
+          # Create a summary file
+          echo "=== Soak Period Summary ===" > ./.soak/summary.txt
+          echo "Timestamp: $(date -u +%Y-%m-%dT%H:%M:%SZ)" >> ./.soak/summary.txt
+          echo "Environment: staging" >> ./.soak/summary.txt
+          echo "Deployment URL: $VERCEL_STAGING_URL" >> ./.soak/summary.txt
+          echo "Soak Duration: $SOAK_DURATION seconds" >> ./.soak/summary.txt
+          echo "Files in soak directory:" >> ./.soak/summary.txt
+          ls -la ./.soak/ >> ./.soak/summary.txt 2>&1 || echo "No files found" >> ./.soak/summary.txt
+
+          echo "Soak directory contents:"
+          ls -la ./.soak/
+        if: always()
+
+      - name: Upload Soak Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: soak-period-results
           path: |
             ./.soak/
           retention-days: 30
+          if-no-files-found: error
         if: always()
       - name: Fail if Soak Failed
         if: failure()
