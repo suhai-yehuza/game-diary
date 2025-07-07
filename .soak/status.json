@@ -1,7 +1,1 @@
-{
-  "status": "soaking",
-  "environment": "staging",
-  "start_time": "2025-07-04T06:54:18Z",
-  "duration": 60,
-  "url": "http://localhost:8081"
-}
+{"status":"completed","environment":"staging","end_time":"2025-07-07T06:43:10Z","final_metrics":{"total_checks":2,"healthy_checks":2,"error_rate":0,"avg_response_time":.1215}}

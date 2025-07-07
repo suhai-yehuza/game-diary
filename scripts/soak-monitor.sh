@@ -77,6 +77,37 @@ get_deployment_url() {
     esac
 }
 
+# Validate deployment URL
+validate_deployment_url() {
+    local url=$1
+    local environment=$2
+
+    if [ -z "$url" ] || [ "$url" = "http://localhost:8081" ]; then
+        log_warning "No valid deployment URL found for $environment"
+        log_warning "Please set the appropriate environment variable:"
+        case "$environment" in
+            "preview")
+                log_warning "  VERCEL_PREVIEW_URL"
+                ;;
+            "staging"|"staging-soak")
+                log_warning "  VERCEL_STAGING_URL"
+                ;;
+            "production")
+                log_warning "  VERCEL_PRODUCTION_URL"
+                ;;
+        esac
+        return 1
+    fi
+
+    # Test if the URL is accessible
+    if ! curl -s --max-time 10 --head "$url" > /dev/null 2>&1; then
+        log_warning "Deployment URL $url is not accessible"
+        return 1
+    fi
+
+    return 0
+}
+
 # Health check function
 perform_health_check() {
     local url=$1
@@ -88,8 +119,9 @@ perform_health_check() {
         return
     fi
 
-    # Perform HTTP health check
-    local response=$(curl -s -w "%{http_code}|%{time_total}" -o /dev/null "$url/api/health" 2>/dev/null || echo "000|999")
+    # Perform HTTP health check with better error handling
+    local temp_response_file=$(mktemp)
+    local response=$(curl -s -w "%{http_code}|%{time_total}" -o "$temp_response_file" "$url/api/health" 2>/dev/null || echo "000|999")
     local http_code=$(echo "$response" | cut -d'|' -f1)
     local response_time=$(echo "$response" | cut -d'|' -f2)
     local end_time=$(date +%s.%N)
@@ -97,13 +129,34 @@ perform_health_check() {
     # Calculate total time
     local total_time=$(echo "$end_time - $start_time" | bc -l 2>/dev/null || echo "999")
 
-    # Determine if health check passed
-    local is_healthy=false
-    if [ "$http_code" = "200" ] && [ "$(echo "$response_time < $MAX_RESPONSE_TIME" | bc -l 2>/dev/null || echo "0")" = "1" ]; then
-        is_healthy=true
+    # Check if response is valid JSON
+    local is_valid_json=false
+    if [ -s "$temp_response_file" ]; then
+        if jq empty "$temp_response_file" 2>/dev/null; then
+            is_valid_json=true
+        fi
     fi
 
-    echo "{\"timestamp\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",\"http_code\":\"$http_code\",\"response_time\":\"$response_time\",\"total_time\":\"$total_time\",\"healthy\":$is_healthy}"
+    # Determine if health check passed
+    local is_healthy=false
+    local error_msg=""
+
+    if [ "$http_code" = "200" ] && [ "$is_valid_json" = "true" ] && [ "$(echo "$response_time < $MAX_RESPONSE_TIME" | bc -l 2>/dev/null || echo "0")" = "1" ]; then
+        is_healthy=true
+    else
+        if [ "$http_code" != "200" ]; then
+            error_msg="HTTP $http_code"
+        elif [ "$is_valid_json" != "true" ]; then
+            error_msg="Invalid JSON response"
+        else
+            error_msg="Response time too slow"
+        fi
+    fi
+
+    # Clean up temp file
+    rm -f "$temp_response_file"
+
+    echo "{\"timestamp\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",\"http_code\":\"$http_code\",\"response_time\":\"$response_time\",\"total_time\":\"$total_time\",\"healthy\":$is_healthy,\"error\":\"$error_msg\"}"
 }
 
 # Performance check function
@@ -149,11 +202,19 @@ calculate_metrics() {
     while IFS= read -r line; do
         if [ -n "$line" ]; then
             total_checks=$((total_checks + 1))
-            local healthy=$(echo "$line" | jq -r '.healthy')
-            local response_time=$(echo "$line" | jq -r '.response_time')
 
-            if [ "$healthy" = "true" ]; then
+            # Safely parse JSON with error handling
+            local healthy="false"
+            local response_time="0"
+
+            if echo "$line" | jq -r '.healthy' 2>/dev/null | grep -q "true"; then
+                healthy="true"
                 healthy_checks=$((healthy_checks + 1))
+            fi
+
+            local parsed_response_time=$(echo "$line" | jq -r '.response_time' 2>/dev/null || echo "0")
+            if [ "$parsed_response_time" != "null" ] && [ -n "$parsed_response_time" ]; then
+                response_time="$parsed_response_time"
             fi
 
             total_response_time=$(echo "$total_response_time + $response_time" | bc -l 2>/dev/null || echo "$total_response_time")
@@ -175,8 +236,17 @@ calculate_metrics() {
 should_rollback() {
     local metrics=$1
 
-    local error_rate=$(echo "$metrics" | jq -r '.error_rate')
-    local avg_response_time=$(echo "$metrics" | jq -r '.avg_response_time')
+    # Safely parse metrics with error handling
+    local error_rate=$(echo "$metrics" | jq -r '.error_rate' 2>/dev/null || echo "1.0")
+    local avg_response_time=$(echo "$metrics" | jq -r '.avg_response_time' 2>/dev/null || echo "999")
+
+    # Handle null values
+    if [ "$error_rate" = "null" ] || [ -z "$error_rate" ]; then
+        error_rate="1.0"
+    fi
+    if [ "$avg_response_time" = "null" ] || [ -z "$avg_response_time" ]; then
+        avg_response_time="999"
+    fi
 
     # Rollback if error rate is too high
     if [ "$(echo "$error_rate > $MAX_ERROR_RATE" | bc -l 2>/dev/null || echo "0")" = "1" ]; then
@@ -228,6 +298,12 @@ start_soak() {
     log "Deployment URL: $url"
     log "Soak duration: $duration seconds"
 
+    # Validate deployment URL
+    if ! validate_deployment_url "$url" "$environment"; then
+        log_error "Cannot start soak period: invalid deployment URL"
+        exit 1
+    fi
+
     # Clear previous data
     rm -f "$SOAK_CONFIG_DIR"/health_checks.json "$SOAK_CONFIG_DIR"/performance_checks.json
 
@@ -244,6 +320,12 @@ monitor_soak() {
     local url=$(get_deployment_url "$environment")
 
     log "Starting soak monitoring for $environment"
+
+    # Validate deployment URL
+    if ! validate_deployment_url "$url" "$environment"; then
+        log_error "Cannot monitor soak period: invalid deployment URL"
+        exit 1
+    fi
 
     local start_time=$(date +%s)
     local end_time=$((start_time + duration))
@@ -279,7 +361,10 @@ monitor_soak() {
             local perf_result=$(perform_performance_check "$url")
             echo "$perf_result" >> "$SOAK_CONFIG_DIR/performance_checks.json"
 
-            local e2e_test=$(echo "$perf_result" | jq -r '.e2e_test')
+            local e2e_test=$(echo "$perf_result" | jq -r '.e2e_test' 2>/dev/null || echo "unknown")
+            if [ "$e2e_test" = "null" ] || [ -z "$e2e_test" ]; then
+                e2e_test="unknown"
+            fi
             log "Performance check $performance_check_count completed (E2E: $e2e_test)"
         fi
 
@@ -318,24 +403,29 @@ show_status() {
     fi
 
     local status=$(cat "$SOAK_STATUS_FILE")
-    local current_status=$(echo "$status" | jq -r '.status')
+    local current_status=$(echo "$status" | jq -r '.status' 2>/dev/null || echo "unknown")
 
     echo "=== Soak Period Status ==="
     echo "Status: $current_status"
-    echo "Environment: $(echo "$status" | jq -r '.environment // "unknown"')"
-    echo "Start Time: $(echo "$status" | jq -r '.start_time // "unknown"')"
-    echo "Duration: $(echo "$status" | jq -r '.duration // "unknown"') seconds"
-    echo "URL: $(echo "$status" | jq -r '.url // "unknown"')"
+    echo "Environment: $(echo "$status" | jq -r '.environment // "unknown"' 2>/dev/null || echo "unknown")"
+    echo "Start Time: $(echo "$status" | jq -r '.start_time // "unknown"' 2>/dev/null || echo "unknown")"
+    echo "Duration: $(echo "$status" | jq -r '.duration // "unknown"' 2>/dev/null || echo "unknown") seconds"
+    echo "URL: $(echo "$status" | jq -r '.url // "unknown"' 2>/dev/null || echo "unknown")"
 
     if [ "$current_status" = "completed" ]; then
-        echo "End Time: $(echo "$status" | jq -r '.end_time // "unknown"')"
-        echo "Final Metrics: $(echo "$status" | jq -r '.final_metrics // "unknown"')"
+        echo "End Time: $(echo "$status" | jq -r '.end_time // "unknown"' 2>/dev/null || echo "unknown")"
+        echo "Final Metrics: $(echo "$status" | jq -r '.final_metrics // "unknown"' 2>/dev/null || echo "unknown")"
     fi
 
     if [ -f "$SOAK_METRICS_FILE" ]; then
         echo ""
         echo "=== Current Metrics ==="
-        cat "$SOAK_METRICS_FILE" | jq '.'
+        if jq empty "$SOAK_METRICS_FILE" 2>/dev/null; then
+            cat "$SOAK_METRICS_FILE" | jq '.'
+        else
+            echo "Invalid JSON in metrics file"
+            cat "$SOAK_METRICS_FILE"
+        fi
     fi
 }
 

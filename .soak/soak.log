@@ -3,3 +3,27 @@
 [0;34m[2025-07-03 23:54:18][0m Deployment URL: http://localhost:8081
 [0;34m[2025-07-03 23:54:18][0m Soak duration: 60 seconds
 [0;32m[2025-07-03 23:54:18] ✅[0m Soak period started for staging
+[0;34m[2025-07-06 23:40:47][0m Starting soak monitoring for staging
+[1;33m[2025-07-06 23:40:48] ⚠️[0m Health check 1 failed
+[0;34m[2025-07-06 23:40:48][0m Running performance E2E test...
+[0;34m[2025-07-06 23:41:11][0m Performance check 1 completed (E2E: unknown)
+[0;31m[2025-07-06 23:41:11] ❌[0m Error rate 1.0000 exceeds threshold 0.05 - rollback needed
+[0;31m[2025-07-06 23:41:11] ❌[0m Initiating rollback for staging: Health check failure during soak
+[0;34m[2025-07-06 23:41:11][0m Rolling back staging deployment...
+[0;31m[2025-07-06 23:41:11] ❌[0m Rollback completed for staging
+[0;34m[2025-07-06 23:41:39][0m Starting soak monitoring for staging
+[0;32m[2025-07-06 23:41:40] ✅[0m Health check 1 passed
+[0;34m[2025-07-06 23:41:40][0m Running performance E2E test...
+[0;34m[2025-07-06 23:42:04][0m Performance check 1 completed (E2E: unknown)
+[0;31m[2025-07-06 23:42:04] ❌[0m Error rate 0.5000 exceeds threshold 0.05 - rollback needed
+[0;31m[2025-07-06 23:42:04] ❌[0m Initiating rollback for staging: Health check failure during soak
+[0;34m[2025-07-06 23:42:04][0m Rolling back staging deployment...
+[0;31m[2025-07-06 23:42:04] ❌[0m Rollback completed for staging
+[0;34m[2025-07-06 23:42:10][0m Starting soak monitoring for staging
+[0;32m[2025-07-06 23:42:10] ✅[0m Health check 1 passed
+[0;34m[2025-07-06 23:42:10][0m Running performance E2E test...
+[0;34m[2025-07-06 23:42:33][0m Performance check 1 completed (E2E: unknown)
+[0;34m[2025-07-06 23:42:33][0m Soak progress: 0% (60 seconds remaining)
+[0;32m[2025-07-06 23:42:40] ✅[0m Health check 2 passed
+[0;32m[2025-07-06 23:43:10] ✅[0m Soak period completed successfully for staging
+[0;34m[2025-07-06 23:43:10][0m Final metrics: {"total_checks":2,"healthy_checks":2,"error_rate":0,"avg_response_time":.1215}
