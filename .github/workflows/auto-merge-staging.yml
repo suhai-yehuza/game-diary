@@ -1,8 +1,8 @@
-name: Auto PR: Staging to Master After 24h Soak
+name: Auto PR - Staging to Master After 24h Soak
 
 on:
   schedule:
-    - cron: '0 * * * *'  # every hour
+    - cron: '0 * * * *' # every hour
 
 permissions:
   contents: write
