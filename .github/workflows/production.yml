@@ -153,6 +153,7 @@ jobs:
     environment: Production
     env:
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      PLAYWRIGHT_TEST: true
     strategy:
       matrix:
         test: [smoke, critical]
@@ -195,6 +196,7 @@ jobs:
     timeout-minutes: 60
     env:
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      PLAYWRIGHT_TEST: true
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4

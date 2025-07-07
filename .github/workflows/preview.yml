@@ -99,6 +99,7 @@ jobs:
     environment: Preview
     env:
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      PLAYWRIGHT_TEST: true
     strategy:
       matrix:
         test: [smoke, critical]
@@ -182,6 +183,7 @@ jobs:
     environment: Preview
     env:
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      PLAYWRIGHT_TEST: true
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4

@@ -13,7 +13,7 @@ case "$1" in
         echo "🔧 Install Playwright browsers..."
         pnpm exec playwright install --with-deps
         echo "🔧 Run E2E tests ($1)..."
-        pnpm run test:e2e:$1
+        PLAYWRIGHT_TEST=true pnpm run test:e2e:$1
         echo "✅ CI E2E Tests ($1) completed successfully!"
         ;;
     *)
