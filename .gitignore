@@ -50,3 +50,6 @@ next-env.d.ts
 
 # Sample data
 __tests__/sample-data/
+
+# Soak monitoring data
+.soak/
