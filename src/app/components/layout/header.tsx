@@ -17,6 +17,11 @@ import {
 } from '@/app/components/ui/dropdown-menu';
 import type { NavItemProps } from '@/lib/types/componentTypes';
 
+// Utility function to check if Clerk is configured
+function isClerkConfigured(): boolean {
+  return !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
+}
+
 function SearchBarContent() {
   const [search_query, setSearchQuery] = useState('');
   const [debounced_query, setDebouncedQuery] = useState('');
@@ -241,6 +246,10 @@ function AdminNavContent({ isActive }: { isActive: (path: string) => boolean }) 
 }
 
 function AdminNav({ isActive }: { isActive: (path: string) => boolean }) {
+  if (!isClerkConfigured()) {
+    return null; // Don't render admin nav if Clerk is not configured
+  }
+
   return (
     <Suspense fallback={<div className="w-20 h-6 bg-gray-200 rounded animate-pulse" />}>
       <SignedIn>
@@ -310,6 +319,15 @@ function AuthControlsContent() {
 
   // Don't render anything during SSR
   if (!mounted) {
+    return (
+      <div className="w-10 h-10 bg-gray-200 rounded animate-pulse flex items-center justify-center">
+        <span className="text-xs text-gray-500">Auth</span>
+      </div>
+    );
+  }
+
+  // If Clerk is not configured, show a placeholder
+  if (!isClerkConfigured()) {
     return (
       <div className="w-10 h-10 bg-gray-200 rounded animate-pulse flex items-center justify-center">
         <span className="text-xs text-gray-500">Auth</span>

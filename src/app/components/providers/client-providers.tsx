@@ -7,11 +7,22 @@ import { Suspense } from 'react';
 import type { IClientProvidersProps } from '@/lib/types/componentTypes';
 
 export function ClientProviders({ children }: IClientProvidersProps) {
+  const clerkPublishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
+
+  // If Clerk is not configured, render without ClerkProvider
+  if (!clerkPublishableKey) {
+    return (
+      <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+        {children}
+      </ThemeProvider>
+    );
+  }
+
   return (
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
       <Suspense fallback={<>{children}</>}>
         <ClerkProvider
-          publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
+          publishableKey={clerkPublishableKey}
           appearance={{
             elements: {
               formButtonPrimary: 'bg-primary text-primary-foreground hover:bg-primary/90',

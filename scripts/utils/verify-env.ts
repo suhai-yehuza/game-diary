@@ -25,7 +25,7 @@ const requiredEnvSchema = z.object({
   // API keys - optional but recommended
   NEXT_PUBLIC_RAPID_API_KEY: z.string().optional(),
   NEXT_PUBLIC_RAPID_API_HOST: z.string().optional(),
-  NEXT_PUBLIC_RAPID_API_BASE_URL: z.string().url().optional(),
+  NEXT_PUBLIC_RAPID_API_BASE_URL: z.string().optional(),
 
   // Redis - optional
   UPSTASH_REDIS_REST_URL: z.string().url().optional(),
@@ -44,8 +44,6 @@ const requiredEnvSchema = z.object({
   GITHUB_ACTIONS: z.string().optional(),
   FORCE_MOCK_API: z.string().optional(),
 });
-
-type RequiredEnv = z.infer<typeof requiredEnvSchema>;
 
 function validateEnvironment(): void {
   console.log('🔍 Validating environment variables...');
@@ -78,19 +76,21 @@ function validateEnvironment(): void {
       }
     }
 
-    // API keys are recommended but not required
-    if (!env.NEXT_PUBLIC_RAPID_API_KEY) {
-      warnings.push('NEXT_PUBLIC_RAPID_API_KEY is not set - API features may be limited');
-    }
-    if (!env.NEXT_PUBLIC_RAPID_API_HOST) {
-      warnings.push('NEXT_PUBLIC_RAPID_API_HOST is not set - using default');
-    }
-    if (!env.NEXT_PUBLIC_RAPID_API_BASE_URL) {
-      warnings.push('NEXT_PUBLIC_RAPID_API_BASE_URL is not set - using default');
+    // API keys are recommended but not required (skip warnings in CI)
+    if (!isCI) {
+      if (!env.NEXT_PUBLIC_RAPID_API_KEY) {
+        warnings.push('NEXT_PUBLIC_RAPID_API_KEY is not set - API features may be limited');
+      }
+      if (!env.NEXT_PUBLIC_RAPID_API_HOST) {
+        warnings.push('NEXT_PUBLIC_RAPID_API_HOST is not set - using default');
+      }
+      if (!env.NEXT_PUBLIC_RAPID_API_BASE_URL) {
+        warnings.push('NEXT_PUBLIC_RAPID_API_BASE_URL is not set - using default');
+      }
     }
 
     // Redis is optional but recommended for production
-    if (!env.NODE_ENV === 'production') {
+    if (env.NODE_ENV !== 'production') {
       if (!env.UPSTASH_REDIS_REST_URL && !env.REDIS_URL) {
         warnings.push('Redis URL not configured - caching may be limited');
       }
@@ -119,7 +119,7 @@ function validateEnvironment(): void {
       `  Clerk Auth: ${env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ? '✅ Configured' : isCI ? '⚠️  Skipped in CI' : '⚠️  Not configured'}`
     );
     console.log(
-      `  RapidAPI: ${env.NEXT_PUBLIC_RAPID_API_KEY ? '✅ Configured' : '⚠️  Not configured'}`
+      `  RapidAPI: ${env.NEXT_PUBLIC_RAPID_API_KEY ? '✅ Configured' : isCI ? '⚠️  Skipped in CI' : '⚠️  Not configured'}`
     );
     console.log(
       `  Redis: ${env.UPSTASH_REDIS_REST_URL || env.REDIS_URL ? '✅ Configured' : '⚠️  Not configured'}`
