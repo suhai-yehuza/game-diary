@@ -6,7 +6,7 @@
 # Subcommands:
 #   basic - Basic validation (circular deps, type validation/fix, env verification)
 #   dev - Development workflow (codegen + quick fix + basic validation)
-#   full - Prebuild, build, soft validation, unused exports, test:strict, test:e2e:quickie
+#   full - Prebuild, build, soft validation, unused exports, test:strict, test:e2e:sanity
 #   staging - Full validation + size check (for staging deployment)
 #   production - Full validation (prod context)
 #   circular - Check circular dependencies
@@ -54,7 +54,7 @@ show_usage() {
     echo "Subcommands:"
     echo "  basic - Basic validation (circular deps, type validation/fix, env verification)"
     echo "  dev - Development workflow (codegen + quick fix + basic validation)"
-    echo "  full - Prebuild, build, soft validation, unused exports, test:strict, test:e2e:quickie"
+    echo "  full - Prebuild, build, soft validation, unused exports, test:strict, test:e2e:sanity"
     echo "  staging - Full validation + size check (for staging deployment)"
     echo "  production - Full validation (prod context)"
     echo "  circular - Check circular dependencies"
@@ -121,8 +121,8 @@ run_full_validation() {
     log_info "Running strict tests..."
     pnpm test:strict
 
-    log_info "Running E2E quickie tests..."
-    pnpm test:e2e:quickie
+    log_info "Running E2E sanity tests..."
+    pnpm test:e2e:sanity
 
     log_success "Full validation completed"
 }

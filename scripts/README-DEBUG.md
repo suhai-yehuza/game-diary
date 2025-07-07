@@ -7,14 +7,14 @@ This directory contains scripts to help you debug test failures efficiently with
 1. **Generate test results** (run once to capture current state):
 
    ```bash
-   pnpm test:generate-results:quickie        # Fast config, quick feedback
+   pnpm test:generate-results:sanity        # Fast config, quick feedback
    pnpm test:generate-results:popular     # Popular config, more comprehensive
    pnpm test:generate-results:responsive  # Responsive tests only
    ```
 
 2. **Run only failing tests**:
    ```bash
-   pnpm test:failing:quickie        # Run failing tests with fast config
+   pnpm test:failing:sanity        # Run failing tests with fast config
    pnpm test:failing:popular     # Run failing tests with popular config
    pnpm test:failing:responsive  # Run failing responsive tests only
    ```
@@ -24,14 +24,14 @@ This directory contains scripts to help you debug test failures efficiently with
 ### Generate Test Results
 
 - `pnpm test:generate-results` - Generate results with default config
-- `pnpm test:generate-results:quickie` - Generate results with fast config (recommended for development)
+- `pnpm test:generate-results:sanity` - Generate results with fast config (recommended for development)
 - `pnpm test:generate-results:popular` - Generate results with popular config (more browsers)
 - `pnpm test:generate-results:responsive` - Generate results for responsive tests only
 
 ### Run Failing Tests
 
 - `pnpm test:failing` - Run failing tests with default config
-- `pnpm test:failing:quickie` - Run failing tests with fast config (recommended for debugging)
+- `pnpm test:failing:sanity` - Run failing tests with fast config (recommended for debugging)
 - `pnpm test:failing:popular` - Run failing tests with popular config
 - `pnpm test:failing:responsive` - Run failing responsive tests only
 
@@ -40,8 +40,8 @@ This directory contains scripts to help you debug test failures efficiently with
 ### For Development
 
 1. Make changes to your code
-2. Run `pnpm test:generate-results:quickie` to see what's broken
-3. Run `pnpm test:failing:quickie` to focus on fixing failures
+2. Run `pnpm test:generate-results:sanity` to see what's broken
+3. Run `pnpm test:failing:sanity` to focus on fixing failures
 4. Repeat steps 2-3 until all tests pass
 5. Run full suite to ensure no regressions
 
@@ -113,7 +113,7 @@ The `run-failing-files.sh` script supports an optional third parameter to filter
 
 ```bash
 # Run this first to generate results
-pnpm test:generate-results:quickie
+pnpm test:generate-results:sanity
 ```
 
 ### Script permissions

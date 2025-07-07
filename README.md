@@ -433,13 +433,13 @@ pnpm build                  # Build production bundle
 pnpm start                  # Start production server
 
 # Testing
-pnpm test:e2e:quickie         # Fast e2e tests (Chromium only)
-pnpm test:e2e:quickie:watch   # Fast e2e tests in watch mode
+pnpm test:e2e:sanity         # Fast e2e tests (Chromium only)
+pnpm test:e2e:sanity:watch   # Fast e2e tests in watch mode
 pnpm test:e2e:debug        # Debug e2e test issues
 
 # Debug Failing Tests (Efficient Development)
-pnpm test:generate-results:quickie        # Generate test results for analysis
-pnpm test:failing:quickie                 # Run only failing tests (fast config)
+pnpm test:generate-results:sanity        # Generate test results for analysis
+pnpm test:failing:sanity                 # Run only failing tests (fast config)
 pnpm test:generate-results:responsive  # Generate responsive test results
 pnpm test:failing:responsive           # Run only failing responsive tests
 

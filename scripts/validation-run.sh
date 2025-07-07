@@ -26,7 +26,7 @@ case "$1" in
         echo "Usage: $0 [basic|dev|full|staging|production]"
         echo "  basic       - Circular deps, type validation/fix, env verification"
         echo "  dev         - Development workflow (codegen + quick fix + basic validation)"
-        echo "  full        - Prebuild, build, soft validation, unused exports, test:strict, test:e2e:quickie"
+        echo "  full        - Prebuild, build, soft validation, unused exports, test:strict, test:e2e:smoke"
         echo "  staging     - Full validation + size check (for staging deployment)"
         echo "  production  - Full validation (prod context)"
         exit 1

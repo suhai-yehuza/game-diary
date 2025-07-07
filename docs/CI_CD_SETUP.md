@@ -97,8 +97,8 @@ SHARD_TOTAL=2
 
 ```bash
 # Fast development testing
-pnpm e2e:run quickie              # Fast tests (Chromium only)
-pnpm e2e:run quickie:watch        # Watch mode for development
+pnpm e2e:run sanity              # Fast tests (Chromium only)
+pnpm e2e:run sanity:watch        # Watch mode for development
 pnpm e2e:run dev               # Alias for fast tests
 pnpm e2e:run dev:watch         # Alias for fast watch mode
 ```
@@ -137,7 +137,7 @@ pnpm test:e2e:load              # Load testing simulation
 ```bash
 # CI pipeline scripts
 pnpm ci:e2e-tests                # Main CI test (popular browsers)
-pnpm ci:e2e-tests quickie           # Fast CI test (Chromium only)
+pnpm ci:e2e-tests sanity           # Fast CI test (Chromium only)
 pnpm ci:e2e-tests full           # Full CI test (sharded)
 pnpm ci:e2e-tests performance    # Performance CI test
 
@@ -158,7 +158,7 @@ pnpm test:e2e:sharded           # Run tests in 2 shards
 ```bash
 # Coverage testing
 pnpm test:e2e:coverage          # All browsers with coverage
-pnpm test:e2e:coverage:quickie     # Chromium with coverage
+pnpm test:e2e:coverage:sanity     # Chromium with coverage
 pnpm test:e2e:coverage:html     # Generate HTML coverage report
 pnpm test:e2e:coverage:report   # Generate coverage report only
 ```
@@ -211,8 +211,8 @@ pnpm test:e2e:ui                # Launch Playwright UI mode
 
 ```bash
 # Quick development cycle
-pnpm test:e2e:quickie              # Fast feedback
-pnpm test:e2e:quickie:watch        # Continuous testing
+pnpm test:e2e:sanity              # Fast feedback
+pnpm test:e2e:sanity:watch        # Continuous testing
 
 # Debug issues
 pnpm test:e2e:debug:headed      # Visual debugging
@@ -227,7 +227,7 @@ pnpm test:e2e:wait              # Wait for server to be ready
 
 ```bash
 # Quick validation before committing
-pnpm test:e2e:ci:quickie           # Simulate PR testing
+pnpm test:e2e:ci:sanity           # Simulate PR testing
 pnpm test:e2e:lint              # Code quality checks
 
 # Responsive design validation
@@ -245,7 +245,7 @@ pnpm test:e2e:ci:full           # Full test suite (sharded)
 
 # Coverage testing
 pnpm test:e2e:coverage          # All browsers with coverage
-pnpm test:e2e:coverage:quickie     # Chromium with coverage
+pnpm test:e2e:coverage:sanity     # Chromium with coverage
 ```
 
 ### **Deployment Validation**
@@ -325,13 +325,13 @@ pnpm test:e2e:performance       # Performance-focused tests
 
 ```bash
 # Before submitting PR
-pnpm test:e2e:ci:quickie           # Quick validation
+pnpm test:e2e:ci:sanity           # Quick validation
 pnpm test:e2e:responsive        # Responsive design check
 pnpm test:e2e:lint              # Code quality
 
 # After PR feedback
 pnpm test:e2e:debug:headed      # Debug specific issues
-pnpm test:e2e:quickie:watch        # Continuous testing during fixes
+pnpm test:e2e:sanity:watch        # Continuous testing during fixes
 ```
 
 #### **Release Preparation**
@@ -354,7 +354,7 @@ pnpm test:e2e:smoke:deployed    # Smoke tests on live site
 ```bash
 # Start development
 pnpm test:e2e:server            # Start dev server
-pnpm test:e2e:quickie:watch        # Continuous testing
+pnpm test:e2e:sanity:watch        # Continuous testing
 
 # Feature testing
 pnpm test:e2e:responsive        # Test responsive behavior
@@ -373,11 +373,11 @@ pnpm test:e2e:debug:headed      # Visual debugging
 pnpm test:e2e:debug:ui          # Interactive debugging
 
 # Test fix
-pnpm test:e2e:quickie              # Quick validation
+pnpm test:e2e:sanity              # Quick validation
 pnpm test:e2e:responsive        # Ensure no regressions
 
 # Final validation
-pnpm test:e2e:ci:quickie           # Simulate CI environment
+pnpm test:e2e:ci:sanity           # Simulate CI environment
 ```
 
 ### **CI/CD Pipeline Examples**
@@ -386,7 +386,7 @@ pnpm test:e2e:ci:quickie           # Simulate CI environment
 
 ```bash
 # Local PR validation
-pnpm test:e2e:ci:quickie           # Fast CI simulation
+pnpm test:e2e:ci:sanity           # Fast CI simulation
 pnpm test:e2e:lint              # Code quality
 
 # Full validation (if needed)

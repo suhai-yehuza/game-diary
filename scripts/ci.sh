@@ -58,7 +58,7 @@ show_usage() {
     echo "  unit-tests - Run unit tests"
     echo ""
     echo "  e2e-tests [type] - Run E2E tests"
-    echo "    Types: quickie, critical, responsive, full"
+    echo "    Types: sanity, critical, responsive, full"
     echo ""
     echo "  preview - Run preview pipeline (validation + unit + e2e fast)"
     echo "  staging - Run staging pipeline (validation + unit + e2e fast + e2e critical + e2e responsive)"
@@ -67,7 +67,7 @@ show_usage() {
     echo "Examples:"
     echo "  $0 run preview"
     echo "  $0 quality-gate production"
-    echo "  $0 e2e-tests quickie"
+    echo "  $0 e2e-tests sanity"
     echo "  $0 staging"
 }
 
@@ -112,9 +112,9 @@ run_e2e_tests() {
     local step_number=$2
 
     case "$test_type" in
-        "quickie")
+        "sanity")
             log "📋 Step $step_number: E2E Fast Tests"
-            pnpm test:e2e:quickie
+            pnpm test:e2e:sanity
             ;;
         "critical")
             log "📋 Step $step_number: E2E Critical Tests"
@@ -181,7 +181,7 @@ execute_pipeline() {
                 run_unit_tests "$step_number"
                 ;;
             "e2e_fast")
-                run_e2e_tests "quickie" "$step_number"
+                run_e2e_tests "sanity" "$step_number"
                 ;;
             "e2e_critical")
                 run_e2e_tests "critical" "$step_number"

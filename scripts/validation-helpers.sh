@@ -147,9 +147,9 @@ run_e2e_mock_verification_test_validation() {
     pnpm run test:e2e:mock-verification
 }
 
-run_quickie_e2e_test_validation() {
-    echo "🚀 Running quickie E2E test validation..."
-    pnpm run test:e2e:quickie
+run_sanity_e2e_test_validation() {
+    echo "🚀 Running sanity E2E test validation..."
+    pnpm run test:e2e:sanity
 }
 
 run_e2e_smoke_test_validation() {
@@ -231,7 +231,7 @@ run_full_validation() {
     run_code_quality_validation
     run_unused_exports_check
     run_unit_test_validation
-    run_quickie_e2e_test_validation
+    run_sanity_e2e_test_validation
 }
 
 # Development Build Workflow

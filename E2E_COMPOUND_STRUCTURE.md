@@ -118,7 +118,7 @@ Mock Verification (Prerequisite) → Fast (Base) → Smoke → Critical → Resp
 
 ```bash
 # Quick feedback during development
-pnpm test:e2e:quickie
+pnpm test:e2e:sanity
 
 # Basic validation before committing
 pnpm test:e2e:smoke
@@ -139,7 +139,7 @@ The compound test runner demonstrates the hierarchy by running tests in sequence
 pnpm test:e2e:compound
 
 # Run specific levels only
-pnpm test:e2e:compound:quickie
+pnpm test:e2e:compound:sanity
 pnpm test:e2e:compound:smoke
 pnpm test:e2e:compound:critical
 pnpm test:e2e:compound:responsive

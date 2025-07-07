@@ -79,7 +79,7 @@ The shell scripts in the `scripts/` directory have been successfully consolidate
 
 - `basic` - Basic validation (circular deps, type validation/fix, env verification)
 - `dev` - Development workflow (codegen + quick fix + basic validation)
-- `full` - Prebuild, build, soft validation, unused exports, test:strict, test:e2e:quickie
+- `full` - Prebuild, build, soft validation, unused exports, test:strict, test:e2e:sanity
 - `staging` - Full validation + size check (for staging deployment)
 - `production` - Full validation (prod context)
 - `circular` - Check circular dependencies

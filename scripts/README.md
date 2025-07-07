@@ -47,7 +47,7 @@ The shell scripts have been consolidated into four main categories for better or
 # Run individual CI components
 ./scripts/ci.sh quality-gate production
 ./scripts/ci.sh unit-tests
-./scripts/ci.sh e2e-tests quickie
+./scripts/ci.sh e2e-tests sanity
 
 # Quick pipeline shortcuts
 ./scripts/ci.sh preview

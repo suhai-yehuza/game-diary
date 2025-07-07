@@ -29,14 +29,14 @@ Instead of running the entire test suite when debugging failures, use these scri
 1. **Generate test results** (captures current state):
 
    ```bash
-   pnpm test:generate-results:quickie        # Fast config, quick feedback
+   pnpm test:generate-results:sanity        # Fast config, quick feedback
    pnpm test:generate-results:popular     # Popular config, comprehensive
    pnpm test:generate-results:responsive  # Responsive tests only
    ```
 
 2. **Run only failing tests**:
    ```bash
-   pnpm test:failing:quickie        # Run failing tests with fast config
+   pnpm test:failing:sanity        # Run failing tests with fast config
    pnpm test:failing:popular     # Run failing tests with popular config
    pnpm test:failing:responsive  # Run failing responsive tests only
    ```

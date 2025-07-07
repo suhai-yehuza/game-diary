@@ -19,7 +19,7 @@ run_unit_tests() {
 
 run_e2e_fast() {
     echo "📋 Step $1: E2E Fast Tests"
-    ./scripts/ci-e2e-tests.sh quickie
+    ./scripts/ci-e2e-tests.sh sanity
 }
 
 run_e2e_critical() {

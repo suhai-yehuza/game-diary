@@ -286,7 +286,7 @@ tests/e2e/
 **Usage:**
 
 ```bash
-pnpm test:e2e:quickie
+pnpm test:e2e:sanity
 ```
 
 ### 2. Smoke Tests (Extends Fast)
@@ -440,7 +440,7 @@ pnpm test:e2e:cross-browser
 
 ```bash
 # Fast tests for quick feedback
-pnpm test:e2e:quickie
+pnpm test:e2e:sanity
 
 # Smoke tests for basic validation
 pnpm test:e2e:smoke
@@ -481,7 +481,7 @@ pnpm test:e2e:compound
 
 # Run specific levels only
 pnpm test:e2e:compound:mock-verification
-pnpm test:e2e:compound:quickie
+pnpm test:e2e:compound:sanity
 pnpm test:e2e:compound:smoke
 pnpm test:e2e:compound:critical
 pnpm test:e2e:compound:responsive

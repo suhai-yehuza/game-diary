@@ -2,12 +2,12 @@
 
 # CI E2E Tests Script
 # Usage: ./scripts/ci-e2e-tests.sh [test-type]
-# Test types: smoke, critical, quickie
+# Test types: smoke, critical, sanity
 
 set -e  # Exit on any error
 
 case "$1" in
-    "smoke"|"critical"|"quickie")
+    "smoke"|"critical"|"sanity")
         echo "🚀 Running CI E2E Tests ($1)..."
 
         echo "🔧 Install Playwright browsers..."
@@ -17,10 +17,10 @@ case "$1" in
         echo "✅ CI E2E Tests ($1) completed successfully!"
         ;;
     *)
-        echo "Usage: $0 [smoke|critical|quickie]"
+        echo "Usage: $0 [smoke|critical|sanity]"
         echo "  smoke     - Run E2E smoke tests"
         echo "  critical  - Run E2E critical tests"
-        echo "  quickie   - Run E2E quickie tests"
+        echo "  sanity   - Run E2E sanity tests"
         exit 1
         ;;
 esac

@@ -12,7 +12,7 @@
 # Examples:
 #   ./scripts/timed-run.sh command "pnpm build"
 #   ./scripts/timed-run.sh pnpm build
-#   ./scripts/timed-run.sh script test:e2e:quickie
+#   ./scripts/timed-run.sh script test:e2e:sanity
 
 set -e
 
@@ -28,7 +28,7 @@ show_usage() {
     echo "Examples:"
     echo "  $0 command 'pnpm build'"
     echo "  $0 pnpm build"
-    echo "  $0 script test:e2e:quickie"
+    echo "  $0 script test:e2e:sanity"
     echo ""
     echo "Environment variables:"
     echo "  TIMING_QUIET=1: Suppress timing output"
