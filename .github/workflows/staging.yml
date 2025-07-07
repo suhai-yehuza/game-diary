@@ -261,8 +261,13 @@ jobs:
         run: |
           echo "=== Final Soak Status ==="
           ./scripts/soak-monitor.sh status
+          echo "=== Soak Directory Contents ==="
+          ls -la ./.soak/ || echo "Soak directory not found"
           if [ -f ./.soak/status.json ]; then
+            echo "=== Status File ==="
             cat ./.soak/status.json | jq '.'
+          else
+            echo "Status file not found"
           fi
       - name: Upload Soak Results
         uses: actions/upload-artifact@v4
@@ -271,6 +276,7 @@ jobs:
           path: |
             ./.soak/
           retention-days: 30
+        if: always()
       - name: Fail if Soak Failed
         if: failure()
         run: |
@@ -333,6 +339,7 @@ jobs:
         with:
           name: soak-period-results
           path: ./.soak
+        continue-on-error: true
       - name: Generate Deployment Summary
         run: |
           echo "## 🚀 Staging Deployment Summary" >> $GITHUB_STEP_SUMMARY
@@ -357,6 +364,9 @@ jobs:
                 "**Avg Response Time:** " + (.avg_response_time // 0) + "ms\n"
               ' >> $GITHUB_STEP_SUMMARY
             fi
+          else
+            echo "### Soak Period Results" >> $GITHUB_STEP_SUMMARY
+            echo "**Status:** Not available (soak period may have failed or artifact not uploaded)" >> $GITHUB_STEP_SUMMARY
           fi
 
           echo "### Job Results" >> $GITHUB_STEP_SUMMARY
