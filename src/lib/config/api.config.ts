@@ -264,5 +264,4 @@ export const INTERNAL_PROXY_ENDPOINTS = {
 export const isTestEnvironment =
   process.env.CI === 'true' ||
   process.env.GITHUB_ACTIONS === 'true' ||
-  process.env.FORCE_MOCK_API === 'true' ||
-  process.env.E2E_TESTING === 'true';
+  process.env.FORCE_MOCK_API === 'true';

@@ -57,7 +57,7 @@ export async function testPageComprehensive(
     await checkPageTitle(page, expectedTitle);
   }
 
-  // Check that main content is visible
+  // Strict: require <main> to be visible
   await page.locator('main').waitFor({ state: 'visible', timeout });
 
   // Check for console errors
