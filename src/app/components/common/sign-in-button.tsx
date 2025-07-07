@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 
 import type { ISignInButtonProps } from '@/lib/types/componentTypes';
 
-export function SignInButton({ children, className }: ISignInButtonProps) {
+export function SignInButton({ children, className, ...props }: ISignInButtonProps) {
   const clerk = (useClerk as () => { openSignIn: () => void } | null)();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null);
@@ -59,6 +59,7 @@ export function SignInButton({ children, className }: ISignInButtonProps) {
         onClick={handleSignIn}
         className={className}
         data-testid="sign-in-button"
+        {...props}
       >
         {children}
       </button>

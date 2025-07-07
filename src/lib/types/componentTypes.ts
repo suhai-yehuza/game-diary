@@ -26,12 +26,12 @@ export type NavItemProps = PropsWithChildren<{
   className?: string;
 }>;
 
-export interface ISignUpButtonProps {
+export interface ISignUpButtonProps extends HTMLAttributes<HTMLButtonElement> {
   children: React.ReactNode;
   className?: string;
 }
 
-export interface ISignInButtonProps {
+export interface ISignInButtonProps extends HTMLAttributes<HTMLButtonElement> {
   children: React.ReactNode;
   className?: string;
 }

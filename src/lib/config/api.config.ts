@@ -271,7 +271,10 @@ export const isE2ETestEnvironment =
   process.env.DEPLOYMENT_URL !== undefined ||
   process.env.PLAYWRIGHT_BASE_URL !== undefined ||
   process.env.PLAYWRIGHT_TEST === 'true' ||
-  (process.env.CI === 'true' && process.env.NODE_ENV === 'development');
+  process.env.PLAYWRIGHT_CI === 'true' ||
+  (process.env.CI === 'true' && process.env.NODE_ENV === 'development') ||
+  (process.env.CI === 'true' && process.env.NODE_ENV === 'production') ||
+  process.env.GITHUB_ACTIONS === 'true';
 
 // Add unit test environment detection
 export const isUnitTestEnvironment = process.env.NODE_ENV === 'test' && !isE2ETestEnvironment;
