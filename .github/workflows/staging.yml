@@ -1,4 +1,4 @@
-name: Deploy to Staging Branch
+name: Vercel Staging Deployment
 
 # Staging deployment workflow that:
 # - Deploys the current staging branch to staging environment

@@ -1,4 +1,4 @@
-name: Check and Merge Staging to Master (Hourly)
+name: Vercel Staging to Master Merge (Hourly)
 
 # Hourly workflow that:
 # - Checks for successful staging commits that are 24+ hours old
