@@ -15,6 +15,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from '@/app/components/ui/dropdown-menu';
+import { isTestEnvironment } from '@/lib/config/api.config';
 import type { NavItemProps } from '@/lib/types/componentTypes';
 
 // Utility function to check if Clerk is configured
@@ -328,8 +329,8 @@ function AuthControlsContent() {
 
   // If Clerk is not configured, show a test button for E2E tests or placeholder
   if (!isClerkConfigured()) {
-    // In E2E test environment, render a test sign-in button
-    if (process.env.NODE_ENV === 'test' || process.env.E2E_TESTING === 'true') {
+    // In test environment, render a test sign-in button
+    if (isTestEnvironment) {
       return (
         <div className="flex items-center">
           <span className="bg-blue-600 text-white hover:bg-blue-700 focus:ring-2 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-1 shadow-sm transition-all border border-blue-700 min-w-[44px] min-h-[32px] flex-shrink-0 whitespace-nowrap">

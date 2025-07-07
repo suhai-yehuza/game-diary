@@ -38,7 +38,11 @@ const AUTH_RATE_LIMIT = {
 } as const;
 
 // Loosen or disable rate limiting for local/test environments
-const isDevOrTest = process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test';
+const isDevOrTest =
+  process.env.NODE_ENV === 'development' ||
+  process.env.CI === 'true' ||
+  process.env.GITHUB_ACTIONS === 'true' ||
+  process.env.FORCE_MOCK_API === 'true';
 
 // Global rate limit configuration
 export const RATE_LIMIT_CONFIG_FULL = {

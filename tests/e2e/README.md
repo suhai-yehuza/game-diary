@@ -34,7 +34,6 @@ Mock data is sourced from `src/lib/mock/`:
 
 The API proxy (`src/app/api/proxy/[...endpoint]/route.ts`) automatically returns mock data when:
 
-- `NODE_ENV === 'test'`
 - `CI === 'true'`
 - `GITHUB_ACTIONS === 'true'`
 - `FORCE_MOCK_API === 'true'`

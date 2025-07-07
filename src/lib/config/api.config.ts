@@ -193,7 +193,6 @@ export const API_CONFIG = {
 export function getRapidApiConfig(): IRapidAPIConfig {
   // Check if we're in a test environment
   const isTest =
-    process.env.NODE_ENV === 'test' ||
     process.env.CI === 'true' ||
     process.env.GITHUB_ACTIONS === 'true' ||
     process.env.FORCE_MOCK_API === 'true';
@@ -267,4 +266,7 @@ export const INTERNAL_PROXY_ENDPOINTS = {
 };
 
 // Add test environment detection
-export const isTestEnvironment = process.env.NODE_ENV === 'test';
+export const isTestEnvironment =
+  process.env.CI === 'true' ||
+  process.env.GITHUB_ACTIONS === 'true' ||
+  process.env.FORCE_MOCK_API === 'true';
