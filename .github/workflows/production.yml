@@ -18,6 +18,9 @@ env:
   VERCEL_PRODUCTION_URL: ${{ secrets.VERCEL_PRODUCTION_URL }}
   VERCEL_STAGING_URL: ${{ secrets.VERCEL_STAGING_URL }}
   SOAK_DURATION: 1800 # 30 minutes for production soak
+  NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+  CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+  CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
 
 on:
   # Scheduled: 9am PT (Standard Time: Nov–Mar, 17:00 UTC; Daylight Time: Mar–Nov, 16:00 UTC)
