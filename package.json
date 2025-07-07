@@ -170,6 +170,7 @@
     "=====Database Seeding=====": "=====+=====+=====+=====+=====",
     "hard:reset": "pnpm run drop:all && pnpm run pre:seed && pnpm run seed:external",
     "hard:reset:prod": "NODE_ENV=production pnpm hard:reset",
+    "hard:reset:staging": "NODE_ENV=staging pnpm hard:reset",
     "hard:reset:internal": "pnpm run truncate:internal && pnpm run seed:internal",
     "hard:reset:all": "pnpm run drop:all && pnpm run pre:seed && pnpm run seed:all",
     "pre:seed": "pnpm run db:generate:safe && pnpm run db:setup && pnpm run db:migrate && pnpm run db:triggers",
