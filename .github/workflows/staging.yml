@@ -248,6 +248,13 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y bc jq curl
+      - name: Initialize Soak Directory
+        run: |
+          echo "=== Initializing soak directory ==="
+          mkdir -p ./.soak
+          echo '{"status":"initialized","timestamp":"'$(date -u +%Y-%m-%dT%H:%M:%SZ)'","environment":"staging"}' > ./.soak/status.json
+          echo "✅ Soak directory initialized"
+          ls -la ./.soak/
       - name: Start Soak Period
         run: |
           echo "Starting soak period for staging deployment"
@@ -313,9 +320,9 @@ jobs:
             echo "Creating minimal status file..."
             echo '{"status":"failed","error":"Status file was not created","timestamp":"'$(date -u +%Y-%m-%dT%H:%M:%SZ)'"}' > ./.soak/status.json
           fi
-      - name: Upload Soak Results
+      - name: Upload Soak Artifacts
         run: |
-          echo "=== Preparing soak results for upload ==="
+          echo "=== Preparing and uploading soak results ==="
 
           # Ensure soak directory exists
           if [ ! -d ./.soak/ ]; then
@@ -338,8 +345,29 @@ jobs:
           echo "Files in soak directory:" >> ./.soak/summary.txt
           ls -la ./.soak/ >> ./.soak/summary.txt 2>&1 || echo "No files found" >> ./.soak/summary.txt
 
+          # Create additional debug files
+          echo "=== Debug Information ===" > ./.soak/debug.log
+          echo "Current directory: $(pwd)" >> ./.soak/debug.log
+          echo "Soak directory exists: $([ -d ./.soak/ ] && echo "yes" || echo "no")" >> ./.soak/debug.log
+          echo "Status file exists: $([ -f ./.soak/status.json ] && echo "yes" || echo "no")" >> ./.soak/debug.log
+          echo "Directory contents:" >> ./.soak/debug.log
+          ls -la ./.soak/ >> ./.soak/debug.log 2>&1 || echo "Directory listing failed" >> ./.soak/debug.log
+
           echo "Soak directory contents:"
           ls -la ./.soak/
+
+          # Verify files exist before upload
+          if [ ! -d ./.soak/ ]; then
+            echo "❌ Soak directory still doesn't exist after creation attempt"
+            exit 1
+          fi
+
+          if [ ! -f ./.soak/status.json ]; then
+            echo "❌ Status file still doesn't exist after creation attempt"
+            exit 1
+          fi
+
+          echo "✅ Soak artifacts prepared successfully"
         if: always()
 
       - name: Upload Soak Artifacts
