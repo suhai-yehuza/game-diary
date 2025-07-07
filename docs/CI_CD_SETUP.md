@@ -200,7 +200,7 @@ pnpm test:e2e:update-browsers   # Update Playwright browsers
 
 ```bash
 # Development utilities
-pnpm test:e2e:server            # Start dev server on port 8081
+pnpm test:e2e:server            # Start dev server on port 3000
 pnpm test:e2e:wait              # Wait for server to be ready
 pnpm test:e2e:ui                # Launch Playwright UI mode
 ```
@@ -219,7 +219,7 @@ pnpm test:e2e:debug:headed      # Visual debugging
 pnpm test:e2e:debug:ui          # Interactive debugging
 
 # Development server setup
-pnpm test:e2e:server            # Start dev server on port 8081
+pnpm test:e2e:server            # Start dev server on port 3000
 pnpm test:e2e:wait              # Wait for server to be ready
 ```
 

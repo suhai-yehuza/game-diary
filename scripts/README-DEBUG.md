@@ -127,7 +127,7 @@ chmod +x scripts/*.sh
 
 ```bash
 # Kill processes using test ports
-lsof -ti:8081 | xargs kill -9
+lsof -ti:3000 | xargs kill -9
 ```
 
 ### File filtering not working

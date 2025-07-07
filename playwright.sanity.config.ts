@@ -51,7 +51,7 @@ export default defineConfig({
   /* Shared settings for all the projects below. */
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
-    baseURL: 'http://localhost:8081',
+    baseURL: 'http://localhost:3000',
 
     /* Minimal tracing for speed */
     trace: 'off',
@@ -83,8 +83,8 @@ export default defineConfig({
 
   /* Run your local dev server before starting the tests */
   webServer: {
-    command: 'NODE_ENV=development pnpm dev -p 8081',
-    url: 'http://localhost:8081',
+    command: 'NODE_ENV=development pnpm dev -p 3000',
+    url: 'http://localhost:3000',
     reuseExistingServer: true,
     timeout: 60 * 1000,
     stdout: 'pipe',

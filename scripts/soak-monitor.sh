@@ -60,19 +60,19 @@ get_deployment_url() {
 
     case "$environment" in
         "preview")
-            echo "${VERCEL_PREVIEW_URL:-http://localhost:8081}"
+            echo "${VERCEL_PREVIEW_URL:-http://localhost:3000}"
             ;;
         "staging")
-            echo "${VERCEL_STAGING_URL:-http://localhost:8081}"
+            echo "${VERCEL_STAGING_URL:-http://localhost:3000}"
             ;;
         "staging-soak")
-            echo "${VERCEL_STAGING_URL:-http://localhost:8081}"
+            echo "${VERCEL_STAGING_URL:-http://localhost:3000}"
             ;;
         "production")
-            echo "${VERCEL_PRODUCTION_URL:-http://localhost:8081}"
+            echo "${VERCEL_PRODUCTION_URL:-http://localhost:3000}"
             ;;
         *)
-            echo "http://localhost:8081"
+            echo "http://localhost:3000"
             ;;
     esac
 }
@@ -82,7 +82,7 @@ validate_deployment_url() {
     local url=$1
     local environment=$2
 
-    if [ -z "$url" ] || [ "$url" = "http://localhost:8081" ]; then
+    if [ -z "$url" ] || [ "$url" = "http://localhost:3000" ]; then
         log_warning "No valid deployment URL found for $environment"
         log_warning "Please set the appropriate environment variable:"
         case "$environment" in
@@ -114,7 +114,7 @@ perform_health_check() {
     local start_time=$(date +%s.%N)
 
     # Validate URL
-    if [ -z "$url" ] || [ "$url" = "http://localhost:8081" ]; then
+    if [ -z "$url" ] || [ "$url" = "http://localhost:3000" ]; then
         echo "{\"timestamp\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",\"http_code\":\"000\",\"response_time\":\"999\",\"total_time\":\"999\",\"healthy\":false,\"error\":\"Invalid or missing deployment URL\"}"
         return
     fi

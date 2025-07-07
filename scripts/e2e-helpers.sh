@@ -30,7 +30,7 @@ kill_e2e_processes() {
         pkill -f "firefox" 2>/dev/null || true
         pkill -f "chromium" 2>/dev/null || true
         pkill -f "webkit" 2>/dev/null || true
-        kill $(lsof -t -i:8081) 2>/dev/null || true
+        kill $(lsof -t -i:3000) 2>/dev/null || true
         kill $(lsof -t -i:9323) 2>/dev/null || true
         pkill -f "node.*playwright" 2>/dev/null || true
         pkill -f "npx.*playwright" 2>/dev/null || true
@@ -51,19 +51,19 @@ start_e2e_server() {
     echo "🚀 Starting e2e test server..."
 
     # Check if server is already running
-    if curl -s http://localhost:8081 >/dev/null 2>&1; then
-        echo "✅ Server already running on port 8081"
+    if curl -s http://localhost:3000 >/dev/null 2>&1; then
+        echo "✅ Server already running on port 3000"
         return 0
     fi
 
-    # Kill any existing processes on port 8081
-    echo "🧹 Cleaning up any existing processes on port 8081..."
-    kill $(lsof -t -i:8081) 2>/dev/null || true
+    # Kill any existing processes on port 3000
+    echo "🧹 Cleaning up any existing processes on port 3000..."
+    kill $(lsof -t -i:3000) 2>/dev/null || true
     sleep 2
 
     # Start server in background with E2E environment variables
     echo "🚀 Starting development server..."
-    FORCE_MOCK_API=true pnpm dev -p 8081 > /tmp/e2e-server.log 2>&1 &
+    FORCE_MOCK_API=true pnpm dev -p 3000 > /tmp/e2e-server.log 2>&1 &
     local server_pid=$!
 
     # Wait for server to start with better error handling
@@ -72,7 +72,7 @@ start_e2e_server() {
     echo "⏳ Waiting for server to start..."
 
     while [ $attempts -lt $max_attempts ]; do
-        if curl -s http://localhost:8081 >/dev/null 2>&1; then
+        if curl -s http://localhost:3000 >/dev/null 2>&1; then
             echo "✅ Server started successfully (PID: $server_pid)"
             # Additional wait to ensure server is fully ready
             sleep 3
@@ -102,8 +102,8 @@ start_e2e_server() {
 
     # Try to get more diagnostic information
     echo "🔍 Diagnostic information:"
-    echo "Processes on port 8081:"
-    lsof -i:8081 2>/dev/null || echo "No processes found"
+    echo "Processes on port 3000:"
+    lsof -i:3000 2>/dev/null || echo "No processes found"
     echo "Recent server logs:"
     tail -20 /tmp/e2e-server.log
 
@@ -113,7 +113,7 @@ start_e2e_server() {
 # Wait for server to be ready
 wait_for_e2e_server() {
     echo "⏳ Waiting for server to be ready..."
-    wait-on http://localhost:8081
+    wait-on http://localhost:3000
 }
 
 # Run e2e test with full setup

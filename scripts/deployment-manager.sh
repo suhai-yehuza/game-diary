@@ -59,19 +59,19 @@ get_deployment_url() {
 
     case "$environment" in
         "preview")
-            echo "${VERCEL_PREVIEW_URL:-http://localhost:8081}"
+            echo "${VERCEL_PREVIEW_URL:-http://localhost:3000}"
             ;;
         "staging")
-            echo "${VERCEL_STAGING_URL:-http://localhost:8081}"
+            echo "${VERCEL_STAGING_URL:-http://localhost:3000}"
             ;;
         "staging-soak")
-            echo "${VERCEL_STAGING_URL:-http://localhost:8081}"
+            echo "${VERCEL_STAGING_URL:-http://localhost:3000}"
             ;;
         "production")
-            echo "${VERCEL_PRODUCTION_URL:-http://localhost:8081}"
+            echo "${VERCEL_PRODUCTION_URL:-http://localhost:3000}"
             ;;
         *)
-            echo "http://localhost:8081"
+            echo "http://localhost:3000"
             ;;
     esac
 }

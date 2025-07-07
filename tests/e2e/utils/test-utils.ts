@@ -8,7 +8,7 @@ import { PERFORMANCE_THRESHOLDS } from './constants';
  */
 
 export const DEFAULT_CONFIG: TestConfig = {
-  baseUrl: 'http://localhost:8081',
+  baseUrl: 'http://localhost:3000',
   timeout: 30000,
   retries: 2,
 };
@@ -43,13 +43,13 @@ export async function safeGoto(
         console.error('❌ Network connection issue detected:');
         console.error('  - Server might be down or not responding');
         console.error('  - Network connectivity issues');
-        console.error('  - Please ensure the development server is running: pnpm dev -p 8081');
-        console.error('  - Check if port 8081 is available and not blocked');
+        console.error('  - Please ensure the development server is running: pnpm dev -p 3000');
+        console.error('  - Check if port 3000 is available and not blocked');
 
         // Try to provide more helpful debugging info
         console.error('🔍 Debugging steps:');
-        console.error('  1. Check if server is running: curl http://localhost:8081');
-        console.error('  2. Check port availability: lsof -i:8081');
+        console.error('  1. Check if server is running: curl http://localhost:3000');
+        console.error('  2. Check port availability: lsof -i:3000');
         console.error('  3. Restart the development server');
       }
     }

@@ -45,7 +45,7 @@ export default defineConfig({
   /* Shared settings for all the projects below. */
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
-    baseURL: process.env.DEPLOYMENT_URL || 'http://localhost:8081',
+    baseURL: process.env.DEPLOYMENT_URL || 'http://localhost:3000',
 
     /* No tracing for speed */
     trace: 'off',

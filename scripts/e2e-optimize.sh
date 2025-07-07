@@ -90,7 +90,7 @@ monitor_resources() {
     # Monitor network connections
     if command -v lsof >/dev/null 2>&1; then
         echo "Active network connections:"
-        lsof -i :8081 -i :9323 2>/dev/null || echo "No test-related network connections"
+        lsof -i :3000 -i :9323 2>/dev/null || echo "No test-related network connections"
     fi
 }
 
