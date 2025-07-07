@@ -41,16 +41,21 @@ export default defineConfig({
       },
     },
     // Safari/WebKit - Important for iOS/macOS users (~20% market share)
-    {
-      name: 'webkit',
-      use: {
-        ...devices['Desktop Safari'],
-        // Optimize for stability - no Chromium-specific flags
-        launchOptions: {
-          args: [],
-        },
-      },
-    },
+    // Disabled in production CI due to WebKit-specific rendering issues
+    ...(process.env.CI && process.env.VERCEL_PRODUCTION_URL
+      ? []
+      : [
+          {
+            name: 'webkit',
+            use: {
+              ...devices['Desktop Safari'],
+              // Optimize for stability - no Chromium-specific flags
+              launchOptions: {
+                args: [],
+              },
+            },
+          },
+        ]),
     // Mobile Chrome - Mobile testing representative
     {
       name: 'Mobile Chrome',

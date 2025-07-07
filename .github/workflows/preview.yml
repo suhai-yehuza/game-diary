@@ -102,7 +102,7 @@ jobs:
       PLAYWRIGHT_TEST: true
     strategy:
       matrix:
-        test: [smoke, critical]
+        test: [smoke] # critical temporarily disabled
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4

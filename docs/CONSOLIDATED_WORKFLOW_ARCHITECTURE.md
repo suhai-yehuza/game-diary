@@ -58,7 +58,8 @@ on:
 - Comprehensive testing (quality gate, unit tests, E2E tests)
 - Post-deployment validation (soak period handled in staging)
 - 24-hour commit age requirement
-- Staging readiness validation
+- **Direct Push Validation:** When pushing directly to master, runs validation but skips soak period
+- **Staging Readiness Validation:** For scheduled/manual deployments, validates staging readiness
 
 ## Deployment Flow
 
@@ -73,8 +74,17 @@ on:
 │ Deploy to       │    │ Check for 24+    │    │ Manual or       │
 │ staging with    │    │ hour old commits │    │ scheduled       │
 │ full validation │    │ in staging and   │    │ deployment      │
-└─────────────────┘    │ merge to master  │    └─────────────────┘
-                       └──────────────────┘
+│ + 24hr soak     │    │ merge to master  │    │ (with staging   │
+└─────────────────┘    │                   │    │  validation)    │
+                       └──────────────────┘    └─────────────────┘
+                                                │
+                                                ▼
+                                       ┌─────────────────┐
+                                       │ Direct Push     │
+                                       │ to Master       │
+                                       │ (validation     │
+                                       │  but no soak)   │
+                                       └─────────────────┘
 ```
 
 ## Benefits
@@ -84,6 +94,8 @@ on:
 3. **Clear Separation:** Staging deployment separate from master promotion
 4. **Backup Mechanisms:** Multiple ways to handle staging→master merges
 5. **Safety:** Production only gets thoroughly validated code
+6. **Flexibility:** Direct pushes to master have validation but skip soak period
+7. **Faster Feedback:** Reduced soak period from 48 to 24 hours for faster deployments
 
 ## Configuration
 
@@ -111,7 +123,7 @@ All workflows use the same environment variables:
 
 ### Staging Soak Period
 
-- 30-minute monitoring period after staging deployment
+- 24-hour monitoring period after staging deployment (reduced from 48 hours)
 - Health checks every 30 seconds
 - Performance monitoring every 5 minutes
 - Automatic rollback on critical issues
@@ -122,6 +134,7 @@ All workflows use the same environment variables:
 - Critical path E2E tests
 - Performance validation
 - No soak period (already validated in staging)
+- Direct push validation (no soak, but full test suite)
 
 ## Troubleshooting
 
@@ -149,6 +162,15 @@ If staging soak period fails:
 2. Review error rates and response times
 3. Consider rollback if metrics are poor
 4. Production deployment will be blocked until staging is healthy
+
+### Direct Push to Master Issues
+
+If direct push to master fails:
+
+1. Check that all tests pass (quality gate, unit tests, E2E tests)
+2. Verify commit is at least 24 hours old
+3. Review validation logs for any issues
+4. Consider using staging workflow for safer deployment
 
 ## Migration Notes
 

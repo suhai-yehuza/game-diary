@@ -143,13 +143,13 @@ get_pipeline_config() {
 
     case "$environment" in
         "preview")
-            echo "quality_gate:preview unit_tests e2e_fast"
+            echo "quality_gate:preview unit_tests e2e_sanity"
             ;;
         "staging"|"staging-soak")
-            echo "quality_gate:production unit_tests e2e_fast e2e_critical e2e_responsive"
+            echo "quality_gate:production unit_tests e2e_sanity e2e_critical e2e_responsive"
             ;;
         "production")
-            echo "quality_gate:production unit_tests e2e_fast e2e_critical e2e_responsive e2e_coverage_full"
+            echo "quality_gate:production unit_tests e2e_sanity e2e_critical e2e_responsive e2e_coverage_full"
             ;;
         *)
             log_error "Unknown environment: $environment"
@@ -180,7 +180,7 @@ execute_pipeline() {
             "unit_tests")
                 run_unit_tests "$step_number"
                 ;;
-            "e2e_fast")
+            "e2e_sanity")
                 run_e2e_tests "sanity" "$step_number"
                 ;;
             "e2e_critical")

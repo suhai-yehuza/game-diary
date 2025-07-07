@@ -17,7 +17,7 @@ run_unit_tests() {
     ./scripts/ci-unit-tests.sh
 }
 
-run_e2e_fast() {
+run_e2e_sanity() {
     echo "📋 Step $1: E2E Fast Tests"
     ./scripts/ci-e2e-tests.sh sanity
 }
@@ -39,19 +39,19 @@ run_e2e_coverage_full() {
 
 # Define pipeline configurations
 get_preview_pipeline() {
-    echo "quality_gate:preview unit_tests e2e_fast"
+    echo "quality_gate:preview unit_tests e2e_sanity"
 }
 
 get_staging_pipeline() {
-    echo "quality_gate:production unit_tests e2e_fast e2e_critical e2e_responsive"
+    echo "quality_gate:production unit_tests e2e_sanity e2e_critical e2e_responsive"
 }
 
 get_staging_soak_pipeline() {
-    echo "quality_gate:production unit_tests e2e_fast e2e_critical e2e_responsive"
+    echo "quality_gate:production unit_tests e2e_sanity e2e_critical e2e_responsive"
 }
 
 get_production_pipeline() {
-    echo "quality_gate:production unit_tests e2e_fast e2e_critical e2e_responsive e2e_coverage_full"
+    echo "quality_gate:production unit_tests e2e_sanity e2e_critical e2e_responsive e2e_coverage_full"
 }
 
 # Execute pipeline
@@ -95,8 +95,8 @@ execute_pipeline() {
             "unit_tests")
                 run_unit_tests "$step_number"
                 ;;
-            "e2e_fast")
-                run_e2e_fast "$step_number"
+            "e2e_sanity")
+                run_e2e_sanity "$step_number"
                 ;;
             "e2e_critical")
                 run_e2e_critical "$step_number"

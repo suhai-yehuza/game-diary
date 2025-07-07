@@ -16,7 +16,7 @@ DEPLOY_CONFIG_DIR="./.deployments"
 DEPLOY_LOG_FILE="$DEPLOY_CONFIG_DIR/deploy.log"
 DEPLOY_STATUS_FILE="$DEPLOY_CONFIG_DIR/status.json"
 DEPLOY_HISTORY_FILE="$DEPLOY_CONFIG_DIR/history.json"
-AUTO_DEPLOY_DELAY=172800  # 48 hours in seconds
+AUTO_DEPLOY_DELAY=86400  # 24 hours in seconds (changed from 48 hours)
 
 # Ensure deployment directory exists
 init_deploy_dir() {
@@ -160,7 +160,7 @@ schedule_auto_deploy() {
     local schedule_data="{\"scheduled\":true,\"staging_deploy_time\":\"$(date -u -d "@$staging_deploy_time" +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || date -u -r "$staging_deploy_time" +%Y-%m-%dT%H:%M:%SZ)\",\"prod_deploy_time\":\"$prod_deploy_date\",\"status\":\"scheduled\"}"
 
     echo "$schedule_data" > "$DEPLOY_CONFIG_DIR/auto_deploy_schedule.json"
-    update_deployment_status "scheduled" "production" "Auto-deployment scheduled 48hrs after staging"
+    update_deployment_status "scheduled" "production" "Auto-deployment scheduled 24hrs after staging"
 
     add_to_history "schedule_auto_deploy" "production" "Scheduled for $prod_deploy_date"
 

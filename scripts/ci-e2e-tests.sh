@@ -7,7 +7,7 @@
 set -e  # Exit on any error
 
 case "$1" in
-    "smoke"|"critical"|"sanity")
+    "smoke"|"sanity"|"critical")
         echo "🚀 Running CI E2E Tests ($1)..."
 
         echo "🔧 Install Playwright browsers..."
