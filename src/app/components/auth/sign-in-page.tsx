@@ -1,8 +1,11 @@
 'use client';
 
+import { SignIn } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
 import type { ReactNode } from 'react';
 import { useEffect, useRef, useCallback, Suspense, Component } from 'react';
+
+import { isUnitTestEnvironment } from '@/lib/config/api.config';
 
 // Error boundary for Clerk components
 class ClerkErrorBoundary extends Component<
@@ -131,6 +134,10 @@ export function SignInPage() {
 
 // Separate component to handle Clerk SignIn
 function SignInWrapper() {
-  // Use a simple fallback for test environment
-  return <div>Authentication temporarily unavailable</div>;
+  // Use a simple fallback for unit test environment only
+  if (isUnitTestEnvironment) {
+    return <div>Authentication temporarily unavailable</div>;
+  }
+
+  return <SignIn />;
 }

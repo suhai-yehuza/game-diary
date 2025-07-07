@@ -262,6 +262,15 @@ export const INTERNAL_PROXY_ENDPOINTS = {
 
 // Add test environment detection
 export const isTestEnvironment =
-  process.env.CI === 'true' ||
-  process.env.GITHUB_ACTIONS === 'true' ||
-  process.env.FORCE_MOCK_API === 'true';
+  process.env.NODE_ENV === 'test' ||
+  process.env.FORCE_MOCK_API === 'true' ||
+  (process.env.CI === 'true' && process.env.NODE_ENV === 'development');
+
+// Add specific E2E test environment detection
+export const isE2ETestEnvironment =
+  process.env.DEPLOYMENT_URL !== undefined ||
+  process.env.PLAYWRIGHT_BASE_URL !== undefined ||
+  (process.env.CI === 'true' && process.env.NODE_ENV === 'production');
+
+// Add unit test environment detection
+export const isUnitTestEnvironment = process.env.NODE_ENV === 'test' && !isE2ETestEnvironment;
