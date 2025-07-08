@@ -7,7 +7,7 @@ name: Vercel Staging to Master Merge (Hourly)
 
 on:
   schedule:
-    - cron: '0 * * * *' # every hour
+    - cron: '0 */4 * * *' # every 4 hours
 
 permissions:
   contents: write
