@@ -1,6 +1,6 @@
-name: Vercel Staging to Master Merge (Hourly)
+name: Vercel Staging to Master Merge (Every 4 Hours)
 
-# Hourly workflow that:
+# Every 4 hours workflow that:
 # - Checks for successful staging commits that are 24+ hours old
 # - Merges those commits to master if they're not already there
 # - Only processes commits that have passed staging validation
