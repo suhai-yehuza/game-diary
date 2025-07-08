@@ -1,24 +1,10 @@
 import { test, expect } from '@playwright/test';
-import {
-  safeGoto,
-  waitForPageLoad,
-  checkBasicPageStructure,
-  checkPageTitle,
-  checkForConsoleErrors,
-  checkAccessibilityBasics,
-  checkPerformanceMetrics,
-  generateTestData,
-  takeDebugScreenshot,
-} from '@tests/e2e/utils/test-utils';
+import { safeGoto, waitForPageLoad } from '@tests/e2e/utils/test-utils';
 import { testSignInModal } from '@tests/e2e/utils/auth-modal';
-
-// Smoke tests are handled by the compound runner
 
 test.describe.configure({ retries: 2 });
 
 test.describe('Critical Tests (Extends Smoke)', () => {
-  const testData = generateTestData();
-
   test.beforeEach(async ({ page }) => {
     // Disable all CSS animations and transitions for test reliability
     await page.addStyleTag({
