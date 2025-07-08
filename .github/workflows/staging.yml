@@ -222,7 +222,10 @@ jobs:
       - name: Build Project Artifacts
         run: vercel build --token=${{ secrets.VERCEL_TOKEN }}
       - name: Deploy Project Artifacts to Vercel
-        run: vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }}
+        id: vercel_deploy
+        run: |
+          url=$(vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }} --yes)
+          echo "VERCEL_DEPLOYMENT_URL=$url" >> $GITHUB_ENV
 
   soak-period:
     name: Soak Period Monitoring
@@ -232,7 +235,6 @@ jobs:
     environment: Staging
     env:
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      VERCEL_STAGING_URL: ${{ secrets.VERCEL_STAGING_URL }}
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -264,7 +266,7 @@ jobs:
       - name: Start Soak Period
         run: |
           echo "Starting soak period for staging deployment"
-          echo "Deployment URL: $VERCEL_STAGING_URL"
+          echo "Deployment URL: $VERCEL_DEPLOYMENT_URL"
           echo "Soak duration: $SOAK_DURATION seconds"
 
           # Debug: Check if soak script exists and is executable
@@ -272,7 +274,7 @@ jobs:
 
           # Debug: Check environment variables
           echo "Environment check:"
-          echo "VERCEL_STAGING_URL: $VERCEL_STAGING_URL"
+          echo "VERCEL_DEPLOYMENT_URL: $VERCEL_DEPLOYMENT_URL"
           echo "SOAK_DURATION: $SOAK_DURATION"
           echo "DATABASE_URL: ${DATABASE_URL:0:20}..."
 
@@ -347,7 +349,7 @@ jobs:
           echo "=== Soak Period Summary ===" > ./.soak/summary.txt
           echo "Timestamp: $(date -u +%Y-%m-%dT%H:%M:%SZ)" >> ./.soak/summary.txt
           echo "Environment: staging" >> ./.soak/summary.txt
-          echo "Deployment URL: $VERCEL_STAGING_URL" >> ./.soak/summary.txt
+          echo "Deployment URL: $VERCEL_DEPLOYMENT_URL" >> ./.soak/summary.txt
           echo "Soak Duration: $SOAK_DURATION seconds" >> ./.soak/summary.txt
           echo "Files in soak directory:" >> ./.soak/summary.txt
           ls -la ./.soak/ >> ./.soak/summary.txt 2>&1 || echo "No files found" >> ./.soak/summary.txt
@@ -442,7 +444,6 @@ jobs:
     environment: Staging
     env:
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      VERCEL_STAGING_URL: ${{ secrets.VERCEL_STAGING_URL }}
       NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
       CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
       CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
@@ -468,8 +469,8 @@ jobs:
       - name: Run Post-Deployment E2E Tests
         run: |
           echo "Running comprehensive post-deployment validation..."
-          DEPLOYMENT_URL="$VERCEL_STAGING_URL" pnpm test:e2e:smoke
-          DEPLOYMENT_URL="$VERCEL_STAGING_URL" pnpm test:e2e:critical
+          DEPLOYMENT_URL="$VERCEL_DEPLOYMENT_URL" pnpm test:e2e:smoke
+          DEPLOYMENT_URL="$VERCEL_DEPLOYMENT_URL" pnpm test:e2e:critical
       - name: Upload Post-Deployment Test Results
         if: failure()
         uses: actions/upload-artifact@v4
