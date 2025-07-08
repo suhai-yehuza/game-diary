@@ -43,6 +43,11 @@ on:
         required: false
         default: false
         type: boolean
+      skip_commit_age_check:
+        description: 'Skip commit age validation (24-hour requirement)'
+        required: false
+        default: false
+        type: boolean
   # Auto-deploy removed - production deployments are now manual or scheduled only
 
 jobs:
@@ -325,6 +330,7 @@ jobs:
             ./scripts/deployment-manager.sh manual-deploy "Scheduled production deployment"
           fi
       - name: Check commit age (must be at least 24 hours old)
+        if: ${{ !inputs.skip_commit_age_check }}
         run: |
           git fetch origin master
           LATEST_COMMIT_TIME=$(git log -1 --format=%ct origin/master)
@@ -334,6 +340,11 @@ jobs:
             echo "Latest commit is less than 24 hours old ($AGE hours). Skipping deployment."
             exit 78
           fi
+      - name: Skip commit age check
+        if: ${{ inputs.skip_commit_age_check }}
+        run: |
+          echo "⚠️  Commit age validation skipped by user request"
+          echo "This bypasses the 24-hour safety requirement"
 
   post-deployment-smoke:
     name: Post-Deployment Smoke Tests
