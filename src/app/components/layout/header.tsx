@@ -214,6 +214,12 @@ function NavItem({ href, isActive, children, className = '', ...props }: NavItem
 function AdminNavContent({ isActive }: { isActive: (path: string) => boolean }) {
   const { user, isLoaded } = useUser();
 
+  if (typeof window !== 'undefined') {
+    console.log('CLERK KEY:', process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY);
+    console.log('ADMIN EMAILS:', process.env.NEXT_PUBLIC_ADMIN_EMAILS);
+    console.log('USER EMAIL:', user?.emailAddresses?.[0]?.emailAddress);
+  }
+
   // Check if user is admin based on email
   const adminEmails = process.env.NEXT_PUBLIC_ADMIN_EMAILS
     ? process.env.NEXT_PUBLIC_ADMIN_EMAILS.split(',')
