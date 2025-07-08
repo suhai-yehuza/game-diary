@@ -55,9 +55,12 @@ jobs:
     name: Validate Staging Readiness
     runs-on: ubuntu-latest
     if: ${{ !inputs.skip_validation && github.event_name != 'push' }}
+    continue-on-error: true
     environment: Production
     env:
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
+    outputs:
+      staging_ready: ${{ steps.staging_ready_check.outputs.staging_ready }}
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -78,12 +81,15 @@ jobs:
       - name: Check Staging Readiness
         run: ./scripts/deployment-manager.sh status
       - name: Validate Staging Metrics
+        id: staging_ready_check
         run: |
-          if ! ./scripts/deployment-manager.sh status | grep -q "Staging: ✅ Ready for production"; then
+          if ./scripts/deployment-manager.sh status | grep -q "Staging: ✅ Ready for production"; then
+            echo "✅ Staging is ready for production deployment"
+            echo "staging_ready=true" >> $GITHUB_OUTPUT
+          else
             echo "❌ Staging is not ready for production deployment"
-            exit 1
+            echo "staging_ready=false" >> $GITHUB_OUTPUT
           fi
-          echo "✅ Staging is ready for production deployment"
 
   validate-direct-push:
     name: Validate Direct Push (No Soak)
@@ -284,9 +290,9 @@ jobs:
 
   deploy:
     name: Deploy to Vercel Production
-    needs: [quality-gate, unit-tests, e2e, e2e-responsive]
+    needs: [quality-gate, unit-tests, e2e, e2e-responsive, validate-staging]
     runs-on: ubuntu-latest
-    if: success()
+    if: needs.validate-staging.outputs.staging_ready == 'true' && success()
     environment: Production
     steps:
       - uses: actions/checkout@v4
@@ -389,3 +395,12 @@ jobs:
             test-results/
             playwright-report/
           retention-days: 7
+
+  deployment-skipped:
+    name: Deployment Skipped (Staging Not Ready)
+    needs: [validate-staging]
+    runs-on: ubuntu-latest
+    if: needs.validate-staging.outputs.staging_ready == 'false'
+    steps:
+      - name: Notice
+        run: echo "::notice::Staging is not ready for production deployment. Deployment skipped."
