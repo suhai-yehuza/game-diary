@@ -229,8 +229,8 @@ main() {
     # Change to project root
     cd "$PROJECT_ROOT"
 
-    # Check for staged changes
-    check_staged_changes
+    # Check for staged changes (but don't fail if none)
+    check_staged_changes || true
 
     echo -e "${BLUE}🚀 Starting pre-push coverage enforcement...${NC}"
     echo ""
