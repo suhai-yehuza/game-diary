@@ -5,9 +5,16 @@ import {
   checkBasicPageStructure,
   checkPageTitle,
   waitForNetworkIdle,
+  clearTestData,
 } from '@tests/e2e/utils/test-utils';
 import { testSignInModal } from '@tests/e2e/utils/auth-modal';
 import { runCriticalSuite } from './critical.spec';
+
+test.describe.configure({ mode: 'serial' }); // Enforce serial execution for test isolation
+
+test.beforeEach(async ({ page }) => {
+  await clearTestData(page); // Test data isolation: clear storage and cookies
+});
 
 // Atomic navigation-level test functions
 export async function navigationTestSportsPagesNavigation(page: any) {

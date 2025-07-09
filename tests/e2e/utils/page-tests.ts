@@ -1,4 +1,4 @@
-import { Page, expect } from '@playwright/test';
+import { Page, expect, TestType } from '@playwright/test';
 import {
   safeGoto,
   waitForPageLoad,
@@ -167,5 +167,70 @@ export async function testHomePage(page: Page, options: PageTestOptions = {}): P
     checkAccessibility: true,
     checkPerformance: true,
     ...options,
+  });
+}
+
+/**
+ * Responsive suite runner: tests all major pages at multiple viewports
+ */
+export function runResponsiveSuite(test: TestType<any, any>) {
+  test.describe('Responsive Tests', () => {
+    const viewports = [
+      { name: 'iPhone SE', width: 375, height: 667 },
+      { name: 'iPhone 12 Pro', width: 390, height: 844 },
+      { name: 'iPhone 12 Pro Max', width: 428, height: 926 },
+      { name: 'Samsung Galaxy S20', width: 360, height: 800 },
+      { name: 'Samsung Galaxy S21', width: 384, height: 854 },
+      { name: 'iPad', width: 768, height: 1024 },
+      { name: 'iPad Pro', width: 1024, height: 1366 },
+      { name: 'Samsung Galaxy Tab', width: 800, height: 1280 },
+      { name: 'Small Desktop', width: 1024, height: 768 },
+      { name: 'Medium Desktop', width: 1366, height: 768 },
+      { name: 'Large Desktop', width: 1920, height: 1080 },
+      { name: 'Ultra Wide', width: 2560, height: 1440 },
+    ];
+    const testPages = [
+      '/',
+      '/sports/nba',
+      '/sports/nfl',
+      '/sports/mlb',
+      '/sports/nhl',
+      '/sports/mls',
+      '/sports/all-sports',
+      '/sports/live',
+      '/dashboard',
+    ];
+    for (const viewport of viewports) {
+      test.describe(`${viewport.name} viewport`, () => {
+        testPages.forEach(url => {
+          test(`should render ${url} correctly`, async ({ page }: { page: Page }) => {
+            await page.setViewportSize({ width: viewport.width, height: viewport.height });
+            await testPageComprehensive(page, url);
+          });
+        });
+      });
+    }
+  });
+}
+
+/**
+ * Cross-browser suite runner: can be extended for browser-specific logic
+ */
+export function runCrossBrowserSuite(test: TestType<any, any>) {
+  test.describe('Cross-Browser Tests', () => {
+    // For now, just run the responsive suite
+    runResponsiveSuite(test);
+    // Add browser-specific checks here if needed
+  });
+}
+
+/**
+ * Full suite runner: can be extended for full regression/coverage
+ */
+export function runFullSuite(test: TestType<any, any>) {
+  test.describe('Full Regression Suite', () => {
+    // For now, just run the cross-browser suite
+    runCrossBrowserSuite(test);
+    // Add full regression/coverage checks here if needed
   });
 }

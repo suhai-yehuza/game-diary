@@ -1,5 +1,9 @@
 import { test, expect } from '@playwright/test';
-import { runComprehensivePageTests, waitForNetworkIdle } from '@tests/e2e/utils/page-suites';
+import {
+  runComprehensivePageTests,
+  waitForNetworkIdle,
+  clearTestData,
+} from '@tests/e2e/utils/page-suites';
 
 test.describe.configure({ retries: 2 }); // TEMP: Retry flaky tests while stabilizing
 
@@ -10,6 +14,7 @@ test.describe('Dashboard', () => {
   // Dashboard-specific tests
   test.describe('Dashboard - Specific Tests', () => {
     test.beforeEach(async ({ page }) => {
+      await clearTestData(page); // Test data isolation: clear storage and cookies
       await page.goto('/dashboard');
       await waitForNetworkIdle(page);
       // Disable all CSS animations and transitions for test reliability

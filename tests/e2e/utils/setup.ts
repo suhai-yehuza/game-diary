@@ -1,6 +1,6 @@
 import { Page } from '@playwright/test';
 import { CSS_ANIMATION_DISABLE } from './constants';
-import { waitForNetworkIdle } from './test-utils';
+import { waitForNetworkIdle, clearTestData } from './test-utils';
 
 /**
  * Test setup utilities for E2E tests
@@ -32,8 +32,10 @@ export async function setupPageForTesting(page: Page): Promise<void> {
 
 /**
  * Common test setup that can be used in beforeEach hooks
+ * Includes test data isolation for clean state
  */
 export async function commonTestSetup(page: Page): Promise<void> {
+  await clearTestData(page); // Test data isolation: clear storage and cookies
   await setupPageForTesting(page);
 }
 

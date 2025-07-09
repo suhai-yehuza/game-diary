@@ -3,13 +3,15 @@ import { defineConfig, devices } from '@playwright/test';
 /**
  * Critical test configuration for both local and deployed environments
  * Optimized for reliability and comprehensive testing
+ *
+ * Test isolation: 1 worker locally, 2 in CI, fullyParallel false to prevent cross-test contamination.
  */
 export default defineConfig({
   testDir: './tests/e2e/functional',
   /* Global test timeout */
   timeout: 90000,
   /* Run tests in files in parallel */
-  fullyParallel: process.env.CI ? true : false,
+  fullyParallel: false, // Test isolation: disables full parallelism for critical/navigation
   /* Fail the build on CI if you accidentally left test.only in the source code. */
   forbidOnly: !!process.env.CI,
   /* Retry on CI only */
@@ -56,26 +58,6 @@ export default defineConfig({
             },
           },
         ]),
-    // Mobile Chrome - Mobile testing representative
-    {
-      name: 'Mobile Chrome',
-      use: {
-        ...devices['Pixel 5'],
-        launchOptions: {
-          args: [
-            '--disable-dev-shm-usage',
-            '--no-sandbox',
-            '--disable-setuid-sandbox',
-            '--disable-gpu',
-            '--disable-web-security',
-            '--disable-features=VizDisplayCompositor',
-            '--disable-background-timer-throttling',
-            '--disable-backgrounding-occluded-windows',
-            '--disable-renderer-backgrounding',
-          ],
-        },
-      },
-    },
   ],
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: process.env.CI

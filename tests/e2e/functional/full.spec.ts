@@ -1,17 +1,13 @@
 import { test } from '@playwright/test';
-import { runCrossBrowserSuite } from './cross-browser.spec';
+import { commonTestSetup } from '@tests/e2e/utils/setup';
+import { runFullSuite } from '@tests/e2e/utils/page-tests';
+import { clearTestData } from '@tests/e2e/utils/test-utils';
 
-// If you have atomic full-level test functions, define them here
-// For this example, we'll assume all full logic is handled in the cross-browser suite
+test.describe.configure({ mode: 'serial' }); // Enforce serial execution for test isolation
 
-// Suite runner for full
-export async function runFullSuite(page: any) {
-  await runCrossBrowserSuite(page);
-  // Add any full-level-specific tests here if needed
-}
-
-test.describe('Full Tests (Extends Cross-Browser)', () => {
-  test('@full full suite', async ({ page }) => {
-    await runFullSuite(page);
-  });
+test.beforeEach(async ({ page }) => {
+  await clearTestData(page);
+  await commonTestSetup(page);
 });
+
+runFullSuite(test);

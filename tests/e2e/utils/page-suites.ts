@@ -6,15 +6,17 @@ import {
   safeGoto,
   waitForPageLoad,
   waitForNetworkIdle,
+  clearTestData,
 } from './test-utils';
-
-// Re-export waitForNetworkIdle for convenience
-export { waitForNetworkIdle };
 import { testSignInModal } from './auth-modal';
+
+// Re-export waitForNetworkIdle and clearTestData for convenience
+export { waitForNetworkIdle, clearTestData };
 
 export function runBasePageTests(test: TestType<any, any>, path: string, pageName: string) {
   test.describe(`${pageName} - Base Tests`, () => {
     test.beforeEach(async ({ page }: { page: Page }) => {
+      await clearTestData(page); // Test data isolation: clear storage and cookies
       await page.addStyleTag({
         content: '* { transition: none !important; animation: none !important; }',
       });
@@ -26,6 +28,7 @@ export function runBasePageTests(test: TestType<any, any>, path: string, pageNam
 export function runContentPageTests(test: TestType<any, any>, path: string, pageName: string) {
   test.describe(`${pageName} - Content Tests`, () => {
     test.beforeEach(async ({ page }: { page: Page }) => {
+      await clearTestData(page); // Test data isolation: clear storage and cookies
       await safeGoto(page, path);
       await waitForPageLoad(page);
       await page.addStyleTag({
@@ -40,6 +43,7 @@ export function runContentPageTests(test: TestType<any, any>, path: string, page
 export function runInteractivePageTests(test: TestType<any, any>, path: string, pageName: string) {
   test.describe(`${pageName} - Interactive Tests`, () => {
     test.beforeEach(async ({ page }: { page: Page }) => {
+      await clearTestData(page); // Test data isolation: clear storage and cookies
       await safeGoto(page, path);
       await waitForPageLoad(page);
       await page.addStyleTag({
@@ -58,6 +62,7 @@ export function runComprehensivePageTests(
 ) {
   test.describe(`${pageName} - Comprehensive Tests`, () => {
     test.beforeEach(async ({ page }: { page: Page }) => {
+      await clearTestData(page); // Test data isolation: clear storage and cookies
       await safeGoto(page, path);
       await waitForPageLoad(page);
       await page.addStyleTag({

@@ -583,12 +583,66 @@ export function generateTestData() {
 }
 
 /**
- * Clean up test data
+ * Clear all test data from the browser to ensure test isolation
+ * Handles cases where page context might not be fully available
  */
-export async function cleanupTestData(page: Page): Promise<void> {
-  // This would typically involve cleaning up any test data created during tests
-  // For now, we'll just wait a bit to ensure any async operations complete
-  await page.waitForTimeout(1000);
+export async function clearTestData(page: Page): Promise<void> {
+  try {
+    // Clear localStorage safely
+    await page.evaluate(() => {
+      try {
+        if (typeof window !== 'undefined' && window.localStorage) {
+          window.localStorage.clear();
+        }
+      } catch (error) {
+        // Ignore localStorage errors (e.g., in about:blank or restricted contexts)
+        console.warn('Could not clear localStorage:', error);
+      }
+    });
+
+    // Clear sessionStorage safely
+    await page.evaluate(() => {
+      try {
+        if (typeof window !== 'undefined' && window.sessionStorage) {
+          window.sessionStorage.clear();
+        }
+      } catch (error) {
+        // Ignore sessionStorage errors
+        console.warn('Could not clear sessionStorage:', error);
+      }
+    });
+
+    // Clear IndexedDB safely
+    await page.evaluate(() => {
+      try {
+        if (typeof window !== 'undefined' && window.indexedDB) {
+          // Delete all IndexedDB databases
+          const databases = indexedDB.databases();
+          if (databases) {
+            databases.then(dbList => {
+              dbList.forEach(db => {
+                if (db.name) {
+                  indexedDB.deleteDatabase(db.name);
+                }
+              });
+            });
+          }
+        }
+      } catch (error) {
+        // Ignore IndexedDB errors
+        console.warn('Could not clear IndexedDB:', error);
+      }
+    });
+
+    // Clear all cookies
+    const context = page.context();
+    if (context) {
+      await context.clearCookies();
+    }
+  } catch (error) {
+    // If any part of the clearing process fails, log but don't fail the test
+    console.warn('Test data clearing encountered an error:', error);
+  }
 }
 
 /**

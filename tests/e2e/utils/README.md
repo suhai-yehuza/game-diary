@@ -10,6 +10,57 @@ The E2E test suite has been refactored to eliminate duplicated patterns, particu
 - Navigation patterns
 - Timeout configurations
 - Element interactions
+- **Test isolation and data isolation**
+
+## Test Isolation & Data Isolation
+
+### **Test Isolation (Reduced Parallelism)**
+
+To prevent cross-test interference, all major E2E suites use:
+
+- **Serial execution**: `test.describe.configure({ mode: 'serial' })`
+- **Reduced workers**: 1 worker locally, 2 in CI for critical configs
+- **Disabled full parallelism**: `fullyParallel: false` for critical suites
+
+**Applied to:**
+
+- `critical.spec.ts` - Core user flows and error handling
+- `navigation.spec.ts` - Comprehensive navigation testing
+- `smoke.spec.ts` - Extended smoke tests
+- `sanity.spec.ts` - Base level tests
+- `responsive.spec.ts` - Responsive and viewport tests
+- `cross-browser.spec.ts` - Cross-browser compatibility tests
+- `full.spec.ts` - Full regression and coverage tests
+- All page-level suites (dashboard, sports, auth, etc.)
+
+### **Data Isolation (Clean State)**
+
+Every test starts with a clean browser state via `clearTestData()`:
+
+- **localStorage**: Cleared completely
+- **sessionStorage**: Cleared completely
+- **IndexedDB**: All databases deleted
+- **Cookies**: All cookies cleared
+
+**Applied to:**
+
+- All functional test suites (via `commonTestSetup()`)
+- All page test suites (via page suite utilities)
+- Individual page tests (dashboard, sports, auth)
+- All major E2E suites (critical, navigation, smoke, sanity, responsive, cross-browser, full)
+
+### **Implementation Pattern**
+
+```typescript
+// Test isolation
+test.describe.configure({ mode: 'serial' });
+
+// Data isolation
+test.beforeEach(async ({ page }) => {
+  await clearTestData(page); // Test data isolation: clear storage and cookies
+  // ... other setup
+});
+```
 
 ## Constants
 
@@ -91,27 +142,44 @@ await safeGoto(page, '/sports/nba', {
 });
 ```
 
+### Data Isolation Utilities
+
+#### `clearTestData(page)`
+
+Comprehensive browser state clearing for test isolation:
+
+```typescript
+await clearTestData(page); // Clears localStorage, sessionStorage, IndexedDB, cookies
+```
+
 ## Updated Files
 
 ### Core Utility Files
 
 - `tests/e2e/utils/test-utils.ts` - Added constants and core utilities
 - `tests/e2e/utils/navigation.ts` - Enhanced with new utilities
-- `tests/e2e/utils/page-suites.ts` - Updated imports
+- `tests/e2e/utils/page-suites.ts` - Updated imports and added data isolation
+- `tests/e2e/utils/setup.ts` - Enhanced with data isolation
 
 ### Test Files Updated
 
-- `tests/e2e/functional/critical.spec.ts`
-- `tests/e2e/functional/navigation.spec.ts`
-- `tests/e2e/functional/mock-verification.spec.ts`
-- `tests/e2e/pages/dashboard.spec.ts`
-- `tests/e2e/pages/sports.spec.ts`
-- `tests/e2e/pages/clerk-auth.spec.ts`
+- `tests/e2e/functional/critical.spec.ts` - Added serial mode and data isolation
+- `tests/e2e/functional/navigation.spec.ts` - Added serial mode and data isolation
+- `tests/e2e/functional/smoke.spec.ts` - Added serial mode
+- `tests/e2e/functional/sanity.spec.ts` - Added serial mode
+- `tests/e2e/functional/mock-verification.spec.ts` - Updated to use new utilities
+- `tests/e2e/pages/dashboard.spec.ts` - Added data isolation
+- `tests/e2e/pages/sports.spec.ts` - Added data isolation
+- `tests/e2e/pages/clerk-auth.spec.ts` - Added data isolation
+
+### Configuration Files Updated
+
+- `playwright.critical.config.ts` - Reduced parallelism for test isolation
 
 ### Utility Files Updated
 
-- `tests/e2e/utils/auth-modal.ts`
-- `tests/e2e/utils/setup.ts`
+- `tests/e2e/utils/auth-modal.ts` - Updated to use new utilities
+- `tests/e2e/utils/setup.ts` - Enhanced with data isolation
 
 ## Migration Guide
 
@@ -126,6 +194,13 @@ await page.waitForLoadState('networkidle');
 // Direct navigation without error handling
 await page.goto('/dashboard');
 await page.waitForLoadState('networkidle');
+
+// No test isolation
+test.describe('My Tests', () => {
+  test('test 1', async ({ page }) => {
+    // Could interfere with other tests
+  });
+});
 ```
 
 ### After (DRY Implementation)
@@ -141,6 +216,12 @@ await navigateToPage(page, '/dashboard', {
   waitForNetworkIdle: true,
   timeout: TIMEOUTS.MEDIUM,
 });
+
+// Test isolation and data isolation
+test.describe.configure({ mode: 'serial' });
+test.beforeEach(async ({ page }) => {
+  await clearTestData(page); // Clean state every test
+});
 ```
 
 ## Benefits
@@ -151,13 +232,21 @@ await navigateToPage(page, '/dashboard', {
 4. **Error Handling**: Enhanced navigation utilities include retry logic and better error messages
 5. **Readability**: Clear, descriptive function names make test code more readable
 6. **Performance**: Consistent timeouts prevent unnecessary waits or premature failures
+7. **Test Isolation**: Serial execution and data clearing prevent cross-test interference
+8. **Reliability**: Clean state ensures tests don't affect each other
 
 ## Usage Examples
 
-### Basic Page Navigation
+### Basic Page Navigation with Isolation
 
 ```typescript
-import { waitForNetworkIdle, TIMEOUTS } from '@tests/e2e/utils/test-utils';
+import { waitForNetworkIdle, TIMEOUTS, clearTestData } from '@tests/e2e/utils/test-utils';
+
+test.describe.configure({ mode: 'serial' });
+
+test.beforeEach(async ({ page }) => {
+  await clearTestData(page);
+});
 
 test('should navigate to dashboard', async ({ page }) => {
   await page.goto('/dashboard');
@@ -199,5 +288,7 @@ test('should handle navigation interruptions', async ({ page }) => {
 2. **Performance Monitoring**: Add utilities for measuring and reporting navigation performance
 3. **Conditional Waits**: Create utilities that wait for specific conditions rather than just load states
 4. **Mobile-Specific Utilities**: Enhanced utilities for mobile-specific navigation patterns
+5. **Backend Reset Endpoints**: Add API endpoints for full database isolation
+6. **Test-Specific Data Seeding**: Implement data seeding for specific test scenarios
 
-This DRY implementation significantly reduces code duplication while improving test reliability and maintainability.
+This DRY implementation significantly reduces code duplication while improving test reliability and maintainability through comprehensive isolation mechanisms.

@@ -6,6 +6,8 @@ import { navigateToSection } from '@tests/e2e/utils/navigation';
 import { SPORTS_PAGES } from '@tests/e2e/utils/constants';
 import { runSanitySuite } from './sanity.spec';
 
+test.describe.configure({ mode: 'serial' }); // Enforce serial execution for test isolation
+
 // Atomic smoke-level test functions
 export async function smokeTestAllSportsPages(page: any) {
   await testMultiplePages(page, [...SPORTS_PAGES]);
