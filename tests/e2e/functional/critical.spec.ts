@@ -1,12 +1,12 @@
 import { test, expect } from '@playwright/test';
-import { safeGoto, waitForPageLoad } from '@tests/e2e/utils/test-utils';
+import { safeGoto, waitForPageLoad, waitForNetworkIdle } from '@tests/e2e/utils/test-utils';
 import { testSignInModal } from '@tests/e2e/utils/auth-modal';
 import { runSmokeSuite } from './smoke.spec';
 
 // Atomic critical-level test functions
 export async function criticalTestAuthenticationFlow(page: any) {
-  await page.goto('/');
-  await page.waitForLoadState('networkidle');
+  await safeGoto(page, '/');
+  await waitForPageLoad(page);
   const signInButton = page.getByTestId('sign-in-button');
   await expect(signInButton).toBeVisible({ timeout: 15000 });
   const isDisabled = await signInButton.isDisabled();
@@ -33,8 +33,8 @@ export async function criticalTestProtectedRouteAccess(page: any) {
 }
 
 export async function criticalTestFormValidation(page: any) {
-  await page.goto('/');
-  await page.waitForLoadState('networkidle');
+  await safeGoto(page, '/');
+  await waitForPageLoad(page);
   const signInButton = page.getByTestId('sign-in-button');
   await expect(signInButton).toBeVisible({ timeout: 15000 });
   const isDisabled = await signInButton.isDisabled();
@@ -67,14 +67,14 @@ export async function criticalTestBrowserNavigation(page: any) {
   await safeGoto(page, '/sports/nfl');
   await waitForPageLoad(page);
   await page.goBack();
-  await page.waitForLoadState('networkidle');
+  await waitForNetworkIdle(page);
   await expect(page).toHaveURL(/\/sports\/nba/);
   await page.goForward();
-  await page.waitForLoadState('networkidle');
+  await waitForNetworkIdle(page);
   await expect(page).toHaveURL(/\/sports\/nfl/);
   await page.goBack();
   await page.goBack();
-  await page.waitForLoadState('networkidle');
+  await waitForNetworkIdle(page);
   await expect(page).toHaveURL(/\/$/);
 }
 
@@ -101,6 +101,10 @@ test.describe('Critical Tests (Extends Smoke)', () => {
     await page.addStyleTag({
       content: '* { transition: none !important; animation: none !important; }',
     });
+
+    // Ensure clean state by navigating to home page first
+    await page.goto('/');
+    await waitForNetworkIdle(page);
   });
 
   test('@critical full critical suite', async ({ page }) => {

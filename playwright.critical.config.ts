@@ -9,13 +9,13 @@ export default defineConfig({
   /* Global test timeout */
   timeout: 90000,
   /* Run tests in files in parallel */
-  fullyParallel: true,
+  fullyParallel: process.env.CI ? true : false,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
   forbidOnly: !!process.env.CI,
   /* Retry on CI only */
   retries: process.env.CI ? 2 : 1,
-  /* Optimized workers for better stability */
-  workers: process.env.CI ? 2 : 4,
+  /* Optimized workers for better stability - reduce for dry-run to prevent interference */
+  workers: process.env.CI ? 2 : 1,
 
   /* Configure projects for most popular browsers only */
   projects: [

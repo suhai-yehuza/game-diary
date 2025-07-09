@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { runComprehensivePageTests } from '@tests/e2e/utils/page-suites';
+import { runComprehensivePageTests, waitForNetworkIdle } from '@tests/e2e/utils/page-suites';
 
 const sportsPages = [
   { path: '/sports/nba', name: 'NBA', league: 'basketball' },
@@ -23,7 +23,7 @@ test.describe('Sports Pages', () => {
       test.describe(`${sportPage.name} - Sports Specific Tests`, () => {
         test.beforeEach(async ({ page }) => {
           await page.goto(sportPage.path);
-          await page.waitForLoadState('networkidle');
+          await waitForNetworkIdle(page);
           // Disable all CSS animations and transitions for test reliability
           await page.addStyleTag({
             content: '* { transition: none !important; animation: none !important; }',

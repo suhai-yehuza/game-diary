@@ -1,5 +1,6 @@
 import { Page } from '@playwright/test';
 import { CSS_ANIMATION_DISABLE } from './constants';
+import { waitForNetworkIdle } from './test-utils';
 
 /**
  * Test setup utilities for E2E tests
@@ -48,7 +49,7 @@ export async function setupTestOnPage(
   await page.goto(path, { waitUntil: 'domcontentloaded' });
 
   if (options.waitForLoad) {
-    await page.waitForLoadState('networkidle');
+    await waitForNetworkIdle(page);
   }
 }
 

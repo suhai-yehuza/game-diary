@@ -1,5 +1,9 @@
 import { test, expect } from '@playwright/test';
-import { setupE2EMocking, safeGotoWithMocking } from '@tests/e2e/utils/test-utils';
+import {
+  setupE2EMocking,
+  safeGotoWithMocking,
+  waitForNetworkIdle,
+} from '@tests/e2e/utils/test-utils';
 
 test.describe('Mock Verification (Prerequisite)', () => {
   test('@sanity should use mock data for API calls', async ({ page }) => {
@@ -10,7 +14,7 @@ test.describe('Mock Verification (Prerequisite)', () => {
     await safeGotoWithMocking(page, '/sports/nba');
 
     // Wait for the page to load
-    await page.waitForLoadState('networkidle');
+    await waitForNetworkIdle(page);
 
     // Check that the page loaded without API errors
     const pageContent = await page.content();
@@ -35,7 +39,7 @@ test.describe('Mock Verification (Prerequisite)', () => {
     await safeGotoWithMocking(page, '/sports/live');
 
     // Wait for any network requests to complete
-    await page.waitForLoadState('networkidle');
+    await waitForNetworkIdle(page);
 
     // Check that the page loaded successfully without external API errors
     const body = page.locator('body');
@@ -55,7 +59,7 @@ test.describe('Mock Verification (Prerequisite)', () => {
     await safeGotoWithMocking(page, '/sports/live');
 
     // Wait for page load
-    await page.waitForLoadState('networkidle');
+    await waitForNetworkIdle(page);
 
     // Check that the page loaded successfully
     const body = page.locator('body');

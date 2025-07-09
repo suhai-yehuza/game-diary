@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { runInteractivePageTests } from '@tests/e2e/utils/page-suites';
+import { runInteractivePageTests, waitForNetworkIdle } from '@tests/e2e/utils/page-suites';
 
 test.describe('Clerk Auth Modal', () => {
   // Run interactive page tests for home page (where auth modal is tested)
@@ -9,7 +9,7 @@ test.describe('Clerk Auth Modal', () => {
   test.describe('Clerk Auth - Specific Tests', () => {
     test.beforeEach(async ({ page }) => {
       await page.goto('/');
-      await page.waitForLoadState('networkidle');
+      await waitForNetworkIdle(page);
       // Disable all CSS animations and transitions for test reliability
       await page.addStyleTag({
         content: '* { transition: none !important; animation: none !important; }',

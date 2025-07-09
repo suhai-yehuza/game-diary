@@ -1,6 +1,15 @@
 import { test as baseTest, Page, TestType } from '@playwright/test';
 import { runBasePageChecks } from './page-shared-checks';
-import { checkSEOElements, checkResponsiveBehavior, safeGoto, waitForPageLoad } from './test-utils';
+import {
+  checkSEOElements,
+  checkResponsiveBehavior,
+  safeGoto,
+  waitForPageLoad,
+  waitForNetworkIdle,
+} from './test-utils';
+
+// Re-export waitForNetworkIdle for convenience
+export { waitForNetworkIdle };
 import { testSignInModal } from './auth-modal';
 
 export function runBasePageTests(test: TestType<any, any>, path: string, pageName: string) {

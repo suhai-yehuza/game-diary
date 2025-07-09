@@ -13,6 +13,83 @@ export const DEFAULT_CONFIG: TestConfig = {
   retries: 2,
 };
 
+// Common timeout constants
+export const TIMEOUTS = {
+  SHORT: 5000,
+  MEDIUM: 10000,
+  LONG: 15000,
+  EXTENDED: 30000,
+} as const;
+
+// Common load state types
+export const LOAD_STATES = {
+  DOM_CONTENT_LOADED: 'domcontentloaded',
+  LOAD: 'load',
+  NETWORK_IDLE: 'networkidle',
+} as const;
+
+/**
+ * Wait for a specific load state with consistent timeout handling
+ */
+export async function waitForLoadState(
+  page: Page,
+  state: keyof typeof LOAD_STATES = 'NETWORK_IDLE',
+  timeout: number = TIMEOUTS.MEDIUM
+): Promise<void> {
+  await page.waitForLoadState(LOAD_STATES[state], { timeout });
+}
+
+/**
+ * Wait for network idle with consistent timeout
+ */
+export async function waitForNetworkIdle(
+  page: Page,
+  timeout: number = TIMEOUTS.MEDIUM
+): Promise<void> {
+  await waitForLoadState(page, 'NETWORK_IDLE', timeout);
+}
+
+/**
+ * Wait for DOM content loaded with consistent timeout
+ */
+export async function waitForDOMContentLoaded(
+  page: Page,
+  timeout: number = TIMEOUTS.MEDIUM
+): Promise<void> {
+  await waitForLoadState(page, 'DOM_CONTENT_LOADED', timeout);
+}
+
+/**
+ * Navigate to a page with consistent load state handling
+ */
+export async function navigateToPage(
+  page: Page,
+  url: string,
+  options: {
+    waitForNetworkIdle?: boolean;
+    timeout?: number;
+    checkMainContent?: boolean;
+  } = {}
+): Promise<void> {
+  const {
+    waitForNetworkIdle: shouldWaitForNetworkIdle = true,
+    timeout = TIMEOUTS.MEDIUM,
+    checkMainContent = true,
+  } = options;
+
+  await page.goto(url, { waitUntil: LOAD_STATES.DOM_CONTENT_LOADED });
+
+  if (shouldWaitForNetworkIdle) {
+    await waitForNetworkIdle(page, timeout);
+  } else {
+    await waitForDOMContentLoaded(page, timeout);
+  }
+
+  if (checkMainContent) {
+    await expect(page.locator('main')).toBeVisible({ timeout });
+  }
+}
+
 /**
  * Safely navigate to a page with proper error handling
  */
@@ -24,45 +101,74 @@ export async function safeGoto(
   const finalConfig = { ...DEFAULT_CONFIG, ...config };
   const url = `${finalConfig.baseUrl}${path}`;
 
-  try {
-    await page.goto(url, {
-      waitUntil: 'domcontentloaded',
-      timeout: finalConfig.timeout,
-    });
-  } catch (error) {
-    console.error(`Failed to navigate to ${url}:`, error);
+  // Add retry logic for navigation interruptions
+  const maxRetries = 3;
+  let lastError: Error | null = null;
 
-    // Enhanced error handling for different network issues
-    if (error instanceof Error) {
-      if (
-        error.message.includes('ERR_CONNECTION_REFUSED') ||
-        error.message.includes('ERR_INTERNET_DISCONNECTED') ||
-        error.message.includes('net::ERR_CONNECTION_REFUSED') ||
-        error.message.includes('net::ERR_INTERNET_DISCONNECTED')
-      ) {
-        console.error('❌ Network connection issue detected:');
-        console.error('  - Server might be down or not responding');
-        console.error('  - Network connectivity issues');
-        console.error('  - Please ensure the development server is running: pnpm dev -p 3000');
-        console.error('  - Check if port 3000 is available and not blocked');
-
-        // Try to provide more helpful debugging info
-        console.error('🔍 Debugging steps:');
-        console.error('  1. Check if server is running: curl http://localhost:3000');
-        console.error('  2. Check port availability: lsof -i:3000');
-        console.error('  3. Restart the development server');
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      // Wait a bit before retrying to avoid rapid successive navigation attempts
+      if (attempt > 1) {
+        await page.waitForTimeout(1000 * attempt);
       }
-    }
 
-    throw error;
+      await page.goto(url, {
+        waitUntil: LOAD_STATES.DOM_CONTENT_LOADED,
+        timeout: finalConfig.timeout,
+      });
+
+      // If we get here, navigation was successful
+      return;
+    } catch (error) {
+      lastError = error as Error;
+      console.error(`Navigation attempt ${attempt} failed for ${url}:`, error);
+
+      // If it's a navigation interruption, try again
+      if (
+        error instanceof Error &&
+        error.message.includes('Navigation to') &&
+        error.message.includes('is interrupted')
+      ) {
+        console.log(`Navigation interrupted, retrying... (attempt ${attempt}/${maxRetries})`);
+        continue;
+      }
+
+      // For other errors, check if they're network-related
+      if (error instanceof Error) {
+        if (
+          error.message.includes('ERR_CONNECTION_REFUSED') ||
+          error.message.includes('ERR_INTERNET_DISCONNECTED') ||
+          error.message.includes('net::ERR_CONNECTION_REFUSED') ||
+          error.message.includes('net::ERR_INTERNET_DISCONNECTED')
+        ) {
+          console.error('❌ Network connection issue detected:');
+          console.error('  - Server might be down or not responding');
+          console.error('  - Network connectivity issues');
+          console.error('  - Please ensure the development server is running: pnpm dev -p 3000');
+          console.error('  - Check if port 3000 is available and not blocked');
+
+          // Try to provide more helpful debugging info
+          console.error('🔍 Debugging steps:');
+          console.error('  1. Check if server is running: curl http://localhost:3000');
+          console.error('  2. Check port availability: lsof -i:3000');
+          console.error('  3. Restart the development server');
+        }
+      }
+
+      // If it's not a navigation interruption, don't retry
+      break;
+    }
   }
+
+  // If we get here, all retries failed
+  throw lastError || new Error(`Failed to navigate to ${url} after ${maxRetries} attempts`);
 }
 
 /**
  * Wait for page to be fully loaded
  */
-export async function waitForPageLoad(page: Page, timeout = 10000): Promise<void> {
-  await page.waitForLoadState('domcontentloaded', { timeout });
+export async function waitForPageLoad(page: Page, timeout = TIMEOUTS.MEDIUM): Promise<void> {
+  await waitForLoadState(page, 'DOM_CONTENT_LOADED', timeout);
 }
 
 /**
@@ -71,7 +177,7 @@ export async function waitForPageLoad(page: Page, timeout = 10000): Promise<void
 export async function checkElementExists(
   page: Page,
   selector: string,
-  timeout = 5000
+  timeout = TIMEOUTS.SHORT
 ): Promise<boolean> {
   try {
     const element = page.locator(selector);
@@ -115,7 +221,7 @@ export async function checkBasicPageStructure(page: Page): Promise<void> {
     const element = page.locator(selector);
     if ((await element.count()) > 0) {
       try {
-        await expect(element.first()).toBeVisible({ timeout: 5000 });
+        await expect(element.first()).toBeVisible({ timeout: TIMEOUTS.SHORT });
         mainContentFound = true;
         break;
       } catch (error) {
@@ -215,7 +321,7 @@ export async function checkResponsiveBehavior(
  */
 export async function checkAccessibilityBasics(page: Page): Promise<void> {
   // Wait for page to be stable before checking accessibility
-  await page.waitForLoadState('domcontentloaded');
+  await waitForDOMContentLoaded(page);
   await page.waitForTimeout(1000);
 
   // Check for proper heading structure - be more lenient
@@ -285,7 +391,7 @@ export async function checkAccessibilityBasics(page: Page): Promise<void> {
  */
 export async function checkPerformanceMetrics(page: Page): Promise<any> {
   // Wait for page to fully load before measuring performance
-  await page.waitForLoadState('networkidle', { timeout: 10000 });
+  await waitForNetworkIdle(page, TIMEOUTS.MEDIUM);
 
   const metrics = await page.evaluate(() => {
     const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
@@ -413,7 +519,7 @@ export async function checkForNetworkErrors(page: Page): Promise<void> {
 export async function waitForElementStable(
   page: Page,
   selector: string,
-  timeout = 5000
+  timeout = TIMEOUTS.SHORT
 ): Promise<void> {
   const element = page.locator(selector);
   await element.waitFor({ state: 'visible', timeout });
@@ -528,7 +634,7 @@ export async function checkSecurityHeaders(page: Page): Promise<void> {
 export async function waitForCondition(
   page: Page,
   condition: () => Promise<boolean>,
-  timeout = 10000,
+  timeout = TIMEOUTS.MEDIUM,
   interval = 100
 ): Promise<void> {
   const startTime = Date.now();

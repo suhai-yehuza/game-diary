@@ -1,11 +1,12 @@
 import { Page, expect } from '@playwright/test';
+import { waitForNetworkIdle } from './test-utils';
 
 export async function testSignInModal(
   page: Page,
   closeMethod: 'escape' | 'click-outside' = 'escape'
 ) {
   // Wait for the page to be fully loaded
-  await page.waitForLoadState('networkidle');
+  await waitForNetworkIdle(page);
 
   // Use Locator API for the sign-in button
   const signInButton = page.getByTestId('sign-in-button');

@@ -4,6 +4,7 @@ import {
   waitForPageLoad,
   checkBasicPageStructure,
   checkPageTitle,
+  waitForNetworkIdle,
 } from '@tests/e2e/utils/test-utils';
 import { testSignInModal } from '@tests/e2e/utils/auth-modal';
 import { runCriticalSuite } from './critical.spec';
@@ -53,7 +54,7 @@ export async function navigationTestLinkNavigation(page: any) {
   const sportsCount = await sportsLinks.count();
   if (sportsCount > 0) {
     await sportsLinks.first().click();
-    await page.waitForLoadState('networkidle');
+    await waitForNetworkIdle(page);
     await expect(page).toHaveURL(/\/sports/);
     await expect(page.locator('main')).toBeVisible();
   }
@@ -65,10 +66,10 @@ export async function navigationTestBrowserBackForward(page: any) {
   await safeGoto(page, '/sports/nfl');
   await waitForPageLoad(page);
   await page.goBack();
-  await page.waitForLoadState('networkidle');
+  await waitForNetworkIdle(page);
   await expect(page).toHaveURL(/\/sports\/nba/);
   await page.goForward();
-  await page.waitForLoadState('networkidle');
+  await waitForNetworkIdle(page);
   await expect(page).toHaveURL(/\/sports\/nfl/);
 }
 

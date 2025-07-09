@@ -203,7 +203,7 @@ function NavItem({ href, isActive, children, className = '', ...props }: NavItem
   return (
     <Link
       href={href}
-      className={`block py-1.5 lg:py-0 text-base lg:text-sm transition-colors whitespace-nowrap flex items-center h-full ${isActive ? 'text-blue-600 font-semibold' : 'hover:text-blue-600'} ${className}`}
+      className={`block py-2 lg:py-1.5 text-base lg:text-sm transition-colors whitespace-nowrap flex items-center w-full lg:w-auto h-full ${isActive ? 'text-blue-600 font-semibold' : 'hover:text-blue-600'} ${className}`}
       {...props}
     >
       {children}
@@ -286,7 +286,7 @@ function NavigationLinks({
   _setIsMenuExpanded: (expanded: boolean) => void;
 }) {
   return (
-    <nav className="flex items-center h-full space-x-6 text-sm font-medium">
+    <nav className="flex flex-col lg:flex-row items-start lg:items-center h-full lg:space-x-6 space-y-2 lg:space-y-0 text-sm font-medium p-4 lg:p-0">
       {/* Dashboard + Sports */}
       <NavItem href="/dashboard" isActive={isActive('/dashboard')}>
         Dashboard
@@ -461,7 +461,8 @@ export function Header() {
                   setIsMenuExpanded(!isMenuExpanded);
                   setIsSearchVisible(false);
                 }}
-                className="lg:hidden mr-4"
+                className="lg:hidden mr-4 relative z-10 p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md transition-colors"
+                style={{ pointerEvents: 'auto' }}
               >
                 <Menu className="h-5 w-5" />
               </button>
@@ -512,7 +513,7 @@ export function Header() {
         {/* Mobile Search Overlay */}
         {isSearchVisible && (
           <div
-            className="fixed inset-0 z-50 flex items-start justify-center bg-black/40 sm:hidden min-w-[44px] min-h-[44px]"
+            className="fixed inset-0 z-40 flex items-start justify-center bg-black/40 sm:hidden min-w-[44px] min-h-[44px]"
             onClick={() => setIsSearchVisible(false)}
             onKeyDown={e => {
               if (e.key === 'Escape') {
@@ -522,6 +523,7 @@ export function Header() {
             role="button"
             tabIndex={0}
             aria-label="Close search overlay"
+            style={{ pointerEvents: 'auto' }}
           >
             <div
               className="mt-8 w-full max-w-md bg-background rounded-full border border-[#27272a] shadow-lg flex items-center px-4 py-2 relative min-w-[44px] min-h-[44px]"
