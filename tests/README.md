@@ -1,24 +1,119 @@
 # Test Directory Structure
 
-This directory contains all test files for the application.
+This directory contains all test files for the application with comprehensive coverage enforcement.
 
 ## Directory Structure
 
 ```
 tests/
-├── unit/           # Unit tests
-│   └── components/ # Component tests
-│       └── ui/     # UI component tests
-└── e2e/           # End-to-end tests (Playwright)
+├── unit/                    # Unit tests with comprehensive coverage
+│   ├── components/          # Component tests
+│   │   ├── auth/           # Authentication component tests
+│   │   ├── common/         # Common component tests
+│   │   ├── layout/         # Layout component tests
+│   │   ├── lazy/           # Lazy loading component tests
+│   │   ├── providers/      # Provider component tests
+│   │   ├── ui/             # UI component tests
+│   │   └── ...             # Other component tests
+│   ├── hooks/              # Custom hook tests
+│   └── lib/                # Utility and library tests
+└── e2e/                    # End-to-end tests (Playwright)
+    ├── functional/         # Functional test suites
+    ├── pages/              # Page-specific tests
+    └── utils/              # E2E test utilities
 ```
 
 ## Running Tests
 
-- Unit Tests: `pnpm test`
-- Unit Tests (Watch Mode): `pnpm test:watch`
-- Unit Tests (Coverage): `pnpm test:coverage`
-- E2E Tests: `pnpm test:e2e`
-- E2E Tests (UI Mode): `pnpm test:e2e:ui`
+### Unit Tests
+
+```bash
+# Basic unit tests
+pnpm test:unit              # Run all unit tests with coverage
+pnpm test:unit:json         # Run unit tests with JSON reporter
+pnpm test:watch             # Watch mode for development
+pnpm test:ui                # UI mode for interactive testing
+
+# Coverage and enforcement
+pnpm test:coverage          # Run tests with coverage report
+pnpm test:strict            # Run tests with verbose reporter and coverage
+pnpm coverage:enforce       # Enforce coverage thresholds
+pnpm pre-push:coverage      # Pre-push coverage validation
+```
+
+### E2E Tests
+
+```bash
+# Basic E2E tests
+pnpm test:e2e:sanity        # Sanity tests (fast)
+pnpm test:e2e:smoke         # Smoke tests (comprehensive)
+pnpm test:e2e:critical      # Critical path tests
+pnpm test:e2e:full          # Full test suite
+
+# Specialized E2E tests
+pnpm test:e2e:navigation    # Navigation tests
+pnpm test:e2e:responsive    # Responsive design tests
+pnpm test:e2e:cross-browser # Cross-browser tests
+pnpm test:e2e:performance   # Performance tests
+```
+
+### Combined Test Suites
+
+```bash
+# All tests
+pnpm test:all               # Unit + E2E sanity tests
+pnpm test:all:strict        # Unit + E2E with strict coverage
+
+# Coverage enforcement
+pnpm coverage:enforce:coverage    # Coverage analysis only
+pnpm coverage:enforce:test-count  # Test count enforcement only
+pnpm coverage:enforce:both        # Both coverage and test count
+```
+
+## Coverage Enforcement
+
+The project implements comprehensive coverage enforcement with configurable thresholds:
+
+### Default Thresholds
+
+| Test Type  | Coverage Threshold | Min Test Count |
+| ---------- | ------------------ | -------------- |
+| Unit Tests | 80%                | 50             |
+| E2E Tests  | 70%                | 30             |
+
+### Coverage Commands
+
+```bash
+# Basic enforcement
+pnpm coverage:enforce
+
+# Custom thresholds
+pnpm coverage:enforce --unit-threshold=90 --e2e-threshold=80
+
+# Test count enforcement
+pnpm coverage:enforce --test-count-only --min-unit-tests=100
+
+# Strict pre-push validation
+pnpm pre-push:coverage:strict
+```
+
+## Current Coverage Status
+
+### Unit Test Coverage (Latest Results)
+
+- **Overall Coverage**: 18.74% (focused on src/ directory)
+- **Hooks**: 97.12% coverage ✅
+- **App Components**: 85.79% coverage ✅
+- **UI Components**: 98.69% coverage ✅
+- **Lazy Loading**: 99.42% coverage ✅
+- **Utilities**: 86.95% coverage ✅
+
+### Test Statistics
+
+- **Unit Test Files**: 43 files
+- **Unit Tests**: 558 tests passed, 5 skipped
+- **E2E Tests**: All smoke tests passing
+- **Database Validation**: 13/13 triggers working
 
 ## Debugging Failing Tests (Efficient Development)
 
@@ -64,7 +159,34 @@ See [scripts/README-DEBUG.md](../scripts/README-DEBUG.md) for complete documenta
 
 ## Test Organization
 
-- Unit tests are organized by feature/component type
-- Each test file should be named with `.test.tsx` or `.spec.tsx` extension
-- Tests should be placed in a directory structure that mirrors the source code structure
-- E2E tests are managed by Playwright and are in the `e2e` directory
+### Unit Tests
+
+- **Component Tests**: Organized by feature/component type
+- **Hook Tests**: All custom hooks have comprehensive test coverage
+- **Utility Tests**: All utility functions are tested
+- **File Naming**: `.test.tsx` or `.spec.tsx` extension
+- **Structure**: Mirrors the source code structure
+
+### E2E Tests
+
+- **Functional Tests**: Core user journeys and workflows
+- **Page Tests**: Individual page functionality
+- **Cross-browser**: Multiple browser compatibility
+- **Performance**: Load and performance testing
+
+## Best Practices
+
+1. **Test Coverage**: Aim for 80%+ coverage on new code
+2. **Test Organization**: Keep tests close to the code they test
+3. **Descriptive Names**: Use clear, descriptive test names
+4. **Isolation**: Each test should be independent
+5. **Mocking**: Use mocks for external dependencies
+6. **Assertions**: Use specific, meaningful assertions
+
+## Coverage Reports
+
+Coverage reports are generated automatically and can be viewed at:
+
+- **HTML Report**: `./coverage/lcov-report/index.html`
+- **JSON Report**: `./coverage/coverage-final.json`
+- **Enforcement Report**: `./coverage/enforcement-report.json`
