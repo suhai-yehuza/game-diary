@@ -447,10 +447,10 @@ function parseArgs(): {
 } {
   const args = process.argv.slice(2);
 
-  let unitThreshold = 30; // More reasonable default based on current coverage
-  let e2eThreshold = 90; // E2E tests have better coverage
-  let minUnitTests = 100; // Reasonable minimum for unit tests
-  let minE2ETests = 1; // At least one E2E test
+  let unitThreshold = 30; // peg to UNIT_COVERAGE_THRESHOLD in pre-push-coverage.sh
+  let e2eThreshold = 90; // peg to E2E_COVERAGE_THRESHOLD in pre-push-coverage.sh
+  let minUnitTests = 100; // peg to MIN_UNIT_TESTS in pre-push-coverage.sh
+  let minE2ETests = 1; // peg to MIN_E2E_TESTS in pre-push-coverage.sh
   let mode: 'coverage' | 'test-count' | 'both' = 'both';
   let outputPath = './coverage/enforcement-report.json';
 

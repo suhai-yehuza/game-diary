@@ -14,10 +14,10 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Configuration
-UNIT_THRESHOLD=${UNIT_COVERAGE_THRESHOLD:-30}
-E2E_THRESHOLD=${E2E_COVERAGE_THRESHOLD:-70}
-MIN_UNIT_TESTS=${MIN_UNIT_TESTS:-50}
-MIN_E2E_TESTS=${MIN_E2E_TESTS:-1}
+UNIT_THRESHOLD=${UNIT_COVERAGE_THRESHOLD:-30} # peg to unitThreshold in coverage-enforcement.ts
+E2E_THRESHOLD=${E2E_COVERAGE_THRESHOLD:-90} # peg to e2eThreshold in coverage-enforcement.ts
+MIN_UNIT_TESTS=${MIN_UNIT_TESTS:-100} # peg to minUnitTests in coverage-enforcement.ts
+MIN_E2E_TESTS=${MIN_E2E_TESTS:-1} # peg to minE2ETests in coverage-enforcement.ts
 
 # Script directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
