@@ -1,15 +1,73 @@
-name: Nightly & Comprehensive Tests
+name: Complete Test Suite (Nightly + Development)
 
-# Optimized nightly workflow with:
-# - Optimized Playwright installation using npx
-# - Comprehensive artifact uploads for debugging
-# - Better error handling and parallel execution
-# - Debug environment information
+# Comprehensive test suite that runs ALL tests with flexible configuration:
+# - Unit tests with coverage
+# - Complete E2E progressive hierarchy (functional + pages)
+# - Cross-browser testing
+# - Performance testing
+# - Load testing
+# - Comprehensive validation
+# - Granular control for development-time testing
+# - Automatic triggers on test-related changes
 
 on:
   schedule:
     - cron: '0 2 * * *' # 2am UTC nightly
   workflow_dispatch:
+    inputs:
+      test_level:
+        description: 'E2E test level to run (for targeted testing)'
+        required: false
+        default: 'all'
+        type: choice
+        options:
+          - sanity
+          - smoke
+          - critical
+          - navigation
+          - responsive
+          - cross-browser
+          - full
+          - all
+      include_pages:
+        description: 'Include pages testing'
+        required: false
+        default: true
+        type: boolean
+      run_unit_tests:
+        description: 'Run unit tests'
+        required: false
+        default: true
+        type: boolean
+      run_e2e_tests:
+        description: 'Run E2E tests'
+        required: false
+        default: true
+        type: boolean
+      run_performance_tests:
+        description: 'Run performance tests'
+        required: false
+        default: true
+        type: boolean
+      run_load_tests:
+        description: 'Run load tests'
+        required: false
+        default: true
+        type: boolean
+      parallel:
+        description: 'Run tests in parallel'
+        required: false
+        default: true
+        type: boolean
+  push:
+    branches:
+      - master
+      - staging
+    paths:
+      - 'tests/**'
+      - 'src/**'
+      - 'package.json'
+      - 'playwright.config.ts'
 
 env:
   NODE_VERSION: '22'
@@ -21,8 +79,8 @@ env:
   CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
 
 jobs:
-  cross-browser-tests:
-    name: Cross-Browser Tests
+  quality-gate:
+    name: Quality Gate
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -33,13 +91,301 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'pnpm'
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+      - run: pnpm install --frozen-lockfile
+      - name: Run Quality Gate
+        run: ./scripts/ci-quality-gate.sh nightly
+
+  unit-tests:
+    name: Unit Tests with Coverage
+    needs: [quality-gate]
+    runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.run_unit_tests != 'false' }}
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+      - run: pnpm install --frozen-lockfile
+      - name: Run Unit Tests with Coverage
+        run: ./scripts/ci-unit-tests.sh
+      - uses: codecov/codecov-action@v4
+        if: success()
+        with:
+          file: ./coverage/lcov.info
+          flags: unittests
+          name: codecov-umbrella
+      - name: Upload unit test results (on failure)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-test-results
+          path: |
+            coverage/
+            test-results/
+          retention-days: 30
+
+  e2e-functional:
+    name: E2E Functional Tests
+    needs: [quality-gate]
+    runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.run_e2e_tests != 'false' && (github.event.inputs.test_level == 'all' || github.event.inputs.test_level == 'sanity' || github.event.inputs.test_level == 'smoke' || github.event.inputs.test_level == 'critical') }}
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      PLAYWRIGHT_TEST: true
+      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+      CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+      CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
+    strategy:
+      matrix:
+        test: [sanity, smoke, critical]
+        include:
+          - test: sanity
+            timeout: 5
+          - test: smoke
+            timeout: 10
+          - test: critical
+            timeout: 15
+    timeout-minutes: ${{ matrix.timeout }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
       - run: pnpm install --frozen-lockfile
       - name: Install Playwright Browsers
         run: pnpm exec playwright install --with-deps
-      - run: pnpm test:e2e:cross-browser
+      - name: Run E2E Functional Tests (${{ matrix.test }})
+        run: ./scripts/ci-e2e-tests.sh ${{ matrix.test }}
+      - name: Upload E2E functional test results (on failure)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-functional-${{ matrix.test }}-results
+          path: |
+            test-results/
+            playwright-report/
+          retention-days: 30
+
+  e2e-advanced:
+    name: E2E Advanced Tests (Navigation, Responsive, Cross-Browser, Full)
+    needs: [quality-gate]
+    runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.run_e2e_tests != 'false' && (github.event.inputs.test_level == 'all' || github.event.inputs.test_level == 'navigation' || github.event.inputs.test_level == 'responsive' || github.event.inputs.test_level == 'cross-browser' || github.event.inputs.test_level == 'full') }}
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      PLAYWRIGHT_TEST: true
+      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+      CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+      CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
+    strategy:
+      matrix:
+        test: [navigation, responsive, cross-browser, full]
+        include:
+          - test: navigation
+            timeout: 20
+          - test: responsive
+            timeout: 30
+          - test: cross-browser
+            timeout: 45
+          - test: full
+            timeout: 60
+    timeout-minutes: ${{ matrix.timeout }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+      - run: pnpm install --frozen-lockfile
+      - name: Install Playwright Browsers
+        run: pnpm exec playwright install --with-deps
+      - name: Run E2E Advanced Tests (${{ matrix.test }})
+        run: ./scripts/ci-e2e-tests.sh ${{ matrix.test }}
+      - name: Upload E2E advanced test results (on failure)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-advanced-${{ matrix.test }}-results
+          path: |
+            test-results/
+            playwright-report/
+          retention-days: 30
+
+  e2e-pages-progressive:
+    name: E2E Pages Progressive Tests
+    needs: [quality-gate]
+    runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.run_e2e_tests != 'false' && github.event.inputs.include_pages != 'false' }}
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      PLAYWRIGHT_TEST: true
+      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+      CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+      CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
+    strategy:
+      matrix:
+        test: [base, content, interactive, comprehensive]
+        include:
+          - test: base
+            timeout: 5
+          - test: content
+            timeout: 10
+          - test: interactive
+            timeout: 15
+          - test: comprehensive
+            timeout: 25
+    timeout-minutes: ${{ matrix.timeout }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+      - run: pnpm install --frozen-lockfile
+      - name: Install Playwright Browsers
+        run: pnpm exec playwright install --with-deps
+      - name: Run E2E Pages Tests (${{ matrix.test }})
+        run: ./scripts/ci-e2e-tests.sh ${{ matrix.test }}
+      - name: Upload E2E pages test results (on failure)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-pages-${{ matrix.test }}-results
+          path: |
+            test-results/
+            playwright-report/
+          retention-days: 30
+
+  e2e-compound:
+    name: E2E Compound Tests (All)
+    needs: [e2e-functional, e2e-advanced, e2e-pages-progressive]
+    runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.run_e2e_tests != 'false' && always() && (needs.e2e-functional.result == 'success' || needs.e2e-functional.result == 'skipped') && (needs.e2e-advanced.result == 'success' || needs.e2e-advanced.result == 'skipped') && (needs.e2e-pages-progressive.result == 'success' || needs.e2e-pages-progressive.result == 'skipped') }}
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      PLAYWRIGHT_TEST: true
+      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+      CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+      CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+      - run: pnpm install --frozen-lockfile
+      - name: Install Playwright Browsers
+        run: pnpm exec playwright install --with-deps
+      - name: Run E2E Compound Tests (All)
+        run: ./scripts/ci-e2e-tests.sh all
+      - name: Upload E2E compound test results (on failure)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-compound-results
+          path: |
+            test-results/
+            playwright-report/
+          retention-days: 30
+
+  performance-tests:
+    name: Performance E2E Tests
+    needs: [quality-gate]
+    runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.run_performance_tests != 'false' }}
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      PLAYWRIGHT_TEST: true
+      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+      CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+      CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+      - run: pnpm install --frozen-lockfile
+      - name: Install Playwright Browsers
+        run: pnpm exec playwright install --with-deps
+      - name: Run Performance E2E Tests
+        run: pnpm test:e2e:performance
       - uses: actions/upload-artifact@v4
         with:
-          name: cross-browser-results
+          name: performance-e2e-results
           path: |
             test-results/
             playwright-report/
@@ -47,7 +393,13 @@ jobs:
 
   load-testing:
     name: Load Testing
+    needs: [quality-gate]
     runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.run_load_tests != 'false' }}
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      PLAYWRIGHT_TEST: true
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -57,14 +409,26 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'pnpm'
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
       - run: pnpm install --frozen-lockfile
       - name: Install Playwright Browsers
         run: pnpm exec playwright install --with-deps
-      - run: |
+      - name: Run Load Testing (3 parallel instances)
+        run: |
+          echo "🚀 Starting load testing with 3 parallel instances..."
           for i in {1..3}; do
+            echo "Starting instance $i..."
             pnpm playwright test tests/e2e/functional/responsive.spec.ts --config=playwright.popular.config.ts --project=chromium &
           done
+          echo "⏳ Waiting for all instances to complete..."
           wait
+          echo "✅ Load testing completed!"
       - uses: actions/upload-artifact@v4
         with:
           name: load-test-results
@@ -75,7 +439,9 @@ jobs:
 
   comprehensive-validation:
     name: Comprehensive Validation
+    needs: [quality-gate]
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -85,11 +451,20 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'pnpm'
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
       - run: pnpm install --frozen-lockfile
       - name: Install Playwright Browsers
         run: pnpm exec playwright install --with-deps
-      - run: pnpm validate
-      - run: pnpm test:ci
+      - name: Run Comprehensive Validation
+        run: pnpm validate
+      - name: Run CI Tests
+        run: pnpm test:ci
       - uses: actions/upload-artifact@v4
         with:
           name: comprehensive-validation-results
@@ -99,50 +474,60 @@ jobs:
             coverage/
           retention-days: 30
 
-  full-e2e:
-    name: Full E2E Suite (Sharded)
+  test-summary:
+    name: Nightly Test Summary
+    needs:
+      [
+        unit-tests,
+        e2e-functional,
+        e2e-advanced,
+        e2e-pages-progressive,
+        e2e-compound,
+        performance-tests,
+        load-testing,
+        comprehensive-validation,
+      ]
     runs-on: ubuntu-latest
+    if: always()
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: ${{ env.PNPM_VERSION }}
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'pnpm'
-      - run: pnpm install --frozen-lockfile
-      - name: Install Playwright Browsers
-        run: pnpm exec playwright install --with-deps
-      - run: pnpm test:e2e:full
-      - uses: actions/upload-artifact@v4
-        with:
-          name: full-e2e-results
-          path: |
-            test-results/
-            playwright-report/
-          retention-days: 30
-
-  performance-e2e:
-    name: Performance E2E Tests
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: ${{ env.PNPM_VERSION }}
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'pnpm'
-      - run: pnpm install --frozen-lockfile
-      - name: Install Playwright Browsers
-        run: pnpm exec playwright install --with-deps
-      - run: pnpm test:e2e:performance
-      - uses: actions/upload-artifact@v4
-        with:
-          name: performance-e2e-results
-          path: |
-            test-results/
-            playwright-report/
-          retention-days: 30
+      - name: Generate Complete Test Summary
+        run: |
+          echo "## 🧪 Complete Test Suite Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📊 Test Coverage Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- **Unit Tests**: ${{ needs.unit-tests.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **E2E Functional Tests**: ${{ needs.e2e-functional.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **E2E Advanced Tests**: ${{ needs.e2e-advanced.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **E2E Pages Tests**: ${{ needs.e2e-pages-progressive.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **E2E Compound Tests**: ${{ needs.e2e-compound.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Performance Tests**: ${{ needs.performance-tests.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Load Tests**: ${{ needs.load-testing.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Comprehensive Validation**: ${{ needs.comprehensive-validation.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🧪 Test Levels Executed" >> $GITHUB_STEP_SUMMARY
+          echo "**Functional Progressive Hierarchy:**" >> $GITHUB_STEP_SUMMARY
+          echo "- sanity → smoke → critical → navigation → responsive → cross-browser → full" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Pages Progressive Hierarchy:**" >> $GITHUB_STEP_SUMMARY
+          echo "- base → content → interactive → comprehensive" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📈 Performance Metrics" >> $GITHUB_STEP_SUMMARY
+          echo "- **Total Test Levels**: 11 (7 functional + 4 pages)" >> $GITHUB_STEP_SUMMARY
+          echo "- **Parallel Execution**: Functional and pages tests run simultaneously" >> $GITHUB_STEP_SUMMARY
+          echo "- **Compound Testing**: Full integration of all test suites" >> $GITHUB_STEP_SUMMARY
+          echo "- **Load Testing**: 3 parallel instances for stress testing" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🎯 Overall Status" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ needs.unit-tests.result }}" = "success" ] && [ "${{ needs.e2e-functional.result }}" = "success" ] && [ "${{ needs.e2e-advanced.result }}" = "success" ] && [ "${{ needs.e2e-pages-progressive.result }}" = "success" ] && [ "${{ needs.e2e-compound.result }}" = "success" ] && [ "${{ needs.performance-tests.result }}" = "success" ] && [ "${{ needs.load-testing.result }}" = "success" ] && [ "${{ needs.comprehensive-validation.result }}" = "success" ]; then
+            echo "✅ **All tests passed successfully!**" >> $GITHUB_STEP_SUMMARY
+            echo "🎉 The codebase is in excellent condition." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Some tests failed. Check artifacts for details.**" >> $GITHUB_STEP_SUMMARY
+            echo "🔍 Review the failed test results and address issues promptly." >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📋 Next Steps" >> $GITHUB_STEP_SUMMARY
+          echo "1. Review any failed tests in the artifacts" >> $GITHUB_STEP_SUMMARY
+          echo "2. Check performance metrics and load test results" >> $GITHUB_STEP_SUMMARY
+          echo "3. Address any issues before the next deployment" >> $GITHUB_STEP_SUMMARY
+          echo "4. Monitor trends in test results over time" >> $GITHUB_STEP_SUMMARY

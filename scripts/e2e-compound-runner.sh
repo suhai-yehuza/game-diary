@@ -90,37 +90,81 @@ main() {
     print_status "Purpose: Validates API mocking infrastructure"
     run_test "Mock Verification" "pnpm test:e2e:mock-verification"
 
-    # Level 1: Fast Tests (Base Level)
-    print_status "Level 1: Fast Tests (Base Level)"
-    print_status "Purpose: Basic smoke tests for quick feedback"
-    run_test "Fast Tests" "pnpm test:e2e:sanity"
+    # Level 1: Sanity Tests (Base Level)
+    print_status "Level 1: Sanity Tests (Base Level)"
+    print_status "Purpose: Fundamental requirements for the app"
+    run_test "Sanity Tests" "pnpm test:e2e:sanity"
 
-    # Level 2: Smoke Tests (Extends Fast)
-    print_status "Level 2: Smoke Tests (Extends Fast)"
-    print_status "Purpose: Extended smoke tests with additional critical functionality"
+    # Level 2: Smoke Tests (Extends Sanity)
+    print_status "Level 2: Smoke Tests (Extends Sanity)"
+    print_status "Purpose: Extended functionality while maintaining speed"
     run_test "Smoke Tests" "pnpm test:e2e:smoke"
 
     # Level 3: Critical Tests (Extends Smoke)
     print_status "Level 3: Critical Tests (Extends Smoke)"
-    print_status "Purpose: Core user flows and critical functionality"
+    print_status "Purpose: Essential functionality and error handling"
     run_test "Critical Tests" "pnpm test:e2e:critical"
 
-    # Level 4: Responsive Tests (Extends Critical)
-    print_status "Level 4: Responsive Tests (Extends Critical)"
+    # Level 4: Navigation Tests (Extends Critical)
+    print_status "Level 4: Navigation Tests (Extends Critical)"
+    print_status "Purpose: Comprehensive navigation testing"
+    run_test "Navigation Tests" "pnpm test:e2e:navigation"
+
+    # Level 5: Responsive Tests (Extends Navigation)
+    print_status "Level 5: Responsive Tests (Extends Navigation)"
     print_status "Purpose: Responsive design testing across multiple viewports"
     run_test "Responsive Tests" "pnpm test:e2e:responsive"
 
-    # Level 5: Full Tests (Extends Responsive)
-    print_status "Level 5: Full Tests (Extends Responsive)"
-    print_status "Purpose: Comprehensive testing including edge cases and advanced scenarios"
+    # Level 6: Cross-Browser Tests (Extends Responsive)
+    print_status "Level 6: Cross-Browser Tests (Extends Responsive)"
+    print_status "Purpose: Browser compatibility testing"
+    run_test "Cross-Browser Tests" "pnpm test:e2e:cross-browser"
+
+    # Level 7: Full Tests (Extends Cross-Browser)
+    print_status "Level 7: Full Tests (Extends Cross-Browser)"
+    print_status "Purpose: Comprehensive end-to-end testing"
     run_test "Full Tests" "pnpm test:e2e:full"
+
+    echo "========================================"
+    echo "Starting Pages Test Hierarchy"
+    echo "========================================"
+    echo ""
+
+    # Pages Level 1: Base Page Tests
+    print_status "Pages Level 1: Base Page Tests"
+    print_status "Purpose: Fundamental tests that all pages should pass"
+    run_test "Base Page Tests" "pnpm test:e2e:pages:base"
+
+    # Pages Level 2: Content Page Tests
+    print_status "Pages Level 2: Content Page Tests"
+    print_status "Purpose: Content-specific validations"
+    run_test "Content Page Tests" "pnpm test:e2e:pages:content"
+
+    # Pages Level 3: Interactive Page Tests
+    print_status "Pages Level 3: Interactive Page Tests"
+    print_status "Purpose: Interactive element validations"
+    run_test "Interactive Page Tests" "pnpm test:e2e:pages:interactive"
+
+    # Pages Level 4: Comprehensive Page Tests
+    print_status "Pages Level 4: Comprehensive Page Tests"
+    print_status "Purpose: Advanced validations and edge cases"
+    run_test "Comprehensive Page Tests" "pnpm test:e2e:pages:comprehensive"
+
+    # Pages Level 5: Specific Page Tests
+    print_status "Pages Level 5: Specific Page Tests"
+    print_status "Purpose: Page-specific functionality"
+    run_test "Home Page Tests" "pnpm test:e2e:pages:home"
+    run_test "Dashboard Tests" "pnpm test:e2e:pages:dashboard"
+    run_test "Sports Pages Tests" "pnpm test:e2e:pages:sports"
+    run_test "Auth Tests" "pnpm test:e2e:pages:auth"
 
     echo "========================================"
     print_success "All compound tests completed successfully!"
     echo "========================================"
     echo ""
     print_status "Test Hierarchy Summary:"
-    echo "  Mock Verification → Fast → Smoke → Critical → Responsive → Full"
+    echo "Functional: Mock Verification → Sanity → Smoke → Critical → Navigation → Responsive → Cross-Browser → Full"
+    echo "Pages: Base → Content → Interactive → Comprehensive → Specific"
     echo ""
     print_status "Each level extends the previous level's tests, ensuring comprehensive coverage."
 }
@@ -134,17 +178,26 @@ show_help() {
     echo "Options:"
 echo "  -h, --help     Show this help message"
 echo "  --mock-verification-only Run only mock verification tests"
-echo "  --fast-only    Run only fast tests"
+echo "  --sanity-only  Run only sanity tests"
 echo "  --smoke-only   Run only smoke tests"
 echo "  --critical-only Run only critical tests"
+echo "  --navigation-only Run only navigation tests"
 echo "  --responsive-only Run only responsive tests"
+echo "  --cross-browser-only Run only cross-browser tests"
 echo "  --full-only    Run only full tests"
+echo "  --pages-base-only Run only base page tests"
+echo "  --pages-content-only Run only content page tests"
+echo "  --pages-interactive-only Run only interactive page tests"
+echo "  --pages-comprehensive-only Run only comprehensive page tests"
+echo "  --pages-specific-only Run only specific page tests"
     echo ""
     echo "Examples:"
 echo "  $0                    # Run all tests in sequence"
 echo "  $0 --mock-verification-only # Run only mock verification tests"
-echo "  $0 --fast-only        # Run only fast tests"
+echo "  $0 --sanity-only      # Run only sanity tests"
 echo "  $0 --critical-only    # Run only critical tests"
+echo "  $0 --pages-base-only  # Run only base page tests"
+echo "  $0 --pages-comprehensive-only # Run only comprehensive page tests"
     echo ""
 }
 
@@ -159,9 +212,9 @@ case "${1:-}" in
         run_test "Mock Verification" "pnpm test:e2e:mock-verification"
         exit 0
         ;;
-    --fast-only)
-        print_status "Running only Fast Tests..."
-        run_test "Fast Tests" "pnpm test:e2e:sanity"
+    --sanity-only)
+        print_status "Running only Sanity Tests..."
+        run_test "Sanity Tests" "pnpm test:e2e:sanity"
         exit 0
         ;;
     --smoke-only)
@@ -174,14 +227,52 @@ case "${1:-}" in
         run_test "Critical Tests" "pnpm test:e2e:critical"
         exit 0
         ;;
+    --navigation-only)
+        print_status "Running only Navigation Tests..."
+        run_test "Navigation Tests" "pnpm test:e2e:navigation"
+        exit 0
+        ;;
     --responsive-only)
         print_status "Running only Responsive Tests..."
         run_test "Responsive Tests" "pnpm test:e2e:responsive"
         exit 0
         ;;
+    --cross-browser-only)
+        print_status "Running only Cross-Browser Tests..."
+        run_test "Cross-Browser Tests" "pnpm test:e2e:cross-browser"
+        exit 0
+        ;;
     --full-only)
         print_status "Running only Full Tests..."
         run_test "Full Tests" "pnpm test:e2e:full"
+        exit 0
+        ;;
+    --pages-base-only)
+        print_status "Running only Base Page Tests..."
+        run_test "Base Page Tests" "pnpm test:e2e:pages:base"
+        exit 0
+        ;;
+    --pages-content-only)
+        print_status "Running only Content Page Tests..."
+        run_test "Content Page Tests" "pnpm test:e2e:pages:content"
+        exit 0
+        ;;
+    --pages-interactive-only)
+        print_status "Running only Interactive Page Tests..."
+        run_test "Interactive Page Tests" "pnpm test:e2e:pages:interactive"
+        exit 0
+        ;;
+    --pages-comprehensive-only)
+        print_status "Running only Comprehensive Page Tests..."
+        run_test "Comprehensive Page Tests" "pnpm test:e2e:pages:comprehensive"
+        exit 0
+        ;;
+    --pages-specific-only)
+        print_status "Running only Specific Page Tests..."
+        run_test "Home Page Tests" "pnpm test:e2e:pages:home"
+        run_test "Dashboard Tests" "pnpm test:e2e:pages:dashboard"
+        run_test "Sports Pages Tests" "pnpm test:e2e:pages:sports"
+        run_test "Auth Tests" "pnpm test:e2e:pages:auth"
         exit 0
         ;;
     "")

@@ -191,8 +191,8 @@ jobs:
             test-results/
           retention-days: 7
 
-  e2e:
-    name: E2E Tests
+  e2e-functional:
+    name: E2E Functional Tests
     needs: [quality-gate]
     runs-on: ubuntu-latest
     environment: Production
@@ -204,7 +204,7 @@ jobs:
       CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
     strategy:
       matrix:
-        test: [smoke, critical]
+        test: [sanity, smoke, critical] # progressive testing: sanity → smoke → critical
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -224,30 +224,33 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - name: Install Playwright Browsers
         run: pnpm exec playwright install --with-deps
-      - name: Run CI E2E Tests
+      - name: Run CI E2E Functional Tests
         run: ./scripts/ci-e2e-tests.sh ${{ matrix.test }}
-      - name: Upload E2E test results (on failure)
+        # Progressive testing: each level includes all previous levels' tests
+      - name: Upload E2E functional test results (on failure)
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: e2e-${{ matrix.test }}-results
+          name: e2e-functional-${{ matrix.test }}-results
           path: |
             test-results/
             playwright-report/
           retention-days: 7
 
-  e2e-responsive:
-    name: Responsive E2E Tests
-    needs: [unit-tests, e2e]
+  e2e-pages:
+    name: E2E Pages Tests
+    needs: [quality-gate]
     runs-on: ubuntu-latest
     environment: Production
-    timeout-minutes: 60
     env:
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
       PLAYWRIGHT_TEST: true
       NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
       CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
       CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
+    strategy:
+      matrix:
+        test: [base, content, interactive] # progressive testing: base → content → interactive
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -267,22 +270,70 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - name: Install Playwright Browsers
         run: pnpm exec playwright install --with-deps
-      - name: Debug Environment
-        run: |
-          echo "Node version: $(node --version)"
-          echo "PNPM version: $(pnpm --version)"
-          echo "Playwright version: $(pnpm exec playwright --version)"
-          echo "Working directory: $(pwd)"
-          echo "Scripts directory contents:"
-          ls -la scripts/
-      - name: Run Responsive E2E Tests
-        run: ./scripts/e2e-run.sh responsive 3600
-        continue-on-error: false
-      - name: Upload E2E test results (on failure)
+      - name: Run CI E2E Pages Tests
+        run: ./scripts/ci-e2e-tests.sh ${{ matrix.test }}
+        # Progressive testing: each level includes all previous levels' tests
+      - name: Upload E2E pages test results (on failure)
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: e2e-responsive-results
+          name: e2e-pages-${{ matrix.test }}-results
+          path: |
+            test-results/
+            playwright-report/
+          retention-days: 7
+
+  e2e-advanced:
+    name: E2E Advanced Tests (Navigation, Responsive, Cross-Browser, Full)
+    needs: [e2e-functional, e2e-pages]
+    runs-on: ubuntu-latest
+    environment: Production
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      PLAYWRIGHT_TEST: true
+      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+      CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+      CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
+    strategy:
+      matrix:
+        test: [navigation, responsive, cross-browser, full]
+        include:
+          - test: navigation
+            timeout: 30
+          - test: responsive
+            timeout: 60
+          - test: cross-browser
+            timeout: 60
+          - test: full
+            timeout: 120
+    timeout-minutes: ${{ matrix.timeout }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+      - run: pnpm install --frozen-lockfile
+      - name: Install Playwright Browsers
+        run: pnpm exec playwright install --with-deps
+      - name: Run E2E Advanced Tests (${{ matrix.test }})
+        run: ./scripts/ci-e2e-tests.sh ${{ matrix.test }}
+        # Each level includes all previous levels' tests, but runs once per matrix item
+      - name: Upload E2E advanced test results (on failure)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-advanced-${{ matrix.test }}-results
           path: |
             test-results/
             playwright-report/
@@ -290,7 +341,7 @@ jobs:
 
   deploy:
     name: Deploy to Vercel Production
-    needs: [quality-gate, unit-tests, e2e, e2e-responsive, validate-staging]
+    needs: [quality-gate, unit-tests, e2e-functional, e2e-pages, e2e-advanced, validate-staging]
     runs-on: ubuntu-latest
     if: needs.validate-staging.outputs.staging_ready == 'true' && success()
     environment: Production

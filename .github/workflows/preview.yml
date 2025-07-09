@@ -92,8 +92,8 @@ jobs:
             test-results/
           retention-days: 7
 
-  e2e:
-    name: E2E Tests
+  e2e-functional:
+    name: E2E Functional Tests
     needs: [quality-gate]
     runs-on: ubuntu-latest
     environment: Preview
@@ -102,7 +102,7 @@ jobs:
       PLAYWRIGHT_TEST: true
     strategy:
       matrix:
-        test: [smoke] # critical temporarily disabled
+        test: [sanity, smoke] # progressive testing: sanity first, then smoke
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -122,13 +122,57 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - name: Install Playwright Browsers
         run: pnpm exec playwright install --with-deps
-      - name: Run CI E2E Tests
+      - name: Run CI E2E Functional Tests
         run: ./scripts/ci-e2e-tests.sh ${{ matrix.test }}
-      - name: Upload E2E test results (on failure)
+        # Progressive testing: sanity runs first (30s), smoke runs second (includes sanity tests)
+      - name: Upload E2E functional test results (on failure)
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: e2e-${{ matrix.test }}-results
+          name: e2e-functional-${{ matrix.test }}-results
+          path: |
+            test-results/
+            playwright-report/
+          retention-days: 7
+
+  e2e-pages:
+    name: E2E Pages Tests
+    needs: [quality-gate]
+    runs-on: ubuntu-latest
+    environment: Preview
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      PLAYWRIGHT_TEST: true
+    strategy:
+      matrix:
+        test: [base, content] # progressive testing: base first, then content
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+      - run: pnpm install --frozen-lockfile
+      - name: Install Playwright Browsers
+        run: pnpm exec playwright install --with-deps
+      - name: Run CI E2E Pages Tests
+        run: ./scripts/ci-e2e-tests.sh ${{ matrix.test }}
+        # Progressive testing: base runs first (20s), content runs second (includes base tests)
+      - name: Upload E2E pages test results (on failure)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-pages-${{ matrix.test }}-results
           path: |
             test-results/
             playwright-report/
@@ -136,9 +180,9 @@ jobs:
 
   deploy:
     name: Deploy to Vercel Preview
-    needs: [unit-tests, e2e]
+    needs: [unit-tests, e2e-functional, e2e-pages]
     runs-on: ubuntu-latest
-    if: success() && needs.unit-tests.result == 'success' && needs.e2e.result == 'success'
+    if: success() && needs.unit-tests.result == 'success' && needs.e2e-functional.result == 'success' && needs.e2e-pages.result == 'success'
     environment: Preview
     steps:
       - uses: actions/checkout@v4
