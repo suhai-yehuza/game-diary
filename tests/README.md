@@ -7,7 +7,14 @@ This directory contains all test files for the application with comprehensive co
 ```
 tests/
 ├── unit/                    # Unit tests with comprehensive coverage
-│   ├── components/          # Component tests
+│   ├── app/                 # Mirror src/app/ structure
+│   │   ├── dashboard/       # Dashboard page tests
+│   │   ├── protected/       # Protected pages tests
+│   │   ├── sports/          # Sports pages tests
+│   │   ├── layout.test.tsx  # App layout test
+│   │   ├── not-found.test.tsx # Not-found page test
+│   │   └── page.test.tsx    # Home page test
+│   ├── components/          # Mirror src/components/ structure
 │   │   ├── auth/           # Authentication component tests
 │   │   ├── common/         # Common component tests
 │   │   ├── layout/         # Layout component tests
@@ -15,13 +22,33 @@ tests/
 │   │   ├── providers/      # Provider component tests
 │   │   ├── ui/             # UI component tests
 │   │   └── ...             # Other component tests
-│   ├── hooks/              # Custom hook tests
-│   └── lib/                # Utility and library tests
+│   ├── hooks/              # Mirror src/hooks/ structure
+│   ├── lib/                # Mirror src/lib/ structure
+│   └── middleware.test.ts  # Mirror src/middleware.ts
 └── e2e/                    # End-to-end tests (Playwright)
     ├── functional/         # Functional test suites
     ├── pages/              # Page-specific tests
     └── utils/              # E2E test utilities
 ```
+
+## Test Organization Principles
+
+### Mirroring Source Structure
+
+The `tests/unit/` directory now mirrors the `src/` directory structure for better maintainability:
+
+- **`tests/unit/app/`** mirrors **`src/app/`** - Page components and layouts
+- **`tests/unit/components/`** mirrors **`src/components/`** - Reusable components
+- **`tests/unit/hooks/`** mirrors **`src/hooks/`** - Custom React hooks
+- **`tests/unit/lib/`** mirrors **`src/lib/`** - Utilities and configurations
+- **`tests/unit/middleware.test.ts`** mirrors **`src/middleware.ts`**
+
+### Benefits of Mirroring
+
+- **Easy Discovery**: Find tests by following the same path as source files
+- **Maintainability**: Clear relationship between source and test files
+- **Scalability**: Easy to add new tests in the correct location
+- **Consistency**: Predictable test organization across the project
 
 ## Running Tests
 
