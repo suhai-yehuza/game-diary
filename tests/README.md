@@ -7,21 +7,45 @@ This directory contains all test files for the application with comprehensive co
 ```
 tests/
 ├── unit/                    # Unit tests with comprehensive coverage
-│   ├── app/                 # Mirror src/app/ structure
-│   │   ├── dashboard/       # Dashboard page tests
-│   │   ├── protected/       # Protected pages tests
-│   │   ├── sports/          # Sports pages tests
-│   │   ├── layout.test.tsx  # App layout test
-│   │   ├── not-found.test.tsx # Not-found page test
-│   │   └── page.test.tsx    # Home page test
+│   ├── app/                 # Mirror src/app/ structure exactly
+│   │   ├── dashboard/       # Mirror src/app/dashboard/
+│   │   │   └── dashboard.test.tsx
+│   │   ├── protected/       # Mirror src/app/protected/
+│   │   │   ├── admin/       # Mirror src/app/protected/admin/
+│   │   │   │   └── database/ # Mirror src/app/protected/admin/database/
+│   │   │   │       └── admin-database.test.tsx
+│   │   │   ├── client/      # Mirror src/app/protected/client/
+│   │   │   │   └── protected-client-page.test.tsx
+│   │   │   └── protected-layout.test.tsx
+│   │   ├── sports/          # Mirror src/app/sports/
+│   │   │   ├── all-sports/  # Mirror src/app/sports/all-sports/
+│   │   │   │   └── all-sports-page.test.tsx
+│   │   │   ├── live/        # Mirror src/app/sports/live/
+│   │   │   │   └── live-games-page.test.tsx
+│   │   │   ├── mlb/         # Mirror src/app/sports/mlb/
+│   │   │   │   └── mlb-page.test.tsx
+│   │   │   ├── mls/         # Mirror src/app/sports/mls/
+│   │   │   │   └── mls-page.test.tsx
+│   │   │   ├── nba/         # Mirror src/app/sports/nba/
+│   │   │   │   └── nba-page.test.tsx
+│   │   │   ├── nfl/         # Mirror src/app/sports/nfl/
+│   │   │   │   └── nfl-page.test.tsx
+│   │   │   └── nhl/         # Mirror src/app/sports/nhl/
+│   │   │       └── nhl-page.test.tsx
+│   │   ├── layout.test.tsx  # Mirror src/app/layout.tsx
+│   │   ├── not-found.test.tsx # Mirror src/app/not-found.tsx
+│   │   └── page.test.tsx    # Mirror src/app/page.tsx
 │   ├── components/          # Mirror src/components/ structure
 │   │   ├── auth/           # Authentication component tests
 │   │   ├── common/         # Common component tests
 │   │   ├── layout/         # Layout component tests
-│   │   ├── lazy/           # Lazy loading component tests
+│   │   ├── lazy/           # Mirror src/components/lazy/
+│   │   │   ├── lazy-loading.test.tsx
+│   │   │   ├── lazy-loading-extended.test.tsx
+│   │   │   └── live-games-detail.test.tsx
 │   │   ├── providers/      # Provider component tests
 │   │   ├── ui/             # UI component tests
-│   │   └── ...             # Other component tests
+│   │   └── live-games-banner.test.tsx
 │   ├── hooks/              # Mirror src/hooks/ structure
 │   ├── lib/                # Mirror src/lib/ structure
 │   └── middleware.test.ts  # Mirror src/middleware.ts
