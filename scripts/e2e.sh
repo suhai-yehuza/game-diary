@@ -5,7 +5,6 @@
 #
 # Subcommands:
 #   run [mode] [test-command] [description] [timeout] - Run E2E tests
-#   compound [options] - Run compound E2E tests
 #   debug [options] - Debug E2E tests
 #   optimize [options] - Optimize E2E test performance
 #   coverage [options] - Generate E2E coverage reports
@@ -56,10 +55,6 @@ show_usage() {
     echo "  run [mode] [test-command] [description] [timeout] - Run E2E tests"
     echo "    Modes: basic, coverage, coverage-full, responsive"
     echo ""
-    echo "  compound [options] - Run compound E2E tests"
-    echo "    Functional Options: --sanity-only, --smoke-only, --critical-only, --navigation-only, --responsive-only, --cross-browser-only, --full-only, --mock-verification-only"
-    echo "    Pages Options: --pages-content-only, --pages-specific-only"
-    echo ""
     echo "  debug [options] - Debug E2E tests"
     echo "    Options: --ui, --headed, --trace"
     echo ""
@@ -73,7 +68,6 @@ show_usage() {
     echo ""
     echo "Examples:"
     echo "  $0 run basic 'playwright test --project=chromium' 'Chromium tests' 300"
-    echo "  $0 compound --sanity-only"
     echo "  $0 debug --ui"
     echo "  $0 coverage --fast"
     echo "  $0 responsive 3600"
@@ -109,107 +103,7 @@ run_basic_tests() {
     esac
 }
 
-# Function to run compound E2E tests
-run_compound_tests() {
-    local options="$@"
 
-    # Parse compound options
-    local sanity_only=false
-    local smoke_only=false
-    local critical_only=false
-    local navigation_only=false
-    local responsive_only=false
-    local cross_browser_only=false
-    local full_only=false
-    local mock_verification_only=false
-    local pages_base_only=false
-    local pages_content_only=false
-    local pages_interactive_only=false
-    local pages_comprehensive_only=false
-    local pages_specific_only=false
-
-    for opt in $options; do
-        case "$opt" in
-            "--sanity-only")
-                sanity_only=true
-                ;;
-            "--smoke-only")
-                smoke_only=true
-                ;;
-            "--critical-only")
-                critical_only=true
-                ;;
-            "--navigation-only")
-                navigation_only=true
-                ;;
-            "--responsive-only")
-                responsive_only=true
-                ;;
-            "--cross-browser-only")
-                cross_browser_only=true
-                ;;
-            "--full-only")
-                full_only=true
-                ;;
-            "--mock-verification-only")
-                mock_verification_only=true
-                ;;
-            "--pages-content-only")
-                pages_content_only=true
-                ;;
-            "--pages-specific-only")
-                pages_specific_only=true
-                ;;
-        esac
-    done
-
-    log_info "Running compound E2E tests with options: $options"
-
-    # Execute compound tests based on options
-    if [ "$sanity_only" = true ]; then
-        run_e2e_test "playwright test tests/e2e/functional/sanity.spec.ts --config=playwright.sanity.config.ts" "Sanity E2E Tests"
-    elif [ "$smoke_only" = true ]; then
-        run_e2e_test "playwright test tests/e2e/functional/smoke.spec.ts --config=playwright.sanity.config.ts" "Smoke E2E Tests"
-    elif [ "$critical_only" = true ]; then
-        run_e2e_test "playwright test tests/e2e/functional/critical.spec.ts --config=playwright.critical.config.ts" "Critical E2E Tests"
-    elif [ "$navigation_only" = true ]; then
-        run_e2e_test "playwright test tests/e2e/functional/navigation.spec.ts --config=playwright.critical.config.ts" "Navigation E2E Tests"
-    elif [ "$responsive_only" = true ]; then
-        run_e2e_test "playwright test tests/e2e/functional/responsive.spec.ts --config=playwright.popular.config.ts" "Responsive E2E Tests"
-    elif [ "$cross_browser_only" = true ]; then
-        run_e2e_test "playwright test tests/e2e/functional/cross-browser.spec.ts --config=playwright.popular.config.ts" "Cross-Browser E2E Tests"
-    elif [ "$full_only" = true ]; then
-        run_e2e_test "playwright test tests/e2e/functional/full.spec.ts --config=playwright.popular.config.ts" "Full E2E Tests"
-    elif [ "$mock_verification_only" = true ]; then
-        run_e2e_test "playwright test tests/e2e/functional/mock-verification.spec.ts --config=playwright.sanity.config.ts" "Mock Verification Tests"
-    elif [ "$pages_content_only" = true ]; then
-        run_e2e_test "playwright test tests/e2e/pages/content-page.spec.ts --config=playwright.pages.config.ts" "Content Page Tests"
-    elif [ "$pages_specific_only" = true ]; then
-        run_e2e_test "playwright test tests/e2e/pages/home.spec.ts --config=playwright.pages.config.ts" "Home Page Tests"
-        run_e2e_test "playwright test tests/e2e/pages/dashboard.spec.ts --config=playwright.pages.config.ts" "Dashboard Tests"
-        run_e2e_test "playwright test tests/e2e/pages/sports.spec.ts --config=playwright.pages.config.ts" "Sports Pages Tests"
-        run_e2e_test "playwright test tests/e2e/pages/clerk-auth.spec.ts --config=playwright.pages.config.ts" "Auth Tests"
-    else
-        # Run all tests in sequence (functional + pages)
-        log_info "Running all compound E2E tests (functional + pages)"
-
-        # Functional tests
-        run_e2e_test "playwright test tests/e2e/functional/sanity.spec.ts --config=playwright.sanity.config.ts" "Sanity E2E Tests"
-        run_e2e_test "playwright test tests/e2e/functional/smoke.spec.ts --config=playwright.sanity.config.ts" "Smoke E2E Tests"
-        run_e2e_test "playwright test tests/e2e/functional/critical.spec.ts --config=playwright.critical.config.ts" "Critical E2E Tests"
-        run_e2e_test "playwright test tests/e2e/functional/navigation.spec.ts --config=playwright.critical.config.ts" "Navigation E2E Tests"
-        run_e2e_test "playwright test tests/e2e/functional/responsive.spec.ts --config=playwright.popular.config.ts" "Responsive E2E Tests"
-        run_e2e_test "playwright test tests/e2e/functional/cross-browser.spec.ts --config=playwright.popular.config.ts" "Cross-Browser E2E Tests"
-        run_e2e_test "playwright test tests/e2e/functional/full.spec.ts --config=playwright.popular.config.ts" "Full E2E Tests"
-
-        # Pages tests
-        run_e2e_test "playwright test tests/e2e/pages/content-page.spec.ts --config=playwright.pages.config.ts" "Content Page Tests"
-        run_e2e_test "playwright test tests/e2e/pages/home.spec.ts --config=playwright.pages.config.ts" "Home Page Tests"
-        run_e2e_test "playwright test tests/e2e/pages/dashboard.spec.ts --config=playwright.pages.config.ts" "Dashboard Tests"
-        run_e2e_test "playwright test tests/e2e/pages/sports.spec.ts --config=playwright.pages.config.ts" "Sports Pages Tests"
-        run_e2e_test "playwright test tests/e2e/pages/clerk-auth.spec.ts --config=playwright.pages.config.ts" "Auth Tests"
-    fi
-}
 
 # Function to debug E2E tests
 run_debug_tests() {
@@ -332,10 +226,6 @@ case "$SUBCOMMAND" in
             exit 1
         fi
         run_basic_tests "$2" "$3" "$4" "$5"
-        ;;
-    "compound")
-        shift
-        run_compound_tests "$@"
         ;;
     "debug")
         shift
