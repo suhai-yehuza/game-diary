@@ -1,4 +1,5 @@
 import dynamic from 'next/dynamic';
+import React from 'react';
 
 // Lazy loading components for sports pages
 export const LazyNBAPage = dynamic(() => import('@/app/sports/nba/page'), {

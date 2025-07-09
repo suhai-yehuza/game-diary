@@ -1,4 +1,5 @@
 import dynamic from 'next/dynamic';
+import React from 'react';
 
 // Lazy loading component for AdminExperimentalPage
 export const LazyAdminExperimentalPage = dynamic(

@@ -1,4 +1,5 @@
 import dynamic from 'next/dynamic';
+import React from 'react';
 
 // Lazy loading components for protected pages
 export const LazyUserPage = dynamic(() => import('@/app/protected/user/page'), {
