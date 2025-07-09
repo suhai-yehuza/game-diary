@@ -1,4 +1,4 @@
 #!/usr/bin/env sh
 
-# Run comprehensive pre-push validation
-./scripts/db/pre-push-validation.sh
+# Run comprehensive pre-push validation (now includes coverage enforcement)
+./scripts/pre-push-validation.sh

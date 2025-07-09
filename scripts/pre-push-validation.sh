@@ -81,13 +81,13 @@ if ! pnpm run check:size; then
 fi
 echo "✅ Size and performance checks passed"
 
-# Step 6: Unit tests (comprehensive)
-echo "🧪 Step 6: Running unit tests..."
-if ! pnpm run test:strict; then
-    echo "❌ Unit tests failed!"
+# Step 6: Coverage enforcement
+echo "📊 Step 6: Coverage enforcement..."
+if ! ./scripts/pre-push-coverage.sh; then
+    echo "❌ Coverage enforcement failed!"
     exit 1
 fi
-echo "✅ Unit tests passed"
+echo "✅ Coverage enforcement passed"
 
 # Step 7: Database validation
 echo "🗄️  Step 7: Database validation..."

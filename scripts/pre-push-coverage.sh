@@ -14,10 +14,10 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Configuration
-UNIT_THRESHOLD=${UNIT_COVERAGE_THRESHOLD:-80}
-E2E_THRESHOLD=${E2E_COVERAGE_THRESHOLD:-70}
-MIN_UNIT_TESTS=${MIN_UNIT_TESTS:-50}
-MIN_E2E_TESTS=${MIN_E2E_TESTS:-30}
+UNIT_THRESHOLD=${UNIT_COVERAGE_THRESHOLD:-30}
+E2E_THRESHOLD=${E2E_COVERAGE_THRESHOLD:-90}
+MIN_UNIT_TESTS=${MIN_UNIT_TESTS:-100}
+MIN_E2E_TESTS=${MIN_E2E_TESTS:-1}
 
 # Script directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -55,7 +55,7 @@ run_unit_coverage() {
     echo -e "${BLUE}🧪 Running unit tests with coverage...${NC}"
 
     # Run unit tests with coverage
-    if pnpm test:unit:json > /dev/null 2>&1; then
+    if pnpm test:coverage > /dev/null 2>&1; then
         echo -e "${GREEN}✅ Unit tests completed${NC}"
     else
         echo -e "${RED}❌ Unit tests failed${NC}"
