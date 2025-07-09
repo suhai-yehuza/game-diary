@@ -136,9 +136,22 @@ class CoverageEnforcer {
         let totalLines = 0;
         let coveredLines = 0;
 
-        // Process each file in the coverage data
-        Object.values(coverageData).forEach((fileData: any) => {
-          if (fileData && typeof fileData === 'object' && fileData.s && fileData.f) {
+        // Process each file in the coverage data, filtering for src/ directory only and excluding certain subdirectories
+        Object.entries(coverageData).forEach(([filePath, fileData]: [string, any]) => {
+          // Only include files from the src/ directory, but exclude mock, types, and styles subdirs
+          const isSrc = filePath.includes('/src/');
+          const isExcluded =
+            filePath.includes('/src/lib/mock/') ||
+            filePath.includes('/src/lib/types/') ||
+            filePath.includes('/src/styles/');
+          if (
+            isSrc &&
+            !isExcluded &&
+            fileData &&
+            typeof fileData === 'object' &&
+            fileData.s &&
+            fileData.f
+          ) {
             // Statements
             const statements = Object.keys(fileData.s).length;
             const coveredStatementsInFile = Object.values(fileData.s).filter(
@@ -359,6 +372,7 @@ class CoverageEnforcer {
 
     console.log('📊 Coverage Enforcement Report');
     console.log('='.repeat(50));
+    console.log('📁 Coverage analysis limited to src/ directory files only');
 
     // Unit test results
     console.log('\n🧪 Unit Tests:');

@@ -1,7 +1,7 @@
 'use client';
 
 import { useClerk } from '@clerk/nextjs';
-import { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 import type { ISignInButtonProps } from '@/lib/types/componentTypes';
 

@@ -3,7 +3,7 @@
 import { SignIn } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
 import type { ReactNode } from 'react';
-import { useEffect, useRef, useCallback, Suspense, Component } from 'react';
+import React, { useEffect, useRef, useCallback, Suspense, Component } from 'react';
 
 import { isUnitTestEnvironment } from '@/lib/config/api.config';
 

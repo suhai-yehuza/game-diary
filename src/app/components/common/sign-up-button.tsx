@@ -1,7 +1,7 @@
 'use client';
 
 import { useClerk } from '@clerk/nextjs';
-import { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 import type { ISignUpButtonProps } from '@/lib/types/componentTypes';
 
@@ -54,7 +54,13 @@ export function SignUpButton({ children, className, ...props }: ISignUpButtonPro
 
   return (
     <div ref={modalRef}>
-      <button type="button" onClick={handleSignUp} className={className} {...props}>
+      <button
+        type="button"
+        onClick={handleSignUp}
+        className={className}
+        data-testid="sign-up-button"
+        {...props}
+      >
         {children}
       </button>
     </div>

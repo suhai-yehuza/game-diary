@@ -1,3 +1,4 @@
+import React from 'react';
 import '@testing-library/jest-dom';
 import { vi, beforeAll, afterAll, afterEach } from 'vitest';
 import { cleanup } from '@testing-library/react';
@@ -18,7 +19,16 @@ vi.mock('next/navigation', () => ({
 
 // Mock Next.js Image component
 vi.mock('next/image', () => ({
-  default: vi.fn(),
+  default: ({ src, alt, width, height, priority, sizes, ...props }: any) =>
+    React.createElement('img', {
+      src,
+      alt,
+      width,
+      height,
+      'data-priority': priority,
+      'data-sizes': sizes,
+      ...props,
+    }),
 }));
 
 // Mock environment variables
