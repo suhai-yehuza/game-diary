@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { runInteractivePageTests } from './interactive-page.spec';
+import { runInteractivePageTests } from '@tests/e2e/utils/page-suites';
 
 test.describe('Clerk Auth Modal', () => {
   // Run interactive page tests for home page (where auth modal is tested)

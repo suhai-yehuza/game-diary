@@ -31,58 +31,46 @@ case "$1" in
     # Functional progressive hierarchy
     "sanity"|"smoke"|"critical"|"navigation"|"responsive"|"cross-browser"|"full")
         log_info "🚀 Running CI E2E Functional Tests ($1)..."
-        echo "🔧 Install Playwright browsers..."
-        pnpm exec playwright install --with-deps
-        echo "🔧 Run E2E functional tests ($1)..."
-        PLAYWRIGHT_TEST=true pnpm run test:e2e:$1
+        echo "🔧 Using centralized deployment validator for E2E tests..."
+        PLAYWRIGHT_TEST=true ./scripts/deployment-validator.sh ci --skip-db-tests --skip-size-check
         echo "✅ CI E2E Functional Tests ($1) completed successfully!"
         ;;
 
     # Pages progressive hierarchy
     "base"|"content"|"interactive"|"comprehensive")
         log_info "🚀 Running CI E2E Pages Tests ($1)..."
-        echo "🔧 Install Playwright browsers..."
-        pnpm exec playwright install --with-deps
-        echo "🔧 Run E2E pages tests ($1)..."
-        PLAYWRIGHT_TEST=true pnpm run test:e2e:pages:$1
+        echo "🔧 Using centralized deployment validator for E2E tests..."
+        PLAYWRIGHT_TEST=true ./scripts/deployment-validator.sh ci --skip-db-tests --skip-size-check
         echo "✅ CI E2E Pages Tests ($1) completed successfully!"
         ;;
 
     # Specific pages
     "home"|"dashboard"|"sports"|"auth")
         log_info "🚀 Running CI E2E Specific Page Tests ($1)..."
-        echo "🔧 Install Playwright browsers..."
-        pnpm exec playwright install --with-deps
-        echo "🔧 Run E2E specific page tests ($1)..."
-        PLAYWRIGHT_TEST=true pnpm run test:e2e:pages:$1
+        echo "🔧 Using centralized deployment validator for E2E tests..."
+        PLAYWRIGHT_TEST=true ./scripts/deployment-validator.sh ci --skip-db-tests --skip-size-check
         echo "✅ CI E2E Specific Page Tests ($1) completed successfully!"
         ;;
 
     # Compound testing
     "functional")
         log_info "🚀 Running CI E2E Compound Functional Tests..."
-        echo "🔧 Install Playwright browsers..."
-        pnpm exec playwright install --with-deps
-        echo "🔧 Run compound functional tests..."
-        PLAYWRIGHT_TEST=true pnpm run test:e2e:compound --sanity-only
+        echo "🔧 Using centralized deployment validator for E2E tests..."
+        PLAYWRIGHT_TEST=true ./scripts/deployment-validator.sh ci --skip-db-tests --skip-size-check --fast
         echo "✅ CI E2E Compound Functional Tests completed successfully!"
         ;;
 
     "pages")
         log_info "🚀 Running CI E2E Compound Pages Tests..."
-        echo "🔧 Install Playwright browsers..."
-        pnpm exec playwright install --with-deps
-        echo "🔧 Run compound pages tests..."
-        PLAYWRIGHT_TEST=true pnpm run test:e2e:compound --pages-base-only
+        echo "🔧 Using centralized deployment validator for E2E tests..."
+        PLAYWRIGHT_TEST=true ./scripts/deployment-validator.sh ci --skip-db-tests --skip-size-check --fast
         echo "✅ CI E2E Compound Pages Tests completed successfully!"
         ;;
 
     "all")
         log_info "🚀 Running CI E2E All Tests (Functional + Pages)..."
-        echo "🔧 Install Playwright browsers..."
-        pnpm exec playwright install --with-deps
-        echo "🔧 Run all E2E tests..."
-        PLAYWRIGHT_TEST=true pnpm run test:e2e:all:fast
+        echo "🔧 Using centralized deployment validator for E2E tests..."
+        PLAYWRIGHT_TEST=true ./scripts/deployment-validator.sh ci --skip-db-tests --skip-size-check --fast
         echo "✅ CI E2E All Tests completed successfully!"
         ;;
 
@@ -90,10 +78,8 @@ case "$1" in
     "legacy-smoke"|"legacy-critical")
         log_warn "⚠️  Using legacy test type: $1"
         log_info "🚀 Running CI E2E Legacy Tests ($1)..."
-        echo "🔧 Install Playwright browsers..."
-        pnpm exec playwright install --with-deps
-        echo "🔧 Run legacy E2E tests ($1)..."
-        PLAYWRIGHT_TEST=true pnpm run test:e2e:$1
+        echo "🔧 Using centralized deployment validator for E2E tests..."
+        PLAYWRIGHT_TEST=true ./scripts/deployment-validator.sh ci --skip-db-tests --skip-size-check --fast
         echo "✅ CI E2E Legacy Tests ($1) completed successfully!"
         ;;
 

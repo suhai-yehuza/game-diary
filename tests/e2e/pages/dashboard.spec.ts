@@ -1,12 +1,12 @@
 import { test, expect } from '@playwright/test';
-import { runComprehensivePageTests } from './comprehensive-page.spec';
+import { runComprehensivePageTests } from '@tests/e2e/utils/page-suites';
 
 test.describe.configure({ retries: 2 }); // TEMP: Retry flaky tests while stabilizing
 
-test.describe('Dashboard', () => {
-  // Run comprehensive page tests for dashboard
-  runComprehensivePageTests(test, '/dashboard', 'Dashboard');
+// Run comprehensive page tests for dashboard
+runComprehensivePageTests(test, '/dashboard', 'Dashboard');
 
+test.describe('Dashboard', () => {
   // Dashboard-specific tests
   test.describe('Dashboard - Specific Tests', () => {
     test.beforeEach(async ({ page }) => {

@@ -58,7 +58,7 @@ show_usage() {
     echo ""
     echo "  compound [options] - Run compound E2E tests"
     echo "    Functional Options: --sanity-only, --smoke-only, --critical-only, --navigation-only, --responsive-only, --cross-browser-only, --full-only, --mock-verification-only"
-    echo "    Pages Options: --pages-base-only, --pages-content-only, --pages-interactive-only, --pages-comprehensive-only, --pages-specific-only"
+    echo "    Pages Options: --pages-content-only, --pages-specific-only"
     echo ""
     echo "  debug [options] - Debug E2E tests"
     echo "    Options: --ui, --headed, --trace"
@@ -154,17 +154,8 @@ run_compound_tests() {
             "--mock-verification-only")
                 mock_verification_only=true
                 ;;
-            "--pages-base-only")
-                pages_base_only=true
-                ;;
             "--pages-content-only")
                 pages_content_only=true
-                ;;
-            "--pages-interactive-only")
-                pages_interactive_only=true
-                ;;
-            "--pages-comprehensive-only")
-                pages_comprehensive_only=true
                 ;;
             "--pages-specific-only")
                 pages_specific_only=true
@@ -191,14 +182,8 @@ run_compound_tests() {
         run_e2e_test "playwright test tests/e2e/functional/full.spec.ts --config=playwright.popular.config.ts" "Full E2E Tests"
     elif [ "$mock_verification_only" = true ]; then
         run_e2e_test "playwright test tests/e2e/functional/mock-verification.spec.ts --config=playwright.sanity.config.ts" "Mock Verification Tests"
-    elif [ "$pages_base_only" = true ]; then
-        run_e2e_test "playwright test tests/e2e/pages/base-page.spec.ts --config=playwright.pages.config.ts" "Base Page Tests"
     elif [ "$pages_content_only" = true ]; then
         run_e2e_test "playwright test tests/e2e/pages/content-page.spec.ts --config=playwright.pages.config.ts" "Content Page Tests"
-    elif [ "$pages_interactive_only" = true ]; then
-        run_e2e_test "playwright test tests/e2e/pages/interactive-page.spec.ts --config=playwright.pages.config.ts" "Interactive Page Tests"
-    elif [ "$pages_comprehensive_only" = true ]; then
-        run_e2e_test "playwright test tests/e2e/pages/comprehensive-page.spec.ts --config=playwright.pages.config.ts" "Comprehensive Page Tests"
     elif [ "$pages_specific_only" = true ]; then
         run_e2e_test "playwright test tests/e2e/pages/home.spec.ts --config=playwright.pages.config.ts" "Home Page Tests"
         run_e2e_test "playwright test tests/e2e/pages/dashboard.spec.ts --config=playwright.pages.config.ts" "Dashboard Tests"
@@ -218,10 +203,7 @@ run_compound_tests() {
         run_e2e_test "playwright test tests/e2e/functional/full.spec.ts --config=playwright.popular.config.ts" "Full E2E Tests"
 
         # Pages tests
-        run_e2e_test "playwright test tests/e2e/pages/base-page.spec.ts --config=playwright.pages.config.ts" "Base Page Tests"
         run_e2e_test "playwright test tests/e2e/pages/content-page.spec.ts --config=playwright.pages.config.ts" "Content Page Tests"
-        run_e2e_test "playwright test tests/e2e/pages/interactive-page.spec.ts --config=playwright.pages.config.ts" "Interactive Page Tests"
-        run_e2e_test "playwright test tests/e2e/pages/comprehensive-page.spec.ts --config=playwright.pages.config.ts" "Comprehensive Page Tests"
         run_e2e_test "playwright test tests/e2e/pages/home.spec.ts --config=playwright.pages.config.ts" "Home Page Tests"
         run_e2e_test "playwright test tests/e2e/pages/dashboard.spec.ts --config=playwright.pages.config.ts" "Dashboard Tests"
         run_e2e_test "playwright test tests/e2e/pages/sports.spec.ts --config=playwright.pages.config.ts" "Sports Pages Tests"

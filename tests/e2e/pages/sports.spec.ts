@@ -1,22 +1,24 @@
 import { test, expect } from '@playwright/test';
-import { runComprehensivePageTests } from './comprehensive-page.spec';
+import { runComprehensivePageTests } from '@tests/e2e/utils/page-suites';
+
+const sportsPages = [
+  { path: '/sports/nba', name: 'NBA', league: 'basketball' },
+  { path: '/sports/nfl', name: 'NFL', league: 'football' },
+  { path: '/sports/mlb', name: 'MLB', league: 'baseball' },
+  { path: '/sports/nhl', name: 'NHL', league: 'hockey' },
+  { path: '/sports/mls', name: 'MLS', league: 'soccer' },
+  { path: '/sports/all-sports', name: 'All Sports', league: 'all' },
+  { path: '/sports/live', name: 'Live Games', league: 'live' },
+];
+
+// Run comprehensive page tests for each sports page
+for (const sportPage of sportsPages) {
+  runComprehensivePageTests(test, sportPage.path, sportPage.name);
+}
 
 test.describe('Sports Pages', () => {
-  const sportsPages = [
-    { path: '/sports/nba', name: 'NBA', league: 'basketball' },
-    { path: '/sports/nfl', name: 'NFL', league: 'football' },
-    { path: '/sports/mlb', name: 'MLB', league: 'baseball' },
-    { path: '/sports/nhl', name: 'NHL', league: 'hockey' },
-    { path: '/sports/mls', name: 'MLS', league: 'soccer' },
-    { path: '/sports/all-sports', name: 'All Sports', league: 'all' },
-    { path: '/sports/live', name: 'Live Games', league: 'live' },
-  ];
-
   for (const sportPage of sportsPages) {
     test.describe(`${sportPage.name} Page`, () => {
-      // Run comprehensive page tests for each sports page
-      runComprehensivePageTests(test, sportPage.path, sportPage.name);
-
       // Sports-specific tests
       test.describe(`${sportPage.name} - Sports Specific Tests`, () => {
         test.beforeEach(async ({ page }) => {

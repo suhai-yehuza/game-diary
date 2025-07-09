@@ -8,32 +8,8 @@ set -e  # Exit on any error
 case "$1" in
     "preview"|"staging"|"staging-soak"|"production")
         echo "🚀 Running CI Quality Gate ($1)..."
-        echo "🔧 Clean up..."
-        pnpm run clean:all
-        echo "🔧 Generate GraphQL code..."
-        pnpm run codegen
-        echo "🔧 Fix lint and format issues..."
-        pnpm run lint:fix && pnpm run format
-        echo "🔧 Validate and fix TypeScript types..."
-        pnpm run validate:types && pnpm run fix:types
-        echo "🔧 TypeScript type check..."
-        pnpm run typecheck
-        echo "🔧 Fix lint and format issues again..."
-        pnpm run lint:fix && pnpm run format
-        echo "🔧 Check circular dependencies..."
-        pnpm run check:circular
-        echo "🔧 Verify environment variables..."
-        if [ "$CI" = "true" ] || [ "$GITHUB_ACTIONS" = "true" ]; then
-            echo "🤖 CI environment detected - skipping environment verification"
-        else
-            pnpm run verify-env
-        fi
-        echo "🔧 Build project..."
-        pnpm run build
-        echo "🔧 Check for unused exports..."
-        pnpm run check:unused:exports
-        echo "🔧 Check bundle size..."
-        pnpm run check:size
+        echo "🔧 Using centralized deployment validator for quality gate..."
+        ./scripts/deployment-validator.sh ci --skip-e2e-tests --skip-db-tests
         echo "✅ CI Quality Gate ($1) completed successfully!"
         ;;
     *)

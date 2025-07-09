@@ -130,25 +130,10 @@ main() {
     echo "========================================"
     echo ""
 
-    # Pages Level 1: Base Page Tests
-    print_status "Pages Level 1: Base Page Tests"
-    print_status "Purpose: Fundamental tests that all pages should pass"
-    run_test "Base Page Tests" "pnpm test:e2e:pages:base"
-
-    # Pages Level 2: Content Page Tests
-    print_status "Pages Level 2: Content Page Tests"
+    # Pages Level 1: Content Page Tests
+    print_status "Pages Level 1: Content Page Tests"
     print_status "Purpose: Content-specific validations"
     run_test "Content Page Tests" "pnpm test:e2e:pages:content"
-
-    # Pages Level 3: Interactive Page Tests
-    print_status "Pages Level 3: Interactive Page Tests"
-    print_status "Purpose: Interactive element validations"
-    run_test "Interactive Page Tests" "pnpm test:e2e:pages:interactive"
-
-    # Pages Level 4: Comprehensive Page Tests
-    print_status "Pages Level 4: Comprehensive Page Tests"
-    print_status "Purpose: Advanced validations and edge cases"
-    run_test "Comprehensive Page Tests" "pnpm test:e2e:pages:comprehensive"
 
     # Pages Level 5: Specific Page Tests
     print_status "Pages Level 5: Specific Page Tests"
@@ -185,10 +170,7 @@ echo "  --navigation-only Run only navigation tests"
 echo "  --responsive-only Run only responsive tests"
 echo "  --cross-browser-only Run only cross-browser tests"
 echo "  --full-only    Run only full tests"
-echo "  --pages-base-only Run only base page tests"
 echo "  --pages-content-only Run only content page tests"
-echo "  --pages-interactive-only Run only interactive page tests"
-echo "  --pages-comprehensive-only Run only comprehensive page tests"
 echo "  --pages-specific-only Run only specific page tests"
     echo ""
     echo "Examples:"
@@ -196,8 +178,7 @@ echo "  $0                    # Run all tests in sequence"
 echo "  $0 --mock-verification-only # Run only mock verification tests"
 echo "  $0 --sanity-only      # Run only sanity tests"
 echo "  $0 --critical-only    # Run only critical tests"
-echo "  $0 --pages-base-only  # Run only base page tests"
-echo "  $0 --pages-comprehensive-only # Run only comprehensive page tests"
+echo "  $0 --pages-content-only # Run only content page tests"
     echo ""
 }
 
@@ -247,24 +228,9 @@ case "${1:-}" in
         run_test "Full Tests" "pnpm test:e2e:full"
         exit 0
         ;;
-    --pages-base-only)
-        print_status "Running only Base Page Tests..."
-        run_test "Base Page Tests" "pnpm test:e2e:pages:base"
-        exit 0
-        ;;
     --pages-content-only)
         print_status "Running only Content Page Tests..."
         run_test "Content Page Tests" "pnpm test:e2e:pages:content"
-        exit 0
-        ;;
-    --pages-interactive-only)
-        print_status "Running only Interactive Page Tests..."
-        run_test "Interactive Page Tests" "pnpm test:e2e:pages:interactive"
-        exit 0
-        ;;
-    --pages-comprehensive-only)
-        print_status "Running only Comprehensive Page Tests..."
-        run_test "Comprehensive Page Tests" "pnpm test:e2e:pages:comprehensive"
         exit 0
         ;;
     --pages-specific-only)
