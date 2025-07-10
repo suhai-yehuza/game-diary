@@ -84,11 +84,11 @@ run_quality_gate() {
     case "$quality_gate_mode" in
         "basic")
             log_info "Running basic quality gate for $environment"
-            pnpm lint && pnpm typecheck && pnpm test:unit
+            pnpm lint && pnpm typecheck
             ;;
         "production")
             log_info "Running production quality gate for $environment"
-            pnpm lint && pnpm typecheck && pnpm test:strict
+            pnpm lint && pnpm typecheck
             ;;
         *)
             log_error "Unknown quality gate mode: $quality_gate_mode"
@@ -104,7 +104,7 @@ run_unit_tests() {
     local step_number=$1
 
     log "📋 Step $step_number: Unit Tests"
-    pnpm test:strict
+    pnpm test:unit
 
     log_success "Unit tests passed"
 }

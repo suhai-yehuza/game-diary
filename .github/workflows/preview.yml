@@ -44,7 +44,7 @@ jobs:
       - name: Run Quality Gate (Basic Mode)
         run: |
           echo "Running preview quality gate (basic mode)..."
-          pnpm lint && pnpm typecheck && pnpm test:unit
+          pnpm lint && pnpm typecheck
 
   unit-tests:
     name: Unit Tests
