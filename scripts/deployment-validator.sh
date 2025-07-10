@@ -167,14 +167,11 @@ run_database_tests() {
 ensure_playwright_browsers() {
     log_step "Ensuring Playwright browsers are installed..."
 
-    # Use our improved browser installation script
-    if [ -f "./scripts/install-playwright-browsers.sh" ]; then
-        log_info "Using improved browser installation script..."
-        ./scripts/install-playwright-browsers.sh --verbose
-    else
-        log_warning "Improved script not found, falling back to manual installation..."
-        pnpm exec playwright install --with-deps
-    fi
+    # Use direct Playwright install command for better CI reliability
+    log_info "Installing Playwright browsers with system dependencies..."
+    pnpm exec playwright install --with-deps
+
+    log_info "✅ Browser installation completed"
 }
 
 # Function to run E2E tests

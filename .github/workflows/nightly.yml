@@ -175,7 +175,7 @@ jobs:
             ${{ runner.os }}-pnpm-store-
       - run: pnpm install --frozen-lockfile
       - name: Install Playwright Browsers and Dependencies
-        run: ./scripts/install-playwright-browsers.sh --verbose
+        run: pnpm exec playwright install --with-deps
       - name: Run E2E Functional Tests (${{ matrix.test }})
         run: ./scripts/ci-e2e-tests.sh ${{ matrix.test }}
       - name: Upload E2E functional test results (on failure)
@@ -230,7 +230,7 @@ jobs:
             ${{ runner.os }}-pnpm-store-
       - run: pnpm install --frozen-lockfile
       - name: Install Playwright Browsers and Dependencies
-        run: ./scripts/install-playwright-browsers.sh --verbose
+        run: pnpm exec playwright install --with-deps
       - name: Run E2E Advanced Tests (${{ matrix.test }})
         run: ./scripts/ci-e2e-tests.sh ${{ matrix.test }}
       - name: Upload E2E advanced test results (on failure)
@@ -285,7 +285,7 @@ jobs:
             ${{ runner.os }}-pnpm-store-
       - run: pnpm install --frozen-lockfile
       - name: Install Playwright Browsers and Dependencies
-        run: ./scripts/install-playwright-browsers.sh --verbose
+        run: pnpm exec playwright install --with-deps
       - name: Run E2E Pages Tests (${{ matrix.test }})
         run: ./scripts/ci-e2e-tests.sh ${{ matrix.test }}
       - name: Upload E2E pages test results (on failure)
@@ -328,7 +328,7 @@ jobs:
             ${{ runner.os }}-pnpm-store-
       - run: pnpm install --frozen-lockfile
       - name: Install Playwright Browsers and Dependencies
-        run: ./scripts/install-playwright-browsers.sh --verbose
+        run: pnpm exec playwright install --with-deps
       - name: Run E2E Compound Tests (All)
         run: ./scripts/ci-e2e-tests.sh all
       - name: Upload E2E compound test results (on failure)
@@ -409,7 +409,7 @@ jobs:
             ${{ runner.os }}-pnpm-store-
       - run: pnpm install --frozen-lockfile
       - name: Install Playwright Browsers and Dependencies
-        run: ./scripts/install-playwright-browsers.sh --verbose
+        run: pnpm exec playwright install --with-deps
       - name: Run Load Testing (3 parallel instances)
         run: |
           echo "🚀 Starting load testing with 3 parallel instances..."
@@ -451,7 +451,7 @@ jobs:
             ${{ runner.os }}-pnpm-store-
       - run: pnpm install --frozen-lockfile
       - name: Install Playwright Browsers and Dependencies
-        run: ./scripts/install-playwright-browsers.sh --verbose
+        run: pnpm exec playwright install --with-deps
       - name: Run Comprehensive Validation
         run: pnpm validate
       - name: Run CI Tests
