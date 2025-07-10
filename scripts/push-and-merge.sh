@@ -28,6 +28,7 @@ show_usage() {
     echo "  - Use force push (--force-with-lease)"
     echo "  - Skip branch sync checks"
     echo "  - Proceed even with uncommitted changes"
+    echo "  - Skip git pre-push hooks"
     echo "  - Require confirmation before execution"
     echo ""
 }
@@ -375,7 +376,7 @@ main() {
     if [[ "$NO_VERIFY" == true ]]; then
         # NO-VERIFY MODE: Force push source, then reset target to source and force push
         log_force "Force pushing $SOURCE_BRANCH to remote..."
-        git push --force-with-lease origin "$SOURCE_BRANCH" || {
+        git push --no-verify --force-with-lease origin "$SOURCE_BRANCH" || {
             log_error "Failed to force push $SOURCE_BRANCH"
             exit 1
         }
@@ -400,7 +401,7 @@ main() {
 
         # Force push target branch
         log_force "Force pushing $TARGET_BRANCH to remote..."
-        git push --force-with-lease origin "$TARGET_BRANCH" || {
+        git push --no-verify --force-with-lease origin "$TARGET_BRANCH" || {
             log_error "Failed to force push $TARGET_BRANCH"
             exit 1
         }
