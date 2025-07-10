@@ -178,7 +178,7 @@ show_cleanup_recommendations() {
 
     echo ""
     echo "3. Consolidate CI workflows:"
-    echo "   - Use .github/workflows/templates/deployment.yml"
+    echo "   - Use .github/workflows/reusable-deployment.yml"
     echo "   - Remove duplicate code from staging.yml, production.yml, etc."
     echo "   - Use reusable workflow templates"
 

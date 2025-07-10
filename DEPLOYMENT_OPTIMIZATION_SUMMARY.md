@@ -152,7 +152,7 @@ Created `scripts/cleanup-legacy.sh` to identify and clean up legacy code:
 
 1. **Replace Current Workflows with Templates**
 
-   - Use `.github/workflows/templates/deployment.yml`
+   - Use `.github/workflows/reusable-deployment.yml`
    - Reduce workflow files from 4 large files to 4 small, focused files
    - Estimated reduction: ~1,500 lines of code
 
@@ -167,7 +167,7 @@ Created `scripts/cleanup-legacy.sh` to identify and clean up legacy code:
 
    jobs:
      deploy:
-       uses: ./.github/workflows/templates/deployment.yml
+       uses: ./.github/workflows/reusable-deployment.yml
        with:
          workflow-name: 'Preview Deployment'
          environment: 'Preview'
