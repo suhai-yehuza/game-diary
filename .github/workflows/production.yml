@@ -224,6 +224,15 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - name: Install Playwright Browsers and Dependencies
         run: pnpm exec playwright install --with-deps
+      - name: Validate Chromium Headless Shell Exists
+        run: |
+          if [ ! -f "$HOME/.cache/ms-playwright/chromium_headless_shell-1179/chrome-linux/headless_shell" ]; then
+            echo "Chromium headless shell is missing!"
+            ls -la $HOME/.cache/ms-playwright/
+            exit 1
+          else
+            echo "Chromium headless shell is present."
+          fi
       - name: Run CI E2E Functional Tests
         run: ./scripts/ci-e2e-tests.sh ${{ matrix.test }}
         # Progressive testing: each level includes all previous levels' tests

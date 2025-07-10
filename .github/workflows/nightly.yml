@@ -176,6 +176,15 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - name: Install Playwright Browsers and Dependencies
         run: pnpm exec playwright install --with-deps
+      - name: Validate Chromium Headless Shell Exists
+        run: |
+          if [ ! -f "$HOME/.cache/ms-playwright/chromium_headless_shell-1179/chrome-linux/headless_shell" ]; then
+            echo "Chromium headless shell is missing!"
+            ls -la $HOME/.cache/ms-playwright/
+            exit 1
+          else
+            echo "Chromium headless shell is present."
+          fi
       - name: Run E2E Functional Tests (${{ matrix.test }})
         run: ./scripts/ci-e2e-tests.sh ${{ matrix.test }}
       - name: Upload E2E functional test results (on failure)
@@ -231,6 +240,15 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - name: Install Playwright Browsers and Dependencies
         run: pnpm exec playwright install --with-deps
+      - name: Validate Chromium Headless Shell Exists
+        run: |
+          if [ ! -f "$HOME/.cache/ms-playwright/chromium_headless_shell-1179/chrome-linux/headless_shell" ]; then
+            echo "Chromium headless shell is missing!"
+            ls -la $HOME/.cache/ms-playwright/
+            exit 1
+          else
+            echo "Chromium headless shell is present."
+          fi
       - name: Run E2E Advanced Tests (${{ matrix.test }})
         run: ./scripts/ci-e2e-tests.sh ${{ matrix.test }}
       - name: Upload E2E advanced test results (on failure)
@@ -286,6 +304,15 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - name: Install Playwright Browsers and Dependencies
         run: pnpm exec playwright install --with-deps
+      - name: Validate Chromium Headless Shell Exists
+        run: |
+          if [ ! -f "$HOME/.cache/ms-playwright/chromium_headless_shell-1179/chrome-linux/headless_shell" ]; then
+            echo "Chromium headless shell is missing!"
+            ls -la $HOME/.cache/ms-playwright/
+            exit 1
+          else
+            echo "Chromium headless shell is present."
+          fi
       - name: Run E2E Pages Tests (${{ matrix.test }})
         run: ./scripts/ci-e2e-tests.sh ${{ matrix.test }}
       - name: Upload E2E pages test results (on failure)
@@ -329,6 +356,15 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - name: Install Playwright Browsers and Dependencies
         run: pnpm exec playwright install --with-deps
+      - name: Validate Chromium Headless Shell Exists
+        run: |
+          if [ ! -f "$HOME/.cache/ms-playwright/chromium_headless_shell-1179/chrome-linux/headless_shell" ]; then
+            echo "Chromium headless shell is missing!"
+            ls -la $HOME/.cache/ms-playwright/
+            exit 1
+          else
+            echo "Chromium headless shell is present."
+          fi
       - name: Run E2E Compound Tests (All)
         run: ./scripts/ci-e2e-tests.sh all
       - name: Upload E2E compound test results (on failure)
@@ -410,6 +446,15 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - name: Install Playwright Browsers and Dependencies
         run: pnpm exec playwright install --with-deps
+      - name: Validate Chromium Headless Shell Exists
+        run: |
+          if [ ! -f "$HOME/.cache/ms-playwright/chromium_headless_shell-1179/chrome-linux/headless_shell" ]; then
+            echo "Chromium headless shell is missing!"
+            ls -la $HOME/.cache/ms-playwright/
+            exit 1
+          else
+            echo "Chromium headless shell is present."
+          fi
       - name: Run Load Testing (3 parallel instances)
         run: |
           echo "🚀 Starting load testing with 3 parallel instances..."
@@ -452,6 +497,15 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - name: Install Playwright Browsers and Dependencies
         run: pnpm exec playwright install --with-deps
+      - name: Validate Chromium Headless Shell Exists
+        run: |
+          if [ ! -f "$HOME/.cache/ms-playwright/chromium_headless_shell-1179/chrome-linux/headless_shell" ]; then
+            echo "Chromium headless shell is missing!"
+            ls -la $HOME/.cache/ms-playwright/
+            exit 1
+          else
+            echo "Chromium headless shell is present."
+          fi
       - name: Run Comprehensive Validation
         run: pnpm validate
       - name: Run CI Tests
