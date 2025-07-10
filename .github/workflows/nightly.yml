@@ -18,3 +18,69 @@ jobs:
       NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
       CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
       CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
+
+  full-e2e-suite:
+    name: Full E2E Test Suite
+    needs: [deploy]
+    runs-on: ubuntu-latest
+    environment: 'Production'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: '10'
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Setup Playwright browsers
+        run: pnpm exec playwright install --with-deps
+
+      - name: Run All E2E Specs
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+          CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
+        run: |
+          echo "Running comprehensive E2E test suite for nightly validation..."
+          
+          # Run all functional tests
+          echo "Running functional tests..."
+          pnpm test:e2e:full
+          
+          # Run all pages tests
+          echo "Running pages tests..."
+          pnpm test:e2e:pages
+          
+          # Run additional comprehensive tests
+          echo "Running cross-browser tests..."
+          pnpm test:e2e:cross-browser
+          
+          echo "Running responsive tests..."
+          pnpm test:e2e:responsive
+          
+          echo "Running navigation tests..."
+          pnpm test:e2e:navigation
+          
+          echo "Running search tests..."
+          pnpm test:e2e:search
+          
+          echo "Running performance tests..."
+          pnpm test:e2e:performance
+          
+          echo "✅ All E2E specs completed successfully!"
+
+      - name: Generate E2E Coverage Report
+        if: success()
+        run: |
+          echo "Generating E2E test coverage report..."
+          pnpm e2e:coverage

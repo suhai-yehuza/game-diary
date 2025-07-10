@@ -81,14 +81,39 @@ jobs:
           flags: unittests
           name: codecov-umbrella
 
-  e2e-tests:
-    name: E2E Tests
+  database-tests:
+    name: Database Tests
+    needs: [quality-gate]
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    steps:
+      - uses: ./.github/workflows/templates/setup.yml
+        with:
+          node-version: '22'
+          pnpm-version: '10'
+        secrets:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+          CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
+
+      - name: Run Database Tests
+        run: |
+          echo "🔍 Validating database trigger definitions..."
+          pnpm db:validate-triggers
+
+          echo "🧪 Running comprehensive database trigger tests..."
+          echo "Testing game ratings, notifications, and friendship triggers..."
+          pnpm db:test:all-triggers
+
+  basic-e2e-tests:
+    name: Basic E2E Tests
     needs: [quality-gate]
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
     strategy:
       matrix:
-        test: [sanity, smoke]
+        test: [mock-verification, sanity, smoke]
     steps:
       - uses: ./.github/workflows/templates/setup.yml
         with:
@@ -105,12 +130,67 @@ jobs:
           install-deps: false
           validate-browsers: true
 
-      - name: Run E2E Tests
-        run: ./scripts/ci-e2e-tests.sh ${{ matrix.test }}
+      - name: Run Basic E2E Tests
+        run: |
+          if [ "${{ matrix.test }}" = "mock-verification" ]; then
+            echo "Running mock verification tests..."
+            pnpm test:e2e:mock-verification
+          else
+            echo "Running ${{ matrix.test }} tests..."
+            ./scripts/ci-e2e-tests.sh ${{ matrix.test }}
+          fi
+
+  functional-e2e-tests:
+    name: Functional E2E Tests
+    needs: [basic-e2e-tests]
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    steps:
+      - uses: ./.github/workflows/templates/setup.yml
+        with:
+          node-version: '22'
+          pnpm-version: '10'
+        secrets:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+          CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
+
+      - uses: ./.github/workflows/templates/playwright-setup.yml
+        with:
+          install-deps: false
+          validate-browsers: true
+
+      - name: Run Functional E2E Tests
+        run: pnpm test:e2e:full
+
+  pages-e2e-tests:
+    name: Pages E2E Tests
+    needs: [functional-e2e-tests]
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    steps:
+      - uses: ./.github/workflows/templates/setup.yml
+        with:
+          node-version: '22'
+          pnpm-version: '10'
+        secrets:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+          CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
+
+      - uses: ./.github/workflows/templates/playwright-setup.yml
+        with:
+          install-deps: false
+          validate-browsers: true
+
+      - name: Run Pages E2E Tests
+        run: pnpm test:e2e:pages
 
   deploy:
     name: Deploy
-    needs: [unit-tests, e2e-tests]
+    needs: [unit-tests, database-tests, basic-e2e-tests, functional-e2e-tests, pages-e2e-tests]
     if: ${{ inputs.deploy-to-vercel && success() }}
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
