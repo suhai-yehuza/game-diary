@@ -12,7 +12,7 @@ name: Complete Test Suite (Nightly + Development)
 
 on:
   schedule:
-    - cron: '0 2 * * *' # 2am UTC nightly
+    - cron: '0 0 * * *' # midnight UTC nightly
   workflow_dispatch:
     inputs:
       test_level:
@@ -59,15 +59,6 @@ on:
         required: false
         default: true
         type: boolean
-  push:
-    branches:
-      - master
-      - staging
-    paths:
-      - 'tests/**'
-      - 'src/**'
-      - 'package.json'
-      - 'playwright.config.ts'
 
 env:
   NODE_VERSION: '22'
