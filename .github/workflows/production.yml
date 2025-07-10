@@ -226,12 +226,24 @@ jobs:
         run: pnpm exec playwright install --with-deps
       - name: Validate Chromium Headless Shell Exists
         run: |
-          if [ ! -f "$HOME/.cache/ms-playwright/chromium_headless_shell-1179/chrome-linux/headless_shell" ]; then
-            echo "Chromium headless shell is missing!"
-            ls -la $HOME/.cache/ms-playwright/
+          echo "Validating browser installation..."
+          CHROMIUM_FOUND=false
+          if [ -d "$HOME/.cache/ms-playwright" ]; then
+            for chromium_dir in "$HOME/.cache/ms-playwright"/chromium_headless_shell-*; do
+              if [ -d "$chromium_dir" ] && [ -f "$chromium_dir/chrome-linux/headless_shell" ]; then
+                echo "✅ Chromium headless shell found at: $chromium_dir/chrome-linux/headless_shell"
+                ls -la "$chromium_dir/chrome-linux/headless_shell"
+                CHROMIUM_FOUND=true
+                break
+              fi
+            done
+          fi
+          if [ "$CHROMIUM_FOUND" = false ]; then
+            echo "❌ Chromium headless shell is missing!"
+            ls -la $HOME/.cache/ms-playwright/ || echo "Cache directory not found"
+            pnpm exec playwright install --with-deps --verbose
+            ls -la $HOME/.cache/ms-playwright/ || echo "Cache directory still not found"
             exit 1
-          else
-            echo "Chromium headless shell is present."
           fi
       - name: Run CI E2E Functional Tests
         run: ./scripts/ci-e2e-tests.sh ${{ matrix.test }}

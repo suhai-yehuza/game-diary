@@ -37,7 +37,21 @@ ensure_playwright_browsers() {
 
     # Validate installation
     log_info "Validating browser installation..."
-    if [ ! -f "$HOME/.cache/ms-playwright/chromium_headless_shell-1179/chrome-linux/headless_shell" ]; then
+
+    # Check for any Chromium installation (more robust than specific version)
+    CHROMIUM_FOUND=false
+    if [ -d "$HOME/.cache/ms-playwright" ]; then
+        for chromium_dir in "$HOME/.cache/ms-playwright"/chromium_headless_shell-*; do
+            if [ -d "$chromium_dir" ] && [ -f "$chromium_dir/chrome-linux/headless_shell" ]; then
+                log_info "✅ Chromium headless shell found at: $chromium_dir/chrome-linux/headless_shell"
+                ls -la "$chromium_dir/chrome-linux/headless_shell"
+                CHROMIUM_FOUND=true
+                break
+            fi
+        done
+    fi
+
+    if [ "$CHROMIUM_FOUND" = false ]; then
         log_error "❌ Chromium headless shell is missing after installation!"
         log_error "Checking Playwright cache directory:"
         ls -la $HOME/.cache/ms-playwright/ 2>/dev/null || log_error "Cache directory not found"
@@ -46,9 +60,6 @@ ensure_playwright_browsers() {
         log_error "Checking again after reinstall:"
         ls -la $HOME/.cache/ms-playwright/ 2>/dev/null || log_error "Cache directory still not found"
         exit 1
-    else
-        log_info "✅ Chromium headless shell is present."
-        ls -la "$HOME/.cache/ms-playwright/chromium_headless_shell-1179/chrome-linux/headless_shell"
     fi
 
     log_info "✅ Browser installation completed and validated"
