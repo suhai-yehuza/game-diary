@@ -1,4 +1,4 @@
 #!/usr/bin/env sh
 
 # Run comprehensive pre-commit validation
-./scripts/pre-commit-validation.sh
+./scripts/validate.sh basic
