@@ -5,7 +5,7 @@
  */
 
 export interface TestConfig {
-  baseUrl: string;
+  baseURL: string;
   timeout: number;
   retries: number;
 }

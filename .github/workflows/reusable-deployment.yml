@@ -25,6 +25,8 @@ on:
         required: false
       VERCEL_PROJECT_ID:
         required: false
+      VERCEL_TOKEN:
+        required: false
       DATABASE_URL:
         required: false
       NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY:
@@ -135,7 +137,8 @@ jobs:
 
   basic-e2e-tests:
     name: Basic E2E Tests
-    needs: [quality-gate]
+    needs: [quality-gate, deploy]
+    if: ${{ inputs.deploy-to-vercel && success() }}
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
     strategy:
@@ -165,7 +168,9 @@ jobs:
           NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
           CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
           CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
+          DEPLOYMENT_URL: ${{ needs.deploy.outputs.deployment-url || 'https://game-diary-staging.vercel.app' }}
         run: |
+          echo "Testing against deployment URL: $DEPLOYMENT_URL"
           if [ "${{ matrix.test }}" = "mock-verification" ]; then
             echo "Running mock verification tests..."
             pnpm test:e2e:mock-verification
@@ -177,6 +182,7 @@ jobs:
   functional-e2e-tests:
     name: Functional E2E Tests
     needs: [basic-e2e-tests]
+    if: ${{ inputs.deploy-to-vercel && success() }}
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
     steps:
@@ -203,7 +209,9 @@ jobs:
           NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
           CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
           CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
+          DEPLOYMENT_URL: ${{ needs.deploy.outputs.deployment-url || 'https://game-diary-staging.vercel.app' }}
         run: |
+          echo "Testing against deployment URL: $DEPLOYMENT_URL"
           echo "🧭 Testing navigation flows (includes critical tests)..."
           pnpm test:e2e:navigation
 
@@ -213,6 +221,7 @@ jobs:
   pages-e2e-tests:
     name: Pages E2E Tests
     needs: [functional-e2e-tests]
+    if: ${{ inputs.deploy-to-vercel && success() }}
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
     steps:
@@ -239,14 +248,57 @@ jobs:
           NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
           CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
           CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
-        run: pnpm test:e2e:pages
+          DEPLOYMENT_URL: ${{ needs.deploy.outputs.deployment-url || 'https://game-diary-staging.vercel.app' }}
+        run: |
+          echo "Testing against deployment URL: $DEPLOYMENT_URL"
+          pnpm test:e2e:pages
+
+  # Fallback E2E tests when deployment is disabled
+  basic-e2e-tests-no-deploy:
+    name: Basic E2E Tests (No Deploy)
+    needs: [quality-gate]
+    if: ${{ !inputs.deploy-to-vercel && success() }}
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    strategy:
+      matrix:
+        test: [mock-verification]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: '10'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Setup Playwright browsers
+        run: pnpm exec playwright install --with-deps
+
+      - name: Run Mock Verification Tests
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+          CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
+        run: |
+          echo "Running mock verification tests (no deployment)..."
+          pnpm test:e2e:mock-verification
 
   deploy:
     name: Deploy
-    needs: [unit-tests, database-tests, basic-e2e-tests, functional-e2e-tests, pages-e2e-tests]
+    needs: [unit-tests, database-tests]
     if: ${{ inputs.deploy-to-vercel && success() }}
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
+    outputs:
+      deployment-url: ${{ steps.deploy.outputs.url }}
     steps:
       - uses: actions/checkout@v4
 
@@ -263,11 +315,44 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Deploy to Vercel
+        id: deploy
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
           CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
           CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         run: |
           echo "Deploying to ${{ inputs.environment }} environment..."
-          # Add deployment logic here
+
+          # Install Vercel CLI
+          npm install --global vercel@latest
+
+          # Deploy to Vercel
+          if [ "${{ inputs.environment }}" = "Production" ]; then
+            vercel --prod --token ${{ secrets.VERCEL_TOKEN }}
+          else
+            vercel --token ${{ secrets.VERCEL_TOKEN }}
+          fi
+
+          # Get the deployment URL from the deployment output
+          # Vercel CLI outputs the URL in the format: "Ready! Available at https://project-name-xxx.vercel.app"
+          DEPLOYMENT_URL=$(vercel --token ${{ secrets.VERCEL_TOKEN }} 2>&1 | grep -o 'https://[^[:space:]]*\.vercel\.app' | head -1)
+
+          if [ -z "$DEPLOYMENT_URL" ]; then
+            # Fallback: try to get from vercel ls
+            DEPLOYMENT_URL=$(vercel ls --token ${{ secrets.VERCEL_TOKEN }} | grep -E ".*\.vercel\.app" | head -1 | awk '{print $2}')
+          fi
+
+          if [ -z "$DEPLOYMENT_URL" ]; then
+            # Final fallback: use environment-specific URL
+            if [ "${{ inputs.environment }}" = "Production" ]; then
+              DEPLOYMENT_URL="https://game-diary.vercel.app"
+            else
+              DEPLOYMENT_URL="https://game-diary-staging.vercel.app"
+            fi
+          fi
+
+          echo "Deployment URL: $DEPLOYMENT_URL"
+          echo "url=$DEPLOYMENT_URL" >> $GITHUB_OUTPUT

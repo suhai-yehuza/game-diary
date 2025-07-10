@@ -8,7 +8,7 @@ import { PERFORMANCE_THRESHOLDS } from '@tests/e2e/utils/constants';
  */
 
 export const DEFAULT_CONFIG: TestConfig = {
-  baseUrl: 'http://localhost:3000',
+  baseURL: 'http://localhost:3000',
   timeout: 30000,
   retries: 2,
 };
@@ -98,12 +98,26 @@ export async function safeGoto(
   path: string,
   config: Partial<TestConfig> = {}
 ): Promise<void> {
-  const finalConfig = { ...DEFAULT_CONFIG, ...config };
-  const url = `${finalConfig.baseUrl}${path}`;
+  // Get the baseURL from environment or use default
+  const envBaseURL =
+    process.env.DEPLOYMENT_URL || process.env.VERCEL_URL || process.env.VERCEL_PRODUCTION_URL;
+  const baseURL = envBaseURL || DEFAULT_CONFIG.baseURL;
+  const finalConfig = {
+    ...DEFAULT_CONFIG,
+    baseURL,
+    ...config,
+  };
+  const url = path.startsWith('http') ? path : `${finalConfig.baseURL}${path}`;
 
   // Add retry logic for navigation interruptions
   const maxRetries = 3;
   let lastError: Error | null = null;
+
+  console.log(`🔍 Navigation Debug:`);
+  console.log(`  Path: ${path}`);
+  console.log(`  Environment Base URL: ${envBaseURL}`);
+  console.log(`  Final Config Base URL: ${finalConfig.baseURL}`);
+  console.log(`  Final URL: ${url}`);
 
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {

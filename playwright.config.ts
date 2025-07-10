@@ -49,8 +49,8 @@ const webServerConfig = {
 
 // Reporter configurations
 const reporters = {
-  list: ['list'],
-  html: ['html'],
+  list: [['list']],
+  html: [['html']],
   ci: process.env.CI
     ? [
         ['json', { outputFile: 'test-results/results.json' }],
@@ -116,6 +116,34 @@ const browsers = {
   },
 };
 
+// Determine the base URL for tests
+const getBaseURL = () => {
+  // In CI, prioritize deployment URL, then Vercel URL, then localhost
+  if (process.env.CI) {
+    return (
+      process.env.DEPLOYMENT_URL ||
+      process.env.VERCEL_URL ||
+      process.env.VERCEL_PRODUCTION_URL ||
+      'http://localhost:3000'
+    );
+  }
+  // In development, use localhost
+  return process.env.DEPLOYMENT_URL ?? 'http://localhost:3000';
+};
+
+const baseURL = getBaseURL();
+
+// Debug logging for CI environments
+if (process.env.CI) {
+  console.log('🔍 Playwright Configuration Debug:');
+  console.log('  CI Environment:', process.env.CI);
+  console.log('  DEPLOYMENT_URL:', process.env.DEPLOYMENT_URL);
+  console.log('  VERCEL_URL:', process.env.VERCEL_URL);
+  console.log('  VERCEL_PRODUCTION_URL:', process.env.VERCEL_PRODUCTION_URL);
+  console.log('  Selected baseURL:', baseURL);
+  console.log('  Mode:', mode);
+}
+
 // Mode-specific configurations
 const modeConfigs = {
   smoke: {
@@ -123,13 +151,13 @@ const modeConfigs = {
     projects: [browsers.chromium],
     reporter: reporters.list,
     use: {
-      baseURL: process.env.DEPLOYMENT_URL ?? 'http://localhost:3000',
+      baseURL,
       trace: 'off',
       video: 'off',
       actionTimeout: 5000,
       navigationTimeout: 10000,
     },
-    webServer: undefined, // No web server for smoke tests
+    webServer: process.env.CI ? undefined : webServerConfig, // No web server for smoke tests in CI
   },
 
   sanity: {
@@ -137,13 +165,13 @@ const modeConfigs = {
     projects: [browsers.chromium],
     reporter: reporters.development,
     use: {
-      baseURL: 'http://localhost:3000',
+      baseURL,
       trace: 'off',
       video: 'off',
       actionTimeout: 10000,
       navigationTimeout: 20000,
     },
-    webServer: webServerConfig,
+    webServer: process.env.CI ? undefined : webServerConfig,
   },
 
   critical: {
@@ -155,13 +183,13 @@ const modeConfigs = {
     ],
     reporter: reporters.ci,
     use: {
-      baseURL: process.env.DEPLOYMENT_URL ?? 'http://localhost:3000',
+      baseURL,
       trace: 'on-first-retry',
       video: 'retain-on-failure',
       actionTimeout: 30000,
       navigationTimeout: 60000,
     },
-    webServer: process.env.DEPLOYMENT_URL ? undefined : webServerConfig,
+    webServer: process.env.CI ? undefined : webServerConfig,
   },
 
   popular: {
@@ -172,13 +200,13 @@ const modeConfigs = {
     projects: [browsers.chromium, browsers.webkit, browsers.mobileChrome],
     reporter: reporters.ci,
     use: {
-      baseURL: 'http://localhost:3000',
+      baseURL,
       trace: 'on-first-retry',
       video: 'retain-on-failure',
       actionTimeout: 30000,
       navigationTimeout: 60000,
     },
-    webServer: webServerConfig,
+    webServer: process.env.CI ? undefined : webServerConfig,
   },
 
   pages: {
@@ -186,13 +214,13 @@ const modeConfigs = {
     projects: [browsers.chromium, browsers.webkit, browsers.mobileChrome],
     reporter: reporters.ci,
     use: {
-      baseURL: 'http://localhost:3000',
+      baseURL,
       trace: 'on-first-retry',
       video: 'retain-on-failure',
       actionTimeout: 30000,
       navigationTimeout: 60000,
     },
-    webServer: webServerConfig,
+    webServer: process.env.CI ? undefined : webServerConfig,
   },
 
   comprehensive: {
@@ -207,13 +235,13 @@ const modeConfigs = {
     ],
     reporter: reporters.html,
     use: {
-      baseURL: process.env.DEPLOYMENT_URL ?? 'http://localhost:3000',
+      baseURL,
       trace: 'on-first-retry',
       video: 'retain-on-failure',
       actionTimeout: 15000,
       navigationTimeout: 20000,
     },
-    webServer: webServerConfig,
+    webServer: process.env.CI ? undefined : webServerConfig,
   },
 };
 
