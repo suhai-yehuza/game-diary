@@ -176,13 +176,36 @@ check_working_directory() {
 
     # Check for staged changes
     if ! git diff --cached --quiet; then
-        log_warn "You have staged (but uncommitted) changes that need to be handled before merging."
-        log_info "Files with staged changes:"
-        git diff --cached --name-only
-        log_info ""
-        log_info "Please commit or stash these changes and run the script again."
-        log_info "Or use --no-verify=true to bypass this check."
-        exit 1
+        local staged_files=$(git diff --cached --name-only)
+
+        # Check if only auto-generated files have staged changes
+        local auto_files=("pnpm-lock.yaml" "package-lock.json" "yarn.lock")
+        local has_other_changes=false
+        local auto_files_changed=()
+
+        for file in $staged_files; do
+            if [[ " ${auto_files[@]} " =~ " ${file} " ]]; then
+                auto_files_changed+=("$file")
+            else
+                has_other_changes=true
+            fi
+        done
+
+        if [[ "$has_other_changes" == false && ${#auto_files_changed[@]} -gt 0 ]]; then
+            log_info "Auto-generated files have staged changes: ${auto_files_changed[*]}"
+            log_info "Discarding auto-generated file changes and proceeding..."
+            git reset HEAD "${auto_files_changed[@]}"
+            git checkout -- "${auto_files_changed[@]}"
+            log_info "Successfully discarded auto-generated file changes"
+        else
+            log_warn "You have staged (but uncommitted) changes that need to be handled before merging."
+            log_info "Files with staged changes:"
+            echo "$staged_files"
+            log_info ""
+            log_info "Please commit or stash these changes and run the script again."
+            log_info "Or use --no-verify=true to bypass this check."
+            exit 1
+        fi
     fi
 }
 
@@ -256,50 +279,78 @@ main() {
     # Store original branch for cleanup
     local original_branch=$(git branch --show-current)
 
-    # Push current branch
     if [[ "$NO_VERIFY" == true ]]; then
-        log_force "Force pushing $SOURCE_BRANCH (skipping validation)..."
+        # NO-VERIFY MODE: Force push source, then reset target to source and force push
+        log_force "Force pushing $SOURCE_BRANCH to remote..."
         git push --force-with-lease origin "$SOURCE_BRANCH" || {
             log_error "Failed to force push $SOURCE_BRANCH"
             exit 1
         }
+
+        # Switch to target branch
+        log_info "Switching to $TARGET_BRANCH..."
+        git checkout "$TARGET_BRANCH" || {
+            log_error "Failed to checkout $TARGET_BRANCH"
+            exit 1
+        }
+
+        # Reset target branch to match source branch exactly
+        log_force "Resetting $TARGET_BRANCH to match $SOURCE_BRANCH..."
+        git reset --hard "$SOURCE_BRANCH" || {
+            log_error "Failed to reset $TARGET_BRANCH to $SOURCE_BRANCH"
+            exit 1
+        }
+
+        # Force push target branch
+        log_force "Force pushing $TARGET_BRANCH to remote..."
+        git push --force-with-lease origin "$TARGET_BRANCH" || {
+            log_error "Failed to force push $TARGET_BRANCH"
+            exit 1
+        }
     else
-        log_info "Pushing $SOURCE_BRANCH..."
+        # REGULAR MODE: Regular push source, then merge changes into target
+        log_info "Pushing $SOURCE_BRANCH to remote..."
         git push origin "$SOURCE_BRANCH" || {
             log_error "Failed to push $SOURCE_BRANCH"
             exit 1
         }
+
+        # Switch to target branch
+        log_info "Switching to $TARGET_BRANCH..."
+        git checkout "$TARGET_BRANCH" || {
+            log_error "Failed to checkout $TARGET_BRANCH"
+            exit 1
+        }
+
+        # Pull latest changes to avoid conflicts
+        log_info "Pulling latest changes from $TARGET_BRANCH..."
+        git pull origin "$TARGET_BRANCH" || {
+            log_error "Failed to pull latest changes from $TARGET_BRANCH"
+            exit 1
+        }
+
+        # Check if source branch changes are already in target branch
+        if git merge-base --is-ancestor "$SOURCE_BRANCH" "$TARGET_BRANCH" 2>/dev/null; then
+            log_info "✅ $SOURCE_BRANCH changes are already in $TARGET_BRANCH"
+            log_info "No merge needed, pushing current state..."
+        else
+            # Merge source branch changes into target
+            log_info "Merging $SOURCE_BRANCH changes into $TARGET_BRANCH..."
+            git merge --no-edit "$SOURCE_BRANCH" || {
+                log_error "Merge failed. Please resolve conflicts manually."
+                log_info "You can continue with: git merge --continue"
+                log_info "Or abort with: git merge --abort"
+                exit 1
+            }
+        fi
+
+        # Push target branch
+        log_info "Pushing $TARGET_BRANCH to remote..."
+        git push origin "$TARGET_BRANCH" || {
+            log_error "Failed to push $TARGET_BRANCH"
+            exit 1
+        }
     fi
-
-    # Switch to target branch and merge
-    log_info "Switching to $TARGET_BRANCH..."
-    git checkout "$TARGET_BRANCH" || {
-        log_error "Failed to checkout $TARGET_BRANCH"
-        exit 1
-    }
-
-    # Pull latest changes to avoid conflicts
-    log_info "Pulling latest changes from $TARGET_BRANCH..."
-    git pull origin "$TARGET_BRANCH" || {
-        log_error "Failed to pull latest changes from $TARGET_BRANCH"
-        exit 1
-    }
-
-    # Merge source branch
-    log_info "Merging $SOURCE_BRANCH into $TARGET_BRANCH..."
-    git merge --no-edit "$SOURCE_BRANCH" || {
-        log_error "Merge failed. Please resolve conflicts manually."
-        log_info "You can continue with: git merge --continue"
-        log_info "Or abort with: git merge --abort"
-        exit 1
-    }
-
-    # Push merged changes
-    log_info "Pushing merged changes to $TARGET_BRANCH..."
-    git push origin "$TARGET_BRANCH" || {
-        log_error "Failed to push merged changes to $TARGET_BRANCH"
-        exit 1
-    }
 
     # Return to original branch
     log_info "Switching back to $original_branch..."
