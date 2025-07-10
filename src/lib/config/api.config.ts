@@ -270,7 +270,7 @@ export const isTestEnvironment =
 export const isE2ETestEnvironment =
   process.env.DEPLOYMENT_URL !== undefined ||
   process.env.PLAYWRIGHT_BASE_URL !== undefined ||
-  process.env.PLAYWRIGHT_TEST === 'true' ||
+  process.env.E2E_MOCK_MODE === 'true' ||
   process.env.PLAYWRIGHT_CI === 'true' ||
   (process.env.CI === 'true' && process.env.NODE_ENV === 'development') ||
   (process.env.CI === 'true' && process.env.NODE_ENV === 'production') ||

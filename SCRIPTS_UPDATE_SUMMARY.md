@@ -20,11 +20,11 @@ sanity → smoke → critical → navigation → responsive → cross-browser �
 {
   "test:e2e:sanity": "playwright test tests/e2e/functional/sanity.spec.ts --config=playwright.sanity.config.ts",
   "test:e2e:smoke": "playwright test tests/e2e/functional/smoke.spec.ts --config=playwright.sanity.config.ts",
-  "test:e2e:critical": "PLAYWRIGHT_TEST=true playwright test tests/e2e/functional/critical.spec.ts --config=playwright.critical.config.ts",
-  "test:e2e:navigation": "PLAYWRIGHT_TEST=true playwright test tests/e2e/functional/navigation.spec.ts --config=playwright.critical.config.ts",
-  "test:e2e:responsive": "PLAYWRIGHT_TEST=true playwright test tests/e2e/functional/responsive.spec.ts --config=playwright.popular.config.ts",
-  "test:e2e:cross-browser": "PLAYWRIGHT_TEST=true playwright test tests/e2e/functional/cross-browser.spec.ts --config=playwright.popular.config.ts",
-  "test:e2e:full": "PLAYWRIGHT_TEST=true playwright test tests/e2e/functional/full.spec.ts --config=playwright.popular.config.ts"
+  "test:e2e:critical": "E2E_MOCK_MODE=true playwright test tests/e2e/functional/critical.spec.ts --config=playwright.critical.config.ts",
+  "test:e2e:navigation": "E2E_MOCK_MODE=true playwright test tests/e2e/functional/navigation.spec.ts --config=playwright.critical.config.ts",
+  "test:e2e:responsive": "E2E_MOCK_MODE=true playwright test tests/e2e/functional/responsive.spec.ts --config=playwright.popular.config.ts",
+  "test:e2e:cross-browser": "E2E_MOCK_MODE=true playwright test tests/e2e/functional/cross-browser.spec.ts --config=playwright.popular.config.ts",
+  "test:e2e:full": "E2E_MOCK_MODE=true playwright test tests/e2e/functional/full.spec.ts --config=playwright.popular.config.ts"
 }
 ```
 

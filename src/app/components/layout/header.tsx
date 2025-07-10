@@ -22,7 +22,7 @@ import type { NavItemProps } from '@/lib/types/componentTypes';
 function isClerkConfigured(): boolean {
   // In E2E test environments, always return true to ensure consistent behavior
   if (
-    process.env.PLAYWRIGHT_TEST === 'true' ||
+    process.env.E2E_MOCK_MODE === 'true' ||
     process.env.GITHUB_ACTIONS === 'true' ||
     process.env.PLAYWRIGHT_CI === 'true'
   ) {

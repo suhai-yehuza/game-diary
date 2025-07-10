@@ -76,7 +76,7 @@ case "$1" in
         ensure_playwright_browsers
 
         echo "🔧 Using centralized deployment validator for E2E tests..."
-        PLAYWRIGHT_TEST=true ./scripts/deployment-validator.sh ci --skip-db-tests --skip-size-check
+        E2E_MOCK_MODE=true ./scripts/deployment-validator.sh ci --skip-db-tests --skip-size-check
         echo "✅ CI E2E Functional Tests ($1) completed successfully!"
         ;;
 
@@ -88,7 +88,7 @@ case "$1" in
         ensure_playwright_browsers
 
         echo "🔧 Using centralized deployment validator for E2E tests..."
-        PLAYWRIGHT_TEST=true ./scripts/deployment-validator.sh ci --skip-db-tests --skip-size-check
+        E2E_MOCK_MODE=true ./scripts/deployment-validator.sh ci --skip-db-tests --skip-size-check
         echo "✅ CI E2E Pages Tests ($1) completed successfully!"
         ;;
 
@@ -100,7 +100,7 @@ case "$1" in
         ensure_playwright_browsers
 
         echo "🔧 Using centralized deployment validator for E2E tests..."
-        PLAYWRIGHT_TEST=true ./scripts/deployment-validator.sh ci --skip-db-tests --skip-size-check
+        E2E_MOCK_MODE=true ./scripts/deployment-validator.sh ci --skip-db-tests --skip-size-check
         echo "✅ CI E2E Specific Page Tests ($1) completed successfully!"
         ;;
 
@@ -112,7 +112,7 @@ case "$1" in
         ensure_playwright_browsers
 
         echo "🔧 Using centralized deployment validator for E2E tests..."
-        PLAYWRIGHT_TEST=true ./scripts/deployment-validator.sh ci --skip-db-tests --skip-size-check --fast
+        E2E_MOCK_MODE=true ./scripts/deployment-validator.sh ci --skip-db-tests --skip-size-check --fast
         echo "✅ CI E2E Compound Functional Tests completed successfully!"
         ;;
 
@@ -123,7 +123,7 @@ case "$1" in
         ensure_playwright_browsers
 
         echo "🔧 Using centralized deployment validator for E2E tests..."
-        PLAYWRIGHT_TEST=true ./scripts/deployment-validator.sh ci --skip-db-tests --skip-size-check --fast
+        E2E_MOCK_MODE=true ./scripts/deployment-validator.sh ci --skip-db-tests --skip-size-check --fast
         echo "✅ CI E2E Compound Pages Tests completed successfully!"
         ;;
 
@@ -134,7 +134,7 @@ case "$1" in
         ensure_playwright_browsers
 
         echo "🔧 Using centralized deployment validator for E2E tests..."
-        PLAYWRIGHT_TEST=true ./scripts/deployment-validator.sh ci --skip-db-tests --skip-size-check --fast
+        E2E_MOCK_MODE=true ./scripts/deployment-validator.sh ci --skip-db-tests --skip-size-check --fast
         echo "✅ CI E2E All Tests completed successfully!"
         ;;
 
@@ -147,7 +147,7 @@ case "$1" in
         ensure_playwright_browsers
 
         echo "🔧 Using centralized deployment validator for E2E tests..."
-        PLAYWRIGHT_TEST=true ./scripts/deployment-validator.sh ci --skip-db-tests --skip-size-check --fast
+        E2E_MOCK_MODE=true ./scripts/deployment-validator.sh ci --skip-db-tests --skip-size-check --fast
         echo "✅ CI E2E Legacy Tests ($1) completed successfully!"
         ;;
 

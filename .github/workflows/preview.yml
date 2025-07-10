@@ -99,7 +99,7 @@ jobs:
     environment: Preview
     env:
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      PLAYWRIGHT_TEST: true
+      E2E_MOCK_MODE: true
     strategy:
       matrix:
         test: [sanity, smoke] # progressive testing: sanity first, then smoke
@@ -142,7 +142,7 @@ jobs:
     environment: Preview
     env:
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      PLAYWRIGHT_TEST: true
+      E2E_MOCK_MODE: true
     strategy:
       matrix:
         test: [base, content] # progressive testing: base first, then content
@@ -230,7 +230,7 @@ jobs:
     environment: Preview
     env:
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      PLAYWRIGHT_TEST: true
+      E2E_MOCK_MODE: true
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
