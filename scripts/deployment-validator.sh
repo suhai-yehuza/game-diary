@@ -234,7 +234,9 @@ run_e2e_tests() {
         fi
 
         # Full E2E suite (includes navigation, responsive, cross-browser)
-        pnpm test:e2e:full
+        pnpm test:e2e:navigation
+        pnpm test:e2e:responsive
+        pnpm test:e2e:cross-browser
 
         pnpm test:e2e:pages
     fi
