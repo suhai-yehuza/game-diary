@@ -263,7 +263,7 @@ export const INTERNAL_PROXY_ENDPOINTS = {
 // Add test environment detection
 export const isTestEnvironment =
   process.env.NODE_ENV === 'test' ||
-  process.env.FORCE_MOCK_API === 'true' ||
+  process.env.API_MOCK_MODE === 'true' ||
   (process.env.CI === 'true' && process.env.NODE_ENV === 'development');
 
 // Add specific E2E test environment detection

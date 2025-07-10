@@ -43,7 +43,7 @@ show_usage() {
     echo "  $0 responsive 3600"
     echo ""
     echo "Environment variables:"
-    echo "  FORCE_MOCK_API=true - Force API mocking"
+    echo "  API_MOCK_MODE=true - Enable API mocking for testing"
 }
 
 # Function to run basic tests

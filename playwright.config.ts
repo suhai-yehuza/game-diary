@@ -5,15 +5,15 @@ import { defineConfig, devices } from '@playwright/test';
  *
  * Usage:
  * - Default (comprehensive): pnpm playwright test
- * - Smoke: PW_MODE=smoke pnpm playwright test
- * - Sanity: PW_MODE=sanity pnpm playwright test
- * - Critical: PW_MODE=critical pnpm playwright test
- * - Popular: PW_MODE=popular pnpm playwright test
- * - Pages: PW_MODE=pages pnpm playwright test
+ * - Smoke: PLAYWRIGHT_MODE=smoke pnpm playwright test
+ * - Sanity: PLAYWRIGHT_MODE=sanity pnpm playwright test
+ * - Critical: PLAYWRIGHT_MODE=critical pnpm playwright test
+ * - Popular: PLAYWRIGHT_MODE=popular pnpm playwright test
+ * - Pages: PLAYWRIGHT_MODE=pages pnpm playwright test
  */
 
 // Determine mode from environment variable or default to comprehensive
-const mode = process.env.PW_MODE ?? 'comprehensive';
+const mode = process.env.PLAYWRIGHT_MODE ?? 'comprehensive';
 
 // Common browser launch arguments for Chromium-based browsers
 const chromiumArgs = [

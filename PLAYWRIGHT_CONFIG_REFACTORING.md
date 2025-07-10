@@ -29,7 +29,7 @@ Created `playwright.config.ts` with **all modes in one file**:
 
 ```typescript
 // Determine mode from environment variable
-const mode = process.env.PW_MODE ?? 'comprehensive';
+const mode = process.env.PLAYWRIGHT_MODE ?? 'comprehensive';
 
 // Mode-specific configurations
 const modeConfigs = {
@@ -64,19 +64,19 @@ const currentConfig = modeConfigs[mode] || modeConfigs.comprehensive;
 pnpm playwright test
 
 # Smoke tests - fast post-deployment validation
-PW_MODE=smoke pnpm playwright test
+PLAYWRIGHT_MODE=smoke pnpm playwright test
 
 # Sanity tests - fast local development feedback
-PW_MODE=sanity pnpm playwright test
+PLAYWRIGHT_MODE=sanity pnpm playwright test
 
 # Critical tests - core user journeys
-PW_MODE=critical pnpm playwright test
+PLAYWRIGHT_MODE=critical pnpm playwright test
 
 # Popular browsers - responsive/cross-browser testing
-PW_MODE=popular pnpm playwright test
+PLAYWRIGHT_MODE=popular pnpm playwright test
 
 # Pages tests - page-specific testing
-PW_MODE=pages pnpm playwright test
+PLAYWRIGHT_MODE=pages pnpm playwright test
 ```
 
 ## 📊 Benefits Achieved
@@ -139,7 +139,7 @@ const modeConfigs = {
 
 ```typescript
 // Determine mode from environment variable or default to comprehensive
-const mode = process.env.PW_MODE ?? 'comprehensive';
+const mode = process.env.PLAYWRIGHT_MODE ?? 'comprehensive';
 
 // Get the configuration for the current mode
 const currentConfig = modeConfigs[mode as keyof typeof modeConfigs] || modeConfigs.comprehensive;
@@ -156,7 +156,7 @@ playwright.config.ts            # Single consolidated config (ALL MODES) - in ro
 ### ✅ Completed
 
 - **Consolidated all configs** into single `playwright.config.ts`
-- **Updated all scripts** to use `PW_MODE` environment variable
+- **Updated all scripts** to use `PLAYWRIGHT_MODE` environment variable
 - **Removed old config files** (smoke, sanity, critical, popular, pages, comprehensive)
 - **Updated CI/CD workflows** to use new consolidated config
 - **Updated documentation** to reflect new approach
@@ -170,7 +170,7 @@ All scripts now use the new consolidated approach:
 --config=playwright.smoke.config.ts
 
 # After
-PW_MODE=smoke
+PLAYWRIGHT_MODE=smoke
 ```
 
 ## 🚀 Usage Guide
@@ -179,26 +179,26 @@ PW_MODE=smoke
 
 ```bash
 # Quick feedback during development
-PW_MODE=sanity pnpm playwright test
+PLAYWRIGHT_MODE=sanity pnpm playwright test
 
 # Basic validation before committing
-PW_MODE=smoke pnpm playwright test
+PLAYWRIGHT_MODE=smoke pnpm playwright test
 
 # Pre-deployment validation
-PW_MODE=critical pnpm playwright test
+PLAYWRIGHT_MODE=critical pnpm playwright test
 
 # Full validation (comprehensive)
-pnpm playwright test  # or PW_MODE=comprehensive
+pnpm playwright test  # or PLAYWRIGHT_MODE=comprehensive
 ```
 
 ### CI/CD Integration
 
 ```bash
 # Development validation
-pnpm validate:ci && PW_MODE=smoke pnpm playwright test
+pnpm validate:ci && PLAYWRIGHT_MODE=smoke pnpm playwright test
 
 # Pre-deployment validation
-pnpm validate:ci && PW_MODE=critical pnpm playwright test
+pnpm validate:ci && PLAYWRIGHT_MODE=critical pnpm playwright test
 
 # Full validation
 pnpm validate:ci && pnpm playwright test

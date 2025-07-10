@@ -424,7 +424,7 @@ jobs:
           echo "🚀 Starting load testing with 3 parallel instances..."
           for i in {1..3}; do
             echo "Starting instance $i..."
-            PW_MODE=popular pnpm playwright test tests/e2e/functional/responsive.spec.ts --project=chromium &
+            PLAYWRIGHT_MODE=popular pnpm playwright test tests/e2e/functional/responsive.spec.ts --project=chromium &
           done
           echo "⏳ Waiting for all instances to complete..."
           wait
