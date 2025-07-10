@@ -31,38 +31,12 @@ log_error() {
 ensure_playwright_browsers() {
     log_info "🔧 Ensuring Playwright browsers are installed..."
 
-    # Check if browsers are already installed
-    if [ -d "$HOME/.cache/ms-playwright" ]; then
-        log_info "Playwright cache directory exists, checking browser installation..."
-
-        # Try to list installed browsers
-        if pnpm exec playwright --version > /dev/null 2>&1; then
-            log_info "Playwright is available, checking browser status..."
-
-            # Check if chromium is installed
-            if [ -d "$HOME/.cache/ms-playwright/chromium-*" ]; then
-                log_info "Chromium browser appears to be installed"
-            else
-                log_warn "Chromium browser not found, reinstalling..."
-                pnpm exec playwright install chromium --with-deps
-            fi
-        else
-            log_warn "Playwright not available, installing browsers..."
-            pnpm exec playwright install --with-deps
-        fi
+    # Use our improved browser installation script
+    if [ -f "./scripts/install-playwright-browsers.sh" ]; then
+        log_info "Using improved browser installation script..."
+        ./scripts/install-playwright-browsers.sh --verbose
     else
-        log_info "No Playwright cache found, installing browsers..."
-        pnpm exec playwright install --with-deps
-    fi
-
-    # Verify installation
-    log_info "Verifying browser installation..."
-    if pnpm exec playwright install --dry-run > /dev/null 2>&1; then
-        log_info "✅ Browser installation verified"
-    else
-        log_error "❌ Browser installation verification failed"
-        log_info "Attempting full reinstall..."
-        rm -rf "$HOME/.cache/ms-playwright"
+        log_warn "Improved script not found, falling back to manual installation..."
         pnpm exec playwright install --with-deps
     fi
 }
@@ -75,8 +49,37 @@ case "$1" in
         # Ensure browsers are installed before running tests
         ensure_playwright_browsers
 
-        echo "🔧 Using centralized deployment validator for E2E tests..."
-        E2E_MOCK_MODE=true ./scripts/deployment-validator.sh ci --skip-db-tests --skip-size-check
+        # Run the specific test type
+        case "$1" in
+            "sanity")
+                log_info "Running E2E sanity tests..."
+                pnpm test:e2e:sanity
+                ;;
+            "smoke")
+                log_info "Running E2E smoke tests..."
+                pnpm test:e2e:smoke
+                ;;
+            "critical")
+                log_info "Running E2E critical tests..."
+                pnpm test:e2e:critical
+                ;;
+            "navigation")
+                log_info "Running E2E navigation tests..."
+                pnpm test:e2e:navigation
+                ;;
+            "responsive")
+                log_info "Running E2E responsive tests..."
+                pnpm test:e2e:responsive
+                ;;
+            "cross-browser")
+                log_info "Running E2E cross-browser tests..."
+                pnpm test:e2e:cross-browser
+                ;;
+            "full")
+                log_info "Running E2E full tests..."
+                pnpm test:e2e:full
+                ;;
+        esac
         echo "✅ CI E2E Functional Tests ($1) completed successfully!"
         ;;
 
@@ -87,8 +90,25 @@ case "$1" in
         # Ensure browsers are installed before running tests
         ensure_playwright_browsers
 
-        echo "🔧 Using centralized deployment validator for E2E tests..."
-        E2E_MOCK_MODE=true ./scripts/deployment-validator.sh ci --skip-db-tests --skip-size-check
+        # Run the specific test type
+        case "$1" in
+            "base")
+                log_info "Running E2E base page tests..."
+                pnpm test:e2e:pages:content
+                ;;
+            "content")
+                log_info "Running E2E content page tests..."
+                pnpm test:e2e:pages:content
+                ;;
+            "interactive")
+                log_info "Running E2E interactive page tests..."
+                pnpm test:e2e:pages:dashboard
+                ;;
+            "comprehensive")
+                log_info "Running E2E comprehensive page tests..."
+                pnpm test:e2e:pages
+                ;;
+        esac
         echo "✅ CI E2E Pages Tests ($1) completed successfully!"
         ;;
 
@@ -99,8 +119,25 @@ case "$1" in
         # Ensure browsers are installed before running tests
         ensure_playwright_browsers
 
-        echo "🔧 Using centralized deployment validator for E2E tests..."
-        E2E_MOCK_MODE=true ./scripts/deployment-validator.sh ci --skip-db-tests --skip-size-check
+        # Run the specific test type
+        case "$1" in
+            "home")
+                log_info "Running E2E home page tests..."
+                pnpm test:e2e:pages:home
+                ;;
+            "dashboard")
+                log_info "Running E2E dashboard page tests..."
+                pnpm test:e2e:pages:dashboard
+                ;;
+            "sports")
+                log_info "Running E2E sports page tests..."
+                pnpm test:e2e:pages:sports
+                ;;
+            "auth")
+                log_info "Running E2E auth page tests..."
+                pnpm test:e2e:pages:auth
+                ;;
+        esac
         echo "✅ CI E2E Specific Page Tests ($1) completed successfully!"
         ;;
 
@@ -111,8 +148,8 @@ case "$1" in
         # Ensure browsers are installed before running tests
         ensure_playwright_browsers
 
-        echo "🔧 Using centralized deployment validator for E2E tests..."
-        E2E_MOCK_MODE=true ./scripts/deployment-validator.sh ci --skip-db-tests --skip-size-check --fast
+        log_info "Running compound functional tests (sanity level)..."
+        pnpm test:e2e:sanity
         echo "✅ CI E2E Compound Functional Tests completed successfully!"
         ;;
 
@@ -122,8 +159,8 @@ case "$1" in
         # Ensure browsers are installed before running tests
         ensure_playwright_browsers
 
-        echo "🔧 Using centralized deployment validator for E2E tests..."
-        E2E_MOCK_MODE=true ./scripts/deployment-validator.sh ci --skip-db-tests --skip-size-check --fast
+        log_info "Running compound pages tests (base level)..."
+        pnpm test:e2e:pages:content
         echo "✅ CI E2E Compound Pages Tests completed successfully!"
         ;;
 
@@ -133,8 +170,9 @@ case "$1" in
         # Ensure browsers are installed before running tests
         ensure_playwright_browsers
 
-        echo "🔧 Using centralized deployment validator for E2E tests..."
-        E2E_MOCK_MODE=true ./scripts/deployment-validator.sh ci --skip-db-tests --skip-size-check --fast
+        log_info "Running all tests (smoke + base pages)..."
+        pnpm test:e2e:smoke
+        pnpm test:e2e:pages:content
         echo "✅ CI E2E All Tests completed successfully!"
         ;;
 
@@ -146,7 +184,7 @@ case "$1" in
         # Ensure browsers are installed before running tests
         ensure_playwright_browsers
 
-        echo "🔧 Using centralized deployment validator for E2E tests..."
+        log_info "Running legacy tests using deployment validator..."
         E2E_MOCK_MODE=true ./scripts/deployment-validator.sh ci --skip-db-tests --skip-size-check --fast
         echo "✅ CI E2E Legacy Tests ($1) completed successfully!"
         ;;

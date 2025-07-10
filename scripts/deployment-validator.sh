@@ -167,38 +167,12 @@ run_database_tests() {
 ensure_playwright_browsers() {
     log_step "Ensuring Playwright browsers are installed..."
 
-    # Check if browsers are already installed
-    if [ -d "$HOME/.cache/ms-playwright" ]; then
-        log_info "Playwright cache directory exists, checking browser installation..."
-
-        # Try to list installed browsers
-        if pnpm exec playwright --version > /dev/null 2>&1; then
-            log_info "Playwright is available, checking browser status..."
-
-            # Check if chromium is installed
-            if [ -d "$HOME/.cache/ms-playwright/chromium-*" ]; then
-                log_info "Chromium browser appears to be installed"
-            else
-                log_warning "Chromium browser not found, reinstalling..."
-                pnpm exec playwright install chromium --with-deps
-            fi
-        else
-            log_warning "Playwright not available, installing browsers..."
-            pnpm exec playwright install --with-deps
-        fi
+    # Use our improved browser installation script
+    if [ -f "./scripts/install-playwright-browsers.sh" ]; then
+        log_info "Using improved browser installation script..."
+        ./scripts/install-playwright-browsers.sh --verbose
     else
-        log_info "No Playwright cache found, installing browsers..."
-        pnpm exec playwright install --with-deps
-    fi
-
-    # Verify installation
-    log_info "Verifying browser installation..."
-    if pnpm exec playwright install --dry-run > /dev/null 2>&1; then
-        log_info "✅ Browser installation verified"
-    else
-        log_error "❌ Browser installation verification failed"
-        log_info "Attempting full reinstall..."
-        rm -rf "$HOME/.cache/ms-playwright"
+        log_warning "Improved script not found, falling back to manual installation..."
         pnpm exec playwright install --with-deps
     fi
 }
