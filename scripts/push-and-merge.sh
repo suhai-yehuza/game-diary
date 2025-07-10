@@ -131,6 +131,29 @@ check_branches() {
     fi
 }
 
+# Check if local branch is up to date with remote
+check_branch_sync() {
+    log_info "Checking if $SOURCE_BRANCH is up to date with remote..."
+
+    # Fetch latest changes from remote
+    git fetch origin "$SOURCE_BRANCH" || {
+        log_error "Failed to fetch latest changes for $SOURCE_BRANCH"
+        exit 1
+    }
+
+    # Compare local and remote branches
+    local local_commit=$(git rev-parse HEAD)
+    local remote_commit=$(git rev-parse "origin/$SOURCE_BRANCH")
+
+    if [[ "$local_commit" == "$remote_commit" ]]; then
+        log_info "✅ $SOURCE_BRANCH is already up to date with remote"
+        log_info "Skipping push and merge process..."
+        exit 0
+    else
+        log_info "📤 Local branch has new commits, proceeding with push and merge..."
+    fi
+}
+
 # Main execution
 main() {
     log_info "Starting push and merge process..."
@@ -142,6 +165,9 @@ main() {
     check_working_directory
     check_branches
     check_current_branch
+
+    # Check if branch is up to date with remote
+    check_branch_sync
 
     # Store original branch for cleanup
     local original_branch=$(git branch --show-current)
