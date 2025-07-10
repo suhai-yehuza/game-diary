@@ -1,0 +1,168 @@
+# Simplified Deployment Workflow Template
+# This template provides a clean, maintainable deployment workflow
+
+name: ${{ inputs.workflow-name }}
+
+on:
+  workflow_call:
+    inputs:
+      workflow-name:
+        description: 'Name of the workflow'
+        required: true
+        type: string
+      environment:
+        description: 'Deployment environment'
+        required: true
+        type: string
+      quality-gate-mode:
+        description: 'Quality gate mode (basic|production)'
+        required: false
+        type: string
+        default: 'production'
+      deploy-to-vercel:
+        description: 'Whether to deploy to Vercel'
+        required: false
+        type: boolean
+        default: true
+    secrets:
+      VERCEL_ORG_ID:
+        required: false
+      VERCEL_PROJECT_ID:
+        required: false
+      DATABASE_URL:
+        required: false
+      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY:
+        required: false
+      CLERK_SECRET_KEY:
+        required: false
+      CLERK_WEBHOOK_SIGNING_SECRET:
+        required: false
+
+env:
+  NODE_VERSION: '22'
+  PNPM_VERSION: '10'
+  DATABASE_URL: ${{ secrets.DATABASE_URL }}
+  NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+  CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+  CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
+
+jobs:
+  quality-gate:
+    name: Quality Gate
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+      - run: pnpm install --frozen-lockfile
+      - name: Run Quality Gate
+        run: |
+          if [ "${{ inputs.quality-gate-mode }}" = "production" ]; then
+            ./scripts/deployment-validator.sh ci --skip-e2e-tests --skip-db-tests
+          else
+            pnpm lint && pnpm typecheck && pnpm test:unit
+          fi
+
+  unit-tests:
+    name: Unit Tests
+    needs: [quality-gate]
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+      - run: pnpm install --frozen-lockfile
+      - name: Run Unit Tests
+        run: pnpm test:strict
+      - uses: codecov/codecov-action@v4
+        if: success()
+        with:
+          file: ./coverage/lcov.info
+          flags: unittests
+          name: codecov-umbrella
+
+  e2e-tests:
+    name: E2E Tests
+    needs: [quality-gate]
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    strategy:
+      matrix:
+        test: [sanity, smoke]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+      - run: pnpm install --frozen-lockfile
+      - name: Install Playwright Browsers
+        run: |
+          pnpm exec playwright install
+          ls -lR $HOME/.cache/ms-playwright || echo "No playwright cache found"
+      - name: Run E2E Tests
+        run: ./scripts/ci-e2e-tests.sh ${{ matrix.test }}
+
+  deploy:
+    name: Deploy
+    needs: [unit-tests, e2e-tests]
+    if: ${{ inputs.deploy-to-vercel && success() }}
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+      - run: pnpm install --frozen-lockfile
+      - name: Deploy to Vercel
+        run: |
+          echo "Deploying to ${{ inputs.environment }} environment..."
+          # Add deployment logic here
