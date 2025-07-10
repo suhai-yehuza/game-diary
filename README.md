@@ -300,3 +300,25 @@ vercel --prod
 # Deploy to staging
 vercel --env staging
 ```
+
+## Playwright Browser Installation
+
+If you encounter browser-related errors when running E2E tests, you can manually install the required browsers:
+
+```bash
+# Install all browsers with system dependencies
+pnpm exec playwright install --with-deps
+
+# Or use the provided script (recommended)
+pnpm test:e2e:install-browsers
+
+# Force reinstall if needed
+pnpm test:e2e:install-browsers:force
+```
+
+The installation script will:
+
+- Check if browsers are already installed
+- Install Chromium, Firefox, and WebKit browsers
+- Install system dependencies
+- Verify the installation
