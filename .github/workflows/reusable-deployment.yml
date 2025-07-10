@@ -1,7 +1,7 @@
 # Simplified Deployment Workflow Template
 # This template provides a clean, maintainable deployment workflow
 
-name: ${{ inputs.workflow-name }}
+name: Reusable Deployment Workflow
 
 on:
   workflow_call:
@@ -44,13 +44,13 @@ jobs:
         with:
           node-version: '22'
           pnpm-version: '10'
-        secrets:
+
+      - name: Run Quality Gate
+        env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
           CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
           CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
-
-      - name: Run Quality Gate
         run: |
           echo "Running full quality gate validation for ${{ inputs.environment }} environment..."
           ./scripts/deployment-validator.sh ci --skip-e2e-tests --skip-db-tests
@@ -65,13 +65,13 @@ jobs:
         with:
           node-version: '22'
           pnpm-version: '10'
-        secrets:
+
+      - name: Run Unit Tests
+        env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
           CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
           CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
-
-      - name: Run Unit Tests
         run: pnpm test:unit
 
       - uses: codecov/codecov-action@v4
@@ -91,13 +91,13 @@ jobs:
         with:
           node-version: '22'
           pnpm-version: '10'
-        secrets:
+
+      - name: Run Database Tests
+        env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
           CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
           CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
-
-      - name: Run Database Tests
         run: |
           echo "🔍 Validating database trigger definitions..."
           pnpm db:validate-triggers
@@ -119,11 +119,6 @@ jobs:
         with:
           node-version: '22'
           pnpm-version: '10'
-        secrets:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
-          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
-          CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
 
       - uses: ./.github/workflows/playwright-setup.yml
         with:
@@ -131,6 +126,11 @@ jobs:
           validate-browsers: true
 
       - name: Run Basic E2E Tests
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+          CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
         run: |
           if [ "${{ matrix.test }}" = "mock-verification" ]; then
             echo "Running mock verification tests..."
@@ -150,11 +150,6 @@ jobs:
         with:
           node-version: '22'
           pnpm-version: '10'
-        secrets:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
-          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
-          CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
 
       - uses: ./.github/workflows/playwright-setup.yml
         with:
@@ -162,6 +157,11 @@ jobs:
           validate-browsers: true
 
       - name: Run Functional E2E Tests
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+          CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
         run: |
           echo "🧭 Testing navigation flows (includes critical tests)..."
           pnpm test:e2e:navigation
@@ -179,11 +179,6 @@ jobs:
         with:
           node-version: '22'
           pnpm-version: '10'
-        secrets:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
-          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
-          CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
 
       - uses: ./.github/workflows/playwright-setup.yml
         with:
@@ -191,6 +186,11 @@ jobs:
           validate-browsers: true
 
       - name: Run Pages E2E Tests
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+          CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
         run: pnpm test:e2e:pages
 
   deploy:
@@ -204,13 +204,13 @@ jobs:
         with:
           node-version: '22'
           pnpm-version: '10'
-        secrets:
+
+      - name: Deploy to Vercel
+        env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
           CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
           CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
-
-      - name: Deploy to Vercel
         run: |
           echo "Deploying to ${{ inputs.environment }} environment..."
           # Add deployment logic here
