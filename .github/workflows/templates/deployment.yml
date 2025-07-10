@@ -14,11 +14,7 @@ on:
         description: 'Deployment environment'
         required: true
         type: string
-      quality-gate-mode:
-        description: 'Quality gate mode (deprecated - always uses full validation)'
-        required: false
-        type: string
-        default: 'production'
+
       deploy-to-vercel:
         description: 'Whether to deploy to Vercel'
         required: false
