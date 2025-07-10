@@ -12,7 +12,6 @@ jobs:
     with:
       workflow-name: 'Vercel Preview Deployment'
       environment: 'Preview'
-      quality-gate-mode: 'basic'
       deploy-to-vercel: true
     secrets:
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}

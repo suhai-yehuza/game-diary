@@ -15,7 +15,7 @@ on:
         required: true
         type: string
       quality-gate-mode:
-        description: 'Quality gate mode (basic|production)'
+        description: 'Quality gate mode (deprecated - always uses full validation)'
         required: false
         type: string
         default: 'production'
@@ -56,11 +56,8 @@ jobs:
 
       - name: Run Quality Gate
         run: |
-          if [ "${{ inputs.quality-gate-mode }}" = "production" ]; then
-            ./scripts/deployment-validator.sh ci --skip-e2e-tests --skip-db-tests
-          else
-            pnpm lint && pnpm typecheck
-          fi
+          echo "Running full quality gate validation for ${{ inputs.environment }} environment..."
+          ./scripts/deployment-validator.sh ci --skip-e2e-tests --skip-db-tests
 
   unit-tests:
     name: Unit Tests

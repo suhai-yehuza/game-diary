@@ -10,7 +10,6 @@ jobs:
     with:
       workflow-name: 'Nightly Maintenance'
       environment: 'Production'
-      quality-gate-mode: 'production'
       deploy-to-vercel: false
     secrets:
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
