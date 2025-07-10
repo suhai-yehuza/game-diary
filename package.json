@@ -126,6 +126,8 @@
     "ci": "./scripts/ci.sh",
     "ci:run": "./scripts/ci.sh run",
     "ci:quality-gate": "./scripts/ci.sh quality-gate",
+    "ci:config": "./scripts/ci-config.sh",
+    "ci:cleanup": "./scripts/cleanup-legacy.sh",
     "ci:unit-tests": "./scripts/ci.sh unit-tests",
     "ci:e2e-tests": "./scripts/ci.sh e2e-tests",
     "ci:preview": "./scripts/ci.sh preview",

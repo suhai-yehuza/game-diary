@@ -78,17 +78,20 @@ run_quality_gate() {
 
     log "📋 Step $step_number: Quality Gate (Validation)"
 
-    case "$environment" in
-        "preview")
-            log_info "Running preview quality gate"
+    # Use centralized configuration
+    local quality_gate_mode=$(./scripts/ci-config.sh get "$environment" QUALITY_GATE_MODE)
+
+    case "$quality_gate_mode" in
+        "basic")
+            log_info "Running basic quality gate for $environment"
             pnpm lint && pnpm typecheck && pnpm test:unit
             ;;
-        "staging"|"staging-soak"|"production")
-            log_info "Running production quality gate"
+        "production")
+            log_info "Running production quality gate for $environment"
             pnpm lint && pnpm typecheck && pnpm test:strict
             ;;
         *)
-            log_error "Unknown environment for quality gate: $environment"
+            log_error "Unknown quality gate mode: $quality_gate_mode"
             exit 1
             ;;
     esac
@@ -110,6 +113,7 @@ run_unit_tests() {
 run_e2e_tests() {
     local test_type=$1
     local step_number=$2
+    local environment=$3
 
     # Install Playwright browsers if not already installed
     log "📋 Step $step_number: Installing Playwright browsers"
@@ -124,6 +128,10 @@ run_e2e_tests() {
         "sanity")
             log "📋 Step $((step_number + 1)): E2E Fast Tests"
             pnpm test:e2e:sanity
+            ;;
+        "smoke")
+            log "📋 Step $((step_number + 1)): E2E Smoke Tests"
+            pnpm test:e2e:smoke
             ;;
         "critical")
             log "📋 Step $((step_number + 1)): E2E Critical Tests"
@@ -150,21 +158,32 @@ run_e2e_tests() {
 get_pipeline_config() {
     local environment=$1
 
-    case "$environment" in
-        "preview")
-            echo "quality_gate:preview unit_tests e2e_sanity"
-            ;;
-        "staging"|"staging-soak")
-            echo "quality_gate:production unit_tests e2e_sanity e2e_critical e2e_responsive"
-            ;;
-        "production")
-            echo "quality_gate:production unit_tests e2e_sanity e2e_critical e2e_responsive e2e_coverage_full"
-            ;;
-        *)
-            log_error "Unknown environment: $environment"
-            exit 1
-            ;;
-    esac
+    # Use centralized configuration to determine pipeline steps
+    local e2e_tests=$(./scripts/ci-config.sh get "$environment" E2E_TESTS)
+    local e2e_pages=$(./scripts/ci-config.sh get "$environment" E2E_PAGES)
+    local performance_tests=$(./scripts/ci-config.sh get "$environment" PERFORMANCE_TESTS)
+    local coverage_tests=$(./scripts/ci-config.sh get "$environment" COVERAGE_TESTS)
+
+    # Build pipeline based on configuration
+    local pipeline="quality_gate:$environment unit_tests"
+
+    # Add E2E tests based on configuration
+    IFS=',' read -ra tests <<< "$e2e_tests"
+    for test in "${tests[@]}"; do
+        pipeline="$pipeline e2e_$test"
+    done
+
+    # Add performance tests if enabled
+    if [ "$performance_tests" = "true" ]; then
+        pipeline="$pipeline e2e_performance"
+    fi
+
+    # Add coverage tests if enabled
+    if [ "$coverage_tests" = "true" ]; then
+        pipeline="$pipeline e2e_coverage_full"
+    fi
+
+    echo "$pipeline"
 }
 
 # Function to execute pipeline
@@ -190,13 +209,16 @@ execute_pipeline() {
                 run_unit_tests "$step_number"
                 ;;
             "e2e_sanity")
-                run_e2e_tests "sanity" "$step_number"
+                run_e2e_tests "sanity" "$step_number" "$environment"
+                ;;
+            "e2e_smoke")
+                run_e2e_tests "smoke" "$step_number" "$environment"
                 ;;
             "e2e_critical")
-                run_e2e_tests "critical" "$step_number"
+                run_e2e_tests "critical" "$step_number" "$environment"
                 ;;
             "e2e_responsive")
-                run_e2e_tests "responsive" "$step_number"
+                run_e2e_tests "responsive" "$step_number" "$environment"
                 ;;
             "e2e_coverage_full")
                 run_e2e_tests "full" "$step_number"
