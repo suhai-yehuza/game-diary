@@ -130,14 +130,7 @@ jobs:
       - name: Install Playwright Browsers
         run: |
           echo "Installing Playwright browsers..."
-          pnpm exec playwright install --with-deps
-
-          # Verify installation and fix if needed
-          echo "Verifying browser installation..."
-          if ! pnpm exec playwright install --dry-run > /dev/null 2>&1; then
-            echo "Browser installation verification failed, running fix script..."
-            ./scripts/fix-playwright-browsers.sh --force
-          fi
+          ./scripts/install-playwright-browsers.sh --verbose
       - name: Run CI E2E Functional Tests
         run: ./scripts/ci-e2e-tests.sh ${{ matrix.test }}
         # Progressive testing: each level includes all previous levels' tests
@@ -185,14 +178,7 @@ jobs:
       - name: Install Playwright Browsers
         run: |
           echo "Installing Playwright browsers..."
-          pnpm exec playwright install --with-deps
-
-          # Verify installation and fix if needed
-          echo "Verifying browser installation..."
-          if ! pnpm exec playwright install --dry-run > /dev/null 2>&1; then
-            echo "Browser installation verification failed, running fix script..."
-            ./scripts/fix-playwright-browsers.sh --force
-          fi
+          ./scripts/install-playwright-browsers.sh --verbose
       - name: Run CI E2E Pages Tests
         run: ./scripts/ci-e2e-tests.sh ${{ matrix.test }}
         # Progressive testing: each level includes all previous levels' tests
