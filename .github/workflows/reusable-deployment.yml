@@ -207,7 +207,7 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Setup Playwright browsers
         run: pnpm exec playwright install --with-deps
-      - name: Run Functional E2E (excluding smoke/mock-verification)
+      - name: Run Functional E2E (excluding mock-verification and smoke)
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
