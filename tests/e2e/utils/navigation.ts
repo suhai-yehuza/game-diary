@@ -221,9 +221,11 @@ export async function openMobileMenu(page: Page, timeout: number = 10000): Promi
     const isVisible = await menuButton.isVisible();
     console.log(`Menu button - Enabled: ${isEnabled}, Visible: ${isVisible}`);
 
-    // Check if menu is already open
-    const menuContent = page.locator('nav').filter({ hasText: /NBA|NFL|MLB|NHL|MLS/ });
-    const isMenuOpen = await menuContent.isVisible();
+    // Check if menu is already open by looking for the menu container
+    const menuContainer = page.locator(
+      'div.absolute.lg\\:relative, div.absolute.lg\\:block, div.absolute'
+    );
+    const isMenuOpen = await menuContainer.isVisible();
     console.log(`Menu already open: ${isMenuOpen}`);
 
     if (isMenuOpen) {
@@ -237,7 +239,7 @@ export async function openMobileMenu(page: Page, timeout: number = 10000): Promi
       await page.waitForTimeout(500);
 
       // Verify menu opened
-      const menuOpenAfterClick = await menuContent.isVisible();
+      const menuOpenAfterClick = await menuContainer.isVisible();
       console.log(`Menu open after click: ${menuOpenAfterClick}`);
 
       if (menuOpenAfterClick) {
@@ -256,12 +258,13 @@ export async function openMobileMenu(page: Page, timeout: number = 10000): Promi
       await menuButton.click({ force: true, timeout: 5000 });
       await page.waitForTimeout(500);
 
-      const menuOpenAfterForceClick = await menuContent.isVisible();
+      const menuOpenAfterForceClick = await menuContainer.isVisible();
+      console.log(`Menu open after force click: ${menuOpenAfterForceClick}`);
+
       if (menuOpenAfterForceClick) {
         console.log('Menu opened successfully with force click');
         return;
       } else {
-        console.log('Menu did not open with force click');
         throw new Error('Menu did not open with force click');
       }
     } catch (error) {
@@ -275,19 +278,20 @@ export async function openMobileMenu(page: Page, timeout: number = 10000): Promi
         await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
         await page.waitForTimeout(500);
 
-        const menuOpenAfterMouseClick = await menuContent.isVisible();
+        const menuOpenAfterMouseClick = await menuContainer.isVisible();
+        console.log(`Menu open after mouse click: ${menuOpenAfterMouseClick}`);
+
         if (menuOpenAfterMouseClick) {
           console.log('Menu opened successfully with mouse click');
           return;
         } else {
-          console.log('Menu did not open with mouse click');
           throw new Error('Menu did not open with mouse click');
         }
       } else {
         throw new Error('Could not get bounding box for menu button');
       }
     } catch (error) {
-      console.log('Position-based click failed, trying keyboard navigation...');
+      console.log('Mouse click failed, trying keyboard navigation...');
     }
 
     // Strategy 4: Try keyboard navigation
@@ -296,12 +300,13 @@ export async function openMobileMenu(page: Page, timeout: number = 10000): Promi
       await page.keyboard.press('Enter');
       await page.waitForTimeout(500);
 
-      const menuOpenAfterKeyboard = await menuContent.isVisible();
+      const menuOpenAfterKeyboard = await menuContainer.isVisible();
+      console.log(`Menu open after keyboard: ${menuOpenAfterKeyboard}`);
+
       if (menuOpenAfterKeyboard) {
         console.log('Menu opened successfully with keyboard');
         return;
       } else {
-        console.log('Menu did not open with keyboard');
         throw new Error('Menu did not open with keyboard');
       }
     } catch (error) {
@@ -309,7 +314,74 @@ export async function openMobileMenu(page: Page, timeout: number = 10000): Promi
     }
 
     // If all strategies fail, throw an error
-    throw new Error('Failed to open mobile menu after trying multiple strategies');
+    throw new Error('Failed to open mobile menu after trying all strategies');
+  }
+}
+
+/**
+ * Open mobile search overlay if on mobile device
+ */
+export async function openMobileSearch(page: Page, timeout: number = 10000): Promise<void> {
+  const isMobile = await page.evaluate(() => window.innerWidth < 1024);
+
+  if (isMobile) {
+    // Wait for the page to be fully loaded and stable
+    await waitForNetworkIdleUtil(page, timeout);
+
+    // Check if search overlay is already open
+    const searchOverlay = page.locator('.fixed.inset-0.z-40');
+    const isSearchOpen = await searchOverlay.isVisible();
+
+    if (isSearchOpen) {
+      console.log('Search overlay is already open, no need to focus');
+      return;
+    }
+
+    // Find the mobile search button and click it to open the overlay
+    const searchButton = page.locator('button[aria-label="Toggle search"]');
+    await expect(searchButton).toBeVisible({ timeout });
+
+    try {
+      // Click the search button to open the overlay
+      await searchButton.click();
+      await page.waitForTimeout(500);
+
+      // Verify search overlay opened
+      const searchOpenAfterClick = await searchOverlay.isVisible();
+      console.log(`Search overlay open after click: ${searchOpenAfterClick}`);
+
+      if (searchOpenAfterClick) {
+        // Wait for the search input to be attached inside the overlay
+        const overlaySearchInput = searchOverlay.locator('input[type="search"]');
+        await overlaySearchInput.waitFor({ state: 'attached', timeout: 5000 });
+        await overlaySearchInput.focus();
+        // Wait for the input to become visible
+        await expect(overlaySearchInput).toBeVisible({ timeout: 5000 });
+        await page.waitForTimeout(200);
+        console.log('Search overlay opened successfully and input focused/visible');
+        return;
+      } else {
+        throw new Error('Search overlay did not open');
+      }
+    } catch (error) {
+      console.log('Search button click failed, trying force click...');
+
+      // Try force click as fallback
+      try {
+        await searchButton.click({ force: true });
+        await page.waitForTimeout(500);
+
+        const searchOpenAfterForceClick = await searchOverlay.isVisible();
+        if (searchOpenAfterForceClick) {
+          console.log('Search overlay opened successfully with force click');
+          return;
+        } else {
+          throw new Error('Search overlay did not open with force click');
+        }
+      } catch (forceError) {
+        throw new Error('Failed to open mobile search overlay');
+      }
+    }
   }
 }
 

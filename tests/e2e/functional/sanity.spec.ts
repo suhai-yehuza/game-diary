@@ -4,8 +4,6 @@ import { commonTestSetup } from '@tests/e2e/utils/setup';
 import { testHomePage, testSportsPage } from '@tests/e2e/utils/page-tests';
 import { navigateToSection } from '@tests/e2e/utils/navigation';
 
-test.describe.configure({ mode: 'serial' }); // Enforce serial execution for test isolation
-
 // Atomic test functions
 export async function sanityTestHomePage(page: Page) {
   await testHomePage(page);

@@ -33,16 +33,23 @@ function isClerkConfigured(): boolean {
   return !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
 }
 
-function SearchBarContent() {
+function SearchBarContent({ autoFocus = false }: { autoFocus?: boolean } = {}) {
   const [search_query, setSearchQuery] = useState('');
   const [debounced_query, setDebouncedQuery] = useState('');
-  const [isFocused, setIsFocused] = useState(false);
+  const [isFocused, setIsFocused] = useState(autoFocus);
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const previousPathRef = useRef(pathname || '/');
   const debounceTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const SEARCH_DEBOUNCE_MS = 500;
+
+  // Set isFocused to true whenever autoFocus changes to true
+  useEffect(() => {
+    if (autoFocus) {
+      setIsFocused(true);
+    }
+  }, [autoFocus]);
 
   // Initialize search query from URL params
   useEffect(() => {
@@ -191,10 +198,10 @@ function SearchBarContent() {
   );
 }
 
-function SearchBar() {
+function SearchBar(props: { autoFocus?: boolean }) {
   return (
     <Suspense fallback={<div className="w-[200px] h-10 bg-gray-200 animate-pulse rounded-md" />}>
-      <SearchBarContent />
+      <SearchBarContent {...props} />
     </Suspense>
   );
 }
@@ -469,7 +476,7 @@ export function Header() {
 
               {/* Navigation Links */}
               <div
-                className={`${!isMenuExpanded ? 'hidden' : 'block'} lg:block absolute lg:relative top-16 left-0 right-0 lg:top-0 bg-background lg:bg-transparent z-50 shadow-lg lg:shadow-none border-b lg:border-b-0`}
+                className={`${isMenuExpanded ? 'block' : 'hidden'} lg:block absolute lg:relative top-16 left-0 right-0 lg:top-0 bg-background lg:bg-transparent z-50 shadow-lg lg:shadow-none border-b lg:border-b-0`}
               >
                 <ClientOnlyNavigationLinks
                   isActive={isActive}
@@ -538,7 +545,7 @@ export function Header() {
               tabIndex={0}
               aria-label="Search container"
             >
-              <SearchBar />
+              <SearchBar autoFocus />
               <button
                 className="ml-2 text-gray-400 hover:text-gray-600"
                 onClick={() => setIsSearchVisible(false)}

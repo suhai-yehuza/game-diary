@@ -189,8 +189,7 @@ run_e2e_tests() {
         # Full E2E suite (includes navigation, responsive, cross-browser)
         pnpm test:e2e:full
 
-        # Comprehensive page tests (includes base, content, interactive)
-        pnpm test:e2e:pages:comprehensive
+        pnpm test:e2e:pages
     fi
 
     log_success "E2E tests completed"

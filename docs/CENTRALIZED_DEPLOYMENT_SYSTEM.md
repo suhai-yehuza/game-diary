@@ -169,7 +169,7 @@ pnpm pre-push:validation:no-e2e
 - `pnpm test:e2e:critical`
 - `pnpm test:e2e:performance`
 - `pnpm test:e2e:full`
-- `pnpm test:e2e:pages:comprehensive`
+- `pnpm test:e2e:pages`
 
 ### 4. Bundle Size Check
 
@@ -309,7 +309,7 @@ pnpm db:test:all-triggers
 pnpm test:e2e:critical
 pnpm test:e2e:performance
 pnpm test:e2e:full
-pnpm test:e2e:pages:comprehensive
+pnpm test:e2e:pages
 pnpm check:size:ci
 ```
 

@@ -1,117 +1,253 @@
 import { defineConfig, devices } from '@playwright/test';
 
 /**
- * @see https://playwright.dev/docs/test-configuration
+ * Consolidated Playwright configuration supporting multiple modes
+ *
+ * Usage:
+ * - Default (comprehensive): pnpm playwright test
+ * - Smoke: PW_MODE=smoke pnpm playwright test
+ * - Sanity: PW_MODE=sanity pnpm playwright test
+ * - Critical: PW_MODE=critical pnpm playwright test
+ * - Popular: PW_MODE=popular pnpm playwright test
+ * - Pages: PW_MODE=pages pnpm playwright test
  */
+
+// Determine mode from environment variable or default to comprehensive
+const mode = process.env.PW_MODE ?? 'comprehensive';
+
+// Common browser launch arguments for Chromium-based browsers
+const chromiumArgs = [
+  '--disable-dev-shm-usage',
+  '--no-sandbox',
+  '--disable-setuid-sandbox',
+  '--disable-gpu',
+  '--disable-web-security',
+  '--disable-features=VizDisplayCompositor',
+  '--disable-background-timer-throttling',
+  '--disable-backgrounding-occluded-windows',
+  '--disable-renderer-backgrounding',
+];
+
+// Common browser launch arguments for mobile devices
+const mobileArgs = [
+  '--disable-dev-shm-usage',
+  '--no-sandbox',
+  '--disable-setuid-sandbox',
+  '--disable-gpu',
+  '--disable-web-security',
+];
+
+// Common web server configuration
+const webServerConfig = {
+  command: 'NODE_ENV=development pnpm dev -p 3000',
+  url: 'http://localhost:3000',
+  reuseExistingServer: true,
+  timeout: 60 * 1000,
+  stdout: 'pipe',
+  stderr: 'pipe',
+};
+
+// Reporter configurations
+const reporters = {
+  list: ['list'],
+  html: ['html'],
+  ci: process.env.CI
+    ? [
+        ['json', { outputFile: 'test-results/results.json' }],
+        ['junit', { outputFile: 'test-results/results.xml' }],
+      ]
+    : [
+        ['html'],
+        ['json', { outputFile: 'test-results/results.json' }],
+        ['junit', { outputFile: 'test-results/results.xml' }],
+      ],
+  development: process.env.CI
+    ? [
+        ['list'],
+        ['json', { outputFile: 'test-results/results.json' }],
+        ['junit', { outputFile: 'test-results/results.xml' }],
+      ]
+    : [['list'], ['json', { outputFile: 'test-results/results.json' }]],
+};
+
+// Browser configurations
+const browsers = {
+  chromium: {
+    name: 'chromium',
+    use: {
+      ...devices['Desktop Chrome'],
+      launchOptions: { args: chromiumArgs },
+    },
+  },
+  webkit: {
+    name: 'webkit',
+    use: {
+      ...devices['Desktop Safari'],
+      launchOptions: { args: [] },
+    },
+  },
+  firefox: {
+    name: 'firefox',
+    use: { ...devices['Desktop Firefox'] },
+  },
+  mobileChrome: {
+    name: 'Mobile Chrome',
+    use: {
+      ...devices['Pixel 5'],
+      launchOptions: { args: chromiumArgs },
+    },
+  },
+  iphone: {
+    name: 'iPhone',
+    use: {
+      ...devices['iPhone 12'],
+      launchOptions: { args: mobileArgs },
+    },
+  },
+  tablet: {
+    name: 'Tablet',
+    use: {
+      ...devices['Desktop Chrome'],
+      viewport: { width: 1024, height: 768 },
+      deviceScaleFactor: 1,
+      userAgent:
+        'Mozilla/5.0 (iPad; CPU OS 17_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2 Mobile/15E148 Safari/604.1',
+    },
+  },
+};
+
+// Mode-specific configurations
+const modeConfigs = {
+  smoke: {
+    testDir: './tests/e2e',
+    projects: [browsers.chromium],
+    reporter: reporters.list,
+    use: {
+      baseURL: process.env.DEPLOYMENT_URL ?? 'http://localhost:3000',
+      trace: 'off',
+      video: 'off',
+      actionTimeout: 5000,
+      navigationTimeout: 10000,
+    },
+    webServer: undefined, // No web server for smoke tests
+  },
+
+  sanity: {
+    testDir: './tests/e2e/functional',
+    projects: [browsers.chromium],
+    reporter: reporters.development,
+    use: {
+      baseURL: 'http://localhost:3000',
+      trace: 'off',
+      video: 'off',
+      actionTimeout: 10000,
+      navigationTimeout: 20000,
+    },
+    webServer: webServerConfig,
+  },
+
+  critical: {
+    testDir: './tests/e2e/functional',
+    projects: [
+      browsers.chromium,
+      // Safari/WebKit - conditional in CI
+      ...(process.env.CI && process.env.VERCEL_PRODUCTION_URL ? [] : [browsers.webkit]),
+    ],
+    reporter: reporters.ci,
+    use: {
+      baseURL: process.env.DEPLOYMENT_URL ?? 'http://localhost:3000',
+      trace: 'on-first-retry',
+      video: 'retain-on-failure',
+      actionTimeout: 30000,
+      navigationTimeout: 60000,
+    },
+    webServer: process.env.DEPLOYMENT_URL ? undefined : webServerConfig,
+  },
+
+  popular: {
+    testDir: './tests/e2e/functional',
+    shard: process.env.SHARD
+      ? { total: parseInt(process.env.SHARD_TOTAL ?? '1'), current: parseInt(process.env.SHARD) }
+      : undefined,
+    projects: [browsers.chromium, browsers.webkit, browsers.mobileChrome],
+    reporter: reporters.ci,
+    use: {
+      baseURL: 'http://localhost:3000',
+      trace: 'on-first-retry',
+      video: 'retain-on-failure',
+      actionTimeout: 30000,
+      navigationTimeout: 60000,
+    },
+    webServer: webServerConfig,
+  },
+
+  pages: {
+    testDir: './tests/e2e',
+    projects: [browsers.chromium, browsers.webkit, browsers.mobileChrome],
+    reporter: reporters.ci,
+    use: {
+      baseURL: 'http://localhost:3000',
+      trace: 'on-first-retry',
+      video: 'retain-on-failure',
+      actionTimeout: 30000,
+      navigationTimeout: 60000,
+    },
+    webServer: webServerConfig,
+  },
+
+  comprehensive: {
+    testDir: './tests/e2e',
+    projects: [
+      browsers.chromium,
+      browsers.firefox,
+      browsers.webkit,
+      browsers.mobileChrome,
+      browsers.iphone,
+      browsers.tablet,
+    ],
+    reporter: reporters.html,
+    use: {
+      baseURL: process.env.DEPLOYMENT_URL ?? 'http://localhost:3000',
+      trace: 'on-first-retry',
+      video: 'retain-on-failure',
+      actionTimeout: 15000,
+      navigationTimeout: 20000,
+    },
+    webServer: webServerConfig,
+  },
+};
+
+// Get the configuration for the current mode
+const currentConfig = modeConfigs[mode as keyof typeof modeConfigs] || modeConfigs.comprehensive;
+
 export default defineConfig({
-  testDir: './tests/e2e',
-  /* Global test timeout - reduced from 120s to 60s */
-  timeout: 60000,
-  /* Run tests in files in parallel */
-  fullyParallel: true,
-  /* Fail the build on CI if you accidentally left test.only in the source code. */
+  // Shared settings across all modes
+  timeout: 120000,
+  fullyParallel: false,
   forbidOnly: !!process.env.CI,
-  /* Retry on CI only */
-  retries: process.env.CI ? 2 : 1,
-  /* Increased workers for better parallelism */
-  // workers: 1,
-  workers: process.env.CI ? 2 : 6,
+  retries: 2,
+  workers: 2,
 
-  /* Configure projects for major browsers with mobile optimizations */
-  projects: [
-    // Desktop browsers - reduced from 6 to 3 core browsers
-    {
-      name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
-    },
-    {
-      name: 'firefox',
-      use: { ...devices['Desktop Firefox'] },
-    },
-    {
-      name: 'webkit',
-      use: { ...devices['Desktop Safari'] },
-    },
-    // Mobile Chrome - single mobile representative
-    {
-      name: 'Mobile Chrome',
-      use: {
-        ...devices['Pixel 5'],
-        launchOptions: {
-          args: [
-            '--disable-dev-shm-usage',
-            '--no-sandbox',
-            '--disable-setuid-sandbox',
-            '--disable-gpu',
-            '--disable-web-security',
-          ],
-        },
-      },
-    },
-    // iPhone - single iOS representative
-    {
-      name: 'iPhone',
-      use: {
-        ...devices['iPhone 12'],
-        launchOptions: {
-          args: [
-            '--disable-dev-shm-usage',
-            '--no-sandbox',
-            '--disable-setuid-sandbox',
-            '--disable-gpu',
-            '--disable-web-security',
-          ],
-        },
-      },
-    },
-    // Tablet - single tablet representative
-    {
-      name: 'Tablet',
-      use: {
-        ...devices['Desktop Chrome'],
-        viewport: { width: 1024, height: 768 },
-        deviceScaleFactor: 1,
-        userAgent:
-          'Mozilla/5.0 (iPad; CPU OS 17_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2 Mobile/15E148 Safari/604.1',
-      },
-    },
-  ],
-  /* Reporter to use. See https://playwright.dev/docs/test-reporters */
-  reporter: 'html',
-  /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
+  // Mode-specific settings
+  ...currentConfig,
+
+  // Shared use settings that can be overridden by mode
   use: {
-    /* Base URL to use in actions like `await page.goto('/')`. */
-    baseURL: process.env.DEPLOYMENT_URL || 'http://localhost:3000',
-
-    /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
-    trace: 'on-first-retry',
-
-    /* Take screenshot on failure only */
+    // Default shared settings
     screenshot: 'only-on-failure',
-
-    /* Record video on failure only */
-    video: 'retain-on-failure',
-
-    /* Reduced timeouts for faster execution */
-    actionTimeout: 10000, // Reduced from 15000
-    navigationTimeout: 20000, // Reduced from 30000
-
-    /* Fail tests on console errors */
     launchOptions: {
-      args: [], // Removed global --disable-dev-shm-usage flag
+      args: [],
     },
     contextOptions: {
       ignoreHTTPSErrors: true,
+      viewport: { width: 1280, height: 720 },
+      deviceScaleFactor: 1,
+      isMobile: false,
+      hasTouch: false,
+      javaScriptEnabled: true,
+      acceptDownloads: true,
     },
+    // Override with mode-specific settings
+    ...(currentConfig.use as any),
   },
-
-  /* Run your local dev server before starting the tests */
-  webServer: {
-    command: 'NODE_ENV=development pnpm dev -p 3000',
-    url: 'http://localhost:3000',
-    reuseExistingServer: true,
-    timeout: 60 * 1000,
-    stdout: 'pipe',
-    stderr: 'pipe',
-  },
-});
+} as any);

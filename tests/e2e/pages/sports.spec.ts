@@ -1,9 +1,11 @@
 import { test, expect } from '@playwright/test';
 import {
+  runInteractivePageTests,
   runComprehensivePageTests,
   waitForNetworkIdle,
   clearTestData,
 } from '@tests/e2e/utils/page-suites';
+import { openMobileMenu, openMobileSearch } from '@tests/e2e/utils/navigation';
 
 const sportsPages = [
   { path: '/sports/nba', name: 'NBA', league: 'basketball' },
@@ -36,19 +38,46 @@ test.describe('Sports Pages', () => {
         });
 
         test(`should have proper ${sportPage.name} navigation`, async ({ page }) => {
-          // Check for sports navigation
-          const sportsNav = page.locator('[data-testid="sports-nav"], .sports-nav, nav');
-          if ((await sportsNav.count()) > 0) {
-            await expect(sportsNav.first()).toBeVisible();
+          // Check if we're on mobile and need to open the menu
+          const isMobile = await page.evaluate(() => window.innerWidth < 1024);
+          let menuContainer;
+          if (isMobile) {
+            // Open mobile menu using utility function
+            try {
+              await openMobileMenu(page);
+              // Wait for the menu to be visible
+              await page.waitForTimeout(1000);
+            } catch (error) {
+              console.log('Failed to open mobile menu, continuing with test...');
+            }
+            // Target the mobile menu container ('.absolute.lg:relative' or similar)
+            menuContainer = page.locator(
+              'div.absolute.lg\\:relative, div.absolute.lg\\:block, div.absolute'
+            );
+            if ((await menuContainer.count()) > 0) {
+              try {
+                await expect(menuContainer.first()).toBeVisible({ timeout: 10000 });
+              } catch (e) {
+                const isVisible = await menuContainer.first().isVisible();
+                const box = await menuContainer.first().boundingBox();
+                const html = await menuContainer.first().evaluate(el => el.outerHTML);
+                console.log('Menu container visible:', isVisible, 'Bounding box:', box);
+                console.log('Menu container HTML:', html);
+                throw new Error('Menu container did not become visible after opening mobile menu');
+              }
+            }
           }
 
-          // Check for league-specific navigation
-          const leagueNav = page.locator(
-            `[data-league="${sportPage.league}"], .${sportPage.league}-nav`
-          );
-          if ((await leagueNav.count()) > 0) {
-            await expect(leagueNav.first()).toBeVisible();
-          }
+          // Now check for navigation links inside the menu container or nav
+          const navLinks =
+            isMobile && menuContainer
+              ? menuContainer.locator('a[href^="/sports"]')
+              : page.locator('nav a[href^="/sports"]');
+          const navCount = await navLinks.count();
+          expect(navCount).toBeGreaterThan(0);
+          // Optionally, check that the NBA link is visible
+          const nbaLink = navLinks.filter({ hasText: 'NBA' });
+          await expect(nbaLink.first()).toBeVisible({ timeout: 5000 });
         });
 
         test(`should display ${sportPage.name} games/scores`, async ({ page }) => {
@@ -202,12 +231,32 @@ test.describe('Sports Pages', () => {
         });
 
         test(`should have proper ${sportPage.name} search functionality`, async ({ page }) => {
+          // Check if we're on mobile and need to open search overlay
+          const isMobile = await page.evaluate(() => window.innerWidth < 1024);
+
+          if (isMobile) {
+            // Open mobile search overlay using utility function
+            try {
+              await openMobileSearch(page);
+              // Wait for the search overlay to be visible
+              await page.waitForTimeout(1000);
+            } catch (error) {
+              console.log('Failed to open mobile search overlay, continuing with test...');
+            }
+          }
+
           // Check for search functionality
           const searchInput = page.locator(
             '[data-testid="search"], input[type="search"], input[placeholder*="search"]'
           );
           if ((await searchInput.count()) > 0) {
-            await expect(searchInput.first()).toBeVisible();
+            // For mobile, focus the search input to make it visible
+            if (isMobile) {
+              await searchInput.first().focus();
+              await page.waitForTimeout(500);
+            }
+
+            await expect(searchInput.first()).toBeVisible({ timeout: 10000 });
             await expect(searchInput.first()).toBeEnabled();
 
             // Test search functionality

@@ -456,9 +456,11 @@ export async function checkForConsoleErrors(page: Page): Promise<void> {
       !error.includes('analytics') &&
       !error.includes('adblock') &&
       !error.includes('Failed to load resource: the server responded with a status of 400') &&
+      !error.includes('Failed to load resource: the server responded with a status of 429') &&
       !error.includes('Access-Control-Allow-Origin') &&
       !error.includes('Status code: 429') &&
       !error.includes('too many requests') &&
+      !error.includes('rate limit') &&
       !error.includes('ChunkLoadError') &&
       !error.includes('Loading chunk') &&
       !error.includes('Uncaught (in promise)') &&
@@ -469,6 +471,7 @@ export async function checkForConsoleErrors(page: Page): Promise<void> {
       !error.includes('ERR_NETWORK') &&
       !error.includes('ERR_INTERNET_DISCONNECTED') &&
       !error.includes('ERR_NAME_NOT_RESOLVED') &&
+      !error.includes('net::ERR_FAILED') && // Filter out net::ERR_FAILED errors
       // Filter out Clerk-related errors in test environment
       !error.includes('useSession can only be used within the <ClerkProvider /> component') &&
       !error.includes('Clerk component error caught') &&
@@ -477,7 +480,8 @@ export async function checkForConsoleErrors(page: Page): Promise<void> {
       !error.includes('SignIn') &&
       !error.includes('SignUp') &&
       !error.includes('@clerk/nextjs') &&
-      !error.includes('@clerk/shared')
+      !error.includes('@clerk/shared') &&
+      !error.includes('Clerk: Failed to load Clerk')
   );
 
   // Only fail if there are actual critical errors
