@@ -7,7 +7,7 @@ on:
 
 jobs:
   deploy:
-    uses: ./.github/workflows/templates/deployment.yml
+    uses: ./.github/workflows/reusable-deployment.yml
     with:
       workflow-name: 'Vercel Staging Deployment'
       environment: 'Staging'

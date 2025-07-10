@@ -40,7 +40,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
     steps:
-      - uses: ./.github/workflows/templates/setup.yml
+      - uses: ./.github/workflows/setup.yml
         with:
           node-version: '22'
           pnpm-version: '10'
@@ -61,7 +61,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
     steps:
-      - uses: ./.github/workflows/templates/setup.yml
+      - uses: ./.github/workflows/setup.yml
         with:
           node-version: '22'
           pnpm-version: '10'
@@ -87,7 +87,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
     steps:
-      - uses: ./.github/workflows/templates/setup.yml
+      - uses: ./.github/workflows/setup.yml
         with:
           node-version: '22'
           pnpm-version: '10'
@@ -115,7 +115,7 @@ jobs:
       matrix:
         test: [mock-verification, smoke]
     steps:
-      - uses: ./.github/workflows/templates/setup.yml
+      - uses: ./.github/workflows/setup.yml
         with:
           node-version: '22'
           pnpm-version: '10'
@@ -125,7 +125,7 @@ jobs:
           CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
           CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
 
-      - uses: ./.github/workflows/templates/playwright-setup.yml
+      - uses: ./.github/workflows/playwright-setup.yml
         with:
           install-deps: false
           validate-browsers: true
@@ -146,7 +146,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
     steps:
-      - uses: ./.github/workflows/templates/setup.yml
+      - uses: ./.github/workflows/setup.yml
         with:
           node-version: '22'
           pnpm-version: '10'
@@ -156,7 +156,7 @@ jobs:
           CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
           CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
 
-      - uses: ./.github/workflows/templates/playwright-setup.yml
+      - uses: ./.github/workflows/playwright-setup.yml
         with:
           install-deps: false
           validate-browsers: true
@@ -175,7 +175,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
     steps:
-      - uses: ./.github/workflows/templates/setup.yml
+      - uses: ./.github/workflows/setup.yml
         with:
           node-version: '22'
           pnpm-version: '10'
@@ -185,7 +185,7 @@ jobs:
           CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
           CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
 
-      - uses: ./.github/workflows/templates/playwright-setup.yml
+      - uses: ./.github/workflows/playwright-setup.yml
         with:
           install-deps: false
           validate-browsers: true
@@ -200,7 +200,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
     steps:
-      - uses: ./.github/workflows/templates/setup.yml
+      - uses: ./.github/workflows/setup.yml
         with:
           node-version: '22'
           pnpm-version: '10'
