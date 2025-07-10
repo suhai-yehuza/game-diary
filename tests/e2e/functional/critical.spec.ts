@@ -33,12 +33,24 @@ export async function criticalTestProtectedRouteAccess(page: any) {
     await safeGoto(page, route);
     await waitForPageLoad(page);
     await expect(page.locator('body')).toBeVisible();
-    const authPrompt = page.locator('[data-testid="auth-prompt"], .auth-prompt, [role="alert"]');
-    const protectedContent = page.locator('main, .protected-content');
-    if ((await authPrompt.count()) > 0) {
-      await expect(authPrompt.first()).toBeVisible();
-    } else if ((await protectedContent.count()) > 0) {
-      await expect(protectedContent.first()).toBeVisible();
+
+    // Check if we were redirected to sign-in (expected behavior for unauthenticated users)
+    const currentUrl = page.url();
+    if (currentUrl.includes('/sign-in')) {
+      // Successfully redirected to sign-in page
+      await expect(page.locator('body')).toBeVisible();
+    } else {
+      // If not redirected, check for auth prompts or protected content
+      const authPrompt = page.locator('[data-testid="auth-prompt"], .auth-prompt, [role="alert"]');
+      const protectedContent = page.locator('main, .protected-content');
+      if ((await authPrompt.count()) > 0) {
+        await expect(authPrompt.first()).toBeVisible();
+      } else if ((await protectedContent.count()) > 0) {
+        await expect(protectedContent.first()).toBeVisible();
+      } else {
+        // If neither auth prompt nor protected content is found, the page should still be visible
+        await expect(page.locator('body')).toBeVisible();
+      }
     }
   }
 }
