@@ -38,36 +38,22 @@ on:
       CLERK_WEBHOOK_SIGNING_SECRET:
         required: false
 
-env:
-  NODE_VERSION: '22'
-  PNPM_VERSION: '10'
-  DATABASE_URL: ${{ secrets.DATABASE_URL }}
-  NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
-  CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
-  CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
-
 jobs:
   quality-gate:
     name: Quality Gate
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
+      - uses: ./.github/workflows/templates/setup.yml
         with:
-          version: ${{ env.PNPM_VERSION }}
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'pnpm'
-      - name: Cache pnpm store
-        uses: actions/cache@v4
-        with:
-          path: ~/.pnpm-store
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
-      - run: pnpm install --frozen-lockfile
+          node-version: '22'
+          pnpm-version: '10'
+        secrets:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+          CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
+
       - name: Run Quality Gate
         run: |
           if [ "${{ inputs.quality-gate-mode }}" = "production" ]; then
@@ -82,24 +68,19 @@ jobs:
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
+      - uses: ./.github/workflows/templates/setup.yml
         with:
-          version: ${{ env.PNPM_VERSION }}
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'pnpm'
-      - name: Cache pnpm store
-        uses: actions/cache@v4
-        with:
-          path: ~/.pnpm-store
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
-      - run: pnpm install --frozen-lockfile
+          node-version: '22'
+          pnpm-version: '10'
+        secrets:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+          CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
+
       - name: Run Unit Tests
         run: pnpm test:unit
+
       - uses: codecov/codecov-action@v4
         if: success()
         with:
@@ -116,26 +97,21 @@ jobs:
       matrix:
         test: [sanity, smoke]
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
+      - uses: ./.github/workflows/templates/setup.yml
         with:
-          version: ${{ env.PNPM_VERSION }}
-      - uses: actions/setup-node@v4
+          node-version: '22'
+          pnpm-version: '10'
+        secrets:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+          CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
+
+      - uses: ./.github/workflows/templates/playwright-setup.yml
         with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'pnpm'
-      - name: Cache pnpm store
-        uses: actions/cache@v4
-        with:
-          path: ~/.pnpm-store
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
-      - run: pnpm install --frozen-lockfile
-      - name: Install Playwright Browsers
-        run: |
-          pnpm exec playwright install
-          ls -lR $HOME/.cache/ms-playwright || echo "No playwright cache found"
+          install-deps: false
+          validate-browsers: true
+
       - name: Run E2E Tests
         run: ./scripts/ci-e2e-tests.sh ${{ matrix.test }}
 
@@ -146,22 +122,16 @@ jobs:
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
+      - uses: ./.github/workflows/templates/setup.yml
         with:
-          version: ${{ env.PNPM_VERSION }}
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'pnpm'
-      - name: Cache pnpm store
-        uses: actions/cache@v4
-        with:
-          path: ~/.pnpm-store
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
-      - run: pnpm install --frozen-lockfile
+          node-version: '22'
+          pnpm-version: '10'
+        secrets:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+          CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
+
       - name: Deploy to Vercel
         run: |
           echo "Deploying to ${{ inputs.environment }} environment..."
