@@ -143,31 +143,28 @@ request_confirmation() {
     echo ""
 }
 
-# Check if we're on the correct source branch
-check_current_branch() {
-    local current_branch=$(git branch --show-current)
-    if [[ "$current_branch" != "$SOURCE_BRANCH" ]]; then
-        if [[ "$NO_VERIFY" == true ]]; then
-            log_warn "Not on $SOURCE_BRANCH branch. Current branch: $current_branch"
-        else
-            log_error "Not on $SOURCE_BRANCH branch. Current branch: $current_branch"
-        fi
-        log_info "Switching to $SOURCE_BRANCH..."
-        git checkout "$SOURCE_BRANCH" || {
-            log_error "Failed to checkout $SOURCE_BRANCH"
-            exit 1
-        }
-    fi
-}
-
-# Check if there are uncommitted changes (only in regular mode)
-check_working_directory() {
+# Clean up uncommitted changes that might prevent branch switching
+cleanup_uncommitted_changes() {
+    # In no-verify mode, always clean up changes without asking
     if [[ "$NO_VERIFY" == true ]]; then
-        log_warn "Skipping working directory check (no-verify mode)"
+        # Check for unstaged changes
+        if ! git diff --quiet; then
+            log_warn "Unstaged changes detected. Discarding in no-verify mode..."
+            git checkout -- .
+            log_info "Unstaged changes have been discarded."
+        fi
+
+        # Check for staged changes
+        if ! git diff --cached --quiet; then
+            log_warn "Staged changes detected. Discarding in no-verify mode..."
+            git reset HEAD .
+            git checkout -- .
+            log_info "Staged changes have been discarded."
+        fi
         return 0
     fi
 
-    # Check for unstaged changes
+    # Regular mode - check for unstaged changes
     if ! git diff --quiet; then
         log_warn "Unstaged changes detected. These will be discarded before proceeding."
         git checkout -- .
@@ -207,6 +204,38 @@ check_working_directory() {
             exit 1
         fi
     fi
+}
+
+# Check if we're on the correct source branch
+check_current_branch() {
+    local current_branch=$(git branch --show-current)
+    if [[ "$current_branch" != "$SOURCE_BRANCH" ]]; then
+        if [[ "$NO_VERIFY" == true ]]; then
+            log_warn "Not on $SOURCE_BRANCH branch. Current branch: $current_branch"
+        else
+            log_error "Not on $SOURCE_BRANCH branch. Current branch: $current_branch"
+        fi
+
+        # Clean up any uncommitted changes before switching
+        cleanup_uncommitted_changes
+
+        log_info "Switching to $SOURCE_BRANCH..."
+        git checkout "$SOURCE_BRANCH" || {
+            log_error "Failed to checkout $SOURCE_BRANCH"
+            exit 1
+        }
+    fi
+}
+
+# Check if there are uncommitted changes (only in regular mode)
+check_working_directory() {
+    if [[ "$NO_VERIFY" == true ]]; then
+        log_warn "Skipping working directory check (no-verify mode)"
+        return 0
+    fi
+
+    # Use the cleanup function to handle uncommitted changes
+    cleanup_uncommitted_changes
 }
 
 # Check if branches exist
@@ -289,6 +318,10 @@ main() {
 
         # Switch to target branch
         log_info "Switching to $TARGET_BRANCH..."
+
+        # Clean up any uncommitted changes before switching
+        cleanup_uncommitted_changes
+
         git checkout "$TARGET_BRANCH" || {
             log_error "Failed to checkout $TARGET_BRANCH"
             exit 1
@@ -317,6 +350,10 @@ main() {
 
         # Switch to target branch
         log_info "Switching to $TARGET_BRANCH..."
+
+        # Clean up any uncommitted changes before switching
+        cleanup_uncommitted_changes
+
         git checkout "$TARGET_BRANCH" || {
             log_error "Failed to checkout $TARGET_BRANCH"
             exit 1
