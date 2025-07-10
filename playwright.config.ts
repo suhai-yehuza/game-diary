@@ -1,5 +1,5 @@
 import { defineConfig, devices } from '@playwright/test';
-import { APP_CONFIG, getAppUrl, isLocalhostTarget } from './lib/config/app.config';
+import { APP_CONFIG, getAppUrl, isLocalhostTarget, getPort } from './lib/config/app.config';
 
 /**
  * Simplified Playwright configuration
@@ -33,12 +33,13 @@ const mobileArgs = [
 ];
 
 const baseURL = getAppUrl();
+const port = getPort();
 
 // Web server configuration
 const webServerConfig = {
-  command: `NODE_ENV=development pnpm dev -p ${APP_CONFIG.DEFAULT_PORT}`,
-  url: APP_CONFIG.DEFAULT_LOCALHOST_URL,
-  reuseExistingServer: true,
+  command: `NODE_ENV=development pnpm dev -p ${port}`,
+  url: `http://localhost:${port}`,
+  reuseExistingServer: !process.env.CI, // Reuse existing server in development, not in CI
   timeout: APP_CONFIG.DEV_SERVER_TIMEOUT,
   stdout: 'pipe' as const,
   stderr: 'pipe' as const,

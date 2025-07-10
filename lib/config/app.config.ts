@@ -23,6 +23,13 @@ export const APP_CONFIG = {
   TEST_NAVIGATION_TIMEOUT: 30000, // 30 seconds
 } as const;
 
+// Helper function to get the port from environment or use default
+export const getPort = (): number => {
+  return parseInt(
+    process.env.PORT || process.env.DEFAULT_PORT || APP_CONFIG.DEFAULT_PORT.toString()
+  );
+};
+
 // Helper function to get the appropriate URL based on environment
 export const getAppUrl = (): string => {
   // In CI, prioritize deployment URL, then Vercel URL, then localhost
@@ -31,15 +38,15 @@ export const getAppUrl = (): string => {
       process.env.DEPLOYMENT_URL ||
       process.env.VERCEL_URL ||
       process.env.VERCEL_PRODUCTION_URL ||
-      APP_CONFIG.DEFAULT_LOCALHOST_URL
+      APP_CONFIG.getLocalhostUrl(getPort())
     );
   }
   // In development, use localhost
-  return process.env.DEPLOYMENT_URL ?? APP_CONFIG.DEFAULT_LOCALHOST_URL;
+  return process.env.DEPLOYMENT_URL ?? APP_CONFIG.getLocalhostUrl(getPort());
 };
 
 // Helper function to check if we're targeting localhost
 export const isLocalhostTarget = (): boolean => {
   const targetURL = getAppUrl();
-  return targetURL.includes('localhost:3000');
+  return targetURL.includes('localhost');
 };
