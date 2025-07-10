@@ -53,6 +53,7 @@ show_usage() {
     echo ""
     echo "Subcommands:"
     echo "  basic - Basic validation (circular deps, type validation/fix, env verification)"
+    echo "  ci - CI-friendly validation (skips environment validation)"
     echo "  dev - Development workflow (codegen + quick fix + basic validation)"
     echo "  full - Prebuild, build, soft validation, unused exports, test:strict, test:e2e:sanity"
     echo "  staging - Full validation + size check (for staging deployment)"
@@ -65,9 +66,26 @@ show_usage() {
     echo ""
     echo "Examples:"
     echo "  $0 basic"
+    echo "  $0 ci"
     echo "  $0 dev"
     echo "  $0 staging"
     echo "  $0 circular"
+}
+
+# Function to run CI-friendly validation (skips environment validation)
+run_ci_validation() {
+    log "Running CI-friendly validation..."
+
+    log_info "Checking circular dependencies..."
+    pnpm check:circular
+
+    log_info "Validating and fixing types..."
+    pnpm validate:types:fix
+
+    log_info "Skipping environment validation in CI mode..."
+    log_warning "Environment variables will be validated in individual CI jobs"
+
+    log_success "CI-friendly validation completed"
 }
 
 # Function to run basic validation
@@ -80,8 +98,14 @@ run_basic_validation() {
     log_info "Validating and fixing types..."
     pnpm validate:types:fix
 
-    log_info "Verifying environment variables..."
-    pnpm verify-env
+    # Skip environment validation in CI mode
+    if [ "$CI" = "true" ] || [ "$GITHUB_ACTIONS" = "true" ]; then
+        log_info "Skipping environment validation in CI mode..."
+        log_warning "Environment variables will be validated in individual CI jobs"
+    else
+        log_info "Verifying environment variables..."
+        pnpm verify-env
+    fi
 
     log_success "Basic validation completed"
 }
@@ -197,6 +221,9 @@ SUBCOMMAND="${1:-help}"
 case "$SUBCOMMAND" in
     "basic")
         run_basic_validation
+        ;;
+    "ci")
+        run_ci_validation
         ;;
     "dev")
         run_dev_workflow

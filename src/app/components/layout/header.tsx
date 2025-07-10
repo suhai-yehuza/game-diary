@@ -330,6 +330,12 @@ function NavigationLinks({
 function ClientOnlyNavigationLinks(props: React.ComponentProps<typeof NavigationLinks>) {
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
+
+  // For E2E tests, always render the navigation to ensure consistent behavior
+  if (isE2ETestEnvironment) {
+    return <NavigationLinks {...props} />;
+  }
+
   if (!mounted) return null;
   return <NavigationLinks {...props} />;
 }

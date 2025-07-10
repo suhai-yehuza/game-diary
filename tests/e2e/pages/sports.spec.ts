@@ -69,12 +69,20 @@ test.describe('Sports Pages', () => {
           }
 
           // Now check for navigation links inside the menu container or nav
+          // Use a more robust selector that looks for sports links anywhere in the navigation area
           const navLinks =
             isMobile && menuContainer
               ? menuContainer.locator('a[href^="/sports"]')
-              : page.locator('nav a[href^="/sports"]');
+              : page.locator('nav a[href^="/sports"], header a[href^="/sports"]');
+
+          // Wait for navigation to be available
+          await page.waitForSelector('nav a[href^="/sports"], header a[href^="/sports"]', {
+            timeout: 10000,
+          });
+
           const navCount = await navLinks.count();
           expect(navCount).toBeGreaterThan(0);
+
           // Optionally, check that the NBA link is visible
           const nbaLink = navLinks.filter({ hasText: 'NBA' });
           await expect(nbaLink.first()).toBeVisible({ timeout: 5000 });

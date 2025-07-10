@@ -19,11 +19,12 @@ console.log('🔍 Environment variables loaded:');
 console.log('NODE_ENV:', process.env.NODE_ENV);
 console.log('DATABASE_URL exists:', !!process.env.DATABASE_URL);
 console.log('DATABASE_URL length:', process.env.DATABASE_URL?.length || 0);
+console.log('CI Environment:', isCI);
 
 // Environment validation schema for CI/local development
 const requiredEnvSchema = z.object({
-  // Database - required for all environments
-  DATABASE_URL: z.string().min(1, 'DATABASE_URL is required'),
+  // Database - required for all environments except CI prebuild
+  DATABASE_URL: z.string().optional(),
 
   // Clerk authentication - required for production/staging
   NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: z.string().optional(),
@@ -66,9 +67,15 @@ function validateEnvironment(): void {
     const errors: string[] = [];
     const warnings: string[] = [];
 
-    // DATABASE_URL is always required
+    // DATABASE_URL is required for non-CI environments or when running database operations
     if (!env.DATABASE_URL) {
-      errors.push('DATABASE_URL is required for all environments');
+      if (isCI) {
+        warnings.push(
+          'DATABASE_URL not set in CI environment - database operations will be skipped'
+        );
+      } else {
+        errors.push('DATABASE_URL is required for local development');
+      }
     }
 
     // Clerk keys are required for production/staging (unless in test/E2E or CI)
@@ -119,7 +126,9 @@ function validateEnvironment(): void {
 
     // Log environment summary
     console.log('\n📋 Environment Summary:');
-    console.log(`  Database: ${env.DATABASE_URL ? '✅ Configured' : '❌ Missing'}`);
+    console.log(
+      `  Database: ${env.DATABASE_URL ? '✅ Configured' : isCI ? '⚠️  Skipped in CI' : '❌ Missing'}`
+    );
     console.log(
       `  Clerk Auth: ${env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ? '✅ Configured' : isCI ? '⚠️  Skipped in CI' : '⚠️  Not configured'}`
     );

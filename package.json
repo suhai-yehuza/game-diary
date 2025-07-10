@@ -16,6 +16,7 @@
     "build": "next build",
     "build:staging": "NODE_ENV=staging next build",
     "prebuild": "pnpm clean:all && pnpm codegen && pnpm fix && pnpm validate:dev",
+    "prebuild:ci": "pnpm clean:all && pnpm codegen && pnpm fix && ./scripts/validate.sh ci",
     "=====Timing Wrapper=====": "=====+=====+=====+=====+=====",
     "timed": "./scripts/timed-run.sh script",
     "=====Cleanup=====": "=====+=====+=====+=====+=====",
