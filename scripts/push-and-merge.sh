@@ -44,6 +44,7 @@ parse_arguments() {
     SOURCE_BRANCH=""
     TARGET_BRANCH=""
     NO_VERIFY=false
+    DRY_RUN=false
 
     # Parse arguments
     for arg in "$@"; do
@@ -58,6 +59,10 @@ parse_arguments() {
                 ;;
             --no-verify=true)
                 NO_VERIFY=true
+                shift
+                ;;
+            --dry-run)
+                DRY_RUN=true
                 shift
                 ;;
             *)
@@ -112,6 +117,34 @@ log_error() {
 
 log_force() {
     echo -e "${BLUE}[FORCE]${NC} $1"
+}
+
+# Show dry-run operations
+show_dry_run_operations() {
+    echo ""
+    log_info "🔍 DRY-RUN: Operations that would be performed:"
+    echo ""
+
+    if [[ "$NO_VERIFY" == true ]]; then
+        log_info "NO-VERIFY MODE operations:"
+        log_info "  1. Force push $SOURCE_BRANCH to remote (--force-with-lease)"
+        log_info "  2. Switch to $TARGET_BRANCH"
+        log_info "  3. Reset $TARGET_BRANCH to match $SOURCE_BRANCH exactly"
+        log_info "  4. Force push $TARGET_BRANCH to remote (--force-with-lease)"
+        log_info "  5. Switch back to original branch"
+    else
+        log_info "REGULAR MODE operations:"
+        log_info "  1. Push $SOURCE_BRANCH to remote"
+        log_info "  2. Switch to $TARGET_BRANCH"
+        log_info "  3. Pull latest changes from $TARGET_BRANCH"
+        log_info "  4. Merge $SOURCE_BRANCH changes into $TARGET_BRANCH"
+        log_info "  5. Push $TARGET_BRANCH to remote"
+        log_info "  6. Switch back to original branch"
+    fi
+
+    echo ""
+    log_info "🔍 DRY-RUN: No actual operations were performed"
+    echo ""
 }
 
 # Request confirmation for no-verify mode
@@ -303,7 +336,10 @@ main() {
     # Parse arguments first (this handles help display)
     parse_arguments "$@"
 
-    if [[ "$NO_VERIFY" == true ]]; then
+    if [[ "$DRY_RUN" == true ]]; then
+        log_info "🔍 Starting DRY-RUN push and merge process..."
+        echo ""
+    elif [[ "$NO_VERIFY" == true ]]; then
         log_warn "🚨 Starting FORCE push and merge process (NO VERIFICATION) 🚨"
         echo ""
         log_warn "⚠️  This script will skip all validation and use force push!"
@@ -311,6 +347,12 @@ main() {
         echo ""
     else
         log_info "Starting push and merge process..."
+    fi
+
+    # Handle dry-run mode early (before any validation)
+    if [[ "$DRY_RUN" == true ]]; then
+        show_dry_run_operations
+        exit 0
     fi
 
     # Pre-flight checks
