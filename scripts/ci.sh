@@ -111,21 +111,30 @@ run_e2e_tests() {
     local test_type=$1
     local step_number=$2
 
+    # Install Playwright browsers if not already installed
+    log "📋 Step $step_number: Installing Playwright browsers"
+    if ! pnpm playwright --version >/dev/null 2>&1 || [ ! -d "$HOME/.cache/ms-playwright" ]; then
+        log_info "Installing Playwright browsers..."
+        pnpm test:e2e:install-browsers
+    else
+        log_info "Playwright browsers already installed"
+    fi
+
     case "$test_type" in
         "sanity")
-            log "📋 Step $step_number: E2E Fast Tests"
+            log "📋 Step $((step_number + 1)): E2E Fast Tests"
             pnpm test:e2e:sanity
             ;;
         "critical")
-            log "📋 Step $step_number: E2E Critical Tests"
+            log "📋 Step $((step_number + 1)): E2E Critical Tests"
             pnpm test:e2e:critical
             ;;
         "responsive")
-            log "📋 Step $step_number: E2E Responsive Tests"
+            log "📋 Step $((step_number + 1)): E2E Responsive Tests"
             pnpm test:e2e:responsive
             ;;
         "full")
-            log "📋 Step $step_number: E2E Comprehensive Tests with Coverage"
+            log "📋 Step $((step_number + 1)): E2E Comprehensive Tests with Coverage"
             pnpm test:e2e:full
             ;;
         *)
@@ -227,7 +236,16 @@ run_e2e_tests_standalone() {
         exit 1
     fi
 
-    run_e2e_tests "$test_type" "1"
+    # Install Playwright browsers if not already installed
+    log "📋 Step 1: Installing Playwright browsers"
+    if ! pnpm playwright --version >/dev/null 2>&1 || [ ! -d "$HOME/.cache/ms-playwright" ]; then
+        log_info "Installing Playwright browsers..."
+        pnpm test:e2e:install-browsers
+    else
+        log_info "Playwright browsers already installed"
+    fi
+
+    run_e2e_tests "$test_type" "2"
 }
 
 # Main script logic

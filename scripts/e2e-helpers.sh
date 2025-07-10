@@ -116,12 +116,24 @@ wait_for_e2e_server() {
     wait-on http://localhost:3000
 }
 
+# Install Playwright browsers if needed
+install_playwright_browsers() {
+    echo "🔧 Checking Playwright browser installation..."
+    if ! pnpm playwright --version >/dev/null 2>&1 || [ ! -d "$HOME/.cache/ms-playwright" ]; then
+        echo "📦 Installing Playwright browsers..."
+        pnpm test:e2e:install-browsers
+    else
+        echo "✅ Playwright browsers already installed"
+    fi
+}
+
 # Run e2e test with full setup
 run_e2e_test() {
     local test_command="$1"
     local description="$2"
 
     echo "🧪 Running e2e test: $description"
+    install_playwright_browsers
     clean_e2e_artifacts
     setup_e2e_trap
     start_e2e_server
@@ -145,6 +157,7 @@ run_e2e_test_with_coverage() {
     local timeout=${3:-60}  # Default 60 second timeout
 
     echo "🧪 Running e2e test with coverage: $description"
+    install_playwright_browsers
     clean_e2e_artifacts
     setup_e2e_trap
     start_e2e_server
@@ -223,6 +236,7 @@ run_e2e_test_with_coverage_fast() {
     local description="$2"
 
     echo "🧪 Running e2e test with coverage (fast): $description"
+    install_playwright_browsers
     clean_e2e_artifacts
     setup_e2e_trap
     start_e2e_server
