@@ -125,7 +125,6 @@ pnpm test:e2e:all-browsers      # All browsers (desktop + mobile + tablet)
 pnpm e2e:responsive        # Responsive design tests
 pnpm e2e:responsive        # Popular browsers only
 pnpm e2e:run cross-browser     # Cross-browser compatibility
-pnpm e2e:run all-viewports     # Responsive + cross-browser
 
 # Performance and optimization
 pnpm test:e2e:performance       # Performance-focused tests

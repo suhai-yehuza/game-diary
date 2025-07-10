@@ -162,9 +162,6 @@ pnpm test:e2e:responsive
 
 # Test cross-browser compatibility
 pnpm test:e2e:cross-browser
-
-# Test all viewports
-pnpm test:e2e:all-viewports
 ```
 
 ### Coverage Testing
