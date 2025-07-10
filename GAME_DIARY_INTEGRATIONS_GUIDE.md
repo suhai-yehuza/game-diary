@@ -119,7 +119,7 @@ NODE_ENV=production
 **Deployment URLs**:
 
 - **Production**: `https://game-diary.vercel.app`
-- **Staging**: `https://game-diary-staging.vercel.app`
+- **Staging**: `https://game-diary-suhai-yehuza-suhais-projects-33a81a2a.vercel.app`
 - **Preview**: `https://game-diary-git-[branch].vercel.app`
 
 **Management Tasks**:
@@ -326,7 +326,7 @@ UPSTASH_REDIS_REST_URL=[upstash-redis-url]
 UPSTASH_REDIS_REST_TOKEN=[upstash-redis-token]
 
 # Deployment URLs
-VERCEL_STAGING_URL=https://game-diary-staging.vercel.app
+VERCEL_STAGING_URL=https://game-diary-suhai-yehuza-suhais-projects-33a81a2a.vercel.app
 VERCEL_PRODUCTION_URL=https://game-diary.vercel.app
 VERCEL_PREVIEW_URL=https://game-diary-git-preview.vercel.app
 ```
@@ -503,7 +503,7 @@ VERCEL_PREVIEW_URL=https://game-diary-git-preview.vercel.app
 ## 🔗 Quick Links
 
 - **Application**: https://game-diary.vercel.app
-- **Staging**: https://game-diary-staging.vercel.app
+- **Staging**: https://game-diary-suhai-yehuza-suhais-projects-33a81a2a.vercel.app
 - **Repository**: https://github.com/[username]/game-diary
 - **Vercel Dashboard**: https://vercel.com/dashboard
 - **Clerk Dashboard**: https://dashboard.clerk.com/
