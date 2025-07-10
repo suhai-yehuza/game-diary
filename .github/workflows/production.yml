@@ -222,8 +222,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
       - run: pnpm install --frozen-lockfile
-      - name: Install Playwright Browsers and Dependencies
-        run: pnpm exec playwright install --with-deps
+      - name: Install Playwright Browsers
+        run: |
+          pnpm exec playwright install
+          ls -lR $HOME/.cache/ms-playwright || echo "No playwright cache found"
       - name: Validate Chromium Headless Shell Exists
         run: |
           echo "Validating browser installation..."
@@ -289,8 +291,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
       - run: pnpm install --frozen-lockfile
-      - name: Install Playwright Browsers and Dependencies
-        run: pnpm exec playwright install --with-deps
+      - name: Install Playwright Browsers
+        run: |
+          pnpm exec playwright install
+          ls -lR $HOME/.cache/ms-playwright || echo "No playwright cache found"
       - name: Run CI E2E Pages Tests
         run: ./scripts/ci-e2e-tests.sh ${{ matrix.test }}
         # Progressive testing: each level includes all previous levels' tests
@@ -345,8 +349,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
       - run: pnpm install --frozen-lockfile
-      - name: Install Playwright Browsers and Dependencies
-        run: pnpm exec playwright install --with-deps
+      - name: Install Playwright Browsers
+        run: |
+          pnpm exec playwright install
+          ls -lR $HOME/.cache/ms-playwright || echo "No playwright cache found"
       - name: Run E2E Advanced Tests (${{ matrix.test }})
         run: ./scripts/ci-e2e-tests.sh ${{ matrix.test }}
         # Each level includes all previous levels' tests, but runs once per matrix item
@@ -456,7 +462,9 @@ jobs:
             ${{ runner.os }}-pnpm-store-
       - run: pnpm install --frozen-lockfile
       - name: Install Playwright Browsers
-        run: pnpm exec playwright install --with-deps
+        run: |
+          pnpm exec playwright install
+          ls -lR $HOME/.cache/ms-playwright || echo "No playwright cache found"
       - run: DEPLOYMENT_URL="$VERCEL_DEPLOYMENT_URL" pnpm run timed test:e2e:smoke
       - name: Upload smoke test results (on failure)
         if: failure()

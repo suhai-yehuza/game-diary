@@ -174,8 +174,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
       - run: pnpm install --frozen-lockfile
-      - name: Install Playwright Browsers and Dependencies
-        run: pnpm exec playwright install --with-deps
+      - name: Install Playwright Browsers
+        run: |
+          pnpm exec playwright install
+          ls -lR $HOME/.cache/ms-playwright || echo "No playwright cache found"
       - name: Validate Chromium Headless Shell Exists
         run: |
           echo "Validating browser installation..."
@@ -193,7 +195,7 @@ jobs:
           if [ "$CHROMIUM_FOUND" = false ]; then
             echo "❌ Chromium headless shell is missing!"
             ls -la $HOME/.cache/ms-playwright/ || echo "Cache directory not found"
-            pnpm exec playwright install --with-deps --verbose
+            pnpm exec playwright install --verbose
             ls -la $HOME/.cache/ms-playwright/ || echo "Cache directory still not found"
             exit 1
           fi
@@ -250,8 +252,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
       - run: pnpm install --frozen-lockfile
-      - name: Install Playwright Browsers and Dependencies
-        run: pnpm exec playwright install --with-deps
+      - name: Install Playwright Browsers
+        run: |
+          pnpm exec playwright install
+          ls -lR $HOME/.cache/ms-playwright || echo "No playwright cache found"
       - name: Validate Chromium Headless Shell Exists
         run: |
           echo "Validating browser installation..."
@@ -269,7 +273,7 @@ jobs:
           if [ "$CHROMIUM_FOUND" = false ]; then
             echo "❌ Chromium headless shell is missing!"
             ls -la $HOME/.cache/ms-playwright/ || echo "Cache directory not found"
-            pnpm exec playwright install --with-deps --verbose
+            pnpm exec playwright install --verbose
             ls -la $HOME/.cache/ms-playwright/ || echo "Cache directory still not found"
             exit 1
           fi
@@ -326,8 +330,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
       - run: pnpm install --frozen-lockfile
-      - name: Install Playwright Browsers and Dependencies
-        run: pnpm exec playwright install --with-deps
+      - name: Install Playwright Browsers
+        run: |
+          pnpm exec playwright install
+          ls -lR $HOME/.cache/ms-playwright || echo "No playwright cache found"
       - name: Validate Chromium Headless Shell Exists
         run: |
           echo "Validating browser installation..."
@@ -345,7 +351,7 @@ jobs:
           if [ "$CHROMIUM_FOUND" = false ]; then
             echo "❌ Chromium headless shell is missing!"
             ls -la $HOME/.cache/ms-playwright/ || echo "Cache directory not found"
-            pnpm exec playwright install --with-deps --verbose
+            pnpm exec playwright install --verbose
             ls -la $HOME/.cache/ms-playwright/ || echo "Cache directory still not found"
             exit 1
           fi
@@ -390,8 +396,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
       - run: pnpm install --frozen-lockfile
-      - name: Install Playwright Browsers and Dependencies
-        run: pnpm exec playwright install --with-deps
+      - name: Install Playwright Browsers
+        run: |
+          pnpm exec playwright install
+          ls -lR $HOME/.cache/ms-playwright || echo "No playwright cache found"
       - name: Validate Chromium Headless Shell Exists
         run: |
           echo "Validating browser installation..."
@@ -409,7 +417,7 @@ jobs:
           if [ "$CHROMIUM_FOUND" = false ]; then
             echo "❌ Chromium headless shell is missing!"
             ls -la $HOME/.cache/ms-playwright/ || echo "Cache directory not found"
-            pnpm exec playwright install --with-deps --verbose
+            pnpm exec playwright install --verbose
             ls -la $HOME/.cache/ms-playwright/ || echo "Cache directory still not found"
             exit 1
           fi
@@ -454,8 +462,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
       - run: pnpm install --frozen-lockfile
-      - name: Install Playwright Browsers and Dependencies
-        run: ./scripts/install-playwright-browsers.sh --verbose
+      - name: Install Playwright Browsers
+        run: |
+          pnpm exec playwright install
+          ls -lR $HOME/.cache/ms-playwright || echo "No playwright cache found"
       - name: Run Performance E2E Tests
         run: pnpm test:e2e:performance
       - uses: actions/upload-artifact@v4
@@ -492,8 +502,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
       - run: pnpm install --frozen-lockfile
-      - name: Install Playwright Browsers and Dependencies
-        run: pnpm exec playwright install --with-deps
+      - name: Install Playwright Browsers
+        run: |
+          pnpm exec playwright install
+          ls -lR $HOME/.cache/ms-playwright || echo "No playwright cache found"
       - name: Validate Chromium Headless Shell Exists
         run: |
           echo "Validating browser installation..."
@@ -511,7 +523,7 @@ jobs:
           if [ "$CHROMIUM_FOUND" = false ]; then
             echo "❌ Chromium headless shell is missing!"
             ls -la $HOME/.cache/ms-playwright/ || echo "Cache directory not found"
-            pnpm exec playwright install --with-deps --verbose
+            pnpm exec playwright install --verbose
             ls -la $HOME/.cache/ms-playwright/ || echo "Cache directory still not found"
             exit 1
           fi
@@ -555,8 +567,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
       - run: pnpm install --frozen-lockfile
-      - name: Install Playwright Browsers and Dependencies
-        run: pnpm exec playwright install --with-deps
+      - name: Install Playwright Browsers
+        run: |
+          pnpm exec playwright install
+          ls -lR $HOME/.cache/ms-playwright || echo "No playwright cache found"
       - name: Validate Chromium Headless Shell Exists
         run: |
           echo "Validating browser installation..."
@@ -574,7 +588,7 @@ jobs:
           if [ "$CHROMIUM_FOUND" = false ]; then
             echo "❌ Chromium headless shell is missing!"
             ls -la $HOME/.cache/ms-playwright/ || echo "Cache directory not found"
-            pnpm exec playwright install --with-deps --verbose
+            pnpm exec playwright install --verbose
             ls -la $HOME/.cache/ms-playwright/ || echo "Cache directory still not found"
             exit 1
           fi
