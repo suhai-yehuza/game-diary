@@ -33,7 +33,7 @@ const mobileChromiumArgs = [
 ];
 
 // WebKit-specific arguments (minimal, as WebKit doesn't support many Chrome flags)
-const webkitArgs = ['--disable-web-security'];
+const webkitArgs: string[] = [];
 
 const baseURL = getAppUrl();
 const port = getPort();
