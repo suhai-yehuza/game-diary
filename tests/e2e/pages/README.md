@@ -24,6 +24,7 @@ The page tests follow a progressive hierarchy that builds upon each level:
 - **`home.spec.ts`** - Home page with comprehensive tests
 - **`dashboard.spec.ts`** - Dashboard page with comprehensive tests + dashboard-specific tests
 - **`sports.spec.ts`** - Sports pages with comprehensive tests + sports-specific tests
+
 - **`clerk-auth.spec.ts`** - Auth modal tests with interactive tests + auth-specific tests
 - **`utils/page-suites.ts`** - Shared test suite functions (comprehensive, interactive, base)
 
@@ -68,6 +69,8 @@ pnpm test:e2e:pages:dashboard
 
 # Sports pages tests (comprehensive + specific)
 pnpm test:e2e:pages:sports
+
+
 
 # Auth tests (interactive + specific)
 pnpm test:e2e:pages:auth

@@ -72,6 +72,7 @@
     "test:e2e:pages:dashboard": "PW_MODE=pages playwright test tests/e2e/pages/dashboard.spec.ts",
     "test:e2e:pages:sports": "PW_MODE=pages playwright test tests/e2e/pages/sports.spec.ts",
     "test:e2e:pages:auth": "PW_MODE=pages playwright test tests/e2e/pages/clerk-auth.spec.ts",
+    "test:e2e::search": "PW_MODE=sanity playwright test tests/e2e/functional/search.spec.ts",
     "test:e2e:smoke:deployed": "PW_MODE=smoke DEPLOYMENT_URL=$VERCEL_URL playwright test tests/e2e/functional/smoke.spec.ts",
     "test:e2e:pre-deploy": "pnpm test:e2e:critical && pnpm test:e2e:performance",
     "test:e2e:post-deploy": "pnpm test:e2e:smoke:deployed",

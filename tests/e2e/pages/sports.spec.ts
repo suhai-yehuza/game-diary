@@ -5,7 +5,7 @@ import {
   waitForNetworkIdle,
   clearTestData,
 } from '@tests/e2e/utils/page-suites';
-import { openMobileMenu, openMobileSearch } from '@tests/e2e/utils/navigation';
+import { openMobileMenu } from '@tests/e2e/utils/navigation';
 
 const sportsPages = [
   { path: '/sports/nba', name: 'NBA', league: 'basketball' },
@@ -226,49 +226,6 @@ test.describe('Sports Pages', () => {
                 await expect(filter).toBeVisible();
                 await expect(filter).toBeEnabled();
               }
-            }
-          }
-        });
-
-        test(`should have proper ${sportPage.name} search functionality`, async ({ page }) => {
-          // Check if we're on mobile and need to open search overlay
-          const isMobile = await page.evaluate(() => window.innerWidth < 1024);
-
-          if (isMobile) {
-            // Open mobile search overlay using utility function
-            try {
-              await openMobileSearch(page);
-              // Wait for the search overlay to be visible
-              await page.waitForTimeout(1000);
-            } catch (error) {
-              console.log('Failed to open mobile search overlay, continuing with test...');
-            }
-          }
-
-          // Check for search functionality
-          const searchInput = page.locator(
-            '[data-testid="search"], input[type="search"], input[placeholder*="search"]'
-          );
-          if ((await searchInput.count()) > 0) {
-            // For mobile, focus the search input to make it visible
-            if (isMobile) {
-              await searchInput.first().focus();
-              await page.waitForTimeout(500);
-            }
-
-            await expect(searchInput.first()).toBeVisible({ timeout: 10000 });
-            await expect(searchInput.first()).toBeEnabled();
-
-            // Test search functionality
-            await searchInput.first().fill('test');
-            await page.waitForTimeout(1000);
-
-            // Check that search results or no results message is shown
-            const searchResults = page.locator(
-              '[data-testid="search-results"], .search-results, [data-section="search"]'
-            );
-            if ((await searchResults.count()) > 0) {
-              await expect(searchResults.first()).toBeVisible();
             }
           }
         });

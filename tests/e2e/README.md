@@ -76,6 +76,7 @@ pnpm test:e2e:mock-verification
 
 - `responsive.spec.ts` - Responsive design tests across multiple viewports
 - `mock-verification.spec.ts` - Verifies that mocking is working correctly
+- `search.spec.ts` - Search functionality tests across all pages
 - `fast.spec.ts` - Fast smoke tests
 - `auth.spec.ts` - Authentication tests
 - `dashboard.spec.ts` - Dashboard functionality tests
@@ -232,6 +233,7 @@ This directory contains end-to-end tests organized in a compound hierarchy where
 tests/e2e/
 ├── functional/                     # Compound hierarchy tests
 │   ├── mock-verification.spec.ts   # Prerequisite tests
+│   ├── search.spec.ts              # Search functionality tests
 │   ├── fast.spec.ts                # Base level tests
 │   ├── smoke.spec.ts               # Extends fast
 │   ├── critical.spec.ts            # Extends smoke
@@ -243,6 +245,7 @@ tests/e2e/
 │   ├── auth.spec.ts                # Authentication tests
 │   ├── dashboard.spec.ts           # Dashboard tests
 │   ├── sports.spec.ts              # Sports pages tests
+
 │   └── cross-browser.spec.ts       # Cross-browser tests
 ├── utils/                          # Shared test utilities
 │   └── test-utils.ts              # Common test functions
@@ -266,6 +269,28 @@ tests/e2e/
 - Validation that external API endpoints are properly mocked
 - Confirmation that live games endpoint works with mocking
 - Prevention of API rate limiting issues
+
+### 0.5. Search Tests (Functional Feature)
+
+**File:** `functional/search.spec.ts`
+**Tags:** `@search`
+**Purpose:** Comprehensive search functionality testing across all pages
+**Configuration:** `playwright.fast.config.ts`
+
+**Tests include:**
+
+- Desktop search functionality and interactions
+- Mobile search overlay and touch interactions
+- Cross-page search functionality validation
+- Search edge cases and error handling
+- Search accessibility and keyboard navigation
+- Search performance and responsiveness
+
+**Usage:**
+
+```bash
+pnpm test:e2e::search
+```
 
 ### 1. Fast Tests (Base Level)
 
@@ -396,6 +421,7 @@ The `pages/` directory contains tests focused on specific pages or features:
 - **`auth.spec.ts`** - Authentication flows and user management
 - **`dashboard.spec.ts`** - Dashboard functionality and user interface
 - **`sports.spec.ts`** - Sports pages and data display
+
 - **`cross-browser.spec.ts`** - Cross-browser compatibility testing
 
 ### Running Page Tests
@@ -410,6 +436,7 @@ pnpm test:e2e:navigation
 pnpm test:e2e:clerk-auth
 pnpm test:e2e:pages:dashboard
 pnpm test:e2e:pages:sports
+
 pnpm test:e2e:cross-browser
 ```
 
