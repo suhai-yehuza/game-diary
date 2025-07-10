@@ -1,28 +1,34 @@
 #!/bin/bash
 
-# Push and Merge Script - Optimized version
-# This script pushes the current branch and merges it into staging
+# Unified Push and Merge Script
+# This script pushes the current branch and merges it into a target branch
+# Supports both regular and no-verify modes
 
 set -e  # Exit on any error
 
-# Configuration - Default values
-DEFAULT_SOURCE_BRANCH="syehuza/demo"
-DEFAULT_TARGET_BRANCH="staging"
-
 # Show usage information
 show_usage() {
-    echo "Usage: $0 [source_branch] [target_branch]"
+    echo "Usage: $0 --source=SOURCE_BRANCH --target=TARGET_BRANCH [--no-verify=true]"
     echo ""
-    echo "Arguments:"
-    echo "  source_branch    Source branch to push and merge (default: $DEFAULT_SOURCE_BRANCH)"
-    echo "  target_branch    Target branch to merge into (default: $DEFAULT_TARGET_BRANCH)"
+    echo "Required Arguments:"
+    echo "  --source=SOURCE_BRANCH    Source branch to push and merge"
+    echo "  --target=TARGET_BRANCH    Target branch to merge into"
+    echo ""
+    echo "Optional Arguments:"
+    echo "  --no-verify=true          Skip all validation and use force push (requires confirmation)"
     echo ""
     echo "Examples:"
-    echo "  $0                                   # Use defaults: $DEFAULT_SOURCE_BRANCH -> $DEFAULT_TARGET_BRANCH"
-    echo "  $0 feature-branch                    # feature-branch -> $DEFAULT_TARGET_BRANCH"
-    echo "  $0 feature-branch main               # feature-branch -> main"
-    echo "  $0 feature-branch staging-soak       # feature-branch -> staging-soak (with soak period)"
-    echo "  $0 '' main                           # $DEFAULT_SOURCE_BRANCH -> main"
+    echo "  $0 --source=feature-branch --target=staging"
+    echo "  $0 --source=bugfix-123 --target=main"
+    echo "  $0 --source=experiment --target=staging-soak"
+    echo "  $0 --source=emergency-fix --target=main --no-verify=true"
+    echo ""
+    echo "⚠️  When --no-verify=true is used:"
+    echo "  - Skip all pre-push validation"
+    echo "  - Use force push (--force-with-lease)"
+    echo "  - Skip branch sync checks"
+    echo "  - Proceed even with uncommitted changes"
+    echo "  - Require confirmation before execution"
     echo ""
 }
 
@@ -34,17 +40,61 @@ parse_arguments() {
         exit 0
     fi
 
-    SOURCE_BRANCH="${1:-$DEFAULT_SOURCE_BRANCH}"
-    TARGET_BRANCH="${2:-$DEFAULT_TARGET_BRANCH}"
+    # Initialize variables
+    SOURCE_BRANCH=""
+    TARGET_BRANCH=""
+    NO_VERIFY=false
+
+    # Parse arguments
+    for arg in "$@"; do
+        case $arg in
+            --source=*)
+                SOURCE_BRANCH="${arg#*=}"
+                shift
+                ;;
+            --target=*)
+                TARGET_BRANCH="${arg#*=}"
+                shift
+                ;;
+            --no-verify=true)
+                NO_VERIFY=true
+                shift
+                ;;
+            *)
+                log_error "Unknown argument: $arg"
+                show_usage
+                exit 1
+                ;;
+        esac
+    done
+
+    # Validate required arguments
+    if [[ -z "$SOURCE_BRANCH" ]]; then
+        log_error "Source branch is required. Use --source=BRANCH_NAME"
+        show_usage
+        exit 1
+    fi
+
+    if [[ -z "$TARGET_BRANCH" ]]; then
+        log_error "Target branch is required. Use --target=BRANCH_NAME"
+        show_usage
+        exit 1
+    fi
 
     log_info "Source branch: $SOURCE_BRANCH"
     log_info "Target branch: $TARGET_BRANCH"
+    if [[ "$NO_VERIFY" == true ]]; then
+        log_warn "No-verify mode: ENABLED (will skip validation and use force push)"
+    else
+        log_info "Regular mode: ENABLED (will run full validation)"
+    fi
 }
 
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Helper functions
@@ -60,11 +110,48 @@ log_error() {
     echo -e "${RED}[ERROR]${NC} $1"
 }
 
+log_force() {
+    echo -e "${BLUE}[FORCE]${NC} $1"
+}
+
+# Request confirmation for no-verify mode
+request_confirmation() {
+    echo ""
+    log_warn "🚨 CONFIRMATION REQUIRED 🚨"
+    echo ""
+    log_warn "You are about to execute a FORCE push and merge operation:"
+    log_warn "  Source: $SOURCE_BRANCH"
+    log_warn "  Target: $TARGET_BRANCH"
+    echo ""
+    log_warn "⚠️  This will:"
+    log_warn "  - Skip ALL validation and safety checks"
+    log_warn "  - Use force push (--force-with-lease)"
+    log_warn "  - Overwrite remote changes if any"
+    log_warn "  - Proceed even with uncommitted changes"
+    echo ""
+    log_warn "Are you absolutely sure you want to continue?"
+    echo ""
+    read -p "Type 'YES' to confirm: " confirmation
+
+    if [[ "$confirmation" != "YES" ]]; then
+        log_info "Operation cancelled by user"
+        exit 0
+    fi
+
+    echo ""
+    log_info "Confirmation received. Proceeding with force push and merge..."
+    echo ""
+}
+
 # Check if we're on the correct source branch
 check_current_branch() {
     local current_branch=$(git branch --show-current)
     if [[ "$current_branch" != "$SOURCE_BRANCH" ]]; then
-        log_error "Not on $SOURCE_BRANCH branch. Current branch: $current_branch"
+        if [[ "$NO_VERIFY" == true ]]; then
+            log_warn "Not on $SOURCE_BRANCH branch. Current branch: $current_branch"
+        else
+            log_error "Not on $SOURCE_BRANCH branch. Current branch: $current_branch"
+        fi
         log_info "Switching to $SOURCE_BRANCH..."
         git checkout "$SOURCE_BRANCH" || {
             log_error "Failed to checkout $SOURCE_BRANCH"
@@ -73,48 +160,29 @@ check_current_branch() {
     fi
 }
 
-# Check if there are uncommitted changes
+# Check if there are uncommitted changes (only in regular mode)
 check_working_directory() {
-    if ! git diff-index --quiet HEAD --; then
-        local unstaged_files=$(git diff --name-only)
-        local staged_files=$(git diff --cached --name-only)
+    if [[ "$NO_VERIFY" == true ]]; then
+        log_warn "Skipping working directory check (no-verify mode)"
+        return 0
+    fi
 
-        # Check if only auto-generated files have changes
-        local auto_files=("pnpm-lock.yaml" "package-lock.json" "yarn.lock")
-        local has_other_changes=false
-        local auto_files_changed=()
+    # Check for unstaged changes
+    if ! git diff --quiet; then
+        log_warn "Unstaged changes detected. These will be discarded before proceeding."
+        git checkout -- .
+        log_info "Unstaged changes have been discarded."
+    fi
 
-        # Check unstaged files
-        for file in $unstaged_files; do
-            if [[ " ${auto_files[@]} " =~ " ${file} " ]]; then
-                auto_files_changed+=("$file")
-            else
-                has_other_changes=true
-            fi
-        done
-
-        # Check staged files
-        for file in $staged_files; do
-            if [[ " ${auto_files[@]} " =~ " ${file} " ]]; then
-                auto_files_changed+=("$file")
-            else
-                has_other_changes=true
-            fi
-        done
-
-        if [[ "$has_other_changes" == false && ${#auto_files_changed[@]} -gt 0 ]]; then
-            log_info "Auto-generated files have changes: ${auto_files_changed[*]}"
-            log_info "Discarding auto-generated file changes and proceeding..."
-            git checkout -- "${auto_files_changed[@]}"
-            log_info "Successfully discarded auto-generated file changes"
-        else
-            log_warn "You have uncommitted changes that need to be handled before merging."
-            log_info "Files with changes:"
-            git status --porcelain
-            log_info ""
-            log_info "Please commit or stash these changes and run the script again."
-            exit 1
-        fi
+    # Check for staged changes
+    if ! git diff --cached --quiet; then
+        log_warn "You have staged (but uncommitted) changes that need to be handled before merging."
+        log_info "Files with staged changes:"
+        git diff --cached --name-only
+        log_info ""
+        log_info "Please commit or stash these changes and run the script again."
+        log_info "Or use --no-verify=true to bypass this check."
+        exit 1
     fi
 }
 
@@ -131,8 +199,13 @@ check_branches() {
     fi
 }
 
-# Check if local branch is up to date with remote
+# Check if local branch is up to date with remote (only in regular mode)
 check_branch_sync() {
+    if [[ "$NO_VERIFY" == true ]]; then
+        log_warn "Skipping branch sync check (no-verify mode)"
+        return 0
+    fi
+
     log_info "Checking if $SOURCE_BRANCH is up to date with remote..."
 
     # Fetch latest changes from remote
@@ -156,28 +229,47 @@ check_branch_sync() {
 
 # Main execution
 main() {
-    log_info "Starting push and merge process..."
-
-    # Parse arguments
+    # Parse arguments first (this handles help display)
     parse_arguments "$@"
 
+    if [[ "$NO_VERIFY" == true ]]; then
+        log_warn "🚨 Starting FORCE push and merge process (NO VERIFICATION) 🚨"
+        echo ""
+        log_warn "⚠️  This script will skip all validation and use force push!"
+        log_warn "⚠️  Make sure you know what you're doing!"
+        echo ""
+    else
+        log_info "Starting push and merge process..."
+    fi
+
     # Pre-flight checks
-    check_working_directory
     check_branches
     check_current_branch
-
-    # Check if branch is up to date with remote
+    check_working_directory
     check_branch_sync
+
+    # Request confirmation for no-verify mode
+    if [[ "$NO_VERIFY" == true ]]; then
+        request_confirmation
+    fi
 
     # Store original branch for cleanup
     local original_branch=$(git branch --show-current)
 
     # Push current branch
-    log_info "Pushing $SOURCE_BRANCH..."
-    git push origin "$SOURCE_BRANCH" || {
-        log_error "Failed to push $SOURCE_BRANCH"
-        exit 1
-    }
+    if [[ "$NO_VERIFY" == true ]]; then
+        log_force "Force pushing $SOURCE_BRANCH (skipping validation)..."
+        git push --force-with-lease origin "$SOURCE_BRANCH" || {
+            log_error "Failed to force push $SOURCE_BRANCH"
+            exit 1
+        }
+    else
+        log_info "Pushing $SOURCE_BRANCH..."
+        git push origin "$SOURCE_BRANCH" || {
+            log_error "Failed to push $SOURCE_BRANCH"
+            exit 1
+        }
+    fi
 
     # Switch to target branch and merge
     log_info "Switching to $TARGET_BRANCH..."
@@ -216,7 +308,12 @@ main() {
         log_info "You are currently on $TARGET_BRANCH"
     }
 
-    log_info "Push and merge completed successfully! 🎉"
+    if [[ "$NO_VERIFY" == true ]]; then
+        log_info "🚀 Force push and merge completed successfully! 🎉"
+        log_warn "⚠️  Remember: This bypassed all validation - verify your changes!"
+    else
+        log_info "Push and merge completed successfully! 🎉"
+    fi
 }
 
 # Run main function
