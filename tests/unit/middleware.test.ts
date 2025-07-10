@@ -1,8 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { APP_CONFIG } from '../../lib/config/app.config';
 
 // Mock Next.js types
 const mockNextRequest = {
-  url: 'http://localhost:3000',
+  url: APP_CONFIG.DEFAULT_LOCALHOST_URL,
   headers: new Map(),
   method: 'GET',
 } as any;

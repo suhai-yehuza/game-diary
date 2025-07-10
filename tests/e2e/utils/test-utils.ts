@@ -1,6 +1,7 @@
 import { Page, expect, Locator } from '@playwright/test';
 import { TestConfig } from '@src/lib/types';
 import { PERFORMANCE_THRESHOLDS } from '@tests/e2e/utils/constants';
+import { APP_CONFIG, getAppUrl } from '../../../lib/config/app.config';
 
 /**
  * Test utilities for e2e tests
@@ -8,7 +9,7 @@ import { PERFORMANCE_THRESHOLDS } from '@tests/e2e/utils/constants';
  */
 
 export const DEFAULT_CONFIG: TestConfig = {
-  baseURL: 'http://localhost:3000',
+  baseURL: getAppUrl(),
   timeout: 30000,
   retries: 2,
 };
@@ -163,8 +164,10 @@ export async function safeGoto(
 
           // Try to provide more helpful debugging info
           console.error('🔍 Debugging steps:');
-          console.error('  1. Check if server is running: curl http://localhost:3000');
-          console.error('  2. Check port availability: lsof -i:3000');
+          console.error(
+            `  1. Check if server is running: curl ${APP_CONFIG.DEFAULT_LOCALHOST_URL}`
+          );
+          console.error(`  2. Check port availability: lsof -i:${APP_CONFIG.DEFAULT_PORT}`);
           console.error('  3. Restart the development server');
         }
       }

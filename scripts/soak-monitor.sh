@@ -1,21 +1,22 @@
 #!/bin/bash
 
 # Soak Monitor Script
-# Usage: ./scripts/soak-monitor.sh [start|monitor|rollback|status] [environment] [duration]
-#
-# This script implements soaking periods for deployments with:
-# - Health monitoring during soak period
-# - Performance metrics tracking
-# - Automated rollback on issues
-# - Integration with existing E2E testing
-
-set -e
+# Monitors deployment health and performance during soak periods
 
 # Configuration
+DEFAULT_LOCALHOST_URL="${DEFAULT_LOCALHOST_URL:-http://localhost:3000}"
 SOAK_CONFIG_DIR="./.soak"
-SOAK_LOG_FILE="$SOAK_CONFIG_DIR/soak.log"
-SOAK_STATUS_FILE="$SOAK_CONFIG_DIR/status.json"
-SOAK_METRICS_FILE="$SOAK_CONFIG_DIR/metrics.json"
+HEALTH_CHECK_INTERVAL=60  # seconds
+MAX_ERROR_RATE=0.05       # 5%
+MAX_RESPONSE_TIME=5.0     # 5 seconds
+MAX_LOAD_TIME=3.0         # 3 seconds
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
 
 # Ensure soak directory exists before any logging
 init_soak_dir() {
@@ -27,34 +28,7 @@ init_soak_dir
 
 # Default values
 DEFAULT_SOAK_DURATION=3600  # 1 hour in seconds
-HEALTH_CHECK_INTERVAL=30    # 30 seconds
 PERFORMANCE_CHECK_INTERVAL=300  # 5 minutes
-MAX_ERROR_RATE=0.05         # 5% error rate threshold
-MAX_RESPONSE_TIME=5000      # 5 seconds max response time
-
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
-
-# Helper functions
-log() {
-    echo -e "${BLUE}[$(date +'%Y-%m-%d %H:%M:%S')]${NC} $1" | tee -a "$SOAK_LOG_FILE"
-}
-
-log_success() {
-    echo -e "${GREEN}[$(date +'%Y-%m-%d %H:%M:%S')] ✅${NC} $1" | tee -a "$SOAK_LOG_FILE"
-}
-
-log_warning() {
-    echo -e "${YELLOW}[$(date +'%Y-%m-%d %H:%M:%S')] ⚠️${NC} $1" | tee -a "$SOAK_LOG_FILE"
-}
-
-log_error() {
-    echo -e "${RED}[$(date +'%Y-%m-%d %H:%M:%S')] ❌${NC} $1" | tee -a "$SOAK_LOG_FILE"
-}
 
 # Get deployment URL based on environment
 get_deployment_url() {
@@ -62,19 +36,19 @@ get_deployment_url() {
 
     case "$environment" in
         "preview")
-            echo "${VERCEL_PREVIEW_URL:-http://localhost:3000}"
+            echo "${VERCEL_PREVIEW_URL:-$DEFAULT_LOCALHOST_URL}"
             ;;
         "staging")
-            echo "${VERCEL_STAGING_URL:-http://localhost:3000}"
+            echo "${VERCEL_STAGING_URL:-$DEFAULT_LOCALHOST_URL}"
             ;;
         "staging-soak")
-            echo "${VERCEL_STAGING_URL:-http://localhost:3000}"
+            echo "${VERCEL_STAGING_URL:-$DEFAULT_LOCALHOST_URL}"
             ;;
         "production")
-            echo "${VERCEL_PRODUCTION_URL:-http://localhost:3000}"
+            echo "${VERCEL_PRODUCTION_URL:-$DEFAULT_LOCALHOST_URL}"
             ;;
         *)
-            echo "http://localhost:3000"
+            echo "$DEFAULT_LOCALHOST_URL"
             ;;
     esac
 }
@@ -84,7 +58,7 @@ validate_deployment_url() {
     local url=$1
     local environment=$2
 
-    if [ -z "$url" ] || [ "$url" = "http://localhost:3000" ]; then
+    if [ -z "$url" ] || [ "$url" = "$DEFAULT_LOCALHOST_URL" ]; then
         log_warning "No valid deployment URL found for $environment"
         log_warning "Please set the appropriate environment variable:"
         case "$environment" in
@@ -116,7 +90,7 @@ perform_health_check() {
     local start_time=$(date +%s.%N)
 
     # Validate URL
-    if [ -z "$url" ] || [ "$url" = "http://localhost:3000" ]; then
+    if [ -z "$url" ] || [ "$url" = "$DEFAULT_LOCALHOST_URL" ]; then
         echo "{\"timestamp\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",\"http_code\":\"000\",\"response_time\":\"999\",\"total_time\":\"999\",\"healthy\":false,\"error\":\"Invalid or missing deployment URL\"}"
         return
     fi

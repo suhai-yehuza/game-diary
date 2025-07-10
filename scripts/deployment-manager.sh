@@ -1,22 +1,14 @@
 #!/bin/bash
 
 # Deployment Manager Script
-# Usage: ./scripts/deployment-manager.sh [auto-deploy|manual-deploy|rollback|status|list] [environment] [options]
-#
-# This script manages automated production deployments with:
-# - Auto-deployment 48hrs after successful staging soak
-# - Manual deployment controls
-# - Rollback capabilities
-# - Deployment tracking and status
-
-set -e
+# Manages automated deployments with staging soak periods and production rollouts
 
 # Configuration
-DEPLOY_CONFIG_DIR="./.deployments"
-DEPLOY_LOG_FILE="$DEPLOY_CONFIG_DIR/deploy.log"
+DEFAULT_LOCALHOST_URL="${DEFAULT_LOCALHOST_URL:-http://localhost:3000}"
+DEPLOY_CONFIG_DIR="./.deploy"
 DEPLOY_STATUS_FILE="$DEPLOY_CONFIG_DIR/status.json"
 DEPLOY_HISTORY_FILE="$DEPLOY_CONFIG_DIR/history.json"
-AUTO_DEPLOY_DELAY=86400  # 24 hours in seconds (changed from 48 hours)
+AUTO_DEPLOY_DELAY=86400  # 24 hours in seconds
 
 # Ensure deployment directory exists
 init_deploy_dir() {
@@ -59,19 +51,19 @@ get_deployment_url() {
 
     case "$environment" in
         "preview")
-            echo "${VERCEL_PREVIEW_URL:-http://localhost:3000}"
+            echo "${VERCEL_PREVIEW_URL:-$DEFAULT_LOCALHOST_URL}"
             ;;
         "staging")
-            echo "${VERCEL_STAGING_URL:-http://localhost:3000}"
+            echo "${VERCEL_STAGING_URL:-$DEFAULT_LOCALHOST_URL}"
             ;;
         "staging-soak")
-            echo "${VERCEL_STAGING_URL:-http://localhost:3000}"
+            echo "${VERCEL_STAGING_URL:-$DEFAULT_LOCALHOST_URL}"
             ;;
         "production")
-            echo "${VERCEL_PRODUCTION_URL:-http://localhost:3000}"
+            echo "${VERCEL_PRODUCTION_URL:-$DEFAULT_LOCALHOST_URL}"
             ;;
         *)
-            echo "http://localhost:3000"
+            echo "$DEFAULT_LOCALHOST_URL"
             ;;
     esac
 }

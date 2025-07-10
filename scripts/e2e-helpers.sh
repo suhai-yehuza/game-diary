@@ -1,5 +1,12 @@
 #!/bin/bash
 
+# E2E Test Helpers
+# Provides utilities for running end-to-end tests with proper setup and teardown
+
+# Configuration
+DEFAULT_LOCALHOST_URL="${DEFAULT_LOCALHOST_URL:-http://localhost:3000}"
+DEFAULT_PORT="${DEFAULT_PORT:-3000}"
+
 # E2E Test Helper Functions
 # Usage: source scripts/e2e-helpers.sh
 
@@ -46,24 +53,23 @@ setup_e2e_trap() {
     fi
 }
 
-# Start dev server
 start_e2e_server() {
     echo "🚀 Starting e2e test server..."
 
     # Check if server is already running
-    if curl -s http://localhost:3000 >/dev/null 2>&1; then
-        echo "✅ Server already running on port 3000"
+    if curl -s "$DEFAULT_LOCALHOST_URL" >/dev/null 2>&1; then
+        echo "✅ Server already running on port $DEFAULT_PORT"
         return 0
     fi
 
     # Kill any existing processes on port 3000
-    echo "🧹 Cleaning up any existing processes on port 3000..."
-    kill $(lsof -t -i:3000) 2>/dev/null || true
+    echo "🧹 Cleaning up any existing processes on port $DEFAULT_PORT..."
+    kill $(lsof -t -i:$DEFAULT_PORT) 2>/dev/null || true
     sleep 2
 
     # Start server in background with E2E environment variables
     echo "🚀 Starting development server..."
-    API_MOCK_MODE=true pnpm dev -p 3000 > /tmp/e2e-server.log 2>&1 &
+    API_MOCK_MODE=true pnpm dev -p $DEFAULT_PORT > /tmp/e2e-server.log 2>&1 &
     local server_pid=$!
 
     # Wait for server to start with better error handling
@@ -72,7 +78,7 @@ start_e2e_server() {
     echo "⏳ Waiting for server to start..."
 
     while [ $attempts -lt $max_attempts ]; do
-        if curl -s http://localhost:3000 >/dev/null 2>&1; then
+        if curl -s "$DEFAULT_LOCALHOST_URL" >/dev/null 2>&1; then
             echo "✅ Server started successfully (PID: $server_pid)"
             # Additional wait to ensure server is fully ready
             sleep 3
@@ -102,8 +108,8 @@ start_e2e_server() {
 
     # Try to get more diagnostic information
     echo "🔍 Diagnostic information:"
-    echo "Processes on port 3000:"
-    lsof -i:3000 2>/dev/null || echo "No processes found"
+    echo "Processes on port $DEFAULT_PORT:"
+    lsof -i:$DEFAULT_PORT 2>/dev/null || echo "No processes found"
     echo "Recent server logs:"
     tail -20 /tmp/e2e-server.log
 
@@ -113,7 +119,7 @@ start_e2e_server() {
 # Wait for server to be ready
 wait_for_e2e_server() {
     echo "⏳ Waiting for server to be ready..."
-    wait-on http://localhost:3000
+    wait-on "$DEFAULT_LOCALHOST_URL"
 }
 
 # Install Playwright browsers if needed

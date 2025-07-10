@@ -180,7 +180,7 @@ run_coverage_reports() {
                 ;;
             "--full")
                 log_info "Generating full coverage report"
-                PLAYWRIGHT_MODE=popular playwright test tests/e2e/functional/full.spec.ts --reporter=html
+                playwright test tests/e2e/functional/full.spec.ts --reporter=html
                 ;;
             "--html")
                 log_info "Opening HTML coverage report"
@@ -206,12 +206,12 @@ run_responsive_tests() {
 
     # Run responsive tests with timeout
     if command -v gtimeout >/dev/null 2>&1; then
-        gtimeout $timeout PLAYWRIGHT_MODE=popular playwright test tests/e2e/functional/responsive.spec.ts
+        gtimeout $timeout playwright test tests/e2e/functional/responsive.spec.ts
     elif command -v timeout >/dev/null 2>&1; then
-        timeout $timeout PLAYWRIGHT_MODE=popular playwright test tests/e2e/functional/responsive.spec.ts
+        timeout $timeout playwright test tests/e2e/functional/responsive.spec.ts
     else
         log_warn "Timeout command not available, running without timeout"
-        PLAYWRIGHT_MODE=popular playwright test tests/e2e/functional/responsive.spec.ts
+        playwright test tests/e2e/functional/responsive.spec.ts
     fi
 }
 

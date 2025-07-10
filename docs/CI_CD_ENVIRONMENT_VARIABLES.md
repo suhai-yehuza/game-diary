@@ -87,7 +87,7 @@ Your staging workflow (`.github/workflows/staging.yml`) now includes:
 
 ```bash
 # Test with local development server
-VERCEL_STAGING_URL=http://localhost:3000 ./scripts/workflow.sh soak start staging 60
+VERCEL_STAGING_URL="${VERCEL_STAGING_URL:-http://localhost:3000}" ./scripts/workflow.sh soak start staging 60
 
 # Check status
 ./scripts/workflow.sh soak status
