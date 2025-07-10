@@ -23,14 +23,17 @@ const chromiumArgs = [
   '--disable-renderer-backgrounding',
 ];
 
-// Common browser launch arguments for mobile devices
-const mobileArgs = [
+// Common browser launch arguments for mobile Chromium devices
+const mobileChromiumArgs = [
   '--disable-dev-shm-usage',
   '--no-sandbox',
   '--disable-setuid-sandbox',
   '--disable-gpu',
   '--disable-web-security',
 ];
+
+// WebKit-specific arguments (minimal, as WebKit doesn't support many Chrome flags)
+const webkitArgs = ['--no-sandbox', '--disable-web-security'];
 
 const baseURL = getAppUrl();
 const port = getPort();
@@ -85,7 +88,7 @@ export default defineConfig({
       name: 'webkit',
       use: {
         ...devices['Desktop Safari'],
-        launchOptions: { args: [] },
+        launchOptions: { args: webkitArgs },
       },
     },
     {
@@ -96,14 +99,14 @@ export default defineConfig({
       name: 'Mobile Chrome',
       use: {
         ...devices['Pixel 5'],
-        launchOptions: { args: chromiumArgs },
+        launchOptions: { args: mobileChromiumArgs },
       },
     },
     {
       name: 'iPhone',
       use: {
         ...devices['iPhone 12'],
-        launchOptions: { args: mobileArgs },
+        launchOptions: { args: webkitArgs },
       },
     },
     {
