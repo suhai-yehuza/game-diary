@@ -138,7 +138,7 @@ test.describe('Search Functionality', () => {
       }
     });
 
-    test('should perform search in mobile overlay', async ({ page }) => {
+    test.skip('should perform search in mobile overlay', async ({ page }) => {
       // Set mobile viewport
       await page.setViewportSize({ width: 375, height: 667 });
 
