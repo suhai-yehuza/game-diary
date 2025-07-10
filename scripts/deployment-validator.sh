@@ -162,7 +162,12 @@ run_quality_gate() {
         pnpm check:unused:exports
 
         log_info "Running strict tests..."
-        pnpm test:strict
+        # Skip unit tests in CI mode since they run in separate job
+        if [ "$CI" = true ]; then
+            log_info "Skipping unit tests in CI mode (run in separate job)"
+        else
+            pnpm test:strict
+        fi
 
         log_info "Running production-specific checks..."
         pnpm check:size:ci
