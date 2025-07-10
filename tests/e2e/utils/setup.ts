@@ -1,6 +1,6 @@
 import { Page } from '@playwright/test';
-import { CSS_ANIMATION_DISABLE } from './constants';
-import { waitForNetworkIdle, clearTestData } from './test-utils';
+import { CSS_ANIMATION_DISABLE } from '@tests/e2e/utils/constants';
+import { waitForNetworkIdle, clearTestData } from '@tests/e2e/utils/test-utils';
 
 /**
  * Test setup utilities for E2E tests

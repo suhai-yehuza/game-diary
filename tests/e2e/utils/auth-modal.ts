@@ -1,5 +1,5 @@
 import { Page, expect } from '@playwright/test';
-import { waitForNetworkIdle } from './test-utils';
+import { waitForNetworkIdle } from '@tests/e2e/utils/test-utils';
 
 export async function testSignInModal(
   page: Page,

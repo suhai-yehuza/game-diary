@@ -5,7 +5,7 @@ import {
   checkAccessibilityBasics,
   checkPerformanceMetrics,
   checkForConsoleErrors,
-} from './test-utils';
+} from '@tests/e2e/utils/test-utils';
 
 export function runBasePageChecks(test: typeof baseTest, path: string) {
   test('should load page successfully', async ({ page }: { page: Page }) => {

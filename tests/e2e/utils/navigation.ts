@@ -1,5 +1,8 @@
 import { Page, expect } from '@playwright/test';
-import { waitForPageLoad, waitForNetworkIdle as waitForNetworkIdleUtil } from './test-utils';
+import {
+  waitForPageLoad,
+  waitForNetworkIdle as waitForNetworkIdleUtil,
+} from '@tests/e2e/utils/test-utils';
 
 /**
  * Navigation utilities for E2E tests

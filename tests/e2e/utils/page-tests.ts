@@ -7,8 +7,8 @@ import {
   checkForConsoleErrors,
   checkAccessibilityBasics,
   checkPerformanceMetrics,
-} from './test-utils';
-import { PERFORMANCE_THRESHOLDS } from './constants';
+} from '@tests/e2e/utils/test-utils';
+import { PERFORMANCE_THRESHOLDS } from '@tests/e2e/utils/constants';
 
 /**
  * Page testing utilities for E2E tests

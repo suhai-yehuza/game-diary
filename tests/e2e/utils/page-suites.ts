@@ -7,7 +7,7 @@ import {
   waitForPageLoad,
   waitForNetworkIdle,
   clearTestData,
-} from './test-utils';
+} from '@tests/e2e/utils/test-utils';
 import { testSignInModal } from './auth-modal';
 
 // Re-export waitForNetworkIdle and clearTestData for convenience
