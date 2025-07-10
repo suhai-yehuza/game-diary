@@ -183,8 +183,8 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
       - run: pnpm install --frozen-lockfile
-      - name: Install Playwright Browsers
-        run: pnpm exec playwright install --with-deps
+      - name: Install Playwright Browsers and Dependencies
+        run: ./scripts/install-playwright-browsers.sh --verbose
       - name: Run E2E Functional Tests (${{ matrix.test }})
         run: ./scripts/ci-e2e-tests.sh ${{ matrix.test }}
       - name: Upload E2E functional test results (on failure)
@@ -238,8 +238,8 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
       - run: pnpm install --frozen-lockfile
-      - name: Install Playwright Browsers
-        run: pnpm exec playwright install --with-deps
+      - name: Install Playwright Browsers and Dependencies
+        run: ./scripts/install-playwright-browsers.sh --verbose
       - name: Run E2E Advanced Tests (${{ matrix.test }})
         run: ./scripts/ci-e2e-tests.sh ${{ matrix.test }}
       - name: Upload E2E advanced test results (on failure)
@@ -293,8 +293,8 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
       - run: pnpm install --frozen-lockfile
-      - name: Install Playwright Browsers
-        run: pnpm exec playwright install --with-deps
+      - name: Install Playwright Browsers and Dependencies
+        run: ./scripts/install-playwright-browsers.sh --verbose
       - name: Run E2E Pages Tests (${{ matrix.test }})
         run: ./scripts/ci-e2e-tests.sh ${{ matrix.test }}
       - name: Upload E2E pages test results (on failure)
@@ -336,8 +336,8 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
       - run: pnpm install --frozen-lockfile
-      - name: Install Playwright Browsers
-        run: pnpm exec playwright install --with-deps
+      - name: Install Playwright Browsers and Dependencies
+        run: ./scripts/install-playwright-browsers.sh --verbose
       - name: Run E2E Compound Tests (All)
         run: ./scripts/ci-e2e-tests.sh all
       - name: Upload E2E compound test results (on failure)
@@ -379,8 +379,8 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
       - run: pnpm install --frozen-lockfile
-      - name: Install Playwright Browsers
-        run: pnpm exec playwright install --with-deps
+      - name: Install Playwright Browsers and Dependencies
+        run: ./scripts/install-playwright-browsers.sh --verbose
       - name: Run Performance E2E Tests
         run: pnpm test:e2e:performance
       - uses: actions/upload-artifact@v4
@@ -417,8 +417,8 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
       - run: pnpm install --frozen-lockfile
-      - name: Install Playwright Browsers
-        run: pnpm exec playwright install --with-deps
+      - name: Install Playwright Browsers and Dependencies
+        run: ./scripts/install-playwright-browsers.sh --verbose
       - name: Run Load Testing (3 parallel instances)
         run: |
           echo "🚀 Starting load testing with 3 parallel instances..."
@@ -459,8 +459,8 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
       - run: pnpm install --frozen-lockfile
-      - name: Install Playwright Browsers
-        run: pnpm exec playwright install --with-deps
+      - name: Install Playwright Browsers and Dependencies
+        run: ./scripts/install-playwright-browsers.sh --verbose
       - name: Run Comprehensive Validation
         run: pnpm validate
       - name: Run CI Tests

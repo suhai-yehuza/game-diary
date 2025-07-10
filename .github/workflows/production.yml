@@ -222,7 +222,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
       - run: pnpm install --frozen-lockfile
-      - name: Install Playwright Browsers
+      - name: Install Playwright Browsers and Dependencies
         run: ./scripts/install-playwright-browsers.sh --verbose
       - name: Run CI E2E Functional Tests
         run: ./scripts/ci-e2e-tests.sh ${{ matrix.test }}
@@ -268,7 +268,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
       - run: pnpm install --frozen-lockfile
-      - name: Install Playwright Browsers
+      - name: Install Playwright Browsers and Dependencies
         run: ./scripts/install-playwright-browsers.sh --verbose
       - name: Run CI E2E Pages Tests
         run: ./scripts/ci-e2e-tests.sh ${{ matrix.test }}
@@ -324,7 +324,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
       - run: pnpm install --frozen-lockfile
-      - name: Install Playwright Browsers
+      - name: Install Playwright Browsers and Dependencies
         run: ./scripts/install-playwright-browsers.sh --verbose
       - name: Run E2E Advanced Tests (${{ matrix.test }})
         run: ./scripts/ci-e2e-tests.sh ${{ matrix.test }}
