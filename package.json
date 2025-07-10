@@ -77,6 +77,8 @@
     "test:e2e:post-deploy": "pnpm test:e2e:smoke:deployed",
     "test:e2e:load": "PW_MODE=popular pnpm playwright test tests/e2e/functional/responsive.spec.ts --project=chromium --workers=3",
     "test:e2e:install-browsers": "pnpm playwright install --with-deps",
+    "test:e2e:fix-browsers": "./scripts/fix-playwright-browsers.sh",
+    "test:e2e:fix-browsers:force": "./scripts/fix-playwright-browsers.sh --force",
     "test:e2e:debug:ui": "pnpm playwright test --ui",
     "test:e2e:all": "pnpm test:e2e:full && pnpm test:e2e:pages",
     "test:e2e:all:fast": "pnpm test:e2e:smoke && pnpm test:e2e:pages",

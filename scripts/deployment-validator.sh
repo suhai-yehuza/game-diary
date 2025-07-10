@@ -163,6 +163,46 @@ run_database_tests() {
     log_success "Database trigger tests completed"
 }
 
+# Function to ensure Playwright browsers are installed
+ensure_playwright_browsers() {
+    log_step "Ensuring Playwright browsers are installed..."
+
+    # Check if browsers are already installed
+    if [ -d "$HOME/.cache/ms-playwright" ]; then
+        log_info "Playwright cache directory exists, checking browser installation..."
+
+        # Try to list installed browsers
+        if pnpm exec playwright --version > /dev/null 2>&1; then
+            log_info "Playwright is available, checking browser status..."
+
+            # Check if chromium is installed
+            if [ -d "$HOME/.cache/ms-playwright/chromium-*" ]; then
+                log_info "Chromium browser appears to be installed"
+            else
+                log_warning "Chromium browser not found, reinstalling..."
+                pnpm exec playwright install chromium --with-deps
+            fi
+        else
+            log_warning "Playwright not available, installing browsers..."
+            pnpm exec playwright install --with-deps
+        fi
+    else
+        log_info "No Playwright cache found, installing browsers..."
+        pnpm exec playwright install --with-deps
+    fi
+
+    # Verify installation
+    log_info "Verifying browser installation..."
+    if pnpm exec playwright install --dry-run > /dev/null 2>&1; then
+        log_info "✅ Browser installation verified"
+    else
+        log_error "❌ Browser installation verification failed"
+        log_info "Attempting full reinstall..."
+        rm -rf "$HOME/.cache/ms-playwright"
+        pnpm exec playwright install --with-deps
+    fi
+}
+
 # Function to run E2E tests
 run_e2e_tests() {
     if [ "$SKIP_E2E_TESTS" = true ]; then
@@ -171,6 +211,9 @@ run_e2e_tests() {
     fi
 
     log_step "Running E2E tests..."
+
+    # Ensure browsers are installed before running tests
+    ensure_playwright_browsers
 
     if [ "$FAST_MODE" = true ]; then
         log_info "Running critical E2E tests only..."
