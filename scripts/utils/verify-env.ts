@@ -4,8 +4,15 @@ import { z } from 'zod';
 import { envSchema } from '@src/lib/validations/env';
 import dotenvFlow from 'dotenv-flow';
 
-// Load environment variables from .env files
-dotenvFlow.config();
+// Load environment variables from .env files (only in non-CI environments)
+const isCI = process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true';
+if (!isCI) {
+  try {
+    dotenvFlow.config();
+  } catch (error) {
+    console.log('⚠️  No .env files found, using system environment variables');
+  }
+}
 
 // Debug: Check what environment variables are loaded
 console.log('🔍 Environment variables loaded:');
@@ -47,8 +54,6 @@ const requiredEnvSchema = z.object({
 
 function validateEnvironment(): void {
   console.log('🔍 Validating environment variables...');
-
-  const isCI = process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true';
 
   console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`CI: ${isCI}`);
