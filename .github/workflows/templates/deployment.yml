@@ -113,7 +113,7 @@ jobs:
     environment: ${{ inputs.environment }}
     strategy:
       matrix:
-        test: [mock-verification, sanity, smoke]
+        test: [mock-verification, smoke]
     steps:
       - uses: ./.github/workflows/templates/setup.yml
         with:
@@ -136,7 +136,7 @@ jobs:
             echo "Running mock verification tests..."
             pnpm test:e2e:mock-verification
           else
-            echo "Running ${{ matrix.test }} tests..."
+            echo "Running ${{ matrix.test }} tests (includes sanity tests)..."
             ./scripts/ci-e2e-tests.sh ${{ matrix.test }}
           fi
 
@@ -162,7 +162,12 @@ jobs:
           validate-browsers: true
 
       - name: Run Functional E2E Tests
-        run: pnpm test:e2e:full
+        run: |
+          echo "🧭 Testing navigation flows (includes critical tests)..."
+          pnpm test:e2e:navigation
+
+          echo "📋 Running full responsive test suite..."
+          pnpm test:e2e:full
 
   pages-e2e-tests:
     name: Pages E2E Tests
