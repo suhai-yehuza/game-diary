@@ -145,8 +145,31 @@ run_quality_gate() {
         export NODE_ENV=production
     fi
 
-    log_info "Running production validation..."
-    pnpm validate:production
+    # For quality gate, we want to skip E2E tests if the flag is set
+    if [ "$SKIP_E2E_TESTS" = true ]; then
+        log_info "Running production validation without E2E tests..."
+        # Run individual validation steps instead of the full validate:production
+        log_info "Running prebuild..."
+        pnpm prebuild
+
+        log_info "Building project..."
+        pnpm build
+
+        log_info "Running soft validation..."
+        pnpm lint && pnpm typecheck
+
+        log_info "Checking unused exports..."
+        pnpm check:unused:exports
+
+        log_info "Running strict tests..."
+        pnpm test:strict
+
+        log_info "Running production-specific checks..."
+        pnpm check:size:ci
+    else
+        log_info "Running production validation..."
+        pnpm validate:production
+    fi
 
     log_success "Quality Gate validation completed"
 }
@@ -227,8 +250,16 @@ run_pre_deployment() {
 
     run_quality_gate
     run_database_tests
-    run_e2e_tests
-    run_size_check
+
+    # Only run E2E tests if not skipped
+    if [ "$SKIP_E2E_TESTS" = false ]; then
+        run_e2e_tests
+    fi
+
+    # Only run size check if not skipped
+    if [ "$SKIP_SIZE_CHECK" = false ]; then
+        run_size_check
+    fi
 
     log_success "Pre-deployment validation completed successfully!"
 }
