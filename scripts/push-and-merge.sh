@@ -279,6 +279,25 @@ check_branch_sync() {
     fi
 }
 
+# Run validation before push (only in regular mode)
+run_validation() {
+    if [[ "$NO_VERIFY" == true ]]; then
+        log_warn "Skipping validation (no-verify mode)"
+        return 0
+    fi
+
+    log_info "Running pre-push validation (skipping E2E tests)..."
+
+    # Run deployment validator in dry-run mode, skipping E2E tests
+    if ! ./scripts/deployment-validator.sh dry-run --skip-e2e-tests; then
+        log_error "Pre-push validation failed!"
+        log_info "Fix the issues above or use --no-verify=true to bypass validation"
+        exit 1
+    fi
+
+    log_info "✅ Pre-push validation passed"
+}
+
 # Main execution
 main() {
     # Parse arguments first (this handles help display)
@@ -299,6 +318,9 @@ main() {
     check_current_branch
     check_working_directory
     check_branch_sync
+
+    # Run validation (only in regular mode)
+    run_validation
 
     # Request confirmation for no-verify mode
     if [[ "$NO_VERIFY" == true ]]; then

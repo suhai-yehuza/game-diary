@@ -30,13 +30,7 @@ echo "🚀 Step 2: Production dry run validation..."
 echo "🔧 Using centralized deployment validator for comprehensive checks..."
 
 # Determine validation level based on environment variables
-if [ "$PRE_PUSH_FAST" = "true" ]; then
-    echo "⚡ Fast mode enabled - running critical tests only"
-    if ! ./scripts/deployment-validator.sh dry-run --fast --skip-e2e-tests; then
-        echo "❌ Fast production validation failed!"
-        exit 1
-    fi
-elif [ "$SKIP_E2E" = "true" ]; then
+if [ "$SKIP_E2E" = "true" ]; then
     echo "⚠️  E2E tests skipped - running validation without E2E"
     if ! ./scripts/deployment-validator.sh dry-run --skip-e2e-tests; then
         echo "❌ Production validation (without E2E) failed!"
@@ -47,7 +41,7 @@ else
     if ! ./scripts/deployment-validator.sh dry-run --fast; then
         echo "❌ Production validation failed!"
         echo "⚠️  Consider if this is a critical issue or if you want to skip E2E tests"
-        echo "   You can skip by setting SKIP_E2E=true or use fast mode with PRE_PUSH_FAST=true"
+        echo "   You can skip by setting SKIP_E2E=true"
         exit 1
     fi
 fi
