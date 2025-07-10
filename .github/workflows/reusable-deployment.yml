@@ -191,7 +191,7 @@ jobs:
 
   e2e-functional:
     name: E2E Functional
-    needs: [e2e-mock-verification, e2e-smoke]
+    needs: [unit-tests, database-tests]
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
     steps:
