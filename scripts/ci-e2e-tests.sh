@@ -35,7 +35,23 @@ ensure_playwright_browsers() {
     log_info "Installing Playwright browsers with system dependencies..."
     pnpm exec playwright install --with-deps
 
-    log_info "✅ Browser installation completed"
+    # Validate installation
+    log_info "Validating browser installation..."
+    if [ ! -f "$HOME/.cache/ms-playwright/chromium_headless_shell-1179/chrome-linux/headless_shell" ]; then
+        log_error "❌ Chromium headless shell is missing after installation!"
+        log_error "Checking Playwright cache directory:"
+        ls -la $HOME/.cache/ms-playwright/ 2>/dev/null || log_error "Cache directory not found"
+        log_error "Running Playwright install with verbose output:"
+        pnpm exec playwright install --with-deps --verbose
+        log_error "Checking again after reinstall:"
+        ls -la $HOME/.cache/ms-playwright/ 2>/dev/null || log_error "Cache directory still not found"
+        exit 1
+    else
+        log_info "✅ Chromium headless shell is present."
+        ls -la "$HOME/.cache/ms-playwright/chromium_headless_shell-1179/chrome-linux/headless_shell"
+    fi
+
+    log_info "✅ Browser installation completed and validated"
 }
 
 case "$1" in

@@ -174,6 +174,22 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - name: Install Playwright Browsers and Dependencies
         run: pnpm exec playwright install --with-deps
+      - name: Validate Chromium Headless Shell Exists
+        run: |
+          echo "Validating browser installation..."
+          if [ ! -f "$HOME/.cache/ms-playwright/chromium_headless_shell-1179/chrome-linux/headless_shell" ]; then
+            echo "❌ Chromium headless shell is missing!"
+            echo "Checking Playwright cache directory:"
+            ls -la $HOME/.cache/ms-playwright/ || echo "Cache directory not found"
+            echo "Running Playwright install with verbose output:"
+            pnpm exec playwright install --with-deps --verbose
+            echo "Checking again after reinstall:"
+            ls -la $HOME/.cache/ms-playwright/ || echo "Cache directory still not found"
+            exit 1
+          else
+            echo "✅ Chromium headless shell is present."
+            ls -la "$HOME/.cache/ms-playwright/chromium_headless_shell-1179/chrome-linux/headless_shell"
+          fi
       - name: Run CI E2E Pages Tests
         run: ./scripts/ci-e2e-tests.sh ${{ matrix.test }}
         # Progressive testing: base runs first (20s), content runs second (includes base tests)
@@ -212,6 +228,22 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - name: Install Playwright Browsers and Dependencies
         run: pnpm exec playwright install --with-deps
+      - name: Validate Chromium Headless Shell Exists
+        run: |
+          echo "Validating browser installation..."
+          if [ ! -f "$HOME/.cache/ms-playwright/chromium_headless_shell-1179/chrome-linux/headless_shell" ]; then
+            echo "❌ Chromium headless shell is missing!"
+            echo "Checking Playwright cache directory:"
+            ls -la $HOME/.cache/ms-playwright/ || echo "Cache directory not found"
+            echo "Running Playwright install with verbose output:"
+            pnpm exec playwright install --with-deps --verbose
+            echo "Checking again after reinstall:"
+            ls -la $HOME/.cache/ms-playwright/ || echo "Cache directory still not found"
+            exit 1
+          else
+            echo "✅ Chromium headless shell is present."
+            ls -la "$HOME/.cache/ms-playwright/chromium_headless_shell-1179/chrome-linux/headless_shell"
+          fi
       - name: Cache Vercel CLI
         uses: actions/cache@v4
         with:
@@ -259,6 +291,22 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - name: Install Playwright Browsers and Dependencies
         run: pnpm exec playwright install --with-deps
+      - name: Validate Chromium Headless Shell Exists
+        run: |
+          echo "Validating browser installation..."
+          if [ ! -f "$HOME/.cache/ms-playwright/chromium_headless_shell-1179/chrome-linux/headless_shell" ]; then
+            echo "❌ Chromium headless shell is missing!"
+            echo "Checking Playwright cache directory:"
+            ls -la $HOME/.cache/ms-playwright/ || echo "Cache directory not found"
+            echo "Running Playwright install with verbose output:"
+            pnpm exec playwright install --with-deps --verbose
+            echo "Checking again after reinstall:"
+            ls -la $HOME/.cache/ms-playwright/ || echo "Cache directory still not found"
+            exit 1
+          else
+            echo "✅ Chromium headless shell is present."
+            ls -la "$HOME/.cache/ms-playwright/chromium_headless_shell-1179/chrome-linux/headless_shell"
+          fi
       - run: DEPLOYMENT_URL="$VERCEL_DEPLOYMENT_URL" pnpm run timed test:e2e:smoke
       - name: Upload smoke test results (on failure)
         if: failure()

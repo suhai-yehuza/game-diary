@@ -131,6 +131,22 @@ jobs:
         run: |
           echo "Installing Playwright browsers and system dependencies..."
           pnpm exec playwright install --with-deps
+      - name: Validate Chromium Headless Shell Exists
+        run: |
+          echo "Validating browser installation..."
+          if [ ! -f "$HOME/.cache/ms-playwright/chromium_headless_shell-1179/chrome-linux/headless_shell" ]; then
+            echo "❌ Chromium headless shell is missing!"
+            echo "Checking Playwright cache directory:"
+            ls -la $HOME/.cache/ms-playwright/ || echo "Cache directory not found"
+            echo "Running Playwright install with verbose output:"
+            pnpm exec playwright install --with-deps --verbose
+            echo "Checking again after reinstall:"
+            ls -la $HOME/.cache/ms-playwright/ || echo "Cache directory still not found"
+            exit 1
+          else
+            echo "✅ Chromium headless shell is present."
+            ls -la "$HOME/.cache/ms-playwright/chromium_headless_shell-1179/chrome-linux/headless_shell"
+          fi
       - name: Run CI E2E Functional Tests
         run: ./scripts/ci-e2e-tests.sh ${{ matrix.test }}
         # Progressive testing: each level includes all previous levels' tests
@@ -179,6 +195,22 @@ jobs:
         run: |
           echo "Installing Playwright browsers and system dependencies..."
           pnpm exec playwright install --with-deps
+      - name: Validate Chromium Headless Shell Exists
+        run: |
+          echo "Validating browser installation..."
+          if [ ! -f "$HOME/.cache/ms-playwright/chromium_headless_shell-1179/chrome-linux/headless_shell" ]; then
+            echo "❌ Chromium headless shell is missing!"
+            echo "Checking Playwright cache directory:"
+            ls -la $HOME/.cache/ms-playwright/ || echo "Cache directory not found"
+            echo "Running Playwright install with verbose output:"
+            pnpm exec playwright install --with-deps --verbose
+            echo "Checking again after reinstall:"
+            ls -la $HOME/.cache/ms-playwright/ || echo "Cache directory still not found"
+            exit 1
+          else
+            echo "✅ Chromium headless shell is present."
+            ls -la "$HOME/.cache/ms-playwright/chromium_headless_shell-1179/chrome-linux/headless_shell"
+          fi
       - name: Run CI E2E Pages Tests
         run: ./scripts/ci-e2e-tests.sh ${{ matrix.test }}
         # Progressive testing: each level includes all previous levels' tests
@@ -237,6 +269,22 @@ jobs:
         run: |
           echo "Installing Playwright browsers and system dependencies..."
           pnpm exec playwright install --with-deps
+      - name: Validate Chromium Headless Shell Exists
+        run: |
+          echo "Validating browser installation..."
+          if [ ! -f "$HOME/.cache/ms-playwright/chromium_headless_shell-1179/chrome-linux/headless_shell" ]; then
+            echo "❌ Chromium headless shell is missing!"
+            echo "Checking Playwright cache directory:"
+            ls -la $HOME/.cache/ms-playwright/ || echo "Cache directory not found"
+            echo "Running Playwright install with verbose output:"
+            pnpm exec playwright install --with-deps --verbose
+            echo "Checking again after reinstall:"
+            ls -la $HOME/.cache/ms-playwright/ || echo "Cache directory still not found"
+            exit 1
+          else
+            echo "✅ Chromium headless shell is present."
+            ls -la "$HOME/.cache/ms-playwright/chromium_headless_shell-1179/chrome-linux/headless_shell"
+          fi
       - name: Run E2E Advanced Tests (${{ matrix.test }})
         run: ./scripts/ci-e2e-tests.sh ${{ matrix.test }}
         # Each level includes all previous levels' tests, but runs once per matrix item
