@@ -145,6 +145,10 @@ run_e2e_tests() {
             log "📋 Step $((step_number + 1)): E2E Comprehensive Tests with Coverage"
             pnpm test:e2e:full
             ;;
+        "performance")
+            log "📋 Step $((step_number + 1)): E2E Performance Tests"
+            pnpm test:e2e:performance
+            ;;
         *)
             log_error "Unknown E2E test type: $test_type"
             exit 1
@@ -220,8 +224,11 @@ execute_pipeline() {
             "e2e_responsive")
                 run_e2e_tests "responsive" "$step_number" "$environment"
                 ;;
+            "e2e_performance")
+                run_e2e_tests "performance" "$step_number" "$environment"
+                ;;
             "e2e_coverage_full")
-                run_e2e_tests "full" "$step_number"
+                run_e2e_tests "full" "$step_number" "$environment"
                 ;;
             *)
                 log_error "Unknown step: $step_name"

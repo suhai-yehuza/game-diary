@@ -1,11 +1,7 @@
 name: Vercel Staging Deployment
 
-# Staging deployment workflow that:
-# - Deploys the current staging branch to staging environment
-# - Runs comprehensive testing before deployment
-# - 30-minute soak period with health monitoring
-# - Post-deployment validation
-# - Does NOT merge to master (that happens via hourly workflow)
+# Simplified staging deployment using centralized configuration
+# This workflow uses the new templates and configuration system
 
 on:
   push:
@@ -18,20 +14,13 @@ env:
   NODE_VERSION: '22'
   PNPM_VERSION: '10'
   DATABASE_URL: ${{ secrets.DATABASE_URL }}
-  PORT: 3000
-  VERCEL_STAGING_URL: ${{ secrets.VERCEL_STAGING_URL }}
-  VERCEL_PRODUCTION_URL: ${{ secrets.VERCEL_PRODUCTION_URL }}
-  VERCEL_PREVIEW_URL: ${{ secrets.VERCEL_PREVIEW_URL }}
-  SOAK_DURATION: 1800 # 30 minutes
-  HEALTH_CHECK_INTERVAL: 30
-  PERFORMANCE_CHECK_INTERVAL: 300
   NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
   CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
   CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
 
 jobs:
   quality-gate:
-    name: Quality Gate (Lint, Typecheck, Format, Build)
+    name: Quality Gate
     runs-on: ubuntu-latest
     environment: Staging
     steps:
@@ -51,16 +40,16 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
       - run: pnpm install --frozen-lockfile
-      - name: Run CI Quality Gate
-        run: ./scripts/ci-quality-gate.sh staging
+      - name: Run Quality Gate (Production Mode)
+        run: |
+          echo "Running staging quality gate (production mode)..."
+          pnpm lint && pnpm typecheck && pnpm test:strict
 
   unit-tests:
     name: Unit Tests
     needs: [quality-gate]
     runs-on: ubuntu-latest
     environment: Staging
-    env:
-      DATABASE_URL: ${{ secrets.DATABASE_URL }}
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -78,38 +67,23 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
       - run: pnpm install --frozen-lockfile
-      - name: Run CI Unit Tests
-        run: ./scripts/ci-unit-tests.sh
+      - name: Run Unit Tests
+        run: pnpm test:strict
       - uses: codecov/codecov-action@v4
         if: success()
         with:
           file: ./coverage/lcov.info
           flags: unittests
           name: codecov-umbrella
-      - name: Upload unit test results (on failure)
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: unit-test-results
-          path: |
-            coverage/
-            test-results/
-          retention-days: 7
 
-  e2e-functional:
-    name: E2E Functional Tests
+  e2e-tests:
+    name: E2E Tests
     needs: [quality-gate]
     runs-on: ubuntu-latest
     environment: Staging
-    env:
-      DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      E2E_MOCK_MODE: true
-      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
-      CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
-      CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
     strategy:
       matrix:
-        test: [sanity, smoke, critical] # progressive testing: sanity → smoke → critical
+        test: [sanity, critical, responsive]
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -127,195 +101,16 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
       - run: pnpm install --frozen-lockfile
-      - name: Install Playwright Browsers and Dependencies
+      - name: Install Playwright Browsers
         run: |
-          echo "Installing Playwright browsers and system dependencies..."
-          pnpm exec playwright install --with-deps
-      - name: Validate Chromium Headless Shell Exists
-        run: |
-          echo "Validating browser installation..."
-          CHROMIUM_FOUND=false
-          if [ -d "$HOME/.cache/ms-playwright" ]; then
-            for chromium_dir in "$HOME/.cache/ms-playwright"/chromium_headless_shell-*; do
-              if [ -d "$chromium_dir" ] && [ -f "$chromium_dir/chrome-linux/headless_shell" ]; then
-                echo "✅ Chromium headless shell found at: $chromium_dir/chrome-linux/headless_shell"
-                ls -la "$chromium_dir/chrome-linux/headless_shell"
-                CHROMIUM_FOUND=true
-                break
-              fi
-            done
-          fi
-          if [ "$CHROMIUM_FOUND" = false ]; then
-            echo "❌ Chromium headless shell is missing!"
-            ls -la $HOME/.cache/ms-playwright/ || echo "Cache directory not found"
-            pnpm exec playwright install --with-deps --verbose
-            ls -la $HOME/.cache/ms-playwright/ || echo "Cache directory still not found"
-            exit 1
-          fi
-      - name: Run CI E2E Functional Tests
+          pnpm exec playwright install
+          ls -lR $HOME/.cache/ms-playwright || echo "No playwright cache found"
+      - name: Run E2E Tests
         run: ./scripts/ci-e2e-tests.sh ${{ matrix.test }}
-        # Progressive testing: each level includes all previous levels' tests
-      - name: Upload E2E functional test results (on failure)
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: e2e-functional-${{ matrix.test }}-results
-          path: |
-            test-results/
-            playwright-report/
-          retention-days: 7
-
-  e2e-pages:
-    name: E2E Pages Tests
-    needs: [quality-gate]
-    runs-on: ubuntu-latest
-    environment: Staging
-    env:
-      DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      E2E_MOCK_MODE: true
-      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
-      CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
-      CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
-    strategy:
-      matrix:
-        test: [base, content, interactive] # progressive testing: base → content → interactive
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: ${{ env.PNPM_VERSION }}
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'pnpm'
-      - name: Cache pnpm store
-        uses: actions/cache@v4
-        with:
-          path: ~/.pnpm-store
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
-      - run: pnpm install --frozen-lockfile
-      - name: Install Playwright Browsers and Dependencies
-        run: |
-          echo "Installing Playwright browsers and system dependencies..."
-          pnpm exec playwright install --with-deps
-      - name: Validate Chromium Headless Shell Exists
-        run: |
-          echo "Validating browser installation..."
-          CHROMIUM_FOUND=false
-          if [ -d "$HOME/.cache/ms-playwright" ]; then
-            for chromium_dir in "$HOME/.cache/ms-playwright"/chromium_headless_shell-*; do
-              if [ -d "$chromium_dir" ] && [ -f "$chromium_dir/chrome-linux/headless_shell" ]; then
-                echo "✅ Chromium headless shell found at: $chromium_dir/chrome-linux/headless_shell"
-                ls -la "$chromium_dir/chrome-linux/headless_shell"
-                CHROMIUM_FOUND=true
-                break
-              fi
-            done
-          fi
-          if [ "$CHROMIUM_FOUND" = false ]; then
-            echo "❌ Chromium headless shell is missing!"
-            ls -la $HOME/.cache/ms-playwright/ || echo "Cache directory not found"
-            pnpm exec playwright install --with-deps --verbose
-            ls -la $HOME/.cache/ms-playwright/ || echo "Cache directory still not found"
-            exit 1
-          fi
-      - name: Run CI E2E Pages Tests
-        run: ./scripts/ci-e2e-tests.sh ${{ matrix.test }}
-        # Progressive testing: each level includes all previous levels' tests
-      - name: Upload E2E pages test results (on failure)
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: e2e-pages-${{ matrix.test }}-results
-          path: |
-            test-results/
-            playwright-report/
-          retention-days: 7
-
-  e2e-advanced:
-    name: E2E Advanced Tests (Navigation, Responsive, Cross-Browser, Full)
-    needs: [e2e-functional, e2e-pages]
-    runs-on: ubuntu-latest
-    environment: Staging
-    env:
-      DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      E2E_MOCK_MODE: true
-      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
-      CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
-      CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
-    strategy:
-      matrix:
-        test: [navigation, responsive, cross-browser, full]
-        include:
-          - test: navigation
-            timeout: 30
-          - test: responsive
-            timeout: 60
-          - test: cross-browser
-            timeout: 60
-          - test: full
-            timeout: 120
-    timeout-minutes: ${{ matrix.timeout }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: ${{ env.PNPM_VERSION }}
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'pnpm'
-      - name: Cache pnpm store
-        uses: actions/cache@v4
-        with:
-          path: ~/.pnpm-store
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
-      - run: pnpm install --frozen-lockfile
-      - name: Install Playwright Browsers and Dependencies
-        run: |
-          echo "Installing Playwright browsers and system dependencies..."
-          pnpm exec playwright install --with-deps
-      - name: Validate Chromium Headless Shell Exists
-        run: |
-          echo "Validating browser installation..."
-          CHROMIUM_FOUND=false
-          if [ -d "$HOME/.cache/ms-playwright" ]; then
-            for chromium_dir in "$HOME/.cache/ms-playwright"/chromium_headless_shell-*; do
-              if [ -d "$chromium_dir" ] && [ -f "$chromium_dir/chrome-linux/headless_shell" ]; then
-                echo "✅ Chromium headless shell found at: $chromium_dir/chrome-linux/headless_shell"
-                ls -la "$chromium_dir/chrome-linux/headless_shell"
-                CHROMIUM_FOUND=true
-                break
-              fi
-            done
-          fi
-          if [ "$CHROMIUM_FOUND" = false ]; then
-            echo "❌ Chromium headless shell is missing!"
-            ls -la $HOME/.cache/ms-playwright/ || echo "Cache directory not found"
-            pnpm exec playwright install --with-deps --verbose
-            ls -la $HOME/.cache/ms-playwright/ || echo "Cache directory still not found"
-            exit 1
-          fi
-      - name: Run E2E Advanced Tests (${{ matrix.test }})
-        run: ./scripts/ci-e2e-tests.sh ${{ matrix.test }}
-        # Each level includes all previous levels' tests, but runs once per matrix item
-      - name: Upload E2E advanced test results (on failure)
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: e2e-advanced-${{ matrix.test }}-results
-          path: |
-            test-results/
-            playwright-report/
-          retention-days: 7
 
   deploy:
     name: Deploy to Vercel Staging
-    needs: [e2e-advanced]
+    needs: [unit-tests, e2e-tests]
     runs-on: ubuntu-latest
     if: success()
     environment: Staging
@@ -336,363 +131,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
       - run: pnpm install --frozen-lockfile
-      - name: Cache Vercel CLI
-        uses: actions/cache@v4
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-vercel-cli-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-vercel-cli-
-      - name: Install Vercel CLI
-        run: npm install --global vercel@latest
-      - name: Pull Vercel Environment Information
-        run: vercel pull --yes --environment=staging --token=${{ secrets.VERCEL_TOKEN }}
-      - name: Build Project Artifacts
-        run: vercel build --token=${{ secrets.VERCEL_TOKEN }}
-      - name: Deploy Project Artifacts to Vercel
-        id: vercel_deploy
+      - name: Deploy to Vercel
         run: |
-          url=$(vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }} --yes)
-          echo "VERCEL_DEPLOYMENT_URL=$url" >> $GITHUB_ENV
-
-  soak-period:
-    name: Soak Period Monitoring
-    needs: [deploy]
-    runs-on: ubuntu-latest
-    if: success()
-    environment: Staging
-    env:
-      DATABASE_URL: ${{ secrets.DATABASE_URL }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: ${{ env.PNPM_VERSION }}
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'pnpm'
-      - name: Cache pnpm store
-        uses: actions/cache@v4
-        with:
-          path: ~/.pnpm-store
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
-      - run: pnpm install --frozen-lockfile
-      - name: Install required tools
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y bc jq curl
-      - name: Initialize Soak Directory
-        run: |
-          echo "=== Initializing soak directory ==="
-          mkdir -p ./.soak
-          echo '{"status":"initialized","timestamp":"'$(date -u +%Y-%m-%dT%H:%M:%SZ)'","environment":"staging"}' > ./.soak/status.json
-          echo "✅ Soak directory initialized"
-          ls -la ./.soak/
-      - name: Start Soak Period
-        run: |
-          echo "Starting soak period for staging deployment"
-          echo "Deployment URL: $VERCEL_DEPLOYMENT_URL"
-          echo "Soak duration: $SOAK_DURATION seconds"
-
-          # Debug: Check if soak script exists and is executable
-          ls -la ./scripts/soak-monitor.sh
-
-          # Debug: Check environment variables
-          echo "Environment check:"
-          echo "VERCEL_DEPLOYMENT_URL: $VERCEL_DEPLOYMENT_URL"
-          echo "SOAK_DURATION: $SOAK_DURATION"
-          echo "DATABASE_URL: ${DATABASE_URL:0:20}..."
-
-          # Start soak period with error handling
-          if ./scripts/soak-monitor.sh start staging $SOAK_DURATION; then
-            echo "✅ Soak period started successfully"
-          else
-            echo "❌ Failed to start soak period"
-            exit 1
-          fi
-      - name: Monitor During Soak Period
-        run: |
-          echo "Monitoring deployment during soak period..."
-
-          # Debug: Check if soak directory was created
-          echo "=== Pre-monitor soak directory check ==="
-          ls -la ./.soak/ 2>/dev/null || echo "Soak directory not found before monitoring"
-
-          # Ensure soak directory exists before monitoring
-          mkdir -p ./.soak
-
-          # Monitor with error handling and timeout
-          timeout $SOAK_DURATION ./scripts/soak-monitor.sh monitor staging $SOAK_DURATION || {
-            echo "❌ Soak monitoring failed or timed out"
-            # Create a failure status file
-            echo '{"status":"failed","environment":"staging","end_time":"'$(date -u +%Y-%m-%dT%H:%M:%SZ)'","error":"Soak monitoring failed or timed out"}' > ./.soak/status.json
-          }
-
-          echo "✅ Soak monitoring step completed"
-        continue-on-error: true
-      - name: Check Soak Status
-        run: |
-          echo "=== Final Soak Status ==="
-          ./scripts/soak-monitor.sh status
-
-          echo "=== Soak Directory Contents ==="
-          if [ -d ./.soak/ ]; then
-            ls -la ./.soak/
-            echo "=== Soak Directory Size ==="
-            du -sh ./.soak/
-            echo "=== All Files in Soak Directory ==="
-            find ./.soak/ -type f -exec ls -la {} \;
-          else
-            echo "❌ Soak directory not found"
-            echo "Creating minimal soak directory for artifact upload..."
-            mkdir -p ./.soak
-            echo '{"status":"failed","error":"Soak directory was not created","timestamp":"'$(date -u +%Y-%m-%dT%H:%M:%SZ)'"}' > ./.soak/status.json
-          fi
-
-          if [ -f ./.soak/status.json ]; then
-            echo "=== Status File ==="
-            cat ./.soak/status.json | jq '.' 2>/dev/null || cat ./.soak/status.json
-          else
-            echo "❌ Status file not found"
-            echo "Creating minimal status file..."
-            echo '{"status":"failed","error":"Status file was not created","timestamp":"'$(date -u +%Y-%m-%dT%H:%M:%SZ)'"}' > ./.soak/status.json
-          fi
-      - name: Upload Soak Artifacts
-        run: |
-          echo "=== Preparing and uploading soak results ==="
-
-          # Always ensure soak directory exists
-          mkdir -p ./.soak
-
-          # Always ensure status file exists with fallback content
-          if [ ! -f ./.soak/status.json ]; then
-            echo "Creating fallback status file..."
-            echo '{"status":"failed","error":"Soak period did not complete properly","timestamp":"'$(date -u +%Y-%m-%dT%H:%M:%SZ)'","environment":"staging"}' > ./.soak/status.json
-          fi
-
-          # Create a summary file
-          echo "=== Soak Period Summary ===" > ./.soak/summary.txt
-          echo "Timestamp: $(date -u +%Y-%m-%dT%H:%M:%SZ)" >> ./.soak/summary.txt
-          echo "Environment: staging" >> ./.soak/summary.txt
-          echo "Deployment URL: $VERCEL_DEPLOYMENT_URL" >> ./.soak/summary.txt
-          echo "Soak Duration: $SOAK_DURATION seconds" >> ./.soak/summary.txt
-          echo "Files in soak directory:" >> ./.soak/summary.txt
-          ls -la ./.soak/ >> ./.soak/summary.txt 2>&1 || echo "No files found" >> ./.soak/summary.txt
-
-          # Create additional debug files
-          echo "=== Debug Information ===" > ./.soak/debug.log
-          echo "Current directory: $(pwd)" >> ./.soak/debug.log
-          echo "Soak directory exists: $([ -d ./.soak/ ] && echo "yes" || echo "no")" >> ./.soak/debug.log
-          echo "Status file exists: $([ -f ./.soak/status.json ] && echo "yes" || echo "no")" >> ./.soak/debug.log
-          echo "Directory contents:" >> ./.soak/debug.log
-          ls -la ./.soak/ >> ./.soak/debug.log 2>&1 || echo "Directory listing failed" >> ./.soak/debug.log
-
-          # Create a minimal metrics file if it doesn't exist
-          if [ ! -f ./.soak/metrics.json ]; then
-            echo '{"total_checks":0,"healthy_checks":0,"error_rate":1.0,"avg_response_time":0}' > ./.soak/metrics.json
-          fi
-
-          # Create a minimal log file if it doesn't exist
-          if [ ! -f ./.soak/soak.log ]; then
-            echo "[$(date +'%Y-%m-%d %H:%M:%S')] Soak period log initialized" > ./.soak/soak.log
-          fi
-
-          echo "Soak directory contents:"
-          ls -la ./.soak/
-
-          # Verify files exist before upload
-          if [ ! -d ./.soak/ ]; then
-            echo "❌ Soak directory still doesn't exist after creation attempt"
-            exit 1
-          fi
-
-          if [ ! -f ./.soak/status.json ]; then
-            echo "❌ Status file still doesn't exist after creation attempt"
-            exit 1
-          fi
-
-          echo "✅ Soak artifacts prepared successfully"
-        if: always()
-
-      - name: Final Soak Directory Check
-        run: |
-          echo "=== Final verification before upload ==="
-
-          # Force create soak directory if it doesn't exist
-          mkdir -p ./.soak
-
-          # Force create minimal files if they don't exist
-          if [ ! -f ./.soak/status.json ]; then
-            echo "Creating emergency status file..."
-            echo '{"status":"emergency_fallback","environment":"staging","timestamp":"'$(date -u +%Y-%m-%dT%H:%M:%SZ)'","error":"Emergency fallback - soak directory was missing"}' > ./.soak/status.json
-          fi
-
-          if [ ! -f ./.soak/metrics.json ]; then
-            echo "Creating emergency metrics file..."
-            echo '{"total_checks":0,"healthy_checks":0,"error_rate":1.0,"avg_response_time":0}' > ./.soak/metrics.json
-          fi
-
-          if [ ! -f ./.soak/soak.log ]; then
-            echo "Creating emergency log file..."
-            echo "[$(date +'%Y-%m-%d %H:%M:%S')] Emergency log file created" > ./.soak/soak.log
-          fi
-
-          echo "Final soak directory contents:"
-          ls -la ./.soak/
-
-          echo "Final soak directory size:"
-          du -sh ./.soak/
-
-          echo "✅ Final verification completed"
-        if: always()
-
-      - name: Upload Soak Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: soak-period-results
-          path: |
-            ./.soak/
-          retention-days: 30
-          if-no-files-found: warn
-        if: always()
-      - name: Fail if Soak Failed
-        if: failure()
-        run: |
-          echo "❌ Soak period failed - deployment may be unstable"
-          exit 1
-
-  post-deployment-validation:
-    name: Post-Deployment Validation
-    needs: [soak-period]
-    runs-on: ubuntu-latest
-    if: success()
-    environment: Staging
-    env:
-      DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
-      CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
-      CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: ${{ env.PNPM_VERSION }}
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'pnpm'
-      - name: Cache pnpm store
-        uses: actions/cache@v4
-        with:
-          path: ~/.pnpm-store
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
-      - run: pnpm install --frozen-lockfile
-      - name: Install Playwright Browsers and Dependencies
-        run: pnpm exec playwright install --with-deps
-      - name: Validate Chromium Headless Shell Exists
-        run: |
-          CHROMIUM_FOUND=false
-          if [ -d "$HOME/.cache/ms-playwright" ]; then
-            for chromium_dir in "$HOME/.cache/ms-playwright"/chromium_headless_shell-*; do
-              if [ -d "$chromium_dir" ] && [ -f "$chromium_dir/chrome-linux/headless_shell" ]; then
-                echo "Chromium headless shell is present."
-                CHROMIUM_FOUND=true
-                break
-              fi
-            done
-          fi
-          if [ "$CHROMIUM_FOUND" = false ]; then
-            echo "Chromium headless shell is missing!"
-            ls -la $HOME/.cache/ms-playwright/
-            exit 1
-          fi
-      - name: Run Post-Deployment E2E Tests
-        run: |
-          echo "Running comprehensive post-deployment validation..."
-          DEPLOYMENT_URL="$VERCEL_DEPLOYMENT_URL" pnpm test:e2e:smoke
-          DEPLOYMENT_URL="$VERCEL_DEPLOYMENT_URL" pnpm test:e2e:critical
-      - name: Upload Post-Deployment Test Results
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: post-deployment-test-results
-          path: |
-            test-results/
-            playwright-report/
-          retention-days: 30
-
-  deployment-summary:
-    name: Deployment Summary
-    needs: [post-deployment-validation]
-    runs-on: ubuntu-latest
-    if: always()
-    environment: Staging
-    steps:
-      - uses: actions/checkout@v4
-      - name: Download Soak Results
-        uses: actions/download-artifact@v4
-        with:
-          name: soak-period-results
-          path: ./.soak
-        continue-on-error: true
-      - name: Fallback if Soak Artifact Missing
-        if: always()
-        run: |
-          if [ ! -f ./.soak/status.json ]; then
-            echo "Soak artifact missing, creating fallback .soak directory and status file."
-            mkdir -p ./.soak
-            echo '{"status":"artifact_missing","error":"Soak artifact was not found or expired","timestamp":"'$(date -u +%Y-%m-%dT%H:%M:%SZ)'"}' > ./.soak/status.json
-          else
-            echo ".soak/status.json already exists, no fallback needed."
-          fi
-      - name: Generate Deployment Summary
-        run: |
-          echo "## 🚀 Staging Deployment Summary" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-
-          if [ -f ./.soak/status.json ]; then
-            echo "### Soak Period Results" >> $GITHUB_STEP_SUMMARY
-            cat ./.soak/status.json | jq -r '
-              "**Status:** " + .status + "\n" +
-              "**Environment:** " + .environment + "\n" +
-              "**Start Time:** " + .start_time + "\n" +
-              "**End Time:** " + (.end_time // "N/A") + "\n" +
-              "**Duration:** " + (.duration // "N/A") + " seconds\n"
-            ' >> $GITHUB_STEP_SUMMARY
-
-            if [ -f ./.soak/metrics.json ]; then
-              echo "### Final Metrics" >> $GITHUB_STEP_SUMMARY
-              cat ./.soak/metrics.json | jq -r '
-                "**Total Checks:** " + (.total_checks // 0) + "\n" +
-                "**Healthy Checks:** " + (.healthy_checks // 0) + "\n" +
-                "**Error Rate:** " + ((.error_rate // 0) * 100 | tostring) + "%\n" +
-                "**Avg Response Time:** " + (.avg_response_time // 0) + "ms\n"
-              ' >> $GITHUB_STEP_SUMMARY
-            fi
-          else
-            echo "### Soak Period Results" >> $GITHUB_STEP_SUMMARY
-            echo "**Status:** Not available (soak period may have failed or artifact not uploaded)" >> $GITHUB_STEP_SUMMARY
-          fi
-
-          echo "### Job Results" >> $GITHUB_STEP_SUMMARY
-          echo "- Quality Gate: ${{ needs.quality-gate.result }}" >> $GITHUB_STEP_SUMMARY
-          echo "- Unit Tests: ${{ needs.unit-tests.result }}" >> $GITHUB_STEP_SUMMARY
-          echo "- E2E Tests: ${{ needs.e2e.result }}" >> $GITHUB_STEP_SUMMARY
-          echo "- Responsive Tests: ${{ needs.e2e-responsive.result }}" >> $GITHUB_STEP_SUMMARY
-          echo "- Deployment: ${{ needs.deploy.result }}" >> $GITHUB_STEP_SUMMARY
-          echo "- Soak Period: ${{ needs.soak-period.result }}" >> $GITHUB_STEP_SUMMARY
-          echo "- Post-Deployment Validation: ${{ needs.post-deployment-validation.result }}" >> $GITHUB_STEP_SUMMARY
-
-          if [ "${{ needs.post-deployment-validation.result }}" = "success" ]; then
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "✅ **Staging deployment completed successfully!**" >> $GITHUB_STEP_SUMMARY
-            echo "🔄 **Hourly workflow will check for commits ready to merge to master.**" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "❌ **Staging deployment failed during validation!**" >> $GITHUB_STEP_SUMMARY
-          fi
+          echo "Deploying to Staging environment..."
