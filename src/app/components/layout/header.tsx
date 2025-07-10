@@ -218,6 +218,33 @@ function NavItem({ href, isActive, children, className = '', ...props }: NavItem
   );
 }
 
+// E2E test version of admin nav (no hooks)
+function AdminNavE2E({ isActive }: { isActive: (path: string) => boolean }) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <NavItem href="/protected/admin" isActive={isActive('/protected/admin')}>
+          Admin
+          <ChevronDown className="h-3 w-3 ml-1" />
+        </NavItem>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start" className="w-48">
+        <DropdownMenuItem asChild>
+          <Link href="/protected/admin/experimental" className="w-full">
+            External API
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link href="/protected/admin/database" className="w-full">
+            Database
+          </Link>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
+// Production version of admin nav (with hooks)
 function AdminNavContent({ isActive }: { isActive: (path: string) => boolean }) {
   const { user, isLoaded } = useUser();
 
@@ -225,32 +252,6 @@ function AdminNavContent({ isActive }: { isActive: (path: string) => boolean }) 
     console.log('CLERK KEY:', process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY);
     console.log('ADMIN EMAILS:', process.env.NEXT_PUBLIC_ADMIN_EMAILS);
     console.log('USER EMAIL:', user?.emailAddresses?.[0]?.emailAddress);
-  }
-
-  // For E2E tests, always render admin nav to ensure consistent behavior
-  if (isE2ETestEnvironment) {
-    return (
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <NavItem href="/protected/admin" isActive={isActive('/protected/admin')}>
-            Admin
-            <ChevronDown className="h-3 w-3 ml-1" />
-          </NavItem>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" className="w-48">
-          <DropdownMenuItem asChild>
-            <Link href="/protected/admin/experimental" className="w-full">
-              External API
-            </Link>
-          </DropdownMenuItem>
-          <DropdownMenuItem asChild>
-            <Link href="/protected/admin/database" className="w-full">
-              Database
-            </Link>
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    );
   }
 
   // Check if user is admin based on email
@@ -298,9 +299,9 @@ function AdminNav({ isActive }: { isActive: (path: string) => boolean }) {
 
   return (
     <Suspense fallback={<div className="w-20 h-6 bg-gray-200 rounded animate-pulse" />}>
-      {/* For E2E tests, always render admin nav to ensure consistent behavior */}
+      {/* For E2E tests, use the E2E version without hooks */}
       {isE2ETestEnvironment ? (
-        <AdminNavContent isActive={isActive} />
+        <AdminNavE2E isActive={isActive} />
       ) : (
         <SignedIn>
           <AdminNavContent isActive={isActive} />
