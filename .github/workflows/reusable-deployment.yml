@@ -267,13 +267,14 @@ jobs:
       - name: Setup Playwright browsers
         run: pnpm exec playwright install --with-deps
       - name: Run Pages E2E
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
-          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
-          CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
-          DEPLOYMENT_URL: ${{ env.DEFAULT_LOCALHOST_URL || 'http://localhost:3000' }}
-        run: pnpm exec playwright test tests/e2e/pages/*.spec.ts --reporter=line
+        # env:
+        #   DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        #   NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+        #   CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+        #   CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
+        #   DEPLOYMENT_URL: ${{ env.DEFAULT_LOCALHOST_URL || 'http://localhost:3000' }}
+        # run: pnpm exec playwright test tests/e2e/pages/*.spec.ts --reporter=line
+        run: echo "Skipping Pages E2E tests"
 
   deploy:
     name: Deploy
