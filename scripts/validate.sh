@@ -72,15 +72,147 @@ show_usage() {
     echo "  $0 circular"
 }
 
+# =============================================================================
+# ATOMIC VALIDATION STEPS (Single responsibility functions)
+# =============================================================================
+
+# Cleanup
+run_clean() {
+    log_info "Cleaning up..."
+    pnpm run clean:all
+}
+
+# Code Quality Checks
+run_format_check() {
+    log_info "Checking code format..."
+    pnpm run format:check
+}
+
+run_format() {
+    log_info "Formatting code..."
+    pnpm run format
+}
+
+run_lint() {
+    log_info "Running ESLint..."
+    pnpm run lint
+}
+
+run_lint_fix() {
+    log_info "Fixing lint issues..."
+    pnpm run lint:fix
+}
+
+# Code Generation
+run_codegen() {
+    log_info "Generating GraphQL code..."
+    pnpm run codegen
+}
+
+# Type Safety Checks
+run_typecheck() {
+    log_info "Running TypeScript type check..."
+    pnpm run typecheck
+}
+
+run_type_validation() {
+    log_info "Validating TypeScript types..."
+    pnpm run typecheck
+}
+
+run_type_fix() {
+    log_info "Fixing TypeScript type violations..."
+    pnpm run fix:types
+}
+
+run_db_triggers_validation() {
+    log_info "Validating database triggers..."
+    pnpm run db:test:all-triggers
+}
+
+# Build
+run_build() {
+    log_info "Building project..."
+    pnpm run build
+}
+
+# Environment & Configuration
+run_env_verification() {
+    log_info "Verifying environment variables..."
+    pnpm run verify-env
+}
+
+# Code Analysis
+run_circular_check() {
+    log_info "Checking circular dependencies..."
+    pnpm run check:circular
+}
+
+run_unused_exports_check() {
+    log_info "Checking for unused exports..."
+    pnpm run check:unused:exports
+}
+
+run_size_check() {
+    log_info "Checking bundle size..."
+    pnpm run check:size
+}
+
+# Unit Test Validation
+run_unit_test_validation() {
+    log_info "Running unit test validation..."
+    pnpm run test:unit
+}
+
+run_unit_test_strict_validation() {
+    log_info "Running strict unit test validation..."
+    pnpm run test:strict
+}
+
+run_unit_test_coverage_validation() {
+    log_info "Running unit test coverage validation..."
+    pnpm run test:coverage
+}
+
+# E2E Test Validation
+run_sanity_e2e_test_validation() {
+    log_info "Running sanity E2E test validation..."
+    pnpm run test:e2e:sanity
+}
+
+run_critical_e2e_test_validation() {
+    log_info "Running critical E2E test validation..."
+    pnpm run test:e2e:critical
+}
+
+# =============================================================================
+# COMPOSITE VALIDATION FUNCTIONS (Logical groupings)
+# =============================================================================
+
+# Quick Fixes (format + lint + types)
+run_quick_fix() {
+    log_info "Running quick fixes..."
+    run_lint_fix
+    run_format
+    run_type_fix
+    run_typecheck
+}
+
+# Code Quality Validation (format + lint + types)
+run_code_quality_validation() {
+    log_info "Running code quality validation..."
+    run_format_check
+    run_lint
+    run_typecheck
+}
+
 # Function to run CI-friendly validation (skips environment validation)
 run_ci_validation() {
     log "Running CI-friendly validation..."
 
-    log_info "Checking circular dependencies..."
-    pnpm check:circular
-
-    log_info "Validating and fixing types..."
-    pnpm validate:types:fix
+    run_circular_check
+    run_type_validation
+    run_type_fix
 
     log_info "Skipping environment validation in CI mode..."
     log_warning "Environment variables will be validated in individual CI jobs"
@@ -92,19 +224,17 @@ run_ci_validation() {
 run_basic_validation() {
     log "Running basic validation..."
 
-    log_info "Checking circular dependencies..."
-    pnpm check:circular
-
-    log_info "Validating and fixing types..."
-    pnpm validate:types:fix
+    run_circular_check
+    run_type_validation
+    run_type_fix
+    run_db_triggers_validation
 
     # Skip environment validation in CI mode
     if [ "$CI" = "true" ] || [ "$GITHUB_ACTIONS" = "true" ]; then
         log_info "Skipping environment validation in CI mode..."
         log_warning "Environment variables will be validated in individual CI jobs"
     else
-        log_info "Verifying environment variables..."
-        pnpm verify-env
+        run_env_verification
     fi
 
     log_success "Basic validation completed"
@@ -114,13 +244,8 @@ run_basic_validation() {
 run_dev_workflow() {
     log "Running development workflow..."
 
-    log_info "Running code generation..."
-    pnpm codegen
-
-    log_info "Running quick fixes..."
-    pnpm fix:lint:format
-
-    log_info "Running basic validation..."
+    run_codegen
+    run_quick_fix
     run_basic_validation
 
     log_success "Development workflow completed"
@@ -131,22 +256,13 @@ run_full_validation() {
     log "Running full validation..."
 
     log_info "Running prebuild..."
-    pnpm prebuild
+    pnpm run prebuild
 
-    log_info "Building project..."
-    pnpm build
-
-    log_info "Running soft validation..."
-    pnpm lint && pnpm typecheck
-
-    log_info "Checking unused exports..."
-    pnpm check:unused:exports
-
-    log_info "Running strict tests..."
-    pnpm test:strict
-
-    log_info "Running E2E sanity tests..."
-    pnpm test:e2e:sanity
+    run_build
+    run_code_quality_validation
+    run_unused_exports_check
+    run_unit_test_strict_validation
+    run_sanity_e2e_test_validation
 
     log_success "Full validation completed"
 }
@@ -155,11 +271,8 @@ run_full_validation() {
 run_staging_validation() {
     log "Running staging validation..."
 
-    log_info "Running full validation..."
     run_full_validation
-
-    log_info "Checking bundle size..."
-    pnpm check:size
+    run_size_check
 
     log_success "Staging validation completed"
 }
@@ -171,47 +284,46 @@ run_production_validation() {
     log_info "Setting production environment..."
     export NODE_ENV=production
 
-    log_info "Running full validation..."
     run_full_validation
-
-    log_info "Running production-specific checks..."
-    pnpm check:size:ci
+    run_critical_e2e_test_validation
+    run_size_check
 
     log_success "Production validation completed"
 }
 
-# Function to check circular dependencies
-run_circular_check() {
+# Function to check circular dependencies (standalone)
+run_circular_check_standalone() {
     log "Checking circular dependencies..."
-    pnpm check:circular
+    run_circular_check
     log_success "Circular dependency check completed"
 }
 
-# Function to validate and fix types
-run_types_validation() {
+# Function to validate and fix types (standalone)
+run_types_validation_standalone() {
     log "Validating and fixing types..."
-    pnpm fix:types
+    run_type_validation
+    run_type_fix
     log_success "Type validation and fixes completed"
 }
 
-# Function to verify environment variables
-run_env_verification() {
+# Function to verify environment variables (standalone)
+run_env_verification_standalone() {
     log "Verifying environment variables..."
-    pnpm verify-env
+    run_env_verification
     log_success "Environment verification completed"
 }
 
-# Function to check bundle size
-run_size_check() {
+# Function to check bundle size (standalone)
+run_size_check_standalone() {
     log "Checking bundle size..."
-    pnpm check:size
+    run_size_check
     log_success "Bundle size check completed"
 }
 
-# Function to check unused exports
-run_unused_check() {
+# Function to check unused exports (standalone)
+run_unused_check_standalone() {
     log "Checking unused exports..."
-    pnpm check:unused:exports
+    run_unused_exports_check
     log_success "Unused exports check completed"
 }
 
@@ -238,19 +350,19 @@ case "$SUBCOMMAND" in
         run_production_validation
         ;;
     "circular")
-        run_circular_check
+        run_circular_check_standalone
         ;;
     "types")
-        run_types_validation
+        run_types_validation_standalone
         ;;
     "env")
-        run_env_verification
+        run_env_verification_standalone
         ;;
     "size")
-        run_size_check
+        run_size_check_standalone
         ;;
     "unused")
-        run_unused_check
+        run_unused_check_standalone
         ;;
     "help"|"-h"|"--help")
         show_usage

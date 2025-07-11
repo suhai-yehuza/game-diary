@@ -179,20 +179,11 @@ async function handleCI(subcommand: string, args: string[]): Promise<void> {
 async function handleValidation(subcommand: string, args: string[]): Promise<void> {
   switch (subcommand) {
     case 'run':
-      await runCommand(
-        `./scripts/validation-run.sh ${args.join(' ')}`,
-        'Running validation pipeline'
-      );
-      break;
-    case 'helpers':
-      await runCommand(
-        `./scripts/validation-helpers.sh ${args.join(' ')}`,
-        'Running validation helpers'
-      );
+      await runCommand(`./scripts/validate.sh ${args.join(' ')}`, 'Running validation pipeline');
       break;
     default:
       logger.error(`Unknown validation subcommand: ${subcommand}`);
-      logger.info('Available validation commands: run, helpers');
+      logger.info('Available validation commands: run');
       process.exit(1);
   }
 }

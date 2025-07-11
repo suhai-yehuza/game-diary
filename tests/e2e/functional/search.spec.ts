@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import { openMobileSearch } from '../utils/navigation';
 import { setupE2EMocking, safeGotoWithMocking } from '../utils/test-utils';
 
-test.describe.configure({ mode: 'serial' });
+test.describe.configure({ mode: 'serial', retries: 2 });
 
 test.describe('Search Functionality', () => {
   test.beforeEach(async ({ page }) => {

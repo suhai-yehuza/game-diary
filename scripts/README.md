@@ -201,7 +201,7 @@ scripts/
 │   └── no-duplicate-main.js
 ├── e2e.sh                    # 🆕 Consolidated E2E testing script
 ├── ci.sh                     # 🆕 Consolidated CI pipeline script
-├── validate.sh               # 🆕 Consolidated validation script
+├── validate.sh               # Consolidated validation script (ACTIVE)
 ├── workflow.sh               # 🆕 Consolidated workflow script
 ├── e2e-run.sh                # E2E test runner (legacy)
 ├── e2e-compound-runner.sh    # Compound test hierarchy runner (legacy)
@@ -212,8 +212,6 @@ scripts/
 ├── ci-unit-tests.sh          # CI unit tests (legacy)
 ├── ci-e2e-tests.sh           # CI E2E tests (legacy)
 ├── ci-quality-gate.sh        # CI quality gate (legacy)
-├── validation-run.sh         # Validation runner (legacy)
-├── validation-helpers.sh     # Validation helper functions (legacy)
 ├── push-and-merge.sh         # Git workflow automation (legacy)
 ├── deployment-manager.sh     # Deployment management (legacy)
 ├── soak-monitor.sh           # Soak testing monitor (legacy)

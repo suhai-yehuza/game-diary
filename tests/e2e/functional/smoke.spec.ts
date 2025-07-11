@@ -5,6 +5,7 @@ import { testMultiplePages, testHomePage, testDashboardPage } from '@tests/e2e/u
 import { navigateToSection } from '@tests/e2e/utils/navigation';
 import { SPORTS_PAGES } from '@tests/e2e/utils/constants';
 import { runSanitySuite } from './sanity.spec';
+import { clearTestData } from '@tests/e2e/utils/test-utils';
 
 // Utility to detect problematic environments for smoke tests
 const isMobileOrTabletOrProblematicBrowser = (projectName: string): boolean => {
@@ -59,7 +60,9 @@ export async function runSmokeSuite(page: any) {
   await smokeTestMajorSectionNavigation(page);
 }
 
-test.describe.configure({ retries: 2 });
+test.beforeEach(async ({ page }) => {
+  await clearTestData(page); // Test data isolation: clear storage and cookies
+});
 
 test.describe('Smoke Tests (Extends Sanity)', () => {
   test.beforeEach(async ({ page }, testInfo) => {

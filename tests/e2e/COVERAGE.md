@@ -246,7 +246,7 @@ For faster CI execution:
 
 ```bash
 # Run tests in parallel (if supported)
-pnpm test:e2e:sanity --workers=4
+pnpm test:e2e:sanity --workers=2
 ```
 
 ## Monitoring and Alerts

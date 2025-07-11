@@ -8,12 +8,6 @@ import {
 import { testSignInModal } from '@tests/e2e/utils/auth-modal';
 import { runSmokeSuite } from './smoke.spec';
 
-// test.describe.configure({ mode: 'serial' }); // Only enable serial if test isolation is required
-
-test.beforeEach(async ({ page }) => {
-  await clearTestData(page); // Test data isolation: clear storage and cookies
-});
-
 // Atomic critical-level test functions
 export async function criticalTestAuthenticationFlow(page: any) {
   await safeGoto(page, '/');
@@ -117,7 +111,9 @@ export async function runCriticalSuite(page: any) {
   await criticalTestSignInModal(page);
 }
 
-test.describe.configure({ retries: 2 });
+test.beforeEach(async ({ page }) => {
+  await clearTestData(page); // Test data isolation: clear storage and cookies
+});
 
 test.describe('Critical Tests (Extends Smoke)', () => {
   test.beforeEach(async ({ page }) => {

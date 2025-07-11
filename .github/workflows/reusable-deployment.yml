@@ -163,7 +163,7 @@ jobs:
         run: pnpm exec playwright test tests/e2e/functional/mock-verification.spec.ts --reporter=line
 
   e2e-smoke:
-    name: E2E Smoke
+    name: E2E Smoke (Includes Sanity and Accessibility)
     needs: [unit-tests, database-tests]
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
@@ -187,7 +187,7 @@ jobs:
           CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
           CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
           DEPLOYMENT_URL: ${{ env.DEFAULT_LOCALHOST_URL || 'http://localhost:3000' }}
-        run: pnpm exec playwright test tests/e2e/functional/smoke.spec.ts --workers=6 --reporter=line
+        run: pnpm exec playwright test tests/e2e/functional/smoke.spec.ts --workers=2 --reporter=line
 
   e2e-live-games:
     name: E2E Live Games
@@ -214,10 +214,10 @@ jobs:
           CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
           CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
           DEPLOYMENT_URL: ${{ env.DEFAULT_LOCALHOST_URL || 'http://localhost:3000' }}
-        run: pnpm exec playwright test tests/e2e/functional/live-games.spec.ts --workers=6 --reporter=line
+        run: pnpm exec playwright test tests/e2e/functional/live-games.spec.ts --workers=2 --reporter=line
 
   e2e-functional:
-    name: E2E Functional (Critical)
+    name: E2E Functional (Responsive)
     needs: [unit-tests, database-tests]
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
@@ -241,7 +241,7 @@ jobs:
           CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
           CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
           DEPLOYMENT_URL: ${{ env.DEFAULT_LOCALHOST_URL || 'http://localhost:3000' }}
-        run: pnpm exec playwright test tests/e2e/functional/critical.spec.ts --workers=6 --reporter=line
+        run: pnpm exec playwright test tests/e2e/functional/responsive.spec.ts --workers=2 --reporter=line
 
   deploy:
     name: Deploy to Vercel
@@ -361,4 +361,4 @@ jobs:
           CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
           CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
           DEPLOYMENT_URL: ${{ needs.deploy.outputs.deployment-url }}
-        run: pnpm exec playwright test tests/e2e/functional/navigation.spec.ts --workers=6 --reporter=line
+        run: pnpm exec playwright test tests/e2e/functional/navigation.spec.ts --workers=2 --reporter=line

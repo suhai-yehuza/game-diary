@@ -65,10 +65,10 @@ export default defineConfig({
 
   // Timeouts and retries
   timeout: APP_CONFIG.TEST_TIMEOUT,
-  fullyParallel: true, // Enable full parallelization for faster CI
+  fullyParallel: false,
   forbidOnly: !!process.env.CI,
   retries: 2,
-  workers: process.env.CI ? 6 : 2, // Use more workers in CI for speed
+  workers: 2,
 
   // Web server configuration
   webServer: isLocalhostTarget() ? webServerConfig : undefined,

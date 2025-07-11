@@ -128,27 +128,27 @@ run_e2e_tests() {
     case "$test_type" in
         "sanity")
             log "📋 Step $((step_number + 1)): E2E Fast Tests (sanity)"
-            pnpm exec playwright test tests/e2e/functional/sanity.spec.ts --workers=6
+            pnpm exec playwright test tests/e2e/functional/sanity.spec.ts --workers=2
             ;;
         "smoke")
             log "📋 Step $((step_number + 1)): E2E Smoke Tests (smoke)"
-            pnpm exec playwright test tests/e2e/functional/smoke.spec.ts --workers=6
+            pnpm exec playwright test tests/e2e/functional/smoke.spec.ts --workers=2
             ;;
         "critical")
             log "📋 Step $((step_number + 1)): E2E Critical Tests (critical)"
-            pnpm exec playwright test tests/e2e/functional/critical.spec.ts --workers=6
+            pnpm exec playwright test tests/e2e/functional/critical.spec.ts --workers=2
             ;;
         "responsive")
             log "📋 Step $((step_number + 1)): E2E Responsive Tests (responsive)"
-            pnpm exec playwright test tests/e2e/functional/responsive.spec.ts --workers=6
+            pnpm exec playwright test tests/e2e/functional/responsive.spec.ts --workers=2
             ;;
         "cross-browser")
             log "📋 Step $((step_number + 1)): E2E Cross-Browser Tests (cross-browser)"
-            pnpm exec playwright test tests/e2e/functional/cross-browser.spec.ts --workers=6
+            pnpm exec playwright test tests/e2e/functional/cross-browser.spec.ts --workers=2
             ;;
         "full")
             log "📋 Step $((step_number + 1)): E2E Comprehensive Tests with Coverage (full)"
-            pnpm exec playwright test tests/e2e/functional/critical.spec.ts --workers=6
+            pnpm exec playwright test tests/e2e/functional/critical.spec.ts --workers=2
             ;;
         "performance")
             log "📋 Step $((step_number + 1)): E2E Performance Tests"

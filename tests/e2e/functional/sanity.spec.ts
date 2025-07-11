@@ -33,8 +33,6 @@ export async function runSanitySuite(page: Page) {
   await sanityTestBasicNavigation(page);
 }
 
-test.describe.configure({ retries: 2 });
-
 test.describe('Sanity Tests (Base Level)', () => {
   test.beforeEach(async ({ page }) => {
     await commonTestSetup(page);
