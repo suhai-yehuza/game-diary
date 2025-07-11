@@ -15,7 +15,8 @@ export async function sanityTestSignInModal(page: Page) {
 }
 
 export async function sanityTestSportsPage(page: Page) {
-  await testSportsPage(page, '/sports/nba');
+  // Increase timeout for sports page since it includes API calls
+  await testSportsPage(page, '/sports/nba', { timeout: 60000 });
 }
 
 export async function sanityTestBasicNavigation(page: Page) {

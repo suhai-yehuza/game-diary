@@ -20,7 +20,8 @@ const isMobileOrTabletOrProblematicBrowser = (projectName: string): boolean => {
 
 // Atomic smoke-level test functions
 export async function smokeTestAllSportsPages(page: any) {
-  await testMultiplePages(page, [...SPORTS_PAGES]);
+  // Increase timeout for sports pages since they include API calls
+  await testMultiplePages(page, [...SPORTS_PAGES], { timeout: 60000 });
 }
 
 export async function smokeTestDashboardPage(page: any) {
