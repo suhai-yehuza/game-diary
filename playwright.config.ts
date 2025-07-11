@@ -57,6 +57,10 @@ if (process.env.CI) {
   console.log('  VERCEL_PRODUCTION_URL:', process.env.VERCEL_PRODUCTION_URL);
   console.log('  Selected baseURL:', baseURL);
   console.log('  Will start web server:', isLocalhostTarget());
+  console.log(
+    '  VERCEL_AUTOMATION_BYPASS_SECRET:',
+    process.env.VERCEL_AUTOMATION_BYPASS_SECRET ? 'SET' : 'NOT SET'
+  );
 }
 
 export default defineConfig({
@@ -132,6 +136,12 @@ export default defineConfig({
     launchOptions: {
       args: [],
     },
+    // Add Vercel protection bypass header if secret is available
+    extraHTTPHeaders: process.env.VERCEL_AUTOMATION_BYPASS_SECRET
+      ? {
+          'x-vercel-protection-bypass': process.env.VERCEL_AUTOMATION_BYPASS_SECRET,
+        }
+      : {},
     contextOptions: {
       ignoreHTTPSErrors: true,
       viewport: { width: 1280, height: 720 },
@@ -140,12 +150,6 @@ export default defineConfig({
       hasTouch: false,
       javaScriptEnabled: true,
       acceptDownloads: true,
-      // Add Vercel protection bypass header if secret is available
-      extraHTTPHeaders: process.env.VERCEL_AUTOMATION_BYPASS_SECRET
-        ? {
-            'x-vercel-protection-bypass': process.env.VERCEL_AUTOMATION_BYPASS_SECRET,
-          }
-        : {},
     },
   },
 
