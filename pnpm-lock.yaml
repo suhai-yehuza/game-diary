@@ -141,7 +141,7 @@ importers:
         version: 5.1.5
       natural:
         specifier: 8.1.0
-        version: 8.1.0(socks@2.8.5)
+        version: 8.1.0(socks@2.8.6)
       next:
         specifier: 15.3.4
         version: 15.3.4(@babel/core@7.28.0)(@playwright/test@1.53.1)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
@@ -6657,8 +6657,8 @@ packages:
     resolution: {integrity: sha512-HehCEsotFqbPW9sJ8WVYB6UbmIMv7kUUORIF2Nncq4VQvBfNBLibW9YZR5dlYCSUhwcD628pRllm7n+E+YTzJw==}
     engines: {node: '>= 14'}
 
-  socks@2.8.5:
-    resolution: {integrity: sha512-iF+tNDQla22geJdTyJB1wM/qrX9DMRwWrciEPwWLPRWAUEM8sQiyxgckLxWT1f7+9VabJS0jTGGr4QgBuvi6Ww==}
+  socks@2.8.6:
+    resolution: {integrity: sha512-pe4Y2yzru68lXCb38aAqRf5gvN8YdjP1lok5o0J7BOHljkyCGKVz7H3vpVIXKD27rj2giOJ7DwVyk/GWrPHDWA==}
     engines: {node: '>= 10.0.0', npm: '>= 3.0.0'}
 
   sonner@2.0.5:
@@ -13144,19 +13144,19 @@ snapshots:
       '@types/whatwg-url': 11.0.5
       whatwg-url: 14.2.0
 
-  mongodb@6.17.0(socks@2.8.5):
+  mongodb@6.17.0(socks@2.8.6):
     dependencies:
       '@mongodb-js/saslprep': 1.3.0
       bson: 6.10.4
       mongodb-connection-string-url: 3.0.2
     optionalDependencies:
-      socks: 2.8.5
+      socks: 2.8.6
 
-  mongoose@8.16.3(socks@2.8.5):
+  mongoose@8.16.3(socks@2.8.6):
     dependencies:
       bson: 6.10.4
       kareem: 2.6.3
-      mongodb: 6.17.0(socks@2.8.5)
+      mongodb: 6.17.0(socks@2.8.6)
       mpath: 0.9.0
       mquery: 5.0.0
       ms: 2.1.3
@@ -13211,7 +13211,7 @@ snapshots:
 
   natural-compare@1.4.0: {}
 
-  natural@8.1.0(socks@2.8.5):
+  natural@8.1.0(socks@2.8.6):
     dependencies:
       afinn-165: 1.0.4
       afinn-165-financialmarketnews: 3.0.0
@@ -13219,7 +13219,7 @@ snapshots:
       dotenv: 16.6.1
       http-server: 14.1.1
       memjs: 1.3.2
-      mongoose: 8.16.3(socks@2.8.5)
+      mongoose: 8.16.3(socks@2.8.6)
       pg: 8.16.3
       redis: 4.7.1
       safe-stable-stringify: 2.5.0
@@ -14384,11 +14384,11 @@ snapshots:
     dependencies:
       agent-base: 7.1.4
       debug: 4.3.4
-      socks: 2.8.5
+      socks: 2.8.6
     transitivePeerDependencies:
       - supports-color
 
-  socks@2.8.5:
+  socks@2.8.6:
     dependencies:
       ip-address: 9.0.5
       smart-buffer: 4.2.0
