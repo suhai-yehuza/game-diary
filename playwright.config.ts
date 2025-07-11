@@ -150,5 +150,9 @@ export default defineConfig({
         ['json', { outputFile: 'test-results/results.json' }],
         ['junit', { outputFile: 'test-results/results.xml' }],
       ]
-    : [['list'], ['html'], ['json', { outputFile: 'test-results/results.json' }]],
+    : [
+        ['list'],
+        ['html', { open: 'never' }], // Never auto-open HTML report
+        ['json', { outputFile: 'test-results/results.json' }],
+      ],
 });

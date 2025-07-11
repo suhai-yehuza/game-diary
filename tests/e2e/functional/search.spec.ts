@@ -208,7 +208,6 @@ test.describe('Search Functionality', () => {
       { path: '/sports/nhl', name: 'NHL' },
       { path: '/sports/mls', name: 'MLS' },
       { path: '/sports/all-sports', name: 'All Sports' },
-      { path: '/sports/live', name: 'Live Games' },
     ];
 
     for (const testPage of testPages) {

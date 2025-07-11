@@ -10,12 +10,24 @@ export function LiveGamesBanner() {
   const { games } = useLiveGames();
 
   return (
-    <div className="w-full bg-gradient-to-r from-red-600 to-red-700 text-white">
+    <div
+      className="w-full bg-gradient-to-r from-red-600 to-red-700 text-white"
+      data-testid="live-games-banner"
+    >
       <div className="container mx-auto px-4 py-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <div className="flex items-center space-x-1">
-              <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
+              <div
+                className="w-2 h-2 bg-white rounded-full animate-pulse"
+                data-testid="live-indicator"
+                style={{
+                  // Ensure visibility on mobile devices
+                  visibility: 'visible !important',
+                  display: 'block !important',
+                  opacity: '1 !important',
+                }}
+              />
               <span className="text-sm font-semibold">LIVE</span>
             </div>
             <span className="text-sm">

@@ -64,6 +64,7 @@
     "test:e2e:pages:dashboard": "playwright test tests/e2e/pages/dashboard.spec.ts",
     "test:e2e:pages:sports": "playwright test tests/e2e/pages/sports.spec.ts",
     "test:e2e:pages:auth": "playwright test tests/e2e/pages/clerk-auth.spec.ts",
+    "test:e2e:live-games": "playwright test tests/e2e/functional/live-games.spec.ts",
     "test:e2e:smoke:deployed": "DEPLOYMENT_URL=$VERCEL_URL playwright test tests/e2e/functional/smoke.spec.ts",
     "test:e2e:pre-deploy": "pnpm test:e2e:critical && pnpm test:e2e:performance",
     "test:e2e:post-deploy": "pnpm test:e2e:smoke:deployed",

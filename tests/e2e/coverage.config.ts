@@ -24,7 +24,13 @@ export const COVERAGE_TARGETS: CoverageTarget[] = [
     category: 'Sports Pages',
     target: 95,
     description: 'All major sports league pages',
-    testFiles: ['sports.spec.ts', 'live-games.spec.ts'],
+    testFiles: ['sports.spec.ts'],
+  },
+  {
+    category: 'Live Games',
+    target: 95,
+    description: 'Live games functionality',
+    testFiles: ['live-games.spec.ts'],
   },
   {
     category: 'User Dashboard',
@@ -99,7 +105,7 @@ export const TEST_CATEGORIES: TestCategory[] = [
   },
   {
     name: 'Sports Content',
-    description: 'Sports pages and live game functionality',
+    description: 'Sports pages',
     priority: 'high',
     userJourneys: [
       'View NBA games',
@@ -107,10 +113,16 @@ export const TEST_CATEGORIES: TestCategory[] = [
       'View MLB games',
       'View NHL games',
       'View MLS games',
-      'View live games',
       'View all sports',
     ],
-    testFiles: ['sports.spec.ts', 'live-games.spec.ts'],
+    testFiles: ['sports.spec.ts'],
+  },
+  {
+    name: 'Live Games',
+    description: 'Live game functionality',
+    priority: 'high',
+    userJourneys: ['View live games'],
+    testFiles: ['live-games.spec.ts'],
   },
   {
     name: 'User Dashboard',

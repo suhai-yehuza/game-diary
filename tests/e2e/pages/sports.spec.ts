@@ -14,7 +14,6 @@ const sportsPages = [
   { path: '/sports/nhl', name: 'NHL', league: 'hockey' },
   { path: '/sports/mls', name: 'MLS', league: 'soccer' },
   { path: '/sports/all-sports', name: 'All Sports', league: 'all' },
-  { path: '/sports/live', name: 'Live Games', league: 'live' },
 ];
 
 // Run comprehensive page tests for each sports page
