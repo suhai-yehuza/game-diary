@@ -245,7 +245,7 @@ jobs:
 
   deploy:
     name: Deploy to Vercel
-    needs: [e2e-functional]
+    needs: [e2e-mock-verification, e2e-smoke, e2e-live-games, e2e-functional]
     if: ${{ inputs.deploy-to-vercel && success() }}
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
