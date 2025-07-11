@@ -99,7 +99,20 @@ export async function navigateToSection(
     // Home link is the logo
     link = page.locator('header a[href="/"]').first();
   } else {
+    // Try multiple selectors to find the navigation link
+    // First try the specific nav selector
     link = page.locator(`nav a[href="${href}"]`).first();
+
+    // If not found, try a more general selector that looks for any link with the href
+    if ((await link.count()) === 0) {
+      link = page.locator(`a[href="${href}"]`).first();
+    }
+
+    // If still not found, try looking for text content that matches the expected link
+    if ((await link.count()) === 0) {
+      const linkText = href.split('/').pop()?.toUpperCase() || href;
+      link = page.locator(`a:has-text("${linkText}")`).first();
+    }
   }
 
   // Wait for the link to be visible

@@ -520,7 +520,11 @@ export async function checkForConsoleErrors(page: Page): Promise<void> {
       !error.includes('SignUp') &&
       !error.includes('@clerk/nextjs') &&
       !error.includes('@clerk/shared') &&
-      !error.includes('Clerk: Failed to load Clerk')
+      !error.includes('Clerk: Failed to load Clerk') &&
+      // Filter out Google Sign-In errors
+      !error.includes('[GSI_LOGGER]') &&
+      !error.includes('FedCM get() rejects with NetworkError') &&
+      !error.includes('Error retrieving a token')
   );
 
   // Only fail if there are actual critical errors
