@@ -334,6 +334,9 @@ jobs:
           CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
           CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
           DEPLOYMENT_URL: ${{ needs.deploy.outputs.deployment-url }}
+          E2E_AUTH_BYPASS: 'true'
+          TEST_USER_EMAIL: 'test@game-diary.com'
+          TEST_USER_ID: 'test_user_123'
         run: pnpm exec playwright test tests/e2e/functional/smoke.spec.ts --reporter=line
 
   e2e-navigation-live:
@@ -361,4 +364,7 @@ jobs:
           CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
           CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
           DEPLOYMENT_URL: ${{ needs.deploy.outputs.deployment-url }}
+          E2E_AUTH_BYPASS: 'true'
+          TEST_USER_EMAIL: 'test@game-diary.com'
+          TEST_USER_ID: 'test_user_123'
         run: pnpm exec playwright test tests/e2e/functional/navigation.spec.ts --workers=2 --reporter=line

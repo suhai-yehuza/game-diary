@@ -752,6 +752,21 @@ export async function waitForCondition(
 export async function setupE2EMocking(page: Page): Promise<void> {
   console.log('🔧 Setting up comprehensive E2E mocking...');
 
+  // Inject Vercel protection bypass header for all requests if secret is available
+  const vercelBypassSecret = process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
+  if (vercelBypassSecret) {
+    await page.route('**', (route, request) => {
+      const headers = {
+        ...request.headers(),
+        'x-vercel-protection-bypass': vercelBypassSecret,
+      };
+      route.continue({ headers });
+    });
+    console.log('✅ Vercel protection bypass header injected for all requests');
+  } else {
+    console.log('⚠️  VERCEL_AUTOMATION_BYPASS_SECRET not set - protection bypass disabled');
+  }
+
   // Mock all API proxy endpoints to avoid rate limiting
   await page.route('**/api/proxy/**', async route => {
     const url = route.request().url();
