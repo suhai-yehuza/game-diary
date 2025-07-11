@@ -204,7 +204,7 @@ describe('DropdownMenu Components', () => {
 
   describe('DropdownMenuRadioItem', () => {
     it('renders radio item', () => {
-      render(<DropdownMenuRadioItem>Radio Item</DropdownMenuRadioItem>);
+      render(<DropdownMenuRadioItem value="test">Radio Item</DropdownMenuRadioItem>);
 
       expect(screen.getByTestId('dropdown-radio-item')).toBeInTheDocument();
       expect(screen.getByTestId('radio-indicator')).toBeInTheDocument();

@@ -15,8 +15,8 @@ vi.mock('@clerk/nextjs/server', () => ({
   auth: vi.fn(),
 }));
 
-const mockAuth = auth as vi.MockedFunction<typeof auth>;
-const mockRedirect = redirect as vi.MockedFunction<typeof redirect>;
+const mockAuth = auth as any;
+const mockRedirect = redirect as any;
 
 describe('ProtectedLayout', () => {
   beforeEach(() => {

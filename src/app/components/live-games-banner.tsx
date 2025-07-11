@@ -23,9 +23,9 @@ export function LiveGamesBanner() {
                 data-testid="live-indicator"
                 style={{
                   // Ensure visibility on mobile devices
-                  visibility: 'visible !important',
-                  display: 'block !important',
-                  opacity: '1 !important',
+                  visibility: 'visible',
+                  display: 'block',
+                  opacity: '1',
                 }}
               />
               <span className="text-sm font-semibold">LIVE</span>
