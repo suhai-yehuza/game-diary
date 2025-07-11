@@ -7,16 +7,10 @@ import { SPORTS_PAGES } from '@tests/e2e/utils/constants';
 import { runSanitySuite } from './sanity.spec';
 import { clearTestData } from '@tests/e2e/utils/test-utils';
 
-// Utility to detect problematic environments for smoke tests
-const isMobileOrTabletOrProblematicBrowser = (projectName: string): boolean => {
+// Utility to detect mobile devices for temporary skipping due to UI layout issues
+const isMobileDevice = (projectName: string): boolean => {
   const name = projectName.toLowerCase();
-  return (
-    name.includes('mobile') ||
-    name.includes('iphone') ||
-    name.includes('tablet') ||
-    name.includes('webkit') ||
-    name.includes('firefox')
-  );
+  return name.includes('mobile') || name.includes('iphone') || name.includes('tablet');
 };
 
 // Atomic smoke-level test functions
@@ -66,12 +60,9 @@ test.beforeEach(async ({ page }) => {
 
 test.describe('Smoke Tests (Extends Sanity)', () => {
   test.beforeEach(async ({ page }, testInfo) => {
-    // Skip smoke tests on mobile/tablet/WebKit/Firefox due to instability/timeouts
-    if (isMobileOrTabletOrProblematicBrowser(testInfo.project.name)) {
-      test.skip(
-        true,
-        'Skipping smoke tests on mobile/tablet/WebKit/Firefox due to instability/timeouts.'
-      );
+    // Skip mobile tests temporarily due to UI layout issues
+    if (isMobileDevice(testInfo.project.name)) {
+      test.skip(true, 'Skipping mobile tests temporarily due to UI layout issues');
     }
 
     await commonTestSetup(page);
