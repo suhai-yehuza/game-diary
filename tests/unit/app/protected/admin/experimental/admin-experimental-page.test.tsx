@@ -1,7 +1,6 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
-import { useApiFetch, useTabState } from '@/app/protected/admin/experimental/hooks';
 
 // Mock the components
 vi.mock('@/app/protected/admin/experimental/components', () => ({
