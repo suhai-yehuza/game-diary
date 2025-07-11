@@ -5,10 +5,20 @@ test.describe('Vercel Protection Bypass Debug', () => {
     // This test will help us verify the environment variable is available
     const bypassSecret = process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
     console.log('🔍 Debug: VERCEL_AUTOMATION_BYPASS_SECRET is:', bypassSecret ? 'SET' : 'NOT SET');
+    console.log('🔍 Debug: VERCEL_AUTOMATION_BYPASS_SECRET length:', bypassSecret?.length || 0);
+    console.log(
+      '🔍 Debug: VERCEL_AUTOMATION_BYPASS_SECRET value (first 10 chars):',
+      bypassSecret?.substring(0, 10) || 'N/A'
+    );
 
     if (!bypassSecret) {
       console.log('⚠️  WARNING: VERCEL_AUTOMATION_BYPASS_SECRET is not set!');
       console.log('   This will cause tests to be redirected to Vercel login page.');
+    } else if (bypassSecret.length === 0) {
+      console.log('⚠️  WARNING: VERCEL_AUTOMATION_BYPASS_SECRET is empty!');
+      console.log('   The secret exists but has no value. Check GitHub Actions secrets.');
+    } else {
+      console.log('✅ VERCEL_AUTOMATION_BYPASS_SECRET is properly set');
     }
 
     // Don't fail the test, just log the status
