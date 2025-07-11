@@ -253,7 +253,6 @@ jobs:
   deploy:
     name: Deploy to Vercel
     if: ${{ inputs.deploy-to-vercel }}
-    needs: [quality-gate] # Dependency on skipped job to satisfy linter
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
     outputs:
