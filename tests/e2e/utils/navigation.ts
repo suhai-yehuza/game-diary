@@ -105,43 +105,14 @@ export async function navigateToSection(
   // Wait for the link to be visible
   await expect(link).toBeVisible({ timeout });
 
-  // Try clicking the link
-  try {
-    await link.click();
-  } catch (error) {
-    console.log('Direct link click failed, trying alternative strategies...');
-
-    // Strategy 1: Try force click
-    try {
-      await link.click({ force: true });
-    } catch (forceError) {
-      console.log('Force click failed, trying position-based click...');
-
-      // Strategy 2: Try clicking at the center of the link
-      try {
-        const box = await link.boundingBox();
-        if (box) {
-          await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
-        } else {
-          throw new Error('Could not get bounding box for link');
-        }
-      } catch (positionError) {
-        console.log('Position-based click failed, trying keyboard navigation...');
-
-        // Strategy 3: Try keyboard navigation
-        try {
-          await link.focus();
-          await page.keyboard.press('Enter');
-        } catch (keyboardError) {
-          console.log('Keyboard navigation failed, trying direct navigation...');
-
-          // Strategy 4: Try direct navigation
-          await navigateToPage(page, href, options);
-          return;
-        }
-      }
-    }
-  }
+  // Click the link and wait for navigation to complete
+  console.log(`🔍 Clicking navigation link to ${href}...`);
+  await Promise.all([
+    // Wait for navigation to complete (URL change)
+    page.waitForURL(`**${href}`, { timeout }),
+    // Click the link
+    link.click(),
+  ]);
 
   if (waitForNetworkIdle) {
     await waitForNetworkIdleUtil(page, timeout);
@@ -236,42 +207,66 @@ export async function openMobileMenu(page: Page, timeout: number = 10000): Promi
       return;
     }
 
-    // Strategy 1: Try direct click
-    try {
-      await menuButton.click({ timeout: 5000 });
-      await page.waitForTimeout(500);
-
-      // Verify menu opened
-      const menuOpenAfterClick = await menuContainer.isVisible();
-      console.log(`Menu open after click: ${menuOpenAfterClick}`);
-
-      if (menuOpenAfterClick) {
-        console.log('Menu opened successfully with direct click');
-        return;
-      } else {
-        console.log('Menu did not open with direct click');
-        throw new Error('Menu did not open');
-      }
-    } catch (error) {
-      console.log('Direct click failed, trying alternative strategies...');
-    }
-
-    // Strategy 2: Try force click
+    // Strategy 1: Try force click first (bypasses element interception)
     try {
       await menuButton.click({ force: true, timeout: 5000 });
       await page.waitForTimeout(500);
 
-      const menuOpenAfterForceClick = await menuContainer.isVisible();
-      console.log(`Menu open after force click: ${menuOpenAfterForceClick}`);
+      // Verify menu opened
+      const menuOpenAfterClick = await menuContainer.isVisible();
+      console.log(`Menu open after force click: ${menuOpenAfterClick}`);
 
-      if (menuOpenAfterForceClick) {
+      if (menuOpenAfterClick) {
         console.log('Menu opened successfully with force click');
         return;
       } else {
-        throw new Error('Menu did not open with force click');
+        console.log('Menu did not open with force click');
+        throw new Error('Menu did not open');
       }
     } catch (error) {
       console.log('Force click failed, trying position-based click...');
+    }
+
+    // Strategy 2: Try clicking at the exact center of the button
+    try {
+      const box = await menuButton.boundingBox();
+      if (box) {
+        // Click at the exact center of the button
+        await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+        await page.waitForTimeout(500);
+
+        const menuOpenAfterMouseClick = await menuContainer.isVisible();
+        console.log(`Menu open after mouse click: ${menuOpenAfterMouseClick}`);
+
+        if (menuOpenAfterMouseClick) {
+          console.log('Menu opened successfully with mouse click');
+          return;
+        } else {
+          throw new Error('Menu did not open with mouse click');
+        }
+      } else {
+        throw new Error('Could not get bounding box for menu button');
+      }
+    } catch (error) {
+      console.log('Mouse click failed, trying direct click...');
+    }
+
+    // Strategy 3: Try direct click as fallback
+    try {
+      await menuButton.click({ timeout: 5000 });
+      await page.waitForTimeout(500);
+
+      const menuOpenAfterDirectClick = await menuContainer.isVisible();
+      console.log(`Menu open after direct click: ${menuOpenAfterDirectClick}`);
+
+      if (menuOpenAfterDirectClick) {
+        console.log('Menu opened successfully with direct click');
+        return;
+      } else {
+        throw new Error('Menu did not open with direct click');
+      }
+    } catch (error) {
+      console.log('Direct click failed, trying keyboard navigation...');
     }
 
     // Strategy 3: Try clicking at the center of the button
