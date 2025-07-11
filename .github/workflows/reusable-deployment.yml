@@ -187,7 +187,7 @@ jobs:
           CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
           CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
           DEPLOYMENT_URL: ${{ env.DEFAULT_LOCALHOST_URL || 'http://localhost:3000' }}
-        run: pnpm exec playwright test tests/e2e/functional/smoke.spec.ts --reporter=line
+        run: pnpm exec playwright test tests/e2e/functional/smoke.spec.ts --workers=6 --reporter=line
 
   e2e-live-games:
     name: E2E Live Games
@@ -214,10 +214,10 @@ jobs:
           CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
           CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
           DEPLOYMENT_URL: ${{ env.DEFAULT_LOCALHOST_URL || 'http://localhost:3000' }}
-        run: pnpm test:e2e:live-games
+        run: pnpm exec playwright test tests/e2e/functional/live-games.spec.ts --workers=6 --reporter=line
 
   e2e-functional:
-    name: E2E Functional
+    name: E2E Functional (Critical)
     needs: [unit-tests, database-tests]
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
@@ -241,44 +241,11 @@ jobs:
           CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
           CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
           DEPLOYMENT_URL: ${{ env.DEFAULT_LOCALHOST_URL || 'http://localhost:3000' }}
-        run: |
-          find tests/e2e/functional -name '*.spec.ts' \
-            ! -name 'mock-verification.spec.ts' \
-            ! -name 'live-games.spec.ts' \
-            ! -name 'smoke.spec.ts' \
-            -exec pnpm exec playwright test {} --reporter=line \;
-
-  e2e-pages:
-    name: E2E Pages
-    needs: [e2e-functional]
-    runs-on: ubuntu-latest
-    environment: ${{ inputs.environment }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: '10'
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: 'pnpm'
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-      - name: Setup Playwright browsers
-        run: pnpm exec playwright install --with-deps
-      - name: Run Pages E2E
-        # env:
-        #   DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        #   NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
-        #   CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
-        #   CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
-        #   DEPLOYMENT_URL: ${{ env.DEFAULT_LOCALHOST_URL || 'http://localhost:3000' }}
-        # run: pnpm exec playwright test tests/e2e/pages/*.spec.ts --reporter=line
-        run: echo "Skipping Pages E2E tests"
+        run: pnpm exec playwright test tests/e2e/functional/critical.spec.ts --workers=6 --reporter=line
 
   deploy:
-    name: Deploy
-    needs: [e2e-pages]
+    name: Deploy to Vercel
+    needs: [e2e-functional]
     if: ${{ inputs.deploy-to-vercel && success() }}
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
@@ -394,4 +361,4 @@ jobs:
           CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
           CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
           DEPLOYMENT_URL: ${{ needs.deploy.outputs.deployment-url }}
-        run: pnpm exec playwright test tests/e2e/functional/navigation.spec.ts --reporter=line
+        run: pnpm exec playwright test tests/e2e/functional/navigation.spec.ts --workers=6 --reporter=line

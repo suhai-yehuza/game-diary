@@ -8,7 +8,7 @@ import {
 import { testSignInModal } from '@tests/e2e/utils/auth-modal';
 import { runSmokeSuite } from './smoke.spec';
 
-test.describe.configure({ mode: 'serial' }); // Enforce serial execution for test isolation
+// test.describe.configure({ mode: 'serial' }); // Only enable serial if test isolation is required
 
 test.beforeEach(async ({ page }) => {
   await clearTestData(page); // Test data isolation: clear storage and cookies

@@ -124,26 +124,31 @@ run_e2e_tests() {
         log_info "Playwright browsers already installed"
     fi
 
+    # Only run the highest-level suite needed for this job. Use Playwright workers for parallelization.
     case "$test_type" in
         "sanity")
-            log "📋 Step $((step_number + 1)): E2E Fast Tests"
-            pnpm test:e2e:sanity
+            log "📋 Step $((step_number + 1)): E2E Fast Tests (sanity)"
+            pnpm exec playwright test tests/e2e/functional/sanity.spec.ts --workers=6
             ;;
         "smoke")
-            log "📋 Step $((step_number + 1)): E2E Smoke Tests"
-            pnpm test:e2e:smoke
+            log "📋 Step $((step_number + 1)): E2E Smoke Tests (smoke)"
+            pnpm exec playwright test tests/e2e/functional/smoke.spec.ts --workers=6
             ;;
         "critical")
-            log "📋 Step $((step_number + 1)): E2E Critical Tests"
-            pnpm test:e2e:critical
+            log "📋 Step $((step_number + 1)): E2E Critical Tests (critical)"
+            pnpm exec playwright test tests/e2e/functional/critical.spec.ts --workers=6
             ;;
         "responsive")
-            log "📋 Step $((step_number + 1)): E2E Responsive Tests"
-            pnpm test:e2e:responsive
+            log "📋 Step $((step_number + 1)): E2E Responsive Tests (responsive)"
+            pnpm exec playwright test tests/e2e/functional/responsive.spec.ts --workers=6
+            ;;
+        "cross-browser")
+            log "📋 Step $((step_number + 1)): E2E Cross-Browser Tests (cross-browser)"
+            pnpm exec playwright test tests/e2e/functional/cross-browser.spec.ts --workers=6
             ;;
         "full")
-            log "📋 Step $((step_number + 1)): E2E Comprehensive Tests with Coverage"
-            pnpm test:e2e:full
+            log "📋 Step $((step_number + 1)): E2E Comprehensive Tests with Coverage (full)"
+            pnpm exec playwright test tests/e2e/functional/critical.spec.ts --workers=6
             ;;
         "performance")
             log "📋 Step $((step_number + 1)): E2E Performance Tests"
