@@ -35,7 +35,7 @@ export default defineConfig({
         'src/lib/graphql/**',
         'src/lib/mock/**',
         'src/lib/types/**',
-        'src/app/api/**', // API routes are tested via e2e
+        'src/app/api/webhook/clerk-example-events/**',
         'src/app/styles/**',
         'src/middleware.ts', // Middleware is tested via e2e
       ],

@@ -1,76 +1,89 @@
-import { render, screen } from '@testing-library/react';
 import React from 'react';
-import { describe, it, expect, vi } from 'vitest';
+import { auth } from '@clerk/nextjs/server';
+import { redirect } from 'next/navigation';
+import { render, screen } from '@testing-library/react';
+import { describe, expect, it, vi, beforeEach } from 'vitest';
+import ProtectedLayout from '@/app/protected/layout';
 
-// Mock the entire module to avoid complex type issues
-vi.mock('@src/app/protected/layout', () => ({
-  default: ({ children }: { children: React.ReactNode }) => {
-    return <div data-testid="protected-layout">{children}</div>;
-  },
+// Mock Next.js navigation
+vi.mock('next/navigation', () => ({
+  redirect: vi.fn(),
 }));
 
-import ProtectedLayout from '@src/app/protected/layout';
+// Mock Clerk auth
+vi.mock('@clerk/nextjs/server', () => ({
+  auth: vi.fn(),
+}));
+
+const mockAuth = auth as vi.MockedFunction<typeof auth>;
+const mockRedirect = redirect as vi.MockedFunction<typeof redirect>;
 
 describe('ProtectedLayout', () => {
-  const mockChildren = <div data-testid="protected-children">Protected Content</div>;
-
-  it('renders children when provided', () => {
-    render(<ProtectedLayout>{mockChildren}</ProtectedLayout>);
-
-    expect(screen.getByTestId('protected-layout')).toBeInTheDocument();
-    expect(screen.getByTestId('protected-children')).toBeInTheDocument();
-    expect(screen.getByText('Protected Content')).toBeInTheDocument();
+  beforeEach(() => {
+    vi.clearAllMocks();
   });
 
-  it('handles complex children components', () => {
-    const complexChildren = (
-      <div>
-        <h1>Dashboard</h1>
-        <p>Welcome to your protected area</p>
-        <button>Click me</button>
-      </div>
-    );
+  it('renders children when user is authenticated', async () => {
+    mockAuth.mockResolvedValue({ userId: 'user123' });
 
-    render(<ProtectedLayout>{complexChildren}</ProtectedLayout>);
+    const TestComponent = () => <div data-testid="test-child">Test Content</div>;
 
-    expect(screen.getByText('Dashboard')).toBeInTheDocument();
-    expect(screen.getByText('Welcome to your protected area')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Click me' })).toBeInTheDocument();
+    const result = await ProtectedLayout({ children: <TestComponent /> });
+    render(result);
+
+    expect(screen.getByTestId('test-child')).toBeInTheDocument();
+    expect(screen.getByText('Test Content')).toBeInTheDocument();
+    expect(mockRedirect).not.toHaveBeenCalled();
   });
 
-  it('handles null children gracefully', () => {
-    render(<ProtectedLayout>{null}</ProtectedLayout>);
+  it('redirects to sign-in when user is not authenticated', async () => {
+    mockAuth.mockResolvedValue({ userId: null });
 
-    expect(screen.getByTestId('protected-layout')).toBeInTheDocument();
+    const result = await ProtectedLayout({ children: <div>Test</div> });
+
+    expect(mockRedirect).toHaveBeenCalledWith('/sign-in');
   });
 
-  it('handles undefined children gracefully', () => {
-    render(<ProtectedLayout>{undefined}</ProtectedLayout>);
+  it('redirects to sign-in when auth throws an error', async () => {
+    mockAuth.mockRejectedValue(new Error('Auth error'));
 
-    expect(screen.getByTestId('protected-layout')).toBeInTheDocument();
+    await expect(ProtectedLayout({ children: <div>Test</div> })).rejects.toThrow('Auth error');
+
+    expect(mockRedirect).toHaveBeenCalledWith('/sign-in');
   });
 
-  it('renders multiple children correctly', () => {
-    const multipleChildren = (
-      <>
-        <div data-testid="child-1">Child 1</div>
-        <div data-testid="child-2">Child 2</div>
-        <div data-testid="child-3">Child 3</div>
-      </>
-    );
+  it('handles undefined userId', async () => {
+    mockAuth.mockResolvedValue({ userId: undefined as any });
 
-    render(<ProtectedLayout>{multipleChildren}</ProtectedLayout>);
+    const result = await ProtectedLayout({ children: <div>Test</div> });
 
-    expect(screen.getByTestId('child-1')).toBeInTheDocument();
-    expect(screen.getByTestId('child-2')).toBeInTheDocument();
-    expect(screen.getByTestId('child-3')).toBeInTheDocument();
+    expect(mockRedirect).toHaveBeenCalledWith('/sign-in');
   });
 
-  it('maintains proper component structure', () => {
-    const { container } = render(<ProtectedLayout>{mockChildren}</ProtectedLayout>);
+  it('handles empty string userId', async () => {
+    mockAuth.mockResolvedValue({ userId: '' });
 
-    const layoutElement = container.querySelector('[data-testid="protected-layout"]');
-    expect(layoutElement).toBeInTheDocument();
-    expect(layoutElement?.tagName).toBe('DIV');
+    const result = await ProtectedLayout({ children: <div>Test</div> });
+
+    expect(mockRedirect).toHaveBeenCalledWith('/sign-in');
+  });
+
+  it('renders multiple children correctly', async () => {
+    mockAuth.mockResolvedValue({ userId: 'user123' });
+
+    const result = await ProtectedLayout({
+      children: (
+        <>
+          <div data-testid="child1">Child 1</div>
+          <div data-testid="child2">Child 2</div>
+        </>
+      ),
+    });
+    render(result);
+
+    expect(screen.getByTestId('child1')).toBeInTheDocument();
+    expect(screen.getByTestId('child2')).toBeInTheDocument();
+    expect(screen.getByText('Child 1')).toBeInTheDocument();
+    expect(screen.getByText('Child 2')).toBeInTheDocument();
   });
 });

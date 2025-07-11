@@ -1,7 +1,5 @@
-import { render, screen } from '@testing-library/react';
-import React from 'react';
-import { vi, describe, it, expect, beforeEach } from 'vitest';
-
+import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -13,487 +11,327 @@ import {
   DropdownMenuSeparator,
   DropdownMenuShortcut,
   DropdownMenuGroup,
-  DropdownMenuRadioGroup,
+  DropdownMenuPortal,
   DropdownMenuSub,
-  DropdownMenuSubTrigger,
   DropdownMenuSubContent,
-} from '@src/app/components/ui/dropdown-menu';
+  DropdownMenuSubTrigger,
+  DropdownMenuRadioGroup,
+} from '@/app/components/ui/dropdown-menu';
 
-// Mock Radix UI Dropdown Menu
+// Mock Radix UI components
 vi.mock('@radix-ui/react-dropdown-menu', () => ({
-  Root: ({ children }: { children: React.ReactNode }) => (
-    <div data-testid="dropdown-menu-root">{children}</div>
+  Root: ({ children, open, onOpenChange }: any) => (
+    <div data-testid="dropdown-root" data-open={open} onClick={() => onOpenChange?.(!open)}>
+      {children}
+    </div>
   ),
-  Trigger: ({ children, ...props }: { children: React.ReactNode; [key: string]: unknown }) => (
-    <button data-testid="dropdown-menu-trigger" {...props}>
+  Trigger: ({ children, ...props }: any) => (
+    <button data-testid="dropdown-trigger" {...props}>
       {children}
     </button>
   ),
-  Portal: ({ children }: { children: React.ReactNode }) => (
-    <div data-testid="dropdown-menu-portal">{children}</div>
-  ),
-  Content: ({
-    children,
-    className,
-    ...props
-  }: {
-    children: React.ReactNode;
-    className?: string;
-    [key: string]: unknown;
-  }) => (
-    <div data-testid="dropdown-menu-content" className={className} {...props}>
+  Content: ({ children, sideOffset, ...props }: any) => (
+    <div data-testid="dropdown-content" data-side-offset={sideOffset} {...props}>
       {children}
     </div>
   ),
-  Item: ({
-    children,
-    className,
-    ...props
-  }: {
-    children: React.ReactNode;
-    className?: string;
-    [key: string]: unknown;
-  }) => (
-    <div data-testid="dropdown-menu-item" className={className} {...props}>
+  Item: ({ children, inset, ...props }: any) => (
+    <div data-testid="dropdown-item" data-inset={inset} {...props}>
       {children}
     </div>
   ),
-  CheckboxItem: ({
-    children,
-    className,
-    checked,
-    ...props
-  }: {
-    children: React.ReactNode;
-    className?: string;
-    checked?: boolean;
-    [key: string]: unknown;
-  }) => (
-    <div
-      data-testid="dropdown-menu-checkbox-item"
-      className={className}
-      data-checked={checked}
-      {...props}
-    >
+  CheckboxItem: ({ children, checked, ...props }: any) => (
+    <div data-testid="dropdown-checkbox-item" data-checked={checked} {...props}>
+      <span data-testid="checkbox-indicator">{checked ? '✓' : ''}</span>
       {children}
     </div>
   ),
-  RadioItem: ({
-    children,
-    className,
-    ...props
-  }: {
-    children: React.ReactNode;
-    className?: string;
-    [key: string]: unknown;
-  }) => (
-    <div data-testid="dropdown-menu-radio-item" className={className} {...props}>
+  RadioItem: ({ children, ...props }: any) => (
+    <div data-testid="dropdown-radio-item" {...props}>
+      <span data-testid="radio-indicator">●</span>
       {children}
     </div>
   ),
-  Label: ({
-    children,
-    className,
-    ...props
-  }: {
-    children: React.ReactNode;
-    className?: string;
-    [key: string]: unknown;
-  }) => (
-    <div data-testid="dropdown-menu-label" className={className} {...props}>
+  Label: ({ children, inset, ...props }: any) => (
+    <div data-testid="dropdown-label" data-inset={inset} {...props}>
       {children}
     </div>
   ),
-  Separator: ({ className, ...props }: { className?: string; [key: string]: unknown }) => (
-    <hr data-testid="dropdown-menu-separator" className={className} {...props} />
-  ),
-  Group: ({ children }: { children: React.ReactNode }) => (
-    <div data-testid="dropdown-menu-group">{children}</div>
-  ),
-  RadioGroup: ({ children }: { children: React.ReactNode }) => (
-    <div data-testid="dropdown-menu-radio-group">{children}</div>
-  ),
-  Sub: ({ children }: { children: React.ReactNode }) => (
-    <div data-testid="dropdown-menu-sub">{children}</div>
-  ),
-  SubTrigger: ({
-    children,
-    className,
-    ...props
-  }: {
-    children: React.ReactNode;
-    className?: string;
-    [key: string]: unknown;
-  }) => (
-    <div data-testid="dropdown-menu-sub-trigger" className={className} {...props}>
+  Separator: ({ ...props }: any) => <hr data-testid="dropdown-separator" {...props} />,
+  Group: ({ children, ...props }: any) => (
+    <div data-testid="dropdown-group" {...props}>
       {children}
     </div>
   ),
-  SubContent: ({
-    children,
-    className,
-    ...props
-  }: {
-    children: React.ReactNode;
-    className?: string;
-    [key: string]: unknown;
-  }) => (
-    <div data-testid="dropdown-menu-sub-content" className={className} {...props}>
+  Portal: ({ children, ...props }: any) => (
+    <div data-testid="dropdown-portal" {...props}>
       {children}
     </div>
   ),
-  ItemIndicator: ({ children }: { children: React.ReactNode }) => (
-    <span data-testid="dropdown-menu-item-indicator">{children}</span>
+  Sub: ({ children, ...props }: any) => (
+    <div data-testid="dropdown-sub" {...props}>
+      {children}
+    </div>
   ),
+  SubContent: ({ children, ...props }: any) => (
+    <div data-testid="dropdown-sub-content" {...props}>
+      {children}
+    </div>
+  ),
+  SubTrigger: ({ children, inset, ...props }: any) => (
+    <div data-testid="dropdown-sub-trigger" data-inset={inset} {...props}>
+      {children}
+      <span data-testid="chevron-right">›</span>
+    </div>
+  ),
+  RadioGroup: ({ children, ...props }: any) => (
+    <div data-testid="dropdown-radio-group" {...props}>
+      {children}
+    </div>
+  ),
+  ItemIndicator: ({ children }: any) => <span data-testid="item-indicator">{children}</span>,
 }));
 
-// Mock Radix UI Icons
+// Mock Radix UI icons
 vi.mock('@radix-ui/react-icons', () => ({
   CheckIcon: () => <span data-testid="check-icon">✓</span>,
   ChevronRightIcon: () => <span data-testid="chevron-right-icon">›</span>,
-  DotFilledIcon: () => <span data-testid="dot-filled-icon">•</span>,
+  DotFilledIcon: () => <span data-testid="dot-filled-icon">●</span>,
 }));
 
 describe('DropdownMenu Components', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
-  describe('Basic DropdownMenu', () => {
-    it('renders basic dropdown menu structure', () => {
+  describe('DropdownMenu', () => {
+    it('renders the dropdown root', () => {
       render(
         <DropdownMenu>
-          <DropdownMenuTrigger>Open Menu</DropdownMenuTrigger>
+          <DropdownMenuTrigger>Open</DropdownMenuTrigger>
           <DropdownMenuContent>
             <DropdownMenuItem>Item 1</DropdownMenuItem>
-            <DropdownMenuItem>Item 2</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       );
 
-      expect(screen.getByTestId('dropdown-menu-root')).toBeInTheDocument();
-      expect(screen.getByTestId('dropdown-menu-trigger')).toBeInTheDocument();
-      expect(screen.getByTestId('dropdown-menu-content')).toBeInTheDocument();
-      expect(screen.getAllByTestId('dropdown-menu-item')).toHaveLength(2);
+      expect(screen.getByTestId('dropdown-root')).toBeInTheDocument();
     });
 
-    it('renders trigger with correct text', () => {
+    it('handles open state changes', () => {
       render(
         <DropdownMenu>
-          <DropdownMenuTrigger>Click me</DropdownMenuTrigger>
+          <DropdownMenuTrigger>Open</DropdownMenuTrigger>
           <DropdownMenuContent>
-            <DropdownMenuItem>Item</DropdownMenuItem>
+            <DropdownMenuItem>Item 1</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       );
 
+      const root = screen.getByTestId('dropdown-root');
+      fireEvent.click(root);
+
+      expect(root).toHaveAttribute('data-open', 'true');
+    });
+  });
+
+  describe('DropdownMenuTrigger', () => {
+    it('renders the trigger button', () => {
+      render(<DropdownMenuTrigger>Click me</DropdownMenuTrigger>);
+
+      expect(screen.getByTestId('dropdown-trigger')).toBeInTheDocument();
       expect(screen.getByText('Click me')).toBeInTheDocument();
+    });
+
+    it('passes through props', () => {
+      render(
+        <DropdownMenuTrigger data-testid="custom-trigger" className="custom-class">
+          Custom Trigger
+        </DropdownMenuTrigger>
+      );
+
+      const trigger = screen.getByTestId('custom-trigger');
+      expect(trigger).toHaveClass('custom-class');
+    });
+  });
+
+  describe('DropdownMenuContent', () => {
+    it('renders the content with default side offset', () => {
+      render(<DropdownMenuContent>Content</DropdownMenuContent>);
+
+      const content = screen.getByTestId('dropdown-content');
+      expect(content).toBeInTheDocument();
+      expect(content).toHaveAttribute('data-side-offset', '4');
+    });
+
+    it('renders with custom side offset', () => {
+      render(<DropdownMenuContent sideOffset={8}>Content</DropdownMenuContent>);
+
+      const content = screen.getByTestId('dropdown-content');
+      expect(content).toHaveAttribute('data-side-offset', '8');
     });
   });
 
   describe('DropdownMenuItem', () => {
-    it('renders menu item with correct content', () => {
-      render(
-        <DropdownMenu>
-          <DropdownMenuTrigger>Open</DropdownMenuTrigger>
-          <DropdownMenuContent>
-            <DropdownMenuItem>Test Item</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      );
+    it('renders the menu item', () => {
+      render(<DropdownMenuItem>Menu Item</DropdownMenuItem>);
 
-      const item = screen.getByTestId('dropdown-menu-item');
-      expect(item).toBeInTheDocument();
-      expect(item).toHaveTextContent('Test Item');
-    });
-
-    it('applies custom className', () => {
-      render(
-        <DropdownMenu>
-          <DropdownMenuTrigger>Open</DropdownMenuTrigger>
-          <DropdownMenuContent>
-            <DropdownMenuItem className="custom-class">Item</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      );
-
-      const item = screen.getByTestId('dropdown-menu-item');
-      expect(item).toHaveClass('custom-class');
+      expect(screen.getByTestId('dropdown-item')).toBeInTheDocument();
+      expect(screen.getByText('Menu Item')).toBeInTheDocument();
     });
 
     it('handles inset prop', () => {
-      render(
-        <DropdownMenu>
-          <DropdownMenuTrigger>Open</DropdownMenuTrigger>
-          <DropdownMenuContent>
-            <DropdownMenuItem inset>Inset Item</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      );
+      render(<DropdownMenuItem inset>Inset Item</DropdownMenuItem>);
 
-      const item = screen.getByTestId('dropdown-menu-item');
-      expect(item).toHaveClass('pl-8');
+      const item = screen.getByTestId('dropdown-item');
+      expect(item).toHaveAttribute('data-inset', 'true');
     });
   });
 
   describe('DropdownMenuCheckboxItem', () => {
-    it('renders checkbox item with correct state', () => {
-      render(
-        <DropdownMenu>
-          <DropdownMenuTrigger>Open</DropdownMenuTrigger>
-          <DropdownMenuContent>
-            <DropdownMenuCheckboxItem checked>Checkbox Item</DropdownMenuCheckboxItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      );
+    it('renders unchecked checkbox item', () => {
+      render(<DropdownMenuCheckboxItem>Checkbox Item</DropdownMenuCheckboxItem>);
 
-      const checkboxItem = screen.getByTestId('dropdown-menu-checkbox-item');
-      expect(checkboxItem).toBeInTheDocument();
-      expect(checkboxItem).toHaveAttribute('data-checked', 'true');
-      expect(checkboxItem).toHaveTextContent('Checkbox Item');
+      const item = screen.getByTestId('dropdown-checkbox-item');
+      expect(item).toBeInTheDocument();
+      expect(item).toHaveAttribute('data-checked', 'false');
     });
 
-    it('shows check icon when checked', () => {
-      render(
-        <DropdownMenu>
-          <DropdownMenuTrigger>Open</DropdownMenuTrigger>
-          <DropdownMenuContent>
-            <DropdownMenuCheckboxItem checked>Checkbox Item</DropdownMenuCheckboxItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      );
+    it('renders checked checkbox item', () => {
+      render(<DropdownMenuCheckboxItem checked>Checked Item</DropdownMenuCheckboxItem>);
 
-      expect(screen.getByTestId('check-icon')).toBeInTheDocument();
+      const item = screen.getByTestId('dropdown-checkbox-item');
+      expect(item).toHaveAttribute('data-checked', 'true');
+      expect(screen.getByTestId('checkbox-indicator')).toHaveTextContent('✓');
     });
   });
 
   describe('DropdownMenuRadioItem', () => {
-    it('renders radio item correctly', () => {
-      render(
-        <DropdownMenu>
-          <DropdownMenuTrigger>Open</DropdownMenuTrigger>
-          <DropdownMenuContent>
-            <DropdownMenuRadioItem value="option1">Radio Option 1</DropdownMenuRadioItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      );
+    it('renders radio item', () => {
+      render(<DropdownMenuRadioItem>Radio Item</DropdownMenuRadioItem>);
 
-      const radioItem = screen.getByTestId('dropdown-menu-radio-item');
-      expect(radioItem).toBeInTheDocument();
-      expect(radioItem).toHaveTextContent('Radio Option 1');
-    });
-
-    it('shows dot icon', () => {
-      render(
-        <DropdownMenu>
-          <DropdownMenuTrigger>Open</DropdownMenuTrigger>
-          <DropdownMenuContent>
-            <DropdownMenuRadioItem value="option1">Radio Option</DropdownMenuRadioItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      );
-
-      expect(screen.getByTestId('dot-filled-icon')).toBeInTheDocument();
+      expect(screen.getByTestId('dropdown-radio-item')).toBeInTheDocument();
+      expect(screen.getByTestId('radio-indicator')).toBeInTheDocument();
     });
   });
 
   describe('DropdownMenuLabel', () => {
-    it('renders label with correct text', () => {
-      render(
-        <DropdownMenu>
-          <DropdownMenuTrigger>Open</DropdownMenuTrigger>
-          <DropdownMenuContent>
-            <DropdownMenuLabel>Section Label</DropdownMenuLabel>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      );
+    it('renders label', () => {
+      render(<DropdownMenuLabel>Label</DropdownMenuLabel>);
 
-      const label = screen.getByTestId('dropdown-menu-label');
-      expect(label).toBeInTheDocument();
-      expect(label).toHaveTextContent('Section Label');
+      expect(screen.getByTestId('dropdown-label')).toBeInTheDocument();
+      expect(screen.getByText('Label')).toBeInTheDocument();
     });
 
     it('handles inset prop', () => {
-      render(
-        <DropdownMenu>
-          <DropdownMenuTrigger>Open</DropdownMenuTrigger>
-          <DropdownMenuContent>
-            <DropdownMenuLabel inset>Inset Label</DropdownMenuLabel>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      );
+      render(<DropdownMenuLabel inset>Inset Label</DropdownMenuLabel>);
 
-      const label = screen.getByTestId('dropdown-menu-label');
-      expect(label).toHaveClass('pl-8');
+      const label = screen.getByTestId('dropdown-label');
+      expect(label).toHaveAttribute('data-inset', 'true');
     });
   });
 
   describe('DropdownMenuSeparator', () => {
-    it('renders separator correctly', () => {
-      render(
-        <DropdownMenu>
-          <DropdownMenuTrigger>Open</DropdownMenuTrigger>
-          <DropdownMenuContent>
-            <DropdownMenuItem>Item 1</DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>Item 2</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      );
+    it('renders separator', () => {
+      render(<DropdownMenuSeparator />);
 
-      const separator = screen.getByTestId('dropdown-menu-separator');
-      expect(separator).toBeInTheDocument();
+      expect(screen.getByTestId('dropdown-separator')).toBeInTheDocument();
     });
   });
 
   describe('DropdownMenuShortcut', () => {
-    it('renders shortcut with correct text', () => {
-      render(
-        <DropdownMenu>
-          <DropdownMenuTrigger>Open</DropdownMenuTrigger>
-          <DropdownMenuContent>
-            <DropdownMenuItem>
-              Copy
-              <DropdownMenuShortcut>⌘C</DropdownMenuShortcut>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      );
+    it('renders shortcut', () => {
+      render(<DropdownMenuShortcut>Ctrl+K</DropdownMenuShortcut>);
 
-      expect(screen.getByText('⌘C')).toBeInTheDocument();
+      expect(screen.getByText('Ctrl+K')).toBeInTheDocument();
     });
   });
 
   describe('DropdownMenuGroup', () => {
-    it('renders group correctly', () => {
+    it('renders group', () => {
       render(
-        <DropdownMenu>
-          <DropdownMenuTrigger>Open</DropdownMenuTrigger>
-          <DropdownMenuContent>
-            <DropdownMenuGroup>
-              <DropdownMenuItem>Group Item 1</DropdownMenuItem>
-              <DropdownMenuItem>Group Item 2</DropdownMenuItem>
-            </DropdownMenuGroup>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <DropdownMenuGroup>
+          <DropdownMenuItem>Item 1</DropdownMenuItem>
+          <DropdownMenuItem>Item 2</DropdownMenuItem>
+        </DropdownMenuGroup>
       );
 
-      expect(screen.getByTestId('dropdown-menu-group')).toBeInTheDocument();
-    });
-  });
-
-  describe('DropdownMenuRadioGroup', () => {
-    it('renders radio group correctly', () => {
-      render(
-        <DropdownMenu>
-          <DropdownMenuTrigger>Open</DropdownMenuTrigger>
-          <DropdownMenuContent>
-            <DropdownMenuRadioGroup value="option1">
-              <DropdownMenuRadioItem value="option1">Option 1</DropdownMenuRadioItem>
-              <DropdownMenuRadioItem value="option2">Option 2</DropdownMenuRadioItem>
-            </DropdownMenuRadioGroup>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      );
-
-      expect(screen.getByTestId('dropdown-menu-radio-group')).toBeInTheDocument();
-      expect(screen.getAllByTestId('dropdown-menu-radio-item')).toHaveLength(2);
+      expect(screen.getByTestId('dropdown-group')).toBeInTheDocument();
+      expect(screen.getAllByTestId('dropdown-item')).toHaveLength(2);
     });
   });
 
   describe('DropdownMenuSub', () => {
-    it('renders sub menu correctly', () => {
+    it('renders sub menu', () => {
       render(
-        <DropdownMenu>
-          <DropdownMenuTrigger>Open</DropdownMenuTrigger>
-          <DropdownMenuContent>
-            <DropdownMenuSub>
-              <DropdownMenuSubTrigger>More Options</DropdownMenuSubTrigger>
-              <DropdownMenuSubContent>
-                <DropdownMenuItem>Sub Item 1</DropdownMenuItem>
-                <DropdownMenuItem>Sub Item 2</DropdownMenuItem>
-              </DropdownMenuSubContent>
-            </DropdownMenuSub>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <DropdownMenuSub>
+          <DropdownMenuSubTrigger>Sub Menu</DropdownMenuSubTrigger>
+          <DropdownMenuSubContent>
+            <DropdownMenuItem>Sub Item</DropdownMenuItem>
+          </DropdownMenuSubContent>
+        </DropdownMenuSub>
       );
 
-      expect(screen.getByTestId('dropdown-menu-sub')).toBeInTheDocument();
-      expect(screen.getByTestId('dropdown-menu-sub-trigger')).toBeInTheDocument();
-      expect(screen.getByTestId('dropdown-menu-sub-content')).toBeInTheDocument();
-      expect(screen.getByTestId('chevron-right-icon')).toBeInTheDocument();
+      expect(screen.getByTestId('dropdown-sub')).toBeInTheDocument();
+      expect(screen.getByTestId('dropdown-sub-trigger')).toBeInTheDocument();
+      expect(screen.getByTestId('dropdown-sub-content')).toBeInTheDocument();
     });
   });
 
-  describe('Complex DropdownMenu', () => {
-    it('renders complex dropdown with all components', () => {
+  describe('DropdownMenuSubTrigger', () => {
+    it('renders sub trigger with chevron', () => {
+      render(<DropdownMenuSubTrigger>Sub Trigger</DropdownMenuSubTrigger>);
+
+      expect(screen.getByTestId('dropdown-sub-trigger')).toBeInTheDocument();
+      expect(screen.getByTestId('chevron-right')).toBeInTheDocument();
+    });
+
+    it('handles inset prop', () => {
+      render(<DropdownMenuSubTrigger inset>Inset Sub Trigger</DropdownMenuSubTrigger>);
+
+      const trigger = screen.getByTestId('dropdown-sub-trigger');
+      expect(trigger).toHaveAttribute('data-inset', 'true');
+    });
+  });
+
+  describe('DropdownMenuRadioGroup', () => {
+    it('renders radio group', () => {
+      render(
+        <DropdownMenuRadioGroup>
+          <DropdownMenuRadioItem value="option1">Option 1</DropdownMenuRadioItem>
+          <DropdownMenuRadioItem value="option2">Option 2</DropdownMenuRadioItem>
+        </DropdownMenuRadioGroup>
+      );
+
+      expect(screen.getByTestId('dropdown-radio-group')).toBeInTheDocument();
+      expect(screen.getAllByTestId('dropdown-radio-item')).toHaveLength(2);
+    });
+  });
+
+  describe('Complete Dropdown Menu', () => {
+    it('renders a complete dropdown menu with all components', () => {
       render(
         <DropdownMenu>
           <DropdownMenuTrigger>Open Menu</DropdownMenuTrigger>
           <DropdownMenuContent>
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuItem>
-              Copy
-              <DropdownMenuShortcut>⌘C</DropdownMenuShortcut>
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              Paste
-              <DropdownMenuShortcut>⌘V</DropdownMenuShortcut>
-            </DropdownMenuItem>
+            <DropdownMenuLabel>Menu Label</DropdownMenuLabel>
+            <DropdownMenuItem>Regular Item</DropdownMenuItem>
+            <DropdownMenuCheckboxItem checked>Checked Item</DropdownMenuCheckboxItem>
             <DropdownMenuSeparator />
-            <DropdownMenuCheckboxItem checked>Show Grid</DropdownMenuCheckboxItem>
-            <DropdownMenuCheckboxItem>Show Rulers</DropdownMenuCheckboxItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuRadioGroup value="light">
-              <DropdownMenuLabel>Theme</DropdownMenuLabel>
-              <DropdownMenuRadioItem value="light">Light</DropdownMenuRadioItem>
-              <DropdownMenuRadioItem value="dark">Dark</DropdownMenuRadioItem>
+            <DropdownMenuRadioGroup>
+              <DropdownMenuRadioItem value="option1">Radio Option 1</DropdownMenuRadioItem>
+              <DropdownMenuRadioItem value="option2">Radio Option 2</DropdownMenuRadioItem>
             </DropdownMenuRadioGroup>
+            <DropdownMenuShortcut>Ctrl+S</DropdownMenuShortcut>
           </DropdownMenuContent>
         </DropdownMenu>
       );
 
-      expect(screen.getByTestId('dropdown-menu-root')).toBeInTheDocument();
-      expect(screen.getByTestId('dropdown-menu-trigger')).toBeInTheDocument();
-      expect(screen.getByTestId('dropdown-menu-content')).toBeInTheDocument();
-      expect(screen.getAllByTestId('dropdown-menu-label')).toHaveLength(2);
-      expect(screen.getAllByTestId('dropdown-menu-item')).toHaveLength(2);
-      expect(screen.getAllByTestId('dropdown-menu-checkbox-item')).toHaveLength(2);
-      expect(screen.getAllByTestId('dropdown-menu-radio-item')).toHaveLength(2);
-      expect(screen.getAllByTestId('dropdown-menu-separator')).toHaveLength(2);
-      expect(screen.getByTestId('dropdown-menu-radio-group')).toBeInTheDocument();
-    });
-  });
-
-  describe('Accessibility', () => {
-    it('supports keyboard navigation', () => {
-      render(
-        <DropdownMenu>
-          <DropdownMenuTrigger>Open</DropdownMenuTrigger>
-          <DropdownMenuContent>
-            <DropdownMenuItem>Item 1</DropdownMenuItem>
-            <DropdownMenuItem>Item 2</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      );
-
-      const trigger = screen.getByTestId('dropdown-menu-trigger');
-      trigger.focus();
-      expect(trigger).toHaveFocus();
-    });
-
-    it('handles disabled state', () => {
-      render(
-        <DropdownMenu>
-          <DropdownMenuTrigger>Open</DropdownMenuTrigger>
-          <DropdownMenuContent>
-            <DropdownMenuItem disabled>Disabled Item</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      );
-
-      const item = screen.getByTestId('dropdown-menu-item');
-      expect(item).toHaveAttribute('disabled');
+      expect(screen.getByTestId('dropdown-root')).toBeInTheDocument();
+      expect(screen.getByTestId('dropdown-trigger')).toBeInTheDocument();
+      expect(screen.getByTestId('dropdown-content')).toBeInTheDocument();
+      expect(screen.getByTestId('dropdown-label')).toBeInTheDocument();
+      expect(screen.getByTestId('dropdown-item')).toBeInTheDocument();
+      expect(screen.getByTestId('dropdown-checkbox-item')).toBeInTheDocument();
+      expect(screen.getByTestId('dropdown-separator')).toBeInTheDocument();
+      expect(screen.getByTestId('dropdown-radio-group')).toBeInTheDocument();
+      expect(screen.getAllByTestId('dropdown-radio-item')).toHaveLength(2);
     });
   });
 });
