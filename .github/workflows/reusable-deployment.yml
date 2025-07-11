@@ -343,7 +343,7 @@ jobs:
           E2E_AUTH_BYPASS: 'true'
           TEST_USER_EMAIL: 'test@game-diary.com'
           TEST_USER_ID: 'test_user_123'
-          # VERCEL_AUTOMATION_BYPASS_SECRET is automatically provided by Vercel's system environment variables
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
         run: pnpm exec playwright test tests/e2e/functional/smoke.spec.ts --reporter=line
 
   e2e-navigation-live:
@@ -374,5 +374,5 @@ jobs:
           E2E_AUTH_BYPASS: 'true'
           TEST_USER_EMAIL: 'test@game-diary.com'
           TEST_USER_ID: 'test_user_123'
-          # VERCEL_AUTOMATION_BYPASS_SECRET is automatically provided by Vercel's system environment variables
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
         run: pnpm exec playwright test tests/e2e/functional/navigation.spec.ts --workers=2 --reporter=line
