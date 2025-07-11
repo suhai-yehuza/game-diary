@@ -55,7 +55,7 @@ jobs:
           NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
           CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
           CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
-          DEPLOYMENT_URL: ${{ secrets.PRODUCTION_URL }}
+          DEPLOYMENT_URL: ${{ secrets.PRODUCTION_URL || 'https://game-diary-suhai-yehuza-suhais-projects-33a81a2a.vercel.app/' }}
         run: pnpm exec playwright test tests/e2e/functional/mock-verification.spec.ts --reporter=line
 
   # Run highest-level functional E2E tests in parallel: responsive and cross-browser
@@ -82,7 +82,7 @@ jobs:
           NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
           CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
           CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
-          DEPLOYMENT_URL: ${{ secrets.PRODUCTION_URL }}
+          DEPLOYMENT_URL: ${{ secrets.PRODUCTION_URL || 'https://game-diary-suhai-yehuza-suhais-projects-33a81a2a.vercel.app/' }}
         run: pnpm exec playwright test tests/e2e/functional/responsive.spec.ts --workers=2 --reporter=line
 
   e2e-cross-browser:
@@ -108,7 +108,7 @@ jobs:
           NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
           CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
           CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
-          DEPLOYMENT_URL: ${{ secrets.PRODUCTION_URL }}
+          DEPLOYMENT_URL: ${{ secrets.PRODUCTION_URL || 'https://game-diary-suhai-yehuza-suhais-projects-33a81a2a.vercel.app/' }}
         run: pnpm exec playwright test tests/e2e/functional/cross-browser.spec.ts --workers=2 --reporter=line
 
   coverage-report:
