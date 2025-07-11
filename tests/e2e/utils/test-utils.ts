@@ -754,15 +754,30 @@ export async function setupE2EMocking(page: Page): Promise<void> {
 
   // Inject Vercel protection bypass header for all requests if secret is available
   const vercelBypassSecret = process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
+  console.log('🔍 Vercel Protection Bypass Debug:');
+  console.log(`  - VERCEL_AUTOMATION_BYPASS_SECRET exists: ${!!vercelBypassSecret}`);
+  console.log(`  - VERCEL_AUTOMATION_BYPASS_SECRET length: ${vercelBypassSecret?.length || 0}`);
+  console.log(
+    `  - VERCEL_AUTOMATION_BYPASS_SECRET preview: ${vercelBypassSecret ? `${vercelBypassSecret.substring(0, 10)}...` : 'undefined'}`
+  );
+
   if (vercelBypassSecret) {
+    // Set the header at context level for all requests including initial navigation
+    await page.setExtraHTTPHeaders({
+      'x-vercel-protection-bypass': vercelBypassSecret,
+    });
+    console.log('✅ Vercel protection bypass header set at context level');
+
+    // Also set up route handler for additional requests
     await page.route('**', (route, request) => {
       const headers = {
         ...request.headers(),
         'x-vercel-protection-bypass': vercelBypassSecret,
       };
+      console.log(`🔧 Injecting protection bypass header for: ${request.url()}`);
       route.continue({ headers });
     });
-    console.log('✅ Vercel protection bypass header injected for all requests');
+    console.log('✅ Vercel protection bypass header also injected via route handler');
   } else {
     console.log('⚠️  VERCEL_AUTOMATION_BYPASS_SECRET not set - protection bypass disabled');
   }

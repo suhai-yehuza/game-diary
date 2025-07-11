@@ -140,6 +140,12 @@ export default defineConfig({
       hasTouch: false,
       javaScriptEnabled: true,
       acceptDownloads: true,
+      // Add Vercel protection bypass header if secret is available
+      extraHTTPHeaders: process.env.VERCEL_AUTOMATION_BYPASS_SECRET
+        ? {
+            'x-vercel-protection-bypass': process.env.VERCEL_AUTOMATION_BYPASS_SECRET,
+          }
+        : {},
     },
   },
 
