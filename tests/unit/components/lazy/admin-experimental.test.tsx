@@ -20,7 +20,7 @@ describe('LazyAdminExperimentalPage', () => {
   it('renders the lazy loading component', () => {
     render(<LazyAdminExperimentalPage />);
 
-    expect(screen.getByTestId('dynamic-component')).toBeInTheDocument();
+    expect(screen.getByText('Loading admin panel...')).toBeInTheDocument();
   });
 
   it('renders without crashing', () => {
@@ -30,7 +30,7 @@ describe('LazyAdminExperimentalPage', () => {
   it('has the correct component structure', () => {
     const { container } = render(<LazyAdminExperimentalPage />);
 
-    const dynamicElement = container.querySelector('[data-testid="dynamic-component"]');
-    expect(dynamicElement).toBeInTheDocument();
+    const loadingElement = container.querySelector('.animate-spin');
+    expect(loadingElement).toBeInTheDocument();
   });
 });

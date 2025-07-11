@@ -112,4 +112,5 @@ afterEach(() => {
 (globalThis as any).React = {
   ...(globalThis as any).React,
   act: vi.fn(fn => fn()),
+  createElement: React.createElement,
 };

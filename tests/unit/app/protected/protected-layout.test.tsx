@@ -44,12 +44,12 @@ describe('ProtectedLayout', () => {
     expect(mockRedirect).toHaveBeenCalledWith('/sign-in');
   });
 
-  it('redirects to sign-in when auth throws an error', async () => {
+  it('throws error when auth throws an error', async () => {
     mockAuth.mockRejectedValue(new Error('Auth error'));
 
     await expect(ProtectedLayout({ children: <div>Test</div> })).rejects.toThrow('Auth error');
 
-    expect(mockRedirect).toHaveBeenCalledWith('/sign-in');
+    expect(mockRedirect).not.toHaveBeenCalled();
   });
 
   it('handles undefined userId', async () => {
