@@ -199,3 +199,32 @@ NEXT_PUBLIC_ADMIN_EMAILS="admin@example.com,admin2@example.com"  # Admin user em
 NEXT_PUBLIC_APP_URL="${NEXT_PUBLIC_APP_URL:-http://localhost:3000}"  # Development URL
 NODE_ENV="development"                           # Environment
 ```
+
+# Database Reset & Setup
+
+This project supports two flexible database reset modes via a unified command:
+
+## Modes
+
+- **Canonical**: Runs the canonical SQL schema file (`src/lib/db/migrations/000_full_schema_reset.sql`) directly. This guarantees the database matches the schema exactly, dropping and recreating all tables. Use for local development, CI, onboarding, or when you want a guaranteed clean slate.
+- **Drizzle**: Uses Drizzle ORM's migration system to apply all migration files incrementally. This is safer for production and collaborative development, as it tracks migration history and applies only new changes.
+
+## Usage
+
+```
+pnpm db:reset --mode=canonical --env=dev
+pnpm db:reset --mode=drizzle --env=dev
+```
+
+- `--mode=canonical` — Resets using the canonical SQL file.
+- `--mode=drizzle` — Resets using Drizzle migrations.
+- `--env=dev|staging|prod` — Selects the environment (defaults to dev).
+
+## When to Use Each
+
+| Mode      | Use Case                         |
+| --------- | -------------------------------- |
+| canonical | Dev, CI, onboarding, test resets |
+| drizzle   | Prod, team dev, upgrades         |
+
+See `package.json` for script shortcuts.

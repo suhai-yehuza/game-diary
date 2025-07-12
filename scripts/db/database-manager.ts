@@ -27,6 +27,41 @@ import {
 } from '../utils/script-utils';
 import type { IMigration, IMigrationVerification, IMigrationVersion } from '@src/lib/types';
 
+// Add canonical reset logic (from full-reset.ts)
+import { execSync } from 'child_process';
+import { config as dotenvConfig } from 'dotenv';
+
+async function runCanonicalReset(env: string) {
+  // Determine which .env file to load
+  let mainEnvFile = '.env';
+  if (env === 'dev' && existsSync('.env.development')) {
+    mainEnvFile = '.env.development';
+  } else if (env === 'staging' && existsSync('.env.staging')) {
+    mainEnvFile = '.env.staging';
+  } else if ((env === 'prod' || env === 'production') && existsSync('.env.production')) {
+    mainEnvFile = '.env.production';
+  } else if (existsSync('.env')) {
+    mainEnvFile = '.env';
+  }
+  dotenvConfig({ path: mainEnvFile });
+  if (existsSync('.env.local')) {
+    dotenvConfig({ path: '.env.local', override: true });
+  }
+  const databaseUrl = process.env.DATABASE_URL || '';
+  if (!databaseUrl) {
+    console.error(`❌ No DATABASE_URL found for ${env} environment`);
+    process.exit(1);
+  }
+  const migrationFile = join(process.cwd(), 'src/lib/db/migrations/000_full_schema_reset.sql');
+  if (!existsSync(migrationFile)) {
+    throw new Error(`Migration file not found: ${migrationFile}`);
+  }
+  console.log(`📄 Running canonical migration: ${migrationFile}`);
+  const command = `psql "${databaseUrl}" -f "${migrationFile}"`;
+  execSync(command, { stdio: 'inherit', encoding: 'utf8' });
+  console.log('✅ Canonical schema reset completed successfully!');
+}
+
 const execAsync = promisify(exec);
 
 // Configure neon for better stability (shared across all operations)
@@ -1142,6 +1177,30 @@ async function main(): Promise<void> {
   const command = args[0];
   const options = parseScriptArgs();
 
+  // Parse mode and env for reset
+  if (command === 'reset') {
+    let mode = 'canonical';
+    let env = 'dev';
+    for (let i = 1; i < args.length; i++) {
+      if (args[i].startsWith('--mode=')) {
+        mode = args[i].split('=')[1];
+      }
+      if (args[i].startsWith('--env=')) {
+        env = args[i].split('=')[1];
+      }
+    }
+    if (!['canonical', 'drizzle'].includes(mode)) {
+      console.log('Usage: pnpm db:reset --mode=canonical|drizzle --env=dev|staging|prod');
+      process.exit(1);
+    }
+    if (mode === 'canonical') {
+      await runCanonicalReset(env);
+    } else if (mode === 'drizzle') {
+      await setupDatabase('complete', env);
+    }
+    return;
+  }
+
   try {
     switch (command) {
       case 'migrate':
@@ -1239,6 +1298,7 @@ Commands:
   copy-migrations              Copy custom migrations to drizzle directory
   truncate --scope=<scope>     Truncate tables (scope: internal|external|all)
   drop --scope=<scope>         Drop tables (scope: internal|external|all)
+  reset --mode=canonical|drizzle --env=dev|staging|prod Reset database to canonical schema or setup drizzle
 
 Options:
   --env=<environment>          Environment (default: development)
@@ -1251,6 +1311,8 @@ Examples:
   tsx scripts/db/database-manager.ts setup complete
   tsx scripts/db/database-manager.ts truncate --scope=internal
   tsx scripts/db/database-manager.ts drop --scope=external
+  tsx scripts/db/database-manager.ts reset --mode=canonical --env=dev
+  tsx scripts/db/database-manager.ts reset --mode=drizzle --env=staging
         `);
         break;
     }
