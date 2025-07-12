@@ -28,7 +28,7 @@ export const users = pgTable(
     email_address: varchar('email_address', { length: 255 }), // email_addresses[0].email_address
 
     // Convenience field for primary phone number
-    phone_number: varchar('phone_number', { length: 20 }), // phone_numbers[0].phone_number
+    phone_number: text('phone_number'), // phone_numbers[0].phone_number (encrypted)
 
     // Clerk-specific fields
     external_id: varchar('external_id', { length: 255 }),

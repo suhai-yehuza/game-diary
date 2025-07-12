@@ -179,7 +179,7 @@ CREATE TABLE "users" (
     "primary_email_address_id" varchar(255),
     "primary_phone_number_id" varchar(255),
     "email_address" varchar(255),
-    "phone_number" varchar(20),
+    "phone_number" text,
     "external_id" varchar(255),
     "last_active_at" timestamp (6) with time zone,
     "last_sign_in_at" timestamp (6) with time zone,
@@ -341,7 +341,7 @@ UPDATE "comments" SET "depth" = 0 WHERE "depth" IS NULL;
 -- This migration adds phone_number field and enforces username + contact requirements
 
 -- Add phone_number column to users table
-ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "phone_number" varchar(20);
+ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "phone_number" text;
 
 -- Add constraint to ensure username is required and at least one contact method is provided
 ALTER TABLE "users" ADD CONSTRAINT "users_contact_constraint"
