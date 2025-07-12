@@ -41,7 +41,7 @@ describe('ProtectedLayout', () => {
 
     const result = await ProtectedLayout({ children: <div>Test</div> });
 
-    expect(mockRedirect).toHaveBeenCalledWith('/sign-in');
+    expect(mockRedirect).toHaveBeenCalledWith('/');
   });
 
   it('throws error when auth throws an error', async () => {
@@ -57,7 +57,7 @@ describe('ProtectedLayout', () => {
 
     const result = await ProtectedLayout({ children: <div>Test</div> });
 
-    expect(mockRedirect).toHaveBeenCalledWith('/sign-in');
+    expect(mockRedirect).toHaveBeenCalledWith('/');
   });
 
   it('handles empty string userId', async () => {
@@ -65,7 +65,7 @@ describe('ProtectedLayout', () => {
 
     const result = await ProtectedLayout({ children: <div>Test</div> });
 
-    expect(mockRedirect).toHaveBeenCalledWith('/sign-in');
+    expect(mockRedirect).toHaveBeenCalledWith('/');
   });
 
   it('renders multiple children correctly', async () => {

@@ -281,18 +281,4 @@ describe('Header - additional coverage', () => {
     // This test is not directly possible; test via Header instead.
     expect(true).toBe(true);
   });
-
-  it('does not show live games banner on sign-in page', async () => {
-    vi.doMock('next/navigation', () => ({
-      usePathname: () => '/sign-in',
-      useRouter: () => ({ push: vi.fn() }),
-      useSearchParams: () => new URLSearchParams(),
-    }));
-    vi.doMock('@/app/components/live-games-banner', () => ({
-      LiveGamesBanner: () => <div data-testid="live-games-banner">Live Games Banner</div>,
-    }));
-    const { Header } = await import('@/app/components/layout/header');
-    render(<Header />);
-    expect(screen.queryByTestId('live-games-banner')).not.toBeInTheDocument();
-  });
 });

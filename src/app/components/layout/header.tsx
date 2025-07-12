@@ -469,13 +469,10 @@ export function Header() {
     return pathname === path || pathname.startsWith(`${path}/`);
   };
 
-  // Don't show live games banner on authentication pages
-  const isAuthPage = pathname.startsWith('/sign-in') || pathname.startsWith('/sign-up');
-
   return (
     <>
       {/* Live Games Banner */}
-      {!isAuthPage && <LiveGamesBanner />}
+      <LiveGamesBanner />
 
       <header className="w-full border-b lg:border-b">
         <div className="grid grid-cols-[auto_1fr_auto] h-16 items-center w-full">
