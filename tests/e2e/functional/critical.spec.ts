@@ -28,11 +28,12 @@ export async function criticalTestProtectedRouteAccess(page: any) {
     await waitForPageLoad(page);
     await expect(page.locator('body')).toBeVisible();
 
-    // Check if we were redirected to sign-in (expected behavior for unauthenticated users)
+    // Check if we were redirected to home (expected behavior for unauthenticated users)
     const currentUrl = page.url();
-    if (currentUrl.includes('/sign-in')) {
-      // Successfully redirected to sign-in page
-      await expect(page.locator('body')).toBeVisible();
+    if (currentUrl === '/' || currentUrl.endsWith('/')) {
+      // Successfully redirected to home, check for sign-in button
+      const signInButton = page.getByTestId('sign-in-button');
+      await expect(signInButton).toBeVisible({ timeout: 10000 });
     } else {
       // If not redirected, check for auth prompts or protected content
       const authPrompt = page.locator('[data-testid="auth-prompt"], .auth-prompt, [role="alert"]');

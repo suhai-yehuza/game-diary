@@ -119,11 +119,10 @@ test.describe('Authentication Bypass Tests', () => {
     // Clear auth bypass
     await clearAuthBypass(page);
 
-    // Now try to access protected route - should redirect to sign-in
+    // Now try to access protected route - should redirect to home and show sign-in button
     await safeGotoWithMocking(page, '/protected/user');
-
-    // Should be redirected to sign-in page
-    await expect(page).toHaveURL(/\/sign-in/);
+    await expect(page).toHaveURL('/');
+    await expect(page.getByTestId('sign-in-button')).toBeVisible({ timeout: 10000 });
 
     console.log('✅ Auth bypass cleanup working correctly');
   });

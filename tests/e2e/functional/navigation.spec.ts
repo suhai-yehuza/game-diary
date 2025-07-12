@@ -49,7 +49,9 @@ export async function navigationTestProtectedRoutesNavigation(page: any) {
   for (const route of protectedRoutes) {
     await safeGoto(page, route);
     await waitForPageLoad(page);
-    await expect(page).toHaveURL(/\/sign-in/);
+    // Expect redirect to home and sign-in button visible
+    await expect(page).toHaveURL('/');
+    await expect(page.getByTestId('sign-in-button')).toBeVisible({ timeout: 10000 });
     await expect(page.locator('body')).toBeVisible();
   }
 }
