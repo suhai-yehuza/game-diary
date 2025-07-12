@@ -285,14 +285,14 @@ check_branches() {
     fi
 }
 
-# Check if local branch is up to date with remote (only in regular mode)
+# Check if branches need updates (only in regular mode)
 check_branch_sync() {
     if [[ "$NO_VERIFY" == true ]]; then
         log_warn "Skipping branch sync check (no-verify mode)"
         return 0
     fi
 
-    log_info "Checking if $SOURCE_BRANCH is up to date with remote..."
+    log_info "Checking if $SOURCE_BRANCH needs to be pushed to remote..."
 
     # Fetch latest changes from remote
     git fetch origin "$SOURCE_BRANCH" || {
@@ -306,8 +306,18 @@ check_branch_sync() {
 
     if [[ "$local_commit" == "$remote_commit" ]]; then
         log_info "✅ $SOURCE_BRANCH is already up to date with remote"
-        log_info "Skipping push and merge process..."
-        exit 0
+
+        # Check if target branch needs updates from source branch
+        log_info "Checking if $TARGET_BRANCH needs updates from $SOURCE_BRANCH..."
+
+        # Check if source branch changes are already in target branch
+        if git merge-base --is-ancestor "$SOURCE_BRANCH" "$TARGET_BRANCH" 2>/dev/null; then
+            log_info "✅ $TARGET_BRANCH already contains all changes from $SOURCE_BRANCH"
+            log_info "Skipping push and merge process..."
+            exit 0
+        else
+            log_info "📤 $TARGET_BRANCH needs updates from $SOURCE_BRANCH, proceeding with merge..."
+        fi
     else
         log_info "📤 Local branch has new commits, proceeding with push and merge..."
     fi
