@@ -1,0 +1,284 @@
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+
+import { userQueryResolvers, userSummaryResolver } from '@/lib/graphql/resolvers/user';
+import { encryptField, serializeEncryptedField } from '@/lib/utils/encryption';
+
+// Mock environment variables
+const mockEnv = {
+  DATA_ENCRYPTION_KEY: 'test-encryption-key-32-bytes-long!!',
+};
+
+vi.stubEnv('DATA_ENCRYPTION_KEY', mockEnv.DATA_ENCRYPTION_KEY);
+
+// Mock database
+const mockDb = {
+  query: {
+    users: {
+      findFirst: vi.fn(),
+      findMany: vi.fn(),
+    },
+  },
+};
+
+vi.mock('@/lib/db', () => ({
+  db: () => mockDb,
+}));
+
+describe('User GraphQL Resolvers', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  describe('userSummaryResolver', () => {
+    const mockContext = {
+      user: { id: 'user-123', email: 'test@example.com', banned: false },
+    };
+
+    const createMockUser = (id: string, email?: string, phone?: string) => ({
+      id,
+      username: 'testuser',
+      first_name: 'Test',
+      last_name: 'User',
+      email_address: email ? serializeEncryptedField(encryptField(email)) : null,
+      phone_number: phone ? serializeEncryptedField(encryptField(phone)) : null,
+      image_url: 'https://example.com/avatar.jpg',
+    });
+
+    describe('email_address resolver', () => {
+      it('should decrypt email for own user', () => {
+        const user = createMockUser('user-123', 'test@example.com');
+        const result = userSummaryResolver.email_address(user, {}, mockContext);
+
+        expect(result).toBe('test@example.com');
+      });
+
+      it('should return null for other users', () => {
+        const user = createMockUser('other-user-456', 'test@example.com');
+        const result = userSummaryResolver.email_address(user, {}, mockContext);
+
+        expect(result).toBeNull();
+      });
+
+      it('should return null when no user context', () => {
+        const user = createMockUser('user-123', 'test@example.com');
+        const result = userSummaryResolver.email_address(user, {}, {});
+
+        expect(result).toBeNull();
+      });
+
+      it('should handle non-encrypted email', () => {
+        const user = {
+          ...createMockUser('user-123'),
+          email_address: 'plain@example.com',
+        };
+        const result = userSummaryResolver.email_address(user, {}, mockContext);
+
+        expect(result).toBe('plain@example.com');
+      });
+    });
+
+    describe('phone_number resolver', () => {
+      it('should decrypt phone for own user', () => {
+        const user = createMockUser('user-123', undefined, '+1-555-123-4567');
+        const result = userSummaryResolver.phone_number(user, {}, mockContext);
+
+        expect(result).toBe('+1-555-123-4567');
+      });
+
+      it('should return null for other users', () => {
+        const user = createMockUser('other-user-456', undefined, '+1-555-123-4567');
+        const result = userSummaryResolver.phone_number(user, {}, mockContext);
+
+        expect(result).toBeNull();
+      });
+
+      it('should return null when no user context', () => {
+        const user = createMockUser('user-123', undefined, '+1-555-123-4567');
+        const result = userSummaryResolver.phone_number(user, {}, {});
+
+        expect(result).toBeNull();
+      });
+
+      it('should handle non-encrypted phone', () => {
+        const user = {
+          ...createMockUser('user-123'),
+          phone_number: '+1-555-123-4567',
+        };
+        const result = userSummaryResolver.phone_number(user, {}, mockContext);
+
+        expect(result).toBe('+1-555-123-4567');
+      });
+    });
+  });
+
+  describe('userQueryResolvers', () => {
+    const mockContext = {
+      user: { id: 'user-123', email: 'test@example.com', banned: false },
+    };
+
+    const createMockDbUser = (id: string, email?: string, phone?: string) => ({
+      id,
+      username: 'testuser',
+      first_name: 'Test',
+      last_name: 'User',
+      email_address: email ? serializeEncryptedField(encryptField(email)) : null,
+      phone_number: phone ? serializeEncryptedField(encryptField(phone)) : null,
+      image_url: 'https://example.com/avatar.jpg',
+    });
+
+    describe('me resolver', () => {
+      it('should return current user with decrypted sensitive data', async () => {
+        const mockUser = createMockDbUser('user-123', 'test@example.com', '+1-555-123-4567');
+        mockDb.query.users.findFirst.mockResolvedValue(mockUser);
+
+        const result = await userQueryResolvers.me({}, {}, mockContext);
+
+        expect(result).toEqual({
+          id: 'user-123',
+          username: 'testuser',
+          first_name: 'Test',
+          last_name: 'User',
+          email_address: 'test@example.com',
+          phone_number: '+1-555-123-4567',
+          image_url: 'https://example.com/avatar.jpg',
+        });
+      });
+
+      it('should throw error when no user context', async () => {
+        await expect(userQueryResolvers.me({}, {}, {})).rejects.toThrow('Authentication required');
+      });
+
+      it('should throw error when user not found', async () => {
+        mockDb.query.users.findFirst.mockResolvedValue(null);
+
+        await expect(userQueryResolvers.me({}, {}, mockContext)).rejects.toThrow('User not found');
+      });
+    });
+
+    describe('user resolver', () => {
+      it('should return user with decrypted sensitive data for own user', async () => {
+        const mockUser = createMockDbUser('user-123', 'test@example.com', '+1-555-123-4567');
+        mockDb.query.users.findFirst.mockResolvedValue(mockUser);
+
+        const result = await userQueryResolvers.user({}, { id: 'user-123' }, mockContext);
+
+        expect(result).toEqual({
+          id: 'user-123',
+          username: 'testuser',
+          first_name: 'Test',
+          last_name: 'User',
+          email_address: 'test@example.com',
+          phone_number: '+1-555-123-4567',
+          image_url: 'https://example.com/avatar.jpg',
+        });
+      });
+
+      it('should return user with null sensitive data for other users', async () => {
+        const mockUser = createMockDbUser('other-user-456', 'test@example.com', '+1-555-123-4567');
+        mockDb.query.users.findFirst.mockResolvedValue(mockUser);
+
+        const result = await userQueryResolvers.user({}, { id: 'other-user-456' }, mockContext);
+
+        expect(result).toEqual({
+          id: 'other-user-456',
+          username: 'testuser',
+          first_name: 'Test',
+          last_name: 'User',
+          email_address: null,
+          phone_number: null,
+          image_url: 'https://example.com/avatar.jpg',
+        });
+      });
+
+      it('should return null when user not found', async () => {
+        mockDb.query.users.findFirst.mockResolvedValue(null);
+
+        const result = await userQueryResolvers.user({}, { id: 'nonexistent' }, mockContext);
+
+        expect(result).toBeNull();
+      });
+    });
+
+    describe('users resolver', () => {
+      it('should return users list with proper sensitive data protection', async () => {
+        const mockUsers = [
+          createMockDbUser('user-123', 'own@example.com', '+1-555-123-4567'),
+          createMockDbUser('other-user-456', 'other@example.com', '+1-555-987-6543'),
+        ];
+        mockDb.query.users.findMany.mockResolvedValue(mockUsers);
+
+        const result = await userQueryResolvers.users({}, {}, mockContext);
+
+        expect(result).toHaveLength(2);
+
+        // Own user should have decrypted data
+        expect(result[0]).toEqual({
+          id: 'user-123',
+          username: 'testuser',
+          first_name: 'Test',
+          last_name: 'User',
+          email_address: 'own@example.com',
+          phone_number: '+1-555-123-4567',
+          image_url: 'https://example.com/avatar.jpg',
+        });
+
+        // Other user should have null sensitive data
+        expect(result[1]).toEqual({
+          id: 'other-user-456',
+          username: 'testuser',
+          first_name: 'Test',
+          last_name: 'User',
+          email_address: null,
+          phone_number: null,
+          image_url: 'https://example.com/avatar.jpg',
+        });
+      });
+
+      it('should handle empty users list', async () => {
+        mockDb.query.users.findMany.mockResolvedValue([]);
+
+        const result = await userQueryResolvers.users({}, {}, mockContext);
+
+        expect(result).toEqual([]);
+      });
+    });
+
+    describe('searchUsers resolver', () => {
+      it('should return search results with proper sensitive data protection', async () => {
+        const mockUsers = [
+          createMockDbUser('user-123', 'own@example.com', '+1-555-123-4567'),
+          createMockDbUser('other-user-456', 'other@example.com', '+1-555-987-6543'),
+        ];
+        mockDb.query.users.findMany.mockResolvedValue(mockUsers);
+
+        const result = await userQueryResolvers.searchUsers({}, {}, mockContext);
+
+        expect(result.edges).toHaveLength(2);
+        expect(result.pageInfo).toBeDefined();
+        expect(result.totalCount).toBe(2);
+
+        // Own user should have decrypted data
+        expect(result.edges[0].node).toEqual({
+          id: 'user-123',
+          username: 'testuser',
+          first_name: 'Test',
+          last_name: 'User',
+          email_address: 'own@example.com',
+          phone_number: '+1-555-123-4567',
+          image_url: 'https://example.com/avatar.jpg',
+        });
+
+        // Other user should have null sensitive data
+        expect(result.edges[1].node).toEqual({
+          id: 'other-user-456',
+          username: 'testuser',
+          first_name: 'Test',
+          last_name: 'User',
+          email_address: null,
+          phone_number: null,
+          image_url: 'https://example.com/avatar.jpg',
+        });
+      });
+    });
+  });
+});

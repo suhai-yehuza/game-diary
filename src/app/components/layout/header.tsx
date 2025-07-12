@@ -239,6 +239,11 @@ function AdminNavE2E({ isActive }: { isActive: (path: string) => boolean }) {
             Database
           </Link>
         </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link href="/protected/admin/audit-logs" className="w-full">
+            Audit Logs
+          </Link>
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
@@ -247,12 +252,6 @@ function AdminNavE2E({ isActive }: { isActive: (path: string) => boolean }) {
 // Production version of admin nav (with hooks)
 function AdminNavContent({ isActive }: { isActive: (path: string) => boolean }) {
   const { user, isLoaded } = useUser();
-
-  if (typeof window !== 'undefined') {
-    console.log('CLERK KEY:', process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY);
-    console.log('ADMIN EMAILS:', process.env.NEXT_PUBLIC_ADMIN_EMAILS);
-    console.log('USER EMAIL:', user?.emailAddresses?.[0]?.emailAddress);
-  }
 
   // Check if user is admin based on email
   const adminEmails = process.env.NEXT_PUBLIC_ADMIN_EMAILS
@@ -285,6 +284,11 @@ function AdminNavContent({ isActive }: { isActive: (path: string) => boolean }) 
         <DropdownMenuItem asChild>
           <Link href="/protected/admin/database" className="w-full">
             Database
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link href="/protected/admin/audit-logs" className="w-full">
+            Audit Logs
           </Link>
         </DropdownMenuItem>
       </DropdownMenuContent>

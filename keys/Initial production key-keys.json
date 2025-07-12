@@ -1,0 +1,27 @@
+{
+  "version": "1.0.0",
+  "keys": {
+    "abf7856af392d38f": {
+      "version": "abf7856af392d38f",
+      "createdAt": "2025-07-12T18:54:38.747Z",
+      "algorithm": "aes-256-gcm",
+      "keyLength": 32,
+      "description": "Initial encryption key",
+      "environment": "Initial production key",
+      "isActive": true
+    },
+    "bb24b12faa63782a": {
+      "version": "bb24b12faa63782a",
+      "createdAt": "2025-07-12T18:54:38.749Z",
+      "expiresAt": "2026-07-12T18:54:38.749Z",
+      "algorithm": "aes-256-gcm",
+      "keyLength": 32,
+      "description": "Key created on 2025-07-12T18:54:38.749Z",
+      "environment": "Initial production key",
+      "isActive": false
+    }
+  },
+  "activeKeyId": "abf7856af392d38f",
+  "createdAt": "2025-07-12T18:54:38.747Z",
+  "updatedAt": "2025-07-12T18:54:38.749Z"
+}

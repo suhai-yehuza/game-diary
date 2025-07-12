@@ -1,5 +1,10 @@
 #!/usr/bin/env tsx
 
+import { config } from 'dotenv-flow';
+
+// Load environment variables
+config();
+
 import { neon } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-http';
 import { eq } from 'drizzle-orm';
@@ -28,6 +33,11 @@ async function encryptExistingUsers() {
   if (!process.env.DATA_ENCRYPTION_KEY) {
     throw new Error('DATA_ENCRYPTION_KEY environment variable is required');
   }
+
+  logger.info(`🔐 Using encryption key for environment: ${process.env.NODE_ENV || 'unknown'}`);
+  logger.info(
+    `🔑 Key fingerprint: ${process.env.DATA_ENCRYPTION_KEY.substring(0, 8)}...${process.env.DATA_ENCRYPTION_KEY.substring(56)}`
+  );
 
   const sql = neon(databaseUrl);
   const db = drizzle(sql);
@@ -142,16 +152,14 @@ async function verifyEncryption(db: any) {
 }
 
 // Run the script
-if (require.main === module) {
-  encryptExistingUsers()
-    .then(() => {
-      logger.info('🎉 User encryption script completed successfully!');
-      process.exit(0);
-    })
-    .catch(error => {
-      logger.error('💥 User encryption script failed:', error);
-      process.exit(1);
-    });
-}
+encryptExistingUsers()
+  .then(() => {
+    logger.info('🎉 User encryption script completed successfully!');
+    process.exit(0);
+  })
+  .catch(error => {
+    logger.error('💥 User encryption script failed:', error);
+    process.exit(1);
+  });
 
 export { encryptExistingUsers };

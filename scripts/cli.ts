@@ -319,6 +319,45 @@ async function handleWorkflow(subcommand: string, args: string[]): Promise<void>
 }
 
 // ============================================================================
+// SECURITY OPERATIONS
+// ============================================================================
+
+/**
+ * Security operations
+ */
+async function handleSecurity(subcommand: string, args: string[]): Promise<void> {
+  switch (subcommand) {
+    case 'test-alerting':
+      await runCommand(
+        'tsx scripts/tests/test-slack-alerting.ts',
+        'Testing Slack alerting service'
+      );
+      break;
+    case 'test-encryption':
+      await runCommand('tsx scripts/tests/test-encryption.ts', 'Testing encryption utilities');
+      break;
+    case 'test-rls':
+      await runCommand(
+        'tsx scripts/tests/test-rls-policies.ts',
+        'Testing Row-Level Security policies'
+      );
+      break;
+    case 'key-management':
+      await runCommand(
+        `tsx scripts/key-management.ts ${args.join(' ')}`,
+        'Managing encryption keys'
+      );
+      break;
+    default:
+      logger.error(`Unknown security subcommand: ${subcommand}`);
+      logger.info(
+        'Available security commands: test-alerting, test-encryption, test-rls, key-management'
+      );
+      process.exit(1);
+  }
+}
+
+// ============================================================================
 // MAIN CLI INTERFACE
 // ============================================================================
 
@@ -355,6 +394,9 @@ async function main(): Promise<void> {
         break;
       case 'workflow':
         await handleWorkflow(subcommand, args);
+        break;
+      case 'security':
+        await handleSecurity(subcommand, args);
         break;
       default:
         logger.error(`Unknown command: ${command}`);
@@ -433,6 +475,12 @@ Commands:
     timed [options]       Run timed execution
     generate-results [options] Generate test results
     rename [options]      Rename files to kebab case
+
+  security <subcommand>    Security operations
+    test-alerting          Test Slack alerting service
+    test-encryption       Test encryption utilities
+    test-rls              Test Row-Level Security policies
+    key-management [options] Manage encryption keys
 
 Examples:
   tsx scripts/cli.ts db migrate
