@@ -23,6 +23,7 @@ export const BASIC_USER_FRAGMENT = gql`
     first_name
     last_name
     email_address
+    phone_number
     image_url
     object
     has_image

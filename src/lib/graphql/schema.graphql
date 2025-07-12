@@ -104,6 +104,7 @@ type UserSummary {
   first_name: String!
   last_name: String!
   email_address: String
+  phone_number: String
   image_url: String
 }
 
@@ -113,6 +114,7 @@ type DBUser {
   first_name: String
   last_name: String
   email_address: String
+  phone_number: String
   image_url: String
   object: String!
   has_image: Boolean!

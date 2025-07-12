@@ -27,6 +27,9 @@ export const users = pgTable(
     // Convenience field for primary email address
     email_address: varchar('email_address', { length: 255 }), // email_addresses[0].email_address
 
+    // Convenience field for primary phone number
+    phone_number: varchar('phone_number', { length: 20 }), // phone_numbers[0].phone_number
+
     // Clerk-specific fields
     external_id: varchar('external_id', { length: 255 }),
     last_active_at: timestamp({ precision: 6, withTimezone: true }),
@@ -52,6 +55,12 @@ export const users = pgTable(
   },
   table => ({
     emailUnique: unique().on(table.email_address),
+    // Constraint: username is required and at least one of email or phone must be provided
+    userContactConstraint: sql`CHECK (
+      username IS NOT NULL AND
+      LENGTH(TRIM(username)) > 0 AND
+      (email_address IS NOT NULL OR phone_number IS NOT NULL)
+    )`,
   })
 );
 

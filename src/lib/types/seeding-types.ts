@@ -40,6 +40,7 @@ export interface ISeedUser {
   primary_email_address_id: string;
   primary_phone_number_id: string;
   email_address: string;
+  phone_number: string;
   external_id: string;
   bio: string;
   timezone: string;

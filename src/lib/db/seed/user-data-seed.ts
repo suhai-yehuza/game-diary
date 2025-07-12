@@ -218,6 +218,7 @@ export function generateUsers(count: number): ISeedUser[] {
       primary_email_address_id: `email_${i + 1}`,
       primary_phone_number_id: `phone_${i + 1}`,
       email_address: faker.internet.email({ firstName, lastName }),
+      phone_number: faker.phone.number({ style: 'international' }), // US format with country code
       external_id: `clerk_user_${i + 1}`,
       bio: generateUserBio(),
       timezone: faker.helpers.arrayElement([

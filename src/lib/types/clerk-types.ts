@@ -20,6 +20,26 @@ export interface IClerkEmailAddress {
   };
 }
 
+export interface IClerkPhoneNumber {
+  created_at: number;
+  phone_number: string;
+  id: string;
+  linked_to: Array<{
+    id: string;
+    type: string;
+  }>;
+  matches_sso_connection: boolean;
+  object: 'phone_number';
+  reserved: boolean;
+  updated_at: number;
+  verification: {
+    attempts: number | null;
+    expire_at: number | null;
+    status: string;
+    strategy: string;
+  };
+}
+
 export interface IClerkExternalAccount {
   approved_scopes: string;
   avatar_url: string;
@@ -75,7 +95,7 @@ export interface IClerkUserData {
   object: 'user';
   passkeys: unknown[];
   password_enabled: boolean;
-  phone_numbers: unknown[];
+  phone_numbers: IClerkPhoneNumber[];
   primary_email_address_id: string | null;
   primary_phone_number_id: string | null;
   primary_web3_wallet_id: string | null;
