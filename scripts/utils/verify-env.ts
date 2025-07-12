@@ -3,14 +3,36 @@
 import { z } from 'zod';
 import { envSchema } from '@src/lib/validations/env';
 import dotenvFlow from 'dotenv-flow';
+import dotenv from 'dotenv';
+import fs from 'fs';
 
-// Load environment variables from .env files (only in non-CI environments)
+// Load environment variables synchronously for dev/test
 const isCI = process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true';
+const isDevOrTest =
+  process.env.NODE_ENV === 'development' ||
+  process.env.NODE_ENV === 'test' ||
+  !process.env.NODE_ENV;
+
 if (!isCI) {
-  try {
+  if (isDevOrTest) {
+    // For development/test, load .env.local as override synchronously
     dotenvFlow.config();
-  } catch (error) {
-    console.log('⚠️  No .env files found, using system environment variables');
+  } else {
+    // For production/staging, only load environment-specific files synchronously
+    const env = process.env.NODE_ENV || 'development';
+    let envFile = '.env';
+    if (String(env) === 'staging' && fs.existsSync('.env.staging')) {
+      envFile = '.env.staging';
+    } else if (String(env) === 'production' && fs.existsSync('.env.production')) {
+      envFile = '.env.production';
+    } else if (String(env) === 'development' && fs.existsSync('.env.development')) {
+      envFile = '.env.development';
+    }
+    try {
+      dotenv.config({ path: envFile });
+    } catch (error) {
+      console.log('⚠️  No .env files found, using system environment variables');
+    }
   }
 }
 

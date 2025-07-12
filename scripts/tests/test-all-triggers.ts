@@ -34,14 +34,16 @@ interface TestResult {
 class TriggerValidator {
   private db: ReturnType<typeof createDatabaseClient>;
   private results: TestResult[] = [];
+  private environment: string;
 
-  constructor() {
-    this.db = createDatabaseClient({ env: 'development' });
+  constructor(environment = 'development') {
+    this.environment = environment;
+    this.db = createDatabaseClient({ env: environment });
   }
 
   // Static method for global cleanup
-  static async globalCleanup() {
-    const db = createDatabaseClient({ env: 'development' });
+  static async globalCleanup(environment = 'development') {
+    const db = createDatabaseClient({ env: environment });
     await db.execute(
       sql`DELETE FROM game_logs WHERE id LIKE 'testtrig_%' OR user_id LIKE 'testtrig_%'`
     );
@@ -828,11 +830,22 @@ class TriggerValidator {
 // Main execution
 async function main(): Promise<void> {
   try {
-    const validator = new TriggerValidator();
+    // Parse environment from command line arguments
+    let environment = 'development';
+    for (const arg of process.argv) {
+      if (arg.startsWith('--env=')) {
+        environment = arg.split('=')[1];
+        break;
+      }
+    }
+
+    logger.info(`🧪 Running trigger tests for ${environment} environment`);
+
+    const validator = new TriggerValidator(environment);
     await validator.runAllTests();
     // Global cleanup to remove any leftover test data
     // Consider adding ON DELETE CASCADE to your schema for users/game_logs if appropriate
-    await TriggerValidator.globalCleanup();
+    await TriggerValidator.globalCleanup(environment);
   } catch (error) {
     logger.error('❌ Trigger validation failed:', error);
     process.exit(1);

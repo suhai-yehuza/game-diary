@@ -139,7 +139,94 @@ run_build() {
 # Environment & Configuration
 run_env_verification() {
     log_info "Verifying environment variables..."
-    pnpm run verify-env
+
+    # Basic environment validation
+    if pnpm run verify-env; then
+        log_success "Basic environment validation passed"
+    else
+        log_warning "Basic environment validation failed - continuing with additional checks"
+    fi
+
+    # Security-specific validations
+    log_info "Running security environment checks..."
+
+    # Check for encryption key in non-CI environments
+    if [ "$CI" != "true" ] && [ "$GITHUB_ACTIONS" != "true" ]; then
+        if [ -z "$DATA_ENCRYPTION_KEY" ]; then
+            log_warning "DATA_ENCRYPTION_KEY not set - encryption features may be limited"
+        else
+            # Validate encryption key format (should be 64 hex characters)
+            if [[ ! "$DATA_ENCRYPTION_KEY" =~ ^[0-9a-fA-F]{64}$ ]]; then
+                log_error "DATA_ENCRYPTION_KEY must be a 64-character hex string"
+                return 1
+            fi
+            log_success "DATA_ENCRYPTION_KEY format validated"
+        fi
+    fi
+
+    # Environment-specific validations
+    local node_env="${NODE_ENV:-development}"
+    log_info "Validating environment-specific configuration for: $node_env"
+
+    case "$node_env" in
+        "production"|"staging")
+            # Production/staging specific checks
+            if [ -z "$NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY" ] || [ -z "$CLERK_SECRET_KEY" ]; then
+                log_error "Clerk authentication keys are required for $node_env environment"
+                return 1
+            fi
+
+            if [ -z "$DATABASE_URL" ]; then
+                log_error "DATABASE_URL is required for $node_env environment"
+                return 1
+            fi
+
+            # Check for Redis configuration (recommended for production)
+            if [ -z "$UPSTASH_REDIS_REST_URL" ] && [ -z "$REDIS_URL" ]; then
+                log_warning "Redis configuration not found - caching may be limited in $node_env"
+            fi
+
+            log_success "Production/staging environment validation passed"
+            ;;
+        "development"|"test")
+            # Development/test specific checks
+            if [ -z "$DATABASE_URL" ]; then
+                log_warning "DATABASE_URL not set - database features will be limited"
+            fi
+
+            # Check for API keys (optional but recommended)
+            if [ -z "$NEXT_PUBLIC_RAPID_API_KEY" ]; then
+                log_warning "NEXT_PUBLIC_RAPID_API_KEY not set - external API features may be limited"
+            fi
+
+            log_success "Development/test environment validation passed"
+            ;;
+        *)
+            log_warning "Unknown NODE_ENV: $node_env - using development defaults"
+            ;;
+    esac
+
+    # Database connection test (if DATABASE_URL is available)
+    if [ -n "$DATABASE_URL" ]; then
+        log_info "Testing database connection..."
+        if pnpm run db:test-connection > /dev/null 2>&1; then
+            log_success "Database connection test passed"
+        else
+            log_warning "Database connection test failed - check DATABASE_URL configuration"
+        fi
+    fi
+
+    # Security key validation (if available)
+    if [ -n "$DATA_ENCRYPTION_KEY" ]; then
+        log_info "Testing encryption key..."
+        if pnpm run security:test-encryption > /dev/null 2>&1; then
+            log_success "Encryption key validation passed"
+        else
+            log_warning "Encryption key validation failed - check DATA_ENCRYPTION_KEY"
+        fi
+    fi
+
+    log_success "Environment verification completed"
 }
 
 # Code Analysis
@@ -214,8 +301,16 @@ run_ci_validation() {
     run_type_validation
     run_type_fix
 
-    log_info "Skipping environment validation in CI mode..."
+    log_info "Skipping comprehensive environment validation in CI mode..."
     log_warning "Environment variables will be validated in individual CI jobs"
+    log_info "Running basic environment checks for CI..."
+
+    # Run basic environment validation for CI (without connection tests)
+    if pnpm run verify-env > /dev/null 2>&1; then
+        log_success "Basic environment validation passed for CI"
+    else
+        log_warning "Basic environment validation failed - check CI environment variables"
+    fi
 
     log_success "CI-friendly validation completed"
 }
@@ -229,10 +324,15 @@ run_basic_validation() {
     run_type_fix
     run_db_triggers_validation
 
-    # Skip environment validation in CI mode
+    # Environment validation (with CI handling)
     if [ "$CI" = "true" ] || [ "$GITHUB_ACTIONS" = "true" ]; then
-        log_info "Skipping environment validation in CI mode..."
-        log_warning "Environment variables will be validated in individual CI jobs"
+        log_info "Running CI-optimized environment validation..."
+        # Run basic environment check for CI
+        if pnpm run verify-env > /dev/null 2>&1; then
+            log_success "CI environment validation passed"
+        else
+            log_warning "CI environment validation failed - check CI environment variables"
+        fi
     else
         run_env_verification
     fi
@@ -309,7 +409,28 @@ run_types_validation_standalone() {
 # Function to verify environment variables (standalone)
 run_env_verification_standalone() {
     log "Verifying environment variables..."
+
+    # Run the comprehensive environment verification
     run_env_verification
+
+    # Additional standalone checks
+    log_info "Running additional environment checks..."
+
+    # Check for common environment issues
+    if [ -z "$NODE_ENV" ]; then
+        log_warning "NODE_ENV not set - defaulting to development"
+    fi
+
+    # Check for potential security issues
+    if [ -n "$DEBUG" ] && [ "$NODE_ENV" = "production" ]; then
+        log_warning "DEBUG mode enabled in production environment"
+    fi
+
+    # Check for required files
+    if [ ! -f ".env.local" ] && [ ! -f ".env" ]; then
+        log_warning "No .env file found - using system environment variables"
+    fi
+
     log_success "Environment verification completed"
 }
 

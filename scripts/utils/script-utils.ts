@@ -15,13 +15,27 @@ export const execAsync = promisify(exec) as (
  * Parse command line arguments for common script options
  */
 export function parseScriptArgs(): IScriptOptions {
-  const env = process.argv[2] || 'development';
+  // Parse environment from --env=value format
+  let env = 'development';
+  for (const arg of process.argv) {
+    if (arg.startsWith('--env=')) {
+      env = arg.split('=')[1];
+      break;
+    }
+  }
+
+  // Fallback to positional argument if no --env flag
+  if (env === 'development' && process.argv[2] && !process.argv[2].startsWith('--')) {
+    env = process.argv[2];
+  }
+
   const dryRun = process.argv.includes('--dry-run');
   const runTests = process.argv.includes('--test');
   const verbose = process.argv.includes('--verbose');
 
   return {
     env,
+    environment: env, // Legacy support
     dryRun,
     runTests,
     verbose,
