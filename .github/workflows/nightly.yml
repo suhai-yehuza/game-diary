@@ -3,12 +3,45 @@ name: Nightly Tests
 on:
   schedule:
     - cron: '0 2 * * *' # 2 AM UTC daily
-  workflow_dispatch:
+  workflow_call:
+    inputs:
+      VERCEL_ORG_ID:
+        required: false
+      VERCEL_PROJECT_ID:
+        required: false
+      VERCEL_TOKEN:
+        required: false
+      DATABASE_URL:
+        required: false
+      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY:
+        required: false
+      CLERK_SECRET_KEY:
+        required: false
+      CLERK_WEBHOOK_SIGNING_SECRET:
+        required: false
+      VERCEL_AUTOMATION_BYPASS_SECRET:
+        required: false
 
 env:
   NODE_ENV: test
 
 jobs:
+  deploy:
+    uses: ./.github/workflows/reusable-deployment.yml
+    with:
+      workflow-name: 'Nightly Tests'
+      environment: 'Nightly'
+      deploy-to-vercel: true
+    secrets:
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+      CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+      CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
+      VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+
   quality-gate:
     name: Quality Gate
     runs-on: ubuntu-latest

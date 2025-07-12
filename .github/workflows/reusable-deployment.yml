@@ -35,6 +35,8 @@ on:
         required: false
       CLERK_WEBHOOK_SIGNING_SECRET:
         required: false
+      VERCEL_AUTOMATION_BYPASS_SECRET:
+        required: false
 
 jobs:
   quality-gate:

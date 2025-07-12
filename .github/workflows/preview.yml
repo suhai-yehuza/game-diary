@@ -5,6 +5,37 @@ on:
     branches-ignore:
       - master
       - staging
+  workflow_call:
+    inputs:
+      workflow-name:
+        type: string
+        description: The name of the workflow.
+        default: 'Vercel Preview Deployment'
+      environment:
+        type: string
+        description: The environment to deploy to.
+        default: 'Preview'
+      deploy-to-vercel:
+        type: boolean
+        description: Whether to deploy to Vercel.
+        default: true
+    secrets:
+      VERCEL_ORG_ID:
+        required: false
+      VERCEL_PROJECT_ID:
+        required: false
+      VERCEL_TOKEN:
+        required: false
+      DATABASE_URL:
+        required: false
+      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY:
+        required: false
+      CLERK_SECRET_KEY:
+        required: false
+      CLERK_WEBHOOK_SIGNING_SECRET:
+        required: false
+      VERCEL_AUTOMATION_BYPASS_SECRET:
+        required: false
 
 jobs:
   deploy:
@@ -21,3 +52,4 @@ jobs:
       NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
       CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
       CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
+      VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
