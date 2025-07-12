@@ -97,11 +97,30 @@ export const db = dbManager.getDatabase.bind(dbManager);
 export { dbManager };
 
 // Create database client function for scripts
-export function createDatabaseClient(_options?: { env?: string }) {
-  const databaseUrl = process.env.DATABASE_URL ?? '';
-  if (!databaseUrl) {
-    throw new Error('DATABASE_URL environment variable is required');
+export function createDatabaseClient(options?: { env?: string }) {
+  const env = options?.env ?? 'development';
+
+  // Try to get DATABASE_URL from environment variables
+  let databaseUrl = process.env.DATABASE_URL ?? process.env.POSTGRES_URL ?? '';
+
+  // If no DATABASE_URL is found and we're in a CI environment, try to construct it
+  if (!databaseUrl && process.env.CI) {
+    // In CI, we should have the DATABASE_URL from the workflow environment
+    databaseUrl = process.env.DATABASE_URL ?? '';
   }
+
+  // For non-CI environments, try environment-specific variables
+  if (!databaseUrl && !process.env.CI) {
+    const envSpecificUrl = process.env[`DATABASE_URL_${env.toUpperCase()}`];
+    if (envSpecificUrl) {
+      databaseUrl = envSpecificUrl;
+    }
+  }
+
+  if (!databaseUrl) {
+    throw new Error(`DATABASE_URL environment variable is required for ${env} environment`);
+  }
+
   const sql = neon(databaseUrl);
   return drizzle(sql, { schema });
 }
