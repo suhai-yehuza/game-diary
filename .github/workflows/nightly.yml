@@ -44,6 +44,8 @@ jobs:
   db-tests:
     needs: quality-gate
     runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -55,8 +57,10 @@ jobs:
           cache: 'pnpm'
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-      - name: Run database tests
-        run: pnpm test:db
+      - name: Test database connection
+        run: pnpm db:test-connection
+      - name: Test database triggers
+        run: pnpm db:test:all-triggers
 
   e2e-mock-verification:
     needs: quality-gate
