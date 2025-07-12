@@ -333,6 +333,7 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Setup Playwright browsers
         run: pnpm exec playwright install --with-deps
+
       - name: Run Smoke E2E (Live)
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
