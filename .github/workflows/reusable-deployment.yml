@@ -41,7 +41,6 @@ on:
 jobs:
   quality-gate:
     name: Quality Gate
-    if: false # Temporarily skipped for deployment testing
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
     steps:
@@ -71,7 +70,6 @@ jobs:
 
   unit-tests:
     name: Unit Tests
-    if: false # Temporarily skipped for deployment testing
     needs: [quality-gate]
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
@@ -107,7 +105,6 @@ jobs:
 
   database-tests:
     name: Database Tests
-    if: false # Temporarily skipped for deployment testing
     needs: [quality-gate]
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
@@ -142,7 +139,6 @@ jobs:
 
   e2e-mock-verification:
     name: E2E Mock Verification
-    if: false # Temporarily skipped for deployment testing
     needs: [unit-tests, database-tests]
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
@@ -170,7 +166,6 @@ jobs:
 
   e2e-smoke:
     name: E2E Smoke (Includes Sanity and Accessibility)
-    if: false # Temporarily skipped for deployment testing
     needs: [unit-tests, database-tests]
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
@@ -198,7 +193,6 @@ jobs:
 
   e2e-live-games:
     name: E2E Live Games
-    if: false # Temporarily skipped for deployment testing
     needs: [unit-tests, database-tests]
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
@@ -226,7 +220,6 @@ jobs:
 
   e2e-functional:
     name: E2E Functional (Responsive)
-    if: false # Temporarily skipped for deployment testing
     needs: [unit-tests, database-tests]
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
@@ -255,6 +248,16 @@ jobs:
   deploy:
     name: Deploy to Vercel
     if: ${{ inputs.deploy-to-vercel }}
+    needs:
+      [
+        quality-gate,
+        unit-tests,
+        database-tests,
+        e2e-mock-verification,
+        e2e-smoke,
+        e2e-live-games,
+        e2e-functional,
+      ]
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
     outputs:
@@ -336,16 +339,6 @@ jobs:
       - name: Setup Playwright browsers
         run: pnpm exec playwright install --with-deps
 
-      - name: Check VERCEL_AUTOMATION_BYPASS_SECRET
-        run: |
-          if [ -z "$VERCEL_AUTOMATION_BYPASS_SECRET" ]; then
-            echo "❌ Secret is NOT SET"
-          else
-            echo "✅ Secret is SET (length: ${#VERCEL_AUTOMATION_BYPASS_SECRET})"
-          fi
-        env:
-          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
-
       - name: Run Smoke E2E (Live)
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
@@ -377,16 +370,6 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Setup Playwright browsers
         run: pnpm exec playwright install --with-deps
-
-      - name: Check VERCEL_AUTOMATION_BYPASS_SECRET
-        run: |
-          if [ -z "$VERCEL_AUTOMATION_BYPASS_SECRET" ]; then
-            echo "❌ Secret is NOT SET"
-          else
-            echo "✅ Secret is SET (length: ${#VERCEL_AUTOMATION_BYPASS_SECRET})"
-          fi
-        env:
-          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
 
       - name: Run Navigation E2E (Live)
         env:
