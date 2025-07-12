@@ -82,6 +82,7 @@ export interface IRLSAccessLogData {
   userAgent?: string;
   details?: Record<string, unknown>;
   errorMessage?: string;
+  description?: string;
 }
 
 // Audit Logger Service
@@ -91,7 +92,8 @@ export class AuditLogger {
   private userId: string | null = null;
   private sessionId: string | null = null;
 
-  private constructor() {}
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  private constructor() {} // Required for singleton pattern
 
   static getInstance(): AuditLogger {
     if (!AuditLogger.instance) {
@@ -126,7 +128,7 @@ export class AuditLogger {
           'unknown',
         userAgent: headersList.get('user-agent') ?? 'unknown',
       };
-    } catch (error) {
+    } catch (error: unknown) {
       logger.warn('Failed to get client info for audit log:', error);
       return { ipAddress: 'unknown', userAgent: 'unknown' };
     }
@@ -145,15 +147,15 @@ export class AuditLogger {
         category: data.category,
         action: data.action,
         severity: data.severity,
-        user_id: data.userId || this.userId,
-        session_id: data.sessionId || this.sessionId,
+        user_id: data.userId ?? this.userId,
+        session_id: data.sessionId ?? this.sessionId,
         ip_address: clientInfo.ipAddress,
         user_agent: clientInfo.userAgent,
         resource_type: data.resourceType,
         resource_id: data.resourceId,
         table_name: data.tableName,
         column_name: data.columnName,
-        request_id: data.requestId || this.requestId,
+        request_id: data.requestId ?? this.requestId,
         endpoint: data.endpoint,
         method: data.method,
         description: data.description,
@@ -162,7 +164,7 @@ export class AuditLogger {
         success: data.success ?? true,
         error_message: data.errorMessage,
         error_code: data.errorCode,
-        duration_ms: data.durationMs || Date.now() - startTime,
+        duration_ms: data.durationMs ?? Date.now() - startTime,
         compliance_tags: data.complianceTags,
       };
 
@@ -182,7 +184,7 @@ export class AuditLogger {
       }
 
       return auditId;
-    } catch (error) {
+    } catch (error: unknown) {
       logger.error('Failed to create audit log:', error, {
         auditId,
         data,
@@ -195,7 +197,7 @@ export class AuditLogger {
   private async sendCriticalAlert(auditData: Record<string, unknown>): Promise<void> {
     try {
       await alertingService.sendSlackAlert(auditData);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Failed to send critical alert:', error);
       // Fallback to console logging
       console.error('[ALERT] CRITICAL AUDIT EVENT:', auditData);
@@ -224,7 +226,7 @@ export class AuditLogger {
         rotation_completed_at: data.rotationCompletedAt,
         re_encryption_started_at: data.reEncryptionStartedAt,
         re_encryption_completed_at: data.reEncryptionCompletedAt,
-        status: data.status || 'in_progress',
+        status: data.status ?? 'in_progress',
         details: data.details,
         error_message: data.errorMessage,
       };
@@ -258,7 +260,7 @@ export class AuditLogger {
       });
 
       return rotationId;
-    } catch (error) {
+    } catch (error: unknown) {
       logger.error('Failed to log key rotation:', error, {
         rotationId,
         data,
@@ -285,12 +287,12 @@ export class AuditLogger {
         access_granted: data.accessGranted,
         rows_affected: data.rowsAffected,
         sensitive_fields_accessed: data.sensitiveFieldsAccessed,
-        request_id: data.requestId || this.requestId,
+        request_id: data.requestId ?? this.requestId,
         endpoint: data.endpoint,
         query_hash: data.queryHash,
         query_duration_ms: data.queryDurationMs,
-        ip_address: data.ipAddress || clientInfo.ipAddress,
-        user_agent: data.userAgent || clientInfo.userAgent,
+        ip_address: data.ipAddress ?? clientInfo.ipAddress,
+        user_agent: data.userAgent ?? clientInfo.userAgent,
         details: data.details,
         error_message: data.errorMessage,
       };
@@ -306,7 +308,9 @@ export class AuditLogger {
         resourceType: 'user_data',
         resourceId: data.targetUserId,
         tableName: data.tableName,
-        description: `RLS ${data.operation} access ${data.accessGranted ? 'granted' : 'denied'} on ${data.tableName}`,
+        description:
+          data.description ??
+          `RLS ${data.operation} access ${data.accessGranted ? 'granted' : 'denied'} on ${data.tableName}`,
         details: {
           accessId,
           targetUserId: data.targetUserId,
@@ -330,7 +334,7 @@ export class AuditLogger {
       });
 
       return accessId;
-    } catch (error) {
+    } catch (error: unknown) {
       logger.error('Failed to log RLS access:', error, {
         accessId,
         data,
@@ -353,7 +357,7 @@ export class AuditLogger {
       userId: createdBy,
       resourceType: 'encryption_key',
       resourceId: keyId,
-      description: description || `New encryption key created for ${environment} environment`,
+      description: description ?? `New encryption key created for ${environment} environment`,
       details: { keyId, environment },
       complianceTags: 'key_management,encryption',
     });
@@ -410,7 +414,7 @@ export class AuditLogger {
       userId,
       tableName,
       columnName,
-      description: `Field ${action} on ${tableName}.${columnName}`,
+      description: errorMessage ?? `Encryption event: ${action} on ${tableName}.${columnName}`,
       success,
       errorMessage,
       complianceTags: 'encryption,data_protection',
@@ -435,9 +439,9 @@ export class AuditLogger {
       const result = await db()
         ?.select()
         .from(audit_logs)
-        .limit(filters.limit || 100);
-      return result || [];
-    } catch (error) {
+        .limit(filters.limit ?? 100);
+      return result ?? [];
+    } catch (error: unknown) {
       logger.error('Failed to query audit logs:', error);
       throw error;
     }

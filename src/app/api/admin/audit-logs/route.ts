@@ -20,12 +20,14 @@ export async function GET(req: NextRequest) {
   const userId = searchParams.get('userId') ?? undefined;
   const resourceType = searchParams.get('resourceType') ?? undefined;
   const resourceId = searchParams.get('resourceId') ?? undefined;
-  const startDate = searchParams.get('startDate')
-    ? new Date(searchParams.get('startDate')!)
-    : undefined;
-  const endDate = searchParams.get('endDate') ? new Date(searchParams.get('endDate')!) : undefined;
-  const limit = searchParams.get('limit') ? parseInt(searchParams.get('limit')!) : 100;
-  const offset = searchParams.get('offset') ? parseInt(searchParams.get('offset')!) : 0;
+  const startDateParam = searchParams.get('startDate');
+  const startDate = startDateParam ? new Date(startDateParam) : undefined;
+  const endDateParam = searchParams.get('endDate');
+  const endDate = endDateParam ? new Date(endDateParam) : undefined;
+  const limitParam = searchParams.get('limit');
+  const limit = limitParam ? parseInt(limitParam) : 100;
+  const offsetParam = searchParams.get('offset');
+  const offset = offsetParam ? parseInt(offsetParam) : 0;
 
   try {
     const logs = (await auditLogger.queryAuditLogs({
@@ -56,7 +58,8 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({ logs });
   } catch (error) {
-    return NextResponse.json({ error: (error as Error).message }, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }
 
@@ -70,8 +73,27 @@ export async function POST(req: NextRequest) {
   const adminContext: IAdminAuthContext = authResult;
 
   // For export, accept filter params in body
-  const body = await req.json();
-  const logs = (await auditLogger.queryAuditLogs(body)) as Record<string, unknown>[];
+  const body = (await req.json()) as {
+    category?: string;
+    action?: string;
+    severity?: string;
+    userId?: string;
+    resourceType?: string;
+    resourceId?: string;
+    startDate?: string;
+    endDate?: string;
+    limit?: number;
+    offset?: number;
+  };
+
+  // Convert string dates to Date objects
+  const queryFilters = {
+    ...body,
+    startDate: body.startDate ? new Date(body.startDate) : undefined,
+    endDate: body.endDate ? new Date(body.endDate) : undefined,
+  };
+
+  const logs = (await auditLogger.queryAuditLogs(queryFilters)) as Record<string, unknown>[];
 
   // Log admin export of audit logs
   await auditLogger.logAuditEvent({

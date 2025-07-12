@@ -9,7 +9,8 @@ export class RLSContextManager {
   private static instance: RLSContextManager;
   private currentUserId: string | null = null;
 
-  private constructor() {}
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  private constructor() {} // Required for singleton pattern
 
   static getInstance(): RLSContextManager {
     if (!RLSContextManager.instance) {

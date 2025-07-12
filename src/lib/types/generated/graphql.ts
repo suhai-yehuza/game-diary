@@ -162,6 +162,7 @@ export type DbUser = {
   last_sign_in_at?: Maybe<Scalars['DateTime']['output']>;
   object: Scalars['String']['output'];
   outbound_friendship_ids?: Maybe<Array<Scalars['String']['output']>>;
+  phone_number?: Maybe<Scalars['String']['output']>;
   preferred_language?: Maybe<Scalars['String']['output']>;
   primary_email_address_id?: Maybe<Scalars['String']['output']>;
   primary_phone_number_id?: Maybe<Scalars['String']['output']>;
@@ -599,5 +600,6 @@ export type UserSummary = {
   id: Scalars['ID']['output'];
   image_url?: Maybe<Scalars['String']['output']>;
   last_name: Scalars['String']['output'];
+  phone_number?: Maybe<Scalars['String']['output']>;
   username: Scalars['String']['output'];
 };

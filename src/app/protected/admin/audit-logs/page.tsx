@@ -186,7 +186,9 @@ export default function AdminAuditLogsPage() {
           </div>
           <div className="flex items-end">
             <button
-              onClick={handleExport}
+              onClick={() => {
+                void handleExport();
+              }}
               disabled={exporting}
               className="w-full bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 disabled:opacity-50"
             >
