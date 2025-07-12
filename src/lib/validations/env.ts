@@ -21,6 +21,7 @@ export const envSchema = z.object({
   NEXT_PUBLIC_RAPID_API_HOST: z.string().optional(),
   NEXT_PUBLIC_RAPID_API_KEY: z.string().optional(),
   NEXT_PUBLIC_RAPID_API_BASE_URL: z.string().optional(),
+  DATA_ENCRYPTION_KEY: z.string().optional(),
 });
 
 export type IEnv = z.infer<typeof envSchema>;

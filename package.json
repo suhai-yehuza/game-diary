@@ -177,6 +177,7 @@
     "db:test:all-triggers": "pnpm tsx scripts/tests/test-all-triggers.ts",
     "db:view-migrations": "tsx scripts/db/database-manager.ts view",
     "db:copy-custom-migrations": "tsx scripts/db/database-manager.ts copy-migrations",
+    "db:encrypt-users": "tsx scripts/encrypt-existing-users.ts",
     "=====Database Seeding=====": "=====+=====+=====+=====+=====",
     "hard:reset": "pnpm run drop:all && pnpm run pre:seed && pnpm run seed:external",
     "hard:reset:prod": "NODE_ENV=production pnpm hard:reset",

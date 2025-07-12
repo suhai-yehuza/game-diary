@@ -2,6 +2,7 @@ import { eq } from 'drizzle-orm';
 
 import { db } from '@/lib/db';
 import { users } from '@/lib/db/schema';
+import { encryptField, serializeEncryptedField } from '@/lib/utils/encryption';
 import { extractEmail, extractPhoneNumber, validateUserContact } from '@/lib/utils/validation';
 import { webhookLogger } from '@lib/core/logger';
 import type { IClerkUserData } from '@src/lib/types/clerk-types';
@@ -44,6 +45,10 @@ export const handleUserUpdated = async (data: IClerkUserData) => {
     return createResponse(`User update failed: ${validation.errors?.join(', ')}`, 400);
   }
 
+  // Encrypt sensitive fields
+  const encryptedEmail = email ? serializeEncryptedField(encryptField(email)) : null;
+  const encryptedPhone = phone ? serializeEncryptedField(encryptField(phone)) : null;
+
   const userData = {
     username: finalUsername,
     first_name: first_name ?? '',
@@ -53,8 +58,8 @@ export const handleUserUpdated = async (data: IClerkUserData) => {
     profile_image_url,
     primary_email_address_id: primary_email_address_id ?? '',
     primary_phone_number_id: primary_phone_number_id ?? '',
-    email_address: email,
-    phone_number: phone,
+    email_address: encryptedEmail,
+    phone_number: encryptedPhone,
     external_id: external_id ?? '',
     last_active_at: last_active_at ? new Date(last_active_at) : null,
     last_sign_in_at: last_sign_in_at ? new Date(last_sign_in_at) : null,

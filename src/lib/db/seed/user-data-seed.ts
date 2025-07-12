@@ -3,6 +3,7 @@ import { neon } from '@neondatabase/serverless';
 import type { Table } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/neon-http';
 
+import { encryptField, serializeEncryptedField } from '@/lib/utils/encryption';
 import {
   users,
   friendships,
@@ -206,6 +207,14 @@ export function generateUsers(count: number): ISeedUser[] {
     const firstName = faker.person.firstName();
     const lastName = faker.person.lastName();
     const username = faker.internet.username({ firstName, lastName });
+    // Generate plain values first
+    const plainEmail = faker.internet.email({ firstName, lastName });
+    const plainPhone = faker.phone.number({ style: 'international' });
+
+    // Encrypt sensitive fields
+    const encryptedEmail = serializeEncryptedField(encryptField(plainEmail));
+    const encryptedPhone = serializeEncryptedField(encryptField(plainPhone));
+
     users.push({
       id: generateUUIDv7(),
       object: 'user',
@@ -217,8 +226,8 @@ export function generateUsers(count: number): ISeedUser[] {
       profile_image_url: faker.image.avatar(),
       primary_email_address_id: `email_${i + 1}`,
       primary_phone_number_id: `phone_${i + 1}`,
-      email_address: faker.internet.email({ firstName, lastName }),
-      phone_number: faker.phone.number({ style: 'international' }), // US format with country code
+      email_address: encryptedEmail,
+      phone_number: encryptedPhone,
       external_id: `clerk_user_${i + 1}`,
       bio: generateUserBio(),
       timezone: faker.helpers.arrayElement([
