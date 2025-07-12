@@ -65,10 +65,31 @@ jobs:
           echo "Checking for outdated dependencies..."
 
           # Use a more reliable method to check for outdated packages
-          OUTDATED_OUTPUT=$(pnpm outdated --format=json 2>/dev/null || echo "[]")
+          # First, try to get the raw output and extract only JSON
+          RAW_OUTPUT=$(pnpm outdated --format=json 2>&1 || echo "[]")
 
-          # Check if there are any outdated packages
-          OUTDATED_COUNT=$(echo "$OUTDATED_OUTPUT" | jq 'length' 2>/dev/null || echo "0")
+          # Extract only the JSON part (lines starting with { or [)
+          OUTDATED_OUTPUT=$(echo "$RAW_OUTPUT" | grep -E '^[[:space:]]*[{\[]' | head -1 || echo "[]")
+
+          # If no JSON found, try alternative approach
+          if [ "$OUTDATED_OUTPUT" = "[]" ] || [ -z "$OUTDATED_OUTPUT" ]; then
+            # Try running without format flag and parse manually
+            RAW_OUTPUT=$(pnpm outdated 2>&1 || echo "")
+            if echo "$RAW_OUTPUT" | grep -q "No outdated packages found"; then
+              OUTDATED_COUNT=0
+              OUTDATED_OUTPUT="[]"
+            else
+              # Count lines that look like package entries
+              OUTDATED_COUNT=$(echo "$RAW_OUTPUT" | grep -c -E '^[a-zA-Z@]' || echo "0")
+              OUTDATED_OUTPUT="[]"  # We can't easily parse the non-JSON format
+            fi
+          else
+            # Parse JSON to get count
+            OUTDATED_COUNT=$(echo "$OUTDATED_OUTPUT" | jq 'length' 2>/dev/null || echo "0")
+          fi
+
+          # Ensure OUTDATED_COUNT is a clean number
+          OUTDATED_COUNT=$(echo "$OUTDATED_COUNT" | tr -d '\n\r' | grep -E '^[0-9]+$' || echo "0")
 
           echo "Found $OUTDATED_COUNT outdated packages"
           echo "outdated_count=$OUTDATED_COUNT" >> $GITHUB_OUTPUT

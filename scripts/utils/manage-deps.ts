@@ -11,8 +11,59 @@ import { parseScriptArgs } from './script-utils';
 
 function getOutdatedPackages(): IOutdatedPackage[] {
   try {
-    const output = execSync('pnpm outdated --json', { encoding: 'utf-8' });
-    return JSON.parse(output) as IOutdatedPackage[];
+    // First try with --json flag
+    try {
+      const output = execSync('pnpm outdated --json', { encoding: 'utf-8' });
+
+      // Extract only JSON lines (starting with { or [)
+      const jsonLines = output
+        .split('\n')
+        .filter(line => line.trim().match(/^[{\[]/))
+        .join('\n');
+
+      if (jsonLines) {
+        return JSON.parse(jsonLines) as IOutdatedPackage[];
+      }
+    } catch (jsonError) {
+      logger.debug('JSON format failed, trying fallback approach');
+    }
+
+    // Fallback: try without --json flag and parse manually
+    const rawOutput = execSync('pnpm outdated', { encoding: 'utf-8' });
+
+    if (rawOutput.includes('No outdated packages found')) {
+      return [];
+    }
+
+    // Parse the table format output
+    const lines = rawOutput.split('\n').filter(line => line.trim());
+    const packages: IOutdatedPackage[] = [];
+
+    for (const line of lines) {
+      // Skip header lines and empty lines
+      if (
+        line.includes('Package') ||
+        line.includes('Current') ||
+        line.includes('Wanted') ||
+        line.includes('Latest')
+      ) {
+        continue;
+      }
+
+      // Parse package line (format: package current wanted latest)
+      const parts = line.trim().split(/\s+/);
+      if (parts.length >= 4) {
+        packages.push({
+          name: parts[0],
+          current: parts[1],
+          wanted: parts[2],
+          latest: parts[3],
+          type: 'dependencies', // Will be determined later
+        });
+      }
+    }
+
+    return packages;
   } catch (error) {
     if (error instanceof Error) {
       logger.error('Error getting outdated packages:', error.message);
