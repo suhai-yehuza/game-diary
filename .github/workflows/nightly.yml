@@ -2,48 +2,10 @@ name: Nightly Tests
 
 on:
   schedule:
-    - cron: '0 2 * * *' # 2 AM UTC daily
-  workflow_call:
-    inputs:
-      VERCEL_ORG_ID:
-        required: false
-      VERCEL_PROJECT_ID:
-        required: false
-      VERCEL_TOKEN:
-        required: false
-      DATABASE_URL:
-        required: false
-      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY:
-        required: false
-      CLERK_SECRET_KEY:
-        required: false
-      CLERK_WEBHOOK_SIGNING_SECRET:
-        required: false
-      VERCEL_AUTOMATION_BYPASS_SECRET:
-        required: false
-
-env:
-  NODE_ENV: test
+    - cron: '0 2 * * *'
 
 jobs:
-  deploy:
-    uses: ./.github/workflows/reusable-deployment.yml
-    with:
-      workflow-name: 'Nightly Tests'
-      environment: 'Nightly'
-      deploy-to-vercel: true
-    secrets:
-      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-      DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
-      CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
-      CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
-      VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
-
   quality-gate:
-    name: Quality Gate
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -56,19 +18,58 @@ jobs:
           cache: 'pnpm'
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-      - name: Run linting
+      - name: Lint
         run: pnpm lint
-      - name: Run type checking
-        run: pnpm type-check
+      - name: Typecheck
+        run: pnpm typecheck
+
+  unit-tests:
+    needs: quality-gate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: '10'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
       - name: Run unit tests
         run: pnpm test:unit
+
+  db-tests:
+    needs: quality-gate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: '10'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
       - name: Run database tests
         run: pnpm test:db
 
   e2e-mock-verification:
-    name: E2E Mock Verification
-    needs: [quality-gate]
+    needs: quality-gate
     runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+      CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+      CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
+      DEPLOYMENT_URL: ${{ secrets.VERCEL_STAGING_URL }}
+      E2E_AUTH_BYPASS: 'true'
+      TEST_USER_EMAIL: 'test@game-diary.com'
+      TEST_USER_ID: 'test_user_123'
+      VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -82,24 +83,22 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Setup Playwright browsers
         run: pnpm exec playwright install --with-deps
-      - name: Run Mock Verification E2E
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
-          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
-          CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
-          DEPLOYMENT_URL: ${{ secrets.PRODUCTION_URL || 'https://game-diary-suhai-yehuza-suhais-projects-33a81a2a.vercel.app/' }}
-          E2E_AUTH_BYPASS: 'true'
-          TEST_USER_EMAIL: 'test@game-diary.com'
-          TEST_USER_ID: 'test_user_123'
-          # VERCEL_AUTOMATION_BYPASS_SECRET is automatically provided by Vercel's system environment variables
+      - name: Run E2E Mock Verification
         run: pnpm exec playwright test tests/e2e/functional/mock-verification.spec.ts --reporter=line
 
-  # Run highest-level functional E2E tests in parallel: responsive and cross-browser
-  e2e-responsive:
-    name: E2E Responsive
-    needs: [e2e-mock-verification]
+  e2e-smoke:
+    needs: [unit-tests, db-tests, e2e-mock-verification]
     runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+      CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+      CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
+      DEPLOYMENT_URL: ${{ secrets.VERCEL_STAGING_URL }}
+      E2E_AUTH_BYPASS: 'true'
+      TEST_USER_EMAIL: 'test@game-diary.com'
+      TEST_USER_ID: 'test_user_123'
+      VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -113,23 +112,22 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Setup Playwright browsers
         run: pnpm exec playwright install --with-deps
-      - name: Run Responsive E2E (highest level viewport/device)
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
-          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
-          CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
-          DEPLOYMENT_URL: ${{ secrets.PRODUCTION_URL || 'https://game-diary-suhai-yehuza-suhais-projects-33a81a2a.vercel.app/' }}
-          E2E_AUTH_BYPASS: 'true'
-          TEST_USER_EMAIL: 'test@game-diary.com'
-          TEST_USER_ID: 'test_user_123'
-          # VERCEL_AUTOMATION_BYPASS_SECRET is automatically provided by Vercel's system environment variables
-        run: pnpm exec playwright test tests/e2e/functional/responsive.spec.ts --workers=2 --reporter=line
+      - name: Run E2E Smoke Tests (live staging)
+        run: pnpm exec playwright test tests/e2e/functional/smoke.spec.ts --reporter=line
 
-  e2e-cross-browser:
-    name: E2E Cross-Browser
-    needs: [e2e-mock-verification]
+  e2e-live-games:
+    needs: [unit-tests, db-tests, e2e-mock-verification]
     runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+      CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+      CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
+      DEPLOYMENT_URL: ${{ secrets.VERCEL_STAGING_URL }}
+      E2E_AUTH_BYPASS: 'true'
+      TEST_USER_EMAIL: 'test@game-diary.com'
+      TEST_USER_ID: 'test_user_123'
+      VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -143,24 +141,76 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Setup Playwright browsers
         run: pnpm exec playwright install --with-deps
-      - name: Run Cross-Browser E2E (highest level browser coverage)
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
-          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
-          CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
-          DEPLOYMENT_URL: ${{ secrets.PRODUCTION_URL || 'https://game-diary-suhai-yehuza-suhais-projects-33a81a2a.vercel.app/' }}
-          E2E_AUTH_BYPASS: 'true'
-          TEST_USER_EMAIL: 'test@game-diary.com'
-          TEST_USER_ID: 'test_user_123'
-          # VERCEL_AUTOMATION_BYPASS_SECRET is automatically provided by Vercel's system environment variables
-        run: pnpm exec playwright test tests/e2e/functional/cross-browser.spec.ts --workers=2 --reporter=line
+      - name: Run E2E Live Games (live staging)
+        run: pnpm exec playwright test tests/e2e/functional/live-games.spec.ts --reporter=line
+
+  e2e-functional:
+    needs: [e2e-smoke, e2e-live-games]
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+      CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+      CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
+      DEPLOYMENT_URL: ${{ secrets.VERCEL_STAGING_URL }}
+      E2E_AUTH_BYPASS: 'true'
+      TEST_USER_EMAIL: 'test@game-diary.com'
+      TEST_USER_ID: 'test_user_123'
+      VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: '10'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Setup Playwright browsers
+        run: pnpm exec playwright install --with-deps
+      - name: Run all functional E2E specs (in series, live staging)
+        run: |
+          for spec in tests/e2e/functional/*.spec.ts; do
+            pnpm exec playwright test "$spec" --reporter=line || exit 1
+          done
+
+  e2e-pages:
+    needs: e2e-functional
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+      CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+      CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
+      DEPLOYMENT_URL: ${{ secrets.VERCEL_STAGING_URL }}
+      E2E_AUTH_BYPASS: 'true'
+      TEST_USER_EMAIL: 'test@game-diary.com'
+      TEST_USER_ID: 'test_user_123'
+      VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: '10'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Setup Playwright browsers
+        run: pnpm exec playwright install --with-deps
+      - name: Run all page E2E specs (in series, live staging)
+        run: |
+          for spec in tests/e2e/pages/*.spec.ts; do
+            pnpm exec playwright test "$spec" --reporter=line || exit 1
+          done
 
   coverage-report:
-    name: Generate Coverage Report
-    needs: [e2e-responsive, e2e-cross-browser]
+    needs: e2e-pages
     runs-on: ubuntu-latest
-    if: always()
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -176,4 +226,3 @@ jobs:
         run: |
           echo "Generating E2E test coverage report..."
           pnpm e2e:coverage
-  # Coverage report now runs after both responsive and cross-browser jobs complete.
