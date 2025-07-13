@@ -10,6 +10,34 @@ export interface IAdminAuthContext {
   userEmail?: string;
 }
 
+// Helper to safely extract user roles
+function getUserRoles(sessionClaims: unknown): string[] {
+  if (
+    sessionClaims &&
+    typeof sessionClaims === 'object' &&
+    'metadata' in sessionClaims &&
+    typeof (sessionClaims as { metadata?: unknown }).metadata === 'object' &&
+    sessionClaims.metadata !== null &&
+    Array.isArray((sessionClaims as { metadata: { role?: unknown } }).metadata.role)
+  ) {
+    return (sessionClaims as { metadata: { role: string[] } }).metadata.role;
+  }
+  return [];
+}
+
+// Helper to safely extract email
+function getUserEmail(sessionClaims: unknown): string | undefined {
+  if (
+    sessionClaims &&
+    typeof sessionClaims === 'object' &&
+    'email' in sessionClaims &&
+    typeof (sessionClaims as { email?: unknown }).email === 'string'
+  ) {
+    return (sessionClaims as { email: string }).email;
+  }
+  return undefined;
+}
+
 export async function adminAuthMiddleware(
   request: NextRequest
 ): Promise<NextResponse | IAdminAuthContext> {
@@ -32,7 +60,7 @@ export async function adminAuthMiddleware(
     }
 
     // Check if user has admin role
-    const userRoles = (sessionClaims?.metadata as { role?: string[] })?.role ?? [];
+    const userRoles = getUserRoles(sessionClaims);
     const isAdmin = userRoles.includes('admin') || userRoles.includes('Admin');
 
     if (!isAdmin) {
@@ -68,10 +96,11 @@ export async function adminAuthMiddleware(
     return {
       userId,
       isAdmin: true,
-      userEmail: sessionClaims?.email as string,
+      userEmail: getUserEmail(sessionClaims),
     };
-  } catch (error) {
-    console.error('Admin auth middleware error:', error);
+  } catch (error: unknown) {
+    const err = error instanceof Error ? error : new Error(String(error));
+    console.error('Admin auth middleware error:', err);
 
     await auditLogger.logAuditEvent({
       category: 'authentication',
@@ -81,7 +110,7 @@ export async function adminAuthMiddleware(
       endpoint: request.url,
       method: request.method,
       success: false,
-      errorMessage: error instanceof Error ? error.message : 'Unknown error',
+      errorMessage: err.message,
     });
 
     return NextResponse.json({ error: 'Authentication service error' }, { status: 500 });

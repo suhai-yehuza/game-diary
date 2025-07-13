@@ -3,6 +3,21 @@ import { redirect } from 'next/navigation';
 
 import { auditLogger } from '@/lib/services/audit-logger';
 
+// Helper to safely extract user roles
+function getUserRoles(sessionClaims: unknown): string[] {
+  if (
+    sessionClaims &&
+    typeof sessionClaims === 'object' &&
+    'metadata' in sessionClaims &&
+    typeof (sessionClaims as { metadata?: unknown }).metadata === 'object' &&
+    sessionClaims.metadata !== null &&
+    Array.isArray((sessionClaims as { metadata: { role?: unknown } }).metadata.role)
+  ) {
+    return (sessionClaims as { metadata: { role: string[] } }).metadata.role;
+  }
+  return [];
+}
+
 export default async function AdminAuditLogsLayout({ children }: { children: React.ReactNode }) {
   const { userId, sessionClaims } = await auth();
 
@@ -11,12 +26,12 @@ export default async function AdminAuditLogsLayout({ children }: { children: Rea
   }
 
   // Check if user has admin role
-  const userRoles = (sessionClaims?.metadata as { role?: string[] })?.role ?? [];
+  const userRoles = getUserRoles(sessionClaims);
   const isAdmin = userRoles.includes('admin') || userRoles.includes('Admin');
 
   if (!isAdmin) {
     // Log unauthorized access attempt
-    await auditLogger.logAuditEvent({
+    void auditLogger.logAuditEvent({
       category: 'authorization',
       action: 'permission_denied',
       severity: 'high',
@@ -31,7 +46,7 @@ export default async function AdminAuditLogsLayout({ children }: { children: Rea
   }
 
   // Log successful admin page access
-  await auditLogger.logAuditEvent({
+  void auditLogger.logAuditEvent({
     category: 'authorization',
     action: 'permission_granted',
     severity: 'medium',

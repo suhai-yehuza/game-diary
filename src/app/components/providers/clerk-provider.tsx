@@ -35,18 +35,28 @@ function TestClerkProvider({ children }: { children: ReactNode }) {
 // Custom hooks that use the mock context
 export function useUser() {
   const context = useContext(TestClerkContext);
-  if (!context) {
+  if (!context || typeof context.useUser !== 'function') {
     return realUseUser();
   }
-  return context.useUser();
+  try {
+    return context.useUser();
+  } catch {
+    // Fallback to real useUser if mock fails
+    return realUseUser();
+  }
 }
 
 export function useAuth() {
   const context = useContext(TestClerkContext);
-  if (!context) {
+  if (!context || typeof context.useAuth !== 'function') {
     return realUseAuth();
   }
-  return context.useAuth();
+  try {
+    return context.useAuth();
+  } catch {
+    // Fallback to real useAuth if mock fails
+    return realUseAuth();
+  }
 }
 
 export function ClerkProviderWrapper({ children }: IClerkProviderWrapperProps) {

@@ -356,7 +356,7 @@ function NavigationLinks({
     if (window.innerWidth < 1024 && closeMenu) closeMenu();
   };
   return (
-    <nav className="flex flex-col lg:flex-row items-start lg:items-center h-full lg:space-x-6 space-y-2 lg:space-y-0 text-sm font-medium p-4 lg:p-0">
+    <nav className="flex flex-col lg:flex-row items-start lg:items-center h-full lg:space-x-6 lg:space-y-0 text-xs sm:text-sm font-medium m-0 p-0">
       {/* Dashboard + Sports */}
       <NavItem href="/dashboard" isActive={isActive('/dashboard')} onClick={handleNavClick}>
         Dashboard
@@ -523,8 +523,8 @@ export function Header() {
           />
         )}
         <div className="grid grid-cols-[auto_1fr_auto] h-16 items-center w-full relative z-50">
-          {/* Logo - Left */}
-          <div className="pl-10 flex items-center">
+          {/* Logo - Left (hide on mobile when menu/nav is stacked) */}
+          <div className="pl-10 hidden sm:flex items-center">
             <Link href="/" className="min-w-[44px] min-h-[44px] flex items-center justify-center">
               <Image
                 src="/logos/gamelog-large.svg"
@@ -560,31 +560,15 @@ export function Header() {
               <div
                 className={`${isMenuExpanded ? 'block' : 'hidden'} lg:block absolute lg:relative top-16 left-0 right-0 lg:top-0 bg-background lg:bg-transparent z-50 shadow-lg lg:shadow-none border-b lg:border-b-0`}
               >
-                <div className="flex flex-col gap-4 p-4 sm:p-6 lg:p-0">
+                {/* View All button for mobile, if needed, can be placed here or removed */}
+                {/* Nav links area, scrollable, no extra top padding */}
+                <div className="flex-1 overflow-y-auto flex flex-col gap-0 px-4 sm:px-0">
                   <ClientOnlyNavigationLinks
                     isActive={isActive}
                     _isMenuExpanded={isMenuExpanded}
                     _setIsMenuExpanded={setIsMenuExpanded}
                     closeMenu={() => setIsMenuExpanded(false)}
                   />
-                  {/* Show search, theme, and auth controls in mobile menu overlay */}
-                  <div className="flex flex-col gap-3 sm:hidden">
-                    <div className="w-full">
-                      <div onClick={() => setIsMenuExpanded(false)}>
-                        <SearchBar />
-                      </div>
-                    </div>
-                    <div className="w-full flex justify-start">
-                      <div onClick={() => setIsMenuExpanded(false)}>
-                        <ThemeToggle />
-                      </div>
-                    </div>
-                    <div className="w-full flex justify-start">
-                      <div onClick={() => setIsMenuExpanded(false)}>
-                        <ClientOnlyAuthControls />
-                      </div>
-                    </div>
-                  </div>
                 </div>
               </div>
             </div>

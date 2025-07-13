@@ -3,6 +3,7 @@ import React from 'react';
 import { describe, it, expect, vi } from 'vitest';
 
 import HomePage from '@src/app/page';
+import { MenuProvider } from '@/app/components/providers';
 
 // Mock Next.js components
 vi.mock('next/image', () => ({
@@ -19,6 +20,11 @@ vi.mock('next/image', () => ({
   ),
 }));
 
+// Test wrapper component
+const TestWrapper = ({ children }: { children: React.ReactNode }) => (
+  <MenuProvider>{children}</MenuProvider>
+);
+
 vi.mock('next/link', () => ({
   default: ({ href, children, className, ...props }: any) => (
     <a href={href} className={className} {...props}>
@@ -29,7 +35,7 @@ vi.mock('next/link', () => ({
 
 describe('HomePage', () => {
   it('renders the home page with correct structure', () => {
-    render(<HomePage />);
+    render(<HomePage />, { wrapper: TestWrapper });
 
     // Check for main heading
     expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument();
@@ -45,7 +51,7 @@ describe('HomePage', () => {
   });
 
   it('renders the logo image correctly', () => {
-    render(<HomePage />);
+    render(<HomePage />, { wrapper: TestWrapper });
 
     const logo = screen.getByAltText('Game Diary Logo');
     expect(logo).toBeInTheDocument();
@@ -57,7 +63,7 @@ describe('HomePage', () => {
   });
 
   it('applies correct CSS classes for layout', () => {
-    const { container } = render(<HomePage />);
+    const { container } = render(<HomePage />, { wrapper: TestWrapper });
 
     // Check for main section with grid layout
     const section = container.querySelector('section');
@@ -89,7 +95,7 @@ describe('HomePage', () => {
   });
 
   it('has proper semantic structure', () => {
-    render(<HomePage />);
+    render(<HomePage />, { wrapper: TestWrapper });
 
     // Check for heading hierarchy
     const heading = screen.getByRole('heading', { level: 1 });
@@ -112,14 +118,14 @@ describe('HomePage', () => {
   });
 
   it('applies correct styling to heading', () => {
-    render(<HomePage />);
+    render(<HomePage />, { wrapper: TestWrapper });
 
     const heading = screen.getByRole('heading', { level: 1 });
     expect(heading).toHaveClass('text-4xl', 'font-bold', 'tracking-tight');
   });
 
   it('applies correct styling to description', () => {
-    render(<HomePage />);
+    render(<HomePage />, { wrapper: TestWrapper });
 
     const description = screen.getByText(
       'Your personal space to track and share your pro game watching experiences'
@@ -128,7 +134,7 @@ describe('HomePage', () => {
   });
 
   it('renders the dashboard link correctly', () => {
-    render(<HomePage />);
+    render(<HomePage />, { wrapper: TestWrapper });
 
     const dashboardLink = screen.getByRole('link', { name: 'Go to Dashboard' });
     expect(dashboardLink).toBeInTheDocument();
@@ -145,7 +151,7 @@ describe('HomePage', () => {
   });
 
   it('renders footer links correctly', () => {
-    render(<HomePage />);
+    render(<HomePage />, { wrapper: TestWrapper });
 
     // Check for "How to log a game" link
     const howToLink = screen.getByRole('link', { name: 'How to log a game' });
@@ -159,7 +165,7 @@ describe('HomePage', () => {
   });
 
   it('renders footer icons correctly', () => {
-    render(<HomePage />);
+    render(<HomePage />, { wrapper: TestWrapper });
 
     // Check for file icon
     const fileIcon = screen.getByAltText('File icon');
@@ -181,7 +187,7 @@ describe('HomePage', () => {
   });
 
   it('renders consistently', () => {
-    const { rerender } = render(<HomePage />);
+    const { rerender } = render(<HomePage />, { wrapper: TestWrapper });
 
     // Re-render and check consistency
     rerender(<HomePage />);
@@ -192,7 +198,7 @@ describe('HomePage', () => {
   });
 
   it('has proper accessibility attributes', () => {
-    render(<HomePage />);
+    render(<HomePage />, { wrapper: TestWrapper });
 
     // Check for proper heading structure
     const heading = screen.getByRole('heading', { level: 1 });
@@ -210,7 +216,7 @@ describe('HomePage', () => {
   });
 
   it('handles multiple renders without issues', () => {
-    const { rerender, unmount } = render(<HomePage />);
+    const { rerender, unmount } = render(<HomePage />, { wrapper: TestWrapper });
 
     // Multiple re-renders
     rerender(<HomePage />);
@@ -222,21 +228,21 @@ describe('HomePage', () => {
 
     // Clean unmount and remount
     unmount();
-    render(<HomePage />);
+    render(<HomePage />, { wrapper: TestWrapper });
 
     expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument();
     expect(screen.getByText('Welcome to Game Diary')).toBeInTheDocument();
   });
 
   it('takes full viewport height', () => {
-    const { container } = render(<HomePage />);
+    const { container } = render(<HomePage />, { wrapper: TestWrapper });
 
     const section = container.querySelector('section');
     expect(section).toHaveClass('min-h-screen');
   });
 
   it('has proper content structure', () => {
-    const { container } = render(<HomePage />);
+    const { container } = render(<HomePage />, { wrapper: TestWrapper });
 
     // Check that content is properly contained
     const section = container.querySelector('section');
@@ -251,21 +257,21 @@ describe('HomePage', () => {
   });
 
   it('has proper grid layout', () => {
-    const { container } = render(<HomePage />);
+    const { container } = render(<HomePage />, { wrapper: TestWrapper });
 
     const section = container.querySelector('section');
     expect(section).toHaveClass('grid', 'grid-rows-[20px_1fr_20px]');
   });
 
   it('has proper responsive design classes', () => {
-    const { container } = render(<HomePage />);
+    const { container } = render(<HomePage />, { wrapper: TestWrapper });
 
     const section = container.querySelector('section');
     expect(section).toHaveClass('p-8', 'sm:p-20');
   });
 
   it('renders Game Diary specific content', () => {
-    render(<HomePage />);
+    render(<HomePage />, { wrapper: TestWrapper });
 
     // Check for Game Diary specific text
     expect(screen.getByText('Welcome to Game Diary')).toBeInTheDocument();
@@ -277,7 +283,7 @@ describe('HomePage', () => {
   });
 
   it('has proper text hierarchy', () => {
-    render(<HomePage />);
+    render(<HomePage />, { wrapper: TestWrapper });
 
     const heading = screen.getByRole('heading', { level: 1 });
     const description = screen.getByText(
@@ -291,7 +297,7 @@ describe('HomePage', () => {
   });
 
   it('maintains consistent styling across renders', () => {
-    const { rerender } = render(<HomePage />);
+    const { rerender } = render(<HomePage />, { wrapper: TestWrapper });
 
     // Get initial styling
     const initialHeading = screen.getByRole('heading', { level: 1 });
@@ -324,7 +330,7 @@ describe('HomePage', () => {
   });
 
   it('has proper document structure', () => {
-    const { container } = render(<HomePage />);
+    const { container } = render(<HomePage />, { wrapper: TestWrapper });
 
     // Check that the component renders as expected in the document
     const section = container.querySelector('section');
@@ -340,14 +346,14 @@ describe('HomePage', () => {
   });
 
   it('has proper button styling and hover effects', () => {
-    render(<HomePage />);
+    render(<HomePage />, { wrapper: TestWrapper });
 
     const button = screen.getByRole('link', { name: 'Go to Dashboard' });
     expect(button).toHaveClass('hover:bg-blue-700', 'transition-colors');
   });
 
   it('has proper footer link styling', () => {
-    render(<HomePage />);
+    render(<HomePage />, { wrapper: TestWrapper });
 
     const howToLink = screen.getByRole('link', { name: 'How to log a game' });
     const exampleLink = screen.getByRole('link', { name: 'Example game logs' });
@@ -357,14 +363,14 @@ describe('HomePage', () => {
   });
 
   it('has proper font family', () => {
-    const { container } = render(<HomePage />);
+    const { container } = render(<HomePage />, { wrapper: TestWrapper });
 
     const section = container.querySelector('section');
     expect(section).toHaveClass('font-[family-name:var(--font-geist-sans)]');
   });
 
   it('has proper spacing and layout', () => {
-    const { container } = render(<HomePage />);
+    const { container } = render(<HomePage />, { wrapper: TestWrapper });
 
     const section = container.querySelector('section');
     expect(section).toHaveClass('gap-16', 'p-8', 'pb-20');

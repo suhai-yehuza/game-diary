@@ -206,10 +206,10 @@ export function generateUsers(count: number): ISeedUser[] {
   for (let i = 0; i < count; i++) {
     const firstName = faker.person.firstName();
     const lastName = faker.person.lastName();
-    const username = faker.internet.username({ firstName, lastName });
+    const username = faker.internet.userName({ firstName, lastName });
     // Generate plain values first
     const plainEmail = faker.internet.email({ firstName, lastName });
-    const plainPhone = faker.phone.number({ style: 'international' });
+    const plainPhone = faker.phone.number();
 
     // Encrypt sensitive fields
     const encryptedEmail = serializeEncryptedField(encryptField(plainEmail));
@@ -799,9 +799,13 @@ export async function seedUserData(
     }
 
     console.log('✅ User data seeding completed successfully!');
-  } catch (error) {
-    console.error('❌ Error seeding user data:', error);
-    throw error;
+  } catch (err: unknown) {
+    if (err instanceof Error) {
+      console.error('❌ Error seeding user data:', err.message);
+    } else {
+      console.error('❌ Error seeding user data:', err);
+    }
+    throw err;
   }
 }
 
@@ -839,8 +843,12 @@ export async function clearUserData() {
     await timeStep('Clear users', () => db.delete(users));
 
     console.log('✅ User data cleared successfully!');
-  } catch (error) {
-    console.error('❌ Error clearing user data:', error);
-    throw error;
+  } catch (err: unknown) {
+    if (err instanceof Error) {
+      console.error('❌ Error clearing user data:', err.message);
+    } else {
+      console.error('❌ Error clearing user data:', err);
+    }
+    throw err;
   }
 }

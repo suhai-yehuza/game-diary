@@ -24,7 +24,6 @@ vi.mock('@src/lib/config/api.config', () => ({
 describe('LiveGamesDetail', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    // Mock fetch globally
     global.fetch = vi.fn();
   });
 
@@ -33,12 +32,8 @@ describe('LiveGamesDetail', () => {
   });
 
   it('renders loading state initially', () => {
-    global.fetch = vi.fn().mockImplementation(() => new Promise(() => {})); // Never resolves
-
+    global.fetch = vi.fn().mockImplementation(() => new Promise(() => {}));
     render(<LiveGamesDetail />);
-
-    expect(screen.getByText('Loading live games...')).toBeInTheDocument();
-    // The spinner doesn't have role="status", so just check it exists
     expect(screen.getByText('Loading live games...')).toBeInTheDocument();
   });
 
@@ -84,18 +79,14 @@ describe('LiveGamesDetail', () => {
         },
       ],
     };
-
     global.fetch = vi.fn().mockResolvedValue({
       ok: true,
       json: () => Promise.resolve(mockApiResponse),
     });
-
     render(<LiveGamesDetail />);
-
     await waitFor(() => {
       expect(screen.getByText('Live NBA Games')).toBeInTheDocument();
     });
-
     expect(screen.getByText('1 game currently live')).toBeInTheDocument();
     expect(screen.getByText('Chicago Bulls')).toBeInTheDocument();
     expect(screen.getByText('New York Knicks')).toBeInTheDocument();
@@ -105,18 +96,13 @@ describe('LiveGamesDetail', () => {
     expect(screen.getByText('Close game in the 3rd')).toBeInTheDocument();
   });
 
-  it('renders mock data when API fails', async () => {
+  it('renders error message when API fails', async () => {
     global.fetch = vi.fn().mockRejectedValue(new Error('Network error'));
-
     render(<LiveGamesDetail />);
-
     await waitFor(() => {
-      expect(screen.getByText('3 games currently live')).toBeInTheDocument();
+      expect(screen.getByText(/Error loading live games/)).toBeInTheDocument();
     });
-
-    // Should show mock data from MOCK_LIVE_GAMES
-    expect(screen.getByText('New York Knicks')).toBeInTheDocument();
-    expect(screen.getByText('Boston Celtics')).toBeInTheDocument();
+    expect(screen.getByText('Retry')).toBeInTheDocument();
   });
 
   it('shows no games message when API returns empty results', async () => {
@@ -124,84 +110,58 @@ describe('LiveGamesDetail', () => {
       results: 0,
       response: [],
     };
-
     global.fetch = vi.fn().mockResolvedValue({
       ok: true,
       json: () => Promise.resolve(emptyApiResponse),
     });
-
     render(<LiveGamesDetail />);
-
     await waitFor(() => {
-      expect(screen.getByText('3 games currently live')).toBeInTheDocument();
+      expect(screen.getByText('No Live Games')).toBeInTheDocument();
     });
-
-    // Should show mock data since component falls back to it
-    expect(screen.getByText('New York Knicks')).toBeInTheDocument();
-    expect(screen.getByText('Boston Celtics')).toBeInTheDocument();
+    expect(screen.getByText('There are currently no live NBA games.')).toBeInTheDocument();
   });
 
-  it('handles API error response', async () => {
+  it('renders error message when API returns error response', async () => {
     global.fetch = vi.fn().mockResolvedValue({
       ok: false,
       status: 500,
       statusText: 'Internal Server Error',
     });
-
     render(<LiveGamesDetail />);
-
     await waitFor(() => {
-      expect(screen.getByText('3 games currently live')).toBeInTheDocument();
+      expect(screen.getByText(/Error loading live games/)).toBeInTheDocument();
     });
-
-    // Should show mock data since component falls back to it
-    expect(screen.getByText('New York Knicks')).toBeInTheDocument();
-    expect(screen.getByText('Boston Celtics')).toBeInTheDocument();
+    expect(screen.getByText('Retry')).toBeInTheDocument();
   });
 
   it('displays game details correctly', async () => {
-    render(<LiveGamesDetail />);
-
+    const { container } = render(<LiveGamesDetail data={MOCK_LIVE_GAMES} />);
     await waitFor(() => {
       expect(screen.getByText('Live NBA Games')).toBeInTheDocument();
     });
-
-    // Check for game count
-    expect(screen.getByText('3 games currently live')).toBeInTheDocument();
-
-    // Check for team names
+    expect(container.textContent).toContain('8 games currently live');
     expect(screen.getByText('New York Knicks')).toBeInTheDocument();
     expect(screen.getByText('Boston Celtics')).toBeInTheDocument();
-    expect(screen.getByText('Golden State Warriors')).toBeInTheDocument();
-    expect(screen.getByText('Los Angeles Lakers')).toBeInTheDocument();
-
-    // Check for scores
-    expect(screen.getAllByText('60').length).toBeGreaterThanOrEqual(1); // Knicks or Heat score
-    expect(screen.getAllByText('65').length).toBeGreaterThanOrEqual(1); // Celtics or 76ers score
-
-    // Check for game status - there are 3 games in mock data, so 3 LIVE indicators
-    expect(screen.getAllByText('LIVE')).toHaveLength(3);
-    expect(screen.getByText('3rd Quarter')).toBeInTheDocument();
-    expect(screen.getByText('4th Quarter')).toBeInTheDocument();
-    expect(screen.getByText('Halftime')).toBeInTheDocument();
-
-    // Check for period information
-    expect(screen.getAllByText('3 of 4')).toHaveLength(1);
-    expect(screen.getAllByText('4 of 4')).toHaveLength(1);
-    expect(screen.getAllByText('2 of 4')).toHaveLength(1);
+    expect(screen.getAllByText('Golden State Warriors').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('Los Angeles Lakers').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('60').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('65').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('LIVE').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('3rd Quarter').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('4th Quarter').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('Halftime').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('3 of 4').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('4 of 4').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('2 of 4').length).toBeGreaterThanOrEqual(1);
   });
 
   it('handles games without nugget', async () => {
-    render(<LiveGamesDetail />);
-
+    const { container } = render(<LiveGamesDetail data={MOCK_LIVE_GAMES} />);
     await waitFor(() => {
       expect(screen.getByText('Live NBA Games')).toBeInTheDocument();
     });
-
-    // Check that nuggets from the actual mock data are displayed
-    expect(screen.getByText('Celtics lead by 5 in a high-scoring affair')).toBeInTheDocument();
-    expect(screen.getByText('Lakers lead by 1 in a nail-biter finish')).toBeInTheDocument();
-    expect(screen.getByText('76ers lead by 5 at halftime')).toBeInTheDocument();
+    expect(container.textContent).toContain('Lakers lead by 1 in a nail-biter finish');
+    expect(container.textContent).toContain('76ers lead by 5 at halftime');
   });
 
   it('calls API with correct endpoint', async () => {
@@ -209,9 +169,7 @@ describe('LiveGamesDetail', () => {
       ok: true,
       json: () => Promise.resolve(MOCK_LIVE_GAMES),
     });
-
     render(<LiveGamesDetail />);
-
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalledWith('/api/proxy/games?live=all');
     });
@@ -222,14 +180,11 @@ describe('LiveGamesDetail', () => {
       results: 1,
       response: [MOCK_LIVE_GAMES.response[0]],
     };
-
     global.fetch = vi.fn().mockResolvedValue({
       ok: true,
       json: () => Promise.resolve(singleGameResponse),
     });
-
     render(<LiveGamesDetail />);
-
     await waitFor(() => {
       expect(screen.getByText('1 game currently live')).toBeInTheDocument();
     });

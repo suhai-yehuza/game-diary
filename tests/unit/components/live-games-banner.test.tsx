@@ -76,25 +76,14 @@ describe('LiveGamesBanner', () => {
     vi.spyOn(console, 'log').mockImplementation(() => {});
   });
 
-  it('renders live games banner with mock data when API fails', async () => {
+  it('does not render banner when API fails', async () => {
     // Mock fetch to fail
     global.fetch = vi.fn().mockRejectedValue(new Error('Network error'));
 
     render(<LiveGamesBanner />);
 
-    // Should show loading initially, then mock data
-    await waitFor(() => {
-      expect(screen.getByText('LIVE')).toBeInTheDocument();
-    });
-
-    expect(screen.getByText('2 Games Live')).toBeInTheDocument();
-    expect(screen.getByText('LAL')).toBeInTheDocument();
-    expect(screen.getByText('BOS')).toBeInTheDocument();
-    expect(screen.getByText('105')).toBeInTheDocument();
-    expect(screen.getByText('98')).toBeInTheDocument();
-    expect(screen.getByText('2:30')).toBeInTheDocument();
-    expect(screen.getByText('HALFTIME')).toBeInTheDocument();
-    expect(screen.getByText('View All')).toBeInTheDocument();
+    // Should not render banner when API fails
+    expect(screen.queryByTestId('live-games-banner')).not.toBeInTheDocument();
   });
 
   it('renders live games banner with API data when successful', async () => {
@@ -128,17 +117,17 @@ describe('LiveGamesBanner', () => {
     render(<LiveGamesBanner />);
 
     await waitFor(() => {
-      expect(screen.getByText('1 Game Live')).toBeInTheDocument();
+      expect(screen.getByText('1 Live Game')).toBeInTheDocument();
     });
 
-    expect(screen.getByText('CHI')).toBeInTheDocument();
-    expect(screen.getByText('NYK')).toBeInTheDocument();
-    expect(screen.getByText('78')).toBeInTheDocument();
-    expect(screen.getByText('82')).toBeInTheDocument();
-    expect(screen.getByText('1:45')).toBeInTheDocument();
+    expect(screen.getByText(/CHI/)).toBeInTheDocument();
+    expect(screen.getByText(/NYK/)).toBeInTheDocument();
+    expect(screen.getByText(/78/)).toBeInTheDocument();
+    expect(screen.getByText(/82/)).toBeInTheDocument();
+    expect(screen.getByText(/1:45/)).toBeInTheDocument();
   });
 
-  it('uses mock data when API returns empty results', async () => {
+  it('does not render banner when API returns empty results', async () => {
     const emptyApiResponse = {
       results: 0,
       response: [],
@@ -151,16 +140,11 @@ describe('LiveGamesBanner', () => {
 
     render(<LiveGamesBanner />);
 
-    await waitFor(() => {
-      expect(screen.getByText('2 Games Live')).toBeInTheDocument();
-    });
-
-    // Should show mock data
-    expect(screen.getByText('LAL')).toBeInTheDocument();
-    expect(screen.getByText('BOS')).toBeInTheDocument();
+    // Should not render banner when no games
+    expect(screen.queryByTestId('live-games-banner')).not.toBeInTheDocument();
   });
 
-  it('handles API response with invalid data structure', async () => {
+  it('does not render banner when API returns invalid data structure', async () => {
     const invalidResponse = { invalid: 'data' };
 
     global.fetch = vi.fn().mockResolvedValue({
@@ -170,16 +154,11 @@ describe('LiveGamesBanner', () => {
 
     render(<LiveGamesBanner />);
 
-    await waitFor(() => {
-      expect(screen.getByText('2 Games Live')).toBeInTheDocument();
-    });
-
-    // Should fall back to mock data
-    expect(screen.getByText('LAL')).toBeInTheDocument();
-    expect(screen.getByText('BOS')).toBeInTheDocument();
+    // Should not render banner when data is invalid
+    expect(screen.queryByTestId('live-games-banner')).not.toBeInTheDocument();
   });
 
-  it('handles API error response', async () => {
+  it('does not render banner when API returns error', async () => {
     global.fetch = vi.fn().mockResolvedValue({
       ok: false,
       status: 500,
@@ -188,13 +167,8 @@ describe('LiveGamesBanner', () => {
 
     render(<LiveGamesBanner />);
 
-    await waitFor(() => {
-      expect(screen.getByText('2 Games Live')).toBeInTheDocument();
-    });
-
-    // Should fall back to mock data
-    expect(screen.getByText('LAL')).toBeInTheDocument();
-    expect(screen.getByText('BOS')).toBeInTheDocument();
+    // Should not render banner when API fails
+    expect(screen.queryByTestId('live-games-banner')).not.toBeInTheDocument();
   });
 
   it('shows correct game count for single game', async () => {
@@ -228,7 +202,7 @@ describe('LiveGamesBanner', () => {
     render(<LiveGamesBanner />);
 
     await waitFor(() => {
-      expect(screen.getByText('1 Game Live')).toBeInTheDocument();
+      expect(screen.getByText('1 Live Game')).toBeInTheDocument();
     });
   });
 
@@ -277,15 +251,33 @@ describe('LiveGamesBanner', () => {
     render(<LiveGamesBanner />);
 
     await waitFor(() => {
-      expect(screen.getByText('5 Games Live')).toBeInTheDocument();
+      expect(screen.getByText('5 Live Games')).toBeInTheDocument();
     });
 
-    // Should show "+2 more" indicator
-    expect(screen.getByText('+2 more')).toBeInTheDocument();
+    // Should show all 5 games in the banner
+    expect(screen.getByText(/LAL/)).toBeInTheDocument();
+    expect(screen.getByText(/BOS/)).toBeInTheDocument();
+    expect(screen.getByText(/GSW/)).toBeInTheDocument();
+    expect(screen.getByText(/MIA/)).toBeInTheDocument();
   });
 
   it('includes View All link with correct href', async () => {
-    global.fetch = vi.fn().mockRejectedValue(new Error('Network error'));
+    // Mock successful API response with games
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () =>
+        Promise.resolve({
+          results: 1,
+          response: [
+            {
+              id: 1,
+              teams: { visitors: { code: 'LAL' }, home: { code: 'BOS' } },
+              scores: { visitors: { points: 100 }, home: { points: 95 } },
+              status: { clock: '2:30', halftime: false, long: '2nd Quarter' },
+            },
+          ],
+        }),
+    });
 
     render(<LiveGamesBanner />);
 

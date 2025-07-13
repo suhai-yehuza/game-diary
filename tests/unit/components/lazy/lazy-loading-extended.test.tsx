@@ -81,7 +81,7 @@ describe('Extended Lazy Loading Components', () => {
     it('renders loading state initially', () => {
       render(
         <Suspense fallback={<div>Fallback</div>}>
-          <LazyLiveGamesDetail />
+          <LazyLiveGamesDetail data={undefined} />
         </Suspense>
       );
 
@@ -98,7 +98,7 @@ describe('Extended Lazy Loading Components', () => {
     it('renders live games detail content after loading', async () => {
       render(
         <Suspense fallback={<div>Fallback</div>}>
-          <LazyLiveGamesDetail />
+          <LazyLiveGamesDetail data={undefined} />
         </Suspense>
       );
 

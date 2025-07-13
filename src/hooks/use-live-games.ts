@@ -1,7 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 
 import { INTERNAL_PROXY_ENDPOINTS } from '@/lib/config/api.config';
-import { MOCK_LIVE_GAMES } from '@/lib/mock/liveGamesMock';
 import type { IGamesApiResponse } from '@/lib/types/externalApiTypes';
 import type { IUseLiveGamesOptions } from '@/lib/types/hooks.types';
 
@@ -41,19 +40,13 @@ export function useLiveGames(options: IUseLiveGamesOptions = {}) {
 
       const data = (await response.json()) as unknown;
 
-      // Use mock data if API returns no live games
-      if (isGamesApiResponse(data) && (data.results === 0 || data.response.length === 0)) {
-        setLiveGames(MOCK_LIVE_GAMES);
-      } else if (isGamesApiResponse(data)) {
+      if (isGamesApiResponse(data)) {
         setLiveGames(data);
-      } else {
-        setLiveGames(MOCK_LIVE_GAMES);
       }
     } catch (err) {
       const error = err instanceof Error ? err : new Error(String(err));
       setError(error.message);
-      console.warn('Failed to fetch live games, using mock data:', error);
-      setLiveGames(MOCK_LIVE_GAMES);
+      console.warn('Failed to fetch live games:', error);
     } finally {
       setLoading(false);
     }
@@ -74,8 +67,7 @@ export function useLiveGames(options: IUseLiveGamesOptions = {}) {
     }
   }, [fetchLiveGames, initialData, autoRefresh, refreshInterval]);
 
-  // Always show data with mock data if no live games from API
-  const games = liveGames?.response ?? MOCK_LIVE_GAMES.response;
+  const games = liveGames?.response ?? [];
 
   return {
     liveGames,

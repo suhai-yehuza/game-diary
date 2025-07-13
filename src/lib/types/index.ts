@@ -27,6 +27,9 @@ export * from './externalApiTypes';
 // Generated types
 export * from './generated/graphql';
 
+// Misc types
+export * from './misc.types';
+
 // Schema types
 export * from './schema-types';
 

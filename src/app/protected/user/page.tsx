@@ -248,7 +248,7 @@ export default function ProfilePage() {
                       </div>
                     </div>
 
-                    {Array.isArray(user?.email_addresses) && user.email_addresses.length > 0 && (
+                    {Array.isArray(user?.email_addresses) && user?.email_addresses?.length > 0 && (
                       <div>
                         <label className="text-sm font-medium text-muted-foreground">
                           All Email Addresses
@@ -273,7 +273,7 @@ export default function ProfilePage() {
                       </div>
                     )}
 
-                    {Array.isArray(user?.phone_numbers) && user.phone_numbers.length > 0 && (
+                    {Array.isArray(user?.phone_numbers) && user?.phone_numbers?.length > 0 && (
                       <div>
                         <label className="text-sm font-medium text-muted-foreground">
                           Phone Numbers
@@ -300,7 +300,7 @@ export default function ProfilePage() {
                   </CardContent>
                 </Card>
 
-                {Array.isArray(user?.external_accounts) && user.external_accounts.length > 0 && (
+                {Array.isArray(user?.external_accounts) && user?.external_accounts?.length > 0 && (
                   <Card>
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">

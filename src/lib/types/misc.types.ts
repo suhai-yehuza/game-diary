@@ -6,3 +6,8 @@ export interface IEncryptedField {
   content: string;
   tag: string;
 }
+
+export interface IMenuContextType {
+  isMenuExpanded: boolean;
+  setIsMenuExpanded: (expanded: boolean) => void;
+}

@@ -298,7 +298,7 @@
   "devDependencies": {
     "@babel/preset-typescript": "7.27.1",
     "@eslint/js": "9.29.0",
-    "@faker-js/faker": "9.8.0",
+    "@faker-js/faker": "9.9.0",
     "@graphql-codegen/cli": "5.0.7",
     "@graphql-codegen/schema-ast": "4.1.0",
     "@graphql-codegen/typescript": "4.1.6",

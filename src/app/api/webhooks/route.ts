@@ -29,16 +29,18 @@ export async function POST(req: NextRequest) {
       case 'user.updated':
         return await handleUserUpdated(evt.data as unknown as IClerkUserData);
       case 'user.deleted':
-        return await handleUserDeleted(evt.data as unknown as IClerkDeletedUserData);
+        return await handleUserDeleted(evt.data as IClerkDeletedUserData);
       default:
         webhookLogger.info(`Unhandled webhook event type: ${eventType}`);
         return createResponse('Unhandled event type', 200);
     }
   } catch (error) {
     webhookLogger.error('Webhook error:', error);
-    return createResponse(
-      error instanceof Error ? error.message : 'Internal server error',
-      error instanceof Error && error.message.includes('Missing user ID') ? 400 : 500
-    );
+
+    const errorMessage = error instanceof Error ? error.message : 'Internal server error';
+    const statusCode =
+      error instanceof Error && error.message.includes('Missing user ID') ? 400 : 500;
+
+    return createResponse(errorMessage, statusCode);
   }
 }
