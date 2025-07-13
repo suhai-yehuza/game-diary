@@ -164,8 +164,8 @@ export default async function AdminAuditLogsLayout({
 
 Admin roles are configured in Clerk:
 
-1. **Admin Role**: Users with `admin` or `Admin` role can access admin functions
-2. **Role Assignment**: Assign roles through Clerk dashboard
+1. **Admin Role**: Users with `admin` or `Admin` in their Clerk user metadata (public_metadata.role) can access admin functions
+2. **Role Assignment**: Assign roles through Clerk dashboard by setting public metadata: `{ "role": ["admin"] }`
 3. **Audit Logging**: All admin access attempts are logged
 
 ### Admin Functions

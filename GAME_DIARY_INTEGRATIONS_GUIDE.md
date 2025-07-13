@@ -58,8 +58,8 @@ The Game Diary app is a Next.js-based sports application that allows users to tr
 
 **Admin Access**:
 
-- Admin emails are configured via `NEXT_PUBLIC_ADMIN_EMAILS` environment variable
-- Current admin emails: `sportsdata22@gmail.com`, `soyehuza@gmail.com`
+- Admin access is determined solely by Clerk user metadata. Users with `role: ["admin"]` in their public metadata are admins.
+- To grant admin access, set the user's public metadata in Clerk to include: `{ "role": ["admin"] }`
 
 **Management Tasks**:
 
@@ -108,9 +108,6 @@ NEXT_PUBLIC_RAPID_API_BASE_URL=https://v2.nba.api-sports.io
 # Redis
 UPSTASH_REDIS_REST_URL=https://...
 UPSTASH_REDIS_REST_TOKEN=...
-
-# Admin
-NEXT_PUBLIC_ADMIN_EMAILS=sportsdata22@gmail.com,soyehuza@gmail.com
 
 # Environment
 NODE_ENV=production

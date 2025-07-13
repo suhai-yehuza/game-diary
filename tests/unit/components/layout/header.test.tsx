@@ -179,7 +179,6 @@ describe('Header - additional coverage', () => {
   beforeEach(() => {
     document.body.innerHTML = '';
     process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY = 'test-key';
-    process.env.NEXT_PUBLIC_ADMIN_EMAILS = 'admin@example.com';
     vi.resetModules();
   });
 
@@ -195,7 +194,7 @@ describe('Header - additional coverage', () => {
         isSignedIn: true,
         isLoaded: true,
         user: {
-          emailAddresses: [{ emailAddress: 'admin@example.com' }],
+          publicMetadata: { role: ['admin'] },
         },
       }),
     }));

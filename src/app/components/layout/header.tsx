@@ -253,15 +253,12 @@ function AdminNavE2E({ isActive }: { isActive: (path: string) => boolean }) {
 function AdminNavContent({ isActive }: { isActive: (path: string) => boolean }) {
   const { user, isLoaded } = useUser();
 
-  // Check if user is admin based on email
-  const adminEmails = process.env.NEXT_PUBLIC_ADMIN_EMAILS
-    ? process.env.NEXT_PUBLIC_ADMIN_EMAILS.split(',')
-    : [];
-  const isAdmin = Boolean(
+  // Check if user is admin based on Clerk roles/metadata
+  const userRoles = user?.publicMetadata?.role ?? [];
+  const isAdmin =
     isLoaded &&
-      user?.emailAddresses?.[0]?.emailAddress &&
-      adminEmails.includes(user.emailAddresses[0].emailAddress)
-  );
+    Array.isArray(userRoles) &&
+    (userRoles.includes('admin') || userRoles.includes('Admin'));
 
   if (!isLoaded || !isAdmin) {
     return null;

@@ -192,9 +192,6 @@ UPSTASH_REDIS_REST_TOKEN="..."                   # From UpStash Dashboard
 RAPIDAPI_KEY="your_rapidapi_key"                 # From RapidAPI Dashboard
 RAPIDAPI_HOST="api-nba-v1.p.rapidapi.com"        # NBA API Host
 
-# Admin Configuration
-NEXT_PUBLIC_ADMIN_EMAILS="admin@example.com,admin2@example.com"  # Admin user emails
-
 # Application
 NEXT_PUBLIC_APP_URL="${NEXT_PUBLIC_APP_URL:-http://localhost:3000}"  # Development URL
 NODE_ENV="development"                           # Environment
