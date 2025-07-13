@@ -20,13 +20,13 @@ export function Footer() {
       }`}
     >
       <div className="max-w-5xl mx-auto px-4">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-1 text-center md:text-left">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 text-center md:text-left">
           {/* About Section */}
           <div>
-            <h3 className="text-xs font-bold mb-1 tracking-wide text-neutral-100 uppercase">
+            <h3 className="text-xs font-bold mb-2 tracking-wide text-neutral-100 uppercase">
               About
             </h3>
-            <ul className="space-y-0.5 text-xs">
+            <ul className="space-y-1 text-xs">
               <li>
                 <a href="#about" className="hover:text-emerald-400 transition-colors block py-0.5">
                   About Us
@@ -42,10 +42,10 @@ export function Footer() {
 
           {/* Help Section */}
           <div>
-            <h3 className="text-xs font-bold mb-1 tracking-wide text-neutral-100 uppercase">
+            <h3 className="text-xs font-bold mb-2 tracking-wide text-neutral-100 uppercase">
               Help
             </h3>
-            <ul className="space-y-0.5 text-xs">
+            <ul className="space-y-1 text-xs">
               <li>
                 <a href="#api" className="hover:text-emerald-400 transition-colors block py-0.5">
                   API
@@ -64,10 +64,10 @@ export function Footer() {
 
           {/* Social Links */}
           <div>
-            <h3 className="text-xs font-bold mb-1 tracking-wide text-neutral-100 uppercase">
+            <h3 className="text-xs font-bold mb-2 tracking-wide text-neutral-100 uppercase">
               Follow Us
             </h3>
-            <ul className="space-y-0.5 text-xs">
+            <ul className="space-y-1 text-xs">
               <li>
                 <a
                   href="https://x.com"
@@ -111,10 +111,10 @@ export function Footer() {
 
           {/* Copyright Section */}
           <div>
-            <h3 className="text-xs font-bold mb-1 tracking-wide text-neutral-100 uppercase">
+            <h3 className="text-xs font-bold mb-2 tracking-wide text-neutral-100 uppercase">
               Legal
             </h3>
-            <ul className="space-y-0.5 text-xs">
+            <ul className="space-y-1 text-xs">
               <li>
                 <a
                   href="#privacy"
