@@ -371,6 +371,12 @@ run_full_validation() {
 run_staging_validation() {
     log "Running staging validation..."
 
+    # For local development, use development environment validation
+    if [ "$CI" != "true" ] && [ "$GITHUB_ACTIONS" != "true" ]; then
+        log_info "Running staging validation in development mode (local build)"
+        export NODE_ENV=development
+    fi
+
     run_full_validation
     run_size_check
 
