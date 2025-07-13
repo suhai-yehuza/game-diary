@@ -41,7 +41,6 @@ on:
 jobs:
   quality-gate:
     name: Quality Gate
-    if: false # TODO: Uncomment this when we have a functional test that works
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
     steps:
@@ -71,7 +70,6 @@ jobs:
 
   unit-tests:
     name: Unit Tests
-    if: false # TODO: Uncomment this when we have a functional test that works
     needs: [quality-gate]
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
@@ -107,7 +105,6 @@ jobs:
 
   database-tests:
     name: Database Tests
-    if: false # TODO: Uncomment this when we have a functional test that works
     needs: [quality-gate]
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
@@ -142,7 +139,6 @@ jobs:
 
   e2e-mock-verification:
     name: E2E Mock Verification
-    if: false # TODO: Uncomment this when we have a functional test that works
     needs: [unit-tests, database-tests]
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
@@ -170,7 +166,6 @@ jobs:
 
   e2e-smoke:
     name: E2E Smoke (Includes Sanity and Accessibility)
-    if: false # TODO: Uncomment this when we have a functional test that works
     needs: [unit-tests, database-tests]
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
@@ -198,7 +193,6 @@ jobs:
 
   e2e-live-games:
     name: E2E Live Games
-    if: false # TODO: Uncomment this when we have a functional test that works
     needs: [unit-tests, database-tests]
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
@@ -255,16 +249,15 @@ jobs:
   deploy:
     name: Deploy to Vercel
     if: ${{ inputs.deploy-to-vercel }}
-    # needs:
-    #   [
-    #     quality-gate,
-    #     unit-tests,
-    #     database-tests,
-    #     e2e-mock-verification,
-    #     e2e-smoke,
-    #     e2e-live-games,
-    #     e2e-functional,
-    #   ]
+    needs: [
+        quality-gate,
+        unit-tests,
+        database-tests,
+        e2e-mock-verification,
+        e2e-smoke,
+        e2e-live-games,
+        # e2e-functional,
+      ]
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
     outputs:
@@ -366,6 +359,7 @@ jobs:
 
   e2e-navigation-live:
     name: E2E Navigation (Live)
+    if: false # TODO: Uncomment this when we have a functional test that works
     needs: [deploy]
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
