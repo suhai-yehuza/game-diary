@@ -256,14 +256,15 @@ jobs:
   deploy:
     name: Deploy to Vercel
     if: ${{ inputs.deploy-to-vercel }}
-    needs: [
+    needs:
+      [
         quality-gate,
         unit-tests,
         database-tests,
         e2e-mock-verification,
         e2e-smoke,
         e2e-live-games,
-        # e2e-functional,
+        e2e-functional,
       ]
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}

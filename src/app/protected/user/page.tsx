@@ -15,6 +15,15 @@ function UserGreeting() {
             ? `Welcome, ${user?.username ?? user?.firstName ?? 'User'}!`
             : 'Welcome, Guest!'}
         </p>
+        {/* Add test elements for security tests */}
+        {isSignedIn && user && (
+          <div className="mt-4 text-sm text-muted-foreground">
+            <div data-testid="user-email">
+              {user.emailAddresses?.[0]?.emailAddress || 'No email'}
+            </div>
+            <div data-testid="user-phone">{user.phoneNumbers?.[0]?.phoneNumber || 'No phone'}</div>
+          </div>
+        )}
       </div>
     </section>
   );

@@ -1,4 +1,4 @@
-import { renderHook } from '@testing-library/react';
+import { renderHook, act } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 import { useLiveGames } from '@/hooks/use-live-games';
@@ -111,8 +111,13 @@ describe('useLiveGames', () => {
   });
 
   describe('initialization without initial data', () => {
-    it('initializes with mock data when no initial data provided (test mode)', () => {
-      const { result } = renderHook(() => useLiveGames());
+    it('initializes with mock data when no initial data provided (test mode)', async () => {
+      let result: any;
+      await act(async () => {
+        const hookResult = renderHook(() => useLiveGames());
+        result = hookResult.result;
+      });
+
       expect(result.current.liveGames).toEqual(MOCK_LIVE_GAMES);
       expect(result.current.games).toEqual(MOCK_LIVE_GAMES.response);
       expect(result.current.games).toHaveLength(MOCK_LIVE_GAMES.response.length);
@@ -121,8 +126,13 @@ describe('useLiveGames', () => {
       expect(typeof result.current.refetch).toBe('function');
     });
 
-    it('always returns games array even when liveGames is mock (test mode)', () => {
-      const { result } = renderHook(() => useLiveGames());
+    it('always returns games array even when liveGames is mock (test mode)', async () => {
+      let result: any;
+      await act(async () => {
+        const hookResult = renderHook(() => useLiveGames());
+        result = hookResult.result;
+      });
+
       expect(result.current.liveGames).toEqual(MOCK_LIVE_GAMES);
       expect(result.current.games).toEqual(MOCK_LIVE_GAMES.response);
       expect(Array.isArray(result.current.games)).toBe(true);
@@ -130,26 +140,41 @@ describe('useLiveGames', () => {
   });
 
   describe('options handling', () => {
-    it('accepts autoRefresh option', () => {
-      const { result } = renderHook(() => useLiveGames({ autoRefresh: false }));
+    it('accepts autoRefresh option', async () => {
+      let result: any;
+      await act(async () => {
+        const hookResult = renderHook(() => useLiveGames({ autoRefresh: false }));
+        result = hookResult.result;
+      });
+
       expect(result.current.liveGames).toEqual(MOCK_LIVE_GAMES);
       expect(result.current.games).toEqual(MOCK_LIVE_GAMES.response);
       expect(result.current.loading).toBe(false);
       expect(result.current.error).toBeNull();
     });
 
-    it('accepts refreshInterval option', () => {
-      const { result } = renderHook(() => useLiveGames({ refreshInterval: 10000 }));
+    it('accepts refreshInterval option', async () => {
+      let result: any;
+      await act(async () => {
+        const hookResult = renderHook(() => useLiveGames({ refreshInterval: 10000 }));
+        result = hookResult.result;
+      });
+
       expect(result.current.liveGames).toEqual(MOCK_LIVE_GAMES);
       expect(result.current.games).toEqual(MOCK_LIVE_GAMES.response);
       expect(result.current.loading).toBe(false);
       expect(result.current.error).toBeNull();
     });
 
-    it('accepts both autoRefresh and refreshInterval options', () => {
-      const { result } = renderHook(() =>
-        useLiveGames({ autoRefresh: true, refreshInterval: 15000 })
-      );
+    it('accepts both autoRefresh and refreshInterval options', async () => {
+      let result: any;
+      await act(async () => {
+        const hookResult = renderHook(() =>
+          useLiveGames({ autoRefresh: true, refreshInterval: 15000 })
+        );
+        result = hookResult.result;
+      });
+
       expect(result.current.liveGames).toEqual(MOCK_LIVE_GAMES);
       expect(result.current.games).toEqual(MOCK_LIVE_GAMES.response);
       expect(result.current.loading).toBe(false);
@@ -158,15 +183,23 @@ describe('useLiveGames', () => {
   });
 
   describe('refetch function', () => {
-    it('provides a refetch function', () => {
-      const { result } = renderHook(() => useLiveGames());
+    it('provides a refetch function', async () => {
+      let result: any;
+      await act(async () => {
+        const hookResult = renderHook(() => useLiveGames());
+        result = hookResult.result;
+      });
 
       expect(typeof result.current.refetch).toBe('function');
       expect(result.current.refetch).toBeInstanceOf(Function);
     });
 
-    it('refetch function is callable', () => {
-      const { result } = renderHook(() => useLiveGames());
+    it('refetch function is callable', async () => {
+      let result: any;
+      await act(async () => {
+        const hookResult = renderHook(() => useLiveGames());
+        result = hookResult.result;
+      });
 
       // Should not throw when called
       expect(() => result.current.refetch()).not.toThrow();
@@ -186,8 +219,13 @@ describe('useLiveGames', () => {
       expect(result.current.games).toHaveLength(3);
     });
 
-    it('falls back to mock data when liveGames is not provided (test mode)', () => {
-      const { result } = renderHook(() => useLiveGames());
+    it('falls back to mock data when liveGames is not provided (test mode)', async () => {
+      let result: any;
+      await act(async () => {
+        const hookResult = renderHook(() => useLiveGames());
+        result = hookResult.result;
+      });
+
       expect(result.current.liveGames).toEqual(MOCK_LIVE_GAMES);
       expect(result.current.games).toEqual(MOCK_LIVE_GAMES.response);
       expect(Array.isArray(result.current.games)).toBe(true);
