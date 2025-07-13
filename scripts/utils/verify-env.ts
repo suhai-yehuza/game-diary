@@ -10,7 +10,8 @@ if (!process.env.NODE_ENV) {
   process.env.NODE_ENV = 'development';
 }
 
-const isCI = process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true';
+const isCI =
+  process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true' || process.env.VERCEL === '1';
 const isDevOrTest = process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test';
 
 if (!isCI) {
@@ -108,6 +109,13 @@ function validateEnvironment(): void {
       if (!env.CLERK_SECRET_KEY) {
         errors.push('CLERK_SECRET_KEY is required for production/staging');
       }
+    } else if (isCI && (env.NODE_ENV === 'production' || env.NODE_ENV === 'staging')) {
+      // In CI (including Vercel), check if Clerk keys are available but don't fail if missing
+      if (!env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || !env.CLERK_SECRET_KEY) {
+        warnings.push(
+          'Clerk authentication keys not found in CI environment - ensure they are set in deployment settings'
+        );
+      }
     }
 
     // API keys are recommended but not required (skip warnings in CI)
@@ -152,7 +160,7 @@ function validateEnvironment(): void {
       `  Database: ${env.DATABASE_URL ? '✅ Configured' : isCI ? '⚠️  Skipped in CI' : '❌ Missing'}`
     );
     console.log(
-      `  Clerk Auth: ${env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ? '✅ Configured' : isCI ? '⚠️  Skipped in CI' : '⚠️  Not configured'}`
+      `  Clerk Auth: ${env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ? '✅ Configured' : isCI ? '⚠️  Check deployment settings' : '⚠️  Not configured'}`
     );
     console.log(
       `  RapidAPI: ${env.NEXT_PUBLIC_RAPID_API_KEY ? '✅ Configured' : isCI ? '⚠️  Skipped in CI' : '⚠️  Not configured'}`

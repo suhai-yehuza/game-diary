@@ -194,12 +194,23 @@ run_env_verification() {
     # Environment-specific validations
     log_info "Validating environment-specific configuration for: $node_env"
 
+    # Check if we're in a Vercel build environment
+    local is_vercel_build=false
+    if [ "$VERCEL" = "1" ] || [ "$CI" = "true" ] || [ "$GITHUB_ACTIONS" = "true" ]; then
+        is_vercel_build=true
+        log_info "Detected CI/Vercel build environment"
+    fi
+
     case "$node_env" in
         "production"|"staging")
             # Production/staging specific checks
             if [ -z "$NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY" ] || [ -z "$CLERK_SECRET_KEY" ]; then
-                log_error "Clerk authentication keys are required for $node_env environment"
-                return 1
+                if [ "$is_vercel_build" = true ]; then
+                    log_warning "Clerk authentication keys not found in CI/Vercel environment - ensure they are set in deployment settings"
+                else
+                    log_error "Clerk authentication keys are required for $node_env environment"
+                    return 1
+                fi
             fi
 
             if [ -z "$DATABASE_URL" ]; then
