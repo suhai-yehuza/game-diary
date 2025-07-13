@@ -140,6 +140,33 @@ run_build() {
 run_env_verification() {
     log_info "Verifying environment variables..."
 
+    # Load environment file based on NODE_ENV
+    local node_env="${NODE_ENV:-development}"
+    local env_file=""
+
+    case "$node_env" in
+        "production")
+            env_file=".env.production"
+            ;;
+        "staging")
+            env_file=".env.staging"
+            ;;
+        "development")
+            env_file=".env.development"
+            ;;
+        *)
+            env_file=".env.local"
+            ;;
+    esac
+
+    # Load environment file if it exists
+    if [ -f "$env_file" ]; then
+        log_info "Loading environment from $env_file"
+        export $(grep -v '^#' "$env_file" | xargs)
+    else
+        log_warning "Environment file $env_file not found - using system environment variables"
+    fi
+
     # Basic environment validation
     if pnpm run verify-env; then
         log_success "Basic environment validation passed"
@@ -165,7 +192,6 @@ run_env_verification() {
     fi
 
     # Environment-specific validations
-    local node_env="${NODE_ENV:-development}"
     log_info "Validating environment-specific configuration for: $node_env"
 
     case "$node_env" in
