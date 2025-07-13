@@ -22,6 +22,10 @@ test.describe('Clerk Auth Modal', () => {
     });
 
     test('should open Clerk sign in modal and show form fields', async ({ page }) => {
+      test.skip(
+        Boolean(process.env.DEPLOYMENT_URL && !process.env.DEPLOYMENT_URL.includes('localhost')),
+        'Sign In button is not available in deployment environments'
+      );
       // Wait for page to be fully loaded
       await page.waitForLoadState('networkidle');
 
@@ -81,6 +85,10 @@ test.describe('Clerk Auth Modal', () => {
     });
 
     test('should handle sign in button click without errors', async ({ page }) => {
+      test.skip(
+        Boolean(process.env.DEPLOYMENT_URL && !process.env.DEPLOYMENT_URL.includes('localhost')),
+        'Sign In button is not available in deployment environments'
+      );
       // Wait for page to be fully loaded
       await page.waitForLoadState('networkidle');
 
@@ -111,6 +119,10 @@ test.describe('Clerk Auth Modal', () => {
     });
 
     test('should handle sign up button if present', async ({ page }) => {
+      test.skip(
+        Boolean(process.env.DEPLOYMENT_URL && !process.env.DEPLOYMENT_URL.includes('localhost')),
+        'Sign In button is not available in deployment environments'
+      );
       // Check for sign up button
       const signUpButton = page.getByTestId('sign-up-button');
       if ((await signUpButton.count()) > 0) {
@@ -127,6 +139,10 @@ test.describe('Clerk Auth Modal', () => {
     });
 
     test('should handle auth modal keyboard interactions', async ({ page }) => {
+      test.skip(
+        Boolean(process.env.DEPLOYMENT_URL && !process.env.DEPLOYMENT_URL.includes('localhost')),
+        'Sign In button is not available in deployment environments'
+      );
       // Open the sign in modal
       const signInButton = page.getByTestId('sign-in-button');
       await signInButton.click();
@@ -142,6 +158,10 @@ test.describe('Clerk Auth Modal', () => {
     });
 
     test('should handle auth modal focus management', async ({ page }) => {
+      test.skip(
+        Boolean(process.env.DEPLOYMENT_URL && !process.env.DEPLOYMENT_URL.includes('localhost')),
+        'Sign In button is not available in deployment environments'
+      );
       // Open the sign in modal
       const signInButton = page.getByTestId('sign-in-button');
       await signInButton.click();

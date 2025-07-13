@@ -20,6 +20,44 @@ export const DEFAULT_TEST_CREDENTIALS: TestAuthCredentials = {
 };
 
 /**
+ * Inject a mock for Clerk's useUser and useAuth hooks when bypass is active
+ */
+export async function mockClerkHooks(page: Page, credentials: Partial<TestAuthCredentials> = {}) {
+  const testCreds = { ...DEFAULT_TEST_CREDENTIALS, ...credentials };
+  await page.addInitScript(
+    ({ userId, email }) => {
+      // @ts-ignore
+      window.__E2E_AUTH_BYPASS__ = true;
+      // Mock Clerk's useUser and useAuth
+      const mockUser = {
+        id: userId,
+        emailAddresses: [
+          { emailAddress: email, id: 'email_123', verification: { status: 'verified' } },
+        ],
+        primaryEmailAddress: {
+          emailAddress: email,
+          id: 'email_123',
+          verification: { status: 'verified' },
+        },
+        firstName: 'Test',
+        lastName: 'User',
+        username: 'testuser',
+        fullName: 'Test User',
+        imageUrl: '',
+        createdAt: new Date().toISOString(),
+        lastSignInAt: new Date().toISOString(),
+      };
+      // @ts-ignore
+      window.__clerkMock = {
+        useUser: () => ({ isLoaded: true, isSignedIn: true, user: mockUser }),
+        useAuth: () => ({ getToken: async () => 'test_token', sessionId: 'test_session', userId }),
+      };
+    },
+    { userId: testCreds.userId, email: testCreds.email }
+  );
+}
+
+/**
  * Set up authentication bypass for deployment testing
  * This mocks Clerk authentication endpoints to simulate a logged-in user
  */
@@ -94,6 +132,9 @@ export async function setupAuthBypass(
       }),
     });
   });
+
+  // Inject Clerk hook mocks for client-side
+  await mockClerkHooks(page, testCreds);
 
   // Set authentication cookies to simulate logged-in state
   // First, ensure we have a valid URL to set cookies for

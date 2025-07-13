@@ -10,6 +10,13 @@ vi.mock('next/navigation', () => ({
   redirect: vi.fn(),
 }));
 
+// Mock Next.js headers
+vi.mock('next/headers', () => ({
+  headers: vi.fn(() => ({
+    get: vi.fn(() => null),
+  })),
+}));
+
 // Mock Clerk auth
 vi.mock('@clerk/nextjs/server', () => ({
   auth: vi.fn(),

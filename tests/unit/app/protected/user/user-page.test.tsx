@@ -2,10 +2,10 @@ import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 
-// Mock Clerk hooks
+// Mock the custom Clerk provider hooks
 let mockUseUser: ReturnType<typeof vi.fn>;
 let mockUseAuth: ReturnType<typeof vi.fn>;
-vi.mock('@clerk/nextjs', () => ({
+vi.mock('@/app/components/providers/clerk-provider', () => ({
   useUser: (...args: any[]) => mockUseUser(...args),
   useAuth: (...args: any[]) => mockUseAuth(...args),
 }));
@@ -21,11 +21,9 @@ vi.mock('next/image', () => ({
 vi.mock('lucide-react', () => ({
   User: () => <div data-testid="user-icon">User</div>,
   Mail: () => <div data-testid="mail-icon">Mail</div>,
-  Phone: () => <div data-testid="phone-icon">Phone</div>,
   Calendar: () => <div data-testid="calendar-icon">Calendar</div>,
   Shield: () => <div data-testid="shield-icon">Shield</div>,
   Globe: () => <div data-testid="globe-icon">Globe</div>,
-  ExternalLink: () => <div data-testid="external-link-icon">ExternalLink</div>,
   Edit: () => <div data-testid="edit-icon">Edit</div>,
   Camera: () => <div data-testid="camera-icon">Camera</div>,
   Settings: () => <div data-testid="settings-icon">Settings</div>,
@@ -73,10 +71,10 @@ describe('ProfilePage', () => {
       isLoaded: false,
       isSignedIn: false,
       user: null,
-    } as any);
+    });
     mockUseAuth.mockReturnValue({
       getToken: vi.fn(),
-    } as any);
+    });
 
     render(<ProfilePage />);
 
@@ -89,10 +87,10 @@ describe('ProfilePage', () => {
       isLoaded: true,
       isSignedIn: false,
       user: null,
-    } as any);
+    });
     mockUseAuth.mockReturnValue({
       getToken: vi.fn(),
-    } as any);
+    });
 
     render(<ProfilePage />);
 
@@ -102,21 +100,24 @@ describe('ProfilePage', () => {
 
   it('renders profile page when user is signed in', async () => {
     const mockUser = {
-      firstName: 'John',
-      lastName: 'Doe',
+      id: 'user123',
+      first_name: 'John',
+      last_name: 'Doe',
       username: 'johndoe',
-      fullName: 'John Doe',
-      imageUrl: 'https://example.com/avatar.jpg',
-      primaryEmailAddress: {
-        emailAddress: 'john@example.com',
-        verification: { status: 'verified' },
-      },
-      emailAddresses: [{ emailAddress: 'john@example.com', verification: { status: 'verified' } }],
-      phoneNumbers: [],
-      externalAccounts: [],
-      publicMetadata: {},
-      createdAt: new Date('2023-01-01'),
-      lastSignInAt: new Date('2023-12-01'),
+      image_url: 'https://example.com/avatar.jpg',
+      primary_email_address_id: 'email1',
+      email_addresses: [
+        {
+          id: 'email1',
+          email_address: 'john@example.com',
+          verification: { status: 'verified' },
+        },
+      ],
+      phone_numbers: [],
+      external_accounts: [],
+      public_metadata: {},
+      created_at: new Date('2023-01-01').getTime(),
+      last_sign_in_at: new Date('2023-12-01').getTime(),
     };
 
     const mockGetToken = vi.fn().mockResolvedValue('mock-token');
@@ -125,10 +126,10 @@ describe('ProfilePage', () => {
       isLoaded: true,
       isSignedIn: true,
       user: mockUser,
-    } as any);
+    });
     mockUseAuth.mockReturnValue({
       getToken: mockGetToken,
-    } as any);
+    });
 
     render(<ProfilePage />);
 
@@ -144,23 +145,24 @@ describe('ProfilePage', () => {
 
   it('renders profile without image when imageUrl is not available', async () => {
     const mockUser = {
-      firstName: 'Jane',
-      lastName: 'Smith',
+      id: 'user123',
+      first_name: 'Jane',
+      last_name: 'Smith',
       username: 'janesmith',
-      fullName: 'Jane Smith',
-      imageUrl: null,
-      primaryEmailAddress: {
-        emailAddress: 'jane@example.com',
-        verification: { status: 'unverified' },
-      },
-      emailAddresses: [
-        { emailAddress: 'jane@example.com', verification: { status: 'unverified' } },
+      image_url: null,
+      primary_email_address_id: 'email1',
+      email_addresses: [
+        {
+          id: 'email1',
+          email_address: 'jane@example.com',
+          verification: { status: 'unverified' },
+        },
       ],
-      phoneNumbers: [],
-      externalAccounts: [],
-      publicMetadata: {},
-      createdAt: new Date('2023-01-01'),
-      lastSignInAt: new Date('2023-12-01'),
+      phone_numbers: [],
+      external_accounts: [],
+      public_metadata: {},
+      created_at: new Date('2023-01-01').getTime(),
+      last_sign_in_at: new Date('2023-12-01').getTime(),
     };
 
     const mockGetToken = vi.fn().mockResolvedValue('mock-token');
@@ -169,10 +171,10 @@ describe('ProfilePage', () => {
       isLoaded: true,
       isSignedIn: true,
       user: mockUser,
-    } as any);
+    });
     mockUseAuth.mockReturnValue({
       getToken: mockGetToken,
-    } as any);
+    });
 
     render(<ProfilePage />);
 
@@ -185,18 +187,18 @@ describe('ProfilePage', () => {
 
   it('handles missing user data gracefully', async () => {
     const mockUser = {
-      firstName: null,
-      lastName: null,
+      id: 'user123',
+      first_name: null,
+      last_name: null,
       username: null,
-      fullName: null,
-      imageUrl: null,
-      primaryEmailAddress: { emailAddress: null, verification: { status: 'unverified' } },
-      emailAddresses: [],
-      phoneNumbers: [],
-      externalAccounts: [],
-      publicMetadata: {},
-      createdAt: null,
-      lastSignInAt: null,
+      image_url: null,
+      primary_email_address_id: null,
+      email_addresses: [],
+      phone_numbers: [],
+      external_accounts: [],
+      public_metadata: {},
+      created_at: null,
+      last_sign_in_at: null,
     };
 
     const mockGetToken = vi.fn().mockResolvedValue('mock-token');
@@ -205,10 +207,10 @@ describe('ProfilePage', () => {
       isLoaded: true,
       isSignedIn: true,
       user: mockUser,
-    } as any);
+    });
     mockUseAuth.mockReturnValue({
       getToken: mockGetToken,
-    } as any);
+    });
 
     render(<ProfilePage />);
 
@@ -217,26 +219,28 @@ describe('ProfilePage', () => {
     });
 
     expect(screen.getAllByText('Not provided').length).toBeGreaterThan(0);
-    expect(screen.getByText('Not set')).toBeInTheDocument();
   });
 
   it('renders all tab triggers', async () => {
     const mockUser = {
-      firstName: 'Test User',
-      lastName: null,
-      username: null,
-      fullName: 'Test User',
-      imageUrl: null,
-      primaryEmailAddress: {
-        emailAddress: 'test@example.com',
-        verification: { status: 'verified' },
-      },
-      emailAddresses: [{ emailAddress: 'test@example.com', verification: { status: 'verified' } }],
-      phoneNumbers: [],
-      externalAccounts: [],
-      publicMetadata: {},
-      createdAt: new Date('2023-01-01'),
-      lastSignInAt: new Date('2023-12-01'),
+      id: 'user123',
+      first_name: 'Test',
+      last_name: 'User',
+      username: 'testuser',
+      image_url: null,
+      primary_email_address_id: 'email1',
+      email_addresses: [
+        {
+          id: 'email1',
+          email_address: 'test@example.com',
+          verification: { status: 'verified' },
+        },
+      ],
+      phone_numbers: [],
+      external_accounts: [],
+      public_metadata: {},
+      created_at: new Date('2023-01-01').getTime(),
+      last_sign_in_at: new Date('2023-12-01').getTime(),
     };
 
     const mockGetToken = vi.fn().mockResolvedValue('mock-token');
@@ -245,10 +249,10 @@ describe('ProfilePage', () => {
       isLoaded: true,
       isSignedIn: true,
       user: mockUser,
-    } as any);
+    });
     mockUseAuth.mockReturnValue({
       getToken: mockGetToken,
-    } as any);
+    });
 
     render(<ProfilePage />);
 

@@ -18,6 +18,18 @@ export const middleware = (
     ) => Promise<Response>
   ) => (req: Request) => Promise<Response>
 )(async (auth, req) => {
+  // Vercel Automation Bypass for E2E
+  const bypassSecret = req.headers.get('x-vercel-protection-bypass');
+  if (
+    bypassSecret &&
+    process.env.VERCEL_AUTOMATION_BYPASS_SECRET &&
+    bypassSecret === process.env.VERCEL_AUTOMATION_BYPASS_SECRET
+  ) {
+    console.log('🔐 Vercel automation bypass active - skipping all auth checks');
+    return NextResponse.next();
+  }
+
+  // Only run authentication checks if bypass is not active
   if (isProtectedRoute(req)) {
     await (auth.protect as () => Promise<unknown>)();
   }

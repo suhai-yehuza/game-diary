@@ -1,14 +1,11 @@
 'use client';
 
-import { useUser, useAuth } from '@clerk/nextjs';
 import {
   User,
   Mail,
-  Phone,
   Calendar,
   Shield,
   Globe,
-  ExternalLink,
   Edit,
   Camera,
   Settings,
@@ -18,6 +15,7 @@ import {
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
 
+import { useUser, useAuth } from '@/app/components/providers/clerk-provider';
 import {
   Card,
   CardContent,
@@ -26,22 +24,39 @@ import {
   CardTitle,
 } from '@/app/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/app/components/ui/tabs';
+import type {
+  IClerkUserData,
+  IClerkEmailAddress,
+  IClerkPhoneNumber,
+  IClerkExternalAccount,
+} from '@src/lib/types';
 
 export default function ProfilePage() {
-  const { isLoaded, isSignedIn, user } = useUser();
-  const { getToken } = useAuth();
+  const userResult = useUser() as {
+    isLoaded: boolean;
+    isSignedIn: boolean;
+    user: IClerkUserData | undefined;
+  };
+  const authResult = useAuth() as { getToken?: () => Promise<string> };
+
+  // Type guard to ensure we have valid user data
+  const isLoaded = userResult.isLoaded ?? false;
+  const isSignedIn = userResult.isSignedIn ?? false;
+  const user = userResult.user;
+
   const [token, setToken] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('overview');
 
   useEffect(() => {
     const fetchToken = async () => {
+      const getToken = authResult.getToken ?? (() => Promise.resolve('mock-token'));
       if (isSignedIn) {
         const userToken = await getToken();
         setToken(userToken);
       }
     };
     void fetchToken();
-  }, [isSignedIn, getToken]);
+  }, [isSignedIn, authResult]);
 
   if (!isLoaded) {
     return (
@@ -66,7 +81,7 @@ export default function ProfilePage() {
     );
   }
 
-  const formatDate = (date: Date | null | undefined) => {
+  const formatDate = (date: number | null | undefined) => {
     if (!date) return 'Not available';
     return new Intl.DateTimeFormat('en-US', {
       year: 'numeric',
@@ -74,8 +89,12 @@ export default function ProfilePage() {
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
-    }).format(date);
+    }).format(new Date(date));
   };
+
+  const primaryEmail = user?.email_addresses?.find(
+    e => e.id === user?.primary_email_address_id
+  )?.email_address;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
@@ -93,9 +112,9 @@ export default function ProfilePage() {
               <CardHeader className="text-center pb-4">
                 <div className="relative mx-auto mb-4">
                   <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-primary/20 bg-gradient-to-br from-primary/10 to-primary/5">
-                    {user.imageUrl ? (
+                    {user?.image_url ? (
                       <Image
-                        src={user.imageUrl}
+                        src={user.image_url}
                         alt="Profile"
                         width={128}
                         height={128}
@@ -112,21 +131,23 @@ export default function ProfilePage() {
                   </button>
                 </div>
                 <CardTitle className="text-2xl">
-                  {user.firstName} {user.lastName}
+                  {user?.first_name} {user?.last_name}
                 </CardTitle>
-                <CardDescription className="text-base">
-                  {user.primaryEmailAddress?.emailAddress}
-                </CardDescription>
-                {user.username && <p className="text-sm text-muted-foreground">@{user.username}</p>}
+                <CardDescription className="text-base">{primaryEmail}</CardDescription>
+                {user?.username && (
+                  <p className="text-sm text-muted-foreground">@{user.username}</p>
+                )}
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground">Member since</span>
-                  <span className="font-medium">{formatDate(user.createdAt).split(',')[0]}</span>
+                  <span className="font-medium">{formatDate(user?.created_at).split(',')[0]}</span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground">Last active</span>
-                  <span className="font-medium">{formatDate(user.lastSignInAt).split(',')[0]}</span>
+                  <span className="font-medium">
+                    {formatDate(user?.last_sign_in_at).split(',')[0]}
+                  </span>
                 </div>
                 <div className="pt-4 border-t">
                   <button className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-primary hover:text-primary/80 transition-colors">
@@ -176,25 +197,28 @@ export default function ProfilePage() {
                         <label className="text-sm font-medium text-muted-foreground">
                           First Name
                         </label>
-                        <p className="text-lg font-medium">{user.firstName ?? 'Not provided'}</p>
+                        <p className="text-lg font-medium">{user?.first_name ?? 'Not provided'}</p>
                       </div>
                       <div>
                         <label className="text-sm font-medium text-muted-foreground">
                           Last Name
                         </label>
-                        <p className="text-lg font-medium">{user.lastName ?? 'Not provided'}</p>
+                        <p className="text-lg font-medium">{user?.last_name ?? 'Not provided'}</p>
                       </div>
                       <div>
                         <label className="text-sm font-medium text-muted-foreground">
                           Username
                         </label>
-                        <p className="text-lg font-medium">{user.username ?? 'Not set'}</p>
+                        <p className="text-lg font-medium">{user?.username ?? 'Not set'}</p>
                       </div>
                       <div>
                         <label className="text-sm font-medium text-muted-foreground">
                           Full Name
                         </label>
-                        <p className="text-lg font-medium">{user.fullName ?? 'Not provided'}</p>
+                        <p className="text-lg font-medium">
+                          {`${user?.first_name ?? ''} ${user?.last_name ?? ''}`.trim() ||
+                            'Not provided'}
+                        </p>
                       </div>
                     </div>
                   </CardContent>
@@ -214,10 +238,9 @@ export default function ProfilePage() {
                         Primary Email
                       </label>
                       <div className="flex items-center gap-2 mt-1">
-                        <p className="text-lg font-medium">
-                          {user.primaryEmailAddress?.emailAddress ?? 'Not provided'}
-                        </p>
-                        {user.primaryEmailAddress?.verification.status === 'verified' && (
+                        <p className="text-lg font-medium">{primaryEmail ?? 'Not provided'}</p>
+                        {user?.email_addresses?.find(e => e.id === user?.primary_email_address_id)
+                          ?.verification.status === 'verified' && (
                           <span className="px-2 py-1 text-xs bg-green-100 text-green-800 rounded-full">
                             Verified
                           </span>
@@ -225,46 +248,50 @@ export default function ProfilePage() {
                       </div>
                     </div>
 
-                    {user.emailAddresses.length > 1 && (
+                    {Array.isArray(user?.email_addresses) && user.email_addresses.length > 0 && (
                       <div>
                         <label className="text-sm font-medium text-muted-foreground">
                           All Email Addresses
                         </label>
                         <div className="space-y-2 mt-2">
-                          {user.emailAddresses.map(email => (
+                          {user?.email_addresses?.map((email: IClerkEmailAddress) => (
                             <div
-                              key={email.id}
-                              className="flex items-center justify-between p-3 bg-muted/50 rounded-lg"
+                              key={email?.id}
+                              className="flex items-center justify-between p-3 border rounded-lg"
                             >
-                              <span className="font-medium">{email.emailAddress}</span>
-                              <span
-                                className={`px-2 py-1 text-xs rounded-full ${
-                                  email.verification.status === 'verified'
-                                    ? 'bg-green-100 text-green-800'
-                                    : 'bg-yellow-100 text-yellow-800'
-                                }`}
-                              >
-                                {email.verification.status}
-                              </span>
+                              <div>
+                                <p className="font-medium">{email?.email_address}</p>
+                                <p className="text-sm text-muted-foreground">
+                                  {email?.verification?.status === 'verified'
+                                    ? 'Verified'
+                                    : 'Unverified'}
+                                </p>
+                              </div>
                             </div>
                           ))}
                         </div>
                       </div>
                     )}
 
-                    {user.phoneNumbers.length > 0 && (
+                    {Array.isArray(user?.phone_numbers) && user.phone_numbers.length > 0 && (
                       <div>
                         <label className="text-sm font-medium text-muted-foreground">
                           Phone Numbers
                         </label>
                         <div className="space-y-2 mt-2">
-                          {user.phoneNumbers.map(phone => (
+                          {user?.phone_numbers?.map((phone: IClerkPhoneNumber) => (
                             <div
-                              key={phone.id}
-                              className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg"
+                              key={phone?.id}
+                              className="flex items-center justify-between p-3 border rounded-lg"
                             >
-                              <Phone className="w-4 h-4 text-muted-foreground" />
-                              <span className="font-medium">{phone.phoneNumber}</span>
+                              <div>
+                                <p className="font-medium">{phone?.phone_number}</p>
+                                <p className="text-sm text-muted-foreground">
+                                  {phone?.verification?.status === 'verified'
+                                    ? 'Verified'
+                                    : 'Unverified'}
+                                </p>
+                              </div>
                             </div>
                           ))}
                         </div>
@@ -273,7 +300,7 @@ export default function ProfilePage() {
                   </CardContent>
                 </Card>
 
-                {user.externalAccounts.length > 0 && (
+                {Array.isArray(user?.external_accounts) && user.external_accounts.length > 0 && (
                   <Card>
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
@@ -284,25 +311,17 @@ export default function ProfilePage() {
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-3">
-                        {user.externalAccounts.map(account => (
+                        {user?.external_accounts?.map((account: IClerkExternalAccount) => (
                           <div
-                            key={account.id}
-                            className="flex items-center justify-between p-4 bg-muted/50 rounded-lg"
+                            key={account?.id}
+                            className="flex items-center justify-between p-3 border rounded-lg"
                           >
-                            <div className="flex items-center gap-3">
-                              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                                <ExternalLink className="w-5 h-5 text-primary" />
-                              </div>
-                              <div>
-                                <p className="font-medium capitalize">{account.provider}</p>
-                                <p className="text-sm text-muted-foreground">
-                                  {account.emailAddress}
-                                </p>
-                              </div>
+                            <div>
+                              <p className="font-medium">{account?.provider}</p>
+                              <p className="text-sm text-muted-foreground">
+                                {account?.email_address}
+                              </p>
                             </div>
-                            <span className="px-2 py-1 text-xs bg-green-100 text-green-800 rounded-full">
-                              Connected
-                            </span>
                           </div>
                         ))}
                       </div>
@@ -328,12 +347,12 @@ export default function ProfilePage() {
                           <span className="font-medium">Two-Factor Authentication</span>
                           <span
                             className={`px-2 py-1 text-xs rounded-full ${
-                              user.twoFactorEnabled
+                              user?.two_factor_enabled
                                 ? 'bg-green-100 text-green-800'
                                 : 'bg-gray-100 text-gray-800'
                             }`}
                           >
-                            {user.twoFactorEnabled ? 'Enabled' : 'Disabled'}
+                            {user?.two_factor_enabled ? 'Enabled' : 'Disabled'}
                           </span>
                         </div>
                         <p className="text-sm text-muted-foreground">
@@ -346,12 +365,12 @@ export default function ProfilePage() {
                           <span className="font-medium">Backup Codes</span>
                           <span
                             className={`px-2 py-1 text-xs rounded-full ${
-                              user.backupCodeEnabled
+                              user?.backup_code_enabled
                                 ? 'bg-green-100 text-green-800'
                                 : 'bg-gray-100 text-gray-800'
                             }`}
                           >
-                            {user.backupCodeEnabled ? 'Enabled' : 'Disabled'}
+                            {user?.backup_code_enabled ? 'Enabled' : 'Disabled'}
                           </span>
                         </div>
                         <p className="text-sm text-muted-foreground">
@@ -394,7 +413,7 @@ export default function ProfilePage() {
                           <span className="font-medium">Account Created</span>
                         </div>
                         <p className="text-sm text-muted-foreground">
-                          {formatDate(user.createdAt)}
+                          {formatDate(user?.created_at)}
                         </p>
                       </div>
 
@@ -404,7 +423,7 @@ export default function ProfilePage() {
                           <span className="font-medium">Last Sign In</span>
                         </div>
                         <p className="text-sm text-muted-foreground">
-                          {formatDate(user.lastSignInAt)}
+                          {formatDate(user?.last_sign_in_at)}
                         </p>
                       </div>
                     </div>
@@ -423,7 +442,7 @@ export default function ProfilePage() {
                         </div>
                         <div className="flex items-center justify-between">
                           <span className="text-sm">User ID</span>
-                          <span className="font-medium text-xs">{user.id}</span>
+                          <span className="font-medium text-xs">{user?.id}</span>
                         </div>
                       </div>
                     </div>
@@ -448,12 +467,12 @@ export default function ProfilePage() {
                           <span className="font-medium">Delete Account</span>
                           <span
                             className={`px-2 py-1 text-xs rounded-full ${
-                              user.deleteSelfEnabled
+                              user?.delete_self_enabled
                                 ? 'bg-green-100 text-green-800'
                                 : 'bg-red-100 text-red-800'
                             }`}
                           >
-                            {user.deleteSelfEnabled ? 'Enabled' : 'Disabled'}
+                            {user?.delete_self_enabled ? 'Enabled' : 'Disabled'}
                           </span>
                         </div>
                         <p className="text-sm text-muted-foreground">
@@ -466,12 +485,12 @@ export default function ProfilePage() {
                           <span className="font-medium">Create Organizations</span>
                           <span
                             className={`px-2 py-1 text-xs rounded-full ${
-                              user.createOrganizationEnabled
+                              user?.create_organization_enabled
                                 ? 'bg-green-100 text-green-800'
                                 : 'bg-gray-100 text-gray-800'
                             }`}
                           >
-                            {user.createOrganizationEnabled ? 'Enabled' : 'Disabled'}
+                            {user?.create_organization_enabled ? 'Enabled' : 'Disabled'}
                           </span>
                         </div>
                         <p className="text-sm text-muted-foreground">
@@ -480,14 +499,14 @@ export default function ProfilePage() {
                       </div>
                     </div>
 
-                    {Object.keys(user.publicMetadata).length > 0 && (
+                    {Object.keys(user?.public_metadata ?? {}).length > 0 && (
                       <div className="p-4 border rounded-lg">
                         <label className="text-sm font-medium text-muted-foreground">
                           Public Metadata
                         </label>
                         <div className="mt-2 p-3 bg-muted rounded-lg">
                           <pre className="text-sm font-mono overflow-auto">
-                            {JSON.stringify(user.publicMetadata, null, 2)}
+                            {JSON.stringify(user?.public_metadata, null, 2)}
                           </pre>
                         </div>
                       </div>
