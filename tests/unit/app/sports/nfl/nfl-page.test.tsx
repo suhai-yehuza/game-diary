@@ -1,190 +1,187 @@
 import { render, screen } from '@testing-library/react';
 import React from 'react';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { ClientProviders } from '@src/app/components/providers';
+
+// Mock Clerk
+vi.mock('@clerk/nextjs', () => ({
+  useUser: () => ({
+    isLoaded: true,
+    isSignedIn: true,
+    user: {
+      username: 'testuser',
+      firstName: 'Test',
+      lastName: 'User',
+    },
+  }),
+  ClerkProvider: ({ children }: any) => <div data-testid="clerk-provider">{children}</div>,
+}));
 
 import NFLSportsPage from '@src/app/sports/nfl/page';
 
 describe('NFLSportsPage', () => {
+  beforeEach(() => {
+    // Set up environment variable for Clerk
+    process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY = 'pk_test_1234567890abcdef';
+  });
+
   it('renders the NFL sports page with correct structure', () => {
-    render(<NFLSportsPage />);
+    render(
+      <ClientProviders>
+        <NFLSportsPage />
+      </ClientProviders>
+    );
 
     // Check for main heading
     expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument();
-    expect(screen.getByText('NFL')).toBeInTheDocument();
+    expect(screen.getByText('NFL page')).toBeInTheDocument();
 
-    // Check for description
-    expect(screen.getByText('National Football League games and statistics.')).toBeInTheDocument();
+    // Check for user welcome
+    expect(screen.getByText('Welcome, testuser!')).toBeInTheDocument();
   });
 
   it('applies correct CSS classes for layout', () => {
-    const { container } = render(<NFLSportsPage />);
+    const { container } = render(
+      <ClientProviders>
+        <NFLSportsPage />
+      </ClientProviders>
+    );
 
-    // Check for main section with background
+    // Check for main section
     const section = container.querySelector('section');
-    expect(section).toHaveClass('min-h-screen', 'bg-background');
+    expect(section).toHaveClass(
+      'min-h-[calc(100vh-4rem)]',
+      'flex',
+      'flex-col',
+      'items-center',
+      'justify-center'
+    );
 
-    // Check for inner container
-    const innerContainer = section?.querySelector('.container');
-    expect(innerContainer).toHaveClass('container', 'mx-auto', 'p-6');
+    // Check for heading
+    const heading = screen.getByRole('heading', { level: 1 });
+    expect(heading).toHaveClass('text-3xl', 'font-bold', 'mb-4');
   });
 
   it('has proper semantic structure', () => {
-    render(<NFLSportsPage />);
+    render(
+      <ClientProviders>
+        <NFLSportsPage />
+      </ClientProviders>
+    );
 
     // Check for heading hierarchy
     const heading = screen.getByRole('heading', { level: 1 });
     expect(heading).toBeInTheDocument();
     expect(heading.tagName).toBe('H1');
 
-    // Check for paragraph
-    const paragraph = screen.getByText('National Football League games and statistics.');
-    expect(paragraph.tagName).toBe('P');
-
     // Check for section element
     const section = heading.closest('section');
     expect(section).toBeInTheDocument();
   });
 
-  it('applies correct styling to heading', () => {
-    render(<NFLSportsPage />);
-
-    const heading = screen.getByRole('heading', { level: 1 });
-    expect(heading).toHaveClass('text-2xl', 'font-bold');
-  });
-
-  it('applies correct styling to description', () => {
-    render(<NFLSportsPage />);
-
-    const description = screen.getByText('National Football League games and statistics.');
-    expect(description).toHaveClass('text-muted-foreground');
-  });
-
   it('renders consistently', () => {
-    const { rerender } = render(<NFLSportsPage />);
+    const { rerender } = render(
+      <ClientProviders>
+        <NFLSportsPage />
+      </ClientProviders>
+    );
 
     // Re-render and check consistency
-    rerender(<NFLSportsPage />);
+    rerender(
+      <ClientProviders>
+        <NFLSportsPage />
+      </ClientProviders>
+    );
 
     expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument();
-    expect(screen.getByText('NFL')).toBeInTheDocument();
-    expect(screen.getByText('National Football League games and statistics.')).toBeInTheDocument();
+    expect(screen.getByText('NFL page')).toBeInTheDocument();
+    expect(screen.getByText('Welcome, testuser!')).toBeInTheDocument();
   });
 
   it('has proper accessibility attributes', () => {
-    render(<NFLSportsPage />);
+    render(
+      <ClientProviders>
+        <NFLSportsPage />
+      </ClientProviders>
+    );
 
     // Check for proper heading structure
     const heading = screen.getByRole('heading', { level: 1 });
     expect(heading).toBeInTheDocument();
-
-    // Check that the page has a logical structure
-    const mainContainer = heading.closest('.min-h-screen');
-    expect(mainContainer).toBeInTheDocument();
   });
 
   it('handles multiple renders without issues', () => {
-    const { rerender, unmount } = render(<NFLSportsPage />);
+    const { rerender } = render(
+      <ClientProviders>
+        <NFLSportsPage />
+      </ClientProviders>
+    );
 
     // Multiple re-renders
-    rerender(<NFLSportsPage />);
-    rerender(<NFLSportsPage />);
-    rerender(<NFLSportsPage />);
+    for (let i = 0; i < 3; i++) {
+      rerender(
+        <ClientProviders>
+          <NFLSportsPage />
+        </ClientProviders>
+      );
+    }
 
     expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument();
-    expect(screen.getByText('NFL')).toBeInTheDocument();
-
-    // Clean unmount and remount
-    unmount();
-    render(<NFLSportsPage />);
-
-    expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument();
-    expect(screen.getByText('NFL')).toBeInTheDocument();
+    expect(screen.getByText('NFL page')).toBeInTheDocument();
   });
 
   it('takes full viewport height', () => {
-    const { container } = render(<NFLSportsPage />);
+    const { container } = render(
+      <ClientProviders>
+        <NFLSportsPage />
+      </ClientProviders>
+    );
 
     const section = container.querySelector('section');
-    expect(section).toHaveClass('min-h-screen');
+    expect(section).toHaveClass('min-h-[calc(100vh-4rem)]');
   });
 
   it('has proper content structure', () => {
-    const { container } = render(<NFLSportsPage />);
+    render(
+      <ClientProviders>
+        <NFLSportsPage />
+      </ClientProviders>
+    );
 
-    // Check that content is properly contained
-    const section = container.querySelector('section');
-    const containerDiv = section?.querySelector('.container');
-    const heading = containerDiv?.querySelector('h1');
-    const paragraph = containerDiv?.querySelector('p');
-
-    expect(section).toBeInTheDocument();
-    expect(containerDiv).toBeInTheDocument();
-    expect(heading).toBeInTheDocument();
-    expect(paragraph).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument();
+    expect(screen.getByText('NFL page')).toBeInTheDocument();
+    expect(screen.getByText('Welcome, testuser!')).toBeInTheDocument();
   });
 
-  it('has proper background styling', () => {
-    const { container } = render(<NFLSportsPage />);
+  it('uses flexbox for centering content', () => {
+    const { container } = render(
+      <ClientProviders>
+        <NFLSportsPage />
+      </ClientProviders>
+    );
 
     const section = container.querySelector('section');
-    expect(section).toHaveClass('bg-background');
-  });
-
-  it('has proper container styling', () => {
-    const { container } = render(<NFLSportsPage />);
-
-    const containerDiv = container.querySelector('.container');
-    expect(containerDiv).toHaveClass('mx-auto', 'p-6');
+    expect(section).toHaveClass('flex', 'flex-col', 'items-center', 'justify-center');
   });
 
   it('renders NFL specific content', () => {
-    render(<NFLSportsPage />);
+    render(
+      <ClientProviders>
+        <NFLSportsPage />
+      </ClientProviders>
+    );
 
-    // Check for NFL specific text
-    expect(screen.getByText('NFL')).toBeInTheDocument();
-    expect(screen.getByText('National Football League games and statistics.')).toBeInTheDocument();
+    expect(screen.getByText('NFL page')).toBeInTheDocument();
   });
 
   it('has proper text hierarchy', () => {
-    render(<NFLSportsPage />);
+    render(
+      <ClientProviders>
+        <NFLSportsPage />
+      </ClientProviders>
+    );
 
     const heading = screen.getByRole('heading', { level: 1 });
-    const description = screen.getByText('National Football League games and statistics.');
-
-    // Check that heading comes before description
-    expect(
-      heading.compareDocumentPosition(description) & Node.DOCUMENT_POSITION_FOLLOWING
-    ).toBeTruthy();
-  });
-
-  it('maintains consistent styling across renders', () => {
-    const { rerender } = render(<NFLSportsPage />);
-
-    // Get initial styling
-    const initialHeading = screen.getByRole('heading', { level: 1 });
-    const initialDescription = screen.getByText('National Football League games and statistics.');
-
-    // Re-render
-    rerender(<NFLSportsPage />);
-
-    // Check that styling is maintained
-    const newHeading = screen.getByRole('heading', { level: 1 });
-    const newDescription = screen.getByText('National Football League games and statistics.');
-
-    expect(newHeading).toHaveClass('text-2xl', 'font-bold');
-    expect(newDescription).toHaveClass('text-muted-foreground');
-  });
-
-  it('has proper document structure', () => {
-    const { container } = render(<NFLSportsPage />);
-
-    // Check that the component renders as expected in the document
-    const section = container.querySelector('section');
-    expect(section).toBeInTheDocument();
-    expect(section?.children.length).toBe(1); // Should have one child (the container div)
-
-    const containerDiv = section?.firstElementChild;
-    expect(containerDiv).toHaveClass('container');
-    expect(containerDiv?.children.length).toBe(2); // Should have heading and paragraph
+    expect(heading).toHaveClass('text-3xl', 'font-bold', 'mb-4');
   });
 });

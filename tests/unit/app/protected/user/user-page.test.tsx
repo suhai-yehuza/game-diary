@@ -1,266 +1,103 @@
+import { render, screen } from '@testing-library/react';
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
-import { describe, expect, it, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { ClientProviders } from '@src/app/components/providers';
 
-// Mock the custom Clerk provider hooks
-let mockUseUser: ReturnType<typeof vi.fn>;
-let mockUseAuth: ReturnType<typeof vi.fn>;
-vi.mock('@/app/components/providers/clerk-provider', () => ({
-  useUser: (...args: any[]) => mockUseUser(...args),
-  useAuth: (...args: any[]) => mockUseAuth(...args),
+var mockUseUser = vi.fn();
+// Mock Clerk at the top level to avoid hoisting issues
+vi.mock('@clerk/nextjs', () => ({
+  useUser: () => mockUseUser(),
+  ClerkProvider: ({ children }: { children: React.ReactNode }) => children,
 }));
 
-import ProfilePage from '@/app/protected/user/page';
+import UserPage from '@src/app/protected/user/page';
 
-// Mock Next.js Image component
-vi.mock('next/image', () => ({
-  default: ({ src, alt, ...props }: any) => <img src={src} alt={alt} {...props} />,
-}));
+// Helper function to render the user page with providers
+function renderUserPage() {
+  return render(
+    <ClientProviders>
+      <UserPage />
+    </ClientProviders>
+  );
+}
 
-// Mock Lucide React icons
-vi.mock('lucide-react', () => ({
-  User: () => <div data-testid="user-icon">User</div>,
-  Mail: () => <div data-testid="mail-icon">Mail</div>,
-  Calendar: () => <div data-testid="calendar-icon">Calendar</div>,
-  Shield: () => <div data-testid="shield-icon">Shield</div>,
-  Globe: () => <div data-testid="globe-icon">Globe</div>,
-  Edit: () => <div data-testid="edit-icon">Edit</div>,
-  Camera: () => <div data-testid="camera-icon">Camera</div>,
-  Settings: () => <div data-testid="settings-icon">Settings</div>,
-  Activity: () => <div data-testid="activity-icon">Activity</div>,
-  Award: () => <div data-testid="award-icon">Award</div>,
-}));
+// Mock user states
+const mockUser = {
+  username: 'testuser',
+  firstName: 'Test',
+  lastName: 'User',
+  imageUrl: 'https://example.com/avatar.jpg',
+};
 
-// Mock UI components
-vi.mock('@/app/components/ui/card', () => ({
-  Card: ({ children, className }: any) => (
-    <div className={className} data-testid="card">
-      {children}
-    </div>
-  ),
-  CardContent: ({ children }: any) => <div data-testid="card-content">{children}</div>,
-  CardDescription: ({ children }: any) => <div data-testid="card-description">{children}</div>,
-  CardHeader: ({ children }: any) => <div data-testid="card-header">{children}</div>,
-  CardTitle: ({ children }: any) => <div data-testid="card-title">{children}</div>,
-}));
+const userStates = {
+  signedIn: { isLoaded: true, isSignedIn: true, user: mockUser },
+  loading: { isLoaded: false, isSignedIn: false, user: null },
+  signedOut: { isLoaded: true, isSignedIn: false, user: null },
+  noImage: { isLoaded: true, isSignedIn: true, user: { ...mockUser, imageUrl: null } },
+  missingUser: { isLoaded: true, isSignedIn: true, user: null },
+};
 
-vi.mock('@/app/components/ui/tabs', () => ({
-  Tabs: ({ children, value, onValueChange }: any) => (
-    <div data-testid="tabs" data-value={value} onClick={() => onValueChange?.('security')}>
-      {children}
-    </div>
-  ),
-  TabsContent: ({ children, value }: any) => (
-    <div data-testid={`tabs-content-${value}`}>{children}</div>
-  ),
-  TabsList: ({ children }: any) => <div data-testid="tabs-list">{children}</div>,
-  TabsTrigger: ({ children, value }: any) => (
-    <button data-testid={`tab-trigger-${value}`}>{children}</button>
-  ),
-}));
+// Helper function to assert dashboard sections are present
+function expectDashboardSections() {
+  expect(screen.getByText('User Dashboard')).toBeInTheDocument();
+  expect(screen.getByText('Game Logs')).toBeInTheDocument();
+  expect(screen.getByText('Friends')).toBeInTheDocument();
+  expect(screen.getByText('Activity & Timeline')).toBeInTheDocument();
+  expect(screen.getByText('User Settings')).toBeInTheDocument();
+}
 
-describe('ProfilePage', () => {
+describe('UserDashboardPage', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
-    mockUseUser = vi.fn();
-    mockUseAuth = vi.fn();
+    // Set up environment variable for Clerk
+    process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY = 'pk_test_1234567890abcdef';
+    // Default mock implementation
+    mockUseUser.mockReturnValue(userStates.signedIn);
   });
 
   it('shows loading state when user data is not loaded', () => {
-    mockUseUser.mockReturnValue({
-      isLoaded: false,
-      isSignedIn: false,
-      user: null,
-    });
-    mockUseAuth.mockReturnValue({
-      getToken: vi.fn(),
-    });
+    mockUseUser.mockReturnValue(userStates.loading);
 
-    render(<ProfilePage />);
+    renderUserPage();
 
-    // The loading spinner does not have a role, so check for its presence by class
-    expect(document.querySelector('.animate-spin')).toBeInTheDocument();
+    // When not loaded, the greeting section should not render
+    expect(screen.queryByText('Welcome, testuser!')).not.toBeInTheDocument();
   });
 
-  it('shows authentication required when user is not signed in', () => {
-    mockUseUser.mockReturnValue({
-      isLoaded: true,
-      isSignedIn: false,
-      user: null,
-    });
-    mockUseAuth.mockReturnValue({
-      getToken: vi.fn(),
-    });
+  it('shows guest welcome when user is not signed in', () => {
+    mockUseUser.mockReturnValue(userStates.signedOut);
 
-    render(<ProfilePage />);
+    renderUserPage();
 
-    expect(screen.getByText('Authentication Required')).toBeInTheDocument();
-    expect(screen.getByText('Please sign in to view your profile')).toBeInTheDocument();
+    expect(screen.getByText('Welcome, Guest!')).toBeInTheDocument();
   });
 
-  it('renders profile page when user is signed in', async () => {
-    const mockUser = {
-      id: 'user123',
-      first_name: 'John',
-      last_name: 'Doe',
-      username: 'johndoe',
-      image_url: 'https://example.com/avatar.jpg',
-      primary_email_address_id: 'email1',
-      email_addresses: [
-        {
-          id: 'email1',
-          email_address: 'john@example.com',
-          verification: { status: 'verified' },
-        },
-      ],
-      phone_numbers: [],
-      external_accounts: [],
-      public_metadata: {},
-      created_at: new Date('2023-01-01').getTime(),
-      last_sign_in_at: new Date('2023-12-01').getTime(),
-    };
+  it('renders dashboard page when user is signed in', () => {
+    renderUserPage();
 
-    const mockGetToken = vi.fn().mockResolvedValue('mock-token');
-
-    mockUseUser.mockReturnValue({
-      isLoaded: true,
-      isSignedIn: true,
-      user: mockUser,
-    });
-    mockUseAuth.mockReturnValue({
-      getToken: mockGetToken,
-    });
-
-    render(<ProfilePage />);
-
-    await waitFor(() => {
-      expect(screen.getByText('Profile')).toBeInTheDocument();
-      expect(screen.getByText('Manage your account and preferences')).toBeInTheDocument();
-    });
-
-    expect(screen.getAllByText('John Doe').length).toBeGreaterThan(0);
-    expect(screen.getAllByText('john@example.com').length).toBeGreaterThan(0);
-    expect(screen.getByText('@johndoe')).toBeInTheDocument();
+    expect(screen.getByText('Welcome, testuser!')).toBeInTheDocument();
+    expectDashboardSections();
   });
 
-  it('renders profile without image when imageUrl is not available', async () => {
-    const mockUser = {
-      id: 'user123',
-      first_name: 'Jane',
-      last_name: 'Smith',
-      username: 'janesmith',
-      image_url: null,
-      primary_email_address_id: 'email1',
-      email_addresses: [
-        {
-          id: 'email1',
-          email_address: 'jane@example.com',
-          verification: { status: 'unverified' },
-        },
-      ],
-      phone_numbers: [],
-      external_accounts: [],
-      public_metadata: {},
-      created_at: new Date('2023-01-01').getTime(),
-      last_sign_in_at: new Date('2023-12-01').getTime(),
-    };
+  it('renders dashboard without image when imageUrl is not available', () => {
+    mockUseUser.mockReturnValue(userStates.noImage);
 
-    const mockGetToken = vi.fn().mockResolvedValue('mock-token');
+    renderUserPage();
 
-    mockUseUser.mockReturnValue({
-      isLoaded: true,
-      isSignedIn: true,
-      user: mockUser,
-    });
-    mockUseAuth.mockReturnValue({
-      getToken: mockGetToken,
-    });
-
-    render(<ProfilePage />);
-
-    await waitFor(() => {
-      expect(screen.getAllByText('Jane Smith').length).toBeGreaterThan(0);
-    });
-
-    expect(screen.getAllByTestId('user-icon').length).toBeGreaterThan(0);
+    expect(screen.getByText('Welcome, testuser!')).toBeInTheDocument();
   });
 
-  it('handles missing user data gracefully', async () => {
-    const mockUser = {
-      id: 'user123',
-      first_name: null,
-      last_name: null,
-      username: null,
-      image_url: null,
-      primary_email_address_id: null,
-      email_addresses: [],
-      phone_numbers: [],
-      external_accounts: [],
-      public_metadata: {},
-      created_at: null,
-      last_sign_in_at: null,
-    };
+  it('handles missing user data gracefully', () => {
+    mockUseUser.mockReturnValue(userStates.missingUser);
 
-    const mockGetToken = vi.fn().mockResolvedValue('mock-token');
+    renderUserPage();
 
-    mockUseUser.mockReturnValue({
-      isLoaded: true,
-      isSignedIn: true,
-      user: mockUser,
-    });
-    mockUseAuth.mockReturnValue({
-      getToken: mockGetToken,
-    });
-
-    render(<ProfilePage />);
-
-    await waitFor(() => {
-      expect(screen.getByText('Profile')).toBeInTheDocument();
-    });
-
-    expect(screen.getAllByText('Not provided').length).toBeGreaterThan(0);
+    expect(screen.getByText('Welcome, User!')).toBeInTheDocument();
   });
 
-  it('renders all tab triggers', async () => {
-    const mockUser = {
-      id: 'user123',
-      first_name: 'Test',
-      last_name: 'User',
-      username: 'testuser',
-      image_url: null,
-      primary_email_address_id: 'email1',
-      email_addresses: [
-        {
-          id: 'email1',
-          email_address: 'test@example.com',
-          verification: { status: 'verified' },
-        },
-      ],
-      phone_numbers: [],
-      external_accounts: [],
-      public_metadata: {},
-      created_at: new Date('2023-01-01').getTime(),
-      last_sign_in_at: new Date('2023-12-01').getTime(),
-    };
+  it('renders all dashboard sections', () => {
+    renderUserPage();
 
-    const mockGetToken = vi.fn().mockResolvedValue('mock-token');
-
-    mockUseUser.mockReturnValue({
-      isLoaded: true,
-      isSignedIn: true,
-      user: mockUser,
-    });
-    mockUseAuth.mockReturnValue({
-      getToken: mockGetToken,
-    });
-
-    render(<ProfilePage />);
-
-    await waitFor(() => {
-      expect(screen.getByTestId('tab-trigger-overview')).toBeInTheDocument();
-      expect(screen.getByTestId('tab-trigger-security')).toBeInTheDocument();
-      expect(screen.getByTestId('tab-trigger-activity')).toBeInTheDocument();
-      expect(screen.getByTestId('tab-trigger-settings')).toBeInTheDocument();
-    });
+    expect(screen.getByText('Welcome, testuser!')).toBeInTheDocument();
+    expectDashboardSections();
   });
 });

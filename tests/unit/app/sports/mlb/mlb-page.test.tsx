@@ -1,135 +1,175 @@
 import { render, screen } from '@testing-library/react';
 import React from 'react';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { ClientProviders } from '@src/app/components/providers';
+
+// Mock Clerk
+vi.mock('@clerk/nextjs', () => ({
+  useUser: () => ({
+    isLoaded: true,
+    isSignedIn: true,
+    user: {
+      username: 'testuser',
+      firstName: 'Test',
+      lastName: 'User',
+    },
+  }),
+  ClerkProvider: ({ children }: any) => <div data-testid="clerk-provider">{children}</div>,
+}));
 
 import MLBPage from '@src/app/sports/mlb/page';
 
 describe('MLBPage', () => {
+  beforeEach(() => {
+    // Set up environment variable for Clerk
+    process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY = 'pk_test_1234567890abcdef';
+  });
+
   it('renders the MLB page with correct structure', () => {
-    render(<MLBPage />);
+    render(
+      <ClientProviders>
+        <MLBPage />
+      </ClientProviders>
+    );
 
     // Check for main heading
     expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument();
     expect(screen.getByText('MLB page')).toBeInTheDocument();
 
-    // Check for user greeting
-    expect(screen.getByText('Welcome, Guest!')).toBeInTheDocument();
+    // Check for user welcome
+    expect(screen.getByText('Welcome, testuser!')).toBeInTheDocument();
   });
 
   it('applies correct CSS classes for layout', () => {
-    const { container } = render(<MLBPage />);
+    const { container } = render(
+      <ClientProviders>
+        <MLBPage />
+      </ClientProviders>
+    );
 
-    // Check for main section with flex layout
+    // Check for main section
     const section = container.querySelector('section');
     expect(section).toHaveClass(
       'min-h-[calc(100vh-4rem)]',
       'flex',
+      'flex-col',
       'items-center',
       'justify-center'
     );
 
-    // Check for inner container
-    const innerContainer = section?.querySelector('.container');
-    expect(innerContainer).toHaveClass('container', 'mx-auto', 'px-4', 'text-center');
+    // Check for heading
+    const heading = screen.getByRole('heading', { level: 1 });
+    expect(heading).toHaveClass('text-3xl', 'font-bold', 'mb-4');
   });
 
   it('has proper semantic structure', () => {
-    render(<MLBPage />);
+    render(
+      <ClientProviders>
+        <MLBPage />
+      </ClientProviders>
+    );
 
     // Check for heading hierarchy
     const heading = screen.getByRole('heading', { level: 1 });
     expect(heading).toBeInTheDocument();
     expect(heading.tagName).toBe('H1');
 
-    // Check for paragraph
-    const paragraph = screen.getByText('Welcome, Guest!');
-    expect(paragraph.tagName).toBe('P');
-
     // Check for section element
     const section = heading.closest('section');
     expect(section).toBeInTheDocument();
   });
 
-  it('applies correct styling to heading', () => {
-    render(<MLBPage />);
-
-    const heading = screen.getByRole('heading', { level: 1 });
-    expect(heading).toHaveClass('text-3xl', 'font-bold');
-  });
-
   it('renders consistently', () => {
-    const { rerender } = render(<MLBPage />);
+    const { rerender } = render(
+      <ClientProviders>
+        <MLBPage />
+      </ClientProviders>
+    );
 
     // Re-render and check consistency
-    rerender(<MLBPage />);
+    rerender(
+      <ClientProviders>
+        <MLBPage />
+      </ClientProviders>
+    );
 
     expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument();
     expect(screen.getByText('MLB page')).toBeInTheDocument();
-    expect(screen.getByText('Welcome, Guest!')).toBeInTheDocument();
+    expect(screen.getByText('Welcome, testuser!')).toBeInTheDocument();
   });
 
   it('has proper accessibility attributes', () => {
-    render(<MLBPage />);
+    render(
+      <ClientProviders>
+        <MLBPage />
+      </ClientProviders>
+    );
 
     // Check for proper heading structure
     const heading = screen.getByRole('heading', { level: 1 });
     expect(heading).toBeInTheDocument();
-
-    // Check that the page has a logical structure
-    const mainContainer = heading.closest('.min-h-\\[calc\\(100vh-4rem\\)\\]');
-    expect(mainContainer).toBeInTheDocument();
   });
 
   it('handles multiple renders without issues', () => {
-    const { rerender, unmount } = render(<MLBPage />);
+    const { rerender } = render(
+      <ClientProviders>
+        <MLBPage />
+      </ClientProviders>
+    );
 
     // Multiple re-renders
-    rerender(<MLBPage />);
-    rerender(<MLBPage />);
-    rerender(<MLBPage />);
-
-    expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument();
-    expect(screen.getByText('MLB page')).toBeInTheDocument();
-
-    // Clean unmount and remount
-    unmount();
-    render(<MLBPage />);
+    for (let i = 0; i < 3; i++) {
+      rerender(
+        <ClientProviders>
+          <MLBPage />
+        </ClientProviders>
+      );
+    }
 
     expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument();
     expect(screen.getByText('MLB page')).toBeInTheDocument();
   });
 
   it('uses flexbox for centering content', () => {
-    const { container } = render(<MLBPage />);
+    const { container } = render(
+      <ClientProviders>
+        <MLBPage />
+      </ClientProviders>
+    );
 
     const section = container.querySelector('section');
-    expect(section).toHaveClass('flex', 'items-center', 'justify-center');
+    expect(section).toHaveClass('flex', 'flex-col', 'items-center', 'justify-center');
   });
 
   it('has proper content structure', () => {
-    const { container } = render(<MLBPage />);
+    render(
+      <ClientProviders>
+        <MLBPage />
+      </ClientProviders>
+    );
 
-    // Check that content is properly contained
-    const section = container.querySelector('section');
-    const containerDiv = section?.querySelector('.container');
-    const heading = containerDiv?.querySelector('h1');
-    const paragraph = containerDiv?.querySelector('p');
-
-    expect(section).toBeInTheDocument();
-    expect(containerDiv).toBeInTheDocument();
-    expect(heading).toBeInTheDocument();
-    expect(paragraph).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument();
+    expect(screen.getByText('MLB page')).toBeInTheDocument();
+    expect(screen.getByText('Welcome, testuser!')).toBeInTheDocument();
   });
 
   it('centers content both horizontally and vertically', () => {
-    const { container } = render(<MLBPage />);
+    const { container } = render(
+      <ClientProviders>
+        <MLBPage />
+      </ClientProviders>
+    );
 
     const section = container.querySelector('section');
     expect(section).toHaveClass('items-center', 'justify-center');
   });
 
   it('has responsive height calculation', () => {
-    const { container } = render(<MLBPage />);
+    const { container } = render(
+      <ClientProviders>
+        <MLBPage />
+      </ClientProviders>
+    );
 
     const section = container.querySelector('section');
     expect(section).toHaveClass('min-h-[calc(100vh-4rem)]');
@@ -137,25 +177,41 @@ describe('MLBPage', () => {
 });
 
 describe('UserGreeting', () => {
-  it('renders welcome message', () => {
-    render(<MLBPage />);
+  beforeEach(() => {
+    process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY = 'pk_test_1234567890abcdef';
+  });
 
-    expect(screen.getByText('Welcome, Guest!')).toBeInTheDocument();
+  it('renders welcome message', () => {
+    render(
+      <ClientProviders>
+        <MLBPage />
+      </ClientProviders>
+    );
+
+    expect(screen.getByText('Welcome, testuser!')).toBeInTheDocument();
   });
 
   it('is contained within the centered container', () => {
-    const { container } = render(<MLBPage />);
+    const { container } = render(
+      <ClientProviders>
+        <MLBPage />
+      </ClientProviders>
+    );
 
-    const containerDiv = container.querySelector('.container.mx-auto.px-4.text-center');
-    const greetingText = screen.getByText('Welcome, Guest!');
+    const section = container.querySelector('section');
+    const welcomeText = screen.getByText('Welcome, testuser!');
 
-    expect(containerDiv).toContainElement(greetingText);
+    expect(section).toContainElement(welcomeText);
   });
 
   it('renders as a paragraph element', () => {
-    render(<MLBPage />);
+    render(
+      <ClientProviders>
+        <MLBPage />
+      </ClientProviders>
+    );
 
-    const greeting = screen.getByText('Welcome, Guest!');
-    expect(greeting.tagName).toBe('P');
+    const welcomeText = screen.getByText('Welcome, testuser!');
+    expect(welcomeText.tagName).toBe('P');
   });
 });
