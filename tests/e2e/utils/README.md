@@ -124,7 +124,7 @@ await waitForDOMContentLoaded(page, TIMEOUTS.MEDIUM);
 Consistent page navigation with load state handling:
 
 ```typescript
-await navigateToPage(page, '/dashboard', {
+await navigateToPage(page, '/', {
   waitForNetworkIdle: true,
   timeout: TIMEOUTS.MEDIUM,
   checkMainContent: true,
@@ -168,7 +168,7 @@ await clearTestData(page); // Clears localStorage, sessionStorage, IndexedDB, co
 - `tests/e2e/functional/smoke.spec.ts` - Added serial mode
 - `tests/e2e/functional/sanity.spec.ts` - Added serial mode
 - `tests/e2e/functional/mock-verification.spec.ts` - Updated to use new utilities
-- `tests/e2e/pages/dashboard.spec.ts` - Added data isolation
+- `tests/e2e/pages/.spec.ts` - Added data isolation
 - `tests/e2e/pages/sports.spec.ts` - Added data isolation
 - `tests/e2e/pages/clerk-auth.spec.ts` - Added data isolation
 
@@ -192,7 +192,7 @@ await page.waitForLoadState('networkidle', { timeout: 5000 });
 await page.waitForLoadState('networkidle');
 
 // Direct navigation without error handling
-await page.goto('/dashboard');
+await page.goto('/');
 await page.waitForLoadState('networkidle');
 
 // No test isolation
@@ -212,7 +212,7 @@ await waitForNetworkIdle(page, TIMEOUTS.SHORT);
 await waitForNetworkIdle(page); // Uses default
 
 // Enhanced navigation with error handling
-await navigateToPage(page, '/dashboard', {
+await navigateToPage(page, '/', {
   waitForNetworkIdle: true,
   timeout: TIMEOUTS.MEDIUM,
 });
@@ -249,7 +249,7 @@ test.beforeEach(async ({ page }) => {
 });
 
 test('should navigate to dashboard', async ({ page }) => {
-  await page.goto('/dashboard');
+  await page.goto('/');
   await waitForNetworkIdle(page, TIMEOUTS.MEDIUM);
   await expect(page.locator('main')).toBeVisible();
 });

@@ -8,7 +8,7 @@ This directory contains all test files for the application with comprehensive co
 tests/
 ├── unit/                    # Unit tests with comprehensive coverage
 │   ├── app/                 # Mirror src/app/ structure exactly
-│   │   ├── dashboard/       # Mirror src/app/dashboard/
+│   │   ├── dashboard/       # Mirror src/app//
 │   │   │   └── dashboard.test.tsx
 │   │   ├── protected/       # Mirror src/app/protected/
 │   │   │   ├── admin/       # Mirror src/app/protected/admin/

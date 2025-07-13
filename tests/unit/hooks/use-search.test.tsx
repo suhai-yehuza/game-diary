@@ -376,7 +376,7 @@ describe('useSearch', () => {
     expect(result.current.searchQuery).toBe('test query');
 
     // Navigate away from search page
-    mocks.mockUsePathname.mockReturnValue('/dashboard');
+    mocks.mockUsePathname.mockReturnValue('/');
     rerender();
 
     expect(result.current.searchQuery).toBe('');
@@ -385,7 +385,7 @@ describe('useSearch', () => {
 
   it.skip('should return to previous page when search is cleared', async () => {
     // Skipped: useEffect and Next.js navigation context not reliably testable in this environment
-    const mockPreviousPath = '/dashboard';
+    const mockPreviousPath = '/';
     mocks.mockGet.mockReturnValue('test query');
     const { result, rerender } = renderHook(() => useSearch());
     rerender();

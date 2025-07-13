@@ -8,14 +8,14 @@ import {
 test.describe.configure({ retries: 2 }); // TEMP: Retry flaky tests while stabilizing
 
 // Run comprehensive page tests for dashboard
-runComprehensivePageTests(test, '/dashboard', 'Dashboard');
+runComprehensivePageTests(test, '/', 'Dashboard');
 
 test.describe('Dashboard', () => {
   // Dashboard-specific tests
   test.describe('Dashboard - Specific Tests', () => {
     test.beforeEach(async ({ page }) => {
       await clearTestData(page); // Test data isolation: clear storage and cookies
-      await page.goto('/dashboard');
+      await page.goto('/');
       await waitForNetworkIdle(page);
       // Disable all CSS animations and transitions for test reliability
       await page.addStyleTag({

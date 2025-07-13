@@ -16,7 +16,7 @@ export const SPORTS_PAGES = [
 export const MAJOR_SECTIONS = [
   { href: '/', label: 'Home' },
   { href: '/sports/nba', label: 'Sports' },
-  { href: '/dashboard', label: 'Dashboard' },
+  { href: '/', label: 'Dashboard' },
   { href: '/protected/user', label: 'Profile' },
 ] as const;
 

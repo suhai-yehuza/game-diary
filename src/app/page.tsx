@@ -49,10 +49,7 @@ export default function HomePage() {
         </div>
       )}
       <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <Link
-          href="/dashboard"
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-        >
+        <Link href="/" className="flex items-center gap-2 hover:underline hover:underline-offset-4">
           <Image
             aria-hidden
             src="/icons/file.svg"
@@ -63,10 +60,7 @@ export default function HomePage() {
           />
           Placeholder 01
         </Link>
-        <Link
-          href="/dashboard"
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-        >
+        <Link href="/" className="flex items-center gap-2 hover:underline hover:underline-offset-4">
           <Image
             aria-hidden
             src="/icons/window.svg"

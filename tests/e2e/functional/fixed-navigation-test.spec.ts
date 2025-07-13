@@ -72,7 +72,7 @@ test.describe('Fixed Navigation Test', () => {
 
     // Find the Dashboard link
     console.log('🔍 Looking for Dashboard navigation link...');
-    const dashboardLink = page.locator('nav a[href="/dashboard"]').first();
+    const dashboardLink = page.locator('nav a[href="/"]').first();
 
     // Wait for the link to be visible
     await expect(dashboardLink).toBeVisible({ timeout: 10000 });
@@ -83,7 +83,7 @@ test.describe('Fixed Navigation Test', () => {
     console.log('🔍 Clicking Dashboard link...');
     await Promise.all([
       // Wait for navigation to complete
-      page.waitForURL('**/dashboard', { timeout: 10000 }),
+      page.waitForURL('**/', { timeout: 10000 }),
       // Click the link
       dashboardLink.click(),
     ]);
@@ -94,7 +94,7 @@ test.describe('Fixed Navigation Test', () => {
     console.log(`🔍 After click URL: ${page.url()}`);
 
     // Verify we navigated to the dashboard
-    expect(page.url()).toContain('/dashboard');
+    expect(page.url()).toContain('/');
     console.log('✅ Successfully navigated to dashboard');
 
     // Verify the page content loaded

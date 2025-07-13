@@ -80,6 +80,20 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+      {/* Dashboard Greeting Section */}
+      <section className="py-8 bg-gradient-to-r from-primary/5 to-primary/10">
+        <div className="container mx-auto px-4 text-center">
+          <h1 className="text-3xl font-bold mb-4">Dashboard</h1>
+          <p className="text-lg text-muted-foreground">
+            {!isLoaded
+              ? 'Loading...'
+              : isSignedIn
+                ? `Welcome, ${user?.username ?? user?.firstName ?? 'User'}!`
+                : 'Welcome, Guest! (Not signed in)'}
+          </p>
+        </div>
+      </section>
+
       <div className="container mx-auto px-4 py-8">
         {/* Header Section */}
         <div className="mb-8">

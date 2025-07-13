@@ -12,7 +12,6 @@ export {
 } from '@/components/lazy/sports-pages';
 export {
   LazyUserPage,
-  LazyClientPage,
   LazyAdminDatabasePage,
   LazyDashboardPage,
 } from '@/components/lazy/protected-pages';

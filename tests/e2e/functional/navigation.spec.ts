@@ -36,11 +36,11 @@ export async function navigationTestSportsPagesNavigation(page: any) {
 }
 
 export async function navigationTestDashboardNavigation(page: any) {
-  await safeGoto(page, '/dashboard');
+  await safeGoto(page, '/');
   await waitForPageLoad(page);
   await checkBasicPageStructure(page);
   await checkPageTitle(page);
-  await expect(page).toHaveURL('/dashboard');
+  await expect(page).toHaveURL('/');
   await expect(page.locator('main')).toBeVisible();
 }
 

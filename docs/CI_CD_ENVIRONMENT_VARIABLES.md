@@ -28,7 +28,7 @@ This guide shows you exactly where to set environment variables for soaking peri
 
 ### Method 1: Vercel Dashboard
 
-1. Go to [vercel.com/dashboard](https://vercel.com/dashboard)
+1. Go to [vercel.com/](https://vercel.com/)
 2. Select your project
 3. Go to "Deployments" tab
 4. Copy the URL from your latest deployment

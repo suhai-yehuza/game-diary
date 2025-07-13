@@ -61,7 +61,7 @@
     "test:e2e:pages": "playwright test tests/e2e/pages/",
     "test:e2e:pages:content": "playwright test tests/e2e/pages/content-page.spec.ts",
     "test:e2e:pages:home": "playwright test tests/e2e/pages/home.spec.ts",
-    "test:e2e:pages:dashboard": "playwright test tests/e2e/pages/dashboard.spec.ts",
+    "test:e2e:pages:dashboard": "playwright test tests/e2e/pages/.spec.ts",
     "test:e2e:pages:sports": "playwright test tests/e2e/pages/sports.spec.ts",
     "test:e2e:pages:auth": "playwright test tests/e2e/pages/clerk-auth.spec.ts",
     "test:e2e:live-games": "playwright test tests/e2e/functional/live-games.spec.ts",

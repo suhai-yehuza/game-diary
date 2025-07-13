@@ -40,7 +40,7 @@ The Game Diary app is a Next.js-based sports application that allows users to tr
 
 **Purpose**: User authentication, authorization, and user management
 
-**Dashboard**: https://dashboard.clerk.com/
+**Dashboard**: https://.clerk.com/
 
 - **Login Email**: `sportsdata22@gmail.com`
 - **Password**: `[DUMMY_PASSWORD: ClerkSecurePass123!]`
@@ -77,7 +77,7 @@ The Game Diary app is a Next.js-based sports application that allows users to tr
 
 **Purpose**: Application hosting, deployment, and CDN
 
-**Dashboard**: https://vercel.com/dashboard
+**Dashboard**: https://vercel.com/
 
 - **Login Email**: `sportsdata22@gmail.com`
 - **Password**: `[DUMMY_PASSWORD: VercelDeployPass456!]`
@@ -502,8 +502,8 @@ VERCEL_PREVIEW_URL=https://game-diary-git-preview.vercel.app
 - **Application**: https://game-diary.vercel.app
 - **Staging**: https://game-diary-suhai-yehuza-suhais-projects-33a81a2a.vercel.app
 - **Repository**: https://github.com/[username]/game-diary
-- **Vercel Dashboard**: https://vercel.com/dashboard
-- **Clerk Dashboard**: https://dashboard.clerk.com/
+- **Vercel Dashboard**: https://vercel.com/
+- **Clerk Dashboard**: https://.clerk.com/
 - **Neon Dashboard**: https://console.neon.tech/
 - **UpStash Dashboard**: https://console.upstash.com/
 - **RapidAPI Dashboard**: https://rapidapi.com/

@@ -220,7 +220,7 @@ export async function navigateToDashboard(
   page: Page,
   options: NavigationOptions = {}
 ): Promise<void> {
-  await navigateToSection(page, '/dashboard', options);
+  await navigateToSection(page, '/', options);
 }
 
 /**

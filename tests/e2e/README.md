@@ -179,7 +179,7 @@ import { test, expect } from '@playwright/test';
 import { safeGoto, checkBasicPageStructure } from './utils/test-utils';
 
 test('should have proper page structure', async ({ page }) => {
-  await safeGoto(page, '/dashboard');
+  await safeGoto(page, '/');
   await checkBasicPageStructure(page);
 });
 ```

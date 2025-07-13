@@ -30,12 +30,6 @@ export default function NBAPage() {
             <div className="w-2 h-2 bg-white rounded-full animate-pulse mr-2" />
             Live Games
           </Link>
-          <Link
-            href="/protected/admin/experimental"
-            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-          >
-            API Testing
-          </Link>
         </div>
       </div>
       <div>

@@ -39,7 +39,7 @@ export async function smokeTestBasicPerformance(page: any) {
 export async function smokeTestMajorSectionNavigation(page: any) {
   await testHomePage(page, { checkAccessibility: false, checkPerformance: false });
   await navigateToSection(page, '/sports/nba');
-  await navigateToSection(page, '/dashboard');
+  await navigateToSection(page, '/');
   await navigateToSection(page, '/');
 }
 

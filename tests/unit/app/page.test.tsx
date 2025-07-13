@@ -150,12 +150,12 @@ describe('HomePage', () => {
     // Check for "Placeholder 01" link
     const howToLink = screen.getByRole('link', { name: 'Placeholder 01' });
     expect(howToLink).toBeInTheDocument();
-    expect(howToLink).toHaveAttribute('href', '/dashboard');
+    expect(howToLink).toHaveAttribute('href', '/');
 
     // Check for "Placeholder 02" link
     const exampleLink = screen.getByRole('link', { name: 'Placeholder 02' });
     expect(exampleLink).toBeInTheDocument();
-    expect(exampleLink).toHaveAttribute('href', '/dashboard');
+    expect(exampleLink).toHaveAttribute('href', '/');
   });
 
   it('renders footer icons correctly', () => {

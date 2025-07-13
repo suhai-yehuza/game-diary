@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react';
 import React from 'react';
 import { describe, it, expect, vi } from 'vitest';
 
-import DashboardPage from '@src/app/dashboard/page';
+import DashboardPage from '@src/app//page';
 
 // Mock Next.js metadata
 vi.mock('next', () => ({

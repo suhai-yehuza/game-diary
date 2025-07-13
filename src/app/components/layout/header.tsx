@@ -369,8 +369,8 @@ function NavigationLinks({
   return (
     <nav className="flex flex-col lg:flex-row items-start lg:items-center h-full lg:space-x-6 lg:space-y-0 text-xs sm:text-sm font-medium m-0 p-0">
       {/* Dashboard + Sports */}
-      <NavItem href="/dashboard" isActive={isActive('/dashboard')} onClick={handleNavClick}>
-        Dashboard
+      <NavItem href="/" isActive={isActive('/')} onClick={handleNavClick}>
+        Home
       </NavItem>
       <NavItem href="/sports/nba" isActive={isActive('/sports/nba')} onClick={handleNavClick}>
         NBA
@@ -387,18 +387,22 @@ function NavigationLinks({
       <NavItem href="/sports/mls" isActive={isActive('/sports/mls')} onClick={handleNavClick}>
         MLS
       </NavItem>
-      <NavItem href="/sports/all" isActive={isActive('/sports/all')} onClick={handleNavClick}>
+      <NavItem
+        href="/sports/all-sports"
+        isActive={isActive('/sports/all-sports')}
+        onClick={handleNavClick}
+      >
         All Sports
       </NavItem>
       {/* Divider */}
       <div className="hidden lg:block h-6 w-px bg-gray-200 dark:bg-gray-700 mx-3" />
-      {/* Profile + Admin */}
+      {/* User Dashboard + Admin */}
       <NavItem
         href="/protected/user"
         isActive={isActive('/protected/user')}
         onClick={handleNavClick}
       >
-        Profile
+        Dashboard
       </NavItem>
       <AdminNav isActive={isActive} />
     </nav>
@@ -544,6 +548,9 @@ export function Header() {
   const isActive = (path: string) => {
     if (path === '/') {
       return pathname === path || pathname.startsWith('/protected/user');
+    }
+    if (path === '/sports/nba') {
+      return pathname === path || pathname.startsWith(`${path}/`);
     }
     return pathname === path || pathname.startsWith(`${path}/`);
   };

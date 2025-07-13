@@ -146,7 +146,7 @@ export async function testSportsPage(
  * Test dashboard page specifically
  */
 export async function testDashboardPage(page: Page, options: PageTestOptions = {}): Promise<void> {
-  await testPageComprehensive(page, '/dashboard', {
+  await testPageComprehensive(page, '/', {
     checkStructure: true,
     checkTitle: true,
     checkConsoleErrors: true,
@@ -198,7 +198,7 @@ export function runResponsiveSuite(test: TestType<any, any>) {
       '/sports/mls',
       '/sports/all-sports',
       '/sports/live',
-      '/dashboard',
+      '/',
     ];
     for (const viewport of viewports) {
       test.describe(`${viewport.name} viewport`, () => {
