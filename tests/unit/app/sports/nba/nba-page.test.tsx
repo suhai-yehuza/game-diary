@@ -58,7 +58,7 @@ describe('NBAPage', () => {
     expect(screen.getByText('Live Games')).toBeInTheDocument();
 
     // Check for user welcome
-    expect(screen.getByText('Welcome, testuser!')).toBeInTheDocument();
+    expect(screen.getByText('Welcome to the NBA section')).toBeInTheDocument();
   });
 
   it('renders navigation links with correct hrefs', () => {
@@ -133,12 +133,13 @@ describe('NBAPage', () => {
       </ClientProviders>
     );
 
+    // Check for welcome section with specific styling
     const welcomeSection = container.querySelector(
       '.mb-6.p-4.bg-blue-50.dark\\:bg-blue-900\\/20.rounded-lg'
     );
     expect(welcomeSection).toBeInTheDocument();
 
-    expect(screen.getByText('Welcome, testuser!')).toBeInTheDocument();
+    expect(screen.getByText('Welcome to the NBA section')).toBeInTheDocument();
   });
 
   it('has proper semantic structure', () => {
@@ -179,7 +180,7 @@ describe('NBAPage', () => {
     expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument();
     expect(screen.getByText('NBA')).toBeInTheDocument();
     expect(screen.getByText('Live Games')).toBeInTheDocument();
-    expect(screen.getByText('Welcome, testuser!')).toBeInTheDocument();
+    expect(screen.getByText('Welcome to the NBA section')).toBeInTheDocument();
   });
 
   it('has proper accessibility attributes', () => {
@@ -231,7 +232,7 @@ describe('UserWelcome', () => {
       </ClientProviders>
     );
 
-    expect(screen.getByText('Welcome, testuser!')).toBeInTheDocument();
+    expect(screen.getByText('Welcome to the NBA section')).toBeInTheDocument();
   });
 
   it('is contained within the welcome section', () => {
@@ -244,7 +245,7 @@ describe('UserWelcome', () => {
     const welcomeSection = container.querySelector(
       '.mb-6.p-4.bg-blue-50.dark\\:bg-blue-900\\/20.rounded-lg'
     );
-    const welcomeText = screen.getByText('Welcome, testuser!');
+    const welcomeText = screen.getByText('Welcome to the NBA section');
 
     expect(welcomeSection).toContainElement(welcomeText);
   });
@@ -256,7 +257,7 @@ describe('UserWelcome', () => {
       </ClientProviders>
     );
 
-    const welcomeText = screen.getByText('Welcome, testuser!');
+    const welcomeText = screen.getByText('Welcome to the NBA section');
     expect(welcomeText.tagName).toBe('P');
   });
 });

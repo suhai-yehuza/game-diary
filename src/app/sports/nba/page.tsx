@@ -1,20 +1,8 @@
 'use client';
 
-import { useUser } from '@clerk/nextjs';
 import Link from 'next/link';
 
 export default function NBAPage() {
-  const { isLoaded, isSignedIn, user } = useUser();
-
-  let greeting;
-  if (!isLoaded) {
-    greeting = 'Loading...';
-  } else if (isSignedIn) {
-    greeting = `Welcome, ${user?.username ?? user?.firstName ?? 'User'}!`;
-  } else {
-    greeting = 'Welcome, Guest! (Not signed in)';
-  }
-
   return (
     <section className="container mx-auto px-4 py-8">
       <div className="mb-6">
@@ -34,7 +22,7 @@ export default function NBAPage() {
       </div>
       <div>
         <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-          <p>{greeting}</p>
+          <p>Welcome to the NBA section</p>
         </div>
       </div>
     </section>

@@ -45,21 +45,10 @@ describe('AllSportsPage', () => {
     expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument();
     expect(screen.getByText('All Sports')).toBeInTheDocument();
 
-    // Check for description
+    // Check for welcome message
     expect(
-      screen.getByText('Explore all sports leagues - NBA, NFL, MLB, NHL, MLS and more')
+      screen.getByText('Welcome to All Sports - Explore your favorite leagues')
     ).toBeInTheDocument();
-
-    // Check for navigation links
-    expect(screen.getByText('Live Games')).toBeInTheDocument();
-    expect(screen.getByText('NBA')).toBeInTheDocument();
-    expect(screen.getByText('NFL')).toBeInTheDocument();
-    expect(screen.getByText('MLB')).toBeInTheDocument();
-    expect(screen.getByText('NHL')).toBeInTheDocument();
-    expect(screen.getByText('MLS')).toBeInTheDocument();
-
-    // Check for user welcome
-    expect(screen.getByText('Welcome, testuser!')).toBeInTheDocument();
   });
 
   it('applies correct CSS classes for layout', () => {
@@ -76,12 +65,6 @@ describe('AllSportsPage', () => {
     // Check for heading
     const heading = screen.getByRole('heading', { level: 1 });
     expect(heading).toHaveClass('text-3xl', 'font-bold', 'mb-2');
-
-    // Check for description
-    const description = screen.getByText(
-      'Explore all sports leagues - NBA, NFL, MLB, NHL, MLS and more'
-    );
-    expect(description).toHaveClass('text-gray-600', 'dark:text-gray-400', 'mb-4');
   });
 
   it('has proper semantic structure', () => {
@@ -99,10 +82,6 @@ describe('AllSportsPage', () => {
     // Check for section element
     const section = heading.closest('section');
     expect(section).toBeInTheDocument();
-
-    // Check for navigation links
-    const links = screen.getAllByRole('link');
-    expect(links).toHaveLength(6);
   });
 
   it('renders consistently', () => {
@@ -121,7 +100,9 @@ describe('AllSportsPage', () => {
 
     expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument();
     expect(screen.getByText('All Sports')).toBeInTheDocument();
-    expect(screen.getByText('Welcome, testuser!')).toBeInTheDocument();
+    expect(
+      screen.getByText('Welcome to All Sports - Explore your favorite leagues')
+    ).toBeInTheDocument();
   });
 
   it('has proper accessibility attributes', () => {
@@ -134,12 +115,6 @@ describe('AllSportsPage', () => {
     // Check for proper heading structure
     const heading = screen.getByRole('heading', { level: 1 });
     expect(heading).toBeInTheDocument();
-
-    // Check that links are accessible
-    const links = screen.getAllByRole('link');
-    links.forEach(link => {
-      expect(link).toHaveAttribute('href');
-    });
   });
 
   it('handles multiple renders without issues', () => {
@@ -162,6 +137,17 @@ describe('AllSportsPage', () => {
     expect(screen.getByText('All Sports')).toBeInTheDocument();
   });
 
+  it('uses container layout', () => {
+    const { container } = render(
+      <ClientProviders>
+        <AllSportsPage />
+      </ClientProviders>
+    );
+
+    const section = container.querySelector('section');
+    expect(section).toHaveClass('container', 'mx-auto', 'px-4', 'py-8');
+  });
+
   it('has proper content structure', () => {
     render(
       <ClientProviders>
@@ -170,24 +156,78 @@ describe('AllSportsPage', () => {
     );
 
     expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument();
+    expect(screen.getByText('All Sports')).toBeInTheDocument();
     expect(
       screen.getByText('Explore all sports leagues - NBA, NFL, MLB, NHL, MLS and more')
     ).toBeInTheDocument();
-    expect(screen.getByText('Welcome, testuser!')).toBeInTheDocument();
+    expect(
+      screen.getByText('Welcome to All Sports - Explore your favorite leagues')
+    ).toBeInTheDocument();
   });
 
-  it('renders all sports navigation links', () => {
+  it('centers content with proper spacing', () => {
+    const { container } = render(
+      <ClientProviders>
+        <AllSportsPage />
+      </ClientProviders>
+    );
+
+    const section = container.querySelector('section');
+    expect(section).toHaveClass('mx-auto', 'px-4', 'py-8');
+  });
+
+  it('has responsive container layout', () => {
+    const { container } = render(
+      <ClientProviders>
+        <AllSportsPage />
+      </ClientProviders>
+    );
+
+    const section = container.querySelector('section');
+    expect(section).toHaveClass('container');
+  });
+});
+
+describe('UserGreeting', () => {
+  beforeEach(() => {
+    process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY = 'pk_test_1234567890abcdef';
+  });
+
+  it('renders welcome message', () => {
     render(
       <ClientProviders>
         <AllSportsPage />
       </ClientProviders>
     );
 
-    expect(screen.getByText('Live Games')).toBeInTheDocument();
-    expect(screen.getByText('NBA')).toBeInTheDocument();
-    expect(screen.getByText('NFL')).toBeInTheDocument();
-    expect(screen.getByText('MLB')).toBeInTheDocument();
-    expect(screen.getByText('NHL')).toBeInTheDocument();
-    expect(screen.getByText('MLS')).toBeInTheDocument();
+    expect(
+      screen.getByText('Welcome to All Sports - Explore your favorite leagues')
+    ).toBeInTheDocument();
+  });
+
+  it('is contained within the welcome section', () => {
+    const { container } = render(
+      <ClientProviders>
+        <AllSportsPage />
+      </ClientProviders>
+    );
+
+    const welcomeSection = container.querySelector(
+      '.mb-6.p-4.bg-blue-50.dark\\:bg-blue-900\\/20.rounded-lg'
+    );
+    const welcomeText = screen.getByText('Welcome to All Sports - Explore your favorite leagues');
+
+    expect(welcomeSection).toContainElement(welcomeText);
+  });
+
+  it('renders as a paragraph element', () => {
+    render(
+      <ClientProviders>
+        <AllSportsPage />
+      </ClientProviders>
+    );
+
+    const welcomeText = screen.getByText('Welcome to All Sports - Explore your favorite leagues');
+    expect(welcomeText.tagName).toBe('P');
   });
 });

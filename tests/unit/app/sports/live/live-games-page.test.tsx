@@ -36,8 +36,10 @@ describe('LiveGamesPage', () => {
     expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument();
     expect(screen.getByText('Live Games page')).toBeInTheDocument();
 
-    // Check for user welcome
-    expect(screen.getByText('Welcome, testuser!')).toBeInTheDocument();
+    // Check for welcome message
+    expect(
+      screen.getByText('Welcome to Live Games - Real-time sports updates')
+    ).toBeInTheDocument();
   });
 
   it('applies correct CSS classes for layout', () => {
@@ -95,7 +97,9 @@ describe('LiveGamesPage', () => {
 
     expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument();
     expect(screen.getByText('Live Games page')).toBeInTheDocument();
-    expect(screen.getByText('Welcome, testuser!')).toBeInTheDocument();
+    expect(
+      screen.getByText('Welcome to Live Games - Real-time sports updates')
+    ).toBeInTheDocument();
   });
 
   it('has proper accessibility attributes', () => {
@@ -150,7 +154,9 @@ describe('LiveGamesPage', () => {
 
     expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument();
     expect(screen.getByText('Live Games page')).toBeInTheDocument();
-    expect(screen.getByText('Welcome, testuser!')).toBeInTheDocument();
+    expect(
+      screen.getByText('Welcome to Live Games - Real-time sports updates')
+    ).toBeInTheDocument();
   });
 
   it('centers content both horizontally and vertically', () => {
@@ -188,7 +194,9 @@ describe('UserGreeting', () => {
       </ClientProviders>
     );
 
-    expect(screen.getByText('Welcome, testuser!')).toBeInTheDocument();
+    expect(
+      screen.getByText('Welcome to Live Games - Real-time sports updates')
+    ).toBeInTheDocument();
   });
 
   it('is contained within the centered container', () => {
@@ -199,7 +207,7 @@ describe('UserGreeting', () => {
     );
 
     const section = container.querySelector('section');
-    const welcomeText = screen.getByText('Welcome, testuser!');
+    const welcomeText = screen.getByText('Welcome to Live Games - Real-time sports updates');
 
     expect(section).toContainElement(welcomeText);
   });
@@ -211,7 +219,7 @@ describe('UserGreeting', () => {
       </ClientProviders>
     );
 
-    const welcomeText = screen.getByText('Welcome, testuser!');
+    const welcomeText = screen.getByText('Welcome to Live Games - Real-time sports updates');
     expect(welcomeText.tagName).toBe('P');
   });
 });

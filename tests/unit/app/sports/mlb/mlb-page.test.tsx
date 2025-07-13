@@ -36,8 +36,8 @@ describe('MLBPage', () => {
     expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument();
     expect(screen.getByText('MLB page')).toBeInTheDocument();
 
-    // Check for user welcome
-    expect(screen.getByText('Welcome, testuser!')).toBeInTheDocument();
+    // Check for welcome message
+    expect(screen.getByText('Welcome to Major League Baseball')).toBeInTheDocument();
   });
 
   it('applies correct CSS classes for layout', () => {
@@ -95,7 +95,7 @@ describe('MLBPage', () => {
 
     expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument();
     expect(screen.getByText('MLB page')).toBeInTheDocument();
-    expect(screen.getByText('Welcome, testuser!')).toBeInTheDocument();
+    expect(screen.getByText('Welcome to Major League Baseball')).toBeInTheDocument();
   });
 
   it('has proper accessibility attributes', () => {
@@ -150,7 +150,7 @@ describe('MLBPage', () => {
 
     expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument();
     expect(screen.getByText('MLB page')).toBeInTheDocument();
-    expect(screen.getByText('Welcome, testuser!')).toBeInTheDocument();
+    expect(screen.getByText('Welcome to Major League Baseball')).toBeInTheDocument();
   });
 
   it('centers content both horizontally and vertically', () => {
@@ -188,7 +188,7 @@ describe('UserGreeting', () => {
       </ClientProviders>
     );
 
-    expect(screen.getByText('Welcome, testuser!')).toBeInTheDocument();
+    expect(screen.getByText('Welcome to Major League Baseball')).toBeInTheDocument();
   });
 
   it('is contained within the centered container', () => {
@@ -199,7 +199,7 @@ describe('UserGreeting', () => {
     );
 
     const section = container.querySelector('section');
-    const welcomeText = screen.getByText('Welcome, testuser!');
+    const welcomeText = screen.getByText('Welcome to Major League Baseball');
 
     expect(section).toContainElement(welcomeText);
   });
@@ -211,7 +211,7 @@ describe('UserGreeting', () => {
       </ClientProviders>
     );
 
-    const welcomeText = screen.getByText('Welcome, testuser!');
+    const welcomeText = screen.getByText('Welcome to Major League Baseball');
     expect(welcomeText.tagName).toBe('P');
   });
 });
