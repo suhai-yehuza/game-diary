@@ -10,7 +10,7 @@ describe('LiveGamesPage', () => {
 
     // Check for main heading
     expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument();
-    expect(screen.getByText('This will be the Live Games page')).toBeInTheDocument();
+    expect(screen.getByText('Live Games page')).toBeInTheDocument();
 
     // Check for user greeting
     expect(screen.getByText('Welcome, User!')).toBeInTheDocument();
@@ -64,7 +64,7 @@ describe('LiveGamesPage', () => {
     rerender(<LiveGamesPage />);
 
     expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument();
-    expect(screen.getByText('This will be the Live Games page')).toBeInTheDocument();
+    expect(screen.getByText('Live Games page')).toBeInTheDocument();
     expect(screen.getByText('Welcome, User!')).toBeInTheDocument();
   });
 
@@ -89,14 +89,14 @@ describe('LiveGamesPage', () => {
     rerender(<LiveGamesPage />);
 
     expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument();
-    expect(screen.getByText('This will be the Live Games page')).toBeInTheDocument();
+    expect(screen.getByText('Live Games page')).toBeInTheDocument();
 
     // Clean unmount and remount
     unmount();
     render(<LiveGamesPage />);
 
     expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument();
-    expect(screen.getByText('This will be the Live Games page')).toBeInTheDocument();
+    expect(screen.getByText('Live Games page')).toBeInTheDocument();
   });
 
   it('uses flexbox for centering content', () => {

@@ -150,7 +150,7 @@ test.describe('Live Games Functionality', () => {
       // Check page title
       const title = page.getByRole('heading', { level: 1 });
       await expect(title).toBeVisible();
-      await expect(title).toHaveText('This will be the Live Games page');
+      await expect(title).toHaveText('Live Games page');
 
       // Check for welcome message
       const welcomeMessage = page.getByText('Welcome, User!');
@@ -165,9 +165,9 @@ test.describe('Live Games Functionality', () => {
       // Check for games grid or placeholder content
       const gamesGrid = page.locator('[data-testid="live-games-grid"], .grid');
       const noGamesMessage = page.locator(
-        'text=No Live Games, text=no live NBA games, text=This will be the Live Games page'
+        'text=No Live Games, text=no live NBA games, text=Live Games page'
       );
-      const placeholderContent = page.getByText('This will be the Live Games page');
+      const placeholderContent = page.getByText('Live Games page');
 
       // Since this is a placeholder page, expect the placeholder content
       await expect(placeholderContent).toBeVisible();
@@ -179,7 +179,7 @@ test.describe('Live Games Functionality', () => {
       await waitForNetworkIdle(page);
 
       // Since this is a placeholder page, check for placeholder content
-      const placeholderContent = page.getByText('This will be the Live Games page');
+      const placeholderContent = page.getByText('Live Games page');
       await expect(placeholderContent).toBeVisible();
 
       const welcomeMessage = page.getByText('Welcome, User!');
@@ -192,7 +192,7 @@ test.describe('Live Games Functionality', () => {
       await waitForNetworkIdle(page);
 
       // Check for placeholder content since this is a placeholder page
-      const placeholderContent = page.getByText('This will be the Live Games page');
+      const placeholderContent = page.getByText('Live Games page');
       await expect(placeholderContent).toBeVisible();
     });
 
@@ -203,7 +203,7 @@ test.describe('Live Games Functionality', () => {
       // Check for loading indicators or placeholder content
       const spinner = page.locator('.animate-spin, [data-testid="loading-spinner"]');
       const loadingText = page.locator('text=Loading, text=Loading live games');
-      const placeholderContent = page.getByText('This will be the Live Games page');
+      const placeholderContent = page.getByText('Live Games page');
 
       // Since this is a placeholder page, expect the placeholder content
       await expect(placeholderContent).toBeVisible();
@@ -220,7 +220,7 @@ test.describe('Live Games Functionality', () => {
       const errorMessage = page.locator(
         'text=Error, text=Failed to load, text=Something went wrong'
       );
-      const placeholderContent = page.getByText('This will be the Live Games page');
+      const placeholderContent = page.getByText('Live Games page');
 
       // Since this is a placeholder page, expect the placeholder content
       await expect(placeholderContent).toBeVisible();
@@ -294,9 +294,9 @@ test.describe('Live Games Functionality', () => {
       // Check for games grid or placeholder content
       const gamesGrid = page.locator('[data-testid="live-games-grid"], .grid');
       const noGamesMessage = page.locator(
-        'text=No Live Games, text=no live NBA games, text=This will be the Live Games page'
+        'text=No Live Games, text=no live NBA games, text=Live Games page'
       );
-      const placeholderContent = page.getByText('This will be the Live Games page');
+      const placeholderContent = page.getByText('Live Games page');
 
       // Since this is a placeholder page, expect the placeholder content
       await expect(placeholderContent).toBeVisible();

@@ -1,16 +1,5 @@
 // Clerk webhook event types based on example responses
 
-export interface ITestClerkMock {
-  useUser: () => { isLoaded: boolean; isSignedIn?: boolean; user?: unknown };
-  useAuth: () => {
-    isLoaded: boolean;
-    isSignedIn?: boolean;
-    signIn?: () => Promise<void>;
-    signOut?: () => Promise<void>;
-    getToken?: () => Promise<string>;
-  };
-}
-
 export interface IClerkEmailAddress {
   created_at: number;
   email_address: string;

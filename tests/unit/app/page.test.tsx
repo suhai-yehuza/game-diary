@@ -39,12 +39,10 @@ describe('HomePage', () => {
 
     // Check for main heading
     expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument();
-    expect(screen.getByText('Welcome to Game Diary')).toBeInTheDocument();
+    expect(screen.getByText('Placeholder Text Here')).toBeInTheDocument();
 
     // Check for description
-    expect(
-      screen.getByText('Your personal space to track and share your pro game watching experiences')
-    ).toBeInTheDocument();
+    expect(screen.getByText('Placeholder sentence or paragraph here')).toBeInTheDocument();
 
     // Check for main action button
     expect(screen.getByRole('link', { name: 'Go to Dashboard' })).toBeInTheDocument();
@@ -103,9 +101,7 @@ describe('HomePage', () => {
     expect(heading.tagName).toBe('H1');
 
     // Check for paragraph
-    const paragraph = screen.getByText(
-      'Your personal space to track and share your pro game watching experiences'
-    );
+    const paragraph = screen.getByText('Placeholder sentence or paragraph here');
     expect(paragraph.tagName).toBe('P');
 
     // Check for section element
@@ -127,9 +123,7 @@ describe('HomePage', () => {
   it('applies correct styling to description', () => {
     render(<HomePage />, { wrapper: TestWrapper });
 
-    const description = screen.getByText(
-      'Your personal space to track and share your pro game watching experiences'
-    );
+    const description = screen.getByText('Placeholder sentence or paragraph here');
     expect(description).toHaveClass('text-xl', 'text-gray-600', 'dark:text-gray-300');
   });
 
@@ -153,13 +147,13 @@ describe('HomePage', () => {
   it('renders footer links correctly', () => {
     render(<HomePage />, { wrapper: TestWrapper });
 
-    // Check for "How to log a game" link
-    const howToLink = screen.getByRole('link', { name: 'How to log a game' });
+    // Check for "Placeholder 01" link
+    const howToLink = screen.getByRole('link', { name: 'Placeholder 01' });
     expect(howToLink).toBeInTheDocument();
     expect(howToLink).toHaveAttribute('href', '/dashboard');
 
-    // Check for "Example game logs" link
-    const exampleLink = screen.getByRole('link', { name: 'Example game logs' });
+    // Check for "Placeholder 02" link
+    const exampleLink = screen.getByRole('link', { name: 'Placeholder 02' });
     expect(exampleLink).toBeInTheDocument();
     expect(exampleLink).toHaveAttribute('href', '/dashboard');
   });
@@ -193,7 +187,7 @@ describe('HomePage', () => {
     rerender(<HomePage />);
 
     expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument();
-    expect(screen.getByText('Welcome to Game Diary')).toBeInTheDocument();
+    expect(screen.getByText('Placeholder Text Here')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Go to Dashboard' })).toBeInTheDocument();
   });
 
@@ -224,14 +218,14 @@ describe('HomePage', () => {
     rerender(<HomePage />);
 
     expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument();
-    expect(screen.getByText('Welcome to Game Diary')).toBeInTheDocument();
+    expect(screen.getByText('Placeholder Text Here')).toBeInTheDocument();
 
     // Clean unmount and remount
     unmount();
     render(<HomePage />, { wrapper: TestWrapper });
 
     expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument();
-    expect(screen.getByText('Welcome to Game Diary')).toBeInTheDocument();
+    expect(screen.getByText('Placeholder Text Here')).toBeInTheDocument();
   });
 
   it('takes full viewport height', () => {
@@ -274,21 +268,17 @@ describe('HomePage', () => {
     render(<HomePage />, { wrapper: TestWrapper });
 
     // Check for Game Diary specific text
-    expect(screen.getByText('Welcome to Game Diary')).toBeInTheDocument();
-    expect(
-      screen.getByText('Your personal space to track and share your pro game watching experiences')
-    ).toBeInTheDocument();
-    expect(screen.getByText('How to log a game')).toBeInTheDocument();
-    expect(screen.getByText('Example game logs')).toBeInTheDocument();
+    expect(screen.getByText('Placeholder Text Here')).toBeInTheDocument();
+    expect(screen.getByText('Placeholder sentence or paragraph here')).toBeInTheDocument();
+    expect(screen.getByText('Placeholder 01')).toBeInTheDocument();
+    expect(screen.getByText('Placeholder 02')).toBeInTheDocument();
   });
 
   it('has proper text hierarchy', () => {
     render(<HomePage />, { wrapper: TestWrapper });
 
     const heading = screen.getByRole('heading', { level: 1 });
-    const description = screen.getByText(
-      'Your personal space to track and share your pro game watching experiences'
-    );
+    const description = screen.getByText('Placeholder sentence or paragraph here');
 
     // Check that heading comes before description
     expect(
@@ -301,9 +291,7 @@ describe('HomePage', () => {
 
     // Get initial styling
     const initialHeading = screen.getByRole('heading', { level: 1 });
-    const initialDescription = screen.getByText(
-      'Your personal space to track and share your pro game watching experiences'
-    );
+    const initialDescription = screen.getByText('Placeholder sentence or paragraph here');
     const initialButton = screen.getByRole('link', { name: 'Go to Dashboard' });
 
     // Re-render
@@ -311,9 +299,7 @@ describe('HomePage', () => {
 
     // Check that styling is maintained
     const newHeading = screen.getByRole('heading', { level: 1 });
-    const newDescription = screen.getByText(
-      'Your personal space to track and share your pro game watching experiences'
-    );
+    const newDescription = screen.getByText('Placeholder sentence or paragraph here');
     const newButton = screen.getByRole('link', { name: 'Go to Dashboard' });
 
     expect(newHeading).toHaveClass('text-4xl', 'font-bold', 'tracking-tight');
@@ -355,8 +341,8 @@ describe('HomePage', () => {
   it('has proper footer link styling', () => {
     render(<HomePage />, { wrapper: TestWrapper });
 
-    const howToLink = screen.getByRole('link', { name: 'How to log a game' });
-    const exampleLink = screen.getByRole('link', { name: 'Example game logs' });
+    const howToLink = screen.getByRole('link', { name: 'Placeholder 01' });
+    const exampleLink = screen.getByRole('link', { name: 'Placeholder 02' });
 
     expect(howToLink).toHaveClass('hover:underline', 'hover:underline-offset-4');
     expect(exampleLink).toHaveClass('hover:underline', 'hover:underline-offset-4');

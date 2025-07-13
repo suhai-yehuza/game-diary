@@ -32,9 +32,9 @@ export default function HomePage() {
               priority
               sizes="(max-width: 600px) 150px, 200px"
             />
-            <h1 className="text-4xl font-bold tracking-tight">Welcome to Game Diary</h1>
+            <h1 className="text-4xl font-bold tracking-tight">Placeholder Text Here</h1>
             <p className="text-xl text-gray-600 dark:text-gray-300">
-              Your personal space to track and share your pro game watching experiences
+              Placeholder sentence or paragraph here
             </p>
           </div>
 
@@ -61,7 +61,7 @@ export default function HomePage() {
             height={16}
             sizes="16px"
           />
-          How to log a game
+          Placeholder 01
         </Link>
         <Link
           href="/dashboard"
@@ -75,7 +75,7 @@ export default function HomePage() {
             height={16}
             sizes="16px"
           />
-          Example game logs
+          Placeholder 02
         </Link>
       </footer>
     </section>

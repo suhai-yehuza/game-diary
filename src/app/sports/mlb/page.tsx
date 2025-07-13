@@ -1,29 +1,23 @@
 'use client';
 
-import React from 'react';
+import { useUser } from '@clerk/nextjs';
 
 export default function MLBPage() {
+  const { isLoaded, isSignedIn, user } = useUser();
+
+  let greeting;
+  if (!isLoaded) {
+    greeting = 'Loading...';
+  } else if (isSignedIn) {
+    greeting = `Welcome, ${user?.username ?? user?.firstName ?? 'User'}!`;
+  } else {
+    greeting = 'Welcome, Guest! (Not signed in)';
+  }
+
   return (
-    <section className="min-h-[calc(100vh-4rem)] flex items-center justify-center">
-      <div className="container mx-auto px-4 text-center">
-        <h1 className="text-3xl font-bold">This will be the MLB page</h1>
-        <UserGreeting />
-      </div>
+    <section className="min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center">
+      <h1 className="text-3xl font-bold mb-4">MLB page</h1>
+      <p>{greeting}</p>
     </section>
-  );
-}
-
-function UserGreeting() {
-  return <p>Welcome, User!</p>;
-}
-
-export function MLBSportsPage() {
-  return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto p-6">
-        <h1 className="text-2xl font-bold">MLB</h1>
-        <p className="text-muted-foreground">Major League Baseball games and statistics.</p>
-      </div>
-    </div>
   );
 }

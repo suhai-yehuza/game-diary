@@ -9,7 +9,7 @@ export const users = pgTable(
   'users',
   {
     // Use Clerk user ID as the primary key
-    id: varchar('id', { length: 255 }).primaryKey(), // This will be the Clerk user ID
+    id: varchar('id', { length: 255 }).primaryKey(), // Clerk user ID
 
     // Core user fields (matching Clerk structure)
     object: varchar('object', { length: 10 }).notNull().default('user'),

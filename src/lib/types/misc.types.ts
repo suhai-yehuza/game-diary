@@ -11,3 +11,13 @@ export interface IMenuContextType {
   isMenuExpanded: boolean;
   setIsMenuExpanded: (expanded: boolean) => void;
 }
+
+export interface ISportsPageProps {
+  title: string;
+  userName?: string;
+  children?: React.ReactNode;
+}
+
+export interface IUserGreetingProps {
+  userName?: string;
+}

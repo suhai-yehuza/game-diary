@@ -15,7 +15,7 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: 'Game Diary',
-  description: 'Your personal space to track and share your pro game watching experiences',
+  description: 'Placeholder sentence or paragraph here',
 };
 
 // Optimize rendering - only force dynamic when necessary

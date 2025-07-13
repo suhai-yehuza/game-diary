@@ -1,5 +1,6 @@
 'use client';
 
+import { useUser, useAuth } from '@clerk/nextjs';
 import {
   User,
   Mail,
@@ -15,7 +16,6 @@ import {
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
 
-import { useUser, useAuth } from '@/app/components/providers/clerk-provider';
 import {
   Card,
   CardContent,
@@ -24,39 +24,23 @@ import {
   CardTitle,
 } from '@/app/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/app/components/ui/tabs';
-import type {
-  IClerkUserData,
-  IClerkEmailAddress,
-  IClerkPhoneNumber,
-  IClerkExternalAccount,
-} from '@src/lib/types';
 
 export default function ProfilePage() {
-  const userResult = useUser() as {
-    isLoaded: boolean;
-    isSignedIn: boolean;
-    user: IClerkUserData | undefined;
-  };
-  const authResult = useAuth() as { getToken?: () => Promise<string> };
-
-  // Type guard to ensure we have valid user data
-  const isLoaded = userResult.isLoaded ?? false;
-  const isSignedIn = userResult.isSignedIn ?? false;
-  const user = userResult.user;
+  const { isLoaded, isSignedIn, user } = useUser();
+  const { getToken } = useAuth();
 
   const [token, setToken] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('overview');
 
   useEffect(() => {
     const fetchToken = async () => {
-      const getToken = authResult.getToken ?? (() => Promise.resolve('mock-token'));
-      if (isSignedIn) {
+      if (isSignedIn && getToken) {
         const userToken = await getToken();
         setToken(userToken);
       }
     };
     void fetchToken();
-  }, [isSignedIn, authResult]);
+  }, [isSignedIn, getToken]);
 
   if (!isLoaded) {
     return (
@@ -81,7 +65,7 @@ export default function ProfilePage() {
     );
   }
 
-  const formatDate = (date: number | null | undefined) => {
+  const formatDate = (date: Date | string | number | null | undefined) => {
     if (!date) return 'Not available';
     return new Intl.DateTimeFormat('en-US', {
       year: 'numeric',
@@ -92,9 +76,7 @@ export default function ProfilePage() {
     }).format(new Date(date));
   };
 
-  const primaryEmail = user?.email_addresses?.find(
-    e => e.id === user?.primary_email_address_id
-  )?.email_address;
+  const primaryEmail = user?.primaryEmailAddress?.emailAddress;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
@@ -112,9 +94,9 @@ export default function ProfilePage() {
               <CardHeader className="text-center pb-4">
                 <div className="relative mx-auto mb-4">
                   <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-primary/20 bg-gradient-to-br from-primary/10 to-primary/5">
-                    {user?.image_url ? (
+                    {user?.imageUrl ? (
                       <Image
-                        src={user.image_url}
+                        src={user.imageUrl}
                         alt="Profile"
                         width={128}
                         height={128}
@@ -131,7 +113,7 @@ export default function ProfilePage() {
                   </button>
                 </div>
                 <CardTitle className="text-2xl">
-                  {user?.first_name} {user?.last_name}
+                  {user?.firstName} {user?.lastName}
                 </CardTitle>
                 <CardDescription className="text-base">{primaryEmail}</CardDescription>
                 {user?.username && (
@@ -141,12 +123,12 @@ export default function ProfilePage() {
               <CardContent className="space-y-4">
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground">Member since</span>
-                  <span className="font-medium">{formatDate(user?.created_at).split(',')[0]}</span>
+                  <span className="font-medium">{formatDate(user?.createdAt).split(',')[0]}</span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground">Last active</span>
                   <span className="font-medium">
-                    {formatDate(user?.last_sign_in_at).split(',')[0]}
+                    {formatDate(user?.lastSignInAt).split(',')[0]}
                   </span>
                 </div>
                 <div className="pt-4 border-t">
@@ -197,13 +179,13 @@ export default function ProfilePage() {
                         <label className="text-sm font-medium text-muted-foreground">
                           First Name
                         </label>
-                        <p className="text-lg font-medium">{user?.first_name ?? 'Not provided'}</p>
+                        <p className="text-lg font-medium">{user?.firstName ?? 'Not provided'}</p>
                       </div>
                       <div>
                         <label className="text-sm font-medium text-muted-foreground">
                           Last Name
                         </label>
-                        <p className="text-lg font-medium">{user?.last_name ?? 'Not provided'}</p>
+                        <p className="text-lg font-medium">{user?.lastName ?? 'Not provided'}</p>
                       </div>
                       <div>
                         <label className="text-sm font-medium text-muted-foreground">
@@ -216,7 +198,7 @@ export default function ProfilePage() {
                           Full Name
                         </label>
                         <p className="text-lg font-medium">
-                          {`${user?.first_name ?? ''} ${user?.last_name ?? ''}`.trim() ||
+                          {`${user?.firstName ?? ''} ${user?.lastName ?? ''}`.trim() ||
                             'Not provided'}
                         </p>
                       </div>
@@ -239,8 +221,7 @@ export default function ProfilePage() {
                       </label>
                       <div className="flex items-center gap-2 mt-1">
                         <p className="text-lg font-medium">{primaryEmail ?? 'Not provided'}</p>
-                        {user?.email_addresses?.find(e => e.id === user?.primary_email_address_id)
-                          ?.verification.status === 'verified' && (
+                        {user?.primaryEmailAddress?.verification?.status === 'verified' && (
                           <span className="px-2 py-1 text-xs bg-green-100 text-green-800 rounded-full">
                             Verified
                           </span>
@@ -248,19 +229,19 @@ export default function ProfilePage() {
                       </div>
                     </div>
 
-                    {Array.isArray(user?.email_addresses) && user?.email_addresses?.length > 0 && (
+                    {Array.isArray(user?.emailAddresses) && user?.emailAddresses?.length > 0 && (
                       <div>
                         <label className="text-sm font-medium text-muted-foreground">
                           All Email Addresses
                         </label>
                         <div className="space-y-2 mt-2">
-                          {user?.email_addresses?.map((email: IClerkEmailAddress) => (
+                          {user?.emailAddresses?.map(email => (
                             <div
                               key={email?.id}
                               className="flex items-center justify-between p-3 border rounded-lg"
                             >
                               <div>
-                                <p className="font-medium">{email?.email_address}</p>
+                                <p className="font-medium">{email?.emailAddress}</p>
                                 <p className="text-sm text-muted-foreground">
                                   {email?.verification?.status === 'verified'
                                     ? 'Verified'
@@ -273,19 +254,19 @@ export default function ProfilePage() {
                       </div>
                     )}
 
-                    {Array.isArray(user?.phone_numbers) && user?.phone_numbers?.length > 0 && (
+                    {Array.isArray(user?.phoneNumbers) && user?.phoneNumbers?.length > 0 && (
                       <div>
                         <label className="text-sm font-medium text-muted-foreground">
                           Phone Numbers
                         </label>
                         <div className="space-y-2 mt-2">
-                          {user?.phone_numbers?.map((phone: IClerkPhoneNumber) => (
+                          {user?.phoneNumbers?.map(phone => (
                             <div
                               key={phone?.id}
                               className="flex items-center justify-between p-3 border rounded-lg"
                             >
                               <div>
-                                <p className="font-medium">{phone?.phone_number}</p>
+                                <p className="font-medium">{phone?.phoneNumber}</p>
                                 <p className="text-sm text-muted-foreground">
                                   {phone?.verification?.status === 'verified'
                                     ? 'Verified'
@@ -300,7 +281,7 @@ export default function ProfilePage() {
                   </CardContent>
                 </Card>
 
-                {Array.isArray(user?.external_accounts) && user?.external_accounts?.length > 0 && (
+                {Array.isArray(user?.externalAccounts) && user?.externalAccounts?.length > 0 && (
                   <Card>
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
@@ -311,7 +292,7 @@ export default function ProfilePage() {
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-3">
-                        {user?.external_accounts?.map((account: IClerkExternalAccount) => (
+                        {user?.externalAccounts?.map(account => (
                           <div
                             key={account?.id}
                             className="flex items-center justify-between p-3 border rounded-lg"
@@ -319,7 +300,7 @@ export default function ProfilePage() {
                             <div>
                               <p className="font-medium">{account?.provider}</p>
                               <p className="text-sm text-muted-foreground">
-                                {account?.email_address}
+                                {account?.emailAddress}
                               </p>
                             </div>
                           </div>
@@ -347,12 +328,12 @@ export default function ProfilePage() {
                           <span className="font-medium">Two-Factor Authentication</span>
                           <span
                             className={`px-2 py-1 text-xs rounded-full ${
-                              user?.two_factor_enabled
+                              user?.twoFactorEnabled
                                 ? 'bg-green-100 text-green-800'
                                 : 'bg-gray-100 text-gray-800'
                             }`}
                           >
-                            {user?.two_factor_enabled ? 'Enabled' : 'Disabled'}
+                            {user?.twoFactorEnabled ? 'Enabled' : 'Disabled'}
                           </span>
                         </div>
                         <p className="text-sm text-muted-foreground">
@@ -365,12 +346,12 @@ export default function ProfilePage() {
                           <span className="font-medium">Backup Codes</span>
                           <span
                             className={`px-2 py-1 text-xs rounded-full ${
-                              user?.backup_code_enabled
+                              user?.backupCodeEnabled
                                 ? 'bg-green-100 text-green-800'
                                 : 'bg-gray-100 text-gray-800'
                             }`}
                           >
-                            {user?.backup_code_enabled ? 'Enabled' : 'Disabled'}
+                            {user?.backupCodeEnabled ? 'Enabled' : 'Disabled'}
                           </span>
                         </div>
                         <p className="text-sm text-muted-foreground">
@@ -413,7 +394,7 @@ export default function ProfilePage() {
                           <span className="font-medium">Account Created</span>
                         </div>
                         <p className="text-sm text-muted-foreground">
-                          {formatDate(user?.created_at)}
+                          {formatDate(user?.createdAt)}
                         </p>
                       </div>
 
@@ -423,7 +404,7 @@ export default function ProfilePage() {
                           <span className="font-medium">Last Sign In</span>
                         </div>
                         <p className="text-sm text-muted-foreground">
-                          {formatDate(user?.last_sign_in_at)}
+                          {formatDate(user?.lastSignInAt)}
                         </p>
                       </div>
                     </div>
@@ -467,12 +448,12 @@ export default function ProfilePage() {
                           <span className="font-medium">Delete Account</span>
                           <span
                             className={`px-2 py-1 text-xs rounded-full ${
-                              user?.delete_self_enabled
+                              user?.deleteSelfEnabled
                                 ? 'bg-green-100 text-green-800'
                                 : 'bg-red-100 text-red-800'
                             }`}
                           >
-                            {user?.delete_self_enabled ? 'Enabled' : 'Disabled'}
+                            {user?.deleteSelfEnabled ? 'Enabled' : 'Disabled'}
                           </span>
                         </div>
                         <p className="text-sm text-muted-foreground">
@@ -485,12 +466,12 @@ export default function ProfilePage() {
                           <span className="font-medium">Create Organizations</span>
                           <span
                             className={`px-2 py-1 text-xs rounded-full ${
-                              user?.create_organization_enabled
+                              user?.createOrganizationEnabled
                                 ? 'bg-green-100 text-green-800'
                                 : 'bg-gray-100 text-gray-800'
                             }`}
                           >
-                            {user?.create_organization_enabled ? 'Enabled' : 'Disabled'}
+                            {user?.createOrganizationEnabled ? 'Enabled' : 'Disabled'}
                           </span>
                         </div>
                         <p className="text-sm text-muted-foreground">
@@ -499,14 +480,14 @@ export default function ProfilePage() {
                       </div>
                     </div>
 
-                    {Object.keys(user?.public_metadata ?? {}).length > 0 && (
+                    {Object.keys(user?.publicMetadata ?? {}).length > 0 && (
                       <div className="p-4 border rounded-lg">
                         <label className="text-sm font-medium text-muted-foreground">
                           Public Metadata
                         </label>
                         <div className="mt-2 p-3 bg-muted rounded-lg">
                           <pre className="text-sm font-mono overflow-auto">
-                            {JSON.stringify(user?.public_metadata, null, 2)}
+                            {JSON.stringify(user?.publicMetadata, null, 2)}
                           </pre>
                         </div>
                       </div>

@@ -37,6 +37,7 @@ function SearchBarContent({ autoFocus = false }: { autoFocus?: boolean } = {}) {
   const [search_query, setSearchQuery] = useState('');
   const [debounced_query, setDebouncedQuery] = useState('');
   const [isFocused, setIsFocused] = useState(autoFocus);
+  const [isMobile, setIsMobile] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
@@ -50,6 +51,11 @@ function SearchBarContent({ autoFocus = false }: { autoFocus?: boolean } = {}) {
       setIsFocused(true);
     }
   }, [autoFocus]);
+
+  // Set mobile state on mount
+  useEffect(() => {
+    setIsMobile(window.innerWidth < 640);
+  }, []);
 
   // Initialize search query from URL params
   useEffect(() => {
@@ -125,7 +131,6 @@ function SearchBarContent({ autoFocus = false }: { autoFocus?: boolean } = {}) {
   const baseFormClass =
     'relative max-w-[180px] md:max-w-[220px] h-11 bg-background border border-[#27272a] shadow flex items-center px-2 transition-all duration-200 text-sm';
   if (isFocused) {
-    const isMobile = typeof window !== 'undefined' ? window.innerWidth < 640 : false;
     return (
       <div className="fixed inset-0 z-[100] flex items-start justify-center pt-[12vh] animate-fadeIn">
         {/* Overlay for mobile search */}
@@ -351,9 +356,15 @@ function NavigationLinks({
   _setIsMenuExpanded: (expanded: boolean) => void;
   closeMenu?: () => void;
 }) {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    setIsMobile(window.innerWidth < 1024);
+  }, []);
+
   // Only close menu on mobile
   const handleNavClick = () => {
-    if (window.innerWidth < 1024 && closeMenu) closeMenu();
+    if (isMobile && closeMenu) closeMenu();
   };
   return (
     <nav className="flex flex-col lg:flex-row items-start lg:items-center h-full lg:space-x-6 lg:space-y-0 text-xs sm:text-sm font-medium m-0 p-0">
@@ -405,7 +416,38 @@ function ClientOnlyNavigationLinks(
     return <NavigationLinks {...props} />;
   }
 
-  if (!mounted) return null;
+  // During SSR and initial client render, render a placeholder that matches the structure
+  if (!mounted) {
+    return (
+      <nav className="flex flex-col lg:flex-row items-start lg:items-center h-full lg:space-x-6 lg:space-y-0 text-xs sm:text-sm font-medium m-0 p-0">
+        <div className="block py-2 lg:py-1.5 text-base lg:text-sm transition-colors whitespace-nowrap flex items-center w-full lg:w-auto h-full">
+          <div className="w-16 h-4 bg-gray-200 rounded animate-pulse" />
+        </div>
+        <div className="block py-2 lg:py-1.5 text-base lg:text-sm transition-colors whitespace-nowrap flex items-center w-full lg:w-auto h-full">
+          <div className="w-8 h-4 bg-gray-200 rounded animate-pulse" />
+        </div>
+        <div className="block py-2 lg:py-1.5 text-base lg:text-sm transition-colors whitespace-nowrap flex items-center w-full lg:w-auto h-full">
+          <div className="w-8 h-4 bg-gray-200 rounded animate-pulse" />
+        </div>
+        <div className="block py-2 lg:py-1.5 text-base lg:text-sm transition-colors whitespace-nowrap flex items-center w-full lg:w-auto h-full">
+          <div className="w-8 h-4 bg-gray-200 rounded animate-pulse" />
+        </div>
+        <div className="block py-2 lg:py-1.5 text-base lg:text-sm transition-colors whitespace-nowrap flex items-center w-full lg:w-auto h-full">
+          <div className="w-8 h-4 bg-gray-200 rounded animate-pulse" />
+        </div>
+        <div className="block py-2 lg:py-1.5 text-base lg:text-sm transition-colors whitespace-nowrap flex items-center w-full lg:w-auto h-full">
+          <div className="w-8 h-4 bg-gray-200 rounded animate-pulse" />
+        </div>
+        <div className="block py-2 lg:py-1.5 text-base lg:text-sm transition-colors whitespace-nowrap flex items-center w-full lg:w-auto h-full">
+          <div className="w-16 h-4 bg-gray-200 rounded animate-pulse" />
+        </div>
+        <div className="hidden lg:block h-6 w-px bg-gray-200 dark:bg-gray-700 mx-3" />
+        <div className="block py-2 lg:py-1.5 text-base lg:text-sm transition-colors whitespace-nowrap flex items-center w-full lg:w-auto h-full">
+          <div className="w-12 h-4 bg-gray-200 rounded animate-pulse" />
+        </div>
+      </nav>
+    );
+  }
   return <NavigationLinks {...props} />;
 }
 
@@ -416,7 +458,7 @@ function AuthControlsContent() {
     setMounted(true);
   }, []);
 
-  // Don't render anything during SSR
+  // During SSR and initial client render, render a consistent placeholder
   if (!mounted) {
     return (
       <div className="w-10 h-10 bg-gray-200 rounded animate-pulse flex items-center justify-center">

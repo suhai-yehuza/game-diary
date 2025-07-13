@@ -1,14 +1,23 @@
 'use client';
 
-import React from 'react';
+import { useUser } from '@clerk/nextjs';
 
 export default function AllSportsPage() {
+  const { isLoaded, isSignedIn, user } = useUser();
+
+  let greeting;
+  if (!isLoaded) {
+    greeting = 'Loading...';
+  } else if (isSignedIn) {
+    greeting = `Welcome, ${user?.username ?? user?.firstName ?? 'User'}!`;
+  } else {
+    greeting = 'Welcome, Guest! (Not signed in)';
+  }
+
   return (
-    <section className="min-h-screen bg-background">
-      <div className="container mx-auto p-6">
-        <h1 className="text-2xl font-bold">All Sports</h1>
-        <p className="text-muted-foreground">Browse all available sports.</p>
-      </div>
+    <section className="min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center">
+      <h1 className="text-3xl font-bold mb-4">All Sports</h1>
+      <p>{greeting}</p>
     </section>
   );
 }

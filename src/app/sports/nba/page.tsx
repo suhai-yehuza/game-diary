@@ -1,11 +1,20 @@
 'use client';
 
+import { useUser } from '@clerk/nextjs';
 import Link from 'next/link';
-import React from 'react';
-
-import { LiveGamesDetail } from '@src/app/components/live-games-detail';
 
 export default function NBAPage() {
+  const { isLoaded, isSignedIn, user } = useUser();
+
+  let greeting;
+  if (!isLoaded) {
+    greeting = 'Loading...';
+  } else if (isSignedIn) {
+    greeting = `Welcome, ${user?.username ?? user?.firstName ?? 'User'}!`;
+  } else {
+    greeting = 'Welcome, Guest! (Not signed in)';
+  }
+
   return (
     <section className="container mx-auto px-4 py-8">
       <div className="mb-6">
@@ -13,7 +22,6 @@ export default function NBAPage() {
         <p className="text-gray-600 dark:text-gray-400 mb-4">
           National Basketball Association - Live scores, stats, and more
         </p>
-
         <div className="flex flex-wrap gap-4 mb-6">
           <Link
             href="/sports/live"
@@ -30,18 +38,11 @@ export default function NBAPage() {
           </Link>
         </div>
       </div>
-
       <div>
         <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-          <UserWelcome />
+          <p>{greeting}</p>
         </div>
-
-        <LiveGamesDetail />
       </div>
     </section>
   );
-}
-
-function UserWelcome() {
-  return <p>Welcome, User!</p>;
 }
