@@ -287,6 +287,10 @@ describe('Header - additional coverage', () => {
 
   it('shows auth placeholder if Clerk is not configured', async () => {
     delete process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
+    vi.doMock('@/lib/config/api.config', () => ({
+      isUnitTestEnvironment: false,
+      isE2ETestEnvironment: false,
+    }));
     vi.doMock('@/app/components/live-games-banner', () => ({
       LiveGamesBanner: () => <div data-testid="live-games-banner">Live Games Banner</div>,
     }));
