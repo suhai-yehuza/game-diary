@@ -9,6 +9,7 @@ import React, { useState, useEffect, useRef, Suspense } from 'react';
 
 import { ThemeToggle } from '@/app/components/common';
 import { LiveGamesBanner } from '@/app/components/live-games-banner';
+import { useMenuContext } from '@/app/components/providers';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -237,13 +238,29 @@ function NavItem({
   children,
   className = '',
   onClick,
+  isStacked = false,
+  colorClass = '',
+  closeMenu,
   ...props
-}: NavItemProps & { onClick?: () => void }) {
+}: NavItemProps & {
+  onClick?: () => void;
+  isStacked?: boolean;
+  colorClass?: string;
+  closeMenu?: () => void;
+}) {
+  const handleClick = () => {
+    if (onClick) onClick();
+    if (isStacked && closeMenu) closeMenu();
+  };
   return (
     <Link
       href={href}
-      className={`block py-2 lg:py-1.5 text-base lg:text-sm transition-colors whitespace-nowrap flex items-center w-full lg:w-auto h-full ${isActive ? 'text-blue-600 font-semibold' : 'hover:text-blue-600'} ${className}`}
-      onClick={onClick}
+      className={`block py-2 lg:py-1.5 text-base lg:text-sm transition-colors whitespace-nowrap flex items-center w-full lg:w-auto h-full
+        ${isActive ? 'text-blue-600 font-semibold' : 'hover:text-blue-600'}
+        ${className}
+        ${isStacked ? `w-1/2 mx-auto my-2 rounded-lg text-white font-bold text-lg text-center shadow transition-colors px-8 py-2 ${colorClass}` : ''}
+      `}
+      onClick={handleClick}
       {...props}
     >
       {children}
@@ -350,11 +367,13 @@ function NavigationLinks({
   _isMenuExpanded,
   _setIsMenuExpanded,
   closeMenu,
+  isStacked = false,
 }: {
   isActive: (path: string) => boolean;
   _isMenuExpanded: boolean;
   _setIsMenuExpanded: (expanded: boolean) => void;
   closeMenu?: () => void;
+  isStacked?: boolean;
 }) {
   const [isMobile, setIsMobile] = useState(false);
 
@@ -369,28 +388,73 @@ function NavigationLinks({
   return (
     <nav className="flex flex-col lg:flex-row items-start lg:items-center h-full lg:space-x-6 lg:space-y-0 text-xs sm:text-sm font-medium m-0 p-0">
       {/* Dashboard + Sports */}
-      <NavItem href="/" isActive={isActive('/')} onClick={handleNavClick}>
+      <NavItem
+        href="/"
+        isActive={isActive('/')}
+        onClick={handleNavClick}
+        isStacked={isStacked}
+        colorClass="bg-green-500 hover:bg-green-600"
+        closeMenu={closeMenu}
+      >
         Home
       </NavItem>
-      <NavItem href="/sports/nba" isActive={isActive('/sports/nba')} onClick={handleNavClick}>
+      <NavItem
+        href="/sports/nba"
+        isActive={isActive('/sports/nba')}
+        onClick={handleNavClick}
+        isStacked={isStacked}
+        colorClass="bg-blue-500 hover:bg-blue-600"
+        closeMenu={closeMenu}
+      >
         NBA
       </NavItem>
-      <NavItem href="/sports/nfl" isActive={isActive('/sports/nfl')} onClick={handleNavClick}>
+      <NavItem
+        href="/sports/nfl"
+        isActive={isActive('/sports/nfl')}
+        onClick={handleNavClick}
+        isStacked={isStacked}
+        colorClass="bg-red-500 hover:bg-red-600"
+        closeMenu={closeMenu}
+      >
         NFL
       </NavItem>
-      <NavItem href="/sports/mlb" isActive={isActive('/sports/mlb')} onClick={handleNavClick}>
+      <NavItem
+        href="/sports/mlb"
+        isActive={isActive('/sports/mlb')}
+        onClick={handleNavClick}
+        isStacked={isStacked}
+        colorClass="bg-yellow-400 hover:bg-yellow-500 text-black"
+        closeMenu={closeMenu}
+      >
         MLB
       </NavItem>
-      <NavItem href="/sports/nhl" isActive={isActive('/sports/nhl')} onClick={handleNavClick}>
+      <NavItem
+        href="/sports/nhl"
+        isActive={isActive('/sports/nhl')}
+        onClick={handleNavClick}
+        isStacked={isStacked}
+        colorClass="bg-cyan-500 hover:bg-cyan-600"
+        closeMenu={closeMenu}
+      >
         NHL
       </NavItem>
-      <NavItem href="/sports/mls" isActive={isActive('/sports/mls')} onClick={handleNavClick}>
+      <NavItem
+        href="/sports/mls"
+        isActive={isActive('/sports/mls')}
+        onClick={handleNavClick}
+        isStacked={isStacked}
+        colorClass="bg-purple-500 hover:bg-purple-600"
+        closeMenu={closeMenu}
+      >
         MLS
       </NavItem>
       <NavItem
         href="/sports/all-sports"
         isActive={isActive('/sports/all-sports')}
         onClick={handleNavClick}
+        isStacked={isStacked}
+        colorClass="bg-pink-500 hover:bg-pink-600"
+        closeMenu={closeMenu}
       >
         All Sports
       </NavItem>
@@ -401,16 +465,28 @@ function NavigationLinks({
         href="/protected/user"
         isActive={isActive('/protected/user')}
         onClick={handleNavClick}
+        isStacked={isStacked}
+        colorClass="bg-orange-500 hover:bg-orange-600"
+        closeMenu={closeMenu}
       >
         Dashboard
       </NavItem>
-      <AdminNav isActive={isActive} />
+      {isStacked ? (
+        <div className="mt-12 w-full flex justify-center">
+          <AdminNav isActive={isActive} />
+        </div>
+      ) : (
+        <AdminNav isActive={isActive} />
+      )}
     </nav>
   );
 }
 
 function ClientOnlyNavigationLinks(
-  props: React.ComponentProps<typeof NavigationLinks> & { closeMenu?: () => void }
+  props: React.ComponentProps<typeof NavigationLinks> & {
+    closeMenu?: () => void;
+    isStacked?: boolean;
+  }
 ) {
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
@@ -566,8 +642,21 @@ function ClientOnlyAuthControls() {
 
 export function Header() {
   const [isSearchVisible, setIsSearchVisible] = useState(false);
-  const [isMenuExpanded, setIsMenuExpanded] = useState(false);
+  const {
+    isMenuExpanded,
+    setIsMenuExpanded,
+  }: { isMenuExpanded: boolean; setIsMenuExpanded: (v: boolean) => void } = useMenuContext();
   const pathname = usePathname() || '/';
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 1024);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Menu is stacked only if expanded and in mobile/overlay mode
+  const isStacked = isMenuExpanded && isMobile;
 
   const isActive = (path: string) => {
     if (path === '/') {
@@ -584,7 +673,7 @@ export function Header() {
       {/* Live Games Banner */}
       <LiveGamesBanner />
 
-      <header className="w-full border-b lg:border-b">
+      <header className="w-full border-b-2 border-neutral-200 dark:border-neutral-600 shadow-md dark:shadow-lg bg-background">
         {/* Overlay for mobile menu */}
         {isMenuExpanded && (
           <div
@@ -596,22 +685,24 @@ export function Header() {
           />
         )}
         <div className="grid grid-cols-[auto_1fr_auto] h-16 items-center w-full relative z-50">
-          {/* Logo - Left (hide on mobile when menu/nav is stacked) */}
-          <div className="pl-10 hidden sm:flex items-center">
-            <Link href="/" className="min-w-[44px] min-h-[44px] flex items-center justify-center">
-              <Image
-                src="/logos/gamelog-large.svg"
-                alt="Game Diary Logo"
-                width={44}
-                height={44}
-                sizes="(max-width: 600px) 36px, 44px"
-                loading="eager"
-                priority
-                className="w-11 h-11 cursor-pointer"
-                style={{ height: 'auto' }}
-              />
-            </Link>
-          </div>
+          {/* Logo - Left (hide when menu is open as overlay, and only show on large screens) */}
+          {!isMenuExpanded && (
+            <div className="pl-10 hidden lg:flex items-center">
+              <Link href="/" className="min-w-[44px] min-h-[44px] flex items-center justify-center">
+                <Image
+                  src="/logos/gamelog-large.svg"
+                  alt="Game Diary Logo"
+                  width={44}
+                  height={44}
+                  sizes="(max-width: 600px) 36px, 44px"
+                  loading="eager"
+                  priority
+                  className="w-11 h-11 cursor-pointer"
+                  style={{ height: 'auto' }}
+                />
+              </Link>
+            </div>
+          )}
 
           {/* Navigation - Center */}
           <nav className="flex justify-center">
@@ -631,16 +722,16 @@ export function Header() {
 
               {/* Navigation Links & Important Items (Mobile Overlay) */}
               <div
-                className={`${isMenuExpanded ? 'block' : 'hidden'} lg:block absolute lg:relative top-16 left-0 right-0 lg:top-0 bg-background lg:bg-transparent z-50 shadow-lg lg:shadow-none border-b lg:border-b-0`}
+                className={`${isMenuExpanded ? 'flex' : 'hidden'} lg:block absolute lg:relative top-16 left-0 right-0 lg:top-0 bg-background lg:bg-transparent z-50 shadow-lg lg:shadow-none border-b lg:border-b-0 min-h-[calc(100vh-4rem)] lg:min-h-0 items-center justify-center`}
               >
-                {/* View All button for mobile, if needed, can be placed here or removed */}
                 {/* Nav links area, scrollable, no extra top padding */}
-                <div className="flex-1 overflow-y-auto flex flex-col gap-0 px-4 sm:px-0">
+                <div className="flex-1 flex flex-col items-center justify-start gap-2 px-4 sm:px-0 mt-0">
                   <ClientOnlyNavigationLinks
                     isActive={isActive}
                     _isMenuExpanded={isMenuExpanded}
                     _setIsMenuExpanded={setIsMenuExpanded}
                     closeMenu={() => setIsMenuExpanded(false)}
+                    isStacked={isStacked}
                   />
                 </div>
               </div>

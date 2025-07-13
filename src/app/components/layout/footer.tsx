@@ -13,27 +13,27 @@ export function Footer() {
   const isDark = resolvedTheme === 'dark';
   return (
     <footer
-      className={`w-full border-t pt-2 pb-1 mt-2 ${
+      className={`w-full border-t pt-1 pb-1 mt-1 ${
         isDark
           ? 'bg-neutral-100 text-neutral-900 border-neutral-200'
           : 'bg-neutral-900 text-neutral-300 border-neutral-800'
       }`}
     >
       <div className="max-w-5xl mx-auto px-4">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 text-center md:text-left">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-1 text-center md:text-left">
           {/* About Section */}
           <div>
-            <h3 className="text-xs font-bold mb-2 tracking-wide text-neutral-100 uppercase">
+            <h3 className="text-xs font-bold mb-1 tracking-wide text-neutral-100 uppercase">
               About
             </h3>
-            <ul className="space-y-1 text-xs">
+            <ul className="space-y-0.5 text-xs">
               <li>
-                <a href="#about" className="hover:text-emerald-400 transition-colors block py-1">
+                <a href="#about" className="hover:text-emerald-400 transition-colors block py-0.5">
                   About Us
                 </a>
               </li>
               <li>
-                <a href="#news" className="hover:text-emerald-400 transition-colors block py-1">
+                <a href="#news" className="hover:text-emerald-400 transition-colors block py-0.5">
                   News
                 </a>
               </li>
@@ -42,17 +42,20 @@ export function Footer() {
 
           {/* Help Section */}
           <div>
-            <h3 className="text-xs font-bold mb-2 tracking-wide text-neutral-100 uppercase">
+            <h3 className="text-xs font-bold mb-1 tracking-wide text-neutral-100 uppercase">
               Help
             </h3>
-            <ul className="space-y-1 text-xs">
+            <ul className="space-y-0.5 text-xs">
               <li>
-                <a href="#api" className="hover:text-emerald-400 transition-colors block py-1">
+                <a href="#api" className="hover:text-emerald-400 transition-colors block py-0.5">
                   API
                 </a>
               </li>
               <li>
-                <a href="#contact" className="hover:text-emerald-400 transition-colors block py-1">
+                <a
+                  href="#contact"
+                  className="hover:text-emerald-400 transition-colors block py-0.5"
+                >
                   Contact Us
                 </a>
               </li>
@@ -61,16 +64,16 @@ export function Footer() {
 
           {/* Social Links */}
           <div>
-            <h3 className="text-xs font-bold mb-2 tracking-wide text-neutral-100 uppercase">
+            <h3 className="text-xs font-bold mb-1 tracking-wide text-neutral-100 uppercase">
               Follow Us
             </h3>
-            <ul className="space-y-1 text-xs">
+            <ul className="space-y-0.5 text-xs">
               <li>
                 <a
                   href="https://x.com"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-2 hover:text-emerald-400 transition-colors block py-1"
+                  className="flex items-center gap-2 hover:text-emerald-400 transition-colors block py-0.5"
                 >
                   <svg
                     width="18"
@@ -89,7 +92,7 @@ export function Footer() {
                   href="https://youtube.com"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-2 hover:text-emerald-400 transition-colors block py-1"
+                  className="flex items-center gap-2 hover:text-emerald-400 transition-colors block py-0.5"
                 >
                   <svg
                     width="18"
@@ -108,12 +111,15 @@ export function Footer() {
 
           {/* Copyright Section */}
           <div>
-            <h3 className="text-xs font-bold mb-2 tracking-wide text-neutral-100 uppercase">
+            <h3 className="text-xs font-bold mb-1 tracking-wide text-neutral-100 uppercase">
               Legal
             </h3>
-            <ul className="space-y-1 text-xs">
+            <ul className="space-y-0.5 text-xs">
               <li>
-                <a href="#privacy" className="hover:text-emerald-400 transition-colors block py-1">
+                <a
+                  href="#privacy"
+                  className="hover:text-emerald-400 transition-colors block py-0.5"
+                >
                   Privacy Policy
                 </a>
               </li>
@@ -123,7 +129,7 @@ export function Footer() {
             </ul>
           </div>
         </div>
-        <div className="border-t border-neutral-800 dark:border-neutral-200 mt-2 pt-1 text-[10px] text-neutral-500 dark:text-neutral-600 text-center">
+        <div className="border-t border-neutral-800 dark:border-neutral-200 mt-1 pt-0.5 text-[10px] text-neutral-500 dark:text-neutral-600 text-center">
           © {new Date().getFullYear()} Game Diary. All rights reserved.
         </div>
       </div>

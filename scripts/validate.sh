@@ -394,8 +394,6 @@ run_dev_workflow() {
     run_codegen
     run_quick_fix
     run_basic_validation
-    run_security_e2e_test_validation
-    run_vercel_auth_e2e_test_validation
 
     log_success "Development workflow completed"
 }

@@ -22,7 +22,7 @@
     "clean:cache": "rm -rf .next/cache .eslintcache && pnpm clean",
     "clean:deps": "rm -rf node_modules package-lock.json yarn.lock pnpm-lock.yaml && pnpm install",
     "clean:all": "pnpm clean && pnpm clean:deps && pnpm clean:cache",
-    "clean:build": "pnpm clean:build:dev && pnpm coverage:validate",
+    "clean:build": "pnpm clean:build:dev && pnpm coverage:validate && pnpm test:e2e:security && pnpm test:e2e:vercel-auth",
     "clean:build:dev": "./scripts/validate.sh dev",
     "clean:build:prod": "./scripts/validate.sh production",
     "push_and_merge": "./scripts/push-and-merge.sh",
