@@ -82,14 +82,23 @@ export function extractPhoneNumber(clerkData: { phone_numbers: unknown[] }): str
 export function extractEmail(clerkData: {
   email_addresses: Array<{ email_address: string }>;
 }): string | null {
-  if (!clerkData.email_addresses || !Array.isArray(clerkData.email_addresses)) {
+  if (
+    !clerkData.email_addresses ||
+    !Array.isArray(clerkData.email_addresses) ||
+    clerkData.email_addresses.length === 0
+  ) {
     return null;
   }
 
   // Find the first email address (assuming it's the primary one)
   const emailAddress = clerkData.email_addresses[0];
 
-  if (emailAddress?.email_address) {
+  if (
+    emailAddress &&
+    typeof emailAddress === 'object' &&
+    'email_address' in emailAddress &&
+    emailAddress.email_address
+  ) {
     return validateEmail(emailAddress.email_address) ? emailAddress.email_address : null;
   }
 
