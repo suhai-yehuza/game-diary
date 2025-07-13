@@ -93,25 +93,86 @@ export async function navigateToSection(
     await openMobileMenu(page, timeout);
   }
 
+  // Wait for the page to be fully loaded and stable
+  await waitForNetworkIdleUtil(page, timeout);
+
+  // Wait for navigation to be properly loaded
+  await waitForNavigationLoaded(page, timeout);
+
   // Find and click the navigation link
   let link;
   if (href === '/') {
     // Home link is the logo
     link = page.locator('header a[href="/"]').first();
   } else {
-    // Try multiple selectors to find the navigation link
-    // First try the specific nav selector
-    link = page.locator(`nav a[href="${href}"]`).first();
+    // Try multiple selectors to find the navigation link with better error handling
+    let linkFound = false;
 
-    // If not found, try a more general selector that looks for any link with the href
-    if ((await link.count()) === 0) {
-      link = page.locator(`a[href="${href}"]`).first();
+    // Strategy 1: Try the specific nav selector
+    link = page.locator(`nav a[href="${href}"]`).first();
+    if ((await link.count()) > 0) {
+      linkFound = true;
     }
 
-    // If still not found, try looking for text content that matches the expected link
-    if ((await link.count()) === 0) {
+    // Strategy 2: If not found, try a more general selector
+    if (!linkFound) {
+      link = page.locator(`a[href="${href}"]`).first();
+      if ((await link.count()) > 0) {
+        linkFound = true;
+      }
+    }
+
+    // Strategy 3: If still not found, try looking for text content
+    if (!linkFound) {
       const linkText = href.split('/').pop()?.toUpperCase() || href;
       link = page.locator(`a:has-text("${linkText}")`).first();
+      if ((await link.count()) > 0) {
+        linkFound = true;
+      }
+    }
+
+    // Strategy 4: If still not found, try looking for any navigation element with the text
+    if (!linkFound) {
+      const linkText = href.split('/').pop()?.toUpperCase() || href;
+      link = page.locator(`nav a:has-text("${linkText}")`).first();
+      if ((await link.count()) > 0) {
+        linkFound = true;
+      }
+    }
+
+    // Strategy 5: If still not found, try looking for any element with the text (fallback)
+    if (!linkFound) {
+      const linkText = href.split('/').pop()?.toUpperCase() || href;
+      link = page.locator(`*:has-text("${linkText}")`).first();
+      if ((await link.count()) > 0) {
+        linkFound = true;
+      }
+    }
+
+    // If no link found, provide better debugging information
+    if (!linkFound) {
+      console.log(`🔍 Navigation Debug: Could not find link for ${href}`);
+      console.log(`🔍 Current URL: ${page.url()}`);
+
+      // Log all navigation links on the page for debugging
+      const allNavLinks = await page.locator('nav a').all();
+      console.log(`🔍 Found ${allNavLinks.length} navigation links:`);
+      for (const navLink of allNavLinks) {
+        const href = await navLink.getAttribute('href');
+        const text = await navLink.textContent();
+        console.log(`🔍   - href: "${href}", text: "${text}"`);
+      }
+
+      // Log all links on the page for debugging
+      const allLinks = await page.locator('a').all();
+      console.log(`🔍 Found ${allLinks.length} total links:`);
+      for (let i = 0; i < Math.min(allLinks.length, 10); i++) {
+        const href = await allLinks[i].getAttribute('href');
+        const text = await allLinks[i].textContent();
+        console.log(`🔍   - href: "${href}", text: "${text}"`);
+      }
+
+      throw new Error(`Navigation link for ${href} not found on page`);
     }
   }
 
@@ -170,6 +231,24 @@ export async function navigateToProfile(
   options: NavigationOptions = {}
 ): Promise<void> {
   await navigateToSection(page, '/protected/user', options);
+}
+
+/**
+ * Wait for navigation to be properly loaded and visible
+ */
+export async function waitForNavigationLoaded(page: Page, timeout: number = 10000): Promise<void> {
+  console.log('🔍 Waiting for navigation to be loaded...');
+
+  // Wait for the navigation container to be present
+  await page.waitForSelector('nav', { timeout });
+
+  // Wait for at least one navigation link to be visible
+  await page.waitForSelector('nav a', { timeout });
+
+  // Additional wait to ensure navigation is fully rendered
+  await page.waitForTimeout(1000);
+
+  console.log('🔍 Navigation loaded successfully');
 }
 
 /**
