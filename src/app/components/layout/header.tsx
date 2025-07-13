@@ -206,11 +206,19 @@ function SearchBar(props: { autoFocus?: boolean }) {
   );
 }
 
-function NavItem({ href, isActive, children, className = '', ...props }: NavItemProps) {
+function NavItem({
+  href,
+  isActive,
+  children,
+  className = '',
+  onClick,
+  ...props
+}: NavItemProps & { onClick?: () => void }) {
   return (
     <Link
       href={href}
       className={`block py-2 lg:py-1.5 text-base lg:text-sm transition-colors whitespace-nowrap flex items-center w-full lg:w-auto h-full ${isActive ? 'text-blue-600 font-semibold' : 'hover:text-blue-600'} ${className}`}
+      onClick={onClick}
       {...props}
     >
       {children}
@@ -316,39 +324,49 @@ function NavigationLinks({
   isActive,
   _isMenuExpanded,
   _setIsMenuExpanded,
+  closeMenu,
 }: {
   isActive: (path: string) => boolean;
   _isMenuExpanded: boolean;
   _setIsMenuExpanded: (expanded: boolean) => void;
+  closeMenu?: () => void;
 }) {
+  // Only close menu on mobile
+  const handleNavClick = () => {
+    if (window.innerWidth < 1024 && closeMenu) closeMenu();
+  };
   return (
     <nav className="flex flex-col lg:flex-row items-start lg:items-center h-full lg:space-x-6 space-y-2 lg:space-y-0 text-sm font-medium p-4 lg:p-0">
       {/* Dashboard + Sports */}
-      <NavItem href="/dashboard" isActive={isActive('/dashboard')}>
+      <NavItem href="/dashboard" isActive={isActive('/dashboard')} onClick={handleNavClick}>
         Dashboard
       </NavItem>
-      <NavItem href="/sports/nba" isActive={isActive('/sports/nba')}>
+      <NavItem href="/sports/nba" isActive={isActive('/sports/nba')} onClick={handleNavClick}>
         NBA
       </NavItem>
-      <NavItem href="/sports/nfl" isActive={isActive('/sports/nfl')}>
+      <NavItem href="/sports/nfl" isActive={isActive('/sports/nfl')} onClick={handleNavClick}>
         NFL
       </NavItem>
-      <NavItem href="/sports/mlb" isActive={isActive('/sports/mlb')}>
+      <NavItem href="/sports/mlb" isActive={isActive('/sports/mlb')} onClick={handleNavClick}>
         MLB
       </NavItem>
-      <NavItem href="/sports/nhl" isActive={isActive('/sports/nhl')}>
+      <NavItem href="/sports/nhl" isActive={isActive('/sports/nhl')} onClick={handleNavClick}>
         NHL
       </NavItem>
-      <NavItem href="/sports/mls" isActive={isActive('/sports/mls')}>
+      <NavItem href="/sports/mls" isActive={isActive('/sports/mls')} onClick={handleNavClick}>
         MLS
       </NavItem>
-      <NavItem href="/sports/all" isActive={isActive('/sports/all')}>
+      <NavItem href="/sports/all" isActive={isActive('/sports/all')} onClick={handleNavClick}>
         All Sports
       </NavItem>
       {/* Divider */}
       <div className="hidden lg:block h-6 w-px bg-gray-200 dark:bg-gray-700 mx-3" />
       {/* Profile + Admin */}
-      <NavItem href="/protected/user" isActive={isActive('/protected/user')}>
+      <NavItem
+        href="/protected/user"
+        isActive={isActive('/protected/user')}
+        onClick={handleNavClick}
+      >
         Profile
       </NavItem>
       <AdminNav isActive={isActive} />
@@ -356,7 +374,9 @@ function NavigationLinks({
   );
 }
 
-function ClientOnlyNavigationLinks(props: React.ComponentProps<typeof NavigationLinks>) {
+function ClientOnlyNavigationLinks(
+  props: React.ComponentProps<typeof NavigationLinks> & { closeMenu?: () => void }
+) {
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
@@ -472,7 +492,17 @@ export function Header() {
       <LiveGamesBanner />
 
       <header className="w-full border-b lg:border-b">
-        <div className="grid grid-cols-[auto_1fr_auto] h-16 items-center w-full">
+        {/* Overlay for mobile menu */}
+        {isMenuExpanded && (
+          <div
+            className="fixed inset-0 z-40 bg-black/30 lg:hidden"
+            onClick={() => setIsMenuExpanded(false)}
+            aria-label="Close menu overlay"
+            role="button"
+            tabIndex={0}
+          />
+        )}
+        <div className="grid grid-cols-[auto_1fr_auto] h-16 items-center w-full relative z-50">
           {/* Logo - Left */}
           <div className="pl-10 flex items-center">
             <Link href="/" className="min-w-[44px] min-h-[44px] flex items-center justify-center">
@@ -506,21 +536,44 @@ export function Header() {
                 <Menu className="h-5 w-5" />
               </button>
 
-              {/* Navigation Links */}
+              {/* Navigation Links & Important Items (Mobile Overlay) */}
               <div
                 className={`${isMenuExpanded ? 'block' : 'hidden'} lg:block absolute lg:relative top-16 left-0 right-0 lg:top-0 bg-background lg:bg-transparent z-50 shadow-lg lg:shadow-none border-b lg:border-b-0`}
               >
-                <ClientOnlyNavigationLinks
-                  isActive={isActive}
-                  _isMenuExpanded={isMenuExpanded}
-                  _setIsMenuExpanded={setIsMenuExpanded}
-                />
+                <div className="flex flex-col gap-4 p-4 sm:p-6 lg:p-0">
+                  <ClientOnlyNavigationLinks
+                    isActive={isActive}
+                    _isMenuExpanded={isMenuExpanded}
+                    _setIsMenuExpanded={setIsMenuExpanded}
+                    closeMenu={() => setIsMenuExpanded(false)}
+                  />
+                  {/* Show search, theme, and auth controls in mobile menu overlay */}
+                  <div className="flex flex-col gap-3 sm:hidden">
+                    <div className="w-full">
+                      <div onClick={() => setIsMenuExpanded(false)}>
+                        <SearchBar />
+                      </div>
+                    </div>
+                    <div className="w-full flex justify-start">
+                      <div onClick={() => setIsMenuExpanded(false)}>
+                        <ThemeToggle />
+                      </div>
+                    </div>
+                    <div className="w-full flex justify-start">
+                      <div onClick={() => setIsMenuExpanded(false)}>
+                        <ClientOnlyAuthControls />
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </nav>
 
-          {/* Right Section - Search, Theme, Auth */}
-          <div className="pr-10 flex items-center gap-2 sm:gap-4 justify-end">
+          {/* Right Section - Search, Theme, Auth (hide on mobile when menu is open) */}
+          <div
+            className={`pr-10 flex items-center gap-2 sm:gap-4 justify-end ${isMenuExpanded ? 'hidden sm:flex' : ''}`}
+          >
             {/* Mobile Search Button */}
             <button
               aria-label="Toggle search"
