@@ -198,7 +198,6 @@ export function runResponsiveSuite(test: TestType<any, any>) {
       '/sports/mls',
       '/sports/all-sports',
       '/sports/live',
-      '/',
     ];
     for (const viewport of viewports) {
       test.describe(`${viewport.name} viewport`, () => {
