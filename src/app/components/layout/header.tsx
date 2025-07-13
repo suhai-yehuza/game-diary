@@ -488,71 +488,65 @@ function ClientOnlyNavigationLinks(
     isStacked?: boolean;
   }
 ) {
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
-
-  // For E2E tests, always render the navigation to ensure consistent behavior
-  if (isE2ETestEnvironment) {
-    return <NavigationLinks {...props} />;
-  }
-
-  // During SSR and initial client render, render a placeholder that matches the structure
-  if (!mounted) {
-    return (
-      <nav className="flex flex-col lg:flex-row items-start lg:items-center h-full lg:space-x-6 lg:space-y-0 text-xs sm:text-sm font-medium m-0 p-0">
-        <Link
-          href="/"
-          className="block py-2 lg:py-1.5 text-base lg:text-sm transition-colors whitespace-nowrap flex items-center w-full lg:w-auto h-full"
-        >
-          <div className="w-16 h-4 bg-gray-200 rounded animate-pulse" />
-        </Link>
-        <Link
-          href="/sports/nba"
-          className="block py-2 lg:py-1.5 text-base lg:text-sm transition-colors whitespace-nowrap flex items-center w-full lg:w-auto h-full"
-        >
-          <div className="w-8 h-4 bg-gray-200 rounded animate-pulse" />
-        </Link>
-        <Link
-          href="/sports/nfl"
-          className="block py-2 lg:py-1.5 text-base lg:text-sm transition-colors whitespace-nowrap flex items-center w-full lg:w-auto h-full"
-        >
-          <div className="w-8 h-4 bg-gray-200 rounded animate-pulse" />
-        </Link>
-        <Link
-          href="/sports/mlb"
-          className="block py-2 lg:py-1.5 text-base lg:text-sm transition-colors whitespace-nowrap flex items-center w-full lg:w-auto h-full"
-        >
-          <div className="w-8 h-4 bg-gray-200 rounded animate-pulse" />
-        </Link>
-        <Link
-          href="/sports/nhl"
-          className="block py-2 lg:py-1.5 text-base lg:text-sm transition-colors whitespace-nowrap flex items-center w-full lg:w-auto h-full"
-        >
-          <div className="w-8 h-4 bg-gray-200 rounded animate-pulse" />
-        </Link>
-        <Link
-          href="/sports/mls"
-          className="block py-2 lg:py-1.5 text-base lg:text-sm transition-colors whitespace-nowrap flex items-center w-full lg:w-auto h-full"
-        >
-          <div className="w-8 h-4 bg-gray-200 rounded animate-pulse" />
-        </Link>
-        <Link
-          href="/sports/all-sports"
-          className="block py-2 lg:py-1.5 text-base lg:text-sm transition-colors whitespace-nowrap flex items-center w-full lg:w-auto h-full"
-        >
-          <div className="w-16 h-4 bg-gray-200 rounded animate-pulse" />
-        </Link>
-        <div className="hidden lg:block h-6 w-px bg-gray-200 dark:bg-gray-700 mx-3" />
-        <Link
-          href="/protected/user"
-          className="block py-2 lg:py-1.5 text-base lg:text-sm transition-colors whitespace-nowrap flex items-center w-full lg:w-auto h-full"
-        >
-          <div className="w-12 h-4 bg-gray-200 rounded animate-pulse" />
-        </Link>
-      </nav>
-    );
-  }
-  return <NavigationLinks {...props} />;
+  return (
+    <Suspense
+      fallback={
+        <nav className="flex flex-col lg:flex-row items-start lg:items-center h-full lg:space-x-6 lg:space-y-0 text-xs sm:text-sm font-medium m-0 p-0">
+          <Link
+            href="/"
+            className="block py-2 lg:py-1.5 text-base lg:text-sm transition-colors whitespace-nowrap flex items-center w-full lg:w-auto h-full"
+          >
+            <div className="w-16 h-4 bg-gray-200 rounded animate-pulse" />
+          </Link>
+          <Link
+            href="/sports/nba"
+            className="block py-2 lg:py-1.5 text-base lg:text-sm transition-colors whitespace-nowrap flex items-center w-full lg:w-auto h-full"
+          >
+            <div className="w-8 h-4 bg-gray-200 rounded animate-pulse" />
+          </Link>
+          <Link
+            href="/sports/nfl"
+            className="block py-2 lg:py-1.5 text-base lg:text-sm transition-colors whitespace-nowrap flex items-center w-full lg:w-auto h-full"
+          >
+            <div className="w-8 h-4 bg-gray-200 rounded animate-pulse" />
+          </Link>
+          <Link
+            href="/sports/mlb"
+            className="block py-2 lg:py-1.5 text-base lg:text-sm transition-colors whitespace-nowrap flex items-center w-full lg:w-auto h-full"
+          >
+            <div className="w-8 h-4 bg-gray-200 rounded animate-pulse" />
+          </Link>
+          <Link
+            href="/sports/nhl"
+            className="block py-2 lg:py-1.5 text-base lg:text-sm transition-colors whitespace-nowrap flex items-center w-full lg:w-auto h-full"
+          >
+            <div className="w-8 h-4 bg-gray-200 rounded animate-pulse" />
+          </Link>
+          <Link
+            href="/sports/mls"
+            className="block py-2 lg:py-1.5 text-base lg:text-sm transition-colors whitespace-nowrap flex items-center w-full lg:w-auto h-full"
+          >
+            <div className="w-8 h-4 bg-gray-200 rounded animate-pulse" />
+          </Link>
+          <Link
+            href="/sports/all-sports"
+            className="block py-2 lg:py-1.5 text-base lg:text-sm transition-colors whitespace-nowrap flex items-center w-full lg:w-auto h-full"
+          >
+            <div className="w-16 h-4 bg-gray-200 rounded animate-pulse" />
+          </Link>
+          <div className="hidden lg:block h-6 w-px bg-gray-200 dark:bg-gray-700 mx-3" />
+          <Link
+            href="/protected/user"
+            className="block py-2 lg:py-1.5 text-base lg:text-sm transition-colors whitespace-nowrap flex items-center w-full lg:w-auto h-full"
+          >
+            <div className="w-12 h-4 bg-gray-200 rounded animate-pulse" />
+          </Link>
+        </nav>
+      }
+    >
+      <NavigationLinks {...props} />
+    </Suspense>
+  );
 }
 
 function AuthControlsContent() {

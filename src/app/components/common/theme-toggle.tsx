@@ -30,7 +30,21 @@ export function ThemeToggle({ className }: IThemeToggleProps) {
   const mounted = useMounted();
 
   if (!mounted) {
-    return null;
+    return (
+      <div
+        className={`inline-flex items-center bg-[#18181b] dark:bg-[#18181b] rounded-full p-0.5 border border-[#27272a] ${className ?? ''}`}
+      >
+        <div className="flex items-center justify-center h-11 w-11 rounded-full bg-[#232329] text-white shadow mx-0.5">
+          <div className="w-4 h-4 bg-gray-300 rounded animate-pulse" />
+        </div>
+        <div className="flex items-center justify-center h-11 w-11 rounded-full text-[#71717a] mx-0.5">
+          <div className="w-4 h-4 bg-gray-300 rounded animate-pulse" />
+        </div>
+        <div className="flex items-center justify-center h-11 w-11 rounded-full text-[#71717a] mx-0.5">
+          <div className="w-4 h-4 bg-gray-300 rounded animate-pulse" />
+        </div>
+      </div>
+    );
   }
 
   return (
