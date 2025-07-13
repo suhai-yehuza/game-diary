@@ -4,8 +4,8 @@ import React from 'react';
 
 import '@/styles/globals.css';
 
-import { Header } from '@/app/components/layout/header';
 import { Footer } from '@src/app/components/layout';
+import { HeaderWrapper } from '@src/app/components/layout/header-wrapper';
 import { ClientProviders } from '@src/app/components/providers';
 
 const inter = Inter({
@@ -27,7 +27,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className="scroll-smooth antialiased" suppressHydrationWarning>
       <body className={`flex min-h-screen flex-col ${inter.className}`}>
         <ClientProviders>
-          <Header />
+          <HeaderWrapper />
           <main className="grow">{children}</main>
           <Footer />
         </ClientProviders>
