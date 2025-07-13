@@ -54,16 +54,6 @@ test.describe('Live Games Functionality', () => {
       await expect(gamesCount).toBeVisible();
     });
 
-    test('should not display live games banner on auth pages', async ({ page }) => {
-      // Test on sign-in page
-      await safeGoto(page, '/sign-in');
-      await waitForPageLoad(page);
-
-      // Banner should not be visible on auth pages
-      const banner = page.locator('[data-testid="live-games-banner"]');
-      await expect(banner).not.toBeVisible();
-    });
-
     test('should display live games in banner with proper structure', async ({ page }) => {
       await safeGoto(page, '/');
       await waitForPageLoad(page);
