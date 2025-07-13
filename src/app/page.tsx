@@ -32,9 +32,9 @@ export default function HomePage() {
               priority
               sizes="(max-width: 600px) 150px, 200px"
             />
-            <h1 className="text-4xl font-bold tracking-tight">Placeholder Text Here</h1>
+            <h1 className="text-4xl font-bold tracking-tight">Placeholder Text</h1>
             <p className="text-xl text-gray-600 dark:text-gray-300">
-              Placeholder sentence or paragraph here
+              Placeholder sentence or paragraph
             </p>
           </div>
 

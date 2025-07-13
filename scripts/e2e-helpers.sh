@@ -69,7 +69,7 @@ start_e2e_server() {
 
     # Start server in background with E2E environment variables
     echo "🚀 Starting development server..."
-    API_MOCK_MODE=true pnpm dev -p $DEFAULT_PORT > /tmp/e2e-server.log 2>&1 &
+    API_MOCK_MODE=true E2E_MOCK_MODE=true pnpm dev -p $DEFAULT_PORT > /tmp/e2e-server.log 2>&1 &
     local server_pid=$!
 
     # Wait for server to start with better error handling

@@ -39,10 +39,10 @@ describe('HomePage', () => {
 
     // Check for main heading
     expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument();
-    expect(screen.getByText('Placeholder Text Here')).toBeInTheDocument();
+    expect(screen.getByText('Placeholder Text')).toBeInTheDocument();
 
     // Check for description
-    expect(screen.getByText('Placeholder sentence or paragraph here')).toBeInTheDocument();
+    expect(screen.getByText('Placeholder sentence or paragraph')).toBeInTheDocument();
 
     // Check for main action button
     expect(screen.getByRole('link', { name: 'Go to Dashboard' })).toBeInTheDocument();
@@ -101,7 +101,7 @@ describe('HomePage', () => {
     expect(heading.tagName).toBe('H1');
 
     // Check for paragraph
-    const paragraph = screen.getByText('Placeholder sentence or paragraph here');
+    const paragraph = screen.getByText('Placeholder sentence or paragraph');
     expect(paragraph.tagName).toBe('P');
 
     // Check for section element
@@ -123,7 +123,7 @@ describe('HomePage', () => {
   it('applies correct styling to description', () => {
     render(<HomePage />, { wrapper: TestWrapper });
 
-    const description = screen.getByText('Placeholder sentence or paragraph here');
+    const description = screen.getByText('Placeholder sentence or paragraph');
     expect(description).toHaveClass('text-xl', 'text-gray-600', 'dark:text-gray-300');
   });
 
@@ -187,7 +187,7 @@ describe('HomePage', () => {
     rerender(<HomePage />);
 
     expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument();
-    expect(screen.getByText('Placeholder Text Here')).toBeInTheDocument();
+    expect(screen.getByText('Placeholder Text')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Go to Dashboard' })).toBeInTheDocument();
   });
 
@@ -218,14 +218,14 @@ describe('HomePage', () => {
     rerender(<HomePage />);
 
     expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument();
-    expect(screen.getByText('Placeholder Text Here')).toBeInTheDocument();
+    expect(screen.getByText('Placeholder Text')).toBeInTheDocument();
 
     // Clean unmount and remount
     unmount();
     render(<HomePage />, { wrapper: TestWrapper });
 
     expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument();
-    expect(screen.getByText('Placeholder Text Here')).toBeInTheDocument();
+    expect(screen.getByText('Placeholder Text')).toBeInTheDocument();
   });
 
   it('takes full viewport height', () => {
@@ -268,8 +268,8 @@ describe('HomePage', () => {
     render(<HomePage />, { wrapper: TestWrapper });
 
     // Check for Game Diary specific text
-    expect(screen.getByText('Placeholder Text Here')).toBeInTheDocument();
-    expect(screen.getByText('Placeholder sentence or paragraph here')).toBeInTheDocument();
+    expect(screen.getByText('Placeholder Text')).toBeInTheDocument();
+    expect(screen.getByText('Placeholder sentence or paragraph')).toBeInTheDocument();
     expect(screen.getByText('Placeholder 01')).toBeInTheDocument();
     expect(screen.getByText('Placeholder 02')).toBeInTheDocument();
   });
@@ -278,7 +278,7 @@ describe('HomePage', () => {
     render(<HomePage />, { wrapper: TestWrapper });
 
     const heading = screen.getByRole('heading', { level: 1 });
-    const description = screen.getByText('Placeholder sentence or paragraph here');
+    const description = screen.getByText('Placeholder sentence or paragraph');
 
     // Check that heading comes before description
     expect(
@@ -291,7 +291,7 @@ describe('HomePage', () => {
 
     // Get initial styling
     const initialHeading = screen.getByRole('heading', { level: 1 });
-    const initialDescription = screen.getByText('Placeholder sentence or paragraph here');
+    const initialDescription = screen.getByText('Placeholder sentence or paragraph');
     const initialButton = screen.getByRole('link', { name: 'Go to Dashboard' });
 
     // Re-render
@@ -299,7 +299,7 @@ describe('HomePage', () => {
 
     // Check that styling is maintained
     const newHeading = screen.getByRole('heading', { level: 1 });
-    const newDescription = screen.getByText('Placeholder sentence or paragraph here');
+    const newDescription = screen.getByText('Placeholder sentence or paragraph');
     const newButton = screen.getByRole('link', { name: 'Go to Dashboard' });
 
     expect(newHeading).toHaveClass('text-4xl', 'font-bold', 'tracking-tight');

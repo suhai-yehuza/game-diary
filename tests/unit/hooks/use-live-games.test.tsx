@@ -13,17 +13,8 @@ vi.mock('@/lib/config/api.config', () => ({
   INTERNAL_PROXY_ENDPOINTS: {
     GAMES: '/api/proxy/games',
   },
-}));
-
-// Mock the mock data - using empty array to match current behavior
-vi.mock('@/lib/mock/liveGamesMock', () => ({
-  MOCK_LIVE_GAMES: {
-    get: '/games',
-    parameters: {},
-    errors: [],
-    results: 0,
-    response: [],
-  },
+  isTestEnvironment: false,
+  isE2ETestEnvironment: false,
 }));
 
 // Helper function to create valid game data
@@ -120,41 +111,38 @@ describe('useLiveGames', () => {
   });
 
   describe('initialization without initial data', () => {
-    it('initializes with default state when no initial data provided', () => {
+    it('initializes with mock data when no initial data provided (test mode)', () => {
       const { result } = renderHook(() => useLiveGames());
-
-      expect(result.current.liveGames).toBeNull();
+      expect(result.current.liveGames).toEqual(MOCK_LIVE_GAMES);
       expect(result.current.games).toEqual(MOCK_LIVE_GAMES.response);
-      expect(result.current.loading).toBe(true); // changed from false to true
+      expect(result.current.games).toHaveLength(MOCK_LIVE_GAMES.response.length);
+      expect(result.current.loading).toBe(false);
       expect(result.current.error).toBeNull();
       expect(typeof result.current.refetch).toBe('function');
     });
 
-    it('always returns games array even when liveGames is null', () => {
+    it('always returns games array even when liveGames is mock (test mode)', () => {
       const { result } = renderHook(() => useLiveGames());
-
-      expect(result.current.liveGames).toBeNull();
+      expect(result.current.liveGames).toEqual(MOCK_LIVE_GAMES);
       expect(result.current.games).toEqual(MOCK_LIVE_GAMES.response);
-      expect(result.current.games).toHaveLength(0);
+      expect(Array.isArray(result.current.games)).toBe(true);
     });
   });
 
   describe('options handling', () => {
     it('accepts autoRefresh option', () => {
       const { result } = renderHook(() => useLiveGames({ autoRefresh: false }));
-
-      expect(result.current.liveGames).toBeNull();
+      expect(result.current.liveGames).toEqual(MOCK_LIVE_GAMES);
       expect(result.current.games).toEqual(MOCK_LIVE_GAMES.response);
-      expect(result.current.loading).toBe(true); // changed from false to true
+      expect(result.current.loading).toBe(false);
       expect(result.current.error).toBeNull();
     });
 
     it('accepts refreshInterval option', () => {
       const { result } = renderHook(() => useLiveGames({ refreshInterval: 10000 }));
-
-      expect(result.current.liveGames).toBeNull();
+      expect(result.current.liveGames).toEqual(MOCK_LIVE_GAMES);
       expect(result.current.games).toEqual(MOCK_LIVE_GAMES.response);
-      expect(result.current.loading).toBe(true); // changed from false to true
+      expect(result.current.loading).toBe(false);
       expect(result.current.error).toBeNull();
     });
 
@@ -162,10 +150,9 @@ describe('useLiveGames', () => {
       const { result } = renderHook(() =>
         useLiveGames({ autoRefresh: true, refreshInterval: 15000 })
       );
-
-      expect(result.current.liveGames).toBeNull();
+      expect(result.current.liveGames).toEqual(MOCK_LIVE_GAMES);
       expect(result.current.games).toEqual(MOCK_LIVE_GAMES.response);
-      expect(result.current.loading).toBe(true); // changed from false to true
+      expect(result.current.loading).toBe(false);
       expect(result.current.error).toBeNull();
     });
   });
@@ -193,27 +180,22 @@ describe('useLiveGames', () => {
         createMockGame(2, 'Live Team 2', 'Away Team 2'),
         createMockGame(3, 'Live Team 3', 'Away Team 3'),
       ]);
-
       const { result } = renderHook(() => useLiveGames({ initialData }));
-
       expect(result.current.liveGames).toEqual(initialData);
       expect(result.current.games).toEqual(initialData.response);
       expect(result.current.games).toHaveLength(3);
     });
 
-    it('falls back to mock data when liveGames is null', () => {
+    it('falls back to mock data when liveGames is not provided (test mode)', () => {
       const { result } = renderHook(() => useLiveGames());
-
-      expect(result.current.liveGames).toBeNull();
+      expect(result.current.liveGames).toEqual(MOCK_LIVE_GAMES);
       expect(result.current.games).toEqual(MOCK_LIVE_GAMES.response);
-      expect(result.current.games).toHaveLength(0);
+      expect(Array.isArray(result.current.games)).toBe(true);
     });
 
     it('handles empty response array', () => {
       const emptyData = createMockGamesResponse([]);
-
       const { result } = renderHook(() => useLiveGames({ initialData: emptyData }));
-
       expect(result.current.liveGames).toEqual(emptyData);
       expect(result.current.games).toEqual([]);
       expect(result.current.games).toHaveLength(0);

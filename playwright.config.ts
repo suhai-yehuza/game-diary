@@ -40,7 +40,7 @@ const port = getPort();
 
 // Web server configuration
 const webServerConfig = {
-  command: `NODE_ENV=development pnpm dev -p ${port}`,
+  command: `NODE_ENV=development API_MOCK_MODE=true E2E_MOCK_MODE=true pnpm dev -p ${port}`,
   url: `http://localhost:${port}`,
   reuseExistingServer: !process.env.CI, // Reuse existing server in development, not in CI
   timeout: APP_CONFIG.DEV_SERVER_TIMEOUT,

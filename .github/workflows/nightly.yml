@@ -75,6 +75,8 @@ jobs:
       TEST_USER_EMAIL: 'test@game-diary.com'
       TEST_USER_ID: 'test_user_123'
       VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+      E2E_MOCK_MODE: 'true'
+      API_MOCK_MODE: 'true'
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -104,6 +106,8 @@ jobs:
       TEST_USER_EMAIL: 'test@game-diary.com'
       TEST_USER_ID: 'test_user_123'
       VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+      E2E_MOCK_MODE: 'true'
+      API_MOCK_MODE: 'true'
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -133,6 +137,8 @@ jobs:
       TEST_USER_EMAIL: 'test@game-diary.com'
       TEST_USER_ID: 'test_user_123'
       VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+      E2E_MOCK_MODE: 'true'
+      API_MOCK_MODE: 'true'
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -162,6 +168,8 @@ jobs:
       TEST_USER_EMAIL: 'test@game-diary.com'
       TEST_USER_ID: 'test_user_123'
       VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+      E2E_MOCK_MODE: 'true'
+      API_MOCK_MODE: 'true'
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -194,6 +202,8 @@ jobs:
       TEST_USER_EMAIL: 'test@game-diary.com'
       TEST_USER_ID: 'test_user_123'
       VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+      E2E_MOCK_MODE: 'true'
+      API_MOCK_MODE: 'true'
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4

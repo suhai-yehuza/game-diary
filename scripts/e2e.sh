@@ -94,7 +94,7 @@ run_basic_tests() {
             run_e2e_test_with_coverage "$test_command" "$description" "$timeout"
             ;;
         "responsive")
-            run_e2e_test "playwright test tests/e2e/functional/responsive.spec.ts" "Responsive Design Tests"
+            run_e2e_test "E2E_MOCK_MODE=true playwright test tests/e2e/functional/responsive.spec.ts" "Responsive Design Tests"
             ;;
         *)
             log_error "Unknown mode: $mode"
@@ -180,7 +180,7 @@ run_coverage_reports() {
                 ;;
             "--full")
                 log_info "Generating full coverage report"
-                playwright test tests/e2e/functional/full.spec.ts --reporter=html
+                E2E_MOCK_MODE=true playwright test tests/e2e/functional/full.spec.ts --reporter=html
                 ;;
             "--html")
                 log_info "Opening HTML coverage report"
@@ -206,12 +206,12 @@ run_responsive_tests() {
 
     # Run responsive tests with timeout
     if command -v gtimeout >/dev/null 2>&1; then
-        gtimeout $timeout playwright test tests/e2e/functional/responsive.spec.ts
+        gtimeout $timeout E2E_MOCK_MODE=true playwright test tests/e2e/functional/responsive.spec.ts
     elif command -v timeout >/dev/null 2>&1; then
-        timeout $timeout playwright test tests/e2e/functional/responsive.spec.ts
+        timeout $timeout E2E_MOCK_MODE=true playwright test tests/e2e/functional/responsive.spec.ts
     else
         log_warn "Timeout command not available, running without timeout"
-        playwright test tests/e2e/functional/responsive.spec.ts
+        E2E_MOCK_MODE=true playwright test tests/e2e/functional/responsive.spec.ts
     fi
 }
 

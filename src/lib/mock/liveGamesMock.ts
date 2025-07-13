@@ -32,7 +32,7 @@ export const MOCK_LIVE_GAMES: IGamesApiResponse = {
     date: '2024-12-23',
   },
   errors: [],
-  results: 3,
+  results: 8,
   response: [
     {
       id: 1234567,

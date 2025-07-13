@@ -1,7 +1,11 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-import { getRapidApiConfig } from '@src/lib/config/api.config';
+import {
+  getRapidApiConfig,
+  isTestEnvironment,
+  isE2ETestEnvironment,
+} from '@src/lib/config/api.config';
 import { MOCK_LIVE_GAMES } from '@src/lib/mock/liveGamesMock';
 import { MOCK_NBA_GAMES } from '@src/lib/mock/nbaGamesMock';
 import { MOCK_NBA_PLAYERS } from '@src/lib/mock/nbaPlayersMock';
@@ -34,6 +38,20 @@ export async function GET(
     const cacheKey = apiUrl.toString();
     console.log(`[API Proxy] Making request to: ${cacheKey}`);
 
+    // Debug environment variables
+    console.log('[API Proxy] Environment debug:', {
+      NODE_ENV: process.env.NODE_ENV,
+      CI: process.env.CI,
+      GITHUB_ACTIONS: process.env.GITHUB_ACTIONS,
+      PLAYWRIGHT_TEST: process.env.PLAYWRIGHT_TEST,
+      PLAYWRIGHT_CI: process.env.PLAYWRIGHT_CI,
+      E2E_MOCK_MODE: process.env.E2E_MOCK_MODE,
+      API_MOCK_MODE: process.env.API_MOCK_MODE,
+      isTestEnvironment,
+      isE2ETestEnvironment,
+      apiKey: rapidApiConfig.apiKey,
+    });
+
     // Check cache first
     const cachedEntry = apiCache.get(cacheKey);
     if (cachedEntry && Date.now() - cachedEntry.timestamp < cachedEntry.ttl) {
@@ -51,6 +69,10 @@ export async function GET(
     // Check if we're in a test environment or using fallback config
     const isTestOrFallback =
       rapidApiConfig.apiKey === 'test-api-key' || rapidApiConfig.apiKey === 'fallback-key';
+
+    console.log(
+      `[API Proxy] isTestOrFallback: ${isTestOrFallback}, apiKey: ${rapidApiConfig.apiKey}`
+    );
 
     if (isTestOrFallback) {
       console.log('[API Proxy] Using mock response for test/fallback environment');

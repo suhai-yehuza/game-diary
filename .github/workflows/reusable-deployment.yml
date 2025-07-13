@@ -162,6 +162,8 @@ jobs:
           CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
           CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
           DEPLOYMENT_URL: ${{ env.DEFAULT_LOCALHOST_URL || 'http://localhost:3000' }}
+          E2E_MOCK_MODE: 'true'
+          API_MOCK_MODE: 'true'
         run: pnpm exec playwright test tests/e2e/functional/mock-verification.spec.ts --reporter=line
 
   e2e-smoke:
@@ -189,6 +191,8 @@ jobs:
           CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
           CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
           DEPLOYMENT_URL: ${{ env.DEFAULT_LOCALHOST_URL || 'http://localhost:3000' }}
+          E2E_MOCK_MODE: 'true'
+          API_MOCK_MODE: 'true'
         run: pnpm exec playwright test tests/e2e/functional/smoke.spec.ts --workers=2 --reporter=line
 
   e2e-live-games:
@@ -216,6 +220,8 @@ jobs:
           CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
           CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
           DEPLOYMENT_URL: ${{ env.DEFAULT_LOCALHOST_URL || 'http://localhost:3000' }}
+          E2E_MOCK_MODE: 'true'
+          API_MOCK_MODE: 'true'
         run: pnpm exec playwright test tests/e2e/functional/live-games.spec.ts --workers=2 --reporter=line
 
   e2e-functional:
@@ -244,6 +250,8 @@ jobs:
           CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
           CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
           DEPLOYMENT_URL: ${{ env.DEFAULT_LOCALHOST_URL || 'http://localhost:3000' }}
+          E2E_MOCK_MODE: 'true'
+          API_MOCK_MODE: 'true'
         run: pnpm exec playwright test tests/e2e/functional/responsive.spec.ts --workers=2 --reporter=line
 
   deploy:
@@ -355,6 +363,8 @@ jobs:
           TEST_USER_EMAIL: 'test@game-diary.com'
           TEST_USER_ID: 'test_user_123'
           VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+          E2E_MOCK_MODE: 'true'
+          API_MOCK_MODE: 'true'
         run: pnpm exec playwright test tests/e2e/functional/smoke.spec.ts --reporter=line
 
   e2e-navigation-live:
@@ -388,4 +398,6 @@ jobs:
           TEST_USER_EMAIL: 'test@game-diary.com'
           TEST_USER_ID: 'test_user_123'
           VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+          E2E_MOCK_MODE: 'true'
+          API_MOCK_MODE: 'true'
         run: pnpm exec playwright test tests/e2e/functional/navigation.spec.ts --workers=2 --reporter=line

@@ -1,6 +1,6 @@
 # 🏀 Game Diary
 
-**Placeholder sentence or paragraph here**
+**Placeholder sentence or paragraph**
 
 A modern, full-stack web application for NBA fans to log their game-watching experiences, connect with friends, and analyze game statistics. Built with Next.js 14, TypeScript, and GraphQL.
 

@@ -192,7 +192,7 @@ export const API_CONFIG = {
 
 export function getRapidApiConfig(): IRapidAPIConfig {
   // Check if we're in a test environment
-  if (isTestEnvironment) {
+  if (isTestEnvironment || isE2ETestEnvironment) {
     // Return mock config for test environments
     return {
       baseUrl: 'https://v2.nba.api-sports.io',

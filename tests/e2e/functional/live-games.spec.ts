@@ -45,12 +45,12 @@ test.describe('Live Games Functionality', () => {
       const banner = page.locator('[data-testid="live-games-banner"]');
       await expect(banner).toBeVisible();
 
-      // Check for LIVE indicator
-      const liveIndicator = banner.getByText('LIVE', { exact: true });
+      // Check for Live indicator (should be "3 Live Games" or similar)
+      const liveIndicator = banner.locator('text=/\\d+ Live Games?/');
       await expect(liveIndicator).toBeVisible();
 
-      // Check for games count
-      const gamesCount = banner.locator('text=/\\d+ Game/');
+      // Check for games count (should be "3 Live Games" or similar)
+      const gamesCount = banner.locator('text=/\\d+ Live Games?/');
       await expect(gamesCount).toBeVisible();
     });
 
@@ -135,8 +135,8 @@ test.describe('Live Games Functionality', () => {
 
       // Check for visibility and animation classes
       await expect(liveIndicator).toBeVisible();
-      await expect(liveIndicator).toHaveClass(/animate-pulse/);
-      await expect(liveIndicator).toHaveClass(/bg-white/);
+      await expect(liveIndicator).toHaveClass(/animate-live-dot-glow/);
+      await expect(liveIndicator).toHaveClass(/bg-red-500/);
       await expect(liveIndicator).toHaveClass(/rounded-full/);
     });
   });

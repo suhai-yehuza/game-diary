@@ -210,6 +210,7 @@ function SportIcon({ league }: { league: string }) {
 }
 
 export function LiveGamesBanner() {
+  // The useLiveGames hook automatically returns mock data in test environments
   const { games } = useLiveGames();
   const tickerRef = useRef<HTMLDivElement>(null);
   const badgeRef = useRef<HTMLDivElement>(null);
@@ -285,45 +286,6 @@ export function LiveGamesBanner() {
     [responsiveConfig.cardWidth, responsiveConfig.cardGap]
   );
 
-  // Don't render banner if there are no live games
-  if (!games || games.length === 0) {
-    return null;
-  }
-
-  // Tooltip handlers
-  const showTooltip = (idx: number) => {
-    if (responsiveConfig.showTooltips && !isTouchDevice) {
-      setTooltipIdx(idx);
-    }
-  };
-  const hideTooltip = () => setTooltipIdx(null);
-
-  // Get badge size classes
-  const getBadgeSizeClasses = () => {
-    switch (responsiveConfig.badgeSize) {
-      case 'sm':
-        return 'text-sm gap-x-3';
-      case 'md':
-        return 'text-base gap-x-4';
-      case 'lg':
-        return 'text-lg gap-x-6';
-      default:
-        return 'text-base gap-x-4';
-    }
-  };
-
-  // Get card size classes
-  const getCardSizeClasses = () => {
-    const baseClasses =
-      'relative flex items-center cursor-pointer gap-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400 overflow-hidden';
-
-    if (responsiveConfig.compactMode) {
-      return `${baseClasses} px-2 py-1 min-w-[${responsiveConfig.cardWidth}px] h-8 text-sm`;
-    } else {
-      return `${baseClasses} px-2 sm:px-3 py-1 min-w-[${responsiveConfig.cardWidth}px] h-10 text-base`;
-    }
-  };
-
   // Render fallback during SSR to prevent hydration mismatch
   if (!mounted) {
     return (
@@ -337,7 +299,7 @@ export function LiveGamesBanner() {
             <span className="flex items-center text-base gap-x-4">
               <span className="w-3 h-3 bg-red-500 rounded-full animate-live-dot-glow drop-shadow-[0_0_8px_rgba(239,68,68,0.7)] border-2 border-white" />
               <span className="text-white drop-shadow-sm">
-                {games.length} Live {games.length === 1 ? 'Game' : 'Games'}
+                {games?.length || 0} Live {(games?.length || 0) === 1 ? 'Game' : 'Games'}
               </span>
             </span>
           </div>
@@ -368,7 +330,7 @@ export function LiveGamesBanner() {
             <div className="pointer-events-none absolute right-0 top-0 h-full w-24 bg-gradient-to-l from-red-900/100 to-transparent z-30" />
 
             <div className="flex gap-2 sm:gap-4 items-center min-w-max z-10 overflow-x-auto scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent">
-              {games.map((game, _idx) => {
+              {games?.map((game, _idx) => {
                 const teamColor = NBA_TEAM_COLORS[game.teams.home.code] ?? '#444';
                 const cardBg = isRedish(teamColor) ? '#444' : teamColor;
                 return (
@@ -438,6 +400,45 @@ export function LiveGamesBanner() {
     );
   }
 
+  // Don't render banner if there are no live games (only after mounting)
+  if (!games || games.length === 0) {
+    return null;
+  }
+
+  // Tooltip handlers
+  const showTooltip = (idx: number) => {
+    if (responsiveConfig.showTooltips && !isTouchDevice) {
+      setTooltipIdx(idx);
+    }
+  };
+  const hideTooltip = () => setTooltipIdx(null);
+
+  // Get badge size classes
+  const getBadgeSizeClasses = () => {
+    switch (responsiveConfig.badgeSize) {
+      case 'sm':
+        return 'text-sm gap-x-3';
+      case 'md':
+        return 'text-base gap-x-4';
+      case 'lg':
+        return 'text-lg gap-x-6';
+      default:
+        return 'text-base gap-x-4';
+    }
+  };
+
+  // Get card size classes
+  const getCardSizeClasses = () => {
+    const baseClasses =
+      'relative flex items-center cursor-pointer gap-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400 overflow-hidden';
+
+    if (responsiveConfig.compactMode) {
+      return `${baseClasses} px-2 py-1 min-w-[${responsiveConfig.cardWidth}px] h-8 text-sm`;
+    } else {
+      return `${baseClasses} px-2 sm:px-3 py-1 min-w-[${responsiveConfig.cardWidth}px] h-10 text-base`;
+    }
+  };
+
   return (
     <>
       <div
@@ -451,7 +452,10 @@ export function LiveGamesBanner() {
             className="flex-1 flex justify-center sm:justify-end items-center z-30 shadow-xl h-12 px-2 sm:px-6 py-2"
           >
             <span className={`flex items-center ${getBadgeSizeClasses()}`}>
-              <span className="w-3 h-3 bg-red-500 rounded-full animate-live-dot-glow drop-shadow-[0_0_8px_rgba(239,68,68,0.7)] border-2 border-white" />
+              <span
+                className="w-3 h-3 bg-red-500 rounded-full animate-live-dot-glow drop-shadow-[0_0_8px_rgba(239,68,68,0.7)] border-2 border-white"
+                data-testid="live-indicator"
+              />
               <span className="text-white drop-shadow-sm">
                 {games.length} Live {games.length === 1 ? 'Game' : 'Games'}
               </span>
@@ -493,7 +497,7 @@ export function LiveGamesBanner() {
 
             <div
               ref={tickerRef}
-              className={`flex items-center min-w-max z-10 overflow-x-auto scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent${!isPaused ? ' animate-marquee' : ''}`}
+              className={`flex items-center space-x-4 min-w-max z-10 overflow-x-auto scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent${!isPaused ? ' animate-marquee' : ''}`}
               onMouseEnter={() => !isTouchDevice && setIsPaused(true)}
               onMouseLeave={() => !isTouchDevice && setIsPaused(false)}
               style={{
