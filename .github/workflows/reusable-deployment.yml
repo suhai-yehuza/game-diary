@@ -226,7 +226,6 @@ jobs:
 
   e2e-functional:
     name: E2E Functional (Responsive)
-    if: false # TODO: Uncomment this when we have a functional test that works
     needs: [unit-tests, database-tests]
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
@@ -369,7 +368,6 @@ jobs:
 
   e2e-navigation-live:
     name: E2E Navigation (Live)
-    if: false # TODO: Uncomment this when we have a functional test that works
     needs: [deploy]
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}

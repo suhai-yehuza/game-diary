@@ -249,7 +249,10 @@ export function LiveGamesBanner() {
         home: game.scores.home.points,
         visitors: game.scores.visitors.points,
       };
-      newScores[game.id] = { home: game.scores.home.points, visitors: game.scores.visitors.points };
+      newScores[game.id] = {
+        home: game.scores.home.points,
+        visitors: game.scores.visitors.points,
+      };
       newPulse[game.id] = {
         home: prev.home !== game.scores.home.points,
         visitors: prev.visitors !== game.scores.visitors.points,
@@ -285,6 +288,9 @@ export function LiveGamesBanner() {
     },
     [responsiveConfig.cardWidth, responsiveConfig.cardGap]
   );
+
+  // Hydration-safe: only render after mounted
+  if (!mounted) return null;
 
   // Render fallback during SSR to prevent hydration mismatch
   if (!mounted) {
