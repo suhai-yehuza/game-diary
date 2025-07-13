@@ -110,6 +110,9 @@ function SearchBarContent({ autoFocus = false }: { autoFocus?: boolean } = {}) {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     setDebouncedQuery(search_query);
+    if (typeof window !== 'undefined' && window.innerWidth < 640) {
+      setIsFocused(false);
+    }
   };
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -122,11 +125,22 @@ function SearchBarContent({ autoFocus = false }: { autoFocus?: boolean } = {}) {
   const baseFormClass =
     'relative max-w-[180px] md:max-w-[220px] h-11 bg-background border border-[#27272a] shadow flex items-center px-2 transition-all duration-200 text-sm';
   if (isFocused) {
+    const isMobile = typeof window !== 'undefined' ? window.innerWidth < 640 : false;
     return (
-      <div className="fixed inset-0 z-[100] bg-black/70 flex items-start justify-center pt-[12vh] animate-fadeIn">
+      <div className="fixed inset-0 z-[100] flex items-start justify-center pt-[12vh] animate-fadeIn">
+        {/* Overlay for mobile search */}
+        {isMobile && (
+          <div
+            className="fixed inset-0 z-0 bg-white/90 dark:bg-black/80 transition-colors"
+            onClick={() => setIsFocused(false)}
+            aria-label="Close search overlay"
+            role="button"
+            tabIndex={0}
+          />
+        )}
         <form
           onSubmit={handleSearch}
-          className="w-[300px] md:w-[400px] h-12 bg-background border border-[#27272a] shadow-2xl flex items-center px-4 py-2 rounded-md relative"
+          className="w-[300px] md:w-[400px] h-12 bg-background border border-[#27272a] shadow-2xl flex items-center px-4 py-2 rounded-md relative z-10"
           tabIndex={-1}
         >
           <div className="relative flex-1">
@@ -140,7 +154,13 @@ function SearchBarContent({ autoFocus = false }: { autoFocus?: boolean } = {}) {
               value={search_query}
               onChange={handleSearchChange}
               onFocus={() => setIsFocused(true)}
-              onBlur={() => setIsFocused(false)}
+              onBlur={() => {
+                if (isMobile) {
+                  setIsFocused(false);
+                } else {
+                  setIsFocused(false);
+                }
+              }}
               autoComplete="off"
               spellCheck={false}
               ref={(input: HTMLInputElement | null) => {
