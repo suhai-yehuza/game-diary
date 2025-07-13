@@ -6,12 +6,12 @@ import dotenvFlow from 'dotenv-flow';
 import dotenv from 'dotenv';
 import fs from 'fs';
 
-// Load environment variables synchronously for dev/test
+if (!process.env.NODE_ENV) {
+  process.env.NODE_ENV = 'development';
+}
+
 const isCI = process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true';
-const isDevOrTest =
-  process.env.NODE_ENV === 'development' ||
-  process.env.NODE_ENV === 'test' ||
-  !process.env.NODE_ENV;
+const isDevOrTest = process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test';
 
 if (!isCI) {
   if (isDevOrTest) {
