@@ -5,9 +5,9 @@ const isAuthRoute = (createRouteMatcher as (routes: string[]) => (req: Request) 
   '/sign-in(.*)',
   '/sign-up(.*)',
 ]);
-const isProtectedRoute = (createRouteMatcher as (routes: string[]) => (req: Request) => boolean)([
-  '/protected(.*)',
-]);
+// const isProtectedRoute = (createRouteMatcher as (routes: string[]) => (req: Request) => boolean)([
+//   '/protected(.*)',
+// ]);
 // const isAdminRoute = createRouteMatcher(['/protected/admin(.*)']);
 
 export const middleware = (
@@ -30,20 +30,15 @@ export const middleware = (
   }
 
   // Only run authentication checks if bypass is not active
-  if (isProtectedRoute(req)) {
-    await (auth.protect as () => Promise<unknown>)();
-  }
+  // if (isProtectedRoute(req)) {
+  //   await (auth.protect as () => Promise<unknown>)();
+  // }
 
   const authData = await (auth as () => Promise<{ userId: string | null }>)();
 
   // If user is authenticated and trying to access sign-in/sign-up, redirect to profile
   if (authData.userId && isAuthRoute(req)) {
     return Response.redirect(new URL('/protected/user', (req as { url: string }).url));
-  }
-
-  // If user is not authenticated and trying to access protected route, redirect to sign-in
-  if (!authData.userId && isProtectedRoute(req)) {
-    return Response.redirect(new URL('/sign-in', (req as { url: string }).url));
   }
 
   // Always return a Response (default: continue the request)

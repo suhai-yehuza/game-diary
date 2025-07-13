@@ -547,7 +547,7 @@ export function Header() {
 
   const isActive = (path: string) => {
     if (path === '/') {
-      return pathname === path || pathname.startsWith('/protected/user');
+      return pathname === '/';
     }
     if (path === '/sports/nba') {
       return pathname === path || pathname.startsWith(`${path}/`);
