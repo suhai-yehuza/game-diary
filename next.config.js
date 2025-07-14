@@ -100,7 +100,7 @@ const nextConfig = {
     ],
   },
 
-  webpack: (config, { buildId, dev, isServer, defaultLoaders, webpack }) => {
+  webpack: async (config, { buildId, dev, isServer, defaultLoaders, webpack }) => {
     // Optimization for build size
     if (!dev && !isServer) {
       config.resolve.alias = {
@@ -129,7 +129,7 @@ const nextConfig = {
 
     // Bundle analyzer
     if (process.env.ANALYZE === 'true') {
-      const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
+      const { BundleAnalyzerPlugin } = await import('webpack-bundle-analyzer');
       config.plugins.push(
         new BundleAnalyzerPlugin({
           analyzerMode: 'static',

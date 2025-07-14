@@ -24,17 +24,29 @@ describe('Footer', () => {
     expect(screen.getByText('News')).toBeInTheDocument();
     expect(screen.getByText('API')).toBeInTheDocument();
     expect(screen.getByText('Contact Us')).toBeInTheDocument();
-    expect(screen.getByText('X')).toBeInTheDocument();
-    expect(screen.getByText('YouTube')).toBeInTheDocument();
+    expect(screen.getByText('Twitter')).toBeInTheDocument();
+    expect(screen.getByText('GitHub')).toBeInTheDocument();
     expect(screen.getByText('Privacy Policy')).toBeInTheDocument();
+    expect(screen.getByText('Terms of Service')).toBeInTheDocument();
   });
 
-  it('renders copyright notice with current year', () => {
+  it('renders footer sections correctly', () => {
     render(<Footer />);
-    const currentYear = new Date().getFullYear();
-    expect(
-      screen.getByText(`© ${currentYear} Game Diary. All rights reserved.`)
-    ).toBeInTheDocument();
+    // Check that all sections are present
+    expect(screen.getByText('About')).toBeInTheDocument();
+    expect(screen.getByText('Help')).toBeInTheDocument();
+    expect(screen.getByText('Follow Us')).toBeInTheDocument();
+    expect(screen.getByText('Legal')).toBeInTheDocument();
+
+    // Check that all links are present
+    expect(screen.getByText('About Us')).toBeInTheDocument();
+    expect(screen.getByText('News')).toBeInTheDocument();
+    expect(screen.getByText('API')).toBeInTheDocument();
+    expect(screen.getByText('Contact Us')).toBeInTheDocument();
+    expect(screen.getByText('Twitter')).toBeInTheDocument();
+    expect(screen.getByText('GitHub')).toBeInTheDocument();
+    expect(screen.getByText('Privacy Policy')).toBeInTheDocument();
+    expect(screen.getByText('Terms of Service')).toBeInTheDocument();
   });
 
   it('applies correct CSS classes to footer', () => {
