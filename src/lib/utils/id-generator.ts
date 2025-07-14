@@ -8,8 +8,15 @@ import type { IdGeneratorType } from '@src/lib/types';
 /**
  * ID Generator Utility
  *
+ * RECOMMENDATION: Use UUID v7 for all new IDs in this application
+ * - Time-ordered (first 48 bits are timestamp) - great for sorting/indexing
+ * - RFC 4122 compliant - widely supported
+ * - 128-bit entropy for collision resistance
+ * - Monotonic (can generate multiple in same millisecond)
+ * - Standard UUID format (36 characters)
+ *
  * Provides multiple options for generating strong, collision-resistant identifiers:
- * - UUID v7: Time-ordered, RFC 4122 compliant, 128-bit entropy (recommended for most use cases)
+ * - UUID v7: Time-ordered, RFC 4122 compliant, 128-bit entropy (RECOMMENDED)
  * - ULID: Time-ordered, URL-safe, 128-bit entropy
  * - Nano ID: Configurable length, URL-safe, fast
  * - CUID2: Maximum collision resistance, time-ordered
@@ -17,7 +24,7 @@ import type { IdGeneratorType } from '@src/lib/types';
  */
 
 /**
- * Generate a UUID v7 (Time-ordered UUID)
+ * Generate a UUID v7 (Time-ordered UUID) - RECOMMENDED DEFAULT
  *
  * Features:
  * - Time-ordered (first 48 bits are timestamp)
@@ -95,6 +102,8 @@ export function generateUUID(): string {
 /**
  * Generate an ID using the specified method
  *
+ * RECOMMENDATION: Use 'uuidv7' as the default for all new IDs
+ *
  * @param type - ID generation method (default: 'uuidv7')
  * @param options - Additional options (e.g., length for nanoid)
  * @returns Generated ID string
@@ -121,6 +130,8 @@ export function generateId(
 
 /**
  * Generate a database-friendly ID
+ *
+ * RECOMMENDATION: Use UUID v7 for all database IDs
  *
  * This function generates an ID optimized for database storage:
  * - Uses UUID v7 for time-ordered records (notifications, comments, reactions)

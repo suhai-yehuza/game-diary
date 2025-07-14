@@ -105,12 +105,33 @@ async function createNotificationTriggers(
 ): Promise<void> {
   logger.info('⚡ Creating notification triggers...');
 
-  // Create UUID generation function
+  // Create UUID v7 generation function
   await db.execute(sql`
-    CREATE OR REPLACE FUNCTION generate_uuid_v4()
+    CREATE OR REPLACE FUNCTION generate_uuid_v7()
     RETURNS VARCHAR AS $$
+    DECLARE
+        timestamp_ms BIGINT;
+        random_bytes BYTEA;
+        uuid_v7 VARCHAR;
     BEGIN
-        RETURN gen_random_uuid()::VARCHAR;
+        -- Get current timestamp in milliseconds since Unix epoch
+        timestamp_ms := EXTRACT(EPOCH FROM NOW()) * 1000;
+
+        -- Generate random bytes for the rest of the UUID
+        random_bytes := gen_random_bytes(10);
+
+        -- Construct UUID v7 format: timestamp (48 bits) + version (4 bits) + random (74 bits)
+        uuid_v7 :=
+            lpad(to_hex((timestamp_ms >> 16) & x'FFFFFFFFFFFF'::bigint), 12, '0') || '-' ||
+            lpad(to_hex((timestamp_ms & x'FFFF'::bigint) << 4 | (x'7'::bigint)), 4, '0') || '-' ||
+            lpad(to_hex((x'8'::bigint << 4) | ((get_byte(random_bytes, 0) & x'3F'::bigint))), 4, '0') || '-' ||
+            lpad(to_hex((get_byte(random_bytes, 0) & x'C0'::bigint) << 8 | get_byte(random_bytes, 1)), 4, '0') || '-' ||
+            lpad(to_hex(get_byte(random_bytes, 2)::bigint << 8 | get_byte(random_bytes, 3)), 4, '0') ||
+            lpad(to_hex(get_byte(random_bytes, 4)::bigint << 8 | get_byte(random_bytes, 5)), 4, '0') ||
+            lpad(to_hex(get_byte(random_bytes, 6)::bigint << 8 | get_byte(random_bytes, 7)), 4, '0') ||
+            lpad(to_hex(get_byte(random_bytes, 8)::bigint << 8 | get_byte(random_bytes, 9)), 4, '0');
+
+        RETURN uuid_v7;
     END;
     $$ LANGUAGE plpgsql;
   `);
@@ -141,7 +162,7 @@ async function createNotificationTriggers(
                 id, user_id, type, title, message, target_id, target_type,
                 resolved, created_at, updated_at
             ) VALUES (
-                generate_uuid_v4(), NEW.friend_id, 'friend_request', 'New Friend Request',
+                generate_uuid_v7(), NEW.friend_id, 'friend_request', 'New Friend Request',
                 sender_name || ' sent you a friend request', NEW.id, 'friendship',
                 false, NOW(), NOW()
             );
@@ -165,7 +186,7 @@ async function createNotificationTriggers(
                 id, user_id, type, title, message, target_id, target_type,
                 resolved, created_at, updated_at
             ) VALUES (
-                generate_uuid_v4(), NEW.user_id, 'friend_request_accepted', 'Friend Request Accepted',
+                generate_uuid_v7(), NEW.user_id, 'friend_request_accepted', 'Friend Request Accepted',
                 sender_name || ' accepted your friend request', NEW.id, 'friendship',
                 false, NOW(), NOW()
             );
@@ -189,7 +210,7 @@ async function createNotificationTriggers(
                 id, user_id, type, title, message, target_id, target_type,
                 resolved, created_at, updated_at
             ) VALUES (
-                generate_uuid_v4(), NEW.user_id, 'friend_request_rejected', 'Friend Request Declined',
+                generate_uuid_v7(), NEW.user_id, 'friend_request_rejected', 'Friend Request Declined',
                 sender_name || ' declined your friend request', NEW.id, 'friendship',
                 false, NOW(), NOW()
             );
@@ -242,7 +263,7 @@ async function createNotificationTriggers(
                     id, user_id, type, title, message, target_id, target_type,
                     resolved, created_at, updated_at
                 ) VALUES (
-                    generate_uuid_v4(), target_owner_id, 'comment_added', 'New Comment on Your Game Log',
+                    generate_uuid_v7(), target_owner_id, 'comment_added', 'New Comment on Your Game Log',
                     commenter_name || ' commented on your game log', NEW.id, 'comment',
                     false, NOW(), NOW()
                 );
@@ -264,7 +285,7 @@ async function createNotificationTriggers(
                     id, user_id, type, title, message, target_id, target_type,
                     resolved, created_at, updated_at
                 ) VALUES (
-                    generate_uuid_v4(), target_owner_id, 'comment_reply', 'New Reply to Your Comment',
+                    generate_uuid_v7(), target_owner_id, 'comment_reply', 'New Reply to Your Comment',
                     commenter_name || ' replied to your comment', NEW.id, 'comment',
                     false, NOW(), NOW()
                 );
@@ -335,7 +356,7 @@ async function createNotificationTriggers(
                 id, user_id, type, title, message, target_id, target_type,
                 resolved, created_at, updated_at
             ) VALUES (
-                generate_uuid_v4(), target_owner_id, 'reaction_added', 'New Reaction on Your ' || target_type_name,
+                generate_uuid_v7(), target_owner_id, 'reaction_added', 'New Reaction on Your ' || target_type_name,
                 reactor_name || ' reacted with ' || NEW.emoji || ' to your ' || target_type_name, NEW.id, 'reaction',
                 false, NOW(), NOW()
             );
@@ -445,7 +466,7 @@ async function createNotificationTriggers(
             id, user_id, type, title, message, target_id, target_type,
             resolved, created_at, updated_at
         ) VALUES (
-            generate_uuid_v4(), OLD.friend_id, 'friend_removed', 'Friend Removed',
+                            generate_uuid_v7(), OLD.friend_id, 'friend_removed', 'Friend Removed',
             remover_name || ' removed you as a friend', OLD.id, 'friendship',
             false, NOW(), NOW()
         );

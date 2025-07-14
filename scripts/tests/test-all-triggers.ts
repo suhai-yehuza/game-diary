@@ -290,7 +290,7 @@ class TriggerValidator {
       // Create test game log
       await this.db.execute(sql`
         INSERT INTO game_logs (id, user_id, game_id, notes, rating_for_game, watched_date, created_at, updated_at)
-        VALUES (${gameLogId}, ${user1Id}, ${gameId}, 'Test game log', 8.5, NOW(), NOW(), NOW())
+        VALUES (${gameLogId}, ${user1Id}, ${gameId}, 'Test game log', 5, NOW(), NOW(), NOW())
       `);
 
       // Get notification count before
@@ -341,7 +341,7 @@ class TriggerValidator {
       // Create test game log
       await this.db.execute(sql`
         INSERT INTO game_logs (id, user_id, game_id, notes, rating_for_game, watched_date, created_at, updated_at)
-        VALUES (${gameLogId}, ${user1Id}, ${gameId}, 'Test game log', 8.5, NOW(), NOW(), NOW())
+        VALUES (${gameLogId}, ${user1Id}, ${gameId}, 'Test game log', 5, NOW(), NOW(), NOW())
       `);
 
       // Create parent comment
@@ -395,7 +395,7 @@ class TriggerValidator {
       // Create test game log
       await this.db.execute(sql`
         INSERT INTO game_logs (id, user_id, game_id, notes, rating_for_game, watched_date, created_at, updated_at)
-        VALUES (${gameLogId}, ${user1Id}, ${gameId}, 'Test game log', 8.5, NOW(), NOW(), NOW())
+        VALUES (${gameLogId}, ${user1Id}, ${gameId}, 'Test game log', 5, NOW(), NOW(), NOW())
       `);
 
       // Get notification count before
@@ -449,7 +449,7 @@ class TriggerValidator {
       // Create test game log
       await this.db.execute(sql`
         INSERT INTO game_logs (id, user_id, game_id, notes, rating_for_game, watched_date, created_at, updated_at)
-        VALUES (${gameLogId}, ${user1Id}, ${gameId}, 'Test game log', 8.5, NOW(), NOW(), NOW())
+        VALUES (${gameLogId}, ${user1Id}, ${gameId}, 'Test game log', 5, NOW(), NOW(), NOW())
       `);
 
       // Get notification count before
@@ -500,7 +500,7 @@ class TriggerValidator {
       // Create test game log
       await this.db.execute(sql`
         INSERT INTO game_logs (id, user_id, game_id, notes, rating_for_game, watched_date, created_at, updated_at)
-        VALUES (${gameLogId}, ${user1Id}, ${gameId}, 'Test game log', 8.5, NOW(), NOW(), NOW())
+        VALUES (${gameLogId}, ${user1Id}, ${gameId}, 'Test game log', 5, NOW(), NOW(), NOW())
       `);
 
       // Create test comment
@@ -555,7 +555,7 @@ class TriggerValidator {
       // Create test game log
       await this.db.execute(sql`
         INSERT INTO game_logs (id, user_id, game_id, notes, rating_for_game, watched_date, created_at, updated_at)
-        VALUES (${gameLogId}, ${user1Id}, ${gameId}, 'Test game log', 8.5, NOW(), NOW(), NOW())
+        VALUES (${gameLogId}, ${user1Id}, ${gameId}, 'Test game log', 5, NOW(), NOW(), NOW())
       `);
 
       // Get notification count before
@@ -612,7 +612,7 @@ class TriggerValidator {
       // Create friend request
       await this.db.execute(sql`
         INSERT INTO friendships (id, user_id, friend_id, status, created_at, updated_at)
-        VALUES (${friendshipId}, ${user1Id}, ${user2Id}, 'Pending', NOW(), NOW())
+        VALUES (${friendshipId}, ${user1Id}, ${user2Id}, 'PENDING', NOW(), NOW())
       `);
 
       // Check if notification was created
@@ -651,7 +651,7 @@ class TriggerValidator {
       // Create pending friend request first
       await this.db.execute(sql`
         INSERT INTO friendships (id, user_id, friend_id, status, created_at, updated_at)
-        VALUES (${friendshipId}, ${user1Id}, ${user2Id}, 'Pending', NOW(), NOW())
+        VALUES (${friendshipId}, ${user1Id}, ${user2Id}, 'PENDING', NOW(), NOW())
       `);
 
       // Get notification count before
@@ -661,7 +661,7 @@ class TriggerValidator {
 
       // Accept friend request
       await this.db.execute(sql`
-        UPDATE friendships SET status = 'Accepted' WHERE id = ${friendshipId}
+        UPDATE friendships SET status = 'ACCEPTED' WHERE id = ${friendshipId}
       `);
 
       // Check if notification was created
@@ -700,7 +700,7 @@ class TriggerValidator {
       // Create pending friend request first
       await this.db.execute(sql`
         INSERT INTO friendships (id, user_id, friend_id, status, created_at, updated_at)
-        VALUES (${friendshipId}, ${user1Id}, ${user2Id}, 'Pending', NOW(), NOW())
+        VALUES (${friendshipId}, ${user1Id}, ${user2Id}, 'PENDING', NOW(), NOW())
       `);
 
       // Get notification count before
@@ -710,7 +710,7 @@ class TriggerValidator {
 
       // Reject friend request
       await this.db.execute(sql`
-        UPDATE friendships SET status = 'Rejected' WHERE id = ${friendshipId}
+        UPDATE friendships SET status = 'REJECTED' WHERE id = ${friendshipId}
       `);
 
       // Check if notification was created
@@ -749,7 +749,7 @@ class TriggerValidator {
       // Create accepted friendship first
       await this.db.execute(sql`
         INSERT INTO friendships (id, user_id, friend_id, status, created_at, updated_at)
-        VALUES (${friendshipId}, ${user1Id}, ${user2Id}, 'Accepted', NOW(), NOW())
+        VALUES (${friendshipId}, ${user1Id}, ${user2Id}, 'ACCEPTED', NOW(), NOW())
       `);
 
       // Get notification count before

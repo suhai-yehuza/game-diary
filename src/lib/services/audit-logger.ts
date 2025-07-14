@@ -1,5 +1,3 @@
-import { randomUUID } from 'crypto';
-
 import { headers } from 'next/headers';
 
 import { db } from '@/lib/db';
@@ -10,6 +8,7 @@ import type {
   AUDIT_ACTIONS,
 } from '@/lib/db/schema/audit-schemas';
 import { alertingService } from '@/lib/services/alerting';
+import { generateUUIDv7 } from '@/lib/utils/id-generator';
 
 // Simple logger for audit service
 const logger = {
@@ -137,7 +136,7 @@ export class AuditLogger {
 
   // Log a general audit event
   async logAuditEvent(data: IAuditLogData): Promise<string> {
-    const auditId = randomUUID();
+    const auditId = generateUUIDv7();
     const startTime = Date.now();
 
     try {
@@ -207,7 +206,7 @@ export class AuditLogger {
 
   // Log key rotation events
   async logKeyRotation(data: IKeyRotationLogData): Promise<string> {
-    const rotationId = randomUUID();
+    const rotationId = generateUUIDv7();
 
     try {
       const rotationData = {
@@ -272,7 +271,7 @@ export class AuditLogger {
 
   // Log RLS access events
   async logRLSAccess(data: IRLSAccessLogData): Promise<string> {
-    const accessId = randomUUID();
+    const accessId = generateUUIDv7();
 
     try {
       const clientInfo = await this.getClientInfo();

@@ -770,7 +770,7 @@ async function validateTriggers(): Promise<void> {
     // Check for required functions
     const requiredFunctions = [
       'update_game_ratings',
-      'generate_uuid_v4',
+      'generate_uuid_v7',
       'create_comment_notification',
       'create_reaction_notification',
       'create_friend_request_notification',

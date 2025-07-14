@@ -1,11 +1,11 @@
 import { eq, and } from 'drizzle-orm';
-import { nanoid } from 'nanoid';
 
 import { db } from '@/lib/db';
 import { friendships } from '@/lib/db/schema';
 import { AuthorizationError } from '@/lib/graphql/errors';
 import { FRIENDSHIP_STATUS } from '@/lib/types';
 import type { GraphQLContext } from '@/lib/types/dbTypes';
+import { generateUUIDv7 } from '@/lib/utils/id-generator';
 
 // Friendship Mutation Resolvers
 export const friendshipMutationResolvers = {
@@ -29,7 +29,7 @@ export const friendshipMutationResolvers = {
     }
 
     try {
-      const friendshipId = nanoid();
+      const friendshipId = generateUUIDv7();
       const newFriendship = await db()
         ?.insert(friendships)
         .values({

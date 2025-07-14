@@ -1,5 +1,4 @@
 import { eq, and, desc, sql } from 'drizzle-orm';
-import { nanoid } from 'nanoid';
 
 import { API_CONFIG } from '@/lib/config/api.config';
 import { db } from '@/lib/db';
@@ -7,6 +6,7 @@ import { game_logs } from '@/lib/db/schema';
 import { AuthorizationError } from '@/lib/graphql/errors';
 import { FRIENDSHIP_STATUS, CLASSIFICATION } from '@/lib/types';
 import type { GraphQLContext } from '@/lib/types/dbTypes';
+import { generateUUIDv7 } from '@/lib/utils/id-generator';
 
 // Simple in-memory cache for friendship checks
 // In production, consider using Redis or a more robust caching solution
@@ -265,7 +265,7 @@ export const gameLogMutationResolvers = {
     }
 
     try {
-      const gameLogId = nanoid();
+      const gameLogId = generateUUIDv7();
       const newGameLog = await db()
         ?.insert(game_logs)
         .values({

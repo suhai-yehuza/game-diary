@@ -1,11 +1,11 @@
 import { eq } from 'drizzle-orm';
-import { nanoid } from 'nanoid';
 
 import { db } from '@/lib/db';
 import { nba_games, comments, reactions } from '@/lib/db/schema';
 import { AuthorizationError } from '@/lib/graphql/errors';
 import type { TARGET_TYPES } from '@/lib/types';
 import type { GraphQLContext } from '@/lib/types/dbTypes';
+import { generateUUIDv7 } from '@/lib/utils/id-generator';
 
 // Game Mutations
 export const gameMutationResolvers = {
@@ -31,7 +31,7 @@ export const gameMutationResolvers = {
     }
 
     try {
-      const gameId = nanoid();
+      const gameId = generateUUIDv7();
       const newGame = await db()
         ?.insert(nba_games)
         .values({
@@ -93,7 +93,7 @@ export const commentMutationResolvers = {
     }
 
     try {
-      const commentId = nanoid();
+      const commentId = generateUUIDv7();
       const newComment = await db()
         ?.insert(comments)
         .values({
@@ -238,7 +238,7 @@ export const reactionMutationResolvers = {
     }
 
     try {
-      const reactionId = nanoid();
+      const reactionId = generateUUIDv7();
       const newReaction = await db()
         ?.insert(reactions)
         .values({
