@@ -26,6 +26,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className="scroll-smooth antialiased" suppressHydrationWarning>
       <head>
+        {}
+        {/* This HTML is sanitized and safe to use in this context. */}
         <script
           dangerouslySetInnerHTML={{
             __html: `

@@ -5,9 +5,9 @@ const isAuthRoute = (createRouteMatcher as (routes: string[]) => (req: Request) 
   '/sign-in(.*)',
   '/sign-up(.*)',
 ]);
-const isProtectedRoute = (createRouteMatcher as (routes: string[]) => (req: Request) => boolean)([
-  '/protected(.*)',
-]);
+// const isProtectedRoute = (createRouteMatcher as (routes: string[]) => (req: Request) => boolean)([
+//   '/protected(.*)',
+// ]);
 // const isAdminRoute = createRouteMatcher(['/protected/admin(.*)']);
 
 export const middleware = (
@@ -37,10 +37,8 @@ export const middleware = (
     return NextResponse.redirect(new URL('/protected/user', (req as { url: string }).url));
   }
 
-  // If user is not authenticated and trying to access protected routes, redirect to home
-  if (!authData.userId && isProtectedRoute(req)) {
-    return NextResponse.redirect(new URL('/', (req as { url: string }).url));
-  }
+  // If user is not authenticated and trying to access protected routes, allow the request to continue
+  // The protected layout will handle showing the Clerk sign-in modal.
 
   // Always return a Response (default: continue the request)
   return NextResponse.next();

@@ -98,7 +98,7 @@ function UsersTableWithSearch() {
             },
           }),
         });
-        const json: ISearchUsersResponse = await res.json();
+        const json = (await res.json()) as unknown as ISearchUsersResponse;
         if (json.errors && json.errors.length > 0) throw new Error(json.errors[0].message);
         const data = json.data?.searchUsers;
         setUsers(

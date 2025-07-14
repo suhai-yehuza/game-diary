@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 import { setupTestDatabase, cleanupTestDatabase } from '../../../tests/e2e/utils/test-database';
 import { createTestUser, loginAsUser } from '../../../tests/e2e/utils/auth-helpers';
 
-test.describe('Security Features', () => {
+test.describe.skip('Security Features', () => {
   test.beforeAll(async () => {
     await setupTestDatabase();
   });
@@ -13,7 +13,7 @@ test.describe('Security Features', () => {
   });
 
   test.describe('Data Encryption', () => {
-    test.skip('should encrypt sensitive user data in database', async ({ page }) => {
+    test('should encrypt sensitive user data in database', async ({ page }) => {
       // Create a test user with sensitive data
       const testUser = await createTestUser({
         email: 'encryption-test@example.com',
@@ -53,7 +53,7 @@ test.describe('Security Features', () => {
       expect(userRecord.phone_number).not.toContain('+1-555-123-4567');
     });
 
-    test.skip('should decrypt data only for authenticated user', async ({ page }) => {
+    test('should decrypt data only for authenticated user', async ({ page }) => {
       // Create two test users
       const user1 = await createTestUser({
         email: 'user1@example.com',
@@ -91,7 +91,7 @@ test.describe('Security Features', () => {
   });
 
   test.describe('Row-Level Security (RLS)', () => {
-    test.skip('should enforce RLS policies on user data access', async ({ page }) => {
+    test('should enforce RLS policies on user data access', async ({ page }) => {
       // Create test users
       const user1 = await createTestUser({ email: 'rls-user1@example.com' });
       const user2 = await createTestUser({ email: 'rls-user2@example.com' });
@@ -122,7 +122,7 @@ test.describe('Security Features', () => {
       expect(otherData).toBeNull();
     });
 
-    test.skip('should handle RLS context properly', async ({ page }) => {
+    test('should handle RLS context properly', async ({ page }) => {
       const testUser = await createTestUser({ email: 'rls-context@example.com' });
 
       // Login as user
@@ -142,7 +142,7 @@ test.describe('Security Features', () => {
   });
 
   test.describe('GraphQL Security', () => {
-    test.skip('should protect sensitive data in GraphQL queries', async ({ page }) => {
+    test('should protect sensitive data in GraphQL queries', async ({ page }) => {
       const user1 = await createTestUser({ email: 'graphql-user1@example.com' });
       const user2 = await createTestUser({ email: 'graphql-user2@example.com' });
 

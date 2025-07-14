@@ -47,6 +47,58 @@ log_info() {
     echo -e "${PURPLE}[$(date +'%Y-%m-%d %H:%M:%S')] ℹ️${NC} $1"
 }
 
+# Generic validation function with timeout and retry logic
+run_validation_with_retry() {
+    local task_name="$1"
+    local task_command="$2"
+    local max_retries="${3:-1}"
+    local timeout_seconds="${4:-60}"
+    local silent="${5:-false}"
+
+    # Check if timeout command is available
+    if ! command -v timeout >/dev/null 2>&1; then
+        log_warning "timeout command not available, running without timeout"
+        local use_timeout=false
+    else
+        local use_timeout=true
+    fi
+
+    for ((attempt=1; attempt<=max_retries; attempt++)); do
+        if [ "$silent" = "false" ]; then
+            log_info "Testing $task_name (attempt $attempt/$max_retries)..."
+        fi
+
+        # Run command with or without timeout
+        local exit_code=0
+        if [ "$use_timeout" = "true" ]; then
+            timeout $timeout_seconds pnpm run "$task_command" > /dev/null 2>&1
+            exit_code=$?
+        else
+            pnpm run "$task_command" > /dev/null 2>&1
+            exit_code=$?
+        fi
+
+        if [ $exit_code -eq 0 ]; then
+            if [ "$silent" = "false" ]; then
+                log_success "$task_name validation passed"
+            fi
+            return 0
+        else
+            if [ $attempt -lt $max_retries ]; then
+                if [ "$silent" = "false" ]; then
+                    log_warning "$task_name validation failed (attempt $attempt) - retrying..."
+                fi
+                sleep 2
+            else
+                if [ "$silent" = "false" ]; then
+                    log_warning "$task_name validation failed after $max_retries attempts"
+                fi
+                return 1
+            fi
+        fi
+    done
+}
+
 # Function to show usage
 show_usage() {
     echo "Usage: $0 [subcommand] [options]"
@@ -154,9 +206,6 @@ run_env_verification() {
         "development")
             env_file=".env.development"
             ;;
-        *)
-            env_file=".env.local"
-            ;;
     esac
 
     # Load environment file if it exists
@@ -245,22 +294,51 @@ run_env_verification() {
 
     # Database connection test (if DATABASE_URL is available)
     if [ -n "$DATABASE_URL" ]; then
-        log_info "Testing database connection..."
-        if pnpm run db:test-connection > /dev/null 2>&1; then
+        # Run database test but don't fail the validation if it doesn't work
+        if run_validation_with_retry "database connection" "db:test-connection" 1 30; then
             log_success "Database connection test passed"
         else
             log_warning "Database connection test failed - check DATABASE_URL configuration"
         fi
+    else
+        log_info "Skipping database connection test - DATABASE_URL not set"
     fi
 
-    # Security key validation (if available)
+        # Security validations (if encryption key is available)
     if [ -n "$DATA_ENCRYPTION_KEY" ]; then
-        log_info "Testing encryption key..."
-        if pnpm run security:test-encryption > /dev/null 2>&1; then
-            log_success "Encryption key validation passed"
+        log_info "Running security validations..."
+
+        # Define security validation tasks
+        local security_tasks=(
+            "encryption:security:test-encryption"
+            "key-management:security:key-management"
+            "rls:security:test-rls"
+        )
+
+        # Run security validations with retry logic
+        local failed_validations=0
+        for task in "${security_tasks[@]}"; do
+            IFS=':' read -r task_name task_command <<< "$task"
+            if ! run_validation_with_retry "$task_name" "$task_command" 2 30; then
+                ((failed_validations++))
+            fi
+        done
+
+        # Summary
+        if [ $failed_validations -eq 0 ]; then
+            log_success "All security validations passed"
         else
-            log_warning "Encryption key validation failed - check DATA_ENCRYPTION_KEY"
+            log_warning "$failed_validations security validation(s) failed"
         fi
+    else
+        log_info "Skipping security validations - DATA_ENCRYPTION_KEY not set"
+    fi
+
+    # External service validations
+    if [ -n "$SLACK_WEBHOOK_URL" ]; then
+        run_validation_with_retry "Slack alerting" "security:test-alerting" 1 30
+    else
+        log_info "Skipping Slack alerting validation - SLACK_WEBHOOK_URL not set"
     fi
 
     log_success "Environment verification completed"

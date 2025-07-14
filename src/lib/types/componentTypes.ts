@@ -35,3 +35,7 @@ export interface ISignInButtonProps extends HTMLAttributes<HTMLButtonElement> {
 export interface IClientProvidersProps {
   children: ReactNode;
 }
+
+export interface ISignInModalTriggerProps {
+  autoTrigger?: boolean;
+}

@@ -24,7 +24,7 @@ export default async function ProtectedLayout({ children }: { children: React.Re
     // Automatically open Clerk's built-in modal sign-in
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <SignInModalTrigger />
+        <SignInModalTrigger autoTrigger={true} />
         <div className="text-center mt-8">
           <h1 className="text-2xl font-bold mb-4">Sign In Required</h1>
           <p className="mb-6 text-muted-foreground">You must be signed in to view this page.</p>

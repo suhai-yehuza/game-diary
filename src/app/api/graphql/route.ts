@@ -16,8 +16,8 @@ export async function POST(request: NextRequest) {
       return new NextResponse('User not found', { status: 404 });
     }
 
-    const body = await request.json();
-    const { query } = body as { query: string };
+    const body = (await request.json()) as unknown as { query: string };
+    const { query } = body;
 
     // Simple GraphQL-like response for testing
     if (query.includes('me')) {

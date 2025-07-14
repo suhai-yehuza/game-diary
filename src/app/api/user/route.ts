@@ -29,8 +29,8 @@ async function userHandler(_request: Request) {
 // POST handler for user creation with validation
 async function createUserHandler(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { email, phone } = body as { email?: string; phone?: string };
+    const body = (await request.json()) as unknown as { email?: string; phone?: string };
+    const { email, phone } = body;
 
     // Simple email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

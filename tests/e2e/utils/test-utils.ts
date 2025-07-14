@@ -138,13 +138,16 @@ export async function safeGoto(
       lastError = error as Error;
       console.error(`Navigation attempt ${attempt} failed for ${url}:`, error);
 
-      // If it's a navigation interruption, try again
+      // If it's a navigation interruption or binding abort, try again
       if (
         error instanceof Error &&
-        error.message.includes('Navigation to') &&
-        error.message.includes('is interrupted')
+        ((error.message.includes('Navigation to') && error.message.includes('is interrupted')) ||
+          error.message.includes('NS_BINDING_ABORTED') ||
+          error.message.includes('frame was detached'))
       ) {
-        console.log(`Navigation interrupted, retrying... (attempt ${attempt}/${maxRetries})`);
+        console.log(
+          `Navigation interrupted or aborted, retrying... (attempt ${attempt}/${maxRetries})`
+        );
         continue;
       }
 

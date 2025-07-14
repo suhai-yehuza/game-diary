@@ -106,6 +106,7 @@ export function useLiveGames(options: IUseLiveGamesOptions = {}) {
       games: MOCK_LIVE_GAMES.response,
       loading: false,
       error: null,
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
       refetch: () => {},
     };
   }

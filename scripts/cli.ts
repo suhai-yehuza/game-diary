@@ -367,7 +367,7 @@ async function handleSecurity(subcommand: string, args: string[]): Promise<void>
       break;
     case 'key-management':
       await runCommand(
-        `tsx scripts/key-management.ts ${args.join(' ')}`,
+        `tsx scripts/tests/key-management.ts ${args.join(' ')}`,
         'Managing encryption keys'
       );
       break;
