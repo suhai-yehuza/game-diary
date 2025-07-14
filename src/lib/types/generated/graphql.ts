@@ -222,16 +222,19 @@ export enum FriendshipStatus {
 
 export type Game = {
   __typename?: 'Game';
+  average_rating?: Maybe<Scalars['Float']['output']>;
   away_team_id: Scalars['String']['output'];
   away_team_score?: Maybe<Scalars['Int']['output']>;
   created_at: Scalars['DateTime']['output'];
   date: Scalars['DateTime']['output'];
+  deleted_at?: Maybe<Scalars['DateTime']['output']>;
   game_type: Scalars['String']['output'];
   home_team_id: Scalars['String']['output'];
   home_team_score?: Maybe<Scalars['Int']['output']>;
   id: Scalars['ID']['output'];
-  nba_game_id?: Maybe<Scalars['ID']['output']>;
+  nba_game_id?: Maybe<Scalars['String']['output']>;
   status: Scalars['String']['output'];
+  total_ratings?: Maybe<Scalars['Int']['output']>;
   updated_at: Scalars['DateTime']['output'];
 };
 
@@ -263,7 +266,7 @@ export type GameLog = {
   comments: CommentConnection;
   created_at: Scalars['DateTime']['output'];
   deleted_at?: Maybe<Scalars['DateTime']['output']>;
-  game: Game;
+  game_id: Scalars['String']['output'];
   id: Scalars['ID']['output'];
   notes?: Maybe<Scalars['String']['output']>;
   rating_for_game: Scalars['Int']['output'];

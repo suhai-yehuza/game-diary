@@ -83,6 +83,13 @@ export const friendships = pgTable(
   table => ({
     friendUserUnique: unique().on(table.friend_id, table.user_id),
     statusCheck: sql`CHECK (status IN ('${sql.join(Object.values(FRIENDSHIP_STATUS), "','")}'))`,
+    // Performance indexes for friendship queries
+    friendshipStatusIndex: sql`CREATE INDEX IF NOT EXISTS idx_friendships_status ON friendships (status)`,
+    friendshipUserIndex: sql`CREATE INDEX IF NOT EXISTS idx_friendships_user_id ON friendships (user_id)`,
+    friendshipFriendIndex: sql`CREATE INDEX IF NOT EXISTS idx_friendships_friend_id ON friendships (friend_id)`,
+    // Composite index for the most common query pattern
+    friendshipUserFriendStatusIndex: sql`CREATE INDEX IF NOT EXISTS idx_friendships_user_friend_status ON friendships (user_id, friend_id, status)`,
+    friendshipFriendUserStatusIndex: sql`CREATE INDEX IF NOT EXISTS idx_friendships_friend_user_status ON friendships (friend_id, user_id, status)`,
   })
 );
 

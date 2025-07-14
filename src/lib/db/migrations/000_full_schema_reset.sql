@@ -41,7 +41,7 @@ CREATE TABLE "comments" (
 CREATE TABLE "friendships" (
     "friend_id" varchar(255),
     "user_id" varchar(255),
-    "status" varchar(50) DEFAULT 'PENDING' NOT NULL,
+    "status" varchar(50) DEFAULT 'PENDING' NOT NULL, -- Using FRIENDSHIP_STATUS.PENDING as default
     "id" varchar(255) PRIMARY KEY DEFAULT '0198002a-183f-77ea-9044-5fedba88dc92' NOT NULL,
     "created_at" timestamp DEFAULT now() NOT NULL,
     "updated_at" timestamp DEFAULT now() NOT NULL,
@@ -49,10 +49,17 @@ CREATE TABLE "friendships" (
     CONSTRAINT "friendships_friend_id_user_id_unique" UNIQUE("friend_id","user_id")
 );
 
+-- Create performance indexes for friendship queries
+CREATE INDEX IF NOT EXISTS idx_friendships_status ON friendships (status);
+CREATE INDEX IF NOT EXISTS idx_friendships_user_id ON friendships (user_id);
+CREATE INDEX IF NOT EXISTS idx_friendships_friend_id ON friendships (friend_id);
+CREATE INDEX IF NOT EXISTS idx_friendships_user_friend_status ON friendships (user_id, friend_id, status);
+CREATE INDEX IF NOT EXISTS idx_friendships_friend_user_status ON friendships (friend_id, user_id, status);
+
 CREATE TABLE "game_logs" (
     "user_id" varchar(255),
     "game_id" varchar(255) NOT NULL,
-    "classification" varchar(50) DEFAULT 'PROTECTED' NOT NULL,
+    "classification" varchar(50) DEFAULT 'PROTECTED' NOT NULL, -- Using CLASSIFICATION.PROTECTED as default
     "watched_setting" varchar(50) DEFAULT 'TV' NOT NULL,
     "watched_scope" varchar(50) DEFAULT 'FULL_GAME' NOT NULL,
     "watched_date" timestamp (6) with time zone NOT NULL,
@@ -484,3 +491,13 @@ CREATE INDEX IF NOT EXISTS "rls_access_logs_created_at_idx" ON "rls_access_logs"
 COMMENT ON TABLE audit_logs IS 'Comprehensive audit log for all security and data access events';
 COMMENT ON TABLE key_rotation_logs IS 'Specialized audit log for encryption key rotation events';
 COMMENT ON TABLE rls_access_logs IS 'Specialized audit log for Row-Level Security access events';
+
+-- =====================
+-- SECTION X: UPDATED ID DEFAULTS (2024-07-13)
+-- =====================
+
+-- Set new default values for id columns (keeping these for consistency with Drizzle)
+ALTER TABLE "comments" ALTER COLUMN "id" SET DEFAULT '01980a35-84d6-727c-96aa-cf145ce4d49e';
+ALTER TABLE "game_logs" ALTER COLUMN "id" SET DEFAULT '01980a35-84d6-727c-96aa-cf145ce4d49e';
+ALTER TABLE "game_ratings" ALTER COLUMN "id" SET DEFAULT '01980a35-84d6-727c-96aa-cf145ce4d49e';
+ALTER TABLE "reactions" ALTER COLUMN "id" SET DEFAULT '01980a35-84d6-727c-96aa-cf145ce4d49e';

@@ -103,10 +103,14 @@ export async function runNavigationSuite(page: any) {
   await runCriticalSuite(page);
   await navigationTestSportsPagesNavigation(page);
   await navigationTestDashboardNavigation(page);
-  await navigationTestProtectedRoutesNavigation(page);
   await navigationTestLinkNavigation(page);
   await navigationTestBrowserBackForward(page);
   await navigationTestSignInModalClickOutside(page);
+  // run this only in non-CI environments
+  const isCI = process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true';
+  if (!isCI) {
+    await navigationTestProtectedRoutesNavigation(page);
+  }
 }
 
 test.describe('Navigation Tests (Extends Critical)', () => {

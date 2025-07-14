@@ -1,5 +1,6 @@
 import { eq, and, desc, sql } from 'drizzle-orm';
 
+import { API_CONFIG } from '@/lib/config/api.config';
 import { db } from '@/lib/db';
 import { comments } from '@/lib/db/schema';
 import { AuthorizationError } from '@/lib/graphql/errors';
@@ -31,7 +32,7 @@ export const commentQueryResolvers = {
     }
 
     const { filters, pagination } = args;
-    const limit = pagination?.first ?? 20;
+    const limit = pagination?.first ?? API_CONFIG.pagination.DEFAULT_PAGE_SIZE;
 
     const whereConditions = [];
 

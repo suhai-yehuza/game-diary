@@ -4,12 +4,17 @@ import { join } from 'path';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 
 import { commentQueryResolvers, commentResolver } from '@/lib/graphql/resolvers/comment';
-import { gameQueryResolvers, gameResolver, gameLogResolver } from '@/lib/graphql/resolvers/game';
+import { friendshipMutationResolvers } from '@/lib/graphql/resolvers/friendship';
+import { gameQueryResolvers, gameResolver } from '@/lib/graphql/resolvers/game';
+import {
+  gameLogQueryResolvers,
+  gameLogMutationResolvers,
+  gameLogResolver,
+} from '@/lib/graphql/resolvers/game-log';
 import {
   gameMutationResolvers,
   commentMutationResolvers,
   reactionMutationResolvers,
-  friendshipMutationResolvers,
 } from '@/lib/graphql/resolvers/mutations';
 import { reactionQueryResolvers, reactionResolver } from '@/lib/graphql/resolvers/reaction';
 import { ErrorResult } from '@/lib/graphql/resolvers/scalars';
@@ -27,11 +32,13 @@ const resolvers = {
   Query: {
     ...userQueryResolvers,
     ...gameQueryResolvers,
+    ...gameLogQueryResolvers,
     ...commentQueryResolvers,
     ...reactionQueryResolvers,
   },
   Mutation: {
     ...gameMutationResolvers,
+    ...gameLogMutationResolvers,
     ...commentMutationResolvers,
     ...reactionMutationResolvers,
     ...friendshipMutationResolvers,
@@ -57,6 +64,7 @@ export {
   userSummaryResolver,
   dbUserResolver,
   gameQueryResolvers,
+  gameLogQueryResolvers,
   gameResolver,
   gameLogResolver,
   commentQueryResolvers,
@@ -64,6 +72,7 @@ export {
   reactionQueryResolvers,
   reactionResolver,
   gameMutationResolvers,
+  gameLogMutationResolvers,
   commentMutationResolvers,
   reactionMutationResolvers,
   friendshipMutationResolvers,

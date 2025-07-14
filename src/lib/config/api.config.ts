@@ -183,7 +183,7 @@ export const API_CONFIG = {
   } as const satisfies IBatchSizeConfig,
 
   pagination: {
-    DEFAULT_PAGE_SIZE: 15,
+    DEFAULT_PAGE_SIZE: 20,
     HUGE_SIZE: 10000,
     MAX_CHILD_COMMENT_DEPTH: 3,
     DEFAULT_SORT_DIRECTION: 'DESC' as const,
