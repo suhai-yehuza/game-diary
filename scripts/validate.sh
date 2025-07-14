@@ -226,7 +226,7 @@ run_env_verification() {
     # Security-specific validations
     log_info "Running security environment checks..."
 
-    # Check for encryption key in non-CI environments
+    # Check for encryption key and SLACK_ALERT_WEBHOOK_URL in non-CI environments
     if [ "$CI" != "true" ] && [ "$GITHUB_ACTIONS" != "true" ]; then
         if [ -z "$DATA_ENCRYPTION_KEY" ]; then
             log_warning "DATA_ENCRYPTION_KEY not set - encryption features may be limited"
@@ -237,6 +237,12 @@ run_env_verification() {
                 return 1
             fi
             log_success "DATA_ENCRYPTION_KEY format validated"
+        fi
+
+        if [ -z "$SLACK_ALERT_WEBHOOK_URL" ]; then
+            log_warning "SLACK_ALERT_WEBHOOK_URL not set - Slack alerting will not work"
+        else
+            log_success "SLACK_ALERT_WEBHOOK_URL format validated"
         fi
     fi
 
@@ -335,10 +341,10 @@ run_env_verification() {
     fi
 
     # External service validations
-    if [ -n "$SLACK_WEBHOOK_URL" ]; then
+    if [ -n "$SLACK_ALERT_WEBHOOK_URL" ]; then
         run_validation_with_retry "Slack alerting" "security:test-alerting" 1 30
     else
-        log_info "Skipping Slack alerting validation - SLACK_WEBHOOK_URL not set"
+        log_info "Skipping Slack alerting validation - SLACK_ALERT_WEBHOOK_URL not set"
     fi
 
     log_success "Environment verification completed"
