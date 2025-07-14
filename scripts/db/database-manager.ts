@@ -859,7 +859,11 @@ async function setupDatabase(
   try {
     const db = createDatabaseClient({ env: environment });
 
-    if (mode === 'complete') {
+    // Ensure schema exists before setting up triggers (for both modes)
+    if (mode === 'triggers-only') {
+      logger.info('🚀 Starting triggers-only setup (ensuring schema exists)...');
+      logger.info('================================================\n');
+    } else {
       // Full database setup
       logger.info('🚀 Starting complete database setup...');
       logger.info('================================================\n');
@@ -888,56 +892,77 @@ async function setupDatabase(
         logger.error(JSON.stringify(error, null, 2));
         logger.info('⚠️  Database might be already clean or error during cleanup');
       }
+    }
 
-      // Step 2: Generate Drizzle migrations
+    // Step 2: Ensure schema exists (for both modes)
+    logger.info('📋 Step 2: Ensuring database schema exists...');
+
+    // Check if key tables exist
+    const tablesExist = await db.execute(sql`
+      SELECT COUNT(*) as count
+      FROM information_schema.tables
+      WHERE table_schema = 'public'
+      AND table_name IN ('users', 'game_logs', 'friendships', 'comments', 'reactions', 'notifications')
+    `);
+
+    const tableCount = parseInt(String(tablesExist.rows[0]?.count || '0'));
+
+    if (tableCount < 6) {
+      logger.info('⚠️  Schema incomplete, setting up database tables...');
+
+      // Generate Drizzle migrations
       await runCommand('pnpm db:generate:safe', 'Generating Drizzle migrations (safe mode)');
 
-      // Step 3: Copy custom migrations
+      // Copy custom migrations
       await copyCustomMigrations();
 
-      // Step 4: Push schema to database with --force flag
+      // Push schema to database with --force flag
       await runCommand('drizzle-kit push --force', 'Creating database tables (force mode)');
 
-      // Step 5: Wait for tables to be ready
+      // Wait for tables to be ready
       logger.info('\n⏳ Waiting for tables to be ready...');
       await new Promise(resolve => setTimeout(resolve, 2000));
 
-      // Step 6: Create migration tracking table
-      logger.info('\n📋 Step 6: Creating migration tracking table...');
-      await db.execute(sql`
-        CREATE TABLE IF NOT EXISTS migration_versions (
-          id SERIAL PRIMARY KEY,
-          name VARCHAR(255) NOT NULL UNIQUE,
-          checksum VARCHAR(64) NOT NULL,
-          executed_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-          execution_time_ms INTEGER,
-          status VARCHAR(20) NOT NULL DEFAULT 'success',
-          error_message TEXT,
-          rollback_script TEXT,
-          rollback_executed BOOLEAN DEFAULT false
-        );
-      `);
-      await db.execute(sql`
-        CREATE INDEX IF NOT EXISTS idx_migration_versions_name ON migration_versions(name);
-      `);
-      logger.info('✅ Migration tracking table created');
+      logger.info('✅ Database schema setup complete');
+    } else {
+      logger.info('✅ Database schema already exists');
+    }
 
-      // Step 7: Run tests if requested
-      if (runTests) {
-        await runCommand('npx tsx src/lib/db/seed/test-trigger.ts', 'Testing triggers');
-      }
+    // Step 3: Create migration tracking table (for both modes)
+    logger.info('\n📋 Step 3: Creating migration tracking table...');
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS migration_versions (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(255) NOT NULL UNIQUE,
+        checksum VARCHAR(64) NOT NULL,
+        executed_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        execution_time_ms INTEGER,
+        status VARCHAR(20) NOT NULL DEFAULT 'success',
+        error_message TEXT,
+        rollback_script TEXT,
+        rollback_executed BOOLEAN DEFAULT false
+      );
+    `);
+    await db.execute(sql`
+      CREATE INDEX IF NOT EXISTS idx_migration_versions_name ON migration_versions(name);
+    `);
+    logger.info('✅ Migration tracking table created');
 
+    // Step 4: Run tests if requested (complete mode only)
+    if (mode === 'complete' && runTests) {
+      await runCommand('npx tsx src/lib/db/seed/test-trigger.ts', 'Testing triggers');
+    }
+
+    // Step 5: Set up triggers (for both modes)
+    logger.info('\n⚡ Setting up database triggers...');
+    await setupAllTriggers(db, { dropExisting: true });
+
+    if (mode === 'complete') {
       logScriptFooter('Complete Database Setup', true, [
         'Run "npx tsx src/lib/db/seed/test-trigger.ts" to test the triggers',
         'Run "pnpm db:seed:dev" to seed the database with sample data',
       ]);
-    }
-
-    // Always set up triggers (for both modes)
-    logger.info('\n⚡ Setting up database triggers...');
-    await setupAllTriggers(db, { dropExisting: true });
-
-    if (mode === 'triggers-only') {
+    } else {
       logScriptFooter('Database Triggers Setup', true, [
         'Run "npx tsx src/lib/db/seed/test-trigger.ts" to test the triggers',
         'Use your application - triggers will automatically update ratings',

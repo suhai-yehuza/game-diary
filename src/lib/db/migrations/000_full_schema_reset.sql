@@ -651,15 +651,19 @@ BEGIN
             sender_name := sender_username;
         END IF;
 
-        -- Create notification for the recipient
-        INSERT INTO notifications (
-            id, user_id, type, title, message, target_id, target_type,
-            resolved, created_at, updated_at
-        ) VALUES (
-            generate_uuid_v7(), NEW.friend_id, 'friend_request', 'New Friend Request',
-            sender_name || ' sent you a friend request', NEW.id, 'friendship',
-            false, NOW(), NOW()
-        );
+        BEGIN
+            -- Create notification for the recipient
+            INSERT INTO notifications (
+                id, user_id, type, title, message, target_id, target_type,
+                resolved, created_at, updated_at
+            ) VALUES (
+                generate_uuid_v7(), NEW.friend_id, 'friend_request', 'New Friend Request',
+                sender_name || ' sent you a friend request', NEW.id, 'friendship',
+                false, NOW(), NOW()
+            );
+        EXCEPTION WHEN OTHERS THEN
+            RAISE NOTICE 'Friend request notification insert failed: %', SQLERRM;
+        END;
     END IF;
 
     -- Create notification when friend request is accepted
@@ -675,15 +679,19 @@ BEGIN
             sender_name := sender_username;
         END IF;
 
-        -- Create notification for the original sender
-        INSERT INTO notifications (
-            id, user_id, type, title, message, target_id, target_type,
-            resolved, created_at, updated_at
-        ) VALUES (
-            generate_uuid_v7(), NEW.user_id, 'friend_request_accepted', 'Friend Request Accepted',
-            sender_name || ' accepted your friend request', NEW.id, 'friendship',
-            false, NOW(), NOW()
-        );
+        BEGIN
+            -- Create notification for the original sender
+            INSERT INTO notifications (
+                id, user_id, type, title, message, target_id, target_type,
+                resolved, created_at, updated_at
+            ) VALUES (
+                generate_uuid_v7(), NEW.user_id, 'friend_request_accepted', 'Friend Request Accepted',
+                sender_name || ' accepted your friend request', NEW.id, 'friendship',
+                false, NOW(), NOW()
+            );
+        EXCEPTION WHEN OTHERS THEN
+            RAISE NOTICE 'Friend request acceptance notification insert failed: %', SQLERRM;
+        END;
     END IF;
 
     -- Create notification when friend request is rejected
@@ -699,15 +707,19 @@ BEGIN
             sender_name := sender_username;
         END IF;
 
-        -- Create notification for the original sender
-        INSERT INTO notifications (
-            id, user_id, type, title, message, target_id, target_type,
-            resolved, created_at, updated_at
-        ) VALUES (
-            generate_uuid_v7(), NEW.user_id, 'friend_request_rejected', 'Friend Request Declined',
-            sender_name || ' declined your friend request', NEW.id, 'friendship',
-            false, NOW(), NOW()
-        );
+        BEGIN
+            -- Create notification for the original sender
+            INSERT INTO notifications (
+                id, user_id, type, title, message, target_id, target_type,
+                resolved, created_at, updated_at
+            ) VALUES (
+                generate_uuid_v7(), NEW.user_id, 'friend_request_rejected', 'Friend Request Declined',
+                sender_name || ' declined your friend request', NEW.id, 'friendship',
+                false, NOW(), NOW()
+            );
+        EXCEPTION WHEN OTHERS THEN
+            RAISE NOTICE 'Friend request rejection notification insert failed: %', SQLERRM;
+        END;
     END IF;
 
     RETURN NEW;
