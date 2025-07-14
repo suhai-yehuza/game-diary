@@ -3,6 +3,15 @@ import { join } from 'path';
 
 import { makeExecutableSchema } from '@graphql-tools/schema';
 
+import { commentQueryResolvers, commentResolver } from '@/lib/graphql/resolvers/comment';
+import { gameQueryResolvers, gameResolver, gameLogResolver } from '@/lib/graphql/resolvers/game';
+import {
+  gameMutationResolvers,
+  commentMutationResolvers,
+  reactionMutationResolvers,
+  friendshipMutationResolvers,
+} from '@/lib/graphql/resolvers/mutations';
+import { reactionQueryResolvers, reactionResolver } from '@/lib/graphql/resolvers/reaction';
 import { ErrorResult } from '@/lib/graphql/resolvers/scalars';
 import {
   userQueryResolvers,
@@ -17,12 +26,23 @@ const typeDefs = readFileSync(join(process.cwd(), 'src/lib/graphql/schema.graphq
 const resolvers = {
   Query: {
     ...userQueryResolvers,
-    // Add other query resolvers here
+    ...gameQueryResolvers,
+    ...commentQueryResolvers,
+    ...reactionQueryResolvers,
+  },
+  Mutation: {
+    ...gameMutationResolvers,
+    ...commentMutationResolvers,
+    ...reactionMutationResolvers,
+    ...friendshipMutationResolvers,
   },
   UserSummary: userSummaryResolver,
   DBUser: dbUserResolver,
+  Game: gameResolver,
+  GameLog: gameLogResolver,
+  Comment: commentResolver,
+  Reaction: reactionResolver,
   ErrorResult,
-  // Add other type resolvers here
 };
 
 // Create the executable schema
@@ -32,4 +52,19 @@ export const schema = makeExecutableSchema({
 });
 
 // Export individual resolvers for testing
-export { userQueryResolvers, userSummaryResolver, dbUserResolver };
+export {
+  userQueryResolvers,
+  userSummaryResolver,
+  dbUserResolver,
+  gameQueryResolvers,
+  gameResolver,
+  gameLogResolver,
+  commentQueryResolvers,
+  commentResolver,
+  reactionQueryResolvers,
+  reactionResolver,
+  gameMutationResolvers,
+  commentMutationResolvers,
+  reactionMutationResolvers,
+  friendshipMutationResolvers,
+};

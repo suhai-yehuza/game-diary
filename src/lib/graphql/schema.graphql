@@ -161,18 +161,21 @@ type Game {
   date: DateTime!
   status: String!
   game_type: String!
-  nba_game_id: ID
+  nba_game_id: String
   home_team_id: String!
   away_team_id: String!
   home_team_score: Int
   away_team_score: Int
+  average_rating: Float
+  total_ratings: Int
   created_at: DateTime!
   updated_at: DateTime!
+  deleted_at: DateTime
 }
 
 type GameLog {
   id: ID!
-  game: Game!
+  game_id: String!
   user: UserSummary!
   rating_for_game: Int!
   notes: String
