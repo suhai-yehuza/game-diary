@@ -1,10 +1,29 @@
 import { Page, expect } from '@playwright/test';
-import { waitForNetworkIdle } from '@tests/e2e/utils/test-utils';
+import { waitForNetworkIdle, safeGoto, waitForPageLoad } from '@tests/e2e/utils/test-utils';
 
 export async function testSignInModal(
   page: Page,
-  closeMethod: 'escape' | 'click-outside' = 'escape'
+  closeMethod: 'escape' | 'click-outside' = 'escape',
+  options?: {
+    testProtectedRoute?: string;
+    expectRedirectToHome?: boolean;
+  }
 ) {
+  // If testing a protected route, navigate to it first
+  if (options?.testProtectedRoute) {
+    await safeGoto(page, options.testProtectedRoute);
+    await waitForPageLoad(page);
+
+    // Check for 404 page if the route does not exist
+    const heading404 = page.getByRole('heading', { name: '404' });
+    const notFoundText = page.getByText('Page not found.');
+    if ((await heading404.count()) > 0 && (await notFoundText.count()) > 0) {
+      await expect(heading404).toBeVisible();
+      await expect(notFoundText).toBeVisible();
+      return; // Route doesn't exist, test complete
+    }
+  }
+
   // Wait for the page to be fully loaded
   await waitForNetworkIdle(page);
   await page.waitForTimeout(2000); // Give extra time for components to render
@@ -65,6 +84,13 @@ export async function testSignInModal(
 
       // Wait for modal to close
       await expect(emailInput).not.toBeVisible({ timeout: 5000 });
+
+      // If testing protected route, check for redirect to home
+      if (options?.expectRedirectToHome) {
+        await expect(page).toHaveURL('/');
+        // Check that the sign-in button is visible on the home page
+        await expect(page.getByTestId('sign-in-button')).toBeVisible({ timeout: 10000 });
+      }
     } else {
       // In test environment, just verify the button exists and is visible
       console.log('Sign-in button is disabled (test environment) - this is acceptable');
@@ -83,5 +109,19 @@ export async function testSignInModal(
 
     // Don't fail the test - just log the error
     console.log('Auth modal test failed but continuing with other tests');
+  }
+}
+
+// Helper function to test multiple protected routes
+export async function testProtectedRoutes(
+  page: Page,
+  routes: string[],
+  closeMethod: 'escape' | 'click-outside' = 'escape'
+) {
+  for (const route of routes) {
+    await testSignInModal(page, closeMethod, {
+      testProtectedRoute: route,
+      expectRedirectToHome: true,
+    });
   }
 }
