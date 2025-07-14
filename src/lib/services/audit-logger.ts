@@ -119,6 +119,7 @@ export class AuditLogger {
   // Get client information from headers
   private async getClientInfo(): Promise<{ ipAddress?: string; userAgent?: string }> {
     try {
+      // Check if we're in a Next.js request context
       const headersList = await headers();
       return {
         ipAddress:
@@ -128,9 +129,9 @@ export class AuditLogger {
           'unknown',
         userAgent: headersList.get('user-agent') ?? 'unknown',
       };
-    } catch (error: unknown) {
-      logger.warn('Failed to get client info for audit log:', error);
-      return { ipAddress: 'unknown', userAgent: 'unknown' };
+    } catch {
+      // If headers() fails (e.g., outside request context), return defaults
+      return { ipAddress: 'script-context', userAgent: 'script-context' };
     }
   }
 
