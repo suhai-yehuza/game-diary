@@ -1,6 +1,7 @@
 'use client';
 
 import { Bell, Database, Heart, Loader2, MessageSquare, Star, UserPlus, Users } from 'lucide-react';
+import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
@@ -16,6 +17,215 @@ import type { IApiResponse, IBadgeProps, IAdminButtonProps } from '@src/lib/type
 
 // Constants
 const TABLE_DISPLAY_LIMIT = 50;
+
+// Add GraphQL query for users
+const SEARCH_USERS_QUERY = `
+  query SearchUsers($first: Int, $after: String, $searchTerm: String) {
+    searchUsers(first: $first, after: $after, searchTerm: $searchTerm) {
+      edges {
+        node {
+          id
+          username
+          first_name
+          last_name
+          email_address
+          image_url
+        }
+        cursor
+      }
+      pageInfo {
+        hasNextPage
+        hasPreviousPage
+        startCursor
+        endCursor
+      }
+      totalCount
+    }
+  }
+`;
+
+interface IUserSummary {
+  id: string;
+  username: string;
+  first_name: string;
+  last_name: string;
+  email_address: string;
+  image_url?: string;
+}
+interface IPageInfo {
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
+  startCursor: string | null;
+  endCursor: string | null;
+}
+interface ISearchUsersResponse {
+  data?: {
+    searchUsers?: {
+      edges?: { node?: IUserSummary; cursor: string }[];
+      pageInfo?: IPageInfo;
+    };
+  };
+  errors?: { message: string }[];
+}
+
+function UsersTableWithSearch() {
+  const [users, setUsers] = useState<IUserSummary[]>([]);
+  const [pageInfo, setPageInfo] = useState<IPageInfo>({
+    hasNextPage: false,
+    hasPreviousPage: false,
+    startCursor: null,
+    endCursor: null,
+  });
+  const [searchTerm, setSearchTerm] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [after, setAfter] = useState<string | null>(null);
+
+  const fetchUsers = useCallback(
+    async (opts: { after?: string | null; searchTerm?: string } = {}) => {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await fetch('/api/graphql', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            query: SEARCH_USERS_QUERY,
+            variables: {
+              first: 100,
+              after: opts.after ?? null,
+              searchTerm: opts.searchTerm ?? searchTerm,
+            },
+          }),
+        });
+        const json: ISearchUsersResponse = await res.json();
+        if (json.errors && json.errors.length > 0) throw new Error(json.errors[0].message);
+        const data = json.data?.searchUsers;
+        setUsers(
+          Array.isArray(data?.edges) ? data.edges.map(e => e.node ?? ({} as IUserSummary)) : []
+        );
+        setPageInfo(
+          data?.pageInfo ?? {
+            hasNextPage: false,
+            hasPreviousPage: false,
+            startCursor: null,
+            endCursor: null,
+          }
+        );
+      } catch (err: unknown) {
+        let message = 'Failed to fetch users';
+        if (
+          err &&
+          typeof err === 'object' &&
+          'message' in err &&
+          typeof (err as { message?: unknown }).message === 'string'
+        ) {
+          message = (err as { message: string }).message;
+        }
+        setError(message);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [searchTerm]
+  );
+
+  useEffect(() => {
+    if (after === null) void fetchUsers();
+    // eslint-disable-next-line
+  }, []);
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    setAfter(null);
+    void fetchUsers({ searchTerm });
+  };
+
+  const handleNext = () => {
+    setAfter(pageInfo.endCursor);
+    void fetchUsers({ after: pageInfo.endCursor });
+  };
+  const handlePrev = () => {
+    setAfter(null);
+    void fetchUsers({ after: null });
+  };
+
+  return (
+    <div className="mt-6">
+      <form onSubmit={handleSearch} className="mb-4 flex gap-2">
+        <input
+          type="text"
+          placeholder="Search users..."
+          value={searchTerm}
+          onChange={e => setSearchTerm(e.target.value)}
+          className="border border-gray-300 rounded-md px-3 py-2 w-64 focus:outline-none focus:ring-2 focus:ring-blue-400"
+        />
+        <button
+          type="submit"
+          className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition"
+        >
+          Search
+        </button>
+      </form>
+      {loading && <div className="py-4 text-center">Loading users...</div>}
+      {error && <div className="py-4 text-center text-red-600">{error}</div>}
+      {!loading && !error && (
+        <div className="overflow-x-auto">
+          <table className="min-w-full border border-gray-200 rounded-md bg-white dark:bg-neutral-900">
+            <thead>
+              <tr>
+                <th className="p-2 border-b">Avatar</th>
+                <th className="p-2 border-b">Username</th>
+                <th className="p-2 border-b">First Name</th>
+                <th className="p-2 border-b">Last Name</th>
+                <th className="p-2 border-b">Email</th>
+              </tr>
+            </thead>
+            <tbody>
+              {users.map(user => (
+                <tr key={user.id} className="border-b hover:bg-gray-50 dark:hover:bg-neutral-800">
+                  <td className="p-2 text-center">
+                    {user.image_url ? (
+                      <Image
+                        src={user.image_url}
+                        alt={user.username}
+                        width={32}
+                        height={32}
+                        className="w-8 h-8 rounded-full mx-auto"
+                      />
+                    ) : (
+                      <span className="inline-block w-8 h-8 rounded-full bg-gray-200 dark:bg-neutral-700" />
+                    )}
+                  </td>
+                  <td className="p-2">{user.username}</td>
+                  <td className="p-2">{user.first_name}</td>
+                  <td className="p-2">{user.last_name}</td>
+                  <td className="p-2">{user.email_address}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+      <div className="flex justify-between items-center mt-4">
+        <button
+          onClick={handlePrev}
+          disabled={!after}
+          className="px-4 py-2 rounded-md border border-gray-300 bg-gray-100 text-gray-700 disabled:opacity-50"
+        >
+          Previous
+        </button>
+        <button
+          onClick={handleNext}
+          disabled={!pageInfo.hasNextPage}
+          className="px-4 py-2 rounded-md border border-gray-300 bg-gray-100 text-gray-700 disabled:opacity-50"
+        >
+          Next
+        </button>
+      </div>
+    </div>
+  );
+}
 
 // Simple Badge component
 const Badge = ({ children, variant = 'default', className = '' }: IBadgeProps) => (
@@ -50,6 +260,15 @@ const Button = ({
 
 function isRecordArray(data: unknown): data is Record<string, unknown>[] {
   return Array.isArray(data) && data.every(item => typeof item === 'object' && item !== null);
+}
+
+function LastUpdated() {
+  const [time, setTime] = useState<string | null>(null);
+  useEffect(() => {
+    setTime(new Date().toLocaleTimeString());
+  }, []);
+  if (!time) return null;
+  return <span className="text-sm text-muted-foreground">Last updated: {time}</span>;
 }
 
 function AdminDatabaseContent() {
@@ -230,7 +449,12 @@ function AdminDatabaseContent() {
                 <CardDescription>{config.description}</CardDescription>
               </div>
             </div>
-            <Button onClick={() => void handleFetch(tableName)} disabled={loading} size="sm">
+            <Button
+              onClick={() => void handleFetch(tableName)}
+              disabled={loading}
+              size="sm"
+              className="bg-rose-100 text-rose-900 border border-rose-300 shadow px-5 py-2 rounded-md transition-all duration-200 hover:bg-rose-200 active:shadow focus-visible:ring-2 focus-visible:ring-rose-300 focus-visible:ring-offset-2 dark:bg-rose-900 dark:text-rose-100 dark:border-rose-700 dark:hover:bg-rose-800"
+            >
               {loading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -252,9 +476,7 @@ function AdminDatabaseContent() {
           <div className="space-y-4">
             <div className="flex items-center gap-2">
               <Badge variant="secondary">{tableData.length} records</Badge>
-              <span className="text-sm text-muted-foreground">
-                Last updated: {new Date().toLocaleTimeString()}
-              </span>
+              <LastUpdated />
             </div>
 
             <div className="h-96 w-full border rounded-md">
@@ -334,12 +556,17 @@ function AdminDatabaseContent() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="flex flex-col md:flex-row w-full md:space-x-2 space-y-2 md:space-y-0">
+        <TabsList className="flex flex-col md:flex-row w-full md:space-x-3 space-y-2 md:space-y-0 bg-transparent p-0 border-0">
           {Object.entries(tableConfigs).map(([key, config]) => (
             <TabsTrigger
               key={key}
               value={key}
-              className="flex-1 flex items-center gap-2 min-w-0 truncate justify-center"
+              className="flex-1 flex items-center gap-2 min-w-0 truncate justify-center px-5 py-2 mx-0 md:mx-1 rounded-md border transition-all duration-200
+          bg-gray-200 text-gray-800 border-gray-300 shadow-sm
+          dark:bg-neutral-700 dark:text-neutral-200 dark:border-neutral-600
+          hover:bg-gray-300 hover:text-blue-900 dark:hover:bg-neutral-600 dark:hover:text-blue-200
+          data-[state=active]:bg-blue-200 data-[state=active]:text-blue-900 data-[state=active]:border-blue-400 data-[state=active]:shadow-md
+          dark:data-[state=active]:bg-blue-800 dark:data-[state=active]:text-blue-100 dark:data-[state=active]:border-blue-700 dark:data-[state=active]:shadow-md"
             >
               <config.icon className="h-4 w-4" />
               <span className="hidden sm:inline truncate">{config.title}</span>
@@ -349,6 +576,7 @@ function AdminDatabaseContent() {
 
         {Object.keys(tableConfigs).map(tableName => (
           <TabsContent key={tableName} value={tableName}>
+            {activeTab === 'users' && data['users'] && <UsersTableWithSearch />}
             {renderTable(tableName)}
           </TabsContent>
         ))}
