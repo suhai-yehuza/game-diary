@@ -56,7 +56,7 @@
     "test:e2e:smoke": "E2E_MOCK_MODE=true playwright test tests/e2e/functional/smoke.spec.ts",
     "test:e2e:critical": "E2E_MOCK_MODE=true playwright test tests/e2e/functional/critical.spec.ts",
     "test:e2e:security": "E2E_MOCK_MODE=true playwright test tests/e2e/functional/security.spec.ts",
-    "test:e2e:securities": "pnpm test:e2e:security && pnpm test:e2e:vercel-auth && pnpm test:e2e:auth-protection && pnpm test:e2e:clerk-auth",
+    "test:e2e:securities": "pnpm test:e2e:security && pnpm test:e2e:vercel-auth && pnpm test:e2e:auth-protection && pnpm test:e2e:clerk-auth && pnpm test:webhook && pnpm test:sso",
     "test:e2e:vercel-auth": "E2E_MOCK_MODE=true playwright test tests/e2e/functional/vercel-auth-test.spec.ts",
     "test:e2e:navigation": "E2E_MOCK_MODE=true playwright test tests/e2e/functional/navigation.spec.ts",
     "test:e2e:responsive": "E2E_MOCK_MODE=true playwright test tests/e2e/functional/responsive.spec.ts",
@@ -231,7 +231,9 @@
     "key:rotate": "tsx scripts/tests/key-management.ts rotate",
     "key:list": "tsx scripts/tests/key-management.ts list",
     "key:validate": "tsx scripts/tests/key-management.ts validate",
-    "key:export-env": "tsx scripts/tests/key-management.ts export-env"
+    "key:export-env": "tsx scripts/tests/key-management.ts export-env",
+    "test:webhook": "NODE_ENV=development tsx scripts/tests/test-webhook.ts",
+    "test:sso": "NODE_ENV=development tsx scripts/tests/test-sso-flow.ts"
   },
   "dependencies": {
     "@apollo/client": "3.13.8",

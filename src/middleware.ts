@@ -18,6 +18,15 @@ export const middleware = (
     ) => Promise<Response>
   ) => (req: Request) => Promise<Response>
 )(async (auth, req) => {
+  const url = new URL((req as { url: string }).url);
+
+  // Handle SSO callback redirects
+  if (url.hash.includes('sso-callback') || url.searchParams.has('sign_up_fallback_redirect_url')) {
+    // Redirect to the proper sign-in page for SSO completion
+    const signInUrl = new URL('/sign-in', url.origin);
+    return NextResponse.redirect(signInUrl);
+  }
+
   // Vercel Automation Bypass for E2E
   const bypassSecret = req.headers.get('x-vercel-protection-bypass');
   if (
@@ -34,7 +43,7 @@ export const middleware = (
 
   // If user is authenticated and trying to access sign-in/sign-up, redirect to profile
   if (authData.userId && isAuthRoute(req)) {
-    return NextResponse.redirect(new URL('/protected/user', (req as { url: string }).url));
+    return NextResponse.redirect(new URL('/protected/user', url));
   }
 
   // If user is not authenticated and trying to access protected routes, allow the request to continue
