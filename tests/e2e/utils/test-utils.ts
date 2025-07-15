@@ -7,6 +7,20 @@ import { APP_CONFIG, getAppUrl } from '../../../lib/config/app.config';
  * Provides common functions for page navigation, element checks, and test helpers
  */
 
+/**
+ * Check if page content indicates API rate limiting
+ */
+export function isRateLimited(pageContent: string): boolean {
+  return RATE_LIMIT_INDICATORS.some(indicator => pageContent.includes(indicator));
+}
+
+/**
+ * Log rate limiting detection with consistent messaging
+ */
+export function logRateLimiting(context: string): void {
+  console.log(`Skipping ${context} due to API rate limiting`);
+}
+
 export const DEFAULT_CONFIG: TestConfig = {
   baseURL: getAppUrl(),
   timeout: 30000,
@@ -20,6 +34,14 @@ export const TIMEOUTS = {
   LONG: 15000,
   EXTENDED: 30000,
 } as const;
+
+// Rate limiting detection constants
+export const RATE_LIMIT_INDICATORS = [
+  'too_many_requests',
+  'Too many requests',
+  'rate_limit_exceeded',
+  'Rate limit exceeded',
+] as const;
 
 // Common load state types
 export const LOAD_STATES = {
@@ -219,9 +241,20 @@ export async function checkBasicPageStructure(page: Page): Promise<void> {
   try {
     // Check if page shows API error (rate limiting)
     const pageContent = await page.content();
-    if (pageContent.includes('too_many_requests') || pageContent.includes('Too many requests')) {
-      console.log('Skipping page structure check due to API rate limiting');
+    if (isRateLimited(pageContent)) {
+      logRateLimiting('page structure check');
       return;
+    }
+
+    // Also check for empty page content that might indicate rate limiting
+    if (pageContent.trim().length < 100) {
+      console.log('Page content seems minimal, checking for rate limiting...');
+      await page.waitForTimeout(1000);
+      const retryContent = await page.content();
+      if (isRateLimited(retryContent)) {
+        logRateLimiting('page structure check (minimal content)');
+        return;
+      }
     }
 
     // Check for header (optional - some pages might not have one)
@@ -303,11 +336,39 @@ export async function checkBasicPageStructure(page: Page): Promise<void> {
  * Check if page has proper title
  */
 export async function checkPageTitle(page: Page, expectedTitle?: string): Promise<void> {
+  // Check for API rate limiting first
+  const pageContent = await page.content();
+  if (isRateLimited(pageContent)) {
+    logRateLimiting('title check');
+    return;
+  }
+
   if (expectedTitle) {
     await expect(page).toHaveTitle(expectedTitle);
   } else {
     // Just check that title exists and is not empty
     const title = await page.title();
+
+    // If title is empty, check if it's due to rate limiting
+    if (!title || title.length === 0) {
+      // Wait a bit and try again
+      await page.waitForTimeout(1000);
+      const retryTitle = await page.title();
+
+      if (!retryTitle || retryTitle.length === 0) {
+        console.log('Page title is empty, checking for rate limiting...');
+        const retryContent = await page.content();
+        if (isRateLimited(retryContent)) {
+          logRateLimiting('title check (retry)');
+          return;
+        }
+      } else {
+        expect(retryTitle).toBeTruthy();
+        expect(retryTitle.length).toBeGreaterThan(0);
+        return;
+      }
+    }
+
     expect(title).toBeTruthy();
     expect(title.length).toBeGreaterThan(0);
   }

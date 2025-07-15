@@ -39,7 +39,7 @@ on:
 
 jobs:
   deploy:
-    uses: ./.github/workflows/reusable-deployment.yml
+    uses: ./.github/workflows/optimized-deployment.yml
     with:
       workflow-name: 'Vercel Preview Deployment'
       environment: 'Preview'

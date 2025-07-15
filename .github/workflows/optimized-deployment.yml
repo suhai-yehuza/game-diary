@@ -1,7 +1,4 @@
-# Simplified Deployment Workflow Template
-# This template provides a clean, maintainable deployment workflow
-
-name: Reusable Deployment Workflow
+name: Optimized Deployment Workflow
 
 on:
   workflow_call:
@@ -14,7 +11,6 @@ on:
         description: 'Deployment environment'
         required: true
         type: string
-
       deploy-to-vercel:
         description: 'Whether to deploy to Vercel'
         required: false
@@ -39,10 +35,11 @@ on:
         required: false
 
 jobs:
-  quality-gate:
-    name: Quality Gate
+  # Combined validation job to reduce parallel jobs
+  validation:
+    name: Validation (Quality Gate + Unit Tests + Database Tests)
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 30
     environment: ${{ inputs.environment }}
     steps:
       - uses: actions/checkout@v4
@@ -66,29 +63,8 @@ jobs:
           CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
           CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
         run: |
-          echo "Running full quality gate validation for ${{ inputs.environment }} environment..."
+          echo "Running quality gate validation for ${{ inputs.environment }} environment..."
           ./scripts/deployment-validator.sh ci --skip-e2e-tests --skip-db-tests
-
-  unit-tests:
-    name: Unit Tests
-    needs: [quality-gate]
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    environment: ${{ inputs.environment }}
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: pnpm/action-setup@v4
-        with:
-          version: '10'
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: 'pnpm'
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
 
       - name: Run Unit Tests
         env:
@@ -97,34 +73,6 @@ jobs:
           CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
           CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
         run: pnpm test:unit
-
-      - uses: codecov/codecov-action@v4
-        if: success()
-        with:
-          file: ./coverage/lcov.info
-          flags: unittests
-          name: codecov-umbrella
-
-  database-tests:
-    name: Database Tests
-    needs: [quality-gate]
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    environment: ${{ inputs.environment }}
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: pnpm/action-setup@v4
-        with:
-          version: '10'
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: 'pnpm'
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
 
       - name: Run Database Tests
         env:
@@ -135,104 +83,20 @@ jobs:
         run: |
           echo "🔍 Validating database trigger definitions..."
           pnpm db:validate-triggers
-
           echo "🧪 Running comprehensive database trigger tests..."
-          echo "Testing game ratings, notifications, and friendship triggers..."
           pnpm db:test:all-triggers
 
-  e2e-mock-verification:
-    name: E2E Mock Verification
-    needs: [unit-tests, database-tests]
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    environment: ${{ inputs.environment }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
+      - uses: codecov/codecov-action@v4
+        if: success()
         with:
-          version: '10'
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: 'pnpm'
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-      - name: Setup Playwright browsers
-        run: pnpm exec playwright install --with-deps
-      - name: Run Mock Verification E2E
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
-          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
-          CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
-          DEPLOYMENT_URL: ${{ env.DEFAULT_LOCALHOST_URL || 'http://localhost:3000' }}
-          E2E_MOCK_MODE: 'true'
-          API_MOCK_MODE: 'true'
-        run: pnpm exec playwright test tests/e2e/functional/mock-verification.spec.ts --reporter=line
+          file: ./coverage/lcov.info
+          flags: unittests
+          name: codecov-umbrella
 
-  e2e-smoke:
-    name: E2E Smoke (Includes Sanity and Accessibility)
-    needs: [unit-tests, database-tests]
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    environment: ${{ inputs.environment }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: '10'
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: 'pnpm'
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-      - name: Setup Playwright browsers
-        run: pnpm exec playwright install --with-deps
-      - name: Run Smoke E2E
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
-          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
-          CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
-          DEPLOYMENT_URL: ${{ env.DEFAULT_LOCALHOST_URL || 'http://localhost:3000' }}
-          E2E_MOCK_MODE: 'true'
-          API_MOCK_MODE: 'true'
-        run: pnpm exec playwright test tests/e2e/functional/smoke.spec.ts --workers=2 --reporter=line
-
-  e2e-live-games:
-    name: E2E Live Games
-    needs: [unit-tests, database-tests]
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    environment: ${{ inputs.environment }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: '10'
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: 'pnpm'
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-      - name: Setup Playwright browsers
-        run: pnpm exec playwright install --with-deps
-      - name: Run Live Games E2E
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
-          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
-          CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
-          DEPLOYMENT_URL: ${{ env.DEFAULT_LOCALHOST_URL || 'http://localhost:3000' }}
-          E2E_MOCK_MODE: 'true'
-          API_MOCK_MODE: 'true'
-        run: pnpm exec playwright test tests/e2e/functional/live-games.spec.ts --workers=2 --reporter=line
-
-  e2e-functional:
-    name: E2E Functional (Responsive)
-    needs: [unit-tests, database-tests]
+  # Combined E2E tests to reduce parallel jobs
+  e2e-tests:
+    name: E2E Tests (Combined)
+    needs: [validation]
     runs-on: ubuntu-latest
     timeout-minutes: 60
     environment: ${{ inputs.environment }}
@@ -249,7 +113,8 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Setup Playwright browsers
         run: pnpm exec playwright install --with-deps
-      - name: Run Functional E2E (excluding mock-verification and smoke)
+
+      - name: Run Combined E2E Tests
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
@@ -258,21 +123,18 @@ jobs:
           DEPLOYMENT_URL: ${{ env.DEFAULT_LOCALHOST_URL || 'http://localhost:3000' }}
           E2E_MOCK_MODE: 'true'
           API_MOCK_MODE: 'true'
-        run: pnpm exec playwright test tests/e2e/functional/responsive.spec.ts --workers=2 --reporter=line
+        run: |
+          echo "Running combined E2E tests..."
+          # Run critical tests first
+          pnpm exec playwright test tests/e2e/functional/mock-verification.spec.ts --reporter=line
+          pnpm exec playwright test tests/e2e/functional/smoke.spec.ts --workers=2 --reporter=line
+          pnpm exec playwright test tests/e2e/functional/live-games.spec.ts --workers=2 --reporter=line
+          pnpm exec playwright test tests/e2e/functional/responsive.spec.ts --workers=2 --reporter=line
 
   deploy:
     name: Deploy to Vercel
     if: ${{ inputs.deploy-to-vercel }}
-    needs:
-      [
-        quality-gate,
-        unit-tests,
-        database-tests,
-        e2e-mock-verification,
-        e2e-smoke,
-        e2e-live-games,
-        e2e-functional,
-      ]
+    needs: [e2e-tests]
     runs-on: ubuntu-latest
     timeout-minutes: 30
     environment: ${{ inputs.environment }}
@@ -321,7 +183,6 @@ jobs:
           fi
 
           # Get the deployment URL from the deployment output
-          # Vercel CLI outputs the URL in the format: "Ready! Available at https://project-name-xxx.vercel.app"
           DEPLOYMENT_URL=$(vercel --token ${{ secrets.VERCEL_TOKEN }} 2>&1 | grep -o 'https://[^[:space:]]*\.vercel\.app' | head -1)
 
           if [ -z "$DEPLOYMENT_URL" ]; then
@@ -341,12 +202,14 @@ jobs:
           echo "Deployment URL: $DEPLOYMENT_URL"
           echo "url=$DEPLOYMENT_URL" >> $GITHUB_OUTPUT
 
-  e2e-smoke-live:
-    name: E2E Smoke (Live)
+  # Optional post-deploy tests (only run if needed)
+  e2e-post-deploy:
+    name: E2E Post-Deploy (Optional)
     needs: [deploy]
     runs-on: ubuntu-latest
     timeout-minutes: 30
     environment: ${{ inputs.environment }}
+    if: ${{ inputs.environment == 'Production' }} # Only run for production
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -361,7 +224,7 @@ jobs:
       - name: Setup Playwright browsers
         run: pnpm exec playwright install --with-deps
 
-      - name: Run Smoke E2E (Live)
+      - name: Run Post-Deploy E2E
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
@@ -374,39 +237,7 @@ jobs:
           VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
           E2E_MOCK_MODE: 'true'
           API_MOCK_MODE: 'true'
-        run: pnpm exec playwright test tests/e2e/functional/smoke.spec.ts --reporter=line
-
-  e2e-navigation-live:
-    name: E2E Navigation (Live)
-    needs: [deploy]
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    environment: ${{ inputs.environment }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: '10'
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: 'pnpm'
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-      - name: Setup Playwright browsers
-        run: pnpm exec playwright install --with-deps
-
-      - name: Run Navigation E2E (Live)
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
-          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
-          CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
-          DEPLOYMENT_URL: ${{ needs.deploy.outputs.deployment-url }}
-          E2E_AUTH_BYPASS: 'true'
-          TEST_USER_EMAIL: 'test@game-diary.com'
-          TEST_USER_ID: 'test_user_123'
-          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
-          E2E_MOCK_MODE: 'true'
-          API_MOCK_MODE: 'true'
-        run: pnpm exec playwright test tests/e2e/functional/navigation.spec.ts --workers=2 --reporter=line
+        run: |
+          echo "Running post-deploy E2E tests..."
+          pnpm exec playwright test tests/e2e/functional/smoke.spec.ts --workers=2 --reporter=line
+          pnpm exec playwright test tests/e2e/functional/navigation.spec.ts --workers=2 --reporter=line

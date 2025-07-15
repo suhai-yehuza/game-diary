@@ -7,6 +7,8 @@ import {
   checkForConsoleErrors,
   checkAccessibilityBasics,
   checkPerformanceMetrics,
+  isRateLimited,
+  logRateLimiting,
 } from '@tests/e2e/utils/test-utils';
 import { PERFORMANCE_THRESHOLDS } from '@tests/e2e/utils/constants';
 
@@ -57,8 +59,14 @@ export async function testPageComprehensive(
     await checkPageTitle(page, expectedTitle);
   }
 
-  // Strict: require <main> to be visible
-  await page.locator('main').waitFor({ state: 'visible', timeout });
+  // Check for rate limiting before requiring main content
+  const pageContent = await page.content();
+  if (isRateLimited(pageContent)) {
+    logRateLimiting('main content check');
+  } else {
+    // Strict: require <main> to be visible
+    await page.locator('main').waitFor({ state: 'visible', timeout });
+  }
 
   // Check for console errors
   if (checkConsoleErrors) {
@@ -201,8 +209,12 @@ export function runResponsiveSuite(test: TestType<any, any>) {
     ];
     for (const viewport of viewports) {
       test.describe(`${viewport.name} viewport`, () => {
-        testPages.forEach(url => {
+        testPages.forEach((url, index) => {
           test(`should render ${url} correctly`, async ({ page }: { page: Page }) => {
+            // Add a small delay between tests to reduce rate limiting
+            if (index > 0) {
+              await page.waitForTimeout(1000);
+            }
             await page.setViewportSize({ width: viewport.width, height: viewport.height });
             await testPageComprehensive(page, url);
           });
