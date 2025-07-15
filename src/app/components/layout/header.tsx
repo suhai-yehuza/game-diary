@@ -8,6 +8,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import React, { useState, useEffect, useRef, Suspense } from 'react';
 
 import { ThemeToggle } from '@/app/components/common';
+import { ClerkWrapper } from '@/app/components/common/clerk-error-boundary';
 import { LiveGamesBanner } from '@/app/components/live-games-banner';
 import { useMenuContext } from '@/app/components/providers';
 import {
@@ -354,9 +355,11 @@ function AdminNav({ isActive }: { isActive: (path: string) => boolean }) {
       {isE2ETestEnvironment ? (
         <AdminNavE2E isActive={isActive} />
       ) : (
-        <SignedIn>
-          <AdminNavContent isActive={isActive} />
-        </SignedIn>
+        <ClerkWrapper>
+          <SignedIn>
+            <AdminNavContent isActive={isActive} />
+          </SignedIn>
+        </ClerkWrapper>
       )}
     </Suspense>
   );
@@ -559,8 +562,10 @@ function AuthControlsContent() {
   // During SSR and initial client render, render a consistent placeholder
   if (!mounted) {
     return (
-      <div className="w-10 h-10 bg-gray-200 rounded animate-pulse flex items-center justify-center">
-        <span className="text-xs text-gray-500">Auth</span>
+      <div className="flex items-center">
+        <div className="w-10 h-10 bg-gray-200 rounded animate-pulse flex items-center justify-center">
+          <span className="text-xs text-gray-500">Auth</span>
+        </div>
       </div>
     );
   }
@@ -604,24 +609,30 @@ function AuthControlsContent() {
   // If Clerk is not configured, show a placeholder
   if (!isClerkConfigured()) {
     return (
-      <div className="w-10 h-10 bg-gray-200 rounded animate-pulse flex items-center justify-center">
-        <span className="text-xs text-gray-500">Auth</span>
+      <div className="flex items-center">
+        <span className="bg-gray-400 text-white font-medium rounded-lg text-sm px-5 py-1 shadow-sm transition-all border border-gray-500 min-w-[44px] min-h-[32px] flex-shrink-0 whitespace-nowrap">
+          <button disabled className="cursor-not-allowed">
+            Auth Unavailable
+          </button>
+        </span>
       </div>
     );
   }
 
   return (
     <div className="flex items-center">
-      <SignedOut>
-        <span className="bg-blue-600 text-white hover:bg-blue-700 focus:ring-2 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-1 shadow-sm transition-all border border-blue-700 min-w-[44px] min-h-[32px] flex-shrink-0 whitespace-nowrap">
-          <SignInButton mode="modal" data-testid="sign-in-button">
-            Sign In
-          </SignInButton>
-        </span>
-      </SignedOut>
-      <SignedIn>
-        <UserButton />
-      </SignedIn>
+      <ClerkWrapper>
+        <SignedOut>
+          <span className="bg-blue-600 text-white hover:bg-blue-700 focus:ring-2 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-1 shadow-sm transition-all border border-blue-700 min-w-[44px] min-h-[32px] flex-shrink-0 whitespace-nowrap">
+            <SignInButton mode="modal" data-testid="sign-in-button">
+              Sign In
+            </SignInButton>
+          </span>
+        </SignedOut>
+        <SignedIn>
+          <UserButton />
+        </SignedIn>
+      </ClerkWrapper>
     </div>
   );
 }
