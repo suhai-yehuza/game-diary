@@ -133,7 +133,7 @@ async function dropAllTriggersAndFunctions(db: ReturnType<typeof createDatabaseC
   }
 }
 
-async function setupAllTriggersFromSql(
+export async function setupAllTriggersFromSql(
   db: ReturnType<typeof createDatabaseClient>,
   options: ITriggerSetupOptions = {}
 ) {

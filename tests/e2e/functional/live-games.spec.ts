@@ -4,6 +4,7 @@ import {
   clearTestData,
   safeGoto,
   waitForPageLoad,
+  waitForPageStable,
 } from '@tests/e2e/utils/test-utils';
 
 // Utility to detect problematic environments for live games tests
@@ -269,7 +270,7 @@ test.describe('Live Games Functionality', () => {
 
       // Wait for potential refresh (30 seconds is the default interval)
       // For testing, we'll just verify the banner remains visible
-      await page.waitForTimeout(2000);
+      await waitForPageStable(page);
       await expect(banner).toBeVisible();
     });
 

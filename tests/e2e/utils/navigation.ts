@@ -246,7 +246,7 @@ export async function waitForNavigationLoaded(page: Page, timeout: number = 1000
   await page.waitForSelector('nav a', { timeout });
 
   // Additional wait to ensure navigation is fully rendered
-  await page.waitForTimeout(1000);
+  await page.waitForLoadState('domcontentloaded');
 
   console.log('🔍 Navigation loaded successfully');
 }
@@ -263,7 +263,7 @@ export async function ensureMobileMenuClosed(page: Page): Promise<void> {
     if (await menuContent.isVisible()) {
       // Close menu by clicking outside or escape key
       await page.keyboard.press('Escape');
-      await page.waitForTimeout(500);
+      await page.waitForLoadState('domcontentloaded');
     }
   }
 }
@@ -302,7 +302,7 @@ export async function openMobileMenu(page: Page, timeout: number = 10000): Promi
     // Strategy 1: Try force click first (bypasses element interception)
     try {
       await menuButton.click({ force: true, timeout: 5000 });
-      await page.waitForTimeout(500);
+      await page.waitForLoadState('domcontentloaded');
 
       // Verify menu opened
       const menuOpenAfterClick = await menuContainer.isVisible();
@@ -325,7 +325,7 @@ export async function openMobileMenu(page: Page, timeout: number = 10000): Promi
       if (box) {
         // Click at the exact center of the button
         await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
-        await page.waitForTimeout(500);
+        await page.waitForLoadState('domcontentloaded');
 
         const menuOpenAfterMouseClick = await menuContainer.isVisible();
         console.log(`Menu open after mouse click: ${menuOpenAfterMouseClick}`);
@@ -346,7 +346,7 @@ export async function openMobileMenu(page: Page, timeout: number = 10000): Promi
     // Strategy 3: Try direct click as fallback
     try {
       await menuButton.click({ timeout: 5000 });
-      await page.waitForTimeout(500);
+      await page.waitForLoadState('domcontentloaded');
 
       const menuOpenAfterDirectClick = await menuContainer.isVisible();
       console.log(`Menu open after direct click: ${menuOpenAfterDirectClick}`);
@@ -366,7 +366,7 @@ export async function openMobileMenu(page: Page, timeout: number = 10000): Promi
       const box = await menuButton.boundingBox();
       if (box) {
         await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
-        await page.waitForTimeout(500);
+        await page.waitForLoadState('domcontentloaded');
 
         const menuOpenAfterMouseClick = await menuContainer.isVisible();
         console.log(`Menu open after mouse click: ${menuOpenAfterMouseClick}`);
@@ -388,7 +388,7 @@ export async function openMobileMenu(page: Page, timeout: number = 10000): Promi
     try {
       await menuButton.focus();
       await page.keyboard.press('Enter');
-      await page.waitForTimeout(500);
+      await page.waitForLoadState('domcontentloaded');
 
       const menuOpenAfterKeyboard = await menuContainer.isVisible();
       console.log(`Menu open after keyboard: ${menuOpenAfterKeyboard}`);
@@ -434,7 +434,7 @@ export async function openMobileSearch(page: Page, timeout: number = 10000): Pro
     try {
       // Click the search button to open the overlay
       await searchButton.click();
-      await page.waitForTimeout(500);
+      await page.waitForLoadState('domcontentloaded');
 
       // Verify search overlay opened
       const searchOpenAfterClick = await searchOverlay.isVisible();
@@ -447,7 +447,6 @@ export async function openMobileSearch(page: Page, timeout: number = 10000): Pro
         await overlaySearchInput.focus();
         // Wait for the input to become visible
         await expect(overlaySearchInput).toBeVisible({ timeout: 5000 });
-        await page.waitForTimeout(200);
         console.log('Search overlay opened successfully and input focused/visible');
         return;
       } else {
@@ -459,7 +458,7 @@ export async function openMobileSearch(page: Page, timeout: number = 10000): Pro
       // Try force click as fallback
       try {
         await searchButton.click({ force: true });
-        await page.waitForTimeout(500);
+        await page.waitForLoadState('domcontentloaded');
 
         const searchOpenAfterForceClick = await searchOverlay.isVisible();
         if (searchOpenAfterForceClick) {

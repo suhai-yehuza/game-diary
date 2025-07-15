@@ -46,7 +46,7 @@ export function runBasePageChecks(test: typeof baseTest, path: string) {
   test('should be accessible', async ({ page }: { page: Page }) => {
     await checkAccessibilityBasics(page);
     await page.keyboard.press('Tab');
-    await page.waitForTimeout(500);
+    await page.waitForLoadState('domcontentloaded');
     const focusedElement = page.locator(':focus');
     if ((await focusedElement.count()) > 0) {
       await expect(focusedElement).toBeVisible();

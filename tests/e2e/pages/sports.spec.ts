@@ -1,10 +1,6 @@
 import { test, expect } from '@playwright/test';
-import {
-  runInteractivePageTests,
-  runComprehensivePageTests,
-  waitForNetworkIdle,
-  clearTestData,
-} from '@tests/e2e/utils/page-suites';
+import { waitForNetworkIdle, clearTestData, waitForPageStable } from '@tests/e2e/utils/test-utils';
+import { runComprehensivePageTests } from '@tests/e2e/utils/page-suites';
 import { openMobileMenu } from '@tests/e2e/utils/navigation';
 
 const sportsPages = [
@@ -45,7 +41,7 @@ test.describe('Sports Pages', () => {
             try {
               await openMobileMenu(page);
               // Wait for the menu to be visible
-              await page.waitForTimeout(1000);
+              await page.waitForLoadState('domcontentloaded');
             } catch (error) {
               console.log('Failed to open mobile menu, continuing with test...');
             }
@@ -248,7 +244,7 @@ test.describe('Sports Pages', () => {
 
             // Test refresh functionality
             await refreshButton.first().click();
-            await page.waitForTimeout(2000);
+            await waitForPageStable(page);
 
             // Check that page content is still visible after refresh
             await expect(page.locator('main')).toBeVisible();
@@ -274,7 +270,7 @@ test.describe('Sports Pages', () => {
 
                 // Click sort button
                 await button.click();
-                await page.waitForTimeout(1000);
+                await page.waitForLoadState('domcontentloaded');
 
                 // Check that content is still visible
                 await expect(page.locator('main')).toBeVisible();

@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { openMobileSearch } from '../utils/navigation';
-import { setupE2EMocking, safeGotoWithMocking } from '../utils/test-utils';
+import { setupE2EMocking, safeGotoWithMocking, waitForSearchResults } from '../utils/test-utils';
 
 test.describe.configure({ mode: 'serial', retries: 2 });
 
@@ -45,7 +45,7 @@ test.describe('Search Functionality', () => {
       if ((await searchInput.count()) > 0) {
         // Test basic search
         await searchInput.first().fill('test');
-        await page.waitForTimeout(1000);
+        await waitForSearchResults(page);
 
         // Check for search results or no results message
         const searchResults = page.locator(
@@ -106,7 +106,7 @@ test.describe('Search Functionality', () => {
 
         // Test Enter key
         await searchInput.first().press('Enter');
-        await page.waitForTimeout(500);
+        await page.waitForLoadState('domcontentloaded');
       } else {
         return; // Skip this test if search input not found
       }
@@ -153,7 +153,7 @@ test.describe('Search Functionality', () => {
 
         // Test search functionality in overlay
         await overlaySearchInput.fill('mobile test');
-        await page.waitForTimeout(1000);
+        await waitForSearchResults(page);
 
         // Check for search results
         const searchResults = searchOverlay.locator(
@@ -184,14 +184,14 @@ test.describe('Search Functionality', () => {
 
         // Try to close overlay with escape key
         await page.keyboard.press('Escape');
-        await page.waitForTimeout(500);
+        await page.waitForLoadState('domcontentloaded');
 
         // Check if overlay is closed
         const isOverlayVisible = await searchOverlay.isVisible();
         if (isOverlayVisible) {
           // Try clicking outside overlay
           await page.mouse.click(10, 10);
-          await page.waitForTimeout(500);
+          await page.waitForLoadState('domcontentloaded');
         }
       } catch (error) {
         console.log('Mobile search overlay not available, skipping test');
@@ -252,7 +252,7 @@ test.describe('Search Functionality', () => {
         // Test empty search
         await searchInput.first().fill('');
         await searchInput.first().press('Enter');
-        await page.waitForTimeout(1000);
+        await page.waitForLoadState('domcontentloaded');
 
         // Page should still be functional
         await expect(page.locator('main')).toBeVisible();
@@ -277,7 +277,7 @@ test.describe('Search Functionality', () => {
 
         for (const char of specialChars) {
           await searchInput.first().fill(char);
-          await page.waitForTimeout(500);
+          await page.waitForLoadState('domcontentloaded');
 
           // Should not cause errors
           await expect(page.locator('main')).toBeVisible();
@@ -301,7 +301,7 @@ test.describe('Search Functionality', () => {
         // Test long query
         const longQuery = 'a'.repeat(1000);
         await searchInput.first().fill(longQuery);
-        await page.waitForTimeout(1000);
+        await page.waitForLoadState('domcontentloaded');
 
         // Should not cause errors
         await expect(page.locator('main')).toBeVisible();
@@ -351,7 +351,7 @@ test.describe('Search Functionality', () => {
       if ((await searchInput.count()) > 0) {
         // Test Tab navigation to search input
         await page.keyboard.press('Tab');
-        await page.waitForTimeout(500);
+        await page.waitForLoadState('domcontentloaded');
 
         // Should be able to focus search input
         await searchInput.first().focus();

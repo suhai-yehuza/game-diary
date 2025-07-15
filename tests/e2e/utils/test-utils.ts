@@ -1,6 +1,5 @@
-import { Page, expect, Locator } from '@playwright/test';
+import { Page, expect } from '@playwright/test';
 import { TestConfig } from '@src/lib/types';
-import { PERFORMANCE_THRESHOLDS } from '@tests/e2e/utils/constants';
 import { APP_CONFIG, getAppUrl } from '../../../lib/config/app.config';
 
 /**
@@ -124,7 +123,8 @@ export async function safeGoto(
     try {
       // Wait a bit before retrying to avoid rapid successive navigation attempts
       if (attempt > 1) {
-        await page.waitForTimeout(1000 * attempt);
+        // Use exponential backoff instead of fixed timeout
+        await page.waitForLoadState('domcontentloaded', { timeout: 1000 * attempt });
       }
 
       await page.goto(url, {
@@ -214,7 +214,7 @@ export async function checkElementExists(
 export async function checkBasicPageStructure(page: Page): Promise<void> {
   // Wait for the page to be stable before checking content
   await waitForDOMContentLoaded(page);
-  await page.waitForTimeout(2000); // Give extra time for navigation to complete
+  await waitForPageStable(page);
 
   try {
     // Check if page shows API error (rate limiting)
@@ -286,7 +286,7 @@ export async function checkBasicPageStructure(page: Page): Promise<void> {
     const errorMessage = error instanceof Error ? error.message : String(error);
     if (errorMessage.includes('navigating') || errorMessage.includes('destroyed')) {
       console.log('Page navigation detected, waiting for stability...');
-      await page.waitForTimeout(3000);
+      await waitForPageStable(page);
       await waitForDOMContentLoaded(page);
 
       // Try again with a simpler check
@@ -338,7 +338,7 @@ export async function checkResponsiveBehavior(
   viewport: { width: number; height: number }
 ): Promise<void> {
   await page.setViewportSize(viewport);
-  await page.waitForTimeout(1000); // Wait for layout to adjust
+  await page.waitForLoadState('domcontentloaded');
 
   // Check that page is still functional
   await expect(page.locator('body')).toBeVisible();
@@ -363,7 +363,7 @@ export async function checkResponsiveBehavior(
 export async function checkAccessibilityBasics(page: Page): Promise<void> {
   // Wait for page to be stable before checking accessibility
   await waitForDOMContentLoaded(page);
-  await page.waitForTimeout(1000);
+  await waitForPageStable(page);
 
   // Check for proper heading structure - be more lenient
   const headings = page.locator('h1, h2, h3, h4, h5, h6');
@@ -486,7 +486,7 @@ export async function checkForConsoleErrors(page: Page): Promise<void> {
   });
 
   // Wait for page to stabilize and any initial errors to appear (reduced timeout)
-  await page.waitForTimeout(1000);
+  await page.waitForLoadState('domcontentloaded');
 
   // Filter out common non-critical errors and known flaky errors
   const criticalErrors = errors.filter(
@@ -550,7 +550,7 @@ export async function checkForNetworkErrors(page: Page): Promise<void> {
   });
 
   // Wait a bit for any failed requests to appear
-  await page.waitForTimeout(2000);
+  await waitForPageStable(page);
 
   // Filter out common non-critical failures
   const criticalFailures = failedRequests.filter(
@@ -575,7 +575,7 @@ export async function waitForElementStable(
   await element.waitFor({ state: 'visible', timeout });
 
   // Wait for any animations to complete
-  await page.waitForTimeout(1000);
+  await page.waitForLoadState('domcontentloaded');
 }
 
 /**
@@ -584,7 +584,7 @@ export async function waitForElementStable(
 export async function checkKeyboardNavigation(page: Page): Promise<void> {
   // Focus should be visible
   await page.keyboard.press('Tab');
-  await page.waitForTimeout(500);
+  await page.waitForLoadState('domcontentloaded');
 
   // Check that focus indicator is visible - use first() to avoid strict mode violation
   const focusedElement = page.locator(':focus');
@@ -747,7 +747,8 @@ export async function waitForCondition(
     if (await condition()) {
       return;
     }
-    await page.waitForTimeout(interval);
+    // Use a more reliable waiting mechanism
+    await page.waitForLoadState('domcontentloaded', { timeout: interval });
   }
 
   throw new Error(`Condition not met within ${timeout}ms`);
@@ -898,9 +899,7 @@ export async function setupE2EMocking(page: Page): Promise<void> {
   console.log('✅ E2E mocking setup complete');
 }
 
-/**
- * Enhanced safeGoto with automatic mocking setup
- */
+// Enhanced safeGoto with automatic mocking setup
 export async function safeGotoWithMocking(
   page: Page,
   path: string,
@@ -911,4 +910,101 @@ export async function safeGotoWithMocking(
 
   // Navigate to the page
   await safeGoto(page, path, config);
+}
+
+// Wait for page to be fully stable and ready for interaction
+export async function waitForPageStable(page: Page, timeout = TIMEOUTS.MEDIUM): Promise<void> {
+  await waitForNetworkIdle(page, timeout);
+  await page.waitForLoadState('domcontentloaded', { timeout });
+
+  // Wait for any loading indicators to disappear
+  const loadingSelectors = [
+    '.loading',
+    '[data-loading="true"]',
+    '.spinner',
+    '.loader',
+    '[aria-busy="true"]',
+  ];
+
+  for (const selector of loadingSelectors) {
+    try {
+      await page.waitForFunction(() => document.querySelector(selector) === null, {
+        timeout: 5000,
+      });
+    } catch {
+      // Loading indicator not found or already gone - that's fine
+    }
+  }
+}
+
+// Wait for component to be fully rendered and interactive
+export async function waitForComponentReady(
+  page: Page,
+  componentSelector: string,
+  timeout = TIMEOUTS.MEDIUM
+): Promise<void> {
+  await expect(page.locator(componentSelector)).toBeVisible({ timeout });
+
+  // Wait for any animations to complete
+  await page.waitForFunction(
+    () => {
+      const element = document.querySelector(componentSelector);
+      if (!element) return false;
+
+      // Check if element has any ongoing animations
+      const animations = element.getAnimations();
+      return animations.length === 0;
+    },
+    { timeout: 5000 }
+  );
+}
+
+// Wait for navigation to complete and page to be stable
+export async function waitForNavigationComplete(
+  page: Page,
+  timeout = TIMEOUTS.MEDIUM
+): Promise<void> {
+  await page.waitForLoadState('networkidle', { timeout });
+  await page.waitForLoadState('domcontentloaded', { timeout });
+
+  // Wait for main content to be visible
+  await expect(page.locator('main, [role="main"], .main-content')).toBeVisible({ timeout: 10000 });
+}
+
+// Wait for search results to load
+export async function waitForSearchResults(page: Page, timeout = TIMEOUTS.MEDIUM): Promise<void> {
+  // Wait for search results container or loading to complete
+  await page.waitForFunction(
+    () => {
+      const loadingElements = document.querySelectorAll(
+        '.loading, .spinner, [data-loading="true"]'
+      );
+      const resultElements = document.querySelectorAll(
+        '.search-results, [data-testid*="result"], .results'
+      );
+
+      return loadingElements.length === 0 && resultElements.length > 0;
+    },
+    { timeout }
+  );
+}
+
+// Wait for form to be ready for interaction
+export async function waitForFormReady(
+  page: Page,
+  formSelector = 'form',
+  timeout = TIMEOUTS.MEDIUM
+): Promise<void> {
+  await expect(page.locator(formSelector)).toBeVisible({ timeout });
+
+  // Wait for form inputs to be enabled
+  await page.waitForFunction(
+    () => {
+      const inputs = document.querySelectorAll(
+        `${formSelector} input, ${formSelector} textarea, ${formSelector} select`
+      );
+      return Array.from(inputs).every(input => !input.hasAttribute('disabled'));
+    },
+    { timeout: 5000 }
+  );
 }

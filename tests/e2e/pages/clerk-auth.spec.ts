@@ -1,9 +1,6 @@
 import { test, expect } from '@playwright/test';
-import {
-  runInteractivePageTests,
-  waitForNetworkIdle,
-  clearTestData,
-} from '@tests/e2e/utils/page-suites';
+import { waitForNetworkIdle, clearTestData, waitForPageStable } from '@tests/e2e/utils/test-utils';
+import { runInteractivePageTests } from '@tests/e2e/utils/page-suites';
 
 test.describe('Clerk Auth Modal', () => {
   // Run interactive page tests for home page (where auth modal is tested)
@@ -30,7 +27,7 @@ test.describe('Clerk Auth Modal', () => {
       await page.waitForLoadState('networkidle');
 
       // Wait for Clerk to initialize (if it's configured)
-      await page.waitForTimeout(2000);
+      await waitForPageStable(page);
 
       // Find the sign in button using the data-testid we have in the header
       const signInButton = page.getByTestId('sign-in-button');
@@ -50,7 +47,7 @@ test.describe('Clerk Auth Modal', () => {
       await signInButton.click();
 
       // Wait a bit for the modal to appear
-      await page.waitForTimeout(1000);
+      await page.waitForLoadState('domcontentloaded');
 
       // Check for Clerk modal elements - try multiple possible selectors
       const emailInput = page.locator(
@@ -93,7 +90,7 @@ test.describe('Clerk Auth Modal', () => {
       await page.waitForLoadState('networkidle');
 
       // Wait for Clerk to initialize (if it's configured)
-      await page.waitForTimeout(2000);
+      await waitForPageStable(page);
 
       // Find and click the sign in button
       const signInButton = page.getByTestId('sign-in-button');
@@ -106,7 +103,7 @@ test.describe('Clerk Auth Modal', () => {
         await signInButton.click();
 
         // Wait a bit and verify page is still stable
-        await page.waitForTimeout(2000);
+        await waitForPageStable(page);
         await expect(page.locator('body')).toBeVisible();
       } catch (error) {
         // If sign-in button is not found, the test might be running without Clerk configured
@@ -133,7 +130,7 @@ test.describe('Clerk Auth Modal', () => {
         await signUpButton.click();
 
         // Wait a bit and verify page is still stable
-        await page.waitForTimeout(2000);
+        await waitForPageStable(page);
         await expect(page.locator('body')).toBeVisible();
       }
     });
@@ -146,11 +143,11 @@ test.describe('Clerk Auth Modal', () => {
       // Open the sign in modal
       const signInButton = page.getByTestId('sign-in-button');
       await signInButton.click();
-      await page.waitForTimeout(1000);
+      await page.waitForLoadState('domcontentloaded');
 
       // Test escape key to close modal
       await page.keyboard.press('Escape');
-      await page.waitForTimeout(1000);
+      await page.waitForLoadState('domcontentloaded');
 
       // Check that modal is closed
       const emailInput = page.locator('input[type="email"]');
@@ -165,7 +162,7 @@ test.describe('Clerk Auth Modal', () => {
       // Open the sign in modal
       const signInButton = page.getByTestId('sign-in-button');
       await signInButton.click();
-      await page.waitForTimeout(1000);
+      await page.waitForLoadState('domcontentloaded');
 
       // Check that focus is properly managed within modal
       const modalContent = page.locator('[role="dialog"], .clerk-modal, [data-clerk-modal]');

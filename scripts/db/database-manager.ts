@@ -41,7 +41,7 @@ import { neon as neonDirect } from '@neondatabase/serverless';
 
 import { logger } from '@lib/core/logger';
 import { createDatabaseClient } from '@src/lib/db';
-import { setupAllTriggers } from '../utils/database-triggers';
+import { setupAllTriggersFromSql } from '../utils/database-triggers';
 import {
   parseScriptArgs,
   logScriptHeader,
@@ -955,7 +955,7 @@ async function setupDatabase(
 
     // Step 5: Set up triggers (for both modes)
     logger.info('\n⚡ Setting up database triggers...');
-    await setupAllTriggers(db, { dropExisting: true });
+    await setupAllTriggersFromSql(db, { dropExisting: true });
 
     if (mode === 'complete') {
       logScriptFooter('Complete Database Setup', true, [

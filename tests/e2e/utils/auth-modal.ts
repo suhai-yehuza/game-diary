@@ -24,9 +24,9 @@ export async function testSignInModal(
     }
   }
 
-  // Wait for the page to be fully loaded
+  // Wait for the page to be fully loaded and stable
   await waitForNetworkIdle(page);
-  await page.waitForTimeout(2000); // Give extra time for components to render
+  await page.waitForLoadState('domcontentloaded');
 
   // Use Locator API for the sign-in button
   const signInButton = page.getByTestId('sign-in-button');
@@ -62,7 +62,7 @@ export async function testSignInModal(
   }
 
   try {
-    // Wait for the button to be visible
+    // Wait for the button to be visible and stable
     await expect(signInButton).toBeVisible({ timeout: 15000 });
 
     const isDisabled = await signInButton.isDisabled();
