@@ -165,7 +165,7 @@ jobs:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
           VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
-          DEPLOYMENT_URL: ${{ secrets.VERCEL_STAGING_URL }}
+          DEPLOYMENT_URL: ${{ secrets.VERCEL_PREVIEW_URL }}
           E2E_AUTH_BYPASS: 'true'
           TEST_USER_EMAIL: 'test@game-diary.com'
           TEST_USER_ID: 'test_user_123'
@@ -195,7 +195,7 @@ jobs:
             if [ "${{ inputs.environment }}" = "Production" ]; then
               DEPLOYMENT_URL="https://game-diary.vercel.app"
             else
-              DEPLOYMENT_URL="https://game-diary-suhai-yehuza-suhais-projects-33a81a2a.vercel.app"
+              DEPLOYMENT_URL="${{ secrets.VERCEL_PREVIEW_URL }}"
             fi
           fi
 

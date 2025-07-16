@@ -106,7 +106,7 @@ All workflows use the same environment variables:
 - `VERCEL_ORG_ID`
 - `VERCEL_PROJECT_ID`
 - `DATABASE_URL`
-- `VERCEL_STAGING_URL`
+- `VERCEL_PREVIEW_URL`
 - `VERCEL_PRODUCTION_URL`
 - `VERCEL_TOKEN`
 - Clerk authentication keys

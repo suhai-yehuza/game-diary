@@ -169,7 +169,7 @@ pnpm workflow:deploy list
 
 ```bash
 # Required
-VERCEL_STAGING_URL=https://your-staging-app.vercel.app
+VERCEL_PREVIEW_URL=https://your-staging-app.vercel.app
 VERCEL_PRODUCTION_URL=https://your-production-app.vercel.app
 
 # Optional (with defaults)
@@ -185,7 +185,7 @@ MAX_RESPONSE_TIME=5000                # 5 seconds
 
 Set these in your repository settings:
 
-- `VERCEL_STAGING_URL`
+- `VERCEL_PREVIEW_URL`
 - `VERCEL_PRODUCTION_URL`
 - `VERCEL_TOKEN`
 - `DATABASE_URL`

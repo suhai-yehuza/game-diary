@@ -78,7 +78,7 @@ MAX_RESPONSE_TIME=5000         # 5 seconds max response time
 
 # Deployment URLs
 VERCEL_PREVIEW_URL=https://your-app-preview.vercel.app
-VERCEL_STAGING_URL=https://your-app-staging.vercel.app
+VERCEL_PREVIEW_URL=https://your-app-staging.vercel.app
 VERCEL_PRODUCTION_URL=https://your-app.vercel.app
 ```
 

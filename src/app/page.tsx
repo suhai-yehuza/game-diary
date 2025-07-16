@@ -19,7 +19,7 @@ export default function HomePage() {
             src="/logos/gamelog-large.svg"
             alt="Game Diary Logo"
             width={200}
-            height={50}
+            height={200}
             priority
             sizes="(max-width: 600px) 150px, 200px"
           />

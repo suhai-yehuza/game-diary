@@ -104,7 +104,6 @@ export default function ClerkSignUp() {
           alternativeMethodsBlockButton: CLERK_THEME.tailwind.secondaryLink,
         },
       }}
-      redirectUrl="/"
       signInUrl="/sign-in"
     />
   );

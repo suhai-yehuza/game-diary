@@ -323,9 +323,8 @@ UPSTASH_REDIS_REST_URL=[upstash-redis-url]
 UPSTASH_REDIS_REST_TOKEN=[upstash-redis-token]
 
 # Deployment URLs
-VERCEL_STAGING_URL=https://game-diary-suhai-yehuza-suhais-projects-33a81a2a.vercel.app
+VERCEL_PREVIEW_URL=https://game-diary-suhai-yehuza-suhais-projects-33a81a2a.vercel.app
 VERCEL_PRODUCTION_URL=https://game-diary.vercel.app
-VERCEL_PREVIEW_URL=https://game-diary-git-preview.vercel.app
 ```
 
 **Management Tasks**:

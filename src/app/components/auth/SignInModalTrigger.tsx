@@ -11,19 +11,8 @@ export default function SignInModalTrigger({ autoTrigger = false }: ISignInModal
   const router = useRouter();
 
   useEffect(() => {
-    // Check for SSO callback in URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const hash = window.location.hash;
-
-    // Handle SSO callback redirects
-    if (hash.includes('sso-callback') || urlParams.has('sign_up_fallback_redirect_url')) {
-      // Redirect to the proper sign-in page for SSO completion
-      const signInUrl = '/sign-in';
-      router.push(signInUrl);
-      return;
-    }
-
     // Auto-trigger the modal if explicitly requested or if we're in a specific context
+    const hash = window.location.hash;
     const shouldAutoClick = autoTrigger ?? (hash && hash !== '#');
 
     if (shouldAutoClick) {

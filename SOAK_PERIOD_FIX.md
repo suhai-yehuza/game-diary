@@ -110,7 +110,7 @@ fi
 pnpm soak:test
 
 # Test with valid URL (if available)
-VERCEL_STAGING_URL=https://your-app.vercel.app pnpm soak:start staging 60
+VERCEL_PREVIEW_URL=https://your-app.vercel.app pnpm soak:start staging 60
 ```
 
 ### CI/CD Testing

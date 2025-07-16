@@ -15,3 +15,16 @@ export default function SignInPage() {
     </div>
   );
 }
+
+// Add error boundary for this page
+export function generateMetadata() {
+  return {
+    title: 'Sign In - Game Diary',
+    description: 'Sign in to your Game Diary account',
+  };
+}
+
+// Add error handling
+export function generateStaticParams() {
+  return [];
+}

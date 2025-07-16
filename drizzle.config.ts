@@ -3,14 +3,20 @@ import dotenvFlow from 'dotenv-flow';
 import dotenv from 'dotenv';
 import fs from 'fs';
 
-// Load environment variables safely - only .env.local for dev/test
+// Load environment variables safely - prioritize .env.development for dev/test
 const isDevOrTest =
   process.env.NODE_ENV === 'development' ||
   process.env.NODE_ENV === 'test' ||
   !process.env.NODE_ENV;
 if (isDevOrTest) {
-  // For development/test, load .env.local as override synchronously
-  dotenvFlow.config();
+  // For development/test, load .env.development first, then .env.local as override
+  if (process.env.NODE_ENV === 'development' && fs.existsSync('.env.development')) {
+    dotenv.config({ path: '.env.development' });
+  }
+  // Then load .env.local as override if it exists
+  if (fs.existsSync('.env.local')) {
+    dotenv.config({ path: '.env.local' });
+  }
 } else {
   // For production/staging, only load environment-specific files synchronously
   const env = process.env.NODE_ENV || 'development';

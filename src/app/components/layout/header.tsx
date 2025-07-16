@@ -703,7 +703,6 @@ export function Header() {
                   loading="eager"
                   priority
                   className="w-11 h-11 cursor-pointer"
-                  style={{ height: 'auto' }}
                 />
               </Link>
             </div>

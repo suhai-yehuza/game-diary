@@ -1,5 +1,7 @@
 import type { Page } from '@playwright/test';
 
+import { STAGING_URL } from '@/lib/config/urls';
+
 /**
  * Authentication bypass utilities for deployment testing
  */
@@ -139,8 +141,7 @@ export async function setupAuthBypass(
   // Set authentication cookies to simulate logged-in state
   // First, ensure we have a valid URL to set cookies for
   const currentUrl = page.url();
-  const baseUrl =
-    currentUrl || 'https://game-diary-suhai-yehuza-suhais-projects-33a81a2a.vercel.app';
+  const baseUrl = currentUrl || STAGING_URL;
   const url = new URL(baseUrl);
 
   try {

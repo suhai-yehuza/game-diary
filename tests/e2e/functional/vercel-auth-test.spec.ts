@@ -5,6 +5,7 @@ import {
   isAuthBypassEnabled,
 } from '@tests/e2e/utils/auth-bypass';
 import { setupE2EMocking, safeGotoWithMocking } from '@tests/e2e/utils/test-utils';
+import { STAGING_URL } from '@/lib/config/urls';
 
 test.describe('Vercel Authentication Test', () => {
   test.beforeEach(async ({ page }) => {
@@ -29,7 +30,7 @@ test.describe('Vercel Authentication Test', () => {
     await expect(page).not.toHaveURL(/vercel\.com\/login/);
 
     // Verify we're on our app's domain
-    expect(page.url()).toContain('game-diary-suhai-yehuza-suhais-projects-33a81a2a.vercel.app');
+    expect(page.url()).toContain(STAGING_URL.replace('https://', ''));
 
     // Check that the page loaded successfully (not a Vercel error page)
     await expect(page.locator('body')).toBeVisible();

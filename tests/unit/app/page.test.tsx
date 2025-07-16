@@ -55,7 +55,7 @@ describe('HomePage', () => {
     expect(logo).toBeInTheDocument();
     expect(logo).toHaveAttribute('src', '/logos/gamelog-large.svg');
     expect(logo).toHaveAttribute('width', '200');
-    expect(logo).toHaveAttribute('height', '50');
+    expect(logo).toHaveAttribute('height', '200');
     expect(logo).toHaveAttribute('data-priority', 'true');
     expect(logo).toHaveAttribute('data-sizes', '(max-width: 600px) 150px, 200px');
   });

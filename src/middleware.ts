@@ -20,11 +20,9 @@ export const middleware = (
 )(async (auth, req) => {
   const url = new URL((req as { url: string }).url);
 
-  // Handle SSO callback redirects
-  if (url.hash.includes('sso-callback') || url.searchParams.has('sign_up_fallback_redirect_url')) {
-    // Redirect to the proper sign-in page for SSO completion
-    const signInUrl = new URL('/sign-in', url.origin);
-    return NextResponse.redirect(signInUrl);
+  // Handle OAuth callbacks - let Clerk handle these properly
+  if (url.pathname.includes('oauth_callback') || url.searchParams.has('__clerk_status')) {
+    return NextResponse.next();
   }
 
   // Vercel Automation Bypass for E2E

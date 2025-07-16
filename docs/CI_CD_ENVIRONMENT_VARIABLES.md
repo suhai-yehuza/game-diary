@@ -14,7 +14,7 @@ This guide shows you exactly where to set environment variables for soaking peri
 
 | Secret Name             | Value                                    | Description                    |
 | ----------------------- | ---------------------------------------- | ------------------------------ |
-| `VERCEL_STAGING_URL`    | `https://your-staging-app.vercel.app`    | Your staging deployment URL    |
+| `VERCEL_PREVIEW_URL`    | `https://your-staging-app.vercel.app`    | Your staging deployment URL    |
 | `VERCEL_PRODUCTION_URL` | `https://your-production-app.vercel.app` | Your production deployment URL |
 | `VERCEL_PREVIEW_URL`    | `https://your-preview-app.vercel.app`    | Your preview deployment URL    |
 
@@ -56,7 +56,7 @@ After a deployment, check the GitHub Actions logs for the deployment URL.
 ### Required for Soaking Periods
 
 ```bash
-VERCEL_STAGING_URL=https://your-staging-app.vercel.app
+VERCEL_PREVIEW_URL=https://your-staging-app.vercel.app
 VERCEL_PRODUCTION_URL=https://your-production-app.vercel.app
 VERCEL_PREVIEW_URL=https://your-preview-app.vercel.app
 ```
@@ -87,7 +87,7 @@ Your staging workflow (`.github/workflows/staging.yml`) now includes:
 
 ```bash
 # Test with local development server
-VERCEL_STAGING_URL="${VERCEL_STAGING_URL:-http://localhost:3000}" ./scripts/workflow.sh soak start staging 60
+VERCEL_PREVIEW_URL="${VERCEL_PREVIEW_URL:-http://localhost:3000}" ./scripts/workflow.sh soak start staging 60
 
 # Check status
 ./scripts/workflow.sh soak status
@@ -105,7 +105,7 @@ VERCEL_STAGING_URL="${VERCEL_STAGING_URL:-http://localhost:3000}" ./scripts/work
 ### Common Issues
 
 **Issue**: `URL: ` (empty in status)
-**Solution**: Set `VERCEL_STAGING_URL` secret in GitHub
+**Solution**: Set `VERCEL_PREVIEW_URL` secret in GitHub
 
 **Issue**: Health checks failing
 **Solution**: Ensure your app has `/api/health` endpoint
@@ -120,7 +120,7 @@ VERCEL_STAGING_URL="${VERCEL_STAGING_URL:-http://localhost:3000}" ./scripts/work
 
 ```bash
 # Check environment variables
-echo $VERCEL_STAGING_URL
+echo $VERCEL_PREVIEW_URL
 
 # Test health endpoint manually
 curl https://your-staging-app.vercel.app/api/health
