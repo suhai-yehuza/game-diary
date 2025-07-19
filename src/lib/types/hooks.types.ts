@@ -1,5 +1,6 @@
 // Types file: hooks.types.ts
 import type { IGamesApiResponse } from './externalApiTypes';
+import type { IPerformanceMetrics } from './coreTypes';
 
 // Types moved from src/hooks/use-api-cache.ts
 export interface ICacheEntry {
@@ -14,7 +15,15 @@ export interface IApiCacheOptions {
 }
 
 // Types moved from src/hooks/use-performance.ts
-export interface IPerformanceMetrics {
+export interface IUsePerformanceOptions {
+  componentName: string;
+  enableMemoryTracking?: boolean;
+  enableRenderTracking?: boolean;
+  onMetrics?: (metrics: IHookPerformanceMetrics) => void;
+}
+
+// Hook-specific performance metrics (simplified version)
+export interface IHookPerformanceMetrics {
   componentName: string;
   mountTime: number;
   renderTime: number;
@@ -22,12 +31,8 @@ export interface IPerformanceMetrics {
   timestamp: string;
 }
 
-export interface IUsePerformanceOptions {
-  componentName: string;
-  enableMemoryTracking?: boolean;
-  enableRenderTracking?: boolean;
-  onMetrics?: (metrics: IPerformanceMetrics) => void;
-}
+// Re-export IPerformanceMetrics for backward compatibility
+export type { IPerformanceMetrics } from './coreTypes';
 
 // Types moved from src/hooks/use-live-games.ts
 export interface IUseLiveGamesOptions {

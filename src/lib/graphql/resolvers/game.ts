@@ -80,11 +80,19 @@ export const gameQueryResolvers = {
 
     const whereClause = whereConditions.length > 0 ? and(...whereConditions) : undefined;
 
+    // Get the paginated results
     const games = await db()?.query.nba_games.findMany({
       where: whereClause,
       limit,
       orderBy: [desc(nba_games.date)],
     });
+
+    // Get the total count for pagination
+    const totalCountResult = await db()
+      ?.select({ count: sql<number>`count(*)` })
+      .from(nba_games)
+      .where(whereClause ?? undefined);
+    const totalCount = totalCountResult?.[0]?.count ?? 0;
 
     const edges =
       games?.map(game => ({
@@ -112,7 +120,7 @@ export const gameQueryResolvers = {
         startCursor: edges[0]?.cursor || null,
         endCursor: edges[edges.length - 1]?.cursor || null,
       },
-      totalCount: edges.length,
+      totalCount: totalCount,
     };
   },
 
@@ -124,11 +132,19 @@ export const gameQueryResolvers = {
   ) => {
     const limit = args.first ?? API_CONFIG.pagination.DEFAULT_PAGE_SIZE;
 
+    // Get the paginated results
     const games = await db()?.query.nba_games.findMany({
       where: eq(nba_games.status, 'LIVE'),
       limit,
       orderBy: [desc(nba_games.date)],
     });
+
+    // Get the total count for pagination
+    const totalCountResult = await db()
+      ?.select({ count: sql<number>`count(*)` })
+      .from(nba_games)
+      .where(eq(nba_games.status, 'LIVE'));
+    const totalCount = totalCountResult?.[0]?.count ?? 0;
 
     const edges =
       games?.map(game => ({
@@ -156,7 +172,7 @@ export const gameQueryResolvers = {
         startCursor: edges[0]?.cursor || null,
         endCursor: edges[edges.length - 1]?.cursor || null,
       },
-      totalCount: edges.length,
+      totalCount: totalCount,
     };
   },
 };

@@ -54,6 +54,7 @@ export const commentQueryResolvers = {
 
     const whereClause = whereConditions.length > 0 ? and(...whereConditions) : undefined;
 
+    // Get the paginated results
     const commentsData = await db()?.query.comments.findMany({
       where: whereClause,
       limit,
@@ -62,6 +63,13 @@ export const commentQueryResolvers = {
         user: true,
       },
     });
+
+    // Get the total count for pagination
+    const totalCountResult = await db()
+      ?.select({ count: sql<number>`count(*)` })
+      .from(comments)
+      .where(whereClause ?? undefined);
+    const totalCount = totalCountResult?.[0]?.count ?? 0;
 
     const edges =
       commentsData?.map(comment => ({
@@ -96,7 +104,7 @@ export const commentQueryResolvers = {
         startCursor: edges[0]?.cursor ?? null,
         endCursor: edges[edges.length - 1]?.cursor ?? null,
       },
-      totalCount: edges.length,
+      totalCount: totalCount,
     };
   },
 };

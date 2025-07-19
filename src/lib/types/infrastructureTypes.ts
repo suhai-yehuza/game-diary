@@ -105,6 +105,7 @@ export interface ICacheEntry {
   ttl: number;
 }
 
+// Cache configuration interface
 export interface ICacheConfig {
   defaultTTL?: number;
   maxSize?: number;

@@ -87,33 +87,56 @@ export interface IChartDataset {
   [key: string]: unknown;
 }
 
-// Component interfaces from header.tsx
-export interface IButtonProps {
+// ========================================
+// BASE COMPONENT TYPES
+// ========================================
+
+// Base button interface that can be extended
+export interface IBaseButtonProps {
+  className?: string;
+  disabled?: boolean;
+  onClick?: () => void;
+  type?: 'button' | 'submit' | 'reset';
+}
+
+// Specific button variants
+export interface IButtonProps extends IBaseButtonProps {
   children: React.ReactNode;
   variant?: 'default' | 'ghost';
   size?: 'default' | 'icon';
-  className?: string;
-  onClick?: () => void;
-  type?: 'button' | 'submit' | 'reset';
-  disabled?: boolean;
   'aria-label'?: string;
 }
 
-export interface IInputProps {
+export interface IAdminButtonProps extends IBaseButtonProps {
+  children: React.ReactNode;
+  variant?: 'default' | 'outline';
+  size?: 'default' | 'sm';
+}
+
+// Base input interface that can be extended
+export interface IBaseInputProps {
   className?: string;
   type?: string;
   placeholder?: string;
   value?: string;
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  id?: string;
+  required?: boolean;
+}
+
+// Specific input variants
+export interface IInputProps extends IBaseInputProps {
   onFocus?: () => void;
   onBlur?: () => void;
   autoComplete?: string;
   spellCheck?: boolean;
-  id?: string;
   ref?: (input: HTMLInputElement | null) => void;
 }
 
-// Component interfaces from admin database page
+// ========================================
+// ADMIN & API TYPES
+// ========================================
+
 export interface IApiResponse {
   success: boolean;
   data?: Record<string, unknown>[];
@@ -132,42 +155,7 @@ export interface IBadgeProps {
   className?: string;
 }
 
-export interface IAdminButtonProps {
-  children: React.ReactNode;
-  variant?: 'default' | 'outline';
-  size?: 'default' | 'sm';
-  className?: string;
-  onClick?: () => void;
-  disabled?: boolean;
-}
-
 // Provider interfaces
 export interface IClerkProviderWrapperProps {
   children: React.ReactNode;
 }
-
-// ========================================
-// CARD COMPONENT TYPES - moved to componentTypes.ts
-// ========================================
-
-// Card component types are now exported from componentTypes.ts
-
-export type FieldConfig = {
-  label: string;
-  id: string;
-  type?: string;
-  value: string;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  required?: boolean;
-  placeholder?: string;
-};
-
-export type DynamicFormProps = {
-  fields: FieldConfig[];
-  onSubmit: (e: React.FormEvent) => void;
-  loading: boolean;
-  title: string;
-  description?: string;
-  submitLabel: string;
-  className?: string;
-};

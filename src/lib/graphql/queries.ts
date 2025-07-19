@@ -127,9 +127,6 @@ export const GAME_LOG_FRAGMENT = gql`
     user {
       ...UserSummaryFragment
     }
-    game {
-      ...GameFragment
-    }
     comments {
       edges {
         node {
@@ -229,7 +226,6 @@ export const GET_GAME_LOGS = gql`
     }
   }
   ${GAME_LOG_FRAGMENT}
-  ${GAME_FRAGMENT}
   ${USER_SUMMARY_FRAGMENT}
   ${COMMENT_FRAGMENT}
   ${REACTION_FRAGMENT}
@@ -242,7 +238,6 @@ export const GET_GAME_LOG = gql`
     }
   }
   ${GAME_LOG_FRAGMENT}
-  ${GAME_FRAGMENT}
   ${USER_SUMMARY_FRAGMENT}
   ${COMMENT_FRAGMENT}
   ${REACTION_FRAGMENT}
@@ -314,4 +309,76 @@ export const GET_REACTIONS = gql`
   }
   ${REACTION_FRAGMENT}
   ${USER_SUMMARY_FRAGMENT}
+`;
+
+// Admin Search Queries
+export const SEARCH_USERS_ADMIN = gql`
+  query SearchUsersAdmin($first: Int, $after: String, $searchTerm: String, $searchField: String) {
+    searchUsers(first: $first, after: $after, searchTerm: $searchTerm, searchField: $searchField) {
+      edges {
+        node {
+          id
+          username
+          first_name
+          last_name
+          email_address
+          phone_number
+          image_url
+          created_at
+        }
+        cursor
+      }
+      pageInfo {
+        hasNextPage
+        hasPreviousPage
+        startCursor
+        endCursor
+      }
+      totalCount
+    }
+  }
+`;
+
+export const SEARCH_GAME_LOGS_ADMIN = gql`
+  query SearchGameLogsAdmin(
+    $first: Int
+    $after: String
+    $searchTerm: String
+    $searchField: String
+  ) {
+    searchGameLogs(
+      first: $first
+      after: $after
+      searchTerm: $searchTerm
+      searchField: $searchField
+    ) {
+      edges {
+        node {
+          id
+          game_id
+          classification
+          rating_for_game
+          watched_setting
+          watched_location
+          watched_scope
+          watched_date
+          created_at
+          user {
+            id
+            username
+            first_name
+            last_name
+          }
+        }
+        cursor
+      }
+      pageInfo {
+        hasNextPage
+        hasPreviousPage
+        startCursor
+        endCursor
+      }
+      totalCount
+    }
+  }
 `;

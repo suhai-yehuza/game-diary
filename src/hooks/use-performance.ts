@@ -1,6 +1,6 @@
 import { useEffect, useRef, useCallback } from 'react';
 
-import type { IPerformanceMetrics, IUsePerformanceOptions } from '@/lib/types/hooks.types';
+import type { IHookPerformanceMetrics, IUsePerformanceOptions } from '@/lib/types/hooks.types';
 
 export function usePerformance(options: IUsePerformanceOptions) {
   const {
@@ -18,7 +18,7 @@ export function usePerformance(options: IUsePerformanceOptions) {
     const renderTime = Date.now() - renderStartRef.current;
     const mountTime = Date.now() - mountTimeRef.current;
 
-    const metrics: IPerformanceMetrics = {
+    const metrics: IHookPerformanceMetrics = {
       componentName,
       mountTime,
       renderTime,

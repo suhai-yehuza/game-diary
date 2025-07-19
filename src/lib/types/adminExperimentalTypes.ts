@@ -1,28 +1,27 @@
 // Types for Admin Experimental components and pages
 import type { ReactNode, FormEvent } from 'react';
 import type { TabValue } from './constantTypes';
+import type { IBaseButtonProps, IBaseInputProps } from './uiTypes';
+import type {
+  IGamesFormProps,
+  IGameStatsFormProps,
+  ITeamsFormProps,
+  ITeamStatsFormProps,
+  IPlayersFormProps,
+  IPlayerStatsFormProps,
+  IStandingsFormProps,
+} from './formTypes';
 
-// Button
-export type ButtonProps = {
+// Button - extends base button interface
+export type ButtonProps = IBaseButtonProps & {
   children: ReactNode;
   variant?: 'default' | 'outline';
   size?: 'default' | 'sm';
-  className?: string;
-  disabled?: boolean;
-  type?: 'button' | 'submit' | 'reset';
   onClick?: React.MouseEventHandler<HTMLButtonElement>;
 };
 
-// Input
-export type InputProps = {
-  className?: string;
-  type?: string;
-  placeholder?: string;
-  value?: string;
-  onChange?: React.ChangeEventHandler<HTMLInputElement>;
-  id?: string;
-  required?: boolean;
-};
+// Input - extends base input interface
+export type InputProps = IBaseInputProps;
 
 // Label
 export type LabelProps = {
@@ -32,60 +31,15 @@ export type LabelProps = {
   required?: boolean;
 };
 
-// GamesForm
-export type GamesFormProps = {
-  gameParams: Record<string, string>;
-  setGameParams: (params: Record<string, string>) => void;
-  loading: boolean;
-  onSubmit: (e: FormEvent) => void | Promise<void>;
-};
-
-// GameStatsForm
-export type GameStatsFormProps = {
-  gameStatsId: string;
-  setGameStatsId: (id: string) => void;
-  loading: boolean;
-  onSubmit: (e: FormEvent) => void | Promise<void>;
-};
-
-// TeamsForm
-export type TeamsFormProps = {
-  teamParams: Record<string, string>;
-  setTeamParams: (params: Record<string, string>) => void;
-  loading: boolean;
-  onSubmit: (e: FormEvent) => void | Promise<void>;
-};
-
-// TeamStatsForm
-export type TeamStatsFormProps = {
-  teamStatsParams: Record<string, string>;
-  setTeamStatsParams: (params: Record<string, string>) => void;
-  loading: boolean;
-  onSubmit: (e: FormEvent) => void | Promise<void>;
-};
-
-// PlayersForm
-export type PlayersFormProps = {
-  playerParams: Record<string, string>;
-  setPlayerParams: (params: Record<string, string>) => void;
-  loading: boolean;
-  onSubmit: (e: FormEvent) => void | Promise<void>;
-};
-
-// PlayerStatsForm
-export type PlayerStatsFormProps = {
-  playerStatsParams: Record<string, string>;
-  setPlayerStatsParams: (params: Record<string, string>) => void;
-  loading: boolean;
-  onSubmit: (e: FormEvent) => void | Promise<void>;
-};
-
-// StandingsForm
-export type StandingsFormProps = {
-  standingsParams: Record<string, string>;
-  setStandingsParams: (params: Record<string, string>) => void;
-  loading: boolean;
-  onSubmit: (e: FormEvent) => void | Promise<void>;
+// Form types - re-export from formTypes.ts
+export type {
+  IGamesFormProps as GamesFormProps,
+  IGameStatsFormProps as GameStatsFormProps,
+  ITeamsFormProps as TeamsFormProps,
+  ITeamStatsFormProps as TeamStatsFormProps,
+  IPlayersFormProps as PlayersFormProps,
+  IPlayerStatsFormProps as PlayerStatsFormProps,
+  IStandingsFormProps as StandingsFormProps,
 };
 
 // DataDisplay

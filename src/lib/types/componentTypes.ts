@@ -1,5 +1,10 @@
 import type { HTMLAttributes, ReactNode } from 'react';
 import { PropsWithChildren } from 'react';
+import type { IBaseButtonProps, IBaseInputProps } from './uiTypes';
+
+// ========================================
+// CARD COMPONENT TYPES
+// ========================================
 
 export type ICardProps = HTMLAttributes<HTMLDivElement>;
 export type ICardHeaderProps = HTMLAttributes<HTMLDivElement>;
@@ -7,6 +12,10 @@ export type ICardTitleProps = HTMLAttributes<HTMLHeadingElement>;
 export type ICardDescriptionProps = HTMLAttributes<HTMLParagraphElement>;
 export type ICardContentProps = HTMLAttributes<HTMLDivElement>;
 export type ICardFooterProps = HTMLAttributes<HTMLDivElement>;
+
+// ========================================
+// THEME & NAVIGATION TYPES
+// ========================================
 
 export interface IThemeToggleProps {
   className?: string;
@@ -22,15 +31,21 @@ export type NavItemProps = PropsWithChildren<{
   className?: string;
 }>;
 
+// ========================================
+// AUTHENTICATION BUTTON TYPES
+// ========================================
+
 export interface ISignUpButtonProps extends HTMLAttributes<HTMLButtonElement> {
   children: React.ReactNode;
-  className?: string;
 }
 
 export interface ISignInButtonProps extends HTMLAttributes<HTMLButtonElement> {
   children: React.ReactNode;
-  className?: string;
 }
+
+// ========================================
+// PROVIDER TYPES
+// ========================================
 
 export interface IClientProvidersProps {
   children: ReactNode;

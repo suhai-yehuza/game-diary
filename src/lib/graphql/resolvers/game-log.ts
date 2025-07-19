@@ -190,6 +190,7 @@ export const gameLogQueryResolvers = {
 
     const whereClause = whereConditions.length > 0 ? and(...whereConditions) : undefined;
 
+    // Get the paginated results
     const gameLogs = await db()?.query.game_logs.findMany({
       where: whereClause,
       limit,
@@ -198,6 +199,13 @@ export const gameLogQueryResolvers = {
         user: true,
       },
     });
+
+    // Get the total count for pagination
+    const totalCountResult = await db()
+      ?.select({ count: sql<number>`count(*)` })
+      .from(game_logs)
+      .where(whereClause ?? undefined);
+    const totalCount = totalCountResult?.[0]?.count ?? 0;
 
     const edges =
       gameLogs?.map(gameLog => ({
@@ -235,7 +243,142 @@ export const gameLogQueryResolvers = {
         startCursor: edges[0]?.cursor || null,
         endCursor: edges[edges.length - 1]?.cursor || null,
       },
-      totalCount: edges.length,
+      totalCount: totalCount,
+    };
+  },
+
+  // Search game logs with advanced filtering
+  searchGameLogs: async (
+    _parent: unknown,
+    args: {
+      first?: number;
+      after?: string;
+      searchTerm?: string;
+      searchField?: string;
+      filters?: {
+        search?: string;
+        userId?: string;
+        gameId?: string;
+        minRating?: number;
+        maxRating?: number;
+        watchedSetting?: string;
+        classification?: string;
+        dateRange?: { start: Date; end?: Date };
+        orderBy?: string;
+      };
+    },
+    context: GraphQLContext
+  ) => {
+    if (!context.user?.id) {
+      throw new AuthorizationError('Authentication required');
+    }
+
+    const {
+      first = API_CONFIG.pagination.DEFAULT_PAGE_SIZE,
+      after,
+      searchTerm,
+      searchField,
+    } = args;
+
+    console.log('🔍 searchGameLogs called with:', { searchTerm, searchField, first, after });
+
+    const whereConditions = [];
+
+    // Add search conditions based on searchField
+    if (searchTerm?.trim()) {
+      const trimmedSearch = searchTerm.trim().toLowerCase();
+
+      if (searchField === 'all' || !searchField) {
+        // Search across multiple fields
+        whereConditions.push(
+          sql`(
+            LOWER(${game_logs.user_id}) LIKE ${`%${trimmedSearch}%`} OR
+            LOWER(${game_logs.game_id}) LIKE ${`%${trimmedSearch}%`} OR
+            LOWER(${game_logs.watched_setting}) LIKE ${`%${trimmedSearch}%`} OR
+            CAST(${game_logs.rating_for_game} AS TEXT) LIKE ${`%${trimmedSearch}%`}
+          )`
+        );
+      } else if (searchField === 'user_id') {
+        whereConditions.push(sql`LOWER(${game_logs.user_id}) LIKE ${`%${trimmedSearch}%`}`);
+      } else if (searchField === 'game_id') {
+        whereConditions.push(sql`LOWER(${game_logs.game_id}) LIKE ${`%${trimmedSearch}%`}`);
+      } else if (searchField === 'rating_for_game') {
+        whereConditions.push(
+          sql`CAST(${game_logs.rating_for_game} AS TEXT) LIKE ${`%${trimmedSearch}%`}`
+        );
+      } else if (searchField === 'watched_setting') {
+        whereConditions.push(sql`LOWER(${game_logs.watched_setting}) LIKE ${`%${trimmedSearch}%`}`);
+      }
+    }
+
+    // Add cursor-based pagination
+    if (after) {
+      whereConditions.push(sql`${game_logs.id} > ${after}`);
+    }
+
+    const whereClause = whereConditions.length > 0 ? and(...whereConditions) : undefined;
+
+    console.log('🔍 Where conditions:', whereConditions.length);
+
+    // Get the paginated results
+    const gameLogs = await db()?.query.game_logs.findMany({
+      where: whereClause,
+      limit: first,
+      orderBy: [desc(game_logs.created_at)],
+      with: {
+        user: true,
+      },
+    });
+
+    console.log('🔍 Found game logs:', gameLogs?.length || 0);
+
+    // Get the total count for pagination
+    const totalCountResult = await db()
+      ?.select({ count: sql<number>`count(*)` })
+      .from(game_logs)
+      .where(whereClause ?? undefined);
+    const totalCount = totalCountResult?.[0]?.count ?? 0;
+
+    console.log('🔍 Total count:', totalCount);
+
+    const edges =
+      gameLogs?.map(gameLog => ({
+        cursor: gameLog.id,
+        node: {
+          id: gameLog.id,
+          game_id: gameLog.game_id ?? '',
+          rating_for_game: gameLog.rating_for_game,
+          notes: gameLog.notes,
+          tags: gameLog.tags,
+          watched_date: gameLog.watched_date,
+          watched_setting: gameLog.watched_setting,
+          watched_location: gameLog.watched_location,
+          watched_scope: gameLog.watched_scope,
+          classification: gameLog.classification,
+          created_at: gameLog.created_at,
+          updated_at: gameLog.updated_at,
+          deleted_at: gameLog.deleted_at,
+          user: {
+            id: gameLog.user?.id ?? '',
+            username: gameLog.user?.username ?? '',
+            first_name: gameLog.user?.first_name ?? '',
+            last_name: gameLog.user?.last_name ?? '',
+            email_address: null,
+            phone_number: null,
+            image_url: gameLog.user?.image_url ?? null,
+          },
+        },
+      })) || [];
+
+    return {
+      edges,
+      pageInfo: {
+        hasNextPage: edges.length === first,
+        hasPreviousPage: !!after,
+        startCursor: edges[0]?.cursor || null,
+        endCursor: edges[edges.length - 1]?.cursor || null,
+      },
+      totalCount: totalCount,
     };
   },
 };

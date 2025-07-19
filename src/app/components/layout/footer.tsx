@@ -13,90 +13,72 @@ export function Footer() {
   // SSR: Render a static, neutral footer to avoid empty space or flash
   if (!mounted) {
     return (
-      <footer className="w-full border-t pt-1 pb-1 mt-1 bg-neutral-200 text-neutral-900 border-neutral-300">
+      <footer className="w-full border-t border-border bg-background text-foreground py-4">
         <div className="max-w-5xl mx-auto px-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 text-center md:text-left">
             <div>
-              <h3 className="text-xs font-bold mb-2 tracking-wide text-neutral-700 uppercase">
+              <h3 className="text-xs font-bold mb-2 tracking-wide text-muted-foreground uppercase">
                 About
               </h3>
               <ul className="space-y-1 text-xs">
                 <li>
-                  <a
-                    href="#about"
-                    className="hover:text-emerald-600 transition-colors block py-0.5"
-                  >
+                  <a href="#about" className="hover:text-primary transition-colors block py-0.5">
                     About Us
                   </a>
                 </li>
                 <li>
-                  <a href="#news" className="hover:text-emerald-600 transition-colors block py-0.5">
+                  <a href="#news" className="hover:text-primary transition-colors block py-0.5">
                     News
                   </a>
                 </li>
               </ul>
             </div>
             <div>
-              <h3 className="text-xs font-bold mb-2 tracking-wide text-neutral-700 uppercase">
+              <h3 className="text-xs font-bold mb-2 tracking-wide text-muted-foreground uppercase">
                 Help
               </h3>
               <ul className="space-y-1 text-xs">
                 <li>
-                  <a href="#api" className="hover:text-emerald-600 transition-colors block py-0.5">
+                  <a href="#api" className="hover:text-primary transition-colors block py-0.5">
                     API
                   </a>
                 </li>
                 <li>
-                  <a
-                    href="#contact"
-                    className="hover:text-emerald-600 transition-colors block py-0.5"
-                  >
+                  <a href="#contact" className="hover:text-primary transition-colors block py-0.5">
                     Contact Us
                   </a>
                 </li>
               </ul>
             </div>
             <div>
-              <h3 className="text-xs font-bold mb-2 tracking-wide text-neutral-700 uppercase">
+              <h3 className="text-xs font-bold mb-2 tracking-wide text-muted-foreground uppercase">
                 Follow Us
               </h3>
               <ul className="space-y-1 text-xs">
                 <li>
-                  <a
-                    href="#twitter"
-                    className="hover:text-emerald-600 transition-colors block py-0.5"
-                  >
+                  <a href="#twitter" className="hover:text-primary transition-colors block py-0.5">
                     Twitter
                   </a>
                 </li>
                 <li>
-                  <a
-                    href="#github"
-                    className="hover:text-emerald-600 transition-colors block py-0.5"
-                  >
+                  <a href="#github" className="hover:text-primary transition-colors block py-0.5">
                     GitHub
                   </a>
                 </li>
               </ul>
             </div>
             <div>
-              <h3 className="text-xs font-bold mb-2 tracking-wide text-neutral-700 uppercase">
+              <h3 className="text-xs font-bold mb-2 tracking-wide text-muted-foreground uppercase">
                 Legal
               </h3>
               <ul className="space-y-1 text-xs">
                 <li>
-                  <a
-                    href="#privacy"
-                    className="hover:text-emerald-600 transition-colors block py-0.5"
-                  >
+                  <a href="#privacy" className="hover:text-primary transition-colors block py-0.5">
                     Privacy Policy
                   </a>
                 </li>
                 <li>
-                  <a
-                    href="#terms"
-                    className="hover:text-emerald-600 transition-colors block py-0.5"
-                  >
+                  <a href="#terms" className="hover:text-primary transition-colors block py-0.5">
                     Terms of Service
                   </a>
                 </li>
@@ -108,31 +90,45 @@ export function Footer() {
     );
   }
 
-  // Hydrated: Use the correct theme
+  // Hydrated: Use inverted theme colors
   const isDark = resolvedTheme === 'dark';
   return (
     <footer
-      className={`w-full border-t pt-1 pb-1 mt-1 ${
+      className={`w-full border-t py-4 ${
         isDark
-          ? 'bg-neutral-100 text-neutral-900 border-neutral-200'
-          : 'bg-neutral-900 text-neutral-300 border-neutral-800'
+          ? 'bg-white text-gray-900 border-gray-200'
+          : 'bg-gray-900 text-gray-100 border-gray-700'
       }`}
     >
       <div className="max-w-5xl mx-auto px-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 text-center md:text-left">
           {/* About Section */}
           <div>
-            <h3 className="text-xs font-bold mb-2 tracking-wide text-neutral-100 uppercase">
+            <h3
+              className={`text-xs font-bold mb-2 tracking-wide uppercase ${
+                isDark ? 'text-gray-700' : 'text-gray-300'
+              }`}
+            >
               About
             </h3>
             <ul className="space-y-1 text-xs">
               <li>
-                <a href="#about" className="hover:text-emerald-400 transition-colors block py-0.5">
+                <a
+                  href="#about"
+                  className={`hover:text-blue-600 transition-colors block py-0.5 ${
+                    isDark ? 'text-gray-900' : 'text-gray-100'
+                  }`}
+                >
                   About Us
                 </a>
               </li>
               <li>
-                <a href="#news" className="hover:text-emerald-400 transition-colors block py-0.5">
+                <a
+                  href="#news"
+                  className={`hover:text-blue-600 transition-colors block py-0.5 ${
+                    isDark ? 'text-gray-900' : 'text-gray-100'
+                  }`}
+                >
                   News
                 </a>
               </li>
@@ -141,19 +137,30 @@ export function Footer() {
 
           {/* Help Section */}
           <div>
-            <h3 className="text-xs font-bold mb-2 tracking-wide text-neutral-100 uppercase">
+            <h3
+              className={`text-xs font-bold mb-2 tracking-wide uppercase ${
+                isDark ? 'text-gray-700' : 'text-gray-300'
+              }`}
+            >
               Help
             </h3>
             <ul className="space-y-1 text-xs">
               <li>
-                <a href="#api" className="hover:text-emerald-400 transition-colors block py-0.5">
+                <a
+                  href="#api"
+                  className={`hover:text-blue-600 transition-colors block py-0.5 ${
+                    isDark ? 'text-gray-900' : 'text-gray-100'
+                  }`}
+                >
                   API
                 </a>
               </li>
               <li>
                 <a
                   href="#contact"
-                  className="hover:text-emerald-400 transition-colors block py-0.5"
+                  className={`hover:text-blue-600 transition-colors block py-0.5 ${
+                    isDark ? 'text-gray-900' : 'text-gray-100'
+                  }`}
                 >
                   Contact Us
                 </a>
@@ -163,20 +170,31 @@ export function Footer() {
 
           {/* Social Links */}
           <div>
-            <h3 className="text-xs font-bold mb-2 tracking-wide text-neutral-100 uppercase">
+            <h3
+              className={`text-xs font-bold mb-2 tracking-wide uppercase ${
+                isDark ? 'text-gray-700' : 'text-gray-300'
+              }`}
+            >
               Follow Us
             </h3>
             <ul className="space-y-1 text-xs">
               <li>
                 <a
                   href="#twitter"
-                  className="hover:text-emerald-400 transition-colors block py-0.5"
+                  className={`hover:text-blue-600 transition-colors block py-0.5 ${
+                    isDark ? 'text-gray-900' : 'text-gray-100'
+                  }`}
                 >
                   Twitter
                 </a>
               </li>
               <li>
-                <a href="#github" className="hover:text-emerald-400 transition-colors block py-0.5">
+                <a
+                  href="#github"
+                  className={`hover:text-blue-600 transition-colors block py-0.5 ${
+                    isDark ? 'text-gray-900' : 'text-gray-100'
+                  }`}
+                >
                   GitHub
                 </a>
               </li>
@@ -185,20 +203,31 @@ export function Footer() {
 
           {/* Legal */}
           <div>
-            <h3 className="text-xs font-bold mb-2 tracking-wide text-neutral-100 uppercase">
+            <h3
+              className={`text-xs font-bold mb-2 tracking-wide uppercase ${
+                isDark ? 'text-gray-700' : 'text-gray-300'
+              }`}
+            >
               Legal
             </h3>
             <ul className="space-y-1 text-xs">
               <li>
                 <a
                   href="#privacy"
-                  className="hover:text-emerald-400 transition-colors block py-0.5"
+                  className={`hover:text-blue-600 transition-colors block py-0.5 ${
+                    isDark ? 'text-gray-900' : 'text-gray-100'
+                  }`}
                 >
                   Privacy Policy
                 </a>
               </li>
               <li>
-                <a href="#terms" className="hover:text-emerald-400 transition-colors block py-0.5">
+                <a
+                  href="#terms"
+                  className={`hover:text-blue-600 transition-colors block py-0.5 ${
+                    isDark ? 'text-gray-900' : 'text-gray-100'
+                  }`}
+                >
                   Terms of Service
                 </a>
               </li>

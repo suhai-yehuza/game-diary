@@ -15,6 +15,13 @@ type Query {
     searchField: String
     filters: UserSearchFilters
   ): UserConnection!
+  searchGameLogs(
+    first: Int
+    after: String
+    searchTerm: String
+    searchField: String
+    filters: GameLogSearchFilters
+  ): GameLogConnection!
 
   # Game queries
   game(id: ID!): Game
@@ -391,6 +398,18 @@ input UserSearchFilters {
   isVerified: Boolean
   hasGameLogs: Boolean
   minGameLogs: Int
+  orderBy: String
+}
+
+input GameLogSearchFilters {
+  search: String
+  userId: ID
+  gameId: ID
+  minRating: Int
+  maxRating: Int
+  watchedSetting: String
+  classification: Classification
+  dateRange: DateRangeInput
   orderBy: String
 }
 
