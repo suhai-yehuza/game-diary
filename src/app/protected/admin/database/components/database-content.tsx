@@ -13,6 +13,7 @@ import {
 } from '@src/app/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@src/app/components/ui/tabs';
 import { GameLogsTableWithSearch } from '@src/app/protected/admin/database/components/game-logs-table';
+import { ErrorBoundary, useErrorHandler } from '@src/app/protected/admin/database/components/ui';
 import { Badge } from '@src/app/protected/admin/database/components/ui/badge';
 import { Button } from '@src/app/protected/admin/database/components/ui/button';
 import { LastUpdated } from '@src/app/protected/admin/database/components/ui/last-updated';
@@ -72,6 +73,13 @@ const tableConfigs = {
 
 export function AdminDatabaseContent() {
   const searchParams = useSearchParams();
+  const {
+    error: componentError,
+    setError: setComponentError,
+    clearError,
+    handleAsyncError,
+  } = useErrorHandler();
+
   const [activeTab, setActiveTab] = useState(() => {
     const tab = searchParams.get('tab');
     return tab && tab in tableConfigs ? tab : 'users';
@@ -280,46 +288,54 @@ export function AdminDatabaseContent() {
   };
 
   return (
-    <div className="container mx-auto p-6 h-full flex flex-col">
-      <div className="space-y-2 flex-shrink-0">
-        <h1 className="text-2xl font-bold">Database Management</h1>
-        <p className="text-muted-foreground">
-          View and manage database tables. This page allows you to fetch and display data from
-          various tables in the system.
-        </p>
-      </div>
+    <ErrorBoundary componentName="AdminDatabaseContent">
+      <div className="container mx-auto p-6 h-full flex flex-col">
+        <div className="space-y-2 flex-shrink-0">
+          <h1 className="text-2xl font-bold">Database Management</h1>
+          <p className="text-muted-foreground">
+            View and manage database tables. This page allows you to fetch and display data from
+            various tables in the system.
+          </p>
+        </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col min-h-0">
-        <TabsList className="flex flex-col md:flex-row w-full md:space-x-3 space-y-2 md:space-y-0 bg-transparent p-0 border-0">
-          {Object.entries(tableConfigs).map(([key, config]) => (
-            <TabsTrigger
-              key={key}
-              value={key}
-              className="flex-1 flex items-center gap-2 min-w-0 truncate justify-center px-5 py-2 mx-0 md:mx-1 rounded-md border transition-all duration-200
-          bg-gray-200 text-gray-800 border-gray-300 shadow-sm
-          dark:bg-neutral-700 dark:text-neutral-200 dark:border-neutral-600
-          hover:bg-gray-300 hover:text-blue-900 dark:hover:bg-neutral-600 dark:hover:text-blue-200
-          data-[state=active]:bg-blue-200 data-[state=active]:text-blue-900 data-[state=active]:border-blue-400 data-[state=active]:shadow-md
-          dark:data-[state=active]:bg-blue-800 dark:data-[state=active]:text-blue-100 dark:data-[state=active]:border-blue-700 dark:data-[state=active]:shadow-md"
-            >
-              <config.icon className="h-4 w-4" />
-              <span className="hidden sm:inline truncate">{config.title}</span>
-            </TabsTrigger>
+        <Tabs
+          value={activeTab}
+          onValueChange={setActiveTab}
+          className="flex-1 flex flex-col min-h-0"
+        >
+          <TabsList className="flex flex-col md:flex-row w-full md:space-x-3 space-y-2 md:space-y-0 bg-transparent p-0 border-0">
+            {Object.entries(tableConfigs).map(([key, config]) => (
+              <TabsTrigger
+                key={key}
+                value={key}
+                className="flex-1 flex items-center gap-2 min-w-0 truncate justify-center px-5 py-2 mx-0 md:mx-1 rounded-md border transition-all duration-200
+            bg-gray-200 text-gray-800 border-gray-300 shadow-sm
+            dark:bg-neutral-700 dark:text-neutral-200 dark:border-neutral-600
+            hover:bg-gray-300 hover:text-blue-900 dark:hover:bg-neutral-600 dark:hover:text-blue-200
+            data-[state=active]:bg-blue-200 data-[state=active]:text-blue-900 data-[state=active]:border-blue-400 data-[state=active]:shadow-md
+            dark:data-[state=active]:bg-blue-800 dark:data-[state=active]:text-blue-100 dark:data-[state=active]:border-blue-700 dark:data-[state=active]:shadow-md"
+              >
+                <config.icon className="h-4 w-4" />
+                <span className="hidden sm:inline truncate">{config.title}</span>
+              </TabsTrigger>
+            ))}
+          </TabsList>
+
+          {Object.keys(tableConfigs).map(tableName => (
+            <TabsContent key={tableName} value={tableName} className="flex-1 flex flex-col min-h-0">
+              <ErrorBoundary componentName={`${tableName}Table`}>
+                {activeTab === 'users' ? (
+                  <UsersTableWithSearch />
+                ) : activeTab === 'game_logs' ? (
+                  <GameLogsTableWithSearch />
+                ) : (
+                  renderTable(tableName)
+                )}
+              </ErrorBoundary>
+            </TabsContent>
           ))}
-        </TabsList>
-
-        {Object.keys(tableConfigs).map(tableName => (
-          <TabsContent key={tableName} value={tableName} className="flex-1 flex flex-col min-h-0">
-            {activeTab === 'users' ? (
-              <UsersTableWithSearch />
-            ) : activeTab === 'game_logs' ? (
-              <GameLogsTableWithSearch />
-            ) : (
-              renderTable(tableName)
-            )}
-          </TabsContent>
-        ))}
-      </Tabs>
-    </div>
+        </Tabs>
+      </div>
+    </ErrorBoundary>
   );
 }

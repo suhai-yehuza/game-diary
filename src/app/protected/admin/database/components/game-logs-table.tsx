@@ -9,6 +9,8 @@ import {
   ErrorDisplay,
   PaginationControls,
   TableSearch,
+  ErrorBoundary,
+  useErrorHandler,
 } from '@src/app/protected/admin/database/components/ui';
 import { API_CONFIG } from '@src/lib/config/api.config';
 import { SEARCH_GAME_LOGS_ADMIN } from '@src/lib/graphql/queries';
@@ -34,6 +36,7 @@ export function GameLogsTableWithSearch() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const [searchField, setSearchField] = useState<GameLogSearchField>('all');
+  const { handleAsyncError } = useErrorHandler();
 
   const fetchGameLogs = React.useCallback(
     async (opts: { after?: string | null; searchTerm?: string; page?: number } = {}) => {
@@ -206,141 +209,143 @@ export function GameLogsTableWithSearch() {
   };
 
   return (
-    <div className="space-y-4">
-      {/* Search Section */}
-      <TableSearch
-        searchTerm={searchTerm}
-        searchField={searchField}
-        searchFields={[
-          { value: 'all', label: 'All Fields' },
-          { value: 'user_id', label: 'User ID' },
-          { value: 'game_id', label: 'Game ID' },
-          { value: 'classification', label: 'Classification' },
-          { value: 'rating_for_game', label: 'Rating' },
-          { value: 'watched_setting', label: 'Watched Setting' },
-          { value: 'watched_location', label: 'Watched Location' },
-        ]}
-        onSearchChange={(term, field) => {
-          setSearchTerm(term);
-          setSearchField(field as GameLogSearchField);
-        }}
-        onClear={() => setSearchTerm('')}
-        placeholder="Search game logs..."
-      />
+    <ErrorBoundary componentName="GameLogsTable">
+      <div className="space-y-4">
+        {/* Search Section */}
+        <TableSearch
+          searchTerm={searchTerm}
+          searchField={searchField}
+          searchFields={[
+            { value: 'all', label: 'All Fields' },
+            { value: 'user_id', label: 'User ID' },
+            { value: 'game_id', label: 'Game ID' },
+            { value: 'classification', label: 'Classification' },
+            { value: 'rating_for_game', label: 'Rating' },
+            { value: 'watched_setting', label: 'Watched Setting' },
+            { value: 'watched_location', label: 'Watched Location' },
+          ]}
+          onSearchChange={(term, field) => {
+            setSearchTerm(term);
+            setSearchField(field as GameLogSearchField);
+          }}
+          onClear={() => setSearchTerm('')}
+          placeholder="Search game logs..."
+        />
 
-      {/* Error Display */}
-      <ErrorDisplay error={error} />
+        {/* Error Display */}
+        <ErrorDisplay error={error} />
 
-      {/* Pagination Info - Top */}
-      <PaginationInfo
-        totalCount={totalCount}
-        currentPage={currentPage}
-        pageSize={API_CONFIG.pagination.DEFAULT_PAGE_SIZE}
-        itemLabel="game logs"
-      />
+        {/* Pagination Info - Top */}
+        <PaginationInfo
+          totalCount={totalCount}
+          currentPage={currentPage}
+          pageSize={API_CONFIG.pagination.DEFAULT_PAGE_SIZE}
+          itemLabel="game logs"
+        />
 
-      {/* Game Logs Table */}
-      <div className="bg-card border border-border rounded-lg overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-muted">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground tracking-wider border-b border-border">
-                  #
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground tracking-wider border-b border-border">
-                  username
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground tracking-wider border-b border-border">
-                  game_id
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground tracking-wider border-b border-border">
-                  rating_for_game
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground tracking-wider border-b border-border">
-                  classification
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground tracking-wider border-b border-border">
-                  watched_setting
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground tracking-wider border-b border-border">
-                  watched_date
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground tracking-wider border-b border-border">
-                  created_at
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-card divide-y divide-border">
-              {loading ? (
+        {/* Game Logs Table */}
+        <div className="bg-card border border-border rounded-lg overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-muted">
                 <tr>
-                  <td colSpan={8} className="px-6 py-4 text-center">
-                    <div className="flex items-center justify-center">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
-                      <span className="ml-2">Loading game logs...</span>
-                    </div>
-                  </td>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground tracking-wider border-b border-border">
+                    #
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground tracking-wider border-b border-border">
+                    username
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground tracking-wider border-b border-border">
+                    game_id
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground tracking-wider border-b border-border">
+                    rating_for_game
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground tracking-wider border-b border-border">
+                    classification
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground tracking-wider border-b border-border">
+                    watched_setting
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground tracking-wider border-b border-border">
+                    watched_date
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground tracking-wider border-b border-border">
+                    created_at
+                  </th>
                 </tr>
-              ) : gameLogs.length === 0 ? (
-                <tr>
-                  <td colSpan={8} className="px-6 py-4 text-center text-muted-foreground">
-                    No game logs found
-                  </td>
-                </tr>
-              ) : (
-                gameLogs.map((gameLog, index) => (
-                  <tr key={gameLog.id} className="hover:bg-muted/50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
-                      {(currentPage - 1) * API_CONFIG.pagination.DEFAULT_PAGE_SIZE + index + 1}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-foreground">
-                        {gameLog.user?.username || 'Unknown User'}
+              </thead>
+              <tbody className="bg-card divide-y divide-border">
+                {loading ? (
+                  <tr>
+                    <td colSpan={8} className="px-6 py-4 text-center">
+                      <div className="flex items-center justify-center">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+                        <span className="ml-2">Loading game logs...</span>
                       </div>
-                      <div className="text-sm text-muted-foreground">
-                        {gameLog.user?.first_name} {gameLog.user?.last_name}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
-                      {gameLog.game_id}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-foreground">{gameLog.rating_for_game}/5</div>
-                      <div className="text-yellow-500 text-xs">
-                        {getRatingStars(gameLog.rating_for_game)}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <Badge variant="secondary">{gameLog.classification}</Badge>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
-                      {gameLog.watched_setting || 'N/A'}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
-                      {formatDate(gameLog.watched_date)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
-                      {formatDate(gameLog.created_at)}
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                ) : gameLogs.length === 0 ? (
+                  <tr>
+                    <td colSpan={8} className="px-6 py-4 text-center text-muted-foreground">
+                      No game logs found
+                    </td>
+                  </tr>
+                ) : (
+                  gameLogs.map((gameLog, index) => (
+                    <tr key={gameLog.id} className="hover:bg-muted/50">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
+                        {(currentPage - 1) * API_CONFIG.pagination.DEFAULT_PAGE_SIZE + index + 1}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm font-medium text-foreground">
+                          {gameLog.user?.username || 'Unknown User'}
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          {gameLog.user?.first_name} {gameLog.user?.last_name}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
+                        {gameLog.game_id}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-foreground">{gameLog.rating_for_game}/5</div>
+                        <div className="text-yellow-500 text-xs">
+                          {getRatingStars(gameLog.rating_for_game)}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <Badge variant="secondary">{gameLog.classification}</Badge>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
+                        {gameLog.watched_setting || 'N/A'}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
+                        {formatDate(gameLog.watched_date)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
+                        {formatDate(gameLog.created_at)}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
 
-      {/* Pagination Controls - Bottom */}
-      <PaginationControls
-        totalCount={totalCount}
-        currentPage={currentPage}
-        pageInfo={pageInfo}
-        loading={loading}
-        onFirst={handleFirst}
-        onPrev={handlePrev}
-        onNext={handleNext}
-        onLast={handleLast}
-      />
-    </div>
+        {/* Pagination Controls - Bottom */}
+        <PaginationControls
+          totalCount={totalCount}
+          currentPage={currentPage}
+          pageInfo={pageInfo}
+          loading={loading}
+          onFirst={handleFirst}
+          onPrev={handlePrev}
+          onNext={handleNext}
+          onLast={handleLast}
+        />
+      </div>
+    </ErrorBoundary>
   );
 }

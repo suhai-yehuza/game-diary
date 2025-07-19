@@ -9,6 +9,8 @@ import {
   ErrorDisplay,
   PaginationControls,
   TableSearch,
+  ErrorBoundary,
+  useErrorHandler,
 } from '@src/app/protected/admin/database/components/ui';
 import { API_CONFIG } from '@src/lib/config/api.config';
 import { SEARCH_USERS_ADMIN } from '@src/lib/graphql/queries';
@@ -34,6 +36,7 @@ export function UsersTableWithSearch() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const [searchField, setSearchField] = useState<UserSearchField>('all');
+  const { handleAsyncError } = useErrorHandler();
 
   const fetchUsers = React.useCallback(
     async (opts: { after?: string | null; searchTerm?: string; page?: number } = {}) => {
@@ -214,139 +217,141 @@ export function UsersTableWithSearch() {
   };
 
   return (
-    <div className="space-y-4">
-      {/* Search Section */}
-      <TableSearch
-        searchTerm={searchTerm}
-        searchField={searchField}
-        searchFields={[
-          { value: 'all', label: 'All Fields' },
-          { value: 'username', label: 'Username' },
-          { value: 'first_name', label: 'First Name' },
-          { value: 'last_name', label: 'Last Name' },
-          { value: 'email_address', label: 'Email Address' },
-        ]}
-        onSearchChange={(term, field) => {
-          setSearchTerm(term);
-          setSearchField(field as UserSearchField);
-        }}
-        onClear={() => setSearchTerm('')}
-        placeholder="Search users..."
-      />
+    <ErrorBoundary componentName="UsersTable">
+      <div className="space-y-4">
+        {/* Search Section */}
+        <TableSearch
+          searchTerm={searchTerm}
+          searchField={searchField}
+          searchFields={[
+            { value: 'all', label: 'All Fields' },
+            { value: 'username', label: 'Username' },
+            { value: 'first_name', label: 'First Name' },
+            { value: 'last_name', label: 'Last Name' },
+            { value: 'email_address', label: 'Email Address' },
+          ]}
+          onSearchChange={(term, field) => {
+            setSearchTerm(term);
+            setSearchField(field as UserSearchField);
+          }}
+          onClear={() => setSearchTerm('')}
+          placeholder="Search users..."
+        />
 
-      {/* Error Display */}
-      <ErrorDisplay error={error} />
+        {/* Error Display */}
+        <ErrorDisplay error={error} />
 
-      {/* Pagination Info - Top */}
-      <PaginationInfo
-        totalCount={totalCount}
-        currentPage={currentPage}
-        pageSize={API_CONFIG.pagination.DEFAULT_PAGE_SIZE}
-        itemLabel="users"
-      />
+        {/* Pagination Info - Top */}
+        <PaginationInfo
+          totalCount={totalCount}
+          currentPage={currentPage}
+          pageSize={API_CONFIG.pagination.DEFAULT_PAGE_SIZE}
+          itemLabel="users"
+        />
 
-      {/* Users Table */}
-      <div className="bg-card border border-border rounded-lg overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-muted">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground tracking-wider border-b border-border">
-                  #
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground tracking-wider border-b border-border">
-                  username
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground tracking-wider border-b border-border">
-                  user_id
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground tracking-wider border-b border-border">
-                  email_address
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground tracking-wider border-b border-border">
-                  phone_number
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground tracking-wider border-b border-border">
-                  created_at
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-card divide-y divide-border">
-              {loading ? (
+        {/* Users Table */}
+        <div className="bg-card border border-border rounded-lg overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-muted">
                 <tr>
-                  <td colSpan={5} className="px-6 py-4 text-center">
-                    <div className="flex items-center justify-center">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
-                      <span className="ml-2">Loading users...</span>
-                    </div>
-                  </td>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground tracking-wider border-b border-border">
+                    #
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground tracking-wider border-b border-border">
+                    username
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground tracking-wider border-b border-border">
+                    user_id
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground tracking-wider border-b border-border">
+                    email_address
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground tracking-wider border-b border-border">
+                    phone_number
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground tracking-wider border-b border-border">
+                    created_at
+                  </th>
                 </tr>
-              ) : users.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="px-6 py-4 text-center text-muted-foreground">
-                    No users found
-                  </td>
-                </tr>
-              ) : (
-                users.map((user, index) => (
-                  <tr key={user.id} className="hover:bg-muted/50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
-                      {(currentPage - 1) * API_CONFIG.pagination.DEFAULT_PAGE_SIZE + index + 1}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <div className="flex-shrink-0 h-10 w-10">
-                          {user.image_url ? (
-                            <img
-                              className="h-10 w-10 rounded-full"
-                              src={user.image_url}
-                              alt={`${user.first_name} ${user.last_name}`}
-                            />
-                          ) : (
-                            <div className="h-10 w-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-medium">
-                              {getInitials(user.first_name, user.last_name)}
-                            </div>
-                          )}
-                        </div>
-                        <div className="ml-4">
-                          <div className="text-sm font-medium text-foreground">
-                            {user.first_name} {user.last_name}
-                          </div>
-                          <div className="text-sm text-muted-foreground">@{user.username}</div>
-                        </div>
+              </thead>
+              <tbody className="bg-card divide-y divide-border">
+                {loading ? (
+                  <tr>
+                    <td colSpan={5} className="px-6 py-4 text-center">
+                      <div className="flex items-center justify-center">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+                        <span className="ml-2">Loading users...</span>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
-                      {user.id}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
-                      {user.email_address}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
-                      {user.phone_number || 'N/A'}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
-                      {formatDate(user.created_at)}
+                  </tr>
+                ) : users.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="px-6 py-4 text-center text-muted-foreground">
+                      No users found
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                ) : (
+                  users.map((user, index) => (
+                    <tr key={user.id} className="hover:bg-muted/50">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
+                        {(currentPage - 1) * API_CONFIG.pagination.DEFAULT_PAGE_SIZE + index + 1}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <div className="flex-shrink-0 h-10 w-10">
+                            {user.image_url ? (
+                              <img
+                                className="h-10 w-10 rounded-full"
+                                src={user.image_url}
+                                alt={`${user.first_name} ${user.last_name}`}
+                              />
+                            ) : (
+                              <div className="h-10 w-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-medium">
+                                {getInitials(user.first_name, user.last_name)}
+                              </div>
+                            )}
+                          </div>
+                          <div className="ml-4">
+                            <div className="text-sm font-medium text-foreground">
+                              {user.first_name} {user.last_name}
+                            </div>
+                            <div className="text-sm text-muted-foreground">@{user.username}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
+                        {user.id}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
+                        {user.email_address}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
+                        {user.phone_number || 'N/A'}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
+                        {formatDate(user.created_at)}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
 
-      {/* Pagination Controls - Bottom */}
-      <PaginationControls
-        totalCount={totalCount}
-        currentPage={currentPage}
-        pageInfo={pageInfo}
-        loading={loading}
-        onFirst={handleFirst}
-        onPrev={handlePrev}
-        onNext={handleNext}
-        onLast={handleLast}
-      />
-    </div>
+        {/* Pagination Controls - Bottom */}
+        <PaginationControls
+          totalCount={totalCount}
+          currentPage={currentPage}
+          pageInfo={pageInfo}
+          loading={loading}
+          onFirst={handleFirst}
+          onPrev={handlePrev}
+          onNext={handleNext}
+          onLast={handleLast}
+        />
+      </div>
+    </ErrorBoundary>
   );
 }
