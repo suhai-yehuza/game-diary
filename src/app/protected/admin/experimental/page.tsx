@@ -2,7 +2,13 @@
 
 import React, { useEffect, useState } from 'react';
 
-import { Card, CardDescription, CardHeader, CardTitle } from '@/app/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/app/components/ui/card';
 import {
   Button,
   GamesForm,
@@ -336,30 +342,42 @@ function SearchSection({
           Players
         </button>
       </div>
-      <form onSubmit={handleSearch} className="flex gap-2 items-center mb-4">
-        <input
-          type="text"
-          className="border rounded px-3 py-2 w-64"
-          placeholder={`Search ${subTab.charAt(0).toUpperCase() + subTab.slice(1)}`}
-          value={searchValue}
-          onChange={e => setSearchValue(e.target.value)}
-        />
-        <button
-          type="submit"
-          className="px-4 py-2 bg-rose-100 text-rose-900 border border-rose-300 shadow rounded-md transition-all duration-200 hover:bg-rose-200 active:shadow focus-visible:ring-2 focus-visible:ring-rose-300 focus-visible:ring-offset-2 dark:bg-rose-900 dark:text-rose-100 dark:border-rose-700 dark:hover:bg-rose-800 disabled:opacity-50"
-          disabled={loading || !searchValue.trim()}
-        >
-          {loading ? 'Searching...' : 'Search'}
-        </button>
-      </form>
-      {searchClicked && (
-        <div className="mt-4">
-          <h3 className="text-lg font-semibold mb-2">Results</h3>
-          <pre className="text-sm overflow-auto max-h-96 bg-white dark:bg-gray-800 p-4 rounded border">
-            {data ? JSON.stringify(data, null, 2) : 'No results'}
-          </pre>
-        </div>
-      )}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>Search {subTab.charAt(0).toUpperCase() + subTab.slice(1)}</CardTitle>
+              <CardDescription>Search for {subTab} by name or other criteria</CardDescription>
+            </div>
+            <form onSubmit={handleSearch} className="flex gap-2 items-center">
+              <input
+                type="text"
+                className="border rounded px-3 py-2 w-64"
+                placeholder={`Search ${subTab.charAt(0).toUpperCase() + subTab.slice(1)}`}
+                value={searchValue}
+                onChange={e => setSearchValue(e.target.value)}
+              />
+              <button
+                type="submit"
+                className="px-4 py-2 bg-rose-100 text-rose-900 border border-rose-300 shadow rounded-md transition-all duration-200 hover:bg-rose-200 active:shadow focus-visible:ring-2 focus-visible:ring-rose-300 focus-visible:ring-offset-2 dark:bg-rose-900 dark:text-rose-100 dark:border-rose-700 dark:hover:bg-rose-800 disabled:opacity-50"
+                disabled={loading || !searchValue.trim()}
+              >
+                {loading ? 'Searching...' : 'Search'}
+              </button>
+            </form>
+          </div>
+        </CardHeader>
+        {searchClicked && (
+          <CardContent>
+            <div className="mt-4">
+              <h3 className="text-lg font-semibold mb-2">Results</h3>
+              <pre className="text-sm overflow-auto max-h-96 bg-white dark:bg-gray-800 p-4 rounded border">
+                {data ? JSON.stringify(data, null, 2) : 'No results'}
+              </pre>
+            </div>
+          </CardContent>
+        )}
+      </Card>
     </div>
   );
 }
