@@ -2,6 +2,13 @@
 
 import React from 'react';
 
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/app/components/ui/card';
 import type {
   ButtonProps,
   InputProps,
@@ -31,33 +38,40 @@ export const DynamicForm = ({
     void onSubmit(e);
   };
   return (
-    <form
-      onSubmit={handleFormSubmit}
-      className={`mt-4 p-4 border rounded-md bg-gray-50 dark:bg-gray-900/50 ${className}`}
-    >
-      <h3 className="text-lg font-semibold mb-1">{title}</h3>
-      {description && <p className="text-sm text-gray-500 mb-4">{description}</p>}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {fields.map((field: FieldConfig) => (
-          <div key={field.id}>
-            <Label htmlFor={field.id} required={field.required}>
-              {field.label}
-            </Label>
-            <Input
-              id={field.id}
-              type={field.type ?? 'text'}
-              placeholder={field.placeholder}
-              value={field.value}
-              onChange={field.onChange}
-              required={field.required}
-            />
+    <Card className={className}>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle>{title}</CardTitle>
+            {description && <CardDescription>{description}</CardDescription>}
           </div>
-        ))}
-      </div>
-      <Button type="submit" disabled={loading} className="mt-4">
-        {loading ? 'Loading...' : submitLabel}
-      </Button>
-    </form>
+          <Button type="submit" disabled={loading}>
+            {loading ? 'Loading...' : submitLabel}
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleFormSubmit}>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {fields.map((field: FieldConfig) => (
+              <div key={field.id}>
+                <Label htmlFor={field.id} required={field.required}>
+                  {field.label}
+                </Label>
+                <Input
+                  id={field.id}
+                  type={field.type ?? 'text'}
+                  placeholder={field.placeholder}
+                  value={field.value}
+                  onChange={field.onChange}
+                  required={field.required}
+                />
+              </div>
+            ))}
+          </div>
+        </form>
+      </CardContent>
+    </Card>
   );
 };
 

@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 
+import { Card, CardDescription, CardHeader, CardTitle } from '@/app/components/ui/card';
 import {
   Button,
   GamesForm,
@@ -67,21 +68,27 @@ function SimpleEndpoints(props: SimpleEndpointsProps) {
   };
   return (
     <div className="mb-6">
-      <div className="mt-4 p-4 border rounded-md bg-gray-50 dark:bg-gray-900/50">
-        <h3 className="text-lg font-semibold mb-4">
-          {selectedTab.charAt(0).toUpperCase() + selectedTab.slice(1)} Query
-        </h3>
-        <p className="text-sm text-gray-500 mb-4">Fetching all {selectedTab}...</p>
-        <Button
-          onClick={handleClick}
-          disabled={loading}
-          className="mt-4 bg-rose-100 text-rose-900 border border-rose-300 shadow px-5 py-2 rounded-md transition-all duration-200 hover:bg-rose-200 active:shadow focus-visible:ring-2 focus-visible:ring-rose-300 focus-visible:ring-offset-2 dark:bg-rose-900 dark:text-rose-100 dark:border-rose-700 dark:hover:bg-rose-800"
-        >
-          {loading
-            ? 'Fetching...'
-            : `Fetch ${selectedTab.charAt(0).toUpperCase() + selectedTab.slice(1)}`}
-        </Button>
-      </div>
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>
+                {selectedTab.charAt(0).toUpperCase() + selectedTab.slice(1)} Query
+              </CardTitle>
+              <CardDescription>Fetching all {selectedTab}...</CardDescription>
+            </div>
+            <Button
+              onClick={handleClick}
+              disabled={loading}
+              className="bg-rose-100 text-rose-900 border border-rose-300 shadow px-5 py-2 rounded-md transition-all duration-200 hover:bg-rose-200 active:shadow focus-visible:ring-2 focus-visible:ring-rose-300 focus-visible:ring-offset-2 dark:bg-rose-900 dark:text-rose-100 dark:border-rose-700 dark:hover:bg-rose-800"
+            >
+              {loading
+                ? 'Fetching...'
+                : `Fetch ${selectedTab.charAt(0).toUpperCase() + selectedTab.slice(1)}`}
+            </Button>
+          </div>
+        </CardHeader>
+      </Card>
     </div>
   );
 }
@@ -151,19 +158,25 @@ function GamesSection(props: GamesSectionProps) {
         />
       )}
       {gamesSubTab === 'live' && (
-        <div className="mt-4 p-4 border rounded-md bg-gray-50 dark:bg-gray-900/50">
-          <h3 className="text-lg font-semibold mb-1">Live Games</h3>
-          <p className="text-sm text-gray-500 mb-4">Fetching all currently live games...</p>
-          <Button
-            onClick={() => {
-              void handleFetch(API_CONFIG.endpoints.GAMES, { live: 'all' });
-            }}
-            disabled={loading}
-            className="mt-2 bg-rose-100 text-rose-900 border border-rose-300 shadow px-5 py-2 rounded-md transition-all duration-200 hover:bg-rose-200 active:shadow focus-visible:ring-2 focus-visible:ring-rose-300 focus-visible:ring-offset-2 dark:bg-rose-900 dark:text-rose-100 dark:border-rose-700 dark:hover:bg-rose-800"
-          >
-            {loading ? 'Fetching...' : 'Refetch Live Games'}
-          </Button>
-        </div>
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Live Games</CardTitle>
+                <CardDescription>Fetching all currently live games...</CardDescription>
+              </div>
+              <Button
+                onClick={() => {
+                  void handleFetch(API_CONFIG.endpoints.GAMES, { live: 'all' });
+                }}
+                disabled={loading}
+                className="bg-rose-100 text-rose-900 border border-rose-300 shadow px-5 py-2 rounded-md transition-all duration-200 hover:bg-rose-200 active:shadow focus-visible:ring-2 focus-visible:ring-rose-300 focus-visible:ring-offset-2 dark:bg-rose-900 dark:text-rose-100 dark:border-rose-700 dark:hover:bg-rose-800"
+              >
+                {loading ? 'Fetching...' : 'Refetch Live Games'}
+              </Button>
+            </div>
+          </CardHeader>
+        </Card>
       )}
     </div>
   );
