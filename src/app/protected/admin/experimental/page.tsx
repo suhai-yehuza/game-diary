@@ -72,7 +72,11 @@ function SimpleEndpoints(props: SimpleEndpointsProps) {
           {selectedTab.charAt(0).toUpperCase() + selectedTab.slice(1)} Query
         </h3>
         <p className="text-sm text-gray-500 mb-4">Fetching all {selectedTab}...</p>
-        <Button onClick={handleClick} disabled={loading} className="mt-4">
+        <Button
+          onClick={handleClick}
+          disabled={loading}
+          className="mt-4 bg-rose-100 text-rose-900 border border-rose-300 shadow px-5 py-2 rounded-md transition-all duration-200 hover:bg-rose-200 active:shadow focus-visible:ring-2 focus-visible:ring-rose-300 focus-visible:ring-offset-2 dark:bg-rose-900 dark:text-rose-100 dark:border-rose-700 dark:hover:bg-rose-800"
+        >
           {loading
             ? 'Fetching...'
             : `Fetch ${selectedTab.charAt(0).toUpperCase() + selectedTab.slice(1)}`}
@@ -155,7 +159,7 @@ function GamesSection(props: GamesSectionProps) {
               void handleFetch(API_CONFIG.endpoints.GAMES, { live: 'all' });
             }}
             disabled={loading}
-            className="mt-2"
+            className="mt-2 bg-rose-100 text-rose-900 border border-rose-300 shadow px-5 py-2 rounded-md transition-all duration-200 hover:bg-rose-200 active:shadow focus-visible:ring-2 focus-visible:ring-rose-300 focus-visible:ring-offset-2 dark:bg-rose-900 dark:text-rose-100 dark:border-rose-700 dark:hover:bg-rose-800"
           >
             {loading ? 'Fetching...' : 'Refetch Live Games'}
           </Button>
@@ -329,7 +333,7 @@ function SearchSection({
         />
         <button
           type="submit"
-          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+          className="px-4 py-2 bg-rose-100 text-rose-900 border border-rose-300 shadow rounded-md transition-all duration-200 hover:bg-rose-200 active:shadow focus-visible:ring-2 focus-visible:ring-rose-300 focus-visible:ring-offset-2 dark:bg-rose-900 dark:text-rose-100 dark:border-rose-700 dark:hover:bg-rose-800 disabled:opacity-50"
           disabled={loading || !searchValue.trim()}
         >
           {loading ? 'Searching...' : 'Search'}

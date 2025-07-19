@@ -78,7 +78,7 @@ export const Button = (props: ButtonProps) => {
       className={`inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 ${
         variant === 'outline'
           ? 'border border-input bg-background hover:bg-accent hover:text-accent-foreground'
-          : 'bg-primary text-primary-foreground hover:bg-primary/90'
+          : 'bg-rose-100 text-rose-900 border border-rose-300 shadow px-5 py-2 rounded-md transition-all duration-200 hover:bg-rose-200 active:shadow focus-visible:ring-2 focus-visible:ring-rose-300 focus-visible:ring-offset-2 dark:bg-rose-900 dark:text-rose-100 dark:border-rose-700 dark:hover:bg-rose-800'
       } h-11 px-4 py-2 ${className}`}
       {...rest}
     >
