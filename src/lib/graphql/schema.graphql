@@ -12,6 +12,7 @@ type Query {
     first: Int
     after: String
     searchTerm: String
+    searchField: String
     filters: UserSearchFilters
   ): UserConnection!
 
@@ -106,6 +107,7 @@ type UserSummary {
   email_address: String
   phone_number: String
   image_url: String
+  created_at: DateTime
 }
 
 type DBUser {

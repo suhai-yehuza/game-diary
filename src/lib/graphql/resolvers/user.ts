@@ -1,5 +1,6 @@
 import { eq } from 'drizzle-orm';
 
+import { API_CONFIG } from '@/lib/config/api.config';
 import { db } from '@/lib/db';
 import { users } from '@/lib/db/schema';
 import { AuthorizationError } from '@/lib/graphql/errors';
@@ -135,6 +136,7 @@ export const userQueryResolvers = {
       email_address: safeDecrypt(user.email_address), // Decrypt for own user
       phone_number: safeDecrypt(user.phone_number), // Decrypt for own user
       image_url: user.image_url,
+      created_at: user.created_at,
     };
   },
 
@@ -159,6 +161,7 @@ export const userQueryResolvers = {
       email_address: isOwnUser ? safeDecrypt(user.email_address) : null,
       phone_number: isOwnUser ? safeDecrypt(user.phone_number) : null,
       image_url: user.image_url,
+      created_at: user.created_at,
     };
   },
 
@@ -179,45 +182,110 @@ export const userQueryResolvers = {
           email_address: isOwnUser ? safeDecrypt(user.email_address) : null,
           phone_number: isOwnUser ? safeDecrypt(user.phone_number) : null,
           image_url: user.image_url,
+          created_at: user.created_at,
         };
       }) || []
     );
   },
 
   // Search users (with sensitive data protection)
-  searchUsers: async (_parent: unknown, _args: IUserArgs, context: GraphQLContext) => {
-    // Implementation for user search
-    // This would include pagination and filtering logic
-    const allUsers = await db()?.query.users.findMany();
+  searchUsers: async (
+    _parent: unknown,
+    args: { first?: number; after?: string; searchTerm?: string; searchField?: string },
+    context: GraphQLContext
+  ) => {
+    const limit = args.first ?? API_CONFIG.pagination.DEFAULT_PAGE_SIZE;
+    const searchTerm = args.searchTerm ?? '';
+    const searchField = args.searchField ?? 'all';
 
-    const edges =
-      allUsers?.map(user => {
-        const requestingUserId = context.user?.id;
-        const isOwnUser = requestingUserId === user.id;
+    // Get all users first (simplified approach to avoid circular dependency)
+    const allUsers = (await db()?.query.users.findMany()) || [];
 
-        return {
-          cursor: user.id,
-          node: {
-            id: user.id,
-            username: user.username,
-            first_name: user.first_name,
-            last_name: user.last_name,
-            email_address: isOwnUser ? safeDecrypt(user.email_address) : null,
-            phone_number: isOwnUser ? safeDecrypt(user.phone_number) : null,
-            image_url: user.image_url,
-          },
-        };
-      }) || [];
+    // Filter by search term if provided
+    let filteredUsers = allUsers;
+    if (searchTerm) {
+      const searchLower = searchTerm.toLowerCase().trim();
+
+      filteredUsers = allUsers.filter(user => {
+        switch (searchField) {
+          case 'username':
+            return user.username?.toLowerCase().includes(searchLower) ?? false;
+          case 'first_name':
+            return user.first_name?.toLowerCase().includes(searchLower) ?? false;
+          case 'last_name':
+            return user.last_name?.toLowerCase().includes(searchLower) ?? false;
+          case 'email_address':
+            return user.email_address?.toLowerCase().includes(searchLower) ?? false;
+          case 'all':
+          default: {
+            // Check each field individually and return true if any match
+            const usernameMatch = user.username?.toLowerCase().includes(searchLower) ?? false;
+            const firstNameMatch = user.first_name?.toLowerCase().includes(searchLower) ?? false;
+            const lastNameMatch = user.last_name?.toLowerCase().includes(searchLower) ?? false;
+            const emailMatch = user.email_address?.toLowerCase().includes(searchLower) ?? false;
+
+            return usernameMatch || firstNameMatch || lastNameMatch || emailMatch;
+          }
+        }
+      });
+
+      // Debug logging (remove in production)
+      console.log(`Search: "${searchTerm}" in field "${searchField}"`);
+      console.log(`Total users: ${allUsers.length}, Filtered: ${filteredUsers.length}`);
+      if (filteredUsers.length > 0) {
+        console.log(
+          'Sample matches:',
+          filteredUsers.slice(0, 3).map(u => ({
+            username: u.username,
+            first_name: u.first_name,
+            last_name: u.last_name,
+            email: u.email_address,
+          }))
+        );
+      }
+    }
+
+    // Apply cursor-based pagination
+    let paginatedUsers = filteredUsers;
+    if (args.after) {
+      const afterIndex = filteredUsers.findIndex(user => user.id === args.after);
+      if (afterIndex !== -1) {
+        paginatedUsers = filteredUsers.slice(afterIndex + 1);
+      }
+    }
+
+    // Apply limit
+    const hasNextPage = paginatedUsers.length > limit;
+    const users = hasNextPage ? paginatedUsers.slice(0, limit) : paginatedUsers;
+
+    const edges = users.map(user => {
+      const requestingUserId = context.user?.id;
+      const isOwnUser = requestingUserId === user.id;
+
+      return {
+        cursor: user.id,
+        node: {
+          id: user.id,
+          username: user.username,
+          first_name: user.first_name,
+          last_name: user.last_name,
+          email_address: isOwnUser ? safeDecrypt(user.email_address) : null,
+          phone_number: isOwnUser ? safeDecrypt(user.phone_number) : null,
+          image_url: user.image_url,
+          created_at: user.created_at,
+        },
+      };
+    });
 
     return {
       edges,
       pageInfo: {
-        hasNextPage: false,
-        hasPreviousPage: false,
-        startCursor: edges[0]?.cursor || null,
-        endCursor: edges[edges.length - 1]?.cursor || null,
+        hasNextPage,
+        hasPreviousPage: !!args.after,
+        startCursor: edges[0]?.cursor ?? null,
+        endCursor: edges[edges.length - 1]?.cursor ?? null,
       },
-      totalCount: edges.length,
+      totalCount: filteredUsers.length,
     };
   },
 };
