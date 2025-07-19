@@ -16,7 +16,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@src/app/components/ui
 import type { IApiResponse, IBadgeProps, IAdminButtonProps } from '@src/lib/types/uiTypes';
 
 // Constants
-const TABLE_DISPLAY_LIMIT = 50;
 
 // Add GraphQL query for users
 const SEARCH_USERS_QUERY = `
@@ -277,6 +276,10 @@ function AdminDatabaseContent() {
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<Record<string, Record<string, unknown>[]>>({});
   const [error, setError] = useState<string | null>(null);
+  const [pagination, setPagination] = useState<
+    Record<string, { page: number; limit: number; total: number; pages: number }>
+  >({});
+  const [currentPage, setCurrentPage] = useState<Record<string, number>>({});
 
   const tableConfigs = useMemo(
     () => ({
@@ -390,18 +393,34 @@ function AdminDatabaseContent() {
     []
   );
 
-  const handleFetch = useCallback(async (tableName: string) => {
+  const handleFetch = useCallback(async (tableName: string, page = 1, limit = 10) => {
     setLoading(true);
     setError(null);
 
     try {
-      const response = await fetch(`/api/admin/database/${tableName}`);
+      const url = new URL(`/api/admin/database/${tableName}`, window.location.origin);
+      url.searchParams.set('page', page.toString());
+      url.searchParams.set('limit', limit.toString());
+
+      const response = await fetch(url.toString());
       const result = (await response.json()) as IApiResponse;
 
-      if (result.success && isRecordArray(result.data)) {
-        setData({ [tableName]: result.data });
+      if (result.data && isRecordArray(result.data)) {
+        setData(prev => ({ ...prev, [tableName]: result.data as Record<string, unknown>[] }));
+        if (result.pagination) {
+          setPagination(prev => ({
+            ...prev,
+            [tableName]: result.pagination as {
+              page: number;
+              limit: number;
+              total: number;
+              pages: number;
+            },
+          }));
+          setCurrentPage(prev => ({ ...prev, [tableName]: page }));
+        }
       } else {
-        setData({ [tableName]: [] });
+        setData(prev => ({ ...prev, [tableName]: [] }));
         setError(result.error ?? `Failed to fetch ${tableName} data`);
       }
     } catch (err) {
@@ -438,6 +457,13 @@ function AdminDatabaseContent() {
   const renderTable = (tableName: string) => {
     const config = tableConfigs[tableName as keyof typeof tableConfigs];
     const tableData = data[tableName] ?? [];
+    const tablePagination = pagination[tableName];
+    const currentTablePage = currentPage[tableName] || 1;
+
+    const handlePageChange = (newPage: number) => {
+      void handleFetch(tableName, newPage, 10);
+    };
+
     return (
       <Card>
         <CardHeader>
@@ -450,7 +476,7 @@ function AdminDatabaseContent() {
               </div>
             </div>
             <Button
-              onClick={() => void handleFetch(tableName)}
+              onClick={() => void handleFetch(tableName, 1, 10)}
               disabled={loading}
               size="sm"
               className="bg-rose-100 text-rose-900 border border-rose-300 shadow px-5 py-2 rounded-md transition-all duration-200 hover:bg-rose-200 active:shadow focus-visible:ring-2 focus-visible:ring-rose-300 focus-visible:ring-offset-2 dark:bg-rose-900 dark:text-rose-100 dark:border-rose-700 dark:hover:bg-rose-800"
@@ -474,9 +500,20 @@ function AdminDatabaseContent() {
           )}
 
           <div className="space-y-4">
-            <div className="flex items-center gap-2">
-              <Badge variant="secondary">{tableData.length} records</Badge>
-              <LastUpdated />
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Badge variant="secondary">
+                  {tablePagination
+                    ? `${tablePagination.total} total records`
+                    : `${tableData.length} records`}
+                </Badge>
+                <LastUpdated />
+              </div>
+              {tablePagination && (
+                <div className="text-sm text-muted-foreground">
+                  Page {currentTablePage} of {tablePagination.pages}
+                </div>
+              )}
             </div>
 
             <div className="h-96 w-full border rounded-md">
@@ -509,7 +546,7 @@ function AdminDatabaseContent() {
                           </td>
                         </tr>
                       ) : (
-                        tableData.slice(0, TABLE_DISPLAY_LIMIT).map((row, index) => (
+                        tableData.map((row, index) => (
                           <tr
                             key={
                               typeof row.id === 'string' || typeof row.id === 'number'
@@ -534,9 +571,29 @@ function AdminDatabaseContent() {
                     </tbody>
                   </table>
                 </div>
-                <div className="mt-4 text-center text-sm text-muted-foreground">
-                  Showing first {TABLE_DISPLAY_LIMIT} of {tableData.length} records
-                </div>
+                {tablePagination && tablePagination.pages > 1 && (
+                  <div className="mt-4 flex items-center justify-center gap-2">
+                    <Button
+                      onClick={() => handlePageChange(currentTablePage - 1)}
+                      disabled={currentTablePage <= 1 || loading}
+                      size="sm"
+                      variant="outline"
+                    >
+                      Previous
+                    </Button>
+                    <span className="text-sm text-muted-foreground">
+                      Page {currentTablePage} of {tablePagination.pages}
+                    </span>
+                    <Button
+                      onClick={() => handlePageChange(currentTablePage + 1)}
+                      disabled={currentTablePage >= tablePagination.pages || loading}
+                      size="sm"
+                      variant="outline"
+                    >
+                      Next
+                    </Button>
+                  </div>
+                )}
               </div>
             </div>
           </div>

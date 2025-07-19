@@ -101,6 +101,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ tabl
     const { total } = countResult.rows[0] as { total: string };
 
     return NextResponse.json({
+      success: true,
       data,
       pagination: {
         page,

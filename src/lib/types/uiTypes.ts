@@ -118,6 +118,12 @@ export interface IApiResponse {
   success: boolean;
   data?: Record<string, unknown>[];
   error?: string;
+  pagination?: {
+    page: number;
+    limit: number;
+    total: number;
+    pages: number;
+  };
 }
 
 export interface IBadgeProps {
