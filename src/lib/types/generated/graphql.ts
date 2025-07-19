@@ -311,6 +311,18 @@ export type GameLogFilters = {
   watchedSetting?: InputMaybe<Scalars['String']['input']>;
 };
 
+export type GameLogSearchFilters = {
+  classification?: InputMaybe<Classification>;
+  dateRange?: InputMaybe<DateRangeInput>;
+  gameId?: InputMaybe<Scalars['ID']['input']>;
+  maxRating?: InputMaybe<Scalars['Int']['input']>;
+  minRating?: InputMaybe<Scalars['Int']['input']>;
+  orderBy?: InputMaybe<Scalars['String']['input']>;
+  search?: InputMaybe<Scalars['String']['input']>;
+  userId?: InputMaybe<Scalars['ID']['input']>;
+  watchedSetting?: InputMaybe<Scalars['String']['input']>;
+};
+
 export enum GameStatusEnum {
   Cancelled = 'CANCELLED',
   Finished = 'FINISHED',
@@ -432,6 +444,7 @@ export type Query = {
   liveGames: GameConnection;
   me?: Maybe<UserSummary>;
   reactions: Array<Reaction>;
+  searchGameLogs: GameLogConnection;
   searchUsers: UserConnection;
   user?: Maybe<UserSummary>;
   users: Array<UserSummary>;
@@ -478,10 +491,20 @@ export type QueryReactionsArgs = {
 };
 
 
+export type QuerySearchGameLogsArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  filters?: InputMaybe<GameLogSearchFilters>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  searchField?: InputMaybe<Scalars['String']['input']>;
+  searchTerm?: InputMaybe<Scalars['String']['input']>;
+};
+
+
 export type QuerySearchUsersArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   filters?: InputMaybe<UserSearchFilters>;
   first?: InputMaybe<Scalars['Int']['input']>;
+  searchField?: InputMaybe<Scalars['String']['input']>;
   searchTerm?: InputMaybe<Scalars['String']['input']>;
 };
 
@@ -598,6 +621,7 @@ export type UserSearchFilters = {
 
 export type UserSummary = {
   __typename?: 'UserSummary';
+  created_at?: Maybe<Scalars['DateTime']['output']>;
   email_address?: Maybe<Scalars['String']['output']>;
   first_name: Scalars['String']['output'];
   id: Scalars['ID']['output'];

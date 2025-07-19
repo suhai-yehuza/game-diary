@@ -3,14 +3,12 @@
 import React, { useEffect, useState } from 'react';
 
 import {
-  Badge,
-  Button,
   PaginationInfo,
   ErrorDisplay,
   PaginationControls,
   TableSearch,
   ErrorBoundary,
-  useErrorHandler,
+  SortableHeader,
 } from '@src/app/protected/admin/database/components/ui';
 import { API_CONFIG } from '@src/lib/config/api.config';
 import { SEARCH_USERS_ADMIN } from '@src/lib/graphql/queries';
@@ -22,7 +20,7 @@ import type {
 } from '@src/lib/types';
 
 export function UsersTableWithSearch() {
-  const [users, setUsers] = useState<IUserSummary[]>([]);
+  const [rawUsers, setRawUsers] = useState<IUserSummary[]>([]);
   const [pageInfo, setPageInfo] = useState<IPageInfo>({
     hasNextPage: false,
     hasPreviousPage: false,
@@ -36,7 +34,33 @@ export function UsersTableWithSearch() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const [searchField, setSearchField] = useState<UserSearchField>('all');
-  const { handleAsyncError } = useErrorHandler();
+  const [sortKey, setSortKey] = useState<string | null>(null);
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc' | null>(null);
+
+  // Handle sort without causing re-renders
+  const handleSort = React.useCallback((key: string, direction: 'asc' | 'desc' | null) => {
+    setSortKey(direction ? key : null);
+    setSortDirection(direction);
+  }, []);
+
+  // Direct sorting without useMemo dependencies
+  const users = React.useMemo(() => {
+    if (!sortKey || !sortDirection || rawUsers.length === 0) {
+      return rawUsers;
+    }
+
+    return [...rawUsers].sort((a, b) => {
+      const aValue = a[sortKey as keyof IUserSummary];
+      const bValue = b[sortKey as keyof IUserSummary];
+
+      if (aValue == null && bValue == null) return 0;
+      if (aValue == null) return 1;
+      if (bValue == null) return -1;
+
+      const comparison = String(aValue).localeCompare(String(bValue));
+      return sortDirection === 'asc' ? comparison : -comparison;
+    });
+  }, [rawUsers, sortKey, sortDirection]);
 
   const fetchUsers = React.useCallback(
     async (opts: { after?: string | null; searchTerm?: string; page?: number } = {}) => {
@@ -59,9 +83,12 @@ export function UsersTableWithSearch() {
         const json = (await res.json()) as unknown as ISearchUsersResponse;
         if (json.errors && json.errors.length > 0) throw new Error(json.errors[0].message);
         const data = json.data?.searchUsers;
-        setUsers(
-          Array.isArray(data?.edges) ? data.edges.map(e => e.node ?? ({} as IUserSummary)) : []
-        );
+        const fetchedUsers = Array.isArray(data?.edges)
+          ? data.edges.map(e => e.node ?? ({} as IUserSummary))
+          : [];
+
+        // Store raw data - sorting is handled by useMemo
+        setRawUsers(fetchedUsers);
         setPageInfo(
           data?.pageInfo ?? {
             hasNextPage: false,
@@ -166,7 +193,7 @@ export function UsersTableWithSearch() {
         const lastPageStart = (totalPages - 1) * API_CONFIG.pagination.DEFAULT_PAGE_SIZE;
         const lastPageUsers = allUsers.slice(lastPageStart);
 
-        setUsers(lastPageUsers);
+        setRawUsers(lastPageUsers);
         setPageInfo({
           hasNextPage: false,
           hasPreviousPage: totalPages > 1,
@@ -252,27 +279,52 @@ export function UsersTableWithSearch() {
         {/* Users Table */}
         <div className="bg-card border border-border rounded-lg overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full">
+            <table className="w-full transition-all duration-200 ease-in-out">
               <thead className="bg-muted">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground tracking-wider border-b border-border">
                     #
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground tracking-wider border-b border-border">
+                  <SortableHeader
+                    sortKey="username"
+                    currentSortKey={sortKey}
+                    currentSortDirection={sortDirection}
+                    onSort={handleSort}
+                  >
                     username
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground tracking-wider border-b border-border">
+                  </SortableHeader>
+                  <SortableHeader
+                    sortKey="id"
+                    currentSortKey={sortKey}
+                    currentSortDirection={sortDirection}
+                    onSort={handleSort}
+                  >
                     user_id
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground tracking-wider border-b border-border">
+                  </SortableHeader>
+                  <SortableHeader
+                    sortKey="email_address"
+                    currentSortKey={sortKey}
+                    currentSortDirection={sortDirection}
+                    onSort={handleSort}
+                  >
                     email_address
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground tracking-wider border-b border-border">
+                  </SortableHeader>
+                  <SortableHeader
+                    sortKey="phone_number"
+                    currentSortKey={sortKey}
+                    currentSortDirection={sortDirection}
+                    onSort={handleSort}
+                  >
                     phone_number
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground tracking-wider border-b border-border">
+                  </SortableHeader>
+                  <SortableHeader
+                    sortKey="created_at"
+                    currentSortKey={sortKey}
+                    currentSortDirection={sortDirection}
+                    onSort={handleSort}
+                  >
                     created_at
-                  </th>
+                  </SortableHeader>
                 </tr>
               </thead>
               <tbody className="bg-card divide-y divide-border">
@@ -293,7 +345,10 @@ export function UsersTableWithSearch() {
                   </tr>
                 ) : (
                   users.map((user, index) => (
-                    <tr key={user.id} className="hover:bg-muted/50">
+                    <tr
+                      key={user.id}
+                      className="hover:bg-muted/50 transition-colors duration-150 ease-in-out"
+                    >
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
                         {(currentPage - 1) * API_CONFIG.pagination.DEFAULT_PAGE_SIZE + index + 1}
                       </td>
