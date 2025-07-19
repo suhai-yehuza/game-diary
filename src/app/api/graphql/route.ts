@@ -1,74 +1,52 @@
+import { ApolloServer } from '@apollo/server';
+import { startServerAndCreateNextHandler } from '@as-integrations/next';
 import { auth, currentUser } from '@clerk/nextjs/server';
 import type { NextRequest } from 'next/server';
-import { NextResponse } from 'next/server';
 
-export async function POST(request: NextRequest) {
-  try {
-    const { userId } = await auth();
+import { schema } from '@/lib/graphql/resolvers';
 
-    if (!userId) {
-      return new NextResponse('Unauthorized', { status: 401 });
-    }
+// Create Apollo Server instance
+const server = new ApolloServer({
+  schema,
+  introspection: process.env.NODE_ENV !== 'production',
+  formatError: error => {
+    console.error('GraphQL Error:', error);
+    return {
+      message: error.message,
+      code: error.extensions?.code || 'INTERNAL_SERVER_ERROR',
+    };
+  },
+});
 
-    const user = await currentUser();
+// Create the handler with authentication context
+const handler = startServerAndCreateNextHandler(server, {
+  context: async (req: NextRequest) => {
+    try {
+      const { userId } = await auth();
+      const user = await currentUser();
 
-    if (!user) {
-      return new NextResponse('User not found', { status: 404 });
-    }
-
-    const body = (await request.json()) as unknown as { query: string };
-    const { query } = body;
-
-    // Simple GraphQL-like response for testing
-    if (query.includes('me')) {
-      return NextResponse.json({
-        data: {
-          me: {
-            id: user.id,
-            email_address: user.emailAddresses?.[0]?.emailAddress || null,
-            phone_number: user.phoneNumbers?.[0]?.phoneNumber || null,
-          },
-        },
-      });
-    }
-
-    if (query.includes('user(id:')) {
-      // Extract user ID from query (simple parsing for tests)
-      const match = query.match(/user\(id:\s*"([^"]+)"/);
-      if (match && match[1] === user.id) {
-        return NextResponse.json({
-          data: {
-            user: {
+      return {
+        req,
+        user: user
+          ? {
               id: user.id,
-              email_address: user.emailAddresses?.[0]?.emailAddress || null,
-              phone_number: user.phoneNumbers?.[0]?.phoneNumber || null,
-            },
-          },
-        });
-      } else {
-        // Return user data but with null sensitive fields for other users
-        return NextResponse.json({
-          data: {
-            user: {
-              id: match?.[1] ?? 'unknown',
-              email_address: null,
-              phone_number: null,
-            },
-          },
-        });
-      }
+              email: user.emailAddresses?.[0]?.emailAddress,
+              username: user.username,
+              firstName: user.firstName,
+              lastName: user.lastName,
+            }
+          : null,
+        userId,
+      };
+    } catch (error) {
+      console.error('Error in GraphQL context:', error);
+      return {
+        req,
+        user: null,
+        userId: null,
+      };
     }
+  },
+});
 
-    return NextResponse.json(
-      {
-        errors: [{ message: 'Query not supported' }],
-      },
-      { status: 400 }
-    );
-  } catch (error) {
-    console.error('Error in /api/graphql:', error);
-    return new NextResponse('Internal Server Error', { status: 500 });
-  }
-}
-
-export const runtime = 'nodejs';
+export { handler as GET, handler as POST };

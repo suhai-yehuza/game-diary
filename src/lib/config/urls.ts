@@ -8,13 +8,13 @@ export const HTTPS_PROTOCOL = `${HTTPS}://`;
 
 // App configuration
 export const APP_NAME = 'game-diary';
-export const VERCEL_PROJECT_DUMMY = 'suhai-yehuza-suhais-projects-33a81a2a';
+export const VERCEL_GENERIC_PREVIEW_ID = 'suhai-yehuza-suhais-projects-33a81a2a';
 export const VERCEL_DOMAIN = 'vercel.app';
 
 // URL building blocks
 export const LOCALHOST_BASE = `${HTTP_PROTOCOL}localhost`;
 export const VERCEL_APP_BASE = `${HTTPS_PROTOCOL}${APP_NAME}`;
-export const VERCEL_BASE_URL = `${VERCEL_APP_BASE}-${VERCEL_PROJECT_DUMMY}.${VERCEL_DOMAIN}`;
+export const VERCEL_BASE_URL = `${VERCEL_APP_BASE}-${VERCEL_GENERIC_PREVIEW_ID}.${VERCEL_DOMAIN}`;
 export const VERCEL_MAIN_URL = `${VERCEL_APP_BASE}.${VERCEL_DOMAIN}`;
 export const PRODUCTION_DOMAINS = [
   `${HTTPS_PROTOCOL}www.${APP_NAME}.io`,
@@ -41,7 +41,7 @@ export const VERCEL_PREVIEW_PATTERNS = [
 
 // Generate all Vercel preview URLs
 export const VERCEL_PREVIEW_URLS = VERCEL_PREVIEW_PATTERNS.map(
-  pattern => `${VERCEL_APP_BASE}-${pattern}-${VERCEL_PROJECT_DUMMY}.${VERCEL_DOMAIN}`
+  pattern => `${VERCEL_APP_BASE}-${pattern}-${VERCEL_GENERIC_PREVIEW_ID}.${VERCEL_DOMAIN}`
 );
 
 // Generate all localhost URLs
@@ -61,7 +61,7 @@ export const URL_CONFIG = {
 
   // App configuration
   APP_NAME,
-  VERCEL_PROJECT_DUMMY,
+  VERCEL_GENERIC_PREVIEW_ID,
   VERCEL_DOMAIN,
 
   // Main URLs

@@ -1,6 +1,6 @@
-name: Promote Staging to Production (Every 4 Hours)
+name: Promote Staging to Production (Every 12 Hours)
 
-# Every 4 hours workflow that:
+# Every 12 hours workflow that:
 # - Checks for successful staging commits that are 24+ hours old
 # - Validates that commits have passed all staging deployment workflows
 # - Cherry-picks commits from staging to master if they meet all criteria
@@ -8,7 +8,7 @@ name: Promote Staging to Production (Every 4 Hours)
 
 on:
   schedule:
-    - cron: '0 */4 * * *' # every 4 hours
+    - cron: '0 */12 * * *' # every 12 hours
 
 permissions:
   contents: write
