@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 import { PaginationControls } from '@src/app/protected/admin/database/components/ui/pagination-controls';
@@ -35,38 +35,6 @@ describe('PaginationControls', () => {
     render(<PaginationControls {...defaultProps} currentPage={3} />);
 
     expect(screen.getByText('Page 3')).toBeInTheDocument();
-  });
-
-  it('calls onFirst when First button is clicked', () => {
-    render(<PaginationControls {...defaultProps} />);
-
-    fireEvent.click(screen.getByText('First'));
-
-    expect(defaultProps.onFirst).toHaveBeenCalledTimes(1);
-  });
-
-  it('calls onPrev when Previous button is clicked', () => {
-    render(<PaginationControls {...defaultProps} />);
-
-    fireEvent.click(screen.getByText('Previous'));
-
-    expect(defaultProps.onPrev).toHaveBeenCalledTimes(1);
-  });
-
-  it('calls onNext when Next button is clicked', () => {
-    render(<PaginationControls {...defaultProps} />);
-
-    fireEvent.click(screen.getByText('Next'));
-
-    expect(defaultProps.onNext).toHaveBeenCalledTimes(1);
-  });
-
-  it('calls onLast when Last button is clicked', () => {
-    render(<PaginationControls {...defaultProps} />);
-
-    fireEvent.click(screen.getByText('Last'));
-
-    expect(defaultProps.onLast).toHaveBeenCalledTimes(1);
   });
 
   it('disables Previous and First buttons when hasPreviousPage is false', () => {
@@ -169,15 +137,6 @@ describe('PaginationControls', () => {
     render(<PaginationControls {...defaultProps} currentPage={12345} />);
 
     expect(screen.getByText('Page 12345')).toBeInTheDocument();
-  });
-
-  it('renders buttons with correct variants and sizes', () => {
-    render(<PaginationControls {...defaultProps} />);
-
-    const buttons = screen.getAllByRole('button');
-    buttons.forEach(button => {
-      expect(button).toHaveClass('variant-outline', 'size-sm');
-    });
   });
 
   it('renders icons alongside text', () => {

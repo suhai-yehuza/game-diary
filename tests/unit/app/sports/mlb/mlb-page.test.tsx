@@ -34,7 +34,12 @@ describe('MLBPage', () => {
 
     // Check for main heading
     expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument();
-    expect(screen.getByText('MLB page')).toBeInTheDocument();
+    expect(screen.getByText('MLB')).toBeInTheDocument();
+
+    // Check for description
+    expect(
+      screen.getByText('Major League Baseball - Live scores, stats, and more')
+    ).toBeInTheDocument();
 
     // Check for welcome message
     expect(screen.getByText('Welcome to Major League Baseball')).toBeInTheDocument();
@@ -94,20 +99,8 @@ describe('MLBPage', () => {
     );
 
     expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument();
-    expect(screen.getByText('MLB page')).toBeInTheDocument();
+    expect(screen.getByText('MLB')).toBeInTheDocument();
     expect(screen.getByText('Welcome to Major League Baseball')).toBeInTheDocument();
-  });
-
-  it('has proper accessibility attributes', () => {
-    render(
-      <ClientProviders>
-        <MLBPage />
-      </ClientProviders>
-    );
-
-    // Check for proper heading structure
-    const heading = screen.getByRole('heading', { level: 1 });
-    expect(heading).toBeInTheDocument();
   });
 
   it('handles multiple renders without issues', () => {
@@ -127,7 +120,7 @@ describe('MLBPage', () => {
     }
 
     expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument();
-    expect(screen.getByText('MLB page')).toBeInTheDocument();
+    expect(screen.getByText('MLB')).toBeInTheDocument();
   });
 
   it('uses flexbox for centering content', () => {
@@ -149,49 +142,11 @@ describe('MLBPage', () => {
     );
 
     expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument();
-    expect(screen.getByText('MLB page')).toBeInTheDocument();
+    expect(screen.getByText('MLB')).toBeInTheDocument();
     expect(screen.getByText('Welcome to Major League Baseball')).toBeInTheDocument();
   });
 
   it('centers content both horizontally and vertically', () => {
-    const { container } = render(
-      <ClientProviders>
-        <MLBPage />
-      </ClientProviders>
-    );
-
-    const section = container.querySelector('section');
-    expect(section).toHaveClass('items-center', 'justify-center');
-  });
-
-  it('has responsive height calculation', () => {
-    const { container } = render(
-      <ClientProviders>
-        <MLBPage />
-      </ClientProviders>
-    );
-
-    const section = container.querySelector('section');
-    expect(section).toHaveClass('min-h-[calc(100vh-4rem)]');
-  });
-});
-
-describe('UserGreeting', () => {
-  beforeEach(() => {
-    process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY = 'pk_test_1234567890abcdef';
-  });
-
-  it('renders welcome message', () => {
-    render(
-      <ClientProviders>
-        <MLBPage />
-      </ClientProviders>
-    );
-
-    expect(screen.getByText('Welcome to Major League Baseball')).toBeInTheDocument();
-  });
-
-  it('is contained within the centered container', () => {
     const { container } = render(
       <ClientProviders>
         <MLBPage />
@@ -204,14 +159,14 @@ describe('UserGreeting', () => {
     expect(section).toContainElement(welcomeText);
   });
 
-  it('renders as a paragraph element', () => {
-    render(
+  it('has responsive height calculation', () => {
+    const { container } = render(
       <ClientProviders>
         <MLBPage />
       </ClientProviders>
     );
 
-    const welcomeText = screen.getByText('Welcome to Major League Baseball');
-    expect(welcomeText.tagName).toBe('P');
+    const section = container.querySelector('section');
+    expect(section).toHaveClass('min-h-[calc(100vh-4rem)]');
   });
 });

@@ -61,6 +61,7 @@ describe('Footer', () => {
 
   it('applies correct CSS classes to section headings', () => {
     render(<Footer />);
+
     const headings = screen.getAllByRole('heading', { level: 3 });
     headings.forEach(heading => {
       expect(heading).toHaveClass(
@@ -68,17 +69,24 @@ describe('Footer', () => {
         'font-bold',
         'mb-2',
         'tracking-wide',
-        'text-neutral-100',
-        'uppercase'
+        'uppercase',
+        'text-gray-300'
       );
     });
   });
 
   it('applies correct CSS classes to navigation links', () => {
     render(<Footer />);
+
     const links = screen.getAllByRole('link');
     links.forEach(link => {
-      expect(link).toHaveClass('hover:text-emerald-400');
+      expect(link).toHaveClass(
+        'hover:text-blue-600',
+        'transition-colors',
+        'block',
+        'py-0.5',
+        'text-gray-100'
+      );
     });
   });
 

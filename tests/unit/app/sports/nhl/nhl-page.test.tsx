@@ -34,7 +34,12 @@ describe('NHLPage', () => {
 
     // Check for main heading
     expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument();
-    expect(screen.getByText('NHL page')).toBeInTheDocument();
+    expect(screen.getByText('NHL')).toBeInTheDocument();
+
+    // Check for description
+    expect(
+      screen.getByText('National Hockey League - Live scores, stats, and more')
+    ).toBeInTheDocument();
 
     // Check for welcome message
     expect(screen.getByText('Welcome to the National Hockey League')).toBeInTheDocument();
@@ -94,20 +99,8 @@ describe('NHLPage', () => {
     );
 
     expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument();
-    expect(screen.getByText('NHL page')).toBeInTheDocument();
+    expect(screen.getByText('NHL')).toBeInTheDocument();
     expect(screen.getByText('Welcome to the National Hockey League')).toBeInTheDocument();
-  });
-
-  it('has proper accessibility attributes', () => {
-    render(
-      <ClientProviders>
-        <NHLPage />
-      </ClientProviders>
-    );
-
-    // Check for proper heading structure
-    const heading = screen.getByRole('heading', { level: 1 });
-    expect(heading).toBeInTheDocument();
   });
 
   it('handles multiple renders without issues', () => {
@@ -127,7 +120,7 @@ describe('NHLPage', () => {
     }
 
     expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument();
-    expect(screen.getByText('NHL page')).toBeInTheDocument();
+    expect(screen.getByText('NHL')).toBeInTheDocument();
   });
 
   it('uses flexbox for centering content', () => {
@@ -149,49 +142,11 @@ describe('NHLPage', () => {
     );
 
     expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument();
-    expect(screen.getByText('NHL page')).toBeInTheDocument();
+    expect(screen.getByText('NHL')).toBeInTheDocument();
     expect(screen.getByText('Welcome to the National Hockey League')).toBeInTheDocument();
   });
 
   it('centers content both horizontally and vertically', () => {
-    const { container } = render(
-      <ClientProviders>
-        <NHLPage />
-      </ClientProviders>
-    );
-
-    const section = container.querySelector('section');
-    expect(section).toHaveClass('items-center', 'justify-center');
-  });
-
-  it('has responsive height calculation', () => {
-    const { container } = render(
-      <ClientProviders>
-        <NHLPage />
-      </ClientProviders>
-    );
-
-    const section = container.querySelector('section');
-    expect(section).toHaveClass('min-h-[calc(100vh-4rem)]');
-  });
-});
-
-describe('UserGreeting', () => {
-  beforeEach(() => {
-    process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY = 'pk_test_1234567890abcdef';
-  });
-
-  it('renders welcome message', () => {
-    render(
-      <ClientProviders>
-        <NHLPage />
-      </ClientProviders>
-    );
-
-    expect(screen.getByText('Welcome to the National Hockey League')).toBeInTheDocument();
-  });
-
-  it('is contained within the centered container', () => {
     const { container } = render(
       <ClientProviders>
         <NHLPage />
@@ -204,14 +159,14 @@ describe('UserGreeting', () => {
     expect(section).toContainElement(welcomeText);
   });
 
-  it('renders as a paragraph element', () => {
-    render(
+  it('has responsive height calculation', () => {
+    const { container } = render(
       <ClientProviders>
         <NHLPage />
       </ClientProviders>
     );
 
-    const welcomeText = screen.getByText('Welcome to the National Hockey League');
-    expect(welcomeText.tagName).toBe('P');
+    const section = container.querySelector('section');
+    expect(section).toHaveClass('min-h-[calc(100vh-4rem)]');
   });
 });

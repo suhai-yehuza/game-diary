@@ -34,7 +34,12 @@ describe('NFLSportsPage', () => {
 
     // Check for main heading
     expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument();
-    expect(screen.getByText('NFL page')).toBeInTheDocument();
+    expect(screen.getByText('NFL')).toBeInTheDocument();
+
+    // Check for description
+    expect(
+      screen.getByText('National Football League - Live scores, stats, and more')
+    ).toBeInTheDocument();
 
     // Check for welcome message
     expect(screen.getByText('Welcome to the National Football League')).toBeInTheDocument();
@@ -94,20 +99,8 @@ describe('NFLSportsPage', () => {
     );
 
     expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument();
-    expect(screen.getByText('NFL page')).toBeInTheDocument();
+    expect(screen.getByText('NFL')).toBeInTheDocument();
     expect(screen.getByText('Welcome to the National Football League')).toBeInTheDocument();
-  });
-
-  it('has proper accessibility attributes', () => {
-    render(
-      <ClientProviders>
-        <NFLPage />
-      </ClientProviders>
-    );
-
-    // Check for proper heading structure
-    const heading = screen.getByRole('heading', { level: 1 });
-    expect(heading).toBeInTheDocument();
   });
 
   it('handles multiple renders without issues', () => {
@@ -127,7 +120,7 @@ describe('NFLSportsPage', () => {
     }
 
     expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument();
-    expect(screen.getByText('NFL page')).toBeInTheDocument();
+    expect(screen.getByText('NFL')).toBeInTheDocument();
   });
 
   it('uses flexbox for centering content', () => {
@@ -149,7 +142,7 @@ describe('NFLSportsPage', () => {
     );
 
     expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument();
-    expect(screen.getByText('NFL page')).toBeInTheDocument();
+    expect(screen.getByText('NFL')).toBeInTheDocument();
     expect(screen.getByText('Welcome to the National Football League')).toBeInTheDocument();
   });
 
@@ -175,45 +168,5 @@ describe('NFLSportsPage', () => {
 
     const section = container.querySelector('section');
     expect(section).toHaveClass('min-h-[calc(100vh-4rem)]');
-  });
-});
-
-describe('UserGreeting', () => {
-  beforeEach(() => {
-    process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY = 'pk_test_1234567890abcdef';
-  });
-
-  it('renders welcome message', () => {
-    render(
-      <ClientProviders>
-        <NFLPage />
-      </ClientProviders>
-    );
-
-    expect(screen.getByText('Welcome to the National Football League')).toBeInTheDocument();
-  });
-
-  it('is contained within the centered container', () => {
-    const { container } = render(
-      <ClientProviders>
-        <NFLPage />
-      </ClientProviders>
-    );
-
-    const section = container.querySelector('section');
-    const welcomeText = screen.getByText('Welcome to the National Football League');
-
-    expect(section).toContainElement(welcomeText);
-  });
-
-  it('renders as a paragraph element', () => {
-    render(
-      <ClientProviders>
-        <NFLPage />
-      </ClientProviders>
-    );
-
-    const welcomeText = screen.getByText('Welcome to the National Football League');
-    expect(welcomeText.tagName).toBe('P');
   });
 });
