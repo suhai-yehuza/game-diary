@@ -55,11 +55,13 @@ export function SortableHeader({
         {!disabled && (
           <div className="flex flex-col">
             <ChevronUp
+              data-testid="chevron-up"
               className={`h-3 w-3 transition-colors ${
                 isAsc ? 'text-foreground' : 'text-muted-foreground/30'
               }`}
             />
             <ChevronDown
+              data-testid="chevron-down"
               className={`h-3 w-3 transition-colors -mt-1 ${
                 isDesc ? 'text-foreground' : 'text-muted-foreground/30'
               }`}
