@@ -167,7 +167,7 @@ tsx scripts/cli.ts test db-connection
 ### Utility Operations
 
 ```bash
-tsx scripts/cli.ts utils fix-types
+
 tsx scripts/cli.ts utils validate-types
 tsx scripts/cli.ts utils check-circular
 tsx scripts/cli.ts utils check-unused
@@ -210,12 +210,10 @@ Updated all database-related scripts to use the new CLI:
 # Old
 tsx scripts/db/apply-migrations.ts
 tsx scripts/test-cascade-delete.ts
-tsx scripts/utils/fix-type-violations.ts
 
 # New
 tsx scripts/cli.ts db migrate
 tsx scripts/cli.ts test cascade-delete
-tsx scripts/cli.ts utils fix-types
 ```
 
 ## 🎯 Benefits Achieved

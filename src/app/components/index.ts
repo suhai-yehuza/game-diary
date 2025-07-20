@@ -14,3 +14,9 @@ export * from '@/app/components/ui';
 
 // Export provider components
 export * from '@/app/components/providers';
+
+// Export sports components
+export * from '@/app/components/sports';
+
+// Export admin components
+export * from '@/app/components/admin';

@@ -220,12 +220,6 @@ async function handleValidation(subcommand: string, args: string[]): Promise<voi
  */
 async function handleUtils(subcommand: string, args: string[]): Promise<void> {
   switch (subcommand) {
-    case 'fix-types':
-      await runCommand(
-        `tsx scripts/utils/fix-type-violations.ts ${args.join(' ')}`,
-        'Fixing type violations'
-      );
-      break;
     case 'validate-types':
       await runCommand(`tsx scripts/utils/validate-types.ts ${args.join(' ')}`, 'Validating types');
       break;
@@ -259,7 +253,7 @@ async function handleUtils(subcommand: string, args: string[]): Promise<void> {
     default:
       logger.error(`Unknown utils subcommand: ${subcommand}`);
       logger.info(
-        'Available utils commands: fix-types, validate-types, check-circular, check-unused, manage-deps, verify-env, combine-schema'
+        'Available utils commands: validate-types, check-circular, check-unused, manage-deps, verify-env, combine-schema'
       );
       process.exit(1);
   }
@@ -479,7 +473,6 @@ Commands:
     helpers [options]     Run validation helpers
 
   utils <subcommand>        Utility operations
-    fix-types [options]   Fix type violations
     validate-types [options] Validate types
     check-circular [options] Check circular dependencies
     check-unused [options] Check unused exports
@@ -510,7 +503,7 @@ Examples:
   tsx scripts/cli.ts db setup complete
   tsx scripts/cli.ts test e2e basic
   tsx scripts/cli.ts ci runner staging
-  tsx scripts/cli.ts utils fix-types
+
   tsx scripts/cli.ts perf measure
   tsx scripts/cli.ts workflow deploy auto-deploy
 

@@ -144,7 +144,7 @@ tsx scripts/cli.ts validate helpers [options] # Run validation helpers
 #### Utility Operations (`utils`)
 
 ```bash
-tsx scripts/cli.ts utils fix-types [options]  # Fix type violations
+
 tsx scripts/cli.ts utils validate-types [options] # Validate types
 tsx scripts/cli.ts utils check-circular [options] # Check circular dependencies
 tsx scripts/cli.ts utils check-unused [options] # Check unused exports
@@ -183,7 +183,7 @@ scripts/
 ├── tests/                    # 🆕 Consolidated test scripts
 │   └── test-all-triggers.ts  # Comprehensive trigger validation
 ├── utils/                    # Utility scripts
-│   ├── fix-type-violations.ts
+
 │   ├── validate-types.ts
 │   ├── check-circular-deps.ts
 │   ├── check-unused-exports.ts
@@ -250,9 +250,6 @@ scripts/
 **Note**: Most individual test scripts have been consolidated into `test-all-triggers.ts` for comprehensive trigger validation.
 
 ### Utility Scripts
-
-- **Old**: `tsx scripts/utils/fix-type-violations.ts`
-- **New**: `tsx scripts/cli.ts utils fix-types`
 
 - **Old**: `tsx scripts/utils/validate-types.ts`
 - **New**: `tsx scripts/cli.ts utils validate-types`

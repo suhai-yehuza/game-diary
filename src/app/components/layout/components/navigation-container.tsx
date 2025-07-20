@@ -1,14 +1,6 @@
 import { MobileMenuButton } from '@/app/components/layout/components/mobile-menu-button';
 import { ClientOnlyNavigationLinks } from '@/app/components/layout/components/navigation';
-
-interface INavigationContainerProps {
-  isMenuExpanded: boolean;
-  isActive: (path: string) => boolean;
-  setIsMenuExpanded: (value: boolean) => void;
-  closeMenu: () => void;
-  isStacked: boolean;
-  onMenuToggle: () => void;
-}
+import type { INavigationContainerProps } from '@/lib/types';
 
 export function NavigationContainer({
   isMenuExpanded,

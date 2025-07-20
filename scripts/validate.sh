@@ -172,11 +172,6 @@ run_type_validation() {
     pnpm run typecheck
 }
 
-run_type_fix() {
-    log_info "Fixing TypeScript type violations..."
-    pnpm run fix:types
-}
-
 run_db_triggers_validation() {
     log_info "Validating database triggers..."
     pnpm run db:test:all-triggers
@@ -412,7 +407,6 @@ run_quick_fix() {
     log_info "Running quick fixes..."
     run_lint_fix
     run_format
-    run_type_fix
     run_typecheck
 }
 
@@ -430,7 +424,6 @@ run_ci_validation() {
 
     run_circular_check
     run_type_validation
-    run_type_fix
 
     log_info "Skipping comprehensive environment validation in CI mode..."
     log_warning "Environment variables will be validated in individual CI jobs"
@@ -452,7 +445,6 @@ run_basic_validation() {
 
     run_circular_check
     run_type_validation
-    run_type_fix
     run_db_triggers_validation
 
     # Environment validation (with CI handling)
@@ -539,7 +531,6 @@ run_circular_check_standalone() {
 run_types_validation_standalone() {
     log "Validating and fixing types..."
     run_type_validation
-    run_type_fix
     log_success "Type validation and fixes completed"
 }
 

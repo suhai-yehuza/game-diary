@@ -1,5 +1,5 @@
 import { auth } from '@clerk/nextjs/server';
-import { eq, and, gte, lte, like, desc } from 'drizzle-orm';
+import { eq, and, gte, lte, desc } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
 
 import { API_CONFIG } from '@/lib/config/api.config';
@@ -17,9 +17,9 @@ export async function GET(request: Request) {
     // Get query parameters
     const { searchParams } = new URL(request.url);
     const limit = parseInt(
-      searchParams.get('limit') || API_CONFIG.pagination.DEFAULT_PAGE_SIZE.toString()
+      searchParams.get('limit') ?? API_CONFIG.pagination.DEFAULT_PAGE_SIZE.toString()
     );
-    const offset = parseInt(searchParams.get('offset') || '0');
+    const offset = parseInt(searchParams.get('offset') ?? '0');
     const category = searchParams.get('category');
     const severity = searchParams.get('severity');
     const userIdFilter = searchParams.get('userId');
@@ -55,7 +55,7 @@ export async function GET(request: Request) {
       .from(audit_logs)
       .where(conditions.length > 0 ? and(...conditions) : undefined);
 
-    const total = totalCountQuery?.length || 0;
+    const total = totalCountQuery?.length ?? 0;
 
     // Get paginated results
     const query = db()
@@ -85,17 +85,17 @@ export async function GET(request: Request) {
     const logs =
       results?.map(log => ({
         id: log.id,
-        timestamp: log.timestamp?.toISOString() || new Date().toISOString(),
-        category: log.category || 'unknown',
-        action: log.action || 'unknown',
-        severity: log.severity || 'low',
-        user_id: log.user_id || 'unknown',
-        description: log.description || 'No description',
+        timestamp: log.timestamp?.toISOString() ?? new Date().toISOString(),
+        category: log.category ?? 'unknown',
+        action: log.action ?? 'unknown',
+        severity: log.severity ?? 'low',
+        user_id: log.user_id ?? 'unknown',
+        description: log.description ?? 'No description',
         success: log.success ?? true,
-        error_message: log.error_message || null,
-        endpoint: log.endpoint || null,
-        method: log.method || null,
-        details: log.details || {},
+        error_message: log.error_message ?? null,
+        endpoint: log.endpoint ?? null,
+        method: log.method ?? null,
+        details: log.details ?? {},
       })) || [];
 
     // Return the expected structure
@@ -119,7 +119,13 @@ export async function POST(request: Request) {
       return new NextResponse('Unauthorized', { status: 401 });
     }
 
-    const filters = await request.json();
+    const filters = (await request.json()) as {
+      category?: string;
+      severity?: string;
+      userId?: string;
+      startDate?: string;
+      endDate?: string;
+    };
 
     // Build query conditions for export
     const conditions = [];
@@ -169,16 +175,16 @@ export async function POST(request: Request) {
     const logs =
       results?.map(log => ({
         id: log.id,
-        timestamp: log.timestamp?.toISOString() || new Date().toISOString(),
-        category: log.category || 'unknown',
-        action: log.action || 'unknown',
-        severity: log.severity || 'low',
-        user_id: log.user_id || 'unknown',
-        description: log.description || 'No description',
+        timestamp: log.timestamp?.toISOString() ?? new Date().toISOString(),
+        category: log.category ?? 'unknown',
+        action: log.action ?? 'unknown',
+        severity: log.severity ?? 'low',
+        user_id: log.user_id ?? 'unknown',
+        description: log.description ?? 'No description',
         success: log.success ?? true,
-        error_message: log.error_message || null,
-        endpoint: log.endpoint || null,
-        method: log.method || null,
+        error_message: log.error_message ?? null,
+        endpoint: log.endpoint ?? null,
+        method: log.method ?? null,
       })) || [];
 
     // Convert to CSV format
@@ -200,12 +206,12 @@ export async function POST(request: Request) {
       log.category,
       log.action,
       log.severity,
-      log.user_id || 'N/A',
-      log.description || 'N/A',
+      log.user_id ?? 'N/A',
+      log.description ?? 'N/A',
       log.success ? 'Yes' : 'No',
-      log.error_message || 'N/A',
-      log.endpoint || 'N/A',
-      log.method || 'N/A',
+      log.error_message ?? 'N/A',
+      log.endpoint ?? 'N/A',
+      log.method ?? 'N/A',
     ]);
 
     const csvContent = [

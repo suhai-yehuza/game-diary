@@ -1,8 +1,7 @@
 'use client';
 
+import { AdminAuditLogsContent } from '@/app/protected/admin/audit-logs/components/audit-logs-content';
 import { ErrorBoundary } from '@src/app/protected/admin/database/components/ui/error-boundary';
-
-import { AdminAuditLogsContent } from './components/audit-logs-content';
 
 export default function AdminAuditLogsPage() {
   return (

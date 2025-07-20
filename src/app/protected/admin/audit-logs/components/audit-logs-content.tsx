@@ -240,7 +240,7 @@ export function AdminAuditLogsContent() {
 
     useEffect(() => {
       setLocalSearchTerm(searchTerm);
-    }, [searchTerm]);
+    }, []);
 
     const handleSearchChange = (value: string) => {
       setLocalSearchTerm(value);
