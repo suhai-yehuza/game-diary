@@ -42,5 +42,11 @@ export * from './schema-types';
 // Seeding types
 export * from './seeding-types';
 
+// Search types
+export * from './searchTypes';
+
+// Audit Log types
+export * from './auditLogTypes';
+
 // UI types
 export * from './uiTypes';

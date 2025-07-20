@@ -1,38 +1,15 @@
 'use client';
 
+import { useTheme } from 'next-themes';
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 
 import { API_CONFIG } from '@/lib/config/api.config';
+import type { IAuditLog, IFilters, AuditLogSearchField } from '@/lib/types';
 import { ErrorBoundary } from '@src/app/protected/admin/database/components/ui/error-boundary';
 import { PaginationControls } from '@src/app/protected/admin/database/components/ui/pagination-controls';
 
-interface IAuditLog {
-  id: string;
-  timestamp: string;
-  category: string;
-  action: string;
-  severity: string;
-  user_id?: string;
-  description?: string;
-  success: boolean;
-  error_message?: string;
-  endpoint?: string;
-  method?: string;
-  details?: Record<string, unknown>;
-}
-
-interface IFilters {
-  category?: string;
-  action?: string;
-  severity?: string;
-  userId?: string;
-  startDate?: string;
-  endDate?: string;
-}
-
-type AuditLogSearchField = 'all' | 'category' | 'action' | 'severity' | 'user_id' | 'description';
-
 export function AdminAuditLogsContent() {
+  const { resolvedTheme } = useTheme();
   const [logs, setLogs] = useState<IAuditLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -208,17 +185,29 @@ export function AdminAuditLogsContent() {
   }, []);
 
   const getSeverityColor = (severity: string) => {
+    const isDark = resolvedTheme === 'dark';
+
     switch (severity.toLowerCase()) {
       case 'critical':
-        return 'bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-200 border-red-200 dark:border-red-800';
+        return isDark
+          ? 'bg-red-900/20 text-red-200 border-red-800'
+          : 'bg-red-600 text-white border-red-700';
       case 'high':
-        return 'bg-orange-100 dark:bg-orange-900/20 text-orange-800 dark:text-orange-200 border-orange-200 dark:border-orange-800';
+        return isDark
+          ? 'bg-orange-900/20 text-orange-200 border-orange-800'
+          : 'bg-orange-600 text-white border-orange-700';
       case 'medium':
-        return 'bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-200 border-yellow-200 dark:border-yellow-800';
+        return isDark
+          ? 'bg-yellow-900/20 text-yellow-200 border-yellow-800'
+          : 'bg-yellow-600 text-white border-yellow-700';
       case 'low':
-        return 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-200 border-green-200 dark:border-green-800';
+        return isDark
+          ? 'bg-green-900/20 text-green-200 border-green-800'
+          : 'bg-green-600 text-white border-green-700';
       default:
-        return 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 border-gray-200 dark:border-gray-700';
+        return isDark
+          ? 'bg-gray-800 text-gray-200 border-gray-700'
+          : 'bg-gray-600 text-white border-gray-700';
     }
   };
 
@@ -451,10 +440,10 @@ export function AdminAuditLogsContent() {
         <div className="flex-1 flex flex-col min-h-0 space-y-6">
           {/* Filters Section */}
           <div className="bg-card dark:bg-card rounded-xl shadow-sm border border-border dark:border-border overflow-hidden">
-            <div className="px-6 py-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/50 dark:to-indigo-950/50 border-b border-border dark:border-border">
-              <h2 className="text-xl font-semibold text-foreground dark:text-foreground flex items-center">
+            <div className="px-6 py-4 bg-gradient-to-r from-gray-200 to-gray-200 dark:from-neutral-700 dark:to-neutral-700 border-b border-gray-300 dark:border-neutral-600">
+              <h2 className="text-xl font-semibold text-gray-800 dark:text-neutral-200 flex items-center">
                 <svg
-                  className="w-5 h-5 mr-2 text-blue-600 dark:text-blue-400"
+                  className="w-5 h-5 mr-2 text-gray-800 dark:text-neutral-200"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -727,7 +716,13 @@ export function AdminAuditLogsContent() {
                             {formatTimestamp(log.timestamp)}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-200">
+                            <span
+                              className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${
+                                resolvedTheme === 'dark'
+                                  ? 'bg-blue-900/20 text-blue-200 border-blue-800'
+                                  : 'bg-blue-600 text-white border-blue-700'
+                              }`}
+                            >
                               {log.category}
                             </span>
                           </td>
@@ -746,10 +741,14 @@ export function AdminAuditLogsContent() {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <span
-                              className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                              className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${
                                 log.success
-                                  ? 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-200 border border-green-200 dark:border-green-800'
-                                  : 'bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-200 border border-red-200 dark:border-red-800'
+                                  ? resolvedTheme === 'dark'
+                                    ? 'bg-green-900/20 text-green-200 border-green-800'
+                                    : 'bg-green-600 text-white border-green-700'
+                                  : resolvedTheme === 'dark'
+                                    ? 'bg-red-900/20 text-red-200 border-red-800'
+                                    : 'bg-red-600 text-white border-red-700'
                               }`}
                             >
                               {log.success ? 'Success' : 'Failed'}

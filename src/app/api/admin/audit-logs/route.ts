@@ -1,9 +1,10 @@
 import { auth } from '@clerk/nextjs/server';
+import { eq, and, gte, lte, like, desc } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
+
+import { API_CONFIG } from '@/lib/config/api.config';
 import { db } from '@/lib/db';
 import { audit_logs } from '@/lib/db/schema/audit-schemas';
-import { eq, and, gte, lte, like, desc } from 'drizzle-orm';
-import { API_CONFIG } from '@/lib/config/api.config';
 
 export async function GET(request: Request) {
   try {
