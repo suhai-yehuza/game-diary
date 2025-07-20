@@ -5,7 +5,7 @@ import { Search, X, Menu, ChevronDown } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import React, { useState, useEffect, useRef, Suspense } from 'react';
+import React, { useState, useEffect, useRef, Suspense, useCallback } from 'react';
 
 import { ThemeToggle } from '@/app/components/common';
 import { ClerkWrapper } from '@/app/components/common/clerk-error-boundary';
@@ -56,7 +56,10 @@ function SearchBarContent({ autoFocus = false }: { autoFocus?: boolean } = {}) {
 
   // Set mobile state on mount
   useEffect(() => {
-    setIsMobile(window.innerWidth < 640);
+    const checkMobile = () => setIsMobile(window.innerWidth < 640);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
   // Initialize search query from URL params
@@ -115,19 +118,22 @@ function SearchBarContent({ autoFocus = false }: { autoFocus?: boolean } = {}) {
     }, SEARCH_DEBOUNCE_MS);
   }, [debounced_query, router, pathname]);
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    setDebouncedQuery(search_query);
-    if (typeof window !== 'undefined' && window.innerWidth < 640) {
-      setIsFocused(false);
-    }
-  };
+  const handleSearch = useCallback(
+    (e: React.FormEvent) => {
+      e.preventDefault();
+      setDebouncedQuery(search_query);
+      if (typeof window !== 'undefined' && window.innerWidth < 640) {
+        setIsFocused(false);
+      }
+    },
+    [search_query]
+  );
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value;
     setSearchQuery(query);
     setDebouncedQuery(query);
-  };
+  }, []);
 
   // For detaching effect
   const baseFormClass =
@@ -499,50 +505,50 @@ function ClientOnlyNavigationLinks(
             href="/"
             className="block py-2 lg:py-1.5 text-base lg:text-sm transition-colors whitespace-nowrap flex items-center w-full lg:w-auto h-full"
           >
-            <div className="w-16 h-4 bg-gray-200 rounded animate-pulse" />
+            <div className="w-16 h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
           </Link>
           <Link
             href="/sports/nba"
             className="block py-2 lg:py-1.5 text-base lg:text-sm transition-colors whitespace-nowrap flex items-center w-full lg:w-auto h-full"
           >
-            <div className="w-8 h-4 bg-gray-200 rounded animate-pulse" />
+            <div className="w-8 h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
           </Link>
           <Link
             href="/sports/nfl"
             className="block py-2 lg:py-1.5 text-base lg:text-sm transition-colors whitespace-nowrap flex items-center w-full lg:w-auto h-full"
           >
-            <div className="w-8 h-4 bg-gray-200 rounded animate-pulse" />
+            <div className="w-8 h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
           </Link>
           <Link
             href="/sports/mlb"
             className="block py-2 lg:py-1.5 text-base lg:text-sm transition-colors whitespace-nowrap flex items-center w-full lg:w-auto h-full"
           >
-            <div className="w-8 h-4 bg-gray-200 rounded animate-pulse" />
+            <div className="w-8 h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
           </Link>
           <Link
             href="/sports/nhl"
             className="block py-2 lg:py-1.5 text-base lg:text-sm transition-colors whitespace-nowrap flex items-center w-full lg:w-auto h-full"
           >
-            <div className="w-8 h-4 bg-gray-200 rounded animate-pulse" />
+            <div className="w-8 h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
           </Link>
           <Link
             href="/sports/mls"
             className="block py-2 lg:py-1.5 text-base lg:text-sm transition-colors whitespace-nowrap flex items-center w-full lg:w-auto h-full"
           >
-            <div className="w-8 h-4 bg-gray-200 rounded animate-pulse" />
+            <div className="w-8 h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
           </Link>
           <Link
             href="/sports/all-sports"
             className="block py-2 lg:py-1.5 text-base lg:text-sm transition-colors whitespace-nowrap flex items-center w-full lg:w-auto h-full"
           >
-            <div className="w-16 h-4 bg-gray-200 rounded animate-pulse" />
+            <div className="w-16 h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
           </Link>
           <div className="hidden lg:block h-6 w-px bg-gray-200 dark:bg-gray-700 mx-3" />
           <Link
             href="/protected/user"
             className="block py-2 lg:py-1.5 text-base lg:text-sm transition-colors whitespace-nowrap flex items-center w-full lg:w-auto h-full"
           >
-            <div className="w-12 h-4 bg-gray-200 rounded animate-pulse" />
+            <div className="w-12 h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
           </Link>
         </nav>
       }
@@ -563,7 +569,7 @@ function AuthControlsContent() {
   if (!mounted) {
     return (
       <div className="flex items-center">
-        <div className="w-10 h-10 bg-gray-200 rounded animate-pulse flex items-center justify-center">
+        <div className="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded animate-pulse flex items-center justify-center">
           <span className="text-xs text-gray-500">Auth</span>
         </div>
       </div>
@@ -639,7 +645,9 @@ function AuthControlsContent() {
 
 function ClientOnlyAuthControls() {
   return (
-    <Suspense fallback={<div className="w-10 h-10 bg-gray-200 rounded animate-pulse" />}>
+    <Suspense
+      fallback={<div className="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />}
+    >
       <AuthControlsContent />
     </Suspense>
   );
@@ -653,6 +661,8 @@ export function Header() {
   }: { isMenuExpanded: boolean; setIsMenuExpanded: (v: boolean) => void } = useMenuContext();
   const pathname = usePathname() || '/';
   const [isMobile, setIsMobile] = useState(false);
+
+  // Memoize mobile state check to prevent unnecessary re-renders
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 1024);
     checkMobile();
@@ -663,15 +673,31 @@ export function Header() {
   // Menu is stacked only if expanded and in mobile/overlay mode
   const isStacked = isMenuExpanded && isMobile;
 
-  const isActive = (path: string) => {
-    if (path === '/') {
-      return pathname === '/';
-    }
-    if (path === '/sports/nba') {
+  const isActive = useCallback(
+    (path: string) => {
+      if (path === '/') {
+        return pathname === '/';
+      }
+      if (path === '/sports/nba') {
+        return pathname === path || pathname.startsWith(`${path}/`);
+      }
       return pathname === path || pathname.startsWith(`${path}/`);
-    }
-    return pathname === path || pathname.startsWith(`${path}/`);
-  };
+    },
+    [pathname]
+  );
+
+  const handleMenuToggle = useCallback(() => {
+    setIsMenuExpanded(!isMenuExpanded);
+    setIsSearchVisible(false);
+  }, [isMenuExpanded, setIsMenuExpanded]);
+
+  const handleSearchToggle = useCallback(() => {
+    setIsSearchVisible(true);
+    if (isMenuExpanded) setIsMenuExpanded(false);
+  }, [isMenuExpanded, setIsMenuExpanded]);
+
+  const handleCloseMenu = useCallback(() => setIsMenuExpanded(false), [setIsMenuExpanded]);
+  const handleCloseSearch = useCallback(() => setIsSearchVisible(false), []);
 
   return (
     <>
@@ -683,7 +709,7 @@ export function Header() {
         {isMenuExpanded && (
           <div
             className="fixed inset-0 z-40 bg-black/30 lg:hidden"
-            onClick={() => setIsMenuExpanded(false)}
+            onClick={handleCloseMenu}
             aria-label="Close menu overlay"
             role="button"
             tabIndex={0}
@@ -714,10 +740,7 @@ export function Header() {
               {/* Mobile Menu Button */}
               <button
                 aria-label="Toggle menu"
-                onClick={() => {
-                  setIsMenuExpanded(!isMenuExpanded);
-                  setIsSearchVisible(false);
-                }}
+                onClick={handleMenuToggle}
                 className="lg:hidden mr-4 relative z-10 p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md transition-colors"
                 style={{ pointerEvents: 'auto' }}
               >
@@ -734,7 +757,7 @@ export function Header() {
                     isActive={isActive}
                     _isMenuExpanded={isMenuExpanded}
                     _setIsMenuExpanded={setIsMenuExpanded}
-                    closeMenu={() => setIsMenuExpanded(false)}
+                    closeMenu={handleCloseMenu}
                     isStacked={isStacked}
                   />
                 </div>
@@ -747,14 +770,7 @@ export function Header() {
             className={`pr-10 flex items-center gap-2 sm:gap-4 justify-end ${isMenuExpanded ? 'hidden sm:flex' : ''}`}
           >
             {/* Mobile Search Button */}
-            <button
-              aria-label="Toggle search"
-              onClick={() => {
-                setIsSearchVisible(true);
-                if (isMenuExpanded) setIsMenuExpanded(false);
-              }}
-              className="sm:hidden"
-            >
+            <button aria-label="Toggle search" onClick={handleSearchToggle} className="sm:hidden">
               <Search className="h-5 w-5" />
             </button>
 
@@ -778,10 +794,10 @@ export function Header() {
         {isSearchVisible && (
           <div
             className="fixed inset-0 z-40 flex items-start justify-center bg-black/40 sm:hidden min-w-[44px] min-h-[44px]"
-            onClick={() => setIsSearchVisible(false)}
+            onClick={handleCloseSearch}
             onKeyDown={e => {
               if (e.key === 'Escape') {
-                setIsSearchVisible(false);
+                handleCloseSearch();
               }
             }}
             role="button"
@@ -795,7 +811,7 @@ export function Header() {
               onKeyDown={e => {
                 if (e.key === 'Escape') {
                   e.stopPropagation();
-                  setIsSearchVisible(false);
+                  handleCloseSearch();
                 }
               }}
               role="button"
@@ -805,7 +821,7 @@ export function Header() {
               <SearchBar autoFocus />
               <button
                 className="ml-2 text-gray-400 hover:text-gray-600"
-                onClick={() => setIsSearchVisible(false)}
+                onClick={handleCloseSearch}
                 aria-label="Close search"
                 type="button"
               >
