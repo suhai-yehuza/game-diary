@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react';
 
+import { API_CONFIG } from '@/lib/config/api.config';
+
 interface IAuditLog {
   id: string;
   timestamp: string;
@@ -40,8 +42,8 @@ export default function AdminAuditLogsPage() {
       setLoading(true);
       setError(null); // Clear previous errors
       const params = new URLSearchParams({
-        limit: '50',
-        offset: ((page - 1) * 50).toString(),
+        limit: API_CONFIG.pagination.DEFAULT_PAGE_SIZE.toString(),
+        offset: ((page - 1) * API_CONFIG.pagination.DEFAULT_PAGE_SIZE).toString(),
         ...pageFilters,
       });
 
@@ -52,7 +54,9 @@ export default function AdminAuditLogsPage() {
 
       const data = (await response.json()) as { logs: IAuditLog[]; total?: number };
       setLogs(data.logs ?? []);
-      setTotalPages(Math.ceil((data.total ?? data.logs.length) / 50));
+      setTotalPages(
+        Math.ceil((data.total ?? data.logs.length) / API_CONFIG.pagination.DEFAULT_PAGE_SIZE)
+      );
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch logs');
     } finally {

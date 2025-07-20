@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { audit_logs } from '@/lib/db/schema/audit-schemas';
 import { eq, and, gte, lte, like, desc } from 'drizzle-orm';
+import { API_CONFIG } from '@/lib/config/api.config';
 
 export async function GET(request: Request) {
   try {
@@ -14,7 +15,9 @@ export async function GET(request: Request) {
 
     // Get query parameters
     const { searchParams } = new URL(request.url);
-    const limit = parseInt(searchParams.get('limit') || '50');
+    const limit = parseInt(
+      searchParams.get('limit') || API_CONFIG.pagination.DEFAULT_PAGE_SIZE.toString()
+    );
     const offset = parseInt(searchParams.get('offset') || '0');
     const category = searchParams.get('category');
     const severity = searchParams.get('severity');
