@@ -23,9 +23,9 @@ export default function HomePage() {
             priority
             sizes="(max-width: 600px) 150px, 200px"
           />
-          <h1 className="text-4xl font-bold tracking-tight">Placeholder Text</h1>
+          <h1 className="text-4xl font-bold tracking-tight">Game Diary</h1>
           <p className="text-xl text-gray-600 dark:text-gray-300">
-            Placeholder sentence or paragraph
+            Track your gaming experiences, discover new games, and connect with fellow gamers
           </p>
         </div>
 
@@ -36,30 +36,42 @@ export default function HomePage() {
           >
             Go to Dashboard
           </Link>
+          <Link
+            href="/sports/all-sports"
+            className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+          >
+            Explore Sports
+          </Link>
         </div>
       </div>
       <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <Link href="/" className="flex items-center gap-2 hover:underline hover:underline-offset-4">
+        <Link
+          href="/sports/live"
+          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
+        >
           <Image
             aria-hidden
-            src="/icons/file.svg"
-            alt="File icon"
+            src="/icons/globe.svg"
+            alt="Live games icon"
             width={16}
             height={16}
             sizes="16px"
           />
-          Placeholder 01
+          Live Games
         </Link>
-        <Link href="/" className="flex items-center gap-2 hover:underline hover:underline-offset-4">
+        <Link
+          href="/sports/all-sports"
+          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
+        >
           <Image
             aria-hidden
-            src="/icons/window.svg"
-            alt="Window icon"
+            src="/icons/shared-svg-components.svg"
+            alt="Sports icon"
             width={16}
             height={16}
             sizes="16px"
           />
-          Placeholder 02
+          All Sports
         </Link>
       </footer>
     </section>

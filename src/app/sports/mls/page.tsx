@@ -1,10 +1,13 @@
 'use client';
 
+import { SimpleSportsPage } from '@/app/components/sports';
+
 export default function MLSPage() {
   return (
-    <section className="min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center">
-      <h1 className="text-3xl font-bold mb-4">MLS page</h1>
-      <p>Welcome to Major League Soccer</p>
-    </section>
+    <SimpleSportsPage title="MLS" description="Major League Soccer - Live scores, stats, and more">
+      <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+        <p>Welcome to Major League Soccer</p>
+      </div>
+    </SimpleSportsPage>
   );
 }

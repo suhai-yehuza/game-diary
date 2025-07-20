@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import React from 'react';
 
+import { PageLoadingSpinner, PageErrorDisplay, NoDataEmptyState } from '@/app/components/common';
 import { useLiveGames } from '@/hooks/use-live-games';
 import type { IGamesApiResponse } from '@/lib/types/externalApiTypes';
 
@@ -12,42 +13,25 @@ export function LiveGamesDetail({ data }: { data?: IGamesApiResponse } = {}) {
   });
 
   if (loading) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto" />
-          <p className="mt-4 text-lg">Loading live games...</p>
-        </div>
-      </div>
-    );
+    return <PageLoadingSpinner text="Loading live games..." />;
   }
 
   if (error && games.length === 0) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="text-center">
-          <p className="text-red-600 text-lg">Error loading live games: {error}</p>
-          <button
-            onClick={() => {
-              window.location.reload();
-            }}
-            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-          >
-            Retry
-          </button>
-        </div>
-      </div>
+      <PageErrorDisplay
+        error={error}
+        title="Error loading live games"
+        onRetry={() => window.location.reload()}
+      />
     );
   }
 
   if (games.length === 0) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">No Live Games</h1>
-          <p className="text-gray-600">There are currently no live NBA games.</p>
-        </div>
-      </div>
+      <NoDataEmptyState
+        title="No Live Games"
+        description="There are currently no live NBA games."
+      />
     );
   }
 

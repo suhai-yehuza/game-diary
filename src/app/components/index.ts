@@ -20,3 +20,7 @@ export * from '@/app/components/sports';
 
 // Export admin components
 export * from '@/app/components/admin';
+
+// Export live games components
+export { LiveGamesDetail } from '@/app/components/live-games-detail';
+export { LiveGamesBanner } from '@/app/components/live-games-banner';

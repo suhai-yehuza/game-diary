@@ -1,3 +1,4 @@
+import { sql } from 'drizzle-orm';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
@@ -11,6 +12,7 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') ?? '20');
     const offset = (page - 1) * limit;
 
+    // Input validation
     if (!query || query.length < 2) {
       return NextResponse.json({
         success: true,
@@ -29,10 +31,22 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    const db = createDatabaseClient();
+    // Validate pagination parameters
+    if (page < 1 || limit < 1 || limit > 100) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Invalid pagination parameters',
+        },
+        { status: 400 }
+      );
+    }
 
-    // Search users
-    const usersQuery = `
+    const db = createDatabaseClient();
+    const searchPattern = `%${query}%`;
+
+    // Search users with parameterized query
+    const usersQuery = sql`
       SELECT
         id,
         username,
@@ -42,26 +56,26 @@ export async function GET(request: NextRequest) {
         created_at
       FROM users
       WHERE
-        LOWER(username) LIKE LOWER('%${query}%') OR
-        LOWER(first_name) LIKE LOWER('%${query}%') OR
-        LOWER(last_name) LIKE LOWER('%${query}%') OR
-        LOWER(email_address) LIKE LOWER('%${query}%')
+        LOWER(username) LIKE LOWER(${searchPattern}) OR
+        LOWER(first_name) LIKE LOWER(${searchPattern}) OR
+        LOWER(last_name) LIKE LOWER(${searchPattern}) OR
+        LOWER(email_address) LIKE LOWER(${searchPattern})
       ORDER BY created_at DESC
       LIMIT ${limit} OFFSET ${offset}
     `;
 
-    const usersCountQuery = `
+    const usersCountQuery = sql`
       SELECT COUNT(*) as count
       FROM users
       WHERE
-        LOWER(username) LIKE LOWER('%${query}%') OR
-        LOWER(first_name) LIKE LOWER('%${query}%') OR
-        LOWER(last_name) LIKE LOWER('%${query}%') OR
-        LOWER(email_address) LIKE LOWER('%${query}%')
+        LOWER(username) LIKE LOWER(${searchPattern}) OR
+        LOWER(first_name) LIKE LOWER(${searchPattern}) OR
+        LOWER(last_name) LIKE LOWER(${searchPattern}) OR
+        LOWER(email_address) LIKE LOWER(${searchPattern})
     `;
 
-    // Search game logs
-    const gameLogsQuery = `
+    // Search game logs with parameterized query
+    const gameLogsQuery = sql`
       SELECT
         gl.id,
         gl.user_id,
@@ -73,24 +87,24 @@ export async function GET(request: NextRequest) {
       FROM game_logs gl
       LEFT JOIN users u ON gl.user_id = u.id
       WHERE
-        LOWER(u.username) LIKE LOWER('%${query}%') OR
-        LOWER(gl.classification) LIKE LOWER('%${query}%') OR
-        gl.game_id::text LIKE '%${query}%'
+        LOWER(u.username) LIKE LOWER(${searchPattern}) OR
+        LOWER(gl.classification) LIKE LOWER(${searchPattern}) OR
+        gl.game_id::text LIKE ${searchPattern}
       ORDER BY gl.created_at DESC
       LIMIT ${limit} OFFSET ${offset}
     `;
 
-    const gameLogsCountQuery = `
+    const gameLogsCountQuery = sql`
       SELECT COUNT(*) as count
       FROM game_logs gl
       LEFT JOIN users u ON gl.user_id = u.id
       WHERE
-        LOWER(u.username) LIKE LOWER('%${query}%') OR
-        LOWER(gl.classification) LIKE LOWER('%${query}%') OR
-        gl.game_id::text LIKE '%${query}%'
+        LOWER(u.username) LIKE LOWER(${searchPattern}) OR
+        LOWER(gl.classification) LIKE LOWER(${searchPattern}) OR
+        gl.game_id::text LIKE ${searchPattern}
     `;
 
-    // Execute queries
+    // Execute queries with parameters
     const [usersResult, usersCountResult, gameLogsResult, gameLogsCountResult] = await Promise.all([
       db.execute(usersQuery),
       db.execute(usersCountQuery),

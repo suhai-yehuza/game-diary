@@ -1,10 +1,16 @@
 'use client';
 
+import { SimpleSportsPage } from '@/app/components/sports';
+
 export default function NHLPage() {
   return (
-    <section className="min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center">
-      <h1 className="text-3xl font-bold mb-4">NHL page</h1>
-      <p>Welcome to the National Hockey League</p>
-    </section>
+    <SimpleSportsPage
+      title="NHL"
+      description="National Hockey League - Live scores, stats, and more"
+    >
+      <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+        <p>Welcome to the National Hockey League</p>
+      </div>
+    </SimpleSportsPage>
   );
 }
