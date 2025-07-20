@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import React, { useEffect, useState } from 'react';
 
 import {
@@ -43,6 +44,16 @@ export function UsersTableWithSearch() {
     setSortDirection(direction);
   }, []);
 
+  // Helper function to safely convert values to strings
+  const safeToString = (value: unknown): string => {
+    if (value === null || value === undefined) return '';
+    if (typeof value === 'string') return value;
+    if (typeof value === 'number') return value.toString();
+    if (typeof value === 'boolean') return value.toString();
+    if (value instanceof Date) return value.toISOString();
+    return '[Object]';
+  };
+
   // Direct sorting without useMemo dependencies
   const users = React.useMemo(() => {
     if (!sortKey || !sortDirection || rawUsers.length === 0) {
@@ -57,7 +68,9 @@ export function UsersTableWithSearch() {
       if (aValue == null) return 1;
       if (bValue == null) return -1;
 
-      const comparison = String(aValue).localeCompare(String(bValue));
+      const aStr = safeToString(aValue);
+      const bStr = safeToString(bValue);
+      const comparison = aStr.localeCompare(bStr);
       return sortDirection === 'asc' ? comparison : -comparison;
     });
   }, [rawUsers, sortKey, sortDirection]);
@@ -356,10 +369,12 @@ export function UsersTableWithSearch() {
                         <div className="flex items-center">
                           <div className="flex-shrink-0 h-10 w-10">
                             {user.image_url ? (
-                              <img
+                              <Image
                                 className="h-10 w-10 rounded-full"
                                 src={user.image_url}
                                 alt={`${user.first_name} ${user.last_name}`}
+                                width={40}
+                                height={40}
                               />
                             ) : (
                               <div className="h-10 w-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-medium">
@@ -382,7 +397,7 @@ export function UsersTableWithSearch() {
                         {user.email_address}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
-                        {user.phone_number || 'N/A'}
+                        {user.phone_number ?? 'N/A'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
                         {formatDate(user.created_at)}

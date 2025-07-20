@@ -13,7 +13,7 @@ const server = new ApolloServer({
     console.error('GraphQL Error:', error);
     return {
       message: error.message,
-      code: error.extensions?.code || 'INTERNAL_SERVER_ERROR',
+      code: error.extensions?.code ?? 'INTERNAL_SERVER_ERROR',
     };
   },
 });

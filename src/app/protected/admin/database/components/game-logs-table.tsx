@@ -44,6 +44,16 @@ export function GameLogsTableWithSearch() {
     setSortDirection(direction);
   }, []);
 
+  // Helper function to safely convert values to strings
+  const safeToString = (value: unknown): string => {
+    if (value === null || value === undefined) return '';
+    if (typeof value === 'string') return value;
+    if (typeof value === 'number') return value.toString();
+    if (typeof value === 'boolean') return value.toString();
+    if (value instanceof Date) return value.toISOString();
+    return '[Object]';
+  };
+
   // Direct sorting without useMemo dependencies
   const gameLogs = React.useMemo(() => {
     if (!sortKey || !sortDirection || rawGameLogs.length === 0) {
@@ -58,7 +68,9 @@ export function GameLogsTableWithSearch() {
       if (aValue == null) return 1;
       if (bValue == null) return -1;
 
-      const comparison = String(aValue).localeCompare(String(bValue));
+      const aStr = safeToString(aValue);
+      const bStr = safeToString(bValue);
+      const comparison = aStr.localeCompare(bStr);
       return sortDirection === 'asc' ? comparison : -comparison;
     });
   }, [rawGameLogs, sortKey, sortDirection]);
@@ -365,7 +377,7 @@ export function GameLogsTableWithSearch() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-foreground">
-                          {gameLog.user?.username || 'Unknown User'}
+                          {gameLog.user?.username ?? 'Unknown User'}
                         </div>
                         <div className="text-sm text-muted-foreground">
                           {gameLog.user?.first_name} {gameLog.user?.last_name}
@@ -384,7 +396,7 @@ export function GameLogsTableWithSearch() {
                         <Badge variant="secondary">{gameLog.classification}</Badge>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
-                        {gameLog.watched_setting || 'N/A'}
+                        {gameLog.watched_setting ?? 'N/A'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
                         {formatDate(gameLog.watched_date)}

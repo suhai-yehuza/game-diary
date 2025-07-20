@@ -13,15 +13,15 @@ import {
 } from '@src/app/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@src/app/components/ui/tabs';
 import { GameLogsTableWithSearch } from '@src/app/protected/admin/database/components/game-logs-table';
-import { ErrorBoundary, useErrorHandler } from '@src/app/protected/admin/database/components/ui';
+import { ErrorBoundary } from '@src/app/protected/admin/database/components/ui';
 import { Badge } from '@src/app/protected/admin/database/components/ui/badge';
 import { Button } from '@src/app/protected/admin/database/components/ui/button';
 import { LastUpdated } from '@src/app/protected/admin/database/components/ui/last-updated';
 import { UsersTableWithSearch } from '@src/app/protected/admin/database/components/users-table';
-import {
-  formatValue,
-  isRecordArray,
-} from '@src/app/protected/admin/database/components/utils/table-utils';
+// import {
+//   formatValue,
+//   isRecordArray,
+// } from '@src/app/protected/admin/database/components/utils/table-utils';
 import { API_CONFIG } from '@src/lib/config/api.config';
 import type { IApiResponse } from '@src/lib/types';
 
@@ -73,12 +73,12 @@ const tableConfigs = {
 
 export function AdminDatabaseContent() {
   const searchParams = useSearchParams();
-  const {
-    error: componentError,
-    setError: setComponentError,
-    clearError,
-    handleAsyncError,
-  } = useErrorHandler();
+  // const {
+  //   error: componentError,
+  //   setError: setComponentError,
+  //   clearError,
+  //   handleAsyncError,
+  // } = useErrorHandler();
 
   const [activeTab, setActiveTab] = useState(() => {
     const tab = searchParams.get('tab');
@@ -109,11 +109,19 @@ export function AdminDatabaseContent() {
       if (data.success && data.data) {
         setTableData(prev => ({ ...prev, [tableName]: data.data as Record<string, unknown>[] }));
         if (data.pagination) {
-          setPagination(prev => ({ ...prev, [tableName]: data.pagination! }));
+          setPagination(prev => ({
+            ...prev,
+            [tableName]: data.pagination as {
+              page: number;
+              limit: number;
+              total: number;
+              pages: number;
+            },
+          }));
         }
         setCurrentPage(prev => ({ ...prev, [tableName]: page }));
       } else {
-        setError(prev => ({ ...prev, [tableName]: data.error || 'Failed to fetch data' }));
+        setError(prev => ({ ...prev, [tableName]: data.error ?? 'Failed to fetch data' }));
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch data';
@@ -136,7 +144,12 @@ export function AdminDatabaseContent() {
         return '[Object]';
       }
     }
-    return String(value);
+    // At this point, value should be a primitive that can be safely converted
+    if (typeof value === 'object' && value !== null) {
+      return '[Object]';
+    }
+    // Safe to convert primitive values
+    return String(value as string | number | boolean | symbol | bigint);
   };
 
   const renderTable = (tableName: string) => {

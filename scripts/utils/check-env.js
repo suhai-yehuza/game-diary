@@ -16,14 +16,7 @@ console.log('🔍 Environment Loading Check');
 console.log('============================\n');
 
 // Check which environment files exist
-const envFiles = [
-  '.env',
-  '.env.local',
-  '.env.development',
-  '.env.development.local',
-  '.env.staging',
-  '.env.production',
-];
+const envFiles = ['.env', '.env.local', '.env.development', '.env.staging', '.env.production'];
 
 console.log('📁 Environment Files:');
 envFiles.forEach(file => {
@@ -54,12 +47,10 @@ if (process.env.NODE_ENV === 'development') {
   console.log('  1. .env');
   console.log('  2. .env.development (prioritized)');
   console.log('  3. .env.local (override)');
-  console.log('  4. .env.development.local (override)');
 } else {
   console.log('  1. .env');
   console.log('  2. .env.local');
   console.log('  3. .env.development');
-  console.log('  4. .env.development.local');
 }
 
 console.log('\n✨ Environment check complete!');
