@@ -1,5 +1,8 @@
 import { auth } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
+import { db } from '@/lib/db';
+import { audit_logs } from '@/lib/db/schema/audit-schemas';
+import { eq, and, gte, lte, like, desc } from 'drizzle-orm';
 
 export async function GET(request: Request) {
   try {
@@ -19,112 +22,81 @@ export async function GET(request: Request) {
     const startDate = searchParams.get('startDate');
     const endDate = searchParams.get('endDate');
 
-    // Mock audit logs for testing with proper structure
-    const mockAuditLogs = [
-      {
-        id: '1',
-        timestamp: new Date().toISOString(),
-        category: 'authentication',
-        action: 'login_success',
-        severity: 'low',
-        user_id: userId,
-        description: 'User successfully logged in',
-        success: true,
-        error_message: null,
-        endpoint: '/api/auth/login',
-        method: 'POST',
-        details: { ip_address: '192.168.1.1', user_agent: 'Mozilla/5.0...' },
-      },
-      {
-        id: '2',
-        timestamp: new Date(Date.now() - 3600000).toISOString(), // 1 hour ago
-        category: 'authorization',
-        action: 'permission_denied',
-        severity: 'high',
-        user_id: 'unknown',
-        description: 'Unauthorized access attempt to admin page',
-        success: false,
-        error_message: 'Insufficient permissions',
-        endpoint: '/protected/admin/audit-logs',
-        method: 'GET',
-        details: { ip_address: '192.168.1.2', user_agent: 'Mozilla/5.0...' },
-      },
-      {
-        id: '3',
-        timestamp: new Date(Date.now() - 7200000).toISOString(), // 2 hours ago
-        category: 'data_access',
-        action: 'sensitive_data_accessed',
-        severity: 'medium',
-        user_id: userId,
-        description: 'User accessed their profile data',
-        success: true,
-        error_message: null,
-        endpoint: '/api/user/profile',
-        method: 'GET',
-        details: { fields_accessed: ['email', 'phone'] },
-      },
-      {
-        id: '4',
-        timestamp: new Date(Date.now() - 10800000).toISOString(), // 3 hours ago
-        category: 'encryption',
-        action: 'key_rotation',
-        severity: 'critical',
-        user_id: 'system',
-        description: 'Encryption key rotation completed',
-        success: true,
-        error_message: null,
-        endpoint: '/api/admin/keys/rotate',
-        method: 'POST',
-        details: { key_id: 'key_123', affected_records: 1500 },
-      },
-      {
-        id: '5',
-        timestamp: new Date(Date.now() - 14400000).toISOString(), // 4 hours ago
-        category: 'security',
-        action: 'failed_login',
-        severity: 'medium',
-        user_id: 'unknown',
-        description: 'Failed login attempt',
-        success: false,
-        error_message: 'Invalid credentials',
-        endpoint: '/api/auth/login',
-        method: 'POST',
-        details: { ip_address: '192.168.1.3', attempts: 3 },
-      },
-    ];
-
-    // Apply filters
-    let filteredLogs = mockAuditLogs;
+    // Build query conditions
+    const conditions = [];
 
     if (category) {
-      filteredLogs = filteredLogs.filter(log => log.category === category);
+      conditions.push(eq(audit_logs.category, category));
     }
 
     if (severity) {
-      filteredLogs = filteredLogs.filter(log => log.severity === severity);
+      conditions.push(eq(audit_logs.severity, severity));
     }
 
     if (userIdFilter) {
-      filteredLogs = filteredLogs.filter(log => log.user_id === userIdFilter);
+      conditions.push(eq(audit_logs.user_id, userIdFilter));
     }
 
     if (startDate) {
-      const start = new Date(startDate);
-      filteredLogs = filteredLogs.filter(log => new Date(log.timestamp) >= start);
+      conditions.push(gte(audit_logs.timestamp, new Date(startDate)));
     }
 
     if (endDate) {
-      const end = new Date(endDate);
-      filteredLogs = filteredLogs.filter(log => new Date(log.timestamp) <= end);
+      conditions.push(lte(audit_logs.timestamp, new Date(endDate)));
     }
 
-    // Apply pagination
-    const total = filteredLogs.length;
-    const paginatedLogs = filteredLogs.slice(offset, offset + limit);
+    // Get total count for pagination
+    const totalCountQuery = await db()
+      ?.select({ count: audit_logs.id })
+      .from(audit_logs)
+      .where(conditions.length > 0 ? and(...conditions) : undefined);
+
+    const total = totalCountQuery?.length || 0;
+
+    // Get paginated results
+    const query = db()
+      ?.select({
+        id: audit_logs.id,
+        timestamp: audit_logs.timestamp,
+        category: audit_logs.category,
+        action: audit_logs.action,
+        severity: audit_logs.severity,
+        user_id: audit_logs.user_id,
+        description: audit_logs.description,
+        success: audit_logs.success,
+        error_message: audit_logs.error_message,
+        endpoint: audit_logs.endpoint,
+        method: audit_logs.method,
+        details: audit_logs.details,
+      })
+      .from(audit_logs)
+      .where(conditions.length > 0 ? and(...conditions) : undefined)
+      .orderBy(desc(audit_logs.timestamp))
+      .limit(limit)
+      .offset(offset);
+
+    const results = await query;
+
+    // Transform the results to match the expected format
+    const logs =
+      results?.map(log => ({
+        id: log.id,
+        timestamp: log.timestamp?.toISOString() || new Date().toISOString(),
+        category: log.category || 'unknown',
+        action: log.action || 'unknown',
+        severity: log.severity || 'low',
+        user_id: log.user_id || 'unknown',
+        description: log.description || 'No description',
+        success: log.success ?? true,
+        error_message: log.error_message || null,
+        endpoint: log.endpoint || null,
+        method: log.method || null,
+        details: log.details || {},
+      })) || [];
 
     // Return the expected structure
     return NextResponse.json({
-      logs: paginatedLogs,
+      logs,
       total,
       limit,
       offset,
@@ -145,62 +117,65 @@ export async function POST(request: Request) {
 
     const filters = await request.json();
 
-    // Mock audit logs for export (same as GET but without pagination)
-    const mockAuditLogs = [
-      {
-        id: '1',
-        timestamp: new Date().toISOString(),
-        category: 'authentication',
-        action: 'login_success',
-        severity: 'low',
-        user_id: userId,
-        description: 'User successfully logged in',
-        success: true,
-        error_message: null,
-        endpoint: '/api/auth/login',
-        method: 'POST',
-        details: { ip_address: '192.168.1.1', user_agent: 'Mozilla/5.0...' },
-      },
-      {
-        id: '2',
-        timestamp: new Date(Date.now() - 3600000).toISOString(),
-        category: 'authorization',
-        action: 'permission_denied',
-        severity: 'high',
-        user_id: 'unknown',
-        description: 'Unauthorized access attempt to admin page',
-        success: false,
-        error_message: 'Insufficient permissions',
-        endpoint: '/protected/admin/audit-logs',
-        method: 'GET',
-        details: { ip_address: '192.168.1.2', user_agent: 'Mozilla/5.0...' },
-      },
-    ];
-
-    // Apply filters (same logic as GET)
-    let filteredLogs = mockAuditLogs;
+    // Build query conditions for export
+    const conditions = [];
 
     if (filters.category) {
-      filteredLogs = filteredLogs.filter(log => log.category === filters.category);
+      conditions.push(eq(audit_logs.category, filters.category));
     }
 
     if (filters.severity) {
-      filteredLogs = filteredLogs.filter(log => log.severity === filters.severity);
+      conditions.push(eq(audit_logs.severity, filters.severity));
     }
 
     if (filters.userId) {
-      filteredLogs = filteredLogs.filter(log => log.user_id === filters.userId);
+      conditions.push(eq(audit_logs.user_id, filters.userId));
     }
 
     if (filters.startDate) {
-      const start = new Date(filters.startDate);
-      filteredLogs = filteredLogs.filter(log => new Date(log.timestamp) >= start);
+      conditions.push(gte(audit_logs.timestamp, new Date(filters.startDate)));
     }
 
     if (filters.endDate) {
-      const end = new Date(filters.endDate);
-      filteredLogs = filteredLogs.filter(log => new Date(log.timestamp) <= end);
+      conditions.push(lte(audit_logs.timestamp, new Date(filters.endDate)));
     }
+
+    // Get all matching results for export (no pagination)
+    const query = db()
+      ?.select({
+        id: audit_logs.id,
+        timestamp: audit_logs.timestamp,
+        category: audit_logs.category,
+        action: audit_logs.action,
+        severity: audit_logs.severity,
+        user_id: audit_logs.user_id,
+        description: audit_logs.description,
+        success: audit_logs.success,
+        error_message: audit_logs.error_message,
+        endpoint: audit_logs.endpoint,
+        method: audit_logs.method,
+      })
+      .from(audit_logs)
+      .where(conditions.length > 0 ? and(...conditions) : undefined)
+      .orderBy(desc(audit_logs.timestamp));
+
+    const results = await query;
+
+    // Transform the results
+    const logs =
+      results?.map(log => ({
+        id: log.id,
+        timestamp: log.timestamp?.toISOString() || new Date().toISOString(),
+        category: log.category || 'unknown',
+        action: log.action || 'unknown',
+        severity: log.severity || 'low',
+        user_id: log.user_id || 'unknown',
+        description: log.description || 'No description',
+        success: log.success ?? true,
+        error_message: log.error_message || null,
+        endpoint: log.endpoint || null,
+        method: log.method || null,
+      })) || [];
 
     // Convert to CSV format
     const csvHeaders = [
@@ -216,7 +191,7 @@ export async function POST(request: Request) {
       'Method',
     ];
 
-    const csvRows = filteredLogs.map(log => [
+    const csvRows = logs.map(log => [
       log.timestamp,
       log.category,
       log.action,
