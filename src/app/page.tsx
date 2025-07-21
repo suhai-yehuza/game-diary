@@ -32,7 +32,7 @@ export default function HomePage() {
         <div className="flex gap-6 items-center justify-center mt-8">
           <Link
             href="/protected/user"
-            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            className="px-6 py-3 bg-blue-800 text-white rounded-lg hover:bg-blue-900 transition-colors"
           >
             Go to Dashboard
           </Link>

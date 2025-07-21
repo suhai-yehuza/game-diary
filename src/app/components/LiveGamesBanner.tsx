@@ -289,10 +289,7 @@ export function LiveGamesBanner() {
     [responsiveConfig.cardWidth, responsiveConfig.cardGap]
   );
 
-  // Hydration-safe: only render after mounted
-  if (!mounted) return null;
-
-  // Render fallback during SSR to prevent hydration mismatch
+  // Hydration-safe: render consistent skeleton during SSR and initial mount
   if (!mounted) {
     return (
       <div
@@ -300,106 +297,26 @@ export function LiveGamesBanner() {
         data-testid="live-games-banner"
       >
         <div className="flex items-center w-full px-2 min-h-0 group">
-          {/* Left: LIVE badge and count */}
+          {/* Left: LIVE badge and count skeleton */}
           <div className="flex-1 flex justify-end items-center z-30 shadow-xl h-12 px-2 sm:px-6 py-2">
             <span className="flex items-center text-base gap-x-4">
-              <span className="w-3 h-3 bg-red-500 rounded-full animate-live-dot-glow drop-shadow-[0_0_8px_rgba(239,68,68,0.7)] border-2 border-white" />
-              <span className="text-white drop-shadow-sm">
-                {games?.length || 0} Live {(games?.length || 0) === 1 ? 'Game' : 'Games'}
-              </span>
+              <span className="w-3 h-3 bg-red-500 rounded-full animate-pulse border-2 border-white" />
+              <span className="text-white drop-shadow-sm">Loading Live Games...</span>
             </span>
           </div>
 
-          {/* Ticker: horizontally scrollable games, masked and centered */}
+          {/* Ticker skeleton */}
           <div className="flex-[8] relative overflow-hidden w-full min-h-0 px-2 sm:px-4">
-            {/* Left floating navigation */}
-            <button
-              className="hidden sm:flex absolute left-2 top-1/2 -translate-y-1/2 z-40 items-center justify-center transition-all p-2 mx-2 bg-transparent group"
-              aria-label="Scroll left"
-            >
-              <span className="text-base font-bold text-white group-hover:text-gray-200 group-focus:text-gray-200 transition-colors">
-                «
-              </span>
-            </button>
-            {/* Right floating navigation */}
-            <button
-              className="hidden sm:flex absolute right-2 top-1/2 -translate-y-1/2 z-40 items-center justify-center transition-all p-2 mx-2 bg-transparent group"
-              aria-label="Scroll right"
-            >
-              <span className="text-base font-bold text-white group-hover:text-gray-200 group-focus:text-gray-200 transition-colors">
-                »
-              </span>
-            </button>
-            {/* Gradient fade left */}
-            <div className="pointer-events-none absolute left-0 top-0 h-full w-24 bg-gradient-to-r from-red-900/100 to-transparent z-30" />
-            {/* Gradient fade right */}
-            <div className="pointer-events-none absolute right-0 top-0 h-full w-24 bg-gradient-to-l from-red-900/100 to-transparent z-30" />
-
-            <div className="flex gap-2 sm:gap-4 items-center min-w-max z-10 overflow-x-auto scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent">
-              {games?.map((game, _idx) => {
-                const teamColor = NBA_TEAM_COLORS[game.teams.home.code] ?? '#444';
-                const cardBg = isRedish(teamColor) ? '#444' : teamColor;
-                return (
-                  <div
-                    key={game.id}
-                    style={{
-                      background: cardBg,
-                    }}
-                    className="relative flex items-center px-2 sm:px-3 py-1 cursor-pointer gap-1 sm:gap-2 min-w-[120px] sm:min-w-[180px] group text-base h-10 focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400 overflow-hidden"
-                    tabIndex={0}
-                    aria-label={`${game.teams.visitors.code} ${game.scores.visitors.points}, ${game.teams.home.code} ${game.scores.home.points}, ${game.status.clock ?? (game.status.halftime ? 'HALFTIME' : '')}`}
-                  >
-                    <>
-                      <SportIcon league={game.league} />
-                      <span className="flex items-center gap-1 text-base font-semibold text-white truncate">
-                        <Image
-                          src={game.teams.visitors.logo ?? '/logos/default-team-logo.svg'}
-                          alt={game.teams.visitors.code}
-                          width={22}
-                          height={22}
-                          className="w-5 h-5 object-contain"
-                        />
-                        {game.teams.visitors.code}
-                        <span className="font-bold text-white">{game.scores.visitors.points}</span>
-                        <span className="mx-1 text-xs opacity-60">-</span>
-                        <span className="font-bold text-white">{game.scores.home.points}</span>
-                        {game.teams.home.code}
-                        <Image
-                          src={game.teams.home.logo ?? '/logos/default-team-logo.svg'}
-                          alt={game.teams.home.code}
-                          width={22}
-                          height={22}
-                          className="w-5 h-5 object-contain"
-                        />
-                      </span>
-                      <span className="ml-2 text-xs text-yellow-200 font-mono truncate">
-                        {game.status.clock ?? (game.status.halftime ? 'HALFTIME' : '')}
-                      </span>
-                      <span className="ml-2 text-xs text-white/80 truncate">{game.league}</span>
-                    </>
-                  </div>
-                );
-              })}
+            <div className="flex gap-2 sm:gap-4 items-center min-w-max z-10">
+              {Array.from({ length: 3 }, (_, i) => (
+                <div key={i} className="w-32 h-10 bg-gray-600 rounded animate-pulse" />
+              ))}
             </div>
           </div>
 
-          {/* Right: View All button */}
+          {/* Right: View All button skeleton */}
           <div className="flex-1 flex justify-end items-center min-w-fit mr-2 sm:mr-4">
-            <Link
-              href="/sports/live"
-              className="flex items-center gap-2 text-base font-semibold bg-gray-100 text-gray-800 rounded-xl px-2 sm:px-6 py-1.5 shadow-md hover:bg-gray-300 hover:text-gray-900 focus:bg-gray-400 focus:text-gray-900 transition-all border border-gray-200 focus:ring-2 focus:ring-gray-400"
-            >
-              View All
-              <svg
-                className="w-4 h-4"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                viewBox="0 0 24 24"
-              >
-                <path d="M9 5l7 7-7 7" />
-              </svg>
-            </Link>
+            <div className="w-20 h-8 bg-gray-600 rounded animate-pulse" />
           </div>
         </div>
       </div>

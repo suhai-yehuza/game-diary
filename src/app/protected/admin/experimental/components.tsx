@@ -565,18 +565,20 @@ export const DataDisplay = (props: DataDisplayProps) => {
   if (!data) {
     return (
       <div className="mt-6 p-4 border rounded-md bg-gray-50 dark:bg-gray-900/50">
-        <h3 className="text-lg font-semibold mb-2">No Data</h3>
-        <p className="text-gray-500">Select a tab and fetch data to see results.</p>
+        <h3 className="text-lg font-semibold mb-2 text-gray-900 dark:text-gray-100">No Data</h3>
+        <p className="text-gray-600 dark:text-gray-300">
+          Select a tab and fetch data to see results.
+        </p>
       </div>
     );
   }
 
   return (
     <div className="mt-6 p-4 border rounded-md bg-gray-50 dark:bg-gray-900/50">
-      <h3 className="text-lg font-semibold mb-4">
+      <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">
         {selectedTab.charAt(0).toUpperCase() + selectedTab.slice(1)} Data
       </h3>
-      <pre className="text-sm overflow-auto max-h-96 bg-white dark:bg-gray-800 p-4 rounded border">
+      <pre className="text-sm overflow-auto max-h-96 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 p-4 rounded border">
         {JSON.stringify(data, null, 2)}
       </pre>
     </div>

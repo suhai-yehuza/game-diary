@@ -24,12 +24,27 @@ function useIsAdmin() {
   return userRoles.includes('admin') || userRoles.includes('Admin');
 }
 
+// Helper function to check if any admin route is active
+function isAdminRouteActive(isActive: (path: string) => boolean): boolean {
+  return (
+    isActive('/protected/admin/database') ||
+    isActive('/protected/admin/audit-logs') ||
+    isActive('/protected/admin/experimental')
+  );
+}
+
 // E2E test version of admin nav (no hooks)
-function AdminNavE2E({ isActive: _isActive }: { isActive: (path: string) => boolean }) {
+function AdminNavE2E({ isActive }: { isActive: (path: string) => boolean }) {
+  const isAdminActive = isAdminRouteActive(isActive);
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button className="flex items-center space-x-1 text-base lg:text-sm transition-colors hover:text-blue-600">
+        <button
+          className={`flex items-center space-x-1 text-base lg:text-sm transition-colors hover:text-blue-600 ${
+            isAdminActive ? 'text-blue-600 border border-blue-600 rounded px-2 py-1' : ''
+          }`}
+        >
           <span>Admin</span>
           <ChevronDown className="h-4 w-4" />
         </button>
@@ -55,11 +70,17 @@ function AdminNavE2E({ isActive: _isActive }: { isActive: (path: string) => bool
   );
 }
 
-function AdminNavContent({ isActive: _isActive }: { isActive: (path: string) => boolean }) {
+function AdminNavContent({ isActive }: { isActive: (path: string) => boolean }) {
+  const isAdminActive = isAdminRouteActive(isActive);
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button className="flex items-center space-x-1 text-base lg:text-sm transition-colors hover:text-blue-600">
+        <button
+          className={`flex items-center space-x-1 text-base lg:text-sm transition-colors hover:text-blue-600 ${
+            isAdminActive ? 'text-blue-600 border border-blue-600 rounded px-2 py-1' : ''
+          }`}
+        >
           <span>Admin</span>
           <ChevronDown className="h-4 w-4" />
         </button>
