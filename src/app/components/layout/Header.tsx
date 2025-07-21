@@ -1,12 +1,11 @@
 /// <reference types="node" />
 'use client';
 import { usePathname } from 'next/navigation';
-import React, { useState, useCallback } from 'react';
+import React, { useCallback } from 'react';
 
 import {
   HeaderRightSection,
   Logo,
-  MobileSearchOverlay,
   NavigationContainer,
   useMobileDetection,
 } from '@/app/components/layout/components';
@@ -14,7 +13,6 @@ import { LiveGamesBanner } from '@/app/components/LiveGamesBanner';
 import { useMenuContext } from '@/app/components/providers';
 
 export function Header() {
-  const [isSearchVisible, setIsSearchVisible] = useState(false);
   const { isMenuExpanded, setIsMenuExpanded } = useMenuContext();
   const pathname = usePathname() || '/';
   const isMobile = useMobileDetection(1024);
@@ -37,16 +35,9 @@ export function Header() {
 
   const handleMenuToggle = useCallback(() => {
     setIsMenuExpanded(!isMenuExpanded);
-    setIsSearchVisible(false);
-  }, [isMenuExpanded, setIsMenuExpanded]);
-
-  const handleSearchToggle = useCallback(() => {
-    setIsSearchVisible(true);
-    if (isMenuExpanded) setIsMenuExpanded(false);
   }, [isMenuExpanded, setIsMenuExpanded]);
 
   const handleCloseMenu = useCallback(() => setIsMenuExpanded(false), [setIsMenuExpanded]);
-  const handleCloseSearch = useCallback(() => setIsSearchVisible(false), []);
 
   return (
     <>
@@ -82,11 +73,8 @@ export function Header() {
           />
 
           {/* Right Section */}
-          <HeaderRightSection isMenuExpanded={isMenuExpanded} onSearchToggle={handleSearchToggle} />
+          <HeaderRightSection isMenuExpanded={isMenuExpanded} />
         </div>
-
-        {/* Mobile Search Overlay */}
-        <MobileSearchOverlay isVisible={isSearchVisible} onClose={handleCloseSearch} />
       </header>
     </>
   );

@@ -62,7 +62,7 @@ function CloseButton({ onClick, className = '' }: { onClick: () => void; classNa
   );
 }
 
-// Hook for mobile detection
+// Hook for mobile detection (for use by other components)
 function useMobileDetection(breakpoint = 640) {
   const [isMobile, setIsMobile] = useState(false);
 
@@ -148,9 +148,6 @@ function useSearchLogic() {
     (e: React.FormEvent) => {
       e.preventDefault();
       setDebouncedQuery(search_query);
-      if (typeof window !== 'undefined' && window.innerWidth < 640) {
-        setIsFocused(false);
-      }
     },
     [search_query]
   );
@@ -176,11 +173,24 @@ function useSearchLogic() {
   };
 }
 
-function SearchBarContent({ autoFocus = false }: { autoFocus?: boolean } = {}) {
-  const { search_query, isFocused, setIsFocused, handleSearch, handleSearchChange, clearSearch } =
-    useSearchLogic();
-  const isMobile = useMobileDetection(640);
+function SearchBarContent({
+  autoFocus = false,
+  isFocused: controlledIsFocused,
+  setIsFocused: controlledSetIsFocused,
+}: { autoFocus?: boolean; isFocused?: boolean; setIsFocused?: (v: boolean) => void } = {}) {
+  const {
+    search_query,
+    isFocused: internalIsFocused,
+    setIsFocused: internalSetIsFocused,
+    handleSearch,
+    handleSearchChange,
+    clearSearch,
+  } = useSearchLogic();
   const pathname = usePathname();
+
+  // Use controlled or internal focus state
+  const isFocused = controlledIsFocused ?? internalIsFocused;
+  const setIsFocused = controlledSetIsFocused ?? internalSetIsFocused;
 
   // Set isFocused to true whenever autoFocus changes to true
   useEffect(() => {
@@ -194,61 +204,49 @@ function SearchBarContent({ autoFocus = false }: { autoFocus?: boolean } = {}) {
     return pathname.startsWith('/protected/admin') ? 'Search users...' : 'Global search...';
   };
 
-  // For detaching effect
+  // Responsive form class for normal state
   const baseFormClass =
-    'relative max-w-[180px] md:max-w-[220px] h-11 bg-background border border-[#27272a] shadow flex items-center px-2 transition-all duration-200 text-sm';
+    'relative max-w-[140px] sm:max-w-[180px] md:max-w-[220px] h-9 sm:h-11 bg-background border border-[#27272a] shadow flex items-center px-2 transition-all duration-200 text-xs sm:text-sm';
 
-  if (isFocused) {
-    return (
-      <div className="fixed inset-0 z-[100] flex items-start justify-center pt-[12vh] animate-fadeIn">
-        {/* Overlay for mobile search */}
-        {isMobile && (
-          <div
-            className="fixed inset-0 z-0 bg-white/90 dark:bg-black/80 transition-colors"
-            onClick={() => setIsFocused(false)}
-            aria-label="Close search overlay"
-            role="button"
-            tabIndex={0}
-          />
-        )}
-        <form
-          onSubmit={handleSearch}
-          className="w-[300px] md:w-[400px] h-12 bg-background/95 dark:bg-background/95 backdrop-blur-sm border border-[#27272a] shadow-2xl flex items-center px-4 py-2 rounded-md relative z-10"
-          tabIndex={-1}
-        >
-          <SearchInput
-            value={search_query}
-            onChange={handleSearchChange}
-            onFocus={() => setIsFocused(true)}
-            onBlur={() => setIsFocused(false)}
-            placeholder={getPlaceholder()}
-            className="h-11 md:h-11 text-base"
-            autoFocus
-          />
-          <CloseButton onClick={() => setIsFocused(false)} className="ml-2" />
-        </form>
-      </div>
-    );
-  }
+  // Expanded form class for focused state (responsive, no overlay)
+  const expandedFormClass =
+    'relative w-full max-w-[95vw] sm:max-w-[300px] md:max-w-[400px] h-12 bg-background/95 dark:bg-background/95 backdrop-blur-sm border border-[#27272a] shadow-2xl flex items-center px-2 sm:px-4 py-2 rounded-md transition-all duration-200 text-base z-[100]';
 
+  // Only expand the searchbar in place, no overlay
   return (
-    <form onSubmit={handleSearch} className={baseFormClass} tabIndex={-1}>
+    <form
+      onSubmit={handleSearch}
+      className={isFocused ? expandedFormClass : baseFormClass}
+      tabIndex={-1}
+    >
       <SearchInput
         value={search_query}
         onChange={handleSearchChange}
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)}
         placeholder={getPlaceholder()}
-        className="h-11 text-sm"
+        className={isFocused ? 'h-11 md:h-11 text-base' : 'h-9 sm:h-11 text-xs sm:text-sm'}
+        autoFocus={autoFocus}
       />
-      {search_query && (
-        <CloseButton onClick={clearSearch} className="absolute right-2 top-1/2 -translate-y-1/2" />
+      {isFocused ? (
+        <CloseButton onClick={() => setIsFocused(false)} className="ml-2" />
+      ) : (
+        search_query && (
+          <CloseButton
+            onClick={clearSearch}
+            className="absolute right-2 top-1/2 -translate-y-1/2"
+          />
+        )
       )}
     </form>
   );
 }
 
-export function SearchBar(props: { autoFocus?: boolean }) {
+export function SearchBar(props: {
+  autoFocus?: boolean;
+  isFocused?: boolean;
+  setIsFocused?: (v: boolean) => void;
+}) {
   return (
     <Suspense fallback={<div className="w-[200px] h-10 bg-gray-200 animate-pulse rounded-md" />}>
       <SearchBarContent {...props} />
