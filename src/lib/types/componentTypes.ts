@@ -1,6 +1,6 @@
 import type { HTMLAttributes, ReactNode } from 'react';
 import { PropsWithChildren } from 'react';
-import type { IBaseButtonProps, IBaseInputProps } from './uiTypes';
+import type { IBaseButtonProps, IBaseInputProps } from '@/lib/types/uiTypes';
 
 // ========================================
 // CARD COMPONENT TYPES

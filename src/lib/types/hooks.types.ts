@@ -1,6 +1,6 @@
 // Types file: hooks.types.ts
-import type { IGamesApiResponse } from './externalApiTypes';
-import type { IPerformanceMetrics } from './coreTypes';
+import type { IGamesApiResponse } from '@/lib/types/externalApiTypes';
+import type { IPerformanceMetrics } from '@/lib/types/coreTypes';
 
 // Types moved from src/hooks/use-api-cache.ts
 export interface ICacheEntry {
@@ -32,7 +32,7 @@ export interface IHookPerformanceMetrics {
 }
 
 // Re-export IPerformanceMetrics for backward compatibility
-export type { IPerformanceMetrics } from './coreTypes';
+export type { IPerformanceMetrics } from '@/lib/types/coreTypes';
 
 // Types moved from src/hooks/use-live-games.ts
 export interface IUseLiveGamesOptions {

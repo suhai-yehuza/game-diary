@@ -2,10 +2,9 @@
 
 import { User, Gamepad2 } from 'lucide-react';
 
+import { GameLogSearchResult } from '@/app/components/search/GameLogSearchResult';
+import { UserSearchResult } from '@/app/components/search/UserSearchResult';
 import type { ISearchResponse } from '@/lib/types';
-
-import { GameLogSearchResult } from './GameLogSearchResult';
-import { UserSearchResult } from './UserSearchResult';
 
 interface ISearchResultsProps {
   results: ISearchResponse;
