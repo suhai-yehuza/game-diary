@@ -337,6 +337,9 @@ describe('Header - additional coverage', () => {
   });
 
   it('shows auth placeholder if Clerk is not configured', async () => {
+    // Store original value
+    const originalKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
+    // Delete the environment variable
     delete process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
 
     render(
@@ -344,6 +347,9 @@ describe('Header - additional coverage', () => {
         <Header />
       </MenuProvider>
     );
+
+    // Wait for the component to mount and render the placeholder
+    await new Promise(resolve => setTimeout(resolve, 0));
 
     // Check for the placeholder element
     const placeholder = screen.getByText('Auth');
@@ -359,6 +365,11 @@ describe('Header - additional coverage', () => {
       'items-center',
       'justify-center'
     );
+
+    // Restore original value
+    if (originalKey) {
+      process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY = originalKey;
+    }
   });
 
   it('toggles and closes mobile search overlay', async () => {

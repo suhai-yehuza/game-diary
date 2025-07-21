@@ -53,7 +53,10 @@ export function Header() {
       {/* Live Games Banner */}
       <LiveGamesBanner />
 
-      <header className="w-full border-b-2 border-neutral-200 dark:border-neutral-600 shadow-md dark:shadow-lg bg-background">
+      <header
+        data-testid="header"
+        className="w-full border-b-2 border-neutral-200 dark:border-neutral-600 shadow-md dark:shadow-lg bg-background"
+      >
         {/* Overlay for mobile menu */}
         {isMenuExpanded && (
           <div
