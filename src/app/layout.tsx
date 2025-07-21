@@ -5,8 +5,8 @@ import React from 'react';
 
 import '@/styles/globals.css';
 
+import { HeaderWrapper } from '@/app/components/layout/HeaderWrapper';
 import { Footer } from '@src/app/components/layout';
-import { HeaderWrapper } from '@src/app/components/layout/header-wrapper';
 import { ClientProviders } from '@src/app/components/providers';
 
 const inter = Inter({

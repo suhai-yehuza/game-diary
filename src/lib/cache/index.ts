@@ -2,7 +2,7 @@
 // export * from './client';
 
 // Comprehensive caching system with in-memory cache
-import type { ICacheConfig, ICacheEntry, ICacheStats } from '@/lib/types/infrastructureTypes';
+import type { ICacheConfig, ICacheEntry, ICacheStats } from '@/lib/types/infrastructure.types';
 
 // In-memory cache implementation
 class MemoryCache {

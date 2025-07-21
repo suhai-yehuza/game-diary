@@ -3,14 +3,14 @@ import { neon } from '@neondatabase/serverless';
 import { eq } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/neon-http';
 
-import { getRapidApiConfig } from '@src/lib/config/api.config';
+import { getRapidApiConfig } from '@/lib/config/app.config';
 import * as schema from '@src/lib/db/schema';
-import type { Database } from '@src/lib/types/dbTypes';
+import type { Database } from '@/lib/types/db.types';
 import type {
   ITeamsApiResponse,
   IPlayersApiResponse,
   IGamesApiResponse,
-} from '@src/lib/types/externalApiTypes';
+} from '@/lib/types/externalApi.types';
 import { createRapidAPIClient } from '@src/lib/utils/api-client';
 import { formatDuration } from '@src/lib/utils/format-duration';
 

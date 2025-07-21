@@ -5,7 +5,7 @@ import { useTheme } from 'next-themes';
 import React from 'react';
 
 import { useMounted } from '@/hooks/use-mounted';
-import type { IThemeToggleProps } from '@/lib/types/componentTypes';
+import type { IThemeToggleProps } from '@/lib/types/component.types';
 
 const themes = [
   {

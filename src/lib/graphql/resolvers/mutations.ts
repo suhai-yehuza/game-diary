@@ -4,7 +4,7 @@ import { db } from '@/lib/db';
 import { nba_games, comments, reactions } from '@/lib/db/schema';
 import { AuthorizationError } from '@/lib/graphql/errors';
 import type { TARGET_TYPES } from '@/lib/types';
-import type { GraphQLContext } from '@/lib/types/dbTypes';
+import type { GraphQLContext } from '@/lib/types/db.types';
 import { generateUUIDv7 } from '@/lib/utils/id-generator';
 
 // Game Mutations

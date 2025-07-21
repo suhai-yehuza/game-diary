@@ -2,7 +2,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
 import { vi, describe, it, expect, beforeEach, afterEach, beforeAll } from 'vitest';
 
-import { LiveGamesBanner } from '@src/app/components/live-games-banner';
+import { LiveGamesBanner } from '@/app/components/LiveGamesBanner';
 import { MOCK_LIVE_GAMES } from '@src/lib/mock/liveGamesMock';
 
 // Mock Next.js Link component
@@ -13,7 +13,7 @@ vi.mock('next/link', () => ({
 }));
 
 // Mock the API config
-vi.mock('@/lib/config/api.config', () => ({
+vi.mock('@/lib/config/app.config', () => ({
   INTERNAL_PROXY_ENDPOINTS: {
     GAMES: '/api/proxy/games',
   },

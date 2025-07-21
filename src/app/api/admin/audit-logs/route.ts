@@ -2,7 +2,7 @@ import { auth } from '@clerk/nextjs/server';
 import { eq, and, gte, lte, desc } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
 
-import { API_CONFIG } from '@/lib/config/api.config';
+import { API_CONFIG } from '@/lib/config/app.config';
 import { db } from '@/lib/db';
 import { audit_logs } from '@/lib/db/schema/audit-schemas';
 

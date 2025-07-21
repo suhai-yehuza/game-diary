@@ -7,7 +7,7 @@ import type {
   ICardDescriptionProps,
   ICardContentProps,
   ICardFooterProps,
-} from '@/lib/types/componentTypes';
+} from '@/lib/types/component.types';
 import { cn } from '@/lib/utils';
 
 const Card = React.forwardRef<HTMLDivElement, ICardProps>(({ className, ...props }, ref) => (

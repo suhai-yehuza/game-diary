@@ -9,7 +9,7 @@ import {
   CardTitle,
   CardDescription,
   CardContent,
-} from '@/app/components/ui/card';
+} from '@/app/components/ui/Card';
 
 describe('Card UI Components', () => {
   it('renders Card with children and custom class', () => {

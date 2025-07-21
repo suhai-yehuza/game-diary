@@ -14,7 +14,7 @@ import {
 import type {
   IStatisticalSeedingConfig,
   DistributionConfigPreset,
-} from '@src/lib/types/seeding-types';
+} from '@/lib/types/seeding.types';
 
 // ============================================================================
 // EXAMPLE CONFIGURATIONS

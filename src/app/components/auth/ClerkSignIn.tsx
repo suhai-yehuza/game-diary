@@ -3,7 +3,7 @@
 import { SignIn } from '@clerk/nextjs';
 import { useEffect } from 'react';
 
-import { CLERK_THEME } from '@/lib/config/clerk-theme';
+import { CLERK_THEME } from '@/lib/config/clerkTheme';
 
 export default function ClerkSignIn() {
   useEffect(() => {

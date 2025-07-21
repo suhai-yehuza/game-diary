@@ -3,7 +3,7 @@
 import { useTheme } from 'next-themes';
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 
-import { API_CONFIG } from '@/lib/config/api.config';
+import { API_CONFIG } from '@/lib/config/app.config';
 import type { IAuditLog, IFilters, AuditLogSearchField } from '@/lib/types';
 import { ErrorBoundary } from '@src/app/protected/admin/database/components/ui/error-boundary';
 import { PaginationControls } from '@src/app/protected/admin/database/components/ui/pagination-controls';

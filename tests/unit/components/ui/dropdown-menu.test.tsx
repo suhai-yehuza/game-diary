@@ -16,7 +16,7 @@ import {
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
   DropdownMenuRadioGroup,
-} from '@/app/components/ui/dropdown-menu';
+} from '@/app/components/ui/DropdownMenu';
 
 // Mock Radix UI components
 vi.mock('@radix-ui/react-dropdown-menu', () => ({

@@ -1,1 +1,1 @@
-export { DataTable } from '@/app/components/admin/data-table';
+export { DataTable } from '@/app/components/admin/DataTable';

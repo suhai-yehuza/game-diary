@@ -1,6 +1,6 @@
 // Export all lazy loading components
-export { LazyLiveGamesDetail } from '@/components/lazy/live-games-detail';
-export { LazyAdminExperimentalPage } from '@/components/lazy/admin-experimental';
+export { LazyLiveGamesDetail } from '@/components/lazy/LiveGamesDetail';
+export { LazyAdminExperimentalPage } from '@/components/lazy/AdminExperimental';
 export {
   LazyNBAPage,
   LazyNFLPage,
@@ -9,13 +9,13 @@ export {
   LazyMLSPage,
   LazyLivePage,
   LazyAllSportsPage,
-} from '@/components/lazy/sports-pages';
+} from '@/components/lazy/SportsPages';
 export {
   LazyUserPage,
   LazyAdminDatabasePage,
   LazyDashboardPage,
-} from '@/components/lazy/protected-pages';
+} from '@/components/lazy/ProtectedPages';
 
 // Export loading components
-export { LoadingSpinner, LoadingCard, LoadingPage } from '@/components/lazy/loading';
-export { LazyComponent } from '@/components/lazy/wrapper';
+export { LoadingSpinner, LoadingCard, LoadingPage } from '@/components/lazy/Loading';
+export { LazyComponent } from '@/components/lazy/Wrapper';

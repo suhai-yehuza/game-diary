@@ -1,7 +1,7 @@
-export { ThemeToggle } from '@/app/components/common/theme-toggle';
-export { AppSignInButton } from '@/app/components/common/sign-in-button';
-export { AppSignUpButton } from '@/app/components/common/sign-up-button';
-export { ClerkErrorBoundary, ClerkWrapper } from '@/app/components/common/clerk-error-boundary';
+export { ThemeToggle } from '@/app/components/common/ThemeToggle';
+export { AppSignInButton } from '@/app/components/common/SignInButton';
+export { AppSignUpButton } from '@/app/components/common/SignUpButton';
+export { ClerkErrorBoundary, ClerkWrapper } from '@/app/components/common/ClerkErrorBoundary';
 
 // New shared components
 export {
@@ -9,14 +9,14 @@ export {
   PageLoadingSpinner,
   CardLoadingSpinner,
   InlineLoadingSpinner,
-} from '@/app/components/common/loading-spinner';
+} from '@/app/components/common/LoadingSpinner';
 
 export {
   ErrorDisplay,
   PageErrorDisplay,
   CardErrorDisplay,
   InlineErrorDisplay,
-} from '@/app/components/common/error-display';
+} from '@/app/components/common/ErrorDisplay';
 
 export {
   EmptyState,
@@ -24,4 +24,4 @@ export {
   CardEmptyState,
   NoDataEmptyState,
   NoResultsEmptyState,
-} from '@/app/components/common/empty-state';
+} from '@/app/components/common/EmptyState';

@@ -11,7 +11,7 @@ import {
   ErrorBoundary,
   SortableHeader,
 } from '@src/app/protected/admin/database/components/ui';
-import { API_CONFIG } from '@src/lib/config/api.config';
+import { API_CONFIG } from '@/lib/config/app.config';
 import { SEARCH_USERS_ADMIN } from '@src/lib/graphql/queries';
 import type {
   IUserSummary,

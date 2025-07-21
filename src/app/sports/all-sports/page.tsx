@@ -1,7 +1,7 @@
 'use client';
 
 import { SportsPageLayout } from '@/app/components/sports';
-import { ALL_SPORTS_BUTTONS } from '@/app/components/sports/sports-config';
+import { ALL_SPORTS_BUTTONS } from '@/app/components/sports/SportsConfig';
 
 export default function AllSportsPage() {
   return (

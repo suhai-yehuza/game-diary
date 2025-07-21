@@ -1,6 +1,6 @@
 import React, { Suspense } from 'react';
 
-import { LoadingSpinner } from '@/components/lazy/loading';
+import { LoadingSpinner } from '@/components/lazy/Loading';
 
 // Lazy wrapper component with error boundary
 export function LazyComponent({

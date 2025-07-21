@@ -3,8 +3,8 @@
 import { SignInButton, SignedIn, SignedOut, UserButton } from '@clerk/nextjs';
 import React, { useState, useEffect, Suspense } from 'react';
 
-import { ClerkWrapper } from '@/app/components/common/clerk-error-boundary';
-import { isUnitTestEnvironment, isE2ETestEnvironment } from '@/lib/config/api.config';
+import { ClerkWrapper } from '@/app/components/common/ClerkErrorBoundary';
+import { isUnitTestEnvironment, isE2ETestEnvironment } from '@/lib/config/app.config';
 
 // Utility function to check if Clerk is configured
 function isClerkConfigured(): boolean {

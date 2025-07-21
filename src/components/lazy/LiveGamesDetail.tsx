@@ -3,8 +3,7 @@ import React from 'react';
 
 // Lazy loading component for LiveGamesDetail
 export const LazyLiveGamesDetail = dynamic(
-  () =>
-    import('@/app/components/live-games-detail').then(mod => ({ default: mod.LiveGamesDetail })),
+  () => import('@/app/components/LiveGamesDetail').then(mod => ({ default: mod.LiveGamesDetail })),
   {
     loading: () => (
       <div className="flex items-center justify-center p-8">

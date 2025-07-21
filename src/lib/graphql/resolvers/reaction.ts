@@ -3,7 +3,7 @@ import { eq, and } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { reactions } from '@/lib/db/schema';
 import { AuthorizationError } from '@/lib/graphql/errors';
-import type { GraphQLContext } from '@/lib/types/dbTypes';
+import type { GraphQLContext } from '@/lib/types/db.types';
 
 // Reaction Query Resolvers
 export const reactionQueryResolvers = {

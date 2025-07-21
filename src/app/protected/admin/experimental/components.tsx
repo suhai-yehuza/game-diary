@@ -8,7 +8,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/app/components/ui/card';
+} from '@/app/components/ui/Card';
 import type {
   ButtonProps,
   InputProps,
@@ -21,11 +21,11 @@ import type {
   PlayerStatsFormProps,
   StandingsFormProps,
   DataDisplayProps,
-} from '@/lib/types/adminExperimentalTypes';
+} from '@/lib/types/adminExperimental.types';
 import type {
   IDynamicFormProps as DynamicFormProps,
   IFieldConfig as FieldConfig,
-} from '@src/lib/types/formTypes';
+} from '@/lib/types/form.types';
 
 // --- DynamicForm abstraction ---
 export const DynamicForm = ({

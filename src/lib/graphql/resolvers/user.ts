@@ -1,10 +1,10 @@
 import { eq } from 'drizzle-orm';
 
-import { API_CONFIG } from '@/lib/config/api.config';
+import { API_CONFIG } from '@/lib/config/app.config';
 import { db } from '@/lib/db';
 import { users } from '@/lib/db/schema';
 import { AuthorizationError } from '@/lib/graphql/errors';
-import type { GraphQLContext } from '@/lib/types/dbTypes';
+import type { GraphQLContext } from '@/lib/types/db.types';
 import { decryptField, deserializeEncryptedField } from '@/lib/utils/encryption';
 
 // Types for resolver parameters

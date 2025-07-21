@@ -1,8 +1,8 @@
 import { useEffect, useState, useCallback } from 'react';
 
-import { INTERNAL_PROXY_ENDPOINTS } from '@/lib/config/api.config';
+import { INTERNAL_PROXY_ENDPOINTS } from '@/lib/config/app.config';
 import { MOCK_LIVE_GAMES } from '@/lib/mock/liveGamesMock';
-import type { IGamesApiResponse } from '@/lib/types/externalApiTypes';
+import type { IGamesApiResponse } from '@/lib/types/externalApi.types';
 import type { IUseLiveGamesOptions } from '@/lib/types/hooks.types';
 
 // Constants

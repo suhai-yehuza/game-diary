@@ -8,7 +8,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/app/components/ui/card';
+} from '@/app/components/ui/Card';
 import {
   Button,
   GamesForm,
@@ -21,7 +21,7 @@ import {
   DataDisplay,
 } from '@/app/protected/admin/experimental/components';
 import { useApiFetch, useFormState, useTabState } from '@/app/protected/admin/experimental/hooks';
-import { API_CONFIG } from '@/lib/config/api.config';
+import { API_CONFIG } from '@/lib/config/app.config';
 import type {
   NavigationTabsProps,
   SimpleEndpointsProps,
@@ -30,7 +30,7 @@ import type {
   TeamsSectionProps,
   PlayersSectionProps,
 } from '@/lib/types';
-import { TABS } from '@/lib/types/constantTypes';
+import { TABS } from '@/lib/types/constant.types';
 
 // Navigation Tabs Component
 function NavigationTabs(props: NavigationTabsProps) {

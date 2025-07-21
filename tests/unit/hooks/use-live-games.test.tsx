@@ -3,13 +3,13 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 import { useLiveGames } from '@/hooks/use-live-games';
 import { MOCK_LIVE_GAMES } from '@/lib/mock/liveGamesMock';
-import type { IGamesApiResponse, IGameResponse } from '@/lib/types/externalApiTypes';
+import type { IGamesApiResponse, IGameResponse } from '@/lib/types/externalApi.types';
 
 // Mock fetch globally
 global.fetch = vi.fn();
 
 // Mock the API config
-vi.mock('@/lib/config/api.config', () => ({
+vi.mock('@/lib/config/app.config', () => ({
   INTERNAL_PROXY_ENDPOINTS: {
     GAMES: '/api/proxy/games',
   },

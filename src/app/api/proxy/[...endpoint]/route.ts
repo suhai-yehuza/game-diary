@@ -5,7 +5,7 @@ import {
   getRapidApiConfig,
   isTestEnvironment,
   isE2ETestEnvironment,
-} from '@src/lib/config/api.config';
+} from '@/lib/config/app.config';
 import { MOCK_LIVE_GAMES } from '@src/lib/mock/liveGamesMock';
 import { MOCK_NBA_GAMES } from '@src/lib/mock/nbaGamesMock';
 import { MOCK_NBA_PLAYERS } from '@src/lib/mock/nbaPlayersMock';

@@ -10,7 +10,7 @@ import {
   NavigationContainer,
   useMobileDetection,
 } from '@/app/components/layout/components';
-import { LiveGamesBanner } from '@/app/components/live-games-banner';
+import { LiveGamesBanner } from '@/app/components/LiveGamesBanner';
 import { useMenuContext } from '@/app/components/providers';
 
 export function Header() {

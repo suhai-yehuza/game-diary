@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { API_CONFIG } from '@/lib/config/api.config';
+import { API_CONFIG } from '@/lib/config/app.config';
 
 describe('API Configuration', () => {
   it('has required endpoints', () => {

@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
-import { ClerkErrorBoundary, ClerkWrapper } from '@/app/components/common/clerk-error-boundary';
+import { ClerkErrorBoundary, ClerkWrapper } from '@/app/components/common/ClerkErrorBoundary';
 
 // Mock console.warn to avoid noise in tests
 const originalWarn = console.warn;

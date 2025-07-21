@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
-import { AppSignUpButton } from '@/app/components/common/sign-up-button';
+import { AppSignUpButton } from '@/app/components/common/SignUpButton';
 
 // Mock Clerk's SignUpButton
 vi.mock('@clerk/nextjs', () => ({

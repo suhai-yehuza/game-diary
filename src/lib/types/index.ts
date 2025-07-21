@@ -4,31 +4,31 @@
  */
 
 // Admin Experimental types
-export * from './adminExperimentalTypes';
+export * from './adminExperimental.types';
 
 // Admin Database types
-export * from './adminDatabaseTypes';
+export * from './adminDatabase.types';
 
 // Form types
-export * from './formTypes';
+export * from './form.types';
 
 // Clerk authentication types
-export * from './clerk-types';
+export * from './clerk.types';
 
 // Component types
-export * from './componentTypes';
+export * from './component.types';
 
 // Constant types
-export * from './constantTypes';
+export * from './constant.types';
 
 // Core types
-export * from './coreTypes';
+export * from './core.types';
 
 // E2E test types
-export * from './e2e-test-types';
+export * from './e2eTest.types';
 
 // External API types (NBA API endpoints and responses)
-export * from './externalApiTypes';
+export * from './externalApi.types';
 
 // Generated types
 export * from './generated/graphql';
@@ -37,16 +37,16 @@ export * from './generated/graphql';
 export * from './misc.types';
 
 // Schema types
-export * from './schema-types';
+export * from './schema.types';
 
 // Seeding types
-export * from './seeding-types';
+export * from './seeding.types';
 
 // Search types
-export * from './searchTypes';
+export * from './search.types';
 
 // Audit Log types
-export * from './auditLogTypes';
+export * from './auditLog.types';
 
 // UI types
-export * from './uiTypes';
+export * from './ui.types';

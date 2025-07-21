@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
-import { ThemeToggle } from '@/app/components/common/theme-toggle';
+import { ThemeToggle } from '@/app/components/common/ThemeToggle';
 
 // Mock next-themes
 const mockSetTheme = vi.fn();

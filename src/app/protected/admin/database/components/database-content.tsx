@@ -10,8 +10,8 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@src/app/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@src/app/components/ui/tabs';
+} from '@/app/components/ui/Card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/app/components/ui/Tabs';
 import { GameLogsTableWithSearch } from '@src/app/protected/admin/database/components/game-logs-table';
 import { ErrorBoundary } from '@src/app/protected/admin/database/components/ui';
 import { Badge } from '@src/app/protected/admin/database/components/ui/badge';
@@ -22,7 +22,7 @@ import { UsersTableWithSearch } from '@src/app/protected/admin/database/componen
 //   formatValue,
 //   isRecordArray,
 // } from '@src/app/protected/admin/database/components/utils/table-utils';
-import { API_CONFIG } from '@src/lib/config/api.config';
+import { API_CONFIG } from '@/lib/config/app.config';
 import type { IApiResponse } from '@src/lib/types';
 
 // Table configurations

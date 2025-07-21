@@ -2,7 +2,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import React from 'react';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@src/app/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/app/components/ui/Tabs';
 
 // Mock Radix UI Tabs
 vi.mock('@radix-ui/react-tabs', () => ({

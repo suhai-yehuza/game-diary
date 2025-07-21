@@ -3,7 +3,7 @@
 import { ClerkProvider, useUser, useAuth } from '@clerk/nextjs';
 import type { ReactNode } from 'react';
 
-import { getClerkAppearance } from '@/lib/config/clerk-theme';
+import { getClerkAppearance } from '@/lib/config/clerkTheme';
 import {
   LOCALHOST_URLS,
   PRODUCTION_DOMAINS,

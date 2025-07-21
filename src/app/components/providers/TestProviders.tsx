@@ -3,7 +3,7 @@
 import { ThemeProvider } from 'next-themes';
 import { Suspense } from 'react';
 
-import type { IClientProvidersProps } from '@/lib/types/componentTypes';
+import type { IClientProvidersProps } from '@/lib/types/component.types';
 
 /**
  * Test-specific providers that disable Clerk authentication

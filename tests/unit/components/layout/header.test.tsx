@@ -1,8 +1,8 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
-import { Header } from '@/app/components/layout/header';
-import { MenuProvider } from '@/app/components/providers/menu-context';
+import { Header } from '@/app/components/layout/Header';
+import { MenuProvider } from '@/app/components/providers/MenuContext';
 
 // Mock Next.js modules
 vi.mock('next/navigation', () => ({
@@ -68,7 +68,7 @@ vi.mock('@/app/components/ui/dropdown-menu', () => ({
 }));
 
 // Mock API config
-vi.mock('@/lib/config/api.config', () => ({
+vi.mock('@/lib/config/app.config', () => ({
   isUnitTestEnvironment: false,
   isE2ETestEnvironment: false,
 }));
@@ -234,7 +234,7 @@ describe('Header - additional coverage', () => {
   });
 
   it('shows test sign-in button in unit test environment', async () => {
-    vi.doMock('@/lib/config/api.config', () => ({
+    vi.doMock('@/lib/config/app.config', () => ({
       isUnitTestEnvironment: true,
       isE2ETestEnvironment: false,
     }));
@@ -250,7 +250,7 @@ describe('Header - additional coverage', () => {
   });
 
   it('shows E2E sign-in button in E2E test environment', async () => {
-    vi.doMock('@/lib/config/api.config', () => ({
+    vi.doMock('@/lib/config/app.config', () => ({
       isUnitTestEnvironment: false,
       isE2ETestEnvironment: true,
     }));

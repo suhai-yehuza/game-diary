@@ -35,7 +35,7 @@ import {
   REACTION_EMOJIS,
   TARGET_TYPES,
 } from '@src/lib/types';
-import type { Database } from '@src/lib/types/dbTypes';
+import type { Database } from '@/lib/types/db.types';
 import type {
   IStatisticalSeedingConfig,
   ISeedUser,
@@ -44,7 +44,7 @@ import type {
   ISeedComment,
   ISeedReaction,
   ISeedingConfig,
-} from '@src/lib/types/seeding-types';
+} from '@/lib/types/seeding.types';
 import { generateUUIDv7 } from '@src/lib/utils/id-generator';
 
 // Configuration for data generation

@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
-import { LazyAdminExperimentalPage } from '@/components/lazy/admin-experimental';
+import { LazyAdminExperimentalPage } from '@/components/lazy/AdminExperimental';
 
 // Mock Next.js dynamic import
 vi.mock('next/dynamic', () => ({

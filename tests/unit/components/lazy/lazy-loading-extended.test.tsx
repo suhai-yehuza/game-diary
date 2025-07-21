@@ -40,7 +40,7 @@ import {
   LazyMLBPage,
   LazyNHLPage,
   LazyMLSPage,
-} from '@src/components/lazy';
+} from '@/components/lazy';
 
 describe('Extended Lazy Loading Components', () => {
   beforeEach(() => {

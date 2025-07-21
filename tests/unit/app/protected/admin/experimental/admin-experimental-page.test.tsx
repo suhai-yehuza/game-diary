@@ -132,7 +132,7 @@ vi.mock('@/app/protected/admin/experimental/hooks', () => ({
 import AdminExperimentalPage from '@/app/protected/admin/experimental/page';
 
 // Mock the API config
-vi.mock('@/lib/config/api.config', () => ({
+vi.mock('@/lib/config/app.config', () => ({
   API_CONFIG: {
     endpoints: {
       SEASONS: '/api/seasons',

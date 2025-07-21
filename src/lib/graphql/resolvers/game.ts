@@ -1,9 +1,9 @@
 import { eq, and, desc, sql } from 'drizzle-orm';
 
-import { API_CONFIG } from '@/lib/config/api.config';
+import { API_CONFIG } from '@/lib/config/app.config';
 import { db } from '@/lib/db';
 import { nba_games } from '@/lib/db/schema';
-import type { GraphQLContext } from '@/lib/types/dbTypes';
+import type { GraphQLContext } from '@/lib/types/db.types';
 
 // Game Query Resolvers (for nba_games table)
 export const gameQueryResolvers = {

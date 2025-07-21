@@ -58,7 +58,7 @@ const HeaderSkeleton = () => (
 );
 
 // Dynamically import Header with improved loading
-const Header = dynamic(() => import('./header').then(mod => ({ default: mod.Header })), {
+const Header = dynamic(() => import('./Header').then(mod => ({ default: mod.Header })), {
   ssr: false,
   loading: HeaderSkeleton,
 });

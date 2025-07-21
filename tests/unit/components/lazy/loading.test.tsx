@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
-import { LoadingSpinner, LoadingCard, LoadingPage } from '@/components/lazy/loading';
+import { LoadingSpinner, LoadingCard, LoadingPage } from '@/components/lazy/Loading';
 
 describe('Loading Components', () => {
   describe('LoadingSpinner', () => {

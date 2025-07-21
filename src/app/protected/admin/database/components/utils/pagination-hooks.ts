@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
 
-import { API_CONFIG } from '@src/lib/config/api.config';
+import { API_CONFIG } from '@/lib/config/app.config';
 import type { IPageInfo } from '@src/lib/types';
 
 export interface IPaginationOptions {

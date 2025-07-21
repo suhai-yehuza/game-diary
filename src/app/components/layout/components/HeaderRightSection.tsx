@@ -1,8 +1,8 @@
 import { Search } from 'lucide-react';
 
 import { ThemeToggle } from '@/app/components/common';
-import { ClientOnlyAuthControls } from '@/app/components/layout/components/auth-controls';
-import { SearchBar } from '@/app/components/layout/components/search-bar';
+import { ClientOnlyAuthControls } from '@/app/components/layout/components/AuthControls';
+import { SearchBar } from '@/app/components/layout/components/SearchBar';
 
 interface IHeaderRightSectionProps {
   isMenuExpanded: boolean;

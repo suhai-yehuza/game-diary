@@ -1,9 +1,9 @@
 import { neon } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-http';
 
-import type { IDatabaseConfig } from '@/lib/types/schema-types';
+import type { IDatabaseConfig } from '@/lib/types/schema.types';
 import * as schema from '@src/lib/db/schema';
-import type { Database } from '@src/lib/types/dbTypes';
+import type { Database } from '@/lib/types/db.types';
 
 // Database connection pool configuration
 class DatabaseManager {

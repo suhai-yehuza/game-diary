@@ -5,7 +5,7 @@
  * Coverage is measured by the number of user journeys and critical paths tested.
  */
 
-import { CoverageTarget, TestCategory } from '@src/lib/types/e2e-test-types';
+import { CoverageTarget, TestCategory } from '@/lib/types/e2eTest.types';
 
 export const COVERAGE_TARGETS: CoverageTarget[] = [
   {

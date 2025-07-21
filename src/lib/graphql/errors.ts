@@ -2,7 +2,7 @@ import type { InferSelectModel } from 'drizzle-orm';
 import { GraphQLError } from 'graphql';
 
 import type { users } from '@src/lib/db/schema';
-import { RESOURCES } from '@src/lib/types/constantTypes';
+import { RESOURCES } from '@/lib/types/constant.types';
 
 // Custom Error Classes
 export class ValidationError extends GraphQLError {

@@ -2,7 +2,7 @@ import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import React from 'react';
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 
-import { LiveGamesDetail } from '@src/app/components/live-games-detail';
+import { LiveGamesDetail } from '@/app/components/LiveGamesDetail';
 import { MOCK_LIVE_GAMES } from '@src/lib/mock/liveGamesMock';
 
 // Mock Next.js Image component
@@ -15,7 +15,7 @@ vi.mock('next/image', () => ({
 }));
 
 // Mock the API config
-vi.mock('@src/lib/config/api.config', () => ({
+vi.mock('@/lib/config/app.config', () => ({
   INTERNAL_PROXY_ENDPOINTS: {
     GAMES: '/api/proxy/games',
   },
@@ -233,7 +233,7 @@ describe('LiveGamesDetail - additional coverage', () => {
       useLiveGames: mockUseLiveGames,
     }));
 
-    const { LiveGamesDetail } = await import('@/app/components/live-games-detail');
+    const { LiveGamesDetail } = await import('@/app/components/LiveGamesDetail');
     render(<LiveGamesDetail />);
 
     // Verify the mock was called
@@ -250,7 +250,7 @@ describe('LiveGamesDetail - additional coverage', () => {
       .fn()
       .mockReturnValue({ games: [{ ...baseGame }], loading: false, error: null });
     vi.doMock('@/hooks/use-live-games', () => ({ useLiveGames }));
-    const { LiveGamesDetail } = await import('@/app/components/live-games-detail');
+    const { LiveGamesDetail } = await import('@/app/components/LiveGamesDetail');
     render(<LiveGamesDetail />);
     expect(screen.getByText(/Time: 12:34/)).toBeInTheDocument();
     expect(screen.getByText(/Fun fact/)).toBeInTheDocument();

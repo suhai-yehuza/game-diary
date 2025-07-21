@@ -4,14 +4,14 @@ import { ChevronDown } from 'lucide-react';
 import Link from 'next/link';
 import React, { Suspense } from 'react';
 
-import { useMobileDetection } from '@/app/components/layout/components/search-bar';
+import { useMobileDetection } from '@/app/components/layout/components/SearchBar';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
-} from '@/app/components/ui/dropdown-menu';
-import type { NavItemProps } from '@/lib/types/componentTypes';
+} from '@/app/components/ui/DropdownMenu';
+import type { NavItemProps } from '@/lib/types/component.types';
 
 function NavItem({
   href,

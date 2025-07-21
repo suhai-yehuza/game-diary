@@ -13,7 +13,7 @@ import type {
   IDistributionConfig,
   IStatisticalSeedingConfig,
   DistributionConfigPreset,
-} from '@src/lib/types/seeding-types';
+} from '@/lib/types/seeding.types';
 
 // No external imports needed for statistical distributions
 

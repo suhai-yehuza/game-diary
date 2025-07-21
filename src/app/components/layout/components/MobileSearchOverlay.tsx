@@ -1,6 +1,6 @@
 import { X } from 'lucide-react';
 
-import { SearchBar } from '@/app/components/layout/components/search-bar';
+import { SearchBar } from '@/app/components/layout/components/SearchBar';
 
 interface IMobileSearchOverlayProps {
   isVisible: boolean;

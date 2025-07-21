@@ -1,11 +1,11 @@
 import { eq, and, desc, sql } from 'drizzle-orm';
 
-import { API_CONFIG } from '@/lib/config/api.config';
+import { API_CONFIG } from '@/lib/config/app.config';
 import { db } from '@/lib/db';
 import { game_logs } from '@/lib/db/schema';
 import { AuthorizationError } from '@/lib/graphql/errors';
 import { FRIENDSHIP_STATUS, CLASSIFICATION } from '@/lib/types';
-import type { GraphQLContext } from '@/lib/types/dbTypes';
+import type { GraphQLContext } from '@/lib/types/db.types';
 import { generateUUIDv7 } from '@/lib/utils/id-generator';
 
 // Simple in-memory cache for friendship checks

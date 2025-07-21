@@ -4,7 +4,7 @@ import { db } from '@/lib/db';
 import { friendships } from '@/lib/db/schema';
 import { AuthorizationError } from '@/lib/graphql/errors';
 import { FRIENDSHIP_STATUS } from '@/lib/types';
-import type { GraphQLContext } from '@/lib/types/dbTypes';
+import type { GraphQLContext } from '@/lib/types/db.types';
 import { generateUUIDv7 } from '@/lib/utils/id-generator';
 
 // Friendship Mutation Resolvers

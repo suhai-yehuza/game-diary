@@ -3,9 +3,9 @@
 import { ThemeProvider } from 'next-themes';
 import { Suspense } from 'react';
 
-import { ClerkProviderWrapper } from '@/app/components/providers/clerk-provider';
-import { MenuProvider } from '@/app/components/providers/menu-context';
-import type { IClientProvidersProps } from '@/lib/types/componentTypes';
+import { ClerkProviderWrapper } from '@/app/components/providers/ClerkProvider';
+import { MenuProvider } from '@/app/components/providers/MenuContext';
+import type { IClientProvidersProps } from '@/lib/types/component.types';
 
 export function ClientProviders({ children }: IClientProvidersProps) {
   return (
