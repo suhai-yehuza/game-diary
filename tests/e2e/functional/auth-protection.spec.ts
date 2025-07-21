@@ -31,6 +31,25 @@ test.describe('Protected Route Clerk Sign-In Modal', () => {
       await page.keyboard.press('Escape');
       // Wait for redirect
       await expect(page).toHaveURL('/');
+      // On mobile, ensure the mobile menu is closed before looking for the sign-in button
+      const isMobile = await page.evaluate(() => window.innerWidth < 1024);
+      if (isMobile) {
+        // If the menu overlay is visible, close it
+        const menuOverlay = page.locator('[data-testid="mobile-menu-overlay"]');
+        if (await menuOverlay.isVisible({ timeout: 1000 }).catch(() => false)) {
+          // Click the close button (X) if present
+          const closeButton = page.locator('[data-testid="mobile-menu-button"]');
+          if (await closeButton.isVisible({ timeout: 1000 }).catch(() => false)) {
+            await closeButton.click();
+            await expect(menuOverlay).not.toBeVisible({ timeout: 5000 });
+          }
+        }
+        // Click the search icon to expand the header right section
+        const searchButton = page.locator('button[aria-label="Open search"]');
+        if (await searchButton.isVisible({ timeout: 2000 }).catch(() => false)) {
+          await searchButton.click();
+        }
+      }
       // Home page should show sign-in button
       const signInButton = page.getByTestId('sign-in-button');
       await expect(signInButton).toBeVisible({ timeout: 10000 });
