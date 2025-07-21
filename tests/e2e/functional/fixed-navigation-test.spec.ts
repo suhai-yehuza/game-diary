@@ -102,10 +102,27 @@ test.describe('Fixed Navigation Test', () => {
     console.log('✅ Dashboard page content loaded');
   });
 
-  test.skip('should find mobile menu button on mobile viewport', async ({ page }) => {
-    // TODO: Skip mobile menu test until UI layout issue is fixed
-    // The mobile menu button is being intercepted by other elements (logo, search button, etc.)
-    // This is a frontend CSS/layout issue that needs to be resolved in the UI
-    console.log('⏭️ Skipping mobile menu test - UI layout issue needs frontend fix');
+  test('should find mobile menu button on mobile viewport', async ({ page }) => {
+    // Set viewport to mobile size
+    await page.setViewportSize({ width: 375, height: 812 }); // iPhone X size
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+
+    // Try to find the mobile menu button
+    const menuButton = page.locator('[data-testid="mobile-menu-button"]');
+    const isVisible = await menuButton.isVisible();
+    if (!isVisible) {
+      console.log('Mobile menu button not visible');
+      throw new Error('Mobile menu button not visible');
+    }
+    await expect(menuButton).toBeVisible();
+    await expect(menuButton).toBeEnabled();
+    await menuButton.click();
+
+    // After opening the menu, look for navigation links inside the menu
+    const nbaLink = page.locator('[data-testid="mobile-menu"] a[href="/sports/nba"]');
+    const dashboardLink = page.locator('[data-testid="mobile-menu"] a[href="/"]');
+    await expect(nbaLink).toBeVisible({ timeout: 10000 });
+    await expect(dashboardLink).toBeVisible({ timeout: 10000 });
   });
 });

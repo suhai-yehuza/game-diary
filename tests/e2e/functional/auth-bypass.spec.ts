@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, ConsoleMessage } from '@playwright/test';
 import {
   setupAuthBypass,
   clearAuthBypass,
@@ -55,13 +55,14 @@ test.describe('Authentication Bypass Tests', () => {
   });
 
   test('should test auth-dependent functionality with bypass', async ({ page }) => {
-    // Skip this test for now due to client-side hydration issues
-    test.skip(true, 'Skipping due to client-side hydration issues - needs further investigation');
+    // Unskipped: attempt to debug hydration/client-side issues
 
     // Capture browser console errors and warnings
-    page.on('console', msg => {
+    let clientError: string | null = null;
+    page.on('console', (msg: ConsoleMessage) => {
       if (msg.type() === 'error' || msg.type() === 'warning') {
         console.log(`[browser ${msg.type()}]`, msg.text());
+        if (!clientError) clientError = msg.text();
       }
     });
 
@@ -97,6 +98,11 @@ test.describe('Authentication Bypass Tests', () => {
     if (h1Elements > 0) {
       const h1Texts = await page.locator('h1').allTextContents();
       console.log('🔍 H1 texts found:', h1Texts);
+    }
+
+    // If hydration/client-side error detected, fail with clear message
+    if (clientError) {
+      throw new Error('Client-side error detected during hydration: ' + clientError);
     }
 
     // Verify user-specific content is displayed

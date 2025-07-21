@@ -215,7 +215,7 @@ describe('Header', () => {
     );
 
     // Mobile menu button should be present
-    const menuButton = screen.getByLabelText('Toggle menu');
+    const menuButton = screen.getByLabelText(/open menu|close menu/i);
     expect(menuButton).toBeInTheDocument();
 
     // Click menu button
@@ -420,9 +420,23 @@ describe('Header - additional coverage', () => {
     }
   });
 
-  it('ClientOnlyNavigationLinks does not render before mount', async () => {
-    // Skipped: ClientOnlyNavigationLinks is not exported from header.tsx
-    // This test is not directly possible; test via Header instead.
-    expect(true).toBe(true);
+  it('ClientOnlyNavigationLinks renders fallback and then navigation links', async () => {
+    // Import directly from the component file to avoid casing/type issues
+    const { ClientOnlyNavigationLinks } = await import(
+      '@/app/components/layout/components/navigation/ClientOnlyNavigationLinks'
+    );
+    // Render with all required props
+    const { container, findByRole } = render(
+      <ClientOnlyNavigationLinks
+        isActive={() => false}
+        _isMenuExpanded={false}
+        _setIsMenuExpanded={() => {}}
+      />
+    );
+    // Fallback should be present initially (suspense fallback nav)
+    expect(container.querySelector('nav')).toBeInTheDocument();
+    // Wait for the NavigationLinks to mount (should replace fallback)
+    const nav = await findByRole('navigation');
+    expect(nav).toBeInTheDocument();
   });
 });

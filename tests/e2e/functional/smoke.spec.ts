@@ -60,11 +60,7 @@ test.beforeEach(async ({ page }) => {
 
 test.describe('Smoke Tests (Extends Sanity)', () => {
   test.beforeEach(async ({ page }, testInfo) => {
-    // Skip mobile tests temporarily due to UI layout issues
-    if (isMobileDevice(testInfo.project.name)) {
-      test.skip(true, 'Skipping mobile tests temporarily due to UI layout issues');
-    }
-
+    // Removed mobile skip logic
     await commonTestSetup(page);
   });
 

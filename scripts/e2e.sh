@@ -47,6 +47,9 @@ if [ -f "${SCRIPT_DIR}/e2e-helpers.sh" ]; then
     log_debug "Loaded e2e-helpers.sh"
 fi
 
+# Always set PLAYWRIGHT_TEST=1 for E2E runs
+export PLAYWRIGHT_TEST=1
+
 # Function to show usage
 show_usage() {
     echo "Usage: $0 [subcommand] [options]"

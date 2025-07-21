@@ -118,19 +118,10 @@ test.beforeEach(async ({ page }) => {
 
 test.describe('Critical Tests (Extends Smoke)', () => {
   test.beforeEach(async ({ page }, testInfo) => {
-    // Skip mobile tests temporarily due to UI layout issues
-    if (
-      testInfo.project.name.toLowerCase().includes('mobile') ||
-      testInfo.project.name.toLowerCase().includes('iphone') ||
-      testInfo.project.name.toLowerCase().includes('tablet')
-    ) {
-      test.skip(true, 'Skipping mobile tests temporarily due to UI layout issues');
-    }
-
+    // Removed mobile skip logic
     await page.addStyleTag({
       content: '* { transition: none !important; animation: none !important; }',
     });
-
     // Ensure clean state by navigating to home page first
     await page.goto('/');
     await waitForNetworkIdle(page);

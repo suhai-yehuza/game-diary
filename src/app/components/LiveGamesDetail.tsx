@@ -44,7 +44,7 @@ export function LiveGamesDetail({ data }: { data?: IGamesApiResponse } = {}) {
         </p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3" data-testid="live-games-grid">
         {games.map(game => (
           <div
             key={game.id}

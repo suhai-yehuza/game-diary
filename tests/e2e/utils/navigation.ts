@@ -91,6 +91,7 @@ export async function navigateToSection(
   if (isMobile) {
     // Open mobile menu first with improved click handling
     await openMobileMenu(page, timeout);
+    await waitForMenuNavVisible(page, timeout);
   }
 
   // Wait for the page to be fully loaded and stable
@@ -102,67 +103,81 @@ export async function navigateToSection(
   // Find and click the navigation link
   let link;
   if (href === '/') {
-    // Home link is the logo
-    link = page.locator('header a[href="/"]').first();
+    if (isMobile) {
+      link = page.locator('[data-testid="mobile-menu-overlay"] nav a[href="/"]').first();
+    } else {
+      link = page.locator('header a[href="/"]').first();
+    }
   } else {
-    // Try multiple selectors to find the navigation link with better error handling
     let linkFound = false;
-
-    // Strategy 1: Try the specific nav selector
-    link = page.locator(`nav a[href="${href}"]`).first();
-    if ((await link.count()) > 0) {
-      linkFound = true;
+    // Strategy 1: Try the nav selector (scoped by device)
+    if (isMobile) {
+      link = page.locator(`[data-testid="mobile-menu-overlay"] nav a[href="${href}"]`).first();
+    } else {
+      link = page.locator(`nav a[href="${href}"]`).first();
     }
-
-    // Strategy 2: If not found, try a more general selector
+    if ((await link.count()) > 0) linkFound = true;
+    // Strategy 2: General selector (scoped by device)
     if (!linkFound) {
-      link = page.locator(`a[href="${href}"]`).first();
-      if ((await link.count()) > 0) {
-        linkFound = true;
+      if (isMobile) {
+        link = page.locator(`[data-testid="mobile-menu-overlay"] nav a[href="${href}"]`).first();
+      } else {
+        link = page.locator(`a[href="${href}"]`).first();
       }
+      if ((await link.count()) > 0) linkFound = true;
     }
-
-    // Strategy 3: If still not found, try looking for text content
-    if (!linkFound) {
-      const linkText = href.split('/').pop()?.toUpperCase() || href;
-      link = page.locator(`a:has-text("${linkText}")`).first();
-      if ((await link.count()) > 0) {
-        linkFound = true;
-      }
-    }
-
-    // Strategy 4: If still not found, try looking for any navigation element with the text
+    // Strategy 3: By text content (scoped by device)
     if (!linkFound) {
       const linkText = href.split('/').pop()?.toUpperCase() || href;
-      link = page.locator(`nav a:has-text("${linkText}")`).first();
-      if ((await link.count()) > 0) {
-        linkFound = true;
+      if (isMobile) {
+        link = page
+          .locator(`[data-testid="mobile-menu-overlay"] nav a:has-text("${linkText}")`)
+          .first();
+      } else {
+        link = page.locator(`a:has-text("${linkText}")`).first();
       }
+      if ((await link.count()) > 0) linkFound = true;
     }
-
-    // Strategy 5: If still not found, try looking for any element with the text (fallback)
+    // Strategy 4: nav by text (scoped by device)
     if (!linkFound) {
       const linkText = href.split('/').pop()?.toUpperCase() || href;
-      link = page.locator(`*:has-text("${linkText}")`).first();
-      if ((await link.count()) > 0) {
-        linkFound = true;
+      if (isMobile) {
+        link = page
+          .locator(`[data-testid="mobile-menu-overlay"] nav a:has-text("${linkText}")`)
+          .first();
+      } else {
+        link = page.locator(`nav a:has-text("${linkText}")`).first();
       }
+      if ((await link.count()) > 0) linkFound = true;
     }
-
-    // If no link found, provide better debugging information
+    // Strategy 5: fallback (scoped by device)
+    if (!linkFound) {
+      const linkText = href.split('/').pop()?.toUpperCase() || href;
+      if (isMobile) {
+        link = page
+          .locator(`[data-testid="mobile-menu-overlay"] nav *:has-text("${linkText}")`)
+          .first();
+      } else {
+        link = page.locator(`*:has-text("${linkText}")`).first();
+      }
+      if ((await link.count()) > 0) linkFound = true;
+    }
     if (!linkFound) {
       console.log(`🔍 Navigation Debug: Could not find link for ${href}`);
       console.log(`🔍 Current URL: ${page.url()}`);
-
-      // Log all navigation links on the page for debugging
-      const allNavLinks = await page.locator('nav a').all();
+      // Log all navigation links for debugging
+      let allNavLinks;
+      if (isMobile) {
+        allNavLinks = await page.locator('[data-testid="mobile-menu-overlay"] nav a').all();
+      } else {
+        allNavLinks = await page.locator('nav a').all();
+      }
       console.log(`🔍 Found ${allNavLinks.length} navigation links:`);
       for (const navLink of allNavLinks) {
         const href = await navLink.getAttribute('href');
         const text = await navLink.textContent();
         console.log(`🔍   - href: "${href}", text: "${text}"`);
       }
-
       // Log all links on the page for debugging
       const allLinks = await page.locator('a').all();
       console.log(`🔍 Found ${allLinks.length} total links:`);
@@ -171,7 +186,6 @@ export async function navigateToSection(
         const text = await allLinks[i].textContent();
         console.log(`🔍   - href: "${href}", text: "${text}"`);
       }
-
       throw new Error(`Navigation link for ${href} not found on page`);
     }
   }
@@ -239,15 +253,19 @@ export async function navigateToProfile(
 export async function waitForNavigationLoaded(page: Page, timeout: number = 10000): Promise<void> {
   console.log('🔍 Waiting for navigation to be loaded...');
 
-  // Wait for the navigation container to be present
-  await page.waitForSelector('nav', { timeout });
+  const isMobile = await page.evaluate(() => window.innerWidth < 1024);
 
-  // Wait for at least one navigation link to be visible
-  await page.waitForSelector('nav a', { timeout });
+  if (isMobile) {
+    // Wait for the nav inside the mobile menu overlay
+    await page.waitForSelector('[data-testid="mobile-menu-overlay"] nav', { timeout });
+    await page.waitForSelector('[data-testid="mobile-menu-overlay"] nav a', { timeout });
+  } else {
+    // Wait for the main nav
+    await page.waitForSelector('nav', { timeout });
+    await page.waitForSelector('nav a', { timeout });
+  }
 
-  // Additional wait to ensure navigation is fully rendered
   await page.waitForLoadState('domcontentloaded');
-
   console.log('🔍 Navigation loaded successfully');
 }
 
@@ -279,7 +297,9 @@ export async function openMobileMenu(page: Page, timeout: number = 10000): Promi
     await waitForNetworkIdleUtil(page, timeout);
 
     // Try multiple strategies to click the menu button
-    const menuButton = page.locator('button[aria-label="Toggle menu"]');
+    const menuButton = page.locator(
+      'button[aria-label="Open menu"], button[aria-label="Close menu"]'
+    );
     await expect(menuButton).toBeVisible({ timeout });
 
     // Debug: Check if menu button is actually clickable
@@ -288,9 +308,7 @@ export async function openMobileMenu(page: Page, timeout: number = 10000): Promi
     console.log(`Menu button - Enabled: ${isEnabled}, Visible: ${isVisible}`);
 
     // Check if menu is already open by looking for the menu container
-    const menuContainer = page.locator(
-      'div.absolute.lg\\:relative, div.absolute.lg\\:block, div.absolute'
-    );
+    const menuContainer = page.locator('[data-testid="mobile-menu-overlay"]');
     const isMenuOpen = await menuContainer.isVisible();
     console.log(`Menu already open: ${isMenuOpen}`);
 
@@ -471,6 +489,18 @@ export async function openMobileSearch(page: Page, timeout: number = 10000): Pro
         throw new Error('Failed to open mobile search overlay');
       }
     }
+  }
+}
+
+/**
+ * Wait for the correct nav container to be visible after opening the menu
+ */
+export async function waitForMenuNavVisible(page: Page, timeout: number = 5000): Promise<void> {
+  const isMobile = await page.evaluate(() => window.innerWidth < 1024);
+  if (isMobile) {
+    await expect(page.locator('[data-testid="mobile-menu-overlay"] nav')).toBeVisible({ timeout });
+  } else {
+    await expect(page.locator('nav')).toBeVisible({ timeout });
   }
 }
 

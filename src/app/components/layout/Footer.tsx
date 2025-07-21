@@ -13,14 +13,14 @@ export function Footer() {
   // SSR: Render a static, neutral footer to avoid empty space or flash
   if (!mounted) {
     return (
-      <footer className="w-full border-t border-border bg-background text-foreground py-4">
-        <div className="max-w-5xl mx-auto px-4">
+      <footer className="w-full border-t border-border bg-background text-foreground py-2 text-xs">
+        <div className="max-w-5xl mx-auto px-2">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 text-center md:text-left">
             <div>
-              <h3 className="text-xs font-bold mb-2 tracking-wide text-muted-foreground uppercase">
+              <h3 className="text-xs font-bold mb-1 tracking-wide text-muted-foreground uppercase">
                 About
               </h3>
-              <ul className="space-y-1 text-xs">
+              <ul className="flex flex-row flex-wrap justify-center gap-x-2 gap-y-0 md:flex-col md:space-y-1 text-xs">
                 <li>
                   <a href="#about" className="hover:text-primary transition-colors block py-0.5">
                     About Us
@@ -34,10 +34,10 @@ export function Footer() {
               </ul>
             </div>
             <div>
-              <h3 className="text-xs font-bold mb-2 tracking-wide text-muted-foreground uppercase">
+              <h3 className="text-xs font-bold mb-1 tracking-wide text-muted-foreground uppercase">
                 Help
               </h3>
-              <ul className="space-y-1 text-xs">
+              <ul className="flex flex-row flex-wrap justify-center gap-x-2 gap-y-0 md:flex-col md:space-y-1 text-xs">
                 <li>
                   <a href="#api" className="hover:text-primary transition-colors block py-0.5">
                     API
@@ -51,10 +51,10 @@ export function Footer() {
               </ul>
             </div>
             <div>
-              <h3 className="text-xs font-bold mb-2 tracking-wide text-muted-foreground uppercase">
+              <h3 className="text-xs font-bold mb-1 tracking-wide text-muted-foreground uppercase">
                 Follow Us
               </h3>
-              <ul className="space-y-1 text-xs">
+              <ul className="flex flex-row flex-wrap justify-center gap-x-2 gap-y-0 md:flex-col md:space-y-1 text-xs">
                 <li>
                   <a href="#twitter" className="hover:text-primary transition-colors block py-0.5">
                     Twitter
@@ -68,10 +68,10 @@ export function Footer() {
               </ul>
             </div>
             <div>
-              <h3 className="text-xs font-bold mb-2 tracking-wide text-muted-foreground uppercase">
+              <h3 className="text-xs font-bold mb-1 tracking-wide text-muted-foreground uppercase">
                 Legal
               </h3>
-              <ul className="space-y-1 text-xs">
+              <ul className="flex flex-row flex-wrap justify-center gap-x-2 gap-y-0 md:flex-col md:space-y-1 text-xs">
                 <li>
                   <a href="#privacy" className="hover:text-primary transition-colors block py-0.5">
                     Privacy Policy
@@ -94,30 +94,26 @@ export function Footer() {
   const isDark = resolvedTheme === 'dark';
   return (
     <footer
-      className={`w-full border-t py-4 ${
+      className={`w-full border-t py-2 text-xs ${
         isDark
           ? 'bg-white text-gray-900 border-gray-200'
           : 'bg-gray-900 text-gray-100 border-gray-700'
       }`}
     >
-      <div className="max-w-5xl mx-auto px-4">
+      <div className="max-w-5xl mx-auto px-2">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 text-center md:text-left">
           {/* About Section */}
           <div>
             <h3
-              className={`text-xs font-bold mb-2 tracking-wide uppercase ${
-                isDark ? 'text-gray-700' : 'text-gray-300'
-              }`}
+              className={`text-xs font-bold mb-1 tracking-wide uppercase ${isDark ? 'text-gray-700' : 'text-gray-300'}`}
             >
               About
             </h3>
-            <ul className="space-y-1 text-xs">
+            <ul className="flex flex-row flex-wrap justify-center gap-x-2 gap-y-0 md:flex-col md:space-y-1 text-xs">
               <li>
                 <a
                   href="#about"
-                  className={`hover:text-blue-600 transition-colors block py-0.5 ${
-                    isDark ? 'text-gray-900' : 'text-gray-100'
-                  }`}
+                  className={`hover:text-blue-600 transition-colors block py-0.5 ${isDark ? 'text-gray-900' : 'text-gray-100'}`}
                 >
                   About Us
                 </a>
@@ -125,9 +121,7 @@ export function Footer() {
               <li>
                 <a
                   href="#news"
-                  className={`hover:text-blue-600 transition-colors block py-0.5 ${
-                    isDark ? 'text-gray-900' : 'text-gray-100'
-                  }`}
+                  className={`hover:text-blue-600 transition-colors block py-0.5 ${isDark ? 'text-gray-900' : 'text-gray-100'}`}
                 >
                   News
                 </a>
@@ -138,19 +132,15 @@ export function Footer() {
           {/* Help Section */}
           <div>
             <h3
-              className={`text-xs font-bold mb-2 tracking-wide uppercase ${
-                isDark ? 'text-gray-700' : 'text-gray-300'
-              }`}
+              className={`text-xs font-bold mb-1 tracking-wide uppercase ${isDark ? 'text-gray-700' : 'text-gray-300'}`}
             >
               Help
             </h3>
-            <ul className="space-y-1 text-xs">
+            <ul className="flex flex-row flex-wrap justify-center gap-x-2 gap-y-0 md:flex-col md:space-y-1 text-xs">
               <li>
                 <a
                   href="#api"
-                  className={`hover:text-blue-600 transition-colors block py-0.5 ${
-                    isDark ? 'text-gray-900' : 'text-gray-100'
-                  }`}
+                  className={`hover:text-blue-600 transition-colors block py-0.5 ${isDark ? 'text-gray-900' : 'text-gray-100'}`}
                 >
                   API
                 </a>
@@ -158,9 +148,7 @@ export function Footer() {
               <li>
                 <a
                   href="#contact"
-                  className={`hover:text-blue-600 transition-colors block py-0.5 ${
-                    isDark ? 'text-gray-900' : 'text-gray-100'
-                  }`}
+                  className={`hover:text-blue-600 transition-colors block py-0.5 ${isDark ? 'text-gray-900' : 'text-gray-100'}`}
                 >
                   Contact Us
                 </a>
@@ -171,19 +159,15 @@ export function Footer() {
           {/* Social Links */}
           <div>
             <h3
-              className={`text-xs font-bold mb-2 tracking-wide uppercase ${
-                isDark ? 'text-gray-700' : 'text-gray-300'
-              }`}
+              className={`text-xs font-bold mb-1 tracking-wide uppercase ${isDark ? 'text-gray-700' : 'text-gray-300'}`}
             >
               Follow Us
             </h3>
-            <ul className="space-y-1 text-xs">
+            <ul className="flex flex-row flex-wrap justify-center gap-x-2 gap-y-0 md:flex-col md:space-y-1 text-xs">
               <li>
                 <a
                   href="#twitter"
-                  className={`hover:text-blue-600 transition-colors block py-0.5 ${
-                    isDark ? 'text-gray-900' : 'text-gray-100'
-                  }`}
+                  className={`hover:text-blue-600 transition-colors block py-0.5 ${isDark ? 'text-gray-900' : 'text-gray-100'}`}
                 >
                   Twitter
                 </a>
@@ -191,9 +175,7 @@ export function Footer() {
               <li>
                 <a
                   href="#github"
-                  className={`hover:text-blue-600 transition-colors block py-0.5 ${
-                    isDark ? 'text-gray-900' : 'text-gray-100'
-                  }`}
+                  className={`hover:text-blue-600 transition-colors block py-0.5 ${isDark ? 'text-gray-900' : 'text-gray-100'}`}
                 >
                   GitHub
                 </a>
@@ -204,19 +186,15 @@ export function Footer() {
           {/* Legal */}
           <div>
             <h3
-              className={`text-xs font-bold mb-2 tracking-wide uppercase ${
-                isDark ? 'text-gray-700' : 'text-gray-300'
-              }`}
+              className={`text-xs font-bold mb-1 tracking-wide uppercase ${isDark ? 'text-gray-700' : 'text-gray-300'}`}
             >
               Legal
             </h3>
-            <ul className="space-y-1 text-xs">
+            <ul className="flex flex-row flex-wrap justify-center gap-x-2 gap-y-0 md:flex-col md:space-y-1 text-xs">
               <li>
                 <a
                   href="#privacy"
-                  className={`hover:text-blue-600 transition-colors block py-0.5 ${
-                    isDark ? 'text-gray-900' : 'text-gray-100'
-                  }`}
+                  className={`hover:text-blue-600 transition-colors block py-0.5 ${isDark ? 'text-gray-900' : 'text-gray-100'}`}
                 >
                   Privacy Policy
                 </a>
@@ -224,9 +202,7 @@ export function Footer() {
               <li>
                 <a
                   href="#terms"
-                  className={`hover:text-blue-600 transition-colors block py-0.5 ${
-                    isDark ? 'text-gray-900' : 'text-gray-100'
-                  }`}
+                  className={`hover:text-blue-600 transition-colors block py-0.5 ${isDark ? 'text-gray-900' : 'text-gray-100'}`}
                 >
                   Terms of Service
                 </a>

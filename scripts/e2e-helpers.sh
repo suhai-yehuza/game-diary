@@ -116,6 +116,35 @@ start_e2e_server() {
     return 1
 }
 
+start_integration_server() {
+  echo "🚀 Starting integration test server..."
+  # Use the same logic as start_e2e_server for now
+  DEFAULT_PORT=3000
+  if lsof -i :$DEFAULT_PORT | grep LISTEN; then
+    echo "✅ Server already running on port $DEFAULT_PORT"
+    return 0
+  fi
+  echo "🚀 Starting development server for integration tests..."
+  pnpm dev -p $DEFAULT_PORT > /tmp/integration-server.log 2>&1 &
+  local server_pid=$!
+  echo "⏳ Waiting for integration server to start..."
+  local max_attempts=20
+  local attempt=1
+  while ! lsof -i :$DEFAULT_PORT | grep LISTEN; do
+    if [ $attempt -ge $max_attempts ]; then
+      echo "❌ Failed to start integration server after $max_attempts attempts"
+      echo "Server logs:"
+      cat /tmp/integration-server.log
+      return 1
+    fi
+    sleep 1
+    attempt=$((attempt + 1))
+  done
+  echo "✅ Integration server started successfully (PID: $server_pid)"
+  # Additional wait to ensure server is fully ready
+  sleep 2
+}
+
 # Wait for server to be ready
 wait_for_e2e_server() {
     echo "⏳ Waiting for server to be ready..."

@@ -42,8 +42,8 @@ function AdminNavE2E({ isActive }: { isActive: (path: string) => boolean }) {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <button
-          className={`flex items-center space-x-1 text-base lg:text-sm transition-colors hover:text-blue-600 ${
-            isAdminActive ? 'text-blue-600 border border-blue-600 rounded px-2 py-1' : ''
+          className={`flex items-center space-x-1 text-base lg:text-sm transition-colors whitespace-nowrap ${
+            isAdminActive ? 'text-blue-600 font-semibold' : 'hover:text-blue-600'
           }`}
         >
           <span>Admin</span>
@@ -78,8 +78,8 @@ function AdminNavContent({ isActive }: { isActive: (path: string) => boolean }) 
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <button
-          className={`flex items-center space-x-1 text-base lg:text-sm transition-colors hover:text-blue-600 ${
-            isAdminActive ? 'text-blue-600 border border-blue-600 rounded px-2 py-1' : ''
+          className={`flex items-center space-x-1 text-base lg:text-sm transition-colors whitespace-nowrap ${
+            isAdminActive ? 'text-blue-600 font-semibold' : 'hover:text-blue-600'
           }`}
         >
           <span>Admin</span>
@@ -136,7 +136,33 @@ function AdminNavWithAuthSafe({
 
     return isStacked ? (
       <div className="mt-12 w-full flex justify-center">
-        <AdminNav isActive={isActive} />
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              className={`w-[90vw] sm:w-[70vw] md:w-[400px] max-w-xs h-10 flex items-center justify-center text-sm whitespace-nowrap rounded font-semibold transition-all duration-150 bg-blue-500 text-white shadow-sm mb-3 mx-auto hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400`}
+            >
+              <span>Admin</span>
+              <ChevronDown className="h-4 w-4 ml-2" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-48">
+            <DropdownMenuItem asChild>
+              <Link href="/protected/admin/database" className="cursor-pointer">
+                Database Management
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link href="/protected/admin/audit-logs" className="cursor-pointer">
+                Audit Logs
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link href="/protected/admin/experimental" className="cursor-pointer">
+                Experimental
+              </Link>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     ) : (
       <AdminNav isActive={isActive} />

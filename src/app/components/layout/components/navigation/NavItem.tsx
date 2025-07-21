@@ -30,11 +30,11 @@ export function NavItem({
   return (
     <Link
       href={href}
-      className={`block py-2 lg:py-1.5 text-base lg:text-sm transition-colors whitespace-nowrap flex items-center w-full lg:w-auto h-full
-        ${isActive ? 'text-blue-600 font-semibold' : 'hover:text-blue-600'}
-        ${className}
-        ${isStacked ? `w-1/2 mx-auto my-2 rounded-lg text-white font-bold text-lg text-center shadow transition-colors px-8 py-2 ${colorClass}` : ''}
-      `}
+      className={
+        isStacked
+          ? `w-[90vw] sm:w-[70vw] md:w-[400px] max-w-xs h-10 flex items-center justify-center text-sm whitespace-nowrap rounded font-medium transition-all duration-150 bg-opacity-90 shadow-sm mb-3 mx-auto ${isActive ? 'text-blue-600 font-semibold' : 'hover:text-blue-600'} ${colorClass} ${className}`
+          : `block py-2 text-base transition-colors whitespace-nowrap flex items-center w-full h-full ${isActive ? 'text-blue-600 font-semibold' : 'hover:text-blue-600'} ${className}`
+      }
       onClick={handleClick}
       {...props}
     >

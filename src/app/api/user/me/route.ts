@@ -3,6 +3,24 @@ import { NextResponse } from 'next/server';
 
 export async function GET() {
   try {
+    // E2E Auth Bypass: If running in E2E or Playwright test mode, return a mock user
+    if (
+      process.env.PLAYWRIGHT_TEST ||
+      process.env.E2E_AUTH_BYPASS ||
+      process.env.NODE_ENV === 'test'
+    ) {
+      console.log('[E2E AUTH BYPASS] Returning mock user for /api/user/me');
+      return NextResponse.json({
+        id: 'test-user-id',
+        email_address: 'e2e-test@example.com',
+        phone_number: '+1-555-000-0000',
+        username: 'e2euser',
+        first_name: 'E2E',
+        last_name: 'Test',
+      });
+    }
+
+    console.log('[CLERK AUTH] Using real Clerk auth for /api/user/me');
     const { userId } = await auth();
 
     if (!userId) {

@@ -28,79 +28,63 @@ export function NavigationLinks({
     if (isMobile && closeMenu) closeMenu();
   };
 
+  const navItems = [
+    {
+      href: '/',
+      label: 'Home',
+      colorClass: 'bg-green-500 hover:bg-green-600',
+    },
+    {
+      href: '/sports/nba',
+      label: 'NBA',
+      colorClass: 'bg-blue-500 hover:bg-blue-600',
+    },
+    {
+      href: '/sports/nfl',
+      label: 'NFL',
+      colorClass: 'bg-red-500 hover:bg-red-600',
+    },
+    {
+      href: '/sports/mlb',
+      label: 'MLB',
+      colorClass: 'bg-yellow-400 hover:bg-yellow-500 text-black',
+    },
+    {
+      href: '/sports/nhl',
+      label: 'NHL',
+      colorClass: 'bg-cyan-500 hover:bg-cyan-600',
+    },
+    {
+      href: '/sports/mls',
+      label: 'MLS',
+      colorClass: 'bg-purple-500 hover:bg-purple-600',
+    },
+    {
+      href: '/sports/all-sports',
+      label: 'All Sports',
+      colorClass: 'bg-pink-500 hover:bg-pink-600',
+    },
+  ];
+
+  const navClass = isStacked
+    ? 'flex flex-col gap-3 h-full text-xs sm:text-sm font-medium m-0 p-0'
+    : 'flex flex-col lg:flex-row items-start lg:items-center h-full lg:space-x-6 lg:space-y-0 text-xs sm:text-sm font-medium m-0 p-0';
+
   return (
-    <nav className="flex flex-col lg:flex-row items-start lg:items-center h-full lg:space-x-6 lg:space-y-0 text-xs sm:text-sm font-medium m-0 p-0">
-      {/* Dashboard + Sports */}
-      <NavItem
-        href="/"
-        isActive={isActive('/')}
-        onClick={handleNavClick}
-        isStacked={isStacked}
-        colorClass="bg-green-500 hover:bg-green-600"
-        closeMenu={closeMenu}
-      >
-        Home
-      </NavItem>
-      <NavItem
-        href="/sports/nba"
-        isActive={isActive('/sports/nba')}
-        onClick={handleNavClick}
-        isStacked={isStacked}
-        colorClass="bg-blue-500 hover:bg-blue-600"
-        closeMenu={closeMenu}
-      >
-        NBA
-      </NavItem>
-      <NavItem
-        href="/sports/nfl"
-        isActive={isActive('/sports/nfl')}
-        onClick={handleNavClick}
-        isStacked={isStacked}
-        colorClass="bg-red-500 hover:bg-red-600"
-        closeMenu={closeMenu}
-      >
-        NFL
-      </NavItem>
-      <NavItem
-        href="/sports/mlb"
-        isActive={isActive('/sports/mlb')}
-        onClick={handleNavClick}
-        isStacked={isStacked}
-        colorClass="bg-yellow-400 hover:bg-yellow-500 text-black"
-        closeMenu={closeMenu}
-      >
-        MLB
-      </NavItem>
-      <NavItem
-        href="/sports/nhl"
-        isActive={isActive('/sports/nhl')}
-        onClick={handleNavClick}
-        isStacked={isStacked}
-        colorClass="bg-cyan-500 hover:bg-cyan-600"
-        closeMenu={closeMenu}
-      >
-        NHL
-      </NavItem>
-      <NavItem
-        href="/sports/mls"
-        isActive={isActive('/sports/mls')}
-        onClick={handleNavClick}
-        isStacked={isStacked}
-        colorClass="bg-purple-500 hover:bg-purple-600"
-        closeMenu={closeMenu}
-      >
-        MLS
-      </NavItem>
-      <NavItem
-        href="/sports/all-sports"
-        isActive={isActive('/sports/all-sports')}
-        onClick={handleNavClick}
-        isStacked={isStacked}
-        colorClass="bg-pink-500 hover:bg-pink-600"
-        closeMenu={closeMenu}
-      >
-        All Sports
-      </NavItem>
+    <nav className={navClass}>
+      {navItems.map(({ href, label, colorClass }) => (
+        <NavItem
+          key={href}
+          href={href}
+          isActive={isActive(href)}
+          onClick={handleNavClick}
+          isStacked={isStacked}
+          colorClass={colorClass}
+          closeMenu={closeMenu}
+        >
+          {label}
+        </NavItem>
+      ))}
       {/* Divider */}
       <div className="hidden lg:block h-6 w-px bg-gray-200 dark:bg-gray-700 mx-3" />
       {/* User Dashboard + Admin */}
@@ -114,6 +98,8 @@ export function NavigationLinks({
       >
         Dashboard
       </NavItem>
+      {/* Add spacing between Dashboard and Admin */}
+      <div className="my-1 lg:my-0 lg:mx-2" />
       {/* Only show Admin nav link for authenticated users with admin role */}
       <AdminNavWithAuth isActive={isActive} isStacked={isStacked} />
     </nav>
