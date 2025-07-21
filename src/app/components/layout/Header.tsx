@@ -44,6 +44,7 @@ export function Header() {
       {/* Live Games Banner */}
       <LiveGamesBanner />
 
+      {/* data-testid is required for unit tests in layout.test.tsx */}
       <header
         data-testid="header"
         className="w-full border-b-2 border-neutral-200 dark:border-neutral-600 shadow-md dark:shadow-lg bg-background"

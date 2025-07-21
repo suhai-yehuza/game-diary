@@ -13,7 +13,7 @@ vi.mock('next/font/google', () => ({
 
 vi.mock('@/styles/globals.css', () => ({}));
 
-vi.mock('@/app/components/layout/header', () => ({
+vi.mock('@/app/components/layout/Header', () => ({
   Header: () => <header data-testid="header">Header Component</header>,
 }));
 
