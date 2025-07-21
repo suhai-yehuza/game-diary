@@ -337,10 +337,17 @@ describe('Header - additional coverage', () => {
   });
 
   it('shows auth placeholder if Clerk is not configured', async () => {
-    // Store original value
+    // Store original values
     const originalKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
-    // Delete the environment variable
+    const originalE2E = process.env.E2E_MOCK_MODE;
+    const originalGithub = process.env.GITHUB_ACTIONS;
+    const originalPlaywright = process.env.PLAYWRIGHT_CI;
+
+    // Delete the environment variables to simulate no Clerk configuration
     delete process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
+    delete process.env.E2E_MOCK_MODE;
+    delete process.env.GITHUB_ACTIONS;
+    delete process.env.PLAYWRIGHT_CI;
 
     render(
       <MenuProvider>
@@ -366,9 +373,18 @@ describe('Header - additional coverage', () => {
       'justify-center'
     );
 
-    // Restore original value
+    // Restore original values
     if (originalKey) {
       process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY = originalKey;
+    }
+    if (originalE2E) {
+      process.env.E2E_MOCK_MODE = originalE2E;
+    }
+    if (originalGithub) {
+      process.env.GITHUB_ACTIONS = originalGithub;
+    }
+    if (originalPlaywright) {
+      process.env.PLAYWRIGHT_CI = originalPlaywright;
     }
   });
 

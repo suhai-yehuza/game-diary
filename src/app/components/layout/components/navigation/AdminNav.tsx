@@ -13,6 +13,7 @@ import {
 
 // Hook to check if user is admin
 function useIsAdmin() {
+  // Check if we're in a Clerk context before using the hook
   const { isLoaded, isSignedIn, user } = useUser();
 
   if (!isLoaded || !isSignedIn || !user) {
@@ -118,6 +119,34 @@ export function AdminNav({ isActive }: { isActive: (path: string) => boolean }) 
   return <AdminNavContent isActive={isActive} />;
 }
 
+// Safe wrapper for AdminNav that handles Clerk context
+function AdminNavWithAuthSafe({
+  isActive,
+  isStacked = false,
+}: {
+  isActive: (path: string) => boolean;
+  isStacked?: boolean;
+}) {
+  try {
+    const isAdmin = useIsAdmin();
+
+    if (!isAdmin) {
+      return null;
+    }
+
+    return isStacked ? (
+      <div className="mt-12 w-full flex justify-center">
+        <AdminNav isActive={isActive} />
+      </div>
+    ) : (
+      <AdminNav isActive={isActive} />
+    );
+  } catch {
+    // If Clerk is not available, don't render the admin nav
+    return null;
+  }
+}
+
 export function AdminNavWithAuth({
   isActive,
   isStacked = false,
@@ -125,17 +154,5 @@ export function AdminNavWithAuth({
   isActive: (path: string) => boolean;
   isStacked?: boolean;
 }) {
-  const isAdmin = useIsAdmin();
-
-  if (!isAdmin) {
-    return null;
-  }
-
-  return isStacked ? (
-    <div className="mt-12 w-full flex justify-center">
-      <AdminNav isActive={isActive} />
-    </div>
-  ) : (
-    <AdminNav isActive={isActive} />
-  );
+  return <AdminNavWithAuthSafe isActive={isActive} isStacked={isStacked} />;
 }

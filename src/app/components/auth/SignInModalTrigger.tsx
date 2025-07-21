@@ -108,7 +108,7 @@ export default function SignInModalTrigger({ autoTrigger = false }: ISignInModal
 
   return (
     <SignInButton mode="modal">
-      <button ref={buttonRef} style={{ display: 'none' }} aria-hidden="true" />
+      <span ref={buttonRef} style={{ display: 'none' }} aria-hidden="true" />
     </SignInButton>
   );
 }
