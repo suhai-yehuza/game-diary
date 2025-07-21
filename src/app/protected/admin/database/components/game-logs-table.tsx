@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 
+import { API_CONFIG } from '@/lib/config/app.config';
 import {
   Badge,
   PaginationInfo,
@@ -11,7 +12,6 @@ import {
   ErrorBoundary,
   SortableHeader,
 } from '@src/app/protected/admin/database/components/ui';
-import { API_CONFIG } from '@/lib/config/app.config';
 import { SEARCH_GAME_LOGS_ADMIN } from '@src/lib/graphql/queries';
 import type {
   IGameLogSummary,

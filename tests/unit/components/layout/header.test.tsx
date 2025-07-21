@@ -116,14 +116,46 @@ describe('Header', () => {
       </MenuProvider>
     );
 
-    // Check for main navigation links
-    expect(screen.getByText('Dashboard')).toBeInTheDocument();
-    expect(screen.getByText('NBA')).toBeInTheDocument();
-    expect(screen.getByText('NFL')).toBeInTheDocument();
-    expect(screen.getByText('MLB')).toBeInTheDocument();
-    expect(screen.getByText('NHL')).toBeInTheDocument();
-    expect(screen.getByText('MLS')).toBeInTheDocument();
-    expect(screen.getByText('All Sports')).toBeInTheDocument();
+    // Check for main navigation links by finding them within navigation context
+    // Use getAllByText and filter to find the navigation link specifically
+    const nbaLinks = screen.getAllByText('NBA');
+    const nbaNavLink = nbaLinks.find(
+      link => link.closest('a')?.getAttribute('href') === '/sports/nba'
+    );
+    expect(nbaNavLink).toBeInTheDocument();
+
+    const nflLinks = screen.getAllByText('NFL');
+    const nflNavLink = nflLinks.find(
+      link => link.closest('a')?.getAttribute('href') === '/sports/nfl'
+    );
+    expect(nflNavLink).toBeInTheDocument();
+
+    const mlbLinks = screen.getAllByText('MLB');
+    const mlbNavLink = mlbLinks.find(
+      link => link.closest('a')?.getAttribute('href') === '/sports/mlb'
+    );
+    expect(mlbNavLink).toBeInTheDocument();
+
+    const nhlLinks = screen.getAllByText('NHL');
+    const nhlNavLink = nhlLinks.find(
+      link => link.closest('a')?.getAttribute('href') === '/sports/nhl'
+    );
+    expect(nhlNavLink).toBeInTheDocument();
+
+    const mlsLinks = screen.getAllByText('MLS');
+    const mlsNavLink = mlsLinks.find(
+      link => link.closest('a')?.getAttribute('href') === '/sports/mls'
+    );
+    expect(mlsNavLink).toBeInTheDocument();
+
+    const allSportsLinks = screen.getAllByText('All Sports');
+    const allSportsNavLink = allSportsLinks.find(
+      link => link.closest('a')?.getAttribute('href') === '/sports/all-sports'
+    );
+    expect(allSportsNavLink).toBeInTheDocument();
+
+    // Check for Dashboard/Home link
+    expect(screen.getByText('Home')).toBeInTheDocument();
   });
 
   it('renders auth controls for signed out users', () => {

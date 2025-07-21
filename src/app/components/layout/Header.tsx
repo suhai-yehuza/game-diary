@@ -15,10 +15,7 @@ import { useMenuContext } from '@/app/components/providers';
 
 export function Header() {
   const [isSearchVisible, setIsSearchVisible] = useState(false);
-  const {
-    isMenuExpanded,
-    setIsMenuExpanded,
-  }: { isMenuExpanded: boolean; setIsMenuExpanded: (v: boolean) => void } = useMenuContext();
+  const { isMenuExpanded, setIsMenuExpanded } = useMenuContext();
   const pathname = usePathname() || '/';
   const isMobile = useMobileDetection(1024);
 

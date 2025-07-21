@@ -3,11 +3,5 @@ export { ErrorDisplay } from '@src/app/protected/admin/database/components/ui/er
 export { PaginationControls } from '@src/app/protected/admin/database/components/ui/pagination-controls';
 export { TableSearch } from '@src/app/protected/admin/database/components/ui/table-search';
 export { ErrorBoundary } from '@src/app/protected/admin/database/components/ui/error-boundary';
-export { useErrorHandler } from '@src/app/protected/admin/database/components/ui/use-error-handler';
 export { Badge } from '@src/app/protected/admin/database/components/ui/badge';
-export { Button } from '@src/app/protected/admin/database/components/ui/button';
-export {
-  SortableHeader,
-  type SortDirection,
-} from '@src/app/protected/admin/database/components/ui/sortable-header';
-export { useSorting } from '@src/app/protected/admin/database/components/ui/use-sorting';
+export { SortableHeader } from '@src/app/protected/admin/database/components/ui/sortable-header';

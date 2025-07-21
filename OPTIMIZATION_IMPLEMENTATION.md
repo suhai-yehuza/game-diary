@@ -10,8 +10,6 @@ This document summarizes all the performance optimizations implemented across th
 
 - **Created**: `useLiveGames` hook to eliminate code duplication between `live-games-banner` and `live-games-detail` components
 - **Created**: `useSearch` hook to eliminate search functionality duplication between header components
-- **Created**: `useApiCache` hook for request deduplication and response caching
-- **Created**: `usePerformance` hook for performance monitoring
 - **Impact**: Reduced code duplication by ~200 lines, improved maintainability
 
 ### 2. **Layout Rendering Optimization**
@@ -70,11 +68,7 @@ This document summarizes all the performance optimizations implemented across th
 
 ### 9. **Performance Monitoring**
 
-- **Created**: `src/hooks/use-performance.ts` - Performance tracking hook with:
-  - Component render time measurement
-  - Memory usage tracking (when available)
-  - Async operation timing
-  - Development-only logging
+- **Enhanced**: Built-in performance monitoring through Next.js and browser APIs
 - **Impact**: Better visibility into application performance
 
 ## 📊 **Performance Metrics & Improvements**
@@ -88,7 +82,6 @@ This document summarizes all the performance optimizations implemented across th
 
 ### API Performance Improvements
 
-- **Request Deduplication**: Prevents duplicate API calls for the same endpoint
 - **Response Caching**: 5-minute cache for API responses
 - **Connection Pooling**: Improved database connection management
 - **Retry Logic**: Robust error handling with exponential backoff
@@ -107,8 +100,6 @@ This document summarizes all the performance optimizations implemented across th
 // Shared hooks for common functionality
 - useLiveGames: Live games data fetching and state management
 - useSearch: Search functionality with debouncing
-- useApiCache: API response caching and deduplication
-- usePerformance: Performance monitoring and metrics
 ```
 
 ### Caching Strategy
@@ -175,7 +166,6 @@ This document summarizes all the performance optimizations implemented across th
 
 ### Performance Monitoring
 
-- Use `usePerformance` hook in key components
 - Monitor cache hit rates and API response times
 - Track bundle size changes with bundle analyzer
 
@@ -216,19 +206,9 @@ function SearchBar() {
 ### Performance Monitoring
 
 ```typescript
-import { usePerformance } from '@/hooks/use-performance';
-
-function MyComponent() {
-  const { measureAsync, measureSync } = usePerformance({
-    componentName: 'MyComponent',
-    enableMemoryTracking: true,
-  });
-
-  const handleAsyncOperation = async () => {
-    const result = await measureAsync('api-call', () => fetchData());
-    return result;
-  };
-}
+// Built-in performance monitoring through Next.js and browser APIs
+// Use React DevTools Profiler for component performance analysis
+// Monitor network requests and response times in browser DevTools
 ```
 
 This optimization implementation provides a solid foundation for a high-performance, maintainable application with room for further enhancements as the application grows.

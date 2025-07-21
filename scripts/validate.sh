@@ -351,9 +351,9 @@ run_circular_check() {
     pnpm run check:circular
 }
 
-run_unused_exports_check() {
+run_dead_code_check() {
     log_info "Checking for unused exports..."
-    pnpm run check:unused:exports
+    pnpm run check:dead:code
 }
 
 run_size_check() {
@@ -445,6 +445,7 @@ run_basic_validation() {
 
     run_circular_check
     run_type_validation
+    run_dead_code_check
     run_db_triggers_validation
 
     # Environment validation (with CI handling)
@@ -483,7 +484,7 @@ run_full_validation() {
 
     run_build
     run_code_quality_validation
-    run_unused_exports_check
+    run_dead_code_check
     run_unit_test_strict_validation
     run_sanity_e2e_test_validation
 
@@ -572,7 +573,7 @@ run_size_check_standalone() {
 # Function to check unused exports (standalone)
 run_unused_check_standalone() {
     log "Checking unused exports..."
-    run_unused_exports_check
+    run_dead_code_check
     log_success "Unused exports check completed"
 }
 

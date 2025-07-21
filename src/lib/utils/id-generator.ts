@@ -166,6 +166,3 @@ export function generateShortId(length = 12): string {
 export function generateSecureId(): string {
   return generateCUID2();
 }
-
-// Export default function for backward compatibility
-export default generateId;

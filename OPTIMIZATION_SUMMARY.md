@@ -91,7 +91,7 @@ db:copy-custom-migrations, db:generate:safe, db:migrate, db:migrate:dry-run, db:
 codegen, codegen:watch
 
 =====Analysis & Performance=====
-analyze, analyze:bundle, check:circular, check:size, check:size:ci, check:unused:exports, perf:build, perf:measure, perf:report, perf:start
+analyze, analyze:bundle, check:circular, check:size, check:size:ci, check:dead:code, perf:build, perf:measure, perf:report, perf:start
 
 =====Dependencies=====
 deps:audit, deps:check, deps:clean, deps:fix, deps:interactive, deps:manage, deps:update

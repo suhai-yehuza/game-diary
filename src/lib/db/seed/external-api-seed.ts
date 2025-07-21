@@ -4,13 +4,13 @@ import { eq } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/neon-http';
 
 import { getRapidApiConfig } from '@/lib/config/app.config';
-import * as schema from '@src/lib/db/schema';
 import type { Database } from '@/lib/types/db.types';
 import type {
   ITeamsApiResponse,
   IPlayersApiResponse,
   IGamesApiResponse,
 } from '@/lib/types/externalApi.types';
+import * as schema from '@src/lib/db/schema';
 import { createRapidAPIClient } from '@src/lib/utils/api-client';
 import { formatDuration } from '@src/lib/utils/format-duration';
 

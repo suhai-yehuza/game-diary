@@ -1,5 +1,3 @@
-import { rateLimit } from 'express-rate-limit';
-
 // Rate limit configuration constants
 const TIME_CONSTANTS = {
   SECONDS_PER_MINUTE: 60,
@@ -80,11 +78,4 @@ export const RATE_LIMIT_CONFIG_FULL = {
     standardHeaders: true,
     legacyHeaders: false,
   },
-};
-
-// Create rate limiters
-export const rateLimiters = {
-  api: rateLimit(RATE_LIMIT_CONFIG_FULL.api),
-  graphql: rateLimit(RATE_LIMIT_CONFIG_FULL.graphql),
-  auth: rateLimit(RATE_LIMIT_CONFIG_FULL.auth),
 };

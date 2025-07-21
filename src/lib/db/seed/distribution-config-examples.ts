@@ -5,16 +5,16 @@
  * for different seeding scenarios.
  */
 
+import type {
+  IStatisticalSeedingConfig,
+  DistributionConfigPreset,
+} from '@/lib/types/seeding.types';
 import {
   getDistributionConfig,
   createCustomDistributionConfig,
   mergeDistributionConfig,
   DEFAULT_DISTRIBUTION_CONFIG,
 } from '@src/lib/db/seed/statistical-distributions';
-import type {
-  IStatisticalSeedingConfig,
-  DistributionConfigPreset,
-} from '@/lib/types/seeding.types';
 
 // ============================================================================
 // EXAMPLE CONFIGURATIONS
@@ -474,19 +474,3 @@ export function compareConfigurations() {
 
   return comparison;
 }
-
-export default {
-  DEVELOPMENT_CONFIG,
-  TESTING_CONFIG,
-  PERFORMANCE_CONFIG,
-  DEMO_CONFIG,
-  CUSTOM_CONFIG,
-  PARETO_DEMO_CONFIG,
-  getConfigByEnvironment,
-  getConfigByPreset,
-  createConfigWithOverrides,
-  validateConfigForUseCase,
-  exampleUsage,
-  exampleSeedingWithConfig,
-  compareConfigurations,
-};

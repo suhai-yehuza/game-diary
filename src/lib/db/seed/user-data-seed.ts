@@ -3,6 +3,16 @@ import { neon } from '@neondatabase/serverless';
 import type { Table } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/neon-http';
 
+import type { Database } from '@/lib/types/db.types';
+import type {
+  IStatisticalSeedingConfig,
+  ISeedUser,
+  ISeedFriendship,
+  ISeedGameLog,
+  ISeedComment,
+  ISeedReaction,
+  ISeedingConfig,
+} from '@/lib/types/seeding.types';
 import { encryptField, serializeEncryptedField } from '@/lib/utils/encryption';
 import {
   users,
@@ -35,16 +45,6 @@ import {
   REACTION_EMOJIS,
   TARGET_TYPES,
 } from '@src/lib/types';
-import type { Database } from '@/lib/types/db.types';
-import type {
-  IStatisticalSeedingConfig,
-  ISeedUser,
-  ISeedFriendship,
-  ISeedGameLog,
-  ISeedComment,
-  ISeedReaction,
-  ISeedingConfig,
-} from '@/lib/types/seeding.types';
 import { generateUUIDv7 } from '@src/lib/utils/id-generator';
 
 // Configuration for data generation

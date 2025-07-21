@@ -87,7 +87,7 @@ pnpm lint                    # ESLint
 pnpm typecheck              # TypeScript
 pnpm format:check           # Prettier
 pnpm check:circular         # Circular dependencies
-pnpm check:unused:exports   # Unused exports
+pnpm check:dead:code   # Dead code detection (ts-prune + ts-unused-exports)
 pnpm check:size             # Bundle size
 
 # Testing

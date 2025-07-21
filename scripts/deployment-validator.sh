@@ -164,7 +164,7 @@ run_quality_gate() {
         pnpm lint && pnpm typecheck
 
         log_info "Checking unused exports..."
-        pnpm check:unused:exports
+        pnpm check:dead:code
 
         log_info "Running strict tests..."
         # Skip unit tests in CI mode since they run in separate job

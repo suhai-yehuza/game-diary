@@ -1,6 +1,5 @@
 import { z } from 'zod';
 
-import { APIError } from '@src/lib/errors/apiError';
 import type {
   IRangeConfig,
   IBatchSizeConfig,
@@ -33,18 +32,6 @@ const envSchema = z.object({
     .string()
     .url('NEXT_PUBLIC_RAPID_API_BASE_URL must be a valid URL'),
 });
-
-export function validateAPIKey(key: string | undefined): string {
-  if (!key) {
-    throw new APIError(
-      API_CONFIG.errors.MISSING_API_KEY,
-      UNAUTHORIZED_STATUS,
-      'MISSING_API_KEY',
-      'MISSING_API_KEY'
-    );
-  }
-  return key;
-}
 
 // Distribution functions
 const distributions: IDistributionFunctions = {

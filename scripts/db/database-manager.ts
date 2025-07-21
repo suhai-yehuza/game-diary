@@ -4,30 +4,10 @@
  * Consolidates all database operations into a single, well-organized module.
  */
 
-import dotenvFlow from 'dotenv-flow';
-import dotenv from 'dotenv';
-import fs from 'fs';
-// Load environment variables safely - only .env.local for dev/test
-const isDevOrTest =
-  process.env.NODE_ENV === 'development' ||
-  process.env.NODE_ENV === 'test' ||
-  !process.env.NODE_ENV;
-if (isDevOrTest) {
-  // For development/test, load .env.local as override synchronously
-  dotenvFlow.config();
-} else {
-  // For production/staging, only load environment-specific files synchronously
-  const env = process.env.NODE_ENV || 'development';
-  let envFile = '.env';
-  if (String(env) === 'staging' && fs.existsSync('.env.staging')) {
-    envFile = '.env.staging';
-  } else if (String(env) === 'production' && fs.existsSync('.env.production')) {
-    envFile = '.env.production';
-  } else if (String(env) === 'development' && fs.existsSync('.env.development')) {
-    envFile = '.env.development';
-  }
-  dotenv.config({ path: envFile });
-}
+import { loadEnvironmentVariables } from '@/lib/utils/env-loader';
+
+// Load environment variables safely
+loadEnvironmentVariables();
 
 import { createHash } from 'crypto';
 import { readFileSync, readdirSync, existsSync, mkdirSync, copyFileSync } from 'fs';

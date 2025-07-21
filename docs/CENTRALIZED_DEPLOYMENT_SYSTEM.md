@@ -350,7 +350,7 @@ pnpm run lint:fix && pnpm run format
 pnpm run validate:types && pnpm run fix:types
 pnpm run typecheck
 pnpm run check:circular
-pnpm run check:unused:exports
+pnpm run check:dead:code
 NODE_ENV=production pnpm run build
 pnpm run check:size
 ./scripts/pre-push-coverage.sh

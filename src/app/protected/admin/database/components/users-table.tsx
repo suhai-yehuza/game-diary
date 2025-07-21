@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import React, { useEffect, useState } from 'react';
 
+import { API_CONFIG } from '@/lib/config/app.config';
 import {
   PaginationInfo,
   ErrorDisplay,
@@ -11,7 +12,6 @@ import {
   ErrorBoundary,
   SortableHeader,
 } from '@src/app/protected/admin/database/components/ui';
-import { API_CONFIG } from '@/lib/config/app.config';
 import { SEARCH_USERS_ADMIN } from '@src/lib/graphql/queries';
 import type {
   IUserSummary,

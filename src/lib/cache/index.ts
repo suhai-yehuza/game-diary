@@ -130,6 +130,3 @@ export function testRedisConnection(): boolean {
 export function getCache(): CacheManager {
   return cacheManager;
 }
-
-// Export cache manager as default
-export default cacheManager;

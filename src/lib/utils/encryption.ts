@@ -1,11 +1,10 @@
 import crypto from 'crypto';
 
-import { config } from 'dotenv-flow';
-
-// Load environment variables
-config();
-
 import type { IEncryptedField } from '@/lib/types/misc.types';
+import { loadEnvironmentVariables } from '@/lib/utils/env-loader';
+
+// Load environment variables safely
+loadEnvironmentVariables();
 
 const algorithm = 'aes-256-gcm';
 

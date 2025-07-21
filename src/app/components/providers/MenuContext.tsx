@@ -17,6 +17,13 @@ export const MenuProvider = ({ children }: { children: React.ReactNode }) => {
 
 export function useMenuContext(): IMenuContextType {
   const ctx = useContext(MenuContext);
-  if (!ctx) throw new Error('useMenuContext must be used within a MenuProvider');
-  return ctx;
+  // Always return a valid IMenuContextType
+  const defaultContext: IMenuContextType = {
+    isMenuExpanded: false,
+    setIsMenuExpanded: () => {
+      // Intentionally empty - fallback when context is not available
+    },
+  };
+
+  return ctx ?? defaultContext;
 }

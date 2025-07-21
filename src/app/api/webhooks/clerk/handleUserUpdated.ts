@@ -2,10 +2,10 @@ import { eq } from 'drizzle-orm';
 
 import { db } from '@/lib/db';
 import { users } from '@/lib/db/schema';
+import type { IClerkUserData } from '@/lib/types/clerk.types';
 import { encryptField, serializeEncryptedField } from '@/lib/utils/encryption';
 import { extractEmail, extractPhoneNumber, validateUserContact } from '@/lib/utils/validation';
 import { webhookLogger } from '@lib/core/logger';
-import type { IClerkUserData } from '@/lib/types/clerk.types';
 
 // Helper function
 const createResponse = (message: string, status: number) => new Response(message, { status });

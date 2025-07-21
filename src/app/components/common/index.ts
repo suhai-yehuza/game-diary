@@ -1,27 +1,12 @@
+// Only export components that are actually used in the application
+
+// Loading components (used in LiveGamesDetail.tsx)
+export { PageLoadingSpinner } from '@/app/components/common/LoadingSpinner';
+
+// Error components (used in LiveGamesDetail.tsx and admin tables)
+export { PageErrorDisplay } from '@/app/components/common/ErrorDisplay';
+
+// Empty state components (used in LiveGamesDetail.tsx)
+export { NoDataEmptyState } from '@/app/components/common/EmptyState';
+
 export { ThemeToggle } from '@/app/components/common/ThemeToggle';
-export { AppSignInButton } from '@/app/components/common/SignInButton';
-export { AppSignUpButton } from '@/app/components/common/SignUpButton';
-export { ClerkErrorBoundary, ClerkWrapper } from '@/app/components/common/ClerkErrorBoundary';
-
-// New shared components
-export {
-  LoadingSpinner,
-  PageLoadingSpinner,
-  CardLoadingSpinner,
-  InlineLoadingSpinner,
-} from '@/app/components/common/LoadingSpinner';
-
-export {
-  ErrorDisplay,
-  PageErrorDisplay,
-  CardErrorDisplay,
-  InlineErrorDisplay,
-} from '@/app/components/common/ErrorDisplay';
-
-export {
-  EmptyState,
-  PageEmptyState,
-  CardEmptyState,
-  NoDataEmptyState,
-  NoResultsEmptyState,
-} from '@/app/components/common/EmptyState';

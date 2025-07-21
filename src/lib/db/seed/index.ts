@@ -3,6 +3,7 @@ import { resolve } from 'path';
 
 import { config } from 'dotenv';
 
+import type { DistributionConfigPreset, ScenarioKey } from '@/lib/types/seeding.types';
 import {
   getConfigByEnvironment,
   getConfigByPreset,
@@ -11,7 +12,6 @@ import { seedExternalApiData } from '@src/lib/db/seed/external-api-seed';
 import { getOptimizationConfig, PerformanceTracker } from '@src/lib/db/seed/optimization-config';
 import { DISTRIBUTION_CONFIG_PRESETS } from '@src/lib/db/seed/statistical-distributions';
 import { seedUserData, clearUserData } from '@src/lib/db/seed/user-data-seed';
-import type { DistributionConfigPreset, ScenarioKey } from '@/lib/types/seeding.types';
 import { formatDuration } from '@src/lib/utils/format-duration';
 
 /**
@@ -578,5 +578,3 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     process.exit(1);
   });
 }
-
-export { main as seedDatabase };

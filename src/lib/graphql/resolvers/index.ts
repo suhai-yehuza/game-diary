@@ -58,22 +58,5 @@ export const schema = makeExecutableSchema({
   resolvers,
 });
 
-// Export individual resolvers for testing
-export {
-  userQueryResolvers,
-  userSummaryResolver,
-  dbUserResolver,
-  gameQueryResolvers,
-  gameLogQueryResolvers,
-  gameResolver,
-  gameLogResolver,
-  commentQueryResolvers,
-  commentResolver,
-  reactionQueryResolvers,
-  reactionResolver,
-  gameMutationResolvers,
-  gameLogMutationResolvers,
-  commentMutationResolvers,
-  reactionMutationResolvers,
-  friendshipMutationResolvers,
-};
+// This file is kept for potential future use but currently resolvers are imported directly from their specific paths
+// All exports have been removed to eliminate dead code
