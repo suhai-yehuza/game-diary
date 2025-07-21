@@ -2,11 +2,11 @@
 
 import { Search, User, Gamepad2, Calendar, Star } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 
 import type { ISearchResult, ISearchResponse } from '@/lib/types';
 
-export default function SearchPage() {
+function SearchPageContent() {
   const searchParams = useSearchParams();
   const query = searchParams.get('q') ?? '';
   const [results, setResults] = useState<ISearchResponse | null>(null);
@@ -64,13 +64,13 @@ export default function SearchPage() {
       <div className="flex-1 min-w-0">
         <div className="flex items-center space-x-2">
           <h3 className="text-sm font-medium text-foreground truncate">
-            {user.first_name} {user.last_name}
+            {user.first_name ?? ''} {user.last_name ?? ''}
           </h3>
           <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
             User
           </span>
         </div>
-        <p className="text-sm text-muted-foreground truncate">@{user.username}</p>
+        <p className="text-sm text-muted-foreground truncate">@{user.username ?? 'unknown'}</p>
         <p className="text-xs text-muted-foreground">Joined {formatDate(user.created_at)}</p>
       </div>
     </div>
@@ -89,7 +89,7 @@ export default function SearchPage() {
       <div className="flex-1 min-w-0">
         <div className="flex items-center space-x-2">
           <h3 className="text-sm font-medium text-foreground truncate">
-            Game Log #{gameLog.game_id}
+            Game Log #{gameLog.game_id ?? 'unknown'}
           </h3>
           <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
             Game Log
@@ -98,9 +98,9 @@ export default function SearchPage() {
         <div className="flex items-center space-x-4 text-sm text-muted-foreground">
           <span className="flex items-center space-x-1">
             <User className="w-3 h-3" />
-            <span>@{gameLog.username}</span>
+            <span>@{gameLog.username ?? 'unknown'}</span>
           </span>
-          {gameLog.rating_for_game && (
+          {gameLog.rating_for_game !== undefined && gameLog.rating_for_game !== null && (
             <span className="flex items-center space-x-1">
               <Star className="w-3 h-3" />
               <span>{gameLog.rating_for_game}/5</span>
@@ -211,5 +211,27 @@ export default function SearchPage() {
         </div>
       )}
     </div>
+  );
+}
+
+function SearchPageFallback() {
+  return (
+    <div className="container mx-auto px-4 py-8 max-w-4xl">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-foreground mb-4">Global Search</h1>
+      </div>
+      <div className="flex items-center justify-center py-12">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+        <span className="ml-2 text-muted-foreground">Loading search...</span>
+      </div>
+    </div>
+  );
+}
+
+export default function SearchPage() {
+  return (
+    <Suspense fallback={<SearchPageFallback />}>
+      <SearchPageContent />
+    </Suspense>
   );
 }
