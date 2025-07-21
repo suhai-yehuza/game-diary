@@ -44,7 +44,7 @@
     "test:strict": "vitest run --reporter=verbose --coverage",
     "test:unit": "vitest run --reporter=verbose --coverage",
     "test:unit:json": "vitest run --reporter=json --coverage",
-    "coverage:validate": "pnpm test:unit && pnpm test:e2e:mock-verification && pnpm test:e2e:sanity && pnpm test:e2e:securities",
+    "coverage:validate": "pnpm test:unit && pnpm test:e2e:mock-verification && pnpm test:e2e:sanity && pnpm test:e2e:securities && pnpm test:e2e:search",
     "test:all": "pnpm test:coverage && pnpm test:e2e:sanity",
     "test:all:strict": "pnpm test:strict && pnpm test:e2e:sanity",
     "=====E2E Testing=====": "=====+=====+=====+=====+=====",

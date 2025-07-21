@@ -1041,7 +1041,7 @@ export async function waitForSearchResults(page: Page, timeout = TIMEOUTS.MEDIUM
         '.loading, .spinner, [data-loading="true"]'
       );
       const resultElements = document.querySelectorAll(
-        '.search-results, [data-testid*="result"], .results'
+        '.search-results, [data-testid*="result"], .results, .space-y-6'
       );
 
       return loadingElements.length === 0 && resultElements.length > 0;
