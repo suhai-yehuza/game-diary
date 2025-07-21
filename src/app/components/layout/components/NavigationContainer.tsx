@@ -1,5 +1,5 @@
 import { MobileMenuButton } from '@/app/components/layout/components/MobileMenuButton';
-import { ClientOnlyNavigationLinks } from '@/app/components/layout/components/Navigation';
+import { ClientOnlyNavigationLinks } from '@/app/components/layout/components/navigation/ClientOnlyNavigationLinks';
 import type { INavigationContainerProps } from '@/lib/types';
 
 export function NavigationContainer({

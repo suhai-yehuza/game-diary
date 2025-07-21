@@ -35,7 +35,17 @@ vi.mock('next/image', () => ({
   ),
 }));
 
-// Mock Clerk
+// Mock Clerk with variable control
+let mockUseUserReturn: {
+  isLoaded: boolean;
+  isSignedIn: boolean;
+  user: any;
+} = {
+  isLoaded: true,
+  isSignedIn: false,
+  user: null,
+};
+
 vi.mock('@clerk/nextjs', () => ({
   SignInButton: ({ children }: any) => (
     <button data-testid="clerk-signin-button">{children}</button>
@@ -43,10 +53,7 @@ vi.mock('@clerk/nextjs', () => ({
   SignedIn: ({ children }: any) => <div data-testid="signed-in">{children}</div>,
   SignedOut: ({ children }: any) => <div data-testid="signed-out">{children}</div>,
   UserButton: () => <div data-testid="user-button">User Button</div>,
-  useUser: () => ({
-    isSignedIn: false,
-    user: null,
-  }),
+  useUser: () => mockUseUserReturn,
 }));
 
 // Mock components
@@ -253,16 +260,46 @@ describe('Header - additional coverage', () => {
     document.body.innerHTML = '';
     process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY = 'test-key';
     vi.resetModules();
+    // Reset mock to default unauthenticated state
+    mockUseUserReturn = {
+      isLoaded: true,
+      isSignedIn: false,
+      user: null,
+    };
   });
 
-  it('renders admin navigation for admin user', () => {
+  it('does not render admin navigation for unauthenticated users', () => {
     render(
       <MenuProvider>
         <Header />
       </MenuProvider>
     );
-    // Admin navigation should be present - check for signed-in elements
-    expect(screen.getAllByTestId('signed-in')).toHaveLength(1);
+
+    // Admin navigation should not be present for unauthenticated users
+    expect(screen.queryByText('Admin')).not.toBeInTheDocument();
+  });
+
+  it('renders admin navigation for authenticated admin user', () => {
+    // Set mock to return an authenticated admin user
+    mockUseUserReturn = {
+      isLoaded: true,
+      isSignedIn: true,
+      user: {
+        id: 'admin-user-123',
+        publicMetadata: {
+          role: ['admin'],
+        },
+      },
+    };
+
+    render(
+      <MenuProvider>
+        <Header />
+      </MenuProvider>
+    );
+
+    // Admin navigation should be present for authenticated admin users
+    expect(screen.getByText('Admin')).toBeInTheDocument();
   });
 
   it('shows test sign-in button in unit test environment', async () => {

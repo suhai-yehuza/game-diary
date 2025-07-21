@@ -3,6 +3,6 @@ export { HeaderRightSection } from '@/app/components/layout/components/HeaderRig
 export { Logo } from '@/app/components/layout/components/Logo';
 export { MobileMenuButton } from '@/app/components/layout/components/MobileMenuButton';
 export { MobileSearchOverlay } from '@/app/components/layout/components/MobileSearchOverlay';
-export { ClientOnlyNavigationLinks as Navigation } from '@/app/components/layout/components/Navigation';
+export { ClientOnlyNavigationLinks as Navigation } from '@/app/components/layout/components/navigation/ClientOnlyNavigationLinks';
 export { NavigationContainer } from '@/app/components/layout/components/NavigationContainer';
 export { SearchBar, useMobileDetection } from '@/app/components/layout/components/SearchBar';
