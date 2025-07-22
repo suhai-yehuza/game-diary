@@ -48,60 +48,8 @@ export default function SignInModalTrigger({ autoTrigger = false }: ISignInModal
 
   // Force secondary links to be black in the modal
   useEffect(() => {
-    const fixSecondaryLinks = () => {
-      // Target all links that are not the main button or footer action
-      const allLinks = document.querySelectorAll('a, button, [role="button"]');
-      allLinks.forEach(link => {
-        const element = link as HTMLElement;
-        const text = element.textContent?.toLowerCase() ?? '';
-
-        // Check if this is a secondary link we want to make black
-        if (
-          text.includes('use phone') ||
-          text.includes('use passkey') ||
-          text.includes('sign up') ||
-          text.includes('sign in') ||
-          element.classList.contains('cl-formFieldAction') ||
-          element.classList.contains('cl-formFieldActionLink') ||
-          element.classList.contains('cl-alternativeMethodsBlockButton')
-        ) {
-          // Make sure it's not the main continue button or footer action
-          if (
-            !text.includes('continue') &&
-            !element.classList.contains('cl-formButtonPrimary') &&
-            !element.classList.contains('cl-footerActionLink')
-          ) {
-            element.style.color = '#000000 !important';
-            element.style.setProperty('color', '#000000', 'important');
-          }
-        }
-
-        // Additional targeting for specific text patterns
-        if (
-          text.trim() === 'use passkey instead' ||
-          text.trim() === 'sign up' ||
-          text.trim() === 'sign in'
-        ) {
-          element.style.color = '#000000 !important';
-          element.style.setProperty('color', '#000000', 'important');
-        }
-      });
-    };
-
-    // Run when modal content changes
-    const observer = new MutationObserver(() => {
-      fixSecondaryLinks();
-    });
-    observer.observe(document.body, { childList: true, subtree: true });
-
-    // Also run immediately and after a delay
-    fixSecondaryLinks();
-    const timer = setTimeout(fixSecondaryLinks, 100);
-
-    return () => {
-      clearTimeout(timer);
-      observer.disconnect();
-    };
+    // This effect has been removed to fix modal styling inconsistencies
+    // The modal styling should be handled by Clerk's built-in appearance configuration
   }, []);
 
   return (

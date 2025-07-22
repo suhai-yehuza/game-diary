@@ -900,7 +900,8 @@ footer a {
 /* Additional selectors for Clerk links */
 .cl-card a:not(.cl-footerActionLink),
 .cl-card button:not(.cl-formButtonPrimary),
-.cl-card [role="button"]:not(.cl-formButtonPrimary) {
+.cl-card [role="button"]:not(.cl-formButtonPrimary),
+.cl-footerActionLink {
   color: #000000 !important;
 }
 
@@ -913,7 +914,8 @@ footer a {
 /* Additional hover selectors */
 .cl-card a:not(.cl-footerActionLink):hover,
 .cl-card button:not(.cl-formButtonPrimary):hover,
-.cl-card [role="button"]:not(.cl-formButtonPrimary):hover {
+.cl-card [role="button"]:not(.cl-formButtonPrimary):hover,
+.cl-footerActionLink:hover {
   color: #374151 !important; /* Gray-700 for hover */
 }
 
