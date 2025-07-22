@@ -3,12 +3,10 @@
  * Centralized configuration and test data for E2E tests
  */
 
+import { SPORTS_CONFIG } from '@/app/components/sports/SportsConfig';
+
 export const SPORTS_PAGES = [
-  '/sports/nba',
-  '/sports/nfl',
-  '/sports/mlb',
-  '/sports/nhl',
-  '/sports/mls',
+  ...Object.values(SPORTS_CONFIG).map(sport => sport.href),
   '/sports/all-sports',
   '/sports/live',
 ] as const;

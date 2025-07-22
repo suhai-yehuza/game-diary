@@ -8,6 +8,7 @@ import {
 } from '@tests/e2e/utils/test-utils';
 import { runComprehensivePageTests } from '@tests/e2e/utils/page-suites';
 import { openMobileMenu } from '@tests/e2e/utils/navigation';
+import { SPORTS_CONFIG } from '@/app/components/sports/SportsConfig';
 
 async function checkA11y(page: Page) {
   const results = await new AxeBuilder({ page }).analyze();
@@ -19,11 +20,7 @@ async function checkA11y(page: Page) {
 }
 
 const sportsPages = [
-  { path: '/sports/nba', name: 'NBA', league: 'basketball' },
-  { path: '/sports/nfl', name: 'NFL', league: 'football' },
-  { path: '/sports/mlb', name: 'MLB', league: 'baseball' },
-  { path: '/sports/nhl', name: 'NHL', league: 'hockey' },
-  { path: '/sports/mls', name: 'MLS', league: 'soccer' },
+  ...Object.values(SPORTS_CONFIG).map(sport => ({ path: sport.href, name: sport.name })),
   { path: '/sports/all-sports', name: 'All Sports', league: 'all' },
 ];
 

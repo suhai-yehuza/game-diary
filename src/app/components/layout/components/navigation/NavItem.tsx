@@ -32,8 +32,8 @@ export function NavItem({
       href={href}
       className={
         isStacked
-          ? `w-[90vw] sm:w-[70vw] md:w-[400px] max-w-xs h-10 flex items-center justify-center text-sm whitespace-nowrap rounded font-medium transition-all duration-150 bg-opacity-90 shadow-sm mb-3 mx-auto focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${isActive ? 'text-blue-600 font-semibold' : 'hover:text-blue-600'} ${colorClass} ${className}`
-          : `block py-2 text-base transition-colors whitespace-nowrap flex items-center w-full h-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${isActive ? 'text-blue-600 font-semibold' : 'hover:text-blue-600'} ${className}`
+          ? `w-[90vw] sm:w-[70vw] md:w-[400px] max-w-xs h-10 flex items-center justify-center text-sm whitespace-nowrap rounded font-medium transition-all duration-150 bg-opacity-90 shadow-sm mb-3 mx-auto focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 focus-visible:rounded-md focus-visible:ring-offset-gray-900 ${isActive ? 'text-blue-600 font-semibold' : 'hover:text-blue-600'} ${colorClass} ${className}`
+          : `block py-2 text-base transition-colors whitespace-nowrap flex items-center w-full h-full focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 focus-visible:rounded-md focus-visible:ring-offset-gray-900 ${isActive ? 'text-blue-600 font-semibold' : 'hover:text-blue-600'} ${className}`
       }
       onClick={handleClick}
       {...props}

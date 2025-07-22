@@ -1,10 +1,11 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { AdminNavWithAuth } from '@/app/components/layout/components/navigation/AdminNav';
 import { NavItem } from '@/app/components/layout/components/navigation/NavItem';
 import { useMobileDetection } from '@/app/components/layout/components/SearchBar';
+import { SPORTS_CONFIG } from '@/app/components/sports/SportsConfig';
 
 interface INavigationLinksProps {
   isActive: (path: string) => boolean;
@@ -14,6 +15,12 @@ interface INavigationLinksProps {
   isStacked?: boolean;
 }
 
+function useMounted() {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  return mounted;
+}
+
 export function NavigationLinks({
   isActive,
   _isMenuExpanded,
@@ -21,7 +28,9 @@ export function NavigationLinks({
   closeMenu,
   isStacked = false,
 }: INavigationLinksProps) {
+  const mounted = useMounted();
   const isMobile = useMobileDetection();
+  if (!mounted) return null;
 
   // Only close menu on mobile
   const handleNavClick = () => {
@@ -34,31 +43,11 @@ export function NavigationLinks({
       label: 'Home',
       colorClass: 'bg-green-500 hover:bg-green-600',
     },
-    {
-      href: '/sports/nba',
-      label: 'NBA',
-      colorClass: 'bg-blue-500 hover:bg-blue-600',
-    },
-    {
-      href: '/sports/nfl',
-      label: 'NFL',
-      colorClass: 'bg-red-500 hover:bg-red-600',
-    },
-    {
-      href: '/sports/mlb',
-      label: 'MLB',
-      colorClass: 'bg-yellow-400 hover:bg-yellow-500 text-black',
-    },
-    {
-      href: '/sports/nhl',
-      label: 'NHL',
-      colorClass: 'bg-cyan-500 hover:bg-cyan-600',
-    },
-    {
-      href: '/sports/mls',
-      label: 'MLS',
-      colorClass: 'bg-purple-500 hover:bg-purple-600',
-    },
+    ...Object.values(SPORTS_CONFIG).map(sport => ({
+      href: sport.href,
+      label: sport.name,
+      colorClass: sport.color,
+    })),
     {
       href: '/sports/all-sports',
       label: 'All Sports',

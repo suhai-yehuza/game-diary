@@ -75,7 +75,7 @@ function AuthControlsContent() {
           <SignInButton mode="modal">
             <button
               data-testid="sign-in-button"
-              className="px-4 py-2 bg-blue-800 text-white rounded-md hover:bg-blue-900 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              className="px-4 py-2 bg-blue-800 text-white rounded-lg shadow-md hover:bg-blue-900 transition-colors focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-400 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
               aria-label="Sign In"
             >
               Sign In

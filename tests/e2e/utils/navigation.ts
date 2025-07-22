@@ -4,6 +4,7 @@ import {
   waitForNetworkIdle as waitForNetworkIdleUtil,
   TIMEOUTS,
 } from '@tests/e2e/utils/test-utils';
+import { SPORTS_CONFIG } from '@/app/components/sports/SportsConfig';
 
 /**
  * Navigation utilities for E2E tests
@@ -225,7 +226,8 @@ export async function navigateToHome(page: Page, options: NavigationOptions = {}
  * Navigate to sports section
  */
 export async function navigateToSports(page: Page, options: NavigationOptions = {}): Promise<void> {
-  await navigateToSection(page, '/sports/nba', options);
+  const firstSportHref = Object.values(SPORTS_CONFIG)[0].href;
+  await navigateToSection(page, firstSportHref, options);
 }
 
 /**

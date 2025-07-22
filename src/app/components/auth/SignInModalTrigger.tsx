@@ -73,7 +73,6 @@ export default function SignInModalTrigger({ autoTrigger = false }: ISignInModal
           ) {
             element.style.color = '#000000 !important';
             element.style.setProperty('color', '#000000', 'important');
-            console.log('Forced black color for:', text); // Debug log
           }
         }
 
@@ -85,7 +84,6 @@ export default function SignInModalTrigger({ autoTrigger = false }: ISignInModal
         ) {
           element.style.color = '#000000 !important';
           element.style.setProperty('color', '#000000', 'important');
-          console.log('Forced black color for exact match:', text); // Debug log
         }
       });
     };

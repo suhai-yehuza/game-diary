@@ -4,6 +4,7 @@ import Link from 'next/link';
 import React, { Suspense } from 'react';
 
 import { NavigationLinks } from '@/app/components/layout/components/navigation/NavigationLinks';
+import { SPORTS_CONFIG } from '@/app/components/sports/SportsConfig';
 
 export function ClientOnlyNavigationLinks(
   props: React.ComponentProps<typeof NavigationLinks> & {
@@ -21,36 +22,15 @@ export function ClientOnlyNavigationLinks(
           >
             <div className="w-16 h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
           </Link>
-          <Link
-            href="/sports/nba"
-            className="block py-2 lg:py-1.5 text-base lg:text-sm transition-colors whitespace-nowrap flex items-center w-full lg:w-auto h-full"
-          >
-            <div className="w-8 h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-          </Link>
-          <Link
-            href="/sports/nfl"
-            className="block py-2 lg:py-1.5 text-base lg:text-sm transition-colors whitespace-nowrap flex items-center w-full lg:w-auto h-full"
-          >
-            <div className="w-8 h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-          </Link>
-          <Link
-            href="/sports/mlb"
-            className="block py-2 lg:py-1.5 text-base lg:text-sm transition-colors whitespace-nowrap flex items-center w-full lg:w-auto h-full"
-          >
-            <div className="w-8 h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-          </Link>
-          <Link
-            href="/sports/nhl"
-            className="block py-2 lg:py-1.5 text-base lg:text-sm transition-colors whitespace-nowrap flex items-center w-full lg:w-auto h-full"
-          >
-            <div className="w-8 h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-          </Link>
-          <Link
-            href="/sports/mls"
-            className="block py-2 lg:py-1.5 text-base lg:text-sm transition-colors whitespace-nowrap flex items-center w-full lg:w-auto h-full"
-          >
-            <div className="w-8 h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-          </Link>
+          {Object.values(SPORTS_CONFIG).map(sport => (
+            <Link
+              key={sport.href}
+              href={sport.href}
+              className="block py-2 lg:py-1.5 text-base lg:text-sm transition-colors whitespace-nowrap flex items-center w-full lg:w-auto h-full"
+            >
+              <div className="w-8 h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+            </Link>
+          ))}
           <Link
             href="/sports/all-sports"
             className="block py-2 lg:py-1.5 text-base lg:text-sm transition-colors whitespace-nowrap flex items-center w-full lg:w-auto h-full"

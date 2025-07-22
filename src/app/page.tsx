@@ -5,6 +5,7 @@ import Link from 'next/link';
 import React from 'react';
 
 import { useMenuContext } from '@/app/components/providers';
+import { SPORTS_CONFIG } from '@/app/components/sports/SportsConfig';
 
 export default function HomePage() {
   const { isMenuExpanded } = useMenuContext();
@@ -46,7 +47,7 @@ export default function HomePage() {
       </div>
       <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
         <Link
-          href="/sports/live"
+          href={SPORTS_CONFIG.nba ? '/sports/live' : '/sports/live'}
           className="flex items-center gap-2 hover:underline hover:underline-offset-4"
         >
           <Image
@@ -60,7 +61,7 @@ export default function HomePage() {
           Live Games
         </Link>
         <Link
-          href="/sports/all-sports"
+          href={SPORTS_CONFIG.nba ? '/sports/all-sports' : '/sports/all-sports'}
           className="flex items-center gap-2 hover:underline hover:underline-offset-4"
         >
           <Image
