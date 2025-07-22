@@ -1,6 +1,6 @@
 # Security Implementation Changelog
 
-This document tracks all security-related changes, improvements, and additions to the Game Diary application.
+This document tracks all security-related changes, improvements, and additions to the Placeholder application.
 
 ## [2024-12-19] - Security Framework Implementation
 

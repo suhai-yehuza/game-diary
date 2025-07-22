@@ -1,4 +1,4 @@
-# Game Diary App - Third-Party Integrations & Access Guide
+# Placeholder App - Third-Party Integrations & Access Guide
 
 > **IMPORTANT**: This document contains sensitive access information. Keep this secure and share only with trusted team members who need access to manage the application.
 
@@ -19,7 +19,7 @@
 
 ## 🎯 Overview
 
-The Game Diary app is a Next.js-based sports application that allows users to track NBA games, create game logs, and interact with other users. The application integrates with multiple third-party services for authentication, hosting, database management, and external data.
+The Placeholder app is a Next.js-based sports application that allows users to track NBA games, create game logs, and interact with other users. The application integrates with multiple third-party services for authentication, hosting, database management, and external data.
 
 ### Application Architecture
 
@@ -258,7 +258,7 @@ NODE_ENV=production
 
 **Email Templates**:
 
-- **Nightly Update**: `[NBA Game Diary] Nightly Update`
+- **Nightly Update**: `[NBA Placeholder] Nightly Update`
 - **Friend Request**: `New Friend Request`
 - **Comment Notification**: `New Comment on Your Game Log`
 - **Reaction Notification**: `New Reaction on Your Content`

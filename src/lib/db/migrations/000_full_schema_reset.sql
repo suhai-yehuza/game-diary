@@ -1,5 +1,5 @@
 -- 000_full_schema_reset.sql
--- Game Diary Database Schema - Complete Reset Migration
+-- Placeholder Database Schema - Complete Reset Migration
 --
 -- This migration provides a complete database setup including:
 -- - All tables with proper structure and constraints

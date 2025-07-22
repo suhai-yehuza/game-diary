@@ -1,6 +1,6 @@
 # End-to-End Tests with Playwright
 
-This directory contains end-to-end tests for the Game Diary application using [Playwright](https://playwright.dev/).
+This directory contains end-to-end tests for the Placeholder application using [Playwright](https://playwright.dev/).
 
 ## Setup
 

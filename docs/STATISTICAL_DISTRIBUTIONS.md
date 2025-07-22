@@ -1,6 +1,6 @@
 # Statistical Distributions for Realistic Data Generation
 
-This document explains the statistical distribution system used to generate realistic data that mimics real-world patterns in the Game Diary application.
+This document explains the statistical distribution system used to generate realistic data that mimics real-world patterns in the Placeholder application.
 
 ## Overview
 
@@ -365,4 +365,4 @@ The system includes tools to monitor and validate generated data:
 - Performance metrics for seeding operations
 - Quality checks for data integrity
 
-This statistical approach ensures that the Game Diary application has realistic, high-quality test data that accurately represents real-world usage patterns.
+This statistical approach ensures that the Placeholder application has realistic, high-quality test data that accurately represents real-world usage patterns.

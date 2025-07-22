@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document outlines the standardized approach to ID generation across the Game Diary application.
+This document outlines the standardized approach to ID generation across the Placeholder application.
 
 ## Recommended ID Format: UUID v7
 

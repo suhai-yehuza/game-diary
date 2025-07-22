@@ -108,7 +108,7 @@ describe('Header', () => {
     expect(screen.getByRole('banner')).toBeInTheDocument();
 
     // Check for logo/brand
-    expect(screen.getByAltText('Game Diary Logo')).toBeInTheDocument();
+    expect(screen.getByAltText('Placeholder Logo')).toBeInTheDocument();
 
     // Check for search bar
     expect(screen.getByPlaceholderText('Global search...')).toBeInTheDocument();

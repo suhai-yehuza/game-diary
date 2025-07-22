@@ -1,6 +1,6 @@
 # Configurable Statistical Distributions
 
-This document explains how to configure and use the statistical distribution system for different seeding scenarios in the Game Diary application.
+This document explains how to configure and use the statistical distribution system for different seeding scenarios in the Placeholder application.
 
 ## Overview
 

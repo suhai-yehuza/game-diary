@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document summarizes all the performance optimizations implemented across the Game Diary application to improve loading times, reduce bundle size, and enhance user experience.
+This document summarizes all the performance optimizations implemented across the Placeholder application to improve loading times, reduce bundle size, and enhance user experience.
 
 ## 🎯 **High Priority Optimizations (Completed)**
 

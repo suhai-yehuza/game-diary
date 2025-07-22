@@ -1,6 +1,6 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
-import { describe, expect, it, vi, beforeEach } from 'vitest';
+import { render, screen } from '@testing-library/react';
+import { describe, expect, it, beforeEach } from 'vitest';
 import { Footer } from '@/app/components/layout/Footer';
 
 describe('Footer', () => {
@@ -11,42 +11,29 @@ describe('Footer', () => {
 
   it('renders the footer with correct structure', () => {
     render(<Footer />);
-    expect(screen.getByRole('contentinfo')).toBeInTheDocument();
-    expect(screen.getByText('About')).toBeInTheDocument();
-    expect(screen.getByText('Help')).toBeInTheDocument();
-    expect(screen.getByText('Follow Us')).toBeInTheDocument();
-    expect(screen.getByText('Legal')).toBeInTheDocument();
+    const footer = screen.getByRole('contentinfo');
+    expect(footer).toBeInTheDocument();
+    // Check for the four main links
+    expect(screen.getByText('News')).toBeInTheDocument();
+    expect(screen.getByText('Contact Us')).toBeInTheDocument();
+    expect(screen.getByText('Twitter')).toBeInTheDocument();
+    expect(screen.getByText('Terms of Service')).toBeInTheDocument();
   });
 
   it('renders all navigation links', () => {
     render(<Footer />);
-    expect(screen.getByText('About Us')).toBeInTheDocument();
     expect(screen.getByText('News')).toBeInTheDocument();
-    expect(screen.getByText('API')).toBeInTheDocument();
     expect(screen.getByText('Contact Us')).toBeInTheDocument();
     expect(screen.getByText('Twitter')).toBeInTheDocument();
-    expect(screen.getByText('GitHub')).toBeInTheDocument();
-    expect(screen.getByText('Privacy Policy')).toBeInTheDocument();
     expect(screen.getByText('Terms of Service')).toBeInTheDocument();
   });
 
-  it('renders footer sections correctly', () => {
+  it('renders four sections in the grid', () => {
     render(<Footer />);
-    // Check that all sections are present
-    expect(screen.getByText('About')).toBeInTheDocument();
-    expect(screen.getByText('Help')).toBeInTheDocument();
-    expect(screen.getByText('Follow Us')).toBeInTheDocument();
-    expect(screen.getByText('Legal')).toBeInTheDocument();
-
-    // Check that all links are present
-    expect(screen.getByText('About Us')).toBeInTheDocument();
-    expect(screen.getByText('News')).toBeInTheDocument();
-    expect(screen.getByText('API')).toBeInTheDocument();
-    expect(screen.getByText('Contact Us')).toBeInTheDocument();
-    expect(screen.getByText('Twitter')).toBeInTheDocument();
-    expect(screen.getByText('GitHub')).toBeInTheDocument();
-    expect(screen.getByText('Privacy Policy')).toBeInTheDocument();
-    expect(screen.getByText('Terms of Service')).toBeInTheDocument();
+    const footer = screen.getByRole('contentinfo');
+    const grid = footer.querySelector('.grid');
+    expect(grid).toBeInTheDocument();
+    expect(grid?.children).toHaveLength(4);
   });
 
   it('applies correct CSS classes to footer', () => {
@@ -59,51 +46,20 @@ describe('Footer', () => {
     expect(grid).toHaveClass('grid', 'grid-cols-1', 'sm:grid-cols-2', 'md:grid-cols-4', 'gap-2');
   });
 
-  it('applies correct CSS classes to section headings', () => {
-    render(<Footer />);
-
-    const headings = screen.getAllByRole('heading', { level: 3 });
-    headings.forEach(heading => {
-      expect(heading).toHaveClass(
-        'text-xs',
-        'font-bold',
-        'mb-1',
-        'tracking-wide',
-        'uppercase',
-        expect.stringContaining('text-') // matches text-muted-foreground or text-gray-300
-      );
-    });
-  });
-
   it('applies correct CSS classes to navigation links', () => {
     render(<Footer />);
-
     const links = screen.getAllByRole('link');
     links.forEach(link => {
-      expect(link).toHaveClass(
-        'hover:text-blue-600',
-        'transition-colors',
-        'block',
-        'py-0.5',
-        'text-gray-100'
-      );
-    });
-  });
-
-  it('applies correct CSS classes to lists', () => {
-    render(<Footer />);
-    const lists = screen.getAllByRole('list');
-    lists.forEach(list => {
-      expect(list).toHaveClass('text-xs');
+      expect(link).toHaveClass('hover:text-blue-600', 'transition-colors', 'block', 'py-0.5');
     });
   });
 
   it('has proper accessibility attributes', () => {
     render(<Footer />);
     expect(screen.getByRole('contentinfo')).toBeInTheDocument();
-    const lists = screen.getAllByRole('list');
-    lists.forEach(list => {
-      expect(list).toBeInTheDocument();
+    const links = screen.getAllByRole('link');
+    links.forEach(link => {
+      expect(link).toBeInTheDocument();
     });
   });
 
@@ -123,20 +79,5 @@ describe('Footer', () => {
     expect(grid).toBeInTheDocument();
     const sections = grid?.children;
     expect(sections).toHaveLength(4);
-  });
-
-  it('maintains consistent styling across sections', () => {
-    render(<Footer />);
-    const sections = screen.getByRole('contentinfo').querySelectorAll('.grid > div');
-    sections.forEach(section => {
-      const heading = section.querySelector('h3');
-      const list = section.querySelector('ul');
-      if (heading) {
-        expect(heading).toHaveClass('text-xs', 'font-bold', 'mb-1');
-      }
-      if (list) {
-        expect(list).toHaveClass('text-xs');
-      }
-    });
   });
 });

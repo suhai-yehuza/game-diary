@@ -1,6 +1,6 @@
 # Command-Line Seeding Configuration
 
-The Game Diary seeding system now supports comprehensive command-line configuration for both seeding scenarios and statistical distribution patterns.
+The Placeholder seeding system now supports comprehensive command-line configuration for both seeding scenarios and statistical distribution patterns.
 
 ## 🚀 Quick Start
 

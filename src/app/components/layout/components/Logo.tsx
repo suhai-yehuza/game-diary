@@ -16,7 +16,7 @@ export function Logo({ isMenuExpanded }: ILogoProps) {
       <Link href="/" className="min-w-[44px] min-h-[44px] flex items-center justify-center">
         <Image
           src="/logos/gamelog-large.svg"
-          alt="Game Diary Logo"
+          alt="Placeholder Logo"
           width={44}
           height={44}
           sizes="(max-width: 600px) 36px, 44px"

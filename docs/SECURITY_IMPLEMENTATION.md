@@ -1,6 +1,6 @@
 # Security Implementation Documentation
 
-This document provides comprehensive documentation for the security features implemented in the Game Diary application, including Slack alerting, admin authentication, field-level encryption, and Row-Level Security (RLS).
+This document provides comprehensive documentation for the security features implemented in the Placeholder application, including Slack alerting, admin authentication, field-level encryption, and Row-Level Security (RLS).
 
 ## Table of Contents
 

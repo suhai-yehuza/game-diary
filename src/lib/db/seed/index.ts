@@ -15,7 +15,7 @@ import { seedUserData, clearUserData } from '@src/lib/db/seed/user-data-seed';
 import { formatDuration } from '@src/lib/utils/format-duration';
 
 /**
- * Main seeding orchestrator for the Game Diary database
+ * Main seeding orchestrator for the Placeholder database
  *
  * This script provides functions to seed all database tables with mock data:
  *

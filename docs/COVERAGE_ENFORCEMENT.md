@@ -1,6 +1,6 @@
 # Coverage Enforcement System
 
-This document describes the comprehensive coverage enforcement system implemented for both unit and E2E tests in the Game Diary project.
+This document describes the comprehensive coverage enforcement system implemented for both unit and E2E tests in the Placeholder project.
 
 ## Overview
 

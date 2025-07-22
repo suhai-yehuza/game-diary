@@ -1,6 +1,6 @@
 # Validation Strategy
 
-This document outlines the comprehensive validation strategy for the Game Diary application, including pre-commit and pre-push hooks.
+This document outlines the comprehensive validation strategy for the Placeholder application, including pre-commit and pre-push hooks.
 
 ## Overview
 

@@ -1,4 +1,4 @@
-# 🏀 Game Diary
+# 🏀 Placeholder
 
 **Placeholder sentence or paragraph**
 

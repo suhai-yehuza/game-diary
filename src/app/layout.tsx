@@ -15,7 +15,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: 'Game Diary',
+  title: 'Placeholder',
   description: 'Placeholder sentence or paragraph',
 };
 

@@ -66,7 +66,7 @@ export async function testPageComprehensive(
     logRateLimiting('main content check');
   } else {
     // Strict: require <main> to be visible
-    await page.locator('main').waitFor({ state: 'visible', timeout });
+    await page.locator('main#main-content').waitFor({ state: 'visible', timeout });
   }
 
   // Check for console errors

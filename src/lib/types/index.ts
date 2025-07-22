@@ -1,6 +1,6 @@
 /**
  * Types Index
- * Centralized type exports for the Game Diary application
+ * Centralized type exports for the Placeholder application
  */
 
 // Admin Experimental types

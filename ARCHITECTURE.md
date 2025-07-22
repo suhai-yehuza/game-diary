@@ -1,6 +1,6 @@
-# 🏗️ Game Diary - Architecture & Optimization Guide
+# 🏗️ Placeholder - Architecture & Optimization Guide
 
-This document provides a comprehensive overview of the Game Diary application architecture, optimization strategies, and development guidelines.
+This document provides a comprehensive overview of the Placeholder application architecture, optimization strategies, and development guidelines.
 
 ## 📋 Table of Contents
 
@@ -15,7 +15,7 @@ This document provides a comprehensive overview of the Game Diary application ar
 
 ## 🎯 Overview
 
-Game Diary is a modern, full-stack web application built with:
+Placeholder is a modern, full-stack web application built with:
 
 - **Frontend**: Next.js 14 (App Router), TypeScript, Tailwind CSS
 - **Backend**: GraphQL with Apollo Server, PostgreSQL, Redis
