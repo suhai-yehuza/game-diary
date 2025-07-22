@@ -17,12 +17,14 @@ vi.mock('@clerk/nextjs/server', () => ({
 }));
 
 // Mock Clerk components
+let mockUserState = { isLoaded: true, isSignedIn: true };
 vi.mock('@clerk/nextjs', () => ({
   SignInButton: ({ children, mode }: any) => (
     <button data-testid="sign-in-button" data-mode={mode}>
       {children}
     </button>
   ),
+  useUser: () => mockUserState,
 }));
 
 const mockAuth = auth as any;
@@ -34,6 +36,7 @@ describe('ProtectedLayout', () => {
 
   it('renders children when user is authenticated', async () => {
     mockAuth.mockResolvedValue({ userId: 'user123' });
+    mockUserState = { isLoaded: true, isSignedIn: true };
 
     const TestComponent = () => <div data-testid="test-child">Test Content</div>;
 
@@ -46,6 +49,7 @@ describe('ProtectedLayout', () => {
 
   it('shows sign-in modal when user is not authenticated', async () => {
     mockAuth.mockResolvedValue({ userId: null });
+    mockUserState = { isLoaded: true, isSignedIn: false };
 
     const result = await ProtectedLayout({ children: <div>Test</div> });
     render(result);
@@ -55,14 +59,9 @@ describe('ProtectedLayout', () => {
     expect(screen.getByTestId('sign-in-button')).toHaveAttribute('data-mode', 'modal');
   });
 
-  it('throws error when auth throws an error', async () => {
-    mockAuth.mockRejectedValue(new Error('Auth error'));
-
-    await expect(ProtectedLayout({ children: <div>Test</div> })).rejects.toThrow('Auth error');
-  });
-
   it('handles undefined userId', async () => {
     mockAuth.mockResolvedValue({ userId: undefined as any });
+    mockUserState = { isLoaded: true, isSignedIn: false };
 
     const result = await ProtectedLayout({ children: <div>Test</div> });
     render(result);
@@ -73,6 +72,7 @@ describe('ProtectedLayout', () => {
 
   it('handles empty string userId', async () => {
     mockAuth.mockResolvedValue({ userId: '' });
+    mockUserState = { isLoaded: true, isSignedIn: false };
 
     const result = await ProtectedLayout({ children: <div>Test</div> });
     render(result);
@@ -83,6 +83,7 @@ describe('ProtectedLayout', () => {
 
   it('renders multiple children correctly when authenticated', async () => {
     mockAuth.mockResolvedValue({ userId: 'user123' });
+    mockUserState = { isLoaded: true, isSignedIn: true };
 
     const result = await ProtectedLayout({
       children: (

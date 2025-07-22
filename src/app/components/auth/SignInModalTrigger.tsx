@@ -26,23 +26,23 @@ export default function SignInModalTrigger({ autoTrigger = false }: ISignInModal
   }, [autoTrigger, router]);
 
   useEffect(() => {
-    // Only set up the interval if we're auto-triggering
     if (!autoTrigger) return;
 
-    const interval = setInterval(() => {
-      // Clerk modal usually has a class like .cl-modal or data-testid="sign-in-modal"
+    let redirected = false;
+    const observer = new MutationObserver(() => {
       const modalPresent = document.querySelector('[data-testid="sign-in-modal"], .cl-modal');
-      if (!modalPresent) {
-        // If modal is closed and we're on a protected route, redirect to home
+      if (!modalPresent && !redirected) {
         const currentPath = window.location.pathname;
         if (currentPath.startsWith('/protected')) {
+          redirected = true;
           router.push('/');
         }
       }
-    }, 200);
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
 
     return () => {
-      clearInterval(interval);
+      observer.disconnect();
     };
   }, [autoTrigger, router]);
 
