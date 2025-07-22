@@ -13,8 +13,21 @@ import {
 
 // Hook to check if user is admin
 function useIsAdmin() {
-  // Check if we're in a Clerk context before using the hook
-  const { isLoaded, isSignedIn, user } = useUser();
+  // Handle case where Clerk is not configured (e.g., in test environment)
+  let isLoaded = false;
+  let isSignedIn = false;
+  let user = null;
+
+  try {
+    const userData = useUser();
+    isLoaded = userData.isLoaded;
+    isSignedIn = userData.isSignedIn ?? false;
+    user = userData.user;
+  } catch {
+    // Clerk is not configured (e.g., in test environment)
+    console.log('Clerk not configured in useIsAdmin, returning false');
+    return false;
+  }
 
   if (!isLoaded || !isSignedIn || !user) {
     return false;

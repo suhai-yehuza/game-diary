@@ -4,7 +4,24 @@ import { useUser } from '@clerk/nextjs';
 import React from 'react';
 
 function UserGreeting() {
-  const { isLoaded, isSignedIn, user } = useUser();
+  // Handle case where Clerk is not configured (e.g., in test environment)
+  let isLoaded = false;
+  let isSignedIn = false;
+  let user = null;
+
+  try {
+    const userData = useUser();
+    isLoaded = userData.isLoaded;
+    isSignedIn = userData.isSignedIn ?? false;
+    user = userData.user;
+  } catch {
+    // Clerk is not configured (e.g., in test environment)
+    console.log('Clerk not configured, using fallback user data');
+    isLoaded = true;
+    isSignedIn = false;
+    user = null;
+  }
+
   if (!isLoaded) return null;
   return (
     <section className="py-8 bg-gradient-to-r from-primary/5 to-primary/10 mb-8">

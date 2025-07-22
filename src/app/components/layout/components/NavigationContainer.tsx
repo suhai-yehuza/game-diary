@@ -34,7 +34,7 @@ export function NavigationContainer({
           <ClientOnlyNavigationLinks
             isActive={isActive}
             _isMenuExpanded={false}
-            _setIsMenuExpanded={() => {}}
+            _setIsMenuExpanded={() => undefined}
             closeMenu={undefined}
             isStacked={false}
           />
