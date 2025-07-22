@@ -38,6 +38,8 @@ export function HeaderRightSection({ isMenuExpanded }: IHeaderRightSectionProps)
             <line x1="21" y1="21" x2="16.65" y2="16.65" />
           </svg>
         </button>
+        {/* Always show auth controls on mobile, even when space is limited */}
+        <ClientOnlyAuthControls />
       </div>
     );
   }
@@ -60,10 +62,10 @@ export function HeaderRightSection({ isMenuExpanded }: IHeaderRightSectionProps)
       {/* Vertical Divider */}
       <div className="hidden lg:block h-8 w-px bg-gray-200 dark:bg-gray-700 mx-4" />
 
-      {/* Theme Toggle - hide on mobile when searchbar is focused */}
-      {!(isMobile && isFocused) && <ThemeToggle />}
+      {/* Theme Toggle - hide on mobile when searchbar is focused or when space is limited */}
+      {!(isMobile && !isFocused && !showSearch) && !(isMobile && isFocused) && <ThemeToggle />}
 
-      {/* Auth Controls */}
+      {/* Auth Controls - always visible */}
       <ClientOnlyAuthControls />
     </div>
   );

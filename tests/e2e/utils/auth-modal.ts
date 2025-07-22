@@ -1,6 +1,18 @@
 import { Page, expect } from '@playwright/test';
 import { waitForNetworkIdle, safeGoto, waitForPageLoad } from '@tests/e2e/utils/test-utils';
 
+// Helper to close modal backdrops/overlays if present (for mobile)
+async function closeModalBackdropIfPresent(page: Page) {
+  // Try to close modal backdrop if it intercepts pointer events
+  const modalBackdrop = page.locator('.cl-modalBackdrop, [data-testid="modal-backdrop"]');
+  if (await modalBackdrop.isVisible({ timeout: 1000 }).catch(() => false)) {
+    // Try clicking the backdrop to close
+    await modalBackdrop.click({ force: true });
+    // Wait a moment for UI to update
+    await page.waitForTimeout(300);
+  }
+}
+
 export async function testSignInModal(
   page: Page,
   closeMethod: 'escape' | 'click-outside' = 'escape',
@@ -68,7 +80,13 @@ export async function testSignInModal(
     const isDisabled = await signInButton.isDisabled();
     if (!isDisabled) {
       await expect(signInButton).toBeEnabled();
-      await signInButton.click();
+      try {
+        await signInButton.click();
+      } catch (err) {
+        // If click fails due to overlay, try to close modal backdrop and retry
+        await closeModalBackdropIfPresent(page);
+        await signInButton.click();
+      }
 
       // Wait for the modal to appear
       const emailInput = page.getByRole('textbox', { name: /email/i });

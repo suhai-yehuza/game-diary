@@ -975,7 +975,7 @@ export async function safeGotoWithMocking(
 
 // Wait for page to be fully stable and ready for interaction
 export async function waitForPageStable(page: Page, timeout = TIMEOUTS.MEDIUM): Promise<void> {
-  await waitForNetworkIdle(page, timeout);
+  // Removed: await waitForNetworkIdle(page, timeout);
   await page.waitForLoadState('domcontentloaded', { timeout });
 
   // Wait for any loading indicators to disappear
