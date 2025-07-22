@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { createRapidAPIClient } from '@src/lib/utils/api-client';
+import { TIMEOUTS } from '@tests/e2e/utils/test-utils';
 
 global.fetch = vi.fn();
 
@@ -9,7 +10,7 @@ describe('api-client utility', () => {
     apiKey: 'test-key',
     host: 'test-host',
     endpoints: { test: '/test' },
-    timeout: 10000,
+    timeout: TIMEOUTS.MEDIUM,
     retries: 3,
     cacheTTL: 300000,
     headers: {

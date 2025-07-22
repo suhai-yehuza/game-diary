@@ -5,6 +5,7 @@ import {
   checkAccessibilityBasics,
   checkPerformanceMetrics,
   checkForConsoleErrors,
+  TIMEOUTS,
 } from '@tests/e2e/utils/test-utils';
 
 export function runBasePageChecks(test: typeof baseTest, path: string) {
@@ -12,8 +13,8 @@ export function runBasePageChecks(test: typeof baseTest, path: string) {
     await checkBasicPageStructure(page);
     await checkPageTitle(page);
     await expect(page).toHaveURL(path);
-    await expect(page.locator('main')).toBeVisible({ timeout: 15000 });
-    await expect(page.locator('body')).toBeVisible({ timeout: 15000 });
+    await expect(page.locator('main')).toBeVisible({ timeout: TIMEOUTS.LONG });
+    await expect(page.locator('body')).toBeVisible({ timeout: TIMEOUTS.LONG });
   });
 
   test('should have proper navigation elements', async ({ page }: { page: Page }) => {

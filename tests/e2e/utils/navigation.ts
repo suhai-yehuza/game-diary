@@ -2,6 +2,7 @@ import { Page, expect } from '@playwright/test';
 import {
   waitForPageLoad,
   waitForNetworkIdle as waitForNetworkIdleUtil,
+  TIMEOUTS,
 } from '@tests/e2e/utils/test-utils';
 
 /**
@@ -81,7 +82,7 @@ export async function navigateToSection(
 ): Promise<void> {
   const {
     waitForLoad = true,
-    timeout = 10000,
+    timeout = TIMEOUTS.MEDIUM,
     checkMainContent = true,
     waitForNetworkIdle = true,
   } = options;
@@ -214,7 +215,7 @@ export async function navigateToSection(
 }
 
 /**
- * Navigate back to home page
+ * Navigate to home page
  */
 export async function navigateToHome(page: Page, options: NavigationOptions = {}): Promise<void> {
   await navigateToSection(page, '/', options);

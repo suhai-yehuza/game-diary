@@ -249,7 +249,10 @@ export async function checkBasicPageStructure(page: Page): Promise<void> {
     // Also check for empty page content that might indicate rate limiting
     if (pageContent.trim().length < 100) {
       console.log('Page content seems minimal, checking for rate limiting...');
-      await page.waitForTimeout(1000);
+      // Wait for main content to be visible or for content to increase
+      await expect(page.locator('main, [role="main"], .main-content')).toBeVisible({
+        timeout: TIMEOUTS.SHORT,
+      });
       const retryContent = await page.content();
       if (isRateLimited(retryContent)) {
         logRateLimiting('page structure check (minimal content)');
@@ -352,9 +355,8 @@ export async function checkPageTitle(page: Page, expectedTitle?: string): Promis
     // If title is empty, check if it's due to rate limiting
     if (!title || title.length === 0) {
       // Wait a bit and try again
-      await page.waitForTimeout(1000);
+      await expect(page).toHaveTitle(/\w+/, { timeout: TIMEOUTS.SHORT });
       const retryTitle = await page.title();
-
       if (!retryTitle || retryTitle.length === 0) {
         console.log('Page title is empty, checking for rate limiting...');
         const retryContent = await page.content();

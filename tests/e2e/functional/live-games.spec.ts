@@ -5,6 +5,7 @@ import {
   safeGoto,
   waitForPageLoad,
   waitForPageStable,
+  TIMEOUTS,
 } from '@tests/e2e/utils/test-utils';
 
 // Utility to detect problematic environments for live games tests
@@ -110,7 +111,7 @@ test.describe('Live Games Functionality', () => {
       await viewAllLink.click();
 
       // Should navigate to live games page
-      await expect(page).toHaveURL(/\/sports\/live/, { timeout: 5000 });
+      await expect(page).toHaveURL(/\/sports\/live/, { timeout: TIMEOUTS.SHORT });
     });
 
     test('should display live indicator with animation', async ({ page }) => {

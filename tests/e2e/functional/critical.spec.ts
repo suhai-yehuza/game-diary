@@ -4,6 +4,7 @@ import {
   waitForPageLoad,
   waitForNetworkIdle,
   clearTestData,
+  TIMEOUTS,
 } from '@tests/e2e/utils/test-utils';
 import { testSignInModal } from '@tests/e2e/utils/auth-modal';
 import { runSmokeSuite } from './smoke.spec';
@@ -14,28 +15,29 @@ async function revealSignInButtonIfMobile(page: any) {
   if (isMobile) {
     // Ensure mobile menu is closed
     const menuOverlay = page.locator('[data-testid="mobile-menu-overlay"]');
-    if (await menuOverlay.isVisible({ timeout: 1000 }).catch(() => false)) {
+    if (await menuOverlay.isVisible({ timeout: TIMEOUTS.SHORT }).catch(() => false)) {
       const closeButton = page.locator('[data-testid="mobile-menu-button"]');
-      if (await closeButton.isVisible({ timeout: 1000 }).catch(() => false)) {
+      if (await closeButton.isVisible({ timeout: TIMEOUTS.SHORT }).catch(() => false)) {
         await closeButton.click();
-        await expect(menuOverlay).not.toBeVisible({ timeout: 5000 });
+        await expect(menuOverlay).not.toBeVisible({ timeout: TIMEOUTS.SHORT });
       }
     }
     // Click the search icon to expand the header right section
     const searchButton = page.locator('button[aria-label="Open search"]');
-    if (await searchButton.isVisible({ timeout: 2000 }).catch(() => false)) {
+    if (await searchButton.isVisible({ timeout: TIMEOUTS.SHORT }).catch(() => false)) {
       await searchButton.click();
     }
     // Focus the search input if present
     const searchInput = page.locator('input[type="search"], input[aria-label*="search" i]');
-    if (await searchInput.isVisible({ timeout: 2000 }).catch(() => false)) {
+    if (await searchInput.isVisible({ timeout: TIMEOUTS.SHORT }).catch(() => false)) {
       await searchInput.focus();
     }
-    // Wait a moment for UI to update
-    await page.waitForTimeout(300);
-    // Log the DOM if the sign-in button is not found
     const signInButton = page.getByTestId('sign-in-button');
-    if (!(await signInButton.isVisible({ timeout: 2000 }).catch(() => false))) {
+    // Wait for the sign-in button to be visible or enabled instead of a fixed delay
+    await expect(signInButton).toBeVisible({ timeout: TIMEOUTS.SHORT });
+    await expect(signInButton).toBeEnabled();
+    // Log the DOM if the sign-in button is not found
+    if (!(await signInButton.isVisible({ timeout: TIMEOUTS.SHORT }).catch(() => false))) {
       const dom = await page.content();
       console.log('DEBUG: sign-in button not found after search open/focus. DOM:', dom);
     }
@@ -51,14 +53,14 @@ export async function criticalTestAuthenticationFlow(page: any) {
   const isMobile = await page.evaluate(() => window.innerWidth < 1024);
   if (isMobile) {
     // If the sign-in button is not visible, log and skip assertion
-    if (!(await signInButton.isVisible({ timeout: 2000 }).catch(() => false))) {
+    if (!(await signInButton.isVisible({ timeout: TIMEOUTS.SHORT }).catch(() => false))) {
       console.warn(
         '⚠️ [Mobile] Sign-in button not visible on home page after all reveal attempts. Skipping assertion.'
       );
       return;
     }
   }
-  await expect(signInButton).toBeVisible({ timeout: 15000 });
+  await expect(signInButton).toBeVisible({ timeout: TIMEOUTS.LONG });
   const isDisabled = await signInButton.isDisabled();
   expect(isDisabled).toBe(false);
 }
@@ -68,14 +70,14 @@ export async function criticalTestProtectedRouteAccess(page: any) {
   await waitForPageLoad(page);
   // Should redirect to sign-in modal
   const modal = page.locator('[data-testid="sign-in-modal"], .cl-modal, [role="dialog"]');
-  await expect(modal).toBeVisible({ timeout: 10000 });
+  await expect(modal).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
   // Press Escape to close modal
   await page.keyboard.press('Escape');
   // Wait for redirect
   await expect(page).toHaveURL('/');
   await revealSignInButtonIfMobile(page);
   const signInButton = page.getByTestId('sign-in-button');
-  await expect(signInButton).toBeVisible({ timeout: 15000 });
+  await expect(signInButton).toBeVisible({ timeout: TIMEOUTS.LONG });
 }
 
 export async function criticalTestFormValidation(page: any) {
@@ -85,14 +87,14 @@ export async function criticalTestFormValidation(page: any) {
   const signInButton = page.getByTestId('sign-in-button');
   const isMobile = await page.evaluate(() => window.innerWidth < 1024);
   if (isMobile) {
-    if (!(await signInButton.isVisible({ timeout: 2000 }).catch(() => false))) {
+    if (!(await signInButton.isVisible({ timeout: TIMEOUTS.SHORT }).catch(() => false))) {
       console.warn(
         '⚠️ [Mobile] Sign-in button not visible on home page after all reveal attempts (form validation). Skipping assertion.'
       );
       return;
     }
   }
-  await expect(signInButton).toBeVisible({ timeout: 15000 });
+  await expect(signInButton).toBeVisible({ timeout: TIMEOUTS.LONG });
   // Add more form validation steps as needed
 }
 

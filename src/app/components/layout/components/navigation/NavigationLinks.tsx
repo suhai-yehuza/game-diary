@@ -21,7 +21,7 @@ export function NavigationLinks({
   closeMenu,
   isStacked = false,
 }: INavigationLinksProps) {
-  const isMobile = useMobileDetection(1024);
+  const isMobile = useMobileDetection();
 
   // Only close menu on mobile
   const handleNavClick = () => {

@@ -15,7 +15,7 @@ import { useMenuContext } from '@/app/components/providers';
 export function Header() {
   const { isMenuExpanded, setIsMenuExpanded } = useMenuContext();
   const pathname = usePathname() || '/';
-  const isMobile = useMobileDetection(1024);
+  const isMobile = useMobileDetection();
 
   // Menu is stacked only if expanded and in mobile/overlay mode
   const isStacked = isMenuExpanded && isMobile;

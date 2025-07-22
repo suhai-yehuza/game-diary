@@ -6,6 +6,7 @@ import {
   checkPageTitle,
   waitForNetworkIdle,
   clearTestData,
+  TIMEOUTS,
 } from '@tests/e2e/utils/test-utils';
 import { testSignInModal, testProtectedRoutes } from '@tests/e2e/utils/auth-modal';
 import { runCriticalSuite } from './critical.spec';
@@ -59,42 +60,36 @@ async function revealNavLinksIfMobile(page: any) {
     if (
       !(await navLink
         .first()
-        .isVisible({ timeout: 2000 })
+        .isVisible({ timeout: TIMEOUTS.SHORT })
         .catch(() => false))
     ) {
       const menuButton = page.locator(
         'button[aria-label="Open menu"], [data-testid="mobile-menu-button"]'
       );
-      if (await menuButton.isVisible({ timeout: 2000 }).catch(() => false)) {
+      if (await menuButton.isVisible({ timeout: TIMEOUTS.SHORT }).catch(() => false)) {
         await menuButton.click();
         // Wait for menu container to be visible if it exists
         const menuContainer = page.locator('[data-testid="mobile-menu"], nav, .mobile-menu, .menu');
         if ((await menuContainer.count()) > 0) {
           await menuContainer
             .first()
-            .waitFor({ state: 'visible', timeout: 3000 })
+            .waitFor({ state: 'visible', timeout: TIMEOUTS.SHORT })
             .catch(() => {});
         }
         // Wait for nav links to become visible
         const visible = await navLink
           .first()
-          .isVisible({ timeout: 5000 })
+          .isVisible({ timeout: TIMEOUTS.SHORT })
           .catch(() => false);
         if (!visible) {
           // Try clicking the menu button again (in case first click didn't register)
           await menuButton.click();
-          await page.waitForTimeout(500);
-          const visibleRetry = await navLink
-            .first()
-            .isVisible({ timeout: 3000 })
-            .catch(() => false);
-          if (!visibleRetry) {
-            // Take a screenshot and log DOM for debugging
-            await page.screenshot({ path: 'debug-navlinks-not-visible.png', fullPage: true });
-            const dom = await page.content();
-            console.log('DEBUG: nav links not visible after menu open. DOM:', dom);
-            // Don't fail the test, just log and continue
-          }
+          await expect(navLink.first()).toBeVisible({ timeout: TIMEOUTS.SHORT });
+          // Take a screenshot and log DOM for debugging
+          await page.screenshot({ path: 'debug-navlinks-not-visible.png', fullPage: true });
+          const dom = await page.content();
+          console.log('DEBUG: nav links not visible after menu open. DOM:', dom);
+          // Don't fail the test, just log and continue
         }
       }
     }
@@ -120,7 +115,7 @@ export async function navigationTestLinkNavigation(page: any) {
       if (
         await sportsLinks
           .nth(i)
-          .isVisible({ timeout: 1000 })
+          .isVisible({ timeout: TIMEOUTS.SHORT })
           .catch(() => false)
       ) {
         foundVisible = true;
@@ -139,7 +134,7 @@ export async function navigationTestLinkNavigation(page: any) {
       );
     }
     // Always test All Sports and Live Games links
-    if (await allSportsLink.isVisible({ timeout: 1000 }).catch(() => false)) {
+    if (await allSportsLink.isVisible({ timeout: TIMEOUTS.SHORT }).catch(() => false)) {
       await allSportsLink.click();
       await waitForNetworkIdle(page);
       await expect(page).toHaveURL('/sports/all-sports');
@@ -147,7 +142,7 @@ export async function navigationTestLinkNavigation(page: any) {
       console.log('Clicked All Sports link');
       tested = true;
     }
-    if (await liveGamesLink.isVisible({ timeout: 1000 }).catch(() => false)) {
+    if (await liveGamesLink.isVisible({ timeout: TIMEOUTS.SHORT }).catch(() => false)) {
       await liveGamesLink.click();
       await waitForNetworkIdle(page);
       await expect(page).toHaveURL('/sports/live');

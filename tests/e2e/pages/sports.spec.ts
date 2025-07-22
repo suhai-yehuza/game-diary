@@ -1,5 +1,10 @@
 import { test, expect } from '@playwright/test';
-import { waitForNetworkIdle, clearTestData, waitForPageStable } from '@tests/e2e/utils/test-utils';
+import {
+  waitForNetworkIdle,
+  clearTestData,
+  waitForPageStable,
+  TIMEOUTS,
+} from '@tests/e2e/utils/test-utils';
 import { runComprehensivePageTests } from '@tests/e2e/utils/page-suites';
 import { openMobileMenu } from '@tests/e2e/utils/navigation';
 
@@ -51,7 +56,7 @@ test.describe('Sports Pages', () => {
             );
             if ((await menuContainer.count()) > 0) {
               try {
-                await expect(menuContainer.first()).toBeVisible({ timeout: 10000 });
+                await expect(menuContainer.first()).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
               } catch (e) {
                 const isVisible = await menuContainer.first().isVisible();
                 const box = await menuContainer.first().boundingBox();
@@ -80,7 +85,7 @@ test.describe('Sports Pages', () => {
 
           // Optionally, check that the NBA link is visible
           const nbaLink = navLinks.filter({ hasText: 'NBA' });
-          await expect(nbaLink.first()).toBeVisible({ timeout: 5000 });
+          await expect(nbaLink.first()).toBeVisible({ timeout: TIMEOUTS.SHORT });
         });
 
         test(`should display ${sportPage.name} games/scores`, async ({ page }) => {

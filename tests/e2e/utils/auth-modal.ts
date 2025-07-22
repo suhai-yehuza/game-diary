@@ -1,15 +1,20 @@
 import { Page, expect } from '@playwright/test';
-import { waitForNetworkIdle, safeGoto, waitForPageLoad } from '@tests/e2e/utils/test-utils';
+import {
+  waitForNetworkIdle,
+  safeGoto,
+  waitForPageLoad,
+  TIMEOUTS,
+} from '@tests/e2e/utils/test-utils';
 
 // Helper to close modal backdrops/overlays if present (for mobile)
 async function closeModalBackdropIfPresent(page: Page) {
   // Try to close modal backdrop if it intercepts pointer events
   const modalBackdrop = page.locator('.cl-modalBackdrop, [data-testid="modal-backdrop"]');
-  if (await modalBackdrop.isVisible({ timeout: 1000 }).catch(() => false)) {
+  if (await modalBackdrop.isVisible({ timeout: TIMEOUTS.SHORT }).catch(() => false)) {
     // Try clicking the backdrop to close
     await modalBackdrop.click({ force: true });
-    // Wait a moment for UI to update
-    await page.waitForTimeout(300);
+    // Wait for the modal backdrop to disappear
+    await expect(modalBackdrop).not.toBeVisible({ timeout: TIMEOUTS.SHORT });
   }
 }
 
@@ -75,7 +80,7 @@ export async function testSignInModal(
 
   try {
     // Wait for the button to be visible and stable
-    await expect(signInButton).toBeVisible({ timeout: 15000 });
+    await expect(signInButton).toBeVisible({ timeout: TIMEOUTS.LONG });
 
     const isDisabled = await signInButton.isDisabled();
     if (!isDisabled) {
@@ -90,7 +95,7 @@ export async function testSignInModal(
 
       // Wait for the modal to appear
       const emailInput = page.getByRole('textbox', { name: /email/i });
-      await expect(emailInput).toBeVisible({ timeout: 10000 });
+      await expect(emailInput).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
 
       // Test modal interaction based on close method
       if (closeMethod === 'escape') {
@@ -101,13 +106,13 @@ export async function testSignInModal(
       }
 
       // Wait for modal to close
-      await expect(emailInput).not.toBeVisible({ timeout: 5000 });
+      await expect(emailInput).not.toBeVisible({ timeout: TIMEOUTS.SHORT });
 
       // If testing protected route, check for redirect to home
       if (options?.expectRedirectToHome) {
         await expect(page).toHaveURL('/');
         // Check that the sign-in button is visible on the home page
-        await expect(page.getByTestId('sign-in-button')).toBeVisible({ timeout: 10000 });
+        await expect(page.getByTestId('sign-in-button')).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
       }
     } else {
       // In test environment, just verify the button exists and is visible

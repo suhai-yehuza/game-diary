@@ -9,6 +9,7 @@ import {
   checkPerformanceMetrics,
   isRateLimited,
   logRateLimiting,
+  TIMEOUTS,
 } from '@tests/e2e/utils/test-utils';
 import { PERFORMANCE_THRESHOLDS } from '@tests/e2e/utils/constants';
 
@@ -213,7 +214,8 @@ export function runResponsiveSuite(test: TestType<any, any>) {
           test(`should render ${url} correctly`, async ({ page }: { page: Page }) => {
             // Add a small delay between tests to reduce rate limiting
             if (index > 0) {
-              await page.waitForTimeout(1000);
+              // Wait for main content to be visible to ensure previous test is fully done
+              await expect(page.locator('main')).toBeVisible({ timeout: TIMEOUTS.SHORT });
             }
             await page.setViewportSize({ width: viewport.width, height: viewport.height });
             await testPageComprehensive(page, url);

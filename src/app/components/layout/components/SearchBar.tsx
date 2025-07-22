@@ -4,6 +4,8 @@ import { Search, X } from 'lucide-react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import React, { useState, useEffect, useRef, Suspense, useCallback } from 'react';
 
+import { MOBILE_BREAKPOINT } from '@/app/components/layout/components/breakpoints';
+
 // Common search input component
 function SearchInput({
   value,
@@ -63,7 +65,7 @@ function CloseButton({ onClick, className = '' }: { onClick: () => void; classNa
 }
 
 // Hook for mobile detection (for use by other components)
-function useMobileDetection(breakpoint = 640) {
+function useMobileDetection(breakpoint = MOBILE_BREAKPOINT) {
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {

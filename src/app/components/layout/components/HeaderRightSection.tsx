@@ -9,7 +9,7 @@ interface IHeaderRightSectionProps {
 }
 
 export function HeaderRightSection({ isMenuExpanded }: IHeaderRightSectionProps) {
-  const isMobile = useMobileDetection(640);
+  const isMobile = useMobileDetection();
   const [isFocused, setIsFocused] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
 
@@ -63,7 +63,7 @@ export function HeaderRightSection({ isMenuExpanded }: IHeaderRightSectionProps)
       <div className="hidden lg:block h-8 w-px bg-gray-200 dark:bg-gray-700 mx-4" />
 
       {/* Theme Toggle - hide on mobile when searchbar is focused or when space is limited */}
-      {!(isMobile && !isFocused && !showSearch) && !(isMobile && isFocused) && <ThemeToggle />}
+      {(!isMobile || (showSearch && !isFocused)) && <ThemeToggle />}
 
       {/* Auth Controls - always visible */}
       <ClientOnlyAuthControls />

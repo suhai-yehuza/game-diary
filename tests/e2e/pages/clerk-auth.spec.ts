@@ -1,5 +1,10 @@
 import { test, expect } from '@playwright/test';
-import { waitForNetworkIdle, clearTestData, waitForPageStable } from '@tests/e2e/utils/test-utils';
+import {
+  waitForNetworkIdle,
+  clearTestData,
+  waitForPageStable,
+  TIMEOUTS,
+} from '@tests/e2e/utils/test-utils';
 import { runInteractivePageTests } from '@tests/e2e/utils/page-suites';
 
 // Helper function to handle mobile-specific interactions
@@ -7,18 +12,19 @@ async function handleMobileSignInButton(page: any) {
   const signInButton = page.getByTestId('sign-in-button');
 
   // For mobile devices, we need to be more patient
-  const isMobile = page.viewportSize()?.width && page.viewportSize().width < 768;
+  const isMobile = page.viewportSize()?.width && page.viewportSize().width < 1024;
 
   try {
     // Wait longer for mobile devices
-    const timeout = isMobile ? 15000 : 10000;
+    const timeout = isMobile ? TIMEOUTS.LONG : TIMEOUTS.MEDIUM;
     await expect(signInButton).toBeVisible({ timeout });
     await expect(signInButton).toBeEnabled();
 
     // For mobile, scroll to ensure button is in view
     if (isMobile) {
       await signInButton.scrollIntoViewIfNeeded();
-      await page.waitForTimeout(500); // Small delay for mobile
+      await expect(signInButton).toBeVisible({ timeout });
+      await expect(signInButton).toBeEnabled();
     }
 
     return signInButton;
@@ -62,7 +68,7 @@ test.describe('Clerk Auth Modal', () => {
 
       // Wait for the button to be visible with a longer timeout
       try {
-        await expect(signInButton).toBeVisible({ timeout: 10000 });
+        await expect(signInButton).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
       } catch (error) {
         // If sign-in button is not found, the test might be running without Clerk configured
         console.log(
@@ -87,7 +93,7 @@ test.describe('Clerk Auth Modal', () => {
 
       // Wait for either email or password input to be visible (indicating modal is open)
       try {
-        await expect(emailInput.or(passwordInput)).toBeVisible({ timeout: 10000 });
+        await expect(emailInput.or(passwordInput)).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
       } catch (error) {
         console.log('Clerk modal did not open, this might be expected in test environment');
         return; // Skip if modal doesn't open
@@ -124,7 +130,7 @@ test.describe('Clerk Auth Modal', () => {
       const signInButton = page.getByTestId('sign-in-button');
 
       try {
-        await expect(signInButton).toBeVisible({ timeout: 10000 });
+        await expect(signInButton).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
         await expect(signInButton).toBeEnabled();
 
         // Click should not throw any errors
@@ -177,7 +183,7 @@ test.describe('Clerk Auth Modal', () => {
       const signInButton = page.getByTestId('sign-in-button');
 
       try {
-        await expect(signInButton).toBeVisible({ timeout: 10000 });
+        await expect(signInButton).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
         await expect(signInButton).toBeEnabled();
       } catch (error) {
         console.log(
@@ -193,7 +199,7 @@ test.describe('Clerk Auth Modal', () => {
       // Wait for modal to be visible before testing keyboard interactions
       const modalContent = page.locator('[role="dialog"], .clerk-modal, [data-clerk-modal]');
       try {
-        await expect(modalContent.first()).toBeVisible({ timeout: 5000 });
+        await expect(modalContent.first()).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
       } catch (error) {
         console.log('Modal did not open, skipping keyboard interaction test');
         return;
@@ -205,7 +211,7 @@ test.describe('Clerk Auth Modal', () => {
 
       // Check that modal is closed
       const emailInput = page.locator('input[type="email"]');
-      await expect(emailInput).not.toBeVisible({ timeout: 5000 });
+      await expect(emailInput).not.toBeVisible({ timeout: TIMEOUTS.MEDIUM });
     });
 
     test('should handle auth modal focus management', async ({ page }) => {
@@ -231,7 +237,7 @@ test.describe('Clerk Auth Modal', () => {
       // Wait for modal to be visible before testing focus management
       const modalContent = page.locator('[role="dialog"], .clerk-modal, [data-clerk-modal]');
       try {
-        await expect(modalContent.first()).toBeVisible({ timeout: 5000 });
+        await expect(modalContent.first()).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
       } catch (error) {
         console.log('Modal did not open, skipping focus management test');
         return;

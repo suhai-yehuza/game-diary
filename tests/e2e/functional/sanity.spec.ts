@@ -3,6 +3,7 @@ import { testSignInModal } from '@tests/e2e/utils/auth-modal';
 import { commonTestSetup } from '@tests/e2e/utils/setup';
 import { testHomePage, testSportsPage } from '@tests/e2e/utils/page-tests';
 import { navigateToSection } from '@tests/e2e/utils/navigation';
+import { TIMEOUTS } from '@tests/e2e/utils/test-utils';
 
 // Atomic test functions
 export async function sanityTestHomePage(page: Page) {
@@ -16,7 +17,7 @@ export async function sanityTestSignInModal(page: Page) {
 
 export async function sanityTestSportsPage(page: Page) {
   // Increase timeout for sports page since it includes API calls
-  await testSportsPage(page, '/sports/nba', { timeout: 60000 });
+  await testSportsPage(page, '/sports/nba', { timeout: TIMEOUTS.EXTENDED });
 }
 
 export async function sanityTestBasicNavigation(page: Page) {

@@ -6,6 +6,7 @@ import { navigateToSection } from '@tests/e2e/utils/navigation';
 import { SPORTS_PAGES } from '@tests/e2e/utils/constants';
 import { runSanitySuite } from './sanity.spec';
 import { clearTestData } from '@tests/e2e/utils/test-utils';
+import { TIMEOUTS } from '@tests/e2e/utils/test-utils';
 
 // Utility to detect mobile devices for temporary skipping due to UI layout issues
 const isMobileDevice = (projectName: string): boolean => {
@@ -16,7 +17,7 @@ const isMobileDevice = (projectName: string): boolean => {
 // Atomic smoke-level test functions
 export async function smokeTestAllSportsPages(page: any) {
   // Increase timeout for sports pages since they include API calls
-  await testMultiplePages(page, [...SPORTS_PAGES], { timeout: 60000 });
+  await testMultiplePages(page, [...SPORTS_PAGES], { timeout: TIMEOUTS.EXTENDED });
 }
 
 export async function smokeTestDashboardPage(page: any) {
