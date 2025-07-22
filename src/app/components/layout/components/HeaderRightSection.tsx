@@ -19,7 +19,7 @@ export function HeaderRightSection({ isMenuExpanded }: IHeaderRightSectionProps)
       <div className={`pr-4 flex items-center gap-2 justify-end`}>
         <button
           aria-label="Open search"
-          className="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+          className="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
           onClick={() => {
             setShowSearch(true);
             setIsFocused(true);

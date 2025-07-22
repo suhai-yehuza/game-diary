@@ -1,4 +1,5 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, Page } from '@playwright/test';
+import AxeBuilder from '@axe-core/playwright';
 import {
   waitForNetworkIdle,
   clearTestData,
@@ -6,6 +7,15 @@ import {
   TIMEOUTS,
 } from '@tests/e2e/utils/test-utils';
 import { runInteractivePageTests } from '@tests/e2e/utils/page-suites';
+
+async function checkA11y(page: Page) {
+  const results = await new AxeBuilder({ page }).analyze();
+  const critical = results.violations.filter(v => v.impact === 'critical');
+  if (critical.length > 0) {
+    console.error('Accessibility violations:', critical);
+    throw new Error(`Accessibility check failed: ${critical.length} critical violations`);
+  }
+}
 
 // Helper function to handle mobile-specific interactions
 async function handleMobileSignInButton(page: any) {
@@ -62,6 +72,7 @@ test.describe('Clerk Auth Modal', () => {
 
       // Wait for Clerk to initialize (if it's configured)
       await waitForPageStable(page);
+      await checkA11y(page);
 
       // Find the sign in button using the data-testid we have in the header
       const signInButton = page.getByTestId('sign-in-button');

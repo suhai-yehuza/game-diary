@@ -212,6 +212,9 @@ importers:
         specifier: 3.25.67
         version: 3.25.67
     devDependencies:
+      '@axe-core/playwright':
+        specifier: ^4.10.2
+        version: 4.10.2(playwright-core@1.53.1)
       '@babel/preset-typescript':
         specifier: 7.27.1
         version: 7.27.1(@babel/core@7.28.0)
@@ -602,6 +605,11 @@ packages:
     resolution: {integrity: sha512-ahiA54/NLBq2uPtSa/CNdyTwVZyPKUSdFFd5av60h1bp6HZ6FTsS6VUHMxBJlwPu8AMOXZj4V7AaSV4VxS3hhw==}
     peerDependencies:
       '@upstash/redis': ^1.0.1
+
+  '@axe-core/playwright@4.10.2':
+    resolution: {integrity: sha512-6/b5BJjG6hDaRNtgzLIfKr5DfwyiLHO4+ByTLB0cJgWSM8Ll7KqtdblIS6bEkwSF642/Ex91vNqIl3GLXGlceg==}
+    peerDependencies:
+      playwright-core: '>= 1.0.0'
 
   '@babel/code-frame@7.27.1':
     resolution: {integrity: sha512-cjQ7ZlQ0Mv3b47hABuTevyTuYN4i+loJKGeV9flcCgIK37cCXRh+L1bd3iBHlynerhQ7BhCkn2BPbQUL+rGqFg==}
@@ -7837,6 +7845,11 @@ snapshots:
       - '@simplewebauthn/browser'
       - '@simplewebauthn/server'
       - nodemailer
+
+  '@axe-core/playwright@4.10.2(playwright-core@1.53.1)':
+    dependencies:
+      axe-core: 4.10.3
+      playwright-core: 1.53.1
 
   '@babel/code-frame@7.27.1':
     dependencies:

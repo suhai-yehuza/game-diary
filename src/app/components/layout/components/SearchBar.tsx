@@ -17,6 +17,8 @@ function SearchInput({
   autoFocus = false,
   autoComplete = 'off',
   spellCheck = false,
+  id,
+  ariaLabel,
 }: {
   value: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
@@ -27,6 +29,8 @@ function SearchInput({
   autoFocus?: boolean;
   autoComplete?: string;
   spellCheck?: boolean;
+  id?: string;
+  ariaLabel?: string;
 }) {
   return (
     <div className="relative flex-1">
@@ -42,18 +46,28 @@ function SearchInput({
         autoComplete={autoComplete}
         spellCheck={spellCheck}
         autoFocus={autoFocus}
+        id={id}
+        aria-label={ariaLabel}
       />
     </div>
   );
 }
 
 // Common close button component
-function CloseButton({ onClick, className = '' }: { onClick: () => void; className?: string }) {
+function CloseButton({
+  onClick,
+  className = '',
+  ariaLabel,
+}: {
+  onClick: () => void;
+  className?: string;
+  ariaLabel?: string;
+}) {
   return (
     <button
       type="button"
       className={`text-gray-400 hover:text-gray-600 focus:outline-none ${className}`}
-      aria-label="Close search"
+      aria-label={ariaLabel}
       onMouseDown={e => {
         e.preventDefault();
         onClick();
@@ -221,7 +235,11 @@ function SearchBarContent({
       className={isFocused ? expandedFormClass : baseFormClass}
       tabIndex={-1}
     >
+      <label htmlFor="search-input" className="sr-only">
+        Search
+      </label>
       <SearchInput
+        id="search-input"
         value={search_query}
         onChange={handleSearchChange}
         onFocus={() => setIsFocused(true)}
@@ -229,14 +247,20 @@ function SearchBarContent({
         placeholder={getPlaceholder()}
         className={isFocused ? 'h-11 md:h-11 text-base' : 'h-9 sm:h-11 text-xs sm:text-sm'}
         autoFocus={autoFocus}
+        aria-label="Search"
       />
       {isFocused ? (
-        <CloseButton onClick={() => setIsFocused(false)} className="ml-2" />
+        <CloseButton
+          onClick={() => setIsFocused(false)}
+          className="ml-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          ariaLabel="Close search"
+        />
       ) : (
         search_query && (
           <CloseButton
             onClick={clearSearch}
-            className="absolute right-2 top-1/2 -translate-y-1/2"
+            className="absolute right-2 top-1/2 -translate-y-1/2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            ariaLabel="Clear search"
           />
         )
       )}

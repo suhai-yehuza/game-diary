@@ -1,4 +1,5 @@
 import { Menu, X } from 'lucide-react';
+import React, { useRef, useEffect } from 'react';
 
 import { ClientOnlyNavigationLinks } from '@/app/components/layout/components/navigation/ClientOnlyNavigationLinks';
 import type { INavigationContainerProps } from '@/lib/types';
@@ -11,6 +12,48 @@ export function NavigationContainer({
   isStacked,
   onMenuToggle,
 }: INavigationContainerProps) {
+  const overlayRef = useRef<HTMLDivElement>(null);
+
+  // Focus trap for mobile menu overlay
+  useEffect(() => {
+    if (!isMenuExpanded || !overlayRef.current) return;
+    const overlay = overlayRef.current;
+    const focusableSelectors = [
+      'a[href]',
+      'button:not([disabled])',
+      '[tabindex]:not([tabindex="-1"])',
+      'input:not([type="hidden"])',
+      'select',
+      'textarea',
+    ];
+    const getFocusable = () => overlay.querySelectorAll<HTMLElement>(focusableSelectors.join(','));
+    const focusFirst = () => {
+      const focusables = getFocusable();
+      if (focusables.length) focusables[0].focus();
+    };
+    focusFirst();
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== 'Tab') return;
+      const focusables = Array.from(getFocusable());
+      if (!focusables.length) return;
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      if (e.shiftKey) {
+        if (document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        }
+      } else {
+        if (document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    };
+    overlay.addEventListener('keydown', handleKeyDown);
+    return () => overlay.removeEventListener('keydown', handleKeyDown);
+  }, [isMenuExpanded]);
+
   return (
     <nav className="flex justify-center">
       <div className="flex h-16 items-center relative">
@@ -43,8 +86,13 @@ export function NavigationContainer({
         {/* Navigation Links & Important Items (Mobile Overlay) */}
         {isMenuExpanded && (
           <div
+            ref={overlayRef}
             className="fixed inset-0 z-40 flex flex-col bg-background dark:bg-black/90 lg:hidden"
             data-testid="mobile-menu-overlay"
+            role="dialog"
+            aria-modal="true"
+            tabIndex={-1}
+            autoFocus
           >
             {/* Nav links area, aligned to top, with margin below button */}
             <div className="flex-1 flex flex-col items-center justify-start gap-2 px-4 sm:px-0 mt-16">

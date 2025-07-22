@@ -31,9 +31,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Script id="theme-init" strategy="beforeInteractive" src="/scripts/theme-init.js" />
       </head>
       <body className={`flex min-h-screen flex-col ${inter.className}`}>
+        {/* Skip to main content link for accessibility */}
+        <a href="#main-content" className="skip-link">
+          Skip to main content
+        </a>
         <ClientProviders>
           <HeaderWrapper />
-          <main className="grow">{children}</main>
+          <main id="main-content" className="grow">
+            {children}
+          </main>
           <Footer />
         </ClientProviders>
       </body>

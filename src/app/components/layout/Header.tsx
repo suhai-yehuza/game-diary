@@ -51,12 +51,13 @@ export function Header() {
       >
         {/* Overlay for mobile menu */}
         {isMenuExpanded && (
-          <div
+          <button
+            type="button"
             className="fixed inset-0 z-40 bg-black/30 lg:hidden"
             onClick={handleCloseMenu}
             aria-label="Close menu overlay"
-            role="button"
             tabIndex={0}
+            style={{ border: 'none', background: 'transparent', padding: 0, margin: 0 }}
           />
         )}
         <div className="grid grid-cols-[auto_1fr_auto] h-16 items-center w-full relative z-50">

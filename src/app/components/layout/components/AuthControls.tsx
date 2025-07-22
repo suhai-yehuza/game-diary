@@ -44,7 +44,8 @@ function AuthControlsContent() {
     return (
       <div className="flex items-center">
         <button
-          className="px-4 py-2 bg-blue-800 text-white rounded-md hover:bg-blue-900 transition-colors"
+          className="px-4 py-2 bg-blue-800 text-white rounded-md hover:bg-blue-900 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          aria-label="Sign In (Test)"
           onClick={() => {
             // Mock sign-in for unit tests
             console.log('Mock sign-in clicked');
@@ -74,7 +75,8 @@ function AuthControlsContent() {
           <SignInButton mode="modal">
             <button
               data-testid="sign-in-button"
-              className="px-4 py-2 bg-blue-800 text-white rounded-md hover:bg-blue-900 transition-colors"
+              className="px-4 py-2 bg-blue-800 text-white rounded-md hover:bg-blue-900 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              aria-label="Sign In"
             >
               Sign In
             </button>

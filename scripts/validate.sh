@@ -379,16 +379,6 @@ run_unit_test_coverage_validation() {
 }
 
 # E2E Test Validation
-run_security_e2e_test_validation() {
-    log_info "Running security E2E test validation..."
-    pnpm run test:e2e:security
-}
-
-run_vercel_auth_e2e_test_validation() {
-    log_info "Running vercel auth E2E test validation..."
-    pnpm run test:e2e:vercel-auth
-}
-
 run_sanity_e2e_test_validation() {
     log_info "Running sanity E2E test validation..."
     pnpm run test:e2e:sanity

@@ -21,7 +21,7 @@ export function SportsPageLayout({
           {showLiveGamesButton && (
             <Link
               href="/sports/live"
-              className="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+              className="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
             >
               <div className="w-2 h-2 bg-white rounded-full animate-pulse mr-2" />
               Live Games
@@ -33,7 +33,7 @@ export function SportsPageLayout({
               <Link
                 key={button.name}
                 href={button.href}
-                className={`inline-flex items-center px-4 py-2 ${button.color} text-white rounded-md hover:opacity-90 transition-colors`}
+                className={`inline-flex items-center px-4 py-2 ${button.color} text-white rounded-md hover:opacity-90 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2`}
               >
                 {button.name}
               </Link>

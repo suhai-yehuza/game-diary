@@ -140,7 +140,7 @@ export function Footer() {
               <li>
                 <a
                   href="#api"
-                  className={`hover:text-blue-600 transition-colors block py-0.5 ${isDark ? 'text-gray-900' : 'text-gray-100'}`}
+                  className={`hover:text-blue-600 transition-colors block py-0.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${isDark ? 'text-gray-900' : 'text-gray-100'}`}
                 >
                   API
                 </a>
@@ -148,7 +148,7 @@ export function Footer() {
               <li>
                 <a
                   href="#contact"
-                  className={`hover:text-blue-600 transition-colors block py-0.5 ${isDark ? 'text-gray-900' : 'text-gray-100'}`}
+                  className={`hover:text-blue-600 transition-colors block py-0.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${isDark ? 'text-gray-900' : 'text-gray-100'}`}
                 >
                   Contact Us
                 </a>
@@ -167,7 +167,7 @@ export function Footer() {
               <li>
                 <a
                   href="#twitter"
-                  className={`hover:text-blue-600 transition-colors block py-0.5 ${isDark ? 'text-gray-900' : 'text-gray-100'}`}
+                  className={`hover:text-blue-600 transition-colors block py-0.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${isDark ? 'text-gray-900' : 'text-gray-100'}`}
                 >
                   Twitter
                 </a>
@@ -175,7 +175,7 @@ export function Footer() {
               <li>
                 <a
                   href="#github"
-                  className={`hover:text-blue-600 transition-colors block py-0.5 ${isDark ? 'text-gray-900' : 'text-gray-100'}`}
+                  className={`hover:text-blue-600 transition-colors block py-0.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${isDark ? 'text-gray-900' : 'text-gray-100'}`}
                 >
                   GitHub
                 </a>

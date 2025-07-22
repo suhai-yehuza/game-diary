@@ -81,6 +81,7 @@ export function NavigationLinks({
           isStacked={isStacked}
           colorClass={colorClass}
           closeMenu={closeMenu}
+          aria-current={isActive(href) ? 'page' : undefined}
         >
           {label}
         </NavItem>

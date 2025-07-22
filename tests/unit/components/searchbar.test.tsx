@@ -24,7 +24,7 @@ describe('SearchBar', () => {
     fireEvent.change(input, { target: { value: 'clear me' } });
     expect(input).toHaveValue('clear me');
     // Show clear button
-    const clearBtn = screen.getByRole('button', { name: /close search/i });
+    const clearBtn = screen.getByRole('button', { name: /clear search/i });
     fireEvent.mouseDown(clearBtn);
     expect(input).toHaveValue('');
   });

@@ -1,9 +1,19 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, Page } from '@playwright/test';
+import AxeBuilder from '@axe-core/playwright';
 import {
   runComprehensivePageTests,
   waitForNetworkIdle,
   clearTestData,
 } from '@tests/e2e/utils/page-suites';
+
+async function checkA11y(page: Page) {
+  const results = await new AxeBuilder({ page }).analyze();
+  const critical = results.violations.filter(v => v.impact === 'critical');
+  if (critical.length > 0) {
+    console.error('Accessibility violations:', critical);
+    throw new Error(`Accessibility check failed: ${critical.length} critical violations`);
+  }
+}
 
 test.describe.configure({ retries: 2 }); // TEMP: Retry flaky tests while stabilizing
 
@@ -21,6 +31,11 @@ test.describe('Dashboard', () => {
       await page.addStyleTag({
         content: '* { transition: none !important; animation: none !important; }',
       });
+    });
+
+    test('dashboard is accessible', async ({ page }) => {
+      await page.goto('/protected/user');
+      await checkA11y(page);
     });
 
     test('should display user profile information', async ({ page }) => {

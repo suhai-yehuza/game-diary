@@ -1,4 +1,5 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, Page } from '@playwright/test';
+import AxeBuilder from '@axe-core/playwright';
 import {
   waitForNetworkIdle,
   clearTestData,
@@ -7,6 +8,15 @@ import {
 } from '@tests/e2e/utils/test-utils';
 import { runComprehensivePageTests } from '@tests/e2e/utils/page-suites';
 import { openMobileMenu } from '@tests/e2e/utils/navigation';
+
+async function checkA11y(page: Page) {
+  const results = await new AxeBuilder({ page }).analyze();
+  const critical = results.violations.filter(v => v.impact === 'critical');
+  if (critical.length > 0) {
+    console.error('Accessibility violations:', critical);
+    throw new Error(`Accessibility check failed: ${critical.length} critical violations`);
+  }
+}
 
 const sportsPages = [
   { path: '/sports/nba', name: 'NBA', league: 'basketball' },

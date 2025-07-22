@@ -55,9 +55,11 @@ function AdminNavE2E({ isActive }: { isActive: (path: string) => boolean }) {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <button
-          className={`flex items-center space-x-1 text-base lg:text-sm transition-colors whitespace-nowrap ${
+          className={`flex items-center space-x-1 text-base lg:text-sm transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
             isAdminActive ? 'text-blue-600 font-semibold' : 'hover:text-blue-600'
           }`}
+          aria-haspopup="menu"
+          aria-expanded={isAdminActive}
         >
           <span>Admin</span>
           <ChevronDown className="h-4 w-4" />
@@ -65,17 +67,29 @@ function AdminNavE2E({ isActive }: { isActive: (path: string) => boolean }) {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-48">
         <DropdownMenuItem asChild>
-          <Link href="/protected/admin/database" className="cursor-pointer">
+          <Link
+            href="/protected/admin/database"
+            className="cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            role="menuitem"
+          >
             Database Management
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
-          <Link href="/protected/admin/audit-logs" className="cursor-pointer">
+          <Link
+            href="/protected/admin/audit-logs"
+            className="cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            role="menuitem"
+          >
             Audit Logs
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
-          <Link href="/protected/admin/experimental" className="cursor-pointer">
+          <Link
+            href="/protected/admin/experimental"
+            className="cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            role="menuitem"
+          >
             Experimental
           </Link>
         </DropdownMenuItem>
@@ -91,9 +105,11 @@ function AdminNavContent({ isActive }: { isActive: (path: string) => boolean }) 
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <button
-          className={`flex items-center space-x-1 text-base lg:text-sm transition-colors whitespace-nowrap ${
+          className={`flex items-center space-x-1 text-base lg:text-sm transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
             isAdminActive ? 'text-blue-600 font-semibold' : 'hover:text-blue-600'
           }`}
+          aria-haspopup="menu"
+          aria-expanded={isAdminActive}
         >
           <span>Admin</span>
           <ChevronDown className="h-4 w-4" />
@@ -101,17 +117,29 @@ function AdminNavContent({ isActive }: { isActive: (path: string) => boolean }) 
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-48">
         <DropdownMenuItem asChild>
-          <Link href="/protected/admin/database" className="cursor-pointer">
+          <Link
+            href="/protected/admin/database"
+            className="cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            role="menuitem"
+          >
             Database Management
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
-          <Link href="/protected/admin/audit-logs" className="cursor-pointer">
+          <Link
+            href="/protected/admin/audit-logs"
+            className="cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            role="menuitem"
+          >
             Audit Logs
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
-          <Link href="/protected/admin/experimental" className="cursor-pointer">
+          <Link
+            href="/protected/admin/experimental"
+            className="cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            role="menuitem"
+          >
             Experimental
           </Link>
         </DropdownMenuItem>
@@ -153,6 +181,8 @@ function AdminNavWithAuthSafe({
           <DropdownMenuTrigger asChild>
             <button
               className={`w-[90vw] sm:w-[70vw] md:w-[400px] max-w-xs h-10 flex items-center justify-center text-sm whitespace-nowrap rounded font-semibold transition-all duration-150 bg-blue-500 text-white shadow-sm mb-3 mx-auto hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400`}
+              aria-haspopup="menu"
+              aria-expanded={isAdmin}
             >
               <span>Admin</span>
               <ChevronDown className="h-4 w-4 ml-2" />
@@ -160,17 +190,29 @@ function AdminNavWithAuthSafe({
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48">
             <DropdownMenuItem asChild>
-              <Link href="/protected/admin/database" className="cursor-pointer">
+              <Link
+                href="/protected/admin/database"
+                className="cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                role="menuitem"
+              >
                 Database Management
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
-              <Link href="/protected/admin/audit-logs" className="cursor-pointer">
+              <Link
+                href="/protected/admin/audit-logs"
+                className="cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                role="menuitem"
+              >
                 Audit Logs
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
-              <Link href="/protected/admin/experimental" className="cursor-pointer">
+              <Link
+                href="/protected/admin/experimental"
+                className="cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                role="menuitem"
+              >
                 Experimental
               </Link>
             </DropdownMenuItem>

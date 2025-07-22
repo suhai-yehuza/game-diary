@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, Page } from '@playwright/test';
 import {
   safeGoto,
   waitForPageLoad,
@@ -10,6 +10,7 @@ import {
 } from '@tests/e2e/utils/test-utils';
 import { testSignInModal, testProtectedRoutes } from '@tests/e2e/utils/auth-modal';
 import { runCriticalSuite } from './critical.spec';
+import AxeBuilder from '@axe-core/playwright';
 
 test.beforeEach(async ({ page }) => {
   await clearTestData(page); // Test data isolation: clear storage and cookies
@@ -29,6 +30,7 @@ export async function navigationTestSportsPagesNavigation(page: any) {
   for (const sportsPage of sportsPages) {
     await safeGoto(page, sportsPage);
     await waitForPageLoad(page);
+    await checkA11y(page);
     await checkBasicPageStructure(page);
     await checkPageTitle(page);
     await expect(page).toHaveURL(sportsPage);
@@ -39,6 +41,7 @@ export async function navigationTestSportsPagesNavigation(page: any) {
 export async function navigationTestDashboardNavigation(page: any) {
   await safeGoto(page, '/');
   await waitForPageLoad(page);
+  await checkA11y(page);
   await checkBasicPageStructure(page);
   await checkPageTitle(page);
   await expect(page).toHaveURL('/');
@@ -96,6 +99,18 @@ async function revealNavLinksIfMobile(page: any) {
   }
 }
 
+// Helper to run accessibility checks
+async function checkA11y(page: Page) {
+  const accessibilityScanResults = await new AxeBuilder({ page }).analyze();
+  const criticalViolations = accessibilityScanResults.violations.filter(
+    v => v.impact === 'critical'
+  );
+  if (criticalViolations.length > 0) {
+    console.error('Accessibility violations:', criticalViolations);
+    throw new Error(`Accessibility check failed: ${criticalViolations.length} critical violations`);
+  }
+}
+
 export async function navigationTestLinkNavigation(page: any) {
   await revealNavLinksIfMobile(page);
   const sportsLinks = page.locator(
@@ -121,6 +136,7 @@ export async function navigationTestLinkNavigation(page: any) {
         foundVisible = true;
         await sportsLinks.nth(i).click();
         await waitForNetworkIdle(page);
+        await checkA11y(page);
         await expect(page).toHaveURL(/\/sports/);
         await expect(page.locator('main')).toBeVisible();
         console.log('Clicked sports link:', await sportsLinks.nth(i).getAttribute('href'));
@@ -137,6 +153,7 @@ export async function navigationTestLinkNavigation(page: any) {
     if (await allSportsLink.isVisible({ timeout: TIMEOUTS.SHORT }).catch(() => false)) {
       await allSportsLink.click();
       await waitForNetworkIdle(page);
+      await checkA11y(page);
       await expect(page).toHaveURL('/sports/all-sports');
       await expect(page.locator('main')).toBeVisible();
       console.log('Clicked All Sports link');
@@ -145,6 +162,7 @@ export async function navigationTestLinkNavigation(page: any) {
     if (await liveGamesLink.isVisible({ timeout: TIMEOUTS.SHORT }).catch(() => false)) {
       await liveGamesLink.click();
       await waitForNetworkIdle(page);
+      await checkA11y(page);
       await expect(page).toHaveURL('/sports/live');
       await expect(page.locator('main')).toBeVisible();
       console.log('Clicked Live Games link');
@@ -159,6 +177,7 @@ export async function navigationTestLinkNavigation(page: any) {
     if (sportsCount > 0) {
       await sportsLinks.first().click();
       await waitForNetworkIdle(page);
+      await checkA11y(page);
       await expect(page).toHaveURL(/\/sports/);
       await expect(page.locator('main')).toBeVisible();
       console.log('Clicked sports link:', await sportsLinks.first().getAttribute('href'));

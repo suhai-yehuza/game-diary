@@ -44,7 +44,7 @@
     "test:strict": "vitest run --reporter=verbose --coverage",
     "test:unit": "vitest run tests/unit --reporter=verbose --coverage",
     "test:unit:json": "vitest run --reporter=json --coverage",
-    "coverage:validate": "pnpm test:unit && pnpm test:integration && pnpm test:e2e:mock-verification && pnpm test:e2e:sanity && pnpm test:e2e:securities && pnpm test:e2e:search",
+    "coverage:validate": "pnpm test:unit && pnpm test:integration && pnpm test:e2e:mock-verification && pnpm test:e2e:sanity && pnpm test:e2e:security && pnpm test:e2e:search",
     "test:all": "pnpm test:coverage && pnpm test:e2e:sanity",
     "test:all:strict": "pnpm test:strict && pnpm test:e2e:sanity",
     "=====E2E Testing=====": "=====+=====+=====+=====+=====",
@@ -54,8 +54,7 @@
     "test:e2e:sanity": "E2E_MOCK_MODE=true playwright test tests/e2e/functional/sanity.spec.ts",
     "test:e2e:smoke": "E2E_MOCK_MODE=true playwright test tests/e2e/functional/smoke.spec.ts",
     "test:e2e:critical": "E2E_MOCK_MODE=true playwright test tests/e2e/functional/critical.spec.ts",
-    "test:e2e:security": "E2E_MOCK_MODE=true playwright test tests/e2e/functional/security.spec.ts",
-    "test:e2e:securities": "pnpm test:e2e:security && pnpm test:e2e:vercel-auth && pnpm test:e2e:auth-protection && pnpm test:e2e:clerk-auth && pnpm test:webhook && pnpm test:sso",
+    "test:e2e:security": "pnpm test:e2e:vercel-auth && pnpm test:e2e:auth-protection && pnpm test:e2e:clerk-auth && pnpm test:webhook && pnpm test:sso",
     "test:e2e:vercel-auth": "E2E_MOCK_MODE=true playwright test tests/e2e/functional/vercel-auth-test.spec.ts",
     "test:e2e:navigation": "E2E_MOCK_MODE=true playwright test tests/e2e/functional/navigation.spec.ts",
     "test:e2e:responsive": "E2E_MOCK_MODE=true playwright test tests/e2e/functional/responsive.spec.ts",
@@ -310,6 +309,7 @@
     "zod": "3.25.67"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.10.2",
     "@babel/preset-typescript": "7.27.1",
     "@eslint/js": "9.29.0",
     "@faker-js/faker": "9.9.0",
