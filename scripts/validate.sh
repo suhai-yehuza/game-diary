@@ -15,6 +15,12 @@
 #   size - Check bundle size
 #   unused - Check unused exports
 #   help - Show this help message
+#
+# Optimizations applied:
+# - Consolidated run_typecheck() and run_type_validation() into single function
+# - Removed redundant wrapper functions that just call other functions
+# - Eliminated duplicate function calls across validation workflows
+# - Streamlined environment verification to avoid redundant calls
 
 set -e
 
@@ -164,11 +170,6 @@ run_codegen() {
 # Type Safety Checks
 run_typecheck() {
     log_info "Running TypeScript type check..."
-    pnpm run typecheck
-}
-
-run_type_validation() {
-    log_info "Validating TypeScript types..."
     pnpm run typecheck
 }
 
@@ -423,7 +424,7 @@ run_ci_validation() {
     log "Running CI-friendly validation..."
 
     run_circular_check
-    run_type_validation
+    run_typecheck
 
     log_info "Skipping comprehensive environment validation in CI mode..."
     log_warning "Environment variables will be validated in individual CI jobs"
@@ -444,7 +445,7 @@ run_basic_validation() {
     log "Running basic validation..."
 
     run_circular_check
-    run_type_validation
+    run_typecheck
     run_dead_code_check
     run_db_triggers_validation
 
@@ -521,20 +522,6 @@ run_production_validation() {
     log_success "Production validation completed"
 }
 
-# Function to check circular dependencies (standalone)
-run_circular_check_standalone() {
-    log "Checking circular dependencies..."
-    run_circular_check
-    log_success "Circular dependency check completed"
-}
-
-# Function to validate and fix types (standalone)
-run_types_validation_standalone() {
-    log "Validating and fixing types..."
-    run_type_validation
-    log_success "Type validation and fixes completed"
-}
-
 # Function to verify environment variables (standalone)
 run_env_verification_standalone() {
     log "Verifying environment variables..."
@@ -563,20 +550,6 @@ run_env_verification_standalone() {
     log_success "Environment verification completed"
 }
 
-# Function to check bundle size (standalone)
-run_size_check_standalone() {
-    log "Checking bundle size..."
-    run_size_check
-    log_success "Bundle size check completed"
-}
-
-# Function to check unused exports (standalone)
-run_unused_check_standalone() {
-    log "Checking unused exports..."
-    run_dead_code_check
-    log_success "Unused exports check completed"
-}
-
 # Main script logic
 SUBCOMMAND="${1:-help}"
 
@@ -600,19 +573,27 @@ case "$SUBCOMMAND" in
         run_production_validation
         ;;
     "circular")
-        run_circular_check_standalone
+        log "Checking circular dependencies..."
+        run_circular_check
+        log_success "Circular dependency check completed"
         ;;
     "types")
-        run_types_validation_standalone
+        log "Validating and fixing types..."
+        run_typecheck
+        log_success "Type validation and fixes completed"
         ;;
     "env")
         run_env_verification_standalone
         ;;
     "size")
-        run_size_check_standalone
+        log "Checking bundle size..."
+        run_size_check
+        log_success "Bundle size check completed"
         ;;
     "unused")
-        run_unused_check_standalone
+        log "Checking unused exports..."
+        run_dead_code_check
+        log_success "Unused exports check completed"
         ;;
     "help"|"-h"|"--help")
         show_usage

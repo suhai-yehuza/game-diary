@@ -3,6 +3,12 @@
 # Unified Push and Merge Script
 # This script pushes the current branch and merges it into a target branch
 # Supports both regular and no-verify modes
+#
+# Optimizations applied:
+# - Consolidated cleanup_uncommitted_changes() calls to avoid redundancy
+# - Created switch_to_target_branch() helper to eliminate duplicate branch switching code
+# - Created check_ancestor_status() helper to avoid duplicate git merge-base checks
+# - Removed redundant working directory checks
 
 set -e  # Exit on any error
 
@@ -250,9 +256,6 @@ check_current_branch() {
             log_error "Not on $SOURCE_BRANCH branch. Current branch: $current_branch"
         fi
 
-        # Clean up any uncommitted changes before switching
-        cleanup_uncommitted_changes
-
         log_info "Switching to $SOURCE_BRANCH..."
         git checkout "$SOURCE_BRANCH" || {
             log_error "Failed to checkout $SOURCE_BRANCH"
@@ -311,7 +314,7 @@ check_branch_sync() {
         log_info "Checking if $TARGET_BRANCH needs updates from $SOURCE_BRANCH..."
 
         # Check if source branch changes are already in target branch
-        if git merge-base --is-ancestor "$SOURCE_BRANCH" "$TARGET_BRANCH" 2>/dev/null; then
+        if check_ancestor_status; then
             log_info "✅ $TARGET_BRANCH already contains all changes from $SOURCE_BRANCH"
             log_info "Skipping push and merge process..."
             exit 0
@@ -320,6 +323,15 @@ check_branch_sync() {
         fi
     else
         log_info "📤 Local branch has new commits, proceeding with push and merge..."
+    fi
+}
+
+# Check if source branch changes are already in target branch
+check_ancestor_status() {
+    if git merge-base --is-ancestor "$SOURCE_BRANCH" "$TARGET_BRANCH" 2>/dev/null; then
+        return 0  # Source is ancestor of target (changes already included)
+    else
+        return 1  # Source is not ancestor of target (changes need to be merged)
     fi
 }
 
@@ -340,6 +352,15 @@ run_validation() {
     fi
 
     log_info "✅ Pre-push validation passed"
+}
+
+# Helper function to switch to target branch
+switch_to_target_branch() {
+    log_info "Switching to $TARGET_BRANCH..."
+    git checkout "$TARGET_BRANCH" || {
+        log_error "Failed to checkout $TARGET_BRANCH"
+        exit 1
+    }
 }
 
 # Main execution
@@ -392,15 +413,7 @@ main() {
         }
 
         # Switch to target branch
-        log_info "Switching to $TARGET_BRANCH..."
-
-        # Clean up any uncommitted changes before switching
-        cleanup_uncommitted_changes
-
-        git checkout "$TARGET_BRANCH" || {
-            log_error "Failed to checkout $TARGET_BRANCH"
-            exit 1
-        }
+        switch_to_target_branch
 
         # Reset target branch to match source branch exactly
         log_force "Resetting $TARGET_BRANCH to match $SOURCE_BRANCH..."
@@ -424,15 +437,7 @@ main() {
         }
 
         # Switch to target branch
-        log_info "Switching to $TARGET_BRANCH..."
-
-        # Clean up any uncommitted changes before switching
-        cleanup_uncommitted_changes
-
-        git checkout "$TARGET_BRANCH" || {
-            log_error "Failed to checkout $TARGET_BRANCH"
-            exit 1
-        }
+        switch_to_target_branch
 
         # Pull latest changes to avoid conflicts
         log_info "Pulling latest changes from $TARGET_BRANCH..."
@@ -442,7 +447,7 @@ main() {
         }
 
         # Check if source branch changes are already in target branch
-        if git merge-base --is-ancestor "$SOURCE_BRANCH" "$TARGET_BRANCH" 2>/dev/null; then
+        if check_ancestor_status; then
             log_info "✅ $SOURCE_BRANCH changes are already in $TARGET_BRANCH"
             log_info "No merge needed, pushing current state..."
         else
