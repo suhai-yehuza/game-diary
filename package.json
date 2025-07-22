@@ -79,6 +79,7 @@
     "open:test:report": "pnpm exec playwright show-report",
     "=====Integration Testing=====": "=====+=====+=====+=====+=====",
     "test:integration": "./scripts/integration.sh",
+    "test:integration:direct": "vitest run --config vitest.integration.config.ts",
     "=====Validation=====": "=====+=====+=====+=====+=====",
     "validate:ci": "pnpm lint && pnpm typecheck && pnpm test:unit && pnpm db:triggers && pnpm db:test:all-triggers",
     "validate:predeploy": "pnpm validate:ci && pnpm db:triggers && pnpm test:e2e:critical",

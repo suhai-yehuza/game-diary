@@ -61,4 +61,4 @@ cleanup() {
 trap cleanup EXIT
 
 # Run integration tests
-pnpm vitest run tests/integration
+pnpm vitest run --config vitest.integration.config.ts
