@@ -107,6 +107,16 @@ test.describe('Search Functionality', () => {
       await safeGotoWithMocking(page, '/sports/nba');
       await page.waitForLoadState('networkidle');
 
+      // On mobile, first look for the search icon button
+      const searchButton = page.locator('button[aria-label="Open search"]');
+      await expect(searchButton).toBeVisible();
+      await expect(searchButton).toBeEnabled();
+
+      // Click the search button to open the search input
+      await searchButton.click();
+      await page.waitForLoadState('domcontentloaded');
+
+      // Now the search input should be visible
       const searchInput = page.locator('input[type="search"], input[placeholder*="search"]');
       await expect(searchInput.first()).toBeVisible();
       await expect(searchInput.first()).toBeEnabled();
@@ -131,10 +141,29 @@ test.describe('Search Functionality', () => {
         await safeGotoWithMocking(page, testPage.path);
         await page.waitForLoadState('networkidle');
 
-        const searchInput = page.locator('input[type="search"], input[placeholder*="search"]');
+        // Check if we're on mobile by looking for the search button
+        const searchButton = page.locator('button[aria-label="Open search"]');
+        const isMobile = await searchButton.isVisible().catch(() => false);
 
-        await expect(searchInput.first()).toBeVisible();
-        await expect(searchInput.first()).toBeEnabled();
+        if (isMobile) {
+          // On mobile, verify the search button is visible and clickable
+          await expect(searchButton).toBeVisible();
+          await expect(searchButton).toBeEnabled();
+
+          // Click the search button to open the search input
+          await searchButton.click();
+          await page.waitForLoadState('domcontentloaded');
+
+          // Now verify the search input is visible
+          const searchInput = page.locator('input[type="search"], input[placeholder*="search"]');
+          await expect(searchInput.first()).toBeVisible();
+          await expect(searchInput.first()).toBeEnabled();
+        } else {
+          // On desktop, the search input should be visible by default
+          const searchInput = page.locator('input[type="search"], input[placeholder*="search"]');
+          await expect(searchInput.first()).toBeVisible();
+          await expect(searchInput.first()).toBeEnabled();
+        }
       });
     }
   });

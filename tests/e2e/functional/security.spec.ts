@@ -3,8 +3,6 @@ import { test, expect } from '@playwright/test';
 import { setupTestDatabase, cleanupTestDatabase } from '@tests/e2e/utils/test-database';
 import { createTestUser, loginAsUser } from '@tests/e2e/utils/auth-helpers';
 
-// This file now only contains true E2E (UI/user flow) tests. All pure API/integration tests have been moved to tests/integration/security.integration.test.ts.
-
 test.describe.skip('Security E2E (skipped: auth bypass not picked up in E2E env)', () => {
   test.beforeAll(async () => {
     await setupTestDatabase();
