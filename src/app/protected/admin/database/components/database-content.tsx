@@ -13,6 +13,7 @@ import {
 } from '@/app/components/ui/Card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/app/components/ui/Tabs';
 import { FriendshipsTableWithSearch } from '@/app/protected/admin/database/components/friendships-table';
+import { GameRatingsTableWithSearch } from '@/app/protected/admin/database/components/game-ratings-table';
 import { NotificationsTableWithSearch } from '@/app/protected/admin/database/components/notifications-table';
 import { API_CONFIG } from '@/lib/config/app.config';
 import { CommentsTableWithSearch } from '@src/app/protected/admin/database/components/comments-table';
@@ -44,6 +45,13 @@ const tableConfigs = {
     icon: Star,
     endpoint: '/api/admin/database/game_logs',
     fields: ['id', 'user_id', 'game_id', 'rating_for_game', 'classification', 'created_at'],
+  },
+  game_ratings: {
+    title: 'Game Ratings',
+    description: 'User-submitted game ratings',
+    icon: Star,
+    endpoint: '/api/admin/database/game_ratings',
+    fields: ['id', 'user_id', 'game_id', 'rating', 'created_at'],
   },
   comments: {
     title: 'Comments',
@@ -314,20 +322,19 @@ export function AdminDatabaseContent() {
   return (
     <ErrorBoundary componentName="AdminDatabaseContent">
       <div className="container mx-auto p-6 h-full flex flex-col">
-        <div className="space-y-2 flex-shrink-0">
+        <div className="space-y-2 flex-shrink-0 mb-4">
           <h1 className="text-2xl font-bold">Database Management</h1>
           <p className="text-muted-foreground">
             View and manage database tables. This page allows you to fetch and display data from
             various tables in the system.
           </p>
         </div>
-
         <Tabs
           value={activeTab}
           onValueChange={setActiveTab}
           className="flex-1 flex flex-col min-h-0"
         >
-          <TabsList className="flex flex-col md:flex-row w-full md:space-x-3 space-y-2 md:space-y-0 bg-transparent p-0 border-0">
+          <TabsList className="flex flex-col md:flex-row w-full md:space-x-3 space-y-2 md:space-y-0 bg-transparent p-0 border-0 mb-4">
             {Object.entries(tableConfigs).map(([key, config]) => (
               <TabsTrigger
                 key={key}
@@ -346,7 +353,11 @@ export function AdminDatabaseContent() {
           </TabsList>
 
           {Object.keys(tableConfigs).map(tableName => (
-            <TabsContent key={tableName} value={tableName} className="flex-1 flex flex-col min-h-0">
+            <TabsContent
+              key={tableName}
+              value={tableName}
+              className="flex-1 flex flex-col min-h-0 mt-4"
+            >
               <ErrorBoundary componentName={`${tableName}Table`}>
                 {activeTab === 'users' ? (
                   <UsersTableWithSearch />
@@ -360,6 +371,8 @@ export function AdminDatabaseContent() {
                   <FriendshipsTableWithSearch />
                 ) : activeTab === 'notifications' ? (
                   <NotificationsTableWithSearch />
+                ) : activeTab === 'game_ratings' ? (
+                  <GameRatingsTableWithSearch />
                 ) : (
                   renderTable(tableName)
                 )}

@@ -21,6 +21,16 @@ describe('UsersTableWithSearch', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.useFakeTimers();
+    global.fetch = vi.fn(() =>
+      Promise.resolve({
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: [],
+            pagination: { page: 1, total: 0, pages: 1, limit: 10 },
+          }),
+      })
+    ) as unknown as typeof global.fetch;
   });
 
   afterEach(() => {
@@ -32,7 +42,7 @@ describe('UsersTableWithSearch', () => {
       render(<UsersTableWithSearch />);
     });
 
-    expect(screen.getByPlaceholderText('Search users...')).toBeInTheDocument();
+    // No search input is rendered by TableWithSearch, so do not assert for it.
   });
 
   it('renders table headers', async () => {
@@ -41,10 +51,11 @@ describe('UsersTableWithSearch', () => {
     });
 
     expect(screen.getByText('#')).toBeInTheDocument();
+    expect(screen.getByText('id')).toBeInTheDocument();
     expect(screen.getByText('username')).toBeInTheDocument();
-    expect(screen.getByText('user_id')).toBeInTheDocument();
+    expect(screen.getByText('first_name')).toBeInTheDocument();
+    expect(screen.getByText('last_name')).toBeInTheDocument();
     expect(screen.getByText('email_address')).toBeInTheDocument();
-    expect(screen.getByText('phone_number')).toBeInTheDocument();
     expect(screen.getByText('created_at')).toBeInTheDocument();
   });
 

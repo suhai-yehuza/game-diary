@@ -159,3 +159,29 @@ export interface IBadgeProps {
 export interface IClerkProviderWrapperProps {
   children: React.ReactNode;
 }
+
+export interface TableWithSearchProps {
+  endpoint: string;
+  columns: ColumnConfig<any>[];
+  itemLabel: string;
+  tableName: string;
+}
+
+export interface ApiResponse<T> {
+  success: boolean;
+  data?: T[];
+  error?: string;
+  pagination?: {
+    page: number;
+    limit: number;
+    total: number;
+    pages: number;
+  };
+}
+
+export type ColumnConfig<T> = {
+  key: string;
+  label: string;
+  sortable?: boolean;
+  render?: (row: T) => React.ReactNode;
+};
