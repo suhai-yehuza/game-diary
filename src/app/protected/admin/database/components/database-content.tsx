@@ -13,6 +13,7 @@ import {
 } from '@/app/components/ui/Card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/app/components/ui/Tabs';
 import { API_CONFIG } from '@/lib/config/app.config';
+import { CommentsTableWithSearch } from '@src/app/protected/admin/database/components/comments-table';
 import { GameLogsTableWithSearch } from '@src/app/protected/admin/database/components/game-logs-table';
 import { ErrorBoundary } from '@src/app/protected/admin/database/components/ui';
 import { Badge } from '@src/app/protected/admin/database/components/ui/badge';
@@ -341,6 +342,8 @@ export function AdminDatabaseContent() {
                   <UsersTableWithSearch />
                 ) : activeTab === 'game_logs' ? (
                   <GameLogsTableWithSearch />
+                ) : activeTab === 'comments' ? (
+                  <CommentsTableWithSearch />
                 ) : (
                   renderTable(tableName)
                 )}
