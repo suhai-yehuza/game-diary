@@ -5,6 +5,7 @@ on:
     branches-ignore:
       - master
       - staging
+      - temp-deploy
   workflow_call:
     inputs:
       workflow-name:
