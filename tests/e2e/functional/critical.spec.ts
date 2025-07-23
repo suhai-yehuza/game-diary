@@ -51,6 +51,12 @@ export async function criticalTestAuthenticationFlow(page: any) {
   // If E2E auth bypass is enabled, check for user-button instead of sign-in-button
   const isAuthBypass = process.env.E2E_AUTH_BYPASS === 'true';
   if (isAuthBypass) {
+    // Log cookies and localStorage for E2E debug
+    await page.waitForTimeout(1000); // Wait for cookies to propagate
+    const cookies = await page.context().cookies();
+    const localStorage = await page.evaluate(() => JSON.stringify(window.localStorage));
+    console.log('[E2E DEBUG] Cookies:', cookies);
+    console.log('[E2E DEBUG] LocalStorage:', localStorage);
     const userButton = page.getByTestId('user-button');
     await expect(userButton).toBeVisible({ timeout: TIMEOUTS.LONG });
     return;

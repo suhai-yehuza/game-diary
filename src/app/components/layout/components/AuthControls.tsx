@@ -28,6 +28,23 @@ function AuthControlsContent() {
     setMounted(true);
   }, []);
 
+  // Add E2E debug logging
+  useEffect(() => {
+    if (typeof window !== 'undefined' && process.env.NODE_ENV === 'test') {
+      // Try to log Clerk user state if available
+      try {
+        const win = window as Window & { Clerk?: any };
+        if (win.Clerk?.user) {
+          console.log('[E2E DEBUG] Clerk user:', win.Clerk.user);
+        } else {
+          console.log('[E2E DEBUG] Clerk user not found');
+        }
+      } catch (e) {
+        console.log('[E2E DEBUG] Clerk user logging error:', e);
+      }
+    }
+  }, []);
+
   // During SSR and initial client render, render a consistent placeholder
   if (!mounted) {
     return (
