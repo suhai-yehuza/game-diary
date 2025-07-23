@@ -33,9 +33,15 @@ function AuthControlsContent() {
     if (typeof window !== 'undefined' && process.env.NODE_ENV === 'test') {
       // Try to log Clerk user state if available
       try {
-        const win = window as Window & { Clerk?: any };
-        if (win.Clerk?.user) {
-          console.log('[E2E DEBUG] Clerk user:', win.Clerk.user);
+        const win = window as Window & { Clerk?: unknown };
+        const maybeClerk = win.Clerk;
+        if (
+          maybeClerk &&
+          typeof maybeClerk === 'object' &&
+          'user' in maybeClerk &&
+          typeof (maybeClerk as { user?: unknown }).user === 'object'
+        ) {
+          console.log('[E2E DEBUG] Clerk user:', (maybeClerk as { user: unknown }).user);
         } else {
           console.log('[E2E DEBUG] Clerk user not found');
         }

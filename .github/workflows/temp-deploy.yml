@@ -53,8 +53,8 @@ jobs:
           echo "Deployment URL: $DEPLOYMENT_URL"
           echo "url=$DEPLOYMENT_URL" >> $GITHUB_OUTPUT
 
-  e2e-post-deploy:
-    name: E2E Post-Deploy (Optional)
+  e2e-smoke:
+    name: E2E Smoke Tests
     needs: [deploy]
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -72,7 +72,7 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Setup Playwright browsers
         run: pnpm exec playwright install --with-deps
-      - name: Run Post-Deploy E2E
+      - name: Run Smoke E2E
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
@@ -86,24 +86,79 @@ jobs:
           E2E_MOCK_MODE: 'true'
           API_MOCK_MODE: 'true'
         run: |
-          echo "Running post-deploy E2E tests..."
+          echo "Running smoke E2E tests..."
           pnpm exec playwright test tests/e2e/functional/smoke.spec.ts --workers=2 --reporter=line
-          pnpm exec playwright test tests/e2e/functional/navigation.spec.ts --workers=2 --reporter=line
-      - name: Upload Playwright test results
+      - name: Upload Playwright test results (smoke)
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-test-results
+          name: playwright-test-results-smoke
           path: |
             test-results/
             playwright-report/
             coverage/
           retention-days: 7
-      - name: Upload Deployment Artifacts
+      - name: Upload Deployment Artifacts (smoke)
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: deployment-artifacts
+          name: deployment-artifacts-smoke
+          path: |
+            test-results/
+            playwright-report/
+            coverage/
+          retention-days: 7
+
+  e2e-navigation:
+    name: E2E Navigation Tests
+    needs: [deploy]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: Production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: '10'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Setup Playwright browsers
+        run: pnpm exec playwright install --with-deps
+      - name: Run Navigation E2E
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+          CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
+          DEPLOYMENT_URL: ${{ needs.deploy.outputs.deployment-url }}
+          E2E_AUTH_BYPASS: 'true'
+          TEST_USER_EMAIL: 'test@game-diary.com'
+          TEST_USER_ID: 'test_user_123'
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+          E2E_MOCK_MODE: 'true'
+          API_MOCK_MODE: 'true'
+        run: |
+          echo "Running navigation E2E tests..."
+          pnpm exec playwright test tests/e2e/functional/navigation.spec.ts --workers=2 --reporter=line
+      - name: Upload Playwright test results (navigation)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-test-results-navigation
+          path: |
+            test-results/
+            playwright-report/
+            coverage/
+          retention-days: 7
+      - name: Upload Deployment Artifacts (navigation)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: deployment-artifacts-navigation
           path: |
             test-results/
             playwright-report/
