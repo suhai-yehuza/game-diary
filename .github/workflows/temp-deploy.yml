@@ -1,0 +1,91 @@
+name: Temporary Vercel Deployment (Deploy + E2E Post-Deploy Only)
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - temp-deploy
+
+jobs:
+  deploy:
+    name: Deploy to Vercel
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: Production
+    outputs:
+      deployment-url: ${{ steps.deploy.outputs.url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: '10'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Deploy to Vercel
+        id: deploy
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+          CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+          DEPLOYMENT_URL: ${{ secrets.VERCEL_PREVIEW_URL }}
+          E2E_AUTH_BYPASS: 'true'
+          TEST_USER_EMAIL: 'test@game-diary.com'
+          TEST_USER_ID: 'test_user_123'
+        run: |
+          echo "Deploying to Production environment..."
+          npm install --global vercel@latest
+          vercel --prod --token ${{ secrets.VERCEL_TOKEN }}
+          DEPLOYMENT_URL=$(vercel --token ${{ secrets.VERCEL_TOKEN }} 2>&1 | grep -o 'https://[^[:space:]]*\.vercel\.app' | head -1)
+          if [ -z "$DEPLOYMENT_URL" ]; then
+            DEPLOYMENT_URL=$(vercel ls --token ${{ secrets.VERCEL_TOKEN }} | grep -E ".*\.vercel\.app" | head -1 | awk '{print $2}')
+          fi
+          if [ -z "$DEPLOYMENT_URL" ]; then
+            DEPLOYMENT_URL="https://game-diary.vercel.app"
+          fi
+          echo "Deployment URL: $DEPLOYMENT_URL"
+          echo "url=$DEPLOYMENT_URL" >> $GITHUB_OUTPUT
+
+  e2e-post-deploy:
+    name: E2E Post-Deploy (Optional)
+    needs: [deploy]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: Production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: '10'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Setup Playwright browsers
+        run: pnpm exec playwright install --with-deps
+      - name: Run Post-Deploy E2E
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+          CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
+          DEPLOYMENT_URL: ${{ needs.deploy.outputs.deployment-url }}
+          E2E_AUTH_BYPASS: 'true'
+          TEST_USER_EMAIL: 'test@game-diary.com'
+          TEST_USER_ID: 'test_user_123'
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+          E2E_MOCK_MODE: 'true'
+          API_MOCK_MODE: 'true'
+        run: |
+          echo "Running post-deploy E2E tests..."
+          pnpm exec playwright test tests/e2e/functional/smoke.spec.ts --workers=2 --reporter=line
+          pnpm exec playwright test tests/e2e/functional/navigation.spec.ts --workers=2 --reporter=line
