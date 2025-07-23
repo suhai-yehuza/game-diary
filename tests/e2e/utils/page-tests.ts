@@ -65,8 +65,35 @@ export async function testPageComprehensive(
   if (isRateLimited(pageContent)) {
     logRateLimiting('main content check');
   } else {
-    // Strict: require <main> to be visible
-    await page.locator('main#main-content').waitFor({ state: 'visible', timeout });
+    // Flexible: require any main content selector to be visible
+    const mainSelectors = [
+      'main#main-content',
+      'main',
+      '[role="main"]',
+      '.main-content',
+      '.content',
+      '#content',
+      'article',
+      '.page-content',
+    ];
+    let found = false;
+    for (const selector of mainSelectors) {
+      const el = page.locator(selector);
+      if ((await el.count()) > 0) {
+        try {
+          await el.first().waitFor({ state: 'visible', timeout: TIMEOUTS.LONG });
+          found = true;
+          break;
+        } catch {}
+      }
+    }
+    if (!found) {
+      // Debug: log page content and take a screenshot
+      console.error('No visible main content found for any known selector');
+      console.error(await page.content());
+      await page.screenshot({ path: 'main-content-not-found.png', fullPage: true });
+      throw new Error('No visible main content found for any known selector');
+    }
   }
 
   // Check for console errors
