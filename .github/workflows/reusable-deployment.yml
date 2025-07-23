@@ -410,3 +410,32 @@ jobs:
           E2E_MOCK_MODE: 'true'
           API_MOCK_MODE: 'true'
         run: pnpm exec playwright test tests/e2e/functional/navigation.spec.ts --workers=2 --reporter=line
+
+  upload-artifacts:
+    name: Upload Artifacts
+    needs:
+      [
+        quality-gate,
+        unit-tests,
+        database-tests,
+        e2e-mock-verification,
+        e2e-smoke,
+        e2e-live-games,
+        e2e-functional,
+        e2e-smoke-live,
+        e2e-navigation-live,
+      ]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Upload Playwright test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-test-results
+          path: |
+            test-results/
+            playwright-report/
+            coverage/
+          retention-days: 7

@@ -41,6 +41,19 @@ jobs:
           echo "Testing database triggers..."
           pnpm db:test:all-triggers
 
+      - name: Upload Validation Artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: validation-artifacts
+          path: |
+            logs/
+            test-results/
+            playwright-report/
+            coverage/
+            build/
+          retention-days: 7
+
   # Combined E2E tests to reduce parallel jobs
   e2e-tests:
     name: E2E Tests (Combined)
@@ -99,6 +112,19 @@ jobs:
             pnpm exec playwright test "$spec" --reporter=line || exit 1
           done
 
+      - name: Upload E2E Artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-artifacts
+          path: |
+            logs/
+            test-results/
+            playwright-report/
+            coverage/
+            build/
+          retention-days: 7
+
   coverage-report:
     name: Coverage Report
     needs: [e2e-tests]
@@ -119,3 +145,16 @@ jobs:
         run: |
           echo "Generating E2E test coverage report..."
           pnpm e2e:coverage
+
+      - name: Upload Coverage Artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-artifacts
+          path: |
+            logs/
+            test-results/
+            playwright-report/
+            coverage/
+            build/
+          retention-days: 7

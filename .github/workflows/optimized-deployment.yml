@@ -93,6 +93,19 @@ jobs:
           flags: unittests
           name: codecov-umbrella
 
+      - name: Upload Validation Artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: validation-artifacts
+          path: |
+            logs/
+            test-results/
+            playwright-report/
+            coverage/
+            build/
+          retention-days: 7
+
   # Combined E2E tests to reduce parallel jobs
   e2e-tests:
     name: E2E Tests (Combined)
@@ -130,6 +143,19 @@ jobs:
           pnpm exec playwright test tests/e2e/functional/smoke.spec.ts --workers=2 --reporter=line
           pnpm exec playwright test tests/e2e/functional/live-games.spec.ts --workers=2 --reporter=line
           pnpm exec playwright test tests/e2e/functional/responsive.spec.ts --workers=2 --reporter=line
+
+      - name: Upload E2E Artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-artifacts
+          path: |
+            logs/
+            test-results/
+            playwright-report/
+            coverage/
+            build/
+          retention-days: 7
 
   deploy:
     name: Deploy to Vercel
@@ -202,6 +228,19 @@ jobs:
           echo "Deployment URL: $DEPLOYMENT_URL"
           echo "url=$DEPLOYMENT_URL" >> $GITHUB_OUTPUT
 
+      - name: Upload Deploy Artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: deploy-artifacts
+          path: |
+            logs/
+            test-results/
+            playwright-report/
+            coverage/
+            build/
+          retention-days: 7
+
   # Optional post-deploy tests (only run if needed)
   e2e-post-deploy:
     name: E2E Post-Deploy (Optional)
@@ -241,3 +280,16 @@ jobs:
           echo "Running post-deploy E2E tests..."
           pnpm exec playwright test tests/e2e/functional/smoke.spec.ts --workers=2 --reporter=line
           pnpm exec playwright test tests/e2e/functional/navigation.spec.ts --workers=2 --reporter=line
+
+      - name: Upload Post-Deploy Artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: post-deploy-artifacts
+          path: |
+            logs/
+            test-results/
+            playwright-report/
+            coverage/
+            build/
+          retention-days: 7

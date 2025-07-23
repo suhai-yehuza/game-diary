@@ -138,6 +138,17 @@ jobs:
             playwright-report/
           retention-days: 7
 
+      - name: Upload Playwright test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-test-results
+          path: |
+            test-results/
+            playwright-report/
+            coverage/
+          retention-days: 7
+
       - name: Build Next.js app
         if: steps.check.outputs.has_updates == 'true'
         run: pnpm build
