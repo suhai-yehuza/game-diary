@@ -2,7 +2,7 @@
 
 import { Bell, Database, Heart, Loader2, MessageSquare, Star, UserPlus, Users } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 import {
   Card,
@@ -15,6 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/app/components/ui/Ta
 import { API_CONFIG } from '@/lib/config/app.config';
 import { CommentsTableWithSearch } from '@src/app/protected/admin/database/components/comments-table';
 import { GameLogsTableWithSearch } from '@src/app/protected/admin/database/components/game-logs-table';
+import { ReactionsTableWithSearch } from '@src/app/protected/admin/database/components/reactions-table';
 import { ErrorBoundary } from '@src/app/protected/admin/database/components/ui';
 import { Badge } from '@src/app/protected/admin/database/components/ui/badge';
 import { Button } from '@src/app/protected/admin/database/components/ui/button';
@@ -54,7 +55,7 @@ const tableConfigs = {
     description: 'User reactions to game logs',
     icon: Heart,
     endpoint: '/api/admin/database/reactions',
-    fields: ['id', 'user_id', 'game_log_id', 'reaction_type', 'created_at'],
+    fields: ['id', 'user_id', 'target_type', 'target_id', 'emoji', 'created_at'],
   },
   friendships: {
     title: 'Friendships',
@@ -131,6 +132,13 @@ export function AdminDatabaseContent() {
       setLoading(prev => ({ ...prev, [tableName]: false }));
     }
   };
+
+  // Auto-fetch for reactions tab
+  useEffect(() => {
+    if (activeTab === 'reactions') {
+      void handleFetch('reactions', 1, API_CONFIG.pagination.DEFAULT_PAGE_SIZE);
+    }
+  }, [activeTab]);
 
   const formatValue = (value: unknown, _field: string): string => {
     if (value === null || value === undefined) return 'N/A';
@@ -344,6 +352,8 @@ export function AdminDatabaseContent() {
                   <GameLogsTableWithSearch />
                 ) : activeTab === 'comments' ? (
                   <CommentsTableWithSearch />
+                ) : activeTab === 'reactions' ? (
+                  <ReactionsTableWithSearch />
                 ) : (
                   renderTable(tableName)
                 )}

@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 
+import formatNumberShort from '@/app/protected/admin/database/components/utils/formatNumberShort';
 import { API_CONFIG } from '@/lib/config/app.config';
 import {
   Badge,
@@ -280,7 +281,7 @@ export function GameLogsTableWithSearch() {
           totalCount={totalCount}
           currentPage={currentPage}
           pageSize={API_CONFIG.pagination.DEFAULT_PAGE_SIZE}
-          itemLabel="game logs"
+          itemLabel={formatNumberShort(totalCount) + ' total game logs'}
         />
 
         {/* Game Logs Table */}

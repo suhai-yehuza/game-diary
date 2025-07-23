@@ -12,18 +12,18 @@ import {
   SortableHeader,
 } from '@src/app/protected/admin/database/components/ui';
 
-interface IComment {
+interface IReaction {
   id: string;
   user_id: string;
-  parent_id: string;
-  parent_type: string;
-  content: string;
+  target_type: string;
+  target_id: string;
+  emoji: string;
   created_at: string;
 }
 
-interface ICommentsApiResponse {
+interface IReactionsApiResponse {
   success: boolean;
-  data?: IComment[];
+  data?: IReaction[];
   error?: string;
   pagination?: {
     page: number;
@@ -33,8 +33,8 @@ interface ICommentsApiResponse {
   };
 }
 
-export function CommentsTableWithSearch() {
-  const [rawComments, setRawComments] = useState<IComment[]>([]);
+export function ReactionsTableWithSearch() {
+  const [rawReactions, setRawReactions] = useState<IReaction[]>([]);
   const [pageInfo, setPageInfo] = useState({
     hasNextPage: false,
     hasPreviousPage: false,
@@ -62,13 +62,13 @@ export function CommentsTableWithSearch() {
     return '[Object]';
   };
 
-  const comments = React.useMemo(() => {
-    if (!sortKey || !sortDirection || rawComments.length === 0) {
-      return rawComments;
+  const reactions = React.useMemo(() => {
+    if (!sortKey || !sortDirection || rawReactions.length === 0) {
+      return rawReactions;
     }
-    return [...rawComments].sort((a, b) => {
-      const aValue = a[sortKey as keyof IComment];
-      const bValue = b[sortKey as keyof IComment];
+    return [...rawReactions].sort((a, b) => {
+      const aValue = a[sortKey as keyof IReaction];
+      const bValue = b[sortKey as keyof IReaction];
       if (aValue == null && bValue == null) return 0;
       if (aValue == null) return 1;
       if (bValue == null) return -1;
@@ -77,20 +77,20 @@ export function CommentsTableWithSearch() {
       const comparison = aStr.localeCompare(bStr);
       return sortDirection === 'asc' ? comparison : -comparison;
     });
-  }, [rawComments, sortKey, sortDirection]);
+  }, [rawReactions, sortKey, sortDirection]);
 
-  const fetchComments = React.useCallback(
+  const fetchReactions = React.useCallback(
     async (opts: { page?: number } = {}) => {
       setLoading(true);
       setError(null);
       try {
         const page = opts.page ?? currentPage;
         const res = await fetch(
-          `/api/admin/database/comments?page=${page}&limit=${API_CONFIG.pagination.DEFAULT_PAGE_SIZE}`
+          `/api/admin/database/reactions?page=${page}&limit=${API_CONFIG.pagination.DEFAULT_PAGE_SIZE}`
         );
-        const json: ICommentsApiResponse = await res.json();
-        if (!json.success) throw new Error(json.error ?? 'Failed to fetch comments');
-        setRawComments(json.data ?? []);
+        const json: IReactionsApiResponse = await res.json();
+        if (!json.success) throw new Error(json.error ?? 'Failed to fetch reactions');
+        setRawReactions(json.data ?? []);
         setTotalCount(json.pagination?.total ?? 0);
         setCurrentPage(json.pagination?.page ?? 1);
         setPageInfo({
@@ -100,7 +100,7 @@ export function CommentsTableWithSearch() {
           endCursor: null,
         });
       } catch (err: unknown) {
-        let message = 'Failed to fetch comments';
+        let message = 'Failed to fetch reactions';
         if (
           err &&
           typeof err === 'object' &&
@@ -118,29 +118,29 @@ export function CommentsTableWithSearch() {
   );
 
   useEffect(() => {
-    void fetchComments();
+    void fetchReactions();
     // eslint-disable-next-line
   }, []);
 
   const handleNext = () => {
     if (pageInfo.hasNextPage) {
-      void fetchComments({ page: currentPage + 1 });
+      void fetchReactions({ page: currentPage + 1 });
     }
   };
 
   const handlePrev = () => {
     if (pageInfo.hasPreviousPage) {
-      void fetchComments({ page: currentPage - 1 });
+      void fetchReactions({ page: currentPage - 1 });
     }
   };
 
   const handleFirst = () => {
-    void fetchComments({ page: 1 });
+    void fetchReactions({ page: 1 });
   };
 
   const handleLast = () => {
     const totalPages = Math.ceil(totalCount / API_CONFIG.pagination.DEFAULT_PAGE_SIZE);
-    void fetchComments({ page: totalPages });
+    void fetchReactions({ page: totalPages });
   };
 
   const formatDate = (dateString: string | null | undefined) => {
@@ -160,7 +160,7 @@ export function CommentsTableWithSearch() {
   };
 
   return (
-    <ErrorBoundary componentName="CommentsTable">
+    <ErrorBoundary componentName="ReactionsTable">
       <div className="space-y-4">
         {/* Error Display */}
         <ErrorDisplay error={error} />
@@ -170,10 +170,10 @@ export function CommentsTableWithSearch() {
           totalCount={totalCount}
           currentPage={currentPage}
           pageSize={API_CONFIG.pagination.DEFAULT_PAGE_SIZE}
-          itemLabel={formatNumberShort(totalCount) + ' total comments'}
+          itemLabel={formatNumberShort(totalCount) + ' total reactions'}
         />
 
-        {/* Comments Table */}
+        {/* Reactions Table */}
         <div className="bg-card border border-border rounded-lg overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full transition-all duration-200 ease-in-out">
@@ -199,28 +199,28 @@ export function CommentsTableWithSearch() {
                     user_id
                   </SortableHeader>
                   <SortableHeader
-                    sortKey="parent_id"
+                    sortKey="target_type"
                     currentSortKey={sortKey}
                     currentSortDirection={sortDirection}
                     onSort={handleSort}
                   >
-                    parent_id
+                    target_type
                   </SortableHeader>
                   <SortableHeader
-                    sortKey="parent_type"
+                    sortKey="target_id"
                     currentSortKey={sortKey}
                     currentSortDirection={sortDirection}
                     onSort={handleSort}
                   >
-                    parent_type
+                    target_id
                   </SortableHeader>
                   <SortableHeader
-                    sortKey="content"
+                    sortKey="emoji"
                     currentSortKey={sortKey}
                     currentSortDirection={sortDirection}
                     onSort={handleSort}
                   >
-                    content
+                    emoji
                   </SortableHeader>
                   <SortableHeader
                     sortKey="created_at"
@@ -238,42 +238,42 @@ export function CommentsTableWithSearch() {
                     <td colSpan={7} className="px-6 py-4 text-center">
                       <div className="flex items-center justify-center">
                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
-                        <span className="ml-2">Loading comments...</span>
+                        <span className="ml-2">Loading reactions...</span>
                       </div>
                     </td>
                   </tr>
-                ) : comments.length === 0 ? (
+                ) : reactions.length === 0 ? (
                   <tr>
                     <td colSpan={7} className="px-6 py-4 text-center text-muted-foreground">
-                      No comments found
+                      No reactions found
                     </td>
                   </tr>
                 ) : (
-                  comments.map((comment, index) => (
+                  reactions.map((reaction, index) => (
                     <tr
-                      key={comment.id}
+                      key={reaction.id}
                       className="hover:bg-muted/50 transition-colors duration-150 ease-in-out"
                     >
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
                         {(currentPage - 1) * API_CONFIG.pagination.DEFAULT_PAGE_SIZE + index + 1}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
-                        {comment.id}
+                        {reaction.id}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
-                        {comment.user_id}
+                        {reaction.user_id}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
-                        {comment.parent_id}
+                        {reaction.target_type}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
-                        {comment.parent_type}
+                        {reaction.target_id}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
-                        {comment.content}
+                        {reaction.emoji}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
-                        {formatDate(comment.created_at)}
+                        {formatDate(reaction.created_at)}
                       </td>
                     </tr>
                   ))
