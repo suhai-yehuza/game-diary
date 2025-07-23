@@ -60,7 +60,7 @@ describe('HomePage', () => {
     expect(screen.getByText('Placeholder')).toBeInTheDocument();
     expect(
       screen.getByText(
-        'Track your gaming experiences, discover new games, and connect with fellow gamers'
+        'Track your gaming watching experiences, and connect with fellow sports fans'
       )
     ).toBeInTheDocument();
   });

@@ -26,7 +26,7 @@ export default function HomePage() {
           />
           <h1 className="text-4xl font-bold tracking-tight">Placeholder</h1>
           <p className="text-xl text-gray-600 dark:text-gray-300">
-            Track your gaming experiences, discover new games, and connect with fellow gamers
+            Track your gaming watching experiences, and connect with fellow sports fans
           </p>
         </div>
 

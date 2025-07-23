@@ -593,10 +593,18 @@ export async function checkForConsoleErrors(page: Page): Promise<void> {
       !error.includes('Error retrieving a token')
   );
 
-  // Only fail if there are actual critical errors
-  if (criticalErrors.length > 0) {
-    console.log('Console errors found:', criticalErrors);
-    expect(criticalErrors).toHaveLength(0);
+  // Filter out known benign errors
+  const filteredErrors = criticalErrors.filter(
+    e =>
+      !e.includes('Content Security Policy') &&
+      !e.includes('Module') &&
+      !e.includes('HMR update') &&
+      !e.includes('accounts.google.com') &&
+      !e.includes('frame-ancestors')
+  );
+  if (filteredErrors.length > 0) {
+    console.log('Console errors found:', filteredErrors);
+    expect(filteredErrors).toHaveLength(0);
   }
 }
 

@@ -61,9 +61,10 @@ async function revealNavLinksIfMobile(page: any) {
       await navSkeleton.waitFor({ state: 'detached', timeout: TIMEOUTS.LONG }).catch(() => {});
     }
     // If nav links are not visible, open the menu
-    const navLink = page.locator('a[href*="/sports"]');
+    const sportHrefs = Object.values(SPORTS_CONFIG).map(sport => sport.href);
+    const navLinks = page.locator(sportHrefs.map(href => `a[href="${href}"]`).join(', '));
     if (
-      !(await navLink
+      !(await navLinks
         .first()
         .isVisible({ timeout: TIMEOUTS.SHORT })
         .catch(() => false))
@@ -82,14 +83,14 @@ async function revealNavLinksIfMobile(page: any) {
             .catch(() => {});
         }
         // Wait for nav links to become visible
-        const visible = await navLink
+        const visible = await navLinks
           .first()
           .isVisible({ timeout: TIMEOUTS.SHORT })
           .catch(() => false);
         if (!visible) {
           // Try clicking the menu button again (in case first click didn't register)
           await menuButton.click();
-          await expect(navLink.first()).toBeVisible({ timeout: TIMEOUTS.SHORT });
+          await expect(navLinks.first()).toBeVisible({ timeout: TIMEOUTS.SHORT });
           // Take a screenshot and log DOM for debugging
           await page.screenshot({ path: 'debug-navlinks-not-visible.png', fullPage: true });
           const dom = await page.content();
