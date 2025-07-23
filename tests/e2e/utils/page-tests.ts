@@ -185,7 +185,7 @@ export async function testHomePage(page: Page, options: PageTestOptions = {}): P
 export function runResponsiveSuite(test: TestType<any, any>) {
   test.describe('Responsive Tests', () => {
     const viewports = [
-      // { name: 'iPhone SE', width: 375, height: 667 },
+      { name: 'iPhone SE', width: 375, height: 667 },
       { name: 'iPhone 12 Pro', width: 390, height: 844 },
       { name: 'iPhone 12 Pro Max', width: 428, height: 926 },
       { name: 'Samsung Galaxy S20', width: 360, height: 800 },
@@ -212,12 +212,15 @@ export function runResponsiveSuite(test: TestType<any, any>) {
       test.describe(`${viewport.name} viewport`, () => {
         testPages.forEach((url, index) => {
           test(`should render ${url} correctly`, async ({ page }: { page: Page }) => {
+            // Set viewport first
+            await page.setViewportSize({ width: viewport.width, height: viewport.height });
+
             // Add a small delay between tests to reduce rate limiting
             if (index > 0) {
-              // Wait for main content to be visible to ensure previous test is fully done
-              await expect(page.locator('main')).toBeVisible({ timeout: TIMEOUTS.SHORT });
+              // Wait a bit to ensure previous test is fully done
+              await page.waitForTimeout(1000);
             }
-            await page.setViewportSize({ width: viewport.width, height: viewport.height });
+
             await testPageComprehensive(page, url);
           });
         });
