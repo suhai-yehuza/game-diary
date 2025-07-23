@@ -48,6 +48,13 @@ async function revealSignInButtonIfMobile(page: any) {
 export async function criticalTestAuthenticationFlow(page: any) {
   await safeGoto(page, '/');
   await waitForPageLoad(page);
+  // If E2E auth bypass is enabled, check for user-button instead of sign-in-button
+  const isAuthBypass = process.env.E2E_AUTH_BYPASS === 'true';
+  if (isAuthBypass) {
+    const userButton = page.getByTestId('user-button');
+    await expect(userButton).toBeVisible({ timeout: TIMEOUTS.LONG });
+    return;
+  }
   await revealSignInButtonIfMobile(page);
   const signInButton = page.getByTestId('sign-in-button');
   const isMobile = await page.evaluate(() => window.innerWidth < 1024);

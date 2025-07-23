@@ -83,7 +83,7 @@ function AuthControlsContent() {
           </SignInButton>
         </SignedOut>
         <SignedIn>
-          <UserButton />
+          <UserButton data-testid="user-button" />
         </SignedIn>
       </ClerkWrapper>
     </div>
