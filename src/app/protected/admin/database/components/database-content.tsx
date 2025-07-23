@@ -12,6 +12,8 @@ import {
   CardTitle,
 } from '@/app/components/ui/Card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/app/components/ui/Tabs';
+import { FriendshipsTableWithSearch } from '@/app/protected/admin/database/components/friendships-table';
+import { NotificationsTableWithSearch } from '@/app/protected/admin/database/components/notifications-table';
 import { API_CONFIG } from '@/lib/config/app.config';
 import { CommentsTableWithSearch } from '@src/app/protected/admin/database/components/comments-table';
 import { GameLogsTableWithSearch } from '@src/app/protected/admin/database/components/game-logs-table';
@@ -354,6 +356,10 @@ export function AdminDatabaseContent() {
                   <CommentsTableWithSearch />
                 ) : activeTab === 'reactions' ? (
                   <ReactionsTableWithSearch />
+                ) : activeTab === 'friendships' ? (
+                  <FriendshipsTableWithSearch />
+                ) : activeTab === 'notifications' ? (
+                  <NotificationsTableWithSearch />
                 ) : (
                   renderTable(tableName)
                 )}
