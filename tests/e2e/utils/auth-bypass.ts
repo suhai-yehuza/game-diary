@@ -30,7 +30,8 @@ export async function mockClerkHooks(page: Page, credentials: Partial<TestAuthCr
     ({ userId, email }) => {
       // @ts-ignore
       window.__E2E_AUTH_BYPASS__ = true;
-      // Mock Clerk's useUser and useAuth
+
+      // Mock Clerk's useUser and useAuth hooks
       const mockUser = {
         id: userId,
         emailAddresses: [
@@ -49,11 +50,32 @@ export async function mockClerkHooks(page: Page, credentials: Partial<TestAuthCr
         createdAt: new Date().toISOString(),
         lastSignInAt: new Date().toISOString(),
       };
-      // @ts-ignore
-      window.__clerkMock = {
-        useUser: () => ({ isLoaded: true, isSignedIn: true, user: mockUser }),
-        useAuth: () => ({ getToken: async () => 'test_token', sessionId: 'test_session', userId }),
-      };
+
+      // Override Clerk hooks globally
+      if (typeof window !== 'undefined') {
+        // @ts-ignore
+        window.__clerkMock = {
+          useUser: () => ({ isLoaded: true, isSignedIn: true, user: mockUser }),
+          useAuth: () => ({
+            getToken: async () => 'test_token',
+            sessionId: 'test_session',
+            userId,
+          }),
+        };
+
+        // Override the actual Clerk hooks if they exist
+        // @ts-ignore
+        if (window.__clerk) {
+          // @ts-ignore
+          window.__clerk.useUser = () => ({ isLoaded: true, isSignedIn: true, user: mockUser });
+          // @ts-ignore
+          window.__clerk.useAuth = () => ({
+            getToken: async () => 'test_token',
+            sessionId: 'test_session',
+            userId,
+          });
+        }
+      }
     },
     { userId: testCreds.userId, email: testCreds.email }
   );
@@ -135,8 +157,162 @@ export async function setupAuthBypass(
     });
   });
 
+  // Mock Clerk frontend API endpoints
+  await page.route('**/v1/client/sessions/**', async route => {
+    console.log(`🔐 Mocking Clerk client session endpoint: ${route.request().url()}`);
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        id: testCreds.sessionToken,
+        user_id: testCreds.userId,
+        status: 'active',
+        last_active_at: new Date().toISOString(),
+      }),
+    });
+  });
+
+  // Mock Clerk frontend user endpoints
+  await page.route('**/v1/client/users/**', async route => {
+    console.log(`🔐 Mocking Clerk client user endpoint: ${route.request().url()}`);
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        id: testCreds.userId,
+        email_addresses: [{ email_address: testCreds.email, id: 'email_123' }],
+        first_name: 'Test',
+        last_name: 'User',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      }),
+    });
+  });
+
+  // Mock Clerk frontend session endpoints
+  await page.route('**/v1/client/sessions/**', async route => {
+    console.log(`🔐 Mocking Clerk client session endpoint: ${route.request().url()}`);
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        id: testCreds.sessionToken,
+        user_id: testCreds.userId,
+        status: 'active',
+        last_active_at: new Date().toISOString(),
+      }),
+    });
+  });
+
+  // Mock all Clerk API endpoints
+  await page.route('**/clerk.accounts.dev/**', async route => {
+    console.log(`🔐 Mocking Clerk API endpoint: ${route.request().url()}`);
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        id: testCreds.userId,
+        email_addresses: [{ email_address: testCreds.email, id: 'email_123' }],
+        first_name: 'Test',
+        last_name: 'User',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      }),
+    });
+  });
+
+  // Mock Clerk frontend API endpoints
+  await page.route('**/v1/client/**', async route => {
+    console.log(`🔐 Mocking Clerk client API endpoint: ${route.request().url()}`);
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        id: testCreds.userId,
+        email_addresses: [{ email_address: testCreds.email, id: 'email_123' }],
+        first_name: 'Test',
+        last_name: 'User',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      }),
+    });
+  });
+
   // Inject Clerk hook mocks for client-side
   await mockClerkHooks(page, testCreds);
+
+  // Add a more comprehensive mock that intercepts Clerk module loading
+  await page.addInitScript(
+    ({ userId, email }) => {
+      // Create a comprehensive mock user object
+      const mockUser = {
+        id: userId,
+        emailAddresses: [
+          { emailAddress: email, id: 'email_123', verification: { status: 'verified' } },
+        ],
+        primaryEmailAddress: {
+          emailAddress: email,
+          id: 'email_123',
+          verification: { status: 'verified' },
+        },
+        firstName: 'Test',
+        lastName: 'User',
+        username: 'testuser',
+        fullName: 'Test User',
+        imageUrl: '',
+        createdAt: new Date().toISOString(),
+        lastSignInAt: new Date().toISOString(),
+      };
+
+      // Mock the entire Clerk module
+      const mockClerk = {
+        useUser: () => ({ isLoaded: true, isSignedIn: true, user: mockUser }),
+        useAuth: () => ({ getToken: async () => 'test_token', sessionId: 'test_session', userId }),
+        SignInButton: ({ children }: any) => children,
+        SignUpButton: ({ children }: any) => children,
+        SignedIn: ({ children }: any) => children,
+        SignedOut: ({ children }: any) => null,
+        UserButton: () => null,
+        ClerkProvider: ({ children }: any) => children,
+      };
+
+      // Override module loading for Clerk
+      if (typeof window !== 'undefined') {
+        // @ts-ignore
+        window.__clerkMock = mockClerk;
+
+        // Try to override the actual Clerk module if it's already loaded
+        // @ts-ignore
+        if (window.__clerk) {
+          // @ts-ignore
+          Object.assign(window.__clerk, mockClerk);
+        }
+
+        // Override the module loading for @clerk/nextjs
+        const originalRequire = (window as any).require;
+        if (originalRequire) {
+          (window as any).require = function (id: string) {
+            if (id === '@clerk/nextjs') {
+              return mockClerk;
+            }
+            return originalRequire(id);
+          };
+        }
+
+        // Override ES6 module imports
+        const originalImport = (window as any).import;
+        if (originalImport) {
+          (window as any).import = function (id: string) {
+            if (id === '@clerk/nextjs') {
+              return Promise.resolve(mockClerk);
+            }
+            return originalImport(id);
+          };
+        }
+      }
+    },
+    { userId: testCreds.userId, email: testCreds.email }
+  );
 
   // Set authentication cookies to simulate logged-in state
   // First, ensure we have a valid URL to set cookies for
@@ -198,6 +374,10 @@ export async function clearAuthBypass(page: Page): Promise<void> {
   await page.unroute('**/v1/users/**');
   await page.unroute('**/v1/sign_in/**');
   await page.unroute('**/v1/me');
+  await page.unroute('**/v1/client/sessions/**');
+  await page.unroute('**/v1/client/users/**');
+  await page.unroute('**/v1/client/**');
+  await page.unroute('**/clerk.accounts.dev/**');
 
   console.log('✅ Authentication bypass cleared');
 }
