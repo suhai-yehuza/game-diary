@@ -35,15 +35,6 @@ function UserGreeting() {
             ? `Welcome, ${user?.username ?? user?.firstName ?? 'User'}!`
             : 'Welcome, Guest!'}
         </p>
-        {/* Add test elements for security tests */}
-        {isSignedIn && user && (
-          <div className="mt-4 text-sm text-muted-foreground">
-            <div data-testid="user-email">
-              {user.emailAddresses?.[0]?.emailAddress || 'No email'}
-            </div>
-            <div data-testid="user-phone">{user.phoneNumbers?.[0]?.phoneNumber || 'No phone'}</div>
-          </div>
-        )}
       </div>
     </section>
   );
@@ -80,10 +71,25 @@ export default function UserDashboardPage() {
       <UserGreeting />
       <div className="container mx-auto px-4 py-8">
         <Tabs value={selectedTab} onValueChange={setSelectedTab}>
-          <TabsList className="mb-6">
-            <TabsTrigger value="game-logs">Game Logs</TabsTrigger>
-            <TabsTrigger value="friends">Friends</TabsTrigger>
-            <TabsTrigger value="activity">Activity & Timeline</TabsTrigger>
+          <TabsList className="mb-6 flex w-full flex-row gap-2 bg-transparent p-0 justify-start">
+            <TabsTrigger
+              value="game-logs"
+              className="px-6 py-3 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 data-[state=active]:border-b-4 data-[state=active]:border-blue-500 data-[state=active]:text-blue-700 dark:data-[state=active]:text-blue-400 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 rounded-t-lg transition font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 hover:bg-gray-100 dark:hover:bg-gray-800 shadow-none"
+            >
+              Game Logs
+            </TabsTrigger>
+            <TabsTrigger
+              value="friends"
+              className="px-6 py-3 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 data-[state=active]:border-b-4 data-[state=active]:border-blue-500 data-[state=active]:text-blue-700 dark:data-[state=active]:text-blue-400 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 rounded-t-lg transition font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 hover:bg-gray-100 dark:hover:bg-gray-800 shadow-none"
+            >
+              Friends
+            </TabsTrigger>
+            <TabsTrigger
+              value="activity"
+              className="px-6 py-3 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 data-[state=active]:border-b-4 data-[state=active]:border-blue-500 data-[state=active]:text-blue-700 dark:data-[state=active]:text-blue-400 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 rounded-t-lg transition font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 hover:bg-gray-100 dark:hover:bg-gray-800 shadow-none"
+            >
+              Activity & Timeline
+            </TabsTrigger>
           </TabsList>
           <TabsContent value="game-logs">
             <div className="rounded-lg border p-6 bg-background mb-8">

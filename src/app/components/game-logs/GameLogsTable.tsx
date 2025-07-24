@@ -123,8 +123,11 @@ export function GameLogsTable() {
       watched_scope: log.watched_scope ?? undefined,
     };
     return (
-      <Card key={log.id} className="mb-4 border-2 border-red-400 bg-white">
-        <CardHeader className="flex flex-row justify-between items-start pb-2">
+      <Card
+        key={log.id}
+        className="mb-4 border-2 border-gray-300 dark:border-gray-500 bg-neutral-100 dark:bg-neutral-800 shadow-md"
+      >
+        <CardHeader className="flex flex-row justify-between items-start pb-2 text-gray-900 dark:text-gray-100">
           <div className="flex items-center gap-2">
             <ClassificationIcon classification={log.classification} />
             <div className="flex flex-col">
@@ -149,7 +152,7 @@ export function GameLogsTable() {
           </div>
           <RatingStars rating={log.rating_for_game} />
         </CardHeader>
-        <CardContent>
+        <CardContent className="text-gray-900 dark:text-gray-100">
           {normalizedLog.notes && (
             <CardDescription className="mb-2 text-gray-600">{normalizedLog.notes}</CardDescription>
           )}
@@ -176,15 +179,20 @@ export function GameLogsTable() {
           </div>
         </CardContent>
         {showActions && (
-          <CardFooter className="gap-2 mt-3">
-            <Button variant="outline" size="sm" onClick={() => setEditingGameLog(log)}>
-              <Edit className="w-4 h-4" />
+          <CardFooter className="gap-2 mt-3 text-gray-900 dark:text-gray-100">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setEditingGameLog(log)}
+              className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 hover:bg-blue-50 dark:hover:bg-gray-700 transition shadow-sm"
+            >
+              <Edit className="w-4 h-4 text-blue-600 dark:text-blue-400" />
             </Button>
             <Button
               variant="outline"
               size="sm"
               onClick={() => setDeletingGameLog(log)}
-              className="text-red-600 hover:text-red-700"
+              className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-gray-700 transition shadow-sm"
             >
               <Trash2 className="w-4 h-4" />
             </Button>
@@ -225,7 +233,7 @@ export function GameLogsTable() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-semibold">My Game Logs</h2>
+        <h2 className="text-2xl font-semibold">Game Logs</h2>
         <Button onClick={() => setIsCreateModalOpen(true)}>
           <Plus className="w-4 h-4 mr-2" />
           Create New Log
@@ -233,10 +241,25 @@ export function GameLogsTable() {
       </div>
 
       <Tabs value={selectedTab} onValueChange={setSelectedTab}>
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="my-logs">My Logs</TabsTrigger>
-          <TabsTrigger value="friends-logs">Friends&apos; Logs</TabsTrigger>
-          <TabsTrigger value="public-logs">Public Logs</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-3 gap-2 bg-transparent p-0 mb-4">
+          <TabsTrigger
+            value="my-logs"
+            className="px-6 py-3 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 data-[state=active]:border-b-4 data-[state=active]:border-blue-500 data-[state=active]:text-blue-700 dark:data-[state=active]:text-blue-400 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 rounded-t-lg transition font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 hover:bg-gray-100 dark:hover:bg-gray-800 shadow-none"
+          >
+            My Logs
+          </TabsTrigger>
+          <TabsTrigger
+            value="friends-logs"
+            className="px-6 py-3 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 data-[state=active]:border-b-4 data-[state=active]:border-blue-500 data-[state=active]:text-blue-700 dark:data-[state=active]:text-blue-400 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 rounded-t-lg transition font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 hover:bg-gray-100 dark:hover:bg-gray-800 shadow-none"
+          >
+            Friends&apos; Logs
+          </TabsTrigger>
+          <TabsTrigger
+            value="public-logs"
+            className="px-6 py-3 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 data-[state=active]:border-b-4 data-[state=active]:border-blue-500 data-[state=active]:text-blue-700 dark:data-[state=active]:text-blue-400 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 rounded-t-lg transition font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 hover:bg-gray-100 dark:hover:bg-gray-800 shadow-none"
+          >
+            Public Logs
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="my-logs" className="space-y-4">
