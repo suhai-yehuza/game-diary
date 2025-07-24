@@ -20,6 +20,8 @@ export function ClerkProviderWrapper({ children }: { children: ReactNode }) {
           footerActionLink: 'text-blue-600 hover:text-blue-700',
         },
       }}
+      // Add proper configuration for SSO callbacks
+      publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
     >
       {children}
     </ClerkProvider>

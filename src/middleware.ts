@@ -1,6 +1,8 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
 
+import { isAuthCallbackServer } from '@/lib/utils/sso-utils';
+
 const isAuthRoute = (createRouteMatcher as (routes: string[]) => (req: Request) => boolean)([
   '/sign-in(.*)',
   '/sign-up(.*)',
@@ -22,6 +24,11 @@ export const middleware = (
 
   // Handle OAuth callbacks - let Clerk handle these properly
   if (url.pathname.includes('oauth_callback') || url.searchParams.has('__clerk_status')) {
+    return NextResponse.next();
+  }
+
+  // Handle Clerk catchall routes and SSO callbacks using shared utility
+  if (isAuthCallbackServer(url.pathname, url.search)) {
     return NextResponse.next();
   }
 

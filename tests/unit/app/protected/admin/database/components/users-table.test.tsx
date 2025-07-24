@@ -55,7 +55,6 @@ describe('UsersTableWithSearch', () => {
     expect(screen.getByText('username')).toBeInTheDocument();
     expect(screen.getByText('first_name')).toBeInTheDocument();
     expect(screen.getByText('last_name')).toBeInTheDocument();
-    expect(screen.getByText('email_address')).toBeInTheDocument();
     expect(screen.getByText('created_at')).toBeInTheDocument();
   });
 

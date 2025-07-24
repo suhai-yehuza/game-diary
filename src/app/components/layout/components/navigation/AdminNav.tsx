@@ -10,31 +10,24 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from '@/app/components/ui/DropdownMenu';
+import { isSSOCallback } from '@/lib/utils/sso-utils';
 
 // Hook to check if user is admin
 function useIsAdmin() {
-  // Handle case where Clerk is not configured (e.g., in test environment)
-  let isLoaded = false;
-  let isSignedIn = false;
-  let user = null;
+  // Always call useUser to satisfy React's rules
+  const userData = useUser();
 
-  try {
-    const userData = useUser();
-    isLoaded = userData.isLoaded;
-    isSignedIn = userData.isSignedIn ?? false;
-    user = userData.user;
-  } catch {
-    // Clerk is not configured (e.g., in test environment)
-    console.log('Clerk not configured in useIsAdmin, returning false');
+  // Handle case where Clerk is not configured (e.g., in test environment)
+  if (!userData.isLoaded) {
     return false;
   }
 
-  if (!isLoaded || !isSignedIn || !user) {
+  if (!userData.isSignedIn || !userData.user) {
     return false;
   }
 
   // Check if user has admin role in their public metadata
-  const userRoles = (user.publicMetadata?.role as string[]) || [];
+  const userRoles = (userData.user.publicMetadata?.role as string[]) || [];
   return userRoles.includes('admin') || userRoles.includes('Admin');
 }
 
@@ -168,64 +161,76 @@ function AdminNavWithAuthSafe({
   isActive: (path: string) => boolean;
   isStacked?: boolean;
 }) {
-  try {
-    const isAdmin = useIsAdmin();
+  // Always call the hook first to satisfy React's rules
+  const isAdmin = useIsAdmin();
 
-    if (!isAdmin) {
-      return null;
-    }
-
-    return isStacked ? (
-      <div className="mt-12 w-full flex justify-center">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button
-              className={`w-[90vw] sm:w-[70vw] md:w-[400px] max-w-xs h-10 flex items-center justify-center text-sm whitespace-nowrap rounded font-semibold transition-all duration-150 bg-blue-500 text-white shadow-sm mb-3 mx-auto hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400`}
-              aria-haspopup="menu"
-              aria-expanded={isAdmin}
-            >
-              <span>Admin</span>
-              <ChevronDown className="h-4 w-4 ml-2" />
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-48">
-            <DropdownMenuItem asChild>
-              <Link
-                href="/protected/admin/database"
-                className="cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                role="menuitem"
-              >
-                Database Management
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link
-                href="/protected/admin/audit-logs"
-                className="cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                role="menuitem"
-              >
-                Audit Logs
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link
-                href="/protected/admin/experimental"
-                className="cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                role="menuitem"
-              >
-                Experimental
-              </Link>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-    ) : (
-      <AdminNav isActive={isActive} />
-    );
-  } catch {
-    // If Clerk is not available, don't render the admin nav
+  if (!isAdmin) {
     return null;
   }
+
+  return isStacked ? (
+    <div className="mt-12 w-full flex justify-center">
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button
+            className={`w-[90vw] sm:w-[70vw] md:w-[400px] max-w-xs h-10 flex items-center justify-center text-sm whitespace-nowrap rounded font-semibold transition-all duration-150 bg-blue-500 text-white shadow-sm mb-3 mx-auto hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400`}
+            aria-haspopup="menu"
+            aria-expanded={isAdmin}
+          >
+            <span>Admin</span>
+            <ChevronDown className="h-4 w-4 ml-2" />
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-48">
+          <DropdownMenuItem asChild>
+            <Link
+              href="/protected/admin/database"
+              className="cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              role="menuitem"
+            >
+              Database Management
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link
+              href="/protected/admin/audit-logs"
+              className="cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              role="menuitem"
+            >
+              Audit Logs
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link
+              href="/protected/admin/experimental"
+              className="cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              role="menuitem"
+            >
+              Experimental
+            </Link>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
+  ) : (
+    <AdminNav isActive={isActive} />
+  );
+}
+
+// Wrapper component that checks for SSO callback before rendering
+function AdminNavWithAuthWrapper({
+  isActive,
+  isStacked = false,
+}: {
+  isActive: (path: string) => boolean;
+  isStacked?: boolean;
+}) {
+  // Don't render during SSO callbacks to prevent useSession errors
+  if (isSSOCallback()) {
+    return null;
+  }
+
+  return <AdminNavWithAuthSafe isActive={isActive} isStacked={isStacked} />;
 }
 
 export function AdminNavWithAuth({
@@ -235,5 +240,5 @@ export function AdminNavWithAuth({
   isActive: (path: string) => boolean;
   isStacked?: boolean;
 }) {
-  return <AdminNavWithAuthSafe isActive={isActive} isStacked={isStacked} />;
+  return <AdminNavWithAuthWrapper isActive={isActive} isStacked={isStacked} />;
 }

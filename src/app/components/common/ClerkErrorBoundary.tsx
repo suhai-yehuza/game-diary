@@ -20,6 +20,19 @@ export class ClerkErrorBoundary extends Component<
     // Only log Clerk-related errors during development/testing
     if (error.message.includes('Clerk') || error.message.includes('useSession')) {
       console.warn('Clerk component error caught:', error.message);
+
+      // If it's a useSession error, it might be due to SSO callback timing
+      if (
+        error.message.includes('useSession can only be used within the <ClerkProvider /> component')
+      ) {
+        console.warn(
+          'useSession error detected - this may be due to SSO callback timing. Retrying...'
+        );
+        // Reset the error state after a short delay to allow retry
+        setTimeout(() => {
+          this.setState({ hasError: false });
+        }, 1000);
+      }
     }
   }
 

@@ -5,6 +5,7 @@ import React, { useState, useEffect, Suspense } from 'react';
 
 import { ClerkWrapper } from '@/app/components/common/ClerkErrorBoundary';
 import { isUnitTestEnvironment, isE2ETestEnvironment } from '@/lib/config/app.config';
+import { isSSOCallback } from '@/lib/utils/sso-utils';
 
 // Utility function to check if Clerk is configured
 function isClerkConfigured(): boolean {
@@ -23,9 +24,11 @@ function isClerkConfigured(): boolean {
 
 function AuthControlsContent() {
   const [mounted, setMounted] = useState(false);
+  const [isSSO, setIsSSO] = useState(false);
 
   useEffect(() => {
     setMounted(true);
+    setIsSSO(isSSOCallback());
   }, []);
 
   // Add E2E debug logging
@@ -57,6 +60,17 @@ function AuthControlsContent() {
       <div className="flex items-center">
         <div className="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded animate-pulse flex items-center justify-center">
           <span className="text-xs text-gray-500">Auth</span>
+        </div>
+      </div>
+    );
+  }
+
+  // During SSO callback, show a loading state to prevent useSession errors
+  if (isSSO) {
+    return (
+      <div className="flex items-center">
+        <div className="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded animate-pulse flex items-center justify-center">
+          <span className="text-xs text-gray-500">SSO</span>
         </div>
       </div>
     );
