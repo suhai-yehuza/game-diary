@@ -70,18 +70,16 @@ describe('LiveGamesBanner', () => {
     expect(screen.getAllByRole('listitem')).toHaveLength(2);
   });
 
-  it('renders Games: 0 and no list items if games is empty', () => {
+  it('renders nothing if games is empty', () => {
     (useLiveGames as any).mockImplementation(() => ({ games: [] }) as any);
-    render(<LiveGamesBanner />);
-    expect(screen.getByText('Games: 0')).toBeInTheDocument();
-    expect(screen.queryAllByRole('listitem')).toHaveLength(0);
+    const { container } = render(<LiveGamesBanner />);
+    expect(container).toBeEmptyDOMElement();
   });
 
-  it('renders Games: 0 and no list items if games is undefined', () => {
+  it('renders nothing if games is undefined', () => {
     (useLiveGames as any).mockImplementation(() => ({ games: undefined }) as any);
-    render(<LiveGamesBanner />);
-    expect(screen.getByText('Games: 0')).toBeInTheDocument();
-    expect(screen.queryAllByRole('listitem')).toHaveLength(0);
+    const { container } = render(<LiveGamesBanner />);
+    expect(container).toBeEmptyDOMElement();
   });
 
   it('handles missing team codes gracefully', () => {

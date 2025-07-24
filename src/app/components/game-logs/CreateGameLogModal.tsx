@@ -42,7 +42,6 @@ export function CreateGameLogModal({ isOpen, onClose, onSuccess }: ICreateGameLo
     formState: { errors, isSubmitting, isValid },
     reset,
     setValue,
-    watch,
   } = useForm<CreateGameLogFormData>({
     resolver: zodResolver(createGameLogSchema),
     defaultValues: {
@@ -58,7 +57,6 @@ export function CreateGameLogModal({ isOpen, onClose, onSuccess }: ICreateGameLo
 
   const [createGameLog, { loading }] = useMutation<ICreateGameLogResponse>(CREATE_GAME_LOG, {
     onCompleted: data => {
-      console.log('CreateGameLog onCompleted:', data);
       const created = data?.createGameLog?.gameLog;
       if (created) {
         toast.success('Game log created!');
@@ -79,22 +77,10 @@ export function CreateGameLogModal({ isOpen, onClose, onSuccess }: ICreateGameLo
         toast.error(errorMsg);
       }
     },
-    onError: error => {
+    onError: () => {
       toast.error('Failed to create game log.');
       if (typeof onClose === 'function') onClose(); // fallback close
-      console.error('Error creating game log:', error);
     },
-  });
-
-  // Watch the gameId field to debug
-  const watchedGameId = watch('gameId');
-  console.log('Form state:', {
-    watchedGameId,
-    selectedGameId,
-    errors,
-    isValid,
-    isSubmitting,
-    loading,
   });
 
   const handleAddTag = () => {
@@ -109,7 +95,6 @@ export function CreateGameLogModal({ isOpen, onClose, onSuccess }: ICreateGameLo
   };
 
   const handleGameSelect = (gameId: string, gameName: string) => {
-    console.log('Game selected:', { gameId, gameName });
     setSelectedGameId(gameId);
     setSelectedGameName(gameName);
     setValue('gameId', gameId, { shouldValidate: true });
@@ -129,7 +114,6 @@ export function CreateGameLogModal({ isOpen, onClose, onSuccess }: ICreateGameLo
         throw new Error('Invalid form data');
       }
       // Now data is CreateGameLogFormData
-      console.log('Submitting mutation', data);
       const input = {
         gameId: data.gameId,
         rating_for_game: data.rating_for_game,
@@ -144,10 +128,9 @@ export function CreateGameLogModal({ isOpen, onClose, onSuccess }: ICreateGameLo
       await createGameLog({
         variables: { input },
       });
-    } catch (error) {
+    } catch {
       toast.error('Failed to create game log.');
       if (typeof onClose === 'function') onClose(); // fallback close
-      console.error('Error creating game log:', String(error));
     }
   };
 
@@ -380,12 +363,6 @@ export function CreateGameLogModal({ isOpen, onClose, onSuccess }: ICreateGameLo
                 >
                   {isSubmitting || loading ? 'Creating...' : 'Create Game Log'}
                 </Button>
-              </div>
-              {/* Debug info */}
-              <div className="text-xs text-gray-500 mt-2">
-                <p>Game ID: {watchedGameId ?? 'Not set'}</p>
-                <p>Form Valid: {isValid ? 'Yes' : 'No'}</p>
-                <p>Errors: {Object.keys(errors).join(', ') || 'None'}</p>
               </div>
             </form>
           </div>
