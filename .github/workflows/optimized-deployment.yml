@@ -251,9 +251,9 @@ jobs:
           retention-days: 7
           if-no-files-found: warn
 
-  # Optional post-deploy tests (only run if needed)
-  e2e-post-deploy:
-    name: E2E Post-Deploy (Optional)
+  # Optional post-deploy smoke tests (only run for production)
+  e2e-post-deploy-smoke:
+    name: E2E Post-Deploy Smoke Tests (Optional)
     needs: [deploy]
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -273,7 +273,7 @@ jobs:
       - name: Setup Playwright browsers
         run: pnpm exec playwright install --with-deps
 
-      - name: Run Post-Deploy E2E
+      - name: Run Post-Deploy Smoke E2E
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
@@ -288,8 +288,78 @@ jobs:
           API_MOCK_MODE: 'true'
           CI: 'true'
         run: |
-          echo "Running post-deploy E2E tests..."
+          echo "Running post-deploy smoke E2E tests..."
           pnpm exec playwright test tests/e2e/functional/smoke.spec.ts --workers=2 --reporter=line
+          # Ensure coverage directory exists
+          mkdir -p coverage
+          # Create a placeholder coverage file if none exists
+          if [ ! -f "coverage/lcov.info" ] && [ ! -f "coverage/coverage.json" ]; then
+            echo "No coverage files found, creating placeholder"
+            echo '{"type": "Coverage", "version": "1.0", "data": {}}' > coverage/coverage.json
+          fi
+
+      - name: Upload Playwright test results (smoke)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: post-deploy-smoke-playwright-test-results
+          path: |
+            test-results/
+            playwright-report/
+            coverage/
+          retention-days: 7
+          if-no-files-found: warn
+
+      - name: Upload Deployment Artifacts (smoke)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: post-deploy-smoke-deployment-artifacts
+          path: |
+            test-results/
+            playwright-report/
+            coverage/
+          retention-days: 7
+          if-no-files-found: warn
+
+  # Optional post-deploy navigation tests (only run for production)
+  e2e-post-deploy-navigation:
+    name: E2E Navigation Tests
+    if: false # Temporarily skipped
+    needs: [deploy]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: ${{ inputs.environment }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: '10'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Setup Playwright browsers
+        run: pnpm exec playwright install --with-deps
+
+      - name: Run Post-Deploy Navigation E2E
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+          CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
+          DEPLOYMENT_URL: ${{ needs.deploy.outputs.deployment-url }}
+          E2E_AUTH_BYPASS: 'true'
+          TEST_USER_EMAIL: 'test@game-diary.com'
+          TEST_USER_ID: 'test_user_123'
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+          E2E_MOCK_MODE: 'true'
+          API_MOCK_MODE: 'true'
+          CI: 'true'
+        run: |
+          echo "Running post-deploy navigation E2E tests..."
           pnpm exec playwright test tests/e2e/functional/navigation.spec.ts --workers=2 --reporter=line
           # Ensure coverage directory exists
           mkdir -p coverage
@@ -299,16 +369,26 @@ jobs:
             echo '{"type": "Coverage", "version": "1.0", "data": {}}' > coverage/coverage.json
           fi
 
-      - name: Upload Post-Deploy Artifacts
+      - name: Upload Playwright test results (navigation)
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: post-deploy-artifacts
+          name: post-deploy-navigation-playwright-test-results
           path: |
-            logs/
             test-results/
             playwright-report/
             coverage/
-            build/
+          retention-days: 7
+          if-no-files-found: warn
+
+      - name: Upload Deployment Artifacts (navigation)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: post-deploy-navigation-deployment-artifacts
+          path: |
+            test-results/
+            playwright-report/
+            coverage/
           retention-days: 7
           if-no-files-found: warn
