@@ -43,7 +43,6 @@ function expectDashboardSections() {
   expect(screen.getByText('Game Logs')).toBeInTheDocument();
   expect(screen.getByText('Friends')).toBeInTheDocument();
   expect(screen.getByText('Activity & Timeline')).toBeInTheDocument();
-  expect(screen.getByText('User Settings')).toBeInTheDocument();
 }
 
 describe('UserDashboardPage', () => {

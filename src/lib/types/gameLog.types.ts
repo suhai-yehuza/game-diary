@@ -66,6 +66,23 @@ export interface IGameLogsResponse {
   };
 }
 
+// Friends Game Logs Response interface
+export interface IFriendsGameLogsResponse {
+  friendsGameLogs: {
+    edges: Array<{
+      cursor: string;
+      node: IGameLog;
+    }>;
+    pageInfo: {
+      hasNextPage: boolean;
+      hasPreviousPage: boolean;
+      startCursor?: string;
+      endCursor?: string;
+    };
+    totalCount: number;
+  };
+}
+
 // Modal Props interfaces
 export interface ICreateGameLogModalProps {
   isOpen: boolean;

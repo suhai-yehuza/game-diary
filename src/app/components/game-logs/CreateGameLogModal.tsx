@@ -1,6 +1,7 @@
 'use client';
 
 import { useMutation } from '@apollo/client';
+import { useUser } from '@clerk/nextjs';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { X, Star, Search, Calendar, MapPin } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
@@ -43,6 +44,7 @@ const LATEST_SEASON = getLatestNbaSeason();
 const SEASONS = getRecentNbaSeasons(10);
 
 export function CreateGameLogModal({ isOpen, onClose, onSuccess }: ICreateGameLogModalProps) {
+  const { user } = useUser();
   const [rating, setRating] = useState(3);
   const [tags, setTags] = useState<string[]>([]);
   const [newTag, setNewTag] = useState('');
@@ -162,6 +164,7 @@ export function CreateGameLogModal({ isOpen, onClose, onSuccess }: ICreateGameLo
 
   const [createGameLog, { loading }] = useMutation<ICreateGameLogResponse>(CREATE_GAME_LOG, {
     onCompleted: data => {
+      console.log('createGameLog mutation response:', data);
       const created = data?.createGameLog?.gameLog;
       if (created) {
         toast.success('Game log created!');
@@ -181,6 +184,7 @@ export function CreateGameLogModal({ isOpen, onClose, onSuccess }: ICreateGameLo
           errorObj && typeof errorObj.message === 'string'
             ? errorObj.message
             : 'Game log creation failed (no gameLog in response)';
+        console.error('Game log creation error:', errorMsg, data?.createGameLog?.errors);
         toast.error(errorMsg);
       }
     },
@@ -217,7 +221,9 @@ export function CreateGameLogModal({ isOpen, onClose, onSuccess }: ICreateGameLo
 
   const handleFormSubmit = async (data: unknown) => {
     try {
+      console.log('handleFormSubmit called with data:', data);
       if (!isCreateGameLogFormData(data)) {
+        console.error('Invalid form data', data);
         throw new Error('Invalid form data');
       }
       const input = {
@@ -231,10 +237,13 @@ export function CreateGameLogModal({ isOpen, onClose, onSuccess }: ICreateGameLo
         watched_scope: data.watched_scope,
         tags,
       };
+      console.log('Submitting createGameLog mutation with input:', input);
       await createGameLog({
         variables: { input },
       });
-    } catch {
+      console.log('createGameLog mutation completed');
+    } catch (err) {
+      console.error('Failed to create game log:', err);
       toast.error('Failed to create game log.');
       if (typeof onClose === 'function') onClose();
     }
@@ -261,6 +270,8 @@ export function CreateGameLogModal({ isOpen, onClose, onSuccess }: ICreateGameLo
 
   if (!isOpen) return null;
 
+  const isUserAuthenticated = !!user;
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <Card className="w-full max-w-lg mx-4 max-h-[80vh] overflow-y-auto">
@@ -271,6 +282,12 @@ export function CreateGameLogModal({ isOpen, onClose, onSuccess }: ICreateGameLo
               <X className="w-5 h-5" />
             </Button>
           </div>
+
+          {!isUserAuthenticated && (
+            <div className="mb-4 p-2 bg-yellow-100 text-yellow-800 rounded text-center font-semibold">
+              You must be signed in to create a game log.
+            </div>
+          )}
 
           <form onSubmit={e => void handleSubmit(handleFormSubmit)(e)} className="space-y-2">
             {/* Game Selection */}
@@ -323,7 +340,9 @@ export function CreateGameLogModal({ isOpen, onClose, onSuccess }: ICreateGameLo
                       }}
                       className="w-full px-2 py-1 border border-gray-300 rounded-none focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs"
                     >
-                      <option value="latest">Latest Season</option>
+                      <option value="latest">
+                        {`${LATEST_SEASON}-${LATEST_SEASON + 1} Season (Latest)`}
+                      </option>
                       <option value="all">All Seasons</option>
                       {SEASONS.map(season => (
                         <option key={season} value={season}>
@@ -388,7 +407,7 @@ export function CreateGameLogModal({ isOpen, onClose, onSuccess }: ICreateGameLo
               {/* Hidden input to ensure form validation works */}
               <input type="hidden" {...register('gameId')} value={selectedGameId} />
               {errors.gameId && (
-                <p className="text-red-600 text-xs mt-1">{errors.gameId.message}</p>
+                <p className="text-red-700 font-bold text-xs mt-1">{errors.gameId.message}</p>
               )}
             </div>
 
@@ -560,8 +579,12 @@ export function CreateGameLogModal({ isOpen, onClose, onSuccess }: ICreateGameLo
               <Button
                 type="submit"
                 size="sm"
-                disabled={isSubmitting || loading}
-                className={!isValid ? 'opacity-50 cursor-not-allowed' : ''}
+                disabled={isSubmitting || loading || !selectedGameId || !isUserAuthenticated}
+                className={
+                  !isValid || !selectedGameId || !isUserAuthenticated
+                    ? 'opacity-50 cursor-not-allowed'
+                    : ''
+                }
               >
                 {isSubmitting || loading ? 'Creating...' : 'Create Game Log'}
               </Button>

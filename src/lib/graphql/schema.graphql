@@ -29,6 +29,7 @@ type Query {
   liveGames(first: Int, after: String): GameConnection!
   gameLog(id: ID!): GameLog
   gameLogs(filters: GameLogFilters, pagination: PaginationInput): GameLogConnection!
+  friendsGameLogs(pagination: PaginationInput): GameLogConnection!
 
   # Comment queries
   comments(filters: CommentFilters, pagination: PaginationInput): CommentConnection!

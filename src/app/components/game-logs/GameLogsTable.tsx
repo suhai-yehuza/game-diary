@@ -18,7 +18,7 @@ import {
   CardDescription,
 } from '@/app/components/ui/Card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/app/components/ui/Tabs';
-import { useGameLogs } from '@/hooks/use-game-logs';
+import { useGameLogs, useFriendsGameLogs } from '@/hooks/use-game-logs';
 import type { IGameLog } from '@/lib/types';
 import { CLASSIFICATION } from '@/lib/types';
 
@@ -50,7 +50,7 @@ const RatingStars = ({ rating }: { rating: number }) => {
 
 export function GameLogsTable() {
   const { user } = useUser();
-  const [selectedTab, setSelectedTab] = useState('public-logs');
+  const [selectedTab, setSelectedTab] = useState('my-logs');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [editingGameLog, setEditingGameLog] = useState<IGameLog | null>(null);
   const [deletingGameLog, setDeletingGameLog] = useState<IGameLog | null>(null);
@@ -76,7 +76,7 @@ export function GameLogsTable() {
     gameLogs: friendsGameLogsRaw,
     loading: friendsLogsLoading,
     error: friendsLogsError,
-  } = useGameLogs({ filters: { classification: CLASSIFICATION.PROTECTED } });
+  } = useFriendsGameLogs();
 
   const friendsGameLogs = friendsGameLogsRaw;
 
@@ -96,6 +96,16 @@ export function GameLogsTable() {
   };
 
   const renderGameLogCard = (log: IGameLog, showActions = false) => {
+    // Normalize null fields to undefined for compatibility
+    const normalizedLog = {
+      ...log,
+      notes: log.notes ?? undefined,
+      tags: log.tags ?? undefined,
+      watched_date: log.watched_date ?? undefined,
+      watched_setting: log.watched_setting ?? undefined,
+      watched_location: log.watched_location ?? undefined,
+      watched_scope: log.watched_scope ?? undefined,
+    };
     return (
       <Card key={log.id} className="mb-4 border-2 border-red-400 bg-white">
         <CardHeader className="flex flex-row justify-between items-start pb-2">
@@ -106,12 +116,12 @@ export function GameLogsTable() {
           <RatingStars rating={log.rating_for_game} />
         </CardHeader>
         <CardContent>
-          {log.notes && (
-            <CardDescription className="mb-2 text-gray-600">{log.notes}</CardDescription>
+          {normalizedLog.notes && (
+            <CardDescription className="mb-2 text-gray-600">{normalizedLog.notes}</CardDescription>
           )}
-          {log.tags && log.tags.length > 0 && (
+          {normalizedLog.tags && normalizedLog.tags.length > 0 && (
             <div className="flex flex-wrap gap-1 mb-2">
-              {log.tags.map(tag => (
+              {normalizedLog.tags.map(tag => (
                 <span
                   key={tag}
                   className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full"
@@ -122,11 +132,13 @@ export function GameLogsTable() {
             </div>
           )}
           <div className="text-sm text-gray-500 mb-2">
-            {log.watched_date && (
-              <div>Watched: {format(new Date(log.watched_date), 'MMM dd, yyyy')}</div>
+            {normalizedLog.watched_date && (
+              <div>Watched: {format(new Date(normalizedLog.watched_date), 'MMM dd, yyyy')}</div>
             )}
-            {log.watched_setting && <div>Setting: {log.watched_setting}</div>}
-            {log.watched_location && <div>Location: {log.watched_location}</div>}
+            {normalizedLog.watched_setting && <div>Setting: {normalizedLog.watched_setting}</div>}
+            {normalizedLog.watched_location && (
+              <div>Location: {normalizedLog.watched_location}</div>
+            )}
           </div>
           <div className="text-xs text-gray-400">
             Created: {format(new Date(log.created_at), 'MMM dd, yyyy HH:mm')}
@@ -182,7 +194,7 @@ export function GameLogsTable() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-semibold">Game Logs</h2>
+        <h2 className="text-2xl font-semibold">My Game Logs</h2>
         <Button onClick={() => setIsCreateModalOpen(true)}>
           <Plus className="w-4 h-4 mr-2" />
           Create New Log
@@ -207,8 +219,19 @@ export function GameLogsTable() {
             </div>
           ) : (
             <div>
-              {myGameLogs?.edges?.map((edge: { node: IGameLog }) =>
-                renderGameLogCard(edge.node, true)
+              {myGameLogs?.edges?.map(edge =>
+                renderGameLogCard(
+                  {
+                    ...edge.node,
+                    notes: edge.node.notes ?? undefined,
+                    tags: edge.node.tags ?? undefined,
+                    watched_date: edge.node.watched_date ?? undefined,
+                    watched_setting: edge.node.watched_setting ?? undefined,
+                    watched_location: edge.node.watched_location ?? undefined,
+                    watched_scope: edge.node.watched_scope ?? undefined,
+                  } as IGameLog,
+                  true
+                )
               )}
             </div>
           )}
@@ -219,14 +242,22 @@ export function GameLogsTable() {
             <div className="text-center py-8">
               <p className="text-gray-600">Loading friends&apos; game logs...</p>
             </div>
-          ) : friendsGameLogs?.edges?.length === 0 ? (
+          ) : !friendsGameLogs || friendsGameLogs.edges?.length === 0 ? (
             <div className="text-center py-8">
               <p className="text-gray-600">No friends&apos; game logs found.</p>
             </div>
           ) : (
             <div>
-              {friendsGameLogs?.edges?.map((edge: { node: IGameLog }) =>
-                renderGameLogCard(edge.node)
+              {friendsGameLogs.edges?.map(edge =>
+                renderGameLogCard({
+                  ...edge.node,
+                  notes: edge.node.notes ?? undefined,
+                  tags: edge.node.tags ?? undefined,
+                  watched_date: edge.node.watched_date ?? undefined,
+                  watched_setting: edge.node.watched_setting ?? undefined,
+                  watched_location: edge.node.watched_location ?? undefined,
+                  watched_scope: edge.node.watched_scope ?? undefined,
+                } as IGameLog)
               )}
             </div>
           )}
@@ -243,7 +274,17 @@ export function GameLogsTable() {
             </div>
           ) : (
             <div>
-              {publicGameLogs.edges.map((edge: { node: IGameLog }) => renderGameLogCard(edge.node))}
+              {publicGameLogs.edges.map(edge =>
+                renderGameLogCard({
+                  ...edge.node,
+                  notes: edge.node.notes ?? undefined,
+                  tags: edge.node.tags ?? undefined,
+                  watched_date: edge.node.watched_date ?? undefined,
+                  watched_setting: edge.node.watched_setting ?? undefined,
+                  watched_location: edge.node.watched_location ?? undefined,
+                  watched_scope: edge.node.watched_scope ?? undefined,
+                } as IGameLog)
+              )}
             </div>
           )}
         </TabsContent>

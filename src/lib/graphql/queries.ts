@@ -382,3 +382,25 @@ export const SEARCH_GAME_LOGS_ADMIN = gql`
     }
   }
 `;
+
+export const GET_FRIENDS_GAME_LOGS = gql`
+  query GetFriendsGameLogs($pagination: PaginationInput) {
+    friendsGameLogs(pagination: $pagination) {
+      edges {
+        node {
+          ...GameLogFragment
+        }
+        cursor
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+      totalCount
+    }
+  }
+  ${GAME_LOG_FRAGMENT}
+  ${USER_SUMMARY_FRAGMENT}
+  ${COMMENT_FRAGMENT}
+  ${REACTION_FRAGMENT}
+`;

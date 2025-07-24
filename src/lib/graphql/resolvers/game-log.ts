@@ -280,11 +280,9 @@ export const gameLogQueryResolvers = {
     const {
       first = API_CONFIG.pagination.DEFAULT_PAGE_SIZE,
       after,
-      searchTerm,
-      searchField,
+      searchTerm = '',
+      searchField = 'all',
     } = args;
-
-    console.log('🔍 searchGameLogs called with:', { searchTerm, searchField, first, after });
 
     const whereConditions = [];
 
@@ -385,6 +383,125 @@ export const gameLogQueryResolvers = {
       totalCount: totalCount,
     };
   },
+
+  // Get game logs from friends only
+  friendsGameLogs: async (
+    _parent: unknown,
+    args: {
+      pagination?: {
+        first?: number;
+        after?: string;
+        last?: number;
+        before?: string;
+      };
+    },
+    context: GraphQLContext
+  ) => {
+    if (!context.user?.id) {
+      throw new AuthorizationError('Authentication required');
+    }
+
+    const { pagination } = args;
+    const limit = pagination?.first ?? API_CONFIG.pagination.DEFAULT_PAGE_SIZE;
+
+    // Get all friends of the current user (both directions of friendship)
+    const friendsQuery = await db()?.execute(sql`
+      SELECT DISTINCT
+        CASE
+          WHEN f.user_id = ${context.user.id} THEN f.friend_id
+          WHEN f.friend_id = ${context.user.id} THEN f.user_id
+        END as friend_user_id
+      FROM friendships f
+      WHERE f.status = ${FRIENDSHIP_STATUS.ACCEPTED}
+      AND (f.user_id = ${context.user.id} OR f.friend_id = ${context.user.id})
+    `);
+
+    const friendIds = friendsQuery?.rows?.map(row => row.friend_user_id).filter(Boolean) ?? [];
+
+    if (friendIds.length === 0) {
+      // No friends, return empty result
+      return {
+        edges: [],
+        pageInfo: {
+          hasNextPage: false,
+          hasPreviousPage: false,
+          startCursor: null,
+          endCursor: null,
+        },
+        totalCount: 0,
+      };
+    }
+
+    // Build where conditions for game logs from friends
+    const whereConditions = [
+      sql`${game_logs.user_id} = ANY(${friendIds})`,
+      sql`${game_logs.classification} = ${CLASSIFICATION.PROTECTED}`,
+    ];
+
+    // Add cursor-based pagination
+    if (pagination?.after) {
+      whereConditions.push(sql`${game_logs.id} > ${pagination.after}`);
+    }
+
+    const whereClause = and(...whereConditions);
+
+    // Get the paginated results
+    const gameLogs = await db()?.query.game_logs.findMany({
+      where: whereClause,
+      limit,
+      orderBy: [desc(game_logs.created_at)],
+      with: {
+        user: true,
+      },
+    });
+
+    // Get the total count for pagination
+    const totalCountResult = await db()
+      ?.select({ count: sql<number>`count(*)` })
+      .from(game_logs)
+      .where(whereClause);
+    const totalCount = totalCountResult?.[0]?.count ?? 0;
+
+    const edges =
+      gameLogs?.map(gameLog => ({
+        cursor: gameLog.id,
+        node: {
+          id: gameLog.id,
+          game_id: gameLog.game_id,
+          rating_for_game: gameLog.rating_for_game,
+          notes: gameLog.notes,
+          tags: gameLog.tags,
+          watched_date: gameLog.watched_date,
+          watched_setting: gameLog.watched_setting,
+          watched_location: gameLog.watched_location,
+          watched_scope: gameLog.watched_scope,
+          classification: gameLog.classification,
+          created_at: gameLog.created_at,
+          updated_at: gameLog.updated_at,
+          deleted_at: gameLog.deleted_at,
+          user: {
+            id: gameLog.user?.id ?? '',
+            username: gameLog.user?.username ?? '',
+            first_name: gameLog.user?.first_name ?? '',
+            last_name: gameLog.user?.last_name ?? '',
+            email_address: null,
+            phone_number: null,
+            image_url: gameLog.user?.image_url ?? null,
+          },
+        },
+      })) || [];
+
+    return {
+      edges,
+      pageInfo: {
+        hasNextPage: edges.length === limit,
+        hasPreviousPage: false,
+        startCursor: edges[0]?.cursor || null,
+        endCursor: edges[edges.length - 1]?.cursor || null,
+      },
+      totalCount: totalCount,
+    };
+  },
 };
 
 // Game Log Mutation Resolvers
@@ -462,7 +579,7 @@ export const gameLogMutationResolvers = {
 
     try {
       const gameLogId = generateUUIDv7();
-      const newGameLog = await db()
+      const newGameLogArr = await db()
         ?.insert(game_logs)
         .values({
           id: gameLogId,
@@ -471,7 +588,7 @@ export const gameLogMutationResolvers = {
           rating_for_game: args.input.rating_for_game,
           notes: args.input.notes,
           tags: args.input.tags,
-          watched_date: args.input.watched_date ?? new Date(),
+          watched_date: args.input.watched_date ? new Date(args.input.watched_date) : new Date(),
           watched_setting: args.input.watched_setting,
           watched_location: args.input.watched_location,
           watched_scope: args.input.watched_scope,
@@ -479,29 +596,52 @@ export const gameLogMutationResolvers = {
         })
         .returning();
 
+      const newGameLog = newGameLogArr?.[0];
+      let user = null;
+      if (newGameLog && context.user) {
+        user = await db()?.query.users.findFirst({
+          where: sql`id = ${context.user.id}`,
+        });
+      }
+
       return {
-        gameLog: newGameLog?.[0]
+        gameLog: newGameLog
           ? {
-              id: newGameLog[0].id,
-              rating_for_game: newGameLog[0].rating_for_game,
-              notes: newGameLog[0].notes,
-              tags: newGameLog[0].tags,
-              watched_date: newGameLog[0].watched_date,
-              watched_setting: newGameLog[0].watched_setting,
-              watched_location: newGameLog[0].watched_location,
-              watched_scope: newGameLog[0].watched_scope,
-              classification: newGameLog[0].classification,
-              created_at: newGameLog[0].created_at,
-              updated_at: newGameLog[0].updated_at,
-              deleted_at: newGameLog[0].deleted_at,
+              id: newGameLog.id,
+              rating_for_game: newGameLog.rating_for_game,
+              notes: newGameLog.notes,
+              tags: newGameLog.tags,
+              watched_date: newGameLog.watched_date,
+              watched_setting: newGameLog.watched_setting,
+              watched_location: newGameLog.watched_location,
+              watched_scope: newGameLog.watched_scope,
+              classification: newGameLog.classification,
+              created_at: newGameLog.created_at,
+              updated_at: newGameLog.updated_at,
+              deleted_at: newGameLog.deleted_at,
+              user: user
+                ? {
+                    id: user.id,
+                    username: user.username,
+                    first_name: user.first_name,
+                    last_name: user.last_name,
+                    image_url: user.image_url,
+                  }
+                : null,
             }
           : null,
         errors: [],
       };
-    } catch {
+    } catch (error) {
+      console.error('Failed to create game log:', error);
       return {
         gameLog: null,
-        errors: [{ message: 'Failed to create game log', code: 'CREATE_GAME_LOG_ERROR' }],
+        errors: [
+          {
+            message: error instanceof Error ? error.message : String(error),
+            code: 'CREATE_GAME_LOG_ERROR',
+          },
+        ],
       };
     }
   },

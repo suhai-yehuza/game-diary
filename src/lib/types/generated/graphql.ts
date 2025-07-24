@@ -437,6 +437,7 @@ export enum ParentType {
 export type Query = {
   __typename?: 'Query';
   comments: CommentConnection;
+  friendsGameLogs: GameLogConnection;
   game?: Maybe<Game>;
   gameLog?: Maybe<GameLog>;
   gameLogs: GameLogConnection;
@@ -453,6 +454,11 @@ export type Query = {
 
 export type QueryCommentsArgs = {
   filters?: InputMaybe<CommentFilters>;
+  pagination?: InputMaybe<PaginationInput>;
+};
+
+
+export type QueryFriendsGameLogsArgs = {
   pagination?: InputMaybe<PaginationInput>;
 };
 

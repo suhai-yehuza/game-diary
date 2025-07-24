@@ -4,6 +4,7 @@ import { useUser } from '@clerk/nextjs';
 import React from 'react';
 
 import { GameLogsTable } from '@/app/components/game-logs/GameLogsTable';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/app/components/ui/Tabs';
 
 function UserGreeting() {
   // Handle case where Clerk is not configured (e.g., in test environment)
@@ -72,29 +73,30 @@ function ActivityTimelineStub() {
   );
 }
 
-function UserSettingsStub() {
-  return (
-    <div className="rounded-lg border p-6 bg-background mb-8">
-      <h2 className="text-2xl font-semibold mb-2">User Settings</h2>
-      <p className="text-muted-foreground mb-2">Manage your account settings and preferences.</p>
-      <div className="h-24 flex items-center justify-center text-muted-foreground italic">
-        [User Settings Placeholder]
-      </div>
-    </div>
-  );
-}
-
 export default function UserDashboardPage() {
+  const [selectedTab, setSelectedTab] = React.useState('game-logs');
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
       <UserGreeting />
       <div className="container mx-auto px-4 py-8">
-        <div className="rounded-lg border p-6 bg-background mb-8">
-          <GameLogsTable />
-        </div>
-        <FriendsTableStub />
-        <ActivityTimelineStub />
-        <UserSettingsStub />
+        <Tabs value={selectedTab} onValueChange={setSelectedTab}>
+          <TabsList className="mb-6">
+            <TabsTrigger value="game-logs">Game Logs</TabsTrigger>
+            <TabsTrigger value="friends">Friends</TabsTrigger>
+            <TabsTrigger value="activity">Activity & Timeline</TabsTrigger>
+          </TabsList>
+          <TabsContent value="game-logs">
+            <div className="rounded-lg border p-6 bg-background mb-8">
+              <GameLogsTable />
+            </div>
+          </TabsContent>
+          <TabsContent value="friends">
+            <FriendsTableStub />
+          </TabsContent>
+          <TabsContent value="activity">
+            <ActivityTimelineStub />
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );

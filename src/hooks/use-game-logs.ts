@@ -1,8 +1,9 @@
 import { useQuery } from '@apollo/client';
 
-import { GET_GAME_LOGS } from '@/lib/graphql/queries';
+import { GET_GAME_LOGS, GET_FRIENDS_GAME_LOGS } from '@/lib/graphql/queries';
 import type { IGameLogsOptions, IGameLogsResponse } from '@/lib/types';
 import { CLASSIFICATION } from '@/lib/types';
+import type { Query } from '@/lib/types/generated/graphql';
 
 export function useGameLogs(options: IGameLogsOptions = {}) {
   const { filters = {}, pagination = {} } = options;
@@ -38,7 +39,21 @@ export function usePublicGameLogs() {
 }
 
 export function useFriendsGameLogs() {
-  return useGameLogs({
-    filters: { classification: CLASSIFICATION.PROTECTED },
-  });
+  const { data, loading, error, refetch } = useQuery<Pick<Query, 'friendsGameLogs'>>(
+    GET_FRIENDS_GAME_LOGS,
+    {
+      variables: {
+        pagination: {},
+      },
+      fetchPolicy: 'cache-and-network',
+      errorPolicy: 'all',
+    }
+  );
+
+  return {
+    gameLogs: data?.friendsGameLogs ?? null,
+    loading,
+    error: error ? new Error(error.message) : null,
+    refetch,
+  };
 }
