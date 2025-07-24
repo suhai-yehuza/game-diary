@@ -103,14 +103,14 @@ export const gameLogQueryResolvers = {
       rating_for_game: gameLog.rating_for_game,
       notes: gameLog.notes,
       tags: gameLog.tags,
-      watched_date: gameLog.watched_date,
+      watched_date: gameLog.watched_date ? new Date(gameLog.watched_date) : undefined,
       watched_setting: gameLog.watched_setting,
       watched_location: gameLog.watched_location,
       watched_scope: gameLog.watched_scope,
       classification: gameLog.classification,
-      created_at: gameLog.created_at,
-      updated_at: gameLog.updated_at,
-      deleted_at: gameLog.deleted_at,
+      created_at: gameLog.created_at ? new Date(gameLog.created_at) : undefined,
+      updated_at: gameLog.updated_at ? new Date(gameLog.updated_at) : undefined,
+      deleted_at: gameLog.deleted_at ? new Date(gameLog.deleted_at) : undefined,
       user: {
         id: gameLog.user?.id ?? '',
         username: gameLog.user?.username ?? '',
@@ -247,7 +247,7 @@ export const gameLogQueryResolvers = {
             game: game
               ? {
                   id: game.id,
-                  date: game.date.toISOString(),
+                  date: game.date ? new Date(game.date) : undefined,
                   status: game.status,
                   game_type: game.game_type,
                   nba_game_id: game.nba_game_id ?? undefined,
@@ -264,8 +264,8 @@ export const gameLogQueryResolvers = {
                         all_star: homeTeam.all_star,
                         nba_franchise: homeTeam.nba_franchise,
                         conference: homeTeam.conference ?? undefined,
-                        created_at: homeTeam.created_at.toISOString(),
-                        updated_at: homeTeam.updated_at.toISOString(),
+                        created_at: homeTeam.created_at ? new Date(homeTeam.created_at) : undefined,
+                        updated_at: homeTeam.updated_at ? new Date(homeTeam.updated_at) : undefined,
                       }
                     : null,
                   away_team: awayTeam
@@ -279,16 +279,16 @@ export const gameLogQueryResolvers = {
                         all_star: awayTeam.all_star,
                         nba_franchise: awayTeam.nba_franchise,
                         conference: awayTeam.conference ?? undefined,
-                        created_at: awayTeam.created_at.toISOString(),
-                        updated_at: awayTeam.updated_at.toISOString(),
+                        created_at: awayTeam.created_at ? new Date(awayTeam.created_at) : undefined,
+                        updated_at: awayTeam.updated_at ? new Date(awayTeam.updated_at) : undefined,
                       }
                     : null,
                   home_team_score: game.home_team_score ?? undefined,
                   away_team_score: game.away_team_score ?? undefined,
                   average_rating: game.average_rating ? Number(game.average_rating) : undefined,
                   total_ratings: game.total_ratings ?? undefined,
-                  created_at: game.created_at.toISOString(),
-                  updated_at: game.updated_at.toISOString(),
+                  created_at: game.created_at ? new Date(game.created_at) : undefined,
+                  updated_at: game.updated_at ? new Date(game.updated_at) : undefined,
                 }
               : null,
             rating_for_game: gameLog.rating_for_game,
@@ -428,14 +428,14 @@ export const gameLogQueryResolvers = {
           rating_for_game: gameLog.rating_for_game,
           notes: gameLog.notes,
           tags: gameLog.tags,
-          watched_date: gameLog.watched_date,
+          watched_date: gameLog.watched_date ? new Date(gameLog.watched_date) : undefined,
           watched_setting: gameLog.watched_setting,
           watched_location: gameLog.watched_location,
           watched_scope: gameLog.watched_scope,
           classification: gameLog.classification,
-          created_at: gameLog.created_at,
-          updated_at: gameLog.updated_at,
-          deleted_at: gameLog.deleted_at,
+          created_at: gameLog.created_at ? new Date(gameLog.created_at) : undefined,
+          updated_at: gameLog.updated_at ? new Date(gameLog.updated_at) : undefined,
+          deleted_at: gameLog.deleted_at ? new Date(gameLog.deleted_at) : undefined,
           user: {
             id: gameLog.user?.id ?? '',
             username: gameLog.user?.username ?? '',
@@ -547,14 +547,14 @@ export const gameLogQueryResolvers = {
           rating_for_game: gameLog.rating_for_game,
           notes: gameLog.notes,
           tags: gameLog.tags,
-          watched_date: gameLog.watched_date,
+          watched_date: gameLog.watched_date ? new Date(gameLog.watched_date) : undefined,
           watched_setting: gameLog.watched_setting,
           watched_location: gameLog.watched_location,
           watched_scope: gameLog.watched_scope,
           classification: gameLog.classification,
-          created_at: gameLog.created_at,
-          updated_at: gameLog.updated_at,
-          deleted_at: gameLog.deleted_at,
+          created_at: gameLog.created_at ? new Date(gameLog.created_at) : undefined,
+          updated_at: gameLog.updated_at ? new Date(gameLog.updated_at) : undefined,
+          deleted_at: gameLog.deleted_at ? new Date(gameLog.deleted_at) : undefined,
           user: {
             id: gameLog.user?.id ?? '',
             username: gameLog.user?.username ?? '',
@@ -687,14 +687,14 @@ export const gameLogMutationResolvers = {
               rating_for_game: newGameLog.rating_for_game,
               notes: newGameLog.notes,
               tags: newGameLog.tags,
-              watched_date: newGameLog.watched_date,
+              watched_date: newGameLog.watched_date ? new Date(newGameLog.watched_date) : undefined,
               watched_setting: newGameLog.watched_setting,
               watched_location: newGameLog.watched_location,
               watched_scope: newGameLog.watched_scope,
               classification: newGameLog.classification,
-              created_at: newGameLog.created_at,
-              updated_at: newGameLog.updated_at,
-              deleted_at: newGameLog.deleted_at,
+              created_at: newGameLog.created_at ? new Date(newGameLog.created_at) : undefined,
+              updated_at: newGameLog.updated_at ? new Date(newGameLog.updated_at) : undefined,
+              deleted_at: newGameLog.deleted_at ? new Date(newGameLog.deleted_at) : undefined,
               user: user
                 ? {
                     id: user.id,
@@ -745,6 +745,46 @@ export const gameLogMutationResolvers = {
     }
 
     try {
+      // Validate input
+      const errors = [];
+
+      if (
+        args.input.rating_for_game !== undefined &&
+        (args.input.rating_for_game < 1 || args.input.rating_for_game > 5)
+      ) {
+        errors.push({
+          message: 'Rating must be between 1 and 5',
+          code: 'INVALID_RATING',
+          field: 'rating_for_game',
+        });
+      }
+
+      if (args.input.watched_date !== undefined) {
+        try {
+          const date = new Date(args.input.watched_date);
+          if (isNaN(date.getTime())) {
+            errors.push({
+              message: 'Invalid watched_date format',
+              code: 'INVALID_DATE',
+              field: 'watched_date',
+            });
+          }
+        } catch {
+          errors.push({
+            message: 'Invalid watched_date format',
+            code: 'INVALID_DATE',
+            field: 'watched_date',
+          });
+        }
+      }
+
+      if (errors.length > 0) {
+        return {
+          gameLog: null,
+          errors,
+        };
+      }
+
       // Check if user owns the game log
       const existingGameLog = await db()?.query.game_logs.findFirst({
         where: eq(game_logs.id, args.id),
@@ -754,38 +794,75 @@ export const gameLogMutationResolvers = {
         throw new AuthorizationError('Access denied to this game log');
       }
 
+      // Prepare update data with proper date handling
+      const updateData = { ...args.input } as typeof args.input & { updated_at: Date };
+
+      // Convert watched_date to proper format if it exists
+      if (updateData.watched_date !== undefined) {
+        updateData.watched_date = new Date(updateData.watched_date);
+      }
+
+      updateData.updated_at = new Date();
+
       const updatedGameLog = await db()
         ?.update(game_logs)
-        .set({
-          ...args.input,
-          updated_at: new Date(),
-        })
+        .set(updateData)
         .where(eq(game_logs.id, args.id))
         .returning();
 
+      // Fetch the updated game log with user data
+      const updatedGameLogWithUser = updatedGameLog?.[0]
+        ? await db()?.query.game_logs.findFirst({
+            where: eq(game_logs.id, args.id),
+            with: {
+              user: true,
+            },
+          })
+        : null;
+
       return {
-        gameLog: updatedGameLog?.[0]
+        gameLog: updatedGameLogWithUser
           ? {
-              id: updatedGameLog[0].id,
-              rating_for_game: updatedGameLog[0].rating_for_game,
-              notes: updatedGameLog[0].notes,
-              tags: updatedGameLog[0].tags,
-              watched_date: updatedGameLog[0].watched_date,
-              watched_setting: updatedGameLog[0].watched_setting,
-              watched_location: updatedGameLog[0].watched_location,
-              watched_scope: updatedGameLog[0].watched_scope,
-              classification: updatedGameLog[0].classification,
-              created_at: updatedGameLog[0].created_at,
-              updated_at: updatedGameLog[0].updated_at,
-              deleted_at: updatedGameLog[0].deleted_at,
+              id: updatedGameLogWithUser.id,
+              game_id: updatedGameLogWithUser.game_id,
+              user: updatedGameLogWithUser.user,
+              rating_for_game: updatedGameLogWithUser.rating_for_game,
+              notes: updatedGameLogWithUser.notes,
+              tags: updatedGameLogWithUser.tags,
+              watched_date: updatedGameLogWithUser.watched_date
+                ? new Date(updatedGameLogWithUser.watched_date)
+                : undefined,
+              watched_setting: updatedGameLogWithUser.watched_setting,
+              watched_location: updatedGameLogWithUser.watched_location,
+              watched_scope: updatedGameLogWithUser.watched_scope,
+              classification: updatedGameLogWithUser.classification,
+              created_at: updatedGameLogWithUser.created_at
+                ? new Date(updatedGameLogWithUser.created_at)
+                : undefined,
+              updated_at: updatedGameLogWithUser.updated_at
+                ? new Date(updatedGameLogWithUser.updated_at)
+                : undefined,
+              deleted_at: updatedGameLogWithUser.deleted_at
+                ? new Date(updatedGameLogWithUser.deleted_at)
+                : undefined,
             }
           : null,
         errors: [],
       };
-    } catch {
+    } catch (err) {
+      // Only log critical errors in development
+      if (process.env.NODE_ENV === 'development') {
+        console.error('UpdateGameLog resolver error:', err);
+      }
       return {
         gameLog: null,
-        errors: [{ message: 'Failed to update game log', code: 'UPDATE_GAME_LOG_ERROR' }],
+        errors: [
+          {
+            message: err instanceof Error ? err.message : String(err),
+            code: 'UPDATE_GAME_LOG_ERROR',
+            field: null,
+          },
+        ],
       };
     }
   },
@@ -835,5 +912,69 @@ export const gameLogResolver = {
     // Always return an array (empty if no reactions)
     return [];
   },
-  // Add any game log-specific field resolvers here
+  // Resolve the game field to ensure date fields are properly converted
+  game: async (parent: { game_id?: string }, _args: unknown, _context: unknown) => {
+    if (!parent.game_id) return null;
+
+    const game = await db()?.query.nba_games.findFirst({
+      where: eq(nba_games.id, parent.game_id),
+    });
+
+    if (!game) return null;
+
+    // Fetch team data
+    const homeTeam = await db()?.query.teams.findFirst({
+      where: eq(teams.id, game.home_team_id),
+    });
+
+    const awayTeam = await db()?.query.teams.findFirst({
+      where: eq(teams.id, game.away_team_id),
+    });
+
+    return {
+      id: game.id,
+      date: game.date ? new Date(game.date) : undefined,
+      status: game.status,
+      game_type: game.game_type,
+      nba_game_id: game.nba_game_id,
+      home_team_id: game.home_team_id,
+      away_team_id: game.away_team_id,
+      home_team: homeTeam
+        ? {
+            id: homeTeam.id,
+            name: homeTeam.name,
+            nickname: homeTeam.nickname ?? undefined,
+            code: homeTeam.code ?? undefined,
+            city: homeTeam.city ?? undefined,
+            logo: homeTeam.logo ?? undefined,
+            all_star: homeTeam.all_star,
+            nba_franchise: homeTeam.nba_franchise,
+            conference: homeTeam.conference ?? undefined,
+            created_at: homeTeam.created_at ? new Date(homeTeam.created_at) : undefined,
+            updated_at: homeTeam.updated_at ? new Date(homeTeam.updated_at) : undefined,
+          }
+        : null,
+      away_team: awayTeam
+        ? {
+            id: awayTeam.id,
+            name: awayTeam.name,
+            nickname: awayTeam.nickname ?? undefined,
+            code: awayTeam.code ?? undefined,
+            city: awayTeam.city ?? undefined,
+            logo: awayTeam.logo ?? undefined,
+            all_star: awayTeam.all_star,
+            nba_franchise: awayTeam.nba_franchise,
+            conference: awayTeam.conference ?? undefined,
+            created_at: awayTeam.created_at ? new Date(awayTeam.created_at) : undefined,
+            updated_at: awayTeam.updated_at ? new Date(awayTeam.updated_at) : undefined,
+          }
+        : null,
+      home_team_score: game.home_team_score,
+      away_team_score: game.away_team_score,
+      average_rating: game.average_rating ? Number(game.average_rating) : undefined,
+      total_ratings: game.total_ratings,
+      created_at: game.created_at ? new Date(game.created_at) : undefined,
+      updated_at: game.updated_at ? new Date(game.updated_at) : undefined,
+    };
+  },
 };

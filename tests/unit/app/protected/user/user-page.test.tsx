@@ -39,9 +39,14 @@ const userStates = {
 
 // Helper function to assert dashboard sections are present
 function expectDashboardSections() {
-  expect(screen.getByText('Game Logs')).toBeInTheDocument();
-  expect(screen.getByText('Friends')).toBeInTheDocument();
-  expect(screen.getByText('Activity & Timeline')).toBeInTheDocument();
+  // Look for the navigation tabs specifically
+  const gameLogsTab = screen.getByRole('button', { name: 'Game Logs' });
+  const friendsTab = screen.getByRole('button', { name: 'Friends' });
+  const activityTab = screen.getByRole('button', { name: 'Activity & Timeline' });
+
+  expect(gameLogsTab).toBeInTheDocument();
+  expect(friendsTab).toBeInTheDocument();
+  expect(activityTab).toBeInTheDocument();
 }
 
 describe('UserDashboardPage', () => {

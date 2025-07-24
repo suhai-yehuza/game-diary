@@ -138,6 +138,13 @@ export function GameLogModal({ mode, isOpen, onClose, onSuccess, gameLog }: IGam
     }
   }, [gameLog, reset, mode]);
 
+  // Set gameId form value when selectedGameId changes (create mode only)
+  useEffect(() => {
+    if (mode === 'create') {
+      setValue('gameId', selectedGameId);
+    }
+  }, [selectedGameId, setValue, mode]);
+
   // Game search functionality (create mode only)
   const searchGames = useCallback(async (term: string, season: number | 'all' | 'latest') => {
     if (!term.trim()) {
@@ -261,15 +268,24 @@ export function GameLogModal({ mode, isOpen, onClose, onSuccess, gameLog }: IGam
       onCompleted: (data: { updateGameLog: { gameLog: IGameLog; errors: unknown[] } }) => {
         if (data?.updateGameLog?.gameLog) {
           toast.success('Game log updated!');
-          onSuccess();
+          if (onSuccess) {
+            onSuccess();
+          }
           onClose();
         } else {
-          toast.error('Failed to update game log.');
+          // Show detailed error message from backend
+          const errors = data?.updateGameLog?.errors as Array<{ message?: string }>;
+          if (errors && errors.length > 0) {
+            const errorMessage = errors[0]?.message ?? 'Failed to update game log';
+            toast.error(errorMessage);
+          } else {
+            toast.error('Failed to update game log.');
+          }
         }
       },
       onError: (error: Error) => {
-        console.error('Error updating game log:', error);
-        toast.error('Failed to update game log.');
+        toast.error(`Failed to update game log: ${error.message}`);
+        onClose();
       },
     }
   );
@@ -321,24 +337,28 @@ export function GameLogModal({ mode, isOpen, onClose, onSuccess, gameLog }: IGam
         // Edit mode
         const updateData = data as UpdateGameLogFormData;
         const input = {
-          rating_for_game: rating,
+          rating_for_game: updateData.rating_for_game,
           notes: updateData.notes,
           classification: updateData.classification,
           watched_setting: updateData.watched_setting,
           watched_location: updateData.watched_location,
           watched_scope: updateData.watched_scope,
-          tags,
-          watched_date: updateData.watched_date ? new Date(updateData.watched_date) : undefined,
+          tags: updateData.tags,
+          watched_date: updateData.watched_date
+            ? new Date(updateData.watched_date).toISOString()
+            : undefined,
         };
+        if (!gameLog) {
+          throw new Error('Game log is required for edit mode');
+        }
         await updateGameLog({
           variables: {
-            id: gameLog!.id,
+            id: gameLog.id,
             input,
           },
         });
       }
-    } catch (err) {
-      console.error(`Failed to ${mode} game log:`, err);
+    } catch {
       toast.error(`Failed to ${mode} game log.`);
       onClose();
     }
@@ -511,10 +531,10 @@ export function GameLogModal({ mode, isOpen, onClose, onSuccess, gameLog }: IGam
                   </div>
                 )}
 
-                {/* Hidden input to ensure form validation works */}
-                <input type="hidden" {...register('gameId')} value={selectedGameId} />
-                {mode === 'create' && (errors as any).gameId && (
-                  <p className="text-red-600 text-sm mt-1">{(errors as any).gameId.message}</p>
+                {mode === 'create' && 'gameId' in errors && errors.gameId && (
+                  <p className="text-red-600 text-sm mt-1">
+                    {(errors.gameId as { message?: string })?.message}
+                  </p>
                 )}
               </div>
             )}

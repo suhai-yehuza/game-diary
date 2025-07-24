@@ -54,14 +54,29 @@ const getTeamDisplay = (game: IGameLog['game']): string => {
     return 'Unknown Teams';
   }
 
-  const { home_team, away_team } = game as {
+  const { home_team, away_team, date } = game as {
     home_team: { code?: string; nickname?: string; name: string };
     away_team: { code?: string; nickname?: string; name: string };
+    date?: string | Date;
   };
   const homeTeamCode = home_team.code ?? home_team.nickname ?? home_team.name;
   const awayTeamCode = away_team.code ?? away_team.nickname ?? away_team.name;
 
-  return `${awayTeamCode} v ${homeTeamCode}`;
+  // Format the date if available
+  let dateString = '';
+  if (date) {
+    const gameDate = new Date(date);
+    if (!isNaN(gameDate.getTime())) {
+      dateString = ` on ${gameDate.toLocaleDateString('en-US', {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+      })}`;
+    }
+  }
+
+  return `${awayTeamCode} @ ${homeTeamCode}${dateString}`;
 };
 
 export function GameLogsTable() {
@@ -131,10 +146,10 @@ export function GameLogsTable() {
           <div className="flex items-center gap-2">
             <ClassificationIcon classification={log.classification} />
             <div className="flex flex-col">
-              <CardTitle className="text-base font-medium">
+              <CardTitle className="text-base font-semibold">
                 <a
                   href={`/games/${log.game_id}`}
-                  className="text-blue-600 hover:text-blue-800 hover:underline"
+                  className="text-gray-900 dark:text-white hover:text-blue-700 dark:hover:text-blue-300 hover:underline transition-colors"
                 >
                   {getTeamDisplay(log.game)}
                 </a>
@@ -286,6 +301,7 @@ export function GameLogsTable() {
                     watched_setting: edge.node.watched_setting ?? undefined,
                     watched_location: edge.node.watched_location ?? undefined,
                     watched_scope: edge.node.watched_scope ?? undefined,
+                    game: edge.node.game,
                   } as IGameLog,
                   true
                 )
@@ -299,24 +315,31 @@ export function GameLogsTable() {
             <div className="text-center py-8">
               <p className="text-gray-600">Loading friends&apos; game logs...</p>
             </div>
-          ) : !friendsGameLogs || friendsGameLogs.edges?.length === 0 ? (
+          ) : !friendsGameLogs ||
+            !Array.isArray(friendsGameLogs.edges) ||
+            friendsGameLogs.edges.length === 0 ? (
             <div className="text-center py-8">
               <p className="text-gray-600">No friends&apos; game logs found.</p>
             </div>
           ) : (
             <div>
-              {friendsGameLogs.edges?.map(edge =>
-                renderGameLogCard({
-                  ...edge.node,
-                  notes: edge.node.notes ?? undefined,
-                  tags: edge.node.tags ?? undefined,
-                  watched_date: edge.node.watched_date ?? undefined,
-                  watched_setting: edge.node.watched_setting ?? undefined,
-                  watched_location: edge.node.watched_location ?? undefined,
-                  watched_scope: edge.node.watched_scope ?? undefined,
-                  game: edge.node.game,
-                } as IGameLog)
-              )}
+              {Array.isArray(friendsGameLogs.edges) &&
+                friendsGameLogs.edges.map(edge => {
+                  if (!edge?.node) return null;
+                  const gameLogData = {
+                    ...edge.node,
+                    notes: edge.node.notes ?? undefined,
+                    tags: edge.node.tags ?? undefined,
+                    watched_date: edge.node.watched_date
+                      ? new Date(edge.node.watched_date)
+                      : undefined,
+                    watched_setting: edge.node.watched_setting ?? undefined,
+                    watched_location: edge.node.watched_location ?? undefined,
+                    watched_scope: edge.node.watched_scope ?? undefined,
+                    game: edge.node.game,
+                  };
+                  return renderGameLogCard(gameLogData as IGameLog);
+                })}
             </div>
           )}
         </TabsContent>
