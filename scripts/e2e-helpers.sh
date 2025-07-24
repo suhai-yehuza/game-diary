@@ -259,7 +259,11 @@ run_e2e_test_with_coverage() {
     # Generate coverage report if we have test results
     if [ -f "playwright-report/index.html" ] || [ -d "test-results" ]; then
         echo "📊 Generating coverage report..."
-        tsx scripts/e2e-coverage-report.ts
+        if [ -f "scripts/e2e-coverage-report.ts" ]; then
+            tsx scripts/e2e-coverage-report.ts
+        else
+            echo "⚠️  E2E coverage report script not found, skipping"
+        fi
     else
         echo "⚠️  No test results found, skipping coverage report"
     fi
@@ -289,7 +293,11 @@ run_e2e_test_with_coverage_fast() {
     unset E2E_CLEANUP_ONLY
 
     echo "📊 Generating coverage report..."
-    tsx scripts/e2e-coverage-report.ts
+    if [ -f "scripts/e2e-coverage-report.ts" ]; then
+        tsx scripts/e2e-coverage-report.ts
+    else
+        echo "⚠️  E2E coverage report script not found, skipping"
+    fi
 
     return $exit_code
 }

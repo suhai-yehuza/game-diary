@@ -159,10 +159,42 @@ export default defineConfig({
         ['list'],
         ['json', { outputFile: 'test-results/results.json' }],
         ['junit', { outputFile: 'test-results/results.xml' }],
+        ['html', { open: 'never' }], // Always generate HTML report in CI
       ]
     : [
         ['list'],
         ['html', { open: 'never' }], // Never auto-open HTML report
         ['json', { outputFile: 'test-results/results.json' }],
       ],
+
+  // Coverage configuration for E2E tests
+  ...(process.env.CI && {
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'html', 'json', 'lcov'],
+      reportsDirectory: './coverage',
+      exclude: [
+        'node_modules/**',
+        'dist/**',
+        '.next/**',
+        'coverage/**',
+        'tests/**',
+        '**/*.d.ts',
+        '**/*.config.{js,ts}',
+        '**/vitest.setup.ts',
+        '**/next.config.js',
+        '**/tailwind.config.ts',
+        '**/postcss.config.mjs',
+        '**/drizzle.config.ts',
+        '**/codegen.ts',
+        '**/playwright.config.ts',
+        'src/lib/graphql/**',
+        'src/lib/mock/**',
+        'src/lib/types/**',
+        'src/app/api/webhook/clerk-example-events/**',
+        'src/app/styles/**',
+        'src/middleware.ts',
+      ],
+    },
+  }),
 });

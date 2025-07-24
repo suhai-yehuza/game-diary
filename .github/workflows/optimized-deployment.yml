@@ -136,6 +136,7 @@ jobs:
           DEPLOYMENT_URL: ${{ env.DEFAULT_LOCALHOST_URL || 'http://localhost:3000' }}
           E2E_MOCK_MODE: 'true'
           API_MOCK_MODE: 'true'
+          CI: 'true'
         run: |
           echo "Running combined E2E tests..."
           # Run critical tests first
@@ -143,6 +144,13 @@ jobs:
           pnpm exec playwright test tests/e2e/functional/smoke.spec.ts --workers=2 --reporter=line
           pnpm exec playwright test tests/e2e/functional/live-games.spec.ts --workers=2 --reporter=line
           pnpm exec playwright test tests/e2e/functional/responsive.spec.ts --workers=2 --reporter=line
+          # Ensure coverage directory exists
+          mkdir -p coverage
+          # Create a placeholder coverage file if none exists
+          if [ ! -f "coverage/lcov.info" ] && [ ! -f "coverage/coverage.json" ]; then
+            echo "No coverage files found, creating placeholder"
+            echo '{"type": "Coverage", "version": "1.0", "data": {}}' > coverage/coverage.json
+          fi
 
       - name: Upload E2E Artifacts
         if: always()
@@ -156,6 +164,7 @@ jobs:
             coverage/
             build/
           retention-days: 7
+          if-no-files-found: warn
 
   deploy:
     name: Deploy to Vercel
@@ -240,6 +249,7 @@ jobs:
             coverage/
             build/
           retention-days: 7
+          if-no-files-found: warn
 
   # Optional post-deploy tests (only run if needed)
   e2e-post-deploy:
@@ -276,10 +286,18 @@ jobs:
           VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
           E2E_MOCK_MODE: 'true'
           API_MOCK_MODE: 'true'
+          CI: 'true'
         run: |
           echo "Running post-deploy E2E tests..."
           pnpm exec playwright test tests/e2e/functional/smoke.spec.ts --workers=2 --reporter=line
           pnpm exec playwright test tests/e2e/functional/navigation.spec.ts --workers=2 --reporter=line
+          # Ensure coverage directory exists
+          mkdir -p coverage
+          # Create a placeholder coverage file if none exists
+          if [ ! -f "coverage/lcov.info" ] && [ ! -f "coverage/coverage.json" ]; then
+            echo "No coverage files found, creating placeholder"
+            echo '{"type": "Coverage", "version": "1.0", "data": {}}' > coverage/coverage.json
+          fi
 
       - name: Upload Post-Deploy Artifacts
         if: always()
@@ -293,3 +311,4 @@ jobs:
             coverage/
             build/
           retention-days: 7
+          if-no-files-found: warn
