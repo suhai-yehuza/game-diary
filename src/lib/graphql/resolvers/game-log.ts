@@ -1,11 +1,13 @@
 import { eq, and, desc, sql } from 'drizzle-orm';
 
-import { API_CONFIG } from '@/lib/config/app.config';
+import { API_CONFIG, getRapidApiConfig } from '@/lib/config/app.config';
 import { db } from '@/lib/db';
-import { game_logs } from '@/lib/db/schema';
+import { game_logs, nba_games } from '@/lib/db/schema';
 import { AuthorizationError } from '@/lib/graphql/errors';
 import { FRIENDSHIP_STATUS, CLASSIFICATION } from '@/lib/types';
 import type { GraphQLContext } from '@/lib/types/db.types';
+import type { IGameResponse, IGamesApiResponse } from '@/lib/types/externalApi.types';
+import { createRapidAPIClient } from '@/lib/utils/api-client';
 import { generateUUIDv7 } from '@/lib/utils/id-generator';
 
 // Simple in-memory cache for friendship checks
@@ -160,9 +162,10 @@ export const gameLogQueryResolvers = {
 
     const whereConditions = [];
 
-    // Filter by user (default to current user if not specified)
-    const targetUserId = filters?.userId ?? context.user.id;
-    whereConditions.push(eq(game_logs.user_id, targetUserId));
+    // Only filter by user if userId is explicitly provided
+    if (filters?.userId) {
+      whereConditions.push(eq(game_logs.user_id, filters.userId));
+    }
 
     if (filters?.gameId) {
       whereConditions.push(eq(game_logs.game_id, filters.gameId));
@@ -212,6 +215,7 @@ export const gameLogQueryResolvers = {
         cursor: gameLog.id,
         node: {
           id: gameLog.id,
+          game_id: gameLog.game_id, // Ensure game_id is included
           rating_for_game: gameLog.rating_for_game,
           notes: gameLog.notes,
           tags: gameLog.tags,
@@ -407,6 +411,55 @@ export const gameLogMutationResolvers = {
       throw new AuthorizationError('Authentication required');
     }
 
+    // Upsert NBA game if not exists
+    const nbaGame = await db()?.query.nba_games.findFirst({
+      where: eq(nba_games.id, args.input.gameId),
+    });
+
+    if (!nbaGame) {
+      try {
+        const apiClient = createRapidAPIClient(getRapidApiConfig());
+        // Fetch game details from external API
+        const apiData = await apiClient.fetch<IGamesApiResponse>('/games', {
+          id: args.input.gameId,
+        });
+        const game: IGameResponse | undefined = apiData?.response?.[0];
+        if (!game) {
+          return {
+            gameLog: null,
+            errors: [{ message: 'NBA game not found in external API', code: 'NBA_GAME_NOT_FOUND' }],
+          };
+        }
+        // Insert NBA game into DB
+        await db()
+          ?.insert(nba_games)
+          .values({
+            id: game.id?.toString() ?? args.input.gameId,
+            game_type: 'nba',
+            nba_game_id: game.id?.toString() ?? args.input.gameId,
+            date: new Date(game.date.start),
+            home_team_id: game.teams.home.id?.toString() ?? 'missing-home-team-id',
+            away_team_id: game.teams.visitors.id?.toString() ?? 'missing-away-team-id',
+            home_team_score: game.scores?.home?.points ?? null,
+            away_team_score: game.scores?.visitors?.points ?? null,
+            status:
+              game.status.short === 'FT'
+                ? 'FINISHED'
+                : game.status.short === 'LIVE'
+                  ? 'LIVE'
+                  : 'SCHEDULED',
+          })
+          .onConflictDoNothing();
+      } catch {
+        return {
+          gameLog: null,
+          errors: [
+            { message: 'Failed to fetch or insert NBA game', code: 'NBA_GAME_UPSERT_ERROR' },
+          ],
+        };
+      }
+    }
+
     try {
       const gameLogId = generateUUIDv7();
       const newGameLog = await db()
@@ -554,5 +607,17 @@ export const gameLogMutationResolvers = {
 
 // Game Log Type Resolvers
 export const gameLogResolver = {
+  comments: (_parent: unknown, _args: unknown, _context: unknown) => ({
+    edges: [],
+    pageInfo: {
+      hasNextPage: false,
+      endCursor: null,
+    },
+    totalCount: 0,
+  }),
+  reactions: (_parent: unknown, _args: unknown, _context: unknown) => {
+    // Always return an array (empty if no reactions)
+    return [];
+  },
   // Add any game log-specific field resolvers here
 };

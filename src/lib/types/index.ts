@@ -48,5 +48,8 @@ export * from './search.types';
 // Audit Log types
 export * from './auditLog.types';
 
+// Game Log types
+export * from './gameLog.types';
+
 // UI types
 export * from './ui.types';

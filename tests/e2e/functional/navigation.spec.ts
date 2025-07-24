@@ -96,7 +96,6 @@ async function revealNavLinksIfMobile(page: any) {
           const dom = await page.content();
           console.log('DEBUG: nav links not visible after menu open. DOM:', dom);
           // Skip this edge case instead of failing the test
-          // eslint-disable-next-line no-console
           console.warn(
             'SKIPPING: Mobile nav links did not become visible after menu open. Skipping this edge case.'
           );

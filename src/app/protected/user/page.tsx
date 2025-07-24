@@ -3,6 +3,8 @@
 import { useUser } from '@clerk/nextjs';
 import React from 'react';
 
+import { GameLogsTable } from '@/app/components/game-logs/GameLogsTable';
+
 function UserGreeting() {
   // Handle case where Clerk is not configured (e.g., in test environment)
   let isLoaded = false;
@@ -43,23 +45,6 @@ function UserGreeting() {
         )}
       </div>
     </section>
-  );
-}
-
-function GameLogsTableStub() {
-  return (
-    <div className="rounded-lg border p-6 bg-background mb-8">
-      <h2 className="text-2xl font-semibold mb-2">Game Logs</h2>
-      <p className="text-muted-foreground mb-2">View and manage your created game logs here.</p>
-      <div className="h-24 flex items-center justify-center text-muted-foreground italic">
-        [Game Logs Table Placeholder]
-      </div>
-      <div className="flex gap-2 mt-4">
-        <button className="px-4 py-2 bg-primary text-white rounded hover:bg-primary/80">
-          Create New Log
-        </button>
-      </div>
-    </div>
   );
 }
 
@@ -104,7 +89,9 @@ export default function UserDashboardPage() {
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
       <UserGreeting />
       <div className="container mx-auto px-4 py-8">
-        <GameLogsTableStub />
+        <div className="rounded-lg border p-6 bg-background mb-8">
+          <GameLogsTable />
+        </div>
         <FriendsTableStub />
         <ActivityTimelineStub />
         <UserSettingsStub />
