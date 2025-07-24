@@ -39,7 +39,6 @@ const userStates = {
 
 // Helper function to assert dashboard sections are present
 function expectDashboardSections() {
-  expect(screen.getByText('User Dashboard')).toBeInTheDocument();
   expect(screen.getByText('Game Logs')).toBeInTheDocument();
   expect(screen.getByText('Friends')).toBeInTheDocument();
   expect(screen.getByText('Activity & Timeline')).toBeInTheDocument();

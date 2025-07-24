@@ -370,9 +370,9 @@ export function GameLogModal({ mode, isOpen, onClose, onSuccess, gameLog }: IGam
   const isFormValid = mode === 'create' ? isValid && selectedGameId : isValid;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <Card className="w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
-        <div className="p-3">
+    <div className="fixed inset-0 flex items-center justify-center z-50">
+      <Card className="w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto bg-white dark:bg-neutral-900 border border-gray-300 dark:border-gray-700 rounded-xl shadow-2xl">
+        <div className="p-3 text-gray-900 dark:text-gray-100">
           <div className="flex justify-between items-center mb-3">
             <h2 className="text-xl font-semibold">
               {mode === 'create' ? 'Create New Game Log' : 'Edit Game Log'}
@@ -396,10 +396,14 @@ export function GameLogModal({ mode, isOpen, onClose, onSuccess, gameLog }: IGam
                   Find/Search for Games *
                 </label>
                 {selectedGameName ? (
-                  <div className="flex items-center gap-2 p-2 border border-gray-300 rounded-md bg-gray-50">
+                  <div className="flex items-center gap-3 p-3 border-2 border-blue-200 dark:border-blue-700 rounded-lg bg-blue-50 dark:bg-blue-900/20">
                     <div className="flex-1">
-                      <p className="font-medium text-sm text-gray-900">{selectedGameName}</p>
-                      <p className="text-sm text-gray-600">Game ID: {selectedGameId}</p>
+                      <p className="font-semibold text-sm text-gray-900 dark:text-gray-100">
+                        {selectedGameName}
+                      </p>
+                      <p className="text-xs text-gray-600 dark:text-gray-400">
+                        Game ID: {selectedGameId}
+                      </p>
                     </div>
                     <Button
                       type="button"
@@ -411,6 +415,7 @@ export function GameLogModal({ mode, isOpen, onClose, onSuccess, gameLog }: IGam
                         setValue('gameId', '');
                         setSearchTerm('');
                       }}
+                      className="border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-red-600 dark:hover:text-red-400"
                     >
                       <X className="w-4 h-4" />
                     </Button>
@@ -516,7 +521,9 @@ export function GameLogModal({ mode, isOpen, onClose, onSuccess, gameLog }: IGam
 
             {/* Rating */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Rating *</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Rating *
+              </label>
               <div className="flex items-center gap-1">
                 {[1, 2, 3, 4, 5].map(star => (
                   <button
@@ -527,12 +534,14 @@ export function GameLogModal({ mode, isOpen, onClose, onSuccess, gameLog }: IGam
                   >
                     <Star
                       className={`w-5 h-5 ${
-                        star <= rating ? 'text-yellow-400 fill-current' : 'text-gray-300'
+                        star <= rating
+                          ? 'text-orange-400 fill-current'
+                          : 'text-gray-300 dark:text-gray-600'
                       }`}
                     />
                   </button>
                 ))}
-                <span className="ml-1 text-sm text-gray-600">({rating}/5)</span>
+                <span className="ml-1 text-sm text-gray-600 dark:text-gray-400">({rating}/5)</span>
               </div>
               <input type="hidden" {...register('rating_for_game')} value={rating} />
               {errors.rating_for_game && (
@@ -645,54 +654,64 @@ export function GameLogModal({ mode, isOpen, onClose, onSuccess, gameLog }: IGam
 
             {/* Tags */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Tags</label>
-              <div className="relative">
-                <div className="flex flex-wrap items-center gap-1 p-1.5 border border-gray-300 rounded-md focus-within:outline-none focus-within:ring-2 focus-within:ring-blue-500 min-h-[32px]">
-                  {tags.map(tag => (
-                    <span
-                      key={tag}
-                      className="px-1.5 py-0.5 bg-blue-100 text-blue-800 rounded text-xs flex items-center gap-1"
-                    >
-                      {tag}
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveTag(tag)}
-                        className="text-blue-600 hover:text-blue-800"
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Tags
+              </label>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-1 p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 min-h-[40px] flex-1">
+                    {tags.map(tag => (
+                      <span
+                        key={tag}
+                        className="px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-md text-xs flex items-center gap-1"
                       >
-                        <X className="w-2.5 h-2.5" />
-                      </button>
-                    </span>
-                  ))}
-                  <input
-                    type="text"
-                    value={newTag}
-                    onChange={e => setNewTag(e.target.value)}
-                    onKeyPress={handleKeyPress}
-                    className="flex-1 min-w-[80px] border-none outline-none bg-transparent placeholder:text-gray-400 text-sm"
-                    placeholder={tags.length === 0 ? 'Add a tag' : ''}
-                  />
+                        {tag}
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveTag(tag)}
+                          className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200"
+                        >
+                          <X className="w-2.5 h-2.5" />
+                        </button>
+                      </span>
+                    ))}
+                    <input
+                      type="text"
+                      value={newTag}
+                      onChange={e => setNewTag(e.target.value)}
+                      onKeyPress={handleKeyPress}
+                      className="flex-1 min-w-[120px] border-none outline-none bg-transparent placeholder:text-gray-400 dark:placeholder:text-gray-500 text-sm text-gray-900 dark:text-gray-100"
+                      placeholder={tags.length === 0 ? 'Type a tag and press Enter' : ''}
+                    />
+                  </div>
+                  {newTag.trim() && (
+                    <Button
+                      type="button"
+                      onClick={handleAddTag}
+                      size="sm"
+                      className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-medium shadow-sm text-xs whitespace-nowrap"
+                    >
+                      Add Tag
+                    </Button>
+                  )}
                 </div>
-                <Button
-                  type="button"
-                  onClick={handleAddTag}
-                  variant="outline"
-                  size="sm"
-                  className="absolute right-1 top-1/2 transform -translate-y-1/2 text-xs px-2 py-1"
-                >
-                  Add
-                </Button>
               </div>
             </div>
 
             {/* Submit Buttons */}
-            <div className="flex justify-between pt-3">
-              <Button type="button" variant="outline" onClick={onClose} className="h-9">
+            <div className="flex justify-between pt-4 gap-3">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onClose}
+                className="h-10 px-6 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 font-medium"
+              >
                 Cancel
               </Button>
               <Button
                 type="submit"
                 disabled={isSubmitting || loading || !isFormValid || !isUserAuthenticated}
-                className="h-9"
+                className="h-10 px-6 bg-blue-600 hover:bg-blue-700 text-white font-medium shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSubmitting || loading
                   ? mode === 'create'

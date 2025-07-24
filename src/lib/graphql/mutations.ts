@@ -7,7 +7,7 @@ import {
   GAME_FRAGMENT,
   REACTION_FRAGMENT,
   FRIENDSHIP_FRAGMENT,
-} from '@src/lib/graphql/queries';
+} from '@/lib/graphql/queries';
 
 export const CREATE_GAME = gql`
   mutation CreateGame($input: CreateGameInput!) {

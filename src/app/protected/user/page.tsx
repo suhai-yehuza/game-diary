@@ -28,8 +28,7 @@ function UserGreeting() {
   if (!isLoaded) return null;
   return (
     <section className="py-8 bg-gradient-to-r from-primary/5 to-primary/10 mb-8">
-      <div className="container mx-auto px-4 text-center">
-        <h1 className="text-3xl font-bold mb-2">User Dashboard</h1>
+      <div className="container mx-auto px-4 text-left">
         <p className="text-lg text-muted-foreground">
           {isSignedIn
             ? `Welcome, ${user?.username ?? user?.firstName ?? 'User'}!`
