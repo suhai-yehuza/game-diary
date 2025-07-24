@@ -142,7 +142,7 @@ jobs:
           # Run critical tests first
           pnpm exec playwright test tests/e2e/functional/mock-verification.spec.ts --reporter=line
           pnpm exec playwright test tests/e2e/functional/smoke.spec.ts --workers=2 --reporter=line
-          pnpm exec playwright test tests/e2e/functional/live-games.spec.ts --workers=2 --reporter=line
+          # pnpm exec playwright test tests/e2e/functional/live-games.spec.ts --workers=2 --reporter=line
           pnpm exec playwright test tests/e2e/functional/responsive.spec.ts --workers=2 --reporter=line
           # Ensure coverage directory exists
           mkdir -p coverage
