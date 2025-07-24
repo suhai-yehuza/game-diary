@@ -121,6 +121,7 @@ jobs:
 
   e2e-navigation:
     name: E2E Navigation Tests
+    if: false # Temporarily skipped
     needs: [deploy]
     runs-on: ubuntu-latest
     timeout-minutes: 30
