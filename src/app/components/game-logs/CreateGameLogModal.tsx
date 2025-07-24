@@ -2,20 +2,20 @@
 
 import { useMutation } from '@apollo/client';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { X, Star, Search } from 'lucide-react';
-import { useState } from 'react';
+import { X, Star, Search, Calendar, MapPin } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import { useDebounce } from 'use-debounce';
 
-import { GameSearch } from '@/app/components/game-logs/GameSearch';
 import { Button } from '@/app/components/ui/button';
 import { Card } from '@/app/components/ui/Card';
 import { CREATE_GAME_LOG } from '@/lib/graphql/mutations';
 import type { CreateGameLogFormData, ICreateGameLogModalProps } from '@/lib/types';
 import { CLASSIFICATION, WATCHED_SETTING, WATCHED_SCOPE, createGameLogSchema } from '@/lib/types';
+import type { IGameResponse } from '@/lib/types/externalApi.types';
 import type { ICreateGameLogResponse } from '@/lib/types/gameLog.types';
-
-// Reminder: Ensure <Toaster /> from 'sonner' is mounted in your root layout or _app.tsx for toasts to work.
+import { getLatestNbaSeason, getRecentNbaSeasons } from '@/lib/utils/nba-season';
 
 // Type predicate for linter and type safety
 function isCreateGameLogFormData(data: unknown): data is CreateGameLogFormData {
@@ -28,13 +28,35 @@ function isCreateGameLogFormData(data: unknown): data is CreateGameLogFormData {
   );
 }
 
+interface ISearchResult {
+  id: number;
+  name: string;
+  date: string;
+  homeTeam: string;
+  awayTeam: string;
+  arena: string;
+  season: number;
+  status: string;
+}
+
+const LATEST_SEASON = getLatestNbaSeason();
+const SEASONS = getRecentNbaSeasons(10);
+
 export function CreateGameLogModal({ isOpen, onClose, onSuccess }: ICreateGameLogModalProps) {
   const [rating, setRating] = useState(3);
   const [tags, setTags] = useState<string[]>([]);
   const [newTag, setNewTag] = useState('');
   const [selectedGameId, setSelectedGameId] = useState('');
   const [selectedGameName, setSelectedGameName] = useState('');
-  const [showGameSearch, setShowGameSearch] = useState(false);
+
+  // Search state
+  const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearchTerm] = useDebounce(searchTerm, 300);
+  const [searchResults, setSearchResults] = useState<ISearchResult[]>([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [searchError, setSearchError] = useState<string | null>(null);
+  const [showSearchResults, setShowSearchResults] = useState(false);
+  const [selectedSeason, setSelectedSeason] = useState<'latest' | number | 'all'>('latest');
 
   const {
     register,
@@ -52,8 +74,91 @@ export function CreateGameLogModal({ isOpen, onClose, onSuccess }: ICreateGameLo
       watched_scope: WATCHED_SCOPE.FULL_GAME,
       watched_date: new Date().toISOString().split('T')[0],
     },
-    mode: 'onChange', // Enable real-time validation
+    mode: 'onChange',
   });
+
+  const searchGames = useCallback(async (term: string, season: number | 'all' | 'latest') => {
+    if (!term.trim()) {
+      setSearchResults([]);
+      return;
+    }
+
+    setSearchLoading(true);
+    setSearchError(null);
+
+    try {
+      let games: IGameResponse[] = [];
+      let effectiveSeason = season;
+      if (season === 'latest') {
+        effectiveSeason = LATEST_SEASON;
+      }
+      if (effectiveSeason === 'all') {
+        // Fetch games for all seasons in parallel
+        const allGames = await Promise.all(
+          SEASONS.map(async s => {
+            const response = await fetch(`/api/proxy/games?season=${s}&league=standard`);
+            if (!response.ok) return [];
+            const data = (await response.json()) as {
+              errors?: string[];
+              response?: IGameResponse[];
+            };
+            return data.response ?? [];
+          })
+        );
+        games = allGames.flat();
+      } else {
+        const response = await fetch(`/api/proxy/games?season=${effectiveSeason}&league=standard`);
+        if (!response.ok) throw new Error('Failed to fetch games');
+        const data = (await response.json()) as { errors?: string[]; response?: IGameResponse[] };
+        games = data.response ?? [];
+      }
+
+      const filteredGames = games.filter(game => {
+        const searchLower = term.toLowerCase();
+        const homeTeam = game.teams.home.name.toLowerCase();
+        const awayTeam = game.teams.visitors.name.toLowerCase();
+        const arena = game.arena?.name?.toLowerCase() ?? '';
+        const gameDate = new Date(game.date.start).toLocaleDateString().toLowerCase();
+        return (
+          homeTeam.includes(searchLower) ||
+          awayTeam.includes(searchLower) ||
+          arena.includes(searchLower) ||
+          gameDate.includes(searchLower)
+        );
+      });
+
+      const sortedGames = filteredGames
+        .sort((a, b) => new Date(b.date.start).getTime() - new Date(a.date.start).getTime())
+        .slice(0, 10);
+
+      const searchResults: ISearchResult[] = sortedGames.map(game => ({
+        id: game.id,
+        name: `${game.teams.visitors.name} @ ${game.teams.home.name}`,
+        date: new Date(game.date.start).toLocaleDateString('en-US', {
+          weekday: 'short',
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric',
+        }),
+        homeTeam: game.teams.home.name,
+        awayTeam: game.teams.visitors.name,
+        arena: game.arena?.name ?? 'Unknown Arena',
+        season: game.season,
+        status: game.status?.long ?? game.status?.short ?? 'Unknown',
+      }));
+
+      setSearchResults(searchResults);
+    } catch (err) {
+      setSearchError(err instanceof Error ? err.message : 'An error occurred');
+      setSearchResults([]);
+    } finally {
+      setSearchLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void searchGames(debouncedSearchTerm, selectedSeason);
+  }, [debouncedSearchTerm, selectedSeason, searchGames]);
 
   const [createGameLog, { loading }] = useMutation<ICreateGameLogResponse>(CREATE_GAME_LOG, {
     onCompleted: data => {
@@ -68,6 +173,8 @@ export function CreateGameLogModal({ isOpen, onClose, onSuccess }: ICreateGameLo
         setNewTag('');
         setSelectedGameId('');
         setSelectedGameName('');
+        setSearchTerm('');
+        setSearchResults([]);
       } else {
         const errorObj = data?.createGameLog?.errors?.[0] as { message?: string } | undefined;
         const errorMsg =
@@ -79,7 +186,7 @@ export function CreateGameLogModal({ isOpen, onClose, onSuccess }: ICreateGameLo
     },
     onError: () => {
       toast.error('Failed to create game log.');
-      if (typeof onClose === 'function') onClose(); // fallback close
+      if (typeof onClose === 'function') onClose();
     },
   });
 
@@ -98,22 +205,21 @@ export function CreateGameLogModal({ isOpen, onClose, onSuccess }: ICreateGameLo
     setSelectedGameId(gameId);
     setSelectedGameName(gameName);
     setValue('gameId', gameId, { shouldValidate: true });
-    setShowGameSearch(false);
+    setSearchTerm('');
+    setSearchResults([]);
+    setShowSearchResults(false);
   };
 
-  // Update form when rating changes
   const handleRatingChange = (newRating: number) => {
     setRating(newRating);
     setValue('rating_for_game', newRating, { shouldValidate: true });
   };
 
-  // Change parameter type to unknown for strict type safety
   const handleFormSubmit = async (data: unknown) => {
     try {
       if (!isCreateGameLogFormData(data)) {
         throw new Error('Invalid form data');
       }
-      // Now data is CreateGameLogFormData
       const input = {
         gameId: data.gameId,
         rating_for_game: data.rating_for_game,
@@ -130,7 +236,7 @@ export function CreateGameLogModal({ isOpen, onClose, onSuccess }: ICreateGameLo
       });
     } catch {
       toast.error('Failed to create game log.');
-      if (typeof onClose === 'function') onClose(); // fallback close
+      if (typeof onClose === 'function') onClose();
     }
   };
 
@@ -141,238 +247,328 @@ export function CreateGameLogModal({ isOpen, onClose, onSuccess }: ICreateGameLo
     }
   };
 
+  const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSearchTerm(value);
+    setShowSearchResults(true);
+
+    if (!value.trim()) {
+      setSelectedGameId('');
+      setSelectedGameName('');
+      setValue('gameId', '');
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
-    <>
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <Card className="w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
-          <div className="p-6">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-semibold">Create New Game Log</h2>
-              <Button variant="ghost" size="sm" onClick={onClose}>
-                <X className="w-5 h-5" />
-              </Button>
-            </div>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <Card className="w-full max-w-lg mx-4 max-h-[80vh] overflow-y-auto">
+        <div className="p-2">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-semibold">Create New Game Log</h2>
+            <Button variant="ghost" size="sm" onClick={onClose}>
+              <X className="w-5 h-5" />
+            </Button>
+          </div>
 
-            <form onSubmit={e => void handleSubmit(handleFormSubmit)(e)} className="space-y-6">
-              {/* Game Selection */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Find/Search for Games *
-                </label>
-                {selectedGameName ? (
-                  <div className="flex items-center gap-2 p-3 border border-gray-300 rounded-md bg-gray-50">
-                    <div className="flex-1">
-                      <p className="font-medium text-gray-900">{selectedGameName}</p>
-                      <p className="text-sm text-gray-600">Game ID: {selectedGameId}</p>
-                    </div>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        setSelectedGameId('');
-                        setSelectedGameName('');
-                        setValue('gameId', '');
-                      }}
-                    >
-                      <X className="w-4 h-4" />
-                    </Button>
+          <form onSubmit={e => void handleSubmit(handleFormSubmit)(e)} className="space-y-2">
+            {/* Game Selection */}
+            <div className="relative mb-2">
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                Find/Search for Games *
+              </label>
+              {selectedGameName ? (
+                <div className="flex items-center gap-2 p-1 border border-gray-300 rounded-none bg-gray-50">
+                  <div className="flex-1">
+                    <p className="font-medium text-xs text-gray-900">{selectedGameName}</p>
+                    <p className="text-xs text-gray-600">Game ID: {selectedGameId}</p>
                   </div>
-                ) : (
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      {...register('gameId')}
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder="Enter game ID manually or search for games"
-                    />
-                    <Button type="button" variant="outline" onClick={() => setShowGameSearch(true)}>
-                      <Search className="w-4 h-4 mr-2" />
-                      Search
-                    </Button>
-                  </div>
-                )}
-                {/* Hidden input to ensure form validation works */}
-                <input type="hidden" {...register('gameId')} value={selectedGameId} />
-                {errors.gameId && (
-                  <p className="text-red-600 text-sm mt-1">{errors.gameId.message}</p>
-                )}
-              </div>
-
-              {/* Rating */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Rating *</label>
-                <div className="flex items-center gap-2">
-                  {[1, 2, 3, 4, 5].map(star => (
-                    <button
-                      key={star}
-                      type="button"
-                      onClick={() => handleRatingChange(star)}
-                      className="focus:outline-none"
-                    >
-                      <Star
-                        className={`w-6 h-6 ${
-                          star <= rating ? 'text-yellow-400 fill-current' : 'text-gray-300'
-                        }`}
-                      />
-                    </button>
-                  ))}
-                  <span className="ml-2 text-sm text-gray-600">({rating}/5)</span>
-                </div>
-                {/* Hidden input for form validation */}
-                <input type="hidden" {...register('rating_for_game')} value={rating} />
-                {errors.rating_for_game && (
-                  <p className="text-red-600 text-sm mt-1">{errors.rating_for_game.message}</p>
-                )}
-              </div>
-
-              {/* Classification */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Privacy Level *
-                </label>
-                <select
-                  {...register('classification')}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value={CLASSIFICATION.PRIVATE}>Private (Only you)</option>
-                  <option value={CLASSIFICATION.PROTECTED}>Protected (Friends only)</option>
-                  <option value={CLASSIFICATION.PUBLIC}>Public (Everyone)</option>
-                </select>
-                {errors.classification && (
-                  <p className="text-red-600 text-sm mt-1">{errors.classification.message}</p>
-                )}
-              </div>
-
-              {/* Watched Date */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Watched Date</label>
-                <input
-                  type="date"
-                  {...register('watched_date')}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-
-              {/* Watched Setting */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  How did you watch?
-                </label>
-                <select
-                  {...register('watched_setting')}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value={WATCHED_SETTING.TV}>TV</option>
-                  <option value={WATCHED_SETTING.LAPTOP}>Laptop/Computer</option>
-                  <option value={WATCHED_SETTING.PHONE}>Phone</option>
-                  <option value={WATCHED_SETTING.ARENA}>Arena</option>
-                  <option value={WATCHED_SETTING.OTHER}>Other</option>
-                </select>
-              </div>
-
-              {/* Watched Location */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Location</label>
-                <input
-                  type="text"
-                  {...register('watched_location')}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="e.g., Home, Arena, Bar"
-                />
-              </div>
-
-              {/* Watched Scope */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  What did you watch?
-                </label>
-                <select
-                  {...register('watched_scope')}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value={WATCHED_SCOPE.FULL_GAME}>Full Game</option>
-                  <option value={WATCHED_SCOPE.HALF_GAME}>Half Game</option>
-                  <option value={WATCHED_SCOPE.HIGHLIGHTS}>Highlights</option>
-                  <option value={WATCHED_SCOPE.PRE_GAME}>Pre-Game</option>
-                  <option value={WATCHED_SCOPE.POST_GAME}>Post-Game</option>
-                  <option value={WATCHED_SCOPE.SHORTS}>Shorts</option>
-                  <option value={WATCHED_SCOPE.OTHER}>Other</option>
-                </select>
-              </div>
-
-              {/* Notes */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Notes</label>
-                <textarea
-                  {...register('notes')}
-                  rows={4}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Share your thoughts about the game..."
-                />
-              </div>
-
-              {/* Tags */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Tags</label>
-                <div className="flex gap-2 mb-2">
-                  <input
-                    type="text"
-                    value={newTag}
-                    onChange={e => setNewTag(e.target.value)}
-                    onKeyPress={handleKeyPress}
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Add a tag"
-                  />
-                  <Button type="button" onClick={handleAddTag} variant="outline">
-                    Add
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setSelectedGameId('');
+                      setSelectedGameName('');
+                      setValue('gameId', '');
+                      setSearchTerm('');
+                    }}
+                  >
+                    <X className="w-4 h-4" />
                   </Button>
                 </div>
-                {tags.length > 0 && (
-                  <div className="flex flex-wrap gap-2">
-                    {tags.map(tag => (
-                      <span
-                        key={tag}
-                        className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-sm flex items-center gap-1"
-                      >
-                        {tag}
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveTag(tag)}
-                          className="text-blue-600 hover:text-blue-800"
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
-                      </span>
-                    ))}
+              ) : (
+                <div className="relative">
+                  <div className="relative">
+                    <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <input
+                      type="text"
+                      value={searchTerm}
+                      onChange={handleSearchInputChange}
+                      onFocus={() => setShowSearchResults(true)}
+                      className="w-full pl-8 pr-2 py-1 text-xs border border-gray-300 rounded-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="Search by team name, arena, or date..."
+                    />
                   </div>
-                )}
-              </div>
 
-              {/* Submit Buttons */}
-              <div className="flex justify-end gap-3 pt-4">
-                <Button type="button" variant="outline" onClick={onClose}>
-                  Cancel
-                </Button>
+                  {/* Season selector */}
+                  <div className="mt-1">
+                    <select
+                      value={selectedSeason}
+                      onChange={e => {
+                        const val = e.target.value;
+                        if (val === 'all' || val === 'latest') setSelectedSeason(val);
+                        else setSelectedSeason(Number(val));
+                      }}
+                      className="w-full px-2 py-1 border border-gray-300 rounded-none focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs"
+                    >
+                      <option value="latest">Latest Season</option>
+                      <option value="all">All Seasons</option>
+                      {SEASONS.map(season => (
+                        <option key={season} value={season}>
+                          {season}-{season + 1} Season
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Search Results Dropdown */}
+                  {showSearchResults && (searchTerm.trim() || searchLoading) && (
+                    <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto">
+                      {searchLoading && (
+                        <div className="p-4 text-center text-gray-600">
+                          <p>Searching for games...</p>
+                        </div>
+                      )}
+
+                      {searchError && (
+                        <div className="p-4 text-center text-red-600">
+                          <p>Error: {searchError}</p>
+                        </div>
+                      )}
+
+                      {!searchLoading &&
+                        !searchError &&
+                        searchResults.length === 0 &&
+                        searchTerm.trim() && (
+                          <div className="p-4 text-center text-gray-600">
+                            <p>No games found matching your search.</p>
+                          </div>
+                        )}
+
+                      {!searchLoading && !searchError && searchResults.length > 0 && (
+                        <div className="py-1">
+                          {searchResults.map(game => (
+                            <div
+                              key={game.id}
+                              onClick={() => handleGameSelect(game.id.toString(), game.name)}
+                              className="px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
+                            >
+                              <div className="font-medium text-gray-900 mb-1">{game.name}</div>
+                              <div className="flex items-center gap-4 text-sm text-gray-600">
+                                <div className="flex items-center gap-1">
+                                  <Calendar className="w-3 h-3" />
+                                  {game.date}
+                                </div>
+                                <div className="flex items-center gap-1">
+                                  <MapPin className="w-3 h-3" />
+                                  {game.arena}
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Hidden input to ensure form validation works */}
+              <input type="hidden" {...register('gameId')} value={selectedGameId} />
+              {errors.gameId && (
+                <p className="text-red-600 text-xs mt-1">{errors.gameId.message}</p>
+              )}
+            </div>
+
+            {/* Rating */}
+            <div className="mb-2">
+              <label className="block text-xs font-medium text-gray-700 mb-1">Rating *</label>
+              <div className="flex items-center gap-1">
+                {[1, 2, 3, 4, 5].map(star => (
+                  <button
+                    key={star}
+                    type="button"
+                    onClick={() => handleRatingChange(star)}
+                    className="focus:outline-none h-5 w-5"
+                  >
+                    <Star
+                      className={`w-5 h-5 ${
+                        star <= rating ? 'text-yellow-400 fill-current' : 'text-gray-300'
+                      }`}
+                    />
+                  </button>
+                ))}
+                <span className="ml-1 text-xs text-gray-600">({rating}/5)</span>
+              </div>
+              <input type="hidden" {...register('rating_for_game')} value={rating} />
+              {errors.rating_for_game && (
+                <p className="text-red-600 text-xs mt-1">{errors.rating_for_game.message}</p>
+              )}
+            </div>
+
+            {/* Classification */}
+            <div className="mb-2">
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                Privacy Level *
+              </label>
+              <select
+                {...register('classification')}
+                className="w-full px-2 py-1 border border-gray-300 rounded-none focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs"
+              >
+                <option value={CLASSIFICATION.PRIVATE}>Private (Only you)</option>
+                <option value={CLASSIFICATION.PROTECTED}>Protected (Friends only)</option>
+                <option value={CLASSIFICATION.PUBLIC}>Public (Everyone)</option>
+              </select>
+              {errors.classification && (
+                <p className="text-red-600 text-xs mt-1">{errors.classification.message}</p>
+              )}
+            </div>
+
+            {/* Watched Date */}
+            <div className="mb-2">
+              <label className="block text-xs font-medium text-gray-700 mb-1">Watched Date</label>
+              <input
+                type="date"
+                {...register('watched_date')}
+                className="w-full px-2 py-1 border border-gray-300 rounded-none focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs"
+              />
+            </div>
+
+            {/* Watched Setting */}
+            <div className="mb-2">
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                Setting (optional)
+              </label>
+              <select
+                {...register('watched_setting')}
+                className="w-full px-2 py-1 border border-gray-300 rounded-none focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs"
+              >
+                <option value={WATCHED_SETTING.TV}>TV</option>
+                <option value={WATCHED_SETTING.ARENA}>Arena</option>
+                <option value={WATCHED_SETTING.PHONE}>Phone</option>
+                <option value={WATCHED_SETTING.LAPTOP}>Laptop/Computer</option>
+                <option value={WATCHED_SETTING.BAR}>Bar</option>
+                <option value={WATCHED_SETTING.HOME}>Home</option>
+                <option value={WATCHED_SETTING.OTHER}>Other</option>
+              </select>
+            </div>
+
+            {/* Watched Location */}
+            <div className="mb-2">
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                Location (optional)
+              </label>
+              <input
+                type="text"
+                {...register('watched_location')}
+                className="w-full px-2 py-1 border border-gray-300 rounded-none focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs"
+                placeholder="e.g., Home, Arena, Bar"
+              />
+            </div>
+
+            {/* Watched Scope */}
+            <div className="mb-2">
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                Scope (optional)
+              </label>
+              <select
+                {...register('watched_scope')}
+                className="w-full px-2 py-1 border border-gray-300 rounded-none focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs"
+              >
+                <option value={WATCHED_SCOPE.FULL_GAME}>Full Game</option>
+                <option value={WATCHED_SCOPE.HALF_GAME}>Half Game</option>
+                <option value={WATCHED_SCOPE.HIGHLIGHTS}>Highlights</option>
+                <option value={WATCHED_SCOPE.PRE_GAME}>Pre-Game</option>
+                <option value={WATCHED_SCOPE.POST_GAME}>Post-Game</option>
+                <option value={WATCHED_SCOPE.SHORTS}>Shorts</option>
+                <option value={WATCHED_SCOPE.OTHER}>Other</option>
+              </select>
+            </div>
+
+            {/* Notes */}
+            <div className="mb-2">
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                Notes (optional)
+              </label>
+              <textarea
+                {...register('notes')}
+                rows={2}
+                className="w-full px-2 py-1 border border-gray-300 rounded-none focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs"
+                placeholder="Share your thoughts about the game..."
+              />
+            </div>
+
+            {/* Tags */}
+            <div className="mb-2">
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                Tags (optional, to easily filter your game logs)
+              </label>
+              <div className="flex flex-wrap gap-0 border border-gray-300 rounded-none focus-within:ring-2 focus-within:ring-blue-500 bg-white dark:bg-black">
+                {tags.map(tag => (
+                  <span
+                    key={tag}
+                    className="inline-flex items-center bg-blue-100 text-blue-800 rounded-none text-[10px] px-0.5 py-0 gap-0 leading-none"
+                  >
+                    {tag}
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveTag(tag)}
+                      className="text-blue-600 hover:text-blue-800 p-0 m-0 h-auto min-h-0 bg-transparent border-none align-middle"
+                      style={{ lineHeight: 1 }}
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </span>
+                ))}
+                <input
+                  type="text"
+                  value={newTag}
+                  onChange={e => setNewTag(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  className="flex-1 px-1 py-0 border-none focus:outline-none bg-transparent text-[10px]"
+                  placeholder="Add a tag"
+                />
                 <Button
-                  type="submit"
-                  disabled={isSubmitting || loading}
-                  className={!isValid ? 'opacity-50 cursor-not-allowed' : ''}
+                  type="button"
+                  onClick={handleAddTag}
+                  variant="outline"
+                  size="sm"
+                  className="h-6 px-2 text-[10px]"
                 >
-                  {isSubmitting || loading ? 'Creating...' : 'Create Game Log'}
+                  Add
                 </Button>
               </div>
-            </form>
-          </div>
-        </Card>
-      </div>
+            </div>
 
-      {/* Game Search Modal */}
-      {showGameSearch && (
-        <GameSearch onGameSelect={handleGameSelect} onClose={() => setShowGameSearch(false)} />
-      )}
-    </>
+            {/* Submit Buttons */}
+            <div className="flex justify-end gap-2 pt-2">
+              <Button type="button" variant="outline" size="sm" onClick={onClose}>
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                size="sm"
+                disabled={isSubmitting || loading}
+                className={!isValid ? 'opacity-50 cursor-not-allowed' : ''}
+              >
+                {isSubmitting || loading ? 'Creating...' : 'Create Game Log'}
+              </Button>
+            </div>
+          </form>
+        </div>
+      </Card>
+    </div>
   );
 }
