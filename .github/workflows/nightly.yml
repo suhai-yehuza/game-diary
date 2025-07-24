@@ -1,9 +1,9 @@
 name: Nightly Tests
 
 on:
-  schedule:
-    - cron: '0 2 * * *'
-  workflow_dispatch: # Allow manual triggering
+  # schedule:
+  #   - cron: '0 2 * * *'  # Temporarily disabled - runs at 2 AM UTC daily
+  workflow_dispatch: # Allow manual triggering only
 
 jobs:
   # Combined validation job to reduce parallel jobs
