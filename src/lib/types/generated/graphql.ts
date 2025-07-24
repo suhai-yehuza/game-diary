@@ -223,12 +223,14 @@ export enum FriendshipStatus {
 export type Game = {
   __typename?: 'Game';
   average_rating?: Maybe<Scalars['Float']['output']>;
+  away_team: Team;
   away_team_id: Scalars['String']['output'];
   away_team_score?: Maybe<Scalars['Int']['output']>;
   created_at: Scalars['DateTime']['output'];
   date: Scalars['DateTime']['output'];
   deleted_at?: Maybe<Scalars['DateTime']['output']>;
   game_type: Scalars['String']['output'];
+  home_team: Team;
   home_team_id: Scalars['String']['output'];
   home_team_score?: Maybe<Scalars['Int']['output']>;
   id: Scalars['ID']['output'];
@@ -266,6 +268,7 @@ export type GameLog = {
   comments: CommentConnection;
   created_at: Scalars['DateTime']['output'];
   deleted_at?: Maybe<Scalars['DateTime']['output']>;
+  game: Game;
   game_id: Scalars['String']['output'];
   id: Scalars['ID']['output'];
   notes?: Maybe<Scalars['String']['output']>;
@@ -553,6 +556,21 @@ export type SendFriendRequestResponse = {
   __typename?: 'SendFriendRequestResponse';
   errors?: Maybe<Array<ErrorResult>>;
   friendship?: Maybe<Friendship>;
+};
+
+export type Team = {
+  __typename?: 'Team';
+  all_star: Scalars['Boolean']['output'];
+  city?: Maybe<Scalars['String']['output']>;
+  code?: Maybe<Scalars['String']['output']>;
+  conference?: Maybe<Scalars['String']['output']>;
+  created_at: Scalars['DateTime']['output'];
+  id: Scalars['ID']['output'];
+  logo?: Maybe<Scalars['String']['output']>;
+  name: Scalars['String']['output'];
+  nba_franchise: Scalars['Boolean']['output'];
+  nickname?: Maybe<Scalars['String']['output']>;
+  updated_at: Scalars['DateTime']['output'];
 };
 
 export type UpdateCommentInput = {

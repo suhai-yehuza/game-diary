@@ -48,6 +48,22 @@ const RatingStars = ({ rating }: { rating: number }) => {
   );
 };
 
+// Helper function to get team display from game data
+const getTeamDisplay = (game: IGameLog['game']): string => {
+  if (!game || typeof game !== 'object' || !('home_team' in game && 'away_team' in game)) {
+    return 'Unknown Teams';
+  }
+
+  const { home_team, away_team } = game as {
+    home_team: { code?: string; nickname?: string; name: string };
+    away_team: { code?: string; nickname?: string; name: string };
+  };
+  const homeTeamCode = home_team.code ?? home_team.nickname ?? home_team.name;
+  const awayTeamCode = away_team.code ?? away_team.nickname ?? away_team.name;
+
+  return `${awayTeamCode} v ${homeTeamCode}`;
+};
+
 export function GameLogsTable() {
   const { user } = useUser();
   const [selectedTab, setSelectedTab] = useState('my-logs');
@@ -111,7 +127,25 @@ export function GameLogsTable() {
         <CardHeader className="flex flex-row justify-between items-start pb-2">
           <div className="flex items-center gap-2">
             <ClassificationIcon classification={log.classification} />
-            <CardTitle className="text-base font-medium">Game {log.game_id}</CardTitle>
+            <div className="flex flex-col">
+              <CardTitle className="text-base font-medium">
+                <a
+                  href={`/games/${log.game_id}`}
+                  className="text-blue-600 hover:text-blue-800 hover:underline"
+                >
+                  {getTeamDisplay(log.game)}
+                </a>
+              </CardTitle>
+              <span className="text-xs text-gray-500">
+                {log.user?.id ? (
+                  <a href={`/users/${log.user.id}`} className="hover:underline text-blue-600">
+                    @{log.user.first_name ?? log.user.username ?? 'Unknown User'}
+                  </a>
+                ) : (
+                  '@Unknown User'
+                )}
+              </span>
+            </div>
           </div>
           <RatingStars rating={log.rating_for_game} />
         </CardHeader>
@@ -122,10 +156,7 @@ export function GameLogsTable() {
           {normalizedLog.tags && normalizedLog.tags.length > 0 && (
             <div className="flex flex-wrap gap-1 mb-2">
               {normalizedLog.tags.map(tag => (
-                <span
-                  key={tag}
-                  className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full"
-                >
+                <span key={tag} className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded">
                   {tag}
                 </span>
               ))}
@@ -257,6 +288,7 @@ export function GameLogsTable() {
                   watched_setting: edge.node.watched_setting ?? undefined,
                   watched_location: edge.node.watched_location ?? undefined,
                   watched_scope: edge.node.watched_scope ?? undefined,
+                  game: edge.node.game,
                 } as IGameLog)
               )}
             </div>
@@ -283,6 +315,7 @@ export function GameLogsTable() {
                   watched_setting: edge.node.watched_setting ?? undefined,
                   watched_location: edge.node.watched_location ?? undefined,
                   watched_scope: edge.node.watched_scope ?? undefined,
+                  game: edge.node.game,
                 } as IGameLog)
               )}
             </div>

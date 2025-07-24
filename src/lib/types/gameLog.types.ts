@@ -10,6 +10,47 @@ import { CLASSIFICATION, WATCHED_SETTING, WATCHED_SCOPE } from './constant.types
 export interface IGameLog {
   id: string;
   game_id: string;
+  game: {
+    id: string;
+    date: string;
+    status: string;
+    game_type: string;
+    nba_game_id?: string;
+    home_team_id: string;
+    away_team_id: string;
+    home_team: {
+      id: string;
+      name: string;
+      nickname?: string;
+      code?: string;
+      city?: string;
+      logo?: string;
+      all_star: boolean;
+      nba_franchise: boolean;
+      conference?: string;
+      created_at: string;
+      updated_at: string;
+    };
+    away_team: {
+      id: string;
+      name: string;
+      nickname?: string;
+      code?: string;
+      city?: string;
+      logo?: string;
+      all_star: boolean;
+      nba_franchise: boolean;
+      conference?: string;
+      created_at: string;
+      updated_at: string;
+    };
+    home_team_score?: number;
+    away_team_score?: number;
+    average_rating?: number;
+    total_ratings?: number;
+    created_at: string;
+    updated_at: string;
+  };
   rating_for_game: number;
   notes?: string;
   tags?: string[];

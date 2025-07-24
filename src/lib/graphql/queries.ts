@@ -9,8 +9,36 @@ export const GAME_FRAGMENT = gql`
     nba_game_id
     home_team_id
     away_team_id
+    home_team {
+      id
+      name
+      nickname
+      code
+      city
+      logo
+      all_star
+      nba_franchise
+      conference
+      created_at
+      updated_at
+    }
+    away_team {
+      id
+      name
+      nickname
+      code
+      city
+      logo
+      all_star
+      nba_franchise
+      conference
+      created_at
+      updated_at
+    }
     home_team_score
     away_team_score
+    average_rating
+    total_ratings
     created_at
     updated_at
   }
@@ -113,6 +141,10 @@ export const REACTION_FRAGMENT = gql`
 export const GAME_LOG_FRAGMENT = gql`
   fragment GameLogFragment on GameLog {
     id
+    game_id
+    game {
+      ...GameFragment
+    }
     rating_for_game
     notes
     tags
@@ -226,6 +258,7 @@ export const GET_GAME_LOGS = gql`
     }
   }
   ${GAME_LOG_FRAGMENT}
+  ${GAME_FRAGMENT}
   ${USER_SUMMARY_FRAGMENT}
   ${COMMENT_FRAGMENT}
   ${REACTION_FRAGMENT}
@@ -238,6 +271,7 @@ export const GET_GAME_LOG = gql`
     }
   }
   ${GAME_LOG_FRAGMENT}
+  ${GAME_FRAGMENT}
   ${USER_SUMMARY_FRAGMENT}
   ${COMMENT_FRAGMENT}
   ${REACTION_FRAGMENT}
@@ -400,6 +434,7 @@ export const GET_FRIENDS_GAME_LOGS = gql`
     }
   }
   ${GAME_LOG_FRAGMENT}
+  ${GAME_FRAGMENT}
   ${USER_SUMMARY_FRAGMENT}
   ${COMMENT_FRAGMENT}
   ${REACTION_FRAGMENT}

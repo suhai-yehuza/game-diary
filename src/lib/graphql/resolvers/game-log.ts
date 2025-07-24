@@ -1,8 +1,8 @@
-import { eq, and, desc, sql } from 'drizzle-orm';
+import { eq, and, desc, sql, inArray } from 'drizzle-orm';
 
 import { API_CONFIG, getRapidApiConfig } from '@/lib/config/app.config';
 import { db } from '@/lib/db';
-import { game_logs, nba_games } from '@/lib/db/schema';
+import { game_logs, nba_games, teams } from '@/lib/db/schema';
 import { AuthorizationError } from '@/lib/graphql/errors';
 import { FRIENDSHIP_STATUS, CLASSIFICATION } from '@/lib/types';
 import type { GraphQLContext } from '@/lib/types/db.types';
@@ -203,6 +203,29 @@ export const gameLogQueryResolvers = {
       },
     });
 
+    // Fetch game data for all game logs
+    const gameIds = gameLogs?.map(log => log.game_id) ?? [];
+    const games =
+      gameIds.length > 0
+        ? ((await db()?.query.nba_games.findMany({
+            where: inArray(nba_games.id, gameIds),
+          })) ?? [])
+        : [];
+
+    const gameMap = new Map(games.map(game => [game.id, game]));
+
+    // Fetch team data for all games
+    const teamIds = games.flatMap(game => [game.home_team_id, game.away_team_id]);
+    const uniqueTeamIds = [...new Set(teamIds)];
+    const teamData =
+      uniqueTeamIds.length > 0
+        ? ((await db()?.query.teams.findMany({
+            where: inArray(teams.id, uniqueTeamIds),
+          })) ?? [])
+        : [];
+
+    const teamMap = new Map(teamData.map(team => [team.id, team]));
+
     // Get the total count for pagination
     const totalCountResult = await db()
       ?.select({ count: sql<number>`count(*)` })
@@ -211,33 +234,86 @@ export const gameLogQueryResolvers = {
     const totalCount = totalCountResult?.[0]?.count ?? 0;
 
     const edges =
-      gameLogs?.map(gameLog => ({
-        cursor: gameLog.id,
-        node: {
-          id: gameLog.id,
-          game_id: gameLog.game_id, // Ensure game_id is included
-          rating_for_game: gameLog.rating_for_game,
-          notes: gameLog.notes,
-          tags: gameLog.tags,
-          watched_date: gameLog.watched_date,
-          watched_setting: gameLog.watched_setting,
-          watched_location: gameLog.watched_location,
-          watched_scope: gameLog.watched_scope,
-          classification: gameLog.classification,
-          created_at: gameLog.created_at,
-          updated_at: gameLog.updated_at,
-          deleted_at: gameLog.deleted_at,
-          user: {
-            id: gameLog.user?.id ?? '',
-            username: gameLog.user?.username ?? '',
-            first_name: gameLog.user?.first_name ?? '',
-            last_name: gameLog.user?.last_name ?? '',
-            email_address: null,
-            phone_number: null,
-            image_url: gameLog.user?.image_url ?? null,
+      gameLogs?.map(gameLog => {
+        const game = gameMap.get(gameLog.game_id);
+        const homeTeam = game ? teamMap.get(game.home_team_id) : null;
+        const awayTeam = game ? teamMap.get(game.away_team_id) : null;
+
+        return {
+          cursor: gameLog.id,
+          node: {
+            id: gameLog.id,
+            game_id: gameLog.game_id,
+            game: game
+              ? {
+                  id: game.id,
+                  date: game.date.toISOString(),
+                  status: game.status,
+                  game_type: game.game_type,
+                  nba_game_id: game.nba_game_id ?? undefined,
+                  home_team_id: game.home_team_id,
+                  away_team_id: game.away_team_id,
+                  home_team: homeTeam
+                    ? {
+                        id: homeTeam.id,
+                        name: homeTeam.name,
+                        nickname: homeTeam.nickname ?? undefined,
+                        code: homeTeam.code ?? undefined,
+                        city: homeTeam.city ?? undefined,
+                        logo: homeTeam.logo ?? undefined,
+                        all_star: homeTeam.all_star,
+                        nba_franchise: homeTeam.nba_franchise,
+                        conference: homeTeam.conference ?? undefined,
+                        created_at: homeTeam.created_at.toISOString(),
+                        updated_at: homeTeam.updated_at.toISOString(),
+                      }
+                    : null,
+                  away_team: awayTeam
+                    ? {
+                        id: awayTeam.id,
+                        name: awayTeam.name,
+                        nickname: awayTeam.nickname ?? undefined,
+                        code: awayTeam.code ?? undefined,
+                        city: awayTeam.city ?? undefined,
+                        logo: awayTeam.logo ?? undefined,
+                        all_star: awayTeam.all_star,
+                        nba_franchise: awayTeam.nba_franchise,
+                        conference: awayTeam.conference ?? undefined,
+                        created_at: awayTeam.created_at.toISOString(),
+                        updated_at: awayTeam.updated_at.toISOString(),
+                      }
+                    : null,
+                  home_team_score: game.home_team_score ?? undefined,
+                  away_team_score: game.away_team_score ?? undefined,
+                  average_rating: game.average_rating ? Number(game.average_rating) : undefined,
+                  total_ratings: game.total_ratings ?? undefined,
+                  created_at: game.created_at.toISOString(),
+                  updated_at: game.updated_at.toISOString(),
+                }
+              : null,
+            rating_for_game: gameLog.rating_for_game,
+            notes: gameLog.notes,
+            tags: gameLog.tags,
+            watched_date: gameLog.watched_date,
+            watched_setting: gameLog.watched_setting,
+            watched_location: gameLog.watched_location,
+            watched_scope: gameLog.watched_scope,
+            classification: gameLog.classification,
+            created_at: gameLog.created_at,
+            updated_at: gameLog.updated_at,
+            deleted_at: gameLog.deleted_at,
+            user: {
+              id: gameLog.user?.id ?? '',
+              username: gameLog.user?.username ?? '',
+              first_name: gameLog.user?.first_name ?? '',
+              last_name: gameLog.user?.last_name ?? '',
+              email_address: null,
+              phone_number: null,
+              image_url: gameLog.user?.image_url ?? null,
+            },
           },
-        },
-      })) || [];
+        };
+      }) || [];
 
     return {
       edges,
