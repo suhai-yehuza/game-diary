@@ -684,6 +684,7 @@ export const gameLogMutationResolvers = {
         gameLog: newGameLog
           ? {
               id: newGameLog.id,
+              game_id: newGameLog.game_id,
               rating_for_game: newGameLog.rating_for_game,
               notes: newGameLog.notes,
               tags: newGameLog.tags,
