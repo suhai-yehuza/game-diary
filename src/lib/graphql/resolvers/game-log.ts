@@ -193,18 +193,30 @@ export const gameLogQueryResolvers = {
 
     const whereClause = whereConditions.length > 0 ? and(...whereConditions) : undefined;
 
+    console.log('🔍 Where conditions:', whereConditions.length);
+
     // Get the paginated results
     const gameLogs = await db()?.query.game_logs.findMany({
       where: whereClause,
-      limit,
+      limit: 1000, // fetch enough to paginate in-memory
       orderBy: [desc(game_logs.created_at)],
       with: {
         user: true,
       },
     });
 
+    // Cursor-based pagination: skip logs up to and including the 'after' cursor
+    let paginatedLogs = gameLogs;
+    if (pagination?.after) {
+      const afterIndex = gameLogs.findIndex(log => log.id === pagination.after);
+      if (afterIndex !== -1) {
+        paginatedLogs = gameLogs.slice(afterIndex + 1);
+      }
+    }
+    paginatedLogs = paginatedLogs.slice(0, limit);
+
     // Fetch game data for all game logs
-    const gameIds = gameLogs?.map(log => log.game_id) ?? [];
+    const gameIds = paginatedLogs?.map(log => log.game_id) ?? [];
     const games =
       gameIds.length > 0
         ? ((await db()?.query.nba_games.findMany({
@@ -234,7 +246,7 @@ export const gameLogQueryResolvers = {
     const totalCount = totalCountResult?.[0]?.count ?? 0;
 
     const edges =
-      gameLogs?.map(gameLog => {
+      paginatedLogs?.map(gameLog => {
         const game = gameMap.get(gameLog.game_id);
         const homeTeam = game ? teamMap.get(game.home_team_id) : null;
         const awayTeam = game ? teamMap.get(game.away_team_id) : null;
@@ -401,14 +413,24 @@ export const gameLogQueryResolvers = {
     // Get the paginated results
     const gameLogs = await db()?.query.game_logs.findMany({
       where: whereClause,
-      limit: first,
+      limit: 1000, // fetch enough to paginate in-memory
       orderBy: [desc(game_logs.created_at)],
       with: {
         user: true,
       },
     });
 
-    console.log('🔍 Found game logs:', gameLogs?.length || 0);
+    // Cursor-based pagination: skip logs up to and including the 'after' cursor
+    let paginatedLogs = gameLogs;
+    if (after) {
+      const afterIndex = gameLogs.findIndex(log => log.id === after);
+      if (afterIndex !== -1) {
+        paginatedLogs = gameLogs.slice(afterIndex + 1);
+      }
+    }
+    paginatedLogs = paginatedLogs.slice(0, first);
+
+    console.log('🔍 Found game logs:', paginatedLogs?.length || 0);
 
     // Get the total count for pagination
     const totalCountResult = await db()
@@ -420,7 +442,7 @@ export const gameLogQueryResolvers = {
     console.log('🔍 Total count:', totalCount);
 
     const edges =
-      gameLogs?.map(gameLog => ({
+      paginatedLogs?.map(gameLog => ({
         cursor: gameLog.id,
         node: {
           id: gameLog.id,
@@ -524,12 +546,22 @@ export const gameLogQueryResolvers = {
     // Get the paginated results
     const gameLogs = await db()?.query.game_logs.findMany({
       where: whereClause,
-      limit,
+      limit: 1000, // fetch enough to paginate in-memory
       orderBy: [desc(game_logs.created_at)],
       with: {
         user: true,
       },
     });
+
+    // Cursor-based pagination: skip logs up to and including the 'after' cursor
+    let paginatedLogs = gameLogs;
+    if (pagination?.after) {
+      const afterIndex = gameLogs.findIndex(log => log.id === pagination.after);
+      if (afterIndex !== -1) {
+        paginatedLogs = gameLogs.slice(afterIndex + 1);
+      }
+    }
+    paginatedLogs = paginatedLogs.slice(0, limit);
 
     // Get the total count for pagination
     const totalCountResult = await db()
@@ -539,7 +571,7 @@ export const gameLogQueryResolvers = {
     const totalCount = totalCountResult?.[0]?.count ?? 0;
 
     const edges =
-      gameLogs?.map(gameLog => ({
+      paginatedLogs?.map(gameLog => ({
         cursor: gameLog.id,
         node: {
           id: gameLog.id,

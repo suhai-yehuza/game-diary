@@ -10,7 +10,7 @@ import { CLASSIFICATION, WATCHED_SETTING, WATCHED_SCOPE } from './constant.types
 export interface IGameLog {
   id: string;
   game_id: string;
-  game: {
+  game?: {
     id: string;
     date: string;
     status: string;
