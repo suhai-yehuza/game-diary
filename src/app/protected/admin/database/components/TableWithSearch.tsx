@@ -11,6 +11,7 @@ import {
   PaginationControls,
   ErrorBoundary,
   SortableHeader,
+  TableSearch,
 } from '@src/app/protected/admin/database/components/ui';
 
 // Type guard for ApiResponse
@@ -41,22 +42,54 @@ export function TableWithSearch<T extends { id: string | number }>({
   const [sortKey, setSortKey] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc' | null>(null);
 
+  // Search state
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchField, setSearchField] = useState('all');
+
   const handleSort = useCallback((key: string, direction: 'asc' | 'desc' | null) => {
     setSortKey(direction ? key : null);
     setSortDirection(direction);
   }, []);
 
-  // Sorting is handled by the backend; no need for local data variable
+  // Generate search fields based on columns
+  const searchFields = [
+    { value: 'all', label: 'All Fields' },
+    ...typedColumns.map(col => ({
+      value: col.key,
+      label: col.label.charAt(0).toUpperCase() + col.label.slice(1).replace(/_/g, ' '),
+    })),
+  ];
 
   const fetchData = useCallback(
-    async (opts: { page?: number } = {}) => {
+    async (opts: { page?: number; search?: string; searchField?: string } = {}) => {
       setLoading(true);
       setError(null);
       try {
         const page = opts.page ?? currentPage;
-        const res = await fetch(
-          `${endpoint}?page=${page}&limit=${API_CONFIG.pagination.DEFAULT_PAGE_SIZE}`
-        );
+        const search = opts.search ?? searchTerm;
+        const field = opts.searchField ?? searchField;
+
+        // Build query parameters
+        const params = new URLSearchParams({
+          page: page.toString(),
+          limit: API_CONFIG.pagination.DEFAULT_PAGE_SIZE.toString(),
+        });
+
+        // Add search parameters if provided
+        if (search.trim()) {
+          params.append('search', search.trim());
+          if (field !== 'all') {
+            params.append('searchField', field);
+          }
+        }
+
+        // Add sort parameters if provided
+        if (sortKey && sortDirection) {
+          params.append('sortBy', sortKey);
+          params.append('sortDirection', sortDirection);
+        }
+
+        const res = await fetch(`${endpoint}?${params.toString()}`);
         const jsonRaw: unknown = await res.json();
         if (!isApiResponse<T>(jsonRaw)) {
           throw new Error('Invalid API response');
@@ -89,8 +122,27 @@ export function TableWithSearch<T extends { id: string | number }>({
         setLoading(false);
       }
     },
-    [endpoint, currentPage, tableName]
+    [endpoint, currentPage, tableName, searchTerm, searchField, sortKey, sortDirection]
   );
+
+  // Handle search changes
+  const handleSearchChange = useCallback(
+    (term: string, field: string) => {
+      setSearchTerm(term);
+      setSearchField(field);
+      setCurrentPage(1); // Reset to first page when searching
+      void fetchData({ page: 1, search: term, searchField: field });
+    },
+    [fetchData]
+  );
+
+  // Handle search clear
+  const handleSearchClear = useCallback(() => {
+    setSearchTerm('');
+    setSearchField('all');
+    setCurrentPage(1);
+    void fetchData({ page: 1, search: '', searchField: 'all' });
+  }, [fetchData]);
 
   // No-op sort function for non-sortable columns
   const noopSort: (key: string, direction: 'asc' | 'desc' | null) => void = () => undefined;
@@ -123,6 +175,16 @@ export function TableWithSearch<T extends { id: string | number }>({
   return (
     <ErrorBoundary componentName={tableName + 'Table'}>
       <div className="space-y-4">
+        {/* Search Component */}
+        <TableSearch
+          searchTerm={searchTerm}
+          searchField={searchField}
+          searchFields={searchFields}
+          onSearchChange={handleSearchChange}
+          onClear={handleSearchClear}
+          placeholder={`Search ${itemLabel}...`}
+        />
+
         {/* Error Display */}
         <ErrorDisplay error={error} />
 
@@ -143,7 +205,6 @@ export function TableWithSearch<T extends { id: string | number }>({
                   <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground tracking-wider border-b border-border">
                     #
                   </th>
-                  {}
                   {typedColumns.map(col => (
                     <React.Fragment key={col.key}>
                       <SortableHeader
@@ -152,7 +213,6 @@ export function TableWithSearch<T extends { id: string | number }>({
                         currentSortDirection={sortDirection}
                         onSort={col.sortable !== false ? handleSort : noopSort}
                       >
-                        {}
                         {col.label}
                       </SortableHeader>
                     </React.Fragment>
@@ -172,7 +232,9 @@ export function TableWithSearch<T extends { id: string | number }>({
                 ) : rawData.length === 0 ? (
                   <tr>
                     <td colSpan={typedColumns.length + 1} className="px-6 py-4 text-center">
-                      No {itemLabel} found.
+                      {searchTerm
+                        ? `No ${itemLabel} found matching "${searchTerm}".`
+                        : `No ${itemLabel} found.`}
                     </td>
                   </tr>
                 ) : (
@@ -186,8 +248,6 @@ export function TableWithSearch<T extends { id: string | number }>({
                       </td>
                       {typedColumns.map(col => (
                         <td key={col.key} className="px-6 py-4 text-sm">
-                          {}
-                          {}
                           {col.render
                             ? col.render(row)
                             : (row[col.key as keyof T] as React.ReactNode)}
