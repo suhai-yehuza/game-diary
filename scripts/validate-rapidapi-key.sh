@@ -29,32 +29,39 @@ print_error() {
     echo -e "${RED}[ERROR]${NC} $1"
 }
 
-# Function to get API key from environment files
+# Function to get API key from environment files or environment variables
 get_api_key() {
-    # Try to get API key from .env.development first, then .env.production, then .env.staging
-    local api_key=""
+    # First check environment variables (for CI environments)
+    local api_key="${NEXT_PUBLIC_RAPID_API_KEY:-}"
 
-    if [ -f ".env.development" ]; then
-        api_key=$(grep "^NEXT_PUBLIC_RAPID_API_KEY=" .env.development | cut -d'=' -f2)
-    elif [ -f ".env.production" ]; then
-        api_key=$(grep "^NEXT_PUBLIC_RAPID_API_KEY=" .env.production | cut -d'=' -f2)
-    elif [ -f ".env.staging" ]; then
-        api_key=$(grep "^NEXT_PUBLIC_RAPID_API_KEY=" .env.staging | cut -d'=' -f2)
+    # If not found in environment variables, try .env files
+    if [ -z "$api_key" ]; then
+        if [ -f ".env.development" ]; then
+            api_key=$(grep "^NEXT_PUBLIC_RAPID_API_KEY=" .env.development | cut -d'=' -f2)
+        elif [ -f ".env.production" ]; then
+            api_key=$(grep "^NEXT_PUBLIC_RAPID_API_KEY=" .env.production | cut -d'=' -f2)
+        elif [ -f ".env.staging" ]; then
+            api_key=$(grep "^NEXT_PUBLIC_RAPID_API_KEY=" .env.staging | cut -d'=' -f2)
+        fi
     fi
 
     echo "$api_key"
 }
 
-# Function to get API host from environment files
+# Function to get API host from environment files or environment variables
 get_api_host() {
-    local api_host=""
+    # First check environment variables (for CI environments)
+    local api_host="${NEXT_PUBLIC_RAPID_API_HOST:-}"
 
-    if [ -f ".env.development" ]; then
-        api_host=$(grep "^NEXT_PUBLIC_RAPID_API_HOST=" .env.development | cut -d'=' -f2)
-    elif [ -f ".env.production" ]; then
-        api_host=$(grep "^NEXT_PUBLIC_RAPID_API_HOST=" .env.production | cut -d'=' -f2)
-    elif [ -f ".env.staging" ]; then
-        api_host=$(grep "^NEXT_PUBLIC_RAPID_API_HOST=" .env.staging | cut -d'=' -f2)
+    # If not found in environment variables, try .env files
+    if [ -z "$api_host" ]; then
+        if [ -f ".env.development" ]; then
+            api_host=$(grep "^NEXT_PUBLIC_RAPID_API_HOST=" .env.development | cut -d'=' -f2)
+        elif [ -f ".env.production" ]; then
+            api_host=$(grep "^NEXT_PUBLIC_RAPID_API_HOST=" .env.production | cut -d'=' -f2)
+        elif [ -f ".env.staging" ]; then
+            api_host=$(grep "^NEXT_PUBLIC_RAPID_API_HOST=" .env.staging | cut -d'=' -f2)
+        fi
     fi
 
     echo "$api_host"
@@ -133,8 +140,9 @@ main() {
     local api_host=$(get_api_host)
 
     if [ -z "$api_key" ]; then
-        print_error "No API key found in environment files"
+        print_error "No API key found in environment files or environment variables"
         print_info "Please ensure your .env.* file has a valid NEXT_PUBLIC_RAPID_API_KEY"
+        print_info "Or set the NEXT_PUBLIC_RAPID_API_KEY environment variable"
         exit 1
     fi
 
