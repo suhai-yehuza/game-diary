@@ -284,7 +284,7 @@ export function GameLogsTable() {
   };
 
   // Get total count for current tab with filtering applied
-  const getCurrentTabTotalCount = (): number => {
+  const getCurrentTabTotalCount = (): { displayed: number; total: number } => {
     let logs: IGameLog[] = [];
 
     switch (selectedTab) {
@@ -298,12 +298,17 @@ export function GameLogsTable() {
         logs = Array.isArray(publicLogs) ? publicLogs : [];
         break;
       default:
-        return 0;
+        return { displayed: 0, total: 0 };
     }
 
-    // Apply the same filtering logic to get accurate count
+    // Get total count before filtering
+    const totalCount = logs.length;
+
+    // Apply the same filtering logic to get displayed count
     const filteredLogs = filterAndSortGameLogs(logs);
-    return filteredLogs.length;
+    const displayedCount = filteredLogs.length;
+
+    return { displayed: displayedCount, total: totalCount };
   };
 
   const renderGameLogCard = (log: IGameLog, showActions = false, idx?: number) => {
@@ -473,7 +478,8 @@ export function GameLogsTable() {
           sortKey={sortKey}
           sortDirection={sortDirection}
           onSort={handleSort}
-          totalCount={getCurrentTabTotalCount()}
+          displayedCount={getCurrentTabTotalCount().displayed}
+          totalCount={getCurrentTabTotalCount().total}
         />
         <TabsList className="grid w-full grid-cols-3 gap-2 bg-transparent p-0 mb-4">
           <TabsTrigger

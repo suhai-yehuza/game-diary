@@ -7,6 +7,7 @@ interface IGameLogsSortProps {
   sortKey: string;
   sortDirection: 'asc' | 'desc';
   onSort: (key: string, direction: 'asc' | 'desc' | null) => void;
+  displayedCount?: number;
   totalCount?: number;
 }
 
@@ -22,7 +23,13 @@ const sortOptions = [
   { key: 'tags', label: 'Tags' },
 ];
 
-export function GameLogsSort({ sortKey, sortDirection, onSort, totalCount }: IGameLogsSortProps) {
+export function GameLogsSort({
+  sortKey,
+  sortDirection,
+  onSort,
+  displayedCount,
+  totalCount,
+}: IGameLogsSortProps) {
   const handleSort = (key: string) => {
     if (sortKey === key) {
       // Toggle direction
@@ -82,7 +89,7 @@ export function GameLogsSort({ sortKey, sortDirection, onSort, totalCount }: IGa
           )}
         </div>
       </div>
-      {totalCount !== undefined && (
+      {displayedCount !== undefined && totalCount !== undefined && (
         <div
           className="text-sm font-bold text-gray-900 dark:text-gray-100"
           style={{
@@ -90,7 +97,7 @@ export function GameLogsSort({ sortKey, sortDirection, onSort, totalCount }: IGa
             fontSize: '14px',
           }}
         >
-          {totalCount} total {totalCount === 1 ? 'entry' : 'entries'}
+          Displaying {displayedCount} of {totalCount}
         </div>
       )}
     </div>
