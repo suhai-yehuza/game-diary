@@ -1,7 +1,6 @@
 import { test, expect } from 'vitest';
 import fetch from 'node-fetch';
-// @ts-ignore
-if (!global.fetch) global.fetch = fetch;
+if (!global.fetch) global.fetch = fetch as unknown as typeof global.fetch;
 
 // Helper to create a test user via the API
 async function createTestUser(userData: { email: string; phone?: string }) {

@@ -1,6 +1,6 @@
 import type { Page } from '@playwright/test';
 
-import { STAGING_URL } from '@/lib/config/urls';
+import { STAGING_URL } from '../../../src/lib/config/urls';
 
 /**
  * Authentication bypass utilities for deployment testing
@@ -28,8 +28,7 @@ export async function mockClerkHooks(page: Page, credentials: Partial<TestAuthCr
   const testCreds = { ...DEFAULT_TEST_CREDENTIALS, ...credentials };
   await page.addInitScript(
     ({ userId, email }) => {
-      // @ts-ignore
-      window.__E2E_AUTH_BYPASS__ = true;
+      (window as any).__E2E_AUTH_BYPASS__ = true;
 
       // Mock Clerk's useUser and useAuth hooks
       const mockUser = {
@@ -53,8 +52,7 @@ export async function mockClerkHooks(page: Page, credentials: Partial<TestAuthCr
 
       // Override Clerk hooks globally
       if (typeof window !== 'undefined') {
-        // @ts-ignore
-        window.__clerkMock = {
+        (window as any).__clerkMock = {
           useUser: () => ({ isLoaded: true, isSignedIn: true, user: mockUser }),
           useAuth: () => ({
             getToken: async () => 'test_token',
@@ -64,12 +62,9 @@ export async function mockClerkHooks(page: Page, credentials: Partial<TestAuthCr
         };
 
         // Override the actual Clerk hooks if they exist
-        // @ts-ignore
-        if (window.__clerk) {
-          // @ts-ignore
-          window.__clerk.useUser = () => ({ isLoaded: true, isSignedIn: true, user: mockUser });
-          // @ts-ignore
-          window.__clerk.useAuth = () => ({
+        if ((window as any).__clerk) {
+          (window as any).__clerk.useUser = () => ({ isLoaded: true, isSignedIn: true, user: mockUser });
+          (window as any).__clerk.useAuth = () => ({
             getToken: async () => 'test_token',
             sessionId: 'test_session',
             userId,
@@ -278,14 +273,11 @@ export async function setupAuthBypass(
 
       // Override module loading for Clerk
       if (typeof window !== 'undefined') {
-        // @ts-ignore
-        window.__clerkMock = mockClerk;
+        (window as any).__clerkMock = mockClerk;
 
         // Try to override the actual Clerk module if it's already loaded
-        // @ts-ignore
-        if (window.__clerk) {
-          // @ts-ignore
-          Object.assign(window.__clerk, mockClerk);
+        if ((window as any).__clerk) {
+          Object.assign((window as any).__clerk, mockClerk);
         }
 
         // Override the module loading for @clerk/nextjs
