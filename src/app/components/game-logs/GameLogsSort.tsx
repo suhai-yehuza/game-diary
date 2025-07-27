@@ -51,10 +51,11 @@ export function GameLogsSort({
     <div className="flex items-center justify-between gap-2 mb-4">
       <div className="flex items-center gap-2">
         <span
-          className="text-sm font-bold text-gray-900 dark:text-gray-100"
+          className="text-sm font-bold"
           style={{
             fontWeight: 'bold',
             fontSize: '14px',
+            color: 'rgb(17, 24, 39) !important', // text-gray-900 equivalent
           }}
         >
           Sort by:
@@ -86,10 +87,11 @@ export function GameLogsSort({
       </div>
       {displayedCount !== undefined && totalCount !== undefined && (
         <div
-          className="text-sm font-bold text-gray-900 dark:text-gray-100"
+          className="text-sm font-bold"
           style={{
             fontWeight: 'bold',
             fontSize: '14px',
+            color: 'rgb(17, 24, 39) !important', // text-gray-900 equivalent
           }}
         >
           Displaying {displayedCount} of {totalCount} {classification ?? 'game logs'}

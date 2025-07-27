@@ -55,7 +55,10 @@ export function GameLogsSearch({
           placeholder="Search game logs..."
           value={localSearchTerm}
           onChange={e => setLocalSearchTerm(e.target.value)}
-          className="w-full pl-10 pr-10 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full pl-10 pr-10 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          style={{
+            color: 'rgb(17, 24, 39) !important', // text-gray-900 equivalent
+          }}
         />
         {localSearchTerm && (
           <button
@@ -70,7 +73,10 @@ export function GameLogsSearch({
       <select
         value={localSearchField}
         onChange={e => setLocalSearchField(e.target.value)}
-        className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        style={{
+          color: 'rgb(17, 24, 39) !important', // text-gray-900 equivalent
+        }}
       >
         {searchFields.map(field => (
           <option key={field.value} value={field.value}>

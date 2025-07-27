@@ -161,6 +161,9 @@ run_quality_gate() {
         log_info "Checking unused exports..."
         pnpm check:dead:code
 
+        log_info "Running RapidAPI validation..."
+        pnpm validate:rapidapi
+
         log_info "Running strict tests..."
         # Skip unit tests in CI mode since they run in separate job
         if [ "$CI" = true ]; then

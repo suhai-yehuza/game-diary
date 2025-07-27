@@ -34,14 +34,42 @@ get_api_key() {
     # First check environment variables (for CI environments)
     local api_key="${NEXT_PUBLIC_RAPID_API_KEY:-}"
 
+    # Debug information for CI environments
+    if [ "$CI" = "true" ] || [ "$GITHUB_ACTIONS" = "true" ]; then
+        print_info "Running in CI environment"
+        print_info "Checking for NEXT_PUBLIC_RAPID_API_KEY in environment variables..."
+        if [ -n "$api_key" ]; then
+            print_info "Found API key in environment variables: ${api_key:0:8}..."
+        else
+            print_info "No API key found in environment variables"
+            print_info "Available environment variables:"
+            print_info "  CI: $CI"
+            print_info "  GITHUB_ACTIONS: $GITHUB_ACTIONS"
+            print_info "  NODE_ENV: $NODE_ENV"
+            print_info "  NEXT_PUBLIC_RAPID_API_KEY: ${NEXT_PUBLIC_RAPID_API_KEY:+SET}"
+            print_info "  NEXT_PUBLIC_RAPID_API_HOST: ${NEXT_PUBLIC_RAPID_API_HOST:+SET}"
+            print_info "  NEXT_PUBLIC_RAPID_API_BASE_URL: ${NEXT_PUBLIC_RAPID_API_BASE_URL:+SET}"
+        fi
+    fi
+
     # If not found in environment variables, try .env files
     if [ -z "$api_key" ]; then
+        print_info "Checking .env files for API key..."
         if [ -f ".env.development" ]; then
             api_key=$(grep "^NEXT_PUBLIC_RAPID_API_KEY=" .env.development | cut -d'=' -f2)
+            if [ -n "$api_key" ]; then
+                print_info "Found API key in .env.development"
+            fi
         elif [ -f ".env.production" ]; then
             api_key=$(grep "^NEXT_PUBLIC_RAPID_API_KEY=" .env.production | cut -d'=' -f2)
+            if [ -n "$api_key" ]; then
+                print_info "Found API key in .env.production"
+            fi
         elif [ -f ".env.staging" ]; then
             api_key=$(grep "^NEXT_PUBLIC_RAPID_API_KEY=" .env.staging | cut -d'=' -f2)
+            if [ -n "$api_key" ]; then
+                print_info "Found API key in .env.staging"
+            fi
         fi
     fi
 
@@ -135,6 +163,18 @@ check_dev_server() {
 main() {
     print_info "Validating RapidAPI configuration..."
 
+    # Debug environment information
+    if [ "$CI" = "true" ] || [ "$GITHUB_ACTIONS" = "true" ]; then
+        print_info "CI Environment detected"
+        print_info "Available environment variables:"
+        print_info "  CI: $CI"
+        print_info "  GITHUB_ACTIONS: $GITHUB_ACTIONS"
+        print_info "  NODE_ENV: $NODE_ENV"
+        print_info "  NEXT_PUBLIC_RAPID_API_KEY: ${NEXT_PUBLIC_RAPID_API_KEY:+SET}"
+        print_info "  NEXT_PUBLIC_RAPID_API_HOST: ${NEXT_PUBLIC_RAPID_API_HOST:+SET}"
+        print_info "  NEXT_PUBLIC_RAPID_API_BASE_URL: ${NEXT_PUBLIC_RAPID_API_BASE_URL:+SET}"
+    fi
+
     # Get API key and host
     local api_key=$(get_api_key)
     local api_host=$(get_api_host)
@@ -143,6 +183,13 @@ main() {
         print_error "No API key found in environment files or environment variables"
         print_info "Please ensure your .env.* file has a valid NEXT_PUBLIC_RAPID_API_KEY"
         print_info "Or set the NEXT_PUBLIC_RAPID_API_KEY environment variable"
+
+        # In CI environments, provide more specific guidance
+        if [ "$CI" = "true" ] || [ "$GITHUB_ACTIONS" = "true" ]; then
+            print_info "In CI environment, ensure NEXT_PUBLIC_RAPID_API_KEY is set in GitHub Secrets"
+            print_info "and properly passed to the workflow environment"
+        fi
+
         exit 1
     fi
 

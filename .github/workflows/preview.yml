@@ -37,6 +37,12 @@ on:
         required: false
       VERCEL_AUTOMATION_BYPASS_SECRET:
         required: false
+      NEXT_PUBLIC_RAPID_API_KEY:
+        required: false
+      NEXT_PUBLIC_RAPID_API_HOST:
+        required: false
+      NEXT_PUBLIC_RAPID_API_BASE_URL:
+        required: false
 
 jobs:
   deploy:
@@ -54,3 +60,6 @@ jobs:
       CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
       CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
       VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+      NEXT_PUBLIC_RAPID_API_KEY: ${{ secrets.NEXT_PUBLIC_RAPID_API_KEY }}
+      NEXT_PUBLIC_RAPID_API_HOST: ${{ secrets.NEXT_PUBLIC_RAPID_API_HOST }}
+      NEXT_PUBLIC_RAPID_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_RAPID_API_BASE_URL }}

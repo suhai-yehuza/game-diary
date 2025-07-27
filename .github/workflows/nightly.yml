@@ -70,6 +70,9 @@ jobs:
       TEST_USER_EMAIL: 'test@game-diary.com'
       TEST_USER_ID: 'test_user_123'
       VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+      NEXT_PUBLIC_RAPID_API_KEY: ${{ secrets.NEXT_PUBLIC_RAPID_API_KEY }}
+      NEXT_PUBLIC_RAPID_API_HOST: ${{ secrets.NEXT_PUBLIC_RAPID_API_HOST }}
+      NEXT_PUBLIC_RAPID_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_RAPID_API_BASE_URL }}
       E2E_MOCK_MODE: 'true'
       API_MOCK_MODE: 'true'
       CI: 'true'
