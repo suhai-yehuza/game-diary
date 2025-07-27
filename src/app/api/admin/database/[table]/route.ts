@@ -105,6 +105,42 @@ export async function GET(request: Request, { params }: { params: Promise<{ tabl
         break;
       }
 
+      case 'game_logs_public': {
+        const gameLogColumns = ['id', 'user_id', 'game_id', 'rating_for_game', 'classification'];
+        const gameLogSearchCondition = buildSearchCondition(search, searchField, gameLogColumns);
+        const classificationCondition = gameLogSearchCondition
+          ? `WHERE classification = 'PUBLIC' AND (${gameLogSearchCondition.replace('WHERE ', '')})`
+          : "WHERE classification = 'PUBLIC'";
+        const orderByClause = buildOrderByClause('created_at');
+        query = sql`SELECT * FROM game_logs ${sql.raw(classificationCondition)} ${sql.raw(orderByClause)} LIMIT ${limit} OFFSET ${offset}`;
+        countQuery = sql`SELECT COUNT(*) as total FROM game_logs ${sql.raw(classificationCondition)}`;
+        break;
+      }
+
+      case 'game_logs_private': {
+        const gameLogColumns = ['id', 'user_id', 'game_id', 'rating_for_game', 'classification'];
+        const gameLogSearchCondition = buildSearchCondition(search, searchField, gameLogColumns);
+        const classificationCondition = gameLogSearchCondition
+          ? `WHERE classification = 'PRIVATE' AND (${gameLogSearchCondition.replace('WHERE ', '')})`
+          : "WHERE classification = 'PRIVATE'";
+        const orderByClause = buildOrderByClause('created_at');
+        query = sql`SELECT * FROM game_logs ${sql.raw(classificationCondition)} ${sql.raw(orderByClause)} LIMIT ${limit} OFFSET ${offset}`;
+        countQuery = sql`SELECT COUNT(*) as total FROM game_logs ${sql.raw(classificationCondition)}`;
+        break;
+      }
+
+      case 'game_logs_protected': {
+        const gameLogColumns = ['id', 'user_id', 'game_id', 'rating_for_game', 'classification'];
+        const gameLogSearchCondition = buildSearchCondition(search, searchField, gameLogColumns);
+        const classificationCondition = gameLogSearchCondition
+          ? `WHERE classification = 'PROTECTED' AND (${gameLogSearchCondition.replace('WHERE ', '')})`
+          : "WHERE classification = 'PROTECTED'";
+        const orderByClause = buildOrderByClause('created_at');
+        query = sql`SELECT * FROM game_logs ${sql.raw(classificationCondition)} ${sql.raw(orderByClause)} LIMIT ${limit} OFFSET ${offset}`;
+        countQuery = sql`SELECT COUNT(*) as total FROM game_logs ${sql.raw(classificationCondition)}`;
+        break;
+      }
+
       case 'game_ratings': {
         const gameRatingColumns = ['id', 'user_id', 'game_id', 'rating'];
         const gameRatingSearchCondition = buildSearchCondition(

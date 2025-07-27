@@ -35,26 +35,33 @@ describe('GameLogsTableWithSearch', () => {
     expect(() => render(<GameLogsTableWithSearch />)).not.toThrow();
   });
 
-  it('shows loading state initially', () => {
+  it('renders classification tabs', () => {
     render(<GameLogsTableWithSearch />);
-    expect(screen.getByText('Loading game logs...')).toBeInTheDocument();
+    expect(screen.getByText('Public Logs')).toBeInTheDocument();
+    expect(screen.getByText('Private Logs')).toBeInTheDocument();
+    expect(screen.getByText('Protected Logs')).toBeInTheDocument();
+  });
+
+  it('shows loading state initially for public logs', () => {
+    render(<GameLogsTableWithSearch />);
+    expect(screen.getByText('Loading public game logs...')).toBeInTheDocument();
   });
 
   it('renders search component structure', () => {
     render(<GameLogsTableWithSearch />);
     // Check that the component renders its basic structure
-    expect(screen.getByText('Loading game logs...')).toBeInTheDocument();
+    expect(screen.getByText('Loading public game logs...')).toBeInTheDocument();
   });
 
   it('handles API errors gracefully', () => {
     render(<GameLogsTableWithSearch />);
     // Component should render loading state even when API fails
-    expect(screen.getByText('Loading game logs...')).toBeInTheDocument();
+    expect(screen.getByText('Loading public game logs...')).toBeInTheDocument();
   });
 
   it('has proper component structure', () => {
     render(<GameLogsTableWithSearch />);
     // Verify the component has the expected structure
-    expect(screen.getByText('Loading game logs...')).toBeInTheDocument();
+    expect(screen.getByText('Loading public game logs...')).toBeInTheDocument();
   });
 });
