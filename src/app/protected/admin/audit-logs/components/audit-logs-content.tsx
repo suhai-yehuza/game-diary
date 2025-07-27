@@ -1,5 +1,6 @@
 'use client';
 
+import { ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 
@@ -22,6 +23,11 @@ export function AdminAuditLogsContent() {
   const [searchField, setSearchField] = useState<AuditLogSearchField>('all');
   const [sortKey, setSortKey] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc' | null>(null);
+
+  // Calculate pagination range
+  const pageSize = 20; // Default page size
+  const startItem = (currentPage - 1) * pageSize + 1;
+  const endItem = Math.min(currentPage * pageSize, totalCount);
 
   // Pagination handlers
   const handleFirst = () => {
@@ -375,41 +381,29 @@ export function AdminAuditLogsContent() {
       onSort(sortKey, newDirection);
     };
 
+    const getSortIcon = () => {
+      if (isAsc) {
+        return <ArrowUp data-testid="arrow-up" className="h-4 w-4 text-yellow-300" />;
+      } else if (isDesc) {
+        return <ArrowDown data-testid="arrow-down" className="h-4 w-4 text-yellow-300" />;
+      } else {
+        return (
+          <ArrowUpDown
+            data-testid="arrow-up-down"
+            className="h-4 w-4 text-white/70 hover:text-white transition-colors"
+          />
+        );
+      }
+    };
+
     return (
       <th
-        className="px-6 py-3 text-left text-xs font-medium text-muted-foreground tracking-wider border-b border-border cursor-pointer hover:bg-muted/50"
+        className="px-6 py-4 text-left text-sm font-semibold text-white tracking-wide border-r border-emerald-500/30 cursor-pointer hover:bg-emerald-500/20 transition-colors duration-150"
         onClick={handleClick}
       >
-        <div className="flex items-center gap-2">
-          <span>{children}</span>
-          <div className="flex flex-col">
-            <svg
-              className={`h-3 w-3 transition-colors ${isAsc ? 'text-foreground' : 'text-muted-foreground/30'}`}
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M5 15l7-7 7 7"
-              />
-            </svg>
-            <svg
-              className={`h-3 w-3 transition-colors -mt-1 ${isDesc ? 'text-foreground' : 'text-muted-foreground/30'}`}
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M19 9l-7 7-7-7"
-              />
-            </svg>
-          </div>
+        <div className="flex items-center justify-between group">
+          <span className="font-medium">{children}</span>
+          <div className="flex items-center ml-2">{getSortIcon()}</div>
         </div>
       </th>
     );
@@ -608,9 +602,15 @@ export function AdminAuditLogsContent() {
           {/* Pagination Info */}
           {totalCount > 0 && (
             <div className="flex items-center justify-between mb-4">
-              <div className="text-sm text-muted-foreground">{totalCount} total audit logs</div>
               <div className="text-sm text-muted-foreground">
-                Page {currentPage} of {totalPages}
+                {startItem}-{endItem} of {totalCount} total audit logs
+              </div>
+              <div className="text-sm text-muted-foreground">
+                Page{' '}
+                <span className="font-semibold text-emerald-600 dark:text-emerald-400">
+                  {currentPage}
+                </span>{' '}
+                of {totalPages}
               </div>
             </div>
           )}
@@ -619,9 +619,9 @@ export function AdminAuditLogsContent() {
           <div className="bg-card border border-border rounded-lg overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full transition-all duration-200 ease-in-out">
-                <thead className="bg-muted">
+                <thead className="bg-gradient-to-r from-emerald-600 to-teal-600">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground tracking-wider border-b border-border">
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-white tracking-wide border-r border-emerald-500/30">
                       #
                     </th>
                     <SortableHeader
@@ -672,7 +672,7 @@ export function AdminAuditLogsContent() {
                     >
                       Status
                     </SortableHeader>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground tracking-wider border-b border-border">
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-white tracking-wide border-r border-emerald-500/30">
                       Description
                     </th>
                   </tr>

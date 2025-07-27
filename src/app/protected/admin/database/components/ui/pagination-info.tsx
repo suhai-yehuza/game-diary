@@ -16,15 +16,19 @@ export function PaginationInfo({
   if (!itemLabel) return null;
   if (totalCount === 0) return null;
 
+  const startItem = (currentPage - 1) * pageSize + 1;
+  const endItem = Math.min(currentPage * pageSize, totalCount);
+  const totalPages = Math.ceil(totalCount / pageSize);
+
   return (
     <div className="flex items-center justify-between mb-4">
       <div className="text-sm text-muted-foreground">
-        {formatNumberShort(totalCount)} total {itemLabel}
+        {startItem}-{endItem} of {formatNumberShort(totalCount)} total {itemLabel}
       </div>
       <div className="text-sm text-muted-foreground">
         Page{' '}
         <span className="font-semibold text-emerald-600 dark:text-emerald-400">{currentPage}</span>{' '}
-        of {Math.ceil(totalCount / pageSize)}
+        of {totalPages}
       </div>
     </div>
   );

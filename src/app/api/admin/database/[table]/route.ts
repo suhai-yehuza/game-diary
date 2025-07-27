@@ -78,6 +78,14 @@ export async function GET(request: Request, { params }: { params: Promise<{ tabl
         'date',
         'home_team_score',
         'away_team_score',
+        'timestamp',
+        'category',
+        'action',
+        'severity',
+        'success',
+        'description',
+        'endpoint',
+        'method',
       ];
 
       const safeSortBy = validSortFields.includes(sortBy) ? sortBy : defaultSort;
@@ -167,6 +175,24 @@ export async function GET(request: Request, { params }: { params: Promise<{ tabl
         const orderByClause = buildOrderByClause('created_at');
         query = sql`SELECT * FROM nba_games ${nbaGameSearchCondition ? sql.raw(nbaGameSearchCondition) : sql``} ${sql.raw(orderByClause)} LIMIT ${limit} OFFSET ${offset}`;
         countQuery = sql`SELECT COUNT(*) as total FROM nba_games ${nbaGameSearchCondition ? sql.raw(nbaGameSearchCondition) : sql``}`;
+        break;
+      }
+
+      case 'audit_logs': {
+        const auditLogColumns = [
+          'id',
+          'category',
+          'action',
+          'severity',
+          'user_id',
+          'description',
+          'endpoint',
+          'method',
+        ];
+        const auditLogSearchCondition = buildSearchCondition(search, searchField, auditLogColumns);
+        const orderByClause = buildOrderByClause('timestamp');
+        query = sql`SELECT * FROM audit_logs ${auditLogSearchCondition ? sql.raw(auditLogSearchCondition) : sql``} ${sql.raw(orderByClause)} LIMIT ${limit} OFFSET ${offset}`;
+        countQuery = sql`SELECT COUNT(*) as total FROM audit_logs ${auditLogSearchCondition ? sql.raw(auditLogSearchCondition) : sql``}`;
         break;
       }
 
