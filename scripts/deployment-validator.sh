@@ -150,12 +150,7 @@ run_quality_gate() {
         log_info "Running production validation without E2E tests..."
         # Run individual validation steps instead of the full validate:production
         log_info "Running prebuild..."
-        if [ "$CI" = true ]; then
-            log_info "Using CI-specific prebuild..."
-            pnpm prebuild:ci
-        else
-            pnpm prebuild
-        fi
+        pnpm prebuild
 
         log_info "Building project..."
         pnpm build
