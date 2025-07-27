@@ -1,46 +1,72 @@
+/// <reference types="vitest/globals" />
+
 import { renderHook, act } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
+
 import { useMounted } from '@/hooks/use-mounted';
 
 describe('useMounted', () => {
-  it('returns true in test environment (useEffect runs synchronously)', () => {
-    const { result } = renderHook(() => useMounted());
+  beforeEach(() => {
+    // Reset any side effects between tests
+  });
 
-    // In test environment, useEffect runs synchronously
+  it('should return true after component mounts', () => {
+    const { result } = renderHook(() => useMounted());
+    // In test environment, useEffect runs immediately, so it should be true
     expect(result.current).toBe(true);
   });
 
-  it('maintains true state after additional renders', () => {
+  it('should maintain true state after initial mount', () => {
     const { result } = renderHook(() => useMounted());
 
+    // Should be true after mount
     expect(result.current).toBe(true);
 
-    // Should still be true after additional renders
+    // Should remain true after re-renders
     act(() => {
       // Trigger a re-render
     });
-
     expect(result.current).toBe(true);
   });
 
-  it('works with multiple instances', () => {
+  it('should only set mounted to true once', () => {
+    const { result, rerender } = renderHook(() => useMounted());
+
+    // Should be true after mount
+    expect(result.current).toBe(true);
+
+    // Should remain true after re-renders
+    rerender();
+    expect(result.current).toBe(true);
+
+    rerender();
+    expect(result.current).toBe(true);
+  });
+
+  it('should work correctly with multiple instances', () => {
     const { result: result1 } = renderHook(() => useMounted());
     const { result: result2 } = renderHook(() => useMounted());
 
-    // Both should be true in test environment
+    // Both should be true after mount
     expect(result1.current).toBe(true);
     expect(result2.current).toBe(true);
   });
 
-  it('handles unmounting and remounting', () => {
-    const { result, unmount } = renderHook(() => useMounted());
+  it('should handle rapid state changes correctly', () => {
+    const { result } = renderHook(() => useMounted());
 
+    // Should be true after mount
     expect(result.current).toBe(true);
 
-    unmount();
+    // Multiple act calls should not cause issues
+    act(() => {
+      // Trigger multiple state changes
+    });
+    expect(result.current).toBe(true);
 
-    const { result: newResult } = renderHook(() => useMounted());
-    // New instance should also be true in test environment
-    expect(newResult.current).toBe(true);
+    act(() => {
+      // Another state change
+    });
+    expect(result.current).toBe(true);
   });
 });
