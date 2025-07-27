@@ -496,7 +496,7 @@ export function GameLogModal({ mode, isOpen, onClose, onSuccess, gameLog }: IGam
                         onChange={handleSearchInputChange}
                         onFocus={() => setShowSearchResults(true)}
                         disabled={gamesLoading}
-                        className="w-full pl-8 pr-2 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full pl-8 pr-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
                         placeholder={
                           gamesLoading
                             ? 'Loading games...'
@@ -515,7 +515,7 @@ export function GameLogModal({ mode, isOpen, onClose, onSuccess, gameLog }: IGam
                           else setSelectedSeason(Number(val));
                         }}
                         disabled={gamesLoading}
-                        className="w-full px-2 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full px-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <option value="latest">
                           {gamesLoading
@@ -533,7 +533,7 @@ export function GameLogModal({ mode, isOpen, onClose, onSuccess, gameLog }: IGam
 
                     {/* Search Results Dropdown */}
                     {showSearchResults && (
-                      <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-48 overflow-y-auto">
+                      <div className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md shadow-lg max-h-48 overflow-y-auto">
                         {gamesLoading && (
                           <div className="p-3 text-center text-gray-600 text-sm">
                             <p>Loading games for selected season...</p>
@@ -572,12 +572,12 @@ export function GameLogModal({ mode, isOpen, onClose, onSuccess, gameLog }: IGam
                                 <div
                                   key={game.id}
                                   onClick={() => handleGameSelect(game.id.toString(), game.name)}
-                                  className="px-3 py-2 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
+                                  className="px-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer border-b border-gray-100 dark:border-gray-700 last:border-b-0"
                                 >
-                                  <div className="font-medium text-gray-900 text-sm mb-0.5">
+                                  <div className="font-medium text-gray-900 dark:text-gray-100 text-sm mb-0.5">
                                     {game.name}
                                   </div>
-                                  <div className="flex items-center gap-3 text-xs text-gray-600">
+                                  <div className="flex items-center gap-3 text-xs text-gray-600 dark:text-gray-400">
                                     <div className="flex items-center gap-1">
                                       <Calendar className="w-3 h-3" />
                                       {game.date}
@@ -590,7 +590,7 @@ export function GameLogModal({ mode, isOpen, onClose, onSuccess, gameLog }: IGam
                                 </div>
                               ))}
                               {searchResults.length > 0 && (
-                                <div className="px-3 py-2 text-xs text-gray-500 border-t border-gray-100">
+                                <div className="px-3 py-2 text-xs text-gray-500 dark:text-gray-400 border-t border-gray-100 dark:border-gray-700">
                                   Showing {searchResults.length} result
                                   {searchResults.length !== 1 ? 's' : ''}
                                 </div>
@@ -649,12 +649,12 @@ export function GameLogModal({ mode, isOpen, onClose, onSuccess, gameLog }: IGam
 
             {/* Privacy Level */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Privacy Level *
               </label>
               <select
                 {...register('classification')}
-                className="w-full px-2 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                className="w-full px-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
               >
                 <option value={CLASSIFICATION.PRIVATE}>Private (Only you)</option>
                 <option value={CLASSIFICATION.PROTECTED}>Protected (Friends only)</option>
@@ -667,22 +667,43 @@ export function GameLogModal({ mode, isOpen, onClose, onSuccess, gameLog }: IGam
 
             {/* Watched Date */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Watched Date</label>
-              <input
-                type="date"
-                {...register('watched_date')}
-                className="w-full px-2 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-              />
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Watched Date
+              </label>
+              <div className="relative">
+                <input
+                  type="date"
+                  {...register('watched_date')}
+                  className="w-full px-2 py-1.5 pr-8 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 [&::-webkit-calendar-picker-indicator]:opacity-0"
+                  id="watched-date-input"
+                />
+                <div
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+                  onClick={() => {
+                    const input = document.getElementById('watched-date-input') as HTMLInputElement;
+                    if (input) {
+                      input.focus();
+                      if (typeof input.showPicker === 'function') {
+                        input.showPicker();
+                      } else {
+                        input.click();
+                      }
+                    }
+                  }}
+                >
+                  <Calendar className="w-4 h-4 text-white" />
+                </div>
+              </div>
             </div>
 
             {/* Watched Setting */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 How did you watch?
               </label>
               <select
                 {...register('watched_setting')}
-                className="w-full px-2 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                className="w-full px-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
               >
                 <option value={WATCHED_SETTING.TV}>TV</option>
                 <option value={WATCHED_SETTING.LAPTOP}>Laptop/Computer</option>
@@ -709,12 +730,12 @@ export function GameLogModal({ mode, isOpen, onClose, onSuccess, gameLog }: IGam
 
             {/* Watched Scope */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 What did you watch?
               </label>
               <select
                 {...register('watched_scope')}
-                className="w-full px-2 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                className="w-full px-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
               >
                 <option value={WATCHED_SCOPE.FULL_GAME}>Full Game</option>
                 <option value={WATCHED_SCOPE.HALF_GAME}>Half Game</option>
