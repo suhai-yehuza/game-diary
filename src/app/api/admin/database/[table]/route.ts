@@ -12,6 +12,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ tabl
     const limit = parseInt(searchParams.get('limit') ?? '10', 10);
     const search = searchParams.get('search') ?? '';
     const searchField = searchParams.get('searchField') ?? 'all';
+    const sortBy = searchParams.get('sortBy') ?? 'created_at';
+    const sortDirection = searchParams.get('sortDirection') ?? 'desc';
 
     logger.info(`Fetching data from table: ${table}`);
 
@@ -38,11 +40,53 @@ export async function GET(request: Request, { params }: { params: Promise<{ tabl
       }
     };
 
+    // Helper function to build ORDER BY clause
+    const buildOrderByClause = (defaultSort: string) => {
+      const validSortDirections = ['asc', 'desc'];
+      const direction = validSortDirections.includes(sortDirection.toLowerCase())
+        ? sortDirection.toLowerCase()
+        : 'desc';
+
+      // Validate sortBy field to prevent SQL injection
+      const validSortFields = [
+        'id',
+        'created_at',
+        'updated_at',
+        'username',
+        'first_name',
+        'last_name',
+        'email_address',
+        'user_id',
+        'game_id',
+        'rating_for_game',
+        'classification',
+        'rating',
+        'game_log_id',
+        'content',
+        'target_type',
+        'target_id',
+        'emoji',
+        'friend_id',
+        'status',
+        'type',
+        'title',
+        'read',
+        'date',
+        'home_team_score',
+        'away_team_score',
+      ];
+
+      const safeSortBy = validSortFields.includes(sortBy) ? sortBy : defaultSort;
+
+      return `ORDER BY ${safeSortBy} ${direction}`;
+    };
+
     switch (table) {
       case 'users': {
         const userColumns = ['username', 'first_name', 'last_name', 'email_address'];
         const userSearchCondition = buildSearchCondition(search, searchField, userColumns);
-        query = sql`SELECT * FROM users ${userSearchCondition ? sql.raw(userSearchCondition) : sql``} ORDER BY created_at DESC LIMIT ${limit} OFFSET ${offset}`;
+        const orderByClause = buildOrderByClause('created_at');
+        query = sql`SELECT * FROM users ${userSearchCondition ? sql.raw(userSearchCondition) : sql``} ${sql.raw(orderByClause)} LIMIT ${limit} OFFSET ${offset}`;
         countQuery = sql`SELECT COUNT(*) as total FROM users ${userSearchCondition ? sql.raw(userSearchCondition) : sql``}`;
         break;
       }
@@ -50,7 +94,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ tabl
       case 'game_logs': {
         const gameLogColumns = ['id', 'user_id', 'game_id', 'rating_for_game', 'classification'];
         const gameLogSearchCondition = buildSearchCondition(search, searchField, gameLogColumns);
-        query = sql`SELECT * FROM game_logs ${gameLogSearchCondition ? sql.raw(gameLogSearchCondition) : sql``} ORDER BY created_at DESC LIMIT ${limit} OFFSET ${offset}`;
+        const orderByClause = buildOrderByClause('created_at');
+        query = sql`SELECT * FROM game_logs ${gameLogSearchCondition ? sql.raw(gameLogSearchCondition) : sql``} ${sql.raw(orderByClause)} LIMIT ${limit} OFFSET ${offset}`;
         countQuery = sql`SELECT COUNT(*) as total FROM game_logs ${gameLogSearchCondition ? sql.raw(gameLogSearchCondition) : sql``}`;
         break;
       }
@@ -62,7 +107,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ tabl
           searchField,
           gameRatingColumns
         );
-        query = sql`SELECT * FROM game_ratings ${gameRatingSearchCondition ? sql.raw(gameRatingSearchCondition) : sql``} ORDER BY created_at DESC LIMIT ${limit} OFFSET ${offset}`;
+        const orderByClause = buildOrderByClause('created_at');
+        query = sql`SELECT * FROM game_ratings ${gameRatingSearchCondition ? sql.raw(gameRatingSearchCondition) : sql``} ${sql.raw(orderByClause)} LIMIT ${limit} OFFSET ${offset}`;
         countQuery = sql`SELECT COUNT(*) as total FROM game_ratings ${gameRatingSearchCondition ? sql.raw(gameRatingSearchCondition) : sql``}`;
         break;
       }
@@ -70,7 +116,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ tabl
       case 'comments': {
         const commentColumns = ['id', 'user_id', 'game_log_id', 'content'];
         const commentSearchCondition = buildSearchCondition(search, searchField, commentColumns);
-        query = sql`SELECT * FROM comments ${commentSearchCondition ? sql.raw(commentSearchCondition) : sql``} ORDER BY created_at DESC LIMIT ${limit} OFFSET ${offset}`;
+        const orderByClause = buildOrderByClause('created_at');
+        query = sql`SELECT * FROM comments ${commentSearchCondition ? sql.raw(commentSearchCondition) : sql``} ${sql.raw(orderByClause)} LIMIT ${limit} OFFSET ${offset}`;
         countQuery = sql`SELECT COUNT(*) as total FROM comments ${commentSearchCondition ? sql.raw(commentSearchCondition) : sql``}`;
         break;
       }
@@ -78,7 +125,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ tabl
       case 'reactions': {
         const reactionColumns = ['id', 'user_id', 'target_type', 'target_id', 'emoji'];
         const reactionSearchCondition = buildSearchCondition(search, searchField, reactionColumns);
-        query = sql`SELECT * FROM reactions ${reactionSearchCondition ? sql.raw(reactionSearchCondition) : sql``} ORDER BY created_at DESC LIMIT ${limit} OFFSET ${offset}`;
+        const orderByClause = buildOrderByClause('created_at');
+        query = sql`SELECT * FROM reactions ${reactionSearchCondition ? sql.raw(reactionSearchCondition) : sql``} ${sql.raw(orderByClause)} LIMIT ${limit} OFFSET ${offset}`;
         countQuery = sql`SELECT COUNT(*) as total FROM reactions ${reactionSearchCondition ? sql.raw(reactionSearchCondition) : sql``}`;
         break;
       }
@@ -90,7 +138,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ tabl
           searchField,
           friendshipColumns
         );
-        query = sql`SELECT * FROM friendships ${friendshipSearchCondition ? sql.raw(friendshipSearchCondition) : sql``} ORDER BY created_at DESC LIMIT ${limit} OFFSET ${offset}`;
+        const orderByClause = buildOrderByClause('created_at');
+        query = sql`SELECT * FROM friendships ${friendshipSearchCondition ? sql.raw(friendshipSearchCondition) : sql``} ${sql.raw(orderByClause)} LIMIT ${limit} OFFSET ${offset}`;
         countQuery = sql`SELECT COUNT(*) as total FROM friendships ${friendshipSearchCondition ? sql.raw(friendshipSearchCondition) : sql``}`;
         break;
       }
@@ -102,7 +151,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ tabl
           searchField,
           notificationColumns
         );
-        query = sql`SELECT * FROM notifications ${notificationSearchCondition ? sql.raw(notificationSearchCondition) : sql``} ORDER BY created_at DESC LIMIT ${limit} OFFSET ${offset}`;
+        const orderByClause = buildOrderByClause('created_at');
+        query = sql`SELECT * FROM notifications ${notificationSearchCondition ? sql.raw(notificationSearchCondition) : sql``} ${sql.raw(orderByClause)} LIMIT ${limit} OFFSET ${offset}`;
         countQuery = sql`SELECT COUNT(*) as total FROM notifications ${notificationSearchCondition ? sql.raw(notificationSearchCondition) : sql``}`;
         break;
       }
@@ -110,7 +160,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ tabl
       case 'nba_games': {
         const nbaGameColumns = ['id', 'date', 'status', 'home_team_score', 'away_team_score'];
         const nbaGameSearchCondition = buildSearchCondition(search, searchField, nbaGameColumns);
-        query = sql`SELECT * FROM nba_games ${nbaGameSearchCondition ? sql.raw(nbaGameSearchCondition) : sql``} ORDER BY created_at DESC LIMIT ${limit} OFFSET ${offset}`;
+        const orderByClause = buildOrderByClause('created_at');
+        query = sql`SELECT * FROM nba_games ${nbaGameSearchCondition ? sql.raw(nbaGameSearchCondition) : sql``} ${sql.raw(orderByClause)} LIMIT ${limit} OFFSET ${offset}`;
         countQuery = sql`SELECT COUNT(*) as total FROM nba_games ${nbaGameSearchCondition ? sql.raw(nbaGameSearchCondition) : sql``}`;
         break;
       }

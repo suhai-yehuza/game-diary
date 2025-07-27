@@ -46,11 +46,6 @@ export function TableWithSearch<T extends { id: string | number }>({
   const [searchTerm, setSearchTerm] = useState('');
   const [searchField, setSearchField] = useState('all');
 
-  const handleSort = useCallback((key: string, direction: 'asc' | 'desc' | null) => {
-    setSortKey(direction ? key : null);
-    setSortDirection(direction);
-  }, []);
-
   // Generate search fields based on columns
   const searchFields = [
     { value: 'all', label: 'All Fields' },
@@ -123,6 +118,16 @@ export function TableWithSearch<T extends { id: string | number }>({
       }
     },
     [endpoint, currentPage, tableName, searchTerm, searchField, sortKey, sortDirection]
+  );
+
+  const handleSort = useCallback(
+    (key: string, direction: 'asc' | 'desc' | null) => {
+      setSortKey(direction ? key : null);
+      setSortDirection(direction);
+      // Trigger refetch when sorting changes
+      void fetchData({ page: 1 });
+    },
+    [fetchData]
   );
 
   // Handle search changes
