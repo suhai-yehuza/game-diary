@@ -18,6 +18,10 @@ const nextConfig = {
       'lucide-react',
       'clsx',
       'tailwind-merge',
+      'recharts',
+      'framer-motion',
+      'react-hook-form',
+      'zod',
     ],
     // Optimize bundle size
     optimizeCss: true,

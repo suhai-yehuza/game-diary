@@ -267,19 +267,16 @@ For CI/CD workflows, coverage enforcement can be controlled through:
 ### Common Issues
 
 1. **Coverage Reports Not Found**:
-
    - Ensure tests are run with coverage enabled
    - Check file paths in configuration
    - Verify test output formats
 
 2. **Thresholds Too Strict**:
-
    - Start with lower thresholds and gradually increase
    - Focus on critical paths first
    - Consider different thresholds for different components
 
 3. **Pre-push Hook Failures**:
-
    - Check if tests are passing
    - Verify coverage thresholds are reasonable
    - Use bypass options for urgent fixes

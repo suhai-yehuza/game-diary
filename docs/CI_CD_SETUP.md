@@ -510,19 +510,16 @@ pnpm test:e2e:update-browsers   # Update browsers
 ### Common Issues
 
 1. **Test Timeouts**
-
    - Increase timeout values in config
    - Check system resources
    - Optimize test execution
 
 2. **Browser Launch Failures**
-
    - Clear browser cache: `pnpm test:e2e:clean`
    - Reinstall browsers: `pnpm test:e2e:install-browsers`
    - Check system dependencies
 
 3. **Flaky Tests**
-
    - Use optimized configurations
    - Increase retry attempts
    - Add proper wait conditions
@@ -554,19 +551,16 @@ pnpm open:test:report
 ## Best Practices
 
 1. **Test Organization**
-
    - Use descriptive test names
    - Group related tests logically
    - Keep tests independent
 
 2. **Performance**
-
    - Use appropriate timeouts
    - Minimize browser instances
    - Optimize test data setup
 
 3. **Reliability**
-
    - Add proper wait conditions
    - Handle async operations correctly
    - Use stable selectors

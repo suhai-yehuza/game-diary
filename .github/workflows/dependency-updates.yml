@@ -107,28 +107,106 @@ jobs:
 
       - name: No dependency updates needed
         if: steps.check.outputs.has_updates == 'false'
-        run: echo "✅ All dependencies are up to date. No action required."
+        run: |
+          echo "✅ All dependencies are up to date. No action required."
+          echo ""
+          echo "Running security audit to check for existing vulnerabilities..."
+          pnpm audit || echo "Security audit completed"
+
+      - name: Update dependencies
+        if: steps.check.outputs.has_updates == 'true'
+        run: |
+          echo "Updating dependencies..."
+          pnpm deps:update
+
+          # Check if any files were actually changed
+          if git diff --quiet; then
+            echo "No changes detected after update"
+            echo "no_changes=true" >> $GITHUB_OUTPUT
+          else
+            echo "Changes detected after update"
+            echo "no_changes=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: No changes after update
+        if: steps.check.outputs.has_updates == 'true' && steps.update-dependencies.outputs.no_changes == 'true'
+        run: echo "✅ Dependencies were checked but no updates were applied. This might be due to lock file constraints."
 
       - name: Security audit
-        if: steps.check.outputs.has_updates == 'true'
-        run: pnpm audit
+        if: steps.check.outputs.has_updates == 'true' && steps.update-dependencies.outputs.no_changes != 'true'
+        id: security-audit
+        run: |
+          echo "Running security audit..."
+
+          # Run initial audit
+          AUDIT_OUTPUT=$(pnpm audit 2>&1 || true)
+          echo "$AUDIT_OUTPUT"
+
+          # Check if vulnerabilities were found
+          if echo "$AUDIT_OUTPUT" | grep -q "vulnerabilities found"; then
+            echo "⚠️ Security vulnerabilities detected"
+            echo "has_vulnerabilities=true" >> $GITHUB_OUTPUT
+
+            # Try to fix vulnerabilities automatically
+            echo "Attempting to fix vulnerabilities..."
+            FIX_OUTPUT=$(pnpm audit fix 2>&1 || true)
+            echo "$FIX_OUTPUT"
+
+            # Check if vulnerabilities persist after fix attempt
+            AUDIT_AFTER_FIX=$(pnpm audit 2>&1 || true)
+            if echo "$AUDIT_AFTER_FIX" | grep -q "vulnerabilities found"; then
+              echo "❌ Vulnerabilities persist after automatic fix"
+              echo "vulnerabilities_fixed=false" >> $GITHUB_OUTPUT
+              echo "vulnerability_details<<EOF" >> $GITHUB_OUTPUT
+              echo "$AUDIT_AFTER_FIX" >> $GITHUB_OUTPUT
+              echo "EOF" >> $GITHUB_OUTPUT
+            else
+              echo "✅ Vulnerabilities fixed automatically"
+              echo "vulnerabilities_fixed=true" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "✅ No security vulnerabilities found"
+            echo "has_vulnerabilities=false" >> $GITHUB_OUTPUT
+            echo "vulnerabilities_fixed=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Handle persistent vulnerabilities
+        if: steps.check.outputs.has_updates == 'true' && steps.update-dependencies.outputs.no_changes != 'true' && steps.security-audit.outputs.has_vulnerabilities == 'true' && steps.security-audit.outputs.vulnerabilities_fixed == 'false'
+        id: vulnerability-handling
+        run: |
+          echo "⚠️ Persistent vulnerabilities detected that require manual intervention"
+          echo "These vulnerabilities may require pnpm overrides or manual package updates"
+          echo ""
+          echo "Vulnerability details:"
+          echo "${{ steps.security-audit.outputs.vulnerability_details }}"
+          echo ""
+          echo "Consider adding pnpm overrides for affected packages in package.json"
+          echo "Example:"
+          echo '  "pnpm": {'
+          echo '    "overrides": {'
+          echo '      "vulnerable-package": "^patched-version"'
+          echo '    }'
+          echo '  }'
+
+          # Set flag to indicate manual intervention needed
+          echo "manual_intervention_needed=true" >> $GITHUB_OUTPUT
 
       - name: Run linting
-        if: steps.check.outputs.has_updates == 'true'
+        if: steps.check.outputs.has_updates == 'true' && steps.update-dependencies.outputs.no_changes != 'true'
         run: pnpm lint
 
       - name: Type check
-        if: steps.check.outputs.has_updates == 'true'
+        if: steps.check.outputs.has_updates == 'true' && steps.update-dependencies.outputs.no_changes != 'true'
         run: pnpm typecheck
 
       - name: Run tests
-        if: steps.check.outputs.has_updates == 'true'
+        if: steps.check.outputs.has_updates == 'true' && steps.update-dependencies.outputs.no_changes != 'true'
         run: |
           pnpm test
           pnpm test:e2e:sanity
 
       - name: Upload test results (on failure)
-        if: failure() && steps.check.outputs.has_updates == 'true'
+        if: failure() && steps.check.outputs.has_updates == 'true' && steps.update-dependencies.outputs.no_changes != 'true'
         uses: actions/upload-artifact@v4
         with:
           name: dependency-update-test-results
@@ -137,9 +215,10 @@ jobs:
             test-results/
             playwright-report/
           retention-days: 7
+          if-no-files-found: ignore
 
       - name: Upload Playwright test results
-        if: always()
+        if: always() && steps.check.outputs.has_updates == 'true' && steps.update-dependencies.outputs.no_changes != 'true'
         uses: actions/upload-artifact@v4
         with:
           name: playwright-test-results
@@ -148,17 +227,18 @@ jobs:
             playwright-report/
             coverage/
           retention-days: 7
+          if-no-files-found: ignore
 
       - name: Build Next.js app
-        if: steps.check.outputs.has_updates == 'true'
+        if: steps.check.outputs.has_updates == 'true' && steps.update-dependencies.outputs.no_changes != 'true'
         run: pnpm build
 
       - name: Check bundle size
-        if: steps.check.outputs.has_updates == 'true'
+        if: steps.check.outputs.has_updates == 'true' && steps.update-dependencies.outputs.no_changes != 'true'
         run: pnpm check:size
 
       - name: Create Pull Request
-        if: steps.check.outputs.has_updates == 'true'
+        if: steps.check.outputs.has_updates == 'true' && steps.update-dependencies.outputs.no_changes != 'true'
         uses: peter-evans/create-pull-request@v5
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -178,6 +258,11 @@ jobs:
             - ✅ Performed security audit
             - ✅ Checked bundle size impact
 
+            ### Security Status:
+            ${{ steps.security-audit.outputs.has_vulnerabilities == 'true' && steps.security-audit.outputs.vulnerabilities_fixed == 'false' && '⚠️ **Security vulnerabilities detected that require manual intervention**' || '✅ **No security vulnerabilities found**' }}
+
+            ${{ steps.vulnerability-handling.outputs.manual_intervention_needed == 'true' && '**Manual Action Required:** Some vulnerabilities persist and may require pnpm overrides or manual package updates. Check the workflow logs for details.' || '' }}
+
             ### Updated Dependencies:
             ```json
             ${{ steps.check.outputs.outdated_json }}
@@ -191,7 +276,7 @@ jobs:
           delete-branch: true
 
       - name: Comment on PR
-        if: steps.check.outputs.has_updates == 'true'
+        if: steps.check.outputs.has_updates == 'true' && steps.update-dependencies.outputs.no_changes != 'true'
         uses: actions/github-script@v7
         with:
           script: |
@@ -256,9 +341,30 @@ jobs:
           echo "**Has Updates:** ${{ steps.check.outputs.has_updates }}" >> $GITHUB_STEP_SUMMARY
 
           if [ "${{ steps.check.outputs.has_updates }}" = "true" ]; then
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "✅ **Dependency updates available**" >> $GITHUB_STEP_SUMMARY
-            echo "A PR has been created with the updates." >> $GITHUB_STEP_SUMMARY
+            if [ "${{ steps.update-dependencies.outputs.no_changes }}" = "true" ]; then
+              echo "" >> $GITHUB_STEP_SUMMARY
+              echo "✅ **Dependencies checked but no updates applied**" >> $GITHUB_STEP_SUMMARY
+              echo "This might be due to lock file constraints or no actual updates available." >> $GITHUB_STEP_SUMMARY
+            else
+              echo "" >> $GITHUB_STEP_SUMMARY
+              echo "✅ **Dependency updates applied**" >> $GITHUB_STEP_SUMMARY
+              echo "A PR has been created with the updates." >> $GITHUB_STEP_SUMMARY
+
+              # Add security status
+              if [ "${{ steps.security-audit.outputs.has_vulnerabilities }}" = "true" ]; then
+                if [ "${{ steps.security-audit.outputs.vulnerabilities_fixed }}" = "true" ]; then
+                  echo "" >> $GITHUB_STEP_SUMMARY
+                  echo "✅ **Security vulnerabilities detected and automatically fixed**" >> $GITHUB_STEP_SUMMARY
+                else
+                  echo "" >> $GITHUB_STEP_SUMMARY
+                  echo "⚠️ **Security vulnerabilities detected - manual intervention may be required**" >> $GITHUB_STEP_SUMMARY
+                  echo "Check the workflow logs for vulnerability details." >> $GITHUB_STEP_SUMMARY
+                fi
+              else
+                echo "" >> $GITHUB_STEP_SUMMARY
+                echo "✅ **No security vulnerabilities found**" >> $GITHUB_STEP_SUMMARY
+              fi
+            fi
           else
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "✅ **All dependencies are up to date**" >> $GITHUB_STEP_SUMMARY

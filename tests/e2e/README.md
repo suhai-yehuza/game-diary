@@ -125,14 +125,12 @@ npx playwright test home.spec.ts --debug
 ### Current Test Files
 
 1. **`home.spec.ts`** - Tests for the home page
-
    - Basic page loading
    - Navigation links
    - Responsive behavior
    - Basic accessibility checks
 
 2. **`navigation.spec.ts`** - Tests for navigation between pages
-
    - Sports pages navigation
    - Dashboard navigation
    - 404 error handling
@@ -572,18 +570,15 @@ When adding new page tests:
 ### Common Issues
 
 1. **Tests failing due to API rate limits:**
-
    - Use `setupE2EMocking()` in test setup
    - Use `safeGotoWithMocking()` for navigation
 
 2. **Flaky tests:**
-
    - Increase retries in test configuration
    - Add proper wait conditions
    - Use `waitForPageLoad()` and `waitForLoadState()`
 
 3. **Responsive tests failing:**
-
    - Check viewport size settings
    - Verify mobile/desktop configurations
    - Use appropriate device scale factors

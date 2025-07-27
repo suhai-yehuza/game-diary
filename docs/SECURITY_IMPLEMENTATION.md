@@ -593,21 +593,18 @@ DATA_ENCRYPTION_KEY=prod_key_32_bytes_long_here
 ### Pre-deployment Checklist
 
 1. **Environment Variables**
-
    - [ ] Set `SLACK_ALERT_WEBHOOK_URL` for alerting
    - [ ] Generate and set `DATA_ENCRYPTION_KEY`
    - [ ] Configure database connection
    - [ ] Set up Clerk authentication
 
 2. **Database Setup**
-
    - [ ] Run migrations to create audit tables
    - [ ] Enable RLS on users table
    - [ ] Create RLS policies
    - [ ] Set up audit logging triggers
 
 3. **Key Management**
-
    - [ ] Generate encryption keys for each environment
    - [ ] Activate keys for use
    - [ ] Test key rotation process
@@ -674,7 +671,6 @@ DATA_ENCRYPTION_KEY=prod_key_32_bytes_long_here
    ```
 
 2. **Audit Log Review** (Monthly)
-
    - Review admin access patterns
    - Check for suspicious activity
    - Validate audit log integrity
@@ -689,7 +685,6 @@ DATA_ENCRYPTION_KEY=prod_key_32_bytes_long_here
 #### Backup Procedures
 
 1. **Key Backup**
-
    - Backup encryption keys securely
    - Store keys in secure key management system
    - Test key restoration process

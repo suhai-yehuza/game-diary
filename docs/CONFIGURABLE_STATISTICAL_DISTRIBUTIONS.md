@@ -463,19 +463,16 @@ export async function seedData() {
 ### Common Issues
 
 1. **Configuration Not Applied**
-
    - Ensure configuration is passed to generation functions
    - Check that configuration structure matches interface
    - Validate configuration before use
 
 2. **Performance Issues**
-
    - Use uniform distributions for large datasets
    - Disable realistic patterns for performance testing
    - Consider using simpler distributions
 
 3. **Unrealistic Data**
-
    - Enable realistic patterns
    - Use appropriate distribution types
    - Adjust distribution parameters

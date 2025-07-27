@@ -138,12 +138,10 @@ pnpm validate:production    # Production validation
 ### Common Issues
 
 1. **Pre-commit Too Slow**
-
    - Ensure only fast checks are in pre-commit
    - Consider moving slow checks to pre-push
 
 2. **Pre-push Too Slow**
-
    - Use `SKIP_E2E=true` for development
    - Consider running E2E tests in CI only
 

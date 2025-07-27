@@ -279,18 +279,15 @@ All tests use shared utilities from `utils/test-utils.ts`:
 ### Common Issues
 
 1. **Tests failing due to API rate limits:**
-
    - Use `setupE2EMocking()` in test setup
    - Use `safeGotoWithMocking()` for navigation
 
 2. **Flaky tests:**
-
    - Increase retries in test configuration
    - Add proper wait conditions
    - Use `waitForPageLoad()` and `waitForLoadState()`
 
 3. **Responsive tests failing:**
-
    - Check viewport size settings
    - Verify mobile/desktop configurations
    - Use appropriate device scale factors

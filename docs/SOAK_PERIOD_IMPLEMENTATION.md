@@ -18,14 +18,12 @@ Soaking periods are a deployment safety mechanism that allows new deployments to
 ### Components
 
 1. **Soak Monitor Script** (`scripts/soak-monitor.sh`)
-
    - Health check monitoring
    - Performance metrics collection
    - Automated rollback logic
    - Status reporting
 
 2. **Health Check API** (`src/app/api/health/route.ts`)
-
    - Database connectivity verification
    - External service status
    - Response time measurement

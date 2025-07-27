@@ -19,7 +19,6 @@ This single migration file includes:
 ### 2. Foreign Key Constraints with CASCADE DELETE
 
 - **User-related cascades:**
-
   - `friendships.friend_id` → `users.id` (CASCADE)
   - `friendships.user_id` → `users.id` (CASCADE)
   - `game_logs.user_id` → `users.id` (CASCADE)

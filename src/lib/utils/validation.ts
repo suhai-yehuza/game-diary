@@ -55,9 +55,20 @@ export function validateUserContact(data: {
     return { success: true };
   }
 
+  // Handle Zod error with proper type checking
+  const errors: string[] = [];
+  if (result.error && typeof result.error === 'object' && 'errors' in result.error) {
+    const zodErrors = result.error.errors as Array<{ path: (string | number)[]; message: string }>;
+    for (const err of zodErrors) {
+      if (Array.isArray(err.path) && typeof err.message === 'string') {
+        errors.push(`${err.path.join('.')}: ${err.message}`);
+      }
+    }
+  }
+
   return {
     success: false,
-    errors: result.error.errors.map(err => `${err.path.join('.')}: ${err.message}`),
+    errors,
   };
 }
 

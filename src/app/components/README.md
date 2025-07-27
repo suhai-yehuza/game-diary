@@ -130,7 +130,6 @@ import { ReactionPicker, ThemeToggle } from '@/components/common';
 ### **Creating New Components**
 
 1. **Determine Category:**
-
    - UI: Design system component?
    - Common: Used across multiple features?
    - Feature: Domain-specific business logic?

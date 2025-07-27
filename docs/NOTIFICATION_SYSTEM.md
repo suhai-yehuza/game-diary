@@ -231,13 +231,11 @@ export interface IAppNotification {
 ### Manual Testing
 
 1. **Friend Requests:**
-
    - Send friend request → Check recipient gets notification
    - Accept friend request → Check sender gets notification
    - Reject friend request → Check sender gets notification
 
 2. **Comments:**
-
    - Comment on game log → Check game log owner gets notification
    - Reply to comment → Check comment owner gets notification
    - Comment on own content → Verify no notification created

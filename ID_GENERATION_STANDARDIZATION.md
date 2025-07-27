@@ -64,12 +64,10 @@ VALUES (generate_uuid_v7(), user_id, 'notification', 'Title', 'Message');
 ### Previously Used Formats
 
 1. **NanoID**: Used for shorter, URL-friendly IDs
-
    - Still available for specific use cases (URLs, user-facing content)
    - Use `generateShortId()` for these cases
 
 2. **UUID v4**: Standard random UUIDs
-
    - Available as fallback
    - Use `generateUUID()` for compatibility
 

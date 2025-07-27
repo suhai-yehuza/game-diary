@@ -3,6 +3,11 @@
   "outputDirectory": ".next",
   "installCommand": "pnpm install --frozen-lockfile",
   "framework": "nextjs",
+  "build": {
+    "env": {
+      "NODE_ENV": "production"
+    }
+  },
   "functions": {
     "app/api/**/*.ts": {
       "maxDuration": 30
