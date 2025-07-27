@@ -1,16 +1,6 @@
 'use client';
 
-import {
-  Bell,
-  Database,
-  Heart,
-  Loader2,
-  MessageSquare,
-  Shield,
-  Star,
-  UserPlus,
-  Users,
-} from 'lucide-react';
+import { Bell, Database, Heart, Loader2, MessageSquare, Star, UserPlus, Users } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
 
@@ -90,22 +80,6 @@ const tableConfigs = {
     icon: Bell,
     endpoint: '/api/admin/database/notifications',
     fields: ['id', 'user_id', 'type', 'title', 'read', 'created_at'],
-  },
-  audit_logs: {
-    title: 'Audit Logs',
-    description: 'System security and activity logs',
-    icon: Shield,
-    endpoint: '/api/admin/database/audit_logs',
-    fields: [
-      'id',
-      'timestamp',
-      'category',
-      'action',
-      'severity',
-      'user_id',
-      'success',
-      'description',
-    ],
   },
 } as const;
 
