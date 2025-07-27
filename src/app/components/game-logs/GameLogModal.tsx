@@ -74,7 +74,9 @@ export function GameLogModal({ mode, isOpen, onClose, onSuccess, gameLog }: IGam
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearchTerm] = useDebounce(searchTerm, 300);
   const [searchResults, setSearchResults] = useState<ISearchResult[]>([]);
+  const [allGames, setAllGames] = useState<IGameResponse[]>([]);
   const [searchLoading, setSearchLoading] = useState(false);
+  const [gamesLoading, setGamesLoading] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [selectedSeason, setSelectedSeason] = useState<'latest' | number | 'all'>('latest');
@@ -145,14 +147,9 @@ export function GameLogModal({ mode, isOpen, onClose, onSuccess, gameLog }: IGam
     }
   }, [selectedGameId, setValue, mode]);
 
-  // Game search functionality (create mode only)
-  const searchGames = useCallback(async (term: string, season: number | 'all' | 'latest') => {
-    if (!term.trim()) {
-      setSearchResults([]);
-      return;
-    }
-
-    setSearchLoading(true);
+  // Load all games for the selected scope
+  const loadAllGames = useCallback(async (season: number | 'all' | 'latest') => {
+    setGamesLoading(true);
     setSearchError(null);
 
     try {
@@ -161,20 +158,21 @@ export function GameLogModal({ mode, isOpen, onClose, onSuccess, gameLog }: IGam
       if (season === 'latest') {
         effectiveSeason = LATEST_SEASON;
       }
+
       if (effectiveSeason === 'all') {
         // Fetch games for all seasons in parallel
-        const allGames = await Promise.all(
-          SEASONS.map(async s => {
-            const response = await fetch(`/api/proxy/games?season=${s}&league=standard`);
-            if (!response.ok) return [];
-            const data = (await response.json()) as {
-              errors?: string[];
-              response?: IGameResponse[];
-            };
-            return data.response ?? [];
-          })
-        );
-        games = allGames.flat();
+        const allGamesPromises = SEASONS.map(async s => {
+          const response = await fetch(`/api/proxy/games?season=${s}&league=standard`);
+          if (!response.ok) return [];
+          const data = (await response.json()) as {
+            errors?: string[];
+            response?: IGameResponse[];
+          };
+          return data.response ?? [];
+        });
+
+        const allGamesResults = await Promise.all(allGamesPromises);
+        games = allGamesResults.flat();
       } else {
         const response = await fetch(`/api/proxy/games?season=${effectiveSeason}&league=standard`);
         if (!response.ok) throw new Error('Failed to fetch games');
@@ -182,54 +180,100 @@ export function GameLogModal({ mode, isOpen, onClose, onSuccess, gameLog }: IGam
         games = data.response ?? [];
       }
 
-      const filteredGames = games.filter(game => {
-        const searchLower = term.toLowerCase();
-        const homeTeam = game.teams.home.name.toLowerCase();
-        const awayTeam = game.teams.visitors.name.toLowerCase();
-        const arena = game.arena?.name?.toLowerCase() ?? '';
-        const gameDate = new Date(game.date.start).toLocaleDateString().toLowerCase();
-        return (
-          homeTeam.includes(searchLower) ||
-          awayTeam.includes(searchLower) ||
-          arena.includes(searchLower) ||
-          gameDate.includes(searchLower)
-        );
+      // Sort games by date (most recent first), handle null dates
+      const sortedGames = games.sort((a, b) => {
+        const dateA = a.date?.start ? new Date(a.date.start).getTime() : 0;
+        const dateB = b.date?.start ? new Date(b.date.start).getTime() : 0;
+        return dateB - dateA;
       });
 
-      const sortedGames = filteredGames
-        .sort((a, b) => new Date(b.date.start).getTime() - new Date(a.date.start).getTime())
-        .slice(0, 10);
-
-      const searchResults: ISearchResult[] = sortedGames.map(game => ({
-        id: game.id,
-        name: `${game.teams.visitors.name} @ ${game.teams.home.name}`,
-        date: new Date(game.date.start).toLocaleDateString('en-US', {
-          weekday: 'short',
-          year: 'numeric',
-          month: 'short',
-          day: 'numeric',
-        }),
-        homeTeam: game.teams.home.name,
-        awayTeam: game.teams.visitors.name,
-        arena: game.arena?.name ?? 'Unknown Arena',
-        season: game.season,
-        status: game.status?.long ?? game.status?.short ?? 'Unknown',
-      }));
-
-      setSearchResults(searchResults);
+      setAllGames(sortedGames);
     } catch (err) {
       setSearchError(err instanceof Error ? err.message : 'An error occurred');
-      setSearchResults([]);
+      setAllGames([]);
     } finally {
-      setSearchLoading(false);
+      setGamesLoading(false);
     }
   }, []);
 
+  // Filter games based on search term (local filtering)
+  const filterGames = useCallback(
+    (term: string) => {
+      if (!term.trim()) {
+        setSearchResults([]);
+        return;
+      }
+
+      setSearchLoading(true);
+
+      try {
+        const filteredGames = allGames.filter(game => {
+          // Skip invalid games
+          if (!game || typeof game !== 'object') return false;
+
+          const searchLower = term.toLowerCase();
+
+          // Add null checks for team names
+          const homeTeam = game.teams?.home?.name?.toLowerCase() ?? '';
+          const awayTeam = game.teams?.visitors?.name?.toLowerCase() ?? '';
+          const arena = game.arena?.name?.toLowerCase() ?? '';
+
+          // Add null check for date
+          const gameDate = game.date?.start
+            ? new Date(game.date.start).toLocaleDateString().toLowerCase()
+            : '';
+
+          return (
+            homeTeam.includes(searchLower) ||
+            awayTeam.includes(searchLower) ||
+            arena.includes(searchLower) ||
+            gameDate.includes(searchLower)
+          );
+        });
+
+        // Convert to search results format (no limit on results)
+        const searchResults: ISearchResult[] = filteredGames.map(game => ({
+          id: game.id,
+          name: `${game.teams?.visitors?.name ?? 'Unknown Team'} @ ${game.teams?.home?.name ?? 'Unknown Team'}`,
+          date: game.date?.start
+            ? new Date(game.date.start).toLocaleDateString('en-US', {
+                weekday: 'short',
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+              })
+            : 'Unknown Date',
+          homeTeam: game.teams?.home?.name ?? 'Unknown Team',
+          awayTeam: game.teams?.visitors?.name ?? 'Unknown Team',
+          arena: game.arena?.name ?? 'Unknown Arena',
+          season: game.season ?? 0,
+          status: game.status?.long ?? game.status?.short ?? 'Unknown',
+        }));
+
+        setSearchResults(searchResults);
+      } catch (err) {
+        setSearchError(err instanceof Error ? err.message : 'An error occurred');
+        setSearchResults([]);
+      } finally {
+        setSearchLoading(false);
+      }
+    },
+    [allGames]
+  );
+
+  // Load all games when season changes
   useEffect(() => {
     if (mode === 'create') {
-      void searchGames(debouncedSearchTerm, selectedSeason);
+      void loadAllGames(selectedSeason);
     }
-  }, [debouncedSearchTerm, selectedSeason, searchGames, mode]);
+  }, [selectedSeason, loadAllGames, mode]);
+
+  // Filter games when search term changes
+  useEffect(() => {
+    if (mode === 'create') {
+      filterGames(debouncedSearchTerm);
+    }
+  }, [debouncedSearchTerm, filterGames, mode]);
 
   // Mutations
   const [createGameLog, { loading: createLoading }] = useMutation<ICreateGameLogResponse>(
@@ -249,6 +293,7 @@ export function GameLogModal({ mode, isOpen, onClose, onSuccess, gameLog }: IGam
           setSelectedGameName('');
           setSearchTerm('');
           setSearchResults([]);
+          setAllGames([]);
         } else {
           const errorObj = data?.createGameLog?.errors?.[0] as { message?: string } | undefined;
           const errorMsg = errorObj?.message ?? 'Game log creation failed';
@@ -380,6 +425,7 @@ export function GameLogModal({ mode, isOpen, onClose, onSuccess, gameLog }: IGam
       setSelectedGameId('');
       setSelectedGameName('');
       setValue('gameId', '');
+      setSearchResults([]);
     }
   };
 
@@ -449,8 +495,13 @@ export function GameLogModal({ mode, isOpen, onClose, onSuccess, gameLog }: IGam
                         value={searchTerm}
                         onChange={handleSearchInputChange}
                         onFocus={() => setShowSearchResults(true)}
-                        className="w-full pl-8 pr-2 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                        placeholder="Search by team name, arena, or date..."
+                        disabled={gamesLoading}
+                        className="w-full pl-8 pr-2 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                        placeholder={
+                          gamesLoading
+                            ? 'Loading games...'
+                            : 'Search by team name, arena, or date...'
+                        }
                       />
                     </div>
 
@@ -463,10 +514,13 @@ export function GameLogModal({ mode, isOpen, onClose, onSuccess, gameLog }: IGam
                           if (val === 'all' || val === 'latest') setSelectedSeason(val);
                           else setSelectedSeason(Number(val));
                         }}
-                        className="w-full px-2 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                        disabled={gamesLoading}
+                        className="w-full px-2 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <option value="latest">
-                          {`${LATEST_SEASON}-${LATEST_SEASON + 1} Season (Latest)`}
+                          {gamesLoading
+                            ? 'Loading...'
+                            : `${LATEST_SEASON}-${LATEST_SEASON + 1} Season (Latest)`}
                         </option>
                         <option value="all">All Seasons</option>
                         {SEASONS.map(season => (
@@ -478,9 +532,15 @@ export function GameLogModal({ mode, isOpen, onClose, onSuccess, gameLog }: IGam
                     </div>
 
                     {/* Search Results Dropdown */}
-                    {showSearchResults && (searchTerm.trim() || searchLoading) && (
+                    {showSearchResults && (
                       <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-48 overflow-y-auto">
-                        {searchLoading && (
+                        {gamesLoading && (
+                          <div className="p-3 text-center text-gray-600 text-sm">
+                            <p>Loading games for selected season...</p>
+                          </div>
+                        )}
+
+                        {searchLoading && !gamesLoading && (
                           <div className="p-3 text-center text-gray-600 text-sm">
                             <p>Searching for games...</p>
                           </div>
@@ -492,38 +552,56 @@ export function GameLogModal({ mode, isOpen, onClose, onSuccess, gameLog }: IGam
                           </div>
                         )}
 
-                        {!searchLoading &&
+                        {!gamesLoading &&
+                          !searchLoading &&
                           !searchError &&
                           searchResults.length === 0 &&
                           searchTerm.trim() && (
                             <div className="p-3 text-center text-gray-600 text-sm">
                               <p>No games found matching your search.</p>
+                              <p className="text-xs mt-1">Try a different search term.</p>
                             </div>
                           )}
 
-                        {!searchLoading && !searchError && searchResults.length > 0 && (
-                          <div className="py-1">
-                            {searchResults.map(game => (
-                              <div
-                                key={game.id}
-                                onClick={() => handleGameSelect(game.id.toString(), game.name)}
-                                className="px-3 py-2 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
-                              >
-                                <div className="font-medium text-gray-900 text-sm mb-0.5">
-                                  {game.name}
-                                </div>
-                                <div className="flex items-center gap-3 text-xs text-gray-600">
-                                  <div className="flex items-center gap-1">
-                                    <Calendar className="w-3 h-3" />
-                                    {game.date}
+                        {!gamesLoading &&
+                          !searchLoading &&
+                          !searchError &&
+                          searchResults.length > 0 && (
+                            <div className="py-1">
+                              {searchResults.map(game => (
+                                <div
+                                  key={game.id}
+                                  onClick={() => handleGameSelect(game.id.toString(), game.name)}
+                                  className="px-3 py-2 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
+                                >
+                                  <div className="font-medium text-gray-900 text-sm mb-0.5">
+                                    {game.name}
                                   </div>
-                                  <div className="flex items-center gap-1">
-                                    <MapPin className="w-3 h-3" />
-                                    {game.arena}
+                                  <div className="flex items-center gap-3 text-xs text-gray-600">
+                                    <div className="flex items-center gap-1">
+                                      <Calendar className="w-3 h-3" />
+                                      {game.date}
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                      <MapPin className="w-3 h-3" />
+                                      {game.arena}
+                                    </div>
                                   </div>
                                 </div>
-                              </div>
-                            ))}
+                              ))}
+                              {searchResults.length > 0 && (
+                                <div className="px-3 py-2 text-xs text-gray-500 border-t border-gray-100">
+                                  Showing {searchResults.length} result
+                                  {searchResults.length !== 1 ? 's' : ''}
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                        {!gamesLoading && !searchLoading && !searchError && !searchTerm.trim() && (
+                          <div className="p-3 text-center text-gray-600 text-sm">
+                            <p>Start typing to search for games...</p>
+                            <p className="text-xs mt-1">Search by team name, arena, or date</p>
                           </div>
                         )}
                       </div>
