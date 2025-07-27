@@ -46,6 +46,27 @@ export function TableWithSearch<T extends { id: string | number }>({
   const [searchTerm, setSearchTerm] = useState('');
   const [searchField, setSearchField] = useState('all');
 
+  // Ref to prevent multiple fetch calls
+  const isInitialMount = React.useRef(true);
+  const currentValues = React.useRef({
+    searchTerm: '',
+    searchField: 'all',
+    sortKey: null as string | null,
+    sortDirection: null as 'asc' | 'desc' | null,
+    currentPage: 1,
+  });
+
+  // Update ref when state changes
+  React.useEffect(() => {
+    currentValues.current = {
+      searchTerm,
+      searchField,
+      sortKey,
+      sortDirection,
+      currentPage,
+    };
+  }, [searchTerm, searchField, sortKey, sortDirection, currentPage]);
+
   // Generate search fields based on columns
   const searchFields = [
     { value: 'all', label: 'All Fields' },
@@ -55,126 +76,129 @@ export function TableWithSearch<T extends { id: string | number }>({
     })),
   ];
 
-  const fetchData = useCallback(
-    async (opts: { page?: number; search?: string; searchField?: string } = {}) => {
-      setLoading(true);
-      setError(null);
-      try {
-        const page = opts.page ?? currentPage;
-        const search = opts.search ?? searchTerm;
-        const field = opts.searchField ?? searchField;
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const {
+        searchTerm: currentSearch,
+        searchField: currentField,
+        sortKey: currentSortKey,
+        sortDirection: currentSortDirection,
+        currentPage: currentPageNum,
+      } = currentValues.current;
 
-        // Build query parameters
-        const params = new URLSearchParams({
-          page: page.toString(),
-          limit: API_CONFIG.pagination.DEFAULT_PAGE_SIZE.toString(),
-        });
+      // Build query parameters
+      const params = new URLSearchParams({
+        page: currentPageNum.toString(),
+        limit: API_CONFIG.pagination.DEFAULT_PAGE_SIZE.toString(),
+      });
 
-        // Add search parameters if provided
-        if (search.trim()) {
-          params.append('search', search.trim());
-          if (field !== 'all') {
-            params.append('searchField', field);
-          }
+      // Add search parameters if provided
+      if (currentSearch.trim()) {
+        params.append('search', currentSearch.trim());
+        if (currentField !== 'all') {
+          params.append('searchField', currentField);
         }
-
-        // Add sort parameters if provided
-        if (sortKey && sortDirection) {
-          params.append('sortBy', sortKey);
-          params.append('sortDirection', sortDirection);
-        }
-
-        const res = await fetch(`${endpoint}?${params.toString()}`);
-        const jsonRaw: unknown = await res.json();
-        if (!isApiResponse<T>(jsonRaw)) {
-          throw new Error('Invalid API response');
-        }
-        const { success, error: apiError, data, pagination } = jsonRaw;
-        if (!success) throw new Error(apiError ?? `Failed to fetch ${tableName}`);
-        setRawData(Array.isArray(data) ? data : []);
-        setTotalCount((pagination as { total?: number })?.total ?? 0);
-        setCurrentPage((pagination as { page?: number })?.page ?? 1);
-        setPageInfo({
-          hasNextPage:
-            ((pagination as { page?: number; pages?: number })?.page ?? 1) <
-            ((pagination as { pages?: number })?.pages ?? 1),
-          hasPreviousPage: ((pagination as { page?: number })?.page ?? 1) > 1,
-          startCursor: null,
-          endCursor: null,
-        });
-      } catch (err: unknown) {
-        let message = `Failed to fetch ${tableName}`;
-        if (
-          err &&
-          typeof err === 'object' &&
-          'message' in err &&
-          typeof (err as { message?: unknown }).message === 'string'
-        ) {
-          message = (err as { message: string }).message;
-        }
-        setError(message);
-      } finally {
-        setLoading(false);
       }
-    },
-    [endpoint, currentPage, tableName, searchTerm, searchField, sortKey, sortDirection]
-  );
 
-  const handleSort = useCallback(
-    (key: string, direction: 'asc' | 'desc' | null) => {
-      setSortKey(direction ? key : null);
-      setSortDirection(direction);
-      // Trigger refetch when sorting changes
-      void fetchData({ page: 1 });
-    },
-    [fetchData]
-  );
+      // Add sort parameters if provided
+      if (currentSortKey && currentSortDirection) {
+        params.append('sortBy', currentSortKey);
+        params.append('sortDirection', currentSortDirection);
+      }
+
+      const res = await fetch(`${endpoint}?${params.toString()}`);
+      const jsonRaw: unknown = await res.json();
+      if (!isApiResponse<T>(jsonRaw)) {
+        throw new Error('Invalid API response');
+      }
+      const { success, error: apiError, data, pagination } = jsonRaw;
+      if (!success) throw new Error(apiError ?? `Failed to fetch ${tableName}`);
+      setRawData(Array.isArray(data) ? data : []);
+      setTotalCount((pagination as { total?: number })?.total ?? 0);
+      setCurrentPage((pagination as { page?: number })?.page ?? 1);
+      setPageInfo({
+        hasNextPage:
+          ((pagination as { page?: number; pages?: number })?.page ?? 1) <
+          ((pagination as { pages?: number })?.pages ?? 1),
+        hasPreviousPage: ((pagination as { page?: number })?.page ?? 1) > 1,
+        startCursor: null,
+        endCursor: null,
+      });
+    } catch (err: unknown) {
+      let message = `Failed to fetch ${tableName}`;
+      if (
+        err &&
+        typeof err === 'object' &&
+        'message' in err &&
+        typeof (err as { message?: unknown }).message === 'string'
+      ) {
+        message = (err as { message: string }).message;
+      }
+      setError(message);
+    } finally {
+      setLoading(false);
+    }
+  }, [endpoint, tableName]);
+
+  const handleSort = useCallback((key: string, direction: 'asc' | 'desc' | null) => {
+    console.log('Sorting:', key, direction); // Debug log
+    setSortKey(direction ? key : null);
+    setSortDirection(direction);
+  }, []);
 
   // Handle search changes
-  const handleSearchChange = useCallback(
-    (term: string, field: string) => {
-      setSearchTerm(term);
-      setSearchField(field);
-      setCurrentPage(1); // Reset to first page when searching
-      void fetchData({ page: 1, search: term, searchField: field });
-    },
-    [fetchData]
-  );
+  const handleSearchChange = useCallback((term: string, field: string) => {
+    setSearchTerm(term);
+    setSearchField(field);
+    setCurrentPage(1); // Reset to first page when searching
+  }, []);
 
   // Handle search clear
   const handleSearchClear = useCallback(() => {
     setSearchTerm('');
     setSearchField('all');
     setCurrentPage(1);
-    void fetchData({ page: 1, search: '', searchField: 'all' });
-  }, [fetchData]);
+  }, []);
 
   // No-op sort function for non-sortable columns
   const noopSort: (key: string, direction: 'asc' | 'desc' | null) => void = () => undefined;
 
+  // Initial data fetch
   useEffect(() => {
-    void fetchData();
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      void fetchData();
+    }
   }, [fetchData]);
+
+  // Fetch data when dependencies change (but not on initial mount)
+  useEffect(() => {
+    if (!isInitialMount.current) {
+      void fetchData();
+    }
+  }, [searchTerm, searchField, sortKey, sortDirection, currentPage, fetchData]);
 
   const handleNext = () => {
     if (pageInfo.hasNextPage) {
-      void fetchData({ page: currentPage + 1 });
+      setCurrentPage(currentPage + 1);
     }
   };
 
   const handlePrev = () => {
     if (pageInfo.hasPreviousPage) {
-      void fetchData({ page: currentPage - 1 });
+      setCurrentPage(currentPage - 1);
     }
   };
 
   const handleFirst = () => {
-    void fetchData({ page: 1 });
+    setCurrentPage(1);
   };
 
   const handleLast = () => {
     const totalPages = Math.ceil(totalCount / API_CONFIG.pagination.DEFAULT_PAGE_SIZE);
-    void fetchData({ page: totalPages });
+    setCurrentPage(totalPages);
   };
 
   return (

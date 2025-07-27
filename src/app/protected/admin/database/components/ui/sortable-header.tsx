@@ -26,7 +26,10 @@ export function SortableHeader({
   const isAsc = isActive && currentSortDirection === 'asc';
   const isDesc = isActive && currentSortDirection === 'desc';
 
-  const handleClick = () => {
+  const handleClick = (event: React.MouseEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+
     if (disabled) return;
 
     let newDirection: SortDirection;
