@@ -16,7 +16,7 @@ vi.mock('next/link', () => ({
   ),
 }));
 vi.mock('next/image', () => ({
-  default: (props: any) => <img {...props} />,
+  default: ({ priority, ...props }: any) => <img {...props} />,
 }));
 vi.mock('@clerk/nextjs', () => ({
   SignInButton: ({ children }: any) => <button data-testid="sign-in-button">{children}</button>,

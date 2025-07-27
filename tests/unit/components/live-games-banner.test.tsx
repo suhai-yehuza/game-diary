@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 
 vi.mock('next/image', () => ({
-  default: (props: any) => <img {...props} />,
+  default: ({ priority, ...props }: any) => <img {...props} />,
 }));
 vi.mock('next/link', () => ({
   default: ({ children, href }: { children: React.ReactNode; href: string }) => (

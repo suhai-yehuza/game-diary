@@ -17,7 +17,7 @@ vi.mock('@clerk/nextjs', () => ({
 
 // Mock Next.js Image component
 vi.mock('next/image', () => ({
-  default: ({ src, alt, ...props }: any) => (
+  default: ({ src, alt, priority, ...props }: any) => (
     <div data-testid="next-image" title={alt} {...props}>
       {src}
     </div>

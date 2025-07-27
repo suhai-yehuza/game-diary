@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ClientProviders } from '@src/app/components/providers';
@@ -57,7 +57,7 @@ describe('UserDashboardPage', () => {
     mockUseUser.mockReturnValue(userStates.signedIn);
   });
 
-  it('shows loading state when user data is not loaded', () => {
+  it('shows loading state when user data is not loaded', async () => {
     mockUseUser.mockReturnValue(userStates.loading);
 
     renderUserPage();
@@ -66,7 +66,7 @@ describe('UserDashboardPage', () => {
     expect(screen.queryByText('Welcome, testuser!')).not.toBeInTheDocument();
   });
 
-  it('shows guest welcome when user is not signed in', () => {
+  it('shows guest welcome when user is not signed in', async () => {
     mockUseUser.mockReturnValue(userStates.signedOut);
 
     renderUserPage();
@@ -74,33 +74,47 @@ describe('UserDashboardPage', () => {
     expect(screen.getByText('Welcome, Guest!')).toBeInTheDocument();
   });
 
-  it('renders dashboard page when user is signed in', () => {
+  it('renders dashboard page when user is signed in', async () => {
     renderUserPage();
 
-    expect(screen.getByText('Welcome, testuser!')).toBeInTheDocument();
+    // Wait for async operations to complete
+    await waitFor(() => {
+      expect(screen.getByText('Welcome, testuser!')).toBeInTheDocument();
+    });
+
     expectDashboardSections();
   });
 
-  it('renders dashboard without image when imageUrl is not available', () => {
+  it('renders dashboard without image when imageUrl is not available', async () => {
     mockUseUser.mockReturnValue(userStates.noImage);
 
     renderUserPage();
 
-    expect(screen.getByText('Welcome, testuser!')).toBeInTheDocument();
+    // Wait for async operations to complete
+    await waitFor(() => {
+      expect(screen.getByText('Welcome, testuser!')).toBeInTheDocument();
+    });
   });
 
-  it('handles missing user data gracefully', () => {
+  it('handles missing user data gracefully', async () => {
     mockUseUser.mockReturnValue(userStates.missingUser);
 
     renderUserPage();
 
-    expect(screen.getByText('Welcome, User!')).toBeInTheDocument();
+    // Wait for async operations to complete
+    await waitFor(() => {
+      expect(screen.getByText('Welcome, User!')).toBeInTheDocument();
+    });
   });
 
-  it('renders all dashboard sections', () => {
+  it('renders all dashboard sections', async () => {
     renderUserPage();
 
-    expect(screen.getByText('Welcome, testuser!')).toBeInTheDocument();
+    // Wait for async operations to complete
+    await waitFor(() => {
+      expect(screen.getByText('Welcome, testuser!')).toBeInTheDocument();
+    });
+
     expectDashboardSections();
   });
 });

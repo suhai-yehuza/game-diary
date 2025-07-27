@@ -21,7 +21,7 @@ export function Logo({ isMenuExpanded }: ILogoProps) {
           height={44}
           sizes="(max-width: 600px) 36px, 44px"
           loading="eager"
-          priority
+          priority={true}
           className="w-11 h-11 cursor-pointer"
         />
       </Link>

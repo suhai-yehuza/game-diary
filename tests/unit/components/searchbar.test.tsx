@@ -61,7 +61,7 @@ describe('SearchBar', () => {
     await user.tab(); // Tab to the input
     let input = screen.getByPlaceholderText(/search/i);
     expect(input).toHaveFocus();
-    input.blur();
+    await user.click(document.body); // Click outside to blur
     expect(input).not.toHaveFocus();
   });
 

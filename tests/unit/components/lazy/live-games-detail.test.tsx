@@ -33,11 +33,13 @@ describe('LiveGamesDetail', () => {
     vi.clearAllTimers();
   });
 
-  it('renders loading state initially', () => {
+  it('renders loading state initially', async () => {
     global.fetch = vi.fn().mockImplementation(() => new Promise(() => {}));
     render(<LiveGamesDetail />);
     // In test environment, the hook returns mock data immediately
-    expect(screen.getByText('Live NBA Games')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText('Live NBA Games')).toBeInTheDocument();
+    });
     expect(screen.getByText('8 games currently live')).toBeInTheDocument();
   });
 

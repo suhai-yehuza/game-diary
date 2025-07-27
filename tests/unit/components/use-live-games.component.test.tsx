@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { useLiveGames } from '@/hooks/use-live-games';
 
 function TestComponent() {
@@ -8,8 +8,10 @@ function TestComponent() {
 }
 
 describe('useLiveGames in component', () => {
-  it('renders without crashing', () => {
+  it('renders without crashing', async () => {
     render(<TestComponent />);
-    expect(screen.getByText(/Games:/)).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText(/Games:/)).toBeInTheDocument();
+    });
   });
 });

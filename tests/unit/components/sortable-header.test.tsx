@@ -9,48 +9,52 @@ describe('SortableHeader', () => {
     mockOnSort.mockClear();
   });
 
-  it('renders with correct text content', () => {
-    render(
-      <SortableHeader
-        sortKey="username"
-        currentSortKey={null}
-        currentSortDirection={null}
-        onSort={mockOnSort}
-      >
-        Username
-      </SortableHeader>
+  // Helper function to wrap SortableHeader in proper table structure
+  const renderSortableHeader = (props: any) => {
+    return render(
+      <table>
+        <thead>
+          <tr>
+            <SortableHeader {...props} />
+          </tr>
+        </thead>
+      </table>
     );
+  };
+
+  it('renders with correct text content', () => {
+    renderSortableHeader({
+      sortKey: 'username',
+      currentSortKey: null,
+      currentSortDirection: null,
+      onSort: mockOnSort,
+      children: 'Username',
+    });
 
     expect(screen.getByText('Username')).toBeInTheDocument();
   });
 
   it('calls onSort with correct parameters when clicked', () => {
-    render(
-      <SortableHeader
-        sortKey="username"
-        currentSortKey={null}
-        currentSortDirection={null}
-        onSort={mockOnSort}
-      >
-        Username
-      </SortableHeader>
-    );
+    renderSortableHeader({
+      sortKey: 'username',
+      currentSortKey: null,
+      currentSortDirection: null,
+      onSort: mockOnSort,
+      children: 'Username',
+    });
 
     fireEvent.click(screen.getByText('Username'));
     expect(mockOnSort).toHaveBeenCalledWith('username', 'asc');
   });
 
   it('cycles through sort directions correctly', () => {
-    const { rerender } = render(
-      <SortableHeader
-        sortKey="username"
-        currentSortKey={null}
-        currentSortDirection={null}
-        onSort={mockOnSort}
-      >
-        Username
-      </SortableHeader>
-    );
+    const { rerender } = renderSortableHeader({
+      sortKey: 'username',
+      currentSortKey: null,
+      currentSortDirection: null,
+      onSort: mockOnSort,
+      children: 'Username',
+    });
 
     // First click: asc
     fireEvent.click(screen.getByText('Username'));
@@ -58,14 +62,20 @@ describe('SortableHeader', () => {
 
     // Rerender with asc state
     rerender(
-      <SortableHeader
-        sortKey="username"
-        currentSortKey="username"
-        currentSortDirection="asc"
-        onSort={mockOnSort}
-      >
-        Username
-      </SortableHeader>
+      <table>
+        <thead>
+          <tr>
+            <SortableHeader
+              sortKey="username"
+              currentSortKey="username"
+              currentSortDirection="asc"
+              onSort={mockOnSort}
+            >
+              Username
+            </SortableHeader>
+          </tr>
+        </thead>
+      </table>
     );
 
     // Second click: desc
@@ -74,14 +84,20 @@ describe('SortableHeader', () => {
 
     // Rerender with desc state
     rerender(
-      <SortableHeader
-        sortKey="username"
-        currentSortKey="username"
-        currentSortDirection="desc"
-        onSort={mockOnSort}
-      >
-        Username
-      </SortableHeader>
+      <table>
+        <thead>
+          <tr>
+            <SortableHeader
+              sortKey="username"
+              currentSortKey="username"
+              currentSortDirection="desc"
+              onSort={mockOnSort}
+            >
+              Username
+            </SortableHeader>
+          </tr>
+        </thead>
+      </table>
     );
 
     // Third click: null (no sort)
@@ -90,16 +106,13 @@ describe('SortableHeader', () => {
   });
 
   it('shows correct sort indicators', () => {
-    const { rerender } = render(
-      <SortableHeader
-        sortKey="username"
-        currentSortKey={null}
-        currentSortDirection={null}
-        onSort={mockOnSort}
-      >
-        Username
-      </SortableHeader>
-    );
+    const { rerender } = renderSortableHeader({
+      sortKey: 'username',
+      currentSortKey: null,
+      currentSortDirection: null,
+      onSort: mockOnSort,
+      children: 'Username',
+    });
 
     // No sort indicator when not sorted - should show ArrowUpDown icon
     const arrowUpDown = screen.getByTestId('arrow-up-down');
@@ -107,14 +120,20 @@ describe('SortableHeader', () => {
 
     // Ascending sort indicator
     rerender(
-      <SortableHeader
-        sortKey="username"
-        currentSortKey="username"
-        currentSortDirection="asc"
-        onSort={mockOnSort}
-      >
-        Username
-      </SortableHeader>
+      <table>
+        <thead>
+          <tr>
+            <SortableHeader
+              sortKey="username"
+              currentSortKey="username"
+              currentSortDirection="asc"
+              onSort={mockOnSort}
+            >
+              Username
+            </SortableHeader>
+          </tr>
+        </thead>
+      </table>
     );
 
     const arrowUp = screen.getByTestId('arrow-up');
@@ -122,14 +141,20 @@ describe('SortableHeader', () => {
 
     // Descending sort indicator
     rerender(
-      <SortableHeader
-        sortKey="username"
-        currentSortKey="username"
-        currentSortDirection="desc"
-        onSort={mockOnSort}
-      >
-        Username
-      </SortableHeader>
+      <table>
+        <thead>
+          <tr>
+            <SortableHeader
+              sortKey="username"
+              currentSortKey="username"
+              currentSortDirection="desc"
+              onSort={mockOnSort}
+            >
+              Username
+            </SortableHeader>
+          </tr>
+        </thead>
+      </table>
     );
 
     const arrowDown = screen.getByTestId('arrow-down');
@@ -137,62 +162,59 @@ describe('SortableHeader', () => {
   });
 
   it('applies correct CSS classes based on sort state', () => {
-    const { rerender } = render(
-      <SortableHeader
-        sortKey="username"
-        currentSortKey={null}
-        currentSortDirection={null}
-        onSort={mockOnSort}
-      >
-        Username
-      </SortableHeader>
-    );
+    const { rerender } = renderSortableHeader({
+      sortKey: 'username',
+      currentSortKey: null,
+      currentSortDirection: null,
+      onSort: mockOnSort,
+      children: 'Username',
+    });
 
     const header = screen.getByText('Username').closest('th');
     expect(header).toHaveClass('cursor-pointer', 'hover:bg-emerald-500/20');
 
     // When sorted - should have active background
     rerender(
-      <SortableHeader
-        sortKey="username"
-        currentSortKey="username"
-        currentSortDirection="asc"
-        onSort={mockOnSort}
-      >
-        Username
-      </SortableHeader>
+      <table>
+        <thead>
+          <tr>
+            <SortableHeader
+              sortKey="username"
+              currentSortKey="username"
+              currentSortDirection="asc"
+              onSort={mockOnSort}
+            >
+              Username
+            </SortableHeader>
+          </tr>
+        </thead>
+      </table>
     );
 
     expect(header).toHaveClass('cursor-pointer', 'hover:bg-emerald-500/20', 'bg-emerald-500/30');
   });
 
   it('handles different sort keys correctly', () => {
-    render(
-      <SortableHeader
-        sortKey="email"
-        currentSortKey="username"
-        currentSortDirection="asc"
-        onSort={mockOnSort}
-      >
-        Email
-      </SortableHeader>
-    );
+    renderSortableHeader({
+      sortKey: 'email',
+      currentSortKey: 'username',
+      currentSortDirection: 'asc',
+      onSort: mockOnSort,
+      children: 'Email',
+    });
 
     fireEvent.click(screen.getByText('Email'));
     expect(mockOnSort).toHaveBeenCalledWith('email', 'asc');
   });
 
   it('is accessible with proper ARIA attributes', () => {
-    render(
-      <SortableHeader
-        sortKey="username"
-        currentSortKey="username"
-        currentSortDirection="asc"
-        onSort={mockOnSort}
-      >
-        Username
-      </SortableHeader>
-    );
+    renderSortableHeader({
+      sortKey: 'username',
+      currentSortKey: 'username',
+      currentSortDirection: 'asc',
+      onSort: mockOnSort,
+      children: 'Username',
+    });
 
     const header = screen.getByText('Username').closest('th');
     expect(header).toBeInTheDocument();

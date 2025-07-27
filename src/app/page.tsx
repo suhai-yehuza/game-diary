@@ -21,7 +21,7 @@ export default function HomePage() {
             alt="Placeholder Logo"
             width={200}
             height={200}
-            priority
+            priority={true}
             sizes="(max-width: 600px) 150px, 200px"
           />
           <h1 className="text-4xl font-bold tracking-tight">Placeholder</h1>
