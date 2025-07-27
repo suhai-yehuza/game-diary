@@ -24,13 +24,8 @@ import { Badge } from '@src/app/protected/admin/database/components/ui/badge';
 import { Button } from '@src/app/protected/admin/database/components/ui/button';
 import { LastUpdated } from '@src/app/protected/admin/database/components/ui/last-updated';
 import { UsersTableWithSearch } from '@src/app/protected/admin/database/components/users-table';
-// import {
-//   formatValue,
-//   isRecordArray,
-// } from '@src/app/protected/admin/database/components/utils/table-utils';
 import type { IApiResponse } from '@src/lib/types';
 
-// Table configurations
 const tableConfigs = {
   users: {
     title: 'Users',
@@ -84,28 +79,7 @@ const tableConfigs = {
 } as const;
 
 export function AdminDatabaseContent() {
-  // Remove global event logging that might be interfering
-  // useEffect(() => {
-  //   function logEvent(e: Event) {
-  //     console.log('GLOBAL EVENT:', e.type, e.target);
-  //   }
-  //   window.addEventListener('click', logEvent, true);
-  //   window.addEventListener('submit', logEvent, true);
-  //   window.addEventListener('beforeunload', logEvent, true);
-  //   return () => {
-  //     window.removeEventListener('click', logEvent, true);
-  //     window.removeEventListener('submit', logEvent, true);
-  //     window.removeEventListener('beforeunload', logEvent, true);
-  //   };
-  // }, []);
   const searchParams = useSearchParams();
-  // const {
-  //   error: componentError,
-  //   setError: setComponentError,
-  //   clearError,
-  //   handleAsyncError,
-  // } = useErrorHandler();
-
   const [activeTab, setActiveTab] = useState(() => {
     const tab = searchParams.get('tab');
     return tab && tab in tableConfigs ? tab : 'users';
@@ -157,7 +131,6 @@ export function AdminDatabaseContent() {
     }
   };
 
-  // Auto-fetch for reactions tab
   useEffect(() => {
     if (activeTab === 'reactions') {
       void handleFetch('reactions', 1, API_CONFIG.pagination.DEFAULT_PAGE_SIZE);
@@ -177,11 +150,9 @@ export function AdminDatabaseContent() {
         return '[Object]';
       }
     }
-    // At this point, value should be a primitive that can be safely converted
     if (typeof value === 'object' && value !== null) {
       return '[Object]';
     }
-    // Safe to convert primitive values
     return String(value as string | number | boolean | symbol | bigint);
   };
 
