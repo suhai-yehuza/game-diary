@@ -19,8 +19,14 @@ export async function GET(request: NextRequest) {
         data: {
           users: [],
           gameLogs: [],
+          games: [],
+          teams: [],
+          players: [],
           totalUsers: 0,
           totalGameLogs: 0,
+          totalGames: 0,
+          totalTeams: 0,
+          totalPlayers: 0,
         },
         pagination: {
           page,
@@ -74,7 +80,7 @@ export async function GET(request: NextRequest) {
         LOWER(email_address) LIKE LOWER(${searchPattern})
     `;
 
-    // Search game logs with parameterized query
+    // Search game logs with team information
     const gameLogsQuery = sql`
       SELECT
         gl.id,
@@ -83,13 +89,33 @@ export async function GET(request: NextRequest) {
         gl.rating_for_game,
         gl.classification,
         gl.created_at,
-        u.username
+        u.username,
+        u.first_name,
+        u.last_name,
+        u.email_address,
+        g.date as game_date,
+        g.status as game_status,
+        ht.name as home_team_name,
+        ht.nickname as home_team_nickname,
+        ht.city as home_team_city,
+        at.name as away_team_name,
+        at.nickname as away_team_nickname,
+        at.city as away_team_city
       FROM game_logs gl
       LEFT JOIN users u ON gl.user_id = u.id
+      LEFT JOIN nba_games g ON gl.game_id = g.id
+      LEFT JOIN teams ht ON g.home_team_id = ht.id
+      LEFT JOIN teams at ON g.away_team_id = at.id
       WHERE
         LOWER(u.username) LIKE LOWER(${searchPattern}) OR
         LOWER(gl.classification) LIKE LOWER(${searchPattern}) OR
-        gl.game_id::text LIKE ${searchPattern}
+        gl.game_id::text LIKE ${searchPattern} OR
+        LOWER(ht.name) LIKE LOWER(${searchPattern}) OR
+        LOWER(ht.nickname) LIKE LOWER(${searchPattern}) OR
+        LOWER(ht.city) LIKE LOWER(${searchPattern}) OR
+        LOWER(at.name) LIKE LOWER(${searchPattern}) OR
+        LOWER(at.nickname) LIKE LOWER(${searchPattern}) OR
+        LOWER(at.city) LIKE LOWER(${searchPattern})
       ORDER BY gl.created_at DESC
       LIMIT ${limit} OFFSET ${offset}
     `;
@@ -98,31 +124,184 @@ export async function GET(request: NextRequest) {
       SELECT COUNT(*) as count
       FROM game_logs gl
       LEFT JOIN users u ON gl.user_id = u.id
+      LEFT JOIN nba_games g ON gl.game_id = g.id
+      LEFT JOIN teams ht ON g.home_team_id = ht.id
+      LEFT JOIN teams at ON g.away_team_id = at.id
       WHERE
         LOWER(u.username) LIKE LOWER(${searchPattern}) OR
         LOWER(gl.classification) LIKE LOWER(${searchPattern}) OR
-        gl.game_id::text LIKE ${searchPattern}
+        gl.game_id::text LIKE ${searchPattern} OR
+        LOWER(ht.name) LIKE LOWER(${searchPattern}) OR
+        LOWER(ht.nickname) LIKE LOWER(${searchPattern}) OR
+        LOWER(ht.city) LIKE LOWER(${searchPattern}) OR
+        LOWER(at.name) LIKE LOWER(${searchPattern}) OR
+        LOWER(at.nickname) LIKE LOWER(${searchPattern}) OR
+        LOWER(at.city) LIKE LOWER(${searchPattern})
+    `;
+
+    // Search games with team information
+    const gamesQuery = sql`
+      SELECT
+        g.id,
+        g.date,
+        g.status,
+        g.home_team_score,
+        g.away_team_score,
+        g.average_rating,
+        g.total_ratings,
+        g.created_at,
+        ht.name as home_team_name,
+        ht.nickname as home_team_nickname,
+        ht.city as home_team_city,
+        at.name as away_team_name,
+        at.nickname as away_team_nickname,
+        at.city as away_team_city
+      FROM nba_games g
+      LEFT JOIN teams ht ON g.home_team_id = ht.id
+      LEFT JOIN teams at ON g.away_team_id = at.id
+      WHERE
+        LOWER(ht.name) LIKE LOWER(${searchPattern}) OR
+        LOWER(ht.nickname) LIKE LOWER(${searchPattern}) OR
+        LOWER(ht.city) LIKE LOWER(${searchPattern}) OR
+        LOWER(at.name) LIKE LOWER(${searchPattern}) OR
+        LOWER(at.nickname) LIKE LOWER(${searchPattern}) OR
+        LOWER(at.city) LIKE LOWER(${searchPattern}) OR
+        g.id::text LIKE ${searchPattern} OR
+        LOWER(g.status) LIKE LOWER(${searchPattern})
+      ORDER BY g.date DESC
+      LIMIT ${limit} OFFSET ${offset}
+    `;
+
+    const gamesCountQuery = sql`
+      SELECT COUNT(*) as count
+      FROM nba_games g
+      LEFT JOIN teams ht ON g.home_team_id = ht.id
+      LEFT JOIN teams at ON g.away_team_id = at.id
+      WHERE
+        LOWER(ht.name) LIKE LOWER(${searchPattern}) OR
+        LOWER(ht.nickname) LIKE LOWER(${searchPattern}) OR
+        LOWER(ht.city) LIKE LOWER(${searchPattern}) OR
+        LOWER(at.name) LIKE LOWER(${searchPattern}) OR
+        LOWER(at.nickname) LIKE LOWER(${searchPattern}) OR
+        LOWER(at.city) LIKE LOWER(${searchPattern}) OR
+        g.id::text LIKE ${searchPattern} OR
+        LOWER(g.status) LIKE LOWER(${searchPattern})
+    `;
+
+    // Search teams
+    const teamsQuery = sql`
+      SELECT
+        id,
+        name,
+        nickname,
+        city,
+        conference,
+        created_at
+      FROM teams
+      WHERE
+        LOWER(name) LIKE LOWER(${searchPattern}) OR
+        LOWER(nickname) LIKE LOWER(${searchPattern}) OR
+        LOWER(city) LIKE LOWER(${searchPattern}) OR
+        LOWER(conference) LIKE LOWER(${searchPattern})
+      ORDER BY name ASC
+      LIMIT ${limit} OFFSET ${offset}
+    `;
+
+    const teamsCountQuery = sql`
+      SELECT COUNT(*) as count
+      FROM teams
+      WHERE
+        LOWER(name) LIKE LOWER(${searchPattern}) OR
+        LOWER(nickname) LIKE LOWER(${searchPattern}) OR
+        LOWER(city) LIKE LOWER(${searchPattern}) OR
+        LOWER(conference) LIKE LOWER(${searchPattern})
+    `;
+
+    // Search players
+    const playersQuery = sql`
+      SELECT
+        id,
+        first_name,
+        last_name,
+        birth,
+        nba,
+        height,
+        weight,
+        college,
+        affiliation,
+        teams,
+        leagues,
+        image_url,
+        created_at
+      FROM nba_players
+      WHERE
+        LOWER(first_name) LIKE LOWER(${searchPattern}) OR
+        LOWER(last_name) LIKE LOWER(${searchPattern}) OR
+        LOWER(college) LIKE LOWER(${searchPattern}) OR
+        LOWER(affiliation) LIKE LOWER(${searchPattern}) OR
+        LOWER(teams) LIKE LOWER(${searchPattern}) OR
+        LOWER(leagues) LIKE LOWER(${searchPattern})
+      ORDER BY last_name ASC, first_name ASC
+      LIMIT ${limit} OFFSET ${offset}
+    `;
+
+    const playersCountQuery = sql`
+      SELECT COUNT(*) as count
+      FROM nba_players
+      WHERE
+        LOWER(first_name) LIKE LOWER(${searchPattern}) OR
+        LOWER(last_name) LIKE LOWER(${searchPattern}) OR
+        LOWER(college) LIKE LOWER(${searchPattern}) OR
+        LOWER(affiliation) LIKE LOWER(${searchPattern}) OR
+        LOWER(teams) LIKE LOWER(${searchPattern}) OR
+        LOWER(leagues) LIKE LOWER(${searchPattern})
     `;
 
     // Execute queries with parameters
-    const [usersResult, usersCountResult, gameLogsResult, gameLogsCountResult] = await Promise.all([
+    const [
+      usersResult,
+      usersCountResult,
+      gameLogsResult,
+      gameLogsCountResult,
+      gamesResult,
+      gamesCountResult,
+      teamsResult,
+      teamsCountResult,
+      playersResult,
+      playersCountResult,
+    ] = await Promise.all([
       db.execute(usersQuery),
       db.execute(usersCountQuery),
       db.execute(gameLogsQuery),
       db.execute(gameLogsCountQuery),
+      db.execute(gamesQuery),
+      db.execute(gamesCountQuery),
+      db.execute(teamsQuery),
+      db.execute(teamsCountQuery),
+      db.execute(playersQuery),
+      db.execute(playersCountQuery),
     ]);
 
     const totalUsers = parseInt((usersCountResult.rows[0]?.count as string) ?? '0');
     const totalGameLogs = parseInt((gameLogsCountResult.rows[0]?.count as string) ?? '0');
-    const totalResults = totalUsers + totalGameLogs;
+    const totalGames = parseInt((gamesCountResult.rows[0]?.count as string) ?? '0');
+    const totalTeams = parseInt((teamsCountResult.rows[0]?.count as string) ?? '0');
+    const totalPlayers = parseInt((playersCountResult.rows[0]?.count as string) ?? '0');
+    const totalResults = totalUsers + totalGameLogs + totalGames + totalTeams + totalPlayers;
 
     return NextResponse.json({
       success: true,
       data: {
         users: usersResult.rows,
         gameLogs: gameLogsResult.rows,
+        games: gamesResult.rows,
+        teams: teamsResult.rows,
+        players: playersResult.rows,
         totalUsers,
         totalGameLogs,
+        totalGames,
+        totalTeams,
+        totalPlayers,
       },
       pagination: {
         page,
