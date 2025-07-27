@@ -40,7 +40,7 @@
     "clean:build": "pnpm clean:build:dev && pnpm check-env:dev && pnpm coverage:validate",
     "clean:build:dev": "./scripts/validate.sh dev",
     "clean:build:prod": "./scripts/validate.sh production",
-    "clean:cache": "rm -rf .next/cache .eslintcache && pnpm clean",
+    "clean:cache": "rm -rf .next/cache .eslintcache",
     "clean:deps": "rm -rf node_modules package-lock.json yarn.lock pnpm-lock.yaml && pnpm install",
     "codegen": "graphql-codegen --config codegen.ts",
     "codegen:watch": "graphql-codegen --config codegen.ts --watch",
