@@ -134,10 +134,12 @@ export function useGameLogs(options: IGameLogsOptions = {}) {
   const [gameLogs, setGameLogs] = useState<IGameLog[]>([]);
   const [gameLogsEndCursor, setGameLogsEndCursor] = useState<string | null>(null);
   const [gameLogsHasNextPage, setGameLogsHasNextPage] = useState(true);
+  const [gameLogsTotalCount, setGameLogsTotalCount] = useState<number>(0);
 
   const [friendsLogs, setFriendsLogs] = useState<IGameLog[]>([]);
   const [friendsLogsEndCursor, setFriendsLogsEndCursor] = useState<string | null>(null);
   const [friendsLogsHasNextPage, setFriendsLogsHasNextPage] = useState(true);
+  const [friendsLogsTotalCount, setFriendsLogsTotalCount] = useState<number>(0);
 
   const { loading, error, refetch, fetchMore } = useQuery<IGameLogsResponse>(GET_GAME_LOGS, {
     variables: {
@@ -155,6 +157,7 @@ export function useGameLogs(options: IGameLogsOptions = {}) {
         Array.isArray(data.gameLogs.edges)
       ) {
         setGameLogs(safeMapGameLogArray(data.gameLogs.edges));
+        setGameLogsTotalCount(data.gameLogs.totalCount);
 
         setGameLogsEndCursor(data.gameLogs.pageInfo.endCursor ?? null);
 
@@ -174,6 +177,9 @@ export function useGameLogs(options: IGameLogsOptions = {}) {
         const friendsGameLogs = data.friendsGameLogs as unknown;
         if (isFriendsGameLogsShape(friendsGameLogs)) {
           setFriendsLogs(safeMapGameLogArray(friendsGameLogs.edges));
+          setFriendsLogsTotalCount(
+            (data.friendsGameLogs as { totalCount?: number }).totalCount ?? 0
+          );
           setFriendsLogsEndCursor(friendsGameLogs.pageInfo.endCursor ?? null);
           setFriendsLogsHasNextPage(!!friendsGameLogs.pageInfo.hasNextPage);
         }
@@ -207,6 +213,7 @@ export function useGameLogs(options: IGameLogsOptions = {}) {
         );
         return [...prev, ...newLogs];
       });
+      setGameLogsTotalCount(prev => prev + moreData.gameLogs.edges.length);
 
       setGameLogsEndCursor(moreData.gameLogs.pageInfo.endCursor ?? null);
 
@@ -246,6 +253,7 @@ export function useGameLogs(options: IGameLogsOptions = {}) {
           );
           return [...prev, ...newLogs];
         });
+        setFriendsLogsTotalCount(prev => prev + friendsGameLogs.edges.length);
         setFriendsLogsEndCursor(friendsGameLogs.pageInfo.endCursor ?? null);
         setFriendsLogsHasNextPage(!!friendsGameLogs.pageInfo.hasNextPage);
       }
@@ -265,6 +273,7 @@ export function useGameLogs(options: IGameLogsOptions = {}) {
         Array.isArray(newData.gameLogs.edges)
       ) {
         setGameLogs(safeMapGameLogArray(newData.gameLogs.edges));
+        setGameLogsTotalCount(newData.gameLogs.totalCount);
 
         setGameLogsEndCursor(newData.gameLogs.pageInfo.endCursor ?? null);
 
@@ -284,6 +293,9 @@ export function useGameLogs(options: IGameLogsOptions = {}) {
         const friendsGameLogs = newData.friendsGameLogs as unknown;
         if (isFriendsGameLogsShape(friendsGameLogs)) {
           setFriendsLogs(safeMapGameLogArray(friendsGameLogs.edges));
+          setFriendsLogsTotalCount(
+            (newData.friendsGameLogs as { totalCount?: number }).totalCount ?? 0
+          );
           setFriendsLogsEndCursor(friendsGameLogs.pageInfo.endCursor ?? null);
           setFriendsLogsHasNextPage(!!friendsGameLogs.pageInfo.hasNextPage);
         }
@@ -297,10 +309,12 @@ export function useGameLogs(options: IGameLogsOptions = {}) {
     gameLogs,
     gameLogsEndCursor,
     gameLogsHasNextPage,
+    gameLogsTotalCount,
     loadMoreGameLogs,
     friendsLogs,
     friendsLogsEndCursor,
     friendsLogsHasNextPage,
+    friendsLogsTotalCount,
     loadMoreFriendsLogs,
     loading,
     error: error ? new Error(error.message) : null,
@@ -326,6 +340,7 @@ export function useFriendsGameLogs() {
   const [logs, setLogs] = useState<IGameLog[]>([]);
   const [endCursor, setEndCursor] = useState<string | null>(null);
   const [hasNextPage, setHasNextPage] = useState(true);
+  const [totalCount, setTotalCount] = useState<number>(0);
 
   const { loading, error, refetch, fetchMore } = useQuery<Pick<Query, 'friendsGameLogs'>>(
     GET_FRIENDS_GAME_LOGS,
@@ -344,6 +359,7 @@ export function useFriendsGameLogs() {
           Array.isArray(data.friendsGameLogs.edges)
         ) {
           setLogs(safeMapGameLogArray(data.friendsGameLogs.edges));
+          setTotalCount(data.friendsGameLogs.totalCount);
 
           setEndCursor(data.friendsGameLogs.pageInfo.endCursor ?? null);
 
@@ -366,6 +382,7 @@ export function useFriendsGameLogs() {
         Array.isArray(newData.friendsGameLogs.edges)
       ) {
         setLogs(safeMapGameLogArray(newData.friendsGameLogs.edges));
+        setTotalCount(newData.friendsGameLogs.totalCount);
 
         setEndCursor(newData.friendsGameLogs.pageInfo.endCursor ?? null);
 
@@ -412,6 +429,7 @@ export function useFriendsGameLogs() {
     refetch: wrappedRefetch,
     hasNextPage,
     loadMore,
+    totalCount,
   };
 }
 

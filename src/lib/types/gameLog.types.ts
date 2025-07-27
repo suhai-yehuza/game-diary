@@ -193,3 +193,13 @@ export interface IDeleteGameLogResponse {
     errors: any[];
   };
 }
+
+// Component Props interfaces
+export interface IGameLogsSortProps {
+  sortKey: string;
+  sortDirection: 'asc' | 'desc';
+  onSort: (key: string, direction: 'asc' | 'desc' | null) => void;
+  displayedCount?: number;
+  totalCount?: number;
+  classification?: string;
+}

@@ -3,13 +3,7 @@
 import { ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import React from 'react';
 
-interface IGameLogsSortProps {
-  sortKey: string;
-  sortDirection: 'asc' | 'desc';
-  onSort: (key: string, direction: 'asc' | 'desc' | null) => void;
-  displayedCount?: number;
-  totalCount?: number;
-}
+import type { IGameLogsSortProps } from '@/lib/types/gameLog.types';
 
 const sortOptions = [
   { key: 'created_at', label: 'Date Created' },
@@ -29,6 +23,7 @@ export function GameLogsSort({
   onSort,
   displayedCount,
   totalCount,
+  classification,
 }: IGameLogsSortProps) {
   const handleSort = (key: string) => {
     if (sortKey === key) {
@@ -97,7 +92,7 @@ export function GameLogsSort({
             fontSize: '14px',
           }}
         >
-          Displaying {displayedCount} of {totalCount}
+          Displaying {displayedCount} of {totalCount} {classification ?? 'game logs'}
         </div>
       )}
     </div>

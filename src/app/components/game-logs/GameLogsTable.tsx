@@ -98,6 +98,7 @@ export function GameLogsTable() {
     error: myLogsError,
     refetch: refetchMyLogs,
     gameLogsHasNextPage: myLogsHasNextPage,
+    gameLogsTotalCount: myLogsTotalCount,
     loadMoreGameLogs: loadMoreMyLogs,
   } = useGameLogs({ filters: { userId: user?.id } });
 
@@ -106,6 +107,7 @@ export function GameLogsTable() {
     loading: publicLogsLoading,
     error: publicLogsError,
     gameLogsHasNextPage: publicLogsHasNextPage,
+    gameLogsTotalCount: publicLogsTotalCount,
     loadMoreGameLogs: loadMorePublicLogs,
   } = useGameLogs({ filters: { classification: CLASSIFICATION.PUBLIC } });
 
@@ -115,6 +117,7 @@ export function GameLogsTable() {
   const friendsLogsLoading = false;
   const friendsLogsError = null;
   const friendsLogsHasNextPage = false;
+  const friendsLogsTotalCount = 0; // No total count for friends logs
   const loadMoreFriendsLogs = (): void => {
     // TODO: Implement friends logs pagination
   };
@@ -286,23 +289,24 @@ export function GameLogsTable() {
   // Get total count for current tab with filtering applied
   const getCurrentTabTotalCount = (): { displayed: number; total: number } => {
     let logs: IGameLog[] = [];
+    let totalCount = 0;
 
     switch (selectedTab) {
       case 'my-logs':
         logs = Array.isArray(myLogs) ? myLogs : [];
+        totalCount = myLogsTotalCount ?? 0;
         break;
       case 'friends-logs':
         logs = Array.isArray(friendsLogs) ? friendsLogs : [];
+        totalCount = friendsLogsTotalCount ?? 0;
         break;
       case 'public-logs':
         logs = Array.isArray(publicLogs) ? publicLogs : [];
+        totalCount = publicLogsTotalCount ?? 0;
         break;
       default:
         return { displayed: 0, total: 0 };
     }
-
-    // Get total count before filtering
-    const totalCount = logs.length;
 
     // Apply the same filtering logic to get displayed count
     const filteredLogs = filterAndSortGameLogs(logs);
@@ -480,6 +484,15 @@ export function GameLogsTable() {
           onSort={handleSort}
           displayedCount={getCurrentTabTotalCount().displayed}
           totalCount={getCurrentTabTotalCount().total}
+          classification={
+            selectedTab === 'my-logs'
+              ? 'my game logs'
+              : selectedTab === 'friends-logs'
+                ? "friends' game logs"
+                : selectedTab === 'public-logs'
+                  ? 'public game logs'
+                  : 'game logs'
+          }
         />
         <TabsList className="grid w-full grid-cols-3 gap-2 bg-transparent p-0 mb-4">
           <TabsTrigger
