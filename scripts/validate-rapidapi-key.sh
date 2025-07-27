@@ -134,7 +134,7 @@ main() {
 
     if [ -z "$api_key" ]; then
         print_error "No API key found in environment files"
-        print_info "Please run: ./scripts/update-rapidapi-key.sh YOUR_API_KEY"
+        print_info "Please ensure your .env.* file has a valid NEXT_PUBLIC_RAPID_API_KEY"
         exit 1
     fi
 
@@ -170,9 +170,8 @@ main() {
     else
         print_error "RapidAPI validation failed! ❌"
         print_info "To fix this:"
-        print_info "1. Check your RapidAPI subscription at https://rapidapi.com/"
-        print_info "2. Get a new API key if needed"
-        print_info "3. Run: ./scripts/update-rapidapi-key.sh YOUR_NEW_API_KEY"
+        print_info "1. Check your API key and host in .env.* files"
+        print_info "2. Ensure your .env.* file has a valid NEXT_PUBLIC_RAPID_API_KEY"
         exit 1
     fi
 }
