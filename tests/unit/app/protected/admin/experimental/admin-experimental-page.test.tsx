@@ -110,6 +110,24 @@ let mockUseTabState: ReturnType<typeof vi.fn>;
 vi.mock('@/app/protected/admin/experimental/hooks', () => ({
   useApiFetch: (...args: any[]) => mockUseApiFetch(...args),
   useTabState: (...args: any[]) => mockUseTabState(...args),
+  useSeasonsData: () => ({
+    seasons: [
+      { value: '2024', label: '2024' },
+      { value: '2023', label: '2023' },
+    ],
+    loadingSeasons: false,
+    seasonsError: null,
+    refetchSeasons: vi.fn(),
+  }),
+  useTeamsData: () => ({
+    teams: [
+      { value: '1', label: 'Team 1' },
+      { value: '2', label: 'Team 2' },
+    ],
+    loadingTeams: false,
+    teamsError: null,
+    refetchTeams: vi.fn(),
+  }),
   useFormState: () => ({
     gameParams: {},
     setGameParams: vi.fn(),

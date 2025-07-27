@@ -20,7 +20,13 @@ import {
   StandingsForm,
   DataDisplay,
 } from '@/app/protected/admin/experimental/components';
-import { useApiFetch, useFormState, useTabState } from '@/app/protected/admin/experimental/hooks';
+import {
+  useApiFetch,
+  useFormState,
+  useTabState,
+  useSeasonsData,
+  useTeamsData,
+} from '@/app/protected/admin/experimental/hooks';
 import { API_CONFIG } from '@/lib/config/app.config';
 import type {
   NavigationTabsProps,
@@ -112,6 +118,8 @@ function GamesSection(props: GamesSectionProps) {
     handleFetchGames,
     handleFetchGameStats,
     handleFetch,
+    seasons,
+    teams,
   } = props;
   return (
     <div className="mb-6">
@@ -153,6 +161,8 @@ function GamesSection(props: GamesSectionProps) {
           setGameParams={setGameParams}
           loading={loading}
           onSubmit={handleFetchGames}
+          seasons={seasons}
+          teams={teams}
         />
       )}
       {gamesSubTab === 'stats' && (
@@ -200,6 +210,8 @@ function TeamsSection(props: TeamsSectionProps) {
     loading,
     handleFetchTeams,
     handleFetchTeamStats,
+    seasons,
+    teams,
   } = props;
   return (
     <div className="mb-6">
@@ -231,6 +243,8 @@ function TeamsSection(props: TeamsSectionProps) {
           setTeamParams={setTeamParams}
           loading={loading}
           onSubmit={handleFetchTeams}
+          seasons={seasons}
+          teams={teams}
         />
       )}
       {teamsSubTab === 'stats' && (
@@ -239,6 +253,8 @@ function TeamsSection(props: TeamsSectionProps) {
           setTeamStatsParams={setTeamStatsParams}
           loading={loading}
           onSubmit={handleFetchTeamStats}
+          seasons={seasons}
+          teams={teams}
         />
       )}
     </div>
@@ -257,6 +273,8 @@ function PlayersSection(props: PlayersSectionProps) {
     loading,
     handleFetchPlayers,
     handleFetchPlayerStats,
+    seasons,
+    teams,
   } = props;
   return (
     <div className="mb-6">
@@ -288,6 +306,8 @@ function PlayersSection(props: PlayersSectionProps) {
           setPlayerParams={setPlayerParams}
           loading={loading}
           onSubmit={handleFetchPlayers}
+          seasons={seasons}
+          teams={teams}
         />
       )}
       {playersSubTab === 'stats' && (
@@ -296,6 +316,8 @@ function PlayersSection(props: PlayersSectionProps) {
           setPlayerStatsParams={setPlayerStatsParams}
           loading={loading}
           onSubmit={handleFetchPlayerStats}
+          seasons={seasons}
+          teams={teams}
         />
       )}
     </div>
@@ -316,13 +338,20 @@ function SearchSection({
   const [searchValue, setSearchValue] = useState('');
   const [searchClicked, setSearchClicked] = useState(false);
 
+  // Clear search results when switching sub-tabs
+  const handleSubTabChange = (newSubTab: 'teams' | 'players') => {
+    setSubTab(newSubTab);
+    setSearchClicked(false);
+  };
+
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
     setSearchClicked(true);
     if (subTab === 'teams') {
-      void handleFetch('/teams', { search: searchValue });
+      void handleFetch(API_CONFIG.endpoints.TEAMS, { search: searchValue });
     } else {
-      void handleFetch('/players', { search: searchValue });
+      // For players, use just the search parameter like the working Insomnia example
+      void handleFetch(API_CONFIG.endpoints.PLAYERS, { search: searchValue });
     }
   }
 
@@ -331,13 +360,13 @@ function SearchSection({
       <div className="flex gap-2 border-b mb-4">
         <button
           className={`px-4 py-2 text-sm font-medium cursor-pointer ${subTab === 'teams' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-500 hover:text-blue-600'}`}
-          onClick={() => setSubTab('teams')}
+          onClick={() => handleSubTabChange('teams')}
         >
           Teams
         </button>
         <button
           className={`px-4 py-2 text-sm font-medium cursor-pointer ${subTab === 'players' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-500 hover:text-blue-600'}`}
-          onClick={() => setSubTab('players')}
+          onClick={() => handleSubTabChange('players')}
         >
           Players
         </button>
@@ -385,6 +414,8 @@ function SearchSection({
 // Main Content Component
 function AdminExperimentalContent() {
   const { data, loading, error, handleFetch, clearData } = useApiFetch();
+  const { seasons } = useSeasonsData();
+  const { teams } = useTeamsData();
   const {
     selectedTab,
     setSelectedTab,
@@ -410,7 +441,7 @@ function AdminExperimentalContent() {
     setPlayerStatsParams,
     standingsParams,
     setStandingsParams,
-  } = useFormState();
+  } = useFormState(seasons);
 
   // Clear data when tab changes
   useEffect(() => {
@@ -419,7 +450,25 @@ function AdminExperimentalContent() {
 
   const handleFetchGames = (e: React.FormEvent) => {
     e.preventDefault();
-    void handleFetch(API_CONFIG.endpoints.GAMES, gameParams);
+
+    // Validate that h2h team is different from main team
+    if (gameParams.team && gameParams.h2h && gameParams.team === gameParams.h2h) {
+      alert(
+        'Head-to-Head teams must be different. Please select a different team for the Head-to-Head field.'
+      );
+      return;
+    }
+
+    // Format parameters correctly for API
+    const apiParams = { ...gameParams };
+
+    // If both team and h2h are selected, combine them into h2h parameter and remove team
+    if (apiParams.team && apiParams.h2h) {
+      apiParams.h2h = `${apiParams.team}-${apiParams.h2h}`;
+      delete apiParams.team;
+    }
+
+    void handleFetch(API_CONFIG.endpoints.GAMES, apiParams);
   };
 
   const handleFetchGameStats = (e: React.FormEvent) => {
@@ -452,8 +501,9 @@ function AdminExperimentalContent() {
     void handleFetch(API_CONFIG.endpoints.STANDINGS, standingsParams, ['league', 'season']);
   };
 
-  // Auto-fetch data on component mount
+  // Clear data and auto-fetch data when tab changes
   useEffect(() => {
+    clearData();
     const fetchInitialData = () => {
       // Fetch initial data based on selected tab
       switch (selectedTab) {
@@ -475,13 +525,16 @@ function AdminExperimentalContent() {
         case TABS.STANDINGS:
           // Don't auto-fetch standings as they require parameters
           break;
+        case TABS.SEARCH:
+          // Don't auto-fetch search as it requires user input
+          break;
         default:
           break;
       }
     };
 
     fetchInitialData();
-  }, [selectedTab, handleFetch]);
+  }, [selectedTab, handleFetch, clearData]);
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -512,6 +565,8 @@ function AdminExperimentalContent() {
           handleFetchGames={handleFetchGames}
           handleFetchGameStats={handleFetchGameStats}
           handleFetch={handleFetch}
+          seasons={seasons}
+          teams={teams}
         />
       )}
 
@@ -526,6 +581,8 @@ function AdminExperimentalContent() {
           loading={loading}
           handleFetchTeams={handleFetchTeams}
           handleFetchTeamStats={handleFetchTeamStats}
+          seasons={seasons}
+          teams={teams}
         />
       )}
 
@@ -540,6 +597,8 @@ function AdminExperimentalContent() {
           loading={loading}
           handleFetchPlayers={handleFetchPlayers}
           handleFetchPlayerStats={handleFetchPlayerStats}
+          seasons={seasons}
+          teams={teams}
         />
       )}
 
@@ -549,6 +608,7 @@ function AdminExperimentalContent() {
           setStandingsParams={setStandingsParams}
           loading={loading}
           onSubmit={handleStandingsFormSubmit}
+          seasons={seasons}
         />
       )}
 

@@ -23,6 +23,17 @@ export type ButtonProps = IBaseButtonProps & {
 // Input - extends base input interface
 export type InputProps = IBaseInputProps;
 
+// Select - for dropdown components
+export type SelectProps = {
+  id?: string;
+  value?: string;
+  onChange?: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+  required?: boolean;
+  className?: string;
+  options?: Array<{ value: string; label: string }>;
+  disabled?: boolean;
+};
+
 // Label
 export type LabelProps = {
   children: ReactNode;
@@ -31,15 +42,36 @@ export type LabelProps = {
   required?: boolean;
 };
 
-// Form types - re-export from formTypes.ts
-export type {
-  IGamesFormProps as GamesFormProps,
-  IGameStatsFormProps as GameStatsFormProps,
-  ITeamsFormProps as TeamsFormProps,
-  ITeamStatsFormProps as TeamStatsFormProps,
-  IPlayersFormProps as PlayersFormProps,
-  IPlayerStatsFormProps as PlayerStatsFormProps,
-  IStandingsFormProps as StandingsFormProps,
+// Form types - re-export from formTypes.ts with seasons prop
+export type GamesFormProps = IGamesFormProps & {
+  seasons: Array<{ value: string; label: string }>;
+  teams: Array<{ value: string; label: string }>;
+};
+
+export type GameStatsFormProps = IGameStatsFormProps;
+
+export type TeamsFormProps = ITeamsFormProps & {
+  seasons: Array<{ value: string; label: string }>;
+  teams: Array<{ value: string; label: string }>;
+};
+
+export type TeamStatsFormProps = ITeamStatsFormProps & {
+  seasons: Array<{ value: string; label: string }>;
+  teams: Array<{ value: string; label: string }>;
+};
+
+export type PlayersFormProps = IPlayersFormProps & {
+  seasons: Array<{ value: string; label: string }>;
+  teams: Array<{ value: string; label: string }>;
+};
+
+export type PlayerStatsFormProps = IPlayerStatsFormProps & {
+  seasons: Array<{ value: string; label: string }>;
+  teams: Array<{ value: string; label: string }>;
+};
+
+export type StandingsFormProps = IStandingsFormProps & {
+  seasons: Array<{ value: string; label: string }>;
 };
 
 // DataDisplay
@@ -75,6 +107,8 @@ export type GamesSectionProps = {
   handleFetchGames: (e: FormEvent) => void;
   handleFetchGameStats: (e: FormEvent) => void;
   handleFetch: (endpoint: string, params: Record<string, string>) => Promise<void>;
+  seasons: Array<{ value: string; label: string }>;
+  teams: Array<{ value: string; label: string }>;
 };
 
 // TeamsSection
@@ -88,6 +122,8 @@ export type TeamsSectionProps = {
   loading: boolean;
   handleFetchTeams: (e: FormEvent) => void;
   handleFetchTeamStats: (e: FormEvent) => void;
+  seasons: Array<{ value: string; label: string }>;
+  teams: Array<{ value: string; label: string }>;
 };
 
 // PlayersSection
@@ -101,4 +137,15 @@ export type PlayersSectionProps = {
   loading: boolean;
   handleFetchPlayers: (e: FormEvent) => void;
   handleFetchPlayerStats: (e: FormEvent) => void;
+  seasons: Array<{ value: string; label: string }>;
+  teams: Array<{ value: string; label: string }>;
+};
+
+// StandingsSection
+export type StandingsSectionProps = {
+  standingsParams: Record<string, string>;
+  setStandingsParams: (params: Record<string, string>) => void;
+  loading: boolean;
+  handleFetchStandings: (e: FormEvent) => void;
+  seasons: Array<{ value: string; label: string }>;
 };

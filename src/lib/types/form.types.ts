@@ -78,9 +78,10 @@ export interface IFieldConfig {
   id: string;
   type?: string;
   value: string;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
   required?: boolean;
   placeholder?: string;
+  options?: Array<{ value: string; label: string }>;
 }
 
 export interface IDynamicFormProps {

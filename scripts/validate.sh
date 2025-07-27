@@ -173,6 +173,11 @@ run_typecheck() {
     pnpm run typecheck
 }
 
+run_validate_rapidapi_key() {
+    log_info "Validating RapidAPI key..."
+    pnpm run validate:rapidapi
+}
+
 run_db_triggers_validation() {
     log_info "Validating database triggers..."
     pnpm run db:test:all-triggers
@@ -438,7 +443,7 @@ run_basic_validation() {
     run_typecheck
     run_dead_code_check
     run_db_triggers_validation
-
+    run_validate_rapidapi_key
     # Environment validation (with CI handling)
     if [ "$CI" = "true" ] || [ "$GITHUB_ACTIONS" = "true" ]; then
         log_info "Running CI-optimized environment validation..."
