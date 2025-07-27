@@ -1,6 +1,12 @@
 #!/usr/bin/env sh
 
 # Run comprehensive pre-push validation
+# First, ensure node_modules exists
+if [ ! -d "node_modules" ]; then
+    echo "⚠️  node_modules not found - installing dependencies..."
+    pnpm install
+fi
+
 # Skip environment validation if no .env files exist
 if [ ! -f ".env.local" ] && [ ! -f ".env" ] && [ ! -f ".env.development" ]; then
     echo "⚠️  No .env files found - skipping environment validation"

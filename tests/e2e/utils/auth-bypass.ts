@@ -63,7 +63,11 @@ export async function mockClerkHooks(page: Page, credentials: Partial<TestAuthCr
 
         // Override the actual Clerk hooks if they exist
         if ((window as any).__clerk) {
-          (window as any).__clerk.useUser = () => ({ isLoaded: true, isSignedIn: true, user: mockUser });
+          (window as any).__clerk.useUser = () => ({
+            isLoaded: true,
+            isSignedIn: true,
+            user: mockUser,
+          });
           (window as any).__clerk.useAuth = () => ({
             getToken: async () => 'test_token',
             sessionId: 'test_session',

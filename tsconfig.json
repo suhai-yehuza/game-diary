@@ -1,13 +1,7 @@
 {
   "compilerOptions": {
     "target": "es2022",
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext",
-      "es2022",
-      "webworker"
-    ],
+    "lib": ["dom", "dom.iterable", "esnext", "es2022", "webworker"],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -27,28 +21,14 @@
       }
     ],
     "paths": {
-      "@/*": [
-        "./src/*"
-      ],
-      "@src/*": [
-        "./src/*"
-      ],
-      "@utils/*": [
-        "./scripts/utils/*"
-      ],
-      "@lib/*": [
-        "./lib/*"
-      ],
-      "@app/*": [
-        "./src/app/*"
-      ],
-      "@tests/*": [
-        "./tests/*"
-      ]
+      "@/*": ["./src/*"],
+      "@src/*": ["./src/*"],
+      "@utils/*": ["./scripts/utils/*"],
+      "@lib/*": ["./lib/*"],
+      "@app/*": ["./src/app/*"],
+      "@tests/*": ["./tests/*"]
     },
-    "typeRoots": [
-      "./node_modules/@types"
-    ],
+    "typeRoots": ["./node_modules/@types"],
     "baseUrl": ".",
     "noUncheckedIndexedAccess": false,
     "exactOptionalPropertyTypes": false

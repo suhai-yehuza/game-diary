@@ -4,9 +4,7 @@
     "outDir": "./dist-e2e",
     "baseUrl": ".",
     "paths": {
-      "@tests/*": [
-        "./tests/*"
-      ]
+      "@tests/*": ["./tests/*"]
     }
   },
   "include": [
