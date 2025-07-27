@@ -64,6 +64,7 @@ export function TableSearch({
         />
         {localSearchTerm && (
           <button
+            type="button"
             onClick={handleClear}
             className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
           >

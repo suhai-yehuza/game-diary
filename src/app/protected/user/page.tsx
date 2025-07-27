@@ -5,6 +5,8 @@ import React from 'react';
 
 import { GameLogsTable } from '@/app/components/game-logs/GameLogsTable';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/app/components/ui/Tabs';
+import { ActivityTable } from '@/app/protected/user/components/ActivityTable';
+import { FriendsTable } from '@/app/protected/user/components/FriendsTable';
 
 function UserGreeting() {
   // Handle case where Clerk is not configured (e.g., in test environment)
@@ -39,29 +41,7 @@ function UserGreeting() {
   );
 }
 
-function FriendsTableStub() {
-  return (
-    <div className="rounded-lg border p-6 bg-background mb-8">
-      <h2 className="text-2xl font-semibold mb-2">Friends</h2>
-      <p className="text-muted-foreground mb-2">View and manage your friends list.</p>
-      <div className="h-24 flex items-center justify-center text-muted-foreground italic">
-        [Friends Table Placeholder]
-      </div>
-    </div>
-  );
-}
-
-function ActivityTimelineStub() {
-  return (
-    <div className="rounded-lg border p-6 bg-background mb-8">
-      <h2 className="text-2xl font-semibold mb-2">Activity & Timeline</h2>
-      <p className="text-muted-foreground mb-2">See your recent activities and timeline here.</p>
-      <div className="h-24 flex items-center justify-center text-muted-foreground italic">
-        [Activity Timeline Placeholder]
-      </div>
-    </div>
-  );
-}
+// Removed stub components - now using real components
 
 export default function UserDashboardPage() {
   const [selectedTab, setSelectedTab] = React.useState('game-logs');
@@ -91,15 +71,17 @@ export default function UserDashboardPage() {
             </TabsTrigger>
           </TabsList>
           <TabsContent value="game-logs">
-            <div className="rounded-lg border p-6 bg-background mb-8">
-              <GameLogsTable />
-            </div>
+            <GameLogsTable />
           </TabsContent>
           <TabsContent value="friends">
-            <FriendsTableStub />
+            <div className="rounded-lg border p-6 bg-background mb-8">
+              <FriendsTable />
+            </div>
           </TabsContent>
           <TabsContent value="activity">
-            <ActivityTimelineStub />
+            <div className="rounded-lg border p-6 bg-background mb-8">
+              <ActivityTable />
+            </div>
           </TabsContent>
         </Tabs>
       </div>

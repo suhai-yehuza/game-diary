@@ -2,13 +2,12 @@
 
 import React from 'react';
 
-import { TableWithSearch } from '@/app/protected/admin/database/components/TableWithSearch';
+import TableWithSearch from '@/app/protected/admin/database/components/TableWithSearch';
 
 export function GameLogsTableWithSearch() {
   // TODO: Add custom search support if needed in TableWithSearch
   return (
     <TableWithSearch
-      endpoint="/api/admin/database/game_logs"
       columns={[
         { key: 'id', label: 'id', sortable: true },
         { key: 'user_id', label: 'user_id', sortable: true },
@@ -18,7 +17,7 @@ export function GameLogsTableWithSearch() {
         { key: 'created_at', label: 'created_at', sortable: true },
       ]}
       itemLabel="game logs"
-      tableName="GameLogs"
+      tableName="game_logs"
     />
   );
 }

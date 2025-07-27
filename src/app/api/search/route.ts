@@ -2,6 +2,7 @@ import { sql } from 'drizzle-orm';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
+import { API_CONFIG } from '@/lib/config/app.config';
 import { createDatabaseClient } from '@/lib/db';
 
 export async function GET(request: NextRequest) {
@@ -9,7 +10,9 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const query = searchParams.get('q')?.trim();
     const page = parseInt(searchParams.get('page') ?? '1');
-    const limit = parseInt(searchParams.get('limit') ?? '20');
+    const limit = parseInt(
+      searchParams.get('limit') ?? API_CONFIG.pagination.DEFAULT_PAGE_SIZE.toString()
+    );
     const offset = (page - 1) * limit;
 
     // Input validation

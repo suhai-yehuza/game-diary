@@ -1,3 +1,5 @@
+import formatNumberShort from '@/app/protected/admin/database/components/utils/formatNumberShort';
+
 interface IPaginationInfoProps {
   totalCount: number;
   currentPage: number;
@@ -17,10 +19,12 @@ export function PaginationInfo({
   return (
     <div className="flex items-center justify-between mb-4">
       <div className="text-sm text-muted-foreground">
-        {totalCount} total {itemLabel}
+        {formatNumberShort(totalCount)} total {itemLabel}
       </div>
       <div className="text-sm text-muted-foreground">
-        Page {currentPage} of {Math.ceil(totalCount / pageSize)}
+        Page{' '}
+        <span className="font-semibold text-emerald-600 dark:text-emerald-400">{currentPage}</span>{' '}
+        of {Math.ceil(totalCount / pageSize)}
       </div>
     </div>
   );

@@ -1,6 +1,7 @@
 import { sql } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
 
+import { API_CONFIG } from '@/lib/config/app.config';
 import { logger } from '@lib/core/logger';
 import { createDatabaseClient } from '@src/lib/db';
 
@@ -9,7 +10,10 @@ export async function GET(request: Request, { params }: { params: Promise<{ tabl
     const { table } = await params;
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get('page') ?? '1', 10);
-    const limit = parseInt(searchParams.get('limit') ?? '10', 10);
+    const limit = parseInt(
+      searchParams.get('limit') ?? API_CONFIG.pagination.DEFAULT_PAGE_SIZE.toString(),
+      10
+    );
     const search = searchParams.get('search') ?? '';
     const searchField = searchParams.get('searchField') ?? 'all';
     const sortBy = searchParams.get('sortBy') ?? 'created_at';

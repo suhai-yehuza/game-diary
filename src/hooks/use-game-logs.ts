@@ -3,6 +3,7 @@
 import { useQuery } from '@apollo/client';
 import { useState, useCallback } from 'react';
 
+import { API_CONFIG } from '@/lib/config/app.config';
 import { GET_GAME_LOGS, GET_FRIENDS_GAME_LOGS } from '@/lib/graphql/queries';
 import type { IGameLogsOptions, IGameLogsResponse } from '@/lib/types';
 import { CLASSIFICATION } from '@/lib/types';
@@ -185,7 +186,10 @@ export function useGameLogs(options: IGameLogsOptions = {}) {
     const fetchResult = await fetchMore({
       variables: {
         filters,
-        pagination: { after: gameLogsEndCursor },
+        pagination: {
+          first: API_CONFIG.pagination.DEFAULT_GAME_LOG_PAGE_SIZE,
+          after: gameLogsEndCursor,
+        },
       },
     });
     const moreData = fetchResult?.data;
@@ -215,7 +219,10 @@ export function useGameLogs(options: IGameLogsOptions = {}) {
     const fetchResult = await fetchMore({
       variables: {
         filters,
-        pagination: { after: friendsLogsEndCursor },
+        pagination: {
+          first: API_CONFIG.pagination.DEFAULT_GAME_LOG_PAGE_SIZE,
+          after: friendsLogsEndCursor,
+        },
       },
     });
     const moreData = fetchResult?.data;
@@ -304,12 +311,14 @@ export function useGameLogs(options: IGameLogsOptions = {}) {
 export function useMyGameLogs(userId?: string) {
   return useGameLogs({
     filters: { userId },
+    pagination: { first: API_CONFIG.pagination.DEFAULT_GAME_LOG_PAGE_SIZE },
   });
 }
 
 export function usePublicGameLogs() {
   return useGameLogs({
     filters: { classification: CLASSIFICATION.PUBLIC },
+    pagination: { first: API_CONFIG.pagination.DEFAULT_GAME_LOG_PAGE_SIZE },
   });
 }
 
@@ -322,7 +331,7 @@ export function useFriendsGameLogs() {
     GET_FRIENDS_GAME_LOGS,
     {
       variables: {
-        pagination: {},
+        pagination: { first: API_CONFIG.pagination.DEFAULT_GAME_LOG_PAGE_SIZE },
       },
       fetchPolicy: 'cache-and-network',
       errorPolicy: 'all',
@@ -371,7 +380,7 @@ export function useFriendsGameLogs() {
     if (!hasNextPage || loading) return;
     const fetchResult = await fetchMore({
       variables: {
-        pagination: { after: endCursor },
+        pagination: { first: API_CONFIG.pagination.DEFAULT_GAME_LOG_PAGE_SIZE, after: endCursor },
       },
     });
     const moreData = fetchResult?.data;

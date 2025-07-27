@@ -52,7 +52,9 @@ export function PaginationControls({
       </Button>
 
       <div className="px-4 py-2 bg-muted rounded-md">
-        <span className="text-sm font-medium text-muted-foreground">Page {currentPage}</span>
+        <span className="text-sm font-medium text-emerald-600 dark:text-emerald-400">
+          Page {currentPage}
+        </span>
       </div>
 
       <Button

@@ -98,7 +98,12 @@ describe('PaginationControls', () => {
     render(<PaginationControls {...defaultProps} currentPage={5} />);
 
     const pageNumber = screen.getByText('Page 5');
-    expect(pageNumber).toHaveClass('text-sm', 'font-medium', 'text-muted-foreground');
+    expect(pageNumber).toHaveClass(
+      'text-sm',
+      'font-medium',
+      'text-emerald-600',
+      'dark:text-emerald-400'
+    );
   });
 
   it('handles single page correctly', () => {

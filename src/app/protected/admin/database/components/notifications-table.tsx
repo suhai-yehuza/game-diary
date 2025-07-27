@@ -2,12 +2,11 @@
 
 import React from 'react';
 
-import { TableWithSearch } from '@/app/protected/admin/database/components/TableWithSearch';
+import TableWithSearch from '@/app/protected/admin/database/components/TableWithSearch';
 
 export function NotificationsTableWithSearch() {
   return (
     <TableWithSearch
-      endpoint="/api/admin/database/notifications"
       columns={[
         { key: 'id', label: 'id', sortable: true },
         { key: 'user_id', label: 'user_id', sortable: true },
@@ -17,7 +16,7 @@ export function NotificationsTableWithSearch() {
         { key: 'created_at', label: 'created_at', sortable: true },
       ]}
       itemLabel="notifications"
-      tableName="Notifications"
+      tableName="notifications"
     />
   );
 }

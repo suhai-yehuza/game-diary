@@ -2,12 +2,11 @@
 
 import React from 'react';
 
-import { TableWithSearch } from '@/app/protected/admin/database/components/TableWithSearch';
+import TableWithSearch from '@/app/protected/admin/database/components/TableWithSearch';
 
 export function FriendshipsTableWithSearch() {
   return (
     <TableWithSearch
-      endpoint="/api/admin/database/friendships"
       columns={[
         { key: 'id', label: 'id', sortable: true },
         { key: 'user_id', label: 'user_id', sortable: true },
@@ -16,7 +15,7 @@ export function FriendshipsTableWithSearch() {
         { key: 'created_at', label: 'created_at', sortable: true },
       ]}
       itemLabel="friendships"
-      tableName="Friendships"
+      tableName="friendships"
     />
   );
 }

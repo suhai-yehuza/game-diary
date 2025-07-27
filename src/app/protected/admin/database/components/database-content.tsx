@@ -84,6 +84,20 @@ const tableConfigs = {
 } as const;
 
 export function AdminDatabaseContent() {
+  // Remove global event logging that might be interfering
+  // useEffect(() => {
+  //   function logEvent(e: Event) {
+  //     console.log('GLOBAL EVENT:', e.type, e.target);
+  //   }
+  //   window.addEventListener('click', logEvent, true);
+  //   window.addEventListener('submit', logEvent, true);
+  //   window.addEventListener('beforeunload', logEvent, true);
+  //   return () => {
+  //     window.removeEventListener('click', logEvent, true);
+  //     window.removeEventListener('submit', logEvent, true);
+  //     window.removeEventListener('beforeunload', logEvent, true);
+  //   };
+  // }, []);
   const searchParams = useSearchParams();
   // const {
   //   error: componentError,
@@ -359,23 +373,44 @@ export function AdminDatabaseContent() {
               className="flex-1 flex flex-col min-h-0 mt-4"
             >
               <ErrorBoundary componentName={`${tableName}Table`}>
-                {activeTab === 'users' ? (
+                <div style={{ display: activeTab === 'users' ? 'block' : 'none' }}>
                   <UsersTableWithSearch />
-                ) : activeTab === 'game_logs' ? (
+                </div>
+                <div style={{ display: activeTab === 'game_logs' ? 'block' : 'none' }}>
                   <GameLogsTableWithSearch />
-                ) : activeTab === 'comments' ? (
+                </div>
+                <div style={{ display: activeTab === 'comments' ? 'block' : 'none' }}>
                   <CommentsTableWithSearch />
-                ) : activeTab === 'reactions' ? (
+                </div>
+                <div style={{ display: activeTab === 'reactions' ? 'block' : 'none' }}>
                   <ReactionsTableWithSearch />
-                ) : activeTab === 'friendships' ? (
+                </div>
+                <div style={{ display: activeTab === 'friendships' ? 'block' : 'none' }}>
                   <FriendshipsTableWithSearch />
-                ) : activeTab === 'notifications' ? (
+                </div>
+                <div style={{ display: activeTab === 'notifications' ? 'block' : 'none' }}>
                   <NotificationsTableWithSearch />
-                ) : activeTab === 'game_ratings' ? (
+                </div>
+                <div style={{ display: activeTab === 'game_ratings' ? 'block' : 'none' }}>
                   <GameRatingsTableWithSearch />
-                ) : (
-                  renderTable(tableName)
-                )}
+                </div>
+                <div
+                  style={{
+                    display: ![
+                      'users',
+                      'game_logs',
+                      'comments',
+                      'reactions',
+                      'friendships',
+                      'notifications',
+                      'game_ratings',
+                    ].includes(activeTab)
+                      ? 'block'
+                      : 'none',
+                  }}
+                >
+                  {renderTable(tableName)}
+                </div>
               </ErrorBoundary>
             </TabsContent>
           ))}

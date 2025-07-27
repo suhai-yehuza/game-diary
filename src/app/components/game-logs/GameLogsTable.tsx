@@ -8,6 +8,8 @@ import { useState } from 'react';
 import { CreateGameLogModal } from '@/app/components/game-logs/CreateGameLogModal';
 import { DeleteGameLogModal } from '@/app/components/game-logs/DeleteGameLogModal';
 import { EditGameLogModal } from '@/app/components/game-logs/EditGameLogModal';
+import { GameLogsSearch } from '@/app/components/game-logs/GameLogsSearch';
+import { GameLogsSort } from '@/app/components/game-logs/GameLogsSort';
 import { Button } from '@/app/components/ui/button';
 import {
   Card,
@@ -85,6 +87,10 @@ export function GameLogsTable() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [editingGameLog, setEditingGameLog] = useState<IGameLog | null>(null);
   const [deletingGameLog, setDeletingGameLog] = useState<IGameLog | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchField, setSearchField] = useState('all');
+  const [sortKey, setSortKey] = useState('');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
   const {
     gameLogs: myLogs,
@@ -126,6 +132,178 @@ export function GameLogsTable() {
   const handleDeleteSuccess = () => {
     setDeletingGameLog(null);
     void refetchMyLogs();
+  };
+
+  const handleSearchChange = (term: string, field: string) => {
+    setSearchTerm(term);
+    setSearchField(field);
+    // Client-side search filtering is implemented in the render logic below
+  };
+
+  const handleSearchClear = () => {
+    setSearchTerm('');
+    setSearchField('all');
+    // TODO: Clear server-side search filters
+  };
+
+  const handleSort = (key: string, direction: 'asc' | 'desc' | null) => {
+    if (direction === null) {
+      setSortKey('');
+      setSortDirection('asc');
+    } else {
+      setSortKey(key);
+      setSortDirection(direction);
+    }
+    // Client-side sorting is implemented in the render logic below
+  };
+
+  // Client-side filtering and sorting function
+  const filterAndSortGameLogs = (logs: IGameLog[]): IGameLog[] => {
+    let filteredLogs = [...logs];
+
+    // Apply search filter
+    if (searchTerm.trim()) {
+      const term = searchTerm.toLowerCase();
+      filteredLogs = filteredLogs.filter(log => {
+        if (searchField === 'all') {
+          // Search across all relevant fields
+          return (
+            (log.classification?.toLowerCase().includes(term) ?? false) ||
+            (log.watched_setting?.toLowerCase().includes(term) ?? false) ||
+            (log.watched_scope?.toLowerCase().includes(term) ?? false) ||
+            (log.notes?.toLowerCase().includes(term) ?? false) ||
+            (log.tags?.some(tag => tag.toLowerCase().includes(term)) ?? false) ||
+            (log.game?.home_team?.name?.toLowerCase().includes(term) ?? false) ||
+            (log.game?.away_team?.name?.toLowerCase().includes(term) ?? false) ||
+            (log.game?.home_team?.nickname?.toLowerCase().includes(term) ?? false) ||
+            (log.game?.away_team?.nickname?.toLowerCase().includes(term) ?? false)
+          );
+        } else {
+          // Search in specific field
+          switch (searchField) {
+            case 'classification':
+              return log.classification?.toLowerCase().includes(term);
+            case 'watched_setting':
+              return log.watched_setting?.toLowerCase().includes(term);
+            case 'watched_scope':
+              return log.watched_scope?.toLowerCase().includes(term);
+            case 'notes':
+              return log.notes?.toLowerCase().includes(term);
+            case 'tags':
+              return log.tags?.some(tag => tag.toLowerCase().includes(term));
+            case 'team':
+              return (
+                (log.game?.home_team?.name?.toLowerCase().includes(term) ?? false) ||
+                (log.game?.away_team?.name?.toLowerCase().includes(term) ?? false) ||
+                (log.game?.home_team?.nickname?.toLowerCase().includes(term) ?? false) ||
+                (log.game?.away_team?.nickname?.toLowerCase().includes(term) ?? false)
+              );
+            default:
+              return true;
+          }
+        }
+      });
+    }
+
+    // Apply sorting
+    if (sortKey && sortDirection) {
+      filteredLogs.sort((a, b) => {
+        let aValue: string | number;
+        let bValue: string | number;
+
+        switch (sortKey) {
+          case 'created_at':
+            aValue = new Date(a.created_at).getTime();
+            bValue = new Date(b.created_at).getTime();
+            break;
+          case 'rating_for_game':
+            aValue = a.rating_for_game;
+            bValue = b.rating_for_game;
+            break;
+          case 'classification':
+            aValue = a.classification;
+            bValue = b.classification;
+            break;
+          case 'watched_setting':
+            aValue = a.watched_setting ?? '';
+            bValue = b.watched_setting ?? '';
+            break;
+          case 'watched_scope':
+            aValue = a.watched_scope ?? '';
+            bValue = b.watched_scope ?? '';
+            break;
+          case 'game_id':
+            aValue = a.game_id;
+            bValue = b.game_id;
+            break;
+          case 'team': {
+            // Sort by home team name, then away team name
+            const aHomeTeam = a.game?.home_team?.name ?? '';
+            const bHomeTeam = b.game?.home_team?.name ?? '';
+            const aAwayTeam = a.game?.away_team?.name ?? '';
+            const bAwayTeam = b.game?.away_team?.name ?? '';
+            aValue = `${aHomeTeam} vs ${aAwayTeam}`;
+            bValue = `${bHomeTeam} vs ${bAwayTeam}`;
+            break;
+          }
+          case 'owner': {
+            // Sort by username, then first name, then last name
+            const aUsername = a.user?.username ?? '';
+            const bUsername = b.user?.username ?? '';
+            const aFirstName = a.user?.first_name ?? '';
+            const bFirstName = b.user?.first_name ?? '';
+            const aLastName = a.user?.last_name ?? '';
+            const bLastName = b.user?.last_name ?? '';
+            aValue = `${aUsername} ${aFirstName} ${aLastName}`.toLowerCase();
+            bValue = `${bUsername} ${bFirstName} ${bLastName}`.toLowerCase();
+            break;
+          }
+          case 'tags': {
+            // Sort by first tag, then by number of tags
+            const aTags = a.tags ?? [];
+            const bTags = b.tags ?? [];
+            const aFirstTag = aTags.length > 0 ? aTags[0] : '';
+            const bFirstTag = bTags.length > 0 ? bTags[0] : '';
+            aValue = aFirstTag || `zzz-${aTags.length}`; // Empty tags go to end
+            bValue = bFirstTag || `zzz-${bTags.length}`;
+            break;
+          }
+          default:
+            return 0;
+        }
+
+        if (sortDirection === 'asc') {
+          return aValue > bValue ? 1 : aValue < bValue ? -1 : 0;
+        } else {
+          return aValue < bValue ? 1 : aValue > bValue ? -1 : 0;
+        }
+      });
+    }
+
+    return filteredLogs;
+  };
+
+  // Get total count for current tab with filtering applied
+  const getCurrentTabTotalCount = (): number => {
+    let logs: IGameLog[] = [];
+
+    switch (selectedTab) {
+      case 'my-logs':
+        logs = Array.isArray(myLogs) ? myLogs : [];
+        break;
+      case 'friends-logs':
+        logs = Array.isArray(friendsLogs) ? friendsLogs : [];
+        break;
+      case 'public-logs':
+        logs = Array.isArray(publicLogs) ? publicLogs : [];
+        break;
+      default:
+        return 0;
+    }
+
+    // Apply the same filtering logic to get accurate count
+    const filteredLogs = filterAndSortGameLogs(logs);
+    return filteredLogs.length;
   };
 
   const renderGameLogCard = (log: IGameLog, showActions = false, idx?: number) => {
@@ -285,6 +463,18 @@ export function GameLogsTable() {
       </div>
 
       <Tabs value={selectedTab} onValueChange={setSelectedTab}>
+        <GameLogsSearch
+          onSearchChange={handleSearchChange}
+          onClear={handleSearchClear}
+          searchTerm={searchTerm}
+          searchField={searchField}
+        />
+        <GameLogsSort
+          sortKey={sortKey}
+          sortDirection={sortDirection}
+          onSort={handleSort}
+          totalCount={getCurrentTabTotalCount()}
+        />
         <TabsList className="grid w-full grid-cols-3 gap-2 bg-transparent p-0 mb-4">
           <TabsTrigger
             value="my-logs"
@@ -317,7 +507,7 @@ export function GameLogsTable() {
             </div>
           ) : Array.isArray(myLogs) ? (
             <div>
-              {myLogs.map((log, idx) => renderGameLogCard(log, true, idx))}
+              {filterAndSortGameLogs(myLogs).map((log, idx) => renderGameLogCard(log, true, idx))}
               {myLogsHasNextPage && (
                 <div className="flex justify-center mt-8 mb-4">
                   <Button
@@ -344,7 +534,9 @@ export function GameLogsTable() {
             </div>
           ) : (
             <div>
-              {friendsLogs.map((log, idx) => renderGameLogCard(log, false, idx))}
+              {filterAndSortGameLogs(friendsLogs).map((log, idx) =>
+                renderGameLogCard(log, false, idx)
+              )}
               {friendsLogsHasNextPage && (
                 <div className="flex justify-center mt-8 mb-4">
                   <Button
@@ -371,7 +563,9 @@ export function GameLogsTable() {
             </div>
           ) : (
             <div>
-              {publicLogs.map((log, idx) => renderGameLogCard(log, false, idx))}
+              {filterAndSortGameLogs(publicLogs).map((log, idx) =>
+                renderGameLogCard(log, false, idx)
+              )}
               {publicLogsHasNextPage && (
                 <div className="flex justify-center mt-8 mb-4">
                   <Button

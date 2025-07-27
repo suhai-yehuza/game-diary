@@ -6,6 +6,7 @@ import { useDebounce } from 'use-debounce';
 
 import { Button } from '@/app/components/ui/button';
 import { Card } from '@/app/components/ui/Card';
+import { API_CONFIG } from '@/lib/config/app.config';
 import type { IGameResponse } from '@/lib/types/externalApi.types';
 
 interface IGameSearchProps {
@@ -79,7 +80,7 @@ export function GameSearch({ onGameSelect, onClose }: IGameSearchProps) {
       // Sort by date (most recent first) and limit results for performance
       const sortedGames = filteredGames
         .sort((a, b) => new Date(b.date.start).getTime() - new Date(a.date.start).getTime())
-        .slice(0, 50); // Increased limit to 50 for better search results
+        .slice(0, API_CONFIG.pagination.DEFAULT_PAGE_SIZE * 2.5); // Use config-based limit for better search results
 
       const searchResults: ISearchResult[] = sortedGames.map(game => ({
         id: game.id,

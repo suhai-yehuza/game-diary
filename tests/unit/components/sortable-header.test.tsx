@@ -101,11 +101,9 @@ describe('SortableHeader', () => {
       </SortableHeader>
     );
 
-    // No sort indicator when not sorted - both chevrons should be muted
-    const chevronUp = screen.getByTestId('chevron-up');
-    const chevronDown = screen.getByTestId('chevron-down');
-    expect(chevronUp).toHaveClass('text-muted-foreground/30');
-    expect(chevronDown).toHaveClass('text-muted-foreground/30');
+    // No sort indicator when not sorted - should show ArrowUpDown icon
+    const arrowUpDown = screen.getByTestId('arrow-up-down');
+    expect(arrowUpDown).toHaveClass('text-white/70');
 
     // Ascending sort indicator
     rerender(
@@ -119,8 +117,8 @@ describe('SortableHeader', () => {
       </SortableHeader>
     );
 
-    expect(chevronUp).toHaveClass('text-foreground');
-    expect(chevronDown).toHaveClass('text-muted-foreground/30');
+    const arrowUp = screen.getByTestId('arrow-up');
+    expect(arrowUp).toHaveClass('text-yellow-300');
 
     // Descending sort indicator
     rerender(
@@ -134,8 +132,8 @@ describe('SortableHeader', () => {
       </SortableHeader>
     );
 
-    expect(chevronUp).toHaveClass('text-muted-foreground/30');
-    expect(chevronDown).toHaveClass('text-foreground');
+    const arrowDown = screen.getByTestId('arrow-down');
+    expect(arrowDown).toHaveClass('text-yellow-300');
   });
 
   it('applies correct CSS classes based on sort state', () => {
@@ -151,9 +149,9 @@ describe('SortableHeader', () => {
     );
 
     const header = screen.getByText('Username').closest('th');
-    expect(header).toHaveClass('cursor-pointer', 'hover:bg-muted/50');
+    expect(header).toHaveClass('cursor-pointer', 'hover:bg-emerald-500/20');
 
-    // When sorted - should have same classes since no special styling for active state
+    // When sorted - should have active background
     rerender(
       <SortableHeader
         sortKey="username"
@@ -165,7 +163,7 @@ describe('SortableHeader', () => {
       </SortableHeader>
     );
 
-    expect(header).toHaveClass('cursor-pointer', 'hover:bg-muted/50');
+    expect(header).toHaveClass('cursor-pointer', 'hover:bg-emerald-500/20', 'bg-emerald-500/30');
   });
 
   it('handles different sort keys correctly', () => {
@@ -197,8 +195,8 @@ describe('SortableHeader', () => {
     );
 
     const header = screen.getByText('Username').closest('th');
-    // The component doesn't currently have ARIA attributes, so we test the basic structure
     expect(header).toBeInTheDocument();
     expect(header).toHaveClass('cursor-pointer');
+    expect(header).toHaveAttribute('role', 'columnheader');
   });
 });

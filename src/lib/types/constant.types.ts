@@ -237,6 +237,7 @@ export interface IDistributionFunctions {
 
 export interface IPaginationConfig {
   DEFAULT_PAGE_SIZE: number;
+  DEFAULT_GAME_LOG_PAGE_SIZE: number;
   HUGE_SIZE: number;
   DEFAULT_SORT_DIRECTION: 'ASC' | 'DESC';
   MAX_CHILD_COMMENT_DEPTH: number;

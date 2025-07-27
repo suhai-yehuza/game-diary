@@ -99,23 +99,21 @@ describe('UsersTableWithSearch', () => {
     expect(table).toHaveClass('w-full');
   });
 
-  it('applies correct CSS classes to table headers', async () => {
-    await act(async () => {
-      render(<UsersTableWithSearch />);
-    });
+  it('applies correct CSS classes to table headers', () => {
+    render(<UsersTableWithSearch />);
 
     const headers = screen.getAllByRole('columnheader');
     headers.forEach(header => {
       expect(header).toHaveClass(
         'px-6',
-        'py-3',
+        'py-4',
         'text-left',
-        'text-xs',
-        'font-medium',
-        'text-muted-foreground',
-        'tracking-wider',
-        'border-b',
-        'border-border'
+        'text-sm',
+        'font-semibold',
+        'text-white',
+        'tracking-wide',
+        'border-r',
+        'border-emerald-500/30'
       );
     });
   });

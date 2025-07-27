@@ -1,205 +1,261 @@
 'use client';
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 
-import formatNumberShort from '@/app/protected/admin/database/components/utils/formatNumberShort';
+import { ErrorBoundary } from '@/app/protected/admin/database/components/ui/error-boundary';
+import { ErrorDisplay } from '@/app/protected/admin/database/components/ui/error-display';
+import { PaginationControls } from '@/app/protected/admin/database/components/ui/pagination-controls';
+import { PaginationInfo } from '@/app/protected/admin/database/components/ui/pagination-info';
+import { SortableHeader } from '@/app/protected/admin/database/components/ui/sortable-header';
+import { TableSearch } from '@/app/protected/admin/database/components/ui/table-search';
 import { API_CONFIG } from '@/lib/config/app.config';
-import type { TableWithSearchProps, ApiResponse, ColumnConfig } from '@/lib/types';
-import {
-  PaginationInfo,
-  ErrorDisplay,
-  PaginationControls,
-  ErrorBoundary,
-  SortableHeader,
-  TableSearch,
-} from '@src/app/protected/admin/database/components/ui';
 
-// Type guard for ApiResponse
-function isApiResponse<T>(obj: unknown): obj is ApiResponse<T> {
-  if (typeof obj !== 'object' || obj === null) return false;
-  const o = obj as Record<string, unknown>;
-  return 'success' in o && typeof o.success === 'boolean';
+interface IColumnConfig<T> {
+  key: keyof T;
+  label: string;
+  render?: (item: T) => React.ReactNode;
+  sortable?: boolean;
 }
 
-export function TableWithSearch<T extends { id: string | number }>({
-  endpoint,
+interface ITableWithSearchProps<T extends { id: string | number }> {
+  tableName: string;
+  columns: IColumnConfig<T>[];
+  itemLabel: string;
+}
+
+export default function TableWithSearch<T extends { id: string | number }>({
+  tableName,
   columns,
   itemLabel,
-  tableName,
-}: TableWithSearchProps & { columns: ColumnConfig<T>[] }) {
-  const typedColumns = columns as ColumnConfig<T>[];
+}: ITableWithSearchProps<T>) {
+  console.log('TableWithSearch render:', tableName);
+  const typedColumns = columns;
   const [rawData, setRawData] = useState<T[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchField, setSearchField] = useState<string>('');
+  const [sortKey, setSortKey] = useState<string>('');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [fetchTrigger, setFetchTrigger] = useState(0);
+  const isInitialMount = useRef(true);
+  const currentValues = useRef({
+    page: 1,
+    limit: API_CONFIG.pagination.DEFAULT_PAGE_SIZE,
+    searchTerm: '',
+    searchField: '',
+    sortBy: '',
+    sortDirection: 'asc' as 'asc' | 'desc',
+  });
+
+  // Client-side sorting function
+  const sortData = useCallback((data: T[], key: string, direction: 'asc' | 'desc'): T[] => {
+    if (!key) return data;
+
+    return [...data].sort((a, b) => {
+      const aValue = a[key as keyof T];
+      const bValue = b[key as keyof T];
+
+      // Handle null/undefined values
+      if (aValue == null && bValue == null) return 0;
+      if (aValue == null) return direction === 'asc' ? -1 : 1;
+      if (bValue == null) return direction === 'asc' ? 1 : -1;
+
+      // Handle different data types
+      if (typeof aValue === 'string' && typeof bValue === 'string') {
+        return direction === 'asc' ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
+      }
+
+      if (typeof aValue === 'number' && typeof bValue === 'number') {
+        return direction === 'asc' ? aValue - bValue : bValue - aValue;
+      }
+
+      if (aValue instanceof Date && bValue instanceof Date) {
+        return direction === 'asc'
+          ? aValue.getTime() - bValue.getTime()
+          : bValue.getTime() - aValue.getTime();
+      }
+
+      // Fallback to string comparison
+      const aStr = String(aValue);
+      const bStr = String(bValue);
+      return direction === 'asc' ? aStr.localeCompare(bStr) : bStr.localeCompare(aStr);
+    });
+  }, []);
+
+  // Computed sorted data
+  const sortedData = useMemo(() => {
+    return sortData(rawData, sortKey, sortDirection);
+  }, [rawData, sortKey, sortDirection, sortData]);
+
+  const [error, setError] = useState<string | null>(null);
   const [pageInfo, setPageInfo] = useState({
     hasNextPage: false,
     hasPreviousPage: false,
     startCursor: null as string | null,
     endCursor: null as string | null,
   });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalCount, setTotalCount] = useState(0);
-  const [sortKey, setSortKey] = useState<string | null>(null);
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc' | null>(null);
-
-  // Search state
-  const [searchTerm, setSearchTerm] = useState('');
-  const [searchField, setSearchField] = useState('all');
-
-  // Ref to prevent multiple fetch calls
-  const isInitialMount = React.useRef(true);
-  const currentValues = React.useRef({
-    searchTerm: '',
-    searchField: 'all',
-    sortKey: null as string | null,
-    sortDirection: null as 'asc' | 'desc' | null,
-    currentPage: 1,
-  });
 
   // Update ref when state changes
-  React.useEffect(() => {
+  useEffect(() => {
     currentValues.current = {
+      page: currentPage,
+      limit: API_CONFIG.pagination.DEFAULT_PAGE_SIZE,
       searchTerm,
       searchField,
-      sortKey,
+      sortBy: sortKey,
       sortDirection,
-      currentPage,
     };
-  }, [searchTerm, searchField, sortKey, sortDirection, currentPage]);
+  }, [currentPage, searchTerm, searchField, sortKey, sortDirection]);
 
   // Generate search fields based on columns
   const searchFields = [
     { value: 'all', label: 'All Fields' },
     ...typedColumns.map(col => ({
-      value: col.key,
+      value: String(col.key),
       label: col.label.charAt(0).toUpperCase() + col.label.slice(1).replace(/_/g, ' '),
     })),
   ];
 
+  const handleSort = useCallback((key: string, direction: 'asc' | 'desc' | null) => {
+    console.log('Sort clicked:', key, direction);
+    if (direction === null) {
+      // Clear sorting
+      setSortKey('');
+      setSortDirection('asc');
+    } else {
+      // Set new sort
+      setSortKey(key);
+      setSortDirection(direction);
+    }
+  }, []);
+
+  const noopSort = useCallback((_key: string, _direction: 'asc' | 'desc' | null) => {
+    // No-op for non-sortable columns
+  }, []);
+
+  const handleSearchChange = useCallback(
+    (term: string, field: string) => {
+      setSearchTerm(term);
+      setSearchField(field);
+      setCurrentPage(1);
+      setFetchTrigger(prev => prev + 1);
+    },
+    [setSearchTerm, setSearchField, setCurrentPage, setFetchTrigger]
+  );
+
+  const handleSearchClear = useCallback(() => {
+    setSearchTerm('');
+    setSearchField('');
+    setCurrentPage(1);
+    setFetchTrigger(prev => prev + 1);
+  }, [setSearchTerm, setSearchField, setCurrentPage, setFetchTrigger]);
+
+  const handleNext = useCallback(() => {
+    setCurrentPage(prev => prev + 1);
+    setFetchTrigger(prev => prev + 1);
+  }, [setCurrentPage, setFetchTrigger]);
+
+  const handlePrev = useCallback(() => {
+    setCurrentPage(prev => Math.max(1, prev - 1));
+    setFetchTrigger(prev => prev + 1);
+  }, [setCurrentPage, setFetchTrigger]);
+
+  const handleFirst = useCallback(() => {
+    setCurrentPage(1);
+    setFetchTrigger(prev => prev + 1);
+  }, [setCurrentPage, setFetchTrigger]);
+
+  const handleLast = useCallback(() => {
+    setCurrentPage(Math.ceil(totalCount / API_CONFIG.pagination.DEFAULT_PAGE_SIZE));
+    setFetchTrigger(prev => prev + 1);
+  }, [totalCount, setCurrentPage, setFetchTrigger]);
+
   const fetchData = useCallback(async () => {
+    const values = currentValues.current;
     setLoading(true);
     setError(null);
-    try {
-      const {
-        searchTerm: currentSearch,
-        searchField: currentField,
-        sortKey: currentSortKey,
-        sortDirection: currentSortDirection,
-        currentPage: currentPageNum,
-      } = currentValues.current;
 
-      // Build query parameters
+    try {
       const params = new URLSearchParams({
-        page: currentPageNum.toString(),
-        limit: API_CONFIG.pagination.DEFAULT_PAGE_SIZE.toString(),
+        page: values.page.toString(),
+        limit: values.limit.toString(),
       });
 
-      // Add search parameters if provided
-      if (currentSearch.trim()) {
-        params.append('search', currentSearch.trim());
-        if (currentField !== 'all') {
-          params.append('searchField', currentField);
-        }
+      if (values.searchTerm) {
+        params.append('searchTerm', values.searchTerm);
+        params.append('searchField', values.searchField);
       }
 
-      // Add sort parameters if provided
-      if (currentSortKey && currentSortDirection) {
-        params.append('sortBy', currentSortKey);
-        params.append('sortDirection', currentSortDirection);
+      const response = await fetch(`/api/admin/database/${tableName}?${params}`);
+      const result = (await response.json()) as {
+        success: boolean;
+        data: T[];
+        pagination: {
+          page: number;
+          limit: number;
+          total: number;
+          pages: number;
+        };
+        error?: string;
+      };
+
+      if (!response.ok) {
+        throw new Error(result.error ?? 'Failed to fetch data');
       }
 
-      const res = await fetch(`${endpoint}?${params.toString()}`);
-      const jsonRaw: unknown = await res.json();
-      if (!isApiResponse<T>(jsonRaw)) {
-        throw new Error('Invalid API response');
+      if (!result.success) {
+        throw new Error(result.error ?? 'API returned success: false');
       }
-      const { success, error: apiError, data, pagination } = jsonRaw;
-      if (!success) throw new Error(apiError ?? `Failed to fetch ${tableName}`);
-      setRawData(Array.isArray(data) ? data : []);
-      setTotalCount((pagination as { total?: number })?.total ?? 0);
-      setCurrentPage((pagination as { page?: number })?.page ?? 1);
+
+      setRawData(Array.isArray(result.data) ? result.data : []);
+      setTotalCount(result.pagination.total ?? 0);
       setPageInfo({
-        hasNextPage:
-          ((pagination as { page?: number; pages?: number })?.page ?? 1) <
-          ((pagination as { pages?: number })?.pages ?? 1),
-        hasPreviousPage: ((pagination as { page?: number })?.page ?? 1) > 1,
+        hasNextPage: (result.pagination.page ?? 1) < (result.pagination.pages ?? 1),
+        hasPreviousPage: (result.pagination.page ?? 1) > 1,
         startCursor: null,
         endCursor: null,
       });
-    } catch (err: unknown) {
-      let message = `Failed to fetch ${tableName}`;
-      if (
-        err &&
-        typeof err === 'object' &&
-        'message' in err &&
-        typeof (err as { message?: unknown }).message === 'string'
-      ) {
-        message = (err as { message: string }).message;
-      }
-      setError(message);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
+      setError(errorMessage);
+      console.error('Error fetching data:', err);
     } finally {
       setLoading(false);
-    }
-  }, [endpoint, tableName]);
-
-  const handleSort = useCallback((key: string, direction: 'asc' | 'desc' | null) => {
-    console.log('Sorting:', key, direction); // Debug log
-    setSortKey(direction ? key : null);
-    setSortDirection(direction);
-  }, []);
-
-  // Handle search changes
-  const handleSearchChange = useCallback((term: string, field: string) => {
-    setSearchTerm(term);
-    setSearchField(field);
-    setCurrentPage(1); // Reset to first page when searching
-  }, []);
-
-  // Handle search clear
-  const handleSearchClear = useCallback(() => {
-    setSearchTerm('');
-    setSearchField('all');
-    setCurrentPage(1);
-  }, []);
-
-  // No-op sort function for non-sortable columns
-  const noopSort: (key: string, direction: 'asc' | 'desc' | null) => void = () => undefined;
-
-  // Initial data fetch
-  useEffect(() => {
-    if (isInitialMount.current) {
       isInitialMount.current = false;
-      void fetchData();
     }
-  }, [fetchData]);
+  }, [tableName]);
 
-  // Fetch data when dependencies change (but not on initial mount)
+  // Memoized table row component to prevent unnecessary re-renders
+  const TableRow = React.memo(({ row, index }: { row: T; index: number }) => (
+    <tr
+      key={row.id}
+      className="transition-all duration-200 ease-in-out hover:bg-slate-50 dark:hover:bg-slate-800/50 border-r border-slate-100 dark:border-slate-800 last:border-r-0"
+    >
+      <td className="px-6 py-4 text-sm font-medium text-slate-600 dark:text-slate-400 border-r border-slate-100 dark:border-slate-800">
+        {index + 1}
+      </td>
+      {typedColumns.map(col => (
+        <td
+          key={String(col.key)}
+          className="px-6 py-4 text-sm text-slate-700 dark:text-slate-300 border-r border-slate-100 dark:border-slate-800 last:border-r-0"
+        >
+          {col.render ? col.render(row) : (row[col.key] as React.ReactNode)}
+        </td>
+      ))}
+    </tr>
+  ));
+
+  // Single useEffect to handle all data fetching
   useEffect(() => {
-    if (!isInitialMount.current) {
-      void fetchData();
-    }
-  }, [searchTerm, searchField, sortKey, sortDirection, currentPage, fetchData]);
-
-  const handleNext = () => {
-    if (pageInfo.hasNextPage) {
-      setCurrentPage(currentPage + 1);
-    }
-  };
-
-  const handlePrev = () => {
-    if (pageInfo.hasPreviousPage) {
-      setCurrentPage(currentPage - 1);
-    }
-  };
-
-  const handleFirst = () => {
-    setCurrentPage(1);
-  };
-
-  const handleLast = () => {
-    const totalPages = Math.ceil(totalCount / API_CONFIG.pagination.DEFAULT_PAGE_SIZE);
-    setCurrentPage(totalPages);
-  };
+    console.log('useEffect running:', {
+      isInitialMount: isInitialMount.current,
+      shouldFetch: true, // Always fetch when trigger changes
+    });
+    void fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fetchTrigger]); // Depend on fetchTrigger
 
   return (
     <ErrorBoundary componentName={tableName + 'Table'}>
@@ -222,22 +278,38 @@ export function TableWithSearch<T extends { id: string | number }>({
           totalCount={totalCount}
           currentPage={currentPage}
           pageSize={API_CONFIG.pagination.DEFAULT_PAGE_SIZE}
-          itemLabel={formatNumberShort(totalCount) + ' total ' + itemLabel}
+          itemLabel={itemLabel}
         />
 
         {/* Table */}
-        <div className="bg-card border border-border rounded-lg overflow-hidden">
+        <div
+          className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden relative shadow-sm"
+          data-table-container="true"
+        >
+          {/* Loading overlay - only show when loading and not on initial load */}
+          {loading && !isInitialMount.current && (
+            <div className="absolute inset-0 bg-background/50 backdrop-blur-sm z-10 flex items-center justify-center">
+              <div className="flex items-center space-x-2 bg-card border border-border rounded-lg px-4 py-2 shadow-lg">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary" />
+                <span className="text-sm text-muted-foreground">Updating...</span>
+              </div>
+            </div>
+          )}
+
           <div className="overflow-x-auto">
-            <table className="w-full transition-all duration-200 ease-in-out">
-              <thead className="bg-muted">
+            <table
+              key={`${tableName}-table`}
+              className="w-full transition-all duration-200 ease-in-out"
+            >
+              <thead className="bg-gradient-to-r from-emerald-600 to-teal-700 dark:from-emerald-800 dark:to-teal-900 border-b-2 border-emerald-500 dark:border-emerald-600">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground tracking-wider border-b border-border">
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-white tracking-wide border-r border-emerald-500/30 dark:border-emerald-400/30 last:border-r-0">
                     #
                   </th>
                   {typedColumns.map(col => (
-                    <React.Fragment key={col.key}>
+                    <React.Fragment key={String(col.key)}>
                       <SortableHeader
-                        sortKey={col.key}
+                        sortKey={String(col.key)}
                         currentSortKey={sortKey}
                         currentSortDirection={sortDirection}
                         onSort={col.sortable !== false ? handleSort : noopSort}
@@ -248,8 +320,8 @@ export function TableWithSearch<T extends { id: string | number }>({
                   ))}
                 </tr>
               </thead>
-              <tbody className="bg-card divide-y divide-border">
-                {loading ? (
+              <tbody className="bg-white dark:bg-slate-900 divide-y divide-slate-100 dark:divide-slate-800">
+                {loading && isInitialMount.current ? (
                   <tr>
                     <td colSpan={typedColumns.length + 1} className="px-6 py-4 text-center">
                       <div className="flex items-center justify-center">
@@ -258,7 +330,7 @@ export function TableWithSearch<T extends { id: string | number }>({
                       </div>
                     </td>
                   </tr>
-                ) : rawData.length === 0 ? (
+                ) : sortedData.length === 0 ? (
                   <tr>
                     <td colSpan={typedColumns.length + 1} className="px-6 py-4 text-center">
                       {searchTerm
@@ -267,23 +339,7 @@ export function TableWithSearch<T extends { id: string | number }>({
                     </td>
                   </tr>
                 ) : (
-                  rawData.map((row, index) => (
-                    <tr
-                      key={row.id}
-                      className="transition-colors duration-300 ease-in-out hover:bg-blue-50 dark:hover:bg-gray-400"
-                    >
-                      <td className="px-6 py-4 text-sm font-medium text-muted-foreground">
-                        {index + 1}
-                      </td>
-                      {typedColumns.map(col => (
-                        <td key={col.key} className="px-6 py-4 text-sm">
-                          {col.render
-                            ? col.render(row)
-                            : (row[col.key as keyof T] as React.ReactNode)}
-                        </td>
-                      ))}
-                    </tr>
-                  ))
+                  sortedData.map((row, index) => <TableRow key={row.id} row={row} index={index} />)
                 )}
               </tbody>
             </table>

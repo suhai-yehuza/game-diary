@@ -1,12 +1,13 @@
 'use client';
 
-import { TableWithSearch } from '@/app/protected/admin/database/components/TableWithSearch';
+import React from 'react';
+
+import TableWithSearch from '@/app/protected/admin/database/components/TableWithSearch';
 
 export function UsersTableWithSearch() {
   // TODO: Add custom search support if needed in TableWithSearch
   return (
     <TableWithSearch
-      endpoint="/api/admin/database/users"
       columns={[
         { key: 'id', label: 'id', sortable: true },
         { key: 'username', label: 'username', sortable: true },
@@ -15,7 +16,7 @@ export function UsersTableWithSearch() {
         { key: 'created_at', label: 'created_at', sortable: true },
       ]}
       itemLabel="users"
-      tableName="Users"
+      tableName="users"
     />
   );
 }

@@ -1,11 +1,10 @@
 'use client';
 
-import { TableWithSearch } from '@/app/protected/admin/database/components/TableWithSearch';
+import TableWithSearch from '@/app/protected/admin/database/components/TableWithSearch';
 
 export function GameRatingsTableWithSearch() {
   return (
     <TableWithSearch
-      endpoint="/api/admin/database/game_ratings"
       columns={[
         { key: 'id', label: 'id', sortable: true },
         { key: 'game_id', label: 'game_id', sortable: true },
@@ -14,7 +13,7 @@ export function GameRatingsTableWithSearch() {
         { key: 'created_at', label: 'created_at', sortable: true },
       ]}
       itemLabel="game ratings"
-      tableName="GameRatings"
+      tableName="game_ratings"
     />
   );
 }

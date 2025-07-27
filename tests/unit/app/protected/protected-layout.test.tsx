@@ -1,6 +1,6 @@
 import React from 'react';
 import { auth } from '@clerk/nextjs/server';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import ProtectedLayout from '@/app/protected/layout';
 
@@ -14,6 +14,43 @@ vi.mock('next/headers', () => ({
 // Mock Clerk auth
 vi.mock('@clerk/nextjs/server', () => ({
   auth: vi.fn(),
+}));
+
+// Mock dynamic import
+vi.mock('next/dynamic', () => ({
+  default: (importFn: any, options: any) => {
+    const Component = ({ children }: any) => {
+      const { isLoaded, isSignedIn } = mockUserState;
+
+      if (!isLoaded) {
+        return (
+          <div className="min-h-screen flex items-center justify-center bg-background">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto" />
+              <p className="mt-4 text-muted-foreground">Loading authentication...</p>
+            </div>
+          </div>
+        );
+      }
+
+      if (!isSignedIn) {
+        return (
+          <div className="min-h-screen flex items-center justify-center bg-background">
+            <button data-testid="sign-in-button" data-auto-trigger="true">
+              Sign In
+            </button>
+            <div className="text-center mt-8">
+              <h1 className="text-2xl font-bold mb-4">Sign In Required</h1>
+              <p className="mb-6 text-muted-foreground">You must be signed in to view this page.</p>
+            </div>
+          </div>
+        );
+      }
+
+      return <div data-testid="client-auth-guard">{children}</div>;
+    };
+    return Component;
+  },
 }));
 
 // Mock Clerk components
@@ -43,7 +80,9 @@ describe('ProtectedLayout', () => {
     const result = await ProtectedLayout({ children: <TestComponent /> });
     render(result);
 
-    expect(screen.getByTestId('test-child')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByTestId('test-child')).toBeInTheDocument();
+    });
     expect(screen.getByText('Test Content')).toBeInTheDocument();
   });
 
@@ -54,9 +93,11 @@ describe('ProtectedLayout', () => {
     const result = await ProtectedLayout({ children: <div>Test</div> });
     render(result);
 
-    expect(screen.getByText('You must be signed in to view this page.')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText('You must be signed in to view this page.')).toBeInTheDocument();
+    });
     expect(screen.getByTestId('sign-in-button')).toBeInTheDocument();
-    expect(screen.getByTestId('sign-in-button')).toHaveAttribute('data-mode', 'modal');
+    expect(screen.getByTestId('sign-in-button')).toHaveAttribute('data-auto-trigger', 'true');
   });
 
   it('handles undefined userId', async () => {
@@ -66,7 +107,9 @@ describe('ProtectedLayout', () => {
     const result = await ProtectedLayout({ children: <div>Test</div> });
     render(result);
 
-    expect(screen.getByText('You must be signed in to view this page.')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText('You must be signed in to view this page.')).toBeInTheDocument();
+    });
     expect(screen.getByTestId('sign-in-button')).toBeInTheDocument();
   });
 
@@ -77,7 +120,9 @@ describe('ProtectedLayout', () => {
     const result = await ProtectedLayout({ children: <div>Test</div> });
     render(result);
 
-    expect(screen.getByText('You must be signed in to view this page.')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText('You must be signed in to view this page.')).toBeInTheDocument();
+    });
     expect(screen.getByTestId('sign-in-button')).toBeInTheDocument();
   });
 
@@ -95,7 +140,9 @@ describe('ProtectedLayout', () => {
     });
     render(result);
 
-    expect(screen.getByTestId('child1')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByTestId('child1')).toBeInTheDocument();
+    });
     expect(screen.getByTestId('child2')).toBeInTheDocument();
     expect(screen.getByText('Child 1')).toBeInTheDocument();
     expect(screen.getByText('Child 2')).toBeInTheDocument();

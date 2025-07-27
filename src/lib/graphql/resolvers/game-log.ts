@@ -158,7 +158,7 @@ export const gameLogQueryResolvers = {
     }
 
     const { filters, pagination } = args;
-    const limit = pagination?.first ?? API_CONFIG.pagination.DEFAULT_PAGE_SIZE;
+    const limit = pagination?.first ?? API_CONFIG.pagination.DEFAULT_GAME_LOG_PAGE_SIZE;
 
     const whereConditions = [];
 
@@ -500,7 +500,7 @@ export const gameLogQueryResolvers = {
     }
 
     const { pagination } = args;
-    const limit = pagination?.first ?? API_CONFIG.pagination.DEFAULT_PAGE_SIZE;
+    const limit = pagination?.first ?? API_CONFIG.pagination.DEFAULT_GAME_LOG_PAGE_SIZE;
 
     // Get all friends of the current user (both directions of friendship)
     const friendsQuery = await db()?.execute(sql`
