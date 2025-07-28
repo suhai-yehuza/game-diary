@@ -157,12 +157,13 @@ jobs:
           CI: 'true'
         run: |
           echo "Running combined E2E tests..."
-          # Run critical tests first
+          # Run mock verification tests first
           pnpm exec playwright test tests/e2e/functional/mock-verification.spec.ts --reporter=line
-          pnpm exec playwright test tests/e2e/functional/smoke.spec.ts --workers=2 --reporter=line
+          # Run comprehensive navigation tests (includes all critical and smoke tests)
+          pnpm test:e2e:navigation --workers=2 --reporter=line
+          # Run responsive tests
           pnpm exec playwright test tests/e2e/functional/responsive.spec.ts --workers=2 --reporter=line
           # pnpm exec playwright test tests/e2e/functional/live-games.spec.ts --workers=2 --reporter=line
-          # pnpm exec playwright test tests/e2e/functional/navigation.spec.ts --workers=2 --reporter=line
           # Ensure coverage directory exists
           mkdir -p coverage
           # Create a placeholder coverage file if none exists

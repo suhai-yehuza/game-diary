@@ -132,7 +132,7 @@ export async function safeGoto(
   const url = path.startsWith('http') ? path : `${finalConfig.baseURL}${path}`;
 
   // Add retry logic for navigation interruptions
-  const maxRetries = 3;
+  const maxRetries = 5; // Increased from 3 to 5
   let lastError: Error | null = null;
 
   console.log(`🔍 Navigation Debug:`);
@@ -146,8 +146,11 @@ export async function safeGoto(
       // Wait a bit before retrying to avoid rapid successive navigation attempts
       if (attempt > 1) {
         // Use exponential backoff instead of fixed timeout
-        await page.waitForLoadState('domcontentloaded', { timeout: 1000 * attempt });
+        await page.waitForLoadState('domcontentloaded', { timeout: 2000 * attempt });
       }
+
+      // Wait for any ongoing navigation to complete before starting a new one
+      await page.waitForLoadState('domcontentloaded', { timeout: 5000 }).catch(() => {});
 
       await page.goto(url, {
         waitUntil: LOAD_STATES.DOM_CONTENT_LOADED,
@@ -170,6 +173,8 @@ export async function safeGoto(
         console.log(
           `Navigation interrupted or aborted, retrying... (attempt ${attempt}/${maxRetries})`
         );
+        // Wait longer between retries for navigation interruptions
+        await page.waitForTimeout(1000 * attempt);
         continue;
       }
 
