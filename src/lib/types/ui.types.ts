@@ -207,18 +207,3 @@ export interface IUseSortingReturn {
   clearSort: () => void;
   getSortParams: () => { sortKey: string | null; sortDirection: ISortDirection | null };
 }
-
-// Error Handler Types
-export interface IErrorState {
-  hasError: boolean;
-  error?: Error;
-  message?: string;
-}
-
-export interface IUseErrorHandlerReturn {
-  error: IErrorState;
-  setError: (error: Error | string) => void;
-  clearError: () => void;
-  handleAsyncError: <T>(asyncFn: () => Promise<T>) => Promise<T | undefined>;
-  handleSyncError: <T>(syncFn: () => T) => T | undefined;
-}
