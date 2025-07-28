@@ -75,8 +75,8 @@ export interface IUseSearchOptions {
 // Types for friendship hooks
 export interface IFriendship {
   id: string;
-  initiator?: IUserSummary;
-  recipient?: IUserSummary;
+  initiator?: IUserSummaryBasic;
+  recipient?: IUserSummaryBasic;
   status: string;
   created_at: string;
 }
@@ -98,7 +98,7 @@ export interface IFriendshipStatus {
   isInitiator: boolean;
 }
 
-export interface IUserSummary {
+export interface IUserSummaryBasic {
   id: string;
   username?: string;
   first_name?: string;
@@ -151,7 +151,7 @@ export interface IFriendshipStatusResponse {
 export interface IGraphQLSearchUsersResponse {
   searchUsers: {
     edges: Array<{
-      node: IUserSummary;
+      node: IUserSummaryBasic;
       cursor: string;
     }>;
     pageInfo: {

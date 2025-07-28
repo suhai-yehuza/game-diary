@@ -1,3 +1,12 @@
+/**
+ * Consolidated Infrastructure Types
+ * Infrastructure, middleware, and system-related type definitions
+ */
+
+// ========================================
+// REDIS TYPES
+// ========================================
+
 // Redis client types
 export type IRedisClient = unknown; // Simplified to avoid import issues
 export type IRedisClientType = 'upstash' | 'ioredis' | null;
@@ -84,17 +93,6 @@ export interface ICacheManager {
   clear(): Promise<void>;
 }
 
-// All schema-dependent types moved to dbTypes.ts
-
-// Performance types
-// IPerformanceMetrics moved to coreTypes.ts
-// export interface IPerformanceMetrics { ... }
-
-// Utility types
-export type AsyncFunction<T = unknown> = () => Promise<T>;
-export type SyncFunction<T = unknown> = () => T;
-export type SomeOtherType = (arg: string) => void;
-
 // ========================================
 // CACHE TYPES
 // ========================================
@@ -111,3 +109,83 @@ export interface ICacheConfig {
   maxSize?: number;
   enableRedis?: boolean;
 }
+
+// ========================================
+// MIDDLEWARE TYPES
+// ========================================
+
+// Admin Auth Types
+export interface IAdminAuthContext {
+  userId: string;
+  isAdmin: boolean;
+  userEmail?: string;
+}
+
+// ========================================
+// AUDIT LOG TYPES
+// ========================================
+
+export interface IAuditLog {
+  id: string;
+  timestamp: string;
+  category: string;
+  action: string;
+  severity: string;
+  user_id?: string;
+  description?: string;
+  success: boolean;
+  error_message?: string;
+  endpoint?: string;
+  method?: string;
+  details?: Record<string, unknown>;
+}
+
+export interface IFilters {
+  category?: string;
+  action?: string;
+  severity?: string;
+  userId?: string;
+  startDate?: string;
+  endDate?: string;
+}
+
+export type AuditLogSearchField =
+  | 'all'
+  | 'category'
+  | 'action'
+  | 'severity'
+  | 'user_id'
+  | 'description';
+
+// ========================================
+// TEST TYPES
+// ========================================
+
+export interface TestConfig {
+  baseURL: string;
+  timeout: number;
+  retries: number;
+}
+
+export interface CoverageTarget {
+  category: string;
+  target: number; // percentage
+  description: string;
+  testFiles: string[];
+}
+
+export interface TestCategory {
+  name: string;
+  description: string;
+  priority: 'critical' | 'high' | 'medium' | 'low';
+  userJourneys: string[];
+  testFiles: string[];
+}
+
+// ========================================
+// UTILITY TYPES
+// ========================================
+
+export type AsyncFunction<T = unknown> = () => Promise<T>;
+export type SyncFunction<T = unknown> = () => T;
+export type SomeOtherType = (arg: string) => void;

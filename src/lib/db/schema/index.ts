@@ -25,8 +25,7 @@ export {
   friendshipsRelations,
 } from '@/lib/db/schema/relations';
 
-// Export all schema types
-export * from '@/lib/types/schema.types';
+// Schema types are exported from @/lib/types instead
 export { comments } from '@src/lib/db/schema/user-schemas';
 export {
   nba_games,
