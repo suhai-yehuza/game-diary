@@ -5835,8 +5835,8 @@ packages:
   preact@10.24.3:
     resolution: {integrity: sha512-Z2dPnBnMUfyQfSQ+GBdsGa16hz35YmLmtTLhM169uW944hYL6xzTYkJjC07j+Wosz733pMWx0fgON3JNw1jJQA==}
 
-  preact@10.26.9:
-    resolution: {integrity: sha512-SSjF9vcnF27mJK1XyFMNJzFd5u3pQiATFqoaDy03XuN00u4ziveVVEGt5RKJrDR8MHE/wJo9Nnad56RLzS2RMA==}
+  preact@10.27.0:
+    resolution: {integrity: sha512-/DTYoB6mwwgPytiqQTh/7SFRL98ZdiD8Sk8zIUVOxtwq4oWcwrcd1uno9fE/zZmUaUrFNYzbH14CPebOz9tZQw==}
 
   precinct@12.2.0:
     resolution: {integrity: sha512-NFBMuwIfaJ4SocE9YXPU/n4AcNSoFMVFjP72nvl3cx69j/ke61/hPOWFREVxLkFhhEGnA8ZuVfTqJBa+PK3b5w==}
@@ -12760,8 +12760,8 @@ snapshots:
       next: 15.4.4(@babel/core@7.28.0)(@playwright/test@1.54.1)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       oauth: 0.9.15
       openid-client: 5.7.1
-      preact: 10.26.9
-      preact-render-to-string: 5.2.6(preact@10.26.9)
+      preact: 10.27.0
+      preact-render-to-string: 5.2.6(preact@10.27.0)
       react: 19.1.0
       react-dom: 19.1.0(react@19.1.0)
       uuid: 8.3.2
@@ -13164,9 +13164,9 @@ snapshots:
 
   postgres@3.4.7: {}
 
-  preact-render-to-string@5.2.6(preact@10.26.9):
+  preact-render-to-string@5.2.6(preact@10.27.0):
     dependencies:
-      preact: 10.26.9
+      preact: 10.27.0
       pretty-format: 3.8.0
 
   preact-render-to-string@6.5.11(preact@10.24.3):
@@ -13175,7 +13175,7 @@ snapshots:
 
   preact@10.24.3: {}
 
-  preact@10.26.9: {}
+  preact@10.27.0: {}
 
   precinct@12.2.0:
     dependencies:
