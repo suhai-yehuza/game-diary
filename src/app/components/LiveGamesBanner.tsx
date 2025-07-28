@@ -2,13 +2,24 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { useLiveGames } from '@/hooks/use-live-games';
 import type { IGameResponse } from '@/lib/types';
 
 export function LiveGamesBanner() {
   const { games } = useLiveGames();
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  // Don't render anything on server to prevent hydration mismatch
+  if (!isClient) {
+    return null;
+  }
+
   if (!games || games.length === 0) {
     return null;
   }
@@ -26,7 +37,7 @@ export function LiveGamesBanner() {
             <div className="flex items-center space-x-2">
               <div
                 data-testid="live-indicator"
-                className="w-2 h-2 bg-white rounded-full animate-live-dot-glow"
+                className="w-2 h-2 bg-red-600 rounded-full animate-live-dot-glow"
               />
               <span className="text-sm font-semibold">
                 {games.length} {games.length === 1 ? 'Live Game' : 'Live Games'}
