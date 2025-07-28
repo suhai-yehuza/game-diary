@@ -115,7 +115,7 @@ export interface IValidationRule {
 // API INFRASTRUCTURE TYPES
 // ========================================
 
-export interface ICacheConfig {
+export interface IApiCacheConfig {
   ttl: number;
   maxSize?: number;
   strategy?: 'memory' | 'redis';

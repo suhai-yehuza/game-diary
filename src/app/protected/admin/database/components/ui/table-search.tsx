@@ -1,16 +1,8 @@
 import { Search, X } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
 
+import type { ITableSearchProps } from '@/lib/types';
 import { Button } from '@src/app/protected/admin/database/components/ui/button';
-
-interface ITableSearchProps {
-  searchTerm: string;
-  searchField: string;
-  searchFields: { value: string; label: string }[];
-  onSearchChange: (term: string, field: string) => void;
-  onClear: () => void;
-  placeholder?: string;
-}
 
 export function TableSearch({
   searchTerm,

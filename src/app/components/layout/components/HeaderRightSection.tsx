@@ -3,10 +3,7 @@ import React, { useState } from 'react';
 import { ThemeToggle } from '@/app/components/common';
 import { ClientOnlyAuthControls } from '@/app/components/layout/components/AuthControls';
 import { SearchBar, useMobileDetection } from '@/app/components/layout/components/SearchBar';
-
-interface IHeaderRightSectionProps {
-  isMenuExpanded: boolean;
-}
+import type { IHeaderRightSectionProps } from '@/lib/types';
 
 export function HeaderRightSection({ isMenuExpanded }: IHeaderRightSectionProps) {
   const isMobile = useMobileDetection();

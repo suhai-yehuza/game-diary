@@ -3,7 +3,7 @@ import { resolve } from 'path';
 
 import { config } from 'dotenv';
 
-import type { DistributionConfigPreset, ScenarioKey } from '@/lib/types/seeding.types';
+import type { DistributionConfigPreset, ScenarioKey } from '@/lib/types';
 import {
   getConfigByEnvironment,
   getConfigByPreset,

@@ -1,11 +1,5 @@
 import formatNumberShort from '@/app/protected/admin/database/components/utils/formatNumberShort';
-
-interface IPaginationInfoProps {
-  totalCount: number;
-  currentPage: number;
-  pageSize: number;
-  itemLabel: string;
-}
+import type { IPaginationInfoProps } from '@/lib/types';
 
 export function PaginationInfo({
   totalCount,

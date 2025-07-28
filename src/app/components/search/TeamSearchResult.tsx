@@ -3,11 +3,7 @@
 import { Building2, MapPin } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
-import type { ISearchResult } from '@/lib/types';
-
-interface ITeamSearchResultProps {
-  team: ISearchResult;
-}
+import type { ITeamSearchResultProps } from '@/lib/types';
 
 export function TeamSearchResult({ team }: ITeamSearchResultProps) {
   const router = useRouter();

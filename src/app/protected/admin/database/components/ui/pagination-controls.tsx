@@ -1,20 +1,7 @@
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 
+import type { IPaginationControlsProps } from '@/lib/types';
 import { Button } from '@src/app/protected/admin/database/components/ui/button';
-
-interface IPaginationControlsProps {
-  totalCount: number;
-  currentPage: number;
-  pageInfo: {
-    hasPreviousPage: boolean;
-    hasNextPage: boolean;
-  };
-  loading: boolean;
-  onFirst: () => void;
-  onPrev: () => void;
-  onNext: () => void;
-  onLast: () => void;
-}
 
 export function PaginationControls({
   totalCount,

@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 
 import { API_CONFIG } from '@/lib/config/app.config';
 import type { TabValue } from '@/lib/types';
-import { TABS } from '@/lib/types/constant.types';
+import { TABS } from '@/lib/types';
 
 // Teams data hook
 export const useTeamsData = () => {

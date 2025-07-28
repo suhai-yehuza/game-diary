@@ -1,3 +1,3 @@
-import { envSchema, type IEnv } from '@/lib/types/validation.types';
+import { envSchema, type IEnv } from '@/lib/types';
 
 export { envSchema, type IEnv };

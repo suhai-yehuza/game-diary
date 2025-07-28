@@ -2,7 +2,7 @@
  * Centralized application configuration
  * This file contains all app-related constants to eliminate duplication
  */
-
+const SECONDS = 1000;
 export const APP_CONFIG = {
   // Default URLs
   DEFAULT_LOCALHOST_URL: 'http://localhost:3000',
@@ -15,12 +15,12 @@ export const APP_CONFIG = {
   HEALTH_CHECK_PATH: '/api/health',
 
   // Development settings
-  DEV_SERVER_TIMEOUT: 60 * 1000, // 60 seconds
+  DEV_SERVER_TIMEOUT: 60 * SECONDS,
 
   // Test settings
-  TEST_TIMEOUT: 120 * 1000, // 120 seconds
-  TEST_ACTION_TIMEOUT: 15000, // 15 seconds
-  TEST_NAVIGATION_TIMEOUT: 30000, // 30 seconds
+  TEST_TIMEOUT: 120 * SECONDS,
+  TEST_ACTION_TIMEOUT: 15 * SECONDS,
+  TEST_NAVIGATION_TIMEOUT: 30 * SECONDS,
 } as const;
 
 // Helper function to get the port from environment or use default

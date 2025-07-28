@@ -5,8 +5,7 @@ import { db } from '@/lib/db';
 import { game_logs, nba_games, teams } from '@/lib/db/schema';
 import { AuthorizationError } from '@/lib/graphql/errors';
 import { FRIENDSHIP_STATUS, CLASSIFICATION } from '@/lib/types';
-import type { GraphQLContext } from '@/lib/types/db.types';
-import type { IGameResponse, IGamesApiResponse } from '@/lib/types/externalApi.types';
+import type { GraphQLContext, IGameResponse, IGamesApiResponse } from '@/lib/types';
 import { createRapidAPIClient } from '@/lib/utils/api-client';
 import { generateUUIDv7 } from '@/lib/utils/id-generator';
 

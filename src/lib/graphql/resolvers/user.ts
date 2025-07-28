@@ -4,8 +4,7 @@ import { API_CONFIG } from '@/lib/config/app.config';
 import { db } from '@/lib/db';
 import { users } from '@/lib/db/schema';
 import { AuthorizationError } from '@/lib/graphql/errors';
-import type { GraphQLContext } from '@/lib/types/db.types';
-import type { IUserParent, IUserArgs } from '@/lib/types/graphql.types';
+import type { GraphQLContext, IUserParent, IUserArgs } from '@/lib/types';
 import { decryptField, deserializeEncryptedField } from '@/lib/utils/encryption';
 
 // Helper function to check if a value is encrypted

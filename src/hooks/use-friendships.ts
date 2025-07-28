@@ -21,7 +21,7 @@ import type {
   IUserFriendshipsResponse,
   IFriendshipRequestsResponse,
   IFriendshipStatusResponse,
-  ISearchUsersResponse,
+  IGraphQLSearchUsersResponse,
   ISendFriendRequestResponse,
   IAcceptFriendRequestResponse,
   IRejectFriendRequestResponse,
@@ -217,20 +217,23 @@ export function useUserSearch() {
   const [hasNextPage, setHasNextPage] = useState(true);
   const [totalCount, setTotalCount] = useState<number>(0);
 
-  const { loading, error, refetch, fetchMore } = useQuery<ISearchUsersResponse>(SEARCH_USERS, {
-    variables: { searchField: '', pagination: { first: 10 } },
-    fetchPolicy: 'cache-and-network',
-    errorPolicy: 'all',
-    skip: true, // Only run when search is triggered
-    onCompleted: data => {
-      if (data?.searchUsers) {
-        setUsers(data.searchUsers.edges.map(edge => edge.node));
-        setTotalCount(data.searchUsers.totalCount);
-        setEndCursor(data.searchUsers.pageInfo.endCursor ?? null);
-        setHasNextPage(!!data.searchUsers.pageInfo.hasNextPage);
-      }
-    },
-  });
+  const { loading, error, refetch, fetchMore } = useQuery<IGraphQLSearchUsersResponse>(
+    SEARCH_USERS,
+    {
+      variables: { searchField: '', pagination: { first: 10 } },
+      fetchPolicy: 'cache-and-network',
+      errorPolicy: 'all',
+      skip: true, // Only run when search is triggered
+      onCompleted: data => {
+        if (data?.searchUsers) {
+          setUsers(data.searchUsers.edges.map(edge => edge.node));
+          setTotalCount(data.searchUsers.totalCount);
+          setEndCursor(data.searchUsers.pageInfo.endCursor ?? null);
+          setHasNextPage(!!data.searchUsers.pageInfo.hasNextPage);
+        }
+      },
+    }
+  );
 
   const search = useCallback(
     async (searchTerm: string) => {

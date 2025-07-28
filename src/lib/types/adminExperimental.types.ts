@@ -1,7 +1,6 @@
 // Types for Admin Experimental components and pages
 import type { ReactNode, FormEvent } from 'react';
-import type { TabValue } from '@/lib/types/constant.types';
-import type { IBaseButtonProps, IBaseInputProps } from '@/lib/types/ui.types';
+import type { TabValue, IBaseButtonProps, IBaseInputProps } from '@/lib/types';
 import type {
   IGamesFormProps,
   IGameStatsFormProps,
@@ -10,7 +9,7 @@ import type {
   IPlayersFormProps,
   IPlayerStatsFormProps,
   IStandingsFormProps,
-} from '@/lib/types/form.types';
+} from '@/lib/types';
 
 // Button - extends base button interface
 export type ButtonProps = IBaseButtonProps & {

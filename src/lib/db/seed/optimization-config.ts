@@ -338,7 +338,7 @@ export class PerformanceTracker {
 // Export types
 
 // Add missing getCacheManager function
-import type { ICacheManager } from '@/lib/types/infrastructure.types';
+import type { ICacheManager } from '@/lib/types';
 
 // Cache TTL constant
 const CACHE_TTL_MS = 3600000; // 1 hour in milliseconds

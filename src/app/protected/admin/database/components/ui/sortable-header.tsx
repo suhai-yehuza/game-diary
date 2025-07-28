@@ -1,17 +1,7 @@
 import { ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import React from 'react';
 
-export type SortDirection = 'asc' | 'desc' | null;
-
-export interface ISortableHeaderProps {
-  children: React.ReactNode;
-  sortKey: string;
-  currentSortKey: string | null;
-  currentSortDirection: SortDirection;
-  onSort: (sortKey: string, direction: SortDirection) => void;
-  className?: string;
-  disabled?: boolean;
-}
+import type { SortDirection, ISortableHeaderProps } from '@/lib/types';
 
 export function SortableHeader({
   children,

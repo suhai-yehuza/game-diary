@@ -1,19 +1,7 @@
 import React, { Component, type ReactNode } from 'react';
 
+import type { IErrorBoundaryState, IErrorBoundaryProps } from '@/lib/types';
 import { Button } from '@src/app/protected/admin/database/components/ui/button';
-
-interface IErrorBoundaryState {
-  hasError: boolean;
-  error?: Error;
-  errorInfo?: React.ErrorInfo;
-}
-
-interface IErrorBoundaryProps {
-  children: ReactNode;
-  fallback?: ReactNode;
-  onError?: (error: Error, errorInfo: React.ErrorInfo) => void;
-  componentName?: string;
-}
 
 export class ErrorBoundary extends Component<IErrorBoundaryProps, IErrorBoundaryState> {
   static getDerivedStateFromError(error: Error): IErrorBoundaryState {

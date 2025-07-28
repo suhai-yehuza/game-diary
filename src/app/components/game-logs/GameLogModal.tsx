@@ -12,13 +12,6 @@ import { useDebounce } from 'use-debounce';
 import { Button } from '@/app/components/ui/button';
 import { Card } from '@/app/components/ui/Card';
 import { CREATE_GAME_LOG, UPDATE_GAME_LOG } from '@/lib/graphql/mutations';
-import type {
-  IGameLog,
-  CreateGameLogFormData,
-  UpdateGameLogFormData,
-  ICreateGameLogResponse,
-  IUpdateGameLogResponse,
-} from '@/lib/types';
 import {
   CLASSIFICATION,
   WATCHED_SETTING,
@@ -26,7 +19,16 @@ import {
   createGameLogSchema,
   updateGameLogSchema,
 } from '@/lib/types';
-import type { IGameResponse } from '@/lib/types/externalApi.types';
+import type {
+  IGameLog,
+  CreateGameLogFormData,
+  UpdateGameLogFormData,
+  ICreateGameLogResponse,
+  IUpdateGameLogResponse,
+  IGameLogModalProps,
+  IGameLogSearchResult,
+  IGameResponse,
+} from '@/lib/types';
 import { getLatestNbaSeason, getRecentNbaSeasons } from '@/lib/utils/nba-season';
 
 // Type predicate for linter and type safety
@@ -38,25 +40,6 @@ function isCreateGameLogFormData(data: unknown): data is CreateGameLogFormData {
     typeof obj.rating_for_game === 'number' &&
     typeof obj.classification === 'string'
   );
-}
-
-interface ISearchResult {
-  id: number;
-  name: string;
-  date: string;
-  homeTeam: string;
-  awayTeam: string;
-  arena: string;
-  season: number;
-  status: string;
-}
-
-export interface IGameLogModalProps {
-  mode: 'create' | 'edit';
-  isOpen: boolean;
-  onClose: () => void;
-  onSuccess: () => void;
-  gameLog?: IGameLog; // Required for edit mode
 }
 
 const LATEST_SEASON = getLatestNbaSeason();
@@ -73,7 +56,7 @@ export function GameLogModal({ mode, isOpen, onClose, onSuccess, gameLog }: IGam
   const [selectedGameName, setSelectedGameName] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearchTerm] = useDebounce(searchTerm, 300);
-  const [searchResults, setSearchResults] = useState<ISearchResult[]>([]);
+  const [searchResults, setSearchResults] = useState<IGameLogSearchResult[]>([]);
   const [allGames, setAllGames] = useState<IGameResponse[]>([]);
   const [searchLoading, setSearchLoading] = useState(false);
   const [gamesLoading, setGamesLoading] = useState(false);
@@ -232,7 +215,7 @@ export function GameLogModal({ mode, isOpen, onClose, onSuccess, gameLog }: IGam
         });
 
         // Convert to search results format (no limit on results)
-        const searchResults: ISearchResult[] = filteredGames.map(game => ({
+        const searchResults: IGameLogSearchResult[] = filteredGames.map(game => ({
           id: game.id,
           name: `${game.teams?.visitors?.name ?? 'Unknown Team'} @ ${game.teams?.home?.name ?? 'Unknown Team'}`,
           date: game.date?.start

@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
 
-import type { IErrorState, IUseErrorHandlerReturn } from '@/lib/types/ui.types';
+import type { IErrorState, IUseErrorHandlerReturn } from '@/lib/types';
 
 export function useErrorHandler(): IUseErrorHandlerReturn {
   const [error, setErrorState] = useState<IErrorState>({ hasError: false });

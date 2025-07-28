@@ -3,11 +3,7 @@
 import { Calendar, Gamepad2, Star, User } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
-import type { ISearchResult } from '@/lib/types';
-
-interface IGameLogSearchResultProps {
-  gameLog: ISearchResult;
-}
+import type { IGameLogSearchResultProps } from '@/lib/types';
 
 function formatDate(dateString: string) {
   const date = new Date(dateString);

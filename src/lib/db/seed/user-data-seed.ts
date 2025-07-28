@@ -3,8 +3,8 @@ import { neon } from '@neondatabase/serverless';
 import type { Table } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/neon-http';
 
-import type { Database } from '@/lib/types/db.types';
 import type {
+  Database,
   IStatisticalSeedingConfig,
   ISeedUser,
   ISeedFriendship,
@@ -12,7 +12,7 @@ import type {
   ISeedComment,
   ISeedReaction,
   ISeedingConfig,
-} from '@/lib/types/seeding.types';
+} from '@/lib/types';
 import { encryptField, serializeEncryptedField } from '@/lib/utils/encryption';
 import {
   users,

@@ -7,7 +7,7 @@ import { Suspense } from 'react';
 import { ClerkProviderWrapper } from '@/app/components/providers/ClerkProvider';
 import { MenuProvider } from '@/app/components/providers/MenuContext';
 import { apolloClient } from '@/lib/apollo-client';
-import type { IClientProvidersProps } from '@/lib/types/component.types';
+import type { IClientProvidersProps } from '@/lib/types';
 
 export function ClientProviders({ children }: IClientProvidersProps) {
   return (

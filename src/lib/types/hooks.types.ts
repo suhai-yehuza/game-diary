@@ -1,5 +1,62 @@
 // Types file: hooks.types.ts
-import type { IGamesApiResponse } from '@/lib/types/externalApi.types';
+import type { IGamesApiResponse } from '@/lib/types';
+
+// Async state types
+export interface IAsyncState<T> {
+  data: T | null;
+  loading: boolean;
+  error: string | null;
+}
+
+export interface IUseAsyncStateReturn<T> {
+  state: IAsyncState<T>;
+  setData: (data: T) => void;
+  setLoading: (loading: boolean) => void;
+  setError: (error: string | null) => void;
+  reset: () => void;
+  execute: (asyncFn: () => Promise<T>) => Promise<T | undefined>;
+}
+
+export interface IPaginatedState<T> extends IAsyncState<T[]> {
+  pageInfo: {
+    hasNextPage: boolean;
+    hasPreviousPage: boolean;
+    startCursor: string | null;
+    endCursor: string | null;
+  };
+  totalCount: number;
+}
+
+export interface IUsePaginatedStateReturn<T> {
+  state: IPaginatedState<T>;
+  setData: (data: T[], pageInfo?: IPaginatedState<T>['pageInfo'], totalCount?: number) => void;
+  setLoading: (loading: boolean) => void;
+  setError: (error: string | null) => void;
+  reset: () => void;
+  appendData: (newData: T[], pageInfo?: IPaginatedState<T>['pageInfo']) => void;
+  execute: (
+    asyncFn: () => Promise<{
+      data: T[];
+      pageInfo: IPaginatedState<T>['pageInfo'];
+      totalCount: number;
+    }>
+  ) => Promise<T[] | undefined>;
+}
+
+// Error handler types
+export interface IErrorState {
+  hasError: boolean;
+  error?: Error;
+  message?: string;
+}
+
+export interface IUseErrorHandlerReturn {
+  error: IErrorState;
+  setError: (error: Error | string) => void;
+  clearError: () => void;
+  handleAsyncError: <T>(asyncFn: () => Promise<T>) => Promise<T | undefined>;
+  handleSyncError: <T>(syncFn: () => T) => T | undefined;
+}
 
 // Types for use-live-games hook
 export interface IUseLiveGamesOptions {
@@ -91,7 +148,7 @@ export interface IFriendshipStatusResponse {
   };
 }
 
-export interface ISearchUsersResponse {
+export interface IGraphQLSearchUsersResponse {
   searchUsers: {
     edges: Array<{
       node: IUserSummary;

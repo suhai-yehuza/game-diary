@@ -36,7 +36,7 @@ import type {
   TeamsSectionProps,
   PlayersSectionProps,
 } from '@/lib/types';
-import { TABS } from '@/lib/types/constant.types';
+import { TABS } from '@/lib/types';
 
 // Navigation Tabs Component
 function NavigationTabs(props: NavigationTabsProps) {

@@ -3,11 +3,7 @@
 import { Calendar, User } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
-import type { ISearchResult } from '@/lib/types';
-
-interface IUserSearchResultProps {
-  user: ISearchResult;
-}
+import type { IUserSearchResultProps } from '@/lib/types';
 
 function formatDate(dateString: string) {
   const date = new Date(dateString);

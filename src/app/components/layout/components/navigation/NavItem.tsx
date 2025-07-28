@@ -2,14 +2,7 @@
 
 import Link from 'next/link';
 
-import type { NavItemProps } from '@/lib/types/component.types';
-
-interface INavItemExtendedProps extends NavItemProps {
-  onClick?: () => void;
-  isStacked?: boolean;
-  colorClass?: string;
-  closeMenu?: () => void;
-}
+import type { INavItemExtendedProps } from '@/lib/types';
 
 export function NavItem({
   href,

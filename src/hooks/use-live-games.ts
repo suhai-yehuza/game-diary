@@ -2,8 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 
 import { INTERNAL_PROXY_ENDPOINTS } from '@/lib/config/app.config';
 import { MOCK_LIVE_GAMES } from '@/lib/mock/liveGamesMock';
-import type { IGamesApiResponse } from '@/lib/types/externalApi.types';
-import type { IUseLiveGamesOptions } from '@/lib/types/hooks.types';
+import type { IGamesApiResponse, IUseLiveGamesOptions } from '@/lib/types';
 
 // Constants
 const REFRESH_INTERVAL_MS = 30000;

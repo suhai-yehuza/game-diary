@@ -5,6 +5,20 @@ import type {
   AUDIT_ACTIONS,
 } from '@/lib/db/schema/audit-schemas';
 
+// Logger Service Types
+export interface ILogContext {
+  component?: string;
+  function?: string;
+  userId?: string;
+  sessionId?: string;
+  requestId?: string;
+  endpoint?: string;
+  method?: string;
+  ipAddress?: string;
+  userAgent?: string;
+  [key: string]: unknown;
+}
+
 // Audit Logger Service Types
 export interface IAuditLogData {
   category: (typeof AUDIT_CATEGORIES)[keyof typeof AUDIT_CATEGORIES];

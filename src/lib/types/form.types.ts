@@ -1,6 +1,6 @@
 // Form-related types consolidated from various files
 import type { ReactNode, FormEvent } from 'react';
-import type { IBaseInputProps } from '@/lib/types/ui.types';
+import type { IBaseInputProps } from '@/lib/types';
 
 // ========================================
 // BASE FORM TYPES

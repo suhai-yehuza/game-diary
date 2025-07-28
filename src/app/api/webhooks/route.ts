@@ -4,7 +4,7 @@ import type { NextRequest } from 'next/server';
 import { handleUserCreated, handleUserUpdated, handleUserDeleted } from '@/app/api/webhooks/clerk';
 import { db } from '@/lib/db';
 import type { IClerkDeletedUserData, IClerkUserData } from '@/lib/types';
-import { webhookLogger } from '@lib/core/logger';
+import { webhookLogger } from '@/lib/utils/logger';
 
 // Helper functions
 const createResponse = (message: string, status: number) => new Response(message, { status });
@@ -35,7 +35,10 @@ export async function POST(req: NextRequest) {
         return createResponse('Unhandled event type', 200);
     }
   } catch (error) {
-    webhookLogger.error('Webhook error:', error);
+    webhookLogger.error(
+      'Webhook error:',
+      error instanceof Error ? error : new Error(String(error))
+    );
 
     const errorMessage = error instanceof Error ? error.message : 'Internal server error';
     const statusCode =

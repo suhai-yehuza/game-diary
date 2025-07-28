@@ -1,13 +1,8 @@
 import { redirect } from 'next/navigation';
 
 import ClerkSignUp from '@/app/components/auth/ClerkSignUp';
+import type { ISignUpPageProps } from '@/lib/types';
 import { isClerkCatchallRouteServer } from '@/lib/utils/sso-utils';
-
-interface ISignUpPageProps {
-  params: {
-    'sign-up': string[];
-  };
-}
 
 export default function SignUpPage({ params }: ISignUpPageProps) {
   // Handle Clerk catchall routes and SSO callbacks

@@ -1,7 +1,7 @@
 import type { InferSelectModel } from 'drizzle-orm';
 import { GraphQLError } from 'graphql';
 
-import { RESOURCES } from '@/lib/types/constant.types';
+import { RESOURCES } from '@/lib/types';
 import type { users } from '@src/lib/db/schema';
 
 // Custom Error Classes

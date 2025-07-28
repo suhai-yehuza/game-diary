@@ -3,7 +3,7 @@ import { eq, and, desc, sql, inArray } from 'drizzle-orm';
 import { API_CONFIG } from '@/lib/config/app.config';
 import { db } from '@/lib/db';
 import { nba_games, teams } from '@/lib/db/schema';
-import type { GraphQLContext } from '@/lib/types/db.types';
+import type { GraphQLContext } from '@/lib/types';
 
 // Game Query Resolvers (for nba_games table)
 export const gameQueryResolvers = {

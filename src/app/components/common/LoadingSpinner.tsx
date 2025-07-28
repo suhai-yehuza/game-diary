@@ -1,11 +1,6 @@
 import React from 'react';
 
-interface ILoadingSpinnerProps {
-  size?: 'sm' | 'md' | 'lg' | 'xl';
-  text?: string;
-  className?: string;
-  variant?: 'default' | 'primary' | 'secondary';
-}
+import type { ILoadingSpinnerProps } from '@/lib/types';
 
 const sizeClasses = {
   sm: 'h-4 w-4',

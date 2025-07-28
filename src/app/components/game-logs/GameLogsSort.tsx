@@ -3,7 +3,7 @@
 import { ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import React from 'react';
 
-import type { IGameLogsSortProps } from '@/lib/types/gameLog.types';
+import type { IGameLogsSortProps } from '@/lib/types';
 
 const sortOptions = [
   { key: 'created_at', label: 'Date Created' },

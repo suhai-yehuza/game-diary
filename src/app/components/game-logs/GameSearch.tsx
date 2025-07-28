@@ -7,28 +7,12 @@ import { useDebounce } from 'use-debounce';
 import { Button } from '@/app/components/ui/button';
 import { Card } from '@/app/components/ui/Card';
 import { API_CONFIG } from '@/lib/config/app.config';
-import type { IGameResponse } from '@/lib/types/externalApi.types';
-
-interface IGameSearchProps {
-  onGameSelect: (gameId: string, gameName: string) => void;
-  onClose: () => void;
-}
-
-interface ISearchResult {
-  id: number;
-  name: string;
-  date: string;
-  homeTeam: string;
-  awayTeam: string;
-  arena: string;
-  season: number;
-  status: string;
-}
+import type { IGameSearchProps, IGameLogSearchResult, IGameResponse } from '@/lib/types';
 
 export function GameSearch({ onGameSelect, onClose }: IGameSearchProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearchTerm] = useDebounce(searchTerm, 300);
-  const [results, setResults] = useState<ISearchResult[]>([]);
+  const [results, setResults] = useState<IGameLogSearchResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedSeason, setSelectedSeason] = useState<number>(new Date().getFullYear());
@@ -82,7 +66,7 @@ export function GameSearch({ onGameSelect, onClose }: IGameSearchProps) {
         .sort((a, b) => new Date(b.date.start).getTime() - new Date(a.date.start).getTime())
         .slice(0, API_CONFIG.pagination.DEFAULT_PAGE_SIZE * 2.5); // Use config-based limit for better search results
 
-      const searchResults: ISearchResult[] = sortedGames.map(game => ({
+      const searchResults: IGameLogSearchResult[] = sortedGames.map(game => ({
         id: game.id,
         name: `${game.teams.visitors.name} @ ${game.teams.home.name}`,
         date: new Date(game.date.start).toLocaleDateString('en-US', {
@@ -112,12 +96,12 @@ export function GameSearch({ onGameSelect, onClose }: IGameSearchProps) {
     void searchGames(debouncedSearchTerm, selectedSeason);
   }, [debouncedSearchTerm, selectedSeason, searchGames]);
 
-  const handleGameSelect = (game: ISearchResult) => {
+  const handleGameSelect = (game: IGameLogSearchResult) => {
     onGameSelect(game.id.toString(), game.name);
     onClose();
   };
 
-  const formatScore = (game: ISearchResult) => {
+  const formatScore = (game: IGameLogSearchResult) => {
     // For now, we'll just show the teams without scores
     // In a real implementation, you'd get the scores from the game data
     return `${game.awayTeam} @ ${game.homeTeam}`;

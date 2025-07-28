@@ -1,6 +1,6 @@
 import crypto from 'crypto';
 
-import type { IEncryptedField } from '@/lib/types/misc.types';
+import type { IEncryptedField } from '@/lib/types';
 import { loadEnvironmentVariables } from '@/lib/utils/env-loader';
 
 // Load environment variables safely

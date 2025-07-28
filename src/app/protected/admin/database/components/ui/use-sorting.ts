@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 
-import type { ISortConfig, IUseSortingReturn } from '@/lib/types/ui.types';
+import type { ISortConfig, IUseSortingReturn } from '@/lib/types';
 import type { SortDirection } from '@src/app/protected/admin/database/components/ui/sortable-header';
 
 export function useSorting(initialSortKey: string | null = null): IUseSortingReturn {

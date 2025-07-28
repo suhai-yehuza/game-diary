@@ -5,6 +5,7 @@ import React, { useState, useEffect, Suspense } from 'react';
 
 import { ClerkWrapper } from '@/app/components/common/ClerkErrorBoundary';
 import { isUnitTestEnvironment, isE2ETestEnvironment } from '@/lib/config/app.config';
+import { logE2E } from '@/lib/utils/logger';
 import { isSSOCallback } from '@/lib/utils/sso-utils';
 
 // Utility function to check if Clerk is configured
@@ -44,12 +45,12 @@ function AuthControlsContent() {
           'user' in maybeClerk &&
           typeof (maybeClerk as { user?: unknown }).user === 'object'
         ) {
-          console.log('[E2E DEBUG] Clerk user:', (maybeClerk as { user: unknown }).user);
+          logE2E('Clerk user found', { user: (maybeClerk as { user: unknown }).user });
         } else {
-          console.log('[E2E DEBUG] Clerk user not found');
+          logE2E('Clerk user not found');
         }
       } catch (e) {
-        console.log('[E2E DEBUG] Clerk user logging error:', e);
+        logE2E('Clerk user logging error', { error: e });
       }
     }
   }, []);
@@ -85,7 +86,7 @@ function AuthControlsContent() {
           aria-label="Sign In (Test)"
           onClick={() => {
             // Mock sign-in for unit tests
-            console.log('Mock sign-in clicked');
+            logE2E('Mock sign-in clicked');
           }}
         >
           Sign In (Test)

@@ -8,14 +8,7 @@ import { GameSearchResult } from '@/app/components/search/GameSearchResult';
 import { PlayerSearchResult } from '@/app/components/search/PlayerSearchResult';
 import { TeamSearchResult } from '@/app/components/search/TeamSearchResult';
 import { UserSearchResult } from '@/app/components/search/UserSearchResult';
-import type { ISearchResponse } from '@/lib/types';
-
-interface ISearchResultsProps {
-  results: ISearchResponse;
-  query: string;
-}
-
-type ResultType = 'all' | 'users' | 'games' | 'gameLogs' | 'teams' | 'players';
+import type { ISearchResponse, ISearchResultsProps, ResultType } from '@/lib/types';
 
 export function SearchResults({ results, query }: ISearchResultsProps) {
   const [activeFilter, setActiveFilter] = useState<ResultType>('all');

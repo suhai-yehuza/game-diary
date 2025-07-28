@@ -1,5 +1,5 @@
 // Types for Admin Database components and pages
-import type { IPageInfo } from '@/lib/types/core.types';
+import type { IPageInfo } from '@/lib/types';
 
 // User-related types
 export interface IUserSummary {

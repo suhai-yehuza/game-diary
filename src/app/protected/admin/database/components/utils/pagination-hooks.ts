@@ -1,8 +1,7 @@
 import { useCallback, useState } from 'react';
 
 import { API_CONFIG } from '@/lib/config/app.config';
-import type { IPaginationOptions } from '@/lib/types/ui.types';
-import type { IPageInfo } from '@src/lib/types';
+import type { IPaginationOptions, IPageInfo } from '@/lib/types';
 
 export function usePagination({ query, variables, onDataReceived, onError }: IPaginationOptions) {
   const [pageInfo, setPageInfo] = useState<IPageInfo>({

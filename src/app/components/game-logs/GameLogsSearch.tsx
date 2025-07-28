@@ -4,12 +4,7 @@ import { Search, X } from 'lucide-react';
 import React, { useState, useCallback } from 'react';
 import { useDebounce } from 'use-debounce';
 
-interface IGameLogsSearchProps {
-  onSearchChange: (searchTerm: string, searchField: string) => void;
-  onClear: () => void;
-  searchTerm: string;
-  searchField: string;
-}
+import type { IGameLogsSearchProps } from '@/lib/types';
 
 const searchFields = [
   { value: 'all', label: 'All Fields' },

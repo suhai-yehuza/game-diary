@@ -216,7 +216,7 @@
     "validate:rapidapi": "./scripts/validate-rapidapi-key.sh",
     "validate:size": "./scripts/validate.sh size",
     "validate:staging": "./scripts/validate.sh staging",
-    "validate:types": "./scripts/validate.sh types",
+    "validate:types": "tsx scripts/utils/validate-types.ts",
     "validate:unused": "./scripts/validate.sh unused",
     "validate:with-size": "pnpm validate && pnpm check:size",
     "verify": "pnpm validate:basic",

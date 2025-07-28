@@ -3,11 +3,7 @@
 import { Calendar, Star, Trophy } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
-import type { ISearchResult } from '@/lib/types';
-
-interface IGameSearchResultProps {
-  game: ISearchResult;
-}
+import type { IGameSearchResultProps } from '@/lib/types';
 
 function formatDate(dateString: string) {
   const date = new Date(dateString);

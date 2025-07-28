@@ -1,5 +1,5 @@
 import type React from 'react';
-import type { ISortDirection } from '@/lib/types/core.types';
+import type { ISortDirection } from '@/lib/types';
 
 // ========================================
 // NOTIFICATION TYPES
@@ -102,9 +102,9 @@ export interface IBaseButtonProps {
 
 // Specific button variants
 export interface IButtonProps extends IBaseButtonProps {
-  children: React.ReactNode;
-  variant?: 'default' | 'ghost';
-  size?: 'default' | 'icon';
+  children?: React.ReactNode;
+  variant?: 'default' | 'outline' | 'ghost' | 'destructive';
+  size?: 'default' | 'sm' | 'lg';
   'aria-label'?: string;
 }
 

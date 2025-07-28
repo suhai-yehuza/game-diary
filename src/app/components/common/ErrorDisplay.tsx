@@ -1,13 +1,6 @@
 import React from 'react';
 
-interface IErrorDisplayProps {
-  error: string | Error;
-  title?: string;
-  onRetry?: () => void;
-  variant?: 'default' | 'danger' | 'warning';
-  className?: string;
-  showRetry?: boolean;
-}
+import type { IErrorDisplayProps } from '@/lib/types';
 
 const variantClasses = {
   default:

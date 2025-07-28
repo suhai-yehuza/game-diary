@@ -1,9 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 
-interface ILogoProps {
-  isMenuExpanded: boolean;
-}
+import type { ILogoProps } from '@/lib/types';
 
 export function Logo({ isMenuExpanded }: ILogoProps) {
   // Logo - Left (hide when menu is open as overlay, and only show on large screens)

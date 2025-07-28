@@ -4,17 +4,7 @@ import React, { useState } from 'react';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/app/components/ui/Tabs';
 import TableWithSearch from '@/app/protected/admin/database/components/TableWithSearch';
-
-type ClassificationType = 'PUBLIC' | 'PRIVATE' | 'PROTECTED';
-
-interface IGameLog {
-  id: string;
-  user_id: string;
-  game_id: string;
-  rating_for_game: number;
-  classification: string;
-  created_at: string;
-}
+import type { ClassificationType, IGameLog } from '@/lib/types';
 
 export function GameLogsTableWithSearch() {
   const [selectedClassification, setSelectedClassification] =

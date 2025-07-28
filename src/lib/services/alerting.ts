@@ -1,4 +1,4 @@
-import type { ISlackMessage } from '@/lib/types/services.types';
+import type { ISlackMessage } from '@/lib/types';
 
 export class AlertingService {
   private static instance: AlertingService;

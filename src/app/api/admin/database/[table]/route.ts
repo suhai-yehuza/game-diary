@@ -1,94 +1,40 @@
 import { sql } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
 
-import { API_CONFIG } from '@/lib/config/app.config';
-import { logger } from '@lib/core/logger';
+import { logger } from '@/lib/utils/logger';
 import { createDatabaseClient } from '@src/lib/db';
 
 export async function GET(request: Request, { params }: { params: Promise<{ table: string }> }) {
   try {
     const { table } = await params;
     const { searchParams } = new URL(request.url);
-    const page = parseInt(searchParams.get('page') ?? '1', 10);
-    const limit = parseInt(
-      searchParams.get('limit') ?? API_CONFIG.pagination.DEFAULT_PAGE_SIZE.toString(),
-      10
-    );
     const search = searchParams.get('search') ?? '';
-    const searchField = searchParams.get('searchField') ?? 'all';
-    const sortBy = searchParams.get('sortBy') ?? 'created_at';
-    const sortDirection = searchParams.get('sortDirection') ?? 'desc';
-
-    logger.info(`Fetching data from table: ${table}`);
-
-    const db = createDatabaseClient();
+    const searchField = searchParams.get('searchField') ?? '';
+    const page = parseInt(searchParams.get('page') ?? '1', 10);
+    const limit = parseInt(searchParams.get('limit') ?? '10', 10);
     const offset = (page - 1) * limit;
 
-    // Build dynamic query based on table
-    let query;
-    let countQuery;
+    const db = createDatabaseClient();
 
-    // Helper function to build search conditions
+    // Helper functions
     const buildSearchCondition = (searchTerm: string, field: string, tableColumns: string[]) => {
-      if (!searchTerm.trim()) return '';
-
-      const searchPattern = `%${searchTerm}%`;
-
-      if (field === 'all') {
-        // Search across all relevant columns
-        const conditions = tableColumns.map(col => `${col} ILIKE '${searchPattern}'`).join(' OR ');
-        return `WHERE (${conditions})`;
-      } else {
-        // Search in specific field
-        return `WHERE ${field} ILIKE '${searchPattern}'`;
-      }
+      if (!searchTerm) return '';
+      const validField = tableColumns.includes(field) ? field : tableColumns[0];
+      return `WHERE ${validField} ILIKE '%${searchTerm}%'`;
     };
 
-    // Helper function to build ORDER BY clause
     const buildOrderByClause = (defaultSort: string) => {
-      const validSortDirections = ['asc', 'desc'];
-      const direction = validSortDirections.includes(sortDirection.toLowerCase())
-        ? sortDirection.toLowerCase()
-        : 'desc';
-
-      // Validate sortBy field to prevent SQL injection
-      const validSortFields = [
-        'id',
-        'created_at',
-        'updated_at',
-        'username',
-        'first_name',
-        'last_name',
-        'email_address',
-        'user_id',
-        'game_id',
-        'rating_for_game',
-        'classification',
-        'rating',
-        'game_log_id',
-        'content',
-        'target_type',
-        'target_id',
-        'emoji',
-        'friend_id',
-        'status',
-        'type',
-        'title',
-        'read',
-        'date',
-        'home_team_score',
-        'away_team_score',
-        'success',
-      ];
-
-      const safeSortBy = validSortFields.includes(sortBy) ? sortBy : defaultSort;
-
-      return `ORDER BY ${safeSortBy} ${direction}`;
+      const sortBy = searchParams.get('sortBy') ?? defaultSort;
+      const sortDirection = searchParams.get('sortDirection') ?? 'DESC';
+      return `ORDER BY ${sortBy} ${sortDirection}`;
     };
+
+    let query: ReturnType<typeof sql>;
+    let countQuery: ReturnType<typeof sql>;
 
     switch (table) {
       case 'users': {
-        const userColumns = ['username', 'first_name', 'last_name', 'email_address'];
+        const userColumns = ['id', 'email', 'username', 'first_name', 'last_name'];
         const userSearchCondition = buildSearchCondition(search, searchField, userColumns);
         const orderByClause = buildOrderByClause('created_at');
         query = sql`SELECT * FROM users ${userSearchCondition ? sql.raw(userSearchCondition) : sql``} ${sql.raw(orderByClause)} LIMIT ${limit} OFFSET ${offset}`;
@@ -97,47 +43,11 @@ export async function GET(request: Request, { params }: { params: Promise<{ tabl
       }
 
       case 'game_logs': {
-        const gameLogColumns = ['id', 'user_id', 'game_id', 'rating_for_game', 'classification'];
+        const gameLogColumns = ['id', 'user_id', 'game_id', 'title', 'content'];
         const gameLogSearchCondition = buildSearchCondition(search, searchField, gameLogColumns);
         const orderByClause = buildOrderByClause('created_at');
         query = sql`SELECT * FROM game_logs ${gameLogSearchCondition ? sql.raw(gameLogSearchCondition) : sql``} ${sql.raw(orderByClause)} LIMIT ${limit} OFFSET ${offset}`;
         countQuery = sql`SELECT COUNT(*) as total FROM game_logs ${gameLogSearchCondition ? sql.raw(gameLogSearchCondition) : sql``}`;
-        break;
-      }
-
-      case 'game_logs_public': {
-        const gameLogColumns = ['id', 'user_id', 'game_id', 'rating_for_game', 'classification'];
-        const gameLogSearchCondition = buildSearchCondition(search, searchField, gameLogColumns);
-        const classificationCondition = gameLogSearchCondition
-          ? `WHERE classification = 'PUBLIC' AND (${gameLogSearchCondition.replace('WHERE ', '')})`
-          : "WHERE classification = 'PUBLIC'";
-        const orderByClause = buildOrderByClause('created_at');
-        query = sql`SELECT * FROM game_logs ${sql.raw(classificationCondition)} ${sql.raw(orderByClause)} LIMIT ${limit} OFFSET ${offset}`;
-        countQuery = sql`SELECT COUNT(*) as total FROM game_logs ${sql.raw(classificationCondition)}`;
-        break;
-      }
-
-      case 'game_logs_private': {
-        const gameLogColumns = ['id', 'user_id', 'game_id', 'rating_for_game', 'classification'];
-        const gameLogSearchCondition = buildSearchCondition(search, searchField, gameLogColumns);
-        const classificationCondition = gameLogSearchCondition
-          ? `WHERE classification = 'PRIVATE' AND (${gameLogSearchCondition.replace('WHERE ', '')})`
-          : "WHERE classification = 'PRIVATE'";
-        const orderByClause = buildOrderByClause('created_at');
-        query = sql`SELECT * FROM game_logs ${sql.raw(classificationCondition)} ${sql.raw(orderByClause)} LIMIT ${limit} OFFSET ${offset}`;
-        countQuery = sql`SELECT COUNT(*) as total FROM game_logs ${sql.raw(classificationCondition)}`;
-        break;
-      }
-
-      case 'game_logs_protected': {
-        const gameLogColumns = ['id', 'user_id', 'game_id', 'rating_for_game', 'classification'];
-        const gameLogSearchCondition = buildSearchCondition(search, searchField, gameLogColumns);
-        const classificationCondition = gameLogSearchCondition
-          ? `WHERE classification = 'PROTECTED' AND (${gameLogSearchCondition.replace('WHERE ', '')})`
-          : "WHERE classification = 'PROTECTED'";
-        const orderByClause = buildOrderByClause('created_at');
-        query = sql`SELECT * FROM game_logs ${sql.raw(classificationCondition)} ${sql.raw(orderByClause)} LIMIT ${limit} OFFSET ${offset}`;
-        countQuery = sql`SELECT COUNT(*) as total FROM game_logs ${sql.raw(classificationCondition)}`;
         break;
       }
 
@@ -231,11 +141,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ tabl
       },
     });
   } catch (error) {
-    logger.error('Error fetching data:', error);
-    if (error instanceof Error) {
-      logger.error('Stack:', error.stack);
-      return NextResponse.json({ error: error.message, stack: error.stack }, { status: 500 });
-    }
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    const errorObj = error instanceof Error ? error : new Error(String(error));
+    logger.error('Error fetching data:', errorObj);
+    return NextResponse.json({ error: errorObj.message }, { status: 500 });
   }
 }

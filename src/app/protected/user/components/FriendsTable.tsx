@@ -22,7 +22,7 @@ import {
   useFriendshipMutations,
   useFriendshipStatus,
 } from '@/hooks/use-friendships';
-import type { IFriendship, IUserSummary } from '@/lib/types/hooks.types';
+import type { IFriendship, IUserSummary } from '@/lib/types';
 
 export function FriendsTable() {
   const { user } = useUser();

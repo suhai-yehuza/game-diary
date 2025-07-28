@@ -9,19 +9,7 @@ import { PaginationInfo } from '@/app/protected/admin/database/components/ui/pag
 import { SortableHeader } from '@/app/protected/admin/database/components/ui/sortable-header';
 import { TableSearch } from '@/app/protected/admin/database/components/ui/table-search';
 import { API_CONFIG } from '@/lib/config/app.config';
-
-interface IColumnConfig<T> {
-  key: keyof T;
-  label: string;
-  render?: (item: T) => React.ReactNode;
-  sortable?: boolean;
-}
-
-interface ITableWithSearchProps<T extends { id: string | number }> {
-  tableName: string;
-  columns: IColumnConfig<T>[];
-  itemLabel: string;
-}
+import type { IColumnConfig, ITableWithSearchProps } from '@/lib/types';
 
 export default function TableWithSearch<T extends { id: string | number }>({
   tableName,

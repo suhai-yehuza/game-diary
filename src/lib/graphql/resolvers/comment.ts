@@ -4,7 +4,7 @@ import { API_CONFIG } from '@/lib/config/app.config';
 import { db } from '@/lib/db';
 import { comments } from '@/lib/db/schema';
 import { AuthorizationError } from '@/lib/graphql/errors';
-import type { GraphQLContext } from '@/lib/types/db.types';
+import type { GraphQLContext } from '@/lib/types';
 
 // Comment Query Resolvers
 export const commentQueryResolvers = {

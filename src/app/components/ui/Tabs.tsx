@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 
+import type { ITabsProps, ITabsListProps, ITabsTriggerProps, ITabsContentProps } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
 const TabsContext = React.createContext<{
@@ -17,24 +18,12 @@ const useTabsContext = () => {
   return context;
 };
 
-export interface ITabsProps {
-  value: string;
-  onValueChange: (value: string) => void;
-  children: React.ReactNode;
-  className?: string;
-}
-
 export function Tabs({ value, onValueChange, children, className }: ITabsProps) {
   return (
     <TabsContext.Provider value={{ value, onValueChange }}>
       <div className={cn('w-full', className)}>{children}</div>
     </TabsContext.Provider>
   );
-}
-
-export interface ITabsListProps {
-  children: React.ReactNode;
-  className?: string;
 }
 
 export function TabsList({ children, className }: ITabsListProps) {
@@ -48,12 +37,6 @@ export function TabsList({ children, className }: ITabsListProps) {
       {children}
     </div>
   );
-}
-
-export interface ITabsTriggerProps {
-  value: string;
-  children: React.ReactNode;
-  className?: string;
 }
 
 export function TabsTrigger({ value, children, className }: ITabsTriggerProps) {
@@ -76,12 +59,6 @@ export function TabsTrigger({ value, children, className }: ITabsTriggerProps) {
       {children}
     </button>
   );
-}
-
-export interface ITabsContentProps {
-  value: string;
-  children: React.ReactNode;
-  className?: string;
 }
 
 export function TabsContent({ value, children, className }: ITabsContentProps) {

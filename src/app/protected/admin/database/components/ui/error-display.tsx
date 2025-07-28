@@ -1,6 +1,4 @@
-interface IErrorDisplayProps {
-  error: string | null;
-}
+import type { IErrorDisplayProps } from '@/lib/types';
 
 export function ErrorDisplay({ error }: IErrorDisplayProps) {
   if (!error) return null;

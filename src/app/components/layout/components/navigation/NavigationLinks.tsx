@@ -1,25 +1,13 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 
 import { AdminNavWithAuth } from '@/app/components/layout/components/navigation/AdminNav';
 import { NavItem } from '@/app/components/layout/components/navigation/NavItem';
 import { useMobileDetection } from '@/app/components/layout/components/SearchBar';
 import { SPORTS_CONFIG } from '@/app/components/sports/SportsConfig';
-
-interface INavigationLinksProps {
-  isActive: (path: string) => boolean;
-  _isMenuExpanded: boolean;
-  _setIsMenuExpanded: (expanded: boolean) => void;
-  closeMenu?: () => void;
-  isStacked?: boolean;
-}
-
-function useMounted() {
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
-  return mounted;
-}
+import { useMounted } from '@/hooks/use-mounted';
+import type { INavigationLinksProps } from '@/lib/types';
 
 export function NavigationLinks({
   isActive,

@@ -6,9 +6,16 @@ import { useCallback, useState } from 'react';
 import { API_CONFIG } from '@/lib/config/app.config';
 import { GET_FRIENDS_GAME_LOGS, GET_GAME_LOGS } from '@/lib/graphql/queries';
 import { CLASSIFICATION } from '@/lib/types';
-import type { IGameLog, IGameLogsOptions, IGameLogsResponse } from '@/lib/types/gameLog.types';
-import type { Query, Game as GqlGame, Team as GqlTeam } from '@/lib/types/generated/graphql';
-import type { IFriendsGameLogsShape, GqlGameLogNoComments } from '@/lib/types/hooks.types';
+import type {
+  IGameLog,
+  IGameLogsOptions,
+  IGameLogsResponse,
+  IFriendsGameLogsShape,
+  GqlGameLogNoComments,
+  Query,
+  Game as GqlGame,
+  Team as GqlTeam,
+} from '@/lib/types';
 
 // @ts-expect-error codegen types are trusted and safe for member access
 function mapTeam(team: GqlTeam | null | undefined): IGameLog['game']['home_team'] | undefined {

@@ -173,6 +173,11 @@ run_typecheck() {
     pnpm run typecheck
 }
 
+run_type_location_validation() {
+    log_info "Validating TypeScript type/interface locations..."
+    pnpm run validate:types
+}
+
 run_validate_rapidapi_key() {
     log_info "Validating RapidAPI key..."
     pnpm run validate:rapidapi
@@ -412,6 +417,7 @@ run_code_quality_validation() {
     run_format_check
     run_lint
     run_typecheck
+    run_type_location_validation
 }
 
 # Function to run CI-friendly validation (skips environment validation)
@@ -420,6 +426,8 @@ run_ci_validation() {
 
     run_circular_check
     run_typecheck
+    run_type_location_validation
+    run_dead_code_check
 
     log_info "Skipping comprehensive environment validation in CI mode..."
     log_warning "Environment variables will be validated in individual CI jobs"
@@ -441,6 +449,7 @@ run_basic_validation() {
 
     run_circular_check
     run_typecheck
+    run_type_location_validation
     run_dead_code_check
     run_db_triggers_validation
     run_validate_rapidapi_key
@@ -575,6 +584,7 @@ case "$SUBCOMMAND" in
     "types")
         log "Validating and fixing types..."
         run_typecheck
+        run_type_location_validation
         log_success "Type validation and fixes completed"
         ;;
     "env")

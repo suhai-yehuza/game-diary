@@ -1,13 +1,6 @@
 import React from 'react';
 
-interface IEmptyStateProps {
-  title: string;
-  description?: string;
-  icon?: React.ReactNode;
-  action?: React.ReactNode;
-  variant?: 'default' | 'info' | 'warning';
-  className?: string;
-}
+import type { IEmptyStateProps } from '@/lib/types';
 
 const variantClasses = {
   default: 'text-gray-600 dark:text-gray-400',

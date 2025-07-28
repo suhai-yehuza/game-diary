@@ -5,7 +5,7 @@ import React from 'react';
 
 import { PageLoadingSpinner, PageErrorDisplay, NoDataEmptyState } from '@/app/components/common';
 import { useLiveGames } from '@/hooks/use-live-games';
-import type { IGamesApiResponse } from '@/lib/types/externalApi.types';
+import type { IGamesApiResponse } from '@/lib/types';
 
 export function LiveGamesDetail({ data }: { data?: IGamesApiResponse } = {}) {
   const { games, loading, error } = useLiveGames({
