@@ -195,6 +195,7 @@
     "test:ui": "pnpm exec vitest --ui",
     "test:unit": "pnpm exec vitest run tests/unit --reporter=verbose --coverage",
     "test:unit:json": "pnpm exec vitest run --reporter=json --coverage",
+    "test:vercel-deploy": "./scripts/test-vercel-deploy.sh",
     "test:watch": "pnpm exec vitest",
     "test:webhook": "NODE_ENV=development tsx scripts/tests/test-webhook.ts",
     "truncate:all": "tsx scripts/db/database-manager.ts truncate --scope=all",

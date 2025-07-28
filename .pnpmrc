@@ -1,0 +1,16 @@
+# pnpm configuration for Vercel deployments
+auto-install-peers=true
+strict-peer-dependencies=false
+shamefully-hoist=false
+prefer-workspace-packages=true
+shared-workspace-lockfile=false
+
+# Store configuration to prevent corruption
+store-dir=.pnpm-store
+cache-dir=.pnpm-cache
+
+# Suppress warnings from deep dependencies
+suppress-deprecation-warnings=true
+
+# Disable telemetry and scripts for CI/CD
+enable-pre-post-scripts=false
