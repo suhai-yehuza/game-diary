@@ -266,3 +266,56 @@ export const isE2ETestEnvironment =
 
 // Add unit test environment detection
 export const isUnitTestEnvironment = process.env.NODE_ENV === 'test' && !isE2ETestEnvironment;
+
+/**
+ * Centralized application configuration
+ * This file contains all app-related constants to eliminate duplication
+ */
+const SECONDS = 1000;
+export const APP_CONFIG = {
+  // Default URLs
+  DEFAULT_LOCALHOST_URL: 'http://localhost:3000',
+  DEFAULT_PORT: 3000,
+
+  // Environment-specific URLs
+  getLocalhostUrl: (port?: number) => `http://localhost:${port ?? APP_CONFIG.DEFAULT_PORT}`,
+
+  // Health check endpoints
+  HEALTH_CHECK_PATH: '/api/health',
+
+  // Development settings
+  DEV_SERVER_TIMEOUT: 60 * SECONDS,
+
+  // Test settings
+  TEST_TIMEOUT: 120 * SECONDS,
+  TEST_ACTION_TIMEOUT: 15 * SECONDS,
+  TEST_NAVIGATION_TIMEOUT: 30 * SECONDS,
+} as const;
+
+// Helper function to get the port from environment or use default
+export const getPort = (): number => {
+  return parseInt(
+    process.env.PORT ?? process.env.DEFAULT_PORT ?? APP_CONFIG.DEFAULT_PORT.toString()
+  );
+};
+
+// Helper function to get the appropriate URL based on environment
+export const getAppUrl = (): string => {
+  // In CI, prioritize deployment URL, then Vercel URL, then localhost
+  if (process.env.CI) {
+    return (
+      process.env.DEPLOYMENT_URL ??
+      process.env.VERCEL_URL ??
+      process.env.VERCEL_PRODUCTION_URL ??
+      APP_CONFIG.getLocalhostUrl(getPort())
+    );
+  }
+  // In development, use localhost
+  return process.env.DEPLOYMENT_URL ?? APP_CONFIG.getLocalhostUrl(getPort());
+};
+
+// Helper function to check if we're targeting localhost
+export const isLocalhostTarget = (): boolean => {
+  const targetURL = getAppUrl();
+  return targetURL.includes('localhost');
+};

@@ -1,6 +1,6 @@
 import { Page, expect } from '@playwright/test';
-import { TestConfig } from '@src/lib/types';
-import { APP_CONFIG, getAppUrl } from '../../../lib/config/app.config';
+import { APP_CONFIG, getAppUrl } from '../../../src/lib/config/app.config';
+import { TestConfig } from '../../../src/lib/types';
 
 /**
  * Test utilities for e2e tests

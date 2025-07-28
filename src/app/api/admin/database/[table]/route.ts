@@ -42,12 +42,17 @@ export async function GET(request: Request, { params }: { params: Promise<{ tabl
         break;
       }
 
-      case 'game_logs': {
+      case 'game_logs':
+      case 'game_logs_public':
+      case 'game_logs_private':
+      case 'game_logs_protected': {
         const gameLogColumns = ['id', 'user_id', 'game_id', 'title', 'content'];
         const gameLogSearchCondition = buildSearchCondition(search, searchField, gameLogColumns);
         const orderByClause = buildOrderByClause('created_at');
-        query = sql`SELECT * FROM game_logs ${gameLogSearchCondition ? sql.raw(gameLogSearchCondition) : sql``} ${sql.raw(orderByClause)} LIMIT ${limit} OFFSET ${offset}`;
-        countQuery = sql`SELECT COUNT(*) as total FROM game_logs ${gameLogSearchCondition ? sql.raw(gameLogSearchCondition) : sql``}`;
+        // Use the base table name for all game log variants
+        const baseTableName = 'game_logs';
+        query = sql`SELECT * FROM ${sql.raw(baseTableName)} ${gameLogSearchCondition ? sql.raw(gameLogSearchCondition) : sql``} ${sql.raw(orderByClause)} LIMIT ${limit} OFFSET ${offset}`;
+        countQuery = sql`SELECT COUNT(*) as total FROM ${sql.raw(baseTableName)} ${gameLogSearchCondition ? sql.raw(gameLogSearchCondition) : sql``}`;
         break;
       }
 

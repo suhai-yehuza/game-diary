@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { APP_CONFIG } from '../../lib/config/app.config';
+import { APP_CONFIG } from '../../src/lib/config/app.config';
 
 // Mock Next.js types
 const mockNextRequest = {
