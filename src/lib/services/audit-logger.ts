@@ -2,12 +2,12 @@ import { headers } from 'next/headers';
 
 import { db } from '@/lib/db';
 import { audit_logs, key_rotation_logs, rls_access_logs } from '@/lib/db/schema/audit-schemas';
-import type {
-  AUDIT_CATEGORIES,
-  AUDIT_SEVERITY,
-  AUDIT_ACTIONS,
-} from '@/lib/db/schema/audit-schemas';
 import { alertingService } from '@/lib/services/alerting';
+import type {
+  IAuditLogData,
+  IKeyRotationLogData,
+  IRLSAccessLogData,
+} from '@/lib/types/services.types';
 import { generateUUIDv7 } from '@/lib/utils/id-generator';
 
 // Simple logger for audit service
@@ -17,72 +17,6 @@ const logger = {
     console.error(`[AUDIT-ERROR] ${message}`, ...args),
   warn: (message: string, ...args: unknown[]) => console.warn(`[AUDIT-WARN] ${message}`, ...args),
 };
-
-// Types for audit logging
-export interface IAuditLogData {
-  category: (typeof AUDIT_CATEGORIES)[keyof typeof AUDIT_CATEGORIES];
-  action: (typeof AUDIT_ACTIONS)[keyof typeof AUDIT_ACTIONS];
-  severity: (typeof AUDIT_SEVERITY)[keyof typeof AUDIT_SEVERITY];
-  userId?: string;
-  sessionId?: string;
-  resourceType?: string;
-  resourceId?: string;
-  tableName?: string;
-  columnName?: string;
-  requestId?: string;
-  endpoint?: string;
-  method?: string;
-  description?: string;
-  details?: Record<string, unknown>;
-  metadata?: Record<string, unknown>;
-  success?: boolean;
-  errorMessage?: string;
-  errorCode?: string;
-  durationMs?: number;
-  complianceTags?: string;
-}
-
-export interface IKeyRotationLogData {
-  keyId: string;
-  keyVersion: string;
-  environment: string;
-  rotationType: 'manual' | 'automatic' | 'emergency';
-  previousKeyId?: string;
-  newKeyId?: string;
-  rotatedBy: string;
-  rotationReason?: string;
-  affectedRecordsCount?: number;
-  reEncryptionRequired?: boolean;
-  reEncryptionCompleted?: boolean;
-  rotationStartedAt: Date;
-  rotationCompletedAt?: Date;
-  reEncryptionStartedAt?: Date;
-  reEncryptionCompletedAt?: Date;
-  status?: 'in_progress' | 'completed' | 'failed' | 'rolled_back';
-  details?: Record<string, unknown>;
-  errorMessage?: string;
-}
-
-export interface IRLSAccessLogData {
-  requestingUserId: string;
-  targetUserId: string;
-  tableName: string;
-  operation: 'SELECT' | 'INSERT' | 'UPDATE' | 'DELETE';
-  rlsContextSet: boolean;
-  rlsPolicyApplied?: string;
-  accessGranted: boolean;
-  rowsAffected?: number;
-  sensitiveFieldsAccessed?: string;
-  requestId?: string;
-  endpoint?: string;
-  queryHash?: string;
-  queryDurationMs?: number;
-  ipAddress?: string;
-  userAgent?: string;
-  details?: Record<string, unknown>;
-  errorMessage?: string;
-  description?: string;
-}
 
 // Audit Logger Service
 export class AuditLogger {

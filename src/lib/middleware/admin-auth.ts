@@ -3,12 +3,7 @@ import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
 import { auditLogger } from '@/lib/services/audit-logger';
-
-export interface IAdminAuthContext {
-  userId: string;
-  isAdmin: boolean;
-  userEmail?: string;
-}
+import type { IAdminAuthContext } from '@/lib/types/middleware.types';
 
 // Helper to safely extract user roles
 function getUserRoles(sessionClaims: unknown): string[] {

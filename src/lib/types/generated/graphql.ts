@@ -216,12 +216,43 @@ export type Friendship = {
   updated_at: Scalars['DateTime']['output'];
 };
 
+export type FriendshipConnection = {
+  __typename?: 'FriendshipConnection';
+  edges: Array<FriendshipEdge>;
+  pageInfo: PageInfo;
+  totalCount: Scalars['Int']['output'];
+};
+
+export type FriendshipEdge = {
+  __typename?: 'FriendshipEdge';
+  cursor: Scalars['String']['output'];
+  node: Friendship;
+};
+
+export type FriendshipFilters = {
+  createdAfter?: InputMaybe<Scalars['DateTime']['input']>;
+  createdBefore?: InputMaybe<Scalars['DateTime']['input']>;
+  friendId?: InputMaybe<Scalars['ID']['input']>;
+  isInitiator?: InputMaybe<Scalars['Boolean']['input']>;
+  isRecipient?: InputMaybe<Scalars['Boolean']['input']>;
+  orderBy?: InputMaybe<Scalars['String']['input']>;
+  status?: InputMaybe<FriendshipStatus>;
+  userId?: InputMaybe<Scalars['ID']['input']>;
+};
+
 export enum FriendshipStatus {
   Accepted = 'ACCEPTED',
   Blocked = 'BLOCKED',
   Pending = 'PENDING',
   Rejected = 'REJECTED'
 }
+
+export type FriendshipStatusResponse = {
+  __typename?: 'FriendshipStatusResponse';
+  friendshipId?: Maybe<Scalars['ID']['output']>;
+  isInitiator?: Maybe<Scalars['Boolean']['output']>;
+  status?: Maybe<FriendshipStatus>;
+};
 
 export type Game = {
   __typename?: 'Game';
@@ -444,6 +475,8 @@ export type Query = {
   __typename?: 'Query';
   comments: CommentConnection;
   friendsGameLogs: GameLogConnection;
+  friendshipRequests: FriendshipConnection;
+  friendshipStatus: FriendshipStatusResponse;
   game?: Maybe<Game>;
   gameLog?: Maybe<GameLog>;
   gameLogs: GameLogConnection;
@@ -454,6 +487,7 @@ export type Query = {
   searchGameLogs: GameLogConnection;
   searchUsers: UserConnection;
   user?: Maybe<UserSummary>;
+  userFriendships: FriendshipConnection;
   users: Array<UserSummary>;
 };
 
@@ -466,6 +500,16 @@ export type QueryCommentsArgs = {
 
 export type QueryFriendsGameLogsArgs = {
   pagination?: InputMaybe<PaginationInput>;
+};
+
+
+export type QueryFriendshipRequestsArgs = {
+  pagination?: InputMaybe<PaginationInput>;
+};
+
+
+export type QueryFriendshipStatusArgs = {
+  userId: Scalars['ID']['input'];
 };
 
 
@@ -516,6 +560,7 @@ export type QuerySearchUsersArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   filters?: InputMaybe<UserSearchFilters>;
   first?: InputMaybe<Scalars['Int']['input']>;
+  pagination?: InputMaybe<PaginationInput>;
   searchField?: InputMaybe<Scalars['String']['input']>;
   searchTerm?: InputMaybe<Scalars['String']['input']>;
 };
@@ -523,6 +568,12 @@ export type QuerySearchUsersArgs = {
 
 export type QueryUserArgs = {
   id: Scalars['ID']['input'];
+};
+
+
+export type QueryUserFriendshipsArgs = {
+  filters?: InputMaybe<FriendshipFilters>;
+  pagination?: InputMaybe<PaginationInput>;
 };
 
 
@@ -819,10 +870,10 @@ export type GetUserQueryVariables = Exact<{
 export type GetUserQuery = { __typename?: 'Query', user?: { __typename?: 'UserSummary', id: string, username: string, first_name: string, last_name: string, email_address?: string | null, image_url?: string | null } | null };
 
 export type SearchUsersQueryVariables = Exact<{
-  first?: InputMaybe<Scalars['Int']['input']>;
-  after?: InputMaybe<Scalars['String']['input']>;
   searchTerm?: InputMaybe<Scalars['String']['input']>;
+  searchField?: InputMaybe<Scalars['String']['input']>;
   filters?: InputMaybe<UserSearchFilters>;
+  pagination?: InputMaybe<PaginationInput>;
 }>;
 
 
@@ -870,6 +921,28 @@ export type GetFriendsGameLogsQueryVariables = Exact<{
 
 
 export type GetFriendsGameLogsQuery = { __typename?: 'Query', friendsGameLogs: { __typename?: 'GameLogConnection', totalCount: number, edges: Array<{ __typename?: 'GameLogEdge', cursor: string, node: { __typename?: 'GameLog', id: string, game_id: string, rating_for_game: number, notes?: string | null, tags?: Array<string> | null, watched_date?: any | null, watched_setting?: string | null, watched_location?: string | null, watched_scope?: string | null, classification: Classification, created_at: any, updated_at: any, deleted_at?: any | null, game: { __typename?: 'Game', id: string, date: any, status: string, game_type: string, nba_game_id?: string | null, home_team_id: string, away_team_id: string, home_team_score?: number | null, away_team_score?: number | null, average_rating?: number | null, total_ratings?: number | null, created_at: any, updated_at: any, home_team: { __typename?: 'Team', id: string, name: string, nickname?: string | null, code?: string | null, city?: string | null, logo?: string | null, all_star: boolean, nba_franchise: boolean, conference?: string | null, created_at: any, updated_at: any }, away_team: { __typename?: 'Team', id: string, name: string, nickname?: string | null, code?: string | null, city?: string | null, logo?: string | null, all_star: boolean, nba_franchise: boolean, conference?: string | null, created_at: any, updated_at: any } }, user: { __typename?: 'UserSummary', id: string, username: string, first_name: string, last_name: string, email_address?: string | null, image_url?: string | null }, comments: { __typename?: 'CommentConnection', totalCount: number, edges: Array<{ __typename?: 'CommentEdge', cursor: string, node: { __typename?: 'Comment', id: string, user_id: string, parent_id: string, parent_type: ParentType, content: string, depth: number, created_at: any, updated_at: any, user: { __typename?: 'UserSummary', id: string, username: string, first_name: string, last_name: string, email_address?: string | null, image_url?: string | null }, reactions: Array<{ __typename?: 'Reaction', id: string, emoji: string, user: { __typename?: 'UserSummary', id: string, username: string, first_name: string, last_name: string, email_address?: string | null, image_url?: string | null } }> } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null } }, reactions: Array<{ __typename?: 'Reaction', id: string, emoji: string, user_id: string, target_id: string, target_type: ParentType, created_at: any, updated_at: any, user: { __typename?: 'UserSummary', id: string, username: string, first_name: string, last_name: string, email_address?: string | null, image_url?: string | null } }> } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null } } };
+
+export type GetUserFriendshipsQueryVariables = Exact<{
+  filters?: InputMaybe<FriendshipFilters>;
+  pagination?: InputMaybe<PaginationInput>;
+}>;
+
+
+export type GetUserFriendshipsQuery = { __typename?: 'Query', userFriendships: { __typename?: 'FriendshipConnection', totalCount: number, edges: Array<{ __typename?: 'FriendshipEdge', cursor: string, node: { __typename?: 'Friendship', id: string, status: FriendshipStatus, created_at: any, updated_at: any, initiator: { __typename?: 'UserSummary', id: string, username: string, first_name: string, last_name: string, email_address?: string | null, image_url?: string | null }, recipient: { __typename?: 'UserSummary', id: string, username: string, first_name: string, last_name: string, email_address?: string | null, image_url?: string | null } } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null } } };
+
+export type GetFriendshipRequestsQueryVariables = Exact<{
+  pagination?: InputMaybe<PaginationInput>;
+}>;
+
+
+export type GetFriendshipRequestsQuery = { __typename?: 'Query', friendshipRequests: { __typename?: 'FriendshipConnection', totalCount: number, edges: Array<{ __typename?: 'FriendshipEdge', cursor: string, node: { __typename?: 'Friendship', id: string, status: FriendshipStatus, created_at: any, updated_at: any, initiator: { __typename?: 'UserSummary', id: string, username: string, first_name: string, last_name: string, email_address?: string | null, image_url?: string | null }, recipient: { __typename?: 'UserSummary', id: string, username: string, first_name: string, last_name: string, email_address?: string | null, image_url?: string | null } } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null } } };
+
+export type GetFriendshipStatusQueryVariables = Exact<{
+  userId: Scalars['ID']['input'];
+}>;
+
+
+export type GetFriendshipStatusQuery = { __typename?: 'Query', friendshipStatus: { __typename?: 'FriendshipStatusResponse', status?: FriendshipStatus | null, friendshipId?: string | null, isInitiator?: boolean | null } };
 
 export const BasicUserFragmentFragmentDoc = gql`
     fragment BasicUserFragment on DBUser {
@@ -1899,12 +1972,12 @@ export type GetUserLazyQueryHookResult = ReturnType<typeof useGetUserLazyQuery>;
 export type GetUserSuspenseQueryHookResult = ReturnType<typeof useGetUserSuspenseQuery>;
 export type GetUserQueryResult = Apollo.QueryResult<GetUserQuery, GetUserQueryVariables>;
 export const SearchUsersDocument = gql`
-    query SearchUsers($first: Int, $after: String, $searchTerm: String, $filters: UserSearchFilters) {
+    query SearchUsers($searchTerm: String, $searchField: String, $filters: UserSearchFilters, $pagination: PaginationInput) {
   searchUsers(
-    first: $first
-    after: $after
     searchTerm: $searchTerm
+    searchField: $searchField
     filters: $filters
+    pagination: $pagination
   ) {
     edges {
       node {
@@ -1933,10 +2006,10 @@ export const SearchUsersDocument = gql`
  * @example
  * const { data, loading, error } = useSearchUsersQuery({
  *   variables: {
- *      first: // value for 'first'
- *      after: // value for 'after'
  *      searchTerm: // value for 'searchTerm'
+ *      searchField: // value for 'searchField'
  *      filters: // value for 'filters'
+ *      pagination: // value for 'pagination'
  *   },
  * });
  */
@@ -2239,3 +2312,146 @@ export type GetFriendsGameLogsQueryHookResult = ReturnType<typeof useGetFriendsG
 export type GetFriendsGameLogsLazyQueryHookResult = ReturnType<typeof useGetFriendsGameLogsLazyQuery>;
 export type GetFriendsGameLogsSuspenseQueryHookResult = ReturnType<typeof useGetFriendsGameLogsSuspenseQuery>;
 export type GetFriendsGameLogsQueryResult = Apollo.QueryResult<GetFriendsGameLogsQuery, GetFriendsGameLogsQueryVariables>;
+export const GetUserFriendshipsDocument = gql`
+    query GetUserFriendships($filters: FriendshipFilters, $pagination: PaginationInput) {
+  userFriendships(filters: $filters, pagination: $pagination) {
+    edges {
+      node {
+        ...FriendshipFragment
+      }
+      cursor
+    }
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
+    totalCount
+  }
+}
+    ${FriendshipFragmentFragmentDoc}`;
+
+/**
+ * __useGetUserFriendshipsQuery__
+ *
+ * To run a query within a React component, call `useGetUserFriendshipsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetUserFriendshipsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetUserFriendshipsQuery({
+ *   variables: {
+ *      filters: // value for 'filters'
+ *      pagination: // value for 'pagination'
+ *   },
+ * });
+ */
+export function useGetUserFriendshipsQuery(baseOptions?: Apollo.QueryHookOptions<GetUserFriendshipsQuery, GetUserFriendshipsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetUserFriendshipsQuery, GetUserFriendshipsQueryVariables>(GetUserFriendshipsDocument, options);
+      }
+export function useGetUserFriendshipsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetUserFriendshipsQuery, GetUserFriendshipsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetUserFriendshipsQuery, GetUserFriendshipsQueryVariables>(GetUserFriendshipsDocument, options);
+        }
+export function useGetUserFriendshipsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetUserFriendshipsQuery, GetUserFriendshipsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetUserFriendshipsQuery, GetUserFriendshipsQueryVariables>(GetUserFriendshipsDocument, options);
+        }
+export type GetUserFriendshipsQueryHookResult = ReturnType<typeof useGetUserFriendshipsQuery>;
+export type GetUserFriendshipsLazyQueryHookResult = ReturnType<typeof useGetUserFriendshipsLazyQuery>;
+export type GetUserFriendshipsSuspenseQueryHookResult = ReturnType<typeof useGetUserFriendshipsSuspenseQuery>;
+export type GetUserFriendshipsQueryResult = Apollo.QueryResult<GetUserFriendshipsQuery, GetUserFriendshipsQueryVariables>;
+export const GetFriendshipRequestsDocument = gql`
+    query GetFriendshipRequests($pagination: PaginationInput) {
+  friendshipRequests(pagination: $pagination) {
+    edges {
+      node {
+        ...FriendshipFragment
+      }
+      cursor
+    }
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
+    totalCount
+  }
+}
+    ${FriendshipFragmentFragmentDoc}`;
+
+/**
+ * __useGetFriendshipRequestsQuery__
+ *
+ * To run a query within a React component, call `useGetFriendshipRequestsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetFriendshipRequestsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetFriendshipRequestsQuery({
+ *   variables: {
+ *      pagination: // value for 'pagination'
+ *   },
+ * });
+ */
+export function useGetFriendshipRequestsQuery(baseOptions?: Apollo.QueryHookOptions<GetFriendshipRequestsQuery, GetFriendshipRequestsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetFriendshipRequestsQuery, GetFriendshipRequestsQueryVariables>(GetFriendshipRequestsDocument, options);
+      }
+export function useGetFriendshipRequestsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetFriendshipRequestsQuery, GetFriendshipRequestsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetFriendshipRequestsQuery, GetFriendshipRequestsQueryVariables>(GetFriendshipRequestsDocument, options);
+        }
+export function useGetFriendshipRequestsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetFriendshipRequestsQuery, GetFriendshipRequestsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetFriendshipRequestsQuery, GetFriendshipRequestsQueryVariables>(GetFriendshipRequestsDocument, options);
+        }
+export type GetFriendshipRequestsQueryHookResult = ReturnType<typeof useGetFriendshipRequestsQuery>;
+export type GetFriendshipRequestsLazyQueryHookResult = ReturnType<typeof useGetFriendshipRequestsLazyQuery>;
+export type GetFriendshipRequestsSuspenseQueryHookResult = ReturnType<typeof useGetFriendshipRequestsSuspenseQuery>;
+export type GetFriendshipRequestsQueryResult = Apollo.QueryResult<GetFriendshipRequestsQuery, GetFriendshipRequestsQueryVariables>;
+export const GetFriendshipStatusDocument = gql`
+    query GetFriendshipStatus($userId: ID!) {
+  friendshipStatus(userId: $userId) {
+    status
+    friendshipId
+    isInitiator
+  }
+}
+    `;
+
+/**
+ * __useGetFriendshipStatusQuery__
+ *
+ * To run a query within a React component, call `useGetFriendshipStatusQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetFriendshipStatusQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetFriendshipStatusQuery({
+ *   variables: {
+ *      userId: // value for 'userId'
+ *   },
+ * });
+ */
+export function useGetFriendshipStatusQuery(baseOptions: Apollo.QueryHookOptions<GetFriendshipStatusQuery, GetFriendshipStatusQueryVariables> & ({ variables: GetFriendshipStatusQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetFriendshipStatusQuery, GetFriendshipStatusQueryVariables>(GetFriendshipStatusDocument, options);
+      }
+export function useGetFriendshipStatusLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetFriendshipStatusQuery, GetFriendshipStatusQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetFriendshipStatusQuery, GetFriendshipStatusQueryVariables>(GetFriendshipStatusDocument, options);
+        }
+export function useGetFriendshipStatusSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetFriendshipStatusQuery, GetFriendshipStatusQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetFriendshipStatusQuery, GetFriendshipStatusQueryVariables>(GetFriendshipStatusDocument, options);
+        }
+export type GetFriendshipStatusQueryHookResult = ReturnType<typeof useGetFriendshipStatusQuery>;
+export type GetFriendshipStatusLazyQueryHookResult = ReturnType<typeof useGetFriendshipStatusLazyQuery>;
+export type GetFriendshipStatusSuspenseQueryHookResult = ReturnType<typeof useGetFriendshipStatusSuspenseQuery>;
+export type GetFriendshipStatusQueryResult = Apollo.QueryResult<GetFriendshipStatusQuery, GetFriendshipStatusQueryVariables>;

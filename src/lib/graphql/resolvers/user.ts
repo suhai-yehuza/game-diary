@@ -5,22 +5,8 @@ import { db } from '@/lib/db';
 import { users } from '@/lib/db/schema';
 import { AuthorizationError } from '@/lib/graphql/errors';
 import type { GraphQLContext } from '@/lib/types/db.types';
+import type { IUserParent, IUserArgs } from '@/lib/types/graphql.types';
 import { decryptField, deserializeEncryptedField } from '@/lib/utils/encryption';
-
-// Types for resolver parameters
-interface IUserParent {
-  id: string;
-  email_address?: string | null;
-  phone_number?: string | null;
-  username?: string | null;
-  first_name?: string | null;
-  last_name?: string | null;
-  image_url?: string | null;
-}
-
-interface IUserArgs {
-  id?: string;
-}
 
 // Helper function to check if a value is encrypted
 function isEncrypted(value: string | null): boolean {

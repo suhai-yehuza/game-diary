@@ -11,6 +11,18 @@ export const usersRelations = relations(users, ({ many }) => ({
   friendships: many(friendships),
 }));
 
+// Friendship-related relations
+export const friendshipsRelations = relations(friendships, ({ one }) => ({
+  user: one(users, {
+    fields: [friendships.user_id],
+    references: [users.id],
+  }),
+  friend: one(users, {
+    fields: [friendships.friend_id],
+    references: [users.id],
+  }),
+}));
+
 // Comment-related relations
 export const commentsRelations = relations(comments, ({ one, many }) => ({
   user: one(users, {

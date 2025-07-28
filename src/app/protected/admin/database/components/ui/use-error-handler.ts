@@ -1,18 +1,6 @@
 import { useCallback, useState } from 'react';
 
-interface IErrorState {
-  hasError: boolean;
-  error?: Error;
-  message?: string;
-}
-
-interface IUseErrorHandlerReturn {
-  error: IErrorState;
-  setError: (error: Error | string) => void;
-  clearError: () => void;
-  handleAsyncError: <T>(asyncFn: () => Promise<T>) => Promise<T | undefined>;
-  handleSyncError: <T>(syncFn: () => T) => T | undefined;
-}
+import type { IErrorState, IUseErrorHandlerReturn } from '@/lib/types/ui.types';
 
 export function useErrorHandler(): IUseErrorHandlerReturn {
   const [error, setErrorState] = useState<IErrorState>({ hasError: false });

@@ -7,6 +7,46 @@ vi.mock('@clerk/nextjs', () => ({
   useUser: vi.fn(),
 }));
 
+// Mock the friendship hooks to prevent Apollo Client context errors
+vi.mock('@/hooks/use-friendships', () => ({
+  useFriendships: vi.fn(() => ({
+    friendships: [],
+    loading: false,
+    refetch: vi.fn(),
+  })),
+  useFriendshipRequests: vi.fn(() => ({
+    requests: [],
+    loading: false,
+    refetch: vi.fn(),
+  })),
+  useUserSearch: vi.fn(() => ({
+    users: [],
+    loading: false,
+    search: vi.fn(),
+  })),
+  useFriendshipMutations: vi.fn(() => ({
+    sendFriendRequest: vi.fn(),
+    acceptFriendRequest: vi.fn(),
+    rejectFriendRequest: vi.fn(),
+    removeFriend: vi.fn(),
+    loading: false,
+  })),
+  useFriendshipStatus: vi.fn(() => ({
+    status: null,
+    loading: false,
+    error: null,
+    refetch: vi.fn(),
+  })),
+}));
+
+// Mock sonner toast
+vi.mock('sonner', () => ({
+  toast: {
+    success: vi.fn(),
+    error: vi.fn(),
+  },
+}));
+
 import { FriendsTable } from '@/app/protected/user/components/FriendsTable';
 import { useUser } from '@clerk/nextjs';
 
@@ -24,7 +64,7 @@ describe('FriendsTable', () => {
 
     render(<FriendsTable />);
 
-    expect(screen.getByText('Please sign in to view your friends.')).toBeInTheDocument();
+    expect(screen.getByText('Please sign in to view your friends')).toBeInTheDocument();
     expect(screen.queryByText('Friends')).not.toBeInTheDocument();
   });
 
@@ -35,7 +75,7 @@ describe('FriendsTable', () => {
 
     render(<FriendsTable />);
 
-    expect(screen.getByText('Please sign in to view your friends.')).toBeInTheDocument();
+    expect(screen.getByText('Please sign in to view your friends')).toBeInTheDocument();
     expect(screen.queryByText('Friends')).not.toBeInTheDocument();
   });
 
@@ -47,12 +87,10 @@ describe('FriendsTable', () => {
     render(<FriendsTable />);
 
     expect(screen.getByText('Friends')).toBeInTheDocument();
-    expect(screen.getByText('View and manage your friends list.')).toBeInTheDocument();
-    expect(screen.getByText('Friends functionality coming soon!')).toBeInTheDocument();
-    expect(
-      screen.getByText('This will include search, filter, and sort capabilities.')
-    ).toBeInTheDocument();
-    expect(screen.queryByText('Please sign in to view your friends.')).not.toBeInTheDocument();
+    expect(screen.getByText('Add Friends')).toBeInTheDocument();
+    expect(screen.getByText('No friends yet')).toBeInTheDocument();
+    expect(screen.getByText('Add some friends to get started!')).toBeInTheDocument();
+    expect(screen.queryByText('Please sign in to view your friends')).not.toBeInTheDocument();
   });
 
   it('renders with proper styling classes', () => {
@@ -63,7 +101,7 @@ describe('FriendsTable', () => {
     render(<FriendsTable />);
 
     const container = screen.getByText('Friends').closest('div');
-    expect(container).toHaveClass('rounded-lg', 'border', 'p-6', 'bg-background');
+    expect(container).toHaveClass('flex', 'justify-between', 'items-center');
   });
 
   it('renders sign-in message with proper styling', () => {
@@ -73,13 +111,11 @@ describe('FriendsTable', () => {
 
     render(<FriendsTable />);
 
-    const signInContainer = screen
-      .getByText('Please sign in to view your friends.')
-      .closest('.rounded-lg');
-    expect(signInContainer).toHaveClass('rounded-lg', 'border', 'p-6', 'bg-background');
+    const signInContainer = screen.getByText('Please sign in to view your friends').closest('div');
+    expect(signInContainer).toHaveClass('flex', 'items-center', 'justify-center', 'p-8');
 
-    const messageContainer = screen.getByText('Please sign in to view your friends.');
-    expect(messageContainer).toHaveClass('text-center', 'text-muted-foreground');
+    const messageContainer = screen.getByText('Please sign in to view your friends');
+    expect(messageContainer).toHaveClass('text-muted-foreground');
   });
 
   it('renders friends heading with proper styling', () => {
@@ -90,44 +126,29 @@ describe('FriendsTable', () => {
     render(<FriendsTable />);
 
     const heading = screen.getByText('Friends');
-    expect(heading).toHaveClass('text-2xl', 'font-semibold', 'mb-4');
+    expect(heading).toHaveClass('text-2xl', 'font-bold');
   });
 
-  it('renders friends description with proper styling', () => {
+  it('renders empty state with proper styling', () => {
     mockUseUser.mockReturnValue({
       user: { id: 'user-123' },
     });
 
     render(<FriendsTable />);
 
-    const description = screen.getByText('View and manage your friends list.');
-    expect(description).toHaveClass('text-muted-foreground', 'mb-4');
+    const emptyStateContainer = screen.getByText('No friends yet').closest('div');
+    expect(emptyStateContainer).toHaveClass('text-center', 'py-12', 'text-gray-400');
   });
 
-  it('renders coming soon message with proper styling', () => {
+  it('renders empty state description with proper styling', () => {
     mockUseUser.mockReturnValue({
       user: { id: 'user-123' },
     });
 
     render(<FriendsTable />);
 
-    const comingSoonContainer = screen
-      .getByText('Friends functionality coming soon!')
-      .closest('div');
-    expect(comingSoonContainer).toHaveClass('text-center', 'py-8', 'text-muted-foreground');
-  });
-
-  it('renders coming soon description with proper styling', () => {
-    mockUseUser.mockReturnValue({
-      user: { id: 'user-123' },
-    });
-
-    render(<FriendsTable />);
-
-    const description = screen.getByText(
-      'This will include search, filter, and sort capabilities.'
-    );
-    expect(description).toHaveClass('text-sm', 'mt-2');
+    const description = screen.getByText('Add some friends to get started!');
+    expect(description).toHaveClass('text-sm');
   });
 
   it('handles user with different id formats', () => {
@@ -138,7 +159,7 @@ describe('FriendsTable', () => {
     render(<FriendsTable />);
 
     expect(screen.getByText('Friends')).toBeInTheDocument();
-    expect(screen.queryByText('Please sign in to view your friends.')).not.toBeInTheDocument();
+    expect(screen.queryByText('Please sign in to view your friends')).not.toBeInTheDocument();
   });
 
   it('handles user object with additional properties', () => {
@@ -154,7 +175,7 @@ describe('FriendsTable', () => {
     render(<FriendsTable />);
 
     expect(screen.getByText('Friends')).toBeInTheDocument();
-    expect(screen.queryByText('Please sign in to view your friends.')).not.toBeInTheDocument();
+    expect(screen.queryByText('Please sign in to view your friends')).not.toBeInTheDocument();
   });
 
   it('renders proper component structure when signed in', () => {
@@ -165,17 +186,17 @@ describe('FriendsTable', () => {
     const { container } = render(<FriendsTable />);
 
     // Should have the main container
-    const mainContainer = container.querySelector('.rounded-lg.border.p-6.bg-background');
+    const mainContainer = container.querySelector('.space-y-6');
     expect(mainContainer).toBeInTheDocument();
 
     // Should contain the heading
     expect(mainContainer).toHaveTextContent('Friends');
 
-    // Should contain the description
-    expect(mainContainer).toHaveTextContent('View and manage your friends list.');
+    // Should contain the add friends button
+    expect(mainContainer).toHaveTextContent('Add Friends');
 
-    // Should contain the coming soon message
-    expect(mainContainer).toHaveTextContent('Friends functionality coming soon!');
+    // Should contain the empty state
+    expect(mainContainer).toHaveTextContent('No friends yet');
   });
 
   it('renders proper component structure when not signed in', () => {
@@ -185,15 +206,15 @@ describe('FriendsTable', () => {
 
     const { container } = render(<FriendsTable />);
 
-    // Should have the main container
-    const mainContainer = container.querySelector('.rounded-lg.border.p-6.bg-background');
-    expect(mainContainer).toBeInTheDocument();
+    // Should have the sign-in container
+    const signInContainer = container.querySelector('.flex.items-center.justify-center.p-8');
+    expect(signInContainer).toBeInTheDocument();
 
     // Should contain the sign-in message
-    expect(mainContainer).toHaveTextContent('Please sign in to view your friends.');
+    expect(signInContainer).toHaveTextContent('Please sign in to view your friends');
 
     // Should not contain friends content
-    expect(mainContainer).not.toHaveTextContent('Friends');
+    expect(signInContainer).not.toHaveTextContent('Friends');
   });
 
   it('distinguishes from ActivityTable content', () => {
@@ -205,8 +226,8 @@ describe('FriendsTable', () => {
 
     // Should show friends-specific content
     expect(screen.getByText('Friends')).toBeInTheDocument();
-    expect(screen.getByText('View and manage your friends list.')).toBeInTheDocument();
-    expect(screen.getByText('Friends functionality coming soon!')).toBeInTheDocument();
+    expect(screen.getByText('Add Friends')).toBeInTheDocument();
+    expect(screen.getByText('No friends yet')).toBeInTheDocument();
 
     // Should not show activity-specific content
     expect(screen.queryByText('Activity & Timeline')).not.toBeInTheDocument();

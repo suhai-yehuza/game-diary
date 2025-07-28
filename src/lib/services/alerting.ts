@@ -1,12 +1,4 @@
-interface ISlackMessage {
-  text: string;
-  blocks?: Array<{
-    type: string;
-    text?: { type: string; text: string };
-    fields?: Array<{ type: string; text: string }>;
-    elements?: Array<{ type: string; text: string }>;
-  }>;
-}
+import type { ISlackMessage } from '@/lib/types/services.types';
 
 export class AlertingService {
   private static instance: AlertingService;

@@ -3,6 +3,7 @@ import {
   commentsRelations,
   reactionsRelations,
   gameLogsRelations,
+  friendshipsRelations,
 } from '@/lib/db/schema/relations';
 import {
   nba_games,
@@ -21,6 +22,7 @@ export {
   commentsRelations,
   reactionsRelations,
   gameLogsRelations,
+  friendshipsRelations,
 } from '@/lib/db/schema/relations';
 
 // Export all schema types
@@ -53,7 +55,10 @@ export const schema = {
     relations: reactionsRelations,
   },
   notifications,
-  friendships,
+  friendships: {
+    ...friendships,
+    relations: friendshipsRelations,
+  },
   nba_games,
   teams,
   nba_players,

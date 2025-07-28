@@ -4,7 +4,10 @@ import { join } from 'path';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 
 import { commentQueryResolvers, commentResolver } from '@/lib/graphql/resolvers/comment';
-import { friendshipMutationResolvers } from '@/lib/graphql/resolvers/friendship';
+import {
+  friendshipMutationResolvers,
+  friendshipQueryResolvers,
+} from '@/lib/graphql/resolvers/friendship';
 import { gameQueryResolvers, gameResolver } from '@/lib/graphql/resolvers/game';
 import {
   gameLogQueryResolvers,
@@ -35,6 +38,7 @@ const resolvers = {
     ...gameLogQueryResolvers,
     ...commentQueryResolvers,
     ...reactionQueryResolvers,
+    ...friendshipQueryResolvers,
   },
   Mutation: {
     ...gameMutationResolvers,

@@ -1,27 +1,14 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 
 import { useQuery } from '@apollo/client';
-import { useState, useCallback } from 'react';
+import { useCallback, useState } from 'react';
 
 import { API_CONFIG } from '@/lib/config/app.config';
-import { GET_GAME_LOGS, GET_FRIENDS_GAME_LOGS } from '@/lib/graphql/queries';
-import type { IGameLogsOptions, IGameLogsResponse } from '@/lib/types';
+import { GET_FRIENDS_GAME_LOGS, GET_GAME_LOGS } from '@/lib/graphql/queries';
 import { CLASSIFICATION } from '@/lib/types';
-import type { IGameLog } from '@/lib/types/gameLog.types';
-import type {
-  Query,
-  GameLog as GqlGameLog,
-  Game as GqlGame,
-  Team as GqlTeam,
-} from '@/lib/types/generated/graphql';
-
-interface IFriendsGameLogsShape {
-  edges: Array<{ node: unknown }>;
-  pageInfo: {
-    endCursor: string | null;
-    hasNextPage: boolean;
-  };
-}
+import type { IGameLog, IGameLogsOptions, IGameLogsResponse } from '@/lib/types/gameLog.types';
+import type { Query, Game as GqlGame, Team as GqlTeam } from '@/lib/types/generated/graphql';
+import type { IFriendsGameLogsShape, GqlGameLogNoComments } from '@/lib/types/hooks.types';
 
 // @ts-expect-error codegen types are trusted and safe for member access
 function mapTeam(team: GqlTeam | null | undefined): IGameLog['game']['home_team'] | undefined {
@@ -89,9 +76,6 @@ function mapUser(user: unknown): IGameLog['user'] {
 function isString(t: unknown): t is string {
   return typeof t === 'string';
 }
-
-// Omit comments and reactions from mapped log
-type GqlGameLogNoComments = Omit<GqlGameLog, 'comments' | 'reactions'>;
 
 function mapGameLog(log: GqlGameLogNoComments): IGameLog {
   return {

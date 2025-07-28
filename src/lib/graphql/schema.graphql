@@ -14,6 +14,7 @@ type Query {
     searchTerm: String
     searchField: String
     filters: UserSearchFilters
+    pagination: PaginationInput
   ): UserConnection!
   searchGameLogs(
     first: Int
@@ -30,6 +31,11 @@ type Query {
   gameLog(id: ID!): GameLog
   gameLogs(filters: GameLogFilters, pagination: PaginationInput): GameLogConnection!
   friendsGameLogs(pagination: PaginationInput): GameLogConnection!
+
+  # Friendship queries
+  userFriendships(filters: FriendshipFilters, pagination: PaginationInput): FriendshipConnection!
+  friendshipRequests(pagination: PaginationInput): FriendshipConnection!
+  friendshipStatus(userId: ID!): FriendshipStatusResponse!
 
   # Comment queries
   comments(filters: CommentFilters, pagination: PaginationInput): CommentConnection!
@@ -500,4 +506,33 @@ type RemoveFriendResponse {
 type UpdateUserProfileResponse {
   errors: [ErrorResult!]
   user: UserSummary
+}
+
+# Friendship Types
+input FriendshipFilters {
+  status: FriendshipStatus
+  userId: ID
+  friendId: ID
+  isInitiator: Boolean
+  isRecipient: Boolean
+  createdAfter: DateTime
+  createdBefore: DateTime
+  orderBy: String
+}
+
+type FriendshipConnection {
+  edges: [FriendshipEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type FriendshipEdge {
+  node: Friendship!
+  cursor: String!
+}
+
+type FriendshipStatusResponse {
+  status: FriendshipStatus
+  friendshipId: ID
+  isInitiator: Boolean
 }

@@ -1,4 +1,5 @@
 import type React from 'react';
+import type { ISortDirection } from '@/lib/types/core.types';
 
 // ========================================
 // NOTIFICATION TYPES
@@ -185,3 +186,39 @@ export type ColumnConfig<T> = {
   sortable?: boolean;
   render?: (row: T) => React.ReactNode;
 };
+
+// Pagination Types
+export interface IPaginationOptions {
+  query: string;
+  variables: Record<string, unknown>;
+  onDataReceived: (data: unknown) => void;
+  onError: (error: string) => void;
+}
+
+// Sorting Types
+export interface ISortConfig {
+  key: string | null;
+  direction: ISortDirection | null;
+}
+
+export interface IUseSortingReturn {
+  sortConfig: ISortConfig;
+  handleSort: (key: string, direction: ISortDirection | null) => void;
+  clearSort: () => void;
+  getSortParams: () => { sortKey: string | null; sortDirection: ISortDirection | null };
+}
+
+// Error Handler Types
+export interface IErrorState {
+  hasError: boolean;
+  error?: Error;
+  message?: string;
+}
+
+export interface IUseErrorHandlerReturn {
+  error: IErrorState;
+  setError: (error: Error | string) => void;
+  clearError: () => void;
+  handleAsyncError: <T>(asyncFn: () => Promise<T>) => Promise<T | undefined>;
+  handleSyncError: <T>(syncFn: () => T) => T | undefined;
+}

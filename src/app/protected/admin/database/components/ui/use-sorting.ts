@@ -1,18 +1,7 @@
 import React, { useState, useCallback } from 'react';
 
+import type { ISortConfig, IUseSortingReturn } from '@/lib/types/ui.types';
 import type { SortDirection } from '@src/app/protected/admin/database/components/ui/sortable-header';
-
-export interface ISortConfig {
-  key: string | null;
-  direction: SortDirection;
-}
-
-export interface IUseSortingReturn {
-  sortConfig: ISortConfig;
-  handleSort: (key: string, direction: SortDirection) => void;
-  clearSort: () => void;
-  getSortParams: () => { sortKey: string | null; sortDirection: SortDirection };
-}
 
 export function useSorting(initialSortKey: string | null = null): IUseSortingReturn {
   const [sortConfig, setSortConfig] = useState<ISortConfig>({

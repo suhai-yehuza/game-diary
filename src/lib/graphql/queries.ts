@@ -296,8 +296,18 @@ export const GET_USER = gql`
 `;
 
 export const SEARCH_USERS = gql`
-  query SearchUsers($first: Int, $after: String, $searchTerm: String, $filters: UserSearchFilters) {
-    searchUsers(first: $first, after: $after, searchTerm: $searchTerm, filters: $filters) {
+  query SearchUsers(
+    $searchTerm: String
+    $searchField: String
+    $filters: UserSearchFilters
+    $pagination: PaginationInput
+  ) {
+    searchUsers(
+      searchTerm: $searchTerm
+      searchField: $searchField
+      filters: $filters
+      pagination: $pagination
+    ) {
       edges {
         node {
           ...UserSummaryFragment
@@ -438,4 +448,55 @@ export const GET_FRIENDS_GAME_LOGS = gql`
   ${USER_SUMMARY_FRAGMENT}
   ${COMMENT_FRAGMENT}
   ${REACTION_FRAGMENT}
+`;
+
+// New friendship queries
+export const GET_USER_FRIENDSHIPS = gql`
+  query GetUserFriendships($filters: FriendshipFilters, $pagination: PaginationInput) {
+    userFriendships(filters: $filters, pagination: $pagination) {
+      edges {
+        node {
+          ...FriendshipFragment
+        }
+        cursor
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+      totalCount
+    }
+  }
+  ${FRIENDSHIP_FRAGMENT}
+  ${USER_SUMMARY_FRAGMENT}
+`;
+
+export const GET_FRIENDSHIP_REQUESTS = gql`
+  query GetFriendshipRequests($pagination: PaginationInput) {
+    friendshipRequests(pagination: $pagination) {
+      edges {
+        node {
+          ...FriendshipFragment
+        }
+        cursor
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+      totalCount
+    }
+  }
+  ${FRIENDSHIP_FRAGMENT}
+  ${USER_SUMMARY_FRAGMENT}
+`;
+
+export const GET_FRIENDSHIP_STATUS = gql`
+  query GetFriendshipStatus($userId: ID!) {
+    friendshipStatus(userId: $userId) {
+      status
+      friendshipId
+      isInitiator
+    }
+  }
 `;
