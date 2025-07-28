@@ -4,7 +4,7 @@ import { execSync } from 'child_process';
 import { readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
 
-import { logger } from '@lib/core/logger';
+import { logger } from '@src/lib/utils/logger';
 import type { IOutdatedPackage } from '@src/lib/types';
 
 import { parseScriptArgs } from './script-utils';

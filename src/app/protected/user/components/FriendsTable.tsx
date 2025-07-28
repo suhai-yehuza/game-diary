@@ -126,7 +126,16 @@ export function FriendsTable() {
       const result = await search(userSearchTerm);
       // Update local search results state with the returned data
       if (result?.data?.searchUsers) {
-        setSearchResults(result.data.searchUsers.edges.map(edge => edge.node));
+        setSearchResults(
+          result.data.searchUsers.edges.map(edge => ({
+            id: edge.node.id,
+            username: edge.node.username ?? '',
+            first_name: edge.node.first_name ?? '',
+            last_name: edge.node.last_name ?? '',
+            email_address: '',
+            image_url: edge.node.image_url,
+          }))
+        );
       }
     }
   }, [search, userSearchTerm]);

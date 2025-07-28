@@ -33,7 +33,7 @@ import { exec } from 'child_process';
 import { promisify } from 'util';
 import { join } from 'path';
 
-import { logger } from '@lib/core/logger';
+import { logger } from '@src/lib/utils/logger';
 
 const execAsync = promisify(exec);
 

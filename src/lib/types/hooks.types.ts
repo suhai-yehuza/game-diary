@@ -1,5 +1,5 @@
 // Types file: hooks.types.ts
-import type { IGamesApiResponse } from '@/lib/types';
+import type { IGamesApiResponse } from './externalApi.types';
 
 // Async state types
 export interface IAsyncState<T> {

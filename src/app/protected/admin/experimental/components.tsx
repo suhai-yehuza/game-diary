@@ -22,7 +22,7 @@ import type {
   PlayerStatsFormProps,
   StandingsFormProps,
   DataDisplayProps,
-} from '@/lib/types/adminExperimental.types';
+} from '@/lib/types/admin.types';
 import type {
   IDynamicFormProps as DynamicFormProps,
   IFieldConfig as FieldConfig,

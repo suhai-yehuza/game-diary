@@ -2,6 +2,7 @@ import { eq } from 'drizzle-orm';
 
 import { db } from '@/lib/db';
 import { nba_games, comments, reactions } from '@/lib/db/schema';
+import type { REACTION_EMOJIS } from '@/lib/db/schema/constants';
 import { AuthorizationError } from '@/lib/graphql/errors';
 import type { TARGET_TYPES, GraphQLContext } from '@/lib/types';
 import { generateUUIDv7 } from '@/lib/utils/id-generator';
@@ -245,27 +246,7 @@ export const reactionMutationResolvers = {
           user_id: context.user.id,
           target_id: args.input.targetId,
           target_type: args.input.targetType as keyof typeof TARGET_TYPES,
-          emoji: args.input.emoji as
-            | '👍'
-            | '👎'
-            | '❤️'
-            | '😂'
-            | '😮'
-            | '😢'
-            | '😠'
-            | '🔥'
-            | '👏'
-            | '👀'
-            | '🚀'
-            | '💪'
-            | '🐐'
-            | '🎯'
-            | '🏀'
-            | '⚽'
-            | '🏈'
-            | '⚾'
-            | '🎾'
-            | '⛳',
+          emoji: args.input.emoji as (typeof REACTION_EMOJIS)[keyof typeof REACTION_EMOJIS],
         })
         .returning();
 

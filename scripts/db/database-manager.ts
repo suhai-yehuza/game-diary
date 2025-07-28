@@ -19,7 +19,7 @@ import { sql } from 'drizzle-orm';
 import { neon, neonConfig } from '@neondatabase/serverless';
 import { neon as neonDirect } from '@neondatabase/serverless';
 
-import { logger } from '@lib/core/logger';
+import { logger } from '@src/lib/utils/logger';
 import { createDatabaseClient } from '@src/lib/db';
 import { setupAllTriggersFromSql } from '../utils/database-triggers';
 import {

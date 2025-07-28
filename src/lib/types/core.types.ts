@@ -3,12 +3,13 @@
  * Common utility types, pagination, search, and database-related types
  */
 
+import type { ISortDirection } from './ui.types';
+
 // ========================================
 // COMMON UTILITY TYPES
 // ========================================
 
 // Common Types
-export type ISortDirection = 'asc' | 'desc';
 
 // Pagination Types
 export interface IPaginationInput {

@@ -5,7 +5,7 @@ import 'dotenv-flow/config';
 import { sql } from 'drizzle-orm';
 import { neon } from '@neondatabase/serverless';
 
-import { logger } from '@lib/core/logger';
+import { logger } from '../../src/lib/utils/logger';
 import { createDatabaseClient } from '@src/lib/db';
 import { generateId } from '@src/lib/utils/id-generator';
 
@@ -847,7 +847,7 @@ async function main(): Promise<void> {
     // Consider adding ON DELETE CASCADE to your schema for users/game_logs if appropriate
     await TriggerValidator.globalCleanup(environment);
   } catch (error) {
-    logger.error('❌ Trigger validation failed:', error);
+    logger.error('❌ Trigger validation failed:');
     process.exit(1);
   }
 }

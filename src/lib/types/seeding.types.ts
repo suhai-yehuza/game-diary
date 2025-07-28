@@ -4,7 +4,7 @@
  * This file contains all type definitions used by the database seeding system.
  */
 
-import type { IReactionEmojiValue } from '@/lib/types';
+import type { IReactionEmojiValue } from './constant.types';
 
 // ============================================================================
 // SEEDING CONFIGURATION TYPES

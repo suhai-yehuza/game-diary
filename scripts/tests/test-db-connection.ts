@@ -1,10 +1,9 @@
 import 'dotenv-flow/config';
 
 import { sql } from 'drizzle-orm';
-import { execSync } from 'child_process';
 
-import { logger } from '@lib/core/logger';
-import { createDatabaseClient, testConnection } from '@src/lib/db';
+import { logger } from '@src/lib/utils/logger';
+import { createDatabaseClient } from '@src/lib/db';
 
 import { parseScriptArgs } from '../utils/script-utils';
 
@@ -30,19 +29,22 @@ async function testBasicConnection() {
       rows: Array<{ current_time: Date; db_version: string }>;
     };
     logger.info('✅ Database connection successful!');
-    logger.info('Current time:', result.rows[0]?.current_time);
-    logger.info('Database version:', result.rows[0]?.db_version);
+    logger.info(`Current time: ${result.rows[0]?.current_time}`);
+    logger.info(`Database version: ${result.rows[0]?.db_version}`);
 
     // Test a simple query (from test-neon-postgres.ts)
     const simpleResult = (await db.execute(sql`SELECT NOW() as current_time`)) as unknown as {
       rows: Array<{ current_time: Date }>;
     };
-    logger.info('✅ Query test passed! Current time:', simpleResult.rows[0].current_time);
+    logger.info(`✅ Query test passed! Current time: ${simpleResult.rows[0].current_time}`);
 
     return db;
   } catch (error) {
-    logger.error('❌ Database connection failed:', error);
-    logger.info('Error details:', error);
+    logger.error(
+      '❌ Database connection failed:',
+      error instanceof Error ? error : new Error(String(error))
+    );
+    logger.info(`Error details: ${error}`);
     throw error;
   }
 }

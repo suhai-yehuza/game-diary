@@ -3,7 +3,7 @@ import { promisify } from 'util';
 
 import { sql } from 'drizzle-orm';
 
-import { logger } from '@lib/core/logger';
+import { logger } from '@src/lib/utils/logger';
 import { createDatabaseClient } from '@src/lib/db';
 import type { IScriptOptions } from '@src/lib/types';
 
@@ -80,7 +80,10 @@ export async function runCommand(
 
     return stdout;
   } catch (error: unknown) {
-    logger.error(`❌ Failed: ${description}`);
+    logger.error(
+      `❌ Failed: ${description}`,
+      error instanceof Error ? error : new Error(String(error))
+    );
     if (error instanceof Error) {
       logger.error(error.message);
     } else {
@@ -94,10 +97,13 @@ export async function runCommand(
  * Handle script errors with consistent formatting
  */
 export function handleScriptError(error: unknown, context: string): never {
-  logger.error(`\n❌ ${context} failed:`, error instanceof Error ? error.message : String(error));
+  logger.error(
+    `\n❌ ${context} failed:`,
+    error instanceof Error ? error : new Error(String(error))
+  );
 
   if (error instanceof Error && error.stack) {
-    logger.error('Stack trace:', error.stack);
+    logger.error(`Stack trace: ${error.stack}`);
   }
 
   logger.error('\n💡 Troubleshooting tips:');

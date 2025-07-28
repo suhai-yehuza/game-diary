@@ -136,7 +136,7 @@ main() {
         echo "✅ Server detected on port 3000"
         server_running=true
     else
-        echo "❌ No server detected on port 3000"
+        echo "No server detected on port 3000"
         server_running=false
     fi
 

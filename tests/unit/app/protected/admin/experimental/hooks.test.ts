@@ -35,6 +35,11 @@ vi.mock('@/lib/types/constant.types', () => ({
     PLAYERS: 'players',
     STANDINGS: 'standings',
   },
+  CLASSIFICATION: {
+    PRIVATE: 'PRIVATE',
+    PROTECTED: 'PROTECTED',
+    PUBLIC: 'PUBLIC',
+  },
 }));
 
 describe('Admin Experimental Hooks', () => {

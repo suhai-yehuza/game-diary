@@ -9,7 +9,7 @@ import { existsSync, readFileSync, writeFileSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
-import { logger } from '@lib/core/logger';
+import { logger } from '@src/lib/utils/logger';
 import type { IPerformanceMetrics, IPerformanceTrend } from '@src/lib/types';
 
 const __filename = fileURLToPath(import.meta.url);

@@ -1,7 +1,7 @@
 #!/usr/bin/env tsx
 
 import 'dotenv-flow/config';
-import { webhookLogger } from '@lib/core/logger';
+import { webhookLogger } from '@src/lib/utils/logger';
 
 // Test SSO callback URL handling
 const testSSOCallbackUrls = [

@@ -3,11 +3,11 @@
  * All component-related type definitions
  */
 
-import React from 'react';
-import type { HTMLAttributes, ReactNode } from 'react';
-import { PropsWithChildren } from 'react';
-import type { IBaseButtonProps, IBaseInputProps } from '@/lib/types';
-import type { ISearchResponse, ISearchResult } from '@/lib/types';
+import type { ReactNode, FormEvent, HTMLAttributes, PropsWithChildren } from 'react';
+
+// Import from specific files to avoid circular dependencies
+import type { IBaseButtonProps, IBaseInputProps } from './ui.types';
+import type { ISearchResponse, ISearchResult } from './search.types';
 
 // ========================================
 // CARD COMPONENT TYPES
@@ -178,9 +178,11 @@ export interface IColumnConfig<T> {
 }
 
 export interface ITableWithSearchProps<T extends { id: string | number }> {
-  data: T[];
+  tableName: string;
   columns: IColumnConfig<T>[];
-  onSearch: (query: string) => void;
+  itemLabel: string;
+  data?: T[];
+  onSearch?: (query: string) => void;
   onSort?: (column: keyof T, direction: 'asc' | 'desc') => void;
   searchPlaceholder?: string;
   className?: string;
@@ -294,7 +296,17 @@ export interface IGameLogModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
-  gameLog?: any; // Required for edit mode
+  gameLog?: {
+    id?: string;
+    rating_for_game?: number;
+    tags?: string[];
+    notes?: string;
+    classification?: string;
+    watched_setting?: string;
+    watched_scope?: string;
+    watched_date?: string;
+    watched_location?: string;
+  }; // Required for edit mode
 }
 
 export interface IGameLogSearchResult {

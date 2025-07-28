@@ -1,5 +1,9 @@
 import type React from 'react';
-import type { ISortDirection } from '@/lib/types';
+
+// UI Component Types
+// These types are used across the application for UI components
+
+export type ISortDirection = 'asc' | 'desc' | null;
 
 // ========================================
 // NOTIFICATION TYPES

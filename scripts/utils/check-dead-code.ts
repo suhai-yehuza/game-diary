@@ -1,7 +1,7 @@
 #!/usr/bin/env tsx
 
 import { execSync } from 'child_process';
-import { logger } from '../../lib/core/logger';
+import { logger } from '@src/lib/utils/logger';
 import fs from 'fs';
 import path from 'path';
 
@@ -22,19 +22,6 @@ class DeadCodeDetector {
     'tests/e2e/coverage.config.ts',
     'src/lib/types/declarations.d.ts',
     'src/lib/types/index.ts',
-    'src/middleware.ts',
-    'src/app/layout.tsx',
-    'src/app/page.tsx',
-    'src/app/globals.css',
-    'src/app/not-found.tsx',
-    'src/app/search/page.tsx',
-    'src/app/sso-callback/page.tsx',
-    'src/app/components/auth/ClerkSignIn\\.tsx',
-    'src/app/components/auth/ClerkSignUp\\.tsx',
-    'src/app/components/layout/index\\.ts$',
-    'src/app/components/layout/Footer\\.tsx$',
-    'src/lib/core/logger.ts',
-    'src/lib/utils.ts',
   ];
 
   async run(): Promise<DeadCodeResults> {
@@ -119,7 +106,7 @@ class DeadCodeDetector {
         const stats = fs.statSync(filePath);
         return stats.size === 0;
       } catch (error) {
-        logger.warn(`Could not check if file is empty: ${filePath}`, error);
+        logger.warn(`Could not check if file is empty: ${filePath}`);
         return false;
       }
     }
@@ -265,7 +252,7 @@ async function main(): Promise<void> {
     const hasAnyIssues = hasTsUnusedExportsIssues || hasEmptyFiles;
     process.exit(hasAnyIssues ? 1 : 0);
   } catch (error) {
-    logger.error('❌ Error during dead code detection:', error);
+    logger.error('❌ Error during dead code detection:');
     process.exit(1);
   }
 }

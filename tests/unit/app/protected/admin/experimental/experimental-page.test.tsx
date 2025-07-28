@@ -93,6 +93,11 @@ vi.mock('@/lib/types/constant.types', () => ({
     STANDINGS: 'standings',
     SEARCH: 'search',
   },
+  CLASSIFICATION: {
+    PRIVATE: 'PRIVATE',
+    PROTECTED: 'PROTECTED',
+    PUBLIC: 'PUBLIC',
+  },
 }));
 
 describe('AdminExperimentalPage', () => {

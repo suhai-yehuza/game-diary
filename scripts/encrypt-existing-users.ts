@@ -16,7 +16,7 @@ import {
   deserializeEncryptedField,
   decryptField,
 } from '@/lib/utils/encryption';
-import { logger } from '@lib/core/logger';
+import { logger } from '@src/lib/utils/logger';
 
 interface UserRecord {
   id: string;

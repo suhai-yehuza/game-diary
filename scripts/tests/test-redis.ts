@@ -2,7 +2,7 @@
 
 import { config } from 'dotenv-flow'; // Load env vars based on NODE_ENV
 
-import { logger } from '@lib/core/logger';
+import { logger } from '@src/lib/utils/logger';
 import { getCache, testRedisConnection } from '@src/lib/cache/index';
 
 import { parseScriptArgs } from '../utils/script-utils';

@@ -9,7 +9,7 @@ import { PaginationInfo } from '@/app/protected/admin/database/components/ui/pag
 import { SortableHeader } from '@/app/protected/admin/database/components/ui/sortable-header';
 import { TableSearch } from '@/app/protected/admin/database/components/ui/table-search';
 import { API_CONFIG } from '@/lib/config/app.config';
-import type { IColumnConfig, ITableWithSearchProps } from '@/lib/types';
+import type { ITableWithSearchProps } from '@/lib/types';
 
 export default function TableWithSearch<T extends { id: string | number }>({
   tableName,
@@ -229,7 +229,7 @@ export default function TableWithSearch<T extends { id: string | number }>({
           key={String(col.key)}
           className="px-6 py-4 text-sm text-slate-700 dark:text-slate-300 border-r border-slate-100 dark:border-slate-800 last:border-r-0"
         >
-          {col.render ? col.render(row) : (row[col.key] as React.ReactNode)}
+          {col.render ? col.render(row[col.key], row) : (row[col.key] as React.ReactNode)}
         </td>
       ))}
     </tr>
@@ -259,7 +259,7 @@ export default function TableWithSearch<T extends { id: string | number }>({
         />
 
         {/* Error Display */}
-        <ErrorDisplay error={error} />
+        <ErrorDisplay error={error ?? ''} />
 
         {/* Pagination Info - Top */}
         <PaginationInfo

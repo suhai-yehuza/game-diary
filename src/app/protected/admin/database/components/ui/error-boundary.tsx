@@ -1,4 +1,4 @@
-import React, { Component, type ReactNode } from 'react';
+import React, { Component } from 'react';
 
 import type { IErrorBoundaryState, IErrorBoundaryProps } from '@/lib/types';
 import { Button } from '@src/app/protected/admin/database/components/ui/button';

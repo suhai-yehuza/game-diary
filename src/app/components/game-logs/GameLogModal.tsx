@@ -107,7 +107,7 @@ export function GameLogModal({ mode, isOpen, onClose, onSuccess, gameLog }: IGam
   // Update form when gameLog changes (edit mode)
   useEffect(() => {
     if (mode === 'edit' && gameLog) {
-      setRating(gameLog.rating_for_game);
+      setRating(gameLog.rating_for_game ?? 3);
       setTags(gameLog.tags ?? []);
       reset({
         rating_for_game: gameLog.rating_for_game,

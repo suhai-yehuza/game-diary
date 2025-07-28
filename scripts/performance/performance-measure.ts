@@ -10,7 +10,7 @@ import { existsSync, mkdirSync, writeFileSync, readFileSync, readdirSync, statSy
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
-import { logger } from '@lib/core/logger';
+import { logger } from '@src/lib/utils/logger';
 import type { IPerformanceMetrics } from '@src/lib/types';
 
 const __filename = fileURLToPath(import.meta.url);

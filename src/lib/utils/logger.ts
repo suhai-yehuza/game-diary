@@ -1,12 +1,6 @@
 import { LogLevel } from '@/lib/types';
 import type { ILogContext, ILoggerConfig } from '@/lib/types';
 
-/**
- * Comprehensive logging utility for the application
- * Combines features from both lib/core/logger.ts and src/lib/utils/logger.ts
- * Provides consistent logging across development, testing, and production environments
- */
-
 const defaultConfig: ILoggerConfig = {
   level: process.env.NODE_ENV === 'production' ? LogLevel.WARN : LogLevel.DEBUG,
   enableTimestamp: true,

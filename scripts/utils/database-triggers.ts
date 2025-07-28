@@ -4,7 +4,7 @@ import { sql } from 'drizzle-orm';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 
-import { logger } from '@lib/core/logger';
+import { logger } from '@src/lib/utils/logger';
 import { createDatabaseClient } from '@src/lib/db';
 
 export interface ITriggerSetupOptions {

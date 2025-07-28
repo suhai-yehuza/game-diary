@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import { createRapidAPIClient } from '../../../src/lib/utils/api-client';
-import { cn, formatDate } from '../../../src/lib/utils/index';
+import { createRapidAPIClient } from '@/lib/utils/api-client';
+import { cn, formatDate } from '@/lib/utils/index';
 import { TIMEOUTS } from '../../e2e/utils/test-utils';
 
 describe('API Client Utils', () => {

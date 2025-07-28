@@ -17,7 +17,7 @@ import type {
   IFriendship,
   IFriendshipFilters,
   IFriendshipStatus,
-  IUserSummary,
+  IUserSummaryBasic,
   IUserFriendshipsResponse,
   IFriendshipRequestsResponse,
   IFriendshipStatusResponse,
@@ -212,7 +212,7 @@ export function useFriendshipStatus(userId: string) {
 }
 
 export function useUserSearch() {
-  const [users, setUsers] = useState<IUserSummary[]>([]);
+  const [users, setUsers] = useState<IUserSummaryBasic[]>([]);
   const [endCursor, setEndCursor] = useState<string | null>(null);
   const [hasNextPage, setHasNextPage] = useState(true);
   const [totalCount, setTotalCount] = useState<number>(0);

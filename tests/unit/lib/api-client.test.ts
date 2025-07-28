@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { createRapidAPIClient } from '../../../src/lib/utils/api-client';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { createRapidAPIClient } from '@/lib/utils/api-client';
 import { TIMEOUTS } from '../../e2e/utils/test-utils';
 
 global.fetch = vi.fn();

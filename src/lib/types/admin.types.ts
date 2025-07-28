@@ -4,7 +4,9 @@
  */
 
 import type { ReactNode, FormEvent } from 'react';
-import type { IPageInfo, TabValue, IBaseButtonProps, IBaseInputProps } from '@/lib/types';
+import type { IBaseButtonProps, IBaseInputProps } from './ui.types';
+import type { IPageInfo } from './core.types';
+import type { TabValue } from './constant.types';
 import type {
   IGamesFormProps,
   IGameStatsFormProps,
@@ -13,7 +15,7 @@ import type {
   IPlayersFormProps,
   IPlayerStatsFormProps,
   IStandingsFormProps,
-} from '@/lib/types';
+} from './form.types';
 
 // ========================================
 // ADMIN DATABASE TYPES

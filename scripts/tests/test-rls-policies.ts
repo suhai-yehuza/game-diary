@@ -37,7 +37,7 @@ import {
   getUserWithRLS,
   updateUserWithRLS,
 } from '@/lib/db/rls-context';
-import { logger } from '@lib/core/logger';
+import { logger } from '../../src/lib/utils/logger';
 
 // ============================================================================
 // TEST DATA
@@ -91,7 +91,10 @@ async function cleanupTestData(): Promise<void> {
     );
     logger.info('✅ Test data cleaned up');
   } catch (error) {
-    logger.error('❌ Failed to clean up test data:', error);
+    logger.error(
+      '❌ Failed to clean up test data:',
+      error instanceof Error ? error : new Error(String(error))
+    );
   }
 }
 
@@ -109,7 +112,10 @@ async function setupTestData(): Promise<void> {
     }
     logger.info('✅ Test data setup complete');
   } catch (error) {
-    logger.error('❌ Failed to setup test data:', error);
+    logger.error(
+      '❌ Failed to setup test data:',
+      error instanceof Error ? error : new Error(String(error))
+    );
     throw error;
   }
 }
