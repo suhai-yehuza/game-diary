@@ -38,7 +38,7 @@ function SearchInput({
       <input
         type="search"
         placeholder={placeholder}
-        className={`pl-8 w-full bg-transparent border-none focus:ring-0 outline-none transition-all duration-200 ${className}`}
+        className={`pl-8 w-full bg-transparent border-none focus:ring-0 outline-none transition-all duration-200 text-foreground placeholder:text-muted-foreground ${className}`}
         value={value}
         onChange={onChange}
         onFocus={onFocus}
@@ -222,11 +222,11 @@ function SearchBarContent({
 
   // Responsive form class for normal state
   const baseFormClass =
-    'relative max-w-[140px] sm:max-w-[180px] md:max-w-[220px] h-9 sm:h-11 bg-background border border-[#27272a] shadow flex items-center px-2 transition-all duration-200 text-xs sm:text-sm';
+    'relative max-w-[140px] sm:max-w-[180px] md:max-w-[220px] h-9 sm:h-11 bg-background border border-border shadow flex items-center px-2 transition-all duration-200 text-xs sm:text-sm';
 
   // Expanded form class for focused state (responsive, no overlay)
   const expandedFormClass =
-    'relative w-full max-w-[95vw] sm:max-w-[300px] md:max-w-[400px] h-12 bg-background/95 dark:bg-background/95 backdrop-blur-sm border border-[#27272a] shadow-2xl flex items-center px-2 sm:px-4 py-2 rounded-md transition-all duration-200 text-base z-[100]';
+    'relative w-full max-w-[95vw] sm:max-w-[300px] md:max-w-[400px] h-12 bg-background/95 dark:bg-background/95 backdrop-blur-sm border border-border shadow-2xl flex items-center px-2 sm:px-4 py-2 rounded-md transition-all duration-200 text-base z-[100]';
 
   // Only expand the searchbar in place, no overlay
   return (

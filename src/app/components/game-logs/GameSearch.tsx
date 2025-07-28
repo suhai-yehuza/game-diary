@@ -128,7 +128,7 @@ export function GameSearch({ onGameSelect, onClose }: IGameSearchProps) {
                   value={searchTerm}
                   onChange={e => setSearchTerm(e.target.value)}
                   placeholder="Search by team name, arena, or date..."
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400"
                 />
               </div>
             </div>
@@ -136,7 +136,7 @@ export function GameSearch({ onGameSelect, onClose }: IGameSearchProps) {
               <select
                 value={selectedSeason}
                 onChange={e => setSelectedSeason(Number(e.target.value))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
               >
                 {seasons.map(season => (
                   <option key={season} value={season}>
@@ -151,12 +151,12 @@ export function GameSearch({ onGameSelect, onClose }: IGameSearchProps) {
           <div className="max-h-96 overflow-y-auto">
             {loading && (
               <div className="text-center py-8">
-                <p className="text-gray-600">Searching for games...</p>
+                <p className="text-gray-600 dark:text-gray-400">Searching for games...</p>
               </div>
             )}
 
             {error && (
-              <div className="text-center py-8 text-red-600">
+              <div className="text-center py-8 text-red-600 dark:text-red-400">
                 <p>Error: {error}</p>
                 <p className="text-sm mt-2">Please try again or check your connection.</p>
               </div>
@@ -164,7 +164,9 @@ export function GameSearch({ onGameSelect, onClose }: IGameSearchProps) {
 
             {!loading && !error && results.length === 0 && debouncedSearchTerm && (
               <div className="text-center py-8">
-                <p className="text-gray-600">No games found matching your search.</p>
+                <p className="text-gray-600 dark:text-gray-400">
+                  No games found matching your search.
+                </p>
                 <p className="text-sm mt-2">Try a different search term or season.</p>
               </div>
             )}
@@ -175,12 +177,14 @@ export function GameSearch({ onGameSelect, onClose }: IGameSearchProps) {
                   <div
                     key={game.id}
                     onClick={() => handleGameSelect(game)}
-                    className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+                    className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors"
                   >
                     <div className="flex justify-between items-start">
                       <div className="flex-1">
-                        <h3 className="font-medium text-gray-900 mb-1">{formatScore(game)}</h3>
-                        <div className="flex items-center gap-4 text-sm text-gray-600">
+                        <h3 className="font-medium text-gray-900 dark:text-gray-100 mb-1">
+                          {formatScore(game)}
+                        </h3>
+                        <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
                           <div className="flex items-center gap-1">
                             <Calendar className="w-4 h-4" />
                             {game.date}
@@ -189,12 +193,14 @@ export function GameSearch({ onGameSelect, onClose }: IGameSearchProps) {
                             <MapPin className="w-4 h-4" />
                             {game.arena}
                           </div>
-                          <div className="text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-700">
+                          <div className="text-xs px-2 py-1 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300">
                             {game.status || 'Unknown'}
                           </div>
                         </div>
                       </div>
-                      <div className="text-sm text-gray-500">Season {game.season}</div>
+                      <div className="text-sm text-gray-500 dark:text-gray-400">
+                        Season {game.season}
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -203,7 +209,9 @@ export function GameSearch({ onGameSelect, onClose }: IGameSearchProps) {
 
             {!loading && !error && !debouncedSearchTerm && (
               <div className="text-center py-8">
-                <p className="text-gray-600">Enter a search term to find NBA games.</p>
+                <p className="text-gray-600 dark:text-gray-400">
+                  Enter a search term to find NBA games.
+                </p>
                 <p className="text-sm mt-2">You can search by team name, arena, or date.</p>
               </div>
             )}

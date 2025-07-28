@@ -518,19 +518,19 @@ export function GameLogModal({ mode, isOpen, onClose, onSuccess, gameLog }: IGam
                     {showSearchResults && (
                       <div className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md shadow-lg max-h-48 overflow-y-auto">
                         {gamesLoading && (
-                          <div className="p-3 text-center text-gray-600 text-sm">
+                          <div className="p-3 text-center text-gray-600 dark:text-gray-400 text-sm">
                             <p>Loading games for selected season...</p>
                           </div>
                         )}
 
                         {searchLoading && !gamesLoading && (
-                          <div className="p-3 text-center text-gray-600 text-sm">
+                          <div className="p-3 text-center text-gray-600 dark:text-gray-400 text-sm">
                             <p>Searching for games...</p>
                           </div>
                         )}
 
                         {searchError && (
-                          <div className="p-3 text-center text-red-600 text-sm">
+                          <div className="p-3 text-center text-red-600 dark:text-red-400 text-sm">
                             <p>Error: {searchError}</p>
                           </div>
                         )}
@@ -540,7 +540,7 @@ export function GameLogModal({ mode, isOpen, onClose, onSuccess, gameLog }: IGam
                           !searchError &&
                           searchResults.length === 0 &&
                           searchTerm.trim() && (
-                            <div className="p-3 text-center text-gray-600 text-sm">
+                            <div className="p-3 text-center text-gray-600 dark:text-gray-400 text-sm">
                               <p>No games found matching your search.</p>
                               <p className="text-xs mt-1">Try a different search term.</p>
                             </div>

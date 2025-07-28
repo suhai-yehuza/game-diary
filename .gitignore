@@ -53,3 +53,4 @@ __tests__/sample-data/
 
 # Soak monitoring data
 .soak/
+test-results/
