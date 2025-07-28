@@ -1,6 +1,5 @@
 /// <reference types="vitest/globals" />
 
-import { renderHook } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 
 // Mock Apollo Client before importing the hooks

@@ -1,7 +1,7 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
 import React from 'react';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // Mock Next.js navigation
 vi.mock('next/navigation', () => ({
@@ -59,7 +59,7 @@ describe('SearchBar', () => {
     const user = userEvent.setup();
     render(<SearchBar />);
     await user.tab(); // Tab to the input
-    let input = screen.getByPlaceholderText(/search/i);
+    const input = screen.getByPlaceholderText(/search/i);
     expect(input).toHaveFocus();
     await user.click(document.body); // Click outside to blur
     expect(input).not.toHaveFocus();

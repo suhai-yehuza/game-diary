@@ -421,7 +421,10 @@ async function main(): Promise<void> {
         process.exit(1);
     }
   } catch (error) {
-    logger.error('Script execution failed:', error);
+    logger.error(
+      'Script execution failed:',
+      error instanceof Error ? error : new Error(String(error))
+    );
     process.exit(1);
   }
 }
@@ -515,7 +518,7 @@ For detailed help on specific commands, run:
 // Run if this file is executed directly
 if (import.meta.url === `file://${process.argv[1]}`) {
   main().catch(error => {
-    logger.error('CLI failed:', error);
+    logger.error('CLI failed:', error instanceof Error ? error : new Error(String(error)));
     process.exit(1);
   });
 }

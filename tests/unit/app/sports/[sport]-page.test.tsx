@@ -1,10 +1,11 @@
-import React from 'react';
 import { render, screen } from '@testing-library/react';
-import { vi, describe, it, expect } from 'vitest';
-import SportPage from '@/app/sports/[sport]/page';
 import * as nextNavigation from 'next/navigation';
-import { SPORTS_CONFIG } from '@/app/components/sports/SportsConfig';
+import React from 'react';
+import { vi, describe, it, expect } from 'vitest';
+
 import * as SportsComponents from '@/app/components/sports';
+import { SPORTS_CONFIG } from '@/app/components/sports/SportsConfig';
+import SportPage from '@/app/sports/[sport]/page';
 
 vi.mock('next/navigation', async () => {
   const actual = await vi.importActual<any>('next/navigation');

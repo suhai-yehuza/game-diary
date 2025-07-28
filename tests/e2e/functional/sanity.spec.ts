@@ -1,8 +1,10 @@
-import { Page, test } from '@playwright/test';
+import type { Page } from '@playwright/test';
+import { test } from '@playwright/test';
+
 import { testSignInModal } from '@tests/e2e/utils/auth-modal';
-import { commonTestSetup } from '@tests/e2e/utils/setup';
-import { testHomePage, testSportsPage } from '@tests/e2e/utils/page-tests';
 import { navigateToSection } from '@tests/e2e/utils/navigation';
+import { testHomePage, testSportsPage } from '@tests/e2e/utils/page-tests';
+import { commonTestSetup } from '@tests/e2e/utils/setup';
 import { TIMEOUTS } from '@tests/e2e/utils/test-utils';
 
 // Atomic test functions
@@ -35,12 +37,12 @@ export async function runSanitySuite(page: Page) {
 }
 
 test.describe('Sanity Tests (Base Level)', () => {
-  test.beforeEach(async ({ page }, testInfo) => {
+  test.beforeEach(async ({ page }) => {
     // Removed mobile skip logic
     await commonTestSetup(page);
   });
 
-  test('@sanity full sanity suite', async ({ page }) => {
+  test('should pass basic sanity checks', async ({ page }) => {
     await runSanitySuite(page);
   });
 });

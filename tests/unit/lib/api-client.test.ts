@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+
 import { createRapidAPIClient } from '@/lib/utils/api-client';
-import { TIMEOUTS } from '../../e2e/utils/test-utils';
+import { TIMEOUTS } from '@tests/e2e/utils/test-utils';
 
 global.fetch = vi.fn();
 

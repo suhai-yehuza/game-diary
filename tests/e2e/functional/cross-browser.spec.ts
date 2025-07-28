@@ -1,6 +1,7 @@
 import { test } from '@playwright/test';
-import { commonTestSetup } from '@tests/e2e/utils/setup';
+
 import { runCrossBrowserSuite } from '@tests/e2e/utils/page-tests';
+import { commonTestSetup } from '@tests/e2e/utils/setup';
 import { clearTestData } from '@tests/e2e/utils/test-utils';
 
 test.describe.configure({ mode: 'serial', retries: 2 }); // Only enable serial if test isolation is required

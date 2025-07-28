@@ -66,12 +66,12 @@ function getOutdatedPackages(): IOutdatedPackage[] {
     return packages;
   } catch (error) {
     if (error instanceof Error) {
-      logger.error('Error getting outdated packages:', error.message);
+      logger.error('Error getting outdated packages:', error);
       if (error.stack) {
-        logger.error(error.stack);
+        logger.error('Stack trace:', error);
       }
     } else {
-      logger.error('Error getting outdated packages:', String(error));
+      logger.error('Error getting outdated packages:', new Error(String(error)));
     }
     return [];
   }
@@ -87,12 +87,12 @@ function getPackageJson() {
     };
   } catch (error) {
     if (error instanceof Error) {
-      logger.error('Error reading package.json:', error.message);
+      logger.error('Error reading package.json:', error);
       if (error.stack) {
-        logger.error(error.stack);
+        logger.error('Stack trace:', error);
       }
     } else {
-      logger.error('Error reading package.json:', String(error));
+      logger.error('Error reading package.json:', new Error(String(error)));
     }
     throw error;
   }
@@ -111,12 +111,12 @@ function updatePackageJson(
     writeFileSync(join(process.cwd(), 'package.json'), JSON.stringify(packageJson, null, 2) + '\n');
   } catch (error) {
     if (error instanceof Error) {
-      logger.error('Error updating package.json:', error.message);
+      logger.error('Error updating package.json:', error);
       if (error.stack) {
-        logger.error(error.stack);
+        logger.error('Stack trace:', error);
       }
     } else {
-      logger.error('Error updating package.json:', String(error));
+      logger.error('Error updating package.json:', new Error(String(error)));
     }
     throw error;
   }
@@ -185,12 +185,12 @@ function main() {
     logger.info('pnpm test:e2e');
   } catch (error) {
     if (error instanceof Error) {
-      logger.error('Error managing dependencies:', error.message);
+      logger.error('Error managing dependencies:', error);
       if (error.stack) {
-        logger.error(error.stack);
+        logger.error('Stack trace:', error);
       }
     } else {
-      logger.error('Error managing dependencies:', String(error));
+      logger.error('Error managing dependencies:', new Error(String(error)));
     }
     process.exit(1);
   }

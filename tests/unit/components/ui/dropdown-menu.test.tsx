@@ -1,5 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
+
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -11,7 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuShortcut,
   DropdownMenuGroup,
-  DropdownMenuPortal,
+  DropdownMenuPortal as _DropdownMenuPortal,
   DropdownMenuSub,
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
@@ -190,20 +191,20 @@ describe('DropdownMenu Components', () => {
     it('renders unchecked checkbox item', () => {
       render(<DropdownMenuCheckboxItem>Checkbox Item</DropdownMenuCheckboxItem>);
 
-      const item = screen.getByTestId('dropdown-checkbox-item');
-      expect(item).toBeInTheDocument();
+      const _item = screen.getByTestId('dropdown-checkbox-item');
+      expect(_item).toBeInTheDocument();
       // The indicator is always rendered, but should not be visible when unchecked
-      const indicator = item.querySelector('[data-testid="checkbox-indicator"]');
+      const indicator = _item.querySelector('[data-testid="checkbox-indicator"]');
       expect(indicator).toBeInTheDocument();
       // Optionally, check for aria-checked or class if available
-      expect(item).not.toHaveAttribute('aria-checked', 'true');
+      expect(_item).not.toHaveAttribute('aria-checked', 'true');
     });
 
     it('renders checked checkbox item', () => {
       render(<DropdownMenuCheckboxItem checked>Checked Item</DropdownMenuCheckboxItem>);
 
-      const item = screen.getByTestId('dropdown-checkbox-item');
-      // expect(item).toHaveAttribute('data-checked', 'true');
+      const _item = screen.getByTestId('dropdown-checkbox-item');
+      // expect(_item).toHaveAttribute('data-checked', 'true');
       expect(screen.getByTestId('checkbox-indicator')).toHaveTextContent('✓');
     });
   });

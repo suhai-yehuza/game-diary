@@ -1,12 +1,14 @@
 import { test, expect } from '@playwright/test';
+
+import { testSignInModal } from '@tests/e2e/utils/auth-modal';
 import {
   safeGoto,
   waitForPageLoad,
   waitForNetworkIdle,
   clearTestData,
   TIMEOUTS,
-} from '../utils/test-utils';
-import { testSignInModal } from '../utils/auth-modal';
+} from '@tests/e2e/utils/test-utils';
+
 import { runSmokeSuite } from './smoke.spec';
 
 // Helper to robustly reveal the sign-in button on mobile
@@ -178,7 +180,7 @@ test.beforeEach(async ({ page }) => {
 });
 
 test.describe('Critical Tests (Extends Smoke)', () => {
-  test.beforeEach(async ({ page }, testInfo) => {
+  test.beforeEach(async ({ page }) => {
     // Removed mobile skip logic
     await page.addStyleTag({
       content: '* { transition: none !important; animation: none !important; }',
@@ -188,7 +190,7 @@ test.describe('Critical Tests (Extends Smoke)', () => {
     await waitForNetworkIdle(page);
   });
 
-  test('@critical full critical suite', async ({ page }) => {
+  test('should handle critical user flows', async ({ page }) => {
     await runCriticalSuite(page);
   });
 });

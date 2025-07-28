@@ -5,9 +5,9 @@
  * Coverage is measured by the number of user journeys and critical paths tested.
  */
 
-import { CoverageTarget, TestCategory } from '@/lib/types/e2eTest.types';
+import type { ICoverageTarget, ITestCategory } from '@/lib/types/e2eTest.types';
 
-export const COVERAGE_TARGETS: CoverageTarget[] = [
+export const COVERAGE_TARGETS: ICoverageTarget[] = [
   {
     category: 'Core Navigation',
     target: 100,
@@ -76,7 +76,7 @@ export const COVERAGE_TARGETS: CoverageTarget[] = [
   },
 ];
 
-export const TEST_CATEGORIES: TestCategory[] = [
+export const TEST_CATEGORIES: ITestCategory[] = [
   {
     name: 'Core Navigation',
     description: 'Basic navigation and routing functionality',
@@ -228,7 +228,7 @@ export function calculateCoverageScore(testResults: any[]): number {
 export function generateCoverageReport(testResults: any[]): any {
   const coverage = COVERAGE_TARGETS.map(target => {
     const categoryTests = testResults.filter(result =>
-      target.testFiles.some(file => result.testFile?.includes(file))
+      target.testFiles.some((file: string) => result.testFile?.includes(file))
     );
     const score = calculateCoverageScore(categoryTests);
 

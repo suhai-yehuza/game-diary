@@ -34,7 +34,7 @@ vi.mock('next/server', () => ({
     constructor(body: any, init?: any) {
       this.body = body;
       this.init = init;
-      this.status = init?.status || 200;
+      this.status = init?.status ?? 200;
       this.headers = new Map();
     }
     body: any;

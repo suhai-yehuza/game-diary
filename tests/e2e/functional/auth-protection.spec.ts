@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+
 import { TIMEOUTS } from '@tests/e2e/utils/test-utils';
 
 const protectedRoutes = ['/protected/user'];

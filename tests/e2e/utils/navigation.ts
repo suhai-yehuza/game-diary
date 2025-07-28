@@ -1,24 +1,26 @@
-import { Page, expect } from '@playwright/test';
+import type { Page } from '@playwright/test';
+import { expect } from '@playwright/test';
+
+import { SPORTS_CONFIG } from '@/app/components/sports/SportsConfig';
 import {
   waitForPageLoad,
   waitForNetworkIdle as waitForNetworkIdleUtil,
   TIMEOUTS,
 } from '@tests/e2e/utils/test-utils';
-import { SPORTS_CONFIG } from '@/app/components/sports/SportsConfig';
 
 /**
  * Navigation utilities for E2E tests
  * Handles common navigation patterns including mobile menu interactions
  */
 
-export interface NavigationOptions {
+export interface INavigationOptions {
   waitForLoad?: boolean;
   timeout?: number;
   checkMainContent?: boolean;
   waitForNetworkIdle?: boolean;
 }
 
-export interface LoadStateOptions {
+export interface ILoadStateOptions {
   state?: 'domcontentloaded' | 'load' | 'networkidle';
   timeout?: number;
 }
@@ -26,7 +28,7 @@ export interface LoadStateOptions {
 /**
  * Wait for a specific load state with consistent timeout handling
  */
-export async function waitForLoadState(page: Page, options: LoadStateOptions = {}): Promise<void> {
+export async function waitForLoadState(page: Page, options: ILoadStateOptions = {}): Promise<void> {
   const { state = 'networkidle', timeout = 10000 } = options;
   await page.waitForLoadState(state, { timeout });
 }
@@ -34,14 +36,14 @@ export async function waitForLoadState(page: Page, options: LoadStateOptions = {
 /**
  * Wait for network idle with consistent timeout
  */
-export async function waitForNetworkIdle(page: Page, timeout: number = 10000): Promise<void> {
+export async function waitForNetworkIdle(page: Page, timeout = 10000): Promise<void> {
   await waitForLoadState(page, { state: 'networkidle', timeout });
 }
 
 /**
  * Wait for DOM content loaded with consistent timeout
  */
-export async function waitForDOMContentLoaded(page: Page, timeout: number = 10000): Promise<void> {
+export async function waitForDOMContentLoaded(page: Page, timeout = 10000): Promise<void> {
   await waitForLoadState(page, { state: 'domcontentloaded', timeout });
 }
 
@@ -51,7 +53,7 @@ export async function waitForDOMContentLoaded(page: Page, timeout: number = 1000
 export async function navigateToPage(
   page: Page,
   url: string,
-  options: NavigationOptions = {}
+  options: INavigationOptions = {}
 ): Promise<void> {
   const {
     waitForLoad = true,
@@ -79,7 +81,7 @@ export async function navigateToPage(
 export async function navigateToSection(
   page: Page,
   href: string,
-  options: NavigationOptions = {}
+  options: INavigationOptions = {}
 ): Promise<void> {
   const {
     waitForLoad = true,
@@ -130,7 +132,7 @@ export async function navigateToSection(
     }
     // Strategy 3: By text content (scoped by device)
     if (!linkFound) {
-      const linkText = href.split('/').pop()?.toUpperCase() || href;
+      const linkText = href.split('/').pop()?.toUpperCase() ?? href;
       if (isMobile) {
         link = page
           .locator(`[data-testid="mobile-menu-overlay"] nav a:has-text("${linkText}")`)
@@ -142,7 +144,7 @@ export async function navigateToSection(
     }
     // Strategy 4: nav by text (scoped by device)
     if (!linkFound) {
-      const linkText = href.split('/').pop()?.toUpperCase() || href;
+      const linkText = href.split('/').pop()?.toUpperCase() ?? href;
       if (isMobile) {
         link = page
           .locator(`[data-testid="mobile-menu-overlay"] nav a:has-text("${linkText}")`)
@@ -154,7 +156,7 @@ export async function navigateToSection(
     }
     // Strategy 5: fallback (scoped by device)
     if (!linkFound) {
-      const linkText = href.split('/').pop()?.toUpperCase() || href;
+      const linkText = href.split('/').pop()?.toUpperCase() ?? href;
       if (isMobile) {
         link = page
           .locator(`[data-testid="mobile-menu-overlay"] nav *:has-text("${linkText}")`)
@@ -218,14 +220,17 @@ export async function navigateToSection(
 /**
  * Navigate to home page
  */
-export async function navigateToHome(page: Page, options: NavigationOptions = {}): Promise<void> {
+export async function navigateToHome(page: Page, options: INavigationOptions = {}): Promise<void> {
   await navigateToSection(page, '/', options);
 }
 
 /**
  * Navigate to sports section
  */
-export async function navigateToSports(page: Page, options: NavigationOptions = {}): Promise<void> {
+export async function navigateToSports(
+  page: Page,
+  options: INavigationOptions = {}
+): Promise<void> {
   const firstSportHref = Object.values(SPORTS_CONFIG)[0].href;
   await navigateToSection(page, firstSportHref, options);
 }
@@ -235,7 +240,7 @@ export async function navigateToSports(page: Page, options: NavigationOptions = 
  */
 export async function navigateToDashboard(
   page: Page,
-  options: NavigationOptions = {}
+  options: INavigationOptions = {}
 ): Promise<void> {
   await navigateToSection(page, '/', options);
 }
@@ -245,7 +250,7 @@ export async function navigateToDashboard(
  */
 export async function navigateToProfile(
   page: Page,
-  options: NavigationOptions = {}
+  options: INavigationOptions = {}
 ): Promise<void> {
   await navigateToSection(page, '/protected/user', options);
 }
@@ -253,7 +258,7 @@ export async function navigateToProfile(
 /**
  * Wait for navigation to be properly loaded and visible
  */
-export async function waitForNavigationLoaded(page: Page, timeout: number = 10000): Promise<void> {
+export async function waitForNavigationLoaded(page: Page, timeout = 10000): Promise<void> {
   console.log('🔍 Waiting for navigation to be loaded...');
 
   const isMobile = await page.evaluate(() => window.innerWidth < 1024);
@@ -292,7 +297,7 @@ export async function ensureMobileMenuClosed(page: Page): Promise<void> {
 /**
  * Open mobile menu if on mobile device with improved click handling
  */
-export async function openMobileMenu(page: Page, timeout: number = 10000): Promise<void> {
+export async function openMobileMenu(page: Page, timeout = 10000): Promise<void> {
   const isMobile = await page.evaluate(() => window.innerWidth < 1024);
 
   if (isMobile) {
@@ -336,7 +341,7 @@ export async function openMobileMenu(page: Page, timeout: number = 10000): Promi
         console.log('Menu did not open with force click');
         throw new Error('Menu did not open');
       }
-    } catch (error) {
+    } catch (_error) {
       console.log('Force click failed, trying position-based click...');
     }
 
@@ -360,7 +365,7 @@ export async function openMobileMenu(page: Page, timeout: number = 10000): Promi
       } else {
         throw new Error('Could not get bounding box for menu button');
       }
-    } catch (error) {
+    } catch (_error) {
       console.log('Mouse click failed, trying direct click...');
     }
 
@@ -378,7 +383,7 @@ export async function openMobileMenu(page: Page, timeout: number = 10000): Promi
       } else {
         throw new Error('Menu did not open with direct click');
       }
-    } catch (error) {
+    } catch (_error) {
       console.log('Direct click failed, trying keyboard navigation...');
     }
 
@@ -401,7 +406,7 @@ export async function openMobileMenu(page: Page, timeout: number = 10000): Promi
       } else {
         throw new Error('Could not get bounding box for menu button');
       }
-    } catch (error) {
+    } catch (_error) {
       console.log('Mouse click failed, trying keyboard navigation...');
     }
 
@@ -420,7 +425,7 @@ export async function openMobileMenu(page: Page, timeout: number = 10000): Promi
       } else {
         throw new Error('Menu did not open with keyboard');
       }
-    } catch (error) {
+    } catch (_error) {
       console.log('Keyboard navigation failed');
     }
 
@@ -432,7 +437,7 @@ export async function openMobileMenu(page: Page, timeout: number = 10000): Promi
 /**
  * Open mobile search overlay if on mobile device
  */
-export async function openMobileSearch(page: Page, timeout: number = 10000): Promise<void> {
+export async function openMobileSearch(page: Page, timeout = 10000): Promise<void> {
   const isMobile = await page.evaluate(() => window.innerWidth < 1024);
 
   if (isMobile) {
@@ -473,7 +478,7 @@ export async function openMobileSearch(page: Page, timeout: number = 10000): Pro
       } else {
         throw new Error('Search overlay did not open');
       }
-    } catch (error) {
+    } catch (_error) {
       console.log('Search button click failed, trying force click...');
 
       // Try force click as fallback
@@ -488,7 +493,7 @@ export async function openMobileSearch(page: Page, timeout: number = 10000): Pro
         } else {
           throw new Error('Search overlay did not open with force click');
         }
-      } catch (forceError) {
+      } catch (_forceError) {
         throw new Error('Failed to open mobile search overlay');
       }
     }
@@ -498,7 +503,7 @@ export async function openMobileSearch(page: Page, timeout: number = 10000): Pro
 /**
  * Wait for the correct nav container to be visible after opening the menu
  */
-export async function waitForMenuNavVisible(page: Page, timeout: number = 5000): Promise<void> {
+export async function waitForMenuNavVisible(page: Page, timeout = 5000): Promise<void> {
   const isMobile = await page.evaluate(() => window.innerWidth < 1024);
   if (isMobile) {
     await expect(page.locator('[data-testid="mobile-menu-overlay"] nav')).toBeVisible({ timeout });
@@ -511,7 +516,7 @@ export async function waitForMenuNavVisible(page: Page, timeout: number = 5000):
  * Get current viewport size
  */
 export async function getViewportSize(page: Page): Promise<{ width: number; height: number }> {
-  return await page.evaluate(() => ({
+  return page.evaluate(() => ({
     width: window.innerWidth,
     height: window.innerHeight,
   }));

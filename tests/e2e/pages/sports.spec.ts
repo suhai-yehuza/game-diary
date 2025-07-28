@@ -1,16 +1,18 @@
-import { test, expect, Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
+import type { Page } from '@playwright/test';
+import { test, expect } from '@playwright/test';
+
+import { SPORTS_CONFIG } from '@/app/components/sports/SportsConfig';
+import { openMobileMenu } from '@tests/e2e/utils/navigation';
+import { runComprehensivePageTests } from '@tests/e2e/utils/page-suites';
 import {
   waitForNetworkIdle,
   clearTestData,
   waitForPageStable,
   TIMEOUTS,
 } from '@tests/e2e/utils/test-utils';
-import { runComprehensivePageTests } from '@tests/e2e/utils/page-suites';
-import { openMobileMenu } from '@tests/e2e/utils/navigation';
-import { SPORTS_CONFIG } from '@/app/components/sports/SportsConfig';
 
-async function checkA11y(page: Page) {
+async function _checkA11y(page: Page) {
   const results = await new AxeBuilder({ page }).analyze();
   const critical = results.violations.filter(v => v.impact === 'critical');
   if (critical.length > 0) {
@@ -54,7 +56,7 @@ test.describe('Sports Pages', () => {
               await openMobileMenu(page);
               // Wait for the menu to be visible
               await page.waitForLoadState('domcontentloaded');
-            } catch (error) {
+            } catch (_error) {
               console.log('Failed to open mobile menu, continuing with test...');
             }
             // Target the mobile menu container ('.absolute.lg:relative' or similar)
@@ -64,7 +66,7 @@ test.describe('Sports Pages', () => {
             if ((await menuContainer.count()) > 0) {
               try {
                 await expect(menuContainer.first()).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
-              } catch (e) {
+              } catch (_e) {
                 const isVisible = await menuContainer.first().isVisible();
                 const box = await menuContainer.first().boundingBox();
                 const html = await menuContainer.first().evaluate(el => el.outerHTML);

@@ -1,4 +1,6 @@
-import { Page, expect } from '@playwright/test';
+import type { Page } from '@playwright/test';
+import { expect } from '@playwright/test';
+
 import { waitForNetworkIdle, safeGoto, waitForPageLoad, TIMEOUTS } from './test-utils';
 
 // Helper to close modal backdrops/overlays if present (for mobile)
@@ -82,7 +84,7 @@ export async function testSignInModal(
       await expect(signInButton).toBeEnabled();
       try {
         await signInButton.click();
-      } catch (err) {
+      } catch (_err) {
         // If click fails due to overlay, try to close modal backdrop and retry
         await closeModalBackdropIfPresent(page);
         await signInButton.click();
@@ -202,7 +204,7 @@ async function closeModalWithFallbacks(page: Page, closeMethod: 'escape' | 'clic
         return;
       }
     } catch (error) {
-      console.log(`Close method ${i + 1} failed: ${error}`);
+      console.log(`Close method ${i + 1} failed: ${String(error)}`);
       continue;
     }
   }

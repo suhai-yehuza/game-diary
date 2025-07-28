@@ -1,5 +1,7 @@
+import { render, screen, waitFor as _waitFor } from '@testing-library/react';
+import React from 'react';
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+
 import { Header } from '@/app/components/layout/Header';
 import { MenuProvider } from '@/app/components/providers/MenuContext';
 
@@ -16,7 +18,7 @@ vi.mock('next/link', () => ({
   ),
 }));
 vi.mock('next/image', () => ({
-  default: ({ priority, ...props }: any) => <img {...props} />,
+  default: ({ priority: _priority, ...props }: any) => <img {...props} />,
 }));
 vi.mock('@clerk/nextjs', () => ({
   SignInButton: ({ children }: any) => <button data-testid="sign-in-button">{children}</button>,

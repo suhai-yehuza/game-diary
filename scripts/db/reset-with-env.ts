@@ -13,9 +13,9 @@ async function resetWithEnvironment(env: string) {
   console.log(`🔄 Loading environment configuration for: ${env}`);
 
   // Set NODE_ENV based on env argument
-  if (env === 'prod') process.env.NODE_ENV = 'production';
-  else if (env === 'dev') process.env.NODE_ENV = 'development';
-  else process.env.NODE_ENV = env;
+  if (env === 'prod') (process.env as any).NODE_ENV = 'production';
+  else if (env === 'dev') (process.env as any).NODE_ENV = 'development';
+  else (process.env as any).NODE_ENV = env;
 
   // Determine which .env file to load
   let mainEnvFile = '.env';

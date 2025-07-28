@@ -1,15 +1,16 @@
 import { test } from '@playwright/test';
+
 import { testSignInModal } from '@tests/e2e/utils/auth-modal';
-import { commonTestSetup } from '@tests/e2e/utils/setup';
-import { testMultiplePages, testHomePage, testDashboardPage } from '@tests/e2e/utils/page-tests';
-import { navigateToSection } from '@tests/e2e/utils/navigation';
 import { SPORTS_PAGES } from '@tests/e2e/utils/constants';
+import { navigateToSection } from '@tests/e2e/utils/navigation';
+import { testMultiplePages, testHomePage, testDashboardPage } from '@tests/e2e/utils/page-tests';
+import { commonTestSetup } from '@tests/e2e/utils/setup';
+import { clearTestData, TIMEOUTS } from '@tests/e2e/utils/test-utils';
+
 import { runSanitySuite } from './sanity.spec';
-import { clearTestData } from '@tests/e2e/utils/test-utils';
-import { TIMEOUTS } from '@tests/e2e/utils/test-utils';
 
 // Utility to detect mobile devices for temporary skipping due to UI layout issues
-const isMobileDevice = (projectName: string): boolean => {
+const _isMobileDevice = (projectName: string): boolean => {
   const name = projectName.toLowerCase();
   return name.includes('mobile') || name.includes('iphone') || name.includes('tablet');
 };
@@ -60,7 +61,7 @@ test.beforeEach(async ({ page }) => {
 });
 
 test.describe('Smoke Tests (Extends Sanity)', () => {
-  test.beforeEach(async ({ page }, testInfo) => {
+  test.beforeEach(async ({ page }) => {
     // Removed mobile skip logic
     await commonTestSetup(page);
   });

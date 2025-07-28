@@ -1,6 +1,7 @@
-import React from 'react';
 import { render, screen } from '@testing-library/react';
+import React from 'react';
 import { describe, expect, it, vi } from 'vitest';
+
 import { ThemeProvider } from '@/app/components/providers/ThemeProvider';
 
 // Mock next-themes
@@ -39,7 +40,7 @@ describe('ThemeProvider', () => {
     );
 
     const provider = screen.getByTestId('next-themes-provider');
-    const props = JSON.parse(provider.getAttribute('data-props') || '{}');
+    const props = JSON.parse(provider.getAttribute('data-props') ?? '{}');
 
     expect(props).toEqual(testProps);
   });
@@ -77,7 +78,7 @@ describe('ThemeProvider', () => {
   });
 
   it('handles empty children', () => {
-    render(<ThemeProvider></ThemeProvider>);
+    render(<ThemeProvider />);
 
     expect(screen.getByTestId('next-themes-provider')).toBeInTheDocument();
   });
@@ -90,7 +91,7 @@ describe('ThemeProvider', () => {
     );
 
     const provider = screen.getByTestId('next-themes-provider');
-    const props = JSON.parse(provider.getAttribute('data-props') || '{}');
+    const props = JSON.parse(provider.getAttribute('data-props') ?? '{}');
 
     expect(props).toEqual({});
   });
@@ -110,9 +111,9 @@ describe('ThemeProvider', () => {
   });
 
   it('maintains proper component structure', () => {
-    const { container } = render(
+    render(
       <ThemeProvider>
-        <div data-testid="child">Child content</div>
+        <div data-testid="child">Test content</div>
       </ThemeProvider>
     );
 

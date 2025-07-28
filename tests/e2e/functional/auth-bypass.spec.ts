@@ -1,12 +1,13 @@
-import { test, expect, ConsoleMessage } from '@playwright/test';
+import type { ConsoleMessage } from '@playwright/test';
+import { test, expect } from '@playwright/test';
+
 import {
   setupAuthBypass,
   clearAuthBypass,
   isAuthBypassEnabled,
   getTestCredentials,
-} from '../utils/auth-bypass';
-import { setupE2EMocking, safeGotoWithMocking } from '../utils/test-utils';
-import { clearTestData } from '../utils/test-utils';
+} from '@tests/e2e/utils/auth-bypass';
+import { setupE2EMocking, safeGotoWithMocking, clearTestData } from '@tests/e2e/utils/test-utils';
 
 test.describe('Authentication Bypass Tests', () => {
   test.beforeEach(async ({ page }) => {
@@ -140,7 +141,7 @@ test.describe('Authentication Bypass Tests', () => {
 
       // Let's check what the useUser hook is returning
       const useUserResult = await page.evaluate(() => {
-        if ((window as any).__clerkMock && (window as any).__clerkMock.useUser) {
+        if ((window as any).__clerkMock?.useUser) {
           return (window as any).__clerkMock.useUser();
         }
         return null;
@@ -156,7 +157,7 @@ test.describe('Authentication Bypass Tests', () => {
 
       // Let's check what the useUser hook is returning
       const useUserResult = await page.evaluate(() => {
-        if ((window as any).__clerkMock && (window as any).__clerkMock.useUser) {
+        if ((window as any).__clerkMock?.useUser) {
           return (window as any).__clerkMock.useUser();
         }
         return null;
@@ -176,7 +177,7 @@ test.describe('Authentication Bypass Tests', () => {
 
     // And verify that our mock is working by checking the useUser result
     const useUserResult = await page.evaluate(() => {
-      if ((window as any).__clerkMock && (window as any).__clerkMock.useUser) {
+      if ((window as any).__clerkMock?.useUser) {
         return (window as any).__clerkMock.useUser();
       }
       return null;

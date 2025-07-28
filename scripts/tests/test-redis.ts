@@ -37,10 +37,10 @@ async function testRedis() {
   } catch (error) {
     logger.error(
       '❌ Redis connection test failed:',
-      error instanceof Error ? error.message : String(error)
+      error instanceof Error ? error : new Error(String(error))
     );
     if (error instanceof Error && error.stack) {
-      logger.error('Stack trace:', error.stack);
+      logger.error('Stack trace:', error);
     }
     process.exit(1);
   }

@@ -33,7 +33,7 @@ async function measureBuildTime(): Promise<number> {
     logger.info(`✅ Build completed in ${buildTime}ms (${(buildTime / 1000).toFixed(2)}s)`);
     return buildTime;
   } catch (error) {
-    logger.error('❌ Build failed:', error);
+    logger.error('❌ Build failed:', error instanceof Error ? error : new Error(String(error)));
     throw error;
   }
 }
@@ -214,7 +214,10 @@ export async function measurePerformance(): Promise<IPerformanceMetrics> {
 
     return metrics;
   } catch (error) {
-    logger.error('❌ Performance measurement failed:', error);
+    logger.error(
+      '❌ Performance measurement failed:',
+      error instanceof Error ? error : new Error(String(error))
+    );
     throw error;
   }
 }

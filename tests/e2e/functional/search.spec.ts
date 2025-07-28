@@ -1,6 +1,10 @@
 import { test, expect } from '@playwright/test';
-import { openMobileSearch } from '../utils/navigation';
-import { setupE2EMocking, safeGotoWithMocking, waitForSearchResults } from '../utils/test-utils';
+
+import {
+  setupE2EMocking,
+  safeGotoWithMocking,
+  waitForSearchResults,
+} from '@tests/e2e/utils/test-utils';
 
 test.describe.configure({ mode: 'serial', retries: 2 });
 
@@ -143,7 +147,7 @@ test.describe('Search Functionality', () => {
 
         // Check if we're on mobile by looking for the search button
         const searchButton = page.locator('button[aria-label="Open search"]');
-        const isMobile = await searchButton.isVisible().catch(() => false);
+        const isMobile = (await page.evaluate(() => window.innerWidth < 1024)) ?? false;
 
         if (isMobile) {
           // On mobile, verify the search button is visible and clickable
@@ -254,7 +258,7 @@ test.describe('Search Functionality', () => {
         const placeholder = await input.getAttribute('placeholder');
         const type = await input.getAttribute('type');
 
-        expect(ariaLabel || placeholder || type === 'search').toBeTruthy();
+        expect(ariaLabel ?? placeholder ?? type === 'search').toBeTruthy();
       } else {
         return;
       }

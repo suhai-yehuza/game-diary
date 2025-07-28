@@ -1,5 +1,5 @@
 import { defineConfig, devices } from '@playwright/test';
-import { APP_CONFIG, getAppUrl, isLocalhostTarget, getPort } from './src/lib/config/app.config';
+import { APP_CONFIG, getAppUrl, isLocalhostTarget, getPort } from '@src/lib/config/app.config';
 
 /**
  * Simplified Playwright configuration

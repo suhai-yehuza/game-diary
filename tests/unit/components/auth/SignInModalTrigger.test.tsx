@@ -1,6 +1,7 @@
-import React from 'react';
 import { render, screen } from '@testing-library/react';
+import React from 'react';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
+
 import SignInModalTrigger from '@/app/components/auth/SignInModalTrigger';
 
 // Mock Next.js router
@@ -37,7 +38,7 @@ describe('SignInModalTrigger', () => {
     // Use getAllByRole to get all buttons and find the hidden one
     const buttons = screen.getAllByRole('button');
     // The hidden button will have aria-hidden="true"
-    const hiddenButton = buttons.find(button => button.getAttribute('aria-hidden') === 'true');
+    const _hiddenButton = screen.getByRole('button', { hidden: true });
     // This may be undefined in the mock, so just check that the array exists
     expect(Array.isArray(buttons)).toBe(true);
   });

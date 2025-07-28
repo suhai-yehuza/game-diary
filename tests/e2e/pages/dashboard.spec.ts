@@ -1,5 +1,7 @@
-import { test, expect, Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
+import type { Page } from '@playwright/test';
+import { test, expect } from '@playwright/test';
+
 import {
   runComprehensivePageTests,
   waitForNetworkIdle,

@@ -10,7 +10,9 @@
       "@utils/*": ["./scripts/utils/*"],
       "@shared/*": ["./scripts/utils/*"],
       "@lib/*": ["./lib/*"],
-      "@app/*": ["./src/app/*"]
+      "@app/*": ["./src/app/*"],
+      "@scripts/*": ["./scripts/*"],
+      "@tests/*": ["./tests/*"]
     },
     "types": ["node"]
   },

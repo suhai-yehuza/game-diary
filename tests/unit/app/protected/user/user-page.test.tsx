@@ -1,16 +1,16 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { ClientProviders } from '@src/app/components/providers';
 
-var mockUseUser = vi.fn();
+import { ClientProviders } from '@src/app/components/providers';
+import UserPage from '@src/app/protected/user/page';
+
+const mockUseUser = vi.fn();
 // Mock Clerk at the top level to avoid hoisting issues
 vi.mock('@clerk/nextjs', () => ({
   useUser: () => mockUseUser(),
   ClerkProvider: ({ children }: { children: React.ReactNode }) => children,
 }));
-
-import UserPage from '@src/app/protected/user/page';
 
 // Helper function to render the user page with providers
 function renderUserPage() {

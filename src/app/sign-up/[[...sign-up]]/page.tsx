@@ -6,7 +6,7 @@ import { isClerkCatchallRouteServer } from '@/lib/utils/sso-utils';
 
 export default function SignUpPage({ params }: ISignUpPageProps) {
   // Handle Clerk catchall routes and SSO callbacks
-  const signUpSegments = params['sign-up'] || [];
+  const signUpSegments = params['sign-up'] ?? [];
 
   // Check if this is a Clerk catchall route or SSO callback
   if (signUpSegments.length > 0) {

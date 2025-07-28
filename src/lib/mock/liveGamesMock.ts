@@ -427,3 +427,7 @@ export const MOCK_LIVE_GAMES: IGamesApiResponse = {
     },
   ],
 };
+
+export function createMockLiveGames(): IGamesApiResponse {
+  return MOCK_LIVE_GAMES;
+}

@@ -1,7 +1,8 @@
-import React from 'react';
 import { auth } from '@clerk/nextjs/server';
 import { render, screen, waitFor } from '@testing-library/react';
+import React from 'react';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
+
 import ProtectedLayout from '@/app/protected/layout';
 
 // Mock Next.js headers
@@ -18,7 +19,7 @@ vi.mock('@clerk/nextjs/server', () => ({
 
 // Mock dynamic import
 vi.mock('next/dynamic', () => ({
-  default: (importFn: any, options: any) => {
+  default: (_importFn: any, _options: any) => {
     const Component = ({ children }: any) => {
       const { isLoaded, isSignedIn } = mockUserState;
 
@@ -77,7 +78,7 @@ describe('ProtectedLayout', () => {
 
     const TestComponent = () => <div data-testid="test-child">Test Content</div>;
 
-    const result = await ProtectedLayout({ children: <TestComponent /> });
+    const result = ProtectedLayout({ children: <TestComponent /> });
     render(result);
 
     await waitFor(() => {
@@ -90,7 +91,7 @@ describe('ProtectedLayout', () => {
     mockAuth.mockResolvedValue({ userId: null });
     mockUserState = { isLoaded: true, isSignedIn: false };
 
-    const result = await ProtectedLayout({ children: <div>Test</div> });
+    const result = ProtectedLayout({ children: <div>Test</div> });
     render(result);
 
     await waitFor(() => {
@@ -104,7 +105,7 @@ describe('ProtectedLayout', () => {
     mockAuth.mockResolvedValue({ userId: undefined as any });
     mockUserState = { isLoaded: true, isSignedIn: false };
 
-    const result = await ProtectedLayout({ children: <div>Test</div> });
+    const result = ProtectedLayout({ children: <div>Test</div> });
     render(result);
 
     await waitFor(() => {
@@ -117,7 +118,7 @@ describe('ProtectedLayout', () => {
     mockAuth.mockResolvedValue({ userId: '' });
     mockUserState = { isLoaded: true, isSignedIn: false };
 
-    const result = await ProtectedLayout({ children: <div>Test</div> });
+    const result = ProtectedLayout({ children: <div>Test</div> });
     render(result);
 
     await waitFor(() => {
@@ -130,7 +131,7 @@ describe('ProtectedLayout', () => {
     mockAuth.mockResolvedValue({ userId: 'user123' });
     mockUserState = { isLoaded: true, isSignedIn: true };
 
-    const result = await ProtectedLayout({
+    const result = ProtectedLayout({
       children: (
         <>
           <div data-testid="child1">Child 1</div>

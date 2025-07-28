@@ -1,6 +1,6 @@
 /// <reference types="vitest/globals" />
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, expect, it, vi, beforeEach } from 'vitest';
 
 import { createRapidAPIClient } from '@/lib/utils/api-client';
 
@@ -41,7 +41,7 @@ describe('createRapidAPIClient', () => {
       ok: true,
       json: vi.fn().mockResolvedValue(mockResponse),
     };
-    (global.fetch as vi.Mock).mockResolvedValue(mockFetchResponse);
+    (global.fetch as any).mockResolvedValue(mockFetchResponse);
     const client = createRapidAPIClient(config);
     const result = await client.fetch('/test-endpoint');
     expect(global.fetch).toHaveBeenCalledWith(
@@ -58,7 +58,7 @@ describe('createRapidAPIClient', () => {
       ok: true,
       json: vi.fn().mockResolvedValue(mockResponse),
     };
-    (global.fetch as vi.Mock).mockResolvedValue(mockFetchResponse);
+    (global.fetch as any).mockResolvedValue(mockFetchResponse);
     const client = createRapidAPIClient(config);
     const params = { param1: 'value1', param2: 'value2' };
     await client.fetch('/test-endpoint', params);
@@ -75,7 +75,7 @@ describe('createRapidAPIClient', () => {
       ok: true,
       json: vi.fn().mockResolvedValue(mockResponse),
     };
-    (global.fetch as vi.Mock).mockResolvedValue(mockFetchResponse);
+    (global.fetch as any).mockResolvedValue(mockFetchResponse);
     const client = createRapidAPIClient(config);
     const params = { param1: 'value1', param2: '', param3: 'value3' };
     await client.fetch('/test-endpoint', params);
@@ -92,7 +92,7 @@ describe('createRapidAPIClient', () => {
       ok: true,
       json: vi.fn().mockResolvedValue(mockResponse),
     };
-    (global.fetch as vi.Mock).mockResolvedValue(mockFetchResponse);
+    (global.fetch as any).mockResolvedValue(mockFetchResponse);
     const client = createRapidAPIClient(config);
     const params = {
       param1: 'value with spaces',
@@ -113,7 +113,7 @@ describe('createRapidAPIClient', () => {
       status: 404,
       statusText: 'Not Found',
     };
-    (global.fetch as vi.Mock).mockResolvedValue(mockFetchResponse);
+    (global.fetch as any).mockResolvedValue(mockFetchResponse);
     const client = createRapidAPIClient(config);
     await expect(client.fetch('/test-endpoint')).rejects.toThrow(
       'API request failed: 404 Not Found'
@@ -123,7 +123,7 @@ describe('createRapidAPIClient', () => {
   it('should handle network errors', async () => {
     const config = createMockConfig();
     const networkError = new Error('Network error');
-    (global.fetch as vi.Mock).mockRejectedValue(networkError);
+    (global.fetch as any).mockRejectedValue(networkError);
     const client = createRapidAPIClient(config);
     await expect(client.fetch('/test-endpoint')).rejects.toThrow('Network error');
   });
@@ -134,7 +134,7 @@ describe('createRapidAPIClient', () => {
       ok: true,
       json: vi.fn().mockRejectedValue(new Error('Invalid JSON')),
     };
-    (global.fetch as vi.Mock).mockResolvedValue(mockFetchResponse);
+    (global.fetch as any).mockResolvedValue(mockFetchResponse);
     const client = createRapidAPIClient(config);
     await expect(client.fetch('/test-endpoint')).rejects.toThrow('Invalid JSON');
   });
@@ -146,7 +146,7 @@ describe('createRapidAPIClient', () => {
       ok: true,
       json: vi.fn().mockResolvedValue(mockResponse),
     };
-    (global.fetch as vi.Mock).mockResolvedValue(mockFetchResponse);
+    (global.fetch as any).mockResolvedValue(mockFetchResponse);
     const client = createRapidAPIClient(config);
     await client.fetch('/test-endpoint');
     expect(global.fetch).toHaveBeenCalledWith(
@@ -175,7 +175,7 @@ describe('createRapidAPIClient', () => {
       ok: true,
       json: vi.fn().mockResolvedValue(mockResponse),
     };
-    (global.fetch as vi.Mock).mockResolvedValue(mockFetchResponse);
+    (global.fetch as any).mockResolvedValue(mockFetchResponse);
     const client = createRapidAPIClient(config);
     await client.fetch('/test-endpoint');
     expect(global.fetch).toHaveBeenCalledWith(

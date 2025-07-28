@@ -1,7 +1,9 @@
 import { render, screen } from '@testing-library/react';
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+
 import { ClientProviders } from '@src/app/components/providers';
+import LiveGamesPage from '@src/app/sports/live/page';
 
 // Mock Clerk
 vi.mock('@clerk/nextjs', () => ({
@@ -38,8 +40,6 @@ vi.mock('@/hooks/use-live-games', () => ({
     error: null,
   }),
 }));
-
-import LiveGamesPage from '@src/app/sports/live/page';
 
 describe('LiveGamesPage', () => {
   beforeEach(() => {

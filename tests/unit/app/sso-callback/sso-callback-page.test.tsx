@@ -1,10 +1,9 @@
 import { render, screen } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // Use vi.hoisted() to properly handle mock variables
-const { mockUseAuth, mockPush, mockRouter } = vi.hoisted(() => ({
+const { mockUseAuth, mockRouter } = vi.hoisted(() => ({
   mockUseAuth: vi.fn(),
-  mockPush: vi.fn(),
   mockRouter: {
     push: vi.fn(),
   },

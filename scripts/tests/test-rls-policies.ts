@@ -172,7 +172,10 @@ async function testRLSContextManagement(): Promise<boolean> {
 
     return true;
   } catch (error) {
-    logger.error('❌ RLS context management test failed:', error);
+    logger.error(
+      '❌ RLS context management test failed:',
+      error instanceof Error ? error : new Error(String(error))
+    );
     return false;
   }
 }
@@ -252,7 +255,10 @@ async function testRLSPolicies(): Promise<boolean> {
     logger.info('ℹ️ RLS policies test completed with current configuration');
     return true;
   } catch (error) {
-    logger.error('❌ RLS policies test failed:', error);
+    logger.error(
+      '❌ RLS policies test failed:',
+      error instanceof Error ? error : new Error(String(error))
+    );
     await rlsContext.clearUserContext();
     return false;
   }
@@ -293,7 +299,10 @@ async function testRLSHelperFunctions(): Promise<boolean> {
 
     return true;
   } catch (error) {
-    logger.error('❌ RLS helper functions test failed:', error);
+    logger.error(
+      '❌ RLS helper functions test failed:',
+      error instanceof Error ? error : new Error(String(error))
+    );
     return false;
   }
 }
@@ -332,7 +341,10 @@ async function testRLSDatabaseFunctions(): Promise<boolean> {
 
     return true;
   } catch (error) {
-    logger.error('❌ RLS database functions test failed:', error);
+    logger.error(
+      '❌ RLS database functions test failed:',
+      error instanceof Error ? error : new Error(String(error))
+    );
     return false;
   }
 }
@@ -384,7 +396,10 @@ async function testRLSAuditLogging(): Promise<boolean> {
 
     return true;
   } catch (error) {
-    logger.error('❌ RLS audit logging test failed:', error);
+    logger.error(
+      '❌ RLS audit logging test failed:',
+      error instanceof Error ? error : new Error(String(error))
+    );
     return false;
   }
 }
@@ -419,7 +434,10 @@ async function runRLSTests(): Promise<void> {
     results.databaseFunctions = await testRLSDatabaseFunctions();
     results.auditLogging = await testRLSAuditLogging();
   } catch (error) {
-    logger.error('❌ RLS tests failed with error:', error);
+    logger.error(
+      '❌ RLS tests failed with error:',
+      error instanceof Error ? error : new Error(String(error))
+    );
   } finally {
     // Cleanup
     await cleanupTestData();

@@ -114,9 +114,9 @@ async function testConnectionStability() {
   } catch (error) {
     logger.error(
       '❌ Connection stability test failed:',
-      error instanceof Error ? error.message : String(error)
+      error instanceof Error ? error : new Error(String(error))
     );
-    logger.info('Error details:', error);
+    logger.info('Error details:', { error: String(error) });
     throw error;
   }
 }
@@ -133,7 +133,7 @@ async function testErrorRecovery() {
       await db.execute(sql`SELECT * FROM non_existent_table`);
     } catch (error) {
       logger.info('✅ Invalid query error handled correctly');
-      logger.info('Error details:', error);
+      logger.info('Error details:', { error: String(error) });
     }
 
     // Verify database is still functional after error
@@ -144,9 +144,9 @@ async function testErrorRecovery() {
   } catch (error) {
     logger.error(
       '❌ Error recovery test failed:',
-      error instanceof Error ? error.message : String(error)
+      error instanceof Error ? error : new Error(String(error))
     );
-    logger.info('Error details:', error);
+    logger.info('Error details:', { error: String(error) });
     throw error;
   }
 }
@@ -180,7 +180,7 @@ async function main() {
   } catch (error) {
     logger.error(
       '\n❌ Database tests failed:',
-      error instanceof Error ? error.message : String(error)
+      error instanceof Error ? error : new Error(String(error))
     );
     process.exit(1);
   }

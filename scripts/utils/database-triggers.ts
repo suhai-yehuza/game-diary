@@ -154,7 +154,10 @@ export async function setupAllTriggersFromSql(
         await db.execute(sql.raw(functions[i]));
         logger.info(`  ✅ Created function ${i + 1}/${functions.length}`);
       } catch (err) {
-        logger.error(`  ❌ Failed to create function ${i + 1}:`, err);
+        logger.error(
+          `  ❌ Failed to create function ${i + 1}:`,
+          err instanceof Error ? err : new Error(String(err))
+        );
         throw err;
       }
     }
@@ -164,13 +167,19 @@ export async function setupAllTriggersFromSql(
         await db.execute(sql.raw(triggers[i]));
         logger.info(`  ✅ Created trigger ${i + 1}/${triggers.length}`);
       } catch (err) {
-        logger.error(`  ❌ Failed to create trigger ${i + 1}:`, err);
+        logger.error(
+          `  ❌ Failed to create trigger ${i + 1}:`,
+          err instanceof Error ? err : new Error(String(err))
+        );
         throw err;
       }
     }
     logger.info('✅ All triggers and functions created successfully');
   } catch (err) {
-    logger.error('❌ Error setting up triggers:', err);
+    logger.error(
+      '❌ Error setting up triggers:',
+      err instanceof Error ? err : new Error(String(err))
+    );
     process.exit(1);
   }
 }

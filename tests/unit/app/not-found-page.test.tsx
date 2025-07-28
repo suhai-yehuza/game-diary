@@ -174,8 +174,8 @@ describe('NotFoundPage', () => {
     const { rerender } = render(<NotFoundPage />);
 
     // Get initial styling
-    const initialHeading = screen.getByRole('heading', { level: 1 });
-    const initialErrorMessage = screen.getByText('Page not found.');
+    const _initialHeading = screen.getByRole('heading', { level: 1 });
+    const _initialErrorMessage = screen.getByText('Page not found.');
 
     // Re-render
     rerender(<NotFoundPage />);

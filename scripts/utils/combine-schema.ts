@@ -5,7 +5,7 @@ import path from 'path';
 
 import { logger } from '@src/lib/utils/logger';
 
-import { parseScriptArgs } from '@shared/script-utils';
+import { parseScriptArgs } from './script-utils';
 
 const SCHEMA_DIR = path.join(process.cwd(), 'src/lib/graphql/schema');
 const OUTPUT_FILE = path.join(process.cwd(), 'src/lib/graphql/schema.graphql');
@@ -55,12 +55,12 @@ function combineSchemaFiles() {
     logger.info('✅ Schema files combined successfully!');
   } catch (error) {
     if (error instanceof Error) {
-      logger.error('Error combining schema files:', error.message);
+      logger.error('Error combining schema files:', error);
       if (error.stack) {
-        logger.error(error.stack);
+        logger.error('Stack trace:', error);
       }
     } else {
-      logger.error('Error combining schema files:', String(error));
+      logger.error('Error combining schema files:', new Error(String(error)));
     }
     process.exit(1);
   }

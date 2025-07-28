@@ -2,7 +2,7 @@ declare module '@/app/protected/admin/experimental/hooks' {
   export const useTeamsData: () => any;
   export const useSeasonsData: () => any;
   export const useApiFetch: () => any;
-  export const useFormState: () => any;
+  export const useFormState: (seasons?: Array<{ value: string; label: string }>) => any;
   export const useTabState: () => any;
 }
 
@@ -12,7 +12,7 @@ declare module '@/app/protected/admin/experimental/page' {
 }
 
 declare module '@/lib/utils/api-client' {
-  export const createRapidAPIClient: () => any;
+  export const createRapidAPIClient: (config: any) => any;
 }
 
 declare module '@/lib/utils/index' {

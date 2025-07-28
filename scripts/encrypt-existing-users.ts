@@ -94,7 +94,10 @@ async function encryptExistingUsers() {
     // Verify encryption worked by testing a few records
     await verifyEncryption(db);
   } catch (error) {
-    logger.error('❌ Error during encryption:', error);
+    logger.error(
+      '❌ Error during encryption:',
+      error instanceof Error ? error : new Error(String(error))
+    );
     throw error;
   }
 }
@@ -134,7 +137,10 @@ async function verifyEncryption(db: any) {
           `✅ Email decryption test passed for user ${user.id}: ${decrypted.substring(0, 10)}...`
         );
       } catch (error) {
-        logger.error(`❌ Email decryption failed for user ${user.id}:`, error);
+        logger.error(
+          `❌ Email decryption failed for user ${user.id}:`,
+          error instanceof Error ? error : new Error(String(error))
+        );
       }
     }
 
@@ -145,7 +151,10 @@ async function verifyEncryption(db: any) {
           `✅ Phone decryption test passed for user ${user.id}: ${decrypted.substring(0, 10)}...`
         );
       } catch (error) {
-        logger.error(`❌ Phone decryption failed for user ${user.id}:`, error);
+        logger.error(
+          `❌ Phone decryption failed for user ${user.id}:`,
+          error instanceof Error ? error : new Error(String(error))
+        );
       }
     }
   }

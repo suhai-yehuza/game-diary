@@ -1,5 +1,6 @@
-import React from 'react';
+import { useUser } from '@clerk/nextjs';
 import { render, screen } from '@testing-library/react';
+import React from 'react';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 
 // Mock Clerk
@@ -8,7 +9,6 @@ vi.mock('@clerk/nextjs', () => ({
 }));
 
 import { ActivityTable } from '@/app/protected/user/components/ActivityTable';
-import { useUser } from '@clerk/nextjs';
 
 describe('ActivityTable', () => {
   const mockUseUser = useUser as ReturnType<typeof vi.fn>;

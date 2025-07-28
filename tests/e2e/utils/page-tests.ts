@@ -1,4 +1,7 @@
-import { Page, expect, TestType } from '@playwright/test';
+import type { Page, TestType } from '@playwright/test';
+import { expect } from '@playwright/test';
+
+import { PERFORMANCE_THRESHOLDS } from '@tests/e2e/utils/constants';
 import {
   safeGoto,
   waitForPageLoad,
@@ -11,14 +14,13 @@ import {
   logRateLimiting,
   TIMEOUTS,
 } from '@tests/e2e/utils/test-utils';
-import { PERFORMANCE_THRESHOLDS } from '@tests/e2e/utils/constants';
 
 /**
  * Page testing utilities for E2E tests
  * Common patterns for testing page functionality
  */
 
-export interface PageTestOptions {
+export interface IPageTestOptions {
   checkStructure?: boolean;
   checkTitle?: boolean;
   checkConsoleErrors?: boolean;
@@ -34,7 +36,7 @@ export interface PageTestOptions {
 export async function testPageComprehensive(
   page: Page,
   path: string,
-  options: PageTestOptions = {}
+  options: IPageTestOptions = {}
 ): Promise<void> {
   const {
     checkStructure = true,
@@ -43,7 +45,6 @@ export async function testPageComprehensive(
     checkAccessibility = false,
     checkPerformance = false,
     expectedTitle,
-    timeout = 15000,
   } = options;
 
   // Navigate to page
@@ -84,7 +85,9 @@ export async function testPageComprehensive(
           await el.first().waitFor({ state: 'visible', timeout: TIMEOUTS.LONG });
           found = true;
           break;
-        } catch {}
+        } catch {
+          // Ignore timeout errors for this check
+        }
       }
     }
     if (!found) {
@@ -122,7 +125,7 @@ export async function testPageComprehensive(
 export async function testMultiplePages(
   page: Page,
   paths: string[],
-  options: PageTestOptions = {}
+  options: IPageTestOptions = {}
 ): Promise<void> {
   const failures: Array<{ path: string; error: string }> = [];
 
@@ -156,7 +159,7 @@ export async function testMultiplePages(
 export async function testSportsPage(
   page: Page,
   sportsPath: string,
-  options: PageTestOptions = {}
+  options: IPageTestOptions = {}
 ): Promise<void> {
   await testPageComprehensive(page, sportsPath, {
     checkStructure: true,
@@ -181,7 +184,7 @@ export async function testSportsPage(
 /**
  * Test dashboard page specifically
  */
-export async function testDashboardPage(page: Page, options: PageTestOptions = {}): Promise<void> {
+export async function testDashboardPage(page: Page, options: IPageTestOptions = {}): Promise<void> {
   await testPageComprehensive(page, '/', {
     checkStructure: true,
     checkTitle: true,
@@ -195,7 +198,7 @@ export async function testDashboardPage(page: Page, options: PageTestOptions = {
 /**
  * Test home page specifically
  */
-export async function testHomePage(page: Page, options: PageTestOptions = {}): Promise<void> {
+export async function testHomePage(page: Page, options: IPageTestOptions = {}): Promise<void> {
   await testPageComprehensive(page, '/', {
     checkStructure: true,
     checkTitle: true,

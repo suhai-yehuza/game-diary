@@ -1,5 +1,5 @@
-import { test, expect } from 'vitest';
 import fetch from 'node-fetch';
+import { test, expect } from 'vitest';
 if (!global.fetch) global.fetch = fetch as unknown as typeof global.fetch;
 
 // Helper to create a test user via the API
@@ -91,7 +91,7 @@ test('should log failed access attempts (API)', async () => {
   let auditLogs;
   try {
     auditLogs = (await auditResponse.json()) as Array<{ action: string; success: boolean }>;
-  } catch (e) {
+  } catch (_e) {
     // If audit logs endpoint is protected and returns non-JSON, skip this assertion
     return;
   }

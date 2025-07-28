@@ -1,14 +1,13 @@
-import { test as baseTest, Page, TestType } from '@playwright/test';
-import { runBasePageChecks } from './page-shared-checks';
+import type { Page, TestType } from '@playwright/test';
+
 import {
-  checkSEOElements,
-  checkResponsiveBehavior,
   safeGoto,
   waitForPageLoad,
   waitForNetworkIdle,
   clearTestData,
 } from '@tests/e2e/utils/test-utils';
-import { testSignInModal } from './auth-modal';
+
+import { runBasePageChecks } from './page-shared-checks';
 
 // Re-export waitForNetworkIdle and clearTestData for convenience
 export { waitForNetworkIdle, clearTestData };

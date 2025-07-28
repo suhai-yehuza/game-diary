@@ -1,15 +1,26 @@
 import { test, expect } from '@playwright/test';
+
+import {
+  testLiveGamesBanner,
+  testLiveGamesBannerStructure,
+  testSpecificGameData,
+  testBannerAnimations,
+  testLiveGamesDetailPage,
+  testLiveGamesStates,
+  TEST_GAMES_DATA,
+} from '@tests/e2e/utils/live-games-tests';
 import {
   waitForNetworkIdle,
   clearTestData,
   safeGoto,
   waitForPageLoad,
-  waitForPageStable,
   TIMEOUTS,
 } from '@tests/e2e/utils/test-utils';
 
+// Import mock data for testing
+
 // Utility to detect problematic environments for live games tests
-const isMobileOrTabletOrProblematicBrowser = (projectName: string): boolean => {
+const _isMobileOrTabletOrProblematicBrowser = (projectName: string): boolean => {
   const name = projectName.toLowerCase();
   return (
     name.includes('mobile') ||
@@ -21,7 +32,7 @@ const isMobileOrTabletOrProblematicBrowser = (projectName: string): boolean => {
 };
 
 test.describe('Live Games Functionality', () => {
-  test.beforeEach(async ({ page }, testInfo) => {
+  test.beforeEach(async ({ page }) => {
     // Removed mobile/tablet/WebKit/Firefox skip logic
     await clearTestData(page);
     await page.addStyleTag({
@@ -40,12 +51,12 @@ test.describe('Live Games Functionality', () => {
       const banner = page.locator('[data-testid="live-games-banner"]');
       await expect(banner).toBeVisible();
 
-      // Check for Live indicator (should be "3 Live Games" or similar)
-      const liveIndicator = banner.locator('text=/\\d+ Live Games?/');
+      // Check for Live indicator (should be "8 Live Games" from mock data)
+      const liveIndicator = banner.locator(`text=${TEST_GAMES_DATA.totalGames} Live Games`);
       await expect(liveIndicator).toBeVisible();
 
-      // Check for games count (should be "3 Live Games" or similar)
-      const gamesCount = banner.locator('text=/\\d+ Live Games?/');
+      // Check for games count
+      const gamesCount = banner.locator(`text=${TEST_GAMES_DATA.totalGames} Live Games`);
       await expect(gamesCount).toBeVisible();
     });
 
@@ -54,13 +65,11 @@ test.describe('Live Games Functionality', () => {
       await waitForPageLoad(page);
       await waitForNetworkIdle(page);
 
-      const banner = page.locator(
-        '[data-testid="live-games-banner"], .bg-gradient-to-r.from-red-600'
-      );
+      const banner = page.locator('[data-testid="live-games-banner"]');
       await expect(banner).toBeVisible();
 
       // Check for game items in banner
-      const gameItems = banner.locator('[data-testid="game"], .flex.items-center.space-x-2');
+      const gameItems = banner.locator('[data-testid="game"]');
       const gameCount = await gameItems.count();
 
       if (gameCount > 0) {
@@ -74,6 +83,14 @@ test.describe('Live Games Functionality', () => {
         // Check for scores
         const scores = gameItems.locator('text=/\\d+/');
         await expect(scores.first()).toBeVisible();
+
+        // Check for @ separator
+        const separator = gameItems.locator('text=@');
+        await expect(separator.first()).toBeVisible();
+
+        // Check for quarter information
+        const quarterInfo = gameItems.locator('text=/Q[1-4]|HT/');
+        await expect(quarterInfo.first()).toBeVisible();
       }
     });
 
@@ -82,9 +99,7 @@ test.describe('Live Games Functionality', () => {
       await waitForPageLoad(page);
       await waitForNetworkIdle(page);
 
-      const banner = page.locator(
-        '[data-testid="live-games-banner"], .bg-gradient-to-r.from-red-600'
-      );
+      const banner = page.locator('[data-testid="live-games-banner"]');
       await expect(banner).toBeVisible();
 
       // Check for "View All" link
@@ -98,9 +113,7 @@ test.describe('Live Games Functionality', () => {
       await waitForPageLoad(page);
       await waitForNetworkIdle(page);
 
-      const banner = page.locator(
-        '[data-testid="live-games-banner"], .bg-gradient-to-r.from-red-600'
-      );
+      const banner = page.locator('[data-testid="live-games-banner"]');
       await expect(banner).toBeVisible();
 
       // Click "View All" link
@@ -131,8 +144,55 @@ test.describe('Live Games Functionality', () => {
       // Check for visibility and animation classes
       await expect(liveIndicator).toBeVisible();
       await expect(liveIndicator).toHaveClass(/animate-live-dot-glow/);
-      await expect(liveIndicator).toHaveClass(/bg-red-500/);
+      await expect(liveIndicator).toHaveClass(/bg-red-600/);
       await expect(liveIndicator).toHaveClass(/rounded-full/);
+    });
+
+    test('should display specific game data from mock', async ({ page }) => {
+      await safeGoto(page, '/');
+      await waitForPageLoad(page);
+      await waitForNetworkIdle(page);
+
+      const banner = page.locator('[data-testid="live-games-banner"]');
+      await expect(banner).toBeVisible();
+
+      // Test for specific teams from mock data
+      const knicksCeltics = banner.locator(
+        `text=${TEST_GAMES_DATA.knicksCeltics.teams.visitors.code} @ ${TEST_GAMES_DATA.knicksCeltics.teams.home.code}`
+      );
+      const warriorsLakers = banner.locator(
+        `text=${TEST_GAMES_DATA.warriorsLakers.teams.visitors.code} @ ${TEST_GAMES_DATA.warriorsLakers.teams.home.code}`
+      );
+
+      // At least one of these games should be visible
+      const hasKnicksCeltics = (await knicksCeltics.count()) > 0;
+      const hasWarriorsLakers = (await warriorsLakers.count()) > 0;
+
+      expect(hasKnicksCeltics || hasWarriorsLakers).toBe(true);
+
+      // Check for scores from mock data
+      const scores = banner.locator('text=/\\d+/');
+      await expect(scores.first()).toBeVisible();
+    });
+
+    test('should have scrolling animation in banner', async ({ page }) => {
+      await safeGoto(page, '/');
+      await waitForPageLoad(page);
+      await waitForNetworkIdle(page);
+
+      const banner = page.locator('[data-testid="live-games-banner"]');
+      await expect(banner).toBeVisible();
+
+      // Check for scrolling animation
+      const scrollingContent = banner.locator('.animate-scroll-left');
+      await expect(scrollingContent).toBeVisible();
+
+      // Check for game separators
+      const separators = banner.locator('.w-px.h-6.bg-gray-600');
+      const separatorCount = await separators.count();
+      if (separatorCount > 0) {
+        await expect(separators.first()).toBeVisible();
+      }
     });
   });
 
@@ -205,7 +265,7 @@ test.describe('Live Games Functionality', () => {
       // Navigate to live games page and check for loading state
       await safeGoto(page, '/sports/live');
       // Check for loading indicator
-      const spinner = page.locator('.animate-spin, [data-testid="loading-spinner"]');
+      const _spinner = page.locator('.animate-spin, [data-testid="loading-spinner"]');
       const loadingText = page.getByText('Loading live games...');
       await expect(loadingText).toBeVisible();
     });
@@ -277,7 +337,7 @@ test.describe('Live Games Functionality', () => {
       try {
         await waitForPageLoad(page, 10000); // Use allowed timeout value
         await waitForNetworkIdle(page, 20000);
-      } catch (e) {
+      } catch (_e) {
         // If page fails to load, skip assertions (robust for Firefox flakiness)
         test.skip(true, 'Page failed to load on Firefox/mobile, skipping assertions');
         return;
@@ -297,6 +357,31 @@ test.describe('Live Games Functionality', () => {
         await expect(noGamesTitle).toBeVisible();
         await expect(noGamesDesc).toBeVisible();
       }
+    });
+  });
+
+  test.describe('Comprehensive Live Games Tests', () => {
+    test('should run complete live games test suite', async ({ page }) => {
+      await safeGoto(page, '/');
+      await waitForPageLoad(page);
+      await waitForNetworkIdle(page);
+
+      // Test banner functionality with mock data
+      await testLiveGamesBanner(page);
+      await testLiveGamesBannerStructure(page);
+      await testSpecificGameData(page);
+      await testBannerAnimations(page);
+
+      // Test navigation
+      const banner = page.locator('[data-testid="live-games-banner"]');
+      await expect(banner).toBeVisible();
+      const viewAllLink = banner.getByRole('link', { name: 'View All' });
+      await viewAllLink.click();
+      await expect(page).toHaveURL(/\/sports\/live/);
+
+      // Test detail page
+      await testLiveGamesDetailPage(page);
+      await testLiveGamesStates(page);
     });
   });
 });

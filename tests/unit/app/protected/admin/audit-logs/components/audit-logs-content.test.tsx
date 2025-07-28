@@ -1,6 +1,6 @@
 import { render, screen, waitFor } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { useTheme } from 'next-themes';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 import { AdminAuditLogsContent } from '@src/app/protected/admin/audit-logs/components/audit-logs-content';
 
@@ -131,7 +131,7 @@ describe('AdminAuditLogsContent', () => {
 
   it('handles loading state', () => {
     // Mock a slow fetch
-    global.fetch = vi.fn(() => new Promise(() => {}) as Promise<Response>);
+    global.fetch = vi.fn(() => new Promise(() => {})) as any;
 
     render(<AdminAuditLogsContent />);
 

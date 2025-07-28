@@ -23,9 +23,9 @@
     "paths": {
       "@/*": ["./src/*"],
       "@src/*": ["./src/*"],
-      "@utils/*": ["./scripts/utils/*"],
-      "@lib/*": ["./lib/*"],
+      "@lib/*": ["./src/lib/*"],
       "@app/*": ["./src/app/*"],
+      "@scripts/*": ["./scripts/*"],
       "@tests/*": ["./tests/*"]
     },
     "typeRoots": ["./node_modules/@types"],
@@ -41,6 +41,8 @@
     "src/**/*.ts",
     "src/**/*.tsx",
     "lib/**/*.ts",
+    "tests/**/*.ts",
+    "tests/**/*.tsx",
     "src/lib/types/global.d.ts"
   ],
   "exclude": [
@@ -50,8 +52,6 @@
     "out",
     "coverage",
     "**/dist/**",
-    "src/lib/types/generated/**",
-    "scripts/**",
-    "tests/**"
+    "src/lib/types/generated/**"
   ]
 }

@@ -1,7 +1,9 @@
-import React from 'react';
 import { auth } from '@clerk/nextjs/server';
 import { redirect } from 'next/navigation';
+import React from 'react';
+import type { Mock } from 'vitest';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
+
 import AdminAuditLogsLayout from '@/app/protected/admin/audit-logs/layout';
 
 // Mock Next.js navigation
@@ -168,7 +170,7 @@ describe('AdminAuditLogsLayout', () => {
   });
 
   it('logs audit events for unauthorized access attempts', async () => {
-    const { auditLogger } = await import('@/lib/services/audit-logger');
+    const auditLoggerModule = await import('@/lib/services/audit-logger');
 
     mockAuth.mockResolvedValue({
       userId: 'user123',
@@ -183,7 +185,7 @@ describe('AdminAuditLogsLayout', () => {
 
     await AdminAuditLogsLayout({ children: <TestComponent /> });
 
-    expect(auditLogger.logAuditEvent).toHaveBeenCalledWith({
+    const expectedArgs = {
       category: 'authorization',
       action: 'permission_denied',
       severity: 'high',
@@ -192,11 +194,14 @@ describe('AdminAuditLogsLayout', () => {
       success: false,
       errorMessage: 'Insufficient permissions',
       details: { userRoles: ['user'], page: '/admin/audit-logs' },
-    });
+    };
+    expect((auditLoggerModule.auditLogger.logAuditEvent as Mock).mock.calls[0][0]).toEqual(
+      expectedArgs
+    );
   });
 
   it('logs audit events for successful admin access', async () => {
-    const { auditLogger } = await import('@/lib/services/audit-logger');
+    const auditLoggerModule = await import('@/lib/services/audit-logger');
 
     mockAuth.mockResolvedValue({
       userId: 'user123',
@@ -211,7 +216,7 @@ describe('AdminAuditLogsLayout', () => {
 
     await AdminAuditLogsLayout({ children: <TestComponent /> });
 
-    expect(auditLogger.logAuditEvent).toHaveBeenCalledWith({
+    const expectedArgs = {
       category: 'authorization',
       action: 'permission_granted',
       severity: 'medium',
@@ -219,7 +224,10 @@ describe('AdminAuditLogsLayout', () => {
       description: 'Admin user accessed audit logs page',
       success: true,
       details: { userRoles: ['admin'], page: '/admin/audit-logs' },
-    });
+    };
+    expect((auditLoggerModule.auditLogger.logAuditEvent as Mock).mock.calls[0][0]).toEqual(
+      expectedArgs
+    );
   });
 
   it('returns children when access is granted', async () => {

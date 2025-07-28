@@ -7,13 +7,13 @@ test.describe('Vercel Protection Bypass Debug', () => {
     console.log(
       `  - VERCEL_AUTOMATION_BYPASS_SECRET: ${process.env.VERCEL_AUTOMATION_BYPASS_SECRET ? 'SET' : 'NOT SET'}`
     );
-    console.log(`  - VERCEL_URL: ${process.env.VERCEL_URL || 'NOT SET'}`);
-    console.log(`  - VERCEL_ENV: ${process.env.VERCEL_ENV || 'NOT SET'}`);
-    console.log(`  - DEPLOYMENT_URL: ${process.env.DEPLOYMENT_URL || 'NOT SET'}`);
+    console.log(`  - VERCEL_URL: ${process.env.VERCEL_URL ?? 'NOT SET'}`);
+    console.log(`  - VERCEL_ENV: ${process.env.VERCEL_ENV ?? 'NOT SET'}`);
+    console.log(`  - DEPLOYMENT_URL: ${process.env.DEPLOYMENT_URL ?? 'NOT SET'}`);
 
     // Try to navigate to the deployment URL
     const deploymentUrl =
-      process.env.DEPLOYMENT_URL ||
+      process.env.DEPLOYMENT_URL ??
       'https://game-diary-4rwp8s02v-suhais-projects-33a81a2a.vercel.app';
     console.log(`🔍 Attempting to navigate to: ${deploymentUrl}`);
 
@@ -41,7 +41,7 @@ test.describe('Vercel Protection Bypass Debug', () => {
         expect(page.url()).toContain('vercel.app');
       }
     } catch (error) {
-      console.log(`❌ Navigation failed: ${error}`);
+      console.log(`❌ Navigation failed: ${String(error)}`);
       throw error;
     }
   });

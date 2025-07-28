@@ -110,10 +110,13 @@ async function testWebhook() {
     await dbInstance.delete(users).where(eq(users.id, sampleWebhookData.id));
     webhookLogger.info('🧹 Test cleanup completed');
   } catch (error) {
-    webhookLogger.error('❌ Test failed:', error);
+    webhookLogger.error(
+      '❌ Test failed:',
+      error instanceof Error ? error : new Error(String(error))
+    );
     if (error instanceof Error) {
-      webhookLogger.error('Error details:', error.message);
-      webhookLogger.error('Stack trace:', error.stack);
+      webhookLogger.error('Error details:', error);
+      webhookLogger.error('Stack trace:', error);
     }
   }
 }

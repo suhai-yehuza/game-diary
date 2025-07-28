@@ -1,4 +1,9 @@
-import { test, expect, Page } from '@playwright/test';
+import AxeBuilder from '@axe-core/playwright';
+import type { Page } from '@playwright/test';
+import { test, expect } from '@playwright/test';
+
+import { SPORTS_CONFIG } from '@src/app/components/sports/SportsConfig';
+import { testSignInModal, testProtectedRoutes } from '@tests/e2e/utils/auth-modal';
 import {
   safeGoto,
   waitForPageLoad,
@@ -7,11 +12,9 @@ import {
   waitForNetworkIdle,
   clearTestData,
   TIMEOUTS,
-} from '../utils/test-utils';
-import { testSignInModal, testProtectedRoutes } from '../utils/auth-modal';
+} from '@tests/e2e/utils/test-utils';
+
 import { runCriticalSuite } from './critical.spec';
-import AxeBuilder from '@axe-core/playwright';
-import { SPORTS_CONFIG } from '../../../src/app/components/sports/SportsConfig';
 
 test.beforeEach(async ({ page }) => {
   await clearTestData(page); // Test data isolation: clear storage and cookies
@@ -131,7 +134,7 @@ async function revealNavLinksIfMobile(page: any) {
         try {
           await menuButton.click({ timeout: 5000 });
           await page.waitForTimeout(500);
-        } catch (error) {
+        } catch (_error) {
           console.log('⚠️ Second menu click failed, continuing anyway...');
         }
 
@@ -209,7 +212,7 @@ export async function navigationTestLinkNavigation(page: any) {
         await waitForNetworkIdle(page);
         await checkA11y(page);
         await expect(page).toHaveURL(
-          new RegExp(sportHrefs.map(href => href.replace('/', '\/')).join('|'))
+          new RegExp(sportHrefs.map(href => href.replace('/', '/')).join('|'))
         );
         await expect(page.locator('main')).toBeVisible();
         console.log('Clicked sports link:', await sportsLinks.nth(i).getAttribute('href'));
@@ -252,7 +255,7 @@ export async function navigationTestLinkNavigation(page: any) {
       await waitForNetworkIdle(page);
       await checkA11y(page);
       await expect(page).toHaveURL(
-        new RegExp(sportHrefs.map(href => href.replace('/', '\/')).join('|'))
+        new RegExp(sportHrefs.map(href => href.replace('/', '/')).join('|'))
       );
       await expect(page.locator('main')).toBeVisible();
       console.log('Clicked sports link:', await sportsLinks.first().getAttribute('href'));
@@ -270,10 +273,10 @@ export async function navigationTestBrowserBackForward(page: any) {
   await waitForPageLoad(page);
   await page.goBack();
   await waitForNetworkIdle(page);
-  await expect(page).toHaveURL(new RegExp(sportHrefs[0].replace('/', '\/')));
+  await expect(page).toHaveURL(new RegExp(sportHrefs[0].replace('/', '/')));
   await page.goForward();
   await waitForNetworkIdle(page);
-  await expect(page).toHaveURL(new RegExp(sportHrefs[1].replace('/', '\/')));
+  await expect(page).toHaveURL(new RegExp(sportHrefs[1].replace('/', '/')));
 }
 
 export async function navigationTestSignInModalClickOutside(page: any) {

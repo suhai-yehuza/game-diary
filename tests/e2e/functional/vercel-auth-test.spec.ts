@@ -1,11 +1,12 @@
 import { test, expect } from '@playwright/test';
+
+import { STAGING_URL } from '@/lib/config/urls';
 import {
   setupAuthBypass,
   clearAuthBypass,
   isAuthBypassEnabled,
 } from '@tests/e2e/utils/auth-bypass';
 import { setupE2EMocking, safeGotoWithMocking } from '@tests/e2e/utils/test-utils';
-import { STAGING_URL } from '@/lib/config/urls';
 
 test.describe('Vercel Authentication Test', () => {
   test.beforeEach(async ({ page }) => {

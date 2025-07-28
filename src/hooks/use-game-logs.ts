@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-
 import { useQuery } from '@apollo/client';
 import { useCallback, useState } from 'react';
 
@@ -17,9 +15,8 @@ import type {
   Team as GqlTeam,
 } from '@/lib/types';
 
-// @ts-expect-error codegen types are trusted and safe for member access
-function mapTeam(team: GqlTeam | null | undefined): IGameLog['game']['home_team'] | undefined {
-  if (!team) return undefined;
+function mapTeam(team: GqlTeam | null | undefined): NonNullable<IGameLog['game']>['home_team'] {
+  if (!team) throw new Error('Team is required');
   return {
     id: team.id,
 

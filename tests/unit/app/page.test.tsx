@@ -1,9 +1,9 @@
 import { render, screen } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
 import React from 'react';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-import HomePage from '@src/app/page';
 import { MenuProvider } from '@src/app/components/providers';
+import HomePage from '@src/app/page';
 
 // Mock Clerk
 vi.mock('@clerk/nextjs', () => ({
@@ -17,7 +17,7 @@ vi.mock('@clerk/nextjs', () => ({
 
 // Mock Next.js Image component
 vi.mock('next/image', () => ({
-  default: ({ src, alt, priority, ...props }: any) => (
+  default: ({ src, alt, _priority, ...props }: any) => (
     <div data-testid="next-image" title={alt} {...props}>
       {src}
     </div>
@@ -149,7 +149,7 @@ describe('HomePage', () => {
     const footerLinks = screen
       .getAllByRole('link')
       .filter(
-        link => link.textContent?.includes('Live Games') || link.textContent?.includes('All Sports')
+        link => link.textContent?.includes('Live Games') ?? link.textContent?.includes('All Sports')
       );
 
     footerLinks.forEach(link => {

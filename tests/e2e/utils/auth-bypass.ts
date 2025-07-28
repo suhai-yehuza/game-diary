@@ -1,12 +1,12 @@
 import type { Page } from '@playwright/test';
 
-import { STAGING_URL } from '../../../src/lib/config/urls';
+import { STAGING_URL } from '@src/lib/config/urls';
 
 /**
  * Authentication bypass utilities for deployment testing
  */
 
-export interface TestAuthCredentials {
+export interface ITestAuthCredentials {
   email: string;
   password: string;
   userId: string;
@@ -14,7 +14,7 @@ export interface TestAuthCredentials {
 }
 
 // Default test credentials (you can override these with environment variables)
-export const DEFAULT_TEST_CREDENTIALS: TestAuthCredentials = {
+export const DEFAULT_TEST_CREDENTIALS: ITestAuthCredentials = {
   email: 'test@game-diary.com',
   password: 'TestPassword123!',
   userId: 'test_user_123',
@@ -24,7 +24,7 @@ export const DEFAULT_TEST_CREDENTIALS: TestAuthCredentials = {
 /**
  * Inject a mock for Clerk's useUser and useAuth hooks when bypass is active
  */
-export async function mockClerkHooks(page: Page, credentials: Partial<TestAuthCredentials> = {}) {
+export async function mockClerkHooks(page: Page, credentials: Partial<ITestAuthCredentials> = {}) {
   const testCreds = { ...DEFAULT_TEST_CREDENTIALS, ...credentials };
   await page.addInitScript(
     ({ userId, email }) => {
@@ -86,7 +86,7 @@ export async function mockClerkHooks(page: Page, credentials: Partial<TestAuthCr
  */
 export async function setupAuthBypass(
   page: Page,
-  credentials?: Partial<TestAuthCredentials>
+  credentials?: Partial<ITestAuthCredentials>
 ): Promise<void> {
   const testCreds = { ...DEFAULT_TEST_CREDENTIALS, ...credentials };
 
@@ -267,12 +267,12 @@ export async function setupAuthBypass(
       const mockClerk = {
         useUser: () => ({ isLoaded: true, isSignedIn: true, user: mockUser }),
         useAuth: () => ({ getToken: async () => 'test_token', sessionId: 'test_session', userId }),
-        SignInButton: ({ children }: any) => children,
-        SignUpButton: ({ children }: any) => children,
-        SignedIn: ({ children }: any) => children,
-        SignedOut: ({ children }: any) => null,
+        SignInButton: ({ children: _children }: any) => _children,
+        SignUpButton: ({ children: _children }: any) => _children,
+        SignedIn: ({ children: _children }: any) => _children,
+        SignedOut: ({ children: _children }: any) => null,
         UserButton: () => null,
-        ClerkProvider: ({ children }: any) => children,
+        ClerkProvider: ({ children: _children }: any) => _children,
       };
 
       // Override module loading for Clerk
@@ -392,11 +392,11 @@ export function isAuthBypassEnabled(): boolean {
 /**
  * Get test credentials from environment variables or use defaults
  */
-export function getTestCredentials(): TestAuthCredentials {
+export function getTestCredentials(): ITestAuthCredentials {
   return {
-    email: process.env.TEST_USER_EMAIL || DEFAULT_TEST_CREDENTIALS.email,
-    password: process.env.TEST_USER_PASSWORD || DEFAULT_TEST_CREDENTIALS.password,
-    userId: process.env.TEST_USER_ID || DEFAULT_TEST_CREDENTIALS.userId,
-    sessionToken: process.env.TEST_SESSION_TOKEN || DEFAULT_TEST_CREDENTIALS.sessionToken,
+    email: process.env.TEST_USER_EMAIL ?? DEFAULT_TEST_CREDENTIALS.email,
+    password: process.env.TEST_USER_PASSWORD ?? DEFAULT_TEST_CREDENTIALS.password,
+    userId: process.env.TEST_USER_ID ?? DEFAULT_TEST_CREDENTIALS.userId,
+    sessionToken: process.env.TEST_SESSION_TOKEN ?? DEFAULT_TEST_CREDENTIALS.sessionToken,
   };
 }

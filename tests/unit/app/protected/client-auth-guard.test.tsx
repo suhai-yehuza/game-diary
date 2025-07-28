@@ -1,10 +1,12 @@
-import React from 'react';
+import { useUser } from '@clerk/nextjs';
 import { render, screen } from '@testing-library/react';
+import React from 'react';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 
 // Mock Clerk
 vi.mock('@clerk/nextjs', () => ({
   useUser: vi.fn(),
+  useAuth: vi.fn(),
 }));
 
 // Mock SignInModalTrigger
@@ -17,7 +19,6 @@ vi.mock('@/app/components/auth/SignInModalTrigger', () => ({
 }));
 
 import ClientAuthGuard from '@/app/protected/ClientAuthGuard';
-import { useUser } from '@clerk/nextjs';
 
 describe('ClientAuthGuard', () => {
   const mockUseUser = useUser as ReturnType<typeof vi.fn>;

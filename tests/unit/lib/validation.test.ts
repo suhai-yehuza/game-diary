@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
-import { envSchema } from '@/lib/validations/env';
 import {
   extractEmail,
   extractPhoneNumber,
   validateEmail,
   validatePhone,
 } from '@/lib/utils/validation';
+import { envSchema } from '@/lib/validations/env';
 
 describe('Environment Validation', () => {
   it('validates required environment variables', () => {

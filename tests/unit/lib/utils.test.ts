@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { createRapidAPIClient } from '@/lib/utils/api-client';
 import { cn, formatDate } from '@/lib/utils/index';
-import { TIMEOUTS } from '../../e2e/utils/test-utils';
+import { TIMEOUTS } from '@tests/e2e/utils/test-utils';
 
 describe('API Client Utils', () => {
   it('creates RapidAPI client with correct configuration', () => {

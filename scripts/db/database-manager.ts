@@ -21,13 +21,13 @@ import { neon as neonDirect } from '@neondatabase/serverless';
 
 import { logger } from '@src/lib/utils/logger';
 import { createDatabaseClient } from '@src/lib/db';
-import { setupAllTriggersFromSql } from '../utils/database-triggers';
+import { setupAllTriggersFromSql } from '@scripts/utils/database-triggers';
 import {
   parseScriptArgs,
   logScriptHeader,
   logScriptFooter,
   handleScriptError,
-} from '../utils/script-utils';
+} from '@scripts/utils/script-utils';
 import type { IMigration, IMigrationVerification, IMigrationVersion } from '@src/lib/types';
 
 // Add canonical reset logic (from full-reset.ts)
@@ -155,7 +155,10 @@ async function verifyConnection(): Promise<boolean> {
     await sqlClient`SELECT 1`;
     return true;
   } catch (error) {
-    logger.error('Database connection verification failed:', error);
+    logger.error(
+      'Database connection verification failed:',
+      error instanceof Error ? error : new Error(String(error))
+    );
     return false;
   }
 }
@@ -308,7 +311,10 @@ async function recordMigration(
       )
     `;
   } catch (error) {
-    logger.error('Error recording migration:', error);
+    logger.error(
+      'Error recording migration:',
+      error instanceof Error ? error : new Error(String(error))
+    );
     throw error;
   }
 }
@@ -474,7 +480,10 @@ async function applyMigration(file: string, dryRun = false): Promise<void> {
         error instanceof Error ? error.message : String(error)
       );
     }
-    logger.error(`❌ Migration ${file} failed:`, error);
+    logger.error(
+      `❌ Migration ${file} failed:`,
+      error instanceof Error ? error : new Error(String(error))
+    );
     throw error;
   }
 }
@@ -551,7 +560,10 @@ async function applyAllMigrations(environment = 'development', dryRun = false): 
         await applyMigration(migration.name, dryRun);
         appliedCount++;
       } catch (error) {
-        logger.error(`Failed to apply migration ${migration.name}:`, error);
+        logger.error(
+          `Failed to apply migration ${migration.name}:`,
+          error instanceof Error ? error : new Error(String(error))
+        );
         if (!dryRun) {
           throw error;
         }
@@ -567,18 +579,21 @@ async function applyAllMigrations(environment = 'development', dryRun = false): 
     const changes = compareVerification(beforeVerification, afterVerification);
 
     if (changes.added.triggers?.length) {
-      logger.info('✅ Added triggers:', changes.added.triggers);
+      logger.info('✅ Added triggers:', { triggers: changes.added.triggers });
     }
     if (changes.added.functions?.length) {
-      logger.info('✅ Added functions:', changes.added.functions);
+      logger.info('✅ Added functions:', { functions: changes.added.functions });
     }
     if (changes.added.indexes?.length) {
-      logger.info('✅ Added indexes:', changes.added.indexes);
+      logger.info('✅ Added indexes:', { indexes: changes.added.indexes });
     }
 
     logger.info(`\n🎉 Migration process completed! Applied ${appliedCount} migrations.`);
   } catch (error) {
-    logger.error('Migration process failed:', error);
+    logger.error(
+      'Migration process failed:',
+      error instanceof Error ? error : new Error(String(error))
+    );
     throw error;
   }
 }
@@ -620,7 +635,10 @@ async function applySpecificMigration(migrationPath: string, dryRun = false): Pr
     if (!dryRun) {
       await sqlClient.unsafe('ROLLBACK');
     }
-    logger.error('Error applying migration:', error);
+    logger.error(
+      'Error applying migration:',
+      error instanceof Error ? error : new Error(String(error))
+    );
     throw error;
   }
 }
@@ -662,17 +680,17 @@ async function viewMigrations(environment = 'development'): Promise<void> {
         ? `${migration.execution_time_ms}ms`
         : 'N/A';
 
-      logger.info('\nMigration:', migration.name);
-      logger.info('Status:', migration.status);
-      logger.info('Executed at:', executedAt);
-      logger.info('Execution time:', executionTime);
+      logger.info('\nMigration:', { name: migration.name });
+      logger.info('Status:', { status: migration.status });
+      logger.info('Executed at:', { executedAt });
+      logger.info('Execution time:', { executionTime });
 
       if (migration.error_message) {
-        logger.info('Error:', migration.error_message);
+        logger.info('Error:', { error_message: migration.error_message });
       }
 
-      logger.info('Rollback executed:', migration.rollback_executed);
-      logger.info('Checksum:', migration.checksum);
+      logger.info('Rollback executed:', { rollback_executed: migration.rollback_executed });
+      logger.info('Checksum:', { checksum: migration.checksum });
       logger.info('------------------');
     });
 
@@ -680,7 +698,7 @@ async function viewMigrations(environment = 'development'): Promise<void> {
   } catch (error) {
     logger.error(
       'Error viewing migrations:',
-      error instanceof Error ? error.message : String(error)
+      error instanceof Error ? error : new Error(String(error))
     );
     throw error;
   }
@@ -708,7 +726,10 @@ async function validateMigrations(): Promise<void> {
     sqlFiles.forEach((f: string) => logger.info(`   - ${f}`));
     logger.info('✅ All required migration files are present in src/lib/db/migrations');
   } catch (error) {
-    logger.error('❌ Error validating migrations:', error);
+    logger.error(
+      '❌ Error validating migrations:',
+      error instanceof Error ? error : new Error(String(error))
+    );
     throw error;
   }
 }
@@ -774,7 +795,10 @@ async function validateTriggers(): Promise<void> {
 
     logger.info(`✅ All ${requiredFunctions.length} required functions are present`);
   } catch (error) {
-    logger.error('❌ Trigger validation failed:', error);
+    logger.error(
+      '❌ Trigger validation failed:',
+      error instanceof Error ? error : new Error(String(error))
+    );
     throw error;
   }
 }
@@ -968,9 +992,9 @@ async function truncateTables(scope: 'internal' | 'external' | 'all'): Promise<v
   const tables = await sqlClient.unsafe(
     `SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'`
   );
-  logger.info('Tables in public schema:', JSON.stringify(tables));
+  logger.info('Tables in public schema:', { tables: JSON.stringify(tables) });
   const testCount = await sqlClient.unsafe('SELECT COUNT(*) as count FROM "seasons"');
-  logger.info('Manual SELECT COUNT(*) from seasons:', JSON.stringify(testCount));
+  logger.info('Manual SELECT COUNT(*) from seasons:', { testCount: JSON.stringify(testCount) });
 
   logger.info(`🗑️  Truncating ${scope} tables...`);
 
@@ -988,7 +1012,10 @@ async function truncateTables(scope: 'internal' | 'external' | 'all'): Promise<v
       );
       logger.info(`✅ Truncated ${table}`);
     } catch (error) {
-      logger.error(`❌ Error truncating ${table}:`, error);
+      logger.error(
+        `❌ Error truncating ${table}:`,
+        error instanceof Error ? error : new Error(String(error))
+      );
     }
   }
 
@@ -1064,7 +1091,10 @@ async function truncateAllInternalTables() {
     logger.info(`Table notifications after: ${afterNotifications[0]?.count ?? 'unknown'} rows`);
     logger.info('✅ Truncated notifications');
   } catch (error) {
-    logger.error('❌ Error truncating internal tables:', error);
+    logger.error(
+      '❌ Error truncating internal tables:',
+      error instanceof Error ? error : new Error(String(error))
+    );
   }
 }
 
@@ -1111,7 +1141,10 @@ async function truncateAllExternalTables() {
     logger.info(`Table nba_players after: ${afterPlayers[0]?.count ?? 'unknown'} rows`);
     logger.info('✅ Truncated nba_players');
   } catch (error) {
-    logger.error('❌ Error truncating external tables:', error);
+    logger.error(
+      '❌ Error truncating external tables:',
+      error instanceof Error ? error : new Error(String(error))
+    );
   }
 }
 
@@ -1165,7 +1198,10 @@ async function dropAllInternalTables() {
     await sqlDirect`DROP TABLE IF EXISTS "users" CASCADE`;
     logger.info('✅ Dropped users');
   } catch (error) {
-    logger.error('❌ Error dropping internal tables:', error);
+    logger.error(
+      '❌ Error dropping internal tables:',
+      error instanceof Error ? error : new Error(String(error))
+    );
   }
 }
 
@@ -1192,7 +1228,10 @@ async function dropAllExternalTables() {
     await sqlDirect`DROP TABLE IF EXISTS "seasons" CASCADE`;
     logger.info('✅ Dropped seasons');
   } catch (error) {
-    logger.error('❌ Error dropping external tables:', error);
+    logger.error(
+      '❌ Error dropping external tables:',
+      error instanceof Error ? error : new Error(String(error))
+    );
   }
 }
 
@@ -1348,7 +1387,10 @@ Examples:
         break;
     }
   } catch (error) {
-    logger.error('Database operation failed:', error);
+    logger.error(
+      'Database operation failed:',
+      error instanceof Error ? error : new Error(String(error))
+    );
     process.exit(1);
   }
 }

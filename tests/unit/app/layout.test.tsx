@@ -1,6 +1,7 @@
-import React from 'react';
 import { render, screen } from '@testing-library/react';
+import React from 'react';
 import { describe, expect, it, vi } from 'vitest';
+
 import RootLayout from '@/app/layout';
 
 // Mock Next.js components and modules

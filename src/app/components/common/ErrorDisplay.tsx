@@ -19,7 +19,7 @@ export function ErrorDisplay({
   className = '',
   showRetry = true,
 }: IErrorDisplayProps) {
-  const errorMessage = typeof error === 'string' ? error : error.message;
+  const errorMessage = typeof error === 'string' ? error : error?.message || 'Unknown error';
 
   return (
     <div className={`p-4 border rounded-md ${variantClasses[variant]} ${className}`}>

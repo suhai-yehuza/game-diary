@@ -1,4 +1,6 @@
-import { expect, test as baseTest, Page, TestType } from '@playwright/test';
+import type { test as baseTest, Page } from '@playwright/test';
+import { expect } from '@playwright/test';
+
 import {
   checkBasicPageStructure,
   checkPageTitle,

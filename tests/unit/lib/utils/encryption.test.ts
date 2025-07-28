@@ -2,6 +2,7 @@
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 
+import type { IEncryptedField } from '@/lib/types';
 import {
   encryptField,
   decryptField,
@@ -128,7 +129,7 @@ describe('encryption utils', () => {
     });
 
     it('throws error for invalid hex key override', () => {
-      const encrypted = { iv: 'test', content: 'test', tag: 'test' };
+      const encrypted: IEncryptedField = { iv: 'test', content: 'test', tag: 'test' };
       const invalidKey = 'invalid-key';
 
       expect(() => decryptField(encrypted, invalidKey)).toThrow(
@@ -137,7 +138,7 @@ describe('encryption utils', () => {
     });
 
     it('throws error for invalid buffer key override', () => {
-      const encrypted = { iv: 'test', content: 'test', tag: 'test' };
+      const encrypted: IEncryptedField = { iv: 'test', content: 'test', tag: 'test' };
       const invalidKey = Buffer.from('invalid');
 
       expect(() => decryptField(encrypted, invalidKey)).toThrow(
@@ -147,14 +148,14 @@ describe('encryption utils', () => {
 
     it('throws error when DATA_ENCRYPTION_KEY is not set', () => {
       delete process.env.DATA_ENCRYPTION_KEY;
-      const encrypted = { iv: 'test', content: 'test', tag: 'test' };
+      const encrypted: IEncryptedField = { iv: 'test', content: 'test', tag: 'test' };
 
       expect(() => decryptField(encrypted)).toThrow('DATA_ENCRYPTION_KEY must be set');
     });
 
     it('throws error when DATA_ENCRYPTION_KEY is invalid', () => {
       process.env.DATA_ENCRYPTION_KEY = 'invalid-key';
-      const encrypted = { iv: 'test', content: 'test', tag: 'test' };
+      const encrypted: IEncryptedField = { iv: 'test', content: 'test', tag: 'test' };
 
       expect(() => decryptField(encrypted)).toThrow(
         'DATA_ENCRYPTION_KEY must be set to a 32-byte hex string'
@@ -164,7 +165,11 @@ describe('encryption utils', () => {
 
   describe('serializeEncryptedField', () => {
     it('serializes encrypted field to JSON string', () => {
-      const encrypted = { iv: 'test-iv', content: 'test-content', tag: 'test-tag' };
+      const encrypted: IEncryptedField = {
+        iv: 'test-iv',
+        content: 'test-content',
+        tag: 'test-tag',
+      };
       const serialized = serializeEncryptedField(encrypted);
 
       expect(typeof serialized).toBe('string');
@@ -174,7 +179,11 @@ describe('encryption utils', () => {
 
   describe('deserializeEncryptedField', () => {
     it('deserializes JSON string to encrypted field', () => {
-      const encrypted = { iv: 'test-iv', content: 'test-content', tag: 'test-tag' };
+      const encrypted: IEncryptedField = {
+        iv: 'test-iv',
+        content: 'test-content',
+        tag: 'test-tag',
+      };
       const serialized = JSON.stringify(encrypted);
       const deserialized = deserializeEncryptedField(serialized);
 
@@ -190,7 +199,11 @@ describe('encryption utils', () => {
 
   describe('isEncrypted', () => {
     it('returns true for encrypted field', () => {
-      const encrypted = { iv: 'test-iv', content: 'test-content', tag: 'test-tag' };
+      const encrypted: IEncryptedField = {
+        iv: 'test-iv',
+        content: 'test-content',
+        tag: 'test-tag',
+      };
       const serialized = JSON.stringify(encrypted);
 
       expect(isEncrypted(serialized)).toBe(true);

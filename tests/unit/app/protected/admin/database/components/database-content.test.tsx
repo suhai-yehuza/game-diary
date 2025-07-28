@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { useSearchParams } from 'next/navigation';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 import { AdminDatabaseContent } from '@src/app/protected/admin/database/components/database-content';
 

@@ -644,9 +644,9 @@ export const gameLogMutationResolvers = {
       try {
         const apiClient = createRapidAPIClient(getRapidApiConfig());
         // Fetch game details from external API
-        const apiData = await apiClient.fetch<IGamesApiResponse>('/games', {
+        const apiData = (await apiClient.fetch('/games', {
           id: args.input.gameId,
-        });
+        })) as IGamesApiResponse;
         const game: IGameResponse | undefined = apiData?.response?.[0];
         if (!game) {
           return {

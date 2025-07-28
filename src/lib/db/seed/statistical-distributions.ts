@@ -753,42 +753,42 @@ export function generateValue(config: IDistributionConfig): number {
   switch (type) {
     case 'pareto':
       return paretoDistribution(
-        parameters.min || 0,
-        parameters.max || 100,
-        parameters.alpha || 1.16
+        parameters.min ?? 0,
+        parameters.max ?? 100,
+        parameters.alpha ?? 1.16
       );
 
     case 'normal':
       return normalDistribution(
-        parameters.mean || 50,
-        parameters.stdDev || 15,
-        parameters.min || 0,
-        parameters.max || 100
+        parameters.mean ?? 50,
+        parameters.stdDev ?? 15,
+        parameters.min ?? 0,
+        parameters.max ?? 100
       );
 
     case 'exponential':
       return exponentialDistribution(
-        parameters.lambda || 0.1,
-        parameters.min || 0,
-        parameters.max || 100
+        parameters.lambda ?? 0.1,
+        parameters.min ?? 0,
+        parameters.max ?? 100
       );
 
     case 'power-law':
       return powerLawDistribution(
-        parameters.min || 0,
-        parameters.max || 100,
-        parameters.alpha || 2.5
+        parameters.min ?? 0,
+        parameters.max ?? 100,
+        parameters.alpha ?? 2.5
       );
 
     case 'poisson':
-      return poissonDistribution(parameters.lambda || 3);
+      return poissonDistribution(parameters.lambda ?? 3);
 
     case 'beta':
       return betaDistribution(
-        parameters.alpha || 2.5,
-        parameters.beta || 2.5,
-        parameters.min || 0,
-        parameters.max || 1
+        parameters.alpha ?? 2.5,
+        parameters.beta ?? 2.5,
+        parameters.min ?? 0,
+        parameters.max ?? 1
       );
 
     case 'uniform':

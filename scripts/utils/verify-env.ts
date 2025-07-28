@@ -7,7 +7,7 @@ import dotenv from 'dotenv';
 import fs from 'fs';
 
 if (!process.env.NODE_ENV) {
-  process.env.NODE_ENV = 'development';
+  (process.env as any).NODE_ENV = 'development';
 }
 
 const isCI =
@@ -171,7 +171,7 @@ function validateEnvironment(): void {
   } catch (error) {
     if (error instanceof z.ZodError) {
       console.log('\n❌ Environment validation failed:');
-      error.errors.forEach(err => {
+      (error as any).errors.forEach((err: any) => {
         console.log(`  - ${err.path.join('.')}: ${err.message}`);
       });
     } else {

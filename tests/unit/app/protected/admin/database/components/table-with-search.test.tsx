@@ -1,6 +1,7 @@
-import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
+import React from 'react';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
+
 import TableWithSearch from '@/app/protected/admin/database/components/TableWithSearch';
 
 // Mock fetch
@@ -87,7 +88,7 @@ vi.mock('@/app/protected/admin/database/components/ui/table-search', () => ({
   ),
 }));
 
-interface TestItem {
+interface ITestItem {
   id: string;
   name: string;
   email: string;
@@ -95,12 +96,12 @@ interface TestItem {
 }
 
 const mockColumns = [
-  { key: 'name' as keyof TestItem, label: 'Name', sortable: true },
-  { key: 'email' as keyof TestItem, label: 'Email', sortable: true },
-  { key: 'createdAt' as keyof TestItem, label: 'Created At', sortable: true },
+  { key: 'name' as keyof ITestItem, label: 'Name', sortable: true },
+  { key: 'email' as keyof ITestItem, label: 'Email', sortable: true },
+  { key: 'createdAt' as keyof ITestItem, label: 'Created At', sortable: true },
 ];
 
-const mockData: TestItem[] = [
+const mockData: ITestItem[] = [
   { id: '1', name: 'John Doe', email: 'john@example.com', createdAt: '2023-01-01' },
   { id: '2', name: 'Jane Smith', email: 'jane@example.com', createdAt: '2023-01-02' },
   { id: '3', name: 'Bob Johnson', email: 'bob@example.com', createdAt: '2023-01-03' },

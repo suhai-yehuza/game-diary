@@ -1,7 +1,9 @@
 import { render, screen } from '@testing-library/react';
 import React from 'react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, expect, it, vi, beforeEach } from 'vitest';
+
 import { ClientProviders } from '@src/app/components/providers';
+import AllSportsPage from '@src/app/sports/all-sports/page';
 
 // Mock Next.js Link component
 vi.mock('next/link', () => ({
@@ -25,8 +27,6 @@ vi.mock('@clerk/nextjs', () => ({
   }),
   ClerkProvider: ({ children }: any) => <div data-testid="clerk-provider">{children}</div>,
 }));
-
-import AllSportsPage from '@src/app/sports/all-sports/page';
 
 describe('AllSportsPage', () => {
   beforeEach(() => {

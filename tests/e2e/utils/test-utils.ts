@@ -1,6 +1,8 @@
-import { Page, expect } from '@playwright/test';
-import { APP_CONFIG, getAppUrl } from '../../../src/lib/config/app.config';
-import { TestConfig } from '../../../src/lib/types';
+import type { Page } from '@playwright/test';
+import { expect } from '@playwright/test';
+
+import { APP_CONFIG, getAppUrl } from '@src/lib/config/app.config';
+import type { TestConfig } from '@src/lib/types';
 
 /**
  * Test utilities for e2e tests
@@ -122,8 +124,8 @@ export async function safeGoto(
 ): Promise<void> {
   // Get the baseURL from environment or use default
   const envBaseURL =
-    process.env.DEPLOYMENT_URL || process.env.VERCEL_URL || process.env.VERCEL_PRODUCTION_URL;
-  const baseURL = envBaseURL || DEFAULT_CONFIG.baseURL;
+    process.env.DEPLOYMENT_URL ?? process.env.VERCEL_URL ?? process.env.VERCEL_PRODUCTION_URL;
+  const baseURL = envBaseURL ?? DEFAULT_CONFIG.baseURL;
   const finalConfig = {
     ...DEFAULT_CONFIG,
     baseURL,
@@ -208,7 +210,7 @@ export async function safeGoto(
   }
 
   // If we get here, all retries failed
-  throw lastError || new Error(`Failed to navigate to ${url} after ${maxRetries} attempts`);
+  throw lastError ?? new Error(`Failed to navigate to ${url} after ${maxRetries} attempts`);
 }
 
 /**
@@ -290,7 +292,7 @@ export async function checkBasicPageStructure(page: Page): Promise<void> {
           await expect(element.first()).toBeVisible({ timeout: TIMEOUTS.SHORT });
           mainContentFound = true;
           break;
-        } catch (error) {
+        } catch (_error) {
           // Continue to next selector
         }
       }
@@ -300,7 +302,7 @@ export async function checkBasicPageStructure(page: Page): Promise<void> {
       // If no main content found, check if page has any meaningful content
       const hasContent = await page.evaluate(() => {
         const body = document.body;
-        const textContent = body.textContent || '';
+        const textContent = body.textContent ?? '';
         const visibleElements = body.querySelectorAll(
           '*:not([style*="display: none"]):not([hidden])'
         );
@@ -484,7 +486,7 @@ export async function checkAccessibilityBasics(page: Page): Promise<void> {
           const ariaLabelledBy = await input.getAttribute('aria-labelledby');
 
           // Should have either a label, aria-label, or aria-labelledby
-          const hasLabel = (await label.count()) > 0 || ariaLabel || ariaLabelledBy;
+          const hasLabel = ((await label.count()) > 0 || ariaLabel) ?? ariaLabelledBy;
           // Don't fail if no label - some inputs might be self-explanatory
           if (!hasLabel) {
             console.log(`Input without label found: ${id}`);
@@ -744,15 +746,17 @@ export async function clearTestData(page: Page): Promise<void> {
         if (typeof window !== 'undefined' && window.indexedDB) {
           // Delete all IndexedDB databases
           const databases = indexedDB.databases();
-          if (databases) {
-            databases.then(dbList => {
+          databases
+            .then(dbList => {
               dbList.forEach(db => {
                 if (db.name) {
                   indexedDB.deleteDatabase(db.name);
                 }
               });
+            })
+            .catch(() => {
+              // Ignore database errors
             });
-          }
         }
       } catch (error) {
         // Ignore IndexedDB errors
@@ -840,7 +844,7 @@ export async function setupE2EMocking(page: Page): Promise<void> {
   const vercelBypassSecret = process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
   console.log('🔍 Vercel Protection Bypass Debug:');
   console.log(`  - VERCEL_AUTOMATION_BYPASS_SECRET exists: ${!!vercelBypassSecret}`);
-  console.log(`  - VERCEL_AUTOMATION_BYPASS_SECRET length: ${vercelBypassSecret?.length || 0}`);
+  console.log(`  - VERCEL_AUTOMATION_BYPASS_SECRET length: ${vercelBypassSecret?.length ?? 0}`);
   console.log(
     `  - VERCEL_AUTOMATION_BYPASS_SECRET preview: ${vercelBypassSecret ? `${vercelBypassSecret.substring(0, 10)}...` : 'undefined'}`
   );
@@ -859,7 +863,7 @@ export async function setupE2EMocking(page: Page): Promise<void> {
         'x-vercel-protection-bypass': vercelBypassSecret,
       };
       console.log(`🔧 Injecting protection bypass header for: ${request.url()}`);
-      route.continue({ headers });
+      void route.continue({ headers });
     });
     console.log('✅ Vercel protection bypass header also injected via route handler');
   } else {
@@ -915,7 +919,7 @@ export async function setupE2EMocking(page: Page): Promise<void> {
 
   // Mock external image requests
   await page.route('https://media.api-sports.io/**', route => {
-    route.fulfill({
+    void route.fulfill({
       status: 200,
       contentType: 'image/svg+xml',
       body: '<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1"></svg>',
@@ -925,7 +929,7 @@ export async function setupE2EMocking(page: Page): Promise<void> {
   // Mock any other external API calls
   await page.route('https://api-nba-v1.p.rapidapi.com/**', route => {
     console.log(`🔧 Mocking external API call: ${route.request().url()}`);
-    route.fulfill({
+    void route.fulfill({
       status: 200,
       contentType: 'application/json',
       body: JSON.stringify({ mocked: true, message: 'Mocked external API call' }),
@@ -965,7 +969,7 @@ export async function setupE2EMocking(page: Page): Promise<void> {
 
   // Mock any other external requests
   await page.route('https://nba-stats-db.herokuapp.com/**', route => {
-    route.fulfill({
+    void route.fulfill({
       status: 200,
       contentType: 'application/json',
       body: JSON.stringify({ mocked: true, message: 'Mocked NBA Stats DB' }),

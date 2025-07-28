@@ -50,16 +50,21 @@ export async function GET(request: Request) {
     }
 
     // Get total count for pagination
-    const totalCountQuery = await db()
-      ?.select({ count: audit_logs.id })
+    const database = db();
+    if (!database) {
+      return new NextResponse('Database connection failed', { status: 500 });
+    }
+
+    const totalCountQuery = await database
+      .select({ count: audit_logs.id })
       .from(audit_logs)
       .where(conditions.length > 0 ? and(...conditions) : undefined);
 
     const total = totalCountQuery?.length ?? 0;
 
     // Get paginated results
-    const query = db()
-      ?.select({
+    const query = database
+      .select({
         id: audit_logs.id,
         timestamp: audit_logs.timestamp,
         category: audit_logs.category,
@@ -96,7 +101,7 @@ export async function GET(request: Request) {
         endpoint: log.endpoint ?? null,
         method: log.method ?? null,
         details: log.details ?? {},
-      })) || [];
+      })) ?? [];
 
     // Return the expected structure
     return NextResponse.json({
@@ -185,7 +190,7 @@ export async function POST(request: Request) {
         error_message: log.error_message ?? null,
         endpoint: log.endpoint ?? null,
         method: log.method ?? null,
-      })) || [];
+      })) ?? [];
 
     // Convert to CSV format
     const csvHeaders = [

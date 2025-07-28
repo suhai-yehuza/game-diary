@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Page Structure Debug', () => {
   test('should inspect page structure and find navigation elements', async ({ page }) => {
     const deploymentUrl =
-      process.env.DEPLOYMENT_URL ||
+      process.env.DEPLOYMENT_URL ??
       'https://game-diary-4rwp8s02v-suhais-projects-33a81a2a.vercel.app';
 
     console.log(`🔍 Navigating to: ${deploymentUrl}`);

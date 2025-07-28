@@ -6,6 +6,7 @@ import React from 'react';
 import '@/styles/globals.css';
 
 import { HeaderWrapper } from '@/app/components/layout/HeaderWrapper';
+import { LiveGamesBanner } from '@/app/components/LiveGamesBanner';
 import { Footer } from '@src/app/components/layout';
 import { ClientProviders } from '@src/app/components/providers';
 
@@ -36,8 +37,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           Skip to main content
         </a>
         <ClientProviders>
+          {/* Live Games Banner - sticky at top */}
+          <LiveGamesBanner />
           <HeaderWrapper />
-          <main id="main-content" className="grow">
+          <main id="main-content" className="grow pt-12">
             {children}
           </main>
           <Footer />

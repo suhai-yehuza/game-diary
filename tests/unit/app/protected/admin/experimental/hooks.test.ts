@@ -1,5 +1,6 @@
 import { renderHook, act } from '@testing-library/react';
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
+
 import {
   useTeamsData,
   useSeasonsData,
@@ -266,7 +267,7 @@ describe('Admin Experimental Hooks', () => {
       const { result } = renderHook(() => useFormState());
 
       act(() => {
-        result.current.setGameParams(prev => ({ ...prev, id: '123', season: '2023' }));
+        result.current.setGameParams((prev: any) => ({ ...prev, id: '123', season: '2023' }));
       });
 
       expect(result.current.gameParams).toEqual({
@@ -283,7 +284,11 @@ describe('Admin Experimental Hooks', () => {
       const { result } = renderHook(() => useFormState());
 
       act(() => {
-        result.current.setTeamParams(prev => ({ ...prev, name: 'Test Team', league: 'NBA' }));
+        result.current.setTeamParams((prev: any) => ({
+          ...prev,
+          name: 'Test Team',
+          league: 'NBA',
+        }));
       });
 
       expect(result.current.teamParams).toEqual({
@@ -301,7 +306,11 @@ describe('Admin Experimental Hooks', () => {
       const { result } = renderHook(() => useFormState());
 
       act(() => {
-        result.current.setPlayerParams(prev => ({ ...prev, name: 'Test Player', team: '1' }));
+        result.current.setPlayerParams((prev: any) => ({
+          ...prev,
+          name: 'Test Player',
+          team: '1',
+        }));
       });
 
       expect(result.current.playerParams).toEqual({
@@ -318,7 +327,11 @@ describe('Admin Experimental Hooks', () => {
       const { result } = renderHook(() => useFormState());
 
       act(() => {
-        result.current.setStandingsParams(prev => ({ ...prev, league: 'NBA', season: '2023' }));
+        result.current.setStandingsParams((prev: any) => ({
+          ...prev,
+          league: 'NBA',
+          season: '2023',
+        }));
       });
 
       expect(result.current.standingsParams).toEqual({

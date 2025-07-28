@@ -1,4 +1,5 @@
-import { test, expect } from '@playwright/test';
+import { test } from '@playwright/test';
+
 import { runComprehensivePageTests } from '@tests/e2e/utils/page-suites';
 
 test.describe.configure({ retries: 2 }); // TEMP: Retry flaky tests while stabilizing

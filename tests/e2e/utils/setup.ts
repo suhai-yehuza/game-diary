@@ -1,4 +1,5 @@
-import { Page } from '@playwright/test';
+import type { Page } from '@playwright/test';
+
 import { CSS_ANIMATION_DISABLE } from '@tests/e2e/utils/constants';
 import { waitForNetworkIdle, clearTestData } from '@tests/e2e/utils/test-utils';
 

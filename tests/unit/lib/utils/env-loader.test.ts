@@ -1,7 +1,8 @@
 /// <reference types="vitest/globals" />
 
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import fs from 'fs';
+
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 
 import { loadEnvironmentVariables, validateEnvironmentVariables } from '@/lib/utils/env-loader';
 
@@ -64,7 +65,7 @@ describe('env-loader', () => {
     });
 
     it('skips loading when no .env files exist', () => {
-      (fs.existsSync as vi.Mock).mockReturnValue(false);
+      (fs.existsSync as any).mockReturnValue(false);
       loadEnvironmentVariables();
       expect(mockConsole.log).toHaveBeenCalledWith(
         '⚠️  No .env files found, using system environment variables'
@@ -72,13 +73,13 @@ describe('env-loader', () => {
     });
 
     it('loads environment variables when .env files exist', () => {
-      (fs.existsSync as vi.Mock).mockReturnValue(true);
+      (fs.existsSync as any).mockReturnValue(true);
       loadEnvironmentVariables();
       expect(mockConsole.log).toHaveBeenCalledWith('✅ Environment variables loaded successfully');
     });
 
     it('handles errors gracefully', () => {
-      (fs.existsSync as vi.Mock).mockImplementation(() => {
+      (fs.existsSync as any).mockImplementation(() => {
         throw new Error('File system error');
       });
       loadEnvironmentVariables();

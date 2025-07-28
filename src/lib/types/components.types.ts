@@ -98,7 +98,7 @@ export interface IMobileMenuButtonProps {
 // ========================================
 
 export interface IErrorDisplayProps {
-  error: string | Error;
+  error: string | Error | null | undefined;
   title?: string;
   onRetry?: () => void;
   variant?: 'default' | 'danger' | 'warning';

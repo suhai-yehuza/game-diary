@@ -1,12 +1,14 @@
-import { test, expect, Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
+import type { Page } from '@playwright/test';
+import { test, expect } from '@playwright/test';
+
+import { runInteractivePageTests } from '@tests/e2e/utils/page-suites';
 import {
   waitForNetworkIdle,
   clearTestData,
   waitForPageStable,
   TIMEOUTS,
 } from '@tests/e2e/utils/test-utils';
-import { runInteractivePageTests } from '@tests/e2e/utils/page-suites';
 
 async function checkA11y(page: Page) {
   const results = await new AxeBuilder({ page }).analyze();
@@ -38,7 +40,7 @@ async function handleMobileSignInButton(page: any) {
     }
 
     return signInButton;
-  } catch (error) {
+  } catch (_error) {
     console.log(
       `Sign-in button not found (mobile: ${isMobile}), Clerk might not be configured for this test environment`
     );
@@ -80,7 +82,7 @@ test.describe('Clerk Auth Modal', () => {
       // Wait for the button to be visible with a longer timeout
       try {
         await expect(signInButton).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
-      } catch (error) {
+      } catch (_error) {
         // If sign-in button is not found, the test might be running without Clerk configured
         console.log(
           'Sign-in button not found, Clerk might not be configured for this test environment'
@@ -105,7 +107,7 @@ test.describe('Clerk Auth Modal', () => {
       // Wait for either email or password input to be visible (indicating modal is open)
       try {
         await expect(emailInput.or(passwordInput)).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
-      } catch (error) {
+      } catch (_error) {
         console.log('Clerk modal did not open, this might be expected in test environment');
         return; // Skip if modal doesn't open
       }
@@ -150,7 +152,7 @@ test.describe('Clerk Auth Modal', () => {
         // Wait a bit and verify page is still stable
         await waitForPageStable(page);
         await expect(page.locator('body')).toBeVisible();
-      } catch (error) {
+      } catch (_error) {
         // If sign-in button is not found, the test might be running without Clerk configured
         console.log(
           'Sign-in button not found, Clerk might not be configured for this test environment'
@@ -196,7 +198,7 @@ test.describe('Clerk Auth Modal', () => {
       try {
         await expect(signInButton).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
         await expect(signInButton).toBeEnabled();
-      } catch (error) {
+      } catch (_error) {
         console.log(
           'Sign-in button not found, Clerk might not be configured for this test environment'
         );
@@ -211,7 +213,7 @@ test.describe('Clerk Auth Modal', () => {
       const modalContent = page.locator('[role="dialog"], .clerk-modal, [data-clerk-modal]');
       try {
         await expect(modalContent.first()).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
-      } catch (error) {
+      } catch (_error) {
         console.log('Modal did not open, skipping keyboard interaction test');
         return;
       }
@@ -249,7 +251,7 @@ test.describe('Clerk Auth Modal', () => {
       const modalContent = page.locator('[role="dialog"], .clerk-modal, [data-clerk-modal]');
       try {
         await expect(modalContent.first()).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
-      } catch (error) {
+      } catch (_error) {
         console.log('Modal did not open, skipping focus management test');
         return;
       }

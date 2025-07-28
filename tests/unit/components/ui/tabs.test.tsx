@@ -235,7 +235,7 @@ describe('Tabs Components', () => {
       render(
         <Tabs value="tab1" onValueChange={vi.fn()}>
           <TabsContent value="tab1">
-            <div></div>
+            <div />
           </TabsContent>
         </Tabs>
       );
@@ -376,7 +376,7 @@ describe('Tabs Components', () => {
       render(
         <Tabs value="tab1" onValueChange={vi.fn()}>
           <TabsList>
-            <div></div>
+            <div />
           </TabsList>
           <TabsContent value="tab1">Content</TabsContent>
         </Tabs>

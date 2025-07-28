@@ -169,7 +169,7 @@ export const userQueryResolvers = {
           image_url: user.image_url,
           created_at: user.created_at,
         };
-      }) || []
+      }) ?? []
     );
   },
 
@@ -184,7 +184,7 @@ export const userQueryResolvers = {
     const searchField = args.searchField ?? 'all';
 
     // Get all users first (simplified approach to avoid circular dependency)
-    const allUsers = (await db()?.query.users.findMany()) || [];
+    const allUsers = (await db()?.query.users.findMany()) ?? [];
 
     // Filter by search term if provided
     let filteredUsers = allUsers;
