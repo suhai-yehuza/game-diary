@@ -191,7 +191,7 @@ describe('LiveGamesBanner', () => {
     const liveIndicator = screen.getByTestId('live-indicator');
     expect(liveIndicator).toBeInTheDocument();
     expect(liveIndicator).toHaveClass('animate-live-dot-glow');
-    expect(liveIndicator).toHaveClass('bg-white');
+    expect(liveIndicator).toHaveClass('bg-red-600');
     expect(liveIndicator).toHaveClass('rounded-full');
   });
 
