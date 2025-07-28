@@ -196,6 +196,19 @@ export function useFriendshipStatus(userId: string) {
       const result = await refetch({
         fetchPolicy: 'network-only', // Force network request
       });
+
+      // Update local state with the new data
+      if (result.data?.friendshipStatus) {
+        setStatus({
+          status: result.data.friendshipStatus.status,
+          friendshipId: result.data.friendshipStatus.friendshipId,
+          isInitiator: result.data.friendshipStatus.isInitiator,
+        });
+      } else {
+        // If no friendship status, set to null
+        setStatus(null);
+      }
+
       return result;
     } catch (error) {
       console.error('Error refetching friendship status:', error);
@@ -308,7 +321,9 @@ export function useFriendshipMutations() {
 
   const sendRequest = useCallback(
     async (friendId: string) => {
-      const result = await sendFriendRequest({ variables: { userId: friendId } });
+      const result = await sendFriendRequest({
+        variables: { userId: friendId },
+      });
       return result.data?.sendFriendRequest;
     },
     [sendFriendRequest]
@@ -332,7 +347,9 @@ export function useFriendshipMutations() {
 
   const removeFriendAction = useCallback(
     async (friendshipId: string) => {
-      const result = await removeFriend({ variables: { friendshipId } });
+      const result = await removeFriend({
+        variables: { friendshipId },
+      });
       return result.data?.removeFriend;
     },
     [removeFriend]

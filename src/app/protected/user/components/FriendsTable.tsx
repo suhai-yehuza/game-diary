@@ -26,11 +26,11 @@ import type { IFriendship, IUserSummary } from '@/lib/types';
 
 export function FriendsTable() {
   const { user } = useUser();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [userSearchTerm, setUserSearchTerm] = useState('');
+  const [searchResults, setSearchResults] = useState<IUserSummary[]>([]);
   const [selectedTab, setSelectedTab] = useState('friends');
   const [showUserSearch, setShowUserSearch] = useState(false);
-  const [userSearchTerm, setUserSearchTerm] = useState('');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [searchResults, setSearchResults] = useState<IUserSummary[]>([]);
 
   const {
     friendships,
@@ -112,13 +112,14 @@ export function FriendsTable() {
       try {
         await removeFriend(friendshipId);
         toast.success('Friend removed successfully');
-        void refetchFriendships();
-        void refetchPendingFriendships();
-      } catch {
+
+        // Cache update should handle UI updates automatically
+      } catch (error) {
+        console.error('Error removing friend:', error);
         toast.error('Failed to remove friend');
       }
     },
-    [removeFriend, refetchFriendships, refetchPendingFriendships]
+    [removeFriend]
   );
 
   const handleUserSearch = useCallback(async () => {
@@ -250,7 +251,7 @@ export function FriendsTable() {
                     currentUserId={user.id}
                     onSendRequest={handleSendFriendRequest}
                     onRemoveFriend={handleRemoveFriend}
-                    onRemoveFromResults={handleRemoveFromSearchResults}
+                    _onRemoveFromResults={handleRemoveFromSearchResults}
                     loading={mutationsLoading}
                   />
                 ))}
@@ -270,16 +271,29 @@ export function FriendsTable() {
 
       {/* Main Friends Interface */}
       <Tabs value={selectedTab} onValueChange={setSelectedTab}>
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="friends">Friends ({filteredFriendships.length})</TabsTrigger>
-          <TabsTrigger value="requests">Requests ({requests.length})</TabsTrigger>
-          <TabsTrigger value="pending">
+        <TabsList className="grid grid-cols-3 w-full gap-1">
+          <TabsTrigger
+            value="friends"
+            className="data-[state=active]:border-2 data-[state=active]:border-blue-500 data-[state=active]:text-blue-600 dark:data-[state=active]:text-blue-400 text-gray-700 dark:text-gray-300 rounded-md font-medium transition-all duration-200 hover:bg-gray-50 dark:hover:bg-gray-700 text-sm px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600"
+          >
+            Friends ({filteredFriendships.length})
+          </TabsTrigger>
+          <TabsTrigger
+            value="requests"
+            className="data-[state=active]:border-2 data-[state=active]:border-blue-500 data-[state=active]:text-blue-600 dark:data-[state=active]:text-blue-400 text-gray-700 dark:text-gray-300 rounded-md font-medium transition-all duration-200 hover:bg-gray-50 dark:hover:bg-gray-700 text-sm px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600"
+          >
+            Requests ({requests.length})
+          </TabsTrigger>
+          <TabsTrigger
+            value="pending"
+            className="data-[state=active]:border-2 data-[state=active]:border-blue-500 data-[state=active]:text-blue-600 dark:data-[state=active]:text-blue-400 text-gray-700 dark:text-gray-300 rounded-md font-medium transition-all duration-200 hover:bg-gray-50 dark:hover:bg-gray-700 text-sm px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600"
+          >
             Pending (
             {pendingFriendships.filter((f: IFriendship) => f.initiator?.id === user.id).length})
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="friends" className="space-y-4">
+        <TabsContent value="friends" className="space-y-4 mt-6">
           <div className="flex gap-4">
             <div className="relative max-w-sm">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -328,7 +342,7 @@ export function FriendsTable() {
           )}
         </TabsContent>
 
-        <TabsContent value="requests" className="space-y-4">
+        <TabsContent value="requests" className="space-y-4 mt-6">
           {requestsLoading ? (
             <div className="flex items-center justify-center p-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
@@ -354,7 +368,7 @@ export function FriendsTable() {
           )}
         </TabsContent>
 
-        <TabsContent value="pending" className="space-y-4">
+        <TabsContent value="pending" className="space-y-4 mt-6">
           {pendingFriendshipsLoading ? (
             <div className="flex items-center justify-center p-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
@@ -563,7 +577,7 @@ function PendingFriendshipCard({
             void onWithdraw(pending.id);
           }}
           disabled={loading}
-          className="text-orange-500 border-orange-500 hover:bg-orange-500/10 hover:border-orange-400 transition-all duration-300 px-4 py-2 rounded-lg font-medium shadow-sm hover:shadow-md transform hover:scale-105 flex items-center gap-2 min-w-[120px] justify-center"
+          className="text-orange-500 border-orange-500 hover:bg-orange-500/10 hover:border-orange-400 transition-all duration-300 px-4 py-2 rounded-lg font-medium shadow-sm hover:shadow-md transform hover:scale-105 flex items-center gap-2 w-[140px] justify-center"
         >
           {loading ? (
             <div className="animate-spin rounded-full h-3 w-3 border-2 border-orange-500 border-t-transparent mr-2" />
@@ -582,17 +596,19 @@ function UserSearchResult({
   currentUserId,
   onSendRequest,
   onRemoveFriend,
-  onRemoveFromResults,
+  _onRemoveFromResults,
   loading,
 }: {
   user: IUserSummary;
   currentUserId: string;
   onSendRequest: (friendId: string, refetchStatus?: () => void) => Promise<void>;
   onRemoveFriend: (friendshipId: string) => Promise<void>;
-  onRemoveFromResults?: (userId: string) => void;
+  _onRemoveFromResults?: (userId: string) => void;
   loading: boolean;
 }) {
   const [requestSent, setRequestSent] = useState(false);
+  const [currentFriendshipId, setCurrentFriendshipId] = useState<string | null>(null);
+  const [isOperating, setIsOperating] = useState(false);
   const validUserId = user.id?.trim();
   const friendshipStatus = useFriendshipStatus(validUserId || '');
   const { status } = friendshipStatus;
@@ -601,50 +617,74 @@ function UserSearchResult({
   const userUsername = user.username ?? '';
 
   const handleSendRequest = async () => {
+    setIsOperating(true);
     setRequestSent(true);
     try {
       await onSendRequest(user.id, () => {
         void friendshipStatus.refetch();
       });
+
+      // After sending request, refetch to get the new friendship status
+      const refetchResult = await friendshipStatus.refetch();
+
+      // Store the friendship ID from the refetched status
+      if (refetchResult?.data?.friendshipStatus?.friendshipId) {
+        setCurrentFriendshipId(refetchResult.data.friendshipStatus.friendshipId);
+      }
+
       toast.success('Friend request sent!');
     } catch {
       // If the request fails, reset the local state
       setRequestSent(false);
       toast.error('Failed to send friend request');
+    } finally {
+      setIsOperating(false);
     }
   };
 
   const handleCancelRequest = async () => {
-    if (!status?.friendshipId) {
+    const friendshipId = currentFriendshipId || status?.friendshipId;
+
+    if (!friendshipId) {
       toast.error('No friendship found to cancel');
       return;
     }
 
     try {
-      await onRemoveFriend(status.friendshipId);
+      setIsOperating(true);
+      await onRemoveFriend(friendshipId);
       toast.success('Friend request cancelled');
 
-      // Immediately set the local state to false - this is all we need
+      // Immediately update local state
       setRequestSent(false);
+      setCurrentFriendshipId(null);
 
-      // Remove the user from search results immediately
-      if (onRemoveFromResults) {
-        onRemoveFromResults(user.id);
-      }
+      // Force refetch to sync with database
+      await friendshipStatus.refetch();
     } catch (error) {
       console.error('Error canceling request:', error);
       toast.error('Failed to cancel friend request');
+    } finally {
+      setIsOperating(false);
     }
   };
 
-  // Initialize local state based on server state only on mount
+  // Initialize local state based on server state and sync with changes
   React.useEffect(() => {
-    if (status?.status === 'PENDING' && status?.isInitiator) {
-      setRequestSent(true);
-    } else if (status?.status === 'ACCEPTED' || status?.status === 'REJECTED' || !status) {
-      setRequestSent(false);
+    if (isOperating) {
+      return; // Don't update during operations
     }
-  }, [status]); // Include status in dependencies
+
+    // Only update if we have a clear server state that differs from our local state
+    if (status?.status === 'PENDING' && status?.isInitiator && !requestSent) {
+      setRequestSent(true);
+      setCurrentFriendshipId(status.friendshipId || null);
+    } else if ((status?.status === 'ACCEPTED' || status?.status === 'REJECTED') && requestSent) {
+      setRequestSent(false);
+      setCurrentFriendshipId(null);
+    }
+    // Don't update when status is null - let local state take precedence
+  }, [status?.status, status?.isInitiator, status?.friendshipId, isOperating, requestSent]);
 
   const getActionButton = () => {
     if (user.id === currentUserId) {
@@ -669,8 +709,10 @@ function UserSearchResult({
       );
     }
 
-    // Show toggle-able buttons for all other cases
-    if (requestSent || (status?.status === 'PENDING' && status?.isInitiator)) {
+    // Show toggle-able buttons for all other cases - check both local and server state
+    const shouldShowCancel = requestSent || (status?.status === 'PENDING' && status?.isInitiator);
+
+    if (shouldShowCancel) {
       return (
         <Button
           size="sm"
@@ -679,7 +721,7 @@ function UserSearchResult({
             void handleCancelRequest();
           }}
           disabled={loading}
-          className="text-yellow-500 border-yellow-500 hover:bg-yellow-500/10 hover:border-yellow-400 transition-all duration-300 px-4 py-2 rounded-lg font-medium shadow-sm hover:shadow-md transform hover:scale-105 flex items-center gap-2 min-w-[120px] justify-center"
+          className="text-yellow-500 border-yellow-500 hover:bg-yellow-500/10 hover:border-yellow-400 transition-all duration-300 px-4 py-2 rounded-lg font-medium shadow-sm hover:shadow-md transform hover:scale-105 flex items-center gap-2 w-[140px] justify-center"
         >
           {loading ? (
             <div className="animate-spin rounded-full h-3 w-3 border-2 border-yellow-500 border-t-transparent mr-2" />
@@ -695,7 +737,7 @@ function UserSearchResult({
             void handleSendRequest();
           }}
           disabled={loading}
-          className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-medium px-4 py-2 rounded-lg transition-all duration-300 shadow-sm hover:shadow-md flex items-center gap-2 transform hover:scale-105 min-w-[120px] justify-center"
+          className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-medium px-4 py-2 rounded-lg transition-all duration-300 shadow-sm hover:shadow-md flex items-center gap-2 transform hover:scale-105 w-[140px] justify-center"
         >
           {loading ? (
             <div className="animate-spin rounded-full h-3 w-3 border-2 border-white border-t-transparent mr-2" />
