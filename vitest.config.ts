@@ -3,6 +3,7 @@ import { resolve } from 'path';
 import tsconfigPaths from 'vite-tsconfig-paths';
 import { defineConfig } from 'vitest/config';
 
+const COVERAGE_THRESHOLD = 95;
 export default defineConfig({
   test: {
     environment: 'jsdom',
@@ -40,16 +41,16 @@ export default defineConfig({
       ],
       thresholds: {
         global: {
-          branches: 95,
-          functions: 95,
-          lines: 95,
-          statements: 95,
+          branches: COVERAGE_THRESHOLD,
+          functions: COVERAGE_THRESHOLD,
+          lines: COVERAGE_THRESHOLD,
+          statements: COVERAGE_THRESHOLD,
         },
         './src/': {
-          branches: 95,
-          functions: 95,
-          lines: 95,
-          statements: 95,
+          branches: COVERAGE_THRESHOLD,
+          functions: COVERAGE_THRESHOLD,
+          lines: COVERAGE_THRESHOLD,
+          statements: COVERAGE_THRESHOLD,
         },
       },
       all: true,

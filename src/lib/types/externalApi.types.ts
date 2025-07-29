@@ -3,7 +3,7 @@
  * TypeScript interfaces for NBA API endpoints and general API infrastructure
  * Documentation: https://api-sports.io/documentation/nba/v2
  */
-import type { Comment, Reaction, ParentType as TargetType } from '@src/lib/types/generated/graphql';
+import type { Comment, Reaction, ParentType as TargetType } from './generated/graphql';
 
 // ========================================
 // API REQUEST & RESPONSE TYPES

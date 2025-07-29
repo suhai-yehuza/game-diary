@@ -1,8 +1,6 @@
 /// <reference types="vitest/globals" />
 
-import fs from 'fs';
-
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 import { loadEnvironmentVariables, validateEnvironmentVariables } from '@/lib/utils/env-loader';
 
@@ -13,19 +11,26 @@ vi.mock('fs', () => ({
   },
 }));
 
+// Mock dotenv-flow
+vi.mock('dotenv-flow', () => ({
+  config: vi.fn(),
+}));
+
 // Mock console methods
-const originalConsole = { ...console };
 const mockConsole = {
   log: vi.fn(),
   warn: vi.fn(),
 };
 
-describe('env-loader', () => {
+describe('Environment Loader Utils', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    // Mock console
-    global.console = mockConsole as any;
-    // Reset environment
+
+    // Mock console methods before each test
+    vi.spyOn(console, 'log').mockImplementation(mockConsole.log);
+    vi.spyOn(console, 'warn').mockImplementation(mockConsole.warn);
+
+    // Reset process.env
     delete process.env.CI;
     delete process.env.GITHUB_ACTIONS;
     delete process.env.VERCEL;
@@ -35,54 +40,77 @@ describe('env-loader', () => {
   });
 
   afterEach(() => {
-    // Restore console
-    global.console = originalConsole;
+    vi.restoreAllMocks();
   });
 
   describe('loadEnvironmentVariables', () => {
     it('skips loading in CI environment', () => {
       process.env.CI = 'true';
+
       loadEnvironmentVariables();
+
       expect(mockConsole.log).toHaveBeenCalledWith(
         '🔧 CI environment detected, skipping .env file loading'
       );
     });
 
-    it('skips loading in GitHub Actions', () => {
+    it('skips loading in GitHub Actions environment', () => {
       process.env.GITHUB_ACTIONS = 'true';
+
       loadEnvironmentVariables();
+
       expect(mockConsole.log).toHaveBeenCalledWith(
         '🔧 CI environment detected, skipping .env file loading'
       );
     });
 
-    it('skips loading in Vercel', () => {
+    it('skips loading in Vercel environment', () => {
       process.env.VERCEL = 'true';
+
       loadEnvironmentVariables();
+
       expect(mockConsole.log).toHaveBeenCalledWith(
         '🔧 CI environment detected, skipping .env file loading'
       );
     });
 
-    it('skips loading when no .env files exist', () => {
-      (fs.existsSync as any).mockReturnValue(false);
+    it('skips loading when no .env files exist', async () => {
+      const fs = await import('fs');
+      vi.mocked(fs.default.existsSync).mockReturnValue(false);
+
       loadEnvironmentVariables();
+
       expect(mockConsole.log).toHaveBeenCalledWith(
         '⚠️  No .env files found, using system environment variables'
       );
     });
 
-    it('loads environment variables when .env files exist', () => {
-      (fs.existsSync as any).mockReturnValue(true);
+    it('loads environment variables when .env files exist', async () => {
+      const fs = await import('fs');
+      const dotenvFlow = await import('dotenv-flow');
+
+      vi.mocked(fs.default.existsSync).mockReturnValue(true);
+
       loadEnvironmentVariables();
+
+      expect(dotenvFlow.config).toHaveBeenCalledWith({
+        silent: true,
+        default_node_env: 'development',
+      });
       expect(mockConsole.log).toHaveBeenCalledWith('✅ Environment variables loaded successfully');
     });
 
-    it('handles errors gracefully', () => {
-      (fs.existsSync as any).mockImplementation(() => {
-        throw new Error('File system error');
+    it('handles errors gracefully', async () => {
+      const fs = await import('fs');
+      const dotenvFlow = await import('dotenv-flow');
+
+      vi.mocked(fs.default.existsSync).mockReturnValue(true);
+      vi.mocked(dotenvFlow.config).mockImplementation(() => {
+        throw new Error('Config error');
       });
+
       loadEnvironmentVariables();
+
       expect(mockConsole.warn).toHaveBeenCalledWith(
         '⚠️  Failed to load environment variables from .env files:',
         expect.any(Error)
@@ -92,42 +120,84 @@ describe('env-loader', () => {
   });
 
   describe('validateEnvironmentVariables', () => {
-    it('passes when all required variables are set', () => {
-      process.env.DATABASE_URL = 'postgresql://localhost:5432/test';
-      process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY = 'pk_test_key';
-      process.env.CLERK_SECRET_KEY = 'sk_test_key';
+    it('passes validation when all required variables are present', () => {
+      process.env.DATABASE_URL = 'test-db-url';
+      process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY = 'test-clerk-key';
+      process.env.CLERK_SECRET_KEY = 'test-clerk-secret';
+
       expect(() => validateEnvironmentVariables()).not.toThrow();
     });
 
-    it('warns when required variables are missing in development', () => {
-      expect(() => validateEnvironmentVariables()).not.toThrow();
+    it('warns about missing variables in non-CI environment', () => {
+      // Only set one required variable
+      process.env.DATABASE_URL = 'test-db-url';
+
+      validateEnvironmentVariables();
+
+      expect(mockConsole.warn).toHaveBeenCalledWith(
+        '⚠️  Missing required environment variables:',
+        'NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY, CLERK_SECRET_KEY'
+      );
+    });
+
+    it('throws error in CI environment when variables are missing', () => {
+      process.env.CI = 'true';
+      // Only set one required variable
+      process.env.DATABASE_URL = 'test-db-url';
+
+      expect(() => validateEnvironmentVariables()).toThrow(
+        'Missing required environment variables: NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY, CLERK_SECRET_KEY'
+      );
+    });
+
+    it('throws error in GitHub Actions environment when variables are missing', () => {
+      process.env.GITHUB_ACTIONS = 'true';
+      // Only set one required variable
+      process.env.DATABASE_URL = 'test-db-url';
+
+      expect(() => validateEnvironmentVariables()).toThrow(
+        'Missing required environment variables: NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY, CLERK_SECRET_KEY'
+      );
+    });
+
+    it('validates all required variables are checked', () => {
+      // Don't set any required variables
+      validateEnvironmentVariables();
+
       expect(mockConsole.warn).toHaveBeenCalledWith(
         '⚠️  Missing required environment variables:',
         'DATABASE_URL, NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY, CLERK_SECRET_KEY'
       );
     });
+  });
 
-    it('throws error when required variables are missing in CI', () => {
-      process.env.CI = 'true';
-      expect(() => validateEnvironmentVariables()).toThrow(
-        'Missing required environment variables: DATABASE_URL, NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY, CLERK_SECRET_KEY'
-      );
-    });
+  describe('integration scenarios', () => {
+    it('handles mixed environment scenarios', async () => {
+      const fs = await import('fs');
+      const dotenvFlow = await import('dotenv-flow');
 
-    it('throws error when required variables are missing in GitHub Actions', () => {
-      process.env.GITHUB_ACTIONS = 'true';
-      expect(() => validateEnvironmentVariables()).toThrow(
-        'Missing required environment variables: DATABASE_URL, NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY, CLERK_SECRET_KEY'
-      );
-    });
+      // Set up a scenario where .env files exist but some required vars are missing
+      vi.mocked(fs.default.existsSync).mockReturnValue(true);
+      process.env.DATABASE_URL = 'test-db-url';
+      // Missing other required variables
 
-    it('warns for partial missing variables', () => {
-      process.env.DATABASE_URL = 'postgresql://localhost:5432/test';
-      expect(() => validateEnvironmentVariables()).not.toThrow();
+      loadEnvironmentVariables();
+      validateEnvironmentVariables();
+
+      expect(dotenvFlow.config).toHaveBeenCalled();
+      expect(mockConsole.log).toHaveBeenCalledWith('✅ Environment variables loaded successfully');
       expect(mockConsole.warn).toHaveBeenCalledWith(
         '⚠️  Missing required environment variables:',
         'NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY, CLERK_SECRET_KEY'
       );
+    });
+
+    it('handles CI environment with missing variables', () => {
+      process.env.CI = 'true';
+      // Don't set any required variables
+
+      loadEnvironmentVariables();
+      expect(() => validateEnvironmentVariables()).toThrow();
     });
   });
 });

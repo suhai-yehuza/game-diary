@@ -206,6 +206,6 @@ export interface IFriendsGameLogsShape {
 
 // Type for game logs without comments and reactions
 export type GqlGameLogNoComments = Omit<
-  import('@/lib/types/generated/graphql').GameLog,
+  import('./generated/graphql').GameLog,
   'comments' | 'reactions'
 >;

@@ -8,15 +8,33 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import dotenv from 'dotenv';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+// Load environment files in the correct order
+const projectRoot = path.join(__dirname, '..', '..');
+const nodeEnv = process.env.NODE_ENV || 'development';
+
+// Load .env.development first (or appropriate env file)
+const envFile = `.env.${nodeEnv}`;
+const envPath = path.join(projectRoot, envFile);
+if (fs.existsSync(envPath)) {
+  dotenv.config({ path: envPath });
+}
+
+// Then load .env.local as override
+const localEnvPath = path.join(projectRoot, '.env.local');
+if (fs.existsSync(localEnvPath)) {
+  dotenv.config({ path: localEnvPath, override: true });
+}
 
 console.log('🔍 Environment Loading Check');
 console.log('============================\n');
 
 // Check which environment files exist
-const envFiles = ['.env', '.env.local', '.env.development', '.env.staging', '.env.production'];
+const envFiles = ['.env.local', '.env.development', '.env.staging', '.env.production'];
 
 console.log('📁 Environment Files:');
 envFiles.forEach(file => {
@@ -44,13 +62,11 @@ clerkVars.forEach(varName => {
 
 console.log('\n📊 Environment Loading Order:');
 if (process.env.NODE_ENV === 'development') {
-  console.log('  1. .env');
-  console.log('  2. .env.development (prioritized)');
-  console.log('  3. .env.local (override)');
+  console.log('  1. .env.development (prioritized)');
+  console.log('  2. .env.local (override)');
 } else {
-  console.log('  1. .env');
-  console.log('  2. .env.local');
-  console.log('  3. .env.development');
+  console.log('  1. .env.local');
+  console.log('  2. .env.development');
 }
 
 console.log('\n✨ Environment check complete!');

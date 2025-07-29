@@ -86,7 +86,7 @@ pnpm test:watch             # Watch mode for development
 pnpm test:ui                # UI mode for interactive testing
 
 # Coverage and enforcement
-pnpm test:coverage          # Run tests with coverage report
+pnpm coverage:validate          # Run tests with coverage report
 pnpm test:strict            # Run tests with verbose reporter and coverage
 pnpm coverage:enforce       # Enforce coverage thresholds
 pnpm pre-push:coverage      # Pre-push coverage validation

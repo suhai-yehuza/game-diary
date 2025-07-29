@@ -15,15 +15,15 @@ else
     ./scripts/validate.sh dev
 fi
 
-# Run coverage validation to ensure we meet the 95% threshold
+# Run coverage validation to ensure we meet the coverageThreshold
 echo "🔍 Running coverage validation..."
-if pnpm run test:coverage > /dev/null 2>&1; then
-    echo "✅ Coverage validation passed - coverage meets 95% threshold"
+if pnpm run coverage:validate > /dev/null 2>&1; then
+    echo "✅ Coverage validation passed - coverage meets coverageThreshold"
 else
-    echo "❌ Coverage validation failed - coverage is below 95% threshold"
+    echo "❌ Coverage validation failed - coverage is below coverageThreshold"
     echo "💡 To fix this:"
     echo "   - Add more unit tests to increase coverage"
-    echo "   - Run 'pnpm run test:coverage' to see detailed coverage report"
+    echo "   - Run 'pnpm run coverage:validate' to see detailed coverage report"
     echo "   - Focus on files with low coverage percentages"
     exit 1
 fi
