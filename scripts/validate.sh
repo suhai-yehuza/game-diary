@@ -509,7 +509,6 @@ run_precommit_validation() {
     log "Running precommit validation with fail-fast behavior..."
 
     local precommit_tasks=(
-        "prebuild"
         "postbuild"
     )
 

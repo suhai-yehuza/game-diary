@@ -6,7 +6,7 @@
   "scripts": {
     "analyze": "ANALYZE=true next build",
     "analyze:bundle": "pnpm @next/bundle-analyzer",
-    "prebuild": "pnpm clean:all && pnpm install",
+    "prebuild": "pnpm clean:all && pnpm install && pnpm codegen",
     "build": "next build",
     "postbuild": "pnpm prebuild && pnpm format-all && pnpm validate:types",
     "build:staging": "NODE_ENV=staging next build",
