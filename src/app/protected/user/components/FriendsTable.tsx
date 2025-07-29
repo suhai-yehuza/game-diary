@@ -612,7 +612,9 @@ function PendingFriendshipCard({
           </div>
           <Button
             size="sm"
-            onClick={handleSendRequest}
+            onClick={() => {
+              void handleSendRequest();
+            }}
             disabled={loading || isOperating}
             className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-medium px-4 py-2 rounded-lg transition-all duration-300 shadow-sm hover:shadow-md flex items-center gap-2 transform hover:scale-105 whitespace-nowrap"
           >
@@ -647,7 +649,9 @@ function PendingFriendshipCard({
         <Button
           size="sm"
           variant="outline"
-          onClick={handleCancelRequest}
+          onClick={() => {
+            void handleCancelRequest();
+          }}
           disabled={loading || isOperating}
           className="text-orange-500 border-orange-500 hover:bg-orange-500/10 hover:border-orange-400 transition-all duration-300 px-4 py-2 rounded-lg font-medium shadow-sm hover:shadow-md transform hover:scale-105 flex items-center gap-2 whitespace-nowrap"
         >

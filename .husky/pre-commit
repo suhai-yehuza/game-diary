@@ -6,5 +6,5 @@ if [ ! -f ".env.local" ] && [ ! -f ".env" ] && [ ! -f ".env.development" ]; then
     echo "⚠️  No .env files found - skipping environment validation"
     ./scripts/validate.sh ci
 else
-    ./scripts/validate.sh dev
+    ./scripts/validate.sh precommit
 fi
