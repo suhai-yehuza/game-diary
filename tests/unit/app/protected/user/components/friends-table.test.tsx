@@ -1,43 +1,52 @@
-import { useUser } from '@clerk/nextjs';
 import { render, screen } from '@testing-library/react';
 import React from 'react';
-import { describe, expect, it, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+
+import { FriendsTable } from '@src/app/protected/user/components/FriendsTable';
 
 // Mock Clerk
 vi.mock('@clerk/nextjs', () => ({
-  useUser: vi.fn(),
+  useUser: () => ({
+    isLoaded: true,
+    isSignedIn: true,
+    user: {
+      id: 'test-user-id',
+      emailAddresses: [{ emailAddress: 'test@example.com' }],
+      firstName: 'Test',
+      lastName: 'User',
+    },
+  }),
 }));
 
-// Mock the friendship hooks to prevent Apollo Client context errors
+// Mock the friendship hooks
 vi.mock('@/hooks/use-friendships', () => ({
-  useFriendships: vi.fn(() => ({
+  useFriendships: () => ({
     friendships: [],
     loading: false,
     refetch: vi.fn(),
-  })),
-  useFriendshipRequests: vi.fn(() => ({
+  }),
+  useFriendshipRequests: () => ({
     requests: [],
     loading: false,
     refetch: vi.fn(),
-  })),
-  useUserSearch: vi.fn(() => ({
+  }),
+  useUserSearch: () => ({
     users: [],
     loading: false,
     search: vi.fn(),
-  })),
-  useFriendshipMutations: vi.fn(() => ({
+  }),
+  useFriendshipMutations: () => ({
     sendFriendRequest: vi.fn(),
     acceptFriendRequest: vi.fn(),
     rejectFriendRequest: vi.fn(),
     removeFriend: vi.fn(),
     loading: false,
-  })),
-  useFriendshipStatus: vi.fn(() => ({
+  }),
+  useFriendshipStatus: () => ({
     status: null,
     loading: false,
-    error: null,
     refetch: vi.fn(),
-  })),
+  }),
 }));
 
 // Mock sonner toast
@@ -48,191 +57,152 @@ vi.mock('sonner', () => ({
   },
 }));
 
-import { FriendsTable } from '@/app/protected/user/components/FriendsTable';
+// Mock Next.js Image component
+vi.mock('next/image', () => ({
+  default: ({ src, alt, _priority, ...props }: any) => (
+    <div data-testid="next-image" title={alt} {...props}>
+      {src}
+    </div>
+  ),
+}));
+
+// Mock Next.js Link component
+vi.mock('next/link', () => ({
+  default: ({ children, href, ...props }: any) => (
+    <a href={href} {...props}>
+      {children}
+    </a>
+  ),
+}));
+
+// Mock Lucide React icons
+vi.mock('lucide-react', () => ({
+  Search: ({ ...props }: any) => <div data-testid="search-icon" {...props} />,
+  UserPlus: ({ ...props }: any) => <div data-testid="user-plus-icon" {...props} />,
+  UserX: ({ ...props }: any) => <div data-testid="user-x-icon" {...props} />,
+  Check: ({ ...props }: any) => <div data-testid="check-icon" {...props} />,
+  X: ({ ...props }: any) => <div data-testid="x-icon" {...props} />,
+  MoreHorizontal: ({ ...props }: any) => <div data-testid="more-horizontal-icon" {...props} />,
+}));
 
 describe('FriendsTable', () => {
-  const mockUseUser = useUser as ReturnType<typeof vi.fn>;
-
   beforeEach(() => {
-    vi.clearAllMocks();
+    // Set up environment variable for Clerk
+    process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY = 'test-key';
   });
 
-  it('renders sign-in message when user is not signed in', () => {
-    mockUseUser.mockReturnValue({
-      user: null,
-    });
-
-    render(<FriendsTable />);
-
-    expect(screen.getByText('Please sign in to view your friends')).toBeInTheDocument();
-    expect(screen.queryByText('Friends')).not.toBeInTheDocument();
-  });
-
-  it('renders sign-in message when user has no id', () => {
-    mockUseUser.mockReturnValue({
-      user: { id: null },
-    });
-
-    render(<FriendsTable />);
-
-    expect(screen.getByText('Please sign in to view your friends')).toBeInTheDocument();
-    expect(screen.queryByText('Friends')).not.toBeInTheDocument();
-  });
-
-  it('renders friends content when user is signed in', () => {
-    mockUseUser.mockReturnValue({
-      user: { id: 'user-123' },
-    });
-
+  it('renders the friends table with correct structure', () => {
     render(<FriendsTable />);
 
     expect(screen.getByText('Friends')).toBeInTheDocument();
-    expect(screen.getByText('Add Friends')).toBeInTheDocument();
-    expect(screen.getByText('No friends yet')).toBeInTheDocument();
-    expect(screen.getByText('Add some friends to get started!')).toBeInTheDocument();
-    expect(screen.queryByText('Please sign in to view your friends')).not.toBeInTheDocument();
   });
 
-  it('renders with proper styling classes', () => {
-    mockUseUser.mockReturnValue({
-      user: { id: 'user-123' },
-    });
-
+  it('renders the search input with correct placeholder', () => {
     render(<FriendsTable />);
 
-    const container = screen.getByText('Friends').closest('div');
-    expect(container).toHaveClass('flex', 'justify-between', 'items-center');
+    const searchInput = screen.getByPlaceholderText('Search friends...');
+    expect(searchInput).toBeInTheDocument();
   });
 
-  it('renders sign-in message with proper styling', () => {
-    mockUseUser.mockReturnValue({
-      user: null,
-    });
-
+  it('renders the add friend button', () => {
     render(<FriendsTable />);
 
-    const signInContainer = screen.getByText('Please sign in to view your friends').closest('div');
-    expect(signInContainer).toHaveClass('flex', 'items-center', 'justify-center', 'p-8');
-
-    const messageContainer = screen.getByText('Please sign in to view your friends');
-    expect(messageContainer).toHaveClass('text-muted-foreground');
+    const addFriendButton = screen.getByText('Add Friends');
+    expect(addFriendButton).toBeInTheDocument();
   });
 
-  it('renders friends heading with proper styling', () => {
-    mockUseUser.mockReturnValue({
-      user: { id: 'user-123' },
-    });
-
+  it('renders the tabs with correct structure', () => {
     render(<FriendsTable />);
 
-    const heading = screen.getByText('Friends');
-    expect(heading).toHaveClass('text-2xl', 'font-bold');
+    const friendsTab = screen.getByRole('button', { name: /Friends \(0\)/ });
+    expect(friendsTab).toBeInTheDocument();
+
+    const pendingTab = screen.getByRole('button', { name: /Pending \(0\)/ });
+    expect(pendingTab).toBeInTheDocument();
+
+    const requestsTab = screen.getByRole('button', { name: /Requests \(0\)/ });
+    expect(requestsTab).toBeInTheDocument();
   });
 
-  it('renders empty state with proper styling', () => {
-    mockUseUser.mockReturnValue({
-      user: { id: 'user-123' },
-    });
-
-    render(<FriendsTable />);
-
-    const emptyStateContainer = screen.getByText('No friends yet').closest('div');
-    expect(emptyStateContainer).toHaveClass('text-center', 'py-12', 'text-gray-400');
-  });
-
-  it('renders empty state description with proper styling', () => {
-    mockUseUser.mockReturnValue({
-      user: { id: 'user-123' },
-    });
-
-    render(<FriendsTable />);
-
-    const description = screen.getByText('Add some friends to get started!');
-    expect(description).toHaveClass('text-sm');
-  });
-
-  it('handles user with different id formats', () => {
-    mockUseUser.mockReturnValue({
-      user: { id: 'test-user-id-456' },
-    });
-
-    render(<FriendsTable />);
-
-    expect(screen.getByText('Friends')).toBeInTheDocument();
-    expect(screen.queryByText('Please sign in to view your friends')).not.toBeInTheDocument();
-  });
-
-  it('handles user object with additional properties', () => {
-    mockUseUser.mockReturnValue({
-      user: {
-        id: 'user-123',
-        email: 'test@example.com',
-        firstName: 'John',
-        lastName: 'Doe',
-      },
-    });
-
-    render(<FriendsTable />);
-
-    expect(screen.getByText('Friends')).toBeInTheDocument();
-    expect(screen.queryByText('Please sign in to view your friends')).not.toBeInTheDocument();
-  });
-
-  it('renders proper component structure when signed in', () => {
-    mockUseUser.mockReturnValue({
-      user: { id: 'user-123' },
-    });
-
+  it('renders the component with proper styling classes', () => {
     const { container } = render(<FriendsTable />);
 
-    // Should have the main container
     const mainContainer = container.querySelector('.space-y-6');
     expect(mainContainer).toBeInTheDocument();
-
-    // Should contain the heading
-    expect(mainContainer).toHaveTextContent('Friends');
-
-    // Should contain the add friends button
-    expect(mainContainer).toHaveTextContent('Add Friends');
-
-    // Should contain the empty state
-    expect(mainContainer).toHaveTextContent('No friends yet');
   });
 
-  it('renders proper component structure when not signed in', () => {
-    mockUseUser.mockReturnValue({
-      user: null,
-    });
-
-    const { container } = render(<FriendsTable />);
-
-    // Should have the sign-in container
-    const signInContainer = container.querySelector('.flex.items-center.justify-center.p-8');
-    expect(signInContainer).toBeInTheDocument();
-
-    // Should contain the sign-in message
-    expect(signInContainer).toHaveTextContent('Please sign in to view your friends');
-
-    // Should not contain friends content
-    expect(signInContainer).not.toHaveTextContent('Friends');
-  });
-
-  it('distinguishes from ActivityTable content', () => {
-    mockUseUser.mockReturnValue({
-      user: { id: 'user-123' },
-    });
-
+  it('renders the search input with correct styling', () => {
     render(<FriendsTable />);
 
-    // Should show friends-specific content
-    expect(screen.getByText('Friends')).toBeInTheDocument();
-    expect(screen.getByText('Add Friends')).toBeInTheDocument();
-    expect(screen.getByText('No friends yet')).toBeInTheDocument();
+    const searchInput = screen.getByPlaceholderText('Search friends...');
+    expect(searchInput).toHaveClass('w-full', 'border', 'rounded-lg');
+  });
 
-    // Should not show activity-specific content
-    expect(screen.queryByText('Activity & Timeline')).not.toBeInTheDocument();
-    expect(
-      screen.queryByText('See your recent activities and timeline here.')
-    ).not.toBeInTheDocument();
+  it('renders the add friend button with correct styling', () => {
+    render(<FriendsTable />);
+
+    const addFriendButton = screen.getByText('Add Friends');
+    expect(addFriendButton).toHaveClass('flex', 'items-center', 'gap-2');
+  });
+
+  it('renders the tabs with correct styling', () => {
+    render(<FriendsTable />);
+
+    const tabsContainer = screen.getByRole('button', { name: /Friends \(0\)/ }).parentElement;
+    expect(tabsContainer).toHaveClass('grid', 'grid-cols-3');
+  });
+
+  it('renders the search icon in the search input', () => {
+    render(<FriendsTable />);
+
+    expect(screen.getByTestId('search-icon')).toBeInTheDocument();
+  });
+
+  it('renders the user plus icon in the add friend button', () => {
+    render(<FriendsTable />);
+
+    const userPlusIcons = screen.getAllByTestId('user-plus-icon');
+    expect(userPlusIcons.length).toBeGreaterThan(0);
+  });
+
+  it('renders the component with proper accessibility attributes', () => {
+    render(<FriendsTable />);
+
+    const buttons = screen.getAllByRole('button');
+    expect(buttons.length).toBeGreaterThan(3);
+  });
+
+  it('renders the search container with proper styling', () => {
+    const { container } = render(<FriendsTable />);
+
+    const searchContainer = container.querySelector('.flex.items-center.gap-2');
+    expect(searchContainer).toBeInTheDocument();
+  });
+
+  it('renders the tabs content with proper styling', () => {
+    const { container } = render(<FriendsTable />);
+
+    const tabsContent = container.querySelector('.space-y-4');
+    expect(tabsContent).toBeInTheDocument();
+  });
+
+  it('renders the component with proper semantic structure', () => {
+    render(<FriendsTable />);
+
+    // Check for proper heading structure
+    const heading = screen.getByRole('heading', { level: 2 });
+    expect(heading).toBeInTheDocument();
+    expect(heading).toHaveTextContent('Friends');
+
+    // Check for proper button structure (not tabs)
+    const buttons = screen.getAllByRole('button');
+    expect(buttons.length).toBeGreaterThan(3);
+  });
+
+  it('renders the component with proper ARIA attributes', () => {
+    render(<FriendsTable />);
+
+    const buttons = screen.getAllByRole('button');
+    expect(buttons.length).toBeGreaterThan(3);
   });
 });

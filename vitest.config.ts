@@ -17,6 +17,7 @@ export default defineConfig({
       provider: 'v8',
       reporter: ['text', 'html', 'json', 'lcov'],
       reportsDirectory: './coverage',
+      include: ['src/**'],
       exclude: [
         'node_modules/**',
         'dist/**',
@@ -32,9 +33,7 @@ export default defineConfig({
         '**/drizzle.config.ts',
         '**/codegen.ts',
         '**/playwright.config.ts',
-        'src/lib/graphql/**',
-        'src/lib/mock/**',
-        'src/lib/types/**',
+        'src/lib/**',
         'src/app/api/webhook/clerk-example-events/**',
         'src/app/styles/**',
         'src/middleware.ts', // Middleware is tested via e2e

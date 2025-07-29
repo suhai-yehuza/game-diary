@@ -113,7 +113,7 @@ show_usage() {
     echo "  basic - Basic validation (circular deps, type validation/fix, env verification)"
     echo "  ci - CI-friendly validation (skips environment validation)"
     echo "  dev - Development workflow (codegen + quick fix + basic validation)"
-    echo "  full - Prebuild, build, soft validation, unused exports, test:strict, test:e2e:sanity"
+    echo "  full - Prebuild, build, soft validation, unused exports, test:strict, test:coverage, test:e2e:sanity"
     echo "  staging - Full validation + size check (for staging deployment)"
     echo "  production - Full validation (prod context)"
     echo "  circular - Check circular dependencies"
@@ -121,6 +121,7 @@ show_usage() {
     echo "  env - Verify environment variables"
     echo "  size - Check bundle size"
     echo "  unused - Check unused exports"
+    echo "  coverage - Run unit test coverage validation (enforces 95% threshold)"
     echo ""
     echo "Examples:"
     echo "  $0 basic"
@@ -128,6 +129,7 @@ show_usage() {
     echo "  $0 dev"
     echo "  $0 staging"
     echo "  $0 circular"
+    echo "  $0 coverage"
 }
 
 # =============================================================================
@@ -453,6 +455,7 @@ run_basic_validation() {
     run_dead_code_check
     run_db_triggers_validation
     run_validate_rapidapi_key
+    run_unit_test_coverage_validation
     # Environment validation (with CI handling)
     if [ "$CI" = "true" ] || [ "$GITHUB_ACTIONS" = "true" ]; then
         log_info "Running CI-optimized environment validation..."
@@ -491,6 +494,7 @@ run_full_validation() {
     run_code_quality_validation
     run_dead_code_check
     run_unit_test_strict_validation
+    run_unit_test_coverage_validation
     run_sanity_e2e_test_validation
 
     log_success "Full validation completed"
@@ -599,6 +603,11 @@ case "$SUBCOMMAND" in
         log "Checking unused exports..."
         run_dead_code_check
         log_success "Unused exports check completed"
+        ;;
+    "coverage")
+        log "Running coverage validation..."
+        run_unit_test_coverage_validation
+        log_success "Coverage validation completed"
         ;;
     "help"|"-h"|"--help")
         show_usage
