@@ -504,7 +504,7 @@ Commands:
 Examples:
   tsx scripts/cli.ts db migrate
   tsx scripts/cli.ts db setup complete
-  tsx scripts/cli.ts test e2e basic
+  tsx scripts/cli.ts test e2e dev
   tsx scripts/cli.ts ci runner staging
 
   tsx scripts/cli.ts perf measure

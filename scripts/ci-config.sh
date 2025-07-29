@@ -28,7 +28,7 @@ get_env_config() {
     case "$environment" in
         "preview")
             case "$config_key" in
-                "QUALITY_GATE_MODE") echo "basic" ;;
+                "QUALITY_GATE_MODE") echo "dev" ;;
                 "UNIT_TESTS_MODE") echo "standard" ;;
                 "E2E_TESTS") echo "sanity,smoke" ;;
                 "E2E_PAGES") echo "base,content" ;;

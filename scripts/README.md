@@ -17,8 +17,8 @@ The shell scripts have been consolidated into four main categories for better or
 ### E2E Testing (`e2e.sh`)
 
 ```bash
-# Run basic E2E tests
-./scripts/e2e.sh run basic 'playwright test --project=chromium' 'Chromium tests' 300
+# Run dev E2E tests
+./scripts/e2e.sh run dev 'playwright test --project=chromium' 'Chromium tests' 300
 
 # Run compound E2E tests
 ./scripts/e2e.sh compound --fast-only
@@ -59,7 +59,7 @@ The shell scripts have been consolidated into four main categories for better or
 
 ```bash
 # Run validation workflows
-./scripts/validate.sh basic
+./scripts/validate.sh dev
 ./scripts/validate.sh dev
 ./scripts/validate.sh full
 ./scripts/validate.sh staging
@@ -256,15 +256,15 @@ scripts/
 
 ### Shell Scripts
 
-| Legacy Command                                         | New Command                                            |
-| ------------------------------------------------------ | ------------------------------------------------------ |
-| `./scripts/ci-runner.sh preview`                       | `./scripts/ci.sh preview`                              |
-| `./scripts/e2e-run.sh basic 'playwright test' 'Tests'` | `./scripts/e2e.sh run basic 'playwright test' 'Tests'` |
-| `./scripts/validation-run.sh basic`                    | `./scripts/validate.sh basic`                          |
-| `./scripts/push-and-merge.sh`                          | `./scripts/workflow.sh push-merge`                     |
-| `./scripts/deployment-manager.sh status`               | `./scripts/workflow.sh deploy status`                  |
-| `./scripts/soak-monitor.sh start`                      | `./scripts/workflow.sh soak start`                     |
-| `./scripts/timed-run.sh 'pnpm test'`                   | `./scripts/workflow.sh timed 'pnpm test'`              |
+| Legacy Command                                       | New Command                                          |
+| ---------------------------------------------------- | ---------------------------------------------------- |
+| `./scripts/ci-runner.sh preview`                     | `./scripts/ci.sh preview`                            |
+| `./scripts/e2e-run.sh dev 'playwright test' 'Tests'` | `./scripts/e2e.sh run dev 'playwright test' 'Tests'` |
+| `./scripts/validation-run.sh dev`                    | `./scripts/validate.sh dev`                          |
+| `./scripts/push-and-merge.sh`                        | `./scripts/workflow.sh push-merge`                   |
+| `./scripts/deployment-manager.sh status`             | `./scripts/workflow.sh deploy status`                |
+| `./scripts/soak-monitor.sh start`                    | `./scripts/workflow.sh soak start`                   |
+| `./scripts/timed-run.sh 'pnpm test'`                 | `./scripts/workflow.sh timed 'pnpm test'`            |
 
 ## 🎯 Benefits of Consolidation
 
@@ -281,13 +281,13 @@ scripts/
 
 ```bash
 # Run all E2E tests
-tsx scripts/cli.ts test e2e basic
+tsx scripts/cli.ts test e2e dev
 
 # Run comprehensive trigger validation
 tsx scripts/cli.ts test all-triggers
 
 # Run E2E tests
-tsx scripts/cli.ts test e2e basic
+tsx scripts/cli.ts test e2e dev
 tsx scripts/cli.ts test e2e-compound
 tsx scripts/cli.ts test e2e-debug
 tsx scripts/cli.ts test e2e-optimize

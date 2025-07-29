@@ -56,7 +56,7 @@ show_usage() {
     echo ""
     echo "Subcommands:"
     echo "  run [mode] [test-command] [description] [timeout] - Run E2E tests"
-    echo "    Modes: basic, coverage, coverage-full, responsive"
+    echo "    Modes: dev, coverage, coverage-full, responsive"
     echo ""
     echo "  debug [options] - Debug E2E tests"
     echo "    Options: --ui, --headed, --trace"
@@ -70,14 +70,14 @@ show_usage() {
     echo "  responsive [timeout] - Run responsive design tests"
     echo ""
     echo "Examples:"
-    echo "  $0 run basic 'playwright test --project=chromium' 'Chromium tests' 300"
+    echo "  $0 run dev 'playwright test --project=chromium' 'Chromium tests' 300"
     echo "  $0 debug --ui"
     echo "  $0 coverage --fast"
     echo "  $0 responsive 3600"
 }
 
-# Function to run basic E2E tests
-run_basic_tests() {
+# Function to run dev E2E tests
+run_dev_tests() {
     local mode="$1"
     local test_command="$2"
     local description="$3"
@@ -87,7 +87,7 @@ run_basic_tests() {
     log_info "E2E testing environment variables set"
 
     case "$mode" in
-        "basic")
+        "dev")
             run_e2e_test "$test_command" "$description"
             ;;
         "coverage")
@@ -228,7 +228,7 @@ case "$SUBCOMMAND" in
             show_usage
             exit 1
         fi
-        run_basic_tests "$2" "$3" "$4" "$5"
+        run_dev_tests "$2" "$3" "$4" "$5"
         ;;
     "debug")
         shift

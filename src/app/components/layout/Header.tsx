@@ -41,7 +41,14 @@ export function Header() {
   const handleCloseMenu = useCallback(() => setIsMenuExpanded(false), [setIsMenuExpanded]);
 
   // Check if there are live games to determine spacing
-  const hasLiveGames = games && games.length > 0;
+  // Use a stable initial state to prevent hydration mismatches
+  const [mounted, setMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const hasLiveGames = mounted && games && games.length > 0;
   const headerMarginClass = hasLiveGames ? 'mt-20' : 'mt-0';
 
   return (

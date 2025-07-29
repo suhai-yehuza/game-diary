@@ -4,7 +4,7 @@
 # Usage: ./scripts/validate.sh [subcommand] [options]
 #
 # Subcommands:
-#   basic - Basic validation (prebuild, postbuild, db triggers, tests, env verification)
+#   dev - Basic validation (prebuild, postbuild, db triggers, tests, env verification)
 #   ci - CI-friendly validation (skips environment validation)
 #   dev - Development workflow (basic validation)
 #   full - Full validation with build
@@ -201,9 +201,9 @@ show_usage() {
     echo "Usage: $0 [subcommand] [options]"
     echo ""
     echo "Subcommands:"
-    echo "  basic - Basic validation (prebuild, postbuild, db triggers, tests, env verification)"
+    echo "  dev - Basic validation (prebuild, postbuild, db triggers, tests, env verification)"
     echo "  ci - CI-friendly validation (skips environment validation)"
-    echo "  dev - Development workflow (basic validation)"
+    echo "  dev - Development workflow (dev validation)"
     echo "  full - Full validation with build"
     echo "  staging - Full validation + size check (for staging deployment)"
     echo "  production - Full validation (prod context)"
@@ -216,7 +216,7 @@ show_usage() {
     echo "  coverage - Run unit test coverage validation"
     echo ""
     echo "Examples:"
-    echo "  $0 basic"
+    echo "  $0 dev"
     echo "  $0 ci"
     echo "  $0 dev"
     echo "  $0 staging"
@@ -504,11 +504,28 @@ run_ci_validation() {
     log_success "CI-friendly validation completed successfully"
 }
 
-# Basic validation workflow
-run_basic_validation() {
-    log "Running basic validation with fail-fast behavior..."
+# Precommit validation workflow
+run_precommit_validation() {
+    log "Running precommit validation with fail-fast behavior..."
 
-    local basic_tasks=(
+    local precommit_tasks=(
+        "prebuild"
+        "postbuild"
+    )
+
+    if ! run_tasks "${precommit_tasks[@]}"; then
+        log_error "Precommit validation tasks failed - stopping execution"
+        return 1
+    fi
+
+    log_success "Precommit validation completed successfully"
+}
+
+# Basic validation workflow
+run_dev_validation() {
+    log "Running dev validation with fail-fast behavior..."
+
+    local dev_tasks=(
         "prebuild"
         "postbuild"
         "db_triggers"
@@ -521,8 +538,8 @@ run_basic_validation() {
         "test_e2e_search"
     )
 
-    if ! run_tasks "${basic_tasks[@]}"; then
-        log_error "Basic validation tasks failed - stopping execution"
+    if ! run_tasks "${dev_tasks[@]}"; then
+        log_error "Dev validation tasks failed - stopping execution"
         return 1
     fi
 
@@ -540,15 +557,15 @@ run_basic_validation() {
         fi
     fi
 
-    log_success "Basic validation completed successfully"
+    log_success "Dev validation completed successfully"
 }
 
 # Full validation workflow
 run_full_validation() {
     log "Running full validation with fail-fast behavior..."
 
-    if ! run_basic_validation; then
-        log_error "Basic validation failed - stopping execution"
+    if ! run_dev_validation; then
+        log_error "Dev validation failed - stopping execution"
         return 1
     fi
 
@@ -615,21 +632,21 @@ run_production_validation() {
 SUBCOMMAND="${1:-help}"
 
 case "$SUBCOMMAND" in
-    "basic")
-        if ! run_basic_validation; then
-            log_error "Basic validation failed"
+    "precommit")
+        if ! run_precommit_validation; then
+            log_error "Precommit validation failed"
+            exit 1
+        fi
+        ;;
+    "dev")
+        if ! run_dev_validation; then
+            log_error "Dev validation failed"
             exit 1
         fi
         ;;
     "ci")
         if ! run_ci_validation; then
             log_error "CI validation failed"
-            exit 1
-        fi
-        ;;
-    "dev")
-        if ! run_basic_validation; then
-            log_error "Development validation failed"
             exit 1
         fi
         ;;

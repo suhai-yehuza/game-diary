@@ -82,8 +82,8 @@ run_quality_gate() {
     local quality_gate_mode=$(./scripts/ci-config.sh get "$environment" QUALITY_GATE_MODE)
 
     case "$quality_gate_mode" in
-        "basic")
-            log_info "Running basic quality gate for $environment"
+        "dev")
+            log_info "Running dev quality gate for $environment"
             pnpm lint && pnpm typecheck
             ;;
         "production")
