@@ -57,6 +57,15 @@ export function useFriendships(filters: IFriendshipFilters = {}) {
       const result = await refetch({
         fetchPolicy: 'network-only', // Force network request
       });
+
+      // Manually update the local state with the new data
+      if (result.data?.userFriendships) {
+        setFriendships(result.data.userFriendships.edges.map(edge => edge.node));
+        setTotalCount(result.data.userFriendships.totalCount);
+        setEndCursor(result.data.userFriendships.pageInfo.endCursor ?? null);
+        setHasNextPage(!!result.data.userFriendships.pageInfo.hasNextPage);
+      }
+
       return result;
     } catch (error) {
       console.error('Error refetching friendships:', error);
@@ -129,6 +138,15 @@ export function useFriendshipRequests() {
       const result = await refetch({
         fetchPolicy: 'network-only', // Force network request
       });
+
+      // Manually update the local state with the new data
+      if (result.data?.friendshipRequests) {
+        setRequests(result.data.friendshipRequests.edges.map(edge => edge.node));
+        setTotalCount(result.data.friendshipRequests.totalCount);
+        setEndCursor(result.data.friendshipRequests.pageInfo.endCursor ?? null);
+        setHasNextPage(!!result.data.friendshipRequests.pageInfo.hasNextPage);
+      }
+
       return result;
     } catch (error) {
       console.error('Error refetching friendship requests:', error);
@@ -324,7 +342,15 @@ export function useFriendshipMutations() {
       const result = await sendFriendRequest({
         variables: { userId: friendId },
       });
-      return result.data?.sendFriendRequest;
+
+      const response = result.data?.sendFriendRequest;
+
+      // Check if the response has errors
+      if (response?.errors && Array.isArray(response.errors) && response.errors.length > 0) {
+        throw new Error(response.errors[0].message);
+      }
+
+      return response;
     },
     [sendFriendRequest]
   );
@@ -332,7 +358,15 @@ export function useFriendshipMutations() {
   const acceptRequest = useCallback(
     async (friendshipId: string) => {
       const result = await acceptFriendRequest({ variables: { friendshipId } });
-      return result.data?.acceptFriendRequest;
+
+      const response = result.data?.acceptFriendRequest;
+
+      // Check if the response has errors
+      if (response?.errors && response.errors.length > 0) {
+        throw new Error(response.errors[0].message);
+      }
+
+      return response;
     },
     [acceptFriendRequest]
   );
@@ -340,7 +374,15 @@ export function useFriendshipMutations() {
   const rejectRequest = useCallback(
     async (friendshipId: string) => {
       const result = await rejectFriendRequest({ variables: { friendshipId } });
-      return result.data?.rejectFriendRequest;
+
+      const response = result.data?.rejectFriendRequest;
+
+      // Check if the response has errors
+      if (response?.errors && response.errors.length > 0) {
+        throw new Error(response.errors[0].message);
+      }
+
+      return response;
     },
     [rejectFriendRequest]
   );
@@ -350,7 +392,15 @@ export function useFriendshipMutations() {
       const result = await removeFriend({
         variables: { friendshipId },
       });
-      return result.data?.removeFriend;
+
+      const response = result.data?.removeFriend;
+
+      // Check if the response has errors
+      if (response?.errors && response.errors.length > 0) {
+        throw new Error(response.errors[0].message);
+      }
+
+      return response;
     },
     [removeFriend]
   );

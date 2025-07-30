@@ -3,6 +3,7 @@
 import { ApolloProvider } from '@apollo/client';
 import { ThemeProvider } from 'next-themes';
 import { Suspense } from 'react';
+import { Toaster } from 'sonner';
 
 import { ClerkProviderWrapper } from '@/app/components/providers/ClerkProvider';
 import { MenuProvider } from '@/app/components/providers/MenuContext';
@@ -22,6 +23,14 @@ export function ClientProviders({ children }: IClientProvidersProps) {
           <Suspense fallback={<>{children}</>}>
             <ClerkProviderWrapper>{children}</ClerkProviderWrapper>
           </Suspense>
+          <Toaster
+            position="top-right"
+            richColors
+            closeButton
+            duration={10000}
+            expand={true}
+            theme="dark"
+          />
         </ThemeProvider>
       </MenuProvider>
     </ApolloProvider>

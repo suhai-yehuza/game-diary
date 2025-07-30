@@ -108,18 +108,29 @@ export function FriendsTable() {
   );
 
   const handleRemoveFriend = useCallback(
-    async (friendshipId: string) => {
+    async (friendshipId: string, context?: 'cancel-request' | 'remove-friend') => {
       try {
         await removeFriend(friendshipId);
-        toast.success('Friend removed successfully');
 
-        // Cache update should handle UI updates automatically
+        if (context === 'cancel-request') {
+          toast.success('Friend request cancelled');
+        } else {
+          toast.success('Friend removed successfully');
+        }
+
+        // Refetch friendships to update the UI
+        await refetchFriendships();
+        await refetchPendingFriendships();
       } catch (error) {
         console.error('Error removing friend:', error);
-        toast.error('Failed to remove friend');
+        if (context === 'cancel-request') {
+          toast.error('Failed to cancel friend request');
+        } else {
+          toast.error('Failed to remove friend');
+        }
       }
     },
-    [removeFriend]
+    [removeFriend, refetchFriendships, refetchPendingFriendships]
   );
 
   const handleUserSearch = useCallback(async () => {
@@ -546,7 +557,7 @@ function PendingFriendshipCard({
   onSendRequest,
 }: {
   pending: IFriendship;
-  onWithdraw: (friendshipId: string) => Promise<void>;
+  onWithdraw: (friendshipId: string, context?: 'cancel-request' | 'remove-friend') => Promise<void>;
   loading: boolean;
   onSendRequest: (friendId: string) => Promise<void>;
 }) {
@@ -562,12 +573,10 @@ function PendingFriendshipCard({
   const handleCancelRequest = async () => {
     setIsOperating(true);
     try {
-      await onWithdraw(pending.id);
+      await onWithdraw(pending.id, 'cancel-request');
       setRequestCancelled(true);
-      toast.success('Friend request cancelled');
     } catch (error) {
       console.error('Error canceling request:', error);
-      toast.error('Failed to cancel friend request');
     } finally {
       setIsOperating(false);
     }
@@ -583,7 +592,7 @@ function PendingFriendshipCard({
     try {
       await onSendRequest(recipient.id);
       setRequestCancelled(false);
-      toast.success('Friend request sent!');
+      // Toast is handled by the parent component (handleSendFriendRequest)
     } catch (error) {
       console.error('Error sending request:', error);
       toast.error('Failed to send friend request');
@@ -678,7 +687,10 @@ function UserSearchResult({
   user: IUserSummary;
   currentUserId: string;
   onSendRequest: (friendId: string, refetchStatus?: () => void) => Promise<void>;
-  onRemoveFriend: (friendshipId: string) => Promise<void>;
+  onRemoveFriend: (
+    friendshipId: string,
+    context?: 'cancel-request' | 'remove-friend'
+  ) => Promise<void>;
   _onRemoveFromResults?: (userId: string) => void;
   loading: boolean;
 }) {
@@ -708,7 +720,7 @@ function UserSearchResult({
         setCurrentFriendshipId(refetchResult.data.friendshipStatus.friendshipId);
       }
 
-      toast.success('Friend request sent!');
+      // Toast is handled by the parent component (handleSendFriendRequest)
     } catch {
       // If the request fails, reset the local state
       setRequestSent(false);
@@ -728,8 +740,7 @@ function UserSearchResult({
 
     try {
       setIsOperating(true);
-      await onRemoveFriend(friendshipId);
-      toast.success('Friend request cancelled');
+      await onRemoveFriend(friendshipId, 'cancel-request');
 
       // Immediately update local state
       setRequestSent(false);
@@ -739,7 +750,6 @@ function UserSearchResult({
       await friendshipStatus.refetch();
     } catch (error) {
       console.error('Error canceling request:', error);
-      toast.error('Failed to cancel friend request');
     } finally {
       setIsOperating(false);
     }

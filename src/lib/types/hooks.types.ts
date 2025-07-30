@@ -165,33 +165,44 @@ export interface IGraphQLSearchUsersResponse {
 // GraphQL mutation response types
 export interface ISendFriendRequestResponse {
   sendFriendRequest: {
-    success: boolean;
-    friendshipId?: string;
-    message?: string;
+    errors: Array<{ message: string; code: string; field?: string }>;
+    friendship?: {
+      id: string;
+      status: string;
+      created_at: string;
+      updated_at: string;
+    };
   };
 }
 
 export interface IAcceptFriendRequestResponse {
   acceptFriendRequest: {
-    success: boolean;
-    friendshipId?: string;
-    message?: string;
+    errors: Array<{ message: string; code: string; field?: string }>;
+    friendship?: {
+      id: string;
+      status: string;
+      created_at: string;
+      updated_at: string;
+    };
   };
 }
 
 export interface IRejectFriendRequestResponse {
   rejectFriendRequest: {
-    success: boolean;
-    friendshipId?: string;
-    message?: string;
+    errors: Array<{ message: string; code: string; field?: string }>;
+    friendship?: {
+      id: string;
+      status: string;
+      created_at: string;
+      updated_at: string;
+    };
   };
 }
 
 export interface IRemoveFriendResponse {
   removeFriend: {
     success: boolean;
-    friendshipId?: string;
-    message?: string;
+    errors: Array<{ message: string; code: string; field?: string }>;
   };
 }
 

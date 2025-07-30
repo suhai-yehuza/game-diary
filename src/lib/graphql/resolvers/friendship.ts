@@ -324,6 +324,60 @@ export const friendshipMutationResolvers = {
     }
 
     try {
+      // Check if a friendship already exists between these users
+      const existingFriendship = await db()
+        ?.select()
+        .from(friendships)
+        .where(
+          or(
+            and(eq(friendships.user_id, context.user.id), eq(friendships.friend_id, args.userId)),
+            and(eq(friendships.user_id, args.userId), eq(friendships.friend_id, context.user.id))
+          )
+        )
+        .limit(1);
+
+      if (existingFriendship && existingFriendship.length > 0) {
+        const friendship = existingFriendship[0];
+
+        if (friendship.status === 'PENDING') {
+          if (friendship.user_id === context.user.id) {
+            return {
+              friendship: null,
+              errors: [
+                {
+                  message: 'Friend request already sent to this user',
+                  code: 'DUPLICATE_FRIEND_REQUEST',
+                },
+              ],
+            };
+          } else {
+            return {
+              friendship: null,
+              errors: [
+                {
+                  message: 'This user has already sent you a friend request',
+                  code: 'INCOMING_FRIEND_REQUEST',
+                },
+              ],
+            };
+          }
+        } else if (friendship.status === 'ACCEPTED') {
+          return {
+            friendship: null,
+            errors: [
+              { message: 'You are already friends with this user', code: 'ALREADY_FRIENDS' },
+            ],
+          };
+        } else if (friendship.status === 'REJECTED') {
+          return {
+            friendship: null,
+            errors: [
+              { message: 'Friend request was previously rejected', code: 'PREVIOUSLY_REJECTED' },
+            ],
+          };
+        }
+      }
+
       const friendshipId = generateUUIDv7();
       const newFriendship = await db()
         ?.insert(friendships)
@@ -335,18 +389,53 @@ export const friendshipMutationResolvers = {
         })
         .returning();
 
+      if (newFriendship?.[0]) {
+        // Fetch the complete friendship with user data
+        const completeFriendship = await db()?.query.friendships.findFirst({
+          where: eq(friendships.id, newFriendship[0].id),
+          with: {
+            user: true,
+            friend: true,
+          },
+        });
+
+        return {
+          friendship: completeFriendship
+            ? {
+                id: completeFriendship.id,
+                status: completeFriendship.status,
+                created_at: completeFriendship.created_at,
+                updated_at: completeFriendship.updated_at,
+                initiator: {
+                  id: completeFriendship.user_id,
+                  username: completeFriendship.user?.username ?? '',
+                  first_name: completeFriendship.user?.first_name ?? '',
+                  last_name: completeFriendship.user?.last_name ?? '',
+                  email_address: null, // Don't expose email
+                  image_url: completeFriendship.user?.image_url ?? null,
+                  created_at: completeFriendship.user?.created_at ?? null,
+                },
+                recipient: {
+                  id: completeFriendship.friend_id,
+                  username: completeFriendship.friend?.username ?? '',
+                  first_name: completeFriendship.friend?.first_name ?? '',
+                  last_name: completeFriendship.friend?.last_name ?? '',
+                  email_address: null, // Don't expose email
+                  image_url: completeFriendship.friend?.image_url ?? null,
+                  created_at: completeFriendship.friend?.created_at ?? null,
+                },
+              }
+            : null,
+          errors: [],
+        };
+      }
+
       return {
-        friendship: newFriendship?.[0]
-          ? {
-              id: newFriendship[0].id,
-              status: newFriendship[0].status,
-              created_at: newFriendship[0].created_at,
-              updated_at: newFriendship[0].updated_at,
-            }
-          : null,
+        friendship: null,
         errors: [],
       };
-    } catch {
+    } catch (error) {
+      console.error('Error sending friend request:', error);
       return {
         friendship: null,
         errors: [{ message: 'Failed to send friend request', code: 'SEND_FRIEND_REQUEST_ERROR' }],
@@ -376,18 +465,53 @@ export const friendshipMutationResolvers = {
         )
         .returning();
 
+      if (updatedFriendship?.[0]) {
+        // Fetch the complete friendship with user data
+        const completeFriendship = await db()?.query.friendships.findFirst({
+          where: eq(friendships.id, updatedFriendship[0].id),
+          with: {
+            user: true,
+            friend: true,
+          },
+        });
+
+        return {
+          friendship: completeFriendship
+            ? {
+                id: completeFriendship.id,
+                status: completeFriendship.status,
+                created_at: completeFriendship.created_at,
+                updated_at: completeFriendship.updated_at,
+                initiator: {
+                  id: completeFriendship.user_id,
+                  username: completeFriendship.user?.username ?? '',
+                  first_name: completeFriendship.user?.first_name ?? '',
+                  last_name: completeFriendship.user?.last_name ?? '',
+                  email_address: null, // Don't expose email
+                  image_url: completeFriendship.user?.image_url ?? null,
+                  created_at: completeFriendship.user?.created_at ?? null,
+                },
+                recipient: {
+                  id: completeFriendship.friend_id,
+                  username: completeFriendship.friend?.username ?? '',
+                  first_name: completeFriendship.friend?.first_name ?? '',
+                  last_name: completeFriendship.friend?.last_name ?? '',
+                  email_address: null, // Don't expose email
+                  image_url: completeFriendship.friend?.image_url ?? null,
+                  created_at: completeFriendship.friend?.created_at ?? null,
+                },
+              }
+            : null,
+          errors: [],
+        };
+      }
+
       return {
-        friendship: updatedFriendship?.[0]
-          ? {
-              id: updatedFriendship[0].id,
-              status: updatedFriendship[0].status,
-              created_at: updatedFriendship[0].created_at,
-              updated_at: updatedFriendship[0].updated_at,
-            }
-          : null,
+        friendship: null,
         errors: [],
       };
-    } catch {
+    } catch (error) {
+      console.error('Error accepting friend request:', error);
       return {
         friendship: null,
         errors: [
@@ -419,18 +543,53 @@ export const friendshipMutationResolvers = {
         )
         .returning();
 
+      if (updatedFriendship?.[0]) {
+        // Fetch the complete friendship with user data
+        const completeFriendship = await db()?.query.friendships.findFirst({
+          where: eq(friendships.id, updatedFriendship[0].id),
+          with: {
+            user: true,
+            friend: true,
+          },
+        });
+
+        return {
+          friendship: completeFriendship
+            ? {
+                id: completeFriendship.id,
+                status: completeFriendship.status,
+                created_at: completeFriendship.created_at,
+                updated_at: completeFriendship.updated_at,
+                initiator: {
+                  id: completeFriendship.user_id,
+                  username: completeFriendship.user?.username ?? '',
+                  first_name: completeFriendship.user?.first_name ?? '',
+                  last_name: completeFriendship.user?.last_name ?? '',
+                  email_address: null, // Don't expose email
+                  image_url: completeFriendship.user?.image_url ?? null,
+                  created_at: completeFriendship.user?.created_at ?? null,
+                },
+                recipient: {
+                  id: completeFriendship.friend_id,
+                  username: completeFriendship.friend?.username ?? '',
+                  first_name: completeFriendship.friend?.first_name ?? '',
+                  last_name: completeFriendship.friend?.last_name ?? '',
+                  email_address: null, // Don't expose email
+                  image_url: completeFriendship.friend?.image_url ?? null,
+                  created_at: completeFriendship.friend?.created_at ?? null,
+                },
+              }
+            : null,
+          errors: [],
+        };
+      }
+
       return {
-        friendship: updatedFriendship?.[0]
-          ? {
-              id: updatedFriendship[0].id,
-              status: updatedFriendship[0].status,
-              created_at: updatedFriendship[0].created_at,
-              updated_at: updatedFriendship[0].updated_at,
-            }
-          : null,
+        friendship: null,
         errors: [],
       };
-    } catch {
+    } catch (error) {
+      console.error('Error rejecting friend request:', error);
       return {
         friendship: null,
         errors: [
@@ -451,17 +610,47 @@ export const friendshipMutationResolvers = {
     }
 
     try {
-      await db()
+      // Check if the friendship exists and the user is part of it
+      const existingFriendship = await db()?.query.friendships.findFirst({
+        where: and(
+          eq(friendships.id, args.friendshipId),
+          or(eq(friendships.user_id, context.user.id), eq(friendships.friend_id, context.user.id))
+        ),
+      });
+
+      if (!existingFriendship) {
+        return {
+          success: false,
+          errors: [
+            { message: 'Friendship not found or access denied', code: 'FRIENDSHIP_NOT_FOUND' },
+          ],
+        };
+      }
+
+      // Delete the friendship (user can be either user_id or friend_id)
+      const deletedFriendship = await db()
         ?.delete(friendships)
         .where(
-          and(eq(friendships.id, args.friendshipId), eq(friendships.user_id, context.user.id))
-        );
+          and(
+            eq(friendships.id, args.friendshipId),
+            or(eq(friendships.user_id, context.user.id), eq(friendships.friend_id, context.user.id))
+          )
+        )
+        .returning();
 
-      return {
-        success: true,
-        errors: [],
-      };
-    } catch {
+      if (deletedFriendship && deletedFriendship.length > 0) {
+        return {
+          success: true,
+          errors: [],
+        };
+      } else {
+        return {
+          success: false,
+          errors: [{ message: 'Failed to remove friend', code: 'REMOVE_FRIEND_ERROR' }],
+        };
+      }
+    } catch (error) {
+      console.error('Error removing friend:', error);
       return {
         success: false,
         errors: [{ message: 'Failed to remove friend', code: 'REMOVE_FRIEND_ERROR' }],
