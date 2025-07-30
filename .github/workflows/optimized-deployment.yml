@@ -41,11 +41,11 @@ on:
         required: false
 
 jobs:
-  # Combined validation job to reduce parallel jobs
-  validation:
-    name: Validation (Quality Gate + Unit Tests + Database Tests)
+  # Split validation into separate jobs for better isolation
+  quality-gate:
+    name: Quality Gate Validation
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 20
     environment: ${{ inputs.environment }}
     steps:
       - uses: actions/checkout@v4
@@ -73,7 +73,38 @@ jobs:
           NEXT_PUBLIC_RAPID_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_RAPID_API_BASE_URL }}
         run: |
           echo "Running quality gate validation for ${{ inputs.environment }} environment..."
-          ./scripts/deployment-validator.sh ci --skip-e2e-tests --skip-db-tests
+          ./scripts/validation-pipeline.sh ci --skip-e2e-tests --skip-db-tests
+
+      - name: Upload Quality Gate Artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: quality-gate-artifacts
+          path: |
+            logs/
+            test-results/
+            coverage/
+          retention-days: 7
+
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: ${{ inputs.environment }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: '10'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
       - name: Run Unit Tests
         env:
@@ -85,6 +116,43 @@ jobs:
           NEXT_PUBLIC_RAPID_API_HOST: ${{ secrets.NEXT_PUBLIC_RAPID_API_HOST }}
           NEXT_PUBLIC_RAPID_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_RAPID_API_BASE_URL }}
         run: pnpm test:unit
+
+      - uses: codecov/codecov-action@v4
+        if: success()
+        with:
+          file: ./coverage/lcov.info
+          flags: unittests
+          name: codecov-umbrella
+
+      - name: Upload Unit Test Artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-test-artifacts
+          path: |
+            test-results/
+            coverage/
+          retention-days: 7
+
+  database-tests:
+    name: Database Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: ${{ inputs.environment }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: '10'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
       - name: Run Database Tests
         env:
@@ -101,32 +169,22 @@ jobs:
           echo "🧪 Running comprehensive database trigger tests..."
           pnpm db:test:all-triggers
 
-      - uses: codecov/codecov-action@v4
-        if: success()
-        with:
-          file: ./coverage/lcov.info
-          flags: unittests
-          name: codecov-umbrella
-
-      - name: Upload Validation Artifacts
+      - name: Upload Database Test Artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: validation-artifacts
+          name: database-test-artifacts
           path: |
             logs/
             test-results/
-            playwright-report/
-            coverage/
-            build/
           retention-days: 7
 
-  # Combined E2E tests to reduce parallel jobs
-  e2e-tests:
-    name: E2E Tests (Combined)
-    needs: [validation]
+  # Global E2E Mock Verification (runs once against all browsers)
+  e2e-mock-verification:
+    name: E2E Mock Verification (All Browsers)
+    needs: [quality-gate, unit-tests, database-tests]
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 20
     environment: ${{ inputs.environment }}
     steps:
       - uses: actions/checkout@v4
@@ -140,9 +198,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
       - name: Setup Playwright browsers
-        run: pnpm exec playwright install --with-deps
+        run: ./scripts/testing/install-playwright-browsers.sh --verbose
 
-      - name: Run Combined E2E Tests
+      - name: Run E2E Mock Verification (All Browsers)
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
@@ -156,40 +214,220 @@ jobs:
           API_MOCK_MODE: 'true'
           CI: 'true'
         run: |
-          echo "Running combined E2E tests..."
-          # Run mock verification tests first
-          pnpm exec playwright test tests/e2e/functional/mock-verification.spec.ts --reporter=line
-          # Run comprehensive navigation tests (includes all critical and smoke tests)
-          pnpm exec playwright test tests/e2e/functional/navigation.spec.ts --workers=1 --reporter=line
-          # Run responsive tests
-          pnpm exec playwright test tests/e2e/functional/responsive.spec.ts --workers=1 --reporter=line
-          pnpm exec playwright test tests/e2e/functional/live-games.spec.ts --workers=1 --reporter=line
-          # Ensure coverage directory exists
-          mkdir -p coverage
-          # Create a placeholder coverage file if none exists
-          if [ ! -f "coverage/lcov.info" ] && [ ! -f "coverage/coverage.json" ]; then
-            echo "No coverage files found, creating placeholder"
-            echo '{"type": "Coverage", "version": "1.0", "data": {}}' > coverage/coverage.json
-          fi
+          echo "Running E2E Mock Verification against all browsers..."
+          pnpm test:e2e:mock-verification --browser=all
 
-      - name: Upload E2E Artifacts
+      - name: Upload E2E Mock Verification Artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: e2e-artifacts
+          name: e2e-mock-verification-artifacts
           path: |
-            logs/
             test-results/
             playwright-report/
-            coverage/
-            build/
           retention-days: 7
-          if-no-files-found: warn
+
+  # Parallel E2E tests by browser type
+  e2e-chromium:
+    name: E2E Tests (Chromium)
+    needs: [quality-gate, unit-tests, database-tests, e2e-mock-verification]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: ${{ inputs.environment }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: '10'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Setup Playwright browsers
+        run: ./scripts/testing/install-playwright-browsers.sh --verbose
+
+      - name: Run E2E Tests (Chromium)
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+          CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
+          NEXT_PUBLIC_RAPID_API_KEY: ${{ secrets.NEXT_PUBLIC_RAPID_API_KEY }}
+          NEXT_PUBLIC_RAPID_API_HOST: ${{ secrets.NEXT_PUBLIC_RAPID_API_HOST }}
+          NEXT_PUBLIC_RAPID_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_RAPID_API_BASE_URL }}
+          DEPLOYMENT_URL: ${{ env.DEFAULT_LOCALHOST_URL || 'http://localhost:3000' }}
+          E2E_MOCK_MODE: 'true'
+          API_MOCK_MODE: 'true'
+          CI: 'true'
+        run: |
+          echo "Running E2E tests on Chromium..."
+          pnpm test:e2e:navigation --browser=chromium
+          pnpm test:e2e:responsive --browser=chromium
+          pnpm test:e2e:live-games --browser=chromium
+
+      - name: Upload E2E Chromium Artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-chromium-artifacts
+          path: |
+            test-results/
+            playwright-report/
+          retention-days: 7
+
+  e2e-webkit:
+    name: E2E Tests (WebKit)
+    needs: [quality-gate, unit-tests, database-tests, e2e-mock-verification]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: ${{ inputs.environment }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: '10'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Setup Playwright browsers
+        run: ./scripts/testing/install-playwright-browsers.sh --verbose
+
+      - name: Run E2E Tests (WebKit)
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+          CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
+          NEXT_PUBLIC_RAPID_API_KEY: ${{ secrets.NEXT_PUBLIC_RAPID_API_KEY }}
+          NEXT_PUBLIC_RAPID_API_HOST: ${{ secrets.NEXT_PUBLIC_RAPID_API_HOST }}
+          NEXT_PUBLIC_RAPID_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_RAPID_API_BASE_URL }}
+          DEPLOYMENT_URL: ${{ env.DEFAULT_LOCALHOST_URL || 'http://localhost:3000' }}
+          E2E_MOCK_MODE: 'true'
+          API_MOCK_MODE: 'true'
+          CI: 'true'
+        run: |
+          echo "Running E2E tests on WebKit..."
+          pnpm test:e2e:navigation --browser=webkit
+          pnpm test:e2e:responsive --browser=webkit
+          pnpm test:e2e:live-games --browser=webkit
+
+      - name: Upload E2E WebKit Artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-webkit-artifacts
+          path: |
+            test-results/
+            playwright-report/
+          retention-days: 7
+
+  e2e-firefox:
+    name: E2E Tests (Firefox)
+    needs: [quality-gate, unit-tests, database-tests, e2e-mock-verification]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: ${{ inputs.environment }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: '10'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Setup Playwright browsers
+        run: ./scripts/testing/install-playwright-browsers.sh --verbose
+
+      - name: Run E2E Tests (Firefox)
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+          CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
+          NEXT_PUBLIC_RAPID_API_KEY: ${{ secrets.NEXT_PUBLIC_RAPID_API_KEY }}
+          NEXT_PUBLIC_RAPID_API_HOST: ${{ secrets.NEXT_PUBLIC_RAPID_API_HOST }}
+          NEXT_PUBLIC_RAPID_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_RAPID_API_BASE_URL }}
+          DEPLOYMENT_URL: ${{ env.DEFAULT_LOCALHOST_URL || 'http://localhost:3000' }}
+          E2E_MOCK_MODE: 'true'
+          API_MOCK_MODE: 'true'
+          CI: 'true'
+        run: |
+          echo "Running E2E tests on Firefox..."
+          pnpm test:e2e:navigation --browser=firefox
+          pnpm test:e2e:responsive --browser=firefox
+          pnpm test:e2e:live-games --browser=firefox
+
+      - name: Upload E2E Firefox Artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-firefox-artifacts
+          path: |
+            test-results/
+            playwright-report/
+          retention-days: 7
+
+  e2e-mobile:
+    name: E2E Tests (Mobile)
+    needs: [quality-gate, unit-tests, database-tests, e2e-mock-verification]
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    environment: ${{ inputs.environment }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: '10'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Setup Playwright browsers
+        run: ./scripts/testing/install-playwright-browsers.sh --verbose
+
+      - name: Run E2E Tests (Mobile)
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+          CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
+          NEXT_PUBLIC_RAPID_API_KEY: ${{ secrets.NEXT_PUBLIC_RAPID_API_KEY }}
+          NEXT_PUBLIC_RAPID_API_HOST: ${{ secrets.NEXT_PUBLIC_RAPID_API_HOST }}
+          NEXT_PUBLIC_RAPID_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_RAPID_API_BASE_URL }}
+          DEPLOYMENT_URL: ${{ env.DEFAULT_LOCALHOST_URL || 'http://localhost:3000' }}
+          E2E_MOCK_MODE: 'true'
+          API_MOCK_MODE: 'true'
+          CI: 'true'
+        run: |
+          echo "Running E2E tests on Mobile..."
+          pnpm test:e2e:navigation --browser=mobile
+          pnpm test:e2e:responsive --browser=mobile
+          pnpm test:e2e:live-games --browser=mobile
+
+      - name: Upload E2E Mobile Artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-mobile-artifacts
+          path: |
+            test-results/
+            playwright-report/
+          retention-days: 7
 
   deploy:
     name: Deploy to Vercel
     if: ${{ inputs.deploy-to-vercel }}
-    needs: [e2e-tests]
+    needs: [e2e-chromium, e2e-webkit, e2e-firefox, e2e-mobile]
     runs-on: ubuntu-latest
     timeout-minutes: 60
     environment: ${{ inputs.environment }}
@@ -294,7 +532,7 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
       - name: Setup Playwright browsers
-        run: pnpm exec playwright install --with-deps
+        run: ./scripts/testing/install-playwright-browsers.sh --verbose
 
       - name: Run Post-Deployment Verification E2E
         env:

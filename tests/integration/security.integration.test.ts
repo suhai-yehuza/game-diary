@@ -1,10 +1,13 @@
 import fetch from 'node-fetch';
 import { test, expect } from 'vitest';
+
+import { getAppUrl } from '@src/lib/config/app.config';
+
 if (!global.fetch) global.fetch = fetch as unknown as typeof global.fetch;
 
 // Helper to create a test user via the API
 async function createTestUser(userData: { email: string; phone?: string }) {
-  const response = await fetch('http://localhost:3000/api/user', {
+  const response = await fetch(`${getAppUrl()}/api/user`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(userData),
@@ -68,7 +71,7 @@ test('should log sensitive data access (API)', async () => {
   expect(testUser.email).toBe('audit-test@example.com');
 });
 test('should log failed access attempts (API)', async () => {
-  const unauthorizedResponse = await fetch('http://localhost:3000/api/user/me', {
+  const unauthorizedResponse = await fetch(`${getAppUrl()}/api/user/me`, {
     headers: { 'Content-Type': 'application/json' },
   });
   let unauthorizedResult;
@@ -85,7 +88,7 @@ test('should log failed access attempts (API)', async () => {
   if (typeof unauthorizedResult.data === 'string') {
     expect(unauthorizedResult.data).toMatch(/unauthorized/i);
   }
-  const auditResponse = await fetch('http://localhost:3000/api/admin/audit-logs', {
+  const auditResponse = await fetch(`${getAppUrl()}/api/admin/audit-logs`, {
     headers: { 'Content-Type': 'application/json' },
   });
   let auditLogs;
@@ -104,7 +107,7 @@ test('should log failed access attempts (API)', async () => {
 
 // API Security
 test('should validate input data (API)', async () => {
-  const invalidEmailResponse = await fetch('http://localhost:3000/api/user', {
+  const invalidEmailResponse = await fetch(`${getAppUrl()}/api/user`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({

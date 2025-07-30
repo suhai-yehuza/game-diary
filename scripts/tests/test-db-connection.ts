@@ -2,8 +2,8 @@ import 'dotenv-flow/config';
 
 import { sql } from 'drizzle-orm';
 
-import { logger } from '@src/lib/utils/logger';
-import { createDatabaseClient } from '@src/lib/db';
+import { logger } from '@/lib/utils/logger';
+import { createDatabaseClient } from '@/lib/db';
 
 import { parseScriptArgs } from '../utils/script-utils';
 

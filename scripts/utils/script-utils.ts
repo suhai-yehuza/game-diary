@@ -3,9 +3,9 @@ import { promisify } from 'util';
 
 import { sql } from 'drizzle-orm';
 
-import { logger } from '@src/lib/utils/logger';
-import { createDatabaseClient } from '@src/lib/db';
-import type { IScriptOptions } from '@src/lib/types';
+import { logger } from '@/lib/utils/logger';
+import { createDatabaseClient } from '@/lib/db';
+import type { IScriptOptions } from '@/lib/types';
 
 export const execAsync = promisify(exec) as (
   command: string

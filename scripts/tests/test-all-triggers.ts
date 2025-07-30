@@ -5,9 +5,9 @@ import 'dotenv-flow/config';
 import { sql } from 'drizzle-orm';
 import { neon } from '@neondatabase/serverless';
 
-import { logger } from '../../src/lib/utils/logger';
-import { createDatabaseClient } from '@src/lib/db';
-import { generateId } from '@src/lib/utils/id-generator';
+import { logger } from '@/lib/utils/logger';
+import { createDatabaseClient } from '@/lib/db';
+import { generateId } from '@/lib/utils/id-generator';
 
 // Check if we're in CI and handle missing DATABASE_URL gracefully
 const isCI = process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true';

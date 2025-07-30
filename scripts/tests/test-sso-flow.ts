@@ -1,13 +1,14 @@
 #!/usr/bin/env tsx
 
 import 'dotenv-flow/config';
-import { webhookLogger } from '@src/lib/utils/logger';
+import { webhookLogger } from '@/lib/utils/logger';
+import { getAppUrl } from '@/lib/config/app.config';
 
 // Test SSO callback URL handling
 const testSSOCallbackUrls = [
-  'http://localhost:3000/sign-up#/sso-callback?sign_up_fallback_redirect_url=http%3A%2F%2Flocalhost%3A3000%2F&sign_in_fallback_redirect_url=http%3A%2F%2Flocalhost%3A3000%2F',
-  'http://localhost:3000/sign-in#/sso-callback?sign_up_fallback_redirect_url=http%3A%2F%2Flocalhost%3A3000%2F&sign_in_fallback_redirect_url=http%3A%2F%2Flocalhost%3A3000%2F',
-  'http://localhost:3000/sso-callback?sign_up_fallback_redirect_url=http%3A%2F%2Flocalhost%3A3000%2F&sign_in_fallback_redirect_url=http%3A%2F%2Flocalhost%3A3000%2F',
+  `${getAppUrl()}/sign-up#/sso-callback?sign_up_fallback_redirect_url=${encodeURIComponent(getAppUrl())}%2F&sign_in_fallback_redirect_url=${encodeURIComponent(getAppUrl())}%2F`,
+  `${getAppUrl()}/sign-in#/sso-callback?sign_up_fallback_redirect_url=${encodeURIComponent(getAppUrl())}%2F&sign_in_fallback_redirect_url=${encodeURIComponent(getAppUrl())}%2F`,
+  `${getAppUrl()}/sso-callback?sign_up_fallback_redirect_url=${encodeURIComponent(getAppUrl())}%2F&sign_in_fallback_redirect_url=${encodeURIComponent(getAppUrl())}%2F`,
 ];
 
 function testSSOCallbackHandling() {

@@ -1,29 +1,4 @@
 #!/usr/bin/env sh
 
-# Run comprehensive pre-push validation
-# First, ensure node_modules exists
-if [ ! -d "node_modules" ]; then
-    echo "⚠️  node_modules not found - installing dependencies..."
-    pnpm install
-fi
-
-# Skip environment validation if no .env files exist
-if [ ! -f ".env.local" ] && [ ! -f ".env" ] && [ ! -f ".env.development" ]; then
-    echo "⚠️  No .env files found - skipping environment validation"
-    ./scripts/validate.sh ci
-else
-    ./scripts/validate.sh dev
-fi
-
-# Run coverage validation to ensure we meet the coverageThreshold
-echo "🔍 Running coverage validation..."
-if pnpm run coverage:validate > /dev/null 2>&1; then
-    echo "✅ Coverage validation passed - coverage meets coverageThreshold"
-else
-    echo "❌ Coverage validation failed - coverage is below coverageThreshold"
-    echo "💡 To fix this:"
-    echo "   - Add more unit tests to increase coverage"
-    echo "   - Run 'pnpm run coverage:validate' to see detailed coverage report"
-    echo "   - Focus on files with low coverage percentages"
-    exit 1
-fi
+# Run medium pre-push validation
+./scripts/validation-pipeline.sh prepush

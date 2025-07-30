@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Unified Integration Testing Script
-# Usage: ./scripts/integration.sh [--force-server] [--direct-only]
+# Usage: ./scripts/testing/integration.sh [--force-server] [--direct-only]
 #
 # This script intelligently handles integration testing by:
 # 1. Checking if server is already running
@@ -10,6 +10,9 @@
 # 4. Providing options for different use cases
 
 set -e
+
+# Source shared utilities
+source "$(dirname "$0")/../script-utils.sh"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
@@ -68,7 +71,7 @@ check_server_running() {
 # Function to run tests directly (fastest)
 run_tests_direct() {
     echo "🚀 Running integration tests directly (server already running)..."
-    pnpm vitest run --config vitest.integration.config.ts
+    pnpm vitest run --config vitest.config.ts
 }
 
 # Function to manage server and run tests
@@ -123,7 +126,7 @@ run_tests_with_server_management() {
     trap cleanup EXIT
 
     # Run integration tests
-    pnpm vitest run --config vitest.integration.config.ts
+    pnpm vitest run --config vitest.config.ts
 }
 
 # Main execution logic

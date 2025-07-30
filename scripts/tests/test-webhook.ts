@@ -4,7 +4,7 @@ import 'dotenv-flow/config';
 import { handleUserCreated } from '@/app/api/webhooks/clerk/handleUserCreated';
 import { dbManager } from '@/lib/db';
 import { users } from '@/lib/db/schema';
-import { webhookLogger } from '@src/lib/utils/logger';
+import { webhookLogger } from '@/lib/utils/logger';
 
 // Sample webhook data based on the example
 const sampleWebhookData = {

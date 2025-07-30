@@ -74,7 +74,7 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
       - name: Setup Playwright browsers
-        run: pnpm exec playwright install --with-deps
+        run: ./scripts/testing/install-playwright-browsers.sh --verbose
       - name: Run Smoke E2E
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
@@ -102,22 +102,11 @@ jobs:
             echo "No coverage files found, creating placeholder"
             echo '{"type": "Coverage", "version": "1.0", "data": {}}' > coverage/coverage.json
           fi
-      - name: Upload Playwright test results (smoke)
+      - name: Upload E2E Smoke Artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-test-results-smoke
-          path: |
-            test-results/
-            playwright-report/
-            coverage/
-          retention-days: 7
-          if-no-files-found: warn
-      - name: Upload Deployment Artifacts (smoke)
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: deployment-artifacts-smoke
+          name: e2e-smoke-artifacts
           path: |
             test-results/
             playwright-report/
@@ -144,7 +133,7 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
       - name: Setup Playwright browsers
-        run: pnpm exec playwright install --with-deps
+        run: ./scripts/testing/install-playwright-browsers.sh --verbose
       - name: Run Navigation E2E
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}

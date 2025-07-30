@@ -83,7 +83,7 @@ The `tests/unit/` directory now mirrors the `src/` directory structure for bette
 pnpm test:unit              # Run all unit tests with coverage
 pnpm test:unit:json         # Run unit tests with JSON reporter
 pnpm test:watch             # Watch mode for development
-pnpm test:ui                # UI mode for interactive testing
+pnpm test:unit:ui                # UI mode for interactive testing
 
 # Coverage and enforcement
 pnpm coverage:validate          # Run tests with coverage report

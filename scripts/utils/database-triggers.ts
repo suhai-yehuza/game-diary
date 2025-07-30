@@ -4,8 +4,8 @@ import { sql } from 'drizzle-orm';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 
-import { logger } from '@src/lib/utils/logger';
-import { createDatabaseClient } from '@src/lib/db';
+import { logger } from '@/lib/utils/logger';
+import { createDatabaseClient } from '@/lib/db';
 
 export interface ITriggerSetupOptions {
   dropExisting?: boolean;

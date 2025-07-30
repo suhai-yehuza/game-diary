@@ -345,7 +345,7 @@ run_validation() {
     log_info "Running pre-push validation (skipping E2E tests)..."
 
     # Run deployment validator in dry-run mode, skipping E2E tests
-    if ! ./scripts/deployment-validator.sh dry-run --skip-e2e-tests; then
+            if ! ./scripts/validation-pipeline.sh dry-run --skip-e2e-tests; then
         log_error "Pre-push validation failed!"
         log_info "Fix the issues above or use --no-verify=true to bypass validation"
         exit 1

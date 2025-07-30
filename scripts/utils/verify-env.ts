@@ -1,7 +1,7 @@
 #!/usr/bin/env tsx
 
 import { z } from 'zod';
-import { envSchema } from '@src/lib/validations/env';
+import { envSchema } from '@/lib/validations/env';
 import dotenvFlow from 'dotenv-flow';
 import dotenv from 'dotenv';
 import fs from 'fs';

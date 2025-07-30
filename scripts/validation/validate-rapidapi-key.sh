@@ -5,29 +5,11 @@
 
 set -e
 
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+# Source shared utilities
+source "$(dirname "$0")/../script-utils.sh"
 
-# Function to print colored output
-print_info() {
-    echo -e "${BLUE}[INFO]${NC} $1"
-}
-
-print_success() {
-    echo -e "${GREEN}[SUCCESS]${NC} $1"
-}
-
-print_warning() {
-    echo -e "${YELLOW}[WARNING]${NC} $1"
-}
-
-print_error() {
-    echo -e "${RED}[ERROR]${NC} $1"
-}
+# Configuration
+LOCALHOST_URL="${LOCALHOST_URL:-http://localhost:3000}"
 
 # Function to get API key from environment files or environment variables
 get_api_key() {
@@ -36,39 +18,39 @@ get_api_key() {
 
     # Debug information for CI environments
     if [ "$CI" = "true" ] || [ "$GITHUB_ACTIONS" = "true" ]; then
-        print_info "Running in CI environment"
-        print_info "Checking for NEXT_PUBLIC_RAPID_API_KEY in environment variables..."
+        log_info "Running in CI environment"
+        log_info "Checking for NEXT_PUBLIC_RAPID_API_KEY in environment variables..."
         if [ -n "$api_key" ]; then
-            print_info "Found API key in environment variables: ${api_key:0:8}..."
+            log_info "Found API key in environment variables: ${api_key:0:8}..."
         else
-            print_info "No API key found in environment variables"
-            print_info "Available environment variables:"
-            print_info "  CI: $CI"
-            print_info "  GITHUB_ACTIONS: $GITHUB_ACTIONS"
-            print_info "  NODE_ENV: $NODE_ENV"
-            print_info "  NEXT_PUBLIC_RAPID_API_KEY: ${NEXT_PUBLIC_RAPID_API_KEY:+SET}"
-            print_info "  NEXT_PUBLIC_RAPID_API_HOST: ${NEXT_PUBLIC_RAPID_API_HOST:+SET}"
-            print_info "  NEXT_PUBLIC_RAPID_API_BASE_URL: ${NEXT_PUBLIC_RAPID_API_BASE_URL:+SET}"
+            log_info "No API key found in environment variables"
+            log_info "Available environment variables:"
+            log_info "  CI: $CI"
+            log_info "  GITHUB_ACTIONS: $GITHUB_ACTIONS"
+            log_info "  NODE_ENV: $NODE_ENV"
+            log_info "  NEXT_PUBLIC_RAPID_API_KEY: ${NEXT_PUBLIC_RAPID_API_KEY:+SET}"
+            log_info "  NEXT_PUBLIC_RAPID_API_HOST: ${NEXT_PUBLIC_RAPID_API_HOST:+SET}"
+            log_info "  NEXT_PUBLIC_RAPID_API_BASE_URL: ${NEXT_PUBLIC_RAPID_API_BASE_URL:+SET}"
         fi
     fi
 
     # If not found in environment variables, try .env files
     if [ -z "$api_key" ]; then
-        print_info "Checking .env files for API key..."
+        log_info "Checking .env files for API key..."
         if [ -f ".env.development" ]; then
             api_key=$(grep "^NEXT_PUBLIC_RAPID_API_KEY=" .env.development | cut -d'=' -f2)
             if [ -n "$api_key" ]; then
-                print_info "Found API key in .env.development"
+                log_info "Found API key in .env.development"
             fi
         elif [ -f ".env.production" ]; then
             api_key=$(grep "^NEXT_PUBLIC_RAPID_API_KEY=" .env.production | cut -d'=' -f2)
             if [ -n "$api_key" ]; then
-                print_info "Found API key in .env.production"
+                log_info "Found API key in .env.production"
             fi
         elif [ -f ".env.staging" ]; then
             api_key=$(grep "^NEXT_PUBLIC_RAPID_API_KEY=" .env.staging | cut -d'=' -f2)
             if [ -n "$api_key" ]; then
-                print_info "Found API key in .env.staging"
+                log_info "Found API key in .env.staging"
             fi
         fi
     fi
@@ -100,7 +82,7 @@ validate_api_key_format() {
     local api_key="$1"
 
     if [[ ! $api_key =~ ^[a-f0-9]{32}$ ]]; then
-        print_warning "API key format doesn't look like a standard RapidAPI key (32 hex characters)"
+        log_warning "API key format doesn't look like a standard RapidAPI key (32 hex characters)"
         return 1
     fi
 
@@ -113,11 +95,11 @@ test_api_key() {
     local api_host="$2"
 
     if [ -z "$api_key" ] || [ -z "$api_host" ]; then
-        print_error "API key or host not found in environment files"
+        log_error "API key or host not found in environment files"
         return 1
     fi
 
-    print_info "Testing API key with a simple request..."
+    log_info "Testing API key with a simple request..."
 
     # Make a test request to the seasons endpoint (usually doesn't require authentication)
     local test_url="https://${api_host}/seasons"
@@ -131,28 +113,28 @@ test_api_key() {
     local response_body="${response%???}"
 
     if [ "$status_code" = "200" ]; then
-        print_success "API key is valid and working!"
+        log_success "API key is valid and working!"
         return 0
     elif [ "$status_code" = "403" ]; then
-        print_error "API key is invalid or subscription has expired"
-        print_error "Response: $response_body"
+        log_error "API key is invalid or subscription has expired"
+        log_error "Response: $response_body"
         return 1
     elif [ "$status_code" = "429" ]; then
-        print_warning "API rate limit exceeded - key might be valid but too many requests"
+        log_warning "API rate limit exceeded - key might be valid but too many requests"
         return 0
     elif [ "$status_code" = "401" ]; then
-        print_error "API key is invalid"
+        log_error "API key is invalid"
         return 1
     else
-        print_warning "Unexpected response (HTTP $status_code) - API might be temporarily unavailable"
-        print_warning "Response: $response_body"
+        log_warning "Unexpected response (HTTP $status_code) - API might be temporarily unavailable"
+        log_warning "Response: $response_body"
         return 0
     fi
 }
 
 # Function to check if development server is running
 check_dev_server() {
-    if curl -s http://localhost:3000/api/health >/dev/null 2>&1; then
+    if curl -s "$LOCALHOST_URL/api/health" >/dev/null 2>&1; then
         return 0
     else
         return 1
@@ -161,18 +143,18 @@ check_dev_server() {
 
 # Main validation function
 main() {
-    print_info "Validating RapidAPI configuration..."
+    log_info "Validating RapidAPI configuration..."
 
     # Debug environment information
     if [ "$CI" = "true" ] || [ "$GITHUB_ACTIONS" = "true" ]; then
-        print_info "CI Environment detected"
-        print_info "Available environment variables:"
-        print_info "  CI: $CI"
-        print_info "  GITHUB_ACTIONS: $GITHUB_ACTIONS"
-        print_info "  NODE_ENV: $NODE_ENV"
-        print_info "  NEXT_PUBLIC_RAPID_API_KEY: ${NEXT_PUBLIC_RAPID_API_KEY:+SET}"
-        print_info "  NEXT_PUBLIC_RAPID_API_HOST: ${NEXT_PUBLIC_RAPID_API_HOST:+SET}"
-        print_info "  NEXT_PUBLIC_RAPID_API_BASE_URL: ${NEXT_PUBLIC_RAPID_API_BASE_URL:+SET}"
+        log_info "CI Environment detected"
+        log_info "Available environment variables:"
+        log_info "  CI: $CI"
+        log_info "  GITHUB_ACTIONS: $GITHUB_ACTIONS"
+        log_info "  NODE_ENV: $NODE_ENV"
+        log_info "  NEXT_PUBLIC_RAPID_API_KEY: ${NEXT_PUBLIC_RAPID_API_KEY:+SET}"
+        log_info "  NEXT_PUBLIC_RAPID_API_HOST: ${NEXT_PUBLIC_RAPID_API_HOST:+SET}"
+        log_info "  NEXT_PUBLIC_RAPID_API_BASE_URL: ${NEXT_PUBLIC_RAPID_API_BASE_URL:+SET}"
     fi
 
     # Get API key and host
@@ -180,53 +162,53 @@ main() {
     local api_host=$(get_api_host)
 
     if [ -z "$api_key" ]; then
-        print_error "No API key found in environment files or environment variables"
-        print_info "Please ensure your .env.* file has a valid NEXT_PUBLIC_RAPID_API_KEY"
-        print_info "Or set the NEXT_PUBLIC_RAPID_API_KEY environment variable"
+        log_error "No API key found in environment files or environment variables"
+        log_info "Please ensure your .env.* file has a valid NEXT_PUBLIC_RAPID_API_KEY"
+        log_info "Or set the NEXT_PUBLIC_RAPID_API_KEY environment variable"
 
         # In CI environments, provide more specific guidance
         if [ "$CI" = "true" ] || [ "$GITHUB_ACTIONS" = "true" ]; then
-            print_info "In CI environment, ensure NEXT_PUBLIC_RAPID_API_KEY is set in GitHub Secrets"
-            print_info "and properly passed to the workflow environment"
+            log_info "In CI environment, ensure NEXT_PUBLIC_RAPID_API_KEY is set in GitHub Secrets"
+            log_info "and properly passed to the workflow environment"
         fi
 
         exit 1
     fi
 
     if [ -z "$api_host" ]; then
-        print_error "No API host found in environment files"
+        log_error "No API host found in environment files"
         exit 1
     fi
 
-    print_info "Found API key: ${api_key:0:8}..."
-    print_info "Found API host: $api_host"
+    log_info "Found API key: ${api_key:0:8}..."
+    log_info "Found API host: $api_host"
 
     # Validate API key format
     if ! validate_api_key_format "$api_key"; then
-        print_warning "API key format validation failed, but continuing with test..."
+        log_warning "API key format validation failed, but continuing with test..."
     fi
 
     # Test API key
     if test_api_key "$api_key" "$api_host"; then
-        print_success "RapidAPI validation passed! ✅"
+        log_success "RapidAPI validation passed! ✅"
 
         # If dev server is running, test the proxy endpoint too
         if check_dev_server; then
-            print_info "Testing proxy endpoint..."
-            local proxy_response=$(curl -s "http://localhost:3000/api/proxy/seasons" 2>/dev/null)
+            log_info "Testing proxy endpoint..."
+            local proxy_response=$(curl -s "$LOCALHOST_URL/api/proxy/seasons" 2>/dev/null)
             if echo "$proxy_response" | grep -q '"errors":\[\]'; then
-                print_success "Proxy endpoint is working correctly! ✅"
+                log_success "Proxy endpoint is working correctly! ✅"
             else
-                print_warning "Proxy endpoint returned errors, but API key is valid"
+                log_warning "Proxy endpoint returned errors, but API key is valid"
             fi
         fi
 
         exit 0
     else
-        print_error "RapidAPI validation failed! ❌"
-        print_info "To fix this:"
-        print_info "1. Check your API key and host in .env.* files"
-        print_info "2. Ensure your .env.* file has a valid NEXT_PUBLIC_RAPID_API_KEY"
+        log_error "RapidAPI validation failed! ❌"
+        log_info "To fix this:"
+        log_info "1. Check your API key and host in .env.* files"
+        log_info "2. Ensure your .env.* file has a valid NEXT_PUBLIC_RAPID_API_KEY"
         exit 1
     fi
 }

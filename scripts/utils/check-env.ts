@@ -30,21 +30,28 @@ if (fs.existsSync(localEnvPath)) {
   dotenv.config({ path: localEnvPath, override: true });
 }
 
+// eslint-disable-next-line no-console
 console.log('🔍 Environment Loading Check');
+// eslint-disable-next-line no-console
 console.log('============================\n');
 
 // Check which environment files exist
 const envFiles = ['.env.local', '.env.development', '.env.staging', '.env.production'];
 
+// eslint-disable-next-line no-console
 console.log('📁 Environment Files:');
 envFiles.forEach(file => {
   const exists = fs.existsSync(path.join(__dirname, '..', '..', file));
+  // eslint-disable-next-line no-console
   console.log(`  ${exists ? '✅' : '❌'} ${file}`);
 });
 
+// eslint-disable-next-line no-console
 console.log('\n🔧 Current Environment:');
+// eslint-disable-next-line no-console
 console.log(`  NODE_ENV: ${process.env.NODE_ENV || 'undefined'}`);
 
+// eslint-disable-next-line no-console
 console.log('\n🔑 Clerk Environment Variables:');
 const clerkVars = [
   'NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY',
@@ -57,16 +64,23 @@ clerkVars.forEach(varName => {
   const value = process.env[varName];
   const status = value ? '✅' : '❌';
   const displayValue = value ? `${value.substring(0, 20)}...` : 'not set';
+  // eslint-disable-next-line no-console
   console.log(`  ${status} ${varName}: ${displayValue}`);
 });
 
+// eslint-disable-next-line no-console
 console.log('\n📊 Environment Loading Order:');
 if (process.env.NODE_ENV === 'development') {
+  // eslint-disable-next-line no-console
   console.log('  1. .env.development (prioritized)');
+  // eslint-disable-next-line no-console
   console.log('  2. .env.local (override)');
 } else {
+  // eslint-disable-next-line no-console
   console.log('  1. .env.local');
+  // eslint-disable-next-line no-console
   console.log('  2. .env.development');
 }
 
+// eslint-disable-next-line no-console
 console.log('\n✨ Environment check complete!');

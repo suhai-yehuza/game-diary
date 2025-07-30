@@ -1,10 +1,4 @@
 #!/usr/bin/env sh
 
-# Run comprehensive pre-commit validation
-# Skip environment validation if no .env files exist
-if [ ! -f ".env.local" ] && [ ! -f ".env" ] && [ ! -f ".env.development" ]; then
-    echo "⚠️  No .env files found - skipping environment validation"
-    ./scripts/validate.sh ci
-else
-    ./scripts/validate.sh precommit
-fi
+# Run fast pre-commit validation
+./scripts/validation-pipeline.sh precommit

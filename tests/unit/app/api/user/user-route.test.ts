@@ -2,6 +2,8 @@ import { auth, currentUser } from '@clerk/nextjs/server';
 import { NextRequest } from 'next/server';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
+import { getAppUrl } from '@src/lib/config/app.config';
+
 // Mock Clerk
 vi.mock('@clerk/nextjs/server', () => ({
   auth: vi.fn(),
@@ -34,7 +36,7 @@ describe('User API Route', () => {
 
       const { GET } = await import('@/app/api/user/route');
 
-      const request = new NextRequest('http://localhost:3000/api/user', {
+      const request = new NextRequest(`${getAppUrl()}/api/user`, {
         method: 'GET',
       });
 
@@ -54,7 +56,7 @@ describe('User API Route', () => {
 
       const { GET } = await import('@/app/api/user/route');
 
-      const request = new NextRequest('http://localhost:3000/api/user', {
+      const request = new NextRequest(`${getAppUrl()}/api/user`, {
         method: 'GET',
       });
 
@@ -67,7 +69,7 @@ describe('User API Route', () => {
     it('should create user with valid data', async () => {
       const { POST } = await import('@/app/api/user/route');
 
-      const request = new NextRequest('http://localhost:3000/api/user', {
+      const request = new NextRequest(`${getAppUrl()}/api/user`, {
         method: 'POST',
         body: JSON.stringify({
           email: 'test@example.com',
@@ -87,7 +89,7 @@ describe('User API Route', () => {
     it('should reject invalid email format', async () => {
       const { POST } = await import('@/app/api/user/route');
 
-      const request = new NextRequest('http://localhost:3000/api/user', {
+      const request = new NextRequest(`${getAppUrl()}/api/user`, {
         method: 'POST',
         body: JSON.stringify({
           email: 'invalid-email',
@@ -106,7 +108,7 @@ describe('User API Route', () => {
     it('should reject invalid phone format', async () => {
       const { POST } = await import('@/app/api/user/route');
 
-      const request = new NextRequest('http://localhost:3000/api/user', {
+      const request = new NextRequest(`${getAppUrl()}/api/user`, {
         method: 'POST',
         body: JSON.stringify({
           email: 'test@example.com',
@@ -125,7 +127,7 @@ describe('User API Route', () => {
     it('should handle invalid request body', async () => {
       const { POST } = await import('@/app/api/user/route');
 
-      const request = new NextRequest('http://localhost:3000/api/user', {
+      const request = new NextRequest(`${getAppUrl()}/api/user`, {
         method: 'POST',
         body: 'invalid-json',
         headers: { 'Content-Type': 'application/json' },
