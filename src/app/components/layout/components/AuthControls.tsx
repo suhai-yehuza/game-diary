@@ -111,13 +111,21 @@ function AuthControlsContent() {
       <ClerkWrapper>
         <SignedOut>
           <SignInButton mode="modal">
-            <button
+            <div
               data-testid="sign-in-button"
-              className="px-4 py-2 bg-blue-800 text-white rounded-lg shadow-md hover:bg-blue-900 transition-colors focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-400 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+              className="px-4 py-2 bg-blue-800 text-white rounded-lg shadow-md hover:bg-blue-900 transition-colors focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-400 focus-visible:ring-offset-2 focus-visible:ring-offset-black cursor-pointer"
+              role="button"
+              tabIndex={0}
               aria-label="Sign In"
+              onKeyDown={e => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  e.currentTarget.click();
+                }
+              }}
             >
               Sign In
-            </button>
+            </div>
           </SignInButton>
         </SignedOut>
         <SignedIn>

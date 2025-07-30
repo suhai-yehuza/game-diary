@@ -34,6 +34,7 @@ export default [
       'npm-debug.log*',
       'pnpm-debug.log*',
       'test-results-e2e/**',
+      'test-results/**',
       'playwright-report/**',
       'vitest.setup.ts',
       '.eslintrc.js',

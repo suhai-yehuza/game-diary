@@ -13,12 +13,16 @@ vi.mock('next/navigation', () => ({
 }));
 
 // Mock Clerk components
+const mockOpenSignIn = vi.fn();
 vi.mock('@clerk/nextjs', () => ({
   SignInButton: ({ children, mode }: any) => (
     <button data-testid="sign-in-button" data-mode={mode}>
       {children}
     </button>
   ),
+  useClerk: () => ({
+    openSignIn: mockOpenSignIn,
+  }),
 }));
 
 describe('SignInModalTrigger', () => {
@@ -33,13 +37,24 @@ describe('SignInModalTrigger', () => {
     expect(signInButton).toHaveAttribute('data-mode', 'modal');
   });
 
-  it('renders hidden button for programmatic triggering', () => {
+  it('renders button with proper accessibility attributes', () => {
     render(<SignInModalTrigger />);
-    // Use getAllByRole to get all buttons and find the hidden one
+    // Check that we have the SignInButton
+    const signInButton = screen.getByTestId('sign-in-button');
+    expect(signInButton).toBeInTheDocument();
+
+    // Check that we have buttons with proper accessibility attributes
     const buttons = screen.getAllByRole('button');
-    // The hidden button will have aria-hidden="true"
-    const _hiddenButton = screen.getByRole('button', { hidden: true });
-    // This may be undefined in the mock, so just check that the array exists
-    expect(Array.isArray(buttons)).toBe(true);
+    expect(buttons).toHaveLength(2); // SignInButton + inner div
+
+    // Check that the inner div has proper accessibility attributes
+    const innerButton = buttons.find(
+      button =>
+        button.getAttribute('aria-label') === 'Sign In' && button.getAttribute('role') === 'button'
+    );
+    expect(innerButton).toBeInTheDocument();
+    expect(innerButton).toHaveAttribute('aria-label', 'Sign In');
+    expect(innerButton).toHaveAttribute('role', 'button');
+    expect(innerButton).toHaveAttribute('tabIndex', '0');
   });
 });
