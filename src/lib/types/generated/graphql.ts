@@ -367,6 +367,18 @@ export enum GameStatusEnum {
   Scheduled = 'SCHEDULED'
 }
 
+export type MarkAllNotificationsAsReadResponse = {
+  __typename?: 'MarkAllNotificationsAsReadResponse';
+  errors?: Maybe<Array<ErrorResult>>;
+  success: Scalars['Boolean']['output'];
+};
+
+export type MarkNotificationAsReadResponse = {
+  __typename?: 'MarkNotificationAsReadResponse';
+  errors?: Maybe<Array<ErrorResult>>;
+  success: Scalars['Boolean']['output'];
+};
+
 export type Mutation = {
   __typename?: 'Mutation';
   acceptFriendRequest: AcceptFriendRequestResponse;
@@ -377,6 +389,8 @@ export type Mutation = {
   deleteComment: DeleteCommentResponse;
   deleteGameLog: DeleteGameLogResponse;
   deleteReaction: DeleteReactionResponse;
+  markAllNotificationsAsRead: MarkAllNotificationsAsReadResponse;
+  markNotificationAsRead: MarkNotificationAsReadResponse;
   rejectFriendRequest: RejectFriendRequestResponse;
   removeFriend: RemoveFriendResponse;
   sendFriendRequest: SendFriendRequestResponse;
@@ -425,6 +439,11 @@ export type MutationDeleteReactionArgs = {
 };
 
 
+export type MutationMarkNotificationAsReadArgs = {
+  notificationId: Scalars['ID']['input'];
+};
+
+
 export type MutationRejectFriendRequestArgs = {
   friendshipId: Scalars['ID']['input'];
 };
@@ -449,6 +468,45 @@ export type MutationUpdateCommentArgs = {
 export type MutationUpdateGameLogArgs = {
   id: Scalars['ID']['input'];
   input: UpdateGameLogInput;
+};
+
+export type Notification = {
+  __typename?: 'Notification';
+  created_at: Scalars['DateTime']['output'];
+  deleted_at?: Maybe<Scalars['DateTime']['output']>;
+  id: Scalars['ID']['output'];
+  message: Scalars['String']['output'];
+  read: Scalars['Boolean']['output'];
+  resolved: Scalars['Boolean']['output'];
+  target_id?: Maybe<Scalars['ID']['output']>;
+  target_type?: Maybe<Scalars['String']['output']>;
+  title: Scalars['String']['output'];
+  type: Scalars['String']['output'];
+  updated_at: Scalars['DateTime']['output'];
+  user_id: Scalars['ID']['output'];
+};
+
+export type NotificationConnection = {
+  __typename?: 'NotificationConnection';
+  edges: Array<NotificationEdge>;
+  pageInfo: PageInfo;
+  totalCount: Scalars['Int']['output'];
+};
+
+export type NotificationEdge = {
+  __typename?: 'NotificationEdge';
+  cursor: Scalars['String']['output'];
+  node: Notification;
+};
+
+export type NotificationFilters = {
+  createdAfter?: InputMaybe<Scalars['DateTime']['input']>;
+  createdBefore?: InputMaybe<Scalars['DateTime']['input']>;
+  orderBy?: InputMaybe<Scalars['String']['input']>;
+  read?: InputMaybe<Scalars['Boolean']['input']>;
+  resolved?: InputMaybe<Scalars['Boolean']['input']>;
+  targetType?: InputMaybe<Scalars['String']['input']>;
+  type?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type PageInfo = {
@@ -486,8 +544,10 @@ export type Query = {
   reactions: Array<Reaction>;
   searchGameLogs: GameLogConnection;
   searchUsers: UserConnection;
+  unreadNotificationsCount: Scalars['Int']['output'];
   user?: Maybe<UserSummary>;
   userFriendships: FriendshipConnection;
+  userNotifications: NotificationConnection;
   users: Array<UserSummary>;
 };
 
@@ -573,6 +633,12 @@ export type QueryUserArgs = {
 
 export type QueryUserFriendshipsArgs = {
   filters?: InputMaybe<FriendshipFilters>;
+  pagination?: InputMaybe<PaginationInput>;
+};
+
+
+export type QueryUserNotificationsArgs = {
+  filters?: InputMaybe<NotificationFilters>;
   pagination?: InputMaybe<PaginationInput>;
 };
 
@@ -944,6 +1010,33 @@ export type GetFriendshipStatusQueryVariables = Exact<{
 
 export type GetFriendshipStatusQuery = { __typename?: 'Query', friendshipStatus: { __typename?: 'FriendshipStatusResponse', status?: FriendshipStatus | null, friendshipId?: string | null, isInitiator?: boolean | null } };
 
+export type NotificationFragmentFragment = { __typename?: 'Notification', id: string, user_id: string, type: string, title: string, message: string, target_id?: string | null, target_type?: string | null, resolved: boolean, read: boolean, created_at: string, updated_at: string, deleted_at?: string | null };
+
+export type GetUserNotificationsQueryVariables = Exact<{
+  filters?: InputMaybe<NotificationFilters>;
+  pagination?: InputMaybe<PaginationInput>;
+}>;
+
+
+export type GetUserNotificationsQuery = { __typename?: 'Query', userNotifications: { __typename?: 'NotificationConnection', totalCount: number, edges: Array<{ __typename?: 'NotificationEdge', cursor: string, node: { __typename?: 'Notification', id: string, user_id: string, type: string, title: string, message: string, target_id?: string | null, target_type?: string | null, resolved: boolean, read: boolean, created_at: string, updated_at: string, deleted_at?: string | null } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
+
+export type GetUnreadNotificationsCountQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetUnreadNotificationsCountQuery = { __typename?: 'Query', unreadNotificationsCount: number };
+
+export type MarkNotificationAsReadMutationVariables = Exact<{
+  notificationId: Scalars['ID']['input'];
+}>;
+
+
+export type MarkNotificationAsReadMutation = { __typename?: 'Mutation', markNotificationAsRead: { __typename?: 'MarkNotificationAsReadResponse', success: boolean, errors?: Array<{ __typename?: 'ErrorResult', message: string, code?: string | null, field?: string | null }> | null } };
+
+export type MarkAllNotificationsAsReadMutationVariables = Exact<{ [key: string]: never; }>;
+
+
+export type MarkAllNotificationsAsReadMutation = { __typename?: 'Mutation', markAllNotificationsAsRead: { __typename?: 'MarkAllNotificationsAsReadResponse', success: boolean, errors?: Array<{ __typename?: 'ErrorResult', message: string, code?: string | null, field?: string | null }> | null } };
+
 export const BasicUserFragmentFragmentDoc = gql`
     fragment BasicUserFragment on DBUser {
   id
@@ -1133,6 +1226,22 @@ export const FriendshipFragmentFragmentDoc = gql`
   }
 }
     ${UserSummaryFragmentFragmentDoc}`;
+export const NotificationFragmentFragmentDoc = gql`
+    fragment NotificationFragment on Notification {
+  id
+  user_id
+  type
+  title
+  message
+  target_id
+  target_type
+  resolved
+  read
+  created_at
+  updated_at
+  deleted_at
+}
+    `;
 export const CreateGameDocument = gql`
     mutation CreateGame($input: CreateGameInput!) {
   createGame(input: $input) {
@@ -2455,3 +2564,168 @@ export type GetFriendshipStatusQueryHookResult = ReturnType<typeof useGetFriends
 export type GetFriendshipStatusLazyQueryHookResult = ReturnType<typeof useGetFriendshipStatusLazyQuery>;
 export type GetFriendshipStatusSuspenseQueryHookResult = ReturnType<typeof useGetFriendshipStatusSuspenseQuery>;
 export type GetFriendshipStatusQueryResult = Apollo.QueryResult<GetFriendshipStatusQuery, GetFriendshipStatusQueryVariables>;
+export const GetUserNotificationsDocument = gql`
+    query GetUserNotifications($filters: NotificationFilters, $pagination: PaginationInput) {
+  userNotifications(filters: $filters, pagination: $pagination) {
+    edges {
+      cursor
+      node {
+        ...NotificationFragment
+      }
+    }
+    pageInfo {
+      hasNextPage
+      hasPreviousPage
+      startCursor
+      endCursor
+    }
+    totalCount
+  }
+}
+    ${NotificationFragmentFragmentDoc}`;
+
+/**
+ * __useGetUserNotificationsQuery__
+ *
+ * To run a query within a React component, call `useGetUserNotificationsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetUserNotificationsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetUserNotificationsQuery({
+ *   variables: {
+ *      filters: // value for 'filters'
+ *      pagination: // value for 'pagination'
+ *   },
+ * });
+ */
+export function useGetUserNotificationsQuery(baseOptions?: Apollo.QueryHookOptions<GetUserNotificationsQuery, GetUserNotificationsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetUserNotificationsQuery, GetUserNotificationsQueryVariables>(GetUserNotificationsDocument, options);
+      }
+export function useGetUserNotificationsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetUserNotificationsQuery, GetUserNotificationsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetUserNotificationsQuery, GetUserNotificationsQueryVariables>(GetUserNotificationsDocument, options);
+        }
+export function useGetUserNotificationsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetUserNotificationsQuery, GetUserNotificationsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetUserNotificationsQuery, GetUserNotificationsQueryVariables>(GetUserNotificationsDocument, options);
+        }
+export type GetUserNotificationsQueryHookResult = ReturnType<typeof useGetUserNotificationsQuery>;
+export type GetUserNotificationsLazyQueryHookResult = ReturnType<typeof useGetUserNotificationsLazyQuery>;
+export type GetUserNotificationsSuspenseQueryHookResult = ReturnType<typeof useGetUserNotificationsSuspenseQuery>;
+export type GetUserNotificationsQueryResult = Apollo.QueryResult<GetUserNotificationsQuery, GetUserNotificationsQueryVariables>;
+export const GetUnreadNotificationsCountDocument = gql`
+    query GetUnreadNotificationsCount {
+  unreadNotificationsCount
+}
+    `;
+
+/**
+ * __useGetUnreadNotificationsCountQuery__
+ *
+ * To run a query within a React component, call `useGetUnreadNotificationsCountQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetUnreadNotificationsCountQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetUnreadNotificationsCountQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetUnreadNotificationsCountQuery(baseOptions?: Apollo.QueryHookOptions<GetUnreadNotificationsCountQuery, GetUnreadNotificationsCountQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetUnreadNotificationsCountQuery, GetUnreadNotificationsCountQueryVariables>(GetUnreadNotificationsCountDocument, options);
+      }
+export function useGetUnreadNotificationsCountLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetUnreadNotificationsCountQuery, GetUnreadNotificationsCountQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetUnreadNotificationsCountQuery, GetUnreadNotificationsCountQueryVariables>(GetUnreadNotificationsCountDocument, options);
+        }
+export function useGetUnreadNotificationsCountSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetUnreadNotificationsCountQuery, GetUnreadNotificationsCountQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetUnreadNotificationsCountQuery, GetUnreadNotificationsCountQueryVariables>(GetUnreadNotificationsCountDocument, options);
+        }
+export type GetUnreadNotificationsCountQueryHookResult = ReturnType<typeof useGetUnreadNotificationsCountQuery>;
+export type GetUnreadNotificationsCountLazyQueryHookResult = ReturnType<typeof useGetUnreadNotificationsCountLazyQuery>;
+export type GetUnreadNotificationsCountSuspenseQueryHookResult = ReturnType<typeof useGetUnreadNotificationsCountSuspenseQuery>;
+export type GetUnreadNotificationsCountQueryResult = Apollo.QueryResult<GetUnreadNotificationsCountQuery, GetUnreadNotificationsCountQueryVariables>;
+export const MarkNotificationAsReadDocument = gql`
+    mutation MarkNotificationAsRead($notificationId: ID!) {
+  markNotificationAsRead(notificationId: $notificationId) {
+    success
+    errors {
+      message
+      code
+      field
+    }
+  }
+}
+    `;
+export type MarkNotificationAsReadMutationFn = Apollo.MutationFunction<MarkNotificationAsReadMutation, MarkNotificationAsReadMutationVariables>;
+
+/**
+ * __useMarkNotificationAsReadMutation__
+ *
+ * To run a mutation, you first call `useMarkNotificationAsReadMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useMarkNotificationAsReadMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [markNotificationAsReadMutation, { data, loading, error }] = useMarkNotificationAsReadMutation({
+ *   variables: {
+ *      notificationId: // value for 'notificationId'
+ *   },
+ * });
+ */
+export function useMarkNotificationAsReadMutation(baseOptions?: Apollo.MutationHookOptions<MarkNotificationAsReadMutation, MarkNotificationAsReadMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<MarkNotificationAsReadMutation, MarkNotificationAsReadMutationVariables>(MarkNotificationAsReadDocument, options);
+      }
+export type MarkNotificationAsReadMutationHookResult = ReturnType<typeof useMarkNotificationAsReadMutation>;
+export type MarkNotificationAsReadMutationResult = Apollo.MutationResult<MarkNotificationAsReadMutation>;
+export type MarkNotificationAsReadMutationOptions = Apollo.BaseMutationOptions<MarkNotificationAsReadMutation, MarkNotificationAsReadMutationVariables>;
+export const MarkAllNotificationsAsReadDocument = gql`
+    mutation MarkAllNotificationsAsRead {
+  markAllNotificationsAsRead {
+    success
+    errors {
+      message
+      code
+      field
+    }
+  }
+}
+    `;
+export type MarkAllNotificationsAsReadMutationFn = Apollo.MutationFunction<MarkAllNotificationsAsReadMutation, MarkAllNotificationsAsReadMutationVariables>;
+
+/**
+ * __useMarkAllNotificationsAsReadMutation__
+ *
+ * To run a mutation, you first call `useMarkAllNotificationsAsReadMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useMarkAllNotificationsAsReadMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [markAllNotificationsAsReadMutation, { data, loading, error }] = useMarkAllNotificationsAsReadMutation({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useMarkAllNotificationsAsReadMutation(baseOptions?: Apollo.MutationHookOptions<MarkAllNotificationsAsReadMutation, MarkAllNotificationsAsReadMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<MarkAllNotificationsAsReadMutation, MarkAllNotificationsAsReadMutationVariables>(MarkAllNotificationsAsReadDocument, options);
+      }
+export type MarkAllNotificationsAsReadMutationHookResult = ReturnType<typeof useMarkAllNotificationsAsReadMutation>;
+export type MarkAllNotificationsAsReadMutationResult = Apollo.MutationResult<MarkAllNotificationsAsReadMutation>;
+export type MarkAllNotificationsAsReadMutationOptions = Apollo.BaseMutationOptions<MarkAllNotificationsAsReadMutation, MarkAllNotificationsAsReadMutationVariables>;

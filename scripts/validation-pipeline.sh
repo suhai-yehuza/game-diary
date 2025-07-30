@@ -71,7 +71,7 @@ E2E_TEST_SUITE=""
 E2E_MODE="run"
 
 # URL Configuration
-LOCALHOST_URL="${LOCALHOST_URL:-http://localhost:3000}"
+LOCALHOST_URL="${LOCALHOST_URL:-http://localhost:$E2E_PORT}"
 
 # Check if we're in CI environment
 is_ci() {
@@ -81,6 +81,17 @@ is_ci() {
 # Check if timeout command is available
 has_timeout() {
     command -v timeout >/dev/null 2>&1
+}
+
+# Utility functions for port management
+find_server_pids() {
+    local port="${1:-$E2E_PORT}"
+    lsof -ti:$port 2>/dev/null || echo ""
+}
+
+is_port_in_use() {
+    local port="${1:-$E2E_PORT}"
+    lsof -i:$port -sTCP:LISTEN >/dev/null 2>&1
 }
 
 # Cleanup function for E2E tests
@@ -97,6 +108,17 @@ cleanup_e2e_resources() {
     if command -v node >/dev/null 2>&1; then
         node -e "if (global.gc) global.gc();" 2>/dev/null || true
     fi
+
+    # Clean up any processes on common test ports
+    for port in 3000 3001 3002 3003; do
+        if is_port_in_use "$port"; then
+            log_info "Cleaning up processes on port $port..."
+            local pids=$(find_server_pids "$port")
+            if [ -n "$pids" ]; then
+                echo "$pids" | xargs kill -9 2>/dev/null || true
+            fi
+        fi
+    done
 
     log_success "E2E cleanup completed"
 }
@@ -437,6 +459,12 @@ get_e2e_test_path() {
 run_task() {
     local task_name="$1"
     local use_retry="${2:-true}"
+
+    # Skip E2E tasks if SKIP_E2E_TESTS is true
+    if [[ "$task_name" == test_e2e_* ]] && [ "$SKIP_E2E_TESTS" = true ]; then
+        log_warning "Skipping E2E task: $task_name (SKIP_E2E_TESTS=true)"
+        return 0
+    fi
 
     # Get command from mapping
     local cmd=$(get_task_command "$task_name")
@@ -876,7 +904,12 @@ run_ci_validation() {
     log "Running CI-friendly validation (optimized for CI environment)..."
 
     # Use development validation but skip environment verification
-    local dev_tasks=($(get_build_tasks) $(get_core_tasks) $(get_test_tasks) $(get_infrastructure_tasks) $(get_e2e_tasks))
+    local dev_tasks=($(get_build_tasks) $(get_core_tasks) $(get_test_tasks) $(get_infrastructure_tasks))
+
+    # Add E2E tasks only if not skipped
+    if [ "$SKIP_E2E_TESTS" != true ]; then
+        dev_tasks+=($(get_e2e_tasks))
+    fi
 
     if ! run_tasks "${dev_tasks[@]}"; then
         log_error "CI validation tasks failed - stopping execution"
@@ -1055,6 +1088,16 @@ start_e2e_server() {
         log_info "Port $E2E_PORT is in use, stopping existing processes..."
         stop_e2e_server
         sleep 2
+
+        # Double-check that port is free
+        if is_port_in_use "$E2E_PORT"; then
+            log_warning "Port $E2E_PORT still in use, forcing cleanup..."
+            local pids=$(find_server_pids "$E2E_PORT")
+            if [ -n "$pids" ]; then
+                echo "$pids" | xargs kill -9 2>/dev/null || true
+                sleep 1
+            fi
+        fi
     fi
 
     # Start the development server

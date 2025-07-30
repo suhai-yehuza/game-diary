@@ -4,6 +4,7 @@ import { describe, it, expect, vi } from 'vitest';
 
 import { Header } from '@/app/components/layout/Header';
 import { MenuProvider } from '@/app/components/providers/MenuContext';
+import { NotificationProvider } from '@/app/components/providers/NotificationProvider';
 
 vi.mock('next/navigation', () => ({
   usePathname: () => '/',
@@ -37,6 +38,15 @@ vi.mock('@/lib/config/app.config', () => ({
 vi.mock('@/app/components/layout/components/AuthControls', () => ({
   ClientOnlyAuthControls: () => <button data-testid="sign-in-button">Sign In</button>,
 }));
+vi.mock('@apollo/client', () => ({
+  useQuery: () => ({ data: null, refetch: vi.fn() }),
+  useMutation: () => [vi.fn(), { loading: false }],
+  gql: vi.fn((_strings, ..._args) => ({ kind: 'Document', definitions: [] })),
+  createHttpLink: vi.fn(() => ({})),
+  ApolloClient: vi.fn(() => ({})),
+  from: vi.fn(() => ({})),
+  InMemoryCache: vi.fn(() => ({})),
+}));
 process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY = 'test-key';
 if (!global.fetch) {
   global.fetch = vi.fn(() =>
@@ -47,9 +57,11 @@ if (!global.fetch) {
 describe('Header', () => {
   it('renders the search bar, sign-in button, logo, and navigation links', () => {
     render(
-      <MenuProvider>
-        <Header />
-      </MenuProvider>
+      <NotificationProvider>
+        <MenuProvider>
+          <Header />
+        </MenuProvider>
+      </NotificationProvider>
     );
     // Search bar
     expect(screen.getByPlaceholderText('Global search...')).toBeInTheDocument();

@@ -263,9 +263,9 @@ jobs:
           CI: 'true'
         run: |
           echo "Running E2E tests on Chromium..."
-          pnpm test:e2e:navigation --browser=chromium
-          pnpm test:e2e:responsive --browser=chromium
-          pnpm test:e2e:live-games --browser=chromium
+          pnpm test:e2e:navigation --browser=chromium --port=3000
+          pnpm test:e2e:responsive --browser=chromium --port=3000
+          pnpm test:e2e:live-games --browser=chromium --port=3000
 
       - name: Upload E2E Chromium Artifacts
         if: always()
@@ -306,15 +306,15 @@ jobs:
           NEXT_PUBLIC_RAPID_API_KEY: ${{ secrets.NEXT_PUBLIC_RAPID_API_KEY }}
           NEXT_PUBLIC_RAPID_API_HOST: ${{ secrets.NEXT_PUBLIC_RAPID_API_HOST }}
           NEXT_PUBLIC_RAPID_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_RAPID_API_BASE_URL }}
-          DEPLOYMENT_URL: ${{ env.DEFAULT_LOCALHOST_URL || 'http://localhost:3000' }}
+          DEPLOYMENT_URL: ${{ env.DEFAULT_LOCALHOST_URL || 'http://localhost:3001' }}
           E2E_MOCK_MODE: 'true'
           API_MOCK_MODE: 'true'
           CI: 'true'
         run: |
           echo "Running E2E tests on WebKit..."
-          pnpm test:e2e:navigation --browser=webkit
-          pnpm test:e2e:responsive --browser=webkit
-          pnpm test:e2e:live-games --browser=webkit
+          pnpm test:e2e:navigation --browser=webkit --port=3001
+          pnpm test:e2e:responsive --browser=webkit --port=3001
+          pnpm test:e2e:live-games --browser=webkit --port=3001
 
       - name: Upload E2E WebKit Artifacts
         if: always()
@@ -355,15 +355,15 @@ jobs:
           NEXT_PUBLIC_RAPID_API_KEY: ${{ secrets.NEXT_PUBLIC_RAPID_API_KEY }}
           NEXT_PUBLIC_RAPID_API_HOST: ${{ secrets.NEXT_PUBLIC_RAPID_API_HOST }}
           NEXT_PUBLIC_RAPID_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_RAPID_API_BASE_URL }}
-          DEPLOYMENT_URL: ${{ env.DEFAULT_LOCALHOST_URL || 'http://localhost:3000' }}
+          DEPLOYMENT_URL: ${{ env.DEFAULT_LOCALHOST_URL || 'http://localhost:3002' }}
           E2E_MOCK_MODE: 'true'
           API_MOCK_MODE: 'true'
           CI: 'true'
         run: |
           echo "Running E2E tests on Firefox..."
-          pnpm test:e2e:navigation --browser=firefox
-          pnpm test:e2e:responsive --browser=firefox
-          pnpm test:e2e:live-games --browser=firefox
+          pnpm test:e2e:navigation --browser=firefox --port=3002
+          pnpm test:e2e:responsive --browser=firefox --port=3002
+          pnpm test:e2e:live-games --browser=firefox --port=3002
 
       - name: Upload E2E Firefox Artifacts
         if: always()
@@ -404,15 +404,15 @@ jobs:
           NEXT_PUBLIC_RAPID_API_KEY: ${{ secrets.NEXT_PUBLIC_RAPID_API_KEY }}
           NEXT_PUBLIC_RAPID_API_HOST: ${{ secrets.NEXT_PUBLIC_RAPID_API_HOST }}
           NEXT_PUBLIC_RAPID_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_RAPID_API_BASE_URL }}
-          DEPLOYMENT_URL: ${{ env.DEFAULT_LOCALHOST_URL || 'http://localhost:3000' }}
+          DEPLOYMENT_URL: ${{ env.DEFAULT_LOCALHOST_URL || 'http://localhost:3003' }}
           E2E_MOCK_MODE: 'true'
           API_MOCK_MODE: 'true'
           CI: 'true'
         run: |
           echo "Running E2E tests on Mobile..."
-          pnpm test:e2e:navigation --browser=mobile
-          pnpm test:e2e:responsive --browser=mobile
-          pnpm test:e2e:live-games --browser=mobile
+          pnpm test:e2e:navigation --browser=mobile --port=3003
+          pnpm test:e2e:responsive --browser=mobile --port=3003
+          pnpm test:e2e:live-games --browser=mobile --port=3003
 
       - name: Upload E2E Mobile Artifacts
         if: always()
