@@ -74,7 +74,39 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
       - name: Setup Playwright browsers
-        run: ./scripts/testing/install-playwright-browsers.sh --verbose
+        run: |
+          echo "🔧 Setting up Playwright browsers for CI environment..."
+
+          # Make sure the script is executable
+          chmod +x ./scripts/testing/install-playwright-browsers.sh
+
+          # Try the custom script first
+          if ./scripts/testing/install-playwright-browsers.sh --verbose; then
+            echo "✅ Custom browser installation script completed successfully"
+          else
+            echo "⚠️ Custom script failed, trying direct installation..."
+
+            # Fallback: direct installation with verbose output
+            echo "Installing Playwright browsers directly..."
+            pnpm exec playwright install --with-deps
+
+            # Verify installation
+            echo "Verifying browser installation..."
+            pnpm exec playwright install --list
+
+            # Test if browsers are accessible
+            if pnpm exec playwright install --list | grep -q "chromium" && \
+               pnpm exec playwright install --list | grep -q "firefox" && \
+               pnpm exec playwright install --list | grep -q "webkit"; then
+              echo "✅ Direct browser installation completed successfully"
+            else
+              echo "❌ Browser installation verification failed"
+              echo "Trying one more time with force..."
+              pnpm exec playwright install --with-deps --force
+              pnpm exec playwright install --list
+              exit 1
+            fi
+          fi
       - name: Run Smoke E2E
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
@@ -133,7 +165,39 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
       - name: Setup Playwright browsers
-        run: ./scripts/testing/install-playwright-browsers.sh --verbose
+        run: |
+          echo "🔧 Setting up Playwright browsers for CI environment..."
+
+          # Make sure the script is executable
+          chmod +x ./scripts/testing/install-playwright-browsers.sh
+
+          # Try the custom script first
+          if ./scripts/testing/install-playwright-browsers.sh --verbose; then
+            echo "✅ Custom browser installation script completed successfully"
+          else
+            echo "⚠️ Custom script failed, trying direct installation..."
+
+            # Fallback: direct installation with verbose output
+            echo "Installing Playwright browsers directly..."
+            pnpm exec playwright install --with-deps
+
+            # Verify installation
+            echo "Verifying browser installation..."
+            pnpm exec playwright install --list
+
+            # Test if browsers are accessible
+            if pnpm exec playwright install --list | grep -q "chromium" && \
+               pnpm exec playwright install --list | grep -q "firefox" && \
+               pnpm exec playwright install --list | grep -q "webkit"; then
+              echo "✅ Direct browser installation completed successfully"
+            else
+              echo "❌ Browser installation verification failed"
+              echo "Trying one more time with force..."
+              pnpm exec playwright install --with-deps --force
+              pnpm exec playwright install --list
+              exit 1
+            fi
+          fi
       - name: Run Navigation E2E
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
