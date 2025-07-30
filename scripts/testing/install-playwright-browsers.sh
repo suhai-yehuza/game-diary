@@ -47,20 +47,28 @@ fi
 
 log_info "Playwright version: $(pnpm exec playwright --version)"
 
-# Check if browsers are already installed
-log_info "Checking if browsers are already installed..."
-if pnpm exec playwright install --dry-run | grep -q "Install location:"; then
-    log_info "Browsers are already installed. Checking if they're accessible..."
+# Function to check if browsers are accessible
+check_browsers() {
+    local browsers=("chromium" "firefox" "webkit")
+    local all_accessible=true
 
-    # Test if browsers are actually accessible
-    if pnpm exec playwright install --dry-run | grep -q "chromium" && \
-       pnpm exec playwright install --dry-run | grep -q "firefox" && \
-       pnpm exec playwright install --dry-run | grep -q "webkit"; then
-        log_info "✅ All browsers are already installed and accessible!"
-        exit 0
-    else
-        log_warning "Browsers appear to be installed but may not be accessible. Reinstalling..."
-    fi
+    for browser in "${browsers[@]}"; do
+        if ! pnpm exec playwright install --list | grep -q "$browser"; then
+            log_warning "Browser $browser not found in installed browsers list"
+            all_accessible=false
+        fi
+    done
+
+    echo "$all_accessible"
+}
+
+# Check if browsers are already installed and accessible
+log_info "Checking if browsers are already installed..."
+if [ "$(check_browsers)" = "true" ]; then
+    log_info "✅ All browsers are already installed and accessible!"
+    exit 0
+else
+    log_warning "Some browsers are missing or not accessible. Installing..."
 fi
 
 # Install browsers and system dependencies
@@ -77,14 +85,12 @@ if [ "$VERBOSE" = true ]; then
     $INSTALL_CMD
 else
     log_info "Running browser installation (use --verbose for detailed output)..."
-    $INSTALL_CMD > /dev/null 2>&1
+    $INSTALL_CMD
 fi
 
 # Verify installation
 log_info "Verifying browser installation..."
-if pnpm exec playwright install --dry-run | grep -q "chromium" && \
-   pnpm exec playwright install --dry-run | grep -q "firefox" && \
-   pnpm exec playwright install --dry-run | grep -q "webkit"; then
+if [ "$(check_browsers)" = "true" ]; then
     log_info "✅ Playwright browsers and dependencies installed successfully!"
 
     # Show installed browsers
@@ -92,7 +98,7 @@ if pnpm exec playwright install --dry-run | grep -q "chromium" && \
     pnpm exec playwright install --list | grep -E "(chromium|firefox|webkit)" || true
 else
     log_error "❌ Browser installation verification failed!"
-    log_error "Please check the installation manually with: pnpm exec playwright install --dry-run"
+    log_error "Please check the installation manually with: pnpm exec playwright install --list"
     exit 1
 fi
 
