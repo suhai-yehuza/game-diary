@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 
 import { ThemeToggle } from '@/app/components/common';
+import { NotificationBell } from '@/app/components/common/NotificationBell';
 import { ClientOnlyAuthControls } from '@/app/components/layout/components/AuthControls';
 import { SearchBar, useMobileDetection } from '@/app/components/layout/components/SearchBar';
 import type { IHeaderRightSectionProps } from '@/lib/types';
@@ -35,6 +36,8 @@ export function HeaderRightSection({ isMenuExpanded }: IHeaderRightSectionProps)
             <line x1="21" y1="21" x2="16.65" y2="16.65" />
           </svg>
         </button>
+        {/* Notification Bell */}
+        <NotificationBell />
         {/* Always show auth controls on mobile, even when space is limited */}
         <ClientOnlyAuthControls />
       </div>
@@ -61,6 +64,9 @@ export function HeaderRightSection({ isMenuExpanded }: IHeaderRightSectionProps)
 
       {/* Theme Toggle - hide on mobile when searchbar is focused or when space is limited */}
       {(!isMobile || (showSearch && !isFocused)) && <ThemeToggle />}
+
+      {/* Notification Bell */}
+      <NotificationBell />
 
       {/* Auth Controls - always visible */}
       <ClientOnlyAuthControls />

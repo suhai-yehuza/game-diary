@@ -42,6 +42,13 @@ type Query {
 
   # Reaction queries
   reactions(targetId: ID!, targetType: ParentType!): [Reaction!]!
+
+  # Notification queries
+  userNotifications(
+    filters: NotificationFilters
+    pagination: PaginationInput
+  ): NotificationConnection!
+  unreadNotificationsCount: Int!
 }
 
 type Mutation {
@@ -65,6 +72,10 @@ type Mutation {
   # Reaction mutations
   createReaction(input: CreateReactionInput!): CreateReactionResponse!
   deleteReaction(id: ID!): DeleteReactionResponse!
+
+  # Notification mutations
+  markNotificationAsRead(notificationId: ID!): MarkNotificationAsReadResponse!
+  markAllNotificationsAsRead: MarkAllNotificationsAsReadResponse!
 }
 
 # Scalars
@@ -499,6 +510,53 @@ type RejectFriendRequestResponse {
 }
 
 type RemoveFriendResponse {
+  success: Boolean!
+  errors: [ErrorResult!]
+}
+
+# Notification Types
+type Notification {
+  id: ID!
+  user_id: ID!
+  type: String!
+  title: String!
+  message: String!
+  target_id: ID
+  target_type: String
+  resolved: Boolean!
+  read: Boolean!
+  created_at: DateTime!
+  updated_at: DateTime!
+  deleted_at: DateTime
+}
+
+type NotificationConnection {
+  edges: [NotificationEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type NotificationEdge {
+  cursor: String!
+  node: Notification!
+}
+
+input NotificationFilters {
+  read: Boolean
+  resolved: Boolean
+  type: String
+  targetType: String
+  createdAfter: DateTime
+  createdBefore: DateTime
+  orderBy: String
+}
+
+type MarkNotificationAsReadResponse {
+  success: Boolean!
+  errors: [ErrorResult!]
+}
+
+type MarkAllNotificationsAsReadResponse {
   success: Boolean!
   errors: [ErrorResult!]
 }

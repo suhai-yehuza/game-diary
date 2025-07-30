@@ -19,6 +19,10 @@ import {
   commentMutationResolvers,
   reactionMutationResolvers,
 } from '@/lib/graphql/resolvers/mutations';
+import {
+  notificationQueryResolvers,
+  notificationMutationResolvers,
+} from '@/lib/graphql/resolvers/notification';
 import { reactionQueryResolvers, reactionResolver } from '@/lib/graphql/resolvers/reaction';
 import { ErrorResult } from '@/lib/graphql/resolvers/scalars';
 import {
@@ -39,6 +43,7 @@ const resolvers = {
     ...commentQueryResolvers,
     ...reactionQueryResolvers,
     ...friendshipQueryResolvers,
+    ...notificationQueryResolvers,
   },
   Mutation: {
     ...gameMutationResolvers,
@@ -46,6 +51,7 @@ const resolvers = {
     ...commentMutationResolvers,
     ...reactionMutationResolvers,
     ...friendshipMutationResolvers,
+    ...notificationMutationResolvers,
   },
   UserSummary: userSummaryResolver,
   DBUser: dbUserResolver,

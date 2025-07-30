@@ -500,3 +500,73 @@ export const GET_FRIENDSHIP_STATUS = gql`
     }
   }
 `;
+
+export const NOTIFICATION_FRAGMENT = gql`
+  fragment NotificationFragment on Notification {
+    id
+    user_id
+    type
+    title
+    message
+    target_id
+    target_type
+    resolved
+    read
+    created_at
+    updated_at
+    deleted_at
+  }
+`;
+
+export const GET_USER_NOTIFICATIONS = gql`
+  query GetUserNotifications($filters: NotificationFilters, $pagination: PaginationInput) {
+    userNotifications(filters: $filters, pagination: $pagination) {
+      edges {
+        cursor
+        node {
+          ...NotificationFragment
+        }
+      }
+      pageInfo {
+        hasNextPage
+        hasPreviousPage
+        startCursor
+        endCursor
+      }
+      totalCount
+    }
+  }
+  ${NOTIFICATION_FRAGMENT}
+`;
+
+export const GET_UNREAD_NOTIFICATIONS_COUNT = gql`
+  query GetUnreadNotificationsCount {
+    unreadNotificationsCount
+  }
+`;
+
+export const MARK_NOTIFICATION_AS_READ = gql`
+  mutation MarkNotificationAsRead($notificationId: ID!) {
+    markNotificationAsRead(notificationId: $notificationId) {
+      success
+      errors {
+        message
+        code
+        field
+      }
+    }
+  }
+`;
+
+export const MARK_ALL_NOTIFICATIONS_AS_READ = gql`
+  mutation MarkAllNotificationsAsRead {
+    markAllNotificationsAsRead {
+      success
+      errors {
+        message
+        code
+        field
+      }
+    }
+  }
+`;
