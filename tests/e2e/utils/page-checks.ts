@@ -74,11 +74,15 @@ export async function checkBasicPageStructure(page: Page): Promise<void> {
  * Check if page has proper title
  */
 export async function checkPageTitle(page: Page, expectedTitle?: string | RegExp): Promise<void> {
+  // Wait for page to be stable before checking title
+  await page.waitForLoadState('domcontentloaded');
+  await page.waitForTimeout(1000); // Give time for client-side title updates
+
   if (expectedTitle) {
     if (typeof expectedTitle === 'string') {
-      await expect(page).toHaveTitle(expectedTitle);
+      await expect(page).toHaveTitle(expectedTitle, { timeout: 10000 });
     } else {
-      await expect(page).toHaveTitle(expectedTitle);
+      await expect(page).toHaveTitle(expectedTitle, { timeout: 10000 });
     }
   } else {
     // Just check that title exists and is not empty

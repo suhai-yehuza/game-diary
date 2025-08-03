@@ -15,8 +15,8 @@ export type DatabaseOperation = 'SELECT' | 'INSERT' | 'UPDATE' | 'DELETE';
 export interface DatabaseQuery {
   operation: DatabaseOperation;
   table: string;
-  data?: any;
-  where?: any;
+  data?: unknown;
+  where?: unknown;
   limit?: number;
   offset?: number;
 }
@@ -25,13 +25,13 @@ export interface DatabaseQuery {
 export interface ExternalAPIRequest {
   endpoint: string;
   method: 'GET' | 'POST' | 'PUT' | 'DELETE';
-  params?: any;
+  params?: unknown;
   headers?: Record<string, string>;
 }
 
 export interface ExternalAPIResponse {
   success: boolean;
-  data?: any;
+  data?: unknown;
   error?: string;
   timestamp: string;
   latency: number;
@@ -151,7 +151,7 @@ export interface MockDatabaseSchema {
 }
 
 // Mock server response types
-export interface MockServerResponse<T = any> {
+export interface MockServerResponse<T = unknown> {
   success: boolean;
   data?: T;
   error?: string;

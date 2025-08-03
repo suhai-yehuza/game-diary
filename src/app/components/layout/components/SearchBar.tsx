@@ -19,6 +19,7 @@ function SearchInput({
   spellCheck = false,
   id,
   ariaLabel,
+  'data-testid': dataTestId,
 }: {
   value: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
@@ -31,6 +32,7 @@ function SearchInput({
   spellCheck?: boolean;
   id?: string;
   ariaLabel?: string;
+  'data-testid'?: string;
 }) {
   return (
     <div className="relative flex-1">
@@ -48,6 +50,7 @@ function SearchInput({
         autoFocus={autoFocus}
         id={id}
         aria-label={ariaLabel}
+        data-testid={dataTestId}
       />
     </div>
   );
@@ -248,6 +251,7 @@ function SearchBarContent({
         className={isFocused ? 'h-11 md:h-11 text-base' : 'h-9 sm:h-11 text-xs sm:text-sm'}
         autoFocus={autoFocus}
         aria-label="Search"
+        data-testid="search"
       />
       {isFocused ? (
         <CloseButton

@@ -16,10 +16,18 @@ export default function SportPage() {
         : '';
   const config = SPORTS_CONFIG[sport as keyof typeof SPORTS_CONFIG];
 
-  // Set document title using useEffect
+  // Set document title using useEffect with multiple attempts
   React.useEffect(() => {
     if (config) {
+      // Set title immediately
       document.title = `${config.name} - Game Diary`;
+
+      // Also set it after a short delay to handle timing issues
+      const timer = setTimeout(() => {
+        document.title = `${config.name} - Game Diary`;
+      }, 100);
+
+      return () => clearTimeout(timer);
     }
   }, [config]);
 

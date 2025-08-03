@@ -140,7 +140,7 @@ class MockServer {
 
       return {
         success: result.success ?? false,
-        data: result.data as unknown,
+        data: result.data,
         error: result.error,
         timestamp: new Date().toISOString(),
         latency: this.simulateLatency(),

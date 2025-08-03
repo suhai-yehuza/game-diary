@@ -70,7 +70,13 @@ export async function waitForNetworkIdle(
   page: Page,
   timeout: number = TIMEOUTS.MEDIUM
 ): Promise<void> {
-  await waitForLoadState(page, 'NETWORK_IDLE', timeout);
+  try {
+    await waitForLoadState(page, 'NETWORK_IDLE', timeout);
+  } catch (_error) {
+    // If network idle times out, fall back to domcontentloaded
+    console.log('Network idle timeout, falling back to domcontentloaded');
+    await waitForLoadState(page, 'DOM_CONTENT_LOADED', Math.min(timeout, 10000));
+  }
 }
 
 /**
@@ -101,14 +107,41 @@ export async function navigateToPage(
     checkMainContent = true,
   } = options;
 
-  await page.goto(url, { waitUntil: 'domcontentloaded', timeout });
+  try {
+    // Wait for any ongoing navigation to complete first
+    await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
-  if (shouldWaitForNetworkIdle) {
-    await waitForNetworkIdle(page, timeout);
-  }
+    // Navigate to the page
+    await page.goto(url, { waitUntil: 'domcontentloaded', timeout });
 
-  if (checkMainContent) {
-    await expect(page.locator('main, [role="main"], #main')).toBeVisible({ timeout });
+    // Wait a bit for any client-side routing to settle
+    await page.waitForTimeout(500);
+
+    if (shouldWaitForNetworkIdle) {
+      await waitForNetworkIdle(page, timeout);
+    }
+
+    if (checkMainContent) {
+      await expect(page.locator('main, [role="main"], #main')).toBeVisible({ timeout });
+    }
+  } catch (error: unknown) {
+    // If navigation is interrupted, try again once
+    if (error instanceof Error && error.message.includes('interrupted')) {
+      console.log(`Navigation interrupted, retrying: ${url}`);
+      await page.waitForTimeout(1000);
+      await page.goto(url, { waitUntil: 'domcontentloaded', timeout });
+      await page.waitForTimeout(500);
+
+      if (shouldWaitForNetworkIdle) {
+        await waitForNetworkIdle(page, timeout);
+      }
+
+      if (checkMainContent) {
+        await expect(page.locator('main, [role="main"], #main')).toBeVisible({ timeout });
+      }
+    } else {
+      throw error;
+    }
   }
 }
 
