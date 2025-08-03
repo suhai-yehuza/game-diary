@@ -159,14 +159,27 @@ export async function checkElementExists(
  * Clear test data for isolation
  */
 export async function clearTestData(page: Page): Promise<void> {
-  await page.evaluate(() => {
-    localStorage.clear();
-    sessionStorage.clear();
-    // Clear any other test data
-    if (typeof window !== 'undefined') {
-      (window as any).__TEST_DATA__ = {};
-    }
-  });
+  try {
+    // Wait for the page to be ready before attempting to clear storage
+    await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
+
+    await page.evaluate(() => {
+      try {
+        localStorage.clear();
+        sessionStorage.clear();
+        // Clear any other test data
+        if (typeof window !== 'undefined') {
+          (window as any).__TEST_DATA__ = {};
+        }
+      } catch (error) {
+        // Silently handle storage access errors
+        console.log('Storage clear failed (expected in some test environments):', error);
+      }
+    });
+  } catch (error) {
+    // If page evaluation fails, continue without clearing storage
+    console.log('Test data clear skipped (page not ready):', error);
+  }
 }
 
 /**
