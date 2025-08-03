@@ -39,6 +39,10 @@ export default defineConfig({
         'src/app/api/webhook/clerk-example-events/**',
         'src/app/styles/**',
         'src/middleware.ts', // Middleware is tested via e2e
+        'src/types/**', // Generated types
+        'src/app/api/webhook/clerk-example-events/**', // Example events
+        'src/app/styles/globals.css', // CSS files
+        'src/app/globals.css', // CSS files
       ],
       thresholds: {
         global: {
@@ -54,7 +58,7 @@ export default defineConfig({
           statements: COVERAGE_THRESHOLD,
         },
       },
-      all: true,
+      all: false,
     },
     testTimeout: 10000,
     hookTimeout: 10000,

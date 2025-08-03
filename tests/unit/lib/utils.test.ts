@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest';
 
 import { createRapidAPIClient } from '@/lib/utils/api-client';
 import { cn, formatDate } from '@/lib/utils/index';
-import { TIMEOUTS } from '@tests/e2e/utils/test-utils';
 
 describe('API Client Utils', () => {
   it('creates RapidAPI client with correct configuration', () => {
@@ -14,7 +13,7 @@ describe('API Client Utils', () => {
         'X-RapidAPI-Key': 'test-key',
         'X-RapidAPI-Host': 'test-host',
       },
-      timeout: TIMEOUTS.MEDIUM,
+      timeout: 10000,
       retries: 3,
       cacheTTL: 300000,
       endpoints: {
@@ -36,7 +35,7 @@ describe('API Client Utils', () => {
         'X-RapidAPI-Key': 'test-key',
         'X-RapidAPI-Host': 'test-host',
       },
-      timeout: TIMEOUTS.MEDIUM,
+      timeout: 10000,
       retries: 3,
       cacheTTL: 300000,
       endpoints: {
