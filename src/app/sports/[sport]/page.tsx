@@ -1,7 +1,7 @@
 'use client';
 
-import Head from 'next/head';
 import { notFound, useParams } from 'next/navigation';
+import React from 'react';
 
 import { SimpleSportsPage } from '@/app/components/sports';
 import { SPORTS_CONFIG } from '@/app/components/sports/SportsConfig';
@@ -15,19 +15,21 @@ export default function SportPage() {
         ? params.sport[0]
         : '';
   const config = SPORTS_CONFIG[sport as keyof typeof SPORTS_CONFIG];
+
+  // Set document title using useEffect
+  React.useEffect(() => {
+    if (config) {
+      document.title = `${config.name} - Game Diary`;
+    }
+  }, [config]);
+
   if (!config) return notFound();
 
   return (
-    <>
-      <Head>
-        <title>{config.name} - Game Diary</title>
-        <meta name="description" content={config.description} />
-      </Head>
-      <SimpleSportsPage title={config.name} description={config.description}>
-        <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-          <p>Welcome to the {config.fullName}</p>
-        </div>
-      </SimpleSportsPage>
-    </>
+    <SimpleSportsPage title={config.name} description={config.description}>
+      <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+        <p>Welcome to the {config.fullName}</p>
+      </div>
+    </SimpleSportsPage>
   );
 }
