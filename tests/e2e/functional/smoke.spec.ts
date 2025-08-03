@@ -4,73 +4,208 @@ import { testSignInModal } from '@tests/e2e/utils/auth-modal';
 import { SPORTS_PAGES } from '@tests/e2e/utils/constants';
 import { isMockModeEnabled, getMockData } from '@tests/e2e/utils/mock-config';
 import { navigateToSection } from '@tests/e2e/utils/navigation';
-import { testMultiplePages, testHomePage, testDashboardPage } from '@tests/e2e/utils/page-tests';
+import { checkBasicPageStructure, checkPageTitle } from '@tests/e2e/utils/page-checks';
+import { testMultiplePages, testHomePage } from '@tests/e2e/utils/page-tests';
+import { checkPerformanceMetrics } from '@tests/e2e/utils/performance';
 import { commonTestSetup, enhancedTestSetup } from '@tests/e2e/utils/setup';
-import { clearTestData, TIMEOUTS } from '@tests/e2e/utils/test-utils';
+import { clearTestData, TIMEOUTS, safeGoto, waitForPageLoad } from '@tests/e2e/utils/test-utils';
 
 import { runSanitySuite } from './sanity.spec';
 
-// Utility to detect mobile devices for temporary skipping due to UI layout issues
-const _isMobileDevice = (projectName: string): boolean => {
-  const name = projectName.toLowerCase();
-  return name.includes('mobile') || name.includes('iphone') || name.includes('tablet');
-};
+/**
+ * Smoke Test Suite
+ *
+ * This test suite demonstrates improved patterns:
+ * - Better test organization and structure
+ * - Consistent setup and teardown
+ * - Proper error handling and logging
+ * - Mock data integration
+ * - Performance and accessibility checks
+ */
 
-// Atomic smoke-level test functions
+// Test configuration
+const TEST_CONFIG = {
+  timeout: TIMEOUTS.EXTENDED,
+  retries: 1,
+  parallel: false, // Run sequentially for smoke tests
+} as const;
+
+// Test data for consistent testing
+const TEST_SCENARIOS = {
+  homePage: {
+    path: '/',
+    expectedTitle: /Game Diary|GameLog/i,
+    checks: ['structure', 'title', 'performance'] as const,
+  },
+  sportsPages: {
+    paths: SPORTS_PAGES,
+    timeout: TIMEOUTS.EXTENDED,
+    checks: ['structure', 'title'] as const,
+  },
+  dashboard: {
+    path: '/protected/user',
+    expectedTitle: /Dashboard|User/i,
+    checks: ['structure', 'title'] as const,
+  },
+} as const;
+
+/**
+ * Enhanced test runner with better error handling and logging
+ */
+class TestRunner {
+  private readonly testName: string;
+  private readonly mockEnabled: boolean;
+
+  constructor(testName: string) {
+    this.testName = testName;
+    this.mockEnabled = isMockModeEnabled();
+  }
+
+  async runTest(
+    page: any,
+    testFn: () => Promise<void>,
+    options: { timeout?: number; retries?: number } = {}
+  ): Promise<void> {
+    const { timeout: _timeout = TEST_CONFIG.timeout, retries: _retries = TEST_CONFIG.retries } =
+      options;
+
+    console.log(`🚀 Running test: ${this.testName}`);
+
+    if (this.mockEnabled) {
+      const mockData = getMockData();
+      console.log(`🔧 Mock data available: ${Object.keys(mockData).join(', ')}`);
+    }
+
+    try {
+      await testFn();
+      console.log(`✅ Test completed: ${this.testName}`);
+    } catch (error) {
+      console.error(`❌ Test failed: ${this.testName}`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Run comprehensive page checks
+   */
+  async runPageChecks(
+    page: any,
+    scenario: (typeof TEST_SCENARIOS)[keyof typeof TEST_SCENARIOS]
+  ): Promise<void> {
+    await this.runTest(page, async () => {
+      // Navigate to page
+      if ('path' in scenario) {
+        await safeGoto(page, scenario.path);
+        await waitForPageLoad(page);
+
+        // Run configured checks
+        for (const check of scenario.checks) {
+          switch (check) {
+            case 'structure':
+              await checkBasicPageStructure(page);
+              break;
+            case 'title':
+              if ('expectedTitle' in scenario) {
+                await checkPageTitle(page, scenario.expectedTitle.toString());
+              }
+              break;
+            case 'performance':
+              await checkPerformanceMetrics(page);
+              break;
+            default:
+              console.warn(`Unknown check type: ${String(check)}`);
+          }
+        }
+      }
+    });
+  }
+}
+
+// Atomic smoke-level test functions with improved structure
 export async function smokeTestAllSportsPages(page: any) {
-  // Increase timeout for sports pages since they include API calls
-  await testMultiplePages(page, [...SPORTS_PAGES], { timeout: TIMEOUTS.EXTENDED });
+  const runner = new TestRunner('sports-pages');
+
+  await runner.runTest(page, async () => {
+    await testMultiplePages(page, [...TEST_SCENARIOS.sportsPages.paths], {
+      timeout: TEST_SCENARIOS.sportsPages.timeout,
+    });
+  });
 }
 
 export async function smokeTestDashboardPage(page: any) {
-  await testDashboardPage(page);
+  const runner = new TestRunner('dashboard');
+
+  await runner.runPageChecks(page, TEST_SCENARIOS.dashboard);
 }
 
 export async function smokeTestSignInModalClickOutside(page: any) {
-  await testHomePage(page, { checkAccessibility: false, checkPerformance: false });
-  await testSignInModal(page, 'click-outside');
+  const runner = new TestRunner('sign-in-modal');
+
+  await runner.runTest(page, async () => {
+    await testHomePage(page, { checkAccessibility: false, checkPerformance: false });
+    await testSignInModal(page, 'click-outside');
+  });
 }
 
 export async function smokeTestBasicAccessibility(page: any) {
-  await testHomePage(page, { checkAccessibility: true, checkPerformance: false });
+  const runner = new TestRunner('accessibility');
+
+  await runner.runTest(page, async () => {
+    await testHomePage(page, { checkAccessibility: true, checkPerformance: false });
+  });
 }
 
 export async function smokeTestBasicPerformance(page: any) {
-  await testHomePage(page, { checkAccessibility: false, checkPerformance: true });
+  const runner = new TestRunner('performance');
+
+  await runner.runTest(page, async () => {
+    await testHomePage(page, { checkAccessibility: false, checkPerformance: true });
+  });
 }
 
 export async function smokeTestMajorSectionNavigation(page: any) {
-  await testHomePage(page, { checkAccessibility: false, checkPerformance: false });
-  await navigateToSection(page, '/sports/nba');
-  await navigateToSection(page, '/');
-  await navigateToSection(page, '/');
+  const runner = new TestRunner('navigation');
+
+  await runner.runTest(page, async () => {
+    await testHomePage(page, { checkAccessibility: false, checkPerformance: false });
+    await navigateToSection(page, '/sports/nba');
+    await navigateToSection(page, '/');
+    await navigateToSection(page, '/');
+  });
 }
 
-// Suite runner for smoke
+// Enhanced suite runner with better organization
 export async function runSmokeSuite(page: any) {
-  await runSanitySuite(page);
-  await smokeTestAllSportsPages(page);
-  await smokeTestDashboardPage(page);
-  await smokeTestSignInModalClickOutside(page);
-  await smokeTestBasicAccessibility(page);
-  await smokeTestBasicPerformance(page);
-  await smokeTestMajorSectionNavigation(page);
+  const runner = new TestRunner('full-smoke-suite');
+
+  await runner.runTest(page, async () => {
+    // Run sanity checks first
+    await runSanitySuite(page);
+
+    // Run core smoke tests
+    await smokeTestAllSportsPages(page);
+    await smokeTestDashboardPage(page);
+    await smokeTestSignInModalClickOutside(page);
+    await smokeTestBasicAccessibility(page);
+    await smokeTestBasicPerformance(page);
+    await smokeTestMajorSectionNavigation(page);
+  });
 }
 
-test.beforeEach(async ({ page }) => {
-  await clearTestData(page); // Test data isolation: clear storage and cookies
-});
-
-test.describe('Smoke Tests (Extends Sanity)', () => {
+// Test suite with improved setup and organization
+test.describe('Smoke Tests', () => {
   test.beforeEach(async ({ page }) => {
-    // Removed mobile skip logic
+    // Clear test data for isolation
+    await clearTestData(page);
+
+    // Setup with enhanced configuration
     await commonTestSetup(page, 'smoke-test');
 
-    // Log mock data status for debugging
-    if (isMockModeEnabled()) {
-      const mockData = getMockData();
-      console.log('🔧 Mock data available for smoke test:', Object.keys(mockData));
-    }
+    // Log test environment
+    console.log(`🔧 Test Environment:`);
+    console.log(`  - Mock Mode: ${isMockModeEnabled() ? 'Enabled' : 'Disabled'}`);
+    console.log(`  - CI: ${process.env.CI === 'true' ? 'Yes' : 'No'}`);
+    console.log(`  - Timeout: ${TEST_CONFIG.timeout}ms`);
   });
 
   test('@smoke full smoke suite', async ({ page }) => {
@@ -89,11 +224,44 @@ test.describe('Enhanced Smoke Tests with Mock Data', () => {
   });
 
   test('@smoke enhanced smoke suite with mock data', async ({ page }) => {
-    // Verify mock mode is working
-    if (isMockModeEnabled()) {
-      console.log('✅ Mock data is enabled for enhanced smoke test');
-    }
+    const runner = new TestRunner('enhanced-smoke');
 
-    await runSmokeSuite(page);
+    await runner.runTest(page, async () => {
+      // Verify mock mode is working
+      if (isMockModeEnabled()) {
+        console.log('✅ Mock data is enabled for enhanced smoke test');
+        const mockData = getMockData();
+        console.log(`📊 Available mock data: ${Object.keys(mockData).join(', ')}`);
+      }
+
+      await runSmokeSuite(page);
+    });
+  });
+});
+
+// Individual test cases for better debugging
+test.describe('Individual Smoke Test Cases', () => {
+  test.beforeEach(async ({ page }) => {
+    await clearTestData(page);
+    await commonTestSetup(page, 'individual-smoke-test');
+  });
+
+  test('@smoke home page structure and performance', async ({ page }) => {
+    const runner = new TestRunner('home-page');
+    await runner.runPageChecks(page, TEST_SCENARIOS.homePage);
+  });
+
+  test('@smoke sports pages navigation', async ({ page }) => {
+    const runner = new TestRunner('sports-navigation');
+    await runner.runTest(page, async () => {
+      await smokeTestAllSportsPages(page);
+    });
+  });
+
+  test('@smoke sign-in modal functionality', async ({ page }) => {
+    const runner = new TestRunner('sign-in-modal');
+    await runner.runTest(page, async () => {
+      await smokeTestSignInModalClickOutside(page);
+    });
   });
 });

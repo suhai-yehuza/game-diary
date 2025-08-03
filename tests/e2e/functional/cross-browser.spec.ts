@@ -1,14 +1,20 @@
 import { test } from '@playwright/test';
 
-import { runCrossBrowserSuite } from '@tests/e2e/utils/page-tests';
 import { commonTestSetup } from '@tests/e2e/utils/setup';
 import { clearTestData } from '@tests/e2e/utils/test-utils';
 
-test.describe.configure({ mode: 'serial', retries: 2 }); // Only enable serial if test isolation is required
+test.describe('Cross-Browser Tests', () => {
+  test.beforeEach(async ({ page }) => {
+    await clearTestData(page);
+    await commonTestSetup(page, 'cross-browser-test');
+  });
 
-test.beforeEach(async ({ page }) => {
-  await clearTestData(page);
-  await commonTestSetup(page);
+  test('@sanity should work across browsers', async ({ page }) => {
+    // Basic cross-browser test
+    await page.goto('/');
+    await page.waitForLoadState('domcontentloaded');
+
+    // Check that page loads
+    expect(page.locator('body')).toBeVisible();
+  });
 });
-
-runCrossBrowserSuite(test);

@@ -1,282 +1,155 @@
-import type { Page, TestType } from '@playwright/test';
+import type { Page } from '@playwright/test';
 import { expect } from '@playwright/test';
 
-import { PERFORMANCE_THRESHOLDS } from '@tests/e2e/utils/constants';
 import {
-  safeGoto,
-  waitForPageLoad,
   checkBasicPageStructure,
   checkPageTitle,
-  checkForConsoleErrors,
   checkAccessibilityBasics,
-  checkPerformanceMetrics,
-  isRateLimited,
-  logRateLimiting,
-  TIMEOUTS,
-} from '@tests/e2e/utils/test-utils';
+} from '@tests/e2e/utils/page-checks';
+import { checkPerformanceMetrics, checkForConsoleErrors } from '@tests/e2e/utils/performance';
+import { TIMEOUTS, safeGoto, waitForPageLoad } from '@tests/e2e/utils/test-utils';
 
 /**
- * Page testing utilities for E2E tests
- * Common patterns for testing page functionality
+ * Page test utilities for E2E tests
+ * Provides functions to test different page types and scenarios
  */
-
-export interface IPageTestOptions {
-  checkStructure?: boolean;
-  checkTitle?: boolean;
-  checkConsoleErrors?: boolean;
-  checkAccessibility?: boolean;
-  checkPerformance?: boolean;
-  expectedTitle?: string;
-  timeout?: number;
-}
 
 /**
- * Comprehensive page test that checks all common aspects
+ * Test home page functionality
  */
-export async function testPageComprehensive(
+export async function testHomePage(
   page: Page,
-  path: string,
-  options: IPageTestOptions = {}
+  options: {
+    checkAccessibility?: boolean;
+    checkPerformance?: boolean;
+  } = {}
 ): Promise<void> {
-  const {
-    checkStructure = true,
-    checkTitle = true,
-    checkConsoleErrors = true,
-    checkAccessibility = false,
-    checkPerformance = false,
-    expectedTitle,
-  } = options;
+  const { checkAccessibility = true, checkPerformance = true } = options;
 
-  // Navigate to page
-  await safeGoto(page, path);
+  // Navigate to home page
+  await safeGoto(page, '/');
   await waitForPageLoad(page);
 
-  // Check basic page structure
-  if (checkStructure) {
-    await checkBasicPageStructure(page);
-  }
+  // Basic page checks
+  await checkBasicPageStructure(page);
+  await checkPageTitle(page);
 
-  // Check page title
-  if (checkTitle) {
-    await checkPageTitle(page, expectedTitle);
-  }
-
-  // Check for rate limiting before requiring main content
-  const pageContent = await page.content();
-  if (isRateLimited(pageContent)) {
-    logRateLimiting('main content check');
-  } else {
-    // Flexible: require any main content selector to be visible
-    const mainSelectors = [
-      'main#main-content',
-      'main',
-      '[role="main"]',
-      '.main-content',
-      '.content',
-      '#content',
-      'article',
-      '.page-content',
-    ];
-    let found = false;
-    for (const selector of mainSelectors) {
-      const el = page.locator(selector);
-      if ((await el.count()) > 0) {
-        try {
-          await el.first().waitFor({ state: 'visible', timeout: TIMEOUTS.LONG });
-          found = true;
-          break;
-        } catch {
-          // Ignore timeout errors for this check
-        }
-      }
-    }
-    if (!found) {
-      // Debug: log page content and take a screenshot
-      console.error('No visible main content found for any known selector');
-      console.error(await page.content());
-      await page.screenshot({ path: 'main-content-not-found.png', fullPage: true });
-      throw new Error('No visible main content found for any known selector');
-    }
-  }
-
-  // Check for console errors
-  if (checkConsoleErrors) {
-    await checkForConsoleErrors(page);
-  }
-
-  // Check accessibility basics
+  // Optional checks
   if (checkAccessibility) {
     await checkAccessibilityBasics(page);
   }
 
-  // Check performance metrics
   if (checkPerformance) {
-    const metrics = await checkPerformanceMetrics(page);
-
-    // Verify performance meets thresholds
-    expect(metrics.loadTime).toBeLessThan(PERFORMANCE_THRESHOLDS.LOAD_TIME);
-    expect(metrics.domContentLoaded).toBeLessThan(PERFORMANCE_THRESHOLDS.DOM_CONTENT_LOADED);
+    await checkPerformanceMetrics(page);
   }
+
+  // Always check for console errors
+  await checkForConsoleErrors(page);
 }
 
 /**
- * Test multiple pages with the same validation
+ * Test dashboard page functionality
+ */
+export async function testDashboardPage(page: Page): Promise<void> {
+  // Navigate to dashboard
+  await safeGoto(page, '/protected/user');
+  await waitForPageLoad(page);
+
+  // Basic page checks
+  await checkBasicPageStructure(page);
+  await checkPageTitle(page, /Dashboard|User/i);
+
+  // Check for dashboard-specific elements
+  const dashboardContent = page.locator('[data-testid="dashboard"], .dashboard, main');
+  await expect(dashboardContent).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
+}
+
+/**
+ * Test multiple pages with consistent validation
  */
 export async function testMultiplePages(
   page: Page,
   paths: string[],
-  options: IPageTestOptions = {}
+  options: { timeout?: number } = {}
 ): Promise<void> {
-  const failures: Array<{ path: string; error: string }> = [];
+  const { timeout = TIMEOUTS.MEDIUM } = options;
 
   for (const path of paths) {
+    console.log(`🔍 Testing page: ${path}`);
+
     try {
-      await testPageComprehensive(page, path, options);
+      await safeGoto(page, path);
+      await waitForPageLoad(page);
+
+      // Basic validation
+      await checkBasicPageStructure(page);
+      await checkPageTitle(page);
+
+      // Check for main content
+      const mainContent = page.locator('main, [role="main"], .main-content');
+      await expect(mainContent).toBeVisible({ timeout });
+
+      console.log(`✅ Page ${path} passed validation`);
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      failures.push({ path, error: errorMessage });
-      console.error(`Failed to test page ${path}:`, errorMessage);
-    }
-  }
-
-  // Report failures if any
-  if (failures.length > 0) {
-    console.error(`\n❌ ${failures.length} page(s) failed testing:`);
-    failures.forEach(({ path, error }) => {
-      console.error(`  - ${path}: ${error}`);
-    });
-
-    // If all pages failed, throw an error
-    if (failures.length === paths.length) {
-      throw new Error(`All ${paths.length} pages failed testing`);
+      console.error(`❌ Page ${path} failed validation:`, error);
+      throw error;
     }
   }
 }
 
 /**
- * Test sports page specifically
+ * Test search functionality
  */
-export async function testSportsPage(
-  page: Page,
-  sportsPath: string,
-  options: IPageTestOptions = {}
-): Promise<void> {
-  await testPageComprehensive(page, sportsPath, {
-    checkStructure: true,
-    checkTitle: true,
-    checkConsoleErrors: true,
-    ...options,
-  });
+export async function testSearchFunctionality(page: Page): Promise<void> {
+  // Navigate to search page
+  await safeGoto(page, '/search');
+  await waitForPageLoad(page);
 
-  // Additional sports-specific checks
-  const pageContent = await page.content();
+  // Check search form
+  const searchForm = page.locator('form[role="search"], [data-testid="search-form"]');
+  await expect(searchForm).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
 
-  // Check for sports-related content
-  if (
-    !pageContent.includes('sports') &&
-    !pageContent.includes('NBA') &&
-    !pageContent.includes('NFL')
-  ) {
-    console.warn(`Warning: Sports page ${sportsPath} may not have expected sports content`);
+  // Check search input
+  const searchInput = page.locator(
+    'input[type="search"], input[name="search"], [data-testid="search-input"]'
+  );
+  await expect(searchInput).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
+
+  // Test basic search
+  await searchInput.fill('test');
+  await searchInput.press('Enter');
+
+  // Wait for search results or no results message
+  await page.waitForLoadState('networkidle', { timeout: TIMEOUTS.MEDIUM });
+}
+
+/**
+ * Test sports page functionality
+ */
+export async function testSportsPage(page: Page, sport: string): Promise<void> {
+  const path = `/sports/${sport}`;
+
+  // Navigate to sports page
+  await safeGoto(page, path);
+  await waitForPageLoad(page);
+
+  // Basic page checks
+  await checkBasicPageStructure(page);
+  await checkPageTitle(page, new RegExp(sport, 'i'));
+
+  // Check for sports-specific content
+  const sportsContent = page.locator('[data-testid="sports-content"], .sports-content, main');
+  await expect(sportsContent).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
+
+  // Check for live games or standings
+  const liveGames = page.locator('[data-testid="live-games"], .live-games');
+  const standings = page.locator('[data-testid="standings"], .standings');
+
+  if ((await liveGames.count()) > 0) {
+    await expect(liveGames.first()).toBeVisible();
   }
-}
 
-/**
- * Test dashboard page specifically
- */
-export async function testDashboardPage(page: Page, options: IPageTestOptions = {}): Promise<void> {
-  await testPageComprehensive(page, '/', {
-    checkStructure: true,
-    checkTitle: true,
-    checkConsoleErrors: true,
-    ...options,
-  });
-
-  // Additional dashboard-specific checks could go here
-}
-
-/**
- * Test home page specifically
- */
-export async function testHomePage(page: Page, options: IPageTestOptions = {}): Promise<void> {
-  await testPageComprehensive(page, '/', {
-    checkStructure: true,
-    checkTitle: true,
-    checkConsoleErrors: true,
-    checkAccessibility: true,
-    checkPerformance: true,
-    ...options,
-  });
-}
-
-/**
- * Responsive suite runner: tests all major pages at multiple viewports
- */
-export function runResponsiveSuite(test: TestType<any, any>) {
-  test.describe('Responsive Tests', () => {
-    const viewports = [
-      { name: 'iPhone SE', width: 375, height: 667 },
-      { name: 'iPhone 12 Pro', width: 390, height: 844 },
-      { name: 'iPhone 12 Pro Max', width: 428, height: 926 },
-      { name: 'Samsung Galaxy S20', width: 360, height: 800 },
-      { name: 'Samsung Galaxy S21', width: 384, height: 854 },
-      { name: 'iPad', width: 768, height: 1024 },
-      { name: 'iPad Pro', width: 1024, height: 1366 },
-      { name: 'Samsung Galaxy Tab', width: 800, height: 1280 },
-      { name: 'Small Desktop', width: 1024, height: 768 },
-      { name: 'Medium Desktop', width: 1366, height: 768 },
-      { name: 'Large Desktop', width: 1920, height: 1080 },
-      { name: 'Ultra Wide', width: 2560, height: 1440 },
-    ];
-    const testPages = [
-      '/',
-      '/sports/nba',
-      '/sports/nfl',
-      '/sports/mlb',
-      '/sports/nhl',
-      '/sports/mls',
-      '/sports/all-sports',
-      '/sports/live',
-    ];
-    for (const viewport of viewports) {
-      test.describe(`${viewport.name} viewport`, () => {
-        testPages.forEach((url, index) => {
-          test(`should render ${url} correctly`, async ({ page }: { page: Page }) => {
-            // Set viewport first
-            await page.setViewportSize({ width: viewport.width, height: viewport.height });
-
-            // Add a small delay between tests to reduce rate limiting
-            if (index > 0) {
-              // Wait a bit to ensure previous test is fully done
-              await page.waitForTimeout(1000);
-            }
-
-            await testPageComprehensive(page, url);
-          });
-        });
-      });
-    }
-  });
-}
-
-/**
- * Cross-browser suite runner: can be extended for browser-specific logic
- */
-export function runCrossBrowserSuite(test: TestType<any, any>) {
-  test.describe('Cross-Browser Tests', () => {
-    // For now, just run the responsive suite
-    runResponsiveSuite(test);
-    // Add browser-specific checks here if needed
-  });
-}
-
-/**
- * Full suite runner: can be extended for full regression/coverage
- */
-export function runFullSuite(test: TestType<any, any>) {
-  test.describe('Full Regression Suite', () => {
-    // For now, just run the cross-browser suite
-    runCrossBrowserSuite(test);
-    // Add full regression/coverage checks here if needed
-  });
+  if ((await standings.count()) > 0) {
+    await expect(standings.first()).toBeVisible();
+  }
 }

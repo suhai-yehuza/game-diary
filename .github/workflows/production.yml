@@ -41,7 +41,7 @@ on:
 
 jobs:
   deploy:
-    uses: ./.github/workflows/optimized-deployment.yml
+    uses: ./.github/workflows/base-deployment.yml
     with:
       workflow-name: 'Vercel Production Deployment'
       environment: 'Production'

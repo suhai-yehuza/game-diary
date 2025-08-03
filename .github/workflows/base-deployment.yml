@@ -1,4 +1,4 @@
-name: Optimized Deployment Workflow
+name: Base Deployment Workflow
 
 on:
   workflow_call:

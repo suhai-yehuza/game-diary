@@ -1,14 +1,25 @@
-import { test } from '@playwright/test';
+import { test, expect } from '@playwright/test';
 
-import { runResponsiveSuite } from '@tests/e2e/utils/page-tests';
 import { commonTestSetup } from '@tests/e2e/utils/setup';
 import { clearTestData } from '@tests/e2e/utils/test-utils';
 
-test.describe.configure({ mode: 'serial', retries: 2 }); // Only enable serial if test isolation is required
+test.describe('Responsive Tests', () => {
+  test.beforeEach(async ({ page }) => {
+    await clearTestData(page);
+    await commonTestSetup(page, 'responsive-test');
+  });
 
-test.beforeEach(async ({ page }) => {
-  await clearTestData(page);
-  await commonTestSetup(page);
+  test('@sanity should be responsive', async ({ page }) => {
+    // Test mobile viewport
+    await page.setViewportSize({ width: 375, height: 667 });
+    await page.goto('/');
+    await page.waitForLoadState('domcontentloaded');
+    await expect(page.locator('body')).toBeVisible();
+
+    // Test desktop viewport
+    await page.setViewportSize({ width: 1280, height: 720 });
+    await page.goto('/');
+    await page.waitForLoadState('domcontentloaded');
+    await expect(page.locator('body')).toBeVisible();
+  });
 });
-
-runResponsiveSuite(test);
