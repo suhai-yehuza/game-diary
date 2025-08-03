@@ -1,13 +1,17 @@
 import { test } from '@playwright/test';
 
-import { testSignInModal } from '@tests/e2e/utils/auth-modal';
 import { SPORTS_PAGES } from '@tests/e2e/utils/constants';
 import { isMockModeEnabled, getMockData } from '@tests/e2e/utils/mock-config';
-import { navigateToSection } from '@tests/e2e/utils/navigation';
-import { checkBasicPageStructure, checkPageTitle } from '@tests/e2e/utils/page-checks';
-import { testMultiplePages, testHomePage } from '@tests/e2e/utils/page-tests';
+import { testMultiplePages } from '@tests/e2e/utils/page-tests';
 import { checkPerformanceMetrics } from '@tests/e2e/utils/performance';
 import { commonTestSetup, enhancedTestSetup } from '@tests/e2e/utils/setup';
+import {
+  testHomePageWithConfig,
+  testSignInModalVariants,
+  testBrowserNavigation,
+  testBasicPerformance,
+  testBasicAccessibility,
+} from '@tests/e2e/utils/shared-tests';
 import { clearTestData, TIMEOUTS, safeGoto, waitForPageLoad } from '@tests/e2e/utils/test-utils';
 
 import { runSanitySuite } from './sanity.spec';
@@ -102,11 +106,15 @@ class TestRunner {
         for (const check of scenario.checks) {
           switch (check) {
             case 'structure':
-              await checkBasicPageStructure(page);
+              // Basic structure check - page should be visible
+              await page.locator('body').waitFor({ timeout: TIMEOUTS.MEDIUM });
               break;
             case 'title':
               if ('expectedTitle' in scenario) {
-                await checkPageTitle(page, scenario.expectedTitle.toString());
+                await page.waitForFunction(
+                  () => document.title.match(scenario.expectedTitle.toString()),
+                  { timeout: TIMEOUTS.MEDIUM }
+                );
               }
               break;
             case 'performance':
@@ -121,7 +129,7 @@ class TestRunner {
   }
 }
 
-// Atomic smoke-level test functions with improved structure
+// Atomic smoke-level test functions using shared utilities
 export async function smokeTestAllSportsPages(page: any) {
   const runner = new TestRunner('sports-pages');
 
@@ -142,8 +150,11 @@ export async function smokeTestSignInModalClickOutside(page: any) {
   const runner = new TestRunner('sign-in-modal');
 
   await runner.runTest(page, async () => {
-    await testHomePage(page, { checkAccessibility: false, checkPerformance: false });
-    await testSignInModal(page, 'click-outside');
+    await testHomePageWithConfig(page, {
+      checkAccessibility: false,
+      checkPerformance: false,
+    });
+    await testSignInModalVariants(page, { method: 'click-outside' });
   });
 }
 
@@ -151,7 +162,7 @@ export async function smokeTestBasicAccessibility(page: any) {
   const runner = new TestRunner('accessibility');
 
   await runner.runTest(page, async () => {
-    await testHomePage(page, { checkAccessibility: true, checkPerformance: false });
+    await testBasicAccessibility(page);
   });
 }
 
@@ -159,7 +170,7 @@ export async function smokeTestBasicPerformance(page: any) {
   const runner = new TestRunner('performance');
 
   await runner.runTest(page, async () => {
-    await testHomePage(page, { checkAccessibility: false, checkPerformance: true });
+    await testBasicPerformance(page);
   });
 }
 
@@ -167,10 +178,11 @@ export async function smokeTestMajorSectionNavigation(page: any) {
   const runner = new TestRunner('navigation');
 
   await runner.runTest(page, async () => {
-    await testHomePage(page, { checkAccessibility: false, checkPerformance: false });
-    await navigateToSection(page, '/sports/nba');
-    await navigateToSection(page, '/');
-    await navigateToSection(page, '/');
+    await testHomePageWithConfig(page, {
+      checkAccessibility: false,
+      checkPerformance: false,
+    });
+    await testBrowserNavigation(page, ['/', '/sports/nba', '/', '/']);
   });
 }
 

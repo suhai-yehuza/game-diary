@@ -1,30 +1,43 @@
 import type { Page } from '@playwright/test';
 import { test } from '@playwright/test';
 
-import { testSignInModal } from '@tests/e2e/utils/auth-modal';
-import { navigateToSection } from '@tests/e2e/utils/navigation';
-import { testHomePage, testSportsPage } from '@tests/e2e/utils/page-tests';
 import { commonTestSetup } from '@tests/e2e/utils/setup';
+import {
+  testHomePageWithConfig,
+  testSignInModalVariants,
+  testSportsPagesWithScope,
+  testBrowserNavigation,
+} from '@tests/e2e/utils/shared-tests';
 
-// Atomic test functions
+// Atomic test functions using shared utilities
 export async function sanityTestHomePage(page: Page) {
-  await testHomePage(page);
+  await testHomePageWithConfig(page, {
+    checkAccessibility: false,
+    checkPerformance: false,
+  });
 }
 
 export async function sanityTestSignInModal(page: Page) {
-  await testHomePage(page, { checkAccessibility: false, checkPerformance: false });
-  await testSignInModal(page, 'escape');
+  await testHomePageWithConfig(page, {
+    checkAccessibility: false,
+    checkPerformance: false,
+  });
+  await testSignInModalVariants(page, { method: 'escape' });
 }
 
 export async function sanityTestSportsPage(page: Page) {
-  // Increase timeout for sports page since it includes API calls
-  await testSportsPage(page, 'nba');
+  await testSportsPagesWithScope(page, {
+    sport: 'nba',
+    scope: 'single',
+  });
 }
 
 export async function sanityTestBasicNavigation(page: Page) {
-  await testHomePage(page, { checkAccessibility: false, checkPerformance: false });
-  await navigateToSection(page, '/sports/nba');
-  await navigateToSection(page, '/');
+  await testHomePageWithConfig(page, {
+    checkAccessibility: false,
+    checkPerformance: false,
+  });
+  await testBrowserNavigation(page, ['/', '/sports/nba', '/']);
 }
 
 // Suite runner for sanity
@@ -37,7 +50,6 @@ export async function runSanitySuite(page: Page) {
 
 test.describe('Sanity Tests (Base Level)', () => {
   test.beforeEach(async ({ page }) => {
-    // Removed mobile skip logic
     await commonTestSetup(page);
   });
 
@@ -46,6 +58,9 @@ test.describe('Sanity Tests (Base Level)', () => {
   });
 
   test('@sanity should test sports page', async ({ page }) => {
-    await testSportsPage(page, 'nba');
+    await testSportsPagesWithScope(page, {
+      sport: 'nba',
+      scope: 'single',
+    });
   });
 });

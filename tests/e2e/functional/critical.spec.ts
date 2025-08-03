@@ -1,7 +1,13 @@
 import type { Page } from '@playwright/test';
 import { test, expect } from '@playwright/test';
 
-import { testSignInModal } from '@tests/e2e/utils/auth-modal';
+import {
+  testSignInModalVariants,
+  testProtectedRouteAccess,
+  testErrorStates,
+  testBrowserNavigation,
+  testAuthenticationFlow,
+} from '@tests/e2e/utils/shared-tests';
 import {
   clearTestData,
   TIMEOUTS,
@@ -62,10 +68,9 @@ async function revealSignInButtonIfMobile(page: Page) {
   }
 }
 
-// Atomic critical-level test functions
+// Atomic critical-level test functions using shared utilities
 export async function criticalTestAuthenticationFlow(page: Page) {
-  await safeGoto(page, '/');
-  await waitForPageLoad(page);
+  await testAuthenticationFlow(page);
   await revealSignInButtonIfMobile(page);
 
   const signInButton = page.getByTestId('sign-in-button');
@@ -84,37 +89,18 @@ export async function criticalTestAuthenticationFlow(page: Page) {
 
   // Test sign-in modal with better error handling
   try {
-    await testSignInModal(page, 'escape');
+    await testSignInModalVariants(page, { method: 'escape' });
   } catch (error) {
     console.warn('⚠️ Sign-in modal test failed, but continuing with other tests:', error);
   }
 }
 
 export async function criticalTestProtectedRouteAccess(page: Page) {
-  // Test accessing a protected route
-  await safeGoto(page, '/protected/user');
-  await waitForPageLoad(page);
-
-  // Should redirect to sign-in modal
-  const modal = page.locator('[data-testid="sign-in-modal"], .cl-modal, [role="dialog"]');
-
-  // More flexible modal detection
-  const modalVisible = await modal.isVisible({ timeout: TIMEOUTS.MEDIUM }).catch(() => false);
-  if (modalVisible) {
-    await expect(modal).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
-    // Press Escape to close modal
-    await page.keyboard.press('Escape');
-    // Wait for redirect
-    await expect(page).toHaveURL('/');
-  } else {
-    // If no modal, check if we're redirected to home or sign-in page
-    const currentUrl = page.url();
-    if (currentUrl.includes('/sign-in') || currentUrl.includes('/sign-up') || currentUrl === '/') {
-      console.log('Protected route redirected as expected');
-    } else {
-      console.warn('⚠️ Unexpected behavior on protected route access');
-    }
-  }
+  await testProtectedRouteAccess(page, {
+    route: '/protected/user',
+    expectModal: true,
+    expectRedirect: false,
+  });
 
   await revealSignInButtonIfMobile(page);
   const signInButton = page.getByTestId('sign-in-button');
@@ -143,48 +129,16 @@ export async function criticalTestFormValidation(page: Page) {
 }
 
 export async function criticalTestErrorStates(page: Page) {
-  await safeGoto(page, '/non-existent-page');
-  await waitForPageLoad(page);
-  await expect(page.locator('body')).toBeVisible();
-
-  const notFoundContent = page.locator(
-    '[data-testid="not-found"], .not-found, h1:has-text("404"), h1:has-text("Not Found")'
-  );
-  const homeContent = page.locator('main');
-
-  if ((await notFoundContent.count()) > 0) {
-    await expect(notFoundContent.first()).toBeVisible();
-  } else {
-    await expect(homeContent).toBeVisible();
-  }
+  await testErrorStates(page);
 }
 
 export async function criticalTestBrowserNavigation(page: Page) {
-  await safeGoto(page, '/');
-  await waitForPageLoad(page);
-  await safeGoto(page, '/sports/nba');
-  await waitForPageLoad(page);
-  await safeGoto(page, '/sports/nfl');
-  await waitForPageLoad(page);
-
-  await page.goBack();
-  await waitForNetworkIdle(page);
-  await expect(page).toHaveURL(/\/sports\/nba/);
-
-  await page.goForward();
-  await waitForNetworkIdle(page);
-  await expect(page).toHaveURL(/\/sports\/nfl/);
-
-  await page.goBack();
-  await page.goBack();
-  await waitForNetworkIdle(page);
-  await expect(page).toHaveURL(/\/$/);
+  await testBrowserNavigation(page, ['/', '/sports/nba', '/sports/nfl']);
 }
 
 export async function criticalTestSignInModal(page: Page) {
-  await safeGoto(page, '/');
   try {
-    await testSignInModal(page, 'escape');
+    await testSignInModalVariants(page, { method: 'escape' });
   } catch (error) {
     console.warn('⚠️ Sign-in modal test failed in critical suite:', error);
   }
