@@ -245,6 +245,33 @@ jobs:
             fi
           fi
 
+      - name: Start Development Server
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+          CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
+          NEXT_PUBLIC_RAPID_API_KEY: ${{ secrets.NEXT_PUBLIC_RAPID_API_KEY }}
+          NEXT_PUBLIC_RAPID_API_HOST: ${{ secrets.NEXT_PUBLIC_RAPID_API_HOST }}
+          NEXT_PUBLIC_RAPID_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_RAPID_API_BASE_URL }}
+        run: |
+          echo "🚀 Starting development server on port 3000..."
+          npx next dev --port 3000 > /dev/null 2>&1 &
+          DEV_SERVER_PID=$!
+
+          # Wait for server to be ready
+          echo "⏳ Waiting for server to be ready..."
+          for i in {1..30}; do
+            if curl -s http://localhost:3000/api/health > /dev/null 2>&1; then
+              echo "✅ Development server is ready!"
+              break
+            fi
+            sleep 2
+          done
+
+          # Store PID for cleanup
+          echo "DEV_SERVER_PID=$DEV_SERVER_PID" >> $GITHUB_ENV
+
       - name: Run E2E Mock Verification (All Browsers)
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
@@ -261,6 +288,14 @@ jobs:
         run: |
           echo "Running E2E Mock Verification against all browsers..."
           pnpm test:e2e:mock-verification --browser=all
+
+      - name: Stop Development Server
+        if: always()
+        run: |
+          if [ -n "$DEV_SERVER_PID" ]; then
+            echo "🛑 Stopping development server..."
+            kill $DEV_SERVER_PID 2>/dev/null || true
+          fi
 
       - name: Upload E2E Mock Verification Artifacts
         if: always()
