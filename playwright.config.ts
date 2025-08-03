@@ -42,7 +42,7 @@ const port = getPort();
 const webServerConfig = {
   command: `NODE_ENV=development API_MOCK_MODE=true E2E_MOCK_MODE=true pnpm dev -p ${port}`,
   url: `http://localhost:${port}`,
-  reuseExistingServer: !process.env.CI, // Reuse existing server in development, not in CI
+  reuseExistingServer: true, // Always reuse existing server to avoid conflicts
   timeout: APP_CONFIG.DEV_SERVER_TIMEOUT,
   stdout: 'pipe' as const,
   stderr: 'pipe' as const,
@@ -56,6 +56,8 @@ if (process.env.CI) {
   console.log('  VERCEL_URL:', process.env.VERCEL_URL);
   console.log('  VERCEL_PRODUCTION_URL:', process.env.VERCEL_PRODUCTION_URL);
   console.log('  Selected baseURL:', baseURL);
+  console.log('  getAppUrl():', getAppUrl());
+  console.log('  isLocalhostTarget():', isLocalhostTarget());
   console.log('  Will start web server:', isLocalhostTarget());
   console.log(
     '  VERCEL_AUTOMATION_BYPASS_SECRET:',

@@ -10,7 +10,7 @@ import type { TestConfig } from '@src/lib/types';
  */
 
 export const DEFAULT_CONFIG: TestConfig = {
-  baseURL: getAppUrl(),
+  baseURL: getAppUrl() || 'http://localhost:3000',
   timeout: 30000,
   retries: 2,
 };

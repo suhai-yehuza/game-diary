@@ -303,15 +303,16 @@ export const getPort = (): number => {
 export const getAppUrl = (): string => {
   // In CI, prioritize deployment URL, then Vercel URL, then localhost
   if (process.env.CI) {
-    return (
+    const url =
       process.env.DEPLOYMENT_URL ??
       process.env.VERCEL_URL ??
       process.env.VERCEL_PRODUCTION_URL ??
-      APP_CONFIG.getLocalhostUrl(getPort())
-    );
+      APP_CONFIG.getLocalhostUrl(getPort());
+    return url || APP_CONFIG.getLocalhostUrl(getPort());
   }
   // In development, use localhost
-  return process.env.DEPLOYMENT_URL ?? APP_CONFIG.getLocalhostUrl(getPort());
+  const url = process.env.DEPLOYMENT_URL ?? APP_CONFIG.getLocalhostUrl(getPort());
+  return url || APP_CONFIG.getLocalhostUrl(getPort());
 };
 
 // Helper function to check if we're targeting localhost
