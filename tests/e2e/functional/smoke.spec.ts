@@ -2,9 +2,10 @@ import { test } from '@playwright/test';
 
 import { testSignInModal } from '@tests/e2e/utils/auth-modal';
 import { SPORTS_PAGES } from '@tests/e2e/utils/constants';
+import { isMockModeEnabled, getMockData } from '@tests/e2e/utils/mock-config';
 import { navigateToSection } from '@tests/e2e/utils/navigation';
 import { testMultiplePages, testHomePage, testDashboardPage } from '@tests/e2e/utils/page-tests';
-import { commonTestSetup } from '@tests/e2e/utils/setup';
+import { commonTestSetup, enhancedTestSetup } from '@tests/e2e/utils/setup';
 import { clearTestData, TIMEOUTS } from '@tests/e2e/utils/test-utils';
 
 import { runSanitySuite } from './sanity.spec';
@@ -63,10 +64,36 @@ test.beforeEach(async ({ page }) => {
 test.describe('Smoke Tests (Extends Sanity)', () => {
   test.beforeEach(async ({ page }) => {
     // Removed mobile skip logic
-    await commonTestSetup(page);
+    await commonTestSetup(page, 'smoke-test');
+
+    // Log mock data status for debugging
+    if (isMockModeEnabled()) {
+      const mockData = getMockData();
+      console.log('🔧 Mock data available for smoke test:', Object.keys(mockData));
+    }
   });
 
   test('@smoke full smoke suite', async ({ page }) => {
+    await runSmokeSuite(page);
+  });
+});
+
+// Enhanced smoke tests with mock data support
+test.describe('Enhanced Smoke Tests with Mock Data', () => {
+  test.beforeEach(async ({ page }) => {
+    await enhancedTestSetup(page, {
+      testName: 'enhanced-smoke-test',
+      enableMockData: true,
+      mockScenario: 'smoke-test-scenario',
+    });
+  });
+
+  test('@smoke enhanced smoke suite with mock data', async ({ page }) => {
+    // Verify mock mode is working
+    if (isMockModeEnabled()) {
+      console.log('✅ Mock data is enabled for enhanced smoke test');
+    }
+
     await runSmokeSuite(page);
   });
 });

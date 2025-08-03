@@ -1,605 +1,310 @@
-# End-to-End Tests with Playwright
+# E2E Test Documentation
 
-This directory contains end-to-end tests for the Placeholder application using [Playwright](https://playwright.dev/).
+## Overview
 
-## Setup
+This directory contains end-to-end tests for the Game Diary application. The tests are designed to validate user journeys and critical functionality across different browsers and devices.
 
-The tests are already configured and ready to run. The setup includes:
+## Mock Data System
 
-- **Playwright Config**: `playwright.config.ts` in the root directory
-- **Test Files**: Located in `tests/e2e/`
-- **Utilities**: Common test utilities in `tests/e2e/utils/`
+### Overview
 
-## Mocking Strategy
+The E2E test suite includes a comprehensive mock data system that allows tests to run with consistent, predictable data instead of relying on external APIs. This ensures:
 
-To avoid API rate limiting issues and ensure reliable E2E tests, we use a comprehensive mocking strategy:
+- **Reliability**: Tests don't fail due to API outages or data changes
+- **Speed**: No network calls to external services
+- **Consistency**: Predictable test results across different environments
+- **Isolation**: Tests are independent of external data state
 
-### Environment Variables
+### Mock Data Configuration
 
-Set these environment variables to enable mock mode:
+The mock data system is controlled by environment variables:
 
-- `API_MOCK_MODE=true` - Enables API proxy to return mock data
+- `E2E_MOCK_MODE`: Enable/disable mock mode for E2E tests
+- `API_MOCK_MODE`: Enable/disable mock mode for API calls
+- `E2E_POST_DEPLOY_VERIFICATION`: Special flag for post-deployment verification tests
 
-### Mock Data Sources
+### Mock Data Types
 
-Mock data is sourced from `src/lib/mock/`:
+The following mock data types are available:
 
-- `nbaGamesMock.ts` - NBA games data
-- `nbaTeamsMock.ts` - NBA teams data
-- `nbaStandingsMock.ts` - NBA standings data
-- `nbaPlayersMock.ts` - NBA players data
-- `liveGamesMock.ts` - Live games data
+- **liveGames**: NBA live games data
+- **nbaGames**: NBA games data
+- **nbaTeams**: NBA teams data
+- **nbaPlayers**: NBA players data
+- **nbaStandings**: NBA standings data
+- **nbaGameStatistics**: NBA game statistics
+- **nbaPlayerStatistics**: NBA player statistics
+- **nbaTeamStatistics**: NBA team statistics
+- **nbaLeagues**: NBA leagues data
+- **nbaSeasons**: NBA seasons data
 
-### API Proxy Mocking
+### Usage in Tests
 
-The API proxy (`src/app/api/proxy/[...endpoint]/route.ts`) automatically returns mock data when:
-
-- `CI === 'true'`
-- `GITHUB_ACTIONS === 'true'`
-- `API_MOCK_MODE === 'true'`
-
-### Playwright Route Mocking
-
-The `setupE2EMocking()` function in `utils/test-utils.ts` mocks:
-
-- All `/api/proxy/**` endpoints with appropriate mock data
-- External API calls (RapidAPI, NBA Stats DB)
-- Clerk authentication endpoints
-- External image requests
-- CDN requests
-
-### Usage
+#### Basic Mock Data Setup
 
 ```typescript
-import { setupE2EMocking, safeGotoWithMocking } from './utils/test-utils';
+import { commonTestSetup, enhancedTestSetup } from '@tests/e2e/utils/setup';
+import { isMockModeEnabled, getMockDataByType } from '@tests/e2e/utils/mock-config';
 
-test('my test', async ({ page }) => {
-  // Set up comprehensive mocking
-  await setupE2EMocking(page);
+test.describe('My Test Suite', () => {
+  test.beforeEach(async ({ page }) => {
+    // Basic setup with mock data support
+    await commonTestSetup(page, 'my-test-name');
+  });
 
-  // Navigate with automatic mocking
-  await safeGotoWithMocking(page, '/sports/nba');
+  test('should work with mock data', async ({ page }) => {
+    // Check if mock mode is enabled
+    if (isMockModeEnabled()) {
+      const mockData = getMockDataByType('liveGames');
+      console.log('Using mock data:', mockData);
+    }
 
-  // Your test assertions...
-});
-```
-
-### Verification
-
-Run the mock verification test to ensure mocking is working:
-
-```bash
-pnpm test:e2e:mock-verification
-```
-
-## Test Files
-
-- `responsive.spec.ts` - Responsive design tests across multiple viewports
-- `mock-verification.spec.ts` - Verifies that mocking is working correctly
-- `search.spec.ts` - Search functionality tests across all pages
-- `fast.spec.ts` - Fast smoke tests
-- `auth.spec.ts` - Authentication tests
-- `dashboard.spec.ts` - Dashboard functionality tests
-- `navigation.spec.ts` - Navigation tests
-- `sports.spec.ts` - Sports page tests
-- `home.spec.ts` - Home page tests
-- `cross-browser.spec.ts` - Cross-browser compatibility tests
-
-## Running Tests
-
-### Run All Tests
-
-```bash
-# Run all e2e tests
-pnpm test:e2e
-
-# Run tests with UI mode (interactive)
-pnpm test:e2e:ui
-```
-
-### Run Specific Tests
-
-```bash
-# Run only home page tests
-npx playwright test home.spec.ts
-
-# Run only navigation tests
-npx playwright test navigation.spec.ts
-
-# Run tests in a specific browser
-npx playwright test --project=chromium
-```
-
-### Debug Mode
-
-```bash
-# Run tests in debug mode
-npx playwright test --debug
-
-# Run specific test in debug mode
-npx playwright test home.spec.ts --debug
-```
-
-## Test Structure
-
-### Current Test Files
-
-1. **`home.spec.ts`** - Tests for the home page
-   - Basic page loading
-   - Navigation links
-   - Responsive behavior
-   - Basic accessibility checks
-
-2. **`navigation.spec.ts`** - Tests for navigation between pages
-   - Sports pages navigation
-   - Dashboard navigation
-   - 404 error handling
-   - Browser back/forward functionality
-
-3. **`utils/test-utils.ts`** - Utility functions
-   - Page loading helpers
-   - Element existence checks
-   - Screenshot utilities
-   - Responsive testing helpers
-
-## Test Configuration
-
-The tests are configured to:
-
-- **Auto-start dev server**: Runs `pnpm dev` automatically
-- **Multiple browsers**: Chrome, Firefox, Safari, Mobile Chrome, Mobile Safari
-- **Screenshots**: Taken on failure
-- **Videos**: Recorded on failure
-- **Traces**: Collected on retry
-
-## Writing New Tests
-
-### Basic Test Structure
-
-```typescript
-import { test, expect } from '@playwright/test';
-
-test.describe('Feature Name', () => {
-  test('should do something', async ({ page }) => {
-    await page.goto('/some-page');
-    await page.waitForLoadState('networkidle');
-
-    // Your test assertions here
-    await expect(page.locator('main')).toBeVisible();
+    // Your test logic here
   });
 });
 ```
 
-### Using Test Utils
+#### Enhanced Mock Data Setup
 
 ```typescript
-import { test, expect } from '@playwright/test';
-import { safeGoto, checkBasicPageStructure } from './utils/test-utils';
+test.describe('Enhanced Test Suite', () => {
+  test.beforeEach(async ({ page }) => {
+    // Enhanced setup with specific mock scenario
+    await enhancedTestSetup(page, {
+      testName: 'enhanced-test',
+      enableMockData: true,
+      mockScenario: 'specific-scenario',
+    });
+  });
 
-test('should have proper page structure', async ({ page }) => {
-  await safeGoto(page, '/');
-  await checkBasicPageStructure(page);
+  test('should use specific mock scenario', async ({ page }) => {
+    // Test with enhanced mock data configuration
+  });
 });
 ```
 
-## Best Practices
+### Mock Data in Workflow
 
-1. **Wait for page load**: Always use `waitForLoadState('networkidle')` or the `safeGoto` utility
-2. **Use semantic selectors**: Prefer `getByRole`, `getByText`, `getByLabel` over CSS selectors
-3. **Test user journeys**: Focus on real user workflows, not just individual components
-4. **Keep tests independent**: Each test should be able to run in isolation
-5. **Use descriptive names**: Test names should clearly describe what they're testing
+The GitHub Actions workflow automatically enables mock mode for all E2E tests except post-deployment verification:
 
-## Debugging Tips
+```yaml
+# Regular E2E tests (with mock mode enabled)
+- name: Run E2E Tests
+  env:
+    E2E_MOCK_MODE: 'true'
+    API_MOCK_MODE: 'true'
+  run: pnpm test:e2e:navigation
 
-1. **Use headed mode**: Add `--headed` to see the browser
-2. **Slow down**: Add `--slow-mo=1000` to slow down actions
-3. **Screenshots**: Use `await page.screenshot({ path: 'debug.png' })` for debugging
-4. **Console logs**: Check `page.on('console', console.log)` for JavaScript errors
-
-## CI/CD Integration
-
-The tests are configured to work in CI environments:
-
-- Retries failed tests 2 times in CI
-- Uses single worker in CI for stability
-- Generates HTML reports
-- Screenshots and videos are available as artifacts
-
-## Troubleshooting
-
-### Common Issues
-
-1. **Server not starting**: Make sure `pnpm dev` works locally
-2. **Tests timing out**: Increase timeout in playwright.config.ts
-3. **Flaky tests**: Add more specific waits or use `waitForLoadState`
-4. **Element not found**: Check if page has fully loaded or element exists
-
-### Getting Help
-
-- [Playwright Documentation](https://playwright.dev/docs/intro)
-- [Playwright Best Practices](https://playwright.dev/docs/best-practices)
-- [Debugging Tests](https://playwright.dev/docs/debug)
-
-# E2E Test Structure
-
-This directory contains end-to-end tests organized in a compound hierarchy where each level extends the tests from the level below it.
-
-## Directory Structure
-
-```
-tests/e2e/
-├── functional/                     # Compound hierarchy tests
-│   ├── mock-verification.spec.ts   # Prerequisite tests
-│   ├── search.spec.ts              # Search functionality tests
-│   ├── fast.spec.ts                # Base level tests
-│   ├── smoke.spec.ts               # Extends fast
-│   ├── critical.spec.ts            # Extends smoke
-│   ├── responsive.spec.ts          # Extends critical
-│   └── full.spec.ts                # Extends responsive
-├── pages/                          # Page-specific tests
-│   ├── home.spec.ts                # Home page tests
-│   ├── navigation.spec.ts          # Navigation tests
-│   ├── auth.spec.ts                # Authentication tests
-│   ├── dashboard.spec.ts           # Dashboard tests
-│   ├── sports.spec.ts              # Sports pages tests
-
-│   └── cross-browser.spec.ts       # Cross-browser tests
-├── utils/                          # Shared test utilities
-│   └── test-utils.ts              # Common test functions
-├── coverage.config.ts              # Coverage configuration
-├── COVERAGE.md                     # Coverage documentation
-└── README.md                       # This file
+# Post-deployment verification (mock mode disabled)
+- name: Run Post-Deployment Verification E2E
+  env:
+    E2E_POST_DEPLOY_VERIFICATION: 'true'
+    E2E_MOCK_MODE: 'false'
+    API_MOCK_MODE: 'false'
+  run: pnpm exec playwright test tests/e2e/functional/smoke.spec.ts
 ```
 
-## Test Hierarchy
+### Mock Data Provider
 
-### 0. Mock Verification (Prerequisite)
+The mock data system uses a singleton provider pattern:
 
-**File:** `functional/mock-verification.spec.ts`
-**Tags:** `@fast`
-**Purpose:** Validates that API mocking infrastructure is working correctly
-**Configuration:** `playwright.fast.config.ts`
+```typescript
+import { mockDataProvider } from '@src/lib/mock';
 
-**Tests include:**
+// Enable mock mode
+mockDataProvider.enableMockMode();
 
-- Verification that mock data is used for API calls
-- Validation that external API endpoints are properly mocked
-- Confirmation that live games endpoint works with mocking
-- Prevention of API rate limiting issues
+// Get all mock data
+const allMockData = mockDataProvider.getAllMockData();
 
-### 0.5. Search Tests (Functional Feature)
-
-**File:** `functional/search.spec.ts`
-**Tags:** `@search`
-**Purpose:** Comprehensive search functionality testing across all pages
-**Configuration:** `playwright.fast.config.ts`
-
-**Tests include:**
-
-- Desktop search functionality and interactions
-- Mobile search overlay and touch interactions
-- Cross-page search functionality validation
-- Search edge cases and error handling
-- Search accessibility and keyboard navigation
-- Search performance and responsiveness
-
-**Usage:**
-
-```bash
-pnpm test:e2e::search
+// Get specific mock data
+const liveGames = mockDataProvider.getLiveGamesMock();
+const nbaTeams = mockDataProvider.getNbaTeamsMock();
 ```
 
-### 1. Fast Tests (Base Level)
+### E2E Mock Configuration
 
-**File:** `functional/fast.spec.ts`
-**Tags:** `@fast`
-**Purpose:** Basic smoke tests for quick feedback during development (includes mock verification)
-**Configuration:** `playwright.fast.config.ts`
+The E2E-specific mock configuration provides additional utilities:
 
-**Tests include:**
+```typescript
+import { e2eMockConfig } from '@tests/e2e/utils/mock-config';
 
-- Mock verification (prerequisite)
-- Basic page loading (home, sign-in, sign-up, NBA sports)
-- Simple navigation between pages
-- Basic page structure validation
-- Console error checking
+// Check if mock mode is enabled
+if (e2eMockConfig.isMockModeEnabled()) {
+  // Setup mock data for test
+  e2eMockConfig.setupMockData('test-name');
 
-**Usage:**
+  // Get mock data
+  const mockData = e2eMockConfig.getMockData();
 
-```bash
-pnpm test:e2e:sanity
+  // Check if endpoint should be mocked
+  if (e2eMockConfig.shouldMockEndpoint('/api/proxy/games')) {
+    // Mock this endpoint
+  }
+}
 ```
 
-### 2. Smoke Tests (Extends Fast)
-
-**File:** `functional/smoke.spec.ts`
-**Tags:** `@smoke`
-**Purpose:** Extended smoke tests with additional critical functionality
-**Configuration:** `playwright.fast.config.ts`
-
-**Tests include:**
-
-- All fast tests (imported and extended)
-- All major sports pages loading
-- Dashboard page loading
-- Form interaction testing
-- Basic accessibility checks
-- Performance metrics validation
-- Navigation between major sections
-
-**Usage:**
-
-```bash
-pnpm test:e2e:smoke
-```
-
-### 3. Critical Tests (Extends Smoke)
-
-**File:** `functional/critical.spec.ts`
-**Tags:** `@critical`
-**Purpose:** Core user flows and critical functionality
-**Configuration:** `playwright.popular.config.ts`
-
-**Tests include:**
-
-- All smoke tests (imported and extended)
-- Complete user authentication flow
-- Sports data loading and display
-- Protected route access
-- Form validation
-- Error state handling
-- Browser navigation (back/forward)
-
-**Usage:**
-
-```bash
-pnpm test:e2e:critical
-```
-
-### 4. Responsive Tests (Extends Critical)
-
-**File:** `functional/responsive.spec.ts`
-**Tags:** `@responsive`
-**Purpose:** Responsive design testing across multiple viewports
-**Configuration:** `playwright.popular.config.ts`
-
-**Tests include:**
-
-- All critical tests (imported and extended)
-- Multi-viewport testing (mobile, tablet, desktop)
-- Responsive behavior validation
-- Touch interaction testing
-- Mobile navigation testing
-- Accessibility across devices
-- Performance on different screen sizes
-
-**Usage:**
-
-```bash
-pnpm test:e2e:responsive
-```
-
-### 5. Full Tests (Extends Responsive)
-
-**File:** `functional/full.spec.ts`
-**Tags:** `@full`
-**Purpose:** Comprehensive testing including edge cases and advanced scenarios
-**Configuration:** `playwright.popular.config.ts`
-
-**Tests include:**
-
-- All responsive tests (imported and extended)
-- Cross-browser compatibility
-- Advanced form interactions
-- Comprehensive keyboard navigation
-- Mobile touch interactions
-- Comprehensive accessibility testing
-- SEO elements validation
-- Security headers checking
-- Edge cases and error scenarios
-- Performance under load
-- Data persistence and state management
-- Concurrent user interactions
-
-**Usage:**
-
-```bash
-pnpm test:e2e:full
-```
-
-## Page-Specific Tests
-
-The `pages/` directory contains tests focused on specific pages or features:
-
-### Available Page Tests
-
-- **`home.spec.ts`** - Home page functionality and layout
-- **`navigation.spec.ts`** - Navigation between pages and routes
-- **`auth.spec.ts`** - Authentication flows and user management
-- **`dashboard.spec.ts`** - Dashboard functionality and user interface
-- **`sports.spec.ts`** - Sports pages and data display
-
-- **`cross-browser.spec.ts`** - Cross-browser compatibility testing
-
-### Running Page Tests
-
-```bash
-# Run all page tests
-pnpm test:e2e:pages
-
-# Run specific page tests
-pnpm test:e2e:pages:home
-pnpm test:e2e:navigation
-pnpm test:e2e:clerk-auth
-pnpm test:e2e:pages:dashboard
-pnpm test:e2e:pages:sports
-
-pnpm test:e2e:cross-browser
-```
-
-## Test Configuration
-
-### Fast Configuration
-
-- **File:** `playwright.fast.config.ts`
-- **Test Directory:** `tests/e2e/functional/`
-- **Browsers:** Chromium only
-- **Workers:** 1
-- **Retries:** 0
-- **Purpose:** Fastest execution for development feedback
-
-### Popular Configuration
-
-- **File:** `playwright.popular.config.ts`
-- **Test Directory:** `tests/e2e/functional/`
-- **Browsers:** Chromium, WebKit, Mobile Chrome
-- **Workers:** 2-4
-- **Retries:** 1-2
-- **Purpose:** Balanced coverage and speed for CI/CD
-
-## Running Tests
-
-### Development
-
-```bash
-# Fast tests for quick feedback
-pnpm test:e2e:sanity
-
-# Smoke tests for basic validation
-pnpm test:e2e:smoke
-
-# Page-specific tests
-pnpm test:e2e:pages:home
-```
-
-### Pre-deployment
-
-```bash
-# Critical tests for deployment validation
-pnpm test:e2e:critical
-```
-
-### Full Validation
-
-```bash
-# Complete test suite
-pnpm test:e2e:full
-
-# All page tests
-pnpm test:e2e:pages
-```
-
-### Responsive Testing
-
-```bash
-# Responsive design validation
-pnpm test:e2e:responsive
-```
-
-### Compound Test Runner
-
-```bash
-# Run all functional tests in sequence
-pnpm test:e2e:compound
-
-# Run specific levels only
-pnpm test:e2e:compound:mock-verification
-pnpm test:e2e:compound:sanity
-pnpm test:e2e:compound:smoke
-pnpm test:e2e:compound:critical
-pnpm test:e2e:compound:responsive
-pnpm test:e2e:compound:full
-```
-
-## Test Utilities
-
-The tests use shared utilities from `utils/test-utils.ts`:
-
-- `safeGoto()` - Safe page navigation with error handling
-- `safeGotoWithMocking()` - Navigation with API mocking
-- `checkBasicPageStructure()` - Basic page structure validation
-- `checkAccessibilityBasics()` - Accessibility testing
-- `checkPerformanceMetrics()` - Performance validation
-- `checkResponsiveBehavior()` - Responsive design testing
-- `setupE2EMocking()` - API mocking setup
-
-## Compound Structure Benefits
-
-1. **Incremental Testing:** Each level builds upon the previous, ensuring comprehensive coverage
-2. **Fast Feedback:** Developers can run fast tests for quick validation
-3. **CI/CD Optimization:** Different levels for different deployment stages
-4. **Maintainability:** Shared test logic reduces duplication
-5. **Scalability:** Easy to add new test levels or extend existing ones
-6. **Organization:** Clear separation between functional and page-specific tests
-
-## Adding New Tests
+## Test Structure
 
 ### Functional Tests
 
-When adding new functional tests:
+Located in `tests/e2e/functional/`:
 
-1. **Fast Level:** Add basic functionality tests
-2. **Smoke Level:** Add extended functionality tests
-3. **Critical Level:** Add user flow tests
-4. **Responsive Level:** Add viewport-specific tests
-5. **Full Level:** Add comprehensive and edge case tests
+- **smoke.spec.ts**: Basic functionality tests
+- **critical.spec.ts**: Critical path tests
+- **live-games.spec.ts**: Live games functionality
+- **navigation.spec.ts**: Navigation and routing
+- **search.spec.ts**: Search functionality
+- **auth-protection.spec.ts**: Authentication and authorization
+- **auth-bypass.spec.ts**: Authentication bypass scenarios
+- **mock-verification.spec.ts**: Mock data verification
 
 ### Page Tests
 
-When adding new page tests:
+Located in `tests/e2e/pages/`:
 
-1. Create a new file in `pages/` directory
-2. Follow the naming convention: `{page-name}.spec.ts`
-3. Add a corresponding script in `package.json`
-4. Include comprehensive page-specific testing
+- **clerk-auth.spec.ts**: Clerk authentication
+- **dashboard.spec.ts**: User dashboard
+- **sports.spec.ts**: Sports pages
+- **content-page.spec.ts**: Content pages
+
+### Test Utilities
+
+Located in `tests/e2e/utils/`:
+
+- **setup.ts**: Test setup utilities
+- **mock-config.ts**: Mock data configuration
+- **test-utils.ts**: Common test utilities
+- **auth-modal.ts**: Authentication modal tests
+- **live-games-tests.ts**: Live games test utilities
+- **navigation.ts**: Navigation test utilities
+- **page-tests.ts**: Page test utilities
+
+## Running Tests
+
+### Local Development
+
+```bash
+# Run all E2E tests with mock data
+pnpm test:e2e:sanity
+
+# Run specific test suite
+pnpm test:e2e:navigation
+pnpm test:e2e:live-games
+pnpm test:e2e:search
+
+# Run with specific browser
+pnpm test:e2e:navigation --browser=chromium
+pnpm test:e2e:navigation --browser=webkit
+pnpm test:e2e:navigation --browser=firefox
+
+# Run with UI mode
+pnpm test:e2e:debug:ui
+```
+
+### CI/CD
+
+The tests run automatically in the GitHub Actions workflow:
+
+1. **Quality Gate**: Basic validation
+2. **Unit Tests**: Unit test suite
+3. **Database Tests**: Database trigger tests
+4. **E2E Mock Verification**: Mock data verification
+5. **E2E Tests**: Parallel browser tests (Chromium, WebKit, Firefox, Mobile)
+6. **Post-Deployment Verification**: Production verification (no mock data)
+
+### Environment Variables
+
+Key environment variables for E2E tests:
+
+```bash
+# Mock data configuration
+E2E_MOCK_MODE=true
+API_MOCK_MODE=true
+
+# Post-deployment verification (disables mock mode)
+E2E_POST_DEPLOY_VERIFICATION=true
+
+# Test configuration
+CI=true
+E2E_AUTH_BYPASS=true
+TEST_USER_EMAIL=test@game-diary.com
+TEST_USER_ID=test_user_123
+
+# API configuration
+NEXT_PUBLIC_RAPID_API_KEY=your_api_key
+NEXT_PUBLIC_RAPID_API_HOST=api-nba-v1.p.rapidapi.com
+NEXT_PUBLIC_RAPID_API_BASE_URL=https://api-nba-v1.p.rapidapi.com
+```
 
 ## Best Practices
 
-1. **Use appropriate tags:** `@fast`, `@smoke`, `@critical`, `@responsive`, `@full`
-2. **Import previous levels:** Always import the previous level to maintain the compound structure
-3. **Use shared utilities:** Leverage test utilities for consistency
-4. **Handle errors gracefully:** Use try-catch blocks and fallback selectors
-5. **Mock external dependencies:** Use `setupE2EMocking()` to avoid API rate limits
-6. **Test across viewports:** Ensure responsive behavior in responsive and full tests
-7. **Validate accessibility:** Include accessibility checks in smoke and above
-8. **Check performance:** Include performance validation in smoke and above
+### Mock Data Usage
+
+1. **Always check if mock mode is enabled** before using mock data
+2. **Use specific mock data types** rather than all mock data
+3. **Log mock data usage** for debugging
+4. **Clean up mock data** after tests
+
+### Test Structure
+
+1. **Use descriptive test names** that explain the scenario
+2. **Group related tests** in describe blocks
+3. **Use beforeEach hooks** for common setup
+4. **Clean up after tests** to avoid state pollution
+
+### Performance
+
+1. **Use mock data** for faster, more reliable tests
+2. **Limit network calls** in tests
+3. **Use appropriate timeouts** for different test types
+4. **Run tests in parallel** when possible
+
+### Debugging
+
+1. **Enable debug mode** with `--debug` flag
+2. **Use UI mode** for visual debugging
+3. **Check mock data logs** for data issues
+4. **Verify environment variables** are set correctly
 
 ## Troubleshooting
 
 ### Common Issues
 
-1. **Tests failing due to API rate limits:**
-   - Use `setupE2EMocking()` in test setup
-   - Use `safeGotoWithMocking()` for navigation
-
-2. **Flaky tests:**
-   - Increase retries in test configuration
-   - Add proper wait conditions
-   - Use `waitForPageLoad()` and `waitForLoadState()`
-
-3. **Responsive tests failing:**
-   - Check viewport size settings
-   - Verify mobile/desktop configurations
-   - Use appropriate device scale factors
-
-4. **Performance test failures:**
-   - Adjust timeout values based on environment
-   - Consider network conditions
-   - Use appropriate performance thresholds
+1. **Mock data not loading**: Check `E2E_MOCK_MODE` environment variable
+2. **Tests failing in CI**: Verify mock data is available
+3. **Post-deployment tests failing**: Ensure mock mode is disabled
+4. **Browser compatibility**: Test on multiple browsers
 
 ### Debug Commands
 
 ```bash
-# Run tests with UI for debugging
-pnpm test:e2e:debug:ui
+# Check mock data configuration
+node -e "console.log(require('./src/lib/mock').mockDataProvider.isMockModeEnabled())"
 
-# Run specific test file
-pnpm playwright test tests/e2e/functional/fast.spec.ts
+# Run specific test with debug
+pnpm exec playwright test tests/e2e/functional/smoke.spec.ts --debug
 
-# Run tests with specific grep pattern
-pnpm playwright test --grep @fast
-
-# Run tests with headed browser
-pnpm playwright test --headed
+# Check environment variables
+echo "E2E_MOCK_MODE: $E2E_MOCK_MODE"
+echo "API_MOCK_MODE: $API_MOCK_MODE"
+echo "E2E_POST_DEPLOY_VERIFICATION: $E2E_POST_DEPLOY_VERIFICATION"
 ```
+
+## Coverage
+
+The E2E test suite aims for comprehensive coverage of:
+
+- **Core Navigation**: All main navigation paths
+- **Authentication**: Sign in, sign up, protected routes
+- **Sports Pages**: All major sports league pages
+- **Live Games**: Live games functionality
+- **User Dashboard**: User dashboard functionality
+- **Admin Features**: Admin panel and database management
+- **Responsive Design**: Mobile and tablet responsiveness
+- **Error Handling**: 404, 500, and other error pages
+- **Performance**: Page load times and performance metrics
+- **Accessibility**: WCAG compliance and accessibility features
+- **Cross Browser**: Cross-browser compatibility
+
+See `coverage.config.ts` for detailed coverage targets and test categories.

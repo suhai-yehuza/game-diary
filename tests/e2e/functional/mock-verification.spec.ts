@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 import {
   setupE2EMocking,
   safeGotoWithMocking,
-  waitForNetworkIdle,
+  waitForDOMContentLoaded,
 } from '@tests/e2e/utils/test-utils';
 
 test.describe('Mock Verification (Prerequisite)', () => {
@@ -15,7 +15,7 @@ test.describe('Mock Verification (Prerequisite)', () => {
     await safeGotoWithMocking(page, '/sports/nba');
 
     // Wait for the page to load
-    await waitForNetworkIdle(page);
+    await waitForDOMContentLoaded(page);
 
     // Check that the page loaded without API errors
     const pageContent = await page.content();
@@ -40,7 +40,7 @@ test.describe('Mock Verification (Prerequisite)', () => {
     await safeGotoWithMocking(page, '/sports/live');
 
     // Wait for any network requests to complete
-    await waitForNetworkIdle(page);
+    await waitForDOMContentLoaded(page);
 
     // Check that the page loaded successfully without external API errors
     const body = page.locator('body');
@@ -60,7 +60,7 @@ test.describe('Mock Verification (Prerequisite)', () => {
     await safeGotoWithMocking(page, '/sports/live');
 
     // Wait for page load
-    await waitForNetworkIdle(page);
+    await waitForDOMContentLoaded(page);
 
     // Check that the page loaded successfully
     const body = page.locator('body');

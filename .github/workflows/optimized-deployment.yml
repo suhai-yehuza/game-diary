@@ -40,6 +40,19 @@ on:
       NEXT_PUBLIC_RAPID_API_BASE_URL:
         required: false
 
+# Environment variables for E2E testing
+env:
+  # Localhost URLs for different browser tests
+  E2E_CHROMIUM_URL: 'http://localhost:3000'
+  E2E_WEBKIT_URL: 'http://localhost:3001'
+  E2E_FIREFOX_URL: 'http://localhost:3002'
+  E2E_MOBILE_URL: 'http://localhost:3003'
+
+  # Mock mode configuration
+  E2E_MOCK_MODE: 'true'
+  API_MOCK_MODE: 'true'
+  CI: 'true'
+
 jobs:
   # Split validation into separate jobs for better isolation
   quality-gate:
@@ -241,7 +254,7 @@ jobs:
           NEXT_PUBLIC_RAPID_API_KEY: ${{ secrets.NEXT_PUBLIC_RAPID_API_KEY }}
           NEXT_PUBLIC_RAPID_API_HOST: ${{ secrets.NEXT_PUBLIC_RAPID_API_HOST }}
           NEXT_PUBLIC_RAPID_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_RAPID_API_BASE_URL }}
-          DEPLOYMENT_URL: ${{ env.DEFAULT_LOCALHOST_URL || 'http://localhost:3000' }}
+          DEPLOYMENT_URL: 'http://localhost:3000'
           E2E_MOCK_MODE: 'true'
           API_MOCK_MODE: 'true'
           CI: 'true'
@@ -305,6 +318,33 @@ jobs:
             fi
           fi
 
+      - name: Start Development Server
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+          CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
+          NEXT_PUBLIC_RAPID_API_KEY: ${{ secrets.NEXT_PUBLIC_RAPID_API_KEY }}
+          NEXT_PUBLIC_RAPID_API_HOST: ${{ secrets.NEXT_PUBLIC_RAPID_API_HOST }}
+          NEXT_PUBLIC_RAPID_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_RAPID_API_BASE_URL }}
+        run: |
+          echo "🚀 Starting development server on port 3000..."
+          npx next dev --port 3000 > /dev/null 2>&1 &
+          DEV_SERVER_PID=$!
+
+          # Wait for server to be ready
+          echo "⏳ Waiting for server to be ready..."
+          for i in {1..30}; do
+            if curl -s ${{ env.E2E_CHROMIUM_URL }}/api/health > /dev/null 2>&1; then
+              echo "✅ Development server is ready!"
+              break
+            fi
+            sleep 2
+          done
+
+          # Store PID for cleanup
+          echo "DEV_SERVER_PID=$DEV_SERVER_PID" >> $GITHUB_ENV
+
       - name: Run E2E Tests (Chromium)
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
@@ -314,15 +354,20 @@ jobs:
           NEXT_PUBLIC_RAPID_API_KEY: ${{ secrets.NEXT_PUBLIC_RAPID_API_KEY }}
           NEXT_PUBLIC_RAPID_API_HOST: ${{ secrets.NEXT_PUBLIC_RAPID_API_HOST }}
           NEXT_PUBLIC_RAPID_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_RAPID_API_BASE_URL }}
-          DEPLOYMENT_URL: ${{ env.DEFAULT_LOCALHOST_URL || 'http://localhost:3000' }}
-          E2E_MOCK_MODE: 'true'
-          API_MOCK_MODE: 'true'
-          CI: 'true'
+          DEPLOYMENT_URL: ${{ env.E2E_CHROMIUM_URL }}
         run: |
           echo "Running E2E tests on Chromium..."
           pnpm test:e2e:navigation --browser=chromium --port=3000
           pnpm test:e2e:responsive --browser=chromium --port=3000
           pnpm test:e2e:live-games --browser=chromium --port=3000
+
+      - name: Stop Development Server
+        if: always()
+        run: |
+          if [ -n "$DEV_SERVER_PID" ]; then
+            echo "🛑 Stopping development server..."
+            kill $DEV_SERVER_PID 2>/dev/null || true
+          fi
 
       - name: Upload E2E Chromium Artifacts
         if: always()
@@ -379,6 +424,33 @@ jobs:
             fi
           fi
 
+      - name: Start Development Server (WebKit)
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+          CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
+          NEXT_PUBLIC_RAPID_API_KEY: ${{ secrets.NEXT_PUBLIC_RAPID_API_KEY }}
+          NEXT_PUBLIC_RAPID_API_HOST: ${{ secrets.NEXT_PUBLIC_RAPID_API_HOST }}
+          NEXT_PUBLIC_RAPID_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_RAPID_API_BASE_URL }}
+        run: |
+          echo "🚀 Starting development server on port 3001..."
+          npx next dev --port 3001 > /dev/null 2>&1 &
+          DEV_SERVER_PID=$!
+
+          # Wait for server to be ready
+          echo "⏳ Waiting for server to be ready..."
+          for i in {1..30}; do
+            if curl -s ${{ env.E2E_WEBKIT_URL }}/api/health > /dev/null 2>&1; then
+              echo "✅ Development server is ready!"
+              break
+            fi
+            sleep 2
+          done
+
+          # Store PID for cleanup
+          echo "DEV_SERVER_PID=$DEV_SERVER_PID" >> $GITHUB_ENV
+
       - name: Run E2E Tests (WebKit)
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
@@ -388,15 +460,20 @@ jobs:
           NEXT_PUBLIC_RAPID_API_KEY: ${{ secrets.NEXT_PUBLIC_RAPID_API_KEY }}
           NEXT_PUBLIC_RAPID_API_HOST: ${{ secrets.NEXT_PUBLIC_RAPID_API_HOST }}
           NEXT_PUBLIC_RAPID_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_RAPID_API_BASE_URL }}
-          DEPLOYMENT_URL: ${{ env.DEFAULT_LOCALHOST_URL || 'http://localhost:3001' }}
-          E2E_MOCK_MODE: 'true'
-          API_MOCK_MODE: 'true'
-          CI: 'true'
+          DEPLOYMENT_URL: ${{ env.E2E_WEBKIT_URL }}
         run: |
           echo "Running E2E tests on WebKit..."
           pnpm test:e2e:navigation --browser=webkit --port=3001
           pnpm test:e2e:responsive --browser=webkit --port=3001
           pnpm test:e2e:live-games --browser=webkit --port=3001
+
+      - name: Stop Development Server (WebKit)
+        if: always()
+        run: |
+          if [ -n "$DEV_SERVER_PID" ]; then
+            echo "🛑 Stopping development server..."
+            kill $DEV_SERVER_PID 2>/dev/null || true
+          fi
 
       - name: Upload E2E WebKit Artifacts
         if: always()
@@ -453,6 +530,36 @@ jobs:
             fi
           fi
 
+      - name: Start Development Server (Firefox)
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+          CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
+          NEXT_PUBLIC_RAPID_API_KEY: ${{ secrets.NEXT_PUBLIC_RAPID_API_KEY }}
+          NEXT_PUBLIC_RAPID_API_HOST: ${{ secrets.NEXT_PUBLIC_RAPID_API_HOST }}
+          NEXT_PUBLIC_RAPID_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_RAPID_API_BASE_URL }}
+          E2E_MOCK_MODE: 'true'
+          API_MOCK_MODE: 'true'
+          CI: 'true'
+        run: |
+          echo "🚀 Starting development server on port 3002..."
+          npx next dev --port 3002 > /dev/null 2>&1 &
+          DEV_SERVER_PID=$!
+
+          # Wait for server to be ready
+          echo "⏳ Waiting for server to be ready..."
+          for i in {1..30}; do
+            if curl -s http://localhost:3002/api/health > /dev/null 2>&1; then
+              echo "✅ Development server is ready!"
+              break
+            fi
+            sleep 2
+          done
+
+          # Store PID for cleanup
+          echo "DEV_SERVER_PID=$DEV_SERVER_PID" >> $GITHUB_ENV
+
       - name: Run E2E Tests (Firefox)
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
@@ -462,7 +569,7 @@ jobs:
           NEXT_PUBLIC_RAPID_API_KEY: ${{ secrets.NEXT_PUBLIC_RAPID_API_KEY }}
           NEXT_PUBLIC_RAPID_API_HOST: ${{ secrets.NEXT_PUBLIC_RAPID_API_HOST }}
           NEXT_PUBLIC_RAPID_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_RAPID_API_BASE_URL }}
-          DEPLOYMENT_URL: ${{ env.DEFAULT_LOCALHOST_URL || 'http://localhost:3002' }}
+          DEPLOYMENT_URL: 'http://localhost:3002'
           E2E_MOCK_MODE: 'true'
           API_MOCK_MODE: 'true'
           CI: 'true'
@@ -471,6 +578,14 @@ jobs:
           pnpm test:e2e:navigation --browser=firefox --port=3002
           pnpm test:e2e:responsive --browser=firefox --port=3002
           pnpm test:e2e:live-games --browser=firefox --port=3002
+
+      - name: Stop Development Server (Firefox)
+        if: always()
+        run: |
+          if [ -n "$DEV_SERVER_PID" ]; then
+            echo "🛑 Stopping development server..."
+            kill $DEV_SERVER_PID 2>/dev/null || true
+          fi
 
       - name: Upload E2E Firefox Artifacts
         if: always()
@@ -527,6 +642,36 @@ jobs:
             fi
           fi
 
+      - name: Start Development Server (Mobile)
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+          CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
+          NEXT_PUBLIC_RAPID_API_KEY: ${{ secrets.NEXT_PUBLIC_RAPID_API_KEY }}
+          NEXT_PUBLIC_RAPID_API_HOST: ${{ secrets.NEXT_PUBLIC_RAPID_API_HOST }}
+          NEXT_PUBLIC_RAPID_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_RAPID_API_BASE_URL }}
+          E2E_MOCK_MODE: 'true'
+          API_MOCK_MODE: 'true'
+          CI: 'true'
+        run: |
+          echo "🚀 Starting development server on port 3003..."
+          npx next dev --port 3003 > /dev/null 2>&1 &
+          DEV_SERVER_PID=$!
+
+          # Wait for server to be ready
+          echo "⏳ Waiting for server to be ready..."
+          for i in {1..30}; do
+            if curl -s http://localhost:3003/api/health > /dev/null 2>&1; then
+              echo "✅ Development server is ready!"
+              break
+            fi
+            sleep 2
+          done
+
+          # Store PID for cleanup
+          echo "DEV_SERVER_PID=$DEV_SERVER_PID" >> $GITHUB_ENV
+
       - name: Run E2E Tests (Mobile)
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
@@ -536,7 +681,7 @@ jobs:
           NEXT_PUBLIC_RAPID_API_KEY: ${{ secrets.NEXT_PUBLIC_RAPID_API_KEY }}
           NEXT_PUBLIC_RAPID_API_HOST: ${{ secrets.NEXT_PUBLIC_RAPID_API_HOST }}
           NEXT_PUBLIC_RAPID_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_RAPID_API_BASE_URL }}
-          DEPLOYMENT_URL: ${{ env.DEFAULT_LOCALHOST_URL || 'http://localhost:3003' }}
+          DEPLOYMENT_URL: 'http://localhost:3003'
           E2E_MOCK_MODE: 'true'
           API_MOCK_MODE: 'true'
           CI: 'true'
@@ -545,6 +690,14 @@ jobs:
           pnpm test:e2e:navigation --browser=mobile --port=3003
           pnpm test:e2e:responsive --browser=mobile --port=3003
           pnpm test:e2e:live-games --browser=mobile --port=3003
+
+      - name: Stop Development Server (Mobile)
+        if: always()
+        run: |
+          if [ -n "$DEV_SERVER_PID" ]; then
+            echo "🛑 Stopping development server..."
+            kill $DEV_SERVER_PID 2>/dev/null || true
+          fi
 
       - name: Upload E2E Mobile Artifacts
         if: always()
@@ -705,8 +858,9 @@ jobs:
           TEST_USER_EMAIL: 'test@game-diary.com'
           TEST_USER_ID: 'test_user_123'
           VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
-          E2E_MOCK_MODE: 'true'
-          API_MOCK_MODE: 'true'
+          E2E_POST_DEPLOY_VERIFICATION: 'true'
+          E2E_MOCK_MODE: 'false'
+          API_MOCK_MODE: 'false'
           CI: 'true'
         run: |
           echo "Running post-deployment verification E2E tests..."

@@ -72,9 +72,9 @@ vi.mock('@/lib/config/app.config', () => ({
     endpoints: {
       SEASONS: '/api/seasons',
       LEAGUES: '/api/leagues',
-      GAMES: '/api/games',
-      TEAMS: '/api/teams',
-      PLAYERS: '/api/players',
+      GAMES: '/api/proxy/games',
+      TEAMS: '/api/proxy/teams',
+      PLAYERS: '/api/proxy/players',
       STANDINGS: '/api/standings',
       GAME_STATISTICS: '/api/game-statistics',
       TEAM_STATISTICS: '/api/team-statistics',

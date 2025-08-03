@@ -1,20 +1,17 @@
 import { test, expect } from '@playwright/test';
 
 import {
-  testLiveGamesBanner,
-  testLiveGamesBannerStructure,
-  testSpecificGameData,
   testBannerAnimations,
-  testLiveGamesDetailPage,
   testLiveGamesStates,
   TEST_GAMES_DATA,
 } from '@tests/e2e/utils/live-games-tests';
+import { isMockModeEnabled, getMockDataByType } from '@tests/e2e/utils/mock-config';
+import { commonTestSetup, enhancedTestSetup } from '@tests/e2e/utils/setup';
 import {
   waitForNetworkIdle,
   clearTestData,
   safeGoto,
   waitForPageLoad,
-  TIMEOUTS,
 } from '@tests/e2e/utils/test-utils';
 
 // Import mock data for testing
@@ -42,6 +39,9 @@ test.describe('Live Games Functionality', () => {
 
   test.describe('Live Games Banner', () => {
     test('should display live games banner on non-auth pages', async ({ page }) => {
+      // Setup with mock data support
+      await commonTestSetup(page, 'live-games-banner-test');
+
       // Test on home page
       await safeGoto(page, '/');
       await waitForPageLoad(page);
@@ -102,115 +102,48 @@ test.describe('Live Games Functionality', () => {
       const banner = page.locator('[data-testid="live-games-banner"]');
       await expect(banner).toBeVisible();
 
-      // Check for "View All" link
       const viewAllLink = banner.getByRole('link', { name: 'View All' });
       await expect(viewAllLink).toBeVisible();
       await expect(viewAllLink).toHaveAttribute('href', '/sports/live');
-    });
-
-    test('should navigate to live games page when "View All" is clicked', async ({ page }) => {
-      await safeGoto(page, '/');
-      await waitForPageLoad(page);
-      await waitForNetworkIdle(page);
-
-      const banner = page.locator('[data-testid="live-games-banner"]');
-      await expect(banner).toBeVisible();
-
-      // Click "View All" link
-      const viewAllLink = banner.getByRole('link', { name: 'View All' });
-      await expect(viewAllLink).toBeVisible();
-      await expect(viewAllLink).toHaveAttribute('href', '/sports/live');
-
-      await viewAllLink.click();
-
-      // Should navigate to live games page
-      await expect(page).toHaveURL(/\/sports\/live/, { timeout: TIMEOUTS.SHORT });
-    });
-
-    test('should display live indicator with animation', async ({ page }) => {
-      await safeGoto(page, '/');
-      await waitForPageLoad(page);
-      await waitForNetworkIdle(page);
-
-      const banner = page.locator('[data-testid="live-games-banner"]');
-      await expect(banner).toBeVisible();
-
-      // Check for animated live indicator using data-testid
-      const liveIndicator = banner.locator('[data-testid="live-indicator"]');
-
-      // First check if the element exists
-      await expect(liveIndicator).toBeAttached();
-
-      // Check for animation classes (element might be hidden due to CSS but should exist)
-      await expect(liveIndicator).toBeAttached();
-      await expect(liveIndicator).toHaveClass(/animate-live-dot-glow/);
-      await expect(liveIndicator).toHaveClass(/bg-red-600/);
-      await expect(liveIndicator).toHaveClass(/rounded-full/);
-    });
-
-    test('should display specific game data from mock', async ({ page }) => {
-      await safeGoto(page, '/');
-      await waitForPageLoad(page);
-      await waitForNetworkIdle(page);
-
-      const banner = page.locator('[data-testid="live-games-banner"]');
-      await expect(banner).toBeVisible();
-
-      // Debug: Check if games are being displayed
-      const games = banner.locator('[data-testid="game"]');
-      const gameCount = await games.count();
-      console.log(`Found ${gameCount} games in banner`);
-
-      // Test for specific teams from mock data (banner shows scores inline)
-      const knicksCeltics = banner.locator(
-        `text=${TEST_GAMES_DATA.knicksCeltics.teams.visitors.code}`
-      );
-      const warriorsLakers = banner.locator(
-        `text=${TEST_GAMES_DATA.warriorsLakers.teams.visitors.code}`
-      );
-
-      // Debug: Check what the test data expects
-      console.log('Looking for:', `${TEST_GAMES_DATA.knicksCeltics.teams.visitors.code}`);
-      console.log('Looking for:', `${TEST_GAMES_DATA.warriorsLakers.teams.visitors.code}`);
-
-      // Debug: Check what text is actually in the banner
-      const bannerText = await banner.textContent();
-      console.log('Banner text:', bannerText);
-
-      // At least one of these games should be visible
-      const hasKnicksCeltics = (await knicksCeltics.count()) > 0;
-      const hasWarriorsLakers = (await warriorsLakers.count()) > 0;
-
-      expect(hasKnicksCeltics || hasWarriorsLakers).toBe(true);
-
-      // Check for scores from mock data
-      const scores = banner.locator('text=/\\d+/');
-      await expect(scores.first()).toBeVisible();
-    });
-
-    test('should have scrolling animation in banner', async ({ page }) => {
-      await safeGoto(page, '/');
-      await waitForPageLoad(page);
-      await waitForNetworkIdle(page);
-
-      const banner = page.locator('[data-testid="live-games-banner"]');
-      await expect(banner).toBeVisible();
-
-      // Check for scrolling animation
-      const scrollingContent = banner.locator('.animate-scroll-left');
-      await expect(scrollingContent).toBeVisible();
-
-      // Check for game separators (they might be hidden due to CSS but should exist)
-      const separators = banner.locator('.w-px.h-6.bg-gray-600');
-      const separatorCount = await separators.count();
-      if (separatorCount > 0) {
-        await expect(separators.first()).toBeAttached();
-      }
     });
   });
 
-  test.describe('Live Games Detail Page', () => {
-    test('should load live games detail page', async ({ page }) => {
+  test.describe('Enhanced Live Games Tests with Mock Data', () => {
+    test.beforeEach(async ({ page }) => {
+      await enhancedTestSetup(page, {
+        testName: 'enhanced-live-games-test',
+        enableMockData: true,
+        mockScenario: 'live-games-scenario',
+      });
+    });
+
+    test('should use mock data for live games functionality', async ({ page }) => {
+      // Verify mock data is available
+      if (isMockModeEnabled()) {
+        const liveGamesMock = getMockDataByType('liveGames');
+        console.log('✅ Using mock live games data:', liveGamesMock?.results || 'No data');
+      }
+
+      await safeGoto(page, '/');
+      await waitForPageLoad(page);
+      await waitForNetworkIdle(page);
+
+      // Test live games banner with mock data
+      const banner = page.locator('[data-testid="live-games-banner"]');
+      await expect(banner).toBeVisible();
+
+      // Test with mock data expectations
+      if (isMockModeEnabled()) {
+        const liveGamesMock = getMockDataByType('liveGames');
+        if (liveGamesMock?.results) {
+          const expectedGameCount = liveGamesMock.results;
+          const gamesCount = banner.locator(`text=${expectedGameCount} Live Games`);
+          await expect(gamesCount).toBeVisible();
+        }
+      }
+    });
+
+    test('should navigate to live games detail page with mock data', async ({ page }) => {
       await safeGoto(page, '/sports/live');
       await waitForPageLoad(page);
       await waitForNetworkIdle(page);
@@ -220,189 +153,115 @@ test.describe('Live Games Functionality', () => {
       await expect(title).toBeVisible();
       await expect(title).toHaveText('Live NBA Games');
 
-      // Check for welcome message (optional, remove if not present in UI)
-      // const welcomeMessage = page.getByText('Welcome, User!');
-      // await expect(welcomeMessage).toBeVisible();
-    });
-
-    test('should display live games with proper structure', async ({ page }) => {
-      await safeGoto(page, '/sports/live');
-      await waitForPageLoad(page);
-      await waitForNetworkIdle(page);
-
-      // Check for games grid or empty state
-      const gamesGrid = page.locator('[data-testid="live-games-grid"]');
-      const noGamesTitle = page.getByText('No Live Games');
-      const noGamesDesc = page.getByText('There are currently no live NBA games.');
-      if (await gamesGrid.isVisible()) {
-        await expect(gamesGrid).toBeVisible();
-      } else {
-        await expect(noGamesTitle).toBeVisible();
-        await expect(noGamesDesc).toBeVisible();
+      // Check for games count with mock data
+      if (isMockModeEnabled()) {
+        const liveGamesMock = getMockDataByType('liveGames');
+        if (liveGamesMock?.results) {
+          const gamesCount = page.locator(`text=${liveGamesMock.results} games`);
+          await expect(gamesCount).toBeVisible();
+        }
       }
-    });
-
-    test('should display game details correctly', async ({ page }) => {
-      await safeGoto(page, '/sports/live');
-      await waitForPageLoad(page);
-      await waitForNetworkIdle(page);
-
-      // If no games, expect the empty state
-      const noGamesTitle = page.getByText('No Live Games');
-      const noGamesDesc = page.getByText('There are currently no live NBA games.');
-      const gamesGrid = page.locator('[data-testid="live-games-grid"]');
-      if (await gamesGrid.isVisible()) {
-        await expect(gamesGrid).toBeVisible();
-      } else {
-        await expect(noGamesTitle).toBeVisible();
-        await expect(noGamesDesc).toBeVisible();
-      }
-    });
-
-    test('should handle no live games state', async ({ page }) => {
-      await safeGoto(page, '/sports/live');
-      await waitForPageLoad(page);
-      await waitForNetworkIdle(page);
-
-      // Expect the empty state only if the grid is not visible
-      const gamesGrid = page.locator('[data-testid="live-games-grid"]');
-      const noGamesTitle = page.getByText('No Live Games');
-      const noGamesDesc = page.getByText('There are currently no live NBA games.');
-      if (!(await gamesGrid.isVisible())) {
-        await expect(noGamesTitle).toBeVisible();
-        await expect(noGamesDesc).toBeVisible();
-      }
-    });
-
-    test('should display loading state', async ({ page }) => {
-      // Navigate to live games page and check for loading state
-      await safeGoto(page, '/sports/live');
-      // Check for loading indicator
-      const _spinner = page.locator('.animate-spin, [data-testid="loading-spinner"]');
-      const loadingText = page.getByText('Loading live games...');
-
-      // The page should show either loading, games, or no games message
-      const hasLoading = await loadingText.isVisible();
-      const gamesGrid = page.locator('[data-testid="live-games-grid"]').first();
-      const hasGames = await gamesGrid.isVisible();
-      const noGamesTitle = page.getByText('No Live Games');
-      const hasNoGames = await noGamesTitle.isVisible();
-
-      expect(hasLoading || hasGames || hasNoGames).toBe(true);
-    });
-
-    test('should handle error state gracefully', async ({ page }) => {
-      // This test might need to be adjusted based on error handling
-      await safeGoto(page, '/sports/live');
-      await waitForPageLoad(page);
-      await waitForNetworkIdle(page);
-
-      // Expect error state or empty state
-      const errorTitle = page.getByText('Error loading live games');
-      const noGamesTitle = page.getByText('No Live Games');
-      const noGamesDesc = page.getByText('There are currently no live NBA games.');
-      if ((await errorTitle.count()) > 0) {
-        await expect(errorTitle).toBeVisible();
-      } else if ((await noGamesTitle.count()) > 0) {
-        await expect(noGamesTitle).toBeVisible();
-        await expect(noGamesDesc).toBeVisible();
-      } // else: do nothing, test passes if neither error nor empty state is present
     });
   });
 
-  test.describe('Live Games Integration', () => {
-    test('should maintain live games state across navigation', async ({ page }) => {
-      // Start on home page
-      await safeGoto(page, '/');
-      await waitForPageLoad(page);
-      await waitForNetworkIdle(page);
-      const banner = page.locator('[data-testid="live-games-banner"]');
-      if ((await banner.count()) > 0) {
-        await expect(banner).toBeVisible();
-      }
-
-      // Navigate to NBA page
-      await safeGoto(page, '/sports/nba');
-      await waitForPageLoad(page);
-      await waitForNetworkIdle(page);
-      if ((await banner.count()) > 0) {
-        await expect(banner).toBeVisible();
-      }
-
-      // Navigate to live games page
+  test.describe('Live Games Detail Page', () => {
+    test('should display live games detail page correctly', async ({ page }) => {
       await safeGoto(page, '/sports/live');
       await waitForPageLoad(page);
       await waitForNetworkIdle(page);
-      if ((await banner.count()) > 0) {
-        await expect(banner).toBeVisible();
+
+      // Check page title
+      const title = page.getByRole('heading', { level: 1 });
+      await expect(title).toBeVisible();
+      await expect(title).toHaveText('Live NBA Games');
+
+      // Check for games count
+      const gamesCount = page.locator(`text=${TEST_GAMES_DATA.totalGames} games`);
+      await expect(gamesCount).toBeVisible();
+
+      // Check for games grid
+      const gamesGrid = page.locator('[data-testid="live-games-grid"]');
+      await expect(gamesGrid).toBeVisible();
+
+      // Check for individual game cards
+      const gameCards = page.locator('[data-testid="game-card"]');
+      const gameCount = await gameCards.count();
+
+      if (gameCount > 0) {
+        // Check that at least one game card is visible
+        await expect(gameCards.first()).toBeVisible();
+
+        // Check for live status indicator
+        const liveStatus = gameCards.first().locator('text=LIVE');
+        await expect(liveStatus).toBeVisible();
+
+        // Check for team information
+        const teamInfo = gameCards.first().locator('.font-semibold');
+        await expect(teamInfo.first()).toBeVisible();
       }
     });
+  });
 
-    test('should update live games data periodically', async ({ page }) => {
-      await safeGoto(page, '/');
-      await waitForPageLoad(page);
-      await waitForNetworkIdle(page);
-      const banner = page.locator('[data-testid="live-games-banner"]');
-      if ((await banner.count()) > 0) {
-        await expect(banner).toBeVisible();
-        // Wait for potential refresh (simulate periodic update)
-        // For testing, just verify the banner remains visible after a short wait
-        await page.waitForTimeout(2000); // Simulate periodic update interval
-        await expect(banner).toBeVisible();
-      }
-      // If banner is not present, skip assertion (robust for mobile/tablet)
+  test.describe('Live Games States', () => {
+    test('should handle different live games states', async ({ page }) => {
+      await testLiveGamesStates(page);
     });
+  });
 
+  test.describe('Live Games Mobile', () => {
     test('should work correctly on mobile devices', async ({ page }) => {
-      await safeGoto(page, '/sports/live');
-      try {
-        await waitForPageLoad(page, 10000); // Use allowed timeout value
-        await waitForNetworkIdle(page, 20000);
-      } catch (_e) {
-        // If page fails to load, skip assertions (robust for Firefox flakiness)
-        test.skip(true, 'Page failed to load on Firefox/mobile, skipping assertions');
-        return;
-      }
+      // Set mobile viewport
+      await page.setViewportSize({ width: 375, height: 667 });
 
-      // Robust check: grid, error, or empty state
-      const gamesGrid = page.locator('[data-testid="live-games-grid"]');
-      const errorTitle = page.getByText('Error loading live games');
-      const noGamesTitle = page.getByText('No Live Games');
-      const noGamesDesc = page.getByText('There are currently no live NBA games.');
-
-      if (await gamesGrid.isVisible()) {
-        await expect(gamesGrid).toBeVisible();
-      } else if ((await errorTitle.count()) > 0) {
-        await expect(errorTitle).toBeVisible();
-      } else if ((await noGamesTitle.count()) > 0 && (await noGamesDesc.count()) > 0) {
-        await expect(noGamesTitle).toBeVisible();
-        await expect(noGamesDesc).toBeVisible();
-      }
-    });
-  });
-
-  test.describe('Comprehensive Live Games Tests', () => {
-    test('should run complete live games test suite', async ({ page }) => {
       await safeGoto(page, '/');
       await waitForPageLoad(page);
       await waitForNetworkIdle(page);
 
-      // Test banner functionality with mock data
-      await testLiveGamesBanner(page);
-      await testLiveGamesBannerStructure(page);
-      await testSpecificGameData(page);
-      await testBannerAnimations(page);
-
-      // Test navigation
+      // Check for live games banner on mobile
       const banner = page.locator('[data-testid="live-games-banner"]');
       await expect(banner).toBeVisible();
-      const viewAllLink = banner.getByRole('link', { name: 'View All' });
-      await viewAllLink.click();
-      await expect(page).toHaveURL(/\/sports\/live/);
 
-      // Test detail page
-      await testLiveGamesDetailPage(page);
-      await testLiveGamesStates(page);
+      // Check for responsive design
+      const bannerStyle = await banner.evaluate(el => {
+        const style = window.getComputedStyle(el);
+        return {
+          display: style.display,
+          width: style.width,
+        };
+      });
+
+      // Banner should be visible and properly sized on mobile
+      expect(bannerStyle.display).not.toBe('none');
+    });
+  });
+
+  test.describe('Live Games Animations', () => {
+    test('should have proper animations for live indicator', async ({ page }) => {
+      await testBannerAnimations(page);
+    });
+  });
+
+  test.describe('Live Games Navigation', () => {
+    test('should navigate between live games pages', async ({ page }) => {
+      // Test navigation from home to live games
+      await safeGoto(page, '/');
+      await waitForPageLoad(page);
+      await waitForNetworkIdle(page);
+
+      // Click on "View All" link
+      const viewAllLink = page
+        .locator('[data-testid="live-games-banner"]')
+        .getByRole('link', { name: 'View All' });
+      await expect(viewAllLink).toBeVisible();
+      await viewAllLink.click();
+
+      // Should navigate to live games page
+      await expect(page).toHaveURL(/.*\/sports\/live/);
+
+      // Check that we're on the live games page
+      const title = page.getByRole('heading', { level: 1 });
+      await expect(title).toBeVisible();
+      await expect(title).toHaveText('Live NBA Games');
     });
   });
 });

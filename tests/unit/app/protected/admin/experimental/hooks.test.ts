@@ -18,9 +18,9 @@ vi.mock('@/lib/config/app.config', () => ({
     endpoints: {
       SEASONS: '/api/seasons',
       LEAGUES: '/api/leagues',
-      GAMES: '/api/games',
-      TEAMS: '/api/teams',
-      PLAYERS: '/api/players',
+      GAMES: '/api/proxy/games',
+      TEAMS: '/api/proxy/teams',
+      PLAYERS: '/api/proxy/players',
       STANDINGS: '/api/standings',
     },
   },
@@ -208,7 +208,7 @@ describe('Admin Experimental Hooks', () => {
       const { result } = renderHook(() => useApiFetch());
 
       await act(async () => {
-        await result.current.handleFetch('/api/games', {});
+        await result.current.handleFetch('/api/proxy/games', {});
       });
 
       expect(result.current.loading).toBe(false);

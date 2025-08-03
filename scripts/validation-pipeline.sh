@@ -407,6 +407,7 @@ get_task_command() {
         "test_e2e_sanity") echo "test:e2e:sanity" ;;
         "test_e2e_critical") echo "test:e2e:critical" ;;
         "test_e2e_mock") echo "test:e2e:mock-verification" ;;
+        "test_e2e_mock_server") echo "test:e2e:mock-server" ;;
         "test_e2e_security") echo "test:e2e:security" ;;
         "test_e2e_search") echo "test:e2e:search" ;;
         "test_e2e_performance") echo "test:e2e:performance" ;;
@@ -446,6 +447,7 @@ get_e2e_test_path() {
         "search") echo "tests/e2e/functional/search.spec.ts" ;;
         "browser") echo "tests/e2e/functional/browser.spec.ts" ;;
         "mock-verification") echo "tests/e2e/functional/mock-verification.spec.ts" ;;
+        "mock-server") echo "tests/e2e/functional/mock-server.spec.ts" ;;
         "full"|"all") echo "tests/e2e/" ;;
         *) echo "" ;;
     esac
@@ -1040,7 +1042,7 @@ show_e2e_usage() {
     echo "  server [action]   - Manage test server"
     echo ""
     echo "E2E Test Suites:"
-    echo "  sanity, smoke, critical, navigation, performance, security, vercel-auth, clerk-auth, auth-protection, search, browser, mock-verification, fast, standard, full, all"
+    echo "  sanity, smoke, critical, navigation, performance, security, vercel-auth, clerk-auth, auth-protection, search, browser, mock-verification, mock-server, fast, standard, full, all"
     echo ""
     echo "E2E Options:"
     echo "  --browser=BROWSER  - Browser (chromium, webkit, firefox, mobile)"

@@ -50,23 +50,40 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   // Update notifications when data changes
   useEffect(() => {
     if (notificationsData?.userNotifications) {
-      const notificationNodes = notificationsData.userNotifications.edges.map((edge: any) => ({
-        id: edge.node.id,
-        userId: edge.node.user_id,
-        type: edge.node.type,
-        title: edge.node.title,
-        message: edge.node.message,
-        read: edge.node.read,
-        readAt: edge.node.read ? new Date(edge.node.updated_at) : null,
-        createdAt: new Date(edge.node.created_at),
-        updatedAt: new Date(edge.node.updated_at),
-        deletedAt: edge.node.deleted_at ? new Date(edge.node.deleted_at) : null,
-        resolved: edge.node.resolved,
-        data: {
-          targetId: edge.node.target_id,
-          targetType: edge.node.target_type,
-        },
-      }));
+      const notificationNodes = notificationsData.userNotifications.edges.map(
+        (edge: {
+          node: {
+            id: string;
+            user_id: string;
+            type: string;
+            title: string;
+            message: string;
+            target_id?: string | null;
+            target_type?: string | null;
+            resolved: boolean;
+            read: boolean;
+            created_at: string;
+            updated_at: string;
+            deleted_at?: string | null;
+          };
+        }) => ({
+          id: edge.node.id,
+          userId: edge.node.user_id,
+          type: edge.node.type,
+          title: edge.node.title,
+          message: edge.node.message,
+          read: edge.node.read,
+          readAt: edge.node.read ? new Date(edge.node.updated_at) : null,
+          createdAt: new Date(edge.node.created_at),
+          updatedAt: new Date(edge.node.updated_at),
+          deletedAt: edge.node.deleted_at ? new Date(edge.node.deleted_at) : null,
+          resolved: edge.node.resolved,
+          data: {
+            targetId: edge.node.target_id,
+            targetType: edge.node.target_type,
+          },
+        })
+      );
       setNotifications(notificationNodes);
     }
   }, [notificationsData]);
