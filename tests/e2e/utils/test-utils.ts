@@ -285,7 +285,7 @@ export async function waitForNavigationComplete(
 /**
  * Wait for search results to load
  */
-export async function waitForSearchResults(page: Page, timeout = TIMEOUTS.MEDIUM): Promise<void> {
+export async function waitForSearchResults(page: Page, timeout = TIMEOUTS.LONG): Promise<void> {
   // Wait for search results container
   await page.waitForSelector('[data-testid="search-results"], .search-results', { timeout });
 

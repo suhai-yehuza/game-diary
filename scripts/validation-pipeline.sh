@@ -66,7 +66,7 @@ E2E_TIMEOUT=1800  # 30 minutes for E2E tests
 # - Comprehensive cleanup of test processes
 # - Skip mock verification in browser-specific jobs when already run
 E2E_BROWSER="chromium"
-E2E_WORKERS=1
+E2E_WORKERS=2
 E2E_HEADED=false
 E2E_DEBUG=false
 E2E_PORT=3000
