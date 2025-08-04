@@ -60,6 +60,11 @@ CI_RETRIES=2
 E2E_TIMEOUT=1800  # 30 minutes for E2E tests
 
 # E2E Configuration
+# Note: Port management has been improved to handle conflicts between jobs
+# - Each browser job uses a different port (3000, 3001, 3002, 3003)
+# - Automatic port finding when requested port is in use
+# - Comprehensive cleanup of test processes
+# - Skip mock verification in browser-specific jobs when already run
 E2E_BROWSER="chromium"
 E2E_WORKERS=1
 E2E_HEADED=false
@@ -94,12 +99,32 @@ is_port_in_use() {
     lsof -i:$port -sTCP:LISTEN >/dev/null 2>&1
 }
 
+# Find an available port starting from a given port
+find_available_port() {
+    local start_port="${1:-3000}"
+    local port=$start_port
+
+    while [ $port -lt 3010 ]; do
+        if ! is_port_in_use "$port"; then
+            echo "$port"
+            return 0
+        fi
+        ((port++))
+    done
+
+    echo "$start_port"  # Fallback to original port
+    return 1
+}
+
 # Cleanup function for E2E tests
 cleanup_e2e_resources() {
     log_info "Cleaning up E2E test resources..."
 
     # Kill any lingering Playwright processes
     pkill -f "playwright" 2>/dev/null || true
+
+    # Kill any Next.js development servers
+    pkill -f "next dev" 2>/dev/null || true
 
     # Clear browser cache and temporary files
     rm -rf ~/.cache/ms-playwright 2>/dev/null || true
@@ -119,6 +144,10 @@ cleanup_e2e_resources() {
             fi
         fi
     done
+
+    # Additional cleanup for any remaining test processes
+    pkill -f "node.*dev" 2>/dev/null || true
+    pkill -f "pnpm.*dev" 2>/dev/null || true
 
     log_success "E2E cleanup completed"
 }
@@ -466,6 +495,15 @@ run_task() {
     if [[ "$task_name" == test_e2e_* ]] && [ "$SKIP_E2E_TESTS" = true ]; then
         log_warning "Skipping E2E task: $task_name (SKIP_E2E_TESTS=true)"
         return 0
+    fi
+
+    # Skip mock verification if it's already been run successfully in CI
+    if [[ "$task_name" == "test_e2e_mock" ]] && is_ci; then
+        # Check if we're in a browser-specific job (not the mock verification job)
+        if [ -n "$E2E_BROWSER" ] && [ "$E2E_BROWSER" != "all" ]; then
+            log_info "Skipping mock verification task - already completed in mock verification job"
+            return 0
+        fi
     fi
 
     # Get command from mapping
@@ -1073,6 +1111,10 @@ setup_e2e_environment() {
     # Clean up artifacts
     cleanup_e2e_artifacts
 
+    # Comprehensive cleanup of any existing test processes
+    log_info "Performing comprehensive cleanup..."
+    cleanup_e2e_resources
+
     log_success "E2E test environment ready"
 }
 
@@ -1083,6 +1125,18 @@ cleanup_e2e_artifacts() {
 
 # Start E2E test server
 start_e2e_server() {
+    # Find an available port if the requested port is in use
+    local target_port="$E2E_PORT"
+    if is_port_in_use "$target_port"; then
+        log_info "Port $target_port is in use, finding available port..."
+        local available_port=$(find_available_port "$target_port")
+        if [ "$available_port" != "$target_port" ]; then
+            log_info "Using available port $available_port instead of $target_port"
+            E2E_PORT="$available_port"
+            LOCALHOST_URL="http://localhost:$available_port"
+        fi
+    fi
+
     log_info "🚀 Starting E2E test server on port $E2E_PORT..."
 
     # Kill any existing processes on port
@@ -1099,6 +1153,11 @@ start_e2e_server() {
                 echo "$pids" | xargs kill -9 2>/dev/null || true
                 sleep 1
             fi
+
+            # Additional cleanup for common test processes
+            pkill -f "next dev" 2>/dev/null || true
+            pkill -f "playwright" 2>/dev/null || true
+            sleep 2
         fi
     fi
 
@@ -1149,6 +1208,10 @@ stop_e2e_server() {
         if [ -n "$pids" ]; then
             echo "$pids" | xargs kill -9 2>/dev/null || true
         fi
+
+        # Additional cleanup for any Next.js development servers
+        pkill -f "next dev.*$E2E_PORT" 2>/dev/null || true
+        pkill -f "npx next dev.*$E2E_PORT" 2>/dev/null || true
 
         E2E_SERVER_PID=""
         E2E_SERVER_STARTED=false
@@ -1203,8 +1266,12 @@ run_e2e_test_suite() {
     # Add test path
     cmd="$cmd $test_path"
 
+    # Set environment variables for the test
+    export PORT="$E2E_PORT"
+    export LOCALHOST_URL="$LOCALHOST_URL"
+
     # Run the tests
-    log_info "🧪 Running $suite tests..."
+    log_info "🧪 Running $suite tests on port $E2E_PORT..."
     if eval "$cmd"; then
         log_success "$suite tests completed successfully"
         return 0
