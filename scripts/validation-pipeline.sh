@@ -126,8 +126,10 @@ cleanup_e2e_resources() {
     # Kill any Next.js development servers
     pkill -f "next dev" 2>/dev/null || true
 
-    # Clear browser cache and temporary files
-    rm -rf ~/.cache/ms-playwright 2>/dev/null || true
+    # Clear browser cache and temporary files (but not in CI where browsers are pre-installed)
+    if [ "$CI" != "true" ]; then
+        rm -rf ~/.cache/ms-playwright 2>/dev/null || true
+    fi
 
     # Force garbage collection if possible
     if command -v node >/dev/null 2>&1; then
@@ -1254,7 +1256,7 @@ run_e2e_test_suite() {
     local cmd="pnpm exec playwright test"
 
     # Add browser configuration
-    if [ "$E2E_BROWSER" != "chromium" ]; then
+    if [ "$E2E_BROWSER" != "chromium" ] && [ "$E2E_BROWSER" != "all" ]; then
         cmd="$cmd --project=$E2E_BROWSER"
     fi
 
