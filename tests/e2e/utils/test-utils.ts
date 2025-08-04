@@ -8,19 +8,19 @@ import type { TestConfig } from '@src/lib/types';
  * Core test utilities for e2e tests
  * Provides essential functions for page navigation, element checks, and test helpers
  */
-
+const SECONDS = 1000;
 export const DEFAULT_CONFIG: TestConfig = {
   baseURL: getAppUrl() || 'http://localhost:3000',
-  timeout: 30000,
+  timeout: 90 * SECONDS, // Increased from 30s for single worker
   retries: 2,
 };
 
 // Common timeout constants
 export const TIMEOUTS = {
-  SHORT: 5000,
-  MEDIUM: 10000,
-  LONG: 15000,
-  EXTENDED: 30000,
+  SHORT: 10 * SECONDS, // Increased from 5s
+  MEDIUM: 20 * SECONDS, // Increased from 10s
+  LONG: 30 * SECONDS, // Increased from 15s
+  EXTENDED: 60 * SECONDS, // Increased from 30s
 } as const;
 
 // Rate limiting detection constants

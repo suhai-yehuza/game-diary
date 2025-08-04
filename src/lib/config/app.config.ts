@@ -287,7 +287,7 @@ export const APP_CONFIG = {
   DEV_SERVER_TIMEOUT: 60 * SECONDS,
 
   // Test settings
-  TEST_TIMEOUT: 120 * SECONDS,
+  TEST_TIMEOUT: 300 * SECONDS, // 5 minutes for single worker
   TEST_ACTION_TIMEOUT: 15 * SECONDS,
   TEST_NAVIGATION_TIMEOUT: 30 * SECONDS,
 } as const;
