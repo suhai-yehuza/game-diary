@@ -74,7 +74,7 @@ export default defineConfig({
   fullyParallel: false,
   forbidOnly: !!process.env.CI,
   retries: 2,
-  workers: 2,
+  workers: 1,
 
   // Web server configuration
   webServer: isLocalhostTarget() ? webServerConfig : undefined,

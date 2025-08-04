@@ -19,7 +19,7 @@ The E2E test suite has been refactored to eliminate duplicated patterns, particu
 To prevent cross-test interference, all major E2E suites use:
 
 - **Serial execution**: `test.describe.configure({ mode: 'serial' })`
-- **Reduced workers**: 1 worker locally, 2 in CI for critical configs
+- **Reduced workers**: 1 worker for all environments (local and CI)
 - **Disabled full parallelism**: `fullyParallel: false` for critical suites
 
 **Applied to:**

@@ -362,9 +362,11 @@ describe('LiveGamesBanner', () => {
     render(<LiveGamesBanner />);
     const banner = screen.getByTestId('live-games-banner');
     expect(banner).toHaveClass(
-      'sticky',
+      'fixed',
       'top-0',
-      'z-50',
+      'left-0',
+      'right-0',
+      'z-[60]',
       'bg-gradient-to-r',
       'from-gray-900',
       'to-blue-900'
