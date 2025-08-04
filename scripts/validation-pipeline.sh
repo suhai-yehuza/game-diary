@@ -731,11 +731,31 @@ run_env_verification() {
 ensure_playwright_browsers() {
     log_step "Ensuring Playwright browsers are installed..."
 
+    # Set CI-specific environment variables
+    export CI=true
+    export PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=0
+    export PLAYWRIGHT_BROWSERS_PATH=0
+
+    # Ensure browser cache directory exists and has proper permissions
+    log_info "Setting up browser cache directory..."
+    mkdir -p "$HOME/.cache/ms-playwright"
+    chmod 755 "$HOME/.cache/ms-playwright"
+
     # Use direct Playwright install command for better CI reliability
     log_info "Installing Playwright browsers with system dependencies..."
-    pnpm exec playwright install --with-deps
+    pnpm exec playwright install --with-deps --force
 
-    log_info "✅ Browser installation completed"
+    # Verify installation
+    log_info "Verifying browser installation..."
+    if pnpm exec playwright install --list | grep -q "chromium" && \
+       pnpm exec playwright install --list | grep -q "firefox" && \
+       pnpm exec playwright install --list | grep -q "webkit"; then
+       log_info "✅ Browser installation completed successfully"
+    else
+        log_error "❌ Browser installation verification failed!"
+        log_error "Please check the installation manually with: pnpm exec playwright install --list"
+        exit 1
+    fi
 }
 
 # Function to run E2E tests
