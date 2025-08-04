@@ -150,7 +150,7 @@ jobs:
   database-tests:
     name: Database Tests
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     environment: ${{ inputs.environment }}
     steps:
       - uses: actions/checkout@v4
@@ -312,7 +312,7 @@ jobs:
     name: E2E Tests (Chromium)
     needs: [quality-gate, unit-tests, database-tests, e2e-mock-verification]
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     environment: ${{ inputs.environment }}
     steps:
       - uses: actions/checkout@v4
@@ -418,7 +418,7 @@ jobs:
     name: E2E Tests (WebKit)
     needs: [quality-gate, unit-tests, database-tests, e2e-mock-verification]
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     environment: ${{ inputs.environment }}
     steps:
       - uses: actions/checkout@v4
@@ -524,7 +524,7 @@ jobs:
     name: E2E Tests (Firefox)
     needs: [quality-gate, unit-tests, database-tests, e2e-mock-verification]
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     environment: ${{ inputs.environment }}
     steps:
       - uses: actions/checkout@v4
@@ -636,7 +636,7 @@ jobs:
     name: E2E Tests (Mobile)
     needs: [quality-gate, unit-tests, database-tests, e2e-mock-verification]
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 45
     environment: ${{ inputs.environment }}
     steps:
       - uses: actions/checkout@v4
@@ -749,7 +749,7 @@ jobs:
     if: ${{ inputs.deploy-to-vercel }}
     needs: [e2e-chromium, e2e-webkit, e2e-firefox, e2e-mobile]
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 45
     environment: ${{ inputs.environment }}
     outputs:
       deployment-url: ${{ steps.deploy.outputs.url }}
@@ -837,7 +837,7 @@ jobs:
     name: E2E Post-Deployment Verification (Optional)
     needs: [deploy]
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     environment: ${{ inputs.environment }}
     if: ${{ inputs.environment == 'Production' }} # Only run for production
     steps:

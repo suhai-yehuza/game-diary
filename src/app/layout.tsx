@@ -36,11 +36,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <a href="#main-content" className="skip-link">
           Skip to main content
         </a>
+        {/* Live Games Banner - fixed at top */}
+        <LiveGamesBanner />
         <ClientProviders>
-          {/* Live Games Banner - sticky at top */}
-          <LiveGamesBanner />
           <HeaderWrapper />
-          <main id="main-content" className="grow pt-12">
+          <main id="main-content" className="grow pt-24">
             {children}
           </main>
           <Footer />

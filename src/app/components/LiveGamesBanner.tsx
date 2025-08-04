@@ -27,7 +27,8 @@ export function LiveGamesBanner() {
   return (
     <div
       data-testid="live-games-banner"
-      className="sticky top-0 z-50 bg-gradient-to-r from-gray-900 to-blue-900 text-white py-3 px-4 shadow-lg"
+      className="fixed top-0 left-0 right-0 z-[60] bg-gradient-to-r from-gray-900 to-blue-900 text-white py-2 px-4 shadow-lg"
+      style={{ position: 'fixed', top: 0, left: 0, right: 0 }}
     >
       <div className="container mx-auto">
         <div className="flex items-center justify-between">

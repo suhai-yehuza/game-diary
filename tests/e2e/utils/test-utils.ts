@@ -151,13 +151,20 @@ export async function navigateToPage(
 export async function safeGoto(
   page: Page,
   path: string,
-  config: Partial<TestConfig> = {}
+  config: Partial<TestConfig> = {},
+  navigationOptions?: {
+    waitForNetworkIdle?: boolean;
+    checkMainContent?: boolean;
+  }
 ): Promise<void> {
   const { baseURL = DEFAULT_CONFIG.baseURL, timeout = DEFAULT_CONFIG.timeout } = config;
   const fullUrl = `${baseURL}${path}`;
 
   try {
-    await navigateToPage(page, fullUrl, { timeout });
+    await navigateToPage(page, fullUrl, {
+      timeout,
+      ...navigationOptions,
+    });
   } catch (error) {
     console.error(`Failed to navigate to ${fullUrl}:`, error);
     throw error;
