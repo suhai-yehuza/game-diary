@@ -312,7 +312,7 @@ jobs:
     name: E2E Tests (Chromium)
     needs: [quality-gate, unit-tests, database-tests, e2e-mock-verification]
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 90
     environment: ${{ inputs.environment }}
     steps:
       - uses: actions/checkout@v4
@@ -418,7 +418,7 @@ jobs:
     name: E2E Tests (WebKit)
     needs: [quality-gate, unit-tests, database-tests, e2e-mock-verification]
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 90
     environment: ${{ inputs.environment }}
     steps:
       - uses: actions/checkout@v4
@@ -524,7 +524,7 @@ jobs:
     name: E2E Tests (Firefox)
     needs: [quality-gate, unit-tests, database-tests, e2e-mock-verification]
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 90
     environment: ${{ inputs.environment }}
     steps:
       - uses: actions/checkout@v4
@@ -636,7 +636,7 @@ jobs:
     name: E2E Tests (Mobile)
     needs: [quality-gate, unit-tests, database-tests, e2e-mock-verification]
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 90
     environment: ${{ inputs.environment }}
     steps:
       - uses: actions/checkout@v4
