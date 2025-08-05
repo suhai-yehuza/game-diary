@@ -1,6 +1,8 @@
 import type { Page } from '@playwright/test';
 import { expect } from '@playwright/test';
 
+import { isCI } from '@/lib/utils/env-loader';
+
 import { TIMEOUTS } from './test-utils';
 
 /**
@@ -9,7 +11,7 @@ import { TIMEOUTS } from './test-utils';
  */
 
 /**
- * Check performance metrics
+ * Check performance metrics for a page
  */
 export async function checkPerformanceMetrics(page: Page): Promise<any> {
   // Wait for page to fully load before measuring performance
@@ -27,9 +29,8 @@ export async function checkPerformanceMetrics(page: Page): Promise<any> {
   });
 
   // More lenient performance checks for different environments
-  const isCI = process.env.CI === 'true';
-  const maxLoadTime = isCI ? 15000 : 8000; // 15s in CI, 8s locally
-  const maxDomTime = isCI ? 10000 : 5000; // 10s in CI, 5s locally
+  const maxLoadTime = isCI() ? 15000 : 8000; // 15s in CI, 8s locally
+  const maxDomTime = isCI() ? 10000 : 5000; // 10s in CI, 5s locally
 
   // Only check if metrics are valid (not negative or NaN)
   if (metrics.loadTime > 0 && !isNaN(metrics.loadTime)) {

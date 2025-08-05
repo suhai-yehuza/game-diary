@@ -2,6 +2,7 @@ import { neon } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-http';
 
 import type { Database, IDatabaseConfig } from '@/lib/types';
+import { isCI } from '@/lib/utils/env-loader';
 import * as schema from '@src/lib/db/schema';
 
 // Database connection pool configuration
@@ -84,8 +85,8 @@ class DatabaseManager {
 const connectionString = process.env.DATABASE_URL ?? process.env.POSTGRES_URL ?? '';
 const dbManager = new DatabaseManager({ connectionString });
 
-// Initialize database connection
-if (connectionString) {
+// Initialize database connection only in non-CI environments
+if (connectionString && !isCI()) {
   dbManager.initialize().catch(console.error);
 }
 

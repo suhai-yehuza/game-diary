@@ -8,10 +8,12 @@ import { neon } from '@neondatabase/serverless';
 import { logger } from '@/lib/utils/logger';
 import { createDatabaseClient } from '@/lib/db';
 import { generateId } from '@/lib/utils/id-generator';
+import { isCI } from '@/lib/utils/env-loader';
+
+import { parseScriptArgs } from '../utils/script-utils';
 
 // Check if we're in CI and handle missing DATABASE_URL gracefully
-const isCI = process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true';
-if (isCI && !process.env.DATABASE_URL) {
+if (isCI() && !process.env.DATABASE_URL) {
   logger.warn('⚠️ DATABASE_URL not found in CI environment. Skipping trigger tests.');
   logger.info('✅ Trigger tests skipped in CI environment (no DATABASE_URL available)');
   process.exit(0);

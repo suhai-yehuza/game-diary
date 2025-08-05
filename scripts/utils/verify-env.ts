@@ -6,15 +6,15 @@ import dotenvFlow from 'dotenv-flow';
 import dotenv from 'dotenv';
 import fs from 'fs';
 
+import { isCI } from '@/lib/utils/env-loader';
+
 if (!process.env.NODE_ENV) {
   (process.env as any).NODE_ENV = 'development';
 }
 
-const isCI =
-  process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true' || process.env.VERCEL === '1';
 const isDevOrTest = process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test';
 
-if (!isCI) {
+if (!isCI()) {
   if (isDevOrTest) {
     // For development/test, load .env.local as override synchronously
     dotenvFlow.config();
@@ -42,7 +42,7 @@ console.log('🔍 Environment variables loaded:');
 console.log('NODE_ENV:', process.env.NODE_ENV);
 console.log('DATABASE_URL exists:', !!process.env.DATABASE_URL);
 console.log('DATABASE_URL length:', process.env.DATABASE_URL?.length || 0);
-console.log('CI Environment:', isCI);
+console.log('CI Environment:', isCI());
 
 // Environment validation schema for CI/local development
 const requiredEnvSchema = z.object({
@@ -80,7 +80,7 @@ function validateEnvironment(): void {
   console.log('🔍 Validating environment variables...');
 
   console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`CI: ${isCI}`);
+  console.log(`CI: ${isCI()}`);
 
   try {
     // Parse and validate environment variables
@@ -92,7 +92,7 @@ function validateEnvironment(): void {
 
     // DATABASE_URL is required for non-CI environments or when running database operations
     if (!env.DATABASE_URL) {
-      if (isCI) {
+      if (isCI()) {
         warnings.push(
           'DATABASE_URL not set in CI environment - database operations will be skipped'
         );
@@ -102,14 +102,14 @@ function validateEnvironment(): void {
     }
 
     // Clerk keys are required for production/staging (unless in test/E2E or CI)
-    if (!isCI && (env.NODE_ENV === 'production' || env.NODE_ENV === 'staging')) {
+    if (!isCI() && (env.NODE_ENV === 'production' || env.NODE_ENV === 'staging')) {
       if (!env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY) {
         errors.push('NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY is required for production/staging');
       }
       if (!env.CLERK_SECRET_KEY) {
         errors.push('CLERK_SECRET_KEY is required for production/staging');
       }
-    } else if (isCI && (env.NODE_ENV === 'production' || env.NODE_ENV === 'staging')) {
+    } else if (isCI() && (env.NODE_ENV === 'production' || env.NODE_ENV === 'staging')) {
       // In CI (including Vercel), check if Clerk keys are available but don't fail if missing
       if (!env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || !env.CLERK_SECRET_KEY) {
         warnings.push(
@@ -119,7 +119,7 @@ function validateEnvironment(): void {
     }
 
     // API keys are recommended but not required (skip warnings in CI)
-    if (!isCI) {
+    if (!isCI()) {
       if (!env.NEXT_PUBLIC_RAPID_API_KEY) {
         warnings.push('NEXT_PUBLIC_RAPID_API_KEY is not set - API features may be limited');
       }
@@ -157,13 +157,13 @@ function validateEnvironment(): void {
     // Log environment summary
     console.log('\n📋 Environment Summary:');
     console.log(
-      `  Database: ${env.DATABASE_URL ? '✅ Configured' : isCI ? '⚠️  Skipped in CI' : '❌ Missing'}`
+      `  Database: ${env.DATABASE_URL ? '✅ Configured' : isCI() ? '⚠️  Skipped in CI' : '❌ Missing'}`
     );
     console.log(
-      `  Clerk Auth: ${env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ? '✅ Configured' : isCI ? '⚠️  Check deployment settings' : '⚠️  Not configured'}`
+      `  Clerk Auth: ${env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ? '✅ Configured' : isCI() ? '⚠️  Check deployment settings' : '⚠️  Not configured'}`
     );
     console.log(
-      `  RapidAPI: ${env.NEXT_PUBLIC_RAPID_API_KEY ? '✅ Configured' : isCI ? '⚠️  Skipped in CI' : '⚠️  Not configured'}`
+      `  RapidAPI: ${env.NEXT_PUBLIC_RAPID_API_KEY ? '✅ Configured' : isCI() ? '⚠️  Skipped in CI' : '⚠️  Not configured'}`
     );
     console.log(
       `  Redis: ${env.UPSTASH_REDIS_REST_URL || env.REDIS_URL ? '✅ Configured' : '⚠️  Not configured'}`

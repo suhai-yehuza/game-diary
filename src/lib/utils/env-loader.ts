@@ -3,18 +3,25 @@ import fs from 'fs';
 import { config } from 'dotenv-flow';
 
 /**
+ * Check if the current environment is a CI environment
+ */
+export function isCI(): boolean {
+  return (
+    process.env.CI === 'true' ||
+    process.env.GITHUB_ACTIONS === 'true' ||
+    process.env.VERCEL === 'true' ||
+    process.env.VERCEL === '1'
+  );
+}
+
+/**
  * Safely load environment variables using dotenv-flow
  * Handles CI environments and missing .env files gracefully
  */
 export function loadEnvironmentVariables(): void {
   try {
     // Check if we're in a CI environment
-    const isCI =
-      process.env.CI === 'true' ||
-      process.env.GITHUB_ACTIONS === 'true' ||
-      process.env.VERCEL === 'true';
-
-    if (isCI) {
+    if (isCI()) {
       // In CI, environment variables should be set via secrets/environment
       // Don't try to load .env files
       console.log('🔧 CI environment detected, skipping .env file loading');
@@ -56,7 +63,7 @@ export function validateEnvironmentVariables(): void {
     console.warn('⚠️  Missing required environment variables:', missingVars.join(', '));
 
     // In CI, this should be a hard error
-    if (process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true') {
+    if (isCI()) {
       throw new Error(`Missing required environment variables: ${missingVars.join(', ')}`);
     }
   }

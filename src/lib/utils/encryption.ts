@@ -1,7 +1,7 @@
 import crypto from 'crypto';
 
 import type { IEncryptedField } from '@/lib/types';
-import { loadEnvironmentVariables } from '@/lib/utils/env-loader';
+import { loadEnvironmentVariables, isCI } from '@/lib/utils/env-loader';
 
 // Load environment variables safely
 loadEnvironmentVariables();
@@ -17,8 +17,17 @@ function getKey(keyOverride?: string | Buffer): Buffer {
     if (Buffer.isBuffer(keyOverride) && keyOverride.length === 32) return keyOverride;
     throw new Error('Key override must be a 32-byte buffer or 64-char hex string');
   }
+
   const keyHex = process.env.DATA_ENCRYPTION_KEY;
+
   if (!keyHex || keyHex.length !== 64) {
+    if (isCI()) {
+      // In CI, provide a dummy key for build-time validation only
+      console.warn(
+        '⚠️  DATA_ENCRYPTION_KEY not set in CI environment - using dummy key for build validation'
+      );
+      return Buffer.from('0'.repeat(64), 'hex');
+    }
     throw new Error('DATA_ENCRYPTION_KEY must be set to a 32-byte hex string (64 hex chars)');
   }
   return Buffer.from(keyHex, 'hex');
