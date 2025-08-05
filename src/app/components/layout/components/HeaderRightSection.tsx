@@ -1,10 +1,22 @@
+import dynamic from 'next/dynamic';
 import React, { useState } from 'react';
 
 import { ThemeToggle } from '@/app/components/common';
-import { NotificationBell } from '@/app/components/common/NotificationBell';
 import { ClientOnlyAuthControls } from '@/app/components/layout/components/AuthControls';
 import { SearchBar, useMobileDetection } from '@/app/components/layout/components/SearchBar';
 import type { IHeaderRightSectionProps } from '@/lib/types';
+
+// Dynamically import NotificationBell with SSR disabled to prevent context errors
+const NotificationBell = dynamic(
+  () =>
+    import('@/app/components/common/NotificationBell').then(mod => ({
+      default: mod.NotificationBell,
+    })),
+  {
+    ssr: false,
+    loading: () => <div className="w-10 h-10" />, // Placeholder to prevent layout shift
+  }
+);
 
 export function HeaderRightSection({ isMenuExpanded }: IHeaderRightSectionProps) {
   const isMobile = useMobileDetection();
