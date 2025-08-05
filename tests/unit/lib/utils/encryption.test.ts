@@ -1,5 +1,11 @@
 /// <reference types="vitest/globals" />
 
+// Mock the isCI function to control CI environment detection
+vi.mock('@/lib/utils/env-loader', () => ({
+  isCI: vi.fn(() => false), // Default to non-CI environment
+  loadEnvironmentVariables: vi.fn(),
+}));
+
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 
 import type { IEncryptedField } from '@/lib/types';
@@ -10,25 +16,26 @@ import {
   deserializeEncryptedField,
   isEncrypted,
 } from '@/lib/utils/encryption';
-
-// Mock environment variables
-const mockEnv = {
-  DATA_ENCRYPTION_KEY: '1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
-};
+import { isCI } from '@/lib/utils/env-loader';
 
 describe('encryption utils', () => {
+  const originalEnv = process.env;
+
   beforeEach(() => {
-    // Set up mock environment
-    process.env.DATA_ENCRYPTION_KEY = mockEnv.DATA_ENCRYPTION_KEY;
+    process.env = { ...originalEnv };
+    // Reset the mock to default non-CI behavior
+    vi.mocked(isCI).mockReturnValue(false);
   });
 
   afterEach(() => {
-    // Clean up
-    delete process.env.DATA_ENCRYPTION_KEY;
+    process.env = originalEnv;
+    vi.clearAllMocks();
   });
 
   describe('encryptField', () => {
-    it('encrypts a plain text field', () => {
+    it('encrypts a plaintext field', () => {
+      process.env.DATA_ENCRYPTION_KEY =
+        '1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef';
       const plaintext = 'sensitive data';
       const encrypted = encryptField(plaintext);
 
@@ -81,14 +88,16 @@ describe('encryption utils', () => {
       );
     });
 
-    it('throws error when DATA_ENCRYPTION_KEY is not set', () => {
+    it('throws error when DATA_ENCRYPTION_KEY is not set in non-CI environment', () => {
+      vi.mocked(isCI).mockReturnValue(false);
       delete process.env.DATA_ENCRYPTION_KEY;
       const plaintext = 'sensitive data';
 
       expect(() => encryptField(plaintext)).toThrow('DATA_ENCRYPTION_KEY must be set');
     });
 
-    it('throws error when DATA_ENCRYPTION_KEY is invalid', () => {
+    it('throws error when DATA_ENCRYPTION_KEY is invalid in non-CI environment', () => {
+      vi.mocked(isCI).mockReturnValue(false);
       process.env.DATA_ENCRYPTION_KEY = 'invalid-key';
       const plaintext = 'sensitive data';
 
@@ -96,10 +105,30 @@ describe('encryption utils', () => {
         'DATA_ENCRYPTION_KEY must be set to a 32-byte hex string'
       );
     });
+
+    it('uses dummy key when DATA_ENCRYPTION_KEY is not set in CI environment', () => {
+      vi.mocked(isCI).mockReturnValue(true);
+      delete process.env.DATA_ENCRYPTION_KEY;
+      const plaintext = 'sensitive data';
+
+      // Should not throw in CI environment
+      expect(() => encryptField(plaintext)).not.toThrow();
+    });
+
+    it('uses dummy key when DATA_ENCRYPTION_KEY is invalid in CI environment', () => {
+      vi.mocked(isCI).mockReturnValue(true);
+      process.env.DATA_ENCRYPTION_KEY = 'invalid-key';
+      const plaintext = 'sensitive data';
+
+      // Should not throw in CI environment
+      expect(() => encryptField(plaintext)).not.toThrow();
+    });
   });
 
   describe('decryptField', () => {
     it('decrypts an encrypted field', () => {
+      process.env.DATA_ENCRYPTION_KEY =
+        '1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef';
       const plaintext = 'sensitive data';
       const encrypted = encryptField(plaintext);
       const decrypted = decryptField(encrypted);
@@ -146,20 +175,40 @@ describe('encryption utils', () => {
       );
     });
 
-    it('throws error when DATA_ENCRYPTION_KEY is not set', () => {
+    it('throws error when DATA_ENCRYPTION_KEY is not set in non-CI environment', () => {
+      vi.mocked(isCI).mockReturnValue(false);
       delete process.env.DATA_ENCRYPTION_KEY;
       const encrypted: IEncryptedField = { iv: 'test', content: 'test', tag: 'test' };
 
       expect(() => decryptField(encrypted)).toThrow('DATA_ENCRYPTION_KEY must be set');
     });
 
-    it('throws error when DATA_ENCRYPTION_KEY is invalid', () => {
+    it('throws error when DATA_ENCRYPTION_KEY is invalid in non-CI environment', () => {
+      vi.mocked(isCI).mockReturnValue(false);
       process.env.DATA_ENCRYPTION_KEY = 'invalid-key';
       const encrypted: IEncryptedField = { iv: 'test', content: 'test', tag: 'test' };
 
       expect(() => decryptField(encrypted)).toThrow(
         'DATA_ENCRYPTION_KEY must be set to a 32-byte hex string'
       );
+    });
+
+    it('uses dummy key when DATA_ENCRYPTION_KEY is not set in CI environment', () => {
+      vi.mocked(isCI).mockReturnValue(true);
+      delete process.env.DATA_ENCRYPTION_KEY;
+      const encrypted: IEncryptedField = { iv: 'test', content: 'test', tag: 'test' };
+
+      // Should not throw in CI environment, but will throw due to invalid encrypted data
+      expect(() => decryptField(encrypted)).toThrow('Invalid initialization vector');
+    });
+
+    it('uses dummy key when DATA_ENCRYPTION_KEY is invalid in CI environment', () => {
+      vi.mocked(isCI).mockReturnValue(true);
+      process.env.DATA_ENCRYPTION_KEY = 'invalid-key';
+      const encrypted: IEncryptedField = { iv: 'test', content: 'test', tag: 'test' };
+
+      // Should not throw in CI environment, but will throw due to invalid encrypted data
+      expect(() => decryptField(encrypted)).toThrow('Invalid initialization vector');
     });
   });
 
