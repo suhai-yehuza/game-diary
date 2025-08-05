@@ -1,15 +1,35 @@
 'use client';
 
 import { Bell, Check } from 'lucide-react';
-import { useState } from 'react';
+import React, { useState } from 'react';
 
 import { useNotifications } from '@/app/components/providers/NotificationProvider';
 import { Button } from '@/app/components/ui/button';
 import { Card } from '@/app/components/ui/Card';
 
 export function NotificationBell() {
-  const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
+  const [isClient, setIsClient] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+
+  // Ensure we're on the client side before using the hook
+  React.useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  // Always call the hook to satisfy React rules
+  const notificationsContext = useNotifications();
+
+  // Don't render anything on server to prevent hydration mismatch
+  if (!isClient) {
+    return null;
+  }
+
+  // Handle case where context might not be available (shouldn't happen in client)
+  if (!notificationsContext) {
+    return null;
+  }
+
+  const { notifications, unreadCount, markAsRead, markAllAsRead } = notificationsContext;
 
   const handleMarkAsRead = (id: string) => {
     markAsRead(id);

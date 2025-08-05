@@ -31,8 +31,8 @@ export interface ILiveGamesTestOptions {
 export async function testLiveGamesBanner(page: Page, options: ILiveGamesTestOptions = {}) {
   if (options.skipBanner) return;
 
-  // Check for live games banner
-  const banner = page.locator('[data-testid="live-games-banner"]');
+  // Check for live games banner (handle React Strict Mode duplicate rendering)
+  const banner = page.locator('[data-testid="live-games-banner"]').first();
   await expect(banner).toBeVisible();
 
   // Check for live indicator with red pulsing dot
@@ -54,7 +54,7 @@ export async function testLiveGamesBanner(page: Page, options: ILiveGamesTestOpt
  * Test live games banner on auth pages (should not be visible)
  */
 export async function testLiveGamesBannerNotVisible(page: Page) {
-  const banner = page.locator('[data-testid="live-games-banner"]');
+  const banner = page.locator('[data-testid="live-games-banner"]').first();
   await expect(banner).not.toBeVisible();
 }
 
@@ -110,8 +110,8 @@ export async function testLiveGamesDetailPage(page: Page, options: ILiveGamesTes
 export async function testLiveGamesNavigation(page: Page, options: ILiveGamesTestOptions = {}) {
   if (options.skipNavigation) return;
 
-  // Check banner is visible
-  const banner = page.locator('[data-testid="live-games-banner"]');
+  // Check banner is visible (handle React Strict Mode duplicate rendering)
+  const banner = page.locator('[data-testid="live-games-banner"]').first();
   await expect(banner).toBeVisible();
 
   // Click "View All" link
@@ -126,7 +126,7 @@ export async function testLiveGamesNavigation(page: Page, options: ILiveGamesTes
  * Test live games banner structure and content with specific mock data
  */
 export async function testLiveGamesBannerStructure(page: Page) {
-  const banner = page.locator('[data-testid="live-games-banner"]');
+  const banner = page.locator('[data-testid="live-games-banner"]').first();
   await expect(banner).toBeVisible();
 
   // Check for game items in banner
@@ -264,7 +264,7 @@ export async function testBannerAnimations(page: Page) {
   await waitForPageLoad(page);
   await waitForNetworkIdle(page);
 
-  const banner = page.locator('[data-testid="live-games-banner"]');
+  const banner = page.locator('[data-testid="live-games-banner"]').first();
   await expect(banner).toBeVisible();
 
   // Check for scrolling animation
@@ -311,7 +311,7 @@ export async function runLiveGamesTestSuite(page: Page, options: ILiveGamesTestO
  * Quick live games banner check for pages that should have it
  */
 export async function checkLiveGamesBannerPresent(page: Page) {
-  const banner = page.locator('[data-testid="live-games-banner"]');
+  const banner = page.locator('[data-testid="live-games-banner"]').first();
   await expect(banner).toBeVisible();
 }
 
@@ -319,7 +319,7 @@ export async function checkLiveGamesBannerPresent(page: Page) {
  * Quick live games banner check for pages that should NOT have it
  */
 export async function checkLiveGamesBannerAbsent(page: Page) {
-  const banner = page.locator('[data-testid="live-games-banner"]');
+  const banner = page.locator('[data-testid="live-games-banner"]').first();
   await expect(banner).not.toBeVisible();
 }
 

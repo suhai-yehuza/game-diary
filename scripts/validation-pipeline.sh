@@ -479,6 +479,7 @@ get_e2e_test_path() {
         "browser") echo "tests/e2e/functional/browser.spec.ts" ;;
         "mock-verification") echo "tests/e2e/functional/mock-verification.spec.ts" ;;
         "mock-server") echo "tests/e2e/functional/mock-server.spec.ts" ;;
+        "live-games") echo "tests/e2e/functional/live-games.spec.ts" ;;
         "full"|"all") echo "tests/e2e/" ;;
         *) echo "" ;;
     esac

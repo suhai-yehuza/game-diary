@@ -390,11 +390,13 @@ jobs:
           NEXT_PUBLIC_RAPID_API_HOST: ${{ secrets.NEXT_PUBLIC_RAPID_API_HOST }}
           NEXT_PUBLIC_RAPID_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_RAPID_API_BASE_URL }}
           DEPLOYMENT_URL: ${{ env.E2E_CHROMIUM_URL }}
+          CI: 'true'
         run: |
           echo "Running E2E tests on Chromium..."
-          pnpm test:e2e:navigation --browser=chromium --port=3000
-          pnpm test:e2e:responsive --browser=chromium --port=3000
-          pnpm test:e2e:live-games --browser=chromium --port=3000
+          # Run tests with explicit CI configuration to ensure artifacts are generated
+          pnpm exec playwright test tests/e2e/functional/navigation.spec.ts --project=chromium --reporter=list,json,junit,html
+          pnpm exec playwright test tests/e2e/functional/smoke.spec.ts --project=chromium --reporter=list,json,junit,html
+          pnpm exec playwright test tests/e2e/functional/live-games.spec.ts --project=chromium --reporter=list,json,junit,html
 
       - name: Stop Development Server
         if: always()
@@ -496,11 +498,13 @@ jobs:
           NEXT_PUBLIC_RAPID_API_HOST: ${{ secrets.NEXT_PUBLIC_RAPID_API_HOST }}
           NEXT_PUBLIC_RAPID_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_RAPID_API_BASE_URL }}
           DEPLOYMENT_URL: ${{ env.E2E_WEBKIT_URL }}
+          CI: 'true'
         run: |
           echo "Running E2E tests on WebKit..."
-          pnpm test:e2e:navigation --browser=webkit --port=3001
-          pnpm test:e2e:responsive --browser=webkit --port=3001
-          pnpm test:e2e:live-games --browser=webkit --port=3001
+          # Run tests with explicit CI configuration to ensure artifacts are generated
+          pnpm exec playwright test tests/e2e/functional/navigation.spec.ts --project=webkit --reporter=list,json,junit,html
+          pnpm exec playwright test tests/e2e/functional/smoke.spec.ts --project=webkit --reporter=list,json,junit,html
+          pnpm exec playwright test tests/e2e/functional/live-games.spec.ts --project=webkit --reporter=list,json,junit,html
 
       - name: Stop Development Server (WebKit)
         if: always()
@@ -610,9 +614,10 @@ jobs:
           CI: 'true'
         run: |
           echo "Running E2E tests on Firefox..."
-          pnpm test:e2e:navigation --browser=firefox --port=3002
-          pnpm test:e2e:responsive --browser=firefox --port=3002
-          pnpm test:e2e:live-games --browser=firefox --port=3002
+          # Run tests with explicit CI configuration to ensure artifacts are generated
+          pnpm exec playwright test tests/e2e/functional/navigation.spec.ts --project=firefox --reporter=list,json,junit,html
+          pnpm exec playwright test tests/e2e/functional/smoke.spec.ts --project=firefox --reporter=list,json,junit,html
+          pnpm exec playwright test tests/e2e/functional/live-games.spec.ts --project=firefox --reporter=list,json,junit,html
 
       - name: Stop Development Server (Firefox)
         if: always()
@@ -722,9 +727,10 @@ jobs:
           CI: 'true'
         run: |
           echo "Running E2E tests on Mobile..."
-          pnpm test:e2e:navigation --browser=mobile --port=3003
-          pnpm test:e2e:responsive --browser=mobile --port=3003
-          pnpm test:e2e:live-games --browser=mobile --port=3003
+          # Run tests with explicit CI configuration to ensure artifacts are generated
+          pnpm exec playwright test tests/e2e/functional/navigation.spec.ts --project="Mobile Chrome" --reporter=list,json,junit,html
+          pnpm exec playwright test tests/e2e/functional/smoke.spec.ts --project="Mobile Chrome" --reporter=list,json,junit,html
+          pnpm exec playwright test tests/e2e/functional/live-games.spec.ts --project="Mobile Chrome" --reporter=list,json,junit,html
 
       - name: Stop Development Server (Mobile)
         if: always()
