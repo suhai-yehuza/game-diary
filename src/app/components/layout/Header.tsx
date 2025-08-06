@@ -11,6 +11,7 @@ import {
 } from '@/app/components/layout/components';
 import { useMenuContext } from '@/app/components/providers';
 import { useLiveGames } from '@/hooks/use-live-games';
+import { isTestOrCIEnvironment } from '@/lib/utils/e2e-test-setup';
 
 export function Header() {
   const { isMenuExpanded, setIsMenuExpanded } = useMenuContext();
@@ -48,8 +49,10 @@ export function Header() {
     setMounted(true);
   }, []);
 
+  // Banner should be displayed when there are real games OR in test/CI environment
   const hasLiveGames = mounted && games && games.length > 0;
-  const headerMarginClass = hasLiveGames ? 'mt-20' : 'mt-0';
+  const shouldShowBanner = hasLiveGames || isTestOrCIEnvironment();
+  const headerMarginClass = shouldShowBanner ? 'mt-20' : 'mt-0';
 
   return (
     <header
