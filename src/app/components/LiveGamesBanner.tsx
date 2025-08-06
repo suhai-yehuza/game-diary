@@ -6,6 +6,7 @@ import React, { useEffect, useState } from 'react';
 
 import { useLiveGames } from '@/hooks/use-live-games';
 import type { IGameResponse } from '@/lib/types';
+import { isTestOrCIEnvironment } from '@/lib/utils/env-detection';
 
 export function LiveGamesBanner() {
   const { games } = useLiveGames();
@@ -15,9 +16,9 @@ export function LiveGamesBanner() {
     setIsClient(true);
   }, []);
 
-  // In test environments, render immediately to avoid hydration issues
-  const shouldRender =
-    isClient || process.env.NODE_ENV === 'test' || process.env.E2E_MOCK_MODE === 'true';
+  // In test/CI environments, render immediately to avoid hydration issues
+  // In production, wait for client-side hydration
+  const shouldRender = isClient || isTestOrCIEnvironment();
 
   // Don't render anything on server to prevent hydration mismatch
   if (!shouldRender) {

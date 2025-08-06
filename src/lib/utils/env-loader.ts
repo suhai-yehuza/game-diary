@@ -2,17 +2,10 @@ import fs from 'fs';
 
 import { config } from 'dotenv-flow';
 
-/**
- * Check if the current environment is a CI environment
- */
-export function isCI(): boolean {
-  return (
-    process.env.CI === 'true' ||
-    process.env.GITHUB_ACTIONS === 'true' ||
-    process.env.VERCEL === 'true' ||
-    process.env.VERCEL === '1'
-  );
-}
+import { isCI } from './env-detection';
+
+// Re-export isCI for convenience
+export { isCI };
 
 /**
  * Safely load environment variables using dotenv-flow
@@ -20,31 +13,32 @@ export function isCI(): boolean {
  */
 export function loadEnvironmentVariables(): void {
   try {
-    // Check if we're in a CI environment
     if (isCI()) {
-      // In CI, environment variables should be set via secrets/environment
-      // Don't try to load .env files
       console.log('🔧 CI environment detected, skipping .env file loading');
       return;
     }
 
-    // Check if any .env files exist
-    const envFiles = ['.env.local', '.env.development', '.env.production', '.env.staging', '.env'];
+    // Check if .env files exist
+    const envFilesExist =
+      fs.existsSync('.env') || fs.existsSync('.env.local') || fs.existsSync('.env.development');
 
-    const hasEnvFiles = envFiles.some(file => fs.existsSync(file));
-
-    if (!hasEnvFiles) {
+    if (!envFilesExist) {
       console.log('⚠️  No .env files found, using system environment variables');
       return;
     }
 
-    // Load environment variables using dotenv-flow
-    config({
-      silent: true, // Suppress dotenv-flow warnings
+    // Load environment variables from .env files
+    const result = config({
+      silent: true,
       default_node_env: 'development',
     });
 
-    console.log('✅ Environment variables loaded successfully');
+    if (result.error) {
+      console.warn('⚠️  Failed to load environment variables from .env files:', result.error);
+      console.log('📝 Using system environment variables instead');
+    } else {
+      console.log('✅ Environment variables loaded successfully');
+    }
   } catch (error) {
     console.warn('⚠️  Failed to load environment variables from .env files:', error);
     console.log('📝 Using system environment variables instead');

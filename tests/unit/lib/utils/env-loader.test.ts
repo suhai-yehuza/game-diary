@@ -90,6 +90,10 @@ describe('Environment Loader Utils', () => {
       const dotenvFlow = await import('dotenv-flow');
 
       vi.mocked(fs.default.existsSync).mockReturnValue(true);
+      vi.mocked(dotenvFlow.config).mockReturnValue({
+        error: undefined,
+        parsed: { TEST_VAR: 'test_value' },
+      });
 
       loadEnvironmentVariables();
 
@@ -178,6 +182,10 @@ describe('Environment Loader Utils', () => {
 
       // Set up a scenario where .env files exist but some required vars are missing
       vi.mocked(fs.default.existsSync).mockReturnValue(true);
+      vi.mocked(dotenvFlow.config).mockReturnValue({
+        error: undefined,
+        parsed: { TEST_VAR: 'test_value' },
+      });
       process.env.DATABASE_URL = 'test-db-url';
       // Missing other required variables
 

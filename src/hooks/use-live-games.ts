@@ -3,6 +3,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { INTERNAL_PROXY_ENDPOINTS } from '@/lib/config/app.config';
 import { MOCK_LIVE_GAMES } from '@/lib/mock/liveGamesMock';
 import type { IGamesApiResponse, IUseLiveGamesOptions } from '@/lib/types';
+import { isTestOrCIEnvironment } from '@/lib/utils/env-detection';
 
 // Constants
 const REFRESH_INTERVAL_MS = 30000;
@@ -38,11 +39,7 @@ export function useLiveGames(options: IUseLiveGamesOptions = {}) {
       if (isGamesApiResponse(data)) {
         // Only use mock data as fallback in test environments
         if (data.response.length === 0) {
-          if (
-            process.env.NODE_ENV === 'test' ||
-            process.env.API_MOCK_MODE === 'true' ||
-            process.env.E2E_MOCK_MODE === 'true'
-          ) {
+          if (isTestOrCIEnvironment()) {
             setLiveGames(MOCK_LIVE_GAMES);
           } else {
             setLiveGames({ ...data, response: [] });
@@ -51,11 +48,7 @@ export function useLiveGames(options: IUseLiveGamesOptions = {}) {
           setLiveGames(data);
         }
       } else {
-        if (
-          process.env.NODE_ENV === 'test' ||
-          process.env.API_MOCK_MODE === 'true' ||
-          process.env.E2E_MOCK_MODE === 'true'
-        ) {
+        if (isTestOrCIEnvironment()) {
           setLiveGames(MOCK_LIVE_GAMES);
         } else {
           setLiveGames(null);
@@ -64,11 +57,7 @@ export function useLiveGames(options: IUseLiveGamesOptions = {}) {
     } catch (err) {
       const error = err instanceof Error ? err : new Error(String(err));
       setError(error.message);
-      if (
-        process.env.NODE_ENV === 'test' ||
-        process.env.API_MOCK_MODE === 'true' ||
-        process.env.E2E_MOCK_MODE === 'true'
-      ) {
+      if (isTestOrCIEnvironment()) {
         setLiveGames(MOCK_LIVE_GAMES);
       } else {
         setLiveGames(null);
@@ -94,12 +83,7 @@ export function useLiveGames(options: IUseLiveGamesOptions = {}) {
   }, [fetchLiveGames, initialData, autoRefresh, refreshInterval]);
 
   // Only use mock data in actual test environments when no initialData is provided
-  if (
-    !initialData &&
-    (process.env.NODE_ENV === 'test' ||
-      process.env.API_MOCK_MODE === 'true' ||
-      process.env.E2E_MOCK_MODE === 'true')
-  ) {
+  if (!initialData && isTestOrCIEnvironment()) {
     return {
       liveGames: MOCK_LIVE_GAMES,
       games: MOCK_LIVE_GAMES.response,
