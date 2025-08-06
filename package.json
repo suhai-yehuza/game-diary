@@ -94,6 +94,7 @@
     "format": "pnpm exec prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "format-all": "pnpm codegen && pnpm fix && pnpm format:check && pnpm check:unused:imports && pnpm check:dead:code && pnpm check:circular && pnpm sort-package-json",
     "format:check": "pnpm exec prettier --check . --cache",
+    "github:budget": "./scripts/github-actions-budget.sh",
     "hard:reseed:all": "pnpm run db:reset && pnpm run pre:seed && pnpm run seed:all",
     "hard:reseed:dev": "NODE_ENV=development pnpm run db:reset:canonical:dev && NODE_ENV=development pnpm run pre:seed && NODE_ENV=development pnpm run seed:external --env=development",
     "hard:reseed:internal": "pnpm hard:reseed:internal:dev",
