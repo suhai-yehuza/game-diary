@@ -8,6 +8,7 @@ import '@/styles/globals.css';
 import { E2ETestSetup } from '@/app/components/E2ETestSetup';
 import { HeaderWrapper } from '@/app/components/layout/HeaderWrapper';
 import { LiveGamesBanner } from '@/app/components/LiveGamesBanner';
+import { isTestOrCIEnvironment } from '@/lib/utils/e2e-test-setup';
 import { Footer } from '@src/app/components/layout';
 import { ClientProviders } from '@src/app/components/providers';
 
@@ -33,8 +34,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <a href="#main-content" className="skip-link">
           Skip to main content
         </a>
-        {/* E2E Test Setup - runs on client side */}
-        <E2ETestSetup />
+        {/* E2E Test Setup - only runs in test environments */}
+        {isTestOrCIEnvironment() && <E2ETestSetup />}
         {/* Live Games Banner - fixed at top */}
         <LiveGamesBanner />
         <ClientProviders>

@@ -49,7 +49,7 @@ export function Header() {
   }, []);
 
   const hasLiveGames = mounted && games && games.length > 0;
-  const headerMarginClass = hasLiveGames ? 'mt-16' : 'mt-0';
+  const headerMarginClass = hasLiveGames ? 'mt-20' : 'mt-0';
 
   return (
     <header
