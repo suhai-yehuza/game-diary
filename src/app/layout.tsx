@@ -5,6 +5,7 @@ import React from 'react';
 
 import '@/styles/globals.css';
 
+import { E2ETestSetup } from '@/app/components/E2ETestSetup';
 import { HeaderWrapper } from '@/app/components/layout/HeaderWrapper';
 import { LiveGamesBanner } from '@/app/components/LiveGamesBanner';
 import { Footer } from '@src/app/components/layout';
@@ -20,10 +21,6 @@ export const metadata: Metadata = {
   description: 'Placeholder sentence or paragraph',
 };
 
-// Optimize rendering - only force dynamic when necessary
-// export const dynamic = 'force-dynamic';
-// export const revalidate = 0;
-
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className="scroll-smooth antialiased" suppressHydrationWarning>
@@ -36,6 +33,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <a href="#main-content" className="skip-link">
           Skip to main content
         </a>
+        {/* E2E Test Setup - runs on client side */}
+        <E2ETestSetup />
         {/* Live Games Banner - fixed at top */}
         <LiveGamesBanner />
         <ClientProviders>

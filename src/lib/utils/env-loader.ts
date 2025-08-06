@@ -2,7 +2,7 @@ import fs from 'fs';
 
 import { config } from 'dotenv-flow';
 
-import { isCI } from './env-detection';
+import { isCI } from './e2e-test-setup';
 
 // Re-export isCI for convenience
 export { isCI };

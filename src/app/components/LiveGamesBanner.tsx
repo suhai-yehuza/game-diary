@@ -6,7 +6,7 @@ import React, { useEffect, useState } from 'react';
 
 import { useLiveGames } from '@/hooks/use-live-games';
 import type { IGameResponse } from '@/lib/types';
-import { isTestOrCIEnvironment } from '@/lib/utils/env-detection';
+import { isTestOrCIEnvironment } from '@/lib/utils/e2e-test-setup';
 
 export function LiveGamesBanner() {
   const { games } = useLiveGames();

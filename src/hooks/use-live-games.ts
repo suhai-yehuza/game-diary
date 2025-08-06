@@ -3,7 +3,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { INTERNAL_PROXY_ENDPOINTS } from '@/lib/config/app.config';
 import { MOCK_LIVE_GAMES } from '@/lib/mock/liveGamesMock';
 import type { IGamesApiResponse, IUseLiveGamesOptions } from '@/lib/types';
-import { isTestOrCIEnvironment } from '@/lib/utils/env-detection';
+import { isTestOrCIEnvironment } from '@/lib/utils/e2e-test-setup';
 
 // Constants
 const REFRESH_INTERVAL_MS = 30000;
