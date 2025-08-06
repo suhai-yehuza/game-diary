@@ -6,7 +6,10 @@ import { MOCK_LIVE_GAMES } from '@/lib/mock/liveGamesMock';
 import type { IGamesApiResponse, IGameResponse } from '@/lib/types/externalApi.types';
 
 // Mock fetch globally
-global.fetch = vi.fn();
+global.fetch = vi.fn().mockResolvedValue({
+  ok: true,
+  json: () => Promise.resolve({ data: MOCK_LIVE_GAMES }),
+});
 
 // Mock the API config
 vi.mock('@/lib/config/app.config', () => ({
