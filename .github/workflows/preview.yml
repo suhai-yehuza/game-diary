@@ -1,11 +1,12 @@
 name: Vercel Preview Deployment
 
 on:
-  push:
-    branches-ignore:
-      - master
-      - staging
-      - temp-deploy
+  # Temporarily disabled - ignoring all branches for preview
+  # push:
+  #   branches-ignore:
+  #     - master
+  #     - staging
+  #     - temp-deploy
   workflow_call:
     inputs:
       workflow-name:
