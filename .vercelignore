@@ -1,0 +1,13 @@
+.pnpm-store
+node_modules
+.next
+coverage
+dist
+playwright-report
+.nyc_output
+tests-results
+*.log
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local

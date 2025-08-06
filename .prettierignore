@@ -2,3 +2,6 @@ src/lib/graphql/generated/**
 src/lib/types/generated/**
 pnpm-lock.yaml
 .soak/**
+.pnpm-store/**
+node_modules/**
+.next/**
