@@ -82,11 +82,16 @@ export async function testSignInModal(
     const isDisabled = await signInButton.isDisabled();
     if (!isDisabled) {
       await expect(signInButton).toBeEnabled();
+
+      // Scroll the sign-in button into view before clicking
+      await signInButton.scrollIntoViewIfNeeded();
+
       try {
         await signInButton.click();
       } catch (_err) {
         // If click fails due to overlay, try to close modal backdrop and retry
         await closeModalBackdropIfPresent(page);
+        await signInButton.scrollIntoViewIfNeeded();
         await signInButton.click();
       }
 

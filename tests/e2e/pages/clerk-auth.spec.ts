@@ -106,6 +106,7 @@ test.describe('Clerk Auth Modal', () => {
       }
 
       // Click the sign in button
+      await signInButton.scrollIntoViewIfNeeded();
       await signInButton.click();
 
       // Wait a bit for the modal to appear
@@ -168,6 +169,7 @@ test.describe('Clerk Auth Modal', () => {
         await expect(signInButton).toBeEnabled();
 
         // Click should not throw any errors
+        await signInButton.scrollIntoViewIfNeeded();
         await signInButton.click();
 
         // Wait a bit and verify page is still stable
@@ -195,6 +197,7 @@ test.describe('Clerk Auth Modal', () => {
         await expect(signUpButton).toBeEnabled();
 
         // Click should not throw any errors
+        await signUpButton.scrollIntoViewIfNeeded();
         await signUpButton.click();
 
         // Wait a bit and verify page is still stable
@@ -227,6 +230,7 @@ test.describe('Clerk Auth Modal', () => {
       }
 
       // Open the sign in modal
+      await signInButton.scrollIntoViewIfNeeded();
       await signInButton.click();
       await page.waitForLoadState('domcontentloaded');
 
@@ -265,6 +269,7 @@ test.describe('Clerk Auth Modal', () => {
       }
 
       // Open the sign in modal
+      await signInButton.scrollIntoViewIfNeeded();
       await signInButton.click();
       await page.waitForLoadState('domcontentloaded');
 

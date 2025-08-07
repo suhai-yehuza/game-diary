@@ -127,6 +127,7 @@ test.describe('Search Functionality', () => {
       await expect(searchButton).toBeEnabled();
 
       // Click the search button to open the search input
+      await searchButton.scrollIntoViewIfNeeded();
       await searchButton.click();
       await page.waitForLoadState('domcontentloaded');
 

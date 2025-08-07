@@ -37,7 +37,7 @@ export function LiveGamesBanner() {
   return (
     <div
       data-testid="live-games-banner"
-      className="fixed top-0 left-0 right-0 z-[60] bg-gradient-to-r from-gray-900 to-blue-900 text-white py-2 px-4 shadow-lg"
+      className="fixed top-0 left-0 right-0 z-[60] bg-gradient-to-r from-gray-900 to-blue-900 text-white py-2 px-4 shadow-lg pointer-events-none"
       style={{ position: 'fixed', top: 0, left: 0, right: 0 }}
     >
       <div className="container mx-auto">
@@ -45,7 +45,7 @@ export function LiveGamesBanner() {
           {/* Live Games Info */}
           <div className="flex items-center space-x-4">
             {/* Live Indicator */}
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-2 pointer-events-auto">
               <div
                 data-testid="live-indicator"
                 className="w-2 h-2 bg-red-600 rounded-full animate-live-dot-glow"
@@ -117,7 +117,7 @@ export function LiveGamesBanner() {
           {/* View All Link */}
           <Link
             href="/sports/live"
-            className="text-sm font-medium hover:text-gray-200 transition-colors duration-200 flex items-center space-x-1 ml-4"
+            className="text-sm font-medium hover:text-gray-200 transition-colors duration-200 flex items-center space-x-1 ml-4 pointer-events-auto"
           >
             <span>View All</span>
             <svg

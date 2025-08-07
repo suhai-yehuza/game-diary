@@ -42,6 +42,7 @@ test.describe('Protected Route Clerk Sign-In Modal', () => {
           // Click the close button (X) if present
           const closeButton = page.locator('[data-testid="mobile-menu-button"]');
           if (await closeButton.isVisible({ timeout: TIMEOUTS.SHORT }).catch(() => false)) {
+            await closeButton.scrollIntoViewIfNeeded();
             await closeButton.click();
             await expect(menuOverlay).not.toBeVisible({ timeout: TIMEOUTS.SHORT });
           }
@@ -49,6 +50,7 @@ test.describe('Protected Route Clerk Sign-In Modal', () => {
         // Click the search icon to expand the header right section
         const searchButton = page.locator('button[aria-label="Open search"]');
         if (await searchButton.isVisible({ timeout: TIMEOUTS.SHORT }).catch(() => false)) {
+          await searchButton.scrollIntoViewIfNeeded();
           await searchButton.click();
         }
       }

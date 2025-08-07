@@ -193,6 +193,7 @@ export async function testMobileNavigation(page: Page): Promise<void> {
   const menuButton = page.locator('[data-testid="menu-button"], .hamburger, [aria-label*="menu"]');
 
   if (await menuButton.isVisible({ timeout: TIMEOUTS.SHORT }).catch(() => false)) {
+    await menuButton.scrollIntoViewIfNeeded();
     await menuButton.click();
     await page.waitForTimeout(500);
 

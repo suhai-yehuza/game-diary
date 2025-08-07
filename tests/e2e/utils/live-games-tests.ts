@@ -116,6 +116,7 @@ export async function testLiveGamesNavigation(page: Page, options: ILiveGamesTes
 
   // Click "View All" link
   const viewAllLink = banner.getByRole('link', { name: 'View All' });
+  await viewAllLink.scrollIntoViewIfNeeded();
   await viewAllLink.click();
 
   // Should navigate to live games page

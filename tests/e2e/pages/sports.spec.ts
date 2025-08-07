@@ -257,6 +257,7 @@ test.describe('Sports Pages', () => {
             await expect(refreshButton.first()).toBeEnabled();
 
             // Test refresh functionality
+            await refreshButton.first().scrollIntoViewIfNeeded();
             await refreshButton.first().click();
             await waitForPageStable(page);
 
@@ -283,6 +284,7 @@ test.describe('Sports Pages', () => {
                 await expect(button).toBeEnabled();
 
                 // Click sort button
+                await button.scrollIntoViewIfNeeded();
                 await button.click();
                 await page.waitForLoadState('domcontentloaded');
 

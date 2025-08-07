@@ -48,6 +48,7 @@ export function isTestOrCIEnvironment(): boolean {
   // Server-side environment checks
   return (
     process.env.NODE_ENV === 'test' ||
+    process.env.NODE_ENV === 'development' ||
     process.env.API_MOCK_MODE === 'true' ||
     process.env.E2E_MOCK_MODE === 'true' ||
     process.env.PLAYWRIGHT_TEST === 'true' ||

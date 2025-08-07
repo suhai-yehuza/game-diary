@@ -35,6 +35,7 @@ async function revealSignInButtonIfMobile(page: Page) {
           '[data-testid="menu-button"], .hamburger, [aria-label*="menu"]'
         );
         if (await menuButton.isVisible({ timeout: TIMEOUTS.SHORT }).catch(() => false)) {
+          await menuButton.scrollIntoViewIfNeeded();
           await menuButton.click();
           await page.waitForTimeout(500);
         }
@@ -45,6 +46,7 @@ async function revealSignInButtonIfMobile(page: Page) {
           '[data-testid="nav-toggle"], .nav-toggle, [aria-label*="navigation"]'
         );
         if (await navToggle.isVisible({ timeout: TIMEOUTS.SHORT }).catch(() => false)) {
+          await navToggle.scrollIntoViewIfNeeded();
           await navToggle.click();
           await page.waitForTimeout(500);
         }

@@ -199,6 +199,7 @@ export async function navigateToSection(
 
   // Click the link and wait for navigation to complete
   console.log(`🔍 Clicking navigation link to ${href}...`);
+  await link.scrollIntoViewIfNeeded();
   await Promise.all([
     // Wait for navigation to complete (URL change)
     page.waitForURL(`**${href}`, { timeout }),
