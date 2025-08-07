@@ -52,7 +52,7 @@ export function LiveGamesBanner() {
   return (
     <div
       data-testid="live-games-banner"
-      className="fixed top-0 left-0 right-0 z-[60] bg-gradient-to-r from-gray-900 to-blue-900 text-white py-3 px-4 shadow-lg pointer-events-none"
+      className="fixed top-0 left-0 right-0 z-[60] bg-gradient-to-r from-gray-900 to-blue-900 text-white py-2.5 px-4 shadow-lg pointer-events-none"
       style={
         {
           position: 'fixed',
@@ -65,24 +65,24 @@ export function LiveGamesBanner() {
         } as React.CSSProperties
       }
     >
-      <div className="container mx-auto">
-        <div className="flex items-center justify-between">
+      <div className="container mx-auto max-w-7xl">
+        <div className="flex items-center justify-between gap-4">
           {/* Live Games Info */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
             {/* Live Indicator */}
-            <div className="flex items-center space-x-2 pointer-events-auto">
+            <div className="flex items-center space-x-2.5 pointer-events-auto bg-black/20 backdrop-blur-sm rounded-full px-3 py-1.5 border border-white/10">
               <div
                 data-testid="live-indicator"
-                className="w-2 h-2 bg-red-600 rounded-full animate-live-dot-glow"
+                className="w-2.5 h-2.5 bg-red-500 rounded-full animate-live-dot-glow flex-shrink-0"
               />
-              <span className="text-sm font-semibold">
+              <span className="text-sm font-semibold tracking-wide whitespace-nowrap">
                 {displayGames.length} {displayGames.length === 1 ? 'Live Game' : 'Live Games'}
               </span>
             </div>
 
             {/* Games Preview with Scrolling Animation */}
-            <div className="flex-1 overflow-hidden">
-              <div className="flex items-center space-x-4 animate-scroll-left">
+            <div className="flex-1 overflow-hidden max-w-xl sm:max-w-2xl">
+              <div className="flex items-center space-x-4 sm:space-x-6 animate-scroll-left">
                 {displayGames.map((game: IGameResponse, index: number) => (
                   <React.Fragment key={game.id}>
                     <div data-testid="game" className="flex items-center space-x-2 flex-shrink-0">
@@ -142,11 +142,11 @@ export function LiveGamesBanner() {
           {/* View All Link */}
           <Link
             href="/sports/live"
-            className="text-sm font-medium hover:text-gray-200 transition-colors duration-200 flex items-center space-x-1 ml-4 pointer-events-auto"
+            className="group text-sm font-semibold hover:bg-white/10 transition-all duration-200 flex items-center space-x-1.5 pointer-events-auto bg-white/5 backdrop-blur-sm rounded-full px-2.5 sm:px-3 py-1.5 border border-white/10 hover:border-white/20 flex-shrink-0"
           >
             <span>View All</span>
             <svg
-              className="w-4 h-4"
+              className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
