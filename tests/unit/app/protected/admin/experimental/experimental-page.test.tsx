@@ -131,7 +131,7 @@ describe('AdminExperimentalPage', () => {
     render(<AdminExperimentalPage />);
 
     expect(screen.getByText('Seasons Query')).toBeInTheDocument();
-    expect(screen.getByText('Fetching all seasons...')).toBeInTheDocument();
+    expect(screen.getByText('Ready to fetch seasons')).toBeInTheDocument();
   });
 
   it('renders the fetch button', () => {

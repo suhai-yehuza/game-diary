@@ -87,7 +87,9 @@ function SimpleEndpoints(props: SimpleEndpointsProps) {
               <CardTitle>
                 {selectedTab.charAt(0).toUpperCase() + selectedTab.slice(1)} Query
               </CardTitle>
-              <CardDescription>Fetching all {selectedTab}...</CardDescription>
+              <CardDescription>
+                {loading ? `Fetching all ${selectedTab}...` : `Ready to fetch ${selectedTab}`}
+              </CardDescription>
             </div>
             <Button
               onClick={handleClick}
@@ -179,7 +181,9 @@ function GamesSection(props: GamesSectionProps) {
             <div className="flex items-center justify-between">
               <div>
                 <CardTitle>Live Games</CardTitle>
-                <CardDescription>Fetching all currently live games...</CardDescription>
+                <CardDescription>
+                  {loading ? 'Fetching all currently live games...' : 'Ready to fetch live games'}
+                </CardDescription>
               </div>
               <Button
                 onClick={() => {

@@ -65,7 +65,11 @@ You can also use the unified script directly with options:
 2. Set up environment variables:
 
    ```bash
-   cp .env.example .env.local
+   # For local development (recommended)
+   cp .env.development .env.local
+
+   # Or use the development environment directly
+   export NODE_ENV=development
    ```
 
 3. Start the development server:
