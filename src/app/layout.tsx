@@ -18,8 +18,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: 'Placeholder',
-  description: 'Placeholder sentence or paragraph',
+  title: 'Game Diary - Track Your Sports Journey',
+  description: 'Track your favorite sports teams, games, and create your personal sports diary',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

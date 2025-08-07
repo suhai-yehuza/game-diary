@@ -1,35 +1,30 @@
-'use client';
-
-import { notFound, useParams } from 'next/navigation';
+import { notFound } from 'next/navigation';
 import React from 'react';
 
 import { SimpleSportsPage } from '@/app/components/sports';
 import { SPORTS_CONFIG } from '@/app/components/sports/SportsConfig';
 
-export default function SportPage() {
-  const params = useParams();
-  const sport =
-    typeof params.sport === 'string'
-      ? params.sport
-      : Array.isArray(params.sport)
-        ? params.sport[0]
-        : '';
+// Generate metadata for the page
+export function generateMetadata({ params }: { params: { sport: string } }) {
+  const sport = params.sport;
   const config = SPORTS_CONFIG[sport as keyof typeof SPORTS_CONFIG];
 
-  // Set document title using useEffect with multiple attempts
-  React.useEffect(() => {
-    if (config) {
-      // Set title immediately
-      document.title = `${config.name} - Game Diary`;
+  if (!config) {
+    return {
+      title: 'Sport Not Found - Game Diary',
+      description: 'The requested sport could not be found',
+    };
+  }
 
-      // Also set it after a short delay to handle timing issues
-      const timer = setTimeout(() => {
-        document.title = `${config.name} - Game Diary`;
-      }, 100);
+  return {
+    title: `${config.name} - Game Diary`,
+    description: config.description,
+  };
+}
 
-      return () => clearTimeout(timer);
-    }
-  }, [config]);
+export default function SportPage({ params }: { params: { sport: string } }) {
+  const sport = params.sport;
+  const config = SPORTS_CONFIG[sport as keyof typeof SPORTS_CONFIG];
 
   if (!config) return notFound();
 
