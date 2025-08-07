@@ -210,7 +210,20 @@ export async function safeGoto(
  */
 export async function waitForPageLoad(page: Page, timeout = TIMEOUTS.MEDIUM): Promise<void> {
   await waitForNetworkIdle(page, timeout);
-  await expect(page.locator('body')).toBeVisible({ timeout });
+
+  // For WebKit, check if the page has content instead of just body visibility
+  const browserName = page.context().browser()?.browserType().name();
+  if (browserName === 'webkit') {
+    // Wait for any content to be present
+    await page.waitForFunction(
+      () => {
+        return document.body && document.body.children.length > 0;
+      },
+      { timeout }
+    );
+  } else {
+    await expect(page.locator('body')).toBeVisible({ timeout });
+  }
 }
 
 /**

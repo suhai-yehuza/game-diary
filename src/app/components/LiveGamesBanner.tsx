@@ -46,7 +46,15 @@ export function LiveGamesBanner() {
     <div
       data-testid="live-games-banner"
       className="fixed top-0 left-0 right-0 z-[60] bg-gradient-to-r from-gray-900 to-blue-900 text-white py-2 px-4 shadow-lg pointer-events-none"
-      style={{ position: 'fixed', top: 0, left: 0, right: 0 }}
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        // Ensure proper stacking context for WebKit
+        transform: 'translateZ(0)',
+        willChange: 'transform',
+      }}
     >
       <div className="container mx-auto">
         <div className="flex items-center justify-between">
