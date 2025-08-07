@@ -1,29 +1,49 @@
+import { AlertCircle } from 'lucide-react';
 import React from 'react';
 
 import type { IEmptyStateProps } from '@/lib/types';
 
 const variantClasses = {
-  default: 'text-gray-600 dark:text-gray-400',
+  default: 'text-muted-foreground',
   info: 'text-blue-600 dark:text-blue-400',
   warning: 'text-yellow-600 dark:text-yellow-400',
 };
 
 export function EmptyState({
-  title,
-  description,
+  title = 'No data available',
+  description = 'There are no items to display at the moment.',
   icon,
   action,
   variant = 'default',
   className = '',
-}: IEmptyStateProps) {
+  iconSize = 48,
+  children,
+}: IEmptyStateProps & { iconSize?: number; children?: React.ReactNode }) {
+  const iconClasses = iconSize === 24 ? 'h-6 w-6' : 'h-12 w-12';
+
+  // Use provided icon or default AlertCircle icon
+  const displayIcon = icon ? (
+    <div className={`${iconClasses} text-muted-foreground`}>{icon}</div>
+  ) : (
+    <AlertCircle className={`${iconClasses} text-muted-foreground`} />
+  );
+
   return (
-    <div className={`flex flex-col items-center justify-center text-center p-8 ${className}`}>
-      {icon && <div className="mb-4 text-4xl">{icon}</div>}
-      <h3 className="text-lg font-semibold mb-2">{title}</h3>
-      {description && (
-        <p className={`text-sm mb-4 max-w-md ${variantClasses[variant]}`}>{description}</p>
-      )}
+    <div
+      className={`flex flex-col items-center justify-center text-center p-8 ${variantClasses[variant]} ${className}`}
+      data-testid="empty-state"
+      role="status"
+      aria-label={`Empty state: ${title}`}
+    >
+      <div className="mb-4">{displayIcon}</div>
+
+      <h3 className="text-lg font-semibold text-foreground mb-2">{title}</h3>
+
+      {description && <p className="text-sm mb-4">{description}</p>}
+
       {action && <div className="mt-4">{action}</div>}
+
+      {children && <div className="mt-4">{children}</div>}
     </div>
   );
 }

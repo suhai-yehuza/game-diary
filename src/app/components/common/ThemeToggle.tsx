@@ -29,6 +29,13 @@ export function ThemeToggle({ className }: IThemeToggleProps) {
   const { setTheme, theme } = useTheme();
   const mounted = useMounted();
 
+  const handleKeyDown = (event: React.KeyboardEvent, themeName: string) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      setTheme(themeName);
+    }
+  };
+
   if (!mounted) {
     return (
       <div
@@ -55,6 +62,7 @@ export function ThemeToggle({ className }: IThemeToggleProps) {
         <button
           key={themeOption.name}
           onClick={() => setTheme(themeOption.name)}
+          onKeyDown={e => handleKeyDown(e, themeOption.name)}
           className={`flex items-center justify-center h-11 w-11 rounded-full transition-colors mx-0.5
             ${theme === themeOption.name ? 'bg-[#232329] text-white shadow' : 'text-[#71717a] hover:text-white'} focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
           `}

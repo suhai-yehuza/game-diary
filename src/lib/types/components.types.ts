@@ -114,12 +114,13 @@ export interface ILoadingSpinnerProps {
 }
 
 export interface IEmptyStateProps {
-  title: string;
+  title?: string;
   description?: string;
   icon?: React.ReactNode;
   action?: React.ReactNode;
   variant?: 'default' | 'info' | 'warning';
   className?: string;
+  iconSize?: number;
 }
 
 // ========================================

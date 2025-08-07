@@ -31,6 +31,39 @@ vi.mock('next/image', () => ({
     }),
 }));
 
+// Mock Clerk components
+vi.mock('@clerk/nextjs', () => ({
+  SignIn: vi.fn(({ children, ...props }: any) =>
+    React.createElement('div', { 'data-testid': 'clerk-sign-in', ...props }, children)
+  ),
+  SignUp: vi.fn(({ children, ...props }: any) =>
+    React.createElement('div', { 'data-testid': 'clerk-sign-up', ...props }, children)
+  ),
+  useUser: () => ({
+    isSignedIn: false,
+    isLoaded: true,
+    user: null,
+  }),
+  useAuth: () => ({
+    isLoaded: true,
+    isSignedIn: false,
+    userId: null,
+  }),
+  ClerkProvider: ({ children }: any) =>
+    React.createElement('div', { 'data-testid': 'clerk-provider' }, children),
+}));
+
+// Mock next-themes
+vi.mock('next-themes', () => ({
+  useTheme: () => ({
+    theme: 'light',
+    setTheme: vi.fn(),
+    themes: ['light', 'dark', 'system'],
+  }),
+  ThemeProvider: ({ children }: any) =>
+    React.createElement('div', { 'data-testid': 'theme-provider' }, children),
+}));
+
 // Mock environment variables
 process.env.NEXT_PUBLIC_RAPID_API_KEY = 'test-api-key';
 process.env.NEXT_PUBLIC_RAPID_API_HOST = 'test-host';

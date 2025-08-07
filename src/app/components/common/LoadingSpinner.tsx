@@ -20,9 +20,14 @@ export function LoadingSpinner({
   text,
   className = '',
   variant = 'default',
-}: ILoadingSpinnerProps) {
+  ...props
+}: ILoadingSpinnerProps & React.HTMLAttributes<HTMLDivElement>) {
   return (
-    <div className={`flex flex-col items-center justify-center ${className}`}>
+    <div
+      className={`flex flex-col items-center justify-center ${className}`}
+      data-testid="loading-spinner"
+      {...props}
+    >
       <div
         className={`animate-spin rounded-full border-2 border-t-transparent ${sizeClasses[size]} ${variantClasses[variant]}`}
         role="status"
