@@ -1,5 +1,6 @@
 'use client';
 
+import { Globe, Trophy } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import React from 'react';
@@ -49,28 +50,14 @@ export default function HomePage() {
           href="/sports/live"
           className="flex items-center gap-2 hover:underline hover:underline-offset-4"
         >
-          <Image
-            aria-hidden
-            src="/icons/globe.svg"
-            alt="Live games icon"
-            width={16}
-            height={16}
-            sizes="16px"
-          />
+          <Globe className="w-4 h-4" aria-hidden />
           Live Games
         </Link>
         <Link
           href="/sports/all-sports"
           className="flex items-center gap-2 hover:underline hover:underline-offset-4"
         >
-          <Image
-            aria-hidden
-            src="/icons/shared-svg-components.svg"
-            alt="Sports icon"
-            width={16}
-            height={16}
-            sizes="16px"
-          />
+          <Trophy className="w-4 h-4" aria-hidden />
           All Sports
         </Link>
       </footer>
