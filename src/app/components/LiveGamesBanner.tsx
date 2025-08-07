@@ -65,10 +65,121 @@ export function LiveGamesBanner() {
         } as React.CSSProperties
       }
     >
-      <div className="container mx-auto max-w-7xl">
-        <div className="flex items-center justify-between gap-4">
-          {/* Live Games Info */}
-          <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
+      <div className="container mx-auto max-w-7xl relative">
+        {/* Full-width scrolling games background layer */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="flex items-center space-x-4 sm:space-x-6 animate-scroll-left h-full">
+            {/* Add padding to start games from the right side */}
+            <div className="w-[300px]" />
+            {displayGames.map((game: IGameResponse, index: number) => (
+              <React.Fragment key={game.id}>
+                <div data-testid="game" className="flex items-center space-x-2 flex-shrink-0">
+                  {/* Away Team */}
+                  <div className="flex items-center space-x-1">
+                    <div className="w-4 h-4 relative">
+                      <Image
+                        src={game.teams.visitors.logo}
+                        alt={game.teams.visitors.name}
+                        fill
+                        className="object-contain"
+                        sizes="16px"
+                        loading="lazy"
+                      />
+                    </div>
+                    <span className="text-xs font-medium">{game.teams.visitors.code}</span>
+                    <span className="text-xs font-bold">{game.scores.visitors.points}</span>
+                  </div>
+
+                  {/* @ */}
+                  <span className="text-xs text-gray-200">@</span>
+
+                  {/* Home Team */}
+                  <div className="flex items-center space-x-1">
+                    <div className="w-4 h-4 relative">
+                      <Image
+                        src={game.teams.home.logo}
+                        alt={game.teams.home.name}
+                        fill
+                        className="object-contain"
+                        sizes="16px"
+                        loading="lazy"
+                      />
+                    </div>
+                    <span className="text-xs font-medium">{game.teams.home.code}</span>
+                    <span className="text-xs font-bold">{game.scores.home.points}</span>
+                  </div>
+
+                  {/* Game Status */}
+                  {game.status.clock && (
+                    <span className="text-xs text-gray-200 ml-2">{game.status.clock}</span>
+                  )}
+                  {/* Quarter */}
+                  <span className="text-xs text-gray-200 ml-1">{game.status.short}</span>
+                </div>
+
+                {/* Separator between games */}
+                {index < displayGames.length - 1 && (
+                  <div className="w-px h-6 bg-gray-600 flex-shrink-0" />
+                )}
+              </React.Fragment>
+            ))}
+
+            {/* Duplicate first few games for seamless scrolling */}
+            {displayGames.slice(0, 3).map((game: IGameResponse) => (
+              <React.Fragment key={`duplicate-${game.id}`}>
+                <div className="w-px h-6 bg-gray-600 flex-shrink-0" />
+                <div data-testid="game" className="flex items-center space-x-2 flex-shrink-0">
+                  {/* Away Team */}
+                  <div className="flex items-center space-x-1">
+                    <div className="w-4 h-4 relative">
+                      <Image
+                        src={game.teams.visitors.logo}
+                        alt={game.teams.visitors.name}
+                        fill
+                        className="object-contain"
+                        sizes="16px"
+                        loading="lazy"
+                      />
+                    </div>
+                    <span className="text-xs font-medium">{game.teams.visitors.code}</span>
+                    <span className="text-xs font-bold">{game.scores.visitors.points}</span>
+                  </div>
+
+                  {/* @ */}
+                  <span className="text-xs text-gray-200">@</span>
+
+                  {/* Home Team */}
+                  <div className="flex items-center space-x-1">
+                    <div className="w-4 h-4 relative">
+                      <Image
+                        src={game.teams.home.logo}
+                        alt={game.teams.home.name}
+                        fill
+                        className="object-contain"
+                        sizes="16px"
+                        loading="lazy"
+                      />
+                    </div>
+                    <span className="text-xs font-medium">{game.teams.home.code}</span>
+                    <span className="text-xs font-bold">{game.scores.home.points}</span>
+                  </div>
+
+                  {/* Game Status */}
+                  {game.status.clock && (
+                    <span className="text-xs text-gray-200 ml-2">{game.status.clock}</span>
+                  )}
+                  {/* Quarter */}
+                  <span className="text-xs text-gray-200 ml-1">{game.status.short}</span>
+                </div>
+              </React.Fragment>
+            ))}
+          </div>
+        </div>
+
+        {/* Foreground UI elements with higher z-index */}
+        <div className="relative z-10 flex items-center justify-between py-2.5 px-0">
+          {/* Live Games Info - positioned further LEFT towards edge */}
+          <div className="flex items-center -ml-32">
             {/* Live Indicator */}
             <div className="flex items-center space-x-2.5 pointer-events-auto bg-black/20 backdrop-blur-sm rounded-full px-3 py-1.5 border border-white/10">
               <div
@@ -79,70 +190,12 @@ export function LiveGamesBanner() {
                 {displayGames.length} {displayGames.length === 1 ? 'Live Game' : 'Live Games'}
               </span>
             </div>
-
-            {/* Games Preview with Scrolling Animation */}
-            <div className="flex-1 overflow-hidden max-w-xl sm:max-w-2xl">
-              <div className="flex items-center space-x-4 sm:space-x-6 animate-scroll-left">
-                {displayGames.map((game: IGameResponse, index: number) => (
-                  <React.Fragment key={game.id}>
-                    <div data-testid="game" className="flex items-center space-x-2 flex-shrink-0">
-                      {/* Away Team */}
-                      <div className="flex items-center space-x-1">
-                        <div className="w-4 h-4 relative">
-                          <Image
-                            src={game.teams.visitors.logo}
-                            alt={game.teams.visitors.name}
-                            fill
-                            className="object-contain"
-                            sizes="16px"
-                            loading="lazy"
-                          />
-                        </div>
-                        <span className="text-xs font-medium">{game.teams.visitors.code}</span>
-                        <span className="text-xs font-bold">{game.scores.visitors.points}</span>
-                      </div>
-
-                      {/* @ */}
-                      <span className="text-xs text-gray-200">@</span>
-
-                      {/* Home Team */}
-                      <div className="flex items-center space-x-1">
-                        <div className="w-4 h-4 relative">
-                          <Image
-                            src={game.teams.home.logo}
-                            alt={game.teams.home.name}
-                            fill
-                            className="object-contain"
-                            sizes="16px"
-                            loading="lazy"
-                          />
-                        </div>
-                        <span className="text-xs font-medium">{game.teams.home.code}</span>
-                        <span className="text-xs font-bold">{game.scores.home.points}</span>
-                      </div>
-
-                      {/* Game Status */}
-                      {game.status.clock && (
-                        <span className="text-xs text-gray-200 ml-2">{game.status.clock}</span>
-                      )}
-                      {/* Quarter */}
-                      <span className="text-xs text-gray-200 ml-1">{game.status.short}</span>
-                    </div>
-
-                    {/* Separator between games */}
-                    {index < displayGames.length - 1 && (
-                      <div className="w-px h-6 bg-gray-600 flex-shrink-0" />
-                    )}
-                  </React.Fragment>
-                ))}
-              </div>
-            </div>
           </div>
 
-          {/* View All Link */}
+          {/* View All Link - positioned further RIGHT towards edge */}
           <Link
             href="/sports/live"
-            className="group text-sm font-semibold hover:bg-white/10 transition-all duration-200 flex items-center space-x-1.5 pointer-events-auto bg-white/5 backdrop-blur-sm rounded-full px-2.5 sm:px-3 py-1.5 border border-white/10 hover:border-white/20 flex-shrink-0"
+            className="group text-sm font-semibold hover:bg-white/10 transition-all duration-200 flex items-center space-x-1.5 pointer-events-auto bg-white/5 backdrop-blur-sm rounded-full px-2.5 sm:px-3 py-1.5 border border-white/10 hover:border-white/20 flex-shrink-0 -mr-32"
           >
             <span>View All</span>
             <svg

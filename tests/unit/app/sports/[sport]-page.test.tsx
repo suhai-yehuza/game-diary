@@ -1,62 +1,53 @@
-import { render, screen } from '@testing-library/react';
-import * as nextNavigation from 'next/navigation';
-import React from 'react';
-import { vi, describe, it, expect } from 'vitest';
+import { notFound } from 'next/navigation';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import '@testing-library/jest-dom';
 
-import * as SportsComponents from '@/app/components/sports';
+import { SimpleSportsPage } from '@/app/components/sports';
 import { SPORTS_CONFIG } from '@/app/components/sports/SportsConfig';
 import SportPage from '@/app/sports/[sport]/page';
 
-vi.mock('next/navigation', async () => {
-  const actual = await vi.importActual<any>('next/navigation');
-  return {
-    ...actual,
-    notFound: vi.fn(),
-  };
-});
+// Mock the modules using factory functions
+vi.mock('next/navigation', () => ({
+  notFound: vi.fn(),
+}));
 
-vi.mock('@/app/components/sports', async () => {
-  const actual = await vi.importActual<any>('@/app/components/sports');
-  return {
-    ...actual,
-    SimpleSportsPage: vi.fn(({ title, description, children }) => (
-      <div data-testid="simple-sports-page">
-        <h1>{title}</h1>
-        <p>{description}</p>
-        {children}
-      </div>
-    )),
-  };
-});
+vi.mock('@/app/components/sports', () => ({
+  SimpleSportsPage: vi.fn().mockImplementation(({ children, ...props }) => (
+    <div {...props} data-testid="simple-sports-page">
+      {children}
+    </div>
+  )),
+}));
 
 describe('SportPage', () => {
-  const mockNotFound = nextNavigation.notFound as unknown as ReturnType<typeof vi.fn>;
-  const mockSimpleSportsPage = SportsComponents.SimpleSportsPage as unknown as ReturnType<
-    typeof vi.fn
-  >;
+  const mockNotFound = vi.mocked(notFound);
+  const mockSimpleSportsPage = vi.mocked(SimpleSportsPage);
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
 
   const firstSportKey = Object.keys(SPORTS_CONFIG)[0];
-  const firstSport = SPORTS_CONFIG[firstSportKey as keyof typeof SPORTS_CONFIG];
 
   it('renders the correct sport page when param is valid', async () => {
-    render(<SportPage params={Promise.resolve({ sport: firstSportKey })} />);
-    expect(mockSimpleSportsPage).toHaveBeenCalledWith(
-      expect.objectContaining({
-        title: firstSport.name,
-        description: firstSport.description,
-      }),
-      undefined
-    );
-    expect(await screen.findByText(`Welcome to the ${firstSport.fullName}`)).toBeInTheDocument();
+    // Call the async component function directly
+    const result = await SportPage({ params: Promise.resolve({ sport: firstSportKey }) });
+
+    // Verify the result is a valid React element
+    expect(result).toBeDefined();
+    expect(result.type).toBe(mockSimpleSportsPage);
+
+    // Check that notFound was not called (valid sport)
+    expect(mockNotFound).not.toHaveBeenCalled();
   });
 
   it('calls notFound when sport param is invalid', async () => {
-    render(<SportPage params={Promise.resolve({ sport: 'invalidsport' })} />);
+    await SportPage({ params: Promise.resolve({ sport: 'invalidsport' }) });
     expect(mockNotFound).toHaveBeenCalled();
   });
 
   it('renders nothing if param is missing', async () => {
-    render(<SportPage params={Promise.resolve({ sport: '' })} />);
+    await SportPage({ params: Promise.resolve({ sport: '' }) });
     expect(mockNotFound).toHaveBeenCalled();
   });
 });

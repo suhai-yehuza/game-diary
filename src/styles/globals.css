@@ -807,7 +807,7 @@ body {
 }
 
 .animate-scroll-left {
-  animation: scrollLeft 20s linear infinite;
+  animation: scrollLeft 25s linear infinite;
 }
 
 /* Spring animations */
