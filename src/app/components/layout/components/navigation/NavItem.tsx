@@ -11,7 +11,6 @@ export function NavItem({
   className = '',
   onClick,
   isStacked = false,
-  colorClass = '',
   closeMenu,
   ...props
 }: INavItemExtendedProps) {
@@ -35,7 +34,6 @@ export function NavItem({
         ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800'
         : 'bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700'
     }
-    ${colorClass}
     ${className}
   `;
 

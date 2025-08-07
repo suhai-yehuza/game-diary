@@ -29,17 +29,14 @@ export function NavigationLinks({
     {
       href: '/',
       label: 'Home',
-      colorClass: 'bg-green-500 hover:bg-green-600',
     },
     ...Object.values(SPORTS_CONFIG).map(sport => ({
       href: sport.href,
       label: sport.name,
-      colorClass: sport.color,
     })),
     {
       href: '/sports/all-sports',
       label: 'All Sports',
-      colorClass: 'bg-pink-500 hover:bg-pink-600',
     },
   ];
 
@@ -49,14 +46,13 @@ export function NavigationLinks({
 
   return (
     <nav className={navClass}>
-      {navItems.map(({ href, label, colorClass }) => (
+      {navItems.map(({ href, label }) => (
         <NavItem
           key={href}
           href={href}
           isActive={isActive(href)}
           onClick={handleNavClick}
           isStacked={isStacked}
-          colorClass={colorClass}
           closeMenu={closeMenu}
           aria-current={isActive(href) ? 'page' : undefined}
         >
@@ -71,7 +67,6 @@ export function NavigationLinks({
         isActive={isActive('/protected/user')}
         onClick={handleNavClick}
         isStacked={isStacked}
-        colorClass="bg-orange-500 hover:bg-orange-600"
         closeMenu={closeMenu}
       >
         Dashboard

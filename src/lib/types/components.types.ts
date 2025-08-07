@@ -41,7 +41,6 @@ export type NavItemProps = PropsWithChildren<{
 export interface INavItemExtendedProps extends NavItemProps {
   onClick?: () => void;
   isStacked?: boolean;
-  colorClass?: string;
   closeMenu?: () => void;
 }
 
