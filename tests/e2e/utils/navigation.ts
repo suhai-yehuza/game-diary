@@ -436,7 +436,7 @@ export async function openMobileMenu(page: Page, timeout = 10000): Promise<void>
 }
 
 /**
- * Open mobile search overlay if on mobile device
+ * Open mobile search by navigating to search page via bottom navigation
  */
 export async function openMobileSearch(page: Page, timeout = 10000): Promise<void> {
   const isMobile = await page.evaluate(() => window.innerWidth < 1024);
@@ -445,57 +445,38 @@ export async function openMobileSearch(page: Page, timeout = 10000): Promise<voi
     // Wait for the page to be fully loaded and stable
     await waitForNetworkIdleUtil(page, timeout);
 
-    // Check if search overlay is already open
-    const searchOverlay = page.locator('.fixed.inset-0.z-40');
-    const isSearchOpen = await searchOverlay.isVisible();
-
-    if (isSearchOpen) {
-      console.log('Search overlay is already open, no need to focus');
-      return;
-    }
-
-    // Find the mobile search button and click it to open the overlay
-    const searchButton = page.locator('button[aria-label="Toggle search"]');
-    await expect(searchButton).toBeVisible({ timeout });
+    // Find the search navigation item in the bottom navigation
+    const searchNavItem = page.locator('nav a[href="/search"], nav button[aria-label="Search"]');
+    await expect(searchNavItem).toBeVisible({ timeout });
 
     try {
-      // Click the search button to open the overlay
-      await searchButton.click();
+      // Click the search navigation item to go to the search page
+      await searchNavItem.click();
       await page.waitForLoadState('domcontentloaded');
 
-      // Verify search overlay opened
-      const searchOpenAfterClick = await searchOverlay.isVisible();
-      console.log(`Search overlay open after click: ${searchOpenAfterClick}`);
+      // Verify we're on the search page
+      await expect(page).toHaveURL(/.*\/search.*/);
 
-      if (searchOpenAfterClick) {
-        // Wait for the search input to be attached inside the overlay
-        const overlaySearchInput = searchOverlay.locator('input[type="search"]');
-        await overlaySearchInput.waitFor({ state: 'attached', timeout: 5000 });
-        await overlaySearchInput.focus();
-        // Wait for the input to become visible
-        await expect(overlaySearchInput).toBeVisible({ timeout: 5000 });
-        console.log('Search overlay opened successfully and input focused/visible');
-        return;
-      } else {
-        throw new Error('Search overlay did not open');
-      }
+      // Wait for the search input to be visible on the search page
+      const searchInput = page.locator('input[type="search"], input[placeholder*="search"]');
+      await expect(searchInput.first()).toBeVisible({ timeout: 5000 });
+      console.log('Successfully navigated to search page and input is visible');
+      return;
     } catch (_error) {
-      console.log('Search button click failed, trying force click...');
+      console.log('Search navigation failed, trying force click...');
 
       // Try force click as fallback
       try {
-        await searchButton.click({ force: true });
+        await searchNavItem.click({ force: true });
         await page.waitForLoadState('domcontentloaded');
 
-        const searchOpenAfterForceClick = await searchOverlay.isVisible();
-        if (searchOpenAfterForceClick) {
-          console.log('Search overlay opened successfully with force click');
-          return;
-        } else {
-          throw new Error('Search overlay did not open with force click');
-        }
+        await expect(page).toHaveURL(/.*\/search.*/);
+        const searchInput = page.locator('input[type="search"], input[placeholder*="search"]');
+        await expect(searchInput.first()).toBeVisible({ timeout: 5000 });
+        console.log('Successfully navigated to search page with force click');
+        return;
       } catch (_forceError) {
-        throw new Error('Failed to open mobile search overlay');
+        throw new Error('Failed to navigate to mobile search page');
       }
     }
   }

@@ -121,17 +121,17 @@ test.describe('Search Functionality', () => {
       await safeGotoWithMocking(page, '/sports/nba');
       await page.waitForLoadState('networkidle');
 
-      // On mobile, first look for the search icon button
-      const searchButton = page.locator('button[aria-label="Open search"]');
-      await expect(searchButton).toBeVisible();
-      await expect(searchButton).toBeEnabled();
+      // On mobile, look for the search icon in the bottom navigation
+      const searchNavItem = page.locator('nav a[href="/search"], nav button[aria-label="Search"]');
+      await expect(searchNavItem).toBeVisible();
+      await expect(searchNavItem).toBeEnabled();
 
-      // Click the search button to open the search input
-      await searchButton.scrollIntoViewIfNeeded();
-      await searchButton.click();
+      // Click the search navigation item to go to the search page
+      await searchNavItem.scrollIntoViewIfNeeded();
+      await searchNavItem.click();
       await page.waitForLoadState('domcontentloaded');
 
-      // Now the search input should be visible
+      // Now we should be on the search page with the search input visible
       const searchInput = page.locator('input[type="search"], input[placeholder*="search"]');
       await expect(searchInput.first()).toBeVisible();
       await expect(searchInput.first()).toBeEnabled();
