@@ -1,17 +1,17 @@
 'use client';
 
-import { X, ChevronDown } from 'lucide-react';
+import { X } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
 
 import { ClientOnlyNavigationLinks } from '@/app/components/layout/components/navigation/ClientOnlyNavigationLinks';
 import { useMobileDetection } from '@/app/components/layout/components/SearchBar';
 import { useMenuContext } from '@/app/components/providers';
 
-interface MobileMenuSheetProps {
+interface IMobileMenuSheetProps {
   isActive: (path: string) => boolean;
 }
 
-export function MobileMenuSheet({ isActive }: MobileMenuSheetProps) {
+export function MobileMenuSheet({ isActive }: IMobileMenuSheetProps) {
   const { isMenuExpanded, setIsMenuExpanded } = useMenuContext();
   const isMobile = useMobileDetection();
   const [isDragging, setIsDragging] = useState(false);

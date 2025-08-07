@@ -2,7 +2,7 @@
 
 import { useUser } from '@clerk/nextjs';
 import { format } from 'date-fns';
-import { Star, Eye, EyeOff, Lock, Users, Plus, Edit, Trash2, Search, Filter } from 'lucide-react';
+import { Star, Eye, EyeOff, Lock, Users, Plus, Edit, Trash2, Search } from 'lucide-react';
 import { useState } from 'react';
 
 import { CreateGameLogModal } from '@/app/components/game-logs/CreateGameLogModal';
@@ -61,7 +61,6 @@ export function MobileGameLogsTable() {
   const [editingGameLog, setEditingGameLog] = useState<IGameLog | null>(null);
   const [deletingGameLog, setDeletingGameLog] = useState<IGameLog | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [showSearch, setShowSearch] = useState(false);
 
   const {
     gameLogs: myLogs,

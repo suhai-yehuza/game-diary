@@ -1,7 +1,7 @@
 'use client';
 
 import { Search, X } from 'lucide-react';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 
 import { useMobileDetection } from '@/app/components/layout/components/SearchBar';
@@ -9,10 +9,10 @@ import { useMobileDetection } from '@/app/components/layout/components/SearchBar
 export function MobileSearchBar() {
   const [isExpanded, setIsExpanded] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [isFocused, setIsFocused] = useState(false);
+
   const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
-  const pathname = usePathname();
+
   const searchParams = useSearchParams();
   const isMobile = useMobileDetection();
 
@@ -44,7 +44,6 @@ export function MobileSearchBar() {
     e.preventDefault();
     handleSearch(searchQuery);
     setIsExpanded(false);
-    setIsFocused(false);
   };
 
   // Handle clear button
@@ -58,7 +57,6 @@ export function MobileSearchBar() {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && isExpanded) {
         setIsExpanded(false);
-        setIsFocused(false);
         setSearchQuery('');
       }
     };
@@ -107,8 +105,6 @@ export function MobileSearchBar() {
                       type="search"
                       value={searchQuery}
                       onChange={handleInputChange}
-                      onFocus={() => setIsFocused(true)}
-                      onBlur={() => setIsFocused(false)}
                       placeholder="Search games, teams, players..."
                       className="flex-1 bg-transparent border-none outline-none text-base placeholder-gray-500 dark:placeholder-gray-400"
                       autoComplete="off"
@@ -132,7 +128,6 @@ export function MobileSearchBar() {
                       type="button"
                       onClick={() => {
                         setIsExpanded(false);
-                        setIsFocused(false);
                         setSearchQuery('');
                       }}
                       className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"

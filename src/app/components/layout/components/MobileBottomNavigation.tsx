@@ -8,7 +8,7 @@ import React, { useState, useEffect } from 'react';
 import { useMobileDetection } from '@/app/components/layout/components/SearchBar';
 import { useMenuContext } from '@/app/components/providers';
 
-interface BottomNavItem {
+interface IBottomNavItem {
   href: string;
   label: string;
   icon: React.ComponentType<{ className?: string }>;
@@ -30,7 +30,7 @@ export function MobileBottomNavigation() {
 
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
-      const isScrollingDown = currentScrollY > lastScrollY && currentScrollY > 100;
+      const _isScrollingDown = currentScrollY > lastScrollY && currentScrollY > 100;
       const isScrollingUp = currentScrollY < lastScrollY;
 
       setIsVisible(isScrollingUp || currentScrollY < 100);
@@ -55,7 +55,7 @@ export function MobileBottomNavigation() {
     return pathname === href || pathname.startsWith(href);
   };
 
-  const bottomNavItems: BottomNavItem[] = [
+  const bottomNavItems: IBottomNavItem[] = [
     {
       href: '/',
       label: 'Home',
