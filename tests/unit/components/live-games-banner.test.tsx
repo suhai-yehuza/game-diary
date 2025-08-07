@@ -177,20 +177,18 @@ describe('LiveGamesBanner', () => {
     expect(gameElements).toHaveLength(2);
   });
 
-  it('renders nothing if games is empty', () => {
+  it('renders mock data if games is empty in test environment', () => {
     (useLiveGames as any).mockImplementation(() => ({ games: [] }) as any);
     render(<LiveGamesBanner />);
-    // In test environments, the banner should show mock data even when games is empty
-    // So we expect it to render the banner with mock data
+    // Banner should show mock data in test environments when no real games
     expect(screen.getByTestId('live-games-banner')).toBeInTheDocument();
     expect(screen.getByText('8 Live Games')).toBeInTheDocument();
   });
 
-  it('renders nothing if games is undefined', () => {
+  it('renders mock data if games is undefined in test environment', () => {
     (useLiveGames as any).mockImplementation(() => ({ games: undefined }) as any);
     render(<LiveGamesBanner />);
-    // In test environments, the banner should show mock data even when games is undefined
-    // So we expect it to render the banner with mock data
+    // Banner should show mock data in test environments when games is undefined
     expect(screen.getByTestId('live-games-banner')).toBeInTheDocument();
     expect(screen.getByText('8 Live Games')).toBeInTheDocument();
   });

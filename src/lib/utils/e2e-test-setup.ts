@@ -88,3 +88,10 @@ export function isE2ETestEnvironment(): boolean {
   }
   return false;
 }
+
+/**
+ * Check if the current environment is production
+ */
+export function isProductionEnvironment(): boolean {
+  return process.env.NODE_ENV === 'production' && !isTestOrCIEnvironment();
+}

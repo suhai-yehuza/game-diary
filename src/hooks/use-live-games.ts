@@ -1,7 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 
 import { INTERNAL_PROXY_ENDPOINTS } from '@/lib/config/app.config';
-import { MOCK_LIVE_GAMES } from '@/lib/mock/liveGamesMock';
 import type { IGamesApiResponse, IUseLiveGamesOptions } from '@/lib/types';
 import { isTestOrCIEnvironment } from '@/lib/utils/e2e-test-setup';
 
@@ -50,38 +49,21 @@ export function useLiveGames(options: IUseLiveGamesOptions = {}) {
         if (isGamesApiResponse(mockData)) {
           setLiveGames(mockData);
         } else {
-          setLiveGames(MOCK_LIVE_GAMES);
+          setLiveGames(null);
         }
         return;
       }
 
       // Handle regular API response
       if (isGamesApiResponse(data)) {
-        // Only use mock data as fallback in test environments
-        if (data.response.length === 0) {
-          if (isTestOrCIEnvironment()) {
-            setLiveGames(MOCK_LIVE_GAMES);
-          } else {
-            setLiveGames({ ...data, response: [] });
-          }
-        } else {
-          setLiveGames(data);
-        }
+        setLiveGames(data);
       } else {
-        if (isTestOrCIEnvironment()) {
-          setLiveGames(MOCK_LIVE_GAMES);
-        } else {
-          setLiveGames(null);
-        }
+        setLiveGames(null);
       }
     } catch (err) {
       const error = err instanceof Error ? err : new Error(String(err));
       setError(error.message);
-      if (isTestOrCIEnvironment()) {
-        setLiveGames(MOCK_LIVE_GAMES);
-      } else {
-        setLiveGames(null);
-      }
+      setLiveGames(null);
     } finally {
       setLoading(false);
     }
@@ -101,18 +83,6 @@ export function useLiveGames(options: IUseLiveGamesOptions = {}) {
       }
     }
   }, [fetchLiveGames, initialData, autoRefresh, refreshInterval]);
-
-  // In test environments, always return mock data if no live games are available
-  if (!initialData && isTestOrCIEnvironment() && (!liveGames || liveGames.response.length === 0)) {
-    return {
-      liveGames: MOCK_LIVE_GAMES,
-      games: MOCK_LIVE_GAMES.response,
-      loading: false,
-      error: null,
-      // eslint-disable-next-line @typescript-eslint/no-empty-function
-      refetch: () => {},
-    };
-  }
 
   const games = liveGames?.response ?? [];
 

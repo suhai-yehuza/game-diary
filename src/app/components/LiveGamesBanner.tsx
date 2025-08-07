@@ -7,7 +7,7 @@ import React, { useEffect, useState } from 'react';
 import { useLiveGames } from '@/hooks/use-live-games';
 import { MOCK_LIVE_GAMES } from '@/lib/mock/liveGamesMock';
 import type { IGameResponse } from '@/lib/types';
-import { isTestOrCIEnvironment } from '@/lib/utils/e2e-test-setup';
+import { isTestOrCIEnvironment, isProductionEnvironment } from '@/lib/utils/e2e-test-setup';
 
 export function LiveGamesBanner() {
   const { games } = useLiveGames();
@@ -26,11 +26,19 @@ export function LiveGamesBanner() {
     return null;
   }
 
-  // In test/CI environments, show mock data if no real games
-  const displayGames =
-    games && games.length > 0 ? games : isTestOrCIEnvironment() ? MOCK_LIVE_GAMES.response : null;
+  // Determine which games to display based on environment and data availability
+  let displayGames: IGameResponse[] = [];
 
-  if (!displayGames || displayGames.length === 0) {
+  if (games && games.length > 0) {
+    // If there are real live games, display them
+    displayGames = games;
+  } else if (!isProductionEnvironment()) {
+    // If no real games but we're in non-prod environment, use mock data
+    displayGames = MOCK_LIVE_GAMES.response;
+  }
+  // If no games and we're in production, displayGames remains empty array
+
+  if (displayGames.length === 0) {
     return null;
   }
 

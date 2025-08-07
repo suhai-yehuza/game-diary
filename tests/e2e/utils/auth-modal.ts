@@ -83,15 +83,23 @@ export async function testSignInModal(
     if (!isDisabled) {
       await expect(signInButton).toBeEnabled();
 
-      // Scroll the sign-in button into view before clicking
-      await signInButton.scrollIntoViewIfNeeded();
+      // Try to scroll the sign-in button into view before clicking
+      try {
+        await signInButton.scrollIntoViewIfNeeded();
+      } catch (_scrollError) {
+        console.log('Could not scroll sign-in button into view, trying to click directly');
+      }
 
       try {
         await signInButton.click();
       } catch (_err) {
         // If click fails due to overlay, try to close modal backdrop and retry
         await closeModalBackdropIfPresent(page);
-        await signInButton.scrollIntoViewIfNeeded();
+        try {
+          await signInButton.scrollIntoViewIfNeeded();
+        } catch (_scrollError) {
+          console.log('Could not scroll sign-in button into view on retry');
+        }
         await signInButton.click();
       }
 
