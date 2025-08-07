@@ -78,7 +78,7 @@
     "deps:manage": "tsx scripts/utils/manage-deps.ts",
     "deps:update": "pnpm update --latest",
     "dev": "next dev --turbo -p ${PORT:-3000}",
-    "dev2": "API_MOCK_MODE=true pnpm dev",
+    "dev3": "API_MOCK_MODE=true pnpm dev",
     "dev:interactive": "./scripts/server-manager.sh start --interactive",
     "dev:kill:port": "./scripts/server-manager.sh kill-port",
     "dev:logs": "./scripts/server-manager.sh logs",
