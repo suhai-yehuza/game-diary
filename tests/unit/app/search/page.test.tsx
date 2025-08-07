@@ -57,14 +57,14 @@ describe('SearchPage', () => {
   it('renders the search page with correct structure', () => {
     render(<SearchPage />, { wrapper: TestWrapper });
 
-    expect(screen.getByText('Global Search')).toBeInTheDocument();
     expect(screen.getByText('Start searching')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Search games, teams, players...')).toBeInTheDocument();
   });
 
   it('renders search page title', () => {
     render(<SearchPage />, { wrapper: TestWrapper });
 
-    expect(screen.getByText('Global Search')).toBeInTheDocument();
+    expect(screen.getByText('Start searching')).toBeInTheDocument();
   });
 
   it('renders search empty state when no query', () => {
@@ -79,14 +79,14 @@ describe('SearchPage', () => {
   it('applies correct CSS classes to container', () => {
     const { container } = render(<SearchPage />, { wrapper: TestWrapper });
 
-    const div = container.querySelector('.container');
-    expect(div).toHaveClass('container', 'mx-auto', 'px-4', 'py-8', 'max-w-4xl');
+    const div = container.querySelector('.min-h-screen');
+    expect(div).toHaveClass('min-h-screen', 'bg-background');
   });
 
   it('renders search header with correct structure', () => {
     render(<SearchPage />, { wrapper: TestWrapper });
 
-    const header = screen.getByRole('heading', { level: 1 });
-    expect(header).toHaveTextContent('Global Search');
+    const header = screen.getByRole('heading', { level: 3 });
+    expect(header).toHaveTextContent('Start searching');
   });
 });

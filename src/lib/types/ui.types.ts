@@ -96,6 +96,15 @@ export interface IChartDataset {
 // BASE COMPONENT TYPES
 // ========================================
 
+export interface IBottomNavItem {
+  href: string;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  activeIcon?: React.ComponentType<{ className?: string }>;
+  action?: () => void;
+  isAction?: boolean;
+}
+
 // Base button interface that can be extended
 export interface IBaseButtonProps {
   className?: string;

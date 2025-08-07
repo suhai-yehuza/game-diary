@@ -88,7 +88,10 @@ export function Footer() {
   // SSR: Render a static, neutral footer to avoid empty space or flash
   if (!mounted) {
     return (
-      <footer className="w-full border-t border-border bg-background text-foreground py-2 text-xs">
+      <footer
+        data-testid="footer"
+        className="w-full border-t border-border bg-background text-foreground py-2 text-xs"
+      >
         <FooterSections linkClass="hover:text-primary transition-colors block py-0.5 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded" />
         <div className="max-w-5xl mx-auto px-2 mt-2 text-center text-muted-foreground text-xs opacity-80">
           &copy; {new Date().getFullYear()} Placeholder. Made with{' '}
@@ -110,7 +113,7 @@ export function Footer() {
   const mutedTextClass = isDark ? 'text-gray-500' : 'text-gray-400';
 
   return (
-    <footer className={`w-full border-t py-2 text-xs ${bgClass}`}>
+    <footer data-testid="footer" className={`w-full border-t py-2 text-xs ${bgClass}`}>
       <FooterSections linkClass={linkClass} />
       <div
         className={`max-w-5xl mx-auto px-2 mt-2 text-center ${mutedTextClass} text-xs opacity-80`}
