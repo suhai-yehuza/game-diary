@@ -31,13 +31,26 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </a>
         {/* E2E Test Setup - only runs in test environments */}
         {isTestOrCIEnvironment() && <E2ETestSetup />}
+
+        {/* API Mock Mode Setup - inject server env var to client */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              if (typeof window !== 'undefined') {
+                window.__API_MOCK_MODE__ = ${process.env.API_MOCK_MODE === 'true'};
+                window.__SERVER_API_MOCK_MODE__ = ${process.env.API_MOCK_MODE === 'true'};
+              }
+            `,
+          }}
+        />
+
         {/* Live Games Banner - fixed at top */}
         <LiveGamesBanner />
         <ClientProviders>
           <HeaderWrapper />
           <main
             id="main-content"
-            className="grow pt-24 pb-20 lg:pb-0"
+            className="grow pb-20 lg:pb-0 pt-16" // pt-16 = 4rem for header height
             style={{
               paddingBottom: 'calc(env(safe-area-inset-bottom) + 5rem)',
             }}

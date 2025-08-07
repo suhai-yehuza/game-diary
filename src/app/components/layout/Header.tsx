@@ -12,14 +12,13 @@ import {
 import { MobileBottomNavigation } from '@/app/components/layout/components/MobileBottomNavigation';
 import { MobileMenuSheet } from '@/app/components/layout/components/MobileMenuSheet';
 import { useMenuContext } from '@/app/components/providers';
-import { useLiveGames } from '@/hooks/use-live-games';
-import { isTestOrCIEnvironment } from '@/lib/utils/e2e-test-setup';
+import { useBannerVisibility } from '@/hooks/use-banner-visibility';
 
 export function Header() {
   const { isMenuExpanded, setIsMenuExpanded } = useMenuContext();
   const pathname = usePathname() || '/';
   const isMobile = useMobileDetection();
-  const { games } = useLiveGames();
+  const { shouldDisplayBanner, bannerHeight } = useBannerVisibility();
 
   // Menu is stacked only if expanded and in mobile/overlay mode
   const isStacked = isMenuExpanded && isMobile;
@@ -43,24 +42,14 @@ export function Header() {
 
   const handleCloseMenu = useCallback(() => setIsMenuExpanded(false), [setIsMenuExpanded]);
 
-  // Check if there are live games to determine spacing
-  // Use a stable initial state to prevent hydration mismatches
-  const [mounted, setMounted] = React.useState(false);
-
-  React.useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  // Banner should be displayed when there are real games OR in test/CI environment
-  const hasLiveGames = mounted && games && games.length > 0;
-  const shouldShowBanner = hasLiveGames || isTestOrCIEnvironment();
-  const headerMarginClass = shouldShowBanner ? 'mt-20' : 'mt-0';
-
   return (
     <>
       <header
         data-testid="header"
-        className={`w-full border-b-2 border-neutral-200 dark:border-neutral-600 shadow-md dark:shadow-lg bg-background ${headerMarginClass}`}
+        className={`sticky top-0 w-full border-b-2 border-neutral-200 dark:border-neutral-600 shadow-md dark:shadow-lg bg-background z-50 transition-all duration-300 ease-in-out`}
+        style={{
+          marginTop: shouldDisplayBanner ? `${bannerHeight}px` : '0px',
+        }}
       >
         {/* Overlay for mobile menu */}
         {isMenuExpanded && (

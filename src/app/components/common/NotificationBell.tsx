@@ -9,7 +9,18 @@ import { Button } from '@/app/components/ui/button';
 import { Card } from '@/app/components/ui/Card';
 
 export function NotificationBell() {
-  const { user } = useUser();
+  // Handle case where Clerk is not configured (e.g., during SSR or in test environment)
+  let user = null;
+
+  try {
+    const userData = useUser();
+    user = userData.user;
+  } catch {
+    // Clerk is not configured (e.g., during SSR or in test environment)
+    console.log('Clerk not configured, using fallback user data');
+    user = null;
+  }
+
   const [isClient, setIsClient] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
 

@@ -2,41 +2,48 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 
+import { useBannerVisibility } from '@/hooks/use-banner-visibility';
 import { useLiveGames } from '@/hooks/use-live-games';
 import { MOCK_LIVE_GAMES } from '@/lib/mock/liveGamesMock';
 import type { IGameResponse } from '@/lib/types';
-import { isTestOrCIEnvironment, isProductionEnvironment } from '@/lib/utils/e2e-test-setup';
+
+/**
+ * Determines which games to display based on environment and data availability
+ */
+function getDisplayGames(realGames: IGameResponse[] | null): IGameResponse[] {
+  // If there are real live games, use them
+  if (realGames && realGames.length > 0) {
+    return realGames;
+  }
+
+  // Check if we should show mock games
+  const shouldShowMockGames =
+    // Development with mock mode
+    (process.env.NODE_ENV === 'development' && process.env.API_MOCK_MODE === 'true') ||
+    // Test/CI environment
+    (typeof window !== 'undefined' &&
+      (window.__API_MOCK_MODE__ || window.__E2E_MOCK_MODE__ || window.__PLAYWRIGHT_TEST__));
+
+  if (shouldShowMockGames) {
+    return MOCK_LIVE_GAMES.response;
+  }
+
+  return [];
+}
 
 export function LiveGamesBanner() {
   const { games } = useLiveGames();
-  const [isClient, setIsClient] = useState(false);
+  const { shouldDisplayBanner, isClient } = useBannerVisibility();
 
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
-
-  // In test/CI environments, render immediately to avoid hydration issues
-  // In production, wait for client-side hydration
-  const shouldRender = isClient || isTestOrCIEnvironment();
-
-  // Don't render anything on server to prevent hydration mismatch
-  if (!shouldRender) {
+  // Use the banner visibility hook to determine if we should render
+  if (!shouldDisplayBanner || !isClient) {
     return null;
   }
 
-  // Determine which games to display based on environment and data availability
-  let displayGames: IGameResponse[] = [];
-
-  if (games && games.length > 0) {
-    // If there are real live games, display them
-    displayGames = games;
-  } else if (!isProductionEnvironment()) {
-    // If no real games but we're in non-prod environment, use mock data
-    displayGames = MOCK_LIVE_GAMES.response;
-  }
-  // If no games and we're in production, displayGames remains empty array
+  // Get the games to display using our centralized logic
+  const displayGames = getDisplayGames(games);
 
   if (displayGames.length === 0) {
     return null;
@@ -45,16 +52,18 @@ export function LiveGamesBanner() {
   return (
     <div
       data-testid="live-games-banner"
-      className="fixed top-0 left-0 right-0 z-[60] bg-gradient-to-r from-gray-900 to-blue-900 text-white py-2 px-4 shadow-lg pointer-events-none"
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        // Ensure proper stacking context for WebKit
-        transform: 'translateZ(0)',
-        willChange: 'transform',
-      }}
+      className="fixed top-0 left-0 right-0 z-[60] bg-gradient-to-r from-gray-900 to-blue-900 text-white py-3 px-4 shadow-lg pointer-events-none"
+      style={
+        {
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          // Ensure proper stacking context for WebKit
+          transform: 'translateZ(0)',
+          willChange: 'transform',
+        } as React.CSSProperties
+      }
     >
       <div className="container mx-auto">
         <div className="flex items-center justify-between">

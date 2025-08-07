@@ -17,7 +17,18 @@ import type { INotificationContextType, IAppNotification } from '@/lib/types';
 const NotificationContext = createContext<INotificationContextType | undefined>(undefined);
 
 export function NotificationProvider({ children }: { children: React.ReactNode }) {
-  const { user } = useUser();
+  // Handle case where Clerk is not configured (e.g., during SSR or in test environment)
+  let user = null;
+
+  try {
+    const userData = useUser();
+    user = userData.user;
+  } catch {
+    // Clerk is not configured (e.g., during SSR or in test environment)
+    console.log('Clerk not configured, using fallback user data');
+    user = null;
+  }
+
   const [notifications, setNotifications] = useState<IAppNotification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
 

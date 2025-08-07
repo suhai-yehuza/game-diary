@@ -31,8 +31,12 @@ export function useLiveGames(options: IUseLiveGamesOptions = {}) {
       setLoading(true);
       setError(null);
 
-      // In test environments, use mock server endpoint
-      const endpoint = isTestOrCIEnvironment()
+      // Use mock data in development if API_MOCK_MODE is enabled, or in test environments
+      const useMockData =
+        (typeof window !== 'undefined' && window.__API_MOCK_MODE__) ||
+        (process.env.NODE_ENV === 'development' && process.env.API_MOCK_MODE === 'true') ||
+        isTestOrCIEnvironment();
+      const endpoint = useMockData
         ? '/api/mock-server?action=mock-data&type=live-games'
         : `${INTERNAL_PROXY_ENDPOINTS.GAMES}?live=all`;
 
@@ -44,7 +48,7 @@ export function useLiveGames(options: IUseLiveGamesOptions = {}) {
       const data = (await response.json()) as unknown;
 
       // Handle mock server response format
-      if (isTestOrCIEnvironment() && typeof data === 'object' && data !== null && 'data' in data) {
+      if (useMockData && typeof data === 'object' && data !== null && 'data' in data) {
         const mockData = (data as { data: unknown }).data;
         if (isGamesApiResponse(mockData)) {
           setLiveGames(mockData);

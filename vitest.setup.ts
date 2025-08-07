@@ -68,6 +68,7 @@ vi.mock('next-themes', () => ({
 process.env.NEXT_PUBLIC_RAPID_API_KEY = 'test-api-key';
 process.env.NEXT_PUBLIC_RAPID_API_HOST = 'test-host';
 process.env.NEXT_PUBLIC_RAPID_API_BASE_URL = 'https://test-api.com';
+process.env.API_MOCK_MODE = 'true'; // Enable mock mode for tests
 
 // Global test utilities
 global.ResizeObserver = vi.fn().mockImplementation(() => ({
@@ -96,6 +97,12 @@ Object.defineProperty(window, 'matchMedia', {
     removeEventListener: vi.fn(),
     dispatchEvent: vi.fn(),
   })),
+});
+
+// Set up test environment variables for client-side detection
+Object.defineProperty(window, '__API_MOCK_MODE__', {
+  writable: true,
+  value: true,
 });
 
 // Mock fetch

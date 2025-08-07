@@ -48,7 +48,6 @@ export function isTestOrCIEnvironment(): boolean {
   // Server-side environment checks
   return (
     process.env.NODE_ENV === 'test' ||
-    process.env.NODE_ENV === 'development' ||
     process.env.API_MOCK_MODE === 'true' ||
     process.env.E2E_MOCK_MODE === 'true' ||
     process.env.PLAYWRIGHT_TEST === 'true' ||
@@ -87,11 +86,4 @@ export function isE2ETestEnvironment(): boolean {
     );
   }
   return false;
-}
-
-/**
- * Check if the current environment is production
- */
-export function isProductionEnvironment(): boolean {
-  return process.env.NODE_ENV === 'production' && !isTestOrCIEnvironment();
 }

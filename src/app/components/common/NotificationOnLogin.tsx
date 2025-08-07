@@ -7,7 +7,18 @@ import { toast } from 'sonner';
 import { useNotifications } from '@/app/components/providers/NotificationProvider';
 
 export function NotificationOnLogin() {
-  const { user } = useUser();
+  // Handle case where Clerk is not configured (e.g., during SSR or in test environment)
+  let user = null;
+
+  try {
+    const userData = useUser();
+    user = userData.user;
+  } catch {
+    // Clerk is not configured (e.g., during SSR or in test environment)
+    console.log('Clerk not configured, using fallback user data');
+    user = null;
+  }
+
   const { notifications, unreadCount } = useNotifications();
   const hasNotifiedRef = useRef(false);
 
