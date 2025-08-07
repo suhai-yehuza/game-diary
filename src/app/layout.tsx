@@ -1,25 +1,20 @@
-import { type Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import Script from 'next/script';
-import React from 'react';
+
+import { E2ETestSetup } from '@/app/components/E2ETestSetup';
+import { Footer } from '@/app/components/layout/Footer';
+import { HeaderWrapper } from '@/app/components/layout/HeaderWrapper';
+import { LiveGamesBanner } from '@/app/components/LiveGamesBanner';
+import { ClientProviders } from '@/app/components/providers';
+import { isTestOrCIEnvironment } from '@/lib/utils/e2e-test-setup';
 
 import '@/styles/globals.css';
 
-import { E2ETestSetup } from '@/app/components/E2ETestSetup';
-import { HeaderWrapper } from '@/app/components/layout/HeaderWrapper';
-import { LiveGamesBanner } from '@/app/components/LiveGamesBanner';
-import { isTestOrCIEnvironment } from '@/lib/utils/e2e-test-setup';
-import { Footer } from '@src/app/components/layout';
-import { ClientProviders } from '@src/app/components/providers';
+const inter = Inter({ subsets: ['latin'] });
 
-const inter = Inter({
-  subsets: ['latin'],
-  variable: '--font-inter',
-});
-
-export const metadata: Metadata = {
-  title: 'Game Diary - Track Your Sports Journey',
-  description: 'Track your favorite sports teams, games, and create your personal sports diary',
+export const metadata = {
+  title: 'Placeholder',
+  description: 'Track your gaming watching experience',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -40,7 +35,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <LiveGamesBanner />
         <ClientProviders>
           <HeaderWrapper />
-          <main id="main-content" className="grow pt-24">
+          <main
+            id="main-content"
+            className="grow pt-24 pb-20 lg:pb-0"
+            style={{
+              paddingBottom: 'calc(env(safe-area-inset-bottom) + 5rem)',
+            }}
+          >
             {children}
           </main>
           <Footer />

@@ -25,34 +25,21 @@ export function HeaderRightSection({ isMenuExpanded }: IHeaderRightSectionProps)
   const [isFocused, setIsFocused] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
 
-  // On mobile, show only the search icon unless focused
-  if (isMobile && !isFocused && !showSearch) {
+  // On mobile, show only essential controls (no search or menu - handled by bottom nav)
+  if (isMobile) {
     return (
-      <div className={`pr-4 flex items-center gap-2 justify-end`}>
-        <button
-          aria-label="Open search"
-          className="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-          onClick={() => {
-            setShowSearch(true);
-            setIsFocused(true);
-          }}
-        >
-          <svg
-            className="h-5 w-5 text-gray-500"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            viewBox="0 0 24 24"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <circle cx="11" cy="11" r="8" />
-            <line x1="21" y1="21" x2="16.65" y2="16.65" />
-          </svg>
-        </button>
+      <div className="pr-4 flex items-center gap-2 justify-end">
+        {/* Theme Toggle - only essential control on mobile */}
+        <ThemeToggle />
+
         {/* Notification Bell - only show for authenticated users */}
-        {user?.id && <NotificationBell />}
-        {/* Always show auth controls on mobile, even when space is limited */}
+        {user?.id && (
+          <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+            <NotificationBell />
+          </div>
+        )}
+
+        {/* Auth Controls - always show on mobile */}
         <ClientOnlyAuthControls />
       </div>
     );

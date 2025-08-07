@@ -1,0 +1,166 @@
+'use client';
+
+import { X, ChevronDown } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+
+import { ClientOnlyNavigationLinks } from '@/app/components/layout/components/navigation/ClientOnlyNavigationLinks';
+import { useMobileDetection } from '@/app/components/layout/components/SearchBar';
+import { useMenuContext } from '@/app/components/providers';
+
+interface MobileMenuSheetProps {
+  isActive: (path: string) => boolean;
+}
+
+export function MobileMenuSheet({ isActive }: MobileMenuSheetProps) {
+  const { isMenuExpanded, setIsMenuExpanded } = useMenuContext();
+  const isMobile = useMobileDetection();
+  const [isDragging, setIsDragging] = useState(false);
+  const [startY, setStartY] = useState(0);
+  const [currentY, setCurrentY] = useState(0);
+  const sheetRef = useRef<HTMLDivElement>(null);
+  const overlayRef = useRef<HTMLDivElement>(null);
+
+  // Handle gesture interactions
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setIsDragging(true);
+    setStartY(e.touches[0].clientY);
+    setCurrentY(e.touches[0].clientY);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging) return;
+    e.preventDefault();
+    setCurrentY(e.touches[0].clientY);
+  };
+
+  const handleTouchEnd = () => {
+    if (!isDragging) return;
+    setIsDragging(false);
+
+    const deltaY = currentY - startY;
+    const threshold = 100; // Minimum distance to trigger close
+
+    if (deltaY > threshold) {
+      setIsMenuExpanded(false);
+    }
+  };
+
+  // Close menu on escape key
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isMenuExpanded) {
+        setIsMenuExpanded(false);
+      }
+    };
+
+    if (isMenuExpanded) {
+      document.addEventListener('keydown', handleEscape);
+      document.body.style.overflow = 'hidden';
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+      document.body.style.overflow = '';
+    };
+  }, [isMenuExpanded, setIsMenuExpanded]);
+
+  // Focus trap
+  useEffect(() => {
+    if (!isMenuExpanded || !sheetRef.current) return;
+
+    const focusableElements = sheetRef.current.querySelectorAll(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    );
+
+    const firstElement = focusableElements[0] as HTMLElement;
+    const lastElement = focusableElements[focusableElements.length - 1] as HTMLElement;
+
+    if (firstElement) firstElement.focus();
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Tab') {
+        if (e.shiftKey) {
+          if (document.activeElement === firstElement) {
+            e.preventDefault();
+            lastElement.focus();
+          }
+        } else {
+          if (document.activeElement === lastElement) {
+            e.preventDefault();
+            firstElement.focus();
+          }
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isMenuExpanded]);
+
+  if (!isMobile || !isMenuExpanded) return null;
+
+  const translateY = isDragging ? Math.max(0, currentY - startY) : 0;
+
+  return (
+    <>
+      {/* Backdrop */}
+      <div
+        ref={overlayRef}
+        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 lg:hidden"
+        onClick={() => setIsMenuExpanded(false)}
+        aria-hidden="true"
+      />
+
+      {/* Bottom Sheet */}
+      <div
+        ref={sheetRef}
+        className="fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-gray-900 rounded-t-3xl shadow-2xl lg:hidden"
+        style={{
+          transform: `translateY(${translateY}px)`,
+          paddingBottom: 'env(safe-area-inset-bottom)',
+        }}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Navigation menu"
+      >
+        {/* Drag Handle */}
+        <div className="flex justify-center pt-3 pb-2">
+          <div className="w-12 h-1 bg-gray-300 dark:bg-gray-600 rounded-full" />
+        </div>
+
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Menu</h2>
+          <button
+            onClick={() => setIsMenuExpanded(false)}
+            className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            aria-label="Close menu"
+          >
+            <X className="w-5 h-5 text-gray-700 dark:text-gray-300" />
+          </button>
+        </div>
+
+        {/* Navigation Content */}
+        <div className="px-6 py-4 max-h-[60vh] overflow-y-auto">
+          <ClientOnlyNavigationLinks
+            isActive={isActive}
+            _isMenuExpanded={isMenuExpanded}
+            _setIsMenuExpanded={setIsMenuExpanded}
+            closeMenu={() => setIsMenuExpanded(false)}
+            isStacked={true}
+          />
+        </div>
+
+        {/* Footer */}
+        <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700">
+          <div className="text-sm text-gray-500 dark:text-gray-400 text-center">
+            Swipe down to close
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}

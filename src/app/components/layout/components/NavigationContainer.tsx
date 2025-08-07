@@ -2,6 +2,7 @@ import { Menu, X } from 'lucide-react';
 import React, { useRef, useEffect } from 'react';
 
 import { ClientOnlyNavigationLinks } from '@/app/components/layout/components/navigation/ClientOnlyNavigationLinks';
+import { useMobileDetection } from '@/app/components/layout/components/SearchBar';
 import type { INavigationContainerProps } from '@/lib/types';
 
 export function NavigationContainer({
@@ -13,10 +14,11 @@ export function NavigationContainer({
   onMenuToggle,
 }: INavigationContainerProps) {
   const overlayRef = useRef<HTMLDivElement>(null);
+  const isMobile = useMobileDetection();
 
-  // Focus trap for mobile menu overlay
+  // Focus trap for mobile menu overlay (legacy support)
   useEffect(() => {
-    if (!isMenuExpanded || !overlayRef.current) return;
+    if (!isMenuExpanded || !overlayRef.current || isMobile) return;
     const overlay = overlayRef.current;
     const focusableSelectors = [
       'a[href]',
@@ -52,16 +54,16 @@ export function NavigationContainer({
     };
     overlay.addEventListener('keydown', handleKeyDown);
     return () => overlay.removeEventListener('keydown', handleKeyDown);
-  }, [isMenuExpanded]);
+  }, [isMenuExpanded, isMobile]);
 
   return (
     <nav className="flex justify-center">
       <div className="flex h-16 items-center relative">
-        {/* Mobile Menu Button - only on mobile */}
+        {/* Mobile Menu Button - only on tablet (not mobile) */}
         <button
           aria-label={isMenuExpanded ? 'Close menu' : 'Open menu'}
           onClick={onMenuToggle}
-          className={`lg:hidden p-2 rounded-md transition-colors z-50 ${
+          className={`hidden md:block lg:hidden p-2 rounded-md transition-colors z-50 ${
             isMenuExpanded
               ? 'fixed top-4 left-4 bg-white/90 border border-gray-300 shadow-lg'
               : 'mr-4 relative'
@@ -83,8 +85,8 @@ export function NavigationContainer({
           />
         </div>
 
-        {/* Navigation Links & Important Items (Mobile Overlay) */}
-        {isMenuExpanded && (
+        {/* Legacy Mobile Overlay - only for tablet (768px-1024px) */}
+        {isMenuExpanded && !isMobile && (
           <div
             ref={overlayRef}
             className="fixed inset-0 z-40 flex flex-col bg-background dark:bg-black/90 lg:hidden"
