@@ -5,8 +5,8 @@ import { SimpleSportsPage } from '@/app/components/sports';
 import { SPORTS_CONFIG } from '@/app/components/sports/SportsConfig';
 
 // Generate metadata for the page
-export function generateMetadata({ params }: { params: { sport: string } }) {
-  const sport = params.sport;
+export async function generateMetadata({ params }: { params: Promise<{ sport: string }> }) {
+  const { sport } = await params;
   const config = SPORTS_CONFIG[sport as keyof typeof SPORTS_CONFIG];
 
   if (!config) {
@@ -22,8 +22,8 @@ export function generateMetadata({ params }: { params: { sport: string } }) {
   };
 }
 
-export default function SportPage({ params }: { params: { sport: string } }) {
-  const sport = params.sport;
+export default async function SportPage({ params }: { params: Promise<{ sport: string }> }) {
+  const { sport } = await params;
   const config = SPORTS_CONFIG[sport as keyof typeof SPORTS_CONFIG];
 
   if (!config) return notFound();

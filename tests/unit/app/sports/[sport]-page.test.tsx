@@ -38,8 +38,8 @@ describe('SportPage', () => {
   const firstSportKey = Object.keys(SPORTS_CONFIG)[0];
   const firstSport = SPORTS_CONFIG[firstSportKey as keyof typeof SPORTS_CONFIG];
 
-  it('renders the correct sport page when param is valid', () => {
-    render(<SportPage params={{ sport: firstSportKey }} />);
+  it('renders the correct sport page when param is valid', async () => {
+    render(<SportPage params={Promise.resolve({ sport: firstSportKey })} />);
     expect(mockSimpleSportsPage).toHaveBeenCalledWith(
       expect.objectContaining({
         title: firstSport.name,
@@ -47,16 +47,16 @@ describe('SportPage', () => {
       }),
       undefined
     );
-    expect(screen.getByText(`Welcome to the ${firstSport.fullName}`)).toBeInTheDocument();
+    expect(await screen.findByText(`Welcome to the ${firstSport.fullName}`)).toBeInTheDocument();
   });
 
-  it('calls notFound when sport param is invalid', () => {
-    render(<SportPage params={{ sport: 'invalidsport' }} />);
+  it('calls notFound when sport param is invalid', async () => {
+    render(<SportPage params={Promise.resolve({ sport: 'invalidsport' })} />);
     expect(mockNotFound).toHaveBeenCalled();
   });
 
-  it('renders nothing if param is missing', () => {
-    render(<SportPage params={{ sport: '' }} />);
+  it('renders nothing if param is missing', async () => {
+    render(<SportPage params={Promise.resolve({ sport: '' })} />);
     expect(mockNotFound).toHaveBeenCalled();
   });
 });
