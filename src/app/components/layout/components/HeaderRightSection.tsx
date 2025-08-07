@@ -1,3 +1,4 @@
+import { useUser } from '@clerk/nextjs';
 import dynamic from 'next/dynamic';
 import React, { useState } from 'react';
 
@@ -19,6 +20,7 @@ const NotificationBell = dynamic(
 );
 
 export function HeaderRightSection({ isMenuExpanded }: IHeaderRightSectionProps) {
+  const { user } = useUser();
   const isMobile = useMobileDetection();
   const [isFocused, setIsFocused] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
@@ -48,8 +50,8 @@ export function HeaderRightSection({ isMenuExpanded }: IHeaderRightSectionProps)
             <line x1="21" y1="21" x2="16.65" y2="16.65" />
           </svg>
         </button>
-        {/* Notification Bell */}
-        <NotificationBell />
+        {/* Notification Bell - only show for authenticated users */}
+        {user?.id && <NotificationBell />}
         {/* Always show auth controls on mobile, even when space is limited */}
         <ClientOnlyAuthControls />
       </div>
@@ -77,8 +79,8 @@ export function HeaderRightSection({ isMenuExpanded }: IHeaderRightSectionProps)
       {/* Theme Toggle - hide on mobile when searchbar is focused or when space is limited */}
       {(!isMobile || (showSearch && !isFocused)) && <ThemeToggle />}
 
-      {/* Notification Bell */}
-      <NotificationBell />
+      {/* Notification Bell - only show for authenticated users */}
+      {user?.id && <NotificationBell />}
 
       {/* Auth Controls - always visible */}
       <ClientOnlyAuthControls />

@@ -1,5 +1,6 @@
 'use client';
 
+import { useUser } from '@clerk/nextjs';
 import { Bell, Check } from 'lucide-react';
 import React, { useState } from 'react';
 
@@ -8,19 +9,25 @@ import { Button } from '@/app/components/ui/button';
 import { Card } from '@/app/components/ui/Card';
 
 export function NotificationBell() {
+  const { user } = useUser();
   const [isClient, setIsClient] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+
+  // Always call the hook to satisfy React rules
+  const notificationsContext = useNotifications();
 
   // Ensure we're on the client side before using the hook
   React.useEffect(() => {
     setIsClient(true);
   }, []);
 
-  // Always call the hook to satisfy React rules
-  const notificationsContext = useNotifications();
-
   // Don't render anything on server to prevent hydration mismatch
   if (!isClient) {
+    return null;
+  }
+
+  // Only show notification bell for authenticated users
+  if (!user?.id) {
     return null;
   }
 
