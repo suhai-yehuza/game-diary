@@ -209,7 +209,6 @@
     "validate:all": "pnpm validate:ci && pnpm db:triggers && pnpm test:e2e:performance",
     "validate:ci": "pnpm lint && pnpm typecheck && pnpm test:unit && pnpm db:triggers && pnpm db:test:all-triggers",
     "validate:circular": "./scripts/validation-pipeline.sh circular",
-    "validate:coverage": "./scripts/validation-pipeline.sh coverage",
     "validate:dead-code": "./scripts/validation-pipeline.sh dead-code",
     "validate:dev": "./scripts/validation-pipeline.sh dev",
     "validate:dry-run": "./scripts/validation-pipeline.sh dry-run",

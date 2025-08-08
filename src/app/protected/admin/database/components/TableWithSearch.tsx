@@ -16,7 +16,6 @@ export default function TableWithSearch<T extends { id: string | number }>({
   columns,
   itemLabel,
 }: ITableWithSearchProps<T>) {
-  console.log('TableWithSearch render:', tableName);
   const typedColumns = columns;
   const [rawData, setRawData] = useState<T[]>([]);
   const [loading, setLoading] = useState(true);
@@ -237,10 +236,6 @@ export default function TableWithSearch<T extends { id: string | number }>({
 
   // Single useEffect to handle all data fetching
   useEffect(() => {
-    console.log('useEffect running:', {
-      isInitialMount: isInitialMount.current,
-      shouldFetch: true, // Always fetch when trigger changes
-    });
     void fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fetchTrigger]); // Depend on fetchTrigger

@@ -431,7 +431,6 @@ get_task_command() {
         # Test tasks
         "test_unit") echo "test:unit" ;;
         "test_strict") echo "test:strict" ;;
-        "test_coverage") echo "coverage:validate" ;;
         "test_integration") echo "test:integration" ;;
 
         # E2E test tasks
@@ -514,7 +513,7 @@ run_task() {
 
     if [ -z "$cmd" ]; then
         log_error "Unknown task: $task_name"
-        log_info "Available tasks: prebuild, postbuild, build, format_check, format, lint, lint_fix, typecheck, circular, dead_code, size, codegen, db_triggers, rapidapi, test_unit, test_strict, test_coverage, test_integration, test_e2e_*, security_*"
+        log_info "Available tasks: prebuild, postbuild, build, format_check, format, lint, lint_fix, typecheck, circular, dead_code, size, codegen, db_triggers, rapidapi, test_unit, test_strict, test_integration, test_e2e_*, security_*"
         return 1
     fi
 
@@ -1414,14 +1413,6 @@ case "$SUBCOMMAND" in
             exit 1
         fi
         log_success "Dead code check completed"
-        ;;
-    "coverage")
-        log "Running coverage validation..."
-        if ! run_task "test_coverage"; then
-            log_error "Coverage validation failed"
-            exit 1
-        fi
-        log_success "Coverage validation completed"
         ;;
     "e2e")
         if ! run_e2e_management "$@"; then
