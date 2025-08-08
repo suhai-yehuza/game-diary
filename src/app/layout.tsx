@@ -19,7 +19,13 @@ export const metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className="scroll-smooth antialiased" suppressHydrationWarning>
+    <html
+      lang="en"
+      className="scroll-smooth antialiased"
+      suppressHydrationWarning
+      // Set mock mode state at the root level for immediate availability
+      data-mock-mode={process.env.API_MOCK_MODE === 'true' ? 'true' : 'false'}
+    >
       <head>
         {/* Theme initialization script - runs before hydration to prevent flashing */}
         <Script id="theme-init" strategy="beforeInteractive" src="/scripts/theme-init.js" />
@@ -32,17 +38,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* E2E Test Setup - only runs in test environments */}
         {isTestOrCIEnvironment() && <E2ETestSetup />}
 
-        {/* API Mock Mode Setup - inject server env var to client */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              if (typeof window !== 'undefined') {
-                window.__API_MOCK_MODE__ = ${process.env.API_MOCK_MODE === 'true'};
-                window.__SERVER_API_MOCK_MODE__ = ${process.env.API_MOCK_MODE === 'true'};
-              }
-            `,
-          }}
-        />
+        {/* Initialize mock mode - runs before hydration */}
+        <Script id="mock-mode-init" strategy="beforeInteractive" src="/scripts/mock-mode-init.js" />
 
         {/* Live Games Banner - fixed at top */}
         <LiveGamesBanner />

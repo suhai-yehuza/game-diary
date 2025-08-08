@@ -1,5 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Environment variables exposed to the client
+  env: {
+    NEXT_PUBLIC_API_MOCK_MODE: process.env.API_MOCK_MODE === 'true',
+  },
+
   // Performance optimizations
   poweredByHeader: false,
   compress: true,
