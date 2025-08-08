@@ -256,13 +256,13 @@ jobs:
           NEXT_PUBLIC_RAPID_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_RAPID_API_BASE_URL }}
         run: |
           echo "🚀 Starting development server on port 3000..."
-          npx next dev --port 3000 > /dev/null 2>&1 &
+          pnpm dev:mock -p 3000 > /dev/null 2>&1 &
           DEV_SERVER_PID=$!
 
           # Wait for server to be ready
           echo "⏳ Waiting for server to be ready..."
           for i in {1..30}; do
-            if curl -s http://localhost:3000/api/health > /dev/null 2>&1; then
+            if curl -s http://localhost:3000 > /dev/null 2>&1; then
               echo "✅ Development server is ready!"
               break
             fi
@@ -364,13 +364,13 @@ jobs:
           NEXT_PUBLIC_RAPID_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_RAPID_API_BASE_URL }}
         run: |
           echo "🚀 Starting development server on port 3000..."
-          npx next dev --port 3000 > /dev/null 2>&1 &
+          pnpm dev:mock -p 3000 > /dev/null 2>&1 &
           DEV_SERVER_PID=$!
 
           # Wait for server to be ready
           echo "⏳ Waiting for server to be ready..."
           for i in {1..30}; do
-            if curl -s ${{ env.E2E_CHROMIUM_URL }}/api/health > /dev/null 2>&1; then
+            if curl -s ${{ env.E2E_CHROMIUM_URL }} > /dev/null 2>&1; then
               echo "✅ Development server is ready!"
               break
             fi
@@ -472,13 +472,13 @@ jobs:
           NEXT_PUBLIC_RAPID_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_RAPID_API_BASE_URL }}
         run: |
           echo "🚀 Starting development server on port 3001..."
-          npx next dev --port 3001 > /dev/null 2>&1 &
+          pnpm dev:mock -p 3001 > /dev/null 2>&1 &
           DEV_SERVER_PID=$!
 
           # Wait for server to be ready
           echo "⏳ Waiting for server to be ready..."
           for i in {1..30}; do
-            if curl -s ${{ env.E2E_WEBKIT_URL }}/api/health > /dev/null 2>&1; then
+            if curl -s ${{ env.E2E_WEBKIT_URL }} > /dev/null 2>&1; then
               echo "✅ Development server is ready!"
               break
             fi
@@ -583,13 +583,13 @@ jobs:
           CI: 'true'
         run: |
           echo "🚀 Starting development server on port 3002..."
-          npx next dev --port 3002 > /dev/null 2>&1 &
+          pnpm dev:mock -p 3002 > /dev/null 2>&1 &
           DEV_SERVER_PID=$!
 
           # Wait for server to be ready
           echo "⏳ Waiting for server to be ready..."
           for i in {1..30}; do
-            if curl -s http://localhost:3002/api/health > /dev/null 2>&1; then
+            if curl -s http://localhost:3002 > /dev/null 2>&1; then
               echo "✅ Development server is ready!"
               break
             fi
@@ -696,13 +696,13 @@ jobs:
           CI: 'true'
         run: |
           echo "🚀 Starting development server on port 3003..."
-          npx next dev --port 3003 > /dev/null 2>&1 &
+          pnpm dev:mock -p 3003 > /dev/null 2>&1 &
           DEV_SERVER_PID=$!
 
           # Wait for server to be ready
           echo "⏳ Waiting for server to be ready..."
           for i in {1..30}; do
-            if curl -s http://localhost:3003/api/health > /dev/null 2>&1; then
+            if curl -s http://localhost:3003 > /dev/null 2>&1; then
               echo "✅ Development server is ready!"
               break
             fi
