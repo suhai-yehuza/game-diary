@@ -1,9 +1,4 @@
 /**
- * E2E Test Environment Setup and Detection
- * Consolidated utilities for E2E test environment management
- */
-
-/**
  * Check if the current environment is a CI environment
  */
 export function isCI(): boolean {

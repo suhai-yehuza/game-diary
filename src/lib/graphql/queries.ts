@@ -100,6 +100,21 @@ export const USER_SUMMARY_FRAGMENT = gql`
   }
 `;
 
+export const REACTION_FRAGMENT = gql`
+  fragment ReactionFragment on Reaction {
+    id
+    emoji
+    user_id
+    target_id
+    target_type
+    created_at
+    updated_at
+    user {
+      ...UserSummaryFragment
+    }
+  }
+`;
+
 export const COMMENT_FRAGMENT = gql`
   fragment CommentFragment on Comment {
     id
@@ -114,26 +129,7 @@ export const COMMENT_FRAGMENT = gql`
       ...UserSummaryFragment
     }
     reactions {
-      id
-      emoji
-      user {
-        ...UserSummaryFragment
-      }
-    }
-  }
-`;
-
-export const REACTION_FRAGMENT = gql`
-  fragment ReactionFragment on Reaction {
-    id
-    emoji
-    user_id
-    target_id
-    target_type
-    created_at
-    updated_at
-    user {
-      ...UserSummaryFragment
+      ...ReactionFragment
     }
   }
 `;

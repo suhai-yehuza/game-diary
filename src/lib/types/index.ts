@@ -7,6 +7,9 @@ export * from './admin.types';
 
 export * from './clerk.types';
 
+export * from './comment.types';
+export * from './reaction.types';
+
 export * from './components.types';
 
 export * from './constant.types';

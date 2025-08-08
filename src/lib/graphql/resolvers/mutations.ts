@@ -94,7 +94,7 @@ export const commentMutationResolvers = {
 
     try {
       const commentId = generateUUIDv7();
-      const newComment = await db()
+      await db()
         ?.insert(comments)
         .values({
           id: commentId,
@@ -106,18 +106,36 @@ export const commentMutationResolvers = {
         })
         .returning();
 
+      // Fetch the created comment with user data
+      const createdComment = await db()?.query.comments.findFirst({
+        where: eq(comments.id, commentId),
+        with: {
+          user: true,
+        },
+      });
+
       return {
-        comment: newComment?.[0]
+        comment: createdComment
           ? {
-              id: newComment[0].id,
-              content: newComment[0].content,
-              user_id: newComment[0].user_id,
-              parent_id: newComment[0].parent_id,
-              parent_type: newComment[0].parent_type,
-              depth: newComment[0].depth,
-              created_at: newComment[0].created_at,
-              updated_at: newComment[0].updated_at,
-              deleted_at: newComment[0].deleted_at,
+              id: createdComment.id,
+              content: createdComment.content,
+              user_id: createdComment.user_id,
+              parent_id: createdComment.parent_id,
+              parent_type: createdComment.parent_type,
+              depth: createdComment.depth,
+              created_at: createdComment.created_at,
+              updated_at: createdComment.updated_at,
+              deleted_at: createdComment.deleted_at,
+              user: {
+                id: createdComment.user?.id ?? '',
+                username: createdComment.user?.username ?? '',
+                first_name: createdComment.user?.first_name ?? '',
+                last_name: createdComment.user?.last_name ?? '',
+                email_address: null,
+                phone_number: null,
+                image_url: createdComment.user?.image_url ?? null,
+              },
+              reactions: [], // Reactions will be fetched separately via the reactions query
             }
           : null,
         errors: [],
@@ -155,7 +173,7 @@ export const commentMutationResolvers = {
         throw new AuthorizationError('Access denied to this comment');
       }
 
-      const updatedComment = await db()
+      await db()
         ?.update(comments)
         .set({
           content: args.input.content,
@@ -164,18 +182,36 @@ export const commentMutationResolvers = {
         .where(eq(comments.id, args.id))
         .returning();
 
+      // Fetch the updated comment with user data
+      const updatedCommentWithUser = await db()?.query.comments.findFirst({
+        where: eq(comments.id, args.id),
+        with: {
+          user: true,
+        },
+      });
+
       return {
-        comment: updatedComment?.[0]
+        comment: updatedCommentWithUser
           ? {
-              id: updatedComment[0].id,
-              content: updatedComment[0].content,
-              user_id: updatedComment[0].user_id,
-              parent_id: updatedComment[0].parent_id,
-              parent_type: updatedComment[0].parent_type,
-              depth: updatedComment[0].depth,
-              created_at: updatedComment[0].created_at,
-              updated_at: updatedComment[0].updated_at,
-              deleted_at: updatedComment[0].deleted_at,
+              id: updatedCommentWithUser.id,
+              content: updatedCommentWithUser.content,
+              user_id: updatedCommentWithUser.user_id,
+              parent_id: updatedCommentWithUser.parent_id,
+              parent_type: updatedCommentWithUser.parent_type,
+              depth: updatedCommentWithUser.depth,
+              created_at: updatedCommentWithUser.created_at,
+              updated_at: updatedCommentWithUser.updated_at,
+              deleted_at: updatedCommentWithUser.deleted_at,
+              user: {
+                id: updatedCommentWithUser.user?.id ?? '',
+                username: updatedCommentWithUser.user?.username ?? '',
+                first_name: updatedCommentWithUser.user?.first_name ?? '',
+                last_name: updatedCommentWithUser.user?.last_name ?? '',
+                email_address: null,
+                phone_number: null,
+                image_url: updatedCommentWithUser.user?.image_url ?? null,
+              },
+              reactions: [], // Reactions will be fetched separately via the reactions query
             }
           : null,
         errors: [],

@@ -5,7 +5,7 @@ import {
   USER_SUMMARY_FRAGMENT,
   GAME_LOG_FRAGMENT,
   GAME_FRAGMENT,
-  REACTION_FRAGMENT,
+  // REACTION_FRAGMENT,
   FRIENDSHIP_FRAGMENT,
 } from '@/lib/graphql/queries';
 
@@ -51,7 +51,6 @@ export const CREATE_GAME_LOG = gql`
   ${GAME_FRAGMENT}
   ${USER_SUMMARY_FRAGMENT}
   ${COMMENT_FRAGMENT}
-  ${REACTION_FRAGMENT}
 `;
 
 export const UPDATE_GAME_LOG = gql`
@@ -71,7 +70,6 @@ export const UPDATE_GAME_LOG = gql`
   ${GAME_FRAGMENT}
   ${USER_SUMMARY_FRAGMENT}
   ${COMMENT_FRAGMENT}
-  ${REACTION_FRAGMENT}
 `;
 
 export const DELETE_GAME_LOG = gql`
@@ -91,7 +89,39 @@ export const CREATE_COMMENT = gql`
   mutation CreateComment($input: CreateCommentInput!) {
     createComment(input: $input) {
       comment {
-        ...CommentFragment
+        id
+        user_id
+        parent_id
+        parent_type
+        content
+        depth
+        created_at
+        updated_at
+        user {
+          id
+          username
+          first_name
+          last_name
+          email_address
+          image_url
+        }
+        reactions {
+          id
+          emoji
+          user_id
+          target_id
+          target_type
+          created_at
+          updated_at
+          user {
+            id
+            username
+            first_name
+            last_name
+            email_address
+            image_url
+          }
+        }
       }
       errors {
         message
@@ -100,16 +130,45 @@ export const CREATE_COMMENT = gql`
       }
     }
   }
-  ${COMMENT_FRAGMENT}
-  ${USER_SUMMARY_FRAGMENT}
-  ${REACTION_FRAGMENT}
 `;
 
 export const UPDATE_COMMENT = gql`
   mutation UpdateComment($id: ID!, $input: UpdateCommentInput!) {
     updateComment(id: $id, input: $input) {
       comment {
-        ...CommentFragment
+        id
+        user_id
+        parent_id
+        parent_type
+        content
+        depth
+        created_at
+        updated_at
+        user {
+          id
+          username
+          first_name
+          last_name
+          email_address
+          image_url
+        }
+        reactions {
+          id
+          emoji
+          user_id
+          target_id
+          target_type
+          created_at
+          updated_at
+          user {
+            id
+            username
+            first_name
+            last_name
+            email_address
+            image_url
+          }
+        }
       }
       errors {
         message
@@ -118,9 +177,6 @@ export const UPDATE_COMMENT = gql`
       }
     }
   }
-  ${COMMENT_FRAGMENT}
-  ${USER_SUMMARY_FRAGMENT}
-  ${REACTION_FRAGMENT}
 `;
 
 export const DELETE_COMMENT = gql`
@@ -140,7 +196,21 @@ export const CREATE_REACTION = gql`
   mutation CreateReaction($input: CreateReactionInput!) {
     createReaction(input: $input) {
       reaction {
-        ...ReactionFragment
+        id
+        emoji
+        user_id
+        target_id
+        target_type
+        created_at
+        updated_at
+        user {
+          id
+          username
+          first_name
+          last_name
+          email_address
+          image_url
+        }
       }
       errors {
         message
@@ -149,8 +219,6 @@ export const CREATE_REACTION = gql`
       }
     }
   }
-  ${REACTION_FRAGMENT}
-  ${USER_SUMMARY_FRAGMENT}
 `;
 
 export const DELETE_REACTION = gql`

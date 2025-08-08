@@ -5,11 +5,13 @@ import { format } from 'date-fns';
 import { Star, Eye, EyeOff, Lock, Users, Plus, Edit, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 
+import { GameLogComments } from '@/app/components/comments/GameLogComments';
 import { CreateGameLogModal } from '@/app/components/game-logs/CreateGameLogModal';
 import { DeleteGameLogModal } from '@/app/components/game-logs/DeleteGameLogModal';
 import { EditGameLogModal } from '@/app/components/game-logs/EditGameLogModal';
 import { GameLogsSearch } from '@/app/components/game-logs/GameLogsSearch';
 import { GameLogsSort } from '@/app/components/game-logs/GameLogsSort';
+import { ReactionPicker } from '@/app/components/reactions';
 import { Button } from '@/app/components/ui/button';
 import {
   Card,
@@ -23,6 +25,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/app/components/ui/Ta
 import { useGameLogs } from '@/hooks/use-game-logs';
 import type { IGameLog } from '@/lib/types';
 import { CLASSIFICATION } from '@/lib/types';
+import { ParentType } from '@/lib/types/generated/graphql';
 
 const ClassificationIcon = ({ classification }: { classification: string }) => {
   switch (classification) {
@@ -327,102 +330,118 @@ export function GameLogsTable() {
       watched_scope: log.watched_scope ?? undefined,
     };
     return (
-      <Card
-        key={`${log.id}-${idx ?? ''}`}
-        className="mb-4 border-2 border-gray-300 dark:border-gray-500 bg-neutral-100 dark:bg-neutral-800 shadow-md"
-      >
-        <CardHeader className="flex flex-row justify-between items-start pb-2 text-gray-900 dark:text-gray-100">
-          <div className="flex items-center gap-2">
-            <ClassificationIcon classification={log.classification} />
-            <div className="flex flex-col">
-              <CardTitle className="text-base font-semibold">
-                <a
-                  href={`/games/${log.game_id}`}
-                  className="text-gray-900 dark:text-white hover:text-blue-700 dark:hover:text-blue-300 hover:underline transition-colors"
-                >
-                  {getTeamDisplay(log.game)}
-                </a>
-              </CardTitle>
-              <span className="text-xs text-gray-500">
-                {log.user?.id ? (
-                  <a href={`/users/${log.user.id}`} className="hover:underline text-blue-600">
-                    @{log.user.first_name ?? log.user.username ?? 'Unknown User'}
+      <div key={`${log.id}-${idx ?? ''}`} className="mb-6">
+        <Card className="border-2 border-gray-300 dark:border-gray-500 bg-neutral-100 dark:bg-neutral-800 shadow-md">
+          <CardHeader className="flex flex-row justify-between items-start pb-2 text-gray-900 dark:text-gray-100">
+            <div className="flex items-center gap-2">
+              <ClassificationIcon classification={log.classification} />
+              <div className="flex flex-col">
+                <CardTitle className="text-base font-semibold">
+                  <a
+                    href={`/games/${log.game_id}`}
+                    className="text-gray-900 dark:text-white hover:text-blue-700 dark:hover:text-blue-300 hover:underline transition-colors"
+                  >
+                    {getTeamDisplay(log.game)}
                   </a>
-                ) : (
-                  '@Unknown User'
-                )}
-              </span>
-            </div>
-          </div>
-          <RatingStars rating={log.rating_for_game} />
-        </CardHeader>
-        <CardContent className="text-gray-900 dark:text-gray-100">
-          {normalizedLog.notes && (
-            <CardDescription className="mb-2 text-gray-600">{normalizedLog.notes}</CardDescription>
-          )}
-          {normalizedLog.tags && normalizedLog.tags.length > 0 && (
-            <div className="flex flex-wrap gap-1 mb-2">
-              {normalizedLog.tags.map(tag => (
-                <span key={tag} className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded">
-                  {tag}
+                </CardTitle>
+                <span className="text-xs text-gray-500">
+                  {log.user?.id ? (
+                    <a href={`/users/${log.user.id}`} className="hover:underline text-blue-600">
+                      @{log.user.first_name ?? log.user.username ?? 'Unknown User'}
+                    </a>
+                  ) : (
+                    '@Unknown User'
+                  )}
                 </span>
-              ))}
+              </div>
             </div>
-          )}
-          <div className="text-sm text-gray-500 mb-2">
-            {normalizedLog.watched_date &&
-              !isNaN(new Date(normalizedLog.watched_date).getTime()) &&
-              (() => {
-                try {
-                  return (
-                    <div>
-                      Watched: {format(new Date(normalizedLog.watched_date), 'MMM dd, yyyy')}
-                    </div>
-                  );
-                } catch {
-                  return <div>Watched: Invalid date</div>;
-                }
-              })()}
-            {normalizedLog.watched_setting && <div>Setting: {normalizedLog.watched_setting}</div>}
-            {normalizedLog.watched_location && (
-              <div>Location: {normalizedLog.watched_location}</div>
+            <RatingStars rating={log.rating_for_game} />
+          </CardHeader>
+          <CardContent className="text-gray-900 dark:text-gray-100">
+            {normalizedLog.notes && (
+              <CardDescription className="mb-2 text-gray-600">
+                {normalizedLog.notes}
+              </CardDescription>
             )}
-          </div>
-          <div className="text-xs text-gray-400">
-            {log.created_at && !isNaN(new Date(log.created_at).getTime()) ? (
-              (() => {
-                try {
-                  return <>Created: {format(new Date(log.created_at), 'MMM dd, yyyy HH:mm')}</>;
-                } catch {
-                  return <>Created: Invalid date</>;
-                }
-              })()
-            ) : (
-              <>Created: Unknown</>
+            {normalizedLog.tags && normalizedLog.tags.length > 0 && (
+              <div className="flex flex-wrap gap-1 mb-2">
+                {normalizedLog.tags.map(tag => (
+                  <span key={tag} className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded">
+                    {tag}
+                  </span>
+                ))}
+              </div>
             )}
-          </div>
-        </CardContent>
-        {showActions && (
-          <CardFooter className="gap-2 mt-3 text-gray-900 dark:text-gray-100">
-            <Button
-              variant="outline"
+            <div className="text-sm text-gray-500 mb-2">
+              {normalizedLog.watched_date &&
+                !isNaN(new Date(normalizedLog.watched_date).getTime()) &&
+                (() => {
+                  try {
+                    return (
+                      <div>
+                        Watched: {format(new Date(normalizedLog.watched_date), 'MMM dd, yyyy')}
+                      </div>
+                    );
+                  } catch {
+                    return <div>Watched: Invalid date</div>;
+                  }
+                })()}
+              {normalizedLog.watched_setting && <div>Setting: {normalizedLog.watched_setting}</div>}
+              {normalizedLog.watched_location && (
+                <div>Location: {normalizedLog.watched_location}</div>
+              )}
+            </div>
+            <div className="text-xs text-gray-400">
+              {log.created_at && !isNaN(new Date(log.created_at).getTime()) ? (
+                (() => {
+                  try {
+                    return <>Created: {format(new Date(log.created_at), 'MMM dd, yyyy HH:mm')}</>;
+                  } catch {
+                    return <>Created: Invalid date</>;
+                  }
+                })()
+              ) : (
+                <>Created: Unknown</>
+              )}
+            </div>
+          </CardContent>
+          <CardFooter className="flex items-center justify-between mt-3 text-gray-900 dark:text-gray-100">
+            <div className="flex items-center gap-2">
+              {showActions && (
+                <>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setEditingGameLog(log)}
+                    className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 hover:bg-blue-50 dark:hover:bg-gray-700 transition shadow-sm"
+                  >
+                    <Edit className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setDeletingGameLog(log)}
+                    className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-gray-700 transition shadow-sm"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </>
+              )}
+            </div>
+
+            {/* Game Log Reactions */}
+            <ReactionPicker
+              targetId={log.id}
+              targetType={ParentType.GameLog}
               size="sm"
-              onClick={() => setEditingGameLog(log)}
-              className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 hover:bg-blue-50 dark:hover:bg-gray-700 transition shadow-sm"
-            >
-              <Edit className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setDeletingGameLog(log)}
-              className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-gray-700 transition shadow-sm"
-            >
-              <Trash2 className="w-4 h-4" />
-            </Button>
+              showCount={true}
+            />
           </CardFooter>
-        )}
-      </Card>
+        </Card>
+
+        {/* Comments Section */}
+        <GameLogComments gameLog={log} />
+      </div>
     );
   };
 

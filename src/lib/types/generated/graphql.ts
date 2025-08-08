@@ -787,7 +787,7 @@ export type CreateGameLogMutationVariables = Exact<{
 }>;
 
 
-export type CreateGameLogMutation = { __typename?: 'Mutation', createGameLog: { __typename?: 'CreateGameLogResponse', gameLog?: { __typename?: 'GameLog', id: string, game_id: string, rating_for_game: number, notes?: string | null, tags?: Array<string> | null, watched_date?: string | null, watched_setting?: string | null, watched_location?: string | null, watched_scope?: string | null, classification: Classification, created_at: string, updated_at: string, deleted_at?: string | null, game: { __typename?: 'Game', id: string, date: string, status: string, game_type: string, nba_game_id?: string | null, home_team_id: string, away_team_id: string, home_team_score?: number | null, away_team_score?: number | null, average_rating?: number | null, total_ratings?: number | null, created_at: string, updated_at: string, home_team: { __typename?: 'Team', id: string, name: string, nickname?: string | null, code?: string | null, city?: string | null, logo?: string | null, all_star: boolean, nba_franchise: boolean, conference?: string | null, created_at: string, updated_at: string }, away_team: { __typename?: 'Team', id: string, name: string, nickname?: string | null, code?: string | null, city?: string | null, logo?: string | null, all_star: boolean, nba_franchise: boolean, conference?: string | null, created_at: string, updated_at: string } }, user: { __typename?: 'UserSummary', id: string, username: string, first_name: string, last_name: string, email_address?: string | null, image_url?: string | null }, comments: { __typename?: 'CommentConnection', totalCount: number, edges: Array<{ __typename?: 'CommentEdge', cursor: string, node: { __typename?: 'Comment', id: string, user_id: string, parent_id: string, parent_type: ParentType, content: string, depth: number, created_at: string, updated_at: string, user: { __typename?: 'UserSummary', id: string, username: string, first_name: string, last_name: string, email_address?: string | null, image_url?: string | null }, reactions: Array<{ __typename?: 'Reaction', id: string, emoji: string, user: { __typename?: 'UserSummary', id: string, username: string, first_name: string, last_name: string, email_address?: string | null, image_url?: string | null } }> } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null } }, reactions: Array<{ __typename?: 'Reaction', id: string, emoji: string, user_id: string, target_id: string, target_type: ParentType, created_at: string, updated_at: string, user: { __typename?: 'UserSummary', id: string, username: string, first_name: string, last_name: string, email_address?: string | null, image_url?: string | null } }> } | null, errors?: Array<{ __typename?: 'ErrorResult', message: string, code?: string | null, field?: string | null }> | null } };
+export type CreateGameLogMutation = { __typename?: 'Mutation', createGameLog: { __typename?: 'CreateGameLogResponse', gameLog?: { __typename?: 'GameLog', id: string, game_id: string, rating_for_game: number, notes?: string | null, tags?: Array<string> | null, watched_date?: string | null, watched_setting?: string | null, watched_location?: string | null, watched_scope?: string | null, classification: Classification, created_at: string, updated_at: string, deleted_at?: string | null, game: { __typename?: 'Game', id: string, date: string, status: string, game_type: string, nba_game_id?: string | null, home_team_id: string, away_team_id: string, home_team_score?: number | null, away_team_score?: number | null, average_rating?: number | null, total_ratings?: number | null, created_at: string, updated_at: string, home_team: { __typename?: 'Team', id: string, name: string, nickname?: string | null, code?: string | null, city?: string | null, logo?: string | null, all_star: boolean, nba_franchise: boolean, conference?: string | null, created_at: string, updated_at: string }, away_team: { __typename?: 'Team', id: string, name: string, nickname?: string | null, code?: string | null, city?: string | null, logo?: string | null, all_star: boolean, nba_franchise: boolean, conference?: string | null, created_at: string, updated_at: string } }, user: { __typename?: 'UserSummary', id: string, username: string, first_name: string, last_name: string, email_address?: string | null, image_url?: string | null }, comments: { __typename?: 'CommentConnection', totalCount: number, edges: Array<{ __typename?: 'CommentEdge', cursor: string, node: { __typename?: 'Comment', id: string, user_id: string, parent_id: string, parent_type: ParentType, content: string, depth: number, created_at: string, updated_at: string, user: { __typename?: 'UserSummary', id: string, username: string, first_name: string, last_name: string, email_address?: string | null, image_url?: string | null }, reactions: Array<{ __typename?: 'Reaction', id: string, emoji: string, user_id: string, target_id: string, target_type: ParentType, created_at: string, updated_at: string, user: { __typename?: 'UserSummary', id: string, username: string, first_name: string, last_name: string, email_address?: string | null, image_url?: string | null } }> } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null } }, reactions: Array<{ __typename?: 'Reaction', id: string, emoji: string, user_id: string, target_id: string, target_type: ParentType, created_at: string, updated_at: string, user: { __typename?: 'UserSummary', id: string, username: string, first_name: string, last_name: string, email_address?: string | null, image_url?: string | null } }> } | null, errors?: Array<{ __typename?: 'ErrorResult', message: string, code?: string | null, field?: string | null }> | null } };
 
 export type UpdateGameLogMutationVariables = Exact<{
   id: Scalars['ID']['input'];
@@ -795,7 +795,7 @@ export type UpdateGameLogMutationVariables = Exact<{
 }>;
 
 
-export type UpdateGameLogMutation = { __typename?: 'Mutation', updateGameLog: { __typename?: 'UpdateGameLogResponse', gameLog?: { __typename?: 'GameLog', id: string, game_id: string, rating_for_game: number, notes?: string | null, tags?: Array<string> | null, watched_date?: string | null, watched_setting?: string | null, watched_location?: string | null, watched_scope?: string | null, classification: Classification, created_at: string, updated_at: string, deleted_at?: string | null, game: { __typename?: 'Game', id: string, date: string, status: string, game_type: string, nba_game_id?: string | null, home_team_id: string, away_team_id: string, home_team_score?: number | null, away_team_score?: number | null, average_rating?: number | null, total_ratings?: number | null, created_at: string, updated_at: string, home_team: { __typename?: 'Team', id: string, name: string, nickname?: string | null, code?: string | null, city?: string | null, logo?: string | null, all_star: boolean, nba_franchise: boolean, conference?: string | null, created_at: string, updated_at: string }, away_team: { __typename?: 'Team', id: string, name: string, nickname?: string | null, code?: string | null, city?: string | null, logo?: string | null, all_star: boolean, nba_franchise: boolean, conference?: string | null, created_at: string, updated_at: string } }, user: { __typename?: 'UserSummary', id: string, username: string, first_name: string, last_name: string, email_address?: string | null, image_url?: string | null }, comments: { __typename?: 'CommentConnection', totalCount: number, edges: Array<{ __typename?: 'CommentEdge', cursor: string, node: { __typename?: 'Comment', id: string, user_id: string, parent_id: string, parent_type: ParentType, content: string, depth: number, created_at: string, updated_at: string, user: { __typename?: 'UserSummary', id: string, username: string, first_name: string, last_name: string, email_address?: string | null, image_url?: string | null }, reactions: Array<{ __typename?: 'Reaction', id: string, emoji: string, user: { __typename?: 'UserSummary', id: string, username: string, first_name: string, last_name: string, email_address?: string | null, image_url?: string | null } }> } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null } }, reactions: Array<{ __typename?: 'Reaction', id: string, emoji: string, user_id: string, target_id: string, target_type: ParentType, created_at: string, updated_at: string, user: { __typename?: 'UserSummary', id: string, username: string, first_name: string, last_name: string, email_address?: string | null, image_url?: string | null } }> } | null, errors?: Array<{ __typename?: 'ErrorResult', message: string, code?: string | null, field?: string | null }> | null } };
+export type UpdateGameLogMutation = { __typename?: 'Mutation', updateGameLog: { __typename?: 'UpdateGameLogResponse', gameLog?: { __typename?: 'GameLog', id: string, game_id: string, rating_for_game: number, notes?: string | null, tags?: Array<string> | null, watched_date?: string | null, watched_setting?: string | null, watched_location?: string | null, watched_scope?: string | null, classification: Classification, created_at: string, updated_at: string, deleted_at?: string | null, game: { __typename?: 'Game', id: string, date: string, status: string, game_type: string, nba_game_id?: string | null, home_team_id: string, away_team_id: string, home_team_score?: number | null, away_team_score?: number | null, average_rating?: number | null, total_ratings?: number | null, created_at: string, updated_at: string, home_team: { __typename?: 'Team', id: string, name: string, nickname?: string | null, code?: string | null, city?: string | null, logo?: string | null, all_star: boolean, nba_franchise: boolean, conference?: string | null, created_at: string, updated_at: string }, away_team: { __typename?: 'Team', id: string, name: string, nickname?: string | null, code?: string | null, city?: string | null, logo?: string | null, all_star: boolean, nba_franchise: boolean, conference?: string | null, created_at: string, updated_at: string } }, user: { __typename?: 'UserSummary', id: string, username: string, first_name: string, last_name: string, email_address?: string | null, image_url?: string | null }, comments: { __typename?: 'CommentConnection', totalCount: number, edges: Array<{ __typename?: 'CommentEdge', cursor: string, node: { __typename?: 'Comment', id: string, user_id: string, parent_id: string, parent_type: ParentType, content: string, depth: number, created_at: string, updated_at: string, user: { __typename?: 'UserSummary', id: string, username: string, first_name: string, last_name: string, email_address?: string | null, image_url?: string | null }, reactions: Array<{ __typename?: 'Reaction', id: string, emoji: string, user_id: string, target_id: string, target_type: ParentType, created_at: string, updated_at: string, user: { __typename?: 'UserSummary', id: string, username: string, first_name: string, last_name: string, email_address?: string | null, image_url?: string | null } }> } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null } }, reactions: Array<{ __typename?: 'Reaction', id: string, emoji: string, user_id: string, target_id: string, target_type: ParentType, created_at: string, updated_at: string, user: { __typename?: 'UserSummary', id: string, username: string, first_name: string, last_name: string, email_address?: string | null, image_url?: string | null } }> } | null, errors?: Array<{ __typename?: 'ErrorResult', message: string, code?: string | null, field?: string | null }> | null } };
 
 export type DeleteGameLogMutationVariables = Exact<{
   id: Scalars['ID']['input'];
@@ -809,7 +809,7 @@ export type CreateCommentMutationVariables = Exact<{
 }>;
 
 
-export type CreateCommentMutation = { __typename?: 'Mutation', createComment: { __typename?: 'CreateCommentResponse', comment?: { __typename?: 'Comment', id: string, user_id: string, parent_id: string, parent_type: ParentType, content: string, depth: number, created_at: string, updated_at: string, user: { __typename?: 'UserSummary', id: string, username: string, first_name: string, last_name: string, email_address?: string | null, image_url?: string | null }, reactions: Array<{ __typename?: 'Reaction', id: string, emoji: string, user: { __typename?: 'UserSummary', id: string, username: string, first_name: string, last_name: string, email_address?: string | null, image_url?: string | null } }> } | null, errors?: Array<{ __typename?: 'ErrorResult', message: string, code?: string | null, field?: string | null }> | null } };
+export type CreateCommentMutation = { __typename?: 'Mutation', createComment: { __typename?: 'CreateCommentResponse', comment?: { __typename?: 'Comment', id: string, user_id: string, parent_id: string, parent_type: ParentType, content: string, depth: number, created_at: string, updated_at: string, user: { __typename?: 'UserSummary', id: string, username: string, first_name: string, last_name: string, email_address?: string | null, image_url?: string | null }, reactions: Array<{ __typename?: 'Reaction', id: string, emoji: string, user_id: string, target_id: string, target_type: ParentType, created_at: string, updated_at: string, user: { __typename?: 'UserSummary', id: string, username: string, first_name: string, last_name: string, email_address?: string | null, image_url?: string | null } }> } | null, errors?: Array<{ __typename?: 'ErrorResult', message: string, code?: string | null, field?: string | null }> | null } };
 
 export type UpdateCommentMutationVariables = Exact<{
   id: Scalars['ID']['input'];
@@ -817,7 +817,7 @@ export type UpdateCommentMutationVariables = Exact<{
 }>;
 
 
-export type UpdateCommentMutation = { __typename?: 'Mutation', updateComment: { __typename?: 'UpdateCommentResponse', comment?: { __typename?: 'Comment', id: string, user_id: string, parent_id: string, parent_type: ParentType, content: string, depth: number, created_at: string, updated_at: string, user: { __typename?: 'UserSummary', id: string, username: string, first_name: string, last_name: string, email_address?: string | null, image_url?: string | null }, reactions: Array<{ __typename?: 'Reaction', id: string, emoji: string, user: { __typename?: 'UserSummary', id: string, username: string, first_name: string, last_name: string, email_address?: string | null, image_url?: string | null } }> } | null, errors?: Array<{ __typename?: 'ErrorResult', message: string, code?: string | null, field?: string | null }> | null } };
+export type UpdateCommentMutation = { __typename?: 'Mutation', updateComment: { __typename?: 'UpdateCommentResponse', comment?: { __typename?: 'Comment', id: string, user_id: string, parent_id: string, parent_type: ParentType, content: string, depth: number, created_at: string, updated_at: string, user: { __typename?: 'UserSummary', id: string, username: string, first_name: string, last_name: string, email_address?: string | null, image_url?: string | null }, reactions: Array<{ __typename?: 'Reaction', id: string, emoji: string, user_id: string, target_id: string, target_type: ParentType, created_at: string, updated_at: string, user: { __typename?: 'UserSummary', id: string, username: string, first_name: string, last_name: string, email_address?: string | null, image_url?: string | null } }> } | null, errors?: Array<{ __typename?: 'ErrorResult', message: string, code?: string | null, field?: string | null }> | null } };
 
 export type DeleteCommentMutationVariables = Exact<{
   id: Scalars['ID']['input'];
@@ -874,11 +874,11 @@ export type BasicUserFragmentFragment = { __typename?: 'DBUser', id: string, use
 
 export type UserSummaryFragmentFragment = { __typename?: 'UserSummary', id: string, username: string, first_name: string, last_name: string, email_address?: string | null, image_url?: string | null };
 
-export type CommentFragmentFragment = { __typename?: 'Comment', id: string, user_id: string, parent_id: string, parent_type: ParentType, content: string, depth: number, created_at: string, updated_at: string, user: { __typename?: 'UserSummary', id: string, username: string, first_name: string, last_name: string, email_address?: string | null, image_url?: string | null }, reactions: Array<{ __typename?: 'Reaction', id: string, emoji: string, user: { __typename?: 'UserSummary', id: string, username: string, first_name: string, last_name: string, email_address?: string | null, image_url?: string | null } }> };
-
 export type ReactionFragmentFragment = { __typename?: 'Reaction', id: string, emoji: string, user_id: string, target_id: string, target_type: ParentType, created_at: string, updated_at: string, user: { __typename?: 'UserSummary', id: string, username: string, first_name: string, last_name: string, email_address?: string | null, image_url?: string | null } };
 
-export type GameLogFragmentFragment = { __typename?: 'GameLog', id: string, game_id: string, rating_for_game: number, notes?: string | null, tags?: Array<string> | null, watched_date?: string | null, watched_setting?: string | null, watched_location?: string | null, watched_scope?: string | null, classification: Classification, created_at: string, updated_at: string, deleted_at?: string | null, game: { __typename?: 'Game', id: string, date: string, status: string, game_type: string, nba_game_id?: string | null, home_team_id: string, away_team_id: string, home_team_score?: number | null, away_team_score?: number | null, average_rating?: number | null, total_ratings?: number | null, created_at: string, updated_at: string, home_team: { __typename?: 'Team', id: string, name: string, nickname?: string | null, code?: string | null, city?: string | null, logo?: string | null, all_star: boolean, nba_franchise: boolean, conference?: string | null, created_at: string, updated_at: string }, away_team: { __typename?: 'Team', id: string, name: string, nickname?: string | null, code?: string | null, city?: string | null, logo?: string | null, all_star: boolean, nba_franchise: boolean, conference?: string | null, created_at: string, updated_at: string } }, user: { __typename?: 'UserSummary', id: string, username: string, first_name: string, last_name: string, email_address?: string | null, image_url?: string | null }, comments: { __typename?: 'CommentConnection', totalCount: number, edges: Array<{ __typename?: 'CommentEdge', cursor: string, node: { __typename?: 'Comment', id: string, user_id: string, parent_id: string, parent_type: ParentType, content: string, depth: number, created_at: string, updated_at: string, user: { __typename?: 'UserSummary', id: string, username: string, first_name: string, last_name: string, email_address?: string | null, image_url?: string | null }, reactions: Array<{ __typename?: 'Reaction', id: string, emoji: string, user: { __typename?: 'UserSummary', id: string, username: string, first_name: string, last_name: string, email_address?: string | null, image_url?: string | null } }> } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null } }, reactions: Array<{ __typename?: 'Reaction', id: string, emoji: string, user_id: string, target_id: string, target_type: ParentType, created_at: string, updated_at: string, user: { __typename?: 'UserSummary', id: string, username: string, first_name: string, last_name: string, email_address?: string | null, image_url?: string | null } }> };
+export type CommentFragmentFragment = { __typename?: 'Comment', id: string, user_id: string, parent_id: string, parent_type: ParentType, content: string, depth: number, created_at: string, updated_at: string, user: { __typename?: 'UserSummary', id: string, username: string, first_name: string, last_name: string, email_address?: string | null, image_url?: string | null }, reactions: Array<{ __typename?: 'Reaction', id: string, emoji: string, user_id: string, target_id: string, target_type: ParentType, created_at: string, updated_at: string, user: { __typename?: 'UserSummary', id: string, username: string, first_name: string, last_name: string, email_address?: string | null, image_url?: string | null } }> };
+
+export type GameLogFragmentFragment = { __typename?: 'GameLog', id: string, game_id: string, rating_for_game: number, notes?: string | null, tags?: Array<string> | null, watched_date?: string | null, watched_setting?: string | null, watched_location?: string | null, watched_scope?: string | null, classification: Classification, created_at: string, updated_at: string, deleted_at?: string | null, game: { __typename?: 'Game', id: string, date: string, status: string, game_type: string, nba_game_id?: string | null, home_team_id: string, away_team_id: string, home_team_score?: number | null, away_team_score?: number | null, average_rating?: number | null, total_ratings?: number | null, created_at: string, updated_at: string, home_team: { __typename?: 'Team', id: string, name: string, nickname?: string | null, code?: string | null, city?: string | null, logo?: string | null, all_star: boolean, nba_franchise: boolean, conference?: string | null, created_at: string, updated_at: string }, away_team: { __typename?: 'Team', id: string, name: string, nickname?: string | null, code?: string | null, city?: string | null, logo?: string | null, all_star: boolean, nba_franchise: boolean, conference?: string | null, created_at: string, updated_at: string } }, user: { __typename?: 'UserSummary', id: string, username: string, first_name: string, last_name: string, email_address?: string | null, image_url?: string | null }, comments: { __typename?: 'CommentConnection', totalCount: number, edges: Array<{ __typename?: 'CommentEdge', cursor: string, node: { __typename?: 'Comment', id: string, user_id: string, parent_id: string, parent_type: ParentType, content: string, depth: number, created_at: string, updated_at: string, user: { __typename?: 'UserSummary', id: string, username: string, first_name: string, last_name: string, email_address?: string | null, image_url?: string | null }, reactions: Array<{ __typename?: 'Reaction', id: string, emoji: string, user_id: string, target_id: string, target_type: ParentType, created_at: string, updated_at: string, user: { __typename?: 'UserSummary', id: string, username: string, first_name: string, last_name: string, email_address?: string | null, image_url?: string | null } }> } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null } }, reactions: Array<{ __typename?: 'Reaction', id: string, emoji: string, user_id: string, target_id: string, target_type: ParentType, created_at: string, updated_at: string, user: { __typename?: 'UserSummary', id: string, username: string, first_name: string, last_name: string, email_address?: string | null, image_url?: string | null } }> };
 
 export type FriendshipFragmentFragment = { __typename?: 'Friendship', id: string, status: FriendshipStatus, created_at: string, updated_at: string, initiator: { __typename?: 'UserSummary', id: string, username: string, first_name: string, last_name: string, email_address?: string | null, image_url?: string | null }, recipient: { __typename?: 'UserSummary', id: string, username: string, first_name: string, last_name: string, email_address?: string | null, image_url?: string | null } };
 
@@ -911,14 +911,14 @@ export type GetGameLogsQueryVariables = Exact<{
 }>;
 
 
-export type GetGameLogsQuery = { __typename?: 'Query', gameLogs: { __typename?: 'GameLogConnection', totalCount: number, edges: Array<{ __typename?: 'GameLogEdge', cursor: string, node: { __typename?: 'GameLog', id: string, game_id: string, rating_for_game: number, notes?: string | null, tags?: Array<string> | null, watched_date?: string | null, watched_setting?: string | null, watched_location?: string | null, watched_scope?: string | null, classification: Classification, created_at: string, updated_at: string, deleted_at?: string | null, game: { __typename?: 'Game', id: string, date: string, status: string, game_type: string, nba_game_id?: string | null, home_team_id: string, away_team_id: string, home_team_score?: number | null, away_team_score?: number | null, average_rating?: number | null, total_ratings?: number | null, created_at: string, updated_at: string, home_team: { __typename?: 'Team', id: string, name: string, nickname?: string | null, code?: string | null, city?: string | null, logo?: string | null, all_star: boolean, nba_franchise: boolean, conference?: string | null, created_at: string, updated_at: string }, away_team: { __typename?: 'Team', id: string, name: string, nickname?: string | null, code?: string | null, city?: string | null, logo?: string | null, all_star: boolean, nba_franchise: boolean, conference?: string | null, created_at: string, updated_at: string } }, user: { __typename?: 'UserSummary', id: string, username: string, first_name: string, last_name: string, email_address?: string | null, image_url?: string | null }, comments: { __typename?: 'CommentConnection', totalCount: number, edges: Array<{ __typename?: 'CommentEdge', cursor: string, node: { __typename?: 'Comment', id: string, user_id: string, parent_id: string, parent_type: ParentType, content: string, depth: number, created_at: string, updated_at: string, user: { __typename?: 'UserSummary', id: string, username: string, first_name: string, last_name: string, email_address?: string | null, image_url?: string | null }, reactions: Array<{ __typename?: 'Reaction', id: string, emoji: string, user: { __typename?: 'UserSummary', id: string, username: string, first_name: string, last_name: string, email_address?: string | null, image_url?: string | null } }> } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null } }, reactions: Array<{ __typename?: 'Reaction', id: string, emoji: string, user_id: string, target_id: string, target_type: ParentType, created_at: string, updated_at: string, user: { __typename?: 'UserSummary', id: string, username: string, first_name: string, last_name: string, email_address?: string | null, image_url?: string | null } }> } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null } } };
+export type GetGameLogsQuery = { __typename?: 'Query', gameLogs: { __typename?: 'GameLogConnection', totalCount: number, edges: Array<{ __typename?: 'GameLogEdge', cursor: string, node: { __typename?: 'GameLog', id: string, game_id: string, rating_for_game: number, notes?: string | null, tags?: Array<string> | null, watched_date?: string | null, watched_setting?: string | null, watched_location?: string | null, watched_scope?: string | null, classification: Classification, created_at: string, updated_at: string, deleted_at?: string | null, game: { __typename?: 'Game', id: string, date: string, status: string, game_type: string, nba_game_id?: string | null, home_team_id: string, away_team_id: string, home_team_score?: number | null, away_team_score?: number | null, average_rating?: number | null, total_ratings?: number | null, created_at: string, updated_at: string, home_team: { __typename?: 'Team', id: string, name: string, nickname?: string | null, code?: string | null, city?: string | null, logo?: string | null, all_star: boolean, nba_franchise: boolean, conference?: string | null, created_at: string, updated_at: string }, away_team: { __typename?: 'Team', id: string, name: string, nickname?: string | null, code?: string | null, city?: string | null, logo?: string | null, all_star: boolean, nba_franchise: boolean, conference?: string | null, created_at: string, updated_at: string } }, user: { __typename?: 'UserSummary', id: string, username: string, first_name: string, last_name: string, email_address?: string | null, image_url?: string | null }, comments: { __typename?: 'CommentConnection', totalCount: number, edges: Array<{ __typename?: 'CommentEdge', cursor: string, node: { __typename?: 'Comment', id: string, user_id: string, parent_id: string, parent_type: ParentType, content: string, depth: number, created_at: string, updated_at: string, user: { __typename?: 'UserSummary', id: string, username: string, first_name: string, last_name: string, email_address?: string | null, image_url?: string | null }, reactions: Array<{ __typename?: 'Reaction', id: string, emoji: string, user_id: string, target_id: string, target_type: ParentType, created_at: string, updated_at: string, user: { __typename?: 'UserSummary', id: string, username: string, first_name: string, last_name: string, email_address?: string | null, image_url?: string | null } }> } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null } }, reactions: Array<{ __typename?: 'Reaction', id: string, emoji: string, user_id: string, target_id: string, target_type: ParentType, created_at: string, updated_at: string, user: { __typename?: 'UserSummary', id: string, username: string, first_name: string, last_name: string, email_address?: string | null, image_url?: string | null } }> } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null } } };
 
 export type GetGameLogQueryVariables = Exact<{
   id: Scalars['ID']['input'];
 }>;
 
 
-export type GetGameLogQuery = { __typename?: 'Query', gameLog?: { __typename?: 'GameLog', id: string, game_id: string, rating_for_game: number, notes?: string | null, tags?: Array<string> | null, watched_date?: string | null, watched_setting?: string | null, watched_location?: string | null, watched_scope?: string | null, classification: Classification, created_at: string, updated_at: string, deleted_at?: string | null, game: { __typename?: 'Game', id: string, date: string, status: string, game_type: string, nba_game_id?: string | null, home_team_id: string, away_team_id: string, home_team_score?: number | null, away_team_score?: number | null, average_rating?: number | null, total_ratings?: number | null, created_at: string, updated_at: string, home_team: { __typename?: 'Team', id: string, name: string, nickname?: string | null, code?: string | null, city?: string | null, logo?: string | null, all_star: boolean, nba_franchise: boolean, conference?: string | null, created_at: string, updated_at: string }, away_team: { __typename?: 'Team', id: string, name: string, nickname?: string | null, code?: string | null, city?: string | null, logo?: string | null, all_star: boolean, nba_franchise: boolean, conference?: string | null, created_at: string, updated_at: string } }, user: { __typename?: 'UserSummary', id: string, username: string, first_name: string, last_name: string, email_address?: string | null, image_url?: string | null }, comments: { __typename?: 'CommentConnection', totalCount: number, edges: Array<{ __typename?: 'CommentEdge', cursor: string, node: { __typename?: 'Comment', id: string, user_id: string, parent_id: string, parent_type: ParentType, content: string, depth: number, created_at: string, updated_at: string, user: { __typename?: 'UserSummary', id: string, username: string, first_name: string, last_name: string, email_address?: string | null, image_url?: string | null }, reactions: Array<{ __typename?: 'Reaction', id: string, emoji: string, user: { __typename?: 'UserSummary', id: string, username: string, first_name: string, last_name: string, email_address?: string | null, image_url?: string | null } }> } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null } }, reactions: Array<{ __typename?: 'Reaction', id: string, emoji: string, user_id: string, target_id: string, target_type: ParentType, created_at: string, updated_at: string, user: { __typename?: 'UserSummary', id: string, username: string, first_name: string, last_name: string, email_address?: string | null, image_url?: string | null } }> } | null };
+export type GetGameLogQuery = { __typename?: 'Query', gameLog?: { __typename?: 'GameLog', id: string, game_id: string, rating_for_game: number, notes?: string | null, tags?: Array<string> | null, watched_date?: string | null, watched_setting?: string | null, watched_location?: string | null, watched_scope?: string | null, classification: Classification, created_at: string, updated_at: string, deleted_at?: string | null, game: { __typename?: 'Game', id: string, date: string, status: string, game_type: string, nba_game_id?: string | null, home_team_id: string, away_team_id: string, home_team_score?: number | null, away_team_score?: number | null, average_rating?: number | null, total_ratings?: number | null, created_at: string, updated_at: string, home_team: { __typename?: 'Team', id: string, name: string, nickname?: string | null, code?: string | null, city?: string | null, logo?: string | null, all_star: boolean, nba_franchise: boolean, conference?: string | null, created_at: string, updated_at: string }, away_team: { __typename?: 'Team', id: string, name: string, nickname?: string | null, code?: string | null, city?: string | null, logo?: string | null, all_star: boolean, nba_franchise: boolean, conference?: string | null, created_at: string, updated_at: string } }, user: { __typename?: 'UserSummary', id: string, username: string, first_name: string, last_name: string, email_address?: string | null, image_url?: string | null }, comments: { __typename?: 'CommentConnection', totalCount: number, edges: Array<{ __typename?: 'CommentEdge', cursor: string, node: { __typename?: 'Comment', id: string, user_id: string, parent_id: string, parent_type: ParentType, content: string, depth: number, created_at: string, updated_at: string, user: { __typename?: 'UserSummary', id: string, username: string, first_name: string, last_name: string, email_address?: string | null, image_url?: string | null }, reactions: Array<{ __typename?: 'Reaction', id: string, emoji: string, user_id: string, target_id: string, target_type: ParentType, created_at: string, updated_at: string, user: { __typename?: 'UserSummary', id: string, username: string, first_name: string, last_name: string, email_address?: string | null, image_url?: string | null } }> } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null } }, reactions: Array<{ __typename?: 'Reaction', id: string, emoji: string, user_id: string, target_id: string, target_type: ParentType, created_at: string, updated_at: string, user: { __typename?: 'UserSummary', id: string, username: string, first_name: string, last_name: string, email_address?: string | null, image_url?: string | null } }> } | null };
 
 export type GetUsersQueryVariables = Exact<{
   filters?: InputMaybe<UserFilters>;
@@ -951,7 +951,7 @@ export type GetCommentsQueryVariables = Exact<{
 }>;
 
 
-export type GetCommentsQuery = { __typename?: 'Query', comments: { __typename?: 'CommentConnection', totalCount: number, edges: Array<{ __typename?: 'CommentEdge', cursor: string, node: { __typename?: 'Comment', id: string, user_id: string, parent_id: string, parent_type: ParentType, content: string, depth: number, created_at: string, updated_at: string, user: { __typename?: 'UserSummary', id: string, username: string, first_name: string, last_name: string, email_address?: string | null, image_url?: string | null }, reactions: Array<{ __typename?: 'Reaction', id: string, emoji: string, user: { __typename?: 'UserSummary', id: string, username: string, first_name: string, last_name: string, email_address?: string | null, image_url?: string | null } }> } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null } } };
+export type GetCommentsQuery = { __typename?: 'Query', comments: { __typename?: 'CommentConnection', totalCount: number, edges: Array<{ __typename?: 'CommentEdge', cursor: string, node: { __typename?: 'Comment', id: string, user_id: string, parent_id: string, parent_type: ParentType, content: string, depth: number, created_at: string, updated_at: string, user: { __typename?: 'UserSummary', id: string, username: string, first_name: string, last_name: string, email_address?: string | null, image_url?: string | null }, reactions: Array<{ __typename?: 'Reaction', id: string, emoji: string, user_id: string, target_id: string, target_type: ParentType, created_at: string, updated_at: string, user: { __typename?: 'UserSummary', id: string, username: string, first_name: string, last_name: string, email_address?: string | null, image_url?: string | null } }> } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null } } };
 
 export type GetReactionsQueryVariables = Exact<{
   targetId: Scalars['ID']['input'];
@@ -986,7 +986,7 @@ export type GetFriendsGameLogsQueryVariables = Exact<{
 }>;
 
 
-export type GetFriendsGameLogsQuery = { __typename?: 'Query', friendsGameLogs: { __typename?: 'GameLogConnection', totalCount: number, edges: Array<{ __typename?: 'GameLogEdge', cursor: string, node: { __typename?: 'GameLog', id: string, game_id: string, rating_for_game: number, notes?: string | null, tags?: Array<string> | null, watched_date?: string | null, watched_setting?: string | null, watched_location?: string | null, watched_scope?: string | null, classification: Classification, created_at: string, updated_at: string, deleted_at?: string | null, game: { __typename?: 'Game', id: string, date: string, status: string, game_type: string, nba_game_id?: string | null, home_team_id: string, away_team_id: string, home_team_score?: number | null, away_team_score?: number | null, average_rating?: number | null, total_ratings?: number | null, created_at: string, updated_at: string, home_team: { __typename?: 'Team', id: string, name: string, nickname?: string | null, code?: string | null, city?: string | null, logo?: string | null, all_star: boolean, nba_franchise: boolean, conference?: string | null, created_at: string, updated_at: string }, away_team: { __typename?: 'Team', id: string, name: string, nickname?: string | null, code?: string | null, city?: string | null, logo?: string | null, all_star: boolean, nba_franchise: boolean, conference?: string | null, created_at: string, updated_at: string } }, user: { __typename?: 'UserSummary', id: string, username: string, first_name: string, last_name: string, email_address?: string | null, image_url?: string | null }, comments: { __typename?: 'CommentConnection', totalCount: number, edges: Array<{ __typename?: 'CommentEdge', cursor: string, node: { __typename?: 'Comment', id: string, user_id: string, parent_id: string, parent_type: ParentType, content: string, depth: number, created_at: string, updated_at: string, user: { __typename?: 'UserSummary', id: string, username: string, first_name: string, last_name: string, email_address?: string | null, image_url?: string | null }, reactions: Array<{ __typename?: 'Reaction', id: string, emoji: string, user: { __typename?: 'UserSummary', id: string, username: string, first_name: string, last_name: string, email_address?: string | null, image_url?: string | null } }> } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null } }, reactions: Array<{ __typename?: 'Reaction', id: string, emoji: string, user_id: string, target_id: string, target_type: ParentType, created_at: string, updated_at: string, user: { __typename?: 'UserSummary', id: string, username: string, first_name: string, last_name: string, email_address?: string | null, image_url?: string | null } }> } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null } } };
+export type GetFriendsGameLogsQuery = { __typename?: 'Query', friendsGameLogs: { __typename?: 'GameLogConnection', totalCount: number, edges: Array<{ __typename?: 'GameLogEdge', cursor: string, node: { __typename?: 'GameLog', id: string, game_id: string, rating_for_game: number, notes?: string | null, tags?: Array<string> | null, watched_date?: string | null, watched_setting?: string | null, watched_location?: string | null, watched_scope?: string | null, classification: Classification, created_at: string, updated_at: string, deleted_at?: string | null, game: { __typename?: 'Game', id: string, date: string, status: string, game_type: string, nba_game_id?: string | null, home_team_id: string, away_team_id: string, home_team_score?: number | null, away_team_score?: number | null, average_rating?: number | null, total_ratings?: number | null, created_at: string, updated_at: string, home_team: { __typename?: 'Team', id: string, name: string, nickname?: string | null, code?: string | null, city?: string | null, logo?: string | null, all_star: boolean, nba_franchise: boolean, conference?: string | null, created_at: string, updated_at: string }, away_team: { __typename?: 'Team', id: string, name: string, nickname?: string | null, code?: string | null, city?: string | null, logo?: string | null, all_star: boolean, nba_franchise: boolean, conference?: string | null, created_at: string, updated_at: string } }, user: { __typename?: 'UserSummary', id: string, username: string, first_name: string, last_name: string, email_address?: string | null, image_url?: string | null }, comments: { __typename?: 'CommentConnection', totalCount: number, edges: Array<{ __typename?: 'CommentEdge', cursor: string, node: { __typename?: 'Comment', id: string, user_id: string, parent_id: string, parent_type: ParentType, content: string, depth: number, created_at: string, updated_at: string, user: { __typename?: 'UserSummary', id: string, username: string, first_name: string, last_name: string, email_address?: string | null, image_url?: string | null }, reactions: Array<{ __typename?: 'Reaction', id: string, emoji: string, user_id: string, target_id: string, target_type: ParentType, created_at: string, updated_at: string, user: { __typename?: 'UserSummary', id: string, username: string, first_name: string, last_name: string, email_address?: string | null, image_url?: string | null } }> } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null } }, reactions: Array<{ __typename?: 'Reaction', id: string, emoji: string, user_id: string, target_id: string, target_type: ParentType, created_at: string, updated_at: string, user: { __typename?: 'UserSummary', id: string, username: string, first_name: string, last_name: string, email_address?: string | null, image_url?: string | null } }> } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null } } };
 
 export type GetUserFriendshipsQueryVariables = Exact<{
   filters?: InputMaybe<FriendshipFilters>;
@@ -1134,28 +1134,6 @@ export const UserSummaryFragmentFragmentDoc = gql`
   image_url
 }
     `;
-export const CommentFragmentFragmentDoc = gql`
-    fragment CommentFragment on Comment {
-  id
-  user_id
-  parent_id
-  parent_type
-  content
-  depth
-  created_at
-  updated_at
-  user {
-    ...UserSummaryFragment
-  }
-  reactions {
-    id
-    emoji
-    user {
-      ...UserSummaryFragment
-    }
-  }
-}
-    ${UserSummaryFragmentFragmentDoc}`;
 export const ReactionFragmentFragmentDoc = gql`
     fragment ReactionFragment on Reaction {
   id
@@ -1170,6 +1148,25 @@ export const ReactionFragmentFragmentDoc = gql`
   }
 }
     ${UserSummaryFragmentFragmentDoc}`;
+export const CommentFragmentFragmentDoc = gql`
+    fragment CommentFragment on Comment {
+  id
+  user_id
+  parent_id
+  parent_type
+  content
+  depth
+  created_at
+  updated_at
+  user {
+    ...UserSummaryFragment
+  }
+  reactions {
+    ...ReactionFragment
+  }
+}
+    ${UserSummaryFragmentFragmentDoc}
+${ReactionFragmentFragmentDoc}`;
 export const GameLogFragmentFragmentDoc = gql`
     fragment GameLogFragment on GameLog {
   id
@@ -1415,7 +1412,39 @@ export const CreateCommentDocument = gql`
     mutation CreateComment($input: CreateCommentInput!) {
   createComment(input: $input) {
     comment {
-      ...CommentFragment
+      id
+      user_id
+      parent_id
+      parent_type
+      content
+      depth
+      created_at
+      updated_at
+      user {
+        id
+        username
+        first_name
+        last_name
+        email_address
+        image_url
+      }
+      reactions {
+        id
+        emoji
+        user_id
+        target_id
+        target_type
+        created_at
+        updated_at
+        user {
+          id
+          username
+          first_name
+          last_name
+          email_address
+          image_url
+        }
+      }
     }
     errors {
       message
@@ -1424,7 +1453,7 @@ export const CreateCommentDocument = gql`
     }
   }
 }
-    ${CommentFragmentFragmentDoc}`;
+    `;
 export type CreateCommentMutationFn = Apollo.MutationFunction<CreateCommentMutation, CreateCommentMutationVariables>;
 
 /**
@@ -1455,7 +1484,39 @@ export const UpdateCommentDocument = gql`
     mutation UpdateComment($id: ID!, $input: UpdateCommentInput!) {
   updateComment(id: $id, input: $input) {
     comment {
-      ...CommentFragment
+      id
+      user_id
+      parent_id
+      parent_type
+      content
+      depth
+      created_at
+      updated_at
+      user {
+        id
+        username
+        first_name
+        last_name
+        email_address
+        image_url
+      }
+      reactions {
+        id
+        emoji
+        user_id
+        target_id
+        target_type
+        created_at
+        updated_at
+        user {
+          id
+          username
+          first_name
+          last_name
+          email_address
+          image_url
+        }
+      }
     }
     errors {
       message
@@ -1464,7 +1525,7 @@ export const UpdateCommentDocument = gql`
     }
   }
 }
-    ${CommentFragmentFragmentDoc}`;
+    `;
 export type UpdateCommentMutationFn = Apollo.MutationFunction<UpdateCommentMutation, UpdateCommentMutationVariables>;
 
 /**
@@ -1534,7 +1595,21 @@ export const CreateReactionDocument = gql`
     mutation CreateReaction($input: CreateReactionInput!) {
   createReaction(input: $input) {
     reaction {
-      ...ReactionFragment
+      id
+      emoji
+      user_id
+      target_id
+      target_type
+      created_at
+      updated_at
+      user {
+        id
+        username
+        first_name
+        last_name
+        email_address
+        image_url
+      }
     }
     errors {
       message
@@ -1543,7 +1618,7 @@ export const CreateReactionDocument = gql`
     }
   }
 }
-    ${ReactionFragmentFragmentDoc}`;
+    `;
 export type CreateReactionMutationFn = Apollo.MutationFunction<CreateReactionMutation, CreateReactionMutationVariables>;
 
 /**
