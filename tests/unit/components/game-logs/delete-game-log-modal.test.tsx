@@ -1,13 +1,27 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import React from 'react';
+import { toast } from 'sonner';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 import { DeleteGameLogModal } from '@/app/components/game-logs/DeleteGameLogModal';
 
+// Mock sonner toast
+vi.mock('sonner', () => {
+  const success = vi.fn();
+  const error = vi.fn();
+  return {
+    toast: { success, error },
+  };
+});
+
 // Mock Apollo Client
 const mockUseMutation = vi.fn();
+let capturedUseMutationOptions: any = null;
 vi.mock('@apollo/client', () => ({
-  useMutation: () => mockUseMutation(),
+  useMutation: (_doc: any, options: any) => {
+    capturedUseMutationOptions = options;
+    return mockUseMutation();
+  },
   gql: vi.fn(),
 }));
 
@@ -50,6 +64,7 @@ describe('DeleteGameLogModal', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockUseMutation.mockReturnValue([vi.fn(), { loading: false }]);
+    capturedUseMutationOptions = null;
   });
 
   it('renders when isOpen is true', () => {
@@ -194,6 +209,41 @@ describe('DeleteGameLogModal', () => {
     });
 
     consoleSpy.mockRestore();
+  });
+
+  it('shows success toast on successful deletion (onCompleted)', async () => {
+    render(<DeleteGameLogModal {...mockProps} />);
+
+    // Simulate Apollo calling onCompleted
+    capturedUseMutationOptions?.onCompleted?.({
+      deleteGameLog: { success: true, errors: [] },
+    });
+
+    await waitFor(() => {
+      expect((toast as any).success).toHaveBeenCalledWith('Game log deleted');
+    });
+  });
+
+  it('shows error toast with message when deletion fails (onCompleted)', async () => {
+    render(<DeleteGameLogModal {...mockProps} />);
+
+    capturedUseMutationOptions?.onCompleted?.({
+      deleteGameLog: { success: false, errors: [{ message: 'Custom error' }] },
+    });
+
+    await waitFor(() => {
+      expect((toast as any).error).toHaveBeenCalledWith('Custom error');
+    });
+  });
+
+  it('shows generic error toast when onError is called', async () => {
+    render(<DeleteGameLogModal {...mockProps} />);
+
+    capturedUseMutationOptions?.onError?.(new Error('Network error'));
+
+    await waitFor(() => {
+      expect((toast as any).error).toHaveBeenCalledWith('Failed to delete game log');
+    });
   });
 
   it('has correct styling classes', () => {

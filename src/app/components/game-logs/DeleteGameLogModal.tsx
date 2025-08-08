@@ -2,6 +2,7 @@
 
 import { useMutation } from '@apollo/client';
 import { X, AlertTriangle } from 'lucide-react';
+import { toast } from 'sonner';
 
 import { Button } from '@/app/components/ui/button';
 import { Card } from '@/app/components/ui/Card';
@@ -17,11 +18,17 @@ export function DeleteGameLogModal({
   const [deleteGameLog, { loading }] = useMutation(DELETE_GAME_LOG, {
     onCompleted: (data: { deleteGameLog: { success: boolean; errors: unknown[] } }) => {
       if (data?.deleteGameLog?.success) {
+        toast.success('Game log deleted');
         onSuccess();
+      } else {
+        const errors = (data?.deleteGameLog?.errors as Array<{ message?: string }>) ?? [];
+        const message = errors[0]?.message ?? 'Failed to delete game log';
+        toast.error(message);
       }
     },
     onError: (error: Error) => {
       console.error('Error deleting game log:', error);
+      toast.error('Failed to delete game log');
     },
   });
 
