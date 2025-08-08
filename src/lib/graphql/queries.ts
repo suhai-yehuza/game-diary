@@ -128,6 +128,8 @@ export const COMMENT_FRAGMENT = gql`
     user {
       ...UserSummaryFragment
     }
+    totalChildCommentCount
+    totalReactionCount
     reactions {
       ...ReactionFragment
     }
@@ -138,9 +140,6 @@ export const GAME_LOG_FRAGMENT = gql`
   fragment GameLogFragment on GameLog {
     id
     game_id
-    game {
-      ...GameFragment
-    }
     rating_for_game
     notes
     tags
@@ -152,24 +151,13 @@ export const GAME_LOG_FRAGMENT = gql`
     created_at
     updated_at
     deleted_at
+    totalCommentCount
+    totalReactionCount
     user {
       ...UserSummaryFragment
     }
-    comments {
-      edges {
-        node {
-          ...CommentFragment
-        }
-        cursor
-      }
-      pageInfo {
-        hasNextPage
-        endCursor
-      }
-      totalCount
-    }
-    reactions {
-      ...ReactionFragment
+    game {
+      ...GameFragment
     }
   }
 `;

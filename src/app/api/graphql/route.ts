@@ -23,7 +23,37 @@ const handler = startServerAndCreateNextHandler(server, {
   context: async (req: NextRequest) => {
     try {
       const { userId } = await auth();
-      const user = await currentUser();
+
+      // Add retry logic for currentUser to handle rate limiting
+      let user = null;
+      let retryCount = 0;
+      const maxRetries = 3;
+
+      while (retryCount < maxRetries) {
+        try {
+          user = await currentUser();
+          break; // Success, exit retry loop
+        } catch (error: unknown) {
+          retryCount++;
+          console.error(`Clerk currentUser attempt ${retryCount} failed:`, error);
+
+          // Type guard to check if error has status property
+          if (
+            error &&
+            typeof error === 'object' &&
+            'status' in error &&
+            error.status === 429 &&
+            retryCount < maxRetries
+          ) {
+            const retryAfter =
+              'retryAfter' in error && typeof error.retryAfter === 'number' ? error.retryAfter : 1;
+            console.log(`Rate limited, waiting ${retryAfter} seconds before retry...`);
+            await new Promise(resolve => setTimeout(resolve, retryAfter * 1000));
+            continue;
+          }
+          break;
+        }
+      }
 
       return {
         req,

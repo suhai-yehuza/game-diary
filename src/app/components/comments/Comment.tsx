@@ -7,7 +7,7 @@ import { useState } from 'react';
 
 import { CommentForm } from '@/app/components/comments/CommentForm';
 import { CommentReplies } from '@/app/components/comments/CommentReplies';
-import { ReactionPicker } from '@/app/components/reactions';
+import { ReactionCount } from '@/app/components/reactions/ReactionCount';
 import { Button } from '@/app/components/ui/button';
 import { Card, CardContent } from '@/app/components/ui/Card';
 import {
@@ -129,32 +129,61 @@ export function Comment({
             )}
           </div>
 
-          <div className="flex items-center justify-between mt-3">
-            <div className="flex items-center space-x-4">
-              {canReply && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleReply}
-                  className="text-gray-600 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400"
-                >
-                  <Reply className="mr-1 h-4 w-4" />
-                  Reply
-                </Button>
-              )}
-              <div className="flex items-center space-x-1 text-gray-500">
-                <MessageCircle className="h-4 w-4" />
-                <span className="text-xs">← Reply</span>
-              </div>
-            </div>
+          {/* Comment actions */}
+          <div className="flex items-center gap-2 mt-3">
+            {canReply && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleReply}
+                className="text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"
+              >
+                <Reply className="h-4 w-4 mr-1" />
+                Reply
+              </Button>
+            )}
+
+            {/* Child comments count */}
+            {comment.totalChildCommentCount && comment.totalChildCommentCount > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowRepliesState(!showRepliesState)}
+                className="text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"
+              >
+                <MessageCircle className="h-4 w-4 mr-1" />
+                {comment.totalChildCommentCount}{' '}
+                {comment.totalChildCommentCount === 1 ? 'reply' : 'replies'}
+              </Button>
+            )}
 
             {/* Reactions */}
-            <ReactionPicker
-              targetId={comment.id}
-              targetType={ParentType.Comment}
-              size="sm"
-              showCount={true}
-            />
+            <ReactionCount count={comment.totalReactionCount ?? 0} size="sm" />
+
+            {/* Action menu */}
+            {isOwnComment && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"
+                  >
+                    <MoreHorizontal className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={handleEdit}>
+                    <Edit className="h-4 w-4 mr-2" />
+                    Edit
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleDelete} className="text-red-600">
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Delete
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
           </div>
 
           {isReplying && (

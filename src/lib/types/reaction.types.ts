@@ -82,3 +82,10 @@ export interface IReactionState {
 }
 
 export type ReactionEmoji = (typeof REACTION_EMOJIS)[keyof typeof REACTION_EMOJIS];
+
+// Reaction count props for showing count without fetching reactions
+export interface IReactionCountProps {
+  count?: number;
+  className?: string;
+  size?: 'sm' | 'md' | 'lg';
+}

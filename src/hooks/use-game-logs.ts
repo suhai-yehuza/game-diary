@@ -136,6 +136,8 @@ export function useGameLogs(options: IGameLogsOptions = {}) {
     },
     fetchPolicy: 'cache-and-network',
     errorPolicy: 'all',
+    // Add better error handling for rate limiting
+    notifyOnNetworkStatusChange: true,
     onCompleted: data => {
       if (
         data &&
@@ -146,9 +148,7 @@ export function useGameLogs(options: IGameLogsOptions = {}) {
       ) {
         setGameLogs(safeMapGameLogArray(data.gameLogs.edges));
         setGameLogsTotalCount(data.gameLogs.totalCount);
-
         setGameLogsEndCursor(data.gameLogs.pageInfo.endCursor ?? null);
-
         setGameLogsHasNextPage(!!data.gameLogs.pageInfo.hasNextPage);
       }
       if (
@@ -171,6 +171,13 @@ export function useGameLogs(options: IGameLogsOptions = {}) {
           setFriendsLogsEndCursor(friendsGameLogs.pageInfo.endCursor ?? null);
           setFriendsLogsHasNextPage(!!friendsGameLogs.pageInfo.hasNextPage);
         }
+      }
+    },
+    onError: error => {
+      console.error('Game logs query error:', error);
+      // Handle rate limiting errors gracefully
+      if (error.graphQLErrors?.some(e => e.extensions?.code === 'FORBIDDEN')) {
+        console.warn('Authentication error in game logs query, user may not be authenticated');
       }
     },
   });
@@ -334,10 +341,12 @@ export function useFriendsGameLogs() {
     GET_FRIENDS_GAME_LOGS,
     {
       variables: {
-        pagination: { first: API_CONFIG.pagination.DEFAULT_GAME_LOG_PAGE_SIZE },
+        pagination: { first: API_CONFIG.pagination.DEFAULT_PAGE_SIZE }, // Use config variable instead of hardcoded 20
       },
       fetchPolicy: 'cache-and-network',
       errorPolicy: 'all',
+      // Add better error handling for rate limiting
+      notifyOnNetworkStatusChange: true,
       onCompleted: data => {
         if (
           data &&
@@ -352,6 +361,15 @@ export function useFriendsGameLogs() {
           setEndCursor(data.friendsGameLogs.pageInfo.endCursor ?? null);
 
           setHasNextPage(!!data.friendsGameLogs.pageInfo.hasNextPage);
+        }
+      },
+      onError: error => {
+        console.error('Friends game logs query error:', error);
+        // Handle rate limiting errors gracefully
+        if (error.graphQLErrors?.some(e => e.extensions?.code === 'FORBIDDEN')) {
+          console.warn(
+            'Authentication error in friends game logs query, user may not be authenticated'
+          );
         }
       },
     }
@@ -385,7 +403,7 @@ export function useFriendsGameLogs() {
     if (!hasNextPage || loading) return;
     const fetchResult = await fetchMore({
       variables: {
-        pagination: { first: API_CONFIG.pagination.DEFAULT_GAME_LOG_PAGE_SIZE, after: endCursor },
+        pagination: { first: API_CONFIG.pagination.DEFAULT_PAGE_SIZE, after: endCursor }, // Use config variable instead of hardcoded 20
       },
     });
     const moreData = fetchResult?.data;

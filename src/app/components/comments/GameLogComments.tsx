@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { Comment } from '@/app/components/comments/Comment';
 import { CommentForm } from '@/app/components/comments/CommentForm';
 import { ReactionPicker } from '@/app/components/reactions';
+import { ReactionCount } from '@/app/components/reactions/ReactionCount';
 import { Button } from '@/app/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/Card';
 import { useGameLogComments, useDeleteComment } from '@/hooks/use-comments';
@@ -25,20 +26,23 @@ export function GameLogComments({
 }: IGameLogCommentsProps) {
   const [isExpanded, setIsExpanded] = useState(showComments);
   const [showCommentForm, setShowCommentForm] = useState(false);
+  const [hasLoadedComments, setHasLoadedComments] = useState(false);
 
+  // Only load comments when expanded to reduce initial load
   const {
     comments,
     loading,
     commentsHasNextPage: hasNextPage,
     loadMoreComments,
     refetch,
-  } = useGameLogComments(gameLog.id, 3);
+  } = useGameLogComments(gameLog.id, isExpanded ? 5 : 0); // Reduced initial limit from 3 to 5, and only load when expanded
 
   const { deleteComment } = useDeleteComment();
 
   const handleToggleExpanded = () => {
     const newExpanded = !isExpanded;
     setIsExpanded(newExpanded);
+    setHasLoadedComments(true); // Mark as loaded when user expands
     onToggleComments?.(newExpanded);
   };
 
@@ -72,22 +76,30 @@ export function GameLogComments({
     }
   };
 
+  // Get comment count from game log data or from loaded comments
+  const commentCount =
+    isExpanded && hasLoadedComments ? comments.length : (gameLog.totalCommentCount ?? 0);
+
   return (
     <Card className="mt-4 border-gray-200 dark:border-gray-700">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg font-semibold flex items-center space-x-2">
             <MessageCircle className="h-5 w-5" />
-            <span>Comments ({comments.length})</span>
+            <span>Comments ({commentCount})</span>
           </CardTitle>
           <div className="flex items-center space-x-2">
             {/* Game Log Reactions */}
-            <ReactionPicker
-              targetId={gameLog.id}
-              targetType={ParentType.GameLog}
-              size="sm"
-              showCount={true}
-            />
+            {isExpanded ? (
+              <ReactionPicker
+                targetId={gameLog.id}
+                targetType={ParentType.GameLog}
+                size="sm"
+                showCount={true}
+              />
+            ) : (
+              <ReactionCount count={gameLog.totalReactionCount ?? 0} size="sm" />
+            )}
             <Button
               variant="ghost"
               size="sm"

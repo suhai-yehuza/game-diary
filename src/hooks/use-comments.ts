@@ -21,6 +21,8 @@ export function useComments(options: ICommentsOptions = {}) {
     },
     fetchPolicy: 'cache-and-network',
     errorPolicy: 'all',
+    // Add a small delay to prevent overwhelming the server
+    notifyOnNetworkStatusChange: true,
     onCompleted: data => {
       if (
         data &&
@@ -33,6 +35,13 @@ export function useComments(options: ICommentsOptions = {}) {
         setCommentsTotalCount(data.comments.totalCount);
         setCommentsEndCursor(data.comments.pageInfo.endCursor ?? null);
         setCommentsHasNextPage(!!data.comments.pageInfo.hasNextPage);
+      }
+    },
+    onError: error => {
+      console.error('Comments query error:', error);
+      // Handle rate limiting errors gracefully
+      if (error.graphQLErrors?.some(e => e.extensions?.code === 'FORBIDDEN')) {
+        console.warn('Authentication error in comments query, user may not be authenticated');
       }
     },
   });

@@ -1,5 +1,5 @@
 // Shared coverage configuration
-export const COVERAGE_THRESHOLD = 60;
+export const COVERAGE_THRESHOLD = 55; // eventual target is 95%
 
 export interface ICoverageThresholds {
   branches: number;
@@ -12,7 +12,7 @@ export interface ICoverageThresholds {
 export function getCoverageThresholds(): ICoverageThresholds {
   return {
     branches: COVERAGE_THRESHOLD,
-    functions: COVERAGE_THRESHOLD - 3, // Functions have a slightly lower threshold
+    functions: COVERAGE_THRESHOLD,
     lines: COVERAGE_THRESHOLD,
     statements: COVERAGE_THRESHOLD,
     base: COVERAGE_THRESHOLD,

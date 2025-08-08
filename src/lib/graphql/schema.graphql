@@ -233,7 +233,9 @@ type GameLog {
   updated_at: DateTime!
   deleted_at: DateTime
   comments: CommentConnection!
+  totalCommentCount: Int!
   reactions: [Reaction!]!
+  totalReactionCount: Int!
 }
 
 enum Classification {
@@ -262,7 +264,9 @@ type Comment {
   updated_at: DateTime!
   deleted_at: DateTime
   childComments: CommentConnection!
+  totalChildCommentCount: Int!
   reactions: [Reaction!]!
+  totalReactionCount: Int!
 }
 
 enum ParentType {

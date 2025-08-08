@@ -16,6 +16,8 @@ export interface IComment {
   created_at: string;
   updated_at: string;
   deleted_at?: string | null;
+  totalChildCommentCount?: number;
+  totalReactionCount?: number;
   user: {
     id: string;
     username: string;

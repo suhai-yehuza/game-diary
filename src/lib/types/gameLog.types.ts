@@ -61,6 +61,8 @@ export interface IGameLog {
   classification: string;
   created_at: string;
   updated_at: string;
+  totalCommentCount?: number;
+  totalReactionCount?: number;
   user: {
     id: string;
     username: string;

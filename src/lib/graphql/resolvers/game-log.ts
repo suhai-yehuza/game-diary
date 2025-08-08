@@ -1,8 +1,8 @@
-import { eq, and, desc, sql, inArray } from 'drizzle-orm';
+import { eq, and, desc, sql, inArray, gt } from 'drizzle-orm';
 
 import { API_CONFIG, getRapidApiConfig } from '@/lib/config/app.config';
 import { db } from '@/lib/db';
-import { game_logs, nba_games, teams } from '@/lib/db/schema';
+import { game_logs, nba_games, teams, comments, reactions } from '@/lib/db/schema';
 import { AuthorizationError } from '@/lib/graphql/errors';
 import { FRIENDSHIP_STATUS, CLASSIFICATION } from '@/lib/types';
 import type { GraphQLContext, IGameResponse, IGamesApiResponse } from '@/lib/types';
@@ -501,22 +501,117 @@ export const gameLogQueryResolvers = {
     const { pagination } = args;
     const limit = pagination?.first ?? API_CONFIG.pagination.DEFAULT_GAME_LOG_PAGE_SIZE;
 
-    // Get all friends of the current user (both directions of friendship)
-    const friendsQuery = await db()?.execute(sql`
-      SELECT DISTINCT
-        CASE
-          WHEN f.user_id = ${context.user.id} THEN f.friend_id
-          WHEN f.friend_id = ${context.user.id} THEN f.user_id
-        END as friend_user_id
-      FROM friendships f
-      WHERE f.status = ${FRIENDSHIP_STATUS.ACCEPTED}
-      AND (f.user_id = ${context.user.id} OR f.friend_id = ${context.user.id})
-    `);
+    try {
+      // Get all friends of the current user (both directions of friendship)
+      const friendsQuery = await db()?.execute(sql`
+        SELECT DISTINCT
+          CASE
+            WHEN f.user_id = ${context.user.id} THEN f.friend_id
+            WHEN f.friend_id = ${context.user.id} THEN f.user_id
+          END as friend_user_id
+        FROM friendships f
+        WHERE f.status = ${FRIENDSHIP_STATUS.ACCEPTED}
+        AND (f.user_id = ${context.user.id} OR f.friend_id = ${context.user.id})
+      `);
 
-    const friendIds = friendsQuery?.rows?.map(row => row.friend_user_id).filter(Boolean) ?? [];
+      const friendIds = friendsQuery?.rows?.map(row => row.friend_user_id).filter(Boolean) ?? [];
 
-    if (friendIds.length === 0) {
-      // No friends, return empty result
+      // If no friends found, return empty result
+      if (!friendIds || friendIds.length === 0) {
+        return {
+          edges: [],
+          pageInfo: {
+            hasNextPage: false,
+            hasPreviousPage: false,
+            startCursor: null,
+            endCursor: null,
+          },
+          totalCount: 0,
+        };
+      }
+
+      // Build where conditions for game logs from friends
+      const whereConditions = [
+        inArray(game_logs.user_id, friendIds as string[]),
+        eq(game_logs.classification, CLASSIFICATION.PROTECTED),
+      ];
+
+      // Add cursor-based pagination
+      if (pagination?.after) {
+        whereConditions.push(gt(game_logs.id, pagination.after));
+      }
+
+      const whereClause = and(...whereConditions);
+
+      // Get the paginated results
+      const gameLogs = await db()?.query.game_logs.findMany({
+        where: whereClause,
+        limit: 1000, // fetch enough to paginate in-memory
+        orderBy: [desc(game_logs.created_at)],
+        with: {
+          user: true,
+        },
+      });
+
+      // Cursor-based pagination: skip logs up to and including the 'after' cursor
+      let paginatedLogs = gameLogs;
+      if (pagination?.after) {
+        const afterIndex = gameLogs.findIndex(log => log.id === pagination.after);
+        if (afterIndex !== -1) {
+          paginatedLogs = gameLogs.slice(afterIndex + 1);
+        }
+      }
+      paginatedLogs = paginatedLogs.slice(0, limit);
+
+      // Get the total count for pagination
+      const totalCountResult = await db()
+        ?.select({ count: sql<number>`count(*)` })
+        .from(game_logs)
+        .where(whereClause);
+      const totalCount = totalCountResult?.[0]?.count ?? 0;
+
+      const edges =
+        paginatedLogs?.map(gameLog => ({
+          cursor: gameLog.id,
+          node: {
+            id: gameLog.id,
+            game_id: gameLog.game_id,
+            rating_for_game: gameLog.rating_for_game,
+            notes: gameLog.notes,
+            tags: gameLog.tags,
+            watched_date: gameLog.watched_date ? new Date(gameLog.watched_date) : undefined,
+            watched_setting: gameLog.watched_setting,
+            watched_location: gameLog.watched_location,
+            watched_scope: gameLog.watched_scope,
+            classification: gameLog.classification,
+            created_at: gameLog.created_at ? new Date(gameLog.created_at) : undefined,
+            updated_at: gameLog.updated_at ? new Date(gameLog.updated_at) : undefined,
+            deleted_at: gameLog.deleted_at ? new Date(gameLog.deleted_at) : undefined,
+            user: {
+              id: gameLog.user?.id ?? '',
+              username: gameLog.user?.username ?? '',
+              first_name: gameLog.user?.first_name ?? '',
+              last_name: gameLog.user?.last_name ?? '',
+              email_address: null,
+              phone_number: null,
+              image_url: gameLog.user?.image_url ?? null,
+            },
+          },
+        })) || [];
+
+      return {
+        edges,
+        pageInfo: {
+          hasNextPage: edges.length === limit,
+          hasPreviousPage: !!pagination?.after,
+          startCursor: edges[0]?.cursor || null,
+          endCursor: edges[edges.length - 1]?.cursor || null,
+        },
+        totalCount: totalCount,
+      };
+    } catch (error) {
+      console.error('Error in friendsGameLogs resolver:', error);
+      // Return empty result on error to prevent breaking the UI
       return {
         edges: [],
         pageInfo: {
@@ -528,86 +623,6 @@ export const gameLogQueryResolvers = {
         totalCount: 0,
       };
     }
-
-    // Build where conditions for game logs from friends
-    const whereConditions = [
-      sql`${game_logs.user_id} = ANY(${friendIds})`,
-      sql`${game_logs.classification} = ${CLASSIFICATION.PROTECTED}`,
-    ];
-
-    // Add cursor-based pagination
-    if (pagination?.after) {
-      whereConditions.push(sql`${game_logs.id} > ${pagination.after}`);
-    }
-
-    const whereClause = and(...whereConditions);
-
-    // Get the paginated results
-    const gameLogs = await db()?.query.game_logs.findMany({
-      where: whereClause,
-      limit: 1000, // fetch enough to paginate in-memory
-      orderBy: [desc(game_logs.created_at)],
-      with: {
-        user: true,
-      },
-    });
-
-    // Cursor-based pagination: skip logs up to and including the 'after' cursor
-    let paginatedLogs = gameLogs;
-    if (pagination?.after) {
-      const afterIndex = gameLogs.findIndex(log => log.id === pagination.after);
-      if (afterIndex !== -1) {
-        paginatedLogs = gameLogs.slice(afterIndex + 1);
-      }
-    }
-    paginatedLogs = paginatedLogs.slice(0, limit);
-
-    // Get the total count for pagination
-    const totalCountResult = await db()
-      ?.select({ count: sql<number>`count(*)` })
-      .from(game_logs)
-      .where(whereClause);
-    const totalCount = totalCountResult?.[0]?.count ?? 0;
-
-    const edges =
-      paginatedLogs?.map(gameLog => ({
-        cursor: gameLog.id,
-        node: {
-          id: gameLog.id,
-          game_id: gameLog.game_id,
-          rating_for_game: gameLog.rating_for_game,
-          notes: gameLog.notes,
-          tags: gameLog.tags,
-          watched_date: gameLog.watched_date ? new Date(gameLog.watched_date) : undefined,
-          watched_setting: gameLog.watched_setting,
-          watched_location: gameLog.watched_location,
-          watched_scope: gameLog.watched_scope,
-          classification: gameLog.classification,
-          created_at: gameLog.created_at ? new Date(gameLog.created_at) : undefined,
-          updated_at: gameLog.updated_at ? new Date(gameLog.updated_at) : undefined,
-          deleted_at: gameLog.deleted_at ? new Date(gameLog.deleted_at) : undefined,
-          user: {
-            id: gameLog.user?.id ?? '',
-            username: gameLog.user?.username ?? '',
-            first_name: gameLog.user?.first_name ?? '',
-            last_name: gameLog.user?.last_name ?? '',
-            email_address: null,
-            phone_number: null,
-            image_url: gameLog.user?.image_url ?? null,
-          },
-        },
-      })) || [];
-
-    return {
-      edges,
-      pageInfo: {
-        hasNextPage: edges.length === limit,
-        hasPreviousPage: false,
-        startCursor: edges[0]?.cursor || null,
-        endCursor: edges[edges.length - 1]?.cursor || null,
-      },
-      totalCount: totalCount,
-    };
   },
 };
 
@@ -932,14 +947,117 @@ export const gameLogMutationResolvers = {
 
 // Game Log Type Resolvers
 export const gameLogResolver = {
-  comments: (_parent: unknown, _args: unknown, _context: unknown) => ({
-    edges: [],
-    pageInfo: {
-      hasNextPage: false,
-      endCursor: null,
+  // Resolve comments field for a game log
+  comments: async (
+    parent: { id: string },
+    args: {
+      pagination?: {
+        first?: number;
+        after?: string;
+        last?: number;
+        before?: string;
+      };
     },
-    totalCount: 0,
-  }),
+    context: GraphQLContext
+  ) => {
+    if (!context.user?.id) {
+      throw new AuthorizationError('Authentication required');
+    }
+
+    const limit = args.pagination?.first ?? API_CONFIG.pagination.DEFAULT_COMMENT_PAGE_SIZE;
+
+    // Get comments for this game log
+    const commentsData = await db()?.query.comments.findMany({
+      where: and(eq(comments.parent_id, parent.id), eq(comments.parent_type, 'GAME_LOG')),
+      limit,
+      orderBy: [desc(comments.created_at)],
+      with: {
+        user: true,
+      },
+    });
+
+    // Get the total count for pagination
+    const totalCountResult = await db()
+      ?.select({ count: sql<number>`count(*)` })
+      .from(comments)
+      .where(and(eq(comments.parent_id, parent.id), eq(comments.parent_type, 'GAME_LOG')));
+    const totalCount = totalCountResult?.[0]?.count ?? 0;
+
+    const edges =
+      commentsData?.map(comment => ({
+        cursor: comment.id,
+        node: {
+          id: comment.id,
+          content: comment.content,
+          user_id: comment.user_id,
+          parent_id: comment.parent_id,
+          parent_type: comment.parent_type,
+          depth: comment.depth,
+          created_at: comment.created_at,
+          updated_at: comment.updated_at,
+          deleted_at: comment.deleted_at,
+          user: {
+            id: comment.user?.id ?? '',
+            username: comment.user?.username ?? '',
+            first_name: comment.user?.first_name ?? '',
+            last_name: comment.user?.last_name ?? '',
+            email_address: null,
+            phone_number: null,
+            image_url: comment.user?.image_url ?? null,
+          },
+          reactions: [], // Reactions will be fetched separately via the reactions query
+        },
+      })) ?? [];
+
+    return {
+      edges,
+      pageInfo: {
+        hasNextPage: edges.length === limit,
+        hasPreviousPage: false,
+        startCursor: edges[0]?.cursor ?? null,
+        endCursor: edges[edges.length - 1]?.cursor ?? null,
+      },
+      totalCount: totalCount,
+    };
+  },
+
+  // Resolve totalCommentCount field for a game log
+  totalCommentCount: async (parent: { id: string }, _args: unknown, context: GraphQLContext) => {
+    if (!context.user?.id) {
+      throw new AuthorizationError('Authentication required');
+    }
+
+    try {
+      const totalCountResult = await db()
+        ?.select({ count: sql<number>`count(*)` })
+        .from(comments)
+        .where(and(eq(comments.parent_id, parent.id), eq(comments.parent_type, 'GAME_LOG')));
+
+      return totalCountResult?.[0]?.count ?? 0;
+    } catch (error) {
+      console.error('Error fetching comment count:', error);
+      return 0;
+    }
+  },
+
+  // Resolve totalReactionCount field for a game log
+  totalReactionCount: async (parent: { id: string }, _args: unknown, context: GraphQLContext) => {
+    if (!context.user?.id) {
+      throw new AuthorizationError('Authentication required');
+    }
+
+    try {
+      const totalCountResult = await db()
+        ?.select({ count: sql<number>`count(*)` })
+        .from(reactions)
+        .where(and(eq(reactions.target_id, parent.id), eq(reactions.target_type, 'GAME_LOG')));
+
+      return totalCountResult?.[0]?.count ?? 0;
+    } catch (error) {
+      console.error('Error fetching reaction count:', error);
+      return 0;
+    }
+  },
   reactions: (_parent: unknown, _args: unknown, _context: unknown) => {
     // Always return an array (empty if no reactions)
     return [];

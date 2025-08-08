@@ -13,16 +13,10 @@ import { GameLogsSearch } from '@/app/components/game-logs/GameLogsSearch';
 import { GameLogsSort } from '@/app/components/game-logs/GameLogsSort';
 import { ReactionPicker } from '@/app/components/reactions';
 import { Button } from '@/app/components/ui/button';
-import {
-  Card,
-  CardHeader,
-  CardContent,
-  CardFooter,
-  CardTitle,
-  CardDescription,
-} from '@/app/components/ui/Card';
+import { Card, CardHeader, CardContent, CardFooter, CardTitle } from '@/app/components/ui/Card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/app/components/ui/Tabs';
-import { useGameLogs } from '@/hooks/use-game-logs';
+import { useGameLogs, useFriendsGameLogs } from '@/hooks/use-game-logs';
+import { API_CONFIG } from '@/lib/config/app.config';
 import type { IGameLog } from '@/lib/types';
 import { CLASSIFICATION } from '@/lib/types';
 import { ParentType } from '@/lib/types/generated/graphql';
@@ -92,8 +86,9 @@ export function GameLogsTable() {
   const [deletingGameLog, setDeletingGameLog] = useState<IGameLog | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [searchField, setSearchField] = useState('all');
-  const [sortKey, setSortKey] = useState('');
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [sortConfig, setSortConfig] = useState<{ field: string; direction: 'asc' | 'desc' } | null>(
+    null
+  );
 
   const {
     gameLogs: myLogs,
@@ -103,7 +98,10 @@ export function GameLogsTable() {
     gameLogsHasNextPage: myLogsHasNextPage,
     gameLogsTotalCount: myLogsTotalCount,
     loadMoreGameLogs: loadMoreMyLogs,
-  } = useGameLogs({ filters: { userId: user?.id } });
+  } = useGameLogs({
+    filters: { userId: user?.id },
+    pagination: { first: API_CONFIG.pagination.DEFAULT_PAGE_SIZE },
+  });
 
   const {
     gameLogs: publicLogs,
@@ -112,18 +110,19 @@ export function GameLogsTable() {
     gameLogsHasNextPage: publicLogsHasNextPage,
     gameLogsTotalCount: publicLogsTotalCount,
     loadMoreGameLogs: loadMorePublicLogs,
-  } = useGameLogs({ filters: { classification: CLASSIFICATION.PUBLIC } });
+  } = useGameLogs({
+    filters: { classification: CLASSIFICATION.PUBLIC },
+    pagination: { first: API_CONFIG.pagination.DEFAULT_PAGE_SIZE },
+  });
 
-  // Friends logs tab is not supported as CLASSIFICATION.FRIENDS does not exist.
-  // You can implement this with a custom hook or remove the tab.
-  const friendsLogs: IGameLog[] = [];
-  const friendsLogsLoading = false;
-  const friendsLogsError = null;
-  const friendsLogsHasNextPage = false;
-  const friendsLogsTotalCount = 0; // No total count for friends logs
-  const loadMoreFriendsLogs = (): void => {
-    // TODO: Implement friends logs pagination
-  };
+  const {
+    logs: friendsLogs,
+    loading: friendsLogsLoading,
+    error: friendsLogsError,
+    hasNextPage: friendsLogsHasNextPage,
+    totalCount: friendsLogsTotalCount,
+    loadMore: loadMoreFriendsLogs,
+  } = useFriendsGameLogs();
 
   const handleCreateSuccess = () => {
     setIsCreateModalOpen(false);
@@ -143,88 +142,74 @@ export function GameLogsTable() {
   const handleSearchChange = (term: string, field: string) => {
     setSearchTerm(term);
     setSearchField(field);
-    // Client-side search filtering is implemented in the render logic below
   };
 
   const handleSearchClear = () => {
     setSearchTerm('');
     setSearchField('all');
-    // TODO: Clear server-side search filters
   };
 
   const handleSort = (key: string, direction: 'asc' | 'desc' | null) => {
     if (direction === null) {
-      setSortKey('');
-      setSortDirection('asc');
+      setSortConfig(null);
     } else {
-      setSortKey(key);
-      setSortDirection(direction);
+      setSortConfig({ field: key, direction });
     }
-    // Client-side sorting is implemented in the render logic below
   };
 
-  // Client-side filtering and sorting function
-  const filterAndSortGameLogs = (logs: IGameLog[]): IGameLog[] => {
-    let filteredLogs = [...logs];
+  const filterAndSortGameLogs = (logs: IGameLog[]) => {
+    let filtered = logs;
 
     // Apply search filter
-    if (searchTerm.trim()) {
-      const term = searchTerm.toLowerCase();
-      filteredLogs = filteredLogs.filter(log => {
+    if (searchTerm) {
+      const searchLower = searchTerm.toLowerCase();
+      filtered = filtered.filter(log => {
         if (searchField === 'all') {
-          // Search across all relevant fields
           return (
-            (log.classification?.toLowerCase().includes(term) ?? false) ||
-            (log.watched_setting?.toLowerCase().includes(term) ?? false) ||
-            (log.watched_scope?.toLowerCase().includes(term) ?? false) ||
-            (log.notes?.toLowerCase().includes(term) ?? false) ||
-            (log.tags?.some(tag => tag.toLowerCase().includes(term)) ?? false) ||
-            (log.game?.home_team?.name?.toLowerCase().includes(term) ?? false) ||
-            (log.game?.away_team?.name?.toLowerCase().includes(term) ?? false) ||
-            (log.game?.home_team?.nickname?.toLowerCase().includes(term) ?? false) ||
-            (log.game?.away_team?.nickname?.toLowerCase().includes(term) ?? false)
+            getTeamDisplay(log.game).toLowerCase().includes(searchLower) ||
+            log.notes?.toLowerCase().includes(searchLower) ||
+            log.tags?.some(tag => tag.toLowerCase().includes(searchLower)) ||
+            log.classification.toLowerCase().includes(searchLower) ||
+            log.watched_setting?.toLowerCase().includes(searchLower) ||
+            log.watched_scope?.toLowerCase().includes(searchLower)
           );
-        } else {
-          // Search in specific field
-          switch (searchField) {
-            case 'classification':
-              return log.classification?.toLowerCase().includes(term);
-            case 'watched_setting':
-              return log.watched_setting?.toLowerCase().includes(term);
-            case 'watched_scope':
-              return log.watched_scope?.toLowerCase().includes(term);
-            case 'notes':
-              return log.notes?.toLowerCase().includes(term);
-            case 'tags':
-              return log.tags?.some(tag => tag.toLowerCase().includes(term));
-            case 'team':
-              return (
-                (log.game?.home_team?.name?.toLowerCase().includes(term) ?? false) ||
-                (log.game?.away_team?.name?.toLowerCase().includes(term) ?? false) ||
-                (log.game?.home_team?.nickname?.toLowerCase().includes(term) ?? false) ||
-                (log.game?.away_team?.nickname?.toLowerCase().includes(term) ?? false)
-              );
-            default:
-              return true;
-          }
         }
+        if (searchField === 'classification') {
+          return log.classification.toLowerCase().includes(searchLower);
+        }
+        if (searchField === 'watched_setting') {
+          return log.watched_setting?.toLowerCase().includes(searchLower) ?? false;
+        }
+        if (searchField === 'watched_scope') {
+          return log.watched_scope?.toLowerCase().includes(searchLower) ?? false;
+        }
+        if (searchField === 'notes') {
+          return log.notes?.toLowerCase().includes(searchLower) ?? false;
+        }
+        if (searchField === 'tags') {
+          return log.tags?.some(tag => tag.toLowerCase().includes(searchLower)) ?? false;
+        }
+        if (searchField === 'team') {
+          return getTeamDisplay(log.game).toLowerCase().includes(searchLower);
+        }
+        return true;
       });
     }
 
     // Apply sorting
-    if (sortKey && sortDirection) {
-      filteredLogs.sort((a, b) => {
-        let aValue: string | number;
-        let bValue: string | number;
+    if (sortConfig) {
+      filtered.sort((a, b) => {
+        let aValue: string | number | Date;
+        let bValue: string | number | Date;
 
-        switch (sortKey) {
+        switch (sortConfig.field) {
+          case 'rating_for_game':
+            aValue = a.rating_for_game ?? 0;
+            bValue = b.rating_for_game ?? 0;
+            break;
           case 'created_at':
             aValue = new Date(a.created_at).getTime();
             bValue = new Date(b.created_at).getTime();
-            break;
-          case 'rating_for_game':
-            aValue = a.rating_for_game;
-            bValue = b.rating_for_game;
             break;
           case 'classification':
             aValue = a.classification;
@@ -242,93 +227,58 @@ export function GameLogsTable() {
             aValue = a.game_id;
             bValue = b.game_id;
             break;
-          case 'team': {
-            // Sort by home team name, then away team name
-            const aHomeTeam = a.game?.home_team?.name ?? '';
-            const bHomeTeam = b.game?.home_team?.name ?? '';
-            const aAwayTeam = a.game?.away_team?.name ?? '';
-            const bAwayTeam = b.game?.away_team?.name ?? '';
-            aValue = `${aHomeTeam} vs ${aAwayTeam}`;
-            bValue = `${bHomeTeam} vs ${bAwayTeam}`;
+          case 'team':
+            aValue = a.game?.home_team?.name ?? '';
+            bValue = b.game?.home_team?.name ?? '';
             break;
-          }
-          case 'owner': {
-            // Sort by username, then first name, then last name
-            const aUsername = a.user?.username ?? '';
-            const bUsername = b.user?.username ?? '';
-            const aFirstName = a.user?.first_name ?? '';
-            const bFirstName = b.user?.first_name ?? '';
-            const aLastName = a.user?.last_name ?? '';
-            const bLastName = b.user?.last_name ?? '';
-            aValue = `${aUsername} ${aFirstName} ${aLastName}`.toLowerCase();
-            bValue = `${bUsername} ${bFirstName} ${bLastName}`.toLowerCase();
+          case 'owner':
+            aValue = a.user?.username ?? '';
+            bValue = b.user?.username ?? '';
             break;
-          }
-          case 'tags': {
-            // Sort by first tag, then by number of tags
-            const aTags = a.tags ?? [];
-            const bTags = b.tags ?? [];
-            const aFirstTag = aTags.length > 0 ? aTags[0] : '';
-            const bFirstTag = bTags.length > 0 ? bTags[0] : '';
-            aValue = aFirstTag || `zzz-${aTags.length}`; // Empty tags go to end
-            bValue = bFirstTag || `zzz-${bTags.length}`;
+          case 'tags':
+            aValue = a.tags?.join(', ') ?? '';
+            bValue = b.tags?.join(', ') ?? '';
             break;
-          }
           default:
-            return 0;
+            // Use type assertion for dynamic property access
+            aValue = (a as unknown as Record<string, unknown>)[sortConfig.field] as
+              | string
+              | number
+              | Date;
+            bValue = (b as unknown as Record<string, unknown>)[sortConfig.field] as
+              | string
+              | number
+              | Date;
         }
 
-        if (sortDirection === 'asc') {
-          return aValue > bValue ? 1 : aValue < bValue ? -1 : 0;
+        if (sortConfig.direction === 'asc') {
+          return aValue > bValue ? 1 : -1;
         } else {
-          return aValue < bValue ? 1 : aValue > bValue ? -1 : 0;
+          return aValue < bValue ? 1 : -1;
         }
       });
     }
 
-    return filteredLogs;
+    return filtered;
   };
 
-  // Get total count for current tab with filtering applied
-  const getCurrentTabTotalCount = (): { displayed: number; total: number } => {
-    let logs: IGameLog[] = [];
-    let totalCount = 0;
-
+  const getCurrentTabTotalCount = () => {
     switch (selectedTab) {
       case 'my-logs':
-        logs = Array.isArray(myLogs) ? myLogs : [];
-        totalCount = myLogsTotalCount ?? 0;
-        break;
+        return { displayed: myLogs?.length ?? 0, total: myLogsTotalCount };
       case 'friends-logs':
-        logs = Array.isArray(friendsLogs) ? friendsLogs : [];
-        totalCount = friendsLogsTotalCount ?? 0;
-        break;
+        return { displayed: friendsLogs?.length ?? 0, total: friendsLogsTotalCount };
       case 'public-logs':
-        logs = Array.isArray(publicLogs) ? publicLogs : [];
-        totalCount = publicLogsTotalCount ?? 0;
-        break;
+        return { displayed: publicLogs?.length ?? 0, total: publicLogsTotalCount };
       default:
         return { displayed: 0, total: 0 };
     }
-
-    // Apply the same filtering logic to get displayed count
-    const filteredLogs = filterAndSortGameLogs(logs);
-    const displayedCount = filteredLogs.length;
-
-    return { displayed: displayedCount, total: totalCount };
   };
 
+  const loadMoreButtonClass =
+    'bg-blue-600 text-white rounded-full px-6 py-2 font-semibold shadow hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition disabled:opacity-50 disabled:cursor-not-allowed';
+
   const renderGameLogCard = (log: IGameLog, showActions = false, idx?: number) => {
-    // Normalize null fields to undefined for compatibility
-    const normalizedLog = {
-      ...log,
-      notes: log.notes ?? undefined,
-      tags: log.tags ?? undefined,
-      watched_date: log.watched_date ?? undefined,
-      watched_setting: log.watched_setting ?? undefined,
-      watched_location: log.watched_location ?? undefined,
-      watched_scope: log.watched_scope ?? undefined,
-    };
     return (
       <div key={`${log.id}-${idx ?? ''}`} className="mb-6">
         <Card className="border-2 border-gray-300 dark:border-gray-500 bg-neutral-100 dark:bg-neutral-800 shadow-md">
@@ -357,54 +307,56 @@ export function GameLogsTable() {
             </div>
             <RatingStars rating={log.rating_for_game} />
           </CardHeader>
-          <CardContent className="text-gray-900 dark:text-gray-100">
-            {normalizedLog.notes && (
-              <CardDescription className="mb-2 text-gray-600">
-                {normalizedLog.notes}
-              </CardDescription>
-            )}
-            {normalizedLog.tags && normalizedLog.tags.length > 0 && (
-              <div className="flex flex-wrap gap-1 mb-2">
-                {normalizedLog.tags.map(tag => (
-                  <span key={tag} className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded">
-                    {tag}
+
+          <CardContent className="pt-0">
+            <div className="space-y-3">
+              {/* Game Details */}
+              <div className="flex flex-wrap gap-2 text-sm">
+                <span className="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-1 rounded">
+                  {log.classification}
+                </span>
+                {log.watched_setting && (
+                  <span className="bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-2 py-1 rounded">
+                    {log.watched_setting}
                   </span>
-                ))}
+                )}
+                {log.watched_scope && (
+                  <span className="bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 px-2 py-1 rounded">
+                    {log.watched_scope}
+                  </span>
+                )}
               </div>
-            )}
-            <div className="text-sm text-gray-500 mb-2">
-              {normalizedLog.watched_date &&
-                !isNaN(new Date(normalizedLog.watched_date).getTime()) &&
-                (() => {
-                  try {
-                    return (
-                      <div>
-                        Watched: {format(new Date(normalizedLog.watched_date), 'MMM dd, yyyy')}
-                      </div>
-                    );
-                  } catch {
-                    return <div>Watched: Invalid date</div>;
-                  }
-                })()}
-              {normalizedLog.watched_setting && <div>Setting: {normalizedLog.watched_setting}</div>}
-              {normalizedLog.watched_location && (
-                <div>Location: {normalizedLog.watched_location}</div>
+
+              {/* Notes */}
+              {log.notes && (
+                <div className="text-gray-700 dark:text-gray-300">
+                  <p className="text-sm">{log.notes}</p>
+                </div>
               )}
-            </div>
-            <div className="text-xs text-gray-400">
-              {log.created_at && !isNaN(new Date(log.created_at).getTime()) ? (
-                (() => {
-                  try {
-                    return <>Created: {format(new Date(log.created_at), 'MMM dd, yyyy HH:mm')}</>;
-                  } catch {
-                    return <>Created: Invalid date</>;
-                  }
-                })()
-              ) : (
-                <>Created: Unknown</>
+
+              {/* Tags */}
+              {log.tags && log.tags.length > 0 && (
+                <div className="flex flex-wrap gap-1">
+                  {log.tags.map(tag => (
+                    <span
+                      key={`${log.id}-tag-${tag}`}
+                      className="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-1 rounded text-xs"
+                    >
+                      #{tag}
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              {/* Watched Date */}
+              {log.watched_date && (
+                <div className="text-xs text-gray-500">
+                  Watched: {format(new Date(log.watched_date), 'MMM dd, yyyy')}
+                </div>
               )}
             </div>
           </CardContent>
+
           <CardFooter className="flex items-center justify-between mt-3 text-gray-900 dark:text-gray-100">
             <div className="flex items-center gap-2">
               {showActions && (
@@ -457,25 +409,14 @@ export function GameLogsTable() {
   const hasError = myLogsError ?? publicLogsError ?? friendsLogsError;
   if (hasError) {
     return (
-      <div className="text-center py-8 text-red-600">
-        <p>An error occurred while loading game logs.</p>
-        <p className="text-sm mt-2">Please check your connection and try again.</p>
-        <details className="mt-4 text-left">
-          <summary className="cursor-pointer">Error Details</summary>
-          <pre className="mt-2 text-xs bg-gray-100 p-2 rounded overflow-auto">
-            {myLogsError?.message ??
-              publicLogsError?.message ??
-              (friendsLogsError as Error | null)?.message ??
-              'Unknown error'}
-          </pre>
-        </details>
+      <div className="text-center py-8">
+        <p className="text-red-600">Error loading game logs. Please try again.</p>
+        <p className="text-sm text-gray-500 mt-2">
+          {hasError.message || 'An unexpected error occurred'}
+        </p>
       </div>
     );
   }
-
-  // Add animation classes for the Load More button
-  const loadMoreButtonClass =
-    'px-8 py-3 text-lg rounded-full bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-lg transition-all duration-150 ease-in-out disabled:opacity-60 disabled:cursor-not-allowed active:scale-95 active:opacity-80';
 
   return (
     <div className="space-y-6">
@@ -498,20 +439,12 @@ export function GameLogsTable() {
           searchField={searchField}
         />
         <GameLogsSort
-          sortKey={sortKey}
-          sortDirection={sortDirection}
+          sortKey={sortConfig?.field ?? ''}
+          sortDirection={sortConfig?.direction ?? 'asc'}
           onSort={handleSort}
           displayedCount={getCurrentTabTotalCount().displayed}
           totalCount={getCurrentTabTotalCount().total}
-          classification={
-            selectedTab === 'my-logs'
-              ? 'my game logs'
-              : selectedTab === 'friends-logs'
-                ? "friends' game logs"
-                : selectedTab === 'public-logs'
-                  ? 'public game logs'
-                  : 'game logs'
-          }
+          classification={selectedTab}
         />
         <TabsList className="grid w-full grid-cols-3 gap-2 bg-transparent p-0 mb-4">
           <TabsTrigger
@@ -537,7 +470,8 @@ export function GameLogsTable() {
         <TabsContent value="my-logs" className="space-y-4">
           {myLogsLoading ? (
             <div className="text-center py-8">
-              <p className="text-gray-600">Loading your game logs...</p>
+              <div className="text-gray-600 mb-2">Loading your game logs...</div>
+              <div className="text-sm text-gray-500">Optimized loading with reduced page size</div>
             </div>
           ) : Array.isArray(myLogs) && myLogs.length === 0 ? (
             <div className="text-center py-8">
@@ -545,6 +479,9 @@ export function GameLogsTable() {
             </div>
           ) : Array.isArray(myLogs) ? (
             <div>
+              <div className="text-sm text-gray-500 mb-4">
+                Showing {myLogs.length} of {myLogsTotalCount} of your game logs
+              </div>
               {filterAndSortGameLogs(myLogs).map((log, idx) => renderGameLogCard(log, true, idx))}
               {myLogsHasNextPage && (
                 <div className="flex justify-center mt-8 mb-4">
@@ -564,14 +501,18 @@ export function GameLogsTable() {
         <TabsContent value="friends-logs" className="space-y-4">
           {friendsLogsLoading ? (
             <div className="text-center py-8">
-              <p className="text-gray-600">Loading friends&apos; game logs...</p>
+              <div className="text-gray-600 mb-2">Loading friends&apos; game logs...</div>
+              <div className="text-sm text-gray-500">Optimized loading with reduced page size</div>
             </div>
-          ) : !Array.isArray(friendsLogs) || friendsLogs.length === 0 ? (
+          ) : Array.isArray(friendsLogs) && friendsLogs.length === 0 ? (
             <div className="text-center py-8">
               <p className="text-gray-600">No friends&apos; game logs found.</p>
             </div>
-          ) : (
+          ) : Array.isArray(friendsLogs) ? (
             <div>
+              <div className="text-sm text-gray-500 mb-4">
+                Showing {friendsLogs.length} of {friendsLogsTotalCount} friends&apos; game logs
+              </div>
               {filterAndSortGameLogs(friendsLogs).map((log, idx) =>
                 renderGameLogCard(log, false, idx)
               )}
@@ -587,13 +528,14 @@ export function GameLogsTable() {
                 </div>
               )}
             </div>
-          )}
+          ) : null}
         </TabsContent>
 
         <TabsContent value="public-logs" className="space-y-4">
           {publicLogsLoading || !Array.isArray(publicLogs) ? (
             <div className="text-center py-8">
-              <p className="text-gray-600">Loading public game logs...</p>
+              <div className="text-gray-600 mb-2">Loading public game logs...</div>
+              <div className="text-sm text-gray-500">Optimized loading with reduced page size</div>
             </div>
           ) : publicLogs.length === 0 ? (
             <div className="text-center py-8">
@@ -601,6 +543,9 @@ export function GameLogsTable() {
             </div>
           ) : (
             <div>
+              <div className="text-sm text-gray-500 mb-4">
+                Showing {publicLogs.length} of {publicLogsTotalCount} public game logs
+              </div>
               {filterAndSortGameLogs(publicLogs).map((log, idx) =>
                 renderGameLogCard(log, false, idx)
               )}
