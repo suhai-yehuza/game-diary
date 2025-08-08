@@ -1185,34 +1185,32 @@ start_e2e_server() {
     fi
 
     # Start the development server
-    if [ "$E2E_DEBUG" = "true" ]; then
-        log_info "Starting server in debug mode..."
-        if [[ "$E2E_TEST_SUITE" == "live-games" ]]; then
-            npx next dev:mock --port "$E2E_PORT" &
-        else
-            npx next dev --port "$E2E_PORT" &
-        fi
+    log_info "Starting server..."
+    if [[ "$E2E_TEST_SUITE" == "live-games" ]]; then
+        pnpm dev:mock -p "$E2E_PORT" &
     else
-        log_info "Starting server in background..."
-        if [[ "$E2E_TEST_SUITE" == "live-games" ]]; then
-            npx next dev:mock --port "$E2E_PORT" > /dev/null 2>&1 &
-        else
-            npx next dev --port "$E2E_PORT" > /dev/null 2>&1 &
-        fi
+        pnpm dev -p "$E2E_PORT" &
     fi
 
     E2E_SERVER_PID=$!
     E2E_SERVER_STARTED=true
 
+    # Give the server some initial time to start compiling
+    log_info "Waiting for initial compilation (20s)..."
+    sleep 20
+
     # Wait for server to be ready
     local max_attempts=30
     local attempt=0
 
-    log_info "Waiting for server to be ready..."
+    log_info "Checking server health..."
     while [ $attempt -lt $max_attempts ]; do
-        if curl -s "$LOCALHOST_URL/api/health" > /dev/null 2>&1; then
+        # Check if server is accepting HTTP requests
+        if curl -s "http://localhost:$E2E_PORT" > /dev/null; then
             log_success "E2E test server started successfully (PID: $E2E_SERVER_PID)"
             return 0
+        else
+            log_info "Attempt $((attempt + 1))/$max_attempts - Waiting for server to be ready..."
         fi
 
         sleep 2
