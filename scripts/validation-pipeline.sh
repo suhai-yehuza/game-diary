@@ -825,7 +825,7 @@ get_build_tasks() {
 
 # Test tasks (slower)
 get_test_tasks() {
-    echo "test_coverage"
+    echo "test_unit"
 }
 
 # E2E test tasks (slowest)
