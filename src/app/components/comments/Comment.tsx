@@ -16,7 +16,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/app/components/ui/DropdownMenu';
-import type { ICommentProps } from '@/lib/types';
+import type { ICommentProps, IComment } from '@/lib/types';
 import { ParentType } from '@/lib/types/generated/graphql';
 
 export function Comment({
@@ -31,9 +31,13 @@ export function Comment({
   const [isEditing, setIsEditing] = useState(false);
   const [isReplying, setIsReplying] = useState(false);
   const [showRepliesState, setShowRepliesState] = useState(showReplies);
+  const [optimisticComment, setOptimisticComment] = useState<IComment | null>(null);
 
   const isOwnComment = user?.id === comment.user_id;
   const canReply = comment.depth < maxDepth;
+
+  // Use optimistic comment if available, otherwise use the original comment
+  const displayComment = optimisticComment || comment;
 
   const handleReply = () => {
     setIsReplying(true);
@@ -49,8 +53,12 @@ export function Comment({
     onDelete?.(comment.id);
   };
 
-  const handleEditSuccess = () => {
+  const handleEditSuccess = (updatedComment: IComment) => {
     setIsEditing(false);
+    // Optimistically update the comment in the UI
+    setOptimisticComment(updatedComment);
+    // Notify parent component about the update
+    onEdit?.(comment.id);
   };
 
   const handleReplySuccess = () => {
@@ -61,6 +69,8 @@ export function Comment({
   const handleCancel = () => {
     setIsEditing(false);
     setIsReplying(false);
+    // Clear optimistic comment on cancel
+    setOptimisticComment(null);
   };
 
   if (isEditing) {
@@ -88,23 +98,25 @@ export function Comment({
             <div className="flex items-start space-x-3 flex-1">
               <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center flex-shrink-0">
                 <span className="text-sm font-medium text-blue-600 dark:text-blue-400">
-                  {comment.user.first_name?.[0] || comment.user.username?.[0] || 'U'}
+                  {displayComment.user.first_name?.[0] || displayComment.user.username?.[0] || 'U'}
                 </span>
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center space-x-2 mb-1">
                   <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                    {comment.user.first_name || comment.user.username || 'Unknown User'}
+                    {displayComment.user.first_name ||
+                      displayComment.user.username ||
+                      'Unknown User'}
                   </span>
                   <span className="text-xs text-gray-500">
-                    {format(new Date(comment.created_at), 'MMM dd, yyyy HH:mm')}
+                    {format(new Date(displayComment.created_at), 'MMM dd, yyyy HH:mm')}
                   </span>
-                  {comment.updated_at !== comment.created_at && (
+                  {displayComment.updated_at !== displayComment.created_at && (
                     <span className="text-xs text-gray-400">(edited)</span>
                   )}
                 </div>
                 <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
-                  {comment.content}
+                  {displayComment.content}
                 </p>
               </div>
             </div>
@@ -144,7 +156,7 @@ export function Comment({
             )}
 
             {/* Child comments count */}
-            {comment.totalChildCommentCount && comment.totalChildCommentCount > 0 && (
+            {displayComment.totalChildCommentCount && displayComment.totalChildCommentCount > 0 && (
               <Button
                 variant="ghost"
                 size="sm"
@@ -152,14 +164,14 @@ export function Comment({
                 className="text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"
               >
                 <MessageCircle className="h-4 w-4 mr-1" />
-                {comment.totalChildCommentCount}{' '}
-                {comment.totalChildCommentCount === 1 ? 'reply' : 'replies'}
+                {displayComment.totalChildCommentCount}{' '}
+                {displayComment.totalChildCommentCount === 1 ? 'reply' : 'replies'}
               </Button>
             )}
 
             {/* Reactions */}
             <ReactionPicker
-              targetId={comment.id}
+              targetId={displayComment.id}
               targetType={ParentType.Comment}
               size="sm"
               showCount={true}
@@ -194,7 +206,7 @@ export function Comment({
           {isReplying && (
             <div className="mt-3 pl-4 border-l-2 border-gray-200 dark:border-gray-600">
               <CommentForm
-                parentId={comment.id}
+                parentId={displayComment.id}
                 parentType={ParentType.Comment}
                 onSuccess={handleReplySuccess}
                 onCancel={handleCancel}
@@ -217,7 +229,7 @@ export function Comment({
             {showRepliesState && (
               <div className="mt-2 space-y-2">
                 <CommentReplies
-                  commentId={comment.id}
+                  commentId={displayComment.id}
                   maxDepth={maxDepth}
                   onReply={onReply}
                   onEdit={onEdit}

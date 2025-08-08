@@ -50,7 +50,7 @@ vi.mock('@/hooks/use-reactions', () => ({
     groupedReactions: [
       {
         emoji: '👍',
-        count: 1,
+        count: 2,
         hasUserReacted: true,
         reactionIds: ['reaction-1'],
       },
@@ -74,7 +74,7 @@ describe('ReactionPicker Component', () => {
     render(<ReactionPicker {...defaultProps} />);
 
     expect(screen.getByText('👍')).toBeInTheDocument();
-    expect(screen.getByText('1')).toBeInTheDocument();
+    expect(screen.getByText('2')).toBeInTheDocument();
   });
 
   it('renders add reaction button', () => {
@@ -86,7 +86,7 @@ describe('ReactionPicker Component', () => {
   it('shows user has reacted styling', () => {
     render(<ReactionPicker {...defaultProps} />);
 
-    const reactionButton = screen.getByLabelText('React with 👍 (1)');
+    const reactionButton = screen.getByLabelText('React with 👍 (2)');
     expect(reactionButton).toHaveClass('border-blue-500');
   });
 

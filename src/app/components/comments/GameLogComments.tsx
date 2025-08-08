@@ -6,8 +6,8 @@ import { useState } from 'react';
 import { Comment } from '@/app/components/comments/Comment';
 import { CommentForm } from '@/app/components/comments/CommentForm';
 import { Button } from '@/app/components/ui/button';
-import { useGameLogComments, useDeleteComment } from '@/hooks/use-comments';
-import type { IGameLog } from '@/lib/types';
+import { useGameLogComments, useDeleteComment, useUpdateComment } from '@/hooks/use-comments';
+import type { IGameLog, IComment } from '@/lib/types';
 import { ParentType } from '@/lib/types/generated/graphql';
 
 interface IGameLogCommentsProps {
@@ -24,6 +24,12 @@ export function GameLogComments({
   const [isExpanded, setIsExpanded] = useState(showComments);
   const [showCommentForm, setShowCommentForm] = useState(false);
   const [hasLoadedComments, setHasLoadedComments] = useState(false);
+  const [optimisticDeletedComments, setOptimisticDeletedComments] = useState<Set<string>>(
+    new Set()
+  );
+  const [_optimisticUpdatedComments, _setOptimisticUpdatedComments] = useState<
+    Map<string, IComment>
+  >(new Map());
 
   // Only load comments when expanded to reduce initial load
   const {
@@ -32,9 +38,10 @@ export function GameLogComments({
     commentsHasNextPage: hasNextPage,
     loadMoreComments,
     refetch,
-  } = useGameLogComments(gameLog.id, isExpanded ? 5 : 0); // Reduced initial limit from 3 to 5, and only load when expanded
+  } = useGameLogComments(gameLog.id, isExpanded ? 5 : 0);
 
   const { deleteComment } = useDeleteComment();
+  const { updateComment: _updateComment } = useUpdateComment();
 
   const handleToggleExpanded = () => {
     const newExpanded = !isExpanded;
@@ -49,6 +56,7 @@ export function GameLogComments({
 
   const handleCommentSuccess = () => {
     setShowCommentForm(false);
+    // Refetch to get the latest comments
     void refetch();
   };
 
@@ -61,21 +69,47 @@ export function GameLogComments({
   };
 
   const handleEdit = (_commentId: string) => {
-    // This will be handled by individual Comment components
+    // This will be handled by the Comment component's optimistic updates
+    // The Comment component will call onEdit when the edit is successful
   };
 
   const handleDelete = async (commentId: string) => {
     try {
+      // Optimistically remove the comment from the UI
+      setOptimisticDeletedComments(prev => new Set([...prev, commentId]));
+
       await deleteComment(commentId);
-      void refetch();
+
+      // If successful, keep it removed. If failed, the refetch will restore it
+      setTimeout(() => {
+        setOptimisticDeletedComments(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(commentId);
+          return newSet;
+        });
+      }, 1000); // Remove from optimistic set after 1 second
     } catch (error) {
       console.error('Error deleting comment:', error);
+      // Restore the comment if deletion failed
+      setOptimisticDeletedComments(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(commentId);
+        return newSet;
+      });
     }
   };
 
+  // Apply optimistic updates to comments
+  const visibleComments = comments
+    .filter(comment => !optimisticDeletedComments.has(comment.id))
+    .map(comment => {
+      const optimisticUpdate = _optimisticUpdatedComments.get(comment.id);
+      return optimisticUpdate || comment;
+    });
+
   // Get comment count from game log data or from loaded comments
   const commentCount =
-    isExpanded && hasLoadedComments ? comments.length : (gameLog.totalCommentCount ?? 0);
+    isExpanded && hasLoadedComments ? visibleComments.length : (gameLog.totalCommentCount ?? 0);
 
   return (
     <div className="p-4">
@@ -120,7 +154,7 @@ export function GameLogComments({
 
           {/* Comments List */}
           <div className="space-y-4">
-            {comments.map(comment => (
+            {visibleComments.map(comment => (
               <div
                 key={comment.id}
                 className="border-b border-gray-100 dark:border-gray-700 pb-4 last:border-b-0"

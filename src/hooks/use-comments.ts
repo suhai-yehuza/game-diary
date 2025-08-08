@@ -101,36 +101,20 @@ export function useComments(options: ICommentsOptions = {}) {
 
   return {
     comments,
-    commentsEndCursor,
-    commentsHasNextPage,
-    commentsTotalCount,
-    loadMoreComments,
     loading,
     error: error ? new Error(error.message) : null,
     refetch: wrappedRefetch,
+    commentsHasNextPage,
+    loadMoreComments,
+    commentsTotalCount,
   };
 }
 
-export function useGameLogComments(gameLogId: string, initialLimit = 3) {
-  return useComments({
-    filters: { parentId: gameLogId, parentType: ParentType.GameLog },
-    pagination: { first: initialLimit },
-  });
-}
-
-export function useCommentReplies(commentId: string, initialLimit = 2) {
-  return useComments({
-    filters: { parentId: commentId, parentType: ParentType.Comment },
-    pagination: { first: initialLimit },
-  });
-}
-
-// Mutation hooks
 export function useCreateComment() {
   const [createComment, { loading, error }] = useMutation(CREATE_COMMENT);
 
   const createCommentMutation = useCallback(
-    async (input: { content: string; parentId: string; parentType: string }) => {
+    async (input: { content: string; parentId: string; parentType: ParentType }) => {
       try {
         const result = await createComment({
           variables: { input },
@@ -199,4 +183,18 @@ export function useDeleteComment() {
     loading,
     error: error ? new Error(error.message) : null,
   };
+}
+
+export function useGameLogComments(gameLogId: string, initialLimit = 3) {
+  return useComments({
+    filters: { parentId: gameLogId, parentType: ParentType.GameLog },
+    pagination: { first: initialLimit },
+  });
+}
+
+export function useCommentReplies(commentId: string, initialLimit = 2) {
+  return useComments({
+    filters: { parentId: commentId, parentType: ParentType.Comment },
+    pagination: { first: initialLimit },
+  });
 }

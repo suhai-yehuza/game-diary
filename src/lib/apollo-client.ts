@@ -50,6 +50,27 @@ export const apolloClient = new ApolloClient({
               return incoming;
             },
           },
+          comments: {
+            keyArgs: ['filters', 'pagination'],
+            merge(_existing: unknown, incoming: unknown): unknown {
+              return incoming;
+            },
+          },
+        },
+      },
+      Comment: {
+        fields: {
+          // Enable optimistic updates for comment fields
+          content: {
+            read(content: string) {
+              return content;
+            },
+          },
+          updated_at: {
+            read(updatedAt: string) {
+              return updatedAt;
+            },
+          },
         },
       },
     },

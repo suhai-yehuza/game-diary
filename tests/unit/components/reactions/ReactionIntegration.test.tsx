@@ -52,7 +52,7 @@ vi.mock('@/hooks/use-reactions', () => ({
     groupedReactions: [
       {
         emoji: '👍',
-        count: 1,
+        count: 2,
         hasUserReacted: true,
         reactionIds: ['reaction-1'],
       },
@@ -78,7 +78,7 @@ describe('Reaction Components Integration', () => {
     );
 
     expect(screen.getByText('👍')).toBeInTheDocument();
-    expect(screen.getByText('1')).toBeInTheDocument();
+    expect(screen.getByText('2')).toBeInTheDocument();
     expect(screen.getByLabelText('Add reaction')).toBeInTheDocument();
   });
 
