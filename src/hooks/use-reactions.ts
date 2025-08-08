@@ -1,6 +1,6 @@
 import { useMutation, useQuery } from '@apollo/client';
 import { useUser } from '@clerk/nextjs';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo } from 'react';
 
 import { CREATE_REACTION, DELETE_REACTION } from '@/lib/graphql/mutations';
 import { GET_REACTIONS } from '@/lib/graphql/queries';
@@ -9,7 +9,6 @@ import { REACTION_EMOJIS } from '@/lib/types/constant.types';
 
 export function useReactions(options: IReactionOptions) {
   const { user } = useUser();
-  const [localReactions, setLocalReactions] = useState<IReaction[]>([]);
 
   const { data, loading, error, refetch } = useQuery(GET_REACTIONS, {
     variables: {
@@ -23,9 +22,8 @@ export function useReactions(options: IReactionOptions) {
   const [deleteReaction] = useMutation(DELETE_REACTION);
 
   const reactions = useMemo(() => {
-    const serverReactions = data?.reactions || [];
-    return [...serverReactions, ...localReactions];
-  }, [data?.reactions, localReactions]);
+    return data?.reactions || [];
+  }, [data?.reactions]);
 
   const groupedReactions = useMemo(() => {
     const groups: Record<string, IReactionGroup> = {};
@@ -62,7 +60,7 @@ export function useReactions(options: IReactionOptions) {
       if (!user?.id) return;
 
       try {
-        const result = await createReaction({
+        await createReaction({
           variables: {
             input: {
               emoji,
@@ -72,11 +70,7 @@ export function useReactions(options: IReactionOptions) {
           },
         });
 
-        const newReaction = result.data?.createReaction?.reaction;
-        if (newReaction) {
-          setLocalReactions(prev => [...prev, newReaction]);
-          await refetch();
-        }
+        await refetch();
       } catch (error) {
         console.error('Failed to add reaction:', error);
       }
@@ -101,7 +95,6 @@ export function useReactions(options: IReactionOptions) {
             },
           });
 
-          setLocalReactions(prev => prev.filter(r => r.id !== userReaction.id));
           await refetch();
         }
       } catch (error) {

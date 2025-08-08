@@ -49,7 +49,7 @@ export function ReactionPicker({
           aria-label={`React with ${group.emoji} (${group.count})`}
         >
           <span className="text-lg">{group.emoji}</span>
-          {showCount && group.count > 0 && <span className="font-medium">{group.count}</span>}
+          {showCount && group.count > 1 && <span className="font-medium">{group.count}</span>}
         </button>
       ))}
 

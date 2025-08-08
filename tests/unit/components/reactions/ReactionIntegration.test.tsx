@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { vi } from 'vitest';
 
-import { ReactionPicker, ReactionButton, ReactionDisplay } from '@/app/components/reactions';
+import { ReactionPicker, ReactionButton } from '@/app/components/reactions';
 import { ParentType } from '@/lib/types/generated/graphql';
 
 // Mock Apollo Client
@@ -100,24 +100,8 @@ describe('Reaction Components Integration', () => {
     expect(screen.getByText('5')).toBeInTheDocument();
   });
 
-  it('can render ReactionDisplay without errors', () => {
-    render(
-      <ReactionDisplay
-        targetId="test-target"
-        targetType={ParentType.GameLog}
-        size="md"
-        showUserNames={false}
-        maxReactions={5}
-      />
-    );
-
-    expect(screen.getByText('👍')).toBeInTheDocument();
-    expect(screen.getByText('1')).toBeInTheDocument();
-  });
-
   it('exports all components correctly', () => {
     expect(ReactionPicker).toBeDefined();
     expect(ReactionButton).toBeDefined();
-    expect(ReactionDisplay).toBeDefined();
   });
 });

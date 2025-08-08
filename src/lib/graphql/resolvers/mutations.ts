@@ -296,6 +296,15 @@ export const reactionMutationResolvers = {
               target_type: newReaction[0].target_type,
               created_at: newReaction[0].created_at,
               updated_at: newReaction[0].updated_at,
+              user: {
+                id: context.user.id,
+                username: context.user.username || '',
+                first_name: context.user.firstName || '',
+                last_name: context.user.lastName || '',
+                email_address: context.user.email || null,
+                phone_number: null,
+                image_url: null,
+              },
             }
           : null,
         errors: [],

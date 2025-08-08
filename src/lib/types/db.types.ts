@@ -43,7 +43,10 @@ export type GraphQLContext = {
   user?: {
     id: string;
     email: string;
-    banned: boolean;
+    username?: string;
+    firstName?: string;
+    lastName?: string;
+    banned?: boolean;
   };
 };
 
