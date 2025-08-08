@@ -11,7 +11,7 @@ import { DeleteGameLogModal } from '@/app/components/game-logs/DeleteGameLogModa
 import { EditGameLogModal } from '@/app/components/game-logs/EditGameLogModal';
 import { GameLogsSearch } from '@/app/components/game-logs/GameLogsSearch';
 import { GameLogsSort } from '@/app/components/game-logs/GameLogsSort';
-import { ReactionPicker } from '@/app/components/reactions';
+import { ReactionPicker, ReactionDisplay } from '@/app/components/reactions';
 import { Button } from '@/app/components/ui/button';
 import { Card, CardHeader, CardContent, CardFooter, CardTitle } from '@/app/components/ui/Card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/app/components/ui/Tabs';
@@ -382,17 +382,27 @@ export function GameLogsTable() {
             </div>
 
             {/* Game Log Reactions */}
-            <ReactionPicker
-              targetId={log.id}
-              targetType={ParentType.GameLog}
-              size="sm"
-              showCount={true}
-            />
+            <div className="flex items-center gap-2">
+              <ReactionDisplay
+                targetId={log.id}
+                targetType={ParentType.GameLog}
+                size="sm"
+                maxReactions={8}
+              />
+              <ReactionPicker
+                targetId={log.id}
+                targetType={ParentType.GameLog}
+                size="sm"
+                showCount={false}
+              />
+            </div>
           </CardFooter>
-        </Card>
 
-        {/* Comments Section */}
-        <GameLogComments gameLog={log} />
+          {/* Comments Section - Inside the Card */}
+          <div className="border-t border-gray-200 dark:border-gray-700">
+            <GameLogComments gameLog={log} />
+          </div>
+        </Card>
       </div>
     );
   };

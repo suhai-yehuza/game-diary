@@ -5,10 +5,7 @@ import { useState } from 'react';
 
 import { Comment } from '@/app/components/comments/Comment';
 import { CommentForm } from '@/app/components/comments/CommentForm';
-import { ReactionPicker } from '@/app/components/reactions';
-import { ReactionCount } from '@/app/components/reactions/ReactionCount';
 import { Button } from '@/app/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/Card';
 import { useGameLogComments, useDeleteComment } from '@/hooks/use-comments';
 import type { IGameLog } from '@/lib/types';
 import { ParentType } from '@/lib/types/generated/graphql';
@@ -81,43 +78,32 @@ export function GameLogComments({
     isExpanded && hasLoadedComments ? comments.length : (gameLog.totalCommentCount ?? 0);
 
   return (
-    <Card className="mt-4 border-gray-200 dark:border-gray-700">
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-lg font-semibold flex items-center space-x-2">
-            <MessageCircle className="h-5 w-5" />
-            <span>Comments ({commentCount})</span>
-          </CardTitle>
-          <div className="flex items-center space-x-2">
-            {/* Game Log Reactions */}
-            {isExpanded ? (
-              <ReactionPicker
-                targetId={gameLog.id}
-                targetType={ParentType.GameLog}
-                size="sm"
-                showCount={true}
-              />
-            ) : (
-              <ReactionCount count={gameLog.totalReactionCount ?? 0} size="sm" />
-            )}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleToggleExpanded}
-              className="text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"
-            >
-              {isExpanded ? (
-                <ChevronDown className="h-4 w-4" />
-              ) : (
-                <ChevronRight className="h-4 w-4" />
-              )}
-            </Button>
-          </div>
+    <div className="p-4">
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center space-x-2">
+          <MessageCircle className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+          <span className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+            Comments ({commentCount})
+          </span>
         </div>
-      </CardHeader>
+        <div className="flex items-center space-x-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleToggleExpanded}
+            className="text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"
+          >
+            {isExpanded ? (
+              <ChevronDown className="h-4 w-4" />
+            ) : (
+              <ChevronRight className="h-4 w-4" />
+            )}
+          </Button>
+        </div>
+      </div>
 
       {isExpanded && (
-        <CardContent className="pt-0">
+        <div className="pt-0">
           {/* Comment Form */}
           {showCommentForm && (
             <div className="mb-4">
@@ -193,8 +179,8 @@ export function GameLogComments({
               <p>No comments yet. Be the first to comment!</p>
             </div>
           )}
-        </CardContent>
+        </div>
       )}
-    </Card>
+    </div>
   );
 }

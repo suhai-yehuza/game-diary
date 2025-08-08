@@ -244,8 +244,6 @@ export const GET_GAME_LOGS = gql`
   ${GAME_LOG_FRAGMENT}
   ${GAME_FRAGMENT}
   ${USER_SUMMARY_FRAGMENT}
-  ${COMMENT_FRAGMENT}
-  ${REACTION_FRAGMENT}
 `;
 
 export const GET_GAME_LOG = gql`
@@ -257,8 +255,6 @@ export const GET_GAME_LOG = gql`
   ${GAME_LOG_FRAGMENT}
   ${GAME_FRAGMENT}
   ${USER_SUMMARY_FRAGMENT}
-  ${COMMENT_FRAGMENT}
-  ${REACTION_FRAGMENT}
 `;
 
 export const GET_USERS = gql`
@@ -430,8 +426,6 @@ export const GET_FRIENDS_GAME_LOGS = gql`
   ${GAME_LOG_FRAGMENT}
   ${GAME_FRAGMENT}
   ${USER_SUMMARY_FRAGMENT}
-  ${COMMENT_FRAGMENT}
-  ${REACTION_FRAGMENT}
 `;
 
 // New friendship queries

@@ -1,11 +1,9 @@
 import { gql } from '@apollo/client';
 
 import {
-  COMMENT_FRAGMENT,
   USER_SUMMARY_FRAGMENT,
   GAME_LOG_FRAGMENT,
   GAME_FRAGMENT,
-  // REACTION_FRAGMENT,
   FRIENDSHIP_FRAGMENT,
 } from '@/lib/graphql/queries';
 
@@ -50,7 +48,6 @@ export const CREATE_GAME_LOG = gql`
   ${GAME_LOG_FRAGMENT}
   ${GAME_FRAGMENT}
   ${USER_SUMMARY_FRAGMENT}
-  ${COMMENT_FRAGMENT}
 `;
 
 export const UPDATE_GAME_LOG = gql`
@@ -69,7 +66,6 @@ export const UPDATE_GAME_LOG = gql`
   ${GAME_LOG_FRAGMENT}
   ${GAME_FRAGMENT}
   ${USER_SUMMARY_FRAGMENT}
-  ${COMMENT_FRAGMENT}
 `;
 
 export const DELETE_GAME_LOG = gql`

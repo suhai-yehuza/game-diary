@@ -97,7 +97,8 @@ function mapGameLog(log: GqlGameLogNoComments): IGameLog {
     rating_for_game: log.rating_for_game ?? 0,
     game: log.game ? mapGame(log.game) : undefined,
     user: mapUser(log.user),
-    // comments and reactions are omitted
+    totalCommentCount: log.totalCommentCount ?? 0,
+    totalReactionCount: log.totalReactionCount ?? 0,
   };
 }
 
