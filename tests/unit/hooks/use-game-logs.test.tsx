@@ -1,28 +1,8 @@
 /// <reference types="vitest/globals" />
 
-import { describe, it, expect, vi } from 'vitest';
+import { renderHook } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-// Mock Apollo Client before importing the hooks
-vi.mock('@apollo/client', () => ({
-  useQuery: vi.fn(),
-}));
-
-// Mock the GraphQL queries
-vi.mock('@/lib/graphql/queries', () => ({
-  GET_GAME_LOGS: 'GET_GAME_LOGS',
-  GET_FRIENDS_GAME_LOGS: 'GET_FRIENDS_GAME_LOGS',
-}));
-
-// Mock the API config
-vi.mock('@/lib/config/app.config', () => ({
-  API_CONFIG: {
-    pagination: {
-      DEFAULT_GAME_LOG_PAGE_SIZE: 10,
-    },
-  },
-}));
-
-// Import the hooks after mocking
 import {
   useGameLogs,
   useMyGameLogs,
@@ -30,32 +10,101 @@ import {
   useFriendsGameLogs,
 } from '@/hooks/use-game-logs';
 
-describe('useGameLogs', () => {
-  it('should be a function', () => {
-    expect(typeof useGameLogs).toBe('function');
+// Mock Apollo Client
+vi.mock('@apollo/client', () => ({
+  useQuery: vi.fn(() => ({
+    loading: false,
+    error: null,
+    data: null,
+    refetch: vi.fn(),
+    fetchMore: vi.fn(),
+  })),
+  gql: vi.fn(() => ''),
+}));
+
+describe('Game Logs Hooks', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
   });
 
-  it('should return an object with expected properties', () => {
-    // Since we can't easily test the hook due to Apollo Client complexity,
-    // we'll just verify the function exists and can be called
-    expect(typeof useGameLogs).toBe('function');
-  });
-});
+  describe('useGameLogs', () => {
+    it('should be a function', () => {
+      expect(typeof useGameLogs).toBe('function');
+    });
 
-describe('useMyGameLogs', () => {
-  it('should be a function', () => {
-    expect(typeof useMyGameLogs).toBe('function');
-  });
-});
+    it('should return an object with expected properties', () => {
+      const { result } = renderHook(() => useGameLogs());
 
-describe('usePublicGameLogs', () => {
-  it('should be a function', () => {
-    expect(typeof usePublicGameLogs).toBe('function');
-  });
-});
+      expect(result.current).toHaveProperty('gameLogs');
+      expect(result.current).toHaveProperty('loading');
+      expect(result.current).toHaveProperty('error');
+      expect(result.current).toHaveProperty('refetch');
+      expect(result.current).toHaveProperty('gameLogsTotalCount');
+      expect(result.current).toHaveProperty('gameLogsHasNextPage');
+    });
 
-describe('useFriendsGameLogs', () => {
-  it('should be a function', () => {
-    expect(typeof useFriendsGameLogs).toBe('function');
+    it('should accept options parameter', () => {
+      const options = {
+        filters: { userId: 'user123' },
+        pagination: { first: 20 },
+      };
+      const { result } = renderHook(() => useGameLogs(options));
+
+      expect(result.current).toHaveProperty('gameLogs');
+      expect(result.current).toHaveProperty('loading');
+    });
+  });
+
+  describe('useMyGameLogs', () => {
+    it('should be a function', () => {
+      expect(typeof useMyGameLogs).toBe('function');
+    });
+
+    it('should return an object with expected properties', () => {
+      const { result } = renderHook(() => useMyGameLogs('user123'));
+
+      expect(result.current).toHaveProperty('gameLogs');
+      expect(result.current).toHaveProperty('loading');
+      expect(result.current).toHaveProperty('error');
+      expect(result.current).toHaveProperty('refetch');
+      expect(result.current).toHaveProperty('gameLogsTotalCount');
+      expect(result.current).toHaveProperty('gameLogsHasNextPage');
+    });
+
+    it('should handle undefined userId', () => {
+      const { result } = renderHook(() => useMyGameLogs());
+      expect(result.current.gameLogs).toEqual([]);
+    });
+  });
+
+  describe('usePublicGameLogs', () => {
+    it('should be a function', () => {
+      expect(typeof usePublicGameLogs).toBe('function');
+    });
+
+    it('should return an object with expected properties', () => {
+      const { result } = renderHook(() => usePublicGameLogs());
+
+      expect(result.current).toHaveProperty('gameLogs');
+      expect(result.current).toHaveProperty('loading');
+      expect(result.current).toHaveProperty('error');
+      expect(result.current).toHaveProperty('refetch');
+      expect(result.current).toHaveProperty('gameLogsTotalCount');
+      expect(result.current).toHaveProperty('gameLogsHasNextPage');
+    });
+  });
+
+  describe('useFriendsGameLogs', () => {
+    it('should be a function', () => {
+      expect(typeof useFriendsGameLogs).toBe('function');
+    });
+
+    it('should return an object with expected properties', () => {
+      const { result } = renderHook(() => useFriendsGameLogs());
+
+      expect(result.current).toHaveProperty('logs');
+      expect(result.current).toHaveProperty('loading');
+      expect(result.current).toHaveProperty('error');
+    });
   });
 });

@@ -20,6 +20,7 @@ export function LoadingSpinner({
   text,
   className = '',
   variant = 'default',
+  'aria-label': ariaLabel = 'Loading...',
   ...props
 }: ILoadingSpinnerProps & React.HTMLAttributes<HTMLDivElement>) {
   return (
@@ -31,7 +32,7 @@ export function LoadingSpinner({
       <div
         className={`animate-spin rounded-full border-2 border-t-transparent ${sizeClasses[size]} ${variantClasses[variant]}`}
         role="status"
-        aria-label="Loading"
+        aria-label={ariaLabel}
       />
       {text && <p className="mt-2 text-sm text-gray-600 dark:text-gray-400 text-center">{text}</p>}
     </div>

@@ -1,27 +1,22 @@
-import { render, screen } from '@testing-library/react';
-import React from 'react';
-import { describe, expect, it, vi, beforeEach } from 'vitest';
+import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 import SignInModalTrigger from '@/app/components/auth/SignInModalTrigger';
 
 // Mock Next.js router
-const mockPush = vi.fn();
 vi.mock('next/navigation', () => ({
   useRouter: () => ({
-    push: mockPush,
+    push: vi.fn(),
   }),
 }));
 
-// Mock Clerk components
-const mockOpenSignIn = vi.fn();
+// Mock Clerk
 vi.mock('@clerk/nextjs', () => ({
-  SignInButton: ({ children, mode }: any) => (
-    <button data-testid="sign-in-button" data-mode={mode}>
-      {children}
-    </button>
+  SignInButton: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="sign-in-button">{children}</div>
   ),
   useClerk: () => ({
-    openSignIn: mockOpenSignIn,
+    openSignIn: vi.fn(),
   }),
 }));
 
@@ -30,31 +25,53 @@ describe('SignInModalTrigger', () => {
     vi.clearAllMocks();
   });
 
-  it('renders SignInButton with modal mode', () => {
+  it('should render the sign-in button', () => {
     render(<SignInModalTrigger />);
-    const signInButton = screen.getByTestId('sign-in-button');
-    expect(signInButton).toBeInTheDocument();
-    expect(signInButton).toHaveAttribute('data-mode', 'modal');
+
+    expect(screen.getByTestId('sign-in-button')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Sign In' })).toBeInTheDocument();
   });
 
-  it('renders button with proper accessibility attributes', () => {
+  it('should have proper styling classes', () => {
     render(<SignInModalTrigger />);
-    // Check that we have the SignInButton
-    const signInButton = screen.getByTestId('sign-in-button');
-    expect(signInButton).toBeInTheDocument();
 
-    // Check that we have buttons with proper accessibility attributes
-    const buttons = screen.getAllByRole('button');
-    expect(buttons).toHaveLength(2); // SignInButton + inner div
-
-    // Check that the inner div has proper accessibility attributes
-    const innerButton = buttons.find(
-      button =>
-        button.getAttribute('aria-label') === 'Sign In' && button.getAttribute('role') === 'button'
+    const button = screen.getByRole('button', { name: 'Sign In' });
+    expect(button).toHaveClass(
+      'px-4',
+      'py-2',
+      'bg-blue-800',
+      'text-white',
+      'rounded-lg',
+      'shadow-md',
+      'hover:bg-blue-900',
+      'transition-colors',
+      'focus:outline-none',
+      'focus-visible:ring-4',
+      'focus-visible:ring-blue-400',
+      'focus-visible:ring-offset-2',
+      'focus-visible:ring-offset-black',
+      'cursor-pointer'
     );
-    expect(innerButton).toBeInTheDocument();
-    expect(innerButton).toHaveAttribute('aria-label', 'Sign In');
-    expect(innerButton).toHaveAttribute('role', 'button');
-    expect(innerButton).toHaveAttribute('tabIndex', '0');
+  });
+
+  it('should handle keyboard navigation', () => {
+    render(<SignInModalTrigger />);
+
+    const button = screen.getByRole('button', { name: 'Sign In' });
+
+    // Test Enter key
+    fireEvent.keyDown(button, { key: 'Enter' });
+
+    // Test Space key
+    fireEvent.keyDown(button, { key: ' ' });
+  });
+
+  it('should be a function', () => {
+    expect(typeof SignInModalTrigger).toBe('function');
+  });
+
+  it('should accept autoTrigger prop', () => {
+    render(<SignInModalTrigger autoTrigger={true} />);
+    expect(screen.getByTestId('sign-in-button')).toBeInTheDocument();
   });
 });

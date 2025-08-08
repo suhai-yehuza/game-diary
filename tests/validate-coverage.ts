@@ -3,17 +3,9 @@
 import { execSync } from 'child_process';
 import * as fs from 'fs';
 
-// Import the vitest config to get the actual thresholds
-const VITEST_CONFIG_PATH = './vitest.config.ts';
-const COVERAGE_REPORT_PATH = './coverage/coverage-final.json';
+import { getCoverageThresholds, type ICoverageThresholds } from '@/lib/config/coverage';
 
-interface ICoverageThresholds {
-  branches: number;
-  functions: number;
-  lines: number;
-  statements: number;
-  base: number;
-}
+const COVERAGE_REPORT_PATH = './coverage/coverage-final.json';
 
 interface ICoverageSummary {
   total: {
@@ -23,8 +15,6 @@ interface ICoverageSummary {
     statements: { pct: number };
   };
 }
-
-let baseThreshold = 95;
 
 // Enhanced logging functions
 function log(message: string): void {
@@ -41,46 +31,6 @@ function logSuccess(message: string): void {
 
 function logError(message: string): void {
   console.error(`❌ ${message}`);
-}
-
-function logWarning(message: string): void {
-  console.warn(`⚠️  ${message}`);
-}
-
-function getVitestThresholds(): ICoverageThresholds {
-  try {
-    // Read the vitest config file
-    const configContent = fs.readFileSync(VITEST_CONFIG_PATH, 'utf8');
-
-    // Extract the COVERAGE_THRESHOLD value
-    const thresholdMatch = configContent.match(/const COVERAGE_THRESHOLD = (\d+);/);
-    if (!thresholdMatch) {
-      throw new Error('Could not find COVERAGE_THRESHOLD in vitest.config.ts');
-    }
-
-    baseThreshold = parseInt(thresholdMatch[1], 10) ?? baseThreshold;
-
-    // Calculate the actual thresholds used by Vitest (same logic as in vitest.config.ts)
-    return {
-      branches: baseThreshold,
-      functions: baseThreshold,
-      lines: baseThreshold,
-      statements: baseThreshold,
-      base: baseThreshold,
-    };
-  } catch (_error) {
-    logError('Error reading vitest.config.ts: ' + (_error as Error).message);
-    logWarning('Falling back to default thresholds...');
-
-    // Default fallback values
-    return {
-      branches: baseThreshold,
-      functions: baseThreshold,
-      lines: baseThreshold,
-      statements: baseThreshold,
-      base: baseThreshold,
-    };
-  }
 }
 
 function parseCoverageReport(): ICoverageSummary | null {
@@ -241,8 +191,8 @@ function displayThresholds(thresholds: ICoverageThresholds): void {
 function main(): void {
   log('Validating test coverage using single source of truth...');
 
-  // Get thresholds from vitest.config.ts
-  const thresholds = getVitestThresholds();
+  // Get thresholds from shared configuration
+  const thresholds = getCoverageThresholds();
   displayThresholds(thresholds);
 
   // Run vitest with coverage
@@ -258,7 +208,7 @@ function main(): void {
   }
 
   logSuccess('Coverage validation passed!');
-  logInfo('All thresholds from vitest.config.ts were met');
+  logInfo('All thresholds from shared configuration were met');
 }
 
 main();

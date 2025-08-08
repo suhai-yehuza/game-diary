@@ -102,7 +102,7 @@ describe('LoadingSpinner', () => {
       render(<LoadingSpinner />);
 
       const spinner = screen.getByRole('status');
-      expect(spinner).toHaveAttribute('aria-label', 'Loading');
+      expect(spinner).toHaveAttribute('aria-label', 'Loading...');
     });
 
     it('has proper semantic structure', () => {

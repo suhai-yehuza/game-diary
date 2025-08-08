@@ -3,7 +3,7 @@ import { resolve } from 'path';
 import tsconfigPaths from 'vite-tsconfig-paths';
 import { defineConfig } from 'vitest/config';
 
-const COVERAGE_THRESHOLD = 60;
+import { getVitestThresholds } from './src/lib/config/coverage';
 export default defineConfig({
   test: {
     environment: 'jsdom',
@@ -44,12 +44,7 @@ export default defineConfig({
         'src/app/styles/globals.css', // CSS files
         'src/app/globals.css', // CSS files
       ],
-      thresholds: {
-        lines: COVERAGE_THRESHOLD,
-        branches: COVERAGE_THRESHOLD,
-        functions: COVERAGE_THRESHOLD,
-        statements: COVERAGE_THRESHOLD,
-      },
+      thresholds: getVitestThresholds(),
       all: false,
     },
     testTimeout: 10000,

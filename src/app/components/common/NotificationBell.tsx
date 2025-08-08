@@ -100,6 +100,7 @@ export function NotificationBell() {
         variant="ghost"
         size="sm"
         onClick={handleToggle}
+        aria-label="Notifications"
         className="relative p-2 text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-gray-100"
       >
         <Bell className="h-5 w-5" />
