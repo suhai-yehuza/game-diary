@@ -1,6 +1,7 @@
 import { Menu, X } from 'lucide-react';
 import React, { useRef, useEffect } from 'react';
 
+import { TABLET_BREAKPOINT } from '@/app/components/layout/components/breakpoints';
 import { ClientOnlyNavigationLinks } from '@/app/components/layout/components/navigation/ClientOnlyNavigationLinks';
 import { useMobileDetection } from '@/app/components/layout/components/SearchBar';
 import type { INavigationContainerProps } from '@/lib/types';
@@ -14,11 +15,12 @@ export function NavigationContainer({
   onMenuToggle,
 }: INavigationContainerProps) {
   const overlayRef = useRef<HTMLDivElement>(null);
-  const isMobile = useMobileDetection();
+  // Treat anything below tablet breakpoint as compact (use mobile menu behavior)
+  const isCompactViewport = useMobileDetection(TABLET_BREAKPOINT);
 
   // Focus trap for mobile menu overlay (legacy support)
   useEffect(() => {
-    if (!isMenuExpanded || !overlayRef.current || isMobile) return;
+    if (!isMenuExpanded || !overlayRef.current || isCompactViewport) return;
     const overlay = overlayRef.current;
     const focusableSelectors = [
       'a[href]',
@@ -54,16 +56,16 @@ export function NavigationContainer({
     };
     overlay.addEventListener('keydown', handleKeyDown);
     return () => overlay.removeEventListener('keydown', handleKeyDown);
-  }, [isMenuExpanded, isMobile]);
+  }, [isMenuExpanded, isCompactViewport]);
 
   return (
     <nav className="flex justify-center">
       <div className="flex h-16 items-center relative">
-        {/* Mobile Menu Button - only on tablet (not mobile) */}
+        {/* Mobile Menu Button - for compact viewports (mobile and small tablets) */}
         <button
           aria-label={isMenuExpanded ? 'Close menu' : 'Open menu'}
           onClick={onMenuToggle}
-          className={`hidden md:block lg:hidden p-2 rounded-md transition-colors z-50 ${
+          className={`md:block lg:hidden p-2 rounded-md transition-colors z-50 ${
             isMenuExpanded
               ? 'fixed top-4 left-4 bg-white/90 border border-gray-300 shadow-lg'
               : 'mr-4 relative'
@@ -85,8 +87,8 @@ export function NavigationContainer({
           />
         </div>
 
-        {/* Legacy Mobile Overlay - only for tablet (768px-1024px) */}
-        {isMenuExpanded && !isMobile && (
+        {/* Legacy Mobile Overlay - for medium viewports only (tablet) */}
+        {isMenuExpanded && !isCompactViewport && (
           <div
             ref={overlayRef}
             className="fixed inset-0 z-40 flex flex-col bg-background dark:bg-black/90 lg:hidden"

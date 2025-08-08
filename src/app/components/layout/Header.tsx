@@ -9,6 +9,7 @@ import {
   NavigationContainer,
   useMobileDetection,
 } from '@/app/components/layout/components';
+import { TABLET_BREAKPOINT } from '@/app/components/layout/components/breakpoints';
 import { MobileBottomNavigation } from '@/app/components/layout/components/MobileBottomNavigation';
 import { MobileMenuSheet } from '@/app/components/layout/components/MobileMenuSheet';
 import { useMenuContext } from '@/app/components/providers';
@@ -17,11 +18,12 @@ import { useBannerVisibility } from '@/hooks/use-banner-visibility';
 export function Header() {
   const { isMenuExpanded, setIsMenuExpanded } = useMenuContext();
   const pathname = usePathname() || '/';
-  const isMobile = useMobileDetection();
+  // Consider compact if below tablet breakpoint so tablets without full nav use mobile menu
+  const isCompactViewport = useMobileDetection(TABLET_BREAKPOINT);
   const { shouldDisplayBanner, bannerHeight } = useBannerVisibility();
 
   // Menu is stacked only if expanded and in mobile/overlay mode
-  const isStacked = isMenuExpanded && isMobile;
+  const isStacked = isMenuExpanded && isCompactViewport;
 
   const isActive = useCallback(
     (path: string) => {

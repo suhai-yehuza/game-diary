@@ -3,6 +3,7 @@
 import { X } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
 
+import { TABLET_BREAKPOINT } from '@/app/components/layout/components/breakpoints';
 import { ClientOnlyNavigationLinks } from '@/app/components/layout/components/navigation/ClientOnlyNavigationLinks';
 import { useMobileDetection } from '@/app/components/layout/components/SearchBar';
 import { useMenuContext } from '@/app/components/providers';
@@ -13,7 +14,7 @@ interface IMobileMenuSheetProps {
 
 export function MobileMenuSheet({ isActive }: IMobileMenuSheetProps) {
   const { isMenuExpanded, setIsMenuExpanded } = useMenuContext();
-  const isMobile = useMobileDetection();
+  const isCompactViewport = useMobileDetection(TABLET_BREAKPOINT);
   const [isDragging, setIsDragging] = useState(false);
   const [startY, setStartY] = useState(0);
   const [currentY, setCurrentY] = useState(0);
@@ -97,7 +98,7 @@ export function MobileMenuSheet({ isActive }: IMobileMenuSheetProps) {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [isMenuExpanded]);
 
-  if (!isMobile || !isMenuExpanded) return null;
+  if (!isCompactViewport || !isMenuExpanded) return null;
 
   const translateY = isDragging ? Math.max(0, currentY - startY) : 0;
 
@@ -133,18 +134,18 @@ export function MobileMenuSheet({ isActive }: IMobileMenuSheetProps) {
 
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Menu</h2>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Menu</h2>
           <button
             onClick={() => setIsMenuExpanded(false)}
-            className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
             aria-label="Close menu"
           >
-            <X className="w-5 h-5 text-gray-700 dark:text-gray-300" />
+            <X className="w-5 h-5 text-gray-800 dark:text-gray-200" />
           </button>
         </div>
 
         {/* Navigation Content */}
-        <div className="px-6 py-4 max-h-[60vh] overflow-y-auto">
+        <div className="px-6 py-4 max-h-[60vh] overflow-y-auto text-gray-900 dark:text-gray-100">
           <ClientOnlyNavigationLinks
             isActive={isActive}
             _isMenuExpanded={isMenuExpanded}
