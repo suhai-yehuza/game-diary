@@ -191,7 +191,13 @@ class ResultFormatter {
   }
 
   formatEmptyFiles(emptyFiles: string[]): void {
-    if (emptyFiles.length === 0) {
+    // Ignore transient Playwright artifact empties
+    const ignoredPatterns = [/test-results\/.+\.webm$/];
+    const actionable = emptyFiles.filter(
+      f => !ignoredPatterns.some(p => p.test(path.relative(process.cwd(), f)))
+    );
+
+    if (actionable.length === 0) {
       logger.info('✅ No empty files found!');
       return;
     }
@@ -199,7 +205,7 @@ class ResultFormatter {
     logger.info('\n🔍 Empty files found:');
     logger.info('=====================');
 
-    emptyFiles.forEach((filePath: string) => {
+    actionable.forEach((filePath: string) => {
       const relativePath = path.relative(process.cwd(), filePath);
       logger.info(`  📄 ${relativePath}`);
     });
@@ -207,14 +213,18 @@ class ResultFormatter {
 
   printSummary(results: DeadCodeResults): void {
     const { tsPruneResults, tsUnusedExportsResults, emptyFiles } = results;
+    const ignoredPatterns = [/test-results\/.+\.webm$/];
+    const actionableEmpty = emptyFiles.filter(
+      f => !ignoredPatterns.some(p => p.test(path.relative(process.cwd(), f)))
+    );
     const totalIssues =
-      tsPruneResults.length + Object.keys(tsUnusedExportsResults).length + emptyFiles.length;
+      tsPruneResults.length + Object.keys(tsUnusedExportsResults).length + actionableEmpty.length;
 
     logger.info('\n📊 Dead Code Detection Summary');
     logger.info('=============================');
     logger.info(`ts-prune issues: ${tsPruneResults.length}`);
     logger.info(`ts-unused-exports issues: ${Object.keys(tsUnusedExportsResults).length}`);
-    logger.info(`Empty files: ${emptyFiles.length}`);
+    logger.info(`Empty files: ${actionableEmpty.length}`);
     logger.info(`Total issues: ${totalIssues}`);
 
     if (totalIssues === 0) {
@@ -248,7 +258,11 @@ async function main(): Promise<void> {
     // Exit with appropriate code
     // Exit with code 1 if ts-unused-exports finds any issues or if there are empty files
     const hasTsUnusedExportsIssues = Object.keys(results.tsUnusedExportsResults).length > 0;
-    const hasEmptyFiles = results.emptyFiles.length > 0;
+    const ignoredPatterns = [/test-results\/.+\.webm$/];
+    const actionableEmptyAtExit = results.emptyFiles.filter(
+      f => !ignoredPatterns.some(p => p.test(path.relative(process.cwd(), f)))
+    );
+    const hasEmptyFiles = actionableEmptyAtExit.length > 0;
     const hasAnyIssues = hasTsUnusedExportsIssues || hasEmptyFiles;
     process.exit(hasAnyIssues ? 1 : 0);
   } catch (error) {

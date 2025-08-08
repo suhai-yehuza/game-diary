@@ -10,6 +10,12 @@ import {
   TIMEOUTS,
 } from '@tests/e2e/utils/test-utils';
 
+// Allow running Clerk E2E in non-local deployments when explicitly enabled
+const SHOULD_SKIP_CLERK_E2E =
+  Boolean(process.env.DEPLOYMENT_URL && !process.env.DEPLOYMENT_URL.includes('localhost')) &&
+  process.env.E2E_CLERK_ENABLED !== '1' &&
+  process.env.E2E_CLERK_ENABLED !== 'true';
+
 async function checkA11y(page: Page) {
   const results = await new AxeBuilder({ page }).analyze();
   const critical = results.violations.filter(v => v.impact === 'critical');
@@ -82,8 +88,8 @@ test.describe('Clerk Auth Modal', () => {
 
     test('should open Clerk sign in modal and show form fields', async ({ page }) => {
       test.skip(
-        Boolean(process.env.DEPLOYMENT_URL && !process.env.DEPLOYMENT_URL.includes('localhost')),
-        'Sign In button is not available in deployment environments'
+        SHOULD_SKIP_CLERK_E2E,
+        'Clerk UI tests are disabled in deployment envs unless E2E_CLERK_ENABLED=1'
       );
       // Wait for page to be fully loaded
       await page.waitForLoadState('networkidle');
@@ -152,8 +158,8 @@ test.describe('Clerk Auth Modal', () => {
 
     test('should handle sign in button click without errors', async ({ page }) => {
       test.skip(
-        Boolean(process.env.DEPLOYMENT_URL && !process.env.DEPLOYMENT_URL.includes('localhost')),
-        'Sign In button is not available in deployment environments'
+        SHOULD_SKIP_CLERK_E2E,
+        'Clerk UI tests are disabled in deployment envs unless E2E_CLERK_ENABLED=1'
       );
       // Wait for page to be fully loaded
       await page.waitForLoadState('networkidle');
@@ -187,8 +193,8 @@ test.describe('Clerk Auth Modal', () => {
 
     test('should handle sign up button if present', async ({ page }) => {
       test.skip(
-        Boolean(process.env.DEPLOYMENT_URL && !process.env.DEPLOYMENT_URL.includes('localhost')),
-        'Sign In button is not available in deployment environments'
+        SHOULD_SKIP_CLERK_E2E,
+        'Clerk UI tests are disabled in deployment envs unless E2E_CLERK_ENABLED=1'
       );
       // Check for sign up button
       const signUpButton = page.getByTestId('sign-up-button');
@@ -208,8 +214,8 @@ test.describe('Clerk Auth Modal', () => {
 
     test('should handle auth modal keyboard interactions', async ({ page }) => {
       test.skip(
-        Boolean(process.env.DEPLOYMENT_URL && !process.env.DEPLOYMENT_URL.includes('localhost')),
-        'Sign In button is not available in deployment environments'
+        SHOULD_SKIP_CLERK_E2E,
+        'Clerk UI tests are disabled in deployment envs unless E2E_CLERK_ENABLED=1'
       );
 
       // Wait for page to be fully loaded
@@ -254,8 +260,8 @@ test.describe('Clerk Auth Modal', () => {
 
     test('should handle auth modal focus management', async ({ page }) => {
       test.skip(
-        Boolean(process.env.DEPLOYMENT_URL && !process.env.DEPLOYMENT_URL.includes('localhost')),
-        'Sign In button is not available in deployment environments'
+        SHOULD_SKIP_CLERK_E2E,
+        'Clerk UI tests are disabled in deployment envs unless E2E_CLERK_ENABLED=1'
       );
 
       // Wait for page to be fully loaded

@@ -22,10 +22,10 @@ test.describe('Authentication Bypass Tests', () => {
   });
 
   test('should access protected routes with auth bypass enabled', async ({ page, browserName }) => {
-    // Skip in Firefox due to Clerk handshake issues
+    // Skip in Firefox by default; allow override with E2E_FIREFOX=1
     test.skip(
-      browserName === 'firefox',
-      'Clerk dev browser handshake not supported in Firefox E2E'
+      browserName === 'firefox' && process.env.E2E_FIREFOX !== '1',
+      'Clerk dev browser handshake not supported in Firefox E2E (override with E2E_FIREFOX=1)'
     );
 
     // Set up auth bypass
