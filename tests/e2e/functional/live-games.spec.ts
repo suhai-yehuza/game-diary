@@ -5,8 +5,12 @@ import {
   testLiveGamesStates,
   TEST_GAMES_DATA,
 } from '@tests/e2e/utils/live-games-tests';
-import { isMockModeEnabled, getMockDataByType } from '@tests/e2e/utils/mock-config';
-import { commonTestSetup, enhancedTestSetup } from '@tests/e2e/utils/setup';
+import {
+  isMockModeEnabled,
+  getMockDataByType,
+  setupMockDataForTest,
+} from '@tests/e2e/utils/mock-config';
+import { enhancedTestSetup } from '@tests/e2e/utils/setup';
 import {
   waitForNetworkIdle,
   clearTestData,
@@ -14,23 +18,10 @@ import {
   waitForPageLoad,
 } from '@tests/e2e/utils/test-utils';
 
-// Import mock data for testing
-
-// Utility to detect problematic environments for live games tests
-const _isMobileOrTabletOrProblematicBrowser = (projectName: string): boolean => {
-  const name = projectName.toLowerCase();
-  return (
-    name.includes('mobile') ||
-    name.includes('iphone') ||
-    name.includes('tablet') ||
-    name.includes('webkit') ||
-    name.includes('firefox')
-  );
-};
-
 test.describe('Live Games Functionality', () => {
   test.beforeEach(async ({ page }) => {
-    // Removed mobile/tablet/WebKit/Firefox skip logic
+    // Enable mock mode for live games tests
+    setupMockDataForTest('live-games-test');
     await clearTestData(page);
     await page.addStyleTag({
       content: '* { transition: none !important; animation: none !important; }',
@@ -40,7 +31,11 @@ test.describe('Live Games Functionality', () => {
   test.describe('Live Games Banner', () => {
     test('should display live games banner on non-auth pages', async ({ page }) => {
       // Setup with mock data support
-      await commonTestSetup(page, 'live-games-banner-test');
+      await enhancedTestSetup(page, {
+        testName: 'live-games-banner-test',
+        enableMockData: true,
+        mockScenario: 'live-games-scenario',
+      });
 
       // Test on home page
       await safeGoto(page, '/');
@@ -52,15 +47,22 @@ test.describe('Live Games Functionality', () => {
       await expect(banner).toBeVisible();
 
       // Check for Live indicator (should be "8 Live Games" from mock data)
-      const liveIndicator = banner.locator(`text=${TEST_GAMES_DATA.totalGames} Live Games`);
+      const liveIndicator = banner.locator('[data-testid="live-indicator"]');
       await expect(liveIndicator).toBeVisible();
 
-      // Check for games count
+      // Check for games count in the container
       const gamesCount = banner.locator(`text=${TEST_GAMES_DATA.totalGames} Live Games`);
       await expect(gamesCount).toBeVisible();
     });
 
     test('should display live games in banner with proper structure', async ({ page }) => {
+      // Setup with mock data
+      await enhancedTestSetup(page, {
+        testName: 'live-games-structure-test',
+        enableMockData: true,
+        mockScenario: 'live-games-scenario',
+      });
+
       await safeGoto(page, '/');
       await waitForPageLoad(page);
       await waitForNetworkIdle(page);
@@ -76,25 +78,37 @@ test.describe('Live Games Functionality', () => {
         // Check that at least one game is visible
         await expect(gameItems.first()).toBeVisible();
 
-        // Check for team codes and scores
-        const teamCodes = gameItems.locator('text=/[A-Z]{3}/');
+        // Check for team codes and scores in the new structure
+        const firstGame = gameItems.first();
+
+        // Check for team codes (now in spans within flex containers)
+        const teamCodes = firstGame.locator('span.text-xs.font-medium');
         await expect(teamCodes.first()).toBeVisible();
 
-        // Check for scores
-        const scores = gameItems.locator('text=/\\d+/');
+        // Check for scores (now in spans with font-bold)
+        const scores = firstGame.locator('span.text-xs.font-bold');
         await expect(scores.first()).toBeVisible();
 
-        // Check for @ separator
-        const separator = gameItems.locator('text=@');
-        await expect(separator.first()).toBeVisible();
+        // Check for @ separator (now in a specific span)
+        const separator = firstGame.locator('span.text-xs.text-gray-200:text-is("@")');
+        await expect(separator).toBeVisible();
 
-        // Check for quarter information
-        const quarterInfo = gameItems.locator('text=/Q[1-4]|HT/');
-        await expect(quarterInfo.first()).toBeVisible();
+        // Check for quarter information (now in a specific span)
+        const quarterInfo = firstGame
+          .locator('span.text-xs.text-gray-200')
+          .filter({ hasText: /Q[1-4]|HT/ });
+        await expect(quarterInfo).toBeVisible();
       }
     });
 
     test('should have "View All" link in banner', async ({ page }) => {
+      // Setup with mock data
+      await enhancedTestSetup(page, {
+        testName: 'live-games-link-test',
+        enableMockData: true,
+        mockScenario: 'live-games-scenario',
+      });
+
       await safeGoto(page, '/');
       await waitForPageLoad(page);
       await waitForNetworkIdle(page);
@@ -166,6 +180,13 @@ test.describe('Live Games Functionality', () => {
 
   test.describe('Live Games Detail Page', () => {
     test('should display live games detail page correctly', async ({ page }) => {
+      // Setup with mock data
+      await enhancedTestSetup(page, {
+        testName: 'live-games-detail-test',
+        enableMockData: true,
+        mockScenario: 'live-games-scenario',
+      });
+
       await safeGoto(page, '/sports/live');
       await waitForPageLoad(page);
       await waitForNetworkIdle(page);
@@ -204,12 +225,26 @@ test.describe('Live Games Functionality', () => {
 
   test.describe('Live Games States', () => {
     test('should handle different live games states', async ({ page }) => {
+      // Setup with mock data
+      await enhancedTestSetup(page, {
+        testName: 'live-games-states-test',
+        enableMockData: true,
+        mockScenario: 'live-games-scenario',
+      });
+
       await testLiveGamesStates(page);
     });
   });
 
   test.describe('Live Games Mobile', () => {
     test('should work correctly on mobile devices', async ({ page }) => {
+      // Setup with mock data
+      await enhancedTestSetup(page, {
+        testName: 'live-games-mobile-test',
+        enableMockData: true,
+        mockScenario: 'live-games-scenario',
+      });
+
       // Set mobile viewport
       await page.setViewportSize({ width: 375, height: 667 });
 
@@ -237,12 +272,26 @@ test.describe('Live Games Functionality', () => {
 
   test.describe('Live Games Animations', () => {
     test('should have proper animations for live indicator', async ({ page }) => {
+      // Setup with mock data
+      await enhancedTestSetup(page, {
+        testName: 'live-games-animations-test',
+        enableMockData: true,
+        mockScenario: 'live-games-scenario',
+      });
+
       await testBannerAnimations(page);
     });
   });
 
   test.describe('Live Games Navigation', () => {
     test('should navigate between live games pages', async ({ page }) => {
+      // Setup with mock data
+      await enhancedTestSetup(page, {
+        testName: 'live-games-navigation-test',
+        enableMockData: true,
+        mockScenario: 'live-games-scenario',
+      });
+
       // Test navigation from home to live games
       await safeGoto(page, '/');
       await waitForPageLoad(page);

@@ -1187,10 +1187,18 @@ start_e2e_server() {
     # Start the development server
     if [ "$E2E_DEBUG" = "true" ]; then
         log_info "Starting server in debug mode..."
-        npx next dev --port "$E2E_PORT" &
+        if [[ "$E2E_TEST_SUITE" == "live-games" ]]; then
+            npx next dev:mock --port "$E2E_PORT" &
+        else
+            npx next dev --port "$E2E_PORT" &
+        fi
     else
         log_info "Starting server in background..."
-        npx next dev --port "$E2E_PORT" > /dev/null 2>&1 &
+        if [[ "$E2E_TEST_SUITE" == "live-games" ]]; then
+            npx next dev:mock --port "$E2E_PORT" > /dev/null 2>&1 &
+        else
+            npx next dev --port "$E2E_PORT" > /dev/null 2>&1 &
+        fi
     fi
 
     E2E_SERVER_PID=$!
