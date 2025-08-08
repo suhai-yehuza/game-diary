@@ -43,7 +43,9 @@ describe('EmptyState Simple Tests', () => {
     });
 
     it('renders with custom icon', () => {
-      render(<EmptyState title="Test Title" icon={<div data-testid="custom-icon">Custom Icon</div>} />);
+      render(
+        <EmptyState title="Test Title" icon={<div data-testid="custom-icon">Custom Icon</div>} />
+      );
       expect(screen.getByTestId('custom-icon')).toBeInTheDocument();
     });
 
