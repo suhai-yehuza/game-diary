@@ -7,7 +7,7 @@ import { useState } from 'react';
 
 import { CommentForm } from '@/app/components/comments/CommentForm';
 import { CommentReplies } from '@/app/components/comments/CommentReplies';
-import { ReactionCount } from '@/app/components/reactions/ReactionCount';
+import { ReactionPicker } from '@/app/components/reactions';
 import { Button } from '@/app/components/ui/button';
 import { Card, CardContent } from '@/app/components/ui/Card';
 import {
@@ -158,7 +158,12 @@ export function Comment({
             )}
 
             {/* Reactions */}
-            <ReactionCount count={comment.totalReactionCount ?? 0} size="sm" />
+            <ReactionPicker
+              targetId={comment.id}
+              targetType={ParentType.Comment}
+              size="sm"
+              showCount={true}
+            />
 
             {/* Action menu */}
             {isOwnComment && (
