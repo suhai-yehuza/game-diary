@@ -30,22 +30,6 @@ export function useBannerVisibility() {
       // E2E test mode
       (typeof window !== 'undefined' && window.__E2E_MOCK_MODE__));
 
-  // Debug logging in development
-  if (process.env.NODE_ENV === 'development' && isClient) {
-    console.log('🔍 Banner visibility debug:', {
-      isClient,
-      hasGames: games && games.length > 0,
-      gamesCount: games?.length || 0,
-      nodeEnv: process.env.NODE_ENV,
-      processApiMockMode: process.env.API_MOCK_MODE,
-      windowApiMockMode: typeof window !== 'undefined' ? window.__API_MOCK_MODE__ : undefined,
-      windowServerApiMockMode:
-        typeof window !== 'undefined' ? window.__SERVER_API_MOCK_MODE__ : undefined,
-      windowE2EMockMode: typeof window !== 'undefined' ? window.__E2E_MOCK_MODE__ : undefined,
-      shouldDisplayBanner,
-    });
-  }
-
   return {
     shouldDisplayBanner,
     isClient,

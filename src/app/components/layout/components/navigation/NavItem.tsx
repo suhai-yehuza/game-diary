@@ -25,7 +25,7 @@ export function NavItem({
     min-h-[56px] px-4 py-3
     flex items-center justify-center
     text-base font-medium
-    rounded-xl
+    rounded-lg
     transition-all duration-200 ease-out
     active:scale-95
     focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
@@ -39,16 +39,16 @@ export function NavItem({
 
   // Desktop styling
   const desktopClasses = `
-    block py-3 px-4
+    block py-2.5 px-4
     text-base font-medium
     transition-all duration-200
     whitespace-nowrap
     flex items-center w-full h-full
-    rounded-lg
+    rounded-md
     focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
     ${
       isActive
-        ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20'
+        ? 'text-blue-600 dark:text-blue-600 bg-blue-50 dark:bg-blue-900/20'
         : 'hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800'
     }
     ${className}
