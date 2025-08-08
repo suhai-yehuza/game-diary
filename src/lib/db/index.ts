@@ -85,7 +85,8 @@ class DatabaseManager {
 const connectionString = process.env.DATABASE_URL ?? process.env.POSTGRES_URL ?? '';
 const dbManager = new DatabaseManager({ connectionString });
 
-// Initialize database connection only in non-CI environments
+// Initialize database connection in all runtimes except explicit CI/test runners
+// Note: Production platforms like Vercel are NOT considered CI by our isCI().
 if (connectionString && !isCI()) {
   dbManager.initialize().catch(console.error);
 }

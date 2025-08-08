@@ -7,12 +7,9 @@
  * Check if the current environment is a CI environment
  */
 export function isCI(): boolean {
-  return (
-    process.env.CI === 'true' ||
-    process.env.GITHUB_ACTIONS === 'true' ||
-    process.env.VERCEL === 'true' ||
-    process.env.VERCEL === '1' // Added for consistency with scripts
-  );
+  // CI should reflect build/test pipelines (e.g., GitHub Actions), not production runtimes.
+  // Do NOT treat Vercel runtime as CI, or app code may skip critical initialization in prod.
+  return process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true';
 }
 
 /**

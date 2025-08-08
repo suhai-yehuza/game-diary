@@ -64,13 +64,13 @@ describe('Environment Loader Utils', () => {
       );
     });
 
-    it('skips loading in Vercel environment', () => {
+    it('does not treat Vercel as CI and attempts .env loading', () => {
       process.env.VERCEL = 'true';
 
       loadEnvironmentVariables();
 
       expect(mockConsole.log).toHaveBeenCalledWith(
-        '🔧 CI environment detected, skipping .env file loading'
+        '⚠️  No .env files found, using system environment variables'
       );
     });
 
