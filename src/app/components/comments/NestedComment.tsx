@@ -117,7 +117,7 @@ export function NestedComment({
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                    <MoreHorizontal className="h-4 w-4" />
+                    <MoreHorizontal className="h-4 w-4 text-gray-600 dark:text-white" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">

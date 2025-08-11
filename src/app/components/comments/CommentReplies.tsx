@@ -46,8 +46,18 @@ export function CommentReplies({
             onReply={onReply}
             onEdit={onEdit}
             onDelete={onDelete}
-            maxDepth={maxDepth}
+            maxDepth={maxDepth - 1}
           />
+          {/* Render replies to this reply if we haven't reached max depth */}
+          {maxDepth > 1 && reply.totalChildCommentCount && reply.totalChildCommentCount > 0 && (
+            <CommentReplies
+              commentId={reply.id}
+              maxDepth={maxDepth - 1}
+              onReply={onReply}
+              onEdit={onEdit}
+              onDelete={onDelete}
+            />
+          )}
         </div>
       ))}
 

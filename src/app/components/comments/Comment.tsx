@@ -125,7 +125,7 @@ export function Comment({
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                    <MoreHorizontal className="h-4 w-4" />
+                    <MoreHorizontal className="h-4 w-4 text-gray-600 dark:text-white" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
@@ -165,8 +165,10 @@ export function Comment({
                 className="text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"
               >
                 <MessageCircle className="h-4 w-4 mr-1" />
-                {displayComment.totalChildCommentCount}{' '}
-                {displayComment.totalChildCommentCount === 1 ? 'reply' : 'replies'}
+                <span className="text-gray-900 dark:text-white">
+                  {displayComment.totalChildCommentCount}{' '}
+                  {displayComment.totalChildCommentCount === 1 ? 'reply' : 'replies'}
+                </span>
               </Button>
             )}
 
@@ -187,7 +189,7 @@ export function Comment({
                     size="sm"
                     className="text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"
                   >
-                    <MoreHorizontal className="h-4 w-4" />
+                    <MoreHorizontal className="h-4 w-4 text-gray-600 dark:text-white" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">

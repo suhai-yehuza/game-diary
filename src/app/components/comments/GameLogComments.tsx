@@ -118,7 +118,7 @@ export function GameLogComments({
         <div className="flex items-center space-x-2">
           <MessageCircle className="h-5 w-5 text-gray-600 dark:text-gray-400" />
           <span className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-            Comments ({commentCount})
+            Comments {commentCount > 0 ? `(${commentCount})` : ''}
           </span>
         </div>
         <div className="flex items-center space-x-2">
