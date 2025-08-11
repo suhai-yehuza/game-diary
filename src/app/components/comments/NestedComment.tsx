@@ -147,10 +147,13 @@ export function NestedComment({
                   Reply
                 </Button>
               )}
-              <div className="flex items-center space-x-1 text-gray-500">
-                <MessageCircle className="h-4 w-4" />
-                <span className="text-xs">← Reply</span>
-              </div>
+              {/* Only show reply indicator if there are replies */}
+              {comment.totalChildCommentCount && comment.totalChildCommentCount > 0 && (
+                <div className="flex items-center space-x-1 text-gray-500">
+                  <MessageCircle className="h-4 w-4" />
+                  <span className="text-xs">← Reply</span>
+                </div>
+              )}
             </div>
 
             {/* Reactions */}

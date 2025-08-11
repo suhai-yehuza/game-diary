@@ -219,28 +219,31 @@ export function Comment({
             </div>
           )}
 
-          {/* Always show replies section - CommentReplies will handle fetching */}
-          <div className="mt-3">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowRepliesState(!showRepliesState)}
-              className="text-gray-600 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400"
-            >
-              {showRepliesState ? 'Hide' : 'Show'} replies
-            </Button>
-            {showRepliesState && (
-              <div className="mt-2 space-y-2">
-                <CommentReplies
-                  commentId={displayComment.id}
-                  maxDepth={maxDepth}
-                  onReply={onReply}
-                  onEdit={onEdit}
-                  onDelete={onDelete}
-                />
-              </div>
-            )}
-          </div>
+          {/* Show replies section only if there are replies or if replies are currently shown */}
+          {(displayComment.totalChildCommentCount && displayComment.totalChildCommentCount > 0) ||
+          showRepliesState ? (
+            <div className="mt-3">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowRepliesState(!showRepliesState)}
+                className="text-gray-600 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400"
+              >
+                {showRepliesState ? 'Hide' : 'Show'} replies
+              </Button>
+              {showRepliesState && (
+                <div className="mt-2 space-y-2">
+                  <CommentReplies
+                    commentId={displayComment.id}
+                    maxDepth={maxDepth}
+                    onReply={onReply}
+                    onEdit={onEdit}
+                    onDelete={onDelete}
+                  />
+                </div>
+              )}
+            </div>
+          ) : null}
         </CardContent>
       </Card>
     </div>
