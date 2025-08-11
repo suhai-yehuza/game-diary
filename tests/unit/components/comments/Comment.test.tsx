@@ -143,7 +143,7 @@ describe('Comment', () => {
     expect(avatar).toBeInTheDocument();
   });
 
-  it('should show "U" when neither first name nor username is available', () => {
+  it('should show "u" when username is "unknown"', () => {
     const commentWithoutName = {
       ...mockComment,
       user: {
@@ -155,11 +155,11 @@ describe('Comment', () => {
 
     render(<Comment comment={commentWithoutName} />);
 
-    const avatar = screen.getByText('U');
+    const avatar = screen.getByText('u');
     expect(avatar).toBeInTheDocument();
   });
 
-  it('should show "Unknown User" when user name is not available', () => {
+  it('should show "unknown" when username is "unknown"', () => {
     const commentWithoutName = {
       ...mockComment,
       user: {
@@ -171,7 +171,7 @@ describe('Comment', () => {
 
     render(<Comment comment={commentWithoutName} />);
 
-    expect(screen.getByText('Unknown User')).toBeInTheDocument();
+    expect(screen.getByText('unknown')).toBeInTheDocument();
   });
 
   it('should show edited indicator when comment was updated', () => {

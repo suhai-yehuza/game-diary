@@ -1,5 +1,5 @@
 // Shared coverage configuration
-export const COVERAGE_THRESHOLD = 60; // adjusted to current coverage level
+export const COVERAGE_THRESHOLD = 70; // bumped to 70% threshold
 
 export interface ICoverageThresholds {
   branches: number;
