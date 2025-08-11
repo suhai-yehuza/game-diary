@@ -110,7 +110,7 @@ export function CommentForm({
             onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setContent(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder={placeholder}
-            className="min-h-[80px] resize-none border-gray-300 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-400"
+            className="min-h-[80px] resize-none border-gray-300 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-400 text-gray-900 dark:text-white"
             disabled={loading}
           />
           <div className="flex items-center justify-between mt-2">
