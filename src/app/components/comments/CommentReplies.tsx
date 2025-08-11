@@ -5,6 +5,7 @@
 import { NestedComment } from '@/app/components/comments/NestedComment';
 import { Button } from '@/app/components/ui/button';
 import { useCommentReplies } from '@/hooks/use-comments';
+import { API_CONFIG } from '@/lib/config/app.config';
 
 interface ICommentRepliesProps {
   commentId: string;
@@ -16,7 +17,7 @@ interface ICommentRepliesProps {
 
 export function CommentReplies({
   commentId,
-  maxDepth = 5,
+  maxDepth = API_CONFIG.pagination.MAX_CHILD_COMMENT_DEPTH,
   onReply,
   onEdit,
   onDelete,

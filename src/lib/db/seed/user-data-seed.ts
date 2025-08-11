@@ -444,8 +444,8 @@ function generateNestedComments(
   currentDepth: number,
   config: ISeedingConfig
 ) {
-  // Stop at depth 5 (max allowed)
-  if (currentDepth >= 5) return;
+  // Stop at depth 10 (max allowed)
+  if (currentDepth >= 10) return;
 
   // Generate 1-2 replies to this comment
   const replyCount = faker.number.int({ min: 1, max: 2 });

@@ -379,7 +379,7 @@ ALTER TABLE "game_logs" ADD CONSTRAINT "game_logs_watched_scope_check"
 
 -- Comment constraints
 ALTER TABLE "comments" ADD CONSTRAINT "comments_depth_check"
-    CHECK (depth >= 0 AND depth <= 5);
+    CHECK (depth >= 0 AND depth <= 10);
 
 ALTER TABLE "comments" ADD CONSTRAINT "comments_parent_type_check"
     CHECK (parent_type IN ('GAME_LOG', 'COMMENT'));

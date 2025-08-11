@@ -5,7 +5,7 @@ This directory contains SQL migration files for the game diary application.
 ## Migration Files
 
 1. **000_optimized_triggers_and_constraints.sql** - Comprehensive database setup including:
-   - Comment depth field for nested comments (0-5 levels)
+   - Comment depth field for nested comments (0-10 levels)
    - Game ratings triggers
    - Friendship notification triggers
    - Comment notification triggers
@@ -108,7 +108,7 @@ This comprehensive migration includes all triggers and optimizations:
 The migration includes support for nested comments with depth tracking:
 
 - Adds `depth` integer column to comments table (default: 0)
-- Adds constraint to limit depth to 0-5 levels
+- Adds constraint to limit depth to 0-10 levels
 - Creates index on depth for efficient querying
 - Updates existing comments to depth 0 (top-level)
-- Enables threaded comment conversations up to 5 levels deep
+- Enables threaded comment conversations up to 10 levels deep

@@ -16,6 +16,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/app/components/ui/DropdownMenu';
+import { API_CONFIG } from '@/lib/config/app.config';
 import type { ICommentProps, IComment } from '@/lib/types';
 import { ParentType } from '@/lib/types/generated/graphql';
 
@@ -25,7 +26,7 @@ export function Comment({
   onEdit,
   onDelete,
   showReplies = false,
-  maxDepth = 5,
+  maxDepth = API_CONFIG.pagination.MAX_CHILD_COMMENT_DEPTH,
 }: ICommentProps) {
   const { user } = useUser();
   const [isEditing, setIsEditing] = useState(false);

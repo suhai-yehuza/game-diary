@@ -5,7 +5,7 @@ This directory contains the implementation of CRUD comments and nested/child com
 ## Features
 
 - **CRUD Operations**: Create, Read, Update, Delete comments
-- **Nested Comments**: Support for up to 5 levels of nested replies
+- **Nested Comments**: Support for up to 10 levels of nested replies
 - **Lazy Loading**: Load comments on demand with pagination
 - **Reactions**: Users can react to comments and game logs with emojis
 - **Modern UI/UX**: Clean, responsive design with dark mode support
@@ -160,7 +160,7 @@ The feature uses the following configuration from `app.config.ts`:
 ```typescript
 pagination: {
   DEFAULT_COMMENT_PAGE_SIZE: 10,
-  MAX_CHILD_COMMENT_DEPTH: 3,
+  MAX_CHILD_COMMENT_DEPTH: 10,
 }
 ```
 

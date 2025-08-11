@@ -15,6 +15,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/app/components/ui/DropdownMenu';
+import { API_CONFIG } from '@/lib/config/app.config';
 import type { IComment } from '@/lib/types';
 import { ParentType } from '@/lib/types/generated/graphql';
 
@@ -31,7 +32,7 @@ export function NestedComment({
   onReply,
   onEdit,
   onDelete,
-  maxDepth = 5,
+  maxDepth = API_CONFIG.pagination.MAX_CHILD_COMMENT_DEPTH,
 }: INestedCommentProps) {
   const { user } = useUser();
   const [isEditing, setIsEditing] = useState(false);

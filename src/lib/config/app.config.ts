@@ -174,7 +174,7 @@ export const API_CONFIG = {
     DEFAULT_GAME_LOG_PAGE_SIZE: 100,
     DEFAULT_COMMENT_PAGE_SIZE: 10,
     HUGE_SIZE: 10000,
-    MAX_CHILD_COMMENT_DEPTH: 3,
+    MAX_CHILD_COMMENT_DEPTH: 10,
     DEFAULT_SORT_DIRECTION: 'DESC' as const,
   } as const satisfies IPaginationConfig,
 } as const;
