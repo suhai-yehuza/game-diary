@@ -23,7 +23,6 @@ export function GameLogComments({
 }: IGameLogCommentsProps) {
   const [isExpanded, setIsExpanded] = useState(showComments);
   const [showCommentForm, setShowCommentForm] = useState(false);
-  const [hasLoadedComments, setHasLoadedComments] = useState(false);
   const [optimisticDeletedComments, setOptimisticDeletedComments] = useState<Set<string>>(
     new Set()
   );
@@ -38,6 +37,7 @@ export function GameLogComments({
     commentsHasNextPage: hasNextPage,
     loadMoreComments,
     refetch,
+    commentsTotalCount,
   } = useGameLogComments(gameLog.id, isExpanded ? 5 : 0);
 
   const { deleteComment } = useDeleteComment();
@@ -46,7 +46,6 @@ export function GameLogComments({
   const handleToggleExpanded = () => {
     const newExpanded = !isExpanded;
     setIsExpanded(newExpanded);
-    setHasLoadedComments(true); // Mark as loaded when user expands
     onToggleComments?.(newExpanded);
   };
 
@@ -109,7 +108,9 @@ export function GameLogComments({
 
   // Get comment count from game log data or from loaded comments
   const commentCount =
-    isExpanded && hasLoadedComments ? visibleComments.length : (gameLog.totalCommentCount ?? 0);
+    isExpanded && commentsTotalCount !== undefined
+      ? commentsTotalCount
+      : (gameLog.totalCommentCount ?? 0);
 
   return (
     <div className="p-4">
