@@ -1,28 +1,25 @@
 'use client';
 
 import { useUser } from '@clerk/nextjs';
-import { Search, UserPlus, UserX, Check, X, MoreHorizontal } from 'lucide-react';
-import Image from 'next/image';
+import { Search, UserPlus } from 'lucide-react';
 import React, { useState, useCallback } from 'react';
 import { toast } from 'sonner';
 
 import { Button } from '@/app/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/Card';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/app/components/ui/DropdownMenu';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/app/components/ui/Tabs';
 import {
   useFriendships,
   useFriendshipRequests,
   useUserSearch,
   useFriendshipMutations,
-  useFriendshipStatus,
 } from '@/hooks/use-friendships';
 import type { IFriendship, IUserSummary } from '@/lib/types';
+
+import { FriendRequestCard as FriendRequestCardComponent } from './FriendRequestCard';
+import { FriendshipCard as FriendshipCardComponent } from './FriendshipCard';
+import { PendingFriendshipCard as PendingFriendshipCardComponent } from './PendingFriendshipCard';
+import { UserSearchResultCard } from './UserSearchResultCard';
 
 export function FriendsTable() {
   const { user } = useUser();
@@ -152,9 +149,7 @@ export function FriendsTable() {
     }
   }, [search, userSearchTerm]);
 
-  const handleRemoveFromSearchResults = useCallback((userId: string) => {
-    setSearchResults(prev => prev.filter(user => user.id !== userId));
-  }, []);
+  // kept intentionally minimal; search results are fully controlled by local state
 
   const handleSearchKeyPress = useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -256,13 +251,12 @@ export function FriendsTable() {
                   Found {searchResults.length} user{searchResults.length !== 1 ? 's' : ''}
                 </div>
                 {searchResults.map((userResult: IUserSummary) => (
-                  <UserSearchResult
+                  <UserSearchResultCard
                     key={userResult.id}
                     user={userResult}
                     currentUserId={user.id}
                     onSendRequest={handleSendFriendRequest}
                     onRemoveFriend={handleRemoveFriend}
-                    _onRemoveFromResults={handleRemoveFromSearchResults}
                     loading={mutationsLoading}
                   />
                 ))}
@@ -341,7 +335,7 @@ export function FriendsTable() {
           ) : (
             <div className="space-y-2">
               {filteredFriendships.map((friendship: IFriendship) => (
-                <FriendshipCard
+                <FriendshipCardComponent
                   key={friendship.id}
                   friendship={friendship}
                   currentUserId={user.id}
@@ -367,7 +361,7 @@ export function FriendsTable() {
           ) : (
             <div className="space-y-2">
               {requests.map((request: IFriendship) => (
-                <FriendRequestCard
+                <FriendRequestCardComponent
                   key={request.id}
                   request={request}
                   onAccept={handleAcceptRequest}
@@ -389,7 +383,7 @@ export function FriendsTable() {
               {pendingFriendships
                 .filter((f: IFriendship) => f.initiator?.id === user.id)
                 .map((pending: IFriendship) => (
-                  <PendingFriendshipCard
+                  <PendingFriendshipCardComponent
                     key={pending.id}
                     pending={pending}
                     onWithdraw={handleRemoveFriend}
@@ -402,458 +396,5 @@ export function FriendsTable() {
         </TabsContent>
       </Tabs>
     </div>
-  );
-}
-
-// Sub-components
-function FriendshipCard({
-  friendship,
-  currentUserId,
-  onRemove,
-  loading,
-}: {
-  friendship: IFriendship;
-  currentUserId: string;
-  onRemove: (friendshipId: string) => Promise<void>;
-  loading: boolean;
-}) {
-  const friend =
-    friendship.initiator?.id === currentUserId ? friendship.recipient : friendship.initiator;
-  const friendName =
-    (`${friend?.first_name ?? ''} ${friend?.last_name ?? ''}`.trim() || friend?.username) ??
-    'Unknown User';
-  const friendUsername = friend?.username ?? '';
-
-  return (
-    <Card className="hover:bg-gray-800/50 transition-all duration-200 border-gray-700 hover:border-gray-600">
-      <CardContent className="flex items-center justify-between p-4">
-        <div className="flex items-center gap-3">
-          <Image
-            src={friend?.image_url ?? '/avatars/default-user-avatar.svg'}
-            alt={friendName}
-            width={40}
-            height={40}
-            className="w-10 h-10 rounded-full ring-2 ring-gray-600 hover:ring-green-500 transition-all duration-200"
-          />
-          <div>
-            <p className="font-medium text-white">{friendName}</p>
-            <p className="text-sm text-gray-400">@{friendUsername}</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-3">
-          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-500/10 text-green-500 border border-green-500/20">
-            Friends
-          </span>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                disabled={loading}
-                className="hover:bg-gray-700/50 text-gray-400 hover:text-white transition-all duration-200"
-              >
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="bg-gray-800 border-gray-700">
-              <DropdownMenuItem
-                onClick={() => {
-                  void onRemove(friendship.id);
-                }}
-                className="text-red-400 hover:text-red-300 hover:bg-red-500/10 focus:bg-red-500/10"
-              >
-                <UserX className="h-4 w-4 mr-2" />
-                Remove Friend
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-function FriendRequestCard({
-  request,
-  onAccept,
-  onReject,
-  loading,
-}: {
-  request: IFriendship;
-  onAccept: (friendshipId: string) => Promise<void>;
-  onReject: (friendshipId: string) => Promise<void>;
-  loading: boolean;
-}) {
-  const requester = request.initiator;
-  const requesterName =
-    (`${requester?.first_name ?? ''} ${requester?.last_name ?? ''}`.trim() ||
-      requester?.username) ??
-    'Unknown User';
-  const requesterUsername = requester?.username ?? '';
-
-  return (
-    <Card className="hover:bg-gray-800/50 transition-all duration-200 border-gray-700 hover:border-gray-600">
-      <CardContent className="flex items-center justify-between p-4">
-        <div className="flex items-center gap-3">
-          <Image
-            src={requester?.image_url ?? '/avatars/default-user-avatar.svg'}
-            alt={requesterName}
-            width={40}
-            height={40}
-            className="w-10 h-10 rounded-full ring-2 ring-gray-600 hover:ring-blue-500 transition-all duration-200"
-          />
-          <div>
-            <p className="font-medium text-white">{requesterName}</p>
-            <p className="text-sm text-gray-400">@{requesterUsername}</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-3">
-          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-500/10 text-blue-500 border border-blue-500/20">
-            Incoming Request
-          </span>
-          <div className="flex gap-2">
-            <Button
-              size="sm"
-              onClick={() => {
-                void onAccept(request.id);
-              }}
-              disabled={loading}
-              className="bg-green-600 hover:bg-green-700 disabled:bg-gray-600 text-white font-medium px-3 py-2 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md flex items-center gap-2"
-            >
-              {loading ? (
-                <div className="animate-spin rounded-full h-3 w-3 border-2 border-white border-t-transparent" />
-              ) : (
-                <Check className="h-4 w-4" />
-              )}
-              Accept
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => {
-                void onReject(request.id);
-              }}
-              disabled={loading}
-              className="text-red-500 border-red-500 hover:bg-red-500/10 hover:border-red-400 transition-all duration-200 px-3 py-2 rounded-lg font-medium shadow-sm hover:shadow-md flex items-center gap-2"
-            >
-              {loading ? (
-                <div className="animate-spin rounded-full h-3 w-3 border-2 border-red-500 border-t-transparent" />
-              ) : (
-                <X className="h-4 w-4" />
-              )}
-              Reject
-            </Button>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-function PendingFriendshipCard({
-  pending,
-  onWithdraw,
-  loading,
-  onSendRequest,
-}: {
-  pending: IFriendship;
-  onWithdraw: (friendshipId: string, context?: 'cancel-request' | 'remove-friend') => Promise<void>;
-  loading: boolean;
-  onSendRequest: (friendId: string) => Promise<void>;
-}) {
-  const [isOperating, setIsOperating] = useState(false);
-  const [requestCancelled, setRequestCancelled] = useState(false);
-  const recipient = pending.recipient;
-  const recipientName =
-    (`${recipient?.first_name ?? ''} ${recipient?.last_name ?? ''}`.trim() ||
-      recipient?.username) ??
-    'Unknown User';
-  const recipientUsername = recipient?.username ?? '';
-
-  const handleCancelRequest = async () => {
-    setIsOperating(true);
-    try {
-      await onWithdraw(pending.id, 'cancel-request');
-      setRequestCancelled(true);
-    } catch (error) {
-      console.error('Error canceling request:', error);
-    } finally {
-      setIsOperating(false);
-    }
-  };
-
-  const handleSendRequest = async () => {
-    if (!recipient?.id) {
-      toast.error('Invalid recipient');
-      return;
-    }
-
-    setIsOperating(true);
-    try {
-      await onSendRequest(recipient.id);
-      setRequestCancelled(false);
-      // Toast is handled by the parent component (handleSendFriendRequest)
-    } catch (error) {
-      console.error('Error sending request:', error);
-      toast.error('Failed to send friend request');
-    } finally {
-      setIsOperating(false);
-    }
-  };
-
-  // If request was cancelled, show "Add Friend" button
-  if (requestCancelled) {
-    return (
-      <Card className="hover:bg-gray-800/50 transition-all duration-200 border-gray-700 hover:border-gray-600">
-        <CardContent className="flex items-center justify-between p-4">
-          <div className="flex items-center gap-3">
-            <Image
-              src={recipient?.image_url ?? '/avatars/default-user-avatar.svg'}
-              alt={recipientName}
-              width={40}
-              height={40}
-              className="w-10 h-10 rounded-full ring-2 ring-gray-600 hover:ring-blue-500 transition-all duration-200"
-            />
-            <div>
-              <p className="font-medium text-white">{recipientName}</p>
-              <p className="text-sm text-gray-400">@{recipientUsername}</p>
-            </div>
-          </div>
-          <Button
-            size="sm"
-            onClick={() => {
-              void handleSendRequest();
-            }}
-            disabled={loading || isOperating}
-            className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-medium px-4 py-2 rounded-lg transition-all duration-300 shadow-sm hover:shadow-md flex items-center gap-2 transform hover:scale-105 whitespace-nowrap"
-          >
-            {loading || isOperating ? (
-              <div className="animate-spin rounded-full h-3 w-3 border-2 border-white border-t-transparent mr-2" />
-            ) : (
-              <UserPlus className="h-3 w-3" />
-            )}
-            Add Friend
-          </Button>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  return (
-    <Card className="hover:bg-gray-800/50 transition-all duration-200 border-gray-700 hover:border-gray-600">
-      <CardContent className="flex items-center justify-between p-4">
-        <div className="flex items-center gap-3">
-          <Image
-            src={recipient?.image_url ?? '/avatars/default-user-avatar.svg'}
-            alt={recipientName}
-            width={40}
-            height={40}
-            className="w-10 h-10 rounded-full ring-2 ring-gray-600 hover:ring-orange-500 transition-all duration-200"
-          />
-          <div>
-            <p className="font-medium text-white">{recipientName}</p>
-            <p className="text-sm text-gray-400">@{recipientUsername}</p>
-          </div>
-        </div>
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={() => {
-            void handleCancelRequest();
-          }}
-          disabled={loading || isOperating}
-          className="text-orange-500 border-orange-500 hover:bg-orange-500/10 hover:border-orange-400 transition-all duration-300 px-4 py-2 rounded-lg font-medium shadow-sm hover:shadow-md transform hover:scale-105 flex items-center gap-2 whitespace-nowrap"
-        >
-          {loading || isOperating ? (
-            <div className="animate-spin rounded-full h-3 w-3 border-2 border-orange-500 border-t-transparent mr-2" />
-          ) : (
-            <UserX className="h-3 w-3" />
-          )}
-          Cancel Request
-        </Button>
-      </CardContent>
-    </Card>
-  );
-}
-
-function UserSearchResult({
-  user,
-  currentUserId,
-  onSendRequest,
-  onRemoveFriend,
-  _onRemoveFromResults,
-  loading,
-}: {
-  user: IUserSummary;
-  currentUserId: string;
-  onSendRequest: (friendId: string, refetchStatus?: () => void) => Promise<void>;
-  onRemoveFriend: (
-    friendshipId: string,
-    context?: 'cancel-request' | 'remove-friend'
-  ) => Promise<void>;
-  _onRemoveFromResults?: (userId: string) => void;
-  loading: boolean;
-}) {
-  const [requestSent, setRequestSent] = useState(false);
-  const [currentFriendshipId, setCurrentFriendshipId] = useState<string | null>(null);
-  const [isOperating, setIsOperating] = useState(false);
-  const validUserId = user.id?.trim();
-  const friendshipStatus = useFriendshipStatus(validUserId || '');
-  const { status } = friendshipStatus;
-  const userName =
-    (`${user.first_name ?? ''} ${user.last_name ?? ''}`.trim() || user.username) ?? 'Unknown User';
-  const userUsername = user.username ?? '';
-
-  const handleSendRequest = async () => {
-    setIsOperating(true);
-    setRequestSent(true);
-    try {
-      await onSendRequest(user.id, () => {
-        void friendshipStatus.refetch();
-      });
-
-      // After sending request, refetch to get the new friendship status
-      const refetchResult = await friendshipStatus.refetch();
-
-      // Store the friendship ID from the refetched status
-      if (refetchResult?.data?.friendshipStatus?.friendshipId) {
-        setCurrentFriendshipId(refetchResult.data.friendshipStatus.friendshipId);
-      }
-
-      // Toast is handled by the parent component (handleSendFriendRequest)
-    } catch {
-      // If the request fails, reset the local state
-      setRequestSent(false);
-      toast.error('Failed to send friend request');
-    } finally {
-      setIsOperating(false);
-    }
-  };
-
-  const handleCancelRequest = async () => {
-    const friendshipId = currentFriendshipId || status?.friendshipId;
-
-    if (!friendshipId) {
-      toast.error('No friendship found to cancel');
-      return;
-    }
-
-    try {
-      setIsOperating(true);
-      await onRemoveFriend(friendshipId, 'cancel-request');
-
-      // Immediately update local state
-      setRequestSent(false);
-      setCurrentFriendshipId(null);
-
-      // Force refetch to sync with database
-      await friendshipStatus.refetch();
-    } catch (error) {
-      console.error('Error canceling request:', error);
-    } finally {
-      setIsOperating(false);
-    }
-  };
-
-  // Initialize local state based on server state and sync with changes
-  React.useEffect(() => {
-    if (isOperating) {
-      return; // Don't update during operations
-    }
-
-    // Only update if we have a clear server state that differs from our local state
-    if (status?.status === 'PENDING' && status?.isInitiator && !requestSent) {
-      setRequestSent(true);
-      setCurrentFriendshipId(status.friendshipId || null);
-    } else if ((status?.status === 'ACCEPTED' || status?.status === 'REJECTED') && requestSent) {
-      setRequestSent(false);
-      setCurrentFriendshipId(null);
-    }
-    // Don't update when status is null - let local state take precedence
-  }, [status?.status, status?.isInitiator, status?.friendshipId, isOperating, requestSent]);
-
-  const getActionButton = () => {
-    if (user.id === currentUserId) {
-      return <span className="text-sm text-gray-400 italic">This is you</span>;
-    }
-
-    // Show status badges for accepted friendships
-    if (status?.status === 'ACCEPTED') {
-      return (
-        <span className="text-sm text-green-500 font-medium bg-green-500/10 px-3 py-1 rounded-full border border-green-500/20">
-          Friends
-        </span>
-      );
-    }
-
-    // Show status badges for pending requests (non-initiator)
-    if (status?.status === 'PENDING' && !status?.isInitiator) {
-      return (
-        <span className="text-sm text-blue-500 font-medium bg-blue-500/10 px-3 py-1 rounded-full border border-blue-500/20">
-          Request Received
-        </span>
-      );
-    }
-
-    // Show toggle-able buttons for all other cases - check both local and server state
-    const shouldShowCancel = requestSent || (status?.status === 'PENDING' && status?.isInitiator);
-
-    if (shouldShowCancel) {
-      return (
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={() => {
-            void handleCancelRequest();
-          }}
-          disabled={loading}
-          className="text-yellow-500 border-yellow-500 hover:bg-yellow-500/10 hover:border-yellow-400 transition-all duration-300 px-4 py-2 rounded-lg font-medium shadow-sm hover:shadow-md transform hover:scale-105 flex items-center gap-2 whitespace-nowrap"
-        >
-          {loading ? (
-            <div className="animate-spin rounded-full h-3 w-3 border-2 border-yellow-500 border-t-transparent mr-2" />
-          ) : null}
-          Cancel Request
-        </Button>
-      );
-    } else {
-      return (
-        <Button
-          size="sm"
-          onClick={() => {
-            void handleSendRequest();
-          }}
-          disabled={loading}
-          className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-medium px-4 py-2 rounded-lg transition-all duration-300 shadow-sm hover:shadow-md flex items-center gap-2 transform hover:scale-105 whitespace-nowrap"
-        >
-          {loading ? (
-            <div className="animate-spin rounded-full h-3 w-3 border-2 border-white border-t-transparent mr-2" />
-          ) : (
-            <UserPlus className="h-3 w-3" />
-          )}
-          Add Friend
-        </Button>
-      );
-    }
-  };
-
-  return (
-    <Card className="hover:bg-gray-800/50 transition-all duration-200 border-gray-700 hover:border-gray-600">
-      <CardContent className="flex items-center justify-between p-4">
-        <div className="flex items-center gap-3">
-          <Image
-            src={user.image_url ?? '/avatars/default-user-avatar.svg'}
-            alt={userName}
-            width={40}
-            height={40}
-            className="w-10 h-10 rounded-full ring-2 ring-gray-600 hover:ring-blue-500 transition-all duration-200"
-          />
-          <div>
-            <p className="font-medium text-white">{userName}</p>
-            <p className="text-sm text-gray-400">@{userUsername}</p>
-          </div>
-        </div>
-        {getActionButton()}
-      </CardContent>
-    </Card>
   );
 }
