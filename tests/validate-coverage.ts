@@ -3,7 +3,11 @@
 import { execSync } from 'child_process';
 import * as fs from 'fs';
 
-import { getCoverageThresholds, type ICoverageThresholds } from '@/lib/config/coverage';
+import {
+  getCoverageConfig,
+  type ICoverageThresholds,
+  type IFileThresholds,
+} from '@/lib/config/coverage';
 
 const COVERAGE_REPORT_PATH = './coverage/coverage-final.json';
 
@@ -16,11 +20,26 @@ interface ICoverageSummary {
   };
 }
 
-// Enhanced logging functions
-function log(message: string): void {
-  console.log(`🔍 ${message}`);
+interface IFileCoverage {
+  [filePath: string]: {
+    s: { [key: string]: number }; // statements
+    f: { [key: string]: number }; // functions
+    b: { [key: string]: number[] }; // branches
+    l: { [key: string]: number }; // lines
+  };
 }
 
+interface IFileCoverageResult {
+  filePath: string;
+  statements: { total: number; covered: number; percentage: number };
+  functions: { total: number; covered: number; percentage: number };
+  branches: { total: number; covered: number; percentage: number };
+  lines: { total: number; covered: number; percentage: number };
+  thresholds: ICoverageThresholds;
+  meetsThresholds: boolean;
+}
+
+// Enhanced logging functions
 function logInfo(message: string): void {
   console.log(`ℹ️  ${message}`);
 }
@@ -33,15 +52,19 @@ function logError(message: string): void {
   console.error(`❌ ${message}`);
 }
 
-function parseCoverageReport(): ICoverageSummary | null {
+function logWarning(message: string): void {
+  console.log(`⚠️  ${message}`);
+}
+
+function parseCoverageReport(): { summary: ICoverageSummary | null; files: IFileCoverage | null } {
   try {
     if (!fs.existsSync(COVERAGE_REPORT_PATH)) {
-      logError('Coverage report not found at: ' + COVERAGE_REPORT_PATH);
+      logWarning('Coverage report not found at: ' + COVERAGE_REPORT_PATH);
       logInfo('Make sure to run tests with coverage first: pnpm test:unit --coverage');
-      return null;
+      return { summary: null, files: null };
     }
 
-    const coverageData = JSON.parse(fs.readFileSync(COVERAGE_REPORT_PATH, 'utf8'));
+    const coverageData: IFileCoverage = JSON.parse(fs.readFileSync(COVERAGE_REPORT_PATH, 'utf8'));
 
     // Calculate totals from only src directory files
     let totalStatements = 0;
@@ -82,7 +105,7 @@ function parseCoverageReport(): ICoverageSummary | null {
       coveredLines += statements.filter((count: any) => count > 0).length;
     }
 
-    return {
+    const summary: ICoverageSummary = {
       total: {
         statements: {
           pct: totalStatements > 0 ? (coveredStatements / totalStatements) * 100 : 100,
@@ -92,14 +115,115 @@ function parseCoverageReport(): ICoverageSummary | null {
         lines: { pct: totalLines > 0 ? (coveredLines / totalLines) * 100 : 100 },
       },
     };
+
+    return { summary, files: coverageData };
   } catch (error) {
     logError('Error parsing coverage report: ' + (error as Error).message);
-    return null;
+    return { summary: null, files: null };
   }
 }
 
+function calculateFileCoverage(filePath: string, fileData: any): IFileCoverageResult {
+  // Count statements
+  const statements = Object.values(fileData.s || {});
+  const totalStatements = statements.length;
+  const coveredStatements = statements.filter((count: any) => count > 0).length;
+
+  // Count functions
+  const functions = Object.values(fileData.f || {});
+  const totalFunctions = functions.length;
+  const coveredFunctions = functions.filter((count: any) => count > 0).length;
+
+  // Count branches
+  const branches = Object.values(fileData.b || {}).flat();
+  const totalBranches = branches.length;
+  const coveredBranches = branches.filter((count: any) => count > 0).length;
+
+  // Count lines (same as statements for v8)
+  const totalLines = totalStatements;
+  const coveredLines = coveredStatements;
+
+  return {
+    filePath,
+    statements: {
+      total: totalStatements,
+      covered: coveredStatements,
+      percentage: totalStatements > 0 ? (coveredStatements / totalStatements) * 100 : 100,
+    },
+    functions: {
+      total: totalFunctions,
+      covered: coveredFunctions,
+      percentage: totalFunctions > 0 ? (coveredFunctions / totalFunctions) * 100 : 100,
+    },
+    branches: {
+      total: totalBranches,
+      covered: coveredBranches,
+      percentage: totalBranches > 0 ? (coveredBranches / totalBranches) * 100 : 100,
+    },
+    lines: {
+      total: totalLines,
+      covered: coveredLines,
+      percentage: totalLines > 0 ? (coveredLines / totalLines) * 100 : 100,
+    },
+    thresholds: { lines: 0, statements: 0, branches: 0, functions: 0, base: 0 },
+    meetsThresholds: true,
+  };
+}
+
+function getFileThresholds(filePath: string, fileThresholds: IFileThresholds): ICoverageThresholds {
+  // Find the matching pattern for this file
+  for (const pattern in fileThresholds) {
+    if (filePath.includes(pattern.replace('**/*.{ts,tsx}', ''))) {
+      return fileThresholds[pattern];
+    }
+  }
+
+  // Default thresholds if no pattern matches
+  return {
+    lines: 80,
+    statements: 80,
+    branches: 79,
+    functions: 71,
+    base: 80,
+  };
+}
+
+function validateFileCoverage(
+  files: IFileCoverage,
+  fileThresholds: IFileThresholds
+): IFileCoverageResult[] {
+  const results: IFileCoverageResult[] = [];
+
+  for (const filePath in files) {
+    // Only include files from the src directory
+    if (!filePath.includes('/src/') && !filePath.includes('\\src\\')) {
+      continue;
+    }
+
+    const fileData = files[filePath];
+    if (!fileData) continue;
+
+    const fileCoverage = calculateFileCoverage(filePath, fileData);
+    const thresholds = getFileThresholds(filePath, fileThresholds);
+
+    fileCoverage.thresholds = thresholds;
+
+    // Check if file meets all thresholds
+    const meetsThresholds =
+      fileCoverage.statements.percentage >= thresholds.statements &&
+      fileCoverage.functions.percentage >= thresholds.functions &&
+      fileCoverage.branches.percentage >= thresholds.branches &&
+      fileCoverage.lines.percentage >= thresholds.lines;
+
+    fileCoverage.meetsThresholds = meetsThresholds;
+    results.push(fileCoverage);
+  }
+
+  return results;
+}
+
 function runVitestWithCoverage(): void {
-  log('Running tests with coverage using Vitest...');
+  logInfo('Running tests with coverage using Vitest...');
 
   try {
     // Run vitest with coverage - only unit tests to avoid server dependencies
@@ -117,18 +241,18 @@ function runVitestWithCoverage(): void {
 }
 
 function validateCoverageThresholds(thresholds: ICoverageThresholds): boolean {
-  log('Validating coverage thresholds...');
+  logInfo('Validating overall coverage thresholds...');
 
-  const coverageSummary = parseCoverageReport();
-  if (!coverageSummary) {
+  const { summary } = parseCoverageReport();
+  if (!summary) {
     logError('Could not parse coverage report');
     return false;
   }
 
-  const { total } = coverageSummary;
+  const { total } = summary;
   let allThresholdsMet = true;
 
-  console.log('\n📊 Coverage Results:');
+  console.log('\n📊 Overall Coverage Results:');
   console.log(
     `   Statements: ${total.statements.pct.toFixed(2)}% (threshold: ${thresholds.statements}%)`
   );
@@ -169,46 +293,107 @@ function validateCoverageThresholds(thresholds: ICoverageThresholds): boolean {
   }
 
   if (allThresholdsMet) {
-    logSuccess('All coverage thresholds met!');
+    logSuccess('All overall coverage thresholds met!');
   } else {
-    logError('Coverage thresholds not met!');
+    logError('Overall coverage thresholds not met!');
   }
 
   return allThresholdsMet;
 }
 
-function displayThresholds(thresholds: ICoverageThresholds): void {
-  log('Coverage Thresholds (from vitest.config.ts):');
+function validateIndividualFileCoverage(fileThresholds: IFileThresholds): boolean {
+  logInfo('Validating individual file coverage thresholds...');
 
-  console.log(`   Base Threshold: ${thresholds.base}%`);
-  console.log(`   Statements: ${thresholds.statements}%`);
-  console.log(`   Functions:  ${thresholds.functions}%`);
-  console.log(`   Branches:   ${thresholds.branches}%`);
-  console.log(`   Lines:      ${thresholds.lines}%`);
+  const { files } = parseCoverageReport();
+  if (!files) {
+    logError('Could not parse coverage report');
+    return false;
+  }
+
+  const fileResults = validateFileCoverage(files, fileThresholds);
+  const failedFiles = fileResults.filter(result => !result.meetsThresholds);
+
+  console.log(`\n📁 File Coverage Results (${fileResults.length} files analyzed):`);
+
+  if (failedFiles.length === 0) {
+    logSuccess('All files meet their coverage thresholds!');
+    return true;
+  }
+
+  logError(`${failedFiles.length} files do not meet their coverage thresholds:`);
+
+  failedFiles.forEach(file => {
+    logInfo(`\n   📄 ${file.filePath}:`);
+    logInfo(
+      `      Statements: ${file.statements.percentage.toFixed(2)}% (threshold: ${file.thresholds.statements}%)`
+    );
+    logInfo(
+      `      Functions:  ${file.functions.percentage.toFixed(2)}% (threshold: ${file.thresholds.functions}%)`
+    );
+    logInfo(
+      `      Branches:   ${file.branches.percentage.toFixed(2)}% (threshold: ${file.thresholds.branches}%)`
+    );
+    logInfo(
+      `      Lines:      ${file.lines.percentage.toFixed(2)}% (threshold: ${file.thresholds.lines}%)`
+    );
+  });
+
+  return false;
+}
+
+function displayThresholds(thresholds: ICoverageThresholds): void {
+  logInfo('Overall Coverage Thresholds:');
+
+  logInfo(`   Base Threshold: ${thresholds.base}%`);
+  logInfo(`   Statements: ${thresholds.statements}%`);
+  logInfo(`   Functions:  ${thresholds.functions}%`);
+  logInfo(`   Branches:   ${thresholds.branches}%`);
+  logInfo(`   Lines:      ${thresholds.lines}%`);
+  logInfo('');
+}
+
+function displayFileThresholds(fileThresholds: IFileThresholds): void {
+  logInfo('File-Specific Coverage Thresholds:');
+
+  for (const pattern in fileThresholds) {
+    const thresholds = fileThresholds[pattern];
+    console.log(`   ${pattern}:`);
+    console.log(`     Statements: ${thresholds.statements}%, Functions: ${thresholds.functions}%`);
+    console.log(`     Branches: ${thresholds.branches}%, Lines: ${thresholds.lines}%`);
+  }
   console.log('');
 }
 
 function main(): void {
-  log('Validating test coverage using single source of truth...');
+  logInfo('Validating test coverage using single source of truth...');
 
-  // Get thresholds from shared configuration
-  const thresholds = getCoverageThresholds();
-  displayThresholds(thresholds);
+  // Get coverage configuration
+  const config = getCoverageConfig();
+  displayThresholds(config.global);
+  displayFileThresholds(config.files);
 
   // Run vitest with coverage
   runVitestWithCoverage();
 
-  // Validate coverage thresholds
-  const thresholdsMet = validateCoverageThresholds(thresholds);
+  // Validate overall coverage thresholds
+  const overallThresholdsMet = validateCoverageThresholds(config.global);
 
-  if (!thresholdsMet) {
+  // Validate individual file coverage thresholds
+  const fileThresholdsMet = validateIndividualFileCoverage(config.files);
+
+  if (!overallThresholdsMet || !fileThresholdsMet) {
     logError('Coverage validation failed!');
-    logError('Some coverage thresholds were not met');
+    if (!overallThresholdsMet) {
+      logError('Overall coverage thresholds were not met');
+    }
+    if (!fileThresholdsMet) {
+      logError('Individual file coverage thresholds were not met');
+    }
     process.exit(1);
   }
 
   logSuccess('Coverage validation passed!');
-  logInfo('All thresholds from shared configuration were met');
+  logInfo('All overall and individual file thresholds were met');
 }
 
 main();

@@ -61,11 +61,91 @@ fi
 # Function to check if server is running
 check_server_running() {
     local port="${1:-3000}"
-    if lsof -i :$port | grep LISTEN > /dev/null 2>&1; then
-        return 0  # Server is running
+
+    echo "[DEBUG] Checking if server is running on port $port..."
+
+    # Method 1: Try lsof if available
+    if command -v lsof >/dev/null 2>&1; then
+        echo "[DEBUG] Trying lsof method..."
+        if lsof -i :$port | grep LISTEN > /dev/null 2>&1; then
+            echo "[DEBUG] Server detected via lsof"
+            return 0  # Server is running
+        fi
     else
-        return 1  # Server is not running
+        echo "[DEBUG] lsof not available"
     fi
+
+    # Method 2: Try netstat if available
+    if command -v netstat >/dev/null 2>&1; then
+        echo "[DEBUG] Trying netstat method..."
+        if netstat -tuln 2>/dev/null | grep ":$port " | grep LISTEN > /dev/null 2>&1; then
+            echo "[DEBUG] Server detected via netstat"
+            return 0  # Server is running
+        fi
+    else
+        echo "[DEBUG] netstat not available"
+    fi
+
+    # Method 3: Try ss if available (modern Linux)
+    if command -v ss >/dev/null 2>&1; then
+        echo "[DEBUG] Trying ss method..."
+        if ss -tuln 2>/dev/null | grep ":$port " | grep LISTEN > /dev/null 2>&1; then
+            echo "[DEBUG] Server detected via ss"
+            return 0  # Server is running
+        fi
+    else
+        echo "[DEBUG] ss not available"
+    fi
+
+    # Method 4: Try curl to test if server responds
+    if command -v curl >/dev/null 2>&1; then
+        echo "[DEBUG] Trying curl method..."
+        if curl -s --connect-timeout 2 --max-time 5 "http://localhost:$port" >/dev/null 2>&1; then
+            echo "[DEBUG] Server detected via curl"
+            return 0  # Server is running
+        fi
+    else
+        echo "[DEBUG] curl not available"
+    fi
+
+    # Method 5: Try wget to test if server responds
+    if command -v wget >/dev/null 2>&1; then
+        echo "[DEBUG] Trying wget method..."
+        if wget --timeout=5 --tries=1 -q "http://localhost:$port" -O /dev/null 2>/dev/null; then
+            echo "[DEBUG] Server detected via wget"
+            return 0  # Server is running
+        fi
+    else
+        echo "[DEBUG] wget not available"
+    fi
+
+    # Method 6: Try Node.js to test if server responds (fallback)
+    if command -v node >/dev/null 2>&1; then
+        echo "[DEBUG] Trying Node.js method..."
+        if node -e "
+            const http = require('http');
+            const req = http.request({
+                hostname: 'localhost',
+                port: $port,
+                path: '/',
+                method: 'GET',
+                timeout: 3000
+            }, (res) => {
+                process.exit(0);
+            });
+            req.on('error', () => process.exit(1));
+            req.on('timeout', () => process.exit(1));
+            req.end();
+        " >/dev/null 2>&1; then
+            echo "[DEBUG] Server detected via Node.js"
+            return 0  # Server is running
+        fi
+    else
+        echo "[DEBUG] Node.js not available"
+    fi
+
+    echo "[DEBUG] No server detected on port $port"
+    return 1  # Server is not running
 }
 
 # Function to run tests directly (fastest)
@@ -92,25 +172,37 @@ run_tests_with_server_management() {
             echo "✅ Server already running on port $DEFAULT_PORT"
         else
             echo "🚀 Starting development server for integration tests..."
-            pnpm dev -p $DEFAULT_PORT > /tmp/integration-server.log 2>&1 &
+            PORT=$DEFAULT_PORT pnpm dev > /tmp/integration-server.log 2>&1 &
             server_pid=$!
             server_started_by_script=1
             echo "⏳ Waiting for integration server to start..."
-            max_attempts=20
+            max_attempts=30  # Increased from 20 for CI environments
             attempt=1
             while ! check_server_running $DEFAULT_PORT; do
                 if [ $attempt -ge $max_attempts ]; then
                     echo "❌ Failed to start integration server after $max_attempts attempts"
                     echo "Server logs:"
                     cat /tmp/integration-server.log
+                    echo ""
+                    echo "Process status:"
+                    ps aux | grep -E "(next|node)" | grep -v grep || echo "No Next.js processes found"
+                    echo ""
+                    echo "Port status:"
+                    if command -v lsof >/dev/null 2>&1; then
+                        lsof -i :$DEFAULT_PORT || echo "lsof not available"
+                    fi
+                    if command -v netstat >/dev/null 2>&1; then
+                        netstat -tuln | grep ":$DEFAULT_PORT" || echo "netstat not available"
+                    fi
                     exit 1
                 fi
-                sleep 1
+                echo "[DEBUG] Attempt $attempt/$max_attempts - waiting for server..."
+                sleep 2  # Increased from 1 second for CI environments
                 attempt=$((attempt + 1))
             done
             echo "✅ Integration server started successfully (PID: $server_pid)"
             # Additional wait to ensure server is fully ready
-            sleep 2
+            sleep 3  # Increased from 2 seconds for CI environments
         fi
     fi
 

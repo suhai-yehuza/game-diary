@@ -3,7 +3,7 @@ import { resolve } from 'path';
 import tsconfigPaths from 'vite-tsconfig-paths';
 import { defineConfig } from 'vitest/config';
 
-import { getVitestThresholds } from './src/lib/config/coverage';
+import { getVitestThresholdsWithFiles } from './src/lib/config/coverage';
 export default defineConfig({
   test: {
     environment: 'jsdom',
@@ -52,7 +52,7 @@ export default defineConfig({
         'src/lib/utils/**',
         'src/lib/validations/**',
       ],
-      thresholds: getVitestThresholds(),
+      thresholds: getVitestThresholdsWithFiles(),
       all: false,
     },
     testTimeout: 10000,
