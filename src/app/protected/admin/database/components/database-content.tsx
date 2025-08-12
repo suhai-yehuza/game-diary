@@ -260,7 +260,7 @@ export function AdminDatabaseContent() {
                             {config.fields.map(field => (
                               <td key={field} className="p-2 text-xs">
                                 <div
-                                  className="max-w-32 truncate"
+                                  className="max-w-32 truncate-white"
                                   title={formatValue(row[field], field)}
                                 >
                                   {formatValue(row[field], field)}
@@ -332,7 +332,7 @@ export function AdminDatabaseContent() {
             dark:data-[state=active]:bg-blue-800 dark:data-[state=active]:text-blue-100 dark:data-[state=active]:border-blue-700 dark:data-[state=active]:shadow-md"
               >
                 <config.icon className="h-4 w-4" />
-                <span className="hidden sm:inline truncate">{config.title}</span>
+                <span className="hidden sm:inline truncate-white">{config.title}</span>
               </TabsTrigger>
             ))}
           </TabsList>

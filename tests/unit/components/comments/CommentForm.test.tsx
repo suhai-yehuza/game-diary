@@ -202,9 +202,7 @@ describe('CommentForm', () => {
 
     const textarea = screen.getByTestId('comment-textarea');
     const submitButton = screen.getByText('Comment');
-    const cancelButton = screen
-      .getAllByRole('button')
-      .find(button => button.querySelector('.lucide-x'));
+    const cancelButton = screen.getByTestId('x-icon').closest('button');
 
     expect(textarea).toBeDisabled();
     expect(submitButton).toBeDisabled();

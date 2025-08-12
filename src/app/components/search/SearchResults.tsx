@@ -1,6 +1,6 @@
 'use client';
 
-import { User, Gamepad2, Trophy, Building2 } from 'lucide-react';
+import * as Icons from 'lucide-react';
 import { useState } from 'react';
 
 import { GameLogSearchResult } from '@/app/components/search/GameLogSearchResult';
@@ -12,6 +12,34 @@ import type { ISearchResultsProps, ResultType } from '@/lib/types';
 
 export function SearchResults({ results, query }: ISearchResultsProps) {
   const [activeFilter, setActiveFilter] = useState<ResultType>('all');
+  const UserIcon =
+    Icons?.User ||
+    (({ className }: { className?: string }) => (
+      <div data-testid="user-icon" className={className}>
+        User
+      </div>
+    ));
+  const TrophyIcon =
+    Icons?.Trophy ||
+    (({ className }: { className?: string }) => (
+      <div data-testid="trophy-icon" className={className}>
+        Trophy
+      </div>
+    ));
+  const Gamepad2Icon =
+    Icons?.Gamepad2 ||
+    (({ className }: { className?: string }) => (
+      <div data-testid="gamepad2-icon" className={className}>
+        Gamepad2
+      </div>
+    ));
+  const Building2Icon =
+    Icons?.Building2 ||
+    (({ className }: { className?: string }) => (
+      <div data-testid="building2-icon" className={className}>
+        Building2
+      </div>
+    ));
 
   const getFilterCount = (type: ResultType) => {
     switch (type) {
@@ -106,7 +134,7 @@ export function SearchResults({ results, query }: ISearchResultsProps) {
       {shouldShowSection('users') && results.data.users.length > 0 && (
         <div>
           <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center space-x-2">
-            <User className="w-5 h-5" />
+            <UserIcon className="w-5 h-5" />
             <span>Users ({results.data.totalUsers})</span>
           </h2>
           <div className="space-y-3">
@@ -121,7 +149,7 @@ export function SearchResults({ results, query }: ISearchResultsProps) {
       {shouldShowSection('games') && results.data.games.length > 0 && (
         <div>
           <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center space-x-2">
-            <Trophy className="w-5 h-5" />
+            <TrophyIcon className="w-5 h-5" />
             <span>Games ({results.data.totalGames})</span>
           </h2>
           <div className="space-y-3">
@@ -136,7 +164,7 @@ export function SearchResults({ results, query }: ISearchResultsProps) {
       {shouldShowSection('gameLogs') && results.data.gameLogs.length > 0 && (
         <div>
           <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center space-x-2">
-            <Gamepad2 className="w-5 h-5" />
+            <Gamepad2Icon className="w-5 h-5" />
             <span>Game Logs ({results.data.totalGameLogs})</span>
           </h2>
           <div className="space-y-3">
@@ -151,7 +179,7 @@ export function SearchResults({ results, query }: ISearchResultsProps) {
       {shouldShowSection('teams') && results.data.teams.length > 0 && (
         <div>
           <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center space-x-2">
-            <Building2 className="w-5 h-5" />
+            <Building2Icon className="w-5 h-5" />
             <span>Teams ({results.data.totalTeams})</span>
           </h2>
           <div className="space-y-3">
@@ -166,7 +194,7 @@ export function SearchResults({ results, query }: ISearchResultsProps) {
       {shouldShowSection('players') && results.data.players.length > 0 && (
         <div>
           <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center space-x-2">
-            <User className="w-5 h-5" />
+            <UserIcon className="w-5 h-5" />
             <span>Players ({results.data.totalPlayers})</span>
           </h2>
           <div className="space-y-3">

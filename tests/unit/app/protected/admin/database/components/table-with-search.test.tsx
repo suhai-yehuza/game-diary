@@ -3,6 +3,7 @@ import React from 'react';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 
 import TableWithSearch from '@/app/protected/admin/database/components/TableWithSearch';
+import type { ITestItem } from '@/lib/types/admin.types';
 
 // Mock fetch
 global.fetch = vi.fn();
@@ -87,13 +88,6 @@ vi.mock('@/app/protected/admin/database/components/ui/table-search', () => ({
     </div>
   ),
 }));
-
-interface ITestItem {
-  id: string;
-  name: string;
-  email: string;
-  createdAt: string;
-}
 
 const mockColumns = [
   { key: 'name' as keyof ITestItem, label: 'Name', sortable: true },

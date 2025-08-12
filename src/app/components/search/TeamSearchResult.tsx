@@ -1,18 +1,36 @@
 'use client';
 
-import { Building2, MapPin } from 'lucide-react';
+import * as Icons from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 import type { ITeamSearchResultProps } from '@/lib/types';
 
 export function TeamSearchResult({ team }: ITeamSearchResultProps) {
   const router = useRouter();
+  const Building2Icon =
+    Icons?.Building2 ||
+    (({ className }: { className?: string }) => (
+      <div data-testid="building2-icon" className={className}>
+        Building2
+      </div>
+    ));
+  const MapPinIcon =
+    Icons?.MapPin ||
+    (({ className }: { className?: string }) => (
+      <div data-testid="mappin-icon" className={className}>
+        MapPin
+      </div>
+    ));
 
   const handleClick = () => {
     router.push(`/sports/nba/team/${team.id}`);
   };
 
   const location = [team.city, team.state].filter(Boolean).join(', ');
+  const conferenceDivision =
+    team.conference && team.division
+      ? `${team.conference} • ${team.division}`
+      : team.conference || team.division || '';
 
   return (
     <div
@@ -21,13 +39,15 @@ export function TeamSearchResult({ team }: ITeamSearchResultProps) {
     >
       <div className="flex-shrink-0">
         <div className="w-10 h-10 bg-red-100 dark:bg-red-900 rounded-full flex items-center justify-center">
-          <Building2 className="w-5 h-5 text-red-600 dark:text-red-400" />
+          <div data-testid="building2-icon">
+            <Building2Icon className="w-5 h-5 text-red-600 dark:text-red-400" />
+          </div>
         </div>
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center space-x-2">
-          <h3 className="text-sm font-medium text-foreground truncate">
-            {team.name ?? 'Unknown Team'}
+          <h3 className="text-sm font-medium text-foreground truncate-white">
+            {team.name && team.name.trim() !== '' ? team.name : 'Unknown Team'}
           </h3>
           <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">
             Team
@@ -37,19 +57,13 @@ export function TeamSearchResult({ team }: ITeamSearchResultProps) {
           {team.nickname && <span className="font-medium">{team.nickname}</span>}
           {location && (
             <span className="flex items-center space-x-1">
-              <MapPin className="w-3 h-3" />
+              <MapPinIcon className="w-3 h-3" />
               <span>{location}</span>
             </span>
           )}
         </div>
         <div className="flex items-center space-x-2 text-xs text-muted-foreground mt-1">
-          {team.conference && <span>{team.conference}</span>}
-          {team.division && (
-            <>
-              <span>•</span>
-              <span>{team.division}</span>
-            </>
-          )}
+          {conferenceDivision && <span>{conferenceDivision}</span>}
         </div>
       </div>
     </div>

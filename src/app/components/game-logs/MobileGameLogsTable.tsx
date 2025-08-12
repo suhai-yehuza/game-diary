@@ -103,7 +103,7 @@ export function MobileGameLogsTable() {
             <div className="flex items-center gap-2 flex-1">
               <ClassificationIcon classification={log.classification} />
               <div className="flex-1 min-w-0">
-                <CardTitle className="text-sm font-semibold truncate">
+                <CardTitle className="text-sm font-semibold truncate-white">
                   {getTeamDisplay(log.game)}
                 </CardTitle>
                 <div className="flex items-center gap-2 mt-1">

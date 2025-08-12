@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 import { useLiveGames } from '@/hooks/use-live-games';
 import { MOCK_LIVE_GAMES } from '@/lib/mock/liveGamesMock';
-import type { IGamesApiResponse, IGameResponse } from '@/lib/types/externalApi.types';
+import type { IGamesApiResponse, IGameResponse } from '@/lib/types';
 
 // Mock fetch globally
 global.fetch = vi.fn().mockResolvedValue({

@@ -43,7 +43,7 @@ export function GameSearchResult({ game }: IGameSearchResultProps) {
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center space-x-2">
-          <h3 className="text-sm font-medium text-foreground truncate">{gameTitle}</h3>
+          <h3 className="text-sm font-medium text-foreground truncate-white">{gameTitle}</h3>
           <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200">
             Game
           </span>

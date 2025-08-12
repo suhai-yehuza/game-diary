@@ -195,14 +195,14 @@ describe('Comment', () => {
     const user = userEvent.setup();
     render(<Comment comment={mockComment} onEdit={mockOnEdit} onDelete={mockOnDelete} />);
 
-    const moreButtons = screen.getAllByRole('button');
-    const moreButton = moreButtons.find(button => button.querySelector('.lucide-ellipsis'));
+    const moreButtons = screen.getAllByTestId('morehorizontal-icon');
+    const moreButton = moreButtons[0].closest('button');
     expect(moreButton).toBeInTheDocument();
 
     if (moreButton) {
       await user.click(moreButton);
-      expect(await screen.findByText('Edit')).toBeInTheDocument();
-      expect(await screen.findByText('Delete')).toBeInTheDocument();
+      expect(await screen.findByTestId('edit-icon')).toBeInTheDocument();
+      expect(await screen.findByTestId('trash2-icon')).toBeInTheDocument();
     }
   });
 
@@ -227,7 +227,7 @@ describe('Comment', () => {
   it('should show reply button when depth is less than max depth', () => {
     render(<Comment comment={mockComment} onReply={mockOnReply} />);
 
-    expect(screen.getByText('Reply')).toBeInTheDocument();
+    expect(screen.getByTestId('reply-icon')).toBeInTheDocument();
   });
 
   it('should not show reply button when depth equals max depth', () => {
@@ -245,8 +245,9 @@ describe('Comment', () => {
     const user = userEvent.setup();
     render(<Comment comment={mockComment} onReply={mockOnReply} />);
 
-    const replyButton = screen.getByText('Reply');
-    await user.click(replyButton);
+    const replyButton = screen.getByTestId('reply-icon').closest('button');
+    expect(replyButton).not.toBeNull();
+    await user.click(replyButton!);
 
     expect(mockOnReply).toHaveBeenCalledWith('comment-1');
   });
@@ -299,8 +300,9 @@ describe('Comment', () => {
     const user = userEvent.setup();
     render(<Comment comment={mockComment} onReply={mockOnReply} />);
 
-    const replyButton = screen.getByText('Reply');
-    await user.click(replyButton);
+    const replyButton = screen.getByTestId('reply-icon').closest('button');
+    expect(replyButton).not.toBeNull();
+    await user.click(replyButton!);
 
     expect(screen.getByTestId('comment-form')).toBeInTheDocument();
     expect(screen.getByPlaceholderText('Write a reply...')).toBeInTheDocument();
@@ -330,8 +332,9 @@ describe('Comment', () => {
     const user = userEvent.setup();
     render(<Comment comment={mockComment} onReply={mockOnReply} />);
 
-    const replyButton = screen.getByText('Reply');
-    await user.click(replyButton);
+    const replyButton = screen.getByTestId('reply-icon').closest('button');
+    expect(replyButton).not.toBeNull();
+    await user.click(replyButton!);
 
     const saveButton = screen.getByTestId('save-button');
     await user.click(saveButton);
@@ -362,8 +365,9 @@ describe('Comment', () => {
     const user = userEvent.setup();
     render(<Comment comment={mockComment} onReply={mockOnReply} />);
 
-    const replyButton = screen.getByText('Reply');
-    await user.click(replyButton);
+    const replyButton = screen.getByTestId('reply-icon').closest('button');
+    expect(replyButton).not.toBeNull();
+    await user.click(replyButton!);
 
     const cancelButton = screen.getByTestId('cancel-button');
     await user.click(cancelButton);

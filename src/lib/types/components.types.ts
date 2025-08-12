@@ -3,10 +3,9 @@
  * All component-related type definitions
  */
 
-import type { ReactNode, FormEvent, HTMLAttributes, PropsWithChildren } from 'react';
+import type { ReactNode, HTMLAttributes, PropsWithChildren } from 'react';
 
 // Import from specific files to avoid circular dependencies
-import type { IBaseButtonProps, IBaseInputProps } from './ui.types';
 import type { ISearchResponse, ISearchResult } from './search.types';
 
 // ========================================
@@ -321,8 +320,104 @@ export interface IGameLogSearchResult {
 }
 
 // ========================================
-// PAGE COMPONENT TYPES
+// GAME LOGS COMPONENT TYPES
 // ========================================
+
+export interface IGameLogCardProps {
+  log: import('./gameLog.types').IGameLog;
+  showActions?: boolean;
+  idx?: number;
+  onEdit?: (log: import('./gameLog.types').IGameLog) => void;
+  onDelete?: (log: import('./gameLog.types').IGameLog) => void;
+}
+
+export interface IGameLogsFiltersProps {
+  searchTerm: string;
+  searchField: string;
+  sortConfig: { field: string; direction: 'asc' | 'desc' } | null;
+  displayedCount: number;
+  totalCount: number;
+  classification: string;
+  onSearchChange: (term: string, field: string) => void;
+  onSearchClear: () => void;
+  onSort: (key: string, direction: 'asc' | 'desc' | null) => void;
+}
+
+export interface IGameLogsContentProps {
+  tabValue: string;
+  logs: import('./gameLog.types').IGameLog[];
+  loading: boolean;
+  hasNextPage: boolean;
+  totalCount: number;
+  showActions?: boolean;
+  onLoadMore: () => void;
+  onEdit?: (log: import('./gameLog.types').IGameLog) => void;
+  onDelete?: (log: import('./gameLog.types').IGameLog) => void;
+  filteredAndSortedLogs: import('./gameLog.types').IGameLog[];
+}
+
+// ========================================
+// COMMENTS COMPONENT TYPES
+// ========================================
+
+export interface ICommentRepliesProps {
+  commentId: string;
+  maxDepth?: number;
+  onReply?: (commentId: string) => void;
+  onEdit?: (commentId: string) => void;
+  onDelete?: (commentId: string) => void;
+}
+
+export interface INestedCommentProps {
+  comment: import('./comment.types').IComment;
+  onReply?: (commentId: string) => void;
+  onEdit?: (commentId: string) => void;
+  onDelete?: (commentId: string) => void;
+  maxDepth?: number;
+}
+
+export interface IGameLogCommentsProps {
+  gameLog: import('./gameLog.types').IGameLog;
+  showComments?: boolean;
+  onToggleComments?: (expanded: boolean) => void;
+}
+
+// ========================================
+// LAYOUT COMPONENT TYPES
+// ========================================
+
+export interface IMobileMenuSheetProps {
+  isActive: (path: string) => boolean;
+}
+
+// ========================================
+// GAME LOGS COMPONENT TYPES (UPDATED)
+// ========================================
+
+export interface IGameLogsHeaderProps {
+  onCreateClick: () => void;
+}
+
+export interface IGameLogsPaginationProps {
+  hasNextPage: boolean;
+  loading: boolean;
+  onLoadMore: () => void;
+  loadMoreText?: string;
+}
+
+export interface IGameLogsTabsProps {
+  selectedTab: string;
+  onTabChange: (value: string) => void;
+  children: React.ReactNode;
+}
+
+export interface IRatingStarsProps {
+  rating: number;
+}
+
+export interface IClassificationIconProps {
+  classification: string;
+}
 
 export interface ISignUpPageProps {
   params: {

@@ -16,16 +16,8 @@ import {
   DropdownMenuTrigger,
 } from '@/app/components/ui/DropdownMenu';
 import { API_CONFIG } from '@/lib/config/app.config';
-import type { IComment } from '@/lib/types';
+import type { INestedCommentProps } from '@/lib/types';
 import { ParentType } from '@/lib/types/generated/graphql';
-
-interface INestedCommentProps {
-  comment: IComment;
-  onReply?: (commentId: string) => void;
-  onEdit?: (commentId: string) => void;
-  onDelete?: (commentId: string) => void;
-  maxDepth?: number;
-}
 
 export function NestedComment({
   comment,
@@ -121,7 +113,7 @@ export function NestedComment({
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={handleEdit}>
+                  <DropdownMenuItem onClick={handleEdit} data-testid="edit-menu-item">
                     <Edit className="mr-2 h-4 w-4" />
                     Edit
                   </DropdownMenuItem>
@@ -142,6 +134,7 @@ export function NestedComment({
                   size="sm"
                   onClick={handleReply}
                   className="text-gray-600 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400"
+                  data-testid="reply-button"
                 >
                   <Reply className="mr-1 h-4 w-4" />
                   Reply

@@ -122,8 +122,7 @@ describe('GameLogComments', () => {
     render(<GameLogComments gameLog={mockGameLog} />);
 
     // Should show chevron right when collapsed
-    const buttons = screen.getAllByRole('button');
-    const toggleButton = buttons.find(button => button.querySelector('.lucide-chevron-right'));
+    const toggleButton = screen.getByTestId('chevronright-icon').closest('button');
     expect(toggleButton).toBeInTheDocument();
   });
 
@@ -131,8 +130,7 @@ describe('GameLogComments', () => {
     render(<GameLogComments gameLog={mockGameLog} showComments={true} />);
 
     // Should show chevron down when expanded
-    const buttons = screen.getAllByRole('button');
-    const toggleButton = buttons.find(button => button.querySelector('.lucide-chevron-down'));
+    const toggleButton = screen.getByTestId('chevrondown-icon').closest('button');
     expect(toggleButton).toBeInTheDocument();
   });
 

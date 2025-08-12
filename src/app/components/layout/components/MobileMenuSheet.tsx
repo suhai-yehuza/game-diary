@@ -7,10 +7,7 @@ import { TABLET_BREAKPOINT } from '@/app/components/layout/components/breakpoint
 import { ClientOnlyNavigationLinks } from '@/app/components/layout/components/navigation/ClientOnlyNavigationLinks';
 import { useMobileDetection } from '@/app/components/layout/components/SearchBar';
 import { useMenuContext } from '@/app/components/providers';
-
-interface IMobileMenuSheetProps {
-  isActive: (path: string) => boolean;
-}
+import type { IMobileMenuSheetProps } from '@/lib/types';
 
 export function MobileMenuSheet({ isActive }: IMobileMenuSheetProps) {
   const { isMenuExpanded, setIsMenuExpanded } = useMenuContext();

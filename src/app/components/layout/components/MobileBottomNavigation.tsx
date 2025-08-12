@@ -7,7 +7,7 @@ import React, { useState, useEffect } from 'react';
 
 import { useMobileDetection } from '@/app/components/layout/components/SearchBar';
 import { useMenuContext } from '@/app/components/providers';
-import type { IBottomNavItem } from '@/lib/types/ui.types';
+import type { IBottomNavItem } from '@/lib/types';
 
 export function MobileBottomNavigation() {
   const pathname = usePathname();

@@ -12,6 +12,48 @@ vi.mock('@clerk/nextjs', () => ({
   ClerkProvider: ({ children }: { children: React.ReactNode }) => children,
 }));
 
+// Mock Tabs components
+vi.mock('@/app/components/ui/Tabs', () => ({
+  Tabs: ({ children, value, _onValueChange }: any) => (
+    <div data-testid="tabs" data-value={value}>
+      {children}
+    </div>
+  ),
+  TabsList: ({ children }: any) => <div data-testid="tabs-list">{children}</div>,
+  TabsTrigger: ({ children, value, onClick }: any) => (
+    <button data-testid="tabs-trigger" data-value={value} onClick={onClick}>
+      {children}
+    </button>
+  ),
+  TabsContent: ({ children, value }: any) => (
+    <div data-testid="tabs-content" data-value={value}>
+      {children}
+    </div>
+  ),
+}));
+
+// Mock mobile detection hook
+vi.mock('@/app/components/layout/components/SearchBar', () => ({
+  useMobileDetection: () => false,
+}));
+
+// Mock table components
+vi.mock('@/app/components/game-logs/GameLogsTable', () => ({
+  GameLogsTable: () => <div data-testid="game-logs-table">Game Logs Table</div>,
+}));
+
+vi.mock('@/app/components/game-logs/MobileGameLogsTable', () => ({
+  MobileGameLogsTable: () => <div data-testid="mobile-game-logs-table">Mobile Game Logs Table</div>,
+}));
+
+vi.mock('@/app/protected/user/components/ActivityTable', () => ({
+  ActivityTable: () => <div data-testid="activity-table">Activity Table</div>,
+}));
+
+vi.mock('@/app/protected/user/components/FriendsTable', () => ({
+  FriendsTable: () => <div data-testid="friends-table">Friends Table</div>,
+}));
+
 // Helper function to render the user page with providers
 function renderUserPage() {
   return render(

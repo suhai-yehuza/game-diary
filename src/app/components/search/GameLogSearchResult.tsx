@@ -33,7 +33,7 @@ export function GameLogSearchResult({ gameLog }: IGameLogSearchResultProps) {
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center space-x-2">
-          <h3 className="text-sm font-medium text-foreground truncate">
+          <h3 className="text-sm font-medium text-foreground truncate-white">
             {gameLog.away_team_nickname && gameLog.home_team_nickname
               ? `${gameLog.away_team_nickname} @ ${gameLog.home_team_nickname}`
               : `Game Log #${gameLog.game_id ?? 'unknown'}`}

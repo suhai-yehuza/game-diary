@@ -62,7 +62,7 @@ export function ReactionPicker({
   }, [isOpen]);
 
   return (
-    <div className={`flex flex-wrap gap-1.5 ${className || ''}`}>
+    <div className={`flex flex-wrap gap-1.5 ${className || ''}`} data-testid="reaction-picker">
       {/* Existing reactions with improved styling */}
       {groupedReactions
         .filter(group => group.count > 0)

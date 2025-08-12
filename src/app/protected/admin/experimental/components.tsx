@@ -22,11 +22,9 @@ import type {
   PlayerStatsFormProps,
   StandingsFormProps,
   DataDisplayProps,
-} from '@/lib/types/admin.types';
-import type {
   IDynamicFormProps as DynamicFormProps,
   IFieldConfig as FieldConfig,
-} from '@/lib/types/form.types';
+} from '@/lib/types';
 
 // --- DynamicForm abstraction ---
 export const DynamicForm = ({

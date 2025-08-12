@@ -6,14 +6,7 @@ import { NestedComment } from '@/app/components/comments/NestedComment';
 import { Button } from '@/app/components/ui/button';
 import { useCommentReplies } from '@/hooks/use-comments';
 import { API_CONFIG } from '@/lib/config/app.config';
-
-interface ICommentRepliesProps {
-  commentId: string;
-  maxDepth?: number;
-  onReply?: (commentId: string) => void;
-  onEdit?: (commentId: string) => void;
-  onDelete?: (commentId: string) => void;
-}
+import type { ICommentRepliesProps } from '@/lib/types';
 
 export function CommentReplies({
   commentId,

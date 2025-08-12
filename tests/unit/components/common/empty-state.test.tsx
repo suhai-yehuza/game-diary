@@ -1,7 +1,5 @@
 import { render, screen } from '@testing-library/react';
 import { Search } from 'lucide-react';
-import React from 'react';
-import { describe, it, expect } from 'vitest';
 
 import { EmptyState } from '@/app/components/common/EmptyState';
 
@@ -32,7 +30,7 @@ describe('EmptyState', () => {
     it('renders default icon when no icon is provided', () => {
       render(<EmptyState />);
 
-      const icon = screen.getByTestId('empty-state').querySelector('svg');
+      const icon = screen.getByTestId('alertcircle-icon');
       expect(icon).toBeInTheDocument();
     });
 
@@ -47,7 +45,7 @@ describe('EmptyState', () => {
     it('renders Lucide React icons correctly', () => {
       render(<EmptyState icon={<Search />} />);
 
-      const icon = screen.getByTestId('empty-state').querySelector('svg');
+      const icon = screen.getByTestId('search-icon');
       expect(icon).toBeInTheDocument();
     });
   });
@@ -115,14 +113,14 @@ describe('EmptyState', () => {
     it('applies correct icon size classes', () => {
       render(<EmptyState iconSize={24} />);
 
-      const icon = screen.getByTestId('empty-state').querySelector('svg');
+      const icon = screen.getByTestId('alertcircle-icon');
       expect(icon).toHaveClass('h-6', 'w-6');
     });
 
     it('applies default icon size classes', () => {
       render(<EmptyState />);
 
-      const icon = screen.getByTestId('empty-state').querySelector('svg');
+      const icon = screen.getByTestId('alertcircle-icon');
       expect(icon).toHaveClass('h-12', 'w-12');
     });
   });

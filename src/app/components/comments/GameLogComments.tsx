@@ -7,14 +7,8 @@ import { Comment } from '@/app/components/comments/Comment';
 import { CommentForm } from '@/app/components/comments/CommentForm';
 import { Button } from '@/app/components/ui/button';
 import { useGameLogComments, useDeleteComment, useUpdateComment } from '@/hooks/use-comments';
-import type { IGameLog, IComment } from '@/lib/types';
+import type { IComment, IGameLogCommentsProps } from '@/lib/types';
 import { ParentType } from '@/lib/types/generated/graphql';
-
-interface IGameLogCommentsProps {
-  gameLog: IGameLog;
-  showComments?: boolean;
-  onToggleComments?: (expanded: boolean) => void;
-}
 
 export function GameLogComments({
   gameLog,
@@ -113,7 +107,7 @@ export function GameLogComments({
       : (gameLog.totalCommentCount ?? 0);
 
   return (
-    <div className="p-4">
+    <div className="p-4" data-testid="game-log-comments">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center space-x-2">
           <MessageCircle className="h-5 w-5 text-gray-600 dark:text-gray-400" />

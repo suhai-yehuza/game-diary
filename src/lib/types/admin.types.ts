@@ -21,6 +21,14 @@ import type {
 // ADMIN DATABASE TYPES
 // ========================================
 
+// Test interface for admin table components
+export interface ITestItem {
+  id: string;
+  name: string;
+  email: string;
+  createdAt: string;
+}
+
 // User-related types
 export interface IUserSummary {
   id: string;

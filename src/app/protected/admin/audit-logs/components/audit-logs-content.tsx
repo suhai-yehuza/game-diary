@@ -756,7 +756,7 @@ export function AdminAuditLogsContent() {
                           </td>
                           <td className="px-6 py-4 text-sm text-foreground">
                             <div
-                              className="truncate max-w-xs"
+                              className="truncate-white max-w-xs"
                               title={log.description ?? 'No description'}
                             >
                               {log.description ?? 'No description'}

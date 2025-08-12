@@ -48,7 +48,7 @@ export function GameLogsSort({
   };
 
   return (
-    <div className="flex items-center justify-between gap-2 mb-4">
+    <div className="flex items-center justify-between gap-2 mb-4" data-testid="game-logs-sort">
       <div className="flex items-center gap-2">
         <span
           className="text-sm font-bold"

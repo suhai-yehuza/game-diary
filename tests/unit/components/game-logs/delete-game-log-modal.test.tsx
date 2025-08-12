@@ -70,7 +70,7 @@ describe('DeleteGameLogModal', () => {
   it('renders when isOpen is true', () => {
     render(<DeleteGameLogModal {...mockProps} />);
 
-    expect(screen.getByRole('heading', { name: 'Delete Game Log' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /Delete Game Log/ })).toBeInTheDocument();
     expect(screen.getByText('Are you sure?')).toBeInTheDocument();
     expect(screen.getByText(/This action cannot be undone/)).toBeInTheDocument();
     expect(screen.getByText('Cancel')).toBeInTheDocument();
@@ -101,7 +101,7 @@ describe('DeleteGameLogModal', () => {
   it('calls onClose when close button (X) is clicked', () => {
     render(<DeleteGameLogModal {...mockProps} />);
 
-    const closeButton = screen.getByRole('button', { name: '' }); // X button
+    const closeButton = screen.getByRole('button', { name: 'X' }); // X button
     fireEvent.click(closeButton);
 
     expect(mockProps.onClose).toHaveBeenCalled();
@@ -257,7 +257,7 @@ describe('DeleteGameLogModal', () => {
   it('displays warning icon and styling', () => {
     render(<DeleteGameLogModal {...mockProps} />);
 
-    const title = screen.getByRole('heading', { name: 'Delete Game Log' });
+    const title = screen.getByRole('heading', { name: /Delete Game Log/ });
     expect(title).toHaveClass('text-red-600');
   });
 

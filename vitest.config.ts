@@ -9,6 +9,8 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./vitest.setup.ts'],
     globals: true,
+    isolate: true,
+    pool: 'forks',
     include: [
       'tests/unit/**/*.{test,spec}.{ts,tsx,js,jsx}',
       'tests/integration/**/*.{test,spec}.{ts,tsx,js,jsx}',
@@ -35,14 +37,20 @@ export default defineConfig({
         '**/drizzle.config.ts',
         '**/codegen.ts',
         '**/playwright.config.ts',
-        'src/lib/**',
         'src/app/api/webhook/clerk-example-events/**',
-        'src/app/styles/**',
+        'src/styles/**', // CSS files
         'src/middleware.ts', // Middleware is tested via e2e
-        'src/types/**', // Generated types
-        'src/app/api/webhook/clerk-example-events/**', // Example events
-        'src/app/styles/globals.css', // CSS files
-        'src/app/globals.css', // CSS files
+        'src/lib/cache/**',
+        'src/lib/config/**',
+        'src/lib/db/**',
+        'src/lib/errors/**',
+        'src/lib/graphql/**',
+        'src/lib/middleware/**',
+        'src/lib/mock/**',
+        'src/lib/services/**',
+        'src/lib/types/**',
+        'src/lib/utils/**',
+        'src/lib/validations/**',
       ],
       thresholds: getVitestThresholds(),
       all: false,
