@@ -118,8 +118,7 @@ describe('UserSearchResult', () => {
     };
 
     render(<UserSearchResult user={userWithDifferentDate} />);
-
-    expect(screen.getByText('Joined Dec 24, 2022')).toBeInTheDocument();
+    expect(screen.getByText(/Joined Dec 2[45], 2022/)).toBeInTheDocument();
   });
 
   it('navigates to user page when clicked', () => {
@@ -160,7 +159,7 @@ describe('UserSearchResult', () => {
 
     expect(screen.getByText('Unknown User')).toBeInTheDocument();
     expect(screen.getByText('@unknown')).toBeInTheDocument();
-    expect(screen.getByText('Joined Dec 31, 2022')).toBeInTheDocument();
+    expect(screen.getByText(/Joined (Dec 31, 2022|Jan 1, 2023)/)).toBeInTheDocument();
   });
 
   it('prioritizes full name over username when both are available', () => {

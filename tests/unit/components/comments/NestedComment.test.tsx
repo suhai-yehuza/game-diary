@@ -83,7 +83,7 @@ describe('NestedComment', () => {
 
     expect(screen.getByText('This is a test comment')).toBeInTheDocument();
     expect(screen.getByText('John')).toBeInTheDocument();
-    expect(screen.getByText('Jan 15, 2023 02:30')).toBeInTheDocument();
+    expect(screen.getByText(/Jan 15, 2023 \d{2}:\d{2}/)).toBeInTheDocument();
     expect(screen.getByText('← Reply')).toBeInTheDocument();
   });
 

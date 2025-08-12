@@ -49,7 +49,7 @@ export async function GET(
       API_MOCK_MODE: process.env.API_MOCK_MODE,
       isTestEnvironment,
       isE2ETestEnvironment,
-      apiKey: rapidApiConfig.apiKey,
+      apiKey: !!rapidApiConfig.apiKey,
     });
 
     // Check cache first
@@ -69,11 +69,6 @@ export async function GET(
     // Check if we're in a test environment or using fallback config
     const isTestOrFallback =
       rapidApiConfig.apiKey === 'test-api-key' || rapidApiConfig.apiKey === 'fallback-key';
-
-    console.log(
-      `[API Proxy] isTestOrFallback: ${isTestOrFallback}, apiKey: ${rapidApiConfig.apiKey}`
-    );
-
     if (isTestOrFallback) {
       console.log('[API Proxy] Using mock response for test/fallback environment');
 
