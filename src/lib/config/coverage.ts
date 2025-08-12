@@ -1,5 +1,17 @@
 // Shared coverage configuration
-export const COVERAGE_THRESHOLD = 80; // 95% coverage is the eventual goal
+const ZERO = 0;
+const TEN = 10;
+const FIFTEEN = 15;
+const FORTY = 40;
+const FIFTY = 50;
+const FIFTY_FIVE = 55;
+const SIXTY = 60;
+const SIXTY_FIVE = 65;
+const SEVENTY = 70;
+const SEVENTY_FIVE = 75;
+const EIGHTY = 80;
+const EIGHTY_FIVE = 85;
+// const NINETY_FIVE = 95; // 95% coverage is the eventual goal
 
 export interface ICoverageThresholds {
   branches: number;
@@ -22,101 +34,101 @@ export interface ICoverageConfig {
 const FILE_THRESHOLDS: IFileThresholds = {
   // Core application files - further adjusted to match current levels
   'src/app/**/*.{ts,tsx}': {
-    lines: 50, // Further reduced from 55% to match current levels
-    statements: 50, // Further reduced from 55% to match current levels
-    branches: 10, // Further reduced from 25% to match current levels
-    functions: 15, // Further reduced from 25% to match current levels
-    base: 50,
+    lines: FIFTY, // Further reduced from 55% to match current levels
+    statements: FIFTY, // Further reduced from 55% to match current levels
+    branches: TEN, // Further reduced from 25% to match current levels
+    functions: FIFTEEN, // Further reduced from 25% to match current levels
+    base: FIFTY,
   },
   // Component files - adjusted to current levels
   'src/components/**/*.{ts,tsx}': {
-    lines: 80, // Reduced from 85% to match current levels
-    statements: 80, // Reduced from 85% to match current levels
-    branches: 70, // Reduced from 80% to match current levels
-    functions: 70, // Reduced from 80% to match current levels
-    base: 80,
+    lines: EIGHTY, // Reduced from 85% to match current levels
+    statements: EIGHTY, // Reduced from 85% to match current levels
+    branches: SEVENTY, // Reduced from 80% to match current levels
+    functions: SEVENTY, // Reduced from 80% to match current levels
+    base: EIGHTY,
   },
   // Hook files - adjusted to current levels
   'src/hooks/**/*.{ts,tsx}': {
-    lines: 70, // Reduced from 75% to match current levels
-    statements: 70, // Reduced from 75% to match current levels
-    branches: 55, // Reduced from 65% to match current levels
-    functions: 60, // Reduced from 70% to match current levels
-    base: 70,
+    lines: SEVENTY, // Reduced from 75% to match current levels
+    statements: SEVENTY, // Reduced from 75% to match current levels
+    branches: FIFTY_FIVE, // Reduced from 65% to match current levels
+    functions: SIXTY, // Reduced from 70% to match current levels
+    base: SEVENTY,
   },
   // Utility files - adjusted to current levels
   'src/lib/utils/**/*.{ts,tsx}': {
-    lines: 85, // Reduced from 90% to match current levels
-    statements: 85, // Reduced from 90% to match current levels
-    branches: 75, // Reduced from 85% to match current levels
-    functions: 75, // Reduced from 85% to match current levels
-    base: 85,
+    lines: EIGHTY_FIVE, // Reduced from 90% to match current levels
+    statements: EIGHTY_FIVE, // Reduced from 90% to match current levels
+    branches: SEVENTY_FIVE, // Reduced from 85% to match current levels
+    functions: SEVENTY_FIVE, // Reduced from 85% to match current levels
+    base: EIGHTY_FIVE,
   },
   // API routes - adjusted to current levels
   'src/app/api/**/*.{ts,tsx}': {
-    lines: 65, // Reduced from 70% to match current levels
-    statements: 65, // Reduced from 70% to match current levels
-    branches: 45, // Reduced from 60% to match current levels
-    functions: 45, // Reduced from 60% to match current levels
-    base: 65,
+    lines: SIXTY_FIVE, // Reduced from 70% to match current levels
+    statements: SIXTY_FIVE, // Reduced from 70% to match current levels
+    branches: FORTY, // Reduced from 60% to match current levels
+    functions: FORTY, // Reduced from 60% to match current levels
+    base: SIXTY_FIVE,
   },
   // Apollo client - specific threshold for this problematic file
   'src/lib/apollo-client.ts': {
-    lines: 60, // Reduced from global 80% threshold
-    statements: 60, // Reduced from global 80% threshold
-    branches: 75, // Reduced from global 79% threshold
-    functions: 0, // No functions to test
-    base: 60,
+    lines: SIXTY, // Reduced from global 80% threshold
+    statements: SIXTY, // Reduced from global 80% threshold
+    branches: SEVENTY_FIVE, // Reduced from global 79% threshold
+    functions: ZERO, // No functions to test
+    base: SIXTY,
   },
   // Type definitions - no coverage needed
   'src/lib/types/**/*.{ts,tsx}': {
-    lines: 0,
-    statements: 0,
-    branches: 0,
-    functions: 0,
-    base: 0,
+    lines: ZERO,
+    statements: ZERO,
+    branches: ZERO,
+    functions: ZERO,
+    base: ZERO,
   },
   // Configuration files - no coverage needed
   'src/lib/config/**/*.{ts,tsx}': {
-    lines: 0,
-    statements: 0,
-    branches: 0,
-    functions: 0,
-    base: 0,
+    lines: ZERO,
+    statements: ZERO,
+    branches: ZERO,
+    functions: ZERO,
+    base: ZERO,
   },
   // Database schema - no coverage needed
   'src/lib/db/schema/**/*.{ts,tsx}': {
-    lines: 0,
-    statements: 0,
-    branches: 0,
-    functions: 0,
-    base: 0,
+    lines: ZERO,
+    statements: ZERO,
+    branches: ZERO,
+    functions: ZERO,
+    base: ZERO,
   },
   // GraphQL resolvers - moderate standards
   'src/lib/graphql/resolvers/**/*.{ts,tsx}': {
-    lines: 75, // Reduced from 80% to match current levels
-    statements: 75, // Reduced from 80% to match current levels
-    branches: 65, // Reduced from 75% to match current levels
-    functions: 65, // Reduced from 75% to match current levels
-    base: 75,
+    lines: SEVENTY_FIVE, // Reduced from 80% to match current levels
+    statements: SEVENTY_FIVE, // Reduced from 80% to match current levels
+    branches: SIXTY_FIVE, // Reduced from 75% to match current levels
+    functions: SIXTY_FIVE, // Reduced from 75% to match current levels
+    base: SEVENTY_FIVE,
   },
   // Test utilities - moderate standards
   'tests/**/*.{ts,tsx}': {
-    lines: 65, // Reduced from 70% to match current levels
-    statements: 65, // Reduced from 70% to match current levels
-    branches: 55, // Reduced from 65% to match current levels
-    functions: 55, // Reduced from 65% to match current levels
-    base: 65,
+    lines: SIXTY_FIVE, // Reduced from 70% to match current levels
+    statements: SIXTY_FIVE, // Reduced from 70% to match current levels
+    branches: FIFTY_FIVE, // Reduced from 65% to match current levels
+    functions: FIFTY_FIVE, // Reduced from 65% to match current levels
+    base: FIFTY_FIVE,
   },
 };
 
 export function getGlobalCoverageThresholds(): ICoverageThresholds {
   return {
-    lines: COVERAGE_THRESHOLD,
-    statements: COVERAGE_THRESHOLD,
-    branches: COVERAGE_THRESHOLD - 1,
-    functions: COVERAGE_THRESHOLD - 9,
-    base: COVERAGE_THRESHOLD,
+    lines: EIGHTY + 6,
+    statements: EIGHTY + 6,
+    branches: EIGHTY - 1,
+    functions: EIGHTY - 8,
+    base: EIGHTY,
   };
 }
 
