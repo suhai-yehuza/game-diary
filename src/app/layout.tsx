@@ -1,6 +1,9 @@
+import { Analytics } from '@vercel/analytics/next';
+import { SpeedInsights } from '@vercel/speed-insights/next';
 import { Inter } from 'next/font/google';
 import Script from 'next/script';
 
+import { PerformanceMonitor } from '@/app/components/analytics/PerformanceMonitor';
 import { E2ETestSetup } from '@/app/components/E2ETestSetup';
 import { Footer } from '@/app/components/layout/Footer';
 import { HeaderWrapper } from '@/app/components/layout/HeaderWrapper';
@@ -56,6 +59,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </main>
           <Footer />
         </ClientProviders>
+        <Analytics />
+        <SpeedInsights />
+        <PerformanceMonitor />
       </body>
     </html>
   );
