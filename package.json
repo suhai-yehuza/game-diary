@@ -192,6 +192,7 @@
     "test:e2e:unified": "./scripts/validation-pipeline.sh e2e",
     "test:e2e:vercel-auth": "./scripts/validation-pipeline.sh e2e run vercel-auth",
     "test:integration": "./scripts/testing/integration.sh",
+    "test:integration:ci:matrix": "CI=true ./scripts/testing/integration-ci.sh",
     "test:integration:fast": "./scripts/testing/integration.sh --direct-only",
     "test:integration:server": "./scripts/testing/integration.sh --force-server",
     "test:sso": "NODE_ENV=development tsx scripts/tests/test-sso-flow.ts",

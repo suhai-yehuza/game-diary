@@ -32,7 +32,13 @@ export function ReactionPicker({
   const handleReactionClick = async (emoji: string) => {
     await toggleReaction(emoji);
     // Don't close immediately for better UX - let user see the reaction being added
-    setTimeout(() => setIsOpen(false), 300);
+    // Check if window is available (for SSR/test environments)
+    if (typeof window !== 'undefined') {
+      setTimeout(() => setIsOpen(false), 300);
+    } else {
+      // In SSR/test environments, close immediately
+      setIsOpen(false);
+    }
   };
 
   const sizeClasses = {

@@ -6,6 +6,10 @@ import { db } from '@/lib/db';
 import type { IClerkDeletedUserData, IClerkUserData } from '@/lib/types';
 import { webhookLogger } from '@/lib/utils/logger';
 
+// NOTE:
+// - This route must receive the raw request body for signature verification to work.
+// - The app middleware explicitly bypasses auth/processing for paths under `/api/webhooks*`.
+//   See `src/middleware.ts` for the early return that preserves the raw body and prevents timeouts.
 // Helper functions
 const createResponse = (message: string, status: number) => new Response(message, { status });
 

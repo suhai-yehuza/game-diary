@@ -22,6 +22,11 @@ export const middleware = (
 )(async (auth, req) => {
   const url = new URL((req as { url: string }).url);
 
+  // Skip auth for webhook endpoints to preserve raw body and avoid delays
+  if (url.pathname.startsWith('/api/webhooks')) {
+    return NextResponse.next();
+  }
+
   // Handle OAuth callbacks - let Clerk handle these properly
   if (url.pathname.includes('oauth_callback') || url.searchParams.has('__clerk_status')) {
     return NextResponse.next();

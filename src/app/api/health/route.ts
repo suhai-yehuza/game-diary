@@ -1,7 +1,7 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
-import { db } from '@/lib/db';
+import { db, dbManager } from '@/lib/db';
 
 export async function GET(_request: NextRequest) {
   const startTime = Date.now();
@@ -54,11 +54,14 @@ export async function GET(_request: NextRequest) {
 async function checkDatabase() {
   try {
     // Simple database connectivity check
-    if (!db) {
-      return {
-        healthy: false,
-        error: 'Database connection not available',
-      };
+    // Ensure database is initialized in CI or cold start environments when DATABASE_URL is present
+    try {
+      const ok = await dbManager.testConnection();
+      if (!ok && (process.env.DATABASE_URL || process.env.POSTGRES_URL)) {
+        await dbManager.initialize();
+      }
+    } catch {
+      // ignore, will be handled by execute below
     }
 
     // Get database instance and execute query

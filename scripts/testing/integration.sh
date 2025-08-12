@@ -151,7 +151,7 @@ check_server_running() {
 # Function to run tests directly (fastest)
 run_tests_direct() {
     echo "🚀 Running integration tests directly (server already running)..."
-    pnpm vitest run --config vitest.config.ts
+    pnpm vitest run ${VITEST_ARGS:-} --config vitest.config.ts
 }
 
 # Function to manage server and run tests
@@ -218,7 +218,7 @@ run_tests_with_server_management() {
     trap cleanup EXIT
 
     # Run integration tests
-    pnpm vitest run --config vitest.config.ts
+    pnpm vitest run ${VITEST_ARGS:-} --config vitest.config.ts
 }
 
 # Main execution logic

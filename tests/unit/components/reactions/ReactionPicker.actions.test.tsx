@@ -20,6 +20,13 @@ vi.mock('@/hooks/use-reactions', () => ({
   }),
 }));
 
+// Mock ResizeObserver to prevent errors in test environment
+global.ResizeObserver = vi.fn().mockImplementation(() => ({
+  observe: vi.fn(),
+  unobserve: vi.fn(),
+  disconnect: vi.fn(),
+}));
+
 describe('ReactionPicker interactions', () => {
   beforeEach(() => {
     vi.clearAllMocks();
