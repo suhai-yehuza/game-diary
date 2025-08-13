@@ -27,6 +27,21 @@ export const middleware = (
     return NextResponse.next();
   }
 
+  // Skip auth for health check endpoint
+  if (url.pathname === '/api/health') {
+    return NextResponse.next();
+  }
+
+  // Skip auth for search endpoint (public API)
+  if (url.pathname === '/api/search') {
+    return NextResponse.next();
+  }
+
+  // Skip auth for proxy endpoint (public API for external data)
+  if (url.pathname.startsWith('/api/proxy/')) {
+    return NextResponse.next();
+  }
+
   // Handle OAuth callbacks - let Clerk handle these properly
   if (url.pathname.includes('oauth_callback') || url.searchParams.has('__clerk_status')) {
     return NextResponse.next();
