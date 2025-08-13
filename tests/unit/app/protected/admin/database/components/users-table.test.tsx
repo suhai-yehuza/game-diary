@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, act } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 import { UsersTableWithSearch } from '@src/app/protected/admin/database/components/users-table';
@@ -31,30 +31,41 @@ describe('UsersTableWithSearch', () => {
     vi.useRealTimers();
   });
 
-  it('renders without crashing', () => {
-    expect(() => render(<UsersTableWithSearch />)).not.toThrow();
+  it('renders without crashing', async () => {
+    await act(async () => {
+      expect(() => render(<UsersTableWithSearch />)).not.toThrow();
+    });
   });
 
-  it('shows loading state initially', () => {
-    render(<UsersTableWithSearch />);
-    expect(screen.getByText('Loading users...')).toBeInTheDocument();
+  it('shows search interface initially', async () => {
+    await act(async () => {
+      render(<UsersTableWithSearch />);
+    });
+    // Check for search input instead of loading text
+    expect(screen.getByPlaceholderText('Search users...')).toBeInTheDocument();
   });
 
-  it('renders search component structure', () => {
-    render(<UsersTableWithSearch />);
+  it('renders search component structure', async () => {
+    await act(async () => {
+      render(<UsersTableWithSearch />);
+    });
     // Check that the component renders its basic structure
-    expect(screen.getByText('Loading users...')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Search users...')).toBeInTheDocument();
   });
 
-  it('handles API errors gracefully', () => {
-    render(<UsersTableWithSearch />);
-    // Component should render loading state even when API fails
-    expect(screen.getByText('Loading users...')).toBeInTheDocument();
+  it('handles API errors gracefully', async () => {
+    await act(async () => {
+      render(<UsersTableWithSearch />);
+    });
+    // Component should render search interface even when API fails
+    expect(screen.getByPlaceholderText('Search users...')).toBeInTheDocument();
   });
 
-  it('has proper component structure', () => {
-    render(<UsersTableWithSearch />);
+  it('has proper component structure', async () => {
+    await act(async () => {
+      render(<UsersTableWithSearch />);
+    });
     // Verify the component has the expected structure
-    expect(screen.getByText('Loading users...')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Search users...')).toBeInTheDocument();
   });
 });

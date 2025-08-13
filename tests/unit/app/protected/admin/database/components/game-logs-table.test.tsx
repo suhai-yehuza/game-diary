@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, act } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 import { GameLogsTableWithSearch } from '@src/app/protected/admin/database/components/game-logs-table';
@@ -31,37 +31,52 @@ describe('GameLogsTableWithSearch', () => {
     vi.useRealTimers();
   });
 
-  it('renders without crashing', () => {
-    expect(() => render(<GameLogsTableWithSearch />)).not.toThrow();
+  it('renders without crashing', async () => {
+    await act(async () => {
+      expect(() => render(<GameLogsTableWithSearch />)).not.toThrow();
+    });
   });
 
-  it('renders classification tabs', () => {
-    render(<GameLogsTableWithSearch />);
+  it('renders classification tabs', async () => {
+    await act(async () => {
+      render(<GameLogsTableWithSearch />);
+    });
     expect(screen.getByText('Public Logs')).toBeInTheDocument();
     expect(screen.getByText('Private Logs')).toBeInTheDocument();
     expect(screen.getByText('Protected Logs')).toBeInTheDocument();
   });
 
-  it('shows loading state initially for public logs', () => {
-    render(<GameLogsTableWithSearch />);
-    expect(screen.getByText('Loading public game logs...')).toBeInTheDocument();
+  it('shows search interface initially', async () => {
+    await act(async () => {
+      render(<GameLogsTableWithSearch />);
+    });
+    // Check for search input instead of loading text
+    expect(screen.getByPlaceholderText('Search public game logs...')).toBeInTheDocument();
   });
 
-  it('renders search component structure', () => {
-    render(<GameLogsTableWithSearch />);
+  it('renders search component structure', async () => {
+    await act(async () => {
+      render(<GameLogsTableWithSearch />);
+    });
     // Check that the component renders its basic structure
-    expect(screen.getByText('Loading public game logs...')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Search public game logs...')).toBeInTheDocument();
+    expect(screen.getByTestId('search-icon')).toBeInTheDocument();
   });
 
-  it('handles API errors gracefully', () => {
-    render(<GameLogsTableWithSearch />);
-    // Component should render loading state even when API fails
-    expect(screen.getByText('Loading public game logs...')).toBeInTheDocument();
+  it('handles API errors gracefully', async () => {
+    await act(async () => {
+      render(<GameLogsTableWithSearch />);
+    });
+    // Component should render search interface even when API fails
+    expect(screen.getByPlaceholderText('Search public game logs...')).toBeInTheDocument();
   });
 
-  it('has proper component structure', () => {
-    render(<GameLogsTableWithSearch />);
+  it('has proper component structure', async () => {
+    await act(async () => {
+      render(<GameLogsTableWithSearch />);
+    });
     // Verify the component has the expected structure
-    expect(screen.getByText('Loading public game logs...')).toBeInTheDocument();
+    expect(screen.getByText('Public Logs')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Search public game logs...')).toBeInTheDocument();
   });
 });

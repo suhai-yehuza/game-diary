@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, act } from '@testing-library/react';
 import React from 'react';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 
@@ -119,67 +119,85 @@ describe('TableWithSearch', () => {
     });
   });
 
-  it('renders the table with search functionality', () => {
-    render(<TableWithSearch tableName="users" columns={mockColumns} itemLabel="user" />);
+  it('renders the table with search functionality', async () => {
+    await act(async () => {
+      render(<TableWithSearch tableName="users" columns={mockColumns} itemLabel="user" />);
+    });
 
     expect(screen.getByTestId('error-boundary')).toBeInTheDocument();
     expect(screen.getByTestId('table-search')).toBeInTheDocument();
   });
 
-  it('renders with correct component name in error boundary', () => {
-    render(<TableWithSearch tableName="users" columns={mockColumns} itemLabel="user" />);
+  it('renders with correct component name in error boundary', async () => {
+    await act(async () => {
+      render(<TableWithSearch tableName="users" columns={mockColumns} itemLabel="user" />);
+    });
 
     const errorBoundary = screen.getByTestId('error-boundary');
     expect(errorBoundary).toHaveAttribute('data-component-name', 'usersTable');
   });
 
-  it('renders search components', () => {
-    render(<TableWithSearch tableName="users" columns={mockColumns} itemLabel="user" />);
+  it('renders search components', async () => {
+    await act(async () => {
+      render(<TableWithSearch tableName="users" columns={mockColumns} itemLabel="user" />);
+    });
 
     expect(screen.getByTestId('search-input')).toBeInTheDocument();
     expect(screen.getByTestId('search-field-select')).toBeInTheDocument();
   });
 
-  it('renders sortable headers for sortable columns', () => {
-    render(<TableWithSearch tableName="users" columns={mockColumns} itemLabel="user" />);
+  it('renders sortable headers for sortable columns', async () => {
+    await act(async () => {
+      render(<TableWithSearch tableName="users" columns={mockColumns} itemLabel="user" />);
+    });
 
     expect(screen.getByTestId('sort-header-name')).toBeInTheDocument();
     expect(screen.getByTestId('sort-header-email')).toBeInTheDocument();
     expect(screen.getByTestId('sort-header-createdAt')).toBeInTheDocument();
   });
 
-  it('renders pagination components', () => {
-    render(<TableWithSearch tableName="users" columns={mockColumns} itemLabel="user" />);
+  it('renders pagination components', async () => {
+    await act(async () => {
+      render(<TableWithSearch tableName="users" columns={mockColumns} itemLabel="user" />);
+    });
 
     expect(screen.getByTestId('pagination-controls')).toBeInTheDocument();
     expect(screen.getByTestId('pagination-info')).toBeInTheDocument();
   });
 
-  it('renders search input field', () => {
-    render(<TableWithSearch tableName="users" columns={mockColumns} itemLabel="user" />);
+  it('renders search input field', async () => {
+    await act(async () => {
+      render(<TableWithSearch tableName="users" columns={mockColumns} itemLabel="user" />);
+    });
 
     const searchInput = screen.getByTestId('search-input');
     expect(searchInput).toBeInTheDocument();
     expect(searchInput).toHaveAttribute('placeholder', 'Search...');
   });
 
-  it('renders search field select', () => {
-    render(<TableWithSearch tableName="users" columns={mockColumns} itemLabel="user" />);
+  it('renders search field select', async () => {
+    await act(async () => {
+      render(<TableWithSearch tableName="users" columns={mockColumns} itemLabel="user" />);
+    });
 
     const searchFieldSelect = screen.getByTestId('search-field-select');
     expect(searchFieldSelect).toBeInTheDocument();
   });
 
-  it('handles sort header clicks', () => {
-    render(<TableWithSearch tableName="users" columns={mockColumns} itemLabel="user" />);
+  it('handles sort header clicks', async () => {
+    await act(async () => {
+      render(<TableWithSearch tableName="users" columns={mockColumns} itemLabel="user" />);
+    });
 
     const nameHeader = screen.getByTestId('sort-header-name');
     fireEvent.click(nameHeader);
     expect(nameHeader).toHaveClass('sortable-header', 'active');
   });
 
-  it('handles pagination navigation', () => {
-    render(<TableWithSearch tableName="users" columns={mockColumns} itemLabel="user" />);
+  it('handles pagination navigation', async () => {
+    await act(async () => {
+      render(<TableWithSearch tableName="users" columns={mockColumns} itemLabel="user" />);
+    });
 
     const paginationControls = screen.getByTestId('pagination-controls');
     const nextButton = paginationControls.querySelector('button:last-child');
@@ -188,16 +206,18 @@ describe('TableWithSearch', () => {
     }
   });
 
-  it('renders with custom item label', () => {
-    render(<TableWithSearch tableName="products" columns={mockColumns} itemLabel="product" />);
+  it('renders with custom item label', async () => {
+    await act(async () => {
+      render(<TableWithSearch tableName="products" columns={mockColumns} itemLabel="product" />);
+    });
 
     expect(screen.getByTestId('pagination-info')).toBeInTheDocument();
   });
 
-  it('maintains proper component structure', () => {
-    const { container } = render(
-      <TableWithSearch tableName="users" columns={mockColumns} itemLabel="user" />
-    );
+  it('maintains proper component structure', async () => {
+    const { container } = await act(async () => {
+      return render(<TableWithSearch tableName="users" columns={mockColumns} itemLabel="user" />);
+    });
 
     expect(container.firstChild).toBeInTheDocument();
     expect(screen.getByTestId('error-boundary')).toBeInTheDocument();
