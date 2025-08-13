@@ -1,31 +1,40 @@
 import { analytics } from './analytics';
 
-// Performance metric types
+// Performance metrics interface
 export interface IPerformanceMetrics {
   // Core Web Vitals
   lcp?: number; // Largest Contentful Paint
   fid?: number; // First Input Delay
   cls?: number; // Cumulative Layout Shift
-  ttfb?: number; // Time to First Byte
-  fcp?: number; // First Contentful Paint
 
-  // Custom metrics
-  pageLoadTime?: number;
-  componentRenderTime?: number;
-  apiResponseTime?: number;
-  bundleSize?: number;
-
-  // User experience metrics
-  timeToInteractive?: number;
+  // Page load metrics
   domContentLoaded?: number;
   windowLoad?: number;
 }
 
+// TEMPORARILY DISABLED: Performance monitoring to reduce analytics costs
+// Set this to true to re-enable performance monitoring
+const PERFORMANCE_MONITORING_ENABLED = false;
+
 // Performance monitoring utility
 export const performanceMonitoring = {
+  // Initialize performance monitoring
+  initialize: () => {
+    if (!PERFORMANCE_MONITORING_ENABLED) {
+      return;
+    }
+
+    // Track Core Web Vitals
+    performanceMonitoring.trackCoreWebVitals();
+  },
+
   // Track Core Web Vitals
   trackCoreWebVitals: () => {
-    if (typeof window === 'undefined' || !('PerformanceObserver' in window)) {
+    if (
+      !PERFORMANCE_MONITORING_ENABLED ||
+      typeof window === 'undefined' ||
+      !('PerformanceObserver' in window)
+    ) {
       return;
     }
 
@@ -74,233 +83,216 @@ export const performanceMonitoring = {
 
   // Track page load performance
   trackPageLoad: (page: string) => {
-    if (typeof window === 'undefined' || !('performance' in window)) {
+    if (
+      !PERFORMANCE_MONITORING_ENABLED ||
+      typeof window === 'undefined' ||
+      !('performance' in window)
+    ) {
       return;
     }
 
     const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
     if (navigation) {
-      const metrics = {
-        ttfb: navigation.responseStart - navigation.requestStart,
-        fcp: 0,
-        lcp: 0,
-        fid: 0,
-        cls: 0,
-        domContentLoaded:
-          navigation.domContentLoadedEventEnd - navigation.domContentLoadedEventStart,
-        windowLoad: navigation.loadEventEnd - navigation.loadEventStart,
-        pageLoadTime: navigation.loadEventEnd - navigation.loadEventStart,
-      };
+      // Track DOM Content Loaded
+      if (navigation.domContentLoadedEventEnd > 0) {
+        analytics.trackPerformance('dom_content_loaded', navigation.domContentLoadedEventEnd, {
+          page,
+          navigation_type: navigation.type,
+        });
+      }
 
-      // Track each metric
-      Object.entries(metrics).forEach(([key, value]) => {
-        if (value > 0) {
-          analytics.trackPerformance(key, value, {
-            page,
-            navigation_type: navigation.type,
-          });
-        }
+      // Track Window Load
+      if (navigation.loadEventEnd > 0) {
+        analytics.trackPerformance('window_load', navigation.loadEventEnd, {
+          page,
+          navigation_type: navigation.type,
+        });
+      }
+
+      // Track Total Page Load Time
+      const totalLoadTime = navigation.loadEventEnd - navigation.fetchStart;
+      analytics.trackPerformance('total_page_load', totalLoadTime, {
+        page,
+        navigation_type: navigation.type,
       });
     }
   },
 
   // Track component render performance
-  trackComponentRender: (
-    componentName: string,
-    renderTime: number,
-    props?: Record<string, unknown>
-  ) => {
+  trackComponentRender: (componentName: string, renderTime: number) => {
+    if (!PERFORMANCE_MONITORING_ENABLED) {
+      return;
+    }
+
     analytics.trackPerformance('component_render_time', renderTime, {
       component: componentName,
       page: typeof window !== 'undefined' ? window.location.pathname : 'unknown',
-      ...props,
     });
   },
 
   // Track API response times
-  trackApiResponse: (endpoint: string, responseTime: number, status: number, method: string) => {
+  trackApiResponse: (endpoint: string, responseTime: number, status: number) => {
+    if (!PERFORMANCE_MONITORING_ENABLED) {
+      return;
+    }
+
     analytics.trackPerformance('api_response_time', responseTime, {
       endpoint,
       status,
-      method,
       page: typeof window !== 'undefined' ? window.location.pathname : 'unknown',
     });
   },
 
   // Track bundle size
-  trackBundleSize: (bundleName: string, size: number) => {
+  trackBundleSize: (size: number, bundleName: string) => {
+    if (!PERFORMANCE_MONITORING_ENABLED) {
+      return;
+    }
+
     analytics.trackPerformance('bundle_size', size, {
-      bundle: bundleName,
+      bundle_name: bundleName,
       page: typeof window !== 'undefined' ? window.location.pathname : 'unknown',
     });
   },
 
-  // Track user interaction performance
-  trackInteraction: (interactionType: string, duration: number, target?: string) => {
+  // Track user interaction times
+  trackInteractionTime: (interactionType: string, duration: number) => {
+    if (!PERFORMANCE_MONITORING_ENABLED) {
+      return;
+    }
+
     analytics.trackPerformance('interaction_time', duration, {
       interaction_type: interactionType,
-      target,
       page: typeof window !== 'undefined' ? window.location.pathname : 'unknown',
     });
   },
 
-  // Track resource loading performance
-  trackResourceLoad: (resourceType: string, loadTime: number, url: string) => {
+  // Track resource loading times
+  trackResourceLoad: (resourceType: string, loadTime: number, resourceUrl: string) => {
+    if (!PERFORMANCE_MONITORING_ENABLED) {
+      return;
+    }
+
     analytics.trackPerformance('resource_load_time', loadTime, {
       resource_type: resourceType,
-      url: url.substring(0, 100), // Truncate long URLs
+      resource_url: resourceUrl,
       page: typeof window !== 'undefined' ? window.location.pathname : 'unknown',
     });
   },
 
-  // Track memory usage (if available)
+  // Track memory usage
   trackMemoryUsage: () => {
-    if (typeof window !== 'undefined' && 'memory' in performance) {
-      const memory = (
-        performance as {
-          memory?: { usedJSHeapSize: number; totalJSHeapSize: number; jsHeapSizeLimit: number };
-        }
-      ).memory;
-      if (memory) {
-        analytics.trackPerformance('memory_usage', memory.usedJSHeapSize, {
-          total_heap: memory.totalJSHeapSize,
-          heap_limit: memory.jsHeapSizeLimit,
-          page: window.location.pathname,
-        });
+    if (
+      !PERFORMANCE_MONITORING_ENABLED ||
+      typeof window === 'undefined' ||
+      !('memory' in performance)
+    ) {
+      return;
+    }
+
+    const memory = (
+      performance as {
+        memory?: {
+          usedJSHeapSize: number;
+          totalJSHeapSize: number;
+          jsHeapSizeLimit: number;
+        };
       }
+    ).memory;
+    if (memory) {
+      analytics.trackPerformance('memory_usage', memory.usedJSHeapSize, {
+        total_heap_size: memory.totalJSHeapSize,
+        heap_size_limit: memory.jsHeapSizeLimit,
+        page: window.location.pathname,
+      });
     }
   },
 
   // Track network conditions
   trackNetworkConditions: () => {
-    if (typeof window !== 'undefined' && 'connection' in navigator) {
-      const connection = (
-        navigator as {
-          connection?: { effectiveType: string; downlink: number; rtt: number; saveData: boolean };
-        }
-      ).connection;
-      if (connection) {
-        analytics.trackPerformance('network_conditions', 0, {
-          effective_type: connection.effectiveType,
-          downlink: connection.downlink,
-          rtt: connection.rtt,
-          save_data: connection.saveData,
-          page: window.location.pathname,
-        });
+    if (
+      !PERFORMANCE_MONITORING_ENABLED ||
+      typeof window === 'undefined' ||
+      !('connection' in navigator)
+    ) {
+      return;
+    }
+
+    const connection = (
+      navigator as {
+        connection?: {
+          effectiveType: string;
+          downlink: number;
+          rtt: number;
+          saveData: boolean;
+        };
       }
+    ).connection;
+    if (connection) {
+      analytics.trackPerformance('network_conditions', 0, {
+        effective_type: connection.effectiveType,
+        downlink: connection.downlink,
+        rtt: connection.rtt,
+        save_data: connection.saveData,
+        page: window.location.pathname,
+      });
     }
   },
 
-  // Initialize all performance monitoring
-  initialize: () => {
-    if (typeof window === 'undefined') return;
+  // Track resource loading performance
+  trackResourceLoading: () => {
+    if (
+      !PERFORMANCE_MONITORING_ENABLED ||
+      typeof window === 'undefined' ||
+      !('PerformanceObserver' in window)
+    ) {
+      return;
+    }
 
-    // Track Core Web Vitals
-    performanceMonitoring.trackCoreWebVitals();
-
-    // Track initial page load
-    performanceMonitoring.trackPageLoad(window.location.pathname);
-
-    // Track memory usage periodically
-    setInterval(() => {
-      performanceMonitoring.trackMemoryUsage();
-    }, 30000); // Every 30 seconds
-
-    // Track network conditions
-    performanceMonitoring.trackNetworkConditions();
-
-    // Track resource loading
     const resourceObserver = new PerformanceObserver(list => {
       const entries = list.getEntries();
       entries.forEach(entry => {
-        if (entry.entryType === 'resource') {
-          const resourceEntry = entry as PerformanceResourceTiming;
-          performanceMonitoring.trackResourceLoad(
-            resourceEntry.initiatorType,
-            resourceEntry.duration,
-            resourceEntry.name
-          );
-        }
+        const resourceEntry = entry as PerformanceResourceTiming;
+        analytics.trackPerformance('resource_load_time', resourceEntry.duration, {
+          resource_type: resourceEntry.initiatorType,
+          resource_url: resourceEntry.name,
+          page: window.location.pathname,
+        });
       });
     });
     resourceObserver.observe({ entryTypes: ['resource'] });
   },
-};
-
-// React hook for performance monitoring
-export const usePerformanceMonitoring = () => {
-  return performanceMonitoring;
-};
-
-// Performance thresholds for alerts
-export const PERFORMANCE_THRESHOLDS = {
-  // Core Web Vitals thresholds (Google's recommended values)
-  lcp: {
-    good: 2500, // 2.5 seconds
-    needsImprovement: 4000, // 4 seconds
-    poor: 4000, // 4+ seconds
-  },
-  fid: {
-    good: 100, // 100 milliseconds
-    needsImprovement: 300, // 300 milliseconds
-    poor: 300, // 300+ milliseconds
-  },
-  cls: {
-    good: 0.1, // 0.1
-    needsImprovement: 0.25, // 0.25
-    poor: 0.25, // 0.25+
-  },
-  ttfb: {
-    good: 800, // 800 milliseconds
-    needsImprovement: 1800, // 1.8 seconds
-    poor: 1800, // 1.8+ seconds
-  },
-  fcp: {
-    good: 1800, // 1.8 seconds
-    needsImprovement: 3000, // 3 seconds
-    poor: 3000, // 3+ seconds
-  },
-  // Custom thresholds
-  apiResponseTime: {
-    good: 200, // 200 milliseconds
-    needsImprovement: 500, // 500 milliseconds
-    poor: 500, // 500+ milliseconds
-  },
-  componentRenderTime: {
-    good: 16, // 16 milliseconds (60fps)
-    needsImprovement: 33, // 33 milliseconds (30fps)
-    poor: 33, // 33+ milliseconds
-  },
-};
-
-// Performance alert utility
-export const performanceAlerts = {
-  // Check if a metric exceeds thresholds
-  checkThreshold: (metric: string, value: number): 'good' | 'needsImprovement' | 'poor' => {
-    const thresholds = PERFORMANCE_THRESHOLDS[metric as keyof typeof PERFORMANCE_THRESHOLDS];
-    if (!thresholds) return 'good';
-
-    if (value <= thresholds.good) return 'good';
-    if (value <= thresholds.needsImprovement) return 'needsImprovement';
-    return 'poor';
-  },
 
   // Track performance alerts
-  trackAlert: (metric: string, value: number, severity: 'good' | 'needsImprovement' | 'poor') => {
-    analytics.trackPerformance('performance_alert', value, {
-      metric,
-      severity,
-      page: typeof window !== 'undefined' ? window.location.pathname : 'unknown',
-      timestamp: new Date().toISOString(),
-    });
+  trackPerformanceAlert: (metric: string, value: number, threshold: number) => {
+    if (!PERFORMANCE_MONITORING_ENABLED) {
+      return;
+    }
+
+    if (value > threshold) {
+      analytics.trackPerformance('performance_alert', value, {
+        metric,
+        threshold,
+        page: typeof window !== 'undefined' ? window.location.pathname : 'unknown',
+      });
+    }
   },
 
-  // Monitor and alert on performance issues
-  monitor: (metric: string, value: number) => {
-    const severity = performanceAlerts.checkThreshold(metric, value);
-    if (severity !== 'good') {
-      performanceAlerts.trackAlert(metric, value, severity);
+  // Get current performance metrics
+  getCurrentMetrics: (): IPerformanceMetrics => {
+    if (typeof window === 'undefined' || !('performance' in window)) {
+      return {};
     }
+
+    const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
+    const metrics: IPerformanceMetrics = {};
+
+    if (navigation) {
+      metrics.domContentLoaded = navigation.domContentLoadedEventEnd;
+      metrics.windowLoad = navigation.loadEventEnd;
+    }
+
+    return metrics;
   },
 };
 

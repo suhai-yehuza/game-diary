@@ -13,11 +13,13 @@ interface IPerformanceMonitorProps {
 }
 
 export function PerformanceMonitor({
-  enabled = true,
-  trackCoreWebVitals = true,
-  trackMemoryUsage = true,
-  trackNetworkConditions = true,
-  trackResourceLoading = true,
+  // TEMPORARILY DISABLED: Performance monitoring to reduce analytics costs
+  // Set enabled to true to re-enable performance monitoring
+  enabled = false,
+  trackCoreWebVitals = false,
+  trackMemoryUsage = false,
+  trackNetworkConditions = false,
+  trackResourceLoading = false,
 }: IPerformanceMonitorProps) {
   useEffect(() => {
     if (!enabled || typeof window === 'undefined') {

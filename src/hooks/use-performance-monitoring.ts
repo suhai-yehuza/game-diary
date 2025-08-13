@@ -1,44 +1,38 @@
 import { useCallback, useEffect, useRef } from 'react';
 
-import { performanceMonitoring, performanceAlerts } from '@/lib/utils/performance-monitoring';
+import { performanceMonitoring } from '@/lib/utils/performance-monitoring';
 
 export function usePerformanceMonitoring() {
   const renderStartTime = useRef<number>(0);
 
   // Track component render time
   const trackComponentRender = useCallback(
-    (componentName: string, props?: Record<string, unknown>) => {
+    (componentName: string, _props?: Record<string, unknown>) => {
       const renderTime = performance.now() - renderStartTime.current;
-      performanceMonitoring.trackComponentRender(componentName, renderTime, props);
-
-      // Check if render time exceeds thresholds
-      performanceAlerts.monitor('componentRenderTime', renderTime);
+      performanceMonitoring.trackComponentRender(componentName, renderTime);
     },
     []
   );
 
   // Track API response time
   const trackApiResponse = useCallback(
-    (endpoint: string, responseTime: number, status: number, method: string) => {
-      performanceMonitoring.trackApiResponse(endpoint, responseTime, status, method);
-
-      // Check if response time exceeds thresholds
-      performanceAlerts.monitor('apiResponseTime', responseTime);
+    (endpoint: string, responseTime: number, status: number, _method?: string) => {
+      performanceMonitoring.trackApiResponse(endpoint, responseTime, status);
     },
     []
   );
 
   // Track user interaction
   const trackInteraction = useCallback(
-    (interactionType: string, duration: number, target?: string) => {
-      performanceMonitoring.trackInteraction(interactionType, duration, target);
+    (interactionType: string, duration: number, _target?: string) => {
+      performanceMonitoring.trackInteractionTime(interactionType, duration);
     },
     []
   );
 
   // Track bundle size
   const trackBundleSize = useCallback((bundleName: string, size: number) => {
-    performanceMonitoring.trackBundleSize(bundleName, size);
+    performanceMonitoring.trackBundleSize(size, bundleName);
   }, []);
 
   // Track resource load
@@ -79,8 +73,9 @@ export function usePerformanceMonitoring() {
   );
 
   // Monitor specific performance metrics
-  const monitorMetric = useCallback((metric: string, value: number) => {
-    performanceAlerts.monitor(metric, value);
+  const monitorMetric = useCallback((_metric: string, _value: number) => {
+    // Note: performanceAlerts was removed to reduce analytics costs
+    // This function is kept for API compatibility but does nothing
   }, []);
 
   return {
@@ -101,7 +96,6 @@ export function usePerformanceMonitoring() {
 
     // Direct access to utilities
     performanceMonitoring,
-    performanceAlerts,
   };
 }
 
