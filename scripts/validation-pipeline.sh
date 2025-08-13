@@ -1198,7 +1198,7 @@ start_e2e_server() {
 
     # Start the development server
     log_info "Starting server..."
-    if [[ "$E2E_TEST_SUITE" == "live-games" ]]; then
+    if [[ "$E2E_TEST_SUITE" == "live-games" ]] || [[ "$E2E_TEST_SUITE" == "mock-verification" ]]; then
         pnpm dev:mock -p "$E2E_PORT" &
     else
         pnpm dev -p "$E2E_PORT" &

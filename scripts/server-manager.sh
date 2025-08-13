@@ -73,6 +73,8 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
+
+
 # Main functions using centralized utilities
 display_server_status() {
     show_server_status "$PORT"
@@ -82,14 +84,7 @@ start_server() {
     start_server_with_retry "$PORT" "$ENVIRONMENT" 30 "$LOG_FILE"
 }
 
-stop_server() {
-    stop_server "$PORT" false
-}
 
-kill_server() {
-    log_warning "Force killing processes on port $PORT..."
-    stop_server "$PORT" true
-}
 
 show_logs() {
     if [ -f "$LOG_FILE" ]; then
@@ -108,7 +103,7 @@ show_logs() {
 
 restart_server() {
     log_info "Restarting server on port $PORT..."
-    stop_server
+    stop_server "$PORT" false
     sleep 2
     start_server
 }
@@ -153,7 +148,7 @@ case "$MODE" in
         start_server
         ;;
     stop)
-        stop_server
+        stop_server "$PORT" false
         ;;
     restart)
         restart_server
@@ -162,7 +157,8 @@ case "$MODE" in
         show_logs
         ;;
     kill)
-        kill_server
+        log_warning "Force killing processes on port $PORT..."
+        stop_server "$PORT" true
         ;;
     enhanced-status)
         show_enhanced_status "$PORT"

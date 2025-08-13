@@ -57,41 +57,7 @@ dir_exists() {
     [ -d "$1" ]
 }
 
-# Check if port is in use
-port_in_use() {
-    lsof -ti:$1 >/dev/null 2>&1
-}
-
-# Kill processes on port
-kill_port() {
-    local port=$1
-    local pids=$(lsof -ti:$port 2>/dev/null || echo "")
-    if [ -n "$pids" ]; then
-        log_info "Killing processes on port $port: $pids"
-        kill $pids 2>/dev/null || true
-        sleep 2
-    fi
-}
-
-# Wait for port to be available
-wait_for_port() {
-    local port=$1
-    local timeout=${2:-30}
-    local attempts=0
-
-    log_info "Waiting for port $port to be available..."
-    while [ $attempts -lt $timeout ]; do
-        if ! port_in_use $port; then
-            log_success "Port $port is available"
-            return 0
-        fi
-        sleep 1
-        attempts=$((attempts + 1))
-    done
-
-    log_error "Port $port is still in use after $timeout seconds"
-    return 1
-}
+# Port management functions are now in port-utils.sh
 
 # Check if we're in the right directory
 check_project_root() {
@@ -176,20 +142,19 @@ complete_progress() {
     printf "\r%s: 100%% ✅\n" "$message"
 }
 
-# Port management functions (centralized)
+# Source port utilities
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/port-utils.sh"
+
+# Port management functions (centralized) - now using port-utils.sh
 find_server_pids() {
-    local port="${1:-3000}"
-    lsof -ti:$port 2>/dev/null || echo ""
+    find_processes_on_port "${1:-3000}"
 }
 
-is_port_in_use() {
-    local port="${1:-3000}"
-    lsof -i:$port -sTCP:LISTEN >/dev/null 2>&1
-}
-
-is_listening_on_port() {
-    local port="${1:-3000}"
-    lsof -i:$port -sTCP:LISTEN >/dev/null 2>&1
+# Note: We can't use the same function names due to recursion
+# So we'll use the port-utils functions directly
+port_in_use() {
+    is_port_in_use "${1:-3000}"
 }
 
 # Server management functions (centralized)
@@ -236,7 +201,7 @@ start_server_with_retry() {
     # Wait for server to start
     local attempts=0
     while [ $attempts -lt $max_attempts ]; do
-        if is_listening_on_port "$port"; then
+        if is_port_in_use "$port"; then
             log_success "Server started successfully (PID: $server_pid)"
             return 0
         fi
@@ -260,30 +225,39 @@ stop_server() {
     local port="${1:-3000}"
     local force="${2:-false}"
 
-    log_info "Stopping server on port $port..."
+    log_info "Stopping server on port $port (enhanced mode)..."
 
-    if is_port_in_use "$port"; then
-        local pids=$(find_server_pids "$port")
-        if [ -n "$pids" ]; then
-            if [ "$force" = "true" ]; then
-                log_warning "Force killing processes: $pids"
-                echo "$pids" | xargs kill -9 2>/dev/null || true
-            else
-                log_info "Stopping processes: $pids"
-                echo "$pids" | xargs kill 2>/dev/null || true
-            fi
-            sleep 2
-        fi
+    # Source port utilities if not already available
+    if ! command -v get_best_port_method >/dev/null 2>&1; then
+        SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+        source "$SCRIPT_DIR/port-utils.sh"
+    fi
 
-        if is_port_in_use "$port"; then
-            log_error "Failed to stop server on port $port"
-            return 1
-        else
-            log_success "Server stopped"
-            return 0
+    # Try all available methods to find and kill processes
+    local method=$(get_best_port_method)
+    if [ -n "$method" ]; then
+        log_info "Using $method to find processes..."
+
+        # Try to kill processes on the port
+        if kill_processes_on_port "$port" "$force" "$method"; then
+            log_info "Processes killed using $method"
         fi
+    fi
+
+    # CI-specific: Kill all node processes if needed
+    if [ "$CI" = "true" ] || [ "$force" = "true" ]; then
+        log_info "CI mode - checking for node processes..."
+        if kill_all_node_processes "next dev"; then
+            log_warning "Killed all Next.js processes"
+        fi
+    fi
+
+    # Wait for port to be available
+    if wait_for_port_available "$port" 5; then
+        log_success "Server stopped successfully"
+        return 0
     else
-        log_info "Server is not running"
+        log_warning "Port $port may still be in use, but stopping process completed"
         return 0
     fi
 }
@@ -294,7 +268,7 @@ show_server_status() {
     log_info "Server Status for Port $port"
     echo "================================"
 
-    if is_listening_on_port "$port"; then
+    if is_port_in_use "$port"; then
         local pids=$(find_server_pids "$port")
         log_success "Server is running"
         echo "   PIDs: $pids"
