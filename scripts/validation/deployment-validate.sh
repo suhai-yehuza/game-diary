@@ -9,7 +9,8 @@ set -e
 BYPASS_SECRET=""
 CI_MODE=false
 
-# Parse arguments
+# Parse arguments and build URL list
+URLS=()
 while [[ $# -gt 0 ]]; do
     case $1 in
         --bypass-secret)
@@ -21,7 +22,8 @@ while [[ $# -gt 0 ]]; do
             shift
             ;;
         *)
-            break
+            URLS+=("$1")
+            shift
             ;;
     esac
 done
@@ -117,8 +119,10 @@ validate_url() {
         curl_cmd="$curl_cmd -H \"x-vercel-protection-bypass: $BYPASS_SECRET\""
     fi
 
-    local health_response=$($curl_cmd "$health_url" 2>/dev/null || echo "HTTP_CODE:000")
-    local http_code=$(echo "$health_response" | grep "HTTP_CODE:" | cut -d: -f2 | tr -d '%"' | tr -d "'")
+        local health_response=$($curl_cmd "$health_url" 2>/dev/null || echo "HTTP_CODE:000")
+
+    # Extract HTTP code - take the last HTTP_CODE line in case there are multiple
+    local http_code=$(echo "$health_response" | grep "HTTP_CODE:" | tail -1 | sed 's/.*HTTP_CODE://' | sed 's/%//g' | tr -d '"' | tr -d "'" | tr -d ' ')
     local response_body=$(echo "$health_response" | grep -v "HTTP_CODE:")
 
     # Debug: Show the actual response for troubleshooting (only in non-CI mode)
@@ -148,7 +152,7 @@ validate_url() {
     fi
     print_status "info" "Testing main page..."
     local main_response=$($curl_cmd "$url" 2>/dev/null || echo "HTTP_CODE:000")
-    local main_http_code=$(echo "$main_response" | grep "HTTP_CODE:" | cut -d: -f2 | tr -d '%"' | tr -d "'")
+    local main_http_code=$(echo "$main_response" | grep "HTTP_CODE:" | tail -1 | sed 's/.*HTTP_CODE://' | sed 's/%//g' | tr -d '"' | tr -d "'" | tr -d ' ')
 
     if [ "$main_http_code" = "200" ]; then
         print_status "success" "Main page accessible (HTTP $main_http_code)"
@@ -278,5 +282,5 @@ main() {
     print_status "success" "All URLs passed validation!"
 }
 
-# Run main function with all arguments
-main "$@"
+# Run main function with URL list
+main "${URLS[@]}"
