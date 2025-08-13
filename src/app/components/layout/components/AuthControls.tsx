@@ -99,7 +99,10 @@ function AuthControlsContent() {
   if (!isClerkConfigured()) {
     return (
       <div className="flex items-center">
-        <div className="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded animate-pulse flex items-center justify-center">
+        <div
+          data-testid="auth-placeholder"
+          className="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded animate-pulse flex items-center justify-center"
+        >
           <span className="text-xs text-gray-500">Auth</span>
         </div>
       </div>

@@ -42,13 +42,16 @@ export async function testSignInModal(
   await waitForNetworkIdle(page);
   await page.waitForLoadState('domcontentloaded');
 
-  // Use Locator API for the sign-in button
+  // Use Locator API for the sign-in button and auth placeholder
   const signInButton = page.getByTestId('sign-in-button');
+  const authPlaceholder = page.getByTestId('auth-placeholder');
 
-  // Check if the button exists first
+  // Check if Clerk is available by looking for sign-in button or auth placeholder
   const buttonExists = (await signInButton.count()) > 0;
+  const placeholderExists = (await authPlaceholder.count()) > 0;
+
   if (!buttonExists) {
-    console.log('Sign-in button not found - this might be expected in some environments');
+    console.log('Sign-in button not found - checking for auth placeholder');
 
     // Log the current page state for debugging
     const currentUrl = page.url();
@@ -60,19 +63,34 @@ export async function testSignInModal(
       return;
     }
 
-    // Take a screenshot for debugging
-    await page.screenshot({ path: 'debug-no-signin-button.png', fullPage: true });
+    // Check if auth placeholder exists (indicating Clerk is not configured)
+    if (placeholderExists) {
+      console.log('Auth placeholder found - Clerk not configured, skipping auth modal test');
+      return;
+    }
 
-    // Check if there are any auth-related elements
-    const authElements = page.locator(
-      '[data-testid*="auth"], [data-testid*="sign"], [data-testid*="login"]'
-    );
-    const authCount = await authElements.count();
-    console.log(`Found ${authCount} auth-related elements`);
+    // Wait a bit and retry in case the button is still loading
+    await page.waitForTimeout(2000);
+    const retryButtonExists = (await signInButton.count()) > 0;
+    const retryPlaceholderExists = (await authPlaceholder.count()) > 0;
 
-    // Don't fail the test if button is not found - just log and continue
-    console.log('Auth modal test skipped - sign-in button not available');
-    return;
+    if (!retryButtonExists && !retryPlaceholderExists) {
+      console.log('Neither sign-in button nor auth placeholder found - Clerk not available');
+
+      // Take a screenshot for debugging
+      await page.screenshot({ path: 'debug-no-signin-button.png', fullPage: true });
+
+      // Check if there are any auth-related elements
+      const authElements = page.locator(
+        '[data-testid*="auth"], [data-testid*="sign"], [data-testid*="login"]'
+      );
+      const authCount = await authElements.count();
+      console.log(`Found ${authCount} auth-related elements`);
+
+      // Don't fail the test if button is not found - just log and continue
+      console.log('Auth modal test skipped - sign-in button not available');
+      return;
+    }
   }
 
   try {
