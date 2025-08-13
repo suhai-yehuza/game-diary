@@ -96,17 +96,19 @@ export function MobileSearchBar() {
           <div className="flex items-center justify-center min-h-screen px-4">
             <div className="w-full max-w-md">
               <form onSubmit={handleSubmit} className="relative">
-                <div className="relative bg-white dark:bg-gray-900 rounded-2xl shadow-2xl">
+                <div className="relative bg-white dark:bg-gray-800 rounded-2xl shadow-2xl">
                   {/* Search Input */}
                   <div className="flex items-center px-4 py-3">
-                    <Search className="w-5 h-5 text-gray-400 mr-3" />
+                    {!searchQuery && (
+                      <Search className="w-5 h-5 text-gray-500 dark:text-gray-400 mr-3" />
+                    )}
                     <input
                       ref={inputRef}
                       type="search"
                       value={searchQuery}
                       onChange={handleInputChange}
                       placeholder="Search games, teams, players..."
-                      className="flex-1 bg-transparent border-none outline-none text-base placeholder-gray-500 dark:placeholder-gray-400"
+                      className={`flex-1 bg-transparent border-none outline-none text-base text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 ${searchQuery ? 'pl-0' : 'pl-0'}`}
                       autoComplete="off"
                       spellCheck="false"
                     />
@@ -114,10 +116,10 @@ export function MobileSearchBar() {
                       <button
                         type="button"
                         onClick={handleClear}
-                        className="ml-2 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                        className="ml-2 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                         aria-label="Clear search"
                       >
-                        <X className="w-4 h-4 text-gray-400" />
+                        <X className="w-4 h-4 !text-white" />
                       </button>
                     )}
                   </div>

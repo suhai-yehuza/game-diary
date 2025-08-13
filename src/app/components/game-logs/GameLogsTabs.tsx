@@ -1,32 +1,47 @@
 'use client';
 
+import { useMobileDetection } from '@/app/components/layout/components/SearchBar';
 import { Tabs, TabsList, TabsTrigger } from '@/app/components/ui/Tabs';
 import type { IGameLogsTabsProps } from '@/lib/types';
 
 export const GameLogsTabs = ({ selectedTab, onTabChange, children }: IGameLogsTabsProps) => {
+  const isMobile = useMobileDetection();
+
   return (
     <Tabs value={selectedTab} onValueChange={onTabChange} data-testid="tabs">
-      <TabsList className="grid w-full grid-cols-3 gap-2 bg-transparent p-0 mb-4">
+      <TabsList className={`w-full gap-2 mb-6 ${isMobile ? 'grid grid-cols-3' : 'flex flex-row'}`}>
         <TabsTrigger
           value="my-logs"
           data-testid="tab-trigger-my-logs"
-          className="px-6 py-3 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 data-[state=active]:border-b-4 data-[state=active]:border-blue-500 data-[state=active]:text-blue-700 dark:data-[state=active]:text-blue-400 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 rounded-t-lg transition font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 hover:bg-gray-100 dark:hover:bg-gray-800 shadow-none"
+          className={
+            isMobile
+              ? 'text-gray-700 dark:text-gray-300 data-[state=active]:text-white dark:data-[state=active]:text-white data-[state=active]:bg-blue-600 dark:data-[state=active]:bg-blue-600 data-[state=active]:shadow-lg data-[state=active]:scale-105 transition-all duration-300 font-semibold text-xs sm:text-sm py-3 px-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700'
+              : 'text-gray-700 dark:text-gray-300 data-[state=active]:text-white dark:data-[state=active]:text-white data-[state=active]:bg-blue-600 dark:data-[state=active]:bg-blue-600 data-[state=active]:shadow-lg data-[state=active]:scale-105 border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 py-3 px-6 transition-all duration-300 font-semibold text-sm sm:text-base rounded-xl hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700'
+          }
         >
-          My Logs
+          {isMobile ? 'My Logs' : 'My Logs'}
         </TabsTrigger>
         <TabsTrigger
           value="friends-logs"
           data-testid="tab-trigger-friends-logs"
-          className="px-6 py-3 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 data-[state=active]:border-b-4 data-[state=active]:border-blue-500 data-[state=active]:text-blue-700 dark:data-[state=active]:text-blue-400 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 rounded-t-lg transition font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 hover:bg-gray-100 dark:hover:bg-gray-800 shadow-none"
+          className={
+            isMobile
+              ? 'text-gray-700 dark:text-gray-300 data-[state=active]:text-white dark:data-[state=active]:text-white data-[state=active]:bg-blue-600 dark:data-[state=active]:bg-blue-600 data-[state=active]:shadow-lg data-[state=active]:scale-105 transition-all duration-300 font-semibold text-xs sm:text-sm py-3 px-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700'
+              : 'text-gray-700 dark:text-gray-300 data-[state=active]:text-white dark:data-[state=active]:text-white data-[state=active]:bg-blue-600 dark:data-[state=active]:bg-blue-600 data-[state=active]:shadow-lg data-[state=active]:scale-105 border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 py-3 px-6 transition-all duration-300 font-semibold text-sm sm:text-base rounded-xl hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700'
+          }
         >
-          Friends&apos; Logs
+          {isMobile ? "Friends' Logs" : "Friends' Logs"}
         </TabsTrigger>
         <TabsTrigger
           value="public-logs"
           data-testid="tab-trigger-public-logs"
-          className="px-6 py-3 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 data-[state=active]:border-b-4 data-[state=active]:border-blue-500 data-[state=active]:text-blue-700 dark:data-[state=active]:text-blue-400 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 rounded-t-lg transition font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 hover:bg-gray-100 dark:hover:bg-gray-800 shadow-none"
+          className={
+            isMobile
+              ? 'text-gray-700 dark:text-gray-300 data-[state=active]:text-white dark:data-[state=active]:text-white data-[state=active]:bg-blue-600 dark:data-[state=active]:bg-blue-600 data-[state=active]:shadow-lg data-[state=active]:scale-105 transition-all duration-300 font-semibold text-xs sm:text-sm py-3 px-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700'
+              : 'text-gray-700 dark:text-gray-300 data-[state=active]:text-white dark:data-[state=active]:text-white data-[state=active]:bg-blue-600 dark:data-[state=active]:bg-blue-600 data-[state=active]:shadow-lg data-[state=active]:scale-105 border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 py-3 px-6 transition-all duration-300 font-semibold text-sm sm:text-base rounded-xl hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700'
+          }
         >
-          Public Logs
+          {isMobile ? 'Public Logs' : 'Public Logs'}
         </TabsTrigger>
       </TabsList>
       {children}

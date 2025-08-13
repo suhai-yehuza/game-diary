@@ -88,21 +88,23 @@ function SearchPageContent() {
               className="mr-3 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
               aria-label="Go back"
             >
-              <X className="w-5 h-5" />
+              <X className="w-5 h-5 text-white" />
             </button>
           )}
 
           {/* Search Input */}
           <form onSubmit={handleSubmit} className="flex-1">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+              {!searchInput && (
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500 dark:text-gray-400" />
+              )}
               <input
                 ref={inputRef}
                 type="search"
                 value={searchInput}
                 onChange={e => setSearchInput(e.target.value)}
                 placeholder="Search games, teams, players..."
-                className="w-full pl-10 pr-10 py-3 bg-gray-100 dark:bg-gray-800 rounded-xl border-none outline-none text-base placeholder-gray-500 dark:placeholder-gray-400"
+                className={`w-full py-3 bg-white dark:bg-gray-800 rounded-xl border border-gray-300 dark:border-gray-600 outline-none text-base text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 ${searchInput ? 'pl-3 pr-10' : 'pl-10 pr-10'}`}
                 autoComplete="off"
                 spellCheck="false"
               />
@@ -110,10 +112,10 @@ function SearchPageContent() {
                 <button
                   type="button"
                   onClick={handleClear}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                   aria-label="Clear search"
                 >
-                  <X className="w-4 h-4 text-gray-400" />
+                  <X className="w-4 h-4 text-white" />
                 </button>
               )}
             </div>

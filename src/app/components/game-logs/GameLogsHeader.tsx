@@ -2,19 +2,30 @@
 
 import { Plus } from 'lucide-react';
 
+import { useMobileDetection } from '@/app/components/layout/components/SearchBar';
 import { Button } from '@/app/components/ui/button';
 import type { IGameLogsHeaderProps } from '@/lib/types';
 
 export const GameLogsHeader = ({ onCreateClick }: IGameLogsHeaderProps) => {
+  const isMobile = useMobileDetection();
+
   return (
     <div className="flex justify-between items-center">
-      <h2 className="text-2xl font-semibold">Game Logs</h2>
+      <h2
+        className={`font-bold text-gray-900 dark:text-gray-100 ${
+          isMobile ? 'text-xl' : 'text-2xl'
+        }`}
+      >
+        Game Logs
+      </h2>
       <Button
         onClick={onCreateClick}
-        className="flex items-center gap-2 bg-blue-600 text-white rounded-full px-5 py-2 font-semibold shadow hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
+        className={`flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all duration-200 ${
+          isMobile ? 'px-4 py-2.5 text-sm' : 'px-6 py-2.5'
+        }`}
       >
-        <Plus className="w-4 h-4" />
-        Create New Log
+        <Plus className={`${isMobile ? 'w-4 h-4' : 'w-4 h-4'}`} />
+        {isMobile ? 'New' : 'Create New Log'}
       </Button>
     </div>
   );

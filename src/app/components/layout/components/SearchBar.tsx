@@ -36,11 +36,13 @@ function SearchInput({
 }) {
   return (
     <div className="relative flex-1">
-      <Search className="absolute left-2 top-2 h-4 w-4 text-muted-foreground" />
+      {!value && (
+        <Search className="absolute left-2 top-2 h-4 w-4 text-gray-500 dark:text-gray-400" />
+      )}
       <input
         type="search"
         placeholder={placeholder}
-        className={`pl-8 w-full bg-transparent border-none focus:ring-0 outline-none transition-all duration-200 text-foreground placeholder:text-muted-foreground ${className}`}
+        className={`w-full bg-transparent border-none focus:ring-0 outline-none transition-all duration-200 text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400 ${value ? 'pl-2' : 'pl-8'} ${className}`}
         value={value}
         onChange={onChange}
         onFocus={onFocus}
@@ -69,7 +71,7 @@ function CloseButton({
   return (
     <button
       type="button"
-      className={`text-gray-400 hover:text-gray-600 focus:outline-none ${className}`}
+      className={`!text-white hover:!text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${className}`}
       aria-label={ariaLabel}
       onMouseDown={e => {
         e.preventDefault();
@@ -225,11 +227,11 @@ function SearchBarContent({
 
   // Responsive form class for normal state
   const baseFormClass =
-    'relative max-w-[140px] sm:max-w-[180px] md:max-w-[220px] h-9 sm:h-11 bg-background border border-border shadow flex items-center px-2 transition-all duration-200 text-xs sm:text-sm';
+    'relative max-w-[140px] sm:max-w-[180px] md:max-w-[220px] h-9 sm:h-11 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 shadow flex items-center px-2 transition-all duration-200 text-xs sm:text-sm';
 
   // Expanded form class for focused state (responsive, no overlay)
   const expandedFormClass =
-    'relative w-full max-w-[95vw] sm:max-w-[300px] md:max-w-[400px] h-12 bg-background/95 dark:bg-background/95 backdrop-blur-sm border border-border shadow-2xl flex items-center px-2 sm:px-4 py-2 rounded-md transition-all duration-200 text-base z-[100]';
+    'relative w-full max-w-[95vw] sm:max-w-[300px] md:max-w-[400px] h-12 bg-white dark:bg-gray-800 backdrop-blur-sm border border-gray-300 dark:border-gray-600 shadow-2xl flex items-center px-2 sm:px-4 py-2 rounded-md transition-all duration-200 text-base z-[100]';
 
   // Only expand the searchbar in place, no overlay
   return (

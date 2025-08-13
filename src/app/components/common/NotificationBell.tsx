@@ -1,12 +1,26 @@
 'use client';
 
 import { useUser } from '@clerk/nextjs';
-import { Bell, Check } from 'lucide-react';
-import React, { useState } from 'react';
+import { Bell, Check, X } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
 
 import { useNotifications } from '@/app/components/providers/NotificationProvider';
 import { Button } from '@/app/components/ui/button';
 import { Card } from '@/app/components/ui/Card';
+
+// Mobile detection hook
+function useMobileDetection() {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  return isMobile;
+}
 
 export function NotificationBell() {
   // Handle case where Clerk is not configured (e.g., during SSR or in test environment)
@@ -23,6 +37,7 @@ export function NotificationBell() {
 
   const [isClient, setIsClient] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+  const isMobile = useMobileDetection();
 
   // Always call the hook to satisfy React rules
   const notificationsContext = useNotifications();
@@ -31,6 +46,20 @@ export function NotificationBell() {
   React.useEffect(() => {
     setIsClient(true);
   }, []);
+
+  // Close dropdown on escape key
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) {
+        setIsOpen(false);
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('keydown', handleEscape);
+      return () => document.removeEventListener('keydown', handleEscape);
+    }
+  }, [isOpen]);
 
   // Don't render anything on server to prevent hydration mismatch
   if (!isClient) {
@@ -59,6 +88,10 @@ export function NotificationBell() {
 
   const handleToggle = () => {
     setIsOpen(!isOpen);
+  };
+
+  const handleClose = () => {
+    setIsOpen(false);
   };
 
   const formatTimeAgo = (date: Date) => {
@@ -101,104 +134,200 @@ export function NotificationBell() {
         size="sm"
         onClick={handleToggle}
         aria-label="Notifications"
-        className="relative p-2 text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-gray-100"
+        className={`relative p-2 text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-gray-100 transition-colors ${
+          isMobile ? 'p-3' : 'p-2'
+        }`}
       >
-        <Bell className="h-5 w-5" />
+        <Bell className={`${isMobile ? 'h-6 w-6' : 'h-5 w-5'}`} />
         {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-red-500 text-xs text-white flex items-center justify-center font-medium">
+          <span
+            className={`absolute -top-1 -right-1 rounded-full bg-red-500 text-white flex items-center justify-center font-medium ${
+              isMobile ? 'h-6 w-6 text-xs' : 'h-5 w-5 text-xs'
+            }`}
+          >
             {unreadCount > 99 ? '99+' : unreadCount}
           </span>
         )}
       </Button>
 
       {isOpen && (
-        <div className="absolute right-0 top-full mt-2 w-80 z-50">
-          <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
-            <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                  Notifications
-                </h3>
-                {unreadCount > 0 && (
+        <>
+          {/* Mobile: Full-screen overlay */}
+          {isMobile ? (
+            <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+              <div className="w-full max-w-sm bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-h-[80vh] flex flex-col">
+                {/* Header */}
+                <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                    Notifications
+                  </h3>
+                  <div className="flex items-center gap-2">
+                    {unreadCount > 0 && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleMarkAllAsRead}
+                        className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 px-2 py-1"
+                      >
+                        Mark all read
+                      </Button>
+                    )}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleClose}
+                      className="p-1 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                    >
+                      <X className="h-5 w-5" />
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Content */}
+                <div className="flex-1 overflow-y-auto">
+                  {notifications.length === 0 ? (
+                    <div className="p-8 text-center text-gray-500 dark:text-gray-400">
+                      <Bell className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                      <p className="text-lg">No notifications</p>
+                      <p className="text-sm mt-1">You&apos;re all caught up!</p>
+                    </div>
+                  ) : (
+                    <div className="divide-y divide-gray-200 dark:divide-gray-700">
+                      {notifications.map(notification => (
+                        <div
+                          key={notification.id}
+                          className={`p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ${
+                            !notification.read ? 'bg-blue-50 dark:bg-blue-900/20' : ''
+                          }`}
+                        >
+                          <div className="flex items-start space-x-3">
+                            <div className="flex-shrink-0 text-xl">
+                              {getNotificationIcon(notification.type)}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between mb-2">
+                                <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                  {notification.title}
+                                </p>
+                                <div className="flex items-center space-x-2">
+                                  <span className="text-xs text-gray-500 dark:text-gray-400">
+                                    {formatTimeAgo(notification.createdAt)}
+                                  </span>
+                                  {!notification.read && (
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => handleMarkAsRead(notification.id)}
+                                      className="h-8 w-8 p-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                                    >
+                                      <Check className="h-4 w-4" />
+                                    </Button>
+                                  )}
+                                </div>
+                              </div>
+                              <p className="text-sm text-gray-600 dark:text-gray-300">
+                                {notification.message}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          ) : (
+            /* Desktop: Dropdown */
+            <div className="absolute right-0 top-full mt-2 w-80 z-50">
+              <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
+                <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                      Notifications
+                    </h3>
+                    {unreadCount > 0 && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleMarkAllAsRead}
+                        className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+                      >
+                        Mark all as read
+                      </Button>
+                    )}
+                  </div>
+                </div>
+
+                <div className="max-h-96 overflow-y-auto">
+                  {notifications.length === 0 ? (
+                    <div className="p-4 text-center text-gray-500 dark:text-gray-400">
+                      <Bell className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                      <p>No notifications</p>
+                    </div>
+                  ) : (
+                    <div className="divide-y divide-gray-200 dark:divide-gray-700">
+                      {notifications.map(notification => (
+                        <div
+                          key={notification.id}
+                          className={`p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ${
+                            !notification.read ? 'bg-blue-50 dark:bg-blue-900/20' : ''
+                          }`}
+                        >
+                          <div className="flex items-start space-x-3">
+                            <div className="flex-shrink-0 text-lg">
+                              {getNotificationIcon(notification.type)}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between">
+                                <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                  {notification.title}
+                                </p>
+                                <div className="flex items-center space-x-2">
+                                  <span className="text-xs text-gray-500 dark:text-gray-400">
+                                    {formatTimeAgo(notification.createdAt)}
+                                  </span>
+                                  {!notification.read && (
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => handleMarkAsRead(notification.id)}
+                                      className="h-6 w-6 p-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                                    >
+                                      <Check className="h-3 w-3" />
+                                    </Button>
+                                  )}
+                                </div>
+                              </div>
+                              <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
+                                {notification.message}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div className="p-4 border-t border-gray-200 dark:border-gray-700">
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={handleMarkAllAsRead}
-                    className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+                    onClick={handleClose}
+                    className="w-full text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-gray-100"
                   >
-                    Mark all as read
+                    Close
                   </Button>
-                )}
-              </div>
-            </div>
-
-            <div className="max-h-96 overflow-y-auto">
-              {notifications.length === 0 ? (
-                <div className="p-4 text-center text-gray-500 dark:text-gray-400">
-                  <Bell className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                  <p>No notifications</p>
                 </div>
-              ) : (
-                <div className="divide-y divide-gray-200 dark:divide-gray-700">
-                  {notifications.map(notification => (
-                    <div
-                      key={notification.id}
-                      className={`p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ${
-                        !notification.read ? 'bg-blue-50 dark:bg-blue-900/20' : ''
-                      }`}
-                    >
-                      <div className="flex items-start space-x-3">
-                        <div className="flex-shrink-0 text-lg">
-                          {getNotificationIcon(notification.type)}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between">
-                            <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                              {notification.title}
-                            </p>
-                            <div className="flex items-center space-x-2">
-                              <span className="text-xs text-gray-500 dark:text-gray-400">
-                                {formatTimeAgo(notification.createdAt)}
-                              </span>
-                              {!notification.read && (
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleMarkAsRead(notification.id)}
-                                  className="h-6 w-6 p-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                                >
-                                  <Check className="h-3 w-3" />
-                                </Button>
-                              )}
-                            </div>
-                          </div>
-                          <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
-                            {notification.message}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+              </Card>
             </div>
-
-            <div className="p-4 border-t border-gray-200 dark:border-gray-700">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setIsOpen(false)}
-                className="w-full text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-gray-100"
-              >
-                Close
-              </Button>
-            </div>
-          </Card>
-        </div>
+          )}
+        </>
       )}
 
       {/* Backdrop to close dropdown when clicking outside */}
-      {isOpen && <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />}
+      {isOpen && !isMobile && <div className="fixed inset-0 z-40" onClick={handleClose} />}
     </div>
   );
 }

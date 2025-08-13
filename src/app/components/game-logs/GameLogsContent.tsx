@@ -2,6 +2,7 @@
 
 import { GameLogCard } from '@/app/components/game-logs/GameLogCard';
 import { GameLogsPagination } from '@/app/components/game-logs/GameLogsPagination';
+import { useMobileDetection } from '@/app/components/layout/components/SearchBar';
 import { TabsContent } from '@/app/components/ui/Tabs';
 import type { IGameLogsContentProps } from '@/lib/types';
 
@@ -43,34 +44,44 @@ export const GameLogsContent = ({
   onDelete,
   filteredAndSortedLogs,
 }: IGameLogsContentProps) => {
+  const isMobile = useMobileDetection();
+
   return (
-    <TabsContent value={tabValue} className="space-y-4" data-testid={`tabs-content-${tabValue}`}>
+    <TabsContent
+      value={tabValue}
+      className={`space-y-4 ${isMobile ? 'space-y-3' : 'space-y-4'}`}
+      data-testid={`tabs-content-${tabValue}`}
+    >
       {loading ? (
-        <div className="text-center py-8">
+        <div className={`text-center ${isMobile ? 'py-6' : 'py-8'}`}>
           <div className="text-gray-600 mb-2">{getLoadingMessage(tabValue)}</div>
-          <div className="text-sm text-gray-500">Optimized loading with reduced page size</div>
+          <div className={`text-gray-500 ${isMobile ? 'text-xs' : 'text-sm'}`}>
+            Optimized loading with reduced page size
+          </div>
         </div>
       ) : Array.isArray(logs) && logs.length === 0 ? (
-        <div className="text-center py-8">
+        <div className={`text-center ${isMobile ? 'py-6' : 'py-8'}`}>
           <p className="text-gray-600">{getEmptyMessage(tabValue)}</p>
         </div>
       ) : Array.isArray(logs) ? (
         <div>
-          <div className="text-sm text-gray-500 mb-4">
+          <div className={`text-gray-500 mb-4 ${isMobile ? 'text-xs' : 'text-sm'}`}>
             Showing {logs.length} of {totalCount}{' '}
             {tabValue === 'my-logs' ? 'of your' : tabValue === 'friends-logs' ? "friends'" : ''}{' '}
             game logs
           </div>
-          {filteredAndSortedLogs.map((log, idx) => (
-            <GameLogCard
-              key={`${log.id}`}
-              log={log}
-              showActions={showActions}
-              idx={idx}
-              onEdit={onEdit}
-              onDelete={onDelete}
-            />
-          ))}
+          <div className={`space-y-3 ${isMobile ? 'space-y-2' : 'space-y-3'}`}>
+            {filteredAndSortedLogs.map((log, idx) => (
+              <GameLogCard
+                key={`${log.id}`}
+                log={log}
+                showActions={showActions}
+                idx={idx}
+                onEdit={onEdit}
+                onDelete={onDelete}
+              />
+            ))}
+          </div>
           <GameLogsPagination hasNextPage={hasNextPage} loading={loading} onLoadMore={onLoadMore} />
         </div>
       ) : null}

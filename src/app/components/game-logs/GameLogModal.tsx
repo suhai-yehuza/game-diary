@@ -472,14 +472,14 @@ export function GameLogModal({ mode, isOpen, onClose, onSuccess, gameLog }: IGam
                 ) : (
                   <div className="relative">
                     <div className="relative">
-                      <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                      <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 w-4 h-4" />
                       <input
                         type="text"
                         value={searchTerm}
                         onChange={handleSearchInputChange}
                         onFocus={() => setShowSearchResults(true)}
                         disabled={gamesLoading}
-                        className="w-full pl-8 pr-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full pl-8 pr-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
                         placeholder={
                           gamesLoading
                             ? 'Loading games...'
