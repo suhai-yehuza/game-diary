@@ -1,6 +1,6 @@
 /**
  * Types Index
- * Centralized type exports for the Placeholder application
+ * Centralized type exports for the Game Diary application
  */
 
 export * from './admin.types';

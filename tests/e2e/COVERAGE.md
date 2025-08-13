@@ -1,6 +1,6 @@
 # E2E Test Coverage Documentation
 
-This document outlines the comprehensive end-to-end (E2E) test coverage system for the Placeholder application. The system ensures thorough testing across different browsers, viewports, and user scenarios.
+This document outlines the comprehensive end-to-end (E2E) test coverage system for the Game Diary application. The system ensures thorough testing across different browsers, viewports, and user scenarios.
 
 ## Overview
 
@@ -338,4 +338,4 @@ For questions or issues with the e2e test coverage system:
 4. **Check Test Logs**: Review test execution logs
 5. **Contact Team**: Reach out to the development team
 
-This comprehensive e2e test coverage system ensures that the Placeholder application is thoroughly tested across all critical user journeys and maintains high quality standards.
+This comprehensive e2e test coverage system ensures that the Game Diary application is thoroughly tested across all critical user journeys and maintains high quality standards.

@@ -16,7 +16,7 @@ import '@/styles/globals.css';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata = {
-  title: 'Placeholder',
+  title: 'Game Diary',
   description: 'Track your gaming watching experience',
 };
 

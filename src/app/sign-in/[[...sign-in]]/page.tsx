@@ -19,8 +19,8 @@ export default function SignInPage() {
 // Add error boundary for this page
 export function generateMetadata() {
   return {
-    title: 'Sign In - Placeholder',
-    description: 'Sign in to your Placeholder account',
+    title: 'Sign In - Game Diary',
+    description: 'Sign in to your Game Diary account',
   };
 }
 

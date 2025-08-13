@@ -126,7 +126,7 @@ describe('Footer', () => {
     render(<Footer />);
     const currentYear = new Date().getFullYear();
     expect(screen.getByText(new RegExp(`${currentYear}`))).toBeInTheDocument();
-    expect(screen.getByText(/Placeholder/)).toBeInTheDocument();
+    expect(screen.getByText(/Game Diary/)).toBeInTheDocument();
     expect(screen.getByText(/Made with/)).toBeInTheDocument();
   });
 

@@ -57,7 +57,7 @@ describe('HomePage', () => {
   it('renders the home page with correct structure', () => {
     render(<HomePage />, { wrapper: TestWrapper });
 
-    expect(screen.getByText('Placeholder')).toBeInTheDocument();
+    expect(screen.getByText('Game Diary')).toBeInTheDocument();
     expect(
       screen.getByText(
         'Track your gaming watching experiences, and connect with fellow sports fans'
@@ -110,7 +110,7 @@ describe('HomePage', () => {
   it('applies correct CSS classes to hero content', () => {
     render(<HomePage />, { wrapper: TestWrapper });
 
-    const heroContent = screen.getByText('Placeholder').closest('div');
+    const heroContent = screen.getByText('Game Diary').closest('div');
     expect(heroContent).toHaveClass('flex', 'flex-col', 'items-center', 'gap-6');
   });
 
@@ -168,6 +168,6 @@ describe('HomePage', () => {
 
     const heading = screen.getByRole('heading', { level: 1 });
     expect(heading).toBeInTheDocument();
-    expect(heading).toHaveTextContent('Placeholder');
+    expect(heading).toHaveTextContent('Game Diary');
   });
 });

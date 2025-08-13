@@ -10,7 +10,7 @@ describe('Logo component extended', () => {
 
   it('renders logo image when menu is not expanded', () => {
     render(<Logo isMenuExpanded={false} />);
-    const img = screen.getByAltText('Placeholder Logo');
+    const img = screen.getByAltText('Game Diary Logo');
     expect(img).toBeInTheDocument();
   });
 });

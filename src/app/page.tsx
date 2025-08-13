@@ -18,13 +18,13 @@ export default function HomePage() {
         <div className="flex flex-col items-center gap-6">
           <Image
             src="/logos/gamelog-large.svg"
-            alt="Placeholder Logo"
+            alt="Game Diary Logo"
             width={200}
             height={200}
             priority={true}
             sizes="(max-width: 600px) 150px, 200px"
           />
-          <h1 className="text-4xl font-bold tracking-tight">Placeholder</h1>
+          <h1 className="text-4xl font-bold tracking-tight">Game Diary</h1>
           <p className="text-xl text-gray-600 dark:text-gray-300">
             Track your gaming watching experiences, and connect with fellow sports fans
           </p>

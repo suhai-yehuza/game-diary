@@ -94,11 +94,11 @@ export function Footer() {
       >
         <FooterSections linkClass="hover:text-primary transition-colors block py-0.5 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded" />
         <div className="max-w-5xl mx-auto px-2 mt-2 text-center text-muted-foreground text-xs opacity-80">
-          &copy; {new Date().getFullYear()} Placeholder. Made with{' '}
+          &copy; {new Date().getFullYear()} Game Diary. Made with{' '}
           <span aria-label="love" role="img">
             ❤️
           </span>{' '}
-          by the Placeholder Team.
+          by the Game Diary Team.
         </div>
       </footer>
     );
@@ -118,11 +118,11 @@ export function Footer() {
       <div
         className={`max-w-5xl mx-auto px-2 mt-2 text-center ${mutedTextClass} text-xs opacity-80`}
       >
-        &copy; {new Date().getFullYear()} Placeholder. Made with{' '}
+        &copy; {new Date().getFullYear()} Game Diary. Made with{' '}
         <span aria-label="love" role="img">
           ❤️
         </span>{' '}
-        by the Placeholder Team.
+        by the Game Diary Team.
       </div>
     </footer>
   );
