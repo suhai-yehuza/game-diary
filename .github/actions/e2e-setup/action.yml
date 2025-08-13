@@ -1,0 +1,33 @@
+name: 'E2E Test Setup'
+description: 'Reusable setup for E2E tests including browser installation and development server management'
+
+inputs:
+  port:
+    description: 'Port for development server'
+    required: false
+    default: '3000'
+  mode:
+    description: 'Development server mode (mock or real)'
+    required: false
+    default: 'mock'
+  browser-setup:
+    description: 'Whether to setup browsers'
+    required: false
+    default: 'true'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup Playwright browsers
+      if: inputs.browser-setup == 'true'
+      shell: bash
+      run: ./scripts/testing/install-playwright-browsers.sh --verbose
+
+    - name: Start Development Server
+      shell: bash
+      run: ./scripts/server-manager.sh start test --port=${{ inputs.port }}
+
+    - name: Stop Development Server
+      if: always()
+      shell: bash
+      run: ./scripts/server-manager.sh stop --port=${{ inputs.port }}

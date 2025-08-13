@@ -24,6 +24,7 @@
 # Options:
 #   --skip-db-tests     - Skip database trigger tests
 #   --skip-e2e-tests    - Skip E2E tests
+#   --skip-unit-tests   - Skip unit tests
 #   --skip-size-check   - Skip bundle size check
 #   --skip-performance  - Skip performance tests
 #   --fast              - Run only critical tests (sanity + critical)
@@ -275,9 +276,10 @@ show_usage() {
     echo ""
     echo "Options:"
     echo "  --skip-db-tests     - Skip database trigger tests"
-    echo "  --skip-e2e-tests    - Skip E2E tests"
-    echo "  --skip-size-check   - Skip bundle size check"
-    echo "  --skip-performance  - Skip performance tests"
+echo "  --skip-e2e-tests    - Skip E2E tests"
+echo "  --skip-unit-tests   - Skip unit tests"
+echo "  --skip-size-check   - Skip bundle size check"
+echo "  --skip-performance  - Skip performance tests"
     echo "  --fast              - Run only critical tests (sanity + critical)"
     echo "  --full              - Run full test suite (default)"
     echo "  --verbose           - Enable verbose output"
@@ -301,6 +303,7 @@ show_usage() {
 SUBCOMMAND="${1:-help}"
 SKIP_DB_TESTS=false
 SKIP_E2E_TESTS=false
+SKIP_UNIT_TESTS=false
 SKIP_SIZE_CHECK=false
 SKIP_PERFORMANCE=false
 SKIP_COVERAGE=false
@@ -334,6 +337,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         --skip-e2e-tests)
             SKIP_E2E_TESTS=true
+            shift
+            ;;
+        --skip-unit-tests)
+            SKIP_UNIT_TESTS=true
             shift
             ;;
         --skip-size-check)
@@ -496,6 +503,12 @@ run_task() {
     # Skip E2E tasks if SKIP_E2E_TESTS is true
     if [[ "$task_name" == test_e2e_* ]] && [ "$SKIP_E2E_TESTS" = true ]; then
         log_warning "Skipping E2E task: $task_name (SKIP_E2E_TESTS=true)"
+        return 0
+    fi
+
+    # Skip unit test tasks if SKIP_UNIT_TESTS is true
+    if [[ "$task_name" == test_unit ]] && [ "$SKIP_UNIT_TESTS" = true ]; then
+        log_warning "Skipping unit test task: $task_name (SKIP_UNIT_TESTS=true)"
         return 0
     fi
 

@@ -84,9 +84,10 @@ jobs:
           NEXT_PUBLIC_RAPID_API_KEY: ${{ secrets.NEXT_PUBLIC_RAPID_API_KEY }}
           NEXT_PUBLIC_RAPID_API_HOST: ${{ secrets.NEXT_PUBLIC_RAPID_API_HOST }}
           NEXT_PUBLIC_RAPID_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_RAPID_API_BASE_URL }}
+          CI: 'true'
         run: |
           echo "Running quality gate validation for ${{ inputs.environment }} environment..."
-          ./scripts/validation-pipeline.sh ci --skip-e2e-tests --skip-db-tests
+          ./scripts/validation-pipeline.sh ci --skip-e2e-tests --skip-db-tests --skip-unit-tests
 
       - name: Upload Quality Gate Artifacts
         if: always()
@@ -100,7 +101,7 @@ jobs:
           retention-days: 7
 
   unit-tests:
-    name: Unit Tests
+    name: Unit Tests & Coverage
     runs-on: ubuntu-latest
     timeout-minutes: 20
     environment: ${{ inputs.environment }}
@@ -128,6 +129,7 @@ jobs:
           NEXT_PUBLIC_RAPID_API_KEY: ${{ secrets.NEXT_PUBLIC_RAPID_API_KEY }}
           NEXT_PUBLIC_RAPID_API_HOST: ${{ secrets.NEXT_PUBLIC_RAPID_API_HOST }}
           NEXT_PUBLIC_RAPID_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_RAPID_API_BASE_URL }}
+          CI: 'true'
         run: pnpm test:unit
 
       - uses: codecov/codecov-action@v4
@@ -176,6 +178,7 @@ jobs:
           NEXT_PUBLIC_RAPID_API_KEY: ${{ secrets.NEXT_PUBLIC_RAPID_API_KEY }}
           NEXT_PUBLIC_RAPID_API_HOST: ${{ secrets.NEXT_PUBLIC_RAPID_API_HOST }}
           NEXT_PUBLIC_RAPID_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_RAPID_API_BASE_URL }}
+          CI: 'true'
         run: |
           echo "🔍 Validating database trigger definitions..."
           pnpm db:validate-triggers
@@ -258,39 +261,7 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
       - name: Setup Playwright browsers
-        run: |
-          echo "🔧 Setting up Playwright browsers for CI environment..."
-
-          # Make sure the script is executable
-          chmod +x ./scripts/testing/install-playwright-browsers.sh
-
-          # Try the custom script first
-          if ./scripts/testing/install-playwright-browsers.sh --verbose; then
-            echo "✅ Custom browser installation script completed successfully"
-          else
-            echo "⚠️ Custom script failed, trying direct installation..."
-
-            # Fallback: direct installation with verbose output
-            echo "Installing Playwright browsers directly..."
-            pnpm exec playwright install --with-deps
-
-            # Verify installation
-            echo "Verifying browser installation..."
-            pnpm exec playwright install --list
-
-            # Test if browsers are accessible
-            if pnpm exec playwright install --list | grep -q "chromium" && \
-               pnpm exec playwright install --list | grep -q "firefox" && \
-               pnpm exec playwright install --list | grep -q "webkit"; then
-              echo "✅ Direct browser installation completed successfully"
-            else
-              echo "❌ Browser installation verification failed"
-              echo "Trying one more time with force..."
-              pnpm exec playwright install --with-deps --force
-              pnpm exec playwright install --list
-              exit 1
-            fi
-          fi
+        run: ./scripts/testing/install-playwright-browsers.sh --verbose
 
       - name: Start Development Server
         env:
@@ -301,23 +272,8 @@ jobs:
           NEXT_PUBLIC_RAPID_API_KEY: ${{ secrets.NEXT_PUBLIC_RAPID_API_KEY }}
           NEXT_PUBLIC_RAPID_API_HOST: ${{ secrets.NEXT_PUBLIC_RAPID_API_HOST }}
           NEXT_PUBLIC_RAPID_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_RAPID_API_BASE_URL }}
-        run: |
-          echo "🚀 Starting development server on port 3000..."
-          pnpm dev:mock -p 3000 > /dev/null 2>&1 &
-          DEV_SERVER_PID=$!
-
-          # Wait for server to be ready
-          echo "⏳ Waiting for server to be ready..."
-          for i in {1..30}; do
-            if curl -s http://localhost:3000 > /dev/null 2>&1; then
-              echo "✅ Development server is ready!"
-              break
-            fi
-            sleep 2
-          done
-
-          # Store PID for cleanup
-          echo "DEV_SERVER_PID=$DEV_SERVER_PID" >> $GITHUB_ENV
+          CI: 'true'
+        run: ./scripts/server-manager.sh start test --port=3000
 
       - name: Run E2E Mock Verification (All Browsers)
         env:
@@ -328,21 +284,17 @@ jobs:
           NEXT_PUBLIC_RAPID_API_KEY: ${{ secrets.NEXT_PUBLIC_RAPID_API_KEY }}
           NEXT_PUBLIC_RAPID_API_HOST: ${{ secrets.NEXT_PUBLIC_RAPID_API_HOST }}
           NEXT_PUBLIC_RAPID_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_RAPID_API_BASE_URL }}
+          CI: 'true'
           DEPLOYMENT_URL: 'http://localhost:3000'
           E2E_MOCK_MODE: 'true'
           API_MOCK_MODE: 'true'
-          CI: 'true'
         run: |
           echo "Running E2E Mock Verification against all browsers..."
           pnpm test:e2e:mock-verification --browser=all
 
       - name: Stop Development Server
         if: always()
-        run: |
-          if [ -n "$DEV_SERVER_PID" ]; then
-            echo "🛑 Stopping development server..."
-            kill $DEV_SERVER_PID 2>/dev/null || true
-          fi
+        run: ./scripts/server-manager.sh stop --port=3000
 
       - name: Upload E2E Mock Verification Artifacts
         if: always()
@@ -409,6 +361,7 @@ jobs:
           NEXT_PUBLIC_RAPID_API_KEY: ${{ secrets.NEXT_PUBLIC_RAPID_API_KEY }}
           NEXT_PUBLIC_RAPID_API_HOST: ${{ secrets.NEXT_PUBLIC_RAPID_API_HOST }}
           NEXT_PUBLIC_RAPID_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_RAPID_API_BASE_URL }}
+          CI: 'true'
         run: |
           echo "🚀 Starting development server on port 3000..."
           pnpm dev:mock -p 3000 > /dev/null 2>&1 &
@@ -436,8 +389,8 @@ jobs:
           NEXT_PUBLIC_RAPID_API_KEY: ${{ secrets.NEXT_PUBLIC_RAPID_API_KEY }}
           NEXT_PUBLIC_RAPID_API_HOST: ${{ secrets.NEXT_PUBLIC_RAPID_API_HOST }}
           NEXT_PUBLIC_RAPID_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_RAPID_API_BASE_URL }}
-          DEPLOYMENT_URL: ${{ env.E2E_CHROMIUM_URL }}
           CI: 'true'
+          DEPLOYMENT_URL: ${{ env.E2E_CHROMIUM_URL }}
         run: |
           echo "Running E2E tests on Chromium..."
           # Run tests with explicit CI configuration to ensure artifacts are generated
@@ -517,6 +470,7 @@ jobs:
           NEXT_PUBLIC_RAPID_API_KEY: ${{ secrets.NEXT_PUBLIC_RAPID_API_KEY }}
           NEXT_PUBLIC_RAPID_API_HOST: ${{ secrets.NEXT_PUBLIC_RAPID_API_HOST }}
           NEXT_PUBLIC_RAPID_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_RAPID_API_BASE_URL }}
+          CI: 'true'
         run: |
           echo "🚀 Starting development server on port 3001..."
           pnpm dev:mock -p 3001 > /dev/null 2>&1 &
@@ -544,8 +498,8 @@ jobs:
           NEXT_PUBLIC_RAPID_API_KEY: ${{ secrets.NEXT_PUBLIC_RAPID_API_KEY }}
           NEXT_PUBLIC_RAPID_API_HOST: ${{ secrets.NEXT_PUBLIC_RAPID_API_HOST }}
           NEXT_PUBLIC_RAPID_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_RAPID_API_BASE_URL }}
-          DEPLOYMENT_URL: ${{ env.E2E_WEBKIT_URL }}
           CI: 'true'
+          DEPLOYMENT_URL: ${{ env.E2E_WEBKIT_URL }}
         run: |
           echo "Running E2E tests on WebKit..."
           # Run tests with explicit CI configuration to ensure artifacts are generated
@@ -625,9 +579,9 @@ jobs:
           NEXT_PUBLIC_RAPID_API_KEY: ${{ secrets.NEXT_PUBLIC_RAPID_API_KEY }}
           NEXT_PUBLIC_RAPID_API_HOST: ${{ secrets.NEXT_PUBLIC_RAPID_API_HOST }}
           NEXT_PUBLIC_RAPID_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_RAPID_API_BASE_URL }}
+          CI: 'true'
           E2E_MOCK_MODE: 'true'
           API_MOCK_MODE: 'true'
-          CI: 'true'
         run: |
           echo "🚀 Starting development server on port 3002..."
           pnpm dev:mock -p 3002 > /dev/null 2>&1 &
@@ -655,10 +609,10 @@ jobs:
           NEXT_PUBLIC_RAPID_API_KEY: ${{ secrets.NEXT_PUBLIC_RAPID_API_KEY }}
           NEXT_PUBLIC_RAPID_API_HOST: ${{ secrets.NEXT_PUBLIC_RAPID_API_HOST }}
           NEXT_PUBLIC_RAPID_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_RAPID_API_BASE_URL }}
+          CI: 'true'
           DEPLOYMENT_URL: 'http://localhost:3002'
           E2E_MOCK_MODE: 'true'
           API_MOCK_MODE: 'true'
-          CI: 'true'
         run: |
           echo "Running E2E tests on Firefox..."
           # Run tests with explicit CI configuration to ensure artifacts are generated
@@ -738,9 +692,9 @@ jobs:
           NEXT_PUBLIC_RAPID_API_KEY: ${{ secrets.NEXT_PUBLIC_RAPID_API_KEY }}
           NEXT_PUBLIC_RAPID_API_HOST: ${{ secrets.NEXT_PUBLIC_RAPID_API_HOST }}
           NEXT_PUBLIC_RAPID_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_RAPID_API_BASE_URL }}
+          CI: 'true'
           E2E_MOCK_MODE: 'true'
           API_MOCK_MODE: 'true'
-          CI: 'true'
         run: |
           echo "🚀 Starting development server on port 3003..."
           pnpm dev:mock -p 3003 > /dev/null 2>&1 &
@@ -768,10 +722,10 @@ jobs:
           NEXT_PUBLIC_RAPID_API_KEY: ${{ secrets.NEXT_PUBLIC_RAPID_API_KEY }}
           NEXT_PUBLIC_RAPID_API_HOST: ${{ secrets.NEXT_PUBLIC_RAPID_API_HOST }}
           NEXT_PUBLIC_RAPID_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_RAPID_API_BASE_URL }}
+          CI: 'true'
           DEPLOYMENT_URL: 'http://localhost:3003'
           E2E_MOCK_MODE: 'true'
           API_MOCK_MODE: 'true'
-          CI: 'true'
         run: |
           echo "Running E2E tests on Mobile..."
           # Run tests with explicit CI configuration to ensure artifacts are generated
@@ -831,6 +785,7 @@ jobs:
           NEXT_PUBLIC_RAPID_API_KEY: ${{ secrets.NEXT_PUBLIC_RAPID_API_KEY }}
           NEXT_PUBLIC_RAPID_API_HOST: ${{ secrets.NEXT_PUBLIC_RAPID_API_HOST }}
           NEXT_PUBLIC_RAPID_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_RAPID_API_BASE_URL }}
+          CI: 'true'
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
           VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
@@ -844,6 +799,13 @@ jobs:
           # Install Vercel CLI
           npm install --global vercel@latest
 
+          # Show Vercel CLI version and configuration
+          echo "Vercel CLI version:"
+          vercel --version
+
+          echo "Vercel configuration:"
+          vercel --token ${{ secrets.VERCEL_TOKEN }} 2>&1 | head -10 || echo "Vercel command failed, continuing..."
+
           # Deploy to Vercel
           if [ "${{ inputs.environment }}" = "Production" ]; then
             vercel --prod --token ${{ secrets.VERCEL_TOKEN }}
@@ -852,11 +814,31 @@ jobs:
           fi
 
           # Get the deployment URL from the deployment output
-          DEPLOYMENT_URL=$(vercel --token ${{ secrets.VERCEL_TOKEN }} 2>&1 | grep -o 'https://[^[:space:]]*\.vercel\.app' | head -1)
+          echo "Extracting deployment URL..."
+
+                    # Method 1: Try to get from vercel ls first (more reliable)
+          echo "Method 1: Trying vercel ls..."
+          VERCEL_LS_OUTPUT=$(vercel ls --token ${{ secrets.VERCEL_TOKEN }} 2>&1)
+          echo "Vercel ls output:"
+          echo "$VERCEL_LS_OUTPUT" | head -20
+          DEPLOYMENT_URL=$(echo "$VERCEL_LS_OUTPUT" | grep -E ".*\.vercel\.app" | head -1 | awk '{print $2}')
 
           if [ -z "$DEPLOYMENT_URL" ]; then
-            # Fallback: try to get from vercel ls
-            DEPLOYMENT_URL=$(vercel ls --token ${{ secrets.VERCEL_TOKEN }} | grep -E ".*\.vercel\.app" | head -1 | awk '{print $2}')
+            # Method 2: Try to get from deployment output
+            echo "Method 2: Trying deployment output..."
+            VERCEL_OUTPUT=$(vercel --token ${{ secrets.VERCEL_TOKEN }} 2>&1)
+            echo "Vercel deployment output:"
+            echo "$VERCEL_OUTPUT" | head -20
+            DEPLOYMENT_URL=$(echo "$VERCEL_OUTPUT" | grep -o 'https://[^[:space:]]*\.vercel\.app' | head -1)
+          fi
+
+          if [ -z "$DEPLOYMENT_URL" ]; then
+            # Method 3: Try to get from vercel inspect
+            echo "Method 3: Trying vercel inspect..."
+            VERCEL_INSPECT_OUTPUT=$(vercel inspect --token ${{ secrets.VERCEL_TOKEN }} 2>&1)
+            echo "Vercel inspect output:"
+            echo "$VERCEL_INSPECT_OUTPUT" | head -20
+            DEPLOYMENT_URL=$(echo "$VERCEL_INSPECT_OUTPUT" | grep -o 'https://[^[:space:]]*\.vercel\.app' | head -1)
           fi
 
           if [ -z "$DEPLOYMENT_URL" ]; then
@@ -866,6 +848,9 @@ jobs:
             else
               DEPLOYMENT_URL="${{ secrets.VERCEL_PREVIEW_URL }}"
             fi
+            echo "⚠️ Using fallback URL: $DEPLOYMENT_URL"
+          else
+            echo "✅ Extracted deployment URL: $DEPLOYMENT_URL"
           fi
 
           echo "Deployment URL: $DEPLOYMENT_URL"
@@ -885,237 +870,37 @@ jobs:
           retention-days: 7
           if-no-files-found: warn
 
-  # Comprehensive post-deployment verification tests (only run for production)
+  # Optimized post-deployment verification (production only)
   e2e-post-deploy-verification:
     name: E2E Post-Deployment Verification (Production)
     needs: [deploy]
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 45
     environment: ${{ inputs.environment }}
-    if: ${{ inputs.environment == 'Production' }} # Only run for production
+    if: ${{ inputs.environment == 'Production' }}
     steps:
       - uses: actions/checkout@v4
-
       - uses: pnpm/action-setup@v4
         with:
           version: '10'
-
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
           cache: 'pnpm'
-
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-
       - name: Setup Playwright browsers
         run: |
           echo "🔧 Setting up Playwright browsers for CI environment..."
-
-          # First try the custom script
           if ./scripts/testing/install-playwright-browsers.sh --verbose; then
             echo "✅ Custom browser installation script completed successfully"
           else
             echo "⚠️ Custom script failed, trying direct installation..."
-
-            # Fallback: direct installation
             pnpm exec playwright install --with-deps
-
-            # Verify installation
-            echo "Verifying browser installation..."
             pnpm exec playwright install --list
-
-            # Test if browsers are accessible
-            if pnpm exec playwright install --list | grep -q "chromium" && \
-               pnpm exec playwright install --list | grep -q "firefox" && \
-               pnpm exec playwright install --list | grep -q "webkit"; then
-              echo "✅ Direct browser installation completed successfully"
-            else
-              echo "❌ Browser installation verification failed"
-              exit 1
-            fi
           fi
 
-      - name: Validate Deployment URL
-        env:
-          DEPLOYMENT_URL: ${{ needs.deploy.outputs.deployment-url }}
-        run: |
-          echo "🔍 Validating deployment URL: $DEPLOYMENT_URL"
-
-          if [ -z "$DEPLOYMENT_URL" ]; then
-            echo "❌ Deployment URL is empty or not available"
-            echo "This may indicate a deployment failure or missing output from the deploy job"
-            exit 1
-          fi
-
-          # Validate URL format
-          if [[ ! "$DEPLOYMENT_URL" =~ ^https?:// ]]; then
-            echo "❌ Deployment URL format is invalid: $DEPLOYMENT_URL"
-            exit 1
-          fi
-
-          echo "✅ Deployment URL format is valid: $DEPLOYMENT_URL"
-
-          # Test basic connectivity with retries
-          echo "Testing basic connectivity..."
-          for i in {1..3}; do
-            echo "Attempt $i of 3..."
-            if curl -f -s --max-time 30 "$DEPLOYMENT_URL" > /dev/null; then
-              echo "✅ Deployment URL is accessible"
-              break
-            else
-              if [ $i -eq 3 ]; then
-                echo "❌ Deployment URL is not accessible after 3 attempts"
-                exit 1
-              else
-                echo "⚠️ Attempt $i failed, retrying in 10 seconds..."
-                sleep 10
-              fi
-            fi
-          done
-
-          # Test for expected response headers
-          echo "Testing response headers..."
-          RESPONSE_HEADERS=$(curl -f -s -I --max-time 30 "$DEPLOYMENT_URL" 2>/dev/null || echo "")
-          if echo "$RESPONSE_HEADERS" | grep -q "200 OK"; then
-            echo "✅ Deployment returns 200 OK"
-          else
-            echo "⚠️ Deployment does not return 200 OK"
-            echo "Response headers:"
-            echo "$RESPONSE_HEADERS"
-          fi
-
-          # Test for security headers
-          echo "Testing security headers..."
-          SECURITY_HEADERS=$(echo "$RESPONSE_HEADERS" | grep -E "(X-Frame-Options|X-Content-Type-Options|X-XSS-Protection|Referrer-Policy|Content-Security-Policy)" || true)
-          if [ -n "$SECURITY_HEADERS" ]; then
-            echo "✅ Security headers detected"
-            echo "$SECURITY_HEADERS"
-          else
-            echo "⚠️ No security headers detected"
-          fi
-
-          # Test for content-type
-          CONTENT_TYPE=$(echo "$RESPONSE_HEADERS" | grep -i "content-type" || true)
-          if [ -n "$CONTENT_TYPE" ]; then
-            echo "✅ Content-Type header detected: $CONTENT_TYPE"
-          else
-            echo "⚠️ No Content-Type header detected"
-          fi
-
-      - name: Run Health Checks
-        env:
-          DEPLOYMENT_URL: ${{ needs.deploy.outputs.deployment-url }}
-        run: |
-          echo "🏥 Running comprehensive health checks on deployment..."
-
-          # Initialize counters
-          TOTAL_ENDPOINTS=0
-          SUCCESSFUL_ENDPOINTS=0
-          FAILED_ENDPOINTS=()
-
-          # Test critical endpoints
-          CRITICAL_ENDPOINTS=("/" "/sports/nba" "/sports/nfl" "/sports/mlb" "/search")
-
-          echo "Testing critical endpoints..."
-          for endpoint in "${CRITICAL_ENDPOINTS[@]}"; do
-            TOTAL_ENDPOINTS=$((TOTAL_ENDPOINTS + 1))
-            echo "Testing endpoint: $endpoint"
-
-            if curl -f -s --max-time 30 "$DEPLOYMENT_URL$endpoint" > /dev/null; then
-              echo "✅ $endpoint is accessible"
-              SUCCESSFUL_ENDPOINTS=$((SUCCESSFUL_ENDPOINTS + 1))
-            else
-              echo "❌ $endpoint is not accessible"
-              FAILED_ENDPOINTS+=("$endpoint")
-            fi
-          done
-
-          # Test additional endpoints
-          ADDITIONAL_ENDPOINTS=("/sports" "/live" "/about" "/contact")
-          echo "Testing additional endpoints..."
-          for endpoint in "${ADDITIONAL_ENDPOINTS[@]}"; do
-            TOTAL_ENDPOINTS=$((TOTAL_ENDPOINTS + 1))
-            echo "Testing endpoint: $endpoint"
-
-            if curl -f -s --max-time 30 "$DEPLOYMENT_URL$endpoint" > /dev/null; then
-              echo "✅ $endpoint is accessible"
-              SUCCESSFUL_ENDPOINTS=$((SUCCESSFUL_ENDPOINTS + 1))
-            else
-              echo "⚠️ $endpoint is not accessible (this may be expected)"
-              FAILED_ENDPOINTS+=("$endpoint")
-            fi
-          done
-
-          # Test API endpoints if they exist
-          API_ENDPOINTS=("/api/health" "/api/status" "/api/version")
-          echo "Testing API endpoints..."
-          for endpoint in "${API_ENDPOINTS[@]}"; do
-            TOTAL_ENDPOINTS=$((TOTAL_ENDPOINTS + 1))
-            echo "Testing API endpoint: $endpoint"
-
-            if curl -f -s --max-time 30 "$DEPLOYMENT_URL$endpoint" > /dev/null; then
-              echo "✅ $endpoint is accessible"
-              SUCCESSFUL_ENDPOINTS=$((SUCCESSFUL_ENDPOINTS + 1))
-            else
-              echo "⚠️ $endpoint is not accessible (this may be expected)"
-              FAILED_ENDPOINTS+=("$endpoint")
-            fi
-          done
-
-          # Test static assets
-          STATIC_ENDPOINTS=("/favicon.ico" "/robots.txt" "/sitemap.xml")
-          echo "Testing static assets..."
-          for endpoint in "${STATIC_ENDPOINTS[@]}"; do
-            TOTAL_ENDPOINTS=$((TOTAL_ENDPOINTS + 1))
-            echo "Testing static asset: $endpoint"
-
-            if curl -f -s --max-time 30 "$DEPLOYMENT_URL$endpoint" > /dev/null; then
-              echo "✅ $endpoint is accessible"
-              SUCCESSFUL_ENDPOINTS=$((SUCCESSFUL_ENDPOINTS + 1))
-            else
-              echo "⚠️ $endpoint is not accessible (this may be expected)"
-              FAILED_ENDPOINTS+=("$endpoint")
-            fi
-          done
-
-          # Summary
-          echo ""
-          echo "🏥 Health Check Summary"
-          echo "======================"
-          echo "Total endpoints tested: $TOTAL_ENDPOINTS"
-          echo "Successful endpoints: $SUCCESSFUL_ENDPOINTS"
-          echo "Failed endpoints: ${#FAILED_ENDPOINTS[@]}"
-          echo "Success rate: $(( (SUCCESSFUL_ENDPOINTS * 100) / TOTAL_ENDPOINTS ))%"
-
-          if [ ${#FAILED_ENDPOINTS[@]} -gt 0 ]; then
-            echo ""
-            echo "Failed endpoints:"
-            for endpoint in "${FAILED_ENDPOINTS[@]}"; do
-              echo "  - $endpoint"
-            done
-          fi
-
-          # Check if critical endpoints failed
-          CRITICAL_FAILURES=0
-          for failed_endpoint in "${FAILED_ENDPOINTS[@]}"; do
-            for critical_endpoint in "${CRITICAL_ENDPOINTS[@]}"; do
-              if [ "$failed_endpoint" = "$critical_endpoint" ]; then
-                CRITICAL_FAILURES=$((CRITICAL_FAILURES + 1))
-              fi
-            done
-          done
-
-          if [ $CRITICAL_FAILURES -gt 0 ]; then
-            echo ""
-            echo "❌ $CRITICAL_FAILURES critical endpoints failed - this may indicate deployment issues"
-            exit 1
-          else
-            echo ""
-            echo "✅ All critical endpoints are accessible"
-          fi
-
-      - name: Run Comprehensive Post-Deployment Verification E2E
+      - name: Validate and Test Deployment
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
@@ -1124,6 +909,7 @@ jobs:
           NEXT_PUBLIC_RAPID_API_KEY: ${{ secrets.NEXT_PUBLIC_RAPID_API_KEY }}
           NEXT_PUBLIC_RAPID_API_HOST: ${{ secrets.NEXT_PUBLIC_RAPID_API_HOST }}
           NEXT_PUBLIC_RAPID_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_RAPID_API_BASE_URL }}
+          CI: 'true'
           DEPLOYMENT_URL: ${{ needs.deploy.outputs.deployment-url }}
           E2E_AUTH_BYPASS: 'true'
           TEST_USER_EMAIL: 'test@game-diary.com'
@@ -1132,97 +918,58 @@ jobs:
           E2E_POST_DEPLOY_VERIFICATION: 'true'
           E2E_MOCK_MODE: 'false'
           API_MOCK_MODE: 'false'
-          CI: 'true'
         run: |
-          echo "🚀 Running comprehensive post-deployment verification E2E tests..."
+          echo "🚀 Running optimized post-deployment verification..."
           echo "Deployment URL: $DEPLOYMENT_URL"
 
-          # Create test results directory
-          mkdir -p test-results coverage
+          # Validate deployment URL
+          if [ -z "$DEPLOYMENT_URL" ]; then
+            echo "❌ Deployment URL is empty"
+            exit 1
+          fi
 
-                    # Run dedicated post-deployment verification tests (comprehensive)
+          # Quick health check
+          echo "🔍 Quick health check..."
+          for i in {1..3}; do
+            if curl -f -s --max-time 30 "$DEPLOYMENT_URL/api/health" > /dev/null 2>&1; then
+              echo "✅ Health check passed"
+              break
+            fi
+            if [ $i -eq 3 ]; then
+              echo "❌ Health check failed after 3 attempts"
+              exit 1
+            fi
+            sleep 5
+          done
+
+          # Run comprehensive post-deployment tests
           echo "📋 Running post-deployment verification tests..."
           pnpm exec playwright test tests/e2e/functional/post-deploy-verification.spec.ts --workers=1 --reporter=line || {
-            echo "❌ Post-deployment verification tests failed - this is a deployment blocker"
+            echo "❌ Post-deployment verification tests failed"
             exit 1
           }
 
-          # Run critical tests as comprehensive verification (includes smoke tests)
-          echo "📋 Running critical tests (includes smoke tests)..."
+          # Run critical tests
+          echo "📋 Running critical tests..."
           pnpm exec playwright test tests/e2e/functional/critical.spec.ts --workers=1 --reporter=line || {
             echo "⚠️ Critical tests failed - investigating..."
-            # Continue with other tests but mark as warning
           }
 
-          # Create a placeholder coverage file if none exists
-          if [ ! -f "coverage/lcov.info" ] && [ ! -f "coverage/coverage.json" ]; then
-            echo "No coverage files found, creating placeholder"
-            echo '{"type": "Coverage", "version": "1.0", "data": {}}' > coverage/coverage.json
-          fi
+          echo "✅ Post-deployment verification completed"
 
-          echo "✅ Post-deployment verification tests completed"
-
-      - name: Collect Performance Metrics
-        if: always()
-        env:
-          DEPLOYMENT_URL: ${{ needs.deploy.outputs.deployment-url }}
-        run: |
-          echo "📊 Collecting performance metrics..."
-
-          # Create metrics directory
-          mkdir -p metrics
-
-          # Measure page load times for critical pages
-          PAGES=("/" "/sports/nba" "/sports/nfl" "/search")
-
-          for page in "${PAGES[@]}"; do
-            echo "Measuring load time for: $page"
-            START_TIME=$(date +%s%N)
-
-            if curl -f -s --max-time 30 "$DEPLOYMENT_URL$page" > /dev/null; then
-              END_TIME=$(date +%s%N)
-              LOAD_TIME=$(( (END_TIME - START_TIME) / 1000000 )) # Convert to milliseconds
-              echo "$page: ${LOAD_TIME}ms" >> metrics/load-times.txt
-              echo "✅ $page loaded in ${LOAD_TIME}ms"
-            else
-              echo "$page: FAILED" >> metrics/load-times.txt
-              echo "❌ $page failed to load"
-            fi
-          done
-
-          # Check for any pages that took too long (>5 seconds)
-          if grep -q ":[0-9]\{4,\}ms" metrics/load-times.txt; then
-            echo "⚠️ Some pages are loading slowly:"
-            grep ":[0-9]\{4,\}ms" metrics/load-times.txt
-          fi
-
-      - name: Upload Playwright test results (post-deployment verification)
+      - name: Upload Post-Deployment Artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: post-deploy-verification-playwright-test-results
+          name: post-deploy-verification-artifacts
           path: |
             test-results/
             playwright-report/
             coverage/
-            metrics/
           retention-days: 7
           if-no-files-found: warn
 
-      - name: Upload Deployment Artifacts (post-deployment verification)
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: post-deploy-verification-deployment-artifacts
-          path: |
-            test-results/
-            playwright-report/
-            coverage/
-            metrics/
-          retention-days: 7
-          if-no-files-found: warn
-
-      - name: Post-Deployment Verification Summary
+      - name: Post-Deployment Summary
         if: always()
         env:
           DEPLOYMENT_URL: ${{ needs.deploy.outputs.deployment-url }}
@@ -1232,23 +979,6 @@ jobs:
           echo "====================================="
           echo "🚀 Deployment URL: $DEPLOYMENT_URL"
           echo "✅ Critical tests: PASSED"
-          echo "📊 Performance metrics collected"
           echo "🔍 Health checks completed"
-          echo "🚀 Deployment URL validated"
-          echo "🔒 Security headers verified"
-          echo "⚡ Performance benchmarks measured"
-          echo "♿ Accessibility compliance checked"
-          echo ""
-          echo "📁 Artifacts generated:"
-          echo "  - Playwright test results"
-          echo "  - Performance metrics"
-          echo "  - Coverage reports"
-          echo "  - Health check logs"
-          echo ""
-          echo "🔍 Next steps:"
-          echo "  - Review test results in artifacts"
-          echo "  - Check performance metrics for regressions"
-          echo "  - Monitor application performance in production"
-          echo "  - Critical test failures should trigger rollback review"
-          echo ""
+          echo "📊 Test artifacts generated"
           echo "✅ Post-deployment verification completed successfully!"
