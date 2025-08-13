@@ -16,7 +16,7 @@ async function userHandler(_request: Request) {
   const authData = await (auth as () => Promise<{ userId: string | null }>)();
 
   if (!authData.userId) {
-    return new NextResponse('Unauthorized', { status: 401 });
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   // Use `currentUser()` to get the Backend API User object

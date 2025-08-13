@@ -11,7 +11,7 @@ export async function GET(request: Request) {
     const { userId } = await auth();
 
     if (!userId) {
-      return new NextResponse('Unauthorized', { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     // Get query parameters
@@ -52,7 +52,7 @@ export async function GET(request: Request) {
     // Get total count for pagination
     const database = db();
     if (!database) {
-      return new NextResponse('Database connection failed', { status: 500 });
+      return NextResponse.json({ error: 'Database connection failed' }, { status: 500 });
     }
 
     const totalCountQuery = await database
@@ -112,7 +112,7 @@ export async function GET(request: Request) {
     });
   } catch (error) {
     console.error('Error in /api/admin/audit-logs:', error);
-    return new NextResponse('Internal Server Error', { status: 500 });
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
 
@@ -121,7 +121,7 @@ export async function POST(request: Request) {
     const { userId } = await auth();
 
     if (!userId) {
-      return new NextResponse('Unauthorized', { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const filters = (await request.json()) as {
@@ -232,7 +232,7 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     console.error('Error in /api/admin/audit-logs POST:', error);
-    return new NextResponse('Internal Server Error', { status: 500 });
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
 

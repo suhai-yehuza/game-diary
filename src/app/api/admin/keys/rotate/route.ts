@@ -6,7 +6,7 @@ export async function POST() {
     const { userId } = await auth();
 
     if (!userId) {
-      return new NextResponse('Unauthorized', { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     // Mock key rotation response for testing
@@ -18,7 +18,7 @@ export async function POST() {
     });
   } catch (error) {
     console.error('Error in /api/admin/keys/rotate:', error);
-    return new NextResponse('Internal Server Error', { status: 500 });
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
 

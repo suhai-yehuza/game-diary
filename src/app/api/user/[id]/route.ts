@@ -7,18 +7,18 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     const { userId } = await auth();
 
     if (!userId) {
-      return new NextResponse('Unauthorized', { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const currentUserData = await currentUser();
 
     if (!currentUserData) {
-      return new NextResponse('User not found', { status: 404 });
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
     // Simple RLS-like behavior: users can only access their own data
     if (params.id !== userId) {
-      return new NextResponse('Forbidden', { status: 403 });
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     // Return user data in the format expected by tests
@@ -32,7 +32,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     });
   } catch (error) {
     console.error('Error in /api/user/[id]:', error);
-    return new NextResponse('Internal Server Error', { status: 500 });
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
 
