@@ -870,6 +870,47 @@ jobs:
           retention-days: 7
           if-no-files-found: warn
 
+      - name: Update Staging Domain
+        if: ${{ inputs.environment == 'Staging' }}
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          DEPLOYMENT_URL: ${{ steps.deploy.outputs.url }}
+        run: |
+          echo "🔗 Updating staging domain to point to latest deployment..."
+          echo "Deployment URL: $DEPLOYMENT_URL"
+
+          if [ -z "$DEPLOYMENT_URL" ]; then
+            echo "❌ Deployment URL is empty, skipping domain update"
+            exit 1
+          fi
+
+          # Wait a moment for deployment to be fully ready
+          echo "⏳ Waiting for deployment to be ready..."
+          sleep 10
+
+          # Update the staging domain alias
+          echo "🔄 Setting staging domain alias..."
+          if vercel alias set "$DEPLOYMENT_URL" staging.game-diary.io --token "$VERCEL_TOKEN"; then
+            echo "✅ Successfully updated staging.game-diary.io to point to: $DEPLOYMENT_URL"
+          else
+            echo "❌ Failed to update staging domain"
+            exit 1
+          fi
+
+          # Verify the domain is working
+          echo "🔍 Verifying domain is accessible..."
+          for i in {1..5}; do
+            if curl -f -s --max-time 30 "https://staging.game-diary.io/api/health" > /dev/null 2>&1; then
+              echo "✅ Staging domain is accessible and working"
+              break
+            fi
+            if [ $i -eq 5 ]; then
+              echo "⚠️ Staging domain verification failed after 5 attempts, but deployment may still be working"
+            fi
+            echo "⏳ Retrying domain verification... (attempt $i/5)"
+            sleep 10
+          done
+
   # Optimized post-deployment verification (production only)
   e2e-post-deploy-verification:
     name: E2E Post-Deployment Verification (Production)
