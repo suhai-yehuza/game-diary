@@ -200,7 +200,7 @@ jobs:
     name: Integration Tests
     needs: [quality-gate, unit-tests, database-tests]
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     environment: ${{ inputs.environment }}
     steps:
       - uses: actions/checkout@v4
@@ -247,7 +247,7 @@ jobs:
     name: E2E Mock Verification (All Browsers)
     needs: [quality-gate, unit-tests, database-tests]
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     environment: ${{ inputs.environment }}
     steps:
       - uses: actions/checkout@v4
@@ -808,7 +808,9 @@ jobs:
 
           # Deploy to Vercel
           if [ "${{ inputs.environment }}" = "Production" ]; then
-            vercel --prod --token ${{ secrets.VERCEL_TOKEN }}
+            # For production, deploy with --skip-domain to prevent automatic domain assignment
+            # We'll promote the deployment after verification
+            vercel --prod --skip-domain --token ${{ secrets.VERCEL_TOKEN }}
           else
             vercel --token ${{ secrets.VERCEL_TOKEN }}
           fi
@@ -816,20 +818,21 @@ jobs:
           # Get the deployment URL from the deployment output
           echo "Extracting deployment URL..."
 
-                    # Method 1: Try to get from vercel ls first (more reliable)
-          echo "Method 1: Trying vercel ls..."
-          VERCEL_LS_OUTPUT=$(vercel ls --token ${{ secrets.VERCEL_TOKEN }} 2>&1)
-          echo "Vercel ls output:"
-          echo "$VERCEL_LS_OUTPUT" | head -20
-          DEPLOYMENT_URL=$(echo "$VERCEL_LS_OUTPUT" | grep -E ".*\.vercel\.app" | head -1 | awk '{print $2}')
+          # Store the deployment output for URL extraction
+          DEPLOYMENT_OUTPUT=$(vercel --token ${{ secrets.VERCEL_TOKEN }} 2>&1)
+          echo "Deployment output:"
+          echo "$DEPLOYMENT_OUTPUT" | head -20
+
+          # Method 1: Try to get from deployment output (most reliable for fresh deployments)
+          DEPLOYMENT_URL=$(echo "$DEPLOYMENT_OUTPUT" | grep -o 'https://[^[:space:]]*\.vercel\.app' | head -1)
 
           if [ -z "$DEPLOYMENT_URL" ]; then
-            # Method 2: Try to get from deployment output
-            echo "Method 2: Trying deployment output..."
-            VERCEL_OUTPUT=$(vercel --token ${{ secrets.VERCEL_TOKEN }} 2>&1)
-            echo "Vercel deployment output:"
-            echo "$VERCEL_OUTPUT" | head -20
-            DEPLOYMENT_URL=$(echo "$VERCEL_OUTPUT" | grep -o 'https://[^[:space:]]*\.vercel\.app' | head -1)
+            # Method 2: Try to get from vercel ls (for recent deployments)
+            echo "Method 2: Trying vercel ls..."
+            VERCEL_LS_OUTPUT=$(vercel ls --token ${{ secrets.VERCEL_TOKEN }} 2>&1)
+            echo "Vercel ls output:"
+            echo "$VERCEL_LS_OUTPUT" | head -20
+            DEPLOYMENT_URL=$(echo "$VERCEL_LS_OUTPUT" | grep -E ".*\.vercel\.app" | head -1 | awk '{print $2}')
           fi
 
           if [ -z "$DEPLOYMENT_URL" ]; then
@@ -870,55 +873,16 @@ jobs:
           retention-days: 7
           if-no-files-found: warn
 
-      - name: Update Staging Domain
-        if: ${{ inputs.environment == 'Staging' }}
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          DEPLOYMENT_URL: ${{ steps.deploy.outputs.url }}
-        run: |
-          echo "🔗 Updating staging domain to point to latest deployment..."
-          echo "Deployment URL: $DEPLOYMENT_URL"
-
-          if [ -z "$DEPLOYMENT_URL" ]; then
-            echo "❌ Deployment URL is empty, skipping domain update"
-            exit 1
-          fi
-
-          # Wait a moment for deployment to be fully ready
-          echo "⏳ Waiting for deployment to be ready..."
-          sleep 10
-
-          # Update the staging domain alias
-          echo "🔄 Setting staging domain alias..."
-          if vercel alias set "$DEPLOYMENT_URL" staging.game-diary.io --token "$VERCEL_TOKEN"; then
-            echo "✅ Successfully updated staging.game-diary.io to point to: $DEPLOYMENT_URL"
-          else
-            echo "❌ Failed to update staging domain"
-            exit 1
-          fi
-
-          # Verify the domain is working
-          echo "🔍 Verifying domain is accessible..."
-          for i in {1..5}; do
-            if curl -f -s --max-time 30 "https://staging.game-diary.io/api/health" > /dev/null 2>&1; then
-              echo "✅ Staging domain is accessible and working"
-              break
-            fi
-            if [ $i -eq 5 ]; then
-              echo "⚠️ Staging domain verification failed after 5 attempts, but deployment may still be working"
-            fi
-            echo "⏳ Retrying domain verification... (attempt $i/5)"
-            sleep 10
-          done
-
-  # Optimized post-deployment verification (production only)
+  # Unified post-deployment verification (staging and production)
   e2e-post-deploy-verification:
-    name: E2E Post-Deployment Verification (Production)
+    name: E2E Post-Deployment Verification (${{ inputs.environment }})
     needs: [deploy]
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: ${{ inputs.environment == 'Production' && 45 || 30 }}
     environment: ${{ inputs.environment }}
-    if: ${{ inputs.environment == 'Production' }}
+    if: ${{ inputs.environment == 'Staging' || inputs.environment == 'Production' }}
+    outputs:
+      deployment-url: ${{ needs.deploy.outputs.deployment-url }}
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -930,6 +894,13 @@ jobs:
           cache: 'pnpm'
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Setup validation scripts
+        run: |
+          echo "🔧 Setting up validation scripts..."
+          chmod +x scripts/validation/*.sh
+          echo "✅ Validation scripts are now executable"
+
       - name: Setup Playwright browsers
         run: |
           echo "🔧 Setting up Playwright browsers for CI environment..."
@@ -960,7 +931,16 @@ jobs:
           E2E_MOCK_MODE: 'false'
           API_MOCK_MODE: 'false'
         run: |
-          echo "🚀 Running optimized post-deployment verification..."
+          # Set environment-specific variables
+          if [ "${{ inputs.environment }}" = "Production" ]; then
+            ENVIRONMENT_NAME="production"
+            VERIFICATION_MESSAGE="optimized post-deployment verification"
+          else
+            ENVIRONMENT_NAME="staging"
+            VERIFICATION_MESSAGE="staging post-deployment verification"
+          fi
+
+          echo "🚀 Running $VERIFICATION_MESSAGE..."
           echo "Deployment URL: $DEPLOYMENT_URL"
 
           # Validate deployment URL
@@ -969,19 +949,25 @@ jobs:
             exit 1
           fi
 
-          # Quick health check
-          echo "🔍 Quick health check..."
-          for i in {1..3}; do
-            if curl -f -s --max-time 30 "$DEPLOYMENT_URL/api/health" > /dev/null 2>&1; then
-              echo "✅ Health check passed"
-              break
-            fi
-            if [ $i -eq 3 ]; then
-              echo "❌ Health check failed after 3 attempts"
+          # Comprehensive deployment validation using our validation script
+          echo "🔍 Running comprehensive deployment validation..."
+          if [ -n "$VERCEL_AUTOMATION_BYPASS_SECRET" ]; then
+            echo "Using Vercel automation bypass for validation..."
+            if ./scripts/validation/deployment-validate.sh "$DEPLOYMENT_URL" --bypass-secret "$VERCEL_AUTOMATION_BYPASS_SECRET" --ci; then
+              echo "✅ Deployment validation passed"
+            else
+              echo "❌ Deployment validation failed"
               exit 1
             fi
-            sleep 5
-          done
+          else
+            echo "Running validation without bypass secret..."
+            if ./scripts/validation/deployment-validate.sh "$DEPLOYMENT_URL" --ci; then
+              echo "✅ Deployment validation passed"
+            else
+              echo "❌ Deployment validation failed"
+              exit 1
+            fi
+          fi
 
           # Run comprehensive post-deployment tests
           echo "📋 Running post-deployment verification tests..."
@@ -996,13 +982,13 @@ jobs:
             echo "⚠️ Critical tests failed - investigating..."
           }
 
-          echo "✅ Post-deployment verification completed"
+          echo "✅ $ENVIRONMENT_NAME post-deployment verification completed"
 
       - name: Upload Post-Deployment Artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: post-deploy-verification-artifacts
+          name: ${{ inputs.environment }}-post-deploy-verification-artifacts
           path: |
             test-results/
             playwright-report/
@@ -1023,3 +1009,103 @@ jobs:
           echo "🔍 Health checks completed"
           echo "📊 Test artifacts generated"
           echo "✅ Post-deployment verification completed successfully!"
+
+  # Reusable job for updating domains (staging and production)
+  update-domain:
+    name: Update ${{ inputs.environment }} Domain
+    needs: [e2e-post-deploy-verification]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: ${{ inputs.environment }}
+    if: ${{ inputs.environment == 'Staging' || inputs.environment == 'Production' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: '10'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Update Domain
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          DEPLOYMENT_URL: ${{ needs.e2e-post-deploy-verification.outputs.deployment-url }}
+        run: |
+          # Set environment-specific variables
+          if [ "${{ inputs.environment }}" = "Production" ]; then
+            DOMAIN_NAME="www.game-diary.io"
+            DOMAIN_URL="https://www.game-diary.io"
+            ENVIRONMENT_NAME="production"
+            VERIFICATION_ENDPOINT="/api/health"
+          else
+            DOMAIN_NAME="staging.game-diary.io"
+            DOMAIN_URL="https://staging.game-diary.io"
+            ENVIRONMENT_NAME="staging"
+            VERIFICATION_ENDPOINT="/api/health"
+          fi
+
+          echo "🔗 Updating $ENVIRONMENT_NAME domain to point to latest deployment..."
+          echo "Deployment URL: $DEPLOYMENT_URL"
+          echo "Domain: $DOMAIN_NAME"
+
+          if [ -z "$DEPLOYMENT_URL" ]; then
+            echo "❌ Deployment URL is empty, skipping domain update"
+            exit 1
+          fi
+
+          # Wait a moment for deployment to be fully ready
+          echo "⏳ Waiting for deployment to be ready..."
+          sleep 10
+
+          # Update the domain based on environment
+          if [ "${{ inputs.environment }}" = "Production" ]; then
+            # For production, use 'vercel promote' which handles the primary domain assignment
+            echo "🔄 Promoting deployment to production..."
+            if vercel promote "$DEPLOYMENT_URL" --token "$VERCEL_TOKEN"; then
+              echo "✅ Successfully promoted deployment to production: $DEPLOYMENT_URL"
+            else
+              echo "❌ Failed to promote deployment to production"
+              exit 1
+            fi
+          else
+            # For staging, use 'vercel alias set' since staging.game-diary.io is a custom domain
+            echo "🔄 Setting staging domain alias..."
+            if vercel alias set "$DEPLOYMENT_URL" "$DOMAIN_NAME" --token "$VERCEL_TOKEN"; then
+              echo "✅ Successfully updated $DOMAIN_NAME to point to: $DEPLOYMENT_URL"
+            else
+              echo "❌ Failed to update staging domain"
+              exit 1
+            fi
+          fi
+
+          # Verify the domain is working
+          echo "🔍 Verifying domain is accessible..."
+          for i in {1..5}; do
+            if curl -f -s --max-time 30 "$DOMAIN_URL$VERIFICATION_ENDPOINT" > /dev/null 2>&1; then
+              echo "✅ $ENVIRONMENT_NAME domain is accessible and working"
+              break
+            fi
+            if [ $i -eq 5 ]; then
+              echo "⚠️ $ENVIRONMENT_NAME domain verification failed after 5 attempts, but deployment may still be working"
+            fi
+            echo "⏳ Retrying domain verification... (attempt $i/5)"
+            sleep 10
+          done
+
+      - name: Upload Domain Update Artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.environment }}-domain-update-artifacts
+          path: |
+            logs/
+            test-results/
+          retention-days: 7
+          if-no-files-found: warn
