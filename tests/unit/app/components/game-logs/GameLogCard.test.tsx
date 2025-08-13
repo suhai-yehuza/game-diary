@@ -368,7 +368,11 @@ describe('GameLogCard', () => {
       'dark:border-gray-500',
       'bg-neutral-100',
       'dark:bg-neutral-800',
-      'shadow-md'
+      'shadow-lg',
+      'hover:shadow-xl',
+      'transition-all',
+      'duration-200',
+      'rounded-xl'
     );
   });
 });

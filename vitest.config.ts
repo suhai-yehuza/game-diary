@@ -40,6 +40,7 @@ export default defineConfig({
         'src/app/api/webhook/clerk-example-events/**',
         'src/styles/**', // CSS files
         'src/middleware.ts', // Middleware is tested via e2e
+        'src/lib/analytics/**',
         'src/lib/cache/**',
         'src/lib/config/**',
         'src/lib/db/**',

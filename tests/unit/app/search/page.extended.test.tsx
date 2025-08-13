@@ -60,10 +60,10 @@ describe('SearchPage (client)', () => {
     const input = screen.getByPlaceholderText('Search games, teams, players...');
     fireEvent.change(input, { target: { value: 'lebron' } });
 
-    const btn = screen.getByText('Search');
-    expect(btn).not.toBeDisabled();
+    // Submit the form to trigger search
+    const form = input.closest('form');
+    fireEvent.submit(form!);
 
-    fireEvent.click(btn);
     // No query param push, so no fetch yet; just ensure UI remains stable
     expect(screen.getByTestId('empty')).toBeInTheDocument();
   });

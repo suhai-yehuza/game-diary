@@ -66,7 +66,14 @@ describe('GameLogsSort', () => {
       render(<GameLogsSort sortKey="created_at" sortDirection="desc" onSort={mockOnSort} />);
 
       const container = screen.getByText('Sort by:').closest('div');
-      expect(container).toHaveClass('flex', 'items-center', 'gap-2');
+      expect(container).toHaveClass(
+        'flex',
+        'flex-col',
+        'gap-2',
+        'sm:flex-row',
+        'sm:items-center',
+        'sm:gap-2'
+      );
     });
   });
 });

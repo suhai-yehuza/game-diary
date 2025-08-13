@@ -3,12 +3,12 @@ import { SpeedInsights } from '@vercel/speed-insights/next';
 import { Inter } from 'next/font/google';
 import Script from 'next/script';
 
-import { PerformanceMonitor } from '@/app/components/analytics/PerformanceMonitor';
 import { E2ETestSetup } from '@/app/components/E2ETestSetup';
 import { Footer } from '@/app/components/layout/Footer';
 import { HeaderWrapper } from '@/app/components/layout/HeaderWrapper';
 import { LiveGamesBanner } from '@/app/components/LiveGamesBanner';
 import { ClientProviders } from '@/app/components/providers';
+import { PerformanceMonitor } from '@/lib/analytics/PerformanceMonitor';
 import { isTestOrCIEnvironment } from '@/lib/utils/e2e-test-setup';
 
 import '@/styles/globals.css';

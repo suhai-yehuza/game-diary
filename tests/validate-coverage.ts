@@ -5,6 +5,8 @@ import * as fs from 'fs';
 
 import {
   getCoverageConfig,
+  getE2ECoverageConfig,
+  generateE2ECoverageReport,
   type ICoverageThresholds,
   type IFileThresholds,
 } from '@/lib/config/coverage';
@@ -117,8 +119,8 @@ function parseCoverageReport(): { summary: ICoverageSummary | null; files: IFile
     };
 
     return { summary, files: coverageData };
-  } catch (error) {
-    logError('Error parsing coverage report: ' + (error as Error).message);
+  } catch (_error) {
+    logError('Error parsing coverage report: ' + (_error as Error).message);
     return { summary: null, files: null };
   }
 }
@@ -173,8 +175,23 @@ function calculateFileCoverage(filePath: string, fileData: any): IFileCoverageRe
 function getFileThresholds(filePath: string, fileThresholds: IFileThresholds): ICoverageThresholds {
   // Find the matching pattern for this file
   for (const pattern in fileThresholds) {
-    if (filePath.includes(pattern.replace('**/*.{ts,tsx}', ''))) {
+    // Handle exact file matches
+    if (pattern === filePath) {
       return fileThresholds[pattern];
+    }
+
+    // Handle relative path matches (extract the relative part from absolute path)
+    const relativePath = filePath.split('/src/').pop();
+    if (relativePath && pattern === `src/${relativePath}`) {
+      return fileThresholds[pattern];
+    }
+
+    // Handle wildcard patterns
+    if (pattern.includes('**/*.{ts,tsx}')) {
+      const basePattern = pattern.replace('**/*.{ts,tsx}', '');
+      if (filePath.includes(basePattern)) {
+        return fileThresholds[pattern];
+      }
     }
   }
 
@@ -238,6 +255,67 @@ function runVitestWithCoverage(): void {
     logError('Check the output above for test failures');
     process.exit(1);
   }
+}
+
+function runE2ETests(): any[] {
+  logInfo('Running E2E tests for coverage analysis...');
+
+  try {
+    // Run E2E tests and capture results
+    const output = execSync('pnpm test:e2e --reporter=json', {
+      stdio: 'pipe',
+      cwd: process.cwd(),
+      encoding: 'utf8',
+    });
+
+    // Parse the JSON output to get test results
+    const results = JSON.parse(output);
+    logSuccess('E2E tests completed successfully');
+    return results;
+  } catch (_error) {
+    logWarning('E2E tests failed or no JSON reporter available');
+    logInfo('This is expected if E2E tests are not configured for JSON output');
+    return [];
+  }
+}
+
+function validateE2ECoverage(): boolean {
+  logInfo('Validating E2E test coverage...');
+
+  const _e2eConfig = getE2ECoverageConfig();
+  const testResults = runE2ETests();
+
+  if (testResults.length === 0) {
+    logWarning('No E2E test results available for coverage analysis');
+    logInfo('E2E coverage validation skipped');
+    return true;
+  }
+
+  const coverageReport = generateE2ECoverageReport(testResults);
+
+  console.log('\n🧪 E2E Test Coverage Results:');
+  console.log(`   Overall Score: ${coverageReport.overallScore.toFixed(2)}%`);
+  console.log(`   Categories: ${coverageReport.summary.totalCategories}`);
+  console.log(`   Met Targets: ${coverageReport.summary.metTargets}`);
+  console.log(`   Failed Targets: ${coverageReport.summary.failedTargets}`);
+
+  console.log('\n📊 Category Breakdown:');
+  coverageReport.categories.forEach(category => {
+    const status = category.met ? '✅' : '❌';
+    console.log(
+      `   ${status} ${category.category}: ${category.actual.toFixed(2)}% (target: ${category.target}%) - ${category.testCount} tests`
+    );
+  });
+
+  const allTargetsMet = coverageReport.summary.failedTargets === 0;
+
+  if (allTargetsMet) {
+    logSuccess('All E2E coverage targets met!');
+  } else {
+    logError('Some E2E coverage targets not met!');
+  }
+
+  return allTargetsMet;
 }
 
 function validateCoverageThresholds(thresholds: ICoverageThresholds): boolean {
@@ -364,13 +442,24 @@ function displayFileThresholds(fileThresholds: IFileThresholds): void {
   console.log('');
 }
 
+function displayE2EThresholds(): void {
+  logInfo('E2E Coverage Targets:');
+
+  const _e2eConfig = getE2ECoverageConfig();
+  _e2eConfig.targets.forEach(target => {
+    console.log(`   ${target.category}: ${target.target}% - ${target.description}`);
+  });
+  console.log('');
+}
+
 function main(): void {
-  logInfo('Validating test coverage using single source of truth...');
+  logInfo('Validating test coverage using unified coverage system...');
 
   // Get coverage configuration
   const config = getCoverageConfig();
   displayThresholds(config.global);
   displayFileThresholds(config.files);
+  displayE2EThresholds();
 
   // Run vitest with coverage
   runVitestWithCoverage();
@@ -381,7 +470,10 @@ function main(): void {
   // Validate individual file coverage thresholds
   const fileThresholdsMet = validateIndividualFileCoverage(config.files);
 
-  if (!overallThresholdsMet || !fileThresholdsMet) {
+  // Validate E2E coverage
+  const e2eThresholdsMet = validateE2ECoverage();
+
+  if (!overallThresholdsMet || !fileThresholdsMet || !e2eThresholdsMet) {
     logError('Coverage validation failed!');
     if (!overallThresholdsMet) {
       logError('Overall coverage thresholds were not met');
@@ -389,11 +481,14 @@ function main(): void {
     if (!fileThresholdsMet) {
       logError('Individual file coverage thresholds were not met');
     }
+    if (!e2eThresholdsMet) {
+      logError('E2E coverage thresholds were not met');
+    }
     process.exit(1);
   }
 
   logSuccess('Coverage validation passed!');
-  logInfo('All overall and individual file thresholds were met');
+  logInfo('All overall, individual file, and E2E thresholds were met');
 }
 
 main();

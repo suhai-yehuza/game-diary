@@ -187,7 +187,15 @@ describe('GameLogsSearch', () => {
     const container = screen
       .getByPlaceholderText('Search game logs...')
       .closest('div')?.parentElement;
-    expect(container).toHaveClass('flex', 'flex-col', 'sm:flex-row', 'gap-3', 'mb-6');
+    expect(container).toHaveClass(
+      'flex',
+      'flex-col',
+      'gap-3',
+      'mb-4',
+      'sm:mb-6',
+      'sm:flex-row',
+      'sm:gap-3'
+    );
   });
 
   it('handles empty search term gracefully', async () => {
