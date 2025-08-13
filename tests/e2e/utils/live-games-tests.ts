@@ -219,18 +219,18 @@ export async function testLiveGamesStates(page: Page) {
 
   // Check for either games or no games message
   const gamesGrid = page.locator('[data-testid="live-games-grid"]');
-  const noGamesMessage = page.locator(
-    'text=No Live Games, text=There are currently no live NBA games'
-  );
+  const noGamesTitle = page.locator('text=No Live Games');
+  const noGamesDescription = page.locator('text=There are currently no live NBA games');
 
   // Wait a bit more for content to load, especially in WebKit
   await page.waitForTimeout(1000);
 
   const hasGames = (await gamesGrid.count()) > 0;
-  const hasNoGamesMessage = (await noGamesMessage.count()) > 0;
+  const hasNoGamesTitle = (await noGamesTitle.count()) > 0;
+  const hasNoGamesDescription = (await noGamesDescription.count()) > 0;
 
-  // Should have either games or no games message
-  expect(hasGames || hasNoGamesMessage).toBe(true);
+  // Should have either games or no games message (title and description are separate elements)
+  expect(hasGames || (hasNoGamesTitle && hasNoGamesDescription)).toBe(true);
 }
 
 /**

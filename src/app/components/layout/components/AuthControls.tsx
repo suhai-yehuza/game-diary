@@ -7,21 +7,7 @@ import { ClerkWrapper } from '@/app/components/common/ClerkErrorBoundary';
 import { isUnitTestEnvironment, isE2ETestEnvironment } from '@/lib/config/app.config';
 import { logE2E } from '@/lib/utils/logger';
 import { isSSOCallback } from '@/lib/utils/sso-utils';
-
-// Utility function to check if Clerk is configured
-function isClerkConfigured(): boolean {
-  // In E2E test environments, always return true to ensure consistent behavior
-  if (
-    process.env.E2E_MOCK_MODE === 'true' ||
-    process.env.GITHUB_ACTIONS === 'true' ||
-    process.env.PLAYWRIGHT_CI === 'true'
-  ) {
-    return true;
-  }
-
-  // Check for Clerk environment variable
-  return !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
-}
+import { isClerkConfigured } from '@tests/e2e/utils/auth-helpers';
 
 function AuthControlsContent() {
   const [mounted, setMounted] = useState(false);

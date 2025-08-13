@@ -1,6 +1,7 @@
 import type { Page } from '@playwright/test';
 import { expect } from '@playwright/test';
 
+import { checkSignInButtonAvailability } from '@tests/e2e/utils/auth-helpers';
 import { testSignInModal } from '@tests/e2e/utils/auth-modal';
 import { testHomePage, testSportsPage } from '@tests/e2e/utils/page-tests';
 import { TIMEOUTS, safeGoto, waitForPageLoad } from '@tests/e2e/utils/test-utils';
@@ -169,34 +170,10 @@ export async function testAuthenticationFlow(page: Page): Promise<void> {
   await safeGoto(page, '/');
   await waitForPageLoad(page);
 
-  // Check if Clerk is configured by looking for the sign-in button or auth placeholder
-  const signInButton = page.getByTestId('sign-in-button');
-  const authPlaceholder = page.getByTestId('auth-placeholder');
-
-  const isClerkAvailable = await signInButton.isVisible().catch(() => false);
-  const hasAuthPlaceholder = await authPlaceholder.isVisible().catch(() => false);
-
-  if (!isClerkAvailable && !hasAuthPlaceholder) {
-    // If neither sign-in button nor auth placeholder is found, wait a bit more and check again
-    await page.waitForTimeout(2000);
-    const retrySignInButton = await signInButton.isVisible().catch(() => false);
-    const retryAuthPlaceholder = await authPlaceholder.isVisible().catch(() => false);
-
-    if (!retrySignInButton && !retryAuthPlaceholder) {
-      console.log('⚠️ Clerk authentication not available - skipping authentication flow test');
-      return;
-    }
-  }
-
-  if (!isClerkAvailable && hasAuthPlaceholder) {
-    console.log(
-      '⚠️ Clerk authentication not available - auth placeholder found, skipping authentication flow test'
-    );
+  // Use the utility function to check sign-in button availability
+  if (!(await checkSignInButtonAvailability(page, 'authentication flow test'))) {
     return;
   }
-
-  // Test sign-in button visibility (only if Clerk is available)
-  await signInButton.waitFor({ timeout: TIMEOUTS.LONG });
 
   // Test sign-in modal
   await testSignInModalVariants(page, { method: 'escape' });

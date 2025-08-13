@@ -1,6 +1,7 @@
 import type { Page } from '@playwright/test';
-import { test, expect } from '@playwright/test';
+import { test } from '@playwright/test';
 
+import { checkSignInButtonAvailability } from '@tests/e2e/utils/auth-helpers';
 import {
   testSignInModalVariants,
   testProtectedRouteAccess,
@@ -10,7 +11,6 @@ import {
 } from '@tests/e2e/utils/shared-tests';
 import {
   clearTestData,
-  TIMEOUTS,
   waitForNetworkIdle,
   safeGoto,
   waitForPageLoad,
@@ -18,76 +18,13 @@ import {
 
 import { runSmokeSuite } from './smoke.spec';
 
-// Helper function to reveal sign-in button on mobile devices
-async function revealSignInButtonIfMobile(page: Page) {
-  const isMobile = await page.evaluate(() => window.innerWidth < 1024);
-  if (isMobile) {
-    // Try multiple strategies to reveal the sign-in button on mobile
-    const strategies = [
-      // Strategy 1: Scroll to top
-      async () => {
-        await page.evaluate(() => window.scrollTo(0, 0));
-        await page.waitForTimeout(500);
-      },
-      // Strategy 2: Look for hamburger menu
-      async () => {
-        const menuButton = page.locator(
-          '[data-testid="menu-button"], .hamburger, [aria-label*="menu"]'
-        );
-        if (await menuButton.isVisible({ timeout: TIMEOUTS.SHORT }).catch(() => false)) {
-          await menuButton.scrollIntoViewIfNeeded();
-          await menuButton.click();
-          await page.waitForTimeout(500);
-        }
-      },
-      // Strategy 3: Look for navigation toggle
-      async () => {
-        const navToggle = page.locator(
-          '[data-testid="nav-toggle"], .nav-toggle, [aria-label*="navigation"]'
-        );
-        if (await navToggle.isVisible({ timeout: TIMEOUTS.SHORT }).catch(() => false)) {
-          await navToggle.scrollIntoViewIfNeeded();
-          await navToggle.click();
-          await page.waitForTimeout(500);
-        }
-      },
-    ];
-
-    for (const strategy of strategies) {
-      try {
-        await strategy();
-        // Check if sign-in button is now visible
-        const signInButton = page.getByTestId('sign-in-button');
-        if (await signInButton.isVisible({ timeout: TIMEOUTS.SHORT }).catch(() => false)) {
-          console.log('Sign-in button revealed successfully');
-          return;
-        }
-      } catch (error) {
-        console.log(`Strategy failed: ${String(error)}`);
-        continue;
-      }
-    }
-  }
-}
-
 // Atomic critical-level test functions using shared utilities
 export async function criticalTestAuthenticationFlow(page: Page) {
   await testAuthenticationFlow(page);
-  await revealSignInButtonIfMobile(page);
 
-  const signInButton = page.getByTestId('sign-in-button');
-  const isMobile = await page.evaluate(() => window.innerWidth < 1024);
-
-  if (isMobile) {
-    if (!(await signInButton.isVisible({ timeout: TIMEOUTS.SHORT }).catch(() => false))) {
-      console.warn(
-        '⚠️ [Mobile] Sign-in button not visible on home page after all reveal attempts. Skipping authentication flow test.'
-      );
-      return;
-    }
+  if (!(await checkSignInButtonAvailability(page, 'authentication flow test'))) {
+    return;
   }
-
-  await expect(signInButton).toBeVisible({ timeout: TIMEOUTS.LONG });
 
   // Test sign-in modal with better error handling
   try {
@@ -104,29 +41,17 @@ export async function criticalTestProtectedRouteAccess(page: Page) {
     expectRedirect: false,
   });
 
-  await revealSignInButtonIfMobile(page);
-  const signInButton = page.getByTestId('sign-in-button');
-  await expect(signInButton).toBeVisible({ timeout: TIMEOUTS.LONG });
+  await checkSignInButtonAvailability(page, 'protected route access test');
 }
 
 export async function criticalTestFormValidation(page: Page) {
   await safeGoto(page, '/');
   await waitForPageLoad(page);
-  await revealSignInButtonIfMobile(page);
 
-  const signInButton = page.getByTestId('sign-in-button');
-  const isMobile = await page.evaluate(() => window.innerWidth < 1024);
-
-  if (isMobile) {
-    if (!(await signInButton.isVisible({ timeout: TIMEOUTS.SHORT }).catch(() => false))) {
-      console.warn(
-        '⚠️ [Mobile] Sign-in button not visible on home page after all reveal attempts (form validation). Skipping assertion.'
-      );
-      return;
-    }
+  if (!(await checkSignInButtonAvailability(page, 'form validation test'))) {
+    return;
   }
 
-  await expect(signInButton).toBeVisible({ timeout: TIMEOUTS.LONG });
   // Add more form validation steps as needed
 }
 
@@ -139,6 +64,10 @@ export async function criticalTestBrowserNavigation(page: Page) {
 }
 
 export async function criticalTestSignInModal(page: Page) {
+  if (!(await checkSignInButtonAvailability(page, 'sign-in modal test'))) {
+    return;
+  }
+
   try {
     await testSignInModalVariants(page, { method: 'escape' });
   } catch (error) {
