@@ -18,12 +18,17 @@ import { clearTestData, TIMEOUTS, safeGoto, waitForPageLoad } from '@tests/e2e/u
  * Post-Deployment Verification Test Suite
  *
  * This suite is specifically designed for production post-deployment verification.
- * It focuses on:
+ * It focuses on production-specific checks and does NOT duplicate basic sanity/smoke tests
+ * (which are already run in the main deployment pipeline).
+ *
+ * Key focus areas:
  * - Critical user flows that must work in production
- * - Performance benchmarks
+ * - Performance benchmarks for production environment
  * - Security and accessibility compliance
  * - Error handling and edge cases
  * - Real-world user scenarios
+ * - Production-specific authentication and authorization
+ * - API health and external service integration
  */
 
 // Test configuration optimized for production verification
@@ -351,10 +356,13 @@ export async function verifyAccessibilityCompliance(page: Page) {
 }
 
 // Main verification suite runner
+// Note: This suite focuses on production-specific checks and does NOT duplicate
+// basic sanity/smoke tests which are already run in the main deployment pipeline.
 export async function runPostDeployVerificationSuite(page: Page) {
   const runner = new PostDeployTestRunner('post-deploy-verification-suite');
 
   console.log('🚀 Starting Post-Deployment Verification Suite');
+  console.log('📋 Focus: Production-specific checks (sanity/smoke tests run separately)');
   console.log(`🔧 Mock Mode: ${isMockModeEnabled() ? 'ENABLED' : 'DISABLED'}`);
   console.log(`🌐 Environment: ${process.env.CI === 'true' ? 'CI' : 'Local'}`);
   console.log(`⏱️ Timeout: ${POST_DEPLOY_CONFIG.timeout}ms`);

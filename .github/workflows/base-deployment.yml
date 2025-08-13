@@ -978,17 +978,11 @@ jobs:
             fi
           fi
 
-          # Run comprehensive post-deployment tests
+          # Run comprehensive post-deployment verification tests
           echo "📋 Running post-deployment verification tests..."
           pnpm exec playwright test tests/e2e/functional/post-deploy-verification.spec.ts --workers=1 --reporter=line || {
             echo "❌ Post-deployment verification tests failed"
             exit 1
-          }
-
-          # Run critical tests
-          echo "📋 Running critical tests..."
-          pnpm exec playwright test tests/e2e/functional/critical.spec.ts --workers=1 --reporter=line || {
-            echo "⚠️ Critical tests failed - investigating..."
           }
 
           echo "✅ $ENVIRONMENT_NAME post-deployment verification completed"
@@ -1014,7 +1008,7 @@ jobs:
           echo "📋 Post-Deployment Verification Summary"
           echo "====================================="
           echo "🚀 Deployment URL: $DEPLOYMENT_URL"
-          echo "✅ Critical tests: PASSED"
+          echo "✅ Post-deployment verification: PASSED"
           echo "🔍 Health checks completed"
           echo "📊 Test artifacts generated"
           echo "✅ Post-deployment verification completed successfully!"
