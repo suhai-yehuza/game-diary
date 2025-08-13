@@ -156,6 +156,7 @@
     "test": "pnpm exec vitest run",
     "test:all": "pnpm coverage:validate && pnpm test:e2e:sanity",
     "test:all:strict": "pnpm test:strict && pnpm test:e2e:sanity",
+    "test:audit-redundancies": "tsx scripts/utils/audit-test-redundancies.ts",
     "test:e2e:auth-protection": "./scripts/validation-pipeline.sh e2e run auth-protection",
     "test:e2e:browser": "./scripts/validation-pipeline.sh e2e run browser",
     "test:e2e:clerk-auth": "./scripts/validation-pipeline.sh e2e run clerk-auth",

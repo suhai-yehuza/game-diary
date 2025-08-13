@@ -1,14 +1,14 @@
 # Test Directory Structure
 
-This directory contains all test files for the application with comprehensive coverage enforcement.
+This directory contains all test files for the application with comprehensive coverage enforcement and clear boundaries between test types.
 
 ## Directory Structure
 
 ```
 tests/
-├── unit/                    # Unit tests with comprehensive coverage
+├── unit/                    # Unit tests - Individual functions/components in isolation
 │   ├── app/                 # Mirror src/app/ structure exactly
-│   │   ├── dashboard/       # Mirror src/app//
+│   │   ├── dashboard/       # Mirror src/app/dashboard/
 │   │   │   └── dashboard.test.tsx
 │   │   ├── protected/       # Mirror src/app/protected/
 │   │   │   ├── admin/       # Mirror src/app/protected/admin/
@@ -49,17 +49,49 @@ tests/
 │   ├── hooks/              # Mirror src/hooks/ structure
 │   ├── lib/                # Mirror src/lib/ structure
 │   └── middleware.test.ts  # Mirror src/middleware.ts
-└── e2e/                    # End-to-end tests (Playwright)
-    ├── functional/         # Functional test suites
-    ├── pages/              # Page-specific tests
-    └── utils/              # E2E test utilities
+├── integration/             # Integration tests - Component interactions and API endpoints
+│   ├── api-endpoints.integration.test.ts
+│   ├── database-operations.integration.test.ts
+│   ├── graphql.integration.test.ts
+│   ├── notification-triggers.integration.test.ts
+│   ├── search-external-api.integration.test.ts
+│   ├── security.integration.test.ts
+│   ├── test-friend-removed.ts
+│   └── _support/           # Integration test support files
+├── e2e/                    # End-to-end tests (Playwright) - User journeys
+│   ├── functional/         # Functional test suites
+│   ├── pages/              # Page-specific tests
+│   └── utils/              # E2E test utilities
+└── shared/                 # Shared test utilities and mocks
+    ├── mocks/              # Shared mock data and functions
+    │   ├── api/           # API response mocks
+    │   ├── database/      # Database mock data
+    │   ├── components/    # Component mock data
+    │   └── index.ts       # Centralized mock exports
+    ├── utils/             # Shared test utilities
+    │   ├── test-data.ts   # Common test data generators
+    │   ├── assertions.ts  # Custom assertion helpers
+    │   ├── setup.ts       # Common test setup functions
+    │   └── index.ts       # Centralized utility exports
+    ├── fixtures/          # Test fixtures and static data
+    ├── types/             # Shared test type definitions
+    └── index.ts           # Main shared utilities export
 ```
 
 ## Test Organization Principles
 
-### Mirroring Source Structure
+### 1. **Clear Test Boundaries**
 
-The `tests/unit/` directory now mirrors the `src/` directory structure for better maintainability:
+Each test type has a distinct purpose and scope:
+
+- **Unit Tests** (`tests/unit/`): Test individual functions, components, and utilities in isolation
+- **Integration Tests** (`tests/integration/`): Test component interactions, API endpoints, and database operations
+- **E2E Tests** (`tests/e2e/`): Test complete user journeys and application functionality
+- **Shared Utilities** (`tests/shared/`): Common test data, mocks, and utilities used across test types
+
+### 2. **Mirroring Source Structure**
+
+The `tests/unit/` directory mirrors the `src/` directory structure for better maintainability:
 
 - **`tests/unit/app/`** mirrors **`src/app/`** - Page components and layouts
 - **`tests/unit/components/`** mirrors **`src/components/`** - Reusable components
@@ -67,12 +99,31 @@ The `tests/unit/` directory now mirrors the `src/` directory structure for bette
 - **`tests/unit/lib/`** mirrors **`src/lib/`** - Utilities and configurations
 - **`tests/unit/middleware.test.ts`** mirrors **`src/middleware.ts`**
 
-### Benefits of Mirroring
+### 3. **DRY (Don't Repeat Yourself)**
+
+Shared utilities in `tests/shared/` eliminate duplication:
+
+- **Test Data Generators**: Factory functions for creating mock data
+- **Assertion Helpers**: Common assertion patterns
+- **API Mocks**: Centralized mock responses
+- **Type Definitions**: Shared test type definitions
+
+### Benefits of This Organization
 
 - **Easy Discovery**: Find tests by following the same path as source files
 - **Maintainability**: Clear relationship between source and test files
 - **Scalability**: Easy to add new tests in the correct location
 - **Consistency**: Predictable test organization across the project
+- **Reduced Duplication**: Shared utilities eliminate redundant code
+- **Clear Boundaries**: Each test type has a distinct responsibility
+- **Faster Execution**: Unit tests run quickly, integration tests run when needed
+- **Better Coverage**: Each test type covers different aspects of the application
+
+## Documentation
+
+- **[Test Boundaries](TEST_BOUNDARIES.md)**: Clear definitions of what each test type should and shouldn't do
+- **[Shared Utilities](shared/README.md)**: Documentation for shared test utilities and mocks
+- **[Migration Guide](MIGRATION_GUIDE.md)**: Step-by-step guide to migrate to the new organization
 
 ## Running Tests
 
@@ -83,13 +134,23 @@ The `tests/unit/` directory now mirrors the `src/` directory structure for bette
 pnpm test:unit              # Run all unit tests with coverage
 pnpm test:unit:json         # Run unit tests with JSON reporter
 pnpm test:watch             # Watch mode for development
-pnpm test:unit:ui                # UI mode for interactive testing
+pnpm test:unit:ui           # UI mode for interactive testing
 
 # Coverage and enforcement
-pnpm coverage:validate          # Run tests with coverage report
+pnpm coverage:validate      # Run tests with coverage report
 pnpm test:strict            # Run tests with verbose reporter and coverage
 pnpm coverage:enforce       # Enforce coverage thresholds
 pnpm pre-push:coverage      # Pre-push coverage validation
+```
+
+### Integration Tests
+
+```bash
+# Integration tests
+pnpm test:integration       # Run all integration tests
+pnpm test:integration:fast  # Run integration tests with existing server
+pnpm test:integration:server # Run integration tests with server management
+pnpm test:integration:ci:matrix # Run integration tests in CI matrix
 ```
 
 ### E2E Tests
@@ -112,8 +173,8 @@ pnpm test:e2e:performance   # Performance tests
 
 ```bash
 # All tests
-pnpm test:all               # Unit + E2E sanity tests
-pnpm test:all:strict        # Unit + E2E with strict coverage
+pnpm test:all               # Unit + Integration + E2E sanity tests
+pnpm test:all:strict        # Unit + Integration + E2E with strict coverage
 
 # Coverage enforcement
 pnpm coverage:enforce:coverage    # Coverage analysis only
@@ -127,10 +188,11 @@ The project implements comprehensive coverage enforcement with configurable thre
 
 ### Default Thresholds
 
-| Test Type  | Coverage Threshold | Min Test Count |
-| ---------- | ------------------ | -------------- |
-| Unit Tests | 80%                | 50             |
-| E2E Tests  | 70%                | 30             |
+| Test Type         | Coverage Threshold | Min Test Count |
+| ----------------- | ------------------ | -------------- |
+| Unit Tests        | 80%                | 50             |
+| Integration Tests | 70%                | 20             |
+| E2E Tests         | 60%                | 30             |
 
 ### Coverage Commands
 
