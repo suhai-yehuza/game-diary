@@ -980,7 +980,17 @@ jobs:
 
           # Run comprehensive post-deployment verification tests
           echo "📋 Running post-deployment verification tests..."
-          pnpm exec playwright test tests/e2e/functional/post-deploy-verification.spec.ts --workers=1 --reporter=line || {
+
+          # Ensure CI environment variable is set for coverage generation
+          export CI=true
+          echo "CI environment variable: $CI"
+
+          # Create necessary directories
+          mkdir -p test-results
+          mkdir -p playwright-report
+          mkdir -p coverage
+
+          pnpm exec playwright test tests/e2e/functional/post-deploy-verification.spec.ts --workers=1 --reporter=list,json,junit,html || {
             echo "❌ Post-deployment verification tests failed"
             exit 1
           }
