@@ -53,6 +53,7 @@ jobs:
             coverage/
             build/
           retention-days: 7
+          if-no-files-found: warn
 
   # Combined E2E tests to reduce parallel jobs
   e2e-tests:

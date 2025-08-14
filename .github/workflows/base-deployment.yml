@@ -99,6 +99,7 @@ jobs:
             test-results/
             coverage/
           retention-days: 7
+          if-no-files-found: warn
 
   unit-tests:
     name: Unit Tests & Coverage
@@ -148,6 +149,7 @@ jobs:
             test-results/
             coverage/
           retention-days: 7
+          if-no-files-found: warn
 
   database-tests:
     name: Database Tests
@@ -194,6 +196,7 @@ jobs:
             logs/
             test-results/
           retention-days: 7
+          if-no-files-found: warn
 
   # Integration Tests (runs in parallel with mock verification)
   integration-tests:
@@ -241,6 +244,7 @@ jobs:
             coverage/
             logs/
           retention-days: 7
+          if-no-files-found: warn
 
   # Global E2E Mock Verification (runs once against all browsers)
   e2e-mock-verification:
@@ -305,6 +309,7 @@ jobs:
             test-results/
             playwright-report/
           retention-days: 7
+          if-no-files-found: warn
 
   # Parallel E2E tests by browser type
   e2e-chromium:
@@ -415,6 +420,7 @@ jobs:
             test-results/
             playwright-report/
           retention-days: 7
+          if-no-files-found: warn
 
   e2e-webkit:
     name: E2E Tests (WebKit)
@@ -524,6 +530,7 @@ jobs:
             test-results/
             playwright-report/
           retention-days: 7
+          if-no-files-found: warn
 
   e2e-firefox:
     name: E2E Tests (Firefox)
@@ -637,6 +644,7 @@ jobs:
             test-results/
             playwright-report/
           retention-days: 7
+          if-no-files-found: warn
 
   e2e-mobile:
     name: E2E Tests (Mobile)
@@ -750,6 +758,7 @@ jobs:
             test-results/
             playwright-report/
           retention-days: 7
+          if-no-files-found: warn
 
   deploy:
     name: Deploy to Vercel
