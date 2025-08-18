@@ -1,51 +1,59 @@
-name: Vercel Production Deployment
+name: Production Deployment Streamlined (MTWTh)
 
+# Manual trigger for production deployments
 on:
-  push:
-    branches:
-      - master
-  workflow_call:
+  workflow_dispatch:
     inputs:
-      workflow-name:
-        type: string
-        required: true
-      environment:
-        type: string
-        required: true
-      deploy-to-vercel:
+      max-commits:
+        description: 'Maximum number of commits to cherry-pick (max 10)'
+        required: false
+        type: number
+        default: 10
+      min-age-hours:
+        description: 'Minimum age of commits in hours before they can be cherry-picked'
+        required: false
+        type: number
+        default: 24
+      require-staging-success:
+        description: 'Require successful staging deployment for commits'
+        required: false
         type: boolean
-        required: true
-    secrets:
-      VERCEL_ORG_ID:
+        default: true
+      skip-cherry-pick:
+        description: 'Skip cherry-picking and deploy current deployment branch'
         required: false
-      VERCEL_PROJECT_ID:
-        required: false
-      VERCEL_TOKEN:
-        required: false
-      DATABASE_URL:
-        required: false
-      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY:
-        required: false
-      CLERK_SECRET_KEY:
-        required: false
-      CLERK_WEBHOOK_SIGNING_SECRET:
-        required: false
-      VERCEL_AUTOMATION_BYPASS_SECRET:
-        required: false
-      NEXT_PUBLIC_RAPID_API_KEY:
-        required: false
-      NEXT_PUBLIC_RAPID_API_HOST:
-        required: false
-      NEXT_PUBLIC_RAPID_API_BASE_URL:
-        required: false
+        type: boolean
+        default: false
+  schedule:
+    # Automated production deployment on MTWTh at 10am Pacific
+    - cron: '0 18 * * 1-4' # Monday-Thursday at 6pm UTC (10am Pacific)
+
+permissions:
+  contents: write
+  actions: read
 
 jobs:
-  deploy:
-    uses: ./.github/workflows/base-deployment.yml
+  # Cherry-pick eligible commits from staging to deployment branch
+  cherry-pick-to-deployment:
+    name: Cherry Pick to Deployment Branch
+    if: ${{ !inputs.skip-cherry-pick || github.event_name == 'schedule' }}
+    uses: ./.github/workflows/cherry-pick-commits.yml
     with:
-      workflow-name: 'Vercel Production Deployment'
+      source-branch: 'staging'
+      target-branch: 'deployment'
+      max-commits: ${{ inputs.max-commits || 10 }}
+      min-age-hours: ${{ inputs.min-age-hours || 24 }}
+      require-staging-success: ${{ inputs.require-staging-success || true }}
+
+  # Deploy and verify using reusable workflow
+  deploy:
+    name: Deploy to Production
+    needs: [cherry-pick-to-deployment]
+    if: always() && (needs.cherry-pick-to-deployment.result == 'success' || needs.cherry-pick-to-deployment.result == 'skipped')
+    uses: ./.github/workflows/deploy-and-verify.yml
+    with:
+      workflow-name: 'Production Deployment Streamlined'
       environment: 'Production'
-      deploy-to-vercel: true
     secrets:
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
       VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
@@ -58,3 +66,77 @@ jobs:
       NEXT_PUBLIC_RAPID_API_KEY: ${{ secrets.NEXT_PUBLIC_RAPID_API_KEY }}
       NEXT_PUBLIC_RAPID_API_HOST: ${{ secrets.NEXT_PUBLIC_RAPID_API_HOST }}
       NEXT_PUBLIC_RAPID_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_RAPID_API_BASE_URL }}
+
+  # Summary job to provide deployment information
+  deployment-summary:
+    name: Production Deployment Summary
+    needs: [cherry-pick-to-deployment, deploy]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Generate Deployment Summary
+        run: |
+          echo "## 🚀 Production Deployment Summary (Streamlined)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Trigger:** ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Deployment Branch:** deployment" >> $GITHUB_STEP_SUMMARY
+          echo "**Workflow Type:** Streamlined (staging-tested commits only)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Cherry-pick summary
+          if [ "${{ needs.cherry-pick-to-deployment.result }}" = "success" ]; then
+            echo "### 🍒 Cherry-Pick Results" >> $GITHUB_STEP_SUMMARY
+            echo "**Status:** ✅ Success" >> $GITHUB_STEP_SUMMARY
+            echo "**Commits Cherry-Picked:** Completed successfully" >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ needs.cherry-pick-to-deployment.result }}" = "skipped" ]; then
+            echo "### 🍒 Cherry-Pick Results" >> $GITHUB_STEP_SUMMARY
+            echo "**Status:** ⏭️ Skipped (no eligible commits or manual skip)" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### 🍒 Cherry-Pick Results" >> $GITHUB_STEP_SUMMARY
+            echo "**Status:** ❌ Failed" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Deployment summary
+          if [ "${{ needs.deploy.result }}" = "success" ]; then
+            echo "### 🚀 Production Deployment" >> $GITHUB_STEP_SUMMARY
+            echo "**Status:** ✅ Success" >> $GITHUB_STEP_SUMMARY
+            echo "**Deployment URL:** ${{ needs.deploy.outputs.deployment-url }}" >> $GITHUB_STEP_SUMMARY
+            echo "**Domain:** https://www.game-diary.io" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### 🚀 Production Deployment" >> $GITHUB_STEP_SUMMARY
+            echo "**Status:** ❌ Failed" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Post-deployment verification summary
+          if [ "${{ needs.deploy.result }}" = "success" ]; then
+            echo "### 🔍 Post-Deployment Verification" >> $GITHUB_STEP_SUMMARY
+            echo "**Status:** ✅ Success" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### 🔍 Post-Deployment Verification" >> $GITHUB_STEP_SUMMARY
+            echo "**Status:** ❌ Failed" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Domain update summary
+          if [ "${{ needs.update-domain.result }}" = "success" ]; then
+            echo "### 🔗 Domain Update" >> $GITHUB_STEP_SUMMARY
+            echo "**Status:** ✅ Success" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### 🔗 Domain Update" >> $GITHUB_STEP_SUMMARY
+            echo "**Status:** ❌ Failed" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Next Steps:**" >> $GITHUB_STEP_SUMMARY
+          echo "- Monitor production environment for any issues" >> $GITHUB_STEP_SUMMARY
+          echo "- Check application logs and metrics" >> $GITHUB_STEP_SUMMARY
+          echo "- Verify all features are working as expected" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Note:** This streamlined workflow skips redundant testing since commits were already validated in staging." >> $GITHUB_STEP_SUMMARY

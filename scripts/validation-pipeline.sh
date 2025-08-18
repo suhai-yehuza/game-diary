@@ -512,6 +512,12 @@ run_task() {
         return 0
     fi
 
+    # Skip database trigger tasks if SKIP_DB_TESTS is true
+    if [[ "$task_name" == db_triggers ]] && [ "$SKIP_DB_TESTS" = true ]; then
+        log_warning "Skipping database trigger task: $task_name (SKIP_DB_TESTS=true)"
+        return 0
+    fi
+
     # Skip mock verification if it's already been run successfully in CI
     if [[ "$task_name" == "test_e2e_mock" ]] && is_ci; then
         # Check if we're in a browser-specific job (not the mock verification job)

@@ -1,0 +1,238 @@
+name: Cherry Pick Commits Workflow
+
+on:
+  workflow_call:
+    inputs:
+      source-branch:
+        description: 'Source branch to cherry-pick from'
+        required: true
+        type: string
+        default: 'staging'
+      target-branch:
+        description: 'Target branch to cherry-pick to'
+        required: true
+        type: string
+        default: 'deployment'
+      max-commits:
+        description: 'Maximum number of commits to cherry-pick'
+        required: false
+        type: number
+        default: 10
+      min-age-hours:
+        description: 'Minimum age of commits in hours before they can be cherry-picked'
+        required: false
+        type: number
+        default: 24
+      require-staging-success:
+        description: 'Whether to require successful staging deployment for commits'
+        required: false
+        type: boolean
+        default: true
+    outputs:
+      commits-cherry-picked:
+        description: 'Number of commits successfully cherry-picked'
+        value: ${{ jobs.cherry-pick-commits.outputs.commits-cherry-picked }}
+      cherry-picked-commits:
+        description: 'List of cherry-picked commit hashes'
+        value: ${{ jobs.cherry-pick-commits.outputs.cherry-picked-commits }}
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  cherry-pick-commits:
+    name: Cherry Pick Commits
+    runs-on: ubuntu-latest
+    outputs:
+      commits-cherry-picked: ${{ steps.cherry-pick.outputs.commits-cherry-picked }}
+      cherry-picked-commits: ${{ steps.cherry-pick.outputs.cherry-picked-commits }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ inputs.source-branch }}
+
+      - name: Set up Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Fetch all branches
+        run: |
+          git fetch origin ${{ inputs.source-branch }}
+          git fetch origin ${{ inputs.target-branch }}
+
+      - name: Get eligible commits
+        id: get_commits
+        run: |
+          # Get all source branch commits that are not in target branch
+          SOURCE_COMMITS=$(git log --oneline origin/${{ inputs.target-branch }}..origin/${{ inputs.source-branch }} --format="%H %ct %s" | tac)
+
+          if [ -z "$SOURCE_COMMITS" ]; then
+            echo "No new commits in ${{ inputs.source-branch }}"
+            echo "commits_to_process=" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          echo "Found commits in ${{ inputs.source-branch }} not in ${{ inputs.target-branch }}:"
+          echo "$SOURCE_COMMITS"
+
+          # Process each commit to check if it meets criteria
+          CURRENT_TIME=$(date +%s)
+          COMMITS_TO_CHERRY_PICK=""
+          COMMIT_COUNT=0
+
+          while IFS= read -r line; do
+            if [ -n "$line" ] && [ $COMMIT_COUNT -lt ${{ inputs.max-commits }} ]; then
+              COMMIT_HASH=$(echo "$line" | cut -d' ' -f1)
+              COMMIT_TIME=$(echo "$line" | cut -d' ' -f2)
+              COMMIT_MSG=$(echo "$line" | cut -d' ' -f3-)
+
+              AGE_HOURS=$(( (CURRENT_TIME - COMMIT_TIME) / 3600 ))
+
+              echo "Commit: $COMMIT_HASH"
+              echo "  Age: $AGE_HOURS hours"
+              echo "  Message: $COMMIT_MSG"
+
+              if [ "$AGE_HOURS" -ge ${{ inputs.min-age-hours }} ]; then
+                echo "  ✅ Ready for cherry-pick ($AGE_HOURS hours old)"
+                COMMITS_TO_CHERRY_PICK="$COMMITS_TO_CHERRY_PICK $COMMIT_HASH"
+                COMMIT_COUNT=$((COMMIT_COUNT + 1))
+              else
+                echo "  ⏳ Not ready yet ($AGE_HOURS hours old)"
+              fi
+            fi
+          done <<< "$SOURCE_COMMITS"
+
+          if [ -n "$COMMITS_TO_CHERRY_PICK" ]; then
+            echo "commits_to_process=true" >> $GITHUB_OUTPUT
+            echo "commits_list=$COMMITS_TO_CHERRY_PICK" >> $GITHUB_OUTPUT
+          else
+            echo "commits_to_process=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Validate staging deployment success
+        if: steps.get_commits.outputs.commits_to_process == 'true' && inputs.require-staging-success
+        id: validate_deployments
+        run: |
+          echo "Validating staging deployment success for commits..."
+
+          # Get the list of commits to check
+          COMMITS_TO_CHECK="${{ steps.get_commits.outputs.commits_list }}"
+          VALID_COMMITS=""
+
+          for commit in $COMMITS_TO_CHECK; do
+            echo "Checking deployment status for commit: $commit"
+
+            # Check if staging workflow completed successfully for this commit
+            WORKFLOW_STATUS=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+              "https://api.github.com/repos/${{ github.repository }}/actions/runs?head_sha=$commit&workflow_id=staging.yml" | \
+              jq -r '.workflow_runs[0].conclusion // "unknown"')
+
+            echo "  Workflow status: $WORKFLOW_STATUS"
+
+            if [ "$WORKFLOW_STATUS" = "success" ]; then
+              echo "  ✅ Staging deployment successful"
+              VALID_COMMITS="$VALID_COMMITS $commit"
+            else
+              echo "  ❌ Staging deployment failed or incomplete"
+            fi
+          done
+
+          if [ -n "$VALID_COMMITS" ]; then
+            echo "valid_commits=true" >> $GITHUB_OUTPUT
+            echo "valid_commits_list=$VALID_COMMITS" >> $GITHUB_OUTPUT
+          else
+            echo "valid_commits=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Cherry-pick commits
+        id: cherry-pick
+        if: (steps.validate_deployments.outputs.valid_commits == 'true' && inputs.require-staging-success) || (steps.get_commits.outputs.commits_to_process == 'true' && !inputs.require-staging-success)
+        run: |
+          echo "Cherry-picking commits to ${{ inputs.target-branch }}..."
+
+          # Determine which commits to cherry-pick
+          if [ "${{ inputs.require-staging-success }}" = "true" ]; then
+            COMMITS_TO_CHERRY_PICK="${{ steps.validate_deployments.outputs.valid_commits_list }}"
+          else
+            COMMITS_TO_CHERRY_PICK="${{ steps.get_commits.outputs.commits_list }}"
+          fi
+
+          # Checkout target branch
+          git checkout ${{ inputs.target-branch }}
+          git pull origin ${{ inputs.target-branch }}
+
+          # Cherry-pick each commit individually
+          CHERRY_PICKED_COMMITS=""
+          SUCCESSFUL_COUNT=0
+
+          for commit in $COMMITS_TO_CHERRY_PICK; do
+            echo "Cherry-picking commit: $commit"
+
+            # Check if commit is already in target branch
+            if git merge-base --is-ancestor "$commit" HEAD 2>/dev/null; then
+              echo "  ⏭️ Commit already exists in target branch, skipping"
+              continue
+            fi
+
+            # Attempt cherry-pick
+            if git cherry-pick "$commit"; then
+              echo "  ✅ Successfully cherry-picked $commit"
+              CHERRY_PICKED_COMMITS="$CHERRY_PICKED_COMMITS $commit"
+              SUCCESSFUL_COUNT=$((SUCCESSFUL_COUNT + 1))
+            else
+              echo "  ❌ Failed to cherry-pick $commit"
+              git cherry-pick --abort
+            fi
+          done
+
+          # Push to target branch if we have successful cherry-picks
+          if [ $SUCCESSFUL_COUNT -gt 0 ]; then
+            git push origin ${{ inputs.target-branch }}
+            echo "Successfully cherry-picked $SUCCESSFUL_COUNT commits to ${{ inputs.target-branch }}"
+          fi
+
+          echo "commits-cherry-picked=$SUCCESSFUL_COUNT" >> $GITHUB_OUTPUT
+          echo "cherry-picked-commits=$CHERRY_PICKED_COMMITS" >> $GITHUB_OUTPUT
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "## 🍒 Cherry Pick Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Source Branch:** ${{ inputs.source-branch }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Target Branch:** ${{ inputs.target-branch }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Max Commits:** ${{ inputs.max-commits }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Min Age:** ${{ inputs.min-age-hours }} hours" >> $GITHUB_STEP_SUMMARY
+          echo "**Require Staging Success:** ${{ inputs.require-staging-success }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Commits Found:** ${{ steps.get_commits.outputs.commits_to_process }}" >> $GITHUB_STEP_SUMMARY
+
+          if [ "${{ steps.get_commits.outputs.commits_to_process }}" = "true" ]; then
+            echo "**Commits Checked:** ${{ steps.get_commits.outputs.commits_list }}" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          if [ "${{ inputs.require-staging-success }}" = "true" ]; then
+            echo "**Valid Commits:** ${{ steps.validate_deployments.outputs.valid_commits }}" >> $GITHUB_STEP_SUMMARY
+            if [ "${{ steps.validate_deployments.outputs.valid_commits }}" = "true" ]; then
+              echo "**Valid Commits List:** ${{ steps.validate_deployments.outputs.valid_commits_list }}" >> $GITHUB_STEP_SUMMARY
+            fi
+          fi
+
+          if [ "${{ steps.cherry-pick.outputs.commits-cherry-picked }}" != "" ]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "✅ **Successfully cherry-picked ${{ steps.cherry-pick.outputs.commits-cherry-picked }} commits**" >> $GITHUB_STEP_SUMMARY
+            echo "**Cherry-picked commits:** ${{ steps.cherry-pick.outputs.cherry-picked-commits }}" >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ steps.get_commits.outputs.commits_to_process }}" = "true" ]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "❌ **No commits were cherry-picked**" >> $GITHUB_STEP_SUMMARY
+            if [ "${{ inputs.require-staging-success }}" = "true" ]; then
+              echo "All commits must have successful staging deployments to be cherry-picked." >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "⏭️ **No commits ready for cherry-pick (must be ${{ inputs.min-age-hours }}+ hours old)**" >> $GITHUB_STEP_SUMMARY
+          fi
