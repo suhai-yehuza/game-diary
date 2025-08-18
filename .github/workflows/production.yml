@@ -49,7 +49,7 @@ jobs:
   deploy:
     name: Deploy to Production
     needs: [cherry-pick-to-deployment]
-    if: always() && (needs.cherry-pick-to-deployment.result == 'success' || needs.cherry-pick-to-deployment.result == 'skipped')
+    if: always() && (needs.cherry-pick-to-deployment.result == 'skipped' || needs.cherry-pick-to-deployment.outputs.has-new-commits == 'true')
     uses: ./.github/workflows/deploy-and-verify.yml
     with:
       workflow-name: 'Production Deployment Streamlined'
@@ -67,12 +67,50 @@ jobs:
       NEXT_PUBLIC_RAPID_API_HOST: ${{ secrets.NEXT_PUBLIC_RAPID_API_HOST }}
       NEXT_PUBLIC_RAPID_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_RAPID_API_BASE_URL }}
 
+  # Job to handle when deployment is skipped
+  deployment-skipped:
+    name: Deployment Skipped (No New Commits)
+    needs: [cherry-pick-to-deployment]
+    runs-on: ubuntu-latest
+    if: always() && needs.cherry-pick-to-deployment.result == 'success' && needs.cherry-pick-to-deployment.outputs.has-new-commits != 'true'
+    steps:
+      - name: Generate Skip Summary
+        run: |
+          echo "## 🚀 Production Deployment Summary (Streamlined)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Trigger:** ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Deployment Branch:** deployment" >> $GITHUB_STEP_SUMMARY
+          echo "**Workflow Type:** Streamlined (staging-tested commits only)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🍒 Cherry-Pick Results" >> $GITHUB_STEP_SUMMARY
+          echo "**Status:** ⏭️ No new commits to deploy" >> $GITHUB_STEP_SUMMARY
+          echo "**Commits Cherry-Picked:** 0 (no eligible commits found)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🚀 Production Deployment" >> $GITHUB_STEP_SUMMARY
+          echo "**Status:** ⏭️ Skipped (no new commits to deploy)" >> $GITHUB_STEP_SUMMARY
+          echo "**Reason:** No eligible commits were found for cherry-picking" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🔍 Post-Deployment Verification" >> $GITHUB_STEP_SUMMARY
+          echo "**Status:** ⏭️ Skipped (no deployment performed)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🔗 Domain Update" >> $GITHUB_STEP_SUMMARY
+          echo "**Status:** ⏭️ Skipped (no deployment performed)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Next Steps:**" >> $GITHUB_STEP_SUMMARY
+          echo "- No deployment was performed due to no new commits" >> $GITHUB_STEP_SUMMARY
+          echo "- Production environment remains unchanged" >> $GITHUB_STEP_SUMMARY
+          echo "- Next scheduled deployment will check for new commits" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Note:** This streamlined workflow skips redundant testing since commits were already validated in staging." >> $GITHUB_STEP_SUMMARY
+
   # Summary job to provide deployment information
   deployment-summary:
     name: Production Deployment Summary
     needs: [cherry-pick-to-deployment, deploy]
     runs-on: ubuntu-latest
-    if: always()
+    if: always() && (needs.cherry-pick-to-deployment.result == 'skipped' || needs.cherry-pick-to-deployment.outputs.has-new-commits == 'true')
     steps:
       - name: Generate Deployment Summary
         run: |
@@ -85,12 +123,19 @@ jobs:
 
           # Cherry-pick summary
           if [ "${{ needs.cherry-pick-to-deployment.result }}" = "success" ]; then
-            echo "### 🍒 Cherry-Pick Results" >> $GITHUB_STEP_SUMMARY
-            echo "**Status:** ✅ Success" >> $GITHUB_STEP_SUMMARY
-            echo "**Commits Cherry-Picked:** Completed successfully" >> $GITHUB_STEP_SUMMARY
+            if [ "${{ needs.cherry-pick-to-deployment.outputs.commits-cherry-picked }}" = "0" ] || [ "${{ needs.cherry-pick-to-deployment.outputs.commits-cherry-picked }}" = "" ]; then
+              echo "### 🍒 Cherry-Pick Results" >> $GITHUB_STEP_SUMMARY
+              echo "**Status:** ⏭️ SUCCESS (no new commits)" >> $GITHUB_STEP_SUMMARY
+              echo "**Commits Cherry-Picked:** 0 (no eligible commits found)" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "### 🍒 Cherry-Pick Results" >> $GITHUB_STEP_SUMMARY
+              echo "**Status:** ✅ Success" >> $GITHUB_STEP_SUMMARY
+              echo "**Commits Cherry-Picked:** ${{ needs.cherry-pick-to-deployment.outputs.commits-cherry-picked }}" >> $GITHUB_STEP_SUMMARY
+              echo "**Cherry-Picked Commits:** ${{ needs.cherry-pick-to-deployment.outputs.cherry-picked-commits }}" >> $GITHUB_STEP_SUMMARY
+            fi
           elif [ "${{ needs.cherry-pick-to-deployment.result }}" = "skipped" ]; then
             echo "### 🍒 Cherry-Pick Results" >> $GITHUB_STEP_SUMMARY
-            echo "**Status:** ⏭️ Skipped (no eligible commits or manual skip)" >> $GITHUB_STEP_SUMMARY
+            echo "**Status:** ⏭️ Skipped (manual skip requested)" >> $GITHUB_STEP_SUMMARY
           else
             echo "### 🍒 Cherry-Pick Results" >> $GITHUB_STEP_SUMMARY
             echo "**Status:** ❌ Failed" >> $GITHUB_STEP_SUMMARY

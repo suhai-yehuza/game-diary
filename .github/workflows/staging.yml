@@ -30,11 +30,12 @@ jobs:
   deploy:
     name: Deploy to Staging
     needs: [cherry-pick-to-staging]
-    if: always() && needs.cherry-pick-to-staging.result == 'success' && needs.cherry-pick-to-staging.outputs.commits-cherry-picked != '0'
-    uses: ./.github/workflows/deploy-and-verify.yml
+    if: always() && needs.cherry-pick-to-staging.result == 'success' && needs.cherry-pick-to-staging.outputs.has-new-commits == 'true'
+    uses: ./.github/workflows/base-deployment.yml
     with:
       workflow-name: 'Staging Deployment'
       environment: 'Staging'
+      deploy-to-vercel: true
     secrets:
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
       VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
@@ -65,10 +66,17 @@ jobs:
 
           # Cherry-pick summary
           if [ "${{ needs.cherry-pick-to-staging.result }}" = "success" ]; then
-            echo "### ✅ Cherry-pick Results" >> $GITHUB_STEP_SUMMARY
-            echo "**Status:** SUCCESS" >> $GITHUB_STEP_SUMMARY
-            echo "- Commits cherry-picked: ${{ needs.cherry-pick-to-staging.outputs.commits-cherry-picked }}" >> $GITHUB_STEP_SUMMARY
-            echo "- Strategy: All new commits from master (no restrictions)" >> $GITHUB_STEP_SUMMARY
+            if [ "${{ needs.cherry-pick-to-staging.outputs.commits-cherry-picked }}" = "0" ] || [ "${{ needs.cherry-pick-to-staging.outputs.commits-cherry-picked }}" = "" ]; then
+              echo "### ⏭️ Cherry-pick Results" >> $GITHUB_STEP_SUMMARY
+              echo "**Status:** SUCCESS (no new commits)" >> $GITHUB_STEP_SUMMARY
+              echo "- No new commits found on master" >> $GITHUB_STEP_SUMMARY
+              echo "- Staging deployment will be skipped" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "### ✅ Cherry-pick Results" >> $GITHUB_STEP_SUMMARY
+              echo "**Status:** SUCCESS" >> $GITHUB_STEP_SUMMARY
+              echo "- Commits cherry-picked: ${{ needs.cherry-pick-to-staging.outputs.commits-cherry-picked }}" >> $GITHUB_STEP_SUMMARY
+              echo "- Strategy: All new commits from master (no restrictions)" >> $GITHUB_STEP_SUMMARY
+            fi
           elif [ "${{ needs.cherry-pick-to-staging.result }}" = "skipped" ]; then
             echo "### ⏭️ Cherry-pick Results" >> $GITHUB_STEP_SUMMARY
             echo "**Status:** SKIPPED" >> $GITHUB_STEP_SUMMARY
