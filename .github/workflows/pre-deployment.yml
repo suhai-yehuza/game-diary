@@ -1,0 +1,870 @@
+name: Pre-Deployment Validation Workflow
+
+on:
+  workflow_call:
+    inputs:
+      workflow-name:
+        description: 'Name of the workflow'
+        required: true
+        type: string
+      environment:
+        description: 'Validation environment'
+        required: true
+        type: string
+        default: 'Preview'
+      skip-e2e-tests:
+        description: 'Skip E2E tests'
+        required: false
+        type: boolean
+        default: false
+    secrets:
+      DATABASE_URL:
+        required: false
+      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY:
+        required: false
+      CLERK_SECRET_KEY:
+        required: false
+      CLERK_WEBHOOK_SIGNING_SECRET:
+        required: false
+      NEXT_PUBLIC_RAPID_API_KEY:
+        required: false
+      NEXT_PUBLIC_RAPID_API_HOST:
+        required: false
+      NEXT_PUBLIC_RAPID_API_BASE_URL:
+        required: false
+
+# Environment variables for E2E testing
+env:
+  # Localhost URLs for different browser tests
+  E2E_CHROMIUM_URL: 'http://localhost:3000'
+  E2E_WEBKIT_URL: 'http://localhost:3001'
+  E2E_FIREFOX_URL: 'http://localhost:3002'
+  E2E_MOBILE_URL: 'http://localhost:3003'
+
+  # Mock mode configuration
+  E2E_MOCK_MODE: 'true'
+  API_MOCK_MODE: 'true'
+  CI: 'true'
+
+jobs:
+  # Split validation into separate jobs for better isolation
+  quality-gate:
+    name: Quality Gate Validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: ${{ inputs.environment }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: '10'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run Quality Gate
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+          CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
+          NEXT_PUBLIC_RAPID_API_KEY: ${{ secrets.NEXT_PUBLIC_RAPID_API_KEY }}
+          NEXT_PUBLIC_RAPID_API_HOST: ${{ secrets.NEXT_PUBLIC_RAPID_API_HOST }}
+          NEXT_PUBLIC_RAPID_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_RAPID_API_BASE_URL }}
+          CI: 'true'
+        run: |
+          echo "Running quality gate validation for ${{ inputs.environment }} environment..."
+          ./scripts/validation-pipeline.sh ci --skip-e2e-tests --skip-db-tests --skip-unit-tests
+
+      - name: Upload Quality Gate Artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: quality-gate-artifacts
+          path: |
+            logs/
+            test-results/
+            coverage/
+          retention-days: 7
+          if-no-files-found: warn
+
+  unit-tests:
+    name: Unit Tests & Coverage
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: ${{ inputs.environment }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: '10'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run Unit Tests
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+          CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
+          NEXT_PUBLIC_RAPID_API_KEY: ${{ secrets.NEXT_PUBLIC_RAPID_API_KEY }}
+          NEXT_PUBLIC_RAPID_API_HOST: ${{ secrets.NEXT_PUBLIC_RAPID_API_HOST }}
+          NEXT_PUBLIC_RAPID_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_RAPID_API_BASE_URL }}
+          CI: 'true'
+        run: pnpm test:unit
+
+      - uses: codecov/codecov-action@v4
+        if: success()
+        with:
+          file: ./coverage/lcov.info
+          flags: unittests
+          name: codecov-umbrella
+
+      - name: Upload Unit Test Artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-test-artifacts
+          path: |
+            test-results/
+            coverage/
+          retention-days: 7
+          if-no-files-found: warn
+
+  database-tests:
+    name: Database Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: ${{ inputs.environment }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: '10'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run Database Tests
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+          CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
+          NEXT_PUBLIC_RAPID_API_KEY: ${{ secrets.NEXT_PUBLIC_RAPID_API_KEY }}
+          NEXT_PUBLIC_RAPID_API_HOST: ${{ secrets.NEXT_PUBLIC_RAPID_API_HOST }}
+          NEXT_PUBLIC_RAPID_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_RAPID_API_BASE_URL }}
+          CI: 'true'
+        run: |
+          echo "🔍 Validating database trigger definitions..."
+          pnpm db:validate-triggers
+          echo "🧪 Running comprehensive database trigger tests..."
+          pnpm db:test:all-triggers
+
+      - name: Upload Database Test Artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: database-test-artifacts
+          path: |
+            logs/
+            test-results/
+          retention-days: 7
+          if-no-files-found: warn
+
+  # Integration Tests
+  integration-tests:
+    name: Integration Tests
+    needs: [quality-gate, unit-tests, database-tests]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: ${{ inputs.environment }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: '10'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run Integration Tests
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+          CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
+          NEXT_PUBLIC_RAPID_API_KEY: ${{ secrets.NEXT_PUBLIC_RAPID_API_KEY }}
+          NEXT_PUBLIC_RAPID_API_HOST: ${{ secrets.NEXT_PUBLIC_RAPID_API_HOST }}
+          NEXT_PUBLIC_RAPID_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_RAPID_API_BASE_URL }}
+          CI: 'true'
+        run: |
+          echo "🧪 Running integration tests..."
+          pnpm test:integration
+
+      - name: Upload Integration Test Artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-test-artifacts
+          path: |
+            test-results/
+            coverage/
+            logs/
+          retention-days: 7
+          if-no-files-found: warn
+
+  # Global E2E Mock Verification (runs once against all browsers)
+  e2e-mock-verification:
+    name: E2E Mock Verification (All Browsers)
+    needs: [quality-gate, unit-tests, database-tests]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: ${{ inputs.environment }}
+    if: ${{ !inputs.skip-e2e-tests }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: '10'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Setup Playwright browsers
+        run: ./scripts/testing/install-playwright-browsers.sh --verbose
+
+      - name: Start Development Server
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+          CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
+          NEXT_PUBLIC_RAPID_API_KEY: ${{ secrets.NEXT_PUBLIC_RAPID_API_KEY }}
+          NEXT_PUBLIC_RAPID_API_HOST: ${{ secrets.NEXT_PUBLIC_RAPID_API_HOST }}
+          NEXT_PUBLIC_RAPID_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_RAPID_API_BASE_URL }}
+          CI: 'true'
+        run: ./scripts/server-manager.sh start test --port=3000
+
+      - name: Run E2E Mock Verification (All Browsers)
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+          CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
+          NEXT_PUBLIC_RAPID_API_KEY: ${{ secrets.NEXT_PUBLIC_RAPID_API_KEY }}
+          NEXT_PUBLIC_RAPID_API_HOST: ${{ secrets.NEXT_PUBLIC_RAPID_API_HOST }}
+          NEXT_PUBLIC_RAPID_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_RAPID_API_BASE_URL }}
+          CI: 'true'
+          DEPLOYMENT_URL: 'http://localhost:3000'
+          E2E_MOCK_MODE: 'true'
+          API_MOCK_MODE: 'true'
+        run: |
+          echo "Running E2E Mock Verification against all browsers..."
+          pnpm test:e2e:mock-verification --browser=all
+
+      - name: Stop Development Server
+        if: always()
+        run: ./scripts/server-manager.sh stop --port=3000
+
+      - name: Upload E2E Mock Verification Artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-mock-verification-artifacts
+          path: |
+            test-results/
+            playwright-report/
+          retention-days: 7
+          if-no-files-found: warn
+
+  # Parallel E2E tests by browser type
+  e2e-chromium:
+    name: E2E Tests (Chromium)
+    needs: [quality-gate, unit-tests, database-tests, e2e-mock-verification, integration-tests]
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    environment: ${{ inputs.environment }}
+    if: ${{ !inputs.skip-e2e-tests }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: '10'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Setup Playwright browsers
+        run: |
+          echo "🔧 Setting up Playwright browsers for CI environment..."
+
+          # First try the custom script
+          if ./scripts/testing/install-playwright-browsers.sh --verbose; then
+            echo "✅ Custom browser installation script completed successfully"
+          else
+            echo "⚠️ Custom script failed, trying direct installation..."
+
+            # Fallback: direct installation
+            pnpm exec playwright install --with-deps
+
+            # Verify installation
+            echo "Verifying browser installation..."
+            pnpm exec playwright install --list
+
+            # Test if browsers are accessible
+            if pnpm exec playwright install --list | grep -q "chromium" && \
+               pnpm exec playwright install --list | grep -q "firefox" && \
+               pnpm exec playwright install --list | grep -q "webkit"; then
+              echo "✅ Direct browser installation completed successfully"
+            else
+              echo "❌ Browser installation verification failed"
+              exit 1
+            fi
+          fi
+
+      - name: Start Development Server
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+          CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
+          NEXT_PUBLIC_RAPID_API_KEY: ${{ secrets.NEXT_PUBLIC_RAPID_API_KEY }}
+          NEXT_PUBLIC_RAPID_API_HOST: ${{ secrets.NEXT_PUBLIC_RAPID_API_HOST }}
+          NEXT_PUBLIC_RAPID_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_RAPID_API_BASE_URL }}
+          CI: 'true'
+        run: |
+          echo "🚀 Starting development server on port 3000..."
+          pnpm dev:mock -p 3000 > /dev/null 2>&1 &
+          DEV_SERVER_PID=$!
+
+          # Wait for server to be ready
+          echo "⏳ Waiting for server to be ready..."
+          for i in {1..30}; do
+            if curl -s ${{ env.E2E_CHROMIUM_URL }} > /dev/null 2>&1; then
+              echo "✅ Development server is ready!"
+              break
+            fi
+            sleep 2
+          done
+
+          # Store PID for cleanup
+          echo "DEV_SERVER_PID=$DEV_SERVER_PID" >> $GITHUB_ENV
+
+      - name: Run E2E Tests (Chromium)
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+          CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
+          NEXT_PUBLIC_RAPID_API_KEY: ${{ secrets.NEXT_PUBLIC_RAPID_API_KEY }}
+          NEXT_PUBLIC_RAPID_API_HOST: ${{ secrets.NEXT_PUBLIC_RAPID_API_HOST }}
+          NEXT_PUBLIC_RAPID_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_RAPID_API_BASE_URL }}
+          CI: 'true'
+          DEPLOYMENT_URL: ${{ env.E2E_CHROMIUM_URL }}
+        run: |
+          echo "Running E2E tests on Chromium..."
+          # Run tests with explicit CI configuration to ensure artifacts are generated
+          pnpm exec playwright test tests/e2e/functional/navigation.spec.ts --project=chromium --reporter=list,json,junit,html
+          pnpm exec playwright test tests/e2e/functional/smoke.spec.ts --project=chromium --reporter=list,json,junit,html
+          pnpm exec playwright test tests/e2e/functional/live-games.spec.ts --project=chromium --reporter=list,json,junit,html
+
+      - name: Stop Development Server
+        if: always()
+        run: |
+          if [ -n "$DEV_SERVER_PID" ]; then
+            echo "🛑 Stopping development server..."
+            kill $DEV_SERVER_PID 2>/dev/null || true
+          fi
+
+      - name: Upload E2E Chromium Artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-chromium-artifacts
+          path: |
+            test-results/
+            playwright-report/
+          retention-days: 7
+          if-no-files-found: warn
+
+  e2e-webkit:
+    name: E2E Tests (WebKit)
+    needs: [quality-gate, unit-tests, database-tests, e2e-mock-verification, integration-tests]
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    environment: ${{ inputs.environment }}
+    if: ${{ !inputs.skip-e2e-tests }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: '10'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Setup Playwright browsers
+        run: |
+          echo "🔧 Setting up Playwright browsers for CI environment..."
+
+          # First try the custom script
+          if ./scripts/testing/install-playwright-browsers.sh --verbose; then
+            echo "✅ Custom browser installation script completed successfully"
+          else
+            echo "⚠️ Custom script failed, trying direct installation..."
+
+            # Fallback: direct installation
+            pnpm exec playwright install --with-deps
+
+            # Verify installation
+            echo "Verifying browser installation..."
+            pnpm exec playwright install --list
+
+            # Test if browsers are accessible
+            if pnpm exec playwright install --list | grep -q "chromium" && \
+               pnpm exec playwright install --list | grep -q "firefox" && \
+               pnpm exec playwright install --list | grep -q "webkit"; then
+              echo "✅ Direct browser installation completed successfully"
+            else
+              echo "❌ Browser installation verification failed"
+              exit 1
+            fi
+          fi
+
+      - name: Start Development Server (WebKit)
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+          CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
+          NEXT_PUBLIC_RAPID_API_KEY: ${{ secrets.NEXT_PUBLIC_RAPID_API_KEY }}
+          NEXT_PUBLIC_RAPID_API_HOST: ${{ secrets.NEXT_PUBLIC_RAPID_API_HOST }}
+          NEXT_PUBLIC_RAPID_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_RAPID_API_BASE_URL }}
+          CI: 'true'
+        run: |
+          echo "🚀 Starting development server on port 3001..."
+          pnpm dev:mock -p 3001 > /dev/null 2>&1 &
+          DEV_SERVER_PID=$!
+
+          # Wait for server to be ready
+          echo "⏳ Waiting for server to be ready..."
+          for i in {1..30}; do
+            if curl -s ${{ env.E2E_WEBKIT_URL }} > /dev/null 2>&1; then
+              echo "✅ Development server is ready!"
+              break
+            fi
+            sleep 2
+          done
+
+          # Store PID for cleanup
+          echo "DEV_SERVER_PID=$DEV_SERVER_PID" >> $GITHUB_ENV
+
+      - name: Run E2E Tests (WebKit)
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+          CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
+          NEXT_PUBLIC_RAPID_API_KEY: ${{ secrets.NEXT_PUBLIC_RAPID_API_KEY }}
+          NEXT_PUBLIC_RAPID_API_HOST: ${{ secrets.NEXT_PUBLIC_RAPID_API_HOST }}
+          NEXT_PUBLIC_RAPID_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_RAPID_API_BASE_URL }}
+          CI: 'true'
+          DEPLOYMENT_URL: ${{ env.E2E_WEBKIT_URL }}
+        run: |
+          echo "Running E2E tests on WebKit..."
+          # Run tests with explicit CI configuration to ensure artifacts are generated
+          pnpm exec playwright test tests/e2e/functional/navigation.spec.ts --project=webkit --reporter=list,json,junit,html
+          pnpm exec playwright test tests/e2e/functional/smoke.spec.ts --project=webkit --reporter=list,json,junit,html
+          pnpm exec playwright test tests/e2e/functional/live-games.spec.ts --project=webkit --reporter=list,json,junit,html
+
+      - name: Stop Development Server (WebKit)
+        if: always()
+        run: |
+          if [ -n "$DEV_SERVER_PID" ]; then
+            echo "🛑 Stopping development server..."
+            kill $DEV_SERVER_PID 2>/dev/null || true
+          fi
+
+      - name: Upload E2E WebKit Artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-webkit-artifacts
+          path: |
+            test-results/
+            playwright-report/
+          retention-days: 7
+          if-no-files-found: warn
+
+  e2e-firefox:
+    name: E2E Tests (Firefox)
+    needs: [quality-gate, unit-tests, database-tests, e2e-mock-verification, integration-tests]
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    environment: ${{ inputs.environment }}
+    if: ${{ !inputs.skip-e2e-tests }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: '10'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Setup Playwright browsers
+        run: |
+          echo "🔧 Setting up Playwright browsers for CI environment..."
+
+          # First try the custom script
+          if ./scripts/testing/install-playwright-browsers.sh --verbose; then
+            echo "✅ Custom browser installation script completed successfully"
+          else
+            echo "⚠️ Custom script failed, trying direct installation..."
+
+            # Fallback: direct installation
+            pnpm exec playwright install --with-deps
+
+            # Verify installation
+            echo "Verifying browser installation..."
+            pnpm exec playwright install --list
+
+            # Test if browsers are accessible
+            if pnpm exec playwright install --list | grep -q "chromium" && \
+               pnpm exec playwright install --list | grep -q "firefox" && \
+               pnpm exec playwright install --list | grep -q "webkit"; then
+              echo "✅ Direct browser installation completed successfully"
+            else
+              echo "❌ Browser installation verification failed"
+              exit 1
+            fi
+          fi
+
+      - name: Start Development Server (Firefox)
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+          CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
+          NEXT_PUBLIC_RAPID_API_KEY: ${{ secrets.NEXT_PUBLIC_RAPID_API_KEY }}
+          NEXT_PUBLIC_RAPID_API_HOST: ${{ secrets.NEXT_PUBLIC_RAPID_API_HOST }}
+          NEXT_PUBLIC_RAPID_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_RAPID_API_BASE_URL }}
+          CI: 'true'
+          E2E_MOCK_MODE: 'true'
+          API_MOCK_MODE: 'true'
+        run: |
+          echo "🚀 Starting development server on port 3002..."
+          pnpm dev:mock -p 3002 > /dev/null 2>&1 &
+          DEV_SERVER_PID=$!
+
+          # Wait for server to be ready
+          echo "⏳ Waiting for server to be ready..."
+          for i in {1..30}; do
+            if curl -s http://localhost:3002 > /dev/null 2>&1; then
+              echo "✅ Development server is ready!"
+              break
+            fi
+            sleep 2
+          done
+
+          # Store PID for cleanup
+          echo "DEV_SERVER_PID=$DEV_SERVER_PID" >> $GITHUB_ENV
+
+      - name: Run E2E Tests (Firefox)
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+          CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
+          NEXT_PUBLIC_RAPID_API_KEY: ${{ secrets.NEXT_PUBLIC_RAPID_API_KEY }}
+          NEXT_PUBLIC_RAPID_API_HOST: ${{ secrets.NEXT_PUBLIC_RAPID_API_HOST }}
+          NEXT_PUBLIC_RAPID_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_RAPID_API_BASE_URL }}
+          CI: 'true'
+          DEPLOYMENT_URL: 'http://localhost:3002'
+          E2E_MOCK_MODE: 'true'
+          API_MOCK_MODE: 'true'
+        run: |
+          echo "Running E2E tests on Firefox..."
+          # Run tests with explicit CI configuration to ensure artifacts are generated
+          pnpm exec playwright test tests/e2e/functional/navigation.spec.ts --project=firefox --reporter=list,json,junit,html
+          pnpm exec playwright test tests/e2e/functional/smoke.spec.ts --project=firefox --reporter=list,json,junit,html
+          pnpm exec playwright test tests/e2e/functional/live-games.spec.ts --project=firefox --reporter=list,json,junit,html
+
+      - name: Stop Development Server (Firefox)
+        if: always()
+        run: |
+          if [ -n "$DEV_SERVER_PID" ]; then
+            echo "🛑 Stopping development server..."
+            kill $DEV_SERVER_PID 2>/dev/null || true
+          fi
+
+      - name: Upload E2E Firefox Artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-firefox-artifacts
+          path: |
+            test-results/
+            playwright-report/
+          retention-days: 7
+          if-no-files-found: warn
+
+  e2e-mobile:
+    name: E2E Tests (Mobile)
+    needs: [quality-gate, unit-tests, database-tests, e2e-mock-verification, integration-tests]
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    environment: ${{ inputs.environment }}
+    if: ${{ !inputs.skip-e2e-tests }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: '10'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Setup Playwright browsers
+        run: |
+          echo "🔧 Setting up Playwright browsers for CI environment..."
+
+          # First try the custom script
+          if ./scripts/testing/install-playwright-browsers.sh --verbose; then
+            echo "✅ Custom browser installation script completed successfully"
+          else
+            echo "⚠️ Custom script failed, trying direct installation..."
+
+            # Fallback: direct installation
+            pnpm exec playwright install --with-deps
+
+            # Verify installation
+            echo "Verifying browser installation..."
+            pnpm exec playwright install --list
+
+            # Test if browsers are accessible
+            if pnpm exec playwright install --list | grep -q "chromium" && \
+               pnpm exec playwright install --list | grep -q "firefox" && \
+               pnpm exec playwright install --list | grep -q "webkit"; then
+              echo "✅ Direct browser installation completed successfully"
+            else
+              echo "❌ Browser installation verification failed"
+              exit 1
+            fi
+          fi
+
+      - name: Start Development Server (Mobile)
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+          CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
+          NEXT_PUBLIC_RAPID_API_KEY: ${{ secrets.NEXT_PUBLIC_RAPID_API_KEY }}
+          NEXT_PUBLIC_RAPID_API_HOST: ${{ secrets.NEXT_PUBLIC_RAPID_API_HOST }}
+          NEXT_PUBLIC_RAPID_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_RAPID_API_BASE_URL }}
+          CI: 'true'
+          E2E_MOCK_MODE: 'true'
+          API_MOCK_MODE: 'true'
+        run: |
+          echo "🚀 Starting development server on port 3003..."
+          pnpm dev:mock -p 3003 > /dev/null 2>&1 &
+          DEV_SERVER_PID=$!
+
+          # Wait for server to be ready
+          echo "⏳ Waiting for server to be ready..."
+          for i in {1..30}; do
+            if curl -s http://localhost:3003 > /dev/null 2>&1; then
+              echo "✅ Development server is ready!"
+              break
+            fi
+            sleep 2
+          done
+
+          # Store PID for cleanup
+          echo "DEV_SERVER_PID=$DEV_SERVER_PID" >> $GITHUB_ENV
+
+      - name: Run E2E Tests (Mobile)
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+          CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
+          NEXT_PUBLIC_RAPID_API_KEY: ${{ secrets.NEXT_PUBLIC_RAPID_API_KEY }}
+          NEXT_PUBLIC_RAPID_API_HOST: ${{ secrets.NEXT_PUBLIC_RAPID_API_HOST }}
+          NEXT_PUBLIC_RAPID_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_RAPID_API_BASE_URL }}
+          CI: 'true'
+          DEPLOYMENT_URL: 'http://localhost:3003'
+          E2E_MOCK_MODE: 'true'
+          API_MOCK_MODE: 'true'
+        run: |
+          echo "Running E2E tests on Mobile..."
+          # Run tests with explicit CI configuration to ensure artifacts are generated
+          pnpm exec playwright test tests/e2e/functional/navigation.spec.ts --project="Mobile Chrome" --reporter=list,json,junit,html
+          pnpm exec playwright test tests/e2e/functional/smoke.spec.ts --project="Mobile Chrome" --reporter=list,json,junit,html
+          pnpm exec playwright test tests/e2e/functional/live-games.spec.ts --project="Mobile Chrome" --reporter=list,json,junit,html
+
+      - name: Stop Development Server (Mobile)
+        if: always()
+        run: |
+          if [ -n "$DEV_SERVER_PID" ]; then
+            echo "🛑 Stopping development server..."
+            kill $DEV_SERVER_PID 2>/dev/null || true
+          fi
+
+      - name: Upload E2E Mobile Artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-mobile-artifacts
+          path: |
+            test-results/
+            playwright-report/
+          retention-days: 7
+          if-no-files-found: warn
+
+  # Validation summary
+  summary:
+    name: Validation Summary
+    needs:
+      [
+        quality-gate,
+        unit-tests,
+        database-tests,
+        integration-tests,
+        e2e-mock-verification,
+        e2e-chromium,
+        e2e-webkit,
+        e2e-firefox,
+        e2e-mobile,
+      ]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Generate Validation Summary
+        run: |
+          echo "## 🔍 ${{ inputs.workflow-name }} Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Trigger:** ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Purpose:** Code validation and testing only" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Quality gate summary
+          if [ "${{ needs.quality-gate.result }}" = "success" ]; then
+            echo "### ✅ Quality Gate Results" >> $GITHUB_STEP_SUMMARY
+            echo "**Status:** PASSED" >> $GITHUB_STEP_SUMMARY
+            echo "- Linting and type checking completed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### ❌ Quality Gate Results" >> $GITHUB_STEP_SUMMARY
+            echo "**Status:** FAILED" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Unit tests summary
+          if [ "${{ needs.unit-tests.result }}" = "success" ]; then
+            echo "### ✅ Unit Test Results" >> $GITHUB_STEP_SUMMARY
+            echo "**Status:** PASSED" >> $GITHUB_STEP_SUMMARY
+            echo "- Unit tests completed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### ❌ Unit Test Results" >> $GITHUB_STEP_SUMMARY
+            echo "**Status:** FAILED" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Database tests summary
+          if [ "${{ needs.database-tests.result }}" = "success" ]; then
+            echo "### ✅ Database Test Results" >> $GITHUB_STEP_SUMMARY
+            echo "**Status:** PASSED" >> $GITHUB_STEP_SUMMARY
+            echo "- Database tests completed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### ❌ Database Test Results" >> $GITHUB_STEP_SUMMARY
+            echo "**Status:** FAILED" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Integration tests summary
+          if [ "${{ needs.integration-tests.result }}" = "success" ]; then
+            echo "### ✅ Integration Test Results" >> $GITHUB_STEP_SUMMARY
+            echo "**Status:** PASSED" >> $GITHUB_STEP_SUMMARY
+            echo "- Integration tests completed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### ❌ Integration Test Results" >> $GITHUB_STEP_SUMMARY
+            echo "**Status:** FAILED" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # E2E tests summary (if not skipped)
+          if [ "${{ inputs.skip-e2e-tests }}" = "false" ]; then
+            # Check if all E2E jobs succeeded
+            if [ "${{ needs.e2e-mock-verification.result }}" = "success" ] && \
+               [ "${{ needs.e2e-chromium.result }}" = "success" ] && \
+               [ "${{ needs.e2e-webkit.result }}" = "success" ] && \
+               [ "${{ needs.e2e-firefox.result }}" = "success" ] && \
+               [ "${{ needs.e2e-mobile.result }}" = "success" ]; then
+              echo "### ✅ E2E Test Results" >> $GITHUB_STEP_SUMMARY
+              echo "**Status:** PASSED" >> $GITHUB_STEP_SUMMARY
+              echo "- E2E Mock Verification completed" >> $GITHUB_STEP_SUMMARY
+              echo "- Chromium tests completed" >> $GITHUB_STEP_SUMMARY
+              echo "- WebKit tests completed" >> $GITHUB_STEP_SUMMARY
+              echo "- Firefox tests completed" >> $GITHUB_STEP_SUMMARY
+              echo "- Mobile tests completed" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "### ❌ E2E Test Results" >> $GITHUB_STEP_SUMMARY
+              echo "**Status:** FAILED" >> $GITHUB_STEP_SUMMARY
+              echo "- E2E Mock Verification: ${{ needs.e2e-mock-verification.result }}" >> $GITHUB_STEP_SUMMARY
+              echo "- Chromium: ${{ needs.e2e-chromium.result }}" >> $GITHUB_STEP_SUMMARY
+              echo "- WebKit: ${{ needs.e2e-webkit.result }}" >> $GITHUB_STEP_SUMMARY
+              echo "- Firefox: ${{ needs.e2e-firefox.result }}" >> $GITHUB_STEP_SUMMARY
+              echo "- Mobile: ${{ needs.e2e-mobile.result }}" >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "### ⏭️ E2E Test Results" >> $GITHUB_STEP_SUMMARY
+            echo "**Status:** SKIPPED" >> $GITHUB_STEP_SUMMARY
+            echo "- E2E tests were skipped for this validation" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Note:** This is a validation only. No deployment was performed." >> $GITHUB_STEP_SUMMARY
+          echo "**Next Steps:** If validation passes, merge to staging for deployment testing." >> $GITHUB_STEP_SUMMARY

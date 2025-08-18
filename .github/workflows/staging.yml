@@ -1,51 +1,40 @@
-name: Vercel Staging Deployment
+name: Staging Deployment (Hourly)
 
 on:
-  push:
-    branches:
-      - staging
-  workflow_call:
+  schedule:
+    - cron: '0 * * * *' # Every hour
+  workflow_dispatch:
     inputs:
-      workflow-name:
-        type: string
-        required: true
-      environment:
-        type: string
-        required: true
-      deploy-to-vercel:
+      force-deploy:
+        description: 'Force deployment even if no new commits'
+        required: false
         type: boolean
-        required: true
-    secrets:
-      VERCEL_ORG_ID:
-        required: false
-      VERCEL_PROJECT_ID:
-        required: false
-      VERCEL_TOKEN:
-        required: false
-      DATABASE_URL:
-        required: false
-      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY:
-        required: false
-      CLERK_SECRET_KEY:
-        required: false
-      CLERK_WEBHOOK_SIGNING_SECRET:
-        required: false
-      VERCEL_AUTOMATION_BYPASS_SECRET:
-        required: false
-      NEXT_PUBLIC_RAPID_API_KEY:
-        required: false
-      NEXT_PUBLIC_RAPID_API_HOST:
-        required: false
-      NEXT_PUBLIC_RAPID_API_BASE_URL:
-        required: false
+        default: false
+
+permissions:
+  contents: write
+  actions: read
 
 jobs:
-  deploy:
-    uses: ./.github/workflows/base-deployment.yml
+  cherry-pick-to-staging:
+    name: Cherry Pick All New Commits to Staging
+    if: ${{ !inputs.force-deploy || github.event_name == 'schedule' }}
+    uses: ./.github/workflows/cherry-pick-commits.yml
     with:
-      workflow-name: 'Vercel Staging Deployment'
+      source-branch: 'master'
+      target-branch: 'staging'
+      max-commits: 1000 # Effectively no limit for staging
+      min-age-hours: 0 # No age requirement for staging
+      require-staging-success: false # Not applicable for staging
+
+  deploy:
+    name: Deploy to Staging
+    needs: [cherry-pick-to-staging]
+    if: always() && needs.cherry-pick-to-staging.result == 'success' && needs.cherry-pick-to-staging.outputs.commits-cherry-picked != '0'
+    uses: ./.github/workflows/deploy-and-verify.yml
+    with:
+      workflow-name: 'Staging Deployment'
       environment: 'Staging'
-      deploy-to-vercel: true
     secrets:
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
       VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
@@ -58,3 +47,60 @@ jobs:
       NEXT_PUBLIC_RAPID_API_KEY: ${{ secrets.NEXT_PUBLIC_RAPID_API_KEY }}
       NEXT_PUBLIC_RAPID_API_HOST: ${{ secrets.NEXT_PUBLIC_RAPID_API_HOST }}
       NEXT_PUBLIC_RAPID_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_RAPID_API_BASE_URL }}
+
+  staging-summary:
+    name: Staging Deployment Summary
+    needs: [cherry-pick-to-staging, deploy]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Generate Staging Summary
+        run: |
+          echo "## 🚀 Staging Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Trigger:** ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Schedule:** Hourly (every hour at minute 0)" >> $GITHUB_STEP_SUMMARY
+          echo "**Purpose:** Automatic staging deployment with all new commits from master" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Cherry-pick summary
+          if [ "${{ needs.cherry-pick-to-staging.result }}" = "success" ]; then
+            echo "### ✅ Cherry-pick Results" >> $GITHUB_STEP_SUMMARY
+            echo "**Status:** SUCCESS" >> $GITHUB_STEP_SUMMARY
+            echo "- Commits cherry-picked: ${{ needs.cherry-pick-to-staging.outputs.commits-cherry-picked }}" >> $GITHUB_STEP_SUMMARY
+            echo "- Strategy: All new commits from master (no restrictions)" >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ needs.cherry-pick-to-staging.result }}" = "skipped" ]; then
+            echo "### ⏭️ Cherry-pick Results" >> $GITHUB_STEP_SUMMARY
+            echo "**Status:** SKIPPED" >> $GITHUB_STEP_SUMMARY
+            echo "- No new commits found on master" >> $GITHUB_STEP_SUMMARY
+            echo "- Staging deployment will be skipped" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### ❌ Cherry-pick Results" >> $GITHUB_STEP_SUMMARY
+            echo "**Status:** FAILED" >> $GITHUB_STEP_SUMMARY
+            echo "- Cherry-pick process failed" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Deployment summary
+          if [ "${{ needs.deploy.result }}" = "success" ]; then
+            echo "### ✅ Deployment Results" >> $GITHUB_STEP_SUMMARY
+            echo "**Status:** SUCCESS" >> $GITHUB_STEP_SUMMARY
+            echo "- Staging deployment completed" >> $GITHUB_STEP_SUMMARY
+            echo "- Post-deployment verification passed" >> $GITHUB_STEP_SUMMARY
+            echo "- Staging domain updated" >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ needs.deploy.result }}" = "skipped" ]; then
+            echo "### ⏭️ Deployment Results" >> $GITHUB_STEP_SUMMARY
+            echo "**Status:** SKIPPED" >> $GITHUB_STEP_SUMMARY
+            echo "- No new commits to deploy" >> $GITHUB_STEP_SUMMARY
+            echo "- Staging deployment skipped" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### ❌ Deployment Results" >> $GITHUB_STEP_SUMMARY
+            echo "**Status:** FAILED" >> $GITHUB_STEP_SUMMARY
+            echo "- Staging deployment failed" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Next Steps:** Staging is now ready for testing. If tests pass, proceed to production deployment." >> $GITHUB_STEP_SUMMARY
