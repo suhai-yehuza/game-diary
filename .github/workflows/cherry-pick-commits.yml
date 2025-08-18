@@ -116,6 +116,8 @@ jobs:
             echo "commits_to_process=true" >> $GITHUB_OUTPUT
             echo "commits_list=$COMMITS_TO_CHERRY_PICK" >> $GITHUB_OUTPUT
             echo ""
+            # Count the number of commits in the list
+            COMMIT_COUNT=$(echo "$COMMITS_TO_CHERRY_PICK" | wc -w)
             echo "📋 **Summary:** Found $COMMIT_COUNT commits ready for cherry-pick"
             echo "Commits to process: $COMMITS_TO_CHERRY_PICK"
           else
@@ -242,7 +244,7 @@ jobs:
             if [ -n "$COMMITS_LIST" ]; then
               for commit in $COMMITS_LIST; do
                 # Get commit message (first line only)
-                COMMIT_MSG=$(git log --format="%s" -n 1 $commit 2>/dev/null || echo "Unknown commit")
+                COMMIT_MSG=$(git log --format="%s" -n 1 "$commit" 2>/dev/null || echo "Unknown commit")
                 echo "- \`$commit\` - $COMMIT_MSG" >> $GITHUB_STEP_SUMMARY
               done
             else
@@ -258,7 +260,7 @@ jobs:
               if [ -n "$VALID_COMMITS_LIST" ]; then
                 for commit in $VALID_COMMITS_LIST; do
                   # Get commit message (first line only)
-                  COMMIT_MSG=$(git log --format="%s" -n 1 $commit 2>/dev/null || echo "Unknown commit")
+                  COMMIT_MSG=$(git log --format="%s" -n 1 "$commit" 2>/dev/null || echo "Unknown commit")
                   echo "- \`$commit\` - $COMMIT_MSG" >> $GITHUB_STEP_SUMMARY
                 done
               else
@@ -275,7 +277,7 @@ jobs:
             if [ -n "$CHERRY_PICKED_LIST" ]; then
               for commit in $CHERRY_PICKED_LIST; do
                 # Get commit message (first line only)
-                COMMIT_MSG=$(git log --format="%s" -n 1 $commit 2>/dev/null || echo "Unknown commit")
+                COMMIT_MSG=$(git log --format="%s" -n 1 "$commit" 2>/dev/null || echo "Unknown commit")
                 echo "- \`$commit\` - $COMMIT_MSG" >> $GITHUB_STEP_SUMMARY
               done
             else
