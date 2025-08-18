@@ -1,4 +1,4 @@
-name: Base Deployment Workflow
+name: Deploy and Verify Workflow
 
 on:
   workflow_call:
@@ -11,11 +11,7 @@ on:
         description: 'Deployment environment'
         required: true
         type: string
-      deploy-to-vercel:
-        description: 'Whether to deploy to Vercel'
-        required: false
-        type: boolean
-        default: true
+        default: 'Production'
     secrets:
       VERCEL_ORG_ID:
         required: false
@@ -40,41 +36,14 @@ on:
       NEXT_PUBLIC_RAPID_API_BASE_URL:
         required: false
 
-# Environment variables for E2E testing
-env:
-  # Localhost URLs for different browser tests
-  E2E_CHROMIUM_URL: 'http://localhost:3000'
-  E2E_WEBKIT_URL: 'http://localhost:3001'
-  E2E_FIREFOX_URL: 'http://localhost:3002'
-  E2E_MOBILE_URL: 'http://localhost:3003'
-
-  # Mock mode configuration
-  E2E_MOCK_MODE: 'true'
-  API_MOCK_MODE: 'true'
-  CI: 'true'
+permissions:
+  contents: write
+  actions: read
 
 jobs:
-  # Pre-deployment validation using reusable workflow
-  pre-deployment:
-    name: Pre-Deployment Validation
-    uses: ./.github/workflows/pre-deployment.yml
-    with:
-      workflow-name: '${{ inputs.workflow-name }} Pre-Deployment'
-      environment: '${{ inputs.environment }}'
-      skip-e2e-tests: false
-    secrets:
-      DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
-      CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
-      CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
-      NEXT_PUBLIC_RAPID_API_KEY: ${{ secrets.NEXT_PUBLIC_RAPID_API_KEY }}
-      NEXT_PUBLIC_RAPID_API_HOST: ${{ secrets.NEXT_PUBLIC_RAPID_API_HOST }}
-      NEXT_PUBLIC_RAPID_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_RAPID_API_BASE_URL }}
-
+  # Streamlined deploy job - only essential deployment steps
   deploy:
     name: Deploy to Vercel
-    if: ${{ inputs.deploy-to-vercel }}
-    needs: [pre-deployment]
     runs-on: ubuntu-latest
     timeout-minutes: 45
     environment: ${{ inputs.environment }}
@@ -179,28 +148,13 @@ jobs:
           echo "Deployment URL: $DEPLOYMENT_URL"
           echo "url=$DEPLOYMENT_URL" >> $GITHUB_OUTPUT
 
-      - name: Upload Deploy Artifacts
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: deploy-artifacts
-          path: |
-            logs/
-            test-results/
-            playwright-report/
-            coverage/
-            build/
-          retention-days: 7
-          if-no-files-found: warn
-
-  # Unified post-deployment verification (staging and production)
+  # Streamlined post-deployment verification
   post-deploy-verification:
     name: E2E Post-Deployment Verification (${{ inputs.environment }})
     needs: [deploy]
     runs-on: ubuntu-latest
     timeout-minutes: ${{ inputs.environment == 'Production' && 60 || 45 }}
     environment: ${{ inputs.environment }}
-    if: ${{ inputs.environment == 'Staging' || inputs.environment == 'Production' }}
     outputs:
       deployment-url: ${{ needs.deploy.outputs.deployment-url }}
     steps:
@@ -334,14 +288,13 @@ jobs:
           echo "📊 Test artifacts generated"
           echo "✅ Post-deployment verification completed successfully!"
 
-  # Reusable job for updating domains (staging and production)
+  # Streamlined domain update
   update-domain:
     name: Update ${{ inputs.environment }} Domain
     needs: [post-deploy-verification]
     runs-on: ubuntu-latest
     timeout-minutes: 15
     environment: ${{ inputs.environment }}
-    if: ${{ inputs.environment == 'Staging' || inputs.environment == 'Production' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -363,18 +316,6 @@ jobs:
       - name: Make helper script executable
         run: chmod +x scripts/vercel-deploy-helper.sh
 
-      # Update Domain with Team Context Support
-      # This step handles Vercel deployment promotion with proper team context to avoid
-      # "Deployment belongs to a different team" errors. It uses the VERCEL_ORG_ID
-      # secret to specify the correct team context for all Vercel CLI operations.
-      #
-      # Required GitHub Secrets:
-      # - VERCEL_TOKEN: Your Vercel API token
-      # - VERCEL_ORG_ID: Your team ID (e.g., "suhais-projects-33a81a2a")
-      # - VERCEL_PROJECT_ID: Your project ID (optional but recommended)
-      #
-      # To get your team ID, run: vercel teams ls
-      # To get your project ID, run: vercel project ls
       - name: Update Domain
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}

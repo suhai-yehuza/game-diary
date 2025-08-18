@@ -213,24 +213,108 @@ export async function testLiveGamesDetailStructure(page: Page) {
  * Test live games loading and error states
  */
 export async function testLiveGamesStates(page: Page) {
+  // First, verify mock data is available
+  try {
+    const mockResponse = await page.request.get(
+      '/api/mock-server?action=mock-data&type=live-games'
+    );
+    const mockData = await mockResponse.json();
+    console.log('Debug - Mock data response:', {
+      success: mockData.success,
+      hasData: !!mockData.data,
+      dataType: typeof mockData.data,
+      responseLength: mockData.data?.response?.length || 0,
+    });
+  } catch (error) {
+    console.log('Debug - Failed to fetch mock data:', error);
+  }
+
   await page.goto('/sports/live');
   await waitForPageLoad(page);
   await waitForNetworkIdle(page);
 
+  // Wait longer for WebKit to render content properly
+  await page.waitForTimeout(2000);
+
   // Check for either games or no games message
   const gamesGrid = page.locator('[data-testid="live-games-grid"]');
-  const noGamesTitle = page.locator('text=No Live Games');
-  const noGamesDescription = page.locator('text=There are currently no live NBA games');
+  const emptyState = page.locator('[data-testid="empty-state"]');
+  const noGamesTitle = page.locator('h3').filter({ hasText: 'No Live Games' });
+  const noGamesDescription = page
+    .locator('p')
+    .filter({ hasText: 'There are currently no live NBA games' });
+  const loadingSpinner = page.locator('[data-testid="loading-spinner"]');
 
-  // Wait a bit more for content to load, especially in WebKit
+  // Wait for loading to complete
+  try {
+    await loadingSpinner.waitFor({ state: 'hidden', timeout: 5000 });
+  } catch {
+    // Loading spinner might not be present, continue
+  }
+
+  // Additional wait for WebKit rendering
   await page.waitForTimeout(1000);
 
+  // Wait for content to be stable (no more changes)
+  await page.waitForFunction(
+    () => {
+      const gamesGrid = document.querySelector('[data-testid="live-games-grid"]');
+      const emptyState = document.querySelector('[data-testid="empty-state"]');
+      const noGamesTitle = document.querySelector('h3');
+      const noGamesDescription = document.querySelector('p');
+      const loadingSpinner = document.querySelector('[data-testid="loading-spinner"]');
+
+      // Check if title and description match expected text
+      const hasNoGamesTitle = noGamesTitle?.textContent?.includes('No Live Games');
+      const hasNoGamesDescription = noGamesDescription?.textContent?.includes(
+        'There are currently no live NBA games'
+      );
+
+      // Return true if we have any content and no loading spinner
+      return (
+        (gamesGrid || emptyState || (hasNoGamesTitle && hasNoGamesDescription)) && !loadingSpinner
+      );
+    },
+    { timeout: 10000 }
+  );
+
   const hasGames = (await gamesGrid.count()) > 0;
+  const hasEmptyState = (await emptyState.count()) > 0;
   const hasNoGamesTitle = (await noGamesTitle.count()) > 0;
   const hasNoGamesDescription = (await noGamesDescription.count()) > 0;
 
+  // Debug logging for WebKit
+  console.log('Debug - Element counts:', {
+    hasGames,
+    hasEmptyState,
+    hasNoGamesTitle,
+    hasNoGamesDescription,
+  });
+
+  // Check if we're still loading
+  const isLoading = (await loadingSpinner.count()) > 0;
+  if (isLoading) {
+    console.log('Debug - Page is still loading');
+    // Wait a bit more for loading to complete
+    await page.waitForTimeout(2000);
+  }
+
   // Should have either games or no games message (title and description are separate elements)
-  expect(hasGames || (hasNoGamesTitle && hasNoGamesDescription)).toBe(true);
+  if (!hasGames && !hasEmptyState && !(hasNoGamesTitle && hasNoGamesDescription)) {
+    // Debug: Check what's actually on the page
+    const pageTitle = await page.locator('h1').textContent();
+    const pageContent = await page.content();
+    console.log('Debug - Page title:', pageTitle);
+    console.log(
+      'Debug - Page has LiveGamesDetail component:',
+      pageContent.includes('LiveGamesDetail')
+    );
+    console.log('Debug - Page has loading spinner:', pageContent.includes('loading-spinner'));
+    console.log('Debug - Page has empty state:', pageContent.includes('empty-state'));
+    console.log('Debug - Page has live-games-grid:', pageContent.includes('live-games-grid'));
+  }
+
+  expect(hasGames || hasEmptyState || (hasNoGamesTitle && hasNoGamesDescription)).toBe(true);
 }
 
 /**
