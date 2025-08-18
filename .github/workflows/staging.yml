@@ -31,10 +31,11 @@ jobs:
     name: Deploy to Staging
     needs: [cherry-pick-to-staging]
     if: always() && needs.cherry-pick-to-staging.result == 'success' && needs.cherry-pick-to-staging.outputs.commits-cherry-picked != '0'
-    uses: ./.github/workflows/deploy-and-verify.yml
+    uses: ./.github/workflows/base-deployment.yml
     with:
       workflow-name: 'Staging Deployment'
       environment: 'Staging'
+      deploy-to-vercel: true
     secrets:
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
       VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
