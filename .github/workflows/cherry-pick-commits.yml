@@ -35,6 +35,9 @@ on:
       cherry-picked-commits:
         description: 'List of cherry-picked commit hashes'
         value: ${{ jobs.cherry-pick-commits.outputs.cherry-picked-commits }}
+      has-new-commits:
+        description: 'Whether any commits were actually cherry-picked'
+        value: ${{ jobs.cherry-pick-commits.outputs.has-new-commits }}
 
 permissions:
   contents: write
@@ -47,6 +50,7 @@ jobs:
     outputs:
       commits-cherry-picked: ${{ steps.cherry-pick.outputs.commits-cherry-picked }}
       cherry-picked-commits: ${{ steps.cherry-pick.outputs.cherry-picked-commits }}
+      has-new-commits: ${{ steps.cherry-pick.outputs.has-new-commits }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -193,10 +197,22 @@ jobs:
           if [ $SUCCESSFUL_COUNT -gt 0 ]; then
             git push origin ${{ inputs.target-branch }}
             echo "Successfully cherry-picked $SUCCESSFUL_COUNT commits to ${{ inputs.target-branch }}"
+            echo "has-new-commits=true" >> $GITHUB_OUTPUT
+          else
+            echo "No commits were successfully cherry-picked"
+            echo "has-new-commits=false" >> $GITHUB_OUTPUT
           fi
 
           echo "commits-cherry-picked=$SUCCESSFUL_COUNT" >> $GITHUB_OUTPUT
           echo "cherry-picked-commits=$CHERRY_PICKED_COMMITS" >> $GITHUB_OUTPUT
+
+      - name: Set has-new-commits output when no cherry-pick step runs
+        if: (steps.validate_deployments.outputs.valid_commits != 'true' && inputs.require-staging-success) || (steps.get_commits.outputs.commits_to_process != 'true' && !inputs.require-staging-success)
+        run: |
+          echo "No cherry-pick step ran, setting has-new-commits to false"
+          echo "has-new-commits=false" >> $GITHUB_OUTPUT
+          echo "commits-cherry-picked=0" >> $GITHUB_OUTPUT
+          echo "cherry-picked-commits=" >> $GITHUB_OUTPUT
 
       - name: Summary
         if: always()
