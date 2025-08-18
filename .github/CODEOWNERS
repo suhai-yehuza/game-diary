@@ -2,34 +2,34 @@
 # This file defines who owns the codebase and must approve pull requests
 
 # Global owners - these people will be requested for review on all pull requests
-# @suhai-yehuza  # Commented out to allow self-approval for solo development
+@suhai-yehuza @suhai  # Primary code owners
 
 # Specific file/directory owners
-# .github/workflows/ @suhai-yehuza
-# src/ @suhai-yehuza
-# tests/ @suhai-yehuza
-# scripts/ @suhai-yehuza
+.github/workflows/ @suhai-yehuza @suhai
+src/ @suhai-yehuza @suhai
+tests/ @suhai-yehuza @suhai
+scripts/ @suhai-yehuza @suhai
 
 # Documentation
-*.md @suhai-yehuza
-docs/ @suhai-yehuza
+*.md @suhai-yehuza @suhai
+docs/ @suhai-yehuza @suhai
 
 # Configuration files
-package.json @suhai-yehuza
-pnpm-lock.yaml @suhai-yehuza
-tsconfig.json @suhai-yehuza
-next.config.js @suhai-yehuza
-tailwind.config.js @suhai-yehuza
-postcss.config.js @suhai-yehuza
+package.json @suhai-yehuza @suhai
+pnpm-lock.yaml @suhai-yehuza @suhai
+tsconfig.json @suhai-yehuza @suhai
+next.config.js @suhai-yehuza @suhai
+tailwind.config.js @suhai-yehuza @suhai
+postcss.config.js @suhai-yehuza @suhai
 
 # Database and migrations
-drizzle/ @suhai-yehuza
-*.sql @suhai-yehuza
+drizzle/ @suhai-yehuza @suhai
+*.sql @suhai-yehuza @suhai
 
 # Environment and secrets
-.env* @suhai-yehuza
-secrets/ @suhai-yehuza
-keys/ @suhai-yehuza
+.env* @suhai-yehuza @suhai
+secrets/ @suhai-yehuza @suhai
+keys/ @suhai-yehuza @suhai
 
-# Note: This file now uses the correct GitHub username @suhai-yehuza
+# Note: This file now uses the correct GitHub usernames @suhai-yehuza and @suhai
 # You can add more owners by adding their GitHub usernames

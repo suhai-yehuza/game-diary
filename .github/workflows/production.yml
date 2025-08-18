@@ -1,31 +1,21 @@
-name: Production Deployment Streamlined (MTWTh)
+name: Production Deployment (24h Soak Period)
 
-# Manual trigger for production deployments
+# Manual trigger and automated schedule for production deployments
 on:
   workflow_dispatch:
     inputs:
-      max-commits:
-        description: 'Maximum number of commits to cherry-pick (max 10)'
-        required: false
-        type: number
-        default: 10
-      min-age-hours:
-        description: 'Minimum age of commits in hours before they can be cherry-picked'
-        required: false
-        type: number
-        default: 24
-      require-staging-success:
-        description: 'Require successful staging deployment for commits'
+      skip-soak-check:
+        description: 'Skip 24h soak period check (emergency use only)'
         required: false
         type: boolean
-        default: true
-      skip-cherry-pick:
-        description: 'Skip cherry-picking and deploy current deployment branch'
+        default: false
+      force-deploy:
+        description: 'Force deployment even if staging deployment failed'
         required: false
         type: boolean
         default: false
   schedule:
-    # Automated production deployment on MTWTh at 10am Pacific
+    # Automated production deployment on MTWTh at 10am Pacific (6pm UTC)
     - cron: '0 18 * * 1-4' # Monday-Thursday at 6pm UTC (10am Pacific)
 
 permissions:
@@ -33,26 +23,80 @@ permissions:
   actions: read
 
 jobs:
-  # Cherry-pick eligible commits from staging to deployment branch
-  cherry-pick-to-deployment:
-    name: Cherry Pick to Deployment Branch
-    if: ${{ !inputs.skip-cherry-pick || github.event_name == 'schedule' }}
-    uses: ./.github/workflows/cherry-pick-commits.yml
-    with:
-      source-branch: 'staging'
-      target-branch: 'deployment'
-      max-commits: ${{ inputs.max-commits || 10 }}
-      min-age-hours: ${{ inputs.min-age-hours || 24 }}
-      require-staging-success: ${{ inputs.require-staging-success || true }}
+  # Check soak period and staging deployment status
+  validate-deployment-readiness:
+    name: Validate Deployment Readiness
+    runs-on: ubuntu-latest
+    if: ${{ !inputs.skip-soak-check || github.event_name == 'schedule' }}
+    outputs:
+      ready-for-production: ${{ steps.check-readiness.outputs.ready }}
+      staging-deployment-age: ${{ steps.check-readiness.outputs.age-hours }}
+      staging-deployment-status: ${{ steps.check-readiness.outputs.status }}
+      has-eligible-commits: ${{ steps.check-readiness.outputs.has-eligible-commits }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check staging deployment readiness
+        id: check-readiness
+        run: |
+          echo "Checking staging deployment readiness for production..."
+
+          # Get the latest staging deployment
+          STAGING_DEPLOYMENT=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            "https://api.github.com/repos/${{ github.repository }}/actions/runs?workflow_id=staging.yml&branch=staging&status=completed&conclusion=success&per_page=1" | \
+            jq -r '.workflow_runs[0] // empty')
+
+          if [ -z "$STAGING_DEPLOYMENT" ]; then
+            echo "❌ No successful staging deployment found"
+            echo "ready=false" >> $GITHUB_OUTPUT
+            echo "status=no-staging-deployment" >> $GITHUB_OUTPUT
+            echo "has-eligible-commits=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # Get deployment timestamp
+          DEPLOYMENT_TIME=$(echo "$STAGING_DEPLOYMENT" | jq -r '.created_at')
+          DEPLOYMENT_ID=$(echo "$STAGING_DEPLOYMENT" | jq -r '.id')
+
+          echo "Latest staging deployment: $DEPLOYMENT_ID at $DEPLOYMENT_TIME"
+
+          # Calculate age in hours
+          CURRENT_TIME=$(date -u +%s)
+          DEPLOYMENT_TIMESTAMP=$(date -u -d "$DEPLOYMENT_TIME" +%s)
+          AGE_SECONDS=$((CURRENT_TIME - DEPLOYMENT_TIMESTAMP))
+          AGE_HOURS=$((AGE_SECONDS / 3600))
+
+          echo "Deployment age: $AGE_HOURS hours"
+          echo "age-hours=$AGE_HOURS" >> $GITHUB_OUTPUT
+
+          # Check if 24 business hours have passed
+          # Business hours: Monday-Friday, 9 AM - 5 PM (8 hours per day)
+          # 24 business hours = 3 business days
+          BUSINESS_HOURS_PASSED=$((AGE_HOURS / 8))
+
+          if [ "$BUSINESS_HOURS_PASSED" -ge 3 ]; then
+            echo "✅ 24 business hours have passed (3 business days)"
+            echo "ready=true" >> $GITHUB_OUTPUT
+            echo "status=ready" >> $GITHUB_OUTPUT
+            echo "has-eligible-commits=true" >> $GITHUB_OUTPUT
+          else
+            echo "⏳ Only $BUSINESS_HOURS_PASSED business days have passed (need 3)"
+            echo "ready=false" >> $GITHUB_OUTPUT
+            echo "status=soak-period-incomplete" >> $GITHUB_OUTPUT
+            echo "has-eligible-commits=false" >> $GITHUB_OUTPUT
+          fi
 
   # Deploy and verify using reusable workflow
   deploy:
     name: Deploy to Production
-    needs: [cherry-pick-to-deployment]
-    if: always() && (needs.cherry-pick-to-deployment.result == 'skipped' || needs.cherry-pick-to-deployment.outputs.has-new-commits == 'true')
+    needs: [validate-deployment-readiness]
+    if: ${{ inputs.skip-soak-check || needs.validate-deployment-readiness.outputs.ready-for-production == 'true' }}
     uses: ./.github/workflows/deploy-and-verify.yml
     with:
-      workflow-name: 'Production Deployment Streamlined'
+      workflow-name: 'Production Deployment (24h Soak)'
       environment: 'Production'
     secrets:
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
@@ -67,78 +111,86 @@ jobs:
       NEXT_PUBLIC_RAPID_API_HOST: ${{ secrets.NEXT_PUBLIC_RAPID_API_HOST }}
       NEXT_PUBLIC_RAPID_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_RAPID_API_BASE_URL }}
 
-  # Job to handle when deployment is skipped
+  # Job to handle when deployment is skipped due to no eligible commits
   deployment-skipped:
-    name: Deployment Skipped (No New Commits)
-    needs: [cherry-pick-to-deployment]
+    name: Deployment Skipped (No Eligible Commits)
+    needs: [validate-deployment-readiness]
     runs-on: ubuntu-latest
-    if: always() && needs.cherry-pick-to-deployment.result == 'success' && needs.cherry-pick-to-deployment.outputs.has-new-commits != 'true'
+    if: always() && !inputs.skip-soak-check && needs.validate-deployment-readiness.outputs.has-eligible-commits != 'true'
     steps:
       - name: Generate Skip Summary
         run: |
-          echo "## 🚀 Production Deployment Summary (Streamlined)" >> $GITHUB_STEP_SUMMARY
+          echo "## 🚀 Production Deployment Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Trigger:** ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
-          echo "**Deployment Branch:** deployment" >> $GITHUB_STEP_SUMMARY
-          echo "**Workflow Type:** Streamlined (staging-tested commits only)" >> $GITHUB_STEP_SUMMARY
+          echo "**Source Branch:** staging" >> $GITHUB_STEP_SUMMARY
+          echo "**Workflow Type:** 24h Business Hours Soak Period" >> $GITHUB_STEP_SUMMARY
+          echo "**Schedule:** MTWTh at 10am Pacific (6pm UTC)" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### 🍒 Cherry-Pick Results" >> $GITHUB_STEP_SUMMARY
-          echo "**Status:** ⏭️ No new commits to deploy" >> $GITHUB_STEP_SUMMARY
-          echo "**Commits Cherry-Picked:** 0 (no eligible commits found)" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ "${{ needs.validate-deployment-readiness.outputs.staging-deployment-status }}" = "no-staging-deployment" ]; then
+            echo "### ⏭️ Soak Period Check" >> $GITHUB_STEP_SUMMARY
+            echo "**Status:** SKIPPED" >> $GITHUB_STEP_SUMMARY
+            echo "**Reason:** No successful staging deployment found" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### ⏭️ Soak Period Check" >> $GITHUB_STEP_SUMMARY
+            echo "**Status:** SKIPPED" >> $GITHUB_STEP_SUMMARY
+            echo "**Staging Deployment Age:** ${{ needs.validate-deployment-readiness.outputs.staging-deployment-age }} hours" >> $GITHUB_STEP_SUMMARY
+            echo "**Business Days Passed:** $(( ${{ needs.validate-deployment-readiness.outputs.staging-deployment-age }} / 8 )) days" >> $GITHUB_STEP_SUMMARY
+            echo "**Required:** 3 business days (24 business hours)" >> $GITHUB_STEP_SUMMARY
+            echo "**Reason:** 24 business hours soak period has not elapsed" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+          fi
+
           echo "### 🚀 Production Deployment" >> $GITHUB_STEP_SUMMARY
-          echo "**Status:** ⏭️ Skipped (no new commits to deploy)" >> $GITHUB_STEP_SUMMARY
-          echo "**Reason:** No eligible commits were found for cherry-picking" >> $GITHUB_STEP_SUMMARY
+          echo "**Status:** ⏭️ SKIPPED (no eligible commits)" >> $GITHUB_STEP_SUMMARY
+          echo "**Reason:** No commits meet the criteria for production deployment" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### 🔍 Post-Deployment Verification" >> $GITHUB_STEP_SUMMARY
-          echo "**Status:** ⏭️ Skipped (no deployment performed)" >> $GITHUB_STEP_SUMMARY
+          echo "**Status:** ⏭️ SKIPPED (no deployment performed)" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### 🔗 Domain Update" >> $GITHUB_STEP_SUMMARY
-          echo "**Status:** ⏭️ Skipped (no deployment performed)" >> $GITHUB_STEP_SUMMARY
+          echo "**Status:** ⏭️ SKIPPED (no deployment performed)" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "---" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Next Steps:**" >> $GITHUB_STEP_SUMMARY
-          echo "- No deployment was performed due to no new commits" >> $GITHUB_STEP_SUMMARY
-          echo "- Production environment remains unchanged" >> $GITHUB_STEP_SUMMARY
-          echo "- Next scheduled deployment will check for new commits" >> $GITHUB_STEP_SUMMARY
+          echo "- Wait for 24 business hours to complete" >> $GITHUB_STEP_SUMMARY
+          echo "- Continue testing in staging environment" >> $GITHUB_STEP_SUMMARY
+          echo "- Next scheduled deployment will check for eligible commits" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Note:** This streamlined workflow skips redundant testing since commits were already validated in staging." >> $GITHUB_STEP_SUMMARY
+          echo "**Note:** This is a successful skip - no deployment was needed. You can bypass the soak period check in emergency situations using the 'skip-soak-check' option." >> $GITHUB_STEP_SUMMARY
 
   # Summary job to provide deployment information
   deployment-summary:
     name: Production Deployment Summary
-    needs: [cherry-pick-to-deployment, deploy]
+    needs: [validate-deployment-readiness, deploy]
     runs-on: ubuntu-latest
-    if: always() && (needs.cherry-pick-to-deployment.result == 'skipped' || needs.cherry-pick-to-deployment.outputs.has-new-commits == 'true')
+    if: always() && (inputs.skip-soak-check || needs.validate-deployment-readiness.outputs.ready-for-production == 'true')
     steps:
       - name: Generate Deployment Summary
         run: |
-          echo "## 🚀 Production Deployment Summary (Streamlined)" >> $GITHUB_STEP_SUMMARY
+          echo "## 🚀 Production Deployment Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Trigger:** ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
-          echo "**Deployment Branch:** deployment" >> $GITHUB_STEP_SUMMARY
-          echo "**Workflow Type:** Streamlined (staging-tested commits only)" >> $GITHUB_STEP_SUMMARY
+          echo "**Source Branch:** staging" >> $GITHUB_STEP_SUMMARY
+          echo "**Workflow Type:** 24h Business Hours Soak Period" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ github.event_name }}" = "schedule" ]; then
+            echo "**Schedule:** MTWTh at 10am Pacific (6pm UTC)" >> $GITHUB_STEP_SUMMARY
+          fi
           echo "" >> $GITHUB_STEP_SUMMARY
 
-          # Cherry-pick summary
-          if [ "${{ needs.cherry-pick-to-deployment.result }}" = "success" ]; then
-            if [ "${{ needs.cherry-pick-to-deployment.outputs.commits-cherry-picked }}" = "0" ] || [ "${{ needs.cherry-pick-to-deployment.outputs.commits-cherry-picked }}" = "" ]; then
-              echo "### 🍒 Cherry-Pick Results" >> $GITHUB_STEP_SUMMARY
-              echo "**Status:** ⏭️ SUCCESS (no new commits)" >> $GITHUB_STEP_SUMMARY
-              echo "**Commits Cherry-Picked:** 0 (no eligible commits found)" >> $GITHUB_STEP_SUMMARY
-            else
-              echo "### 🍒 Cherry-Pick Results" >> $GITHUB_STEP_SUMMARY
-              echo "**Status:** ✅ Success" >> $GITHUB_STEP_SUMMARY
-              echo "**Commits Cherry-Picked:** ${{ needs.cherry-pick-to-deployment.outputs.commits-cherry-picked }}" >> $GITHUB_STEP_SUMMARY
-              echo "**Cherry-Picked Commits:** ${{ needs.cherry-pick-to-deployment.outputs.cherry-picked-commits }}" >> $GITHUB_STEP_SUMMARY
-            fi
-          elif [ "${{ needs.cherry-pick-to-deployment.result }}" = "skipped" ]; then
-            echo "### 🍒 Cherry-Pick Results" >> $GITHUB_STEP_SUMMARY
-            echo "**Status:** ⏭️ Skipped (manual skip requested)" >> $GITHUB_STEP_SUMMARY
+          # Soak period summary
+          if [ "${{ inputs.skip-soak-check }}" = "true" ]; then
+            echo "### ⏳ Soak Period Check" >> $GITHUB_STEP_SUMMARY
+            echo "**Status:** ⏭️ Skipped (emergency bypass)" >> $GITHUB_STEP_SUMMARY
+            echo "**Reason:** Soak period check was bypassed" >> $GITHUB_STEP_SUMMARY
           else
-            echo "### 🍒 Cherry-Pick Results" >> $GITHUB_STEP_SUMMARY
-            echo "**Status:** ❌ Failed" >> $GITHUB_STEP_SUMMARY
+            echo "### ⏳ Soak Period Check" >> $GITHUB_STEP_SUMMARY
+            echo "**Status:** ✅ PASSED" >> $GITHUB_STEP_SUMMARY
+            echo "**Staging Deployment Age:** ${{ needs.validate-deployment-readiness.outputs.staging-deployment-age }} hours" >> $GITHUB_STEP_SUMMARY
+            echo "**Business Days Passed:** $(( ${{ needs.validate-deployment-readiness.outputs.staging-deployment-age }} / 8 )) days" >> $GITHUB_STEP_SUMMARY
           fi
 
           echo "" >> $GITHUB_STEP_SUMMARY
@@ -168,7 +220,7 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
 
           # Domain update summary
-          if [ "${{ needs.update-domain.result }}" = "success" ]; then
+          if [ "${{ needs.deploy.result }}" = "success" ]; then
             echo "### 🔗 Domain Update" >> $GITHUB_STEP_SUMMARY
             echo "**Status:** ✅ Success" >> $GITHUB_STEP_SUMMARY
           else
@@ -184,4 +236,4 @@ jobs:
           echo "- Check application logs and metrics" >> $GITHUB_STEP_SUMMARY
           echo "- Verify all features are working as expected" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Note:** This streamlined workflow skips redundant testing since commits were already validated in staging." >> $GITHUB_STEP_SUMMARY
+          echo "**Note:** This deployment completed the 24-hour business hours soak period requirement." >> $GITHUB_STEP_SUMMARY

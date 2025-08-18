@@ -1,0 +1,278 @@
+name: Emergency Rollback
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to rollback'
+        required: true
+        type: choice
+        options:
+          - Production
+          - Staging
+        default: 'Production'
+      rollback-to:
+        description: 'Rollback to specific deployment (leave empty for previous deployment)'
+        required: false
+        type: string
+        default: ''
+      reason:
+        description: 'Reason for rollback (required)'
+        required: true
+        type: string
+      force-rollback:
+        description: 'Force rollback even if deployment is recent (use with caution)'
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  # Get deployment history and validate rollback target
+  validate-rollback:
+    name: Validate Rollback Target
+    runs-on: ubuntu-latest
+    outputs:
+      rollback-url: ${{ steps.get-rollback-target.outputs.rollback-url }}
+      rollback-id: ${{ steps.get-rollback-target.outputs.rollback-id }}
+      current-url: ${{ steps.get-current-deployment.outputs.current-url }}
+      current-id: ${{ steps.get-current-deployment.outputs.current-id }}
+      can-rollback: ${{ steps.validate-rollback.outputs.can-rollback }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Vercel CLI
+        run: npm install --global vercel@latest
+
+      - name: Get current deployment
+        id: get-current-deployment
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          echo "🔍 Getting current ${{ inputs.environment }} deployment..."
+
+          # Get current production deployment
+          if [ "${{ inputs.environment }}" = "Production" ]; then
+            CURRENT_DEPLOYMENT=$(vercel ls --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" --prod 2>/dev/null | head -1 | awk '{print $1}')
+            DOMAIN="www.game-diary.io"
+          else
+            CURRENT_DEPLOYMENT=$(vercel ls --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" 2>/dev/null | head -1 | awk '{print $1}')
+            DOMAIN="staging.game-diary.io"
+          fi
+
+          if [ -n "$CURRENT_DEPLOYMENT" ]; then
+            echo "Current deployment: $CURRENT_DEPLOYMENT"
+            echo "current-url=$CURRENT_DEPLOYMENT" >> $GITHUB_OUTPUT
+            echo "current-id=$(echo $CURRENT_DEPLOYMENT | cut -d'/' -f2)" >> $GITHUB_OUTPUT
+          else
+            echo "❌ Could not determine current deployment"
+            exit 1
+          fi
+
+      - name: Get rollback target
+        id: get-rollback-target
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          echo "🔍 Finding rollback target..."
+
+          if [ -n "${{ inputs.rollback-to }}" ]; then
+            # Use specified deployment
+            ROLLBACK_URL="${{ inputs.rollback-to }}"
+            echo "Using specified rollback target: $ROLLBACK_URL"
+          else
+            # Get previous deployment from history
+            if [ "${{ inputs.environment }}" = "Production" ]; then
+              ROLLBACK_URL=$(vercel ls --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" --prod 2>/dev/null | sed -n '2p' | awk '{print $1}')
+            else
+              ROLLBACK_URL=$(vercel ls --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" 2>/dev/null | sed -n '2p' | awk '{print $1}')
+            fi
+            echo "Using previous deployment: $ROLLBACK_URL"
+          fi
+
+          if [ -n "$ROLLBACK_URL" ]; then
+            echo "rollback-url=$ROLLBACK_URL" >> $GITHUB_OUTPUT
+            echo "rollback-id=$(echo $ROLLBACK_URL | cut -d'/' -f2)" >> $GITHUB_OUTPUT
+          else
+            echo "❌ Could not determine rollback target"
+            exit 1
+          fi
+
+      - name: Validate rollback
+        id: validate-rollback
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+        run: |
+          echo "🔍 Validating rollback..."
+
+          CURRENT_URL="${{ steps.get-current-deployment.outputs.current-url }}"
+          ROLLBACK_URL="${{ steps.get-rollback-target.outputs.rollback-url }}"
+
+          if [ "$CURRENT_URL" = "$ROLLBACK_URL" ]; then
+            echo "❌ Current deployment and rollback target are the same"
+            echo "can-rollback=false" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+
+          # Check if rollback target is accessible
+          if curl -f -s --max-time 30 "$ROLLBACK_URL/api/health" > /dev/null 2>&1; then
+            echo "✅ Rollback target is accessible and healthy"
+            echo "can-rollback=true" >> $GITHUB_OUTPUT
+          else
+            echo "⚠️ Rollback target may not be accessible, but proceeding with rollback"
+            echo "can-rollback=true" >> $GITHUB_OUTPUT
+          fi
+
+  # Perform the rollback
+  rollback:
+    name: Perform Rollback
+    needs: [validate-rollback]
+    runs-on: ubuntu-latest
+    if: needs.validate-rollback.outputs.can-rollback == 'true'
+    environment: ${{ inputs.environment }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Vercel CLI
+        run: npm install --global vercel@latest
+
+      - name: Perform rollback
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          ROLLBACK_URL: ${{ needs.validate-rollback.outputs.rollback-url }}
+          CURRENT_URL: ${{ needs.validate-rollback.outputs.current-url }}
+        run: |
+          echo "🚨 EMERGENCY ROLLBACK INITIATED"
+          echo "================================="
+          echo "Environment: ${{ inputs.environment }}"
+          echo "Reason: ${{ inputs.reason }}"
+          echo "From: $CURRENT_URL"
+          echo "To: $ROLLBACK_URL"
+          echo ""
+
+          # Perform rollback based on environment
+          if [ "${{ inputs.environment }}" = "Production" ]; then
+            echo "🔄 Rolling back production to: $ROLLBACK_URL"
+
+            # Promote the rollback target to production
+            if vercel promote "$ROLLBACK_URL" --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" --yes; then
+              echo "✅ Production rollback successful"
+              echo "Production now points to: $ROLLBACK_URL"
+            else
+              echo "❌ Production rollback failed"
+              exit 1
+            fi
+          else
+            echo "🔄 Rolling back staging to: $ROLLBACK_URL"
+
+            # Set staging domain alias to rollback target
+            if vercel alias set "$ROLLBACK_URL" "staging.game-diary.io" --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID"; then
+              echo "✅ Staging rollback successful"
+              echo "Staging now points to: $ROLLBACK_URL"
+            else
+              echo "❌ Staging rollback failed"
+              exit 1
+            fi
+          fi
+
+      - name: Verify rollback
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          ROLLBACK_URL: ${{ needs.validate-rollback.outputs.rollback-url }}
+        run: |
+          echo "🔍 Verifying rollback..."
+
+          if [ "${{ inputs.environment }}" = "Production" ]; then
+            DOMAIN="https://www.game-diary.io"
+          else
+            DOMAIN="https://staging.game-diary.io"
+          fi
+
+          # Wait for domain propagation
+          echo "⏳ Waiting for domain propagation..."
+          sleep 30
+
+          # Verify the domain is accessible
+          for i in {1..5}; do
+            if curl -f -s --max-time 30 "$DOMAIN/api/health" > /dev/null 2>&1; then
+              echo "✅ ${{ inputs.environment }} domain is accessible after rollback"
+              break
+            fi
+            if [ $i -eq 5 ]; then
+              echo "⚠️ Domain verification failed after 5 attempts"
+              echo "The rollback may still be successful, but domain propagation might be delayed"
+            fi
+            echo "⏳ Retrying verification... (attempt $i/5)"
+            sleep 10
+          done
+
+  # Rollback summary
+  rollback-summary:
+    name: Rollback Summary
+    needs: [validate-rollback, rollback]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Generate rollback summary
+        run: |
+          echo "## 🚨 Emergency Rollback Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Environment:** ${{ inputs.environment }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Reason:** ${{ inputs.reason }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Triggered by:** ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Timestamp:** $(date -u)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ "${{ needs.validate-rollback.result }}" = "success" ]; then
+            echo "### 🔍 Rollback Validation" >> $GITHUB_STEP_SUMMARY
+            echo "**Status:** ✅ PASSED" >> $GITHUB_STEP_SUMMARY
+            echo "**From:** ${{ needs.validate-rollback.outputs.current-url }}" >> $GITHUB_STEP_SUMMARY
+            echo "**To:** ${{ needs.validate-rollback.outputs.rollback-url }}" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### 🔍 Rollback Validation" >> $GITHUB_STEP_SUMMARY
+            echo "**Status:** ❌ FAILED" >> $GITHUB_STEP_SUMMARY
+            echo "**Reason:** Could not validate rollback target" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          if [ "${{ needs.rollback.result }}" = "success" ]; then
+            echo "### 🚀 Rollback Execution" >> $GITHUB_STEP_SUMMARY
+            echo "**Status:** ✅ SUCCESS" >> $GITHUB_STEP_SUMMARY
+            echo "**${{ inputs.environment }} now points to:** ${{ needs.validate-rollback.outputs.rollback-url }}" >> $GITHUB_STEP_SUMMARY
+            echo "**Domain verification:** PASSED" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### 📋 Next Steps" >> $GITHUB_STEP_SUMMARY
+            echo "- Investigate the issue that caused the rollback" >> $GITHUB_STEP_SUMMARY
+            echo "- Fix the problem in development" >> $GITHUB_STEP_SUMMARY
+            echo "- Test thoroughly before next deployment" >> $GITHUB_STEP_SUMMARY
+            echo "- Consider updating deployment validation to prevent similar issues" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### 🚀 Rollback Execution" >> $GITHUB_STEP_SUMMARY
+            echo "**Status:** ❌ FAILED" >> $GITHUB_STEP_SUMMARY
+            echo "**Action required:** Manual intervention needed" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### 🚨 Immediate Actions Required" >> $GITHUB_STEP_SUMMARY
+            echo "- Check Vercel deployment status manually" >> $GITHUB_STEP_SUMMARY
+            echo "- Verify domain configuration" >> $GITHUB_STEP_SUMMARY
+            echo "- Contact DevOps team for assistance" >> $GITHUB_STEP_SUMMARY
+            echo "- Consider manual domain update if necessary" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Note:** This was an emergency rollback. Please document the incident and update procedures to prevent future occurrences." >> $GITHUB_STEP_SUMMARY

@@ -1,0 +1,70 @@
+name: Sync Staging Branch
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  sync-staging:
+    name: Sync Staging Branch with Master
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Sync staging branch with master
+        run: |
+          echo "Syncing staging branch with master..."
+
+          # Fetch all branches
+          git fetch origin master staging
+
+          # Check if staging branch exists
+          if ! git show-ref --verify --quiet refs/remotes/origin/staging; then
+            echo "Creating staging branch from master..."
+            git checkout master
+            git checkout -b staging
+            git push -u origin staging
+          else
+            echo "Staging branch exists, updating it..."
+            git checkout staging
+            git pull origin staging
+
+            # Reset staging to match master exactly
+            git reset --hard origin/master
+
+            # Force push to staging (this is safe since staging is automated)
+            git push --force-with-lease origin staging
+          fi
+
+          echo "✅ Staging branch synchronized with master"
+
+      - name: Summary
+        run: |
+          echo "## 🔄 Staging Branch Sync Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Trigger:** ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Source Branch:** master" >> $GITHUB_STEP_SUMMARY
+          echo "**Target Branch:** staging" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### ✅ Sync Results" >> $GITHUB_STEP_SUMMARY
+          echo "**Status:** SUCCESS" >> $GITHUB_STEP_SUMMARY
+          echo "- Staging branch synchronized with master" >> $GITHUB_STEP_SUMMARY
+          echo "- Ready for staging deployment" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Next Steps:**" >> $GITHUB_STEP_SUMMARY
+          echo "- Staging deployment will be triggered automatically" >> $GITHUB_STEP_SUMMARY
+          echo "- Begin 24-hour business hours soak period" >> $GITHUB_STEP_SUMMARY

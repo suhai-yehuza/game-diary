@@ -1,8 +1,9 @@
-name: Staging Deployment (Hourly)
+name: Staging Deployment (Automatic from Master)
 
 on:
-  schedule:
-    - cron: '0 * * * *' # Every hour
+  push:
+    branches:
+      - staging
   workflow_dispatch:
     inputs:
       force-deploy:
@@ -16,21 +17,8 @@ permissions:
   actions: read
 
 jobs:
-  cherry-pick-to-staging:
-    name: Cherry Pick All New Commits to Staging
-    if: ${{ !inputs.force-deploy || github.event_name == 'schedule' }}
-    uses: ./.github/workflows/cherry-pick-commits.yml
-    with:
-      source-branch: 'master'
-      target-branch: 'staging'
-      max-commits: 1000 # Effectively no limit for staging
-      min-age-hours: 0 # No age requirement for staging
-      require-staging-success: false # Not applicable for staging
-
   deploy:
     name: Deploy to Staging
-    needs: [cherry-pick-to-staging]
-    if: always() && needs.cherry-pick-to-staging.result == 'success' && needs.cherry-pick-to-staging.outputs.has-new-commits == 'true'
     uses: ./.github/workflows/base-deployment.yml
     with:
       workflow-name: 'Staging Deployment'
@@ -51,7 +39,7 @@ jobs:
 
   staging-summary:
     name: Staging Deployment Summary
-    needs: [cherry-pick-to-staging, deploy]
+    needs: [deploy]
     runs-on: ubuntu-latest
     if: always()
     steps:
@@ -60,34 +48,8 @@ jobs:
           echo "## 🚀 Staging Deployment Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Trigger:** ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
-          echo "**Schedule:** Hourly (every hour at minute 0)" >> $GITHUB_STEP_SUMMARY
-          echo "**Purpose:** Automatic staging deployment with all new commits from master" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-
-          # Cherry-pick summary
-          if [ "${{ needs.cherry-pick-to-staging.result }}" = "success" ]; then
-            if [ "${{ needs.cherry-pick-to-staging.outputs.commits-cherry-picked }}" = "0" ] || [ "${{ needs.cherry-pick-to-staging.outputs.commits-cherry-picked }}" = "" ]; then
-              echo "### ⏭️ Cherry-pick Results" >> $GITHUB_STEP_SUMMARY
-              echo "**Status:** SUCCESS (no new commits)" >> $GITHUB_STEP_SUMMARY
-              echo "- No new commits found on master" >> $GITHUB_STEP_SUMMARY
-              echo "- Staging deployment will be skipped" >> $GITHUB_STEP_SUMMARY
-            else
-              echo "### ✅ Cherry-pick Results" >> $GITHUB_STEP_SUMMARY
-              echo "**Status:** SUCCESS" >> $GITHUB_STEP_SUMMARY
-              echo "- Commits cherry-picked: ${{ needs.cherry-pick-to-staging.outputs.commits-cherry-picked }}" >> $GITHUB_STEP_SUMMARY
-              echo "- Strategy: All new commits from master (no restrictions)" >> $GITHUB_STEP_SUMMARY
-            fi
-          elif [ "${{ needs.cherry-pick-to-staging.result }}" = "skipped" ]; then
-            echo "### ⏭️ Cherry-pick Results" >> $GITHUB_STEP_SUMMARY
-            echo "**Status:** SKIPPED" >> $GITHUB_STEP_SUMMARY
-            echo "- No new commits found on master" >> $GITHUB_STEP_SUMMARY
-            echo "- Staging deployment will be skipped" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "### ❌ Cherry-pick Results" >> $GITHUB_STEP_SUMMARY
-            echo "**Status:** FAILED" >> $GITHUB_STEP_SUMMARY
-            echo "- Cherry-pick process failed" >> $GITHUB_STEP_SUMMARY
-          fi
-
+          echo "**Source Branch:** staging (synced from master)" >> $GITHUB_STEP_SUMMARY
+          echo "**Purpose:** Automatic staging deployment for 24h soak testing" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
           # Deployment summary
@@ -97,18 +59,22 @@ jobs:
             echo "- Staging deployment completed" >> $GITHUB_STEP_SUMMARY
             echo "- Post-deployment verification passed" >> $GITHUB_STEP_SUMMARY
             echo "- Staging domain updated" >> $GITHUB_STEP_SUMMARY
-          elif [ "${{ needs.deploy.result }}" = "skipped" ]; then
-            echo "### ⏭️ Deployment Results" >> $GITHUB_STEP_SUMMARY
-            echo "**Status:** SKIPPED" >> $GITHUB_STEP_SUMMARY
-            echo "- No new commits to deploy" >> $GITHUB_STEP_SUMMARY
-            echo "- Staging deployment skipped" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### ⏰ Soak Period Started" >> $GITHUB_STEP_SUMMARY
+            echo "**Status:** ACTIVE" >> $GITHUB_STEP_SUMMARY
+            echo "- 24 business hours soak period has begun" >> $GITHUB_STEP_SUMMARY
+            echo "- Production deployment will be available after soak period" >> $GITHUB_STEP_SUMMARY
           else
             echo "### ❌ Deployment Results" >> $GITHUB_STEP_SUMMARY
             echo "**Status:** FAILED" >> $GITHUB_STEP_SUMMARY
             echo "- Staging deployment failed" >> $GITHUB_STEP_SUMMARY
+            echo "- Soak period not started" >> $GITHUB_STEP_SUMMARY
           fi
 
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "---" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Next Steps:** Staging is now ready for testing. If tests pass, proceed to production deployment." >> $GITHUB_STEP_SUMMARY
+          echo "**Next Steps:**" >> $GITHUB_STEP_SUMMARY
+          echo "- Test the staging environment thoroughly" >> $GITHUB_STEP_SUMMARY
+          echo "- Wait 24 business hours for soak period" >> $GITHUB_STEP_SUMMARY
+          echo "- Trigger production deployment when ready" >> $GITHUB_STEP_SUMMARY
