@@ -2,7 +2,7 @@
 # This file defines who owns the codebase and must approve pull requests
 
 # Global owners - these people will be requested for review on all pull requests
-* @suhai-yehuza
+# @suhai-yehuza  # Commented out to allow self-approval for solo development
 
 # Specific file/directory owners
 # .github/workflows/ @suhai-yehuza
