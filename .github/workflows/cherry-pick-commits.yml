@@ -81,7 +81,9 @@ jobs:
           fi
 
           echo "Found commits in ${{ inputs.source-branch }} not in ${{ inputs.target-branch }}:"
+          echo "---"
           echo "$SOURCE_COMMITS"
+          echo "---"
 
           # Process each commit to check if it meets criteria
           CURRENT_TIME=$(date +%s)
@@ -113,8 +115,15 @@ jobs:
           if [ -n "$COMMITS_TO_CHERRY_PICK" ]; then
             echo "commits_to_process=true" >> $GITHUB_OUTPUT
             echo "commits_list=$COMMITS_TO_CHERRY_PICK" >> $GITHUB_OUTPUT
+            echo ""
+            echo "📋 **Summary:** Found $COMMIT_COUNT commits ready for cherry-pick"
+            echo "Commits to process: $COMMITS_TO_CHERRY_PICK"
           else
             echo "commits_to_process=false" >> $GITHUB_OUTPUT
+            echo ""
+            echo "📋 **Summary:** No commits meet the criteria for cherry-picking"
+            echo "- All commits must be at least ${{ inputs.min-age-hours }} hours old"
+            echo "- Maximum ${{ inputs.max-commits }} commits allowed"
           fi
 
       - name: Validate staging deployment success
@@ -228,20 +237,50 @@ jobs:
           echo "**Commits Found:** ${{ steps.get_commits.outputs.commits_to_process }}" >> $GITHUB_STEP_SUMMARY
 
           if [ "${{ steps.get_commits.outputs.commits_to_process }}" = "true" ]; then
-            echo "**Commits Checked:** ${{ steps.get_commits.outputs.commits_list }}" >> $GITHUB_STEP_SUMMARY
+            echo "**Commits Checked:**" >> $GITHUB_STEP_SUMMARY
+            COMMITS_LIST="${{ steps.get_commits.outputs.commits_list }}"
+            if [ -n "$COMMITS_LIST" ]; then
+              for commit in $COMMITS_LIST; do
+                # Get commit message (first line only)
+                COMMIT_MSG=$(git log --format="%s" -n 1 $commit 2>/dev/null || echo "Unknown commit")
+                echo "- \`$commit\` - $COMMIT_MSG" >> $GITHUB_STEP_SUMMARY
+              done
+            else
+              echo "- No commits found" >> $GITHUB_STEP_SUMMARY
+            fi
           fi
 
           if [ "${{ inputs.require-staging-success }}" = "true" ]; then
             echo "**Valid Commits:** ${{ steps.validate_deployments.outputs.valid_commits }}" >> $GITHUB_STEP_SUMMARY
             if [ "${{ steps.validate_deployments.outputs.valid_commits }}" = "true" ]; then
-              echo "**Valid Commits List:** ${{ steps.validate_deployments.outputs.valid_commits_list }}" >> $GITHUB_STEP_SUMMARY
+              echo "**Valid Commits List:**" >> $GITHUB_STEP_SUMMARY
+              VALID_COMMITS_LIST="${{ steps.validate_deployments.outputs.valid_commits_list }}"
+              if [ -n "$VALID_COMMITS_LIST" ]; then
+                for commit in $VALID_COMMITS_LIST; do
+                  # Get commit message (first line only)
+                  COMMIT_MSG=$(git log --format="%s" -n 1 $commit 2>/dev/null || echo "Unknown commit")
+                  echo "- \`$commit\` - $COMMIT_MSG" >> $GITHUB_STEP_SUMMARY
+                done
+              else
+                echo "- No valid commits found" >> $GITHUB_STEP_SUMMARY
+              fi
             fi
           fi
 
           if [ "${{ steps.cherry-pick.outputs.commits-cherry-picked }}" != "" ]; then
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "✅ **Successfully cherry-picked ${{ steps.cherry-pick.outputs.commits-cherry-picked }} commits**" >> $GITHUB_STEP_SUMMARY
-            echo "**Cherry-picked commits:** ${{ steps.cherry-pick.outputs.cherry-picked-commits }}" >> $GITHUB_STEP_SUMMARY
+            echo "**Cherry-picked commits:**" >> $GITHUB_STEP_SUMMARY
+            CHERRY_PICKED_LIST="${{ steps.cherry-pick.outputs.cherry-picked-commits }}"
+            if [ -n "$CHERRY_PICKED_LIST" ]; then
+              for commit in $CHERRY_PICKED_LIST; do
+                # Get commit message (first line only)
+                COMMIT_MSG=$(git log --format="%s" -n 1 $commit 2>/dev/null || echo "Unknown commit")
+                echo "- \`$commit\` - $COMMIT_MSG" >> $GITHUB_STEP_SUMMARY
+              done
+            else
+              echo "- No commits were cherry-picked" >> $GITHUB_STEP_SUMMARY
+            fi
           elif [ "${{ steps.get_commits.outputs.commits_to_process }}" = "true" ]; then
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "⏭️ **No commits were cherry-picked**" >> $GITHUB_STEP_SUMMARY
