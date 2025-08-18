@@ -1,0 +1,41 @@
+name: 'CodeQL Config'
+
+# Disable default queries and use custom query suites
+disable-default-queries: false
+
+# Additional query suites to run
+queries:
+  - uses: security-and-quality
+  - uses: security-extended
+
+# Paths to exclude from analysis
+paths-ignore:
+  - '**/node_modules/**'
+  - '**/dist/**'
+  - '**/build/**'
+  - '**/.next/**'
+  - '**/coverage/**'
+  - '**/test-results/**'
+  - '**/playwright-report/**'
+  - '**/logs/**'
+  - '**/drizzle/**'
+  - '**/scripts/**'
+  - '**/tests/**'
+
+# Paths to include in analysis
+paths:
+  - 'src/**'
+  - 'public/**'
+  - '*.js'
+  - '*.ts'
+  - '*.jsx'
+  - '*.tsx'
+  - '*.json'
+  - 'package.json'
+  - 'package-lock.json'
+  - 'pnpm-lock.yaml'
+# Custom query packs (optional)
+# query-filters:
+#   - include:
+#       tags contain: security
+#       tags contain: external
