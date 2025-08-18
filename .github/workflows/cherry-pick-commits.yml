@@ -76,7 +76,7 @@ jobs:
 
           if [ -z "$SOURCE_COMMITS" ]; then
             echo "No new commits in ${{ inputs.source-branch }}"
-            echo "commits_to_process=" >> $GITHUB_OUTPUT
+            echo "commits_to_process=false" >> $GITHUB_OUTPUT
             exit 0
           fi
 
@@ -244,9 +244,11 @@ jobs:
             echo "**Cherry-picked commits:** ${{ steps.cherry-pick.outputs.cherry-picked-commits }}" >> $GITHUB_STEP_SUMMARY
           elif [ "${{ steps.get_commits.outputs.commits_to_process }}" = "true" ]; then
             echo "" >> $GITHUB_STEP_SUMMARY
-            echo "❌ **No commits were cherry-picked**" >> $GITHUB_STEP_SUMMARY
+            echo "⏭️ **No commits were cherry-picked**" >> $GITHUB_STEP_SUMMARY
             if [ "${{ inputs.require-staging-success }}" = "true" ]; then
               echo "All commits must have successful staging deployments to be cherry-picked." >> $GITHUB_STEP_SUMMARY
+            else
+              echo "No commits met the criteria for cherry-picking (age requirements, etc.)." >> $GITHUB_STEP_SUMMARY
             fi
           else
             echo "" >> $GITHUB_STEP_SUMMARY

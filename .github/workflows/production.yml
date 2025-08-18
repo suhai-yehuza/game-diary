@@ -123,10 +123,16 @@ jobs:
 
           # Cherry-pick summary
           if [ "${{ needs.cherry-pick-to-deployment.result }}" = "success" ]; then
-            echo "### 🍒 Cherry-Pick Results" >> $GITHUB_STEP_SUMMARY
-            echo "**Status:** ✅ Success" >> $GITHUB_STEP_SUMMARY
-            echo "**Commits Cherry-Picked:** ${{ needs.cherry-pick-to-deployment.outputs.commits-cherry-picked }}" >> $GITHUB_STEP_SUMMARY
-            echo "**Cherry-Picked Commits:** ${{ needs.cherry-pick-to-deployment.outputs.cherry-picked-commits }}" >> $GITHUB_STEP_SUMMARY
+            if [ "${{ needs.cherry-pick-to-deployment.outputs.commits-cherry-picked }}" = "0" ] || [ "${{ needs.cherry-pick-to-deployment.outputs.commits-cherry-picked }}" = "" ]; then
+              echo "### 🍒 Cherry-Pick Results" >> $GITHUB_STEP_SUMMARY
+              echo "**Status:** ⏭️ SUCCESS (no new commits)" >> $GITHUB_STEP_SUMMARY
+              echo "**Commits Cherry-Picked:** 0 (no eligible commits found)" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "### 🍒 Cherry-Pick Results" >> $GITHUB_STEP_SUMMARY
+              echo "**Status:** ✅ Success" >> $GITHUB_STEP_SUMMARY
+              echo "**Commits Cherry-Picked:** ${{ needs.cherry-pick-to-deployment.outputs.commits-cherry-picked }}" >> $GITHUB_STEP_SUMMARY
+              echo "**Cherry-Picked Commits:** ${{ needs.cherry-pick-to-deployment.outputs.cherry-picked-commits }}" >> $GITHUB_STEP_SUMMARY
+            fi
           elif [ "${{ needs.cherry-pick-to-deployment.result }}" = "skipped" ]; then
             echo "### 🍒 Cherry-Pick Results" >> $GITHUB_STEP_SUMMARY
             echo "**Status:** ⏭️ Skipped (manual skip requested)" >> $GITHUB_STEP_SUMMARY
