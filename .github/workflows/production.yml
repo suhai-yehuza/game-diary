@@ -112,7 +112,7 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
 
           # Post-deployment verification summary
-          if [ "${{ needs.post-deploy-verification.result }}" = "success" ]; then
+          if [ "${{ needs.deploy.result }}" = "success" ]; then
             echo "### 🔍 Post-Deployment Verification" >> $GITHUB_STEP_SUMMARY
             echo "**Status:** ✅ Success" >> $GITHUB_STEP_SUMMARY
           else
