@@ -1,0 +1,35 @@
+# CODEOWNERS file for Game Diary
+# This file defines who owns the codebase and must approve pull requests
+
+# Global owners - these people will be requested for review on all pull requests
+# @suhai-yehuza  # Commented out to allow self-approval for solo development
+
+# Specific file/directory owners
+# .github/workflows/ @suhai-yehuza
+# src/ @suhai-yehuza
+# tests/ @suhai-yehuza
+# scripts/ @suhai-yehuza
+
+# Documentation
+*.md @suhai-yehuza
+docs/ @suhai-yehuza
+
+# Configuration files
+package.json @suhai-yehuza
+pnpm-lock.yaml @suhai-yehuza
+tsconfig.json @suhai-yehuza
+next.config.js @suhai-yehuza
+tailwind.config.js @suhai-yehuza
+postcss.config.js @suhai-yehuza
+
+# Database and migrations
+drizzle/ @suhai-yehuza
+*.sql @suhai-yehuza
+
+# Environment and secrets
+.env* @suhai-yehuza
+secrets/ @suhai-yehuza
+keys/ @suhai-yehuza
+
+# Note: This file now uses the correct GitHub username @suhai-yehuza
+# You can add more owners by adding their GitHub usernames
