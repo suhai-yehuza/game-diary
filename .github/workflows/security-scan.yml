@@ -45,7 +45,7 @@ jobs:
       - name: Run ESLint security rules
         run: |
           echo "Running ESLint security checks..."
-          pnpm eslint src/ --ext .ts,.tsx,.js,.jsx --config .eslintrc.js || {
+          pnpm eslint src/ --ext .ts,.tsx,.js,.jsx --config eslint.config.js || {
             echo "⚠️ ESLint security issues found. Please review and fix them."
             exit 1
           }
