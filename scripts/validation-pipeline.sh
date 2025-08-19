@@ -419,6 +419,7 @@ get_task_command() {
         "build") echo "build" ;;
 
         # Code quality tasks
+        "git_validation") echo "validate:git" ;;
         "format_check") echo "format:check" ;;
         "format") echo "format" ;;
         "lint") echo "lint" ;;
@@ -834,7 +835,7 @@ run_size_check() {
 
 # Core code quality tasks (fastest)
 get_core_tasks() {
-    echo "format_check lint typecheck circular dead_code"
+    echo "git_validation format_check lint typecheck circular dead_code"
 }
 
 # Build tasks (medium speed)
