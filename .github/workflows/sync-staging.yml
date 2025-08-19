@@ -68,3 +68,13 @@ jobs:
           echo "**Next Steps:**" >> $GITHUB_STEP_SUMMARY
           echo "- Staging deployment will be triggered automatically" >> $GITHUB_STEP_SUMMARY
           echo "- Begin 2 business days soak period" >> $GITHUB_STEP_SUMMARY
+
+      - name: Trigger Staging Deployment
+        run: |
+          echo "Triggering staging deployment..."
+
+          # Trigger the staging deployment workflow
+          gh workflow run "Staging Deployment (Automatic from Master)" \
+            --ref staging
+
+          echo "✅ Staging deployment triggered"
