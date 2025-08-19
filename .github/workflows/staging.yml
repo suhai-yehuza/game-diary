@@ -81,7 +81,9 @@ jobs:
             echo "last-failed-commit=$FAILED_COMMIT" >> $GITHUB_OUTPUT
 
             # Check if the failed deployment is more recent than the last successful one
-            if [ "$FAILED_TIME" \> "$LAST_STAGING_TIME" ]; then
+            FAILED_TIME_UNIX=$(date -d "$FAILED_TIME" +%s)
+            LAST_STAGING_TIME_UNIX=$(date -d "$LAST_STAGING_TIME" +%s)
+            if [ "$FAILED_TIME_UNIX" -gt "$LAST_STAGING_TIME_UNIX" ]; then
               echo "⚠️ Recent staging deployment failure detected"
               echo "has-recent-failures=true" >> $GITHUB_OUTPUT
 
