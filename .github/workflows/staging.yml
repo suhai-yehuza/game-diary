@@ -31,6 +31,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: staging
 
       - name: Check for new commits since last staging deployment
         id: check-commits
@@ -79,16 +80,34 @@ jobs:
             echo "has-new-commits=true" >> $GITHUB_OUTPUT
           fi
 
+  # Preview validation (same as preview workflow)
+  validation:
+    name: Staging Preview Validation
+    needs: [check-new-commits]
+    if: ${{ inputs.force-deploy || needs.check-new-commits.outputs.has-new-commits == 'true' }}
+    uses: ./.github/workflows/pre-deployment.yml
+    with:
+      workflow-name: 'Staging Preview Validation'
+      environment: 'Staging'
+      skip-e2e-tests: false
+    secrets:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+      CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+      CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
+      NEXT_PUBLIC_RAPID_API_KEY: ${{ secrets.NEXT_PUBLIC_RAPID_API_KEY }}
+      NEXT_PUBLIC_RAPID_API_HOST: ${{ secrets.NEXT_PUBLIC_RAPID_API_HOST }}
+      NEXT_PUBLIC_RAPID_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_RAPID_API_BASE_URL }}
+
   # Deploy to staging if there are new commits or force-deploy is enabled
   deploy:
     name: Deploy to Staging
-    needs: [check-new-commits]
+    needs: [check-new-commits, validation]
     if: ${{ inputs.force-deploy || needs.check-new-commits.outputs.has-new-commits == 'true' }}
-    uses: ./.github/workflows/base-deployment.yml
+    uses: ./.github/workflows/deploy-and-verify.yml
     with:
       workflow-name: 'Staging Deployment'
       environment: 'Staging'
-      deploy-to-vercel: true
     secrets:
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
       VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
@@ -139,7 +158,7 @@ jobs:
 
   staging-summary:
     name: Staging Deployment Summary
-    needs: [deploy, deployment-skipped]
+    needs: [validation, deploy, deployment-skipped]
     runs-on: ubuntu-latest
     if: always()
     steps:
@@ -160,6 +179,24 @@ jobs:
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "**Note:** This is a successful skip - no deployment was needed." >> $GITHUB_STEP_SUMMARY
           else
+            # Validation summary
+            if [ "${{ needs.validation.result }}" = "success" ]; then
+              echo "### ✅ Validation Results" >> $GITHUB_STEP_SUMMARY
+              echo "**Status:** SUCCESS" >> $GITHUB_STEP_SUMMARY
+              echo "- Code quality checks passed" >> $GITHUB_STEP_SUMMARY
+              echo "- Type checking passed" >> $GITHUB_STEP_SUMMARY
+              echo "- Unit tests passed" >> $GITHUB_STEP_SUMMARY
+              echo "- Integration tests passed" >> $GITHUB_STEP_SUMMARY
+              echo "- Database validation passed" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "### ❌ Validation Results" >> $GITHUB_STEP_SUMMARY
+              echo "**Status:** FAILED" >> $GITHUB_STEP_SUMMARY
+              echo "- Validation checks failed" >> $GITHUB_STEP_SUMMARY
+              echo "- Deployment skipped due to validation failure" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+            fi
+
             # Deployment summary
             if [ "${{ needs.deploy.result }}" = "success" ]; then
               echo "### ✅ Deployment Results" >> $GITHUB_STEP_SUMMARY
