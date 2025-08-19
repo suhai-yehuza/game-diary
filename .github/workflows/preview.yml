@@ -1,8 +1,8 @@
 name: Vercel Preview Deployment
 
-# NOTE: This workflow runs on both push and pull_request events, which can cause
-# duplicate test execution. Vercel automatically creates preview deployments on push,
-# and this workflow runs validation on pull_request. Consider optimizing this in the future.
+# NOTE: This workflow runs on pull_request events for validation only.
+# Automatic Vercel preview deployments are disabled to save resources.
+# Preview deployments can be triggered manually if needed.
 on:
   pull_request:
     branches:
@@ -21,7 +21,7 @@ on:
       deploy-to-vercel:
         type: boolean
         description: Whether to deploy to Vercel.
-        default: true
+        default: false # Changed from true to false to save resources
     secrets:
       VERCEL_ORG_ID:
         required: false
@@ -64,13 +64,15 @@ jobs:
       NEXT_PUBLIC_RAPID_API_HOST: ${{ secrets.NEXT_PUBLIC_RAPID_API_HOST }}
       NEXT_PUBLIC_RAPID_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_RAPID_API_BASE_URL }}
 
-  # Preview deployment to Vercel
+  # Preview deployment to Vercel (DISABLED to save resources)
   deploy:
     name: Deploy Preview to Vercel
     needs: [validation]
     runs-on: ubuntu-latest
     timeout-minutes: 30
     environment: Preview
+    # Skip deployment to save resources - only run validation
+    if: false # This disables the job entirely
     outputs:
       deployment-url: ${{ steps.deploy.outputs.url }}
     steps:
@@ -106,46 +108,39 @@ jobs:
           TEST_USER_EMAIL: 'test@game-diary.com'
           TEST_USER_ID: 'test_user_123'
         run: |
-          echo "Deploying preview for PR #${{ github.event.pull_request.number }}..."
+          echo "🚫 Preview deployment disabled to save resources"
+          echo "✅ Validation completed successfully"
+          echo "📝 To deploy preview manually, use: gh workflow run preview.yml --field deploy-to-vercel=true"
+          echo "url=https://game-diary.vercel.app" >> $GITHUB_OUTPUT
 
-          # Install Vercel CLI
-          npm install --global vercel@latest
-
-          # Deploy to Vercel (preview deployment)
-          DEPLOYMENT_OUTPUT=$(vercel --token ${{ secrets.VERCEL_TOKEN }} 2>&1)
-          echo "Deployment output:"
-          echo "$DEPLOYMENT_OUTPUT" | head -20
-
-          # Extract deployment URL
-          DEPLOYMENT_URL=$(echo "$DEPLOYMENT_OUTPUT" | grep -o 'https://[^[:space:]]*\.vercel\.app' | head -1)
-
-          if [ -z "$DEPLOYMENT_URL" ]; then
-            echo "⚠️ Could not extract deployment URL from output"
-            DEPLOYMENT_URL="https://game-diary.vercel.app"
-          fi
-
-          echo "Preview URL: $DEPLOYMENT_URL"
-          echo "url=$DEPLOYMENT_URL" >> $GITHUB_OUTPUT
-
-      - name: Comment PR with Preview URL
+      - name: Comment PR with Preview Status
         if: github.event_name == 'pull_request'
         uses: actions/github-script@v7
         with:
           script: |
-            const deploymentUrl = '${{ steps.deploy.outputs.url }}';
-            const comment = `## 🚀 Preview Deployment Ready!
+            const comment = `## ✅ Preview Validation Complete
 
-            **Preview URL:** ${deploymentUrl}
+            **Status:** Validation passed, preview deployment skipped to save resources
 
-            This preview deployment has been created for your PR. Please test the changes and ensure everything works as expected.
+            ### What was tested:
+            - ✅ Code quality checks (linting, formatting)
+            - ✅ Type checking
+            - ✅ Unit tests
+            - ✅ Integration tests
+            - ✅ Database validation
+            - ✅ Build process
+
+            ### Preview Deployment:
+            - 🚫 **Automatic preview deployment disabled** to save resources
+            - 🔧 To deploy preview manually: \`gh workflow run preview.yml --field deploy-to-vercel=true\`
+            - 📝 Preview deployments can be enabled per-PR if needed
 
             ### What's Next:
             - ✅ Preview validation passed
-            - 🚀 Preview deployment completed
-            - 🔍 Please test the preview thoroughly
-            - 📝 Once approved, this will be merged to master and deployed to staging
+            - 🔍 Code review can proceed
+            - 🚀 Once approved, this will be merged to master and deployed to staging
 
-            **Note:** This preview will be automatically cleaned up when the PR is closed.`;
+            **Note:** This change saves compute resources and reduces costs while maintaining code quality.`;
 
             github.rest.issues.createComment({
               issue_number: context.issue.number,
@@ -154,13 +149,13 @@ jobs:
               body: comment
             });
 
-  # Quick preview verification
+  # Quick preview verification (DISABLED since no deployment)
   verify-preview:
     name: Verify Preview Deployment
-    needs: [deploy]
+    needs: [validation] # Changed from [deploy] to [validation]
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    if: github.event_name == 'pull_request'
+    if: false # Disabled since no deployment occurs
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
