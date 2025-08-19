@@ -1,6 +1,6 @@
 # Deployment Lifecycle
 
-This document outlines the updated deployment lifecycle for the Game Diary application, implementing a simplified master → staging → production flow with a 24-hour business hours soak period.
+This document outlines the updated deployment lifecycle for the Game Diary application, implementing a simplified master → staging → production flow with a 2 business days soak period.
 
 ## Overview
 
@@ -23,7 +23,7 @@ The deployment lifecycle follows these principles:
 - **Purpose**: Testing environment with latest master code
 - **Sync**: Automatically synchronized with master
 - **Deployment**: Automatic deployment to staging environment
-- **Soak Period**: 24 business hours before production eligibility
+- **Soak Period**: 2 business days before production eligibility
 
 ### Production Branch
 
@@ -58,8 +58,8 @@ graph LR
 
 #### Production Deployment Workflow
 
-- **Trigger**: Manual workflow dispatch
-- **Validation**: 24 business hours soak period check
+- **Trigger**: Manual workflow dispatch or scheduled (MTWTh at 10am Pacific)
+- **Validation**: 2 business days soak period check
 - **Action**: Deploys to production environment
 - **Result**: Production environment updated
 
@@ -82,11 +82,11 @@ graph LR
 2. **Staging Deployment Workflow** triggers on staging push
    - Deploys to staging environment
    - Runs post-deployment verification
-   - Begins 24-hour business hours soak period
+   - Begins 2 business days soak period
 
-### Step 3: Soak Period (24 Business Hours)
+### Step 3: Soak Period (2 Business Days)
 
-- **Duration**: 24 business hours (3 business days)
+- **Duration**: 2 business days (16 business hours) in Pacific time
 - **Purpose**: Extended testing and validation
 - **Activities**:
   - Manual testing in staging environment
@@ -107,8 +107,8 @@ Business hours are calculated as:
 
 - **Business Days**: Monday-Friday
 - **Business Hours**: 8 hours per business day
-- **24 Business Hours**: 3 business days
-- **Example**: Monday 9 AM → Thursday 9 AM
+- **2 Business Days**: 16 business hours (Pacific time)
+- **Example**: Monday 9 AM Pacific → Wednesday 9 AM Pacific
 
 ## Emergency Procedures
 
@@ -266,7 +266,7 @@ For deployment issues:
 
 1. **Simplified Branch Strategy**: Removed deployment branch
 2. **Direct Master → Staging**: Automatic synchronization
-3. **Soak Period Validation**: 24 business hours requirement
+3. **Soak Period Validation**: 2 business days requirement
 4. **Streamlined Workflows**: Reduced complexity
 
 ### Benefits

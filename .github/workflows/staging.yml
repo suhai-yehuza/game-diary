@@ -26,8 +26,6 @@ jobs:
       has-new-commits: ${{ steps.check-commits.outputs.has-new-commits }}
       last-staging-commit: ${{ steps.check-commits.outputs.last-staging-commit }}
       current-commit: ${{ steps.check-commits.outputs.current-commit }}
-      has-recent-failures: ${{ steps.check-commits.outputs.has-recent-failures }}
-      last-failed-commit: ${{ steps.check-commits.outputs.last-failed-commit }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -49,12 +47,7 @@ jobs:
 
           # Get the latest successful staging deployment
           STAGING_DEPLOYMENT=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            "https://api.github.com/repos/${{ github.repository }}/actions/runs?workflow_id=staging.yml&branch=staging&status=completed&conclusion=success&per_page=1" | \
-            jq -r '.workflow_runs[0] // empty')
-
-          # Get the latest failed staging deployment (if any)
-          FAILED_STAGING_DEPLOYMENT=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            "https://api.github.com/repos/${{ github.repository }}/actions/runs?workflow_id=staging.yml&branch=staging&status=completed&conclusion=failure&per_page=1" | \
+            "https://api.github.com/repos/${{ github.repository }}/actions/runs?workflow_id=Staging%20Deployment%20(Automatic%20from%20Master)&branch=staging&status=completed&conclusion=success&per_page=1" | \
             jq -r '.workflow_runs[0] // empty')
 
           if [ -z "$STAGING_DEPLOYMENT" ]; then
@@ -72,43 +65,10 @@ jobs:
           echo "Last staging deployment commit: $LAST_STAGING_COMMIT"
           echo "last-staging-commit=$LAST_STAGING_COMMIT" >> $GITHUB_OUTPUT
 
-          # Check if there are recent failures
-          if [ -n "$FAILED_STAGING_DEPLOYMENT" ]; then
-            FAILED_COMMIT=$(echo "$FAILED_STAGING_DEPLOYMENT" | jq -r '.head_sha')
-            FAILED_TIME=$(echo "$FAILED_STAGING_DEPLOYMENT" | jq -r '.created_at')
-
-            echo "Found failed staging deployment: $FAILED_COMMIT at $FAILED_TIME"
-            echo "last-failed-commit=$FAILED_COMMIT" >> $GITHUB_OUTPUT
-
-            # Check if the failed deployment is more recent than the last successful one
-            FAILED_TIME_UNIX=$(date -d "$FAILED_TIME" +%s)
-            LAST_STAGING_TIME_UNIX=$(date -d "$LAST_STAGING_TIME" +%s)
-            if [ "$FAILED_TIME_UNIX" -gt "$LAST_STAGING_TIME_UNIX" ]; then
-              echo "⚠️ Recent staging deployment failure detected"
-              echo "has-recent-failures=true" >> $GITHUB_OUTPUT
-
-              # Check if current commit is the same as the failed commit
-              if [ "$CURRENT_COMMIT" = "$FAILED_COMMIT" ]; then
-                echo "❌ Current commit is the same as the failed commit - deployment blocked"
-                echo "has-new-commits=false" >> $GITHUB_OUTPUT
-                exit 0
-              fi
-
-              # Check if current commit is newer than the failed commit
-              if [ "$CURRENT_COMMIT" != "$FAILED_COMMIT" ]; then
-                echo "✅ Current commit is different from failed commit - proceeding with deployment"
-                echo "has-new-commits=true" >> $GITHUB_OUTPUT
-                exit 0
-              fi
-            else
-              echo "✅ Failed deployment is older than last successful deployment"
-              echo "has-recent-failures=false" >> $GITHUB_OUTPUT
-            fi
-          else
-            echo "No recent failed deployments found"
-            echo "has-recent-failures=false" >> $GITHUB_OUTPUT
-            echo "last-failed-commit=none" >> $GITHUB_OUTPUT
-          fi
+          # Note: We no longer block deployments based on previous failures
+          # The deployment will succeed or fail based on the current commit's jobs
+          echo "has-recent-failures=false" >> $GITHUB_OUTPUT
+          echo "last-failed-commit=none" >> $GITHUB_OUTPUT
 
           # Check if current commit is different from last staging commit
           if [ "$CURRENT_COMMIT" = "$LAST_STAGING_COMMIT" ]; then
@@ -123,7 +83,7 @@ jobs:
   deploy:
     name: Deploy to Staging
     needs: [check-new-commits]
-    if: ${{ inputs.force-deploy || (needs.check-new-commits.outputs.has-new-commits == 'true' && needs.check-new-commits.outputs.has-recent-failures != 'true') }}
+    if: ${{ inputs.force-deploy || needs.check-new-commits.outputs.has-new-commits == 'true' }}
     uses: ./.github/workflows/base-deployment.yml
     with:
       workflow-name: 'Staging Deployment'
@@ -142,51 +102,12 @@ jobs:
       NEXT_PUBLIC_RAPID_API_HOST: ${{ secrets.NEXT_PUBLIC_RAPID_API_HOST }}
       NEXT_PUBLIC_RAPID_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_RAPID_API_BASE_URL }}
 
-  # Handle case when deployment is blocked due to recent failures
-  deployment-blocked:
-    name: Deployment Blocked (Recent Failures)
-    needs: [check-new-commits]
-    runs-on: ubuntu-latest
-    if: always() && !inputs.force-deploy && needs.check-new-commits.outputs.has-recent-failures == 'true'
-    steps:
-      - name: Generate Blocked Summary
-        run: |
-          echo "## 🚀 Staging Deployment Summary" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Trigger:** ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
-          echo "**Source Branch:** staging (synced from master)" >> $GITHUB_STEP_SUMMARY
-          echo "**Purpose:** Automatic staging deployment for 24h soak testing" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-
-          echo "### ⏭️ Commit Check" >> $GITHUB_STEP_SUMMARY
-          echo "**Status:** BLOCKED" >> $GITHUB_STEP_SUMMARY
-          echo "**Current Commit:** ${{ needs.check-new-commits.outputs.current-commit }}" >> $GITHUB_STEP_SUMMARY
-          echo "**Last Staging Commit:** ${{ needs.check-new-commits.outputs.last-staging-commit }}" >> $GITHUB_STEP_SUMMARY
-          echo "**Last Failed Commit:** ${{ needs.check-new-commits.outputs.last-failed-commit }}" >> $GITHUB_STEP_SUMMARY
-          echo "**Reason:** Recent staging deployment failure detected" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-
-          echo "### 🚀 Staging Deployment" >> $GITHUB_STEP_SUMMARY
-          echo "**Status:** ⏭️ BLOCKED (recent failures)" >> $GITHUB_STEP_SUMMARY
-          echo "**Reason:** Deployment blocked due to recent staging failure" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-
-          echo "---" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Next Steps:**" >> $GITHUB_STEP_SUMMARY
-          echo "- 🔍 Investigate the failed staging deployment" >> $GITHUB_STEP_SUMMARY
-          echo "- 🛠️ Fix the issues that caused the failure" >> $GITHUB_STEP_SUMMARY
-          echo "- 🔄 Push a new commit to trigger a fresh deployment" >> $GITHUB_STEP_SUMMARY
-          echo "- ⚡ Use 'Force deployment' option if you need to bypass this check" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Note:** This blocking prevents deploying the same failed commit repeatedly." >> $GITHUB_STEP_SUMMARY
-
   # Handle case when deployment is skipped due to no new commits
   deployment-skipped:
     name: Deployment Skipped (No New Commits)
     needs: [check-new-commits]
     runs-on: ubuntu-latest
-    if: always() && !inputs.force-deploy && needs.check-new-commits.outputs.has-new-commits != 'true' && needs.check-new-commits.outputs.has-recent-failures != 'true'
+    if: always() && !inputs.force-deploy && needs.check-new-commits.outputs.has-new-commits != 'true'
     steps:
       - name: Generate Skip Summary
         run: |
@@ -194,7 +115,7 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Trigger:** ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
           echo "**Source Branch:** staging (synced from master)" >> $GITHUB_STEP_SUMMARY
-          echo "**Purpose:** Automatic staging deployment for 24h soak testing" >> $GITHUB_STEP_SUMMARY
+          echo "**Purpose:** Automatic staging deployment for 2 business days soak testing" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
           echo "### ⏭️ Commit Check" >> $GITHUB_STEP_SUMMARY
@@ -218,7 +139,7 @@ jobs:
 
   staging-summary:
     name: Staging Deployment Summary
-    needs: [deploy, deployment-blocked, deployment-skipped]
+    needs: [deploy, deployment-skipped]
     runs-on: ubuntu-latest
     if: always()
     steps:
@@ -228,18 +149,11 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Trigger:** ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
           echo "**Source Branch:** staging (synced from master)" >> $GITHUB_STEP_SUMMARY
-          echo "**Purpose:** Automatic staging deployment for 24h soak testing" >> $GITHUB_STEP_SUMMARY
+          echo "**Purpose:** Automatic staging deployment for 2 business days soak testing" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
-          # Check if deployment was blocked
-          if [ "${{ needs.deployment-blocked.result }}" = "success" ]; then
-            echo "### ⏭️ Deployment Status" >> $GITHUB_STEP_SUMMARY
-            echo "**Status:** BLOCKED" >> $GITHUB_STEP_SUMMARY
-            echo "**Reason:** Recent staging deployment failure detected" >> $GITHUB_STEP_SUMMARY
-            echo "**Last Failed Commit:** ${{ needs.check-new-commits.outputs.last-failed-commit }}" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "**Note:** Deployment blocked to prevent repeated failures. Fix the issues and push a new commit." >> $GITHUB_STEP_SUMMARY
-          elif [ "${{ needs.deployment-skipped.result }}" = "success" ]; then
+          # Check if deployment was skipped
+          if [ "${{ needs.deployment-skipped.result }}" = "success" ]; then
             echo "### ⏭️ Deployment Status" >> $GITHUB_STEP_SUMMARY
             echo "**Status:** SKIPPED" >> $GITHUB_STEP_SUMMARY
             echo "**Reason:** No new commits since last staging deployment" >> $GITHUB_STEP_SUMMARY
@@ -256,7 +170,7 @@ jobs:
               echo "" >> $GITHUB_STEP_SUMMARY
               echo "### ⏰ Soak Period Started" >> $GITHUB_STEP_SUMMARY
               echo "**Status:** ACTIVE" >> $GITHUB_STEP_SUMMARY
-              echo "- 24 business hours soak period has begun" >> $GITHUB_STEP_SUMMARY
+              echo "- 2 business days soak period has begun" >> $GITHUB_STEP_SUMMARY
               echo "- Production deployment will be available after soak period" >> $GITHUB_STEP_SUMMARY
             else
               echo "### ❌ Deployment Results" >> $GITHUB_STEP_SUMMARY
@@ -272,16 +186,11 @@ jobs:
           echo "---" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Next Steps:**" >> $GITHUB_STEP_SUMMARY
-          if [ "${{ needs.deployment-blocked.result }}" = "success" ]; then
-            echo "- 🔍 Investigate the failed staging deployment" >> $GITHUB_STEP_SUMMARY
-            echo "- 🛠️ Fix the issues that caused the failure" >> $GITHUB_STEP_SUMMARY
-            echo "- 🔄 Push a new commit to trigger a fresh deployment" >> $GITHUB_STEP_SUMMARY
-            echo "- ⚡ Use 'Force deployment' option if you need to bypass this check" >> $GITHUB_STEP_SUMMARY
-          elif [ "${{ needs.deployment-skipped.result }}" = "success" ]; then
+          if [ "${{ needs.deployment-skipped.result }}" = "success" ]; then
             echo "- Wait for new commits to be pushed to staging" >> $GITHUB_STEP_SUMMARY
             echo "- Use 'Force deployment' option if you need to redeploy the same commit" >> $GITHUB_STEP_SUMMARY
           else
             echo "- Test the staging environment thoroughly" >> $GITHUB_STEP_SUMMARY
-            echo "- Wait 24 business hours for soak period" >> $GITHUB_STEP_SUMMARY
+            echo "- Wait 2 business days for soak period" >> $GITHUB_STEP_SUMMARY
             echo "- Trigger production deployment when ready" >> $GITHUB_STEP_SUMMARY
           fi

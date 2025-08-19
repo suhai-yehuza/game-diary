@@ -90,13 +90,13 @@ The deployment pipeline follows a staged approach with multiple environments and
 **Trigger**:
 
 - Manual (with options to bypass checks)
-- Scheduled (MTWTh at 10am Pacific / 6pm UTC)
+- Scheduled (MTWTh at 10am Pacific)
 
 **Workflow**: `production.yml`
 
 **What happens**:
 
-- **Soak Period Check**: Verifies 24 business hours have passed since staging deployment
+- **Soak Period Check**: Verifies 2 business days have passed since staging deployment
 - **Commit Check**: Verifies there are new commits since staging deployment
 - **Pre-deployment Validation**: Runs tests and validation
 - **Deployment**: Deploys to production environment
@@ -156,6 +156,7 @@ The deployment pipeline follows a staged approach with multiple environments and
 - **Domain**: `www.game-diary.io`
 - **Purpose**: Live user traffic
 - **Lifetime**: Permanent (updated with each deployment)
+- **Schedule**: MTWTh at 10am Pacific
 
 ## Safety Mechanisms
 
@@ -166,7 +167,7 @@ The deployment pipeline follows a staged approach with multiple environments and
 
 ### 2. Soak Period
 
-- 24 business hours required between staging and production
+- 2 business days required between staging and production (Pacific time)
 - Allows time for testing and monitoring
 - Can be bypassed in emergencies
 
@@ -254,7 +255,7 @@ The deployment pipeline follows a staged approach with multiple environments and
 
 **Soak Period Not Complete**:
 
-- Wait for 24 business hours to pass
+- Wait for 2 business days to pass (Pacific time)
 - Use skip-soak-check for emergencies
 
 **Deployment Failures**:

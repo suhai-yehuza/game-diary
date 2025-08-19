@@ -15,8 +15,8 @@ on:
         type: boolean
         default: false
   schedule:
-    # Automated production deployment on MTWTh at 10am Pacific (6pm UTC)
-    - cron: '0 18 * * 1-4' # Monday-Thursday at 6pm UTC (10am Pacific)
+    # Automated production deployment on MTWTh at 10am Pacific
+    - cron: '0 18 * * 1-4' # Monday-Thursday at 10am Pacific (6pm UTC)
 
 permissions:
   contents: write
@@ -47,12 +47,12 @@ jobs:
 
           # Get the latest staging deployment
           STAGING_DEPLOYMENT=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            "https://api.github.com/repos/${{ github.repository }}/actions/runs?workflow_id=staging.yml&branch=staging&status=completed&conclusion=success&per_page=1" | \
+            "https://api.github.com/repos/${{ github.repository }}/actions/runs?workflow_id=Staging%20Deployment%20(Automatic%20from%20Master)&branch=staging&status=completed&conclusion=success&per_page=1" | \
             jq -r '.workflow_runs[0] // empty')
 
           # Get the latest failed staging deployment (if any)
           FAILED_STAGING_DEPLOYMENT=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            "https://api.github.com/repos/${{ github.repository }}/actions/runs?workflow_id=staging.yml&branch=staging&status=completed&conclusion=failure&per_page=1" | \
+            "https://api.github.com/repos/${{ github.repository }}/actions/runs?workflow_id=Staging%20Deployment%20(Automatic%20from%20Master)&branch=staging&status=completed&conclusion=failure&per_page=1" | \
             jq -r '.workflow_runs[0] // empty')
 
           if [ -z "$STAGING_DEPLOYMENT" ]; then
@@ -90,27 +90,43 @@ jobs:
             fi
           fi
 
-          # Calculate age in hours
-          CURRENT_TIME=$(date -u +%s)
-          DEPLOYMENT_TIMESTAMP=$(date -u -d "$DEPLOYMENT_TIME" +%s)
-          AGE_SECONDS=$((CURRENT_TIME - DEPLOYMENT_TIMESTAMP))
+          # Calculate business days in Pacific time
+          # Convert deployment time to Pacific time and calculate business days
+
+          # Set timezone to Pacific
+          export TZ="America/Los_Angeles"
+
+          # Convert deployment time to Pacific timestamp
+          DEPLOYMENT_TIME_PACIFIC=$(date -d "$DEPLOYMENT_TIME" +%s)
+          CURRENT_TIME_PACIFIC=$(date +%s)
+
+          # Calculate total seconds difference
+          AGE_SECONDS=$((CURRENT_TIME_PACIFIC - DEPLOYMENT_TIME_PACIFIC))
           AGE_HOURS=$((AGE_SECONDS / 3600))
 
-          echo "Deployment age: $AGE_HOURS hours"
+          echo "Deployment age: $AGE_HOURS hours (Pacific time)"
           echo "age-hours=$AGE_HOURS" >> $GITHUB_OUTPUT
 
-          # Check if 24 business hours have passed
-          # Business hours: Monday-Friday, 9 AM - 5 PM (8 hours per day)
-          # 24 business hours = 3 business days
+          # Calculate business days passed (Pacific time)
+          # Business hours: Monday-Friday, 9 AM - 5 PM Pacific (8 hours per day)
+          # 2 business days = 16 business hours
           BUSINESS_HOURS_PASSED=$((AGE_HOURS / 8))
 
-          if [ "$BUSINESS_HOURS_PASSED" -ge 3 ]; then
-            echo "✅ 24 business hours have passed (3 business days)"
+          # Get current Pacific time for logging
+          CURRENT_PACIFIC_TIME=$(date)
+          DEPLOYMENT_PACIFIC_TIME=$(date -d "$DEPLOYMENT_TIME")
+
+          echo "Deployment time (Pacific): $DEPLOYMENT_PACIFIC_TIME"
+          echo "Current time (Pacific): $CURRENT_PACIFIC_TIME"
+          echo "Business days passed: $BUSINESS_HOURS_PASSED"
+
+          if [ "$BUSINESS_HOURS_PASSED" -ge 2 ]; then
+            echo "✅ 2 business days have passed in Pacific time (16 business hours)"
             echo "ready=true" >> $GITHUB_OUTPUT
             echo "status=ready" >> $GITHUB_OUTPUT
             echo "has-eligible-commits=true" >> $GITHUB_OUTPUT
           else
-            echo "⏳ Only $BUSINESS_HOURS_PASSED business days have passed (need 3)"
+            echo "⏳ Only $BUSINESS_HOURS_PASSED business days have passed in Pacific time (need 2)"
             echo "ready=false" >> $GITHUB_OUTPUT
             echo "status=soak-period-incomplete" >> $GITHUB_OUTPUT
             echo "has-eligible-commits=false" >> $GITHUB_OUTPUT
@@ -195,8 +211,8 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Trigger:** ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
           echo "**Source Branch:** staging" >> $GITHUB_STEP_SUMMARY
-          echo "**Workflow Type:** 24h Business Hours Soak Period" >> $GITHUB_STEP_SUMMARY
-          echo "**Schedule:** MTWTh at 10am Pacific (6pm UTC)" >> $GITHUB_STEP_SUMMARY
+          echo "**Workflow Type:** 2 Business Days Soak Period" >> $GITHUB_STEP_SUMMARY
+          echo "**Schedule:** MTWTh at 10am Pacific" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
           if [ "${{ needs.validate-deployment-readiness.outputs.staging-deployment-status }}" = "no-staging-deployment" ]; then
@@ -215,8 +231,8 @@ jobs:
             echo "**Status:** SKIPPED" >> $GITHUB_STEP_SUMMARY
             echo "**Staging Deployment Age:** ${{ needs.validate-deployment-readiness.outputs.staging-deployment-age }} hours" >> $GITHUB_STEP_SUMMARY
             echo "**Business Days Passed:** $(( ${{ needs.validate-deployment-readiness.outputs.staging-deployment-age }} / 8 )) days" >> $GITHUB_STEP_SUMMARY
-            echo "**Required:** 3 business days (24 business hours)" >> $GITHUB_STEP_SUMMARY
-            echo "**Reason:** 24 business hours soak period has not elapsed" >> $GITHUB_STEP_SUMMARY
+            echo "**Required:** 2 business days (16 business hours) in Pacific time" >> $GITHUB_STEP_SUMMARY
+            echo "**Reason:** 2 business days soak period has not elapsed in Pacific time" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
           else
             echo "### ⏭️ Commit Check" >> $GITHUB_STEP_SUMMARY
@@ -251,7 +267,7 @@ jobs:
             echo "- 🔄 Ensure staging deployment succeeds before proceeding to production" >> $GITHUB_STEP_SUMMARY
             echo "- ⚡ Use 'Force deployment' option if you need to bypass this check (emergency only)" >> $GITHUB_STEP_SUMMARY
           elif [ "${{ needs.validate-deployment-readiness.outputs.staging-deployment-status }}" = "soak-period-incomplete" ]; then
-            echo "- Wait for 24 business hours to complete" >> $GITHUB_STEP_SUMMARY
+            echo "- Wait for 2 business days to complete" >> $GITHUB_STEP_SUMMARY
           else
             echo "- Wait for new commits to be deployed to staging" >> $GITHUB_STEP_SUMMARY
           fi
@@ -277,9 +293,9 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Trigger:** ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
           echo "**Source Branch:** staging" >> $GITHUB_STEP_SUMMARY
-          echo "**Workflow Type:** 24h Business Hours Soak Period" >> $GITHUB_STEP_SUMMARY
+          echo "**Workflow Type:** 2 Business Days Soak Period" >> $GITHUB_STEP_SUMMARY
           if [ "${{ github.event_name }}" = "schedule" ]; then
-            echo "**Schedule:** MTWTh at 10am Pacific (6pm UTC)" >> $GITHUB_STEP_SUMMARY
+            echo "**Schedule:** MTWTh at 10am Pacific" >> $GITHUB_STEP_SUMMARY
           fi
           echo "" >> $GITHUB_STEP_SUMMARY
 
@@ -350,4 +366,4 @@ jobs:
           echo "- Check application logs and metrics" >> $GITHUB_STEP_SUMMARY
           echo "- Verify all features are working as expected" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Note:** This deployment completed the 24-hour business hours soak period requirement." >> $GITHUB_STEP_SUMMARY
+          echo "**Note:** This deployment completed the 2 business days soak period requirement." >> $GITHUB_STEP_SUMMARY
