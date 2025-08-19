@@ -1,0 +1,40 @@
+#!/usr/bin/env sh
+
+# Husky commit-msg hook
+# Validates commit message format with ticket number and username
+
+set -e
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+NC='\033[0m'
+
+print_status() {
+    echo -e "${BLUE}[COMMIT-MSG]${NC} $1"
+}
+
+print_success() {
+    echo -e "${GREEN}[SUCCESS]${NC} $1"
+}
+
+print_error() {
+    echo -e "${RED}[ERROR]${NC} $1"
+}
+
+# Get the commit message file
+COMMIT_MSG_FILE="$1"
+
+print_status "Validating commit message..."
+
+# Validate commit message format
+if command -v tsx >/dev/null 2>&1; then
+    if ! tsx scripts/git/validate-commit-message.ts --file "$COMMIT_MSG_FILE"; then
+        print_error "Commit message validation failed"
+        exit 1
+    fi
+    print_success "Commit message validation passed"
+else
+    print_status "tsx not found, skipping commit message validation"
+fi
