@@ -55,7 +55,7 @@ if command -v tsx >/dev/null 2>&1 && tsx scripts/git/validate-branch-name.ts "$B
         COMMIT_MSG=$(cat "$COMMIT_MSG_FILE")
 
         # Check if the commit message already has any ticket number and any username
-        if ! echo "$COMMIT_MSG" | grep -q "\[[A-Z]\+-[0-9]\+\]" || ! echo "$COMMIT_MSG" | grep -q "\[@[a-zA-Z0-9_-]\+\]"; then
+        if ! echo "$COMMIT_MSG" | grep -E -q "\[[A-Z]+-[0-9]+\]|\[@[a-zA-Z0-9_-]+\]"; then
             print_status "Adding ticket and username to commit message..."
 
             # Check if the commit message follows conventional commits format

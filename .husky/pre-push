@@ -51,13 +51,27 @@ if command -v tsx >/dev/null 2>&1; then
     # Get commits that will be pushed
     PUSH_COMMITS=$(git log --oneline --no-merges origin/main..HEAD 2>/dev/null || git log --oneline --no-merges HEAD~10..HEAD 2>/dev/null)
     if [ -n "$PUSH_COMMITS" ]; then
+        # Only validate commits created after the validation system was implemented
+        VALIDATION_COMMIT="dcd3d0b0"  # The commit where validation system was added
         echo "$PUSH_COMMITS" | while read -r commit; do
             COMMIT_HASH=$(echo "$commit" | cut -d' ' -f1)
             COMMIT_MSG=$(echo "$commit" | cut -d' ' -f2-)
-            print_status "Validating commit: $COMMIT_HASH"
-            if ! tsx scripts/git/validate-commit-message.ts "$COMMIT_MSG"; then
-                print_error "Commit message validation failed for: $COMMIT_HASH"
-                exit 1
+
+            # Check if this commit is after the validation system was implemented
+        MARKER_FILE=".validation-system-enabled"  # Marker file indicating validation system presence
+        echo "$PUSH_COMMITS" | while read -r commit; do
+            COMMIT_HASH=$(echo "$commit" | cut -d' ' -f1)
+            COMMIT_MSG=$(echo "$commit" | cut -d' ' -f2-)
+
+            # Check if the marker file exists in this commit
+            if git ls-tree "$COMMIT_HASH" -- "$MARKER_FILE" | grep -q "$MARKER_FILE"; then
+                print_status "Validating commit: $COMMIT_HASH"
+                if ! tsx scripts/git/validate-commit-message.ts "$COMMIT_MSG"; then
+                    print_error "Commit message validation failed for: $COMMIT_HASH"
+                    exit 1
+                fi
+            else
+                print_status "Skipping validation for pre-validation commit: $COMMIT_HASH"
             fi
         done
         print_success "All commit messages validated"

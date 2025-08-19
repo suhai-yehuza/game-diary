@@ -180,7 +180,7 @@ fi
 print_status "Validating commit messages..."
 if command -v tsx >/dev/null 2>&1; then
     # Get commits that will be pushed
-    PUSH_COMMITS=$(git log --oneline --no-merges origin/main..HEAD 2>/dev/null || git log --oneline --no-merges HEAD~10..HEAD 2>/dev/null)
+    PUSH_COMMITS=$(git log --oneline --no-merges "$DEFAULT_REMOTE/$DEFAULT_BRANCH"..HEAD 2>/dev/null || git log --oneline --no-merges HEAD~10..HEAD 2>/dev/null)
     if [ -n "$PUSH_COMMITS" ]; then
         echo "$PUSH_COMMITS" | while read -r commit; do
             COMMIT_HASH=$(echo "$commit" | cut -d' ' -f1)

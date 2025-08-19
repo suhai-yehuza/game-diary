@@ -7,6 +7,8 @@
  * <type>/<ticket>-<description>
  *
  * Types: feature, bugfix, hotfix, chore, docs, refactor, test, perf, ci, security
+ *
+ * In CI/PR environments, validation is relaxed since branch names may be auto-generated.
  */
 
 import { execSync } from 'child_process';
@@ -30,7 +32,32 @@ const VALID_TYPES = [
   'security',
 ];
 
-const BRANCH_NAME_REGEX = /^([a-zA-Z0-9_-]+)\/([A-Z]+-\d+)-([a-z0-9-]+)$/;
+/**
+ * Regex to validate branch names.
+ * Named capture groups:
+ *   username:   [a-zA-Z0-9_-]+
+ *   ticket:     [A-Z]+-\d+
+ *   description:[a-z0-9-]+
+ * Example: username/PROJECT-123-description
+ */
+const BRANCH_NAME_REGEX =
+  /^(?<username>[a-zA-Z0-9_-]+)\/(?<ticket>[A-Z]+-\d+)-(?<description>[a-z0-9-]+)$/;
+
+// Relaxed regex for CI/PR environments (allows more flexible naming)
+const RELAXED_BRANCH_NAME_REGEX = /^[a-zA-Z0-9_-]+\/[a-zA-Z0-9_-]+$/;
+
+// Check if we're in a CI/PR environment
+function isCIEnvironment(): boolean {
+  return !!(
+    process.env.CI === 'true' ||
+    process.env.GITHUB_ACTIONS === 'true' ||
+    process.env.VERCEL === '1' ||
+    process.env.GITHUB_EVENT_NAME === 'pull_request' ||
+    process.env.GITHUB_EVENT_NAME === 'push' ||
+    process.env.GITHUB_REF?.startsWith('refs/pull/') ||
+    process.env.GITHUB_REF?.startsWith('refs/heads/gh-readonly-queue/')
+  );
+}
 
 function getCurrentBranch(): string {
   try {
@@ -48,64 +75,90 @@ function validateBranchName(branchName: string): ValidationResult {
     warnings: [],
   };
 
+  const isCI = isCIEnvironment();
+
   // Skip validation for main branches
   if (['main', 'master', 'develop', 'staging', 'deployment'].includes(branchName)) {
     return result;
   }
 
-  // Check if branch name matches the required pattern
-  const match = branchName.match(BRANCH_NAME_REGEX);
+  // Use different validation based on environment
+  if (isCI) {
+    // Relaxed validation for CI/PR environments
+    const relaxedMatch = branchName.match(RELAXED_BRANCH_NAME_REGEX);
+    if (!relaxedMatch) {
+      result.isValid = false;
+      result.errors.push(
+        `Branch name "${branchName}" does not follow basic pattern: <username>/<description>`
+      );
+      result.errors.push(`Example: syehuza/feature-name`);
+      result.errors.push(`Example: github-actions/dependency-update`);
+      result.errors.push('');
+      result.errors.push(
+        'Note: In CI/PR environments, branch naming is more flexible since branches may be auto-generated.'
+      );
+      return result;
+    }
 
-  if (!match) {
-    result.isValid = false;
-    result.errors.push(
-      `Branch name "${branchName}" does not follow the required pattern: <username>/<PROJECT-123>-<description>`
-    );
-    result.errors.push(`Example: syehuza/DYL-1234-feature-do-xyz`);
-    result.errors.push(`Example: syehuza/DYL-025-bug-fix-xyz`);
-    return result;
-  }
+    // Add a note about relaxed validation
+    result.warnings.push('CI/PR environment detected - using relaxed branch name validation');
+  } else {
+    // Strict validation for local development
+    const match = branchName.match(BRANCH_NAME_REGEX);
 
-  const [, username, ticket, description] = match;
+    if (!match) {
+      result.isValid = false;
+      result.errors.push(
+        `Branch name "${branchName}" does not follow the required pattern: <username>/<PROJECT-123>-<description>`
+      );
+      result.errors.push(`Example: syehuza/DYL-1234-feature-do-xyz`);
+      result.errors.push(`Example: syehuza/DYL-025-bug-fix-xyz`);
+      return result;
+    }
 
-  // Validate username
-  if (username.length < 2) {
-    result.isValid = false;
-    result.errors.push(`Username must be at least 2 characters long, got "${username}"`);
-  }
+    const [, username, ticket, description] = match;
 
-  // Validate ticket format
-  if (!/^[A-Z]+-\d+$/.test(ticket)) {
-    result.isValid = false;
-    result.errors.push(`Ticket must be in format PROJECT-123, got "${ticket}"`);
-  }
+    // Validate username
+    if (username.length < 2) {
+      result.isValid = false;
+      result.errors.push(`Username must be at least 2 characters long, got "${username}"`);
+    }
 
-  // Validate description
-  if (description.length < 3) {
-    result.isValid = false;
-    result.errors.push(`Description must be at least 3 characters long, got "${description}"`);
-  }
+    // Validate ticket format
+    if (!/^[A-Z]+-\d+$/.test(ticket)) {
+      result.isValid = false;
+      result.errors.push(`Ticket must be in format PROJECT-123, got "${ticket}"`);
+    }
 
-  if (description.length > 50) {
-    result.warnings.push(
-      `Description is quite long (${description.length} chars). Consider making it more concise.`
-    );
-  }
+    // Validate description
+    if (description.length < 3) {
+      result.isValid = false;
+      result.errors.push(`Description must be at least 3 characters long, got "${description}"`);
+    }
 
-  // Check for common issues
-  if (description.includes('_')) {
-    result.warnings.push('Consider using hyphens instead of underscores in description');
-  }
+    if (description.length > 50) {
+      result.warnings.push(
+        `Description is quite long (${description.length} chars). Consider making it more concise.`
+      );
+    }
 
-  if (description.includes(' ')) {
-    result.isValid = false;
-    result.errors.push('Description should not contain spaces. Use hyphens instead.');
+    // Check for common issues
+    if (description.includes('_')) {
+      result.warnings.push('Consider using hyphens instead of underscores in description');
+    }
+
+    if (description.includes(' ')) {
+      result.isValid = false;
+      result.errors.push('Description should not contain spaces. Use hyphens instead.');
+    }
   }
 
   return result;
 }
 
 function displayResult(branchName: string, result: ValidationResult): void {
+  const isCI = isCIEnvironment();
+
   console.log(`🔍 Validating branch name: "${branchName}"`);
   console.log('');
 
@@ -131,13 +184,26 @@ function displayResult(branchName: string, result: ValidationResult): void {
   }
 
   if (!result.isValid) {
-    console.log('💡 Examples of valid branch names:');
-    console.log('   • syehuza/DYL-1234-feature-do-xyz');
-    console.log('   • syehuza/DYL-025-bug-fix-xyz');
-    console.log('   • john.doe/DYL-789-hotfix-critical-issue');
-    console.log('   • jane.smith/DYL-101-chore-update-deps');
-    console.log('   • dev.team/DYL-202-docs-update-readme');
-    console.log('');
+    if (isCI) {
+      console.log('💡 Examples of valid branch names for CI/PR environments:');
+      console.log('   • syehuza/feature-name');
+      console.log('   • github-actions/dependency-update');
+      console.log('   • dependabot/npm-and-yarn');
+      console.log('   • renovate/configure');
+      console.log('   • bot/auto-merge');
+      console.log('');
+      console.log(
+        'ℹ️  Note: In CI/PR environments, branch naming is more flexible since branches may be auto-generated.'
+      );
+    } else {
+      console.log('💡 Examples of valid branch names:');
+      console.log('   • syehuza/DYL-1234-feature-do-xyz');
+      console.log('   • syehuza/DYL-025-bug-fix-xyz');
+      console.log('   • john.doe/DYL-789-hotfix-critical-issue');
+      console.log('   • jane.smith/DYL-101-chore-update-deps');
+      console.log('   • dev.team/DYL-202-docs-update-readme');
+      console.log('');
+    }
 
     process.exit(1);
   }
@@ -151,8 +217,14 @@ function main(): void {
     console.log(`
 Branch Name Validator
 
-Validates that branch names follow the project's naming conventions:
+Validates that branch names follow the project's naming conventions.
+In CI/PR environments, validation is relaxed since branch names may be auto-generated.
+
+Local Development Format:
 <username>/<PROJECT-123>-<description>
+
+CI/PR Environment Format:
+<username>/<description>
 
 Usage:
   tsx scripts/git/validate-branch-name.ts [branch-name]
@@ -162,11 +234,15 @@ Options:
   --current, -c    Validate the current branch (default)
   --help, -h       Show this help message
 
-Examples:
+Examples (Local Development):
   tsx scripts/git/validate-branch-name.ts syehuza/DYL-1234-feature-do-xyz
   tsx scripts/git/validate-branch-name.ts --current
 
-Format: username/PROJECT-123-description
+Examples (CI/PR Environment):
+  tsx scripts/git/validate-branch-name.ts syehuza/feature-name
+  tsx scripts/git/validate-branch-name.ts github-actions/dependency-update
+
+Format: username/PROJECT-123-description (local) or username/description (CI/PR)
     `);
     process.exit(0);
   }

@@ -419,7 +419,13 @@ get_task_command() {
         "build") echo "build" ;;
 
         # Code quality tasks
-        "git_validation") echo "validate:git" ;;
+        "git_validation")
+            if is_ci; then
+                echo "validate:git:comprehensive"
+            else
+                echo "validate:git"
+            fi
+            ;;
         "format_check") echo "format:check" ;;
         "format") echo "format" ;;
         "lint") echo "lint" ;;
