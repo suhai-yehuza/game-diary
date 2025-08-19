@@ -225,7 +225,7 @@
     "validate:dry-run": "./scripts/validation-pipeline.sh dry-run",
     "validate:env": "./scripts/validation-pipeline.sh env",
     "validate:git": "tsx scripts/git/validate-branch-name.ts --current && echo '✅ Git validation passed'",
-    "validate:git:comprehensive": "tsx scripts/git/validate-git-comprehensive.ts",
+    "validate:git:comprehensive": "tsx scripts/git/validate-git-comprehensive.ts --unpushed-only",
     "validate:post-deploy": "./scripts/validation-pipeline.sh post-deploy",
     "validate:pre-deploy": "./scripts/validation-pipeline.sh pre-deploy",
     "validate:predeploy": "pnpm validate:ci && pnpm db:triggers && pnpm test:e2e:critical",

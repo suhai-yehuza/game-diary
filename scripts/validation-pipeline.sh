@@ -194,12 +194,23 @@ run_validation_with_retry() {
             # Cleanup after E2E tests
             cleanup_e2e_resources
         else
-            if has_timeout; then
-                timeout "$timeout_seconds" pnpm run "$task_command" > /dev/null 2>&1
-                exit_code=$?
+            # Show output for git validation tasks to help with debugging
+            if [[ "$task_name" == *"git"* ]]; then
+                if has_timeout; then
+                    timeout "$timeout_seconds" pnpm run "$task_command"
+                    exit_code=$?
+                else
+                    pnpm run "$task_command"
+                    exit_code=$?
+                fi
             else
-                pnpm run "$task_command" > /dev/null 2>&1
-                exit_code=$?
+                if has_timeout; then
+                    timeout "$timeout_seconds" pnpm run "$task_command" > /dev/null 2>&1
+                    exit_code=$?
+                else
+                    pnpm run "$task_command" > /dev/null 2>&1
+                    exit_code=$?
+                fi
             fi
         fi
 
@@ -241,12 +252,23 @@ run_simple_validation() {
             return 1
         fi
     else
-        if pnpm run "$task_command" > /dev/null 2>&1; then
-            log_success "$task_name completed"
-            return 0
+        # Show output for git validation tasks to help with debugging
+        if [[ "$task_name" == *"git"* ]]; then
+            if pnpm run "$task_command"; then
+                log_success "$task_name completed"
+                return 0
+            else
+                log_error "$task_name failed"
+                return 1
+            fi
         else
-            log_error "$task_name failed"
-            return 1
+            if pnpm run "$task_command" > /dev/null 2>&1; then
+                log_success "$task_name completed"
+                return 0
+            else
+                log_error "$task_name failed"
+                return 1
+            fi
         fi
     fi
 }

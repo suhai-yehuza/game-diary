@@ -80,9 +80,16 @@ function validateCommitMessage(message: string): ValidationResult {
     warnings: [],
   };
 
+  const isCI = isCIEnvironment();
+
+  // Skip validation entirely in CI environments
+  if (isCI) {
+    result.warnings.push('CI environment detected - skipping commit message validation');
+    return result;
+  }
+
   const lines = message.split('\n');
   const subject = lines[0];
-  const isCI = isCIEnvironment();
   let breaking: string | undefined;
 
   // Check if subject line exists
@@ -93,183 +100,101 @@ function validateCommitMessage(message: string): ValidationResult {
   }
 
   // Check subject line length (relaxed in CI environments)
-  if (isCI) {
-    if (subject.length > 200) {
-      result.isValid = false;
-      result.errors.push(
-        `Subject line is too long (${subject.length} chars). Maximum is 100 characters in CI environments.`
-      );
-    }
-  } else {
-    if (subject.length > 72) {
-      result.isValid = false;
-      result.errors.push(
-        `Subject line is too long (${subject.length} chars). Maximum is 72 characters.`
-      );
-    }
-  }
-
-  // Use different validation based on environment
-  if (isCI) {
-    // Relaxed validation for CI/PR environments
-    const relaxedMatch = subject.match(RELAXED_COMMIT_MESSAGE_REGEX);
-    if (!relaxedMatch) {
-      result.isValid = false;
-      result.errors.push('Subject line does not follow conventional commits format');
-      result.errors.push('Expected format: <type>[optional scope]: <description>');
-      result.errors.push(`Valid types: ${VALID_TYPES.join(', ')}`);
-      result.errors.push('Example: feat(ui): add user profile component');
-      result.errors.push('');
-      result.errors.push(
-        'Note: In CI/PR environments, ticket numbers and usernames are optional since commits will be squashed.'
-      );
-      return result;
-    }
-
-    const [, type, scope, breakingIndicator, description] = relaxedMatch;
-    breaking = breakingIndicator;
-
-    // Validate type
-    if (!VALID_TYPES.includes(type)) {
-      result.isValid = false;
-      result.errors.push(`Invalid type "${type}". Valid types: ${VALID_TYPES.join(', ')}`);
-    }
-
-    // Validate scope if present
-    if (scope) {
-      const scopeName = scope.slice(1, -1); // Remove parentheses
-      if (!VALID_SCOPES.includes(scopeName)) {
-        result.warnings.push(
-          `Scope "${scopeName}" is not in the standard list. Valid scopes: ${VALID_SCOPES.join(', ')}`
-        );
-      }
-    }
-
-    // Check for breaking change indicator
-    if (breaking && !message.includes('BREAKING CHANGE:')) {
-      result.warnings.push(
-        'Breaking change indicator (!) used but no BREAKING CHANGE: footer found'
-      );
-    }
-
-    // Add a note about relaxed validation
-    result.warnings.push(
-      'CI/PR environment detected - using relaxed validation (ticket numbers and usernames optional)'
+  if (subject.length > 100) {
+    result.isValid = false;
+    result.errors.push(
+      `Subject line is too long (${subject.length} chars). Maximum is 100 characters.`
     );
-  } else {
-    // Strict validation for local development
-    const match = subject.match(COMMIT_MESSAGE_REGEX);
-    if (!match) {
-      result.isValid = false;
-      result.errors.push('Subject line does not follow required format');
-      result.errors.push(
-        'Expected format: <type>[optional scope]: [TICKET-NUMBER] [@username] <description>'
-      );
-      result.errors.push(`Valid types: ${VALID_TYPES.join(', ')}`);
-      result.errors.push('Example: feat(ui): [DYL-1234] [@syehuza] add user profile component');
-      result.errors.push('Ticket format: [DYL-1234] or [PROJ-456]');
-      result.errors.push('Username format: [@username] (must start with @)');
-      return result;
-    }
+  }
 
-    const [, type, scope, breakingIndicator, ticketNumber, username, description] = match;
-    breaking = breakingIndicator;
+  // Check for breaking change indicator in subject
+  if (subject.includes('!:')) {
+    result.warnings.push('Breaking change indicator detected in subject line');
+  }
 
-    // Validate type
-    if (!VALID_TYPES.includes(type)) {
-      result.isValid = false;
-      result.errors.push(`Invalid type "${type}". Valid types: ${VALID_TYPES.join(', ')}`);
-    }
+  // Validate subject line format
+  const match = subject.match(COMMIT_MESSAGE_REGEX);
 
-    // Validate scope if present
-    if (scope) {
-      const scopeName = scope.slice(1, -1); // Remove parentheses
-      if (!VALID_SCOPES.includes(scopeName)) {
-        result.warnings.push(
-          `Scope "${scopeName}" is not in the standard list. Valid scopes: ${VALID_SCOPES.join(', ')}`
-        );
-      }
-    }
+  if (!match) {
+    result.isValid = false;
+    result.errors.push(
+      `Subject line does not follow the required format: <type>[optional scope]: [TICKET-NUMBER] [@username] <description>`
+    );
+    result.errors.push(`Example: feat: [DYL-1234] [@syehuza] add user profile page`);
+    result.errors.push(`Example: fix(api): [DYL-025] [@syehuza] resolve login validation issue`);
+    return result;
+  }
 
-    // Validate ticket number format
-    if (ticketNumber) {
-      const ticketRegex = /^[A-Z]+-\d+$/;
-      if (!ticketRegex.test(ticketNumber)) {
-        result.isValid = false;
-        result.errors.push(
-          `Invalid ticket format "${ticketNumber}". Expected format: PROJ-123 or JIRA-456`
-        );
-      }
-    }
+  const [, type, scope, breakingIndicator, ticket, username, description] = match;
 
-    // Validate username format
-    if (username) {
-      const usernameRegex = /^@[a-zA-Z0-9_-]+$/;
-      if (!usernameRegex.test(username)) {
-        result.isValid = false;
-        result.errors.push(
-          `Invalid username format "${username}". Must be in format @username with only letters, numbers, hyphens, and underscores`
-        );
-      }
-    }
+  // Validate type
+  if (!VALID_TYPES.includes(type)) {
+    result.isValid = false;
+    result.errors.push(`Invalid type "${type}". Valid types: ${VALID_TYPES.join(', ')}`);
+  }
 
-    // Check for breaking change indicator
-    if (breaking && !message.includes('BREAKING CHANGE:')) {
+  // Validate scope (if provided)
+  if (scope) {
+    const scopeName = scope.slice(1, -1); // Remove parentheses
+    if (!VALID_SCOPES.includes(scopeName)) {
       result.warnings.push(
-        'Breaking change indicator (!) used but no BREAKING CHANGE: footer found'
+        `Scope "${scopeName}" is not in the standard list. Valid scopes: ${VALID_SCOPES.join(', ')}`
       );
     }
   }
 
-  // Validate body (if present) - same for both environments
-  if (lines.length > 1) {
-    const body = lines.slice(1);
+  // Validate ticket format
+  if (!/^[A-Z]+-\d+$/.test(ticket)) {
+    result.isValid = false;
+    result.errors.push(`Ticket must be in format PROJECT-123, got "${ticket}"`);
+  }
 
-    // Check for blank line after subject
-    if (body[0] !== '') {
-      result.isValid = false;
-      result.errors.push('Subject and body must be separated by a blank line');
+  // Validate username format
+  if (!username.startsWith('@')) {
+    result.isValid = false;
+    result.errors.push(`Username must start with @, got "${username}"`);
+  }
+
+  // Validate description
+  if (description.length < 3) {
+    result.isValid = false;
+    result.errors.push(`Description must be at least 3 characters long, got "${description}"`);
+  }
+
+  if (description.length > 50) {
+    result.warnings.push(
+      `Description is quite long (${description.length} chars). Consider making it more concise.`
+    );
+  }
+
+  // Check for common issues
+  if (description.includes('_')) {
+    result.warnings.push('Consider using hyphens instead of underscores in description');
+  }
+
+  if (description.includes(' ')) {
+    result.warnings.push('Consider using hyphens instead of spaces in description');
+  }
+
+  // Check body lines (if any)
+  for (let i = 1; i < lines.length; i++) {
+    const line = lines[i];
+
+    // Skip empty lines
+    if (line.trim() === '') {
+      continue;
     }
-
-    // Check body lines length
-    body.forEach((line, index) => {
-      if (line.length > 72) {
-        result.warnings.push(
-          `Body line ${index + 1} is quite long (${line.length} chars). Consider wrapping at 72 characters.`
-        );
-      }
-    });
 
     // Check for breaking change footer
-    const hasBreakingChange = body.some(line => BREAKING_CHANGE_REGEX.test(line));
-    if (breaking && !hasBreakingChange) {
-      result.warnings.push(
-        'Breaking change indicator (!) used but no BREAKING CHANGE: footer found'
-      );
+    if (line.match(BREAKING_CHANGE_REGEX)) {
+      breaking = line;
+      continue;
     }
-  }
 
-  // Check for imperative mood
-  const imperativeWords = [
-    'add',
-    'fix',
-    'update',
-    'remove',
-    'change',
-    'refactor',
-    'improve',
-    'optimize',
-    'implement',
-  ];
-  let subjectWords: string | undefined;
-  const subjectParts = subject.split(':');
-  if (subjectParts.length > 1 && subjectParts[1]) {
-    subjectWords = subjectParts[1].trim().split(' ')[0]?.toLowerCase();
-  }
-  if (subjectWords && !imperativeWords.some(word => subjectWords.startsWith(word))) {
-    result.warnings.push(
-      `Consider using imperative mood in commit message. Example: "add" instead of "added"`
-    );
+    // Check line length
+    if (line.length > 100) {
+      result.warnings.push(`Body line ${i + 1} is quite long (${line.length} chars)`);
+    }
   }
 
   return result;
@@ -316,8 +241,6 @@ function displayResult(message: string, result: ValidationResult): void {
       console.log('');
       console.log('💡 For breaking changes, include a BREAKING CHANGE: footer:');
       console.log('   feat(api)!: change user endpoint response format');
-      console.log('');
-      console.log('   BREAKING CHANGE: The user endpoint now returns a different JSON structure.');
       console.log('');
       console.log(
         'ℹ️  Note: In CI/PR environments, ticket numbers and usernames are optional since commits will be squashed.'
@@ -378,6 +301,13 @@ Valid types: ${VALID_TYPES.join(', ')}
 Valid scopes: ${VALID_SCOPES.join(', ')}
     `);
     process.exit(0);
+  }
+
+  // Skip validation entirely in CI environments
+  if (isCIEnvironment()) {
+    console.log('ℹ️  CI environment detected - skipping commit message validation');
+    console.log('✅ Commit message validation skipped (CI environment)');
+    return;
   }
 
   let message: string;

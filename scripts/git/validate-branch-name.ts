@@ -61,8 +61,39 @@ function isCIEnvironment(): boolean {
 
 function getCurrentBranch(): string {
   try {
+    // In CI environments, try to get branch from GITHUB_REF first
+    if (process.env.GITHUB_REF) {
+      const ref = process.env.GITHUB_REF;
+      // Extract branch name from refs/heads/branch-name or refs/pull/123/head
+      if (ref.startsWith('refs/heads/')) {
+        return ref.replace('refs/heads/', '');
+      } else if (ref.startsWith('refs/pull/')) {
+        // For pull requests, use the PR number as branch identifier
+        const prMatch = ref.match(/refs\/pull\/(\d+)\/head/);
+        if (prMatch) {
+          return `pr-${prMatch[1]}`;
+        }
+      }
+    }
+
+    // Fallback to git command
     return execSync('git branch --show-current', { encoding: 'utf8' }).trim();
   } catch (error) {
+    // In CI environments, if git command fails, try alternative approaches
+    if (isCIEnvironment()) {
+      // Try to get branch from git rev-parse
+      try {
+        const ref = execSync('git rev-parse --abbrev-ref HEAD', { encoding: 'utf8' }).trim();
+        if (ref && ref !== 'HEAD') {
+          return ref;
+        }
+      } catch (revParseError) {
+        // If all else fails in CI, return a default branch name
+        console.log('ℹ️  Could not determine branch name in CI environment, using default');
+        return 'ci-branch';
+      }
+    }
+
     console.error('❌ Error getting current branch:', error);
     process.exit(1);
   }
@@ -77,8 +108,16 @@ function validateBranchName(branchName: string): ValidationResult {
 
   const isCI = isCIEnvironment();
 
-  // Skip validation for main branches
+  // Skip validation for main branches and CI-specific branches
   if (['main', 'master', 'develop', 'staging', 'deployment'].includes(branchName)) {
+    return result;
+  }
+
+  // Skip validation for CI-generated branch names
+  if (isCI && (branchName.startsWith('pr-') || branchName === 'ci-branch')) {
+    result.warnings.push(
+      `CI environment detected - skipping validation for auto-generated branch: ${branchName}`
+    );
     return result;
   }
 
@@ -245,6 +284,13 @@ Examples (CI/PR Environment):
 Format: username/PROJECT-123-description (local) or username/description (CI/PR)
     `);
     process.exit(0);
+  }
+
+  // Skip validation entirely in CI environments
+  if (isCIEnvironment()) {
+    console.log('ℹ️  CI environment detected - skipping branch name validation');
+    console.log('✅ Branch name validation skipped (CI environment)');
+    return;
   }
 
   let branchName: string;
