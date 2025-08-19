@@ -33,7 +33,7 @@ CURRENT_BRANCH=$(git branch --show-current)
 echo "📍 Current branch: $CURRENT_BRANCH"
 
 # Check if we're on a feature branch
-if [[ "$CURRENT_BRANCH" == "master" || "$CURRENT_BRANCH" == "staging" ]]; then
+if [[ "$CURRENT_BRANCH" == "main" || "$CURRENT_BRANCH" == "master" || "$CURRENT_BRANCH" == "staging" ]]; then
     echo "⚠️  Warning: You're on the $CURRENT_BRANCH branch"
     echo "Preview deployments are typically for feature branches"
     read -p "Continue anyway? (y/N): " -n 1 -r
