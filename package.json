@@ -136,6 +136,7 @@
     "pre:seed": "pnpm run db:generate:safe && pnpm run db:migrate && NODE_ENV=development pnpm run db:triggers",
     "pre:seed:prod": "pnpm run db:generate:safe && pnpm run db:migrate:prod && pnpm run db:triggers:prod",
     "pre:seed:staging": "pnpm run db:generate:safe && pnpm run db:migrate:staging && pnpm run db:triggers:staging",
+    "preview:deploy": "./scripts/manual-preview-deploy.sh",
     "push_all": "git checkout syehuza/demo && pnpm clean:build && git push -f && git checkout master && git reset --hard origin/syehuza/demo && git push -f && git checkout staging && git reset --hard origin/syehuza/demo && git push -f && git checkout syehuza/demo",
     "push_and_merge": "./scripts/git/push-and-merge.sh",
     "push_and_merge:help": "./scripts/git/push-and-merge.sh --help",

@@ -175,6 +175,8 @@ jobs:
           NEXT_PUBLIC_RAPID_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_RAPID_API_BASE_URL }}
           CI: 'true'
         run: |
+          echo "🔧 Setting up database triggers..."
+          pnpm db:triggers
           echo "🔍 Validating database trigger definitions..."
           pnpm db:validate-triggers
           echo "🧪 Running comprehensive database trigger tests..."
