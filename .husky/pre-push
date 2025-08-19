@@ -58,13 +58,7 @@ if command -v tsx >/dev/null 2>&1; then
             COMMIT_MSG=$(echo "$commit" | cut -d' ' -f2-)
 
             # Check if this commit is after the validation system was implemented
-        MARKER_FILE=".validation-system-enabled"  # Marker file indicating validation system presence
-        echo "$PUSH_COMMITS" | while read -r commit; do
-            COMMIT_HASH=$(echo "$commit" | cut -d' ' -f1)
-            COMMIT_MSG=$(echo "$commit" | cut -d' ' -f2-)
-
-            # Check if the marker file exists in this commit
-            if git ls-tree "$COMMIT_HASH" -- "$MARKER_FILE" | grep -q "$MARKER_FILE"; then
+            if git merge-base --is-ancestor "$VALIDATION_COMMIT" "$COMMIT_HASH" 2>/dev/null; then
                 print_status "Validating commit: $COMMIT_HASH"
                 if ! tsx scripts/git/validate-commit-message.ts "$COMMIT_MSG"; then
                     print_error "Commit message validation failed for: $COMMIT_HASH"

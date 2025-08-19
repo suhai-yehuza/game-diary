@@ -328,6 +328,7 @@ The git validation system automatically detects CI/PR environments and uses rela
 
 - Branch names can be: `username/description` (no ticket required)
 - Commit messages can be: `type: description` (no ticket/username required)
+- Commit message length: up to 100 characters (vs 72 for local)
 - Example: `feat: add user profile component`
 
 **Environment Detection:**
