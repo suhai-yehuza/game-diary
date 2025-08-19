@@ -70,6 +70,8 @@ jobs:
           echo "- Begin 2 business days soak period" >> $GITHUB_STEP_SUMMARY
 
       - name: Trigger Staging Deployment
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           echo "Triggering staging deployment..."
 
