@@ -76,7 +76,7 @@ The deployment pipeline follows a staged approach with multiple environments and
 
 ### 5. Soak Period
 
-**Duration**: 24 business hours (3 business days)
+**Duration**: 3 business days
 **Purpose**: Allow time for testing and monitoring in staging environment
 
 **What happens during soak period**:
