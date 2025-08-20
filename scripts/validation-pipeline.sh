@@ -548,7 +548,7 @@ run_task() {
     fi
 
     # Skip RapidAPI validation if SKIP_RAPIDAPI_VALIDATION is true
-    if [[ "$task_name" == rapidapi ]] && [ "$SKIP_RAPIDAPI_VALIDATION" = true ]; then
+    if [[ "$task_name" == rapidapi ]] && [[ "$SKIP_RAPIDAPI_VALIDATION" == true ]]; then
         log_warning "Skipping RapidAPI validation task: $task_name (SKIP_RAPIDAPI_VALIDATION=true)"
         return 0
     fi
