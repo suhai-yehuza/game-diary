@@ -41,6 +41,9 @@ export const commentQueryResolvers = {
 
     const whereConditions = [];
 
+    // Always filter out soft deleted comments
+    whereConditions.push(isNull(comments.deleted_at));
+
     if (filters?.parentId) {
       whereConditions.push(eq(comments.parent_id, filters.parentId));
     }

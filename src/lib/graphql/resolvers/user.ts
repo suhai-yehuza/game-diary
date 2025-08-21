@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm';
+import { eq, isNull } from 'drizzle-orm';
 
 import { API_CONFIG } from '@/lib/config/app.config';
 import { db } from '@/lib/db';
@@ -153,7 +153,9 @@ export const userQueryResolvers = {
 
   // Get users list (with sensitive data protection)
   users: async (_parent: unknown, _args: IUserArgs, context: GraphQLContext) => {
-    const allUsers = await db()?.query.users.findMany();
+    const allUsers = await db()?.query.users.findMany({
+      where: isNull(users.deleted_at),
+    });
 
     return (
       allUsers?.map(user => {
@@ -185,7 +187,10 @@ export const userQueryResolvers = {
     const searchField = args.searchField ?? 'all';
 
     // Get all users first (simplified approach to avoid circular dependency)
-    const allUsers = (await db()?.query.users.findMany()) ?? [];
+    const allUsers =
+      (await db()?.query.users.findMany({
+        where: isNull(users.deleted_at),
+      })) ?? [];
 
     // Filter by search term if provided
     let filteredUsers = allUsers;
@@ -241,9 +246,9 @@ export const userQueryResolvers = {
 
     // Apply limit
     const hasNextPage = paginatedUsers.length > limit;
-    const users = hasNextPage ? paginatedUsers.slice(0, limit) : paginatedUsers;
+    const limitedUsers = hasNextPage ? paginatedUsers.slice(0, limit) : paginatedUsers;
 
-    const edges = users.map(user => {
+    const edges = limitedUsers.map(user => {
       const requestingUserId = context.user?.id;
       const isOwnUser = requestingUserId === user.id;
 

@@ -72,7 +72,9 @@ export function useComments(options: ICommentsOptions = {}) {
           .filter(comment => !existingIds.has(comment.id));
         return [...prev, ...newComments];
       });
-      setCommentsTotalCount(prev => prev + moreData.comments.edges.length);
+      // Don't update totalCount in loadMore - it should remain constant
+      // The totalCount from the server is already correct and shouldn't be modified client-side
+      // setCommentsTotalCount(moreData.comments.totalCount);
       setCommentsEndCursor(moreData.comments.pageInfo.endCursor ?? null);
       setCommentsHasNextPage(!!moreData.comments.pageInfo.hasNextPage);
     }

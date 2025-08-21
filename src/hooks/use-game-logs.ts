@@ -212,7 +212,9 @@ export function useGameLogs(options: IGameLogsOptions = {}) {
         );
         return [...prev, ...newLogs];
       });
-      setGameLogsTotalCount(prev => prev + moreData.gameLogs.edges.length);
+      // Don't update totalCount in loadMore - it should remain constant
+      // The totalCount from the server is already correct and shouldn't be modified client-side
+      // setGameLogsTotalCount(moreData.gameLogs.totalCount);
 
       setGameLogsEndCursor(moreData.gameLogs.pageInfo.endCursor ?? null);
 
@@ -252,7 +254,10 @@ export function useGameLogs(options: IGameLogsOptions = {}) {
           );
           return [...prev, ...newLogs];
         });
-        setFriendsLogsTotalCount(prev => prev + friendsGameLogs.edges.length);
+        // Don't update totalCount in loadMore - it should remain constant
+        // setFriendsLogsTotalCount(
+        //   (moreData.friendsGameLogs as { totalCount?: number }).totalCount ?? 0
+        // );
         setFriendsLogsEndCursor(friendsGameLogs.pageInfo.endCursor ?? null);
         setFriendsLogsHasNextPage(!!friendsGameLogs.pageInfo.hasNextPage);
       }
