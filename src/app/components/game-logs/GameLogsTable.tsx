@@ -31,6 +31,7 @@ export function GameLogsTable() {
   const {
     gameLogs: myLogs,
     loading: myLogsLoading,
+    loadingMore: myLogsLoadingMore,
     error: myLogsError,
     refetch: refetchMyLogs,
     gameLogsHasNextPage: myLogsHasNextPage,
@@ -44,6 +45,7 @@ export function GameLogsTable() {
   const {
     gameLogs: publicLogs,
     loading: publicLogsLoading,
+    loadingMore: publicLogsLoadingMore,
     error: publicLogsError,
     gameLogsHasNextPage: publicLogsHasNextPage,
     gameLogsTotalCount: publicLogsTotalCount,
@@ -56,6 +58,7 @@ export function GameLogsTable() {
   const {
     logs: friendsLogs,
     loading: friendsLogsLoading,
+    loadingMore: friendsLogsLoadingMore,
     error: friendsLogsError,
     hasNextPage: friendsLogsHasNextPage,
     totalCount: friendsLogsTotalCount,
@@ -150,6 +153,7 @@ export function GameLogsTable() {
           tabValue="my-logs"
           logs={myLogs ?? []}
           loading={myLogsLoading}
+          loadingMore={myLogsLoadingMore}
           hasNextPage={myLogsHasNextPage}
           totalCount={myLogsTotalCount}
           showActions={true}
@@ -168,6 +172,7 @@ export function GameLogsTable() {
           tabValue="friends-logs"
           logs={friendsLogs ?? []}
           loading={friendsLogsLoading}
+          loadingMore={friendsLogsLoadingMore}
           hasNextPage={friendsLogsHasNextPage}
           totalCount={friendsLogsTotalCount}
           showActions={false}
@@ -184,6 +189,7 @@ export function GameLogsTable() {
           tabValue="public-logs"
           logs={publicLogs ?? []}
           loading={publicLogsLoading}
+          loadingMore={publicLogsLoadingMore}
           hasNextPage={publicLogsHasNextPage}
           totalCount={publicLogsTotalCount}
           showActions={false}

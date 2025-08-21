@@ -6,6 +6,7 @@ import { users } from '@/lib/db/schema';
 import { AuthorizationError } from '@/lib/graphql/errors';
 import type { GraphQLContext, IUserParent, IUserArgs } from '@/lib/types';
 import { decryptField, deserializeEncryptedField } from '@/lib/utils/encryption';
+import { logger } from '@/lib/utils/logger';
 
 // Helper function to check if a value is encrypted
 function isEncrypted(value: string | null): boolean {
@@ -34,7 +35,7 @@ function safeDecrypt(encryptedValue: string | null | undefined): string | null {
     }
     return encryptedValue; // Return as-is if not encrypted
   } catch (error) {
-    console.error('Failed to decrypt field:', error);
+    logger.error('Failed to decrypt field:', error as Error);
     return null; // Return null on decryption failure
   }
 }
@@ -215,18 +216,17 @@ export const userQueryResolvers = {
       });
 
       // Debug logging (remove in production)
-      console.log(`Search: "${searchTerm}" in field "${searchField}"`);
-      console.log(`Total users: ${allUsers.length}, Filtered: ${filteredUsers.length}`);
+      logger.debug(`Search: "${searchTerm}" in field "${searchField}"`);
+      logger.debug(`Total users: ${allUsers.length}, Filtered: ${filteredUsers.length}`);
       if (filteredUsers.length > 0) {
-        console.log(
-          'Sample matches:',
-          filteredUsers.slice(0, 3).map(u => ({
+        logger.debug('Sample matches:', {
+          matches: filteredUsers.slice(0, 3).map(u => ({
             username: u.username,
             first_name: u.first_name,
             last_name: u.last_name,
             email: u.email_address,
-          }))
-        );
+          })),
+        });
       }
     }
 

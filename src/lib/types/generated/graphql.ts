@@ -655,6 +655,7 @@ export type QueryUsersArgs = {
 export type Reaction = {
   __typename?: 'Reaction';
   created_at: Scalars['DateTime']['output'];
+  deleted_at?: Maybe<Scalars['DateTime']['output']>;
   emoji: Scalars['String']['output'];
   id: Scalars['ID']['output'];
   target_id: Scalars['ID']['output'];
@@ -835,7 +836,7 @@ export type CreateReactionMutationVariables = Exact<{
 }>;
 
 
-export type CreateReactionMutation = { __typename?: 'Mutation', createReaction: { __typename?: 'CreateReactionResponse', reaction?: { __typename?: 'Reaction', id: string, emoji: string, user_id: string, target_id: string, target_type: ParentType, created_at: string, updated_at: string, user: { __typename?: 'UserSummary', id: string, username: string, first_name: string, last_name: string, email_address?: string | null, image_url?: string | null } } | null, errors?: Array<{ __typename?: 'ErrorResult', message: string, code?: string | null, field?: string | null }> | null } };
+export type CreateReactionMutation = { __typename?: 'Mutation', createReaction: { __typename?: 'CreateReactionResponse', reaction?: { __typename?: 'Reaction', id: string, emoji: string, user_id: string, target_id: string, target_type: ParentType, created_at: string, updated_at: string, deleted_at?: string | null, user: { __typename?: 'UserSummary', id: string, username: string, first_name: string, last_name: string, email_address?: string | null, image_url?: string | null } } | null, errors?: Array<{ __typename?: 'ErrorResult', message: string, code?: string | null, field?: string | null }> | null } };
 
 export type DeleteReactionMutationVariables = Exact<{
   id: Scalars['ID']['input'];
@@ -878,9 +879,9 @@ export type BasicUserFragmentFragment = { __typename?: 'DBUser', id: string, use
 
 export type UserSummaryFragmentFragment = { __typename?: 'UserSummary', id: string, username: string, first_name: string, last_name: string, email_address?: string | null, image_url?: string | null };
 
-export type ReactionFragmentFragment = { __typename?: 'Reaction', id: string, emoji: string, user_id: string, target_id: string, target_type: ParentType, created_at: string, updated_at: string, user: { __typename?: 'UserSummary', id: string, username: string, first_name: string, last_name: string, email_address?: string | null, image_url?: string | null } };
+export type ReactionFragmentFragment = { __typename?: 'Reaction', id: string, emoji: string, user_id: string, target_id: string, target_type: ParentType, created_at: string, updated_at: string, deleted_at?: string | null, user: { __typename?: 'UserSummary', id: string, username: string, first_name: string, last_name: string, email_address?: string | null, image_url?: string | null } };
 
-export type CommentFragmentFragment = { __typename?: 'Comment', id: string, user_id: string, parent_id: string, parent_type: ParentType, content: string, depth: number, created_at: string, updated_at: string, totalChildCommentCount: number, totalReactionCount: number, user: { __typename?: 'UserSummary', id: string, username: string, first_name: string, last_name: string, email_address?: string | null, image_url?: string | null }, reactions: Array<{ __typename?: 'Reaction', id: string, emoji: string, user_id: string, target_id: string, target_type: ParentType, created_at: string, updated_at: string, user: { __typename?: 'UserSummary', id: string, username: string, first_name: string, last_name: string, email_address?: string | null, image_url?: string | null } }> };
+export type CommentFragmentFragment = { __typename?: 'Comment', id: string, user_id: string, parent_id: string, parent_type: ParentType, content: string, depth: number, created_at: string, updated_at: string, totalChildCommentCount: number, totalReactionCount: number, user: { __typename?: 'UserSummary', id: string, username: string, first_name: string, last_name: string, email_address?: string | null, image_url?: string | null }, reactions: Array<{ __typename?: 'Reaction', id: string, emoji: string, user_id: string, target_id: string, target_type: ParentType, created_at: string, updated_at: string, deleted_at?: string | null, user: { __typename?: 'UserSummary', id: string, username: string, first_name: string, last_name: string, email_address?: string | null, image_url?: string | null } }> };
 
 export type GameLogFragmentFragment = { __typename?: 'GameLog', id: string, game_id: string, rating_for_game: number, notes?: string | null, tags?: Array<string> | null, watched_date?: string | null, watched_setting?: string | null, watched_location?: string | null, watched_scope?: string | null, classification: Classification, created_at: string, updated_at: string, deleted_at?: string | null, totalCommentCount: number, totalReactionCount: number, user: { __typename?: 'UserSummary', id: string, username: string, first_name: string, last_name: string, email_address?: string | null, image_url?: string | null }, game: { __typename?: 'Game', id: string, date: string, status: string, game_type: string, nba_game_id?: string | null, home_team_id: string, away_team_id: string, home_team_score?: number | null, away_team_score?: number | null, average_rating?: number | null, total_ratings?: number | null, created_at: string, updated_at: string, home_team: { __typename?: 'Team', id: string, name: string, nickname?: string | null, code?: string | null, city?: string | null, logo?: string | null, all_star: boolean, nba_franchise: boolean, conference?: string | null, created_at: string, updated_at: string }, away_team: { __typename?: 'Team', id: string, name: string, nickname?: string | null, code?: string | null, city?: string | null, logo?: string | null, all_star: boolean, nba_franchise: boolean, conference?: string | null, created_at: string, updated_at: string } } };
 
@@ -955,7 +956,7 @@ export type GetCommentsQueryVariables = Exact<{
 }>;
 
 
-export type GetCommentsQuery = { __typename?: 'Query', comments: { __typename?: 'CommentConnection', totalCount: number, edges: Array<{ __typename?: 'CommentEdge', cursor: string, node: { __typename?: 'Comment', id: string, user_id: string, parent_id: string, parent_type: ParentType, content: string, depth: number, created_at: string, updated_at: string, totalChildCommentCount: number, totalReactionCount: number, user: { __typename?: 'UserSummary', id: string, username: string, first_name: string, last_name: string, email_address?: string | null, image_url?: string | null }, reactions: Array<{ __typename?: 'Reaction', id: string, emoji: string, user_id: string, target_id: string, target_type: ParentType, created_at: string, updated_at: string, user: { __typename?: 'UserSummary', id: string, username: string, first_name: string, last_name: string, email_address?: string | null, image_url?: string | null } }> } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null } } };
+export type GetCommentsQuery = { __typename?: 'Query', comments: { __typename?: 'CommentConnection', totalCount: number, edges: Array<{ __typename?: 'CommentEdge', cursor: string, node: { __typename?: 'Comment', id: string, user_id: string, parent_id: string, parent_type: ParentType, content: string, depth: number, created_at: string, updated_at: string, totalChildCommentCount: number, totalReactionCount: number, user: { __typename?: 'UserSummary', id: string, username: string, first_name: string, last_name: string, email_address?: string | null, image_url?: string | null }, reactions: Array<{ __typename?: 'Reaction', id: string, emoji: string, user_id: string, target_id: string, target_type: ParentType, created_at: string, updated_at: string, deleted_at?: string | null, user: { __typename?: 'UserSummary', id: string, username: string, first_name: string, last_name: string, email_address?: string | null, image_url?: string | null } }> } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null } } };
 
 export type GetReactionsQueryVariables = Exact<{
   targetId: Scalars['ID']['input'];
@@ -963,7 +964,7 @@ export type GetReactionsQueryVariables = Exact<{
 }>;
 
 
-export type GetReactionsQuery = { __typename?: 'Query', reactions: Array<{ __typename?: 'Reaction', id: string, emoji: string, user_id: string, target_id: string, target_type: ParentType, created_at: string, updated_at: string, user: { __typename?: 'UserSummary', id: string, username: string, first_name: string, last_name: string, email_address?: string | null, image_url?: string | null } }> };
+export type GetReactionsQuery = { __typename?: 'Query', reactions: Array<{ __typename?: 'Reaction', id: string, emoji: string, user_id: string, target_id: string, target_type: ParentType, created_at: string, updated_at: string, deleted_at?: string | null, user: { __typename?: 'UserSummary', id: string, username: string, first_name: string, last_name: string, email_address?: string | null, image_url?: string | null } }> };
 
 export type SearchUsersAdminQueryVariables = Exact<{
   first?: InputMaybe<Scalars['Int']['input']>;
@@ -1104,6 +1105,7 @@ export const ReactionFragmentFragmentDoc = gql`
   target_type
   created_at
   updated_at
+  deleted_at
   user {
     ...UserSummaryFragment
   }
@@ -1592,6 +1594,7 @@ export const CreateReactionDocument = gql`
       target_type
       created_at
       updated_at
+      deleted_at
       user {
         id
         username

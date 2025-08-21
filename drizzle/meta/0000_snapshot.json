@@ -1,5 +1,5 @@
 {
-  "id": "4917736d-59d7-44d1-be0c-b651dd9ea285",
+  "id": "274c25e6-daa2-4dde-8356-1b5e1f423c1a",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -72,8 +72,12 @@
           "name": "comments_user_id_users_id_fk",
           "tableFrom": "comments",
           "tableTo": "users",
-          "columnsFrom": ["user_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -140,8 +144,12 @@
           "name": "friendships_friend_id_users_id_fk",
           "tableFrom": "friendships",
           "tableTo": "users",
-          "columnsFrom": ["friend_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "friend_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -149,8 +157,12 @@
           "name": "friendships_user_id_users_id_fk",
           "tableFrom": "friendships",
           "tableTo": "users",
-          "columnsFrom": ["user_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -160,7 +172,10 @@
         "friendships_friend_id_user_id_unique": {
           "name": "friendships_friend_id_user_id_unique",
           "nullsNotDistinct": false,
-          "columns": ["friend_id", "user_id"]
+          "columns": [
+            "friend_id",
+            "user_id"
+          ]
         }
       },
       "policies": {},
@@ -270,8 +285,12 @@
           "name": "game_logs_user_id_users_id_fk",
           "tableFrom": "game_logs",
           "tableTo": "users",
-          "columnsFrom": ["user_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -279,8 +298,12 @@
           "name": "game_logs_game_id_nba_games_id_fk",
           "tableFrom": "game_logs",
           "tableTo": "nba_games",
-          "columnsFrom": ["game_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "game_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -290,7 +313,10 @@
         "game_logs_user_id_game_id_unique": {
           "name": "game_logs_user_id_game_id_unique",
           "nullsNotDistinct": false,
-          "columns": ["user_id", "game_id"]
+          "columns": [
+            "user_id",
+            "game_id"
+          ]
         }
       },
       "policies": {},
@@ -354,8 +380,12 @@
           "name": "game_ratings_game_id_nba_games_id_fk",
           "tableFrom": "game_ratings",
           "tableTo": "nba_games",
-          "columnsFrom": ["game_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "game_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -365,7 +395,9 @@
         "game_ratings_game_id_unique": {
           "name": "game_ratings_game_id_unique",
           "nullsNotDistinct": false,
-          "columns": ["game_id"]
+          "columns": [
+            "game_id"
+          ]
         }
       },
       "policies": {},
@@ -396,7 +428,9 @@
         "leagues_name_unique": {
           "name": "leagues_name_unique",
           "nullsNotDistinct": false,
-          "columns": ["name"]
+          "columns": [
+            "name"
+          ]
         }
       },
       "policies": {},
@@ -700,8 +734,12 @@
           "name": "notifications_user_id_users_id_fk",
           "tableFrom": "notifications",
           "tableTo": "users",
-          "columnsFrom": ["user_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -773,8 +811,12 @@
           "name": "reactions_user_id_users_id_fk",
           "tableFrom": "reactions",
           "tableTo": "users",
-          "columnsFrom": ["user_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -784,7 +826,12 @@
         "reactions_user_id_target_type_target_id_emoji_unique": {
           "name": "reactions_user_id_target_type_target_id_emoji_unique",
           "nullsNotDistinct": false,
-          "columns": ["user_id", "target_type", "target_id", "emoji"]
+          "columns": [
+            "user_id",
+            "target_type",
+            "target_id",
+            "emoji"
+          ]
         }
       },
       "policies": {},
@@ -815,7 +862,9 @@
         "seasons_year_unique": {
           "name": "seasons_year_unique",
           "nullsNotDistinct": false,
-          "columns": ["year"]
+          "columns": [
+            "year"
+          ]
         }
       },
       "policies": {},
@@ -1068,7 +1117,9 @@
         "users_email_address_unique": {
           "name": "users_email_address_unique",
           "nullsNotDistinct": false,
-          "columns": ["email_address"]
+          "columns": [
+            "email_address"
+          ]
         }
       },
       "policies": {},

@@ -1,4 +1,4 @@
-import { eq, and } from 'drizzle-orm';
+import { eq, and, isNull } from 'drizzle-orm';
 
 import { db } from '@/lib/db';
 import { reactions } from '@/lib/db/schema';
@@ -20,7 +20,8 @@ export const reactionQueryResolvers = {
     const reactionsData = await db()?.query.reactions.findMany({
       where: and(
         eq(reactions.target_id, args.targetId),
-        eq(reactions.target_type, args.targetType as 'GAME_LOG' | 'COMMENT')
+        eq(reactions.target_type, args.targetType as 'GAME_LOG' | 'COMMENT'),
+        isNull(reactions.deleted_at)
       ),
       with: {
         user: true,
@@ -36,6 +37,7 @@ export const reactionQueryResolvers = {
         target_type: reaction.target_type,
         created_at: reaction.created_at,
         updated_at: reaction.updated_at,
+        deleted_at: reaction.deleted_at,
         user: {
           id: reaction.user?.id ?? '',
           username: reaction.user?.username ?? '',

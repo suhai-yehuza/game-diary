@@ -36,6 +36,7 @@ export const GameLogsContent = ({
   tabValue,
   logs,
   loading,
+  loadingMore = false,
   hasNextPage,
   totalCount,
   showActions = false,
@@ -46,13 +47,16 @@ export const GameLogsContent = ({
 }: IGameLogsContentProps) => {
   const isMobile = useMobileDetection();
 
+  // Only show loading message for initial load, not for pagination
+  const isInitialLoading = loading && !loadingMore;
+
   return (
     <TabsContent
       value={tabValue}
       className={`space-y-4 ${isMobile ? 'space-y-3' : 'space-y-4'}`}
       data-testid={`tabs-content-${tabValue}`}
     >
-      {loading ? (
+      {isInitialLoading ? (
         <div className={`text-center ${isMobile ? 'py-6' : 'py-8'}`}>
           <div className="text-gray-600 mb-2">{getLoadingMessage(tabValue)}</div>
           <div className={`text-gray-500 ${isMobile ? 'text-xs' : 'text-sm'}`}>
@@ -82,7 +86,11 @@ export const GameLogsContent = ({
               />
             ))}
           </div>
-          <GameLogsPagination hasNextPage={hasNextPage} loading={loading} onLoadMore={onLoadMore} />
+          <GameLogsPagination
+            hasNextPage={hasNextPage}
+            loading={loadingMore}
+            onLoadMore={onLoadMore}
+          />
         </div>
       ) : null}
     </TabsContent>

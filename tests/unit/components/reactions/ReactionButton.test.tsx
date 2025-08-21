@@ -27,7 +27,7 @@ describe('ReactionButton', () => {
       />
     );
 
-    const button = screen.getByRole('button', { name: 'React with 👍 (3)' });
+    const button = screen.getByRole('button', { name: 'React with 3 thumbs up emojis' });
 
     fireEvent.click(button);
     expect(onClick).toHaveBeenCalledTimes(1);
@@ -57,7 +57,7 @@ describe('ReactionButton', () => {
 
   it('applies reacted styling when hasReacted is true', () => {
     render(<ReactionButton emoji="❤️" count={2} hasReacted onClick={vi.fn()} />);
-    const button = screen.getByRole('button', { name: 'React with ❤️ (2)' });
+    const button = screen.getByRole('button', { name: 'React with 2 love emojis' });
     expect(button.className).toContain('border-blue-500');
   });
 
@@ -65,21 +65,21 @@ describe('ReactionButton', () => {
     const { rerender } = render(
       <ReactionButton emoji="😂" count={1} hasReacted={false} onClick={vi.fn()} size="sm" />
     );
-    let button = screen.getByRole('button', { name: 'React with 😂 (1)' });
+    let button = screen.getByRole('button', { name: 'React with 1 laugh emoji' });
     expect(button.className).toContain('px-2');
     expect(button.className).toContain('py-1');
 
     rerender(
       <ReactionButton emoji="😂" count={1} hasReacted={false} onClick={vi.fn()} size="md" />
     );
-    button = screen.getByRole('button', { name: 'React with 😂 (1)' });
+    button = screen.getByRole('button', { name: 'React with 1 laugh emoji' });
     expect(button.className).toContain('px-3');
     expect(button.className).toContain('py-1.5');
 
     rerender(
       <ReactionButton emoji="😂" count={1} hasReacted={false} onClick={vi.fn()} size="lg" />
     );
-    button = screen.getByRole('button', { name: 'React with 😂 (1)' });
+    button = screen.getByRole('button', { name: 'React with 1 laugh emoji' });
     expect(button.className).toContain('px-4');
     expect(button.className).toContain('py-2');
   });

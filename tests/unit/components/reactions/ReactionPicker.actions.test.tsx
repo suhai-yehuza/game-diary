@@ -35,7 +35,7 @@ describe('ReactionPicker interactions', () => {
   it('calls toggleReaction when clicking an existing reaction', async () => {
     render(<ReactionPicker targetId="t1" targetType={ParentType.GameLog} />);
 
-    const existing = screen.getByLabelText('React with 👍 (1)');
+    const existing = screen.getByLabelText('React with 1 thumbs up emoji');
     fireEvent.click(existing);
 
     await waitFor(() => {

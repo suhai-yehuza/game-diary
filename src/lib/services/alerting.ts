@@ -1,4 +1,5 @@
 import type { ISlackMessage } from '@/lib/types';
+import { logger } from '@/lib/utils/logger';
 
 export class AlertingService {
   private static instance: AlertingService;
@@ -17,7 +18,7 @@ export class AlertingService {
 
   async sendSlackAlert(auditData: Record<string, unknown>): Promise<void> {
     if (!this.slackWebhookUrl) {
-      console.warn('SLACK_ALERT_WEBHOOK_URL not configured, skipping Slack alert');
+      logger.warn('SLACK_ALERT_WEBHOOK_URL not configured, skipping Slack alert');
       return;
     }
 
@@ -33,9 +34,9 @@ export class AlertingService {
         throw new Error(`Slack webhook failed: ${response.status} ${response.statusText}`);
       }
 
-      console.log('Slack alert sent successfully');
+      logger.info('Slack alert sent successfully');
     } catch (error) {
-      console.error('Failed to send Slack alert:', error);
+      logger.error('Failed to send Slack alert:', error as Error);
       // Don't throw - alerting failure shouldn't break the main flow
     }
   }
@@ -108,12 +109,12 @@ export class AlertingService {
 
   sendEmailAlert(_auditData: Record<string, unknown>): void {
     // TODO: Implement email alerting if needed
-    console.log('Email alerting not implemented yet');
+    logger.info('Email alerting not implemented yet');
   }
 
   sendWebhookAlert(_auditData: Record<string, unknown>): void {
     // TODO: Implement generic webhook alerting if needed
-    console.log('Webhook alerting not implemented yet');
+    logger.info('Webhook alerting not implemented yet');
   }
 }
 

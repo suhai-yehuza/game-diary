@@ -1,6 +1,7 @@
 // Mock Server Barrel Export
 // Centralized exports for the mock server module
 
+import { logger } from '@/lib/utils/logger';
 import { mockDataProvider } from '@src/lib/mock';
 import type {
   MockServerConfig,
@@ -46,7 +47,7 @@ class MockServer {
   // Log messages if logging is enabled
   private log(message: string): void {
     if (this.config.enableLogging) {
-      console.log(`[Mock Server] ${message}`);
+      logger.info(`[Mock Server] ${message}`);
     }
   }
 

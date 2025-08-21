@@ -1,4 +1,4 @@
-import { eq, and, desc, sql, inArray, gt } from 'drizzle-orm';
+import { eq, and, desc, sql, inArray, gt, isNull } from 'drizzle-orm';
 
 import { API_CONFIG, getRapidApiConfig } from '@/lib/config/app.config';
 import { db } from '@/lib/db';
@@ -1050,7 +1050,13 @@ export const gameLogResolver = {
       const totalCountResult = await db()
         ?.select({ count: sql<number>`count(*)` })
         .from(reactions)
-        .where(and(eq(reactions.target_id, parent.id), eq(reactions.target_type, 'GAME_LOG')));
+        .where(
+          and(
+            eq(reactions.target_id, parent.id),
+            eq(reactions.target_type, 'GAME_LOG'),
+            isNull(reactions.deleted_at)
+          )
+        );
 
       return totalCountResult?.[0]?.count ?? 0;
     } catch (error) {

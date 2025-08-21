@@ -9,6 +9,7 @@ export interface IReaction {
   target_type: ParentType;
   created_at: string;
   updated_at: string;
+  deleted_at?: string | null;
   user: {
     id: string;
     username: string;

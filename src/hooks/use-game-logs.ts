@@ -1,4 +1,4 @@
-import { useQuery } from '@apollo/client';
+import { useQuery, NetworkStatus } from '@apollo/client';
 import { useCallback, useState } from 'react';
 
 import { API_CONFIG } from '@/lib/config/app.config';
@@ -130,58 +130,61 @@ export function useGameLogs(options: IGameLogsOptions = {}) {
   const [friendsLogsHasNextPage, setFriendsLogsHasNextPage] = useState(true);
   const [friendsLogsTotalCount, setFriendsLogsTotalCount] = useState<number>(0);
 
-  const { loading, error, refetch, fetchMore } = useQuery<IGameLogsResponse>(GET_GAME_LOGS, {
-    variables: {
-      filters,
-      pagination,
-    },
-    fetchPolicy: 'cache-and-network',
-    errorPolicy: 'all',
-    // Add better error handling for rate limiting
-    notifyOnNetworkStatusChange: true,
-    onCompleted: data => {
-      if (
-        data &&
-        typeof data === 'object' &&
-        'gameLogs' in data &&
-        data.gameLogs &&
-        Array.isArray(data.gameLogs.edges)
-      ) {
-        setGameLogs(safeMapGameLogArray(data.gameLogs.edges));
-        setGameLogsTotalCount(data.gameLogs.totalCount);
-        setGameLogsEndCursor(data.gameLogs.pageInfo.endCursor ?? null);
-        setGameLogsHasNextPage(!!data.gameLogs.pageInfo.hasNextPage);
-      }
-      if (
-        data &&
-        typeof data === 'object' &&
-        'friendsGameLogs' in data &&
-        data.friendsGameLogs &&
-        typeof data.friendsGameLogs === 'object' &&
-        'edges' in data.friendsGameLogs &&
-        Array.isArray((data.friendsGameLogs as IFriendsGameLogsShape).edges) &&
-        'pageInfo' in data.friendsGameLogs &&
-        typeof (data.friendsGameLogs as IFriendsGameLogsShape).pageInfo === 'object'
-      ) {
-        const friendsGameLogs = data.friendsGameLogs as unknown;
-        if (isFriendsGameLogsShape(friendsGameLogs)) {
-          setFriendsLogs(safeMapGameLogArray(friendsGameLogs.edges));
-          setFriendsLogsTotalCount(
-            (data.friendsGameLogs as { totalCount?: number }).totalCount ?? 0
-          );
-          setFriendsLogsEndCursor(friendsGameLogs.pageInfo.endCursor ?? null);
-          setFriendsLogsHasNextPage(!!friendsGameLogs.pageInfo.hasNextPage);
+  const { loading, error, refetch, fetchMore, networkStatus } = useQuery<IGameLogsResponse>(
+    GET_GAME_LOGS,
+    {
+      variables: {
+        filters,
+        pagination,
+      },
+      fetchPolicy: 'cache-and-network',
+      errorPolicy: 'all',
+      // Add better error handling for rate limiting
+      notifyOnNetworkStatusChange: true,
+      onCompleted: data => {
+        if (
+          data &&
+          typeof data === 'object' &&
+          'gameLogs' in data &&
+          data.gameLogs &&
+          Array.isArray(data.gameLogs.edges)
+        ) {
+          setGameLogs(safeMapGameLogArray(data.gameLogs.edges));
+          setGameLogsTotalCount(data.gameLogs.totalCount);
+          setGameLogsEndCursor(data.gameLogs.pageInfo.endCursor ?? null);
+          setGameLogsHasNextPage(!!data.gameLogs.pageInfo.hasNextPage);
         }
-      }
-    },
-    onError: error => {
-      console.error('Game logs query error:', error);
-      // Handle rate limiting errors gracefully
-      if (error.graphQLErrors?.some(e => e.extensions?.code === 'FORBIDDEN')) {
-        console.warn('Authentication error in game logs query, user may not be authenticated');
-      }
-    },
-  });
+        if (
+          data &&
+          typeof data === 'object' &&
+          'friendsGameLogs' in data &&
+          data.friendsGameLogs &&
+          typeof data.friendsGameLogs === 'object' &&
+          'edges' in data.friendsGameLogs &&
+          Array.isArray((data.friendsGameLogs as IFriendsGameLogsShape).edges) &&
+          'pageInfo' in data.friendsGameLogs &&
+          typeof (data.friendsGameLogs as IFriendsGameLogsShape).pageInfo === 'object'
+        ) {
+          const friendsGameLogs = data.friendsGameLogs as unknown;
+          if (isFriendsGameLogsShape(friendsGameLogs)) {
+            setFriendsLogs(safeMapGameLogArray(friendsGameLogs.edges));
+            setFriendsLogsTotalCount(
+              (data.friendsGameLogs as { totalCount?: number }).totalCount ?? 0
+            );
+            setFriendsLogsEndCursor(friendsGameLogs.pageInfo.endCursor ?? null);
+            setFriendsLogsHasNextPage(!!friendsGameLogs.pageInfo.hasNextPage);
+          }
+        }
+      },
+      onError: error => {
+        console.error('Game logs query error:', error);
+        // Handle rate limiting errors gracefully
+        if (error.graphQLErrors?.some(e => e.extensions?.code === 'FORBIDDEN')) {
+          console.warn('Authentication error in game logs query, user may not be authenticated');
+        }
+      },
+    }
+  );
 
   const loadMoreGameLogs = useCallback(async () => {
     if (!gameLogsHasNextPage || loading) return;
@@ -313,6 +316,7 @@ export function useGameLogs(options: IGameLogsOptions = {}) {
     friendsLogsTotalCount,
     loadMoreFriendsLogs,
     loading,
+    loadingMore: networkStatus === NetworkStatus.fetchMore,
     error: error ? new Error(error.message) : null,
     refetch: wrappedRefetch,
   };
@@ -338,43 +342,42 @@ export function useFriendsGameLogs() {
   const [hasNextPage, setHasNextPage] = useState(true);
   const [totalCount, setTotalCount] = useState<number>(0);
 
-  const { loading, error, refetch, fetchMore } = useQuery<Pick<Query, 'friendsGameLogs'>>(
-    GET_FRIENDS_GAME_LOGS,
-    {
-      variables: {
-        pagination: { first: API_CONFIG.pagination.DEFAULT_PAGE_SIZE }, // Use config variable instead of hardcoded 20
-      },
-      fetchPolicy: 'cache-and-network',
-      errorPolicy: 'all',
-      // Add better error handling for rate limiting
-      notifyOnNetworkStatusChange: true,
-      onCompleted: data => {
-        if (
-          data &&
-          typeof data === 'object' &&
-          'friendsGameLogs' in data &&
-          data.friendsGameLogs &&
-          Array.isArray(data.friendsGameLogs.edges)
-        ) {
-          setLogs(safeMapGameLogArray(data.friendsGameLogs.edges));
-          setTotalCount(data.friendsGameLogs.totalCount);
+  const { loading, error, refetch, fetchMore, networkStatus } = useQuery<
+    Pick<Query, 'friendsGameLogs'>
+  >(GET_FRIENDS_GAME_LOGS, {
+    variables: {
+      pagination: { first: API_CONFIG.pagination.DEFAULT_PAGE_SIZE }, // Use config variable instead of hardcoded 20
+    },
+    fetchPolicy: 'cache-and-network',
+    errorPolicy: 'all',
+    // Add better error handling for rate limiting
+    notifyOnNetworkStatusChange: true,
+    onCompleted: data => {
+      if (
+        data &&
+        typeof data === 'object' &&
+        'friendsGameLogs' in data &&
+        data.friendsGameLogs &&
+        Array.isArray(data.friendsGameLogs.edges)
+      ) {
+        setLogs(safeMapGameLogArray(data.friendsGameLogs.edges));
+        setTotalCount(data.friendsGameLogs.totalCount);
 
-          setEndCursor(data.friendsGameLogs.pageInfo.endCursor ?? null);
+        setEndCursor(data.friendsGameLogs.pageInfo.endCursor ?? null);
 
-          setHasNextPage(!!data.friendsGameLogs.pageInfo.hasNextPage);
-        }
-      },
-      onError: error => {
-        console.error('Friends game logs query error:', error);
-        // Handle rate limiting errors gracefully
-        if (error.graphQLErrors?.some(e => e.extensions?.code === 'FORBIDDEN')) {
-          console.warn(
-            'Authentication error in friends game logs query, user may not be authenticated'
-          );
-        }
-      },
-    }
-  );
+        setHasNextPage(!!data.friendsGameLogs.pageInfo.hasNextPage);
+      }
+    },
+    onError: error => {
+      console.error('Friends game logs query error:', error);
+      // Handle rate limiting errors gracefully
+      if (error.graphQLErrors?.some(e => e.extensions?.code === 'FORBIDDEN')) {
+        console.warn(
+          'Authentication error in friends game logs query, user may not be authenticated'
+        );
+      }
+    },
+  });
 
   // Patch refetch to update both states
   const wrappedRefetch = useCallback(
@@ -432,6 +435,7 @@ export function useFriendsGameLogs() {
   return {
     logs,
     loading,
+    loadingMore: networkStatus === NetworkStatus.fetchMore,
     error: error ? new Error(error.message) : null,
     refetch: wrappedRefetch,
     hasNextPage,

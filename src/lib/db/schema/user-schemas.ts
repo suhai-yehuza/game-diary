@@ -139,6 +139,7 @@ export const reactions = pgTable(
     reactionIndex: sql`CREATE INDEX IF NOT EXISTS idx_reactions_target ON reactions (target_id, target_type)`,
     reactionUserIndex: sql`CREATE INDEX IF NOT EXISTS idx_reactions_user ON reactions (user_id)`,
     reactionEmojiIndex: sql`CREATE INDEX IF NOT EXISTS idx_reactions_emoji ON reactions (emoji)`,
+    reactionTargetDeletedIndex: sql`CREATE INDEX IF NOT EXISTS idx_reactions_target_deleted ON reactions (target_id, target_type, deleted_at) WHERE deleted_at IS NULL`,
     uniqueReaction: unique().on(_table.user_id, _table.target_type, _table.target_id, _table.emoji),
     targetTypeCheck: sql`CHECK (target_type IN ('${sql.join(Object.values(TARGET_TYPES), "','")}'))`,
     emojiCheck: sql`CHECK (emoji IN ('${sql.join(Object.values(REACTION_EMOJIS), "','")}'))`,

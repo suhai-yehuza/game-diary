@@ -8,6 +8,7 @@ import { useMobileDetection } from '@/app/components/layout/components/SearchBar
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/app/components/ui/Tabs';
 import { ActivityTable } from '@/app/protected/user/components/ActivityTable';
 import { FriendsTable } from '@/app/protected/user/components/FriendsTable';
+import { logger } from '@/lib/utils/logger';
 
 function UserGreeting() {
   // Handle case where Clerk is not configured (e.g., in test environment)
@@ -22,7 +23,7 @@ function UserGreeting() {
     user = userData.user;
   } catch {
     // Clerk is not configured (e.g., in test environment)
-    console.log('Clerk not configured, using fallback user data');
+    logger.info('Clerk not configured, using fallback user data');
     isLoaded = true;
     isSignedIn = false;
     user = null;

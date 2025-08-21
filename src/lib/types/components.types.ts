@@ -347,6 +347,7 @@ export interface IGameLogsContentProps {
   tabValue: string;
   logs: import('./gameLog.types').IGameLog[];
   loading: boolean;
+  loadingMore?: boolean;
   hasNextPage: boolean;
   totalCount: number;
   showActions?: boolean;

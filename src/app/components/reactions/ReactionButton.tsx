@@ -1,9 +1,14 @@
-import { useState } from 'react';
+import { useState, memo } from 'react';
 
 import type { IReactionButtonProps } from '@/lib/types';
 import { cn } from '@/lib/utils';
+import {
+  formatReactionCount,
+  formatReactionCountWithEmoji,
+  getEmojiName,
+} from '@/lib/utils/formatReactionCount';
 
-export function ReactionButton({
+export const ReactionButton = memo(function ReactionButton({
   emoji,
   count,
   hasReacted,
@@ -39,14 +44,18 @@ export function ReactionButton({
         isPressed && 'scale-95',
         className
       )}
-      aria-label={`React with ${emoji}${showCount ? ` (${count})` : ''}`}
+      aria-label={
+        showCount && count > 0
+          ? `React with ${formatReactionCountWithEmoji(count, getEmojiName(emoji))}`
+          : `React with ${emoji}`
+      }
     >
       <span className="text-lg transition-transform group-hover:scale-110">{emoji}</span>
       {showCount && count > 0 && (
         <span className="font-semibold text-xs bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 rounded-full">
-          {count}
+          {formatReactionCount(count)}
         </span>
       )}
     </button>
   );
-}
+});

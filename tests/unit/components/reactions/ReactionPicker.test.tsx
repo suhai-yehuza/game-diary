@@ -86,7 +86,7 @@ describe('ReactionPicker Component', () => {
   it('shows user has reacted styling', () => {
     render(<ReactionPicker {...defaultProps} />);
 
-    const reactionButton = screen.getByLabelText('React with 👍 (2)');
+    const reactionButton = screen.getByLabelText('React with 2 thumbs up emojis');
     expect(reactionButton).toHaveClass('border-blue-500');
   });
 

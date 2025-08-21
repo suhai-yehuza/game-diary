@@ -1,4 +1,4 @@
-import { eq, and, desc, sql } from 'drizzle-orm';
+import { eq, and, desc, sql, isNull } from 'drizzle-orm';
 
 import { API_CONFIG } from '@/lib/config/app.config';
 import { db } from '@/lib/db';
@@ -229,7 +229,13 @@ export const commentResolver = {
       const totalCountResult = await db()
         ?.select({ count: sql<number>`count(*)` })
         .from(reactions)
-        .where(and(eq(reactions.target_id, parent.id), eq(reactions.target_type, 'COMMENT')));
+        .where(
+          and(
+            eq(reactions.target_id, parent.id),
+            eq(reactions.target_type, 'COMMENT'),
+            isNull(reactions.deleted_at)
+          )
+        );
 
       return totalCountResult?.[0]?.count ?? 0;
     } catch (error) {
