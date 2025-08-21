@@ -1,4 +1,4 @@
-import { eq, and, desc, sql, inArray, gt, isNull } from 'drizzle-orm';
+import { eq, and, desc, sql, inArray, isNull } from 'drizzle-orm';
 
 import { API_CONFIG, getRapidApiConfig } from '@/lib/config/app.config';
 import { db } from '@/lib/db';
@@ -161,6 +161,9 @@ export const gameLogQueryResolvers = {
 
     const whereConditions = [];
 
+    // Always filter out soft deleted game logs
+    whereConditions.push(isNull(game_logs.deleted_at));
+
     // Only filter by user if userId is explicitly provided
     if (filters?.userId) {
       whereConditions.push(eq(game_logs.user_id, filters.userId));
@@ -192,27 +195,41 @@ export const gameLogQueryResolvers = {
 
     const whereClause = whereConditions.length > 0 ? and(...whereConditions) : undefined;
 
-    console.log('🔍 Where conditions:', whereConditions.length);
+    // Get the total count for pagination FIRST (before any limits)
+    const totalCountResult = await db()
+      ?.select({ count: sql<number>`count(*)` })
+      .from(game_logs)
+      .where(whereClause ?? undefined);
+    const totalCount = totalCountResult?.[0]?.count ?? 0;
 
-    // Get the paginated results
-    const gameLogs = await db()?.query.game_logs.findMany({
-      where: whereClause,
-      limit: 1000, // fetch enough to paginate in-memory
+    // Build proper cursor-based pagination conditions
+    const paginationConditions = [...(whereConditions || [])];
+
+    // Add cursor condition for proper database-level pagination
+    if (pagination?.after) {
+      paginationConditions.push(sql`${game_logs.created_at} < (
+        SELECT created_at FROM game_logs WHERE id = ${pagination.after}
+      )`);
+    }
+
+    const paginationWhereClause =
+      paginationConditions.length > 0 ? and(...paginationConditions) : undefined;
+
+    // Get the paginated results with proper database-level pagination
+    const paginatedLogs = await db()?.query.game_logs.findMany({
+      where: paginationWhereClause,
+      limit: limit + 1, // Fetch one extra to check if there are more pages
       orderBy: [desc(game_logs.created_at)],
       with: {
         user: true,
       },
     });
 
-    // Cursor-based pagination: skip logs up to and including the 'after' cursor
-    let paginatedLogs = gameLogs;
-    if (pagination?.after) {
-      const afterIndex = gameLogs.findIndex(log => log.id === pagination.after);
-      if (afterIndex !== -1) {
-        paginatedLogs = gameLogs.slice(afterIndex + 1);
-      }
+    // Check if there are more pages and remove the extra record
+    const hasNextPage = (paginatedLogs?.length || 0) > limit;
+    if (hasNextPage) {
+      paginatedLogs?.pop(); // Remove the extra record
     }
-    paginatedLogs = paginatedLogs.slice(0, limit);
 
     // Fetch game data for all game logs
     const gameIds = paginatedLogs?.map(log => log.game_id) ?? [];
@@ -236,13 +253,6 @@ export const gameLogQueryResolvers = {
         : [];
 
     const teamMap = new Map(teamData.map(team => [team.id, team]));
-
-    // Get the total count for pagination
-    const totalCountResult = await db()
-      ?.select({ count: sql<number>`count(*)` })
-      .from(game_logs)
-      .where(whereClause ?? undefined);
-    const totalCount = totalCountResult?.[0]?.count ?? 0;
 
     const edges =
       paginatedLogs?.map(gameLog => {
@@ -329,7 +339,7 @@ export const gameLogQueryResolvers = {
     return {
       edges,
       pageInfo: {
-        hasNextPage: edges.length === limit,
+        hasNextPage: hasNextPage,
         hasPreviousPage: false,
         startCursor: edges[0]?.cursor || null,
         endCursor: edges[edges.length - 1]?.cursor || null,
@@ -407,38 +417,41 @@ export const gameLogQueryResolvers = {
 
     const whereClause = whereConditions.length > 0 ? and(...whereConditions) : undefined;
 
-    console.log('🔍 Where conditions:', whereConditions.length);
-
-    // Get the paginated results
-    const gameLogs = await db()?.query.game_logs.findMany({
-      where: whereClause,
-      limit: 1000, // fetch enough to paginate in-memory
-      orderBy: [desc(game_logs.created_at)],
-      with: {
-        user: true,
-      },
-    });
-
-    // Cursor-based pagination: skip logs up to and including the 'after' cursor
-    let paginatedLogs = gameLogs;
-    if (after) {
-      const afterIndex = gameLogs.findIndex(log => log.id === after);
-      if (afterIndex !== -1) {
-        paginatedLogs = gameLogs.slice(afterIndex + 1);
-      }
-    }
-    paginatedLogs = paginatedLogs.slice(0, first);
-
-    console.log('🔍 Found game logs:', paginatedLogs?.length || 0);
-
-    // Get the total count for pagination
+    // Get the total count for pagination FIRST (before any limits)
     const totalCountResult = await db()
       ?.select({ count: sql<number>`count(*)` })
       .from(game_logs)
       .where(whereClause ?? undefined);
     const totalCount = totalCountResult?.[0]?.count ?? 0;
 
-    console.log('🔍 Total count:', totalCount);
+    // Build proper cursor-based pagination conditions
+    const paginationConditions = [...(whereConditions || [])];
+
+    // Add cursor condition for proper database-level pagination
+    if (after) {
+      paginationConditions.push(sql`${game_logs.created_at} < (
+        SELECT created_at FROM game_logs WHERE id = ${after}
+      )`);
+    }
+
+    const paginationWhereClause =
+      paginationConditions.length > 0 ? and(...paginationConditions) : undefined;
+
+    // Get the paginated results with proper database-level pagination
+    const paginatedLogs = await db()?.query.game_logs.findMany({
+      where: paginationWhereClause,
+      limit: first + 1, // Fetch one extra to check if there are more pages
+      orderBy: [desc(game_logs.created_at)],
+      with: {
+        user: true,
+      },
+    });
+
+    // Check if there are more pages and remove the extra record
+    const hasNextPage = (paginatedLogs?.length || 0) > first;
+    if (hasNextPage) {
+      paginatedLogs?.pop(); // Remove the extra record
+    }
 
     const edges =
       paginatedLogs?.map(gameLog => ({
@@ -472,7 +485,7 @@ export const gameLogQueryResolvers = {
     return {
       edges,
       pageInfo: {
-        hasNextPage: edges.length === first,
+        hasNextPage: hasNextPage,
         hasPreviousPage: !!after,
         startCursor: edges[0]?.cursor || null,
         endCursor: edges[edges.length - 1]?.cursor || null,
@@ -531,44 +544,47 @@ export const gameLogQueryResolvers = {
       }
 
       // Build where conditions for game logs from friends
-      const whereConditions = [
+      const baseWhereConditions = [
         inArray(game_logs.user_id, friendIds as string[]),
         eq(game_logs.classification, CLASSIFICATION.PROTECTED),
       ];
 
-      // Add cursor-based pagination
+      const baseWhereClause = and(...baseWhereConditions);
+
+      // Get the total count for pagination FIRST
+      const totalCountResult = await db()
+        ?.select({ count: sql<number>`count(*)` })
+        .from(game_logs)
+        .where(baseWhereClause);
+      const totalCount = totalCountResult?.[0]?.count ?? 0;
+
+      // Build pagination conditions
+      const paginationConditions = [...baseWhereConditions];
+
+      // Add cursor condition for proper database-level pagination
       if (pagination?.after) {
-        whereConditions.push(gt(game_logs.id, pagination.after));
+        paginationConditions.push(sql`${game_logs.created_at} < (
+          SELECT created_at FROM game_logs WHERE id = ${pagination.after}
+        )`);
       }
 
-      const whereClause = and(...whereConditions);
+      const paginationWhereClause = and(...paginationConditions);
 
-      // Get the paginated results
-      const gameLogs = await db()?.query.game_logs.findMany({
-        where: whereClause,
-        limit: 1000, // fetch enough to paginate in-memory
+      // Get the paginated results with proper database-level pagination
+      const paginatedLogs = await db()?.query.game_logs.findMany({
+        where: paginationWhereClause,
+        limit: limit + 1, // Fetch one extra to check if there are more pages
         orderBy: [desc(game_logs.created_at)],
         with: {
           user: true,
         },
       });
 
-      // Cursor-based pagination: skip logs up to and including the 'after' cursor
-      let paginatedLogs = gameLogs;
-      if (pagination?.after) {
-        const afterIndex = gameLogs.findIndex(log => log.id === pagination.after);
-        if (afterIndex !== -1) {
-          paginatedLogs = gameLogs.slice(afterIndex + 1);
-        }
+      // Check if there are more pages and remove the extra record
+      const hasNextPage = (paginatedLogs?.length || 0) > limit;
+      if (hasNextPage) {
+        paginatedLogs?.pop(); // Remove the extra record
       }
-      paginatedLogs = paginatedLogs.slice(0, limit);
-
-      // Get the total count for pagination
-      const totalCountResult = await db()
-        ?.select({ count: sql<number>`count(*)` })
-        .from(game_logs)
-        .where(whereClause);
-      const totalCount = totalCountResult?.[0]?.count ?? 0;
 
       const edges =
         paginatedLogs?.map(gameLog => ({
@@ -602,7 +618,7 @@ export const gameLogQueryResolvers = {
       return {
         edges,
         pageInfo: {
-          hasNextPage: edges.length === limit,
+          hasNextPage: hasNextPage,
           hasPreviousPage: !!pagination?.after,
           startCursor: edges[0]?.cursor || null,
           endCursor: edges[edges.length - 1]?.cursor || null,

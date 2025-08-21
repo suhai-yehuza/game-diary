@@ -1,4 +1,4 @@
-import { eq, and, or, desc, asc, sql } from 'drizzle-orm';
+import { eq, and, or, desc, asc, sql, isNull } from 'drizzle-orm';
 
 import { db } from '@/lib/db';
 import { friendships } from '@/lib/db/schema';
@@ -41,6 +41,9 @@ export const friendshipQueryResolvers = {
     const offset = 0; // Simple pagination for now
 
     const whereConditions = [];
+
+    // Always filter out soft deleted friendships
+    whereConditions.push(isNull(friendships.deleted_at));
 
     // Always filter by current user
     whereConditions.push(
@@ -180,6 +183,7 @@ export const friendshipQueryResolvers = {
     try {
       const requestsResult = await db()?.query.friendships.findMany({
         where: and(
+          isNull(friendships.deleted_at),
           eq(friendships.friend_id, context.user.id),
           eq(friendships.status, FRIENDSHIP_STATUS.PENDING)
         ),
@@ -197,6 +201,7 @@ export const friendshipQueryResolvers = {
         .from(friendships)
         .where(
           and(
+            isNull(friendships.deleted_at),
             eq(friendships.friend_id, context.user.id),
             eq(friendships.status, FRIENDSHIP_STATUS.PENDING)
           )

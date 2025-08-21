@@ -45,13 +45,13 @@ export const apolloClient = new ApolloClient({
       Query: {
         fields: {
           gameLogs: {
-            keyArgs: ['filters', 'pagination'],
+            keyArgs: ['filters'],
             merge(_existing: unknown, incoming: unknown): unknown {
               return incoming;
             },
           },
           comments: {
-            keyArgs: ['filters', 'pagination'],
+            keyArgs: ['filters'],
             merge(_existing: unknown, incoming: unknown): unknown {
               return incoming;
             },
