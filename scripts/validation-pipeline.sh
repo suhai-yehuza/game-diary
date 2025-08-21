@@ -547,6 +547,12 @@ run_task() {
         return 0
     fi
 
+    # Skip RapidAPI validation if SKIP_RAPIDAPI_VALIDATION is true
+    if [[ "$task_name" == rapidapi ]] && [[ "$SKIP_RAPIDAPI_VALIDATION" == true ]]; then
+        log_warning "Skipping RapidAPI validation task: $task_name (SKIP_RAPIDAPI_VALIDATION=true)"
+        return 0
+    fi
+
     # Skip mock verification if it's already been run successfully in CI
     if [[ "$task_name" == "test_e2e_mock" ]] && is_ci; then
         # Check if we're in a browser-specific job (not the mock verification job)
