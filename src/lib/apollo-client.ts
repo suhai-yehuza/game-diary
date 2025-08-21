@@ -56,6 +56,12 @@ export const apolloClient = new ApolloClient({
               return incoming;
             },
           },
+          reactions: {
+            keyArgs: ['targetId', 'targetType'],
+            merge(_existing: unknown, incoming: unknown): unknown {
+              return incoming;
+            },
+          },
         },
       },
       Comment: {

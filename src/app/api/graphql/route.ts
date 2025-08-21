@@ -22,6 +22,28 @@ const server = new ApolloServer({
 const handler = startServerAndCreateNextHandler(server, {
   context: async (req: NextRequest) => {
     try {
+      // Check for authentication bypass in development/test environments
+      const isAuthBypassEnabled =
+        process.env.API_MOCK_MODE === 'true' ||
+        process.env.E2E_AUTH_BYPASS === 'true' ||
+        process.env.PLAYWRIGHT_TEST === 'true' ||
+        process.env.NODE_ENV === 'test';
+
+      if (isAuthBypassEnabled) {
+        console.log('[AUTH BYPASS] Using mock authentication for GraphQL');
+        return {
+          req,
+          user: {
+            id: 'test-user-id',
+            email: 'test@example.com',
+            username: 'testuser',
+            firstName: 'Test',
+            lastName: 'User',
+          },
+          userId: 'test-user-id',
+        };
+      }
+
       const { userId } = await auth();
 
       // Add retry logic for currentUser to handle rate limiting

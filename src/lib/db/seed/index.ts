@@ -4,6 +4,7 @@ import { resolve } from 'path';
 import { config } from 'dotenv';
 
 import type { DistributionConfigPreset, ScenarioKey } from '@/lib/types';
+import { logger } from '@/lib/utils/logger';
 import {
   getConfigByEnvironment,
   getConfigByPreset,
@@ -108,14 +109,14 @@ function loadEnvironmentConfig(environment?: string) {
   try {
     const result = config({ path: envPath });
     if (result.error) {
-      console.warn(`⚠️  Could not load ${envFile}, using default .env file`);
+      logger.warn(`⚠️  Could not load ${envFile}, using default .env file`);
       // Fallback to default .env file
       config({ path: resolve(process.cwd(), '.env') });
     } else {
-      console.log(`📁 Loaded environment from: ${envFile}`);
+      logger.info(`📁 Loaded environment from: ${envFile}`);
     }
   } catch {
-    console.warn(`⚠️  Could not load ${envFile}, using default .env file`);
+    logger.warn(`⚠️  Could not load ${envFile}, using default .env file`);
     // Fallback to default .env file
     config({ path: resolve(process.cwd(), '.env') });
   }
@@ -125,7 +126,7 @@ function showHelp() {
   const validPresets = Object.keys(DISTRIBUTION_CONFIG_PRESETS)
     .map(p => p.toLowerCase())
     .join(', ');
-  console.log(`
+  logger.info(`
 🌱 Database Seeding Script
 
 Usage: pnpm run seed [options]

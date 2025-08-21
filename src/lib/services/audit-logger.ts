@@ -9,13 +9,14 @@ import type {
   IRLSAccessLogData,
 } from '@/lib/types/services.types';
 import { generateUUIDv7 } from '@/lib/utils/id-generator';
+import { logger } from '@/lib/utils/logger';
 
-// Simple logger for audit service
-const logger = {
-  info: (message: string, ...args: unknown[]) => console.log(`[AUDIT-INFO] ${message}`, ...args),
+// Simple logger for audit service - using the main logger
+const auditServiceLogger = {
+  info: (message: string, ...args: unknown[]) => logger.info(`[AUDIT-INFO] ${message}`, { args }),
   error: (message: string, ...args: unknown[]) =>
-    console.error(`[AUDIT-ERROR] ${message}`, ...args),
-  warn: (message: string, ...args: unknown[]) => console.warn(`[AUDIT-WARN] ${message}`, ...args),
+    logger.error(`[AUDIT-ERROR] ${message}`, undefined, { args }),
+  warn: (message: string, ...args: unknown[]) => logger.warn(`[AUDIT-WARN] ${message}`, { args }),
 };
 
 // Audit Logger Service
@@ -104,7 +105,7 @@ export class AuditLogger {
 
       await db()?.insert(audit_logs).values(auditData);
 
-      logger.info(`Audit log created: ${auditId} - ${data.action}`, {
+      auditServiceLogger.info(`Audit log created: ${auditId} - ${data.action}`, {
         auditId,
         category: data.category,
         action: data.action,
@@ -119,7 +120,7 @@ export class AuditLogger {
 
       return auditId;
     } catch (error: unknown) {
-      logger.error('Failed to create audit log:', error, {
+      auditServiceLogger.error('Failed to create audit log:', error as Error, {
         auditId,
         data,
       });
@@ -132,9 +133,9 @@ export class AuditLogger {
     try {
       await alertingService.sendSlackAlert(auditData);
     } catch (error: unknown) {
-      console.error('Failed to send critical alert:', error);
+      auditServiceLogger.error('Failed to send critical alert:', error as Error);
       // Fallback to console logging
-      console.error('[ALERT] CRITICAL AUDIT EVENT:', auditData);
+      auditServiceLogger.error('[ALERT] CRITICAL AUDIT EVENT:', error as Error, { auditData });
     }
   }
 
@@ -186,7 +187,7 @@ export class AuditLogger {
         complianceTags: 'key_rotation,encryption,security',
       });
 
-      logger.info(`Key rotation logged: ${rotationId}`, {
+      auditServiceLogger.info(`Key rotation logged: ${rotationId}`, {
         rotationId,
         keyId: data.keyId,
         environment: data.environment,
@@ -195,7 +196,7 @@ export class AuditLogger {
 
       return rotationId;
     } catch (error: unknown) {
-      logger.error('Failed to log key rotation:', error, {
+      auditServiceLogger.error('Failed to log key rotation:', error as Error, {
         rotationId,
         data,
       });
@@ -269,7 +270,7 @@ export class AuditLogger {
 
       return accessId;
     } catch (error: unknown) {
-      logger.error('Failed to log RLS access:', error, {
+      auditServiceLogger.error('Failed to log RLS access:', error as Error, {
         accessId,
         data,
       });
@@ -376,7 +377,7 @@ export class AuditLogger {
         .limit(filters.limit ?? 100);
       return result ?? [];
     } catch (error: unknown) {
-      logger.error('Failed to query audit logs:', error);
+      auditServiceLogger.error('Failed to query audit logs:', error as Error);
       throw error;
     }
   }

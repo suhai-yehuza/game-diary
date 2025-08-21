@@ -19,6 +19,15 @@ vi.mock('@apollo/client', () => {
   return {
     useQuery: mockUseQuery,
     gql: mockGql,
+    NetworkStatus: {
+      loading: 1,
+      setVariables: 2,
+      fetchMore: 3,
+      refetch: 4,
+      poll: 6,
+      ready: 7,
+      error: 8,
+    },
   };
 });
 
@@ -55,6 +64,7 @@ describe('Game Logs Hooks', () => {
         loading: false,
         error: null,
         data: null,
+        networkStatus: 7, // NetworkStatus.ready
         refetch: vi.fn(),
         fetchMore: vi.fn(),
       });
@@ -79,6 +89,7 @@ describe('Game Logs Hooks', () => {
         loading: false,
         error: null,
         data: null,
+        networkStatus: 7, // NetworkStatus.ready
         refetch: vi.fn(),
         fetchMore: vi.fn(),
       });
@@ -103,6 +114,7 @@ describe('Game Logs Hooks', () => {
         loading: false,
         error: mockError,
         data: null,
+        networkStatus: 7, // NetworkStatus.ready
         refetch: vi.fn(),
         fetchMore: vi.fn(),
       });
@@ -117,6 +129,7 @@ describe('Game Logs Hooks', () => {
         loading: true,
         error: null,
         data: null,
+        networkStatus: 1, // NetworkStatus.loading
         refetch: vi.fn(),
         fetchMore: vi.fn(),
       });
@@ -149,6 +162,7 @@ describe('Game Logs Hooks', () => {
         loading: false,
         error: null,
         data: mockData,
+        networkStatus: 7, // NetworkStatus.ready
         refetch: vi.fn(),
         fetchMore: mockFetchMore,
       });
@@ -163,6 +177,7 @@ describe('Game Logs Hooks', () => {
         }
       });
 
+      // Call loadMoreGameLogs
       await act(async () => {
         await result.current.loadMoreGameLogs();
       });
@@ -181,7 +196,6 @@ describe('Game Logs Hooks', () => {
     it('should not loadMoreGameLogs when hasNextPage is false', async () => {
       const mockFetchMore = vi.fn();
 
-      // Mock data with hasNextPage: false
       const mockData = {
         gameLogs: {
           edges: [{ node: { id: '1', notes: 'Game 1' } }],
@@ -194,6 +208,7 @@ describe('Game Logs Hooks', () => {
         loading: false,
         error: null,
         data: mockData,
+        networkStatus: 7, // NetworkStatus.ready
         refetch: vi.fn(),
         fetchMore: mockFetchMore,
       });
@@ -208,6 +223,7 @@ describe('Game Logs Hooks', () => {
         }
       });
 
+      // Call loadMoreGameLogs
       await act(async () => {
         await result.current.loadMoreGameLogs();
       });
@@ -222,12 +238,14 @@ describe('Game Logs Hooks', () => {
         loading: true,
         error: null,
         data: null,
+        networkStatus: 1, // NetworkStatus.loading
         refetch: vi.fn(),
         fetchMore: mockFetchMore,
       });
 
       const { result } = renderHook(() => useGameLogs());
 
+      // Call loadMoreGameLogs
       await act(async () => {
         await result.current.loadMoreGameLogs();
       });
@@ -258,6 +276,7 @@ describe('Game Logs Hooks', () => {
         loading: false,
         error: null,
         data: mockData,
+        networkStatus: 7, // NetworkStatus.ready
         refetch: vi.fn(),
         fetchMore: mockFetchMore,
       });
@@ -272,6 +291,7 @@ describe('Game Logs Hooks', () => {
         }
       });
 
+      // Call loadMoreFriendsLogs
       await act(async () => {
         await result.current.loadMoreFriendsLogs();
       });
@@ -291,7 +311,7 @@ describe('Game Logs Hooks', () => {
       const mockRefetch = vi.fn().mockResolvedValue({
         data: {
           gameLogs: {
-            edges: [{ node: { id: '1', notes: 'Game 1' } }],
+            edges: [{ node: { id: '1', notes: 'Refetched Game' } }],
             totalCount: 1,
             pageInfo: { endCursor: 'cursor1', hasNextPage: false },
           },
@@ -302,12 +322,14 @@ describe('Game Logs Hooks', () => {
         loading: false,
         error: null,
         data: null,
+        networkStatus: 7, // NetworkStatus.ready
         refetch: mockRefetch,
         fetchMore: vi.fn(),
       });
 
       const { result } = renderHook(() => useGameLogs());
 
+      // Call refetch
       await act(async () => {
         await result.current.refetch();
       });
@@ -317,11 +339,13 @@ describe('Game Logs Hooks', () => {
 
     it('should handle onError callback with FORBIDDEN error', () => {
       const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
       (useQuery as any).mockReturnValue({
         loading: false,
         error: null,
         data: null,
+        networkStatus: 7, // NetworkStatus.ready
         refetch: vi.fn(),
         fetchMore: vi.fn(),
       });
@@ -338,10 +362,13 @@ describe('Game Logs Hooks', () => {
         }
       });
 
+      expect(consoleErrorSpy).toHaveBeenCalledWith('Game logs query error:', expect.any(Object));
       expect(consoleSpy).toHaveBeenCalledWith(
         'Authentication error in game logs query, user may not be authenticated'
       );
+
       consoleSpy.mockRestore();
+      consoleErrorSpy.mockRestore();
     });
 
     it('should handle onError callback with other error', () => {
@@ -351,6 +378,7 @@ describe('Game Logs Hooks', () => {
         loading: false,
         error: null,
         data: null,
+        networkStatus: 7, // NetworkStatus.ready
         refetch: vi.fn(),
         fetchMore: vi.fn(),
       });
@@ -366,20 +394,18 @@ describe('Game Logs Hooks', () => {
       });
 
       expect(consoleSpy).toHaveBeenCalledWith('Game logs query error:', expect.any(Error));
+
       consoleSpy.mockRestore();
     });
   });
 
   describe('useMyGameLogs', () => {
-    it('should be a function', () => {
-      expect(typeof useMyGameLogs).toBe('function');
-    });
-
     it('should return an object with expected properties', () => {
       (useQuery as any).mockReturnValue({
         loading: false,
         error: null,
         data: null,
+        networkStatus: 7, // NetworkStatus.ready
         refetch: vi.fn(),
         fetchMore: vi.fn(),
       });
@@ -387,8 +413,16 @@ describe('Game Logs Hooks', () => {
       const { result } = renderHook(() => useMyGameLogs('user123'));
 
       expect(result.current).toHaveProperty('gameLogs');
+      expect(result.current).toHaveProperty('friendsLogs');
       expect(result.current).toHaveProperty('loading');
       expect(result.current).toHaveProperty('error');
+      expect(result.current).toHaveProperty('gameLogsTotalCount');
+      expect(result.current).toHaveProperty('friendsLogsTotalCount');
+      expect(result.current).toHaveProperty('gameLogsHasNextPage');
+      expect(result.current).toHaveProperty('friendsLogsHasNextPage');
+      expect(result.current).toHaveProperty('loadMoreGameLogs');
+      expect(result.current).toHaveProperty('loadMoreFriendsLogs');
+      expect(result.current).toHaveProperty('refetch');
     });
 
     it('should handle undefined userId', () => {
@@ -396,15 +430,22 @@ describe('Game Logs Hooks', () => {
         loading: false,
         error: null,
         data: null,
+        networkStatus: 7, // NetworkStatus.ready
         refetch: vi.fn(),
         fetchMore: vi.fn(),
       });
 
-      const { result } = renderHook(() => useMyGameLogs());
+      renderHook(() => useMyGameLogs(undefined));
 
-      expect(result.current.gameLogs).toEqual([]);
-      expect(result.current.loading).toBe(false);
-      expect(result.current.error).toBe(null);
+      expect(useQuery).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          variables: {
+            filters: { userId: undefined },
+            pagination: { first: 20 },
+          },
+        })
+      );
     });
 
     it('should pass userId filter to useGameLogs', () => {
@@ -412,6 +453,7 @@ describe('Game Logs Hooks', () => {
         loading: false,
         error: null,
         data: null,
+        networkStatus: 7, // NetworkStatus.ready
         refetch: vi.fn(),
         fetchMore: vi.fn(),
       });
@@ -431,15 +473,12 @@ describe('Game Logs Hooks', () => {
   });
 
   describe('usePublicGameLogs', () => {
-    it('should be a function', () => {
-      expect(typeof usePublicGameLogs).toBe('function');
-    });
-
     it('should return an object with expected properties', () => {
       (useQuery as any).mockReturnValue({
         loading: false,
         error: null,
         data: null,
+        networkStatus: 7, // NetworkStatus.ready
         refetch: vi.fn(),
         fetchMore: vi.fn(),
       });
@@ -447,8 +486,16 @@ describe('Game Logs Hooks', () => {
       const { result } = renderHook(() => usePublicGameLogs());
 
       expect(result.current).toHaveProperty('gameLogs');
+      expect(result.current).toHaveProperty('friendsLogs');
       expect(result.current).toHaveProperty('loading');
       expect(result.current).toHaveProperty('error');
+      expect(result.current).toHaveProperty('gameLogsTotalCount');
+      expect(result.current).toHaveProperty('friendsLogsTotalCount');
+      expect(result.current).toHaveProperty('gameLogsHasNextPage');
+      expect(result.current).toHaveProperty('friendsLogsHasNextPage');
+      expect(result.current).toHaveProperty('loadMoreGameLogs');
+      expect(result.current).toHaveProperty('loadMoreFriendsLogs');
+      expect(result.current).toHaveProperty('refetch');
     });
 
     it('should pass public classification filter to useGameLogs', () => {
@@ -456,6 +503,7 @@ describe('Game Logs Hooks', () => {
         loading: false,
         error: null,
         data: null,
+        networkStatus: 7, // NetworkStatus.ready
         refetch: vi.fn(),
         fetchMore: vi.fn(),
       });
@@ -475,15 +523,12 @@ describe('Game Logs Hooks', () => {
   });
 
   describe('useFriendsGameLogs', () => {
-    it('should be a function', () => {
-      expect(typeof useFriendsGameLogs).toBe('function');
-    });
-
     it('should return an object with expected properties', () => {
       (useQuery as any).mockReturnValue({
         loading: false,
         error: null,
         data: null,
+        networkStatus: 7, // NetworkStatus.ready
         refetch: vi.fn(),
         fetchMore: vi.fn(),
       });
@@ -493,10 +538,10 @@ describe('Game Logs Hooks', () => {
       expect(result.current).toHaveProperty('logs');
       expect(result.current).toHaveProperty('loading');
       expect(result.current).toHaveProperty('error');
-      expect(result.current).toHaveProperty('totalCount');
       expect(result.current).toHaveProperty('hasNextPage');
       expect(result.current).toHaveProperty('loadMore');
       expect(result.current).toHaveProperty('refetch');
+      expect(result.current).toHaveProperty('totalCount');
     });
 
     it('should handle loadMore functionality', async () => {
@@ -522,6 +567,7 @@ describe('Game Logs Hooks', () => {
         loading: false,
         error: null,
         data: mockData,
+        networkStatus: 7, // NetworkStatus.ready
         refetch: vi.fn(),
         fetchMore: mockFetchMore,
       });
@@ -536,6 +582,7 @@ describe('Game Logs Hooks', () => {
         }
       });
 
+      // Call loadMore
       await act(async () => {
         await result.current.loadMore();
       });
@@ -550,7 +597,6 @@ describe('Game Logs Hooks', () => {
     it('should not loadMore when hasNextPage is false', async () => {
       const mockFetchMore = vi.fn();
 
-      // Mock data with hasNextPage: false
       const mockData = {
         friendsGameLogs: {
           edges: [{ node: { id: '1', notes: 'Friend Game 1' } }],
@@ -563,6 +609,7 @@ describe('Game Logs Hooks', () => {
         loading: false,
         error: null,
         data: mockData,
+        networkStatus: 7, // NetworkStatus.ready
         refetch: vi.fn(),
         fetchMore: mockFetchMore,
       });
@@ -577,6 +624,7 @@ describe('Game Logs Hooks', () => {
         }
       });
 
+      // Call loadMore
       await act(async () => {
         await result.current.loadMore();
       });
@@ -591,12 +639,14 @@ describe('Game Logs Hooks', () => {
         loading: true,
         error: null,
         data: null,
+        networkStatus: 1, // NetworkStatus.loading
         refetch: vi.fn(),
         fetchMore: mockFetchMore,
       });
 
       const { result } = renderHook(() => useFriendsGameLogs());
 
+      // Call loadMore
       await act(async () => {
         await result.current.loadMore();
       });
@@ -608,7 +658,7 @@ describe('Game Logs Hooks', () => {
       const mockRefetch = vi.fn().mockResolvedValue({
         data: {
           friendsGameLogs: {
-            edges: [{ node: { id: '1', notes: 'Friend Game 1' } }],
+            edges: [{ node: { id: '1', notes: 'Refetched Friend Game' } }],
             totalCount: 1,
             pageInfo: { endCursor: 'cursor1', hasNextPage: false },
           },
@@ -619,12 +669,14 @@ describe('Game Logs Hooks', () => {
         loading: false,
         error: null,
         data: null,
+        networkStatus: 7, // NetworkStatus.ready
         refetch: mockRefetch,
         fetchMore: vi.fn(),
       });
 
       const { result } = renderHook(() => useFriendsGameLogs());
 
+      // Call refetch
       await act(async () => {
         await result.current.refetch();
       });

@@ -3,6 +3,7 @@ import { drizzle } from 'drizzle-orm/neon-http';
 
 import type { Database, IDatabaseConfig } from '@/lib/types';
 import { isCI } from '@/lib/utils/env-loader';
+import { logger } from '@/lib/utils/logger';
 import * as schema from '@src/lib/db/schema';
 
 // Database connection pool configuration
@@ -40,12 +41,14 @@ class DatabaseManager {
 
         // Test the connection
         await this.db.execute('SELECT 1');
-        console.log('Database connection established successfully');
+        logger.info('Database connection established successfully');
         this.retryCount = 0; // Reset retry count on success
         return;
       } catch (error) {
         this.retryCount++;
-        console.warn(`Database connection attempt ${this.retryCount} failed:`, error);
+        logger.warn(`Database connection attempt ${this.retryCount} failed:`, {
+          error: error as Error,
+        });
 
         if (this.retryCount >= this.maxRetries) {
           throw new Error(`Failed to connect to database after ${this.maxRetries} attempts`);
@@ -88,7 +91,9 @@ const dbManager = new DatabaseManager({ connectionString });
 // Initialize database connection in all runtimes except explicit CI/test runners
 // Note: Production platforms like Vercel are NOT considered CI by our isCI().
 if (connectionString && !isCI()) {
-  dbManager.initialize().catch(console.error);
+  dbManager
+    .initialize()
+    .catch(error => logger.error('Database initialization failed:', error as Error));
 }
 
 // Export database instance for backward compatibility

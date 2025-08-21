@@ -3,6 +3,7 @@ import { sql } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { users } from '@/lib/db/schema';
 import { auditLogger } from '@/lib/services/audit-logger';
+import { logger } from '@/lib/utils/logger';
 
 // RLS Context Manager
 export class RLSContextManager {
@@ -35,7 +36,7 @@ export class RLSContextManager {
         details: { event: 'setUserContext' },
       });
     } catch (error) {
-      console.error('Failed to set user context for RLS:', error);
+      logger.error('Failed to set user context for RLS:', error as Error);
       // Continue without RLS context if it fails
     }
   }
@@ -44,11 +45,11 @@ export class RLSContextManager {
   private logRLSContextSet(userId: string): void {
     try {
       // In a real implementation, this would call the audit logger
-      console.log(
+      logger.info(
         `AUDIT: RLS context set - User ID: ${userId}, Timestamp: ${new Date().toISOString()}`
       );
     } catch (error) {
-      console.error('Failed to log RLS context setting:', error);
+      logger.error('Failed to log RLS context setting:', error as Error);
     }
   }
 
@@ -73,7 +74,7 @@ export class RLSContextManager {
         });
       }
     } catch (error) {
-      console.error('Failed to clear user context for RLS:', error);
+      logger.error('Failed to clear user context for RLS:', error as Error);
     }
   }
 
@@ -81,11 +82,11 @@ export class RLSContextManager {
   private logRLSContextCleared(userId: string): void {
     try {
       // In a real implementation, this would call the audit logger
-      console.log(
+      logger.info(
         `AUDIT: RLS context cleared - User ID: ${userId}, Timestamp: ${new Date().toISOString()}`
       );
     } catch (error) {
-      console.error('Failed to log RLS context clearing:', error);
+      logger.error('Failed to log RLS context clearing:', error as Error);
     }
   }
 
@@ -132,7 +133,7 @@ export async function checkRLSConfiguration(): Promise<boolean> {
     await rlsContext.clearUserContext();
     return true;
   } catch (error) {
-    console.error('RLS configuration check failed:', error);
+    logger.error('RLS configuration check failed:', error as Error);
     return false;
   }
 }

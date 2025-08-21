@@ -1,6 +1,7 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
 
+import { logger } from '@/lib/utils/logger';
 import { isAuthCallbackServer } from '@/lib/utils/sso-utils';
 
 const isAuthRoute = (createRouteMatcher as (routes: string[]) => (req: Request) => boolean)([
@@ -59,7 +60,7 @@ export const middleware = (
     process.env.VERCEL_AUTOMATION_BYPASS_SECRET &&
     bypassSecret === process.env.VERCEL_AUTOMATION_BYPASS_SECRET
   ) {
-    console.log('🔐 Vercel automation bypass active - skipping all auth checks');
+    logger.info('🔐 Vercel automation bypass active - skipping all auth checks');
     return NextResponse.next();
   }
 

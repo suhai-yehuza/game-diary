@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 
 import { db } from '@/lib/db';
 import { nba_games, comments, reactions } from '@/lib/db/schema';
@@ -274,28 +274,64 @@ export const reactionMutationResolvers = {
     }
 
     try {
-      const reactionId = generateUUIDv7();
-      const newReaction = await db()
-        ?.insert(reactions)
-        .values({
-          id: reactionId,
-          user_id: context.user.id,
-          target_id: args.input.targetId,
-          target_type: args.input.targetType as keyof typeof TARGET_TYPES,
-          emoji: args.input.emoji as (typeof REACTION_EMOJIS)[keyof typeof REACTION_EMOJIS],
-        })
-        .returning();
+      // First, check if there's an existing soft-deleted reaction we can reactivate
+      const existingReaction = await db()?.query.reactions.findFirst({
+        where: and(
+          eq(reactions.user_id, context.user.id),
+          eq(reactions.target_id, args.input.targetId),
+          eq(reactions.target_type, args.input.targetType as keyof typeof TARGET_TYPES),
+          eq(
+            reactions.emoji,
+            args.input.emoji as (typeof REACTION_EMOJIS)[keyof typeof REACTION_EMOJIS]
+          )
+        ),
+      });
+
+      let reactionResult;
+
+      if (existingReaction?.deleted_at) {
+        // Reactivate the soft-deleted reaction
+        const reactivatedReaction = await db()
+          ?.update(reactions)
+          .set({
+            deleted_at: null,
+            updated_at: new Date(),
+          })
+          .where(eq(reactions.id, existingReaction.id))
+          .returning();
+
+        reactionResult = reactivatedReaction?.[0];
+      } else if (!existingReaction) {
+        // Create a new reaction only if none exists
+        const reactionId = generateUUIDv7();
+        const newReaction = await db()
+          ?.insert(reactions)
+          .values({
+            id: reactionId,
+            user_id: context.user.id,
+            target_id: args.input.targetId,
+            target_type: args.input.targetType as keyof typeof TARGET_TYPES,
+            emoji: args.input.emoji as (typeof REACTION_EMOJIS)[keyof typeof REACTION_EMOJIS],
+          })
+          .returning();
+
+        reactionResult = newReaction?.[0];
+      } else {
+        // Reaction already exists and is not deleted - this shouldn't happen in normal flow
+        throw new Error('Reaction already exists');
+      }
 
       return {
-        reaction: newReaction?.[0]
+        reaction: reactionResult
           ? {
-              id: newReaction[0].id,
-              emoji: newReaction[0].emoji,
-              user_id: newReaction[0].user_id,
-              target_id: newReaction[0].target_id,
-              target_type: newReaction[0].target_type,
-              created_at: newReaction[0].created_at,
-              updated_at: newReaction[0].updated_at,
+              id: reactionResult.id,
+              emoji: reactionResult.emoji,
+              user_id: reactionResult.user_id,
+              target_id: reactionResult.target_id,
+              target_type: reactionResult.target_type,
+              created_at: reactionResult.created_at,
+              updated_at: reactionResult.updated_at,
+              deleted_at: reactionResult.deleted_at,
               user: {
                 id: context.user.id,
                 username: context.user.username || '',
@@ -333,7 +369,14 @@ export const reactionMutationResolvers = {
         throw new AuthorizationError('Access denied to this reaction');
       }
 
-      await db()?.delete(reactions).where(eq(reactions.id, args.id));
+      // Soft delete by setting deleted_at
+      await db()
+        ?.update(reactions)
+        .set({
+          deleted_at: new Date(),
+          updated_at: new Date(),
+        })
+        .where(eq(reactions.id, args.id));
 
       return {
         success: true,

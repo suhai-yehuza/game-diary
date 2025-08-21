@@ -199,6 +199,7 @@ export const CREATE_REACTION = gql`
         target_type
         created_at
         updated_at
+        deleted_at
         user {
           id
           username

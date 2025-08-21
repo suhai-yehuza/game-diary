@@ -55,17 +55,17 @@ async function runCanonicalReset(env: string) {
 
   const databaseUrl = process.env.DATABASE_URL || '';
   if (!databaseUrl) {
-    console.error(`❌ No DATABASE_URL found for ${env} environment`);
+    logger.error(`❌ No DATABASE_URL found for ${env} environment`);
     process.exit(1);
   }
   const migrationFile = join(process.cwd(), 'src/lib/db/migrations/000_full_schema_reset.sql');
   if (!existsSync(migrationFile)) {
     throw new Error(`Migration file not found: ${migrationFile}`);
   }
-  console.log(`📄 Running canonical migration: ${migrationFile}`);
+  logger.info(`📄 Running canonical migration: ${migrationFile}`);
   const command = `psql "${databaseUrl}" -f "${migrationFile}"`;
   execSync(command, { stdio: 'inherit', encoding: 'utf8' });
-  console.log('✅ Canonical schema reset completed successfully!');
+  logger.info('✅ Canonical schema reset completed successfully!');
 }
 
 const execAsync = promisify(exec);
@@ -1260,7 +1260,7 @@ async function main(): Promise<void> {
       }
     }
     if (!['canonical', 'drizzle'].includes(mode)) {
-      console.log('Usage: pnpm db:reset --mode=canonical|drizzle --env=dev|staging|prod');
+      logger.info('Usage: pnpm db:reset --mode=canonical|drizzle --env=dev|staging|prod');
       process.exit(1);
     }
     if (mode === 'canonical') {

@@ -109,6 +109,7 @@ export const REACTION_FRAGMENT = gql`
     target_type
     created_at
     updated_at
+    deleted_at
     user {
       ...UserSummaryFragment
     }

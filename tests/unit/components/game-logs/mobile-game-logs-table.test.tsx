@@ -18,6 +18,7 @@ vi.mock('@/hooks/use-game-logs', () => ({
   useGameLogs: vi.fn(() => ({
     gameLogs: [],
     loading: false,
+    loadingMore: false,
     error: null,
     refetch: vi.fn(),
   })),
@@ -83,6 +84,7 @@ const defaultProps = {
   friendsLogsTotalCount: 0,
   loadMoreFriendsLogs: vi.fn() as () => Promise<void>,
   loading: false,
+  loadingMore: false,
   error: null as Error | null,
   refetch: vi.fn() as any,
 };
