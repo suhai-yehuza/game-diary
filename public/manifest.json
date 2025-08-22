@@ -1,0 +1,52 @@
+{
+  "name": "Game Diary",
+  "short_name": "Game Diary",
+  "description": "Track your gaming watching experiences, connect with fellow sports fans, and share your thoughts on live games across NBA, NFL, MLB, NHL, and MLS.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#1e40af",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "en",
+  "categories": ["sports", "social", "entertainment"],
+  "icons": [
+    {
+      "src": "/logos/gamelog-large.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/favicon.ico",
+      "sizes": "16x16 32x32",
+      "type": "image/x-icon"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Live Games",
+      "short_name": "Live",
+      "description": "View live games",
+      "url": "/sports/live",
+      "icons": [
+        {
+          "src": "/icons/globe.svg",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "All Sports",
+      "short_name": "Sports",
+      "description": "Browse all sports",
+      "url": "/sports/all-sports",
+      "icons": [
+        {
+          "src": "/icons/trophy.svg",
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ]
+}

@@ -78,6 +78,29 @@ body {
   background: rgb(var(--background-rgb));
 }
 
+/* Carousel animations */
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
 /* Modern Mobile Optimizations */
 @media (max-width: 768px) {
   /* Enhanced touch interactions */
@@ -1139,4 +1162,32 @@ footer a:hover {
   height: 100%;
   background: linear-gradient(to right, transparent, white 50%);
   pointer-events: none;
+}
+
+/* Floating components spacing and overlap prevention */
+@media (max-width: 640px) {
+  /* Ensure floating components have proper spacing */
+  .floating-game-logs {
+    margin-bottom: 24px;
+  }
+
+  .floating-games {
+    margin-top: 24px;
+  }
+
+  /* Prevent any overlap with main content */
+  .main-content {
+    padding-bottom: 120px;
+  }
+}
+
+/* Ensure floating components never overlap */
+.floating-component {
+  position: fixed;
+  z-index: 40;
+}
+
+.floating-component-secondary {
+  position: fixed;
+  z-index: 30;
 }

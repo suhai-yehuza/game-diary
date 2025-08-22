@@ -43,7 +43,7 @@ export const MOCK_NBA_GAMES: IGamesApiResponse = {
     league: 'standard',
   },
   errors: [],
-  results: 5,
+  results: 7,
   response: [
     {
       id: 1234567,
@@ -429,6 +429,146 @@ export const MOCK_NBA_GAMES: IGamesApiResponse = {
       timesTied: 8,
       leadChanges: 15,
       nugget: 'Suns win in overtime thriller',
+    },
+    {
+      id: 1234572,
+      league: 'NBA',
+      season: 2024,
+      date: {
+        start: '2024-12-25T19:00:00.000Z',
+        end: '2024-12-25T21:45:00.000Z',
+        duration: '2:45',
+      },
+      stage: 2,
+      status: {
+        clock: undefined,
+        halftime: false,
+        short: 'FT',
+        long: 'Match Finished',
+      },
+      periods: {
+        current: 4,
+        total: 4,
+        endOfPeriod: true,
+      },
+      arena: {
+        name: 'Kia Center',
+        city: 'Orlando',
+        state: 'FL',
+        country: 'USA',
+      },
+      teams: {
+        home: {
+          id: 587,
+          name: 'Orlando Magic',
+          nickname: 'Magic',
+          code: 'ORL',
+          logo: 'https://media.api-sports.io/basketball/teams/587.png',
+        },
+        visitors: {
+          id: 583,
+          name: 'New York Knicks',
+          nickname: 'Knicks',
+          code: 'NYK',
+          logo: 'https://media.api-sports.io/basketball/teams/583.png',
+        },
+      },
+      scores: {
+        home: {
+          win: 12,
+          loss: 15,
+          series: {
+            win: 0,
+            loss: 0,
+          },
+          linescore: [28, 32, 25, 30],
+          points: 115,
+        },
+        visitors: {
+          win: 15,
+          loss: 12,
+          series: {
+            win: 0,
+            loss: 0,
+          },
+          linescore: [30, 28, 32, 28],
+          points: 118,
+        },
+      },
+      officials: ['David Johnson', 'Sarah Miller', 'Robert Chen'],
+      timesTied: 5,
+      leadChanges: 12,
+      nugget: 'Knicks edge Magic in Christmas Day thriller',
+    },
+    {
+      id: 1234573,
+      league: 'NBA',
+      season: 2024,
+      date: {
+        start: '2024-12-28T20:00:00.000Z',
+        end: '2024-12-28T22:45:00.000Z',
+        duration: '2:45',
+      },
+      stage: 2,
+      status: {
+        clock: undefined,
+        halftime: false,
+        short: 'FT',
+        long: 'Match Finished',
+      },
+      periods: {
+        current: 4,
+        total: 4,
+        endOfPeriod: true,
+      },
+      arena: {
+        name: 'Rocket Mortgage FieldHouse',
+        city: 'Cleveland',
+        state: 'OH',
+        country: 'USA',
+      },
+      teams: {
+        home: {
+          id: 588,
+          name: 'Cleveland Cavaliers',
+          nickname: 'Cavaliers',
+          code: 'CLE',
+          logo: 'https://media.api-sports.io/basketball/teams/588.png',
+        },
+        visitors: {
+          id: 587,
+          name: 'Orlando Magic',
+          nickname: 'Magic',
+          code: 'ORL',
+          logo: 'https://media.api-sports.io/basketball/teams/587.png',
+        },
+      },
+      scores: {
+        home: {
+          win: 13,
+          loss: 14,
+          series: {
+            win: 0,
+            loss: 0,
+          },
+          linescore: [25, 30, 28, 32],
+          points: 115,
+        },
+        visitors: {
+          win: 14,
+          loss: 13,
+          series: {
+            win: 0,
+            loss: 0,
+          },
+          linescore: [28, 32, 25, 30],
+          points: 115,
+        },
+      },
+      officials: ['Lisa Thompson', 'Mark Davis', 'Kevin Wilson'],
+      timesTied: 3,
+      leadChanges: 8,
+      nugget: 'Magic and Cavaliers battle to overtime',
     },
   ],
 };

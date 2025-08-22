@@ -2,9 +2,9 @@ import { eq, and } from 'drizzle-orm';
 
 import { db } from '@/lib/db';
 import { nba_games, comments, reactions } from '@/lib/db/schema';
-import type { REACTION_EMOJIS } from '@/lib/db/schema/constants';
 import { AuthorizationError } from '@/lib/graphql/errors';
-import type { TARGET_TYPES, GraphQLContext } from '@/lib/types';
+import type { GraphQLContext } from '@/lib/types';
+import type { REACTION_EMOJIS, TARGET_TYPES } from '@/lib/types/constant.types';
 import { generateUUIDv7 } from '@/lib/utils/id-generator';
 
 // Game Mutations
@@ -317,8 +317,8 @@ export const reactionMutationResolvers = {
 
         reactionResult = newReaction?.[0];
       } else {
-        // Reaction already exists and is not deleted - this shouldn't happen in normal flow
-        throw new Error('Reaction already exists');
+        // Reaction already exists and is not deleted - return the existing reaction
+        reactionResult = existingReaction;
       }
 
       return {
@@ -345,7 +345,8 @@ export const reactionMutationResolvers = {
           : null,
         errors: [],
       };
-    } catch {
+    } catch (error) {
+      console.error('Create reaction error:', error);
       return {
         reaction: null,
         errors: [{ message: 'Failed to create reaction', code: 'CREATE_REACTION_ERROR' }],

@@ -182,7 +182,6 @@
     "test:e2e:mock-server": "./scripts/validation-pipeline.sh e2e run mock-server",
     "test:e2e:mock-verification": "./scripts/validation-pipeline.sh e2e run mock-verification",
     "test:e2e:navigation": "./scripts/validation-pipeline.sh e2e run navigation",
-    "test:e2e:optimize": "./scripts/validation-pipeline.sh dev --skip-db-tests",
     "test:e2e:pages": "./scripts/validation-pipeline.sh e2e run full",
     "test:e2e:pages:auth": "./scripts/validation-pipeline.sh e2e run pages:auth",
     "test:e2e:pages:content": "./scripts/validation-pipeline.sh e2e run pages:content",

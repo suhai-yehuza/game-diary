@@ -4,14 +4,38 @@ import { useState, useRef, useEffect, useCallback, memo } from 'react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/app/components/ui/Popover';
 import { useReactions } from '@/hooks/use-reactions';
 import type { IReactionPickerProps } from '@/lib/types';
+import { REACTION_EMOJIS } from '@/lib/types/constant.types';
 
 import { MemoizedReactionButton } from './MemoizedReactionButton';
 
-// Emoji categories for better organization
+// Emoji categories for better organization - only using supported emojis from REACTION_EMOJIS
 const EMOJI_CATEGORIES = {
-  Reactions: ['👍', '👎', '❤️', '😂', '😮', '😢', '😠', '🤔'],
-  Sports: ['⚽', '🏀', '🏈', '⚾', '🎾', '🏌️', '🏆', '🎯'],
-  Actions: ['🔥', '💪', '👏', '🚀', '🐐', '💯', '✨', '🎉'],
+  Reactions: [
+    REACTION_EMOJIS.THUMBS_UP,
+    REACTION_EMOJIS.THUMBS_DOWN,
+    REACTION_EMOJIS.LOVE,
+    REACTION_EMOJIS.LAUGH,
+    REACTION_EMOJIS.WOW,
+    REACTION_EMOJIS.SAD,
+    REACTION_EMOJIS.ANGRY,
+  ],
+  Sports: [
+    REACTION_EMOJIS.SOCCER,
+    REACTION_EMOJIS.BASKETBALL,
+    REACTION_EMOJIS.FOOTBALL,
+    REACTION_EMOJIS.BASEBALL,
+    REACTION_EMOJIS.TENNIS,
+    REACTION_EMOJIS.GOLF,
+  ],
+  Actions: [
+    REACTION_EMOJIS.FIRE,
+    REACTION_EMOJIS.MUSCLE,
+    REACTION_EMOJIS.CLAP,
+    REACTION_EMOJIS.ROCKET,
+    REACTION_EMOJIS.GOAT,
+    REACTION_EMOJIS.BULLSEYE,
+    REACTION_EMOJIS.EYES,
+  ],
 };
 
 export const ReactionPicker = memo(function ReactionPicker({
