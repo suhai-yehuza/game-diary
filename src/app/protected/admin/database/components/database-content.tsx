@@ -198,8 +198,8 @@ export function AdminDatabaseContent() {
         </CardHeader>
         <CardContent>
           {error[tableName] && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
-              <p className="text-red-700 text-sm">{error[tableName]}</p>
+            <div className="mb-4 p-3 bg-semantic-error/10 border border-semantic-error/20 rounded-md">
+              <p className="text-semantic-error text-sm">{error[tableName]}</p>
             </div>
           )}
 
@@ -255,7 +255,7 @@ export function AdminDatabaseContent() {
                                 ? String(row.id)
                                 : String(index)
                             }
-                            className="border-b hover:bg-gray-50"
+                            className="border-b hover:bg-neutral-50"
                           >
                             {config.fields.map(field => (
                               <td key={field} className="p-2 text-xs">
@@ -319,20 +319,20 @@ export function AdminDatabaseContent() {
           onValueChange={setActiveTab}
           className="flex-1 flex flex-col min-h-0"
         >
-          <TabsList className="flex flex-col md:flex-row w-full md:space-x-3 space-y-2 md:space-y-0 bg-transparent p-0 border-0 mb-4">
+          <TabsList className="flex flex-col md:flex-row w-full md:space-x-2 space-y-2 md:space-y-0 bg-transparent p-0 border-0 mb-4">
             {Object.entries(tableConfigs).map(([key, config]) => (
               <TabsTrigger
                 key={key}
                 value={key}
-                className="flex-1 flex items-center gap-2 min-w-0 truncate justify-center px-5 py-2 mx-0 md:mx-1 rounded-md border transition-all duration-200
-            bg-gray-200 text-gray-800 border-gray-300 shadow-sm
-            dark:bg-neutral-700 dark:text-neutral-200 dark:border-neutral-600
-            hover:bg-gray-300 hover:text-blue-900 dark:hover:bg-neutral-600 dark:hover:text-blue-200
-            data-[state=active]:bg-blue-200 data-[state=active]:text-blue-900 data-[state=active]:border-blue-400 data-[state=active]:shadow-md
-            dark:data-[state=active]:bg-blue-800 dark:data-[state=active]:text-blue-100 dark:data-[state=active]:border-blue-700 dark:data-[state=active]:shadow-md"
+                className="flex items-center gap-2 px-4 py-2 mx-1 rounded-md border transition-all duration-200
+            bg-neutral-100 text-neutral-700 border-neutral-200 shadow-sm
+            dark:bg-neutral-800 dark:text-neutral-300 dark:border-neutral-600
+            hover:bg-neutral-200 hover:text-neutral-900 dark:hover:bg-neutral-700 dark:hover:text-neutral-100
+            data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:border-blue-600 data-[state=active]:shadow-md
+            dark:data-[state=active]:bg-blue-500 dark:data-[state=active]:text-white dark:data-[state=active]:border-blue-500 dark:data-[state=active]:shadow-md"
               >
                 <config.icon className="h-4 w-4" />
-                <span className="hidden sm:inline truncate-white">{config.title}</span>
+                <span className="hidden sm:inline">{config.title}</span>
               </TabsTrigger>
             ))}
           </TabsList>

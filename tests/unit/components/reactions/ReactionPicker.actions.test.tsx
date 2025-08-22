@@ -20,6 +20,21 @@ vi.mock('@/hooks/use-reactions', () => ({
   }),
 }));
 
+// Mock the MemoizedReactionButton component
+vi.mock('@/app/components/reactions/MemoizedReactionButton', () => ({
+  MemoizedReactionButton: ({ group, onClick, loading, showCount }: any) => (
+    <button
+      onClick={() => onClick(group.emoji)}
+      disabled={loading}
+      data-testid={`reaction-${group.emoji}`}
+      className={showCount ? 'with-count' : 'without-count'}
+      aria-label={`React with ${group.count} ${group.emoji} emoji`}
+    >
+      {group.emoji} {showCount && `(${group.count})`}
+    </button>
+  ),
+}));
+
 // Mock ResizeObserver to prevent errors in test environment
 global.ResizeObserver = vi.fn().mockImplementation(() => ({
   observe: vi.fn(),
@@ -35,7 +50,7 @@ describe('ReactionPicker interactions', () => {
   it('calls toggleReaction when clicking an existing reaction', async () => {
     render(<ReactionPicker targetId="t1" targetType={ParentType.GameLog} />);
 
-    const existing = screen.getByLabelText('React with 1 thumbs up emoji');
+    const existing = screen.getByLabelText('React with 1 👍 emoji');
     fireEvent.click(existing);
 
     await waitFor(() => {
@@ -49,6 +64,7 @@ describe('ReactionPicker interactions', () => {
     fireEvent.click(screen.getByLabelText('Add reaction'));
 
     await waitFor(() => {
+      expect(screen.getByText('Add Reaction')).toBeInTheDocument();
       expect(screen.getAllByText('❤️').length).toBeGreaterThan(0);
     });
 
@@ -66,15 +82,15 @@ describe('ReactionPicker interactions', () => {
     fireEvent.click(screen.getByLabelText('Add reaction'));
 
     await waitFor(() => {
-      expect(screen.getByText('Reactions')).toBeInTheDocument();
+      expect(screen.getByText('Add Reaction')).toBeInTheDocument();
     });
 
     // Press Escape to close
     fireEvent.keyDown(document, { key: 'Escape' });
 
     await waitFor(() => {
-      // One of the emojis from default tab should disappear when closed
-      expect(screen.queryByText('❤️')).not.toBeInTheDocument();
+      // The popover should close
+      expect(screen.queryByText('Add Reaction')).not.toBeInTheDocument();
     });
   });
 });

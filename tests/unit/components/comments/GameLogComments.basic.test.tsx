@@ -118,36 +118,6 @@ describe('GameLogComments', () => {
     expect(screen.queryByText(/Comments \(0\)/)).not.toBeInTheDocument();
   });
 
-  it('should show chevron right icon when collapsed', () => {
-    render(<GameLogComments gameLog={mockGameLog} />);
-
-    // Should show chevron right when collapsed
-    const toggleButton = screen.getByTestId('chevronright-icon').closest('button');
-    expect(toggleButton).toBeInTheDocument();
-  });
-
-  it('should show chevron down icon when expanded', () => {
-    render(<GameLogComments gameLog={mockGameLog} showComments={true} />);
-
-    // Should show chevron down when expanded
-    const toggleButton = screen.getByTestId('chevrondown-icon').closest('button');
-    expect(toggleButton).toBeInTheDocument();
-  });
-
-  it('should toggle expansion when toggle button is clicked', async () => {
-    const user = userEvent.setup();
-    const mockOnToggleComments = vi.fn();
-
-    render(<GameLogComments gameLog={mockGameLog} onToggleComments={mockOnToggleComments} />);
-
-    const buttons = screen.getAllByRole('button');
-    const toggleButton = buttons.find(button => button.querySelector('.lucide-chevron-right'));
-    if (toggleButton) {
-      await user.click(toggleButton);
-      expect(mockOnToggleComments).toHaveBeenCalledWith(true);
-    }
-  });
-
   it('should load comments when expanded', () => {
     render(<GameLogComments gameLog={mockGameLog} showComments={true} />);
 

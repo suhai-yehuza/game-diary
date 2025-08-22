@@ -1,10 +1,9 @@
 'use client';
 
-import { Search, X } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useState, useEffect, Suspense, useRef } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 
-import { useMobileDetection } from '@/app/components/layout/components/SearchBar';
+import { useMobileDetection, SearchBar } from '@/app/components/layout/components/SearchBar';
 import { SearchEmptyState, SearchResults } from '@/app/components/search';
 import type { ISearchResponse } from '@/lib/types';
 
@@ -12,19 +11,12 @@ function SearchPageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const isMobile = useMobileDetection();
-  const inputRef = useRef<HTMLInputElement>(null);
   const query = searchParams.get('q') ?? '';
-  const [searchInput, setSearchInput] = useState(query);
+  const [_searchInput, _setSearchInput] = useState(query);
   const [results, setResults] = useState<ISearchResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  // Auto-focus on mobile
-  useEffect(() => {
-    if (isMobile && inputRef.current) {
-      inputRef.current.focus();
-    }
-  }, [isMobile]);
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
 
   useEffect(() => {
     if (query && query.length >= 2) {
@@ -54,7 +46,7 @@ function SearchPageContent() {
     }
   };
 
-  const handleSearch = (searchQuery: string) => {
+  const _handleSearch = (searchQuery: string) => {
     if (!searchQuery.trim()) return;
 
     const params = new URLSearchParams(searchParams);
@@ -62,66 +54,27 @@ function SearchPageContent() {
     router.push(`/search?${params.toString()}`);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    handleSearch(searchInput);
-  };
-
-  const handleClear = () => {
-    setSearchInput('');
-    inputRef.current?.focus();
-  };
-
-  const handleBack = () => {
-    router.back();
-  };
+  // Auto-focus search on mobile when page loads
+  useEffect(() => {
+    if (isMobile && !query) {
+      setIsSearchFocused(true);
+    }
+  }, [isMobile, query]);
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Mobile Search Header */}
-      <div className="sticky top-0 z-40 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
-        <div className="flex items-center px-4 py-3">
-          {/* Back Button (mobile only) */}
-          {isMobile && (
-            <button
-              onClick={handleBack}
-              className="mr-3 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-              aria-label="Go back"
-            >
-              <X className="w-5 h-5 text-white" />
-            </button>
-          )}
-
-          {/* Search Input */}
-          <form onSubmit={handleSubmit} className="flex-1">
-            <div className="relative">
-              {!searchInput && (
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500 dark:text-gray-400" />
-              )}
-              <input
-                ref={inputRef}
-                type="search"
-                value={searchInput}
-                onChange={e => setSearchInput(e.target.value)}
-                placeholder="Search games, teams, players..."
-                className={`w-full py-3 bg-white dark:bg-gray-800 rounded-xl border border-gray-300 dark:border-gray-600 outline-none text-base text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 ${searchInput ? 'pl-3 pr-10' : 'pl-10 pr-10'}`}
-                autoComplete="off"
-                spellCheck="false"
-              />
-              {searchInput && (
-                <button
-                  type="button"
-                  onClick={handleClear}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                  aria-label="Clear search"
-                >
-                  <X className="w-4 h-4 text-white" />
-                </button>
-              )}
-            </div>
-          </form>
+      {/* Search Input - Show prominently on mobile or when no query */}
+      {(isMobile || !query) && (
+        <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border px-4 py-4">
+          <div className="max-w-2xl mx-auto">
+            <SearchBar
+              autoFocus={isMobile && !query}
+              isFocused={isSearchFocused}
+              setIsFocused={setIsSearchFocused}
+            />
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Search Results */}
       <div className="px-4 py-6">
@@ -143,8 +96,8 @@ function SearchPageContent() {
         {/* Search Results */}
         {results && query && <SearchResults results={results} query={query} />}
 
-        {/* Empty State */}
-        {!query && !loading && <SearchEmptyState hasQuery={false} />}
+        {/* Empty State - Only show when no query and not on mobile (mobile has search input above) */}
+        {!query && !loading && !isMobile && <SearchEmptyState hasQuery={false} />}
       </div>
     </div>
   );
@@ -153,18 +106,6 @@ function SearchPageContent() {
 function SearchPageFallback() {
   return (
     <div className="min-h-screen bg-background">
-      <div className="sticky top-0 z-40 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
-        <div className="flex items-center px-4 py-3">
-          <div className="flex-1">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-              <div className="w-full pl-10 pr-10 py-3 bg-gray-100 dark:bg-gray-800 rounded-xl">
-                <div className="h-5 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
       <div className="flex items-center justify-center py-12">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
         <span className="ml-2 text-muted-foreground">Loading search...</span>

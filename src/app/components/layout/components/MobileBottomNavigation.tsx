@@ -79,7 +79,7 @@ export function MobileBottomNavigation() {
 
   return (
     <nav
-      className={`fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 transition-transform duration-300 ease-in-out ${
+      className={`fixed bottom-0 left-0 right-0 z-50 bg-neutral-50 dark:bg-neutral-900 border-t border-neutral-200 dark:border-neutral-700 transition-transform duration-300 ease-in-out ${
         isVisible ? 'translate-y-0' : 'translate-y-full'
       }`}
       style={{
@@ -98,8 +98,8 @@ export function MobileBottomNavigation() {
                 onClick={action}
                 className={`flex flex-col items-center justify-center min-h-[56px] min-w-[56px] rounded-lg transition-all duration-200 ${
                   isMenuActive
-                    ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20'
-                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'
+                    ? 'text-brand-primary dark:text-brand-primary bg-brand-primary/10 dark:bg-brand-primary/20'
+                    : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100'
                 }`}
                 aria-label={label}
                 aria-expanded={isMenuActive}
@@ -120,8 +120,8 @@ export function MobileBottomNavigation() {
               href={href}
               className={`flex flex-col items-center justify-center min-h-[56px] min-w-[56px] rounded-lg transition-all duration-200 ${
                 active
-                  ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20'
-                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'
+                  ? 'text-brand-primary dark:text-brand-primary bg-brand-primary/10 dark:bg-brand-primary/20'
+                  : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100'
               }`}
               onClick={handleTouch}
               aria-label={label}

@@ -33,22 +33,24 @@ export function GameSearchResult({ game }: IGameSearchResultProps) {
 
   return (
     <div
-      className="flex items-center space-x-4 p-4 bg-card border rounded-lg hover:bg-accent/50 transition-colors cursor-pointer"
+      className="flex items-center space-x-4 p-4 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors cursor-pointer"
       onClick={handleClick}
     >
       <div className="flex-shrink-0">
-        <div className="w-10 h-10 bg-orange-100 dark:bg-orange-900 rounded-full flex items-center justify-center">
-          <Trophy className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+        <div className="w-10 h-10 bg-accent-orange/10 dark:bg-accent-orange/20 rounded-full flex items-center justify-center">
+          <Trophy className="w-5 h-5 text-accent-orange" />
         </div>
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center space-x-2">
-          <h3 className="text-sm font-medium text-foreground truncate-white">{gameTitle}</h3>
-          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200">
+          <h3 className="text-sm font-medium text-neutral-900 dark:text-neutral-100 truncate">
+            {gameTitle}
+          </h3>
+          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-accent-orange/10 text-accent-orange border border-accent-orange/20">
             Game
           </span>
         </div>
-        <div className="flex items-center space-x-4 text-sm text-muted-foreground">
+        <div className="flex items-center space-x-4 text-sm text-neutral-600 dark:text-neutral-400">
           <span className="flex items-center space-x-1">
             <Calendar className="w-3 h-3" />
             <span>{game.date ? formatDate(game.date) : 'Unknown Date'}</span>
@@ -75,7 +77,7 @@ export function GameSearchResult({ game }: IGameSearchResultProps) {
             ) : null;
           })()}
         </div>
-        <div className="flex items-center space-x-2 text-xs text-muted-foreground mt-1">
+        <div className="flex items-center space-x-2 text-xs text-neutral-500 dark:text-neutral-500 mt-1">
           <span className="capitalize">
             {(game.status as string)?.toLowerCase() ?? 'Unknown Status'}
           </span>

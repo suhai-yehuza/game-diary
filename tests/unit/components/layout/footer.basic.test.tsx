@@ -62,7 +62,7 @@ describe('Footer', () => {
     render(<Footer />);
     const links = screen.getAllByRole('link');
     links.forEach(link => {
-      expect(link).toHaveClass('hover:text-blue-600', 'transition-colors', 'block', 'py-0.5');
+      expect(link).toHaveClass('hover:text-brand-primary', 'transition-colors', 'block', 'py-0.5');
     });
   });
 
@@ -201,7 +201,7 @@ describe('Footer', () => {
     render(<Footer />);
     const links = screen.getAllByRole('link');
     links.forEach(link => {
-      expect(link).toHaveClass('hover:text-blue-600', 'transition-colors');
+      expect(link).toHaveClass('hover:text-brand-primary', 'transition-colors');
     });
   });
 });

@@ -402,7 +402,7 @@ describe('Comment', () => {
     // Should show the reply count button with white text
     const replyButton = screen.getByText(/3 replies/);
     expect(replyButton).toBeInTheDocument();
-    expect(replyButton).toHaveClass('text-gray-900', 'dark:text-white');
+    expect(replyButton).toHaveClass('text-neutral-900', 'dark:text-neutral-100');
   });
 
   it('should show singular "reply" when totalChildCommentCount is 1', () => {

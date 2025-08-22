@@ -137,10 +137,10 @@ describe('HomePage', () => {
     expect(ctaButton).toHaveClass(
       'px-8',
       'py-4',
-      'bg-green-600',
+      'bg-brand-secondary',
       'text-white',
       'rounded-lg',
-      'hover:bg-green-700'
+      'hover:bg-brand-secondary-dark'
     );
   });
 

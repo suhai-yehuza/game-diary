@@ -67,13 +67,17 @@ export function NavigationContainer({
           onClick={onMenuToggle}
           className={`md:block lg:hidden p-2 rounded-md transition-colors z-50 ${
             isMenuExpanded
-              ? 'fixed top-4 left-4 bg-white/90 border border-gray-300 shadow-lg'
+              ? 'fixed top-4 left-4 bg-neutral-50/90 border border-neutral-200 shadow-lg'
               : 'mr-4 relative'
-          } hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-400 dark:hover:bg-gray-800`}
+          } hover:bg-neutral-100 focus:outline-none focus:ring-2 focus:ring-brand-primary dark:hover:bg-neutral-800`}
           style={{ pointerEvents: 'auto' }}
           data-testid="mobile-menu-button"
         >
-          {isMenuExpanded ? <X className="h-7 w-7 text-gray-900" /> : <Menu className="h-5 w-5" />}
+          {isMenuExpanded ? (
+            <X className="h-7 w-7 text-neutral-900" />
+          ) : (
+            <Menu className="h-5 w-5" />
+          )}
         </button>
 
         {/* Desktop/Tablet Nav Links - always visible in header on lg+ */}

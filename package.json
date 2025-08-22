@@ -114,7 +114,7 @@
     "key:list": "tsx scripts/tests/key-management.ts list",
     "key:rotate": "tsx scripts/tests/key-management.ts rotate",
     "key:validate": "tsx scripts/tests/key-management.ts validate",
-    "lint": "pnpm exec eslint . --ext .ts,.tsx,.js,.jsx --max-warnings 2",
+    "lint": "pnpm exec eslint . --ext .ts,.tsx,.js,.jsx --max-warnings 0",
     "lint:fix": "pnpm exec eslint . --ext .ts,.tsx,.js,.jsx --fix",
     "lint:staged": "lint-staged",
     "mock:check": "./scripts/testing/mock-data-helper.sh check",

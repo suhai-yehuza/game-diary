@@ -180,25 +180,25 @@ describe('TeamSearchResult', () => {
       'items-center',
       'space-x-4',
       'p-4',
-      'bg-card',
+      'bg-neutral-50',
       'border',
       'rounded-lg',
-      'hover:bg-accent/50',
+      'hover:bg-neutral-100',
       'transition-colors',
       'cursor-pointer'
     );
   });
 
   it('displays building icon', () => {
-    const { container } = render(<TeamSearchResult team={mockTeam} />);
+    render(<TeamSearchResult team={mockTeam} />);
 
-    expect(container.querySelector('[data-testid="building2-icon"]')).toBeInTheDocument();
+    expect(screen.getByTestId('building-icon')).toBeInTheDocument();
   });
 
   it('displays map pin icon when location is available', () => {
-    const { container } = render(<TeamSearchResult team={mockTeam} />);
+    render(<TeamSearchResult team={mockTeam} />);
 
-    expect(container.querySelector('[data-testid="mappin-icon"]')).toBeInTheDocument();
+    expect(screen.getByTestId('mappin-icon')).toBeInTheDocument();
   });
 
   it('handles special characters in team names', () => {

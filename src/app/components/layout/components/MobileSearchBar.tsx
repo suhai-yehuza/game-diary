@@ -83,24 +83,24 @@ export function MobileSearchBar() {
       {!isExpanded && (
         <button
           onClick={() => setIsExpanded(true)}
-          className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+          className="flex items-center justify-center w-9 h-9 xs:w-10 xs:h-10 sm:w-11 sm:h-11 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors touch-manipulation"
           aria-label="Open search"
         >
-          <Search className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+          <Search className="w-4 h-4 xs:w-5 xs:h-5 sm:w-5 sm:h-5 text-gray-600 dark:text-gray-400" />
         </button>
       )}
 
       {/* Expanded Search Bar */}
       {isExpanded && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm">
-          <div className="flex items-center justify-center min-h-screen px-4">
-            <div className="w-full max-w-md">
+          <div className="flex items-center justify-center min-h-screen px-2 xs:px-3 sm:px-4 md:px-6">
+            <div className="w-full max-w-[calc(100vw-1rem)] xs:max-w-md sm:max-w-lg md:max-w-xl">
               <form onSubmit={handleSubmit} className="relative">
                 <div className="relative bg-white dark:bg-gray-800 rounded-2xl shadow-2xl">
                   {/* Search Input */}
-                  <div className="flex items-center px-4 py-3">
+                  <div className="flex items-center px-3 xs:px-4 sm:px-5 md:px-6 py-2.5 xs:py-3 sm:py-3.5 md:py-4">
                     {!searchQuery && (
-                      <Search className="w-5 h-5 text-gray-500 dark:text-gray-400 mr-3" />
+                      <Search className="w-4 h-4 xs:w-5 xs:h-5 sm:w-5 sm:h-5 text-gray-500 dark:text-gray-400 mr-2 xs:mr-3 sm:mr-3 md:mr-4" />
                     )}
                     <input
                       ref={inputRef}
@@ -108,7 +108,7 @@ export function MobileSearchBar() {
                       value={searchQuery}
                       onChange={handleInputChange}
                       placeholder="Search games, teams, players..."
-                      className={`flex-1 bg-transparent border-none outline-none text-base text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 ${searchQuery ? 'pl-0' : 'pl-0'}`}
+                      className={`flex-1 bg-transparent border-none outline-none text-sm xs:text-base sm:text-lg md:text-xl !text-neutral-900 dark:!text-white placeholder:text-neutral-500 dark:placeholder:text-neutral-400 ${searchQuery ? 'pl-0' : 'pl-0'}`}
                       autoComplete="off"
                       spellCheck="false"
                     />
@@ -125,21 +125,21 @@ export function MobileSearchBar() {
                   </div>
 
                   {/* Search Actions */}
-                  <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200 dark:border-gray-700">
+                  <div className="flex items-center justify-between px-3 xs:px-4 sm:px-5 md:px-6 py-2.5 xs:py-3 sm:py-3.5 md:py-4 border-t border-gray-200 dark:border-gray-700">
                     <button
                       type="button"
                       onClick={() => {
                         setIsExpanded(false);
                         setSearchQuery('');
                       }}
-                      className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
+                      className="text-sm xs:text-base sm:text-lg md:text-xl text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors touch-manipulation"
                     >
                       Cancel
                     </button>
                     <button
                       type="submit"
                       disabled={!searchQuery.trim()}
-                      className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-700 transition-colors"
+                      className="px-3 xs:px-4 sm:px-5 md:px-6 py-2 xs:py-2.5 sm:py-3 md:py-3.5 bg-blue-600 text-white rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-700 transition-colors text-sm xs:text-base sm:text-lg md:text-xl touch-manipulation"
                     >
                       Search
                     </button>

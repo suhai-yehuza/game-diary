@@ -183,10 +183,10 @@ describe('PlayerSearchResult', () => {
       'items-center',
       'space-x-4',
       'p-4',
-      'bg-card',
+      'bg-neutral-50',
       'border',
       'rounded-lg',
-      'hover:bg-accent/50',
+      'hover:bg-neutral-100',
       'transition-colors',
       'cursor-pointer'
     );

@@ -54,7 +54,7 @@ describe('GameLogsHeader', () => {
     render(<GameLogsHeader onCreateClick={onCreateClick} />);
 
     const title = screen.getByText('Game Logs');
-    expect(title).toHaveClass('font-bold', 'text-gray-900', 'dark:text-gray-100', 'text-2xl');
+    expect(title).toHaveClass('font-bold', 'text-neutral-900', 'dark:text-neutral-100', 'text-2xl');
   });
 
   it('applies correct CSS classes to the create button', () => {
@@ -76,8 +76,8 @@ describe('GameLogsHeader', () => {
       'flex',
       'items-center',
       'gap-2',
-      'bg-blue-600',
-      'hover:bg-blue-700',
+      'bg-brand-primary',
+      'hover:bg-brand-primary-dark',
       'text-white',
       'rounded-xl',
       'font-semibold',
@@ -85,7 +85,7 @@ describe('GameLogsHeader', () => {
       'hover:shadow-xl',
       'focus:outline-none',
       'focus:ring-2',
-      'focus:ring-blue-400',
+      'focus:ring-brand-primary',
       'transition-all',
       'duration-200',
       'px-6',

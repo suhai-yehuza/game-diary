@@ -107,10 +107,10 @@ export function Footer() {
   // Hydrated: Use inverted theme colors
   const isDark = resolvedTheme === 'dark';
   const bgClass = isDark
-    ? 'bg-white text-gray-900 border-gray-200'
-    : 'bg-gray-900 text-gray-100 border-gray-700';
-  const linkClass = `hover:text-blue-600 transition-colors block py-0.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded ${isDark ? 'text-gray-900' : 'text-gray-100'}`;
-  const mutedTextClass = isDark ? 'text-gray-500' : 'text-gray-400';
+    ? 'bg-neutral-50 text-neutral-900 border-neutral-200'
+    : 'bg-neutral-900 text-neutral-100 border-neutral-700';
+  const linkClass = `hover:text-brand-primary transition-colors block py-0.5 focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2 rounded ${isDark ? 'text-neutral-900' : 'text-neutral-100'}`;
+  const mutedTextClass = isDark ? 'text-neutral-500' : 'text-neutral-400';
 
   return (
     <footer data-testid="footer" className={`w-full border-t py-2 text-xs ${bgClass}`}>

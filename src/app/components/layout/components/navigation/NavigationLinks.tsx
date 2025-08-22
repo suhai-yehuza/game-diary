@@ -60,7 +60,7 @@ export function NavigationLinks({
         </NavItem>
       ))}
       {/* Divider */}
-      <div className="hidden lg:block h-6 w-px bg-gray-200 dark:bg-gray-700 mx-3" />
+      <div className="hidden lg:block h-6 w-px bg-neutral-200 dark:bg-neutral-700 mx-3" />
       {/* User Dashboard + Admin */}
       <NavItem
         href="/protected/user"

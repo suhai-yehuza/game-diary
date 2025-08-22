@@ -29,7 +29,7 @@ describe('GameLogsSort Extended Tests', () => {
       expect(container).toHaveClass('sm:flex-row', 'sm:items-center', 'sm:justify-between');
     });
 
-    it('renders all sort options on desktop', () => {
+    it('renders primary sort options on desktop', () => {
       render(<GameLogsSort sortKey="created_at" sortDirection="desc" onSort={mockOnSort} />);
 
       expect(screen.getByText('Date Created')).toBeInTheDocument();
@@ -37,17 +37,17 @@ describe('GameLogsSort Extended Tests', () => {
       expect(screen.getByText('Privacy')).toBeInTheDocument();
       expect(screen.getByText('Setting')).toBeInTheDocument();
       expect(screen.getByText('Scope')).toBeInTheDocument();
-      expect(screen.getByText('Game ID')).toBeInTheDocument();
-      expect(screen.getByText('Team')).toBeInTheDocument();
-      expect(screen.getByText('Owner')).toBeInTheDocument();
-      expect(screen.getByText('Tags')).toBeInTheDocument();
     });
 
     it('shows correct active sort option', () => {
       render(<GameLogsSort sortKey="rating_for_game" sortDirection="asc" onSort={mockOnSort} />);
 
       const ratingButton = screen.getByText('Rating').closest('button');
-      expect(ratingButton).toHaveClass('bg-blue-50', 'border-blue-200', 'text-blue-700');
+      expect(ratingButton).toHaveClass(
+        'bg-brand-primary/10',
+        'border-brand-primary/30',
+        'text-brand-primary'
+      );
     });
   });
 
@@ -64,7 +64,7 @@ describe('GameLogsSort Extended Tests', () => {
       expect(container).not.toHaveClass('sm:flex-row');
     });
 
-    it('renders all sort options on mobile', () => {
+    it('renders primary sort options on mobile', () => {
       render(<GameLogsSort sortKey="created_at" sortDirection="desc" onSort={mockOnSort} />);
 
       expect(screen.getByText('Date Created')).toBeInTheDocument();
@@ -72,10 +72,6 @@ describe('GameLogsSort Extended Tests', () => {
       expect(screen.getByText('Privacy')).toBeInTheDocument();
       expect(screen.getByText('Setting')).toBeInTheDocument();
       expect(screen.getByText('Scope')).toBeInTheDocument();
-      expect(screen.getByText('Game ID')).toBeInTheDocument();
-      expect(screen.getByText('Team')).toBeInTheDocument();
-      expect(screen.getByText('Owner')).toBeInTheDocument();
-      expect(screen.getByText('Tags')).toBeInTheDocument();
     });
   });
 
@@ -111,9 +107,10 @@ describe('GameLogsSort Extended Tests', () => {
       expect(mockOnSort).toHaveBeenCalledWith('classification', 'asc');
     });
 
-    it('calls onSort with team when Team is clicked', () => {
+    it('calls onSort with team when Team is clicked after expanding more options', () => {
       render(<GameLogsSort sortKey="created_at" sortDirection="desc" onSort={mockOnSort} />);
 
+      // Team should be visible by default now
       const teamOption = screen.getByText('Team');
       fireEvent.click(teamOption);
 
@@ -147,6 +144,7 @@ describe('GameLogsSort Extended Tests', () => {
     it('sets new sort key with asc direction when clicking different option', () => {
       render(<GameLogsSort sortKey="rating_for_game" sortDirection="desc" onSort={mockOnSort} />);
 
+      // Team should be visible by default now
       const teamOption = screen.getByText('Team');
       fireEvent.click(teamOption);
 
@@ -164,9 +162,9 @@ describe('GameLogsSort Extended Tests', () => {
 
       const ratingButton = screen.getByText('Rating').closest('button');
       expect(ratingButton).toHaveClass(
-        'bg-blue-50',
-        'border-blue-200',
-        'text-blue-700',
+        'bg-brand-primary/10',
+        'border-brand-primary/30',
+        'text-brand-primary',
         'shadow-md'
       );
     });
@@ -174,9 +172,14 @@ describe('GameLogsSort Extended Tests', () => {
     it('shows inactive styling for non-selected options', () => {
       render(<GameLogsSort sortKey="rating_for_game" sortDirection="asc" onSort={mockOnSort} />);
 
+      // Team should be visible by default now
       const teamButton = screen.getByText('Team').closest('button');
-      expect(teamButton).toHaveClass('bg-white', 'border-gray-300', 'text-gray-700');
-      expect(teamButton).not.toHaveClass('bg-blue-50', 'border-blue-200', 'text-blue-700');
+      expect(teamButton).toHaveClass('bg-neutral-50', 'border-neutral-200', 'text-neutral-700');
+      expect(teamButton).not.toHaveClass(
+        'bg-brand-primary/10',
+        'border-brand-primary/30',
+        'text-brand-primary'
+      );
     });
   });
 
@@ -257,6 +260,8 @@ describe('GameLogsSort Extended Tests', () => {
       render(<GameLogsSort sortKey="created_at" sortDirection="desc" onSort={mockOnSort} />);
 
       fireEvent.click(screen.getByText('Rating'));
+
+      // Team should be visible by default now
       fireEvent.click(screen.getByText('Team'));
       fireEvent.click(screen.getByText('Privacy'));
 
@@ -290,7 +295,7 @@ describe('GameLogsSort Extended Tests', () => {
       render(<GameLogsSort sortKey="created_at" sortDirection="desc" onSort={mockOnSort} />);
 
       const buttons = screen.getAllByRole('button');
-      expect(buttons.length).toBeGreaterThan(8); // 9 sort options + clear button
+      expect(buttons.length).toBeGreaterThan(3); // Primary sort options + More button + clear button
     });
 
     it('sort options are clickable', () => {
@@ -329,7 +334,8 @@ describe('GameLogsSort Extended Tests', () => {
       expect(screen.getByText('Date Created')).toBeInTheDocument();
       expect(screen.getByText('Rating')).toBeInTheDocument();
       expect(screen.getByText('Privacy')).toBeInTheDocument();
-      expect(screen.getByText('Team')).toBeInTheDocument();
+      expect(screen.getByText('Setting')).toBeInTheDocument();
+      expect(screen.getByText('Scope')).toBeInTheDocument();
     });
 
     it('handles empty sortKey gracefully', () => {

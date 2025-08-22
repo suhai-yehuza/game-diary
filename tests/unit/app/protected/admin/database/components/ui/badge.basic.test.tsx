@@ -25,14 +25,14 @@ describe('Badge', () => {
     render(<Badge>Default Badge</Badge>);
 
     const badge = screen.getByText('Default Badge');
-    expect(badge).toHaveClass('bg-primary', 'text-primary-foreground');
+    expect(badge).toHaveClass('bg-brand-primary', 'text-white');
   });
 
   it('renders with secondary variant', () => {
     render(<Badge variant="secondary">Secondary Badge</Badge>);
 
     const badge = screen.getByText('Secondary Badge');
-    expect(badge).toHaveClass('bg-secondary', 'text-secondary-foreground');
+    expect(badge).toHaveClass('bg-neutral-100', 'text-neutral-900');
   });
 
   it('renders with custom className', () => {
@@ -50,7 +50,7 @@ describe('Badge', () => {
     );
 
     const badge = screen.getByText('Combined Badge');
-    expect(badge).toHaveClass('bg-secondary', 'text-secondary-foreground', 'custom-class');
+    expect(badge).toHaveClass('bg-neutral-100', 'text-neutral-900', 'custom-class');
   });
 
   it('renders with complex children', () => {

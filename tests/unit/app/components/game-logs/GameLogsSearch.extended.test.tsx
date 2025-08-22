@@ -75,12 +75,10 @@ describe('GameLogsSearch Extended Tests', () => {
       render(<GameLogsSearch {...defaultProps} />);
 
       expect(screen.getByText('All Fields')).toBeInTheDocument();
-      expect(screen.getByText('Privacy')).toBeInTheDocument();
-      expect(screen.getByText('Setting')).toBeInTheDocument();
-      expect(screen.getByText('Scope')).toBeInTheDocument();
+      expect(screen.getByText('Team')).toBeInTheDocument();
       expect(screen.getByText('Notes')).toBeInTheDocument();
       expect(screen.getByText('Tags')).toBeInTheDocument();
-      expect(screen.getByText('Team')).toBeInTheDocument();
+      expect(screen.getByText('Privacy')).toBeInTheDocument();
     });
   });
 

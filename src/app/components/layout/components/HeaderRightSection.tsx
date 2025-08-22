@@ -45,7 +45,7 @@ export function HeaderRightSection({ isMenuExpanded }: IHeaderRightSectionProps)
 
         {/* Notification Bell - only show for authenticated users */}
         {user?.id && (
-          <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+          <div className="flex items-center justify-center w-10 h-10 rounded-full bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors">
             <NotificationBell />
           </div>
         )}
@@ -72,7 +72,7 @@ export function HeaderRightSection({ isMenuExpanded }: IHeaderRightSectionProps)
       </div>
 
       {/* Vertical Divider */}
-      <div className="hidden lg:block h-8 w-px bg-gray-200 dark:bg-gray-700 mx-4" />
+      <div className="hidden lg:block h-8 w-px bg-neutral-200 dark:bg-neutral-700 mx-4" />
 
       {/* Theme Toggle - hide on mobile when searchbar is focused or when space is limited */}
       {(!isMobile || (showSearch && !isFocused)) && <ThemeToggle />}

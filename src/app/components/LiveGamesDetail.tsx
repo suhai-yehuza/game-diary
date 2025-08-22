@@ -48,15 +48,19 @@ export function LiveGamesDetail({ data }: { data?: IGamesApiResponse } = {}) {
         {games.map(game => (
           <div
             key={game.id}
-            className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-700"
+            className="bg-neutral-50 dark:bg-neutral-800 rounded-lg shadow-md p-6 border border-neutral-200 dark:border-neutral-700"
           >
             {/* Game Status */}
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center space-x-2">
-                <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-                <span className="text-sm font-semibold text-red-600 dark:text-red-400">LIVE</span>
+                <div className="w-2 h-2 bg-semantic-error rounded-full animate-pulse" />
+                <span className="text-sm font-semibold text-semantic-error dark:text-semantic-error">
+                  LIVE
+                </span>
               </div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">{game.status.long}</div>
+              <div className="text-sm text-neutral-600 dark:text-neutral-400">
+                {game.status.long}
+              </div>
             </div>
 
             {/* Teams and Scores */}
@@ -76,7 +80,7 @@ export function LiveGamesDetail({ data }: { data?: IGamesApiResponse } = {}) {
                   </div>
                   <div>
                     <div className="font-semibold">{game.teams.visitors.name}</div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                    <div className="text-sm text-neutral-600 dark:text-neutral-400">
                       {game.teams.visitors.nickname}
                     </div>
                   </div>
@@ -85,7 +89,7 @@ export function LiveGamesDetail({ data }: { data?: IGamesApiResponse } = {}) {
               </div>
 
               {/* VS */}
-              <div className="text-center text-gray-500 text-sm">VS</div>
+              <div className="text-center text-neutral-500 text-sm">VS</div>
 
               {/* Home Team */}
               <div className="flex items-center justify-between">
@@ -102,7 +106,7 @@ export function LiveGamesDetail({ data }: { data?: IGamesApiResponse } = {}) {
                   </div>
                   <div>
                     <div className="font-semibold">{game.teams.home.name}</div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                    <div className="text-sm text-neutral-600 dark:text-neutral-400">
                       {game.teams.home.nickname}
                     </div>
                   </div>
@@ -112,22 +116,22 @@ export function LiveGamesDetail({ data }: { data?: IGamesApiResponse } = {}) {
             </div>
 
             {/* Game Details */}
-            <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+            <div className="mt-4 pt-4 border-t border-neutral-200 dark:border-neutral-700">
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
-                  <span className="text-gray-600 dark:text-gray-400">Arena:</span>
+                  <span className="text-neutral-600 dark:text-neutral-400">Arena:</span>
                   <div className="font-medium">{game.arena.name}</div>
-                  <div className="text-gray-600 dark:text-gray-400">
+                  <div className="text-neutral-600 dark:text-neutral-400">
                     {game.arena.city}, {game.arena.state}
                   </div>
                 </div>
                 <div>
-                  <span className="text-gray-600 dark:text-gray-400">Period:</span>
+                  <span className="text-neutral-600 dark:text-neutral-400">Period:</span>
                   <div className="font-medium">
                     {game.periods.current} of {game.periods.total}
                   </div>
                   {game.status.clock && (
-                    <div className="text-gray-600 dark:text-gray-400">
+                    <div className="text-neutral-600 dark:text-neutral-400">
                       Time: {game.status.clock}
                     </div>
                   )}
@@ -135,7 +139,9 @@ export function LiveGamesDetail({ data }: { data?: IGamesApiResponse } = {}) {
               </div>
 
               {game.nugget && (
-                <div className="mt-2 text-xs text-blue-600 dark:text-blue-400">{game.nugget}</div>
+                <div className="mt-2 text-xs text-brand-primary dark:text-brand-primary">
+                  {game.nugget}
+                </div>
               )}
             </div>
           </div>

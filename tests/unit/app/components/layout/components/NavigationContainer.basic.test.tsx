@@ -118,9 +118,9 @@ describe('NavigationContainer', () => {
         'fixed',
         'top-4',
         'left-4',
-        'bg-white/90',
+        'bg-neutral-50/90',
         'border',
-        'border-gray-300',
+        'border-neutral-200',
         'shadow-lg'
       );
     });

@@ -6,6 +6,25 @@ import { Header } from '@/app/components/layout/Header';
 import { MenuProvider } from '@/app/components/providers/MenuContext';
 import { NotificationProvider } from '@/app/components/providers/NotificationProvider';
 
+// Mock lucide-react icons
+vi.mock('lucide-react', () => ({
+  Search: () => <span data-testid="search-icon">Search</span>,
+  X: () => <span data-testid="x-icon">X</span>,
+  Clock: () => <span data-testid="clock-icon">Clock</span>,
+  TrendingUp: () => <span data-testid="trending-up-icon">TrendingUp</span>,
+  User: () => <span data-testid="user-icon">User</span>,
+  Trophy: () => <span data-testid="trophy-icon">Trophy</span>,
+  Gamepad2: () => <span data-testid="gamepad2-icon">Gamepad2</span>,
+  Building2: () => <span data-testid="building2-icon">Building2</span>,
+  Menu: () => <span data-testid="menu-icon">Menu</span>,
+  Home: () => <span data-testid="home-icon">Home</span>,
+  BarChart3: () => <span data-testid="barchart3-icon">BarChart3</span>,
+  Moon: () => <span data-testid="moon-icon">Moon</span>,
+  Sun: () => <span data-testid="sun-icon">Sun</span>,
+  Monitor: () => <span data-testid="monitor-icon">Monitor</span>,
+  Hash: () => <span data-testid="hash-icon">Hash</span>,
+}));
+
 vi.mock('next/navigation', () => ({
   usePathname: () => '/',
   useRouter: () => ({ push: vi.fn() }),
