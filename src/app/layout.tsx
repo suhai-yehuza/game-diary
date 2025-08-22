@@ -16,8 +16,84 @@ import '@/styles/globals.css';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata = {
-  title: 'Game Diary',
-  description: 'Track your gaming watching experience',
+  title: {
+    default: 'Game Diary - Track Your Sports Watching Experience',
+    template: '%s | Game Diary',
+  },
+  description:
+    'Track your gaming watching experiences, connect with fellow sports fans, and share your thoughts on live games across NBA, NFL, MLB, NHL, and MLS.',
+  keywords: [
+    'sports',
+    'game diary',
+    'basketball',
+    'football',
+    'baseball',
+    'hockey',
+    'soccer',
+    'live games',
+    'sports tracking',
+    'fan community',
+  ],
+  authors: [{ name: 'Game Diary Team' }],
+  creator: 'Game Diary',
+  publisher: 'Game Diary',
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://gamediary.app'),
+  alternates: {
+    canonical: '/',
+  },
+  openGraph: {
+    type: 'website',
+    locale: 'en_US',
+    url: '/',
+    title: 'Game Diary - Track Your Sports Watching Experience',
+    description:
+      'Track your gaming watching experiences, connect with fellow sports fans, and share your thoughts on live games across NBA, NFL, MLB, NHL, and MLS.',
+    siteName: 'Game Diary',
+    images: [
+      {
+        url: '/logos/gamelog-large.svg',
+        width: 1200,
+        height: 630,
+        alt: 'Game Diary Logo',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Game Diary - Track Your Sports Watching Experience',
+    description:
+      'Track your gaming watching experiences, connect with fellow sports fans, and share your thoughts on live games.',
+    images: ['/logos/gamelog-large.svg'],
+    creator: '@gamediary',
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
+  verification: {
+    google: process.env.GOOGLE_SITE_VERIFICATION,
+  },
+  manifest: '/manifest.json',
+  other: {
+    'apple-mobile-web-app-capable': 'yes',
+    'apple-mobile-web-app-status-bar-style': 'default',
+    'apple-mobile-web-app-title': 'Game Diary',
+    'mobile-web-app-capable': 'yes',
+    'msapplication-TileColor': '#1e40af',
+    'msapplication-config': '/browserconfig.xml',
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -32,6 +108,55 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         {/* Theme initialization script - runs before hydration to prevent flashing */}
         <Script id="theme-init" strategy="beforeInteractive" src="/scripts/theme-init.js" />
+
+        {/* Structured Data for SEO */}
+        <script
+          type="application/ld+json"
+          // eslint-disable-next-line react/no-danger
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'WebSite',
+              name: 'Game Diary',
+              description:
+                'Track your gaming watching experiences, connect with fellow sports fans, and share your thoughts on live games across NBA, NFL, MLB, NHL, and MLS.',
+              url: process.env.NEXT_PUBLIC_APP_URL || 'https://gamediary.app',
+              potentialAction: {
+                '@type': 'SearchAction',
+                target: {
+                  '@type': 'EntryPoint',
+                  urlTemplate: `${process.env.NEXT_PUBLIC_APP_URL || 'https://gamediary.app'}/search?q={search_term_string}`,
+                },
+                'query-input': 'required name=search_term_string',
+              },
+              publisher: {
+                '@type': 'Organization',
+                name: 'Game Diary',
+                logo: {
+                  '@type': 'ImageObject',
+                  url: `${process.env.NEXT_PUBLIC_APP_URL || 'https://gamediary.app'}/logos/gamelog-large.svg`,
+                },
+              },
+            }),
+          }}
+        />
+
+        {/* Additional structured data for sports content */}
+        <script
+          type="application/ld+json"
+          // eslint-disable-next-line react/no-danger
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'SportsOrganization',
+              name: 'Game Diary Sports Community',
+              description:
+                'A community platform for sports fans to track and share their game watching experiences',
+              sport: ['Basketball', 'Football', 'Baseball', 'Hockey', 'Soccer'],
+              url: process.env.NEXT_PUBLIC_APP_URL || 'https://gamediary.app',
+            }),
+          }}
+        />
       </head>
       <body className={`flex min-h-screen flex-col ${inter.className}`}>
         {/* Skip to main content link for accessibility */}

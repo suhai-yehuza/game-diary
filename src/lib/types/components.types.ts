@@ -95,6 +95,15 @@ export interface IMobileMenuButtonProps {
 // COMMON COMPONENT TYPES
 // ========================================
 
+export interface ILoadingSpinnerProps {
+  ariaLabel?: string;
+  color?: 'primary' | 'secondary' | 'muted' | 'white';
+  size?: 'sm' | 'md' | 'lg' | 'xl';
+  className?: string;
+  text?: string;
+  variant?: 'default' | 'primary' | 'secondary';
+}
+
 export interface IErrorDisplayProps {
   error: string | Error | null | undefined;
   title?: string;
@@ -102,13 +111,6 @@ export interface IErrorDisplayProps {
   variant?: 'default' | 'danger' | 'warning';
   className?: string;
   showRetry?: boolean;
-}
-
-export interface ILoadingSpinnerProps {
-  size?: 'sm' | 'md' | 'lg' | 'xl';
-  text?: string;
-  className?: string;
-  variant?: 'default' | 'primary' | 'secondary';
 }
 
 export interface IEmptyStateProps {

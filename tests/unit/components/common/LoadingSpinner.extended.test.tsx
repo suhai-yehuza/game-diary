@@ -16,7 +16,8 @@ describe('LoadingSpinner convenience components', () => {
 
   it('renders PageLoadingSpinner with default text', () => {
     render(<PageLoadingSpinner />);
-    expect(screen.getByText('Loading...')).toBeInTheDocument();
+    const loadingTexts = screen.getAllByText('Loading...');
+    expect(loadingTexts).toHaveLength(2); // One in sr-only span, one in p element
   });
 
   it('renders CardLoadingSpinner with custom text', () => {

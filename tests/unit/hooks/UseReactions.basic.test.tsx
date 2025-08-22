@@ -660,7 +660,8 @@ describe('Reactions Hooks', () => {
     it('should handle large reaction counts for child comments', () => {
       // Create mock data with over 1500 reactions for multiple types
       const mockReactions = [];
-      const reactionTypes = ['👍', '❤️', '🔥', '👏', '🎉'];
+      // Use only 5 specific emoji types to test the 1.5k threshold
+      const reactionTypes = ['👍', '❤️', '🔥', '👏', '🚀'];
 
       // Add 8000 reactions total (1600 of each type - well above 1.5k for each)
       for (let i = 0; i < 8000; i++) {
@@ -720,9 +721,9 @@ describe('Reactions Hooks', () => {
       expect(clapGroup?.count).toBe(1600);
       expect(clapGroup?.count).toBeGreaterThanOrEqual(1500);
 
-      const partyGroup = result.current.groupedReactions.find(g => g.emoji === '🎉');
-      expect(partyGroup?.count).toBe(1600);
-      expect(partyGroup?.count).toBeGreaterThanOrEqual(1500);
+      const rocketGroup = result.current.groupedReactions.find(g => g.emoji === '🚀');
+      expect(rocketGroup?.count).toBe(1600);
+      expect(rocketGroup?.count).toBeGreaterThanOrEqual(1500);
     });
   });
 
